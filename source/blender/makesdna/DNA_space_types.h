@@ -524,7 +524,8 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_STRETCH	1<<21
 
 /* SpaceIpo->flag */
-#define SIPO_LOCK_VIEW	1<<0
+#define SIPO_LOCK_VIEW			1<<0
+#define SIPO_NOTRANSKEYCULL		1<<1
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
@@ -558,6 +559,7 @@ typedef struct SpaceImaSel {
 #define OOPS_IM		4096
 #define OOPS_AR		8192
 #define OOPS_GR		16384
+#define OOPS_CA		32768
 
 /* SpaceOops->outlinevis */
 #define SO_ALL_SCENES	0
@@ -616,6 +618,7 @@ typedef struct SpaceImaSel {
 #define SNLA_ALLKEYED		1
 #define SNLA_ACTIVELAYERS	2
 #define SNLA_DRAWTIME		4
+#define SNLA_NOTRANSKEYCULL	8
 
 /* time->flag */
 	/* show timing in frames instead of in seconds */

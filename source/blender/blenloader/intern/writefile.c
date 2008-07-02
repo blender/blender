@@ -664,6 +664,7 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 
 		switch(act->type) {
 		case ACT_ACTION:
+		case ACT_SHAPEACTION:
 			writestruct(wd, DATA, "bActionActuator", 1, act->data);
 			break;
 		case ACT_SOUND:
@@ -713,6 +714,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 			break;
 		case ACT_PARENT:
 			writestruct(wd, DATA, "bParentActuator", 1, act->data);
+			break;
+		case ACT_STATE:
+			writestruct(wd, DATA, "bStateActuator", 1, act->data);
 			break;
 		default:
 			; /* error: don't know how to write this file */
@@ -1531,6 +1535,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if (sce->r.qtcodecdata) {
 			writestruct(wd, DATA, "QuicktimeCodecData", 1, sce->r.qtcodecdata);
 			if (sce->r.qtcodecdata->cdParms) writedata(wd, DATA, sce->r.qtcodecdata->cdSize, sce->r.qtcodecdata->cdParms);
+		}
+		if (sce->r.ffcodecdata.properties) {
+			IDP_WriteProperty(sce->r.ffcodecdata.properties, wd);
 		}
 
 		/* writing dynamic list of TimeMarkers to the blend file */

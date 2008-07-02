@@ -57,6 +57,8 @@ import Blender
 from Blender import Object, Lamp, Draw, Image, Text, sys, Mesh
 from Blender.Scene import Render
 import math
+import BPyObject
+import BPyMesh
 
 # 
 DEG2RAD=0.017453292519943295
@@ -68,14 +70,14 @@ MATWORLD= Blender.Mathutils.RotationMatrix(-90, 4, 'x')
 
 filename = Blender.Get('filename')
 _safeOverwrite = True
-ARG=''
+
 extension = ''
 
 ##########################################################
 # Functions for writing output file
 ##########################################################
 
-class VRML2Export:
+class x3d_class:
 
 	def __init__(self, filename):
 		#--- public you can change these ---
@@ -101,7 +103,18 @@ class VRML2Export:
 		self.meshNames={}   # dictionary of meshNames
 		self.indentLevel=0 # keeps track of current indenting
 		self.filename=filename
-		self.file = open(filename, "w")
+		self.file = None
+		if filename.lower().endswith('.x3dz'):
+			try:
+				import gzip
+				self.file = gzip.open(filename, "w")				
+			except:
+				print "failed to import compression modules, exporting uncompressed"
+				self.filename = filename[:-1] # remove trailing z
+		
+		if self.file == None:
+			self.file = open(self.filename, "w")
+
 		self.bNav=0
 		self.nodeID=0
 		self.namesReserved=[ "Anchor","Appearance","Arc2D","ArcClose2D","AudioClip","Background","Billboard",
@@ -169,7 +182,7 @@ class VRML2Export:
 					nameinline = nameinline+".x3d"
 					self.file.write("url=\"%s\" />" % nameinline)
 					self.file.write("\n\n")
-	'''
+
 	
 	def writeScript(self):
 		textEditor = Blender.Text.Get() 
@@ -190,15 +203,17 @@ class VRML2Export:
 					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 		self.writeIndented("\n")
-
-	def writeViewpoint(self, ob, scene):
+	'''
+	
+	def writeViewpoint(self, ob, mat, scene):
 		context = scene.render
 		ratio = float(context.imageSizeY())/float(context.imageSizeX())
 		lens = (360* (math.atan(ratio *16 / ob.data.getLens()) / math.pi))*(math.pi/180)
 		lens = min(lens, math.pi) 
 		
 		# get the camera location, subtract 90 degress from X to orient like X3D does
-		mat = ob.matrixWorld
+		# mat = ob.matrixWorld - mat is now passed!
+		
 		loc = self.rotatePointForVRML(mat.translationPart())
 		rot = mat.toEuler()
 		rot = (((rot[0]-90)*DEG2RAD), rot[1]*DEG2RAD, rot[2]*DEG2RAD)
@@ -229,23 +244,11 @@ class VRML2Export:
 			self.file.write("visibilityRange=\"%s\" />\n\n" % round(mparam[2],self.cp))
 		else:
 			return
-	'''
+	
 	def writeNavigationInfo(self, scene):
-		allObj = []
-		allObj = list(scene.objects)
-		headlight = "true"
-		vislimit = 0.0
-		for ob in allObj:
-			objType=ob.type
-			if objType == "Camera":
-				vislimit = ob.data.clipEnd
-			elif objType == "Lamp":
-				headlight = "false"
-		self.file.write("<NavigationInfo headlight=\"%s\" " % headlight)
-		self.file.write("visibilityLimit=\"%s\" " % (round(vislimit,self.cp)))
-		self.file.write("type=\"EXAMINE\", \"ANY\" avatarSize=\"0.25, 1.75, 0.75\" />\n\n")
-	'''
-	def writeSpotLight(self, ob, lamp, world):
+		self.file.write('<NavigationInfo headlight="FALSE" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n')
+	
+	def writeSpotLight(self, ob, mtx, lamp, world):
 		safeName = self.cleanStr(ob.name)
 		if world:
 			ambi = world.amb
@@ -259,12 +262,14 @@ class VRML2Export:
 		beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
 		cutOffAngle=beamWidth*1.3
 
-		dx,dy,dz=self.computeDirection(ob)
+		dx,dy,dz=self.computeDirection(mtx)
 		# note -dx seems to equal om[3][0]
 		# note -dz seems to equal om[3][1]
 		# note  dy seems to equal om[3][2]
 
-		location=(ob.matrixWorld*MATWORLD).translationPart()
+		#location=(ob.matrixWorld*MATWORLD).translationPart() # now passed
+		location=(mtx*MATWORLD).translationPart()
+		
 		radius = lamp.dist*math.cos(beamWidth)
 		self.file.write("<SpotLight DEF=\"%s\" " % safeName)
 		self.file.write("radius=\"%s\" " % (round(radius,self.cp)))
@@ -277,7 +282,7 @@ class VRML2Export:
 		self.file.write("location=\"%s %s %s\" />\n\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
 		
 		
-	def writeDirectionalLight(self, ob, lamp, world):
+	def writeDirectionalLight(self, ob, mtx, lamp, world):
 		safeName = self.cleanStr(ob.name)
 		if world:
 			ambi = world.amb
@@ -287,14 +292,14 @@ class VRML2Export:
 			ambientIntensity = 0
 
 		intensity=min(lamp.energy/1.75,1.0) 
-		(dx,dy,dz)=self.computeDirection(ob)
+		(dx,dy,dz)=self.computeDirection(mtx)
 		self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
 		self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
 		self.file.write("color=\"%s %s %s\" " % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
 		self.file.write("intensity=\"%s\" " % (round(intensity,self.cp)))
 		self.file.write("direction=\"%s %s %s\" />\n\n" % (round(dx,4),round(dy,4),round(dz,4)))
 
-	def writePointLight(self, ob, lamp, world):
+	def writePointLight(self, ob, mtx, lamp, world):
 		safeName = self.cleanStr(ob.name)
 		if world:
 			ambi = world.amb
@@ -303,29 +308,30 @@ class VRML2Export:
 			ambi = 0
 			ambientIntensity = 0
 		
-		location=(ob.matrixWorld*MATWORLD).translationPart()
-		intensity=min(lamp.energy/1.75,1.0) 
-		radius = lamp.dist
+		# location=(ob.matrixWorld*MATWORLD).translationPart() # now passed
+		location= (mtx*MATWORLD).translationPart()
+		
 		self.file.write("<PointLight DEF=\"%s\" " % safeName)
 		self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
 		self.file.write("color=\"%s %s %s\" " % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
-		self.file.write("intensity=\"%s\" " % (round(intensity,self.cp)))
-		self.file.write("radius=\"%s\" " % radius )
+		self.file.write("intensity=\"%s\" " % (round( min(lamp.energy/1.75,1.0) ,self.cp)))
+		self.file.write("radius=\"%s\" " % lamp.dist )
 		self.file.write("location=\"%s %s %s\" />\n\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
-
-	def writeNode(self, ob):
+	'''
+	def writeNode(self, ob, mtx):
 		obname=str(ob.name)
 		if obname in self.namesStandard:
 			return
 		else:
-			dx,dy,dz = self.computeDirection(ob)
-			location=(ob.matrixWorld*MATWORLD).translationPart()
+			dx,dy,dz = self.computeDirection(mtx)
+			# location=(ob.matrixWorld*MATWORLD).translationPart()
+			location=(mtx*MATWORLD).translationPart()
 			self.writeIndented("<%s\n" % obname,1)
-			self.writeIndented("# direction %s %s %s\n" % (round(dx,3),round(dy,3),round(dz,3)))
-			self.writeIndented("# location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
+			self.writeIndented("direction=\"%s %s %s\"\n" % (round(dx,3),round(dy,3),round(dz,3)))
+			self.writeIndented("location=\"%s %s %s\"\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
 			self.writeIndented("/>\n",-1)
 			self.writeIndented("\n")
-
+	'''
 	def secureName(self, name):
 		name = name + str(self.nodeID)
 		self.nodeID=self.nodeID+1
@@ -345,13 +351,13 @@ class VRML2Export:
 				newname = name
 				return "%s" % (newname)
 
-	def writeIndexedFaceSet(self, ob, world, normals = 0):
+	def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI = False):
 		imageMap={}   # set of used images
 		sided={}	  # 'one':cnt , 'two':cnt
 		vColors={}	# 'multi':1
 		meshName = self.cleanStr(ob.name)
-		mesh=ob.getData(mesh=1)
-		meshME = self.cleanStr(mesh.name)
+		
+		meshME = self.cleanStr(ob.getData(mesh=1).name) # We dont care if its the mesh name or not
 		if len(mesh.faces) == 0: return
 		mode = 0
 		if mesh.faceUV:
@@ -371,7 +377,7 @@ class VRML2Export:
 		elif not mode & Mesh.FaceModes.DYNAMIC and self.collnode == 0:
 			self.writeIndented("<Collision enabled=\"false\">\n",1)
 			self.collnode = 1
-
+		
 		nIFSCnt=self.countIFSSetsNeeded(mesh, imageMap, sided, vColors)
 		
 		if nIFSCnt > 1:
@@ -382,7 +388,8 @@ class VRML2Export:
 		else:
 			bTwoSided=0
 
-		mtx = ob.matrixWorld * MATWORLD
+		# mtx = ob.matrixWorld * MATWORLD # mtx is now passed
+		mtx = mtx * MATWORLD
 		
 		loc= mtx.translationPart()
 		sca= mtx.scalePart()
@@ -456,12 +463,12 @@ class VRML2Export:
 				elif hasImageTexture == 1:
 					self.writeTextureCoordinates(mesh)
 			#--- output coordinates
-			self.writeCoordinates(ob, mesh, meshName)
+			self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
 
 			self.writingcoords = 1
 			self.writingtexture = 1
 			self.writingcolor = 1
-			self.writeCoordinates(ob, mesh, meshName)
+			self.writeCoordinates(ob, mesh, meshName, EXPORT_TRI)
 			
 			#--- output textureCoordinates if UV texture used
 			if mesh.faceUV:
@@ -498,17 +505,23 @@ class VRML2Export:
 
 		self.file.write("\n")
 
-	def writeCoordinates(self, ob, mesh, meshName):
+	def writeCoordinates(self, ob, mesh, meshName, EXPORT_TRI = False):
 		# create vertex list and pre rotate -90 degrees X for VRML
 		
 		if self.writingcoords == 0:
 			self.file.write('coordIndex="')
 			for face in mesh.faces:
 				fv = face.v
-				if len(face)==4:
-					self.file.write("%i %i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index, fv[3].index))
+				
+				if len(face)==3:
+						self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
 				else:
-					self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
+					if EXPORT_TRI:
+						self.file.write("%i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index))
+						self.file.write("%i %i %i -1, " % (fv[0].index, fv[2].index, fv[3].index))
+					else:
+						self.file.write("%i %i %i %i -1, " % (fv[0].index, fv[1].index, fv[2].index, fv[3].index))
+			
 			self.file.write("\">\n")
 		else:
 			#-- vertices
@@ -679,43 +692,74 @@ class VRML2Export:
 # export routine
 ##########################################################
 
-	def export(self, scene, world, alltextures):
+	def export(self, scene, world, alltextures,\
+			EXPORT_APPLY_MODIFIERS = False,\
+			EXPORT_TRI=				False,\
+		):
+		
 		print "Info: starting X3D export to " + self.filename + "..."
 		self.writeHeader()
-		self.writeScript()
-		# self.writeNavigationInfo(scene) # This seems to position me in some strange area I cant see the model (with BS Contact) - Campbell
+		# self.writeScript()
+		self.writeNavigationInfo(scene)
 		self.writeBackground(world, alltextures)
 		self.writeFog(world)
 		self.proto = 0
 		
-		for ob in scene.objects.context:
-			objType=ob.type
-			objName=ob.name
-			self.matonly = 0
-			if objType == "Camera":
-				self.writeViewpoint(ob, scene)
-			elif objType == "Mesh":
-				self.writeIndexedFaceSet(ob, world, normals = 0)
-			elif objType == "Lamp":
-				data= ob.data
-				datatype=data.type
-				if datatype == Lamp.Types.Lamp:
-					self.writePointLight(ob, data, world)
-				elif datatype == Lamp.Types.Spot:
-					self.writeSpotLight(ob, data, world)
-				elif datatype == Lamp.Types.Sun:
-					self.writeDirectionalLight(ob, data, world)
-				else:
-					self.writeDirectionalLight(ob, data, world)
-			elif objType == "Empty" and objName != "Empty":
-				self.writeNode(ob)
-			else:
-				#print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType)
-				print ""
 		
-		if ARG != 'selected':
-			self.writeScript()
+		# COPIED FROM OBJ EXPORTER
+		if EXPORT_APPLY_MODIFIERS:
+			temp_mesh_name = '~tmp-mesh'
+		
+			# Get the container mesh. - used for applying modifiers and non mesh objects.
+			containerMesh = meshName = tempMesh = None
+			for meshName in Blender.NMesh.GetNames():
+				if meshName.startswith(temp_mesh_name):
+					tempMesh = Mesh.Get(meshName)
+					if not tempMesh.users:
+						containerMesh = tempMesh
+			if not containerMesh:
+				containerMesh = Mesh.New(temp_mesh_name)
+		# -------------------------- 
+		
+		
+		for ob_main in scene.objects.context:
+			for ob, ob_mat in BPyObject.getDerivedObjects(ob_main):
+				objType=ob.type
+				objName=ob.name
+				self.matonly = 0
+				if objType == "Camera":
+					self.writeViewpoint(ob, ob_mat, scene)
+				elif objType in ("Mesh", "Curve", "Surf", "Text") :
+					if  EXPORT_APPLY_MODIFIERS or objType != 'Mesh':
+						me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, False, scene)
+					else:
+						me = ob.getData(mesh=1)
+					
+					self.writeIndexedFaceSet(ob, me, ob_mat, world, EXPORT_TRI = EXPORT_TRI)
+				elif objType == "Lamp":
+					data= ob.data
+					datatype=data.type
+					if datatype == Lamp.Types.Lamp:
+						self.writePointLight(ob, ob_mat, data, world)
+					elif datatype == Lamp.Types.Spot:
+						self.writeSpotLight(ob, ob_mat, data, world)
+					elif datatype == Lamp.Types.Sun:
+						self.writeDirectionalLight(ob, ob_mat, data, world)
+					else:
+						self.writeDirectionalLight(ob, ob_mat, data, world)
+				# do you think x3d could document what to do with dummy objects?
+				#elif objType == "Empty" and objName != "Empty":
+				#	self.writeNode(ob, ob_mat)
+				else:
+					#print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType)
+					pass
+		
 		self.file.write("\n</Scene>\n</X3D>")
+		
+		if EXPORT_APPLY_MODIFIERS:
+			if containerMesh:
+				containerMesh.verts = None
+		
 		self.cleanup()
 		
 ##########################################################
@@ -837,10 +881,10 @@ class VRML2Export:
 			round(c.b/255.0,self.cp))
 		return s
 
-	def computeDirection(self, ob):
+	def computeDirection(self, mtx):
 		x,y,z=(0,-1.0,0) # point down
 		
-		ax,ay,az = (ob.matrixWorld*MATWORLD).toEuler()
+		ax,ay,az = (mtx*MATWORLD).toEuler()
 		
 		ax *= DEG2RAD
 		ay *= DEG2RAD
@@ -931,7 +975,36 @@ class VRML2Export:
 # Callbacks, needed before Main
 ##########################################################
 
-def select_file(filename):
+def x3d_export(filename, \
+		EXPORT_APPLY_MODIFIERS=	False,\
+		EXPORT_TRI=				False,\
+		EXPORT_GZIP=			False,\
+	):
+	
+	if EXPORT_GZIP:
+		if not filename.lower().endswith('.x3dz'):
+			filename = '.'.join(filename.split('.')[:-1]) + '.x3dz'
+	else:
+		if not filename.lower().endswith('.x3d'):
+			filename = '.'.join(filename.split('.')[:-1]) + '.x3d'
+	
+	
+	scene = Blender.Scene.GetCurrent()
+	world = scene.world
+	alltextures = Blender.Texture.Get()
+
+	wrlexport=x3d_class(filename)
+	wrlexport.export(\
+		scene,\
+		world,\
+		alltextures,\
+		\
+		EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS,\
+		EXPORT_TRI = EXPORT_TRI,\
+		)
+
+
+def x3d_export_ui(filename):
 	if not filename.endswith(extension):
 		filename += extension
 	#if _safeOverwrite and sys.exists(filename):
@@ -939,18 +1012,40 @@ def select_file(filename):
 	#if(result != 1):
 	#	return
 	
-	scene = Blender.Scene.GetCurrent()
-	world = scene.world
-	alltextures = Blender.Texture.Get()
+	# Get user options
+	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
+	EXPORT_TRI = Draw.Create(0)
+	EXPORT_GZIP = Draw.Create( filename.lower().endswith('.x3dz') )
+	
+	# Get USER Options
+	pup_block = [\
+	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object.'),\
+	('Triangulate', EXPORT_TRI, 'Triangulate quads.'),\
+	('Compress', EXPORT_GZIP, 'GZip the resulting file, requires a full python install'),\
+	]
 
-	wrlexport=VRML2Export(filename)
-	wrlexport.export(scene, world, alltextures)
+	if not Draw.PupBlock('Export...', pup_block):
+		return
+
+	Blender.Window.EditMode(0)
+	Blender.Window.WaitCursor(1)
+	
+	x3d_export(filename,\
+		EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val,\
+		EXPORT_TRI = EXPORT_TRI.val,\
+		EXPORT_GZIP = EXPORT_GZIP.val\
+	)
+	
+	Blender.Window.WaitCursor(0)
+
 
 
 #########################################################
 # main routine
 #########################################################
 
+
 if __name__ == '__main__':
-	Blender.Window.FileSelector(select_file,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
-	# select_file('/shared/bed1.x3d')
+	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
+
+

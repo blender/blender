@@ -1241,7 +1241,8 @@ void CustomData_em_copy_data(const CustomData *source, CustomData *dest,
 		if(dest_i >= dest->totlayer) return;
 
 		/* if we found a matching layer, copy the data */
-		if(dest->layers[dest_i].type == source->layers[src_i].type) {
+		if(dest->layers[dest_i].type == source->layers[src_i].type &&
+			strcmp(dest->layers[dest_i].name, source->layers[src_i].name) == 0) {
 			char *src_data = (char*)src_block + source->layers[src_i].offset;
 			char *dest_data = (char*)*dest_block + dest->layers[dest_i].offset;
 
@@ -1277,7 +1278,7 @@ void *CustomData_em_get_n(const CustomData *data, void *block, int type, int n)
 	int layer_index;
 	
 	/* get the layer index of the first layer of type */
-	layer_index = CustomData_get_active_layer_index(data, type);
+	layer_index = CustomData_get_layer_index(data, type);
 	if(layer_index < 0) return NULL;
 
 	return (char *)block + data->layers[layer_index+n].offset;

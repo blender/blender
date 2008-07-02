@@ -177,6 +177,9 @@ void RE_DataBase_ApplyWindow(struct Render *re);
 /* override the scene setting for amount threads, commandline */
 void RE_set_max_threads(int threads);
 
+/* set the render threads based on the commandline and autothreads setting */
+void RE_init_threadcount(Render *re);
+
 /* the main processor, assumes all was set OK! */
 void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
 
@@ -217,6 +220,8 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 #define RE_BAKE_NORMALS			3
 #define RE_BAKE_TEXTURE			4
 #define RE_BAKE_DISPLACEMENT	5
+#define RE_BAKE_SHADOW			6
+
 void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);

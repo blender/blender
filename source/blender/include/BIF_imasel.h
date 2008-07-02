@@ -34,6 +34,7 @@ struct ScrArea;
 struct ID;
 
 void free_imasel(struct SpaceImaSel *simasel);
+void reset_imaselspace(struct ScrArea *sa);
 
 void clever_numbuts_imasel(void);
 

@@ -187,11 +187,10 @@ void usage(char* program)
 	printf("       show_framerate     0         Show the frame rate\n");
 	printf("       show_properties    0         Show debug properties\n");
 	printf("       show_profile       0         Show profiling information\n");
-	printf("       vertexarrays       1         Enable vertex arrays\n");
 	printf("       blender_material   0         Enable material settings\n");
 	printf("\n");
 	printf("example: %s -p 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
-	printf("example: %s -g vertexarrays = 0 c:\\loadtest.blend\n", program);
+	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
 
 char *get_filename(int argc, char **argv) {
@@ -562,13 +561,13 @@ int main(int argc, char** argv)
 				STR_String exitstring = "";
 				GPG_Application app(system, NULL, exitstring);
 				bool firstTimeRunning = true;
+				char *filename = get_filename(argc, argv);
+				char *titlename;
+				char pathname[160];
 				
 				do
 				{
 					// Read the Blender file
-					char *filename = get_filename(argc, argv);
-					char *titlename;
-					char pathname[160];
 					BlendFileData *bfd;
 					
 					// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
@@ -579,9 +578,20 @@ int main(int argc, char** argv)
 						// base the actuator filename with respect
 						// to the original file working directory
 						strcpy(basedpath, exitstring.Ptr());
-						BLI_convertstringcode(basedpath, pathname, 0);
+						BLI_convertstringcode(basedpath, pathname);
 						
 						bfd = load_game_data(basedpath);
+
+						if (!bfd)
+						{
+							// just add "//" in front of it
+							char temppath[242];
+							strcpy(temppath, "//");
+							strcat(temppath, basedpath);
+				
+							BLI_convertstringcode(temppath, pathname);
+							bfd = load_game_data(temppath);
+						}
 					}
 					else
 					{
@@ -607,7 +617,6 @@ int main(int argc, char** argv)
 #endif // WIN32
 						Main *maggie = bfd->main;
 						Scene *scene = bfd->curscene;
-						strcpy (pathname, maggie->name);
 						char *startscenename = scene->id.name + 2;
 						G.fileflags  = bfd->fileflags;
 
@@ -651,7 +660,12 @@ int main(int argc, char** argv)
 						if (firstTimeRunning)
 						{
 							firstTimeRunning = false;
-							
+
+							// set the filename only the first time as in KetsjiEmbedded
+							strcpy (pathname, maggie->name);
+							// also copy here (used by GameLogic.getBaseDirectory)
+							strcpy (G.sce, maggie->name);
+
 							if (fullScreen)
 							{
 #ifdef WIN32

@@ -155,14 +155,25 @@ static void Kx_VecUpMat3(float *vec, float mat[][3], short axis)
 	mat[coz][0]= vec[0];
 	mat[coz][1]= vec[1];
 	mat[coz][2]= vec[2];
-	Kx_Normalize((float *)mat[coz]);
+	if (Kx_Normalize((float *)mat[coz]) == 0.f) {
+		/* this is a very abnormal situation: the camera has reach the object center exactly
+		   We will choose a completely arbitrary direction */
+		mat[coz][0] = 1.0f;
+		mat[coz][1] = 0.0f;
+		mat[coz][2] = 0.0f;
+	}
 	
 	inp= mat[coz][2];
 	mat[coy][0]= - inp*mat[coz][0];
 	mat[coy][1]= - inp*mat[coz][1];
 	mat[coy][2]= 1.0 - inp*mat[coz][2];
 
-	Kx_Normalize((float *)mat[coy]);
+	if (Kx_Normalize((float *)mat[coy]) == 0.f) {
+		/* the camera is vertical, chose the y axis arbitrary */
+		mat[coy][0] = 0.f;
+		mat[coy][1] = 1.f;
+		mat[coy][2] = 0.f;
+	}
 	
 	Kx_Crossf(mat[cox], mat[coy], mat[coz]);
 	

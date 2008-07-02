@@ -803,7 +803,7 @@ static int ActionStrip_setBlendMode( BPy_ActionStrip * self, PyObject * value )
 
 #define ACTIONSTRIP_MASK (ACTSTRIP_SELECT | ACTSTRIP_USESTRIDE \
 		| ACTSTRIP_HOLDLASTFRAME | ACTSTRIP_ACTIVE | ACTSTRIP_LOCK_ACTION \
-		| ACTSTRIP_MUTE)
+		| ACTSTRIP_MUTE | ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ | ACTSTRIP_AUTO_BLENDS)
 
 static PyObject *ActionStrip_getFlag( BPy_ActionStrip * self )
 {
@@ -1169,18 +1169,16 @@ static PyObject *M_ActionStrip_FlagsDict( void )
 	
 	if( S ) {
 		BPy_constant *d = ( BPy_constant * ) S;
-		PyConstant_Insert( d, "SELECT",
-				PyInt_FromLong( ACTSTRIP_SELECT ) );
-		PyConstant_Insert( d, "STRIDE_PATH",
-				PyInt_FromLong( ACTSTRIP_USESTRIDE ) );
-		PyConstant_Insert( d, "HOLD",
-				PyInt_FromLong( ACTSTRIP_HOLDLASTFRAME ) );
-		PyConstant_Insert( d, "ACTIVE",
-				PyInt_FromLong( ACTSTRIP_ACTIVE ) );
-		PyConstant_Insert( d, "LOCK_ACTION",
-				PyInt_FromLong( ACTSTRIP_LOCK_ACTION ) );
-		PyConstant_Insert( d, "MUTE",
-				PyInt_FromLong( ACTSTRIP_MUTE ) );
+		PyConstant_Insert( d, "SELECT",			PyInt_FromLong( ACTSTRIP_SELECT ) );
+		PyConstant_Insert( d, "STRIDE_PATH",	PyInt_FromLong( ACTSTRIP_USESTRIDE ) );
+		PyConstant_Insert( d, "HOLD",			PyInt_FromLong( ACTSTRIP_HOLDLASTFRAME ) );
+		PyConstant_Insert( d, "ACTIVE",			PyInt_FromLong( ACTSTRIP_ACTIVE ) );
+		PyConstant_Insert( d, "LOCK_ACTION",	PyInt_FromLong( ACTSTRIP_LOCK_ACTION ) );
+		PyConstant_Insert( d, "MUTE", 			PyInt_FromLong( ACTSTRIP_MUTE ) );
+		PyConstant_Insert( d, "USEX", 			PyInt_FromLong( ACTSTRIP_CYCLIC_USEX ) );
+		PyConstant_Insert( d, "USEY", 			PyInt_FromLong( ACTSTRIP_CYCLIC_USEY ) );
+		PyConstant_Insert( d, "USEZ", 			PyInt_FromLong( ACTSTRIP_CYCLIC_USEZ ) );
+		PyConstant_Insert( d, "AUTO_BLEND", 	PyInt_FromLong( ACTSTRIP_AUTO_BLENDS ) );
 	}
 	return S;
 }

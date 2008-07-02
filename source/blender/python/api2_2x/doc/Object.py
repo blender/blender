@@ -389,6 +389,8 @@ class Object:
 	@ivar parentbonename: The string name of the parent bone (if defined).
 		This can be set to another bone in the armature if the object already has a bone parent.
 	@type parentbonename: string or None
+	@ivar parentVertexIndex: A list of vertex parent indicies, with a length of 0, 1 or 3. When there are 1 or 3 vertex parents, the indicies can be assigned to a sequence of the same length.
+	@type parentVertexIndex: list
 	@ivar protectFlags: The "transform locking" bitfield flags for the object.  
 	See L{ProtectFlags} const dict for values.
 	@type protectFlags: int
@@ -641,6 +643,22 @@ class Object:
 	@ivar upAxis: Up axis. Return string 'Y' | 'Y' | 'Z' (readonly)
 	@type upAxis: string
 	"""
+	def getParticleSystems():
+		"""
+		Return a list of particle systems linked to this object (see Blender.Particle).
+		"""
+		
+	def newParticleSystem():
+		"""
+		Link a new particle system (see Blender.Particle).
+		"""
+		
+	def addVertexGroupsFromArmature(object):
+		"""
+		Add vertex groups from armature using the bone heat method
+		This method can be only used with an Object of the type Mesh when NOT in edit mode.
+		@type object: a bpy armature
+		"""
 
 	def buildParts():
 		"""

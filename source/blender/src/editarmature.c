@@ -55,6 +55,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -180,7 +182,7 @@ void make_boneList(ListBase *list, ListBase *bones, EditBone *parent)
 		
 		/*	Add children if necessary */
 		if (curBone->childbase.first) 
-			make_boneList (list, &curBone->childbase, eBone);
+			make_boneList(list, &curBone->childbase, eBone);
 	}
 }
 
@@ -549,7 +551,7 @@ int join_armature(void)
 	bPoseChannel *pchan, *pchann;
 	ListBase ebbase, eblist;
 	EditBone *curbone;
-	float	mat[4][4], imat[4][4];
+	float	mat[4][4], oimat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
 	/* if(G.obedit) return; */ /* Alredy checked in join_menu() */
@@ -565,7 +567,11 @@ int join_armature(void)
 	/* Get editbones of active armature to add editbones to */
 	ebbase.first=ebbase.last= NULL;
 	make_boneList(&ebbase, &arm->bonebase, NULL);
+	
+	/* get pose of active object and move it out of posemode */
 	pose= ob->pose;
+	ob->flag &= ~OB_POSEMODE;
+	BASACT->flag &= ~OB_POSEMODE;
 	
 	for (base=FIRSTBASE; base; base=nextbase) {
 		nextbase = base->next;
@@ -577,10 +583,12 @@ int join_armature(void)
 				
 				/* Get Pose of current armature */
 				opose= base->object->pose;
+				base->object->flag &= ~OB_POSEMODE;
+				BASACT->flag &= ~OB_POSEMODE;
 				
 				/* Find the difference matrix */
-				Mat4Invert(imat, ob->obmat);
-				Mat4MulMat4(mat, base->object->obmat, imat);
+				Mat4Invert(oimat, ob->obmat);
+				Mat4MulMat4(mat, base->object->obmat, oimat);
 				
 				/* Copy bones and posechannels from the object to the edit armature */
 				for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
@@ -600,25 +608,24 @@ int join_armature(void)
 						float delta[3];
 						
 						/* Get the premat */
-						VecSubf (delta, curbone->tail, curbone->head);
+						VecSubf(delta, curbone->tail, curbone->head);
 						vec_roll_to_mat3(delta, curbone->roll, temp);
 						
-						Mat4MulMat34 (premat, temp, mat);
+						Mat4MulMat34(premat, temp, mat);
 						
 						Mat4MulVecfl(mat, curbone->head);
 						Mat4MulVecfl(mat, curbone->tail);
 						
 						/* Get the postmat */
-						VecSubf (delta, curbone->tail, curbone->head);
+						VecSubf(delta, curbone->tail, curbone->head);
 						vec_roll_to_mat3(delta, curbone->roll, temp);
 						Mat4CpyMat3(postmat, temp);
 						
 						/* Find the roll */
-						Mat4Invert (imat, premat);
-						Mat4MulMat4 (difmat, postmat, imat);
+						Mat4Invert(imat, premat);
+						Mat4MulMat4(difmat, postmat, imat);
 						
 						curbone->roll -= atan2(difmat[2][0], difmat[2][2]);
-						
 					}
 					
 					/* Fix Constraints and Other Links to this Bone and Armature */
@@ -651,12 +658,16 @@ int join_armature(void)
 }
 
 /* Helper function for armature separating - link fixing */
-static void separated_armature_fix_links(Object *origArm, Object *newArm, ListBase *edbo)
+static void separated_armature_fix_links(Object *origArm, Object *newArm)
 {
 	Object *ob;
-	bPoseChannel *pchan;
+	bPoseChannel *pchan, *pcha, *pchb;
 	bConstraint *con;
-	EditBone *ebo, *ebn;
+	ListBase *opchans, *npchans;
+	
+	/* get reference to list of bones in original and new armatures  */
+	opchans= &origArm->pose->chanbase;
+	npchans= &newArm->pose->chanbase;
 	
 	/* let's go through all objects in database */
 	for (ob= G.main->object.first; ob; ob= ob->id.next) {
@@ -674,28 +685,36 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm, ListBa
 						
 						for (ct= targets.first; ct; ct= ct->next) {
 							/* any targets which point to original armature are redirected to the new one only if:
-							 *	- the target isn't the original armature itself
-							 *	- the target is one of the bones which were moved into newArm
+							 *	- the target isn't origArm/newArm itself
+							 *	- the target is one that can be found in newArm/origArm
 							 */
 							if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
-								for (ebo=edbo->first, ebn=edbo->last; ebo && ebn; ebo=ebo->next, ebn=ebn->prev) {
+								for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
 									/* check if either one matches */
-									if ( (strcmp(ebo->name, ct->subtarget)==0) ||
-										 (strcmp(ebn->name, ct->subtarget)==0) )
+									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+										 (strcmp(pchb->name, ct->subtarget)==0) )
 									{
 										ct->tar= newArm;
-										printf("arm = '%s' pchan = '%s', ebo = '%s', YES \n", ob->id.name+2, pchan->name, ebo->name);
-										printf("arm = '%s' pchan = '%s', ebn = '%s', YES \n", ob->id.name+2, pchan->name, ebn->name);
 										break;
-									}
-									else {
-										printf("arm = '%s' pchan = '%s', ebo = '%s', NOT\n", ob->id.name+2, pchan->name, ebo->name);
-										printf("arm = '%s' pchan = '%s', ebn = '%s', NOT \n", ob->id.name+2, pchan->name, ebn->name);
 									}
 									
 									/* check if both ends have met (to stop checking) */
-									if (ebo == ebn) break;
-								}
+									if (pcha == pchb) break;
+								}								
+							}
+							else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
+								for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
+									/* check if either one matches */
+									if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+										 (strcmp(pchb->name, ct->subtarget)==0) )
+									{
+										ct->tar= origArm;
+										break;
+									}
+									
+									/* check if both ends have met (to stop checking) */
+									if (pcha == pchb) break;
+								}								
 							}
 						}
 						
@@ -719,22 +738,36 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm, ListBa
 					
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* any targets which point to original armature are redirected to the new one only if:
-						 *	- the target isn't the original armature itself
-						 *	- the target is one of the bones which were moved into newArm
+						 *	- the target isn't origArm/newArm itself
+						 *	- the target is one that can be found in newArm/origArm
 						 */
 						if ((ct->tar == origArm) && (ct->subtarget[0] != 0)) {
-							for (ebo=edbo->first, ebn=edbo->last; ebo && ebn; ebo=ebo->next, ebn=ebn->prev) {
+							for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
 								/* check if either one matches */
-								if ( (strcmp(ebo->name, ct->subtarget)==0) ||
-									 (strcmp(ebn->name, ct->subtarget)==0) )
+								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+									 (strcmp(pchb->name, ct->subtarget)==0) )
 								{
 									ct->tar= newArm;
 									break;
 								}
 								
 								/* check if both ends have met (to stop checking) */
-								if (ebo == ebn) break;
-							}
+								if (pcha == pchb) break;
+							}								
+						}
+						else if ((ct->tar == newArm) && (ct->subtarget[0] != 0)) {
+							for (pcha=opchans->first, pchb=opchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
+								/* check if either one matches */
+								if ( (strcmp(pcha->name, ct->subtarget)==0) ||
+									 (strcmp(pchb->name, ct->subtarget)==0) )
+								{
+									ct->tar= origArm;
+									break;
+								}
+								
+								/* check if both ends have met (to stop checking) */
+								if (pcha == pchb) break;
+							}								
 						}
 					}
 					
@@ -749,37 +782,83 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm, ListBa
 			/* Is object parented to a bone of this src armature? */
 			if (ob->partype==PARBONE) {
 				/* bone name in object */
-				for (ebo=edbo->first, ebn=edbo->last; ebo && ebn; ebo=ebo->next, ebn=ebn->prev) {
+				for (pcha=npchans->first, pchb=npchans->last; pcha && pchb; pcha=pcha->next, pchb=pchb->prev) {
 					/* check if either one matches */
-					if ( (strcmp(ebo->name, ob->parsubstr)==0) ||
-						 (strcmp(ebn->name, ob->parsubstr)==0) )
+					if ( (strcmp(pcha->name, ob->parsubstr)==0) ||
+						 (strcmp(pchb->name, ob->parsubstr)==0) )
 					{
 						ob->parent= newArm;
 						break;
 					}
 					
 					/* check if both ends have met (to stop checking) */
-					if (ebo == ebn) break;
+					if (pcha == pchb) break;
 				}
 			}
 		}
 	}	
 }
 
+/* Helper function for armature separating - remove certain bones from the given armature 
+ *	sel: remove selected bones from the armature, otherwise the unselected bones are removed
+ */
+static void separate_armature_bones (Object *ob, short sel) 
+{
+	ListBase edbo = {NULL, NULL};
+	bArmature *arm= (bArmature *)ob->data;
+	bPoseChannel *pchan, *pchann;
+	EditBone *curbone;
+	
+	/* make local set of editbones to manipulate here */
+	make_boneList(&edbo, &arm->bonebase, NULL);
+	
+	/* go through pose-channels, checking if a bone should be removed */
+	for (pchan=ob->pose->chanbase.first; pchan; pchan=pchann) {
+		pchann= pchan->next;
+		curbone= editbone_name_exists(&edbo, pchan->name);
+		
+		/* check if bone needs to be removed */
+		if ( (sel && (curbone->flag & BONE_SELECTED)) ||
+			 (!sel && !(curbone->flag & BONE_SELECTED)) )
+		{
+			EditBone *ebo;
+			bPoseChannel *pchn;
+			
+			/* clear the bone->parent var of any bone that had this as its parent  */
+			for (ebo= edbo.first; ebo; ebo= ebo->next) {
+				if (ebo->parent == curbone) {
+					ebo->parent= NULL;
+					ebo->temp= NULL; /* this is needed to prevent random crashes with in editbones_to_armature */
+					ebo->flag &= ~BONE_CONNECTED;
+				}
+			}
+			
+			/* clear the pchan->parent var of any pchan that had this as its parent */
+			for (pchn= ob->pose->chanbase.first; pchn; pchn=pchn->next) {
+				if (pchn->parent == pchan)
+					pchn->parent= NULL;
+			}
+			
+			/* free any of the extra-data this pchan might have */
+			if (pchan->path) MEM_freeN(pchan->path);
+			free_constraints(&pchan->constraints);
+			
+			/* get rid of unneeded bone */
+			BLI_freelinkN(&edbo, curbone);
+			BLI_freelinkN(&ob->pose->chanbase, pchan);
+		}
+	}
+	
+	/* exit editmode (recalculates pchans too) */
+	editbones_to_armature(&edbo, ob);
+	BLI_freelistN(&edbo);
+}
+
 void separate_armature (void)
 {
-	EditBone *ebo, *ebn;
-	Object *oldob;
-	Base *base, *oldbase;
+	Object *oldob, *newob;
+	Base *base, *oldbase, *newbase;
 	bArmature *arm;
-	ListBase edbo = {NULL, NULL};
-	
-	// 31Mar08 - Aligorith:
-	//	this tool is currently not ready for production use, as it will still 
-	// 	crash in some cases, and also constraint relinking isn't working yet 
-	// remove the following two lines to test this tool... you have been warned!
-		okee("Not implemented (WIP)");
-		return;
 	
 	if ( G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 	if ( okee("Separate")==0 ) return;
@@ -788,83 +867,68 @@ void separate_armature (void)
 	
 	arm= G.obedit->data;
 	
-	/* we are going to trick everything as follows:
-	 * 1. duplicate base: this is the new one,  remember old pointer
-	 * 2. set aside all NOT selected bones
-	 * 3. load_editArmature(): this will be the new base
-	 * 4. freelist and restore old armature
+	/* we are going to do this as follows (unlike every other instance of separate):
+	 *	1. exit editmode +posemode for active armature/base. Take note of what this is.
+	 *	2. duplicate base - BASACT is the new one now
+	 *	3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
+	 *	4. fix constraint links
+	 *	5. make original armature active and enter editmode
 	 */
 	
-	/* only edit-base selected */
+	/* 1) only edit-base selected */
 	base= FIRSTBASE;
-	while(base) {
-		if(base->lay & G.vd->lay) {
-			if(base->object==G.obedit) base->flag |= 1;
+	for (base= FIRSTBASE; base; base= base->next) {
+		if (base->lay & G.vd->lay) {
+			if (base->object==G.obedit) base->flag |= 1;
 			else base->flag &= ~1;
 		}
-		base= base->next;
 	}
-
-	/* set aside: everything that is not selected */
-	for (ebo= G.edbo.first; ebo; ebo= ebn) {
-		ebn= ebo->next;
-		
-		/* remove from original, and move to duplicate if not-selected */
-		if ((ebo->flag & BONE_SELECTED)==0) {
-			EditBone *curbone;
-			
-			/* need to make sure children don't still refer to this only if they are selected
-			 * 	- potentially slow O(n*n) situation here... 
-			 */
-			for (curbone= G.edbo.first; curbone; curbone=curbone->next) {
-				if ((curbone->parent == ebo) && (curbone->flag & BONE_SELECTED)) {
-					curbone->parent= ebo->parent;
-					curbone->flag &= ~BONE_CONNECTED;
-				}
-			}
-			
-			BLI_remlink(&G.edbo, ebo);
-			BLI_addtail(&edbo, ebo); 
-		}
-	}
-
+	
+	/* 1) store starting settings and exit editmode */
 	oldob= G.obedit;
 	oldbase= BASACT;
-
-	adduplicate(1, 0); /* no transform and zero so do get a linked dupli */
-	
-	G.obedit= BASACT->object;	/* basact is set in adduplicate() */
-	
-	G.obedit->data= copy_armature(arm);
-	/* because new armature is a copy: reduce user count */
-	arm->id.us--;
+	oldob->flag &= ~OB_POSEMODE;
+	oldbase->flag &= ~OB_POSEMODE;
 	
 	load_editArmature();
+	free_editArmature();
 	
-	BASACT->flag &= ~SELECT;
+	/* 2) duplicate base */
+	adduplicate(1, USER_DUP_ARM); /* no transform and zero so do get a linked dupli */
 	
-	/* fix links before depsgraph flushes */ // err... or after?
-	printf("oldob = %p, obact = %p \n", oldob, G.obedit);
-	separated_armature_fix_links(oldob, G.obedit, &G.edbo);
+	newbase= BASACT; /* basact is set in adduplicate() */
+	newob= newbase->object;		
+	newbase->flag &= ~SELECT;
 	
-	if (G.edbo.first) free_editArmature();
 	
-	G.edbo = edbo;
+	/* 3) remove bones that shouldn't still be around on both armatures */
+	separate_armature_bones(oldob, 1);
+	separate_armature_bones(newob, 0);
 	
-	G.obedit= 0;	/* displists behave different in edit mode */ // needed?
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	/* this is the separated one */
+	
+	/* 4) fix links before depsgraph flushes */ // err... or after?
+	separated_armature_fix_links(oldob, newob);
+	
 	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the original one */
+	DAG_object_flush_update(G.scene, newob, OB_RECALC_DATA);	/* this is the separated one */
 	
+	
+	/* 5) restore original conditions */
 	G.obedit= oldob;
 	BASACT= oldbase;
 	BASACT->flag |= SELECT;
 	
+	make_editArmature();
+	
+	/* recalc/redraw + cleanup */
 	waitcursor(0);
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Separate Armature");
 }
 
 /* **************** END tools on Editmode Armature **************** */
@@ -1442,9 +1506,10 @@ void delete_armature(void)
 	
 	for (curBone=G.edbo.first;curBone;curBone=next) {
 		next=curBone->next;
-		if (arm->layer & curBone->layer)
+		if (arm->layer & curBone->layer) {
 			if (curBone->flag & BONE_SELECTED)
 				delete_bone(curBone);
+		}
 	}
 	
 	
@@ -2331,6 +2396,7 @@ void fill_bones_armature(void)
 	else if (count == 2) {
 		EditBonePoint *ebp, *ebp2;
 		float head[3], tail[3];
+		short headtail = 0;
 		
 		/* check that the points don't belong to the same bone */
 		ebp= (EditBonePoint *)points.first;
@@ -2355,7 +2421,7 @@ void fill_bones_armature(void)
 			float distA, distB;
 			
 			/* get cursor location */
-			VECCOPY (curs, give_cursor());	
+			VECCOPY(curs, give_cursor());	
 			
 			Mat4Invert(G.obedit->imat, G.obedit->obmat);
 			Mat4MulVecfl(G.obedit->imat, curs);
@@ -2367,26 +2433,47 @@ void fill_bones_armature(void)
 			distB= VecLength(vecB);
 			
 			/* compare distances - closer one therefore acts as direction for bone to go */
-			if (distA < distB) {
-				VECCOPY(head, ebp2->vec);
-				VECCOPY(tail, ebp->vec);
-			}
-			else {
-				VECCOPY(head, ebp->vec);
-				VECCOPY(tail, ebp2->vec);
-			}
+			headtail= (distA < distB) ? 2 : 1;
 		}
 		else if (ebp->head_owner) {
+			headtail = 1;
+		}
+		else if (ebp2->head_owner) {
+			headtail = 2;
+		}
+		
+		/* assign head/tail combinations */
+		if (headtail == 2) {
 			VECCOPY(head, ebp->vec);
 			VECCOPY(tail, ebp2->vec);
 		}
-		else if (ebp2->head_owner) {
+		else if (headtail == 1) {
 			VECCOPY(head, ebp2->vec);
 			VECCOPY(tail, ebp->vec);
 		}
 		
-		/* add new bone */
-		newbone= add_points_bone(head, tail);
+		/* add new bone and parent it to the appropriate end */
+		if (headtail) {
+			newbone= add_points_bone(head, tail);
+			
+			/* do parenting (will need to set connected flag too) */
+			if (headtail == 2) {
+				/* ebp tail or head - tail gets priority */
+				if (ebp->tail_owner)
+					newbone->parent= ebp->tail_owner;
+				else
+					newbone->parent= ebp->head_owner;
+			}
+			else {
+				/* ebp2 tail or head - tail gets priority */
+				if (ebp2->tail_owner)
+					newbone->parent= ebp2->tail_owner;
+				else
+					newbone->parent= ebp2->head_owner;
+			}
+			
+			newbone->flag |= BONE_CONNECTED;
+		}
 	}
 	else {
 		// FIXME.. figure out a method for multiple bones
@@ -2908,6 +2995,8 @@ void extrude_armature(int forked)
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+
+						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
 						VECCOPY(newbone->head, ebone->head);
@@ -2915,6 +3004,10 @@ void extrude_armature(int forked)
 						newbone->parent= ebone->parent;
 						
 						newbone->flag= BONE_TIPSEL;
+						
+						if (newbone->parent && ebone->flag & BONE_CONNECTED) {
+							newbone->flag |= BONE_CONNECTED;
+						}
 					}
 					
 					newbone->weight= ebone->weight;
@@ -2927,8 +3020,6 @@ void extrude_armature(int forked)
 					newbone->rad_tail= ebone->rad_tail;
 					newbone->segments= 1;
 					newbone->layer= ebone->layer;
-					
-					if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					
 					BLI_strncpy (newbone->name, ebone->name, 32);
 					
@@ -3787,7 +3878,7 @@ void unique_bone_name (bArmature *arm, char *name)
 }
 
 #define MAXBONENAME 32
-/* helper call for below */
+/* helper call for armature_bone_rename */
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {
 	bConstraint *curcon;
@@ -3819,6 +3910,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
 	Object *ob;
+	Ipo *ipo;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -3842,7 +3934,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			else return;
 		}
 		else {
-			Bone *bone= get_named_bone (arm, oldname);
+			Bone *bone= get_named_bone(arm, oldname);
 			
 			if (bone) {
 				unique_bone_name (arm, newname);
@@ -3851,7 +3943,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			else return;
 		}
 		
-		/* do entire dbase */
+		/* do entire dbase - objects */
 		for (ob= G.main->object.first; ob; ob= ob->id.next) {
 			/* we have the object using the armature */
 			if (arm==ob->data) {
@@ -3873,7 +3965,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				if (ob->pose) {
 					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
 					if (pchan)
-						BLI_strncpy (pchan->name, newname, MAXBONENAME);
+						BLI_strncpy(pchan->name, newname, MAXBONENAME);
 				}
 				
 				/* check all nla-strips too */
@@ -3918,6 +4010,28 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					   BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
+		}
+		
+		/* do entire db - ipo's for the drivers */
+		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
+			IpoCurve *icu;
+			
+			/* check each curve's driver */
+			for (icu= ipo->curve.first; icu; icu= icu->next) {
+				IpoDriver *icd= icu->driver;
+				
+				if ((icd) && (icd->ob)) {
+					ob= icd->ob;
+					
+					if (icu->driver->type == IPO_DRIVER_TYPE_NORMAL) {
+						if (!strcmp(oldname, icd->name))
+							BLI_strncpy(icd->name, newname, MAXBONENAME);
+					}
+					else {
+						/* TODO: pydrivers need to be treated differently */
+					}
+				}
+			}			
 		}
 	}
 }
@@ -4005,16 +4119,34 @@ void transform_armature_mirror_update(void)
 			if (eboflip) {
 				/* we assume X-axis flipping for now */
 				if (ebo->flag & BONE_TIPSEL) {
+					EditBone *children;
+					
 					eboflip->tail[0]= -ebo->tail[0];
 					eboflip->tail[1]= ebo->tail[1];
 					eboflip->tail[2]= ebo->tail[2];
 					eboflip->rad_tail= ebo->rad_tail;
+
+					/* Also move connected children, in case children's name aren't mirrored properly */
+					for (children=G.edbo.first; children; children=children->next) {
+						if (children->parent == eboflip && children->flag & BONE_CONNECTED) {
+							VECCOPY(children->head, eboflip->tail);
+							children->rad_head = ebo->rad_tail;
+						}
+					}
 				}
 				if (ebo->flag & BONE_ROOTSEL) {
 					eboflip->head[0]= -ebo->head[0];
 					eboflip->head[1]= ebo->head[1];
 					eboflip->head[2]= ebo->head[2];
 					eboflip->rad_head= ebo->rad_head;
+					
+					/* Also move connected parent, in case parent's name isn't mirrored properly */
+					if (eboflip->parent && eboflip->flag & BONE_CONNECTED)
+					{
+						EditBone *parent = eboflip->parent;
+						VECCOPY(parent->tail, eboflip->head);
+						parent->rad_tail = ebo->rad_head;
+					}
 				}
 				if (ebo->flag & BONE_SELECTED) {
 					eboflip->dist= ebo->dist;

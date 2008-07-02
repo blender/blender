@@ -174,7 +174,23 @@ bNodeStack **out)
 			else
 				out[0]->vec[0]= (int)(in[1]->vec[0] + 0.5f);
 		}
-		break; 
+		break;
+	case 15: /* Less Than */
+		{
+			if( in[0]->vec[0] < in[1]->vec[0] )
+				out[0]->vec[0]= 1.0f;
+			else
+				out[0]->vec[0]= 0.0f;
+		}
+		break;
+	case 16: /* Greater Than */
+		{
+			if( in[0]->vec[0] > in[1]->vec[0] )
+				out[0]->vec[0]= 1.0f;
+			else
+				out[0]->vec[0]= 0.0f;
+		}
+		break;
 	} 
 }
 

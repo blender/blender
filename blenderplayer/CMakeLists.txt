@@ -108,6 +108,7 @@ IF(UNIX)
     blenkernel_blc
     bf_quicktime
     extern_binreloc
+	extern_glew
   ) 
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

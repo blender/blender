@@ -40,9 +40,11 @@
 #include "stdarg.h"
 #include "math.h"
 #include "float.h"
+#include "ctype.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
 #include "BLI_rand.h"
@@ -76,6 +78,7 @@
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_cloth.h"
+#include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -1248,7 +1251,8 @@ static DerivedMesh *arrayModifier_applyModifier(
 
 	result = arrayModifier_doArray(amd, ob, derivedData, 0);
 
-	CDDM_calc_normals(result);
+	if(result != derivedData)
+		CDDM_calc_normals(result);
 
 	return result;
 }
@@ -1266,7 +1270,7 @@ static void mirrorModifier_initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	mmd->flag |= MOD_MIR_AXIS_X;
+	mmd->flag |= (MOD_MIR_AXIS_X | MOD_MIR_VGROUP);
 	mmd->tolerance = 0.001;
 	mmd->mirror_ob = NULL;
 }
@@ -1305,11 +1309,123 @@ static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+/* finds the best possible flipped name. For renaming; check for unique names afterwards */
+/* if strip_number: removes number extensions */
+void vertgroup_flip_name (char *name, int strip_number)
+{
+	int     len;
+	char    prefix[128]={""};   /* The part before the facing */
+	char    suffix[128]={""};   /* The part after the facing */
+	char    replace[128]={""};  /* The replacement string */
+	char    number[128]={""};   /* The number extension string */
+	char    *index=NULL;
+
+	len= strlen(name);
+	if(len<3) return; // we don't do names like .R or .L
+
+	/* We first check the case with a .### extension, let's find the last period */
+	if(isdigit(name[len-1])) {
+		index= strrchr(name, '.'); // last occurrance
+		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
+			if(strip_number==0) 
+				strcpy(number, index);
+			*index= 0;
+			len= strlen(name);
+		}
+	}
+
+	strcpy (prefix, name);
+
+#define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
+
+	/* first case; separator . - _ with extensions r R l L  */
+	if( IS_SEPARATOR(name[len-2]) ) {
+		switch(name[len-1]) {
+			case 'l':
+				prefix[len-1]= 0;
+				strcpy(replace, "r");
+				break;
+			case 'r':
+				prefix[len-1]= 0;
+				strcpy(replace, "l");
+				break;
+			case 'L':
+				prefix[len-1]= 0;
+				strcpy(replace, "R");
+				break;
+			case 'R':
+				prefix[len-1]= 0;
+				strcpy(replace, "L");
+				break;
+		}
+	}
+	/* case; beginning with r R l L , with separator after it */
+	else if( IS_SEPARATOR(name[1]) ) {
+		switch(name[0]) {
+			case 'l':
+				strcpy(replace, "r");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'r':
+				strcpy(replace, "l");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'L':
+				strcpy(replace, "R");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'R':
+				strcpy(replace, "L");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+		}
+	}
+	else if(len > 5) {
+		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+		index = BLI_strcasestr(prefix, "right");
+		if (index==prefix || index==prefix+len-5) {
+			if(index[0]=='r') 
+				strcpy (replace, "left");
+			else {
+				if(index[1]=='I') 
+					strcpy (replace, "LEFT");
+				else
+					strcpy (replace, "Left");
+			}
+			*index= 0;
+			strcpy (suffix, index+5);
+		}
+		else {
+			index = BLI_strcasestr(prefix, "left");
+			if (index==prefix || index==prefix+len-4) {
+				if(index[0]=='l') 
+					strcpy (replace, "right");
+				else {
+					if(index[1]=='E') 
+						strcpy (replace, "RIGHT");
+					else
+						strcpy (replace, "Right");
+				}
+				*index= 0;
+				strcpy (suffix, index+4);
+			}
+		}
+	}
+
+#undef IS_SEPARATOR
+
+	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
+}
+
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
-				   Object *ob,
-       DerivedMesh *dm,
-       int initFlags,
-       int axis)
+		Object *ob,
+		DerivedMesh *dm,
+		int initFlags,
+		int axis)
 {
 	int i;
 	float tolerance = mmd->tolerance;
@@ -1318,6 +1434,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
+	int vector_size=0, j, a, b;
+	bDeformGroup *def, *defb;
+	bDeformGroup **vector_def = NULL;
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
 
@@ -1327,9 +1446,24 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
 
+
+	if (mmd->flag & MOD_MIR_VGROUP) {
+		/* calculate the number of deformedGroups */
+		for(vector_size = 0, def = ob->defbase.first; def;
+		    def = def->next, vector_size++);
+
+		/* load the deformedGroups for fast access */
+		vector_def =
+		    (bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
+		                                 "group_index");
+		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
+			vector_def[a] = def;
+		}
+	}
+
 	if (mmd->mirror_ob) {
 		float obinv[4][4];
-
+		
 		Mat4Invert(obinv, mmd->mirror_ob->obmat);
 		Mat4MulMat4(mtx, ob->obmat, obinv);
 		Mat4Invert(imtx, mtx);
@@ -1340,16 +1474,16 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		MVert *mv = CDDM_get_vert(result, numVerts);
 		int isShared;
 		float co[3];
-
+		
 		dm->getVert(dm, i, &inMV);
-
+		
 		VecCopyf(co, inMV.co);
-
+		
 		if (mmd->mirror_ob) {
 			VecMat4MulVecfl(co, mtx, co);
 		}
 		isShared = ABS(co[axis])<=tolerance;
-
+		
 		/* Because the topology result (# of vertices) must be the same if
 		* the mesh data is overridden by vertex cos, have to calc sharedness
 		* based on original coordinates. This is why we test before copy.
@@ -1357,10 +1491,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		DM_copy_vert_data(dm, result, i, numVerts, 1);
 		*mv = inMV;
 		numVerts++;
-
+		
 		indexMap[i][0] = numVerts - 1;
 		indexMap[i][1] = !isShared;
-
+		
 		if(isShared) {
 			co[axis] = 0;
 			if (mmd->mirror_ob) {
@@ -1371,41 +1505,73 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
-
+			MDeformVert *dvert = NULL;
+			
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
 			*mv2 = *mv;
-			numVerts++;
-
+			
 			co[axis] = -co[axis];
 			if (mmd->mirror_ob) {
 				VecMat4MulVecfl(co, imtx, co);
 			}
 			VecCopyf(mv2->co, co);
+			
+			if (mmd->flag & MOD_MIR_VGROUP){
+				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
+				
+				if (dvert)
+				{
+					for(j = 0; j < dvert[0].totweight; ++j)
+					{
+						char tmpname[32];
+						
+						if(dvert->dw[j].def_nr < 0 ||
+						   dvert->dw[j].def_nr >= vector_size)
+							continue;
+						
+						def = vector_def[dvert->dw[j].def_nr];
+						strcpy(tmpname, def->name);
+						vertgroup_flip_name(tmpname,0);
+						
+						for(b = 0, defb = ob->defbase.first; defb;
+						    defb = defb->next, b++)
+						{
+							if(!strcmp(defb->name, tmpname))
+							{
+								dvert->dw[j].def_nr = b;
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			numVerts++;
 		}
 	}
 
 	for(i = 0; i < maxEdges; i++) {
 		MEdge inMED;
 		MEdge *med = CDDM_get_edge(result, numEdges);
-
+		
 		dm->getEdge(dm, i, &inMED);
-
+		
 		DM_copy_edge_data(dm, result, i, numEdges, 1);
 		*med = inMED;
 		numEdges++;
-
+		
 		med->v1 = indexMap[inMED.v1][0];
 		med->v2 = indexMap[inMED.v2][0];
 		if(initFlags)
 			med->flag |= ME_EDGEDRAW | ME_EDGERENDER;
-
+		
 		if(indexMap[inMED.v1][1] || indexMap[inMED.v2][1]) {
 			MEdge *med2 = CDDM_get_edge(result, numEdges);
-
+			
 			DM_copy_edge_data(dm, result, i, numEdges, 1);
 			*med2 = *med;
 			numEdges++;
-
+			
 			med2->v1 += indexMap[inMED.v1][1];
 			med2->v2 += indexMap[inMED.v2][1];
 		}
@@ -1414,13 +1580,13 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	for(i = 0; i < maxFaces; i++) {
 		MFace inMF;
 		MFace *mf = CDDM_get_face(result, numFaces);
-
+		
 		dm->getFace(dm, i, &inMF);
-
+		
 		DM_copy_face_data(dm, result, i, numFaces, 1);
 		*mf = inMF;
 		numFaces++;
-
+		
 		mf->v1 = indexMap[inMF.v1][0];
 		mf->v2 = indexMap[inMF.v2][0];
 		mf->v3 = indexMap[inMF.v3][0];
@@ -1432,15 +1598,15 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 				 || (mf->v4 && indexMap[inMF.v4][1])) {
 			MFace *mf2 = CDDM_get_face(result, numFaces);
 			static int corner_indices[4] = {2, 1, 0, 3};
-
+			
 			DM_copy_face_data(dm, result, i, numFaces, 1);
 			*mf2 = *mf;
-
+			
 			mf2->v1 += indexMap[inMF.v1][1];
 			mf2->v2 += indexMap[inMF.v2][1];
 			mf2->v3 += indexMap[inMF.v3][1];
 			if(inMF.v4) mf2->v4 += indexMap[inMF.v4][1];
-
+			
 			/* mirror UVs if enabled */
 			if(mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
 				MTFace *tf = result->getFaceData(result, numFaces, CD_MTFACE);
@@ -1454,15 +1620,17 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 					}
 				}
 			}
-
+			
 			/* Flip face normal */
 			SWAP(int, mf2->v1, mf2->v3);
 			DM_swap_face_data(result, numFaces, corner_indices);
-
+			
 			test_index_face(mf2, &result->faceData, numFaces, inMF.v4?4:3);
 			numFaces++;
-				 }
+		}
 	}
+
+	if (vector_def) MEM_freeN(vector_def);
 
 	MEM_freeN(indexMap);
 
@@ -1474,8 +1642,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-					     Object *ob, DerivedMesh *dm,
-	  int initFlags)
+					    Object *ob, DerivedMesh *dm,
+						int initFlags)
 {
 	DerivedMesh *result = dm;
 
@@ -1506,7 +1674,8 @@ static DerivedMesh *mirrorModifier_applyModifier(
 
 	result = mirrorModifier__doMirror(mmd, ob, derivedData, 0);
 
-	CDDM_calc_normals(result);
+	if(result != derivedData)
+		CDDM_calc_normals(result);
 	
 	return result;
 }
@@ -2673,7 +2842,8 @@ static DerivedMesh *edgesplitModifier_applyModifier(
 
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
-	CDDM_calc_normals(result);
+	if(result != derivedData)
+		CDDM_calc_normals(result);
 
 	return result;
 }
@@ -2733,6 +2903,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 {
 	DerivedMesh *result;
 	BME_Mesh *bm;
+
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
 	BevelModifierData *bmd = (BevelModifierData*) md;
@@ -2751,8 +2922,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 		//~ }
 	//~ }
 
-	bm = BME_make_mesh();
-	bm = BME_derivedmesh_to_bmesh(derivedData, bm);
+	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
 	result = BME_bmesh_to_derivedmesh(bm,derivedData);
 	BME_free_mesh(bm);
@@ -4355,13 +4525,13 @@ static void castModifier_deformVertsEM(
 
 /* Wave */
 
-static void waveModifier_initData(ModifierData *md) 
+static void waveModifier_initData(ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md; // whadya know, moved here from Iraq
-		
+
 	wmd->flag |= (MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL
 			| MOD_WAVE_NORM_X | MOD_WAVE_NORM_Y | MOD_WAVE_NORM_Z);
-	
+
 	wmd->objectcenter = NULL;
 	wmd->texture = NULL;
 	wmd->map_object = NULL;
@@ -4371,6 +4541,7 @@ static void waveModifier_initData(ModifierData *md)
 	wmd->narrow= 1.5f;
 	wmd->lifetime= 0.0f;
 	wmd->damp= 10.0f;
+	wmd->falloff= 0.0f;
 	wmd->texmapping = MOD_WAV_MAP_LOCAL;
 	wmd->defgrp_name[0] = 0;
 }
@@ -4390,6 +4561,7 @@ static void waveModifier_copyData(ModifierData *md, ModifierData *target)
 	twmd->starty = wmd->starty;
 	twmd->timeoffs = wmd->timeoffs;
 	twmd->width = wmd->width;
+	twmd->falloff = wmd->falloff;
 	twmd->objectcenter = wmd->objectcenter;
 	twmd->texture = wmd->texture;
 	twmd->map_object = wmd->map_object;
@@ -4600,7 +4772,7 @@ static void waveModifier_do(
 
 		if(x > wmd->lifetime) {
 			lifefac = x - wmd->lifetime;
-			
+
 			if(lifefac > wmd->damp) lifefac = 0.0;
 			else lifefac =
 				(float)(wmd->height * (1.0 - sqrt(lifefac / wmd->damp)));
@@ -4621,6 +4793,8 @@ static void waveModifier_do(
 			float x = co[0] - wmd->startx;
 			float y = co[1] - wmd->starty;
 			float amplit= 0.0f;
+			float dist = 0.0f;
+			float falloff_fac = 0.0f;
 			TexResult texres;
 			MDeformWeight *def_weight = NULL;
 
@@ -4643,14 +4817,29 @@ static void waveModifier_do(
 				get_texture_value(wmd->texture, tex_co[i], &texres);
 			}
 
+			/*get dist*/
+			if(wmd->flag & MOD_WAVE_X) {
+				if(wmd->flag & MOD_WAVE_Y){
+					dist = (float)sqrt(x*x + y*y);
+				}
+				else{
+					dist = fabs(x);
+				}
+			}
+			else if(wmd->flag & MOD_WAVE_Y) {
+				dist = fabs(y);
+			}
+
+			falloff_fac = (1.0-(dist / wmd->falloff));
+			CLAMP(falloff_fac,0,1);
 
 			if(wmd->flag & MOD_WAVE_X) {
 				if(wmd->flag & MOD_WAVE_Y) amplit = (float)sqrt(x*x + y*y);
 				else amplit = x;
 			}
-			else if(wmd->flag & MOD_WAVE_Y) 
+			else if(wmd->flag & MOD_WAVE_Y)
 				amplit= y;
-			
+
 			/* this way it makes nice circles */
 			amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
@@ -4663,11 +4852,18 @@ static void waveModifier_do(
 			if(amplit > -wmd->width && amplit < wmd->width) {
 				amplit = amplit * wmd->narrow;
 				amplit = (float)(1.0 / exp(amplit * amplit) - minfac);
+
+				/*apply texture*/
 				if(wmd->texture)
 					amplit = amplit * texres.tin;
 
+				/*apply weight*/
 				if(def_weight)
 					amplit = amplit * def_weight->weight;
+
+				/*apply falloff*/
+				if (wmd->falloff > 0)
+					amplit = amplit * falloff_fac;
 
 				if(mvert) {
 					/* move along normals */
@@ -5190,7 +5386,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->current_v = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
-	collmd->bvh = NULL;
+	collmd->bvhtree = NULL;
 }
 
 static void collisionModifier_freeData(ModifierData *md)
@@ -5199,8 +5395,8 @@ static void collisionModifier_freeData(ModifierData *md)
 	
 	if (collmd) 
 	{
-		if(collmd->bvh)
-			bvh_free(collmd->bvh);
+		if(collmd->bvhtree)
+			BLI_bvhtree_free(collmd->bvhtree);
 		if(collmd->x)
 			MEM_freeN(collmd->x);
 		if(collmd->xnew)
@@ -5211,7 +5407,6 @@ static void collisionModifier_freeData(ModifierData *md)
 			MEM_freeN(collmd->current_xnew);
 		if(collmd->current_v)
 			MEM_freeN(collmd->current_v);
-		
 		if(collmd->mfaces)
 			MEM_freeN(collmd->mfaces);
 		
@@ -5222,7 +5417,7 @@ static void collisionModifier_freeData(ModifierData *md)
 		collmd->current_v = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
-		collmd->bvh = NULL;
+		collmd->bvhtree = NULL;
 		collmd->mfaces = NULL;
 	}
 }
@@ -5290,9 +5485,8 @@ static void collisionModifier_deformVerts(
 				collmd->mfaces = dm->dupFaceArray(dm);
 				collmd->numfaces = dm->getNumFaces(dm);
 				
-				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
+				collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->x, numverts, ob->pd->pdef_sboft);
 				
 				collmd->time = current_time;
 			}
@@ -5315,25 +5509,25 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
-				if(collmd->bvh)
+				if(collmd->bvhtree) 
 				{
-					if(ob->pd->pdef_sboft != collmd->bvh->epsilon)
+					if(ob->pd->pdef_sboft != BLI_bvhtree_getepsilon(collmd->bvhtree))
 					{
-						bvh_free(collmd->bvh);
-						collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+						BLI_bvhtree_free(collmd->bvhtree);
+						collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 					}
 			
 				}
 				
-				/* happens on file load (ONLY when i decomment changes in readfile.c */
-				if(!collmd->bvh)
+				/* happens on file load (ONLY when i decomment changes in readfile.c) */
+				if(!collmd->bvhtree)
 				{
-					collmd->bvh = bvh_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
+					collmd->bvhtree = bvhtree_build_from_mvert(collmd->mfaces, collmd->numfaces, collmd->current_x, numverts, ob->pd->pdef_sboft);
 				}
 				else
 				{
 					// recalc static bounding boxes
-					bvh_update_from_mvert(collmd->bvh, collmd->current_x, numverts, NULL, 0);
+					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
 				}
 				
 				collmd->time = current_time;
@@ -5514,6 +5708,7 @@ static void particleSystemModifier_deformVerts(
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystem * psys=0;
+	Mesh *me;
 	int needsFree=0;
 
 	if(ob->particlesystem.first)
@@ -5521,6 +5716,14 @@ static void particleSystemModifier_deformVerts(
 	else
 		return;
 	
+	/* multires check */
+	if(ob->type == OB_MESH) {
+		me= (Mesh*)ob->data;
+		if(me->mr && me->mr->current != 1)
+			modifier_setError(md,
+				"Particles only supported on first multires level.");
+	}
+
 	if(!psys_check_enabled(ob, psys))
 		return;
 
@@ -5865,6 +6068,8 @@ static void explodeModifier_copyData(ModifierData *md, ModifierData *target)
 
 	temd->facepa = 0;
 	temd->flag = emd->flag;
+	temd->protect = emd->protect;
+	temd->vgroup = emd->vgroup;
 }
 static int explodeModifier_dependsOnTime(ModifierData *md) 
 {
@@ -5985,20 +6190,29 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	if(vertpa) MEM_freeN(vertpa);
 	BLI_kdtree_free(tree);
 }
+
+static int edgesplit_get(EdgeHash *edgehash, int v1, int v2)
+{
+	return GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, v1, v2));
+}
+
 static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, DerivedMesh *dm){
 	DerivedMesh *splitdm;
 	MFace *mf=0,*df1=0,*df2=0,*df3=0;
 	MFace *mface=CDDM_get_faces(dm);
 	MVert *dupve, *mv;
+	EdgeHash *edgehash;
+	EdgeHashIterator *ehi;
 	int totvert=dm->getNumVerts(dm);
 	int totface=dm->getNumFaces(dm);
 
-	int *edgesplit = MEM_callocN(sizeof(int)*totvert*totvert,"explode_edgesplit");
-	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_edgesplit");
+	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_facesplit");
 	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
 	int *facepa = emd->facepa;
 	int *fs, totesplit=0,totfsplit=0,totin=0,curdupvert=0,curdupface=0,curdupin=0;
-	int i,j,v1,v2,v3,v4;
+	int i,j,v1,v2,v3,v4,esplit;
+
+	edgehash= BLI_edgehash_new();
 
 	/* recreate vertpa from facepa calculation */
 	for (i=0,mf=mface; i<totface; i++,mf++) {
@@ -6018,22 +6232,22 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 			v4=vertpa[mf->v4];
 
 			if(v1!=v2){
-				edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+				BLI_edgehash_insert(edgehash, mf->v1, mf->v2, NULL);
 				(*fs)++;
 			}
 
 			if(v2!=v3){
-				edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+				BLI_edgehash_insert(edgehash, mf->v2, mf->v3, NULL);
 				(*fs)++;
 			}
 
 			if(v3!=v4){
-				edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+				BLI_edgehash_insert(edgehash, mf->v3, mf->v4, NULL);
 				(*fs)++;
 			}
 
 			if(v1!=v4){
-				edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+				BLI_edgehash_insert(edgehash, mf->v1, mf->v4, NULL);
 				(*fs)++;
 			}
 
@@ -6042,28 +6256,29 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					*fs=1;
 				else if(v1!=v2){
 					if(v1!=v4)
-						edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+						BLI_edgehash_insert(edgehash, mf->v2, mf->v3, NULL);
 					else
-						edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+						BLI_edgehash_insert(edgehash, mf->v3, mf->v4, NULL);
 				}
 				else{ 
 					if(v1!=v4)
-						edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+						BLI_edgehash_insert(edgehash, mf->v1, mf->v2, NULL);
 					else
-						edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+						BLI_edgehash_insert(edgehash, mf->v1, mf->v4, NULL);
 				}
 			}
 		}
 	}
 
 	/* count splits & reindex */
+	ehi= BLI_edgehashIterator_new(edgehash);
 	totesplit=totvert;
-	for(j=0; j<totvert; j++){
-		for(i=j+1; i<totvert; i++){
-			if(edgesplit[j*totvert+i])
-				edgesplit[j*totvert+i]=edgesplit[i*totvert+j]=totesplit++;
-		}
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(totesplit));
+		totesplit++;
 	}
+	BLI_edgehashIterator_free(ehi);
+
 	/* count new faces due to splitting */
 	for(i=0,fs=facesplit; i<totface; i++,fs++){
 		if(*fs==1)
@@ -6111,23 +6326,23 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 
 	/* create new verts */
 	curdupvert=totvert;
-	for(j=0; j<totvert; j++){
-		for(i=j+1; i<totvert; i++){
-			if(edgesplit[j*totvert+i]){
-				mv=CDDM_get_vert(splitdm,j);
-				dupve=CDDM_get_vert(splitdm,edgesplit[j*totvert+i]);
+	ehi= BLI_edgehashIterator_new(edgehash);
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		BLI_edgehashIterator_getKey(ehi, &i, &j);
+		esplit= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+		mv=CDDM_get_vert(splitdm,j);
+		dupve=CDDM_get_vert(splitdm,esplit);
 
-				DM_copy_vert_data(splitdm,splitdm,j,edgesplit[j*totvert+i],1);
+		DM_copy_vert_data(splitdm,splitdm,j,esplit,1);
 
-				*dupve=*mv;
+		*dupve=*mv;
 
-				mv=CDDM_get_vert(splitdm,i);
+		mv=CDDM_get_vert(splitdm,i);
 
-				VECADD(dupve->co,dupve->co,mv->co);
-				VecMulf(dupve->co,0.5);
-			}
-		}
+		VECADD(dupve->co,dupve->co,mv->co);
+		VecMulf(dupve->co,0.5);
 	}
+	BLI_edgehashIterator_free(ehi);
 
 	/* create new faces */
 	curdupface=totface;
@@ -6148,14 +6363,14 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				curdupface++;
 				
 				if(v1==v2){
-					df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
 					mf->v3=df1->v2;
 					mf->v4=df1->v1;
 				}
 				else{
-					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+					df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df1->v4=edgesplit_get(edgehash, mf->v3, mf->v4);
 					mf->v2=df1->v1;
 					mf->v3=df1->v4;
 				}
@@ -6178,8 +6393,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 
 				if(v1!=v2){
 					if(v1!=v4){
-						df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+						df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
 						df2->v1=df1->v3=mf->v2;
 						df2->v3=df1->v4=mf->v4;
 						df2->v2=mf->v3;
@@ -6192,8 +6407,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 						facepa[i]=v1;
 					}
 					else{
-						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
-						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
+						df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
 						df1->v4=mf->v3;
 						df2->v2=mf->v3;
 						df2->v3=mf->v4;
@@ -6209,8 +6424,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				}
 				else{
 					if(v1!=v4){
-						df1->v3=edgesplit[mf->v3*totvert+mf->v4];
-						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
+						df1->v4=edgesplit_get(edgehash, mf->v1, mf->v4);
 						df1->v2=mf->v3;
 
 						mf->v1=df1->v4;
@@ -6222,8 +6437,8 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 						facepa[i]=v4;
 					}
 					else{
-						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
-						df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
+						df1->v4=edgesplit_get(edgehash, mf->v3, mf->v4);
 						df1->v1=mf->v4;
 						df1->v2=mf->v2;
 						df2->v3=mf->v4;
@@ -6259,9 +6474,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 				curdupface++;
 
 				if(v1==v2){
-					df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df3->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
-					df3->v3=df2->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df2->v1=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df3->v1=df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
+					df3->v3=df2->v2=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 					df3->v2=mf->v3;
 					df2->v3=mf->v4;
 					df1->v4=df2->v4=df3->v4=0;
@@ -6274,9 +6489,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					facepa[curdupface-2]=v4;
 				}
 				else if(v2==v3){
-					df3->v1=df2->v3=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df2->v2=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
-					df3->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df3->v1=df2->v3=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df2->v2=df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df3->v2=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 					df3->v3=mf->v4;
 					df2->v1=mf->v1;
@@ -6290,9 +6505,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					facepa[curdupface-2]=v1;
 				}
 				else if(v3==v4){
-					df3->v2=df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df2->v3=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
-					df3->v3=df1->v3=edgesplit[mf->v1*totvert+mf->v4];
+					df3->v2=df2->v1=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df2->v3=df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
+					df3->v3=df1->v3=edgesplit_get(edgehash, mf->v1, mf->v4);
 
 					df3->v1=mf->v1;
 					df2->v2=mf->v2;
@@ -6306,9 +6521,9 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					facepa[curdupface-2]=v2;
 				}
 				else{
-					df3->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df3->v3=df2->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
-					df2->v3=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df3->v1=df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df3->v3=df2->v1=df1->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
+					df2->v3=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 					df3->v2=mf->v2;
 					df2->v2=mf->v3;
@@ -6359,11 +6574,11 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					*df3=*mf;
 					curdupface++;
 
-					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-					df3->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+					df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+					df3->v2=df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
 
-					df2->v1=edgesplit[mf->v1*totvert+mf->v4];
-					df3->v4=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df2->v1=edgesplit_get(edgehash, mf->v1, mf->v4);
+					df3->v4=df2->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 					df3->v1=df2->v2=df1->v4=curdupin;
 
@@ -6400,11 +6615,11 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 					curdupface++;
 
 					if(v2==v3){
-						df1->v1=edgesplit[mf->v1*totvert+mf->v2];
-						df3->v1=df1->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
-						df2->v1=df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v1=edgesplit_get(edgehash, mf->v1, mf->v2);
+						df3->v1=df1->v2=df1->v3=edgesplit_get(edgehash, mf->v2, mf->v3);
+						df2->v1=df1->v4=edgesplit_get(edgehash, mf->v1, mf->v4);
 
-						df3->v3=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+						df3->v3=df2->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
 
 						df3->v2=mf->v3;
 						df3->v4=0;
@@ -6418,11 +6633,11 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 						facepa[curdupface-1]=v3;
 					}
 					else{
-						df3->v1=df2->v1=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
-						df2->v4=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
-						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df3->v1=df2->v1=df1->v2=edgesplit_get(edgehash, mf->v1, mf->v2);
+						df2->v4=df1->v3=edgesplit_get(edgehash, mf->v3, mf->v4);
+						df1->v4=edgesplit_get(edgehash, mf->v1, mf->v4);
 
-						df3->v3=df2->v2=edgesplit[mf->v2*totvert+mf->v3];
+						df3->v3=df2->v2=edgesplit_get(edgehash, mf->v2, mf->v3);
 
 						df3->v4=0;
 
@@ -6446,7 +6661,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 		}
 	}
 
-	MEM_freeN(edgesplit);
+	BLI_edgehash_free(edgehash, NULL);
 	MEM_freeN(facesplit);
 	MEM_freeN(vertpa);
 
@@ -6461,12 +6676,14 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	MFace *mf=0;
 	MVert *dupvert=0;
 	ParticleSettings *part=psmd->psys->part;
-	ParticleData *pa, *pars=psmd->psys->particles;
+	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
+	EdgeHash *vertpahash;
+	EdgeHashIterator *ehi;
 	float *vertco=0, imat[4][4];
 	float loc0[3], nor[3];
 	float timestep, cfra;
-	int *facepa=emd->facepa, *vertpa=0;
+	int *facepa=emd->facepa;
 	int totdup=0,totvert=0,totface=0,totpart=0;
 	int i, j, v, mindex=0;
 
@@ -6481,34 +6698,36 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	else
 		cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
 
-	/* table for vertice <-> particle relations (row totpart+1 is for yet unexploded verts) */
-	vertpa = MEM_callocN(sizeof(int)*(totpart+1)*totvert, "explode_vertpatab");
-	for(i=0; i<(totpart+1)*totvert; i++)
-		vertpa[i] = -1;
+	/* hash table for vertice <-> particle relations */
+	vertpahash= BLI_edgehash_new();
 
 	for (i=0; i<totface; i++) {
+		/* do mindex + totvert to ensure the vertex index to be the first
+		 * with BLI_edgehashIterator_getKey */
 		if(facepa[i]==totpart || cfra <= (pars+facepa[i])->time)
-			mindex = totpart*totvert;
+			mindex = totvert+totpart;
 		else 
-			mindex = facepa[i]*totvert;
+			mindex = totvert+facepa[i];
 
 		mf=CDDM_get_face(dm,i);
 
-		/*set face vertices to exist in particle group*/
-		vertpa[mindex+mf->v1] = 1;
-		vertpa[mindex+mf->v2] = 1;
-		vertpa[mindex+mf->v3] = 1;
+		/* set face vertices to exist in particle group */
+		BLI_edgehash_insert(vertpahash, mf->v1, mindex, NULL);
+		BLI_edgehash_insert(vertpahash, mf->v2, mindex, NULL);
+		BLI_edgehash_insert(vertpahash, mf->v3, mindex, NULL);
 		if(mf->v4)
-			vertpa[mindex+mf->v4] = 1;
+			BLI_edgehash_insert(vertpahash, mf->v4, mindex, NULL);
 	}
 
-	/*make new vertice indexes & count total vertices after duplication*/
-	for(i=0; i<(totpart+1)*totvert; i++){
-		if(vertpa[i] != -1)
-			vertpa[i] = totdup++;
+	/* make new vertice indexes & count total vertices after duplication */
+	ehi= BLI_edgehashIterator_new(vertpahash);
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(totdup));
+		totdup++;
 	}
+	BLI_edgehashIterator_free(ehi);
 
-	/*the final duplicated vertices*/
+	/* the final duplicated vertices */
 	explode= CDDM_from_template(dm, totdup, 0,totface);
 	dupvert= CDDM_get_verts(explode);
 
@@ -6517,45 +6736,49 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	psmd->psys->lattice = psys_get_lattice(ob, psmd->psys);
 
-	/*duplicate & displace vertices*/
-	for(i=0, pa=pars; i<=totpart; i++, pa++){
-		if(i!=totpart){
+	/* duplicate & displace vertices */
+	ehi= BLI_edgehashIterator_new(vertpahash);
+	for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+		MVert source;
+		MVert *dest;
+
+		/* get particle + vertex from hash */
+		BLI_edgehashIterator_getKey(ehi, &j, &i);
+		i -= totvert;
+		v= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+
+		dm->getVert(dm, j, &source);
+		dest = CDDM_get_vert(explode,v);
+
+		DM_copy_vert_data(dm,explode,j,v,1);
+		*dest = source;
+
+		if(i!=totpart) {
+			/* get particle */
+			pa= pars+i;
+
+			/* get particle state */
 			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
 			psys_get_particle_state(ob,psmd->psys,i,&state,1);
-		}
 
-		for(j=0; j<totvert; j++){
-			v=vertpa[i*totvert+j];
-			if(v != -1) {
-				MVert source;
-				MVert *dest;
+			vertco=CDDM_get_vert(explode,v)->co;
+			
+			Mat4MulVecfl(ob->obmat,vertco);
 
-				dm->getVert(dm, j, &source);
-				dest = CDDM_get_vert(explode,v);
+			VECSUB(vertco,vertco,loc0);
 
-				DM_copy_vert_data(dm,explode,j,v,1);
-				*dest = source;
+			/* apply rotation, size & location */
+			QuatMulVecf(state.rot,vertco);
+			VecMulf(vertco,pa->size);
+			VECADD(vertco,vertco,state.co);
 
-				if(i!=totpart){
-					vertco=CDDM_get_vert(explode,v)->co;
-					
-					Mat4MulVecfl(ob->obmat,vertco);
-
-					VECSUB(vertco,vertco,loc0);
-
-					/* apply rotation, size & location */
-					QuatMulVecf(state.rot,vertco);
-					VecMulf(vertco,pa->size);
-					VECADD(vertco,vertco,state.co);
-
-					Mat4MulVecfl(imat,vertco);
-				}
-			}
+			Mat4MulVecfl(imat,vertco);
 		}
 	}
+	BLI_edgehashIterator_free(ehi);
 
 	/*map new vertices to faces*/
 	for (i=0; i<totface; i++) {
@@ -6577,15 +6800,15 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		orig_v4 = source.v4;
 
 		if(facepa[i]!=totpart && cfra <= pa->time)
-			mindex = totpart*totvert;
+			mindex = totvert+totpart;
 		else 
-			mindex = facepa[i]*totvert;
+			mindex = totvert+facepa[i];
 
-		source.v1 = vertpa[mindex+source.v1];
-		source.v2 = vertpa[mindex+source.v2];
-		source.v3 = vertpa[mindex+source.v3];
+		source.v1 = edgesplit_get(vertpahash, source.v1, mindex);
+		source.v2 = edgesplit_get(vertpahash, source.v2, mindex);
+		source.v3 = edgesplit_get(vertpahash, source.v3, mindex);
 		if(source.v4)
-			source.v4 = vertpa[mindex+source.v4];
+			source.v4 = edgesplit_get(vertpahash, source.v4, mindex);
 
 		DM_copy_face_data(dm,explode,i,i,1);
 
@@ -6594,9 +6817,10 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		test_index_face(mf, &explode->faceData, i, (mf->v4 ? 4 : 3));
 	}
 
+	MEM_printmemlist_stats();
 
 	/* cleanup */
-	if(vertpa) MEM_freeN(vertpa);
+	BLI_edgehash_free(vertpahash, NULL);
 
 	/* finalization */
 	CDDM_calc_edges(explode);
@@ -6826,8 +7050,16 @@ static void meshdeformModifier_do(
 	Mat3CpyMat4(icagemat, iobmat);
 
 	/* bind weights if needed */
-	if(!mmd->bindcos)
-		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+	if(!mmd->bindcos) {
+		static int recursive = 0;
+
+		/* progress bar redraw can make this recursive .. */
+		if(!recursive) {
+			recursive = 1;
+			harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+			recursive = 0;
+		}
+	}
 
 	/* verify we have compatible weights */
 	totvert= numVerts;

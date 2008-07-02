@@ -389,7 +389,7 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same colour */
+			/* these should all use the same color */
 			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
@@ -402,7 +402,7 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* action channel groups (recolour anyway) */
+			/* action channel groups (recolor anyway) */
 			SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
 			SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
 			
@@ -925,7 +925,7 @@ void BIF_write_file(char *target)
 
 		writeBlog();
 	} else {
-		error("%s", err);
+		error("failed to write blend file: %s", err);
 	}
 
 	waitcursor(0);
@@ -940,7 +940,10 @@ void BIF_write_homefile(void)
 		
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-	BLO_write_file(tstr, write_flags, &err);
+	
+	if (!BLO_write_file(tstr, write_flags, &err)) {
+		error("failed writing defaults: %s", err);
+	}
 }
 
 void BIF_write_autosave(void)
@@ -952,7 +955,9 @@ void BIF_write_autosave(void)
 
 		/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-	BLO_write_file(tstr, write_flags, &err);
+	if (!BLO_write_file(tstr, write_flags, &err)) {
+		fprintf(stderr, "failed to write autosave: %s\n", err); /* using error(...) is too annoying here */
+	}
 }
 
 /* remove temp files assosiated with this blend file when quitting, loading or saving in a new path */
@@ -1033,6 +1038,7 @@ void BIF_init(void)
 	BIF_filelist_init_icons();
 
 	init_gl_stuff();	/* drawview.c, after homefile */
+	glewInit();
 	readBlog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }

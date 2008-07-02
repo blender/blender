@@ -80,3 +80,26 @@ void free_imasel(SpaceImaSel *simasel)
 	}
 }
 
+/* resets a previous imagebrowser space type */
+/* is used when opening an imagebrowser directly from windowtype_pupmenu,
+   since in that case we don't want any load/save/append/link action
+*/
+void reset_imaselspace(ScrArea *sa) 
+{
+	if(sa->spacetype==SPACE_IMASEL) {
+		SpaceImaSel *simasel= sa->spacedata.first;
+		if(simasel->type==FILE_MAIN) {
+			if (simasel->files) {
+				BIF_filelist_free(simasel->files);
+				BIF_filelist_settype(simasel->files, FILE_MAIN);
+			}
+		} else {
+			if (simasel->files) {
+				simasel->type= FILE_UNIX;
+				BIF_filelist_settype(simasel->files, simasel->type);
+			}
+		}
+		simasel->returnfunc= NULL;
+		simasel->title[0]= 0;
+	}
+}

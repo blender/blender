@@ -428,7 +428,7 @@ void makeqtstring (char *string) {
 	if (string==0) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 

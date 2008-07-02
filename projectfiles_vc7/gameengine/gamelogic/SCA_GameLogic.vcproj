@@ -396,6 +396,12 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_MouseSensor.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NANDController.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NORController.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ORController.cpp">
 			</File>
 			<File
@@ -424,6 +430,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_TimeEventManager.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XNORController.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XORController.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -499,6 +511,12 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_MouseSensor.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NANDController.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NORController.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ORController.h">
 			</File>
 			<File
@@ -527,6 +545,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_TimeEventManager.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XNORController.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XORController.h">
 			</File>
 		</Filter>
 	</Files>

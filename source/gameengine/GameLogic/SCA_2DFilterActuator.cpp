@@ -18,6 +18,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 		short flag,
 		float float_arg,
 		int int_arg,
+		short texture_flag,
 		RAS_IRasterizer* rasterizer,
 		RAS_IRenderTools* rendertools,
         PyTypeObject* T)
@@ -25,6 +26,7 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
      m_type(type),
 	 m_flag(flag),
 	 m_int_arg(int_arg),
+	 m_texture_flag(texture_flag),
 	 m_float_arg(float_arg),
 	 m_rasterizer(rasterizer),
 	 m_rendertools(rendertools)
@@ -72,7 +74,7 @@ bool SCA_2DFilterActuator::Update()
 	}
 	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{
-		m_rendertools->Update2DFilter(m_type, m_int_arg, m_shaderText);
+		m_rendertools->Update2DFilter(m_type, m_int_arg, m_shaderText, m_texture_flag);
 	}
     return true;
 }

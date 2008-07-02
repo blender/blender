@@ -98,6 +98,7 @@ typedef struct FFMpegCodecData {
 	int rc_buffer_size;
 	int mux_packet_size;
 	int mux_rate;
+	IDProperty *properties;
 } FFMpegCodecData;
 
 
@@ -273,7 +274,7 @@ typedef struct RenderData {
 	
 	/* Bake Render options */
 	short bake_osa, bake_filter, bake_mode, bake_flag;
-	short bake_normal_space, bpad;
+	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 	
 	/* yafray: global panel params. TODO: move elsewhere */
@@ -437,7 +438,9 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	
-	char pad3[5];
+	/* Alt+RMB option */
+	char edge_mode;
+	char pad3[4];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -540,8 +543,8 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 	
-	short jumpframe, pad1;
-	short snap_flag, snap_target;
+	short jumpframe;
+	short snap_mode, snap_flag, snap_target;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -704,11 +707,16 @@ typedef struct Scene {
 
 /* scene->snap_flag */
 #define SCE_SNAP				1
+#define SCE_SNAP_ROTATE			2
 /* scene->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
 #define SCE_SNAP_TARGET_MEDIAN	2
 #define SCE_SNAP_TARGET_ACTIVE	3
+/* scene->snap_mode */
+#define SCE_SNAP_MODE_VERTEX	0
+#define SCE_SNAP_MODE_EDGE		1
+#define SCE_SNAP_MODE_FACE		2
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
@@ -782,6 +790,13 @@ typedef struct Scene {
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+
+/* toolsettings->edge_mode */
+#define EDGE_MODE_SELECT				0
+#define EDGE_MODE_TAG_SEAM				1
+#define EDGE_MODE_TAG_SHARP				2
+#define EDGE_MODE_TAG_CREASE			3
+#define EDGE_MODE_TAG_BEVEL				4
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1

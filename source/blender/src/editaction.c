@@ -390,7 +390,7 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 
 static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_mode)
 {
-	bActListElem *ale;
+	bActListElem *ale=NULL;
 	bActionGroup *agrp;
 	bActionChannel *achan, *lastchan=NULL;
 	
@@ -428,6 +428,15 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 						actdata_filter_actionchannel(act_data, achan, filter_mode);
+					}
+					
+					/* remove group from filtered list if last element is group 
+					 * (i.e. only if group had channels, which were all hidden)
+					 */
+					if ( (ale) && (act_data->last == ale) && 
+						 (ale->data == agrp) && (agrp->channels.first) ) 
+					{
+						BLI_freelinkN(act_data, ale);
 					}
 				}
 			}
@@ -1161,7 +1170,7 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 					memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 				}
 				else {
-					/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+					/* init custom colors with a generic multi-color rgb set, if not initialised already */
 					if (agrp->cs.solid[0] == 0) {
 						/* define for setting colors in theme below */
 						#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
@@ -1221,7 +1230,7 @@ void sync_pchan2achan_grouping ()
 		achan->grp = NULL;
 	BLI_freelistN(&act->groups);
 	
-	/* loop through all achans, reassigning them to groups (colours are resyncronised) */
+	/* loop through all achans, reassigning them to groups (colors are resyncronised) */
 	last= act->chanbase.last;
 	for (achan= act->chanbase.first; achan && achan!=last; achan= next) {
 		next= achan->next;
@@ -1485,7 +1494,7 @@ void insertkey_action(void)
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
 	cfra = frame_to_float(CFRA);
-		
+	
 	if (datatype == ACTCONT_ACTION) {
 		ListBase act_data = {NULL, NULL};
 		bActListElem *ale;
@@ -1941,6 +1950,7 @@ void paste_actdata ()
 	int filter;
 	void *data;
 	short datatype;
+	Object *ob= OBACT;
 	
 	short no_name= 0;
 	float offset = CFRA - actcopy_firstframe;
@@ -2017,7 +2027,7 @@ void paste_actdata ()
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)OBACT, ico->blocktype, actname, conname, "", ico->adrcode);
+			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, "", ico->adrcode);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
@@ -2044,6 +2054,14 @@ void paste_actdata ()
 	
 	/* free temp memory */
 	BLI_freelistN(&act_data);
+	
+	/* do depsgraph updates (for 3d-view)? */
+	if ((ob) && (G.saction->pin==0)) {
+		if (ob->type == OB_ARMATURE)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+		else
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	}
 	
 	/* undo and redraw stuff */
 	allqueue(REDRAWVIEW3D, 0);
@@ -2564,7 +2582,7 @@ static void select_poseelement_by_name (char *name, int select)
 	if ((ob==NULL) || (ob->type!=OB_ARMATURE))
 		return;
 	
-	if (select == 2) {
+	if (abs(select) == 2) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
 			pchan->bone->flag &= ~(BONE_ACTIVE);
 	}
@@ -3263,6 +3281,8 @@ void borderselect_actionchannels (void)
 					}
 						break;
 					case ACTTYPE_ACHAN: /* action channel */
+					case ACTTYPE_FILLIPO: /* expand ipo curves = action channel */
+					case ACTTYPE_FILLCON: /* expand constraint channels = action channel */
 					{
 						bActionChannel *achan= (bActionChannel *)ale->data;
 						
@@ -3270,6 +3290,9 @@ void borderselect_actionchannels (void)
 							achan->flag |= ACHAN_SELECTED;
 						else
 							achan->flag &= ~ACHAN_SELECTED;
+							
+						/* messy... set active bone */
+						select_poseelement_by_name(achan->name, selectmode);
 					}
 						break;
 					case ACTTYPE_CONCHAN: /* constraint channel */
@@ -3293,6 +3316,14 @@ void borderselect_actionchannels (void)
 					}
 						break;
 				}
+				
+				/* select action-channel 'owner' */
+				if ((ale->owner) && (ale->ownertype == ACTTYPE_ACHAN)) {
+					bActionChannel *achano= (bActionChannel *)ale->owner;
+					
+					/* messy... set active bone */
+					select_poseelement_by_name(achano->name, selectmode);
+				}
 			}
 			
 			ymax=ymin;
@@ -3305,6 +3336,7 @@ void borderselect_actionchannels (void)
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
@@ -3625,7 +3657,7 @@ static void mouse_actionchannels (short mval[])
 			{
 				bActionGroup *agrp= (bActionGroup *)act_channel;
 				
-				if (mval[0] < 16) {
+				if ((mval[0] < 16) && (agrp->channels.first)) {
 					/* toggle expand */
 					agrp->flag ^= AGRP_EXPANDED;
 				}

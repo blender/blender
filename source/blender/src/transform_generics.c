@@ -39,6 +39,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
@@ -111,7 +112,6 @@ extern ListBase editelems;
 extern TransInfo Trans;	/* From transform.c */
 
 /* ************************** Functions *************************** */
-
 
 void getViewVector(float coord[3], float vec[3])
 {
@@ -303,9 +303,49 @@ void recalcData(TransInfo *t)
 				
 				if (base->object->recalc) 
 					base->object->ctime= -1234567.0f;	// eveil! 
+				
+				/* recalculate scale of selected nla-strips */
+				if (base->object->nlastrips.first) {
+					Object *bob= base->object;
+					bActionStrip *strip;
+					
+					for (strip= bob->nlastrips.first; strip; strip= strip->next) {
+						if (strip->flag & ACTSTRIP_SELECT) {
+							float actlen= strip->actend - strip->actstart;
+							float len= strip->end - strip->start;
+							
+							strip->scale= len / (actlen * strip->repeat);
+						}
+					}
+				}
 			}
 			
 			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
+		}
+		else {
+			for (base=G.scene->base.first; base; base=base->next) {
+				/* recalculate scale of selected nla-strips */
+				if (base->object && base->object->nlastrips.first) {
+					Object *bob= base->object;
+					bActionStrip *strip;
+					
+					for (strip= bob->nlastrips.first; strip; strip= strip->next) {
+						if (strip->flag & ACTSTRIP_SELECT) {
+							float actlen= strip->actend - strip->actstart;
+							float len= strip->end - strip->start;
+							
+							/* prevent 'negative' scaling */
+							if (len < 0) {
+								SWAP(float, strip->start, strip->end);
+								len= fabs(len);
+							}
+							
+							/* calculate new scale */
+							strip->scale= len / (actlen * strip->repeat);
+						}
+					}
+				}
+			}
 		}
 	}
 	else if (t->spacetype == SPACE_IPO) {
@@ -358,7 +398,14 @@ void recalcData(TransInfo *t)
 				}
 			}
 			else if(G.sipo->blocktype==ID_OB) {
+				Object *ob= OBACT;
 				Base *base= FIRSTBASE;
+				
+				/* only if this if active object has this ipo in an action (assumes that current ipo is in action) */
+				if ((ob) && (ob->ipoflag & OB_ACTION_OB) && (G.sipo->pin==0)) {
+					ob->ctime= -1234567.0f;
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+				}
 				
 				while(base) {
 					if(base->object->ipo==G.sipo->ipo) {
@@ -931,11 +978,12 @@ void calculateCenter(TransInfo *t)
 		calculateCenterMedian(t);
 		break;
 	case V3D_ACTIVE:
+		{
 		/* set median, and if if if... do object center */
-		
+		EditSelection ese;
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
-		if (G.obedit && G.obedit->type == OB_MESH && G.editMesh->selected.last) {
-			EM_editselection_center(t->center, G.editMesh->selected.last);
+		if (G.obedit && G.obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
+			EM_editselection_center(t->center, &ese);
 			calculateCenter2D(t);
 			break;
 		} /* END EDIT MODE ACTIVE ELEMENT */
@@ -947,6 +995,8 @@ void calculateCenter(TransInfo *t)
 				VECCOPY(t->center, ob->obmat[3]);
 				projectIntView(t, t->center, t->center2d);
 			}
+		}
+		
 		}
 	}
 

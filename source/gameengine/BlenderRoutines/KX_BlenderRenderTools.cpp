@@ -28,16 +28,7 @@
 
 #include "KX_BlenderRenderTools.h"
 
-#ifdef WIN32
-// OpenGL gl.h needs 'windows.h' on windows platforms 
-#include <windows.h>
-#endif //WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"
 #include "RAS_IRasterizer.h"
@@ -123,6 +114,22 @@ void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
 	DisableOpenGLLights();
 
 
+}
+
+void KX_BlenderRenderTools::SetClientObject(void* obj)
+{
+	if (m_clientobject != obj)
+	{
+		if (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling())
+		{
+			glFrontFace(GL_CCW);
+		} else 
+		{
+			glFrontFace(GL_CW);
+		}
+		m_clientobject = obj;
+		m_modified = true;
+	}
 }
 
 bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
@@ -301,7 +308,7 @@ void KX_BlenderRenderTools::EnableOpenGLLights()
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
-	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
+	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 
 }
@@ -476,9 +483,9 @@ void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
-void KX_BlenderRenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+void KX_BlenderRenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text, short texture_flag)
 {
-	m_filtermanager.EnableFilter(filtermode, pass, text);
+	m_filtermanager.EnableFilter(filtermode, pass, text, texture_flag);
 }
 
 void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)

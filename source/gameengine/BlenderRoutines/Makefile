@@ -35,7 +35,6 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_SUMO)/include -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_SOLID)
 CPPFLAGS += -I$(NAN_STRING)/include    
@@ -43,6 +42,8 @@ CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(OPENGL_HEADERS)
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/include
@@ -65,6 +66,7 @@ CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork
 CPPFLAGS += -I../Physics/common
 CPPFLAGS += -I../Physics/Sumo
+CPPFLAGS += -I.
 
 ifeq ($(OS),windows)
     CPPFLAGS += -I../../blender

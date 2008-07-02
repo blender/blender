@@ -71,6 +71,7 @@
 #include "KX_TimeCategoryLogger.h"
 
 #include "RAS_FramingManager.h"
+#include "stdio.h"
 
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
@@ -91,7 +92,7 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 };
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
-
+double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
 
@@ -890,7 +891,7 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 // update graphics
 void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 {
-	float left, right, bottom, top, nearfrust, farfrust;
+	float left, right, bottom, top, nearfrust, farfrust, focallength;
 	const float ortho = 100.0;
 //	KX_Camera* cam = scene->GetActiveCamera();
 	
@@ -913,6 +914,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		float lens = cam->GetLens();
 		nearfrust = cam->GetCameraNear();
 		farfrust = cam->GetCameraFar();
+		focallength = cam->GetFocalLength();
 
 		if (!cam->GetCameraData()->m_perspective)
 		{
@@ -939,7 +941,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 		farfrust = frustum.camfar;
 
 		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
-			left, right, bottom, top, nearfrust, farfrust);
+			left, right, bottom, top, nearfrust, farfrust, focallength);
 	
 		cam->SetProjectionMatrix(projmat);
 		
@@ -1380,6 +1382,16 @@ double KX_KetsjiEngine::GetTicRate()
 void KX_KetsjiEngine::SetTicRate(double ticrate)
 {
 	m_ticrate = ticrate;
+}
+
+double KX_KetsjiEngine::GetAnimFrameRate()
+{
+	return m_anim_framerate;
+}
+
+void KX_KetsjiEngine::SetAnimFrameRate(double framerate)
+{
+	m_anim_framerate = framerate;
 }
 
 void KX_KetsjiEngine::SetTimingDisplay(bool frameRate, bool profile, bool properties)

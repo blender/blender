@@ -62,7 +62,7 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 	if (hotkey == SCA_IInputDevice::KX_ESCKEY)
 		keybdmgr->GetInputDevice()->HookEscape();
 //	SetDrawColor(0xff0000ff);
-	m_val=0;
+	Init();
 }
 
 
@@ -71,7 +71,14 @@ SCA_KeyboardSensor::~SCA_KeyboardSensor()
 {
 }
 
-
+void SCA_KeyboardSensor::Init()
+{
+	// this function is used when the sensor is disconnected from all controllers
+	// by the state engine. It reinitializes the sensor as if it was just created.
+	// However, if the target key is pressed when the sensor is reactivated, it
+	// will not generated an event (see remark in Evaluate()).
+	m_val = (m_invert)?1:0;
+}
 
 CValue* SCA_KeyboardSensor::GetReplica()
 {
@@ -169,10 +176,10 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					if (m_val == 0)
 					{
-						//see comment below
-						//m_val = 1;
-						//result = true;
-						;
+						if (m_level) {
+							m_val = 1;
+							result = true;
+						}
 					}
 				} else
 				{
@@ -222,15 +229,11 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 					{
 						if (m_val == 0)
 						{
-							//hmm, this abnormal situation may occur in the following cases:
-							//- the key was pressed while the scene was suspended
-							//- this is a new scene and the key is active from the start
-							//In the second case, it's dangerous to activate the sensor
-							//(think of a key to go to next scene)
-							//What we really need is a edge/level flag in the key sensor
-							//m_val = 1;
-							//result = true;
-							;
+							if (m_level) 
+							{
+								m_val = 1;
+								result = true;
+							}
 						}
 					}
 				}

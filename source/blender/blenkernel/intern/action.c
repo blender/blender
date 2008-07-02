@@ -290,6 +290,12 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 		return;
 	}
 	
+	if (*dst==src) {
+		printf("copy_pose source and target are the same\n");
+		*dst=NULL;
+		return;
+	}
+	
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
 	duplicatelist(&outPose->chanbase, &src->chanbase);
@@ -344,7 +350,7 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
-	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next) {
+	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next, con= con->next) {
 		pcon->enforce= con->enforce;
 		pcon->headtail= con->headtail;
 	}
@@ -489,11 +495,11 @@ static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert
 {
 	float length, actlength, repeat, scale;
 	
-	if(strip->repeat == 0.0f) strip->repeat = 1.0f;
+	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
 	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
 	
-	if(strip->scale == 0.0f) strip->scale= 1.0f;
-	scale = abs(strip->scale); /* scale must be positive (for now) */
+	if (strip->scale == 0.0f) strip->scale= 1.0f;
+	scale = fabs(strip->scale); /* scale must be positive (for now) */
 	
 	actlength = strip->actend-strip->actstart;
 	if (actlength == 0.0f) actlength = 1.0f;
@@ -740,6 +746,11 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 	const bPoseChannel *schan;
 	bPoseChannel *pchan= pose->chanbase.first;
 
+	if (pose==src) {
+		printf("extract_pose_from_pose source and target are the same\n");
+		return;
+	}
+
 	for (schan=src->chanbase.first; schan; schan=schan->next, pchan= pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
@@ -817,6 +828,12 @@ void copy_pose_result(bPose *to, bPose *from)
 		return;
 	}
 
+	if (to==from) {
+		printf("copy_pose_result source and target are the same\n");
+		return;
+	}
+
+
 	for(pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
 		pchanto= get_pose_channel(to, pchanfrom->name);
 		if(pchanto) {
@@ -843,7 +860,7 @@ typedef struct NlaIpoChannel {
 	int type;
 } NlaIpoChannel;
 
-static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
+void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
 {
 	bActionChannel *achan= get_action_channel(act, name);
 	IpoCurve *icu;
@@ -936,15 +953,18 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	}
 }
 
-static void execute_ipochannels(ListBase *lb)
+int execute_ipochannels(ListBase *lb)
 {
 	NlaIpoChannel *nic;
+	int count = 0;
 	
 	for(nic= lb->first; nic; nic= nic->next) {
 		if(nic->poin) {
 			write_ipo_poin(nic->poin, nic->type, nic->val);
+			count++;
 		}
 	}
+	return count;
 }
 
 /* nla timing */

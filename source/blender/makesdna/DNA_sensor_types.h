@@ -144,7 +144,7 @@ typedef struct bSensor {
 
 	/* just add here, to avoid align errors... */
 	short invert; /* Whether or not to invert the output. */
-	short freq2;  /* The negative pulsing frequency? Not used anymore... */
+	short level;  /* Whether the sensor is level base (edge by default) */
 	int pad;
 } bSensor;
 
@@ -202,6 +202,7 @@ typedef struct bJoystickSensor {
 #define SENS_DEL		2
 #define SENS_NEW		4
 #define SENS_NOT		8
+#define SENS_VISIBLE	16
 
 /* sensor->pulse */
 #define SENS_PULSE_CONT 	0

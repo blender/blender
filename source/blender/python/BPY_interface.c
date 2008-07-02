@@ -229,13 +229,6 @@ void BPY_start_python( int argc, char **argv )
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 
-	/* Don't allow the Python Interpreter to release the GIL on
-	 * its own, to guarantee PyNodes work properly. For Blender this
-	 * is currently the best default behavior.
-	 * The following code in C is equivalent in Python to:
-	 * "import sys; sys.setcheckinterval(sys.maxint)" */
-	_Py_CheckInterval = PyInt_GetMax();
-
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -435,19 +428,24 @@ void BPY_rebuild_syspath( void )
 	if(U.pythondir[0] != '\0' ) {
 		char modpath[FILE_MAX];
 		int upyslen = strlen(U.pythondir);
-
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
+		
 		/* check if user pydir ends with a slash and, if so, remove the slash
 		 * (for eventual implementations of c library's stat function that might
 		 * not like it) */
-		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
-			BLI_add_slash(U.pythondir);
+#ifdef WIN32
+		if (upyslen > 3) {
+#else
+		if (upyslen > 1) {
+#endif
+			if (dirpath[upyslen-1] == '\\' || dirpath[upyslen-1] == '/') {
+				dirpath[upyslen-1] = '\0';
+			}
 		}
 
-		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
 		BLI_convertstringcode(dirpath, G.sce);
 		syspath_append(dirpath);	/* append to module search path */
-
-		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
+		BLI_join_dirfile( modpath, dirpath, "bpymodules" );
 		if (BLI_exists(modpath)) syspath_append(modpath);
 	}
 	
@@ -783,7 +781,6 @@ int BPY_run_script(Script *script)
 	Text *text = NULL;
 	BPy_constant *info;
 	int len;
-	char *buffer=NULL, *s;
 	
 	FILE *fp = NULL;
 	
@@ -864,7 +861,6 @@ int BPY_run_script(Script *script)
 		printf("Oops - weakref dict\n");
 		free_libblock( &G.main->script, script );
 		ReleaseGlobalDictionary( py_dict );
-		MEM_freeN( buffer );
 		PyGILState_Release(gilstate);
 		return 0;
 	}
@@ -886,41 +882,41 @@ int BPY_run_script(Script *script)
 		* 'FILE structs for different C libraries can be different and 
 		* incompatible'.
 		* So now we load the script file data to a buffer */
-	
+		char *buffer=NULL, *buffer_ofs=NULL, *b_to, *b_from;
+		
 		fseek( fp, 0L, SEEK_END );
 		len = ftell( fp );
 		fseek( fp, 0L, SEEK_SET );
 	
-		buffer = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
+		buffer = buffer_ofs = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
 		len = fread( buffer, 1, len, fp );
 	
 		buffer[len] = '\n';	/* fix syntax error in files w/o eol */
 		buffer[len + 1] = '\0';
-	
-		/* fast clean-up of dos cr/lf line endings: change '\r' to space */
-	
-		/* we also have to check for line splitters: '\\' */
-		/* to avoid possible syntax errors on dos files on win */
-		/**/
-			/* but first make sure we won't disturb memory below &buffer[0]: */
-			if( *buffer == '\r' )
-			*buffer = ' ';
-	
-		/* now handle the whole buffer */
-		for( s = buffer + 1; *s != '\0'; s++ ) {
-			if( *s == '\r' ) {
-				if( *( s - 1 ) == '\\' ) {	/* special case: long lines split with '\': */
-					*( s - 1 ) = ' ';	/* we write ' \', because '\ ' is a syntax error */
-					*s = '\\';
-				} else
-					*s = ' ';	/* not a split line, just replace '\r' with ' ' */
-			}
+		
+		
+		/* fast clean-up of dos cr/lf line endings, remove convert '\r\n's to '\n' */
+		if (*buffer_ofs == '\r' && *(buffer_ofs+1) == '\n') {
+			buffer_ofs++;
 		}
-	
+		b_from = b_to = buffer_ofs;
+		
+		while(*b_from != '\0') {
+			if (*b_from == '\r' && *( b_from+1 ) == '\n') {
+				b_from++;
+			}
+			if (b_from != b_to) {
+				*b_to = *b_from;
+			}
+			b_to++;
+			b_from++;
+		}
+		*b_to = '\0';
+		/* done cleaning the string */
+		
 		fclose( fp );
 		
-		
-		py_res = PyRun_String( buffer, Py_file_input, py_dict, py_dict );
+		py_res = PyRun_String( buffer_ofs, Py_file_input, py_dict, py_dict );
 		MEM_freeN( buffer );
 	}
 
@@ -1151,13 +1147,17 @@ static void unlink_script( Script * script )
 				if( sl->spacetype == SPACE_SCRIPT ) {
 					SpaceScript *sc = ( SpaceScript * ) sl;
 
-					if( sc->script == script ) {
+					if( sc->script == script ) {					
 						sc->script = NULL;
 
-						if( sc ==
-						    area->spacedata.first ) {
-							scrarea_queue_redraw
-								( area );
+						if( sc == area->spacedata.first ) {
+							scrarea_queue_redraw( area );
+						}
+						
+						if (sc->but_refs) {
+							BPy_Set_DrawButtonsList(sc->but_refs);
+							BPy_Free_DrawButtonsList();
+							sc->but_refs = NULL;
 						}
 					}
 				}
@@ -1256,15 +1256,16 @@ static int bpy_pydriver_create_dict(void)
 
 	/* If there's a Blender text called pydrivers.py, import it.
 	 * Users can add their own functions to this module. */
-	mod = importText("pydrivers"); /* can also use PyImport_Import() */
-	if (mod) {
-		PyDict_SetItemString(d, "pydrivers", mod);
-		PyDict_SetItemString(d, "p", mod);
-		Py_DECREF(mod);
+	if (G.f&G_DOSCRIPTLINKS) {
+		mod = importText("pydrivers"); /* can also use PyImport_Import() */
+		if (mod) {
+			PyDict_SetItemString(d, "pydrivers", mod);
+			PyDict_SetItemString(d, "p", mod);
+			Py_DECREF(mod);
+		} else {
+			PyErr_Clear();
+		}
 	}
-	else
-		PyErr_Clear();
-
 	/* short aliases for some Get() functions: */
 
 	/* ob(obname) == Blender.Object.Get(obname) */
@@ -1995,7 +1996,7 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	int setitem_retval;
 	PyGILState_STATE gilstate;
 
-	if (!driver) return result;
+	if (!driver || 	(G.f&G_DOSCRIPTLINKS)==0) return result;
 
 	expr = driver->name; /* the py expression to be evaluated */
 	if (!expr || expr[0]=='\0') return result;
@@ -2100,7 +2101,7 @@ int BPY_button_eval(char *expr, double *value)
 	if (!bpy_pydriver_Dict) {
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr,
-				"Button Python Eval error: couldn't create Python dictionary");
+				"Button Python Eval error: couldn't create Python dictionary \n");
 			PyGILState_Release(gilstate);
 			return -1;
 		}
@@ -2179,6 +2180,18 @@ void BPY_do_all_scripts( short event )
 	DoAllScriptsFromList( &( G.main->world ), event );
 
 	BPY_do_pyscript( &( G.scene->id ), event );
+
+	/* Don't allow the Python Interpreter to release the GIL on
+	 * its own, to guarantee PyNodes work properly. For Blender this
+	 * is currently the best default behavior.
+	 * The following code in C is equivalent in Python to:
+	 * "import sys; sys.setcheckinterval(sys.maxint)" */
+	if (event == SCRIPT_RENDER) {
+		_Py_CheckInterval = PyInt_GetMax();
+	}
+	else if (event == SCRIPT_POSTRENDER) {
+		_Py_CheckInterval = 100; /* Python default */
+	}
 
 	return;
 }
@@ -2262,9 +2275,9 @@ void BPY_do_pyscript( ID * id, short event )
 			return;
 		}
 		
-		/* tell we're running a scriptlink.  The sum also tells if this script
-		 * is running nested inside another.  Blender.Load needs this info to
-		 * avoid trouble with invalid slink pointers. */
+		/* tell we're running a scriptlink.  The sum also tells if this
+		 * script is running nested inside another.  Blender.Load needs
+		 * this info to avoid trouble with invalid slink pointers. */
 		during_slink++;
 		disable_where_scriptlink( (short)during_slink );
 

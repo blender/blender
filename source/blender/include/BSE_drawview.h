@@ -46,7 +46,7 @@ void do_viewbuts(unsigned short event);
 /* View3DAfter->type */
 #define V3D_XRAY	1
 #define V3D_TRANSP	2
-void add_view3d_after(struct View3D *v3d, struct Base *base, int type);
+void add_view3d_after(struct View3D *v3d, struct Base *base, int type, int flag);
 
 void backdrawview3d(int test);
 void check_backbuf(void);
@@ -59,7 +59,7 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 void draw_depth(struct ScrArea *sa, void *spacedata);
 void view3d_update_depths(struct View3D *v3d);
 
-int update_time(void);
+int update_time(int cfra);
 void calc_viewborder(struct View3D *v3d, struct rctf *viewborder_r);
 void view3d_set_1_to_1_viewborder(struct View3D *v3d);
 

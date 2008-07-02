@@ -36,6 +36,7 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 # OpenGL header files
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_BMFONT)/include
@@ -68,6 +69,8 @@ CPPFLAGS += -I../../../blender/blenloader
 CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
 CPPFLAGS += -I../../../blender/readblenfile
+
+CPPFLAGS += -I../../../gameengine/BlenderRoutines
 
 # kernel? GEN? stuff
 CPPFLAGS += -I../../../kernel/gen_system

@@ -204,6 +204,11 @@ float KX_Camera::GetCameraFar() const
 	return m_camdata.m_clipend;
 }
 
+float KX_Camera::GetFocalLength() const
+{
+	return m_camdata.m_focallength;
+}
+
 
 
 RAS_CameraData*	KX_Camera::GetCameraData()
@@ -583,7 +588,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
 
 	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (center, radius)");
 	
-	Py_Return;
+	return NULL;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
@@ -761,6 +766,10 @@ KX_PYMETHODDEF_DOC(KX_Camera, enableViewport,
 		else
 			EnableViewport(false);
 	}
+	else {
+		return NULL;
+	}
+	
 	Py_Return;
 }
 
@@ -772,6 +781,8 @@ KX_PYMETHODDEF_DOC(KX_Camera, setViewport,
 	if (PyArg_ParseTuple(args,"iiii",&left, &bottom, &right, &top))
 	{
 		SetViewport(left, bottom, right, top);
+	} else {
+		return NULL;
 	}
 	Py_Return;
 }

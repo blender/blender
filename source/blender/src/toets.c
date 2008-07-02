@@ -106,7 +106,7 @@
 
 #include "mydevice.h"
 
-#include "BIF_poseobject.h"
+#include "transform.h"
 
 #define VIEW_ZOOM_OUT_FACTOR (1.15f)
 #define VIEW_ZOOM_IN_FACTOR (1.0f/VIEW_ZOOM_OUT_FACTOR)
@@ -228,8 +228,8 @@ void persptoetsen(unsigned short event)
 	}
 	else {
 		/* Indicate that this view is not inverted.
-		 * Don't do this for PADMINUS/PADPLUSKEY, though. (jobbe)*/
-		if (event != PADMINUS && event != PADPLUSKEY)
+		 * Don't do this for PADMINUS/PADPLUSKEY/PAD5, though. (jobbe)*/
+		if (! ELEM3(event, PADMINUS, PADPLUSKEY, PAD5) )
 			G.vd->flag2 &= ~V3D_OPP_DIRECTION_NAME;
 		
 
@@ -322,6 +322,7 @@ void persptoetsen(unsigned short event)
 				if(((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) || (G.qual & LR_SHIFTKEY)) {
 					void setcameratoview3d(void);	// view.c
 					setcameratoview3d();
+					autokeyframe_ob_cb_func(G.scene->camera, TFM_TRANSLATION|TFM_ROTATION);
 					DAG_object_flush_update(G.scene, G.scene->camera, OB_RECALC_OB);
 					BIF_undo_push("View to Camera position");
 					allqueue(REDRAWVIEW3D, 0);

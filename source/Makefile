@@ -157,6 +157,7 @@ COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
 COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+COMLIB += $(NAN_GLEW)/lib/libglew.a
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
@@ -315,12 +316,10 @@ ifeq ($(WITH_BF_BLENDERPLAYER), true)
 endif
 
 ifeq ($(WITH_BF_WEBPLUGIN), true)
-    ifneq ($(NAN_NO_PLUGIN), true)
-        BINTARGETS += plugin
-        ifeq ($(OS),linux)
-            ifeq ($(CPU),i386)
-                 BINTARGETS += xplink
-             endif
+    BINTARGETS += plugin
+    ifeq ($(OS),linux)
+        ifeq ($(CPU),i386)
+             BINTARGETS += xplink
         endif
     endif
 endif

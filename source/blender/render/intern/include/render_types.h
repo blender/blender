@@ -265,7 +265,7 @@ typedef struct ObjectRen {
 
 	char (*mtface)[32];
 	char (*mcol)[32];
-	int  actmtface, actmcol;
+	int  actmtface, actmcol, bakemtface;
 
 	float obmat[4][4];	/* only used in convertblender.c, for instancing */
 } ObjectRen;
@@ -499,6 +499,7 @@ typedef struct LampRen {
 #define R_NEED_TANGENT	32
 #define R_SKIP_MULTIRES	64
 #define R_BAKE_TRACE	128
+#define R_BAKING		256
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

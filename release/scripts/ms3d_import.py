@@ -50,7 +50,7 @@ def RM(a):
 	cp = cos(a[1])
 	sr = sin(a[0])
 	cr = cos(a[0])
-	return Matrix([cp*cy, sr*sp*cy+cr*-sy, cr*sp*cy+-sr*-sy],[cp*sy, sr*sp*sy+cr*cy, cr*sp*sy+-sr*cy], [-sp, sr*cp, cr*cp])
+	return Matrix([cp*cy, cp*sy, -sp], [sr*sp*cy+cr*-sy, sr*sp*sy+cr*cy, sr*cp],[cr*sp*cy+-sr*-sy, cr*sp*sy+-sr*cy, cr*cp])
 
 
 # Converts ms3d euler angles to a quaternion
@@ -94,7 +94,12 @@ def import_ms3d(path):
 	except IOError:
 		return "Failed to open the file!"
 
-	# read id
+	# get the file size
+	file.seek(0, os.SEEK_END);
+	fileSize = file.tell();
+	file.seek(0, os.SEEK_SET);
+
+	# read id to check if the file is a MilkShape3D file
 	id = file.read(10)
 	if id!="MS3D000000":
 		return "The file is not a MS3D file!"
@@ -123,7 +128,7 @@ def import_ms3d(path):
 		coords.append(struct.unpack("fff", file.read(3*4)))
 
 		# read bone ids 
-		boneIds.append(struct.unpack("B", file.read(1))[0])
+		boneIds.append(struct.unpack("b", file.read(1))[0])
 
 		# skip refcount		
 		file.read(1)
@@ -190,9 +195,10 @@ def import_ms3d(path):
 			triangleIndices = struct.unpack(str(numGroupTriangles) + "H", file.read(2*numGroupTriangles));
 
 		# read material
-		material = struct.unpack("B", file.read(1))[0]
-		for j in xrange(numGroupTriangles):
-			mesh.faces[triangleIndices[j]].mat = material
+		material = struct.unpack("b", file.read(1))[0]
+		if material>=0:
+			for j in xrange(numGroupTriangles):
+				mesh.faces[triangleIndices[j]].mat = material
 
 	# read the number of materials
 	numMaterials = struct.unpack("H", file.read(2))[0]
@@ -224,7 +230,6 @@ def import_ms3d(path):
 
 		# read shininess
 		shininess = struct.unpack("f", file.read(4))[0]
-		print "Shininess: " + str(shininess)
 
 		# read transparency		
 		transparency = struct.unpack("f", file.read(4))[0]
@@ -272,6 +277,7 @@ def import_ms3d(path):
 		armature.makeEditable()
 
 	# read joints
+	joints = []
 	rotKeys = {}
 	posKeys = {}
 	for i in xrange(numJoints):
@@ -280,6 +286,7 @@ def import_ms3d(path):
 
 		# read name
 		name = uku(file.read(32))
+		joints.append(name)
 
 		# create the bone
 		bone = Blender.Armature.Editbone()
@@ -295,11 +302,13 @@ def import_ms3d(path):
 
 		# read position
 		pos = struct.unpack("fff", file.read(3*4))
-
+		
 		# set head
 		if bone.hasParent():
-			bone.head = bone.parent.matrix * Vector(pos) + bone.parent.head
-			bone.matrix = bone.parent.matrix * RM(rot)
+			bone.head =  Vector(pos) * bone.parent.matrix + bone.parent.head
+			tempM = RM(rot) * bone.parent.matrix
+			tempM.transpose;
+			bone.matrix = tempM
 		else:
 			bone.head = Vector(pos)
 			bone.matrix = RM(rot)
@@ -355,13 +364,111 @@ def import_ms3d(path):
 		# create position keys
 		for key in posKeys[name]:
 			pbone.loc = Vector(key[1])
-			pbone.insertKey(armOb, int(key[0]), Blender.Object.Pose.LOC, True)
+			pbone.insertKey(armOb, int(key[0]+0.5), Blender.Object.Pose.LOC, True)
 
 		# create rotation keys
 		for key in rotKeys[name]:
 			pbone.quat = RQ(key[1])
-			pbone.insertKey(armOb, int(key[0]), Blender.Object.Pose.ROT, True)
+			pbone.insertKey(armOb, int(key[0]+0.5), Blender.Object.Pose.ROT, True)
+
+	# The old format ends here. If there is more data then the file is newer version
+
+	# check to see if there are any comments
+	if file.tell()<fileSize:
+
+		# read sub version
+		subVersion = struct.unpack("i", file.read(4))[0]
+
+		# Is the sub version a supported one
+		if subVersion==1:
+
+			# Group comments
+			numComments = struct.unpack("i", file.read(4))[0]
+			for i in range(numComments):
+				file.read(4) # index
+				size = struct.unpack("i", file.read(4))[0] # comment size
+				if size>0:
+					print "Group comment: " + file.read(size)
+
+			# Material comments
+			numComments = struct.unpack("i", file.read(4))[0]
+			for i in range(numComments):
+				file.read(4) # index
+				size = struct.unpack("i", file.read(4))[0] # comment size
+				if size>0:
+					print "Material comment: " + file.read(size)
+
+			# Joint comments
+			numComments = struct.unpack("i", file.read(4))[0]
+			for i in range(numComments):
+				file.read(4) # index
+				size = struct.unpack("i", file.read(4))[0] # comment size
+				if size>0:
+					print "Joint comment: " + file.read(size)
+
+			# Model comments
+			numComments = struct.unpack("i", file.read(4))[0]
+			for i in range(numComments):
+				file.read(4) # index
+				size = struct.unpack("i", file.read(4))[0] # comment size
+				if size>0:
+					print "Model comment: " + file.read(size)
+
+		# Unknown version give a warning
+		else:
+			print "Warning: Unknown version!"
+
+		
+	# check to see if there is any extra vertex data
+	if file.tell()<fileSize:
+		
+		# read the subversion
+		subVersion = struct.unpack("i", file.read(4))[0]
+
+		# is the version supported
+		if subVersion==2:
+			# read the extra data for each vertex
+			for i in xrange(numVertices):
+				# bone ids
+				ids = struct.unpack("bbb", file.read(3))
+				# weights
+				weights = struct.unpack("BBB", file.read(3))
+				# extra
+				extra = struct.unpack("I", file.read(4))
+				# add extra vertices with weights to deform groups
+				if ids[0]>=0 or ids[1]>=0 or ids[2]>=0:
+					mesh.assignVertsToGroup(joints[boneIds[i]], [i], 0.01*weights[0], 1)
+					if ids[0]>=0:
+						mesh.assignVertsToGroup(joints[ids[0]], [i], 0.01*weights[1], 1)
+					if ids[1]>=0:
+						mesh.assignVertsToGroup(joints[ids[1]], [i], 0.01*weights[2], 1)
+					if ids[2]>=0:
+						mesh.assignVertsToGroup(joints[ids[2]], [i], 0.01*(100-(weights[0]+weights[1]+weights[2])), 1)	
+					
+		elif subVersion==1:
+			# read extra data for each vertex
+			for i in xrange(numVertices):
+				# bone ids
+				ids = struct.unpack("bbb", file.read(3))
+				# weights
+				weights = struct.unpack("BBB", file.read(3))
+				# add extra vertices with weights to deform groups
+				if ids[0]>=0 or ids[1]>=0 or ids[2]>=0:
+					mesh.assignVertsToGroup(joints[boneIds[i]], [i], 0.01*weights[0], 1)
+					if ids[0]>=0:
+						mesh.assignVertsToGroup(joints[ids[0]], [i], 0.01*weights[1], 1)
+					if ids[1]>=0:
+						mesh.assignVertsToGroup(joints[ids[1]], [i], 0.01*weights[2], 1)
+					if ids[2]>=0:
+						mesh.assignVertsToGroup(joints[ids[2]], [i], 0.01*(100-(weights[0]+weights[1]+weights[2])), 1)	
+
+		# non supported subversion give a warning
+		else:
+			print "Warning: Unknown subversion!"
 	
+	# rest of the extra data in the file is not imported/used
+	
+	# refresh the view
 	Blender.Redraw()
 	
 	# close the file
@@ -378,4 +485,3 @@ def fileCallback(filename):
 		Blender.Draw.PupMenu("An error occured during import: " + error + "|Not all data might have been imported succesfully.", 2)
 
 Blender.Window.FileSelector(fileCallback, 'Import')
-

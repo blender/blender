@@ -63,12 +63,13 @@ KX_ArrayOptimizer::~KX_ArrayOptimizer()
 
 
 
-RAS_MeshObject::RAS_MeshObject(int lightlayer)
+RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
 	: m_bModified(true),
 	m_lightlayer(lightlayer),
 	m_zsort(false),
 	m_MeshMod(true),
-	m_class(0)
+	m_class(0),
+	m_mesh(mesh)
 {
 }
 
@@ -256,27 +257,30 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 									const MT_Vector4& tangent,
 									const unsigned int rgbacolor,
 									const MT_Vector3& normal,
+									bool flat,
 									RAS_IPolyMaterial* mat,
 									int orgindex)
 {
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
 	
 	int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-	RAS_TexVert newvert(xyz,uv,uv2,tangent,rgbacolor,normal, 0);
+	RAS_TexVert newvert(xyz,uv,uv2,tangent,rgbacolor,normal, flat? TV_CALCFACENORMAL: 0);
+
 #define KX_FIND_SHARED_VERTICES
 #ifdef KX_FIND_SHARED_VERTICES
-	
-	for (std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[orgindex].begin();
-	     it != m_xyz_index_to_vertex_index_mapping[orgindex].end();
-	     it++)
-	{
-		if ((*it).m_arrayindex1 == ao->m_index1 &&
-			(*it).m_array == vtxarray && 
-			*(*it).m_matid == *mat &&
-			(*ao->m_VertexArrayCache1[vtxarray])[(*it).m_index].closeTo(&newvert)
-			)
+	if(!flat) {
+		for (std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[orgindex].begin();
+			 it != m_xyz_index_to_vertex_index_mapping[orgindex].end();
+			 it++)
 		{
-			return (*it).m_index;
+			if ((*it).m_arrayindex1 == ao->m_index1 &&
+				(*it).m_array == vtxarray && 
+				*(*it).m_matid == *mat &&
+				(*ao->m_VertexArrayCache1[vtxarray])[(*it).m_index].closeTo(&newvert)
+				)
+			{
+				return (*it).m_index;
+			}
 		}
 	}
 #endif // KX_FIND_SHARED_VERTICES

@@ -214,7 +214,10 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 			break;
 		}
 	}
-	if(a==SPACE_MAXHANDLER) printf("error; max (4) blockhandlers reached!\n");
+	if(a==SPACE_MAXHANDLER) {
+		error("Only %i floating panels allowed", SPACE_MAXHANDLER-1);
+	}
+		
 }
 
 void rem_blockhandler(ScrArea *sa, short eventcode)
@@ -375,9 +378,6 @@ void space_set_commmandline_options(void) {
 		
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		a= (U.gameflags & USER_VERTEX_ARRAYS);
-		SYS_WriteCommandLineInt(syshandle, "vertexarrays", a);
-
 		a= (U.gameflags & USER_DISABLE_SOUND);
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
@@ -433,9 +433,6 @@ static void SaveState(void)
 
 	if(G.f & G_TEXTUREPAINT)
 		texpaint_enable_mipmap();
-
-	if(G.scene->camera==0 || G.scene->camera->type!=OB_CAMERA)
-		error("no (correct) camera");
 
 	waitcursor(1);
 }
@@ -1077,7 +1074,10 @@ void BIF_undo_menu(void)
 			if(menu) {
 				short event= pupmenu_col(menu, 20);
 				MEM_freeN(menu);
-				if(event>0) BKE_undo_number(event);
+				if(event>0) {
+					BKE_undo_number(event);
+					sound_initialize_sounds();
+				}
 			}
 		}
 	}
@@ -1194,7 +1194,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
 		/* we consider manipulator a button, defaulting to leftmouse */
-		if(event==LEFTMOUSE) if(BIF_do_manipulator(sa)) return;
+		if(event==LEFTMOUSE) {
+			/* run any view3d event handler script links */
+			if (event && sa->scriptlink.totscript)
+				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+					return; /* return if event was processed (swallowed) by handler(s) */
+
+			if(BIF_do_manipulator(sa)) return;
+		}
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -1745,25 +1752,42 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
 						select_faces_by_numverts(5);
 				}
+				
+				else if(G.qual==LR_CTRLKEY) {}
 				else do_layer_buttons(4);
 				break;
 
 			case SIXKEY:
-				do_layer_buttons(5); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(5);
+				break;
 			case SEVENKEY:
-				do_layer_buttons(6); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(6);
+				break;
 			case EIGHTKEY:
-				do_layer_buttons(7); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(7);
+				break;
 			case NINEKEY:
-				do_layer_buttons(8); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(8);
+				break;
 			case ZEROKEY:
-				do_layer_buttons(9); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(9);
+				break;
 			case MINUSKEY:
-				do_layer_buttons(10); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(10);
+				break;
 			case EQUALKEY:
-				do_layer_buttons(11); break;
+				if(G.qual==LR_CTRLKEY) {}
+				else do_layer_buttons(11);
+				break;
 			case ACCENTGRAVEKEY:
-				do_layer_buttons(-1); break;
+				do_layer_buttons(-1);
+				break;
 			
 			case SPACEKEY:
 				if(G.qual == LR_CTRLKEY) {
@@ -2047,15 +2071,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							vgroup_operation_with_menu();
 					}
 				}
-				else if((G.qual==LR_SHIFTKEY))
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
 							select_mesh_group_menu();
 					} 
 					else if(ob && (ob->flag & OB_POSEMODE))
 						pose_select_grouped_menu();
-					else
+					else if (ob)
 						select_object_grouped_menu();
+				}
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');
@@ -2387,7 +2412,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
 						select_bone_parent();
-					else if((G.qual==(LR_CTRLKEY|LR_SHIFTKEY)) && (G.obedit->type==OB_ARMATURE))
+					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
@@ -2944,8 +2969,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_ipo_selectbuttons();
 				doredraw= 1;
 			}
+			else if(G.qual == LR_CTRLKEY) {
+				if (sipo->showkey==0)
+					add_vert_ipo();
+			}
 			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
-			else if((G.qual & LR_CTRLKEY) && (sipo->showkey==0)) add_vert_ipo();
 			else {
 				do {
 					getmouseco_areawin(mval);
@@ -3183,7 +3211,7 @@ void initipo(ScrArea *sa)
 	sipo->v2d.min[0]= 0.01f;
 	sipo->v2d.min[1]= 0.01f;
 
-	sipo->v2d.max[0]= 15000.0f;
+	sipo->v2d.max[0]= MAXFRAMEF;
 	sipo->v2d.max[1]= 10000.0f;
 	
 	sipo->v2d.scroll= L_SCROLL+B_SCROLL;
@@ -4158,21 +4186,22 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*midsp)+(1*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitI(block, TOG, G_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
+		uiDefButBitI(block, TOGN, USER_DONT_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y5,mpref,buth,
-			&(G.f), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
+			&(U.flag), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
 		
 		uiDefBut(block, LABEL,0,"Keyboard:",
-			(xpos+edgsp+(3*midsp)+(3*mpref)),y3label,mpref,buth,
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y2label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
+		/* Not actually used anywhere! */
+		/*
 		uiDefButBitI(block, TOG, USER_NO_CAPSLOCK, B_U_CAPSLOCK, "Disable Caps Lock",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Disables the Caps Lock key when entering text");
-
+		*/
 		uiDefButBitI(block, TOG, USER_NONUMPAD, 0, "Emulate Numpad",
-			(xpos+edgsp+(3*midsp)+(3*mpref)),y2,mpref,buth,
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
 
@@ -4223,15 +4252,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
 													(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth, &(U.glreslimit), 0, 0, 0, 0, "Limit the texture size to save graphics memory");
 		
-		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
-
 		uiDefButI(block, NUM, 0, "Time Out ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y3, mpref, buth, 
 			&U.textimeout, 0.0, 3600.0, 30, 2, "Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated)");
 		uiDefButI(block, NUM, 0, "Collect Rate ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y1, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
 
 		/* *** */
@@ -4891,7 +4916,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HOMEKEY:
 			if((G.qual==0))
-				do_seq_buttons(B_SEQHOME);
+				seq_home();
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
@@ -4941,21 +4966,19 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case DKEY:
-			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				duplicate_marker();
-			else if ((G.qual==LR_SHIFTKEY)) {
+			} else if ((G.qual==LR_SHIFTKEY)) {
 				if(sseq->mainb) break;
 				add_duplicate_seq();
+			} else if (G.qual == 0) {
+				set_filter_seq();
 			}
 			break;
 		case EKEY:
 			if(sseq->mainb) break;
 			if((G.qual==0))
 				transform_seq('e', 0);
-			break;
-		case FKEY:
-			if((G.qual==0))
-				set_filter_seq();
 			break;
 		case GKEY:
 			if (G.qual & LR_CTRLKEY)
@@ -5041,8 +5064,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case HKEY: /* hide==mute? - not that nice but MKey us used for meta :/ */
 			if((G.qual==0)) {
 				seq_mute_sel(1);
-			} else if((G.qual==LR_ALTKEY)) {
+			} else if(G.qual==LR_ALTKEY) {
 				seq_mute_sel(0);
+			} else if(G.qual==LR_SHIFTKEY) {
+				seq_mute_sel(-1);
 			}
 			break;
 		case XKEY:
@@ -5053,7 +5078,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					del_seq();
 			}
 			break;
-		}
+		case PAD1: case PAD2: case PAD4: case PAD8:
+			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
+			doredraw= 1;
+			break;
+		}	
 	}
 
 	if(doredraw) scrarea_queue_winredraw(curarea);
@@ -5084,7 +5113,7 @@ static void init_seqspace(ScrArea *sa)
 	sseq->v2d.min[0]= 10.0;
 	sseq->v2d.min[1]= 4.0;
 
-	sseq->v2d.max[0]= 32000.0;
+	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
 	sseq->v2d.minzoom= 0.1f;
@@ -5135,7 +5164,7 @@ static void init_actionspace(ScrArea *sa)
 	saction->v2d.min[0]= 0.0;
 	saction->v2d.min[1]= 0.0;
 
-	saction->v2d.max[0]= 32000.0;
+	saction->v2d.max[0]= MAXFRAMEF;
 	saction->v2d.max[1]= 1000.0;
 	
 	saction->v2d.minzoom= 0.01;
@@ -5207,7 +5236,7 @@ static void init_soundspace(ScrArea *sa)
 	ssound->v2d.min[0]= 1.0;
 	ssound->v2d.min[1]= 259.0;
 
-	ssound->v2d.max[0]= 32000.0;
+	ssound->v2d.max[0]= MAXFRAMEF;
 	ssound->v2d.max[1]= 259;
 	
 	ssound->v2d.minzoom= 0.1f;
@@ -5611,6 +5640,7 @@ static void init_imaselspace(ScrArea *sa)
 	simasel->files = BIF_filelist_new();
 }
 
+
 /* ******************** SPACE: OOPS ********************** */
 
 extern void drawoopsspace(ScrArea *sa, void *spacedata);
@@ -5936,7 +5966,7 @@ static void init_nlaspace(ScrArea *sa)
 	snla->v2d.min[0]= 0.0;
 	snla->v2d.min[1]= 0.0;
 	
-	snla->v2d.max[0]= 1000.0;
+	snla->v2d.max[0]= MAXFRAMEF;
 	snla->v2d.max[1]= 1000.0;
 	
 	snla->v2d.minzoom= 0.1F;
@@ -6024,7 +6054,7 @@ static void init_timespace(ScrArea *sa)
 	stime->v2d.min[0]= 1.0;
 	stime->v2d.min[1]= (float)sa->winy;
 	
-	stime->v2d.max[0]= 32000.0;
+	stime->v2d.max[0]= MAXFRAMEF;
 	stime->v2d.max[1]= (float)sa->winy;
 	
 	stime->v2d.minzoom= 0.1f;
@@ -6155,39 +6185,7 @@ void newspace(ScrArea *sa, int type)
 		}
 	}
 
-		
-	/* exception: filespace */
-	if(sa->spacetype==SPACE_FILE) {
-		SpaceFile *sfile= sa->spacedata.first;
-		
-		if(sfile->type==FILE_MAIN) {
-			freefilelist(sfile);
-		} else {
-			sfile->type= FILE_UNIX;
-		}
-		
-		sfile->returnfunc= NULL;
-		sfile->title[0]= 0;
-		if(sfile->filelist) test_flags_file(sfile);
-	}
-	/* exception: imasel space */
-	else if(sa->spacetype==SPACE_IMASEL) {
-		SpaceImaSel *simasel= sa->spacedata.first;
-		if(simasel->type==FILE_MAIN) {
-			if (simasel->files) {
-				BIF_filelist_free(simasel->files);
-				BIF_filelist_settype(simasel->files, FILE_MAIN);
-			}
-		} else {
-			if (simasel->files) {
-				simasel->type= FILE_UNIX;
-				BIF_filelist_settype(simasel->files, simasel->type);
-			}
-		}
-		simasel->returnfunc= NULL;
-		simasel->title[0]= 0;
-	}
-	else if(sa->spacetype==SPACE_OOPS) {
+	if(sa->spacetype==SPACE_OOPS) {
 		SpaceOops *so= sa->spacedata.first;
 		if(xtra && so->type!=SO_OUTLINER) {
 			so->type= SO_OUTLINER;
@@ -6325,7 +6323,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
 		}
-
+		else if(sl->spacetype==SPACE_SCRIPT) {
+			SpaceScript *sc = ( SpaceScript * ) sl;
+			sc->but_refs = NULL;
+		}
 		sl= sl->next;
 	}
 	

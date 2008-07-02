@@ -20,7 +20,7 @@ struct EnvMap;
 	although the more you add the slower the search time will be.
 	we will go for three, which should be enough
 */
-#define MAXTEX			3//match in RAS_TexVert & RAS_OpenGLRasterizer
+#define MAXTEX			3	//match in RAS_TexVert & RAS_OpenGLRasterizer
 
 // different mapping modes
 class BL_Mapping
@@ -47,6 +47,7 @@ public:
 
 	int IdMode;
 	unsigned int ras_mode;
+	bool glslmat;
 
 	STR_String texname[MAXTEX];
 	unsigned int flag[MAXTEX];

@@ -681,7 +681,7 @@ static void test_constraints (Object *owner, const char substring[])
 				Bone *bone;
 				bPoseChannel *chan;
 				
-				bone = get_named_bone( ((bArmature *)owner->data ), substring );
+				bone = get_named_bone( ((bArmature *)owner->data), substring );
 				chan = get_pose_channel(owner->pose, substring);
 				if (bone && chan) {
 					conlist = &chan->constraints;
@@ -831,9 +831,9 @@ static void test_bonelist_constraints (Object *owner, ListBase *list)
 {
 	Bone *bone;
 
-	for (bone = list->first; bone; bone=bone->next) {
+	for (bone = list->first; bone; bone = bone->next) {
 		test_constraints(owner, bone->name);
-		test_bonelist_constraints (owner, &bone->childbase);
+		test_bonelist_constraints(owner, &bone->childbase);
 	}
 }
 
@@ -845,7 +845,7 @@ void object_test_constraints (Object *owner)
 		bArmature *arm= get_armature(owner);
 		
 		if (arm)
-			test_bonelist_constraints (owner, &arm->bonebase);
+			test_bonelist_constraints(owner, &arm->bonebase);
 	}
 }
 

@@ -31,6 +31,10 @@
 #ifndef BKE_IPO_H
 #define BKE_IPO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct CfraElem {
 	struct CfraElem *next, *prev;
 	float cfra;
@@ -110,6 +114,10 @@ float IPO_GetFloatValue(struct Ipo *ipo,
 						/* channels are shorts... bit ugly for now*/
 						short c,
 						float ctime);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
 

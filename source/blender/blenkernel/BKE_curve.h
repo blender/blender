@@ -39,8 +39,8 @@ struct ListBase;
 struct BezTriple;
 struct BevList;
 
-#define KNOTSU(nu)	    ( (nu)->orderu+ (nu)->pntsu+ (nu->orderu-1)*((nu)->flagu & 1) )
-#define KNOTSV(nu)	    ( (nu)->orderv+ (nu)->pntsv+ (nu->orderv-1)*((nu)->flagv & 1) )
+#define KNOTSU(nu)	    ( (nu)->orderu+ (nu)->pntsu+ (nu->orderu-1)*((nu)->flagu & CU_CYCLIC) )
+#define KNOTSV(nu)	    ( (nu)->orderv+ (nu)->pntsv+ (nu->orderv-1)*((nu)->flagv & CU_CYCLIC) )
 
 
 void unlink_curve( struct Curve *cu);
@@ -83,6 +83,13 @@ void switchdirectionNurb( struct Nurb *nu);
 
 float (*curve_getVertexCos(struct Curve *cu, struct ListBase *lb, int *numVerts_r))[3];
 void curve_applyVertexCos(struct Curve *cu, struct ListBase *lb, float (*vertexCos)[3]);
+
+/* nurb checks if they can be drawn, also clamp order func */
+int check_valid_nurb_u( struct Nurb *nu);
+int check_valid_nurb_v( struct Nurb *nu);
+
+int clamp_nurb_order_u( struct Nurb *nu);
+int clamp_nurb_order_v( struct Nurb *nu);
 
 #endif
 

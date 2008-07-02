@@ -135,24 +135,23 @@ static void helpline(TransInfo *t, float *vec)
 	
 	getmouseco_areawin(mval);
 	projectFloatView(t, vecrot, cent);	// no overflow in extreme cases
-	if(cent[0]!=IS_CLIPPED) {
-		persp(PERSP_WIN);
-		
-		glDrawBuffer(GL_FRONT);
-		
-		BIF_ThemeColor(TH_WIRE);
-		
-		setlinestyle(3);
-		glBegin(GL_LINE_STRIP); 
-		glVertex2sv(mval); 
-		glVertex2fv(cent); 
-		glEnd();
-		setlinestyle(0);
-		
-		persp(PERSP_VIEW);
-		bglFlush(); // flush display for frontbuffer
-		glDrawBuffer(GL_BACK);
-	}
+
+	persp(PERSP_WIN);
+	
+	glDrawBuffer(GL_FRONT);
+	
+	BIF_ThemeColor(TH_WIRE);
+	
+	setlinestyle(3);
+	glBegin(GL_LINE_STRIP); 
+	glVertex2sv(mval); 
+	glVertex2fv(cent); 
+	glEnd();
+	setlinestyle(0);
+	
+	persp(PERSP_VIEW);
+	bglFlush(); // flush display for frontbuffer
+	glDrawBuffer(GL_BACK);
 }
 
 
@@ -243,6 +242,63 @@ float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
 	return Inpf(t->viewinv[1], vec) * 2.0f;
 }
 
+float InputDeltaAngle(TransInfo *t, short mval[2])
+{
+	double dx2 = mval[0] - t->center2d[0];
+	double dy2 = mval[1] - t->center2d[1];
+	double B = sqrt(dx2*dx2+dy2*dy2);
+
+	double dx1 = t->imval[0] - t->center2d[0];
+	double dy1 = t->imval[1] - t->center2d[1];
+	double A = sqrt(dx1*dx1+dy1*dy1);
+
+	double dx3 = mval[0] - t->imval[0];
+	double dy3 = mval[1] - t->imval[1];
+
+	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
+	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
+		/ (2.0 * (A*B?A*B:1.0));
+	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
+
+	float dphi;
+	
+	dphi = saacos((float)deler);
+	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+
+	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
+	 * approximate the angle with the oposite side of the normalized triangle
+	 * This is a good approximation here since the smallest acos value seems to be around
+	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
+	 * */	
+	if (dphi == 0)
+	{
+		double dx, dy;
+		
+		dx2 /= A;
+		dy2 /= A;
+		
+		dx1 /= B;
+		dy1 /= B;
+		
+		dx = dx1 - dx2;
+		dy = dy1 - dy2;
+		
+		dphi = sqrt(dx*dx + dy*dy);
+		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+	}
+	
+	if(t->flag & T_SHIFT_MOD) dphi = dphi/30.0f;
+	
+	/* if no delta angle, don't update initial position */
+	if (dphi != 0)
+	{
+		t->imval[0] = mval[0];
+		t->imval[1] = mval[1];
+	}
+	
+	return dphi;
+}
+
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
@@ -297,8 +353,9 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 
 void projectIntView(TransInfo *t, float *vec, int *adr)
 {
-	if (t->spacetype==SPACE_VIEW3D)
-		project_int(vec, adr);
+	if (t->spacetype==SPACE_VIEW3D) {
+		project_int_noclip(vec, adr);
+	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
 		
@@ -319,8 +376,9 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 void projectFloatView(TransInfo *t, float *vec, float *adr)
 {
-	if (t->spacetype==SPACE_VIEW3D)
-		project_float(vec, adr);
+	if (t->spacetype==SPACE_VIEW3D) {
+		project_float_noclip(vec, adr);
+	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];
 		
@@ -2354,18 +2412,32 @@ void initRotation(TransInfo *t)
 		t->flag |= T_NO_CONSTRAINT;
 }
 
-static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
+static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around) {
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
-
+	float *center = t->center;
+	
+	/* local constraint shouldn't alter center */
+	if (around == V3D_LOCAL) {
+		if (t->flag & (T_OBJECT|T_POSE)) {
+			center = td->center;
+		}
+		else {
+			/* !TODO! Make this if not rely on G */
+			if(around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+				center = td->center;
+			}
+		}
+	}
+		
 	if (t->flag & T_POINTS) {
 		Mat3MulMat3(totmat, mat, td->mtx);
 		Mat3MulMat3(smat, td->smtx, totmat);
 		
-		VecSubf(vec, td->iloc, t->center);
+		VecSubf(vec, td->iloc, center);
 		Mat3MulVecfl(smat, vec);
 		
-		VecAddf(td->loc, vec, t->center);
+		VecAddf(td->loc, vec, center);
 
 		VecSubf(vec,td->loc,td->iloc);
 		protectedTransBits(td->protectflag, vec);
@@ -2402,13 +2474,13 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		Mat3CpyMat4(pmtx, t->poseobj->obmat);
 		Mat3Inv(imtx, pmtx);
 		
-		VecSubf(vec, td->center, t->center);
+		VecSubf(vec, td->center, center);
 		
 		Mat3MulVecfl(pmtx, vec);	// To Global space
 		Mat3MulVecfl(mat, vec);		// Applying rotation
 		Mat3MulVecfl(imtx, vec);	// To Local space
 
-		VecAddf(vec, vec, t->center);
+		VecAddf(vec, vec, center);
 		/* vec now is the location where the object has to be */
 		
 		VecSubf(vec, vec, td->center); // Translation needed from the initial location
@@ -2437,9 +2509,9 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 	}
 	else {
 		/* translation */
-		VecSubf(vec, td->center, t->center);
+		VecSubf(vec, td->center, center);
 		Mat3MulVecfl(mat, vec);
-		VecAddf(vec, vec, t->center);
+		VecAddf(vec, vec, center);
 		/* vec now is the location where the object has to be */
 		VecSubf(vec, vec, td->center);
 		Mat3MulVecfl(td->smtx, vec);
@@ -2472,7 +2544,14 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				/* are there ipo keys? */
 				if(td->tdi) {
 					TransDataIpokey *tdi= td->tdi;
+					float current_rot[3];
 					float rot[3];
+					
+					/* current IPO value for compatible euler */
+					current_rot[0] = tdi->rotx[0];
+					current_rot[1] = tdi->roty[0];
+					current_rot[2] = tdi->rotz[0];
+					VecMulf(current_rot, (float)(M_PI_2 / 9.0));
 					
 					/* calculate the total rotatation in eulers */
 					VecAddf(eul, td->ext->irot, td->ext->drot);
@@ -2480,7 +2559,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 					/* mat = transform, obmat = object rotation */
 					Mat3MulMat3(fmat, mat, obmat);
 					
-					Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
+					Mat3ToCompatibleEul(fmat, eul, current_rot);
 					
 					/* correct back for delta rot */
 					if(tdi->flag & TOB_IPODROT) {
@@ -2509,7 +2588,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 					/* mat = transform, obmat = object rotation */
 					Mat3MulMat3(fmat, smat, obmat);
 					
-					Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
+					Mat3ToCompatibleEul(fmat, eul, td->ext->rot);
 					
 					/* correct back for delta rot */
 					VecSubf(eul, eul, td->ext->drot);
@@ -2528,16 +2607,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 static void applyRotation(TransInfo *t, float angle, float axis[3]) 
 {
 	TransData *td = t->data;
-	float mat[3][3], center[3];
+	float mat[3][3];
 	int i;
-
-	/* saving original center */
-	if (t->around == V3D_LOCAL) {
-		VECCOPY(center, t->center);
-	}
-	else {
-		center[0] = center[1] = center[2] = 0.0f;
-	}
 
 	VecRotToMat3(axis, angle, mat);
 	
@@ -2549,32 +2620,15 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		/* local constraint shouldn't alter center */
-		if (t->around == V3D_LOCAL) {
-			if (t->flag & (T_OBJECT|T_POSE)) {
-				VECCOPY(t->center, td->center);
-			}
-			else {
-				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
-					VECCOPY(t->center, td->center);
-				}
-			}
-		}
-		
 		if (t->con.applyRot) {
-			t->con.applyRot(t, td, axis);
+			t->con.applyRot(t, td, axis, NULL);
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
 		else if (t->flag & T_PROP_EDIT) {
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
 
-		ElementRotation(t, td, mat);
-	}
-
-	/* restoring original center */
-	if (t->around == V3D_LOCAL) {
-		VECCOPY(t->center, center);
+		ElementRotation(t, td, mat, t->around);
 	}
 }
 
@@ -2584,23 +2638,6 @@ int Rotation(TransInfo *t, short mval[2])
 
 	float final;
 
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
-	double B = sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
-	double A = sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
-
-	float dphi;
-
 	float axis[3];
 	float mat[3][3];
 
@@ -2608,19 +2645,7 @@ int Rotation(TransInfo *t, short mval[2])
 	VecMulf(axis, -1.0f);
 	Normalize(axis);
 
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	if(t->flag & T_SHIFT_MOD) t->fac += dphi/30.0f;
-	else t->fac += dphi;
-
-	/*
-	clamping angle between -2 PI and 2 PI (not sure if useful so commented out - theeth)
-	if (t->fac >= 2 * M_PI)
-		t->fac -= 2 * M_PI;
-	else if (t->fac <= -2 * M_PI)
-		t->fac -= -2 * M_PI;
-	*/
+	t->fac += InputDeltaAngle(t, mval);
 
 	final = t->fac;
 
@@ -2628,11 +2653,8 @@ int Rotation(TransInfo *t, short mval[2])
 	
 	snapGrid(t, &final);
 
-	t->imval[0] = mval[0];
-	t->imval[1] = mval[1];
-
 	if (t->con.applyRot) {
-		t->con.applyRot(t, NULL, axis);
+		t->con.applyRot(t, NULL, axis, &final);
 	}
 	
 	applySnapping(t, &final);
@@ -2704,7 +2726,6 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 {
 	TransData *td = t->data;
 	float mat[3][3], smat[3][3], totmat[3][3];
-	float center[3];
 	int i;
 
 	VecRotToMat3(axis1, angles[0], smat);
@@ -2719,20 +2740,6 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		VECCOPY(center, t->center);
-		
-		if (t->around == V3D_LOCAL) {
-			/* local-mode shouldn't change center */
-			if (t->flag & (T_OBJECT|T_POSE)) {
-				VECCOPY(t->center, td->center);
-			}
-			else {
-				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
-					VECCOPY(t->center, td->center);
-				}
-			}
-		}
-		
 		if (t->flag & T_PROP_EDIT) {
 			VecRotToMat3(axis1, td->factor * angles[0], smat);
 			VecRotToMat3(axis2, td->factor * angles[1], totmat);
@@ -2740,9 +2747,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			Mat3MulMat3(mat, smat, totmat);
 		}
 		
-		ElementRotation(t, td, mat);
-		
-		VECCOPY(t->center, center);
+		ElementRotation(t, td, mat, t->around);
 	}
 }
 
@@ -2917,6 +2922,36 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 		if (td->flag & TD_SKIP)
 			continue;
 		
+		/* handle snapping rotation before doing the translation */
+		if (usingSnappingNormal(t))
+		{
+			if (validSnappingNormal(t))
+			{
+				float *original_normal = td->axismtx[2];
+				float axis[3];
+				float quat[4];
+				float mat[3][3];
+				float angle;
+				
+				Crossf(axis, original_normal, t->tsnap.snapNormal);
+				angle = saacos(Inpf(original_normal, t->tsnap.snapNormal));
+				
+				AxisAngleToQuat(quat, axis, angle);
+	
+				QuatToMat3(quat, mat);
+				
+				ElementRotation(t, td, mat, V3D_LOCAL);
+			}
+			else
+			{
+				float mat[3][3];
+				
+				Mat3One(mat);
+				
+				ElementRotation(t, td, mat, V3D_LOCAL);
+			}
+		}
+
 		if (t->con.applyVec) {
 			float pvec[3];
 			t->con.applyVec(t, td, vec, tvec, pvec);
@@ -3097,36 +3132,13 @@ int Tilt(TransInfo *t, short mval[2])
 
 	float final;
 
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
-	double B = (float)sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
-	double A = (float)sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-
-	double deler= ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2 * A * B);
-
-	float dphi;
-
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
-	else t->fac += dphi;
+	t->fac += InputDeltaAngle(t, mval);
 
 	final = t->fac;
 	
 	applyNDofInput(&t->ndof, &final);
 
 	snapGrid(t, &final);
-
-	t->imval[0] = mval[0];
-	t->imval[1] = mval[1];
 
 	if (hasNumInput(&t->num)) {
 		char c[20];
@@ -3302,7 +3314,7 @@ int PushPull(TransInfo *t, short mval[2])
 	}
 	
 	if (t->con.applyRot && t->con.mode & CON_APPLY) {
-		t->con.applyRot(t, NULL, axis);
+		t->con.applyRot(t, NULL, axis, NULL);
 	}
 	
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -3314,7 +3326,7 @@ int PushPull(TransInfo *t, short mval[2])
 
 		VecSubf(vec, t->center, td->center);
 		if (t->con.applyRot && t->con.mode & CON_APPLY) {
-			t->con.applyRot(t, td, axis);
+			t->con.applyRot(t, td, axis, NULL);
 			if (isLockConstraint(t)) {
 				float dvec[3];
 				Projf(dvec, vec, axis);
@@ -3346,8 +3358,17 @@ void initBevel(TransInfo *t)
 {
 	t->mode = TFM_BEVEL;
 	t->flag |= T_NO_CONSTRAINT;
+	t->num.flag |= NUM_NO_NEGATIVE;
 	t->transform = Bevel;
 	t->handleEvent = handleEventBevel;
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	/* DON'T KNOW WHY THIS IS NEEDED */
 	if (G.editBMesh->imval[0] == 0 && G.editBMesh->imval[1] == 0) {
 		/* save the initial mouse co */
 		G.editBMesh->imval[0] = t->imval[0];
@@ -3403,6 +3424,10 @@ int Bevel(TransInfo *t, short mval[2])
 
 	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";
 	distance = InputHorizontalAbsolute(t, mval)/4; /* 4 just seemed a nice value to me, nothing special */
+	
+	distance = fabs(distance);
+
+	snapGrid(t, &distance);
 
 	applyNumInput(&t->num, &distance);
 
@@ -3412,7 +3437,7 @@ int Bevel(TransInfo *t, short mval[2])
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Bevel: %s", c);
+		sprintf(str, "Bevel - Dist: %s, Mode: %s (MMB to toggle))", c, mode);
 	}
 	else {
 		/* default header print */
@@ -3899,35 +3924,11 @@ int BoneRoll(TransInfo *t, short mval[2])
 
 	float final;
 
-	double dx2 = t->center2d[0] - mval[0];
-	double dy2 = t->center2d[1] - mval[1];
-	double B = sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->center2d[0] - t->imval[0];
-	double dy1 = t->center2d[1] - t->imval[1];
-	double A = sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
-
-	float dphi;
-	
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
-	else t->fac += dphi;
+	t->fac += InputDeltaAngle(t, mval);
 
 	final = t->fac;
 
 	snapGrid(t, &final);
-
-	t->imval[0] = mval[0];
-	t->imval[1] = mval[1];
 
 	if (hasNumInput(&t->num)) {
 		char c[20];
@@ -4165,7 +4166,7 @@ int Align(TransInfo *t, short mval[2])
 		
 		Mat3MulMat3(mat, t->spacemtx, invmat);	
 
-		ElementRotation(t, td, mat);
+		ElementRotation(t, td, mat, t->around);
 	}
 
 	/* restoring original center */

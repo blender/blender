@@ -16,7 +16,7 @@ This script imports OpenFlight files into Blender. OpenFlight is a
 registered trademark of MultiGen-Paradigm, Inc.
 
 Feature overview and more availible at:
-http://wiki.blender.org/index.php/Scripts/Manual/Import/openflight_flt
+http://wiki.blender.org/index.php/Scripts/Manual/Import/openflight_fltss
 
 Note: This file is a grab-bag of old and new code. It needs some cleanup still.
 """
@@ -44,6 +44,7 @@ import BPyMesh
 import BPyImage
 import flt_filewalker 
 import flt_properties
+import sys
 reload(flt_properties)
 from flt_properties import *
 
@@ -61,6 +62,7 @@ FLTDoXRef = None
 FLTScale = None
 FLTShadeImport = None
 FLTAttrib = None
+FLTWarn = None
 
 Vector= Blender.Mathutils.Vector
 FLOAT_TOLERANCE = 0.01
@@ -890,6 +892,17 @@ class InterNode(Node):
 		return weldmesh 		
 
 	def weldFuseFaces(self,weldmesh):
+
+		#retain original loose vertices
+		looseverts = dict()
+		for vert in self.mesh.verts:
+			looseverts[vert] = 0
+		for edge in self.mesh.edges:
+			looseverts[edge.v1] += 1
+			looseverts[edge.v2] += 1
+
+
+
 		#slight modification here: we need to walk around the mesh as many times as it takes to have no more matches
 		done = 0
 		while not done:
@@ -937,7 +950,7 @@ class InterNode(Node):
 				vertuse[vert] += 1
 		delverts = list()
 		for vert in self.mesh.verts:
-			if not vertuse[vert] and vert.index != 0:
+			if not vertuse[vert] and vert.index != 0 and looseverts[vert]:
 				delverts.append(vert)
 		
 		self.mesh.verts.delete(delverts)	
@@ -1024,8 +1037,9 @@ class InterNode(Node):
 			else: # fgon
 				mesh_face_indicies = [i+vert_index for i in xrange(face_len)]
 				tri_ngons= ngon(self.mesh, mesh_face_indicies)
-				new_faces.extend([ [mesh_face_indicies[t] for t in tri] for tri in tri_ngons])
-				new_faces_props.extend( [ (None, image, (uvs[tri[0]], uvs[tri[1]], uvs[tri[2]]), [flt_face.uverts[tri[0]], flt_face.uverts[tri[1]], flt_face.uverts[tri[2]]], flt_face.uvlayers, flt_face.color_index, flt_face.props,FLT_OrigIndex,1, flt_face.subfacelevel) for tri in tri_ngons ])
+				if len(tri_ngons) != 1:
+					new_faces.extend([ [mesh_face_indicies[t] for t in tri] for tri in tri_ngons])
+					new_faces_props.extend( [ (None, image, (uvs[tri[0]], uvs[tri[1]], uvs[tri[2]]), [flt_face.uverts[tri[0]], flt_face.uverts[tri[1]], flt_face.uverts[tri[2]]], flt_face.uvlayers, flt_face.color_index, flt_face.props,FLT_OrigIndex,1, flt_face.subfacelevel) for tri in tri_ngons ])
 			
 			vert_index+= face_len
 			FLT_OrigIndex+=1
@@ -2284,7 +2298,6 @@ def fixscale(root,childhash):
 		for v in rmesh.verts:
 			v.co = v.co * smat
 	
-	
 def reparent(root,childhash,sce):
 	for child in childhash[root]:
 		reparent(child,childhash,sce)
@@ -2405,6 +2418,10 @@ def setBpath(fname):
 
 def event(evt,val):
 	pass
+
+from Blender.BGL import *
+from Blender import Draw
+
 def but_event(evt):
 	
 	global FLTBaseLabel
@@ -2418,6 +2435,8 @@ def but_event(evt):
 	global FLTShadeImport
 	global FLTAttrib
 	
+	global FLTWarn
+	
 	#Import DB
 	if evt == 1:
 		if global_prefs['verbose'] >= 1:
@@ -2429,7 +2448,14 @@ def but_event(evt):
 			print
 		
 		GRR = GlobalResourceRepository()
-		select_file(global_prefs['fltfile'], GRR)
+		
+		try:
+			select_file(global_prefs['fltfile'], GRR)
+		except:
+			import traceback
+			FLTWarn = Draw.PupBlock("Ixport Error", ["See console for output!"])
+			traceback.print_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)
+	
 	#choose base path for export
 	if evt == 4:
 		Blender.Window.FileSelector(setBpath, "DB Root", global_prefs['fltfile'])
@@ -2450,10 +2476,7 @@ def but_event(evt):
 	for key in global_prefs:
 		d[key] = global_prefs[key]
 		Blender.Registry.SetKey('flt_import', d, 1) 
-	
 
-from Blender.BGL import *
-from Blender import Draw
 def gui():
 	
 	global FLTBaseLabel

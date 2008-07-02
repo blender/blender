@@ -8,5 +8,5 @@ incs = 'intern ../container ../moto/include ../memutil'
 if (env['OURPLATFORM'] == 'win32-mingw'):
     env.BlenderLib ('blender_BSP', sources, Split(incs), [], libtype=['common','intern'], priority=[26,26] )
 else:
-    env.BlenderLib ('blender_BSP', sources, Split(incs), [], libtype='core', priority=15 )
+    env.BlenderLib ('blender_BSP', sources, Split(incs), [], libtype='core', priority=26 )
 

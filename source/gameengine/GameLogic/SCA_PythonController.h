@@ -81,6 +81,7 @@ class SCA_PythonController : public SCA_IController
 	KX_PYMETHOD_DOC(SCA_PythonController,GetActuators);
 	KX_PYMETHOD(SCA_PythonController,SetScript);
 	KX_PYMETHOD(SCA_PythonController,GetScript);
+	KX_PYMETHOD(SCA_PythonController,GetState);
 	
 
 };

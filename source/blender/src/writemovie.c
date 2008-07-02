@@ -97,7 +97,7 @@ static void make_movie_name(char *string)
 	if (string==0) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
 	len= strlen(string);
 
 	BLI_make_existing_file(string);

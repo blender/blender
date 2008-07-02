@@ -91,7 +91,6 @@ typedef struct process {		/* parameters, function, storage */
 	float (*function)(float, float, float);
 	float size, delta;			/* cube size, normal delta */
 	int bounds;					/* cube range within lattice */
-	MB_POINT start;				/* start point on surface */
 	CUBES *cubes;				/* active cubes */
 	VERTICES vertices;			/* surface vertices */
 	CENTERLIST **centers;		/* cube center hash table */
@@ -151,7 +150,7 @@ void add_cube(PROCESS *mbproc, int i, int j, int k, int count);
 void find_first_points(PROCESS *mbproc, struct MetaBall *mb, int a);
 
 void fill_metaball_octal_node(octal_node *node, struct MetaElem *ml, short i);
-void subdivide_metaball_octal_node(octal_node *node, float *size, short depth);
+void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y, float size_z, short depth);
 void free_metaball_octal_node(octal_node *node);
 void init_metaball_octal_tree(int depth);
 void polygonize(PROCESS *mbproc, struct MetaBall *mb);

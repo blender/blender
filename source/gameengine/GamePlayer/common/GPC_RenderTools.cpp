@@ -34,12 +34,8 @@
 #include <windows.h>
 #endif 
 
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "GL/glew.h"
+
 #include <iostream>
 
 #include "GPC_RenderTools.h"
@@ -137,10 +133,6 @@ int GPC_RenderTools::ProcessLighting(int layer)
 	{
 		if (m_clientobject)
 		{	
-			if (layer == RAS_LIGHT_OBJECT_LAYER)
-			{
-				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
-			}
 			if (applyLights(layer))
 			{
 				EnableOpenGLLights();
@@ -160,7 +152,7 @@ void GPC_RenderTools::EnableOpenGLLights()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
-	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
+	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 }
 
@@ -462,6 +454,22 @@ int GPC_RenderTools::applyLights(int objectlayer)
 
 }
 
+void GPC_RenderTools::SetClientObject(void* obj)
+{
+	if (m_clientobject != obj)
+	{
+		if (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling())
+		{
+			glFrontFace(GL_CCW);
+		} else 
+		{
+			glFrontFace(GL_CW);
+		}
+		m_clientobject = obj;
+		m_modified = true;
+	}
+}
+
 bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
@@ -594,9 +602,9 @@ void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
-void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text, short texture_flag)
 {
-	m_filtermanager.EnableFilter(filtermode, pass, text);
+	m_filtermanager.EnableFilter(filtermode, pass, text, texture_flag);
 }
 
 void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)

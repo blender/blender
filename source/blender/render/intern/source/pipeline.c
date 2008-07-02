@@ -993,6 +993,7 @@ RenderStats *RE_GetStats(Render *re)
 	return &re->i;
 }
 
+/* Note, when rendering from a scene, ALWAYS use G.scene->id.name, else compositing wont work */
 Render *RE_NewRender(const char *name)
 {
 	Render *re;
@@ -1118,11 +1119,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
 		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
 		
-		if ((rd->mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
-			re->r.threads = BLI_system_thread_count();
-		} else if(commandline_threads >= 1 && commandline_threads<=BLENDER_MAX_THREADS) {
-			re->r.threads= commandline_threads;
-		}
+		RE_init_threadcount(re);
 	}
 }
 
@@ -2673,5 +2670,14 @@ void RE_set_max_threads(int threads)
 		commandline_threads= threads;
 	} else {
 		printf("Error, threads has to be in range 1-%d\n", BLENDER_MAX_THREADS);
+	}
+}
+
+void RE_init_threadcount(Render *re) 
+{
+        if(commandline_threads >= 1) { /* only set as an arg in background mode */
+		re->r.threads= MIN2(commandline_threads, BLENDER_MAX_THREADS);
+	} else if ((re->r.mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
+		re->r.threads = BLI_system_thread_count();
 	}
 }

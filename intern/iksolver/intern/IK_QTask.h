@@ -74,7 +74,7 @@ public:
 
 	virtual bool PositionTask() const { return false; }
 
-	virtual void Scale(float scale) {}
+	virtual void Scale(float) {}
 
 protected:
 	int m_id;

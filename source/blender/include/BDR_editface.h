@@ -32,6 +32,7 @@
 
 struct MTFace;
 struct EditFace;
+struct EditEdge;
 struct Mesh;
 struct MCol;
 
@@ -53,6 +54,8 @@ void uv_autocalc_tface(void);
 void set_texturepaint(void);
 void get_same_uv(void);  
 void seam_mark_clear_tface(short mode);
-
+int edgetag_shortest_path(struct EditEdge *source, struct EditEdge *target);
+void edgetag_context_set(struct EditEdge *eed, int val);
+int edgetag_context_check(struct EditEdge *eed);
 #endif /* BDR_EDITFACE_H */
 

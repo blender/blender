@@ -39,7 +39,8 @@ incs = ['.',
         '#source/gameengine/Network/LoopBackNetwork',
         '#source/gameengine/GamePlayer/common',
         '#source/blender/misc',
-        '#source/blender/blenloader']
+        '#source/blender/blenloader',
+        '#extern/glew/include']
 
 incs += Split(env['BF_PYTHON_INC'])
 incs += Split(env['BF_SOLID_INC'])

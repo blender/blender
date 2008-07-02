@@ -26,7 +26,6 @@ if sys.platform != 'cygwin':
     makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
-makesdna_tool.Append (LINKFLAGS = env['PLATFORM_LINKFLAGS'])
 if env['BF_PROFILE']:
 	makesdna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
 

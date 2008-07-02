@@ -419,7 +419,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 				ob.setMatrix(contextMatrix_rot)
 			
 			importedObjects.append(ob)
-			
+			bmesh.calcNormals()
 		
 		for matName, faces in myContextMeshMaterials.iteritems():
 			makeMeshMaterialCopy(matName, faces)
@@ -664,9 +664,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			#print contextLamp.name, 
 			
 		elif (new_chunk.ID==OBJECT_MESH):
-			## @@ PATCH
-			print 'Found an OBJECT_MESH chunk'
-		
+			# print 'Found an OBJECT_MESH chunk'
+			pass
 		elif (new_chunk.ID==OBJECT_VERTICES):
 			'''
 			Worldspace vertex locations

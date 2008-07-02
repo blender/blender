@@ -165,6 +165,11 @@ void* SCA_LogicManager::FindBlendObjByGameMeshName(const STR_String& gamemeshnam
 
 void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 {
+	controllerlist contlist = m_sensorcontrollermapje[sensor];
+	for (controllerlist::const_iterator c= contlist.begin();!(c==contlist.end());c++)
+	{
+		(*c)->UnlinkSensor(sensor);
+	}
     m_sensorcontrollermapje.erase(sensor);
 	
 	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin();
@@ -176,6 +181,8 @@ void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 
 void SCA_LogicManager::RemoveController(SCA_IController* controller)
 {
+	controller->UnlinkAllSensors();
+	controller->UnlinkAllActuators();
 	std::map<SCA_ISensor*,controllerlist>::iterator sit;
 	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
 	{
@@ -236,7 +243,8 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 			!(c==contlist.end());c++)
 		{
 				SCA_IController* contr = *c;//controllerarray->at(c);
-				triggeredControllerSet.insert(SmartControllerPtr(contr,0));
+				if (contr->IsActive())
+					triggeredControllerSet.insert(SmartControllerPtr(contr,0));
 		}
 		//sensor->SetActive(false);
 	}
@@ -273,6 +281,16 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 			
 			(*ia)->SetActive(false);
 			//m_activeactuators.pop_back();
+		} else if ((*ia)->IsNoLink())
+		{
+			// This actuator has no more links but it still active
+			// make sure it will get a negative event on next frame to stop it
+			// Do this check after Update() rather than before to make sure
+			// that all the actuators that are activated at same time than a state
+			// actuator have a chance to execute. 
+			CValue* event = new CBoolValue(false);
+			(*ia)->RemoveAllEvents();
+			(*ia)->AddEvent(event);
 		}
 	}
 	

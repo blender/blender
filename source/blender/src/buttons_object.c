@@ -978,7 +978,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* IK Target */
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
@@ -2730,7 +2730,7 @@ static void object_panel_draw(Object *ob)
 	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
-	xco= 80;
+	xco= 65;
 	dx= 35;
 	dy= 30;
 	
@@ -2752,7 +2752,10 @@ static void object_panel_draw(Object *ob)
 	uiBlockEndAlign(block);
 	
 	/* Object Color */
-	uiDefButF(block, COL, REDRAWVIEW3D, "",	270, 165,30, 30, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, REDRAWVIEW3D, "",	250, 180, 50, 15, ob->col, 0, 0, 0, 0, "Object color, used when faces have the ObCol mode enabled");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "A:", 250, 165, 50, 15, &ob->col[3], 0.0f, 1.0f, 10, 2, "Object alpha, used when faces have the ObCol mode enabled");
+	uiBlockEndAlign(block);	
 	
 	uiDefBut(block, LABEL, 0, "Drawtype",						10,120,100,20, NULL, 0, 0, 0, 0, "");
 	
@@ -3010,6 +3013,36 @@ void do_effects_panels(unsigned short event)
 	case B_PART_INIT_CHILD:
 	case B_PART_RECALC_CHILD:
 		if(psys) {
+			Base *base;
+			Object *bob;
+			ParticleSystem *bpsys;
+			int flush;
+
+			nr=0;
+			for(bpsys=ob->particlesystem.first; bpsys; bpsys=bpsys->next){
+				if(ELEM(bpsys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+					nr++;
+			}
+			if(nr)
+				ob->transflag |= OB_DUPLIPARTS;
+			else
+				ob->transflag &= ~OB_DUPLIPARTS;
+
+			if(psys->part->type==PART_REACTOR)
+				if(psys->target_ob)
+					DAG_object_flush_update(G.scene, psys->target_ob, OB_RECALC_DATA);
+
+			for(base = G.scene->base.first; base; base= base->next) {
+				bob= base->object;
+				flush= 0;
+				for(bpsys=bob->particlesystem.first; bpsys; bpsys=bpsys->next)
+					if(bpsys->part==psys->part)
+						flush= 1;
+
+				if(flush)
+					DAG_object_flush_update(G.scene, bob, OB_RECALC_DATA);
+			}
+
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);
@@ -3198,6 +3231,7 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 		{
 			md = modifier_new ( eModifierType_Collision );
 			BLI_addtail ( &ob->modifiers, md );
+			DAG_scene_sort(G.scene);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3205,8 +3239,10 @@ static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
 	}
 	else
 	{
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		BLI_remlink ( &ob->modifiers, md );
 		modifier_free ( md );
+		DAG_scene_sort(G.scene);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
@@ -3412,9 +3448,9 @@ static void object_panel_fields(Object *ob)
 				uiBlockEndAlign(block);
 			}
 			else{
-				uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, tipstr);
+				uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, "Fall-off shape");
 				if(pd->falloff==PFIELD_FALL_TUBE)
-					uiDefBut(block, LABEL, 0, "Lognitudinal",		160,160,70,20, NULL, 0.0, 0, 0, 0, "");
+					uiDefBut(block, LABEL, 0, "Longitudinal",		160,160,140,20, NULL, 0.0, 0, 0, 0, "");
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, PFIELD_POSZ, B_FIELD_CHANGE, "Pos",	160,140,40,20, &pd->flag, 0.0, 0, 0, 0, "Effect only in direction of positive Z axis");
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	200,140,100,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational falloff = 2)");
@@ -4008,7 +4044,7 @@ static void object_softbodies(Object *ob)
 				uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Aero:",     30,10,60,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
 			    uiDefButS(block, NUM, B_BAKE_CACHE_CHANGE, "Plas:", 90,10,60,20, &sb->plastic, 0.0,  100.0, 10, 0, "Permanent deform");
 				if(ob->type==OB_MESH) {
-					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bendig Stiffness");
+					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Be:", 150,10,80,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Bending Stiffness");
 					if (*softflag & OB_SB_QUADS){ 
 					uiDefButF(block, NUM, B_BAKE_CACHE_CHANGE, "Sh:", 230,10,80,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Shear Stiffness");
 					}
@@ -4111,8 +4147,9 @@ static void object_panel_particle_children(Object *ob)
 		uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
 	}
 	if(part->childtype == PART_CHILD_FACES) {
-		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
-		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
+		/* only works if children could be emitted from volume, but that option isn't available now */
+		/*uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");*/
+		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
 	}
 	uiBlockEndAlign(block);
 
@@ -4405,8 +4442,8 @@ static void object_panel_particle_visual(Object *ob)
 				uiDefButS(block, NUM, B_PART_RECALC, "Steps:",	butx,(buty+=buth),butw,buth, &part->draw_step, 0.0, 7.0, 0, 0, "How many steps paths are drawn with (power of 2)");
 				uiDefButS(block, NUM, B_PART_REDRAW, "Render:",	butx,(buty-=buth),butw,buth, &part->ren_step, 0.0, 9.0, 0, 0, "How many steps paths are rendered with (power of 2)");
 
-				uiDefButBitI(block, TOG, PART_ABS_LENGTH, B_PART_RECALC, "Abs Length",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Use maximum length in absolute blender units");
-				uiDefButF(block, NUM, B_PART_RECALC, "Max Length:",		butx,(buty-=buth),butw,buth, &part->abslength, 0.0, 10000.0, 1, 3, "Absolute path length");
+				uiDefButBitI(block, TOG, PART_ABS_LENGTH, B_PART_RECALC, "Abs Length",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Use maximum length for children");
+				uiDefButF(block, NUM, B_PART_RECALC, "Max Length:",		butx,(buty-=buth),butw,buth, &part->abslength, 0.0, 10000.0, 1, 3, "Absolute maximum path length for children, in blender units");
 				uiDefButF(block, NUMSLI, B_PART_RECALC, "RLength:",		butx,(buty-=buth),butw,buth, &part->randlength, 0.0, 1.0, 1, 3, "Give path length a random variation");
 				uiBlockEndAlign(block);
 
@@ -4795,7 +4832,7 @@ static void object_panel_particle_system(Object *ob)
 		uiDefButS(block, NUM, B_PART_RECALC, "Segments:",	butx,(buty-=buth),butw,buth, &part->hair_step, 2.0, 50.0, 0, 0, "Amount of hair segments");
 	}
 	else {
-		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, 1.0, part->end, 100, 1, "Frame # to start emitting particles");
+		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, -MAXFRAMEF, part->end, 100, 1, "Frame # to start emitting particles");
 		uiDefButF(block, NUM, B_PART_INIT, "End:",		butx,(buty-=buth),butw,buth, &part->end, part->sta, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
 	}
 

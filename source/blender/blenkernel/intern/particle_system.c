@@ -2596,6 +2596,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 	
 	for(ec= lb->first; ec; ec= ec->next) {
 		PartDeflect *pd= ec->ob->pd;
+		co = NULL;
 		
 		if(ec->type==PSYS_EC_EFFECTOR && pd->forcefield==PFIELD_GUIDE && ec->ob->type==OB_CURVE 
 			&& part->phystype!=PART_PHYS_BOIDS) {
@@ -3770,10 +3771,12 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 				near=0;
 				for(n=1; n<neighbours; n++){
 					if(ptn[n].dist<2.0f*pa->size){
-						bvf->Subf(dvec,pa->state.co,pars[ptn[n].index].state.co);
-						bvf->Mulf(dvec,(2.0f*pa->size-ptn[n].dist)/ptn[n].dist);
-						bvf->Addf(avoid,avoid,dvec);
-						near++;
+						if(ptn[n].dist!=0.0f) {
+							bvf->Subf(dvec,pa->state.co,pars[ptn[n].index].state.co);
+							bvf->Mulf(dvec,(2.0f*pa->size-ptn[n].dist)/ptn[n].dist);
+							bvf->Addf(avoid,avoid,dvec);
+							near++;
+						}
 					}
 					/* ptn[] is distance ordered so no need to check others */
 					else break;
@@ -4763,6 +4766,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 				psys_update_path_cache(ob,psmd,psys,framenr);
 			}
 
+			cache->simframe= framenr;
+			cache->flag |= PTCACHE_SIMULATION_VALID;
+
 			return;
 		}
 		else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
@@ -4809,9 +4815,20 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			pa->flag &= ~PARS_NO_DISP;
 	}
 
-	/* ok now we're all set so let's go */
-	if(psys->totpart)
-		dynamics_step(ob,psys,psmd,cfra,vg_vel,vg_tan,vg_rot,vg_size);
+	if(psys->totpart) {
+		int dframe, totframesback = 0;
+
+		/* handle negative frame start at the first frame by doing
+		 * all the steps before the first frame */
+		if(framenr == startframe && part->sta < startframe)
+			totframesback = (startframe - (int)part->sta);
+
+		for(dframe=-totframesback; dframe<=0; dframe++) {
+			/* ok now we're all set so let's go */
+			dynamics_step(ob,psys,psmd,cfra+dframe,vg_vel,vg_tan,vg_rot,vg_size);
+			psys->cfra = cfra+dframe;
+		}
+	}
 	
 	cache->simframe= framenr;
 	cache->flag |= PTCACHE_SIMULATION_VALID;

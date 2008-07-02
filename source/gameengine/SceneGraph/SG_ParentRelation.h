@@ -90,6 +90,25 @@ public :
 	NewCopy(
 	) = 0;
 
+	/**
+	 * Vertex Parent Relation are special: they don't propagate rotation
+	 */
+	virtual
+		bool
+	IsVertexRelation(
+	) { 
+		return false;
+	}
+	
+	/**
+	 * Need this to see if we are able to adjust time-offset from the python api
+	 */
+	virtual
+		bool
+	IsSlowRelation(
+	) { 
+		return false;
+	}
 protected :
 
 	/** 

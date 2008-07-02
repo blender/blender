@@ -237,6 +237,18 @@ class Material:
 	@ivar rayMirr:  Mirror reflection amount for raytrace.
 	Value is clamped to the range [0.0,1.0].
 	@type rayMirr:  float
+	@ivar glossMir: Amount of reflection glossy.
+	Value is clamped to the range [0.0,1.0].
+	@type glossMir: float
+	@ivar sampGloss_mir: Reflection glossy samples.
+	Value is clamped to the range [1,1024].
+	@type sampGloss_mir: int
+	@ivar glossTra: Amount of refraction glossy.
+	Value is clamped to the range [0.0,1.0].
+	@type glossTra: float
+	@ivar sampGlossTra: Refraction glossy samples.
+	Value is clamped to the range [1,1024].
+	@type sampGlossTra: int
 	@ivar rayMirrDepth:  Amount of raytrace inter-reflections.
 	Value is clamped to the range [0,10].
 	@type rayMirrDepth:  int

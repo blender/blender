@@ -260,5 +260,6 @@ int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
 
 void EM_set_actFace(struct EditFace *efa);
 struct EditFace * EM_get_actFace(int sloppy);
+int EM_get_actSelection(struct EditSelection *ese);
 
 #endif

@@ -383,7 +383,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
-	if (!(G.f & G_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
+
+	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 
 	G.f= bfd->globalf;
 
@@ -620,7 +621,8 @@ void BKE_write_undo(char *name)
 	}
 }
 
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation
+ * Note, ALWAYS call sound_initialize_sounds after BKE_undo_step() */
 void BKE_undo_step(int step)
 {
 	

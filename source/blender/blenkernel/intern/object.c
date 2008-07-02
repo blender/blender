@@ -1054,7 +1054,12 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->childcache= NULL;
 	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
-
+	
+	psysn->pathcachebufs.first = psysn->pathcachebufs.last = NULL;
+	psysn->childcachebufs.first = psysn->childcachebufs.last = NULL;
+	psysn->reactevents.first = psysn->reactevents.last = NULL;
+	psysn->renderdata = NULL;
+	
 	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
 
 	id_us_plus((ID *)psysn->part);
@@ -1095,6 +1100,8 @@ static void copy_object_pose(Object *obn, Object *ob)
 {
 	bPoseChannel *chan;
 	
+	/* note: need to clear obn->pose pointer first, so that copy_pose works (otherwise there's a crash) */
+	obn->pose= NULL;
 	copy_pose(&obn->pose, ob->pose, 1);	/* 1 = copy constraints */
 
 	for (chan = obn->pose->chanbase.first; chan; chan=chan->next){
@@ -1609,7 +1616,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->keyindex==nr) {
-					memcpy(vec, eve->co, 12);
+					memcpy(vec, eve->co, sizeof(float)*3);
 					break;
 				}
 			}
@@ -1647,18 +1654,20 @@ static void give_parvert(Object *par, int nr, float *vec)
 		Curve *cu;
 		BPoint *bp;
 		BezTriple *bezt;
+		int found= 0;
 		
 		cu= par->data;
 		nu= cu->nurb.first;
 		if(par==G.obedit) nu= editNurb.first;
 		
 		count= 0;
-		while(nu) {
+		while(nu && !found) {
 			if((nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
 					if(count==nr) {
+						found= 1;
 						VECCOPY(vec, bezt->vec[1]);
 						break;
 					}
@@ -1671,7 +1680,8 @@ static void give_parvert(Object *par, int nr, float *vec)
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
 					if(count==nr) {
-						memcpy(vec, bp->vec, 12);
+						found= 1;
+						memcpy(vec, bp->vec, sizeof(float)*3);
 						break;
 					}
 					count++;
@@ -2371,4 +2381,32 @@ int give_obdata_texspace(Object *ob, int **texflag, float **loc, float **size, f
 		return 0;
 	}
 	return 1;
+}
+
+/*
+ * Test a bounding box for ray intersection
+ * assumes the ray is already local to the boundbox space
+ */
+int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3])
+{
+	static int triangle_indexes[12][3] = {{0, 1, 2}, {0, 2, 3},
+										  {3, 2, 6}, {3, 6, 7},
+										  {1, 2, 6}, {1, 6, 5}, 
+										  {5, 6, 7}, {4, 5, 7},
+										  {0, 3, 7}, {0, 4, 7},
+										  {0, 1, 5}, {0, 4, 5}};
+	int result = 0;
+	int i;
+	
+	for (i = 0; i < 12 && result == 0; i++)
+	{
+		float lambda;
+		int v1, v2, v3;
+		v1 = triangle_indexes[i][0];
+		v2 = triangle_indexes[i][1];
+		v3 = triangle_indexes[i][2];
+		result = RayIntersectsTriangle(ray_start, ray_normal, bb->vec[v1], bb->vec[v2], bb->vec[v3], &lambda, NULL);
+	}
+	
+	return result;
 }

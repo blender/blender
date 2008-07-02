@@ -130,6 +130,24 @@ BF_FFMPEG_LIB = ''
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
+WITH_BF_OPENJPEG = 'true' 
+BF_OPENJPEG = '#extern/libopenjpeg'
+BF_OPENJPEG_LIB = ''
+# Uncomment the following two lines to use system's ffmpeg
+# BF_FFMPEG = '/usr'
+# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
+BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
+BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
+
+WITH_BF_REDCODE = 'true'  
+BF_REDCODE = '#extern/libredcode'
+BF_REDCODE_LIB = ''
+# Uncomment the following two lines to use system's ffmpeg
+# BF_FFMPEG = '/usr'
+# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
+BF_REDCODE_INC = '${BF_REDCODE}/include'
+BF_REDCODE_LIBPATH='${BF_REDCODE}/lib'
+
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'false'
 BF_OPENGL = '/usr'

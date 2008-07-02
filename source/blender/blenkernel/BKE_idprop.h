@@ -171,4 +171,9 @@ void IDP_FreeProperty(struct IDProperty *prop);
 /*Unlinks any struct IDProperty<->ID linkage that might be going on.*/
 void IDP_UnlinkProperty(struct IDProperty *prop);
 
+#define IDP_Int(prop) (prop->data.val)
+#define IDP_Float(prop) (*(float*)&prop->data.val)
+#define IDP_String(prop) ((char*)prop->data.pointer)
+#define IDP_Array(prop) (prop->data.pointer)
+
 #endif /* _BKE_IDPROP_H */

@@ -36,10 +36,12 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../../kernel/gen_system
+CPPFLAGS += -I../../BlenderRoutines
 CPPFLAGS += -I..
 ifeq ($(OS),darwin)
 	CPPFLAGS += -fpascal-strings

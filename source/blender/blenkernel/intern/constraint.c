@@ -1104,9 +1104,9 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	/* identity matrix - don't do anything if the two axes are the same */
 	else {
 		m[0][0]= m[1][1]= m[2][2]= 1.0;
-		m[0][1]= m[0][2]= m[0][3]= 0.0;
-		m[1][0]= m[1][2]= m[1][3]= 0.0;
-		m[2][0]= m[2][1]= m[2][3]= 0.0;
+		m[0][1]= m[0][2]= 0.0;
+		m[1][0]= m[1][2]= 0.0;
+		m[2][0]= m[2][1]= 0.0;
 	}
 }
 
@@ -1882,7 +1882,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 {
 	bPythonConstraint *data= con->data;
 	
-	if (VALID_CONS_TARGET(ct)) {
+	if ((G.f & G_DOSCRIPTLINKS) && VALID_CONS_TARGET(ct)) {
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
 			Curve *cu= ct->tar->data;
@@ -1905,6 +1905,8 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
 	bPythonConstraint *data= con->data;
+	
+	if ((G.f & G_DOSCRIPTLINKS)==0)  return;
 	
 /* currently removed, until I this can be re-implemented for multiple targets */
 #if 0

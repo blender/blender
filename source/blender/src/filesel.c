@@ -1299,6 +1299,27 @@ void activate_databrowse_args(struct ID *id, int idcode, int fromcode, short *me
 	sfile->ipotype= fromcode;
 }
 
+/* resets a previous file space type */
+/* is used when opening a filebrowser directly from windowtype_pupmenu,
+   since in that case we don't want any load/save/append/link action
+*/
+void reset_filespace(ScrArea *sa)
+{
+	if (sa->spacetype == SPACE_FILE) {
+		SpaceFile *sfile= sa->spacedata.first;
+			
+		if(sfile->type==FILE_MAIN) {
+			freefilelist(sfile);
+		} else {
+			sfile->type= FILE_UNIX;
+		}
+		
+		sfile->returnfunc= NULL;
+		sfile->title[0]= 0;
+		if(sfile->filelist) test_flags_file(sfile);
+	}
+}
+
 void filesel_prevspace()
 {
 	SpaceFile *sfile= curarea->spacedata.first;
@@ -1567,11 +1588,10 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		BLI_strncpy(sfile->dir, butname, sizeof(sfile->dir));
 
 		/* strip the trailing slash if its a real dir */
-		if (strlen(butname)!=1)
-			butname[strlen(butname)-1]=0;
+		BLI_del_slash(butname);
 		
 		if(sfile->type & FILE_UNIX) {
-			if (!BLI_exists(butname)) {
+			if (butname[0] != '\0' && !BLI_exists(butname)) {
 				if (okee("Makedir")) {
 					BLI_recurdir_fileops(butname);
 					if (!BLI_exists(butname)) parent(sfile);
@@ -1612,6 +1632,11 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 			BLI_strncpy(sfile->dir, lib->filename, sizeof(sfile->dir));
 			BLI_make_exist(sfile->dir);
 			BLI_cleanup_dir(G.sce, sfile->dir);
+			
+			/* forced re-reading the blend file */
+			if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
+			sfile->libfiledata= 0;
+			
 			freefilelist(sfile);
 			sfile->ofs= 0;
 			scrarea_queue_winredraw(curarea);

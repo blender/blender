@@ -54,6 +54,7 @@ void activate_databrowse(struct ID *id, int idcode, int fromcode, int retval, sh
 void activate_databrowse_args(struct ID *id, int idcode, int fromcode, short *menup, void (*func)(char *, void *, void *), void *arg1, void *arg2);
 
 void filesel_prevspace(void);
+void reset_filespace(struct ScrArea *sa);
 void free_filesel_spec(char *dir);
 void winqreadfilespace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void main_to_filelist(struct SpaceFile *sfile);   

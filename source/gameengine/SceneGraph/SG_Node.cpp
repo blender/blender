@@ -148,6 +148,27 @@ GetRootSGParent(
 	return (m_SGparent ? (const SG_Node*) m_SGparent->GetRootSGParent() : (const SG_Node*) this);
 }
 
+	bool
+SG_Node::
+IsVertexParent()
+{
+	if (m_parent_relation)
+	{
+		return m_parent_relation->IsVertexRelation();
+	}
+	return false;
+}
+
+	bool
+SG_Node::
+IsSlowParent()
+{
+	if (m_parent_relation)
+	{
+		return m_parent_relation->IsSlowRelation();
+	}
+	return false;
+}
 
 	void 
 SG_Node::

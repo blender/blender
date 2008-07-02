@@ -1651,6 +1651,12 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+void modifiers_explodeDelVg(void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+	emd->vgroup = 0;
+}
+
 static int modifier_is_fluid_particles(ModifierData *md) {
 	if(md->type == eModifierType_ParticleSystem) {
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
@@ -1761,7 +1767,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 86;
+			height = 105;
 		} else if (md->type==eModifierType_Bevel) {
 			BevelModifierData *bmd = (BevelModifierData*) md;
 			height = 105; /* height = 124; */
@@ -1786,7 +1792,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 143;
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData *)md;
-			height = 294;
+			height = 315;
 			if(wmd->texmapping == MOD_WAV_MAP_OBJECT ||
 			   wmd->texmapping == MOD_WAV_MAP_UV)
 				height += 19;
@@ -1893,6 +1899,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Y, B_MODIFIER_RECALC, "Y",	lx+20,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Y axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Z, B_MODIFIER_RECALC, "Z",	lx+40,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Z axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
+			uiDefButBitS(block, TOG, MOD_MIR_VGROUP, B_MODIFIER_RECALC, "Mirror Vgroups",	lx, (cy-=19), buttonWidth,19, &mmd->flag, 1, 2, 0, 0, "Mirror vertex groups (e.g. .R->.L)");
 			uiDefButBitS(block, TOG, MOD_MIR_MIRROR_U, B_MODIFIER_RECALC,
 			             "Mirror U",
 			             lx, (cy-=19), buttonWidth/2, 19,
@@ -2147,6 +2154,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify ending frame of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the lifespan of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the dampingtime of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff:",	lx,(cy-=19),buttonWidth,19, &wmd->falloff,  0, 100, 100, 0, "Specify the falloff radius of the waves");
+
 			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
@@ -2183,7 +2192,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				               &wmd->map_object,
 				               "Object to get texture coordinates from");
 			}
-            cy -= 9;
+			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Height:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
@@ -2396,7 +2405,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Bind", lx,(cy-=24), buttonWidth,19, 0, 0, 0, 0, 0, "Bind mesh to cage");
 				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
 				uiDefButS(block, NUM, B_NOP, "Precision:", lx,(cy-19), buttonWidth/2 + 20,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
-				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
+				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Recompute binding dynamically on top of other deformers like Shape Keys (slower and more memory consuming!)");
 			}
 			uiBlockEndAlign(block);
 		} else if (md->type==eModifierType_ParticleSystem) {
@@ -2417,12 +2426,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char *menustr= get_vertexgroup_menustr(ob);
 			int defCount=BLI_countlist(&ob->defbase);
 			if(defCount==0) emd->vgroup=0;
-
-			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth/2,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
+			uiBlockBeginAlign(block);
+			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth-20,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 			MEM_freeN(menustr);
+			
+			but=uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_X, (lx+buttonWidth)-20, cy, 20,19, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			uiButSetFunc(but, modifiers_explodeDelVg, (void *)emd, (void *)NULL);
+			
 
-			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx+buttonWidth/2, cy, buttonWidth/2,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
+			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx, (cy-=19), buttonWidth,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 
 			but=uiDefBut(block, BUT, B_MODIFIER_RECALC, "Refresh",	lx, (cy-=19), buttonWidth/2,19, 0, 0, 0, 0, 0, "Recalculate faces assigned to particles");
@@ -2432,6 +2445,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy-=19), buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are unborn");
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
+			uiBlockEndAlign(block);
 		}
 
 		uiBlockEndAlign(block);
@@ -3060,7 +3074,6 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 
 void do_curvebuts(unsigned short event)
 {
-	extern Nurb *lastnu;
 	extern ListBase editNurb;  /* from editcurve */
 	Object *ob;
 	Curve *cu;
@@ -3094,13 +3107,15 @@ void do_curvebuts(unsigned short event)
 				if(isNurbsel(nu)) {
 					if((nu->type & 7)==CU_NURBS) {
 						if(event<B_UNIFV) {
-							nu->flagu &= 1;
-							nu->flagu += ((event-B_UNIFU)<<1);
+							nu->flagu &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagu |= ((event-B_UNIFU)<<1);
+							clamp_nurb_order_u(nu);
 							makeknots(nu, 1, nu->flagu>>1);
 						}
 						else if(nu->pntsv>1) {
-							nu->flagv &= 1;
-							nu->flagv += ((event-B_UNIFV)<<1);
+							nu->flagv &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagv |= ((event-B_UNIFV)<<1);
+							clamp_nurb_order_v(nu);
 							makeknots(nu, 2, nu->flagv>>1);
 						}
 					}
@@ -3136,15 +3151,13 @@ void do_curvebuts(unsigned short event)
 		break;
 	case B_SETORDER:
 		if(G.obedit) {
-			nu= lastnu;
+			nu= get_actNurb();
 			if(nu && (nu->type & 7)==CU_NURBS ) {
-				if(nu->orderu>nu->pntsu) {
-					nu->orderu= nu->pntsu;
+				if(clamp_nurb_order_u(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 1, nu->flagu>>1);
-				if(nu->orderv>nu->pntsv) {
-					nu->orderv= nu->pntsv;
+				if(clamp_nurb_order_v(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 2, nu->flagv>>1);
@@ -3262,7 +3275,6 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 {
 	Nurb *nu;
 	extern ListBase editNurb;  /* from editcurve */
-	extern Nurb *lastnu;
 	uiBlock *block;
 	short *sp;
 
@@ -3298,8 +3310,11 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiBlockEndAlign(block);
 
 	if(ob==G.obedit) {
-		nu= lastnu;
-		if(nu==NULL) nu= editNurb.first;
+		nu= get_actNurb();
+		if(nu==NULL && editNurb.first) {
+			nu= editNurb.first;
+			set_actNurb(nu);
+		}
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",
@@ -4357,7 +4372,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
@@ -5070,6 +5085,8 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	uiBlockEndAlign(block);
 	
+	uiDefButC(block, MENU, REDRAWBUTSEDIT, "Edge Alt-Select Mode%t|Loop Select%x0|Tag Edges (Seam)%x1|Tag Edges (Sharp)%x2|Tag Edges (Crease)%x3|Tag Edges (Bevel)%x4",1125,88,150,19, &G.scene->toolsettings->edge_mode, 0, 0, 0, 0, "Operation to use when Alt+RMB on edges, Use Alt+Shift+RMB to tag the shortest path from the active edge");
+	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			1125, 22,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiDefButBitS(block, TOG, B_MESH_X_MIRROR, B_DIFF, "X-axis mirror",1125,0,150,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "While using transforms, mirrors the transformation");
@@ -5318,7 +5335,7 @@ static void editing_panel_links(Object *ob)
 				uiDefBut(block, BUT, B_POSEGRP_ADD, "Add Group",	xco,110,140,20, 0, 21, 0, 0, 0, "Add a new Bone Group for the Pose");
 			uiBlockEndAlign(block);
 			
-			/* colour set for 'active' group */
+			/* color set for 'active' group */
 			if (pose->active_group && grp) {
 				uiBlockBeginAlign(block);
 					menustr= build_colorsets_menustr();
@@ -5335,7 +5352,7 @@ static void editing_panel_links(Object *ob)
 							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
 						}
 						else {
-							/* init custom colours with a generic multi-colour rgb set, if not initialised already */
+							/* init custom colors with a generic multi-color rgb set, if not initialised already */
 							if (grp->cs.solid[0] == 0) {
 								/* define for setting colors in theme below */
 								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
@@ -5517,7 +5534,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 		uiDefButC(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 	}
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, 0, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
+		uiDefButBitC(block, TOG, SCULPT_BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx+178,cy,89,19, &sculptmode_brush()->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
 	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
@@ -5530,9 +5547,9 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
+	uiDefButBitC(block, TOG, SYMM_X, B_NOP, "X", cx,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitC(block, TOG, SYMM_Y, B_NOP, "Y", cx+40,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitC(block, TOG, SYMM_Z, B_NOP, "Z", cx+80,cy,40,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
 	uiBlockEndAlign(block);
 
 	
@@ -5541,9 +5558,9 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, AXISLOCK_X, 0, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
-	uiDefButBitC(block, TOG, AXISLOCK_Y, 0, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
-	uiDefButBitC(block, TOG, AXISLOCK_Z, 0, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
+	uiDefButBitC(block, TOG, AXISLOCK_X, B_NOP, "X", cx+140,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain X axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Y, B_NOP, "Y", cx+180,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Y axis");
+	uiDefButBitC(block, TOG, AXISLOCK_Z, B_NOP, "Z", cx+220,cy,40,19, &sd->axislock, 0,0,0,0, "Constrain Z axis");
 	uiBlockEndAlign(block);
 	
 	
@@ -5580,7 +5597,7 @@ void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned
 	if(sd->brush_type == DRAW_BRUSH)
 		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
 	cy-= 20;
-	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, 0, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
+	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, B_NOP, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
 	uiBlockEndAlign(block);
 
 	/* Draw curve */
@@ -6202,7 +6219,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &tf->mode, 0, 0, 0, 0, "Use tilemode for face");
 		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &tf->mode, 0, 0, 0, 0, "Use light for face");
 		uiDefButBitS(block, TOG, TF_INVISIBLE, REDRAWVIEW3D, "Invisible",780,160,60,19, &tf->mode, 0, 0, 0, 0, "Make face invisible");
-		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &tf->mode, 0, 0, 0, 0, "Use face for collision detection");
+		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &tf->mode, 0, 0, 0, 0, "Use face for collision and ray-sensor detection");
 
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &tf->mode, 0, 0, 0, 0, "Blend vertex colors across face when vertices are shared");
@@ -6221,6 +6238,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,80,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0, "Use the images alpha values clipped with no blending (binary alpha)");
 	}
 	else
 		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");

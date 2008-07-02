@@ -200,6 +200,19 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 	ParamHandle *handle;
 	
 	handle = param_construct_begin();
+
+	if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0) {
+		EditMesh *em = G.editMesh;
+		EditFace *efa = EM_get_actFace(1);
+		if (efa) {
+			float aspx, aspy;
+			MTFace *tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			image_final_aspect(tface->tpage, &aspx, &aspy);
+		
+			if (aspx!=aspy)
+				param_aspect_ratio(handle, aspx, aspy);
+		}
+	}
 	
 	/* we need the vert indicies */
 	for (ev= em->verts.first, a=0; ev; ev= ev->next, a++)
@@ -314,21 +327,6 @@ void unwrap_lscm(short seamcut)
 	param_lscm_begin(handle, PARAM_FALSE, abf);
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
-
-	
-	/* scale before packing */
-	if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0) {
-		EditFace *efa = EM_get_actFace(1);
-		if (efa) {
-			float aspx, aspy;
-			MTFace *tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			image_final_aspect(tface->tpage, &aspx, &aspy);
-		
-			if (aspx!=aspy) {
-				param_scale(handle, 1.0, aspx/aspy);
-			}
-		}
-	}
 	
 	param_pack(handle);
 

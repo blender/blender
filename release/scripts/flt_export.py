@@ -44,6 +44,8 @@ from flt_filewalker import FltOut
 from flt_filewalker import FileFinder
 from flt_properties import *
 import shutil
+import trace
+import sys
 
 FF = FileFinder()
 records = process_recordDefs()
@@ -639,20 +641,37 @@ class FLTNode(Node):
 		#first pass: do open faces
 		for vert in wireverts:
 			if not visited[vert] and vertuse[vert.index][1] == 1:
-				visited[vert] = True
-				loop = [vert]
-				othervert = edge_get_othervert(vert, disk[vert][0])
-				self.vertwalk(othervert, loop, disk, visited)
+				loop = list()
+				done = 0
+				startvert = vert
+				while not done:
+					done = 1
+					visited[startvert] = True
+					loop.append(startvert)
+					for edge in disk[startvert]:
+						othervert = edge_get_othervert(startvert, edge)
+						if not visited[othervert]:
+							done = 0
+							startvert = othervert
+							break
 				if len(loop) > 2: loops.append( ('Open', loop) )
-
 		for vert in wireverts:
 			if not visited[vert]:
-				visited[vert] = True
-				loop = [vert]
-				othervert = edge_get_othervert(vert,disk[vert][0])
-				self.vertwalk(othervert, loop, disk, visited)
+				loop = list()
+				done = 0
+				startvert = vert
+				while not done:
+					done = 1
+					visited[startvert] = True
+					loop.append(startvert)
+					for edge in disk[startvert]:
+						othervert = edge_get_othervert(startvert,edge)
+						if not visited[othervert]:
+							done = 0
+							startvert = othervert
+							break
 				if len(loop) > 2: loops.append( ('closed', loop) )
-				
+		
 		#now go through the loops and append.
 		for l in loops:
 			(ftype, loop) = l
@@ -665,6 +684,8 @@ class FLTNode(Node):
 					face_desc.renderstyle = 3
 				face_desc.color_index = 227
 			self.face_lst.append(face_desc)
+
+
 
 	def sortFLTFaces(self,a,b):
 		aindex = a.getProperty("FLT_ORIGINDEX")
@@ -1441,6 +1462,9 @@ FLTXAPPChooser = None
 
 FLTAttrib = None
 
+
+FLTWarn = None
+
 def setshadingangle(ID,val):
 	global options
 	options.state['shading_default'] = val
@@ -1504,6 +1528,8 @@ def but_event(evt):
 
 	global FLTAttrib
 	
+	global FLTWarn
+	
 	#choose base path for export
 	if evt == 4:
 		Blender.Window.FileSelector(setBpath, "DB Root", options.state['basepath'])
@@ -1538,8 +1564,13 @@ def but_event(evt):
 	
 	#Export DB
 	if evt == 1:
-		dbexport()
-	
+		try:
+			dbexport()		
+		except Exception, inst:
+			import traceback
+			FLTWarn = Draw.PupBlock("Export Error", ["See console for output!"])
+			traceback.print_exception(sys.exc_type, sys.exc_value, sys.exc_traceback)
+
 	#exit
 	if evt == 2:
 		Draw.Exit()

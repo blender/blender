@@ -11,13 +11,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# Version History:
+#   1.0 original release bakes an armature into a matrix
+#   1.1 optional params (ACTION_BAKE, ACTION_BAKE_FIRST_FRAME, direct function to key and return the Action
 
 import Blender
+from Blender import sys
 import bpy
-def getBakedPoseData(ob_arm, start_frame, end_frame):
+def getBakedPoseData(ob_arm, start_frame, end_frame, ACTION_BAKE = False, ACTION_BAKE_FIRST_FRAME = True):
 	'''
 	If you are currently getting IPO's this function can be used to
-	return a list of frame aligned bone dictionary's
+	ACTION_BAKE==False: return a list of frame aligned bone dictionary's
+	ACTION_BAKE==True: return an action with keys aligned to bone constrained movement
+	if ACTION_BAKE_FIRST_FRAME is not supplied or is true: keys begin at frame 1
 	
 	The data in these can be swaped in for the IPO loc and quat
 	
@@ -77,7 +83,13 @@ def getBakedPoseData(ob_arm, start_frame, end_frame):
 	
 	# --------------------------------- Main loop to collect IPO data
 	frame_index = 0
+	NvideoFrames= end_frame-start_frame
 	for current_frame in xrange(start_frame, end_frame+1):
+		if   frame_index==0: start=sys.time()
+		elif frame_index==15: print NvideoFrames*(sys.time()-start),"seconds estimated..." #slows as it grows *3
+		elif frame_index >15:
+			percom= frame_index*100/NvideoFrames
+			print "Frame %i Overall %i percent complete\r" % (current_frame, percom),
 		ob_arm.action = backup_action
 		#pose.update() # not needed
 		Blender.Set('curframe', current_frame)
@@ -88,9 +100,7 @@ def getBakedPoseData(ob_arm, start_frame, end_frame):
 		
 		for index, parent_index, bone_name, rest_bone, rest_matrix, rest_matrix_inv, pose_bone, ipo in armature_bone_data:
 			matrix= pose_bone.poseMatrix
-			
 			parent_bone= rest_bone.parent
-			
 			if parent_index != -1:
 				parent_pose_matrix =		armature_bone_data[parent_index][6].poseMatrix
 				parent_bone_matrix_inv =	armature_bone_data[parent_index][5]
@@ -98,40 +108,45 @@ def getBakedPoseData(ob_arm, start_frame, end_frame):
 				rest_matrix=				rest_matrix * parent_bone_matrix_inv
 			
 			matrix=matrix * rest_matrix.copy().invert()
-			
 			pose_bone.quat=	matrix.toQuat()
 			pose_bone.loc=	matrix.translationPart()
-			pose_bone.insertKey(ob_arm, 1, POSE_XFORM) # always frame 1
+			if ACTION_BAKE==False:
+				pose_bone.insertKey(ob_arm, 1, POSE_XFORM) # always frame 1
+	 
+				# THIS IS A BAD HACK! IT SUCKS BIGTIME BUT THE RESULT ARE NICE
+				# - use a temp action and bake into that, always at the same frame
+				#   so as not to make big IPO's, then collect the result from the IPOs
 			
-			# THIS IS A BAD HACK! IT SUCKS BIGTIME BUT THE RESULT ARE NICE
-			# - use a temp action and bake into that, always at the same frame
-			#   so as not to make big IPO's, then collect the result from the IPOs
+				# Now get the data from the IPOs
+				if not ipo:	ipo = armature_bone_data[index][7] = new_action.getChannelIpo(bone_name)
 			
-			# Now get the data from the IPOs
-			if not ipo:	ipo = armature_bone_data[index][7] = new_action.getChannelIpo(bone_name)
+				loc = Vector()
+				quat  = Quaternion()
 			
-			loc = Vector()
-			quat  = Quaternion()
+				for curve in ipo:
+					val = curve.evaluate(1)
+					curve_name= curve.name
+					if   curve_name == 'LocX':  loc[0] = val
+					elif curve_name == 'LocY':  loc[1] = val
+					elif curve_name == 'LocZ':  loc[2] = val
+					elif curve_name == 'QuatW': quat[3]  = val
+					elif curve_name == 'QuatX': quat[0]  = val
+					elif curve_name == 'QuatY': quat[1]  = val
+					elif curve_name == 'QuatZ': quat[2]  = val
 			
-			for curve in ipo:
-				val = curve.evaluate(1)
-				curve_name= curve.name
-				if   curve_name == 'LocX':  loc[0] = val
-				elif curve_name == 'LocY':  loc[1] = val
-				elif curve_name == 'LocZ':  loc[2] = val
-				elif curve_name == 'QuatW': quat[3]  = val
-				elif curve_name == 'QuatX': quat[0]  = val
-				elif curve_name == 'QuatY': quat[1]  = val
-				elif curve_name == 'QuatZ': quat[2]  = val
-			
-			bake_data[frame_index][bone_name] = loc, quat
-			
-		
+				bake_data[frame_index][bone_name] = loc, quat
+			else:
+				if ACTION_BAKE_FIRST_FRAME: pose_bone.insertKey(ob_arm, frame_index+1,  POSE_XFORM)
+				else:           pose_bone.insertKey(ob_arm, current_frame , POSE_XFORM)
 		frame_index+=1
-	
+	print "\nBaking Complete."
 	ob_arm.action = backup_action
-	Blender.Set('curframe', backup_frame)
-	return bake_data
+	if ACTION_BAKE==False:
+		Blender.Set('curframe', backup_frame)
+		return bake_data
+	elif ACTION_BAKE==True:
+		return new_action
+	else: print "ERROR: Invalid ACTION_BAKE %i sent to BPyArmature" % ACTION_BAKE
 
 
 

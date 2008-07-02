@@ -16,6 +16,7 @@ private:
 	short m_flag;
 	float m_float_arg;
 	int   m_int_arg;
+	short m_texture_flag;
 	STR_String	m_shaderText;
 	RAS_IRasterizer* m_rasterizer;
 	RAS_IRenderTools* m_rendertools;
@@ -28,6 +29,7 @@ public:
 		short flag,
 		float float_arg,
 		int int_arg,
+		short texture_flag,
 		RAS_IRasterizer* rasterizer,
 		RAS_IRenderTools* rendertools,
         PyTypeObject* T=&Type

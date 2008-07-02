@@ -938,8 +938,8 @@ static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw,
 {
 	ui_rasterpos_safe(x, y, aspect);
 	
-	if(w<1 || h<1) {
-		printf("what the heck!\n");
+	if((w<1 || h<1) && G.f & G_DEBUG) {
+		printf("what the heck! - icons are %i x %i pixels?\n", w, h);
 	}
 	/* rect contains image in 'rendersize', we only scale if needed */
 	else if(rw!=w && rh!=h) {

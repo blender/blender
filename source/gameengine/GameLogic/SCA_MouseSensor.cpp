@@ -58,7 +58,6 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 {
 	m_mousemode   = mousemode;
 	m_triggermode = true;
-	m_val         = 0; /* stores the latest attribute */
 
 	switch (m_mousemode) {
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
@@ -79,7 +78,12 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	default:
 		; /* ignore, no hotkey */
 	}
+	Init();
+}
 
+void SCA_MouseSensor::Init()
+{
+	m_val = (m_invert)?1:0; /* stores the latest attribute */
 }
 
 SCA_MouseSensor::~SCA_MouseSensor() 
@@ -164,10 +168,11 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 					{
 						if (m_val == 0)
 						{
-							//dangerous
-							//m_val = 1;
-							//result = true;
-							;
+							if (m_level)
+							{
+								m_val = 1;
+								result = true;
+							}
 						}
 					} else
 					{

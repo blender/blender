@@ -52,6 +52,8 @@ struct Image;
 #define BUTS_ACT_SEL		64
 #define BUTS_ACT_ACT		128
 #define BUTS_ACT_LINK		256
+#define BUTS_SENS_STATE		512
+#define BUTS_ACT_STATE		1024
 
 /* internal */
 
@@ -359,6 +361,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SET_ZBLUR			1644
 #define B_ADD_RENDERLAYER	1645
 #define B_SET_PASS			1646
+#define B_ADD_FFMPEG_VIDEO_OPTION     1647
+#define B_ADD_FFMPEG_AUDIO_OPTION     1648
 
 #define B_SEQ_BUT_PLUGIN	1691
 #define B_SEQ_BUT_RELOAD	1692
@@ -367,7 +371,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SEQ_BUT_TRANSFORM     1695
 #define B_SEQ_BUT_RELOAD_FILE   1696
 #define B_SEQ_BUT_REBUILD_PROXY 1697
-
+#define B_SEQ_SEL_PROXY_DIR     1698
 /* *********************** */
 #define B_ARMATUREBUTS		1800
 #define	B_POSE			1701
@@ -581,6 +585,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETACTOR		2715
 #define B_SETMAINACTOR		2716
 #define B_SETDYNA		2717
+#define B_SET_STATE_BIT	2718
+#define B_INIT_STATE_BIT	2719
 
 /* *********************** */
 #define B_FPAINTBUTS		2900

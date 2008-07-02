@@ -164,6 +164,7 @@ struct AutoComplete;
 #define BUT_TOGDUAL (33<<9)
 #define ICONTOGN (34<<9)
 #define FTPREVIEW (35<<9)
+#define NUMABS	(36<<9)
 #define BUTTYPE	(63<<9)
 
 
@@ -184,6 +185,7 @@ void uiDrawBlock(struct uiBlock *block);
 void uiGetMouse(int win, short *adr);
 void uiComposeLinks(uiBlock *block);
 void uiSetButLock(int val, char *lockstr);
+uiBut *uiFindInlink(uiBlock *block, void *poin);
 void uiClearButLock(void);
 int uiDoBlocks(struct ListBase *lb, int event, int movemouse_quit);
 void uiSetCurFont(uiBlock *block, int index);

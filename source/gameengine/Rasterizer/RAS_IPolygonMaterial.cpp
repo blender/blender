@@ -56,7 +56,6 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_bIsTriangle(bIsTriangle),
 		m_polymatid(m_newpolymatid++),
 		m_flag(0),
-		m_enabled(0),
 		m_multimode(0)
 {
 	m_shininess = 35.0;
@@ -148,10 +147,5 @@ const unsigned int	RAS_IPolyMaterial::GetFlag() const
 {
 	return m_flag;
 }
-const unsigned int	RAS_IPolyMaterial::GetEnabled() const
-{
-	return m_enabled;
-}
-
 
 unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;

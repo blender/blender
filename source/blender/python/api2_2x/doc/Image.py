@@ -48,7 +48,7 @@ def New (name, width, height, depth):
 	@type height: int
 	@param height: The height of the new Image object, between 1 and 5000.
 	@type depth: int
-	@param depth: The colour depth of the new Image object. (32:RGBA 8bit channels, 128:RGBA 32bit high dynamic range float channels).
+	@param depth: The color depth of the new Image object. (32:RGBA 8bit channels, 128:RGBA 32bit high dynamic range float channels).
 	@rtype: Blender Image
 	@return: A new Blender Image object.
 	"""

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib glew.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
@@ -124,7 +124,7 @@ ECHO Done
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python25_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib avcodec-51.lib avformat-52.lib avutil-49.lib swscale-0.lib glew.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"

@@ -37,6 +37,9 @@ struct BezTriple;
 struct BPoint;
 struct BezTripleNurb;
 
+void set_actNurb(struct Nurb *nu);
+struct Nurb * get_actNurb( void );
+
 short isNurbsel(struct Nurb *nu);
 int isNurbsel_count(struct Nurb *nu);
 void printknots(void);
@@ -96,6 +99,7 @@ int bezt_compare (const void *e1, const void *e2);
 void setweightNurb( void );
 void setradiusNurb( void );
 void smoothradiusNurb( void );
+void smoothNurb( void );
 
 extern void undo_push_curve(char *name);
 

@@ -783,7 +783,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 			else
 				resolu= nu->resolu;
 			
-			if(nu->pntsu<2);
+			if(!check_valid_nurb_u(nu));
 			else if((nu->type & 7)==CU_BEZIER) {
 				
 				/* count */
@@ -816,7 +816,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 
 				data= dl->verts;
 
-				if(nu->flagu & 1) {
+				if(nu->flagu & CU_CYCLIC) {
 					dl->type= DL_POLY;
 					a= nu->pntsu;
 				}
@@ -863,7 +863,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & 1) dl->type= DL_POLY;
+				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				makeNurbcurve(nu, data, resolu, 3);
 			}
@@ -878,7 +878,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & 1) dl->type= DL_POLY;
+				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				a= len;
@@ -1171,7 +1171,7 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
-		if (md->type==eModifierType_Hook || md->type==eModifierType_Softbody) {
+		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			preTesselatePoint  = md;
 		}
 	}
@@ -1330,7 +1330,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				dl->rt= nu->flag;
 				
 				data= dl->verts;
-				if(nu->flagu & 1) dl->type= DL_POLY;
+				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				makeNurbcurve(nu, data, nu->resolu, 3);

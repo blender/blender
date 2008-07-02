@@ -1217,7 +1217,7 @@ void snap_menu_sima(void)
 	short event;
 	if( is_uv_tface_editing_allowed()==0 || !G.v2d) return; /* !G.v2d should never happen */
 	
-	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Pixel%x4|Cursor -> Selection%x5");
+	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Selection%x4|Cursor -> Pixel%x5");
 	switch (event) {
 		case 1:
 		    if (snap_uv_sel_to_pixels()) {
@@ -1238,12 +1238,12 @@ void snap_menu_sima(void)
 		    }
 		    break;
 		case 4:
-		    snap_uv_curs_to_pixels();
-		    scrarea_queue_winredraw(curarea);
-		    break;
-		case 5:
 		    if (snap_uv_curs_to_sel())
 		    	allqueue(REDRAWIMAGE, 0);
+		    break;
+		case 5:
+		    snap_uv_curs_to_pixels();
+		    scrarea_queue_winredraw(curarea);
 		    break;
 	}
 }
@@ -2690,15 +2690,17 @@ void image_changed(SpaceImage *sima, Image *image)
 					
 					if(image->id.us==0) id_us_plus(&image->id);
 					else id_lib_extern(&image->id);
-					
+#if 0				/* GE People dont like us messing with their face modes */
 					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
 					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
 					else								tface->transp = TF_SOLID;
-					
+#endif
 				} else {
 					tface->tpage= NULL;
 					tface->mode &= ~TF_TEX;
+#if 0
 					tface->transp = TF_SOLID;
+#endif
 				}
 				change = 1;
 			}

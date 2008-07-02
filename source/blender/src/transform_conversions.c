@@ -144,6 +144,8 @@ extern ListBase editelems;
 
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
+/* local function prototype - for finding number of keyframes that are selected for editing */
+static int count_ipo_keys(Ipo *ipo, char side, float cfra);
 
 /* ************************** Functions *************************** */
 
@@ -1363,7 +1365,7 @@ static void createTransCurveVerts(TransInfo *t)
 						tail++;
 					}
 					if(		propmode ||
-							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
 							((bezt->f3 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
@@ -2215,9 +2217,9 @@ static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int sele
 		td->flag |= TD_SELECTED;
 		td->dist= 0.0;
 	}
-	else
+	else {
 		td->dist= MAXFLOAT;
-	
+	}
 	Mat3One(td->mtx);
 	Mat3One(td->smtx);
 }
@@ -2229,25 +2231,57 @@ static void createTransUVs(TransInfo *t)
 	MTFace *tf;
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-	
+	int efa_s1,efa_s2,efa_s3,efa_s4;
+
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	
 	if(is_uv_tface_editing_allowed()==0) return;
 
 	/* count */
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (simaFaceDraw_Check(efa, tf)) {
-			if (simaUVSel_Check(efa, tf, 0)) countsel++; 
-			if (simaUVSel_Check(efa, tf, 1)) countsel++; 
-			if (simaUVSel_Check(efa, tf, 2)) countsel++; 
-			if (efa->v4 && simaUVSel_Check(efa, tf, 3)) countsel++;
-			if(propmode)
-				count += (efa->v4)? 4: 3;
+	if (G.sima->flag & SI_BE_SQUARE && !propmode) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			/* store face pointer for second loop, prevent second lookup */
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (simaFaceDraw_Check(efa, tf)) {
+				efa->tmp.p = tf;
+				
+				efa_s1 = simaUVSel_Check(efa, tf, 0);
+				efa_s2 = simaUVSel_Check(efa, tf, 1);
+				efa_s3 = simaUVSel_Check(efa, tf, 2);
+				if (efa->v4) {
+					efa_s4 = simaUVSel_Check(efa, tf, 3);
+					if ( efa_s1 || efa_s2 || efa_s3 || efa_s4 ) {
+						countsel += 4; /* all corners of this quad need their edges moved. so we must store TD for each */
+					}
+				} else {
+					/* tri's are delt with normally when SI_BE_SQUARE's enabled */
+					if (efa_s1) countsel++; 
+					if (efa_s2) countsel++; 
+					if (efa_s3) countsel++;
+				}
+			} else {
+				efa->tmp.p = NULL;
+			}
+		}
+	} else {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (simaFaceDraw_Check(efa, tf)) {
+				efa->tmp.p = tf;
+				
+				if (simaUVSel_Check(efa, tf, 0)) countsel++; 
+				if (simaUVSel_Check(efa, tf, 1)) countsel++; 
+				if (simaUVSel_Check(efa, tf, 2)) countsel++; 
+				if (efa->v4 && simaUVSel_Check(efa, tf, 3)) countsel++;
+				if(propmode)
+					count += (efa->v4)? 4: 3;
+			} else {
+				efa->tmp.p = NULL;
+			}
 		}
 	}
-
+	
  	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 	
@@ -2262,21 +2296,66 @@ static void createTransUVs(TransInfo *t)
 
 	td= t->data;
 	td2d= t->data2d;
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (simaFaceDraw_Check(efa, tf)) {
-			if(propmode || simaUVSel_Check(efa, tf, 0))
-				UVsToTransData(td++, td2d++, tf->uv[0], simaUVSel_Check(efa, tf, 0));
-			if(propmode || simaUVSel_Check(efa, tf, 1))
-				UVsToTransData(td++, td2d++, tf->uv[1], simaUVSel_Check(efa, tf, 1));
-			if(propmode || simaUVSel_Check(efa, tf, 2))
-				UVsToTransData(td++, td2d++, tf->uv[2], simaUVSel_Check(efa, tf, 2));
+	
+	if (G.sima->flag & SI_BE_SQUARE && !propmode) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tf=(MTFace *)efa->tmp.p;
+			if (tf) {
+				efa_s1 = simaUVSel_Check(efa, tf, 0);
+				efa_s2 = simaUVSel_Check(efa, tf, 1);
+				efa_s3 = simaUVSel_Check(efa, tf, 2);
+				
+				if (efa->v4) {
+					efa_s4 = simaUVSel_Check(efa, tf, 3);
+					
+					if ( efa_s1 || efa_s2 || efa_s3 || efa_s4 ) {
+						/* all corners of this quad need their edges moved. so we must store TD for each */
 
-			if(efa->v4 && (propmode || simaUVSel_Check(efa, tf, 3)))
-				UVsToTransData(td++, td2d++, tf->uv[3], simaUVSel_Check(efa, tf, 3));
+						UVsToTransData(td, td2d, tf->uv[0], efa_s1);
+						if (!efa_s1)	td->flag |= TD_SKIP;
+						td++; td2d++;
+
+						UVsToTransData(td, td2d, tf->uv[1], efa_s2);
+						if (!efa_s2)	td->flag |= TD_SKIP;
+						td++; td2d++;
+
+						UVsToTransData(td, td2d, tf->uv[2], efa_s3);
+						if (!efa_s3)	td->flag |= TD_SKIP;
+						td++; td2d++;
+
+						UVsToTransData(td, td2d, tf->uv[3], efa_s4);
+						if (!efa_s4)	td->flag |= TD_SKIP;
+						td++; td2d++;
+					}
+				} else {
+					/* tri's are delt with normally when SI_BE_SQUARE's enabled */
+					if (efa_s1) UVsToTransData(td++, td2d++, tf->uv[0], 1); 
+					if (efa_s2) UVsToTransData(td++, td2d++, tf->uv[1], 1); 
+					if (efa_s3) UVsToTransData(td++, td2d++, tf->uv[2], 1);
+				}
+			}
+		}
+	} else {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			/*tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (simaFaceDraw_Check(efa, tf)) {*/
+			if ((tf=(MTFace *)efa->tmp.p)) {
+				if (propmode) {
+					UVsToTransData(td++, td2d++, tf->uv[0], simaUVSel_Check(efa, tf, 0));
+					UVsToTransData(td++, td2d++, tf->uv[1], simaUVSel_Check(efa, tf, 1));
+					UVsToTransData(td++, td2d++, tf->uv[2], simaUVSel_Check(efa, tf, 2));
+					if(efa->v4)
+						UVsToTransData(td++, td2d++, tf->uv[3], simaUVSel_Check(efa, tf, 3));
+				} else {
+					if(simaUVSel_Check(efa, tf, 0))				UVsToTransData(td++, td2d++, tf->uv[0], 1);
+					if(simaUVSel_Check(efa, tf, 1))				UVsToTransData(td++, td2d++, tf->uv[1], 1);
+					if(simaUVSel_Check(efa, tf, 2))				UVsToTransData(td++, td2d++, tf->uv[2], 1);
+					if(efa->v4 && simaUVSel_Check(efa, tf, 3))	UVsToTransData(td++, td2d++, tf->uv[3], 1);
+				}
+			}
 		}
 	}
-
+	
 	if (G.sima->flag & SI_LIVE_UNWRAP)
 		unwrap_lscm_live_begin();
 }
@@ -2304,9 +2383,8 @@ void flushTransUVs(TransInfo *t)
 			td->loc2d[1]= floor(height*td->loc2d[1] + 0.5f)/height;
 		}
 	}
-
-	/* always call this, also for cancel (it transforms non-selected vertices...) */
-	if((G.sima->flag & SI_BE_SQUARE))
+	
+	if((G.sima->flag & SI_BE_SQUARE) && (t->flag & T_PROP_EDIT)==0 && (t->state != TRANS_CANCEL)) 
 		be_square_tface_uv(em);
 
 	/* this is overkill if G.sima->lock is not set, but still needed */
@@ -2488,6 +2566,93 @@ static void posttrans_action_clean (bAction *act)
 	
 	/* free temp data */
 	BLI_freelistN(&act_data);
+}
+
+/* Called by special_aftertrans_update to make sure selected keyframes replace
+ * any other keyframes which may reside on that frame (that is not selected).
+ * remake_all_ipos should have already been called 
+ */
+static void posttrans_nla_clean (TransInfo *t)
+{
+	Base *base;
+	Object *ob;
+	bActionStrip *strip;
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	float cfra;
+	char side;
+	int i;
+	
+	/* which side of the current frame should be allowed */
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+		
+		areamouseco_to_ipoco(G.v2d, t->imval, &xmouse, &ymouse);
+		side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		side = 'B';
+	}
+	
+	/* only affect keyframes */
+	for (base=G.scene->base.first; base; base=base->next) {
+		ob= base->object;
+		
+		/* Check object ipos */
+		i= count_ipo_keys(ob->ipo, side, CFRA);
+		if (i) posttrans_ipo_clean(ob->ipo);
+		
+		/* Check object constraint ipos */
+		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
+			i= count_ipo_keys(conchan->ipo, side, CFRA);	
+			if (i) posttrans_ipo_clean(ob->ipo);
+		}
+		
+		/* skip actions and nlastrips if object is collapsed */
+		if (ob->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
+		/* Check action ipos */
+		if (ob->action) {
+			/* exclude if strip is selected too */
+			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+				if (strip->flag & ACTSTRIP_SELECT) {
+					if (strip->act == ob->action)
+						break;
+				}
+			}
+			if (strip==NULL) {
+				cfra = get_action_frame(ob, CFRA);
+				
+				for (achan=ob->action->chanbase.first; achan; achan=achan->next) {
+					if (EDITABLE_ACHAN(achan)) {
+						i= count_ipo_keys(achan->ipo, side, cfra);
+						if (i) {
+							actstrip_map_ipo_keys(ob, achan->ipo, 0, 1); 
+							posttrans_ipo_clean(achan->ipo);
+							actstrip_map_ipo_keys(ob, achan->ipo, 1, 1);
+						}
+						
+						/* Check action constraint ipos */
+						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+								if (EDITABLE_CONCHAN(conchan)) {
+									i = count_ipo_keys(conchan->ipo, side, cfra);
+									if (i) {
+										actstrip_map_ipo_keys(ob, conchan->ipo, 0, 1); 
+										posttrans_ipo_clean(conchan->ipo);
+										actstrip_map_ipo_keys(ob, conchan->ipo, 1, 1);
+									}
+								}
+							}
+						}
+					}
+				}
+			}		
+		}
+	}
 }
 
 /* ----------------------------- */
@@ -2726,9 +2891,10 @@ static void createTransNlaData(TransInfo *t)
 		if (base->object->action) {
 			/* exclude if strip is selected too */
 			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT)
+				if (strip->flag & ACTSTRIP_SELECT) {
 					if (strip->act == base->object->action)
 						break;
+				}
 			}
 			if (strip==NULL) {
 				cfra = get_action_frame(base->object, CFRA);
@@ -2790,9 +2956,10 @@ static void createTransNlaData(TransInfo *t)
 		if (base->object->action) {
 			/* exclude if strip that active action belongs to is selected too */
 			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT)
+				if (strip->flag & ACTSTRIP_SELECT) {
 					if (strip->act == base->object->action)
 						break;
+				}
 			}
 			
 			/* can include if no strip found */
@@ -2973,6 +3140,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
 	short constinv;
+	short skip_invert = 0;
 
 	/* axismtx has the real orientation */
 	Mat3CpyMat4(td->axismtx, ob->obmat);
@@ -2985,8 +3153,13 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	 * 		inverse correction to stop it from screwing up space conversion
 	 *		matrix later
 	 */
-	constinv= constraints_list_needinv(t, &ob->constraints);
-	if (ob->track || constinv==0) {
+	constinv = constraints_list_needinv(t, &ob->constraints);
+	
+	/* disable constraints inversion for dummy pass */
+	if (t->mode == TFM_DUMMY)
+		skip_invert = 1;
+		
+	if (skip_invert == 0 && (ob->track || constinv==0)) {
 		track= ob->track;
 		ob->track= NULL;
 		
@@ -3072,6 +3245,10 @@ static void set_trans_object_base_flags(TransInfo *t)
 	 */
 	Base *base;
 	
+	/* don't do it if we're not actually going to recalculate anything */
+	if(t->mode == TFM_DUMMY)
+		return;
+
 	/* makes sure base flags and object flags are identical */
 	copy_baseflags();
 	
@@ -3481,8 +3658,6 @@ void special_aftertrans_update(TransInfo *t)
 			if (key->ipo) {
 				IpoCurve *icu;
 				
-				
-				
 				if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     (cancelled == 0) )
 				{
@@ -3501,16 +3676,38 @@ void special_aftertrans_update(TransInfo *t)
 		G.saction->flag &= ~SACTION_MOVING;
 	}
 	else if (t->spacetype == SPACE_NLA) {
+		recalc_all_ipos();	// bad
 		synchronize_action_strips();
 		
 		/* cleanup */
 		for (base=G.scene->base.first; base; base=base->next)
 			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
 		
-		recalc_all_ipos();	// bad
+		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
+		if ( (G.snla->flag & SNLA_NOTRANSKEYCULL)==0 && 
+			 (cancelled == 0) )
+		{
+			posttrans_nla_clean(t);
+		}
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		// FIXME! is there any code from the old transform_ipo that needs to be added back? 
+		
+		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
+		if (G.sipo->ipo) 
+		{
+			if ( (G.sipo->flag & SIPO_NOTRANSKEYCULL)==0 && 
+				 (cancelled == 0) )
+			{
+				if (NLA_IPO_SCALED) {
+					actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 1); 
+					posttrans_ipo_clean(G.sipo->ipo);
+					actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 1);
+				}
+				else 
+					posttrans_ipo_clean(G.sipo->ipo);
+			}
+		}
 		
 		/* resetting slow-parents isn't really necessary when editing sequence ipo's */
 		if (G.sipo->blocktype==ID_SEQ)
@@ -3857,6 +4054,7 @@ void createTransData(TransInfo *t)
 		t->flag |= T_POINTS;
 	}
 	else {
+		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
 		createTransObject(t);
 		t->flag |= T_OBJECT;
 	}

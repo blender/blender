@@ -39,5 +39,7 @@ void set_special_seq_update(int val);
 
 void seq_viewmove(SpaceSeq *sseq);
 void seq_reset_imageofs(SpaceSeq *sseq);
+void seq_viewzoom(unsigned short event, int invert);
+void seq_home(void);
 #endif
 

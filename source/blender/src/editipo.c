@@ -116,6 +116,7 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 #include "BSE_sequence.h"
+#include "BSE_seqaudio.h"
 #include "BSE_time.h"
 
 #include "blendef.h"
@@ -3793,6 +3794,12 @@ void clean_ipo_curve(IpoCurve *icu)
 		MEM_freeN(old_bezts);
 }
 
+
+/* temp struct used for smooth_ipo */
+typedef struct tSmooth_Bezt {
+	float *h1, *h2, *h3;	/* bezt->vec[0,1,2][1] */
+} tSmooth_Bezt;
+
 void smooth_ipo(void)
 {
 	EditIpo *ei;
@@ -3804,7 +3811,6 @@ void smooth_ipo(void)
 	ei= G.sipo->editipo;
 	for(b=0; b<G.sipo->totipo; b++, ei++) {
 		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
-		
 			ok= 0;
 			if(G.sipo->showkey) ok= 1;
 			else if(totipo_vert && (ei->flag & IPO_EDIT)) ok= 2;
@@ -3813,52 +3819,94 @@ void smooth_ipo(void)
 			if(ok) {
 				IpoCurve *icu= ei->icu;
 				BezTriple *bezt;
-				float meanValSum = 0.0f, meanVal;
-				float valDiff;
-				int i, totSel = 0;
+				int i, x, totSel = 0;
 				
 				/* check if enough points */
 				if (icu->totvert >= 3) {
-					/* first loop through - obtain average value */
+					/* first loop through - count how many verts are selected, and fix up handles */
 					bezt= icu->bezt;
-					for (i=1; i < icu->totvert; i++, bezt++) {						
+					for (i=0; i < icu->totvert; i++, bezt++) {						
 						if (BEZSELECTED(bezt)) {							
 							/* line point's handles up with point's vertical position */
 							bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
-							if(bezt->h1==HD_AUTO || bezt->h1==HD_VECT) bezt->h1= HD_ALIGN;
-							if(bezt->h2==HD_AUTO || bezt->h2==HD_VECT) bezt->h2= HD_ALIGN;
+							if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
+							if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
 							
 							/* add value to total */
-							meanValSum += bezt->vec[1][1];
 							totSel++;
 						}
 					}
 					
-					/* calculate mean value */
-					meanVal= meanValSum / totSel;
-					
-					/* second loop through - update point positions */
-					bezt= icu->bezt;
-					for (i=0; i < icu->totvert; i++, bezt++) {						
-						if (BEZSELECTED(bezt)) {
-							/* 1. calculate difference between the points 
-							 * 2. move point half-way along that distance 
-							 */
-							if (bezt->vec[1][1] > meanVal) {
-								/* bezt val above mean */
-								valDiff= bezt->vec[1][1] - meanVal;
-								bezt->vec[1][1]= meanVal + (valDiff / 2);
-							}
-							else {
-								/* bezt val below mean */
-								valDiff= meanVal - bezt->vec[1][1];
-								bezt->vec[1][1] = bezt->vec[1][1] + (valDiff / 2);								
+					/* if any points were selected, allocate tSmooth_Bezt points to work on */
+					if (totSel >= 3) {
+						tSmooth_Bezt *tarray, *tsb;
+						
+						/* allocate memory in one go */
+						tsb= tarray= MEM_callocN(totSel*sizeof(tSmooth_Bezt), "tSmooth_Bezt Array");
+						
+						/* populate tarray with data of selected points */
+						bezt= icu->bezt;
+						for (i=0, x=0; (i < icu->totvert) && (x < totSel); i++, bezt++) {
+							if (BEZSELECTED(bezt)) {
+								/* tsb simply needs pointer to vec, and index */
+								tsb->h1 = &bezt->vec[0][1];
+								tsb->h2 = &bezt->vec[1][1];
+								tsb->h3 = &bezt->vec[2][1];
+								
+								/* advance to the next tsb to populate */
+								if (x < totSel- 1) 
+									tsb++;
+								else
+									break;
 							}
 						}
+						
+						/* calculate the new smoothed ipo's with weighted averages:
+						 *	- this is done with two passes
+						 *	- uses 5 points for each operation (which stores in the relevant handles)
+						 *	-	previous: w/a ratio = 3:5:2:1:1
+						 *	- 	next: w/a ratio = 1:1:2:5:3
+						 */
+						
+						/* round 1: calculate previous and next */ 
+						tsb= tarray;
+						for (i=0; i < totSel; i++, tsb++) {
+							/* don't touch end points (otherwise, curves slowly explode) */
+							if (ELEM(i, 0, (totSel-1)) == 0) {
+								tSmooth_Bezt *tP1 = tsb - 1;
+								tSmooth_Bezt *tP2 = (i-2 > 0) ? (tsb - 2) : (NULL);
+								tSmooth_Bezt *tN1 = tsb + 1;
+								tSmooth_Bezt *tN2 = (i+2 < totSel) ? (tsb + 2) : (NULL);
+								
+								float p1 = *tP1->h2;
+								float p2 = (tP2) ? (*tP2->h2) : (*tP1->h2);
+								float c1 = *tsb->h2;
+								float n1 = *tN1->h2;
+								float n2 = (tN2) ? (*tN2->h2) : (*tN1->h2);
+								
+								/* calculate previous and next */
+								*tsb->h1= (3*p2 + 5*p1 + 2*c1 + n1 + n2) / 12;
+								*tsb->h3= (p2 + p1 + 2*c1 + 5*n1 + 3*n2) / 12;
+							}
+						}
+						
+						/* round 2: calculate new values and reset handles */
+						tsb= tarray;
+						for (i=0; i < totSel; i++, tsb++) {
+							/* calculate new position by averaging handles */
+							*tsb->h2 = (*tsb->h1 + *tsb->h3) / 2;
+							
+							/* reset handles now */
+							*tsb->h1 = *tsb->h2;
+							*tsb->h3 = *tsb->h2;
+						}
+						
+						/* free memory required for tarray */
+						MEM_freeN(tarray);
 					}
 				}
-			
-				/* recalc handles */
+				
+				/* recalculate handles */
 				calchandles_ipocurve(icu);
 			}
 		}
@@ -5596,7 +5644,7 @@ void ipo_record(void)
 	if(poin) ei1->icu->curval= read_ipo_poin(poin, type);
 	or1= ei1->icu->curval;
 	ei1->icu->flag |= IPO_LOCK;
-	
+
 	if(ei2) {
 		if(ei2->icu==NULL)
 			ei2->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei2->adrcode);
@@ -5624,8 +5672,9 @@ void ipo_record(void)
 		}		
 		sa= sa->next;	
 	}
+
 	if(sa) areawinset(sa->win);
-	
+
 	/* can we? */
 	while(get_mbut()&L_MOUSE) BIF_wait_for_statechange();
 	data1= MEM_callocN(sizeof(float)*(EFRA-SFRA+1), "data1");
@@ -5634,14 +5683,18 @@ void ipo_record(void)
 	getmouseco_areawin(mvalo);
 	xn= mvalo[0]; yn= mvalo[1];
 	waitcursor(1);
-	
+
 	tottime= 0.0;
 	swaptime= 1.0/FPS;
 
 	cfrao= CFRA;
 	cfra=efra= SFRA;
 	sfra= EFRA;
-	
+
+	if (G.scene->audio.flag & AUDIO_SYNC) {
+		audiostream_start(cfra);
+	}
+
 	while(afbreek==0) {
 		
 		getmouseco_areawin(mval);
@@ -5651,7 +5704,7 @@ void ipo_record(void)
 			else firsttime= 0;
 
 			set_timecursor(cfra);
-			
+	
 			/* do ipo: first all, then the specific ones */
 			if(anim==2) {
 				do_ob_ipo(ob);
@@ -5682,7 +5735,7 @@ void ipo_record(void)
 
 			/* minimal wait swaptime */
 			tottime -= swaptime;
-			while (update_time()) PIL_sleep_ms(1);
+			while (update_time(cfra)) PIL_sleep_ms(1);
 
 			screen_swapbuffers();
 			
@@ -5692,8 +5745,18 @@ void ipo_record(void)
 			mvalo[1]= mval[1];
 			
 			if(anim || (G.qual & LR_CTRLKEY)) {
-				cfra++;
-				if(cfra>EFRA) cfra= SFRA;
+				if (G.scene->audio.flag & AUDIO_SYNC) {
+					cfra = audiostream_pos();
+				} else {
+					cfra++;
+				}
+				if(cfra>EFRA) {
+					cfra= SFRA;
+					if (G.scene->audio.flag & AUDIO_SYNC) {
+						audiostream_stop();
+						audiostream_start( cfra );
+					}
+				}
 			}
 		}
 		
@@ -5746,6 +5809,9 @@ void ipo_record(void)
 	editipo_changed(G.sipo, 0);
 	do_ipo(G.sipo->ipo);
 	waitcursor(0);
+	if (G.scene->audio.flag & AUDIO_SYNC) {
+		audiostream_stop();
+	}
 
 	allqueue(REDRAWVIEW3D, 0);
 	if(sa) scrarea_queue_headredraw(sa);	/* headerprint */

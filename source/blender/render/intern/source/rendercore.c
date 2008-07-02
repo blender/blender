@@ -849,7 +849,7 @@ static void convert_to_key_alpha(RenderPart *pa, float *rectf)
 }
 
 /* adds only alpha values */
-void edge_enhance_tile(RenderPart *pa, float *rectf)	
+void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -857,13 +857,13 @@ void edge_enhance_tile(RenderPart *pa, float *rectf)
 	float *rf;
 	
 	/* shift values in zbuffer 4 to the right (anti overflows), for filter we need multiplying with 12 max */
-	rz= pa->rectz;
+	rz= rectz;
 	if(rz==NULL) return;
 	
 	for(y=0; y<pa->recty; y++)
 		for(x=0; x<pa->rectx; x++, rz++) (*rz)>>= 4;
 	
-	rz1= pa->rectz;
+	rz1= rectz;
 	rz2= rz1+pa->rectx;
 	rz3= rz2+pa->rectx;
 	
@@ -903,7 +903,7 @@ void edge_enhance_tile(RenderPart *pa, float *rectf)
 	}
 	
 	/* shift back zbuf values, we might need it still */
-	rz= pa->rectz;
+	rz= rectz;
 	for(y=0; y<pa->recty; y++)
 		for(x=0; x<pa->rectx; x++, rz++) (*rz)<<= 4;
 	
@@ -1012,7 +1012,7 @@ void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 
 	if(sdata->rl->layflag & SCE_LAY_EDGE) 
 		if(R.r.mode & R_EDGE) 
-			edge_enhance_tile(pa, sdata->edgerect);
+			edge_enhance_tile(pa, sdata->edgerect, zspan->rectz);
 }
 
 /* main call for shading Delta Accum, for OSA */
@@ -1189,7 +1189,7 @@ void zbufshade_tile(RenderPart *pa)
 			if(rl->layflag & SCE_LAY_EDGE) {
 				if(R.r.mode & R_EDGE) {
 					edgerect= MEM_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
-					edge_enhance_tile(pa, edgerect);
+					edge_enhance_tile(pa, edgerect, pa->rectz);
 				}
 			}
 			
@@ -2017,9 +2017,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 			ambient_occlusion_to_diffuse(shi, shr.combined);
 	}
 	else {
+		if (bs->type==RE_BAKE_SHADOW) /* Why do shadows set the color anyhow?, ignore material color for baking */
+			shi->r = shi->g = shi->b = 1.0f;
+	
 		shade_input_set_shade_texco(shi);
 		
-		if(!ELEM(bs->type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE))
+		if(!ELEM3(bs->type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_SHADOW))
 			shade_samples_do_AO(ssamp);
 		
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
@@ -2068,6 +2071,10 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 			shr.combined[0]= shi->r;
 			shr.combined[1]= shi->g;
 			shr.combined[2]= shi->b;
+			shr.alpha = shi->alpha;
+		}
+		else if(bs->type==RE_BAKE_SHADOW) {
+			VECCOPY(shr.combined, shr.shad);
 			shr.alpha = shi->alpha;
 		}
 	}
@@ -2346,7 +2353,7 @@ static int get_next_bake_face(BakeShade *bs)
 			vlr= RE_findOrAddVlak(obr, v);
 
 			if((bs->actob && bs->actob == obr->ob) || (!bs->actob && (obr->ob->flag & SELECT))) {
-				tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
+				tface= RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
 
 				if(tface && tface->tpage) {
 					Image *ima= tface->tpage;
@@ -2400,7 +2407,7 @@ static void shade_tface(BakeShade *bs)
 	VlakRen *vlr= bs->vlr;
 	ObjectInstanceRen *obi= bs->obi;
 	ObjectRen *obr= obi->obr;
-	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
+	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
 	Image *ima= tface->tpage;
 	float vec[4][2];
 	int a, i1, i2, i3;
@@ -2505,7 +2512,12 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 		memset(&handles[a], 0, sizeof(BakeShade));
 		
 		handles[a].ssamp.shi[0].lay= re->scene->lay;
-		handles[a].ssamp.shi[0].passflag= SCE_PASS_COMBINED;
+		
+		if (type==RE_BAKE_SHADOW) {
+			handles[a].ssamp.shi[0].passflag= SCE_PASS_SHADOW;
+		} else {
+			handles[a].ssamp.shi[0].passflag= SCE_PASS_COMBINED;
+		}
 		handles[a].ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
 		handles[a].ssamp.shi[0].thread= a;
 		handles[a].ssamp.tot= 1;

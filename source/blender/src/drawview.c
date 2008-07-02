@@ -246,7 +246,8 @@ void default_gl_light(void)
 	glDisable(GL_COLOR_MATERIAL);
 }
 
-/* also called when render 'ogl' */
+/* also called when render 'ogl'
+   keep synced with Myinit_gl_stuff in the game engine! */
 void init_gl_stuff(void)	
 {
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
@@ -2154,6 +2155,7 @@ void do_viewbuts(unsigned short event)
 			}
 			allqueue(REDRAWVIEW3D, 1);
 			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWOOPS, 0);
 		}
 		break;
 		
@@ -2663,21 +2665,22 @@ static void view3d_blockhandlers(ScrArea *sa)
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
 	struct Base *base;
-	int type;
+	int type, flag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void add_view3d_after(View3D *v3d, Base *base, int type)
+void add_view3d_after(View3D *v3d, Base *base, int type, int flag)
 {
 	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
 
 	BLI_addtail(&v3d->afterdraw, v3da);
 	v3da->base= base;
 	v3da->type= type;
+	v3da->flag= flag;
 }
 
 /* clears zbuffer and draws it over */
-static void view3d_draw_xray(View3D *v3d, int flag)
+static void view3d_draw_xray(View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 	int doit= 0;
@@ -2692,7 +2695,7 @@ static void view3d_draw_xray(View3D *v3d, int flag)
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
 			if(v3da->type==V3D_XRAY) {
-				draw_object(v3da->base, flag);
+				draw_object(v3da->base, v3da->flag);
 				BLI_remlink(&v3d->afterdraw, v3da);
 				MEM_freeN(v3da);
 			}
@@ -2702,7 +2705,7 @@ static void view3d_draw_xray(View3D *v3d, int flag)
 }
 
 /* disables write in zbuffer and draws it over */
-static void view3d_draw_transp(View3D *v3d, int flag)
+static void view3d_draw_transp(View3D *v3d)
 {
 	View3DAfter *v3da, *next;
 
@@ -2712,7 +2715,7 @@ static void view3d_draw_transp(View3D *v3d, int flag)
 	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 		next= v3da->next;
 		if(v3da->type==V3D_TRANSP) {
-			draw_object(v3da->base, flag);
+			draw_object(v3da->base, v3da->flag);
 			BLI_remlink(&v3d->afterdraw, v3da);
 			MEM_freeN(v3da);
 		}
@@ -3102,9 +3105,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			}
 		}
 
-		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
@@ -3150,8 +3151,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d, 0);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		if(G.f & G_SCULPTMODE)
@@ -3327,9 +3328,7 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 			}
 		}
 		
-		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+		/* Transp and X-ray afterdraw stuff for sets is done later */
 	}
 
 	/* first not selected and duplis */
@@ -3367,8 +3366,8 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d, 0);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -3401,12 +3400,12 @@ static float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
 static short redrawtime_index;
 
 
-int update_time(void)
+int update_time(int cfra)
 {
 	static double ltime;
 	double time;
 
-	if ((audiostream_pos() != CFRA)
+	if ((audiostream_pos() != cfra)
 	    && (G.scene->audio.flag & AUDIO_SYNC)) {
 		return 0;
 	}
@@ -3424,7 +3423,7 @@ static void draw_viewport_fps(ScrArea *sa)
 	char printable[16];
 	int i, tot;
 	
-	if (lredrawtime == redrawtime)
+	if (!lredrawtime || !redrawtime)
 		return;
 	
 	printable[0] = '\0';
@@ -3441,12 +3440,13 @@ static void draw_viewport_fps(ScrArea *sa)
 			tot++;
 		}
 	}
-	
-	redrawtime_index++;
-	if (redrawtime_index >= REDRAW_FRAME_AVERAGE)
-		redrawtime_index = 0;
-	
-	fps = fps / tot;
+	if (tot) {
+		redrawtime_index++;
+		if (redrawtime_index >= REDRAW_FRAME_AVERAGE)
+			redrawtime_index = 0;
+		
+		fps = fps / tot;
+	}
 #endif
 	
 	/* is this more then half a frame behind? */
@@ -3571,13 +3571,13 @@ void inner_play_anim_loop(int init, int mode)
 		last_cfra = -1;
 		cached = cached_dynamics(PSFRA,PEFRA);
 		
-		redrawtime = 1.0/FPS;
+		redrawtime = 0.0;
 		
 		redrawtime_index = REDRAW_FRAME_AVERAGE;
 		while(redrawtime_index--) {
 			redrawtimes_fps[redrawtime_index] = 0.0;
 		}
-		
+		redrawtime_index = 0;
 		lredrawtime = 0.0;
 		return;
 	}
@@ -3643,7 +3643,7 @@ void inner_play_anim_loop(int init, int mode)
 
 	/* make sure that swaptime passed by */
 	tottime -= swaptime;
-	while (update_time()) {
+	while (update_time(CFRA)) {
 		PIL_sleep_ms(1);
 	}
 	
@@ -3702,7 +3702,7 @@ int play_anim(int mode)
 
 	inner_play_prefetch_startup(mode);
 
-	update_time();
+	update_time(CFRA);
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
 
@@ -3733,8 +3733,24 @@ int play_anim(int mode)
 					else if(G.qual & LR_CTRLKEY) viewmove(2);
 					else viewmove(0);
 				}
-			}
-			else if(event==MKEY) {
+			} else if (event==WHEELDOWNMOUSE || (val && event==PADMINUS)) { /* copied from persptoetsen */
+				if (G.vd) { /* when using the sequencer this can be NULL */
+					/* this min and max is also in viewmove() */ 
+					if(G.vd->persp==V3D_CAMOB) {
+						G.vd->camzoom-= 10;
+						if(G.vd->camzoom<-30) G.vd->camzoom= -30;
+					}
+					else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
+				}
+			} else if (event==WHEELUPMOUSE || (val && event==PADPLUSKEY)) { /* copied from persptoetsen */
+				if (G.vd) {
+					if(G.vd->persp==V3D_CAMOB) {
+						G.vd->camzoom+= 10;
+						if(G.vd->camzoom>300) G.vd->camzoom= 300;
+					}
+					else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
+				}
+			} else if(event==MKEY) {
 				if(val) add_marker(CFRA-1);
 			}
 		}

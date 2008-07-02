@@ -141,6 +141,7 @@ protected:
 	SND_IAudioDevice* m_audiodevice;
 
 	bool m_blendermat;
+	bool m_blenderglslmat;
 
 };
 

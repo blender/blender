@@ -28,25 +28,7 @@
  * Initialize Python thingies.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef WIN32
-#include <windows.h>
-#endif // WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-/* #if defined(__sun__) && !defined(__sparc__)
-#include <mesa/glu.h>
-#else */
-#include <GL/glu.h>
-/* #endif */
-#endif
+#include "GL/glew.h"
 
 #include <stdlib.h>
 
@@ -87,6 +69,10 @@
 #ifdef USE_BLENDER_PYTHON
 //#include "BPY_extern.h"
 #endif 
+
+#include "BKE_utildefines.h"
+#include "BKE_global.h"
+#include "BLI_blenlib.h"
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -137,6 +123,32 @@ static PyObject* gPySetGravity(PyObject*,
 		Py_Return;
 	}
 	
+	return NULL;
+}
+
+static char gPyExpandPath_doc[] =
+"(path) - Converts a blender internal path into a proper file system path.\n\
+path - the string path to convert.\n\n\
+Use / as directory separator in path\n\
+You can use '//' at the start of the string to define a relative path;\n\
+Blender replaces that string by the directory of the startup .blend or runtime\n\
+file to make a full path name (doesn't change during the game, even if you load\n\
+other .blend).\n\
+The function also converts the directory separator to the local file system format.";
+
+static PyObject* gPyExpandPath(PyObject*,
+								PyObject* args, 
+								PyObject*)
+{
+	char expanded[FILE_MAXDIR + FILE_MAXFILE];
+	char* filename;
+	
+	if (PyArg_ParseTuple(args,"s",&filename))
+	{
+		BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
+		BLI_convertstringcode(expanded, G.sce);
+		return PyString_FromString(expanded);
+	}
 	return NULL;
 }
 
@@ -280,17 +292,13 @@ static PyObject* gPyGetCurrentScene(PyObject* self,
 static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 {
 #define pprint(x) std::cout << x << std::endl;
-	bgl::BL_EXTInfo ext = bgl::RAS_EXT_support;
 	bool count=0;
 	bool support=0;
 	pprint("Supported Extensions...");
-#ifdef GL_ARB_shader_objects
-	pprint(" GL_ARB_shader_objects supported?       "<< (ext._ARB_shader_objects?"yes.":"no."));
+	pprint(" GL_ARB_shader_objects supported?       "<< (GLEW_ARB_shader_objects?"yes.":"no."));
 	count = 1;
-#endif
 
-#ifdef GL_ARB_vertex_shader
-	support= ext._ARB_vertex_shader;
+	support= GLEW_ARB_vertex_shader;
 	pprint(" GL_ARB_vertex_shader supported?        "<< (support?"yes.":"no."));
 	count = 1;
 	if(support){
@@ -309,9 +317,8 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 		pprint("  Max combined texture units." << max);
 		pprint("");
 	}
-#endif
-#ifdef GL_ARB_fragment_shader
-	support=ext._ARB_fragment_shader;
+
+	support=GLEW_ARB_fragment_shader;
 	pprint(" GL_ARB_fragment_shader supported?      "<< (support?"yes.":"no."));
 	count = 1;
 	if(support){
@@ -321,9 +328,8 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 		pprint("  Max uniform components." << max);
 		pprint("");
 	}
-#endif
-#ifdef GL_ARB_texture_cube_map
-	support = ext._ARB_texture_cube_map;
+
+	support = GLEW_ARB_texture_cube_map;
 	pprint(" GL_ARB_texture_cube_map supported?     "<< (support?"yes.":"no."));
 	count = 1;
 	if(support){
@@ -333,25 +339,21 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 		pprint("  Max cubemap size." << size);
 		pprint("");
 	}
-#endif
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		support = ext._ARB_multitexture;
-		count = 1;
-		pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
-		if(support){
-			pprint(" ----------Details----------");
-			int units=0;
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
-			pprint("  Max texture units available.  " << units);
-			pprint("");
-		}
-	}
-#endif
-#ifdef GL_ARB_texture_env_combine
-	pprint(" GL_ARB_texture_env_combine supported?  "<< (ext._ARB_texture_env_combine?"yes.":"no."));
+
+	support = GLEW_ARB_multitexture;
 	count = 1;
-#endif
+	pprint(" GL_ARB_multitexture supported?         "<< (support?"yes.":"no."));
+	if(support){
+		pprint(" ----------Details----------");
+		int units=0;
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&units);
+		pprint("  Max texture units available.  " << units);
+		pprint("");
+	}
+
+	pprint(" GL_ARB_texture_env_combine supported?  "<< (GLEW_ARB_texture_env_combine?"yes.":"no."));
+	count = 1;
+
 	if(!count)
 		pprint("No extenstions are used in this build");
 
@@ -361,6 +363,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 
 static struct PyMethodDef game_methods[] = {
+	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, gPyExpandPath_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
 	METH_VARARGS, SCA_PythonController::sPyGetCurrentController__doc__},
@@ -422,7 +425,7 @@ static PyObject* gPyEnableVisibility(PyObject*,
 	}
 	else
 	{
-	  Py_Return;	     
+		return NULL;
 	}
    Py_Return;
 }
@@ -446,6 +449,9 @@ static PyObject* gPyShowMouse(PyObject*,
 				gp_Canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 		}
 	}
+	else {
+		return NULL;
+	}
 	
    Py_Return;
 }
@@ -461,6 +467,9 @@ static PyObject* gPySetMousePosition(PyObject*,
 	{
 	    if (gp_Canvas)
 			gp_Canvas->SetMousePosition(x,y);
+	}
+	else {
+		return NULL;
 	}
 	
    Py_Return;
@@ -565,6 +574,9 @@ static PyObject* gPySetMistStart(PyObject*,
 			gp_Rasterizer->SetFogStart(miststart);
 		}
 	}
+	else {
+		return NULL;
+	}
    Py_Return;
 }
 
@@ -582,6 +594,9 @@ static PyObject* gPySetMistEnd(PyObject*,
 		{
 			gp_Rasterizer->SetFogEnd(mistend);
 		}
+	}
+	else {
+		return NULL;
 	}
    Py_Return;
 }
@@ -620,6 +635,9 @@ static PyObject* gPyMakeScreenshot(PyObject*,
 			gp_Canvas->MakeScreenShot(filename);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_Return;
 }
 
@@ -634,6 +652,9 @@ static PyObject* gPyEnableMotionBlur(PyObject*,
 		{
 			gp_Rasterizer->EnableMotionBlur(motionblurvalue);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_Return;
 }

@@ -92,9 +92,10 @@ BL_ArmatureObject::~BL_ArmatureObject()
 /* there is only 1 unique Pose per Armature */
 void BL_ArmatureObject::ApplyPose()
 {
-	if (m_pose){
+	if (m_pose) {
 		// copy to armature object
-		extract_pose_from_pose(m_objArma->pose, m_pose);
+		if (m_objArma->pose != m_pose)/* This should never happen but it does - Campbell */
+			extract_pose_from_pose(m_objArma->pose, m_pose);
 		
 		// is this needed anymore?
 		//if (!m_mrdPose)
@@ -143,7 +144,7 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 {
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
-
+		
 	if (!*pose) {
 		/*	probably not to good of an idea to
 			duplicate everying, but it clears up 
@@ -153,9 +154,12 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 		int copy_constraint_channels_hack = 1;
 		copy_pose(pose, m_pose, copy_constraint_channels_hack);
 	}
-	else
+	else {
+		if (*pose == m_pose)
+			// no need to copy if the pointers are the same
+			return;
 		extract_pose_from_pose(*pose, m_pose);
-
+	}
 }
 
 void BL_ArmatureObject::GetMRDPose(bPose **pose)
@@ -169,7 +173,11 @@ void BL_ArmatureObject::GetMRDPose(bPose **pose)
 	//}
 
 	if (!*pose)
-		copy_pose(pose, m_objArma->pose, 0);
+		// must duplicate the constraints too otherwise we have corruption in free_pose_channels()
+		// because it will free the blender constraints. 
+		// Ideally, blender should rememeber that the constraints were not copied so that
+		// free_pose_channels() would not free them.
+		copy_pose(pose, m_objArma->pose, 1);
 	else
 		extract_pose_from_pose(*pose, m_objArma->pose);
 

@@ -50,16 +50,9 @@ SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
   				 PyTypeObject* T)
     : SCA_ISensor(gameobj,eventmgr, T)
 {
-    m_iteration  = 0;
-	m_interval = 0;
-	m_lastdraw   = false;
-	
 	// m_basegenerator is never deleted => memory leak
 	m_basegenerator = new SCA_RandomNumberGenerator(startseed);
-    m_currentDraw = m_basegenerator->Draw();
-	//registration is done globally, don't do it here
-	//Note: it was probably done to work around a bug in Evaluate(). It is now fixed
-	//RegisterToManager();
+	Init();
 }
 
 
@@ -69,6 +62,13 @@ SCA_RandomSensor::~SCA_RandomSensor()
     /* Nothing to be done here. */
 }
 
+void SCA_RandomSensor::Init()
+{
+    m_iteration  = 0;
+	m_interval = 0;
+	m_lastdraw   = false;
+    m_currentDraw = m_basegenerator->Draw();
+}
 
 
 CValue* SCA_RandomSensor::GetReplica()

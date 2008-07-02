@@ -1887,6 +1887,7 @@ void docenter(int centermode)
 			
 			recalc_editnormals();
 			tot_change++;
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		}
 	}
 	
@@ -2734,7 +2735,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3|Set Radius %x4|Smooth Radius %x5");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight%x3|Set Radius%x4|Smooth%x5|Smooth Radius%x6");
 		
 		switch(nr) {
 		case 1:
@@ -2750,6 +2751,9 @@ void special_editmenu(void)
 			setradiusNurb();
 			break;
 		case 5:
+			smoothNurb();
+			break;
+		case 6:
 			smoothradiusNurb();
 			break;
 		}
@@ -3133,9 +3137,15 @@ void flip_subdivison(int level)
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
 	if(level == -1) {
-		for(base= G.scene->base.first; base; base= base->next)
-			if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
-				object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
+		if (G.obedit) {
+			object_has_subdivision_particles(G.obedit, &havesubdiv, &havepart, 0);			
+		} else {
+			for(base= G.scene->base.first; base; base= base->next) {
+				if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
+					object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
+				}
+			}
+		}
 	}
 	else
 		havesubdiv= 1;
@@ -3149,10 +3159,16 @@ void flip_subdivison(int level)
 	}
 	else if(havepart)
 		particles= 1;
-	
-	for(base= G.scene->base.first; base; base= base->next)
-		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
-			object_flip_subdivison_particles(base->object, &set, level, mode, particles, 0);
+
+	if (G.obedit) {	
+		object_flip_subdivison_particles(G.obedit, &set, level, mode, particles, 0);
+	} else {
+		for(base= G.scene->base.first; base; base= base->next) {
+			if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
+				object_flip_subdivison_particles(base->object, &set, level, mode, particles, 0);
+			}
+		}
+	}
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -5926,7 +5942,7 @@ void hide_objects(int select)
 	Base *base;
 	short changed = 0, changed_act = 0;
 	for(base = FIRSTBASE; base; base=base->next){
-		if(TESTBASELIB(base)==select){
+		if ((base->lay & G.vd->lay) && (TESTBASELIB(base)==select)) {
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;

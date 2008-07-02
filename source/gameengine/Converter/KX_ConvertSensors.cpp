@@ -251,6 +251,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	bool neg_pulsemode = false;
 	int frequency = 0;
 	bool invert = false;
+	bool level = false;
 	
 	while(sens)
 	{
@@ -263,7 +264,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		
 		frequency = sens->freq;
 		invert    = !(sens->invert == 0);
-		
+		level     = !(sens->level == 0);
+
 		switch (sens->type)
 		{
 		case  SENS_ALWAYS:
@@ -711,6 +713,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 									 neg_pulsemode, 
 									 frequency);
 			gamesensor->SetInvert(invert);
+			gamesensor->SetLevel(level);
 			gamesensor->SetName(STR_String(sens->name));			
 			
 			gameobj->AddSensor(gamesensor);
