@@ -31,7 +31,7 @@
 
 //namespace qglviewer {
   class Frame;
-  class Camera;
+  class AppGLWidget_Camera;
 
   /*! \brief An interface class for Frame constraints.
   \class Constraint constraint.h QGLViewer/constraint.h
@@ -322,7 +322,7 @@
   class CameraConstraint : public AxisPlaneConstraint
   {
   public:
-    explicit CameraConstraint(const Camera* const camera);
+    explicit CameraConstraint(const AppGLWidget_Camera* const camera);
     /*! Virtual destructor. Empty. */
     virtual ~CameraConstraint() {};
 
@@ -330,10 +330,10 @@
     virtual void constrainRotation   (Quaternion& rotation, Frame* const frame);
 
     /*! Returns the associated Camera. Set using the CameraConstraint constructor. */
-    const Camera* camera() const { return camera_; };
+    const AppGLWidget_Camera* camera() const { return camera_; };
 
   private:
-    const Camera* const camera_;
+    const AppGLWidget_Camera* const camera_;
   };
 
 //} // namespace qglviewer

@@ -50,7 +50,7 @@
   class ManipulatedCameraFrame : public ManipulatedFrame
   {
 #ifndef DOXYGEN
-    friend class Camera;
+    friend class AppGLWidget_Camera;
     //friend class ::QGLViewer;
 #endif
 
@@ -151,8 +151,8 @@
 
   private:
     void updateFlyUpVector();
-    Quaternion turnQuaternion(int x, const Camera* const camera);
-    Quaternion pitchYawQuaternion(int x, int y, const Camera* const camera);
+    Quaternion turnQuaternion(int x, const AppGLWidget_Camera* const camera);
+    Quaternion pitchYawQuaternion(int x, int y, const AppGLWidget_Camera* const camera);
 
   private:
     // Fly mode data

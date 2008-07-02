@@ -220,7 +220,7 @@
 
 #ifndef DOXYGEN
   protected:
-    Quaternion deformedBallQuaternion(int x, int y, float cx, float cy, const Camera* const camera);
+    Quaternion deformedBallQuaternion(int x, int y, float cx, float cy, const AppGLWidget_Camera* const camera);
 
     int action_; // Should be a QGLViewer::MouseAction, but include loop
     Constraint* previousConstraint_; // When manipulation is without Contraint.

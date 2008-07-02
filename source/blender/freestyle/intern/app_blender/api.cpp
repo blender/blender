@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#include "DNA_camera_types.h"
+
 #include "render_types.h"
 #include "renderpipeline.h"
 
@@ -54,14 +56,25 @@ extern "C" {
 		
 		// initialize camera
 		Object* maincam_obj = re->scene->camera;
+		Camera *cam = (Camera*) maincam_obj->data;
+
+		if(cam->type == CAM_PERSP){
+			view->_camera->setType(AppGLWidget_Camera::PERSPECTIVE);
+			view->_camera->setHorizontalFieldOfView( M_PI / 180.0f * cam->angle );
+		}
+		else if (cam->type == CAM_ORTHO){
+			view->_camera->setType(AppGLWidget_Camera::ORTHOGRAPHIC);
+			// view->_camera->setFocusDistance does not seem to work
+			// integrate cam->ortho_scale parameter
+		}
+		
 		Vec camPosition(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]);
 		Vec camUp( re->viewmat[0][1], re->viewmat[1][1], re->viewmat[2][1]);
-		Vec camDirection( -re->viewmat[0][2], -re->viewmat[1][2], - re->viewmat[2][2]);
-		
-		view->_camera->setType(Camera::PERSPECTIVE);
+		Vec camDirection( -re->viewmat[0][2], -re->viewmat[1][2], -re->viewmat[2][2]);
 		view->_camera->setPosition(camPosition);
 		view->_camera->setUpVector(camUp);	
 		view->_camera->setViewDirection(camDirection);	
+	
 		
 		// export scene to 3ds format
 		string script_3ds_export = 	pathconfig.getProjectDir() + 

@@ -97,7 +97,7 @@ static float projectOnBall(float x, float y)
 #ifndef DOXYGEN
 /*! Returns a quaternion computed according to the mouse motion. Mouse positions are projected on a
 deformed ball, centered on (\p cx,\p cy). */
-Quaternion ManipulatedFrame::deformedBallQuaternion(int x, int y, float cx, float cy, const Camera* const camera)
+Quaternion ManipulatedFrame::deformedBallQuaternion(int x, int y, float cx, float cy, const AppGLWidget_Camera* const camera)
 {
   // Points on the deformed ball
   float px = rotationSensitivity() * (prevPos_.x()  - cx) / camera->screenWidth();

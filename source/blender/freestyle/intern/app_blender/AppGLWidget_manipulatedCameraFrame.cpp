@@ -71,14 +71,14 @@ ManipulatedCameraFrame::ManipulatedCameraFrame(const ManipulatedCameraFrame& mcf
 ////////////////////////////////////////////////////////////////////////////////
 
 /*! Returns a Quaternion that is a rotation around current camera Y, proportionnal to the horizontal mouse position. */
-Quaternion ManipulatedCameraFrame::turnQuaternion(int x, const Camera* const camera)
+Quaternion ManipulatedCameraFrame::turnQuaternion(int x, const AppGLWidget_Camera* const camera)
 {
   return Quaternion(Vec(0.0, 1.0, 0.0), rotationSensitivity()*(prevPos_.x()-x)/camera->screenWidth());
 }
 
 /*! Returns a Quaternion that is the composition of two rotations, inferred from the
   mouse pitch (X axis) and yaw (flyUpVector() axis). */
-Quaternion ManipulatedCameraFrame::pitchYawQuaternion(int x, int y, const Camera* const camera)
+Quaternion ManipulatedCameraFrame::pitchYawQuaternion(int x, int y, const AppGLWidget_Camera* const camera)
 {
   const Quaternion rotX(Vec(1.0, 0.0, 0.0), rotationSensitivity()*(prevPos_.y()-y)/camera->screenHeight());
   const Quaternion rotY(transformOf(flyUpVector()), rotationSensitivity()*(prevPos_.x()-x)/camera->screenWidth());

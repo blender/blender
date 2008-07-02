@@ -58,7 +58,7 @@ bool AppGLWidget::_backBufferFlag = true;
 AppGLWidget::AppGLWidget(const char *iName)
 {
   //soc
-  _camera = new Camera;	
+  _camera = new AppGLWidget_Camera;	
 
   _Fovy        = 30.f;
   //_SceneDepth = 2.f;

@@ -90,7 +90,7 @@ public:
 		void setStateFileName(const string& name);
 	
 
-		Camera * _camera;
+		AppGLWidget_Camera * _camera;
 
 protected:
 	unsigned int _width, _height;

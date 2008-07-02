@@ -36,7 +36,7 @@ using namespace std;
 
  See IODistance(), physicalDistanceToScreen(), physicalScreenWidth() and focusDistance()
  documentations for default stereo parameter values. */
-Camera::Camera()
+AppGLWidget_Camera::AppGLWidget_Camera()
   : fieldOfView_(M_PI/4.0f)
 {
   // #CONNECTION# Camera copy constructor
@@ -85,7 +85,7 @@ Camera::Camera()
 
  The frame() is deleted, but the different keyFrameInterpolator() are \e not deleted (in case they
  are shared). */
-Camera::~Camera()
+AppGLWidget_Camera::~AppGLWidget_Camera()
 {
   delete frame_;
   //delete interpolationKfi_;
@@ -93,7 +93,7 @@ Camera::~Camera()
 
 
 /*! Copy constructor. Performs a deep copy using operator=(). */
-Camera::Camera(const Camera& camera)
+AppGLWidget_Camera::AppGLWidget_Camera(const AppGLWidget_Camera& camera)
 {
   // #CONNECTION# Camera constructor
   //interpolationKfi_ = new KeyFrameInterpolator;
@@ -122,7 +122,7 @@ Camera::Camera(const Camera& camera)
  camera()->setScreenWidthAndHeight(width(), height());
  \endcode
  The same applies to sceneCenter() and sceneRadius(), if needed. */
-Camera& Camera::operator=(const Camera& camera)
+AppGLWidget_Camera& AppGLWidget_Camera::operator=(const AppGLWidget_Camera& camera)
 {
   setScreenWidthAndHeight(camera.screenWidth(), camera.screenHeight());
   setFieldOfView(camera.fieldOfView());
@@ -164,7 +164,7 @@ Non-positive dimension are silently replaced by a 1 pixel value to ensure frustr
 
 If your Camera is used without a QGLViewer (offscreen rendering, shadow maps), use setAspectRatio()
 instead to define the projection matrix. */
-void Camera::setScreenWidthAndHeight(int width, int height)
+void AppGLWidget_Camera::setScreenWidthAndHeight(int width, int height)
 {
   // Prevent negative and zero dimensions that would cause divisions by zero.
 	screenWidth_  = width > 0 ? width : 1;
@@ -208,7 +208,7 @@ void Camera::setScreenWidthAndHeight(int width, int height)
 
  \attention The value is always positive although the clipping plane is positioned at a negative z
  value in the Camera coordinate system. This follows the \c gluPerspective standard. */
-float Camera::zNear() const
+float AppGLWidget_Camera::zNear() const
 {
   float z = distanceToSceneCenter() - zClippingCoefficient()*sceneRadius();
 
@@ -217,8 +217,8 @@ float Camera::zNear() const
   if (z < zMin)
     switch (type())
       {
-      case Camera::PERSPECTIVE  : z = zMin; break;
-      case Camera::ORTHOGRAPHIC : z = 0.0;  break;
+      case AppGLWidget_Camera::PERSPECTIVE  : z = zMin; break;
+      case AppGLWidget_Camera::ORTHOGRAPHIC : z = 0.0;  break;
       }
   return z;
 }
@@ -232,7 +232,7 @@ zFar = distanceToSceneCenter() + zClippingCoefficient()*sceneRadius();
 \endcode
 
 See the zNear() documentation for details. */
-float Camera::zFar() const
+float AppGLWidget_Camera::zFar() const
 {
   return distanceToSceneCenter() + zClippingCoefficient()*sceneRadius();
 }
@@ -241,12 +241,12 @@ float Camera::zFar() const
 
 Prefix the type with Camera, as in: \code camera()->setType(Camera::ORTHOGRAPHIC); // or even
 qglviewer::Camera::ORTHOGRAPHIC if you do not use namespace \endcode */
-void Camera::setType(Type type)
+void AppGLWidget_Camera::setType(Type type)
 {
   // make ORTHOGRAPHIC frustum fit PERSPECTIVE (at least in plane normal to viewDirection(), passing
   // through RAP) Done only when CHANGING type since orthoCoef_ may have been changed with a
   // setRevolveAroundPoint() in the meantime.
-  if ( (type == Camera::ORTHOGRAPHIC) && (type_ == Camera::PERSPECTIVE) )
+  if ( (type == AppGLWidget_Camera::ORTHOGRAPHIC) && (type_ == AppGLWidget_Camera::PERSPECTIVE) )
     orthoCoef_ = tan(fieldOfView()/2.0);
   type_ = type;
 }
@@ -264,7 +264,7 @@ use an instance of your new class to move the Camera.
 
 A \c NULL \p mcf pointer will silently be ignored. The calling method is responsible for
 deleting the previous frame() pointer if needed in order to prevent memory leaks. */
-void Camera::setFrame(ManipulatedCameraFrame* const mcf)
+void AppGLWidget_Camera::setFrame(ManipulatedCameraFrame* const mcf)
 {
   if (!mcf)
     return;
@@ -275,7 +275,7 @@ void Camera::setFrame(ManipulatedCameraFrame* const mcf)
 
 /*! Returns the distance from the Camera center to sceneCenter(), projected along the Camera Z axis.
   Used by zNear() and zFar() to optimize the Z range. */
-float Camera::distanceToSceneCenter() const
+float AppGLWidget_Camera::distanceToSceneCenter() const
 {
   return fabs((frame()->coordinatesOf(sceneCenter())).z);
 }
@@ -296,7 +296,7 @@ float Camera::distanceToSceneCenter() const
 
  Overload this method to change this behavior if desired, as is done in the 
  <a href="../examples/standardCamera.html">standardCamera example</a>. */
-void Camera::getOrthoWidthHeight(GLdouble& halfWidth, GLdouble& halfHeight) const
+void AppGLWidget_Camera::getOrthoWidthHeight(GLdouble& halfWidth, GLdouble& halfHeight) const
 {
   const float dist = orthoCoef_ * fabs(cameraCoordinatesOf(revolveAroundPoint()).z);
   //#CONNECTION# fitScreenRegion
@@ -322,14 +322,14 @@ void Camera::getOrthoWidthHeight(GLdouble& halfWidth, GLdouble& halfHeight) cons
  \note You must call this method if your Camera is not associated with a QGLViewer and is used for
  offscreen computations (using (un)projectedCoordinatesOf() for instance). loadProjectionMatrix()
  does it otherwise. */
-void Camera::computeProjectionMatrix() const
+void AppGLWidget_Camera::computeProjectionMatrix() const
 {
   const float ZNear = zNear();
   const float ZFar  = zFar();
 
   switch (type())
     {
-    case Camera::PERSPECTIVE:
+    case AppGLWidget_Camera::PERSPECTIVE:
       {
 	// #CONNECTION# all non null coefficients were set to 0.0 in constructor.
 	const float f = 1.0/tan(fieldOfView()/2.0);
@@ -342,7 +342,7 @@ void Camera::computeProjectionMatrix() const
 	// same as gluPerspective( 180.0*fieldOfView()/M_PI, aspectRatio(), zNear(), zFar() );
 	break;
       }
-    case Camera::ORTHOGRAPHIC:
+    case AppGLWidget_Camera::ORTHOGRAPHIC:
       {
 	GLdouble w, h;
 	getOrthoWidthHeight(w,h);
@@ -368,7 +368,7 @@ void Camera::computeProjectionMatrix() const
  \note You must call this method if your Camera is not associated with a QGLViewer and is used for
  offscreen computations (using (un)projectedCoordinatesOf() for instance). loadModelViewMatrix()
  does it otherwise. */
-void Camera::computeModelViewMatrix() const
+void AppGLWidget_Camera::computeModelViewMatrix() const
 {
   const Quaternion q = frame()->orientation();
 
@@ -427,7 +427,7 @@ void Camera::computeModelViewMatrix() const
 
  \attention If you use several OpenGL contexts and bypass the Qt main refresh loop, you should call
  QGLWidget::makeCurrent() before this method in order to activate the right OpenGL context. */
-void Camera::loadProjectionMatrix(bool reset) const
+void AppGLWidget_Camera::loadProjectionMatrix(bool reset) const
 {
   // WARNING: makeCurrent must be called by every calling method
   glMatrixMode(GL_PROJECTION);
@@ -464,7 +464,7 @@ void Camera::loadProjectionMatrix(bool reset) const
 
  \attention If you use several OpenGL contexts and bypass the Qt main refresh loop, you should call
  QGLWidget::makeCurrent() before this method in order to activate the right OpenGL context. */
-void Camera::loadModelViewMatrix(bool reset) const
+void AppGLWidget_Camera::loadModelViewMatrix(bool reset) const
 {
   // WARNING: makeCurrent must be called by every calling method
   glMatrixMode(GL_MODELVIEW);
@@ -500,7 +500,7 @@ void Camera::loadModelViewMatrix(bool reset) const
  Note that getProjectionMatrix() always returns the mono-vision matrix.
 
  \attention glMatrixMode is set to \c GL_PROJECTION. */
-void Camera::loadProjectionMatrixStereo(bool leftBuffer) const
+void AppGLWidget_Camera::loadProjectionMatrixStereo(bool leftBuffer) const
 {
   float left, right, bottom, top;
   float screenHalfWidth, halfWidth, side, shift, delta;
@@ -510,7 +510,7 @@ void Camera::loadProjectionMatrixStereo(bool leftBuffer) const
 
   switch (type())
     {
-    case Camera::PERSPECTIVE:
+    case AppGLWidget_Camera::PERSPECTIVE:
       // compute half width of screen,
       // corresponding to zero parallax plane to deduce decay of cameras
       screenHalfWidth = focusDistance() * tan(horizontalFieldOfView() / 2.0);
@@ -531,8 +531,8 @@ void Camera::loadProjectionMatrixStereo(bool leftBuffer) const
       glFrustum(left, right, bottom, top, zNear(), zFar() );
       break;
 
-    case Camera::ORTHOGRAPHIC:
-      cout << "Camera::setProjectionMatrixStereo: Stereo not available with Ortho mode";
+    case AppGLWidget_Camera::ORTHOGRAPHIC:
+      cout << "AppGLWidget_Camera::setProjectionMatrixStereo: Stereo not available with Ortho mode";
       break;
     }
 }
@@ -555,7 +555,7 @@ void Camera::loadProjectionMatrixStereo(bool leftBuffer) const
  href="../examples/contribs.html#anaglyph">anaglyph</a> examples for an illustration.
 
  \attention glMatrixMode is set to \c GL_MODELVIEW. */
-void Camera::loadModelViewMatrixStereo(bool leftBuffer) const
+void AppGLWidget_Camera::loadModelViewMatrixStereo(bool leftBuffer) const
 {
   // WARNING: makeCurrent must be called by every calling method
   glMatrixMode(GL_MODELVIEW);
@@ -585,7 +585,7 @@ void Camera::loadModelViewMatrixStereo(bool leftBuffer) const
  man page for details).
 
  See also getModelViewMatrix() and setFromProjectionMatrix(). */
-void Camera::getProjectionMatrix(GLdouble m[16]) const
+void AppGLWidget_Camera::getProjectionMatrix(GLdouble m[16]) const
 {
   // May not be needed, but easier and more robust like this.
   computeProjectionMatrix();
@@ -607,7 +607,7 @@ void Camera::getProjectionMatrix(GLdouble m[16]) const
  man page for details).
 
  See also getProjectionMatrix() and setFromModelViewMatrix(). */
-void Camera::getModelViewMatrix(GLdouble m[16]) const
+void AppGLWidget_Camera::getModelViewMatrix(GLdouble m[16]) const
 {
   // May not be needed, but easier like this.
   // Prevents from retrieving matrix in stereo mode -> overwrites shifted value.
@@ -619,7 +619,7 @@ void Camera::getModelViewMatrix(GLdouble m[16]) const
 /*! Fills \p m with the product of the ModelView and Projection matrices.
 
   Calls getModelViewMatrix() and getProjectionMatrix() and then fills \p m with the product of these two matrices. */
-void Camera::getModelViewProjectionMatrix(GLdouble m[16]) const
+void AppGLWidget_Camera::getModelViewProjectionMatrix(GLdouble m[16]) const
 {
   GLdouble mv[16];
   GLdouble proj[16];
@@ -639,18 +639,18 @@ void Camera::getModelViewProjectionMatrix(GLdouble m[16]) const
 }
 
 #ifndef DOXYGEN
-void Camera::getProjectionMatrix(GLfloat m[16]) const
+void AppGLWidget_Camera::getProjectionMatrix(GLfloat m[16]) const
 {
-  cout << "Warning : Camera::getProjectionMatrix requires a GLdouble matrix array";
+  cout << "Warning : AppGLWidget_Camera::getProjectionMatrix requires a GLdouble matrix array";
   static GLdouble mat[16];
   getProjectionMatrix(mat);
   for (int i=0; i<16; ++i)
     m[i] = float(mat[i]);
 }
 
-void Camera::getModelViewMatrix(GLfloat m[16]) const
+void AppGLWidget_Camera::getModelViewMatrix(GLfloat m[16]) const
 {
-  cout << "Warning : Camera::getModelViewMatrix requires a GLdouble matrix array";
+  cout << "Warning : AppGLWidget_Camera::getModelViewMatrix requires a GLdouble matrix array";
   static GLdouble mat[16];
   getModelViewMatrix(mat);
   for (int i=0; i<16; ++i)
@@ -662,7 +662,7 @@ void Camera::getModelViewMatrix(GLfloat m[16]) const
 
 \attention This methods also sets focusDistance() to sceneRadius() / tan(fieldOfView()/2) and
 flySpeed() to 1% of sceneRadius(). */
-void Camera::setSceneRadius(float radius)
+void AppGLWidget_Camera::setSceneRadius(float radius)
 {
   if (radius <= 0.0)
     {
@@ -679,7 +679,7 @@ void Camera::setSceneRadius(float radius)
 
 /*! Similar to setSceneRadius() and setSceneCenter(), but the scene limits are defined by a (world
   axis aligned) bounding box. */
-void Camera::setSceneBoundingBox(const Vec& min, const Vec& max)
+void AppGLWidget_Camera::setSceneBoundingBox(const Vec& min, const Vec& max)
 {
   setSceneCenter((min+max)/2.0);
   setSceneRadius(0.5*(max-min).norm());
@@ -689,7 +689,7 @@ void Camera::setSceneBoundingBox(const Vec& min, const Vec& max)
 /*! Sets the sceneCenter().
 
  \attention This method also sets the revolveAroundPoint() to sceneCenter(). */
-void Camera::setSceneCenter(const Vec& center)
+void AppGLWidget_Camera::setSceneCenter(const Vec& center)
 {
   sceneCenter_ = center;
   setRevolveAroundPoint(sceneCenter());
@@ -700,7 +700,7 @@ void Camera::setSceneCenter(const Vec& center)
   Returns \c true if a pointUnderPixel() was found and sceneCenter() was actually changed.
 
   See also setRevolveAroundPointFromPixel(). See the pointUnderPixel() documentation. */
-bool Camera::setSceneCenterFromPixel(const Point& pixel)
+bool AppGLWidget_Camera::setSceneCenterFromPixel(const Point& pixel)
 {
   bool found;
   Vec point = pointUnderPixel(pixel, found);
@@ -710,7 +710,7 @@ bool Camera::setSceneCenterFromPixel(const Point& pixel)
 }
 
 /*! Changes the revolveAroundPoint() to \p rap (defined in the world coordinate system). */
-void Camera::setRevolveAroundPoint(const Vec& rap)
+void AppGLWidget_Camera::setRevolveAroundPoint(const Vec& rap)
 {
   const float prevDist = fabs(cameraCoordinatesOf(revolveAroundPoint()).z);
 
@@ -733,7 +733,7 @@ revolveAroundPoint() is left unchanged.
 pointUnderPixel().
 
 See also setSceneCenterFromPixel(). */
-bool Camera::setRevolveAroundPointFromPixel(const Point& pixel)
+bool AppGLWidget_Camera::setRevolveAroundPointFromPixel(const Point& pixel)
 {
   bool found;
   Vec point = pointUnderPixel(pixel, found);
@@ -756,13 +756,13 @@ bool Camera::setRevolveAroundPointFromPixel(const Point& pixel)
  glVertex3fv(sceneCenter() + 20 * pixelGLRatio(sceneCenter()) * camera()->upVector());
  glEnd();
  \endcode */
-float Camera::pixelGLRatio(const Vec& position) const
+float AppGLWidget_Camera::pixelGLRatio(const Vec& position) const
 {
   switch (type())
     {
-    case Camera::PERSPECTIVE :
+    case AppGLWidget_Camera::PERSPECTIVE :
       return 2.0 * fabs((frame()->coordinatesOf(position)).z) * tan(fieldOfView()/2.0) / screenHeight();
-    case Camera::ORTHOGRAPHIC :
+    case AppGLWidget_Camera::ORTHOGRAPHIC :
       {
 	GLdouble w, h;
 	getOrthoWidthHeight(w,h);
@@ -798,7 +798,7 @@ float Camera::pixelGLRatio(const Vec& position) const
  \attention The fieldOfView() is clamped to M_PI/2.0. This happens when the Camera is at a distance
  lower than sqrt(2.0) * sceneRadius() from the sceneCenter(). It optimizes the shadow map
  resolution, although it may miss some parts of the scene. */
-void Camera::setFOVToFitScene()
+void AppGLWidget_Camera::setFOVToFitScene()
 {
   if (distanceToSceneCenter() > sqrt(2.0)*sceneRadius())
     setFieldOfView(2.0 * asin(sceneRadius() / distanceToSceneCenter()));
@@ -908,7 +908,7 @@ void Camera::setFOVToFitScene()
 
  \note The precision of the z-Buffer highly depends on how the zNear() and zFar() values are fitted
  to your scene. Loose boundaries will result in imprecision along the viewing direction. */
-Vec Camera::pointUnderPixel(const Point& pixel, bool& found) const
+Vec AppGLWidget_Camera::pointUnderPixel(const Point& pixel, bool& found) const
 {
   float depth;
   // Qt uses upper corner for its origin while GL uses the lower corner.
@@ -924,7 +924,7 @@ Vec Camera::pointUnderPixel(const Point& pixel, bool& found) const
  Simply calls fitSphere() on a sphere defined by sceneCenter() and sceneRadius().
 
  You will typically use this method in QGLViewer::init() after you defined a new sceneRadius(). */
-void Camera::showEntireScene()
+void AppGLWidget_Camera::showEntireScene()
 {
   fitSphere(sceneCenter(), sceneRadius());
 }
@@ -934,7 +934,7 @@ void Camera::showEntireScene()
 
  Simply projects the current position on a line passing through sceneCenter(). See also
  showEntireScene().*/
-void Camera::centerScene()
+void AppGLWidget_Camera::centerScene()
 {
   frame()->projectOnLine(sceneCenter(), viewDirection());
 }
@@ -945,7 +945,7 @@ void Camera::centerScene()
  The Camera position() is not modified. Simply setViewDirection().
 
  See also setUpVector(), setOrientation(), showEntireScene(), fitSphere() and fitBoundingBox(). */
-void Camera::lookAt(const Vec& target)
+void AppGLWidget_Camera::lookAt(const Vec& target)
 {
   setViewDirection(target - position());
 }
@@ -957,19 +957,19 @@ void Camera::lookAt(const Vec& target)
 
  You should therefore orientate the Camera before you call this method. See lookAt(),
  setOrientation() and setUpVector(). */
-void Camera::fitSphere(const Vec& center, float radius)
+void AppGLWidget_Camera::fitSphere(const Vec& center, float radius)
 {
   float distance = 0.0f;
   switch (type())
     {
-    case Camera::PERSPECTIVE :
+    case AppGLWidget_Camera::PERSPECTIVE :
       {
 	const float yview = radius / sin(fieldOfView()/2.0);
 	const float xview = radius / sin(horizontalFieldOfView()/2.0);
 	distance = qMax(xview,yview);
 	break;
       }
-    case Camera::ORTHOGRAPHIC :
+    case AppGLWidget_Camera::ORTHOGRAPHIC :
       {
 	distance = ((center-revolveAroundPoint()) * viewDirection()) + (radius / orthoCoef_);
 	break;
@@ -981,7 +981,7 @@ void Camera::fitSphere(const Vec& center, float radius)
 
 /*! Moves the Camera so that the (world axis aligned) bounding box (\p min, \p max) is entirely
   visible, using fitSphere(). */
-void Camera::fitBoundingBox(const Vec& min, const Vec& max)
+void AppGLWidget_Camera::fitBoundingBox(const Vec& min, const Vec& max)
 {
   float diameter = qMax(fabs(max[1]-min[1]), fabs(max[0]-min[0]));
   diameter = qMax(fabsf(max[2]-min[2]), diameter);
@@ -1001,7 +1001,7 @@ void Camera::fitBoundingBox(const Vec& min, const Vec& max)
  When \p noMove is \c true (default), the Camera position() is left unchanged, which is an intuitive
  behavior when the Camera is in a walkthrough fly mode (see the QGLViewer::MOVE_FORWARD and
  QGLViewer::MOVE_BACKWARD QGLViewer::MouseAction). */
-void Camera::setUpVector(const Vec& up, bool noMove)
+void AppGLWidget_Camera::setUpVector(const Vec& up, bool noMove)
 {
   Quaternion q(Vec(0.0, 1.0, 0.0), frame()->transformOf(up));
 
@@ -1025,7 +1025,7 @@ void Camera::setUpVector(const Vec& up, bool noMove)
 
  This method can be useful to create Quicktime VR panoramic sequences, see the
  QGLViewer::saveSnapshot() documentation for details. */
-void Camera::setOrientation(float theta, float phi)
+void AppGLWidget_Camera::setOrientation(float theta, float phi)
 {
   Vec axis(0.0, 1.0, 0.0);
   const Quaternion rot1(axis, theta);
@@ -1035,7 +1035,7 @@ void Camera::setOrientation(float theta, float phi)
 }
 
 /*! Sets the Camera orientation(), defined in the world coordinate system. */
-void Camera::setOrientation(const Quaternion& q)
+void AppGLWidget_Camera::setOrientation(const Quaternion& q)
 {
   frame()->setOrientation(q);
   //frame()->updateFlyUpVector();
@@ -1046,7 +1046,7 @@ void Camera::setOrientation(const Quaternion& q)
 
  The Camera position() is not modified. The Camera is rotated so that the horizon (defined by its
  upVector()) is preserved. See also lookAt() and setUpVector(). */
-void Camera::setViewDirection(const Vec& direction)
+void AppGLWidget_Camera::setViewDirection(const Vec& direction)
 {
   if (direction.squaredNorm() < 1E-10)
     return;
@@ -1096,7 +1096,7 @@ Only the orientation() and position() of the Camera are modified.
 
 \note If you defined your matrix as \c GLdouble \c mvm[4][4], pass \c &(mvm[0][0]) as a
 parameter. */
-void Camera::setFromModelViewMatrix(const GLdouble* const modelViewMatrix)
+void AppGLWidget_Camera::setFromModelViewMatrix(const GLdouble* const modelViewMatrix)
 {
   // Get upper left (rotation) matrix
   double upperLeft[3][3];
@@ -1134,7 +1134,7 @@ void Camera::setFromModelViewMatrix(const GLdouble* const modelViewMatrix)
  atan(1.0/projectionMatrix[5]).
 
  This code was written by Sylvain Paris. */
-void Camera::setFromProjectionMatrix(const float matrix[12])
+void AppGLWidget_Camera::setFromProjectionMatrix(const float matrix[12])
 {
   // The 3 lines of the matrix are the normals to the planes x=0, y=0, z=0
   // in the camera CS. As we normalize them, we do not need the 4th coordinate.
@@ -1284,7 +1284,7 @@ void Camera::setFromProjectionMatrix(const GLdouble* projectionMatrix)
 ///////////////////////// Camera to world transform ///////////////////////
 
 /*! Same as cameraCoordinatesOf(), but with \c float[3] parameters (\p src and \p res may be identical pointers). */
-void Camera::getCameraCoordinatesOf(const float src[3], float res[3]) const
+void AppGLWidget_Camera::getCameraCoordinatesOf(const float src[3], float res[3]) const
 {
   Vec r = cameraCoordinatesOf(Vec(src));
   for (int i=0; i<3; ++i)
@@ -1292,7 +1292,7 @@ void Camera::getCameraCoordinatesOf(const float src[3], float res[3]) const
 }
 
 /*! Same as worldCoordinatesOf(), but with \c float[3] parameters (\p src and \p res may be identical pointers). */
-void Camera::getWorldCoordinatesOf(const float src[3], float res[3]) const
+void AppGLWidget_Camera::getWorldCoordinatesOf(const float src[3], float res[3]) const
 {
   Vec r = worldCoordinatesOf(Vec(src));
   for (int i=0; i<3; ++i)
@@ -1304,7 +1304,7 @@ void Camera::getWorldCoordinatesOf(const float src[3], float res[3]) const
 This method is mainly used in conjunction with \c gluProject, which requires such a viewport.
 Returned values are (0, screenHeight(), screenWidth(), - screenHeight()), so that the origin is
 located in the \e upper left corner of the window (Qt style coordinate system). */
-void Camera::getViewport(GLint viewport[4]) const
+void AppGLWidget_Camera::getViewport(GLint viewport[4]) const
 {
   viewport[0] = 0;
   viewport[1] = screenHeight();
@@ -1337,7 +1337,7 @@ void Camera::getViewport(GLint viewport[4]) const
  If you call this method several times with no change in the matrices, consider precomputing the
  projection times modelview matrix to save computation time if required (\c P x \c M in the \c
  gluProject man page). */
-Vec Camera::projectedCoordinatesOf(const Vec& src, const Frame* frame) const
+Vec AppGLWidget_Camera::projectedCoordinatesOf(const Vec& src, const Frame* frame) const
 {
   GLdouble x,y,z;
   static GLint viewport[4];
@@ -1379,7 +1379,7 @@ Vec Camera::projectedCoordinatesOf(const Vec& src, const Frame* frame) const
  This method is not computationally optimized. If you call it several times with no change in the
  matrices, you should buffer the entire inverse projection matrix (modelview, projection and then
  viewport) to speed-up the queries. See the \c gluUnProject man page for details. */
-Vec Camera::unprojectedCoordinatesOf(const Vec& src, const Frame* frame) const
+Vec AppGLWidget_Camera::unprojectedCoordinatesOf(const Vec& src, const Frame* frame) const
 {
   GLdouble x,y,z;
   static GLint viewport[4];
@@ -1392,7 +1392,7 @@ Vec Camera::unprojectedCoordinatesOf(const Vec& src, const Frame* frame) const
 }
 
 /*! Same as projectedCoordinatesOf(), but with \c float parameters (\p src and \p res can be identical pointers). */
-void Camera::getProjectedCoordinatesOf(const float src[3], float res[3], const Frame* frame) const
+void AppGLWidget_Camera::getProjectedCoordinatesOf(const float src[3], float res[3], const Frame* frame) const
 {
   Vec r = projectedCoordinatesOf(Vec(src), frame);
   for (int i=0; i<3; ++i)
@@ -1400,7 +1400,7 @@ void Camera::getProjectedCoordinatesOf(const float src[3], float res[3], const F
 }
 
 /*! Same as unprojectedCoordinatesOf(), but with \c float parameters (\p src and \p res can be identical pointers). */
-void Camera::getUnprojectedCoordinatesOf(const float src[3], float res[3], const Frame* frame) const
+void AppGLWidget_Camera::getUnprojectedCoordinatesOf(const float src[3], float res[3], const Frame* frame) const
 {
   Vec r = unprojectedCoordinatesOf(Vec(src), frame);
   for (int i=0; i<3; ++i)
@@ -1532,11 +1532,11 @@ camera()->deletePath(i);
  This method is useful for analytical intersection in a selection method.
 
  See the <a href="../examples/select.html">select example</a> for an illustration. */
-void Camera::convertClickToLine(const Point& pixel, Vec& orig, Vec& dir) const
+void AppGLWidget_Camera::convertClickToLine(const Point& pixel, Vec& orig, Vec& dir) const
 {
   switch (type())
     {
-    case Camera::PERSPECTIVE:
+    case AppGLWidget_Camera::PERSPECTIVE:
       orig = position();
       dir = Vec( ((2.0 * pixel.x() / screenWidth()) - 1.0) * tan(fieldOfView()/2.0) * aspectRatio(),
 		 ((2.0 * (screenHeight()-pixel.y()) / screenHeight()) - 1.0) * tan(fieldOfView()/2.0),
@@ -1545,7 +1545,7 @@ void Camera::convertClickToLine(const Point& pixel, Vec& orig, Vec& dir) const
       dir.normalize();
       break;
 
-    case Camera::ORTHOGRAPHIC:
+    case AppGLWidget_Camera::ORTHOGRAPHIC:
       {
 	GLdouble w,h;
 	getOrthoWidthHeight(w,h);
@@ -1559,9 +1559,9 @@ void Camera::convertClickToLine(const Point& pixel, Vec& orig, Vec& dir) const
 
 #ifndef DOXYGEN
 /*! This method has been deprecated in libQGLViewer version 2.2.0 */
-void Camera::drawCamera(float, float, float)
+void AppGLWidget_Camera::drawCamera(float, float, float)
 {
-  cout << "drawCamera is deprecated. Use Camera::draw() instead.";
+  cout << "drawCamera is deprecated. Use AppGLWidget_Camera::draw() instead.";
 }
 #endif
 
@@ -1585,7 +1585,7 @@ The Camera is then correctly positioned and orientated.
 
 \note The drawing of a QGLViewer's own QGLViewer::camera() should not be visible, but may create
 artefacts due to numerical imprecisions. */
-void Camera::draw(bool drawFarPlane, float scale) const
+void AppGLWidget_Camera::draw(bool drawFarPlane, float scale) const
 {
   glPushMatrix();
   glMultMatrixd(frame()->worldMatrix());
@@ -1598,7 +1598,7 @@ void Camera::draw(bool drawFarPlane, float scale) const
 
   switch (type())
     {
-    case Camera::PERSPECTIVE:
+    case AppGLWidget_Camera::PERSPECTIVE:
       {
 	points[0].y = points[0].z * tan(fieldOfView()/2.0);
 	points[0].x = points[0].y * aspectRatio();
@@ -1609,7 +1609,7 @@ void Camera::draw(bool drawFarPlane, float scale) const
 	points[1].x = ratio * points[0].x;
 	break;
       }
-    case Camera::ORTHOGRAPHIC:
+    case AppGLWidget_Camera::ORTHOGRAPHIC:
       {
 	GLdouble hw, hh;
 	getOrthoWidthHeight(hw, hh);
@@ -1658,7 +1658,7 @@ void Camera::draw(bool drawFarPlane, float scale) const
   // Frustum lines
   switch (type())
     {
-    case Camera::PERSPECTIVE :
+    case AppGLWidget_Camera::PERSPECTIVE :
       glBegin(GL_LINES);
       glVertex3f(0.0f, 0.0f, 0.0f);
       glVertex3f( points[farIndex].x,  points[farIndex].y, -points[farIndex].z);
@@ -1670,7 +1670,7 @@ void Camera::draw(bool drawFarPlane, float scale) const
       glVertex3f( points[farIndex].x, -points[farIndex].y, -points[farIndex].z);
       glEnd();
       break;
-    case Camera::ORTHOGRAPHIC :
+    case AppGLWidget_Camera::ORTHOGRAPHIC :
       if (drawFarPlane)
 	{
 	  glBegin(GL_LINES);
@@ -1713,7 +1713,7 @@ applied in an other viewer to visualize the culling results:
  glClipPlane(GL_CLIP_PLANE0, coef[2]);
  glClipPlane(GL_CLIP_PLANE1, coef[3]);
 \endcode */
-void Camera::getFrustumPlanesCoefficients(GLdouble coef[6][4]) const
+void AppGLWidget_Camera::getFrustumPlanesCoefficients(GLdouble coef[6][4]) const
 {
   // Computed once and for all
   const Vec pos          = position();
@@ -1727,7 +1727,7 @@ void Camera::getFrustumPlanesCoefficients(GLdouble coef[6][4]) const
   
   switch (type())
     {
-    case Camera::PERSPECTIVE :
+    case AppGLWidget_Camera::PERSPECTIVE :
       {
 	const float hhfov = horizontalFieldOfView() / 2.0;
 	const float chhfov = cos(hhfov);
@@ -1768,7 +1768,7 @@ void Camera::getFrustumPlanesCoefficients(GLdouble coef[6][4]) const
 	
 	break;
       }
-    case Camera::ORTHOGRAPHIC :
+    case AppGLWidget_Camera::ORTHOGRAPHIC :
       normal[0] = -right;
       normal[1] =  right;
       normal[4] =  up;

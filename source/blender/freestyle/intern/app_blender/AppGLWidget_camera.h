@@ -79,15 +79,15 @@
   A Camera can also be used outside of a QGLViewer or even without OpenGL for its coordinate system
   conversion capabilities. Note however that some of them explicitly rely on the presence of a
   Z-buffer. \nosubgrouping */
-  class Camera
+  class AppGLWidget_Camera
   {
 
   public:
-    Camera();
-    virtual ~Camera();
+    AppGLWidget_Camera();
+    virtual ~AppGLWidget_Camera();
 
-    Camera(const Camera& camera);
-    Camera& operator=(const Camera& camera);
+    AppGLWidget_Camera(const AppGLWidget_Camera& camera);
+    AppGLWidget_Camera& operator=(const AppGLWidget_Camera& camera);
 
 
     /*! Enumerates the two possible types of Camera.
