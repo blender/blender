@@ -93,6 +93,7 @@ typedef enum {
 } MergeDirection;
 
 int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
+void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection direction);
 int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
 EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v);
 void mergeArcFaces(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc);
@@ -824,18 +825,20 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 					REEB_freeArc((BArc*)arc);
 				}
 			}
-#if 0
 			// Remove flipped arcs
 			else if (((ReebNode*)arc->head)->weight > ((ReebNode*)arc->tail)->weight)
 			{
+#if 0
 				// Decrement degree from the other node
 				//BLI_otherNode((BArc*)arc, (BNode*)newNode)->degree--;
 				NodeDegreeDecrement(rg, (ReebNode*)BLI_otherNode((BArc*)arc, (BNode*)newNode));
 				
 				BLI_remlink(&rg->arcs, arc);
 				REEB_freeArc((BArc*)arc);
-			}
+#else
+				printf("flipped\n");
 #endif
+			}
 			else
 			{
 				//newNode->degree++; // incrementing degree since we're adding an arc
@@ -911,6 +914,7 @@ int filterInternalReebGraph(ReebGraph *rg, float threshold)
 			ReebNode *newNode = NULL;
 			ReebNode *removedNode = NULL;
 			
+#if 0 // Old method
 			/* Keep the node with the highestn number of connected arcs */
 			if (arc->head->degree >= arc->tail->degree)
 			{
@@ -922,6 +926,11 @@ int filterInternalReebGraph(ReebGraph *rg, float threshold)
 				newNode = arc->tail;
 				removedNode = arc->head;
 			}
+#else
+			/* Always remove lower node, so arcs don't flip */
+			newNode = arc->head;
+			removedNode = arc->tail;
+#endif
 			
 			filterArc(rg, newNode, removedNode, arc, 1);
 
@@ -1015,6 +1024,41 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 	}
 	
 	return value;
+}
+
+int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
+{
+	int filtered = 0;
+	
+	if (BLI_isGraphCyclic((BGraph*)rg))
+	{
+		ReebArc *arc1, *arc2;
+		ReebArc *next2;
+		
+		for (arc1 = rg->arcs.first; arc1; arc1 = arc1->next)
+		{
+			for (arc2 = rg->arcs.first; arc2; arc2 = next2)
+			{
+				next2 = arc2->next;
+				if (arc1 != arc2 && arc1->head == arc2->head && arc1->tail == arc2->tail)
+				{
+					mergeArcEdges(rg, arc1, arc2, MERGE_APPEND);
+					mergeArcFaces(rg, arc1, arc2);
+					mergeArcBuckets(arc1, arc2, arc1->head->weight, arc1->tail->weight);
+
+					NodeDegreeDecrement(rg, arc1->head);
+					NodeDegreeDecrement(rg, arc1->tail);
+
+					BLI_remlink(&rg->arcs, arc2);
+					REEB_freeArc((BArc*)arc2);
+					
+					filtered = 1;
+				}
+			}
+		}
+	}
+	
+	return filtered;
 }
 
 int filterSmartReebGraph(ReebGraph *rg, float threshold)
@@ -2634,16 +2678,26 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
 
+	verifyNodeDegree(rg);
+
 	REEB_exportGraph(rg, -1);
 
 	verifyBuckets(rg);
 	
 	verifyFaces(rg);
 
+	printf("GENERATED\n");
+	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
+
 	/* Remove arcs without embedding */
 	filterNullReebGraph(rg);
 
 	verifyBuckets(rg);
+
+	BLI_freeAdjacencyList((BGraph*)rg);
+
+	printf("NULL FILTERED\n");
+	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
 
 	i = 1;
 	/* filter until there's nothing more to do */
@@ -2667,6 +2721,8 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_SMART)
 	{
 		filterSmartReebGraph(rg, 0.5);
+		BLI_rebuildAdjacencyList((BGraph*)rg);
+		filterCyclesReebGraph(rg, 0.5);
 	}
 
 #ifdef DEBUG_REEB
@@ -2690,7 +2746,7 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
 	}
 
-	BLI_buildAdjacencyList((BGraph*)rg);
+	BLI_rebuildAdjacencyList((BGraph*)rg);
 	
 	sortNodes(rg);
 	
@@ -2700,6 +2756,9 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	
 	calculateGraphLength(rg);
 	
+	printf("DONE\n");
+	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
+
 	return rg;
 }
 
@@ -2714,115 +2773,11 @@ void BIF_GlobalReebFree()
 
 void BIF_GlobalReebGraphFromEditMesh(void)
 {
-	EditMesh *em = G.editMesh;
-	int i;
-	
-	if (em == NULL)
-		return;
-
 	BIF_GlobalReebFree();
-
-	if (weightFromDistance(em) == 0)
-	{
-		error("No selected vertex\n");
-		return;
-	}
 	
-	renormalizeWeight(em, 1.0f);
-
-	if (G.scene->toolsettings->skgen_options & SKGEN_HARMONIC)
-	{
-		weightToHarmonic(em);
-	}
-	
-#ifdef DEBUG_REEB
-	weightToVCol(em, 0);
-#endif
-
-	GLOBAL_RG = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
-
-	verifyNodeDegree(GLOBAL_RG);
-
-	REEB_exportGraph(GLOBAL_RG, -1);
-
-	verifyBuckets(GLOBAL_RG);
-	
-	verifyFaces(GLOBAL_RG);
-
-	printf("GENERATED\n");
-	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)GLOBAL_RG));
-
-	/* Remove arcs without embedding */
-	filterNullReebGraph(GLOBAL_RG);
-
-	verifyNodeDegree(GLOBAL_RG);
-	
-	BLI_freeAdjacencyList((BGraph*)GLOBAL_RG);
-
-	printf("NULL FILTERED\n");
-	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)GLOBAL_RG));
-
-	verifyBuckets(GLOBAL_RG);
-
-	i = 1;
-	/* filter until there's nothing more to do */
-	while (i == 1)
-	{
-		i = 0; /* no work done yet */
-		
-		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
-		{
-			i |= filterExternalReebGraph(GLOBAL_RG, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
-		}
-	
-		verifyBuckets(GLOBAL_RG);
-	
-		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
-		{
-			i |= filterInternalReebGraph(GLOBAL_RG, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
-		}
-	}
-
-	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_SMART)
-	{
-		filterSmartReebGraph(GLOBAL_RG, 0.5);
-	}
-
-	verifyBuckets(GLOBAL_RG);
-
-	repositionNodes(GLOBAL_RG);
-	
-	verifyBuckets(GLOBAL_RG);
-
-	/* Filtering might have created degree 2 nodes, so remove them */
-	removeNormalNodes(GLOBAL_RG);
-	
-	verifyBuckets(GLOBAL_RG);
-
-#ifdef DEBUG_REEB
-	arcToVCol(GLOBAL_RG, em, 1);
-	//angleToVCol(em, 1);
-#endif
-
-	for(i = 0; i <  G.scene->toolsettings->skgen_postpro_passes; i++)
-	{
-		postprocessGraph(GLOBAL_RG, G.scene->toolsettings->skgen_postpro);
-	}
-
-	BLI_buildAdjacencyList((BGraph*)GLOBAL_RG);
-	
-	sortNodes(GLOBAL_RG);
-	
-	sortArcs(GLOBAL_RG);
-	
-	REEB_exportGraph(GLOBAL_RG, -1);
-	
-	calculateGraphLength(GLOBAL_RG);
+	GLOBAL_RG = BIF_ReebGraphFromEditMesh();
 
 	BLI_markdownSymmetry((BGraph*)GLOBAL_RG, GLOBAL_RG->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
-	
-	printf("DONE\n");
-	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)GLOBAL_RG));
 }
 
 void REEB_draw()

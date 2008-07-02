@@ -84,6 +84,12 @@ static void addArcToNodeAdjacencyList(BNode *node, BArc *arc)
 	node->flag++;
 }
 
+void BLI_rebuildAdjacencyList(BGraph *rg)
+{
+	BLI_freeAdjacencyList(rg);
+	BLI_buildAdjacencyList(rg);
+}
+
 void BLI_buildAdjacencyList(BGraph *rg)
 {
 	BNode *node;
@@ -310,7 +316,7 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 
 /*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
 
-int BLI_subtreeDepth(BNode *node, BArc *rootArc)
+int BLI_subtreeShape(BNode *node, BArc *rootArc)
 {
 	int depth = 0;
 	
@@ -331,12 +337,14 @@ int BLI_subtreeDepth(BNode *node, BArc *rootArc)
 			if (arc != rootArc)
 			{
 				BNode *newNode = BLI_otherNode(arc, node);
-				depth = MAX2(depth, BLI_subtreeDepth(newNode, arc));
+				//depth = MAX2(depth, BLI_subtreeShape(newNode, arc));
+				depth += BLI_subtreeShape(newNode, arc);
 			}
 		}
 	}
 	
-	return depth + 1; //BLI_countlist(&rootArc->edges);
+	//return depth + 1;
+	return 10 * depth + 1;
 }
 
 /********************************* SYMMETRY DETECTION **************************************************/
@@ -519,11 +527,6 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 			}
 		}
 	}
-	
-	for (i = 0; i < total; i++)
-	{
-		printf("length %f\n", ring[i].arc->length);
-	}
 
 	/* Dispatch to specific symmetry tests */
 	first = 0;
@@ -556,7 +559,6 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 
 			if (sub_total == 1)
 			{
-				printf("no dispatch\n");
 				/* NOTHING TO DO */
 			}
 			else if (sub_total == 2)
@@ -564,8 +566,6 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 				BArc *arc1, *arc2;
 				BNode *node1, *node2;
 				
-				printf("dispatch axial\n");
-
 				arc1 = ring[first].arc;
 				arc2 = ring[last].arc;
 				
@@ -579,8 +579,6 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 				RadialArc *sub_ring = MEM_callocN(sizeof(RadialArc) * sub_total, "radial symmetry ring");
 				int sub_i;
 				
-				printf("dispatch radial sub ring\n");
-
 				/* fill in the sub ring */
 				for (sub_i = 0; sub_i < sub_total; sub_i++)
 				{
@@ -593,8 +591,6 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 			}
 			else if (sub_total == total)
 			{
-				printf("dispatch radial full ring\n");
-
 				testRadialSymmetry(graph, root_node, ring, total, axis, limit, group);
 			}
 			
@@ -660,7 +656,7 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 	}
 	else
 	{
-		printf("not symmetric\n");
+		/* NOT SYMMETRIC */
 	}
 }
 
@@ -699,8 +695,6 @@ static void handleAxialSymmetry(BGraph *graph, BNode *root_node, int depth, floa
 	{
 		return;
 	}
-	
-	printf("symmetry length %f <> %f\n", arc1->length, arc2->length);
 	
 	testAxialSymmetry(graph, root_node, node1, node2, arc1, arc2, axis, limit, 1);
 }
@@ -777,7 +771,7 @@ void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float
 			BNode *connectedNode = BLI_otherNode(connectedArc, node);
 			
 			/* symmetry level is positive value, negative values is subtree depth */
-			connectedArc->symmetry_level = -BLI_subtreeDepth(connectedNode, connectedArc);
+			connectedArc->symmetry_level = -BLI_subtreeShape(connectedNode, connectedArc);
 		}
 	}
 
@@ -854,7 +848,6 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	
 	if (BLI_isGraphCyclic(graph))
 	{
-		printf("cyclic\n");
 		return;
 	}
 	
