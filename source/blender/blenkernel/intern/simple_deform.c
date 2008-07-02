@@ -38,77 +38,111 @@
 #include <math.h>
 
 
-
-
-static void simpleDeform_tapperXY(const float factor, float *co)
+static void axis_limit(int axis, const float limits[2], float *co, float *dcut)
 {
-	float x = co[0], y = co[1], z = co[2];
+	float val = co[axis];
+	if(limits[0] > val) val = limits[0];
+	if(limits[1] < val) val = limits[1];
 
-	co[0] = x*(1.0f + z*factor);
-	co[1] = y*(1.0f + z*factor);
-	co[2] = z;
+	dcut[axis] = co[axis] - val;
+	co[axis] = val;
 }
 
-static void simpleDeform_tapperX(const float factor, float *co)
+static void simpleDeform_tapperXY(const float factor, const float *dcut, float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
 
-	co[0] = x*(1.0f + z*factor);
+	float scale = z*factor;
+
+	co[0] = x + x*scale;
+	co[1] = y + y*scale;
+	co[2] = z;
+
+	if(dcut)
+	{
+		co[0] += dcut[0]*scale;
+		co[1] += dcut[1]*scale;
+		co[2] += dcut[2];
+	}
+}
+
+static void simpleDeform_tapperX(const float factor, const float *dcut, float *co)
+{
+	float x = co[0], y = co[1], z = co[2];
+
+	float scale = z*factor;
+
+	co[0] = x+ x*scale;
 	co[1] = y;
 	co[2] = z;
+
+	if(dcut)
+	{
+		co[0] += dcut[0]*scale;
+		co[1] += dcut[1];
+		co[2] += dcut[2];
+	}
 }
 
-static void simpleDeform_twist(const float factor, float *co)
+static void simpleDeform_twist(const float factor, const float *dcut, float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
+	float theta, sint, cost;
 
-	float theta = z*factor;
-	float sint = sin(theta);
-	float cost = cos(theta);
+	theta = z*factor;
+	sint  = sin(theta);
+	cost  = cos(theta);
 
 	co[0] = x*cost - y*sint;
 	co[1] = x*sint + y*cost;
 	co[2] = z;
 
+	if(dcut)
+	{
+		co[0] += dcut[0];
+		co[1] += dcut[1];
+		co[2] += dcut[2];
+	}
 }
 
-static void simpleDeform_bend(const float factor, const float axis_limit[2], float *co)
+static void simpleDeform_bend(const float factor, const float dcut[3], float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
-
-	float x0 = 0.0f;
-	float theta = x*factor, sint, cost;
-
-	if(x > axis_limit[1])
-	{
-		x0 = axis_limit[1] - x;
-		x = axis_limit[1];
-	}
-	else if(x < axis_limit[0])
-	{
-		x0 = axis_limit[0] - x;
-		x = axis_limit[0];
-	}
+	float theta, sint, cost;
 
 	theta = x*factor;
 	sint = sin(theta);
 	cost = cos(theta);
 
-	co[0] = -y*sint - cost*x0;
-	co[1] =  y*cost - sint*x0;
-	co[2] =  z;
+	if(fabs(factor) > 1e-7f)
+	{
+		co[0] = -(y-1.0f/factor)*sint;
+		co[1] =  (y-1.0f/factor)*cost + 1.0f/factor;
+		co[2] = z;
+	}
+
+
+	if(dcut)
+	{
+		co[0] += cost*dcut[0];
+		co[1] += sint*dcut[0];
+		co[2] += dcut[2]; 
+	}
+
 }
+
 
 /* simple deform modifier */
 void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, float (*vertexCos)[3], int numVerts)
 {
 	float (*ob2mod)[4] = NULL, (*mod2ob)[4] = NULL;
-	float tmp[2][4][4];
+	float tmp[2][4][4], dcut[3];
 
 	if(smd->origin)
 	{
 		//inverse is outdated
 		Mat4Invert(smd->origin->imat, smd->origin->obmat);
+		Mat4Invert(ob->imat, ob->obmat);
 
 		ob2mod = tmp[0];
 		mod2ob = tmp[1];
@@ -122,12 +156,29 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, f
 		if(ob2mod)
 			Mat4MulVecfl(ob2mod, *vertexCos);
 
+		dcut[0] = dcut[1] = dcut[2] = 0.0f;
+
 		switch(smd->mode)
 		{
-			case MOD_SIMPLEDEFORM_MODE_TWIST:		simpleDeform_twist(smd->factor[0], *vertexCos); break;
-			case MOD_SIMPLEDEFORM_MODE_BEND:		simpleDeform_bend(smd->factor[0], smd->factor+1, *vertexCos); break;
-			case MOD_SIMPLEDEFORM_MODE_TAPER_X:		simpleDeform_tapperX (smd->factor[0], *vertexCos); break;
-			case MOD_SIMPLEDEFORM_MODE_TAPER_XY:	simpleDeform_tapperXY(smd->factor[0], *vertexCos); break;
+			case MOD_SIMPLEDEFORM_MODE_TWIST:
+				axis_limit(2, smd->factor+1, *vertexCos, dcut);
+				simpleDeform_twist	 (smd->factor[0], dcut, *vertexCos);
+				break;
+
+			case MOD_SIMPLEDEFORM_MODE_BEND:
+				axis_limit(0, smd->factor+1, *vertexCos, dcut);
+				simpleDeform_bend	 (smd->factor[0], dcut, *vertexCos);
+				break;
+
+			case MOD_SIMPLEDEFORM_MODE_TAPER_X:
+				axis_limit(2, smd->factor+1, *vertexCos, dcut);
+				simpleDeform_tapperX (smd->factor[0], dcut, *vertexCos);
+				break;
+
+			case MOD_SIMPLEDEFORM_MODE_TAPER_XY:
+				axis_limit(2, smd->factor+1, *vertexCos, dcut);
+				simpleDeform_tapperXY(smd->factor[0], dcut, *vertexCos);
+				break;
 		}
 
 		if(mod2ob)

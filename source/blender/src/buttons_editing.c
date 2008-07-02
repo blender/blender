@@ -1860,9 +1860,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				height += 19*5;
 		} else if (md->type==eModifierType_SimpleDeform) {
 			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
-			height += 19*3;
-			if(smd->mode == MOD_SIMPLEDEFORM_MODE_BEND)
-				height += 19*2;
+			height += 19*5;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2532,11 +2530,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			}
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor[0], -3000.0f, 3000.0f, 1.0f, 0, "Deform Factor");
 
-			if(smd->mode == MOD_SIMPLEDEFORM_MODE_BEND)
-			{
-				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->factor[2], -3000.0f, 3000.0f, 1.0f, 0, "Upper Limit Bend on X");
-				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->factor[1], -3000.0f, 3000.0f, 1.0f, 0, "Lower Limit Bend on X");
-			}
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->factor[2], -3000.0f, 3000.0f, 1.0f, 0, "Upper Limit Bend on X");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->factor[1], -3000.0f, 3000.0f, 1.0f, 0, "Lower Limit Bend on X");
 		}
 
 
