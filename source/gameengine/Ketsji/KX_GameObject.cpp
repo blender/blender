@@ -1008,6 +1008,9 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self,
 		if (pypos)
 			PyVecTo(pypos, point);
 	}
+	else {
+		return NULL;
+	}
 	
 	if (m_pPhysicsController1)
 	{
@@ -1096,6 +1099,10 @@ PyObject* KX_GameObject::PySetParent(PyObject* self,
 		
 		this->SetParent(scene, obj);
 	}
+	else {
+		return NULL;
+	}
+	
 	Py_Return;
 }
 
@@ -1122,7 +1129,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 			return meshproxy;
 		}
 	}
-	Py_Return;
+	return NULL;
 }
 
 

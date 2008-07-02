@@ -157,6 +157,9 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* self,
 	{
 		matname = m_meshobj->GetMaterialName(matid);
 	}
+	else {
+		return NULL;
+	}
 
 	return PyString_FromString(matname.Ptr());
 		
@@ -173,6 +176,9 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&matid))
 	{
 		matname = m_meshobj->GetTextureName(matid);
+	}
+	else {
+		return NULL;
 	}
 
 	return PyString_FromString(matname.Ptr());
@@ -195,6 +201,9 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self,
 			length = m_meshobj->GetVertexArrayLength(mat);
 		}
 	}
+	else {
+		return NULL;
+	}
 
 	return PyInt_FromLong(length);
 		
@@ -216,6 +225,9 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 		{
 			vertexob = new KX_VertexProxy(this, vertex);
 		}
+	}
+	else {
+		return NULL;
 	}
 
 	return vertexob;
