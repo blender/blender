@@ -713,6 +713,7 @@ public:
 
 	KX_PYMETHOD(KX_GameObject,GetPosition);
 	KX_PYMETHOD(KX_GameObject,GetLinearVelocity);
+	KX_PYMETHOD(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD(KX_GameObject,GetVelocity);
 	KX_PYMETHOD(KX_GameObject,GetMass);
 	KX_PYMETHOD(KX_GameObject,GetReactionForce);

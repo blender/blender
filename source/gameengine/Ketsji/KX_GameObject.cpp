@@ -812,6 +812,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_VARARGS},
 	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_VARARGS},
 	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
+	{"setLinearVelocity", (PyCFunction) KX_GameObject::sPySetLinearVelocity, METH_VARARGS},
 	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
 	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_VARARGS},
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_VARARGS},
@@ -1091,7 +1092,22 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self,
 	}
 }
 
-
+PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, 
+											 PyObject* args, 
+											 PyObject* kwds)
+{
+	int local = 0;
+	PyObject* pyvect;
+	
+	if (PyArg_ParseTuple(args,"O|i",&pyvect,&local)) {
+		MT_Vector3 velocity;
+		if (PyVecTo(pyvect, velocity)) {
+			setLinearVelocity(velocity, (local!=0));
+			Py_Return;
+		}
+	}
+	return NULL;
+}
 
 PyObject* KX_GameObject::PySetVisible(PyObject* self,
 									  PyObject* args,

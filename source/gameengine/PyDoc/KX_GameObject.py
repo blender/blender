@@ -98,7 +98,7 @@ class KX_GameObject:
 		@return: The game object's rotation matrix
 		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
-	def getLinearVelocity(local):
+	def getLinearVelocity(local = 0):
 		"""
 		Gets the game object's linear velocity.
 		
@@ -106,10 +106,23 @@ class KX_GameObject:
 		ie no angular velocity component.
 		
 		@type local: boolean
-		@param local: - False: you get the "global" velocity ie: relative to world orientation.
+		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
 		              - True: you get the "local" velocity ie: relative to object orientation.
 		@rtype: list [vx, vy, vz]
 		@return: the object's linear velocity.
+		"""
+	def setLinearVelocity(velocity, local = 0):
+		"""
+		Sets the game object's linear velocity.
+		
+		This method sets game object's velocity through it's centre of mass,
+		ie no angular velocity component.
+		
+		@type velocity: 3d vector.
+		@param velocity: linear velocity vector.
+		@type local: boolean
+		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
+		              - True: you get the "local" velocity ie: relative to object orientation.
 		"""
 	def getVelocity(point):
 		"""
@@ -158,16 +171,19 @@ class KX_GameObject:
 	def restoreDynamics():
 		"""
 		Resumes physics for this object.
+		@Note: The objects linear velocity will be applied from when the dynamics were suspended.
 		"""
 	def enableRigidBody():
 		"""
 		Enables rigid body physics for this object.
 		
 		Rigid body physics allows the object to roll on collisions.
+		@Note: This is not working with bullet physics yet.
 		"""
 	def disableRigidBody():
 		"""
 		Disables rigid body physics for this object.
+		@Note: This is not working with bullet physics yet. The angular is removed but rigid body physics can still rotate it later.
 		"""
 	def getParent():
 		"""
