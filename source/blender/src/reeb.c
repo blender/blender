@@ -163,6 +163,20 @@ void mergeArcBuckets(ReebArc *aDst, ReebArc *aSrc, float start, float end)
 	}
 }
 
+void flipArcBuckets(ReebArc *arc)
+{
+	int i, j;
+	
+	for (i = 0, j = arc->bcount - 1; i < j; i++, j--)
+	{
+		EmbedBucket tmp;
+		
+		tmp = arc->buckets[i];
+		arc->buckets[i] = arc->buckets[j];
+		arc->buckets[j] = tmp;
+	}
+}
+
 void allocArcBuckets(ReebArc *arc)
 {
 	int i;
@@ -825,22 +839,18 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 					REEB_freeArc((BArc*)arc);
 				}
 			}
-			// Remove flipped arcs
-			else if (((ReebNode*)arc->head)->weight > ((ReebNode*)arc->tail)->weight)
-			{
-#if 0
-				// Decrement degree from the other node
-				//BLI_otherNode((BArc*)arc, (BNode*)newNode)->degree--;
-				NodeDegreeDecrement(rg, (ReebNode*)BLI_otherNode((BArc*)arc, (BNode*)newNode));
-				
-				BLI_remlink(&rg->arcs, arc);
-				REEB_freeArc((BArc*)arc);
-#else
-				printf("flipped\n");
-#endif
-			}
 			else
 			{
+				/* flip arcs that flipped can happen on diamond shapes, mostly on null arcs */
+				if (arc->head->weight > arc->tail->weight)
+				{
+					ReebNode *tmp;
+					tmp = arc->head;
+					arc->head = arc->tail;
+					arc->tail = tmp;
+					
+					flipArcBuckets(arc);
+				}
 				//newNode->degree++; // incrementing degree since we're adding an arc
 				NodeDegreeIncrement(rg, newNode);
 				mergeArcFaces(rg, arc, srcArc);
@@ -878,7 +888,6 @@ void filterNullReebGraph(ReebGraph *rg)
 			
 			blend = (float)newNode->degree / (float)(newNode->degree + removedNode->degree); // blending factors
 			
-			//newNode->weight = FloatLerpf(newNode->weight, removedNode->weight, blend);
 			VecLerpf(newNode->p, newNode->p, removedNode->p, blend);
 			
 			filterArc(rg, newNode, removedNode, arc, 0);
