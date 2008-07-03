@@ -103,6 +103,327 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count);
 void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BArc* barc1, BArc* barc2);
 
 
+/***************************************** UTILS **********************************************/
+
+void REEB_freeArc(BArc *barc)
+{
+	ReebArc *arc = (ReebArc*)barc;
+	BLI_freelistN(&arc->edges);
+	
+	if (arc->buckets)
+		MEM_freeN(arc->buckets);
+		
+	if (arc->faces)
+		BLI_ghash_free(arc->faces, NULL, NULL);
+	
+	MEM_freeN(arc);
+}
+
+void REEB_freeGraph(ReebGraph *rg)
+{
+	ReebArc *arc;
+	ReebNode *node;
+	
+	// free nodes
+	for( node = rg->nodes.first; node; node = node->next )
+	{
+		// Free adjacency lists
+		if (node->arcs != NULL)
+		{
+			MEM_freeN(node->arcs);
+		}
+	}
+	BLI_freelistN(&rg->nodes);
+	
+	// free arcs
+	arc = rg->arcs.first;
+	while( arc )
+	{
+		ReebArc *next = arc->next;
+		REEB_freeArc((BArc*)arc);
+		arc = next;
+	}
+	
+	// free edge map
+	BLI_edgehash_free(rg->emap, NULL);
+	
+	MEM_freeN(rg);
+}
+
+ReebGraph * newReebGraph()
+{
+	ReebGraph *rg;
+	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
+	
+	rg->totnodes = 0;
+	rg->emap = BLI_edgehash_new();
+	
+	
+	rg->free_arc = REEB_freeArc;
+	rg->free_node = NULL;
+	rg->radial_symmetry = REEB_RadialSymmetry;
+	rg->axial_symmetry = REEB_AxialSymmetry;
+	
+	return rg;
+}
+
+ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
+{
+	ReebNode *node = NULL;
+	
+	node = MEM_callocN(sizeof(ReebNode), "reeb node");
+	
+	node->flag = 0; // clear flag on init
+	node->symmetry_level = 0;
+	node->arcs = NULL;
+	node->degree = 0;
+	node->weight = weight;
+	node->index = rg->totnodes;
+	VECCOPY(node->p, eve->co);	
+	
+	BLI_addtail(&rg->nodes, node);
+	rg->totnodes++;
+	
+	return node;
+}
+
+ReebNode * copyNode(ReebGraph *rg, ReebNode *node)
+{
+	ReebNode *cp_node = NULL;
+	
+	cp_node = MEM_callocN(sizeof(ReebNode), "reeb node copy");
+	
+	memcpy(cp_node, node, sizeof(ReebNode));
+	
+	cp_node->prev = NULL;
+	cp_node->next = NULL;
+	cp_node->arcs = NULL;
+	
+	BLI_addtail(&rg->nodes, cp_node);
+	rg->totnodes++;
+	
+	return cp_node; 
+}
+
+ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
+{
+	ReebArc *cp_arc;
+	ReebNode *node;
+	
+	cp_arc = MEM_callocN(sizeof(ReebArc), "reeb arc copy");
+
+	memcpy(cp_arc, arc, sizeof(ReebArc));
+	
+	cp_arc->link = arc;
+	
+	cp_arc->head = NULL;
+	cp_arc->tail = NULL;
+
+	cp_arc->prev = NULL;
+	cp_arc->next = NULL;
+
+	cp_arc->edges.first = NULL;
+	cp_arc->edges.last = NULL;
+
+	/* copy buckets */	
+	cp_arc->buckets = MEM_callocN(sizeof(EmbedBucket) * cp_arc->bcount, "embed bucket");
+	memcpy(cp_arc->buckets, arc->buckets, sizeof(EmbedBucket) * cp_arc->bcount);
+	
+	/* copy faces map */
+	cp_arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	mergeArcFaces(rg, cp_arc, arc);
+	
+	/* find corresponding head and tail */
+	for (node = rg->nodes.first; node && (cp_arc->head == NULL || cp_arc->tail == NULL); node = node->next)
+	{
+		if (node->index == arc->head->index)
+		{
+			cp_arc->head = node;
+		}
+		else if (node->index == arc->tail->index)
+		{
+			cp_arc->tail = node;
+		}
+	}
+	
+	BLI_addtail(&rg->arcs, cp_arc);
+	
+	return cp_arc;
+}
+
+ReebGraph * copyReebGraph(ReebGraph *rg)
+{
+	ReebNode *node;
+	ReebArc *arc;
+	ReebGraph *cp_rg = newReebGraph();
+
+	/* Copy nodes */	
+	for (node = rg->nodes.first; node; node = node->next)
+	{
+		copyNode(cp_rg, node);
+	}
+	
+	/* Copy arcs */
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		copyArc(cp_rg, arc);
+	}
+	
+	BLI_rebuildAdjacencyList((BGraph*)cp_rg);
+	
+	return cp_rg;
+}
+
+ReebEdge * copyEdge(ReebEdge *edge)
+{
+	ReebEdge *newEdge = NULL;
+	
+	newEdge = MEM_callocN(sizeof(ReebEdge), "reeb edge");
+	memcpy(newEdge, edge, sizeof(ReebEdge));
+	
+	newEdge->next = NULL;
+	newEdge->prev = NULL;
+	
+	return newEdge;
+}
+
+void printArc(ReebArc *arc)
+{
+	ReebEdge *edge;
+	ReebNode *head = (ReebNode*)arc->head;
+	printf("arc: (%i)%f -> (%i)%f\n", head->index, head->weight, head->index, head->weight);
+	
+	for(edge = arc->edges.first; edge ; edge = edge->next)
+	{
+		printf("\tedge (%i, %i)\n", edge->v1->index, edge->v2->index);
+	}
+}
+
+void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
+{
+	node->degree--;
+
+//	if (node->degree == 0)
+//	{
+//		printf("would remove node %i\n", node->index);
+//	}
+}
+
+void NodeDegreeIncrement(ReebGraph *rg, ReebNode *node)
+{
+//	if (node->degree == 0)
+//	{
+//		printf("first connect node %i\n", node->index);
+//	}
+
+	node->degree++;
+}
+
+void repositionNodes(ReebGraph *rg)
+{
+	BArc *arc = NULL;
+	BNode *node = NULL;
+	
+	// Reset node positions
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		node->p[0] = node->p[1] = node->p[2] = 0;
+	}
+	
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		if (((ReebArc*)arc)->bcount > 0)
+		{
+			float p[3];
+			
+			VECCOPY(p, ((ReebArc*)arc)->buckets[0].p);
+			VecMulf(p, 1.0f / arc->head->degree);
+			VecAddf(arc->head->p, arc->head->p, p);
+			
+			VECCOPY(p, ((ReebArc*)arc)->buckets[((ReebArc*)arc)->bcount - 1].p);
+			VecMulf(p, 1.0f / arc->tail->degree);
+			VecAddf(arc->tail->p, arc->tail->p, p);
+		}
+	}
+}
+
+void verifyNodeDegree(ReebGraph *rg)
+{
+//#ifdef DEBUG_REEB
+	ReebNode *node = NULL;
+	ReebArc *arc = NULL;
+
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		int count = 0;
+		for(arc = rg->arcs.first; arc; arc = arc->next)
+		{
+			if (arc->head == node || arc->tail == node)
+			{
+				count++;
+			}
+		}
+		if (count != node->degree)
+		{
+			printf("degree error in node %i: expected %i got %i\n", node->index, count, node->degree);
+		}
+		if (node->degree == 0)
+		{
+			printf("zero degree node %i with weight %f\n", node->index, node->weight);
+		}
+	}
+//#endif
+}
+
+void verifyBuckets(ReebGraph *rg)
+{
+#ifdef DEBUG_REEB
+	ReebArc *arc = NULL;
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		ReebNode *head = (ReebNode*)arc->head;
+		ReebNode *tail = (ReebNode*)arc->tail;
+
+		if (arc->bcount > 0)
+		{
+			int i;
+			for(i = 0; i < arc->bcount; i++)
+			{
+				if (arc->buckets[i].nv == 0)
+				{
+					printArc(arc);
+					printf("count error in bucket %i/%i\n", i+1, arc->bcount);
+				}
+			}
+			
+			if (ceil(head->weight) < arc->buckets[0].val)
+			{
+				printArc(arc);
+				printf("alloc error in first bucket: %f should be %f \n", arc->buckets[0].val, ceil(head->weight));
+			}
+			if (floor(tail->weight) < arc->buckets[arc->bcount - 1].val)
+			{
+				printArc(arc);
+				printf("alloc error in last bucket: %f should be %f \n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
+			}
+		}
+	}
+#endif
+}
+
+void verifyFaces(ReebGraph *rg)
+{
+#ifdef DEBUG_REEB
+	int total = 0;
+	ReebArc *arc = NULL;
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		total += BLI_ghash_size(arc->faces);
+	}
+	
+#endif
+}
+
 /***************************************** BUCKET UTILS **********************************************/
 
 void addVertToBucket(EmbedBucket *b, float co[3])
@@ -272,203 +593,6 @@ void calculateGraphLength(ReebGraph *rg)
 	{
 		calculateArcLength(arc);
 	}
-}
-
-/***************************************** UTILS **********************************************/
-
-ReebEdge * copyEdge(ReebEdge *edge)
-{
-	ReebEdge *newEdge = NULL;
-	
-	newEdge = MEM_callocN(sizeof(ReebEdge), "reeb edge");
-	memcpy(newEdge, edge, sizeof(ReebEdge));
-	
-	newEdge->next = NULL;
-	newEdge->prev = NULL;
-	
-	return newEdge;
-}
-
-void printArc(ReebArc *arc)
-{
-	ReebEdge *edge;
-	ReebNode *head = (ReebNode*)arc->head;
-	printf("arc: (%i)%f -> (%i)%f\n", head->index, head->weight, head->index, head->weight);
-	
-	for(edge = arc->edges.first; edge ; edge = edge->next)
-	{
-		printf("\tedge (%i, %i)\n", edge->v1->index, edge->v2->index);
-	}
-}
-
-void REEB_freeArc(BArc *barc)
-{
-	ReebArc *arc = (ReebArc*)barc;
-	BLI_freelistN(&arc->edges);
-	
-	if (arc->buckets)
-		MEM_freeN(arc->buckets);
-		
-	if (arc->faces)
-		BLI_ghash_free(arc->faces, NULL, NULL);
-	
-	MEM_freeN(arc);
-}
-
-void REEB_freeGraph(ReebGraph *rg)
-{
-	ReebArc *arc;
-	ReebNode *node;
-	
-	// free nodes
-	for( node = rg->nodes.first; node; node = node->next )
-	{
-		// Free adjacency lists
-		if (node->arcs != NULL)
-		{
-			MEM_freeN(node->arcs);
-		}
-	}
-	BLI_freelistN(&rg->nodes);
-	
-	// free arcs
-	arc = rg->arcs.first;
-	while( arc )
-	{
-		ReebArc *next = arc->next;
-		REEB_freeArc((BArc*)arc);
-		arc = next;
-	}
-	
-	// free edge map
-	BLI_edgehash_free(rg->emap, NULL);
-	
-	MEM_freeN(rg);
-}
-
-void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
-{
-	node->degree--;
-
-//	if (node->degree == 0)
-//	{
-//		printf("would remove node %i\n", node->index);
-//	}
-}
-
-void NodeDegreeIncrement(ReebGraph *rg, ReebNode *node)
-{
-//	if (node->degree == 0)
-//	{
-//		printf("first connect node %i\n", node->index);
-//	}
-
-	node->degree++;
-}
-
-void repositionNodes(ReebGraph *rg)
-{
-	BArc *arc = NULL;
-	BNode *node = NULL;
-	
-	// Reset node positions
-	for(node = rg->nodes.first; node; node = node->next)
-	{
-		node->p[0] = node->p[1] = node->p[2] = 0;
-	}
-	
-	for(arc = rg->arcs.first; arc; arc = arc->next)
-	{
-		if (((ReebArc*)arc)->bcount > 0)
-		{
-			float p[3];
-			
-			VECCOPY(p, ((ReebArc*)arc)->buckets[0].p);
-			VecMulf(p, 1.0f / arc->head->degree);
-			VecAddf(arc->head->p, arc->head->p, p);
-			
-			VECCOPY(p, ((ReebArc*)arc)->buckets[((ReebArc*)arc)->bcount - 1].p);
-			VecMulf(p, 1.0f / arc->tail->degree);
-			VecAddf(arc->tail->p, arc->tail->p, p);
-		}
-	}
-}
-
-void verifyNodeDegree(ReebGraph *rg)
-{
-//#ifdef DEBUG_REEB
-	ReebNode *node = NULL;
-	ReebArc *arc = NULL;
-
-	for(node = rg->nodes.first; node; node = node->next)
-	{
-		int count = 0;
-		for(arc = rg->arcs.first; arc; arc = arc->next)
-		{
-			if (arc->head == node || arc->tail == node)
-			{
-				count++;
-			}
-		}
-		if (count != node->degree)
-		{
-			printf("degree error in node %i: expected %i got %i\n", node->index, count, node->degree);
-		}
-		if (node->degree == 0)
-		{
-			printf("zero degree node %i with weight %f\n", node->index, node->weight);
-		}
-	}
-//#endif
-}
-
-void verifyBuckets(ReebGraph *rg)
-{
-#ifdef DEBUG_REEB
-	ReebArc *arc = NULL;
-	for(arc = rg->arcs.first; arc; arc = arc->next)
-	{
-		ReebNode *head = (ReebNode*)arc->head;
-		ReebNode *tail = (ReebNode*)arc->tail;
-
-		if (arc->bcount > 0)
-		{
-			int i;
-			for(i = 0; i < arc->bcount; i++)
-			{
-				if (arc->buckets[i].nv == 0)
-				{
-					printArc(arc);
-					printf("count error in bucket %i/%i\n", i+1, arc->bcount);
-				}
-			}
-			
-			if (ceil(head->weight) < arc->buckets[0].val)
-			{
-				printArc(arc);
-				printf("alloc error in first bucket: %f should be %f \n", arc->buckets[0].val, ceil(head->weight));
-			}
-			if (floor(tail->weight) < arc->buckets[arc->bcount - 1].val)
-			{
-				printArc(arc);
-				printf("alloc error in last bucket: %f should be %f \n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
-			}
-		}
-	}
-#endif
-}
-
-void verifyFaces(ReebGraph *rg)
-{
-#ifdef DEBUG_REEB
-	int total = 0;
-	ReebArc *arc = NULL;
-	for(arc = rg->arcs.first; arc; arc = arc->next)
-	{
-		total += BLI_ghash_size(arc->faces);
-	}
-	
-#endif
 }
 
 /**************************************** SYMMETRY HANDLING ******************************************/
@@ -1676,26 +1800,6 @@ void mergePaths(ReebGraph *rg, ReebEdge *e0, ReebEdge *e1, ReebEdge *e2)
 	glueByMergeSort(rg, a0, a2, e0, e2);
 } 
 
-ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
-{
-	ReebNode *node = NULL;
-	
-	node = MEM_callocN(sizeof(ReebNode), "reeb node");
-	
-	node->flag = 0; // clear flag on init
-	node->symmetry_level = 0;
-	node->arcs = NULL;
-	node->degree = 0;
-	node->weight = weight;
-	node->index = rg->totnodes;
-	VECCOPY(node->p, eve->co);	
-	
-	BLI_addtail(&rg->nodes, node);
-	rg->totnodes++;
-	
-	return node;
-}
-
 ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 {
 	ReebEdge *edge;
@@ -1829,23 +1933,6 @@ void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * 
 	
 	
 	mergePaths(rg, e1, e2, e3);
-}
-
-ReebGraph * newReebGraph()
-{
-	ReebGraph *rg;
-	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
-	
-	rg->totnodes = 0;
-	rg->emap = BLI_edgehash_new();
-	
-	
-	rg->free_arc = REEB_freeArc;
-	rg->free_node = NULL;
-	rg->radial_symmetry = REEB_RadialSymmetry;
-	rg->axial_symmetry = REEB_AxialSymmetry;
-	
-	return rg;
 }
 
 ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
@@ -2782,11 +2869,15 @@ void BIF_GlobalReebFree()
 
 void BIF_GlobalReebGraphFromEditMesh(void)
 {
+	ReebGraph *rg;
+	
 	BIF_GlobalReebFree();
 	
-	GLOBAL_RG = BIF_ReebGraphFromEditMesh();
+	rg = BIF_ReebGraphFromEditMesh();
 
-	BLI_markdownSymmetry((BGraph*)GLOBAL_RG, GLOBAL_RG->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
+	BLI_markdownSymmetry((BGraph*)rg, rg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
+	
+	GLOBAL_RG = rg;
 }
 
 void REEB_draw()

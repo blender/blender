@@ -101,6 +101,7 @@ typedef struct ReebArc {
 
 	struct GHash *faces;	
 	float angle;
+	struct ReebArc *link; /* for multi resolution filtering, points to higher levels */
 } ReebArc;
 
 typedef struct ReebArcIterator {
