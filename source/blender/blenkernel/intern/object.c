@@ -732,6 +732,17 @@ void *add_lamp(char *name)
 	la->preview=NULL;
 	la->falloff_type = LA_FALLOFF_INVLINEAR;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+	la->sun_effect_type = 0;
+	la->horizon_brightness = 1.0;
+	la->spread = 1.0;
+	la->sun_brightness = 1.0;
+	la->sun_size = 1.0;
+	la->backscattered_light = 1.0;
+	la->atm_turbidity = 2.0;
+	la->atm_inscattering_factor = 1.0;
+	la->atm_extinction_factor = 1.0;
+	la->atm_distance_factor = 1.0;
+	la->sun_intensity = 1.0;
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }

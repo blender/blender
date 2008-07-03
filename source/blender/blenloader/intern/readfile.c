@@ -7646,6 +7646,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	/* sun/sky */
+	if ((main->versionfile < 246) ){
+		Lamp *la;
+		for(la=main->lamp.first; la; la= la->id.next) {
+			la->sun_effect_type = 0;
+			la->horizon_brightness = 1.0;
+			la->spread = 1.0;
+			la->sun_brightness = 1.0;
+			la->sun_size = 1.0;
+			la->backscattered_light = 1.0;
+			la->atm_turbidity = 2.0;
+			la->atm_inscattering_factor = 1.0;
+			la->atm_extinction_factor = 1.0;
+			la->atm_distance_factor = 1.0;
+			la->sun_intensity = 1.0;
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

@@ -2803,6 +2803,42 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 
 }
 
+static void lamp_panel_atmosphere(Object *ob, Lamp *la)
+{
+	uiBlock *block;
+	int y;
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_atm", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Shadow and Spot", "Lamp");
+	if(uiNewPanel(curarea, block, "Sky/Atmosphere", "Lamp", 3*PANELX, PANELY, PANELW, PANELH)==0) return;
+
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	uiDefButBitS(block, TOG, LA_SUN_EFFECT_SKY, REDRAWVIEW3D, "Sky", 10,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on sky.");
+	uiDefButBitS(block, TOG, LA_SUN_EFFECT_AP, REDRAWVIEW3D, "Atmosphere", 20+BUTW2,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on atmosphere.");
+
+	if(la->sun_effect_type & (LA_SUN_EFFECT_SKY|LA_SUN_EFFECT_AP)){
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Turbidity:",10,180,BUTW1,19, &(la->atm_turbidity), 1.000f, 30.0f, 1, 0, "Sky Turbidity");
+	}
+
+	y = 180;
+	if(la->sun_effect_type & LA_SUN_EFFECT_SKY)
+	{
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
+	}
+
+	if(la->sun_effect_type & LA_SUN_EFFECT_AP)
+	{
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Intens.:",20+BUTW2,y-25,BUTW2,19, &(la->sun_intensity), 0.00f, 10.00f, 10, 0, "Sets sun intensity.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Inscattering:",20+BUTW2,y-50,BUTW2,19, &(la->atm_inscattering_factor), 0.00f, 1.00f, 10, 0, "In Scattering Contribution Factor.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Extinction:",20+BUTW2,y-75,BUTW2,19, &(la->atm_extinction_factor), 0.00f, 1.00f, 10, 0, "Extinction Scattering Contribution Factor.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Distance:",20+BUTW2,y-100,BUTW2,19, &(la->atm_distance_factor), 0.000f, 500.0f, 10, 0, "Scale blender distance to real distance.");
+	}
+}
+
 static void lamp_panel_falloff(Object *ob, Lamp *la)
 {
 	uiBlock *block;
@@ -4354,6 +4390,11 @@ void lamp_panels()
 		/* spherelight radius default is zero, so nothing to do */
 		lamp_panel_yafray(ob, la);
 	}
+	
+	if(la->type == LA_SUN){
+		lamp_panel_atmosphere(ob, ob->data);
+	}
+
 	lamp_panel_texture(ob, ob->data);
 	lamp_panel_mapto(ob, ob->data);
 

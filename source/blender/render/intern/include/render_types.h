@@ -42,6 +42,7 @@
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
+#include "sunsky.h"
 
 struct Object;
 struct MemArena;
@@ -455,6 +456,9 @@ typedef struct LampRen {
 	float area_size, area_sizey, area_sizez;
 	float adapt_thresh;
 
+	/* sun/sky */
+	struct SunSky *sunsky;
+	
 	struct ShadBuf *shb;
 	float *jitter;
 	
