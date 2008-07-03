@@ -353,6 +353,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $INSTDIR
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\BlenderFoundation "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\BlenderFoundation "Home_Dir" "$BLENDERHOME"
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "DisplayName" "Blender (remove only)"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "UninstallString" '"$INSTDIR\uninstall.exe"'
@@ -406,28 +407,32 @@ SectionEnd
 UninstallText "This will uninstall Blender VERSION. Hit next to continue."
 
 Section "Uninstall"
+  Delete $INSTDIR\uninstall.exe
+  
+  ReadRegStr $BLENDERHOME HKLM "SOFTWARE\BlenderFoundation" "Home_Dir"
+  
   ; remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
   DeleteRegKey HKLM SOFTWARE\BlenderFoundation
   ; remove files
   [DELROOTDIRCONTS]
   
-  Delete $INSTDIR\.blender\.bfont.ttf
-  Delete $INSTDIR\.blender\.Blanguages
+  Delete $BLENDERHOME\.blender\.bfont.ttf
+  Delete $BLENDERHOME\.blender\.Blanguages
   ; remove shortcuts, if any.
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove directories used.
-  RMDir /r $INSTDIR\.blender\locale
+  RMDir /r $BLENDERHOME\.blender\locale
   MessageBox MB_YESNO "Erase .blender\scripts folder? (ALL contents will be erased!)" IDNO Next
-  RMDir /r $INSTDIR\.blender\scripts
-  RMDir /r $INSTDIR\.blender\scripts\bpymodules
-  RMDir /r $INSTDIR\.blender\scripts\bpydata
-  RMDir /r $INSTDIR\.blender\scripts\bpydata\config
+  RMDir /r $BLENDERHOME\.blender\scripts
+  RMDir /r $BLENDERHOME\.blender\scripts\bpymodules
+  RMDir /r $BLENDERHOME\.blender\scripts\bpydata
+  RMDir /r $BLENDERHOME\.blender\scripts\bpydata\config
 Next:
-  RMDir /r $INSTDIR\plugins\include
-  RMDir /r $INSTDIR\plugins
-  RMDir $INSTDIR\.blender
+  RMDir /r $BLENDERHOME\plugins\include
+  RMDir /r $BLENDERHOME\plugins
+  RMDir $BLENDERHOME\.blender
   RMDir "$SMPROGRAMS\Blender Foundation\Blender"
   RMDir "$SMPROGRAMS\Blender Foundation"
   RMDir "$INSTDIR"
