@@ -32,64 +32,33 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+
 #include "MEM_guardedalloc.h"
-
 #include "DNA_listBase.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-
-
+#include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
-#include "BKE_global.h"
-#include "BKE_depsgraph.h"
-#include "BLI_blenlib.h"
-#include "BLI_editVert.h"
-#include "BIF_editmesh.h"
-#include "BIF_space.h"
-#include "editmesh.h"
 #include "bmesh_private.h"
-#include "mydevice.h"
-
-#include "BSE_edit.h"
 
 
 /*	
  *	BME MAKE MESH
  *
  *  Allocates a new BME_Mesh structure.
- *	The arguments are two arrays, one of type int
- *  and another of type BME_CustomDataInit. The first array
- *  contains the allocation size for each element pool in 
- *  the mesh. For instance allocsize[0] contains the number
- *  of vertices to allocate at a time for the vertex pool.
- *
- *  The second array contains structures describing the layout
- *  of custom data for each element type in the mesh. So init[0]
- *  contains the custom data layout information for vertices, init[1]
- *  the layout information for edges and so on.
- *
  *  Returns -
  *  Pointer to a Bmesh
  *
 */
 
-BME_Mesh *BME_make_mesh(int allocsize[4], BME_CustomDataInit init[4])
+BME_Mesh *BME_make_mesh(int allocsize[4])
 {
 	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
 	/*allocate the memory pools for the mesh elements*/
-	bm->vpool = BME_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0]);
-	bm->epool = BME_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1]);
-	bm->lpool = BME_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2]);
-	bm->ppool = BME_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3]);
-	/*Setup custom data layers*/
-	BME_CD_Create(&bm->vdata, &init[0], allocsize[0]);
-	BME_CD_Create(&bm->edata, &init[1], allocsize[1]);
-	BME_CD_Create(&bm->ldata, &init[2], allocsize[2]);
-	BME_CD_Create(&bm->pdata, &init[3], allocsize[3]);
+	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0]);
+	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1]);
+	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2]);
+	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3]);
 	return bm;
 }
 /*	
@@ -105,26 +74,35 @@ void BME_free_mesh(BME_Mesh *bm)
 	BME_Loop *l;
 	BME_Poly *f;
 
-	for(v=bm->verts.first; v; v=v->next) BME_CD_free_block(&bm->vdata, &v->data);
-	for(e=bm->edges.first; e; e=e->next) BME_CD_free_block(&bm->edata, &e->data);
+	for(v=bm->verts.first; v; v=v->next) CustomData_bmesh_free_block(&bm->vdata, &v->data);
+	for(e=bm->edges.first; e; e=e->next) CustomData_bmesh_free_block(&bm->edata, &e->data);
 	for(f=bm->polys.first; f; f=f->next){
-		BME_CD_free_block(&bm->pdata, &f->data);
+		CustomData_bmesh_free_block(&bm->pdata, &f->data);
 		l = f->loopbase;
 		do{
-			BME_CD_free_block(&bm->ldata, &l->data);
+			CustomData_bmesh_free_block(&bm->ldata, &l->data);
 			l = l->next;
 		}while(l!=f->loopbase);
 	}
+
+	/*Free custom data pools, This should probably go in CustomData_free?*/
+	if(bm->vdata.totlayer) BLI_mempool_destroy(bm->vdata.pool);
+	if(bm->edata.totlayer) BLI_mempool_destroy(bm->edata.pool);
+	if(bm->ldata.totlayer) BLI_mempool_destroy(bm->ldata.pool);
+	if(bm->pdata.totlayer) BLI_mempool_destroy(bm->pdata.pool);
+
+ 	/*free custom data*/
+	CustomData_free(&bm->vdata,0);
+	CustomData_free(&bm->edata,0);
+	CustomData_free(&bm->ldata,0);
+	CustomData_free(&bm->pdata,0);
+
 	/*destroy element pools*/
-	BME_mempool_destroy(bm->vpool);
-	BME_mempool_destroy(bm->epool);
-	BME_mempool_destroy(bm->ppool);
-	BME_mempool_destroy(bm->lpool);
-	/*free custom data pools*/
-	BME_CD_Free(&bm->vdata);
-	BME_CD_Free(&bm->edata);
-	BME_CD_Free(&bm->ldata);
-	BME_CD_Free(&bm->pdata);
+	BLI_mempool_destroy(bm->vpool);
+	BLI_mempool_destroy(bm->epool);
+	BLI_mempool_destroy(bm->ppool);
+	BLI_mempool_destroy(bm->lpool);
+	
 	MEM_freeN(bm);	
 }
 

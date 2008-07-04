@@ -33,6 +33,7 @@
  */
 
 #include "MEM_guardedalloc.h"
+#include "BKE_customdata.h" 
 
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
@@ -54,11 +55,14 @@
 #include "bmesh_private.h"
 
 #include "BSE_edit.h"
+/*Converts an EditMesh to a BME_Mesh.*/
+static void bmesh_init_cdPool(CustomData *data, int allocsize){
+	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize);
+}
 
 BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	BME_Mesh *bm;
 	int allocsize[4] = {512,512,2048,512};
-	BME_CustomDataInit *init = MEM_callocN(sizeof(BME_CustomDataInit) * 4, "Bmesh custom data init");
 	BME_Vert *v1, *v2;
 	BME_Edge *e, *edar[4];
 	BME_Poly *f;
@@ -68,9 +72,12 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	EditFace *efa;
 
 	int len;
-	bm = BME_make_mesh(allocsize,init);
+	bm = BME_make_mesh(allocsize);
+
+	CustomData_copy(&em->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	bmesh_init_cdPool(&bm->vdata, allocsize[0]);
+
 	BME_model_begin(bm);
-	
 	/*add verts*/
 	eve= em->verts.first;
 	while(eve) {
@@ -80,8 +87,8 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		v1->h = eve->h;
 		v1->bweight = eve->bweight;
 
-		/* link the verts for edge and face construction;
-		 * kind of a dangerous thing - remember to cast back to BME_Vert before using! */
+		/*Copy Custom Data*/
+		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v1->data);
 		eve->tmp.v = (EditVert*)v1;
 		eve = eve->next;
 	}
@@ -102,6 +109,8 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 
 		/* link the edges for face construction;
 		 * kind of a dangerous thing - remember to cast back to BME_Edge before using! */
+		/*Copy CustomData*/
+
 		eed->tmp.e = (EditEdge*)e;
 		eed = eed->next;
 	}
@@ -137,7 +146,6 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		efa = efa->next;
 	}
 	BME_model_end(bm);
-	MEM_freeN(init);
 	return bm;
 }
 
@@ -161,6 +169,8 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 
 	if (em == NULL) return NULL;
 
+
+	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	/* convert to EditMesh */
 	/* make editverts */
 	totvert = BLI_countlist(&(bm->verts));
@@ -176,6 +186,7 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 		eve1->f = (unsigned char)v1->flag;
 		eve1->h = (unsigned char)v1->h;
 		eve1->bweight = v1->bweight;
+		CustomData_em_copy_data(&bm->vdata, &em->vdata, v1->data, &eve1->data);
 	}
 	
 	/* make edges */
@@ -234,7 +245,6 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 	
 	BME_Mesh *bm;
 	int allocsize[4] = {512,512,2048,512};
-	BME_CustomDataInit *init = MEM_callocN(sizeof(BME_CustomDataInit) * 4, "Bmesh custom data init");
 	MVert *mvert, *mv;
 	MEdge *medge, *me;
 	MFace *mface, *mf;
@@ -245,7 +255,7 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 	
 	EdgeHash *edge_hash = BLI_edgehash_new();
 
-	bm = BME_make_mesh(allocsize,init);
+	bm = BME_make_mesh(allocsize);
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumFaces(dm);
@@ -300,7 +310,6 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 	BME_model_end(bm);
 	BLI_edgehash_free(edge_hash, NULL);
 	MEM_freeN(vert_array);
-	MEM_freeN(init);
 	return bm;
 }
 
