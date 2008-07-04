@@ -66,6 +66,46 @@ static void simpleDeform_tapperXY(const float factor, const float *dcut, float *
 	}
 }
 
+/* TODO strech and squash need review on function */
+static void simpleDeform_strech(const float factor, const float dcut[3], float *co)
+{
+	float x = co[0], y = co[1], z = co[2];
+	float scale;
+
+	scale = z*factor;
+	scale = scale*scale;
+
+	co[0] += x+x*scale;
+	co[1] += y+y*scale;
+
+	if(dcut)
+	{
+		co[0] += dcut[0]*scale;
+		co[1] += dcut[0]*scale;
+		co[2] += dcut[2]; 
+	}
+
+}
+
+static void simpleDeform_squash(const float factor, const float dcut[3], float *co)
+{
+	float x = co[0], y = co[1], z = co[2];
+	float scale;
+
+	scale = z*factor;
+	scale = -scale*scale;
+
+	co[0] += x+x*scale;
+	co[1] += y+y*scale;
+
+	if(dcut)
+	{
+		co[0] += dcut[0]*scale;
+		co[1] += dcut[0]*scale;
+		co[2] += dcut[2]; 
+	}
+}
+
 static void simpleDeform_tapperX(const float factor, const float *dcut, float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
@@ -178,6 +218,16 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, f
 			case MOD_SIMPLEDEFORM_MODE_TAPER_XY:
 				axis_limit(2, smd->factor+1, *vertexCos, dcut);
 				simpleDeform_tapperXY(smd->factor[0], dcut, *vertexCos);
+				break;
+
+			case MOD_SIMPLEDEFORM_MODE_STRECH:
+				axis_limit(2, smd->factor+1, *vertexCos, dcut);
+				simpleDeform_strech(smd->factor[0], dcut, *vertexCos);
+				break;
+
+			case MOD_SIMPLEDEFORM_MODE_SQUASH:
+				axis_limit(2, smd->factor+1, *vertexCos, dcut);
+				simpleDeform_squash(smd->factor[0], dcut, *vertexCos);
 				break;
 		}
 
