@@ -50,6 +50,9 @@ extern "C" {
 #ifndef M_SQRT1_2
 #define M_SQRT1_2	0.70710678118654752440
 #endif
+#ifndef M_1_PI
+#define M_1_PI		0.318309886183790671538
+#endif
 
 #ifdef WIN32
 	#ifndef FREE_WINDOWS
