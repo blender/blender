@@ -118,7 +118,7 @@ void SCA_ISensor::Resume() {
 }
 
 void SCA_ISensor::Init() {
-	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name);
+	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name.Ptr());
 }
 
 void SCA_ISensor::DecLink() {
