@@ -213,6 +213,12 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->surfaceSubdivs = 1.0;
 	fss->particleInfSize = 0.0;
 	fss->particleInfAlpha = 0.0;
+	
+	// init fluid control settings
+	fss->attractforceStrength = 0.2;
+	fss->attractforceRadius = 0.75;
+	fss->velocityforceStrength = 0.2;
+	fss->velocityforceRadius = 0.75;
 
 	return fss;
 }

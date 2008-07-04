@@ -97,10 +97,13 @@ typedef struct elbeemSimulationSettings {
 
 
 // defines for elbeemMesh->type below
+/* please keep in sync with DNA_object_fluidsim.h */
 #define OB_FLUIDSIM_FLUID       4
 #define OB_FLUIDSIM_OBSTACLE    8
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
+#define OB_FLUIDSIM_PARTICLE    64
+#define OB_FLUIDSIM_CONTROL 	128
 
 // defines for elbeemMesh->obstacleType below
 #define FLUIDSIM_OBSTACLE_NOSLIP     1

@@ -117,6 +117,12 @@ typedef struct FluidsimSettings {
 
 	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
 	struct MVert *meshSurfNormals;
+	
+	/* Fluid control settings */
+	float attractforceStrength;
+	float attractforceRadius;
+	float velocityforceStrength;
+	float velocityforceRadius;
 
 } FluidsimSettings;
 
@@ -128,6 +134,7 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
 #define OB_FLUIDSIM_PARTICLE    64
+#define OB_FLUIDSIM_CONTROL 	128
 
 #define OB_TYPEFLAG_START       0
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))

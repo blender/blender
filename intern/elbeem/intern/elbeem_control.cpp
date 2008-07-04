@@ -13,10 +13,13 @@
 
 // add mesh as fluidsim object
 int elbeemControlAddSet(struct elbeemControl*) {
+	
 	return 0;
 }
 
-int elbeemControlComputeMesh(struct elbeemMesh) {
+int elbeemControlComputeMesh(struct elbeemMesh*) {
+	
+	
 	return 0;
 }
 

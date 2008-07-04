@@ -57,6 +57,6 @@ typedef struct elbeemControl {
 int elbeemControlAddSet(struct elbeemControl*);
 
 // sample & track mesh control particles, TODO add return type...
-int elbeemControlComputeMesh(struct elbeemMesh);
+int elbeemControlComputeMesh(struct elbeemMesh*);
 
 #endif // ELBEEMCONTROL_API_H

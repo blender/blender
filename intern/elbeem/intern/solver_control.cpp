@@ -213,7 +213,7 @@ LbmFsgrSolver::initCpdata()
 	//if( (getenv("ELBEEM_CPINFILE")) || (getenv("ELBEEM_CPOUTFILE")) ){ mUseTestdata=1; }
 
 	// NT blender integration manual test setup
-	if(1) {
+	if(0) {
 		// manually switch on! if this is zero, nothing is done...
 		mpControl->mSetForceStrength = this->mTForceStrength = 1.;
 		mpControl->mCons.clear();
