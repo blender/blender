@@ -134,6 +134,7 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_EDGE	8
 #define SCE_LAY_SKY		16
 #define SCE_LAY_STRAND	32
+#define SCE_LAY_FRS		64
 	/* flags between 32 and 0x8000 are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z		0x8000
@@ -571,6 +572,7 @@ typedef struct Scene {
 #define R_ORTHO			0x0008
 #define R_ENVMAP		0x0010
 #define R_EDGE			0x0020
+#define R_EDGE_FRS		0x2000000 // will replace R_EDGE
 #define R_FIELDS		0x0040
 #define R_FIELDSTILL	0x0080
 #define R_RADIO			0x0100

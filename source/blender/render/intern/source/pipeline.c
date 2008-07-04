@@ -70,7 +70,7 @@
 
 #endif /* disable yafray */
 
-#include "FST_freestyle.h"
+#include "FRS_freestyle.h"
 
 
 /* internal */
@@ -1621,7 +1621,7 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 
 static void do_render_3d(Render *re)
 {
-	
+	RenderLayer *rl;
 //	re->cfra= cfra;	/* <- unused! */
 	
 	/* make render verts/faces/halos/lamps */
@@ -1631,6 +1631,17 @@ static void do_render_3d(Render *re)
 	   RE_Database_FromScene(re, re->scene, 1);
 	
 	threaded_tile_processor(re);
+	
+	/* Freestyle */
+	if( re->r.mode & R_EDGE_FRS ) {
+		for(rl = re->result->layers.first; rl; rl= rl->next) {
+			if(rl->layflag & SCE_LAY_FRS) {
+				printf("Freestyle as a render layer\n");
+				FRS_prepare(re);
+				FRS_execute(re,1);
+			}
+		}
+	}
 	
 	/* do left-over 3d post effects (flares) */
 	if(re->flag & R_HALO)
@@ -2208,9 +2219,12 @@ static void freestyleRender(Render *re)
 	Mat4Invert(mat, re->scene->camera->obmat);
 	RE_SetView(re, mat);
 	
+	// Freestyle initialization
+	FRS_prepare(re);
+	
 	// run Freestyle
 	re->i.starttime = PIL_check_seconds_timer();
-	FRS_execute(re);
+	FRS_execute(re, 0);
 	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
 	

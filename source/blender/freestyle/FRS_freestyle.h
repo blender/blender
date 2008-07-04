@@ -5,7 +5,8 @@
 extern "C" {
 #endif	
 	
-	void FRS_execute(Render* re);
+	void FRS_prepare(Render* re);
+	void FRS_execute(Render* re, int render_in_layer);
 
 #ifdef __cplusplus
 }

@@ -27,10 +27,15 @@ using namespace std;
 extern "C" {
 #endif
 
+	static Config::Path *pathconfig = NULL;
 	static Controller *controller = NULL;
 	static AppGLWidget *view = NULL;
+
 	
 	void FRS_initialize(){
+		
+		if( pathconfig == NULL )
+			pathconfig = new Config::Path;
 		
 		if( controller == NULL )
 			controller = new Controller;
@@ -41,20 +46,14 @@ extern "C" {
 		controller->SetView(view);
 	}
 
-	void FRS_execute(Render* re) {
-		
-		// instanciation
-		Config::Path pathconfig;
-		FRS_initialize();
-		
-		// initialize view dimensions
-		unsigned int width = re->winx;
-		unsigned int height = re->winy;
-		view->setWidth(width);
-		view->setHeight(height);
-		view->_camera->setScreenWidthAndHeight(width, height);
-		
-		// initialize camera
+
+	void FRS_init_view(Render* re){
+		view->setWidth( re->winx );
+		view->setHeight( re->winy );
+		view->_camera->setScreenWidthAndHeight( re->winx, re->winy);
+	}
+
+	void FRS_init_camera(Render* re){
 		Object* maincam_obj = re->scene->camera;
 		Camera *cam = (Camera*) maincam_obj->data;
 
@@ -62,22 +61,23 @@ extern "C" {
 			view->_camera->setType(AppGLWidget_Camera::PERSPECTIVE);
 			view->_camera->setHorizontalFieldOfView( M_PI / 180.0f * cam->angle );
 		}
-		else if (cam->type == CAM_ORTHO){
-			view->_camera->setType(AppGLWidget_Camera::ORTHOGRAPHIC);
-			// view->_camera->setFocusDistance does not seem to work
-			// integrate cam->ortho_scale parameter
-		}
+		// else if (cam->type == CAM_ORTHO){
+		// 	view->_camera->setType(AppGLWidget_Camera::ORTHOGRAPHIC);
+		// 	// view->_camera->setFocusDistance does not seem to work
+		// 	// integrate cam->ortho_scale parameter
+		// }
 		
 		Vec camPosition(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]);
 		Vec camUp( re->viewmat[0][1], re->viewmat[1][1], re->viewmat[2][1]);
 		Vec camDirection( -re->viewmat[0][2], -re->viewmat[1][2], -re->viewmat[2][2]);
 		view->_camera->setPosition(camPosition);
 		view->_camera->setUpVector(camUp);	
-		view->_camera->setViewDirection(camDirection);	
+		view->_camera->setViewDirection(camDirection);
+	}
 	
-		
+	void FRS_scene_3ds_export(Render* re) {
 		// export scene to 3ds format
-		string script_3ds_export = 	pathconfig.getProjectDir() + 
+		string script_3ds_export = 	pathconfig->getProjectDir() + 
 									Config::DIR_SEP + "python" + 
 									Config::DIR_SEP + "3ds_export.py";
 		BPY_run_python_script( const_cast<char *>(script_3ds_export.c_str()) );
@@ -94,9 +94,20 @@ extern "C" {
 			cout << "Cannot find" << exported_3ds_file << endl;
 			return;
 		}
+	}
+	
+	void FRS_prepare(Render* re) {
+		FRS_initialize();
 		
+		FRS_init_view(re);
+		FRS_init_camera(re);
+		
+		FRS_scene_3ds_export(re);
+	}
+
+	void FRS_render(Render* re) {
 		// add style module
-		string style_module = pathconfig.getProjectDir() + 
+		string style_module = pathconfig->getProjectDir() + 
 								Config::DIR_SEP + "style_modules" + 
 								Config::DIR_SEP + "contour.py";
 		controller->InsertStyleModule( 0, const_cast<char *>(style_module.c_str()) 	 );
@@ -114,11 +125,19 @@ extern "C" {
 		// copy result into render window
 		RenderResult rres;
 		RE_GetResultImage(re, &rres);
-		view->readPixels(0,0,width,height,AppGLWidget::RGBA, rres.rectf );		
+		view->readPixels(0, 0, re->winx, re->winy, AppGLWidget::RGBA, rres.rectf );		
 		re->result->renlay = render_get_active_layer(re, re->result);
 		re->display_draw(re->result, NULL);
 		
 		controller->CloseFile();
+	}
+
+	void FRS_execute(Render* re, bool render_in_layer) {
+		
+		//if(render_in_layer)
+		// set-up offscreen rendering
+		
+		FRS_render(re);
 	}
 	
 #ifdef __cplusplus

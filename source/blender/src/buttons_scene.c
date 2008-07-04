@@ -2108,7 +2108,8 @@ static void render_panel_output(void)
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   115, 89, 60, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
-	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 175, 89, 135, 20, "Display Edge settings");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 175, 89, 75, 20, "Display Edge settings");
+	uiDefButBitI(block, TOG, R_EDGE_FRS, B_NOP,"Freestyle",   250, 89, 60, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Freestyle");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -3384,8 +3385,10 @@ static void render_panel_layers(void)
 	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	95,  85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
 	uiDefButBitI(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	135, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
 	uiDefButBitI(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		175, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
-	uiDefButBitI(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	215, 85, 45, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
-	uiDefButBitI(block, TOG, SCE_LAY_STRAND, B_NOP,"Strand",260, 85, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Strands in this Layer");	
+	uiDefButBitI(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	215, 85, 25, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");
+	uiDefButBitI(block, TOG, SCE_LAY_FRS, B_NOP,"FrSt",	240, 85, 30, 20, &srl->layflag, 0, 0, 0, 0, "Render Freestyle in this Layer");	
+	uiDefButBitI(block, TOG, SCE_LAY_STRAND, B_NOP,"Strand",270, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Strands in this Layer");	
+	
 	
 	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_SET_PASS, "Light:",	50, 65, 130, 20, &(srl->light_override), "Name of Group to use as Lamps instead");
 	uiDefIDPoinBut(block, test_matpoin_but, ID_MA, B_SET_PASS, "Mat:",	180, 65, 130, 20, &(srl->mat_override), "Name of Material to use as Materials instead");
