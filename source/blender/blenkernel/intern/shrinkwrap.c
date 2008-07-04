@@ -96,18 +96,6 @@ static void normal_short2float(const short *ns, float *nf)
 	nf[2] = ns[2] / 32767.0f;
 }
 
-static float vertexgroup_get_weight(MDeformVert *dvert, int index, int vgroup)
-{
-	if(dvert && vgroup >= 0)
-	{
-		int j;
-		for(j = 0; j < dvert[index].totweight; j++)
-			if(dvert[index].dw[j].def_nr == vgroup)
-				return dvert[index].dw[j].weight;
-	}
-	return 1.0;
-}
-
 /*
  * BVH tree from mesh vertices
  */
@@ -722,7 +710,7 @@ static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_
 	//Shrink (calculate each vertex final position)
 	for(i = 0; i<numVerts; i++)
 	{
-		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 
 		float orig[3], final[3]; //Coords relative to target
 		float normal[3];
@@ -1093,7 +1081,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	for(i=0; i<numVerts; i++)
 	{
 		int index;
-		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
 		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
@@ -1157,7 +1145,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	for(i=0; i<numVerts; i++)
 	{
 		float dist = FLT_MAX;
-		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		float face_normal[3];
 		if(weight == 0.0f) continue;
 
@@ -1260,7 +1248,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	for(i=0; i<numVerts; i++)
 	{
 		int index;
-		float weight = vertexgroup_get_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
 		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);

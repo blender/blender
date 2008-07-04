@@ -3,7 +3,7 @@
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
-* This program is free software; you can redistribute it and/or
+* This program is free software; you can redistribute it and/orw
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version.
@@ -100,6 +100,7 @@
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 #include "BKE_bmesh.h"
+#include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_simple_deform.h"
 
@@ -6088,22 +6089,6 @@ CustomDataMask explodeModifier_requiredDataMask(ModifierData *md)
 	return dataMask;
 }
 
-/* this should really be put somewhere permanently */
-static float vert_weight(MDeformVert *dvert, int group)
-{
-	MDeformWeight *dw;
-	int i;
-	
-	if(dvert) {
-		dw= dvert->dw;
-		for(i= dvert->totweight; i>0; i--, dw++) {
-			if(dw->def_nr == group) return dw->weight;
-			if(i==1) break; /*otherwise dw will point to somewhere it shouldn't*/
-		}
-	}
-	return 0.0;
-}
-
 static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 					 ParticleSystemModifierData *psmd,
       Object *ob, DerivedMesh *dm)
@@ -6147,7 +6132,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 			for(i=0; i<totvert; i++){
 				val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
-				if(val < vert_weight(dvert+i,emd->vgroup-1))
+				if(val < deformvert_get_weight(dvert+i,emd->vgroup-1))
 					vertpa[i] = -1;
 			}
 		}
@@ -7304,12 +7289,24 @@ static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target
 
 static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, derivedData, vertexCos, numVerts);
 }
 
 static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, derivedData, vertexCos, numVerts);
+}
+
+static CustomDataMask simpledeformModifier_requiredDataMask(ModifierData *md)
+{
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->vgroup_name[0])
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
 }
 
 static void simpledeformModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
@@ -7669,6 +7666,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 				| eModifierTypeFlag_EnableInEditmode;
 		mti->initData = simpledeformModifier_initData;
 		mti->copyData = simpledeformModifier_copyData;
+		mti->requiredDataMask = simpledeformModifier_requiredDataMask;
 		mti->deformVerts = simpledeformModifier_deformVerts;
 		mti->deformVertsEM = simpledeformModifier_deformVertsEM;
 		mti->foreachObjectLink = simpledeformModifier_foreachObjectLink;

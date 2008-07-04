@@ -32,6 +32,8 @@
 
 #include "BKE_simple_deform.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_deform.h"
+#include "BKE_utildefines.h"
 #include "BLI_arithb.h"
 
 #include <string.h>
@@ -173,66 +175,84 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 
 
 /* simple deform modifier */
-void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, float (*vertexCos)[3], int numVerts)
+void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
+	int i;
 	float (*ob2mod)[4] = NULL, (*mod2ob)[4] = NULL;
-	float tmp[2][4][4], dcut[3];
+	float tmp_matrix[2][4][4];
 
+	int vgroup = get_named_vertexgroup_num(ob, smd->vgroup_name);
+
+	MDeformVert *dvert = NULL;
+
+	//Calculate matrixs do convert between coordinate spaces
 	if(smd->origin)
 	{
 		//inverse is outdated
 		Mat4Invert(smd->origin->imat, smd->origin->obmat);
 		Mat4Invert(ob->imat, ob->obmat);
 
-		ob2mod = tmp[0];
-		mod2ob = tmp[1];
+		ob2mod = tmp_matrix[0];
+		mod2ob = tmp_matrix[1];
 		Mat4MulSerie(ob2mod, smd->origin->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
 		Mat4Invert(mod2ob, ob2mod);
 	}
 
 
-	for(; numVerts; numVerts--, vertexCos++)
+	if(dm)
+		dvert	= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+
+	for(i=0; i<numVerts; i++)
 	{
+		float co[3], dcut[3];
+		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+
+		if(weight == 0) continue;
+
 		if(ob2mod)
-			Mat4MulVecfl(ob2mod, *vertexCos);
+			Mat4MulVecfl(ob2mod, vertexCos[i]);
 
 		dcut[0] = dcut[1] = dcut[2] = 0.0f;
+		VECCOPY(co, vertexCos[i]);
 
 		switch(smd->mode)
 		{
 			case MOD_SIMPLEDEFORM_MODE_TWIST:
-				axis_limit(2, smd->factor+1, *vertexCos, dcut);
-				simpleDeform_twist	 (smd->factor[0], dcut, *vertexCos);
+				axis_limit(2, smd->factor+1, co, dcut);
+				simpleDeform_twist	 (smd->factor[0], dcut, co);
 				break;
 
 			case MOD_SIMPLEDEFORM_MODE_BEND:
-				axis_limit(0, smd->factor+1, *vertexCos, dcut);
-				simpleDeform_bend	 (smd->factor[0], dcut, *vertexCos);
+				axis_limit(0, smd->factor+1, co, dcut);
+				simpleDeform_bend	 (smd->factor[0], dcut, co);
 				break;
 
 			case MOD_SIMPLEDEFORM_MODE_TAPER_X:
-				axis_limit(2, smd->factor+1, *vertexCos, dcut);
-				simpleDeform_tapperX (smd->factor[0], dcut, *vertexCos);
+				axis_limit(2, smd->factor+1, co, dcut);
+				simpleDeform_tapperX (smd->factor[0], dcut, co);
 				break;
 
 			case MOD_SIMPLEDEFORM_MODE_TAPER_XY:
-				axis_limit(2, smd->factor+1, *vertexCos, dcut);
-				simpleDeform_tapperXY(smd->factor[0], dcut, *vertexCos);
+				axis_limit(2, smd->factor+1, co, dcut);
+				simpleDeform_tapperXY(smd->factor[0], dcut, co);
 				break;
 
 			case MOD_SIMPLEDEFORM_MODE_STRECH:
-				axis_limit(2, smd->factor+1, *vertexCos, dcut);
-				simpleDeform_strech(smd->factor[0], dcut, *vertexCos);
+				axis_limit(2, smd->factor+1, co, dcut);
+				simpleDeform_strech(smd->factor[0], dcut, co);
 				break;
 
 			case MOD_SIMPLEDEFORM_MODE_SQUASH:
-				axis_limit(2, smd->factor+1, *vertexCos, dcut);
-				simpleDeform_squash(smd->factor[0], dcut, *vertexCos);
+				axis_limit(2, smd->factor+1, co, dcut);
+				simpleDeform_squash(smd->factor[0], dcut, co);
 				break;
 		}
 
+		//linear interpolation
+		VecLerpf(vertexCos[i], vertexCos[i], co, weight);
+
 		if(mod2ob)
-			Mat4MulVecfl(mod2ob, *vertexCos);
+			Mat4MulVecfl(mod2ob, vertexCos[i]);
 	}
 }
 

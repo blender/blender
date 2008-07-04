@@ -971,22 +971,23 @@ static void do_modifiers_select_simpledeform_typemenu(void *ob_v, int event)
 
 	object_add_modifier((Object*) ob_v, (ModifierData*)smd);
 	BIF_undo_push("Add modifier");
+	do_modifier_panels(B_MODIFIER_RECALC);
 }
 
 static uiBlock *modifiers_select_simpledeform_typemenu(void *ob_v)
 {
 	uiBlock *block;
-	short yco = 20, menuwidth = 160;
+	short yco = 20, menuwidth = 120;
 
 	block= uiNewBlock(&curarea->uiblocks, "modifiers_select_simpledeform_typemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_modifiers_select_simpledeform_typemenu, ob_v);
 
-	uiDefBut(block, BUTM, 1, "Twist",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TWIST, "");
-	uiDefBut(block, BUTM, 1, "Bend",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_BEND, "");
-	uiDefBut(block, BUTM, 1, "Tapper X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_X, "");
-	uiDefBut(block, BUTM, 1, "Tapper XY",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_XY, "");
-	uiDefBut(block, BUTM, 1, "Strech",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_STRECH, "");
-	uiDefBut(block, BUTM, 1, "Squash",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_SQUASH, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Twist",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TWIST, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Bend",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_BEND, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Tapper X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_X, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Tapper XY",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_XY, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Strech",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_STRECH, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Squash",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_SQUASH, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -1906,7 +1907,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
 				height += 19*5;
 		} else if (md->type==eModifierType_SimpleDeform) {
-			height += 19*4;
+			height += 19*5;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2560,6 +2561,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char simpledeform_typemenu[]="Deform type%t|Twist %x1|Bend %x2|Taper %x3|TaperXY %x4|Strech %x5|Squash %x6";
 			uiDefButC(block, MENU, B_MODIFIER_RECALC, simpledeform_typemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform");
 */
+
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth-17,19, &smd->origin, "Origin of modifier space coordinates");
 

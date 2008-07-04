@@ -523,7 +523,9 @@ typedef struct SimpleDeformModifierData {
 	ModifierData modifier;
 
 	struct Object *origin;	/* object to control the origin of modifier space coordinates */
+	char vgroup_name[32];	/* optional vertexgroup name */
 	float factor[4];		/* factors to control simple deforms */
+
 	char mode;
 	char pad[7];
 
