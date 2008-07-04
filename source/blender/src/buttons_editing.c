@@ -5009,13 +5009,42 @@ static void skgen_graphfree(void *arg1, void *arg2)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
+{
+	uiBlock *block;
+	uiBut *but;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen_display", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Mesh Tools More", "Skgen");
+	if(uiNewPanel(curarea, block, "Graph", "Editing", 960, 0, 318, 204)==0) return;
+	
+	but = uiDefBut(block, BUT, B_DIFF, "Generate",				1025,170,125,19, 0, 0, 0, 0, 0, "Generate Graph from Mesh");
+	uiButSetFunc(but, skgen_graphgen, NULL, NULL);
+	but = uiDefBut(block, BUT, B_DIFF, "Free",					1150,170,125,19, 0, 0, 0, 0, 0, "Free Graph from Mesh");
+	uiButSetFunc(but, skgen_graphfree, NULL, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"",				1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
+	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
+	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1108, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
+	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1191, 60, 84,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
+}
+
 static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 {
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen_retarget", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Mesh Tools More", "Editing");
-	if(uiNewPanel(curarea, block, "Skeleton Retargetting", "Editing", 960, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Mesh Tools More", "Skgen");
+	if(uiNewPanel(curarea, block, "Retarget", "Editing", 960, 0, 318, 204)==0) return;
 	
 	uiDefBut(block, BUT, B_RETARGET_SKELETON, "Retarget Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Retarget Selected Armature to this Mesh");
 
@@ -5050,14 +5079,10 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	int i;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Mesh Tools More", "Editing");
-	if(uiNewPanel(curarea, block, "Skeleton Generator", "Editing", 960, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Mesh Tools More", "Skgen");
+	if(uiNewPanel(curarea, block, "Generator", "Editing", 960, 0, 318, 204)==0) return;
 	
-	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,125,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
-	but = uiDefBut(block, BUT, B_DIFF, "Generate",				1150,170,65,19, 0, 0, 0, 0, 0, "Generate Graph from Mesh");
-	uiButSetFunc(but, skgen_graphgen, NULL, NULL);
-	but = uiDefBut(block, BUT, B_DIFF, "Free",					1215,170,60,19, 0, 0, 0, 0, 0, "Free Graph from Mesh");
-	uiButSetFunc(but, skgen_graphfree, NULL, NULL);
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
@@ -6579,6 +6604,7 @@ void editing_panels()
 			
 			editing_panel_mesh_skgen(ob, ob->data);
 			editing_panel_mesh_skgen_retarget(ob, ob->data);
+			editing_panel_mesh_skgen_display(ob, ob->data);
 			
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())

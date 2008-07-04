@@ -147,6 +147,12 @@ void REEB_freeGraph(ReebGraph *rg)
 	// free edge map
 	BLI_edgehash_free(rg->emap, NULL);
 	
+	/* free linked graph */
+	if (rg->link)
+	{
+		REEB_freeGraph(rg->link);
+	}
+	
 	MEM_freeN(rg);
 }
 
@@ -256,6 +262,9 @@ ReebGraph * copyReebGraph(ReebGraph *rg)
 	ReebNode *node;
 	ReebArc *arc;
 	ReebGraph *cp_rg = newReebGraph();
+	
+	cp_rg->resolution = rg->resolution;
+	cp_rg->link = rg;
 
 	/* Copy nodes */	
 	for (node = rg->nodes.first; node; node = node->next)
@@ -1366,6 +1375,59 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 	return value;
 }
 
+void filterGraph(ReebGraph *rg, short options, float threshold_internal, float threshold_external)
+{
+	int done = 1;
+
+	/* filter until there's nothing more to do */
+	while (done == 1)
+	{
+		done = 0; /* no work done yet */
+		
+		if (options & SKGEN_FILTER_EXTERNAL)
+		{
+			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
+		}
+	
+		verifyBuckets(rg);
+	
+		if (options & SKGEN_FILTER_INTERNAL)
+		{
+			done |= filterInternalReebGraph(rg, threshold_internal * rg->resolution);
+		}
+	}
+
+	if (options & SKGEN_FILTER_SMART)
+	{
+		filterSmartReebGraph(rg, 0.5);
+		BLI_rebuildAdjacencyList((BGraph*)rg);
+		filterCyclesReebGraph(rg, 0.5);
+	}
+	
+	repositionNodes(rg);
+
+	/* Filtering might have created degree 2 nodes, so remove them */
+	removeNormalNodes(rg);
+}
+
+void finalizeGraph(ReebGraph *rg, char passes, char method)
+{
+	int i;
+	
+	BLI_rebuildAdjacencyList((BGraph*)rg);
+
+	sortNodes(rg);
+	
+	sortArcs(rg);
+	
+	for(i = 0; i <  passes; i++)
+	{
+		postprocessGraph(rg, method);
+	}
+	
+	calculateGraphLength(rg);
+}
+
 /************************************** WEIGHT SPREADING ***********************************************/
 
 int compareVerts( const void* a, const void* b )
@@ -1951,6 +2013,8 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
  	
 	rg = newReebGraph();
 	
+	rg->resolution = subdivisions;
+	
 	totvert = BLI_countlist(&em->verts);
 	totfaces = BLI_countlist(&em->faces);
 	
@@ -1959,7 +2023,7 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	/* Spread weight to minimize errors */
 	spreadWeight(em);
 
-	renormalizeWeight(em, (float)subdivisions);
+	renormalizeWeight(em, (float)rg->resolution);
 
 	/* Adding vertice */
 	for(index = 0, eve = em->verts.first; eve; eve = eve->next)
@@ -2746,11 +2810,69 @@ struct EmbedBucket * currentBucket(struct ReebArcIterator *iter)
 
 /************************ PUBLIC FUNCTIONS *********************************************/
 
+ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
+{
+	EditMesh *em = G.editMesh;
+	ReebGraph *rg = NULL;
+	ReebGraph *rgi;
+	
+	if (em == NULL)
+		return NULL;
+
+	if (weightFromDistance(em) == 0)
+	{
+		error("No selected vertex\n");
+		return NULL;
+	}
+	
+	renormalizeWeight(em, 1.0f);
+
+	if (G.scene->toolsettings->skgen_options & SKGEN_HARMONIC)
+	{
+		weightToHarmonic(em);
+	}
+	
+#ifdef DEBUG_REEB
+	weightToVCol(em, 0);
+#endif
+	
+	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
+
+	/* Remove arcs without embedding */
+	filterNullReebGraph(rg);
+
+	repositionNodes(rg);
+
+	/* Filtering might have created degree 2 nodes, so remove them */
+	removeNormalNodes(rg);
+	
+	rg = copyReebGraph(rg);
+	
+	for (rgi = rg; rgi; rgi = rgi->link)
+	{
+		/* don't fully filter last level */
+		if (rgi->link)
+		{
+			filterGraph(rgi, G.scene->toolsettings->skgen_options, G.scene->toolsettings->skgen_threshold_internal, G.scene->toolsettings->skgen_threshold_external);
+		}
+		/* on last level, only smart filter and loop filter */
+		else
+		{
+			filterGraph(rgi, SKGEN_FILTER_SMART, 0, 0);
+		}
+
+		finalizeGraph(rgi, G.scene->toolsettings->skgen_postpro_passes, G.scene->toolsettings->skgen_postpro);
+
+		BLI_markdownSymmetry((BGraph*)rgi, rgi->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
+	}
+
+	return rg;
+}
+
 ReebGraph *BIF_ReebGraphFromEditMesh(void)
 {
 	EditMesh *em = G.editMesh;
 	ReebGraph *rg = NULL;
-	int i;
 	
 	if (em == NULL)
 		return NULL;
@@ -2795,63 +2917,17 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	printf("NULL FILTERED\n");
 	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
 
-	i = 1;
-	/* filter until there's nothing more to do */
-	while (i == 1)
-	{
-		i = 0; /* no work done yet */
-		
-		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
-		{
-			i |= filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
-		}
-	
-		verifyBuckets(rg);
-	
-		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
-		{
-			i |= filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
-		}
-	}
+	filterGraph(rg, G.scene->toolsettings->skgen_options, G.scene->toolsettings->skgen_threshold_internal, G.scene->toolsettings->skgen_threshold_external);
 
-	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_SMART)
-	{
-		filterSmartReebGraph(rg, 0.5);
-		BLI_rebuildAdjacencyList((BGraph*)rg);
-		filterCyclesReebGraph(rg, 0.5);
-	}
+	finalizeGraph(rg, G.scene->toolsettings->skgen_postpro_passes, G.scene->toolsettings->skgen_postpro);
 
+	REEB_exportGraph(rg, -1);
+	
 #ifdef DEBUG_REEB
 	arcToVCol(rg, em, 0);
 	//angleToVCol(em, 1);
 #endif
 
-	verifyBuckets(rg);
-
-	repositionNodes(rg);
-	
-	verifyBuckets(rg);
-
-	/* Filtering might have created degree 2 nodes, so remove them */
-	removeNormalNodes(rg);
-	
-	verifyBuckets(rg);
-
-	for(i = 0; i <  G.scene->toolsettings->skgen_postpro_passes; i++)
-	{
-		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
-	}
-
-	BLI_rebuildAdjacencyList((BGraph*)rg);
-	
-	sortNodes(rg);
-	
-	sortArcs(rg);
-	
-	REEB_exportGraph(rg, -1);
-	
-	calculateGraphLength(rg);
-	
 	printf("DONE\n");
 	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
 
@@ -2873,15 +2949,14 @@ void BIF_GlobalReebGraphFromEditMesh(void)
 	
 	BIF_GlobalReebFree();
 	
-	rg = BIF_ReebGraphFromEditMesh();
+	rg = BIF_ReebGraphMultiFromEditMesh();
 
-	BLI_markdownSymmetry((BGraph*)rg, rg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
-	
 	GLOBAL_RG = rg;
 }
 
 void REEB_draw()
 {
+	ReebGraph *rg;
 	ReebArc *arc;
 	int i = 0;
 	
@@ -2890,13 +2965,23 @@ void REEB_draw()
 		return;
 	}
 	
+	if (GLOBAL_RG->link && G.scene->toolsettings->skgen_options & SKGEN_DISP_ORIG)
+	{
+		rg = GLOBAL_RG->link;
+	}
+	else
+	{
+		rg = GLOBAL_RG;
+	}
+	
 	glDisable(GL_DEPTH_TEST);
-	for (arc = GLOBAL_RG->arcs.first; arc; arc = arc->next, i++)
+	for (arc = rg->arcs.first; arc; arc = arc->next, i++)
 	{
 		ReebArcIterator iter;
 		EmbedBucket *bucket;
 		float vec[3];
-		char text[64];
+		char text[128];
+		char *s = text;
 		
 		initArcIterator(&iter, arc, arc->head);
 		
@@ -2924,7 +3009,17 @@ void REEB_draw()
 		
 		VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
 		
-		sprintf(text, "%i - %0.3f", i, arc->tail->weight - arc->head->weight);
+		s += sprintf(s, "%i", i);
+		
+		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)
+		{
+			s += sprintf(s, " - %0.3f", arc->tail->weight - arc->head->weight);
+		}
+		
+		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_LENGTH)
+		{
+			s += sprintf(s, " - %0.3f", arc->length);
+		}
 		
 		glColor3f(0, 1, 0);
 		glRasterPos3fv(vec);

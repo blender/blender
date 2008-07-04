@@ -832,16 +832,19 @@ typedef struct Scene {
 #define RETOPO_ELLIPSE 4
 
 /* toolsettings->skgen_options */
-#define SKGEN_FILTER_INTERNAL	1
-#define SKGEN_FILTER_EXTERNAL	2
-#define	SKGEN_SYMMETRY			4
-#define	SKGEN_CUT_LENGTH		8
-#define	SKGEN_CUT_ANGLE			16
-#define	SKGEN_CUT_CORRELATION	32
-#define	SKGEN_HARMONIC			64
-#define	SKGEN_STICK_TO_EMBEDDING	128
-#define	SKGEN_ADAPTIVE_DISTANCE		512
-#define SKGEN_FILTER_SMART		1024
+#define SKGEN_FILTER_INTERNAL	(1 << 0)
+#define SKGEN_FILTER_EXTERNAL	(1 << 1)
+#define	SKGEN_SYMMETRY			(1 << 2)
+#define	SKGEN_CUT_LENGTH		(1 << 3)
+#define	SKGEN_CUT_ANGLE			(1 << 4)
+#define	SKGEN_CUT_CORRELATION	(1 << 5)
+#define	SKGEN_HARMONIC			(1 << 6)
+#define	SKGEN_STICK_TO_EMBEDDING	(1 << 7)
+#define	SKGEN_ADAPTIVE_DISTANCE		(1 << 8)
+#define SKGEN_FILTER_SMART		(1 << 9)
+#define SKGEN_DISP_LENGTH		(1 << 10)
+#define SKGEN_DISP_WEIGHT		(1 << 11)
+#define SKGEN_DISP_ORIG			(1 << 12)
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1

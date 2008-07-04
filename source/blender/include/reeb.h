@@ -48,8 +48,10 @@ typedef struct ReebGraph {
 	AxialSymmetry	axial_symmetry;
 	/*********************************/
 	
+	int resolution;
 	int totnodes;
 	struct EdgeHash *emap;
+	struct ReebGraph *link; /* for multi resolution filtering, points to higher levels */
 } ReebGraph;
 
 typedef struct EmbedBucket {
