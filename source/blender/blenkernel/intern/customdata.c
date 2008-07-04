@@ -1557,7 +1557,7 @@ void *CustomData_bmesh_get_n(const CustomData *data, void *block, int type, int 
 	return (char *)block + data->layers[layer_index+n].offset;
 }
 
-void CustomData_bmesh_set(CustomData *data, void *block, int type, void *source)
+void CustomData_bmesh_set(const CustomData *data, void *block, int type, void *source)
 {
 	void *dest = CustomData_bmesh_get(data, block, type);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
