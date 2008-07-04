@@ -90,11 +90,22 @@ class KX_GameObject:
 					- 1: Y axis
 					- 2: Z axis (default) 
 		"""
+	def getAxisVect(vect):
+		"""
+		Returns the axis vector rotates by the objects worldspace orientation.
+		This is the equivalent if multiplying the vector by the orientation matrix.
+		
+		@type vect: 3d vector.
+		@param vect: a vector to align the axis.
+		@rtype: 3d vector.
+		@return: The vector in relation to the objects rotation.
+
+		"""
 	def getOrientation():
 		"""
 		Gets the game object's orientation.
 		
-		@rtype: 3x3 inverted rotation matrix
+		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
 		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
