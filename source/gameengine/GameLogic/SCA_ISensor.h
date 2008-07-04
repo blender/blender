@@ -64,6 +64,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** detect level instead of edge*/
 	bool m_level;
 
+	/** sensor has been reset */
+	bool m_reset;
+
 	/** Sensor must ignore updates? */
 	bool m_suspended;
 

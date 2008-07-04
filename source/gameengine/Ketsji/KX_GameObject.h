@@ -258,6 +258,12 @@ public:
 		bool local=false
 	);
 
+	/**
+	 * Return the mass of the object
+	 */
+		MT_Scalar	
+	GetMass();
+
 	/** 
 	 * Return the angular velocity of the game object.
 	 */
@@ -331,6 +337,9 @@ public:
 	void	NodeSetLocalScale(	const MT_Vector3& scale	);
 
 	void	NodeSetRelativeScale(	const MT_Vector3& scale	);
+
+	// adapt local position so that world position is set to desired position
+	void	NodeSetWorldPosition(const MT_Point3& trans);
 
 		void						
 	NodeUpdateGS(

@@ -644,6 +644,15 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 		NodeSetLocalOrientation(orimat);
 }
 
+MT_Scalar KX_GameObject::GetMass()
+{
+	if (m_pPhysicsController1)
+	{
+		return m_pPhysicsController1->GetMass();
+	}
+	return 0.0;
+}
+
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
 	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
@@ -735,6 +744,31 @@ void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 		GetSGNode()->RelativeScale(scale);
 }
 
+void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
+{
+	SG_Node* parent = m_pSGNode->GetSGParent();
+	if (parent != NULL)
+	{
+		// Make sure the objects have some scale
+		MT_Vector3 scale = parent->GetWorldScaling();
+		if (fabs(scale[0]) < FLT_EPSILON || 
+			fabs(scale[1]) < FLT_EPSILON || 
+			fabs(scale[2]) < FLT_EPSILON)
+		{ 
+			return; 
+		}
+		scale[0] = 1.0/scale[0];
+		scale[1] = 1.0/scale[1];
+		scale[2] = 1.0/scale[2];
+		MT_Matrix3x3 invori = parent->GetWorldOrientation().inverse();
+		MT_Vector3 newpos = invori*(trans-parent->GetWorldPosition())*scale;
+		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
+	}
+	else 
+	{
+		NodeSetLocalPosition(trans);
+	}
+}
 
 
 void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)

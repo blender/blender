@@ -603,6 +603,9 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 		case SENS_PROPERTY:
 			writestruct(wd, DATA, "bPropertySensor", 1, sens->data);
 			break;
+		case SENS_ACTUATOR:
+			writestruct(wd, DATA, "bActuatorSensor", 1, sens->data);
+			break;
 		case SENS_COLLISION:
 			writestruct(wd, DATA, "bCollisionSensor", 1, sens->data);
 			break;

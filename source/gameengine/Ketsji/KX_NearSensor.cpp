@@ -102,10 +102,7 @@ CValue* KX_NearSensor::GetReplica()
 {
 	KX_NearSensor* replica = new KX_NearSensor(*this);
 	replica->m_colliders = new CListValue();
-	replica->m_bCollision = false;
-	replica->m_bTriggered= false;
-	replica->m_hitObject = NULL;
-	replica->m_bLastTriggered = false;
+	replica->Init();
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	

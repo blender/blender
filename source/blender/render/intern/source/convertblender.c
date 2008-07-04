@@ -114,6 +114,7 @@
 #include "sss.h"
 #include "strand.h"
 #include "zbuf.h"
+#include "sunsky.h"
 
 #ifndef DISABLE_YAFRAY /* disable yafray */
 

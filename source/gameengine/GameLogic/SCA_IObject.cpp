@@ -157,15 +157,15 @@ bool SCA_IObject::GetIgnoreActivityCulling()
 
 void SCA_IObject::ReParentLogic()
 {
-	SCA_SensorList& oldsensors = GetSensors();
-	
-	int sen = 0;
-	SCA_SensorList::iterator its;
-	for (its = oldsensors.begin(); !(its==oldsensors.end()); ++its)
+	SCA_ActuatorList& oldactuators  = GetActuators();
+	int act = 0;
+	SCA_ActuatorList::iterator ita;
+	for (ita = oldactuators.begin(); !(ita==oldactuators.end()); ++ita)
 	{
-		SCA_ISensor* newsensor = (SCA_ISensor*)(*its)->GetReplica();
-		newsensor->ReParent(this);
-		oldsensors[sen++] = newsensor;
+		SCA_IActuator* newactuator = (SCA_IActuator*) (*ita)->GetReplica();
+		newactuator->ReParent(this);
+		newactuator->SetActive(false);
+		oldactuators[act++] = newactuator;
 	}
 
 	SCA_ControllerList& oldcontrollers = GetControllers();
@@ -178,17 +178,17 @@ void SCA_IObject::ReParentLogic()
 		oldcontrollers[con++]=newcontroller;
 
 	}
-	SCA_ActuatorList& oldactuators  = GetActuators();
-	
-	int act = 0;
-	SCA_ActuatorList::iterator ita;
-	for (ita = oldactuators.begin(); !(ita==oldactuators.end()); ++ita)
+	// convert sensors last so that actuators are already available for Actuator sensor
+	SCA_SensorList& oldsensors = GetSensors();
+	int sen = 0;
+	SCA_SensorList::iterator its;
+	for (its = oldsensors.begin(); !(its==oldsensors.end()); ++its)
 	{
-		SCA_IActuator* newactuator = (SCA_IActuator*) (*ita)->GetReplica();
-		newactuator->ReParent(this);
-		newactuator->SetActive(false);
-		oldactuators[act++] = newactuator;
+		SCA_ISensor* newsensor = (SCA_ISensor*)(*its)->GetReplica();
+		newsensor->ReParent(this);
+		oldsensors[sen++] = newsensor;
 	}
+
 	// a new object cannot be client of any actuator
 	m_registeredActuators.clear();
 		

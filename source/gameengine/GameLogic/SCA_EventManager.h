@@ -49,7 +49,8 @@ public:
 		RAY_EVENTMGR,
 		RADAR_EVENTMGR,
 		NETWORK_EVENTMGR,
-		JOY_EVENTMGR
+		JOY_EVENTMGR,
+		ACTUATOR_EVENTMGR
 	};
 
 	SCA_EventManager(EVENT_MANAGER_TYPE mgrtype);
@@ -58,6 +59,7 @@ public:
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void	NextFrame(double curtime, double fixedtime);
 	virtual void	NextFrame();
+	virtual void    UpdateFrame();
 	virtual void	EndFrame();
 	virtual void	RegisterSensor(class SCA_ISensor* sensor)=0;
 	int		GetType();

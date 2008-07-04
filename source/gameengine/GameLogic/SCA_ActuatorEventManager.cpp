@@ -26,57 +26,51 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <assert.h>
-#include "SCA_EventManager.h"
+#include "SCA_ISensor.h"
+#include "SCA_ActuatorEventManager.h"
+#include "SCA_ActuatorSensor.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 
-SCA_EventManager::SCA_EventManager(EVENT_MANAGER_TYPE mgrtype)
-	:m_mgrtype(mgrtype)
+SCA_ActuatorEventManager::SCA_ActuatorEventManager(class SCA_LogicManager* logicmgr)
+	: SCA_EventManager(ACTUATOR_EVENTMGR),
+	m_logicmgr(logicmgr)
 {
 }
 
 
 
-SCA_EventManager::~SCA_EventManager()
+SCA_ActuatorEventManager::~SCA_ActuatorEventManager()
 {
+
 }
 
 
 
-void SCA_EventManager::RemoveSensor(class SCA_ISensor* sensor)
+void SCA_ActuatorEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
-	std::vector<SCA_ISensor*>::iterator i =
-	std::find(m_sensors.begin(), m_sensors.end(), sensor);
-	if (!(i == m_sensors.end()))
+	m_sensors.push_back(sensor);
+}
+
+
+
+void SCA_ActuatorEventManager::NextFrame()
+{
+	// check for changed actuator
+	for (vector<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
 	{
-		std::swap(*i, m_sensors.back());
-		m_sensors.pop_back();
+		(*it)->Activate(m_logicmgr,NULL);
 	}
 }
 
-void SCA_EventManager::NextFrame(double curtime, double fixedtime)
+void SCA_ActuatorEventManager::UpdateFrame()
 {
-	NextFrame();
-}
-
-void SCA_EventManager::NextFrame()
-{
-	assert(false); // && "Event managers should override a NextFrame method");
-}
-
-void SCA_EventManager::EndFrame()
-{
-}
-
-void SCA_EventManager::UpdateFrame()
-{
-}
-
-int SCA_EventManager::GetType()
-{
-	return (int) m_mgrtype;
+	// update the state of actuator before executing them
+	for (vector<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
+	{
+		((SCA_ActuatorSensor*)(*it))->Update();
+	}
 }

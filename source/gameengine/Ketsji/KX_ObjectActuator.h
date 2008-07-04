@@ -47,7 +47,6 @@ struct KX_LocalFlags {
 		LinearVelocity(false),
 		AngularVelocity(false),
 		AddOrSetLinV(false),
-		ClampVelocity(false),
 		ZeroForce(false),
 		ZeroDRot(false),
 		ZeroDLoc(false),
@@ -63,7 +62,7 @@ struct KX_LocalFlags {
 	unsigned short LinearVelocity : 1;
 	unsigned short AngularVelocity : 1;
 	unsigned short AddOrSetLinV : 1;
-	unsigned short ClampVelocity : 1;
+	unsigned short ServoControl : 1;
 	unsigned short ZeroForce : 1;
 	unsigned short ZeroTorque : 1;
 	unsigned short ZeroDRot : 1;
@@ -84,9 +83,13 @@ class KX_ObjectActuator : public SCA_IActuator
 	MT_Vector3		m_angular_velocity;	
 	MT_Scalar		m_linear_length2;
 	MT_Scalar		m_angular_length2;
+	// used in damping
 	MT_Scalar		m_current_linear_factor;
 	MT_Scalar		m_current_angular_factor;
 	short			m_damping;
+	// used in servo control
+	MT_Vector3		m_previous_error;
+	MT_Vector3		m_error_accumulator;
   	KX_LocalFlags	m_bitLocalFlag;
 
 	// A hack bool -- oh no sorry everyone
@@ -164,8 +167,16 @@ public:
 	KX_PYMETHOD(KX_ObjectActuator,SetLinearVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,GetAngularVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetAngularVelocity);
-	KX_PYMETHOD(KX_ObjectActuator,SetVelocityDamping);
-	KX_PYMETHOD(KX_ObjectActuator,GetVelocityDamping);
+	KX_PYMETHOD(KX_ObjectActuator,SetDamping);
+	KX_PYMETHOD(KX_ObjectActuator,GetDamping);
+	KX_PYMETHOD(KX_ObjectActuator,GetForceLimitX);
+	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitX);
+	KX_PYMETHOD(KX_ObjectActuator,GetForceLimitY);
+	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitY);
+	KX_PYMETHOD(KX_ObjectActuator,GetForceLimitZ);
+	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitZ);
+	KX_PYMETHOD(KX_ObjectActuator,GetPID);
+	KX_PYMETHOD(KX_ObjectActuator,SetPID);
 };
 
 #endif //__KX_OBJECTACTUATOR

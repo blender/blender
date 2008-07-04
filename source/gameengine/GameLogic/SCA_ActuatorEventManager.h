@@ -1,5 +1,6 @@
 /**
  * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,58 +26,27 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef __KX_ACTUATOREVENTMANAGER
+#define __KX_ACTUATOREVENTMANAGER
 
-#include <assert.h>
 #include "SCA_EventManager.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <vector>
 
+using namespace std;
 
-SCA_EventManager::SCA_EventManager(EVENT_MANAGER_TYPE mgrtype)
-	:m_mgrtype(mgrtype)
+class SCA_ActuatorEventManager : public SCA_EventManager
 {
-}
+	class SCA_LogicManager*	m_logicmgr;
 
+public:
+	SCA_ActuatorEventManager(class SCA_LogicManager* logicmgr);
+	virtual ~SCA_ActuatorEventManager();
+	virtual void NextFrame();
+	virtual void UpdateFrame();
+	virtual void	RegisterSensor(SCA_ISensor* sensor);
+	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
+};
 
+#endif //__KX_ACTUATOREVENTMANAGER
 
-SCA_EventManager::~SCA_EventManager()
-{
-}
-
-
-
-void SCA_EventManager::RemoveSensor(class SCA_ISensor* sensor)
-{
-	std::vector<SCA_ISensor*>::iterator i =
-	std::find(m_sensors.begin(), m_sensors.end(), sensor);
-	if (!(i == m_sensors.end()))
-	{
-		std::swap(*i, m_sensors.back());
-		m_sensors.pop_back();
-	}
-}
-
-void SCA_EventManager::NextFrame(double curtime, double fixedtime)
-{
-	NextFrame();
-}
-
-void SCA_EventManager::NextFrame()
-{
-	assert(false); // && "Event managers should override a NextFrame method");
-}
-
-void SCA_EventManager::EndFrame()
-{
-}
-
-void SCA_EventManager::UpdateFrame()
-{
-}
-
-int SCA_EventManager::GetType()
-{
-	return (int) m_mgrtype;
-}

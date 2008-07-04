@@ -48,6 +48,7 @@
 #include "SCA_KeyboardManager.h"
 #include "SCA_MouseManager.h"
 #include "SCA_PropertyEventManager.h"
+#include "SCA_ActuatorEventManager.h"
 #include "KX_Camera.h"
 #include "SCA_JoystickManager.h"
 
@@ -143,6 +144,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	
 	SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
 	SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
+	SCA_ActuatorEventManager* actmgr = new SCA_ActuatorEventManager(m_logicmgr);
 	SCA_RandomEventManager* rndmgr = new SCA_RandomEventManager(m_logicmgr);
 	KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
 
@@ -152,6 +154,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
+	m_logicmgr->RegisterEventManager(actmgr);
 	m_logicmgr->RegisterEventManager(m_keyboardmgr);
 	m_logicmgr->RegisterEventManager(m_mousemgr);
 	m_logicmgr->RegisterEventManager(m_timemgr);
