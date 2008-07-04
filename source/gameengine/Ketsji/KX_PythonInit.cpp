@@ -103,9 +103,7 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 static PyObject* ErrorObject;
 STR_String gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1)";
 
-static PyObject* gPyGetRandomFloat(PyObject*,
-					PyObject*, 
-					PyObject*)
+static PyObject* gPyGetRandomFloat(PyObject*)
 {
 	return PyFloat_FromDouble(MT_random());
 }
@@ -156,9 +154,7 @@ static PyObject* gPyExpandPath(PyObject*,
 static bool usedsp = false;
 
 // this gets a pointer to an array filled with floats
-static PyObject* gPyGetSpectrum(PyObject*,
-								PyObject* args, 
-								PyObject*)
+static PyObject* gPyGetSpectrum(PyObject*)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
@@ -237,7 +233,7 @@ static PyObject* gPySetLogicTicRate(PyObject*,
 	return NULL;
 }
 
-static PyObject* gPyGetLogicTicRate(PyObject*, PyObject*, PyObject*)
+static PyObject* gPyGetLogicTicRate(PyObject*)
 {
 	return PyFloat_FromDouble(KX_KetsjiEngine::GetTicRate());
 }
@@ -273,7 +269,7 @@ static PyObject* gPySetPhysicsDebug(PyObject*,
 
 
 
-static PyObject* gPyGetPhysicsTicRate(PyObject*, PyObject*, PyObject*)
+static PyObject* gPyGetPhysicsTicRate(PyObject*)
 {
 	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->getFixedTimeStep());
 }
@@ -281,9 +277,7 @@ static PyObject* gPyGetPhysicsTicRate(PyObject*, PyObject*, PyObject*)
 static STR_String gPyGetCurrentScene_doc =  
 "getCurrentScene()\n"
 "Gets a reference to the current scene.\n";
-static PyObject* gPyGetCurrentScene(PyObject* self,
-					   PyObject* args, 
-					   PyObject* kwds)
+static PyObject* gPyGetCurrentScene(PyObject* self)
 {
 	Py_INCREF(gp_KetsjiScene);
 	return (PyObject*) gp_KetsjiScene;
@@ -366,19 +360,19 @@ static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, gPyExpandPath_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_VARARGS, SCA_PythonController::sPyGetCurrentController__doc__},
+	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_VARARGS, gPyGetCurrentScene_doc.Ptr()},
+	METH_NOARGS, gPyGetCurrentScene_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
 	METH_VARARGS, SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_VARARGS,gPyGetRandomFloat_doc.Ptr()},
+	METH_NOARGS,gPyGetRandomFloat_doc.Ptr()},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS,"set Gravitation"},
-	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_VARARGS,"get audio spectrum"},
+	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS,"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS,"stop using the audio dsp (for performance reasons)"},
-	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_VARARGS, "Gets the logic tic rate"},
+	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, "Gets the logic tic rate"},
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
-	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_VARARGS, "Gets the physics tic rate"},
+	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, "Gets the physics tic rate"},
 	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, "Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }

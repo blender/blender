@@ -180,8 +180,12 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 		height= ICON_HEIGHT;
 	
 	if(but->flag & UI_ICON_LEFT) {
-		if (but->type==BUT_TOGDUAL && but->drawstr[0]) {
-			xs= but->x1-1.0;
+		if (but->type==BUT_TOGDUAL) {
+			if (but->drawstr[0]) {
+				xs= but->x1-1.0;
+			} else {
+				xs= (but->x1+but->x2- height)/2.0;
+			}
 		}
 		else if (but->type==BUTM ) {
 			xs= but->x1+1.0;

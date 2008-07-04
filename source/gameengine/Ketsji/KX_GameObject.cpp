@@ -1413,7 +1413,7 @@ PyObject* KX_GameObject::PyGetAxisVect(PyObject* self, PyObject* value)
 	MT_Vector3 vect;
 	if (PyVecTo(value, vect))
 	{
-		return PyObjectFrom(vect * NodeGetWorldOrientation());
+		return PyObjectFrom(NodeGetWorldOrientation() * vect);
 	}
 	return NULL;
 }

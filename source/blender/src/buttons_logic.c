@@ -3164,11 +3164,11 @@ void logic_buts(void)
 			for (offset=0; offset<15; offset+=5) {
 				uiBlockBeginAlign(block);
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+35+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
+					but = uiDefButBitI(block, BUT_TOGDUAL, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+35+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
 					uiButSetFunc(but, check_object_state, but, &(ob->state));
 				}
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+35+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
+					but = uiDefButBitI(block, BUT_TOGDUAL, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+35+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
 					uiButSetFunc(but, check_object_state, but, &(ob->state));
 				}
 			}
