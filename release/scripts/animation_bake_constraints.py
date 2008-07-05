@@ -9,8 +9,8 @@ Fillename: 'Bake_Constraint.py'
 """
 
 __author__ = "Roger Wickes (rogerwickes(at)yahoo.com)"
-__script__ = "Bake Constraints"
-__version__ = "0.6"
+__script__ = "Animation Bake Constraints"
+__version__ = "0.7"
 __url__ = ["Communicate problems and errors, http://www.blenderartists.com/forum/private.php?do=newpm to PapaSmurf"]
 __email__= ["Roger Wickes, rogerwickes@yahoo.com", "scripts"]
 __bpydoc__ = """\
@@ -28,58 +28,62 @@ Developed for use with MoCap data, where a bone is constrained to point at an em
 moving through space and time. This records the actual locrot of the armature
 so that the motion can be edited, reoriented, scaled, and used as NLA Actions
 
-see also wiki Scripts/Manual/ Sandbox/Animation/Bake_Constraints (tbd)
+see also wiki Scripts/Manual/ Tutorial/Motion Capture <br>
 
-Usage:<br>
+Usage: <br>
  - Select the reference Object(s) you want to bake <br>
  - Set the frame range to bake in the Anim Panel <br>
  - Set the test code (if you want a self-test) in the RT field in the Anim Panel <br>
-		-- Set RT:1 in the Anim panel to create a test armature <br>
+	-- Set RT:1 to create a test armature <br>
+	-- Set RT: up to 100 for more debug messages and status updates <br>
 <br>
- - Run the script    <br>
- - The clone copy of the object is created and it has an IPO curve assigned to it. 
- - The clone shadows the object by an offset locrot (see usrDelta)
- - That Ipo has Location and Rotation curves that make the shadow mimic the movement of the selected object, 
-		 but without using constraints. Bones move identically in relation to the armature as the reference object
+ - Run the script <br>
+ - The clone copy of the object is created and it has an IPO curve assigned to it. <br>
+ - The clone shadows the object by an offset locrot (see usrDelta) <br>
+ - That Object has Ipo Location and Rotation curves that make the clone mimic the movement <br>
+	of the selected object, but without using constraints. <br>
+ - If the object was an Armature, the clone's bones move identically in relation to the <br>
+	original armature, and an Action is created that drives the bone movements. <br>
 
-	
 Version History:
-		0.1: bakes Loc Rot for a constrained object
-		0.2: bakes Loc and Rot for the bones within Armature object
-		0.3: UI for setting options
-		0.3.1 add manual to script library
-		0.4: bake multiple objects
-		0.5: root bone worldspace rotation
-		0.6: re-integration with BPyArmature
-		
+	0.1: bakes Loc Rot for a constrained object
+	0.2: bakes Loc and Rot for the bones within Armature object
+	0.3: UI for setting options
+	0.3.1 add manual to script library
+	0.4: bake multiple objects
+	0.5: root bone worldspace rotation
+	0.6: re-integration with BPyArmature
+	0.7: bakes parents and leaves clones selected
+    
 License, Copyright, and Attribution:
-	by Roger WICKES  May 2008, released under Blender Artistic Licence to Public Domain
-		feel free to add to any Blender Python Scripts Bundle.
- Thanks to Jean-Baptiste PERIN, IdeasMan42 (Campbell Barton?), Basil_Fawlty/Cage_drei (Andrew Cruse)
+  by Roger WICKES  May 2008, released under Blender Artistic Licence to Public Domain
+    feel free to add to any Blender Python Scripts Bundle.
+ Thanks to Jean-Baptiste PERIN, IdeasMan42 (Campbell Barton), Basil_Fawlty/Cage_drei (Andrew Cruse)
  much lifted/learned from blender.org/documentation/245PytonDoc and wiki
  some modules based on c3D_Import.py, PoseLib16.py and IPO/Armature code examples e.g. camera jitter
 
-Pseudocode (planned versions):
+Pseudocode:
 	Initialize
 	If at least one object is selected
 		For each selected object,
-			create a shadow object
+			create a cloned object
 			remove any constraints on the clone
 			create or reset an ipo curve named like the object
 			for each frame
 				 set the clone's locrot key based on the reference object
 			if it's an armature,
-					create an action (which is an Ipo for each bone)
-					for each frame of the animation
-						for each bone in the armature
-							set the key
+				create an action (which is an Ipo for each bone)
+				for each frame of the animation
+					for each bone in the armature
+						set the key
 	Else you're a smurf
 
 Test Conditions and Regressions:
 	1. (v0.1) Non-armatures (the cube), with ipo curve and constraints at the object level
 	2. armatures, with ipo curve and constraints at the object level
 	3. armatures, with bones that have ipo curves and constraints
-	
+	4. objects without parents, children with unselected parents, select children first.
+  
 Naming conventions:
 	arm = a specific objec type armature
 	bone = bones that make up the skeleton of an armature
@@ -89,19 +93,6 @@ Naming conventions:
 	pbone = pose bone, a posed bone in an object
 	tst = testing, self-test routines
 	usr = user-entered or designated stuff  
-
-Pattern Notes (let me know if I've violated any):
-	Bergin Starting,Designing, Programming, Coding
-	Bergin 23 Indent for Structure - I don't like only 2, but the editor is set up that way
-	Bergin 26 Be Spacey Not Tabby - personal frustraion here. workaround is to Format->convert to whitespace
-	Bergin 27 Consistent Capitalization - except Blender, because I love it.
-	Bergin 28 Name Your Constants - not for those I plan on making variable
-	Python 01 Return Everything - I made this one up, all functions and methods end in return
-		even though it is decoration in Python, it helps Python throw an indentation error for typing mistakes
-	Wickes 01 Decorate Your Code - for visual appeal and to ease maintenance, include separators like ######### 
-		to visually distinquish and separate functions, making it quicker to scan through code for methods
-	Wickes 02 Whitespace helps readability - include blanks around = # and lines (after def, after return) to make it stand out and pretty
-
 """
 ########################################
 
@@ -131,8 +122,8 @@ POSE_XFORM= [Blender.Object.Pose.LOC, Blender.Object.Pose.ROT]
 
 # set senstitivity for displaying debug/console messages. 0=none, 100=max
 # then call debug(num,string) to conditionally display status/info in console window
-MODE=Blender.Get('rt')  #execution mode: 0=run normal, x=self-test (test error trapping etc)
-DEBUG=100   #how much detail on internal processing for big brother to see
+MODE=Blender.Get('rt')  #execution mode: 0=run normal, 1=make test armature
+DEBUG=Blender.Get('rt')   #how much detail on internal processing for user to see. range 0-100
 BATCH=False #called from command line? is someone there? Would you like some cake?
 
 #there are two coordinate systems, the real, or absolute 3D space,
@@ -143,13 +134,11 @@ COORD_REAL = 1
 
 # User Settings - Change these options manually or via GUI (future TODO)
 usrCoord = COORD_REAL # what the user wants
-usrParent = False # True=keep parent (if exists), False = breakaway (usually with Real)
+usrParent = False # True=clone keeps original parent, False = clone's parent is the clone of the original parent (if cloned)
 usrFreeze = 2 #2=yes, 0=no. Freezes shadow object in place at current frame as origin
-	#TODO - i wonder if usrFreeze means we should set Delta to the the difference between the original object and parent?
 # delta is amount to offset/change from the reference object. future set in a ui, so technically not a constant
 usrDelta = [10,10,0,0,0,0] #order specific - Loc xyz Rot xyz
 usrACTION = True # Offset baked Action frames to start at frame 1
-usrBAKEobjIPO = False # bake the object Ipo? it is useless for MoCap, as we only want the Action, and the Object does not move
 
 CURFRAME = 'curframe' #keyword to use when getting the frame number that the scene is presently on
 ARMATURE = 'Armature' #en anglais
@@ -159,7 +148,7 @@ BONE_SPACES = ['ARMATURESPACE','BONESPACE']
 
 #Ipo curves created are prefixed with a name, like Ipo_ or Bake_ followed by the object/bone name
 #bakedArmName = "b." #used for both the armature class and object instance
-#ipoObjectNamePrefix= ""
+usrObjectNamePrefix= ""
 #ipoBoneNamePrefix  = ""
 # for example, if on entry an armature named Man was selected, and the object prefix was "a."
 #  on exit an armature and an IPO curve named a.Man exists for the object as a whole
@@ -177,7 +166,6 @@ scn = Blender.Scene.GetCurrent()
 #=================
 ########################################
 def debug(num,msg): #use log4j or just console here.
-	
 	if DEBUG >= num:
 		if BATCH == False:
 			print 'debug:             '[:num/10+7]+msg
@@ -202,8 +190,25 @@ def getRenderInfo():
 	return (staframe,endframe,curframe)
 
 ########################################
+def sortObjects(obs): #returns a list of objects sorted based on parent dependency
+	obClones= [] 
+	while len(obClones) < len(obs):
+		for ob in obs:
+			if not ob in obClones:
+				par= ob.getParent()
+				#if no parent, or the parent is not scheduled to be cloned
+				if par==None:
+					obClones.append(ob) # add the independent
+				elif par not in obs: # parent will not be cloned
+					obClones.append(ob) # add the child
+				elif par in obClones: # is it on the list?
+					obClones.append(ob) # add the child
+				# parent may be a child, so it will be caught next time thru
+	debug(100,'clone object order: \n%s' % obClones)
+	return obClones # ordered list of (ob, par) tuples
+
+########################################
 def sortBones(xbones): #returns a sorted list of bones that should be added,sorted based on parent dependency
-	print ('My suggestion would be:')
 #  while there are bones to add,
 #    look thru the list of bones we need to add
 #      if we have not already added this bone
@@ -215,7 +220,7 @@ def sortBones(xbones): #returns a sorted list of bones that should be added,sort
 #           else #we need to keep cycling and catch its parent
 #         else it is a root bone
 #           add it
-#       else skip it, it's prego
+#       else skip it, it's already in there
 #     endfor
 #  endwhile
 	xboneNames=[]
@@ -240,7 +245,6 @@ def sortBones(xbones): #returns a sorted list of bones that should be added,sort
 
 ########################################
 def dupliArmature(ob): #makes a copy in current scn of the armature used by ob and its bones
-	
 	ob_mat = ob.matrixWorld
 	ob_data = ob.getData()
 	debug(49,'Reference object uses %s' % ob_data)
@@ -260,8 +264,6 @@ def dupliArmature(ob): #makes a copy in current scn of the armature used by ob a
 	#we have to make a list of bones, then figure out our parents, then add to the arm
 	#when creating a child, we cannot link to a parent if it does not yet exist in our armature 
 	ebones = [] #list of the bones I want to create for my arm
-
-	if BLENDER_VERSION > 245: debug(0,'WARNING: Programmer check for Bone updates in dupliArmature')
 
 	eboneNames = sortBones(xbones)
 
@@ -306,13 +308,13 @@ def dupliArmature(ob): #makes a copy in current scn of the armature used by ob a
 	print myob.matrix
 	
 	return myob
-
+########################################
 def scrub(): # scrubs to startframe
 	staFrame,endFrame,curFrame = getRenderInfo()
 
 	# eye-candy, go from current to start, fwd or back
 	if not BATCH:
-		print "Positioning to start..."
+		debug(100, "Positioning to start...")
 		frameinc=(staFrame-curFrame)/10
 		if abs(frameinc) >= 1:
 			for i in range(10):
@@ -320,6 +322,7 @@ def scrub(): # scrubs to startframe
 				Blender.Set(CURFRAME,curFrame) # computes the constrained location of the 'real' objects
 				Blender.Redraw()
 	Blender.Set(CURFRAME, staFrame)
+	return
 
 ########################################
 def bakeBones(ref_ob,arm_ob): #copy pose from ref_ob to arm_ob
@@ -335,7 +338,6 @@ def bakeBones(ref_ob,arm_ob): #copy pose from ref_ob to arm_ob
 	arm_channels = act.getAllChannelIpos()
 	pose= arm_ob.getPose()
 	pbones= pose.bones.values() #we want the bones themselves, not the dictionary lookup
-	print arm_channels.keys()
 	for pbone in pbones:
 		debug (100,'Channel listing for %s: %s' % (pbone.name,arm_channels[pbone.name] ))
 		ipo=arm_channels[pbone.name]
@@ -344,8 +346,7 @@ def bakeBones(ref_ob,arm_ob): #copy pose from ref_ob to arm_ob
 	return
 
 ########################################
-def getOrCreateCurve(ipo, curvename): 
-	
+def getOrCreateCurve(ipo, curvename):
 	"""
 	Retrieve or create a Blender Ipo Curve named C{curvename} in the C{ipo} Ipo
 	Either an ipo curve named C{curvename} exists before the call then this curve is returned,
@@ -362,18 +363,17 @@ def getOrCreateCurve(ipo, curvename):
 	return mycurve
 
 ########################################
-def eraseCurve(ipo,numCurves):	
-	debug(80,'Erasing %i curves for %' % (numCurves,ipo.GetName()))
+def eraseCurve(ipo,numCurves):
+	debug(90,'Erasing %i curves for %' % (numCurves,ipo.GetName()))
 	for i in range(numCurves):
-		nbBezPoints = ipo.getNBezPoints(i)
+		nbBezPoints= ipo.getNBezPoints(i)
 		for j in range(nbBezPoints):
 			ipo.delBezPoint(i)
 	return
 
 ########################################
 def resetIPO(ipo):
-	ipoName=ipoObjectNamePrefix + obName
-	debug(40,'Resetting ipo curve named %s' %ipoName)
+	debug(60,'Resetting ipo curve named %s' %ipo.name)
 	numCurves = ipo.getNcurves() #like LocX, LocY, etc
 	if numCurves > 0:
 		eraseCurve(ipo, numCurves) #erase data if one exists
@@ -399,11 +399,11 @@ def resetIPOs(ob): #resets all IPO curvess assocated with an object and its bone
 	return
 
 ########################################
-def parse(string,delim):	
+def parse(string,delim):
 	index = string.find(delim) # -1 if not found, else pointer to delim
 	if index+1:  return string[:index]
 	return string
-		
+
 ########################################
 def newIpo(ipoName): #add a new Ipo object to the Blender scene
 	ipo=Blender.Ipo.New('Object',ipoName)
@@ -438,19 +438,16 @@ def makeUpaName(type,name): #i know this exists in Blender somewhere...
 		name=ipoName 
 	else:
 		debug (0,'FATAL ERROR: I dont know how to make up a new %s name based on %s' % (type,ob))
-		return 
+		return None
 	return name
 
 ########################################
-def createIpo(ob): #create an Ipo and curves and link them to this object	
+def createIpo(ob): #create an Ipo and curves and link them to this object
 	#first, we have to create a unique name
 	#try first with just the name of the object to keep things simple.
 	ipoName = makeUpaName('Ipo',ob.getName()) # make up a name for a new Ipo based on the object name
-
 	debug(20,'Ipo and LocRot curves called %s' % ipoName)
-
 	ipo=newIpo(ipoName)
-
 	ob.setIpo(ipo) #link them
 	return ipo
 
@@ -465,7 +462,7 @@ def getLocLocal(ob):
 			ob.RotZ*R2D
 			]
 	return key
-				
+
 ########################################
 def getLocReal(ob):
 	obMatrix = ob.matrixWorld #Thank you IdeasMan42
@@ -505,7 +502,7 @@ def getCurves(ipo):
 			ipo[Ipo.OB_ROTZ]
 			]
 	return ipos
-					
+
 ########################################
 def addPoint(time,keyLocRot,ipos):
 	if BLENDER_VERSION < 245:
@@ -579,7 +576,7 @@ def removeConstraints(ob):
 		debug(90,'removed %s => %s' % (ob.name, const))
 		ob.constraints.remove(const)
 	return
-		
+    
 ########################################
 def removeConstraintsOb(ob): # from object or armature
 	debug(40,'Removing constraints from '+ob.getName())
@@ -605,37 +602,27 @@ def bakeObject(ob): #bakes the core object locrot and assigns the Ipo to a Clone
 	if ob != None:  
 		# Clone the object - duplicate it, clean the clone, and create an ipo curve for the clone
 		myob = duplicateLinked(ob)  #clone it
+		myob.name= usrObjectNamePrefix + ob.getName()
 		removeConstraintsOb(myob)   #my object is a free man
 		deLinkOb('Ipo',myob)        #kids, it's not nice to share. you've been lied to
-		if usrBAKEobjIPO:
+		if ob.getType() != ARMATURE: # baking armatures is based on bones, not object
 			myipo = createIpo(myob)     #create own IPO and curves for the clone object
 			ipos = bakeFrames(ob,myipo) #bake the locrot for this obj for the scene frames
-
-#  staframe,endframe,curframe = getRenderInfo()
-#  frame = staframe
-#  Blender.Set(CURFRAME,frame) # computes the constrained location of the 'real' objects
-#  frame +=1
-#  Blender.Set(CURFRAME,frame) # computes the constrained location of the 'real' objects
-#  frame -=1
-#  Blender.Set(CURFRAME,frame) # computes the constrained location of the 'real' objects
-#  if not BATCH: Blender.Redraw()
-#
 	return myob
-		
+    
 ########################################
-def bake(ob): #bakes an object of any type
-	
-	debug(30,'Baking %s object %s' % (ob.getType(), ob))
-
-	myob = bakeObject(ob) #creates and bakes the object motion
-
+def bake(ob,par): #bakes an object of any type, linking it to parent
+	debug(0,'Baking %s object %s' % (ob.getType(), ob))
+	clone = bakeObject(ob) #creates and bakes the object motion
+	if par!= None:
+		par.makeParent([clone])  
+		debug(20,"assigned object to parent %s" % par)
 	if ob.getType() == ARMATURE:
-#      error('Object baked. Continue with bones?')
-			bakeBones(ob,myob) #go into the bones and copy from -> to in frame range
+##              error('Object baked. Continue with bones?')
+		bakeBones(ob,clone) #go into the bones and copy from -> to in frame range
 	#future idea: bakeMesh (net result of Shapekeys, Softbody, Cloth, Fluidsim,...)
-				
-	return
-		
+	return clone
+    
 ########################################
 def tstCreateArm(): #create a test armature in scene
 	# rip-off from http://www.blender.org/documentation/245PythonDoc/Pose-module.html - thank you!
@@ -690,8 +677,8 @@ def tstCreateArm(): #create a test armature in scene
 
 	frame = 1
 	for pbone in pbones: # set bones to no rotation
-					pbone.quat[:] = 1.000,0.000,0.000,0.0000
-					pbone.insertKey(arm_ob, frame, Object.Pose.ROT)
+		pbone.quat[:] = 1.000,0.000,0.000,0.0000
+		pbone.insertKey(arm_ob, frame, Object.Pose.ROT)
 
 	# Set a different rotation at frame 25
 	pbones[0].quat[:] = 1.000,0.1000,0.2000,0.20000
@@ -747,7 +734,7 @@ def tstMoveOb(ob): # makes a simple LocRot animation of object in the scene
 
 		debug(100,'%s %i %.3f %.2f %.2f %.2f %.2f %.2f %.2f' % (ipo.name, frame, time, key[0], key[1], key[2], key[3], key[4], key[5]))
 		frame += frameDelta
-	Blender.Set('curframe',curframe) # reset back to where we started
+	Blender.Set(CURFRAME,curframe) # reset back to where we started
 	return
 #=================
 # Program Template
@@ -755,25 +742,31 @@ def tstMoveOb(ob): # makes a simple LocRot animation of object in the scene
 ########################################
 def main():
 	# return code set via rt button in Blender Buttons Scene Context Anim panel
-	
 	if MODE == 1: #create test armature #1
 		ob = tstCreateArm()      # make test arm and select it
 		tstMoveOb(ob)
 		scn.objects.selected = [ob]
 
-	obs = Blender.Object.GetSelected() #scn.objects.selected
-	debug(20,'Baking %i objects' % len(obs))
+	obs= Blender.Object.GetSelected() #scn.objects.selected
+	obs= sortObjects(obs)
+	debug(0,'Baking %i objects' % len(obs))
 
 	if len(obs) >= 1:   # user might have multiple objects selected
+		i= 0
+		clones=[] # my clone army
 		for ob in obs:
-			bake(ob)
+			par= ob.getParent()
+			if not usrParent:
+				if par in obs:
+					par= clones[obs.index(par)]
+			clones.append(bake(ob,par))
+		scn.objects.selected = clones
 	else:
 		error('Please select at least one object')
 	return
 
 ########################################
 def benchmark(): # This lets you benchmark (time) the script's running duration 
-	
 	Window.WaitCursor(1) 
 	t = sys.time() 
 	debug(60,'%s began at %.0f' %(__script__,sys.time()))
@@ -787,7 +780,7 @@ def benchmark(): # This lets you benchmark (time) the script's running duration
 	if in_editmode: Window.EditMode(1)
 	
 	# Timing the script is a good way to be aware on any speed hits when scripting 
-	debug(60,'%s Script finished in %.2f seconds' % (__script__,sys.time()-t) )
+	debug(0,'%s Script finished in %.2f seconds' % (__script__,sys.time()-t) )
 	Window.WaitCursor(0) 
 	return
 
@@ -795,6 +788,5 @@ def benchmark(): # This lets you benchmark (time) the script's running duration
 # This lets you can import the script without running it 
 if __name__ == '__main__': 
 	debug(0, "------------------------------------")
-	debug(0, '%s %s Script begins with mode=%i debug=%i batch=%s version=%i' % (__script__,__version__,MODE,DEBUG,BATCH,BLENDER_VERSION))
-
+	debug(0, "%s %s Script begins with mode=%i debug=%i batch=%s" % (__script__,__version__,MODE,DEBUG,BATCH))
 	benchmark()
