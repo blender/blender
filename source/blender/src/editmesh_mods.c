@@ -2307,7 +2307,7 @@ void selectconnected_mesh(void)
 	if(em->edges.first==0) return;
 	
 	if( unified_findnearest(&eve, &eed, &efa)==0 ) {
-		error("Nothing indicated ");
+		/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
 		return;
 	}
 	
@@ -2407,7 +2407,7 @@ static void selectconnected_delimit_mesh__internal(short all, short sel)
 		EditFace *efa_mouse = findnearestface(&dist);
 		
 		if( !efa_mouse ) {
-			error("Nothing indicated ");
+			/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
 			return;
 		}
 		

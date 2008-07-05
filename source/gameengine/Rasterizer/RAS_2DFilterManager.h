@@ -37,17 +37,21 @@ class RAS_2DFilterManager
 private:
 	unsigned int	CreateShaderProgram(char* shadersource);
 	unsigned int	CreateShaderProgram(int filtermode);
-	void			StartShaderProgram(unsigned int shaderprogram);
+	void			StartShaderProgram(int passindex);
 	void			EndShaderProgram();
 
 	float			textureoffsets[18];
 	float			view[4];
-	unsigned int	texname;
+	/* texname[0] contains render to texture, texname[1] contains depth texture,  texname[2] contains luminance texture*/
+	unsigned int	texname[3]; 
 	int				texturewidth;
 	int				textureheight;
 	int				canvaswidth;
 	int				canvasheight;
 	int				numberoffilters;
+	/* bit 0: enable/disable depth texture
+	 * bit 1: enable/disable luminance texture*/
+	short			texflag[MAX_RENDER_PASS];
 
 	bool			isshadersupported;
 public:
@@ -83,6 +87,6 @@ public:
 
 	void RenderFilters(RAS_ICanvas* canvas);
 
-	void EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text);
+	void EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text, short tflag);
 };
 #endif

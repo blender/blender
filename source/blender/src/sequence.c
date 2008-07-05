@@ -447,7 +447,10 @@ void reload_sequence_new_file(Sequence * seq)
 		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_MOVIE) {
 		if(seq->anim) IMB_free_anim(seq->anim);
-		seq->anim = openanim(str, IB_rect);
+		seq->anim = openanim(
+			str, IB_rect | 
+			((seq->flag & SEQ_FILTERY) 
+			 ? IB_animdeinterlace : 0));
 
 		if (!seq->anim) {
 			return;
@@ -1447,7 +1450,7 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 	seq->strip->orx= se->ibuf->x;
 	seq->strip->ory= se->ibuf->y;
 
-	if(seq->flag & SEQ_FILTERY) {
+	if((seq->flag & SEQ_FILTERY) && seq->type != SEQ_MOVIE) {
 		IMB_filtery(se->ibuf);
 	}
 
@@ -1777,8 +1780,11 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 					strncat(name, seq->strip->stripdata->name, FILE_MAXFILE-1);
 					BLI_convertstringcode(name, G.sce);
 					BLI_convertstringframe(name, G.scene->r.cfra);
-				
-					seq->anim = openanim(name, IB_rect);
+					
+					seq->anim = openanim(
+						name, IB_rect | 
+						((seq->flag & SEQ_FILTERY) 
+						 ? IB_animdeinterlace : 0));
 				}
 				if(seq->anim) {
 					IMB_anim_set_preseek(seq->anim, seq->anim_preseek);

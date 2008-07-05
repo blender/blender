@@ -393,7 +393,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
+static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], float *angle)
 {
 	if (!td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
@@ -413,9 +413,9 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			break;
 		}
 		/* don't flip axis if asked to or if num input */
-		if (!(mode & CON_NOFLIP) && hasNumInput(&t->num) == 0) {
+		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
 			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
-				VecMulf(vec, -1.0f);
+				*angle = -(*angle);
 			}
 		}
 	}
@@ -435,10 +435,15 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3])
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
+static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], float *angle)
 {
-	if (td && t->con.mode & CON_APPLY) {
+	if (t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+		
+		/* on setup call, use first object */
+		if (td == NULL) {
+			td= t->data;
+		}
 
 		switch(mode) {
 		case CON_AXIS0:
@@ -454,9 +459,9 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
 			VECCOPY(vec, td->axismtx[2]);
 			break;
 		}
-		if (!(mode & CON_NOFLIP)) {
+		if (angle && (mode & CON_NOFLIP) == 0 && hasNumInput(&t->num) == 0) {
 			if (Inpf(vec, t->viewinv[2]) > 0.0f) {
-				VecMulf(vec, -1.0f);
+				*angle = -(*angle);
 			}
 		}
 	}
@@ -550,6 +555,10 @@ void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 void BIF_setLocalLockConstraint(char axis, char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 
+	if (t->total == 0) {
+		return;
+	}
+	
 	switch (axis) {
 	case 'x':
 		setLocalConstraint(t, (CON_AXIS1|CON_AXIS2), text);
@@ -566,6 +575,10 @@ void BIF_setLocalLockConstraint(char axis, char *text) {
 void BIF_setLocalAxisConstraint(char axis, char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 
+	if (t->total == 0) {
+		return;
+	}
+	
 	switch (axis) {
 	case 'X':
 		setLocalConstraint(t, CON_AXIS0, text);
@@ -583,6 +596,10 @@ void BIF_setLocalAxisConstraint(char axis, char *text) {
 void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 	float space[3][3], v[3];
+	
+	if (t->total == 0) {
+		return;
+	}
 	
 	VECCOPY(space[0], vec);
 
@@ -622,6 +639,10 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 	float space[3][3];
 	
+	if (t->total == 0) {
+		return;
+	}
+
 	VECCOPY(space[0], vec1);
 	VECCOPY(space[1], vec2);
 	Crossf(space[2], space[0], space[1]);

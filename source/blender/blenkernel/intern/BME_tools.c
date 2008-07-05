@@ -205,7 +205,21 @@ static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Ver
 	return nf;
 }
 
-/* a wrapper for BME_SEMV that transfers element flags */
+
+static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, float fac)
+{
+	void *src[2];
+	float w[2];
+	if (v1->data && v2->data) {
+		src[0]= v1->data;
+		src[1]= v2->data;
+		w[0] = 1.0f-fac;
+		w[1] = fac;
+		CustomData_em_interp(&bm->vdata, src, w, NULL, 2, v->data);
+	}
+}
+
+/* a wrapper for BME_SEMV that transfers element flags */ /*add custom data interpolation in here!*/
 static BME_Vert *BME_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Edge **ne, float percent) {
 	BME_Vert *nv, *v2;
 	float len;
@@ -224,9 +238,10 @@ static BME_Vert *BME_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Edge
 		(*ne)->crease = e->crease;
 		(*ne)->bweight = e->bweight;
 	}
-
 	return nv;
 }
+
+
 
 static int BME_bevel_is_split_vert(BME_Loop *l) {
 	/* look for verts that have already been added to the edge when
@@ -315,7 +330,7 @@ static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int 
  * Finally, return the split vert. */
 static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, BME_Loop *l, float *up_vec, float value, BME_TransData_Head *td) {
 	BME_TransData *vtd, *vtd1, *vtd2;
-	BME_Vert *sv, *v2, *v3;
+	BME_Vert *sv, *v2, *v3, *ov;
 	BME_Loop *lv1, *lv2;
 	BME_Edge *ne, *e1, *e2;
 	float maxfactor, scale, len, dis, vec1[3], vec2[3], t_up_vec[3];
@@ -349,7 +364,9 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		else {
 			e1 = e2;
 		}
+		ov = BME_edge_getothervert(e1,v);
 		sv = BME_split_edge(bm,v,e1,&ne,0);
+		//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
 		BME_assign_transdata(td, bm, sv, sv->co, sv->co, NULL, sv->co, 0, -1, -1, NULL); /* quick default */
 		sv->tflag1 |= BME_BEVEL_BEVEL;
 		ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */
@@ -388,7 +405,9 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		}
 		else {
 			is_split_vert = 0;
+			ov = BME_edge_getothervert(l->e,v);
 			sv = BME_split_edge(bm,v,l->e,&ne,0);
+			//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
 			BME_assign_transdata(td, bm, sv, sv->co, sv->co, NULL, sv->co, 0, -1, -1, NULL); /* quick default */
 			sv->tflag1 |= BME_BEVEL_BEVEL;
 			ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */

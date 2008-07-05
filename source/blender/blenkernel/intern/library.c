@@ -934,7 +934,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	}
 
 	/* if result > 21, strncpy don't put the final '\0' to name. */
-	if( result > 21 ) name[21]= 0;
+	if( result >= 21 ) name[21]= 0;
 
 	result = check_for_dupid( lb, id, name );
 	strcpy( id->name+2, name );

@@ -259,6 +259,7 @@ IF(UNIX)
     blender_python
     bf_quicktime
     extern_binreloc
+	extern_glew
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

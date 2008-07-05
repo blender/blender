@@ -66,21 +66,19 @@ class SCA_PythonController : public SCA_IController
 	void	SetDictionary(PyObject*	pythondictionary);
 
 	static char* sPyGetCurrentController__doc__;
-	static PyObject* sPyGetCurrentController(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds);
+	static PyObject* sPyGetCurrentController(PyObject* self);
 	static char* sPyAddActiveActuator__doc__;
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds);
+										  PyObject* args);
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	KX_PYMETHOD_DOC(SCA_PythonController,GetSensors);
-	KX_PYMETHOD_DOC(SCA_PythonController,GetSensor);
-	KX_PYMETHOD_DOC(SCA_PythonController,GetActuator);
-	KX_PYMETHOD_DOC(SCA_PythonController,GetActuators);
-	KX_PYMETHOD(SCA_PythonController,SetScript);
-	KX_PYMETHOD(SCA_PythonController,GetScript);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetSensors);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetActuators);
+	KX_PYMETHOD_DOC_O(SCA_PythonController,GetSensor);
+	KX_PYMETHOD_DOC_O(SCA_PythonController,GetActuator);
+	KX_PYMETHOD_O(SCA_PythonController,SetScript);
+	KX_PYMETHOD_NOARGS(SCA_PythonController,GetScript);
+	KX_PYMETHOD_NOARGS(SCA_PythonController,GetState);
 	
 
 };

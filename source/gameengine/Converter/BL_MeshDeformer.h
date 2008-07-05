@@ -32,6 +32,7 @@
 
 #include "RAS_Deformer.h"
 #include "DNA_object_types.h"
+#include "DNA_key_types.h"
 #include "MT_Point3.h"
 #include <stdlib.h>
 
@@ -48,26 +49,26 @@ public:
 	BL_MeshDeformer(struct Object* obj, class BL_SkinMeshObject *meshobj ):
 		m_pMeshObject(meshobj),
 		m_bmesh((struct Mesh*)(obj->data)),
+		m_transverts(0),
+		m_transnors(0),
 		m_objMesh(obj),
-		m_transnors(NULL),
-		m_transverts(NULL),
 		m_tvtot(0)
 	{};
 	virtual ~BL_MeshDeformer();
 	virtual void SetSimulatedTime(double time){};
 	virtual bool Apply(class RAS_IPolyMaterial *mat);
-	virtual void Update(void){};
+	virtual bool Update(void){ return false; };
 	virtual	RAS_Deformer*	GetReplica(){return NULL;};
+	struct Mesh* GetMesh() { return m_bmesh; };
 	//	virtual void InitDeform(double time){};
 protected:
 	class BL_SkinMeshObject*	m_pMeshObject;
 	struct Mesh*				m_bmesh;
-	MT_Point3*					m_transnors;
 	
-	//MT_Point3*				m_transverts;
 	// this is so m_transverts doesn't need to be converted
 	// before deformation
 	float						(*m_transverts)[3];
+	MT_Vector3*					m_transnors;
 	struct Object*				m_objMesh; 
 	// --
 	int							m_tvtot;

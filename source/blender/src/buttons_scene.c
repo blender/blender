@@ -900,7 +900,7 @@ static void seq_panel_filter_video()
 		     "Convert input to float data");
 
 	uiDefButBitI(block, TOG, SEQ_FILTERY, 
-		     B_SEQ_BUT_RELOAD, "FilterY",	
+		     B_SEQ_BUT_RELOAD_FILE, "De-Inter",	
 		     170,110,80,19, &last_seq->flag, 
 		     0.0, 21.0, 100, 0, 
 		     "For video movies to remove fields");

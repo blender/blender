@@ -40,6 +40,7 @@ public:
 	Py_Header;
 	BL_ActionActuator(SCA_IObject* gameobj,
 						const STR_String& propname,
+						const STR_String& framepropname,
 						float starttime,
 						float endtime,
 						struct bAction *action,
@@ -67,7 +68,8 @@ public:
 		m_blendpose(NULL),
 		m_userpose(NULL),
 		m_action(action),
-		m_propname(propname)
+		m_propname(propname),
+		m_framepropname(framepropname)		
 	{
 	};
 	virtual ~BL_ActionActuator();
@@ -84,6 +86,7 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetEnd);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetProperty);
+	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrameProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendtime);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetChannel);
 
@@ -94,6 +97,7 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetEnd);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
+	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrameProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
@@ -138,6 +142,7 @@ protected:
 	struct bPose* m_userpose;
 	struct bAction *m_action;
 	STR_String	m_propname;
+	STR_String	m_framepropname;
 };
 
 enum {

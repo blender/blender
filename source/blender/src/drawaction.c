@@ -474,10 +474,13 @@ static void draw_channel_names(void)
 					indent= 0;
 					special= -1;
 					
-					if (EXPANDED_AGRP(agrp))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
+					/* only show expand if there are any channels */
+					if (agrp->channels.first) {
+						if (EXPANDED_AGRP(agrp))
+							expand = ICON_TRIA_DOWN;
+						else
+							expand = ICON_TRIA_RIGHT;
+					}
 						
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;
@@ -730,7 +733,7 @@ void check_action_context(SpaceAction *saction)
 		
 		for (achan=saction->action->chanbase.first; achan; achan=achan->next) {
 			pchan= get_pose_channel(ob->pose, achan->name);
-			if (pchan) {
+			if (pchan && pchan->bone) {
 				if ((pchan->bone->layer & arm->layer)==0)
 					achan->flag |= ACHAN_HIDDEN;
 				else if (pchan->bone->flag & BONE_HIDDEN_P)

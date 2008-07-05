@@ -113,7 +113,6 @@ extern TransInfo Trans;	/* From transform.c */
 
 /* ************************** Functions *************************** */
 
-
 void getViewVector(float coord[3], float vec[3])
 {
 	TransInfo *t = BIF_GetTransInfo();
@@ -326,7 +325,7 @@ void recalcData(TransInfo *t)
 		else {
 			for (base=G.scene->base.first; base; base=base->next) {
 				/* recalculate scale of selected nla-strips */
-				if (base->object->nlastrips.first) {
+				if (base->object && base->object->nlastrips.first) {
 					Object *bob= base->object;
 					bActionStrip *strip;
 					
@@ -399,7 +398,14 @@ void recalcData(TransInfo *t)
 				}
 			}
 			else if(G.sipo->blocktype==ID_OB) {
+				Object *ob= OBACT;
 				Base *base= FIRSTBASE;
+				
+				/* only if this if active object has this ipo in an action (assumes that current ipo is in action) */
+				if ((ob) && (ob->ipoflag & OB_ACTION_OB) && (G.sipo->pin==0)) {
+					ob->ctime= -1234567.0f;
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+				}
 				
 				while(base) {
 					if(base->object->ipo==G.sipo->ipo) {

@@ -102,6 +102,13 @@ MT_Vector3 KX_BulletPhysicsController::GetLinearVelocity()
 	CcdPhysicsController::GetLinearVelocity(angVel[0],angVel[1],angVel[2]);//rcruiz
 	return MT_Vector3(angVel[0],angVel[1],angVel[2]);
 }
+MT_Vector3 KX_BulletPhysicsController::GetAngularVelocity()
+{
+	float angVel[3];
+	//CcdPhysicsController::GetAngularVelocity(angVel[0],angVel[1],angVel[2]);
+	CcdPhysicsController::GetAngularVelocity(angVel[0],angVel[1],angVel[2]);//rcruiz
+	return MT_Vector3(angVel[0],angVel[1],angVel[2]);
+}
 MT_Vector3 KX_BulletPhysicsController::GetVelocity(const MT_Point3& pos)
 {
 	float linVel[3];

@@ -42,100 +42,6 @@
 #include "BLI_linklist.h"
 #include "BLI_ghash.h"
 
-#include "BKE_customdata.h"
-
-/*
-	Simple, fast memory allocator for allocating many elements of the same size.
-*/
-typedef struct BME_mempool_chunk{
-	struct BME_mempool_chunk *next, *prev;
-	void *data;
-}BME_mempool_chunk;
-
-/*this is just to make things prettier*/
-typedef struct BME_freenode{
-	struct BME_freenode *next;
-}BME_freenode;
-
-BME_mempool *BME_mempool_create(int esize, int tote, int pchunk)
-{	BME_mempool  *pool = NULL;
-	BME_freenode *lasttail = NULL, *curnode = NULL;
-	int i,j, maxchunks;
-	char *addr;
-
-	/*allocate the pool structure*/
-	pool = MEM_mallocN(sizeof(BME_mempool),"memory pool");
-	pool->esize = esize;
-	pool->pchunk = pchunk;	
-	pool->csize = esize * pchunk;
-	pool->chunks.first = pool->chunks.last = NULL;
-	
-	maxchunks = tote / pchunk;
-	
-	/*allocate the actual chunks*/
-	for(i=0; i < maxchunks; i++){
-		BME_mempool_chunk *mpchunk = MEM_mallocN(sizeof(BME_mempool_chunk), "BME_Mempool Chunk");
-		mpchunk->next = mpchunk->prev = NULL;
-		mpchunk->data = MEM_mallocN(pool->csize, "BME Mempool Chunk Data");
-		BLI_addtail(&(pool->chunks), mpchunk);
-		
-		if(i==0) pool->free = mpchunk->data; /*start of the list*/
-		/*loop through the allocated data, building the pointer structures*/
-		for(addr = mpchunk->data, j=0; j < pool->pchunk; j++){
-			curnode = ((BME_freenode*)addr);
-			addr += pool->esize;
-			curnode->next = (BME_freenode*)addr;
-		}
-		/*final pointer in the previously allocated chunk is wrong.*/
-		if(lasttail) lasttail->next = mpchunk->data;
-		/*set the end of this chunks memory to the new tail for next iteration*/
-		lasttail = curnode;
-	}
-	/*terminate the list*/
-	curnode->next = NULL;
-	return pool;
-}
-
-void *BME_mempool_alloc(BME_mempool *pool){
-	void *retval=NULL;
-	BME_freenode *curnode=NULL;
-	char *addr=NULL;
-	int j;
-
-	if(!(pool->free)){
-		/*need to allocate a new chunk*/
-		BME_mempool_chunk *mpchunk = MEM_mallocN(sizeof(BME_mempool_chunk), "BME_Mempool Chunk");
-		mpchunk->next = mpchunk->prev = NULL;
-		mpchunk->data = MEM_mallocN(pool->csize, "BME_Mempool Chunk Data");
-		BLI_addtail(&(pool->chunks), mpchunk);
-
-		pool->free = mpchunk->data; /*start of the list*/
-		for(addr = mpchunk->data, j=0; j < pool->pchunk; j++){
-			curnode = ((BME_freenode*)addr);
-			addr += pool->esize;
-			curnode->next = (BME_freenode*)addr;
-		}
-		curnode->next = NULL; /*terminate the list*/
-	}
-
-	retval = pool->free;
-	pool->free = pool->free->next;
-	//memset(retval, 0, pool->esize);
-	return retval;
-}
-
-void BME_mempool_free(BME_mempool *pool, void *addr){ //doesnt protect against double frees, dont be stupid!
-	BME_freenode *newhead = addr;
-	newhead->next = pool->free;
-	pool->free = newhead;
-}
-void BME_mempool_destroy(BME_mempool *pool)
-{
-	BME_mempool_chunk *mpchunk=NULL;
-	for(mpchunk = pool->chunks.first; mpchunk; mpchunk = mpchunk->next) MEM_freeN(mpchunk->data);
-	BLI_freelistN(&(pool->chunks));
-	MEM_freeN(pool);
-}
 /**
  *	MISC utility functions.
  *
@@ -179,7 +85,7 @@ int BME_edge_swapverts(BME_Edge *e, BME_Vert *orig, BME_Vert *new){
 
 BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 	BME_Vert *v=NULL;
-	v = BME_mempool_alloc(bm->vpool);
+	v = BLI_mempool_alloc(bm->vpool);
 	v->next = v->prev = NULL;
 	v->EID = bm->nextv;
 	v->co[0] = v->co[1] = v->co[2] = 0.0f;
@@ -195,16 +101,16 @@ BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 
 	if(example){
 		VECCOPY(v->co,example->co);
-		BME_CD_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
 	}
 	else
-		BME_CD_set_default(&bm->vdata, &v->data);
+		CustomData_bmesh_set_default(&bm->vdata, &v->data);
 
 	return v;
 }
 BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *example){
 	BME_Edge *e=NULL;
-	e = BME_mempool_alloc(bm->epool);
+	e = BLI_mempool_alloc(bm->epool);
 	e->next = e->prev = NULL;
 	e->EID = bm->nexte;
 	e->v1 = v1;
@@ -222,16 +128,16 @@ BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *ex
 	BLI_addtail(&(bm->edges), e);
 	
 	if(example)
-		BME_CD_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
+		CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
 	else
-		BME_CD_set_default(&bm->edata, &e->data);
+		CustomData_bmesh_set_default(&bm->edata, &e->data);
 
 
 	return e;
 }
 BME_Loop *BME_create_loop(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Poly *f, BME_Loop *example){
 	BME_Loop *l=NULL;
-	l = BME_mempool_alloc(bm->lpool);
+	l = BLI_mempool_alloc(bm->lpool);
 	l->next = l->prev = NULL;
 	l->EID = bm->nextl;
 	l->radial.next = l->radial.prev = NULL;
@@ -246,16 +152,16 @@ BME_Loop *BME_create_loop(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Poly *f, B
 	bm->totloop++;
 	
 	if(example)
-		BME_CD_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
+		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
 	else
-		BME_CD_set_default(&bm->ldata, &l->data);
+		CustomData_bmesh_set_default(&bm->ldata, &l->data);
 
 	return l;
 }
 
 BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	BME_Poly *f = NULL;
-	f = BME_mempool_alloc(bm->ppool);
+	f = BLI_mempool_alloc(bm->ppool);
 	f->next = f->prev = NULL;
 	f->EID = bm->nextp;
 	f->loopbase = NULL;
@@ -268,9 +174,9 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	bm->totpoly++;
 
 	if(example)
-		BME_CD_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
+		CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
 	else
-		BME_CD_set_default(&bm->pdata, &f->data);
+		CustomData_bmesh_set_default(&bm->pdata, &f->data);
 
 
 	return f;
@@ -281,23 +187,23 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 */
 void BME_free_vert(BME_Mesh *bm, BME_Vert *v){
 	bm->totvert--;
-	BME_CD_free_block(&bm->vdata, &v->data);
-	BME_mempool_free(bm->vpool, v);
+	CustomData_bmesh_free_block(&bm->vdata, &v->data);
+	BLI_mempool_free(bm->vpool, v);
 }
 void BME_free_edge(BME_Mesh *bm, BME_Edge *e){
 	bm->totedge--;
-	BME_CD_free_block(&bm->edata, &e->data);
-	BME_mempool_free(bm->epool, e);
+	CustomData_bmesh_free_block(&bm->edata, &e->data);
+	BLI_mempool_free(bm->epool, e);
 }
 void BME_free_poly(BME_Mesh *bm, BME_Poly *f){
 	bm->totpoly--;
-	BME_CD_free_block(&bm->pdata, &f->data);
-	BME_mempool_free(bm->ppool, f);
+	CustomData_bmesh_free_block(&bm->pdata, &f->data);
+	BLI_mempool_free(bm->ppool, f);
 }
 void BME_free_loop(BME_Mesh *bm, BME_Loop *l){
 	bm->totloop--;
-	BME_CD_free_block(&bm->ldata, &l->data);
-	BME_mempool_free(bm->lpool, l);
+	CustomData_bmesh_free_block(&bm->ldata, &l->data);
+	BLI_mempool_free(bm->lpool, l);
 }
 /**
  *	BMESH CYCLES

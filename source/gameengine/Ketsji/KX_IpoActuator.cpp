@@ -164,14 +164,14 @@ void KX_IpoActuator::SetStartTime(float curtime)
 
 	curtime = curtime - KX_KetsjiEngine::GetSuspendedDelta();	
 	if (m_direction > 0)
-		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
 	else
-		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_KetsjiEngine::GetAnimFrameRate();
 }
 
 void KX_IpoActuator::SetLocalTime(float curtime)
 {
-	float delta_time = ((curtime - m_starttime) - KX_KetsjiEngine::GetSuspendedDelta())*KX_FIXED_FRAME_PER_SEC;
+	float delta_time = ((curtime - m_starttime) - KX_KetsjiEngine::GetSuspendedDelta())*KX_KetsjiEngine::GetAnimFrameRate();
 	
 	// negative delta_time is caused by floating point inaccuracy
 	// perhaps the inaccuracy could be reduced a bit

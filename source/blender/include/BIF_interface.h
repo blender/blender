@@ -185,6 +185,7 @@ void uiDrawBlock(struct uiBlock *block);
 void uiGetMouse(int win, short *adr);
 void uiComposeLinks(uiBlock *block);
 void uiSetButLock(int val, char *lockstr);
+uiBut *uiFindInlink(uiBlock *block, void *poin);
 void uiClearButLock(void);
 int uiDoBlocks(struct ListBase *lb, int event, int movemouse_quit);
 void uiSetCurFont(uiBlock *block, int index);

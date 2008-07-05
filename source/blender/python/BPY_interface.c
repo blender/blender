@@ -229,13 +229,6 @@ void BPY_start_python( int argc, char **argv )
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
 
-	/* Don't allow the Python Interpreter to release the GIL on
-	 * its own, to guarantee PyNodes work properly. For Blender this
-	 * is currently the best default behavior.
-	 * The following code in C is equivalent in Python to:
-	 * "import sys; sys.setcheckinterval(sys.maxint)" */
-	_Py_CheckInterval = PyInt_GetMax();
-
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -1137,13 +1130,17 @@ static void unlink_script( Script * script )
 				if( sl->spacetype == SPACE_SCRIPT ) {
 					SpaceScript *sc = ( SpaceScript * ) sl;
 
-					if( sc->script == script ) {
+					if( sc->script == script ) {					
 						sc->script = NULL;
 
-						if( sc ==
-						    area->spacedata.first ) {
-							scrarea_queue_redraw
-								( area );
+						if( sc == area->spacedata.first ) {
+							scrarea_queue_redraw( area );
+						}
+						
+						if (sc->but_refs) {
+							BPy_Set_DrawButtonsList(sc->but_refs);
+							BPy_Free_DrawButtonsList();
+							sc->but_refs = NULL;
 						}
 					}
 				}
@@ -2167,6 +2164,18 @@ void BPY_do_all_scripts( short event )
 
 	BPY_do_pyscript( &( G.scene->id ), event );
 
+	/* Don't allow the Python Interpreter to release the GIL on
+	 * its own, to guarantee PyNodes work properly. For Blender this
+	 * is currently the best default behavior.
+	 * The following code in C is equivalent in Python to:
+	 * "import sys; sys.setcheckinterval(sys.maxint)" */
+	if (event == SCRIPT_RENDER) {
+		_Py_CheckInterval = PyInt_GetMax();
+	}
+	else if (event == SCRIPT_POSTRENDER) {
+		_Py_CheckInterval = 100; /* Python default */
+	}
+
 	return;
 }
 
@@ -2249,9 +2258,9 @@ void BPY_do_pyscript( ID * id, short event )
 			return;
 		}
 		
-		/* tell we're running a scriptlink.  The sum also tells if this script
-		 * is running nested inside another.  Blender.Load needs this info to
-		 * avoid trouble with invalid slink pointers. */
+		/* tell we're running a scriptlink.  The sum also tells if this
+		 * script is running nested inside another.  Blender.Load needs
+		 * this info to avoid trouble with invalid slink pointers. */
 		during_slink++;
 		disable_where_scriptlink( (short)during_slink );
 

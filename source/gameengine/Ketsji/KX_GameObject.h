@@ -45,9 +45,8 @@
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
 #include "KX_Scene.h"
-
-#define KX_FIXED_FRAME_PER_SEC 25.0f
-#define KX_FIXED_SEC_PER_FRAME (1.0f / KX_FIXED_FRAME_PER_SEC)
+#include "KX_KetsjiEngine.h" /* for m_anim_framerate */
+#include "KX_IPhysicsController.h" /* for suspend/resume */
 #define KX_OB_DYNAMIC 1
 
 
@@ -56,7 +55,7 @@ struct KX_ClientObjectInfo;
 class RAS_MeshObject;
 class KX_IPhysicsController;
 class PHY_IPhysicsEnvironment;
-
+struct Object;
 
 /**
  * KX_GameObject is the main class for dynamic objects.
@@ -72,6 +71,7 @@ protected:
 	STR_String							m_text;
 	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
+	struct Object*						m_pBlenderObject;
 	
 	bool								m_bSuspendDynamics;
 	bool								m_bUseObjectColor;
@@ -258,6 +258,20 @@ public:
 		bool local=false
 	);
 
+	/**
+	 * Return the mass of the object
+	 */
+		MT_Scalar	
+	GetMass();
+
+	/** 
+	 * Return the angular velocity of the game object.
+	 */
+		MT_Vector3 
+	GetAngularVelocity(
+		bool local=false
+	);
+
 	/** 
 	 * Align the object to a given normal.
 	 */
@@ -324,6 +338,9 @@ public:
 
 	void	NodeSetRelativeScale(	const MT_Vector3& scale	);
 
+	// adapt local position so that world position is set to desired position
+	void	NodeSetWorldPosition(const MT_Point3& trans);
+
 		void						
 	NodeUpdateGS(
 		double time,
@@ -360,6 +377,20 @@ public:
 		return m_pSGNode;
 	}
 
+	/**
+	 * @section blender object accessor functions.
+	 */
+
+	struct Object* GetBlenderObject( )
+	{
+		return m_pBlenderObject;
+	}
+
+	void SetBlenderObject( struct Object* obj)
+	{
+		m_pBlenderObject = obj;
+	}
+	
 	/**
 	 * Set the Scene graph node for this game object.
 	 * warning - it is your responsibility to make sure
@@ -630,6 +661,32 @@ public:
 	 */
 	void Resume(void);
 	
+	void SuspendDynamics(void) {
+		if (m_bSuspendDynamics)
+		{
+			return;
+		}
+	
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->SuspendDynamics();
+		}
+		m_bSuspendDynamics = true;
+	}
+	
+	void RestoreDynamics(void) {	
+		if (!m_bSuspendDynamics)
+		{
+			return;
+		}
+	
+		if (m_pPhysicsController1)
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
+		m_bSuspendDynamics = false;
+	}
+	
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }
 	/**
 	 * @section Python interface functions.
@@ -648,44 +705,38 @@ public:
 		PyObject *value
 	);		// _setattr method
 
-		PyObject*					
-	PySetPosition(
-		PyObject* self,
-		PyObject* args,
-		PyObject* kwds
-	);
-
-	static 
-		PyObject*			
-	sPySetPosition(
-		PyObject* self,
-		PyObject* args,
-		PyObject* kwds
-	);
-	
-	KX_PYMETHOD(KX_GameObject,GetPosition);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
+	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD(KX_GameObject,GetLinearVelocity);
+	KX_PYMETHOD(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD(KX_GameObject,GetVelocity);
-	KX_PYMETHOD(KX_GameObject,GetMass);
-	KX_PYMETHOD(KX_GameObject,GetReactionForce);
-	KX_PYMETHOD(KX_GameObject,GetOrientation);
-	KX_PYMETHOD(KX_GameObject,SetOrientation);
-	KX_PYMETHOD(KX_GameObject,SetVisible);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetMass);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetReactionForce);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
+	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
+	KX_PYMETHOD_O(KX_GameObject,SetVisible);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetState);
+	KX_PYMETHOD_O(KX_GameObject,SetState);
 	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
-	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
-	KX_PYMETHOD(KX_GameObject,RestoreDynamics);
-	KX_PYMETHOD(KX_GameObject,EnableRigidBody);
-	KX_PYMETHOD(KX_GameObject,DisableRigidBody);
+	KX_PYMETHOD_O(KX_GameObject,GetAxisVect);
+	KX_PYMETHOD_NOARGS(KX_GameObject,SuspendDynamics);
+	KX_PYMETHOD_NOARGS(KX_GameObject,RestoreDynamics);
+	KX_PYMETHOD_NOARGS(KX_GameObject,EnableRigidBody);
+	KX_PYMETHOD_NOARGS(KX_GameObject,DisableRigidBody);
 	KX_PYMETHOD(KX_GameObject,ApplyImpulse);
-	KX_PYMETHOD(KX_GameObject,SetCollisionMargin);
+	KX_PYMETHOD_O(KX_GameObject,SetCollisionMargin);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
+	KX_PYMETHOD_O(KX_GameObject,SetParent);
+	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
-	KX_PYMETHOD(KX_GameObject,GetParent);
-	KX_PYMETHOD(KX_GameObject,SetParent);
-	KX_PYMETHOD(KX_GameObject,RemoveParent);
-	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
+	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);
+	
 private :
 
 	/**	

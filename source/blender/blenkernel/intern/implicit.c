@@ -1588,10 +1588,17 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
 				VECCOPY(verts[i].v, verts[i].tv);
 			}
-	
+			
 			// call collision function
-			result = cloth_bvh_objcollision(clmd, step + dt, dt);
-	
+			// TODO: check if "step" or "step+dt" is correct - dg
+			result = cloth_bvh_objcollision(ob, clmd, step, dt);
+			
+			// correct velocity again, just to be sure we had to change it due to adaptive collisions
+			for(i = 0; i < numverts; i++)
+			{
+				VECSUB(verts[i].tv, verts[i].tx, id->X[i]);
+			}
+			
 			// copy corrected positions back to simulation
 			for(i = 0; i < numverts; i++)
 			{		

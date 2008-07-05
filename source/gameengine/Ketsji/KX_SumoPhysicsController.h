@@ -68,6 +68,8 @@ public:
 	void	ApplyTorque(const MT_Vector3& torque,bool local);
 	void	ApplyForce(const MT_Vector3& force,bool local);
 	MT_Vector3 GetLinearVelocity();
+	MT_Vector3 GetAngularVelocity()		// to keep compiler happy
+		{ return MT_Vector3(0.0,0.0,0.0); }
 	MT_Vector3 GetVelocity(const MT_Point3& pos);
 	void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);

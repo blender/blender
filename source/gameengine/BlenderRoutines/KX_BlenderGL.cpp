@@ -44,21 +44,9 @@
 
 #include "BMF_Api.h"
 
+#include "GL/glew.h"
+#include "BIF_gl.h"
 
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
-#include <mesa/glu.h>
-#else
-#include <GL/glu.h>
-#endif
-#endif
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
-#include "RAS_OpenGLRasterizer/ARB_multitexture.h"
 #include "BL_Material.h" // MAXTEX
 
 /* Data types encoding the game world: */
@@ -77,7 +65,6 @@
 #include "BKE_bmfont.h"
 #include "BKE_image.h"
 
-#include "BIF_gl.h"
 extern "C" {
 #include "BDR_drawmesh.h"
 #include "BIF_mywindow.h"
@@ -87,12 +74,6 @@ extern "C" {
 }
 
 /* end of blender block */
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
 
 /* was in drawmesh.c */
 void spack(unsigned int ucol)
@@ -133,7 +114,12 @@ void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface
 				characters = 0;
 			}
 
-			if(!col) glColor3f(1.0f, 1.0f, 1.0f);
+			/* When OBCOL flag is on the color is set in IndexPrimitives_3DText */			
+			if (tface->mode & TF_OBCOL) { /* Color has been set */
+				col= NULL;
+			} else {
+				if(!col) glColor3f(1.0f, 1.0f, 1.0f);			
+			}
 
 			glPushMatrix();
 			for (index = 0; index < characters; index++) {
@@ -189,27 +175,18 @@ void DisableForText()
 		glDisable(GL_LIGHTING);
 		glDisable(GL_COLOR_MATERIAL);
 	}
-#if defined(GL_ARB_multitexture) && defined(WITH_GLEXT)
-	if (!getenv("WITHOUT_GLEXT")) {
-		for(int i=0; i<MAXTEX; i++) {
-			if(bgl::RAS_EXT_support._ARB_multitexture)
-				bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
-#ifdef GL_ARB_texture_cube_map
-		if(bgl::RAS_EXT_support._ARB_texture_cube_map)
-			if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-#endif
-			if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
-		}
-	} else {
-		if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
-	}
 
-#else//GL_ARB_multitexture
-	if(glIsEnabled(GL_TEXTURE_2D)) glDisable(GL_TEXTURE_2D);
-#endif
+	if(GLEW_ARB_multitexture)
+		for(int i=0; i<MAXTEX; i++)
+			glActiveTextureARB(GL_TEXTURE0_ARB+i);
+
+	if(GLEW_ARB_texture_cube_map)
+		if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+	if(glIsEnabled(GL_TEXTURE_2D))
+		glDisable(GL_TEXTURE_2D);
 }
-
 
 void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height)
 {	

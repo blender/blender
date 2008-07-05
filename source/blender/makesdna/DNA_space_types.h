@@ -559,6 +559,7 @@ typedef struct SpaceImaSel {
 #define OOPS_IM		4096
 #define OOPS_AR		8192
 #define OOPS_GR		16384
+#define OOPS_CA		32768
 
 /* SpaceOops->outlinevis */
 #define SO_ALL_SCENES	0

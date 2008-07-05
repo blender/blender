@@ -34,6 +34,7 @@ BL_Material::BL_Material()
 	rgb[3] = 0;
 	IdMode = 0;
 	ras_mode = 0;
+	glslmat = 0;
 	tile = 0;
 	matname = "NoMaterial";
 	matcolor[0] = 0.5f;

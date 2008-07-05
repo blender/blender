@@ -46,18 +46,7 @@
 #include "RAS_2DFilterManager.h"
 #include <iostream>
 
-#ifdef WIN32
-// OpenGL gl.h needs 'windows.h' on windows platforms 
-#include <windows.h>
-#endif //WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
+#include "GL/glew.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -67,9 +56,11 @@
 RAS_2DFilterManager::RAS_2DFilterManager():
 texturewidth(-1), textureheight(-1),
 canvaswidth(-1), canvasheight(-1),
-numberoffilters(0),texname(-1)
+numberoffilters(0)
 {
-	isshadersupported = bgl::QueryVersion(2,0);
+	isshadersupported = GLEW_ARB_shader_objects &&
+		GLEW_ARB_fragment_shader && GLEW_ARB_multitexture;
+
 	if(!isshadersupported)
 	{
 		std::cout<<"shaders not supported!" << std::endl;
@@ -81,8 +72,9 @@ numberoffilters(0),texname(-1)
 	{
 		m_filters[passindex] = 0;
 		m_enabled[passindex] = 0;
+		texflag[passindex] = 0;
 	}
-
+	texname[0] = texname[1] = texname[2] = -1;
 }
 
 RAS_2DFilterManager::~RAS_2DFilterManager()
@@ -92,15 +84,14 @@ RAS_2DFilterManager::~RAS_2DFilterManager()
 unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 {
 		GLuint program = 0;	
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
-		GLuint fShader = bgl::blCreateShaderObjectARB(GL_FRAGMENT_SHADER);
+		GLuint fShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
         GLint success;
 
-		bgl::blShaderSourceARB(fShader, 1, (const char**)&shadersource, NULL);
+		glShaderSourceARB(fShader, 1, (const char**)&shadersource, NULL);
 
-		bgl::blCompileShaderARB(fShader);
+		glCompileShaderARB(fShader);
 
-		bgl::blGetObjectParameterivARB(fShader, GL_COMPILE_STATUS, &success);
+		glGetObjectParameterivARB(fShader, GL_COMPILE_STATUS, &success);
 		if(!success)
 		{
 			/*Shader Comile Error*/
@@ -108,11 +99,11 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 			return 0;
 		}
 		    
-		program = bgl::blCreateProgramObjectARB();
-		bgl::blAttachObjectARB(program, fShader);
+		program = glCreateProgramObjectARB();
+		glAttachObjectARB(program, fShader);
 
-		bgl::blLinkProgramARB(program);
-		bgl::blGetObjectParameterivARB(program, GL_LINK_STATUS, &success);
+		glLinkProgramARB(program);
+		glGetObjectParameterivARB(program, GL_LINK_STATUS, &success);
 		if (!success)
 		{
 			/*Program Link Error*/
@@ -120,15 +111,15 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 			return 0;
 		}
    		
-		bgl::blValidateProgramARB(program);
-		bgl::blGetObjectParameterivARB(program, GL_VALIDATE_STATUS, &success);
+		glValidateProgramARB(program);
+		glGetObjectParameterivARB(program, GL_VALIDATE_STATUS, &success);
         if (!success)
 		{
 			/*Program Validation Error*/
 			std::cout << "2dFilters - Shader program validation error" << std::endl;
 			return 0;
 		}
-#endif
+
 		return program;
 }
 
@@ -160,55 +151,94 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 		return 0;
 }
 
-void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
+void RAS_2DFilterManager::StartShaderProgram(int passindex)
 {
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	GLint uniformLoc;
-	bgl::blUseProgramObjectARB(shaderprogram);
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
-	bgl::blActiveTextureARB(GL_TEXTURE0);
-	//glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texname);
+	glUseProgramObjectARB(m_filters[passindex]);
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTexture");
+	glActiveTextureARB(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texname[0]);
 
     if (uniformLoc != -1)
     {
-		bgl::blUniform1iARB(uniformLoc, 0);
+		glUniform1iARB(uniformLoc, 0);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_TextureCoordinateOffset");
+
+    /* send depth texture to glsl program if it needs */
+	if(texflag[passindex] & 0x1){
+    	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture");
+    	glActiveTextureARB(GL_TEXTURE1);
+    	glBindTexture(GL_TEXTURE_2D, texname[1]);
+
+    	if (uniformLoc != -1)
+    	{
+    		glUniform1iARB(uniformLoc, 1);
+    	}
+    }
+
+    /* send luminance texture to glsl program if it needs */
+	if(texflag[passindex] & 0x1){
+    	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture");
+    	glActiveTextureARB(GL_TEXTURE2);
+    	glBindTexture(GL_TEXTURE_2D, texname[2]);
+
+    	if (uniformLoc != -1)
+    	{
+    		glUniform1iARB(uniformLoc, 2);
+    	}
+	}
+	
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_TextureCoordinateOffset");
     if (uniformLoc != -1)
     {
-        bgl::blUniform2fvARB(uniformLoc, 9, textureoffsets);
+        glUniform2fvARB(uniformLoc, 9, textureoffsets);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTextureWidth");
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTextureWidth");
     if (uniformLoc != -1)
     {
-		bgl::blUniform1fARB(uniformLoc,texturewidth);
+		glUniform1fARB(uniformLoc,texturewidth);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTextureHeight");
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTextureHeight");
     if (uniformLoc != -1)
     {
-		bgl::blUniform1fARB(uniformLoc,textureheight);
+		glUniform1fARB(uniformLoc,textureheight);
     }
-#endif
 }
 
 void RAS_2DFilterManager::EndShaderProgram()
 {
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
-	bgl::blUseProgramObjectARB(0);
-#endif
+	glUseProgramObjectARB(0);
 }
 
 void RAS_2DFilterManager::SetupTexture()
 {
-	if(texname!=-1)
+	if(texname[0]!=-1 || texname[1]!=-1)
 	{
-		glDeleteTextures(1,(const GLuint *)&texname);
+		glDeleteTextures(2, (GLuint*)texname);
 	}
-	glGenTextures(1, (GLuint *)&texname);
-	glBindTexture(GL_TEXTURE_2D, texname);
+	glGenTextures(3, (GLuint*)texname);
+
+	glBindTexture(GL_TEXTURE_2D, texname[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGB,
-		GL_UNSIGNED_BYTE, 0);
+			GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	glBindTexture(GL_TEXTURE_2D, texname[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texturewidth,textureheight, 0, GL_DEPTH_COMPONENT,
+			GL_FLOAT,NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+		                GL_NONE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	
+	glBindTexture(GL_TEXTURE_2D, texname[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16, texturewidth, textureheight, 0, GL_LUMINANCE,
+			GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -260,12 +290,27 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 	int passindex;
 	bool first = true;
+
 	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)
 	{
 		if(m_filters[passindex] && m_enabled[passindex])
 		{
 			if(first)
 			{
+				/* this pass needs depth texture*/
+				if(texflag[passindex] & 0x1){
+					glActiveTextureARB(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, texname[1]);
+					glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0,0, texturewidth,textureheight, 0);
+				}
+				
+				/* this pass needs luminance texture*/
+				if(texflag[passindex] & 0x2){
+					glActiveTextureARB(GL_TEXTURE2);
+					glBindTexture(GL_TEXTURE_2D, texname[2]);
+					glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0,0, texturewidth,textureheight, 0);
+				}
+
 				glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
 				glViewport(0, 0, texturewidth, textureheight);
 
@@ -277,11 +322,13 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 				first = false;
 			}
 			
-			StartShaderProgram(m_filters[passindex]);
+			StartShaderProgram(passindex);
 
-			glBindTexture(GL_TEXTURE_2D, texname);
+
+			glActiveTextureARB(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texname[0]);
 			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, texturewidth, textureheight, 0);
-
+			   
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glBegin(GL_QUADS);
@@ -302,11 +349,10 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	}
 }
 
-void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text)
+void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text, short tflag)
 {
 	if(!isshadersupported)
 		return;
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	if(pass<0 || pass>=MAX_RENDER_PASS)
 		return;
 
@@ -325,16 +371,18 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 	if(mode == RAS_2DFILTER_NOFILTER)
 	{
 		if(m_filters[pass])
-			bgl::blDeleteObjectARB(m_filters[pass]);
+			glDeleteObjectARB(m_filters[pass]);
 		m_enabled[pass] = 0;
 		m_filters[pass] = 0;
+		texflag[pass] = 0;
 		return;
 	}
 	
 	if(mode == RAS_2DFILTER_CUSTOMFILTER)
 	{
+		texflag[pass] = tflag;
 		if(m_filters[pass])
-			bgl::blDeleteObjectARB(m_filters[pass]);
+			glDeleteObjectARB(m_filters[pass]);
 		m_filters[pass] = CreateShaderProgram(text.Ptr());
 		m_enabled[pass] = 1;
 		return;
@@ -343,9 +391,8 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 	if(mode>=RAS_2DFILTER_MOTIONBLUR && mode<=RAS_2DFILTER_INVERT)
 	{
 		if(m_filters[pass])
-			bgl::blDeleteObjectARB(m_filters[pass]);
+			glDeleteObjectARB(m_filters[pass]);
 		m_filters[pass] = CreateShaderProgram(mode);
 		m_enabled[pass] = 1;
 	}
-#endif
 }

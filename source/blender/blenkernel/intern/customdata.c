@@ -36,6 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_mempool.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -454,13 +455,16 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
-	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
+	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, NULL, NULL, NULL} 
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco"};
+	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV", "CDMloopCol"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
@@ -475,6 +479,8 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
 	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO;
+const CustomDataMask CD_MASK_BMESH = 
+	CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL;
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
@@ -1406,6 +1412,273 @@ void CustomData_to_em_block(const CustomData *source, CustomData *dest,
 }
 
 void CustomData_from_em_block(const CustomData *source, CustomData *dest,
+                              void *src_block, int dest_index)
+{
+	const LayerTypeInfo *typeInfo;
+	int dest_i, src_i, dest_offset;
+
+	/* copies a layer at a time */
+	dest_i = 0;
+	for(src_i = 0; src_i < source->totlayer; ++src_i) {
+
+		/* find the first dest layer with type >= the source type
+		 * (this should work because layers are ordered by type)
+		 */
+		while(dest_i < dest->totlayer
+		      && dest->layers[dest_i].type < source->layers[src_i].type)
+			++dest_i;
+
+		/* if there are no more dest layers, we're done */
+		if(dest_i >= dest->totlayer) return;
+
+		/* if we found a matching layer, copy the data */
+		if(dest->layers[dest_i].type == source->layers[src_i].type) {
+			int offset = source->layers[src_i].offset;
+			char *src_data = (char*)src_block + offset;
+			char *dest_data = dest->layers[dest_i].data;
+
+			typeInfo = layerType_getInfo(dest->layers[dest_i].type);
+			dest_offset = dest_index * typeInfo->size;
+
+			if(typeInfo->copy)
+				typeInfo->copy(src_data, dest_data + dest_offset, 1);
+			else
+				memcpy(dest_data + dest_offset, src_data, typeInfo->size);
+
+			/* if there are multiple source & dest layers of the same type,
+			 * we don't want to copy all source layers to the same dest, so
+			 * increment dest_i
+			 */
+			++dest_i;
+		}
+	}
+
+}
+
+/*Bmesh functions*/
+void CustomData_bmesh_free_block(CustomData *data, void **block)
+{
+    const LayerTypeInfo *typeInfo;
+    int i;
+
+	if(!*block) return;
+    for(i = 0; i < data->totlayer; ++i) {
+        if(!(data->layers[i].flag & CD_FLAG_NOFREE)) {
+            typeInfo = layerType_getInfo(data->layers[i].type);
+
+            if(typeInfo->free) {
+				int offset = data->layers[i].offset;
+				typeInfo->free((char*)*block + offset, 1, typeInfo->size);
+			}
+        }
+    }
+
+	BLI_mempool_free(data->pool, *block);
+	*block = NULL;
+}
+
+static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
+{
+
+	if (*block)
+		CustomData_bmesh_free_block(data, block);
+
+	if (data->totsize > 0)
+		*block = BLI_mempool_alloc(data->pool);
+	else
+		*block = NULL;
+}
+
+void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
+                            void *src_block, void **dest_block)
+{
+	const LayerTypeInfo *typeInfo;
+	int dest_i, src_i;
+
+	if (!*dest_block)
+		CustomData_bmesh_alloc_block(dest, dest_block);
+	
+	/* copies a layer at a time */
+	dest_i = 0;
+	for(src_i = 0; src_i < source->totlayer; ++src_i) {
+
+		/* find the first dest layer with type >= the source type
+		 * (this should work because layers are ordered by type)
+		 */
+		while(dest_i < dest->totlayer
+		      && dest->layers[dest_i].type < source->layers[src_i].type)
+			++dest_i;
+
+		/* if there are no more dest layers, we're done */
+		if(dest_i >= dest->totlayer) return;
+
+		/* if we found a matching layer, copy the data */
+		if(dest->layers[dest_i].type == source->layers[src_i].type &&
+			strcmp(dest->layers[dest_i].name, source->layers[src_i].name) == 0) {
+			char *src_data = (char*)src_block + source->layers[src_i].offset;
+			char *dest_data = (char*)*dest_block + dest->layers[dest_i].offset;
+
+			typeInfo = layerType_getInfo(source->layers[src_i].type);
+
+			if(typeInfo->copy)
+				typeInfo->copy(src_data, dest_data, 1);
+			else
+				memcpy(dest_data, src_data, typeInfo->size);
+
+			/* if there are multiple source & dest layers of the same type,
+			 * we don't want to copy all source layers to the same dest, so
+			 * increment dest_i
+			 */
+			++dest_i;
+		}
+	}
+}
+
+/*Bmesh Custom Data Functions. Should replace editmesh ones with these as well, due to more effecient memory alloc*/
+void *CustomData_bmesh_get(const CustomData *data, void *block, int type)
+{
+	int layer_index;
+	
+	/* get the layer index of the first layer of type */
+	layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+
+	return (char *)block + data->layers[layer_index].offset;
+}
+
+void *CustomData_bmesh_get_n(const CustomData *data, void *block, int type, int n)
+{
+	int layer_index;
+	
+	/* get the layer index of the first layer of type */
+	layer_index = CustomData_get_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+
+	return (char *)block + data->layers[layer_index+n].offset;
+}
+
+void CustomData_bmesh_set(const CustomData *data, void *block, int type, void *source)
+{
+	void *dest = CustomData_bmesh_get(data, block, type);
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if(!dest) return;
+
+	if(typeInfo->copy)
+		typeInfo->copy(source, dest, 1);
+	else
+		memcpy(dest, source, typeInfo->size);
+}
+
+void CustomData_bmesh_set_n(CustomData *data, void *block, int type, int n, void *source)
+{
+	void *dest = CustomData_bmesh_get_n(data, block, type, n);
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if(!dest) return;
+
+	if(typeInfo->copy)
+		typeInfo->copy(source, dest, 1);
+	else
+		memcpy(dest, source, typeInfo->size);
+}
+
+void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights,
+                          float *sub_weights, int count, void *dest_block)
+{
+	int i, j;
+	void *source_buf[SOURCE_BUF_SIZE];
+	void **sources = source_buf;
+
+	/* slow fallback in case we're interpolating a ridiculous number of
+	 * elements
+	 */
+	if(count > SOURCE_BUF_SIZE)
+		sources = MEM_callocN(sizeof(*sources) * count,
+		                      "CustomData_interp sources");
+
+	/* interpolates a layer at a time */
+	for(i = 0; i < data->totlayer; ++i) {
+		CustomDataLayer *layer = &data->layers[i];
+		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+		if(typeInfo->interp) {
+			for(j = 0; j < count; ++j)
+				sources[j] = (char *)src_blocks[j] + layer->offset;
+
+			typeInfo->interp(sources, weights, sub_weights, count,
+			                  (char *)dest_block + layer->offset);
+		}
+	}
+
+	if(count > SOURCE_BUF_SIZE) MEM_freeN(sources);
+}
+
+void CustomData_bmesh_set_default(CustomData *data, void **block)
+{
+	const LayerTypeInfo *typeInfo;
+	int i;
+
+	if (!*block)
+		CustomData_bmesh_alloc_block(data, block);
+
+	for(i = 0; i < data->totlayer; ++i) {
+		int offset = data->layers[i].offset;
+
+		typeInfo = layerType_getInfo(data->layers[i].type);
+
+		if(typeInfo->set_default)
+			typeInfo->set_default((char*)*block + offset, 1);
+	}
+}
+
+void CustomData_to_bmesh_block(const CustomData *source, CustomData *dest,
+                            int src_index, void **dest_block)
+{
+	const LayerTypeInfo *typeInfo;
+	int dest_i, src_i, src_offset;
+
+	if (!*dest_block)
+		CustomData_bmesh_alloc_block(dest, dest_block);
+	
+	/* copies a layer at a time */
+	dest_i = 0;
+	for(src_i = 0; src_i < source->totlayer; ++src_i) {
+
+		/* find the first dest layer with type >= the source type
+		 * (this should work because layers are ordered by type)
+		 */
+		while(dest_i < dest->totlayer
+		      && dest->layers[dest_i].type < source->layers[src_i].type)
+			++dest_i;
+
+		/* if there are no more dest layers, we're done */
+		if(dest_i >= dest->totlayer) return;
+
+		/* if we found a matching layer, copy the data */
+		if(dest->layers[dest_i].type == source->layers[src_i].type) {
+			int offset = dest->layers[dest_i].offset;
+			char *src_data = source->layers[src_i].data;
+			char *dest_data = (char*)*dest_block + offset;
+
+			typeInfo = layerType_getInfo(dest->layers[dest_i].type);
+			src_offset = src_index * typeInfo->size;
+
+			if(typeInfo->copy)
+				typeInfo->copy(src_data + src_offset, dest_data, 1);
+			else
+				memcpy(dest_data, src_data + src_offset, typeInfo->size);
+
+			/* if there are multiple source & dest layers of the same type,
+			 * we don't want to copy all source layers to the same dest, so
+			 * increment dest_i
+			 */
+			++dest_i;
+		}
+	}
+}
+
+void CustomData_from_bmesh_block(const CustomData *source, CustomData *dest,
                               void *src_block, int dest_index)
 {
 	const LayerTypeInfo *typeInfo;

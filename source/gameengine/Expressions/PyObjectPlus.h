@@ -99,12 +99,39 @@ static inline void Py_Fatal(char *M) {
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
 
+#define KX_PYMETHOD_NOARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self); \
+	static PyObject* sPy##method_name( PyObject* self) { \
+		return ((class_name*) self)->Py##method_name(self);		\
+	}; \
+	
+#define KX_PYMETHOD_O(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* value); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
+		return ((class_name*) self)->Py##method_name(self, value);		\
+	}; \
+
 #define KX_PYMETHOD_DOC(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
     static char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_O(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* value); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
+		return ((class_name*) self)->Py##method_name(self, value);		\
+	}; \
+    static char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self); \
+	static PyObject* sPy##method_name( PyObject* self) { \
+		return ((class_name*) self)->Py##method_name(self);		\
+	}; \
+    static char method_name##_doc[]; \
+
 
 /* The line above should remain empty */
 /**

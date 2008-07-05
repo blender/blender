@@ -39,12 +39,12 @@
 
 #include "DNA_listBase.h"
 #include "BLI_ghash.h"
+#include "BLI_mempool.h"
 #include "BLI_memarena.h"
 #include "DNA_image_types.h"
 #include "BLI_editVert.h"
 #include "BKE_DerivedMesh.h"
 #include "transform.h"
-#include "BKE_bmeshCustomData.h"
 
 /*forward declerations*/
 struct BME_Vert;
@@ -52,13 +52,6 @@ struct BME_Edge;
 struct BME_Poly;
 struct BME_Loop;
 
-
-/*structure for fast memory allocation/frees*/
-typedef struct BME_mempool{
-	struct ListBase chunks;
-	int esize, csize, pchunk;		/*size of elements and chunks in bytes and number of elements per chunk*/
-	struct BME_freenode	*free;		/*free element list. Interleaved into chunk datas.*/
-}BME_mempool;
 
 /*Notes on further structure Cleanup:
 	-Remove the tflags, they belong in custom data layers
@@ -78,10 +71,10 @@ typedef struct BME_Mesh
 {
 	ListBase verts, edges, polys;
 	/*memory pools used for storing mesh elements*/
-	struct BME_mempool *vpool;
-	struct BME_mempool *epool;
-	struct BME_mempool *ppool;
-	struct BME_mempool *lpool;
+	struct BLI_mempool *vpool;
+	struct BLI_mempool *epool;
+	struct BLI_mempool *ppool;
+	struct BLI_mempool *lpool;
 	/*some scratch arrays used by eulers*/
 	struct BME_Vert **vtar;
 	struct BME_Edge **edar;
@@ -90,7 +83,7 @@ typedef struct BME_Mesh
 	int vtarlen, edarlen, lparlen, plarlen;
 	int totvert, totedge, totpoly, totloop;				/*record keeping*/
 	int nextv, nexte, nextp, nextl;						/*Next element ID for verts/edges/faces/loops. Never reused*/
-	struct BME_CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
+	struct CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
 } BME_Mesh;
 
 typedef struct BME_Vert
@@ -169,7 +162,7 @@ int BME_radial_find_face(struct BME_Edge *e,struct BME_Poly *f);
 struct BME_Loop *BME_loop_find_loop(struct BME_Poly *f, struct BME_Vert *v);
 
 /*MESH CREATION/DESTRUCTION*/
-struct BME_Mesh *BME_make_mesh(int allocsize[4], struct BME_CustomDataInit init[4]);
+struct BME_Mesh *BME_make_mesh(int allocsize[4]);
 void BME_free_mesh(struct BME_Mesh *bm);
 /*FULL MESH VALIDATION*/
 int BME_validate_mesh(struct BME_Mesh *bm, int halt);

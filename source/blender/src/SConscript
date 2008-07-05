@@ -26,7 +26,7 @@ incs += ' #/intern/bsp/extern ../radiosity/extern/include'
 incs += ' #/intern/decimation/extern ../blenloader ../python'
 incs += ' ../../kernel/gen_system #/intern/SoundSystem ../readstreamglue ../nodes'
 incs += ' ../quicktime #/intern/elbeem/extern'
-incs += ' #/intern/ghost #/intern/opennl/extern'
+incs += ' #/intern/ghost #/intern/opennl/extern #/extern/glew/include'
 
 
 incs += ' ' + env['BF_PYTHON_INC']

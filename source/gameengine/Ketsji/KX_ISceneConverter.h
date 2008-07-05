@@ -74,6 +74,9 @@ public:
 	virtual void SetMaterials(bool val) =0;
 	virtual bool GetMaterials()=0;
 
+	// use blender glsl materials
+	virtual void SetGLSLMaterials(bool val) =0;
+	virtual bool GetGLSLMaterials()=0;
 };
 
 #endif //__KX_ISCENECONVERTER_H

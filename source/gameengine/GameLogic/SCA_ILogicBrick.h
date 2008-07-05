@@ -82,9 +82,9 @@ public:
 
 	// python methods
 
-	KX_PYMETHOD(SCA_ILogicBrick,GetOwner);
+	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetOwner);
 	KX_PYMETHOD(SCA_ILogicBrick,SetExecutePriority);
-	KX_PYMETHOD(SCA_ILogicBrick,GetExecutePriority);
+	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
 
 	enum KX_BOOL_TYPE {
 		KX_BOOL_NODEF = 0,

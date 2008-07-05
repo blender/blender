@@ -378,9 +378,6 @@ void space_set_commmandline_options(void) {
 		
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		a= (U.gameflags & USER_VERTEX_ARRAYS);
-		SYS_WriteCommandLineInt(syshandle, "vertexarrays", a);
-
 		a= (U.gameflags & USER_DISABLE_SOUND);
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
@@ -436,9 +433,6 @@ static void SaveState(void)
 
 	if(G.f & G_TEXTUREPAINT)
 		texpaint_enable_mipmap();
-
-	if(G.scene->camera==0 || G.scene->camera->type!=OB_CAMERA)
-		error("no (correct) camera");
 
 	waitcursor(1);
 }
@@ -2077,15 +2071,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							vgroup_operation_with_menu();
 					}
 				}
-				else if((G.qual==LR_SHIFTKEY))
+				else if((G.qual==LR_SHIFTKEY)) {
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
 							select_mesh_group_menu();
 					} 
 					else if(ob && (ob->flag & OB_POSEMODE))
 						pose_select_grouped_menu();
-					else
+					else if (ob)
 						select_object_grouped_menu();
+				}
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');
@@ -2974,8 +2969,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_ipo_selectbuttons();
 				doredraw= 1;
 			}
+			else if(G.qual == LR_CTRLKEY) {
+				if (sipo->showkey==0)
+					add_vert_ipo();
+			}
 			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
-			else if((G.qual & LR_CTRLKEY) && (sipo->showkey==0)) add_vert_ipo();
 			else {
 				do {
 					getmouseco_areawin(mval);
@@ -3213,7 +3211,7 @@ void initipo(ScrArea *sa)
 	sipo->v2d.min[0]= 0.01f;
 	sipo->v2d.min[1]= 0.01f;
 
-	sipo->v2d.max[0]= 15000.0f;
+	sipo->v2d.max[0]= MAXFRAMEF;
 	sipo->v2d.max[1]= 10000.0f;
 	
 	sipo->v2d.scroll= L_SCROLL+B_SCROLL;
@@ -4254,15 +4252,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
 													(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth, &(U.glreslimit), 0, 0, 0, 0, "Limit the texture size to save graphics memory");
 		
-		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
-
 		uiDefButI(block, NUM, 0, "Time Out ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y3, mpref, buth, 
 			&U.textimeout, 0.0, 3600.0, 30, 2, "Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated)");
 		uiDefButI(block, NUM, 0, "Collect Rate ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y1, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
 
 		/* *** */
@@ -4972,21 +4966,19 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case DKEY:
-			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				duplicate_marker();
-			else if ((G.qual==LR_SHIFTKEY)) {
+			} else if ((G.qual==LR_SHIFTKEY)) {
 				if(sseq->mainb) break;
 				add_duplicate_seq();
+			} else if (G.qual == 0) {
+				set_filter_seq();
 			}
 			break;
 		case EKEY:
 			if(sseq->mainb) break;
 			if((G.qual==0))
 				transform_seq('e', 0);
-			break;
-		case FKEY:
-			if((G.qual==0))
-				set_filter_seq();
 			break;
 		case GKEY:
 			if (G.qual & LR_CTRLKEY)
@@ -5166,7 +5158,7 @@ static void init_actionspace(ScrArea *sa)
 	saction->v2d.min[0]= 0.0;
 	saction->v2d.min[1]= 0.0;
 
-	saction->v2d.max[0]= 32000.0;
+	saction->v2d.max[0]= MAXFRAMEF;
 	saction->v2d.max[1]= 1000.0;
 	
 	saction->v2d.minzoom= 0.01;
@@ -5238,7 +5230,7 @@ static void init_soundspace(ScrArea *sa)
 	ssound->v2d.min[0]= 1.0;
 	ssound->v2d.min[1]= 259.0;
 
-	ssound->v2d.max[0]= 32000.0;
+	ssound->v2d.max[0]= MAXFRAMEF;
 	ssound->v2d.max[1]= 259;
 	
 	ssound->v2d.minzoom= 0.1f;
@@ -5968,7 +5960,7 @@ static void init_nlaspace(ScrArea *sa)
 	snla->v2d.min[0]= 0.0;
 	snla->v2d.min[1]= 0.0;
 	
-	snla->v2d.max[0]= 1000.0;
+	snla->v2d.max[0]= MAXFRAMEF;
 	snla->v2d.max[1]= 1000.0;
 	
 	snla->v2d.minzoom= 0.1F;
@@ -6056,7 +6048,7 @@ static void init_timespace(ScrArea *sa)
 	stime->v2d.min[0]= 1.0;
 	stime->v2d.min[1]= (float)sa->winy;
 	
-	stime->v2d.max[0]= 32000.0;
+	stime->v2d.max[0]= MAXFRAMEF;
 	stime->v2d.max[1]= (float)sa->winy;
 	
 	stime->v2d.minzoom= 0.1f;
@@ -6325,7 +6317,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
 		}
-
+		else if(sl->spacetype==SPACE_SCRIPT) {
+			SpaceScript *sc = ( SpaceScript * ) sl;
+			sc->but_refs = NULL;
+		}
 		sl= sl->next;
 	}
 	

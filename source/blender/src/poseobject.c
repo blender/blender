@@ -1627,6 +1627,8 @@ void pose_flipquats(void)
 			pchan->quat[3]= -pchan->quat[3];
 		}
 	}
-			
+	
+	/* do autokey */
+	autokeyframe_pose_cb_func(ob, TFM_ROTATION, 0);
 }
 

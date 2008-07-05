@@ -58,10 +58,15 @@ KX_NetworkMessageSensor::KX_NetworkMessageSensor(
     m_NetworkScene(NetworkScene),
     m_subject(subject),
     m_frame_message_count (0),
-    m_IsUp(false),
     m_BodyList(NULL),
     m_SubjectList(NULL)
 {
+	Init();
+}
+
+void KX_NetworkMessageSensor::Init()
+{
+    m_IsUp = false;
 }
 
 KX_NetworkMessageSensor::~KX_NetworkMessageSensor()
@@ -227,6 +232,9 @@ PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(
 	if (PyArg_ParseTuple(args, "s", &Subject))
 	{
 	     m_subject = Subject;
+	}
+	else {
+		return NULL;
 	}
 
 	Py_Return;

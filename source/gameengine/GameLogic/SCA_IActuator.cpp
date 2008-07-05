@@ -36,6 +36,7 @@ using namespace std;
 
 SCA_IActuator::SCA_IActuator(SCA_IObject* gameobj,
 							 PyTypeObject* T) :
+	m_links(0),
 	SCA_ILogicBrick(gameobj,T) 
 {
 	// nothing to do
@@ -109,3 +110,12 @@ SCA_IActuator::~SCA_IActuator()
 	RemoveAllEvents();
 }
 
+void SCA_IActuator::DecLink()
+{
+	m_links--;
+	if (m_links < 0) 
+	{
+		printf("Warning: actuator %s has negative m_links: %d\n", m_name.Ptr(), m_links);
+		m_links = 0;
+	}
+}

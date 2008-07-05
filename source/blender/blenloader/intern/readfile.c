@@ -2991,6 +2991,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bActionActuator *aa= act->data;
 					aa->act= newlibadr(fd, ob->id.lib, aa->act);
 				}
+				else if(act->type==ACT_SHAPEACTION) {
+					bActionActuator *aa= act->data;
+					aa->act= newlibadr(fd, ob->id.lib, aa->act);
+				}
 				else if(act->type==ACT_PROPERTY) {
 					bPropertyActuator *pa= act->data;
 					pa->ob= newlibadr(fd, ob->id.lib, pa->ob);
@@ -3006,6 +3010,9 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(act->type==ACT_PARENT) {
 					bParentActuator *parenta = act->data; 
 					parenta->ob = newlibadr(fd, ob->id.lib, parenta->ob);
+				}
+				else if(act->type==ACT_STATE) {
+					/* bStateActuator *statea = act->data; */
 				}
 				act= act->next;
 			}
@@ -3303,11 +3310,19 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_constraints(fd, &ob->constraints);
 
 	link_glob_list(fd, &ob->controllers);
+	if (ob->init_state) {
+		/* if a known first state is specified, set it so that the game will start ok */
+		ob->state = ob->init_state;
+	} else if (!ob->state) {
+		ob->state = 1;
+	}
 	cont= ob->controllers.first;
 	while(cont) {
 		cont->data= newdataadr(fd, cont->data);
 		cont->links= newdataadr(fd, cont->links);
 		test_pointer_array(fd, (void **)&cont->links);
+		if (cont->state_mask == 0)
+			cont->state_mask = 1;
 		cont= cont->next;
 	}
 
@@ -7631,6 +7646,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	/* sun/sky */
+	if ((main->versionfile < 246) ){
+		Lamp *la;
+		for(la=main->lamp.first; la; la= la->id.next) {
+			la->sun_effect_type = 0;
+			la->horizon_brightness = 1.0;
+			la->spread = 1.0;
+			la->sun_brightness = 1.0;
+			la->sun_size = 1.0;
+			la->backscattered_light = 1.0;
+			la->atm_turbidity = 2.0;
+			la->atm_inscattering_factor = 1.0;
+			la->atm_extinction_factor = 1.0;
+			la->atm_distance_factor = 1.0;
+			la->sun_intensity = 1.0;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -8396,6 +8429,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			expand_doit(fd, mainvar, sa->scene);
 		}
 		else if(act->type==ACT_ACTION) {
+			bActionActuator *aa= act->data;
+			expand_doit(fd, mainvar, aa->act);
+		}
+		else if(act->type==ACT_SHAPEACTION) {
 			bActionActuator *aa= act->data;
 			expand_doit(fd, mainvar, aa->act);
 		}

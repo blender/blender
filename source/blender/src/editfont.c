@@ -354,7 +354,7 @@ void txt_export_to_object(struct Text *text)
 //	char sdir[FILE_MAXDIR];
 //	char sfile[FILE_MAXFILE];
 
-	if(!text) return;
+	if(!text || !text->lines.first) return;
 
 	id = (ID *)text;
 
@@ -429,7 +429,7 @@ void txt_export_to_objects(struct Text *text)
 	int linenum = 0;
 	float offset[3] = {0.0,0.0,0.0};
 
-	if(!text) return;
+	if(!text || !text->lines.first) return;
 
 	id = (ID *)text;
 
