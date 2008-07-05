@@ -91,6 +91,7 @@ public:
 	
 
 		AppGLWidget_Camera * _camera;
+		int workingBuffer;
 
 protected:
 	unsigned int _width, _height;
@@ -342,7 +343,7 @@ public:
   {
     makeCurrent();
     //glReadBuffer(GL_FRONT); //in reality: glReadBuffer and glDrawBuffer are both set to GL_BACK
-    glReadBuffer(GL_BACK);
+    //glReadBuffer(GL_BACK);
     GLenum glformat;
     switch(format)
     {
@@ -371,21 +372,21 @@ public:
     BACK
   } GLBuffer;
 
-  void setReadPixelsBuffer(int iBuffer) 
-  {
-    makeCurrent();
-    switch(iBuffer)
-    {
-    case FRONT:
-      glReadBuffer(GL_FRONT);
-      break;
-    case BACK:
-      glReadBuffer(GL_BACK);
-      break;
-    default:
-      break;
-    }
-  }
+  // void setReadPixelsBuffer(int iBuffer) 
+  // {
+  //   makeCurrent();
+  //   switch(iBuffer)
+  //   {
+  //   case FRONT:
+  //     glReadBuffer(GL_FRONT);
+  //     break;
+  //   case BACK:
+  //     glReadBuffer(GL_BACK);
+  //     break;
+  //   default:
+  //     break;
+  //   }
+  // }
 
   BBox<Vec3r> scene3DBBox() const { return _ModelRootNode->bbox(); }
 

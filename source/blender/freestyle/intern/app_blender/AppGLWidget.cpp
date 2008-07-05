@@ -152,6 +152,9 @@ AppGLWidget::AppGLWidget(const char *iName)
   //  _backBufferFlag = true;
   _record = false;
 
+
+	workingBuffer = GL_BACK; //soc
+
 }
 
 AppGLWidget::~AppGLWidget()
@@ -402,15 +405,16 @@ void AppGLWidget::prepareCanvas()
   makeCurrent();
   glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-  if(_frontBufferFlag){
-    if(_backBufferFlag)
-      glDrawBuffer(GL_FRONT_AND_BACK);
-    else
-      glDrawBuffer(GL_FRONT);
-  }
-  else if(_backBufferFlag)
-    glDrawBuffer(GL_BACK);
-  
+  // if(_frontBufferFlag){
+  //   if(_backBufferFlag)
+  //     glDrawBuffer(GL_FRONT_AND_BACK);
+  //   else
+  //     glDrawBuffer(GL_FRONT);
+  // }
+  // else if(_backBufferFlag)
+  //   glDrawBuffer(GL_BACK);
+	glDrawBuffer( workingBuffer ); //soc
+
   // Projection Matrix
   //==================
   glMatrixMode(GL_PROJECTION);
@@ -427,7 +431,7 @@ void AppGLWidget::prepareCanvas()
 void AppGLWidget::releaseCanvas()
 {
   makeCurrent();
-  glDrawBuffer(GL_BACK);
+  glDrawBuffer( workingBuffer ); //soc
   glPopAttrib();
 }
 

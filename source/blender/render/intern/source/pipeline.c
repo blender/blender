@@ -1634,13 +1634,8 @@ static void do_render_3d(Render *re)
 	
 	/* Freestyle */
 	if( re->r.mode & R_EDGE_FRS ) {
-		for(rl = re->result->layers.first; rl; rl= rl->next) {
-			if(rl->layflag & SCE_LAY_FRS) {
-				printf("Freestyle as a render layer\n");
-				FRS_prepare(re);
-				FRS_execute(re,1);
-			}
-		}
+		FRS_prepare(re);
+		FRS_execute(re,1);
 	}
 	
 	/* do left-over 3d post effects (flares) */
