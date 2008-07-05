@@ -413,7 +413,7 @@ void AppGLWidget::prepareCanvas()
   // }
   // else if(_backBufferFlag)
   //   glDrawBuffer(GL_BACK);
-	glDrawBuffer( workingBuffer ); //soc
+	//glDrawBuffer( workingBuffer ); //soc
 
   // Projection Matrix
   //==================
@@ -431,7 +431,7 @@ void AppGLWidget::prepareCanvas()
 void AppGLWidget::releaseCanvas()
 {
   makeCurrent();
-  glDrawBuffer( workingBuffer ); //soc
+  //glDrawBuffer( workingBuffer ); //soc
   glPopAttrib();
 }
 

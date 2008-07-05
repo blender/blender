@@ -132,7 +132,7 @@ extern "C" {
 
 	void FRS_execute(Render* re, int render_in_layer) {
 		
-		GLuint framebuffer, renderbuffer;
+		GLuint framebuffer, renderbuffers[2];
 		GLenum status;
 		RenderLayer *rl;
 		
@@ -143,23 +143,28 @@ extern "C" {
 			glGenFramebuffersEXT(1, &framebuffer);
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
 
-			// set up render buffer
-			glGenRenderbuffersEXT(1, &renderbuffer);
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffer);
-			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA8, re->winx, re->winy);
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, renderbuffer);
+			// set up render buffer: one color buffer, one depth buffer
+			glGenRenderbuffersEXT(2, renderbuffers);
+			
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,	renderbuffers[0]);
+			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGB, re->winx, re->winy);
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, renderbuffers[0]);
+			
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffers[1]);
+			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, re->winx, re->winy);
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, renderbuffers[1]);
 
 			// status verification 
 			status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 			if (status != GL_FRAMEBUFFER_COMPLETE_EXT){
 				cout << "Framebuffer setup error" << endl;
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+				glDeleteRenderbuffersEXT(2, renderbuffers);
+				glDeleteFramebuffersEXT(1, &framebuffer);
 				return;
 			}
 			
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-			
-		} else {
-			glDrawBuffer(GL_BACK);
 		}
 		
 		FRS_render(re, render_in_layer);
@@ -168,14 +173,14 @@ extern "C" {
 			for(rl = (RenderLayer *)re->result->layers.first; rl; rl= rl->next) {
 				if(rl->layflag & SCE_LAY_FRS) {
 					cout << "Freestyle as a render layer - RESULT" << endl;
-
+					
 					// transfer render to layer
 					glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 					glReadPixels(0, 0, re->winx, re->winy, GL_RGBA, GL_FLOAT, rl->rectf );
 
 					// bind window
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-					glDeleteRenderbuffersEXT(1, &renderbuffer);
+					glDeleteRenderbuffersEXT(2, renderbuffers);
 					glDeleteFramebuffersEXT(1, &framebuffer);
 				}
 			}
