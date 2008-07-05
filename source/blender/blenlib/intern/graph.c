@@ -53,6 +53,12 @@ void BLI_freeNode(BGraph *graph, BNode *node)
 	}
 }
 
+void BLI_removeNode(BGraph *graph, BNode *node)
+{
+	BLI_freeNode(graph, node);
+	BLI_freelinkN(&graph->nodes, node);
+}
+
 BNode *BLI_otherNode(BArc *arc, BNode *node)
 {
 	return (arc->head == node) ? arc->tail : arc->head;
@@ -194,8 +200,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 			{
 				BLI_replaceNode(graph, node_src, node_replaced);
 				
-				BLI_freeNode(graph, node_replaced);
-				BLI_freelinkN(&graph->nodes, node_replaced);
+				BLI_removeNode(graph, node_replaced);
 			}
 		}
 	}

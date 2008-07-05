@@ -66,6 +66,7 @@ typedef struct RadialArc
 BNode *BLI_otherNode(BArc *arc, BNode *node);
 
 void BLI_freeNode(BGraph *graph, BNode *node);
+void BLI_removeNode(BGraph *graph, BNode *node);
 
 void BLI_flagNodes(BGraph *graph, int flag);
 void BLI_flagArcs(BGraph *graph, int flag);

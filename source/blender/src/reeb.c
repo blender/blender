@@ -127,11 +127,7 @@ void REEB_freeGraph(ReebGraph *rg)
 	// free nodes
 	for( node = rg->nodes.first; node; node = node->next )
 	{
-		// Free adjacency lists
-		if (node->arcs != NULL)
-		{
-			MEM_freeN(node->arcs);
-		}
+		BLI_freeNode((BGraph*)rg, (BNode*)node);
 	}
 	BLI_freelistN(&rg->nodes);
 	
@@ -896,10 +892,14 @@ void sortArcs(ReebGraph *rg)
 
 float lengthArc(ReebArc *arc)
 {
+#if 0
 	ReebNode *head = (ReebNode*)arc->head;
 	ReebNode *tail = (ReebNode*)arc->tail;
 	
 	return tail->weight - head->weight;
+#else
+	return arc->length;
+#endif
 }
 
 int compareArcs(void *varc1, void *varc2)
@@ -1031,7 +1031,7 @@ void filterNullReebGraph(ReebGraph *rg)
 			BLI_remlink(&rg->arcs, arc);
 			REEB_freeArc((BArc*)arc);
 			
-			BLI_freelinkN(&rg->nodes, removedNode);
+			BLI_removeNode((BGraph*)rg, (BNode*)removedNode);
 		}
 		
 		arc = nextArc;
@@ -1051,7 +1051,7 @@ int filterInternalReebGraph(ReebGraph *rg, float threshold)
 		nextArc = arc->next;
 
 		// Only collapse non-terminal arcs that are shorter than threshold
-		if ((arc->head->degree > 1 && arc->tail->degree > 1 && ((ReebNode*)arc->tail)->weight - ((ReebNode*)arc->head)->weight < threshold))
+		if (arc->head->degree > 1 && arc->tail->degree > 1 && (lengthArc(arc) < threshold))
 		{
 			ReebNode *newNode = NULL;
 			ReebNode *removedNode = NULL;
@@ -1082,7 +1082,7 @@ int filterInternalReebGraph(ReebGraph *rg, float threshold)
 			BLI_remlink(&rg->arcs, arc);
 			REEB_freeArc((BArc*)arc);
 			
-			BLI_freelinkN(&rg->nodes, removedNode);
+			BLI_removeNode((BGraph*)rg, (BNode*)removedNode);
 			value = 1;
 		}
 		
@@ -1099,13 +1099,13 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 	
 	BLI_sortlist(&rg->arcs, compareArcs);
 
-	arc = rg->arcs.first;
-	while(arc)
+	
+	for (arc = rg->arcs.first; arc; arc = nextArc)
 	{
 		nextArc = arc->next;
 
 		// Only collapse terminal arcs that are shorter than threshold
-		if ((arc->head->degree == 1 || arc->tail->degree == 1) && ((ReebNode*)arc->tail)->weight - ((ReebNode*)arc->head)->weight < threshold)
+		if ((arc->head->degree == 1 || arc->tail->degree == 1) && (lengthArc(arc) < threshold))
 		{
 			ReebNode *terminalNode = NULL;
 			ReebNode *middleNode = NULL;
@@ -1125,9 +1125,10 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 				middleNode = arc->head;
 			}
 			
-			// If middle node is a normal node, merge to terminal node
+			// If middle node is a normal node, it will be removed later
 			if (middleNode->degree == 2)
 			{
+//				continue;
 				merging = 1;
 				newNode = terminalNode;
 				removedNode = middleNode;
@@ -1158,12 +1159,13 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 			BLI_remlink(&rg->arcs, arc);
 			REEB_freeArc((BArc*)arc);
 			
-			BLI_freelinkN(&rg->nodes, removedNode);
+			BLI_removeNode((BGraph*)rg, (BNode*)removedNode);
 			value = 1;
 		}
-		
-		arc = nextArc;
 	}
+
+	/* join on normal nodes */	
+	removeNormalNodes(rg);
 	
 	return value;
 }
@@ -1378,6 +1380,8 @@ int filterSmartReebGraph(ReebGraph *rg, float threshold)
 void filterGraph(ReebGraph *rg, short options, float threshold_internal, float threshold_external)
 {
 	int done = 1;
+	
+	calculateGraphLength(rg);
 
 	/* filter until there's nothing more to do */
 	while (done == 1)
@@ -1386,14 +1390,14 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 		
 		if (options & SKGEN_FILTER_EXTERNAL)
 		{
-			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
+//			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
+			done |= filterExternalReebGraph(rg, threshold_external);
 		}
-	
-		verifyBuckets(rg);
 	
 		if (options & SKGEN_FILTER_INTERNAL)
 		{
-			done |= filterInternalReebGraph(rg, threshold_internal * rg->resolution);
+//			done |= filterInternalReebGraph(rg, threshold_internal * rg->resolution);
+			done |= filterInternalReebGraph(rg, threshold_internal);
 		}
 	}
 
@@ -1424,8 +1428,6 @@ void finalizeGraph(ReebGraph *rg, char passes, char method)
 	{
 		postprocessGraph(rg, method);
 	}
-	
-	calculateGraphLength(rg);
 }
 
 /************************************** WEIGHT SPREADING ***********************************************/
@@ -1703,6 +1705,8 @@ int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 	int result = 0;
 	ReebNode *removedNode = NULL;
 	
+	a0->length += a1->length;
+	
 	mergeArcEdges(rg, a0, a1, MERGE_APPEND);
 	mergeArcFaces(rg, a0, a1);
 	
@@ -1726,7 +1730,7 @@ int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 	BLI_remlink(&rg->arcs, a1);
 	REEB_freeArc((BArc*)a1);
 	
-	BLI_freelinkN(&rg->nodes, removedNode);
+	BLI_removeNode((BGraph*)rg, (BNode*)removedNode);
 	result = 1;
 	
 	return result;
