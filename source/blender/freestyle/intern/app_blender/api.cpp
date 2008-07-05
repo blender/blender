@@ -163,6 +163,8 @@ extern "C" {
 				return;
 			}
 			
+			glPushAttrib(GL_VIEWPORT_BIT); 
+			glViewport(0, 0, re->winx, re->winy);
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // really needed ?
 		}
 		
@@ -179,6 +181,8 @@ extern "C" {
 
 					// bind window
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+					glDrawBuffer(GL_BACK);
+					glPopAttrib();
 					glDeleteRenderbuffersEXT(2, renderbuffers);
 					glDeleteFramebuffersEXT(1, &framebuffer);
 				}
