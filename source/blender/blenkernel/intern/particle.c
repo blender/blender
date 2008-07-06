@@ -1371,7 +1371,7 @@ void psys_particle_on_shape(int distr, int index, float *fuv, float *vec, float 
 /************************************************/
 void psys_particle_on_emitter(Object *ob, ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor){
 	if(psmd){
-		if(psmd->psys->part->distr==PART_DISTR_GRID){
+		if(psmd->psys->part->distr==PART_DISTR_GRID && psmd->psys->part->from != PART_FROM_VERT){
 			if(vec){
 				VECCOPY(vec,fuv);
 			}
