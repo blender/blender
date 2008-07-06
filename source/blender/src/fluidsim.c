@@ -1015,7 +1015,8 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.channelScale            = channelObjMove[o][2];
 				fsmesh.channelActive           = channelObjActive[o];
 				if( (fsmesh.type == OB_FLUIDSIM_FLUID) ||
-						(fsmesh.type == OB_FLUIDSIM_INFLOW) ) {
+				(fsmesh.type == OB_FLUIDSIM_INFLOW) ||
+				(fsmesh.type == OB_FLUIDSIM_CONTROL)) {
 					fsmesh.channelInitialVel       = channelObjInivel[o];
 				  fsmesh.localInivelCoords = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
 				} 

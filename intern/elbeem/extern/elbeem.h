@@ -226,6 +226,7 @@ double elbeemEstimateMemreq(int res,
 // structs, for these use OB_xxx defines above
 
 /*! fluid geometry init types */
+// type "int" used, so max is 8
 #define FGI_FLAGSTART   16
 #define FGI_FLUID			  (1<<(FGI_FLAGSTART+ 0))
 #define FGI_NO_FLUID	  (1<<(FGI_FLAGSTART+ 1))
@@ -235,6 +236,7 @@ double elbeemEstimateMemreq(int res,
 #define FGI_NO_BND		  (1<<(FGI_FLAGSTART+ 5))
 #define FGI_MBNDINFLOW	(1<<(FGI_FLAGSTART+ 6))
 #define FGI_MBNDOUTFLOW	(1<<(FGI_FLAGSTART+ 7))
+#define FGI_CONTROL	(1<<(FGI_FLAGSTART+ 8))
 
 // all boundary types at once
 #define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )

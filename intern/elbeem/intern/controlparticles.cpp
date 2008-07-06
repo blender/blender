@@ -57,6 +57,127 @@ void ControlParticles::initBlenderTest() {
 	initTime(0. , 1.);
 }
 
+int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
+	vector<ntlTriangle> triangles;
+	vector<ntlVec3Gfx> vertices;
+	vector<ntlVec3Gfx> normals;
+	
+	/*
+	model->loadBobjModel(string(infile));
+	
+	model->setLoaded(true);
+	
+	model->setGeoInitId(gid);
+	*/
+	model->setGeoInitType(FGI_FLUID);
+	
+	model->getTriangles(mCPSTimeStart, &triangles, &vertices, &normals, 1 ); 
+	
+	// valid mesh?
+	if(triangles.size() <= 0) {
+		return 0;
+	}
+
+	ntlRenderGlobals *glob = new ntlRenderGlobals;
+	ntlScene *genscene = new ntlScene( glob, false );
+	genscene->addGeoClass(model);
+	genscene->addGeoObject(model);
+	genscene->buildScene(0., false);
+	char treeFlag = (1<<(4+model->getGeoInitId()));
+
+	ntlTree *tree = new ntlTree( 
+	15, 8,  // TREEwarning - fixed values for depth & maxtriangles here...
+	genscene, treeFlag );
+
+	// TODO? use params
+	ntlVec3Gfx start,end;
+	model->getExtends(start,end);
+	
+	printf("start - x: %f, y: %f, z: %f\n", start[0], start[1], start[2]);
+	printf("end   - x: %f, y: %f, z: %f\n", end[0], end[1], end[2]);
+	printf("mCPSWidth: %f\n");
+
+	LbmFloat width = mCPSWidth;
+	if(width<=LBM_EPSILON) { errMsg("ControlParticles::initFromMVMCMesh","Invalid mCPSWidth! "<<mCPSWidth); width=mCPSWidth=0.1; }
+	ntlVec3Gfx org = start+ntlVec3Gfx(width*0.5);
+	gfxReal distance = -1.;
+	vector<ntlVec3Gfx> inspos;
+	int approxmax = (int)( ((end[0]-start[0])/width)*((end[1]-start[1])/width)*((end[2]-start[2])/width) );
+
+	while(org[2]<end[2]) {
+		while(org[1]<end[1]) {
+			while(org[0]<end[0]) {
+				if(checkPointInside(tree, org, distance)) {
+					inspos.push_back(org);
+				}
+				// TODO optimize, use distance
+				org[0] += width;
+			}
+			org[1] += width;
+			org[0] = start[0];
+		}
+		org[2] += width;
+		org[1] = start[1];
+	}
+
+	MeanValueMeshCoords mvm;
+	mvm.calculateMVMCs(vertices,triangles, inspos, mCPSWeightFac);
+	vector<ntlVec3Gfx> ninspos;
+	mvm.transfer(vertices, ninspos);
+
+	// init first set, check dist
+	ControlParticleSet firstcps; //T
+	mPartSets.push_back(firstcps);
+	mPartSets[mPartSets.size()-1].time = (gfxReal)0.;
+	vector<bool> useCP;
+
+	for(int i=0; i<(int)inspos.size(); i++) {
+		ControlParticle p; p.reset();
+		p.pos = vec2L(inspos[i]);
+		
+		double cpdist = norm(inspos[i]-ninspos[i]);
+		bool usecpv = true;
+
+		mPartSets[mPartSets.size()-1].particles.push_back(p);
+		useCP.push_back(usecpv);
+	}
+
+	// init further sets, temporal mesh sampling
+	double tsampling = mCPSTimestep;
+	int totcnt = (int)( (mCPSTimeEnd-mCPSTimeStart)/tsampling ), tcnt=0;
+	for(double t=mCPSTimeStart+tsampling; ((t<mCPSTimeEnd) && (ninspos.size()>0.)); t+=tsampling) {
+		ControlParticleSet nextcps; //T
+		mPartSets.push_back(nextcps);
+		mPartSets[mPartSets.size()-1].time = (gfxReal)t;
+
+		vertices.clear(); triangles.clear(); normals.clear();
+		model->getTriangles(t, &triangles, &vertices, &normals, 1 );
+		mvm.transfer(vertices, ninspos);
+		
+		tcnt++;
+		for(int i=0; i<(int)ninspos.size(); i++) {
+			
+			if(useCP[i]) {
+				ControlParticle p; p.reset();
+				p.pos = vec2L(ninspos[i]);
+				mPartSets[mPartSets.size()-1].particles.push_back(p);
+			}
+		}
+	}
+
+	// applyTrafos();
+	
+	model->setGeoInitType(FGI_CONTROL);
+	
+	initTime(mCPSTimeStart , mCPSTimeEnd);
+
+	delete tree;
+	delete genscene;
+	delete glob;
+	
+	return 1;
+}
+
 
 // init all zero / defaults for a single particle
 void ControlParticle::reset() {

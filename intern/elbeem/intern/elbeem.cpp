@@ -177,7 +177,7 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 		case OB_FLUIDSIM_FLUID: initType = FGI_FLUID; break;
 		case OB_FLUIDSIM_INFLOW: initType = FGI_MBNDINFLOW; break;
 		case OB_FLUIDSIM_OUTFLOW: initType = FGI_MBNDOUTFLOW; break;
-		case OB_FLUIDSIM_CONTROL: initType = 0; break; // DG TODO: add correct time for fluid control object
+		case OB_FLUIDSIM_CONTROL: initType = FGI_CONTROL; break;
 		default: return 1; // invalid type
 	}
 	

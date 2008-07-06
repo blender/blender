@@ -13,6 +13,8 @@
 #ifndef CONTROLPARTICLES_H
 #define CONTROLPARTICLES_H
 
+#include "ntl_geometrymodel.h"
+
 // indicator for LBM inclusion
 //#ifndef LBMDIM
 
@@ -225,6 +227,8 @@ public:
 
 	// blender test init
 	void initBlenderTest();
+	
+	int initFromObject(ntlGeometryObjModel *model);
 
 protected:
 	// sets influence params

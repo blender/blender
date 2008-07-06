@@ -82,20 +82,21 @@ bool ntlGeometryObject::checkIsAnimated() {
 /*****************************************************************************/
 /* Init attributes etc. of this object */
 /*****************************************************************************/
-#define GEOINIT_STRINGS  9
+#define GEOINIT_STRINGS  10
 static const char *initStringStrs[GEOINIT_STRINGS] = {
 	"fluid",
 	"bnd_no","bnd_noslip",
 	"bnd_free","bnd_freeslip",
 	"bnd_part","bnd_partslip",
-	"inflow", "outflow"
+	"inflow", "outflow", "control",
 };
 static int initStringTypes[GEOINIT_STRINGS] = {
 	FGI_FLUID,
 	FGI_BNDNO, FGI_BNDNO,
 	FGI_BNDFREE, FGI_BNDFREE,
 	FGI_BNDPART, FGI_BNDPART,
-	FGI_MBNDINFLOW, FGI_MBNDOUTFLOW
+	FGI_MBNDINFLOW, FGI_MBNDOUTFLOW, 
+	FGI_CONTROL
 };
 void ntlGeometryObject::initialize(ntlRenderGlobals *glob) 
 {

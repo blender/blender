@@ -46,6 +46,8 @@ class ControlForces;
 
 #include "controlparticles.h"
 
+#include "ntl_geometrymodel.h"
+			 
 // get force entry, set=0 is unused anyway
 #define LBMGET_FORCE(lev, i,j,k)  mpControl->mCpForces[lev][ (LBMGI(lev,i,j,k,0)) ]
 
