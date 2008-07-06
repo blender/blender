@@ -1512,6 +1512,10 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		image_initialize_after_load(ima, ibuf);
 		image_assign_ibuf(ima, ibuf, 0, frame);
 #endif
+		
+		if(ima->flag & IMA_DO_PREMUL)
+			converttopremul(ibuf);
+		
 	}
 	else
 		ima->ok= 0;
