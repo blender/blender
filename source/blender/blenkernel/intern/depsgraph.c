@@ -346,6 +346,24 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 	}
 }
 
+static void dag_add_collision_field_relation(DagForest *dag, Object *ob, DagNode *node)
+{
+	Base *base;
+	DagNode *node2;
+
+	// would be nice to have a list of colliders here
+	// so for now walk all objects in scene check 'same layer rule'
+	for(base = G.scene->base.first; base; base= base->next) {
+		if((base->lay & ob->lay) && base->object->pd) {
+			Object *ob1= base->object;
+			if((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob))  {
+				node2 = dag_get_node(dag, ob1);					
+				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Field Collision");
+			}
+		}
+	}
+}
+
 static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int mask)
 {
 	bConstraint *con;
@@ -523,22 +541,9 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	}
     
 	/* softbody collision  */
-	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE)) {
-		Base *base;
-		if(modifiers_isSoftbodyEnabled(ob)){
-			// would be nice to have a list of colliders here
-			// so for now walk all objects in scene check 'same layer rule'
-			for(base = G.scene->base.first; base; base= base->next) {
-				if( (base->lay & ob->lay) && base->object->pd) {
-					Object *ob1= base->object;
-					if((ob1->pd->deflect) && (ob1 != ob))  {
-						node2 = dag_get_node(dag, ob1);					
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Softbody Collision");
-					}
-				}
-			}
-		}
-	}
+	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE))
+		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob))
+			dag_add_collision_field_relation(dag, ob, node);
 		
 	if (ob->type==OB_MBALL) {
 		Object *mom= find_basis_mball(ob);
@@ -1691,7 +1696,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 		for(itA = node->child; itA; itA= itA->next) {
 			all_layer |= itA->lay;
 			/* the relationship is visible */
-			if(itA->lay & layer) {
+			if((itA->lay & layer) || (itA->node->ob == G.obedit)) {
 				if(itA->node->type==ID_OB) {
 					obc= itA->node->ob;
 					oldflag= obc->recalc;
@@ -1722,7 +1727,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			}
 		}
 		/* even nicer, we can clear recalc flags...  */
-		if((all_layer & layer)==0) {
+		if((all_layer & layer)==0 && (ob != G.obedit)) {
 			/* but existing displaylists or derivedmesh should be freed */
 			if(ob->recalc & OB_RECALC_DATA)
 				object_free_display(ob);
@@ -1736,7 +1741,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	/* could merge this in with loop above...? (ton) */
 	for(itA = node->child; itA; itA= itA->next) {
 		/* the relationship is visible */
-		if(itA->lay & layer) {
+		if((itA->lay & layer) || (itA->node->ob == G.obedit)) {
 			if(itA->node->type==ID_OB) {
 				obc= itA->node->ob;
 				/* child moves */

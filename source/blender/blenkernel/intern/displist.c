@@ -783,7 +783,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 			else
 				resolu= nu->resolu;
 			
-			if(nu->pntsu<2 || ((nu->type & 7)==CU_NURBS && nu->pntsu < nu->orderu));
+			if(!check_valid_nurb_u(nu));
 			else if((nu->type & 7)==CU_BEZIER) {
 				
 				/* count */
@@ -816,7 +816,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 
 				data= dl->verts;
 
-				if(nu->flagu & 1) {
+				if(nu->flagu & CU_CYCLIC) {
 					dl->type= DL_POLY;
 					a= nu->pntsu;
 				}
@@ -863,7 +863,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & 1) dl->type= DL_POLY;
+				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				makeNurbcurve(nu, data, resolu, 3);
 			}
@@ -878,7 +878,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & 1) dl->type= DL_POLY;
+				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				a= len;
@@ -1330,7 +1330,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				dl->rt= nu->flag;
 				
 				data= dl->verts;
-				if(nu->flagu & 1) dl->type= DL_POLY;
+				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				makeNurbcurve(nu, data, nu->resolu, 3);

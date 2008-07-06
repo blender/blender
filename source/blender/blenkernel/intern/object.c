@@ -1233,6 +1233,7 @@ Object *copy_object(Object *ob)
 void expand_local_object(Object *ob)
 {
 	bActionStrip *strip;
+	ParticleSystem *psys;
 	int a;
 	
 	id_lib_extern((ID *)ob->action);
@@ -1246,7 +1247,8 @@ void expand_local_object(Object *ob)
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		id_lib_extern((ID *)strip->act);
 	}
-
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		id_lib_extern((ID *)psys->part);
 }
 
 void make_local_object(Object *ob)
@@ -1389,7 +1391,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->mat = MEM_dupallocN(target->mat);
 		for(i=0; i<target->totcol; i++) {
 			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
-			id_us_plus(ob->mat[i]); 
+			id_us_plus((ID *)ob->mat[i]); 
 		}
 	}
 	

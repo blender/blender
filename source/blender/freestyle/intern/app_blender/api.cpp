@@ -146,7 +146,7 @@ extern "C" {
 			glGenRenderbuffersEXT(2, renderbuffers);
 			
 			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,	renderbuffers[0]);
-			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, re->winx, re->winy);
+			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, re->winx, re->winy);
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, renderbuffers[0]);
 			
 			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffers[1]);

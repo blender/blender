@@ -8,7 +8,7 @@ Tip: 'Bevel selected faces, edges, and vertices'
 """
 
 __author__ = "Loic BERTHE"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "2.0"
 
 __bpydoc__ = """\

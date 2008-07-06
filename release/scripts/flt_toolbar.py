@@ -10,7 +10,7 @@ Tooltip: 'Tools for working with FLT databases'
 __author__ = "Geoffrey Bantle"
 __version__ = "1.0 11/21/07"
 __email__ = ('scripts', 'Author, ')
-__url__ = ('blender', 'elysiun')
+__url__ = ('blender', 'blenderartists.org')
 
 __bpydoc__ ="""\
 This script provides tools for working with OpenFlight databases in Blender. OpenFlight is a

@@ -1651,6 +1651,12 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+void modifiers_explodeDelVg(void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+	emd->vgroup = 0;
+}
+
 static int modifier_is_fluid_particles(ModifierData *md) {
 	if(md->type == eModifierType_ParticleSystem) {
 		if(((ParticleSystemModifierData *)md)->psys->part->type == PART_FLUID)
@@ -2420,12 +2426,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char *menustr= get_vertexgroup_menustr(ob);
 			int defCount=BLI_countlist(&ob->defbase);
 			if(defCount==0) emd->vgroup=0;
-
-			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth/2,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
+			uiBlockBeginAlign(block);
+			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth-20,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 			MEM_freeN(menustr);
+			
+			but=uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_X, (lx+buttonWidth)-20, cy, 20,19, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			uiButSetFunc(but, modifiers_explodeDelVg, (void *)emd, (void *)NULL);
+			
 
-			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx+buttonWidth/2, cy, buttonWidth/2,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
+			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx, (cy-=19), buttonWidth,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
 			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
 
 			but=uiDefBut(block, BUT, B_MODIFIER_RECALC, "Refresh",	lx, (cy-=19), buttonWidth/2,19, 0, 0, 0, 0, 0, "Recalculate faces assigned to particles");
@@ -2435,6 +2445,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy-=19), buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are unborn");
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
+			uiBlockEndAlign(block);
 		}
 
 		uiBlockEndAlign(block);
@@ -3063,7 +3074,6 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 
 void do_curvebuts(unsigned short event)
 {
-	extern Nurb *lastnu;
 	extern ListBase editNurb;  /* from editcurve */
 	Object *ob;
 	Curve *cu;
@@ -3097,13 +3107,15 @@ void do_curvebuts(unsigned short event)
 				if(isNurbsel(nu)) {
 					if((nu->type & 7)==CU_NURBS) {
 						if(event<B_UNIFV) {
-							nu->flagu &= 1;
-							nu->flagu += ((event-B_UNIFU)<<1);
+							nu->flagu &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagu |= ((event-B_UNIFU)<<1);
+							clamp_nurb_order_u(nu);
 							makeknots(nu, 1, nu->flagu>>1);
 						}
 						else if(nu->pntsv>1) {
-							nu->flagv &= 1;
-							nu->flagv += ((event-B_UNIFV)<<1);
+							nu->flagv &= CU_CYCLIC; /* disable all flags except for CU_CYCLIC */
+							nu->flagv |= ((event-B_UNIFV)<<1);
+							clamp_nurb_order_v(nu);
 							makeknots(nu, 2, nu->flagv>>1);
 						}
 					}
@@ -3139,15 +3151,13 @@ void do_curvebuts(unsigned short event)
 		break;
 	case B_SETORDER:
 		if(G.obedit) {
-			nu= lastnu;
+			nu= get_actNurb();
 			if(nu && (nu->type & 7)==CU_NURBS ) {
-				if(nu->orderu>nu->pntsu) {
-					nu->orderu= nu->pntsu;
+				if(clamp_nurb_order_u(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 1, nu->flagu>>1);
-				if(nu->orderv>nu->pntsv) {
-					nu->orderv= nu->pntsv;
+				if(clamp_nurb_order_v(nu)) {
 					scrarea_queue_winredraw(curarea);
 				}
 				makeknots(nu, 2, nu->flagv>>1);
@@ -3265,7 +3275,6 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 {
 	Nurb *nu;
 	extern ListBase editNurb;  /* from editcurve */
-	extern Nurb *lastnu;
 	uiBlock *block;
 	short *sp;
 
@@ -3301,8 +3310,11 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiBlockEndAlign(block);
 
 	if(ob==G.obedit) {
-		nu= lastnu;
-		if(nu==NULL) nu= lastnu= editNurb.first;
+		nu= get_actNurb();
+		if(nu==NULL && editNurb.first) {
+			nu= editNurb.first;
+			set_actNurb(nu);
+		}
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",
@@ -4360,7 +4372,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
@@ -5073,7 +5085,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	uiBlockEndAlign(block);
 	
-	uiDefButC(block, MENU, REDRAWBUTSEDIT, "Edge Alt-Select Mode%t|Loop Select%x0|Tag Edges (Seam)%x1|Tag Edges (Sharp)%x2|Tag Edges (Sharp)%x3|Tag Edges (Bevel)%x4",1125,88,150,19, &G.scene->toolsettings->edge_mode, 0, 0, 0, 0, "Operation to use when Alt+RMB on edges, Use Alt+Shift+RMB to tag the shortest path from the active edge");
+	uiDefButC(block, MENU, REDRAWBUTSEDIT, "Edge Alt-Select Mode%t|Loop Select%x0|Tag Edges (Seam)%x1|Tag Edges (Sharp)%x2|Tag Edges (Crease)%x3|Tag Edges (Bevel)%x4",1125,88,150,19, &G.scene->toolsettings->edge_mode, 0, 0, 0, 0, "Operation to use when Alt+RMB on edges, Use Alt+Shift+RMB to tag the shortest path from the active edge");
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			1125, 22,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");

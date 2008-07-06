@@ -78,6 +78,18 @@ class KX_GameObject:
 		@param orn: a rotation matrix specifying the new rotation.
 		@note: When using this matrix with Blender.Mathutils.Matrix() types, it will need to be transposed.
 		"""
+	def alignAxisToVect(vect, axis):
+		"""
+		Aligns any of the game object's axis along the given vector.
+		
+		@type vect: 3d vector.
+		@param vect: a vector to align the axis.
+		@type axis: integer.
+		@param axis:The axis you want to align
+					- 0: X axis
+					- 1: Y axis
+					- 2: Z axis (default) 
+		"""
 	def getAxisVect(vect):
 		"""
 		Returns the axis vector rotates by the objects worldspace orientation.
@@ -274,4 +286,5 @@ class KX_GameObject:
 		@rtype: 3-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz))
 		@return: (object,hitpoint,hitnormal) or (None,None,None)
 		"""
-	
+
+

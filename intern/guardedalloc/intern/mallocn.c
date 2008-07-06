@@ -38,7 +38,10 @@
 #include <stdarg.h>
 
 /* mmap exception */
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
+#elif defined(WIN32)
+#include <sys/types.h>
+#include "mmap_win.h"
 #else
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -289,7 +292,7 @@ void *MEM_callocN(unsigned int len, const char *str)
 /* note; mmap returns zero'd memory */
 void *MEM_mapallocN(unsigned int len, const char *str)
 {
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
 	return MEM_callocN(len, str);
 #else
 	MemHead *memh;
@@ -586,7 +589,7 @@ static void rem_memblock(MemHead *memh)
     totblock--;
     mem_in_use -= memh->len;
    
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
     free(memh);
 #else   
    

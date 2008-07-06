@@ -4819,6 +4819,7 @@ void make_local(int mode)
 	Base *base;
 	Object *ob;
 	bActionStrip *strip;
+	ParticleSystem *psys;
 	Material *ma, ***matarar;
 	Lamp *la;
 	Curve *cu;
@@ -4905,6 +4906,9 @@ void make_local(int mode)
 					make_local_armature ((bArmature *)id);
 					break;
 				}
+
+				for(psys=ob->particlesystem.first; psys; psys=psys->next)
+					make_local_particlesettings(psys->part);
 			}
 			id= (ID *)ob->ipo;
 			if(id && id->lib) make_local_ipo(ob->ipo);
@@ -4912,11 +4916,10 @@ void make_local(int mode)
 			id= (ID *)ob->action;
 			if(id && id->lib) make_local_action(ob->action);
 			
-			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+			for(strip=ob->nlastrips.first; strip; strip=strip->next) {
 				if(strip->act && strip->act->id.lib)
 					make_local_action(strip->act);
 			}
-			
 		}
 		base= base->next;		
 	}

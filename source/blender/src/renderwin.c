@@ -640,12 +640,10 @@ static char *renderwin_get_title()
 	
 	if(BIF_show_render_spare()) {
 		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render (previous)";
-		else if (G.scene->r.renderer==R_FREESTYLE) title = "Freestyle:Render (previous)";
 		else title = "Blender:Render (previous)";
 	}
 	else {
 		if (G.scene->r.renderer==R_YAFRAY) title = "YafRay:Render";
-		else if (G.scene->r.renderer==R_FREESTYLE) title = "Freestyle:Render";
 		else title = "Blender:Render";
 	}
 

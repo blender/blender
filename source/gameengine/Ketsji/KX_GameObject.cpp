@@ -1506,8 +1506,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	{
 		KX_GameObject *other;
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyarg->ob_type, &KX_GameObject::Type))
+		if (!PyType_IsSubtype(pyarg->ob_type, &KX_GameObject::Type)) {
+			PyErr_SetString(PyExc_TypeError, "the first argument to rayCastTo must be a vector or a KX_GameObject");
 			return NULL;
+		}
 		other = static_cast<KX_GameObject*>(pyarg);
 		toPoint = other->NodeGetWorldPosition();
 	}
@@ -1567,8 +1569,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	if (!PyVecTo(pyto, toPoint))
 	{
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyto->ob_type, &KX_GameObject::Type))
+		if (!PyType_IsSubtype(pyto->ob_type, &KX_GameObject::Type)) {
+			PyErr_SetString(PyExc_TypeError, "the first argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
+		}
 		other = static_cast<KX_GameObject*>(pyto);
 		toPoint = other->NodeGetWorldPosition();
 	}
@@ -1579,8 +1583,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	else if (!PyVecTo(pyfrom, fromPoint))
 	{
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyfrom->ob_type, &KX_GameObject::Type))
+		if (!PyType_IsSubtype(pyfrom->ob_type, &KX_GameObject::Type)) {
+			PyErr_SetString(PyExc_TypeError, "the second optional argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
+		}
 		other = static_cast<KX_GameObject*>(pyfrom);
 		fromPoint = other->NodeGetWorldPosition();
 	}

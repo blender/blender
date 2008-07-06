@@ -117,7 +117,7 @@ void makeraytree(Render *re)
 	VlakRen *vlr= NULL;
 	float min[3], max[3], co1[3], co2[3], co3[3], co4[3];
 	double lasttime= PIL_check_seconds_timer();
-	int v, totface = 0;
+	int v, totv = 0, totface = 0;
 
 	INIT_MINMAX(min, max);
 
@@ -175,7 +175,7 @@ void makeraytree(Render *re)
 		if(re->excludeob && obr->ob == re->excludeob)
 			continue;
 
-		for(v=0; v<obr->totvlak; v++) {
+		for(v=0; v<obr->totvlak; v++, totv++) {
 			if((v & 255)==0) {
 				double time= PIL_check_seconds_timer();
 
@@ -184,7 +184,7 @@ void makeraytree(Render *re)
 					break;
 				if(time-lasttime>1.0f) {
 					char str[32];
-					sprintf(str, "Filling Octree: %d", v);
+					sprintf(str, "Filling Octree: %d", totv);
 					re->i.infostr= str;
 					re->stats_draw(&re->i);
 					re->i.infostr= NULL;

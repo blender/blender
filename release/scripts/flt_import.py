@@ -10,7 +10,7 @@ Tip: 'Import OpenFlight (.flt)'
 
 __author__ = "Greg MacDonald, Campbell Barton, Geoffrey Bantle"
 __version__ = "2.0 11/21/07"
-__url__ = ("blender", "elysiun", "Author's homepage, http://sourceforge.net/projects/blight/")
+__url__ = ("blender", "blenderartists.org", "Author's homepage, http://sourceforge.net/projects/blight/")
 __bpydoc__ = """\
 This script imports OpenFlight files into Blender. OpenFlight is a
 registered trademark of MultiGen-Paradigm, Inc.

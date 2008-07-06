@@ -641,6 +641,10 @@ int BIF_read_homefile(int from_memory)
 	BKE_reset_undo();
 	BKE_write_undo("original");	/* save current state */
 	
+	/* if from memory, need to refresh python scripts */
+	if (from_memory) {
+		BPY_path_update();
+	}
 	return success;
 }
 

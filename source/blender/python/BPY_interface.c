@@ -428,19 +428,24 @@ void BPY_rebuild_syspath( void )
 	if(U.pythondir[0] != '\0' ) {
 		char modpath[FILE_MAX];
 		int upyslen = strlen(U.pythondir);
-
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
+		
 		/* check if user pydir ends with a slash and, if so, remove the slash
 		 * (for eventual implementations of c library's stat function that might
 		 * not like it) */
-		if (upyslen > 2) { /* avoids doing anything if dir == '//' */
-			BLI_add_slash(U.pythondir);
+#ifdef WIN32
+		if (upyslen > 3) {
+#else
+		if (upyslen > 1) {
+#endif
+			if (dirpath[upyslen-1] == '\\' || dirpath[upyslen-1] == '/') {
+				dirpath[upyslen-1] = '\0';
+			}
 		}
 
-		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
 		BLI_convertstringcode(dirpath, G.sce);
 		syspath_append(dirpath);	/* append to module search path */
-
-		BLI_make_file_string("/", modpath, dirpath, "bpymodules");
+		BLI_join_dirfile( modpath, dirpath, "bpymodules" );
 		if (BLI_exists(modpath)) syspath_append(modpath);
 	}
 	
@@ -453,6 +458,16 @@ void BPY_rebuild_syspath( void )
 	
 	Py_DECREF(mod);
 	PyGILState_Release(gilstate);
+}
+
+int BPY_path_update( void )
+{
+	BPyMenu_RemoveAllEntries(); /* free old data */
+	BPY_rebuild_syspath();
+	if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
+		return 0;
+	}
+	return 1;
 }
 
 /****************************************************************************
@@ -622,11 +637,13 @@ int BPY_txt_do_python_Text( struct Text *text )
 		if( !strcmp( script->id.name + 2, text->id.name + 2 ) ) {
 			/* if this text is already a running script, 
 			 * just move to it: */
-			SpaceScript *sc;
-			newspace( curarea, SPACE_SCRIPT );
-			sc = curarea->spacedata.first;
-			sc->script = script;
-			return 1;
+			if (!G.background) {
+				SpaceScript *sc;
+				newspace( curarea, SPACE_SCRIPT );
+				sc = curarea->spacedata.first;
+				sc->script = script;
+				return 1;
+			}
 		}
 		script = script->id.next;
 	}
@@ -764,7 +781,6 @@ int BPY_run_script(Script *script)
 	Text *text = NULL;
 	BPy_constant *info;
 	int len;
-	char *buffer=NULL, *s;
 	
 	FILE *fp = NULL;
 	
@@ -845,7 +861,6 @@ int BPY_run_script(Script *script)
 		printf("Oops - weakref dict\n");
 		free_libblock( &G.main->script, script );
 		ReleaseGlobalDictionary( py_dict );
-		MEM_freeN( buffer );
 		PyGILState_Release(gilstate);
 		return 0;
 	}
@@ -867,41 +882,41 @@ int BPY_run_script(Script *script)
 		* 'FILE structs for different C libraries can be different and 
 		* incompatible'.
 		* So now we load the script file data to a buffer */
-	
+		char *buffer=NULL, *buffer_ofs=NULL, *b_to, *b_from;
+		
 		fseek( fp, 0L, SEEK_END );
 		len = ftell( fp );
 		fseek( fp, 0L, SEEK_SET );
 	
-		buffer = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
+		buffer = buffer_ofs = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
 		len = fread( buffer, 1, len, fp );
 	
 		buffer[len] = '\n';	/* fix syntax error in files w/o eol */
 		buffer[len + 1] = '\0';
-	
-		/* fast clean-up of dos cr/lf line endings: change '\r' to space */
-	
-		/* we also have to check for line splitters: '\\' */
-		/* to avoid possible syntax errors on dos files on win */
-		/**/
-			/* but first make sure we won't disturb memory below &buffer[0]: */
-			if( *buffer == '\r' )
-			*buffer = ' ';
-	
-		/* now handle the whole buffer */
-		for( s = buffer + 1; *s != '\0'; s++ ) {
-			if( *s == '\r' ) {
-				if( *( s - 1 ) == '\\' ) {	/* special case: long lines split with '\': */
-					*( s - 1 ) = ' ';	/* we write ' \', because '\ ' is a syntax error */
-					*s = '\\';
-				} else
-					*s = ' ';	/* not a split line, just replace '\r' with ' ' */
-			}
+		
+		
+		/* fast clean-up of dos cr/lf line endings, remove convert '\r\n's to '\n' */
+		if (*buffer_ofs == '\r' && *(buffer_ofs+1) == '\n') {
+			buffer_ofs++;
 		}
-	
+		b_from = b_to = buffer_ofs;
+		
+		while(*b_from != '\0') {
+			if (*b_from == '\r' && *( b_from+1 ) == '\n') {
+				b_from++;
+			}
+			if (b_from != b_to) {
+				*b_to = *b_from;
+			}
+			b_to++;
+			b_from++;
+		}
+		*b_to = '\0';
+		/* done cleaning the string */
+		
 		fclose( fp );
 		
-		
-		py_res = PyRun_String( buffer, Py_file_input, py_dict, py_dict );
+		py_res = PyRun_String( buffer_ofs, Py_file_input, py_dict, py_dict );
 		MEM_freeN( buffer );
 	}
 
@@ -926,10 +941,12 @@ int BPY_run_script(Script *script)
 
 			/* special case: called from the menu in the Scripts window
 			 * we have to change sc->script pointer, since it'll be freed here.*/
-			if( curarea->spacetype == SPACE_SCRIPT ) {
-				SpaceScript *sc = curarea->spacedata.first;
-				sc->script = G.main->script.first;	/* can be null, which is ok ... */
-				/* ... meaning no other script is running right now. */
+			if (!G.background) {
+				if( curarea->spacetype == SPACE_SCRIPT ) {
+					SpaceScript *sc = curarea->spacedata.first;
+					sc->script = G.main->script.first;	/* can be null, which is ok ... */
+					/* ... meaning no other script is running right now. */
+				}
 			}
 
 		}

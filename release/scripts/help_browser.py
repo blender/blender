@@ -10,7 +10,7 @@ Tooltip: 'Show help information about a chosen installed script.'
 __author__ = "Willian P. Germano"
 __version__ = "0.1 11/02/04"
 __email__ = ('scripts', 'Author, wgermano:ig*com*br')
-__url__ = ('blender', 'elysiun')
+__url__ = ('blender', 'blenderartists.org')
 
 __bpydoc__ ="""\
 This script shows help information for scripts registered in the menus.
@@ -84,8 +84,7 @@ DEFAULT_EMAILS = {
 }
 
 DEFAULT_LINKS = {
-	'blender': ["blender.org\'s Python forum", "http://www.blender.org/modules.php?op=modload&name=phpBB2&file=viewforum&f=9"],
-	'elysiun': ["elYsiun\'s Python and Plugins forum", "http://www.elysiun.com/forum/viewforum.php?f=5"]
+	'blender': ["blender.org\'s Python forum", "http://www.blender.org/modules.php?op=modload&name=phpBB2&file=viewforum&f=9"]
 }
 
 PADDING = 15

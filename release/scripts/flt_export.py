@@ -8,7 +8,7 @@ Tip: 'Export to OpenFlight v16.0 (.flt)'
 
 __author__ = "Greg MacDonald, Geoffrey Bantle"
 __version__ = "2.0 11/21/07"
-__url__ = ("blender", "elysiun", "Author's homepage, http://sourceforge.net/projects/blight/")
+__url__ = ("blender", "blenderartists.org", "Author's homepage, http://sourceforge.net/projects/blight/")
 __bpydoc__ = """\
 This script exports v16.0 OpenFlight files.  OpenFlight is a
 registered trademark of MultiGen-Paradigm, Inc.

@@ -8,7 +8,7 @@ Tooltip: 'Save current renderlayers as a BPython script'
 """
 
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0"
 
 __bpydoc__ = """\
@@ -47,8 +47,12 @@ rend = sce.render
 
 # default filename: theme's name + '_theme.py' in user's scripts dir:
 default_fname = Blender.Get("scriptsdir")
-default_fname = Blender.sys.join(default_fname, sce.name + '_renderlayer.py')
-default_fname = default_fname.replace(' ','_')
+if not default_fname:
+	default_fname = Blender.Get("uscriptsdir")
+
+if default_fname:
+	default_fname = Blender.sys.join(default_fname, sce.name + '_renderlayer.py')
+	default_fname = default_fname.replace(' ','_')
 
 def write_renderlayers(filename):
 	"Write the current renderlayer as a bpython script"

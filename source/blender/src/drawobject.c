@@ -2245,14 +2245,18 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
-	int draw_wire = ob->dtx&OB_DRAWWIRE;
+	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
 	DerivedMesh *dm= mesh_get_derived_final(ob, get_viewedit_datamask());
 
 	if(!dm)
 		return;
-
+	
+	if (ob->dtx&OB_DRAWWIRE) {
+		draw_wire = 2; /* draw wire after solid using zoffset and depth buffer adjusment */
+	}
+	
 #ifdef WITH_VERSE
 	if(me->vnode) {
 		struct VNode *vnode = (VNode*)me->vnode;
@@ -2292,7 +2296,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		glPointSize(1.0);
 	}
 	else if(dt==OB_WIRE || totface==0) {
-		draw_wire = 1;
+		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
 	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) ||
 				CHECK_OB_DRAWTEXTURE(G.vd, dt))
@@ -2428,20 +2432,21 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 				*
 				* UPDATE bug #10290 - With this wire-only objects can draw
 				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
+				* 
+				* if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
+				* otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
 				*/
-#if 0
-		if (dt!=OB_WIRE) {
+		if (dt!=OB_WIRE && draw_wire==2) {
 			bglPolygonOffset(1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
-#endif
+		
 		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
-#if 0
-		if (dt!=OB_WIRE) {
+		
+		if (dt!=OB_WIRE && draw_wire==2) {
 			glDepthMask(1);
 			bglPolygonOffset(0.0);
 		}
-#endif
 	}
 
 	dm->release(dm);

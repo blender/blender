@@ -10,7 +10,7 @@ Tooltip: 'Export to Quake file format (.md2).'
 __author__ = 'Bob Holcomb'
 __version__ = '0.18.1 patch 1'
 __url__ = ["Bob's site, http://bane.servebeer.com",
-     "Support forum, http://bane.servebeer.com", "blender", "elysiun"]
+     "Support forum, http://bane.servebeer.com", "blender", "blenderartists.org"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
 __bpydoc__ = """\
 This script Exports a Quake 2 file (MD2).

@@ -241,7 +241,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 		/* append or set matrix depending on dupli */
 		if(obi->flag & R_DUPLI_TRANSFORMED) {
 			Mat4CpyMat4(tmpmat, obi->mat);
-			Mat4MulMat4(obi->mat, tmat, tmpmat);
+			Mat4MulMat4(obi->mat, tmpmat, tmat);
 		}
 		else if(mode==1)
 			Mat4CpyMat4(obi->mat, tmat);

@@ -4916,7 +4916,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HOMEKEY:
 			if((G.qual==0))
-				do_seq_buttons(B_SEQHOME);
+				seq_home();
 			break;
 		case PADPERIOD:	
 			if(last_seq) {
@@ -5064,8 +5064,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case HKEY: /* hide==mute? - not that nice but MKey us used for meta :/ */
 			if((G.qual==0)) {
 				seq_mute_sel(1);
-			} else if((G.qual==LR_ALTKEY)) {
+			} else if(G.qual==LR_ALTKEY) {
 				seq_mute_sel(0);
+			} else if(G.qual==LR_SHIFTKEY) {
+				seq_mute_sel(-1);
 			}
 			break;
 		case XKEY:
@@ -5076,7 +5078,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					del_seq();
 			}
 			break;
-		}
+		case PAD1: case PAD2: case PAD4: case PAD8:
+			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
+			doredraw= 1;
+			break;
+		}	
 	}
 
 	if(doredraw) scrarea_queue_winredraw(curarea);

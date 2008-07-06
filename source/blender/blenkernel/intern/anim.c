@@ -337,6 +337,7 @@ static void frames_duplilist(ListBase *lb, Object *ob, int level, int animated)
 {
 	extern int enable_cu_speed;	/* object.c */
 	Object copyob;
+	DupliObject *dob;
 	int cfrao, ok;
 	
 	/* simple preventing of too deep nested groups */
@@ -360,7 +361,8 @@ static void frames_duplilist(ListBase *lb, Object *ob, int level, int animated)
 		if(ok) {
 			do_ob_ipo(ob);
 			where_is_object_time(ob, (float)G.scene->r.cfra);
-			new_dupli_object(lb, ob, ob->obmat, ob->lay, G.scene->r.cfra, OB_DUPLIFRAMES, animated);
+			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, G.scene->r.cfra, OB_DUPLIFRAMES, animated);
+			Mat4CpyMat4(dob->omat, copyob.obmat);
 		}
 	}
 
@@ -723,7 +725,7 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_space_mat[][4], ParticleSystem *psys, int level, int animated)
 {
 	GroupObject *go;
-	Object *ob=0, **oblist=0;
+	Object *ob=0, **oblist=0, obcopy, *obcopylist=0;
 	DupliObject *dob;
 	ParticleSettings *part;
 	ParticleData *pa;
@@ -733,7 +735,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	ParticleSystemModifierData *psmd;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], obrotmat[4][4], pamat[4][4], size=0.0;
-	float obmat[4][4], (*obmatlist)[4][4]=0;
+	float (*obmat)[4], (*oldobmat)[4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 	int lay, a, b, k, step_nbr = 0, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
@@ -758,7 +760,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	totchild = psys->totchild;
 
 	BLI_srandom(31415926 + psys->seed);
-		
+	
 	lay= G.scene->lay;
 	if((part->draw_as == PART_DRAW_OB && part->dup_ob) ||
 		(part->draw_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first)) {
@@ -778,54 +780,55 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 
 		psys->lattice = psys_get_lattice(par, psys);
 
+		/* gather list of objects or single object */
 		if(part->draw_as==PART_DRAW_GR) {
 			group_handle_recalc_and_update(par, part->dup_group);
 
-			go= part->dup_group->gobject.first;
-			while(go) {
-				go=go->next;
+			for(go=part->dup_group->gobject.first; go; go=go->next)
 				totgroup++;
-			}
 
-			oblist= MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
-			obmatlist= MEM_callocN(totgroup*sizeof(float)*4*4, "dupgroup obmat list");
-			go= part->dup_group->gobject.first;
+			/* we also copy the actual objects to restore afterwards, since
+			 * where_is_object_time will change the object which breaks transform */
+			oblist = MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
+			obcopylist = MEM_callocN(totgroup*sizeof(Object), "dupgroup copy list");
+
+			go = part->dup_group->gobject.first;
 			for(a=0; a<totgroup; a++, go=go->next) {
-				oblist[a]=go->ob;
-				Mat4CpyMat4(obmatlist[a], go->ob->obmat);
+				oblist[a] = go->ob;
+				obcopylist[a] = *go->ob;
 			}
 		}
 		else {
 			ob = part->dup_ob;
-			Mat4CpyMat4(obmat, ob->obmat);
+			obcopy = *ob;
 		}
 
 		if(totchild==0 || part->draw & PART_DRAW_PARENT)
-			a=0;
+			a = 0;
 		else
-			a=totpart;
+			a = totpart;
 
 		for(pa=psys->particles,counter=0; a<totpart+totchild; a++,pa++,counter++) {
 			if(a<totpart) {
+				/* handle parent particle */
 				if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP))
 					continue;
 
-				pa_num=pa->num;
-
-				pa_time=pa->time;
-
-				size=pa->size;
+				pa_num = pa->num;
+				pa_time = pa->time;
+				size = pa->size;
 			}
 			else {
-				/* TODO: figure these two out */
-				cpa= &psys->child[a - totpart];
+				/* handle child particle */
+				cpa = &psys->child[a - totpart];
+
 				pa_num = a;
 				pa_time = psys->particles[cpa->parent].time;
-
-				size=psys_get_child_size(psys, cpa, ctime, 0);
+				size = psys_get_child_size(psys, cpa, ctime, 0);
 			}
 
 			if(part->draw_as==PART_DRAW_GR) {
+				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)
 					b= BLI_rand() % totgroup;
 				else if(part->from==PART_FROM_PARTICLE)
@@ -834,11 +837,17 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					b= a % totgroup;
 
 				ob = oblist[b];
-				Mat4CpyMat4(obmat, obmatlist[b]);
+				obmat = oblist[b]->obmat;
+				oldobmat = obcopylist[b].obmat;
+			}
+			else {
+				obmat= ob->obmat;
+				oldobmat= obcopy.obmat;
 			}
 
 			for(k=0; k<=step_nbr; k++, counter++) {
 				if(hair) {
+					/* hair we handle separate and compute transform based on hair keys */
 					if(a < totpart) {
 						cache = psys->pathcache[a];
 						psys_get_dupli_path_transform(par, psys, psmd, pa, 0, cache, pamat, &scale);
@@ -851,6 +860,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					VECCOPY(pamat[3], cache->co);
 				}
 				else if(step_nbr) {
+					/* other keys */
 					state.time = (float)k / (float)step_nbr;
 					psys_get_particle_on_path(par, psys, a, &state, 0);
 
@@ -859,6 +869,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					pamat[3][3]= 1.0f;
 				}
 				else {
+					/* first key */
 					state.time = -1.0;
 					if(psys_get_particle_state(par, psys, a, &state, 0) == 0)
 						continue;
@@ -870,8 +881,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 
 				if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 					for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
-
-						Mat4MulMat4(tmat, obmatlist[b], pamat);
+						Mat4MulMat4(tmat, oblist[b]->obmat, pamat);
 						Mat4MulFloat3((float *)tmat, size*scale);
 						if(par_space_mat)
 							Mat4MulMat4(mat, tmat, par_space_mat);
@@ -879,6 +889,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 							Mat4CpyMat4(mat, tmat);
 
 						dob= new_dupli_object(lb, go->ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
+						Mat4CpyMat4(dob->omat, obcopylist[b].obmat);
 						if(G.rendering)
 							psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 					}
@@ -904,16 +915,27 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 						Mat4CpyMat4(mat, tmat);
 
 					dob= new_dupli_object(lb, ob, mat, par->lay, counter, OB_DUPLIPARTS, animated);
+					Mat4CpyMat4(dob->omat, oldobmat);
 					if(G.rendering)
 						psys_get_dupli_texture(par, part, psmd, pa, cpa, dob->uv, dob->orco);
 				}
 			}
 		}
+
+		/* restore objects since they were changed in where_is_object_time */
+		if(part->draw_as==PART_DRAW_GR) {
+			for(a=0; a<totgroup; a++)
+				*(oblist[a])= obcopylist[a];
+		}
+		else
+			*ob= obcopy;
 	}
+
+	/* clean up */
 	if(oblist)
 		MEM_freeN(oblist);
-	if(obmatlist)
-		MEM_freeN(obmatlist);
+	if(obcopylist)
+		MEM_freeN(obcopylist);
 
 	if(psys->lattice) {
 		end_latt_deform();

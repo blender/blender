@@ -13,7 +13,7 @@ Tip: 'Import a path from any of a set of formats (still experimental)'
 """
 
 __author__ = "Jean-Michel Soler (jms)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "AI importer's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_ai.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
 __version__ = "0.1.1"

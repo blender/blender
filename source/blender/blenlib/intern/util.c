@@ -858,6 +858,8 @@ int BLI_strcaseeq(char *a, char *b) {
  * take the dir name, make it absolute, and clean it up, replacing
  * excess file entry stuff (like /tmp/../tmp/../)
  * note that dir isn't protected for max string names... 
+ * 
+ * If relbase is NULL then its ignored
  */
 
 void BLI_cleanup_dir(const char *relabase, char *dir)
@@ -871,7 +873,6 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 {
 	short a;
 	char *start, *eind;
-
 	if (relabase) {
 		BLI_convertstringcode(dir, relabase);
 	} else {
@@ -882,7 +883,15 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			dir = dir+2; /* skip the first // */
 		}
 	}
-
+	
+	/* Note
+	 *   memmove( start, eind, strlen(eind)+1 );
+	 * is the same as
+	 *   strcpy( start, eind ); 
+	 * except strcpy should not be used because there is overlap,
+	  * so use memmove's slightly more obscure syntax - Campbell
+	 */
+	
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
@@ -896,17 +905,21 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '\\') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ){
 		eind = start + strlen("\\.\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"\\\\" )) ){
 		eind = start + strlen("\\\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if((a = strlen(dir))){				/* remove the '\\' at the end */
@@ -929,17 +942,21 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '/') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
 		eind = start + strlen("/./") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"//" )) ){
 		eind = start + strlen("//") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
@@ -960,7 +977,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 	char * lslash;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
-
+	
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
 	
@@ -992,7 +1009,11 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 	BLI_char_switch(temp, '\\', '/');
 	BLI_char_switch(file, '\\', '/');
-
+	
+	/* remove /./ which confuse the following slash counting... */
+	BLI_cleanup_file(NULL, file);
+	BLI_cleanup_file(NULL, temp);
+	
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
 
@@ -1114,8 +1135,8 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
-	wasrelative= (strncmp(vol, "//", 2)==0);
-
+	wasrelative= (vol[0]=='/' && vol[1]=='/');
+	
 #ifdef WIN32
 	/* we are checking here if we have an absolute path that is not in the current
 	   blend file as a lib main - we are basically checking for the case that a 
@@ -1139,6 +1160,8 @@ int BLI_convertstringcode(char *path, const char *basepath)
 
 	BLI_strncpy(base, basepath, FILE_MAX);
 	
+	BLI_cleanup_file(NULL, base);
+	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
 	   Here we push into one conform direction, and at the end we
@@ -1150,7 +1173,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 
 	/* Paths starting with // will get the blend file as their base,
 	 * this isnt standard in any os but is uesed in blender all over the place */
-	if (tmp[0] == '/' && tmp[1] == '/') {
+	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
@@ -1184,7 +1207,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	*/
 	BLI_char_switch(path+2, '/', '\\');
 #endif
-
+	
 	return wasrelative;
 }
 
