@@ -848,10 +848,6 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
 	}
-	else if(ELEM5(imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
-		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
-			extension= ".jpg";
-	}
 	else if(imtype==R_BMP) {
 		if(!BLI_testextensie(string, ".bmp"))
 			extension= ".bmp";
@@ -874,9 +870,13 @@ void BKE_add_image_extension(char *string, int imtype)
 		if (!BLI_testextensie(string, ".dpx"))
 			extension= ".dpx";
 	}
-	else {	/* targa default */
+	else if(imtype==R_TARGA) {
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
+	}
+	else { //   R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90, R_QUICKTIME etc
+		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
+			extension= ".jpg";
 	}
 
 	strcat(string, extension);
@@ -1512,6 +1512,10 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		image_initialize_after_load(ima, ibuf);
 		image_assign_ibuf(ima, ibuf, 0, frame);
 #endif
+		
+		if(ima->flag & IMA_DO_PREMUL)
+			converttopremul(ibuf);
+		
 	}
 	else
 		ima->ok= 0;
