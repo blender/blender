@@ -116,7 +116,7 @@ typedef struct elbeemSimulationSettings {
 
 // a single mesh object
 typedef struct elbeemMesh {
-  /* obstacle,fluid or inflow... */
+  /* obstacle,fluid or inflow or control ... */
   short type;
 	/* id of simulation domain it belongs to */
 	short parentDomainId;
@@ -158,6 +158,13 @@ typedef struct elbeemMesh {
 
 	/* name of the mesh, mostly for debugging */
 	const char *name;
+	
+	/* fluid control settings */
+	// TODO dg: change to channels
+	float attractforceStrength;
+	float attractforceRadius;
+	float velocityforceStrength;
+	float velocityforceRadius;
 } elbeemMesh;
 
 // API functions

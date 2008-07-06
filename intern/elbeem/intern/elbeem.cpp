@@ -159,6 +159,12 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 
 	/* name of the mesh, mostly for debugging */
 	mesh->name = "[unnamed]";
+	
+	/* fluid control settings */
+	mesh->attractforceStrength = 0;
+	mesh->attractforceRadius = 0;
+	mesh->velocityforceStrength = 0;
+	mesh->velocityforceRadius = 0;
 }
 
 int globalMeshCounter = 1;
@@ -198,6 +204,13 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	obj->setGeoInitType(initType);
 	obj->setGeoPartSlipValue(mesh->obstaclePartslip);
 	obj->setGeoImpactFactor(mesh->obstacleImpactFactor);
+	
+	/* fluid control features */
+	obj->setAttractForceStrength(mesh->attractforceStrength);
+	obj->setAttractForceRadius(mesh->attractforceRadius);
+	obj->setVelocityForceStrength(mesh->velocityforceStrength);
+	obj->setVelocityForceRadius(mesh->velocityforceRadius);
+	
 	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
 	obj->setVolumeInit(mesh->volumeInitType);
 	// use channel instead, obj->setInitialVelocity( ntlVec3Gfx(mesh->iniVelocity[0], mesh->iniVelocity[1], mesh->iniVelocity[2]) );

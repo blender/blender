@@ -97,7 +97,28 @@ class ntlGeometryObject : public ntlGeometryClass
 		/*! Set/get the local inivel coords flag */
 		inline bool getLocalCoordInivel() const { return mLocalCoordInivel; }
 		inline void setLocalCoordInivel(bool set) { mLocalCoordInivel=set; }
-
+		
+		/****************************************/
+		/* fluid control features */
+		/****************************************/
+		/*! Set/get the particle control set attract force strength */
+		inline float getAttractForceStrength() const { return mAttractforceStrength; }
+		inline void setAttractForceStrength(float set) { mAttractforceStrength=set; }
+		
+		/*! Set/get the particle control set attract force radius */
+		inline float getAttractForceRadius() const { return mAttractforceRadius; }
+		inline void setAttractForceRadius(float set) { mAttractforceRadius=set; }
+		
+		/*! Set/get the particle control set velocity force strength */
+		inline float getVelocityForceStrength() const { return mVelocityforceStrength; }
+		inline void setVelocityForceStrength(float set) { mVelocityforceStrength=set; }
+		
+		/*! Set/get the particle control set velocity force radius */
+		inline float getVelocityForceRadius() const { return mVelocityforceRadius; }
+		inline void setVelocityForceRadius(float set) { mVelocityforceRadius=set; }
+		
+		/****************************************/
+		
 		/*! Init channels from float arrays (for elbeem API) */
 		void initChannels(
 				int nTrans, float *trans, int nRot, float *rot, int nScale, float *scale,
@@ -202,6 +223,13 @@ class ntlGeometryObject : public ntlGeometryClass
 
 		/*! animated channels for in/outflow on/off */
 		AnimChannel<float> mcGeoActive;
+		
+		/* fluid control settings */
+		// TODO dg: change to channels
+		float mAttractforceStrength;
+		float mAttractforceRadius;
+		float mVelocityforceStrength;
+		float mVelocityforceRadius;
 
 	public:
 

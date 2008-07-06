@@ -346,6 +346,7 @@ void ntlGeometryObject::initChannels(
 	if((ivel)&&(nIvel>0)) {    ADD_CHANNEL_VEC(mcInitialVelocity, nIvel, ivel); }
 
 	checkIsAnimated();
+	
 	if(debugInitc) { 
 		debMsgStd("ntlGeometryObject::initChannels",DM_MSG,getName()<<
 				" nt:"<<mcTrans.accessValues().size()<<" nr:"<<mcRot.accessValues().size()<<

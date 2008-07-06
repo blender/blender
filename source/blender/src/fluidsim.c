@@ -994,7 +994,7 @@ void fluidsimBake(struct Object *ob)
 				// todo - use blenderInitElbeemMesh
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
-				fsmesh.type = obit->fluidsimSettings->type;;
+				fsmesh.type = obit->fluidsimSettings->type;
 				// get name of object for debugging solver
 				fsmesh.name = obit->id.name; 
 
@@ -1015,8 +1015,7 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.channelScale            = channelObjMove[o][2];
 				fsmesh.channelActive           = channelObjActive[o];
 				if( (fsmesh.type == OB_FLUIDSIM_FLUID) ||
-				(fsmesh.type == OB_FLUIDSIM_INFLOW) ||
-				(fsmesh.type == OB_FLUIDSIM_CONTROL)) {
+				(fsmesh.type == OB_FLUIDSIM_INFLOW)) {
 					fsmesh.channelInitialVel       = channelObjInivel[o];
 				  fsmesh.localInivelCoords = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
 				} 
@@ -1027,6 +1026,17 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
 				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
 				fsmesh.obstacleImpactFactor = obit->fluidsimSettings->surfaceSmoothing; // misused value
+				
+				if(fsmesh.type == OB_FLUIDSIM_CONTROL)
+				{
+					// control fluids will get exported as whole
+					deform = 1;
+					
+					fsmesh.attractforceStrength = obit->fluidsimSettings->attractforceStrength;
+					fsmesh.attractforceRadius = obit->fluidsimSettings->attractforceRadius;
+					fsmesh.velocityforceStrength = obit->fluidsimSettings->velocityforceStrength;
+					fsmesh.velocityforceRadius = obit->fluidsimSettings->velocityforceRadius;
+				}
 
 				// animated meshes
 				if(deform) {

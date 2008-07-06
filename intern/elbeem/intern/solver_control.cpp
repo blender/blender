@@ -218,33 +218,32 @@ LbmFsgrSolver::initCpdata()
 	// manually switch on! if this is zero, nothing is done...
 	mpControl->mSetForceStrength = this->mTForceStrength = 1.;
 	mpControl->mCons.clear();
-
-	// add new set
-	LbmControlSet *cset;
-
-	cset = new LbmControlSet();
-	cset->initCparts();
-	
-	// dont load any file
-	cset->mContrPartFile = string("");
-
-	cset->mcForceAtt = AnimChannel<float>(0.2);
-	cset->mcRadiusAtt = AnimChannel<float>(0.75);
-	cset->mcForceVel = AnimChannel<float>(0.2);
-	cset->mcRadiusVel = AnimChannel<float>(0.75);
-
-		// this value can be left at 0.5:
-	cset->mCparts->setCPSMvmWeightFac(0.5);
-
-	mpControl->mCons.push_back( cset );
 	
 	// init all control fluid objects
 	int numobjs = (int)(mpGiObjects->size());
 	for(int o=0; o<numobjs; o++) {
 		ntlGeometryObjModel *obj = (ntlGeometryObjModel *)(*mpGiObjects)[o];
 		if(obj->getGeoInitType() & FGI_CONTROL) {
-			printf("added control object\n");
-			mpControl->mCons[0]->mCparts->initFromObject(obj);
+			// add new control set per object
+			LbmControlSet *cset;
+
+			cset = new LbmControlSet();
+			cset->initCparts();
+	
+			// dont load any file
+			cset->mContrPartFile = string("");
+
+			// TODO dg: switch to channels later
+			cset->mcForceAtt = AnimChannel<float>(obj->getAttractForceStrength());
+			cset->mcRadiusAtt = AnimChannel<float>(obj->getAttractForceRadius());
+			cset->mcForceVel = AnimChannel<float>(obj->getVelocityForceStrength());
+			cset->mcRadiusVel = AnimChannel<float>(obj->getVelocityForceRadius());
+
+			// this value can be left at 0.5:
+			cset->mCparts->setCPSMvmWeightFac(0.5);
+
+			mpControl->mCons.push_back( cset );
+			mpControl->mCons[mpControl->mCons.size()-1]->mCparts->initFromObject(obj);
 		}
 	}
 	

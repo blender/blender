@@ -68,10 +68,15 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	model->setLoaded(true);
 	
 	model->setGeoInitId(gid);
+	
+	
+	printf("a animated? %d\n", model->getIsAnimated());
+	printf("b animated? %d\n", model->getMeshAnimated());
 	*/
 	model->setGeoInitType(FGI_FLUID);
 	
 	model->getTriangles(mCPSTimeStart, &triangles, &vertices, &normals, 1 ); 
+	// model->applyTransformation(mCPSTimeStart, &vertices, &normals, 0, vertices.size(), true);
 	
 	// valid mesh?
 	if(triangles.size() <= 0) {
@@ -92,11 +97,11 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	// TODO? use params
 	ntlVec3Gfx start,end;
 	model->getExtends(start,end);
-	
+	/*
 	printf("start - x: %f, y: %f, z: %f\n", start[0], start[1], start[2]);
 	printf("end   - x: %f, y: %f, z: %f\n", end[0], end[1], end[2]);
 	printf("mCPSWidth: %f\n");
-
+*/
 	LbmFloat width = mCPSWidth;
 	if(width<=LBM_EPSILON) { errMsg("ControlParticles::initFromMVMCMesh","Invalid mCPSWidth! "<<mCPSWidth); width=mCPSWidth=0.1; }
 	ntlVec3Gfx org = start+ntlVec3Gfx(width*0.5);
@@ -104,6 +109,8 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	vector<ntlVec3Gfx> inspos;
 	int approxmax = (int)( ((end[0]-start[0])/width)*((end[1]-start[1])/width)*((end[2]-start[2])/width) );
 
+	// printf("distance: %f, width: %f\n", distance, width);
+	
 	while(org[2]<end[2]) {
 		while(org[1]<end[1]) {
 			while(org[0]<end[0]) {
@@ -119,6 +126,8 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 		org[2] += width;
 		org[1] = start[1];
 	}
+	
+	// printf("inspos.size(): %d\n", inspos.size());
 
 	MeanValueMeshCoords mvm;
 	mvm.calculateMVMCs(vertices,triangles, inspos, mCPSWeightFac);
@@ -144,6 +153,8 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 
 	// init further sets, temporal mesh sampling
 	double tsampling = mCPSTimestep;
+	// printf("tsampling: %f, ninspos.size(): %d, mCPSTimeEnd: %f\n", tsampling, ninspos.size(), mCPSTimeEnd);
+	
 	int totcnt = (int)( (mCPSTimeEnd-mCPSTimeStart)/tsampling ), tcnt=0;
 	for(double t=mCPSTimeStart+tsampling; ((t<mCPSTimeEnd) && (ninspos.size()>0.)); t+=tsampling) {
 		ControlParticleSet nextcps; //T
@@ -164,8 +175,6 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 			}
 		}
 	}
-
-	// applyTrafos();
 	
 	model->setGeoInitType(FGI_CONTROL);
 	
