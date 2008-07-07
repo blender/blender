@@ -351,10 +351,10 @@ void ntlGeometryObject::initChannels(
 	if((ivel)&&(nIvel>0)) {    ADD_CHANNEL_VEC(mcInitialVelocity, nIvel, ivel); }
 	
 	/* fluid control channels */
-	if((attrFStr)&&(nAttrFStr>0)) {   printf("added!\n");   ADD_CHANNEL_FLOAT(mcAttrFStr, nAttrFStr, attrFStr); }
-	if((attrFRad)&&(nAttrFRad>0)) {      ADD_CHANNEL_FLOAT(mcAttrFRad, nAttrFRad, attrFRad); }
-	if((velFStr)&&(nVelFStr>0)) {      ADD_CHANNEL_FLOAT(mcVelFStr, nAct, velFStr); }
-	if((velFRad)&&(nVelFRad>0)) {      ADD_CHANNEL_FLOAT(mcVelFRad, nVelFRad, velFRad); }
+	if((attrFStr)&&(nAttrFStr>0)) { ADD_CHANNEL_FLOAT(mcAttrFStr, nAttrFStr, attrFStr); }
+	if((attrFRad)&&(nAttrFRad>0)) { ADD_CHANNEL_FLOAT(mcAttrFRad, nAttrFRad, attrFRad); }
+	if((velFStr)&&(nVelFStr>0)) {   ADD_CHANNEL_FLOAT(mcVelFStr, nAct, velFStr); }
+	if((velFRad)&&(nVelFRad>0)) {   ADD_CHANNEL_FLOAT(mcVelFRad, nVelFRad, velFRad); }
 
 	checkIsAnimated();
 	

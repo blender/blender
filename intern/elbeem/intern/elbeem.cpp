@@ -219,6 +219,7 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
 	obj->setVolumeInit(mesh->volumeInitType);
 	// use channel instead, obj->setInitialVelocity( ntlVec3Gfx(mesh->iniVelocity[0], mesh->iniVelocity[1], mesh->iniVelocity[2]) );
+	
 	obj->initChannels(
 			mesh->channelSizeTranslation, mesh->channelTranslation, 
 			mesh->channelSizeRotation,    mesh->channelRotation, 
