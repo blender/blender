@@ -422,7 +422,7 @@ int draw_uvs_face_check(void)
 			return 1;
 		} 
 	} else {
-		if (G.sima->flag & SI_SELACTFACE) {
+		if (G.sima->selectmode == SI_SELECT_FACE) {
 			return 1;
 		}
 	}
