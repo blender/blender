@@ -81,6 +81,7 @@ returns None if notfound.\nIf 'name' is not specified, it returns a list of all 
 static PyObject *Sequence_copy( BPy_Sequence * self );
 static PyObject *Sequence_new( BPy_Sequence * self, PyObject * args );
 static PyObject *Sequence_remove( BPy_Sequence * self, PyObject * args );
+static PyObject *Sequence_rebuildProxy( BPy_Sequence * self );
 
 static PyObject *SceneSeq_new( BPy_SceneSeq * self, PyObject * args );
 static PyObject *SceneSeq_remove( BPy_SceneSeq * self, PyObject * args );
@@ -96,6 +97,8 @@ static PyMethodDef BPy_Sequence_methods[] = {
 	 "() - Return a copy of the sequence containing the same objects."},
 	{"copy", ( PyCFunction ) Sequence_copy, METH_NOARGS,
 	 "() - Return a copy of the sequence containing the same objects."},
+	{"rebuildProxy", ( PyCFunction ) Sequence_rebuildProxy, METH_VARARGS,
+	 "() - Rebuild the active strip's Proxy."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -309,6 +312,7 @@ static PyObject *Sequence_copy( BPy_Sequence * self )
 	Py_RETURN_NONE;
 }
 
+
 /*****************************************************************************/
 /* PythonTypeObject callback function prototypes			 */
 /*****************************************************************************/
@@ -383,8 +387,6 @@ static PyObject *SceneSeq_nextIter( BPy_Sequence * self )
 }
 
 
-
-
 static PyObject *Sequence_getName( BPy_Sequence * self )
 {
 	return PyString_FromString( self->seq->name+2 );
@@ -403,10 +405,12 @@ static int Sequence_setName( BPy_Sequence * self, PyObject * value )
 	return 0;
 }
 
+
 static PyObject *Sequence_getProxyDir( BPy_Sequence * self )
 {
 	return PyString_FromString( self->seq->strip->proxy ? self->seq->strip->proxy->dir : "" );
 }
+
 
 static int Sequence_setProxyDir( BPy_Sequence * self, PyObject * value )
 {
@@ -427,6 +431,14 @@ static int Sequence_setProxyDir( BPy_Sequence * self, PyObject * value )
 		strncpy(self->seq->strip->proxy->dir, name, sizeof(struct StripProxy));
 	}
 	return 0;
+}
+
+
+static PyObject *Sequence_rebuildProxy( BPy_Sequence * self )
+{
+	if (self->seq->strip->proxy)
+		seq_proxy_rebuild(self->seq);
+	Py_RETURN_NONE;
 }
 
 
@@ -618,6 +630,54 @@ static int Sequence_setImages( BPy_Sequence * self, PyObject *value )
 			PyErr_Clear();
 		}
 	}
+	
+	return 0;
+}
+
+static PyObject *M_Sequence_BlendModesDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "CROSS", PyInt_FromLong( SEQ_CROSS ) );
+		PyConstant_Insert( d, "ADD", PyInt_FromLong( SEQ_ADD ) );
+		PyConstant_Insert( d, "SUBTRACT", PyInt_FromLong( SEQ_SUB ) );
+		PyConstant_Insert( d, "ALPHAOVER", PyInt_FromLong( SEQ_ALPHAOVER ) );
+		PyConstant_Insert( d, "ALPHAUNDER", PyInt_FromLong( SEQ_ALPHAUNDER ) );
+		PyConstant_Insert( d, "GAMMACROSS", PyInt_FromLong( SEQ_GAMCROSS ) );
+		PyConstant_Insert( d, "MULTIPLY", PyInt_FromLong( SEQ_MUL ) );
+		PyConstant_Insert( d, "OVERDROP", PyInt_FromLong( SEQ_OVERDROP ) );
+		PyConstant_Insert( d, "PLUGIN", PyInt_FromLong( SEQ_PLUGIN ) );
+		PyConstant_Insert( d, "WIPE", PyInt_FromLong( SEQ_WIPE ) );
+		PyConstant_Insert( d, "GLOW", PyInt_FromLong( SEQ_GLOW ) );
+		PyConstant_Insert( d, "TRANSFORM", PyInt_FromLong( SEQ_TRANSFORM ) );
+		PyConstant_Insert( d, "COLOR", PyInt_FromLong( SEQ_COLOR ) );
+		PyConstant_Insert( d, "SPEED", PyInt_FromLong( SEQ_SPEED ) );
+	}
+	return M;
+}
+
+static PyObject *Sequence_getBlendMode( BPy_Sequence * self )
+{
+	return PyInt_FromLong( self->seq->blend_mode );
+}
+
+static int Sequence_setBlendMode( BPy_Sequence * self, PyObject * value )
+{
+	struct Sequence *seq= self->seq;
+	int number = PyInt_AsLong( value );
+	
+	if( number==-1 && PyErr_Occurred() )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected an int value" );
+	
+	if ( !seq_can_blend(seq) )
+		return EXPP_ReturnIntError( PyExc_AttributeError, "this sequence type dosnt support blending" );	
+	
+	if (number<SEQ_EFFECT || number>SEQ_EFFECT_MAX)
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected an int value" );
+	
+	seq->blend_mode=number;
 	
 	return 0;
 }
@@ -836,7 +896,11 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 (getter)Sequence_getImages, (setter)Sequence_setImages,
 	 "Sequence scene",
 	  NULL},
-	  
+	{"blendMode",
+	 (getter)Sequence_getBlendMode, (setter)Sequence_setBlendMode,
+	 "Sequence Blend Mode",
+	  NULL},
+
 	{"type",
 	 (getter)getIntAttr, (setter)NULL,
 	 "",
@@ -1131,6 +1195,7 @@ PyObject *M_Sequence_Get( PyObject * self, PyObject * args )
 /*****************************************************************************/
 PyObject *Sequence_Init( void )
 {
+	PyObject *BlendModesDict = M_Sequence_BlendModesDict( );
 	PyObject *submodule;
 	if( PyType_Ready( &Sequence_Type ) < 0 )
 		return NULL;
@@ -1141,6 +1206,9 @@ PyObject *Sequence_Init( void )
 	submodule = Py_InitModule3( "Blender.Scene.Sequence", NULL,
 "The Blender Sequence module\n\n\
 This module provides access to **Sequence Data** in Blender.\n" );
+
+	if( BlendModesDict )
+		PyModule_AddObject( submodule, "BlendModes", BlendModesDict );
 
 	/*Add SUBMODULES to the module*/
 	/*PyDict_SetItemString(dict, "Constraint", Constraint_Init()); //creates a *new* module*/

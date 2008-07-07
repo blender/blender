@@ -2380,6 +2380,16 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 	return i;
 }
 
+/* check used when we need to change seq->blend_mode but not to effect or audio strips */
+int seq_can_blend(Sequence *seq)
+{
+	if (ELEM4(seq->type, SEQ_IMAGE, SEQ_META, SEQ_SCENE, SEQ_MOVIE)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
 /* threading api */
 
 static ListBase running_threads;
