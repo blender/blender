@@ -336,8 +336,8 @@ typedef short IPO_Channel;
 /* ******************** */
 /* fluidsim ipos NT */
 
-#define FLUIDSIM_TOTIPO	9
-#define FLUIDSIM_TOTNAM	9
+#define FLUIDSIM_TOTIPO	13
+#define FLUIDSIM_TOTNAM	13
 
 #define FLUIDSIM_VISC   1
 #define FLUIDSIM_TIME   2
@@ -351,6 +351,11 @@ typedef short IPO_Channel;
 #define FLUIDSIM_VEL_Z  8
 
 #define FLUIDSIM_ACTIVE 9
+
+#define FLUIDSIM_ATTR_FORCE_STR 	10
+#define FLUIDSIM_ATTR_FORCE_RADIUS 	11
+#define FLUIDSIM_VEL_FORCE_STR 		12
+#define FLUIDSIM_VEL_FORCE_RADIUS 	13
 
 /* ******************** */
 /* particle ipos */

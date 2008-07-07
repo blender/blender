@@ -163,11 +163,14 @@ typedef struct elbeemMesh {
 	float cpsTimeStart;
 	float cpsTimeEnd;
 	
-	// TODO dg: change to channels
-	float attractforceStrength;
-	float attractforceRadius;
-	float velocityforceStrength;
-	float velocityforceRadius;
+	int channelSizeAttractforceStrength;
+	float *channelAttractforceStrength;
+	int channelSizeAttractforceRadius;
+	float *channelAttractforceRadius;
+	int channelSizeVelocityforceStrength;
+	float *channelVelocityforceStrength;
+	int channelSizeVelocityforceRadius;
+	float *channelVelocityforceRadius;
 } elbeemMesh;
 
 // API functions

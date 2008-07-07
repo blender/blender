@@ -696,16 +696,16 @@ bool LbmFsgrSolver::initializeSolverMemory()
 
 		// restrict max. chunk of 1 mem block to 1GB for windos
 		bool memBlockAllocProblem = false;
-		double maxWinMemChunk = 1100.*1024.*1024.;
-		double maxMacMemChunk = 1200.*1024.*1024.;
 		double maxDefaultMemChunk = 2.*1024.*1024.*1024.;
 		//std::cerr<<" memEstFine "<< memEstFine <<" maxWin:" <<maxWinMemChunk <<" maxMac:" <<maxMacMemChunk ; // DEBUG
 #ifdef WIN32
+		double maxWinMemChunk = 1100.*1024.*1024.;
 		if(memEstFine> maxWinMemChunk) {
 			memBlockAllocProblem = true;
 		}
 #endif // WIN32
 #ifdef __APPLE__
+		double maxMacMemChunk = 1200.*1024.*1024.;
 		if(memEstFine> maxMacMemChunk) {
 			memBlockAllocProblem = true;
 		}

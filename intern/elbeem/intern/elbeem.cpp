@@ -164,10 +164,14 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 	mesh->cpsTimeStart = 0;
 	mesh->cpsTimeEnd = 0;
 	
-	mesh->attractforceStrength = 0;
-	mesh->attractforceRadius = 0;
-	mesh->velocityforceStrength = 0;
-	mesh->velocityforceRadius = 0;
+	mesh->channelSizeAttractforceStrength = 0;
+	mesh->channelAttractforceStrength = NULL;
+	mesh->channelSizeAttractforceRadius = 0;
+	mesh->channelAttractforceRadius = NULL;
+	mesh->channelSizeVelocityforceStrength = 0;
+	mesh->channelVelocityforceStrength = NULL;
+	mesh->channelSizeVelocityforceRadius = 0;
+	mesh->channelVelocityforceRadius = NULL;
 }
 
 int globalMeshCounter = 1;
@@ -211,10 +215,6 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	/* fluid control features */
 	obj->setCpsTimeStart(mesh->cpsTimeStart);
 	obj->setCpsTimeEnd(mesh->cpsTimeEnd);
-	obj->setAttractForceStrength(mesh->attractforceStrength);
-	obj->setAttractForceRadius(mesh->attractforceRadius);
-	obj->setVelocityForceStrength(mesh->velocityforceStrength);
-	obj->setVelocityForceRadius(mesh->velocityforceRadius);
 	
 	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
 	obj->setVolumeInit(mesh->volumeInitType);
@@ -224,7 +224,11 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 			mesh->channelSizeRotation,    mesh->channelRotation, 
 			mesh->channelSizeScale,       mesh->channelScale,
 			mesh->channelSizeActive,      mesh->channelActive,
-			mesh->channelSizeInitialVel,  mesh->channelInitialVel
+			mesh->channelSizeInitialVel,  mesh->channelInitialVel,
+			mesh->channelSizeAttractforceStrength,  mesh->channelAttractforceStrength,
+			mesh->channelSizeAttractforceRadius,  mesh->channelAttractforceRadius,
+			mesh->channelSizeVelocityforceStrength,  mesh->channelVelocityforceStrength,
+			mesh->channelSizeVelocityforceRadius,  mesh->channelVelocityforceRadius
 		);
 	obj->setLocalCoordInivel( mesh->localInivelCoords );
 

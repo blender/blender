@@ -109,28 +109,21 @@ class ntlGeometryObject : public ntlGeometryClass
 		inline float getCpsTimeEnd() const { return mCpsTimeEnd; }
 		inline void setCpsTimeEnd(float set) { mCpsTimeEnd=set; }
 		
-		/*! Set/get the particle control set attract force strength */
-		inline float getAttractForceStrength() const { return mAttractforceStrength; }
-		inline void setAttractForceStrength(float set) { mAttractforceStrength=set; }
-		
-		/*! Set/get the particle control set attract force radius */
-		inline float getAttractForceRadius() const { return mAttractforceRadius; }
-		inline void setAttractForceRadius(float set) { mAttractforceRadius=set; }
-		
-		/*! Set/get the particle control set velocity force strength */
-		inline float getVelocityForceStrength() const { return mVelocityforceStrength; }
-		inline void setVelocityForceStrength(float set) { mVelocityforceStrength=set; }
-		
-		/*! Set/get the particle control set velocity force radius */
-		inline float getVelocityForceRadius() const { return mVelocityforceRadius; }
-		inline void setVelocityForceRadius(float set) { mVelocityforceRadius=set; }
+		inline AnimChannel<float> getCpsAttrFStr() const { return mcAttrFStr; }
+		inline AnimChannel<float> getCpsAttrFRad() const { return mcAttrFRad; }
+		inline AnimChannel<float> getCpsVelFStr() const { return mcVelFStr; }
+		inline AnimChannel<float> getCpsVelFRad() const { return mcVelFRad; }
 		
 		/****************************************/
 		
 		/*! Init channels from float arrays (for elbeem API) */
 		void initChannels(
 				int nTrans, float *trans, int nRot, float *rot, int nScale, float *scale,
-			  int nAct, float *act, int nIvel, float *ivel
+				int nAct, float *act, int nIvel, float *ivel,
+				int nAttrFStr, float *attrFStr,
+				int nAttrFRad, float *attrFRad,
+				int nVelFStr, float *velFStr,
+				int nVelFRad, float *velFRad
 				);
 
 		/*! is the object animated? */
@@ -234,13 +227,8 @@ class ntlGeometryObject : public ntlGeometryClass
 		
 		/* fluid control settings */
 		float mCpsTimeStart;
-		float mCpsTimeEnd
-				;
-		// TODO dg: change to channels
-		float mAttractforceStrength;
-		float mAttractforceRadius;
-		float mVelocityforceStrength;
-		float mVelocityforceRadius;
+		float mCpsTimeEnd;
+		AnimChannel<float> mcAttrFStr, mcAttrFRad, mcVelFStr, mcVelFRad;
 
 	public:
 

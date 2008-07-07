@@ -234,10 +234,10 @@ LbmFsgrSolver::initCpdata()
 			cset->mContrPartFile = string("");
 
 			// TODO dg: switch to channels later
-			cset->mcForceAtt = AnimChannel<float>(obj->getAttractForceStrength());
-			cset->mcRadiusAtt = AnimChannel<float>(obj->getAttractForceRadius());
-			cset->mcForceVel = AnimChannel<float>(obj->getVelocityForceStrength());
-			cset->mcRadiusVel = AnimChannel<float>(obj->getVelocityForceRadius());
+			cset->mcForceAtt = obj->getCpsAttrFStr();
+			cset->mcRadiusAtt = obj->getCpsAttrFRad();
+			cset->mcForceVel = obj->getCpsVelFStr();
+			cset->mcRadiusVel = obj->getCpsVelFRad();
 
 			cset->mCparts->setCPSTimeStart(obj->getCpsTimeStart());
 			cset->mCparts->setCPSTimeEnd(obj->getCpsTimeEnd());

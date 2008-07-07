@@ -314,6 +314,10 @@ void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *sr
 		FS_FREE_ONECHANNEL(channelObjMove[i][2],"channelObjMove2"); \
 		FS_FREE_ONECHANNEL(channelObjInivel[i],"channelObjInivel"); \
 		FS_FREE_ONECHANNEL(channelObjActive[i],"channelObjActive"); \
+		FS_FREE_ONECHANNEL(channelAttractforceStrength[i],"channelAttractforceStrength"); \
+		FS_FREE_ONECHANNEL(channelAttractforceRadius[i],"channelAttractforceRadius"); \
+		FS_FREE_ONECHANNEL(channelVelocityforceStrength[i],"channelVelocityforceStrength"); \
+		FS_FREE_ONECHANNEL(channelVelocityforceRadius[i],"channelVelocityforceRadius"); \
 	}  \
 } // end FS FREE CHANNELS
 
@@ -532,6 +536,12 @@ void fluidsimBake(struct Object *ob)
 	float *channelObjInivel[256];    // initial velocities
 	float *channelObjActive[256];    // obj active channel
 	
+	/* fluid control channels */
+	float *channelAttractforceStrength[256];
+	float *channelAttractforceRadius[256];
+	float *channelVelocityforceStrength[256];
+	float *channelVelocityforceRadius[256];
+	
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
@@ -716,6 +726,10 @@ void fluidsimBake(struct Object *ob)
 		channelObjMove[i][0] = channelObjMove[i][1] = channelObjMove[i][2] = NULL;
 		channelObjInivel[i] = NULL;
 		channelObjActive[i] = NULL;
+		channelAttractforceStrength[i] = NULL;
+		channelAttractforceRadius[i] = NULL;
+		channelVelocityforceStrength[i] = NULL;
+		channelVelocityforceRadius[i] = NULL;
 	}
 	allchannelSize = G.scene->r.efra; // always use till last frame
 	aniFrameTime = (domainSettings->animEnd - domainSettings->animStart)/(double)noFrames;
@@ -880,9 +894,32 @@ void fluidsimBake(struct Object *ob)
 					channelObjMove[o][j][(i-1)*4 + 3] = timeAtFrame[i];
 				}
 			}
+			
+			{
+				int   attrFSIcu[1] =  { FLUIDSIM_ATTR_FORCE_STR };
+				int   attrFRIcu[1] =  { FLUIDSIM_ATTR_FORCE_RADIUS };
+				int   velFSIcu[1] =  { FLUIDSIM_VEL_FORCE_STR };
+				int   velFRIcu[1] =  { FLUIDSIM_VEL_FORCE_RADIUS };
 
+				float attrFSDefs[1];
+				float attrFRDefs[1];
+				float velFSDefs[1];
+				float velFRDefs[1];
+				
+				attrFSDefs[0] = obit->fluidsimSettings->attractforceStrength;
+				attrFRDefs[0] = obit->fluidsimSettings->attractforceRadius;
+				velFSDefs[0] = obit->fluidsimSettings->velocityforceStrength;
+				velFRDefs[0] = obit->fluidsimSettings->velocityforceRadius;
+				
+				fluidsimInitChannel( &channelAttractforceStrength[o], allchannelSize, timeAtFrame, attrFSIcu,attrFSDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+				fluidsimInitChannel( &channelAttractforceRadius[o], allchannelSize, timeAtFrame, attrFRIcu,attrFRDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+				fluidsimInitChannel( &channelVelocityforceStrength[o], allchannelSize, timeAtFrame, velFSIcu,velFSDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+				fluidsimInitChannel( &channelVelocityforceRadius[o], allchannelSize, timeAtFrame, velFRIcu,velFRDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+			}
+			
 			fluidsimInitChannel( &channelObjInivel[o], allchannelSize, timeAtFrame, inivelIcu,inivelDefs, obit->fluidsimSettings->ipo, CHANNEL_VEC );
 			fluidsimInitChannel( &channelObjActive[o], allchannelSize, timeAtFrame, activeIcu,activeDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+		
 
 			channelObjCount++;
 
@@ -1028,7 +1065,7 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
 				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
 				fsmesh.obstacleImpactFactor = obit->fluidsimSettings->surfaceSmoothing; // misused value
-				/*
+				
 				if(fsmesh.type == OB_FLUIDSIM_CONTROL)
 				{
 					// control fluids will get exported as whole
@@ -1037,11 +1074,24 @@ void fluidsimBake(struct Object *ob)
 					fsmesh.cpsTimeStart = obit->fluidsimSettings->cpsTimeStart;
 					fsmesh.cpsTimeEnd = obit->fluidsimSettings->cpsTimeEnd;
 					
-					fsmesh.attractforceStrength = obit->fluidsimSettings->attractforceStrength;
-					fsmesh.attractforceRadius = obit->fluidsimSettings->attractforceRadius;
-					fsmesh.velocityforceStrength = obit->fluidsimSettings->velocityforceStrength;
-					fsmesh.velocityforceRadius = obit->fluidsimSettings->velocityforceRadius;
-				}*/
+					fsmesh.channelSizeAttractforceRadius = 
+					fsmesh.channelSizeVelocityforceStrength = 
+					fsmesh.channelSizeVelocityforceRadius = 
+					fsmesh.channelSizeAttractforceStrength = allchannelSize;
+					
+					fsmesh.channelAttractforceRadius = channelAttractforceStrength[o];
+					fsmesh.channelAttractforceRadius = channelAttractforceRadius[o];
+					fsmesh.channelVelocityforceStrength = channelVelocityforceStrength[o];
+					fsmesh.channelVelocityforceRadius = channelVelocityforceRadius[o];
+				}
+				else
+				{
+					// set channels to 0
+					fsmesh.channelAttractforceStrength =
+					fsmesh.channelAttractforceRadius = 
+					fsmesh.channelVelocityforceStrength = 
+					fsmesh.channelVelocityforceRadius = NULL; 
+				}
 
 				// animated meshes
 				if(deform) {

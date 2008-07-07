@@ -41,7 +41,8 @@ ntlGeometryObject::ntlGeometryObject() :
 	mCachedMovPoints(), mCachedMovNormals(),
 	mTriangleDivs1(), mTriangleDivs2(), mTriangleDivs3(),
 	mMovPntsInited(-100.0), mMaxMovPnt(-1),
-	mcGeoActive(1.)
+	mcGeoActive(1.),
+	mcAttrFStr(0.),mcAttrFRad(0.), mcVelFStr(0.), mcVelFRad(0.)
 { 
 };
 
@@ -331,7 +332,11 @@ void ntlGeometryObject::sceneAddTriangleNoVert(int *trips,
 
 void ntlGeometryObject::initChannels(
 		int nTrans, float *trans, int nRot, float *rot, int nScale, float *scale,
-		int nAct, float *act, int nIvel, float *ivel
+		int nAct, float *act, int nIvel, float *ivel,
+		int nAttrFStr, float *attrFStr,
+		int nAttrFRad, float *attrFRad,
+		int nVelFStr, float *velFStr,
+		int nVelFRad, float *velFRad
 		) {
 	const bool debugInitc=true;
 	if(debugInitc) { debMsgStd("ntlGeometryObject::initChannels",DM_MSG,"nt:"<<nTrans<<" nr:"<<nRot<<" ns:"<<nScale, 10); 
@@ -344,6 +349,12 @@ void ntlGeometryObject::initChannels(
 	if((scale)&&(nScale>0)) {  ADD_CHANNEL_VEC(mcScale, nScale, scale); }
 	if((act)&&(nAct>0)) {      ADD_CHANNEL_FLOAT(mcGeoActive, nAct, act); }
 	if((ivel)&&(nIvel>0)) {    ADD_CHANNEL_VEC(mcInitialVelocity, nIvel, ivel); }
+	
+	/* fluid control channels */
+	if((attrFStr)&&(nAttrFStr>0)) {   printf("added!\n");   ADD_CHANNEL_FLOAT(mcAttrFStr, nAttrFStr, attrFStr); }
+	if((attrFRad)&&(nAttrFRad>0)) {      ADD_CHANNEL_FLOAT(mcAttrFRad, nAttrFRad, attrFRad); }
+	if((velFStr)&&(nVelFStr>0)) {      ADD_CHANNEL_FLOAT(mcVelFStr, nAct, velFStr); }
+	if((velFRad)&&(nVelFRad>0)) {      ADD_CHANNEL_FLOAT(mcVelFRad, nVelFRad, velFRad); }
 
 	checkIsAnimated();
 	
@@ -567,7 +578,7 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 		}
 	}
 
-	if(    (this-getMeshAnimated())
+	if(    (this->getMeshAnimated())
       || (mcTrans.accessValues().size()>1)  // VALIDATE
 	    || (mcRot.accessValues().size()>1) 
 	    || (mcScale.accessValues().size()>1) 

@@ -489,19 +489,40 @@ static void make_part_editipo(SpaceIpo *si)
 }
 
 // copied from make_seq_editipo
-static void make_fluidsim_editipo(SpaceIpo *si) // NT
+static void make_fluidsim_editipo(SpaceIpo *si, Object *ob) // NT
 {
 	EditIpo *ei;
 	int a;
 	char *name;
-	ei= si->editipo= MEM_callocN(FLUIDSIM_TOTIPO*sizeof(EditIpo), "fluidsim_editipo");
-	si->totipo = FLUIDSIM_TOTIPO;
-	for(a=0; a<FLUIDSIM_TOTIPO; a++) {
+	FluidsimSettings *fss= ob->fluidsimSettings;
+	int numipos = FLUIDSIM_TOTIPO;
+	int ipo_start_index = 0;
+	
+	// we don't need all fluid ipos for all types! - dg
+	if(fss->type == OB_FLUIDSIM_CONTROL)
+	{
+		numipos = 4; // there are 4 fluid control ipos
+		ipo_start_index = 9;
+		
+	}
+	else if(fss->type == OB_FLUIDSIM_DOMAIN)
+	{
+		numipos = 5; // there are 5 ipos for fluid domains
+	}
+	else
+	{
+		numipos = 4; // there are 4 for the rest
+		ipo_start_index = 5;
+	}
+		
+	ei= si->editipo= MEM_callocN(numipos*sizeof(EditIpo), "fluidsim_editipo");
+	si->totipo = numipos;
+	for(a=ipo_start_index; a<numipos; a++) {
 		//fprintf(stderr,"FSINAME %d %d \n",a,fluidsim_ar[a], (int)(getname_fluidsim_ei(fluidsim_ar[a]))  );
 		name = getname_fluidsim_ei(fluidsim_ar[a]);
 		strcpy(ei->name, name);
 		ei->adrcode= fluidsim_ar[a];
-		ei->col= ipo_rainbow(a, FLUIDSIM_TOTIPO);
+		ei->col= ipo_rainbow(a, numipos);
 		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
 		if(ei->icu) {
 			ei->flag = ei->icu->flag;
@@ -962,7 +983,7 @@ static void make_editipo(void)
 	else if(G.sipo->blocktype==ID_FLUIDSIM) {
 		if (ob) { // NT
 			ob->ipowin= ID_FLUIDSIM;
-			make_fluidsim_editipo(G.sipo);
+			make_fluidsim_editipo(G.sipo, ob);
 		}
 	}
 	else if(G.sipo->blocktype==ID_PA) {
