@@ -1560,7 +1560,6 @@ static void set_col_actuator(int item, int medium)
 static void change_object_actuator(void *act, void *arg)
 {
 	bObjectActuator *oa = act;
-	int i;
 
 	if (oa->type != oa->otype) {
 		switch (oa->type) {
@@ -1679,7 +1678,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-148, wval, 19, oa->angularvelocity+2, -10000.0, 10000.0, 10, 0, "");
 				
 				uiDefBut(block, LABEL, 0, "damp",	xco, yco-171, 45, 19, NULL, 0, 0, 0, 0, "Number of frames to reach the target velocity");
-				uiDefButI(block, NUM, 0, "",		xco+45, yco-171, wval, 19, &oa->damping, 0.0, 1000.0, 100, 0, "");
+				uiDefButS(block, NUM, 0, "",		xco+45, yco-171, wval, 19, &oa->damping, 0.0, 1000.0, 100, 0, "");
 
 				uiDefButBitS(block, TOG, ACT_FORCE_LOCAL, 0, "L",		xco+45+3*wval, yco-45, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
 				uiDefButBitS(block, TOG, ACT_TORQUE_LOCAL, 0, "L",		xco+45+3*wval, yco-64, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
@@ -1816,11 +1815,11 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				uiDefButI(block, NUM, 0, 
 					"Sta",		xco+20, yco-44, (width-100)/2, 19, 
 					&ia->sta, 0.0, MAXFRAMEF, 0, 0, 
-					"Start frame");
+					"Start frame, (subtract 1 to match blenders frame numbers)");
 				uiDefButI(block, NUM, 0, 
 					"End",		xco+18+(width-90)/2, yco-44, (width-100)/2, 19, 
 					&ia->end, 0.0, MAXFRAMEF, 0, 0, 
-					"End frame");
+					"End frame, (subtract 1 to match blenders frame numbers)");
 				
 				uiDefButBitS(block, TOG, ACT_IPOFORCE, B_REDR, 
 					"Force", xco+width-78, yco-44, 43, 19, 
@@ -1967,7 +1966,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Add this Object (cant be on an visible layer)");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Add this Object and all its children (cant be on an visible layer)");
 			uiDefButI(block, NUM, 0, "Time:",	xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &eoa->time, 0.0, 2000.0, 0, 0, "Duration the new Object lives");
 
 			wval= (width-60)/3;
@@ -2248,7 +2247,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefBut(block, TEX, 0, "Prop: ",		xco+20, yco-44, width-40, 19, ga->name, 0.0, 31.0, 0, 0, "Use this property to define the Group position");
 		}
 		else {
-			uiDefButI(block, NUM, 0, "Sta",		xco+20, yco-44, (width-40)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Start frame");
+			uiDefButI(block, NUM, 0, "State",		xco+20, yco-44, (width-40)/2, 19, &ga->sta, 0.0, 2500.0, 0, 0, "Start frame");
 			uiDefButI(block, NUM, 0, "End",		xco+20+(width-40)/2, yco-44, (width-40)/2, 19, &ga->end, 0.0, 2500.0, 0, 0, "End frame");
 		}
 		yco-= ysize;
@@ -3171,7 +3170,7 @@ void logic_buts(void)
 					uiButSetFunc(but, check_object_state, but, &(ob->state));
 				}
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+35+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
+					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+35+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
 					uiButSetFunc(but, check_object_state, but, &(ob->state));
 				}
 			}
@@ -3255,7 +3254,7 @@ void logic_buts(void)
 	uiDefButBitS(block, TOG, BUTS_SENS_SEL, B_REDR, "Sel", xco+80, yco+35, (width-70)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButBitS(block, TOG, BUTS_SENS_ACT, B_REDR, "Act", xco+80+(width-70)/4, yco+35, (width-70)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButBitS(block, TOG, BUTS_SENS_LINK, B_REDR, "Link", xco+80+2*(width-70)/4, yco+35, (width-70)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
-	uiDefButBitS(block, TOG, BUTS_SENS_STATE, B_REDR, "Sta", xco+80+3*(width-70)/4, yco+35, (width-70)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show only sensors connected to active states");
+	uiDefButBitS(block, TOG, BUTS_SENS_STATE, B_REDR, "State", xco+80+3*(width-70)/4, yco+35, (width-70)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show only sensors connected to active states");
 	uiBlockEndAlign(block);
 	
 	for(a=0; a<count; a++) {
@@ -3328,7 +3327,7 @@ void logic_buts(void)
 	uiDefButBitS(block, TOG, BUTS_ACT_SEL, B_REDR, "Sel", xco+110, yco+35, (width-100)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButBitS(block, TOG, BUTS_ACT_ACT, B_REDR, "Act", xco+110+(width-100)/4, yco+35, (width-100)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButBitS(block, TOG, BUTS_ACT_LINK, B_REDR, "Link", xco+110+2*(width-100)/4, yco+35, (width-100)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
-	uiDefButBitS(block, TOG, BUTS_ACT_STATE, B_REDR, "Sta", xco+110+3*(width-100)/4, yco+35, (width-100)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show only actuators connected to active states");
+	uiDefButBitS(block, TOG, BUTS_ACT_STATE, B_REDR, "State", xco+110+3*(width-100)/4, yco+35, (width-100)/4, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show only actuators connected to active states");
 	uiBlockEndAlign(block);
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
