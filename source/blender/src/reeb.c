@@ -2066,13 +2066,16 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 			countfaces++;
 			if (countfaces % 100 == 0)
 			{
-				printf("face %i of %i\n", countfaces, totfaces);
+				printf("\rface %i of %i", countfaces, totfaces);
 				verifyFaces(rg);
 			}
 #endif
 		}
-		
 	}
+	
+	printf("\n");
+	
+	
 	BLI_listbase_from_dlist(dlist, &rg->nodes);
 	
 	removeNormalNodes(rg);
@@ -2466,12 +2469,13 @@ int weightFromDistance(EditMesh *em)
 							current_eve->tmp.fp = currentWeight;
 						}
 						
+					printf("\redge %i / %i", eIndex, totedge);
 						
 					} while (select_eed != NULL);
 					
 					MEM_freeN(edges);
 					
-					printf("%i / %i\n", eIndex, totedge);
+					printf("\n");
 				}
 			}
 		}
@@ -2819,6 +2823,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	EditMesh *em = G.editMesh;
 	ReebGraph *rg = NULL;
 	ReebGraph *rgi;
+	int i, nb_levels = 5;
 	
 	if (em == NULL)
 		return NULL;
@@ -2850,14 +2855,19 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	/* Filtering might have created degree 2 nodes, so remove them */
 	removeNormalNodes(rg);
 	
-	rg = copyReebGraph(rg);
+	for (i = 0; i < nb_levels; i++)
+	{
+		rg = copyReebGraph(rg);
+	}
 	
-	for (rgi = rg; rgi; rgi = rgi->link)
+	for (rgi = rg, i = nb_levels; rgi; rgi = rgi->link, i--)
 	{
 		/* don't fully filter last level */
 		if (rgi->link)
 		{
-			filterGraph(rgi, G.scene->toolsettings->skgen_options, G.scene->toolsettings->skgen_threshold_internal, G.scene->toolsettings->skgen_threshold_external);
+			float internal_threshold = G.scene->toolsettings->skgen_threshold_internal * (i / (float)nb_levels);
+			float external_threshold = G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
+			filterGraph(rgi, G.scene->toolsettings->skgen_options, internal_threshold, external_threshold);
 		}
 		/* on last level, only smart filter and loop filter */
 		else
@@ -2971,11 +2981,13 @@ void REEB_draw()
 	
 	if (GLOBAL_RG->link && G.scene->toolsettings->skgen_options & SKGEN_DISP_ORIG)
 	{
-		rg = GLOBAL_RG->link;
+		for (rg = GLOBAL_RG; rg->link; rg = rg->link) ;
 	}
 	else
 	{
-		rg = GLOBAL_RG;
+		i = G.scene->toolsettings->skgen_multi_level;
+		
+		for (rg = GLOBAL_RG; i && rg->link; i--, rg = rg->link) ;
 	}
 	
 	glDisable(GL_DEPTH_TEST);

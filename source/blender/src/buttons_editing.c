@@ -5036,6 +5036,8 @@ static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
 	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
 	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1108, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
 	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1191, 60, 84,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
+
+	uiDefButC(block, NUM, REDRAWVIEW3D, 						"Level:",			1025, 40, 125,19, &G.scene->toolsettings->skgen_multi_level, 0, 5, 1, 0,"Specify the level to draw");
 }
 
 static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)

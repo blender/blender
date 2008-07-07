@@ -158,6 +158,7 @@ void verifyFaces(ReebGraph *rg);
 
 /*********************** PUBLIC *********************************/
 ReebGraph *BIF_ReebGraphFromEditMesh(void);
+ReebGraph *BIF_ReebGraphMultiFromEditMesh(void);
 
 void BIF_GlobalReebGraphFromEditMesh(void);
 void BIF_GlobalReebFree(void);

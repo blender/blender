@@ -440,6 +440,9 @@ typedef struct ToolSettings {
 	char  skgen_postpro;
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
+	char  skgen_multi_level;
+	
+	char tpad[7];
 	
 	/* Alt+RMB option */
 	char edge_mode;

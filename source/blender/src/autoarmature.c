@@ -1354,9 +1354,11 @@ void BIF_retargetArmature()
 	Base *base;
 	ReebGraph *reebg;
 	
-	reebg = BIF_ReebGraphFromEditMesh();
+	//reebg = BIF_ReebGraphFromEditMesh();
+	//BLI_markdownSymmetry((BGraph*)reebg, reebg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
 	
-	BLI_markdownSymmetry((BGraph*)reebg, reebg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
+	reebg = BIF_ReebGraphMultiFromEditMesh();
+	
 	
 	printf("Reeb Graph created\n");
 
