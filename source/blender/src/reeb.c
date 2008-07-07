@@ -54,6 +54,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_graphics.h"
 #include "BIF_gl.h"
+#include "BIF_resources.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -205,6 +206,11 @@ ReebNode * copyNode(ReebGraph *rg, ReebNode *node)
 	rg->totnodes++;
 	
 	return cp_node; 
+}
+
+ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node)
+{
+	return (arc->head->index == node->index) ? arc->tail : arc->head;
 }
 
 ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
@@ -429,6 +435,28 @@ void verifyFaces(ReebGraph *rg)
 #endif
 }
 
+void verifyMultiResolutionLinks(ReebGraph *rg)
+{
+#ifdef DEBUG_REEB
+	ReebGraph *lower_rg = rg->link;
+	
+	if (lower_rg)
+	{
+		ReebArc *arc;
+		
+		for (arc = rg->arcs.first; arc; arc = arc->next)
+		{
+			if (BLI_findindex(&lower_rg->arcs, arc->link) == -1)
+			{
+				printf("missing arc %p\n", arc->link);
+			}
+		}
+		
+		
+		verifyMultiResolutionLinks(lower_rg);
+	}
+#endif
+}
 /***************************************** BUCKET UTILS **********************************************/
 
 void addVertToBucket(EmbedBucket *b, float co[3])
@@ -1555,22 +1583,35 @@ ReebArc * findConnectedArc(ReebGraph *rg, ReebArc *arc, ReebNode *v)
 
 void removeNormalNodes(ReebGraph *rg)
 {
-	ReebArc *arc;
+	ReebArc *arc, *nextArc;
 	
 	// Merge degree 2 nodes
-	for(arc = rg->arcs.first; arc; arc = arc->next)
+	for(arc = rg->arcs.first; arc; arc = nextArc)
 	{
+		nextArc = arc->next;
+		
 		while (arc->head->degree == 2 || arc->tail->degree == 2)
 		{
 			// merge at v1
 			if (arc->head->degree == 2)
 			{
-				ReebArc *nextArc = (ReebArc*)BLI_findConnectedArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->head);
+				ReebArc *connectedArc = (ReebArc*)BLI_findConnectedArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->head);
 
 				// Merge arc only if needed
-				if (arc->head == nextArc->tail)
-				{				
-					mergeConnectedArcs(rg, arc, nextArc);
+				if (arc->head == connectedArc->tail)
+				{		
+					/* remove furthest arc */		
+					if (arc->tail->weight < connectedArc->head->weight)
+					{
+						mergeConnectedArcs(rg, arc, connectedArc);
+						nextArc = arc->next;
+					}
+					else
+					{
+						mergeConnectedArcs(rg, connectedArc, arc);
+						break;
+						arc = connectedArc; /* arc was removed, continue with connected */
+					}
 				}
 				// Otherwise, mark down vert
 				else
@@ -1582,12 +1623,23 @@ void removeNormalNodes(ReebGraph *rg)
 			// merge at v2
 			if (arc->tail->degree == 2)
 			{
-				ReebArc *nextArc = (ReebArc*)BLI_findConnectedArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->tail);
+				ReebArc *connectedArc = (ReebArc*)BLI_findConnectedArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->tail);
 				
 				// Merge arc only if needed
-				if (arc->tail == nextArc->head)
+				if (arc->tail == connectedArc->head)
 				{				
-					mergeConnectedArcs(rg, arc, nextArc);
+					/* remove furthest arc */		
+					if (arc->head->weight < connectedArc->tail->weight)
+					{
+						mergeConnectedArcs(rg, arc, connectedArc);
+						nextArc = arc->next;
+					}
+					else
+					{
+						mergeConnectedArcs(rg, connectedArc, arc);
+						break;
+						arc = connectedArc; /* arc was removed, continue with connected */
+					}
 				}
 				// Otherwise, mark down vert
 				else
@@ -2879,6 +2931,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 
 		BLI_markdownSymmetry((BGraph*)rgi, rgi->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
 	}
+	
+	verifyMultiResolutionLinks(rg);
 
 	return rg;
 }
@@ -2990,6 +3044,8 @@ void REEB_draw()
 		for (rg = GLOBAL_RG; i && rg->link; i--, rg = rg->link) ;
 	}
 	
+	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
+	
 	glDisable(GL_DEPTH_TEST);
 	for (arc = rg->arcs.first; arc; arc = arc->next, i++)
 	{
@@ -3022,6 +3078,13 @@ void REEB_draw()
 			
 			glVertex3fv(arc->tail->p);
 		glEnd();
+
+
+		glColor3f(1, 1, 1);				
+		glBegin(GL_POINTS);
+			glVertex3fv(arc->head->p);
+			glVertex3fv(arc->tail->p);
+		glEnd();
 		
 		VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
 		
@@ -3042,4 +3105,6 @@ void REEB_draw()
 		BMF_DrawString( G.fonts, text);
 	}
 	glEnable(GL_DEPTH_TEST);
+	
+	glPointSize(1.0);
 }

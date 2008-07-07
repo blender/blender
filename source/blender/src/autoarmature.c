@@ -1257,11 +1257,22 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 			next_earc->symmetry_group == symmetry_group &&
 			next_earc->symmetry_level == symmetry_level)
 		{
+			int ishape, eshape;
 
 			printf("-----------------------\n");
 			printf("CORRESPONDING ARC FOUND\n");
 			RIG_printArcBones(next_iarc);
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
+			
+			ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1);
+			eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1);
+			
+			while (ishape > eshape && next_earc->link)
+			{
+				next_earc = next_earc->link;
+				enode = next_earc->head; //enode->link;
+				eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1);
+			} 
 
 			next_earc->flag = 1; // mark as taken
 			next_iarc->link = next_earc;
@@ -1299,7 +1310,7 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 		
 	retargetArctoArc(iarc);
 	
-	enode = (ReebNode*)BLI_otherNode((BArc*)earc, (BNode*)enode);
+	enode = BIF_otherNodeFromIndex(earc, enode);
 	inode = (RigNode*)BLI_otherNode((BArc*)iarc, (BNode*)inode);
 	
 	inode->link = enode;

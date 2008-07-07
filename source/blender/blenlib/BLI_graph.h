@@ -78,6 +78,8 @@ void BLI_freeAdjacencyList(BGraph *rg);
 
 int BLI_FlagSubgraphs(BGraph *graph);
 
+int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root);
+
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced);
 void BLI_removeDoubleNodes(BGraph *graph, float limit);
 

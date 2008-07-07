@@ -321,34 +321,40 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 
 /*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
 
-int BLI_subtreeShape(BNode *node, BArc *rootArc)
+int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 {
 	int depth = 0;
 	
-	/* Base case, no arcs leading away */
-	if (node->arcs == NULL || *(node->arcs) == NULL)
+	if (include_root)
 	{
-		return 0;
+		BNode *newNode = BLI_otherNode(rootArc, node);
+		depth = BLI_subtreeShape(newNode, rootArc, 0);
 	}
 	else
 	{
-		int i;
-
-		for(i = 0; i < node->degree; i++)
+		/* Base case, no arcs leading away */
+		if (node->arcs == NULL || *(node->arcs) == NULL)
 		{
-			BArc *arc = node->arcs[i];
-			
-			/* only arcs that go down the tree */
-			if (arc != rootArc)
+			return 0;
+		}
+		else
+		{
+			int i;
+	
+			for(i = 0; i < node->degree; i++)
 			{
-				BNode *newNode = BLI_otherNode(arc, node);
-				//depth = MAX2(depth, BLI_subtreeShape(newNode, arc));
-				depth += BLI_subtreeShape(newNode, arc);
+				BArc *arc = node->arcs[i];
+				
+				/* only arcs that go down the tree */
+				if (arc != rootArc)
+				{
+					BNode *newNode = BLI_otherNode(arc, node);
+					depth += BLI_subtreeShape(newNode, arc, 0);
+				}
 			}
 		}
 	}
 	
-	//return depth + 1;
 	return 10 * depth + 1;
 }
 
@@ -776,7 +782,7 @@ void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float
 			BNode *connectedNode = BLI_otherNode(connectedArc, node);
 			
 			/* symmetry level is positive value, negative values is subtree depth */
-			connectedArc->symmetry_level = -BLI_subtreeShape(connectedNode, connectedArc);
+			connectedArc->symmetry_level = -BLI_subtreeShape(connectedNode, connectedArc, 0);
 		}
 	}
 
