@@ -160,6 +160,9 @@ typedef struct elbeemMesh {
 	const char *name;
 	
 	/* fluid control settings */
+	float cpsTimeStart;
+	float cpsTimeEnd;
+	
 	// TODO dg: change to channels
 	float attractforceStrength;
 	float attractforceRadius;

@@ -119,6 +119,9 @@ typedef struct FluidsimSettings {
 	struct MVert *meshSurfNormals;
 	
 	/* Fluid control settings */
+	float cpsTimeStart;
+	float cpsTimeEnd;
+	
 	float attractforceStrength;
 	float attractforceRadius;
 	float velocityforceStrength;

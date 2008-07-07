@@ -102,6 +102,14 @@ class ntlGeometryObject : public ntlGeometryClass
 		/* fluid control features */
 		/****************************************/
 		/*! Set/get the particle control set attract force strength */
+		inline float getCpsTimeStart() const { return mCpsTimeStart; }
+		inline void setCpsTimeStart(float set) { mCpsTimeStart=set; }
+		
+		/*! Set/get the particle control set attract force strength */
+		inline float getCpsTimeEnd() const { return mCpsTimeEnd; }
+		inline void setCpsTimeEnd(float set) { mCpsTimeEnd=set; }
+		
+		/*! Set/get the particle control set attract force strength */
 		inline float getAttractForceStrength() const { return mAttractforceStrength; }
 		inline void setAttractForceStrength(float set) { mAttractforceStrength=set; }
 		
@@ -225,6 +233,9 @@ class ntlGeometryObject : public ntlGeometryClass
 		AnimChannel<float> mcGeoActive;
 		
 		/* fluid control settings */
+		float mCpsTimeStart;
+		float mCpsTimeEnd
+				;
 		// TODO dg: change to channels
 		float mAttractforceStrength;
 		float mAttractforceRadius;

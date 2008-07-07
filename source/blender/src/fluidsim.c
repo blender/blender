@@ -219,6 +219,8 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->attractforceRadius = 0.75;
 	fss->velocityforceStrength = 0.2;
 	fss->velocityforceRadius = 0.75;
+	fss->cpsTimeStart = fss->animStart;
+	fss->cpsTimeEnd = fss->animEnd;
 
 	return fss;
 }
@@ -1026,17 +1028,20 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
 				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
 				fsmesh.obstacleImpactFactor = obit->fluidsimSettings->surfaceSmoothing; // misused value
-				
+				/*
 				if(fsmesh.type == OB_FLUIDSIM_CONTROL)
 				{
 					// control fluids will get exported as whole
 					deform = 1;
 					
+					fsmesh.cpsTimeStart = obit->fluidsimSettings->cpsTimeStart;
+					fsmesh.cpsTimeEnd = obit->fluidsimSettings->cpsTimeEnd;
+					
 					fsmesh.attractforceStrength = obit->fluidsimSettings->attractforceStrength;
 					fsmesh.attractforceRadius = obit->fluidsimSettings->attractforceRadius;
 					fsmesh.velocityforceStrength = obit->fluidsimSettings->velocityforceStrength;
 					fsmesh.velocityforceRadius = obit->fluidsimSettings->velocityforceRadius;
-				}
+				}*/
 
 				// animated meshes
 				if(deform) {

@@ -161,6 +161,9 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 	mesh->name = "[unnamed]";
 	
 	/* fluid control settings */
+	mesh->cpsTimeStart = 0;
+	mesh->cpsTimeEnd = 0;
+	
 	mesh->attractforceStrength = 0;
 	mesh->attractforceRadius = 0;
 	mesh->velocityforceStrength = 0;
@@ -206,6 +209,8 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	obj->setGeoImpactFactor(mesh->obstacleImpactFactor);
 	
 	/* fluid control features */
+	obj->setCpsTimeStart(mesh->cpsTimeStart);
+	obj->setCpsTimeEnd(mesh->cpsTimeEnd);
 	obj->setAttractForceStrength(mesh->attractforceStrength);
 	obj->setAttractForceRadius(mesh->attractforceRadius);
 	obj->setVelocityForceStrength(mesh->velocityforceStrength);

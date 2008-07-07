@@ -5216,19 +5216,18 @@ static void object_panel_fluidsim(Object *ob)
 			}
 			else if(fss->type == OB_FLUIDSIM_CONTROL) {
 				
-				uiDefBut(block, LABEL, 0, "Attraction force:", 0,yline,300,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefButF(block, NUM, B_DIFF, "Time Sta:", 0, yline,150,20, &fss->cpsTimeStart, 0.0, 2.0,   10,0, "Specifies time when the control particles are activated.");
+				uiDefButF(block, NUM, B_DIFF, "Time End:", 150, yline,150,20, &fss->cpsTimeEnd, 0.0, 2.0,   10,0, "Specifies time when the control particles are deactivated.");
 				
 				yline -= lineHeight;
 				
+				uiDefBut(block, LABEL, 0, "Attraction force:", 0,yline,300,20, NULL, 0.0, 0, 0, 0, "");
+				yline -= lineHeight;
 				uiDefButF(block, NUM, B_DIFF, "Strength:", 0, yline,150,20, &fss->attractforceStrength, 0.0, 2.0,   10,0, "");
 				uiDefButF(block, NUM, B_DIFF, "Radius:", 150, yline,150,20, &fss->attractforceRadius, 0.0, 2.0,   10,0, "");
-				
 				yline -= lineHeight;
-				
 				uiDefBut(block, LABEL, 0, "Velocity force:", 0,yline,300,20, NULL, 0.0, 0, 0, 0, "");
-				
 				yline -= lineHeight;
-				
 				uiDefButF(block, NUM, B_DIFF, "Strength:", 0, yline,150,20, &fss->velocityforceStrength, 0.0, 2.0,   10,0, "");
 				uiDefButF(block, NUM, B_DIFF, "Radius:", 150, yline,150,20, &fss->velocityforceRadius, 0.0, 2.0,   10,0, "");
 			}

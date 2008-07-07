@@ -239,6 +239,9 @@ LbmFsgrSolver::initCpdata()
 			cset->mcForceVel = AnimChannel<float>(obj->getVelocityForceStrength());
 			cset->mcRadiusVel = AnimChannel<float>(obj->getVelocityForceRadius());
 
+			cset->mCparts->setCPSTimeStart(obj->getCpsTimeStart());
+			cset->mCparts->setCPSTimeEnd(obj->getCpsTimeEnd());
+			
 			// this value can be left at 0.5:
 			cset->mCparts->setCPSMvmWeightFac(0.5);
 
