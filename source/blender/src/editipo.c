@@ -499,21 +499,23 @@ static void make_fluidsim_editipo(SpaceIpo *si, Object *ob) // NT
 	int ipo_start_index = 0;
 	
 	// we don't need all fluid ipos for all types! - dg
+	/*
 	if(fss->type == OB_FLUIDSIM_CONTROL)
 	{
 		numipos = 4; // there are 4 fluid control ipos
 		ipo_start_index = 9;
 		
 	}
-	else if(fss->type == OB_FLUIDSIM_DOMAIN)
+	else */
+	if(fss->type == OB_FLUIDSIM_DOMAIN)
 	{
 		numipos = 5; // there are 5 ipos for fluid domains
-	}
+	}/*
 	else
 	{
 		numipos = 4; // there are 4 for the rest
 		ipo_start_index = 5;
-	}
+	}*/
 		
 	ei= si->editipo= MEM_callocN(numipos*sizeof(EditIpo), "fluidsim_editipo");
 	si->totipo = numipos;
