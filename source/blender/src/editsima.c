@@ -694,7 +694,7 @@ void mouse_select_sima(void)
 	EditFace *efa;
 	MTFace *tf, *nearesttf;
 	EditFace *nearestefa=NULL;
-	int a, selectsticky, edgeloop, actface, nearestuv, nearestedge, i, shift, island;
+	int a, selectsticky, edgeloop, actface, nearestuv, nearestedge, i, shift, island=0;
 	char sticky= 0;
 	int flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	unsigned int hitv[4], nearestv;
