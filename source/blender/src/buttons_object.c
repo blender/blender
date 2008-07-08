@@ -5069,7 +5069,7 @@ static void object_panel_fluidsim(Object *ob)
 
 					if(fss->typeFlags&OB_FSBND_PARTSLIP) {
 						uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-						uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, ".");
+						uiDefButF(block, NUM, B_DIFF, "Amount of mixing between no- and free-slip, 0=stickier, 1=same as free slip.", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, ".");
 						yline -= lineHeight;
 					} else { 
 						//uiDefBut(block, LABEL, 0, "-",	200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, ""); 
@@ -5216,8 +5216,8 @@ static void object_panel_fluidsim(Object *ob)
 			}
 			else if(fss->type == OB_FLUIDSIM_CONTROL) {
 				
-				uiDefButF(block, NUM, B_DIFF, "Time Sta:", 0, yline,150,20, &fss->cpsTimeStart, 0.0, 2.0,   10,0, "Specifies time when the control particles are activated.");
-				uiDefButF(block, NUM, B_DIFF, "Time End:", 150, yline,150,20, &fss->cpsTimeEnd, 0.0, 2.0,   10,0, "Specifies time when the control particles are deactivated.");
+				uiDefButF(block, NUM, B_DIFF, "Time Sta:", 0, yline,150,20, &fss->cpsTimeStart, 0.0, 100.0,   10,0, "Specifies time when the control particles are activated.");
+				uiDefButF(block, NUM, B_DIFF, "Time End:", 150, yline,150,20, &fss->cpsTimeEnd, 0.0, 100.0,   10,0, "Specifies time when the control particles are deactivated.");
 				
 				yline -= lineHeight;
 				
@@ -5230,6 +5230,9 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= lineHeight;
 				uiDefButF(block, NUM, B_DIFF, "Strength:", 0, yline,150,20, &fss->velocityforceStrength, 0.0, 2.0,   10,0, "");
 				uiDefButF(block, NUM, B_DIFF, "Radius:", 150, yline,150,20, &fss->velocityforceRadius, 0.0, 2.0,   10,0, "");
+				
+				yline -= lineHeight;
+				uiDefButF(block, NUM, B_DIFF, "Quality:", 0, yline,150,20, &fss->cpsQuality, 1.0, 100.0,   10,0, "Specifies the quality which is used for object sampling.");
 			}
 			else {
 				yline -= lineHeight + 5;

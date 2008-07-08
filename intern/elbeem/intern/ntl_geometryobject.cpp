@@ -42,6 +42,7 @@ ntlGeometryObject::ntlGeometryObject() :
 	mTriangleDivs1(), mTriangleDivs2(), mTriangleDivs3(),
 	mMovPntsInited(-100.0), mMaxMovPnt(-1),
 	mcGeoActive(1.),
+	mCpsTimeStart(0.), mCpsTimeEnd(1.0), mCpsQuality(10.),
 	mcAttrFStr(0.),mcAttrFRad(0.), mcVelFStr(0.), mcVelFRad(0.)
 { 
 };

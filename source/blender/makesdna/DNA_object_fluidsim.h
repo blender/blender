@@ -121,6 +121,7 @@ typedef struct FluidsimSettings {
 	/* Fluid control settings */
 	float cpsTimeStart;
 	float cpsTimeEnd;
+	float cpsQuality;
 	
 	float attractforceStrength;
 	float attractforceRadius;

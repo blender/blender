@@ -163,6 +163,7 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 	/* fluid control settings */
 	mesh->cpsTimeStart = 0;
 	mesh->cpsTimeEnd = 0;
+	mesh->cpsQuality = 0;
 	
 	mesh->channelSizeAttractforceStrength = 0;
 	mesh->channelAttractforceStrength = NULL;
@@ -215,6 +216,7 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	/* fluid control features */
 	obj->setCpsTimeStart(mesh->cpsTimeStart);
 	obj->setCpsTimeEnd(mesh->cpsTimeEnd);
+	obj->setCpsQuality(mesh->cpsQuality);
 	
 	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
 	obj->setVolumeInit(mesh->volumeInitType);

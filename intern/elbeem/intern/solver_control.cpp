@@ -242,6 +242,9 @@ LbmFsgrSolver::initCpdata()
 			cset->mCparts->setCPSTimeStart(obj->getCpsTimeStart());
 			cset->mCparts->setCPSTimeEnd(obj->getCpsTimeEnd());
 			
+			if(obj->getCpsQuality() > LBM_EPSILON)
+				cset->mCparts->setCPSWith(1.0 / obj->getCpsQuality());
+			
 			// this value can be left at 0.5:
 			cset->mCparts->setCPSMvmWeightFac(0.5);
 

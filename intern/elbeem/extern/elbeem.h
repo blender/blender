@@ -162,6 +162,7 @@ typedef struct elbeemMesh {
 	/* fluid control settings */
 	float cpsTimeStart;
 	float cpsTimeEnd;
+	float cpsQuality;
 	
 	int channelSizeAttractforceStrength;
 	float *channelAttractforceStrength;

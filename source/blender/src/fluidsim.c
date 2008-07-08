@@ -221,6 +221,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->velocityforceRadius = 0.75;
 	fss->cpsTimeStart = fss->animStart;
 	fss->cpsTimeEnd = fss->animEnd;
+	fss->cpsQuality = 10.0; // 1.0 / 10.0 => means 0.1 width
 
 	return fss;
 }
@@ -1073,6 +1074,7 @@ void fluidsimBake(struct Object *ob)
 					
 					fsmesh.cpsTimeStart = obit->fluidsimSettings->cpsTimeStart;
 					fsmesh.cpsTimeEnd = obit->fluidsimSettings->cpsTimeEnd;
+					fsmesh.cpsQuality = obit->fluidsimSettings->cpsQuality;
 					
 					fsmesh.channelSizeAttractforceRadius = 
 					fsmesh.channelSizeVelocityforceStrength = 
@@ -1084,7 +1086,7 @@ void fluidsimBake(struct Object *ob)
 					fsmesh.channelVelocityforceStrength = channelVelocityforceStrength[o];
 					fsmesh.channelVelocityforceRadius = channelVelocityforceRadius[o];
 				}
-				else*/
+				else */
 				{
 					// set channels to 0
 					fsmesh.channelAttractforceStrength =

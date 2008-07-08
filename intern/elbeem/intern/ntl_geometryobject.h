@@ -109,6 +109,10 @@ class ntlGeometryObject : public ntlGeometryClass
 		inline float getCpsTimeEnd() const { return mCpsTimeEnd; }
 		inline void setCpsTimeEnd(float set) { mCpsTimeEnd=set; }
 		
+		/*! Set/get the particle control set quality */
+		inline float getCpsQuality() const { return mCpsQuality; }
+		inline void setCpsQuality(float set) { mCpsQuality=set; }
+		
 		inline AnimChannel<float> getCpsAttrFStr() const { return mcAttrFStr; }
 		inline AnimChannel<float> getCpsAttrFRad() const { return mcAttrFRad; }
 		inline AnimChannel<float> getCpsVelFStr() const { return mcVelFStr; }
@@ -228,6 +232,7 @@ class ntlGeometryObject : public ntlGeometryClass
 		/* fluid control settings */
 		float mCpsTimeStart;
 		float mCpsTimeEnd;
+		float mCpsQuality;
 		AnimChannel<float> mcAttrFStr, mcAttrFRad, mcVelFStr, mcVelFRad;
 
 	public:
