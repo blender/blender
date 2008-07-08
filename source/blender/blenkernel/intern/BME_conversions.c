@@ -55,14 +55,104 @@
 #include "bmesh_private.h"
 
 #include "BSE_edit.h"
-/*Converts an EditMesh to a BME_Mesh.*/
-static void bmesh_init_cdPool(CustomData *data, int allocsize){
-	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize);
+
+static void BME_corners_to_loops(BME_Mesh *bm, CustomData *facedata, void *face_block, BME_Poly *f,int numCol, int numTex){
+	int i, j;
+	BME_Loop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texpoly->tpage = texface->tpage;
+		texpoly->flag = texface->flag;
+		texpoly->transp = texface->transp;
+		texpoly->mode = texface->mode;
+		texpoly->tile = texface->tile;
+		texpoly->unwrap = texface->unwrap;
+
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv->uv[0] = texface->uv[j][0];
+			mloopuv->uv[1] = texface->uv[j][1];
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+
+	}
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol->r = mcol[j].r;
+			mloopcol->g = mcol[j].g;
+			mloopcol->b = mcol[j].b;
+			mloopcol->a = mcol[j].a;
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
 }
 
+static void BME_loops_to_corners(BME_Mesh *bm, CustomData *facedata, void *face_block, BME_Poly *f,int numCol, int numTex){
+	int i, j;
+	BME_Loop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+
+	}
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
+}
+/*move the EditMesh conversion functions to editmesh_tools.c*/
 BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	BME_Mesh *bm;
-	int allocsize[4] = {512,512,2048,512};
+	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
 	BME_Vert *v1, *v2;
 	BME_Edge *e, *edar[4];
 	BME_Poly *f;
@@ -74,8 +164,21 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	int len;
 	bm = BME_make_mesh(allocsize);
 
+	/*copy custom data layout*/
 	CustomData_copy(&em->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	bmesh_init_cdPool(&bm->vdata, allocsize[0]);
+	CustomData_copy(&em->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->fdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	/*copy face corner data*/
+	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
+	/*initialize memory pools*/
+	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+	/*needed later*/
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
 	BME_model_begin(bm);
 	/*add verts*/
@@ -86,7 +189,6 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		v1->flag = eve->f;
 		v1->h = eve->h;
 		v1->bweight = eve->bweight;
-
 		/*Copy Custom Data*/
 		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v1->data);
 		eve->tmp.v = (EditVert*)v1;
@@ -106,15 +208,10 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		if(eed->seam) e->flag |= ME_SEAM;
 		if(eed->h & EM_FGON) e->flag |= ME_FGON;
 		if(eed->h & 1) e->flag |= ME_HIDE;
-
-		/* link the edges for face construction;
-		 * kind of a dangerous thing - remember to cast back to BME_Edge before using! */
-		/*Copy CustomData*/
-
 		eed->tmp.e = (EditEdge*)e;
+		CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
 		eed = eed->next;
 	}
-
 	/*add faces.*/
 	efa= em->faces.first;
 	while(efa) {
@@ -143,12 +240,13 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 			if(efa->f & 1) f->flag |= ME_FACE_SEL;
 			else f->flag &= ~ME_FACE_SEL;
 		}
+		CustomData_bmesh_copy_data(&em->fdata, &bm->pdata, efa->data, &f->data);
+		BME_corners_to_loops(bm, &em->fdata, efa->data, f,numCol,numTex);
 		efa = efa->next;
 	}
 	BME_model_end(bm);
 	return bm;
 }
-
 /* adds the geometry in the bmesh to G.editMesh (does not free G.editMesh)
  * if td != NULL, the transdata will be mapped to the EditVert's co */
 EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
@@ -163,7 +261,7 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 	EditEdge *eed;
 	EditFace *efa;
 
-	int totvert, len, i;
+	int totvert, len, i, numTex, numCol;
 
 	em = G.editMesh;
 
@@ -171,6 +269,13 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 
 
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->pdata, &em->fdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_from_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+
+
 	/* convert to EditMesh */
 	/* make editverts */
 	totvert = BLI_countlist(&(bm->verts));
@@ -202,6 +307,8 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 			if(e->flag & ME_HIDE) eed->h |= 1;
 			if(G.scene->selectmode==SCE_SELECT_EDGE) 
 				EM_select_edge(eed, eed->f & SELECT);
+		
+			CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
 		}
 	}
 
@@ -228,6 +335,8 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 			if(f->flag & ME_HIDE) efa->h= 1;
 			if((G.f & G_FACESELECT) && (efa->f & SELECT))
 				EM_select_face(efa, 1); /* flush down */
+			CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
+			BME_loops_to_corners(bm, &em->fdata, efa->data, f,numCol,numTex);
 		}
 	}
 

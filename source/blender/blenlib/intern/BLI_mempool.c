@@ -89,7 +89,6 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk)
 	curnode->next = NULL;
 	return pool;
 }
-
 void *BLI_mempool_alloc(BLI_mempool *pool){
 	void *retval=NULL;
 	BLI_freenode *curnode=NULL;
@@ -117,6 +116,16 @@ void *BLI_mempool_alloc(BLI_mempool *pool){
 	//memset(retval, 0, pool->esize);
 	return retval;
 }
+
+void *BLI_mempool_calloc(BLI_mempool *pool){
+	void *retval=NULL;
+	retval = BLI_mempool_alloc(pool);
+	memset(retval, 0, pool->esize);
+	return retval;
+}
+
+
+
 void BLI_mempool_free(BLI_mempool *pool, void *addr){ //doesnt protect against double frees, dont be stupid!
 	BLI_freenode *newhead = addr;
 	newhead->next = pool->free;

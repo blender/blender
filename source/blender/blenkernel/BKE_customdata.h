@@ -41,6 +41,7 @@ extern const CustomDataMask CD_MASK_MESH;
 extern const CustomDataMask CD_MASK_EDITMESH;
 extern const CustomDataMask CD_MASK_DERIVEDMESH;
 extern const CustomDataMask CD_MASK_BMESH;
+extern const CustomDataMask CD_MASK_FACECORNERS;
 
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
@@ -264,4 +265,8 @@ void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 /* for file reading compatibility, returns false if the layer was freed,
    only after this test passes, layer->data should be assigned */
 int CustomData_verify_versions(struct CustomData *data, int index);
+
+void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
+void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
+void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
 #endif
