@@ -69,6 +69,11 @@ protected:
 	bool m_suspended;
 
 	/**
+	 * init state of object (used when object is created)
+	 */
+	unsigned int			m_initState;
+
+	/**
 	 * current state = bit mask of state that are active
 	 */
 	unsigned int			m_state;
@@ -116,6 +121,16 @@ public:
 	 * Resume progress
 	 */
 	void Resume(void);
+
+	/**
+	 * Set init state
+	 */
+	void SetInitState(unsigned int initState) { m_initState = initState; }
+
+	/**
+	 * initialize the state when object is created
+	 */
+	void ResetState(void) { SetState(m_initState); }
 
 	/**
 	 * Set the object state

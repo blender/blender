@@ -405,34 +405,25 @@ void KX_GameObject::ResetDebugColor()
 	SetDebugColor(0xff000000);
 }
 
+void KX_GameObject::InitIPO(bool ipo_as_force,
+							bool ipo_add,
+							bool ipo_local)
+{
+	SGControllerList::iterator it = GetSGNode()->GetSGControllerList().begin();
 
+	while (it != GetSGNode()->GetSGControllerList().end()) {
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, ipo_as_force);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, ipo_add);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, ipo_local);
+		it++;
+	}
+} 
 
 void KX_GameObject::UpdateIPO(float curframetime,
-							  bool recurse,
-							  bool ipo_as_force,
-							  bool force_local) 
+							  bool recurse) 
 {
-
-	// The ipo-actuator needs a sumo reference... this is retrieved (unfortunately)
-	// by the iposgcontr itself...
-//		ipocontr->SetSumoReference(gameobj->GetSumoScene(), 
-//								   gameobj->GetSumoObject());
-
-
-	// The ipo has to be treated as a force, and not a displacement!
-	// For this case, we send some settings to the controller. This
-	// may need some caching...
-	if (ipo_as_force) {
-		SGControllerList::iterator it = GetSGNode()->GetSGControllerList().begin();
-
-		while (it != GetSGNode()->GetSGControllerList().end()) {
-			(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, ipo_as_force);
-			(*it)->SetOption(SG_Controller::SG_CONTR_IPO_FORCES_ACT_LOCAL, force_local);
-			it++;
-		}
-	} 
-
-	// The rest is the 'normal' update procedure.
+	// just the 'normal' update procedure.
 	GetSGNode()->SetSimulatedTime(curframetime,recurse);
 	GetSGNode()->UpdateWorldData(curframetime);
 	UpdateTransform();

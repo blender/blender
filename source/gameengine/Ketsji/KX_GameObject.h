@@ -490,14 +490,22 @@ public:
 	);
 
 	/**
+	 * Function to set IPO option at start of IPO
+	 */ 
+		void	
+	InitIPO(
+		bool ipo_as_force,
+		bool ipo_add,
+		bool ipo_local
+	);
+
+	/**
 	 * Odd function to update an ipo. ???
 	 */ 
 		void	
 	UpdateIPO(
 		float curframetime,
-		bool recurse, 
-		bool ipo_as_force,
-		bool force_ipo_local
+		bool recurse
 	);
 	/**
 	 * Updates Material Ipo data 

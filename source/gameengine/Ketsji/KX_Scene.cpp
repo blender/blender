@@ -601,6 +601,8 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 			}
 		}
 	}
+	// ready to set initial state
+	newobj->ResetState();
 }
 
 

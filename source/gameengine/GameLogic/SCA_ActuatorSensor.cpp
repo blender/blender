@@ -111,7 +111,7 @@ void SCA_ActuatorSensor::Update()
 {
 	if (m_actuator)
 	{
-		m_midresult = m_actuator->IsActive();
+		m_midresult = m_actuator->IsActive() && !m_actuator->IsNegativeEvent();
 	}
 }
 

@@ -233,7 +233,8 @@ void BL_ConvertActuators(char* maggiename,
 				STR_String propname = ( ipoact->name ? ipoact->name : "");
 				// first bit?
 				bool ipo_as_force = (ipoact->flag & ACT_IPOFORCE);
-				bool force_local = (ipoact->flag & ACT_IPOFORCE_LOCAL);
+				bool local = (ipoact->flag & ACT_IPOLOCAL);
+				bool ipo_add = (ipoact->flag & ACT_IPOADD);
 				
 				KX_IpoActuator* tmpbaseact = new KX_IpoActuator(
 					gameobj,
@@ -244,8 +245,8 @@ void BL_ConvertActuators(char* maggiename,
 					ipoact->type + 1, // + 1, because Blender starts to count at zero,
 					// Ketsji at 1, because zero is reserved for "NoDef"
 					ipo_as_force,
-					force_local
-					);
+					ipo_add,
+					local);
 				baseact = tmpbaseact;
 				break;
 			}

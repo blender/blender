@@ -1581,6 +1581,18 @@ static void change_object_actuator(void *act, void *arg)
 	}
 }
 
+static void change_ipo_actuator(void *arg1_but, void *arg2_ia)
+{
+	bIpoActuator *ia = arg2_ia;
+	uiBut *but = arg1_but;
+
+	if (but->retval & ACT_IPOFORCE)
+		ia->flag &= ~ACT_IPOADD;
+	else if (but->retval & ACT_IPOADD)
+		ia->flag &= ~ACT_IPOFORCE;
+	but->retval = B_REDR;
+}
+
 void update_object_actuator_PID(void *act, void *arg)
 {
 	bObjectActuator *oa = act;
@@ -1799,42 +1811,49 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			
 			str = "Ipo types   %t|Play %x0|Ping Pong %x1|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x6";
 			
-			uiDefButS(block, MENU, B_REDR, str,		xco+20, yco-24, width-40 - (width-40)/3, 19, &ia->type, 0, 0, 0, 0, "");
-			uiDefButBitS(block, TOG, ACT_IPOCHILD,  B_REDR, 
-				"Child",	xco+20+0.666*(width-40), yco-24, (width-40)/3, 19, 
+			uiDefButS(block, MENU, B_REDR, str,		xco+10, yco-24, (width-20)/2, 19, &ia->type, 0, 0, 0, 0, "");
+
+			but = uiDefButBitS(block, TOG, ACT_IPOFORCE, ACT_IPOFORCE, 
+				"Force", xco+10+(width-20)/2, yco-24, (width-20)/4-10, 19, 
 				&ia->flag, 0, 0, 0, 0, 
-				"Add all children Objects as well");
+				"Convert Ipo to force. Force is applied in global or local coordinate according to Local flag"); 
+			uiButSetFunc(but, change_ipo_actuator, but, ia);
+
+			but = uiDefButBitS(block, TOG, ACT_IPOADD, ACT_IPOADD, 
+				"Add", xco+3*(width-20)/4, yco-24, (width-20)/4-10, 19, 
+				&ia->flag, 0, 0, 0, 0, 
+				"Ipo is added to the current loc/rot/scale in global or local coordinate according to Local flag"); 
+			uiButSetFunc(but, change_ipo_actuator, but, ia);
+			
+			/* Only show the do-force-local toggle if force is requested */
+			if (ia->flag & (ACT_IPOFORCE|ACT_IPOADD)) {
+				uiDefButBitS(block, TOG, ACT_IPOLOCAL, 0, 
+					"L", xco+width-30, yco-24, 20, 19, 
+					&ia->flag, 0, 0, 0, 0, 
+					"Let the ipo acts in local coordinates, used in Force and Add mode."); 
+			}
 
 			if(ia->type==ACT_IPO_FROM_PROP) {
 				uiDefBut(block, TEX, 0, 
-					"Prop: ",		xco+20, yco-44, width-40, 19, 
+					"Prop: ",		xco+10, yco-44, width-80, 19, 
 					ia->name, 0.0, 31.0, 0, 0, 
 					"Use this property to define the Ipo position");
 			}
 			else {
 				uiDefButI(block, NUM, 0, 
-					"Sta",		xco+20, yco-44, (width-100)/2, 19, 
+					"Sta",		xco+10, yco-44, (width-80)/2, 19, 
 					&ia->sta, 0.0, MAXFRAMEF, 0, 0, 
 					"Start frame, (subtract 1 to match blenders frame numbers)");
 				uiDefButI(block, NUM, 0, 
-					"End",		xco+18+(width-90)/2, yco-44, (width-100)/2, 19, 
+					"End",		xco+10+(width-80)/2, yco-44, (width-80)/2, 19, 
 					&ia->end, 0.0, MAXFRAMEF, 0, 0, 
 					"End frame, (subtract 1 to match blenders frame numbers)");
-				
-				uiDefButBitS(block, TOG, ACT_IPOFORCE, B_REDR, 
-					"Force", xco+width-78, yco-44, 43, 19, 
-					&ia->flag, 0, 0, 0, 0, 
-					"Convert Ipo to force"); 
-				
-				/* Only show the do-force-local toggle if force is requested */
-				if (ia->flag & ACT_IPOFORCE) {
-					uiDefButBitS(block, TOG, ACT_IPOFORCE_LOCAL, 0, 
-						"L", xco+width-35, yco-44, 15, 19, 
-						&ia->flag, 0, 0, 0, 0, 
-						"Let the force-ipo act in local coordinates."); 
-				}
-				
 			}
+			uiDefButBitS(block, TOG, ACT_IPOCHILD,  B_REDR, 
+				"Child",	xco+10+(width-80), yco-44, 60, 19, 
+				&ia->flag, 0, 0, 0, 0, 
+				"Update IPO on all children Objects as well");
+
 			yco-= ysize;
 			break;
 		}

@@ -2331,7 +2331,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
-		gameobj->SetState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
+		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
+		gameobj->ResetState();
 	}
 
 #endif //CONVERT_LOGIC

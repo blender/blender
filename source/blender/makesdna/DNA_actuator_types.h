@@ -339,8 +339,9 @@ typedef struct FreeCamera {
 /* ipoactuator->flag */
 #define ACT_IPOFORCE        (1 << 0)
 #define ACT_IPOEND          (1 << 1)
-#define ACT_IPOFORCE_LOCAL  (1 << 2)
-#define ACT_IPOCHILD        (1 << 4)			
+#define ACT_IPOLOCAL		(1 << 2)
+#define ACT_IPOCHILD        (1 << 4)	
+#define ACT_IPOADD			(1 << 5)
 
 /* ipoactuator->flag for k2k */
 #define ACT_K2K_PREV		1
