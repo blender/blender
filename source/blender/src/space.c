@@ -2189,16 +2189,24 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case IKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
-						pose_add_IK();
-					else if(ob && G.obedit)
-						selectswap_mesh();
+					if((ob) && (ob->flag & OB_POSEMODE) && (ob->type==OB_ARMATURE))
+						deselectall_posearmature(ob, 3, 1);
+					else if(ob && G.obedit) {
+						if(G.obedit->type == OB_ARMATURE)
+							deselectall_armature(3, 1);
+						else
+							selectswap_mesh();
+					}
 					else
 						selectswap();
 				}
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
 						pose_clear_IK();
+				}
+				else if(G.qual==LR_SHIFTKEY) {
+					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
+						pose_add_IK();
 				}
 				break;
 				
