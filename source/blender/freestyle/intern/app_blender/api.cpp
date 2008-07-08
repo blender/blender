@@ -106,11 +106,12 @@ extern "C" {
 
 	void FRS_render(Render* re, int render_in_layer) {
 		
-		if(render_in_layer) {
-			view->workingBuffer = GL_COLOR_ATTACHMENT0_EXT;
-		} else {
-			view->workingBuffer = GL_BACK;
-		}
+		// if(render_in_layer) {
+		// 	view->workingBuffer = GL_COLOR_ATTACHMENT0_EXT;
+		// } else {
+		// 	view->workingBuffer = GL_BACK;
+		// }
+		view->workingBuffer = GL_BACK;
 		
 		// add style module
 		string style_module = pathconfig->getProjectDir() + 
@@ -134,8 +135,12 @@ extern "C" {
 		GLuint framebuffer, renderbuffers[2];
 		GLenum status;
 		RenderLayer *rl;
+		GLubyte *pixc;
 		
 		if(render_in_layer) {
+			
+			pixc = (GLubyte *) malloc( 4 * re->winx * re->winy * sizeof(GLubyte) );
+			
 			cout << "Freestyle as a render layer - SETUP" << endl;
 		
 			// set up frame buffer
@@ -146,7 +151,7 @@ extern "C" {
 			glGenRenderbuffersEXT(2, renderbuffers);
 			
 			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,	renderbuffers[0]);
-			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA16F_ARB, re->winx, re->winy);
+			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, re->winx, re->winy);
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, renderbuffers[0]);
 			
 			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffers[1]);
@@ -163,38 +168,51 @@ extern "C" {
 				return;
 			}
 			
-			glPushAttrib(GL_VIEWPORT_BIT); 
+			glPushAttrib(GL_VIEWPORT_BIT);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // should not be needed
 			glViewport(0, 0, re->winx, re->winy);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // really needed ?
-		}
-		
-		FRS_render(re, render_in_layer);
-		
-		if(render_in_layer) {
-			for(rl = (RenderLayer *)re->result->layers.first; rl; rl= rl->next) {
-				if(rl->layflag & SCE_LAY_FRS) {
-					cout << "Freestyle as a render layer - RESULT" << endl;
-					
-					// transfer render to layer
-					glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-					glReadPixels(0, 0, re->winx, re->winy, GL_RGBA, GL_FLOAT, rl->rectf );
+			
+			FRS_render(re, render_in_layer);
 
-					// bind window
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-					glDrawBuffer(GL_BACK);
-					glPopAttrib();
-					glDeleteRenderbuffersEXT(2, renderbuffers);
-					glDeleteFramebuffersEXT(1, &framebuffer);
+			// keep first Freestyle layer
+			for(rl = (RenderLayer *)re->result->layers.first; rl; rl= rl->next)
+				if(rl->layflag & SCE_LAY_FRS)
+					break;
+
+			cout << "Freestyle as a render layer - RESULT" << endl;
+
+			// transfer render to layer
+			glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+			glReadPixels(0, 0, re->winx, re->winy, GL_RGBA, GL_UNSIGNED_BYTE, pixc );
+
+			int p;
+			for(int i = 0; i < re->winx; i++) {
+				for(int j = 0; j < re->winy; j++){
+					p = 4*(i*re->winy + j);
+					*(rl->rectf + p    ) = 1.0*pixc[ p ]/255.0;
+					*(rl->rectf + p + 1) = 1.0*pixc[ p+1 ]/255.0;
+					*(rl->rectf + p + 2) = 1.0*pixc[ p+2 ]/255.0;
+					*(rl->rectf + p + 3) = 1.0*pixc[ p+3 ]/255.0;
 				}
 			}
+
+			// bind window
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+			glDrawBuffer(GL_BACK);
+			glPopAttrib();
+			glDeleteRenderbuffersEXT(2, renderbuffers);
+			glDeleteFramebuffersEXT(1, &framebuffer);
+			
 		} else {
-			// copy result into render window
+			FRS_render(re, render_in_layer);
+			
 			RenderResult rres;
 			RE_GetResultImage(re, &rres);
 			view->readPixels(0, 0, re->winx, re->winy, AppGLWidget::RGBA, rres.rectf );		
 			re->result->renlay = render_get_active_layer(re, re->result);
 			re->display_draw(re->result, NULL);
 		}
+
 		
 		controller->CloseFile();
 	}
