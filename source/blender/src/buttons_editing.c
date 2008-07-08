@@ -5009,6 +5009,19 @@ static void skgen_graphfree(void *arg1, void *arg2)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+static void skgen_graph_block(uiBlock *block)
+{
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"",				1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 10.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
+	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 10.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+	uiBlockEndAlign(block);
+}
+
 static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
 {
 	uiBlock *block;
@@ -5022,17 +5035,9 @@ static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
 	uiButSetFunc(but, skgen_graphgen, NULL, NULL);
 	but = uiDefBut(block, BUT, B_DIFF, "Free",					1150,170,125,19, 0, 0, 0, 0, 0, "Free Graph from Mesh");
 	uiButSetFunc(but, skgen_graphfree, NULL, NULL);
-
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
-	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"",				1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 5.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
-	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 5.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
-	uiBlockEndAlign(block);
 	
+	skgen_graph_block(block);
+
 	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
 	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1108, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
 	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1191, 60, 84,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
@@ -5050,15 +5055,7 @@ static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 	
 	uiDefBut(block, BUT, B_RETARGET_SKELETON, "Retarget Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Retarget Selected Armature to this Mesh");
 
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
-	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"",				1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 5.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
-	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 5.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
-	uiBlockEndAlign(block);
+	skgen_graph_block(block);
 
 	uiDefButF(block, NUM, B_DIFF, 							"Ang:",			1025, 60, 83,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
 	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1108, 60, 83,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
@@ -5086,15 +5083,7 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	
 	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
 
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
-	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"",				1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 5.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
-	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 5.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
-	uiBlockEndAlign(block);
+	skgen_graph_block(block);
 
 	uiBlockBeginAlign(block);
 	for(i = 0; i < SKGEN_SUB_TOTAL; i++)

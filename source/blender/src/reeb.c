@@ -360,7 +360,7 @@ void repositionNodes(ReebGraph *rg)
 
 void verifyNodeDegree(ReebGraph *rg)
 {
-//#ifdef DEBUG_REEB
+#ifdef DEBUG_REEB
 	ReebNode *node = NULL;
 	ReebArc *arc = NULL;
 
@@ -383,7 +383,7 @@ void verifyNodeDegree(ReebGraph *rg)
 			printf("zero degree node %i with weight %f\n", node->index, node->weight);
 		}
 	}
-//#endif
+#endif
 }
 
 void verifyBuckets(ReebGraph *rg)

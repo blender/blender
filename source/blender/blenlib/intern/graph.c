@@ -328,7 +328,7 @@ int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 	if (include_root)
 	{
 		BNode *newNode = BLI_otherNode(rootArc, node);
-		depth = BLI_subtreeShape(newNode, rootArc, 0);
+		return BLI_subtreeShape(newNode, rootArc, 0);
 	}
 	else
 	{
@@ -353,9 +353,9 @@ int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 				}
 			}
 		}
+		
+		return 10 * depth + 1;
 	}
-	
-	return 10 * depth + 1;
 }
 
 /********************************* SYMMETRY DETECTION **************************************************/

@@ -1238,6 +1238,26 @@ static void retargetArctoArc(RigArc *iarc)
 	}
 }
 
+static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, ReebArc *next_earc)
+{
+	ReebNode *enode = next_earc->head;
+	int ishape, eshape;
+	int MAGIC_NUMBER = 100; /* FIXME */
+
+	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % MAGIC_NUMBER;
+	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
+	
+	while (ishape > eshape && next_earc->link)
+	{
+		next_earc = next_earc->link;
+		enode = next_earc->head;
+		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
+	} 
+
+	next_earc->flag = 1; // mark as taken
+	next_iarc->link = next_earc;
+}
+
 static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc *next_iarc)
 {
 	ReebNode *enode = start_node->link;
@@ -1257,25 +1277,12 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 			next_earc->symmetry_group == symmetry_group &&
 			next_earc->symmetry_level == symmetry_level)
 		{
-			int ishape, eshape;
-
 			printf("-----------------------\n");
 			printf("CORRESPONDING ARC FOUND\n");
 			RIG_printArcBones(next_iarc);
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
 			
-			ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1);
-			eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1);
-			
-			while (ishape > eshape && next_earc->link)
-			{
-				next_earc = next_earc->link;
-				enode = next_earc->head; //enode->link;
-				eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1);
-			} 
-
-			next_earc->flag = 1; // mark as taken
-			next_iarc->link = next_earc;
+			matchMultiResolutionArc(start_node, next_iarc, next_earc);
 			break;
 		}
 	}
@@ -1347,12 +1354,12 @@ static void retargetGraphs(RigGraph *rigg)
 	
 	earc = reebg->arcs.first;
 	iarc = (RigArc*)rigg->head->arcs[0];
-	
-	iarc->link = earc;
-	earc->flag = 1;
-	
-	enode = earc->head;
 	inode = iarc->tail;
+	
+	matchMultiResolutionArc(inode, iarc, earc);
+
+	earc = iarc->link; /* find might have changed it */
+	enode = earc->head;
 
 	inode->link = enode;
 
