@@ -145,9 +145,9 @@ void REEB_freeGraph(ReebGraph *rg)
 	BLI_edgehash_free(rg->emap, NULL);
 	
 	/* free linked graph */
-	if (rg->link)
+	if (rg->link_up)
 	{
-		REEB_freeGraph(rg->link);
+		REEB_freeGraph(rg->link_up);
 	}
 	
 	MEM_freeN(rg);
@@ -168,6 +168,14 @@ ReebGraph * newReebGraph()
 	rg->axial_symmetry = REEB_AxialSymmetry;
 	
 	return rg;
+}
+
+void BIF_flagMultiArcs(ReebGraph *rg, int flag)
+{
+	for ( ; rg; rg = rg->link_up)
+	{
+		BLI_flagArcs((BGraph*)rg, flag);
+	}
 }
 
 ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
@@ -208,6 +216,28 @@ ReebNode * copyNode(ReebGraph *rg, ReebNode *node)
 	return cp_node; 
 }
 
+void relinkNodes(ReebGraph *low_rg, ReebGraph *high_rg)
+{
+	ReebNode *low_node, *high_node;
+	
+	if (low_rg == NULL || high_rg == NULL)
+	{
+		return;
+	}
+	
+	for (low_node = low_rg->nodes.first; low_node; low_node = low_node->next)
+	{
+		for (high_node = high_rg->nodes.first; high_node; high_node = high_node->next)
+		{
+			if (low_node->index == high_node->index)
+			{
+				high_node->link_down = low_node;
+				break;
+			}
+		}
+	}
+}
+
 ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node)
 {
 	return (arc->head->index == node->index) ? arc->tail : arc->head;
@@ -222,7 +252,7 @@ ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
 
 	memcpy(cp_arc, arc, sizeof(ReebArc));
 	
-	cp_arc->link = arc;
+	cp_arc->link_up = arc;
 	
 	cp_arc->head = NULL;
 	cp_arc->tail = NULL;
@@ -266,7 +296,7 @@ ReebGraph * copyReebGraph(ReebGraph *rg)
 	ReebGraph *cp_rg = newReebGraph();
 	
 	cp_rg->resolution = rg->resolution;
-	cp_rg->link = rg;
+	cp_rg->link_up = rg;
 
 	/* Copy nodes */	
 	for (node = rg->nodes.first; node; node = node->next)
@@ -438,7 +468,7 @@ void verifyFaces(ReebGraph *rg)
 void verifyMultiResolutionLinks(ReebGraph *rg)
 {
 #ifdef DEBUG_REEB
-	ReebGraph *lower_rg = rg->link;
+	ReebGraph *lower_rg = rg->link_up;
 	
 	if (lower_rg)
 	{
@@ -446,9 +476,9 @@ void verifyMultiResolutionLinks(ReebGraph *rg)
 		
 		for (arc = rg->arcs.first; arc; arc = arc->next)
 		{
-			if (BLI_findindex(&lower_rg->arcs, arc->link) == -1)
+			if (BLI_findindex(&lower_rg->arcs, arc->link_up) == -1)
 			{
-				printf("missing arc %p\n", arc->link);
+				printf("missing arc %p\n", arc->link_up);
 			}
 		}
 		
@@ -2874,7 +2904,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 {
 	EditMesh *em = G.editMesh;
 	ReebGraph *rg = NULL;
-	ReebGraph *rgi;
+	ReebGraph *rgi, *previous;
 	int i, nb_levels = 5;
 	
 	if (em == NULL)
@@ -2912,10 +2942,10 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 		rg = copyReebGraph(rg);
 	}
 	
-	for (rgi = rg, i = nb_levels; rgi; rgi = rgi->link, i--)
+	for (rgi = rg, i = nb_levels, previous = NULL; rgi; previous = rgi, rgi = rgi->link_up, i--)
 	{
 		/* don't fully filter last level */
-		if (rgi->link)
+		if (rgi->link_up)
 		{
 			float internal_threshold = G.scene->toolsettings->skgen_threshold_internal * (i / (float)nb_levels);
 			float external_threshold = G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
@@ -2930,6 +2960,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 		finalizeGraph(rgi, G.scene->toolsettings->skgen_postpro_passes, G.scene->toolsettings->skgen_postpro);
 
 		BLI_markdownSymmetry((BGraph*)rgi, rgi->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
+		
+		relinkNodes(previous, rgi);
 	}
 	
 	verifyMultiResolutionLinks(rg);
@@ -3033,15 +3065,15 @@ void REEB_draw()
 		return;
 	}
 	
-	if (GLOBAL_RG->link && G.scene->toolsettings->skgen_options & SKGEN_DISP_ORIG)
+	if (GLOBAL_RG->link_up && G.scene->toolsettings->skgen_options & SKGEN_DISP_ORIG)
 	{
-		for (rg = GLOBAL_RG; rg->link; rg = rg->link) ;
+		for (rg = GLOBAL_RG; rg->link_up; rg = rg->link_up) ;
 	}
 	else
 	{
 		i = G.scene->toolsettings->skgen_multi_level;
 		
-		for (rg = GLOBAL_RG; i && rg->link; i--, rg = rg->link) ;
+		for (rg = GLOBAL_RG; i && rg->link_up; i--, rg = rg->link_up) ;
 	}
 	
 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));

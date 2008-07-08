@@ -51,7 +51,7 @@ typedef struct ReebGraph {
 	int resolution;
 	int totnodes;
 	struct EdgeHash *emap;
-	struct ReebGraph *link; /* for multi resolution filtering, points to higher levels */
+	struct ReebGraph *link_up; /* for multi resolution filtering, points to higher levels */
 } ReebGraph;
 
 typedef struct EmbedBucket {
@@ -75,6 +75,7 @@ typedef struct ReebNode {
 
 	int index;
 	float weight;
+	struct ReebNode *link_down; /* for multi resolution filtering, points to lower levels, if present */
 } ReebNode;
 
 typedef struct ReebEdge {
@@ -103,7 +104,7 @@ typedef struct ReebArc {
 
 	struct GHash *faces;	
 	float angle;
-	struct ReebArc *link; /* for multi resolution filtering, points to higher levels */
+	struct ReebArc *link_up; /* for multi resolution filtering, points to higher levels */
 } ReebArc;
 
 typedef struct ReebArcIterator {
@@ -159,11 +160,13 @@ void verifyFaces(ReebGraph *rg);
 /*********************** PUBLIC *********************************/
 ReebGraph *BIF_ReebGraphFromEditMesh(void);
 ReebGraph *BIF_ReebGraphMultiFromEditMesh(void);
+void BIF_flagMultiArcs(ReebGraph *rg, int flag);
 
 void BIF_GlobalReebGraphFromEditMesh(void);
 void BIF_GlobalReebFree(void);
 
 ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node);
+
 
 void REEB_freeGraph(ReebGraph *rg);
 void REEB_exportGraph(ReebGraph *rg, int count);

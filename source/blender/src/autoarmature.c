@@ -81,7 +81,7 @@ typedef struct RigGraph {
 	/*********************************/
 
 	struct RigNode *head;
-	ReebGraph *link;
+	ReebGraph *link_mesh;
 } RigGraph;
 
 typedef struct RigNode {
@@ -97,7 +97,7 @@ typedef struct RigNode {
 	float symmetry_axis[3];
 	/*********************************/
 
-	ReebNode *link;
+	ReebNode *link_mesh;
 } RigNode;
 
 typedef struct RigArc {
@@ -114,7 +114,7 @@ typedef struct RigArc {
 	
 	ListBase edges;
 	int count;
-	ReebArc *link;
+	ReebArc *link_mesh;
 } RigArc;
 
 typedef struct RigEdge {
@@ -387,7 +387,7 @@ static void RIG_findHead(RigGraph *rg)
 			{
 				RigEdge *edge = arc->edges.last;
 				
-				if (edge->bone->flag & BONESEL_ANY)
+				if (edge->bone->flag & (BONE_TIPSEL|BONE_SELECTED))
 				{
 					rg->head = arc->tail;
 					break;
@@ -514,7 +514,7 @@ static void retargetArctoArcLength(RigArc *iarc);
 static RetargetMode detectArcRetargetMode(RigArc *iarc)
 {
 	RetargetMode mode = RETARGET_AGGRESSIVE;
-	ReebArc *earc = iarc->link;
+	ReebArc *earc = iarc->link_mesh;
 	RigEdge *edge;
 	int large_angle = 0;
 	float avg_angle = 0;
@@ -738,7 +738,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	RigEdge *edge;
 	EmbedBucket *bucket = NULL;
 	ReebNode *node_start, *node_end;
-	ReebArc *earc = iarc->link;
+	ReebArc *earc = iarc->link_mesh;
 	float min_cost = FLT_MAX;
 	float *vec0, *vec1, *vec2;
 	float **vec_cache;
@@ -1074,7 +1074,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 static void retargetArctoArcLength(RigArc *iarc)
 {
 	ReebArcIterator iter;
-	ReebArc *earc = iarc->link;
+	ReebArc *earc = iarc->link_mesh;
 	ReebNode *node_start, *node_end;
 	RigEdge *edge;
 	EmbedBucket *bucket = NULL;
@@ -1203,7 +1203,7 @@ static void retargetArctoArcLength(RigArc *iarc)
 
 static void retargetArctoArc(RigArc *iarc)
 {
-	ReebArc *earc = iarc->link;
+	ReebArc *earc = iarc->link_mesh;
 	
 	if (BLI_countlist(&iarc->edges) == 1)
 	{
@@ -1247,27 +1247,27 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % MAGIC_NUMBER;
 	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
 	
-	while (ishape > eshape && next_earc->link)
+	while (ishape > eshape && next_earc->link_up)
 	{
-		next_earc = next_earc->link;
+		next_earc = next_earc->link_up;
 		enode = next_earc->head;
 		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
 	} 
 
 	next_earc->flag = 1; // mark as taken
-	next_iarc->link = next_earc;
+	next_iarc->link_mesh = next_earc;
 }
 
 static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc *next_iarc)
 {
-	ReebNode *enode = start_node->link;
+	ReebNode *enode = start_node->link_mesh;
 	ReebArc *next_earc;
 	int symmetry_level = next_iarc->symmetry_level;
 	int symmetry_group = next_iarc->symmetry_group;
 	int symmetry_flag = next_iarc->symmetry_flag;
 	int i;
 	
-	next_iarc->link = NULL;
+	next_iarc->link_mesh = NULL;
 		
 	for(i = 0; i < enode->degree; i++)
 	{
@@ -1288,7 +1288,7 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 	}
 	
 
-	if (next_iarc->link == NULL)
+	if (next_iarc->link_mesh == NULL)
 	{
 		printf("--------------------------\n");
 		printf("NO CORRESPONDING ARC FOUND\n");
@@ -1310,9 +1310,9 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_node)
 {
 	RigArc *iarc = start_arc;
-	ReebArc *earc = start_arc->link;
+	ReebArc *earc = start_arc->link_mesh;
 	RigNode *inode = start_node;
-	ReebNode *enode = start_node->link;
+	ReebNode *enode = start_node->link_mesh;
 	int i;
 		
 	retargetArctoArc(iarc);
@@ -1320,7 +1320,7 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 	enode = BIF_otherNodeFromIndex(earc, enode);
 	inode = (RigNode*)BLI_otherNode((BArc*)iarc, (BNode*)inode);
 	
-	inode->link = enode;
+	inode->link_mesh = enode;
 	
 	for(i = 0; i < inode->degree; i++)
 	{
@@ -1330,7 +1330,7 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 		if (next_iarc != iarc)
 		{
 			findCorrespondingArc(iarc, inode, next_iarc);
-			if (next_iarc->link)
+			if (next_iarc->link_mesh)
 			{
 				retargetSubgraph(rigg, next_iarc, inode);
 			}
@@ -1340,17 +1340,17 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 
 static void retargetGraphs(RigGraph *rigg)
 {
-	ReebGraph *reebg = rigg->link;
+	ReebGraph *reebg = rigg->link_mesh;
 	ReebArc *earc;
 	RigArc *iarc;
 	ReebNode *enode;
 	RigNode *inode;
 	
 	/* flag all ReebArcs as not taken */
-	for (earc = reebg->arcs.first; earc; earc = earc->next)
-	{
-		earc->flag = 0;
-	}
+	BIF_flagMultiArcs(reebg, 0);
+	
+	/* return to first level */
+	reebg = rigg->link_mesh;
 	
 	earc = reebg->arcs.first;
 	iarc = (RigArc*)rigg->head->arcs[0];
@@ -1358,10 +1358,10 @@ static void retargetGraphs(RigGraph *rigg)
 	
 	matchMultiResolutionArc(inode, iarc, earc);
 
-	earc = iarc->link; /* find might have changed it */
+	earc = iarc->link_mesh; /* find might have changed it */
 	enode = earc->head;
 
-	inode->link = enode;
+	inode->link_mesh = enode;
 
 	retargetSubgraph(rigg, iarc, inode);
 }
@@ -1371,9 +1371,6 @@ void BIF_retargetArmature()
 	Object *ob;
 	Base *base;
 	ReebGraph *reebg;
-	
-	//reebg = BIF_ReebGraphFromEditMesh();
-	//BLI_markdownSymmetry((BGraph*)reebg, reebg->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
 	
 	reebg = BIF_ReebGraphMultiFromEditMesh();
 	
@@ -1406,7 +1403,7 @@ void BIF_retargetArmature()
 		
 				RIG_printGraph(rigg);
 				
-				rigg->link = reebg;
+				rigg->link_mesh = reebg;
 				
 				printf("retargetting %s\n", ob->id.name);
 				
