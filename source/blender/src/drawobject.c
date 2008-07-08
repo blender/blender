@@ -4620,7 +4620,7 @@ static void drawSolidSelect(Base *base)
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(!(ob->flag & OB_POSEMODE)) {
-			draw_armature(base, OB_WIRE);
+			draw_armature(base, OB_WIRE, 0);
 		}
 	}
 
@@ -4741,7 +4741,7 @@ void drawRBpivot(bRigidBodyJointConstraint *data){
 	setlinestyle(0);
 }
 
-/* flag can be DRAW_PICKING	and/or DRAW_CONSTCOLOR */
+/* flag can be DRAW_PICKING	and/or DRAW_CONSTCOLOR, DRAW_SCENESET */
 void draw_object(Base *base, int flag)
 {
 	static int warning_recursive= 0;
@@ -4943,7 +4943,7 @@ void draw_object(Base *base, int flag)
 
 	/* draw outline for selected solid objects, mesh does itself */
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
-		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
+		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit && (flag && DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				drawSolidSelect(base);
 			}
@@ -5090,7 +5090,7 @@ void draw_object(Base *base, int flag)
 			break;
 		case OB_ARMATURE:
 			if(dt>OB_WIRE) set_gl_material(0);	// we use defmaterial
-			empty_object= draw_armature(base, dt);
+			empty_object= draw_armature(base, dt, flag);
 			break;
 		default:
 			drawaxes(1.0, flag, OB_ARROWS);
