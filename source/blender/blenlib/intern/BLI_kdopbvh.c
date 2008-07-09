@@ -82,8 +82,23 @@ typedef struct BVHNearestData
 	void	*userdata;
 	float proj[13];			//coordinates projection over axis
 	BVHTreeNearest nearest;
+
 } BVHNearestData;
-////////////////////////////////////////
+
+typedef struct BVHRayCastData
+{
+	BVHTree *tree;
+
+	BVHTree_RayCastCallback callback;
+	void	*userdata;
+
+
+	BVHTreeRay    ray;
+	float ray_dot_axis[13];
+
+	BVHTreeRayHit hit;
+} BVHRayCastData;
+////////////////////////////////////////m
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -284,8 +299,8 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	BVHTree *tree;
 	int numbranches=0, i;
 	
-	// only support up to octree
-	if(tree_type > 8)
+	// theres not support for trees below binary-trees :P
+	if(tree_type < 2)
 		return NULL;
 
 	tree = (BVHTree *)MEM_callocN(sizeof(BVHTree), "BVHTree");
@@ -415,6 +430,7 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 	float newmin,newmax;
 	int i, j;
 	float *bv = node->bv;
+
 	
 	for (i = tree->start_axis; i < tree->stop_axis; i++)
 	{
@@ -436,6 +452,7 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 				bv[(2 * i) + 1] = newmax;
 		}
 	}
+
 }
 
 int BLI_bvhtree_insert(BVHTree *tree, int index, float *co, int numpoints)
@@ -503,6 +520,7 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 	
 	// Determine which axis to split along
 	laxis = get_largest_axis(node->bv);
+	node->main_axis = laxis/2;
 	
 	// split nodes along longest axis
 	for (i=0; start < end; start += slice, i++) //i counts the current child
@@ -582,6 +600,7 @@ static void verify_tree(BVHTree *tree)
 	
 void BLI_bvhtree_balance(BVHTree *tree)
 {
+	int i;
 	BVHNode *node;
 	
 	if(tree->totleaf == 0)
@@ -823,7 +842,10 @@ float BLI_bvhtree_getepsilon(BVHTree *tree)
 }
 
 
-//Nearest neighbour
+
+/*
+ * Nearest neighbour
+ */
 static float squared_dist(const float *a, const float *b)
 {
 	float tmp[3];
@@ -891,12 +913,9 @@ static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	}
 	else
 	{
-		if(sdist < data->nearest.dist)
+		for(i=0; i != node->totnode; i++)
 		{
-			for(i=0; i != node->totnode; i++)
-			{
-				dfs_find_nearest(data, node->children[i]);
-			}
+			dfs_find_nearest(data, node->children[i]);
 		}
 	}
 }
@@ -939,5 +958,132 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, 
 	}
 
 	return data.nearest.index;
+}
+
+
+
+/*
+ * Ray cast
+ */
+
+static float ray_nearest_hit(BVHRayCastData *data, BVHNode *node)
+{
+	int i;
+	const float *bv = node->bv;
+
+	float low = 0, upper = data->hit.dist;
+
+	for(i=0; i != 3; i++, bv += 2)
+	{
+		if(data->ray_dot_axis[i] == 0.0f)
+		{
+			//axis aligned ray
+			if(data->ray.origin[i] < bv[0]
+			|| data->ray.origin[i] > bv[1])
+				return FLT_MAX;
+		}
+		else
+		{
+			float ll = (bv[0] - data->ray.origin[i]) / data->ray_dot_axis[i];
+			float lu = (bv[1] - data->ray.origin[i]) / data->ray_dot_axis[i];
+
+			if(data->ray_dot_axis[i] > 0)
+			{
+				if(ll > low)   low = ll;
+				if(lu < upper) upper = lu;
+			}
+			else
+			{
+				if(lu > low)   low = lu;
+				if(ll < upper) upper = ll;
+			}
+	
+			if(low > upper) return FLT_MAX;
+		}
+	}
+	return low;
+}
+
+static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
+{
+	int i;
+	float dist;
+
+	dist = ray_nearest_hit(data, node);
+
+	if(dist >= data->hit.dist) return;
+
+	if(node->totnode == 0)
+	{
+		if(data->callback)
+			dist = data->callback(data->userdata, node->index, &data->ray, &data->hit);
+		else
+		{
+			data->hit.index	= node->index;
+			data->hit.dist  = dist;
+			VECADDFAC(data->hit.co, data->ray.origin, data->ray.direction, dist);
+		}
+	}
+	else
+	{
+		//pick loop direction to dive into the tree (based on ray direction and split axis)
+		if(data->ray_dot_axis[ node->main_axis ] > 0)
+		{
+			for(i=0; i != node->totnode; i++)
+			{
+				dfs_raycast(data, node->children[i]);
+			}
+		}
+		else
+		{
+			for(i=node->totnode-1; i >= 0; i--)
+			{
+				dfs_raycast(data, node->children[i]);
+			}
+		}
+	}
+}
+
+
+
+int BLI_bvhtree_ray_cast(BVHTree *tree, float *co, float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+{
+	int i;
+	BVHRayCastData data;
+
+	data.tree = tree;
+
+	data.callback = callback;
+	data.userdata = userdata;
+
+	VECCOPY(data.ray.origin,    co);
+	VECCOPY(data.ray.direction, dir);
+
+	Normalize(data.ray.direction);
+
+	for(i=0; i<3; i++)
+	{
+		data.ray_dot_axis[i] = INPR( data.ray.direction, KDOP_AXES[i]);
+
+		if(fabs(data.ray_dot_axis[i]) < 1e-7)
+			data.ray_dot_axis[i] = 0.0;
+	}
+
+
+	if(hit)
+		memcpy( &data.hit, hit, sizeof(*hit) );
+	else
+	{
+		data.hit.index = -1;
+		data.hit.dist = FLT_MAX;
+	}
+
+	dfs_raycast(&data, tree->nodes[tree->totleaf]);
+
+
+	if(hit)
+		memcpy( hit, &data.hit, sizeof(*hit) );
+
+	return data.hit.index;
 }
 

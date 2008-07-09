@@ -47,8 +47,24 @@ typedef struct BVHTreeNearest
 	float dist;			/* squared distance to search arround */
 } BVHTreeNearest;
 
+typedef struct BVHTreeRay
+{
+	float origin[3];	/* ray origin */
+	float direction[3];	/* ray direction */
+} BVHTreeRay;
+
+typedef struct BVHTreeRayHit
+{
+	int index;			/* index of the tree node (untouched if no hit is found) */
+	float co[3];		/* coordinates of the hit point */
+	float dist;			/* distance to the hit point */
+} BVHTreeRayHit;
+
 /* returns square of the minimum distance from given co to the node, nearest point is stored on nearest */
 typedef float (*BVHTree_NearestPointCallback) (void *userdata, int index, const float *co, float *nearest);
+
+/* returns the ray distancence from given co to the node, nearest point is stored on nearest */
+typedef float (*BVHTree_RayCastCallback) (void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
@@ -69,6 +85,8 @@ float BLI_bvhtree_getepsilon(BVHTree *tree);
 
 /* find nearest node to the given coordinates (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
 int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
+
+int BLI_bvhtree_ray_cast(BVHTree *tree, float *co, float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
 #endif // BLI_KDOPBVH_H
 
