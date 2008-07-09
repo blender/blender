@@ -866,7 +866,6 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 		int len= strlen(str);
 		if(len) {
 			if(BLI_strcasecmp(chan, str+len-1)==0) {
-				printf("name %s\n", str);
 				return str;
 			}
 		}
