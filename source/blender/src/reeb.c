@@ -243,6 +243,16 @@ ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node)
 	return (arc->head->index == node->index) ? arc->tail : arc->head;
 }
 
+ReebNode *BIF_lowestLevelNode(ReebNode *node)
+{
+	while (node->link_down)
+	{
+		node = node->link_down;
+	}
+	
+	return node;
+}
+
 ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
 {
 	ReebArc *cp_arc;

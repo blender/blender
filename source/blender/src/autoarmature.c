@@ -1249,6 +1249,8 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 	
 	while (ishape > eshape && next_earc->link_up)
 	{
+		next_earc->flag = 1; // mark previous as taken, to prevent backtrack on lower levels
+		
 		next_earc = next_earc->link_up;
 		enode = next_earc->head;
 		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
@@ -1320,7 +1322,10 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 	enode = BIF_otherNodeFromIndex(earc, enode);
 	inode = (RigNode*)BLI_otherNode((BArc*)iarc, (BNode*)inode);
 	
-	inode->link_mesh = enode;
+	/* Link with lowest possible node
+	 * Enabling going back to lower levels for each arc
+	 * */
+	inode->link_mesh = BIF_lowestLevelNode(enode);
 	
 	for(i = 0; i < inode->degree; i++)
 	{

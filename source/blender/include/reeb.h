@@ -166,7 +166,7 @@ void BIF_GlobalReebGraphFromEditMesh(void);
 void BIF_GlobalReebFree(void);
 
 ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node);
-
+ReebNode *BIF_lowestLevelNode(ReebNode *node);
 
 void REEB_freeGraph(ReebGraph *rg);
 void REEB_exportGraph(ReebGraph *rg, int count);
