@@ -572,7 +572,7 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 	m_objectColor = rgbavec;
 }
 
-void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
+void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 {
 	MT_Matrix3x3 orimat;
 	MT_Vector3 vect,ori,z,x,y;
@@ -585,6 +585,11 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 		cout << "alignAxisToVect() Error: Null vector!\n";
 		return;
 	}
+	
+	if (fac<=0.0) {
+		return;
+	}
+	
 	// normalize
 	vect /= len;
 	orimat = GetSGNode()->GetWorldOrientation();
@@ -594,7 +599,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
 				ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
-			x = vect; 
+			if (fac == 1.0) {
+				x = vect;
+			} else {
+				x = (vect * fac) + ((orimat * MT_Vector3(1.0, 0.0, 0.0)) * (1-fac));
+				len = x.length();
+				if (MT_fuzzyZero(len)) x = vect;
+				else x /= len;
+			}
 			y = ori.cross(x);
 			z = x.cross(y);
 			break;
@@ -602,7 +614,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]);
-			y = vect;
+			if (fac == 1.0) {
+				y = vect;
+			} else {
+				y = (vect * fac) + ((orimat * MT_Vector3(0.0, 1.0, 0.0)) * (1-fac));
+				len = y.length();
+				if (MT_fuzzyZero(len)) y = vect;
+				else y /= len;
+			}
 			z = ori.cross(y);
 			x = y.cross(z);
 			break;
@@ -610,7 +629,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
-			z = vect;
+			if (fac == 1.0) {
+				z = vect;
+			} else {
+				z = (vect * fac) + ((orimat * MT_Vector3(0.0, 0.0, 1.0)) * (1-fac));
+				len = z.length();
+				if (MT_fuzzyZero(len)) z = vect;
+				else z /= len;
+			}
 			x = ori.cross(z);
 			y = z.cross(x);
 			break;
@@ -1386,13 +1412,14 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self,
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default
+	float fac = 1.0;
 	
-	if (PyArg_ParseTuple(args,"O|i",&pyvect,&axis))
+	if (PyArg_ParseTuple(args,"O|if",&pyvect,&axis, &fac))
 	{
 		MT_Vector3 vect;
 		if (PyVecTo(pyvect, vect))
 		{
-			AlignAxisToVect(vect,axis);				
+			AlignAxisToVect(vect,axis,fac);
 			Py_RETURN_NONE;
 		}
 	}

@@ -278,7 +278,8 @@ public:
 		void 
 	AlignAxisToVect(
 		const MT_Vector3& vect,
-		int axis = 2 
+		int axis = 2,
+		float fac = 1.0
 	);
 
 	/** 
