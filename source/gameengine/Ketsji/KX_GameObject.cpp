@@ -1608,14 +1608,18 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		other = static_cast<KX_GameObject*>(pyfrom);
 		fromPoint = other->NodeGetWorldPosition();
 	}
-
-	if (dist != 0.0f)
-	{
+	
+	if (dist != 0.0f) {
 		MT_Vector3 toDir = toPoint-fromPoint;
+		if (MT_fuzzyZero(toDir.length2())) {
+			return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		}
 		toDir.normalize();
 		toPoint = fromPoint + (dist) * toDir;
+	} else if (MT_fuzzyZero((toPoint-fromPoint).length2())) {
+		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 	}
-
+	
 	MT_Point3 resultPoint;
 	MT_Vector3 resultNormal;
 	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
