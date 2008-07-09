@@ -340,25 +340,31 @@ void printArc(ReebArc *arc)
 	}
 }
 
+#ifdef DEBUG_REEB_NODE
 void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
 {
 	node->degree--;
 
-//	if (node->degree == 0)
-//	{
-//		printf("would remove node %i\n", node->index);
-//	}
+	if (node->degree == 0)
+	{
+		printf("would remove node %i\n", node->index);
+	}
 }
 
 void NodeDegreeIncrement(ReebGraph *rg, ReebNode *node)
 {
-//	if (node->degree == 0)
-//	{
-//		printf("first connect node %i\n", node->index);
-//	}
+	if (node->degree == 0)
+	{
+		printf("first connect node %i\n", node->index);
+	}
 
 	node->degree++;
 }
+
+#else
+#define NodeDegreeDecrement(rg, node) {node->degree--;}
+#define NodeDegreeIncrement(rg, node) {node->degree++;}
+#endif
 
 void repositionNodes(ReebGraph *rg)
 {
@@ -992,8 +998,8 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 		{
 			if (arc->head == srcArc->head && arc->tail == srcArc->tail && arc != srcArc)
 			{
-				ReebNode *head = (ReebNode*)srcArc->head;
-				ReebNode *tail = (ReebNode*)srcArc->tail;
+				ReebNode *head = srcArc->head;
+				ReebNode *tail = srcArc->tail;
 				mergeArcBuckets(srcArc, arc, head->weight, tail->weight);
 			}
 		}
@@ -1021,7 +1027,6 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 			{
 				// v1 or v2 was already newNode, since we're removing an arc, decrement degree
 				NodeDegreeDecrement(rg, newNode);
-				//newNode->degree--;
 				
 				// If it's srcArc, it'll be removed later, so keep it for now
 				if (arc != srcArc)
@@ -1032,7 +1037,7 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 			}
 			else
 			{
-				/* flip arcs that flipped can happen on diamond shapes, mostly on null arcs */
+				/* flip arcs that flipped, can happen on diamond shapes, mostly on null arcs */
 				if (arc->head->weight > arc->tail->weight)
 				{
 					ReebNode *tmp;
@@ -1048,12 +1053,15 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 
 				if (merging)
 				{
-					ReebNode *head = (ReebNode*)arc->head;
-					ReebNode *tail = (ReebNode*)arc->tail;
+					ReebNode *head = arc->head;
+					ReebNode *tail = arc->tail;
 
 					// resize bucket list
 					resizeArcBuckets(arc);
 					mergeArcBuckets(arc, srcArc, head->weight, tail->weight);
+					
+					/* update length */
+					arc->length += srcArc->length;
 				}
 			}
 		}
@@ -1167,9 +1175,7 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 		{
 			ReebNode *terminalNode = NULL;
 			ReebNode *middleNode = NULL;
-			ReebNode *newNode = NULL;
 			ReebNode *removedNode = NULL;
-			int merging = 0;
 			
 			// Assign terminal and middle nodes
 			if (arc->head->degree == 1)
@@ -1186,29 +1192,17 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 			// If middle node is a normal node, it will be removed later
 			if (middleNode->degree == 2)
 			{
-//				continue;
-				merging = 1;
-				newNode = terminalNode;
 				removedNode = middleNode;
+
+				filterArc(rg, terminalNode, removedNode, arc, 1);
 			}
 			// Otherwise, just plain remove of the arc
 			else
 			{
-				merging = 0;
-				newNode = middleNode;
 				removedNode = terminalNode;
-			}
-			
-			// Merging arc
-			if (merging)
-			{
-				filterArc(rg, newNode, removedNode, arc, 1);
-			}
-			else
-			{
+
 				// removing arc, so we need to decrease the degree of the remaining node
-				//newNode->degree--;
-				NodeDegreeDecrement(rg, newNode);
+				NodeDegreeDecrement(rg, middleNode);
 			}
 
 			// Reset nextArc, it might have changed
@@ -1441,6 +1435,8 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 	
 	calculateGraphLength(rg);
 
+	verifyNodeDegree(rg);
+
 	/* filter until there's nothing more to do */
 	while (done == 1)
 	{
@@ -1450,12 +1446,14 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 		{
 //			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
 			done |= filterExternalReebGraph(rg, threshold_external);
+			verifyNodeDegree(rg);
 		}
 	
 		if (options & SKGEN_FILTER_INTERNAL)
 		{
 //			done |= filterInternalReebGraph(rg, threshold_internal * rg->resolution);
 			done |= filterInternalReebGraph(rg, threshold_internal);
+			verifyNodeDegree(rg);
 		}
 	}
 
@@ -1466,6 +1464,8 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 		filterCyclesReebGraph(rg, 0.5);
 	}
 	
+	verifyNodeDegree(rg);
+
 	repositionNodes(rg);
 
 	/* Filtering might have created degree 2 nodes, so remove them */
@@ -1627,7 +1627,7 @@ void removeNormalNodes(ReebGraph *rg)
 			{
 				ReebArc *connectedArc = (ReebArc*)BLI_findConnectedArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->head);
 
-				// Merge arc only if needed
+				/* If arcs are one after the other */
 				if (arc->head == connectedArc->tail)
 				{		
 					/* remove furthest arc */		
@@ -1639,14 +1639,14 @@ void removeNormalNodes(ReebGraph *rg)
 					else
 					{
 						mergeConnectedArcs(rg, connectedArc, arc);
-						break;
-						arc = connectedArc; /* arc was removed, continue with connected */
+						break; /* arc was removed, move to next */
 					}
 				}
-				// Otherwise, mark down vert
+				/* Otherwise, arcs are side by side */
 				else
 				{
-					arc->head->degree = 3;
+					/* Don't do anything, we need to keep the lowest node, even if degree 2 */
+					break;
 				}
 			}
 			
@@ -1655,7 +1655,7 @@ void removeNormalNodes(ReebGraph *rg)
 			{
 				ReebArc *connectedArc = (ReebArc*)BLI_findConnectedArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->tail);
 				
-				// Merge arc only if needed
+				/* If arcs are one after the other */
 				if (arc->tail == connectedArc->head)
 				{				
 					/* remove furthest arc */		
@@ -1667,14 +1667,14 @@ void removeNormalNodes(ReebGraph *rg)
 					else
 					{
 						mergeConnectedArcs(rg, connectedArc, arc);
-						break;
-						arc = connectedArc; /* arc was removed, continue with connected */
+						break; /* arc was removed, move to next */
 					}
 				}
-				// Otherwise, mark down vert
+				/* Otherwise, arcs are side by side */
 				else
 				{
-					arc->tail->degree = 3;
+					/* Don't do anything, we need to keep the lowest node, even if degree 2 */
+					break;
 				}
 			}
 		}
