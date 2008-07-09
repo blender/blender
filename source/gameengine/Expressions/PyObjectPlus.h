@@ -76,18 +76,36 @@ static inline void Py_Fatal(char *M) {
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyParentObject *GetParents(void) {return Parents;}
 
+
 								// This defines the _getattr_up macro
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
 #define _getattr_up(Parent) \
-  PyObject *rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
-  if (rvalue == NULL) \
-    { \
-      PyErr_Clear(); \
-      return Parent::_getattr(attr); \
+  PyObject *rvalue = NULL; \
+  if (attr=="__methods__") { \
+    PyObject *_attr_string = NULL; \
+    PyMethodDef *meth = Methods; \
+    rvalue = Parent::_getattr(attr); \
+    if (rvalue==NULL) { \
+    	PyErr_Clear(); \
+    	rvalue = PyList_New(0); \
     } \
-  else \
-    return rvalue 
+    if (meth) { \
+      for (; meth->ml_name != NULL; meth++) { \
+        _attr_string = PyString_FromString(meth->ml_name); \
+		PyList_Append(rvalue, _attr_string); \
+		Py_DECREF(_attr_string); \
+	  } \
+	} \
+  } else { \
+    rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
+    if (rvalue == NULL) { \
+      PyErr_Clear(); \
+      rvalue = Parent::_getattr(attr); \
+    } \
+  } \
+  return rvalue; \
+
 
 /**
  * These macros are helpfull when embedding Python routines. The second

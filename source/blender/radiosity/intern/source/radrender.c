@@ -369,9 +369,18 @@ printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);
 			if(vlr->mat->mode & MA_RADIO) {
 				
 				/* during render, vlr->n gets flipped/corrected, we cannot have that */
-				if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co, rf->norm);
-				else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, rf->norm);
-				
+				if (obr->ob->transflag & OB_NEG_SCALE){
+					/* The object has negative scale that will cause the normals to flip.
+						 To counter this unwanted normal flip, swap vertex 2 and 4 for a quad
+						 or vertex 2 and 3 (see flip_face) for a triangle in the call to CalcNormFloat4 
+						 in order to flip the normals back to the way they were in the original mesh. */
+					if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v4->co, vlr->v3->co, vlr->v2->co, rf->norm);
+					else CalcNormFloat(vlr->v1->co, vlr->v3->co, vlr->v2->co, rf->norm);
+				}else{
+					if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co, rf->norm);
+					else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, rf->norm);
+				}
+
 				rf->totrad[0]= vlr->mat->emit*vlr->mat->r;
 				rf->totrad[1]= vlr->mat->emit*vlr->mat->g;
 				rf->totrad[2]= vlr->mat->emit*vlr->mat->b;
