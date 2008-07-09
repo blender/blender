@@ -76,6 +76,7 @@ typedef struct ReebNode {
 	int index;
 	float weight;
 	struct ReebNode *link_down; /* for multi resolution filtering, points to lower levels, if present */
+	struct ReebNode *link_up;
 } ReebNode;
 
 typedef struct ReebEdge {

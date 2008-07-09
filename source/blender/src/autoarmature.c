@@ -630,7 +630,14 @@ static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *ve
 	{
 		test_angle = saacos(Inpf(vec_first, vec_second));
 		/* ANGLE COST HERE */
-		new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs((test_angle - angle) / test_angle);
+		if (angle > 0)
+		{
+			new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs((test_angle - angle) / angle);
+		}
+		else
+		{
+			new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs(test_angle);
+		}
 	}
 	else
 	{
@@ -886,7 +893,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 				{
 					RigEdge *previous = edge->prev;
 					float angle = previous->angle;
-					float test_angle = previous->angle;
+					float test_angle;
 					
 					vec0 = vec_cache[i - 1];
 					VecSubf(vec_first, vec1, vec0); 
@@ -896,7 +903,14 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 					{
 						test_angle = saacos(Inpf(vec_first, vec_second));
 						/* ANGLE COST HERE */
-						new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs((test_angle - angle) / test_angle);
+						if (angle > 0)
+						{
+							new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs((test_angle - angle) / angle);
+						}
+						else
+						{
+							new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs(test_angle);
+						}
 					}
 					else
 					{
@@ -1247,7 +1261,7 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % MAGIC_NUMBER;
 	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
 	
-	while (ishape > eshape && next_earc->link_up)
+	while (ishape != eshape && next_earc->link_up)
 	{
 		next_earc->flag = 1; // mark previous as taken, to prevent backtrack on lower levels
 		
@@ -1289,7 +1303,17 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 		}
 	}
 	
+	/* not found, try at higher nodes (lower node might have filtered internal arcs, messing shape of tree */
+	if (next_iarc->link_mesh == NULL)
+	{
+		if (enode->link_up)
+		{
+			start_node->link_mesh = enode->link_up;
+			findCorrespondingArc(start_arc, start_node, next_iarc);
+		}
+	}
 
+	/* still not found, print debug info */
 	if (next_iarc->link_mesh == NULL)
 	{
 		printf("--------------------------\n");

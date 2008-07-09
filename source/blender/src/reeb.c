@@ -210,6 +210,9 @@ ReebNode * copyNode(ReebGraph *rg, ReebNode *node)
 	cp_node->next = NULL;
 	cp_node->arcs = NULL;
 	
+	cp_node->link_up = NULL;
+	cp_node->link_down = NULL;
+	
 	BLI_addtail(&rg->nodes, cp_node);
 	rg->totnodes++;
 	
@@ -232,6 +235,7 @@ void relinkNodes(ReebGraph *low_rg, ReebGraph *high_rg)
 			if (low_node->index == high_node->index)
 			{
 				high_node->link_down = low_node;
+				low_node->link_up = high_node;
 				break;
 			}
 		}
@@ -1202,9 +1206,10 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 			// If middle node is a normal node, it will be removed later
 			if (middleNode->degree == 2)
 			{
-				removedNode = middleNode;
-
-				filterArc(rg, terminalNode, removedNode, arc, 1);
+				continue;
+//				removedNode = middleNode;
+//
+//				filterArc(rg, terminalNode, removedNode, arc, 1);
 			}
 			// Otherwise, just plain remove of the arc
 			else
@@ -3103,9 +3108,17 @@ void REEB_draw()
 		{
 			glColor3f(1, 0, 0);
 		}
-		else
+		else if (arc->head->symmetry_flag & SYM_AXIAL)
 		{
 			glColor3f(1, 0.5f, 0);
+		}
+		else if (arc->head->symmetry_flag & SYM_RADIAL)
+		{
+			glColor3f(0.5f, 1, 0);
+		}
+		else
+		{
+			glColor3f(1, 1, 0);
 		}
 		glBegin(GL_LINE_STRIP);
 			glVertex3fv(arc->head->p);
@@ -3144,6 +3157,14 @@ void REEB_draw()
 		
 		glColor3f(0, 1, 0);
 		glRasterPos3fv(vec);
+		BMF_DrawString( G.fonts, text);
+
+		sprintf(text, "%i", arc->head->index);
+		glRasterPos3fv(arc->head->p);
+		BMF_DrawString( G.fonts, text);
+
+		sprintf(text, "%i", arc->tail->index);
+		glRasterPos3fv(arc->tail->p);
 		BMF_DrawString( G.fonts, text);
 	}
 	glEnable(GL_DEPTH_TEST);
