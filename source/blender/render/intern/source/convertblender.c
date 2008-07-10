@@ -204,6 +204,7 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 	else stargrid *= 1.0;				/* then it draws fewer */
 	
 	if(re) MTC_Mat4Invert(mat, re->viewmat);
+	else MTC_Mat4One(mat);
 	
 	/* BOUNDING BOX CALCULATION
 		* bbox goes from z = loc_near_var | loc_far_var,
