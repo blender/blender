@@ -1534,7 +1534,7 @@ void CustomData_from_em_block(const CustomData *source, CustomData *dest,
 }
 
 /*Bmesh functions*/
-
+/*needed to convert to/from different face reps*/
 void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata)
 {
 	int i;
@@ -1547,15 +1547,15 @@ void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *l
 			CustomData_add_layer(ldata, CD_MLOOPCOL, CD_CALLOC, &(fdata->layers[i].name), 0);
 	}		
 }
-void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata){
+void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){
 	int i;
 	for(i=0; i < pdata->totlayer; i++){
 		if(pdata->layers[i].type == CD_MTEXPOLY)
-			CustomData_add_layer(fdata, CD_MTFACE, CD_CALLOC, &(pdata->layers[i].name), 0);
+			CustomData_add_layer(fdata, CD_MTFACE, CD_CALLOC, &(pdata->layers[i].name), total);
 	}
 	for(i=0; i < ldata->totlayer; i++){
 		if(ldata->layers[i].type == CD_MLOOPCOL)
-			CustomData_add_layer(fdata, CD_MCOL, CD_CALLOC, &(ldata->layers[i].name), 0);
+			CustomData_add_layer(fdata, CD_MCOL, CD_CALLOC, &(ldata->layers[i].name), total);
 	}
 }
 
