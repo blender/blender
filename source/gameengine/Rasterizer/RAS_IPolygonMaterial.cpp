@@ -27,6 +27,7 @@
  */
 
 #include "RAS_IPolygonMaterial.h"
+#include "RAS_IRasterizer.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -148,4 +149,19 @@ const unsigned int	RAS_IPolyMaterial::GetFlag() const
 	return m_flag;
 }
 
+bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
+{
+	bool dolights = false;
+
+	if(m_flag & RAS_BLENDERMAT)
+		dolights = (m_flag &RAS_MULTILIGHT)!=0;
+	else if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
+	else if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
+	else
+		dolights = (m_drawingmode & 16)!=0;
+	
+	return dolights;
+}
+
 unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;
+

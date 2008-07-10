@@ -2,7 +2,7 @@
 #ifndef __BL_GPUSHADER_H__
 #define __BL_GPUSHADER_H__
 
-#if 0
+#ifdef BLENDER_GLSL
 #include "GPU_material.h"
 #endif
 
@@ -12,7 +12,10 @@
 #include "MT_Tuple3.h"
 #include "MT_Tuple4.h"
 
+#include "RAS_IPolygonMaterial.h"
+
 struct Material;
+class BL_Material;
 
 #define BL_MAX_ATTRIB	16
 
@@ -23,22 +26,24 @@ struct Material;
 class BL_BlenderShader
 {
 private:
-#if 0
+#ifdef BLENDER_GLSL
 	GPUMaterial		*mGPUMat;
 #endif
 	bool			mBound;
+	int				mLightLayer;
 
 public:
-	BL_BlenderShader(struct Material *ma);
+	BL_BlenderShader(struct Material *ma, int lightlayer);
 	virtual ~BL_BlenderShader();
 
 	const bool			Ok()const;
 	void				SetProg(bool enable);
 
-	void ApplyShader();
-	void SetTexCoords(class RAS_IRasterizer* ras);
 	int GetAttribNum();
+	void SetAttribs(class RAS_IRasterizer* ras, const BL_Material *mat);
 	void Update(const class KX_MeshSlot & ms, class RAS_IRasterizer* rasty);
+
+	bool Equals(BL_BlenderShader *blshader);
 };
 
 #endif//__BL_GPUSHADER_H__

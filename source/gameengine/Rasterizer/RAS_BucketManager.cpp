@@ -109,7 +109,7 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	// it is needed for compatibility.
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
 
-	int drawingmode;
+	RAS_IRasterizer::DrawMode drawingmode;
 	std::multiset< alphamesh, backtofront>::iterator msit = alphameshset.begin();
 	for (; msit != alphameshset.end(); ++msit)
 	{

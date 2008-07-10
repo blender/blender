@@ -58,9 +58,8 @@ public:
                      Object *bmeshobj,
                      BL_SkinMeshObject *mesh)
 					:	
-						BL_SkinDeformer(bmeshobj, mesh),
-						m_lastShapeUpdate(-1),
-						m_gameobj(gameobj)
+						BL_SkinDeformer(gameobj,bmeshobj, mesh),
+						m_lastShapeUpdate(-1)
 	{
 	};
 
@@ -72,9 +71,8 @@ public:
 					bool release_object,
 					BL_ArmatureObject* arma = NULL)
 					:
-						BL_SkinDeformer(bmeshobj_old, bmeshobj_new, mesh, release_object, arma),
-						m_lastShapeUpdate(-1),
-						m_gameobj(gameobj)
+						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, arma),
+						m_lastShapeUpdate(-1)
 	{
 	};
 
@@ -94,7 +92,6 @@ public:
 protected:
 	vector<IpoCurve*>		 m_shapeDrivers;
 	double					 m_lastShapeUpdate;
-	BL_DeformableGameObject* m_gameobj;
 
 };
 

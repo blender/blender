@@ -1,9 +1,11 @@
 
 #include "DNA_customdata_types.h"
+#include "DNA_material_types.h"
 
 #include "BL_BlenderShader.h"
+#include "BL_Material.h"
 
-#if 0
+#ifdef BLENDER_GLSL
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 #endif
@@ -13,29 +15,32 @@
 
 const bool BL_BlenderShader::Ok()const
 {
-#if 0
+#ifdef BLENDER_GLSL
 	return (mGPUMat != 0);
+#else
+	return 0;
 #endif
-
-	return false;
 }
 
-BL_BlenderShader::BL_BlenderShader(struct Material *ma)
+BL_BlenderShader::BL_BlenderShader(struct Material *ma, int lightlayer)
 :
-#if 0
+#ifdef BLENDER_GLSL
 	mGPUMat(0),
 #endif
-	mBound(false)
+	mBound(false),
+	mLightLayer(lightlayer)
 {
-#if 0
-	if(ma)
-		mGPUMat = GPU_material_from_blender(ma, GPU_PROFILE_DERIVEDMESH);
+#ifdef BLENDER_GLSL
+	if(ma) {
+		GPU_material_from_blender(ma);
+		mGPUMat = ma->gpumaterial;
+	}
 #endif
 }
 
 BL_BlenderShader::~BL_BlenderShader()
 {
-#if 0
+#ifdef BLENDER_GLSL
 	if(mGPUMat) {
 		GPU_material_unbind(mGPUMat);
 		mGPUMat = 0;
@@ -43,16 +48,12 @@ BL_BlenderShader::~BL_BlenderShader()
 #endif
 }
 
-void BL_BlenderShader::ApplyShader()
-{
-}
-
 void BL_BlenderShader::SetProg(bool enable)
 {
-#if 0
+#ifdef BLENDER_GLSL
 	if(mGPUMat) {
 		if(enable) {
-			GPU_material_bind(mGPUMat);
+			GPU_material_bind(mGPUMat, mLightLayer);
 			mBound = true;
 		}
 		else {
@@ -65,7 +66,7 @@ void BL_BlenderShader::SetProg(bool enable)
 
 int BL_BlenderShader::GetAttribNum()
 {
-#if 0
+#ifdef BLENDER_GLSL
 	GPUVertexAttribs attribs;
 	int i, enabled = 0;
 
@@ -82,16 +83,18 @@ int BL_BlenderShader::GetAttribNum()
 		enabled = BL_MAX_ATTRIB;
 
 	return enabled;
-#endif
-
+#else
 	return 0;
+#endif
 }
 
-void BL_BlenderShader::SetTexCoords(RAS_IRasterizer* ras)
+void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 {
-#if 0
+#ifdef BLENDER_GLSL
 	GPUVertexAttribs attribs;
 	int i, attrib_num;
+
+	ras->SetAttribNum(0);
 
 	if(!mGPUMat)
 		return;
@@ -109,14 +112,24 @@ void BL_BlenderShader::SetTexCoords(RAS_IRasterizer* ras)
 			if(attribs.layer[i].glindex > attrib_num)
 				continue;
 
-			if(attribs.layer[i].type == CD_MTFACE)
-				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
+			if(attribs.layer[i].type == CD_MTFACE) {
+				if(!mat->uvName.IsEmpty() && strcmp(mat->uvName.ReadPtr(), attribs.layer[i].name) == 0)
+					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
+				else if(!mat->uv2Name.IsEmpty() && strcmp(mat->uv2Name.ReadPtr(), attribs.layer[i].name) == 0)
+					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV2, attribs.layer[i].glindex);
+				else
+					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
+			}
 			else if(attribs.layer[i].type == CD_TANGENT)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT, attribs.layer[i].glindex);
 			else if(attribs.layer[i].type == CD_ORCO)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_ORCO, attribs.layer[i].glindex);
 			else if(attribs.layer[i].type == CD_NORMAL)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_NORM, attribs.layer[i].glindex);
+			else if(attribs.layer[i].type == CD_MCOL)
+				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_VCOL, attribs.layer[i].glindex);
+			else
+				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_DISABLE, attribs.layer[i].glindex);
 		}
 
 		ras->EnableTextures(true);
@@ -128,8 +141,8 @@ void BL_BlenderShader::SetTexCoords(RAS_IRasterizer* ras)
 
 void BL_BlenderShader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 {
-#if 0
-	float obmat[4][4], viewmat[4][4];
+#ifdef BLENDER_GLSL
+	float obmat[4][4], viewmat[4][4], viewinvmat[4][4];
 
 	if(!mGPUMat || !mBound)
 		return;
@@ -142,7 +155,20 @@ void BL_BlenderShader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 	model.getValue((float*)obmat);
 	view.getValue((float*)viewmat);
 
-	GPU_material_bind_uniforms(mGPUMat, obmat, viewmat);
+	view.invert();
+	view.getValue((float*)viewinvmat);
+
+	GPU_material_bind_uniforms(mGPUMat, obmat, viewmat, viewinvmat);
+#endif
+}
+
+bool BL_BlenderShader::Equals(BL_BlenderShader *blshader)
+{
+#ifdef BLENDER_GLSL
+	/* to avoid unneeded state switches */
+	return (blshader && mGPUMat == blshader->mGPUMat && mLightLayer == blshader->mLightLayer);
+#else
+	return true;
 #endif
 }
 
