@@ -1274,6 +1274,36 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 	next_iarc->link_mesh = next_earc;
 }
 
+static void matchMultiResolutionStartingArc(ReebGraph *reebg, RigArc *iarc, RigNode *inode)
+{
+	ReebArc *earc;
+	ReebNode *enode;
+	int ishape, eshape;
+	int MAGIC_NUMBER = 100; /* FIXME */
+	
+	earc = reebg->arcs.first;
+	enode = earc->head;
+	
+	ishape = BLI_subtreeShape((BNode*)inode, (BArc*)iarc, 1) % MAGIC_NUMBER;
+	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)earc, 1) % MAGIC_NUMBER;
+	
+	while (ishape != eshape && reebg->link_up)
+	{
+		earc->flag = 1; // mark previous as taken, to prevent backtrack on lower levels
+		
+		reebg = reebg->link_up;
+		
+		earc = reebg->arcs.first;
+		enode = earc->head;
+		
+		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)earc, 1) % MAGIC_NUMBER;
+	} 
+
+	earc->flag = 1; // mark as taken
+	iarc->link_mesh = earc;
+	inode->link_mesh = enode;
+}
+
 static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc *next_iarc)
 {
 	ReebNode *enode = start_node->link_mesh;
@@ -1381,13 +1411,12 @@ static void retargetGraphs(RigGraph *rigg)
 	/* return to first level */
 	reebg = rigg->link_mesh;
 	
-	earc = reebg->arcs.first;
 	iarc = (RigArc*)rigg->head->arcs[0];
 	inode = iarc->tail;
 	
-	matchMultiResolutionArc(inode, iarc, earc);
+	matchMultiResolutionStartingArc(reebg, iarc, inode);
 
-	earc = iarc->link_mesh; /* find might have changed it */
+	earc = iarc->link_mesh; /* has been set earlier */
 	enode = earc->head;
 
 	inode->link_mesh = enode;
