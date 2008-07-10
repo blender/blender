@@ -47,6 +47,7 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_graph.h"
+#include "BLI_rand.h"
 
 #include "BDR_editobject.h"
 
@@ -591,7 +592,7 @@ static float calcMaximumDistance(ReebArcIterator *iter, float *vec0, float *vec1
 	if (v1_inpf > 0)
 	{
 		int j;
-		for (j = i0; j < i1; j++)
+		for (j = i0 + 1; j < i1 - 1; j++)
 		{
 			float dist;
 			
@@ -660,6 +661,8 @@ static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *ve
 	return new_cost;
 }
 
+#define MAX_COST 100 /* FIX ME */
+
 static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int index, int nb_joints, float *cost_cube, int *positions, float **vec_cache)
 {
 	EmbedBucket *bucket = NULL;
@@ -700,7 +703,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	
 	if (index + 1 < nb_joints && next_position == positions[index + 1])
 	{
-		cost_cube[index * 3 + 2] = 1;
+		cost_cube[index * 3 + 2] = MAX_COST;
 	}
 	else
 	{
@@ -708,7 +711,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 		
 		if (bucket == NULL)
 		{
-			cost_cube[index * 3 + 2] = 1;
+			cost_cube[index * 3 + 2] = MAX_COST;
 		}
 		else
 		{
@@ -722,7 +725,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	
 	if (index - 1 > -1 && next_position == positions[index - 1])
 	{
-		cost_cube[index * 3] = 1;
+		cost_cube[index * 3] = MAX_COST;
 	}
 	else
 	{
@@ -730,7 +733,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 		
 		if (bucket == NULL)
 		{
-			cost_cube[index * 3] = 1;
+			cost_cube[index * 3] = MAX_COST;
 		}
 		else
 		{
@@ -739,6 +742,73 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 			cost_cube[index * 3] = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
 		}
 	}
+}
+
+static float probability(float delta_cost, float iterations)
+{
+	if (delta_cost < 0)
+	{
+		return 1;
+	}
+	else
+	{
+		float temperature = (1 - iterations);
+		return (float)exp(delta_cost) * temperature;
+	}
+}
+
+static int neighbour(int nb_joints, float *cost_cube, int *moving_joint, int *moving_direction)
+{
+	int total = 0;
+	int chosen = 0;
+	int i;
+	
+	for (i = 0; i < nb_joints; i++)
+	{
+		if (cost_cube[i * 3] < MAX_COST)
+		{
+			total++;
+		}
+		
+		if (cost_cube[i * 3 + 2] < MAX_COST)
+		{
+			total++;
+		}
+	}
+	
+	if (total == 0)
+	{
+		return 0;
+	}
+	
+	chosen = (int)BLI_drand() * total;
+	
+	for (i = 0; i < nb_joints; i++)
+	{
+		if (cost_cube[i * 3] < MAX_COST)
+		{
+			if (chosen == 0)
+			{
+				*moving_joint = i;
+				*moving_direction = -1;
+				break;
+			}
+			chosen--;
+		}
+		
+		if (cost_cube[i * 3 + 2] < MAX_COST)
+		{
+			if (chosen == 0)
+			{
+				*moving_joint = i;
+				*moving_direction = 1;
+				break;
+			}
+			chosen--;
+		}
+	}
+	
+	return 1;
 }
 
 static void retargetArctoArcAggresive(RigArc *iarc)
@@ -798,7 +868,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	vec_cache[0] = node_start->p;
 	vec_cache[nb_edges] = node_end->p;
 
-#if 1
+#if 1 /* BRUTE FORCE */
 	while(1)
 	{
 		float cost = 0;
@@ -958,12 +1028,88 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			memcpy(best_positions, positions, sizeof(int) * nb_joints);
 		}
 	}
-#else
+#elif 1 /* SIMULATED ANNEALING */
+	{
+		RigEdge *previous;
+		float *cost_cube;
+		int k, kmax;
+		
+		kmax = 100;
+		
+		/* [joint: index][position: -1, 0, +1] */
+		cost_cube = MEM_callocN(sizeof(float) * 3 * nb_joints, "Cost Cube");
+		
+		initArcIterator(&iter, earc, node_start);
+
+		/* init vec_cache */
+		for (i = 0; i < nb_joints; i++)
+		{
+			bucket = peekBucket(&iter, positions[i]);
+			vec_cache[i + 1] = bucket->p;
+		}
+
+		/* init cost cube */
+		for (previous = iarc->edges.first, edge = previous->next, i = 0;
+			 edge;
+			 previous = edge, edge = edge->next, i += 1)
+		{
+			calcGradient(previous, edge, &iter, i, nb_joints, cost_cube, positions, vec_cache);
+		}
+		
+		for (k = 0; k < kmax; k++)
+		{
+			int status;
+			int moving_joint = -1;
+			int move_direction = -1;
+			float delta_cost;
+			
+			printf("\r%i", k);
+			
+			status = neighbour(nb_joints, cost_cube, &moving_joint, &move_direction);
+			
+			if (status == 0)
+			{
+				break;
+			}
+			
+			delta_cost = cost_cube[moving_joint * 3 + (1 + move_direction)];
+
+			if (probability(delta_cost, (float)k / (float)kmax) > BLI_frand())
+			{
+				/* update position */			
+				positions[moving_joint] += move_direction;
+				
+				/* update vector cache */
+				bucket = peekBucket(&iter, positions[moving_joint]);
+				vec_cache[moving_joint + 1] = bucket->p;
+	
+				/* update cost cube */			
+				for (previous = iarc->edges.first, edge = previous->next, i = 0;
+					 edge;
+					 previous = edge, edge = edge->next, i += 1)
+				{
+					if (i == moving_joint - 1 ||
+						i == moving_joint ||
+						i == moving_joint + 1)
+					{
+						calcGradient(previous, edge, &iter, i, nb_joints, cost_cube, positions, vec_cache);
+					}
+				}
+			}
+		}
+		
+		printf("\n");
+		
+		memcpy(best_positions, positions, sizeof(int) * nb_joints);
+		
+		MEM_freeN(cost_cube);
+	}	
+#else	  /* GRADIENT DESCENT*/
 	{
 		RigEdge *previous;
 		float *cost_cube;
 		
-		/* [joint: index][position: -1, 0, +2] */
+		/* [joint: index][position: -1, 0, +1] */
 		cost_cube = MEM_callocN(sizeof(float) * 3 * nb_joints, "Cost Cube");
 		
 		initArcIterator(&iter, earc, node_start);
