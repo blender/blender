@@ -310,6 +310,7 @@ ReebGraph * copyReebGraph(ReebGraph *rg)
 	ReebGraph *cp_rg = newReebGraph();
 	
 	cp_rg->resolution = rg->resolution;
+	cp_rg->length = rg->length;
 	cp_rg->link_up = rg;
 
 	/* Copy nodes */	
@@ -2947,11 +2948,19 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	/* Remove arcs without embedding */
 	filterNullReebGraph(rg);
 
+	/* smart filter and loop filter on basic level */
+	filterGraph(rg, SKGEN_FILTER_SMART, 0, 0);
+
 	repositionNodes(rg);
 
 	/* Filtering might have created degree 2 nodes, so remove them */
 	removeNormalNodes(rg);
 	
+	BLI_rebuildAdjacencyList((BGraph*)rg);
+	
+	/* calc length before copy, so we have same length on all levels */
+	BLI_calcGraphLength((BGraph*)rg);
+
 	for (i = 0; i < nb_levels; i++)
 	{
 		rg = copyReebGraph(rg);
@@ -2959,17 +2968,12 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	
 	for (rgi = rg, i = nb_levels, previous = NULL; rgi; previous = rgi, rgi = rgi->link_up, i--)
 	{
-		/* don't fully filter last level */
+		/* don't filter last level */
 		if (rgi->link_up)
 		{
-			float internal_threshold = G.scene->toolsettings->skgen_threshold_internal * (i / (float)nb_levels);
-			float external_threshold = G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
+			float internal_threshold = rg->length * G.scene->toolsettings->skgen_threshold_internal * (i / (float)nb_levels);
+			float external_threshold = rg->length * G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
 			filterGraph(rgi, G.scene->toolsettings->skgen_options, internal_threshold, external_threshold);
-		}
-		/* on last level, only smart filter and loop filter */
-		else
-		{
-			filterGraph(rgi, SKGEN_FILTER_SMART, 0, 0);
 		}
 
 		finalizeGraph(rgi, G.scene->toolsettings->skgen_postpro_passes, G.scene->toolsettings->skgen_postpro);

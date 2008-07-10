@@ -42,6 +42,8 @@ typedef struct ReebGraph {
 	ListBase	arcs;
 	ListBase	nodes;
 	
+	float length;
+	
 	FreeArc			free_arc;
 	FreeNode		free_node;
 	RadialSymmetry	radial_symmetry;

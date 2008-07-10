@@ -358,6 +358,59 @@ int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 	}
 }
 
+float BLI_subtreeLength(BNode *node, BArc *rootArc)
+{
+	float length = 0;
+	int i;
+
+	for(i = 0; i < node->degree; i++)
+	{
+		BArc *arc = node->arcs[i];
+		
+		/* don't go back on the root arc */
+		if (arc != rootArc)
+		{
+			length = MAX2(length, BLI_subtreeLength(BLI_otherNode(arc, node), arc));
+		}
+	}
+	
+	if (rootArc)
+	{
+		length += rootArc->length;
+	}
+	
+	return length;
+}
+
+void BLI_calcGraphLength(BGraph *graph)
+{
+	if (BLI_isGraphCyclic(graph) == 0)
+	{
+		float length = 0;
+		int nb_subgraphs;
+		int i;
+		
+		nb_subgraphs = BLI_FlagSubgraphs(graph);
+		
+		for (i = 1; i <= nb_subgraphs; i++)
+		{
+			BNode *node;
+			
+			for (node = graph->nodes.first; node; node = node->next)
+			{
+				/* start on an external node  of the subgraph */
+				if (node->flag == i && node->degree == 1)
+				{
+					length = MAX2(length, BLI_subtreeLength(node, NULL));
+					break;
+				}
+			}
+		}
+		
+		graph->length = length;
+	}
+}
+
 /********************************* SYMMETRY DETECTION **************************************************/
 
 void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float limit);

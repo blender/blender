@@ -24,6 +24,8 @@ typedef struct BGraph {
 	ListBase	arcs;
 	ListBase	nodes;
 	
+	float length;
+	
 	/* function pointer to deal with custom fonctionnality */
 	FreeArc			free_arc;
 	FreeNode		free_node;
@@ -79,6 +81,8 @@ void BLI_freeAdjacencyList(BGraph *rg);
 int BLI_FlagSubgraphs(BGraph *graph);
 
 int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root);
+float BLI_subtreeLength(BNode *node, BArc *rootArc);
+void BLI_calcGraphLength(BGraph *graph);
 
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced);
 void BLI_removeDoubleNodes(BGraph *graph, float limit);
@@ -88,7 +92,6 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v);
 int	BLI_isGraphCyclic(BGraph *graph);
 
 /*------------ Symmetry handling ------------*/
-//	float limit = G.scene->toolsettings->skgen_symmetry_limit;
 void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit);
 
 void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3]);

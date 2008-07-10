@@ -74,6 +74,8 @@ typedef struct RigGraph {
 	ListBase	arcs;
 	ListBase	nodes;
 	
+	float length;
+	
 	FreeArc			free_arc;
 	FreeNode		free_node;
 	RadialSymmetry	radial_symmetry;
