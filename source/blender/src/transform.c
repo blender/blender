@@ -2412,18 +2412,32 @@ void initRotation(TransInfo *t)
 		t->flag |= T_NO_CONSTRAINT;
 }
 
-static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
+static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around) {
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
-
+	float *center = t->center;
+	
+	/* local constraint shouldn't alter center */
+	if (around == V3D_LOCAL) {
+		if (t->flag & (T_OBJECT|T_POSE)) {
+			center = td->center;
+		}
+		else {
+			/* !TODO! Make this if not rely on G */
+			if(around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+				center = td->center;
+			}
+		}
+	}
+		
 	if (t->flag & T_POINTS) {
 		Mat3MulMat3(totmat, mat, td->mtx);
 		Mat3MulMat3(smat, td->smtx, totmat);
 		
-		VecSubf(vec, td->iloc, t->center);
+		VecSubf(vec, td->iloc, center);
 		Mat3MulVecfl(smat, vec);
 		
-		VecAddf(td->loc, vec, t->center);
+		VecAddf(td->loc, vec, center);
 
 		VecSubf(vec,td->loc,td->iloc);
 		protectedTransBits(td->protectflag, vec);
@@ -2460,13 +2474,13 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		Mat3CpyMat4(pmtx, t->poseobj->obmat);
 		Mat3Inv(imtx, pmtx);
 		
-		VecSubf(vec, td->center, t->center);
+		VecSubf(vec, td->center, center);
 		
 		Mat3MulVecfl(pmtx, vec);	// To Global space
 		Mat3MulVecfl(mat, vec);		// Applying rotation
 		Mat3MulVecfl(imtx, vec);	// To Local space
 
-		VecAddf(vec, vec, t->center);
+		VecAddf(vec, vec, center);
 		/* vec now is the location where the object has to be */
 		
 		VecSubf(vec, vec, td->center); // Translation needed from the initial location
@@ -2495,9 +2509,9 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 	}
 	else {
 		/* translation */
-		VecSubf(vec, td->center, t->center);
+		VecSubf(vec, td->center, center);
 		Mat3MulVecfl(mat, vec);
-		VecAddf(vec, vec, t->center);
+		VecAddf(vec, vec, center);
 		/* vec now is the location where the object has to be */
 		VecSubf(vec, vec, td->center);
 		Mat3MulVecfl(td->smtx, vec);
@@ -2586,16 +2600,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 static void applyRotation(TransInfo *t, float angle, float axis[3]) 
 {
 	TransData *td = t->data;
-	float mat[3][3], center[3];
+	float mat[3][3];
 	int i;
-
-	/* saving original center */
-	if (t->around == V3D_LOCAL) {
-		VECCOPY(center, t->center);
-	}
-	else {
-		center[0] = center[1] = center[2] = 0.0f;
-	}
 
 	VecRotToMat3(axis, angle, mat);
 	
@@ -2607,18 +2613,6 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		/* local constraint shouldn't alter center */
-		if (t->around == V3D_LOCAL) {
-			if (t->flag & (T_OBJECT|T_POSE)) {
-				VECCOPY(t->center, td->center);
-			}
-			else {
-				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
-					VECCOPY(t->center, td->center);
-				}
-			}
-		}
-		
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis, NULL);
 			VecRotToMat3(axis, angle * td->factor, mat);
@@ -2627,12 +2621,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 			VecRotToMat3(axis, angle * td->factor, mat);
 		}
 
-		ElementRotation(t, td, mat);
-	}
-
-	/* restoring original center */
-	if (t->around == V3D_LOCAL) {
-		VECCOPY(t->center, center);
+		ElementRotation(t, td, mat, t->around);
 	}
 }
 
@@ -2730,7 +2719,6 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 {
 	TransData *td = t->data;
 	float mat[3][3], smat[3][3], totmat[3][3];
-	float center[3];
 	int i;
 
 	VecRotToMat3(axis1, angles[0], smat);
@@ -2745,20 +2733,6 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		VECCOPY(center, t->center);
-		
-		if (t->around == V3D_LOCAL) {
-			/* local-mode shouldn't change center */
-			if (t->flag & (T_OBJECT|T_POSE)) {
-				VECCOPY(t->center, td->center);
-			}
-			else {
-				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
-					VECCOPY(t->center, td->center);
-				}
-			}
-		}
-		
 		if (t->flag & T_PROP_EDIT) {
 			VecRotToMat3(axis1, td->factor * angles[0], smat);
 			VecRotToMat3(axis2, td->factor * angles[1], totmat);
@@ -2766,9 +2740,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			Mat3MulMat3(mat, smat, totmat);
 		}
 		
-		ElementRotation(t, td, mat);
-		
-		VECCOPY(t->center, center);
+		ElementRotation(t, td, mat, t->around);
 	}
 }
 
@@ -2943,6 +2915,36 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 		if (td->flag & TD_SKIP)
 			continue;
 		
+		/* handle snapping rotation before doing the translation */
+		if (usingSnappingNormal(t))
+		{
+			if (validSnappingNormal(t))
+			{
+				float *original_normal = td->axismtx[2];
+				float axis[3];
+				float quat[4];
+				float mat[3][3];
+				float angle;
+				
+				Crossf(axis, original_normal, t->tsnap.snapNormal);
+				angle = saacos(Inpf(original_normal, t->tsnap.snapNormal));
+				
+				AxisAngleToQuat(quat, axis, angle);
+	
+				QuatToMat3(quat, mat);
+				
+				ElementRotation(t, td, mat, V3D_LOCAL);
+			}
+			else
+			{
+				float mat[3][3];
+				
+				Mat3One(mat);
+				
+				ElementRotation(t, td, mat, V3D_LOCAL);
+			}
+		}
+
 		if (t->con.applyVec) {
 			float pvec[3];
 			t->con.applyVec(t, td, vec, tvec, pvec);
@@ -4157,7 +4159,7 @@ int Align(TransInfo *t, short mval[2])
 		
 		Mat3MulMat3(mat, t->spacemtx, invmat);	
 
-		ElementRotation(t, td, mat);
+		ElementRotation(t, td, mat, t->around);
 	}
 
 	/* restoring original center */

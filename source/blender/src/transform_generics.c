@@ -113,7 +113,6 @@ extern TransInfo Trans;	/* From transform.c */
 
 /* ************************** Functions *************************** */
 
-
 void getViewVector(float coord[3], float vec[3])
 {
 	TransInfo *t = BIF_GetTransInfo();

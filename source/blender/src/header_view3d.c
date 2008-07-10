@@ -5071,6 +5071,18 @@ static char *ndof_pup(void)
 }
 
 
+static char *snapmode_pup(void)
+{
+	static char string[512];
+	char *str = string;
+	
+	str += sprintf(str, "%s", "Snap Mode: %t"); 
+	str += sprintf(str, "%s", "|Vertex%x0");
+	str += sprintf(str, "%s", "|Edge%x1");
+	str += sprintf(str, "%s", "|Face%x2"); 
+	return string;
+}
+
 static char *propfalloff_pup(void)
 {
 	static char string[512];
@@ -5697,6 +5709,10 @@ void view3d_buttons(void)
 
 			if (G.scene->snap_flag & SCE_SNAP) {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
+				xco+= XIC;
+				uiDefIconButBitS(block, TOG, SCE_SNAP_ROTATE, B_REDR, ICON_SNAP_NORMAL,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Align rotation with the snapping target");	
+				xco+= XIC;
+				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_VERTEXSEL, snapmode_pup(), xco,0,XIC+10,YIC, &(G.scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;
