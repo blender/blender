@@ -47,6 +47,7 @@ public:
 						short	playtype,
 						short	blendin,
 						short	priority,
+						short	end_reset,
 						float	stride,
 						PyTypeObject* T=&Type) 
 		: SCA_IActuator(gameobj,T),
@@ -64,6 +65,7 @@ public:
 		m_stridelength(stride),
 		m_playtype(playtype),
 		m_priority(priority),
+		m_end_reset(end_reset),
 		m_pose(NULL),
 		m_blendpose(NULL),
 		m_userpose(NULL),
@@ -101,6 +103,8 @@ public:
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
+	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
+	KX_PYMETHOD_O(BL_ActionActuator,SetContinue);
 
 	virtual PyObject* _getattr(const STR_String& attr);
 
@@ -137,6 +141,7 @@ protected:
 	float	m_stridelength;
 	short	m_playtype;
 	short	m_priority;
+	short	m_end_reset;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;

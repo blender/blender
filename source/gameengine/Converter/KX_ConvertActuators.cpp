@@ -193,6 +193,7 @@ void BL_ConvertActuators(char* maggiename,
 						actact->type, // + 1, because Blender starts to count at zero,
 						actact->blendin,
 						actact->priority,
+						actact->end_reset,
 						actact->stridelength
 						// Ketsji at 1, because zero is reserved for "NoDef"
 						);

@@ -1769,23 +1769,27 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 #else
 			str= "Action types   %t|Play %x0|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x6";
 #endif
-			uiDefButS(block, MENU, B_REDR, str, xco+30, yco-24, (width-60)/2, 19, &aa->type, 0.0, 0.0, 0.0, 0.0, "Action playback type");
-			uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, 1, "AC: ", xco+30 + ((width-60)/2), yco-24, (width-60)/2, 19, &aa->act, "Action name");
+			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-24, width/3, 19, &aa->type, 0.0, 0.0, 0.0, 0.0, "Action playback type");
+			uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, 1, "AC: ", xco+10+ (width/3), yco-24, ((width/3)*2) - (20 + 60), 19, &aa->act, "Action name");
+			
+			uiDefButBitS(block, TOGN, 1, 0, "Continue", xco+((width/3)*2)+20, yco-24, 60, 19,
+					 &aa->end_reset, 0.0, 0.0, 0, 0, "Restore last frame when switching on/off, otherwise play from the start each time");
+			
 			
 			if(aa->type == ACT_ACTION_FROM_PROP)
 			{
-				uiDefBut(block, TEX, 0, "Prop: ",xco+30, yco-44, width-60, 19, aa->name, 0.0, 31.0, 0, 0, "Use this property to define the Action position");
+				uiDefBut(block, TEX, 0, "Prop: ",xco+10, yco-44, width-20, 19, aa->name, 0.0, 31.0, 0, 0, "Use this property to define the Action position");
 			}
 			else
 			{
-				uiDefButI(block, NUM, 0, "Sta: ",xco+30, yco-44, (width-60)/2, 19, &aa->sta, 0.0, MAXFRAMEF, 0, 0, "Start frame");
-				uiDefButI(block, NUM, 0, "End: ",xco+30+(width-60)/2, yco-44, (width-60)/2, 19, &aa->end, 0.0, MAXFRAMEF, 0, 0, "End frame");
+				uiDefButI(block, NUM, 0, "Sta: ",xco+10, yco-44, (width-20)/2, 19, &aa->sta, 0.0, MAXFRAMEF, 0, 0, "Start frame");
+				uiDefButI(block, NUM, 0, "End: ",xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &aa->end, 0.0, MAXFRAMEF, 0, 0, "End frame");
 			}
 						
-			uiDefButI(block, NUM, 0, "Blendin: ", xco+30, yco-64, (width-60)/2, 19, &aa->blendin, 0.0, MAXFRAMEF, 0.0, 0.0, "Number of frames of motion blending");
-			uiDefButS(block, NUM, 0, "Priority: ", xco+30+(width-60)/2, yco-64, (width-60)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers, With 2 or more actions at once, the overriding channels must be lower in the stack");
+			uiDefButS(block, NUM, 0, "Blendin: ", xco+10, yco-64, (width-20)/2, 19, &aa->blendin, 0.0, 32767, 0.0, 0.0, "Number of frames of motion blending");
+			uiDefButS(block, NUM, 0, "Priority: ", xco+10+(width-20)/2, yco-64, (width-20)/2, 19, &aa->priority, 0.0, 100.0, 0.0, 0.0, "Execution priority - lower numbers will override actions with higher numbers, With 2 or more actions at once, the overriding channels must be lower in the stack");
 			
-			uiDefBut(block, TEX, 0, "FrameProp: ",xco+30, yco-84, width-60, 19, aa->frameProp, 0.0, 31.0, 0, 0, "Assign this property this actions current frame number");			
+			uiDefBut(block, TEX, 0, "FrameProp: ",xco+10, yco-84, width-20, 19, aa->frameProp, 0.0, 31.0, 0, 0, "Assign this property this actions current frame number");			
 
 			
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR

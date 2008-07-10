@@ -51,8 +51,9 @@ typedef struct bActionActuator {
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
 	char	frameProp[32];	/* Set this property to the actions current frame */
-	int	blendin;		/* Number of frames of blending */	
-	short	priority;		/* Execution priority */			
+	short	blendin;		/* Number of frames of blending */
+	short	priority;		/* Execution priority */
+	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
 	float	stridelength;	/* Displacement incurred by cycle */
 } bActionActuator;												
