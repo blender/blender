@@ -441,6 +441,10 @@ LbmFsgrSolver::~LbmFsgrSolver()
 	delete mpIso;
 	if(mpPreviewSurface) delete mpPreviewSurface;
 	// cleanup done during scene deletion...
+	
+#if LBM_INCLUDE_CONTROL==1
+	if(mpControl) delete mpControl;
+#endif
 
 	// always output performance estimate
 	debMsgStd("LbmFsgrSolver::~LbmFsgrSolver",DM_MSG," Avg. MLSUPS:"<<(mAvgMLSUPS/mAvgMLSUPSCnt), 5);

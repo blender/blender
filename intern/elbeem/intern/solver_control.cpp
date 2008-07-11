@@ -63,6 +63,9 @@ LbmControlData::LbmControlData() :
 
 LbmControlData::~LbmControlData() 
 {
+	while (!mCons.empty()) {
+		delete mCons.back();  mCons.pop_back();
+	}
 }
 
 
