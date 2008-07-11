@@ -271,6 +271,10 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 	}
 	m_removedActuators.clear();
 	
+	// About to run actuators, but before update the sensors for those which depends on actuators
+	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin(); !(ie==m_eventmanagers.end()); ie++)
+		(*ie)->UpdateFrame();
+
 	for (set<SmartActuatorPtr>::iterator ia = m_activeActuators.begin();!(ia==m_activeActuators.end());ia++)
 	{
 		//SCA_IActuator* actua = *ia;

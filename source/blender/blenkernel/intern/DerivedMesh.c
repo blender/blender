@@ -1052,7 +1052,7 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 	/* store vertex indices in tmp union */
 	for(ev = em->verts.first, i = 0; ev; ev = ev->next, ++i)
-		ev->tmp.l = (long) i++;
+		ev->tmp.l = (long) i;
 
 	for( ; ee; ee = ee->next, ++edge_r) {
 		edge_r->crease = (unsigned char) (ee->crease*255.0f);

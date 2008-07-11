@@ -69,10 +69,10 @@ def internal_lib_to_dict(dict = None, libtype = None, libname = None, priority =
         dict[libtype][priority] = libname
 
 # libtype and priority can both be lists, for defining lib in multiple places
-def add_lib_to_dict(dict = None, libtype = None, libname = None, priority = 100):
+def add_lib_to_dict(env, dict = None, libtype = None, libname = None, priority = 100):
     if not dict or not libtype or not libname:
         print "Passed wrong arg"
-        Exit()
+        env.Exit()
 
     if type(libtype) is str and type(priority) is int:
         internal_lib_to_dict(dict, libtype, libname, priority)
@@ -82,10 +82,10 @@ def add_lib_to_dict(dict = None, libtype = None, libname = None, priority = 100)
                 internal_lib_to_dict(dict, lt, libname, p)
         else:
             print "libtype and priority lists are unequal in length"
-            Exit()
+            env.Exit()
     else:
         print "Wrong type combinations for libtype and priority. Only str and int or list and list"
-        Exit()
+        env.Exit()
 
 def create_blender_liblist(lenv = None, libtype = None):
     if not lenv or not libtype:
@@ -93,11 +93,9 @@ def create_blender_liblist(lenv = None, libtype = None):
 
     lst = []
     if libtype in possible_types:
-        sortlist = []
-        for k,v in libs[libtype].iteritems():
-            sortlist.append(k)
-        sortlist.sort()
         curlib = libs[libtype]
+        sortlist = curlib.keys()
+        sortlist.sort()
         for sk in sortlist:
             v = curlib[sk]
             lst.append('#' + root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
@@ -175,11 +173,10 @@ def propose_priorities():
     for t in possible_types:
         print bc.OKGREEN+"\t"+t+bc.ENDC
         new_priority = 0
-        sortlist = []
-        for k,v in libs[t].iteritems():
-            sortlist.append(k)
-        sortlist.sort()
         curlib = libs[t]
+        sortlist = curlib.keys()
+        sortlist.sort()
+
         for sk in sortlist:
             v = curlib[sk]
             #for p,v in sorted(libs[t].iteritems()):
@@ -368,7 +365,7 @@ class BlenderEnvironment(SConsEnvironment):
         global libs
         if not self or not libname or not source:
             print bc.FAIL+'Cannot continue.  Missing argument for BlenderRes '+libname+bc.ENDC
-            Exit()
+            self.Exit()
         if self['OURPLATFORM'] not in ('win32-vc','win32-mingw','linuxcross'):
             print bc.FAIL+'BlenderRes is for windows only!'+bc.END
             self.Exit()
@@ -383,7 +380,7 @@ class BlenderEnvironment(SConsEnvironment):
     def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None):
         if not self or not libname or not sources:
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
-            Exit()
+            self.Exit()
         if libname in quickie or len(quickie)==0:
             if libname in quickdebug: 
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname +bc.ENDC+bc.OKBLUE+ " (debug mode)" + bc.ENDC
@@ -419,7 +416,7 @@ class BlenderEnvironment(SConsEnvironment):
         else:
             print bc.WARNING+'Not building '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC+' for '+bc.OKBLUE+'BF_QUICK'+bc.ENDC
         # note: libs is a global
-        add_lib_to_dict(libs, libtype, libname, priority)
+        add_lib_to_dict(self, libs, libtype, libname, priority)
 
     def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC

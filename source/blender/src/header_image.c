@@ -1214,28 +1214,31 @@ void image_buttons(void)
 			uiBlockBeginAlign(block);
 			
 			/* B_SEL_VERT & B_SEL_FACE are not defined here which is a bit bad, BUT it works even if image editor is fullscreen */
-			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
-			xco+= XIC;
+			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL,
+				xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
 			/* no edge */
 			/*uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
 			xco+= XIC; */
-			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
-			xco+= XIC+8;
+			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL,
+				xco+=XIC,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 			uiBlockEndAlign(block);
 			
 		} else {
 			uiBlockBeginAlign(block);
-			uiDefIconButBitI(block, TOGN, SI_SELACTFACE, B_REDR, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.sima->flag, 1.0, 0.0, 0, 0, "UV Vertex select mode");
-			xco+= XIC;
-			uiDefIconButBitI(block, TOG, SI_SELACTFACE, B_REDR, ICON_FACESEL, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "UV Face select mode");
-			xco+= XIC+8;
-			uiBlockEndAlign(block);
 			
+			uiDefIconButS(block,  ROW, B_REDR, ICON_VERTEXSEL,
+				xco,0,XIC,YIC, &G.sima->selectmode, 0.0, SI_SELECT_VERTEX, 0, 0, "UV vertex select mode");
+			uiDefIconButS(block,  ROW, B_REDR, ICON_FACESEL,
+				xco+=XIC,0,XIC,YIC, &G.sima->selectmode, 0.0, SI_SELECT_FACE, 0, 0, "UV Face select mode");
+			uiDefIconButS(block,  ROW, B_REDR, ICON_MESH,
+				xco+=XIC,0,XIC,YIC, &G.sima->selectmode, 0.0, SI_SELECT_ISLAND, 0, 0, "UV Island select mode");
+			uiBlockEndAlign(block);
+
 			/* would use these if const's could go in strings 
 			 * SI_STICKY_LOC SI_STICKY_DISABLE SI_STICKY_VERTEX */
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
 					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
-					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
+					xco+=XIC+10,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
 					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
 			
 		}

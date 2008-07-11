@@ -61,7 +61,9 @@ void KX_TouchSensor::EndFrame() {
 bool KX_TouchSensor::Evaluate(CValue* event)
 {
 	bool result = false;
+	bool reset = m_reset && m_level;
 
+	m_reset = false;
 	if (m_bTriggered != m_bLastTriggered)
 	{
 		m_bLastTriggered = m_bTriggered;
@@ -69,7 +71,9 @@ bool KX_TouchSensor::Evaluate(CValue* event)
 			m_hitObject = NULL;
 		result = true;
 	}
-	
+	if (reset)
+		// force an event
+		result = true;
 	return result;
 }
 
@@ -103,6 +107,7 @@ void KX_TouchSensor::Init()
 	m_bTriggered = false;
 	m_bLastTriggered = (m_invert)?true:false;
 	m_hitObject =  NULL;
+	m_reset = true;
 }
 
 KX_TouchSensor::~KX_TouchSensor()
@@ -115,10 +120,7 @@ CValue* KX_TouchSensor::GetReplica()
 {
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
 	replica->m_colliders = new CListValue();
-	replica->m_bCollision = false;
-	replica->m_bTriggered= false;
-	replica->m_hitObject = NULL;
-	replica->m_bLastTriggered = false;
+	replica->Init();
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	return replica;

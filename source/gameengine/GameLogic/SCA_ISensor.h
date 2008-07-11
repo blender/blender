@@ -64,6 +64,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** detect level instead of edge*/
 	bool m_level;
 
+	/** sensor has been reset */
+	bool m_reset;
+
 	/** Sensor must ignore updates? */
 	bool m_suspended;
 
@@ -123,6 +126,8 @@ public:
 	/** Resume sensing. */
 	void Resume();
 
+	void ClrLink()
+		{ m_links = 0; }
 	void IncLink()
 		{ m_links++; }
 	void DecLink();

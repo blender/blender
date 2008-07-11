@@ -56,6 +56,7 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 	m_suspended = false;
 	m_invert = false;
 	m_level = false;
+	m_reset = false;
 	m_pos_ticks = 0;
 	m_neg_ticks = 0;
 	m_pos_pulsemode = false;
@@ -118,7 +119,7 @@ void SCA_ISensor::Resume() {
 }
 
 void SCA_ISensor::Init() {
-	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name);
+	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name.Ptr());
 }
 
 void SCA_ISensor::DecLink() {

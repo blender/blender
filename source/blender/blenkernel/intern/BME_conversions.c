@@ -33,6 +33,7 @@
  */
 
 #include "MEM_guardedalloc.h"
+#include "BKE_customdata.h" 
 
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
@@ -55,10 +56,199 @@
 
 #include "BSE_edit.h"
 
+/*merge these functions*/
+static void BME_DMcorners_to_loops(BME_Mesh *bm, CustomData *facedata, int index, BME_Poly *f, int numCol, int numTex){
+	int i, j;
+	BME_Loop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i< numTex; i++){
+		texface = CustomData_get_layer_n(facedata, CD_MTFACE, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+
+		texpoly->tpage = texface[index].tpage;
+		texpoly->flag = texface[index].flag;
+		texpoly->transp = texface[index].transp;
+		texpoly->mode = texface[index].mode;
+		texpoly->tile = texface[index].tile;
+		texpoly->unwrap = texface[index].unwrap;
+
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv->uv[0] = texface[index].uv[j][0];
+			mloopuv->uv[1] = texface[index].uv[j][1];
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_layer_n(facedata, CD_MCOL, i);
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol->r = mcol[(index*4)+j].r;
+			mloopcol->g = mcol[(index*4)+j].g;
+			mloopcol->b = mcol[(index*4)+j].b;
+			mloopcol->a = mcol[(index*4)+j].a;
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
+}
+
+static void BME_DMloops_to_corners(BME_Mesh *bm, CustomData *facedata, int index, BME_Poly *f,int numCol, int numTex){
+	int i, j;
+	BME_Loop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_layer_n(facedata, CD_MTFACE, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texface[index].tpage = texpoly->tpage;
+		texface[index].flag = texpoly->flag;
+		texface[index].transp = texpoly->transp;
+		texface[index].mode = texpoly->mode;
+		texface[index].tile = texpoly->tile;
+		texface[index].unwrap = texpoly->unwrap;
+
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			texface[index].uv[j][0] = mloopuv->uv[0];
+			texface[index].uv[j][1] = mloopuv->uv[1];
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+
+	}
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_layer_n(facedata,CD_MCOL, i);
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mcol[(index*4) + j].r = mloopcol->r;
+			mcol[(index*4) + j].g = mloopcol->g;
+			mcol[(index*4) + j].b = mloopcol->b;
+			mcol[(index*4) + j].a = mloopcol->a;
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
+}
+
+
+static void BME_corners_to_loops(BME_Mesh *bm, CustomData *facedata, void *face_block, BME_Poly *f,int numCol, int numTex){
+	int i, j;
+	BME_Loop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texpoly->tpage = texface->tpage;
+		texpoly->flag = texface->flag;
+		texpoly->transp = texface->transp;
+		texpoly->mode = texface->mode;
+		texpoly->tile = texface->tile;
+		texpoly->unwrap = texface->unwrap;
+
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			mloopuv->uv[0] = texface->uv[j][0];
+			mloopuv->uv[1] = texface->uv[j][1];
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+
+	}
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mloopcol->r = mcol[j].r;
+			mloopcol->g = mcol[j].g;
+			mloopcol->b = mcol[j].b;
+			mloopcol->a = mcol[j].a;
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
+}
+
+static void BME_loops_to_corners(BME_Mesh *bm, CustomData *facedata, void *face_block, BME_Poly *f,int numCol, int numTex){
+	int i, j;
+	BME_Loop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_em_get_n(facedata, face_block, CD_MTFACE, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->data, CD_MTEXPOLY, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+
+	}
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
+		j = 0;
+		l = f->loopbase;
+		do{
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+			j++;
+			l = l->next;
+		}while(l!=f->loopbase);
+	}
+}
+/*move the EditMesh conversion functions to editmesh_tools.c*/
 BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	BME_Mesh *bm;
-	int allocsize[4] = {512,512,2048,512};
-	BME_CustomDataInit *init = MEM_callocN(sizeof(BME_CustomDataInit) * 4, "Bmesh custom data init");
+	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
 	BME_Vert *v1, *v2;
 	BME_Edge *e, *edar[4];
 	BME_Poly *f;
@@ -68,9 +258,25 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	EditFace *efa;
 
 	int len;
-	bm = BME_make_mesh(allocsize,init);
+	bm = BME_make_mesh(allocsize);
+
+	/*copy custom data layout*/
+	CustomData_copy(&em->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&em->fdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	/*copy face corner data*/
+	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
+	/*initialize memory pools*/
+	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+	/*needed later*/
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+
 	BME_model_begin(bm);
-	
 	/*add verts*/
 	eve= em->verts.first;
 	while(eve) {
@@ -79,9 +285,8 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		v1->flag = eve->f;
 		v1->h = eve->h;
 		v1->bweight = eve->bweight;
-
-		/* link the verts for edge and face construction;
-		 * kind of a dangerous thing - remember to cast back to BME_Vert before using! */
+		/*Copy Custom Data*/
+		CustomData_bmesh_copy_data(&em->vdata, &bm->vdata, eve->data, &v1->data);
 		eve->tmp.v = (EditVert*)v1;
 		eve = eve->next;
 	}
@@ -99,13 +304,10 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		if(eed->seam) e->flag |= ME_SEAM;
 		if(eed->h & EM_FGON) e->flag |= ME_FGON;
 		if(eed->h & 1) e->flag |= ME_HIDE;
-
-		/* link the edges for face construction;
-		 * kind of a dangerous thing - remember to cast back to BME_Edge before using! */
 		eed->tmp.e = (EditEdge*)e;
+		CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
 		eed = eed->next;
 	}
-
 	/*add faces.*/
 	efa= em->faces.first;
 	while(efa) {
@@ -134,13 +336,13 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 			if(efa->f & 1) f->flag |= ME_FACE_SEL;
 			else f->flag &= ~ME_FACE_SEL;
 		}
+		CustomData_bmesh_copy_data(&em->fdata, &bm->pdata, efa->data, &f->data);
+		BME_corners_to_loops(bm, &em->fdata, efa->data, f,numCol,numTex);
 		efa = efa->next;
 	}
 	BME_model_end(bm);
-	MEM_freeN(init);
 	return bm;
 }
-
 /* adds the geometry in the bmesh to G.editMesh (does not free G.editMesh)
  * if td != NULL, the transdata will be mapped to the EditVert's co */
 EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
@@ -155,11 +357,20 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 	EditEdge *eed;
 	EditFace *efa;
 
-	int totvert, len, i;
+	int totvert, len, i, numTex, numCol;
 
 	em = G.editMesh;
 
 	if (em == NULL) return NULL;
+
+
+	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->pdata, &em->fdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_from_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata,0);
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+
 
 	/* convert to EditMesh */
 	/* make editverts */
@@ -176,6 +387,7 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 		eve1->f = (unsigned char)v1->flag;
 		eve1->h = (unsigned char)v1->h;
 		eve1->bweight = v1->bweight;
+		CustomData_em_copy_data(&bm->vdata, &em->vdata, v1->data, &eve1->data);
 	}
 	
 	/* make edges */
@@ -191,6 +403,8 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 			if(e->flag & ME_HIDE) eed->h |= 1;
 			if(G.scene->selectmode==SCE_SELECT_EDGE) 
 				EM_select_edge(eed, eed->f & SELECT);
+		
+			CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
 		}
 	}
 
@@ -217,6 +431,8 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 			if(f->flag & ME_HIDE) efa->h= 1;
 			if((G.f & G_FACESELECT) && (efa->f & SELECT))
 				EM_select_face(efa, 1); /* flush down */
+			CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
+			BME_loops_to_corners(bm, &em->fdata, efa->data, f,numCol,numTex);
 		}
 	}
 
@@ -234,18 +450,33 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 	
 	BME_Mesh *bm;
 	int allocsize[4] = {512,512,2048,512};
-	BME_CustomDataInit *init = MEM_callocN(sizeof(BME_CustomDataInit) * 4, "Bmesh custom data init");
 	MVert *mvert, *mv;
 	MEdge *medge, *me;
 	MFace *mface, *mf;
-	int totface,totedge,totvert,i,len;
+	int totface,totedge,totvert,i,len, numTex, numCol;
 	BME_Vert *v1=NULL,*v2=NULL, **vert_array;
 	BME_Edge *e=NULL;
 	BME_Poly *f=NULL;
 	
 	EdgeHash *edge_hash = BLI_edgehash_new();
 
-	bm = BME_make_mesh(allocsize,init);
+	bm = BME_make_mesh(allocsize);
+	/*copy custom data layout*/
+	CustomData_copy(&dm->vertData, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&dm->edgeData, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&dm->faceData, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	/*copy face corner data*/
+	CustomData_to_bmeshpoly(&dm->faceData, &bm->pdata, &bm->ldata);
+	/*initialize memory pools*/
+	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
+	/*needed later*/
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
 	totface = dm->getNumFaces(dm);
@@ -262,6 +493,7 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 		vert_array[i] = v1;
 		v1->flag = mv->flag;
 		v1->bweight = mv->bweight/255.0f;
+		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v1->data);
 	}
 	/*add edges*/
 	for(i=0,me = medge; i < totedge;i++,me++){
@@ -272,6 +504,7 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 		e->bweight = me->bweight/255.0f;
 		e->flag = (unsigned char)me->flag;
 		BLI_edgehash_insert(edge_hash,me->v1,me->v2,e);
+		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->data);
 	}
 	/*add faces.*/
 	for(i=0,mf = mface; i < totface;i++,mf++){
@@ -295,12 +528,13 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 		f = BME_MF(bm,v1,v2,edar,len);
 		f->mat_nr = mf->mat_nr;
 		f->flag = mf->flag;
+		CustomData_to_bmesh_block(&dm->faceData,&bm->pdata,i,&f->data);
+		BME_DMcorners_to_loops(bm, &dm->faceData,i,f, numCol,numTex);
 	}
 	
 	BME_model_end(bm);
 	BLI_edgehash_free(edge_hash, NULL);
 	MEM_freeN(vert_array);
-	MEM_freeN(init);
 	return bm;
 }
 
@@ -309,7 +543,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	MFace *mface, *mf;
 	MEdge *medge, *me;
 	MVert *mvert, *mv;
-	int totface,totedge,totvert,i,bmeshok,len;
+	int totface,totedge,totvert,i,bmeshok,len, numTex, numCol;
 
 	BME_Vert *v1=NULL;
 	BME_Edge *e=NULL, *oe=NULL;
@@ -345,12 +579,21 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	
 	/*convert back to mesh*/
 	result = CDDM_from_template(dm,totvert,totedge,totface);
+	CustomData_merge(&bm->vdata, &result->vertData, CD_MASK_BMESH, CD_CALLOC, totvert);
+	CustomData_merge(&bm->edata, &result->edgeData, CD_MASK_BMESH, CD_CALLOC, totedge);
+	CustomData_merge(&bm->pdata, &result->faceData, CD_MASK_BMESH, CD_CALLOC, totface);
+	CustomData_from_bmeshpoly(&result->faceData, &bm->pdata, &bm->ldata,totface);
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
+
+
 	/*Make Verts*/
 	mvert = CDDM_get_verts(result);
 	for(i=0,v1=bm->verts.first,mv=mvert;v1;v1=v1->next,i++,mv++){
 		VECCOPY(mv->co,v1->co);
 		mv->flag = (unsigned char)v1->flag;
 		mv->bweight = (char)(255.0*v1->bweight);
+		CustomData_from_bmesh_block(&bm->vdata, &result->vertData, &v1->data, i);
 	}
 	medge = CDDM_get_edges(result);
 	i=0;
@@ -368,6 +611,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 			me->crease = (char)(255.0*e->crease);
 			me->bweight = (char)(255.0*e->bweight);
 			me->flag = e->flag;
+			CustomData_from_bmesh_block(&bm->edata, &result->edgeData, &e->data, i);
 			me++;
 			i++;
 		}
@@ -389,9 +633,11 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 				if(mf->v3 == 0 || (len == 4 && mf->v4 == 0)){
 					test_index_face(mf, NULL, i, len);
 				}
-				i++;
 				mf->mat_nr = (unsigned char)f->mat_nr;
 				mf->flag = (unsigned char)f->flag;
+				CustomData_from_bmesh_block(&bm->pdata, &result->faceData, &f->data, i);
+				BME_DMloops_to_corners(bm, &result->faceData, i, f,numCol,numTex);
+				i++;
 			}
 		}
 	}

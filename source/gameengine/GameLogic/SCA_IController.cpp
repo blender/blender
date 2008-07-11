@@ -133,11 +133,11 @@ void	SCA_IController::UnlinkActuator(class SCA_IActuator* actua)
 	}
 	if (!(actit==m_linkedactuators.end()))
 	{
-		m_linkedactuators.erase(actit);
 		if (IsActive())
 		{
 			(*actit)->DecLink();
 		}
+		m_linkedactuators.erase(actit);
 	}
 }
 
@@ -163,11 +163,11 @@ void SCA_IController::UnlinkSensor(class SCA_ISensor* sensor)
 	}
 	if (!(sensit==m_linkedsensors.end()))
 	{
-		m_linkedsensors.erase(sensit);
 		if (IsActive())
 		{
 			(*sensit)->DecLink();
 		}
+		m_linkedsensors.erase(sensit);
 	}
 }
 

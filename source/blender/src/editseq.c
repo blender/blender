@@ -2135,11 +2135,24 @@ void del_seq(void)
 	Sequence *seq;
 	MetaStack *ms;
 	Editing *ed;
-
-	if(okee("Erase selected")==0) return;
+	int nothingSelected = TRUE;
 
 	ed= G.scene->ed;
 	if(ed==0) return;
+
+	seq=get_last_seq();
+	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
+		nothingSelected = FALSE;
+	} else {
+		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+			if (seq->flag & SELECT) {
+				nothingSelected = FALSE;
+				break;
+			}
+		}
+	}
+	
+	if(nothingSelected || okee("Erase selected")==0) return;
 
 	/* free imbufs of all dependent strips */
 	for(seq=ed->seqbasep->first; seq; seq=seq->next)

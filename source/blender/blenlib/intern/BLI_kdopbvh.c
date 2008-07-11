@@ -523,6 +523,7 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 	return;
 }
 
+#if 0
 static void verify_tree(BVHTree *tree)
 {
 	int i, j, check = 0;
@@ -569,6 +570,7 @@ static void verify_tree(BVHTree *tree)
 	
 	printf("branches: %d, leafs: %d, total: %d\n", tree->totbranch, tree->totleaf, tree->totbranch + tree->totleaf);
 }
+#endif
 	
 void BLI_bvhtree_balance(BVHTree *tree)
 {

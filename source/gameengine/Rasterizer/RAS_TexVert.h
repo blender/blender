@@ -42,8 +42,6 @@ static MT_Point2 g_pt2;
 
 #define TV_MAX				3//match Def in BL_Material.h
 
-#define RAS_TexVert_INLINE 1
-
 class RAS_TexVert
 {
 	
@@ -55,9 +53,10 @@ class RAS_TexVert
 	float			m_normal[3];	// 3*2 =  6 
 	short			m_flag;			//        2
 	unsigned int	m_unit;			//		  4
+	unsigned int	m_origindex;		//        4
 									//---------
-									//       52
-	//32 bytes total size, fits nice = 52 = not fit nice.
+									//       56
+	// 32 bytes total size, fits nice = 56 = not fit nice.
 	// We'll go for 64 bytes total size - 24 bytes left.
 public:
 	short getFlag() const;
@@ -71,11 +70,10 @@ public:
 				const MT_Vector4& tangent,
 				const unsigned int rgba,
 				const MT_Vector3& normal,
-				const short flag);
+				const short flag,
+				const unsigned int origindex);
 	~RAS_TexVert() {};
 
-	// leave multiline for debugging
-#ifdef RAS_TexVert_INLINE
 	const float* getUV1 () const { 
 		return m_uv1;
 	};
@@ -99,13 +97,11 @@ public:
 	const unsigned char* getRGBA() const {
 		return (unsigned char *) &m_rgba;
 	}
-#else
-	const float* getUV1 () const;
-	const float* getUV2 () const;
-	const float*		getNormal() const;
-	const float*		getLocalXYZ() const;
-	const unsigned char*	getRGBA() const;
-#endif
+
+	const unsigned int getOrigIndex() const {
+		return m_origindex;
+	}
+
 	void				SetXYZ(const MT_Point3& xyz);
 	void				SetUV(const MT_Point2& uv);
 	void				SetUV2(const MT_Point2& uv);

@@ -76,6 +76,21 @@ typedef struct Lamp {
 	/* texact is for buttons */
 	short texact, shadhalostep;
 	
+	/* sun/sky */
+	short sun_effect_type;
+	short atm_pad[3];
+    float horizon_brightness;
+    float spread;
+    float sun_brightness;
+    float sun_size;
+    float backscattered_light;
+    float sun_intensity;
+	float atm_turbidity;
+    float atm_inscattering_factor;
+    float atm_extinction_factor;
+    float atm_distance_factor;
+
+
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
 	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
@@ -122,6 +137,10 @@ typedef struct Lamp {
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
+
+/* sun effect type*/
+#define LA_SUN_EFFECT_SKY			1
+#define LA_SUN_EFFECT_AP			2
 
 /* falloff_type */
 #define LA_FALLOFF_CONSTANT		0

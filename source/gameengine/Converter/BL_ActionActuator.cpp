@@ -184,6 +184,11 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		
 		if (bNegativeEvent)
 		{
+			// dont continue where we left off when restarting
+			if (m_end_reset) {
+				m_flag &= ~ACT_FLAG_LOCKINPUT;
+			}
+			
 			if (!(m_flag & ACT_FLAG_ACTIVE))
 				return false;
 			m_flag &= ~ACT_FLAG_ACTIVE;
@@ -472,8 +477,10 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, GetFrameProperty_doc},
 	{"setChannel", (PyCFunction) BL_ActionActuator::sPySetChannel, METH_VARARGS, SetChannel_doc},
 //	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_VARARGS},
-	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},	
+	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},
 	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, SetType_doc},
+	{"getContinue", (PyCFunction) BL_ActionActuator::sPyGetContinue, METH_NOARGS, 0},	
+	{"setContinue", (PyCFunction) BL_ActionActuator::sPySetContinue, METH_O, 0},
 	{NULL,NULL} //Sentinel
 };
 
@@ -978,7 +985,26 @@ PyObject* BL_ActionActuator::PySetType(PyObject* self,
 	default:
 		printf("Invalid type for action actuator: %d\n", typeArg); /* error */
     }
+	Py_RETURN_NONE;
+}
+
+PyObject* BL_ActionActuator::PyGetContinue(PyObject* self) {
+    return PyInt_FromLong((long)(m_end_reset==0));
+}
+
+PyObject* BL_ActionActuator::PySetContinue(PyObject* self, PyObject* value) {
+	int param = PyObject_IsTrue( value );
 	
-    Py_Return;
+	if( param == -1 ) {
+		PyErr_SetString( PyExc_TypeError, "expected True/False or 0/1" );
+		return NULL;
+	}
+
+	if (param) {
+		m_end_reset = 0;
+	} else {
+		m_end_reset = 1;
+	}
+    Py_RETURN_NONE;
 }
 

@@ -40,7 +40,8 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Vector4& tangent,
 						 const unsigned int rgba,
 						 const MT_Vector3& normal,
-						 const short flag) 
+						 const short flag,
+						 const unsigned int origindex)
 {
 	xyz.getValue(m_localxyz);
 	uv.getValue(m_uv1);
@@ -49,6 +50,7 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 	SetNormal(normal);
 	tangent.getValue(m_tangent);
 	m_flag = flag;
+	m_origindex = origindex;
 	m_unit = 2;
 }
 
@@ -106,44 +108,6 @@ void RAS_TexVert::SetNormal(const MT_Vector3& normal)
 {
 	normal.getValue(m_normal);
 }
-
-#ifndef RAS_TexVert_INLINE
-
-// leave multiline for debugging
-const float* RAS_TexVert::getUV1 () const
-{
-	return m_uv1;
-}
-
-const float* RAS_TexVert::getUV2 () const
-{
-	return m_uv2;
-}
-
-
-
-const float* RAS_TexVert::getNormal() const
-{
-	return m_normal;
-}
-
-const float* RAS_TexVert::getTangent() const
-{
-	return m_tangent;
-}
-
-
-const float* RAS_TexVert::getLocalXYZ() const
-{ 
-	return m_localxyz;
-}
-
-const unsigned char* RAS_TexVert::getRGBA() const
-{
-	return (unsigned char*) &m_rgba;
-}
-
-#endif
 
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)

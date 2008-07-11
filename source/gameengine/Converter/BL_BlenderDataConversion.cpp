@@ -312,11 +312,13 @@ BL_Material* ConvertMaterial(
 	Mesh* mesh, 
 	Material *mat, 
 	MTFace* tface,  
+	const char *tfaceName,
 	MFace* mface, 
 	MCol* mmcol, 
 	int lightlayer, 
 	Object* blenderobj,
-	MTF_localLayer *layers)
+	MTF_localLayer *layers,
+	bool glslmat)
 {
 	//this needs some type of manager
 	BL_Material *material = new BL_Material();
@@ -335,7 +337,7 @@ BL_Material* ConvertMaterial(
 	if(validmat) {
 
 		// use vertex colors by explicitly setting
-		if(mat->mode &MA_VERTEXCOLP)
+		if(mat->mode &MA_VERTEXCOLP || glslmat)
 			type = 0;
 
 		// use lighting?
@@ -558,6 +560,7 @@ BL_Material* ConvertMaterial(
 	}
 	else {
 		int valid = 0;
+
 		// check for tface tex to fallback on
 		if( validface ){
 
@@ -590,6 +593,7 @@ BL_Material* ConvertMaterial(
 	}
 	MT_Point2 uv[4];
 	MT_Point2 uv2[4];
+	const char *uvName = "", *uv2Name = "";
 
 	uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
 	uv2[0]= uv2[1]= uv2[2]= uv2[3]= MT_Point2(0.0f, 0.0f);
@@ -616,6 +620,8 @@ BL_Material* ConvertMaterial(
 
 		if (mface->v4) 
 			uv[3]	= MT_Point2(tface->uv[3]);
+
+		uvName = tfaceName;
 	} 
 	else {
 		// nothing at all
@@ -641,39 +647,38 @@ BL_Material* ConvertMaterial(
 				isFirstSet = false;
 			else
 			{
-				MT_Point2 uvSet[4];
 				for (int lay=0; lay<MAX_MTFACE; lay++)
 				{
 					MTF_localLayer& layer = layers[lay];
 					if (layer.face == 0) break;
 
-
-					bool processed = false;
 					if (strcmp(map.uvCoName.ReadPtr(), layer.name)==0)
 					{
+						MT_Point2 uvSet[4];
+
 						uvSet[0]	= MT_Point2(layer.face->uv[0]);
 						uvSet[1]	= MT_Point2(layer.face->uv[1]);
 						uvSet[2]	= MT_Point2(layer.face->uv[2]);
 
 						if (mface->v4) 
 							uvSet[3]	= MT_Point2(layer.face->uv[3]);
+						else
+							uvSet[3]	= MT_Point2(0.0f, 0.0f);
 
-						processed = true;
-					}
-
-					if (!processed) continue;
-
-					if (isFirstSet)
-					{
-						uv[0] = uvSet[0]; uv[1] = uvSet[1];
-						uv[2] = uvSet[2]; uv[3] = uvSet[3];
-						isFirstSet = false;
-					}
-					else
-					{
-						uv2[0] = uvSet[0]; uv2[1] = uvSet[1];
-						uv2[2] = uvSet[2]; uv2[3] = uvSet[3];
-						map.mapping |= USECUSTOMUV;
+						if (isFirstSet)
+						{
+							uv[0] = uvSet[0]; uv[1] = uvSet[1];
+							uv[2] = uvSet[2]; uv[3] = uvSet[3];
+							isFirstSet = false;
+							uvName = layer.name;
+						}
+						else
+						{
+							uv2[0] = uvSet[0]; uv2[1] = uvSet[1];
+							uv2[2] = uvSet[2]; uv2[3] = uvSet[3];
+							map.mapping |= USECUSTOMUV;
+							uv2Name = layer.name;
+						}
 					}
 				}
 			}
@@ -693,9 +698,8 @@ BL_Material* ConvertMaterial(
 	}
 
 	material->SetConversionRGB(rgb);
-	material->SetConversionUV(uv);
-	material->SetConversionUV2(uv2);
-
+	material->SetConversionUV(uvName, uv);
+	material->SetConversionUV2(uv2Name, uv2);
 
 	material->ras_mode |= (mface->v4==0)?TRIANGLE:0;
 	if(validmat)
@@ -797,6 +801,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	
 	MFace* mface = static_cast<MFace*>(mesh->mface);
 	MTFace* tface = static_cast<MTFace*>(mesh->mtface);
+	const char *tfaceName = "";
 	MCol* mmcol = mesh->mcol;
 	MT_assert(mface || mesh->totface == 0);
 
@@ -832,14 +837,14 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 			layers[validLayers].face = (MTFace*)mesh->fdata.layers[i].data;;
 			layers[validLayers].name = mesh->fdata.layers[i].name;
+			if(tface == layers[validLayers].face)
+				tfaceName = layers[validLayers].name;
 			validLayers++;
 		}
 	}
 
 	meshobj->SetName(mesh->id.name);
 	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
-	if(skinMesh)
-		((BL_SkinMeshObject*)meshobj)->m_mvert_to_dvert_mapping.resize(mesh->totvert);
 	for (int f=0;f<mesh->totface;f++,mface++)
 	{
 		
@@ -898,8 +903,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					else 
 						ma = give_current_material(blenderobj, 1);
 
-					bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
-					bl_mat->glslmat = converter->GetGLSLMaterials();
+					bl_mat = ConvertMaterial(mesh, ma, tface, tfaceName, mface, mmcol, lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
 					// set the index were dealing with
 					bl_mat->material_index =  (int)mface->mat_nr;
 
@@ -1059,35 +1063,25 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				int nverts = mface->v4?4:3;
 				int vtxarray = meshobj->FindVertexArray(nverts,polymat);
 				RAS_Polygon* poly = new RAS_Polygon(bucket,polyvisible,nverts,vtxarray);
-				if (skinMesh) {
-					int d1, d2, d3, d4=0;
-					bool flat;
 
+				bool flat;
+
+				if (skinMesh) {
 					/* If the face is set to solid, all fnors are the same */
 					if (mface->flag & ME_SMOOTH)
 						flat = false;
 					else
 						flat = true;
-					
-					d1=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v1, &mesh->dvert[mface->v1], polymat);
-					d2=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v2, &mesh->dvert[mface->v2], polymat);
-					d3=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v3, &mesh->dvert[mface->v3], polymat);
-					if (nverts==4)
-						d4=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v4, &mesh->dvert[mface->v4], polymat);
-					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,d1,flat,polymat,mface->v1));
-					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,d2,flat,polymat,mface->v2));
-					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,d3,flat,polymat,mface->v3));
-					if (nverts==4)
-						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,d4,flat,polymat,mface->v4));
 				}
 				else
-				{
-					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,false,polymat,mface->v1));
-					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,false,polymat,mface->v2));
-					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,false,polymat,mface->v3));
-					if (nverts==4)
-						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,false,polymat,mface->v4));
-				}
+					flat = false;
+
+				poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,flat,polymat,mface->v1));
+				poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,flat,polymat,mface->v2));
+				poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,flat,polymat,mface->v3));
+				if (nverts==4)
+					poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,flat,polymat,mface->v4));
+
 				meshobj->AddPolygon(poly);
 				if (poly->IsCollider())
 				{
@@ -1125,8 +1119,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		}
 	}
 	meshobj->m_xyz_index_to_vertex_index_mapping.clear();
-	if(skinMesh)
-		((BL_SkinMeshObject*)meshobj)->m_mvert_to_dvert_mapping.clear();
 	meshobj->UpdateMaterialList();
 
 	// pre calculate texture generation
@@ -1545,7 +1537,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 
 
-static KX_LightObject *gamelight_from_blamp(Lamp *la, unsigned int layerflag, KX_Scene *kxscene, RAS_IRenderTools *rendertools, KX_BlenderSceneConverter *converter) {
+static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int layerflag, KX_Scene *kxscene, RAS_IRenderTools *rendertools, KX_BlenderSceneConverter *converter) {
 	RAS_LightObject lightobj;
 	KX_LightObject *gamelight;
 	
@@ -1577,8 +1569,15 @@ static KX_LightObject *gamelight_from_blamp(Lamp *la, unsigned int layerflag, KX
 	} else {
 		lightobj.m_type = RAS_LightObject::LIGHT_NORMAL;
 	}
+
+#ifdef BLENDER_GLSL
+	if(converter->GetGLSLMaterials())
+		GPU_lamp_from_blender(ob, la);
 	
-	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools, lightobj);
+	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools, lightobj, ob->gpulamp);
+#else
+	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools, lightobj, NULL);
+#endif
 	BL_ConvertLampIpos(la, gamelight, converter);
 	
 	return gamelight;
@@ -1610,7 +1609,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 	case OB_LAMP:
 	{
-		KX_LightObject* gamelight= gamelight_from_blamp(static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);
+		KX_LightObject* gamelight= gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);
 		gameobj = gamelight;
 		
 		gamelight->AddRef();
@@ -1660,7 +1659,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		// two options exists for deform: shape keys and armature
 		// only support relative shape key
 		bool bHasShapeKey = mesh->key != NULL && mesh->key->type==KEY_RELATIVE;
-		bool bHasDvert = mesh->dvert != NULL;
+		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
 		bool bHasArmature = (ob->parent && ob->parent->type == OB_ARMATURE && ob->partype==PARSKEL && bHasDvert);
 
 		if (bHasShapeKey) {
@@ -1671,13 +1670,15 @@ static KX_GameObject *gameobject_from_blenderobject(
 			if (bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
-			BL_SkinDeformer *dcont = new BL_SkinDeformer(ob, (BL_SkinMeshObject*)meshobj );				
+			BL_SkinDeformer *dcont = new BL_SkinDeformer((BL_DeformableGameObject*)gameobj,
+															ob, (BL_SkinMeshObject*)meshobj);
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		} else if (bHasDvert) {
 			// this case correspond to a mesh that can potentially deform but not with the
 			// object to which it is attached for the moment. A skin mesh was created in
 			// BL_ConvertMesh() so must create a deformer too!
-			BL_MeshDeformer *dcont = new BL_MeshDeformer(ob, (BL_SkinMeshObject*)meshobj );
+			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
+														  ob, (BL_SkinMeshObject*)meshobj);
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		}
 		
@@ -2075,7 +2076,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	if (blenderscene->camera) {
 		KX_Camera *gamecamera= (KX_Camera*) converter->FindGameObject(blenderscene->camera);
 		
-		kxscene->SetActiveCamera(gamecamera);
+		if(gamecamera)
+			kxscene->SetActiveCamera(gamecamera);
 	}
 
 	//	Set up armatures
@@ -2331,7 +2333,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
-		gameobj->SetState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
+		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
+		gameobj->ResetState();
 	}
 
 #endif //CONVERT_LOGIC

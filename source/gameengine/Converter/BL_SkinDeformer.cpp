@@ -57,11 +57,12 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
-BL_SkinDeformer::BL_SkinDeformer(struct Object *bmeshobj, 
+BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
+								struct Object *bmeshobj, 
 								class BL_SkinMeshObject *mesh,
 								BL_ArmatureObject* arma)
 							:	//
-							BL_MeshDeformer(bmeshobj, mesh),
+							BL_MeshDeformer(gameobj, bmeshobj, mesh),
 							m_armobj(arma),
 							m_lastArmaUpdate(-1),
 							m_defbase(&bmeshobj->defbase),
@@ -71,12 +72,13 @@ BL_SkinDeformer::BL_SkinDeformer(struct Object *bmeshobj,
 };
 
 BL_SkinDeformer::BL_SkinDeformer(
+	BL_DeformableGameObject *gameobj,
 	struct Object *bmeshobj_old,	// Blender object that owns the new mesh
 	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
 	class BL_SkinMeshObject *mesh,
 	bool release_object,
 	BL_ArmatureObject* arma)	:	
-		BL_MeshDeformer(bmeshobj_old, mesh),
+		BL_MeshDeformer(gameobj, bmeshobj_old, mesh),
 		m_armobj(arma),
 		m_lastArmaUpdate(-1),
 		m_defbase(&bmeshobj_old->defbase),
@@ -96,35 +98,32 @@ BL_SkinDeformer::~BL_SkinDeformer()
 		m_armobj->Release();
 }
 
-bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
+bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *)
 {
-	size_t			i, j, index;
-	vecVertexArray	array;
-	vecIndexArrays	mvarray;
-	vecMDVertArray	dvarray;
-	vecIndexArrays	diarray;
+	size_t i, j;
 
-	RAS_TexVert *tv;
-	MT_Point3 pt;
-//	float co[3];
+	if (!Update())
+		// no need to update the cache
+		return false;
 
-	Update();
+	// Update all materials at once, so we can do the above update test
+	// without ending up with some materials not updated
+	for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
+		mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
+		RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
 
-	array = m_pMeshObject->GetVertexCache(mat);
-	mvarray = m_pMeshObject->GetMVertCache(mat);
-	diarray = m_pMeshObject->GetDIndexCache(mat);
-	// For each array
-	for (i=0; i<array.size(); i++) {
-		//	For each vertex
-		for (j=0; j<array[i]->size(); j++) {
+		vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
 
-			tv = &((*array[i])[j]);
-			
-			index = ((*diarray[i])[j]);
-			
-			//	Copy the untransformed data from the original mvert
-			//	Set the data
-			tv->SetXYZ(m_transverts[((*mvarray[i])[index])]);
+		// For each array
+		for (i=0; i<vertexarrays.size(); i++) {
+			KX_VertexArray& vertexarray = (*vertexarrays[i]);
+
+			// For each vertex
+			// copy the untransformed data from the original mvert
+			for (j=0; j<vertexarray.size(); j++) {
+				RAS_TexVert& v = vertexarray[j];
+				v.SetXYZ(m_transverts[v.getOrigIndex()]);
+			}
 		}
 	}
 

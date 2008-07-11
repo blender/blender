@@ -47,6 +47,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_group_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -665,6 +666,88 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 	}
 }
 
+static void atm_tile(RenderPart *pa, RenderLayer *rl)
+{
+	RenderPass *zpass;
+	GroupObject *go;
+	LampRen *lar;
+	
+	int x, y;
+	short first_lamp;
+	float *zrect;
+	float *rgbrect;
+	float rgb[3]={0};
+	float tmp_rgb[3];
+	float fac;
+	float facm;
+	
+	fac = 0.5;
+	facm = 1.0 - fac;
+	
+	/* check that z pass is enabled */
+	if(pa->rectz==NULL) return;
+	for(zpass= rl->passes.first; zpass; zpass= zpass->next)
+		if(zpass->passtype==SCE_PASS_Z)
+			break;
+	
+	if(zpass==NULL) return;
+
+	/* check for at least one sun lamp that its atmosphere flag is is enabled */
+	first_lamp = 1;
+	for(go=R.lights.first; go; go= go->next) {
+		lar= go->lampren;
+		if(lar->type==LA_SUN && lar->sunsky && 
+				(lar->sunsky->effect_type & LA_SUN_EFFECT_AP)){
+			first_lamp = 0;
+			break;
+		}
+	}
+	/* do nothign and return if there is no sun lamp */
+	if(first_lamp)
+		return;
+	
+	zrect = zpass->rect;
+	rgbrect = rl->rectf;
+	/* for each x,y and sun lamp*/
+	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, zrect++, rgbrect+=4) {
+			
+			first_lamp = 1;
+			for(go=R.lights.first; go; go= go->next) {
+				lar= go->lampren;
+				if(lar->type==LA_SUN &&	lar->sunsky)
+					
+				{
+					/* if it's sky continue and don't apply atmosphere effect on it */
+					if(*zrect >= 9.9e10){
+						continue;
+					}
+
+					if(lar->sunsky->effect_type & LA_SUN_EFFECT_AP){	
+						VECCOPY(tmp_rgb, rgbrect);
+
+						shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
+						
+						if(first_lamp){
+							VECCOPY(rgb, tmp_rgb);
+							first_lamp = 0;						
+						}
+						else{
+							rgb[0] = facm*rgb[0] + fac*tmp_rgb[0];
+							rgb[1] = facm*rgb[1] + fac*tmp_rgb[1];
+							rgb[2] = facm*rgb[2] + fac*tmp_rgb[2];
+						}
+					}
+				}
+			}
+
+			/* if at least for one sun lamp aerial perspective was applied*/
+			if(first_lamp==0)
+				VECCOPY(rgbrect, rgb);
+		}
+	}
+}
+
 static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
 	RenderResult *rr= pa->result;
@@ -1122,6 +1205,10 @@ void zbufshadeDA_tile(RenderPart *pa)
 			if(R.r.mode & R_EDGE) 
 				edge_enhance_add(pa, rl->rectf, edgerect);
 		
+		/* sun/sky */
+		if(rl->layflag & SCE_LAY_SKY)
+			atm_tile(pa, rl);
+
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		
@@ -1282,6 +1369,10 @@ void zbufshade_tile(RenderPart *pa)
 					edge_enhance_add(pa, rl->rectf, edgerect);
 		}
 		
+		/* sun/sky */
+		if(rl->layflag & SCE_LAY_SKY)
+			atm_tile(pa, rl);
+			
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		

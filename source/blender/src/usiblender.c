@@ -34,6 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "GL/glew.h"
+
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
 #ifndef _WIN32_IE

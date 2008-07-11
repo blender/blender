@@ -4812,7 +4812,7 @@ static void object_panel_particle_system(Object *ob)
 	uiDefBut(block, LABEL, 0, "Basic:",					butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 
-	if(part->distr==PART_DISTR_GRID)
+	if(part->distr==PART_DISTR_GRID && part->from != PART_FROM_VERT)
 		uiDefButI(block, NUM, B_PART_ALLOC, "Resol:",		butx,(buty-=buth),butw,buth, &part->grid_res, 1.0, 100.0, 0, 0, "The resolution of the particle grid");
 	else
 		uiDefButI(block, NUM, B_PART_ALLOC, "Amount:",		butx,(buty-=buth),butw,buth, &part->totpart, 0.0, 100000.0, 0, 0, "The total number of particles");
@@ -5069,7 +5069,7 @@ static void object_panel_fluidsim(Object *ob)
 
 					if(fss->typeFlags&OB_FSBND_PARTSLIP) {
 						uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-						uiDefButF(block, NUM, B_DIFF, "Amount of mixing between no- and free-slip, 0=stickier, 1=same as free slip.", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, ".");
+						uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, "Amount of mixing between no- and free-slip, 0=stickier, 1=same as free slip.");
 						yline -= lineHeight;
 					} else { 
 						//uiDefBut(block, LABEL, 0, "-",	200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, ""); 

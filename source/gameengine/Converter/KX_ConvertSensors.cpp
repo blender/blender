@@ -64,6 +64,7 @@ probably misplaced */
 #include "KX_MouseFocusSensor.h"
 #include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
+#include "SCA_ActuatorSensor.h"
 
 
 #include "SCA_PropertySensor.h"
@@ -536,6 +537,19 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					gamesensor = new SCA_PropertySensor(eventmgr,gameobj,propname,propval,propmaxval,propchecktype);
 				}
 				
+				break;
+			}
+		case SENS_ACTUATOR:
+			{
+				bActuatorSensor* blenderactsensor = (bActuatorSensor*) sens->data;
+				// we will reuse the property event manager, there is nothing special with this sensor
+				SCA_EventManager* eventmgr 
+					= logicmgr->FindEventManager(SCA_EventManager::ACTUATOR_EVENTMGR);
+				if (eventmgr)
+				{
+					STR_String propname=blenderactsensor->name;
+					gamesensor = new SCA_ActuatorSensor(eventmgr,gameobj,propname);
+				}
 				break;
 			}
 			

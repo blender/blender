@@ -82,6 +82,24 @@ public:
         }
         return 0;
     }
+
+    Key* getKey(int index) {
+        int count=0;
+        for (int i=0;i<m_num_buckets;i++)
+        {
+            Entry* bucket = m_buckets[i];
+            while(bucket)
+            {
+                if (count==index)
+                {
+                    return &bucket->m_key;
+                }
+                bucket = bucket->m_next;
+                count++;
+            }
+        }
+        return 0;
+    }
     
     void clear() {
         for (int i = 0; i < m_num_buckets; ++i) {

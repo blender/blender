@@ -78,14 +78,15 @@ void SCA_KeyboardSensor::Init()
 	// However, if the target key is pressed when the sensor is reactivated, it
 	// will not generated an event (see remark in Evaluate()).
 	m_val = (m_invert)?1:0;
+	m_reset = true;
 }
 
 CValue* SCA_KeyboardSensor::GetReplica()
 {
-	CValue* replica = new SCA_KeyboardSensor(*this);
+	SCA_KeyboardSensor* replica = new SCA_KeyboardSensor(*this);
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
-
+	replica->Init();
 	return replica;
 }
 
@@ -120,8 +121,8 @@ bool SCA_KeyboardSensor::TriggerOnAllKeys()
 bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 {
 	bool result    = false;
+	bool reset     = m_reset && m_level;
 	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
-	
 	//  	cerr << "SCA_KeyboardSensor::Eval event, sensing for "<< m_hotkey << " at device " << inputdev << "\n";
 
 	/* See if we need to do logging: togPropState exists and is
@@ -134,7 +135,7 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 		LogKeystrokes();
 	}
 
-
+	m_reset = false;
 
 	/* Now see whether events must be bounced. */
 	if (m_bAllKeys)
@@ -176,8 +177,8 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					if (m_val == 0)
 					{
+						m_val = 1;
 						if (m_level) {
-							m_val = 1;
 							result = true;
 						}
 					}
@@ -229,9 +230,9 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 					{
 						if (m_val == 0)
 						{
+							m_val = 1;
 							if (m_level) 
 							{
-								m_val = 1;
 								result = true;
 							}
 						}
@@ -240,7 +241,9 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 			}
 		}
 	}
-
+	if (reset)
+		// force an event
+		result = true;
 	return result;
 
 }

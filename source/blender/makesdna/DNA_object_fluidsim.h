@@ -128,6 +128,8 @@ typedef struct FluidsimSettings {
 	float velocityforceStrength;
 	float velocityforceRadius;
 
+	int pad;
+
 } FluidsimSettings;
 
 /* ob->fluidsimSettings defines */

@@ -92,6 +92,8 @@ void update_changed_seq_and_deps(struct Sequence *seq, int len_change, int ibuf_
 struct RenderResult;
 void do_render_seq(struct RenderResult *rr, int cfra);
 
+int seq_can_blend(struct Sequence *seq);
+
 #define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_HD_SOUND || seq->type==SEQ_RAM_SOUND || seq->type==SEQ_IMAGE)
 
 #endif
