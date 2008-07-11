@@ -4440,7 +4440,10 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			if(val==REDRAWTIME) allqueue(REDRAWTIME, 0);
+			if(val==REDRAWTIME) {
+				allqueue(REDRAWTIME, 0);
+				addqueue(sa->win, REDRAW, 1);
+			}
 			else if(val==B_ADD_THEME) {
 				bTheme *btheme, *new;
 				
