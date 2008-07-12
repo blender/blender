@@ -2536,11 +2536,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				break;
 			case ACT_2DFILTER_CUSTOMFILTER:
 				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
-				uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+30,yco-64,width/2-32, 19, &tdfa->text, "");
-				uiDefButS(block, TOG|BIT|0, B_REDR, "Depth", xco+width/2+2 , yco - 64, width/4-16 , 19,
-						&tdfa->texture_flag, 0.0, 0.0, 0, 0, "Includes Depth Texture (bgl_DepthTexture)");
-				uiDefButS(block, TOG|BIT|1, B_REDR, "Luminance", xco+3*width/4-14 , yco - 64, width/4-16 , 19,
-						&tdfa->texture_flag, 0.0, 0.0, 0, 0, "Includes Luminance Texture (bgl_LuminanceTexture)");
+				uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+30,yco-64,width-60, 19, &tdfa->text, "");
 				break;
 		}
 		

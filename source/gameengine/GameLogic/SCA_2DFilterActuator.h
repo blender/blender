@@ -5,18 +5,17 @@
 #include "RAS_IRenderTools.h"
 #include "SCA_IActuator.h"
 
-
 class SCA_2DFilterActuator : public SCA_IActuator
 {
     Py_Header;
 
 private:
-	
+	vector<STR_String> m_propNames;
+	void * m_gameObj;
 	RAS_2DFilterManager::RAS_2DFILTER_MODE m_type;
 	short m_flag;
 	float m_float_arg;
 	int   m_int_arg;
-	short m_texture_flag;
 	STR_String	m_shaderText;
 	RAS_IRasterizer* m_rasterizer;
 	RAS_IRenderTools* m_rendertools;
@@ -29,7 +28,6 @@ public:
 		short flag,
 		float float_arg,
 		int int_arg,
-		short texture_flag,
 		RAS_IRasterizer* rasterizer,
 		RAS_IRenderTools* rendertools,
         PyTypeObject* T=&Type
