@@ -539,7 +539,7 @@ void BL_ConvertActuators(char* maggiename,
 						
 						// does the 'original' for replication exists, and 
 						// is it in a non-active layer ?
-						CValue* originalval = NULL;
+						SCA_IObject* originalval = NULL;
 						if (editobact->ob && !(editobact->ob->lay & activeLayerBitInfo))
 							originalval = converter->FindGameObject(editobact->ob);
 						
