@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\..\lib\windows\python\include\python2.5"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -125,7 +125,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\..\lib\windows\python\include\python2.5"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_GLEXT"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -229,7 +229,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\..\lib\windows\python\include\python2.5"
 				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_GLEXT"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -281,7 +281,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\Expressions;..\..\..\..\lib\windows\python\include\python2.5"
 				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_GLEXT"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
