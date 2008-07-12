@@ -1,8 +1,8 @@
-SWIGINTERN PyObject *_wrap_BezierCurveShader_shade(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_BezierCurveShader_shade(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_BezierCurveShader(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_delete_BezierCurveShader(PyObject *self , PyObject *args) {
 }
 
 

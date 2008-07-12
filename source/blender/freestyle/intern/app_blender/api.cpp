@@ -106,12 +106,11 @@ extern "C" {
 
 	void FRS_render(Render* re, int render_in_layer) {
 		
-		// if(render_in_layer) {
-		// 	view->workingBuffer = GL_COLOR_ATTACHMENT0_EXT;
-		// } else {
-		// 	view->workingBuffer = GL_BACK;
-		// }
-		view->workingBuffer = GL_BACK;
+		if(render_in_layer) {
+			view->workingBuffer = GL_COLOR_ATTACHMENT1_EXT;
+		} else {
+			view->workingBuffer = GL_BACK;
+		}
 		
 		// add style module
 		string style_module = pathconfig->getProjectDir() + 
@@ -132,76 +131,52 @@ extern "C" {
 
 	void FRS_execute(Render* re, int render_in_layer) {
 		
-		GLuint framebuffer, renderbuffers[2];
-		GLenum status;
-		RenderLayer *rl;
-		GLubyte *pixc;
-		
 		if(render_in_layer) {
-			
-			pixc = (GLubyte *) malloc( 4 * re->winx * re->winy * sizeof(GLubyte) );
-			
-			cout << "Freestyle as a render layer - SETUP" << endl;
+
+		// 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+		// 	switch(status){
+		// 		case GL_FRAMEBUFFER_COMPLETE_EXT:
+		// 		cout << "CORRECT: GL_FRAMEBUFFER_COMPLETE" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT" << endl;
+		// 		break;
+		// 		case GL_FRAMEBUFFER_UNSUPPORTED_EXT: 
+		// 		cout << "ERROR: GL_FRAMEBUFFER_UNSUPPORTED" << endl;
+		// 		break;
+		// }
 		
-			// set up frame buffer
-			glGenFramebuffersEXT(1, &framebuffer);
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
-
-			// set up render buffer: one color buffer, one depth buffer
-			glGenRenderbuffersEXT(2, renderbuffers);
-			
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT,	renderbuffers[0]);
-			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, re->winx, re->winy);
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, renderbuffers[0]);
-			
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffers[1]);
-			glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, re->winx, re->winy);
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, renderbuffers[1]);
-
-			// status verification 
-			status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-			if (status != GL_FRAMEBUFFER_COMPLETE_EXT){
-				cout << "Framebuffer setup error" << endl;
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-				glDeleteRenderbuffersEXT(2, renderbuffers);
-				glDeleteFramebuffersEXT(1, &framebuffer);
-				return;
-			}
-			
-			glPushAttrib(GL_VIEWPORT_BIT);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // should not be needed
-			glViewport(0, 0, re->winx, re->winy);
-			
-			FRS_render(re, render_in_layer);
-
-			// keep first Freestyle layer
+			RenderLayer *rl;
+		
 			for(rl = (RenderLayer *)re->result->layers.first; rl; rl= rl->next)
 				if(rl->layflag & SCE_LAY_FRS)
 					break;
-
-			cout << "Freestyle as a render layer - RESULT" << endl;
-
-			// transfer render to layer
-			glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-			glReadPixels(0, 0, re->winx, re->winy, GL_RGBA, GL_UNSIGNED_BYTE, pixc );
-
+			
 			int p;
-			for(int i = 0; i < re->winx; i++) {
-				for(int j = 0; j < re->winy; j++){
-					p = 4*(i*re->winy + j);
-					*(rl->rectf + p    ) = 1.0*pixc[ p ]/255.0;
-					*(rl->rectf + p + 1) = 1.0*pixc[ p+1 ]/255.0;
-					*(rl->rectf + p + 2) = 1.0*pixc[ p+2 ]/255.0;
-					*(rl->rectf + p + 3) = 1.0*pixc[ p+3 ]/255.0;
+			for(int j = 0; j < re->winy; j++) {
+				for(int i = 0; i < re->winx; i++){
+					p = 4*(j*re->winx + i);
+					rl->rectf[p]      *= 0.6;
+					rl->rectf[p + 1]  = 0.6 * rl->rectf[p + 1];
+					rl->rectf[p + 2] *= 0.6;
+					rl->rectf[p + 3]  = 1.0;
 				}
 			}
-
-			// bind window
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-			glDrawBuffer(GL_BACK);
-			glPopAttrib();
-			glDeleteRenderbuffersEXT(2, renderbuffers);
-			glDeleteFramebuffersEXT(1, &framebuffer);
 			
 		} else {
 			FRS_render(re, render_in_layer);

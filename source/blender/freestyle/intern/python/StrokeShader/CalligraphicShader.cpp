@@ -1,4 +1,4 @@
-SWIGINTERN PyObject *_wrap_CalligraphicShader_shade(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_CalligraphicShader_shade(PyObject *self , PyObject *args) {
 }
 
 

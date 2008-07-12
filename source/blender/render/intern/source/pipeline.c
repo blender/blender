@@ -1621,7 +1621,7 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 
 static void do_render_3d(Render *re)
 {
-	RenderLayer *rl;
+
 //	re->cfra= cfra;	/* <- unused! */
 	
 	/* make render verts/faces/halos/lamps */

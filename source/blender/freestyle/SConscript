@@ -56,10 +56,22 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 prefix = 'intern/app_blender'
 app_sources = env.Glob(prefix + '/*.cpp')
 
+#	Python
+prefix = 'intern/python'
+# python_sources = env.Glob(prefix + '/*.cpp')
+python_sources = [
+					prefix + '/Freestyle.cpp',
+					prefix + '/Convert.cpp',
+					prefix + '/BinaryPredicate0D.cpp',
+					prefix + '/BinaryPredicate1D.cpp',
+					prefix + '/Id.cpp',
+					prefix + '/Interface0D.cpp',
+					prefix + '/Interface1D.cpp'
+				]
 
 sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources \
 		  +	winged_edge_sources + view_map_sources + stroke_sources + rendering_sources \
-		  + app_sources
+		  + app_sources + python_sources
 
 env.BlenderLib (libname="bf_freestyle",
 				sources=sources,

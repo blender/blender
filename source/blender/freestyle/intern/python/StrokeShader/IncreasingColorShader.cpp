@@ -1,8 +1,8 @@
-SWIGINTERN PyObject *_wrap_IncreasingColorShader_shade(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_IncreasingColorShader_shade(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_IncreasingColorShader(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_delete_IncreasingColorShader(PyObject *self , PyObject *args) {
 }
 
 

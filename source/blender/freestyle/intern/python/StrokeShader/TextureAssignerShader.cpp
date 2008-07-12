@@ -1,8 +1,8 @@
-SWIGINTERN PyObject *_wrap_TextureAssignerShader_shade(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_TextureAssignerShader_shade(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_TextureAssignerShader(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_delete_TextureAssignerShader(PyObject *self , PyObject *args) {
 }
 
 

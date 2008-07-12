@@ -1,236 +1,236 @@
-SWIGINTERN PyObject *_wrap_Stroke_getExactTypeName(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getExactTypeName(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getId(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getId(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_new_Stroke__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_new_Stroke__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_new_Stroke__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_new_Stroke__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_new_Stroke(PyObject *self, PyObject *args) {
+ PyObject *_wrap_new_Stroke(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_Stroke(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_delete_Stroke(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_ComputeSampling(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_ComputeSampling(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_Resample__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_Resample__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_Resample__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_Resample__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_Resample(PyObject *self, PyObject *args) {
+PyObject *Stroke_Resample(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_RemoveVertex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_RemoveVertex(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_InsertVertex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_InsertVertex(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_Render(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_Render(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_RenderBasic(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_RenderBasic(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getLength2D(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getLength2D(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getMediumType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getMediumType(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getTextureId(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getTextureId(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_hasTips(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_hasTips(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_vertices_size(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_vertices_size(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_begin__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_viewedges_begin__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_begin__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_viewedges_begin__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_begin(PyObject *self, PyObject *args) {
+PyObject *Stroke_viewedges_begin(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_end__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_viewedges_end__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_end__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_viewedges_end__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_end(PyObject *self, PyObject *args) {
+PyObject *Stroke_viewedges_end(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_viewedges_size(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_viewedges_size(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getBeginningOrientation(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getBeginningOrientation(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getBeginningOrientationX(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getBeginningOrientationX(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getBeginningOrientationY(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getBeginningOrientationY(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getEndingOrientation(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getEndingOrientation(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getEndingOrientationX(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getEndingOrientationX(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_getEndingOrientationY(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_getEndingOrientationY(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetId(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetId(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetLength(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetLength(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetMediumType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetMediumType(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetTextureId(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetTextureId(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetTips(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetTips(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_push_back(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_push_back(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_push_front(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_push_front(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_AddViewEdge(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_AddViewEdge(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetBeginningOrientation__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetBeginningOrientation__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetBeginningOrientation__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetBeginningOrientation__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetBeginningOrientation(PyObject *self, PyObject *args) {
+PyObject *Stroke_SetBeginningOrientation(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetEndingOrientation__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetEndingOrientation__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetEndingOrientation__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_SetEndingOrientation__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_SetEndingOrientation(PyObject *self, PyObject *args) {
+PyObject *Stroke_SetEndingOrientation(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_strokeVerticesBegin__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_strokeVerticesBegin__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_strokeVerticesBegin__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_strokeVerticesBegin__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_strokeVerticesBegin(PyObject *self, PyObject *args) {
+PyObject *Stroke_strokeVerticesBegin(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_strokeVerticesEnd(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_strokeVerticesEnd(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_strokeVerticesSize(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_strokeVerticesSize(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_verticesBegin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_verticesBegin(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_verticesEnd(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_verticesEnd(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_pointsBegin__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_pointsBegin__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_pointsBegin__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_pointsBegin__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_pointsBegin(PyObject *self, PyObject *args) {
+PyObject *Stroke_pointsBegin(PyObject *self, PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_pointsEnd__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_pointsEnd__SWIG_0(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_pointsEnd__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+PyObject *Stroke_pointsEnd__SWIG_1(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_Stroke_pointsEnd(PyObject *self, PyObject *args) {
+PyObject *Stroke_pointsEnd(PyObject *self, PyObject *args) {
 }
 
 

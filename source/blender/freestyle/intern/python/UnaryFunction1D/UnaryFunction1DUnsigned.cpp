@@ -1,20 +1,20 @@
-SWIGINTERN PyObject *_wrap_UnaryFunction1DUnsigned_getName(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_UnaryFunction1DUnsigned_getName(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_UnaryFunction1DUnsigned___call__(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_UnaryFunction1DUnsigned___call__(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_UnaryFunction1DUnsigned_setIntegrationType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_UnaryFunction1DUnsigned_setIntegrationType(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_UnaryFunction1DUnsigned_getIntegrationType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_UnaryFunction1DUnsigned_getIntegrationType(PyObject *self , PyObject *args) {
 }
 
 
-SWIGINTERN PyObject *_wrap_disown_UnaryFunction1DUnsigned(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+ PyObject *_wrap_disown_UnaryFunction1DUnsigned(PyObject *self , PyObject *args) {
 }
 
 
