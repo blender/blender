@@ -32,6 +32,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -56,6 +57,7 @@
 #include "DNA_space_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -928,12 +930,55 @@ static void draw_channel_strips(void)
 void do_actionbuts(unsigned short event)
 {
 	switch(event) {
+		/* general */
 	case REDRAWVIEW3D:
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_REDR:
 		allqueue(REDRAWACTION, 0);
 		break;
+		
+		/* action-groups */
+	case B_ACTCUSTCOLORS:	/* only when of the color wells is edited */
+	{
+		bActionGroup *agrp= get_active_actiongroup(G.saction->action);
+		
+		if (agrp)
+			agrp->customCol= -1;
+			
+		allqueue(REDRAWACTION, 0);
+	}
+		break;
+	case B_ACTCOLSSELECTOR: /* sync color set after using selector */
+	{
+		bActionGroup *agrp= get_active_actiongroup(G.saction->action);
+		
+		if (agrp) 
+			actionbone_group_copycolors(agrp, 1);
+			
+		allqueue(REDRAWACTION, 0);
+	}
+		break;
+	case B_ACTGRP_SELALL: /* select all grouped channels */
+	{
+		bAction *act= G.saction->action;
+		bActionGroup *agrp= get_active_actiongroup(act);
+		
+		/* select all in group, then reselect/activate group as the previous operation clears that */
+		select_action_group_channels(act, agrp);
+		agrp->flag |= (AGRP_ACTIVE|AGRP_SELECTED);
+		
+		allqueue(REDRAWACTION, 0);
+	}
+		break;
+	case B_ACTGRP_ADDTOSELF: /* add all selected action channels to self */
+		action_groups_group(0);
+		break;
+	case B_ACTGRP_UNGROUP: /* remove channels from active group */
+		// FIXME: todo...
+		printf("FIXME: remove achans from active Action-Group not implemented yet! \n");
+		break;
+	
 	}
 }
 
@@ -941,14 +986,68 @@ void do_actionbuts(unsigned short event)
 static void action_panel_properties(short cntrl)	// ACTION_HANDLER_PROPERTIES
 {
 	uiBlock *block;
-
+	void *data;
+	short datatype;
+	
 	block= uiNewBlock(&curarea->uiblocks, "action_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(ACTION_HANDLER_PROPERTIES);  // for close and esc
-	if (uiNewPanel(curarea, block, "Transform Properties", "Action", 10, 230, 318, 204)==0) 
+	
+	/* get datatype */
+	data= get_action_context(&datatype);
+	//if (data == NULL) return;
+	
+	if (uiNewPanel(curarea, block, "Active Channel Properties", "Action", 10, 230, 318, 204)==0) 
 		return;
-
-	uiDefBut(block, LABEL, 0, "test text",		10,180,300,19, 0, 0, 0, 0, 0, "");
+	
+	/* currently, only show data for actions */
+	if (datatype == ACTCONT_ACTION) {
+		bActionGroup *agrp= get_active_actiongroup(data);
+		//bActionChannel *achan= get_hilighted_action_channel(data);
+		char *menustr;
+		
+		/* only for action-groups */
+		if (agrp) {
+			/* general stuff */
+			uiDefBut(block, LABEL, 1, "Action Group:",					10, 180, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+			
+			uiDefBut(block, TEX, B_REDR, "Name: ",	10,160,150,20, agrp->name, 0.0, 31.0, 0, 0, "");
+			uiBlockBeginAlign(block);
+				uiDefButBitI(block, TOG, AGRP_EXPANDED, B_REDR, "Expanded", 170, 160, 75, 20, &agrp->flag, 0, 0, 0, 0, "Action Group is expanded");
+				uiDefButBitI(block, TOG, AGRP_PROTECTED, B_REDR, "Protected", 245, 160, 75, 20, &agrp->flag, 0, 0, 0, 0, "Action Group is protected");
+			uiBlockEndAlign(block);
+			
+			/* color stuff */
+			uiDefBut(block, LABEL, 1, "Group Colors:",	10, 107, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+			uiBlockBeginAlign(block);
+				menustr= BIF_ThemeColorSetsPup(1);
+				uiDefButI(block, MENU,B_ACTCOLSSELECTOR, menustr, 10,85,150,19, &agrp->customCol, -1, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme, -1 = Use Custom Color Scheme");						
+				MEM_freeN(menustr);
+				
+				/* show color-selection/preview */
+				if (agrp->customCol) {
+					/* do color copying/init (to stay up to date) */
+					actionbone_group_copycolors(agrp, 1);
+					
+					/* color changing */
+					uiDefButC(block, COL, B_ACTCUSTCOLORS, "",		10, 65, 50, 19, agrp->cs.active, 0, 0, 0, 0, "Color to use for 'top-level' channels");
+					uiDefButC(block, COL, B_ACTCUSTCOLORS, "",		60, 65, 50, 19, agrp->cs.select, 0, 0, 0, 0, "Color to use for '2nd-level' channels");
+					uiDefButC(block, COL, B_ACTCUSTCOLORS, "",		110, 65, 50, 19, agrp->cs.solid, 0, 0, 0, 0, "Color to use for '3rd-level' channels");
+				}
+			uiBlockEndAlign(block);
+			
+			/* commands for active group */
+			uiDefBut(block, BUT, B_ACTGRP_SELALL, "Select Grouped",	170,85,150,20, 0, 21, 0, 0, 0, "Select all action-channels belonging to this group (same as doing Ctrl-Shift-LMB)");
+			
+			uiBlockBeginAlign(block);
+				uiDefBut(block, BUT, B_ACTGRP_ADDTOSELF, "Add to Group",	170,60,150,20, 0, 21, 0, 0, 0, "Add selected action-channels to this group");
+				uiDefBut(block, BUT, B_ACTGRP_UNGROUP, "Un-Group",	170,40,150,20, 0, 21, 0, 0, 0, "Remove selected action-channels from this group (unimplemented)");
+			uiBlockEndAlign(block);
+		}
+	}
+	else {
+		/* Currently, there isn't anything to display for these types ... */
+	}
 }
 
 static void action_blockhandlers(ScrArea *sa)

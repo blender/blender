@@ -5153,32 +5153,6 @@ static void verify_posegroup_groupname(void *arg1, void *arg2)
 	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
 }
 
-static char *build_colorsets_menustr ()
-{
-	DynStr *pupds= BLI_dynstr_new();
-	char *str;
-	char buf[48];
-	int i;
-	
-	/* add title first (and the "default" entry) */
-	BLI_dynstr_append(pupds, "Bone Color Set%t|Default Colors%x0|");
-	
-	/* loop through set indices, adding them */
-	for (i=1; i<21; i++) {
-		sprintf(buf, "%d - Theme Color Set%%x%d|", i, i);
-		BLI_dynstr_append(pupds, buf);
-	}
-	
-	/* add the 'custom' entry */
-	BLI_dynstr_append(pupds, "Custom Set %x-1");
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
-
 static void editing_panel_links(Object *ob)
 {
 	uiBlock *block;
@@ -5338,32 +5312,14 @@ static void editing_panel_links(Object *ob)
 			/* color set for 'active' group */
 			if (pose->active_group && grp) {
 				uiBlockBeginAlign(block);
-					menustr= build_colorsets_menustr();
+					menustr= BIF_ThemeColorSetsPup(1);
 					uiDefButI(block, MENU,B_POSEGRP_RECALC, menustr, xco,85,140,19, &grp->customCol, -1, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme, -1 = Use Custom Color Scheme");						
 					MEM_freeN(menustr);
 					
 					/* show color-selection/preview */
 					if (grp->customCol) {
-						if (grp->customCol > 0) {
-							/* copy theme colors on-to group's custom color in case user tries to edit color */
-							bTheme *btheme= U.themes.first;
-							ThemeWireColor *col_set= &btheme->tarm[(grp->customCol - 1)];
-							
-							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
-						}
-						else {
-							/* init custom colors with a generic multi-color rgb set, if not initialised already */
-							if (grp->cs.solid[0] == 0) {
-								/* define for setting colors in theme below */
-								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
-								
-								SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
-								SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
-								SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
-								
-								#undef SETCOL
-							}
-						}
+						/* do color copying/init (to stay up to date) */
+						actionbone_group_copycolors(grp, 1);
 						
 						/* color changing */
 						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco, 65, 30, 19, grp->cs.solid, 0, 0, 0, 0, "Color to use for surface of bones");

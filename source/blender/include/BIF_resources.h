@@ -591,6 +591,9 @@ void	BIF_load_ui_colors		(void);
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 char 	*BIF_ThemeColorsPup(int spacetype);
 
+/* only for Bone Color sets */
+char *BIF_ThemeColorSetsPup(short inc_custom);
+
 
 void	BIF_def_color			(BIFColorID colorid, unsigned char r, unsigned char g, unsigned char b);
 

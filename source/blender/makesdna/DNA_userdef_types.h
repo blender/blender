@@ -116,6 +116,7 @@ typedef struct ThemeWireColor {
 
 /* flags for ThemeWireColor */
 #define TH_WIRECOLOR_CONSTCOLS	(1<<0)
+#define TH_WIRECOLOR_TEXTCOLS	(1<<1)
 
 /* A theme */
 typedef struct bTheme {
