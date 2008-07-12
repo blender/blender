@@ -105,7 +105,8 @@ void BL_Material::GetConversionRGB(unsigned int *nrgb) {
 	*nrgb   = rgb[3];
 }
 
-void BL_Material::SetConversionUV(MT_Point2 *nuv) {
+void BL_Material::SetConversionUV(const STR_String& name, MT_Point2 *nuv) {
+	uvName = name;
 	uv[0] = *nuv++;
 	uv[1] = *nuv++;
 	uv[2] = *nuv++;
@@ -118,7 +119,8 @@ void BL_Material::GetConversionUV(MT_Point2 *nuv){
 	*nuv++ = uv[2];
 	*nuv   = uv[3];
 }
-void BL_Material::SetConversionUV2(MT_Point2 *nuv) {
+void BL_Material::SetConversionUV2(const STR_String& name, MT_Point2 *nuv) {
+	uv2Name = name;
 	uv2[0] = *nuv++;
 	uv2[1] = *nuv++;
 	uv2[2] = *nuv++;

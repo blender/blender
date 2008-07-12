@@ -278,7 +278,8 @@ public:
 		void 
 	AlignAxisToVect(
 		const MT_Vector3& vect,
-		int axis = 2 
+		int axis = 2,
+		float fac = 1.0
 	);
 
 	/** 
@@ -490,14 +491,22 @@ public:
 	);
 
 	/**
+	 * Function to set IPO option at start of IPO
+	 */ 
+		void	
+	InitIPO(
+		bool ipo_as_force,
+		bool ipo_add,
+		bool ipo_local
+	);
+
+	/**
 	 * Odd function to update an ipo. ???
 	 */ 
 		void	
 	UpdateIPO(
 		float curframetime,
-		bool recurse, 
-		bool ipo_as_force,
-		bool force_ipo_local
+		bool recurse
 	);
 	/**
 	 * Updates Material Ipo data 

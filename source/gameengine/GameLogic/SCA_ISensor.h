@@ -126,6 +126,8 @@ public:
 	/** Resume sensing. */
 	void Resume();
 
+	void ClrLink()
+		{ m_links = 0; }
 	void IncLink()
 		{ m_links++; }
 	void DecLink();

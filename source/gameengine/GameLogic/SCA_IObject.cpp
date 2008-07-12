@@ -40,7 +40,7 @@
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): m_state(0), CValue(T)
+SCA_IObject::SCA_IObject(PyTypeObject* T): m_initState(0), m_state(0), CValue(T)
 {
 	m_suspended = false;
 }
@@ -164,7 +164,9 @@ void SCA_IObject::ReParentLogic()
 	{
 		SCA_IActuator* newactuator = (SCA_IActuator*) (*ita)->GetReplica();
 		newactuator->ReParent(this);
+		// actuators are initially not connected to any controller
 		newactuator->SetActive(false);
+		newactuator->ClrLink();
 		oldactuators[act++] = newactuator;
 	}
 
@@ -175,6 +177,7 @@ void SCA_IObject::ReParentLogic()
 	{
 		SCA_IController* newcontroller = (SCA_IController*)(*itc)->GetReplica();
 		newcontroller->ReParent(this);
+		newcontroller->SetActive(false);
 		oldcontrollers[con++]=newcontroller;
 
 	}
@@ -186,6 +189,9 @@ void SCA_IObject::ReParentLogic()
 	{
 		SCA_ISensor* newsensor = (SCA_ISensor*)(*its)->GetReplica();
 		newsensor->ReParent(this);
+		newsensor->SetActive(false);
+		// sensors are initially not connected to any controller
+		newsensor->ClrLink();
 		oldsensors[sen++] = newsensor;
 	}
 

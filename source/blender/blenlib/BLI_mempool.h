@@ -36,7 +36,9 @@ typedef struct BLI_mempool BLI_mempool;
 
 BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk);
 void *BLI_mempool_alloc(BLI_mempool *pool);
+void *BLI_mempool_calloc(BLI_mempool *pool);
 void BLI_mempool_free(BLI_mempool *pool, void *addr);
 void BLI_mempool_destroy(BLI_mempool *pool);
+
 
 #endif

@@ -2900,15 +2900,15 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButS(block, MENU, B_LAMPREDRAW,  "Falloff %t|Constant %x0|Inverse Linear %x1|Inverse Square %x2|Custom Curve %x3|Lin/Quad Weighted %x4|",
 			10,150,100,19, &la->falloff_type, 0,0,0,0, "Lamp falloff - intensity decay with distance");	
-		uiDefButBitS(block, TOG, LA_SPHERE, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
+		uiDefButBitS(block, TOG, LA_SPHERE, B_LAMPPRV,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
 	}
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, LA_LAYER, 0,"Layer",				10,70,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
 	uiDefButBitS(block, TOG, LA_NEG, B_LAMPPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
-	uiDefButBitS(block, TOG, LA_NO_DIFF, 0,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
-	uiDefButBitS(block, TOG, LA_NO_SPEC, 0,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
+	uiDefButBitS(block, TOG, LA_NO_DIFF, B_LAMPPRV,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
+	uiDefButBitS(block, TOG, LA_NO_SPEC, B_LAMPPRV,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);

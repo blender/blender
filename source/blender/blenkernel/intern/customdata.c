@@ -360,8 +360,80 @@ static void layerDefault_origspace_face(void *data, int count)
 }
 /* --------- */
 
+static void layerDefault_mloopcol(void *data, int count)
+{
+	static MLoopCol default_mloopcol = {255,255,255,255};
+	MLoopCol *mlcol = (MLoopCol*)data;
+	int i;
+	for(i = 0; i < count; i++)
+		mlcol[i] = default_mloopcol;
 
+}
 
+static void layerInterp_mloopcol(void **sources, float *weights,
+				float *sub_weights, int count, void *dest)
+{
+	MLoopCol *mc = dest;
+	int i;
+	float *sub_weight;
+	struct {
+		float a;
+		float r;
+		float g;
+		float b;
+	} col;
+	col.a = col.r = col.g = col.b = 0;
+
+	sub_weight = sub_weights;
+	for(i = 0; i < count; ++i){
+		float weight = weights ? weights[i] : 1;
+		MLoopCol *src = sources[i];
+		if(sub_weights){
+			col.a += src->a * (*sub_weight) * weight;
+			col.r += src->r * (*sub_weight) * weight;
+			col.g += src->g * (*sub_weight) * weight;
+			col.b += src->b * (*sub_weight) * weight;
+			sub_weight++;		
+		} else {
+			col.a += src->a * weight;
+			col.r += src->r * weight;
+			col.g += src->g * weight;
+			col.b += src->b * weight;
+		}
+	}
+	mc->a = (int)col.a;
+	mc->r = (int)col.r;
+	mc->g = (int)col.g;
+	mc->b = (int)col.b;
+}
+static void layerInterp_mloopuv(void **sources, float *weights,
+				float *sub_weights, int count, void *dest)
+{
+	MLoopUV *mluv = dest;
+	int i;
+	float *sub_weight;
+	struct {
+		float u;
+		float v;
+	}uv;
+	uv.u = uv.v = 0.0;
+
+	sub_weight = sub_weights;
+	for(i = 0; i < count; ++i){
+		float weight = weights ? weights[i] : 1;
+		MLoopUV *src = sources[i];
+		if(sub_weights){
+			uv.u += src->uv[0] * (*sub_weight) * weight;
+			uv.v += src->uv[1] * (*sub_weight) * weight;
+			sub_weight++;		
+		} else {
+			uv.u += src->uv[0] * weight;
+			uv.v += src->uv[1] * weight;
+		}
+	}
+	mluv->uv[0] = uv.u;
+	mluv->uv[1] = uv.v;
+}
 
 static void layerInterp_mcol(void **sources, float *weights,
                              float *sub_weights, int count, void *dest)
@@ -433,6 +505,8 @@ static void layerDefault_mcol(void *data, int count)
 		mcol[i] = default_mcol;
 }
 
+
+
 const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MSticky), "MSticky", 1, NULL, NULL, NULL, layerInterp_msticky, NULL,
@@ -457,8 +531,8 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, NULL, NULL, NULL} 
+	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL},
+	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol} 
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -480,7 +554,11 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
 	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO;
 const CustomDataMask CD_MASK_BMESH = 
-	CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL;
+	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
+const CustomDataMask CD_MASK_FACECORNERS =
+	CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
+	CD_MASK_MLOOPCOL;
+
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
@@ -1456,6 +1534,36 @@ void CustomData_from_em_block(const CustomData *source, CustomData *dest,
 }
 
 /*Bmesh functions*/
+/*needed to convert to/from different face reps*/
+void CustomData_to_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata)
+{
+	int i;
+	for(i=0; i < fdata->totlayer; i++){
+		if(fdata->layers[i].type == CD_MTFACE){
+			CustomData_add_layer(pdata, CD_MTEXPOLY, CD_CALLOC, &(fdata->layers[i].name), 0);
+			CustomData_add_layer(ldata, CD_MLOOPUV, CD_CALLOC, &(fdata->layers[i].name), 0);
+		}
+		else if(fdata->layers[i].type == CD_MCOL)
+			CustomData_add_layer(ldata, CD_MLOOPCOL, CD_CALLOC, &(fdata->layers[i].name), 0);
+	}		
+}
+void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData *ldata, int total){
+	int i;
+	for(i=0; i < pdata->totlayer; i++){
+		if(pdata->layers[i].type == CD_MTEXPOLY)
+			CustomData_add_layer(fdata, CD_MTFACE, CD_CALLOC, &(pdata->layers[i].name), total);
+	}
+	for(i=0; i < ldata->totlayer; i++){
+		if(ldata->layers[i].type == CD_MLOOPCOL)
+			CustomData_add_layer(fdata, CD_MCOL, CD_CALLOC, &(ldata->layers[i].name), total);
+	}
+}
+
+
+void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
+	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize);
+}
+
 void CustomData_bmesh_free_block(CustomData *data, void **block)
 {
     const LayerTypeInfo *typeInfo;
@@ -1484,7 +1592,7 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
 		CustomData_bmesh_free_block(data, block);
 
 	if (data->totsize > 0)
-		*block = BLI_mempool_alloc(data->pool);
+		*block = BLI_mempool_calloc(data->pool);
 	else
 		*block = NULL;
 }
@@ -1601,7 +1709,6 @@ void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights
 	for(i = 0; i < data->totlayer; ++i) {
 		CustomDataLayer *layer = &data->layers[i];
 		const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
-
 		if(typeInfo->interp) {
 			for(j = 0; j < count; ++j)
 				sources[j] = (char *)src_blocks[j] + layer->offset;

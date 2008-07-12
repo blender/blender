@@ -4812,7 +4812,7 @@ static void object_panel_particle_system(Object *ob)
 	uiDefBut(block, LABEL, 0, "Basic:",					butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 
-	if(part->distr==PART_DISTR_GRID)
+	if(part->distr==PART_DISTR_GRID && part->from != PART_FROM_VERT)
 		uiDefButI(block, NUM, B_PART_ALLOC, "Resol:",		butx,(buty-=buth),butw,buth, &part->grid_res, 1.0, 100.0, 0, 0, "The resolution of the particle grid");
 	else
 		uiDefButI(block, NUM, B_PART_ALLOC, "Amount:",		butx,(buty-=buth),butw,buth, &part->totpart, 0.0, 100000.0, 0, 0, "The total number of particles");

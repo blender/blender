@@ -51,8 +51,9 @@ typedef struct bActionActuator {
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
 	char	frameProp[32];	/* Set this property to the actions current frame */
-	int	blendin;		/* Number of frames of blending */	
-	short	priority;		/* Execution priority */			
+	short	blendin;		/* Number of frames of blending */
+	short	priority;		/* Execution priority */
+	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
 	float	stridelength;	/* Displacement incurred by cycle */
 } bActionActuator;												
@@ -339,8 +340,9 @@ typedef struct FreeCamera {
 /* ipoactuator->flag */
 #define ACT_IPOFORCE        (1 << 0)
 #define ACT_IPOEND          (1 << 1)
-#define ACT_IPOFORCE_LOCAL  (1 << 2)
-#define ACT_IPOCHILD        (1 << 4)			
+#define ACT_IPOLOCAL		(1 << 2)
+#define ACT_IPOCHILD        (1 << 4)	
+#define ACT_IPOADD			(1 << 5)
 
 /* ipoactuator->flag for k2k */
 #define ACT_K2K_PREV		1

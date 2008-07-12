@@ -379,7 +379,7 @@ static EditFace *addface_from_edges(void)
 	
 	/* find the 4 edges */
 	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->f & SELECT) {
+		if( (eed->f & SELECT) || (eed->v1->f & eed->v2->f & SELECT) ) {
 			if(eedar[0]==NULL) eedar[0]= eed;
 			else if(eedar[1]==NULL) eedar[1]= eed;
 			else if(eedar[2]==NULL) eedar[2]= eed;
@@ -765,6 +765,7 @@ void addedgeface_mesh(void)
 				/* if 4 edges exist, we just create the face, convex or not */
 					efa= addface_from_edges();
 					if(efa==NULL) {
+						
 						/* the order of vertices can be anything, 6 cases to check */
 						if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
 							efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
@@ -775,17 +776,16 @@ void addedgeface_mesh(void)
 						else if( convex(neweve[0]->co, neweve[2]->co, neweve[1]->co, neweve[3]->co) ) {
 							efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
 						}
-						
-						else if( convex(neweve[1]->co, neweve[2]->co, neweve[3]->co, neweve[0]->co) ) {
-							efa= addfacelist(neweve[1], neweve[2], neweve[3], neweve[0], NULL, NULL);
+						else if( convex(neweve[0]->co, neweve[1]->co, neweve[3]->co, neweve[2]->co) ) {
+							efa= addfacelist(neweve[0], neweve[1], neweve[3], neweve[2], NULL, NULL);
 						}
-						else if( convex(neweve[1]->co, neweve[3]->co, neweve[0]->co, neweve[2]->co) ) {
-							efa= addfacelist(neweve[1], neweve[3], neweve[0], neweve[2], NULL, NULL);
+						else if( convex(neweve[0]->co, neweve[3]->co, neweve[2]->co, neweve[1]->co) ) {
+							efa= addfacelist(neweve[0], neweve[3], neweve[2], neweve[1], NULL, NULL);
 						}
-						else if( convex(neweve[1]->co, neweve[3]->co, neweve[2]->co, neweve[0]->co) ) {
-							efa= addfacelist(neweve[1], neweve[3], neweve[2], neweve[0], NULL, NULL);
+						else if( convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co) ) {
+							efa= addfacelist(neweve[0], neweve[3], neweve[1], neweve[2], NULL, NULL);
 						}
-						else error("The selected vertices form a concave quad");
+						else printf("cannot find nice quad from concave set of vertices\n");
 					}
 				}
 			}

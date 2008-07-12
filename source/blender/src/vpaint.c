@@ -566,9 +566,9 @@ static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 	cp=  (char *)&col;
 	
 	cp[0]= 255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])>>8;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])>>8;
-	cp[3]= (mfac*cp1[3]+fac*cp2[3])>>8;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
 	
 	return col;
 }
@@ -586,11 +586,11 @@ static unsigned int mcol_add(unsigned int col1, unsigned int col2, int fac)
 	cp=  (char *)&col;
 	
 	cp[0]= 255;
-	temp= cp1[1] + ((fac*cp2[1])>>8);
+	temp= cp1[1] + ((fac*cp2[1])/255);
 	if(temp>254) cp[1]= 255; else cp[1]= temp;
-	temp= cp1[2] + ((fac*cp2[2])>>8);
+	temp= cp1[2] + ((fac*cp2[2])/255);
 	if(temp>254) cp[2]= 255; else cp[2]= temp;
-	temp= cp1[3] + ((fac*cp2[3])>>8);
+	temp= cp1[3] + ((fac*cp2[3])/255);
 	if(temp>254) cp[3]= 255; else cp[3]= temp;
 	
 	return col;
@@ -609,11 +609,11 @@ static unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 	cp=  (char *)&col;
 	
 	cp[0]= 255;
-	temp= cp1[1] - ((fac*cp2[1])>>8);
+	temp= cp1[1] - ((fac*cp2[1])/255);
 	if(temp<0) cp[1]= 0; else cp[1]= temp;
-	temp= cp1[2] - ((fac*cp2[2])>>8);
+	temp= cp1[2] - ((fac*cp2[2])/255);
 	if(temp<0) cp[2]= 0; else cp[2]= temp;
-	temp= cp1[3] - ((fac*cp2[3])>>8);
+	temp= cp1[3] - ((fac*cp2[3])/255);
 	if(temp<0) cp[3]= 0; else cp[3]= temp;
 	
 	return col;
@@ -635,9 +635,9 @@ static unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	
 	/* first mul, then blend the fac */
 	cp[0]= 255;
-	cp[1]= (mfac*cp1[1] + fac*((cp2[1]*cp1[1])>>8)  )>>8;
-	cp[2]= (mfac*cp1[2] + fac*((cp2[2]*cp1[2])>>8)  )>>8;
-	cp[3]= (mfac*cp1[3] + fac*((cp2[3]*cp1[3])>>8)  )>>8;
+	cp[1]= (mfac*cp1[1] + fac*((cp2[1]*cp1[1])/255)  )/255;
+	cp[2]= (mfac*cp1[2] + fac*((cp2[2]*cp1[2])/255)  )/255;
+	cp[3]= (mfac*cp1[3] + fac*((cp2[3]*cp1[3])/255)  )/255;
 
 	
 	return col;
@@ -664,9 +664,9 @@ static unsigned int mcol_lighten(unsigned int col1, unsigned int col2, int fac)
 		return col1;
 	
 	cp[0]= 255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])>>8;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])>>8;
-	cp[3]= (mfac*cp1[3]+fac*cp2[3])>>8;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
 	
 	return col;
 }
@@ -692,9 +692,9 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 		return col1;
 	
 	cp[0]= 255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])>>8;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])>>8;
-	cp[3]= (mfac*cp1[3]+fac*cp2[3])>>8;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+	cp[3]= (mfac*cp1[3]+fac*cp2[3])/255;
 	return col;
 }
 

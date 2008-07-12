@@ -75,8 +75,11 @@ protected:
 	/** Interpret the ipo as a force? */
 	bool    m_ipo_as_force;
 	
-	/** Apply a force-ipo locally? */
-	bool    m_force_ipo_local;
+	/** Add Ipo curve to current loc/rot/scale */
+	bool    m_ipo_add;
+	
+	/** The Ipo curve is applied in local coordinates */
+	bool    m_ipo_local;
 
 	bool	m_bIpoPlaying;
 
@@ -113,7 +116,8 @@ public:
 				   bool recurse,
 				   int acttype,
 				   bool ipo_as_force, 
-				   bool force_ipo_local, 
+				   bool ipo_add,
+				   bool ipo_local,
 				   PyTypeObject* T=&Type);
 	virtual ~KX_IpoActuator() {};
 
@@ -144,6 +148,8 @@ public:
 	KX_PYMETHOD_DOC(KX_IpoActuator,GetEnd);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAsForce);
 	KX_PYMETHOD_DOC(KX_IpoActuator,GetIpoAsForce);
+	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAdd);
+	KX_PYMETHOD_DOC(KX_IpoActuator,GetIpoAdd);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetType);
 	KX_PYMETHOD_DOC(KX_IpoActuator,GetType);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetForceIpoActsLocal);

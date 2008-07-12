@@ -405,34 +405,25 @@ void KX_GameObject::ResetDebugColor()
 	SetDebugColor(0xff000000);
 }
 
+void KX_GameObject::InitIPO(bool ipo_as_force,
+							bool ipo_add,
+							bool ipo_local)
+{
+	SGControllerList::iterator it = GetSGNode()->GetSGControllerList().begin();
 
+	while (it != GetSGNode()->GetSGControllerList().end()) {
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, ipo_as_force);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, ipo_add);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, ipo_local);
+		it++;
+	}
+} 
 
 void KX_GameObject::UpdateIPO(float curframetime,
-							  bool recurse,
-							  bool ipo_as_force,
-							  bool force_local) 
+							  bool recurse) 
 {
-
-	// The ipo-actuator needs a sumo reference... this is retrieved (unfortunately)
-	// by the iposgcontr itself...
-//		ipocontr->SetSumoReference(gameobj->GetSumoScene(), 
-//								   gameobj->GetSumoObject());
-
-
-	// The ipo has to be treated as a force, and not a displacement!
-	// For this case, we send some settings to the controller. This
-	// may need some caching...
-	if (ipo_as_force) {
-		SGControllerList::iterator it = GetSGNode()->GetSGControllerList().begin();
-
-		while (it != GetSGNode()->GetSGControllerList().end()) {
-			(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, ipo_as_force);
-			(*it)->SetOption(SG_Controller::SG_CONTR_IPO_FORCES_ACT_LOCAL, force_local);
-			it++;
-		}
-	} 
-
-	// The rest is the 'normal' update procedure.
+	// just the 'normal' update procedure.
 	GetSGNode()->SetSimulatedTime(curframetime,recurse);
 	GetSGNode()->UpdateWorldData(curframetime);
 	UpdateTransform();
@@ -581,7 +572,7 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 	m_objectColor = rgbavec;
 }
 
-void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
+void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 {
 	MT_Matrix3x3 orimat;
 	MT_Vector3 vect,ori,z,x,y;
@@ -594,6 +585,11 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 		cout << "alignAxisToVect() Error: Null vector!\n";
 		return;
 	}
+	
+	if (fac<=0.0) {
+		return;
+	}
+	
 	// normalize
 	vect /= len;
 	orimat = GetSGNode()->GetWorldOrientation();
@@ -603,7 +599,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
 				ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
-			x = vect; 
+			if (fac == 1.0) {
+				x = vect;
+			} else {
+				x = (vect * fac) + ((orimat * MT_Vector3(1.0, 0.0, 0.0)) * (1-fac));
+				len = x.length();
+				if (MT_fuzzyZero(len)) x = vect;
+				else x /= len;
+			}
 			y = ori.cross(x);
 			z = x.cross(y);
 			break;
@@ -611,7 +614,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]);
-			y = vect;
+			if (fac == 1.0) {
+				y = vect;
+			} else {
+				y = (vect * fac) + ((orimat * MT_Vector3(0.0, 1.0, 0.0)) * (1-fac));
+				len = y.length();
+				if (MT_fuzzyZero(len)) y = vect;
+				else y /= len;
+			}
 			z = ori.cross(y);
 			x = y.cross(z);
 			break;
@@ -619,7 +629,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
-			z = vect;
+			if (fac == 1.0) {
+				z = vect;
+			} else {
+				z = (vect * fac) + ((orimat * MT_Vector3(0.0, 0.0, 1.0)) * (1-fac));
+				len = z.length();
+				if (MT_fuzzyZero(len)) z = vect;
+				else z /= len;
+			}
 			x = ori.cross(z);
 			y = z.cross(x);
 			break;
@@ -1289,7 +1306,7 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 			return meshproxy;
 		}
 	}
-	return NULL;
+	Py_RETURN_NONE;
 }
 
 
@@ -1395,13 +1412,14 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self,
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default
+	float fac = 1.0;
 	
-	if (PyArg_ParseTuple(args,"O|i",&pyvect,&axis))
+	if (PyArg_ParseTuple(args,"O|if",&pyvect,&axis, &fac))
 	{
 		MT_Vector3 vect;
 		if (PyVecTo(pyvect, vect))
 		{
-			AlignAxisToVect(vect,axis);				
+			AlignAxisToVect(vect,axis,fac);
 			Py_RETURN_NONE;
 		}
 	}
@@ -1590,14 +1608,18 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		other = static_cast<KX_GameObject*>(pyfrom);
 		fromPoint = other->NodeGetWorldPosition();
 	}
-
-	if (dist != 0.0f)
-	{
+	
+	if (dist != 0.0f) {
 		MT_Vector3 toDir = toPoint-fromPoint;
+		if (MT_fuzzyZero(toDir.length2())) {
+			return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		}
 		toDir.normalize();
 		toPoint = fromPoint + (dist) * toDir;
+	} else if (MT_fuzzyZero((toPoint-fromPoint).length2())) {
+		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 	}
-
+	
 	MT_Point3 resultPoint;
 	MT_Vector3 resultNormal;
 	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();

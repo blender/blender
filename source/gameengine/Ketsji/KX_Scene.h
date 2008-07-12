@@ -260,9 +260,9 @@ protected:
 	/**
 	 * Visibility testing functions.
 	 */
-	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam);
-	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam);
-	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam);
+	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam,int layer=0);
+	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam,int layer=0);
+	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam, int layer=0);
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
@@ -483,7 +483,7 @@ public:
 	void SetNetworkScene(NG_NetworkScene *newScene);
 	void SetWorldInfo(class KX_WorldInfo* wi);
 	KX_WorldInfo* GetWorldInfo();
-	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam);
+	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam, int layer=0);
 	void UpdateMeshTransformations();
 	KX_Camera* GetpCamera();
 	SND_Scene* GetSoundScene();

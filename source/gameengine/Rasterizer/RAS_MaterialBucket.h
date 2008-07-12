@@ -35,16 +35,12 @@
 
 #include "MT_Transform.h"
 #include "RAS_IPolygonMaterial.h"
+#include "RAS_IRasterizer.h"
 #include "RAS_Deformer.h"	// __NLA
 #include <vector>
 #include <map>
 #include <set>
 using namespace std;
-
-typedef vector<unsigned short> KX_IndexArray;
-typedef vector<RAS_TexVert> KX_VertexArray;
-typedef vector< KX_VertexArray* >  vecVertexArray;
-typedef vector< KX_IndexArray* > vecIndexArrays;
 
 /**
  * KX_VertexIndex
@@ -146,9 +142,9 @@ public:
 								const MT_Vector4& rgbavec);
 
 	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode);
+		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, RAS_IRasterizer::DrawMode drawmode);
 	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools *rendertools, int &drawmode);
+		RAS_IRenderTools *rendertools, RAS_IRasterizer::DrawMode& drawmode);
 	
 	unsigned int NumMeshSlots();
 	T_MeshSlotList::iterator msBegin();

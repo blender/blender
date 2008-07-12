@@ -33,12 +33,23 @@
 #pragma warning (disable:4786)
 #endif
 
+#include "STR_HashedString.h"
+
 #include "MT_CmMatrix4x4.h"
 #include "MT_Matrix4x4.h"
 
+#include "RAS_TexVert.h"
+
+#include <vector>
+using namespace std;
+
 class RAS_ICanvas;
 class RAS_IPolyMaterial;
-#include "RAS_MaterialBucket.h"
+
+typedef vector<unsigned short> KX_IndexArray;
+typedef vector<RAS_TexVert> KX_VertexArray;
+typedef vector< KX_VertexArray* >  vecVertexArray;
+typedef vector< KX_IndexArray* > vecIndexArrays;
 
 /**
  * 3D rendering device context interface. 
@@ -62,7 +73,18 @@ public:
 			KX_WIREFRAME,
 			KX_SOLID,
 			KX_SHADED,
-			KX_TEXTURED 
+			KX_TEXTURED,
+			KX_SHADOW
+	};
+
+	/**
+	 * Drawing modes
+	 */
+
+	enum DrawMode {
+		KX_MODE_LINES = 1,
+		KX_MODE_TRIANGLES,
+		KX_MODE_QUADS
 	};
 
 	/**
@@ -111,6 +133,7 @@ public:
 		RAS_TEXCO_NORM,		//< Normal coordinates 
 		RAS_TEXTANGENT,		//<
 		RAS_TEXCO_UV2,		//<
+		RAS_TEXCO_VCOL,		//< Vertex Color
 		RAS_TEXCO_DISABLE	//< Disable this texture unit (cached)
 	};
 
@@ -197,22 +220,24 @@ public:
 	 * IndexPrimitives: Renders primitives.
 	 * @param vertexarrays is an array of vertex arrays
 	 * @param indexarrays is an array of index arrays
-	 * @param mode determines the type of primitive stored in the vertex/index arrays:
-	 *              0 triangles
-	 *              1 lines (default)
-	 *              2 quads
-	 * @param polymat (reserved)
+	 * @param mode determines the type of primitive stored in the vertex/index arrays
 	 * @param useObjectColor will render the object using @param rgbacolor instead of 
 	 *  vertex colors.
 	 */
-	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
+	virtual void IndexPrimitives( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
+							DrawMode mode,
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor,
 							class KX_ListSlot** slot)=0;
+
+	virtual void IndexPrimitivesMulti( 
+						const vecVertexArray& vertexarrays,
+						const vecIndexArrays & indexarrays,
+						DrawMode mode,
+						bool useObjectColor,
+						const MT_Vector4& rgbacolor,
+						class KX_ListSlot** slot)=0;
 
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.
@@ -220,21 +245,11 @@ public:
 	 */
 	virtual void	IndexPrimitives_3DText( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
-							int mode,
+							DrawMode mode,
 							class RAS_IPolyMaterial* polymat,
 							class RAS_IRenderTools* rendertools,
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor)=0;
-
-	virtual void IndexPrimitivesMulti( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot)=0;
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat)=0;
 	/* This one should become our final version, methinks. */

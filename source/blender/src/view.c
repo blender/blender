@@ -1154,7 +1154,7 @@ void viewmoveNDOF(int mode)
     float q1[4];
     float obofs[3];
     float reverse;
-    float diff[4];
+    //float diff[4];
     float d, curareaX, curareaY;
     float mat[3][3];
     float upvec[3];

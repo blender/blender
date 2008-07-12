@@ -137,14 +137,18 @@ void KX_TouchEventManager::NextFrame()
 //			KX_GameObject* gameOb1 = ctrl1->getClientInfo();
 
 			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo *>(ctrl1->getNewClientInfo());
-	
 			list<SCA_ISensor*>::iterator sit;
-			for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit)
-				static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).first, (*cit).second, NULL);
-		
+			if (client_info) {
+				for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit) {
+					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).first, (*cit).second, NULL);
+				}
+			}
 			client_info = static_cast<KX_ClientObjectInfo *>((*cit).second->getNewClientInfo());
-			for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit)
-				static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).second, (*cit).first, NULL);
+			if (client_info) {
+				for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit) {
+					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).second, (*cit).first, NULL);
+				}
+			}
 		}
 			
 		m_newCollisions.clear();

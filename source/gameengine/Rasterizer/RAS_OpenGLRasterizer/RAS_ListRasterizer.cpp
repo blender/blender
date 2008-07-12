@@ -161,9 +161,7 @@ void RAS_ListRasterizer::ReleaseAlloc()
 void RAS_ListRasterizer::IndexPrimitives(
 	const vecVertexArray & vertexarrays,
 	const vecIndexArrays & indexarrays,
-	int mode,
-	class RAS_IPolyMaterial* polymat,
-	class RAS_IRenderTools* rendertools,
+	DrawMode mode,
 	bool useObjectColor,
 	const MT_Vector4& rgbacolor,
 	class KX_ListSlot** slot)
@@ -185,15 +183,13 @@ void RAS_ListRasterizer::IndexPrimitives(
 	if (mUseVertexArrays) {
 		RAS_VAOpenGLRasterizer::IndexPrimitives(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	} else {
 		RAS_OpenGLRasterizer::IndexPrimitives(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	}
@@ -208,9 +204,7 @@ void RAS_ListRasterizer::IndexPrimitives(
 void RAS_ListRasterizer::IndexPrimitivesMulti(
 		const vecVertexArray& vertexarrays,
 		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
+		DrawMode mode,
 		bool useObjectColor,
 		const MT_Vector4& rgbacolor,
 		class KX_ListSlot** slot)
@@ -230,18 +224,19 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 		}
 	}
 
-	if (mUseVertexArrays) {
+	// workaround: note how we do not use vertex arrays for making display
+	// lists, since glVertexAttribPointerARB doesn't seem to work correct
+	// in display lists on ATI? either a bug in the driver or in Blender ..
+	if (mUseVertexArrays && !localSlot) {
 		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	} else {
 		RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	}

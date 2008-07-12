@@ -368,22 +368,10 @@ void RAS_OpenGLRasterizer::SetDrawingMode(int drawingmode)
 
 	switch (m_drawingmode)
 	{
-	case KX_BOUNDINGBOX:
-		{
-		}
 	case KX_WIREFRAME:
 		{
 			glDisable (GL_CULL_FACE);
 			break;
-		}
-	case KX_TEXTURED:
-		{
-		}
-	case KX_SHADED:
-		{
-		}
-	case KX_SOLID:
-		{
 		}
 	default:
 		{
@@ -603,33 +591,14 @@ void RAS_OpenGLRasterizer::GetViewMatrix(MT_Matrix4x4 &mat) const
 
 void RAS_OpenGLRasterizer::IndexPrimitives(const vecVertexArray & vertexarrays,
 									const vecIndexArrays & indexarrays,
-									int mode,
-									class RAS_IPolyMaterial* polymat,
-									class RAS_IRenderTools* rendertools,
+									DrawMode mode,
 									bool useObjectColor,
 									const MT_Vector4& rgbacolor,
 									class KX_ListSlot** slot
 									)
 { 
-	GLenum drawmode;
-	switch (mode)
-	{
-	case 0:
-		drawmode = GL_TRIANGLES;
-		break;
-	case 1:
-		drawmode = GL_LINES;
-		break;
-	case 2:
-		drawmode = GL_QUADS;
-		break;
-	default:
-		drawmode = GL_LINES;
-		break;
-	}
-	
-	const RAS_TexVert* vertexarray ;
-	unsigned int numindices,vt;
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices, vt;
 
 	for (vt=0;vt<vertexarrays.size();vt++)
 	{
@@ -643,7 +612,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives(const vecVertexArray & vertexarrays,
 		int vindex=0;
 		switch (mode)
 		{
-		case 1:
+		case KX_MODE_LINES:
 			{
 				glBegin(GL_LINES);
 				vindex=0;
@@ -655,7 +624,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives(const vecVertexArray & vertexarrays,
 				glEnd();
 			}
 			break;
-		case 2:
+		case KX_MODE_QUADS:
 			{
 				glBegin(GL_QUADS);
 				vindex=0;
@@ -723,7 +692,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives(const vecVertexArray & vertexarrays,
 				glEnd();	
 				break;
 			}
-		case 0:
+		case KX_MODE_TRIANGLES:
 			{
 				glBegin(GL_TRIANGLES);
 				vindex=0;
@@ -788,32 +757,14 @@ void RAS_OpenGLRasterizer::IndexPrimitives(const vecVertexArray & vertexarrays,
 
 void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexarrays,
 									const vecIndexArrays & indexarrays,
-									int mode,
+									DrawMode mode,
 									class RAS_IPolyMaterial* polymat,
 									class RAS_IRenderTools* rendertools,
 									bool useObjectColor,
 									const MT_Vector4& rgbacolor
 									)
 { 
-	GLenum drawmode;
-	switch (mode)
-	{
-	case 0:
-		drawmode = GL_TRIANGLES;
-		break;
-	case 1:
-		drawmode = GL_LINES;
-		break;
-	case 2:
-		drawmode = GL_QUADS;
-		break;
-	default:
-		drawmode = GL_LINES;
-		break;
-	}
-	
-	const RAS_TexVert* vertexarray ;
-	
+	const RAS_TexVert* vertexarray;
 	unsigned int numindices, vt;
 	
 	if (useObjectColor)
@@ -838,7 +789,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexa
 		int vindex=0;
 		switch (mode)
 		{
-		case 1:
+		case KX_MODE_LINES:
 			{
 				glBegin(GL_LINES);
 				vindex=0;
@@ -850,7 +801,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexa
 				glEnd();
 			}
 			break;
-		case 2:
+		case KX_MODE_QUADS:
 			{
 				vindex=0;
 				for (unsigned int i=0;i<numindices;i+=4)
@@ -883,7 +834,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexa
 				}
 				break;
 			}
-		case 0:
+		case KX_MODE_TRIANGLES:
 			{
 				glBegin(GL_TRIANGLES);
 				vindex=0;
@@ -999,6 +950,9 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv)
 			case RAS_TEXCO_UV2:
 				glVertexAttrib2fvARB(unit, tv.getUV2());
 				break;
+			case RAS_TEXCO_VCOL:
+				glVertexAttrib4ubvARB(unit, tv.getRGBA());
+				break;
 			default:
 				break;
 			}
@@ -1037,32 +991,14 @@ void RAS_OpenGLRasterizer::Tangent(	const RAS_TexVert& v1,
 void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 		const vecVertexArray& vertexarrays,
 		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
+		DrawMode mode,
 		bool useObjectColor,
 		const MT_Vector4& rgbacolor,
 		class KX_ListSlot** slot
 		)
 { 
-	GLenum drawmode;
-	switch (mode)
-	{
-	case 0:
-		drawmode = GL_TRIANGLES;
-		break;
-	case 1:
-		drawmode = GL_LINES;
-		break;
-	case 2:
-		drawmode = GL_QUADS;
-		break;
-	default:
-		drawmode = GL_LINES;
-		break;
-	}
 
-	const RAS_TexVert* vertexarray ;
+	const RAS_TexVert* vertexarray;
 	unsigned int numindices,vt;
 
 	for (vt=0;vt<vertexarrays.size();vt++)
@@ -1077,7 +1013,7 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 		int vindex=0;
 		switch (mode)
 		{
-		case 1:
+		case KX_MODE_LINES:
 			{
 				glBegin(GL_LINES);
 				vindex=0;
@@ -1089,7 +1025,7 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 				glEnd();
 			}
 			break;
-		case 2:
+		case KX_MODE_QUADS:
 			{
 				glBegin(GL_QUADS);
 				vindex=0;
@@ -1166,7 +1102,7 @@ void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 				glEnd();	
 				break;
 			}
-		case 0:
+		case KX_MODE_TRIANGLES:
 			{
 				glBegin(GL_TRIANGLES);
 				vindex=0;
