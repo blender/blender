@@ -4439,7 +4439,10 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			if(val==REDRAWTIME) allqueue(REDRAWTIME, 0);
+			if(val==REDRAWTIME) {
+				allqueue(REDRAWTIME, 0);
+				addqueue(sa->win, REDRAW, 1);
+			}
 			else if(val==B_ADD_THEME) {
 				bTheme *btheme, *new;
 				
@@ -4840,9 +4843,9 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					if( cfra!=CFRA || first ) {
 						first= 0;
-				
+						
 						CFRA= cfra;
-						force_draw(0);
+						force_draw_all(0);
 						update_for_newframe();	/* for audio scrubbing */						
 					}
 					else PIL_sleep_ms(30);

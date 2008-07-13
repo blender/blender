@@ -48,7 +48,7 @@
 /* ------------------------------------------------------------------------- */
 
 KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
-												   CValue* original,
+												   SCA_IObject *original,
 												   int time,
 												   SCA_IScene* scene,
 												   const MT_Vector3& linvel,
@@ -61,6 +61,9 @@ KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
 	m_linear_velocity(linvel),
 	m_localFlag(local)
 {
+	if (m_OriginalObject)
+		m_OriginalObject->RegisterActuator(this);
+
 	m_lastCreatedObject = NULL;
 	m_timeProp = time;
 } 
@@ -69,6 +72,8 @@ KX_SCA_AddObjectActuator::KX_SCA_AddObjectActuator(SCA_IObject *gameobj,
 
 KX_SCA_AddObjectActuator::~KX_SCA_AddObjectActuator()
 { 
+	if (m_OriginalObject)
+		m_OriginalObject->UnregisterActuator(this);
 	if (m_lastCreatedObject)
 		m_lastCreatedObject->Release();
 } 
@@ -108,12 +113,29 @@ CValue* KX_SCA_AddObjectActuator::GetReplica()
 
 	// this will copy properties and so on...
 	replica->ProcessReplica();
-	replica->m_lastCreatedObject=NULL;
 	CValue::AddDataToReplica(replica);
 
 	return replica;
 }
 
+void KX_SCA_AddObjectActuator::ProcessReplica()
+{
+	if (m_OriginalObject)
+		m_OriginalObject->RegisterActuator(this);
+	m_lastCreatedObject=NULL;
+	SCA_IActuator::ProcessReplica();
+}
+
+bool KX_SCA_AddObjectActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == m_OriginalObject)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_OriginalObject = NULL;
+		return true;
+	}
+	return false;
+}
 
 
 /* ------------------------------------------------------------------------- */
@@ -181,7 +203,11 @@ PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self,
 	PyObject* gameobj;
 	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
 	{
-		m_OriginalObject = (CValue*)gameobj;
+		if (m_OriginalObject != NULL)
+			m_OriginalObject->UnregisterActuator(this);
+		m_OriginalObject = (SCA_IObject*)gameobj;
+		if (m_OriginalObject)
+			m_OriginalObject->RegisterActuator(this);
 		Py_Return;
 	}
 	PyErr_Clear();
@@ -189,8 +215,11 @@ PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self,
 	char* objectname;
 	if (PyArg_ParseTuple(args, "s", &objectname))
 	{
-		m_OriginalObject= (CValue*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));;
-		
+		if (m_OriginalObject != NULL)
+			m_OriginalObject->UnregisterActuator(this);
+		m_OriginalObject = (SCA_IObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));;
+		if (m_OriginalObject)
+			m_OriginalObject->RegisterActuator(this);
 		Py_Return;
 	}
 	
