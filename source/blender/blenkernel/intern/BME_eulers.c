@@ -39,6 +39,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 #include "BKE_bmesh.h"
 
 #include "BLI_blenlib.h"
@@ -618,8 +619,8 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	BME_disk_append_edge(e, v2);
 	
 	f2 = BME_addpolylist(bm,f);
-	f1loop = BME_create_loop(bm,v2,e,f,NULL);
-	f2loop = BME_create_loop(bm,v1,e,f2,NULL);
+	f1loop = BME_create_loop(bm,v2,e,f,v2loop);
+	f2loop = BME_create_loop(bm,v1,e,f2,v1loop);
 	
 	f1loop->prev = v2loop->prev;
 	f2loop->prev = v1loop->prev;
@@ -663,16 +664,16 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
  *	Takes a an edge and pointer to one of its vertices and collapses
  *	the edge on that vertex.
  *	
- *	Before:		    OE      KE
+ *	Before:    OE      KE
  *             	 ------- -------
  *               |     ||      |
- *				OV     KV      TV
+ *		OV     KV      TV
  *
  *
  *   After:             OE      
  *             	 ---------------
  *               |             |
- *				OV             TV
+ *		OV             TV
  *
  *
  *	Restrictions:
@@ -723,6 +724,8 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 			/*remove ke from tv's disk cycle*/
 			BME_disk_remove_edge(ke, tv);
 		
+			
+
 			/*deal with radial cycle of ke*/
 			if(ke->loop){
 				/*first step, fix the neighboring loops of all loops in ke's radial cycle*/
@@ -763,6 +766,7 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 				
 			}
 			
+
 			/*Validate disk cycles*/
 			diskbase = BME_disk_getpointer(ov->edge,ov);
 			edok = BME_cycle_validate(valance1, diskbase);

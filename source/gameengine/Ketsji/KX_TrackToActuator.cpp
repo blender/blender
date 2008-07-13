@@ -224,7 +224,8 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 	{
 		KX_GameObject* curobj = (KX_GameObject*) GetParent();
 		MT_Vector3 dir = ((KX_GameObject*)m_object)->NodeGetWorldPosition() - curobj->NodeGetWorldPosition();
-		dir.normalize();
+		if (dir.length2())
+			dir.normalize();
 		MT_Vector3 up(0,0,1);
 		
 		
@@ -250,12 +251,12 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 #endif 
 		if (m_allow3D)
 		{
-			up = (up - up.dot(dir) * dir).normalized();
+			up = (up - up.dot(dir) * dir).safe_normalized();
 			
 		}
 		else
 		{
-			dir = (dir - up.dot(dir)*up).normalized();
+			dir = (dir - up.dot(dir)*up).safe_normalized();
 		}
 		
 		MT_Vector3 left;
@@ -266,8 +267,8 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		case 0: // TRACK X
 			{
 				// (1.0 , 0.0 , 0.0 ) x direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = dir.normalized();
-				dir = (left.cross(up)).normalized();
+				left  = dir.safe_normalized();
+				dir = (left.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],
@@ -279,7 +280,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		case 1:	// TRACK Y
 			{
 				// (0.0 , 1.0 , 0.0 ) y direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = (dir.cross(up)).normalized();
+				left  = (dir.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],
@@ -291,10 +292,10 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			
 		case 2: // track Z
 			{
-				left = up.normalized();
-				up = dir.normalized();
+				left = up.safe_normalized();
+				up = dir.safe_normalized();
 				dir = left;
-				left  = (dir.cross(up)).normalized();
+				left  = (dir.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],
@@ -306,8 +307,8 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		case 3: // TRACK -X
 			{
 				// (1.0 , 0.0 , 0.0 ) x direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = -dir.normalized();
-				dir = -(left.cross(up)).normalized();
+				left  = -dir.safe_normalized();
+				dir = -(left.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],
@@ -319,7 +320,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		case 4: // TRACK -Y
 			{
 				// (0.0 , -1.0 , 0.0 ) -y direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = (-dir.cross(up)).normalized();
+				left  = (-dir.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], -dir[0],up[0], 
 					left[1], -dir[1],up[1],
@@ -329,10 +330,10 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			}
 		case 5: // track -Z
 			{
-				left = up.normalized();
-				up = -dir.normalized();
+				left = up.safe_normalized();
+				up = -dir.safe_normalized();
 				dir = left;
-				left  = (dir.cross(up)).normalized();
+				left  = (dir.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],
@@ -345,8 +346,8 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		default:
 			{
 				// (1.0 , 0.0 , 0.0 ) -x direction is forward, z (0.0 , 0.0 , 1.0 ) up
-				left  = -dir.normalized();
-				dir = -(left.cross(up)).normalized();
+				left  = -dir.safe_normalized();
+				dir = -(left.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],

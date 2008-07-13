@@ -459,9 +459,10 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 	PTCacheID pid;
 	ParticleSystem *psys;
 	ModifierData *md;
-	int reset;
+	int reset, skip;
 
 	reset= 0;
+	skip= 0;
 
 	if(ob->soft) {
 		BKE_ptcache_id_from_softbody(&pid, ob, ob->soft);
@@ -469,11 +470,18 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		BKE_ptcache_id_from_particles(&pid, ob, psys);
-		reset |= BKE_ptcache_id_reset(&pid, mode);
-
+		/* Baked softbody hair has to be checked first, because we don't want to reset */
+		/* particles or softbody in that case -jahka */
 		if(psys->soft) {
 			BKE_ptcache_id_from_softbody(&pid, ob, psys->soft);
+			if(mode == PSYS_RESET_ALL || !(psys->part->type == PART_HAIR && (pid.cache->flag & PTCACHE_BAKED))) 
+				reset |= BKE_ptcache_id_reset(&pid, mode);
+			else
+				skip = 1;
+		}
+
+		if(skip == 0) {
+			BKE_ptcache_id_from_particles(&pid, ob, psys);
 			reset |= BKE_ptcache_id_reset(&pid, mode);
 		}
 	}

@@ -604,6 +604,9 @@ PyObject* BL_ShapeActionActuator::PySetAction(PyObject* self,
 				m_blendframe = 0.f;
 		}
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -622,6 +625,9 @@ PyObject* BL_ShapeActionActuator::PySetStart(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&start))
 	{
 		m_startframe = start;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -642,6 +648,9 @@ PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* self,
 	{
 		m_endframe = end;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -661,6 +670,9 @@ PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&blendin))
 	{
 		m_blendin = blendin;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -687,6 +699,9 @@ PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* self,
 		if (m_blendframe>m_blendin)
 			m_blendframe = m_blendin;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -707,6 +722,9 @@ PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&priority))
 	{
 		m_priority = priority;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -731,6 +749,9 @@ PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* self,
 		else if (m_localtime>m_endframe)
 			m_localtime=m_endframe;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -750,6 +771,9 @@ PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self,
 	if (PyArg_ParseTuple(args,"s",&string))
 	{
 		m_propname = string;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);

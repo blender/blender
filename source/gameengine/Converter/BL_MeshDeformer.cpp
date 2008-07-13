@@ -39,6 +39,7 @@
 #endif
 
 #include "RAS_IPolygonMaterial.h"
+#include "BL_DeformableGameObject.h"
 #include "BL_MeshDeformer.h"
 #include "BL_SkinMeshObject.h"
 #include "DNA_mesh_types.h"
@@ -47,33 +48,40 @@
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 
-bool BL_MeshDeformer::Apply(RAS_IPolyMaterial *mat)
+bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 {
-	size_t			i, j, index;
-	vecVertexArray	array;
-	vecIndexArrays	mvarray;
-	vecIndexArrays	diarray;
+	size_t i, j;
+	float *co;
 
-	RAS_TexVert *tv;
-	MVert	*mvert;
+	// only apply once per frame if the mesh is actually modified
+	if(m_pMeshObject->MeshModified() &&
+	   m_lastDeformUpdate != m_gameobj->GetLastFrame()) {
+		// For each material
+		for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
+			mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
+			RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
 
-	// For each material
-	array = m_pMeshObject->GetVertexCache(mat);
-	mvarray = m_pMeshObject->GetMVertCache(mat);
-	diarray = m_pMeshObject->GetDIndexCache(mat);
+			vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
 
-	// For each array
-	for (i=0; i<array.size(); i++){
-		//	For each vertex
-		for (j=0; j<array[i]->size(); j++){
-			tv = &((*array[i])[j]);
-			index = ((*diarray[i])[j]);
+			// For each array
+			for (i=0; i<vertexarrays.size(); i++){
+				KX_VertexArray& vertexarray = (*vertexarrays[i]);
 
-			mvert = &(m_bmesh->mvert[((*mvarray[i])[index])]);
-			tv->SetXYZ(MT_Point3(mvert->co));
+				//	For each vertex
+				for (j=0; j<vertexarray.size(); j++){
+					RAS_TexVert& v = vertexarray[j];
+					co = m_bmesh->mvert[v.getOrigIndex()].co;
+					v.SetXYZ(MT_Point3(co));
+				}
+			}
 		}
+
+		m_lastDeformUpdate = m_gameobj->GetLastFrame();
+
+		return true;
 	}
-	return true;
+
+	return false;
 }
 
 BL_MeshDeformer::~BL_MeshDeformer()
@@ -92,83 +100,86 @@ void BL_MeshDeformer::RecalcNormals()
 	/* We don't normalize for performance, not doing it for faces normals
 	 * gives area-weight normals which often look better anyway, and use
 	 * GL_NORMALIZE so we don't have to do per vertex normalization either
-	 * since the GPU can do it faster
-	 *
-	 * There's a lot of indirection here to get to the data, can this work
-	 * with less arrays/indirection? */
-
-	vecIndexArrays indexarrays;
-	vecIndexArrays mvarrays;
-	vecIndexArrays diarrays;
-	vecVertexArray vertexarrays;
+	 * since the GPU can do it faster */
 	size_t i, j;
 
 	/* set vertex normals to zero */
-	for (i=0; i<(size_t)m_bmesh->totvert; i++)
-		m_transnors[i] = MT_Vector3(0.0f, 0.0f, 0.0f);
+	memset(m_transnors, 0, sizeof(float)*3*m_bmesh->totvert);
 
 	/* add face normals to vertices. */
 	for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
 		mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
 		RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
 
-		indexarrays = m_pMeshObject->GetIndexCache(mat);
-		vertexarrays = m_pMeshObject->GetVertexCache(mat);
-		diarrays = m_pMeshObject->GetDIndexCache(mat);
-		mvarrays = m_pMeshObject->GetMVertCache(mat);
+		const vecIndexArrays& indexarrays = m_pMeshObject->GetIndexCache(mat);
+		vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
 
 		for (i=0; i<indexarrays.size(); i++) {
 			KX_VertexArray& vertexarray = (*vertexarrays[i]);
-			const KX_IndexArray& mvarray = (*mvarrays[i]);
-			const KX_IndexArray& diarray = (*diarrays[i]);
 			const KX_IndexArray& indexarray = (*indexarrays[i]);
 			int nvert = mat->UsesTriangles()? 3: 4;
 
 			for(j=0; j<indexarray.size(); j+=nvert) {
-				MT_Point3 mv1, mv2, mv3, mv4, fnor;
-				int i1 = indexarray[j];
-				int i2 = indexarray[j+1];
-				int i3 = indexarray[j+2];
-				RAS_TexVert& v1 = vertexarray[i1];
-				RAS_TexVert& v2 = vertexarray[i2];
-				RAS_TexVert& v3 = vertexarray[i3];
+				RAS_TexVert& v1 = vertexarray[indexarray[j]];
+				RAS_TexVert& v2 = vertexarray[indexarray[j+1]];
+				RAS_TexVert& v3 = vertexarray[indexarray[j+2]];
+				RAS_TexVert *v4 = NULL;
 
+				const float *co1 = v1.getLocalXYZ();
+				const float *co2 = v2.getLocalXYZ();
+				const float *co3 = v3.getLocalXYZ();
+				const float *co4 = NULL;
+				
 				/* compute face normal */
-				mv1 = MT_Point3(v1.getLocalXYZ());
-				mv2 = MT_Point3(v2.getLocalXYZ());
-				mv3 = MT_Point3(v3.getLocalXYZ());
+				float fnor[3], n1[3], n2[3];
 
 				if(nvert == 4) {
-					int i4 = indexarray[j+3];
-					RAS_TexVert& v4 = vertexarray[i4];
-					mv4 = MT_Point3(v4.getLocalXYZ());
+					v4 = &vertexarray[indexarray[j+3]];
+					co4 = v4->getLocalXYZ();
 
-					fnor = (((mv2-mv1).cross(mv3-mv2))+((mv4-mv3).cross(mv1-mv4))); //.safe_normalized();
+					n1[0]= co1[0]-co3[0];
+					n1[1]= co1[1]-co3[1];
+					n1[2]= co1[2]-co3[2];
+
+					n2[0]= co2[0]-co4[0];
+					n2[1]= co2[1]-co4[1];
+					n2[2]= co2[2]-co4[2];
 				}
-				else
-					fnor = ((mv2-mv1).cross(mv3-mv2)); //.safe_normalized();
+				else {
+					n1[0]= co1[0]-co2[0];
+					n2[0]= co2[0]-co3[0];
+					n1[1]= co1[1]-co2[1];
+
+					n2[1]= co2[1]-co3[1];
+					n1[2]= co1[2]-co2[2];
+					n2[2]= co2[2]-co3[2];
+				}
+
+				fnor[0]= n1[1]*n2[2] - n1[2]*n2[1];
+				fnor[1]= n1[2]*n2[0] - n1[0]*n2[2];
+				fnor[2]= n1[0]*n2[1] - n1[1]*n2[0];
 
 				/* add to vertices for smooth normals */
-				m_transnors[mvarray[diarray[i1]]] += fnor;
-				m_transnors[mvarray[diarray[i2]]] += fnor;
-				m_transnors[mvarray[diarray[i3]]] += fnor;
+				float *vn1 = m_transnors[v1.getOrigIndex()];
+				float *vn2 = m_transnors[v2.getOrigIndex()];
+				float *vn3 = m_transnors[v3.getOrigIndex()];
+
+				vn1[0] += fnor[0]; vn1[1] += fnor[1]; vn1[2] += fnor[2];
+				vn2[0] += fnor[0]; vn2[1] += fnor[1]; vn2[2] += fnor[2];
+				vn3[0] += fnor[0]; vn3[1] += fnor[1]; vn3[2] += fnor[2];
+
+				if(v4) {
+					float *vn4 = m_transnors[v4->getOrigIndex()];
+					vn4[0] += fnor[0]; vn4[1] += fnor[1]; vn4[2] += fnor[2];
+				}
 
 				/* in case of flat - just assign, the vertices are split */
 				if(v1.getFlag() & TV_CALCFACENORMAL) {
 					v1.SetNormal(fnor);
 					v2.SetNormal(fnor);
 					v3.SetNormal(fnor);
-				}
-
-				if(nvert == 4) {
-					int i4 = indexarray[j+3];
-					RAS_TexVert& v4 = vertexarray[i4];
-
-					/* same as above */
-					m_transnors[mvarray[diarray[i4]]] += fnor;
-
-					if(v4.getFlag() & TV_CALCFACENORMAL)
-						v4.SetNormal(fnor);
+					if(v4)
+						v4->SetNormal(fnor);
 				}
 			}
 		}
@@ -179,18 +190,17 @@ void BL_MeshDeformer::RecalcNormals()
 		mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
 		RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
 
-		vertexarrays = m_pMeshObject->GetVertexCache(mat);
-		diarrays = m_pMeshObject->GetDIndexCache(mat);
-		mvarrays = m_pMeshObject->GetMVertCache(mat);
+		vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
 
 		for (i=0; i<vertexarrays.size(); i++) {
 			KX_VertexArray& vertexarray = (*vertexarrays[i]);
-			const KX_IndexArray& mvarray = (*mvarrays[i]);
-			const KX_IndexArray& diarray = (*diarrays[i]);
 			
-			for(j=0; j<vertexarray.size(); j++)
-				if(!(vertexarray[j].getFlag() & TV_CALCFACENORMAL))
-					vertexarray[j].SetNormal(m_transnors[mvarray[diarray[j]]]); //.safe_normalized()
+			for(j=0; j<vertexarray.size(); j++) {
+				RAS_TexVert& v = vertexarray[j];
+
+				if(!(v.getFlag() & TV_CALCFACENORMAL))
+					v.SetNormal(m_transnors[v.getOrigIndex()]); //.safe_normalized()
+			}
 		}
 	}
 }
@@ -204,8 +214,8 @@ void BL_MeshDeformer::VerifyStorage()
 		if (m_transnors)
 			delete [] m_transnors;
 		
-		m_transverts=new float[(sizeof(*m_transverts)*m_bmesh->totvert)][3];
-		m_transnors=new MT_Vector3[m_bmesh->totvert];
+		m_transverts=new float[m_bmesh->totvert][3];
+		m_transnors=new float[m_bmesh->totvert][3];
 		m_tvtot = m_bmesh->totvert;
 	}
 }

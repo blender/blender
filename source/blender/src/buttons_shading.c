@@ -2803,6 +2803,42 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 
 }
 
+static void lamp_panel_atmosphere(Object *ob, Lamp *la)
+{
+	uiBlock *block;
+	int y;
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_atm", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Shadow and Spot", "Lamp");
+	if(uiNewPanel(curarea, block, "Sky/Atmosphere", "Lamp", 3*PANELX, PANELY, PANELW, PANELH)==0) return;
+
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	uiDefButBitS(block, TOG, LA_SUN_EFFECT_SKY, REDRAWVIEW3D, "Sky", 10,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on sky.");
+	uiDefButBitS(block, TOG, LA_SUN_EFFECT_AP, REDRAWVIEW3D, "Atmosphere", 20+BUTW2,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on atmosphere.");
+
+	if(la->sun_effect_type & (LA_SUN_EFFECT_SKY|LA_SUN_EFFECT_AP)){
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Turbidity:",10,180,BUTW1,19, &(la->atm_turbidity), 1.000f, 30.0f, 1, 0, "Sky Turbidity");
+	}
+
+	y = 180;
+	if(la->sun_effect_type & LA_SUN_EFFECT_SKY)
+	{
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
+	}
+
+	if(la->sun_effect_type & LA_SUN_EFFECT_AP)
+	{
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Intens.:",20+BUTW2,y-25,BUTW2,19, &(la->sun_intensity), 0.00f, 10.00f, 10, 0, "Sets sun intensity.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Inscattering:",20+BUTW2,y-50,BUTW2,19, &(la->atm_inscattering_factor), 0.00f, 1.00f, 10, 0, "In Scattering Contribution Factor.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Extinction:",20+BUTW2,y-75,BUTW2,19, &(la->atm_extinction_factor), 0.00f, 1.00f, 10, 0, "Extinction Scattering Contribution Factor.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Distance:",20+BUTW2,y-100,BUTW2,19, &(la->atm_distance_factor), 0.000f, 500.0f, 10, 0, "Scale blender distance to real distance.");
+	}
+}
+
 static void lamp_panel_falloff(Object *ob, Lamp *la)
 {
 	uiBlock *block;
@@ -2864,15 +2900,15 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButS(block, MENU, B_LAMPREDRAW,  "Falloff %t|Constant %x0|Inverse Linear %x1|Inverse Square %x2|Custom Curve %x3|Lin/Quad Weighted %x4|",
 			10,150,100,19, &la->falloff_type, 0,0,0,0, "Lamp falloff - intensity decay with distance");	
-		uiDefButBitS(block, TOG, LA_SPHERE, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
+		uiDefButBitS(block, TOG, LA_SPHERE, B_LAMPPRV,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
 	}
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, LA_LAYER, 0,"Layer",				10,70,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
 	uiDefButBitS(block, TOG, LA_NEG, B_LAMPPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
-	uiDefButBitS(block, TOG, LA_NO_DIFF, 0,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
-	uiDefButBitS(block, TOG, LA_NO_SPEC, 0,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
+	uiDefButBitS(block, TOG, LA_NO_DIFF, B_LAMPPRV,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
+	uiDefButBitS(block, TOG, LA_NO_SPEC, B_LAMPPRV,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
@@ -4354,6 +4390,11 @@ void lamp_panels()
 		/* spherelight radius default is zero, so nothing to do */
 		lamp_panel_yafray(ob, la);
 	}
+	
+	if(la->type == LA_SUN){
+		lamp_panel_atmosphere(ob, ob->data);
+	}
+
 	lamp_panel_texture(ob, ob->data);
 	lamp_panel_mapto(ob, ob->data);
 

@@ -87,6 +87,7 @@ public:
 	bool IsNegativeEvent() const;
 	virtual ~SCA_IActuator();
 
+	void ClrLink() { m_links=0; }
 	void IncLink() { m_links++; }
 	void DecLink();
 	bool IsNoLink() const { return !m_links; }

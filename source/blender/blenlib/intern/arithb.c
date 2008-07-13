@@ -3413,6 +3413,66 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lv = v;
 }
 
+/*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+ * SMPTE-C XYZ to RGB matrix*/
+void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b)
+{
+	*r = (3.50570	* xc) + (-1.73964	* yc) + (-0.544011	* zc);
+	*g = (-1.06906	* xc) + (1.97781	* yc) + (0.0351720	* zc);
+	*b = (0.0563117	* xc) + (-0.196994	* yc) + (1.05005	* zc);
+}
+
+/*If the requested RGB shade contains a negative weight for
+  one of the primaries, it lies outside the colour gamut 
+  accessible from the given triple of primaries.  Desaturate
+  it by adding white, equal quantities of R, G, and B, enough
+  to make RGB all positive.  The function returns 1 if the
+  components were modified, zero otherwise.*/
+int constrain_rgb(float *r, float *g, float *b)
+{
+	float w;
+
+    /* Amount of white needed is w = - min(0, *r, *g, *b) */
+    
+    w = (0 < *r) ? 0 : *r;
+    w = (w < *g) ? w : *g;
+    w = (w < *b) ? w : *b;
+    w = -w;
+
+    /* Add just enough white to make r, g, b all positive. */
+    
+    if (w > 0) {
+        *r += w;  *g += w; *b += w;
+        return 1;                     /* Colour modified to fit RGB gamut */
+    }
+
+    return 0;                         /* Colour within RGB gamut */
+}
+
+/*Transform linear RGB values to nonlinear RGB values. Rec.
+  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
+  Parameter Values for the HDTV Standard for the Studio and
+  for International Programme Exchange'', formerly CCIR Rec.
+  709.*/
+void gamma_correct(float *c)
+{
+	/* Rec. 709 gamma correction. */
+	float cc = 0.018;
+	
+	if (*c < cc) {
+	    *c *= ((1.099 * pow(cc, 0.45)) - 0.099) / cc;
+	} else {
+	    *c = (1.099 * pow(*c, 0.45)) - 0.099;
+	}
+}
+
+void gamma_correct_rgb(float *r, float *g, float *b)
+{
+    gamma_correct(r);
+    gamma_correct(g);
+    gamma_correct(b);
+}
+
 
 /* we define a 'cpack' here as a (3 byte color code) number that can be expressed like 0xFFAA66 or so.
    for that reason it is sensitive for endianness... with this function it works correctly

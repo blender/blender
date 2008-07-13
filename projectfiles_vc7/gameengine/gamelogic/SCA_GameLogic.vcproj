@@ -333,6 +333,12 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_2DFilterActuator.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorEventManager.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorSensor.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.cpp">
 			</File>
 			<File
@@ -443,6 +449,12 @@
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_2DFilterActuator.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorEventManager.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorSensor.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.h">

@@ -258,6 +258,12 @@ public:
 		bool local=false
 	);
 
+	/**
+	 * Return the mass of the object
+	 */
+		MT_Scalar	
+	GetMass();
+
 	/** 
 	 * Return the angular velocity of the game object.
 	 */
@@ -272,7 +278,8 @@ public:
 		void 
 	AlignAxisToVect(
 		const MT_Vector3& vect,
-		int axis = 2 
+		int axis = 2,
+		float fac = 1.0
 	);
 
 	/** 
@@ -331,6 +338,9 @@ public:
 	void	NodeSetLocalScale(	const MT_Vector3& scale	);
 
 	void	NodeSetRelativeScale(	const MT_Vector3& scale	);
+
+	// adapt local position so that world position is set to desired position
+	void	NodeSetWorldPosition(const MT_Point3& trans);
 
 		void						
 	NodeUpdateGS(
@@ -481,14 +491,22 @@ public:
 	);
 
 	/**
+	 * Function to set IPO option at start of IPO
+	 */ 
+		void	
+	InitIPO(
+		bool ipo_as_force,
+		bool ipo_add,
+		bool ipo_local
+	);
+
+	/**
 	 * Odd function to update an ipo. ???
 	 */ 
 		void	
 	UpdateIPO(
 		float curframetime,
-		bool recurse, 
-		bool ipo_as_force,
-		bool force_ipo_local
+		bool recurse
 	);
 	/**
 	 * Updates Material Ipo data 
@@ -696,46 +714,34 @@ public:
 		PyObject *value
 	);		// _setattr method
 
-		PyObject*					
-	PySetPosition(
-		PyObject* self,
-		PyObject* args,
-		PyObject* kwds
-	);
-
-	static 
-		PyObject*			
-	sPySetPosition(
-		PyObject* self,
-		PyObject* args,
-		PyObject* kwds
-	);
-
-	KX_PYMETHOD(KX_GameObject,GetPosition);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
+	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD(KX_GameObject,GetLinearVelocity);
+	KX_PYMETHOD(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD(KX_GameObject,GetVelocity);
-	KX_PYMETHOD(KX_GameObject,GetMass);
-	KX_PYMETHOD(KX_GameObject,GetReactionForce);
-	KX_PYMETHOD(KX_GameObject,GetOrientation);
-	KX_PYMETHOD(KX_GameObject,SetOrientation);
-	KX_PYMETHOD(KX_GameObject,GetVisible);
-	KX_PYMETHOD(KX_GameObject,SetVisible);
-	KX_PYMETHOD(KX_GameObject,GetState);
-	KX_PYMETHOD(KX_GameObject,SetState);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetMass);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetReactionForce);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
+	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
+	KX_PYMETHOD_O(KX_GameObject,SetVisible);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetState);
+	KX_PYMETHOD_O(KX_GameObject,SetState);
 	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
-	KX_PYMETHOD(KX_GameObject,SuspendDynamics);
-	KX_PYMETHOD(KX_GameObject,RestoreDynamics);
-	KX_PYMETHOD(KX_GameObject,EnableRigidBody);
-	KX_PYMETHOD(KX_GameObject,DisableRigidBody);
+	KX_PYMETHOD_O(KX_GameObject,GetAxisVect);
+	KX_PYMETHOD_NOARGS(KX_GameObject,SuspendDynamics);
+	KX_PYMETHOD_NOARGS(KX_GameObject,RestoreDynamics);
+	KX_PYMETHOD_NOARGS(KX_GameObject,EnableRigidBody);
+	KX_PYMETHOD_NOARGS(KX_GameObject,DisableRigidBody);
 	KX_PYMETHOD(KX_GameObject,ApplyImpulse);
-	KX_PYMETHOD(KX_GameObject,SetCollisionMargin);
+	KX_PYMETHOD_O(KX_GameObject,SetCollisionMargin);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
+	KX_PYMETHOD_O(KX_GameObject,SetParent);
+	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
-	KX_PYMETHOD(KX_GameObject,GetParent);
-	KX_PYMETHOD(KX_GameObject,SetParent);
-	KX_PYMETHOD(KX_GameObject,RemoveParent);
-	KX_PYMETHOD(KX_GameObject,GetPhysicsId);
-	KX_PYMETHOD(KX_GameObject,GetPropertyNames);
-	KX_PYMETHOD(KX_GameObject,EndObject);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
+	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC(KX_GameObject,getDistanceTo);

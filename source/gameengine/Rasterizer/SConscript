@@ -7,7 +7,8 @@ if env['WITH_BF_GLEXT'] == 1:
         env['CPPFLAGS'].append('-DWITH_GLEXT')
 
 
-incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/BlenderRoutines #extern/glew/include'
+incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/BlenderRoutines #extern/glew/include #source/gameengine/Expressions'
+incs += ' ' + env['BF_PYTHON_INC']
 
 if env['OURPLATFORM']=='win32-vc':
 	cflags = []

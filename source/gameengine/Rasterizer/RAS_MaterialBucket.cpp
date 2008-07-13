@@ -167,38 +167,30 @@ RAS_MaterialBucket::T_MeshSlotList::iterator RAS_MaterialBucket::msEnd()
 }
 
 bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-	RAS_IRenderTools *rendertools, int &drawmode)
+	RAS_IRenderTools *rendertools, RAS_IRasterizer::DrawMode &drawmode)
 {
 	rendertools->SetViewMat(cameratrans);
 
 	if (!rasty->SetMaterial(*m_material))
 		return false;
 	
-	bool dolights = false;
-	const unsigned int flag = m_material->GetFlag();
-
-	if( flag & RAS_BLENDERMAT)
-		dolights = (flag &RAS_MULTILIGHT)!=0;
-	else
-		dolights = (m_material->GetDrawingMode()&16)!=0;
-
-	if ((rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID) || !dolights)
-	{
-		rendertools->ProcessLighting(-1);
-	}
-	else
-	{
+	if (m_material->UsesLighting(rasty))
 		rendertools->ProcessLighting(RAS_IRenderTools::RAS_LIGHT_OBJECT_LAYER/*m_material->GetLightLayer()*/);
-	}
+	else
+		rendertools->ProcessLighting(-1);
 
-	drawmode = (rasty->GetDrawingMode()  < RAS_IRasterizer::KX_SOLID ? 	
-		1:	(m_material->UsesTriangles() ? 0 : 2));
+	if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID)
+		drawmode = RAS_IRasterizer::KX_MODE_LINES;
+	else if(m_material->UsesTriangles())
+		drawmode = RAS_IRasterizer::KX_MODE_TRIANGLES;
+	else
+		drawmode = RAS_IRasterizer::KX_MODE_QUADS;
 	
 	return true;
 }
 
 void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-	RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode)
+	RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, RAS_IRasterizer::DrawMode drawmode)
 {
 	if (!ms.m_bVisible)
 		return;
@@ -225,6 +217,17 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 			ms.m_DisplayList->SetModified(ms.m_mesh->MeshModified());
 	}
 
+	// verify if we can use display list, not for deformed object, and
+	// also don't create a new display list when drawing shadow buffers,
+	// then it won't have texture coordinates for actual drawing
+	KX_ListSlot **displaylist;
+	if(ms.m_pDeformer)
+		displaylist = 0;
+	else if(!ms.m_DisplayList && rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW)
+		displaylist = 0;
+	else
+		displaylist = &ms.m_DisplayList;
+
 	// Use the text-specific IndexPrimitives for text faces
 	if (m_material->GetDrawingMode() & RAS_IRasterizer::RAS_RENDER_3DPOLYGON_TEXT)
 	{
@@ -245,12 +248,9 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				ms.m_mesh->GetVertexCache(m_material), 
 				ms.m_mesh->GetIndexCache(m_material), 
 				drawmode,
-				m_material,
-				rendertools,
 				ms.m_bObjectColor,
 				ms.m_RGBAcolor,
-				(ms.m_pDeformer)? 0: &ms.m_DisplayList
-				);
+				displaylist);
 	}
 
 	// Use the normal IndexPrimitives
@@ -260,12 +260,9 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 				ms.m_mesh->GetVertexCache(m_material), 
 				ms.m_mesh->GetIndexCache(m_material), 
 				drawmode,
-				m_material,
-				rendertools, // needed for textprinting on polys
 				ms.m_bObjectColor,
 				ms.m_RGBAcolor,
-				(ms.m_pDeformer)? 0: &ms.m_DisplayList
-				);
+				displaylist);
 	}
 
 	if(rasty->QueryLists()) {
@@ -287,7 +284,7 @@ void RAS_MaterialBucket::Render(const MT_Transform& cameratrans,
 
 	//rasty->SetMaterial(*m_material);
 	
-	int drawmode;
+	RAS_IRasterizer::DrawMode drawmode;
 	for (T_MeshSlotList::const_iterator it = m_meshSlots.begin();
 	! (it == m_meshSlots.end()); ++it)
 	{

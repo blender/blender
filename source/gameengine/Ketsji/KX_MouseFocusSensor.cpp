@@ -77,15 +77,17 @@ void KX_MouseFocusSensor::Init()
 	m_mouse_over_in_previous_frame = (m_invert)?true:false;
 	m_positive_event = false;
 	m_hitObject = 0;
+	m_reset = true;
 }
 
 bool KX_MouseFocusSensor::Evaluate(CValue* event)
 {
 	bool result = false;
 	bool obHasFocus = false;
+	bool reset = m_reset && m_level;
 
 //  	cout << "evaluate focus mouse sensor "<<endl;
-
+	m_reset = false;
 	if (m_focusmode) {
 		/* Focus behaviour required. Test mouse-on. The rest is
 		 * equivalent to handling a key. */
@@ -102,6 +104,10 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
 				result = true;
 			} 
 		} 
+		if (reset) {
+			// force an event 
+			result = true;
+		}
 	} else {
 		/* No focus behaviour required: revert to the basic mode. This
          * mode is never used, because the converter never makes this

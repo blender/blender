@@ -68,8 +68,15 @@ KX_ObjectActuator(
 	m_bitLocalFlag (flag),
 	m_active_combined_velocity (false),
 	m_linear_damping_active(false),
-	m_angular_damping_active(false)
+	m_angular_damping_active(false),
+	m_error_accumulator(0.0,0.0,0.0),
+	m_previous_error(0.0,0.0,0.0)
 {
+	if (m_bitLocalFlag.ServoControl)
+	{
+		// in servo motion, the force is local if the target velocity is local
+		m_bitLocalFlag.Force = m_bitLocalFlag.LinearVelocity;
+	}
 	UpdateFuzzyFlags();
 }
 
@@ -87,105 +94,151 @@ bool KX_ObjectActuator::Update()
 		// it should reconcile the externally set velocity with it's 
 		// own velocity.
 		if (m_active_combined_velocity) {
-			parent->ResolveCombinedVelocities(
-					m_linear_velocity,
-					m_angular_velocity,
-					(m_bitLocalFlag.LinearVelocity) != 0,
-					(m_bitLocalFlag.AngularVelocity) != 0
-				);
+			if (parent)
+				parent->ResolveCombinedVelocities(
+						m_linear_velocity,
+						m_angular_velocity,
+						(m_bitLocalFlag.LinearVelocity) != 0,
+						(m_bitLocalFlag.AngularVelocity) != 0
+					);
 			m_active_combined_velocity = false;
 		} 
 		m_linear_damping_active = false;
+		m_angular_damping_active = false;
+		m_error_accumulator.setValue(0.0,0.0,0.0);
+		m_previous_error.setValue(0.0,0.0,0.0);
 		return false; 
 
-	} else 
-	if (parent)
+	} else if (parent)
 	{
-		if (!m_bitLocalFlag.ZeroForce)
+		if (m_bitLocalFlag.ServoControl) 
 		{
-			if (m_bitLocalFlag.ClampVelocity && !m_bitLocalFlag.ZeroLinearVelocity)
+			// In this mode, we try to reach a target speed using force
+			// As we don't know the friction, we must implement a generic 
+			// servo control to achieve the speed in a configurable
+			// v = current velocity
+			// V = target velocity
+			// e = V-v = speed error
+			// dt = time interval since previous update
+			// I = sum(e(t)*dt)
+			// dv = e(t) - e(t-1)
+			// KP, KD, KI : coefficient
+			// F = KP*e+KI*I+KD*dv
+			MT_Scalar mass = parent->GetMass();
+			if (mass < MT_EPSILON)
+				return false;
+			MT_Vector3 v = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
+			MT_Vector3 e = m_linear_velocity - v;
+			MT_Vector3 dv = e - m_previous_error;
+			MT_Vector3 I = m_error_accumulator + e;
+
+			m_force = m_torque.x()*e+m_torque.y()*I+m_torque.z()*dv;
+			// to automatically adapt the PID coefficient to mass;
+			m_force *= mass;
+			if (m_bitLocalFlag.Torque) 
 			{
-				// The user is requesting not to exceed the velocity set in m_linear_velocity
-				// The verification is done by projecting the actual speed along the linV direction
-				// and comparing it with the linV vector length
-				MT_Vector3 linV;
-				linV = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
-				if (linV.dot(m_linear_velocity) < m_linear_length2)
-					parent->ApplyForce(m_force,(m_bitLocalFlag.Force) != 0);
-			} else 
+				if (m_force[0] > m_dloc[0])
+				{
+					m_force[0] = m_dloc[0];
+					I[0] = m_error_accumulator[0];
+				} else if (m_force[0] < m_drot[0])
+				{
+					m_force[0] = m_drot[0];
+					I[0] = m_error_accumulator[0];
+				}
+			}
+			if (m_bitLocalFlag.DLoc) 
+			{
+				if (m_force[1] > m_dloc[1])
+				{
+					m_force[1] = m_dloc[1];
+					I[1] = m_error_accumulator[1];
+				} else if (m_force[1] < m_drot[1])
+				{
+					m_force[1] = m_drot[1];
+					I[1] = m_error_accumulator[1];
+				}
+			}
+			if (m_bitLocalFlag.DRot) 
+			{
+				if (m_force[2] > m_dloc[2])
+				{
+					m_force[2] = m_dloc[2];
+					I[2] = m_error_accumulator[2];
+				} else if (m_force[2] < m_drot[2])
+				{
+					m_force[2] = m_drot[2];
+					I[2] = m_error_accumulator[2];
+				}
+			}
+			m_previous_error = e;
+			m_error_accumulator = I;
+			parent->ApplyForce(m_force,(m_bitLocalFlag.LinearVelocity) != 0);
+		} else
+		{
+			if (!m_bitLocalFlag.ZeroForce)
 			{
 				parent->ApplyForce(m_force,(m_bitLocalFlag.Force) != 0);
 			}
-		}
-		if (!m_bitLocalFlag.ZeroTorque)
-		{
-			if (m_bitLocalFlag.ClampVelocity && !m_bitLocalFlag.ZeroAngularVelocity)
-			{
-				// The user is requesting not to exceed the velocity set in m_angular_velocity
-				// The verification is done by projecting the actual speed in the 
-				MT_Vector3 angV;
-				angV = parent->GetAngularVelocity(m_bitLocalFlag.AngularVelocity);
-				if (angV.dot(m_angular_velocity) < m_angular_velocity.length2())
-					parent->ApplyTorque(m_torque,(m_bitLocalFlag.Torque) != 0);
-			} else
+			if (!m_bitLocalFlag.ZeroTorque)
 			{
 				parent->ApplyTorque(m_torque,(m_bitLocalFlag.Torque) != 0);
 			}
-		}
-		if (!m_bitLocalFlag.ZeroDLoc)
-		{
-			parent->ApplyMovement(m_dloc,(m_bitLocalFlag.DLoc) != 0);
-		}
-		if (!m_bitLocalFlag.ZeroDRot)
-		{
-			parent->ApplyRotation(m_drot,(m_bitLocalFlag.DRot) != 0);
-		}
-		if (!m_bitLocalFlag.ZeroLinearVelocity && !m_bitLocalFlag.ClampVelocity)
-		{
-			if (m_bitLocalFlag.AddOrSetLinV) {
-				parent->addLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
-			} else {
-				m_active_combined_velocity = true;
-				if (m_damping > 0) {
-					MT_Vector3 linV;
-					if (!m_linear_damping_active) {
-						// delta and the start speed (depends on the existing speed in that direction)
-						linV = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
-						// keep only the projection along the desired direction
-						m_current_linear_factor = linV.dot(m_linear_velocity)/m_linear_length2;
-						m_linear_damping_active = true;
-					}
-					if (m_current_linear_factor < 1.0)
-						m_current_linear_factor += 1.0/m_damping;
-					if (m_current_linear_factor > 1.0)
-						m_current_linear_factor = 1.0;
-					linV = m_current_linear_factor * m_linear_velocity;
-	 				parent->setLinearVelocity(linV,(m_bitLocalFlag.LinearVelocity) != 0);
+			if (!m_bitLocalFlag.ZeroDLoc)
+			{
+				parent->ApplyMovement(m_dloc,(m_bitLocalFlag.DLoc) != 0);
+			}
+			if (!m_bitLocalFlag.ZeroDRot)
+			{
+				parent->ApplyRotation(m_drot,(m_bitLocalFlag.DRot) != 0);
+			}
+			if (!m_bitLocalFlag.ZeroLinearVelocity)
+			{
+				if (m_bitLocalFlag.AddOrSetLinV) {
+					parent->addLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
 				} else {
-	 				parent->setLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
+					m_active_combined_velocity = true;
+					if (m_damping > 0) {
+						MT_Vector3 linV;
+						if (!m_linear_damping_active) {
+							// delta and the start speed (depends on the existing speed in that direction)
+							linV = parent->GetLinearVelocity(m_bitLocalFlag.LinearVelocity);
+							// keep only the projection along the desired direction
+							m_current_linear_factor = linV.dot(m_linear_velocity)/m_linear_length2;
+							m_linear_damping_active = true;
+						}
+						if (m_current_linear_factor < 1.0)
+							m_current_linear_factor += 1.0/m_damping;
+						if (m_current_linear_factor > 1.0)
+							m_current_linear_factor = 1.0;
+						linV = m_current_linear_factor * m_linear_velocity;
+	 					parent->setLinearVelocity(linV,(m_bitLocalFlag.LinearVelocity) != 0);
+					} else {
+	 					parent->setLinearVelocity(m_linear_velocity,(m_bitLocalFlag.LinearVelocity) != 0);
+					}
 				}
 			}
-		}
-		if (!m_bitLocalFlag.ZeroAngularVelocity && !m_bitLocalFlag.ClampVelocity)
-		{
-			m_active_combined_velocity = true;
-			if (m_damping > 0) {
-				MT_Vector3 angV;
-				if (!m_angular_damping_active) {
-					// delta and the start speed (depends on the existing speed in that direction)
-					angV = parent->GetAngularVelocity(m_bitLocalFlag.AngularVelocity);
-					// keep only the projection along the desired direction
-					m_current_angular_factor = angV.dot(m_angular_velocity)/m_angular_length2;
-					m_angular_damping_active = true;
+			if (!m_bitLocalFlag.ZeroAngularVelocity)
+			{
+				m_active_combined_velocity = true;
+				if (m_damping > 0) {
+					MT_Vector3 angV;
+					if (!m_angular_damping_active) {
+						// delta and the start speed (depends on the existing speed in that direction)
+						angV = parent->GetAngularVelocity(m_bitLocalFlag.AngularVelocity);
+						// keep only the projection along the desired direction
+						m_current_angular_factor = angV.dot(m_angular_velocity)/m_angular_length2;
+						m_angular_damping_active = true;
+					}
+					if (m_current_angular_factor < 1.0)
+						m_current_angular_factor += 1.0/m_damping;
+					if (m_current_angular_factor > 1.0)
+						m_current_angular_factor = 1.0;
+					angV = m_current_angular_factor * m_angular_velocity;
+	 				parent->setAngularVelocity(angV,(m_bitLocalFlag.AngularVelocity) != 0);
+				} else {
+					parent->setAngularVelocity(m_angular_velocity,(m_bitLocalFlag.AngularVelocity) != 0);
 				}
-				if (m_current_angular_factor < 1.0)
-					m_current_angular_factor += 1.0/m_damping;
-				if (m_current_angular_factor > 1.0)
-					m_current_angular_factor = 1.0;
-				angV = m_current_angular_factor * m_angular_velocity;
-	 			parent->setAngularVelocity(angV,(m_bitLocalFlag.AngularVelocity) != 0);
-			} else {
-				parent->setAngularVelocity(m_angular_velocity,(m_bitLocalFlag.AngularVelocity) != 0);
 			}
 		}
 		
@@ -263,8 +316,17 @@ PyMethodDef KX_ObjectActuator::Methods[] = {
 	{"setLinearVelocity", (PyCFunction) KX_ObjectActuator::sPySetLinearVelocity, METH_VARARGS},
 	{"getAngularVelocity", (PyCFunction) KX_ObjectActuator::sPyGetAngularVelocity, METH_VARARGS},
 	{"setAngularVelocity", (PyCFunction) KX_ObjectActuator::sPySetAngularVelocity, METH_VARARGS},
-	{"setVelocityDamping", (PyCFunction) KX_ObjectActuator::sPySetVelocityDamping, METH_VARARGS},
-	{"getVelocityDamping", (PyCFunction) KX_ObjectActuator::sPyGetVelocityDamping, METH_VARARGS},
+	{"setDamping", (PyCFunction) KX_ObjectActuator::sPySetDamping, METH_VARARGS},
+	{"getDamping", (PyCFunction) KX_ObjectActuator::sPyGetDamping, METH_VARARGS},
+	{"setForceLimitX", (PyCFunction) KX_ObjectActuator::sPySetForceLimitX, METH_VARARGS},
+	{"getForceLimitX", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitX, METH_VARARGS},
+	{"setForceLimitY", (PyCFunction) KX_ObjectActuator::sPySetForceLimitY, METH_VARARGS},
+	{"getForceLimitY", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitY, METH_VARARGS},
+	{"setForceLimitZ", (PyCFunction) KX_ObjectActuator::sPySetForceLimitZ, METH_VARARGS},
+	{"getForceLimitZ", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitZ, METH_VARARGS},
+	{"setPID", (PyCFunction) KX_ObjectActuator::sPyGetPID, METH_VARARGS},
+	{"getPID", (PyCFunction) KX_ObjectActuator::sPySetPID, METH_VARARGS},
+
 
 
 	{NULL,NULL} //Sentinel
@@ -411,7 +473,6 @@ PyObject* KX_ObjectActuator::PyGetLinearVelocity(PyObject* self,
 	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_linear_velocity[1]));
 	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_linear_velocity[2]));
 	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.LinearVelocity));
-	PyList_SetItem(retVal, 4, BoolToPyArg(m_bitLocalFlag.ClampVelocity));
 	
 	return retVal;
 }
@@ -422,14 +483,12 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 												 PyObject* kwds) {
 	float vecArg[3];
 	int bToggle = 0;
-	int bClamp = 0;
-	if (!PyArg_ParseTuple(args, "fffi|i", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle, &bClamp)) {
+	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
 	m_linear_velocity.setValue(vecArg);
 	m_bitLocalFlag.LinearVelocity = PyArgToBool(bToggle);
-	m_bitLocalFlag.ClampVelocity = PyArgToBool(bClamp);
 	UpdateFuzzyFlags();
 	Py_Return;
 }
@@ -445,7 +504,6 @@ PyObject* KX_ObjectActuator::PyGetAngularVelocity(PyObject* self,
 	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_angular_velocity[1]));
 	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_angular_velocity[2]));
 	PyList_SetItem(retVal, 3, BoolToPyArg(m_bitLocalFlag.AngularVelocity));
-	PyList_SetItem(retVal, 4, BoolToPyArg(m_bitLocalFlag.ClampVelocity));
 	
 	return retVal;
 }
@@ -455,22 +513,20 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 												  PyObject* kwds) {
 	float vecArg[3];
 	int bToggle = 0;
-	int bClamp = 0;
-	if (!PyArg_ParseTuple(args, "fffi|i", &vecArg[0], &vecArg[1], 
-						  &vecArg[2], &bToggle, &bClamp)) {
+	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
+						  &vecArg[2], &bToggle)) {
 		return NULL;
 	}
 	m_angular_velocity.setValue(vecArg);
 	m_bitLocalFlag.AngularVelocity = PyArgToBool(bToggle);
-	m_bitLocalFlag.ClampVelocity = PyArgToBool(bClamp);
 	UpdateFuzzyFlags();
 	Py_Return;
 }
 
-/* 13. setVelocityDamping                                                */
-PyObject* KX_ObjectActuator::PySetVelocityDamping(PyObject* self, 
-												  PyObject* args, 
-												  PyObject* kwds) {
+/* 13. setDamping                                                */
+PyObject* KX_ObjectActuator::PySetDamping(PyObject* self, 
+										  PyObject* args, 
+										  PyObject* kwds) {
 	int damping = 0;
 	if (!PyArg_ParseTuple(args, "i", &damping) || damping < 0 || damping > 1000) {
 		return NULL;
@@ -480,11 +536,124 @@ PyObject* KX_ObjectActuator::PySetVelocityDamping(PyObject* self,
 }
 
 /* 13. getVelocityDamping                                                */
-PyObject* KX_ObjectActuator::PyGetVelocityDamping(PyObject* self, 
-												  PyObject* args, 
-												  PyObject* kwds) {
+PyObject* KX_ObjectActuator::PyGetDamping(PyObject* self, 
+										  PyObject* args, 
+										  PyObject* kwds) {
 	return Py_BuildValue("i",m_damping);
 }
+/* 6. getForceLimitX                                                                */
+PyObject* KX_ObjectActuator::PyGetForceLimitX(PyObject* self, 
+											  PyObject* args, 
+											  PyObject* kwds)
+{
+	PyObject *retVal = PyList_New(3);
+
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[0]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[0]));
+	PyList_SetItem(retVal, 2, BoolToPyArg(m_bitLocalFlag.Torque));
+	
+	return retVal;
+}
+/* 7. setForceLimitX                                                         */
+PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self, 
+											  PyObject* args, 
+											  PyObject* kwds)
+{
+	float vecArg[2];
+	int bToggle = 0;
+	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+		return NULL;
+	}
+	m_drot[0] = vecArg[0];
+	m_dloc[0] = vecArg[1];
+	m_bitLocalFlag.Torque = PyArgToBool(bToggle);
+	Py_Return;
+}
+
+/* 6. getForceLimitY                                                                */
+PyObject* KX_ObjectActuator::PyGetForceLimitY(PyObject* self, 
+											  PyObject* args, 
+											  PyObject* kwds)
+{
+	PyObject *retVal = PyList_New(3);
+
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[1]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[1]));
+	PyList_SetItem(retVal, 2, BoolToPyArg(m_bitLocalFlag.DLoc));
+	
+	return retVal;
+}
+/* 7. setForceLimitY                                                                */
+PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self, 
+											  PyObject* args, 
+											  PyObject* kwds)
+{
+	float vecArg[2];
+	int bToggle = 0;
+	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+		return NULL;
+	}
+	m_drot[1] = vecArg[0];
+	m_dloc[1] = vecArg[1];
+	m_bitLocalFlag.DLoc = PyArgToBool(bToggle);
+	Py_Return;
+}
+
+/* 6. getForceLimitZ                                                                */
+PyObject* KX_ObjectActuator::PyGetForceLimitZ(PyObject* self, 
+											  PyObject* args, 
+											  PyObject* kwds)
+{
+	PyObject *retVal = PyList_New(3);
+
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_drot[2]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_dloc[2]));
+	PyList_SetItem(retVal, 2, BoolToPyArg(m_bitLocalFlag.DRot));
+	
+	return retVal;
+}
+/* 7. setForceLimitZ                                                                */
+PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self, 
+											  PyObject* args, 
+											  PyObject* kwds)
+{
+	float vecArg[2];
+	int bToggle = 0;
+	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+		return NULL;
+	}
+	m_drot[2] = vecArg[0];
+	m_dloc[2] = vecArg[1];
+	m_bitLocalFlag.DRot = PyArgToBool(bToggle);
+	Py_Return;
+}
+
+/* 4. getPID                                                              */
+PyObject* KX_ObjectActuator::PyGetPID(PyObject* self, 
+									  PyObject* args, 
+									  PyObject* kwds)
+{
+	PyObject *retVal = PyList_New(3);
+
+	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_torque[0]));
+	PyList_SetItem(retVal, 1, PyFloat_FromDouble(m_torque[1]));
+	PyList_SetItem(retVal, 2, PyFloat_FromDouble(m_torque[2]));
+	
+	return retVal;
+}
+/* 5. setPID                                                              */
+PyObject* KX_ObjectActuator::PySetPID(PyObject* self, 
+									  PyObject* args, 
+									  PyObject* kwds)
+{
+	float vecArg[3];
+	if (!PyArg_ParseTuple(args, "fff", &vecArg[0], &vecArg[1], &vecArg[2])) {
+		return NULL;
+	}
+	m_torque.setValue(vecArg);
+	Py_Return;
+}
+
 
 
 

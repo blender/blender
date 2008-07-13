@@ -803,11 +803,11 @@ static void timeline_force_draw(short val)
 		if(sa->spacetype==SPACE_VIEW3D) {
 			if(sa==samin || (val & TIME_ALL_3D_WIN)) dodraw= 1;
 		}
-		else if(ELEM6(sa->spacetype, SPACE_NLA, SPACE_IPO, SPACE_SEQ, SPACE_BUTS, SPACE_ACTION, SPACE_SOUND)) {
+		else if(ELEM5(sa->spacetype, SPACE_NLA, SPACE_IPO, SPACE_SEQ, SPACE_ACTION, SPACE_SOUND)) {
 			if(val & TIME_ALL_ANIM_WIN) dodraw= 1;
 		}
 		else if(sa->spacetype==SPACE_BUTS) {
-			if(val & TIME_ALL_BUTS_WIN) dodraw= 1;
+			if(val & TIME_ALL_BUTS_WIN) dodraw= 2;
 		}
 		else if(sa->spacetype==SPACE_IMAGE) {
 			if (val & TIME_ALL_IMAGE_WIN) dodraw = 1;

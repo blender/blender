@@ -405,7 +405,20 @@ bool CValue::RemoveProperty(const STR_String & inName)
 	return false;
 }
 
-
+//
+// Get Property Names
+//
+vector<STR_String> CValue::GetPropertyNames()
+{
+	vector<STR_String> result;
+	if(!m_pNamedPropertyArray) return result;
+	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+	!(it == m_pNamedPropertyArray->end());it++)
+	{
+		result.push_back((*it).first);
+	}
+	return result;
+}
 
 //
 // Clear all properties

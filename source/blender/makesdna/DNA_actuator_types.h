@@ -51,8 +51,9 @@ typedef struct bActionActuator {
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
 	char	frameProp[32];	/* Set this property to the actions current frame */
-	int	blendin;		/* Number of frames of blending */	
-	short	priority;		/* Execution priority */			
+	short	blendin;		/* Number of frames of blending */
+	short	priority;		/* Execution priority */
+	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
 	float	stridelength;	/* Displacement incurred by cycle */
 } bActionActuator;												
@@ -98,8 +99,8 @@ typedef struct bPropertyActuator {
 } bPropertyActuator;
 
 typedef struct bObjectActuator {
-	short flag, type;
-	int   damping;
+	short flag, type, otype;
+	short damping;
 	float forceloc[3], forcerot[3];
 	float loc[3], rot[3];
 	float dloc[3], drot[3];
@@ -124,10 +125,13 @@ typedef struct bCameraActuator {
 } bCameraActuator ;
 
 typedef struct bConstraintActuator {
+	short type, mode;
 	short flag, damp;
-	float slow;
+	short time, rotdamp;
+	int pad;
 	float minloc[3], maxloc[3];
 	float minrot[3], maxrot[3];
+	char matprop[32];
 } bConstraintActuator;
 
 typedef struct bGroupActuator {
@@ -192,9 +196,7 @@ typedef struct bVisibilityActuator {
 } bVisibilityActuator;
 
 typedef struct bTwoDFilterActuator{
-	char pad[2];
-	/* bitwise flag for enabling or disabling depth(bit 0) and luminance(bit 1) */
-	short texture_flag;
+	char pad[4];
 	/* Tells what type of 2D Filter */
 	short type;
 	/* (flag == 0) means 2D filter is activate and
@@ -249,20 +251,19 @@ typedef struct FreeCamera {
 /* objectactuator->flag */
 #define ACT_FORCE_LOCAL			1
 #define ACT_TORQUE_LOCAL		2
+#define ACT_SERVO_LIMIT_X		2
 #define ACT_DLOC_LOCAL			4
+#define ACT_SERVO_LIMIT_Y		4
 #define ACT_DROT_LOCAL			8
+#define ACT_SERVO_LIMIT_Z		8
 #define ACT_LIN_VEL_LOCAL		16
 #define ACT_ANG_VEL_LOCAL		32
 //#define ACT_ADD_LIN_VEL_LOCAL	64
 #define ACT_ADD_LIN_VEL			64
-#define ACT_CLAMP_VEL			128
 
-#define ACT_OBJECT_FORCE	0
-#define ACT_OBJECT_TORQUE	1
-#define ACT_OBJECT_DLOC		2
-#define ACT_OBJECT_DROT		3
-#define ACT_OBJECT_LINV		4
-#define ACT_OBJECT_ANGV		5
+/* objectactuator->type */
+#define ACT_OBJECT_NORMAL	0
+#define ACT_OBJECT_SERVO	1
 
 /* actuator->type */
 #define ACT_OBJECT		0
@@ -337,8 +338,9 @@ typedef struct FreeCamera {
 /* ipoactuator->flag */
 #define ACT_IPOFORCE        (1 << 0)
 #define ACT_IPOEND          (1 << 1)
-#define ACT_IPOFORCE_LOCAL  (1 << 2)
-#define ACT_IPOCHILD        (1 << 4)			
+#define ACT_IPOLOCAL		(1 << 2)
+#define ACT_IPOCHILD        (1 << 4)	
+#define ACT_IPOADD			(1 << 5)
 
 /* ipoactuator->flag for k2k */
 #define ACT_K2K_PREV		1
@@ -358,6 +360,22 @@ typedef struct FreeCamera {
 #define ACT_CONST_ROTX		8
 #define ACT_CONST_ROTY		16
 #define ACT_CONST_ROTZ		32
+#define ACT_CONST_NORMAL	64
+#define ACT_CONST_MATERIAL	128
+#define ACT_CONST_PERMANENT 256
+#define ACT_CONST_DISTANCE	512
+/* constraint mode */
+#define ACT_CONST_DIRPX		1
+#define ACT_CONST_DIRPY		2
+#define ACT_CONST_DIRPZ		4
+#define ACT_CONST_DIRMX		8
+#define ACT_CONST_DIRMY		16
+#define ACT_CONST_DIRMZ		32
+
+/* constraint type */
+#define ACT_CONST_TYPE_LOC	0
+#define ACT_CONST_TYPE_DIST	1
+#define ACT_CONST_TYPE_ORI	2
 
 /* editObjectActuator->type */
 #define ACT_EDOB_ADD_OBJECT		0

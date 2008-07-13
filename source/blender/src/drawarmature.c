@@ -2500,7 +2500,7 @@ static void draw_ghost_poses(Base *base)
 /* ********************************** Armature Drawing - Main ************************* */
 
 /* called from drawobject.c, return 1 if nothing was drawn */
-int draw_armature(Base *base, int dt)
+int draw_armature(Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -2544,15 +2544,16 @@ int draw_armature(Base *base, int dt)
 						if (arm->ghostep)
 							draw_ghost_poses(base);
 					}
+					if ((flag & DRAW_SCENESET)==0) {
+						if(ob==OBACT) 
+							arm->flag |= ARM_POSEMODE;
+						else if(G.f & G_WEIGHTPAINT)
+							arm->flag |= ARM_POSEMODE;
 					
-					if(ob==OBACT) 
-						arm->flag |= ARM_POSEMODE;
-					else if(G.f & G_WEIGHTPAINT)
-						arm->flag |= ARM_POSEMODE;
-					
-					draw_pose_paths(ob);
+						draw_pose_paths(ob);
+					}
 				}	
-			}			
+			}
 			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			

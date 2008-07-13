@@ -82,12 +82,15 @@ static PyObject* gPySetGravity(PyObject* self,
 										 PyObject* kwds)
 {
 	float x,y,z;
-	int len = PyTuple_Size(args);
-	if ((len == 3) && PyArg_ParseTuple(args,"fff",&x,&y,&z))
+	if (PyArg_ParseTuple(args,"fff",&x,&y,&z))
 	{
 		if (PHY_GetActiveEnvironment())
 			PHY_GetActiveEnvironment()->setGravity(x,y,z);
 	}
+	else {
+		return NULL;
+	}
+	
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -105,6 +108,10 @@ static PyObject* gPySetDebugMode(PyObject* self,
 		}
 		
 	}
+	else {
+		return NULL;
+	}
+	
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -122,6 +129,9 @@ static PyObject* gPySetNumTimeSubSteps(PyObject* self,
 			PHY_GetActiveEnvironment()->setNumTimeSubSteps(substep);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -137,6 +147,9 @@ static PyObject* gPySetNumIterations(PyObject* self,
 		{
 			PHY_GetActiveEnvironment()->setNumIterations(iter);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -155,6 +168,9 @@ static PyObject* gPySetDeactivationTime(PyObject* self,
 			PHY_GetActiveEnvironment()->setDeactivationTime(deactive_time);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -170,6 +186,9 @@ static PyObject* gPySetDeactivationLinearTreshold(PyObject* self,
 		{
 			PHY_GetActiveEnvironment()->setDeactivationLinearTreshold( linearDeactivationTreshold);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -187,6 +206,9 @@ static PyObject* gPySetDeactivationAngularTreshold(PyObject* self,
 			PHY_GetActiveEnvironment()->setDeactivationAngularTreshold( angularDeactivationTreshold);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -201,6 +223,9 @@ static PyObject* gPySetContactBreakingTreshold(PyObject* self,
 		{
 			PHY_GetActiveEnvironment()->setContactBreakingTreshold( contactBreakingTreshold);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -218,6 +243,9 @@ static PyObject* gPySetCcdMode(PyObject* self,
 			PHY_GetActiveEnvironment()->setCcdMode( ccdMode);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -233,6 +261,9 @@ static PyObject* gPySetSorConstant(PyObject* self,
 			PHY_GetActiveEnvironment()->setSolverSorConstant( sor);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -247,6 +278,9 @@ static PyObject* gPySetSolverTau(PyObject* self,
 		{
 			PHY_GetActiveEnvironment()->setSolverTau( tau);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -264,6 +298,9 @@ static PyObject* gPySetSolverDamping(PyObject* self,
 			PHY_GetActiveEnvironment()->setSolverDamping( damping);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -278,6 +315,9 @@ static PyObject* gPySetLinearAirDamping(PyObject* self,
 		{
 			PHY_GetActiveEnvironment()->setLinearAirDamping( damping);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -295,6 +335,9 @@ static PyObject* gPySetUseEpa(PyObject* self,
 			PHY_GetActiveEnvironment()->setUseEpa(epa);
 		}
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 static PyObject* gPySetSolverType(PyObject* self,
@@ -308,6 +351,9 @@ static PyObject* gPySetSolverType(PyObject* self,
 		{
 			PHY_GetActiveEnvironment()->setSolverType(solverType);
 		}
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -337,6 +383,9 @@ static PyObject* gPyGetVehicleConstraint(PyObject* self,
 			}
 
 		}
+	}
+	else {
+		return NULL;
 	}
 
 	Py_INCREF(Py_None); return Py_None;
@@ -395,6 +444,9 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 			
 		}
 	}
+	else {
+		return NULL;
+	}
 
 	Py_INCREF(Py_None); return Py_None;
 }
@@ -421,6 +473,9 @@ static PyObject* gPyGetAppliedImpulse(PyObject* self,
 			appliedImpulse = PHY_GetActiveEnvironment()->getAppliedImpulse(constraintid);
 		}
 	}
+	else {
+		return NULL;
+	}
 
 	return PyFloat_FromDouble(appliedImpulse);
 }
@@ -443,6 +498,10 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 			PHY_GetActiveEnvironment()->removeConstraint(constraintid);
 		}
 	}
+	else {
+		return NULL;
+	}
+	
 	Py_INCREF(Py_None); return Py_None;
 }
 

@@ -1313,6 +1313,9 @@ static void do_view3d_select_armaturemenu(void *arg, int event)
 		case 3: /* Select Parent(s) */	
 			select_bone_parent();
 			break;
+		case 4: /* Swap Select All */
+			deselectall_armature(3, 1);
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1330,6 +1333,8 @@ static uiBlock *view3d_select_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Swap Select All|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 
@@ -1356,11 +1361,14 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 	case 2: /* Select/Deselect all */
 		deselectall_posearmature(OBACT, 1, 1);
 		break;
-	case 3:
+	case 3: /* Select Target(s) of Constraint(s) */
 		pose_select_constraint_target();
 		break;
-	case 4:
+	case 4: /* Select Bone's Parent */
 		select_bone_parent();
+		break;
+	case 5: /* Swap Select All */
+		deselectall_posearmature(OBACT, 3, 1);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1379,6 +1387,7 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Swap Select All|Ctrl I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Constraint Target|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
@@ -4106,7 +4115,7 @@ static uiBlock *view3d_pose_armature_ikmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_ikmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_ikmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Shift I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear IK...|Alt I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);

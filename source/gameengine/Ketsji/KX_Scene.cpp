@@ -48,6 +48,7 @@
 #include "SCA_KeyboardManager.h"
 #include "SCA_MouseManager.h"
 #include "SCA_PropertyEventManager.h"
+#include "SCA_ActuatorEventManager.h"
 #include "KX_Camera.h"
 #include "SCA_JoystickManager.h"
 
@@ -143,6 +144,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	
 	SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
 	SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
+	SCA_ActuatorEventManager* actmgr = new SCA_ActuatorEventManager(m_logicmgr);
 	SCA_RandomEventManager* rndmgr = new SCA_RandomEventManager(m_logicmgr);
 	KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
 
@@ -152,6 +154,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
+	m_logicmgr->RegisterEventManager(actmgr);
 	m_logicmgr->RegisterEventManager(m_keyboardmgr);
 	m_logicmgr->RegisterEventManager(m_mousemgr);
 	m_logicmgr->RegisterEventManager(m_timemgr);
@@ -598,6 +601,8 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 			}
 		}
 	}
+	// ready to set initial state
+	newobj->ResetState();
 }
 
 
@@ -883,6 +888,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			else if (bHasArmature) 
 			{
 				BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
+					newobj,
 					oldblendobj, blendobj,
 					static_cast<BL_SkinMeshObject*>(mesh),
 					true,
@@ -894,7 +900,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			else if (bHasDvert)
 			{
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
-					oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
+					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
 				);
 				newobj->m_pDeformer = meshdeformer;
 			}
@@ -999,12 +1005,13 @@ void KX_Scene::UpdateMeshTransformations()
 	}
 }
 
-void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam)
+void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam, int layer)
 {
 	int intersect = KX_Camera::INTERSECT;
 	KX_GameObject *gameobj = node->Client()?(KX_GameObject*) node->Client()->GetSGClientObject():NULL;
-	bool dotest = (gameobj && gameobj->GetVisible()) || node->Left() || node->Right();
-	
+	bool visible = (gameobj && gameobj->GetVisible() && (!layer || (gameobj->GetLayer() & layer)));
+	bool dotest = visible || node->Left() || node->Right();
+
 	/* If the camera is inside the box, assume intersect. */
 	if (dotest && !node->inside( cam->NodeGetWorldPosition()))
 	{
@@ -1028,19 +1035,19 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam
 			break;
 		case KX_Camera::INTERSECT:
 			if (gameobj)
-				MarkVisible(rasty, gameobj,cam);
+				MarkVisible(rasty, gameobj, cam, layer);
 			if (node->Left())
-				MarkVisible(node->Left(), rasty,cam);
+				MarkVisible(node->Left(), rasty, cam, layer);
 			if (node->Right())
-				MarkVisible(node->Right(), rasty,cam);
+				MarkVisible(node->Right(), rasty, cam, layer);
 			break;
 		case KX_Camera::INSIDE:
-			MarkSubTreeVisible(node, rasty, true,cam);
+			MarkSubTreeVisible(node, rasty, true, cam, layer);
 			break;
 	}
 }
 
-void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible,KX_Camera* cam)
+void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera* cam, int layer)
 {
 	if (node->Client())
 	{
@@ -1063,16 +1070,23 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 		}
 	}
 	if (node->Left())
-		MarkSubTreeVisible(node->Left(), rasty, visible,cam);
+		MarkSubTreeVisible(node->Left(), rasty, visible, cam, layer);
 	if (node->Right())
-		MarkSubTreeVisible(node->Right(), rasty, visible,cam);
+		MarkSubTreeVisible(node->Right(), rasty, visible, cam, layer);
 }
 
-void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Camera*  cam)
+void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Camera*  cam,int layer)
 {
 	// User (Python/Actuator) has forced object invisible...
 	if (!gameobj->GetVisible())
 		return;
+	
+	// Shadow lamp layers
+	if(layer && !(gameobj->GetLayer() & layer)) {
+		gameobj->MarkVisible(false);
+		return;
+	}
+
 	// If Frustum culling is off, the object is always visible.
 	bool vis = !cam->GetFrustumCulling();
 	
@@ -1122,20 +1136,20 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	}
 }
 
-void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam)
+void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int layer)
 {
 // FIXME: When tree is operational
 #if 1
 	// do this incrementally in the future
 	for (int i = 0; i < m_objectlist->GetCount(); i++)
 	{
-		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam);
+		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam, layer);
 	}
 #else
 	if (cam->GetFrustumCulling())
-		MarkVisible(m_objecttree, rasty, cam);
+		MarkVisible(m_objecttree, rasty, cam, layer);
 	else
-		MarkSubTreeVisible(m_objecttree, rasty, true, cam);
+		MarkSubTreeVisible(m_objecttree, rasty, true, cam, layer);
 #endif
 }
 

@@ -302,6 +302,15 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 {
 	GHOST_TSuccess success = GHOST_System::init();
 
+	/* Disable scaling on high DPI displays on Vista */
+	HMODULE user32 = ::LoadLibraryA("user32.dll");
+	typedef BOOL (WINAPI * LPFNSETPROCESSDPIAWARE)();
+	LPFNSETPROCESSDPIAWARE SetProcessDPIAware =
+		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
+	if (SetProcessDPIAware)
+		SetProcessDPIAware();
+	FreeLibrary(user32);
+
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER*)&m_freq) == TRUE;
 	if (m_hasPerformanceCounter) {
