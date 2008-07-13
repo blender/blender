@@ -106,17 +106,14 @@ static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, con
 static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, const float m_dist, const float *v0, const float *v1, const float *v2)
 {
 	
-	float dist, idist;
-	float p0[3], p1[3];
+	float idist;
+	float p1[3];
 	float plane_normal[3], hit_point[3];
 
 	CalcNormFloat((float*)v0, (float*)v1, (float*)v2, plane_normal);
 
-	dist = ray_intersect_plane(ray->origin, ray->direction, v0, plane_normal);
-
-	VECADDFAC( p0, ray->origin, ray->direction, /*dist-radius*/ 0);
 	VECADDFAC( p1, ray->origin, ray->direction, m_dist);
-	if(SweepingSphereIntersectsTriangleUV(p0, p1, radius, v0, v1, v2, &idist, &hit_point))
+	if(SweepingSphereIntersectsTriangleUV(ray->origin, p1, radius, v0, v1, v2, &idist, &hit_point))
 	{
 		return idist * m_dist;
 	}
@@ -149,6 +146,9 @@ static void bvhtree_meshcallbackdata_init(BVHMeshCallbackUserdata *data, Derived
 	data->sphere_radius = cast_radius;
 }
 
+/*
+ * Builds a bvh tree.. where nodes are the vertexs of the given mesh
+ */
 static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh, float epsilon)
 {
 	int i;
@@ -167,6 +167,9 @@ static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh, float epsilon)
 	return tree;
 }
 
+/*
+ * Builds a bvh tree.. where nodes are the faces of the given mesh. Quads are splitted in 2 triangles
+ */
 static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh, float epsilon)
 {
 	int i;
@@ -206,36 +209,46 @@ static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh, float epsilon)
 	return tree;
 }
 
-
-static float mesh_tri_nearest_point(void *userdata, int index, const float *co, float *nearest)
+/*
+ * Loads the coordinates of the requested tri
+ */
+static void bvhtree_from_mesh_get_tri(BVHMeshCallbackUserdata* userdata, int index, float **v0, float **v1, float **v2)
 {
 	const BVHMeshCallbackUserdata *data = (BVHMeshCallbackUserdata*) userdata;
 	MVert *vert	= data->vert;
 	MFace *face = data->face + index / 2;
 
 	if(index & 1)
-		return nearest_point_in_tri_surface(co, vert[ face->v1 ].co, vert[ face->v3 ].co, vert[ face->v4 ].co, nearest);
+		*v0 = vert[ face->v1 ].co, *v1 = vert[ face->v3 ].co, *v2 = vert[ face->v4 ].co;
 	else
-		return nearest_point_in_tri_surface(co, vert[ face->v1 ].co, vert[ face->v2 ].co, vert[ face->v3 ].co, nearest);
+		*v0 = vert[ face->v1 ].co, *v1 = vert[ face->v2 ].co, *v2 = vert[ face->v3 ].co;
+}
+
+/*
+ * Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_tri.
+ * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
+static float mesh_tri_nearest_point(void *userdata, int index, const float *co, float *nearest)
+{
+	float *t0, *t1, *t2;
+
+	bvhtree_from_mesh_get_tri( (BVHMeshCallbackUserdata*)userdata, index, &t0, &t1, &t2);
+	return nearest_point_in_tri_surface(co,t0, t1, t2, nearest);
 }
 
 
-
+/*
+ * Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_tri.
+ * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static float mesh_tri_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	const BVHMeshCallbackUserdata *data = (BVHMeshCallbackUserdata*) userdata;
-	MVert *vert	= data->vert;
-	MFace *face = data->face + index / 2;
-
-	const float *t0, *t1, *t2;
 	float dist;
+	float *t0, *t1, *t2;
 
-	if(index & 1)
-		t0 = &vert[ face->v1 ].co, t1 = &vert[ face->v3 ].co, t2 = &vert[ face->v4 ].co;
-	else
-		t0 = &vert[ face->v1 ].co, t1 = &vert[ face->v2 ].co, t2 = &vert[ face->v3 ].co;
+	bvhtree_from_mesh_get_tri( (BVHMeshCallbackUserdata*)userdata, index, &t0, &t1, &t2);
 
-	dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
+	dist = sphereray_tri_intersection(ray, ((BVHMeshCallbackUserdata*)userdata)->sphere_radius, hit->dist, t0, t1, t2);
 	if(dist >= 0 && dist < hit->dist)
 	{
 		hit->index = index;
@@ -245,20 +258,18 @@ static float mesh_tri_spherecast(void *userdata, int index, const BVHTreeRay *ra
 	return dist;
 }
 
+/*
+ * Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_tri.
+ * Rays are projected as a sphere with the radius configured on userdata.
+ * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+ */
 static float mesh_tri_raycast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	const BVHMeshCallbackUserdata *data = (BVHMeshCallbackUserdata*) userdata;
-	MVert *vert	= data->vert;
-	MFace *face = data->face + index/2;
-
-	const float *t0, *t1, *t2;
 	float dist;
+	float *t0, *t1, *t2;
 
-	if(index & 1)
-		t0 = &vert[ face->v1 ].co, t1 = &vert[ face->v3 ].co, t2 = &vert[ face->v4 ].co;
-	else
-		t0 = &vert[ face->v1 ].co, t1 = &vert[ face->v2 ].co, t2 = &vert[ face->v3 ].co;
-
+	bvhtree_from_mesh_get_tri( (BVHMeshCallbackUserdata*)userdata, index, &t0, &t1, &t2);
+	
 	dist = ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 	if(dist >= 0 && dist < hit->dist)
 	{
@@ -268,6 +279,8 @@ static float mesh_tri_raycast(void *userdata, int index, const BVHTreeRay *ray, 
 	}
 	return dist;
 }
+
+
 /*
  * Raytree from mesh
  */
@@ -1378,17 +1391,51 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		Normalize(tmp_no);							//(TODO: do we really needed a unit-len normal? and we could know the scale factor before hand?)
 
 		hit.index = -1;
-		hit.dist = 1000;
+		hit.dist = 1000;							//TODO: we should use FLT_MAX here
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
 		{
 			BLI_bvhtree_ray_cast(tree, tmp_co, tmp_no, &hit, callback, &userdata);
+
+			if(hit.index != -1)
+			{
+				float *v0, *v1, *v2;
+				float facenormal[3], dot;
+
+				bvhtree_from_mesh_get_tri(&userdata, hit.index, &v0, &v1, &v2);
+				CalcNormFloat(v0, v1, v2, facenormal);
+				dot = INPR( facenormal, tmp_no);
+
+				if(((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot < 0)
+				|| ((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot > 0))
+				{
+					hit.index = -1;
+					hit.dist = 1000;				//TODO: we should use FLT_MAX here
+				}
+			}
 		}
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL)
 		{
 			float inv[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
 			BLI_bvhtree_ray_cast(tree, tmp_co, inv, &hit, callback, &userdata);
+
+			if(hit.index != -1)
+			{
+				float *v0, *v1, *v2;
+				float facenormal[3], dot;
+
+				bvhtree_from_mesh_get_tri(&userdata, hit.index, &v0, &v1, &v2);
+				CalcNormFloat(v0, v1, v2, facenormal);
+				dot = INPR( facenormal, inv);
+
+				if(((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot < 0)
+				|| ((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot > 0))
+				{
+					hit.index = -1;
+					hit.dist = 1000;				//TODO: we should use FLT_MAX here
+				}
+			}
 		}
 
 		if(hit.index != -1)
