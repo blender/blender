@@ -352,7 +352,10 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 				if (!m_bNegativeEvent){
 					/* Perform wraparound */
 					SetLocalTime(curtime);
-					m_localtime = m_startframe + fmod(m_localtime, m_startframe - m_endframe);
+					if (start_smaller_then_end > 0.f)
+						m_localtime = m_startframe + fmod(m_localtime - m_startframe, m_endframe - m_startframe);
+					else
+						m_localtime = m_startframe - fmod(m_startframe - m_localtime, m_startframe - m_endframe);
 					SetStartTime(curtime);
 				}
 				else
