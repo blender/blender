@@ -1073,6 +1073,8 @@ void reweightArc(ReebArc *arc, ReebNode *start_node, float start_weight)
 	arc->tail->weight = start_weight + delta_weight;
 	
 	reweightBuckets(arc);
+	resizeArcBuckets(arc);
+	fillArcEmptyBuckets(arc);
 	
 	/* recurse here */
 } 
@@ -1093,15 +1095,17 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 	
 	for (subgraph = 1; subgraph <= nb_subgraphs; subgraph++)
 	{
-		ReebNode *start_node, *end_node;
+		ReebNode *start_node, *end_node, *next_node;
 		
-		for (start_node = rg->nodes.first; start_node; start_node = start_node->next)
+		for (start_node = rg->nodes.first; start_node; start_node = next_node)
 		{
+			next_node = start_node->next;
+			
 			if (start_node->flag == subgraph && start_node->degree == 1)
 			{
 				for (end_node = rg->nodes.first; end_node; end_node = end_node->next)
 				{
-					if (end_node->flag != subgraph && end_node->degree == 1 && VecLenf(start_node->p, end_node->p) < threshold)
+					if (end_node->flag != subgraph && VecLenf(start_node->p, end_node->p) < threshold)
 					{
 						break;
 					}
@@ -1119,7 +1123,7 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 					{
 						reweightSubgraph(rg, end_node, start_node->weight);
 						
-						end_arc->head = start_node;
+						start_arc->tail = end_node;
 						
 						merging = 1;
 					}
@@ -1127,7 +1131,7 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 					{
 						reweightSubgraph(rg, start_node, end_node->weight);
 
-						end_arc->tail = start_node;
+						start_arc->head = end_node;
 
 						merging = 1;
 					}
@@ -1135,12 +1139,12 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 
 					if (merging)
 					{					
-						resizeArcBuckets(end_arc);
-						fillArcEmptyBuckets(end_arc);
+						resizeArcBuckets(start_arc);
+						fillArcEmptyBuckets(start_arc);
 						
-						NodeDegreeIncrement(rg, start_node);
+						NodeDegreeIncrement(rg, end_node);
 						
-						BLI_removeNode((BGraph*)rg, (BNode*)end_node);
+						BLI_removeNode((BGraph*)rg, (BNode*)start_node);
 					}
 					
 					joined = 1;
