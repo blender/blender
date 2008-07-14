@@ -55,7 +55,8 @@ typedef unsigned long uint_ptr;
 // start on another frame, the 1.0 should change.
 KX_IpoSGController::KX_IpoSGController() 
 : m_ipo_as_force(false),
-  m_force_ipo_acts_local(false),
+  m_ipo_add(false),
+  m_ipo_local(false),
   m_modified(true),
   m_ipo_start_initialized(false),
   m_ipotime(1.0)
@@ -75,8 +76,23 @@ void KX_IpoSGController::SetOption(
 		m_ipo_as_force = (value != 0);
 		m_modified = true;
 		break;
-	case SG_CONTR_IPO_FORCES_ACT_LOCAL:
-		m_force_ipo_acts_local = (value != 0);
+	case SG_CONTR_IPO_IPO_ADD:
+		m_ipo_add = (value != 0);
+		m_modified = true;
+		break;
+	case SG_CONTR_IPO_RESET:
+		if (m_ipo_start_initialized && value) {
+			m_ipo_start_initialized = false;
+			m_modified = true;
+		}
+		break;
+	case SG_CONTR_IPO_LOCAL:
+		if (value/* && ((SG_Node*)m_pObject)->GetSGParent() == NULL*/) {
+			// only accept local Ipo if the object has no parent
+			m_ipo_local = true;
+		} else {
+			m_ipo_local = false;
+		}
 		m_modified = true;
 		break;
 	default:
@@ -129,15 +145,19 @@ bool KX_IpoSGController::Update(double currentTime)
 			{
 				if (m_game_object && ob) 
 				{
-					m_game_object->GetPhysicsController()->ApplyForce(m_force_ipo_acts_local ?
+					m_game_object->GetPhysicsController()->ApplyForce(m_ipo_local ?
 						ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :
 						m_ipo_xform.GetPosition(), false);
 				}
 			} 
 			else
 			{
-				//by default, leave object as it stands
-				MT_Point3 newPosition = ob->GetLocalPosition();
+				// Local ipo should be defined with the object position at (0,0,0)
+				// Local transform is applied to the object based on initial position
+				MT_Point3 newPosition(0.0,0.0,0.0);
+				
+				if (!m_ipo_add)
+					newPosition = ob->GetLocalPosition();
 				//apply separate IPO channels if there is any data in them
 				//Loc and dLoc act by themselves or are additive
 				//LocX and dLocX
@@ -145,23 +165,28 @@ bool KX_IpoSGController::Update(double currentTime)
 					newPosition[0] = (m_ipo_channels_active[OB_DLOC_X] ? m_ipo_xform.GetPosition()[0] + m_ipo_xform.GetDeltaPosition()[0] : m_ipo_xform.GetPosition()[0]);
 				}
 				else if (m_ipo_channels_active[OB_DLOC_X] && m_ipo_start_initialized) {
-					newPosition[0] = (m_ipo_start_point[0] + m_ipo_xform.GetDeltaPosition()[0]);
+					newPosition[0] = (((!m_ipo_add)?m_ipo_start_point[0]:0.0) + m_ipo_xform.GetDeltaPosition()[0]);
 				}
 				//LocY and dLocY
 				if (m_ipo_channels_active[OB_LOC_Y]) {
 					newPosition[1] = (m_ipo_channels_active[OB_DLOC_Y] ? m_ipo_xform.GetPosition()[1] + m_ipo_xform.GetDeltaPosition()[1] : m_ipo_xform.GetPosition()[1]);
 				}
 				else if (m_ipo_channels_active[OB_DLOC_Y] && m_ipo_start_initialized) {
-					newPosition[1] = (m_ipo_start_point[1] + m_ipo_xform.GetDeltaPosition()[1]);
+					newPosition[1] = (((!m_ipo_add)?m_ipo_start_point[1]:0.0) + m_ipo_xform.GetDeltaPosition()[1]);
 				}
 				//LocZ and dLocZ
 				if (m_ipo_channels_active[OB_LOC_Z]) {
 					newPosition[2] = (m_ipo_channels_active[OB_DLOC_Z] ? m_ipo_xform.GetPosition()[2] + m_ipo_xform.GetDeltaPosition()[2] : m_ipo_xform.GetPosition()[2]);
 				}
 				else if (m_ipo_channels_active[OB_DLOC_Z] && m_ipo_start_initialized) {
-					newPosition[2] = (m_ipo_start_point[2] + m_ipo_xform.GetDeltaPosition()[2]);
+					newPosition[2] = (((!m_ipo_add)?m_ipo_start_point[2]:0.0) + m_ipo_xform.GetDeltaPosition()[2]);
 				}
-				
+				if (m_ipo_add) {
+					if (m_ipo_local)
+						newPosition = m_ipo_start_point + m_ipo_start_scale*(m_ipo_start_orient*newPosition);
+					else
+						newPosition = m_ipo_start_point + newPosition;
+				}
 				ob->SetLocalPosition(newPosition);
 			}
 		}
@@ -170,21 +195,23 @@ bool KX_IpoSGController::Update(double currentTime)
 			if (m_ipo_as_force) {
 				
 				if (m_game_object && ob) {
-					m_game_object->ApplyTorque(m_force_ipo_acts_local ?
+					m_game_object->ApplyTorque(m_ipo_local ?
 						ob->GetWorldOrientation() * m_ipo_xform.GetEulerAngles() :
 						m_ipo_xform.GetEulerAngles(), false);
 				}
 			} else {
-				double yaw, pitch,  roll;	//final Euler angles
+				double yaw=0, pitch=0,  roll=0;	//final Euler angles
 				double tempYaw=0, tempPitch=0, tempRoll=0;	//temp holders
-				ob->GetLocalOrientation().getEuler(yaw, pitch, roll);
+				if (!m_ipo_add)
+					ob->GetLocalOrientation().getEuler(yaw, pitch, roll);
 
 				//RotX and dRotX
 				if (m_ipo_channels_active[OB_ROT_X]) {
 					yaw = (m_ipo_channels_active[OB_DROT_X] ? (m_ipo_xform.GetEulerAngles()[0] + m_ipo_xform.GetDeltaEulerAngles()[0]) : m_ipo_xform.GetEulerAngles()[0] );
 				}
 				else if (m_ipo_channels_active[OB_DROT_X] && m_ipo_start_initialized) {
-					m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
+					if (!m_ipo_add)
+						m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
 					yaw = tempYaw + m_ipo_xform.GetDeltaEulerAngles()[0];
 				}
 
@@ -193,7 +220,8 @@ bool KX_IpoSGController::Update(double currentTime)
 					pitch = (m_ipo_channels_active[OB_DROT_Y] ? (m_ipo_xform.GetEulerAngles()[1] + m_ipo_xform.GetDeltaEulerAngles()[1]) : m_ipo_xform.GetEulerAngles()[1] );
 				}
 				else if (m_ipo_channels_active[OB_DROT_Y] && m_ipo_start_initialized) {
-					m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
+					if (!m_ipo_add)
+						m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
 					pitch = tempPitch + m_ipo_xform.GetDeltaEulerAngles()[1];
 				}
 				
@@ -202,23 +230,34 @@ bool KX_IpoSGController::Update(double currentTime)
 					roll = (m_ipo_channels_active[OB_DROT_Z] ? (m_ipo_xform.GetEulerAngles()[2] + m_ipo_xform.GetDeltaEulerAngles()[2]) : m_ipo_xform.GetEulerAngles()[2] );
 				}
 				else if (m_ipo_channels_active[OB_DROT_Z] && m_ipo_start_initialized) {
-					m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
+					if (!m_ipo_add)
+						m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
 					roll = tempRoll + m_ipo_xform.GetDeltaEulerAngles()[2];
 				}
-
-				ob->SetLocalOrientation(MT_Vector3(yaw, pitch, roll));
+				if (m_ipo_add) {
+					MT_Matrix3x3 rotation(MT_Vector3(yaw, pitch, roll));
+					if (m_ipo_local)
+						rotation = m_ipo_start_orient * rotation;
+					else
+						rotation = rotation * m_ipo_start_orient;
+					ob->SetLocalOrientation(rotation);
+				} else {
+					ob->SetLocalOrientation(MT_Vector3(yaw, pitch, roll));
+				}
 			}
 		}
 		//modifies scale?
 		if (m_ipo_channels_active[OB_SIZE_X] || m_ipo_channels_active[OB_SIZE_Y] || m_ipo_channels_active[OB_SIZE_Z] || m_ipo_channels_active[OB_DSIZE_X] || m_ipo_channels_active[OB_DSIZE_Y] || m_ipo_channels_active[OB_DSIZE_Z]) {
 			//default is no scale change
-			MT_Vector3 newScale = ob->GetLocalScale();
+			MT_Vector3 newScale(1.0,1.0,1.0);
+			if (!m_ipo_add)
+				newScale = ob->GetLocalScale();
 
 			if (m_ipo_channels_active[OB_SIZE_X]) {
 				newScale[0] = (m_ipo_channels_active[OB_DSIZE_X] ? (m_ipo_xform.GetScaling()[0] + m_ipo_xform.GetDeltaScaling()[0]) : m_ipo_xform.GetScaling()[0]);
 			}
 			else if (m_ipo_channels_active[OB_DSIZE_X] && m_ipo_start_initialized) {
-				newScale[0] = (m_ipo_xform.GetDeltaScaling()[0] + m_ipo_start_scale[0]);
+				newScale[0] = (m_ipo_xform.GetDeltaScaling()[0] + ((!m_ipo_add)?m_ipo_start_scale[0]:0.0));
 			}
 
 			//RotY dRotY
@@ -226,7 +265,7 @@ bool KX_IpoSGController::Update(double currentTime)
 				newScale[1] = (m_ipo_channels_active[OB_DSIZE_Y] ? (m_ipo_xform.GetScaling()[1] + m_ipo_xform.GetDeltaScaling()[1]): m_ipo_xform.GetScaling()[1]);
 			}
 			else if (m_ipo_channels_active[OB_DSIZE_Y] && m_ipo_start_initialized) {
-				newScale[1] = (m_ipo_xform.GetDeltaScaling()[1] + m_ipo_start_scale[1]);
+				newScale[1] = (m_ipo_xform.GetDeltaScaling()[1] + ((!m_ipo_add)?m_ipo_start_scale[1]:0.0));
 			}
 			
 			//RotZ and dRotZ
@@ -234,7 +273,11 @@ bool KX_IpoSGController::Update(double currentTime)
 				newScale[2] = (m_ipo_channels_active[OB_DSIZE_Z] ? (m_ipo_xform.GetScaling()[2] + m_ipo_xform.GetDeltaScaling()[2]) : m_ipo_xform.GetScaling()[2]);
 			}
 			else if (m_ipo_channels_active[OB_DSIZE_Z] && m_ipo_start_initialized) {
-				newScale[2] = (m_ipo_xform.GetDeltaScaling()[2] + m_ipo_start_scale[2]);
+				newScale[2] = (m_ipo_xform.GetDeltaScaling()[2] + ((!m_ipo_add)?m_ipo_start_scale[2]:1.0));
+			}
+
+			if (m_ipo_add) {
+				newScale = m_ipo_start_scale * newScale;
 			}
 
 			ob->SetLocalScale(newScale);

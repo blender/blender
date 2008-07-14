@@ -378,9 +378,6 @@ void space_set_commmandline_options(void) {
 		
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		a= (U.gameflags & USER_VERTEX_ARRAYS);
-		SYS_WriteCommandLineInt(syshandle, "vertexarrays", a);
-
 		a= (U.gameflags & USER_DISABLE_SOUND);
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
@@ -436,9 +433,6 @@ static void SaveState(void)
 
 	if(G.f & G_TEXTUREPAINT)
 		texpaint_enable_mipmap();
-
-	if(G.scene->camera==0 || G.scene->camera->type!=OB_CAMERA)
-		error("no (correct) camera");
 
 	waitcursor(1);
 }
@@ -2195,16 +2189,24 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case IKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
-						pose_add_IK();
-					else if(ob && G.obedit)
-						selectswap_mesh();
+					if((ob) && (ob->flag & OB_POSEMODE) && (ob->type==OB_ARMATURE))
+						deselectall_posearmature(ob, 3, 1);
+					else if(ob && G.obedit) {
+						if(G.obedit->type == OB_ARMATURE)
+							deselectall_armature(3, 1);
+						else
+							selectswap_mesh();
+					}
 					else
 						selectswap();
 				}
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
 						pose_clear_IK();
+				}
+				else if(G.qual==LR_SHIFTKEY) {
+					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
+						pose_add_IK();
 				}
 				break;
 				
@@ -4258,15 +4260,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
 													(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth, &(U.glreslimit), 0, 0, 0, 0, "Limit the texture size to save graphics memory");
 		
-		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
-
 		uiDefButI(block, NUM, 0, "Time Out ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y3, mpref, buth, 
 			&U.textimeout, 0.0, 3600.0, 30, 2, "Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated)");
 		uiDefButI(block, NUM, 0, "Collect Rate ",
-			(xpos+edgsp+(5*mpref)+(5*midsp)), y1, mpref, buth, 
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
 
 		/* *** */
@@ -4442,7 +4440,10 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		switch(event) {
 		case UI_BUT_EVENT:
-			if(val==REDRAWTIME) allqueue(REDRAWTIME, 0);
+			if(val==REDRAWTIME) {
+				allqueue(REDRAWTIME, 0);
+				addqueue(sa->win, REDRAW, 1);
+			}
 			else if(val==B_ADD_THEME) {
 				bTheme *btheme, *new;
 				
@@ -4843,9 +4844,9 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					if( cfra!=CFRA || first ) {
 						first= 0;
-				
+						
 						CFRA= cfra;
-						force_draw(0);
+						force_draw_all(0);
 						update_for_newframe();	/* for audio scrubbing */						
 					}
 					else PIL_sleep_ms(30);

@@ -74,7 +74,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\lib\windows\sdl\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\yafray;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenkernel;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenloader;..\..\..\source\blender\makesdna;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\render\extern\include;..\..\..\source\kernel;..\..\..\source\kernel\gen_messaging"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_QUICKTIME;WITH_OPENEXR;_USE_MATH_DEFINES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -176,6 +176,9 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\strand.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\sunsky.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\texture.c">
 			</File>
 			<File
@@ -244,6 +247,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\strand.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\sunsky.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\texture.h">

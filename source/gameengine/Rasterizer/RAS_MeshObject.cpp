@@ -68,8 +68,8 @@ RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
 	m_lightlayer(lightlayer),
 	m_zsort(false),
 	m_MeshMod(true),
-	m_class(0),
-	m_mesh(mesh)
+	m_mesh(mesh),
+	m_class(0)
 {
 }
 
@@ -259,18 +259,18 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 									const MT_Vector3& normal,
 									bool flat,
 									RAS_IPolyMaterial* mat,
-									int orgindex)
+									int origindex)
 {
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
+	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
 	
 	int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-	RAS_TexVert newvert(xyz,uv,uv2,tangent,rgbacolor,normal, flat? TV_CALCFACENORMAL: 0);
+	RAS_TexVert newvert(xyz,uv,uv2,tangent,rgbacolor,normal, flat? TV_CALCFACENORMAL: 0,origindex);
 
 #define KX_FIND_SHARED_VERTICES
 #ifdef KX_FIND_SHARED_VERTICES
 	if(!flat) {
-		for (std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[orgindex].begin();
-			 it != m_xyz_index_to_vertex_index_mapping[orgindex].end();
+		for (std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[origindex].begin();
+			 it != m_xyz_index_to_vertex_index_mapping[origindex].end();
 			 it++)
 		{
 			if ((*it).m_arrayindex1 == ao->m_index1 &&
@@ -293,21 +293,17 @@ int RAS_MeshObject::FindOrAddVertex(int vtxarray,
 	idx.m_array = vtxarray;
 	idx.m_index = numverts;
 	idx.m_matid = mat;
-	m_xyz_index_to_vertex_index_mapping[orgindex].push_back(idx); 
+	m_xyz_index_to_vertex_index_mapping[origindex].push_back(idx); 
 	
 	return numverts;
 }
 
-
-
-const vecVertexArray& RAS_MeshObject::GetVertexCache (RAS_IPolyMaterial* mat)
+vecVertexArray& RAS_MeshObject::GetVertexCache (RAS_IPolyMaterial* mat)
 {
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
+	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
 
 	return ao->m_VertexArrayCache1;
 }
-
-
 
 int RAS_MeshObject::GetVertexArrayLength(RAS_IPolyMaterial* mat)
 {
@@ -362,7 +358,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 
 const vecIndexArrays& RAS_MeshObject::GetIndexCache (RAS_IPolyMaterial* mat)
 {
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
+	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
 
 	return ao->m_IndexArrayCache1;
 }
@@ -371,16 +367,27 @@ const vecIndexArrays& RAS_MeshObject::GetIndexCache (RAS_IPolyMaterial* mat)
 
 KX_ArrayOptimizer* RAS_MeshObject::GetArrayOptimizer(RAS_IPolyMaterial* polymat)
 {
-	KX_ArrayOptimizer** aop = (m_matVertexArrayS[*polymat]);
+	KX_ArrayOptimizer** aop = m_matVertexArrayS[polymat];
 
-	if (aop)
+	if(aop)
 		return *aop;
 	
+	// didn't find array, but an array might already exist
+	// for a material equal to this one
+	for(int i=0;i<m_matVertexArrayS.size();i++) {
+		RAS_IPolyMaterial *mat = (RAS_IPolyMaterial*)(m_matVertexArrayS.getKey(i)->getValue());
+		if(*mat == *polymat) {
+			m_matVertexArrayS.insert(polymat, *m_matVertexArrayS.at(i));
+			return *m_matVertexArrayS.at(i);
+		}
+	}
+
+	// create new array
 	int numelements = m_matVertexArrayS.size();
 	m_sortedMaterials.push_back(polymat);
-		
+
 	KX_ArrayOptimizer* ao = new KX_ArrayOptimizer(numelements);
-	m_matVertexArrayS.insert(*polymat,ao);
+	m_matVertexArrayS.insert(polymat, ao);
 	
 	return ao;
 }
@@ -463,7 +470,7 @@ RAS_TexVert* RAS_MeshObject::GetVertex(short array,
 									   unsigned int index,
 									   RAS_IPolyMaterial* polymat)
 {
-	 KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);//*(m_matVertexArrays[*polymat]);
+	 KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);
 	return &((*(ao->m_VertexArrayCache1)[array])[index]);
 }
 
@@ -471,13 +478,19 @@ RAS_TexVert* RAS_MeshObject::GetVertex(short array,
 
 void RAS_MeshObject::ClearArrayData()
 {
-	for (int i=0;i<m_matVertexArrayS.size();i++)
-	{
+	for (int i=0;i<m_matVertexArrayS.size();i++) {
 		KX_ArrayOptimizer** ao = m_matVertexArrayS.at(i);
-		if (ao)
-		{
-			delete *ao;
+
+		// we have duplicate entries, only free once
+		for(int j=i+1;j<m_matVertexArrayS.size();j++) {
+			if(ao == m_matVertexArrayS.at(j)) {
+				ao = NULL;
+				break;
+			}
 		}
+
+		if (ao)
+			delete *ao;
 	}
 }
 

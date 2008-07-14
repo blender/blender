@@ -150,6 +150,9 @@ void init_sensor(bSensor *sens)
 	case SENS_PROPERTY:
 		sens->data= MEM_callocN(sizeof(bPropertySensor), "propsens");
 		break;
+	case SENS_ACTUATOR:
+		sens->data= MEM_callocN(sizeof(bActuatorSensor), "actsens");
+		break;
 	case SENS_MOUSE:
 		ms=sens->data= MEM_callocN(sizeof(bMouseSensor), "mousesens");
 		ms->type= LEFTMOUSE;

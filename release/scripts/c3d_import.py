@@ -8,7 +8,7 @@ Tooltip: 'Import a C3D Motion Capture file'
 """
 __script__ = "C3D Motion Capture file import"
 __author__ = " Jean-Baptiste PERIN, Roger D. Wickes (rogerwickes@yahoo.com)"
-__version__ = "0.8"
+__version__ = "0.9"
 __url__ = ["Communicate problems and errors, BlenderArtists.org, Python forum"]
 __email__= ["rogerwickes@yahoo.com", "c3d script"]
 __bpydoc__ = """\
@@ -16,9 +16,9 @@ c3d_import.py v0.8
 
 Script loading Graphics Lab Motion Capture file,  
 Usage:<br>
- - Run the script <br>
- - Choose the file to open<br>
- - Press Import C3D button<br>
+	- Run the script <br>
+	- Choose the file to open<br>
+	- Press Import C3D button<br>
 
 Version History:
  0.4: PERIN Released under Blender Artistic Licence
@@ -26,6 +26,7 @@ Version History:
  0.6: WICKES creates armature for each subject
  0.7: WICKES constrains armature to follow the empties (markers). Verified for shake hands s
  0.8: WICKES resolved DEC support issue
+ 0.9: BARTON removed scene name change, whitespace edits. WICKES added IK layers
 """
 
 #----------------------------------------------
@@ -69,12 +70,12 @@ XYZ_LIMIT= 10000 #max value for coordinates if in integer format
 # selecting only layer 2 shows only the armature moving, 12 shows only the empties
 LAYERS_ARMOB= [1,2]
 LAYERS_MARKER=[1,12]
+LAYERS_IK=[1,11]
+IK_PREFIX="ik_" # prefix in empty name: ik_prefix+subject prefix+bone name
+
 CLEAN=True # Should program ignore markers at (0,0,0) and beyond the outer limits?
 
 scn = Blender.Scene.GetCurrent()
-# Why on earth would you rename a scene when importing data??? - Campbell
-# scn.name="MoCap" #may want this enterable or derived based on motion being analyzed
-#TODO: ultimately, a library of motions to append from means you need good naming of things
 
 BCS=Blender.Constraint.Settings # shorthand dictionary - define with brace, reference with bracket
 trackto={"+x":BCS.TRACKX, "+y":BCS.TRACKY, "+z":BCS.TRACKZ, "-x":BCS.TRACKNEGX, "-y":BCS.TRACKNEGY, "-z":BCS.TRACKNEGZ}
@@ -169,22 +170,21 @@ def getEmpty(name):
 # in  : objname : le nom de l'empty recherche
 # out : myobj : l'empty cree ou retrouve
 #########
-def GetOrCreateEmpty(objname):
+def getOrCreateEmpty(objname):
 	myobj= getEmpty(objname)
 	if myobj==None: 
 		myobj = scn.objects.new("Empty",objname)
-		myobj.layers= LAYERS_MARKER
 		debug(50,'Marker/Empty created %s' %  myobj)
 	return myobj
 
-def GetOrCreateCurve(ipo, curvename):
+def getOrCreateCurve(ipo, curvename):
 	"""
 	Retrieve or create a Blender Ipo Curve named C{curvename} in the C{ipo} Ipo
 
 	>>> import mylib 
 
 	>>> lIpo = GetOrCreateIPO("Une IPO")
-	>>> laCurve = GetOrCreateCurve(lIpo, "RotX")
+	>>> laCurve = getOrCreateCurve(lIpo, "RotX")
 
 	Either an ipo curve named C{curvename} exists before the call then this curve is returned,
 	Or such a curve doesn't exist before the call .. then it is created into the c{ipo} Ipo and returned 
@@ -338,7 +338,8 @@ def makeNodes(prefix, markerList, empties, marker_set): #make sure the file has 
 			elif usrOption==1: #add these markers as static empties, and user will automate them later
 				#and the bones will be keyed to them, so it will all be good.
 				#file may have just mis-named the empty, or the location can be derived based on other markers
-				em= GetOrCreateEmpty(err[2])
+				em= getOrCreateEmpty(err[2])
+				em.layers= LAYERS_MARKER
 			else: abort() #abend
 			if DEBUG==100: status("Nodes Updated")
 	return nodes #nodes may be updated
@@ -411,8 +412,9 @@ def makeConstIK(prefix,pbone,const):
 	#Blender 246 only supports one IK Solver per bone, but we might want many,
 	#  so we need to create a reference empty named after the bone
 	#  that floats between the markers, so the bone can point to it as a singularity
-	myob= GetOrCreateEmpty(prefix+pbone.name)
-	# note that this empty gets all the IK constraints added on
+	myob= getOrCreateEmpty(IK_PREFIX+prefix+pbone.name)
+	myob.layers= LAYERS_IK
+	# note that this empty gets all the IK constraints added on as location constraints
 	myconst= myob.constraints.append(Constraint.Type.COPYLOC)
 	myconst.name=const[0]+"-"+const[1]
 	myconst[Constraint.Settings.TARGET]= Blender.Object.Get(const[1])
@@ -438,15 +440,18 @@ def makeConstTT(pbone,const):
 	myconst= pbone.constraints.append(Constraint.Type.TRACKTO)
 	myconst.name=const[0]+"-"+const[1]
 	debug(70,"%s %s" % (myconst,const[3]))
-	myob= GetOrCreateEmpty(const[1])
-	myconst[BCS.TARGET]= myob
-	myconst.influence = const[2]
-	#const[3] is the Track and the thrird char is the Up indicator
-	myconst[BCS.TRACK]= trackto[const[3][0:2].lower()]
-	myconst[BCS.UP]=trackup[const[3][2].lower()]#up direction
-	myconst[BCS.OWNERSPACE]= BCS.SPACE_LOCAL
-	myconst[BCS.TARGETSPACE]= [BCS.SPACE_LOCAL]
-	if const[3][1]==const[3][2]: debug(0,"WARNING: Track To axis and up axis should not be the same. Constraint is INACTIVE")
+	myob= getEmpty(const[1])
+	if myob!= None:
+		myconst[BCS.TARGET]= myob
+		myconst.influence = const[2]
+		#const[3] is the Track and the thrird char is the Up indicator
+		myconst[BCS.TRACK]= trackto[const[3][0:2].lower()]
+		myconst[BCS.UP]=trackup[const[3][2].lower()]#up direction
+		myconst[BCS.OWNERSPACE]= BCS.SPACE_LOCAL
+		myconst[BCS.TARGETSPACE]= [BCS.SPACE_LOCAL]
+		if const[3][1]==const[3][2]: debug(0,"WARNING: Track To axis and up axis should not be the same. Constraint is INACTIVE")
+	else:   #marker not found. could be missing from this file, or an error in node spec
+		error("TrackTo Constraint for %s |specifies unknown marker %s" % (pbone.name,const[1]))
 	return
 
 def makePoses(prefix,arm_ob,nodes): # pose this armature object based on node requirements
@@ -543,15 +548,16 @@ def makeCloud(Nmarkers,markerList,StartFrame,EndFrame,Markers):
 	for i in range(Nmarkers):
 		debug(100,"%i marker %s"%(i, markerList[i]))
 		emptyname = markerList[i] # rdw: to use meaningful names from Points parameter
-		em= GetOrCreateEmpty(emptyname) #in this scene
+		em= getOrCreateEmpty(emptyname) #in this scene
+		em.layers= LAYERS_MARKER
 		#make a list of the actual empty
 		empties.append(em)
 		#assign it an ipo with the loc xyz curves
 		lipo = Ipo.New("Object",em.name)
 		ipos.append(lipo)
-		curvesX.append(GetOrCreateCurve(ipos[i],'LocX'))
-		curvesY.append(GetOrCreateCurve(ipos[i],'LocY'))
-		curvesZ.append(GetOrCreateCurve(ipos[i],'LocZ'))
+		curvesX.append(getOrCreateCurve(ipos[i],'LocX'))
+		curvesY.append(getOrCreateCurve(ipos[i],'LocY'))
+		curvesZ.append(getOrCreateCurve(ipos[i],'LocZ'))
 		empties[i].setIpo(ipos[i])
 	debug(30,"Cloud of %i empties created." % len(empties))
 	NvideoFrames= EndFrame-StartFrame+1

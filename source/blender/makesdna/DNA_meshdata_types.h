@@ -69,6 +69,21 @@ typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
+/*bmesh custom data stuff*/
+typedef struct MTexPoly{
+	struct Image *tpage;
+	char flag, transp;
+	short mode,tile,unwrap;
+}MTexPoly;
+
+typedef struct MLoopUV{
+	float uv[2];
+}MLoopUV;
+
+typedef struct MLoopCol{
+	char a, r, g, b;
+}MLoopCol;
+
 typedef struct MSticky {
 	float co[2];
 } MSticky;

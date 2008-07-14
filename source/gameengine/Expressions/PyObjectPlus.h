@@ -76,18 +76,36 @@ static inline void Py_Fatal(char *M) {
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyParentObject *GetParents(void) {return Parents;}
 
+
 								// This defines the _getattr_up macro
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
 #define _getattr_up(Parent) \
-  PyObject *rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
-  if (rvalue == NULL) \
-    { \
-      PyErr_Clear(); \
-      return Parent::_getattr(attr); \
+  PyObject *rvalue = NULL; \
+  if (attr=="__methods__") { \
+    PyObject *_attr_string = NULL; \
+    PyMethodDef *meth = Methods; \
+    rvalue = Parent::_getattr(attr); \
+    if (rvalue==NULL) { \
+    	PyErr_Clear(); \
+    	rvalue = PyList_New(0); \
     } \
-  else \
-    return rvalue 
+    if (meth) { \
+      for (; meth->ml_name != NULL; meth++) { \
+        _attr_string = PyString_FromString(meth->ml_name); \
+		PyList_Append(rvalue, _attr_string); \
+		Py_DECREF(_attr_string); \
+	  } \
+	} \
+  } else { \
+    rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
+    if (rvalue == NULL) { \
+      PyErr_Clear(); \
+      rvalue = Parent::_getattr(attr); \
+    } \
+  } \
+  return rvalue; \
+
 
 /**
  * These macros are helpfull when embedding Python routines. The second
@@ -99,12 +117,39 @@ static inline void Py_Fatal(char *M) {
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
 
+#define KX_PYMETHOD_NOARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self); \
+	static PyObject* sPy##method_name( PyObject* self) { \
+		return ((class_name*) self)->Py##method_name(self);		\
+	}; \
+	
+#define KX_PYMETHOD_O(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* value); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
+		return ((class_name*) self)->Py##method_name(self, value);		\
+	}; \
+
 #define KX_PYMETHOD_DOC(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
     static char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_O(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* value); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
+		return ((class_name*) self)->Py##method_name(self, value);		\
+	}; \
+    static char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self); \
+	static PyObject* sPy##method_name( PyObject* self) { \
+		return ((class_name*) self)->Py##method_name(self);		\
+	}; \
+    static char method_name##_doc[]; \
+
 
 /* The line above should remain empty */
 /**

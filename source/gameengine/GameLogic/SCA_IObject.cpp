@@ -40,7 +40,7 @@
 
 MT_Point3 SCA_IObject::m_sDummy=MT_Point3(0,0,0);
 
-SCA_IObject::SCA_IObject(PyTypeObject* T): m_state(0), CValue(T)
+SCA_IObject::SCA_IObject(PyTypeObject* T): m_initState(0), m_state(0), CValue(T)
 {
 	m_suspended = false;
 }
@@ -157,15 +157,17 @@ bool SCA_IObject::GetIgnoreActivityCulling()
 
 void SCA_IObject::ReParentLogic()
 {
-	SCA_SensorList& oldsensors = GetSensors();
-	
-	int sen = 0;
-	SCA_SensorList::iterator its;
-	for (its = oldsensors.begin(); !(its==oldsensors.end()); ++its)
+	SCA_ActuatorList& oldactuators  = GetActuators();
+	int act = 0;
+	SCA_ActuatorList::iterator ita;
+	for (ita = oldactuators.begin(); !(ita==oldactuators.end()); ++ita)
 	{
-		SCA_ISensor* newsensor = (SCA_ISensor*)(*its)->GetReplica();
-		newsensor->ReParent(this);
-		oldsensors[sen++] = newsensor;
+		SCA_IActuator* newactuator = (SCA_IActuator*) (*ita)->GetReplica();
+		newactuator->ReParent(this);
+		// actuators are initially not connected to any controller
+		newactuator->SetActive(false);
+		newactuator->ClrLink();
+		oldactuators[act++] = newactuator;
 	}
 
 	SCA_ControllerList& oldcontrollers = GetControllers();
@@ -175,20 +177,24 @@ void SCA_IObject::ReParentLogic()
 	{
 		SCA_IController* newcontroller = (SCA_IController*)(*itc)->GetReplica();
 		newcontroller->ReParent(this);
+		newcontroller->SetActive(false);
 		oldcontrollers[con++]=newcontroller;
 
 	}
-	SCA_ActuatorList& oldactuators  = GetActuators();
-	
-	int act = 0;
-	SCA_ActuatorList::iterator ita;
-	for (ita = oldactuators.begin(); !(ita==oldactuators.end()); ++ita)
+	// convert sensors last so that actuators are already available for Actuator sensor
+	SCA_SensorList& oldsensors = GetSensors();
+	int sen = 0;
+	SCA_SensorList::iterator its;
+	for (its = oldsensors.begin(); !(its==oldsensors.end()); ++its)
 	{
-		SCA_IActuator* newactuator = (SCA_IActuator*) (*ita)->GetReplica();
-		newactuator->ReParent(this);
-		newactuator->SetActive(false);
-		oldactuators[act++] = newactuator;
+		SCA_ISensor* newsensor = (SCA_ISensor*)(*its)->GetReplica();
+		newsensor->ReParent(this);
+		newsensor->SetActive(false);
+		// sensors are initially not connected to any controller
+		newsensor->ClrLink();
+		oldsensors[sen++] = newsensor;
 	}
+
 	// a new object cannot be client of any actuator
 	m_registeredActuators.clear();
 		

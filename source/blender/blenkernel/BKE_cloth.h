@@ -208,7 +208,7 @@ typedef enum
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
+int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, float dt );
 
 ////////////////////////////////////////////////
 

@@ -165,20 +165,14 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
 		
-		// let's see if we want to use vertexarrays or not
-		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
-		bool useVertexArrays = (usevta > 0);
-		
-		bool lock_arrays = (displaylists && useVertexArrays);
-
-		if(displaylists){
-			if (useVertexArrays)
-				rasterizer = new RAS_ListRasterizer(canvas, true, lock_arrays);
+		if(displaylists) {
+			if (GLEW_VERSION_1_1)
+				rasterizer = new RAS_ListRasterizer(canvas, true, true);
 			else
 				rasterizer = new RAS_ListRasterizer(canvas);
 		}
-		else if (useVertexArrays && GLEW_VERSION_1_1)
-			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
+		else if (GLEW_VERSION_1_1)
+			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
 		
@@ -338,6 +332,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(startscene);
+			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
 			initGameKeys();
 			initPythonConstraintBinding();
 
@@ -405,7 +400,14 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				exitstring = ketsjiengine->GetExitString();
 				
 				// when exiting the mainloop
-				dictionaryClearByHand(gameLogic);
+				
+				// Clears the dictionary by hand:
+				// This prevents, extra references to global variables
+				// inside the GameLogic dictionary when the python interpreter is finalized.
+				// which allows the scene to safely delete them :)
+				// see: (space.c)->start_game
+				PyDict_Clear(PyModule_GetDict(gameLogic));
+				
 				ketsjiengine->StopEngine();
 				exitGamePythonScripting();
 				networkdevice->Disconnect();
@@ -513,16 +515,14 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
 		RAS_IRasterizer* rasterizer = NULL;
 
-		// let's see if we want to use vertexarrays or not
-		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
-		bool useVertexArrays = (usevta > 0);
-
-		bool lock_arrays = (displaylists && useVertexArrays);
-
-		if(displaylists && !useVertexArrays)
-			rasterizer = new RAS_ListRasterizer(canvas);
-		else if (useVertexArrays && GLEW_VERSION_1_1)
-			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
+		if(displaylists) {
+			if (GLEW_VERSION_1_1)
+				rasterizer = new RAS_ListRasterizer(canvas, true, true);
+			else
+				rasterizer = new RAS_ListRasterizer(canvas);
+		}
+		else if (GLEW_VERSION_1_1)
+			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);
 
@@ -599,6 +599,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(startscene);
+			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 			initGameKeys();
 			initPythonConstraintBinding();
 

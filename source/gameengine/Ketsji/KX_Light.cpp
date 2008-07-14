@@ -36,14 +36,20 @@
 #endif
 
 #include "KX_Light.h"
+#include "KX_Camera.h"
+#include "RAS_IRasterizer.h"
 #include "RAS_IRenderTools.h"
 
 #include "KX_PyMath.h"
 
+#ifdef BLENDER_GLSL
+#include "GPU_material.h"
+#endif
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 							   class RAS_IRenderTools* rendertools,
 							   const RAS_LightObject&	lightobj,
+							   struct GPULamp *gpulamp,
 							   PyTypeObject* T
 							   )
  :
@@ -53,12 +59,12 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 	m_lightobj = lightobj;
 	m_lightobj.m_worldmatrix = GetOpenGLMatrixPtr();
 	m_rendertools->AddLight(&m_lightobj);
+	m_gpulamp = gpulamp;
 };
 
 
 KX_LightObject::~KX_LightObject()
 {
-
 	m_rendertools->RemoveLight(&m_lightobj);
 }
 
@@ -76,6 +82,78 @@ CValue*		KX_LightObject::GetReplica()
 	replica->m_lightobj.m_worldmatrix = replica->GetOpenGLMatrixPtr();
 	m_rendertools->AddLight(&replica->m_lightobj);
 	return replica;
+}
+
+void KX_LightObject::Update()
+{
+#ifdef BLENDER_GLSL
+	if(m_gpulamp) {
+		float obmat[4][4];
+		double *dobmat = GetOpenGLMatrixPtr()->getPointer();
+
+		for(int i=0; i<4; i++)
+			for(int j=0; j<4; j++, dobmat++)
+				obmat[i][j] = (float)*dobmat;
+
+		GPU_lamp_update(m_gpulamp, obmat);
+	}
+#endif
+}
+
+bool KX_LightObject::HasShadowBuffer()
+{
+#ifdef BLENDER_GLSL
+	return (m_gpulamp && GPU_lamp_has_shadow_buffer(m_gpulamp));
+#else
+	return false;
+#endif
+}
+
+int KX_LightObject::GetShadowLayer()
+{
+#ifdef BLENDER_GLSL
+	if(m_gpulamp)
+		return GPU_lamp_shadow_layer(m_gpulamp);
+	else
+#endif
+		return 0;
+}
+
+void KX_LightObject::BindShadowBuffer(RAS_IRasterizer *ras, KX_Camera *cam, MT_Transform& camtrans)
+{
+#ifdef BLENDER_GLSL
+	float viewmat[4][4], winmat[4][4];
+	int winsize;
+
+	/* bind framebuffer */
+	GPU_lamp_shadow_buffer_bind(m_gpulamp, viewmat, &winsize, winmat);
+
+	/* setup camera transformation */
+	MT_Matrix4x4 modelviewmat((float*)viewmat);
+	MT_Matrix4x4 projectionmat((float*)winmat);
+
+	MT_Transform trans = MT_Transform((float*)viewmat);
+	camtrans.invert(trans);
+
+	cam->SetModelviewMatrix(modelviewmat);
+	cam->SetProjectionMatrix(projectionmat);
+	
+	cam->NodeSetLocalPosition(camtrans.getOrigin());
+	cam->NodeSetLocalOrientation(camtrans.getBasis());
+	cam->NodeUpdateGS(0,true);
+
+	/* setup rasterizer transformations */
+	ras->SetProjectionMatrix(projectionmat);
+	ras->SetViewMatrix(modelviewmat, cam->NodeGetWorldPosition(),
+		cam->GetCameraLocation(), cam->GetCameraOrientation());
+#endif
+}
+
+void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
+{
+#ifdef BLENDER_GLSL
+	GPU_lamp_shadow_buffer_unbind(m_gpulamp);
+#endif
 }
 
 PyObject* KX_LightObject::_getattr(const STR_String& attr)

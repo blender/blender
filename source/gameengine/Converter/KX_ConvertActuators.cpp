@@ -62,6 +62,7 @@
 #include "KX_SCA_EndObjectActuator.h"
 #include "KX_SCA_ReplaceMeshActuator.h"
 #include "KX_ParentActuator.h"
+#include "KX_SCA_DynamicActuator.h"
 
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
@@ -137,6 +138,7 @@ void BL_ConvertActuators(char* maggiename,
 				MT_Vector3 angvelvec ( KX_BLENDERTRUNC(obact->angularvelocity[0]),
 					KX_BLENDERTRUNC(obact->angularvelocity[1]),
 					KX_BLENDERTRUNC(obact->angularvelocity[2]));
+				short damping = obact->damping;
 				
 				drotvec /=		BLENDER_HACK_DTIME;
 				//drotvec /=		BLENDER_HACK_DTIME;
@@ -157,7 +159,7 @@ void BL_ConvertActuators(char* maggiename,
 				bitLocalFlag.DRot = bool((obact->flag & ACT_DROT_LOCAL)!=0);
 				bitLocalFlag.LinearVelocity = bool((obact->flag & ACT_LIN_VEL_LOCAL)!=0);
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
-				
+				bitLocalFlag.ServoControl = bool(obact->type == ACT_OBJECT_SERVO);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
 				
 				
@@ -168,6 +170,7 @@ void BL_ConvertActuators(char* maggiename,
 					drotvec.getValue(),
 					linvelvec.getValue(),
 					angvelvec.getValue(),
+					damping,
 					bitLocalFlag
 					);
 				baseact = tmpbaseact;
@@ -190,6 +193,7 @@ void BL_ConvertActuators(char* maggiename,
 						actact->type, // + 1, because Blender starts to count at zero,
 						actact->blendin,
 						actact->priority,
+						actact->end_reset,
 						actact->stridelength
 						// Ketsji at 1, because zero is reserved for "NoDef"
 						);
@@ -230,7 +234,8 @@ void BL_ConvertActuators(char* maggiename,
 				STR_String propname = ( ipoact->name ? ipoact->name : "");
 				// first bit?
 				bool ipo_as_force = (ipoact->flag & ACT_IPOFORCE);
-				bool force_local = (ipoact->flag & ACT_IPOFORCE_LOCAL);
+				bool local = (ipoact->flag & ACT_IPOLOCAL);
+				bool ipo_add = (ipoact->flag & ACT_IPOADD);
 				
 				KX_IpoActuator* tmpbaseact = new KX_IpoActuator(
 					gameobj,
@@ -241,8 +246,8 @@ void BL_ConvertActuators(char* maggiename,
 					ipoact->type + 1, // + 1, because Blender starts to count at zero,
 					// Ketsji at 1, because zero is reserved for "NoDef"
 					ipo_as_force,
-					force_local
-					);
+					ipo_add,
+					local);
 				baseact = tmpbaseact;
 				break;
 			}
@@ -534,7 +539,7 @@ void BL_ConvertActuators(char* maggiename,
 						
 						// does the 'original' for replication exists, and 
 						// is it in a non-active layer ?
-						CValue* originalval = NULL;
+						SCA_IObject* originalval = NULL;
 						if (editobact->ob && !(editobact->ob->lay & activeLayerBitInfo))
 							originalval = converter->FindGameObject(editobact->ob);
 						
@@ -600,6 +605,15 @@ void BL_ConvertActuators(char* maggiename,
 								blenderobject->upflag
 								);
 							baseact = tmptrackact;
+						break;
+					}
+				case ACT_EDOB_DYNAMICS:
+					{
+						KX_SCA_DynamicActuator* tmpdynact 
+							= new KX_SCA_DynamicActuator(gameobj, 
+								editobact->dyn_operation
+								);
+							baseact = tmpdynact;
 					}
 				}
 				break;
@@ -607,51 +621,105 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_CONSTRAINT:
 			{
 				float min = 0.0, max = 0.0;
+				char *prop = NULL;
 				KX_ConstraintActuator::KX_CONSTRAINTTYPE locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_NODEF;
 				bConstraintActuator *conact 
 					= (bConstraintActuator*) bact->data;
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
-				switch (conact->flag) {
-				case ACT_CONST_LOCX:
-					locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCX; 
-					min = conact->minloc[0];
-					max = conact->maxloc[0];
-					break;
-				case ACT_CONST_LOCY:
-					locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCY; 
-					min = conact->minloc[1];
-					max = conact->maxloc[1];
-					break;
-				case ACT_CONST_LOCZ:
-					locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCZ;
-					min = conact->minloc[2];
-					max = conact->maxloc[2];
-					break;
-				case ACT_CONST_ROTX:
-					locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTX;
-					min = MT_2_PI * conact->minrot[0] / 360.0;
-					max = MT_2_PI * conact->maxrot[0] / 360.0;
-					break;
-				case ACT_CONST_ROTY:
-					locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTY;
-					min = MT_2_PI * conact->minrot[1] / 360.0;
-					max = MT_2_PI * conact->maxrot[1] / 360.0;
-					break;
-				case ACT_CONST_ROTZ:
-					locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTZ;
-					min = MT_2_PI * conact->minrot[2] / 360.0;
-					max = MT_2_PI * conact->maxrot[2] / 360.0;
-					break;
-				default:
-					; /* error */ 
+				if (conact->type == ACT_CONST_TYPE_ORI) {
+					switch (conact->mode) {
+					case ACT_CONST_DIRPX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;
+						break;
+					case ACT_CONST_DIRPY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIY;
+						break;
+					case ACT_CONST_DIRPZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIZ;
+						break;
+					}
+				} else if (conact->type == ACT_CONST_TYPE_DIST) {
+					switch (conact->mode) {
+					case ACT_CONST_DIRPX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRPX;
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_DIRPY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRPY;
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_DIRPZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRPZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					case ACT_CONST_DIRMX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMX;
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_DIRMY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMY;
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_DIRMZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					}
+					prop = conact->matprop;
+				} else {
+					switch (conact->flag) {
+					case ACT_CONST_LOCX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCX; 
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_LOCY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCY; 
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_LOCZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_LOCZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					case ACT_CONST_ROTX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTX;
+						min = MT_2_PI * conact->minrot[0] / 360.0;
+						max = MT_2_PI * conact->maxrot[0] / 360.0;
+						break;
+					case ACT_CONST_ROTY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTY;
+						min = MT_2_PI * conact->minrot[1] / 360.0;
+						max = MT_2_PI * conact->maxrot[1] / 360.0;
+						break;
+					case ACT_CONST_ROTZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ROTZ;
+						min = MT_2_PI * conact->minrot[2] / 360.0;
+						max = MT_2_PI * conact->maxrot[2] / 360.0;
+						break;
+					default:
+						; /* error */ 
+					}
 				}
 				KX_ConstraintActuator *tmpconact 
 					= new KX_ConstraintActuator(gameobj,
-					conact->damp,
-					min,
-					max,
-					locrot);
+						conact->damp,
+						conact->rotdamp,
+						min,
+						max,
+						conact->maxrot,
+						locrot,
+						conact->time,
+						conact->flag,
+						prop);
 				baseact = tmpconact;
 				break;
 			}

@@ -42,6 +42,14 @@
 
 #include "GHOST_SystemWin32.h"
 
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
+
 /*
  * According to the docs the mouse wheel message is supported from windows 98 
  * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
@@ -301,6 +309,15 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons& buttons) const
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
 	GHOST_TSuccess success = GHOST_System::init();
+
+	/* Disable scaling on high DPI displays on Vista */
+	HMODULE user32 = ::LoadLibraryA("user32.dll");
+	typedef BOOL (WINAPI * LPFNSETPROCESSDPIAWARE)();
+	LPFNSETPROCESSDPIAWARE SetProcessDPIAware =
+		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
+	if (SetProcessDPIAware)
+		SetProcessDPIAware();
+	FreeLibrary(user32);
 
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER*)&m_freq) == TRUE;

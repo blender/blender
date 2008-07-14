@@ -405,7 +405,20 @@ bool CValue::RemoveProperty(const STR_String & inName)
 	return false;
 }
 
-
+//
+// Get Property Names
+//
+vector<STR_String> CValue::GetPropertyNames()
+{
+	vector<STR_String> result;
+	if(!m_pNamedPropertyArray) return result;
+	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+	!(it == m_pNamedPropertyArray->end());it++)
+	{
+		result.push_back((*it).first);
+	}
+	return result;
+}
 
 //
 // Clear all properties
@@ -519,11 +532,6 @@ void CValue::CloneProperties(CValue *replica)
 
 	
 }
-
-
-
-
-
 
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
@@ -775,6 +783,25 @@ int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 	//PyObjectPlus::_setattr(attr,value);
 	return 0;
 };
+
+PyObject*	CValue::ConvertKeysToPython( void )
+{
+	PyObject *pylist = PyList_New( 0 );
+	PyObject *pystr;
+	
+	if (m_pNamedPropertyArray)
+	{
+		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+		!(it == m_pNamedPropertyArray->end());it++)
+		{
+			pystr = PyString_FromString( (*it).first );
+			PyList_Append(pylist, pystr);
+			Py_DECREF( pystr );
+		}
+	}
+	return pylist;
+}
+
 /*
 PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 {

@@ -52,9 +52,7 @@ public:
 	virtual void IndexPrimitives(
 			const vecVertexArray& vertexarrays,
 			const vecIndexArrays & indexarrays,
-			int mode,
-			class RAS_IPolyMaterial* polymat,
-			class RAS_IRenderTools* rendertools,
+			DrawMode mode,
 			bool useObjectColor,
 			const MT_Vector4& rgbacolor,
 			class KX_ListSlot** slot
@@ -63,9 +61,7 @@ public:
 	virtual void IndexPrimitivesMulti(
 			const vecVertexArray& vertexarrays,
 			const vecIndexArrays & indexarrays,
-			int mode,
-			class RAS_IPolyMaterial* polymat,
-			class RAS_IRenderTools* rendertools,
+			DrawMode mode,
 			bool useObjectColor,
 			const MT_Vector4& rgbacolor,
 			class KX_ListSlot** slot

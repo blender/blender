@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id:BL_ShapeDeformer.h 15330 2008-06-23 16:37:51Z theeth $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -38,6 +38,7 @@
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
+struct IpoCurve;
 
 class BL_ShapeDeformer : public BL_SkinDeformer  
 {
@@ -57,9 +58,8 @@ public:
                      Object *bmeshobj,
                      BL_SkinMeshObject *mesh)
 					:	
-						BL_SkinDeformer(bmeshobj, mesh),
-						m_lastShapeUpdate(-1),
-						m_gameobj(gameobj)
+						BL_SkinDeformer(gameobj,bmeshobj, mesh),
+						m_lastShapeUpdate(-1)
 	{
 	};
 
@@ -71,9 +71,8 @@ public:
 					bool release_object,
 					BL_ArmatureObject* arma = NULL)
 					:
-						BL_SkinDeformer(bmeshobj_old, bmeshobj_new, mesh, release_object, arma),
-						m_lastShapeUpdate(-1),
-						m_gameobj(gameobj)
+						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, arma),
+						m_lastShapeUpdate(-1)
 	{
 	};
 
@@ -82,10 +81,17 @@ public:
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);
+	bool LoadShapeDrivers(Object* arma);
+	bool ExecuteShapeDrivers(void);
+
+	void ForceUpdate()
+	{
+		m_lastShapeUpdate = -1.0;
+	};
 
 protected:
+	vector<IpoCurve*>		 m_shapeDrivers;
 	double					 m_lastShapeUpdate;
-	BL_DeformableGameObject* m_gameobj;
 
 };
 

@@ -140,6 +140,8 @@ public:
 	const STR_String&	GetMaterialName() const;
 	const STR_String&	GetTextureName() const;
 	const unsigned int	GetFlag() const;
+
+	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	
 	/*
 	 * PreCalculate texture gen

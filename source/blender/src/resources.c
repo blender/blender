@@ -52,6 +52,7 @@
 #include "BIF_interface_icons.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 #include "blendef.h"	// CLAMP
 #include "datatoc.h"
 
@@ -782,6 +783,33 @@ char *BIF_ThemeColorsPup(int spacetype)
 		}
 	}
 	return cp;
+}
+
+char *BIF_ThemeColorSetsPup (short inc_custom)
+{
+	DynStr *pupds= BLI_dynstr_new();
+	char *str;
+	char buf[48];
+	int i;
+	
+	/* add title first (and the "default" entry) */
+	BLI_dynstr_append(pupds, "Bone Color Set%t|Default Colors%x0|");
+	
+	/* loop through set indices, adding them */
+	for (i=1; i<21; i++) {
+		sprintf(buf, "%d - Theme Color Set%%x%d|", i, i);
+		BLI_dynstr_append(pupds, buf);
+	}
+	
+	/* add the 'custom' entry */
+	if (inc_custom)
+		BLI_dynstr_append(pupds, "Custom Set %x-1");
+	
+	/* convert to normal MEM_malloc'd string */
+	str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+	
+	return str;
 }
 
 void BIF_SetTheme(ScrArea *sa)

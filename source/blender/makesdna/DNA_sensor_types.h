@@ -82,6 +82,12 @@ typedef struct bPropertySensor {
     char maxvalue[32];
 } bPropertySensor;
 
+typedef struct bActuatorSensor {
+    int type;
+    int pad;
+	char name[32];
+} bActuatorSensor;
+
 typedef struct bCollisionSensor {
 	char name[32];          /* property name */
 	char materialName[32];  /* material      */
@@ -144,7 +150,7 @@ typedef struct bSensor {
 
 	/* just add here, to avoid align errors... */
 	short invert; /* Whether or not to invert the output. */
-	short freq2;  /* The negative pulsing frequency? Not used anymore... */
+	short level;  /* Whether the sensor is level base (edge by default) */
 	int pad;
 } bSensor;
 
@@ -197,6 +203,7 @@ typedef struct bJoystickSensor {
 #define SENS_RAY        9
 #define SENS_MESSAGE   10
 #define SENS_JOYSTICK  11
+#define SENS_ACTUATOR  12
 /* sensor->flag */
 #define SENS_SHOW		1
 #define SENS_DEL		2

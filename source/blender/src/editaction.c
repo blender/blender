@@ -390,7 +390,7 @@ static void actdata_filter_actionchannel (ListBase *act_data, bActionChannel *ac
 
 static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_mode)
 {
-	bActListElem *ale;
+	bActListElem *ale=NULL;
 	bActionGroup *agrp;
 	bActionChannel *achan, *lastchan=NULL;
 	
@@ -428,6 +428,15 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
 						actdata_filter_actionchannel(act_data, achan, filter_mode);
+					}
+					
+					/* remove group from filtered list if last element is group 
+					 * (i.e. only if group had channels, which were all hidden)
+					 */
+					if ( (ale) && (act_data->last == ale) && 
+						 (ale->data == agrp) && (agrp->channels.first) ) 
+					{
+						BLI_freelinkN(act_data, ale);
 					}
 				}
 			}
@@ -1105,6 +1114,38 @@ void action_groups_ungroup (void)
 	allqueue(REDRAWACTION, 0);
 }
 
+/* Copy colors from a specified theme's color set to an Action/Bone Group */
+void actionbone_group_copycolors (bActionGroup *grp, short init_new)
+{
+	/* error checking */
+	if (grp == NULL)
+		return;
+	
+	/* only do color copying if using a custom color */
+	if (grp->customCol) {
+		if (grp->customCol > 0) {
+			/* copy theme colors on-to group's custom color in case user tries to edit color */
+			bTheme *btheme= U.themes.first;
+			ThemeWireColor *col_set= &btheme->tarm[(grp->customCol - 1)];
+			
+			memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
+		}
+		else if (init_new) {
+			/* init custom colors with a generic multi-color rgb set, if not initialised already (and allowed to do so) */
+			if (grp->cs.solid[0] == 0) {
+				/* define for setting colors in theme below */
+				#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+				
+				SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
+				SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
+				SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
+				
+				#undef SETCOL
+			}
+		}
+	}
+}
+
 /* This function is used when inserting keyframes for pose-channels. It assigns the
  * action-channel with the nominated name to a group with the same name as that of 
  * the pose-channel with the nominated name.
@@ -1151,34 +1192,9 @@ void verify_pchan2achan_grouping (bAction *act, bPose *pose, char name[])
 			/* copy name */
 			sprintf(grp->name, agrp->name);
 			
-			/* deal with group-color copying */
-			if (agrp->customCol) {
-				if (agrp->customCol > 0) {
-					/* copy theme colors on-to group's custom color in case user tries to edit color */
-					bTheme *btheme= U.themes.first;
-					ThemeWireColor *col_set= &btheme->tarm[(agrp->customCol - 1)];
-					
-					memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
-				}
-				else {
-					/* init custom colors with a generic multi-color rgb set, if not initialised already */
-					if (agrp->cs.solid[0] == 0) {
-						/* define for setting colors in theme below */
-						#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
-						
-						SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
-						SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
-						SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
-						
-						#undef SETCOL
-					}
-					else {
-						/* just copy color set specified */
-						memcpy(&grp->cs, &agrp->cs, sizeof(ThemeWireColor));
-					}
-				}
-			}
-			grp->customCol= agrp->customCol;
+			/* deal with group-color copying (grp is destination, agrp is source) */
+			memcpy(grp, agrp, sizeof(bActionGroup));
+			actionbone_group_copycolors(grp, 1);
 			
 			BLI_addtail(&act->groups, grp);
 		}
@@ -2688,6 +2704,28 @@ int select_icu_channel(bAction *act, IpoCurve *icu, int selectmode)
 	return flag;
 }
 
+
+/* select only the active action-group's action channels */
+void select_action_group_channels (bAction *act, bActionGroup *agrp)
+{
+	bActionChannel *achan;
+	
+	/* error checking */
+	if (ELEM(NULL, act, agrp))
+		return;
+	
+	/* deselect all other channels */
+	deselect_actionchannels(act, 0);
+	
+	/* only select channels in group */
+	for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+		select_channel(act, achan, SELECT_ADD);
+		
+		/* messy... set active bone */
+		select_poseelement_by_name(achan->name, 1);
+	}
+}
+
 /* ----------------------------------------- */
 
 /* De-selects or inverts the selection of Channels in a given Action 
@@ -3648,7 +3686,7 @@ static void mouse_actionchannels (short mval[])
 			{
 				bActionGroup *agrp= (bActionGroup *)act_channel;
 				
-				if (mval[0] < 16) {
+				if ((mval[0] < 16) && (agrp->channels.first)) {
 					/* toggle expand */
 					agrp->flag ^= AGRP_EXPANDED;
 				}
@@ -3663,17 +3701,8 @@ static void mouse_actionchannels (short mval[])
 						select_action_group(act, agrp, SELECT_INVERT);
 					}
 					else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
-						bActionChannel *achan;
-						
 						/* select all in group (and deselect everthing else) */	
-						deselect_actionchannels(act, 0);
-						
-						for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-							select_channel(act, achan, SELECT_ADD);
-							
-							/* messy... set active bone */
-							select_poseelement_by_name(achan->name, 1);
-						}
+						select_action_group_channels(act, agrp);
 						select_action_group(act, agrp, SELECT_ADD);
 					}
 					else {
@@ -4673,11 +4702,13 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case NKEY:
 			if (G.qual==0) {
-				numbuts_action();
-				
-				/* no panel (yet). current numbuts are not easy to put in panel... */
-				//add_blockhandler(curarea, ACTION_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
-				//scrarea_queue_winredraw(curarea);
+				/* panel will not always show useful info! */
+				if (mval[0] > ACTWIDTH) {
+					add_blockhandler(curarea, ACTION_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+					scrarea_queue_winredraw(curarea);
+				}
+				else 
+					numbuts_action();
 			}
 			break;
 			

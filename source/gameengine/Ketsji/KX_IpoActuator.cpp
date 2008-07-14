@@ -59,40 +59,6 @@ STR_String KX_IpoActuator::S_KX_ACT_IPO_FROM_PROP_STRING = "FromProp";
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
-/** Another poltergeist? This seems to be a very transient class... */
-class CIpoAction : public CAction
-{
-	float		m_curtime;
-	bool		m_recurse;
-	KX_GameObject* m_gameobj;
-	bool        m_ipo_as_force;
-	bool        m_force_ipo_local;
-
-public:
-	CIpoAction(KX_GameObject* gameobj,
-		float curtime,
-		bool recurse, 
-		bool ipo_as_force,
-		bool force_ipo_local) :
-	  m_curtime(curtime) ,
-	  m_recurse(recurse),
-	  m_gameobj(gameobj),
-	  m_ipo_as_force(ipo_as_force),
-	  m_force_ipo_local(force_ipo_local) 
-	  {
-		  /* intentionally empty */
-	  };
-
-	virtual void Execute() const
-	{
-		m_gameobj->UpdateIPO(
-			m_curtime, 
-			m_recurse, 
-			m_ipo_as_force, 
-			m_force_ipo_local);
-	};
-
-};
 
 KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   const STR_String& propname,
@@ -101,7 +67,8 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   bool recurse,
 							   int acttype,
 							   bool ipo_as_force,
-							   bool force_ipo_local,
+							   bool ipo_add,
+							   bool ipo_local,
 							   PyTypeObject* T) 
 	: SCA_IActuator(gameobj,T),
 	m_bNegativeEvent(false),
@@ -112,7 +79,8 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_direction(1),
 	m_propname(propname),
 	m_ipo_as_force(ipo_as_force),
-	m_force_ipo_local(force_ipo_local),
+	m_ipo_add(ipo_add),
+	m_ipo_local(ipo_local),
 	m_type((IpoActType)acttype)
 {
 	m_starttime = -2.0*fabs(m_endframe - m_startframe) - 1.0;
@@ -160,7 +128,7 @@ bool KX_IpoActuator::ClampLocalTime()
 
 void KX_IpoActuator::SetStartTime(float curtime)
 {
-	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
+	float direction = m_startframe < m_endframe ? 1.0f : -1.0f;
 
 	curtime = curtime - KX_KetsjiEngine::GetSuspendedDelta();	
 	if (m_direction > 0)
@@ -195,31 +163,26 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	// maybe there are events for us in the queue !
 	bool bNegativeEvent = false;
 	int numevents = 0;
+	bool bIpoStart = false;
 
 	if (frame)
 	{
 		numevents = m_events.size();
-		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
-		{
-			--i;
-			if ((*i)->GetNumber() == 0.0f)
-				bNegativeEvent = true;
-			
-			(*i)->Release();
-		}
-		m_events.clear();
+		bNegativeEvent = IsNegativeEvent();
+		RemoveAllEvents();
 	}
 	
-	double  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0 : -1.0);
+	float  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0f : -1.0f);
 
 	bool result=true;
 	if (!bNegativeEvent)
 	{
-		if (m_starttime < -2.0*start_smaller_then_end*(m_endframe - m_startframe))
+		if (m_starttime < -2.0f*start_smaller_then_end*(m_endframe - m_startframe))
 		{
 			// start for all Ipo, initial start for LOOP_STOP
 			m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
 			m_bIpoPlaying = true;
+			bIpoStart = true;
 		}
 	}	
 
@@ -230,7 +193,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	{
 		// Check if playing forwards.  result = ! finished
 		
-		if (start_smaller_then_end > 0.0)
+		if (start_smaller_then_end > 0.f)
 			result = (m_localtime < m_endframe && m_bIpoPlaying);
 		else
 			result = (m_localtime > m_endframe && m_bIpoPlaying);
@@ -241,14 +204,10 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		
 			/* Perform clamping */
 			ClampLocalTime();
-			
-			CIpoAction ipoaction(
-				(KX_GameObject*)GetParent(), 
-				m_localtime, 
-				m_recurse, 
-				m_ipo_as_force,
-				m_force_ipo_local);
-			GetParent()->Execute(ipoaction);
+	
+			if (bIpoStart)
+				((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);
+			((KX_GameObject*)GetParent())->UpdateIPO(m_localtime,m_recurse);
 		} else
 		{
 			m_localtime=m_startframe;
@@ -270,13 +229,9 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			m_direction = -m_direction;
 		}
 		
-		CIpoAction ipoaction(
-			(KX_GameObject*) GetParent(),
-			m_localtime,
-			m_recurse, 
-			m_ipo_as_force,
-			m_force_ipo_local);
-		GetParent()->Execute(ipoaction);
+		if (bIpoStart && m_direction > 0)
+			((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);
+		((KX_GameObject*)GetParent())->UpdateIPO(m_localtime,m_recurse);
 		break;
 	}
 	case KX_ACT_IPO_FLIPPER:
@@ -299,14 +254,10 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		
 		if (ClampLocalTime() && m_localtime == m_startframe)
 			result = false;
-			
-		CIpoAction ipoaction(
-			(KX_GameObject*) GetParent(),
-			m_localtime,
-			m_recurse,
-			m_ipo_as_force,
-			m_force_ipo_local);
-		GetParent()->Execute(ipoaction);
+
+		if (bIpoStart)
+			((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);			
+		((KX_GameObject*)GetParent())->UpdateIPO(m_localtime,m_recurse);
 		break;
 	}
 
@@ -352,8 +303,12 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 				if (!m_bNegativeEvent){
 					/* Perform wraparound */
 					SetLocalTime(curtime);
-					m_localtime = m_startframe + fmod(m_localtime, m_startframe - m_endframe);
+					if (start_smaller_then_end > 0.f)
+						m_localtime = m_startframe + fmod(m_localtime - m_startframe, m_endframe - m_startframe);
+					else
+						m_localtime = m_startframe - fmod(m_startframe - m_localtime, m_startframe - m_endframe);
 					SetStartTime(curtime);
+					bIpoStart = true;
 				}
 				else
 				{	
@@ -365,13 +320,9 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			}
 		}
 		
-		CIpoAction ipoaction(
-			(KX_GameObject*) GetParent(),
-			m_localtime,
-			m_recurse,
-			m_ipo_as_force,
-			m_force_ipo_local);
-		GetParent()->Execute(ipoaction);
+		if (m_bIpoPlaying && bIpoStart)
+			((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);
+		((KX_GameObject*)GetParent())->UpdateIPO(m_localtime,m_recurse);
 		break;
 	}
 	
@@ -391,14 +342,9 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		{
 			m_localtime = propval->GetNumber(); 
 	
-			CIpoAction ipoaction(
-				(KX_GameObject*) GetParent(),
-				m_localtime,
-				m_recurse,
-				m_ipo_as_force,
-				m_force_ipo_local);
-			GetParent()->Execute(ipoaction);
-
+			if (bIpoStart)
+				((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);
+			((KX_GameObject*)GetParent())->UpdateIPO(m_localtime,m_recurse);
 		} else
 		{
 			result = false;
@@ -493,6 +439,10 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 		METH_VARARGS, SetIpoAsForce_doc},
 	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, 
 		METH_VARARGS, GetIpoAsForce_doc},
+	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, 
+		METH_VARARGS, SetIpoAdd_doc},
+	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, 
+		METH_VARARGS, GetIpoAdd_doc},
 	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, 
 		METH_VARARGS, SetType_doc},
 	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, 
@@ -512,11 +462,11 @@ PyObject* KX_IpoActuator::_getattr(const STR_String& attr) {
 
 /* set --------------------------------------------------------------------- */
 char KX_IpoActuator::Set_doc[] = 
-"set(mode, startframe, endframe, force?)\n"
-"\t - mode:       Play, PingPong, Flipper, LoopStop, LoopEnd or FromProp (string)\n"
+"set(type, startframe, endframe, mode?)\n"
+"\t - type:       Play, PingPong, Flipper, LoopStop, LoopEnd or FromProp (string)\n"
 "\t - startframe: first frame to use (int)\n"
 "\t - endframe  : last frame to use (int)\n"
-"\t - force?    : interpret this ipo as a force? (KX_TRUE, KX_FALSE)"
+"\t - mode?     : special mode (0=normal, 1=interpret location as force, 2=additive)"
 "\tSet the properties of the actuator.\n";
 PyObject* KX_IpoActuator::PySet(PyObject* self, 
 								PyObject* args, 
@@ -543,7 +493,8 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 		m_type         = modenum;
 		m_startframe    = startFrame;
 		m_endframe      = stopFrame;
-		m_ipo_as_force = PyArgToBool(forceToggle);
+		m_ipo_as_force = forceToggle == 1;
+		m_ipo_add = forceToggle == 2;
 		break;
 	default:
 		; /* error */
@@ -641,6 +592,8 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 	}
 
 	m_ipo_as_force = PyArgToBool(boolArg);
+	if (m_ipo_as_force)
+		m_ipo_add = false;
 	
 	Py_Return;	
 }
@@ -652,6 +605,36 @@ PyObject* KX_IpoActuator::PyGetIpoAsForce(PyObject* self,
 									   	  PyObject* args, 
 										  PyObject* kwds) {
 	return BoolToPyArg(m_ipo_as_force);
+}
+
+/* 6. setIpoAsForce:                                                           */
+char KX_IpoActuator::SetIpoAdd_doc[] = 
+"setIpoAdd(add?)\n"
+"\t - add?    : add flag (KX_TRUE, KX_FALSE)\n"
+"\tSet whether to interpret the ipo as additive rather than absolute.\n";
+PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self, 
+									  PyObject* args, 
+									  PyObject* kwds) { 
+	int boolArg;
+	
+	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+		return NULL;
+	}
+
+	m_ipo_add = PyArgToBool(boolArg);
+	if (m_ipo_add)
+		m_ipo_as_force = false;
+	
+	Py_Return;	
+}
+/* 7. getIpoAsForce:                                                         */
+char KX_IpoActuator::GetIpoAdd_doc[] = 
+"getIpoAsAdd()\n"
+"\tReturns whether to interpret the ipo as additive rather than absolute.\n";
+PyObject* KX_IpoActuator::PyGetIpoAdd(PyObject* self, 
+									  PyObject* args, 
+									  PyObject* kwds) {
+	return BoolToPyArg(m_ipo_add);
 }
 
 /* 8. setType:                                                               */
@@ -701,7 +684,7 @@ PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self,
 		return NULL;
 	}
 
-	m_force_ipo_local = PyArgToBool(boolArg);
+	m_ipo_local = PyArgToBool(boolArg);
 	
 	Py_Return;	
 }
@@ -713,7 +696,7 @@ char KX_IpoActuator::GetForceIpoActsLocal_doc[] =
 PyObject* KX_IpoActuator::PyGetForceIpoActsLocal(PyObject* self, 
 									   	         PyObject* args, 
 										         PyObject* kwds) {
-	return BoolToPyArg(m_force_ipo_local);
+	return BoolToPyArg(m_ipo_local);
 }
 
 

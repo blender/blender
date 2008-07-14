@@ -63,12 +63,14 @@ public:
 	}
 	void SetArmature (class BL_ArmatureObject *armobj);
 
-	BL_SkinDeformer(struct Object *bmeshobj, 
+	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
+					struct Object *bmeshobj, 
 					class BL_SkinMeshObject *mesh,
 					BL_ArmatureObject* arma = NULL);
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
-	BL_SkinDeformer(struct Object *bmeshobj_old,
+	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
+					struct Object *bmeshobj_old,
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
@@ -79,6 +81,14 @@ public:
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
+	bool PoseUpdated(void)
+		{ 
+			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {
+				m_armobj->ApplyPose();
+				return true;
+			}
+			return false;
+		}
 
 	void ForceUpdate()
 	{

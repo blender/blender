@@ -55,6 +55,7 @@ int shadeHaloFloat(HaloRen *har,
  */
 void shadeSkyPixel(float *collector, float fx, float fy);
 void shadeSkyView(float *colf, float *rco, float *view, float *dxyview);
+void shadeAtmPixel(struct SunSky *sunsky, float *collector, float fx, float fy, float distance);
 
 /* ------------------------------------------------------------------------- */
 

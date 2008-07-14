@@ -5,13 +5,13 @@
 #include "RAS_IRenderTools.h"
 #include "SCA_IActuator.h"
 
-
 class SCA_2DFilterActuator : public SCA_IActuator
 {
     Py_Header;
 
 private:
-	
+	vector<STR_String> m_propNames;
+	void * m_gameObj;
 	RAS_2DFilterManager::RAS_2DFILTER_MODE m_type;
 	short m_flag;
 	float m_float_arg;

@@ -814,7 +814,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 							{
 								efa = EM_get_face_for_index(index);
 								
-								if (efa && efa->f & SELECT)
+								if (efa && ((efa->v1->f & SELECT) || (efa->v2->f & SELECT) || (efa->v3->f & SELECT) || (efa->v4 && efa->v4->f & SELECT)))
 								{
 									test = 0;
 								}

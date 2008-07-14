@@ -54,7 +54,6 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 	  m_checkpropval(propval),
 	  m_checkpropmaxval(propmaxval),
 	  m_checkpropname(propname),
-	  m_lastresult(false),
 	  m_range_expr(NULL)
 {
 	//CParser pars;
@@ -78,6 +77,8 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 void SCA_PropertySensor::Init()
 {
 	m_recentresult = false;
+	m_lastresult = m_invert?true:false;
+	m_reset = true;
 }
 
 void SCA_PropertySensor::PrecalculateRangeExpression()
@@ -111,6 +112,7 @@ CValue* SCA_PropertySensor::GetReplica()
 	SCA_PropertySensor* replica = new SCA_PropertySensor(*this);
 	// m_range_expr must be recalculated on replica!
 	CValue::AddDataToReplica(replica);
+	replica->Init();
 
 	replica->m_range_expr = NULL;
 	if (replica->m_checktype==KX_PROPSENSOR_INTERVAL)
@@ -153,14 +155,15 @@ SCA_PropertySensor::~SCA_PropertySensor()
 bool SCA_PropertySensor::Evaluate(CValue* event)
 {
 	bool result = CheckPropertyCondition();
+	bool reset = m_reset && m_level;
 	
+	m_reset = false;
 	if (m_lastresult!=result)
 	{
 		m_lastresult = result;
 		return true;
 	}
-
-	return false;
+	return (reset) ? true : false;
 }
 
 

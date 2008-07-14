@@ -1628,6 +1628,7 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWOOPS, 1);
 		allqueue(REDRAWACTION, 1);
 		allqueue(REDRAWNLA, 1);
+		allqueue(REDRAWVIEW3D, 1);
 		/* name scene also in set PUPmenu */
 		allqueue(REDRAWBUTSALL, 0);
 		allqueue(REDRAWIMAGE, 0);

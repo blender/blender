@@ -55,6 +55,8 @@ SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
 	m_links = 0;
 	m_suspended = false;
 	m_invert = false;
+	m_level = false;
+	m_reset = false;
 	m_pos_ticks = 0;
 	m_neg_ticks = 0;
 	m_pos_pulsemode = false;
@@ -95,6 +97,10 @@ void SCA_ISensor::SetInvert(bool inv) {
 	m_invert = inv;
 }
 
+void SCA_ISensor::SetLevel(bool lvl) {
+	m_level = lvl;
+}
+
 
 float SCA_ISensor::GetNumber() {
 	return IsPositiveTrigger();
@@ -113,7 +119,7 @@ void SCA_ISensor::Resume() {
 }
 
 void SCA_ISensor::Init() {
-	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name);
+	printf("Sensor %s has no init function, please report this bug to Blender.org\n", m_name.Ptr());
 }
 
 void SCA_ISensor::DecLink() {
@@ -177,6 +183,10 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	 METH_VARARGS, GetInvert_doc},
 	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
 	 METH_VARARGS, SetInvert_doc},
+	{"getLevel", (PyCFunction) SCA_ISensor::sPyGetLevel, 
+	 METH_VARARGS, GetLevel_doc},
+	{"setLevel", (PyCFunction) SCA_ISensor::sPySetLevel, 
+	 METH_VARARGS, SetLevel_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -325,6 +335,31 @@ PyObject* SCA_ISensor::PySetInvert(PyObject* self, PyObject* args, PyObject* kwd
 	int pyarg = 0;
 	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
 	m_invert = PyArgToBool(pyarg);
+	Py_Return;
+}
+
+char SCA_ISensor::GetLevel_doc[] = 
+"getLevel()\n"
+"\tReturns whether this sensor is a level detector or a edge detector.\n"
+"\tIt makes a difference only in case of logic state transition (state actuator).\n"
+"\tA level detector will immediately generate a pulse if the condition for the\n"
+"\tdetector is met when entering the state. A edge detector will wait for an off-on\n"
+"\ttransition to occur.\n"
+"\tOnly some sensors implement this feature: keyboard.\n";
+PyObject* SCA_ISensor::PyGetLevel(PyObject* self, PyObject* args, PyObject* kwds)
+{
+	return BoolToPyArg(m_level);
+}
+
+char SCA_ISensor::SetLevel_doc[] = 
+"setLevel(level?)\n"
+"\t- level?: Detect level instead of edge? (KX_TRUE, KX_FALSE)\n"
+"\tSet whether to detect level or edge transition when entering a state.\n";
+PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds)
+{
+	int pyarg = 0;
+	if(!PyArg_ParseTuple(args, "i", &pyarg)) { return NULL; }
+	m_level = PyArgToBool(pyarg);
 	Py_Return;
 }
 

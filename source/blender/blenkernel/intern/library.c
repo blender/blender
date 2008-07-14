@@ -224,48 +224,50 @@ void flag_all_listbases_ids(short flag, short value)
 /* note: MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)
 {
+	int a = 0;
+
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
 
-	lb[0]= &(main->ipo);
-	lb[1]= &(main->key);
-	lb[2]= &(main->image);
-	lb[3]= &(main->tex);
-	lb[4]= &(main->mat);
-	lb[5]= &(main->vfont);
+	lb[a++]= &(main->ipo);
+	lb[a++]= &(main->key);
+	lb[a++]= &(main->nodetree);
+	lb[a++]= &(main->image);
+	lb[a++]= &(main->tex);
+	lb[a++]= &(main->mat);
+	lb[a++]= &(main->vfont);
 	
 	/* Important!: When adding a new object type,
 	 * the specific data should be inserted here 
 	 */
 
-	lb[6]= &(main->armature);
-	lb[7]= &(main->action);
+	lb[a++]= &(main->armature);
+	lb[a++]= &(main->action);
 
-	lb[8]= &(main->mesh);
-	lb[9]= &(main->curve);
-	lb[10]= &(main->mball);
+	lb[a++]= &(main->mesh);
+	lb[a++]= &(main->curve);
+	lb[a++]= &(main->mball);
 
-	lb[11]= &(main->wave);
-	lb[12]= &(main->latt);
-	lb[13]= &(main->lamp);
-	lb[14]= &(main->camera);
+	lb[a++]= &(main->wave);
+	lb[a++]= &(main->latt);
+	lb[a++]= &(main->lamp);
+	lb[a++]= &(main->camera);
 	
-	lb[15]= &(main->text);
-	lb[16]= &(main->sound);
-	lb[17]= &(main->group);
-	lb[18]= &(main->nodetree);
-	lb[19]= &(main->brush);
-	lb[20]= &(main->script);
-	lb[21]= &(main->particle);
+	lb[a++]= &(main->text);
+	lb[a++]= &(main->sound);
+	lb[a++]= &(main->group);
+	lb[a++]= &(main->brush);
+	lb[a++]= &(main->script);
+	lb[a++]= &(main->particle);
 	
-	lb[22]= &(main->world);
-	lb[23]= &(main->screen);
-	lb[24]= &(main->object);
-	lb[25]= &(main->scene);
-	lb[26]= &(main->library);
+	lb[a++]= &(main->world);
+	lb[a++]= &(main->screen);
+	lb[a++]= &(main->object);
+	lb[a++]= &(main->scene);
+	lb[a++]= &(main->library);
 	
-	lb[27]= NULL;
+	lb[a]= NULL;
 
-	return 27;
+	return a;
 }
 
 /* *********** ALLOC AND FREE *****************

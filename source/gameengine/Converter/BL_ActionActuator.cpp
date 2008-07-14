@@ -184,6 +184,11 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		
 		if (bNegativeEvent)
 		{
+			// dont continue where we left off when restarting
+			if (m_end_reset) {
+				m_flag &= ~ACT_FLAG_LOCKINPUT;
+			}
+			
 			if (!(m_flag & ACT_FLAG_ACTIVE))
 				return false;
 			m_flag &= ~ACT_FLAG_ACTIVE;
@@ -350,7 +355,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	}
 	
 	/* Set the property if its defined */
-	if (m_framepropname) {
+	if (m_framepropname[0] != '\0') {
 		CValue* propowner = GetParent();
 		CValue* oldprop = propowner->GetProperty(m_framepropname);
 		CValue* newval = new CFloatValue(m_localtime);
@@ -472,8 +477,10 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, GetFrameProperty_doc},
 	{"setChannel", (PyCFunction) BL_ActionActuator::sPySetChannel, METH_VARARGS, SetChannel_doc},
 //	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_VARARGS},
-	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},	
+	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},
 	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, SetType_doc},
+	{"getContinue", (PyCFunction) BL_ActionActuator::sPyGetContinue, METH_NOARGS, 0},	
+	{"setContinue", (PyCFunction) BL_ActionActuator::sPySetContinue, METH_O, 0},
 	{NULL,NULL} //Sentinel
 };
 
@@ -641,6 +648,9 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 				m_blendframe = 0;
 		}
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -659,6 +669,9 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&start))
 	{
 		m_startframe = start;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -679,6 +692,9 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 	{
 		m_endframe = end;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -698,6 +714,9 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&blendin))
 	{
 		m_blendin = blendin;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -724,6 +743,9 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 		if (m_blendframe>m_blendin)
 			m_blendframe = m_blendin;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -744,6 +766,9 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&priority))
 	{
 		m_priority = priority;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -768,6 +793,9 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 		else if (m_localtime>m_endframe)
 			m_localtime=m_endframe;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -788,6 +816,9 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 	{
 		m_propname = string;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -807,6 +838,9 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self,
 	{
 		m_framepropname = string;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -821,6 +855,9 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 	if (PyArg_ParseTuple(args,"s",&string))
 	{
 		m_propname = string;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -846,7 +883,8 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 	int row,col;
 	int	mode = 0;	/* 0 for bone space, 1 for armature/world space */
 	
-	PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode);
+	if (!PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode))
+		return NULL;
 	
 	if (pylist->ob_type == &CListValue::Type)
 	{
@@ -947,7 +985,26 @@ PyObject* BL_ActionActuator::PySetType(PyObject* self,
 	default:
 		printf("Invalid type for action actuator: %d\n", typeArg); /* error */
     }
+	Py_RETURN_NONE;
+}
+
+PyObject* BL_ActionActuator::PyGetContinue(PyObject* self) {
+    return PyInt_FromLong((long)(m_end_reset==0));
+}
+
+PyObject* BL_ActionActuator::PySetContinue(PyObject* self, PyObject* value) {
+	int param = PyObject_IsTrue( value );
 	
-    Py_Return;
+	if( param == -1 ) {
+		PyErr_SetString( PyExc_TypeError, "expected True/False or 0/1" );
+		return NULL;
+	}
+
+	if (param) {
+		m_end_reset = 0;
+	} else {
+		m_end_reset = 1;
+	}
+    Py_RETURN_NONE;
 }
 

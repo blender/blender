@@ -4920,7 +4920,7 @@ static void waveModifier_deformVertsEM(
 
 	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
 		dm = derivedData;
-	else if(derivedData) dm = derivedData;
+	else if(derivedData) dm = CDDM_copy(derivedData);
 	else dm = CDDM_from_editmesh(editData, ob->data);
 
 	if(wmd->flag & MOD_WAVE_NORM) {

@@ -689,10 +689,6 @@ void viewmoveNDOFfly(int mode)
 	if (G.vd->ndoffilter)
 		filterNDOFvalues(fval);
 
-//	for(i=0;i<7;i++) printf("%f ",dval[i]);
-//		printf("\n");
-
-
 	// Scale input values
 
 //	if(dval[6] == 0) return; // guard against divide by zero
@@ -701,12 +697,6 @@ void viewmoveNDOFfly(int mode)
 
 		// user scaling
 		dval[i] = dval[i] * ndof_axis_scale[i];
-
-		// non-linear scaling
-		if(dval[i]<0.0f)
-			dval[i] = -1.0f * dval[i] * dval[i];
-		else
-			dval[i] = dval[i] * dval[i];
 	}
 
 
@@ -1164,7 +1154,7 @@ void viewmoveNDOF(int mode)
     float q1[4];
     float obofs[3];
     float reverse;
-    float diff[4];
+    //float diff[4];
     float d, curareaX, curareaY;
     float mat[3][3];
     float upvec[3];
@@ -1216,18 +1206,16 @@ void viewmoveNDOF(int mode)
 //    prevTime = now;
  //   sbadjust *= 60 * frametime;             /* normalize ndof device adjustments to 100Hz for framerate independence */
 
-    /* fetch the current state of the ndof device */
+    /* fetch the current state of the ndof device & enforce dominant mode if selected */
     getndof(fval);
- //           printf(" motion command %f %f %f %f %f %f %f \n", fval[0], fval[1], fval[2],
- //           							 fval[3], fval[4], fval[5], fval[6]);
-			if (G.vd->ndoffilter)
-				filterNDOFvalues(fval);
+	if (G.vd->ndoffilter)
+		filterNDOFvalues(fval);
 	
 	
     // put scaling back here, was previously in ghostwinlay
-    fval[0] = fval[0] * (1.0f/1200.0f);
-    fval[1] = fval[1] * (1.0f/1200.0f);
-    fval[2] = fval[2] * (1.0f/1200.0f);
+    fval[0] = fval[0] * (1.0f/600.0f);
+    fval[1] = fval[1] * (1.0f/600.0f);
+    fval[2] = fval[2] * (1.0f/1100.0f);
     fval[3] = fval[3] * 0.00005f;
     fval[4] =-fval[4] * 0.00005f;
     fval[5] = fval[5] * 0.00005f;
@@ -1255,14 +1243,16 @@ void viewmoveNDOF(int mode)
 		VECCOPY(obofs, G.vd->ofs);
 	}
 
-    /* calc an adjustment based on distance from camera */
-    if (ob) {
+    /* calc an adjustment based on distance from camera
+       disabled per patch 14402 */
+     d = 1.0f;
+
+/*    if (ob) {
         VecSubf(diff, obofs, G.vd->ofs);
         d = VecLength(diff);
     }
-    else {
-        d = 1.0f;
-    }
+*/
+
     reverse = (G.vd->persmat[2][1] < 0.0f) ? -1.0f : 1.0f;
 
     /*----------------------------------------------------

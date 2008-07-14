@@ -359,6 +359,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_memarena.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_mempool.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\boxpack2d.c">
 			</File>
 			<File
@@ -472,6 +475,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_memarena.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_mempool.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_scanfill.h">

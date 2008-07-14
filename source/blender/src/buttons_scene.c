@@ -499,7 +499,7 @@ static char* seq_panel_blend_modes()
 	  so that would collide also.
 	*/
 
-	if (!(last_seq->type & SEQ_EFFECT)) {
+	if ( seq_can_blend(last_seq) ) {
 		int i;
 
 		for (i = SEQ_EFFECT; i <= SEQ_EFFECT_MAX; i++) {

@@ -63,6 +63,7 @@ void get_local_bounds(struct Object *ob, float *center, float *size);
 /* drawing flags: */
 #define DRAW_PICKING	1
 #define DRAW_CONSTCOLOR	2
+#define DRAW_SCENESET	4
 void draw_object(struct Base *base, int flag);
 void drawaxes(float size, int flag, char drawtype);
 

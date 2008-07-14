@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "GL/glew.h"
 #include "KX_BlenderGL.h"
 
 #ifdef HAVE_CONFIG_H
@@ -44,7 +45,6 @@
 
 #include "BMF_Api.h"
 
-#include "GL/glew.h"
 #include "BIF_gl.h"
 
 #include "BL_Material.h" // MAXTEX

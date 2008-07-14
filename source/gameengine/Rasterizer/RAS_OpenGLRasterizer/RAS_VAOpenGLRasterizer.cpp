@@ -59,9 +59,9 @@ bool RAS_VAOpenGLRasterizer::Init(void)
 	if (result)
 	{
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
@@ -77,13 +77,16 @@ void RAS_VAOpenGLRasterizer::SetDrawingMode(int drawingmode)
 	{
 		case KX_BOUNDINGBOX:
 		case KX_WIREFRAME:
-			glDisable (GL_CULL_FACE);
+			glDisableClientState(GL_COLOR_ARRAY);
+			glDisable(GL_CULL_FACE);
+			break;
+		case KX_SOLID:
+			glDisableClientState(GL_COLOR_ARRAY);
 			break;
 		case KX_TEXTURED:
 		case KX_SHADED:
+		case KX_SHADOW:
 			glEnableClientState(GL_COLOR_ARRAY);
-		case KX_SOLID:
-			break;
 		default:
 			break;
 	}
@@ -91,9 +94,10 @@ void RAS_VAOpenGLRasterizer::SetDrawingMode(int drawingmode)
 
 void RAS_VAOpenGLRasterizer::Exit()
 {
-	glDisableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
 	EnableTextures(false);
 
 	RAS_OpenGLRasterizer::Exit();
@@ -101,30 +105,23 @@ void RAS_VAOpenGLRasterizer::Exit()
 
 void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
+							DrawMode mode,
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor,
 							class KX_ListSlot** slot)
 {
 	static const GLsizei vtxstride = sizeof(RAS_TexVert);
 	GLenum drawmode;
-	switch (mode)
-	{
-		case 0:
-			drawmode = GL_TRIANGLES;
-			break;
-		case 2:
-			drawmode = GL_QUADS;
-			break;
-		case 1:	//lines
-		default:
-			drawmode = GL_LINES;
-			break;
-	}
+	if(mode == KX_MODE_TRIANGLES)
+		drawmode = GL_TRIANGLES;
+	else if(mode == KX_MODE_QUADS)
+		drawmode = GL_QUADS;
+	else
+		drawmode = GL_LINES;
+
 	const RAS_TexVert* vertexarray;
 	unsigned int numindices, vt;
+
 	if (drawmode != GL_LINES)
 	{
 		if (useObjectColor)
@@ -156,9 +153,10 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 			continue;
 		
 		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
-		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
-		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
 		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
+		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
+		if(glIsEnabled(GL_COLOR_ARRAY))
+			glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
 
 		//if(m_Lock)
 		//	local->Begin(vertexarrays[vt]->size());
@@ -168,8 +166,6 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 
 		//if(m_Lock)
 		//	local->End();
-
-
 	}
 
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -177,28 +173,21 @@ void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays
 
 void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
+							DrawMode mode,
 							bool useObjectColor,
 							const MT_Vector4& rgbacolor,
 							class KX_ListSlot** slot)
 {
 	static const GLsizei vtxstride = sizeof(RAS_TexVert);
+
 	GLenum drawmode;
-	switch (mode)
-	{
-		case 0:
-			drawmode = GL_TRIANGLES;
-			break;
-		case 2:
-			drawmode = GL_QUADS;
-			break;
-		case 1:	//lines
-		default:
-			drawmode = GL_LINES;
-			break;
-	}
+	if(mode == KX_MODE_TRIANGLES)
+		drawmode = GL_TRIANGLES;
+	else if(mode == KX_MODE_QUADS)
+		drawmode = GL_QUADS;
+	else
+		drawmode = GL_LINES;
+
 	const RAS_TexVert* vertexarray;
 	unsigned int numindices, vt;
 
@@ -231,10 +220,10 @@ void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti( const vecVertexArray& vertexa
 			continue;
 
 		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
-		TexCoordPtr(vertexarray);
-
-		glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
 		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
+		TexCoordPtr(vertexarray);
+		if(glIsEnabled(GL_COLOR_ARRAY))
+			glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
 
 		//if(m_Lock)
 		//	local->Begin(vertexarrays[vt]->size());
@@ -295,19 +284,22 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv)
 			switch(m_attrib[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
-				glVertexAttribPointer(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getLocalXYZ());
+				glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getLocalXYZ());
 				break;
 			case RAS_TEXCO_UV1:
-				glVertexAttribPointer(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV1());
+				glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV1());
 				break;
 			case RAS_TEXCO_NORM:
-				glVertexAttribPointer(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getNormal());
+				glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getNormal());
 				break;
 			case RAS_TEXTANGENT:
-				glVertexAttribPointer(unit, 4, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getTangent());
+				glVertexAttribPointerARB(unit, 4, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getTangent());
 				break;
 			case RAS_TEXCO_UV2:
-				glVertexAttribPointer(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV2());
+				glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV2());
+				break;
+			case RAS_TEXCO_VCOL:
+				glVertexAttribPointerARB(unit, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(RAS_TexVert), tv->getRGBA());
 				break;
 			default:
 				break;
@@ -385,11 +377,12 @@ void RAS_VAOpenGLRasterizer::EnableTextures(bool enable)
 			case RAS_TEXCO_NORM:
 			case RAS_TEXTANGENT:
 			case RAS_TEXCO_UV2:
-				if(enable) glEnableVertexAttribArray(unit);
-				else glDisableVertexAttribArray(unit);
+			case RAS_TEXCO_VCOL:
+				if(enable) glEnableVertexAttribArrayARB(unit);
+				else glDisableVertexAttribArrayARB(unit);
 				break;
 			default:
-				glDisableVertexAttribArray(unit);
+				glDisableVertexAttribArrayARB(unit);
 				break;
 			}
 		}

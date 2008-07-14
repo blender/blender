@@ -32,6 +32,8 @@ SET(INC
   ../../../intern/string
   ../../../intern/moto/include
   ../../../extern/glew/include
+  ../Expressions
+  ${PYTHON_INC}
 )
 
 BLENDERLIB(bf_rasterizer "${SRC}" "${INC}")

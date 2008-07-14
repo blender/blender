@@ -179,6 +179,7 @@ private:
 	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
 	void					PostRenderFrame();
 	void					RenderDebugProperties();
+	void					RenderShadowBuffers(KX_Scene *scene);
 	void					SetBackGround(KX_WorldInfo* worldinfo);
 	void					SetWorldSettings(KX_WorldInfo* worldinfo);
 	void					DoSound(KX_Scene* scene);

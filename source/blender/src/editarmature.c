@@ -1646,8 +1646,9 @@ void load_editArmature(void)
 }
 
 /* toggle==0: deselect
-   toggle==1: swap 
+   toggle==1: swap (based on test)
    toggle==2: only active tag
+   toggle==3: swap (no test)
 */
 void deselectall_armature(int toggle, int doundo)
 {
@@ -1670,18 +1671,30 @@ void deselectall_armature(int toggle, int doundo)
 	else sel= toggle;
 	
 	/*	Set the flags */
-	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		if (sel==1) {
+	for (eBone=G.edbo.first;eBone;eBone=eBone->next) {
+		if (sel==3) {
+			/* invert selection of bone */
+			if ((arm->layer & eBone->layer) && (eBone->flag & BONE_HIDDEN_A)==0) {
+				eBone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				eBone->flag &= ~BONE_ACTIVE;
+			}
+		}
+		else if (sel==1) {
+			/* select bone */
 			if(arm->layer & eBone->layer && (eBone->flag & BONE_HIDDEN_A)==0) {
 				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				if(eBone->parent)
 					eBone->parent->flag |= (BONE_TIPSEL);
 			}
 		}
-		else if (sel==2)
+		else if (sel==2) {
+			/* clear active flag */
 			eBone->flag &= ~(BONE_ACTIVE);
-		else
+		}
+		else {
+			/* deselect bone */
 			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+		}
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
@@ -3276,8 +3289,9 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 }
 
 /* test==0: deselect all
-   test==1: swap select
-   test==2: only clear active tag 
+   test==1: swap select (apply to all the opposite of current situation) 
+   test==2: only clear active tag
+   test==3: swap select (no test / inverse selection status of all independently)
 */
 void deselectall_posearmature (Object *ob, int test, int doundo)
 {
@@ -3307,16 +3321,27 @@ void deselectall_posearmature (Object *ob, int test, int doundo)
 	/*	Set the flags accordingly	*/
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if ((pchan->bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-			if (selectmode==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-			else if (selectmode==1) pchan->bone->flag |= BONE_SELECTED;
-			else pchan->bone->flag &= ~BONE_ACTIVE;
+			if (test==3) {
+				pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+				pchan->bone->flag &= ~BONE_ACTIVE;
+			}
+			else {
+				if (selectmode==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+				else if (selectmode==1) pchan->bone->flag |= BONE_SELECTED;
+				else pchan->bone->flag &= ~BONE_ACTIVE;
+			}
 		}
 	}
 	
 	/* action editor */
-	deselect_actionchannels(ob->action, 0);	/* deselects for sure */
-	if (selectmode == 1)
-		deselect_actionchannels(ob->action, 1);	/* swaps */
+	if (test == 3) {
+		deselect_actionchannels(ob->action, 2); /* inverts selection */
+	}
+	else {
+		deselect_actionchannels(ob->action, 0);	/* deselects for sure */
+		if (selectmode == 1)
+			deselect_actionchannels(ob->action, 1);	/* swaps */
+	}
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);

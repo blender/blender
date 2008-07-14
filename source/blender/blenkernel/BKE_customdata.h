@@ -40,6 +40,8 @@ extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;
 extern const CustomDataMask CD_MASK_EDITMESH;
 extern const CustomDataMask CD_MASK_DERIVEDMESH;
+extern const CustomDataMask CD_MASK_BMESH;
+extern const CustomDataMask CD_MASK_FACECORNERS;
 
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
@@ -134,6 +136,9 @@ void CustomData_copy_data(const struct CustomData *source,
 void CustomData_em_copy_data(const struct CustomData *source,
                             struct CustomData *dest, void *src_block,
                             void **dest_block);
+void CustomData_bmesh_copy_data(const struct CustomData *source, 
+							struct CustomData *dest,void *src_block, 
+							void **dest_block);
 
 /* frees data in a CustomData object
  * return 1 on success, 0 on failure
@@ -160,6 +165,10 @@ void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
 void CustomData_em_interp(struct CustomData *data,  void **src_blocks,
                           float *weights, float *sub_weights, int count,
                           void *dest_block);
+void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks, 
+							 float *weights, float *sub_weights, int count, 
+							 void *dest_block);
+
 
 /* swaps the data in the element corners, to new corners with indices as
    specified in corner_indices. for edges this is an array of length 2, for
@@ -172,6 +181,8 @@ void CustomData_swap(struct CustomData *data, int index, int *corner_indices);
 void *CustomData_get(const struct CustomData *data, int index, int type);
 void *CustomData_em_get(const struct CustomData *data, void *block, int type);
 void *CustomData_em_get_n(const struct CustomData *data, void *block, int type, int n);
+void *CustomData_bmesh_get(const struct CustomData *data, void *block, int type);
+void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int type, int n);
 
 /* gets a pointer to the active or first layer of type
  * returns NULL if there is no layer of type
@@ -199,6 +210,12 @@ void CustomData_em_set(struct CustomData *data, void *block, int type,
 void CustomData_em_set_n(struct CustomData *data, void *block, int type, int n,
                          void *source);
 
+void CustomData_bmesh_set(const struct CustomData *data, void *block, int type, 
+						  void *source);
+
+void CustomData_bmesh_set_n(struct CustomData *data, void *block, int type, int n, 
+							void *source);
+
 /* set the pointer of to the first layer of type. the old data is not freed.
  * returns the value of ptr if the layer is found, NULL otherwise
  */
@@ -220,12 +237,20 @@ void CustomData_set_layer_flag(struct CustomData *data, int type, int flag);
 void CustomData_em_set_default(struct CustomData *data, void **block);
 void CustomData_em_free_block(struct CustomData *data, void **block);
 
+void CustomData_bmesh_set_default(struct CustomData *data, void **block);
+void CustomData_bmesh_free_block(struct CustomData *data, void **block);
+
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
    blocks of data. the CustomData's must not be compatible  */
 void CustomData_to_em_block(const struct CustomData *source,
                             struct CustomData *dest, int index, void **block);
 void CustomData_from_em_block(const struct CustomData *source,
                               struct CustomData *dest, void *block, int index);
+void CustomData_to_bmesh_block(const struct CustomData *source, 
+							struct CustomData *dest, int src_index, void **dest_block);
+void CustomData_from_bmesh_block(const struct CustomData *source, 
+							struct CustomData *dest, void *src_block, int dest_index);
+
 
 /* query info over types */
 void CustomData_file_write_info(int type, char **structname, int *structnum);
@@ -241,4 +266,8 @@ void CustomData_set_layer_unique_name(struct CustomData *data, int index);
    only after this test passes, layer->data should be assigned */
 int CustomData_verify_versions(struct CustomData *data, int index);
 
+/*BMesh specific customdata stuff*/
+void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
+void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
+void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
 #endif

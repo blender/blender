@@ -1722,6 +1722,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 	path = br_find_exe( NULL );
 	if (path) {
 		strcpy(fullname, path);
+		free(path);
 		return;
 	}
 #endif

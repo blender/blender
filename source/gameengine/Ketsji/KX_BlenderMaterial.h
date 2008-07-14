@@ -94,6 +94,7 @@ private:
 	BL_Material*		mMaterial;
 	BL_Shader*			mShader;
 	BL_BlenderShader*	mBlenderShader;
+	static BL_BlenderShader *mLastBlenderShader;
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
 	bool			mUserDefBlend;
@@ -106,6 +107,7 @@ private:
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;
 
+	bool UsesLighting(RAS_IRasterizer *rasty) const;
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);

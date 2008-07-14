@@ -232,8 +232,9 @@ typedef struct SpaceImage {
 	short imanr;
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
+	short selectmode;
 	short imtypenr, lock;
-	short pin, pad2;
+	short pin;
 	float zoom;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
@@ -496,6 +497,12 @@ typedef struct SpaceImaSel {
 #define SI_STICKY_DISABLE	1
 #define SI_STICKY_VERTEX	2
 
+/* SpaceImage->selectmode */
+#define SI_SELECT_VERTEX	0
+#define SI_SELECT_EDGE		1 /* not implemented */
+#define SI_SELECT_FACE		2
+#define SI_SELECT_ISLAND	3
+
 /* SpaceImage->flag */
 #define SI_BE_SQUARE	1<<0
 #define SI_EDITTILE		1<<1
@@ -503,7 +510,7 @@ typedef struct SpaceImaSel {
 #define SI_DRAWTOOL		1<<3
 #define SI_DEPRECATED1  1<<4	/* stick UVs to others in the same location */
 #define SI_DRAWSHADOW   1<<5
-#define SI_SELACTFACE   1<<6
+#define SI_SELACTFACE   1<<6	/* deprecated */
 #define SI_DEPRECATED2	1<<7
 #define SI_DEPRECATED3  1<<8	/* stick UV selection to mesh vertex (UVs wont always be touching) */
 #define SI_COORDFLOATS  1<<9
