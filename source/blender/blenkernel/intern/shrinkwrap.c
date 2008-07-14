@@ -149,13 +149,13 @@ static void bvhtree_meshcallbackdata_init(BVHMeshCallbackUserdata *data, Derived
 /*
  * Builds a bvh tree.. where nodes are the vertexs of the given mesh
  */
-static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh, float epsilon)
+static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
 	int i;
 	int numVerts= mesh->getNumVerts(mesh);
 	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
 
-	BVHTree *tree = BLI_bvhtree_new(numVerts, 0, 2, 6);
+	BVHTree *tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
 	if(tree != NULL)
 	{
 		for(i = 0; i < numVerts; i++)
@@ -170,7 +170,7 @@ static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh, float epsilon)
 /*
  * Builds a bvh tree.. where nodes are the faces of the given mesh. Quads are splitted in 2 triangles
  */
-static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh, float epsilon)
+static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
 	int i;
 	int numFaces= mesh->getNumFaces(mesh), totFaces;
@@ -183,7 +183,7 @@ static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh, float epsilon)
 		if(face[i].v4) totFaces++;
 
 	/* Create a bvh-tree of the given target */
-	tree = BLI_bvhtree_new(totFaces, epsilon, 2, 6);
+	tree = BLI_bvhtree_new(totFaces, epsilon, tree_type, axis);
 	if(tree != NULL)
 	{
 		for(i = 0; i < numFaces; i++)
@@ -201,6 +201,42 @@ static BVHTree* bvhtree_from_mesh_tri(DerivedMesh *mesh, float epsilon)
 				VECCOPY(co[2], vert[ face[i].v4 ].co);
 				BLI_bvhtree_insert(tree, 2*i+1, co[0], 3);
 			}
+		}
+
+		BLI_bvhtree_balance(tree);
+	}
+
+	return tree;
+}
+
+/*
+ * Builds a bvh tree.. where nodes are the faces of the given mesh.
+ */
+static BVHTree* bvhtree_from_mesh_faces(DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+{
+	int i;
+	int numFaces= mesh->getNumFaces(mesh);
+	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+	MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
+	BVHTree *tree= NULL;
+
+	/* Count needed faces */
+
+	/* Create a bvh-tree of the given target */
+	tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
+	if(tree != NULL)
+	{
+		for(i = 0; i < numFaces; i++)
+		{
+			float co[4][3];
+
+			VECCOPY(co[0], vert[ face[i].v1 ].co);
+			VECCOPY(co[1], vert[ face[i].v2 ].co);
+			VECCOPY(co[2], vert[ face[i].v3 ].co);
+			if(face[i].v4)
+				VECCOPY(co[3], vert[ face[i].v4 ].co);
+
+			BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 		}
 
 		BLI_bvhtree_balance(tree);
@@ -248,7 +284,11 @@ static float mesh_tri_spherecast(void *userdata, int index, const BVHTreeRay *ra
 
 	bvhtree_from_mesh_get_tri( (BVHMeshCallbackUserdata*)userdata, index, &t0, &t1, &t2);
 
-	dist = sphereray_tri_intersection(ray, ((BVHMeshCallbackUserdata*)userdata)->sphere_radius, hit->dist, t0, t1, t2);
+	if(((BVHMeshCallbackUserdata*)userdata)->sphere_radius == 0.0f)
+		dist = ray_tri_intersection(ray, hit->dist, t0, t1, t2);
+	else
+		dist = sphereray_tri_intersection(ray, ((BVHMeshCallbackUserdata*)userdata)->sphere_radius, hit->dist, t0, t1, t2);
+
 	if(dist >= 0 && dist < hit->dist)
 	{
 		hit->index = index;
@@ -259,27 +299,45 @@ static float mesh_tri_spherecast(void *userdata, int index, const BVHTreeRay *ra
 }
 
 /*
- * Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_tri.
- * Rays are projected as a sphere with the radius configured on userdata.
+ * Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_faces.
  * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
  */
-static float mesh_tri_raycast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+static float mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	float dist;
-	float *t0, *t1, *t2;
+	const BVHMeshCallbackUserdata *data = (BVHMeshCallbackUserdata*) userdata;
+	MVert *vert	= data->vert;
+	MFace *face = data->face + index;
 
-	bvhtree_from_mesh_get_tri( (BVHMeshCallbackUserdata*)userdata, index, &t0, &t1, &t2);
+	float *t0, *t1, *t2, *t3;
+	t0 = vert[ face->v1 ].co;
+	t1 = vert[ face->v2 ].co;
+	t2 = vert[ face->v3 ].co;
+	t3 = face->v4 ? vert[ face->v4].co : NULL;
+
 	
-	dist = ray_tri_intersection(ray, hit->dist, t0, t1, t2);
-	if(dist >= 0 && dist < hit->dist)
-	{
-		hit->index = index;
-		hit->dist = dist;
-		VECADDFAC(hit->co, ray->origin, ray->direction, dist);
-	}
-	return dist;
-}
+	do
+	{	
+		float dist;
+		if(data->sphere_radius == 0.0f)
+			dist = ray_tri_intersection(ray, hit->dist, t0, t1, t2);
+		else
+			dist = sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
 
+		if(dist >= 0 && dist < hit->dist)
+		{
+			hit->index = index;
+			hit->dist = dist;
+			VECADDFAC(hit->co, ray->origin, ray->direction, dist);
+		}
+
+		t1 = t2;
+		t2 = t3;
+		t3 = NULL;
+
+	} while(t2);
+
+	return hit->dist;
+}
 
 /*
  * Raytree from mesh
@@ -1145,11 +1203,11 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 				if(calc.smd->shrinkOpts & MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES)
 				calc.moved = bitset_new( calc.final->getNumVerts(calc.final), "shrinkwrap bitset data");
 
-/*
-				BENCH(shrinkwrap_calc_normal_projection_raytree(&calc));
-				calc.final->release( calc.final );
-*/
+
+//				BENCH(shrinkwrap_calc_normal_projection_raytree(&calc));
+//				calc.final->release( calc.final );
 //				calc.final = CDDM_copy(calc.original);
+
 				BENCH(shrinkwrap_calc_normal_projection(&calc));
 //				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_normal_projection));
 
@@ -1204,7 +1262,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BENCH_VAR(query);
 
 
-	BENCH(tree = bvhtree_from_mesh_verts(calc->target, 0.0));
+	BENCH(tree = bvhtree_from_mesh_verts(calc->target, 0.0, 2, 6));
 	if(tree == NULL) return OUT_OF_MEMORY();
 
 	//Setup nearest
@@ -1366,10 +1424,10 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	if( (use_normal & (MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL | MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)) == 0)
 		return;	//Nothing todo
 
-	BENCH(tree = bvhtree_from_mesh_tri(calc->target, calc->keptDist));
+	BENCH(tree = bvhtree_from_mesh_faces(calc->target, calc->keptDist, 4, 6));
 	if(tree == NULL) return OUT_OF_MEMORY();
 	bvhtree_meshcallbackdata_init(&userdata, calc->target, calc->keptDist);
-	callback = calc->keptDist > 0 ? mesh_tri_spherecast : mesh_tri_raycast;
+	callback = mesh_faces_spherecast;
 
 	//Project each vertex along normal
 	numVerts= calc->final->getNumVerts(calc->final);
@@ -1473,7 +1531,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 
 	//Create a bvh-tree of the given target
-	tree = bvhtree_from_mesh_tri(calc->target, 0.0);
+	tree = bvhtree_from_mesh_tri(calc->target, 0.0, 2, 6);
 	if(tree == NULL) return OUT_OF_MEMORY();
 	bvhtree_meshcallbackdata_init(&userdata, calc->target, 0.0);
 

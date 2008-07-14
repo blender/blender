@@ -520,6 +520,8 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 	
 	// Determine which axis to split along
 	laxis = get_largest_axis(node->bv);
+	//laxis = (lastaxis + 2) % tree->axis; // XYZ split
+
 	node->main_axis = laxis/2;
 	
 	// split nodes along longest axis
@@ -543,7 +545,7 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			if(tend != end)
 				partition_nth_element(tree->nodes, start, end, tend, laxis);
 			refit_kdop_hull(tree, tnode, start, tend);
-			bvh_div_nodes(tree, tnode, start, tend, laxis);
+			bvh_div_nodes(tree, tnode, start, tend, laxis); // not called on XYZ split
 		}
 		node->totnode++;
 	}
@@ -613,9 +615,10 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	tree->totbranch++;
 	
 	// refit root bvh node
-	refit_kdop_hull(tree, tree->nodes[tree->totleaf], 0, tree->totleaf);
+	refit_kdop_hull(tree, tree->nodes[tree->totleaf], 0, tree->totleaf);  // not called on XYZ split
 	// create + balance tree
 	bvh_div_nodes(tree, tree->nodes[tree->totleaf], 0, tree->totleaf, 0);
+	//BLI_bvhtree_update_tree(tree); // XYZ split
 	
 	// verify_tree(tree);
 }
@@ -1009,16 +1012,16 @@ static float ray_nearest_hit(BVHRayCastData *data, BVHNode *node)
 static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 {
 	int i;
-	float dist;
 
-	dist = ray_nearest_hit(data, node);
-
+	//ray-bv is really fast.. and simple tests revealed its worth to test it
+	//before calling the ray-primitive functions
+	float dist = ray_nearest_hit(data, node);
 	if(dist >= data->hit.dist) return;
 
 	if(node->totnode == 0)
 	{
 		if(data->callback)
-			dist = data->callback(data->userdata, node->index, &data->ray, &data->hit);
+			data->callback(data->userdata, node->index, &data->ray, &data->hit);
 		else
 		{
 			data->hit.index	= node->index;
