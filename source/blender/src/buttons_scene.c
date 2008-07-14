@@ -137,36 +137,42 @@ static void load_new_sample(char *str)	/* called from fileselect */
 	bSample *sample, *newsample;
 
 	sound = G.buts->lockpoin;
-
-	if (sound) {
-		// save values
-		sample = sound->sample;
-		strcpy(name, sound->sample->name);
-
-		strcpy(sound->name, str);
-		sound_set_sample(sound, NULL);
-		sound_initialize_sample(sound);
-
-		if (sound->sample->type == SAMPLE_INVALID) {
-			error("Not a valid sample: %s", str);
-
-			newsample = sound->sample;
-
-			// restore values
-			strcpy(sound->name, name);
-			sound_set_sample(sound, sample);
-
-			// remove invalid sample
-
-			sound_free_sample(newsample);
-			BLI_remlink(samples, newsample);
-			MEM_freeN(newsample);
-		}
+	
+	/* No Sound or Selected the same sample as we alredy have, just ignore */
+	if (sound==NULL || str==sound->name)
+		return;
+		
+	if (sizeof(sound->sample->name) < strlen(str)) {
+		error("Path too long: %s", str);
+		return;
 	}
+		
+	// save values
+	sample = sound->sample;
+	strcpy(name, sound->sample->name);	
+	strcpy(sound->name, str);
+	sound_set_sample(sound, NULL);
+	sound_initialize_sample(sound);
 
+	if (sound->sample->type == SAMPLE_INVALID) {
+		error("Not a valid sample: %s", str);
+
+		newsample = sound->sample;
+
+		// restore values
+		strcpy(sound->name, name);
+		sound_set_sample(sound, sample);
+
+		// remove invalid sample
+
+		sound_free_sample(newsample);
+		BLI_remlink(samples, newsample);
+		MEM_freeN(newsample);
+		return;
+	}
+	
 	BIF_undo_push("Load new audio file");
 	allqueue(REDRAWBUTSSCENE, 0);
-
 }
 
 
@@ -403,7 +409,7 @@ static void sound_panel_sound(bSound *sound)
 		sample = sound->sample;
 
 		/* info string */
-		if (sound->sample && sound->sample->len) {
+		if (sound->sample && sound->sample->len && sound->sample->channels && sound->sample->bits) {
 			char *tmp;
 			if (sound->sample->channels == 1) tmp= "Mono";
 			else if (sound->sample->channels == 2) tmp= "Stereo";
