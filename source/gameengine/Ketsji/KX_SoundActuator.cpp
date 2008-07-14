@@ -291,7 +291,8 @@ PyObject* KX_SoundActuator::PyGetFilename(PyObject* self, PyObject* args, PyObje
 	char* name = objectname.Ptr();
 	
 	if (!name) {
-		Py_Return;					/* internal error */
+		PyErr_SetString(PyExc_RuntimeError, "Unable to get sound filename");
+		return NULL;
 	} else
 		return PyString_FromString(name);
 }
