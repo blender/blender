@@ -103,6 +103,8 @@ void addFacetoArc(ReebArc *arc, EditFace *efa);
 void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count);
 void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BArc* barc1, BArc* barc2);
 
+void flipArcBuckets(ReebArc *arc);
+
 
 /***************************************** UTILS **********************************************/
 
@@ -355,6 +357,16 @@ void printArc(ReebArc *arc)
 	}
 }
 
+void flipArc(ReebArc *arc)
+{
+	ReebNode *tmp;
+	tmp = arc->head;
+	arc->head = arc->tail;
+	arc->tail = tmp;
+	
+	flipArcBuckets(arc);
+}
+
 #ifdef DEBUG_REEB_NODE
 void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
 {
@@ -585,8 +597,8 @@ void flipArcBuckets(ReebArc *arc)
 void allocArcBuckets(ReebArc *arc)
 {
 	int i;
-	float start = ceil(((ReebNode*)arc->head)->weight);
-	arc->bcount = (int)(floor(((ReebNode*)arc->tail)->weight) - start) + 1;
+	float start = ceil(arc->head->weight);
+	arc->bcount = (int)(floor(arc->tail->weight) - start) + 1;
 	
 	if (arc->bcount > 0)
 	{
@@ -640,6 +652,86 @@ void resizeArcBuckets(ReebArc *arc)
 		MEM_freeN(oldBuckets);
 	}
 }
+
+void reweightBuckets(ReebArc *arc)
+{
+	int i;
+	float start = ceil((arc->head)->weight);
+	
+	if (arc->bcount > 0)
+	{
+		for(i = 0; i < arc->bcount; i++)
+		{
+			arc->buckets[i].val = start + i;
+		}
+	}
+}
+
+static void interpolateBuckets(ReebArc *arc, float *start_p, float *end_p, int start_index, int end_index)
+{
+	int total;
+	int j;
+	
+	total = end_index - start_index + 2;
+	
+	for (j = start_index; j <= end_index; j++)
+	{
+		EmbedBucket *empty = arc->buckets + j;
+		empty->nv = 1;
+		VecLerpf(empty->p, start_p, end_p, (float)(j - start_index + 1) / total);
+	}
+}
+
+void fillArcEmptyBuckets(ReebArc *arc)
+{
+	float *start_p, *end_p;
+	int start_index, end_index;
+	int missing = 0;
+	int i;
+	
+	start_p = arc->head->p;
+	
+	for(i = 0; i < arc->bcount; i++)
+	{
+		EmbedBucket *bucket = arc->buckets + i;
+		
+		if (missing)
+		{
+			if (bucket->nv > 0)
+			{
+				missing = 0;
+				
+				end_p = bucket->p;
+				end_index = i - 1;
+				
+				interpolateBuckets(arc, start_p, end_p, start_index, end_index);
+			}
+		}
+		else
+		{
+			if (bucket->nv == 0)
+			{
+				missing = 1;
+				
+				if (i > 0)
+				{
+					start_p = arc->buckets[i - 1].p;
+				}
+				start_index = i;
+			}
+		}
+	}
+	
+	if (missing)
+	{
+		end_p = arc->tail->p;
+		end_index = arc->bcount - 1;
+		
+		interpolateBuckets(arc, start_p, end_p, start_index, end_index);
+	}
+}
+
+/**************************************** LENGTH CALCULATIONS ****************************************/
 
 void calculateArcLength(ReebArc *arc)
 {
@@ -966,6 +1058,120 @@ void sortArcs(ReebGraph *rg)
 {
 	BLI_sortlist(&rg->arcs, compareArcsWeight);
 }
+/******************************************* JOINING ***************************************************/
+
+void reweightArc(ReebArc *arc, ReebNode *start_node, float start_weight)
+{
+	float delta_weight = arc->tail->weight - arc->head->weight;
+	
+	if (arc->tail == start_node)
+	{
+		flipArc(arc);
+	}
+	
+	arc->head->weight = start_weight;
+	arc->tail->weight = start_weight + delta_weight;
+	
+	reweightBuckets(arc);
+	
+	/* recurse here */
+} 
+
+void reweightSubgraph(ReebGraph *rg, ReebNode *start_node, float start_weight)
+{
+	ReebArc *arc;
+	
+	arc = start_node->arcs[0];
+	
+	reweightArc(arc, start_node, start_weight);
+}
+
+int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
+{
+	int joined = 0;
+	int subgraph;
+	
+	for (subgraph = 1; subgraph <= nb_subgraphs; subgraph++)
+	{
+		ReebNode *start_node, *end_node;
+		
+		for (start_node = rg->nodes.first; start_node; start_node = start_node->next)
+		{
+			if (start_node->flag == subgraph && start_node->degree == 1)
+			{
+				for (end_node = rg->nodes.first; end_node; end_node = end_node->next)
+				{
+					if (end_node->flag != subgraph && end_node->degree == 1 && VecLenf(start_node->p, end_node->p) < threshold)
+					{
+						break;
+					}
+				}
+				
+				if (end_node)
+				{
+					ReebArc *start_arc, *end_arc;
+					int merging = 0;
+					
+					start_arc = start_node->arcs[0];
+					end_arc = end_node->arcs[0];
+					
+					if (start_arc->tail == start_node)
+					{
+						reweightSubgraph(rg, end_node, start_node->weight);
+						
+						end_arc->head = start_node;
+						
+						merging = 1;
+					}
+					else if (start_arc->head == start_node)
+					{
+						reweightSubgraph(rg, start_node, end_node->weight);
+
+						end_arc->tail = start_node;
+
+						merging = 1;
+					}
+					
+
+					if (merging)
+					{					
+						resizeArcBuckets(end_arc);
+						fillArcEmptyBuckets(end_arc);
+						
+						NodeDegreeIncrement(rg, start_node);
+						
+						BLI_removeNode((BGraph*)rg, (BNode*)end_node);
+					}
+					
+					joined = 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	return joined;
+}
+
+int joinSubgraphs(ReebGraph *rg, float threshold)
+{
+	int nb_subgraphs;
+	int joined = 0;
+	
+	BLI_rebuildAdjacencyList((BGraph*)rg);
+	
+	nb_subgraphs = BLI_FlagSubgraphs((BGraph*)rg);
+	
+	joined |= joinSubgraphsEnds(rg, threshold, nb_subgraphs);
+	
+	if (joined)
+	{
+		removeNormalNodes(rg);
+		BLI_rebuildAdjacencyList((BGraph*)rg);
+	}
+	
+	return joined;
+}
 
 /****************************************** FILTERING **************************************************/
 
@@ -1055,12 +1261,7 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 				/* flip arcs that flipped, can happen on diamond shapes, mostly on null arcs */
 				if (arc->head->weight > arc->tail->weight)
 				{
-					ReebNode *tmp;
-					tmp = arc->head;
-					arc->head = arc->tail;
-					arc->tail = tmp;
-					
-					flipArcBuckets(arc);
+					flipArc(arc);
 				}
 				//newNode->degree++; // incrementing degree since we're adding an arc
 				NodeDegreeIncrement(rg, newNode);
@@ -2955,6 +3156,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 
 	/* Filtering might have created degree 2 nodes, so remove them */
 	removeNormalNodes(rg);
+	
+	joinSubgraphs(rg, 1.5);
 	
 	BLI_rebuildAdjacencyList((BGraph*)rg);
 	
