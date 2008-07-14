@@ -3623,7 +3623,7 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	else if (t->spacetype == SPACE_ACTION) {
+	if (t->spacetype == SPACE_ACTION) {
 		void *data;
 		short datatype;
 		
