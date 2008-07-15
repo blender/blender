@@ -92,6 +92,10 @@ CValue* KX_RadarSensor::GetReplica()
 	if (replica->m_physCtrl)
 	{
 		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+		if (replica->m_physCtrl)
+		{
+			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
+		}
 	}
 
 	//todo: make sure replication works fine!
