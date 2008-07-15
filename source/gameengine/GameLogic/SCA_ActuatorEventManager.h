@@ -1,5 +1,5 @@
 /**
- * $Id: SCA_ActuatorEventManager.h 15444 2008-07-05 17:05:05Z lukep $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

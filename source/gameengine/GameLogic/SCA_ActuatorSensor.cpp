@@ -1,7 +1,7 @@
 /**
  * Actuator sensor
  *
- * $Id: SCA_ActuatorSensor.cpp 15486 2008-07-08 12:18:43Z ben2610 $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

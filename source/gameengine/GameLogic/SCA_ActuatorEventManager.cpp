@@ -1,5 +1,5 @@
 /**
- * $Id: SCA_ActuatorEventManager.cpp 15444 2008-07-05 17:05:05Z lukep $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
