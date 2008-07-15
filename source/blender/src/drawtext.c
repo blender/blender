@@ -81,6 +81,7 @@
 #include "BSE_filesel.h"
 
 #include "BPY_extern.h"
+#include "BPY_menus.h"
 
 #include "mydevice.h"
 #include "blendef.h" 
@@ -1833,10 +1834,17 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
-			do_suggest= 1;
+			if (suggesting && ispunct(ascii)) {
+				confirm_suggestion(text);
+				if (st->showsyntax) get_format_string(st);
+				do_suggest= 0;
+			} else {
+				do_suggest= 1;
+			}
 		}
 	} else if (val) {
-		do_suggest= -1;
+		do_suggest= -1; /* Note that the default label sets this to 0,
+						so -1 only applies to the explicit cases below */
 		switch (event) {
 		case AKEY:
 			if (G.qual & LR_ALTKEY) {
@@ -2102,6 +2110,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case ESCKEY:
 			do_suggest= -1;
 			break;
+		case SPACEKEY:
+			if (suggesting) {
+				confirm_suggestion(text);
+				if (st->showsyntax) get_format_string(st);
+			}
+			break;
 		case TABKEY:
 			if (text && text->id.lib) {
 				error_libdata();
@@ -2297,6 +2311,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		default:
 			do_suggest= 0;
+		}
+	}
+
+	if (event && val) {
+		if (BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, G.qual)) {
+			do_draw= 1;
 		}
 	}
 

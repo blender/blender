@@ -31,6 +31,9 @@
 #define BIF_KEYVAL_H
 
 char *key_event_to_string(unsigned short event);
+int decode_key_string(char *str, unsigned short *key, unsigned short *qual);
 
 #endif
+
+
 

@@ -3,6 +3,7 @@
 Name: 'Suggest'
 Blender: 243
 Group: 'TextPlugin'
+Shortcut: 'Ctrl+Space'
 Tooltip: 'Suggests completions for the word at the cursor in a python script'
 """
 
@@ -70,6 +71,70 @@ def getCompletionSymbols(txt):
 			a -= 1
 			break
 	return line[c-a:c].split('.')
+
+
+def getImports(txt):
+	imports = []
+	
+	# Unfortunately, tokenize may fail if the script leaves brackets or strings
+	# open. For now we return an empty list until I have a better idea. Maybe
+	# parse manually.
+	try:
+		tokens = getTokens(txt)
+	except:
+		return []
+	
+	for i in range(1, len(tokens)):
+		
+		# Handle all import statements
+		if tokens[i-1][TK_TOKEN] == 'import':
+			
+			# Find 'from' if it exists
+			fr = -1
+			for a in range(1, i):
+				if tokens[i-a][TK_TYPE] == token.NEWLINE: break
+				if tokens[i-a][TK_TOKEN] == 'from':
+					fr = i-a
+					break
+			
+			# Handle: import ___[.___][,___[.___]]
+			if fr<0:
+				parent = ''
+			
+			# Handle: from ___[.___] import ___[,___]
+			else: # fr>=0:
+				parent = ''.join([t[TK_TOKEN] for t in tokens[fr+1:i-1]])
+			
+			module = ''
+			while i < len(tokens)-1:
+				if tokens[i][TK_TYPE] == token.NAME:
+				
+					# Get the module name
+					module = module + tokens[i][TK_TOKEN]
+					
+					if tokens[i+1][TK_TOKEN] == '.':
+						module += '.'
+						i += 1
+					else:
+						# Add the module name and parent to the dict
+						imports.append((module, parent))
+						module = ''
+					
+				elif tokens[i][TK_TOKEN]!=',':
+					break
+				
+				i += 1
+				
+	# Process imports for: from ___ import *
+	for imp,frm in imports:
+		print imp, frm
+		if frm == '':
+			try: __import__(imp)
+			except: print '^ERR^'
+		else:
+			try: __import__(frm, globals(), locals(), [imp])
+			except: print '^ERR^'
+	
 
 
 # Returns a list of tuples of symbol names and their types (name, type) where

@@ -59,6 +59,7 @@ typedef struct BPyMenu {
 	char *name;
 	char *filename;
 	char *tooltip;
+	unsigned short key, qual;	/* Registered shortcut key */
 	short version;		/* Blender version */
 	int dir;		/* 0: default, 1: U.pythondir */
 	struct BPySubMenu *submenus;
