@@ -8,18 +8,34 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+/*---------------  Python API function prototypes for Interface1D instance  -----------*/
+static PyObject * Interface1D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static void Interface1D___dealloc__(BPy_Interface1D *self);
+static PyObject * Interface1D___repr__(BPy_Interface1D *self);
 
-/*-----------------------Python API function prototypes for the Interface1D module--*/
-//static PyObject *Freestyle_testOutput( BPy_Freestyle * self );
-/*-----------------------Interface1D module doc strings-----------------------------*/
-static char M_Interface1D_doc[] = "The Blender.Freestyle.Interface1D submodule";
-/*----------------------Interface1D module method def----------------------------*/
-struct PyMethodDef M_Interface1D_methods[] = {
-//	{"testOutput", ( PyCFunction ) Freestyle_testOutput, METH_NOARGS, "() - Return Curve Data name"},
+static PyObject *Interface1D_getExactTypeName( BPy_Interface1D *self );
+static PyObject *Interface1D_getVertices( BPy_Interface1D *self );
+static PyObject *Interface1D_getPoints( BPy_Interface1D *self );
+static PyObject *Interface1D_getLength2D( BPy_Interface1D *self );
+static PyObject *Interface1D_getId( BPy_Interface1D *self );
+static PyObject *Interface1D_getNature( BPy_Interface1D *self );
+static PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self );
+static PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args);
+
+/*----------------------Interface1D instance definitions ----------------------------*/
+static PyMethodDef BPy_Interface1D_methods[] = {
+	{"getExactTypeName", ( PyCFunction ) Interface1D_getExactTypeName, METH_NOARGS, "（ ）Returns the string of the name of the interface."},
+	{"getVertices", ( PyCFunction ) Interface1D_getVertices, METH_NOARGS, "Returns the vertices"},
+	{"getPoints", ( PyCFunction ) Interface1D_getPoints, METH_NOARGS, "Returns the points. The difference with getVertices() is that here we can iterate over points of the 1D element at any given sampling. At each call, a virtual point is created."},
+	{"getLength2D", ( PyCFunction ) Interface1D_getLength2D, METH_NOARGS, "Returns the 2D length of the 1D element"},
+	{"getId", ( PyCFunction ) Interface1D_getId, METH_NOARGS, "Returns the Id of the 1D element"},
+	{"getNature", ( PyCFunction ) Interface1D_getNature, METH_NOARGS, "Returns the nature of the 1D element"},
+	{"getTimeStamp", ( PyCFunction ) Interface1D_getTimeStamp, METH_NOARGS, "Returns the time stamp of the 1D element. Mainly used for selection"},
+	{"setTimeStamp", ( PyCFunction ) Interface1D_setTimeStamp, METH_VARARGS, "Sets the time stamp for the 1D element"},
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_Freestyle method def------------------------------*/
+/*-----------------------BPy_Interface1D type definition ------------------------------*/
 
 PyTypeObject Interface1D_Type = {
 	PyObject_HEAD_INIT( NULL ) 
@@ -29,12 +45,12 @@ PyTypeObject Interface1D_Type = {
 	0,							/* tp_itemsize */
 	
 	/* methods */
-	NULL,						/* tp_dealloc */
-	NULL,                       /* printfunc tp_print; */
-	NULL,                       /* getattrfunc tp_getattr; */
-	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,						/* tp_compare */
-	NULL,						/* tp_repr */
+	(destructor)Interface1D___dealloc__,	/* tp_dealloc */
+	NULL,                       				/* printfunc tp_print; */
+	NULL,                       				/* getattrfunc tp_getattr; */
+	NULL,                       				/* setattrfunc tp_setattr; */
+	NULL,										/* tp_compare */
+	(reprfunc)Interface1D___repr__,					/* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -77,17 +93,17 @@ PyTypeObject Interface1D_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,						/* struct PyMethodDef *tp_methods; */
-	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,         				/* struct PyGetSetDef *tp_getset; */
-	NULL,                       /* struct _typeobject *tp_base; */
-	NULL,                       /* PyObject *tp_dict; */
-	NULL,                       /* descrgetfunc tp_descr_get; */
-	NULL,                       /* descrsetfunc tp_descr_set; */
-	0,                          /* long tp_dictoffset; */
-	NULL,                       /* initproc tp_init; */
-	NULL,                       /* allocfunc tp_alloc; */
-	NULL,                       /* newfunc tp_new; */
+	BPy_Interface1D_methods,	/* struct PyMethodDef *tp_methods; */
+	NULL,                       	/* struct PyMemberDef *tp_members; */
+	NULL,         					/* struct PyGetSetDef *tp_getset; */
+	NULL,							/* struct _typeobject *tp_base; */
+	NULL,							/* PyObject *tp_dict; */
+	NULL,							/* descrgetfunc tp_descr_get; */
+	NULL,							/* descrsetfunc tp_descr_set; */
+	0,                          	/* long tp_dictoffset; */
+	NULL,                       	/* initproc tp_init; */
+	NULL,							/* allocfunc tp_alloc; */
+	(newfunc)Interface1D___new__,		/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -105,31 +121,53 @@ PyTypeObject Interface1D_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyObject *Interface1D_Init( void )
+PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 {
-	PyObject *submodule;
-	
+	if( module == NULL )
+		return;
+
 	if( PyType_Ready( &Interface1D_Type ) < 0 )
-		return NULL;
-	
-	submodule = Py_InitModule3( "Blender.Freestyle.Interface1D", M_Interface1D_methods, M_Interface1D_doc );
-	
-	return submodule;
+		return;
+
+	Py_INCREF( &Interface1D_Type );
+	PyModule_AddObject(module, "Interface1D", (PyObject *)&Interface1D_Type);
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
+PyObject * Interface1D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    BPy_Interface1D *self;
+
+    self = (BPy_Interface1D *)type->tp_alloc(type, 0);
+    if (self != NULL) {
+        self->if1D = new Interface1D();
+    }
+
+    return (PyObject *)self;
+}
+
+void Interface1D___dealloc__(BPy_Interface1D* self)
+{
+	delete self->if1D;
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+PyObject * Interface1D___repr__(BPy_Interface1D* self)
+{
+    return PyString_FromFormat("type: %s - address: %p", self->if1D->getExactTypeName().c_str(), self->if1D );
+}
 
 PyObject *Interface1D_getExactTypeName( BPy_Interface1D *self ) {
 	return PyString_FromString( self->if1D->getExactTypeName().c_str() );	
 }
 
 PyObject *Interface1D_getVertices( BPy_Interface1D *self ) {
-	// Vector
+	return PyList_New(0);
 }
 
 PyObject *Interface1D_getPoints( BPy_Interface1D *self ) {
-	// Vector
+	return PyList_New(0);
 }
 
 PyObject *Interface1D_getLength2D( BPy_Interface1D *self ) {
@@ -137,7 +175,7 @@ PyObject *Interface1D_getLength2D( BPy_Interface1D *self ) {
 }
 
 PyObject *Interface1D_getId( BPy_Interface1D *self ) {
-	// Id
+	return BPy_Id_from_Id( self->if1D->getId() );
 }
 
 PyObject *Interface1D_getNature( BPy_Interface1D *self ) {
@@ -149,14 +187,13 @@ PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self ) {
 }
 
 PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args) {
-	PyObject * obj1 = 0 ;
-	PyObject * obj2 = 0 ;
-	unsigned int timestamp;
-	
-	if( !PyArg_ParseTuple(args, (char *)"OO:Interface1D_setTimeStamp", &obj1, &obj2) )
+	int timestamp = 0 ;
+
+	if( !PyArg_ParseTuple(args, (char *)"i:Interface1D_setTimeStamp", &timestamp) ) {
 		cout << "ERROR: Interface1D_setTimeStamp" << endl;
+		Py_RETURN_NONE;
+	}
 	
-	timestamp = static_cast<unsigned int>( PyInt_AsLong(obj2) );
 	self->if1D->setTimeStamp( timestamp );
 
 	Py_RETURN_NONE;

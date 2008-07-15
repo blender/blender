@@ -111,22 +111,22 @@ PyTypeObject Freestyle_Type = {
 //-------------------MODULE INITIALIZATION--------------------------------
 PyObject *Freestyle_Init( void )
 {
-	PyObject *submodule;
-	PyObject *dict;
+	PyObject *module;
 	
 	if( PyType_Ready( &Freestyle_Type ) < 0 )
 		return NULL;
 	
-	submodule = Py_InitModule3( "Blender.Freestyle", M_Freestyle_methods, M_Freestyle_doc );
-
-	dict = PyModule_GetDict( submodule );
-	PyDict_SetItemString( dict, "BinaryPredicate0D", BinaryPredicate0D_Init() );
-	PyDict_SetItemString( dict, "BinaryPredicate1D", BinaryPredicate1D_Init() );
-	PyDict_SetItemString( dict, "Interface0D", Interface0D_Init() );
-	PyDict_SetItemString( dict, "Interface1D", Interface1D_Init() );
-	PyDict_SetItemString( dict, "Id", Id_Init() );
+	// initialize modules
+	module = Py_InitModule3( "Blender.Freestyle", M_Freestyle_methods, M_Freestyle_doc );
 	
-	return submodule;
+	// attach its classes (adding the object types to the module)
+	BinaryPredicate0D_Init( module );
+	BinaryPredicate1D_Init( module );
+	Id_Init( module );
+	Interface0D_Init( module );
+	Interface1D_Init( module );
+	
+	return module;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

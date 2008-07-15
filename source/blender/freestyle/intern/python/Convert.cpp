@@ -32,7 +32,7 @@ PyObject *PyBool_from_bool( bool b ){
 PyObject *Vector_from_Vec2f( Vec2f vec ) {
 	float vec_data[2]; // because vec->_coord is protected
 	vec_data[0] = vec.x();		vec_data[1] = vec.y();
-	return newVectorObject( vec_data, 3, Py_NEW);
+	return newVectorObject( vec_data, 2, Py_NEW);
 }
 
 PyObject *Vector_from_Vec3f( Vec3f vec ) {
@@ -45,6 +45,16 @@ PyObject *Vector_from_Vec3r( Vec3r vec ) {
 	float vec_data[3]; // because vec->_coord is protected
 	vec_data[0] = vec.x();		vec_data[1] = vec.y(); 		vec_data[2] = vec.z(); 
 	return newVectorObject( vec_data, 3, Py_NEW);
+}
+
+PyObject *BPy_Id_from_Id( Id id ) {
+	BPy_Id *py_id;
+	
+	py_id = (BPy_Id *) Id_Type.tp_new( &Id_Type, 0, 0 );
+	py_id->id->setFirst( id.getFirst() );
+	py_id->id->setSecond( id.getSecond() );
+	
+	return (PyObject *)py_id;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

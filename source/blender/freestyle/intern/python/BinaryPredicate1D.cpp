@@ -9,33 +9,36 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+/*---------------  Python API function prototypes for BinaryPredicate1D instance  -----------*/
+static PyObject * BinaryPredicate1D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D *self);
+static PyObject * BinaryPredicate1D___repr__(BPy_BinaryPredicate1D *self);
 
-/*-----------------------Python API function prototypes for the BinaryPredicate1D module--*/
-//static PyObject *Freestyle_testOutput( BPy_Freestyle * self );
-/*-----------------------BinaryPredicate1D module doc strings-----------------------------*/
-static char M_BinaryPredicate1D_doc[] = "The Blender.Freestyle.BinaryPredicate1D submodule";
-/*----------------------BinaryPredicate1D module method def----------------------------*/
-struct PyMethodDef M_BinaryPredicate1D_methods[] = {
-//	{"testOutput", ( PyCFunction ) Freestyle_testOutput, METH_NOARGS, "() - Return Curve Data name"},
+static PyObject * BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args);
+static PyObject * BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args);
+
+/*----------------------BinaryPredicate1D instance definitions ----------------------------*/
+static PyMethodDef BPy_BinaryPredicate1D_methods[] = {
+	{"getName", ( PyCFunction ) BinaryPredicate1D_getName, METH_NOARGS, "（ ）Returns the string of the name of the binary predicate."},
+	{"__call__", ( PyCFunction ) BinaryPredicate1D___call__, METH_VARARGS, "BinaryPredicate1D（Interface1D, Interface1D ）. Must be overloaded by inherited classes. It evaluates a relation between two Interface1D." },
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_Freestyle method def------------------------------*/
-
+/*-----------------------BPy_BinaryPredicate1D type definition ------------------------------*/
 PyTypeObject BinaryPredicate1D_Type = {
 	PyObject_HEAD_INIT( NULL ) 
-	0,							/* ob_size */
+	0,									/* ob_size */
 	"BinaryPredicate1D",				/* tp_name */
 	sizeof( BPy_BinaryPredicate1D ),	/* tp_basicsize */
-	0,							/* tp_itemsize */
+	0,									/* tp_itemsize */
 	
 	/* methods */
-	NULL,						/* tp_dealloc */
-	NULL,                       /* printfunc tp_print; */
-	NULL,                       /* getattrfunc tp_getattr; */
-	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,						/* tp_compare */
-	NULL,						/* tp_repr */
+	(destructor)BinaryPredicate1D___dealloc__,		/* tp_dealloc */
+	NULL,                       					/* printfunc tp_print; */
+	NULL,                       					/* getattrfunc tp_getattr; */
+	NULL,                       					/* setattrfunc tp_setattr; */
+	NULL,											/* tp_compare */
+	(reprfunc)BinaryPredicate1D___repr__,						/* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -78,17 +81,17 @@ PyTypeObject BinaryPredicate1D_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,						/* struct PyMethodDef *tp_methods; */
-	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,         				/* struct PyGetSetDef *tp_getset; */
-	NULL,                       /* struct _typeobject *tp_base; */
-	NULL,                       /* PyObject *tp_dict; */
-	NULL,                       /* descrgetfunc tp_descr_get; */
-	NULL,                       /* descrsetfunc tp_descr_set; */
-	0,                          /* long tp_dictoffset; */
-	NULL,                       /* initproc tp_init; */
-	NULL,                       /* allocfunc tp_alloc; */
-	NULL,                       /* newfunc tp_new; */
+	BPy_BinaryPredicate1D_methods,	/* struct PyMethodDef *tp_methods; */
+	NULL,							/*  struct PyMemberDef *tp_members; */
+	NULL,							/*  struct PyGetSetDef *tp_getset; */
+	NULL,							/*  struct _typeobject *tp_base; */
+	NULL,                       	/* PyObject *tp_dict; */
+	NULL,                       	/* descrgetfunc tp_descr_get; */
+	NULL,                       	/* descrsetfunc tp_descr_set; */
+	0,                          	/* long tp_dictoffset; */
+	NULL,                       	/* initproc tp_init; */
+	NULL,                       	/* allocfunc tp_alloc; */
+	BinaryPredicate1D___new__,		/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -106,19 +109,43 @@ PyTypeObject BinaryPredicate1D_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyObject *BinaryPredicate1D_Init( void )
+PyMODINIT_FUNC BinaryPredicate1D_Init( PyObject *module )
 {
-	PyObject *submodule;
-	
+	if( module == NULL )
+		return;
+
 	if( PyType_Ready( &BinaryPredicate1D_Type ) < 0 )
-		return NULL;
-	
-	submodule = Py_InitModule3( "Blender.Freestyle.BinaryPredicate1D", M_BinaryPredicate1D_methods, M_BinaryPredicate1D_doc );
-	
-	return submodule;
+		return;
+
+	Py_INCREF( &BinaryPredicate1D_Type );
+	PyModule_AddObject(module, "BinaryPredicate1D", (PyObject *)&BinaryPredicate1D_Type);
 }
 
+
 //------------------------INSTANCE METHODS ----------------------------------
+
+PyObject * BinaryPredicate1D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    BPy_BinaryPredicate1D *self;
+
+    self = (BPy_BinaryPredicate1D *)type->tp_alloc(type, 0);
+    if (self != NULL) {
+        self->bp1D = new BinaryPredicate1D();
+    }
+
+    return (PyObject *)self;
+}
+
+void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D* self)
+{
+	delete self->bp1D;
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+PyObject * BinaryPredicate1D___repr__(BPy_BinaryPredicate1D* self)
+{
+    return PyString_FromFormat("type: %s - address: %p", self->bp1D->getName().c_str(), self->bp1D );
+}
 
 PyObject *BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args)
 {
@@ -127,14 +154,15 @@ PyObject *BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args
 
 PyObject *BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args)
 {
-	BPy_BinaryPredicate1D *obj1;
-	BPy_Interface1D *obj2, *obj3;
+	BPy_Interface1D *obj1, *obj2;
 	bool b;
 	
-	if (!PyArg_ParseTuple(args,(char *)"OOO:BinaryPredicate1D___call__", &obj1, &obj2, &obj3))
+	if( !PyArg_ParseTuple(args,(char *)"OO:BinaryPredicate1D___call__", &obj1, &obj2) ) {
 		cout << "ERROR: BinaryPredicate1D___call__ " << endl;		
+		return NULL;
+	}
 	
-	b = self->bp1D->operator()( *(obj2->if1D) , *(obj3->if1D) );
+	b = self->bp1D->operator()( *(obj1->if1D) , *(obj2->if1D) );
 	return PyBool_from_bool( b );
 }
 

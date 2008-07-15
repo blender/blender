@@ -139,11 +139,19 @@ public:
   /*! Returns an iterator over the Interface1D vertices,
    *  pointing to the first vertex.
    */
-  virtual Interface0DIterator verticesBegin() = 0;
+  virtual Interface0DIterator verticesBegin() {
+	    cerr << "Warning: method verticesBegin() not implemented" << endl;
+	    return Interface0DIterator();
+  }
+	
   /*! Returns an iterator over the Interface1D vertices,
    *  pointing after the last vertex.
    */
-  virtual Interface0DIterator verticesEnd() = 0;
+  virtual Interface0DIterator verticesEnd(){
+	    cerr << "Warning: method verticesEnd() not implemented" << endl;
+	    return Interface0DIterator();
+  }
+
   /*! Returns an iterator over the Interface1D points,
    *  pointing to the first point. The difference with
    *  verticesBegin() is that here we can iterate over
@@ -153,7 +161,11 @@ public:
    *    The sampling with which we want to iterate over points of
    *    this 1D element.
    */
-  virtual Interface0DIterator pointsBegin(float t=0.f) = 0;
+  virtual Interface0DIterator pointsBegin(float t=0.f) {
+	    cerr << "Warning: method pointsBegin() not implemented" << endl;
+	    return Interface0DIterator();
+  }
+
   /*! Returns an iterator over the Interface1D points,
    *  pointing after the last point. The difference with
    *  verticesEnd() is that here we can iterate over
@@ -163,7 +175,10 @@ public:
    *    The sampling with which we want to iterate over points of
    *    this 1D element.
    */
-  virtual Interface0DIterator pointsEnd(float t=0.f) = 0;
+  virtual Interface0DIterator pointsEnd(float t=0.f) {
+	    cerr << "Warning: method pointsEnd() not implemented" << endl;
+	    return Interface0DIterator();
+  }
 
   // Data access methods
 

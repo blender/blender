@@ -24,8 +24,7 @@ typedef struct {
 
 /*---------------------------Python BPy_BinaryPredicate1D visible prototypes-----------*/
 
-PyObject *BinaryPredicate1D_Init( void );
-
+PyMODINIT_FUNC BinaryPredicate1D_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

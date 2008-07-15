@@ -24,8 +24,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Interface0D visible prototypes-----------*/
 
-PyObject *Interface0D_Init( void );
-
+PyMODINIT_FUNC Interface0D_Init( PyObject *module );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

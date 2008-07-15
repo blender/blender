@@ -4,6 +4,8 @@
 #include "../geometry/Geom.h"
 using namespace Geometry;
 
+#include "Id.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,6 +23,8 @@ PyObject *PyBool_from_bool( bool b );
 PyObject *Vector_from_Vec2f( Vec2f v );
 PyObject *Vector_from_Vec3f( Vec3f v );
 PyObject *Vector_from_Vec3r( Vec3r v );
+
+PyObject *BPy_Id_from_Id( Id id );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
