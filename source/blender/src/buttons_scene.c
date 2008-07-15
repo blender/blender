@@ -1180,18 +1180,18 @@ static void seq_panel_proxy()
 			     130,140,120,19, &last_seq->flag, 
 			     0.0, 21.0, 100, 0, 
 			     "Use a custom directory to store data");
-	}
 
-	if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-		uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
-			     ICON_FILESEL, 10, 120, 20, 20, 0, 0, 0, 0, 0, 
-			     "Select the directory/name for "
-			     "the proxy storage");
+		if (last_seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+			uiDefIconBut(block, BUT, B_SEQ_SEL_PROXY_DIR, 
+				     ICON_FILESEL, 10, 120, 20, 20, 0, 0, 0, 0, 0, 
+				     "Select the directory/name for "
+				     "the proxy storage");
 
-		uiDefBut(block, TEX, 
-			 B_SEQ_BUT_RELOAD, "Dir: ", 
-			 30,120,220,20, last_seq->strip->proxy->dir, 
-			 0.0, 160.0, 100, 0, "");
+			uiDefBut(block, TEX, 
+				 B_SEQ_BUT_RELOAD, "Dir: ", 
+				 30,120,220,20, last_seq->strip->proxy->dir, 
+				 0.0, 160.0, 100, 0, "");
+		}
 	}
 
 	if (last_seq->flag & SEQ_USE_PROXY) {
