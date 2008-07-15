@@ -66,6 +66,8 @@
 #include "SG_Controller.h"
 #include "SG_IObject.h"
 #include "SG_Tree.h"
+#include "DNA_group_types.h"
+#include "BKE_anim.h"
 
 #include "KX_SG_NodeRelationships.h"
 
@@ -605,6 +607,128 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 	newobj->ResetState();
 }
 
+void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
+{
+	KX_GameObject* groupobj = (KX_GameObject*) obj;
+	KX_GameObject* replica;
+	Object* blgroupobj = groupobj->GetBlenderObject();
+	Group* group;
+	GroupObject *go;
+	vector<KX_GameObject*> duplilist;
+
+	if (!groupobj->IsDupliGroup() ||
+		level>MAX_DUPLI_RECUR)
+		return;
+
+	// we will add one group at a time
+	m_logicHierarchicalGameObjects.clear();
+	m_map_gameobject_to_replica.clear();
+	m_ueberExecutionPriority++;
+
+	group = blgroupobj->dup_group;
+	for(go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
+	{
+		Object* blenderobj = go->ob;
+		if (blgroupobj == blenderobj)
+			// this check is also in group_duplilist()
+			continue;
+		KX_GameObject* gameobj = m_sceneConverter->FindGameObject(blenderobj);
+		if (gameobj == NULL) 
+		{
+			// this object has not been converted!!!
+			// Should not happen as dupli group are created automatically 
+			continue;
+		}
+		if (gameobj->GetParent() != NULL)
+		{
+			// this object is not a top parent. Either it is the child of another
+			// object in the group and it will be added automatically when the parent
+			// is added. Or it is the child of an object outside the group and the group
+			// is inconsistent, skip it anyway
+			continue;
+		}
+		if (blenderobj->lay & group->layer==0)
+		{
+			// object is not visible in the 3D view, will not be instantiated
+			continue;
+		}
+		replica = (KX_GameObject*) AddNodeReplicaObject(NULL,gameobj);
+		// add to 'rootparent' list (this is the list of top hierarchy objects, updated each frame)
+		m_parentlist->Add(replica->AddRef());
+
+		// recurse replication into children nodes
+		NodeList& children = gameobj->GetSGNode()->GetSGChildren();
+
+		replica->GetSGNode()->ClearSGChildren();
+		for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+		{
+			SG_Node* orgnode = (*childit);
+			SG_Node* childreplicanode = orgnode->GetSGReplica();
+			replica->GetSGNode()->AddChild(childreplicanode);
+		}
+		// don't replicate logic now: we assume that the objects in the group can have
+		// logic relationship, even outside parent relationship
+
+		MT_Point3 newpos = groupobj->NodeGetWorldPosition();
+		replica->NodeSetLocalPosition(newpos);
+
+		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation();
+		replica->NodeSetLocalOrientation(newori);
+	
+		// get the rootnode's scale
+		MT_Vector3 newscale = groupobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
+
+		// set the replica's relative scale with the rootnode's scale
+		replica->NodeSetRelativeScale(newscale);
+
+		if (replica->GetPhysicsController())
+		{
+			replica->GetPhysicsController()->setPosition(newpos);
+			replica->GetPhysicsController()->setOrientation(newori.getRotation());
+			replica->GetPhysicsController()->setScaling(newscale);
+		}
+
+		replica->GetSGNode()->UpdateWorldData(0);
+		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
+		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
+		// done with replica
+		replica->Release();
+	}
+
+	//	relink any pointers as necessary, sort of a temporary solution
+	vector<KX_GameObject*>::iterator git;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(groupobj->GetLayer());
+	}
+
+	// now replicate logic
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		(*git)->ReParentLogic();
+	}
+	
+	// replicate crosslinks etc. between logic bricks
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		ReplicateLogic((*git));
+	}
+	
+	// now look if object in the hierarchy have dupli group and recurse
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git) != groupobj && (*git)->IsDupliGroup())
+			// can't instantiate group immediately as it destroys m_logicHierarchicalGameObjects
+			duplilist.push_back((*git));
+	}
+
+	for (git = duplilist.begin(); !(git == duplilist.end()); ++git)
+	{
+		DupliGroupRecurse((*git), level+1);
+	}
+}
 
 
 SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,

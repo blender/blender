@@ -291,6 +291,7 @@ public:
 	 * Update all transforms according to the scenegraph.
 	 */
 	void UpdateParents(double curtime);
+	void DupliGroupRecurse(CValue* gameobj, int level);
 	SCA_IObject* AddReplicaObject(CValue* gameobj,
 								  CValue* locationobj,
 								  int lifespan=0);
