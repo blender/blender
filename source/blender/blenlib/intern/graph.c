@@ -354,7 +354,7 @@ int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 			}
 		}
 		
-		return 10 * depth + 1;
+		return SHAPE_RADIX * depth + 1;
 	}
 }
 

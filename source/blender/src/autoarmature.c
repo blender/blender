@@ -34,6 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "PIL_time.h"
+
 #include "DNA_ID.h"
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
@@ -578,6 +580,8 @@ static void printPositions(int *positions, int nb_positions)
 	printf("\n");
 }
 
+#define MAX_COST 100 /* FIX ME */
+
 static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i0, int i1)
 {
 	EmbedBucket *bucket = NULL;
@@ -613,7 +617,7 @@ static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i
 		}
 		else
 		{
-			return FLT_MAX;
+			return MAX_COST;
 		}
 		
 		return G.scene->toolsettings->skgen_retarget_distance_weight * max_dist;
@@ -624,9 +628,34 @@ static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i
 	}
 }
 
-static float costAngle(float original_angle, float current_angle)
+static float costAngle(float original_angle, float vec_first[3], float vec_second[3], float length1, float length2)
 {
-	return 0;
+	if (G.scene->toolsettings->skgen_retarget_angle_weight > 0)
+	{
+		float current_angle;
+		
+		if (length1 > 0 && length2 > 0)
+		{
+			current_angle = saacos(Inpf(vec_first, vec_second));
+
+			if (original_angle > 0)
+			{
+				return G.scene->toolsettings->skgen_retarget_angle_weight * fabs((current_angle - original_angle) / original_angle);
+			}
+			else
+			{
+				return G.scene->toolsettings->skgen_retarget_angle_weight * fabs(current_angle);
+			}
+		}
+		else
+		{
+			return G.scene->toolsettings->skgen_retarget_angle_weight * M_PI;
+		}
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static float costLength(float original_length, float current_length)
@@ -638,8 +667,7 @@ static float costLength(float original_length, float current_length)
 static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *vec0, float *vec1, float *vec2, int i0, int i1, int i2)
 {
 	float vec_second[3], vec_first[3];
-	float angle = e1->angle;
-	float test_angle, length1, length2;
+	float length1, length2;
 	float new_cost = 0;
 
 	VecSubf(vec_second, vec2, vec1);
@@ -647,24 +675,9 @@ static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *ve
 
 	VecSubf(vec_first, vec1, vec0); 
 	length1 = Normalize(vec_first);
-	
-	if (length1 > 0 && length2 > 0)
-	{
-		test_angle = saacos(Inpf(vec_first, vec_second));
-		/* ANGLE COST HERE */
-		if (angle > 0)
-		{
-			new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs((test_angle - angle) / angle);
-		}
-		else
-		{
-			new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs(test_angle);
-		}
-	}
-	else
-	{
-		new_cost += M_PI;
-	}
+
+	/* Angle cost */	
+	new_cost += costAngle(e1->angle, vec_first, vec_second, length1, length2);
 
 	/* Length cost */
 	new_cost += costLength(e1->length, length1);
@@ -676,8 +689,6 @@ static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *ve
 
 	return new_cost;
 }
-
-#define MAX_COST 100 /* FIX ME */
 
 static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int index, int nb_joints, float *cost_cube, int *positions, float **vec_cache)
 {
@@ -760,7 +771,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	}
 }
 
-static float probability(float delta_cost, float iterations)
+static float probability(float delta_cost, float temperature)
 {
 	if (delta_cost < 0)
 	{
@@ -768,7 +779,6 @@ static float probability(float delta_cost, float iterations)
 	}
 	else
 	{
-		float temperature = (1 - iterations);
 		return (float)exp(delta_cost) * temperature;
 	}
 }
@@ -884,163 +894,154 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	vec_cache[0] = node_start->p;
 	vec_cache[nb_edges] = node_end->p;
 
-#if 0 /* BRUTE FORCE */
-	while(1)
+	/* BRUTE FORCE */
+	if (G.scene->toolsettings->skgen_optimisation_method == 0)
 	{
-		float cost = 0;
-		int need_calc = 0;
-		
-		/* increment to next possible solution */
-		
-		i = nb_joints - 1;
-
-		/* increment positions, starting from the last one
-		 * until a valid increment is found
-		 * */
-		for (i = must_move; i >= 0; i--)
+		while(1)
 		{
-			int remaining_joints = nb_joints - (i + 1); 
+			float cost = 0;
+			int need_calc = 0;
 			
-			positions[i] += 1;
-			need_calc = i;
+			/* increment to next possible solution */
 			
-			if (positions[i] + remaining_joints < earc->bcount)
+			i = nb_joints - 1;
+	
+			/* increment positions, starting from the last one
+			 * until a valid increment is found
+			 * */
+			for (i = must_move; i >= 0; i--)
+			{
+				int remaining_joints = nb_joints - (i + 1); 
+				
+				positions[i] += 1;
+				need_calc = i;
+				
+				if (positions[i] + remaining_joints < earc->bcount)
+				{
+					break;
+				}
+			}
+			
+			if (first_pass)
+			{
+				need_calc = 0;
+				first_pass = 0;
+			}
+	
+			if (i == -1)
 			{
 				break;
 			}
-		}
+			
+			/* reset joints following the last increment*/
+			for (i = i + 1; i < nb_joints; i++)
+			{
+				positions[i] = positions[i - 1] + 1;
+			}
 		
-		if (first_pass)
-		{
-			need_calc = 0;
-			first_pass = 0;
-		}
-
-		if (i == -1)
-		{
-			break;
-		}
-		
-		/* reset joints following the last increment*/
-		for (i = i + 1; i < nb_joints; i++)
-		{
-			positions[i] = positions[i - 1] + 1;
-		}
+			/* calculating cost */
+			initArcIterator(&iter, earc, node_start);
+			
+			vec0 = NULL;
+			vec1 = node_start->p;
+			vec2 = NULL;
+			
+			for (edge = iarc->edges.first, i = 0, last_index = 0;
+				 edge;
+				 edge = edge->next, i += 1)
+			{
 	
-		/* calculating cost */
-		initArcIterator(&iter, earc, node_start);
-		
-		vec0 = NULL;
-		vec1 = node_start->p;
-		vec2 = NULL;
-		
-		for (edge = iarc->edges.first, i = 0, last_index = 0;
-			 edge;
-			 edge = edge->next, i += 1)
-		{
-
-			if (i >= need_calc)
-			{ 
-				float vec_first[3], vec_second[3];
-				float length1, length2;
-				float new_cost = 0;
-				int i1, i2;
-				
-				if (i < nb_joints)
-				{
-					i2 = positions[i];
-					bucket = peekBucket(&iter, positions[i]);
-					vec2 = bucket->p;
-					vec_cache[i + 1] = vec2; /* update cache for updated position */
-				}
-				else
-				{
-					i2 = iter.length;
-					vec2 = node_end->p;
-				}
-				
-				if (i > 0)
-				{
-					i1 = positions[i - 1];
-				}
-				else
-				{
-					i1 = 1;
-				}
-				
-				vec1 = vec_cache[i];
-				
-
-				VecSubf(vec_second, vec2, vec1);
-				length2 = Normalize(vec_second);
-	
-				/* check angle */
-				if (i != 0 && G.scene->toolsettings->skgen_retarget_angle_weight > 0)
-				{
-					RigEdge *previous = edge->prev;
-					float angle = previous->angle;
-					float test_angle;
+				if (i >= need_calc)
+				{ 
+					float vec_first[3], vec_second[3];
+					float length1, length2;
+					float new_cost = 0;
+					int i1, i2;
 					
-					vec0 = vec_cache[i - 1];
-					VecSubf(vec_first, vec1, vec0); 
-					length1 = Normalize(vec_first);
-					
-					if (length1 > 0 && length2 > 0)
+					if (i < nb_joints)
 					{
-						test_angle = saacos(Inpf(vec_first, vec_second));
-						/* ANGLE COST HERE */
-						if (angle > 0)
-						{
-							new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs((test_angle - angle) / angle);
-						}
-						else
-						{
-							new_cost += G.scene->toolsettings->skgen_retarget_angle_weight * fabs(test_angle);
-						}
+						i2 = positions[i];
+						bucket = peekBucket(&iter, positions[i]);
+						vec2 = bucket->p;
+						vec_cache[i + 1] = vec2; /* update cache for updated position */
 					}
 					else
 					{
-						new_cost += G.scene->toolsettings->skgen_retarget_angle_weight;
+						i2 = iter.length;
+						vec2 = node_end->p;
 					}
-				}
+					
+					if (i > 0)
+					{
+						i1 = positions[i - 1];
+					}
+					else
+					{
+						i1 = 1;
+					}
+					
+					vec1 = vec_cache[i];
+					
 	
-				/* Length Cost */
-				new_cost += costLength(edge->length, length2);
-				
-				/* Distance Cost */
-				new_cost += calcMaximumDistance(&iter, vec1, vec2, i1, i2);
-				
-				cost_cache[i] = new_cost;
-			}
-			
-			cost += cost_cache[i];
-			
-			if (cost > min_cost)
-			{
-				must_move = i;
-				break;
-			}
-		}
+					VecSubf(vec_second, vec2, vec1);
+					length2 = Normalize(vec_second);
 		
-		if (must_move != i || must_move > nb_joints - 1)
-		{
-			must_move = nb_joints - 1;
-		}
-
-		/* cost optimizing */
-		if (cost < min_cost)
-		{
-			min_cost = cost;
-			memcpy(best_positions, positions, sizeof(int) * nb_joints);
+					/* check angle */
+					if (i != 0 && G.scene->toolsettings->skgen_retarget_angle_weight > 0)
+					{
+						RigEdge *previous = edge->prev;
+						
+						vec0 = vec_cache[i - 1];
+						VecSubf(vec_first, vec1, vec0); 
+						length1 = Normalize(vec_first);
+						
+						/* Angle cost */	
+						new_cost += costAngle(previous->angle, vec_first, vec_second, length1, length2);
+					}
+		
+					/* Length Cost */
+					new_cost += costLength(edge->length, length2);
+					
+					/* Distance Cost */
+					new_cost += costDistance(&iter, vec1, vec2, i1, i2);
+					
+					cost_cache[i] = new_cost;
+				}
+				
+				cost += cost_cache[i];
+				
+				if (cost > min_cost)
+				{
+					must_move = i;
+					break;
+				}
+			}
+			
+			if (must_move != i || must_move > nb_joints - 1)
+			{
+				must_move = nb_joints - 1;
+			}
+	
+			/* cost optimizing */
+			if (cost < min_cost)
+			{
+				min_cost = cost;
+				memcpy(best_positions, positions, sizeof(int) * nb_joints);
+			}
 		}
 	}
-#elif 1 /* SIMULATED ANNEALING */
+	/* SIMULATED ANNEALING */
+#define ANNEALING_ITERATION
+	else if (G.scene->toolsettings->skgen_optimisation_method == 1)
 	{
 		RigEdge *previous;
 		float *cost_cube;
-		int k, kmax;
-		
-		kmax = 10000;
+#ifdef ANNEALING_ITERATION
+		int k, kmax = 100000;
+#else
+		double time_start, time_current, time_length = 3;
+		int k;
+#endif
 		
 		BLI_srand(nb_joints);
 		
@@ -1068,12 +1069,21 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			min_cost += cost_cube[3 * i + 1];
 		}
 		
+		printf("initial cost: %f\n", min_cost);
+		
+#ifdef ANNEALING_ITERATION
 		for (k = 0; k < kmax; k++)
+#else
+		for (time_start = PIL_check_seconds_timer(), time_current = time_start, k = 0;
+			 time_current - time_start < time_length;
+			 time_current = PIL_check_seconds_timer(), k++)
+#endif
 		{
 			int status;
 			int moving_joint = -1;
 			int move_direction = -1;
 			float delta_cost;
+			float temperature;
 			
 			status = neighbour(nb_joints, cost_cube, &moving_joint, &move_direction);
 			
@@ -1084,7 +1094,13 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			
 			delta_cost = cost_cube[moving_joint * 3 + (1 + move_direction)];
 
-			if (probability(delta_cost, (float)k / (float)kmax) > BLI_frand())
+#ifdef ANNEALING_ITERATION
+			temperature = 1 - (float)k / (float)kmax;
+#else
+			temperature = 1 - (float)((time_current - time_start) / time_length);
+			temperature = temperature * temperature;
+#endif
+			if (probability(delta_cost, temperature) > BLI_frand())
 			{
 				/* update position */			
 				positions[moving_joint] += move_direction;
@@ -1095,7 +1111,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 				
 				min_cost += delta_cost;
 
-				printf("%i: %0.3f\n", k, delta_cost);
+				//printf("%i: %0.3f\n", k, delta_cost);
 	
 				/* update cost cube */			
 				for (previous = iarc->edges.first, edge = previous->next, i = 0;
@@ -1112,11 +1128,14 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			}
 		}
 		
+		printf("k = %i\n", k);
+		
 		memcpy(best_positions, positions, sizeof(int) * nb_joints);
 		
 		MEM_freeN(cost_cube);
 	}	
-#else	  /* GRADIENT DESCENT*/
+	/* GRADIENT DESCENT*/
+	else if (G.scene->toolsettings->skgen_optimisation_method == 2)
 	{
 		RigEdge *previous;
 		float *cost_cube;
@@ -1198,7 +1217,6 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		
 		MEM_freeN(cost_cube);
 	}
-#endif
 
 	vec0 = node_start->p;
 	initArcIterator(&iter, earc, node_start);
@@ -1416,10 +1434,10 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 {
 	ReebNode *enode = next_earc->head;
 	int ishape, eshape;
-	int MAGIC_NUMBER = 100; /* FIXME */
+	int shape_levels = SHAPE_RADIX * SHAPE_RADIX; /* two levels */
 
-	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % MAGIC_NUMBER;
-	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
+	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % shape_levels;
+	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % shape_levels;
 	
 	while (ishape != eshape && next_earc->link_up)
 	{
@@ -1427,40 +1445,33 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 		
 		next_earc = next_earc->link_up;
 		enode = next_earc->head;
-		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % MAGIC_NUMBER;
+		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % shape_levels;
 	} 
 
 	next_earc->flag = 1; // mark as taken
 	next_iarc->link_mesh = next_earc;
 }
 
-static void matchMultiResolutionStartingArc(ReebGraph *reebg, RigArc *iarc, RigNode *inode)
+static void matchMultiResolutionStartingNode(ReebGraph *reebg, RigNode *inode)
 {
-	ReebArc *earc;
 	ReebNode *enode;
 	int ishape, eshape;
-	int MAGIC_NUMBER = 100; /* FIXME */
+	int shape_levels = SHAPE_RADIX * SHAPE_RADIX; /* two levels */
 	
-	earc = reebg->arcs.first;
-	enode = earc->head;
+	enode = reebg->nodes.first;
 	
-	ishape = BLI_subtreeShape((BNode*)inode, (BArc*)iarc, 1) % MAGIC_NUMBER;
-	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)earc, 1) % MAGIC_NUMBER;
+	ishape = BLI_subtreeShape((BNode*)inode, NULL, 0) % shape_levels;
+	eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % shape_levels;
 	
 	while (ishape != eshape && reebg->link_up)
 	{
-		earc->flag = 1; // mark previous as taken, to prevent backtrack on lower levels
-		
 		reebg = reebg->link_up;
 		
-		earc = reebg->arcs.first;
-		enode = earc->head;
+		enode = reebg->nodes.first;
 		
-		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)earc, 1) % MAGIC_NUMBER;
+		eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % shape_levels;
 	} 
 
-	earc->flag = 1; // mark as taken
-	iarc->link_mesh = earc;
 	inode->link_mesh = enode;
 }
 
@@ -1525,30 +1536,34 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 
 static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_node)
 {
-	RigArc *iarc = start_arc;
-	ReebArc *earc = start_arc->link_mesh;
 	RigNode *inode = start_node;
-	ReebNode *enode = start_node->link_mesh;
 	int i;
+
+	/* no start arc on first node */
+	if (start_arc)
+	{		
+		ReebNode *enode = start_node->link_mesh;
+		ReebArc *earc = start_arc->link_mesh;
 		
-	retargetArctoArc(iarc);
+		retargetArctoArc(start_arc);
+		
+		enode = BIF_otherNodeFromIndex(earc, enode);
+		inode = (RigNode*)BLI_otherNode((BArc*)start_arc, (BNode*)inode);
 	
-	enode = BIF_otherNodeFromIndex(earc, enode);
-	inode = (RigNode*)BLI_otherNode((BArc*)iarc, (BNode*)inode);
-	
-	/* Link with lowest possible node
-	 * Enabling going back to lower levels for each arc
-	 * */
-	inode->link_mesh = BIF_lowestLevelNode(enode);
+		/* Link with lowest possible node
+		 * Enabling going back to lower levels for each arc
+		 * */
+		inode->link_mesh = BIF_lowestLevelNode(enode);
+	}
 	
 	for(i = 0; i < inode->degree; i++)
 	{
 		RigArc *next_iarc = (RigArc*)inode->arcs[i];
 		
 		/* no back tracking */
-		if (next_iarc != iarc)
+		if (next_iarc != start_arc)
 		{
-			findCorrespondingArc(iarc, inode, next_iarc);
+			findCorrespondingArc(start_arc, inode, next_iarc);
 			if (next_iarc->link_mesh)
 			{
 				retargetSubgraph(rigg, next_iarc, inode);
@@ -1560,9 +1575,6 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 static void retargetGraphs(RigGraph *rigg)
 {
 	ReebGraph *reebg = rigg->link_mesh;
-	ReebArc *earc;
-	RigArc *iarc;
-	ReebNode *enode;
 	RigNode *inode;
 	
 	/* flag all ReebArcs as not taken */
@@ -1571,17 +1583,11 @@ static void retargetGraphs(RigGraph *rigg)
 	/* return to first level */
 	reebg = rigg->link_mesh;
 	
-	iarc = (RigArc*)rigg->head->arcs[0];
-	inode = iarc->tail;
+	inode = rigg->head;
 	
-	matchMultiResolutionStartingArc(reebg, iarc, inode);
+	matchMultiResolutionStartingNode(reebg, inode);
 
-	earc = iarc->link_mesh; /* has been set earlier */
-	enode = earc->head;
-
-	inode->link_mesh = enode;
-
-	retargetSubgraph(rigg, iarc, inode);
+	retargetSubgraph(rigg, NULL, inode);
 }
 
 void BIF_retargetArmature()

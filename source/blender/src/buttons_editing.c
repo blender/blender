@@ -5019,6 +5019,14 @@ static void skgen_graph_block(uiBlock *block)
 	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
 	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
 	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 10.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+	
+	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 90,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 90,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
+	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 70, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 70, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 70, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 70, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
+
 	uiBlockEndAlign(block);
 }
 
@@ -5038,11 +5046,11 @@ static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
 	
 	skgen_graph_block(block);
 
-	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
-	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1108, 60, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
-	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1191, 60, 84,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
+	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 40, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
+	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1108, 40, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
+	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1191, 40, 84,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
 
-	uiDefButC(block, NUM, REDRAWVIEW3D, 						"Level:",			1025, 40, 125,19, &G.scene->toolsettings->skgen_multi_level, 0, 5, 1, 0,"Specify the level to draw");
+	uiDefButC(block, NUM, REDRAWVIEW3D, 						"Level:",			1025, 20, 125,19, &G.scene->toolsettings->skgen_multi_level, 0, 5, 1, 0,"Specify the level to draw");
 }
 
 static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
@@ -5057,18 +5065,10 @@ static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 
 	skgen_graph_block(block);
 
-	uiDefButF(block, NUM, B_DIFF, 							"Ang:",			1025, 60, 83,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
-	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1108, 60, 83,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
-	uiDefButF(block, NUM, B_DIFF, 							"Dist:",		1191, 60, 84,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
-
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 30,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
-	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 30,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
-	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
-	uiBlockEndAlign(block);
+	uiDefButF(block, NUM, B_DIFF, 							"Ang:",			1025, 40, 83,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1108, 40, 83,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Dist:",		1191, 40, 84,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+	uiDefButC(block, NUM, B_DIFF, 							"Method:",		1025, 20, 125,19, &G.scene->toolsettings->skgen_optimisation_method, 0, 2, 1, 0,"Optimisation Method (0: brute, 1: annealing, 3: gradient");
 }
 
 static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
@@ -5088,7 +5088,7 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	uiBlockBeginAlign(block);
 	for(i = 0; i < SKGEN_SUB_TOTAL; i++)
 	{
-		int y = 90 - 20 * i;
+		int y = 50 - 20 * i;
 		
 		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, y, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
 		uiButSetFunc(but, skgen_reorder, SET_INT_IN_POINTER(i), NULL);
@@ -5113,12 +5113,6 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 		}
 	}
 
-	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 30,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
-	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 30,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
-	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
 	uiBlockEndAlign(block);
 }
 

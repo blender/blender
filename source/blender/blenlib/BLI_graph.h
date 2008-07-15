@@ -80,6 +80,8 @@ void BLI_freeAdjacencyList(BGraph *rg);
 
 int BLI_FlagSubgraphs(BGraph *graph);
 
+#define SHAPE_RADIX 10 /* each shape level is encoded this base */
+
 int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root);
 float BLI_subtreeLength(BNode *node, BArc *rootArc);
 void BLI_calcGraphLength(BGraph *graph);

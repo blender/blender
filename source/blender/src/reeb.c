@@ -86,6 +86,7 @@ ReebGraph *FILTERED_RG = NULL;
  * */
  
 #define DEBUG_REEB
+#define DEBUG_REEB_NODE
 
 typedef enum {
 	MERGE_LOWER,
@@ -380,10 +381,10 @@ void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
 
 void NodeDegreeIncrement(ReebGraph *rg, ReebNode *node)
 {
-	if (node->degree == 0)
-	{
-		printf("first connect node %i\n", node->index);
-	}
+//	if (node->degree == 0)
+//	{
+//		printf("first connect node %i\n", node->index);
+//	}
 
 	node->degree++;
 }
