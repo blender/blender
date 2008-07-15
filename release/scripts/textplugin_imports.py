@@ -13,7 +13,7 @@ try:
 	import bpy, sys
 	from BPyTextPlugin import *
 	OK = True
-except:
+except ImportError:
 	pass
 
 def main():
@@ -21,7 +21,7 @@ def main():
 	line, c = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(line, c) != 0:
+	if get_context(txt) != 0:
 		return
 	
 	pos = line.rfind('from ', 0, c)
@@ -30,7 +30,7 @@ def main():
 	if pos == -1:
 		# Check instead for straight 'import'
 		pos2 = line.rfind('import ', 0, c)
-		if pos2 != -1 and pos2 == c-7:
+		if pos2 != -1 and (pos2 == c-7 or (pos2 < c-7 and line[c-2]==',')):
 			items = [(m, 'm') for m in sys.builtin_module_names]
 			items.sort(cmp = suggest_cmp)
 			txt.suggest(items, '')
@@ -54,7 +54,7 @@ def main():
 			between = line[pos+5:pos2-1].strip()
 			try:
 				mod = get_module(between)
-			except:
+			except ImportError:
 				print 'Module not found:', between
 				return
 			

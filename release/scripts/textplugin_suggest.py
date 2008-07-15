@@ -12,36 +12,46 @@ try:
 	import bpy
 	from BPyTextPlugin import *
 	OK = True
-except:
+except ImportError:
 	OK = False
+
+def check_membersuggest(line, c):
+	pos = line.rfind('.', 0, c)
+	if pos == -1:
+		return False
+	for s in line[pos+1:c]:
+		if not s.isalnum() and not s == '_':
+			return False
+	return True
+
+def check_imports(line, c):
+	if line.rfind('import ', 0, c) == c-7:
+		return True
+	if line.rfind('from ', 0, c) == c-5:
+		return True
+	return False
 
 def main():
 	txt = bpy.data.texts.active
 	(line, c) = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(line, c) != NORMAL:
+	if get_context(txt) != NORMAL:
 		return
 	
-	# Check that which precedes the cursor and perform the following:
-	# Period(.)				- Run textplugin_membersuggest.py
-	# 'import' or 'from'	- Run textplugin_imports.py
-	# Other                 - Continue this script (global suggest)
-	pre = get_targets(line, c)
+	# Check the character preceding the cursor and execute the corresponding script
 	
-	count = len(pre)
-	
-	if count > 1: # Period found
+	if check_membersuggest(line, c):
 		import textplugin_membersuggest
-		textplugin_membersuggest.main()
-		return
-	# Look for 'import' or 'from'
-	elif line.rfind('import ', 0, c) == c-7 or line.rfind('from ', 0, c) == c-5:
-		import textplugin_imports
-		textplugin_imports.main()
 		return
 	
+	elif check_imports(line, c):
+		import textplugin_imports
+		return
+	
+	# Otherwise we suggest globals, keywords, etc.
 	list = []
+	pre = get_targets(line, c)
 	
 	for k in KEYWORDS:
 		list.append((k, 'k'))
@@ -54,6 +64,9 @@ def main():
 	
 	for k, v in get_defs(txt).items():
 		list.append((k, 'f'))
+	
+	for k in get_vars(txt):
+		list.append((k, 'v'))
 	
 	list.sort(cmp = suggest_cmp)
 	txt.suggest(list, pre[-1])

@@ -13,7 +13,7 @@ try:
 	import bpy
 	from BPyTextPlugin import *
 	OK = True
-except:
+except ImportError:
 	OK = False
 
 def main():
@@ -21,7 +21,7 @@ def main():
 	(line, c) = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(line, c) != NORMAL:
+	if get_context(txt) != NORMAL:
 		return
 	
 	pre = get_targets(line, c)
@@ -43,21 +43,24 @@ def main():
 	try:
 		for name in pre[1:-1]:
 			obj = getattr(obj, name)
-	except:
+	except AttributeError:
 		print "Attribute not found '%s' in '%s'" % (name, '.'.join(pre))
 		return
 	
 	try:
 		attr = obj.__dict__.keys()
-	except:
+	except AttributeError:
 		attr = dir(obj)
 	
 	for k in attr:
-		v = getattr(obj, k)
-		if is_module(v): t = 'm'
-		elif callable(v): t = 'f'
-		else: t = 'v'
-		list.append((k, t))
+		try:
+			v = getattr(obj, k)
+			if is_module(v): t = 'm'
+			elif callable(v): t = 'f'
+			else: t = 'v'
+			list.append((k, t))
+		except (AttributeError, TypeError): # Some attributes are not readable
+			pass
 	
 	if list != []:
 		list.sort(cmp = suggest_cmp)
