@@ -10,7 +10,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for BinaryPredicate1D instance  -----------*/
-static PyObject * BinaryPredicate1D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds);
 static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D *self);
 static PyObject * BinaryPredicate1D___repr__(BPy_BinaryPredicate1D *self);
 
@@ -58,7 +58,7 @@ PyTypeObject BinaryPredicate1D_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT, 		/* long tp_flags; */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
 
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
@@ -89,9 +89,9 @@ PyTypeObject BinaryPredicate1D_Type = {
 	NULL,                       	/* descrgetfunc tp_descr_get; */
 	NULL,                       	/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	NULL,                       	/* initproc tp_init; */
+	(initproc)BinaryPredicate1D___init__,                       	/* initproc tp_init; */
 	NULL,                       	/* allocfunc tp_alloc; */
-	BinaryPredicate1D___new__,		/* newfunc tp_new; */
+	PyType_GenericNew,		/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -124,16 +124,10 @@ PyMODINIT_FUNC BinaryPredicate1D_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-PyObject * BinaryPredicate1D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds)
+int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
-    BPy_BinaryPredicate1D *self;
-
-    self = (BPy_BinaryPredicate1D *)type->tp_alloc(type, 0);
-    if (self != NULL) {
-        self->bp1D = new BinaryPredicate1D();
-    }
-
-    return (PyObject *)self;
+	self->bp1D = new BinaryPredicate1D();
+	return 0;
 }
 
 void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D* self)

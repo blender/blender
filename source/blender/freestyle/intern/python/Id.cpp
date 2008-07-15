@@ -9,9 +9,8 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for Id instance  -----------*/
-static PyObject * Id___new__(PyTypeObject *type, PyObject *args, PyObject *kwds);
-static void Id___dealloc__(BPy_Id *self);
 static int Id___init__(BPy_Id *self, PyObject *args, PyObject *kwds);
+static void Id___dealloc__(BPy_Id *self);
 static PyObject * Id___repr__(BPy_Id* self);
 
 static PyObject * Id_getFirst( BPy_Id *self );
@@ -69,7 +68,7 @@ PyTypeObject Id_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT, 		/* long tp_flags; */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
 
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
@@ -102,7 +101,7 @@ PyTypeObject Id_Type = {
 	0,                          	/* long tp_dictoffset; */
 	(initproc)Id___init__,           /* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	Id___new__,						/* newfunc tp_new; */
+	PyType_GenericNew,						/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -134,24 +133,6 @@ PyMODINIT_FUNC Id_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-PyObject * Id___new__(PyTypeObject *type, PyObject *args, PyObject *kwds)
-{
-    BPy_Id *self;
-
-    self = (BPy_Id *)type->tp_alloc(type, 0);
-    if (self != NULL) {
-        self->id = new Id();
-    }
-
-    return (PyObject *)self;
-}
-
-void Id___dealloc__(BPy_Id* self)
-{
-	delete self->id;
-    self->ob_type->tp_free((PyObject*)self);
-}
-
 int Id___init__(BPy_Id *self, PyObject *args, PyObject *kwds)
 {
     int first = 0, second = 0;
@@ -160,10 +141,15 @@ int Id___init__(BPy_Id *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &first, &second) )
         return -1;
 
-	self->id->setFirst( first );
-	self->id->setSecond( second );
+	self->id = new Id( first, second );
 
     return 0;
+}
+
+void Id___dealloc__(BPy_Id* self)
+{
+	delete self->id;
+    self->ob_type->tp_free((PyObject*)self);
 }
 
 PyObject * Id___repr__(BPy_Id* self)

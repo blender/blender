@@ -1,6 +1,7 @@
 #include "Interface0D.h"
 
 #include "Convert.h"
+#include "Interface0D/CurvePoint.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,7 +10,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for Interface0D instance  -----------*/
-static PyObject * Interface0D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static int Interface0D___init__(BPy_Interface0D *self, PyObject *args, PyObject *kwds);
 static void Interface0D___dealloc__(BPy_Interface0D *self);
 static PyObject * Interface0D___repr__(BPy_Interface0D *self);
 
@@ -78,7 +79,7 @@ PyTypeObject Interface0D_Type = {
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
 
   /*** Flags to define presence of optional/expanded features ***/
-	Py_TPFLAGS_DEFAULT, 		/* long tp_flags; */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
 
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
@@ -109,9 +110,9 @@ PyTypeObject Interface0D_Type = {
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	NULL,                       	/* initproc tp_init; */
+	(initproc)Interface0D___init__,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	(newfunc)Interface0D___new__,		/* newfunc tp_new; */
+	PyType_GenericNew,		/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -136,23 +137,22 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 
 	if( PyType_Ready( &Interface0D_Type ) < 0 )
 		return;
+		
+	if( PyType_Ready( &CurvePoint_Type ) < 0 )
+		return;
 
 	Py_INCREF( &Interface0D_Type );
 	PyModule_AddObject(module, "Interface0D", (PyObject *)&Interface0D_Type);
+	Py_INCREF( &CurvePoint_Type );
+	PyModule_AddObject(module, "CurvePoint", (PyObject *)&CurvePoint_Type);
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-PyObject * Interface0D___new__(PyTypeObject *type, PyObject *args, PyObject *kwds)
+int Interface0D___init__(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
-    BPy_Interface0D *self;
-
-    self = (BPy_Interface0D *)type->tp_alloc(type, 0);
-    if (self != NULL) {
-        self->if0D = new Interface0D();
-    }
-
-    return (PyObject *)self;
+	self->if0D = new Interface0D();
+	return 0;
 }
 
 void Interface0D___dealloc__(BPy_Interface0D* self)

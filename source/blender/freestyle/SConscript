@@ -66,6 +66,7 @@ python_sources = [
 					prefix + '/BinaryPredicate1D.cpp',
 					prefix + '/Id.cpp',
 					prefix + '/Interface0D.cpp',
+					prefix + '/Interface0D/CurvePoint.cpp',
 					prefix + '/Interface1D.cpp'
 				]
 

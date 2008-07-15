@@ -4,7 +4,9 @@
 #include "BinaryPredicate1D.h"
 #include "Id.h"
 #include "Interface0D.h"
+#include "Interface0D/CurvePoint.h"
 #include "Interface1D.h"
+
 
 #ifdef __cplusplus
 extern "C" {
