@@ -90,12 +90,6 @@ static void addArcToNodeAdjacencyList(BNode *node, BArc *arc)
 	node->flag++;
 }
 
-void BLI_rebuildAdjacencyList(BGraph *rg)
-{
-	BLI_freeAdjacencyList(rg);
-	BLI_buildAdjacencyList(rg);
-}
-
 void BLI_buildAdjacencyList(BGraph *rg)
 {
 	BNode *node;
@@ -126,6 +120,38 @@ void BLI_buildAdjacencyList(BGraph *rg)
 		{
 			printf("error in node [%p]. Added only %i arcs out of %i\n", node, node->flag, node->degree);
 		}
+	}
+}
+
+void BLI_rebuildAdjacencyListForNode(BGraph* rg, BNode *node)
+{
+	BArc *arc;
+
+	if (node->arcs != NULL)
+	{
+		MEM_freeN(node->arcs);
+	}
+	
+	node->arcs = MEM_callocN((node->degree) * sizeof(BArc*), "adjacency list");
+	
+	/* temporary use to indicate the first index available in the lists */
+	node->flag = 0;
+
+	for(arc = rg->arcs.first; arc; arc= arc->next)
+	{
+		if (arc->head == node)
+		{
+			addArcToNodeAdjacencyList(arc->head, arc);
+		}
+		else if (arc->tail == node)
+		{
+			addArcToNodeAdjacencyList(arc->tail, arc);
+		}
+	}
+
+	if (node->degree != node->flag)
+	{
+		printf("error in node [%p]. Added only %i arcs out of %i\n", node, node->flag, node->degree);
 	}
 }
 

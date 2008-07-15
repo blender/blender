@@ -76,6 +76,7 @@ void BLI_flagArcs(BGraph *graph, int flag);
 int BLI_hasAdjacencyList(BGraph *rg);
 void BLI_buildAdjacencyList(BGraph *rg);
 void BLI_rebuildAdjacencyList(BGraph* rg);
+void BLI_rebuildAdjacencyListForNode(BGraph* rg, BNode *node);
 void BLI_freeAdjacencyList(BGraph *rg);
 
 int BLI_FlagSubgraphs(BGraph *graph);

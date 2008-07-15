@@ -328,7 +328,7 @@ ReebGraph * copyReebGraph(ReebGraph *rg)
 		copyArc(cp_rg, arc);
 	}
 	
-	BLI_rebuildAdjacencyList((BGraph*)cp_rg);
+	BLI_buildAdjacencyList((BGraph*)cp_rg);
 	
 	return cp_rg;
 }
@@ -1063,30 +1063,51 @@ void sortArcs(ReebGraph *rg)
 
 void reweightArc(ReebArc *arc, ReebNode *start_node, float start_weight)
 {
-	float delta_weight = arc->tail->weight - arc->head->weight;
+	ReebNode *node;
+	float old_weight;
+	float end_weight = start_weight + (arc->tail->weight - arc->head->weight);
+	int i;
 	
 	if (arc->tail == start_node)
 	{
 		flipArc(arc);
 	}
 	
+	node = arc->tail;
+	
+	for (i = 0; i < node->degree; i++)
+	{
+		ReebArc *next_arc = node->arcs[i];
+		
+		if (next_arc != arc) /* prevent backtracking */
+		{
+			reweightArc(next_arc, node, end_weight);
+		}
+	}
+	
+	old_weight = arc->head->weight; /* backup head weight, other arcs need it intact, it will be fixed by the source arc */
+	
 	arc->head->weight = start_weight;
-	arc->tail->weight = start_weight + delta_weight;
+	arc->tail->weight = end_weight;
 	
 	reweightBuckets(arc);
 	resizeArcBuckets(arc);
 	fillArcEmptyBuckets(arc);
 	
-	/* recurse here */
+	arc->head->weight = old_weight;
 } 
 
 void reweightSubgraph(ReebGraph *rg, ReebNode *start_node, float start_weight)
 {
-	ReebArc *arc;
-	
-	arc = start_node->arcs[0];
-	
-	reweightArc(arc, start_node, start_weight);
+	int i;
+		
+	for (i = 0; i < start_node->degree; i++)
+	{
+		ReebArc *next_arc = start_node->arcs[i];
+		
+		reweightArc(next_arc, start_node, start_weight);
+	}
+	start_node->weight = start_weight;
 }
 
 int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
@@ -1144,6 +1165,7 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 						fillArcEmptyBuckets(start_arc);
 						
 						NodeDegreeIncrement(rg, end_node);
+						BLI_rebuildAdjacencyListForNode((BGraph*)rg, (BNode*)end_node);
 						
 						BLI_removeNode((BGraph*)rg, (BNode*)start_node);
 					}
@@ -1163,16 +1185,20 @@ int joinSubgraphs(ReebGraph *rg, float threshold)
 	int nb_subgraphs;
 	int joined = 0;
 	
-	BLI_rebuildAdjacencyList((BGraph*)rg);
+	BLI_buildAdjacencyList((BGraph*)rg);
 	
 	nb_subgraphs = BLI_FlagSubgraphs((BGraph*)rg);
 	
-	joined |= joinSubgraphsEnds(rg, threshold, nb_subgraphs);
-	
-	if (joined)
+	if (nb_subgraphs > 1)
 	{
-		removeNormalNodes(rg);
-		BLI_rebuildAdjacencyList((BGraph*)rg);
+		joined |= joinSubgraphsEnds(rg, threshold, nb_subgraphs);
+		
+		if (joined)
+		{
+			verifyNodeDegree(rg);
+			removeNormalNodes(rg);
+			BLI_buildAdjacencyList((BGraph*)rg);
+		}
 	}
 	
 	return joined;
@@ -1682,7 +1708,7 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 	if (options & SKGEN_FILTER_SMART)
 	{
 		filterSmartReebGraph(rg, 0.5);
-		BLI_rebuildAdjacencyList((BGraph*)rg);
+		BLI_buildAdjacencyList((BGraph*)rg);
 		filterCyclesReebGraph(rg, 0.5);
 	}
 	
@@ -1698,7 +1724,7 @@ void finalizeGraph(ReebGraph *rg, char passes, char method)
 {
 	int i;
 	
-	BLI_rebuildAdjacencyList((BGraph*)rg);
+	BLI_buildAdjacencyList((BGraph*)rg);
 
 	sortNodes(rg);
 	
@@ -3162,9 +3188,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	/* Filtering might have created degree 2 nodes, so remove them */
 	removeNormalNodes(rg);
 	
-	joinSubgraphs(rg, 1.5);
-	
-	BLI_rebuildAdjacencyList((BGraph*)rg);
+	joinSubgraphs(rg, 1.0);
 	
 	/* calc length before copy, so we have same length on all levels */
 	BLI_calcGraphLength((BGraph*)rg);
