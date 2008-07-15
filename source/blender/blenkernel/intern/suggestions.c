@@ -22,13 +22,14 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Ian Thompson.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -36,9 +37,19 @@
 #include "BKE_text.h"
 #include "BKE_suggestions.h"
 
-static SuggList suggestions= {NULL, NULL, NULL, NULL};
+static SuggList suggestions= {NULL, NULL, NULL, NULL, NULL};
 static Text *suggText = NULL;
+static SuggItem *lastInsert= NULL;
 
+static suggest_cmp(const char *first, const char *second, int len) {	
+	int cmp, i;
+	for (cmp=0, i=0; i<len; i++) {
+		if (cmp= toupper(first[i]) - toupper(second[i])) {
+			break;
+		}
+	}
+	return cmp;
+}
 void free_suggestions() {
 	SuggItem *item, *prev;
 	for (item = suggestions.last; item; item=prev) {
@@ -66,17 +77,17 @@ void suggest_add(const char *name, char type) {
 
 	if (!suggestions.first) {
 		suggestions.first = suggestions.last = newitem;
-		suggestions.selected = newitem;
 	} else {
 		newitem->prev = suggestions.last;
 		suggestions.last->next = newitem;
 		suggestions.last = newitem;
 	}
+	suggestions.selected = NULL;
 }
 
 void suggest_prefix(const char *prefix) {
 	SuggItem *match, *first, *last;
-	int cmp, len = strlen(prefix);
+	int cmp, len = strlen(prefix), i;
 
 	if (!suggestions.first) return;
 	if (len==0) {
@@ -87,7 +98,7 @@ void suggest_prefix(const char *prefix) {
 	
 	first = last = NULL;
 	for (match=suggestions.first; match; match=match->next) {
-		cmp = strncmp(prefix, match->name, len);
+		cmp = suggest_cmp(prefix, match->name, len);
 		if (cmp==0) {
 			if (!first)
 				first = match;
@@ -103,7 +114,7 @@ void suggest_prefix(const char *prefix) {
 		suggestions.selected = suggestions.firstmatch = first;
 		suggestions.lastmatch = last;
 	} else {
-		suggestions.selected = suggestions.firstmatch = suggestions.lastmatch = NULL;
+		suggestions.firstmatch = suggestions.lastmatch = NULL;
 	}
 }
 

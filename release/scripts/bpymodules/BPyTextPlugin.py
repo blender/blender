@@ -26,7 +26,7 @@ def suggest_cmp(x, y):
 	"""Use this method when sorting a list of suggestions.
 	"""
 	
-	return cmp(x[0], y[0])
+	return cmp(x[0].upper(), y[0].upper())
 
 def cached_generate_tokens(txt, since=1):
 	"""A caching version of generate tokens for multiple parsing of the same

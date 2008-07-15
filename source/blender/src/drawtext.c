@@ -108,7 +108,7 @@ static int check_specialvars(char *string);
 static int check_identifier(char ch);
 
 static void get_suggest_prefix(Text *text);
-static void confirm_suggestion(Text *text);
+static void confirm_suggestion(Text *text, int skipleft);
 
 static void *last_txt_find_string= NULL;
 static double last_check_time= 0;
@@ -1026,7 +1026,7 @@ static int do_suggest_select(SpaceText *st)
 	last = suggest_last();
 	sel = suggest_get_selected();
 
-	if (!sel || !last || !first)
+	if (!last || !first)
 		return 0;
 
 	/* Count the visible lines to the cursor */
@@ -1100,7 +1100,10 @@ void draw_suggestion_list(SpaceText *st) {
 	BIF_ThemeColor(TH_BACK);
 	glRecti(x, y, x+boxw, y-boxh);
 
+	/* Set the top 'item' of the visible list */
 	for (i=0, item=sel; i<3 && item && item!=first; i++, item=item->prev);
+	if (!item)
+		item = first;
 
 	for (i=0; i<SUGG_LIST_SIZE && item; i++, item=item->next) {
 
@@ -1653,15 +1656,15 @@ static void get_suggest_prefix(Text *text) {
 	len= text->curc-i;
 	if (len > 255) {
 		printf("Suggestion prefix too long\n");
-		return;
+		len = 255;
 	}
 	strncpy(tmp, line+i, len);
 	tmp[len]= '\0';
 	suggest_prefix(tmp);
 }
 
-static void confirm_suggestion(Text *text) {
-	int i, len;
+static void confirm_suggestion(Text *text, int skipleft) {
+	int i, over=0;
 	char *line;
 	SuggItem *sel;
 
@@ -1672,12 +1675,25 @@ static void confirm_suggestion(Text *text) {
 	if (!sel) return;
 
 	line= text->curl->line;
-	for (i=text->curc-1; i>=0; i--)
+	i=text->curc-skipleft-1;
+	while (i>=0) {
 		if (!check_identifier(line[i]))
 			break;
-	i++;
-	len= text->curc-i;
-	txt_insert_buf(text, sel->name+len);
+		over++;
+		i--;
+	}
+
+	for (i=0; i<skipleft; i++)
+		txt_move_left(text, 0);
+	for (i=0; i<over; i++)
+		txt_move_left(text, 1);
+
+	txt_insert_buf(text, sel->name);
+	
+	for (i=0; i<skipleft; i++)
+		txt_move_right(text, 0);
+
+	suggest_clear_text();
 }
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
@@ -1752,7 +1768,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 	}
 
-	suggesting = suggest_is_active(text);
+	suggesting = st->showsyntax && suggest_is_active(text);
 	
 	if (event==LEFTMOUSE) {
 		if (val) {
@@ -1781,7 +1797,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
 			if (do_suggest_select(st)) {
-				confirm_suggestion(text);
+				confirm_suggestion(text, 0);
 				do_draw= 1;
 				do_suggest= 0;
 			} else if (U.uiflag & USER_MMB_PASTE) {
@@ -1834,12 +1850,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
-			if (suggesting && ispunct(ascii)) {
-				confirm_suggestion(text);
-				if (st->showsyntax) get_format_string(st);
-				do_suggest= 0;
-			} else {
-				do_suggest= 1;
+			if (suggesting) {
+				if (ispunct(ascii) || check_whitespace(ascii)) {
+					confirm_suggestion(text, 1);
+					if (st->showsyntax) get_format_string(st);
+					do_suggest= 0;
+				} else {
+					do_suggest= 1;
+				}
 			}
 		}
 	} else if (val) {
@@ -2110,12 +2128,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case ESCKEY:
 			do_suggest= -1;
 			break;
-		case SPACEKEY:
-			if (suggesting) {
-				confirm_suggestion(text);
-				if (st->showsyntax) get_format_string(st);
-			}
-			break;
 		case TABKEY:
 			if (text && text->id.lib) {
 				error_libdata();
@@ -2146,7 +2158,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			}
 			if (suggesting) {
-				confirm_suggestion(text);
+				confirm_suggestion(text, 0);
 				if (st->showsyntax) get_format_string(st);
 				break;
 			}
@@ -2174,14 +2186,24 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
 				txt_backspace_word(text);
+				do_suggest= -1;
 			} else {
+				/* Work out which char we are about to delete */
+				if (text && text->curl && text->curc > 0) {
+					char ch= text->curl->line[text->curc-1];
+					if (ispunct(ch) || check_whitespace(ch))
+						do_suggest= -1;
+					else
+						do_suggest= 1;
+				} else {
+					do_suggest= -1;
+				}
 				txt_backspace_char(text);
 			}
 			set_tabs(text);
 			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
-			do_suggest= 1;
 			break;
 		case DELKEY:
 			if (text && text->id.lib) {
@@ -2206,8 +2228,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case DOWNARROWKEY:
 			if (suggesting) {
 				SuggItem *sel = suggest_get_selected();
-				if (sel && sel!=suggest_last() && sel->next)
+				if (!sel) {
+					suggest_set_selected(suggest_first());
+				} else if (sel!=suggest_last() && sel->next) {
 					suggest_set_selected(sel->next);
+				}
 				do_suggest= 0;
 				break;
 			}
@@ -2255,6 +2280,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (suggesting) {
 				int i;
 				SuggItem *sel = suggest_get_selected();
+				if (!sel)
+					sel = suggest_first();
 				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=suggest_last() && sel->next; i++, sel=sel->next)
 					suggest_set_selected(sel->next);
 				do_suggest= 0;
@@ -2301,8 +2328,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			if (suggesting) {
 				SuggItem *sel = suggest_get_selected();
-				if (sel && sel!=suggest_last() && sel->next)
+				if (!sel) {
+					suggest_set_selected(suggest_first());
+				} else if (sel && sel!=suggest_last() && sel->next) {
 					suggest_set_selected(sel->next);
+				}
 				do_suggest= 0;
 			} else {
 				screen_skip(st, U.wheellinescroll);
@@ -2310,6 +2340,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_draw= 1;
 			break;
 		default:
+			/* We don't want all sorts of events closing the suggestions box */
 			do_suggest= 0;
 		}
 	}
@@ -2578,6 +2609,12 @@ static int check_identifier(char ch) {
 	if (ch <= 'Z' || ch == '_') return 1;
 	if (ch < 'a') return 0;
 	if (ch <= 'z') return 1;
+	return 0;
+}
+
+static int check_whitespace(char ch) {
+	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
+		return 1;
 	return 0;
 }
 
