@@ -513,7 +513,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				} else {
 					editmesh_deselect_by_material(G.obedit->actcol-1);
 				}
-				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 				nu= editNurb.first;
@@ -553,8 +552,9 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					nu= nu->next;
 				}
 				BIF_undo_push("Select material index");
-				allqueue(REDRAWVIEW3D, 0);
 			}
+			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		countall();
 		break;

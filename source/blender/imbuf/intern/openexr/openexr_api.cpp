@@ -451,7 +451,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 	openexr_header_compression(&header, compress);
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
-	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
+	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43 and newer"));
 	
 	data->ofile = new OutputFile(filename, header);
 }

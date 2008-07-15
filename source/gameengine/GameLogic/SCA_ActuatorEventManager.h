@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: SCA_ActuatorEventManager.h 15444 2008-07-05 17:05:05Z lukep $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,33 +26,27 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef __KX_PYTHON_INIT
-#define __KX_PYTHON_INIT
+#ifndef __KX_ACTUATOREVENTMANAGER
+#define __KX_ACTUATOREVENTMANAGER
 
-#include "KX_Python.h"
-#include "STR_String.h"
+#include "SCA_EventManager.h"
 
-typedef enum {
-	psl_Lowest = 0,
-	psl_Highest
-} TPythonSecurityLevel;
+#include <vector>
 
-extern bool gUseVisibilityTemp;
+using namespace std;
 
+class SCA_ActuatorEventManager : public SCA_EventManager
+{
+	class SCA_LogicManager*	m_logicmgr;
 
-PyObject*	initGameLogic(class KX_Scene* ketsjiscene);
-PyObject*	initGameKeys();
-PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);
-PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level);
-void		exitGamePlayerPythonScripting();
-PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
-void		exitGamePythonScripting();
+public:
+	SCA_ActuatorEventManager(class SCA_LogicManager* logicmgr);
+	virtual ~SCA_ActuatorEventManager();
+	virtual void NextFrame();
+	virtual void UpdateFrame();
+	virtual void	RegisterSensor(SCA_ISensor* sensor);
+	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
+};
 
-void PHY_SetActiveScene(class KX_Scene* scene);
-class KX_Scene* PHY_GetActiveScene();
-#include "MT_Vector3.h"
-
-void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
-
-#endif //__KX_PYTHON_INIT
+#endif //__KX_ACTUATOREVENTMANAGER
 
