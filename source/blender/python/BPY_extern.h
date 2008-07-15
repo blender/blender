@@ -48,6 +48,7 @@ struct bPythonConstraint; /* DNA_constraint_types.h */
 struct bConstraintOb; /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct Script;				/* DNA_screen_types.h */
+struct BPyMenu;
 #ifdef __cplusplus
 extern "C" {
 #endif
