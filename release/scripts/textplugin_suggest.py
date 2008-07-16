@@ -33,6 +33,9 @@ def check_imports(line, c):
 
 def main():
 	txt = bpy.data.texts.active
+	if not txt:
+		return
+	
 	(line, c) = current_line(txt)
 	
 	# Check we are in a normal context
