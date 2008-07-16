@@ -43,10 +43,12 @@ def main():
 	
 	if check_membersuggest(line, c):
 		import textplugin_membersuggest
+		textplugin_membersuggest.main()
 		return
 	
 	elif check_imports(line, c):
 		import textplugin_imports
+		textplugin_imports.main()
 		return
 	
 	# Otherwise we suggest globals, keywords, etc.
@@ -71,5 +73,6 @@ def main():
 	list.sort(cmp = suggest_cmp)
 	txt.suggest(list, pre[-1])
 
-if OK:
+# Check we are running as a script and not imported as a module
+if __name__ == "__main__" and OK:
 	main()

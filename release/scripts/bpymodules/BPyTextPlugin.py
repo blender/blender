@@ -1,9 +1,9 @@
-import bpy
+import bpy, sys
 import __builtin__, tokenize
 from Blender.sys import time
 from tokenize import generate_tokens, TokenError
-# TODO: Remove the dependency for a full Python installation. Currently only the
-# tokenize module is required 
+
+# TODO: Remove the dependency for a full Python installation.
 
 # Context types
 NORMAL = 0
@@ -22,6 +22,23 @@ KEYWORDS = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global',
 _token_cache = None
 _cache_update = 0
 
+ModuleType = type(__builtin__)
+_modules = dict([(n, None) for n in sys.builtin_module_names])
+_modules_updated = 0
+
+def get_modules(since=1):
+	"""Returns the set of built-in modules and any modules that have been
+	imported into the system upto 'since' seconds ago.
+	"""
+	
+	global _modules, _modules_updated
+	
+	t = time()
+	if _modules_updated < t - since:
+		_modules.update(sys.modules)
+		_modules_updated = t
+	return _modules.keys()
+
 def suggest_cmp(x, y):
 	"""Use this method when sorting a list of suggestions.
 	"""
@@ -35,10 +52,11 @@ def cached_generate_tokens(txt, since=1):
 	
 	global _token_cache, _cache_update
 	
-	if _cache_update < time() - since:
+	t = time()
+	if _cache_update < t - since:
 		txt.reset()
 		_token_cache = [g for g in generate_tokens(txt.readline)]
-		_cache_update = time()
+		_cache_update = t
 	return _token_cache
 
 def get_module(name):
@@ -52,12 +70,6 @@ def get_module(name):
 		mod = getattr(mod, comp)
 	return mod
 
-def is_module(m):
-	"""Taken from the inspect module of the standard Python installation.
-	"""
-	
-	return isinstance(m, type(bpy))
-
 def type_char(v):
 	"""Returns the character used to signify the type of a variable. Use this
 	method to identify the type character for an item in a suggestion list.
@@ -68,7 +80,7 @@ def type_char(v):
 	  'v' if the parameter is variable or otherwise indeterminable
 	"""
 	
-	if is_module(v):
+	if isinstance(v, ModuleType):
 		return 'm'
 	elif callable(v):
 		return 'f'
@@ -215,7 +227,7 @@ def get_imports(txt):
 			if string == 'as':
 				impname = '.'.join(tmp)
 				step = 3
-			elif type == tokenize.NAME:
+			elif type == tokenize.NAME or string == '*':
 				tmp.append(string)
 			elif string != '.':
 				impname = '.'.join(tmp)

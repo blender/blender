@@ -55,10 +55,7 @@ def main():
 	for k in attr:
 		try:
 			v = getattr(obj, k)
-			if is_module(v): t = 'm'
-			elif callable(v): t = 'f'
-			else: t = 'v'
-			list.append((k, t))
+			list.append((k, type_char(v)))
 		except (AttributeError, TypeError): # Some attributes are not readable
 			pass
 	
@@ -66,5 +63,6 @@ def main():
 		list.sort(cmp = suggest_cmp)
 		txt.suggest(list, pre[-1])
 
-if OK:
+# Check we are running as a script and not imported as a module
+if __name__ == "__main__" and OK:
 	main()

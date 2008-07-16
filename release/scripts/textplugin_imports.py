@@ -31,13 +31,13 @@ def main():
 		# Check instead for straight 'import'
 		pos2 = line.rfind('import ', 0, c)
 		if pos2 != -1 and (pos2 == c-7 or (pos2 < c-7 and line[c-2]==',')):
-			items = [(m, 'm') for m in sys.builtin_module_names]
+			items = [(m, 'm') for m in get_modules()]
 			items.sort(cmp = suggest_cmp)
 			txt.suggest(items, '')
 	
 	# Immediate 'from' before cursor
 	elif pos == c-5:
-		items = [(m, 'm') for m in sys.builtin_module_names]
+		items = [(m, 'm') for m in get_modules()]
 		items.sort(cmp = suggest_cmp)
 		txt.suggest(items, '')
 	
@@ -60,12 +60,10 @@ def main():
 			
 			items = [('*', 'k')]
 			for (k,v) in mod.__dict__.items():
-				if is_module(v): t = 'm'
-				elif callable(v): t = 'f'
-				else: t = 'v'
-				items.append((k, t))
+				items.append((k, type_char(v)))
 			items.sort(cmp = suggest_cmp)
 			txt.suggest(items, '')
 
-if OK:
+# Check we are running as a script and not imported as a module
+if __name__ == "__main__" and OK:
 	main()
