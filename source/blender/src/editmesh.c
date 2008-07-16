@@ -1059,7 +1059,11 @@ void make_editMesh()
 	EM_hide_reset();
 	/* sets helper flags which arent saved */
 	EM_fgon_flags();
-
+	
+	if (EM_get_actFace(0)==NULL) {
+		EM_set_actFace(NULL); /* will use the first face, this is so we alwats have an active face */
+	}
+		
 	/* vertex coordinates change with cache edit, need to recalc */
 	if(cacheedit)
 		recalc_editnormals();

@@ -72,7 +72,12 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 /* this replaces the active flag used in uv/face mode */
 void EM_set_actFace(EditFace *efa)
 {
-	G.editMesh->act_face = efa;
+	if (efa) {
+		G.editMesh->act_face = efa;
+	} else {
+		/* True or NULL if we have no faces, so we always have an active face */
+		G.editMesh->act_face = G.editMesh->faces.first;
+	}
 }
 
 EditFace * EM_get_actFace(int sloppy)
