@@ -508,6 +508,11 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 // hierarchy that's because first ALL bricks must exist in the new
 // replica of the hierarchy in order to make cross-links work properly
 // !
+// It is VERY important that the order of sensors and actuators in
+// the replicated object is preserved: it is is used to reconnect the logic.
+// This method is more robust then using the bricks name in case of complex 
+// group replication. The replication of logic bricks is done in 
+// SCA_IObject::ReParentLogic(), make sure it preserves the order of the bricks.
 void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 {
 	// also relink the controller to sensors/actuators
@@ -530,37 +535,36 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		for (vector<SCA_ISensor*>::iterator its = linkedsensors.begin();!(its==linkedsensors.end());its++)
 		{
 			SCA_ISensor* oldsensor = (*its);
-			STR_String name = oldsensor->GetName();
-			//find this name in the list
-			SCA_ISensor* newsensor = newobj->FindSensor(name);
+			SCA_IObject* oldsensorobj = oldsensor->GetParent();
+			SCA_IObject* newsensorobj = NULL;
 		
-			if (newsensor)
+			// the original owner of the sensor has been replicated?
+			void **h_obj = m_map_gameobject_to_replica[oldsensorobj];
+			if (h_obj)
+				newsensorobj = (SCA_IObject*)(*h_obj);
+			if (!newsensorobj)
 			{
-				// relink this newsensor to the controller
-				m_logicmgr->RegisterToSensor(cont,newsensor);
+				// no, then the sensor points outside the hierachy, keep it the same
+				m_logicmgr->RegisterToSensor(cont,oldsensor);
 			}
 			else
 			{
-				// it can be linked somewhere in the hierarchy or...
-				for (vector<KX_GameObject*>::iterator git = m_logicHierarchicalGameObjects.begin();
-				!(git==m_logicHierarchicalGameObjects.end());++git)
-				{
-					newsensor = (*git)->FindSensor(name);
-					if (newsensor)
-						break;
-				} 
+				// yes, then the new sensor has the same position
+				SCA_SensorList& sensorlist = oldsensorobj->GetSensors();
+				SCA_SensorList::iterator sit;
+				SCA_ISensor* newsensor = NULL;
+				int sensorpos;
 
-				if (newsensor)
+				for (sensorpos=0, sit=sensorlist.begin(); sit!=sensorlist.end(); sit++, sensorpos++)
 				{
-					// relink this newsensor to the controller somewhere else within this
-					// hierarchy
-					m_logicmgr->RegisterToSensor(cont,newsensor);
+					if ((*sit) == oldsensor) 
+					{
+						newsensor = newsensorobj->GetSensors().at(sensorpos);
+						break;
+					}
 				}
-				else
-				{
-					// must be an external sensor, so...
-					m_logicmgr->RegisterToSensor(cont,oldsensor);
-				}
+				assert(newsensor != NULL);
+				m_logicmgr->RegisterToSensor(cont,newsensor);
 			}
 		}
 		
@@ -568,38 +572,38 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		for (vector<SCA_IActuator*>::iterator ita = linkedactuators.begin();!(ita==linkedactuators.end());ita++)
 		{
 			SCA_IActuator* oldactuator = (*ita);
-			STR_String name = oldactuator->GetName();
-			//find this name in the list
-			SCA_IActuator* newactuator = newobj->FindActuator(name);
-			if (newactuator)
+			SCA_IObject* oldactuatorobj = oldactuator->GetParent();
+			SCA_IObject* newactuatorobj = NULL;
+
+			// the original owner of the sensor has been replicated?
+			void **h_obj = m_map_gameobject_to_replica[oldactuatorobj];
+			if (h_obj)
+				newactuatorobj = (SCA_IObject*)(*h_obj);
+
+			if (!newactuatorobj)
 			{
-				// relink this newsensor to the controller
-				m_logicmgr->RegisterToActuator(cont,newactuator);
-				newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
+				// no, then the sensor points outside the hierachy, keep it the same
+				m_logicmgr->RegisterToActuator(cont,oldactuator);
 			}
 			else
 			{
-				// it can be linked somewhere in the hierarchy or...
-				for (vector<KX_GameObject*>::iterator git = m_logicHierarchicalGameObjects.begin();
-				!(git==m_logicHierarchicalGameObjects.end());++git)
-				{
-					newactuator= (*git)->FindActuator(name);
-					if (newactuator)
-						break;
-				} 
+				// yes, then the new sensor has the same position
+				SCA_ActuatorList& actuatorlist = oldactuatorobj->GetActuators();
+				SCA_ActuatorList::iterator ait;
+				SCA_IActuator* newactuator = NULL;
+				int actuatorpos;
 
-				if (newactuator)
+				for (actuatorpos=0, ait=actuatorlist.begin(); ait!=actuatorlist.end(); ait++, actuatorpos++)
 				{
-					// relink this actuator to the controller somewhere else within this
-					// hierarchy
-					m_logicmgr->RegisterToActuator(cont,newactuator);
-					newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
+					if ((*ait) == oldactuator) 
+					{
+						newactuator = newactuatorobj->GetActuators().at(actuatorpos);
+						break;
+					}
 				}
-				else
-				{
-					// must be an external actuator, so...
-					m_logicmgr->RegisterToActuator(cont,oldactuator);
-				}
+				assert(newactuator != NULL);
+				m_logicmgr->RegisterToActuator(cont,newactuator);
+				newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
 			}
 		}
 	}
