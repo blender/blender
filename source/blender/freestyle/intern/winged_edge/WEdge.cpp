@@ -70,7 +70,7 @@ WVertex::WVertex(WVertex& iBrother)
   ((vertexdata*)(iBrother.userdata))->_copy = this;
 }
 
-WVertex* WVertex::dupplicate()
+WVertex* WVertex::duplicate()
 {
   WVertex *clone = new WVertex(*this);
   return clone;
@@ -180,7 +180,7 @@ WOEdge::WOEdge(WOEdge& iBrother)
     ((oedgedata*)(iBrother.userdata))->_copy = this;
 }
 
-WOEdge * WOEdge::dupplicate()
+WOEdge * WOEdge::duplicate()
 {
   WOEdge *clone = new WOEdge(*this);
   return clone;
@@ -221,10 +221,10 @@ WEdge::WEdge(WEdge& iBrother)
 
   if(NULL != aoedge)
     //_paOEdge = new WOEdge(*aoedge);
-    _paOEdge = aoedge->dupplicate();
+    _paOEdge = aoedge->duplicate();
   if(NULL != boedge)
     //_pbOEdge = new WOEdge(*boedge);
-    _pbOEdge = boedge->dupplicate();
+    _pbOEdge = boedge->duplicate();
   
   _nOEdges = iBrother.GetNumberOfOEdges();
   _Id = iBrother.GetId();
@@ -232,7 +232,7 @@ WEdge::WEdge(WEdge& iBrother)
   ((edgedata*)(iBrother.userdata))->_copy = this;
 }
 
-WEdge * WEdge::dupplicate()
+WEdge * WEdge::duplicate()
 {
   WEdge *clone = new WEdge(*this);
   return clone;
@@ -260,7 +260,7 @@ WFace::WFace(WFace& iBrother)
   ((facedata*)(iBrother.userdata))->_copy = this;
 }
 
-WFace * WFace::dupplicate()
+WFace * WFace::duplicate()
 {
   WFace * clone = new WFace(*this);
   return clone;
@@ -466,7 +466,7 @@ WShape * WFace::getShape()
 LIB_WINGED_EDGE_EXPORT
 unsigned WShape::_SceneCurrentId = 0;
 
-WShape * WShape::dupplicate()
+WShape * WShape::duplicate()
 {
   WShape *clone = new WShape(*this);
   return clone;
@@ -485,7 +485,7 @@ WShape::WShape(WShape& iBrother)
   v++)
   {
     //WVertex *newVertex = new WVertex(*(*v));
-    WVertex *newVertex = (*v)->dupplicate();
+    WVertex *newVertex = (*v)->duplicate();
 
     newVertex->SetShape(this);
     AddVertex(newVertex);
@@ -498,7 +498,7 @@ WShape::WShape(WShape& iBrother)
   e++)
   {
     //WEdge *newEdge = new WEdge(*(*e));
-    WEdge *newEdge = (*e)->dupplicate();
+    WEdge *newEdge = (*e)->duplicate();
     AddEdge(newEdge);
   }
 
@@ -509,7 +509,7 @@ WShape::WShape(WShape& iBrother)
   f++)
   {
     //WFace *newFace = new WFace(*(*f));
-    WFace *newFace = (*f)->dupplicate();
+    WFace *newFace = (*f)->duplicate();
     AddFace(newFace);
   }
 

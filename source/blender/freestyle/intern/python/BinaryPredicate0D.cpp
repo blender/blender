@@ -153,7 +153,7 @@ PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *ar
 	BPy_Interface0D *obj1, *obj2;
 	bool b;
 
-	if( !PyArg_ParseTuple(args,(char *)"OO:BinaryPredicate0D___call__", &obj1, obj2) ) {
+	if( !PyArg_ParseTuple(args,(char *)"OO", &obj1, &obj2) ) {
 		cout << "ERROR: BinaryPredicate0D___call__ " << endl;		
 		return NULL;
 	}

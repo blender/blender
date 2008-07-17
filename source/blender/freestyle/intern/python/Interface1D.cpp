@@ -183,7 +183,7 @@ PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self ) {
 PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args) {
 	int timestamp = 0 ;
 
-	if( !PyArg_ParseTuple(args, (char *)"i:Interface1D_setTimeStamp", &timestamp) ) {
+	if( !PyArg_ParseTuple(args, (char *)"i", &timestamp) ) {
 		cout << "ERROR: Interface1D_setTimeStamp" << endl;
 		Py_RETURN_NONE;
 	}

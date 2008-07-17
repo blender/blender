@@ -12,14 +12,12 @@ extern "C" {
 static int Id___init__(BPy_Id *self, PyObject *args, PyObject *kwds);
 static void Id___dealloc__(BPy_Id *self);
 static PyObject * Id___repr__(BPy_Id* self);
+static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid);
 
 static PyObject * Id_getFirst( BPy_Id *self );
 static PyObject * Id_getSecond( BPy_Id *self);
 static PyObject * Id_setFirst( BPy_Id *self , PyObject *args);
 static PyObject * Id_setSecond( BPy_Id *self , PyObject *args);
-static PyObject * Id___eq__( BPy_Id *self , PyObject *args);
-static PyObject * Id___ne__( BPy_Id *self , PyObject *args);
-static PyObject * Id___lt__( BPy_Id *self , PyObject *args);
 
 /*----------------------Id instance definitions ----------------------------*/
 static PyMethodDef BPy_Id_methods[] = {
@@ -27,9 +25,6 @@ static PyMethodDef BPy_Id_methods[] = {
 	{"getSecond", ( PyCFunction ) Id_getSecond, METH_NOARGS, "Returns the second Id number" },
 	{"setFirst", ( PyCFunction ) Id_setFirst, METH_VARARGS, "Sets the first number constituing the Id" },
 	{"setSecond", ( PyCFunction ) Id_setSecond, METH_VARARGS, "Sets the second number constituing the Id" },
-	{"__eq__", ( PyCFunction ) Id___eq__, METH_VARARGS, "Operator ==" },
-	{"__ne__", ( PyCFunction ) Id___ne__, METH_VARARGS, "Operator !=" },
-	{"__lt__", ( PyCFunction ) Id___lt__, METH_VARARGS, "Operator <" },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -80,7 +75,7 @@ PyTypeObject Id_Type = {
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)Id_RichCompare,                   /* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */
@@ -170,7 +165,7 @@ PyObject *Id_getSecond( BPy_Id *self) {
 PyObject *Id_setFirst( BPy_Id *self , PyObject *args) {
 	unsigned int i;
 
-	if( !PyArg_ParseTuple(args, (char *)"i:Id_setFirst", i) ) {
+	if( !PyArg_ParseTuple(args, (char *)"i", &i) ) {
 		cout << "ERROR: Id_setFirst" << endl;
 		Py_RETURN_NONE;
 	}
@@ -184,7 +179,7 @@ PyObject *Id_setFirst( BPy_Id *self , PyObject *args) {
 PyObject *Id_setSecond( BPy_Id *self , PyObject *args) {
 	unsigned int i;
 
-	if( !PyArg_ParseTuple(args, (char *)"i:Id_setSecond", i) ) {
+	if( !PyArg_ParseTuple(args, (char *)"i", &i) ) {
 		cout << "ERROR: Id_setSecond" << endl;
 		Py_RETURN_NONE;
 	}
@@ -194,38 +189,29 @@ PyObject *Id_setSecond( BPy_Id *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
-PyObject *Id___eq__( BPy_Id *self , PyObject *args) {
-	BPy_Id * other = 0 ;
-
-	if( !PyArg_ParseTuple(args, (char *)"O:Id___eq__", &other) ) {
-		cout << "ERROR: Id___eq__" << endl;
-		Py_RETURN_NONE;
+PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid) {
+	switch(opid){
+		case Py_LT:
+			return PyBool_from_bool( o1->id->operator<(*(o2->id)) );
+			break;
+		case Py_LE:
+			return PyBool_from_bool( o1->id->operator<(*(o2->id)) || o1->id->operator<(*(o2->id)) );
+			break;
+		case Py_EQ:
+			return PyBool_from_bool( o1->id->operator==(*(o2->id)) );
+			break;
+		case Py_NE:
+			return PyBool_from_bool( o1->id->operator!=(*(o2->id)) );
+			break;
+		case Py_GT:
+			return PyBool_from_bool(!( o1->id->operator<(*(o2->id)) || o1->id->operator<(*(o2->id)) ));
+			break;
+		case Py_GE:
+			return PyBool_from_bool(!( o1->id->operator<(*(o2->id)) ));
+			break;
 	}
 	
-	return PyBool_from_bool( self->id == other->id );
-}
-
-
-PyObject *Id___ne__(BPy_Id *self , PyObject *args) {
-	BPy_Id * other = 0 ;
-
-	if( !PyArg_ParseTuple(args, (char *)"O:Id___ne__", &other) ) {
-		cout << "ERROR: Id___ne__" << endl;
-		Py_RETURN_NONE;
-	}
-	
-	return PyBool_from_bool( self->id != other->id );
-}
-
-PyObject *Id___lt__(BPy_Id *self , PyObject *args) {
-	BPy_Id * other = 0 ;
-
-	if( !PyArg_ParseTuple(args, (char *)"O:Id___lt__", &other) ) {
-		cout << "ERROR: Id___lt__" << endl;
-		Py_RETURN_NONE;
-	}
-	
-	return PyBool_from_bool( self->id <= other->id );
+	Py_RETURN_NONE;
 }
 
 

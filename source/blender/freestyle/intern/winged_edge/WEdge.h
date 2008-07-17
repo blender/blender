@@ -68,7 +68,7 @@ public:
   inline WVertex(const Vec3r &v) {_Id = 0; _Vertex = v; userdata = NULL; _Shape = NULL;_Smooth=true;_Border=-1;}
   /*! Copy constructor */
   WVertex(WVertex& iBrother);
-  virtual WVertex * dupplicate(); 
+  virtual WVertex * duplicate(); 
   virtual ~WVertex() {}
 
   /*! accessors */
@@ -314,7 +314,7 @@ public:
 
   /*! copy constructor */
   WOEdge(WOEdge& iBrother);
-  virtual WOEdge * dupplicate();
+  virtual WOEdge * duplicate();
 
   /*! accessors */
   //  inline WOEdge *GetaCWEdge() {return _paCWEdge;}
@@ -393,7 +393,7 @@ public:
 
   /*! Copy constructor */
   WEdge(WEdge& iBrother);
-  virtual WEdge * dupplicate();
+  virtual WEdge * duplicate();
 
   virtual ~WEdge()
   {
@@ -502,7 +502,7 @@ public:
   inline WFace() {userdata = NULL;_MaterialIndex = 0;}
   /*! copy constructor */
   WFace(WFace& iBrother);
-  virtual WFace * dupplicate();
+  virtual WFace * duplicate();
   virtual ~WFace() {}
 
   /*! accessors */
@@ -709,7 +709,7 @@ public:
   inline WShape() {_meanEdgeSize = 0;_Id = _SceneCurrentId; _SceneCurrentId++;}
   /*! copy constructor */
   WShape(WShape& iBrother);
-  virtual WShape * dupplicate();
+  virtual WShape * duplicate();
   virtual ~WShape()
   {
     if(_EdgeList.size() != 0)

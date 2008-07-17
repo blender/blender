@@ -29688,7 +29688,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_SVertex_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SVertex_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   SVertex *arg1 = (SVertex *) 0 ;
   SVertex *result = 0 ;
@@ -29696,15 +29696,15 @@ SWIGINTERN PyObject *_wrap_SVertex_dupplicate(PyObject *SWIGUNUSEDPARM(self), Py
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:SVertex_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:SVertex_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SVertex, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SVertex_dupplicate" "', argument " "1"" of type '" "SVertex *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SVertex_duplicate" "', argument " "1"" of type '" "SVertex *""'"); 
   }
   arg1 = reinterpret_cast< SVertex * >(argp1);
   {
     try {
-      result = (SVertex *)(arg1)->dupplicate();
+      result = (SVertex *)(arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -31592,7 +31592,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_FEdge_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_FEdge_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   FEdge *arg1 = (FEdge *) 0 ;
   FEdge *result = 0 ;
@@ -31600,15 +31600,15 @@ SWIGINTERN PyObject *_wrap_FEdge_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyOb
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:FEdge_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:FEdge_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_FEdge, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdge_dupplicate" "', argument " "1"" of type '" "FEdge *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdge_duplicate" "', argument " "1"" of type '" "FEdge *""'"); 
   }
   arg1 = reinterpret_cast< FEdge * >(argp1);
   {
     try {
-      result = (FEdge *)(arg1)->dupplicate();
+      result = (FEdge *)(arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -34543,7 +34543,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_FEdgeSVertexIterator_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_FEdgeSVertexIterator_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   FEdgeInternal::SVertexIterator *arg1 = (FEdgeInternal::SVertexIterator *) 0 ;
   SVertex *result = 0 ;
@@ -34551,15 +34551,15 @@ SWIGINTERN PyObject *_wrap_FEdgeSVertexIterator_dupplicate(PyObject *SWIGUNUSEDP
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:FEdgeSVertexIterator_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:FEdgeSVertexIterator_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_FEdgeInternal__SVertexIterator, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdgeSVertexIterator_dupplicate" "', argument " "1"" of type '" "FEdgeInternal::SVertexIterator *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdgeSVertexIterator_duplicate" "', argument " "1"" of type '" "FEdgeInternal::SVertexIterator *""'"); 
   }
   arg1 = reinterpret_cast< FEdgeInternal::SVertexIterator * >(argp1);
   {
     try {
-      result = (SVertex *)(*arg1)->dupplicate();
+      result = (SVertex *)(*arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -36256,7 +36256,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_FEdgeSharp_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_FEdgeSharp_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   FEdgeSharp *arg1 = (FEdgeSharp *) 0 ;
   FEdge *result = 0 ;
@@ -36264,15 +36264,15 @@ SWIGINTERN PyObject *_wrap_FEdgeSharp_dupplicate(PyObject *SWIGUNUSEDPARM(self),
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:FEdgeSharp_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:FEdgeSharp_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_FEdgeSharp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdgeSharp_dupplicate" "', argument " "1"" of type '" "FEdgeSharp *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdgeSharp_duplicate" "', argument " "1"" of type '" "FEdgeSharp *""'"); 
   }
   arg1 = reinterpret_cast< FEdgeSharp * >(argp1);
   {
     try {
-      result = (FEdge *)(arg1)->dupplicate();
+      result = (FEdge *)(arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -36843,7 +36843,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_FEdgeSmooth_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_FEdgeSmooth_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   FEdgeSmooth *arg1 = (FEdgeSmooth *) 0 ;
   FEdge *result = 0 ;
@@ -36851,15 +36851,15 @@ SWIGINTERN PyObject *_wrap_FEdgeSmooth_dupplicate(PyObject *SWIGUNUSEDPARM(self)
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:FEdgeSmooth_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:FEdgeSmooth_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_FEdgeSmooth, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdgeSmooth_dupplicate" "', argument " "1"" of type '" "FEdgeSmooth *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FEdgeSmooth_duplicate" "', argument " "1"" of type '" "FEdgeSmooth *""'"); 
   }
   arg1 = reinterpret_cast< FEdgeSmooth * >(argp1);
   {
     try {
-      result = (FEdge *)(arg1)->dupplicate();
+      result = (FEdge *)(arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -37278,7 +37278,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_SShape_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SShape_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   SShape *arg1 = (SShape *) 0 ;
   SShape *result = 0 ;
@@ -37286,15 +37286,15 @@ SWIGINTERN PyObject *_wrap_SShape_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyO
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:SShape_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:SShape_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SShape, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_dupplicate" "', argument " "1"" of type '" "SShape *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_duplicate" "', argument " "1"" of type '" "SShape *""'"); 
   }
   arg1 = reinterpret_cast< SShape * >(argp1);
   {
     try {
-      result = (SShape *)(arg1)->dupplicate();
+      result = (SShape *)(arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -54232,7 +54232,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ViewShape_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ViewShape_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ViewShape *arg1 = (ViewShape *) 0 ;
   ViewShape *result = 0 ;
@@ -54240,15 +54240,15 @@ SWIGINTERN PyObject *_wrap_ViewShape_dupplicate(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:ViewShape_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:ViewShape_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ViewShape, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewShape_dupplicate" "', argument " "1"" of type '" "ViewShape *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewShape_duplicate" "', argument " "1"" of type '" "ViewShape *""'"); 
   }
   arg1 = reinterpret_cast< ViewShape * >(argp1);
   {
     try {
-      result = (ViewShape *)(arg1)->dupplicate();
+      result = (ViewShape *)(arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -56608,7 +56608,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ViewEdgeSVertexIterator_dupplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ViewEdgeSVertexIterator_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ViewEdgeInternal::SVertexIterator *arg1 = (ViewEdgeInternal::SVertexIterator *) 0 ;
   SVertex *result = 0 ;
@@ -56616,15 +56616,15 @@ SWIGINTERN PyObject *_wrap_ViewEdgeSVertexIterator_dupplicate(PyObject *SWIGUNUS
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:ViewEdgeSVertexIterator_dupplicate",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:ViewEdgeSVertexIterator_duplicate",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ViewEdgeInternal__SVertexIterator, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewEdgeSVertexIterator_dupplicate" "', argument " "1"" of type '" "ViewEdgeInternal::SVertexIterator *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewEdgeSVertexIterator_duplicate" "', argument " "1"" of type '" "ViewEdgeInternal::SVertexIterator *""'"); 
   }
   arg1 = reinterpret_cast< ViewEdgeInternal::SVertexIterator * >(argp1);
   {
     try {
-      result = (SVertex *)(*arg1)->dupplicate();
+      result = (SVertex *)(*arg1)->duplicate();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -106893,7 +106893,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SVertex_userdata_get", _wrap_SVertex_userdata_get, METH_VARARGS, NULL},
 	 { (char *)"new_SVertex", _wrap_new_SVertex, METH_VARARGS, NULL},
 	 { (char *)"delete_SVertex", _wrap_delete_SVertex, METH_VARARGS, NULL},
-	 { (char *)"SVertex_dupplicate", _wrap_SVertex_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"SVertex_duplicate", _wrap_SVertex_duplicate, METH_VARARGS, NULL},
 	 { (char *)"SVertex___eq__", _wrap_SVertex___eq__, METH_VARARGS, NULL},
 	 { (char *)"SVertex_point3D", _wrap_SVertex_point3D, METH_VARARGS, NULL},
 	 { (char *)"SVertex_point2D", _wrap_SVertex_point2D, METH_VARARGS, NULL},
@@ -106943,7 +106943,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"FEdge_userdata_get", _wrap_FEdge_userdata_get, METH_VARARGS, NULL},
 	 { (char *)"new_FEdge", _wrap_new_FEdge, METH_VARARGS, NULL},
 	 { (char *)"delete_FEdge", _wrap_delete_FEdge, METH_VARARGS, NULL},
-	 { (char *)"FEdge_dupplicate", _wrap_FEdge_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"FEdge_duplicate", _wrap_FEdge_duplicate, METH_VARARGS, NULL},
 	 { (char *)"FEdge_vertexA", _wrap_FEdge_vertexA, METH_VARARGS, NULL},
 	 { (char *)"FEdge_vertexB", _wrap_FEdge_vertexB, METH_VARARGS, NULL},
 	 { (char *)"FEdge_getNature", _wrap_FEdge_getNature, METH_VARARGS, NULL},
@@ -107021,7 +107021,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"FEdgeSVertexIterator_castToTVertex", _wrap_FEdgeSVertexIterator_castToTVertex, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSVertexIterator_userdata_set", _wrap_FEdgeSVertexIterator_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSVertexIterator_userdata_get", _wrap_FEdgeSVertexIterator_userdata_get, METH_VARARGS, NULL},
-	 { (char *)"FEdgeSVertexIterator_dupplicate", _wrap_FEdgeSVertexIterator_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"FEdgeSVertexIterator_duplicate", _wrap_FEdgeSVertexIterator_duplicate, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSVertexIterator_point3D", _wrap_FEdgeSVertexIterator_point3D, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSVertexIterator_point2D", _wrap_FEdgeSVertexIterator_point2D, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSVertexIterator_normals", _wrap_FEdgeSVertexIterator_normals, METH_VARARGS, NULL},
@@ -107065,7 +107065,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"FEdgeSVertexIterator_swigregister", FEdgeSVertexIterator_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_FEdgeSharp", _wrap_new_FEdgeSharp, METH_VARARGS, NULL},
 	 { (char *)"delete_FEdgeSharp", _wrap_delete_FEdgeSharp, METH_VARARGS, NULL},
-	 { (char *)"FEdgeSharp_dupplicate", _wrap_FEdgeSharp_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"FEdgeSharp_duplicate", _wrap_FEdgeSharp_duplicate, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSharp_normalA", _wrap_FEdgeSharp_normalA, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSharp_normalB", _wrap_FEdgeSharp_normalB, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSharp_aMaterialIndex", _wrap_FEdgeSharp_aMaterialIndex, METH_VARARGS, NULL},
@@ -107079,7 +107079,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"FEdgeSharp_swigregister", FEdgeSharp_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_FEdgeSmooth", _wrap_new_FEdgeSmooth, METH_VARARGS, NULL},
 	 { (char *)"delete_FEdgeSmooth", _wrap_delete_FEdgeSmooth, METH_VARARGS, NULL},
-	 { (char *)"FEdgeSmooth_dupplicate", _wrap_FEdgeSmooth_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"FEdgeSmooth_duplicate", _wrap_FEdgeSmooth_duplicate, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSmooth_face", _wrap_FEdgeSmooth_face, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSmooth_normal", _wrap_FEdgeSmooth_normal, METH_VARARGS, NULL},
 	 { (char *)"FEdgeSmooth_materialIndex", _wrap_FEdgeSmooth_materialIndex, METH_VARARGS, NULL},
@@ -107091,7 +107091,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SShape_userdata_set", _wrap_SShape_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"SShape_userdata_get", _wrap_SShape_userdata_get, METH_VARARGS, NULL},
 	 { (char *)"new_SShape", _wrap_new_SShape, METH_VARARGS, NULL},
-	 { (char *)"SShape_dupplicate", _wrap_SShape_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"SShape_duplicate", _wrap_SShape_duplicate, METH_VARARGS, NULL},
 	 { (char *)"delete_SShape", _wrap_delete_SShape, METH_VARARGS, NULL},
 	 { (char *)"SShape_AddEdge", _wrap_SShape_AddEdge, METH_VARARGS, NULL},
 	 { (char *)"SShape_AddNewVertex", _wrap_SShape_AddNewVertex, METH_VARARGS, NULL},
@@ -107439,7 +107439,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ViewShape_userdata_set", _wrap_ViewShape_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"ViewShape_userdata_get", _wrap_ViewShape_userdata_get, METH_VARARGS, NULL},
 	 { (char *)"new_ViewShape", _wrap_new_ViewShape, METH_VARARGS, NULL},
-	 { (char *)"ViewShape_dupplicate", _wrap_ViewShape_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"ViewShape_duplicate", _wrap_ViewShape_duplicate, METH_VARARGS, NULL},
 	 { (char *)"delete_ViewShape", _wrap_delete_ViewShape, METH_VARARGS, NULL},
 	 { (char *)"ViewShape_SplitEdge", _wrap_ViewShape_SplitEdge, METH_VARARGS, NULL},
 	 { (char *)"ViewShape_sshape", _wrap_ViewShape_sshape, METH_VARARGS, NULL},
@@ -107494,7 +107494,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ViewEdgeSVertexIterator_castToTVertex", _wrap_ViewEdgeSVertexIterator_castToTVertex, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeSVertexIterator_userdata_set", _wrap_ViewEdgeSVertexIterator_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeSVertexIterator_userdata_get", _wrap_ViewEdgeSVertexIterator_userdata_get, METH_VARARGS, NULL},
-	 { (char *)"ViewEdgeSVertexIterator_dupplicate", _wrap_ViewEdgeSVertexIterator_dupplicate, METH_VARARGS, NULL},
+	 { (char *)"ViewEdgeSVertexIterator_duplicate", _wrap_ViewEdgeSVertexIterator_duplicate, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeSVertexIterator_point3D", _wrap_ViewEdgeSVertexIterator_point3D, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeSVertexIterator_point2D", _wrap_ViewEdgeSVertexIterator_point2D, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeSVertexIterator_normals", _wrap_ViewEdgeSVertexIterator_normals, METH_VARARGS, NULL},

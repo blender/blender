@@ -58,7 +58,7 @@ public:
   WXVertex(WXVertex& iBrother)
     : WVertex(iBrother)
   {_curvatures = new CurvatureInfo(*iBrother._curvatures);}
-  virtual WVertex * dupplicate()
+  virtual WVertex * duplicate()
   {
     WXVertex *clone = new WXVertex(*this);
     return clone;
@@ -109,7 +109,7 @@ public:
   inline WXEdge(WXEdge& iBrother)
     : WEdge(iBrother)
   {_nature = iBrother.nature();_front = iBrother._front;_order = iBrother._order;}
-  virtual WEdge * dupplicate()
+  virtual WEdge * duplicate()
   {
     WXEdge *clone = new WXEdge(*this);
     return clone;
@@ -334,7 +334,7 @@ public:
       _SmoothLayers.push_back(new WXFaceLayer(**wxf));
     }
   }
-  virtual WFace * dupplicate()
+  virtual WFace * duplicate()
   {
     WXFace * clone = new WXFace(*this);
     return clone;
@@ -471,7 +471,7 @@ public:
   {
     _computeViewIndependant = iBrother._computeViewIndependant;
   }
-  virtual WShape * dupplicate()
+  virtual WShape * duplicate()
   {
     WXShape *clone = new WXShape(*this);
     return clone;

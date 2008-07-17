@@ -1,4 +1,4 @@
- PyObject *_wrap_FEdgeSharp_dupplicate(PyObject *self , PyObject *args) {
+ PyObject *_wrap_FEdgeSharp_duplicate(PyObject *self , PyObject *args) {
 }
 
 

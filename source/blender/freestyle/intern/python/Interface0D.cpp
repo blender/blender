@@ -2,6 +2,7 @@
 
 #include "Convert.h"
 #include "Interface0D/CurvePoint.h"
+#include "Interface0D/SVertex.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -137,14 +138,19 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 
 	if( PyType_Ready( &Interface0D_Type ) < 0 )
 		return;
-		
-	if( PyType_Ready( &CurvePoint_Type ) < 0 )
-		return;
-
 	Py_INCREF( &Interface0D_Type );
 	PyModule_AddObject(module, "Interface0D", (PyObject *)&Interface0D_Type);
+	
+	if( PyType_Ready( &CurvePoint_Type ) < 0 )
+		return;
 	Py_INCREF( &CurvePoint_Type );
 	PyModule_AddObject(module, "CurvePoint", (PyObject *)&CurvePoint_Type);
+	
+	if( PyType_Ready( &SVertex_Type ) < 0 )
+		return;
+	Py_INCREF( &SVertex_Type );
+	PyModule_AddObject(module, "SVertex", (PyObject *)&SVertex_Type);	
+	
 }
 
 //------------------------INSTANCE METHODS ----------------------------------

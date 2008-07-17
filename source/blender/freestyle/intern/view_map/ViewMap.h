@@ -254,7 +254,7 @@ protected:
     userdata = 0;
   }
   /*! Cloning method. */
-  virtual ViewVertex * dupplicate() = 0;
+  virtual ViewVertex * duplicate() = 0;
   
 public:
   /*! Destructor. */
@@ -443,7 +443,7 @@ protected:
   }
 
   /*! Cloning method. */
-  virtual ViewVertex * dupplicate()
+  virtual ViewVertex * duplicate()
   {
     TVertex *clone = new TVertex(*this);
     return clone;
@@ -650,7 +650,7 @@ protected:
     _ViewEdges = iBrother._ViewEdges;
   }
   /*! Cloning method. */
-  virtual ViewVertex * dupplicate()
+  virtual ViewVertex * duplicate()
   {
     NonTVertex *clone = new NonTVertex(*this);
     return clone;
@@ -878,7 +878,7 @@ protected:
     userdata = 0;
   }
   /*! Cloning method. */
-  virtual ViewEdge * dupplicate()
+  virtual ViewEdge * duplicate()
   {
     ViewEdge *clone = new ViewEdge(*this);
     return clone;
@@ -1107,22 +1107,22 @@ public:
     _SShape = iBrother._SShape;
 
     vector<ViewVertex*>& vvertices = iBrother.vertices();
-    // dupplicate vertices
+    // duplicate vertices
     for(vv=vvertices.begin(), vvend=vvertices.end();
     vv!=vvend;
     vv++)
     {
-      ViewVertex * newVertex = (*vv)->dupplicate();
+      ViewVertex * newVertex = (*vv)->duplicate();
       AddVertex(newVertex);
     }
 
     vector<ViewEdge*>& vvedges = iBrother.edges();
-    // dupplicate edges
+    // duplicate edges
     for(ve=vvedges.begin(), veend=vvedges.end();
     ve!=veend;
     ve++)
     {
-      ViewEdge * newEdge = (*ve)->dupplicate();
+      ViewEdge * newEdge = (*ve)->duplicate();
       AddEdge(newEdge); // here the shape is set as the edge's shape
     }
 
@@ -1209,7 +1209,7 @@ public:
   }
 
   /*! Cloning method. */
-  virtual ViewShape * dupplicate()
+  virtual ViewShape * duplicate()
   {
     ViewShape *clone = new ViewShape(*this);
     return clone;

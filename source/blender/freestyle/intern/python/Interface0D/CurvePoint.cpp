@@ -11,9 +11,25 @@ extern "C" {
 
 /*---------------  Python API function prototypes for CurvePoint instance  -----------*/
 static int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *kwds);
+static PyObject * CurvePoint___copy__( BPy_CurvePoint *self );
+static PyObject * CurvePoint_A( BPy_CurvePoint *self );
+static PyObject * CurvePoint_B( BPy_CurvePoint *self );
+static PyObject * CurvePoint_t2d( BPy_CurvePoint *self );
+static PyObject *CurvePoint_SetA( BPy_CurvePoint *self , PyObject *args);
+static PyObject *CurvePoint_SetB( BPy_CurvePoint *self , PyObject *args);
+static PyObject *CurvePoint_SetT2d( BPy_CurvePoint *self , PyObject *args);
+static PyObject *CurvePoint_curvatureFredo( BPy_CurvePoint *self , PyObject *args);
 
 /*----------------------CurvePoint instance definitions ----------------------------*/
 static PyMethodDef BPy_CurvePoint_methods[] = {	
+	{"__copy__", ( PyCFunction ) CurvePoint___copy__, METH_NOARGS, "（ ）Cloning method."},
+	{"A", ( PyCFunction ) CurvePoint_A, METH_NOARGS, "（ ）Returns the first SVertex upon which the CurvePoint is built."},
+	{"B", ( PyCFunction ) CurvePoint_B, METH_NOARGS, "（ ）Returns the second SVertex upon which the CurvePoint is built."},
+	{"t2d", ( PyCFunction ) CurvePoint_t2d, METH_NOARGS, "（ ）Returns the interpolation parameter."},
+	{"SetA", ( PyCFunction ) CurvePoint_SetA, METH_VARARGS, "（SVertex sv ）Sets the first SVertex upon which to build the CurvePoint."},
+	{"SetB", ( PyCFunction ) CurvePoint_SetB, METH_VARARGS, "（SVertex sv ）Sets the second SVertex upon which to build the CurvePoint."},
+	{"SetT2d", ( PyCFunction ) CurvePoint_SetT2d, METH_VARARGS, "（ ）Sets the 2D interpolation parameter to use."},
+	{"curvatureFredo", ( PyCFunction ) CurvePoint_curvatureFredo, METH_NOARGS, "（ ）angle in radians."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -110,9 +126,109 @@ PyTypeObject CurvePoint_Type = {
 int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 {
 
-	self->py_if0D.if0D = new CurvePoint();
+	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
+
+    if (! PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3) )
+        return -1;
+
+	if( !obj1 && !obj2 && !obj3 ){
+		self->cp = new CurvePoint();
+	} else if( PyFloat_Check(obj3) ) {
+		if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
+			self->cp = new CurvePoint(  ((BPy_SVertex *) obj1)->sv,
+										((BPy_SVertex *) obj2)->sv,
+										PyFloat_AsDouble( obj3 ) );
+		} else if( BPy_CurvePoint_Check(obj1) && BPy_CurvePoint_Check(obj2) ) {
+			self->cp = new CurvePoint(  ((BPy_CurvePoint *) obj1)->cp,
+										((BPy_CurvePoint *) obj2)->cp,
+										PyFloat_AsDouble( obj3 ) );
+		} else {
+			return -1;	
+		}		
+	} else {
+		return -1;
+	}
+
+	self->py_if0D.if0D = self->cp;
+
 	return 0;
 }
+
+PyObject * CurvePoint___copy__( BPy_CurvePoint *self ) {
+	BPy_CurvePoint *py_cp;
+	
+	py_cp = (BPy_CurvePoint *) CurvePoint_Type.tp_new( &CurvePoint_Type, 0, 0 );
+	
+	py_cp->cp = new CurvePoint( *(self->cp) );
+	py_cp->py_if0D.if0D = py_cp->cp;
+
+	return (PyObject *) py_cp;
+}
+
+PyObject * CurvePoint_A( BPy_CurvePoint *self ) {
+	if( self->cp->A() )
+		return BPy_SVertex_from_SVertex( *(self->cp->A()) );
+
+	Py_RETURN_NONE;
+}
+
+PyObject * CurvePoint_B( BPy_CurvePoint *self ) {
+	if( self->cp->B() )
+		return BPy_SVertex_from_SVertex( *(self->cp->B()) );
+
+	Py_RETURN_NONE;
+}
+
+PyObject * CurvePoint_t2d( BPy_CurvePoint *self ) {
+	return PyFloat_FromDouble( self->cp->t2d() );
+}
+
+PyObject *CurvePoint_SetA( BPy_CurvePoint *self , PyObject *args) {
+	PyObject *py_sv;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv)  )) {
+		cout << "ERROR: CurvePoint_SetA" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->cp->SetA( ((BPy_SVertex *) py_sv)->sv );
+
+	Py_RETURN_NONE;
+}
+
+PyObject *CurvePoint_SetB( BPy_CurvePoint *self , PyObject *args) {
+	PyObject *py_sv;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv)  )) {
+		cout << "ERROR: CurvePoint_SetB" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->cp->SetB( ((BPy_SVertex *) py_sv)->sv );
+
+	Py_RETURN_NONE;
+}
+
+PyObject *CurvePoint_SetT2d( BPy_CurvePoint *self , PyObject *args) {
+	float t;
+
+	if( !PyArg_ParseTuple(args, "f", &t) ) {
+		cout << "ERROR: CurvePoint_SetT2d" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->cp->SetT2d( t );
+
+	Py_RETURN_NONE;
+}
+
+PyObject *CurvePoint_curvatureFredo( BPy_CurvePoint *self , PyObject *args) {
+	return PyFloat_FromDouble( self->cp->curvatureFredo() );
+}
+
+///bool 	operator== (const CurvePoint &b)
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -120,119 +236,3 @@ int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 #ifdef __cplusplus
 }
 #endif
-
-
- 
-// 
-//  PyObject *_wrap_new_CurvePoint__SWIG_0(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-//  PyObject *_wrap_new_CurvePoint__SWIG_1(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-//  PyObject *_wrap_new_CurvePoint__SWIG_2(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-//  PyObject *_wrap_new_CurvePoint__SWIG_3(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-//  PyObject *_wrap_new_CurvePoint(PyObject *self, PyObject *args) {
-// }
-// 
-// 
-//  PyObject *_wrap_delete_CurvePoint(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint___eq__(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_A(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_B(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_t2d(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_SetA(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_SetB(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_SetT2d(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_fedge(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_point2d(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_point3d(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_normal(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_shape(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occluders_begin(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occluders_end(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occluders_empty(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occluders_size(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occludee(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occluded_shape(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_occludee_empty(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_z_discontinuity(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_curvatureFredo(PyObject *self , PyObject *args) {
-// }
-// 
-// 
-// PyObject *CurvePoint_directionFredo(PyObject *self , PyObject *args) {
-// }
-
-

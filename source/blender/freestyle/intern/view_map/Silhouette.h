@@ -206,7 +206,7 @@ public:
   }
 
   /*! Cloning method. */
-  virtual SVertex * dupplicate() {
+  virtual SVertex * duplicate() {
     SVertex *clone = new SVertex(*this);
     return clone;
   }
@@ -455,7 +455,7 @@ public:
   /*! Destructor */
   virtual ~FEdge() {}
   /*! Cloning method. */
-  virtual FEdge* dupplicate()
+  virtual FEdge* duplicate()
   {
     FEdge *clone = new FEdge(*this);
     return clone;
@@ -805,7 +805,7 @@ public:
   /*! Destructor. */
   virtual ~FEdgeSharp() {}
   /*! Cloning method. */
-  virtual FEdge* dupplicate(){
+  virtual FEdge* duplicate(){
     FEdge *clone = new FEdgeSharp(*this);
     return clone;
   }
@@ -886,7 +886,7 @@ public:
   /*! Destructor. */
   virtual ~FEdgeSmooth() {}
   /*! Cloning method. */
-  virtual FEdge* dupplicate(){
+  virtual FEdge* duplicate(){
     FEdge *clone = new FEdgeSmooth(*this);
     return clone;
   }
@@ -980,7 +980,7 @@ public:
         e!=eend;
         e++)
       {
-        FEdge *newe = (*e)->dupplicate();
+        FEdge *newe = (*e)->duplicate();
         _edgesList.push_back(newe);
       } 
 
@@ -1053,7 +1053,7 @@ public:
       }  
   }
   /*! Cloning method. */
-  virtual SShape * dupplicate()
+  virtual SShape * duplicate()
   {
     SShape *clone = new SShape(*this);
     return clone;

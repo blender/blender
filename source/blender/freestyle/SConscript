@@ -67,6 +67,7 @@ python_sources = [
 					prefix + '/Id.cpp',
 					prefix + '/Interface0D.cpp',
 					prefix + '/Interface0D/CurvePoint.cpp',
+					prefix + '/Interface0D/SVertex.cpp',
 					prefix + '/Interface1D.cpp'
 				]
 

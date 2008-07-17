@@ -853,7 +853,7 @@ class SVertex(Interface0D):
         except: self.this = this
     __swig_destroy__ = _Freestyle.delete_SVertex
     __del__ = lambda self : None;
-    def dupplicate(*args): return _Freestyle.SVertex_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.SVertex_duplicate(*args)
     def __eq__(*args): return _Freestyle.SVertex___eq__(*args)
     def point3D(*args): return _Freestyle.SVertex_point3D(*args)
     def point2D(*args): return _Freestyle.SVertex_point2D(*args)
@@ -921,7 +921,7 @@ class FEdge(Interface1D):
         except: self.this = this
     __swig_destroy__ = _Freestyle.delete_FEdge
     __del__ = lambda self : None;
-    def dupplicate(*args): return _Freestyle.FEdge_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.FEdge_duplicate(*args)
     def vertexA(*args): return _Freestyle.FEdge_vertexA(*args)
     def vertexB(*args): return _Freestyle.FEdge_vertexB(*args)
     def getNature(*args): return _Freestyle.FEdge_getNature(*args)
@@ -1016,7 +1016,7 @@ class FEdgeSVertexIterator(Interface0DIteratorNested):
     __swig_setmethods__["userdata"] = _Freestyle.FEdgeSVertexIterator_userdata_set
     __swig_getmethods__["userdata"] = _Freestyle.FEdgeSVertexIterator_userdata_get
     if _newclass:userdata = _swig_property(_Freestyle.FEdgeSVertexIterator_userdata_get, _Freestyle.FEdgeSVertexIterator_userdata_set)
-    def dupplicate(*args): return _Freestyle.FEdgeSVertexIterator_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.FEdgeSVertexIterator_duplicate(*args)
     def point3D(*args): return _Freestyle.FEdgeSVertexIterator_point3D(*args)
     def point2D(*args): return _Freestyle.FEdgeSVertexIterator_point2D(*args)
     def normals(*args): return _Freestyle.FEdgeSVertexIterator_normals(*args)
@@ -1074,7 +1074,7 @@ class FEdgeSharp(FEdge):
         except: self.this = this
     __swig_destroy__ = _Freestyle.delete_FEdgeSharp
     __del__ = lambda self : None;
-    def dupplicate(*args): return _Freestyle.FEdgeSharp_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.FEdgeSharp_duplicate(*args)
     def normalA(*args): return _Freestyle.FEdgeSharp_normalA(*args)
     def normalB(*args): return _Freestyle.FEdgeSharp_normalB(*args)
     def aMaterialIndex(*args): return _Freestyle.FEdgeSharp_aMaterialIndex(*args)
@@ -1102,7 +1102,7 @@ class FEdgeSmooth(FEdge):
         except: self.this = this
     __swig_destroy__ = _Freestyle.delete_FEdgeSmooth
     __del__ = lambda self : None;
-    def dupplicate(*args): return _Freestyle.FEdgeSmooth_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.FEdgeSmooth_duplicate(*args)
     def face(*args): return _Freestyle.FEdgeSmooth_face(*args)
     def normal(*args): return _Freestyle.FEdgeSmooth_normal(*args)
     def materialIndex(*args): return _Freestyle.FEdgeSmooth_materialIndex(*args)
@@ -1126,7 +1126,7 @@ class SShape(_object):
         this = _Freestyle.new_SShape(*args)
         try: self.this.append(this)
         except: self.this = this
-    def dupplicate(*args): return _Freestyle.SShape_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.SShape_duplicate(*args)
     __swig_destroy__ = _Freestyle.delete_SShape
     __del__ = lambda self : None;
     def AddEdge(*args): return _Freestyle.SShape_AddEdge(*args)
@@ -1623,7 +1623,7 @@ class ViewShape(_object):
         this = _Freestyle.new_ViewShape(*args)
         try: self.this.append(this)
         except: self.this = this
-    def dupplicate(*args): return _Freestyle.ViewShape_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.ViewShape_duplicate(*args)
     __swig_destroy__ = _Freestyle.delete_ViewShape
     __del__ = lambda self : None;
     def SplitEdge(*args): return _Freestyle.ViewShape_SplitEdge(*args)
@@ -1706,7 +1706,7 @@ class ViewEdgeSVertexIterator(Interface0DIteratorNested):
     __swig_setmethods__["userdata"] = _Freestyle.ViewEdgeSVertexIterator_userdata_set
     __swig_getmethods__["userdata"] = _Freestyle.ViewEdgeSVertexIterator_userdata_get
     if _newclass:userdata = _swig_property(_Freestyle.ViewEdgeSVertexIterator_userdata_get, _Freestyle.ViewEdgeSVertexIterator_userdata_set)
-    def dupplicate(*args): return _Freestyle.ViewEdgeSVertexIterator_dupplicate(*args)
+    def duplicate(*args): return _Freestyle.ViewEdgeSVertexIterator_duplicate(*args)
     def point3D(*args): return _Freestyle.ViewEdgeSVertexIterator_point3D(*args)
     def point2D(*args): return _Freestyle.ViewEdgeSVertexIterator_point2D(*args)
     def normals(*args): return _Freestyle.ViewEdgeSVertexIterator_normals(*args)
