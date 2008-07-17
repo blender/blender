@@ -3153,7 +3153,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	EditMesh *em = G.editMesh;
 	ReebGraph *rg = NULL;
 	ReebGraph *rgi, *previous;
-	int i, nb_levels = 5;
+	int i, nb_levels = REEB_MAX_MULTI_LEVEL;
 	
 	if (em == NULL)
 		return NULL;
@@ -3205,6 +3205,19 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 		{
 			float internal_threshold = rg->length * G.scene->toolsettings->skgen_threshold_internal * (i / (float)nb_levels);
 			float external_threshold = rg->length * G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
+
+			/* filter internal progressively in second half only*/
+			if (i > nb_levels / 2)
+			{
+				internal_threshold = rg->length * G.scene->toolsettings->skgen_threshold_internal;
+			}
+			else
+			{
+				internal_threshold = rg->length * G.scene->toolsettings->skgen_threshold_internal * (2 * i / (float)nb_levels);
+			}
+			
+			external_threshold = rg->length * G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
+
 			filterGraph(rgi, G.scene->toolsettings->skgen_options, internal_threshold, external_threshold);
 		}
 

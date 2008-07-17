@@ -161,6 +161,9 @@ void verifyBuckets(ReebGraph *rg);
 void verifyFaces(ReebGraph *rg);
 
 /*********************** PUBLIC *********************************/
+
+#define REEB_MAX_MULTI_LEVEL	10
+
 ReebGraph *BIF_ReebGraphFromEditMesh(void);
 ReebGraph *BIF_ReebGraphMultiFromEditMesh(void);
 void BIF_flagMultiArcs(ReebGraph *rg, int flag);
