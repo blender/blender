@@ -906,26 +906,28 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			
 			i = nb_joints - 1;
 	
-			/* increment positions, starting from the last one
-			 * until a valid increment is found
-			 * */
-			for (i = must_move; i >= 0; i--)
-			{
-				int remaining_joints = nb_joints - (i + 1); 
-				
-				positions[i] += 1;
-				need_calc = i;
-				
-				if (positions[i] + remaining_joints < earc->bcount)
-				{
-					break;
-				}
-			}
-			
 			if (first_pass)
 			{
 				need_calc = 0;
 				first_pass = 0;
+			}
+			else
+			{
+				/* increment positions, starting from the last one
+				 * until a valid increment is found
+				 * */
+				for (i = must_move; i >= 0; i--)
+				{
+					int remaining_joints = nb_joints - (i + 1); 
+					
+					positions[i] += 1;
+					need_calc = i;
+					
+					if (positions[i] + remaining_joints <= earc->bcount)
+					{
+						break;
+					}
+				}
 			}
 	
 			if (i == -1)
