@@ -672,18 +672,21 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		}
 		// don't replicate logic now: we assume that the objects in the group can have
 		// logic relationship, even outside parent relationship
+		// In order to match 3D view, the position of groupobj is used as a 
+		// transformation matrix instead of the new position. This means that 
+		// the group reference point is 0,0,0
 
-		MT_Point3 newpos = groupobj->NodeGetWorldPosition();
-		replica->NodeSetLocalPosition(newpos);
-
-		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation();
-		replica->NodeSetLocalOrientation(newori);
-	
 		// get the rootnode's scale
-		MT_Vector3 newscale = groupobj->GetSGNode()->GetRootSGParent()->GetLocalScale();
-
+		MT_Vector3 newscale = groupobj->NodeGetWorldScaling();
 		// set the replica's relative scale with the rootnode's scale
 		replica->NodeSetRelativeScale(newscale);
+
+		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
+		replica->NodeSetLocalOrientation(newori);
+
+		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
+			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
+		replica->NodeSetLocalPosition(newpos);
 
 		if (replica->GetPhysicsController())
 		{
