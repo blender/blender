@@ -40,6 +40,9 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../BlenderRoutines
+CPPFLAGS += -I../Expressions
+
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 ifeq ($(OS),darwin)
 	CPPFLAGS += -fpascal-strings

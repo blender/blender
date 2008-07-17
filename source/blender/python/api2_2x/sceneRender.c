@@ -985,7 +985,7 @@ PyObject *RenderData_EnableCropping( void )
 /*	return M_Render_BitToggleInt( args, R_MOVIECROP,
 				      &self->renderContext->mode );
 */
-	printf("cropping option is now default, obsolete\n");
+	printf("obsolete: movie cropping option is now default\n");
 	Py_RETURN_NONE;
 }
 
