@@ -660,8 +660,15 @@ static float costAngle(float original_angle, float vec_first[3], float vec_secon
 
 static float costLength(float original_length, float current_length)
 {
-	float length_ratio = fabs((current_length - original_length) / original_length);
-	return G.scene->toolsettings->skgen_retarget_length_weight * length_ratio * length_ratio;
+	if (current_length == 0)
+	{
+		return MAX_COST;
+	}
+	else
+	{
+		float length_ratio = fabs((current_length - original_length) / original_length);
+		return G.scene->toolsettings->skgen_retarget_length_weight * length_ratio * length_ratio;
+	}
 }
 
 static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *vec0, float *vec1, float *vec2, int i0, int i1, int i2)
