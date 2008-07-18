@@ -6,7 +6,10 @@
 #include "Interface0D.h"
 #include "Interface0D/CurvePoint.h"
 #include "Interface1D.h"
-
+#include "UnaryFunction0D.h"
+#include "UnaryFunction1D.h"
+#include "UnaryPredicate0D.h"
+#include "UnaryPredicate1D.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,6 +130,10 @@ PyObject *Freestyle_Init( void )
 	Id_Init( module );
 	Interface0D_Init( module );
 	Interface1D_Init( module );
+	UnaryFunction0D_Init( module );
+	UnaryFunction1D_Init( module );
+	UnaryPredicate0D_Init( module );
+	UnaryPredicate1D_Init( module );
 	
 	return module;
 }
