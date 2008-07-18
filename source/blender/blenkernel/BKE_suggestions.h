@@ -60,19 +60,25 @@ typedef struct SuggList {
 	SuggItem *selected;
 } SuggList;
 
+/* Free all suggestion related memory */
 void free_suggestions();
+
+/* Used to identify which Text object the current tools should appear against */
+void suggest_set_active(Text *text);
+void suggest_clear_active();
+short suggest_is_active(Text *text);
 
 void suggest_add(const char *name, char type);
 void suggest_prefix(const char *prefix);
 SuggItem *suggest_first();
 SuggItem *suggest_last();
 
-void suggest_set_text(Text *text);
-void suggest_clear_text();
-short suggest_is_active(Text *text);
-
 void suggest_set_selected(SuggItem *sel);
 SuggItem *suggest_get_selected();
+
+void suggest_documentation(const char *docs);
+char *suggest_get_docs();
+void suggest_clear_docs();
 
 #ifdef __cplusplus
 }

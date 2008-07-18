@@ -37,20 +37,23 @@
 #include "BKE_text.h"
 #include "BKE_suggestions.h"
 
-static SuggList suggestions= {NULL, NULL, NULL, NULL, NULL};
+static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
 static Text *suggText = NULL;
-static SuggItem *lastInsert= NULL;
+static SuggItem *lastInsert = NULL;
+static char *documentation = NULL;
+static int doc_lines = 0;
 
-static suggest_cmp(const char *first, const char *second, int len) {	
+static int suggest_cmp(const char *first, const char *second, int len) {	
 	int cmp, i;
 	for (cmp=0, i=0; i<len; i++) {
-		if (cmp= toupper(first[i]) - toupper(second[i])) {
+		if (cmp= toupper(first[i])-toupper(second[i])) {
 			break;
 		}
 	}
 	return cmp;
 }
-void free_suggestions() {
+
+static void sugg_free() {
 	SuggItem *item, *prev;
 	for (item = suggestions.last; item; item=prev) {
 		prev = item->prev;
@@ -59,6 +62,18 @@ void free_suggestions() {
 	suggestions.first = suggestions.last = NULL;
 	suggestions.firstmatch = suggestions.lastmatch = NULL;
 	suggestions.selected = NULL;
+}
+
+static void docs_free() {
+	if (documentation) {
+		MEM_freeN(documentation);
+		documentation = NULL;
+	}
+}
+
+void free_suggestions() {
+	sugg_free();
+	docs_free();
 }
 
 void suggest_add(const char *name, char type) {
@@ -87,7 +102,7 @@ void suggest_add(const char *name, char type) {
 
 void suggest_prefix(const char *prefix) {
 	SuggItem *match, *first, *last;
-	int cmp, len = strlen(prefix), i;
+	int cmp, len = strlen(prefix);
 
 	if (!suggestions.first) return;
 	if (len==0) {
@@ -111,10 +126,13 @@ void suggest_prefix(const char *prefix) {
 	}
 	if (first) {
 		if (!last) last = suggestions.last;
-		suggestions.selected = suggestions.firstmatch = first;
+		suggestions.firstmatch = first;
 		suggestions.lastmatch = last;
+		suggestions.selected = first;
 	} else {
-		suggestions.firstmatch = suggestions.lastmatch = NULL;
+		suggestions.firstmatch = NULL;
+		suggestions.lastmatch = NULL;
+		suggestions.selected = NULL;
 	}
 }
 
@@ -126,11 +144,13 @@ SuggItem *suggest_last() {
 	return suggestions.lastmatch;
 }
 
-void suggest_set_text(Text *text) {
+void suggest_set_active(Text *text) {
+	if (suggText == text) return;
+	suggest_clear_active();
 	suggText = text;
 }
 
-void suggest_clear_text() {
+void suggest_clear_active() {
 	free_suggestions();
 	suggText = NULL;
 }
@@ -145,4 +165,38 @@ void suggest_set_selected(SuggItem *sel) {
 
 SuggItem *suggest_get_selected() {
 	return suggestions.selected;
+}
+
+/* Documentation methods */
+
+void suggest_documentation(const char *docs) {
+	int len;
+
+	if (!docs) return;
+
+	len = strlen(docs);
+
+	if (documentation) {
+		MEM_freeN(documentation);
+		documentation = NULL;
+	}
+
+	/* Ensure documentation ends with a '\n' */
+	if (docs[len-1] != '\n') {
+		documentation = MEM_mallocN(len+2, "Documentation");
+		strncpy(documentation, docs, len);
+		documentation[len++] = '\n';
+	} else {
+		documentation = MEM_mallocN(len+1, "Documentation");
+		strncpy(documentation, docs, len);
+	}
+	documentation[len] = '\0';
+}
+
+char *suggest_get_docs() {
+	return documentation;
+}
+
+void suggest_clear_docs() {
+	docs_free();
 }

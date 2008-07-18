@@ -87,10 +87,14 @@
 #include "blendef.h" 
 #include "winlay.h"
 
-#define TEXTXLOC	38
+#define TEXTXLOC		38
 
-#define SUGG_LIST_SIZE 7
-#define SUGG_LIST_WIDTH 20
+#define SUGG_LIST_SIZE	7
+#define SUGG_LIST_WIDTH	20
+#define DOC_WIDTH		40
+
+#define TOOL_SUGG_LIST	0x01
+#define TOOL_DOCUMENT	0x02
 
 /* forward declarations */
 
@@ -106,6 +110,7 @@ static int check_numbers(char *string);
 static int check_builtinfuncs(char *string);
 static int check_specialvars(char *string);
 static int check_identifier(char ch);
+static int check_whitespace(char ch);
 
 static void get_suggest_prefix(Text *text);
 static void confirm_suggestion(Text *text, int skipleft);
@@ -1068,7 +1073,78 @@ static int do_suggest_select(SpaceText *st)
 	return 1;
 }
 
-void draw_suggestion_list(SpaceText *st) {
+void draw_documentation(SpaceText *st)
+{
+	TextLine *tmp;
+	char *docs, buf[DOC_WIDTH+1];
+	int len, prevsp, i, a;
+	int boxw=0, boxh, l, x, y;
+	
+	if (!st || !st->text) return;
+	if (!suggest_is_active(st->text)) return;
+	
+	docs = suggest_get_docs();
+
+	if (!docs) return;
+
+	/* Count the visible lines to the cursor */
+	for (tmp=st->text->curl, l=-st->top; tmp; tmp=tmp->prev, l++);
+	if (l<0) return;
+	
+	if(st->showlinenrs) {
+		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+	} else {
+		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+	}
+	if (suggest_first()) {
+		x += SUGG_LIST_WIDTH*spacetext_get_fontwidth(st) + 50;
+	}
+	y = curarea->winy - st->lheight*l - 2;
+
+	len = strlen(docs);
+
+	boxw = DOC_WIDTH*spacetext_get_fontwidth(st) + 20;
+	boxh = (2*len/DOC_WIDTH+1)*st->lheight + 8; /* Rough guess at box height */
+	
+	BIF_ThemeColor(TH_SHADE1);
+	glRecti(x-1, y+1, x+boxw+1, y-boxh-1);
+	BIF_ThemeColor(TH_BACK);
+	glRecti(x, y, x+boxw, y-boxh);
+	BIF_ThemeColor(TH_TEXT);
+
+	len = strlen(docs);
+	prevsp = a = 0;
+
+	for (i=0; i<len; i++) {
+		if (docs[i] == ' ' || docs[i] == '\t' || docs[i] == '\n') {
+
+			/* If we would exceed the line length, print up to the last space */
+			if (a + i-prevsp > DOC_WIDTH) {
+				y -= st->lheight;
+				buf[a] = '\0';
+				text_draw(st, buf, 0, 0, 1, x+4, y-1, NULL);
+				a = 0;
+			}
+
+			/* Buffer up the next bit ready to draw */
+			if (i-prevsp > DOC_WIDTH) break; /* TODO: Deal with long, unbroken strings */
+			strncpy(buf+a, docs+prevsp, i-prevsp);
+			a += i-prevsp;
+			prevsp = i;
+
+			/* Hit a new line, print what we have */
+			if (docs[i] == '\n') {
+				y -= st->lheight;
+				buf[a] = '\0';
+				text_draw(st, buf, 0, 0, 1, x+4, y-1, NULL);
+				a = 0;
+			}
+		}
+	}
+}
+
+void draw_suggestion_list(SpaceText *st)
+{
 	SuggItem *item, *first, *last, *sel;
 	TextLine *tmp;
 	char str[SUGG_LIST_WIDTH+1];
@@ -1079,6 +1155,9 @@ void draw_suggestion_list(SpaceText *st) {
 
 	first = suggest_first();
 	last = suggest_last();
+
+	if (!first || !last) return;
+
 	sel = suggest_get_selected();
 
 	/* Count the visible lines to the cursor */
@@ -1208,6 +1287,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	}
 
 	draw_textscroll(st);
+	draw_documentation(st);
 	draw_suggestion_list(st);
 
 	curarea->win_swap= WIN_BACK_OK;
@@ -1693,7 +1773,7 @@ static void confirm_suggestion(Text *text, int skipleft) {
 	for (i=0; i<skipleft; i++)
 		txt_move_right(text, 0);
 
-	suggest_clear_text();
+	suggest_clear_active();
 }
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
@@ -1704,7 +1784,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	int do_draw=0, p;
-	int suggesting=0, do_suggest=0; /* 0:just redraw, -1:clear, 1:update prefix */
+	int tools=0, tools_cancel=0, tools_update=0; /* Bitmasks for operations */
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -1768,7 +1848,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 	}
 
-	suggesting = st->showsyntax && suggest_is_active(text);
+	if (st->showsyntax && suggest_is_active(text)) {
+		if (suggest_first()) tools |= TOOL_SUGG_LIST;
+		if (suggest_get_docs()) tools |= TOOL_DOCUMENT;
+	}
 	
 	if (event==LEFTMOUSE) {
 		if (val) {
@@ -1779,10 +1862,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 			if (mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<curarea->winy-2) {
 				do_textscroll(st, 2);
-				do_suggest= -1;
+				tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 			} else if (do_suggest_select(st)) {
 				do_draw= 1;
-				do_suggest= 0;
 			} else {
 				do_selection(st, G.qual&LR_SHIFTKEY);
 				if (txt_has_sel(text)) {
@@ -1791,7 +1873,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					MEM_freeN(buffer);
 				}
 				do_draw= 1;
-				do_suggest= -1;
+				tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 			}
 		}
 	} else if (event==MIDDLEMOUSE) {
@@ -1799,15 +1881,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (do_suggest_select(st)) {
 				confirm_suggestion(text, 0);
 				do_draw= 1;
-				do_suggest= 0;
-			} else if (U.uiflag & USER_MMB_PASTE) {
-				do_selection(st, G.qual&LR_SHIFTKEY);
-				get_selection_buffer(text);
-				do_draw= 1;
 			} else {
-				do_textscroll(st, 1);
+				if (U.uiflag & USER_MMB_PASTE) {
+					do_selection(st, G.qual&LR_SHIFTKEY);
+					get_selection_buffer(text);
+					do_draw= 1;
+				} else {
+					do_textscroll(st, 1);
+				}
+				tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 			}
-			do_suggest= -1;
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {
@@ -1840,7 +1923,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				default:
 					break;
 			}
-			do_suggest= -1;
+			tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 		}
 	} else if (ascii) {
 		if (text && text->id.lib) {
@@ -1850,19 +1933,23 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
-			if (suggesting) {
-				if (ispunct(ascii) || check_whitespace(ascii)) {
+			if (tools & TOOL_SUGG_LIST) {
+				if ((ascii != '_' && ascii != '*' && ispunct(ascii)) || check_whitespace(ascii)) {
 					confirm_suggestion(text, 1);
 					if (st->showsyntax) get_format_string(st);
-					do_suggest= 0;
 				} else {
-					do_suggest= 1;
+					tools_update |= TOOL_SUGG_LIST;
 				}
 			}
+			tools_cancel |= TOOL_DOCUMENT;
 		}
 	} else if (val) {
-		do_suggest= -1; /* Note that the default label sets this to 0,
-						so -1 only applies to the explicit cases below */
+
+		/* Cases that require tools not to be cancelled must explicitly say so.
+		 * The default case does this to prevent window/mousemove events
+		 * from cancelling. */
+		tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+
 		switch (event) {
 		case AKEY:
 			if (G.qual & LR_ALTKEY) {
@@ -2126,7 +2213,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case ESCKEY:
-			do_suggest= -1;
+			/* To allow ESC to close one tool at a time we remove all others from the cancel list */
+			if (tools & TOOL_DOCUMENT) {
+				tools_cancel &= ~TOOL_SUGG_LIST;
+			}
 			break;
 		case TABKEY:
 			if (text && text->id.lib) {
@@ -2157,7 +2247,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				error_libdata();
 				break;
 			}
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				confirm_suggestion(text, 0);
 				if (st->showsyntax) get_format_string(st);
 				break;
@@ -2186,17 +2276,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
 				txt_backspace_word(text);
-				do_suggest= -1;
+				tools_cancel |= TOOL_SUGG_LIST;
 			} else {
 				/* Work out which char we are about to delete */
 				if (text && text->curl && text->curc > 0) {
 					char ch= text->curl->line[text->curc-1];
-					if (ispunct(ch) || check_whitespace(ch))
-						do_suggest= -1;
-					else
-						do_suggest= 1;
-				} else {
-					do_suggest= -1;
+					if (!ispunct(ch) && !check_whitespace(ch)) {
+						tools_update |= TOOL_SUGG_LIST;
+					}
 				}
 				txt_backspace_char(text);
 			}
@@ -2223,17 +2310,17 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case INSERTKEY:
 			st->overwrite= !st->overwrite;
 			do_draw= 1;
-			do_suggest= 0;
+			tools_cancel = 0;
 			break;
 		case DOWNARROWKEY:
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = suggest_get_selected();
 				if (!sel) {
 					suggest_set_selected(suggest_first());
 				} else if (sel!=suggest_last() && sel->next) {
 					suggest_set_selected(sel->next);
 				}
-				do_suggest= 0;
+				tools_cancel &= ~TOOL_SUGG_LIST;
 				break;
 			}
 			txt_move_down(text, G.qual & LR_SHIFTKEY);
@@ -2264,11 +2351,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case UPARROWKEY:
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = suggest_get_selected();
 				if (sel && sel!=suggest_first() && sel->prev)
 					suggest_set_selected(sel->prev);
-				do_suggest= 0;
+				tools_cancel &= ~TOOL_SUGG_LIST;
 				break;
 			}
 			txt_move_up(text, G.qual & LR_SHIFTKEY);
@@ -2277,14 +2364,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case PAGEDOWNKEY:
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				int i;
 				SuggItem *sel = suggest_get_selected();
 				if (!sel)
 					sel = suggest_first();
 				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=suggest_last() && sel->next; i++, sel=sel->next)
 					suggest_set_selected(sel->next);
-				do_suggest= 0;
+				tools_cancel &= ~TOOL_SUGG_LIST;
 				break;
 			} else {
 				screen_skip(st, st->viewlines);
@@ -2292,12 +2379,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_draw= 1;
 			break;
 		case PAGEUPKEY:
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				int i;
 				SuggItem *sel = suggest_get_selected();
 				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=suggest_first() && sel->prev; i++, sel=sel->prev)
 					suggest_set_selected(sel->prev);
-				do_suggest= 0;
+				tools_cancel &= ~TOOL_SUGG_LIST;
 				break;
 			} else {
 				screen_skip(st, -st->viewlines);
@@ -2315,33 +2402,35 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case WHEELUPMOUSE:
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = suggest_get_selected();
 				if (sel && sel!=suggest_first() && sel->prev)
 					suggest_set_selected(sel->prev);
-				do_suggest= 0;
+				tools_cancel &= ~TOOL_SUGG_LIST;
 			} else {
 				screen_skip(st, -U.wheellinescroll);
+				tools_cancel &= ~TOOL_DOCUMENT;
 			}
 			do_draw= 1;
 			break;
 		case WHEELDOWNMOUSE:
-			if (suggesting) {
+			if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = suggest_get_selected();
 				if (!sel) {
 					suggest_set_selected(suggest_first());
 				} else if (sel && sel!=suggest_last() && sel->next) {
 					suggest_set_selected(sel->next);
 				}
-				do_suggest= 0;
+				tools_cancel &= ~TOOL_SUGG_LIST;
 			} else {
 				screen_skip(st, U.wheellinescroll);
+				tools_cancel &= ~TOOL_DOCUMENT;
 			}
 			do_draw= 1;
 			break;
 		default:
 			/* We don't want all sorts of events closing the suggestions box */
-			do_suggest= 0;
+			tools_cancel &= ~TOOL_SUGG_LIST & ~TOOL_DOCUMENT;
 		}
 	}
 
@@ -2404,11 +2493,17 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if (suggesting) {
-		if (do_suggest == -1) {
-			suggest_clear_text();
-		} else if (do_suggest == 1) {
+	if (tools & TOOL_SUGG_LIST) {
+		if (tools_update & TOOL_SUGG_LIST) {
 			get_suggest_prefix(text);
+		} else if (tools_cancel & TOOL_SUGG_LIST) {
+			suggest_clear_active();
+		}
+		do_draw= 1;
+	}
+	if (tools & TOOL_DOCUMENT) {
+		if (tools_cancel & TOOL_DOCUMENT) {
+			suggest_clear_docs();
 		}
 		do_draw= 1;
 	}

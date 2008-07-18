@@ -103,6 +103,7 @@ static PyObject *Text_asLines( BPy_Text * self );
 static PyObject *Text_getCursorPos( BPy_Text * self );
 static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args );
 static PyObject *Text_suggest( BPy_Text * self, PyObject * args );
+static PyObject *Text_showDocs( BPy_Text * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Text methods table:                                            */
@@ -136,7 +137,9 @@ static PyMethodDef BPy_Text_methods[] = {
 	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
 	 "(row, col) - Set the cursor position to (row, col)"},
 	{"suggest", ( PyCFunction ) Text_suggest, METH_VARARGS,
-	 "(list) - List of tuples of the form (name, type) where type is one of 'm', 'v', 'f', 'k' for module, variable, function and keyword respectively"},
+	 "(list, prefix) - List of tuples of the form (name, type) where type is one of 'm', 'v', 'f', 'k' for module, variable, function and keyword respectively"},
+	{"showDocs", ( PyCFunction ) Text_showDocs, METH_VARARGS,
+	 "(docs) - Documentation string"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -548,7 +551,7 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 	int row, col;
 	int oldstate;
 
-	if(!self->text)
+	if (!self->text)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 					      "This object isn't linked to a Blender Text Object");
 
@@ -573,12 +576,12 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 	char *prefix, *name, type;
 	SpaceText *st;
 
-	if(!self->text)
+	if (!self->text)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"This object isn't linked to a Blender Text Object");
 
 	/* Parse args for a list of tuples */
-	if(!PyArg_ParseTuple(args, "O!s", &PyList_Type, &list, &prefix))
+	if (!PyArg_ParseTuple(args, "O!s", &PyList_Type, &list, &prefix))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 				"expected list of tuples followed by a string");
 
@@ -591,8 +594,8 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"Active text area has no Text object");
 	
+	suggest_set_active(st->text);
 	list_len = PyList_Size(list);
-	suggest_clear_text();
 	
 	for (i = 0; i < list_len; i++) {
 		item = PyList_GetItem(list, i);
@@ -610,7 +613,35 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 		suggest_add(name, type);
 	}
 	suggest_prefix(prefix);
-	suggest_set_text(st->text);
+	scrarea_queue_redraw(curarea);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Text_showDocs( BPy_Text * self, PyObject * args )
+{
+	char *docs;
+	SpaceText *st;
+
+	if (!self->text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"This object isn't linked to a Blender Text Object");
+
+	if (!PyArg_ParseTuple(args, "s", &docs))
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string as argument" );
+
+	if (curarea->spacetype != SPACE_TEXT)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"Active space type is not text");
+	
+	st = curarea->spacedata.first;
+	if (!st || !st->text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"Active text area has no Text object");
+
+	suggest_set_active(st->text);
+	suggest_documentation(docs);
 	scrarea_queue_redraw(curarea);
 
 	Py_RETURN_NONE;
