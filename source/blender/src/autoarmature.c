@@ -569,6 +569,29 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 	return mode;
 }
 
+static void printCostCube(float *cost_cube, int nb_joints)
+{
+	int i;
+	
+	for (i = 0; i < nb_joints; i++)
+	{
+		printf("%0.3f ", cost_cube[3 * i]);
+	}
+	printf("\n");
+
+	for (i = 0; i < nb_joints; i++)
+	{
+		printf("%0.3f ", cost_cube[3 * i + 1]);
+	}
+	printf("\n");
+
+	for (i = 0; i < nb_joints; i++)
+	{
+		printf("%0.3f ", cost_cube[3 * i + 2]);
+	}
+	printf("\n");
+}
+
 static void printPositions(int *positions, int nb_positions)
 {
 	int i;
@@ -638,14 +661,7 @@ static float costAngle(float original_angle, float vec_first[3], float vec_secon
 		{
 			current_angle = saacos(Inpf(vec_first, vec_second));
 
-			if (original_angle > 0)
-			{
-				return G.scene->toolsettings->skgen_retarget_angle_weight * fabs((current_angle - original_angle) / original_angle);
-			}
-			else
-			{
-				return G.scene->toolsettings->skgen_retarget_angle_weight * fabs(current_angle);
-			}
+			return G.scene->toolsettings->skgen_retarget_angle_weight * fabs(current_angle - original_angle);
 		}
 		else
 		{
@@ -711,7 +727,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	
 	if (index == 0)
 	{
-		i0 = iter->start;
+		i0 = 0;
 	}
 	else
 	{
@@ -722,7 +738,7 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	
 	if (index +1 == nb_joints)
 	{
-		i2 = iter->end;
+		i2 = iter->length;
 	}
 	else
 	{
@@ -736,6 +752,10 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	next_position = positions[index] + 1;
 	
 	if (index + 1 < nb_joints && next_position == positions[index + 1])
+	{
+		cost_cube[index * 3 + 2] = MAX_COST;
+	}
+	else if (next_position > iter->length) /* positions are indexed at 1, so length is last */
 	{
 		cost_cube[index * 3 + 2] = MAX_COST;
 	}
@@ -758,6 +778,10 @@ static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int in
 	next_position = positions[index] - 1;
 	
 	if (index - 1 > -1 && next_position == positions[index - 1])
+	{
+		cost_cube[index * 3] = MAX_COST;
+	}
+	else if (next_position < 1) /* positions are indexed at 1, so 1 is first */
 	{
 		cost_cube[index * 3] = MAX_COST;
 	}
@@ -864,8 +888,6 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	int first_pass = 1;
 	int must_move = nb_joints - 1;
 	int i;
-	
-	printf("aggressive\n");
 
 	positions = MEM_callocN(sizeof(int) * nb_joints, "Aggresive positions");
 	best_positions = MEM_callocN(sizeof(int) * nb_joints, "Best Aggresive positions");
@@ -1045,6 +1067,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	{
 		RigEdge *previous;
 		float *cost_cube;
+		float cost;
 #ifdef ANNEALING_ITERATION
 		int k, kmax = 100000;
 #else
@@ -1066,7 +1089,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			vec_cache[i + 1] = bucket->p;
 		}
 		
-		min_cost = 0;
+		cost = 0;
 
 		/* init cost cube */
 		for (previous = iarc->edges.first, edge = previous->next, i = 0;
@@ -1075,10 +1098,10 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		{
 			calcGradient(previous, edge, &iter, i, nb_joints, cost_cube, positions, vec_cache);
 			
-			min_cost += cost_cube[3 * i + 1];
+			cost += cost_cube[3 * i + 1];
 		}
 		
-		printf("initial cost: %f\n", min_cost);
+		printf("initial cost: %f\n", cost);
 		
 #ifdef ANNEALING_ITERATION
 		for (k = 0; k < kmax; k++)
@@ -1118,9 +1141,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 				bucket = peekBucket(&iter, positions[moving_joint]);
 				vec_cache[moving_joint + 1] = bucket->p;
 				
-				min_cost += delta_cost;
-
-				//printf("%i: %0.3f\n", k, delta_cost);
+				cost += delta_cost;
 	
 				/* update cost cube */			
 				for (previous = iarc->edges.first, edge = previous->next, i = 0;
@@ -1137,7 +1158,9 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			}
 		}
 		
-		printf("k = %i\n", k);
+		min_cost = cost;
+		
+//		printf("k = %i\n", k);
 		
 		memcpy(best_positions, positions, sizeof(int) * nb_joints);
 		
@@ -1175,11 +1198,8 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			int moving_joint = -1;
 			int move_direction = -1;
 		
-			printf("-----------------\n");
-		
 			for (i = 0; i < nb_joints; i++)
 			{
-				printf("%i[%i]: %f\t\t(%f)\t\t%f\n", i, positions[i], cost_cube[i * 3], cost_cube[i * 3 + 1], cost_cube[i * 3 + 2]); 
 				if (cost_cube[i * 3] < min_gradient)
 				{
 					min_gradient = cost_cube[i * 3]; 
@@ -1255,12 +1275,6 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		{
 			VECCOPY(bone->head, vec0);
 			VECCOPY(bone->tail, vec1);
-			printf("===\n");
-			printvecf("vec0", vec0);
-			printvecf("vec1", vec1);
-			if (i < nb_joints)
-				printf("position: %i\n", best_positions[i]);
-			printf("last_index: %i\n", last_index);
 		}
 		
 		vec0 = vec1;
