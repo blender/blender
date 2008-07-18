@@ -340,8 +340,9 @@ void free_editface(EditFace *efa)
 #endif
 	EM_remove_selection(efa, EDITFACE);
 	
-	if (G.editMesh->act_face==efa)
-		EM_set_actFace(NULL);
+	if (G.editMesh->act_face==efa) {
+		EM_set_actFace( G.editMesh->faces.first == efa ? NULL : G.editMesh->faces.first);
+	}
 		
 	CustomData_em_free_block(&G.editMesh->fdata, &efa->data);
 	if(efa->fast==0)
@@ -1061,7 +1062,7 @@ void make_editMesh()
 	EM_fgon_flags();
 	
 	if (EM_get_actFace(0)==NULL) {
-		EM_set_actFace(NULL); /* will use the first face, this is so we alwats have an active face */
+		EM_set_actFace( G.editMesh->faces.first ); /* will use the first face, this is so we alwats have an active face */
 	}
 		
 	/* vertex coordinates change with cache edit, need to recalc */
