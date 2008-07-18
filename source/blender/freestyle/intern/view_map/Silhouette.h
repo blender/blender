@@ -412,6 +412,8 @@ public:
   /*! Default constructor */
   inline FEdge() {
     userdata = NULL;
+    _VertexA = NULL;
+    _VertexB = NULL;
     _Nature = Nature::NO_FEATURE;
     _NextEdge = NULL;
     _PreviousEdge = NULL;

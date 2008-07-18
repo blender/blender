@@ -1,6 +1,7 @@
 #include "Interface1D.h"
 
 #include "Convert.h"
+#include "Interface1D/FEdge.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,9 +129,14 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 
 	if( PyType_Ready( &Interface1D_Type ) < 0 )
 		return;
-
 	Py_INCREF( &Interface1D_Type );
 	PyModule_AddObject(module, "Interface1D", (PyObject *)&Interface1D_Type);
+	
+	if( PyType_Ready( &FEdge_Type ) < 0 )
+		return;
+	Py_INCREF( &FEdge_Type );
+	PyModule_AddObject(module, "FEdge", (PyObject *)&FEdge_Type);
+	
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
@@ -169,11 +175,13 @@ PyObject *Interface1D_getLength2D( BPy_Interface1D *self ) {
 }
 
 PyObject *Interface1D_getId( BPy_Interface1D *self ) {
-	return BPy_Id_from_Id( self->if1D->getId() );
+	Id id( self->if1D->getId() );
+	return BPy_Id_from_Id( id );
 }
 
 PyObject *Interface1D_getNature( BPy_Interface1D *self ) {
 	// EdgeNature
+	Py_RETURN_NONE;
 }
 
 PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self ) {

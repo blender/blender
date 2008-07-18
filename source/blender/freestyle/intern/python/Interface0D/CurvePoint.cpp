@@ -1,7 +1,6 @@
 #include "CurvePoint.h"
 
 #include "../Convert.h"
-#include "../../stroke/Curve.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -166,15 +165,15 @@ PyObject * CurvePoint___copy__( BPy_CurvePoint *self ) {
 }
 
 PyObject * CurvePoint_A( BPy_CurvePoint *self ) {
-	if( self->cp->A() )
-		return BPy_SVertex_from_SVertex( *(self->cp->A()) );
+	if( SVertex *A = self->cp->A() )
+		return BPy_SVertex_from_SVertex( *A );
 
 	Py_RETURN_NONE;
 }
 
 PyObject * CurvePoint_B( BPy_CurvePoint *self ) {
-	if( self->cp->B() )
-		return BPy_SVertex_from_SVertex( *(self->cp->B()) );
+	if( SVertex *B = self->cp->B() )
+		return BPy_SVertex_from_SVertex( *B );
 
 	Py_RETURN_NONE;
 }

@@ -3,6 +3,7 @@
 #include "Convert.h"
 #include "Interface0D/CurvePoint.h"
 #include "Interface0D/SVertex.h"
+#include "Interface1D/FEdge.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,7 @@ static PyObject *Interface0D_getProjectedX( BPy_Interface0D *self );
 static PyObject *Interface0D_getProjectedY( BPy_Interface0D *self );
 static PyObject *Interface0D_getProjectedZ( BPy_Interface0D *self );
 static PyObject *Interface0D_getPoint2D( BPy_Interface0D *self );
-static PyObject *Interface0D_getFEdge( BPy_Interface0D *self );
+static PyObject *Interface0D_getFEdge( BPy_Interface0D *self, PyObject *args );
 static PyObject *Interface0D_getId( BPy_Interface0D *self );
 static PyObject *Interface0D_getNature( BPy_Interface0D *self ); 
 
@@ -39,7 +40,7 @@ static PyMethodDef BPy_Interface0D_methods[] = {
 	{"getProjectedY", ( PyCFunction ) Interface0D_getProjectedY, METH_NOARGS, "() Returns the 2D y coordinate of the point."},
 	{"getProjectedZ", ( PyCFunction ) Interface0D_getProjectedZ, METH_NOARGS, "() Returns the 2D z coordinate of the point."},
 	{"getPoint2D", ( PyCFunction ) Interface0D_getPoint2D, METH_NOARGS, "() Returns the 2D point."},
-	{"getFEdge", ( PyCFunction ) Interface0D_getFEdge, METH_NOARGS, "() Returns the FEdge that lies between this Interface0D and the Interface0D given as argument."},
+	{"getFEdge", ( PyCFunction ) Interface0D_getFEdge, METH_VARARGS, "(Interface0D i) Returns the FEdge that lies between this Interface0D and the Interface0D given as argument."},
 	{"getId", ( PyCFunction ) Interface0D_getId, METH_NOARGS, "() Returns the Id of the point."},
 	{"getNature", ( PyCFunction ) Interface0D_getNature, METH_NOARGS, "() Returns the nature of the point."},	
 	{NULL, NULL, 0, NULL}
@@ -193,7 +194,8 @@ PyObject *Interface0D_getZ( BPy_Interface0D *self ) {
 
 
 PyObject *Interface0D_getPoint3D( BPy_Interface0D *self ) {
-	return Vector_from_Vec3f( self->if0D->getPoint3D() );
+	Vec3f v( self->if0D->getPoint3D() );
+	return Vector_from_Vec3f( v );
 }
 
 
@@ -213,22 +215,36 @@ PyObject *Interface0D_getProjectedZ( BPy_Interface0D *self ) {
 
 
 PyObject *Interface0D_getPoint2D( BPy_Interface0D *self ) {
-	return Vector_from_Vec2f( self->if0D->getPoint2D() );
+	Vec2f v( self->if0D->getPoint2D() );
+	return Vector_from_Vec2f( v );
 }
 
 
-PyObject *Interface0D_getFEdge( BPy_Interface0D *self ) {
-	// FEdge
+PyObject *Interface0D_getFEdge( BPy_Interface0D *self, PyObject *args ) {
+	PyObject *py_if0D;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_if0D) && BPy_Interface0D_Check(py_if0D) )) {
+		cout << "ERROR: Interface0D_getFEdge" << endl;
+		Py_RETURN_NONE;
+	}
+
+	FEdge *fe = self->if0D->getFEdge(*( ((BPy_Interface0D *) py_if0D)->if0D ));
+	if( fe )
+		return BPy_FEdge_from_FEdge( *fe );
+	
+	Py_RETURN_NONE;
 }
 
 
 PyObject *Interface0D_getId( BPy_Interface0D *self ) {
-	return BPy_Id_from_Id( self->if0D->getId() );
+	Id id( self->if0D->getId() );
+	return BPy_Id_from_Id( id );
 }
 
 
 PyObject *Interface0D_getNature( BPy_Interface0D *self ) {
 	// VertexNature
+	Py_RETURN_NONE;
 }
 
 

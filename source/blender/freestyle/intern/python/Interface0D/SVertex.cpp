@@ -18,6 +18,8 @@ static PyObject * SVertex_SetPoint3D( BPy_SVertex *self , PyObject *args);
 static PyObject * SVertex_SetPoint2D( BPy_SVertex *self , PyObject *args);
 static PyObject * SVertex_AddNormal( BPy_SVertex *self , PyObject *args);
 static PyObject * SVertex_SetId( BPy_SVertex *self , PyObject *args);
+static PyObject *SVertex_AddFEdge( BPy_SVertex *self , PyObject *args);
+
 /*----------------------SVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_SVertex_methods[] = {
 	{"__copy__", ( PyCFunction ) SVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
@@ -27,6 +29,7 @@ static PyMethodDef BPy_SVertex_methods[] = {
 	{"SetPoint2D", ( PyCFunction ) SVertex_SetPoint2D, METH_VARARGS, "Sets the 3D projected coordinates of the SVertex." },
 	{"AddNormal", ( PyCFunction ) SVertex_AddNormal, METH_VARARGS, "Adds a normal to the Svertex's set of normals. If the same normal is already in the set, nothing changes." },
 	{"SetId", ( PyCFunction ) SVertex_SetId, METH_VARARGS, "Sets the Id." },
+	{"AddFEdge", ( PyCFunction ) SVertex_AddFEdge, METH_VARARGS, "Add an FEdge to the list of edges emanating from this SVertex." },	
 	{NULL, NULL, 0, NULL}
 };
 
@@ -163,7 +166,8 @@ PyObject * SVertex_normals( BPy_SVertex *self ) {
 	normals = self->sv->normals();
 		
 	for( set< Vec3r >::iterator set_iterator = normals.begin(); set_iterator != normals.end(); set_iterator++ ) {
-		PyList_Append( py_normals, Vector_from_Vec3r(*set_iterator) );
+		Vec3r v( *set_iterator );
+		PyList_Append( py_normals, Vector_from_Vec3r(v) );
 	}
 	
 	return py_normals;
@@ -215,8 +219,6 @@ PyObject *SVertex_AddNormal( BPy_SVertex *self , PyObject *args) {
 		cout << "ERROR: SVertex_AddNormal" << endl;
 		Py_RETURN_NONE;
 	}
-	
-	cout << "yoyo" << endl;
 
 	Vec3r n( 	PyFloat_AsDouble( PyList_GetItem(py_normal, 0) ),
 				PyFloat_AsDouble( PyList_GetItem(py_normal, 1) ),
@@ -239,9 +241,23 @@ PyObject *SVertex_SetId( BPy_SVertex *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+PyObject *SVertex_AddFEdge( BPy_SVertex *self , PyObject *args) {
+	PyObject *py_fe;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
+		cout << "ERROR: SVertex_AddFEdge" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	self->sv->AddFEdge( ((BPy_FEdge *) py_fe)->fe );
+
+	Py_RETURN_NONE;
+}
+
+
 // virtual bool 	operator== (const SVertex &iBrother)
 // ViewVertex * 	viewvertex ()
-// void 	AddFEdge (FEdge *iFEdge)
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

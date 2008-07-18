@@ -1,252 +1,325 @@
- PyObject *_wrap_FEdge_getExactTypeName(PyObject *self , PyObject *args) {
+#include "FEdge.h"
+
+#include "../Convert.h"
+#include "../Interface0D/SVertex.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+/*---------------  Python API function prototypes for FEdge instance  -----------*/
+static int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds);
+static PyObject * FEdge___copy__( BPy_FEdge *self );
+static PyObject * FEdge_vertexA( BPy_FEdge *self );
+static PyObject * FEdge_vertexB( BPy_FEdge *self );
+static PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args );
+static PyObject * FEdge_nextEdge( BPy_FEdge *self );
+static PyObject * FEdge_previousEdge( BPy_FEdge *self );
+static PyObject * FEdge_getVertices( BPy_FEdge *self );
+static PyObject * FEdge_getPoints( BPy_FEdge *self );
+static PyObject * FEdge_isSmooth( BPy_FEdge *self );
+static PyObject * FEdge_SetVertexA( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_SetVertexB( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_SetId( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_SetNextEdge( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_SetPreviousEdge( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_SetSmooth( BPy_FEdge *self , PyObject *args); 
+
+/*----------------------FEdge instance definitions ----------------------------*/
+static PyMethodDef BPy_FEdge_methods[] = {	
+	{"__copy__", ( PyCFunction ) FEdge___copy__, METH_NOARGS, "() Cloning method."},
+	{"vertexA", ( PyCFunction ) FEdge_vertexA, METH_NOARGS, "() Returns the first SVertex."},
+	{"vertexB", ( PyCFunction ) FEdge_vertexB, METH_NOARGS, "() Returns the second SVertex."},
+	{"__getitem__", ( PyCFunction ) FEdge___getitem__, METH_VARARGS, "(int i) Returns the first SVertex if i=0, the seccond SVertex if i=1."},
+	{"nextEdge", ( PyCFunction ) FEdge_nextEdge, METH_NOARGS, "() Returns the FEdge following this one in the ViewEdge. If this FEdge is the last of the ViewEdge, 0 is returned."},
+	{"previousEdge", ( PyCFunction ) FEdge_previousEdge, METH_NOARGS, "Returns the Edge preceding this one in the ViewEdge. If this FEdge is the first one of the ViewEdge, 0 is returned."},
+	{"getVertices", ( PyCFunction ) FEdge_getVertices, METH_NOARGS, "Returns the vertices"},
+	{"getPoints", ( PyCFunction ) FEdge_getPoints, METH_NOARGS, "Returns the points. The difference with getVertices() is that here we can iterate over points of the 1D element at any given sampling. At each call, a virtual point is created."}, 
+	{"isSmooth", ( PyCFunction ) FEdge_isSmooth, METH_NOARGS, "() Returns true if this FEdge is a smooth FEdge."},
+	{"SetVertexA", ( PyCFunction ) FEdge_SetVertexA, METH_VARARGS, "(SVertex v) Sets the first SVertex. ."},
+	{"SetVertexB", ( PyCFunction ) FEdge_SetVertexB, METH_VARARGS, "(SVertex v) Sets the second SVertex. "},
+	{"SetId", ( PyCFunction ) FEdge_SetId, METH_VARARGS, "(Id id) Sets the FEdge Id ."},
+	{"SetNextEdge", ( PyCFunction ) FEdge_SetNextEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the next FEdge. "},
+	{"SetPreviousEdge", ( PyCFunction ) FEdge_SetPreviousEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the previous FEdge. "},
+	{"SetSmooth", ( PyCFunction ) FEdge_SetSmooth, METH_VARARGS, "(bool b) Sets the flag telling whether this FEdge is smooth or sharp. true for Smooth, false for Sharp. "},
+	{NULL, NULL, 0, NULL}
+};
+
+/*-----------------------BPy_FEdge type definition ------------------------------*/
+
+PyTypeObject FEdge_Type = {
+	PyObject_HEAD_INIT( NULL ) 
+	0,							/* ob_size */
+	"FEdge",				/* tp_name */
+	sizeof( BPy_FEdge ),	/* tp_basicsize */
+	0,							/* tp_itemsize */
+	
+	/* methods */
+	NULL,	/* tp_dealloc */
+	NULL,                       				/* printfunc tp_print; */
+	NULL,                       				/* getattrfunc tp_getattr; */
+	NULL,                       				/* setattrfunc tp_setattr; */
+	NULL,										/* tp_compare */
+	NULL,					/* tp_repr */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,						/* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 		/* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_FEdge_methods,	/* struct PyMethodDef *tp_methods; */
+	NULL,                       	/* struct PyMemberDef *tp_members; */
+	NULL,         					/* struct PyGetSetDef *tp_getset; */
+	&Interface1D_Type,				/* struct _typeobject *tp_base; */
+	NULL,							/* PyObject *tp_dict; */
+	NULL,							/* descrgetfunc tp_descr_get; */
+	NULL,							/* descrsetfunc tp_descr_set; */
+	0,                          	/* long tp_dictoffset; */
+	(initproc)FEdge___init__,                       	/* initproc tp_init; */
+	NULL,							/* allocfunc tp_alloc; */
+	NULL,		/* newfunc tp_new; */
+	
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+//-------------------MODULE INITIALIZATION--------------------------------
+
+
+//------------------------INSTANCE METHODS ----------------------------------
+	
+int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
+{
+
+	PyObject *obj1 = 0, *obj2 = 0;
+
+    if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
+        return -1;
+
+	if( !obj1 && !obj2 ){
+		self->fe = new FEdge();
+	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
+		self->fe = new FEdge( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
+	} else {
+		return -1;
+	}
+
+	self->py_if1D.if1D = self->fe;
+
+	return 0;
 }
 
 
- PyObject *_wrap_FEdge_getLength2D(PyObject *self , PyObject *args) {
+PyObject * FEdge___copy__( BPy_FEdge *self ) {
+	BPy_FEdge *py_fe;
+	
+	py_fe = (BPy_FEdge *) FEdge_Type.tp_new( &FEdge_Type, 0, 0 );
+	
+	py_fe->fe = new FEdge( *(self->fe) );
+	py_fe->py_if1D.if1D = py_fe->fe;
+
+	return (PyObject *) py_fe;
+}
+
+PyObject * FEdge_vertexA( BPy_FEdge *self ) {	
+	if( self->fe->vertexA() ){
+		return BPy_SVertex_from_SVertex( *(self->fe->vertexA()) );
+	}
+		
+	Py_RETURN_NONE;
+}
+
+PyObject * FEdge_vertexB( BPy_FEdge *self ) {
+	if( self->fe->vertexB() ){
+		return BPy_SVertex_from_SVertex( *(self->fe->vertexB()) );
+	}
+		
+	Py_RETURN_NONE;
 }
 
 
- PyObject *_wrap_FEdge_getId(PyObject *self , PyObject *args) {
+PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args ) {
+	int i;
+
+	if(!( PyArg_ParseTuple(args, "i", &i) && (i == 0 || i == 1)  )) {
+		cout << "ERROR: FEdge___getitem__" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	if( SVertex *v = self->fe->operator[](i) )
+		return BPy_SVertex_from_SVertex( *v );
+
+	Py_RETURN_NONE;
+}
+
+PyObject * FEdge_nextEdge( BPy_FEdge *self ) {
+	if( FEdge *fe = self->fe->nextEdge() )
+		return BPy_FEdge_from_FEdge( *fe );
+
+	Py_RETURN_NONE;
+}
+
+PyObject * FEdge_previousEdge( BPy_FEdge *self ) {
+	if( FEdge *fe = self->fe->previousEdge() )
+		return BPy_FEdge_from_FEdge( *fe );
+
+	Py_RETURN_NONE;
+}
+
+PyObject * FEdge_isSmooth( BPy_FEdge *self ) {
+	return PyBool_from_bool( self->fe->isSmooth() );
+}
+	
+PyObject *FEdge_SetVertexA( BPy_FEdge *self , PyObject *args) {
+	PyObject *py_sv;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
+		cout << "ERROR: FEdge_SetVertexA" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->fe->SetVertexA( ((BPy_SVertex *) py_sv)->sv );
+
+	Py_RETURN_NONE;
+}
+
+PyObject *FEdge_SetVertexB( BPy_FEdge *self , PyObject *args) {
+	PyObject *py_sv;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
+		cout << "ERROR: FEdge_SetVertexB" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->fe->SetVertexB( ((BPy_SVertex *) py_sv)->sv );
+
+	Py_RETURN_NONE;
+}
+
+PyObject *FEdge_SetId( BPy_FEdge *self , PyObject *args) {
+	PyObject *py_id;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_id) && BPy_Id_Check(py_id) )) {
+		cout << "ERROR: FEdge_SetId" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->fe->SetId(*( ((BPy_Id *) py_id)->id ));
+
+	Py_RETURN_NONE;
 }
 
 
- PyObject *_wrap_FEdge_userdata_set(PyObject *self , PyObject *args) {
+PyObject *FEdge_SetNextEdge( BPy_FEdge *self , PyObject *args) {
+	PyObject *py_fe;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
+		cout << "ERROR: FEdge_SetNextEdge" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->fe->SetNextEdge( ((BPy_FEdge *) py_fe)->fe );
+
+	Py_RETURN_NONE;
 }
 
+PyObject *FEdge_SetPreviousEdge( BPy_FEdge *self , PyObject *args) {
+	PyObject *py_fe;
 
- PyObject *_wrap_FEdge_userdata_get(PyObject *self , PyObject *args) {
+	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
+		cout << "ERROR: FEdge_SetPreviousEdge" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->fe->SetPreviousEdge( ((BPy_FEdge *) py_fe)->fe );
+
+	Py_RETURN_NONE;
 }
 
+PyObject *FEdge_SetSmooth( BPy_FEdge *self , PyObject *args) {
+	int b;
 
- PyObject *_wrap_new_FEdge__SWIG_0(PyObject *self , PyObject *args) {
+	if(!( PyArg_ParseTuple(args, "i", &b) )) {
+		cout << "ERROR: FEdge_SetSmooth" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->fe->SetSmooth( (bool) b );
+
+	Py_RETURN_NONE;
 }
 
-
- PyObject *_wrap_new_FEdge__SWIG_1(PyObject *self , PyObject *args) {
+PyObject *FEdge_getVertices( BPy_FEdge *self ) {
+	PyObject *py_vertices = PyList_New(NULL);
+		
+	for( Interface0DIterator it = self->fe->verticesBegin(); it != self->fe->verticesEnd(); it++ ) {
+		PyList_Append( py_vertices, BPy_Interface0D_from_Interface0D( *it ) );
+	}
+	
+	return py_vertices;
 }
 
-
- PyObject *_wrap_new_FEdge__SWIG_2(PyObject *self , PyObject *args) {
+PyObject *FEdge_getPoints( BPy_FEdge *self ) {
+	PyObject *py_points = PyList_New(NULL);
+	
+	for( Interface0DIterator it = self->fe->pointsBegin(); it != self->fe->pointsEnd(); it++ ) {
+		PyList_Append( py_points, BPy_Interface0D_from_Interface0D( *it ) );
+	}
+	
+	return py_points;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
 
- PyObject *_wrap_new_FEdge(PyObject *self, PyObject *args) {
+#ifdef __cplusplus
 }
-
-
- PyObject *_wrap_delete_FEdge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_dupplicate(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_vertexA(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_vertexB(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_getNature(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_nextEdge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_previousEdge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_shape__SWIG_0(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_invisibility(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_viewedge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_center3d(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_center2d(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_aFace(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_getOccludeeIntersection(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_getOccludeeEmpty(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_isSmooth(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetVertexA(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetVertexB(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetId(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetNextEdge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetPreviousEdge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetNature(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetViewEdge(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetaFace(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetOccludeeIntersection(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetOccludeeEmpty(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_SetSmooth(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_CommonVertex(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_min2d(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_max2d(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_shape_id(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_shape__SWIG_1(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_shape(PyObject *self, PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_shape_importance(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_qi(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occluders_begin(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occluders_end(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occluders_empty(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occluders_size(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occludee(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occluded_shape(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_occludee_empty(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_z_discontinuity(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_viewedge_nature(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_orientation2d(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_orientation3d(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_verticesBegin(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_verticesEnd(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_pointsBegin__SWIG_0(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_pointsBegin__SWIG_1(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_pointsBegin(PyObject *self, PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_pointsEnd__SWIG_0(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_pointsEnd__SWIG_1(PyObject *self , PyObject *args) {
-}
-
-
- PyObject *_wrap_FEdge_pointsEnd(PyObject *self, PyObject *args) {
-}
-
-
+#endif
