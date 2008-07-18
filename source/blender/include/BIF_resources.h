@@ -293,7 +293,7 @@ typedef enum {
 	ICON_ARMATURE_DEHLT,
 	ICON_SNAP_GEAR,
 	ICON_SNAP_GEO,
-	ICON_BLANK41,
+	ICON_SNAP_NORMAL,
 	ICON_BLANK42,
 	
 	ICON_SMOOTHCURVE,
@@ -590,6 +590,9 @@ void	BIF_load_ui_colors		(void);
 /* only for buttons in theme editor! */
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 char 	*BIF_ThemeColorsPup(int spacetype);
+
+/* only for Bone Color sets */
+char *BIF_ThemeColorSetsPup(short inc_custom);
 
 
 void	BIF_def_color			(BIFColorID colorid, unsigned char r, unsigned char g, unsigned char b);

@@ -228,13 +228,14 @@ int set_tpage(MTFace *tface)
 		alphamode= tface->transp;
 
 		if(alphamode) {
-			glEnable(GL_BLEND);
-			
 			if(alphamode==TF_ADD) {
+				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
+				glDisable ( GL_ALPHA_TEST );
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			}
 			else if(alphamode==TF_ALPHA) {
+				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				
 				/* added after 2.45 to clip alpha */
@@ -245,9 +246,12 @@ int set_tpage(MTFace *tface)
 					glEnable ( GL_ALPHA_TEST );
 					glAlphaFunc ( GL_GREATER, U.glalphaclip );
 				}
-				
-			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
+			} else if (alphamode==TF_CLIP){		
+				glDisable(GL_BLEND); 
+				glEnable ( GL_ALPHA_TEST );
+				glAlphaFunc(GL_GREATER, 0.5f);
 			}
+			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			/* else { */
 			/* 	glBlendFunc(GL_ONE, GL_ONE); */
 			/* 	glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT); */

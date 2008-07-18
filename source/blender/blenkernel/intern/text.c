@@ -1027,7 +1027,8 @@ char *txt_to_buf (Text *text)
 	if (!text) return NULL;
 	if (!text->curl) return NULL;
 	if (!text->sell) return NULL;
-		
+	if (!text->lines.first) return NULL;
+
 	linef= text->lines.first;
 	charf= 0;
 		

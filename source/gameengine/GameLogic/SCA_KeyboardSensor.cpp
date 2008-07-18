@@ -62,7 +62,7 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 	if (hotkey == SCA_IInputDevice::KX_ESCKEY)
 		keybdmgr->GetInputDevice()->HookEscape();
 //	SetDrawColor(0xff0000ff);
-	m_val=0;
+	Init();
 }
 
 
@@ -71,14 +71,22 @@ SCA_KeyboardSensor::~SCA_KeyboardSensor()
 {
 }
 
-
+void SCA_KeyboardSensor::Init()
+{
+	// this function is used when the sensor is disconnected from all controllers
+	// by the state engine. It reinitializes the sensor as if it was just created.
+	// However, if the target key is pressed when the sensor is reactivated, it
+	// will not generated an event (see remark in Evaluate()).
+	m_val = (m_invert)?1:0;
+	m_reset = true;
+}
 
 CValue* SCA_KeyboardSensor::GetReplica()
 {
-	CValue* replica = new SCA_KeyboardSensor(*this);
+	SCA_KeyboardSensor* replica = new SCA_KeyboardSensor(*this);
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
-
+	replica->Init();
 	return replica;
 }
 
@@ -113,8 +121,8 @@ bool SCA_KeyboardSensor::TriggerOnAllKeys()
 bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 {
 	bool result    = false;
+	bool reset     = m_reset && m_level;
 	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
-	
 	//  	cerr << "SCA_KeyboardSensor::Eval event, sensing for "<< m_hotkey << " at device " << inputdev << "\n";
 
 	/* See if we need to do logging: togPropState exists and is
@@ -127,7 +135,7 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 		LogKeystrokes();
 	}
 
-
+	m_reset = false;
 
 	/* Now see whether events must be bounced. */
 	if (m_bAllKeys)
@@ -169,10 +177,10 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				{
 					if (m_val == 0)
 					{
-						//see comment below
-						//m_val = 1;
-						//result = true;
-						;
+						m_val = 1;
+						if (m_level) {
+							result = true;
+						}
 					}
 				} else
 				{
@@ -222,22 +230,20 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 					{
 						if (m_val == 0)
 						{
-							//hmm, this abnormal situation may occur in the following cases:
-							//- the key was pressed while the scene was suspended
-							//- this is a new scene and the key is active from the start
-							//In the second case, it's dangerous to activate the sensor
-							//(think of a key to go to next scene)
-							//What we really need is a edge/level flag in the key sensor
-							//m_val = 1;
-							//result = true;
-							;
+							m_val = 1;
+							if (m_level) 
+							{
+								result = true;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-
+	if (reset)
+		// force an event
+		result = true;
 	return result;
 
 }

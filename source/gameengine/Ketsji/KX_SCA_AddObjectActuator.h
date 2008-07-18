@@ -53,7 +53,7 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 	int	m_timeProp;
 
 	/// Original object reference (object to replicate)  	
-	CValue*	m_OriginalObject;
+	SCA_IObject*	m_OriginalObject;
 
 	/// Object will be added to the following scene
 	SCA_IScene*	m_scene;
@@ -75,7 +75,7 @@ public:
 
 	KX_SCA_AddObjectActuator(
 		SCA_IObject *gameobj,
-		CValue* original,
+		SCA_IObject *original,
 		int time,
 		SCA_IScene* scene,
 		const MT_Vector3& linvel,
@@ -88,6 +88,12 @@ public:
 		CValue* 
 	GetReplica(
 	) ;
+
+	virtual void 
+	ProcessReplica();
+
+	virtual bool 
+	UnlinkObject(SCA_IObject* clientobj);
 
 	virtual bool 
 	Update();

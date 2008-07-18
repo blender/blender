@@ -501,26 +501,47 @@ static void set_active_strip(Object *ob, bActionStrip *act)
 {
 	bActionStrip *strip;
 	
+	/* make sure all other strips are not active */
 	for (strip = ob->nlastrips.first; strip; strip=strip->next)
 		strip->flag &= ~ACTSTRIP_ACTIVE;
 	
-	if(act) {
+	/* act is new active strip */
+	if (act) {
+		/* set active flag for this strip */
 		act->flag |= ACTSTRIP_ACTIVE;
-	
-		if(ob->action!=act->act) {
-			if(ob->action) ob->action->id.us--;
-			if(act->act->id.lib) {
+		
+		/* check if active action will still be the same one */
+		if (ob->action != act->act) {
+			/* clear object's links with its current action (if present) */
+			if (ob->action) {
+				ob->action->id.us--;
+			}
+			
+			/* only set object's action to active strip's action if possible */
+			if (act->act->id.lib) {
 				ob->action= NULL;
 			}
 			else {
 				ob->action= act->act;
 				id_us_plus(&ob->action->id);
-			}			
+			}	
+			
+			/* request redrawing in relevant spaces */
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
-			ob->ctime= -1234567.0f;	// eveil! 
+			
+			/* when only showing action (i.e. nla-override off), 
+			 * reset pose to restpose for armatures 
+			 */
+			if ((ob->nlaflag & OB_NLA_OVERRIDE)==0) {
+				if (ob->type == OB_ARMATURE)
+					rest_pose(ob->pose);
+			}
+			
+			/* flush depsgraph */
+			ob->ctime= -1234567.0f;	// evil! 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
 		}
 	}	

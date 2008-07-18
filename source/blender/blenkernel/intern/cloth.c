@@ -132,7 +132,7 @@ void cloth_init ( ClothModifierData *clmd )
 	
 	clmd->coll_parms->self_friction = 5.0;
 	clmd->coll_parms->friction = 5.0;
-	clmd->coll_parms->loop_count = 3;
+	clmd->coll_parms->loop_count = 2;
 	clmd->coll_parms->epsilon = 0.015f;
 	clmd->coll_parms->flags = CLOTH_COLLSETTINGS_FLAG_ENABLED;
 	clmd->coll_parms->collision_list = NULL;
@@ -471,7 +471,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 
 	tend();
 
-	/* printf ( "Cloth simulation time: %f\n", ( float ) tval() ); */
+	// printf ( "%f\n", ( float ) tval() );
 	
 	return ret;
 }

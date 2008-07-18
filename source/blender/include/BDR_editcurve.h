@@ -99,6 +99,7 @@ int bezt_compare (const void *e1, const void *e2);
 void setweightNurb( void );
 void setradiusNurb( void );
 void smoothradiusNurb( void );
+void smoothNurb( void );
 
 extern void undo_push_curve(char *name);
 

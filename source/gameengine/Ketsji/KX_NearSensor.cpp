@@ -102,10 +102,7 @@ CValue* KX_NearSensor::GetReplica()
 {
 	KX_NearSensor* replica = new KX_NearSensor(*this);
 	replica->m_colliders = new CListValue();
-	replica->m_bCollision = false;
-	replica->m_bTriggered= false;
-	replica->m_hitObject = NULL;
-	replica->m_bLastTriggered = false;
+	replica->Init();
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
@@ -138,9 +135,6 @@ CValue* KX_NearSensor::GetReplica()
 
 void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
-
-	SCA_ISensor::ReParent(parent);
-	
 	m_client_info->m_gameobject = static_cast<KX_GameObject*>(parent); 
 	m_client_info->m_sensors.push_back(this);
 	
@@ -154,6 +148,7 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 */
 	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
 	SynchronizeTransform();
+	SCA_ISensor::ReParent(parent);
 }
 
 

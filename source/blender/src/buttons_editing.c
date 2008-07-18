@@ -513,7 +513,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				} else {
 					editmesh_deselect_by_material(G.obedit->actcol-1);
 				}
-				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 				nu= editNurb.first;
@@ -553,8 +552,9 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					nu= nu->next;
 				}
 				BIF_undo_push("Select material index");
-				allqueue(REDRAWVIEW3D, 0);
 			}
+			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		countall();
 		break;
@@ -1767,7 +1767,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 86;
+			height = 105;
 		} else if (md->type==eModifierType_Bevel) {
 			BevelModifierData *bmd = (BevelModifierData*) md;
 			height = 105; /* height = 124; */
@@ -1792,7 +1792,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 143;
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData *)md;
-			height = 294;
+			height = 315;
 			if(wmd->texmapping == MOD_WAV_MAP_OBJECT ||
 			   wmd->texmapping == MOD_WAV_MAP_UV)
 				height += 19;
@@ -1899,6 +1899,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Y, B_MODIFIER_RECALC, "Y",	lx+20,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Y axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_AXIS_Z, B_MODIFIER_RECALC, "Z",	lx+40,cy,20,19,    &mmd->flag, 0, 0, 0, 0, "Enable Z axis mirror");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
+			uiDefButBitS(block, TOG, MOD_MIR_VGROUP, B_MODIFIER_RECALC, "Mirror Vgroups",	lx, (cy-=19), buttonWidth,19, &mmd->flag, 1, 2, 0, 0, "Mirror vertex groups (e.g. .R->.L)");
 			uiDefButBitS(block, TOG, MOD_MIR_MIRROR_U, B_MODIFIER_RECALC,
 			             "Mirror U",
 			             lx, (cy-=19), buttonWidth/2, 19,
@@ -2153,6 +2154,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify ending frame of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the lifespan of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the dampingtime of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff:",	lx,(cy-=19),buttonWidth,19, &wmd->falloff,  0, 100, 100, 0, "Specify the falloff radius of the waves");
+
 			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
@@ -2189,7 +2192,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				               &wmd->map_object,
 				               "Object to get texture coordinates from");
 			}
-            cy -= 9;
+			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Height:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
@@ -2402,7 +2405,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Bind", lx,(cy-=24), buttonWidth,19, 0, 0, 0, 0, 0, "Bind mesh to cage");
 				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
 				uiDefButS(block, NUM, B_NOP, "Precision:", lx,(cy-19), buttonWidth/2 + 20,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
-				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
+				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Recompute binding dynamically on top of other deformers like Shape Keys (slower and more memory consuming!)");
 			}
 			uiBlockEndAlign(block);
 		} else if (md->type==eModifierType_ParticleSystem) {
@@ -5150,32 +5153,6 @@ static void verify_posegroup_groupname(void *arg1, void *arg2)
 	BLI_uniquename(&pose->agroups, grp, "Group", offsetof(bActionGroup, name), 32);
 }
 
-static char *build_colorsets_menustr ()
-{
-	DynStr *pupds= BLI_dynstr_new();
-	char *str;
-	char buf[48];
-	int i;
-	
-	/* add title first (and the "default" entry) */
-	BLI_dynstr_append(pupds, "Bone Color Set%t|Default Colors%x0|");
-	
-	/* loop through set indices, adding them */
-	for (i=1; i<21; i++) {
-		sprintf(buf, "%d - Theme Color Set%%x%d|", i, i);
-		BLI_dynstr_append(pupds, buf);
-	}
-	
-	/* add the 'custom' entry */
-	BLI_dynstr_append(pupds, "Custom Set %x-1");
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
-
 static void editing_panel_links(Object *ob)
 {
 	uiBlock *block;
@@ -5335,32 +5312,14 @@ static void editing_panel_links(Object *ob)
 			/* color set for 'active' group */
 			if (pose->active_group && grp) {
 				uiBlockBeginAlign(block);
-					menustr= build_colorsets_menustr();
+					menustr= BIF_ThemeColorSetsPup(1);
 					uiDefButI(block, MENU,B_POSEGRP_RECALC, menustr, xco,85,140,19, &grp->customCol, -1, 20, 0.0, 0.0, "Index of set of Custom Colors to shade Group's bones with. 0 = Use Default Color Scheme, -1 = Use Custom Color Scheme");						
 					MEM_freeN(menustr);
 					
 					/* show color-selection/preview */
 					if (grp->customCol) {
-						if (grp->customCol > 0) {
-							/* copy theme colors on-to group's custom color in case user tries to edit color */
-							bTheme *btheme= U.themes.first;
-							ThemeWireColor *col_set= &btheme->tarm[(grp->customCol - 1)];
-							
-							memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
-						}
-						else {
-							/* init custom colors with a generic multi-color rgb set, if not initialised already */
-							if (grp->cs.solid[0] == 0) {
-								/* define for setting colors in theme below */
-								#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
-								
-								SETCOL(grp->cs.solid, 0xff, 0x00, 0x00, 255);
-								SETCOL(grp->cs.select, 0x81, 0xe6, 0x14, 255);
-								SETCOL(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
-								
-								#undef SETCOL
-							}
-						}
+						/* do color copying/init (to stay up to date) */
+						actionbone_group_copycolors(grp, 1);
 						
 						/* color changing */
 						uiDefButC(block, COL, B_POSEGRP_MCUSTOM, "",		xco, 65, 30, 19, grp->cs.solid, 0, 0, 0, 0, "Color to use for surface of bones");
@@ -6216,7 +6175,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &tf->mode, 0, 0, 0, 0, "Use tilemode for face");
 		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &tf->mode, 0, 0, 0, 0, "Use light for face");
 		uiDefButBitS(block, TOG, TF_INVISIBLE, REDRAWVIEW3D, "Invisible",780,160,60,19, &tf->mode, 0, 0, 0, 0, "Make face invisible");
-		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &tf->mode, 0, 0, 0, 0, "Use face for collision detection");
+		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &tf->mode, 0, 0, 0, 0, "Use face for collision and ray-sensor detection");
 
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &tf->mode, 0, 0, 0, 0, "Blend vertex colors across face when vertices are shared");
@@ -6235,6 +6194,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,80,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0, "Use the images alpha values clipped with no blending (binary alpha)");
 	}
 	else
 		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");

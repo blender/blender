@@ -30,18 +30,11 @@
 #ifndef __GPC_RENDERTOOLS_H
 #define __GPC_RENDERTOOLS_H
 
-#if defined(WIN32) || defined(__APPLE__)
-	#ifdef WIN32
-		#include <windows.h>
-		#include <GL/gl.h>
-	#else // WIN32
-		// __APPLE__ is defined
-		#include <AGL/gl.h>
-	#endif // WIN32
-#else //defined(WIN32) || defined(__APPLE__)
-	#include <GL/gl.h>
-#endif //defined(WIN32) || defined(__APPLE__)
+#ifdef WIN32
+	#include <windows.h>
+#endif // WIN32
 
+#include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"
 
@@ -149,7 +142,7 @@ public:
 
 	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
 
-	virtual void Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
+	virtual void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 

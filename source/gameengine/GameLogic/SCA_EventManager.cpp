@@ -72,7 +72,9 @@ void SCA_EventManager::EndFrame()
 {
 }
 
-
+void SCA_EventManager::UpdateFrame()
+{
+}
 
 int SCA_EventManager::GetType()
 {

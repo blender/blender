@@ -149,6 +149,7 @@ typedef enum {
 #define IB_zbuffloat	(1 << 16)
 #define IB_multilayer	(1 << 17)
 #define IB_imginfo		(1 << 18)
+#define IB_animdeinterlace      (1 << 19)
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.

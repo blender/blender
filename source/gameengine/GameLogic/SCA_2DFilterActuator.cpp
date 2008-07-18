@@ -7,7 +7,6 @@
 #endif
 #include <iostream>
 
-
 SCA_2DFilterActuator::~SCA_2DFilterActuator()
 {
 }
@@ -29,6 +28,11 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 	 m_rasterizer(rasterizer),
 	 m_rendertools(rendertools)
 {
+	m_gameObj = NULL;
+	if(gameobj){
+		m_propNames = gameobj->GetPropertyNames();
+		m_gameObj = gameobj;
+	}
 }
 
 void SCA_2DFilterActuator::SetShaderText(STR_String text)
@@ -50,8 +54,6 @@ CValue* SCA_2DFilterActuator::GetReplica()
 
 bool SCA_2DFilterActuator::Update()
 {
-	bool result = false;
-
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
@@ -72,7 +74,7 @@ bool SCA_2DFilterActuator::Update()
 	}
 	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{
-		m_rendertools->Update2DFilter(m_type, m_int_arg, m_shaderText);
+		m_rendertools->Update2DFilter(m_propNames, m_gameObj, m_type, m_int_arg, m_shaderText);
 	}
     return true;
 }

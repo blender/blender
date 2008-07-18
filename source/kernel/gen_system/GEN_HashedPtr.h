@@ -39,6 +39,7 @@ public:
 	GEN_HashedPtr(void* val) : m_valptr(val) {};
 	unsigned int hash() const { return GEN_Hash(m_valptr);};
 	inline friend bool operator ==(const GEN_HashedPtr & rhs, const GEN_HashedPtr & lhs) { return rhs.m_valptr == lhs.m_valptr;};
+	void *getValue() const { return m_valptr; }
 };
 
 #endif //__GEN_HASHEDPTR

@@ -74,7 +74,7 @@ public:
 	virtual	MT_Vector3	getReactionForce();
 	virtual void	setRigidBody(bool rigid);
 
-	virtual void	SuspendDynamics();
+	virtual void	SuspendDynamics(bool);
 	virtual void	RestoreDynamics();
 	
 

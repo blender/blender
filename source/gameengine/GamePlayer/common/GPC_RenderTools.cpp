@@ -34,12 +34,8 @@
 #include <windows.h>
 #endif 
 
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "GL/glew.h"
+
 #include <iostream>
 
 #include "GPC_RenderTools.h"
@@ -137,10 +133,6 @@ int GPC_RenderTools::ProcessLighting(int layer)
 	{
 		if (m_clientobject)
 		{	
-			if (layer == RAS_LIGHT_OBJECT_LAYER)
-			{
-				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
-			}
 			if (applyLights(layer))
 			{
 				EnableOpenGLLights();
@@ -160,7 +152,7 @@ void GPC_RenderTools::EnableOpenGLLights()
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
-	if (bgl::QueryExtension(bgl::_GL_EXT_separate_specular_color) || bgl::QueryVersion(1, 2))
+	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
 }
 
@@ -610,9 +602,9 @@ void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
-void GPC_RenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+void GPC_RenderTools::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
 {
-	m_filtermanager.EnableFilter(filtermode, pass, text);
+	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
 }
 
 void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)

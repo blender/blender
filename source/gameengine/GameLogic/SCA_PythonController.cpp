@@ -116,7 +116,7 @@ CValue* SCA_PythonController::GetReplica()
 
 void SCA_PythonController::SetScriptText(const STR_String& text)
 { 
-	m_scriptText = "import GameLogic\n" + text;
+	m_scriptText = text;
 	m_bModified = true;
 }
 
@@ -144,9 +144,7 @@ static char* sPyGetCurrentController__doc__;
 #endif
 
 
-PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds)
+PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self)
 {
 	m_sCurrentController->AddRef();
 	return m_sCurrentController;
@@ -159,8 +157,7 @@ static char* sPyAddActiveActuator__doc__;
 PyObject* SCA_PythonController::sPyAddActiveActuator(
 	  
 		PyObject* self, 
-		PyObject* args, 
-		PyObject* kwds)
+		PyObject* args)
 {
 	
 	PyObject* ob1;
@@ -187,8 +184,7 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(
 		m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)act,boolval);
 		boolval->Release();
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -222,16 +218,13 @@ PyParentObject SCA_PythonController::Parents[] = {
 	NULL
 };
 PyMethodDef SCA_PythonController::Methods[] = {
-	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, 
-		METH_VARARGS, SCA_PythonController::GetActuators_doc},
-	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, 
-	METH_VARARGS, SCA_PythonController::GetActuator_doc},
-	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, 
-	METH_VARARGS, SCA_PythonController::GetSensors_doc},
-	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, 
-	METH_VARARGS, SCA_PythonController::GetSensor_doc},
-	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_VARARGS},
-	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_VARARGS},
+	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, SCA_PythonController::GetActuators_doc},
+	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, SCA_PythonController::GetActuator_doc},
+	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, SCA_PythonController::GetSensors_doc},
+	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, SCA_PythonController::GetSensor_doc},
+	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
+	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
+	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
@@ -329,14 +322,12 @@ PyObject* SCA_PythonController::_getattr(const STR_String& attr)
 
 
 
-PyObject* SCA_PythonController::PyGetActuators(PyObject* self, 
-								   PyObject* args, 
-								   PyObject* kwds)
+PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
 {
 	PyObject* resultlist = PyList_New(m_linkedactuators.size());
 	for (unsigned int index=0;index<m_linkedactuators.size();index++)
 	{
-		PyList_SetItem(resultlist,index,m_linkedactuators[index]->AddRef());
+		PyList_SET_ITEM(resultlist,index,m_linkedactuators[index]->AddRef());
 	}
 
 	return resultlist;
@@ -345,14 +336,12 @@ PyObject* SCA_PythonController::PyGetActuators(PyObject* self,
 char SCA_PythonController::GetSensor_doc[] = 
 "GetSensor (char sensorname) return linked sensor that is named [sensorname]\n";
 PyObject*
-SCA_PythonController::PyGetSensor(PyObject* self, 
-								 PyObject* args, 
-								 PyObject* kwds)
+SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 {
 
-	char *scriptArg;
-
-	if (!PyArg_ParseTuple(args, "s", &scriptArg)) {
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (sensor name)");
 		return NULL;
 	}
 	
@@ -365,8 +354,10 @@ SCA_PythonController::PyGetSensor(PyObject* self,
 			return sensor->AddRef();
 		}
 	}
-		
-	PyErr_SetString(PyExc_AttributeError, "Unable to find requested sensor");
+	
+	char emsg[96];
+	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested sensor \"%s\"", scriptArg );
+	PyErr_SetString(PyExc_AttributeError, emsg);
 	return NULL;
 }
 
@@ -375,14 +366,12 @@ SCA_PythonController::PyGetSensor(PyObject* self,
 char SCA_PythonController::GetActuator_doc[] = 
 "GetActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
 PyObject*
-SCA_PythonController::PyGetActuator(PyObject* self, 
-								 PyObject* args, 
-								 PyObject* kwds)
+SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 {
 
-	char *scriptArg;
-
-	if (!PyArg_ParseTuple(args, "s", &scriptArg)) {
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (actuator name)");
 		return NULL;
 	}
 	
@@ -395,42 +384,39 @@ SCA_PythonController::PyGetActuator(PyObject* self,
 			return actua->AddRef();
 		}
 	}
-		
-	PyErr_SetString(PyExc_AttributeError, "Unable to find requested actuator");
+	
+	char emsg[96];
+	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested actuator \"%s\"", scriptArg );
+	PyErr_SetString(PyExc_AttributeError, emsg);
 	return NULL;
 }
 
 
 char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
 PyObject*
-SCA_PythonController::PyGetSensors(PyObject* self, 
-								 PyObject* args, 
-								 PyObject* kwds)
+SCA_PythonController::PyGetSensors(PyObject* self)
 {
 	PyObject* resultlist = PyList_New(m_linkedsensors.size());
 	for (unsigned int index=0;index<m_linkedsensors.size();index++)
 	{
-		PyList_SetItem(resultlist,index,m_linkedsensors[index]->AddRef());
+		PyList_SET_ITEM(resultlist,index,m_linkedsensors[index]->AddRef());
 	}
 	
 	return resultlist;
 }
 
 /* 1. getScript */
-PyObject* SCA_PythonController::PyGetScript(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* SCA_PythonController::PyGetScript(PyObject* self)
 {
 	return PyString_FromString(m_scriptText);
 }
 
 /* 2. setScript */
-PyObject* SCA_PythonController::PySetScript(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
 {
-	char *scriptArg;
-	if (!PyArg_ParseTuple(args, "s", &scriptArg)) {
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
 		return NULL;
 	}
 	
@@ -439,7 +425,13 @@ PyObject* SCA_PythonController::PySetScript(PyObject* self,
 
 	this->SetScriptText(scriptArg);
 	
-	Py_Return;
+	Py_RETURN_NONE;
+}
+
+/* 1. getScript */
+PyObject* SCA_PythonController::PyGetState(PyObject* self)
+{
+	return PyInt_FromLong(m_statemask);
 }
 
 /* eof */

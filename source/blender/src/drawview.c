@@ -246,7 +246,8 @@ void default_gl_light(void)
 	glDisable(GL_COLOR_MATERIAL);
 }
 
-/* also called when render 'ogl' */
+/* also called when render 'ogl'
+   keep synced with Myinit_gl_stuff in the game engine! */
 void init_gl_stuff(void)	
 {
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
@@ -3096,7 +3097,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			if(v3d->lay & base->lay) {
 				
 				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
-				draw_object(base, DRAW_CONSTCOLOR);
+				draw_object(base, DRAW_CONSTCOLOR|DRAW_SCENESET);
 
 				if(base->object->transflag & OB_DUPLI) {
 					draw_dupli_objects_color(v3d, base, TH_WIRE);
@@ -3318,7 +3319,7 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 					where_is_object(base->object);
 	
 					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
-					draw_object(base, DRAW_CONSTCOLOR);
+					draw_object(base, DRAW_CONSTCOLOR|DRAW_SCENESET);
 	
 					if(base->object->transflag & OB_DUPLI) {
 						draw_dupli_objects(v3d, base);

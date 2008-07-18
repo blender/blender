@@ -40,6 +40,7 @@
 #include "bmesh_private.h"
 #include <string.h>
 #include "MEM_guardedalloc.h"
+#include "BLI_mempool.h"
 
 /********************* Layer type information **********************/
 typedef struct BME_LayerTypeInfo {
@@ -83,7 +84,7 @@ void BME_CD_Create(BME_CustomData *data, BME_CustomDataInit *init, int initalloc
 	if(data->totlayer){
 		/*alloc memory*/
 		data->layers = MEM_callocN(sizeof(BME_CustomDataLayer)*data->totlayer, "BMesh Custom Data Layers");
-		data->pool = BME_mempool_create(data->totsize, initalloc, initalloc);
+		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc);
 		/*initialize layer data*/
 		for(i=0; i < BME_CD_NUMTYPES; i++){
 			if(init->layout[i]){
@@ -102,7 +103,7 @@ void BME_CD_Create(BME_CustomData *data, BME_CustomDataInit *init, int initalloc
 
 void BME_CD_Free(BME_CustomData *data)
 {
-	if(data->pool) BME_mempool_destroy(data->pool);
+	if(data->pool) BLI_mempool_destroy(data->pool);
 }
 
 /*Block level ops*/
@@ -119,7 +120,7 @@ void BME_CD_free_block(BME_CustomData *data, void **block)
 			typeInfo->free((char*)*block + offset, 1, typeInfo->size);
 		}
 	}
-	BME_mempool_free(data->pool, *block);
+	BLI_mempool_free(data->pool, *block);
 	*block = NULL;
 }
 
@@ -130,7 +131,7 @@ static void BME_CD_alloc_block(BME_CustomData *data, void **block)
 	if (*block) BME_CD_free_block(data, block); //if we copy layers that have their own free functions like deformverts
 	
 	if (data->totsize > 0)
-		*block = BME_mempool_alloc(data->pool);	
+		*block = BLI_mempool_alloc(data->pool);	
 	else
 		*block = NULL;
 }

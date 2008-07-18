@@ -141,6 +141,7 @@ void paste_actdata(void);
 /* Group/Channel Operations */
 struct bActionGroup *get_active_actiongroup(struct bAction *act);
 void set_active_actiongroup(struct bAction *act, struct bActionGroup *agrp, short select);
+void actionbone_group_copycolors(struct bActionGroup *grp, short init_new);
 void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]);
 void sync_pchan2achan_grouping(void); 
 void action_groups_group(short add_group);
@@ -166,6 +167,7 @@ void deselect_action_channels(short mode);
 void deselect_actionchannels(struct bAction *act, short mode);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name(struct bAction *act, char *name, int select);
+void select_action_group_channels(struct bAction *act, struct bActionGroup *agrp);
 void selectkeys_leftright (short leftright, short select_mode);
 
 /* Action Markers */

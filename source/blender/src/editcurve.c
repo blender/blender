@@ -1158,6 +1158,62 @@ void setradiusNurb( void )
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 }
 
+void smoothNurb( void )
+{
+
+	extern ListBase editNurb;
+	Nurb *nu;
+	BezTriple *bezt, *beztOrig;
+	BPoint *bp, *bpOrig;
+	int a, i, change = 0;
+	
+	/* floats for smoothing */
+	float val, newval, offset;
+	
+	for(nu= editNurb.first; nu; nu= nu->next) {
+		if(nu->bezt) {
+			change = 0;
+			beztOrig = MEM_dupallocN( nu->bezt );
+			for(bezt=nu->bezt+1, a=1; a<nu->pntsu-1; a++, bezt++) {
+				if(bezt->f2 & SELECT) {
+					for(i=0; i<3; i++) {
+						val = bezt->vec[1][i];
+						newval = ((beztOrig+(a-1))->vec[1][i] * 0.5) + ((beztOrig+(a+1))->vec[1][i] * 0.5);
+						offset = (val*((1.0/6.0)*5)) + (newval*(1.0/6.0)) - val;
+						/* offset handles */
+						bezt->vec[1][i] += offset;
+						bezt->vec[0][i] += offset;
+						bezt->vec[2][i] += offset;
+					}
+					change = 1;
+				}
+			}
+			MEM_freeN(beztOrig);
+			if (change)
+				calchandlesNurb(nu);
+		} else if (nu->bp) {
+			bpOrig = MEM_dupallocN( nu->bp );
+			/* Same as above, keep these the same! */
+			for(bp=nu->bp+1, a=1; a<nu->pntsu-1; a++, bp++) {
+				if(bp->f1 & SELECT) {
+					for(i=0; i<3; i++) {
+						val = bp->vec[i];
+						newval = ((bpOrig+(a-1))->vec[i] * 0.5) + ((bpOrig+(a+1))->vec[i] * 0.5);
+						offset = (val*((1.0/6.0)*5)) + (newval*(1.0/6.0)) - val;
+					
+						bp->vec[i] += offset;
+					}
+				}
+			}
+			MEM_freeN(bpOrig);
+		}
+	}
+	BIF_undo_push("Smooth Curve");
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSALL, 0);
+	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
+}
 
 /* TODO, make smoothing distance based */
 void smoothradiusNurb( void )

@@ -205,7 +205,53 @@ static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Ver
 	return nf;
 }
 
-/* a wrapper for BME_SEMV that transfers element flags */
+
+static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, float fac)
+{
+	void *src[2];
+	float w[2];
+	if (v1->data && v2->data) {
+		src[0]= v1->data;
+		src[1]= v2->data;
+		w[0] = 1.0f-fac;
+		w[1] = fac;
+		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->data);
+	}
+}
+
+
+static void BME_data_facevert_edgesplit(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, BME_Edge *e1, float fac){
+	void *src[2];
+	float w[2];
+	BME_Loop *l=NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
+	
+	w[0] = 1.0f - fac;
+	w[1] = fac;
+
+	if(!e1->loop) return;
+	l = e1->loop;
+	do{
+		if(l->v == v1){ 
+			v1loop = l;
+			vloop = v1loop->next;
+			v2loop = vloop->next;
+		}else if(l->v == v){
+			v1loop = l->next;
+			vloop = l;
+			v2loop = l->prev;
+			
+		}
+
+		src[0] = v1loop->data;
+		src[1] = v2loop->data;					
+
+		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->data); 				
+		l = l->radial.next->data;
+	}while(l!=e1->loop);
+}
+
+
+/* a wrapper for BME_SEMV that transfers element flags */ /*add custom data interpolation in here!*/
 static BME_Vert *BME_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Edge **ne, float percent) {
 	BME_Vert *nv, *v2;
 	float len;
@@ -224,9 +270,38 @@ static BME_Vert *BME_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Edge
 		(*ne)->crease = e->crease;
 		(*ne)->bweight = e->bweight;
 	}
-
+	/*v->nv->v2*/
+	BME_data_facevert_edgesplit(bm,v2, v, nv, e, 0.75);	
 	return nv;
 }
+
+static void BME_collapse_vert(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv, float fac){
+	void *src[2];
+	float w[2];
+	BME_Loop *l=NULL, *kvloop=NULL, *tvloop=NULL;
+	BME_Vert *tv = BME_edge_getothervert(ke,kv);
+
+	w[0] = 1.0f - fac;
+	w[1] = fac;
+
+	if(ke->loop){
+		l = ke->loop;
+		do{
+			if(l->v == tv && l->next->v == kv){
+				tvloop = l;
+				kvloop = l->next;
+
+				src[0] = kvloop->data;
+				src[1] = tvloop->data;
+				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->data); 								
+			}
+			l=l->radial.next->data;
+		}while(l!=ke->loop);
+	}
+	BME_JEKV(bm,ke,kv);
+}
+
+
 
 static int BME_bevel_is_split_vert(BME_Loop *l) {
 	/* look for verts that have already been added to the edge when
@@ -315,7 +390,7 @@ static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int 
  * Finally, return the split vert. */
 static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, BME_Loop *l, float *up_vec, float value, BME_TransData_Head *td) {
 	BME_TransData *vtd, *vtd1, *vtd2;
-	BME_Vert *sv, *v2, *v3;
+	BME_Vert *sv, *v2, *v3, *ov;
 	BME_Loop *lv1, *lv2;
 	BME_Edge *ne, *e1, *e2;
 	float maxfactor, scale, len, dis, vec1[3], vec2[3], t_up_vec[3];
@@ -349,7 +424,11 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		else {
 			e1 = e2;
 		}
+		ov = BME_edge_getothervert(e1,v);
 		sv = BME_split_edge(bm,v,e1,&ne,0);
+		//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
+		//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
+		//BME_data_interp_from_faceverts(bm, ov, v, sv, 0.25);
 		BME_assign_transdata(td, bm, sv, sv->co, sv->co, NULL, sv->co, 0, -1, -1, NULL); /* quick default */
 		sv->tflag1 |= BME_BEVEL_BEVEL;
 		ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */
@@ -388,7 +467,11 @@ static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, B
 		}
 		else {
 			is_split_vert = 0;
+			ov = BME_edge_getothervert(l->e,v);
 			sv = BME_split_edge(bm,v,l->e,&ne,0);
+			//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
+			//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
+			//BME_data_interp_from_faceverts(bm, ov, v, sv, 0.25);
 			BME_assign_transdata(td, bm, sv, sv->co, sv->co, NULL, sv->co, 0, -1, -1, NULL); /* quick default */
 			sv->tflag1 |= BME_BEVEL_BEVEL;
 			ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */
@@ -567,12 +650,15 @@ static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int opti
 		if (kl->v == kv) {
 			BME_split_face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
 			BME_JFKE(bm,((BME_Loop*)kl->prev->radial.next->data)->f,kl->f,kl->prev->e);
-			BME_JEKV(bm,kl->e,kv);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
+			
 		}
 		else {
 			BME_split_face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
 			BME_JFKE(bm,((BME_Loop*)kl->next->radial.next->data)->f,kl->f,kl->next->e);
-			BME_JEKV(bm,kl->e,kv);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
 		}
 		l = l->prev;
 	}
@@ -601,12 +687,14 @@ static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int opti
 		if (kl->v == kv) {
 			BME_split_face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
 			BME_JFKE(bm,((BME_Loop*)kl->prev->radial.next->data)->f,kl->f,kl->prev->e);
-			BME_JEKV(bm,kl->e,kv);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
 		}
 		else {
 			BME_split_face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
 			BME_JFKE(bm,((BME_Loop*)kl->next->radial.next->data)->f,kl->f,kl->next->e);
-			BME_JEKV(bm,kl->e,kv);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
 		}
 	}
 
@@ -1073,7 +1161,8 @@ static void bmesh_dissolve_disk(BME_Mesh *bm, BME_Vert *v){
 				e = BME_disk_nextedge(e,v);
 			}while(e != v->edge);
 		}
-		BME_JEKV(bm,v->edge,v);
+		BME_collapse_vert(bm, v->edge, v, 1.0);
+		//BME_JEKV(bm,v->edge,v);
 	}
 }
 static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td) {

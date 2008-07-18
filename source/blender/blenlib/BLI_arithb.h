@@ -50,6 +50,9 @@ extern "C" {
 #ifndef M_SQRT1_2
 #define M_SQRT1_2	0.70710678118654752440
 #endif
+#ifndef M_1_PI
+#define M_1_PI		0.318309886183790671538
+#endif
 
 #ifdef WIN32
 	#ifndef FREE_WINDOWS
@@ -258,6 +261,7 @@ void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
 
+void AxisAngleToQuat(float *q, float *axis, float angle);
 void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);
@@ -269,6 +273,8 @@ float NormalizedVecAngle2_2D(float *v1, float *v2);
 
 void euler_rot(float *beul, float ang, char axis);
 	
+void NormalShortToFloat(float *out, short *in);
+void NormalFloatToShort(short *out, float *in);
 
 float DistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL2Dfl(float *v1, float *v2, float *v3);
@@ -320,6 +326,9 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb);
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
+void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b);
+int constrain_rgb(float *r, float *g, float *b);
+void gamma_correct_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 unsigned int rgb_to_cpack(float r, float g, float b);
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);
@@ -371,7 +380,9 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 
+int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3]);
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
+int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
 int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint);
 int AxialLineIntersectsTriangle(int axis, float co1[3], float co2[3], float v0[3], float v1[3], float v2[3], float *lambda);
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3]);

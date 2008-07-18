@@ -116,6 +116,7 @@ typedef struct ThemeWireColor {
 
 /* flags for ThemeWireColor */
 #define TH_WIRECOLOR_CONSTCOLS	(1<<0)
+#define TH_WIRECOLOR_TEXTCOLS	(1<<1)
 
 /* A theme */
 typedef struct bTheme {
@@ -310,7 +311,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define	USER_DUP_ACT			(1 << 10)
 
 /* gameflags */
-#define USER_VERTEX_ARRAYS		1
+#define USER_DEPRECATED_FLAG	1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 

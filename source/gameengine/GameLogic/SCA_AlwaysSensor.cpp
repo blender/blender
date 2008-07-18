@@ -53,10 +53,13 @@ SCA_AlwaysSensor::SCA_AlwaysSensor(class SCA_EventManager* eventmgr,
 	: SCA_ISensor(gameobj,eventmgr, T)
 {
 	//SetDrawColor(255,0,0);
-	m_alwaysresult = true;
+	Init();
 }
 
-
+void SCA_AlwaysSensor::Init()
+{
+	m_alwaysresult = true;
+}
 
 SCA_AlwaysSensor::~SCA_AlwaysSensor()
 {

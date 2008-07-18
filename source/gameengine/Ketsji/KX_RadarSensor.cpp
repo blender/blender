@@ -71,7 +71,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 	//sumoObj->setClientObject(&m_client_info);
 }
 			
-
 KX_RadarSensor::~KX_RadarSensor()
 {
 	
@@ -81,10 +80,7 @@ CValue* KX_RadarSensor::GetReplica()
 {
 	KX_RadarSensor* replica = new KX_RadarSensor(*this);
 	replica->m_colliders = new CListValue();
-	replica->m_bCollision = false;
-	replica->m_bTriggered= false;
-	replica->m_hitObject = NULL;
-	replica->m_bLastTriggered = false;
+	replica->Init();
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
@@ -93,6 +89,10 @@ CValue* KX_RadarSensor::GetReplica()
 	if (replica->m_physCtrl)
 	{
 		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+		if (replica->m_physCtrl)
+		{
+			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
+		}
 	}
 
 	//todo: make sure replication works fine!

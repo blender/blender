@@ -54,6 +54,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual bool Evaluate(CValue* event);
 	virtual bool IsPositiveTrigger();
+	virtual void Init();
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

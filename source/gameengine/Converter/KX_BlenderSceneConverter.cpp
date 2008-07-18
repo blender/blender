@@ -100,7 +100,8 @@ KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							m_sipo(sipo),
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false),
-							m_usemat(false)
+							m_usemat(false),
+							m_useglslmat(false)
 {
 	m_newfilename = "";
 }
@@ -449,6 +450,13 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 void KX_BlenderSceneConverter::SetMaterials(bool val)
 {
 	m_usemat = val;
+	m_useglslmat = false;
+}
+
+void KX_BlenderSceneConverter::SetGLSLMaterials(bool val)
+{
+	m_usemat = val;
+	m_useglslmat = val;
 }
 
 bool KX_BlenderSceneConverter::GetMaterials()
@@ -456,6 +464,10 @@ bool KX_BlenderSceneConverter::GetMaterials()
 	return m_usemat;
 }
 
+bool KX_BlenderSceneConverter::GetGLSLMaterials()
+{
+	return m_useglslmat;
+}
 
 void KX_BlenderSceneConverter::RegisterBlenderMaterial(BL_Material *mat)
 {

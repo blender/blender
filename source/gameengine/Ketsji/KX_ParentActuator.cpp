@@ -77,6 +77,12 @@ CValue* KX_ParentActuator::GetReplica()
 
 bool KX_ParentActuator::Update()
 {
+	bool bNegativeEvent = IsNegativeEvent();
+	RemoveAllEvents();
+
+	if (bNegativeEvent)
+		return false; // do nothing on negative events
+
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	KX_Scene *scene = PHY_GetActiveScene();
 	switch (m_mode) {

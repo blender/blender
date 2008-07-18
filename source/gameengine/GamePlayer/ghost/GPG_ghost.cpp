@@ -187,11 +187,10 @@ void usage(char* program)
 	printf("       show_framerate     0         Show the frame rate\n");
 	printf("       show_properties    0         Show debug properties\n");
 	printf("       show_profile       0         Show profiling information\n");
-	printf("       vertexarrays       1         Enable vertex arrays\n");
 	printf("       blender_material   0         Enable material settings\n");
 	printf("\n");
 	printf("example: %s -p 10 10 320 200 -g noaudio c:\\loadtest.blend\n", program);
-	printf("example: %s -g vertexarrays = 0 c:\\loadtest.blend\n", program);
+	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
 
 char *get_filename(int argc, char **argv) {

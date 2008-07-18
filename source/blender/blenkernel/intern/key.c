@@ -630,7 +630,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 }
 
 
-static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
+void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;

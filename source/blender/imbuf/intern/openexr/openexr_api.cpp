@@ -451,7 +451,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 	openexr_header_compression(&header, compress);
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
-	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
+	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43 and newer"));
 	
 	data->ofile = new OutputFile(filename, header);
 }
@@ -842,7 +842,7 @@ typedef struct RGBA
 } RGBA;
 
 
-#if 0
+/* debug only */
 static void exr_print_filecontents(InputFile *file)
 {
 	const ChannelList &channels = file->header().channels();
@@ -853,7 +853,27 @@ static void exr_print_filecontents(InputFile *file)
 		printf("OpenEXR-load: Found channel %s of type %d\n", i.name(), channel.type);
 	}
 }
-#endif
+
+/* for non-multilayer, map  R G B A channel names to something that's in this file */
+static const char *exr_rgba_channelname(InputFile *file, const char *chan)
+{
+	const ChannelList &channels = file->header().channels();
+	
+	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
+	{
+		const Channel &channel = i.channel();
+		const char *str= i.name();
+		int len= strlen(str);
+		if(len) {
+			if(BLI_strcasecmp(chan, str+len-1)==0) {
+				return str;
+			}
+		}
+	}
+	return chan;
+}
+
+
 
 static int exr_has_zbuffer(InputFile *file)
 {
@@ -896,7 +916,8 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 		//printf("OpenEXR-load: image data window %d %d %d %d\n", 
 		//	   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
-		// exr_print_filecontents(file);
+		if(0) // debug
+			exr_print_filecontents(file);
 		
 		is_multi= exr_is_renderresult(file);
 		
@@ -935,11 +956,15 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 					/* but, since we read y-flipped (negative y stride) we move to last scanline */
 					first+= 4*(height-1)*width;
 					
-					frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
-					frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
-					frameBuffer.insert ("B", Slice (FLOAT,  (char *) (first+2), xstride, ystride));
-																			/* 1.0 is fill value */
-					frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f));
+					frameBuffer.insert ( exr_rgba_channelname(file, "R"), 
+										Slice (FLOAT,  (char *) first, xstride, ystride));
+					frameBuffer.insert ( exr_rgba_channelname(file, "G"), 
+										Slice (FLOAT,  (char *) (first+1), xstride, ystride));
+					frameBuffer.insert ( exr_rgba_channelname(file, "B"), 
+										Slice (FLOAT,  (char *) (first+2), xstride, ystride));
+																			
+					frameBuffer.insert ( exr_rgba_channelname(file, "A"), 
+										Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f)); /* 1.0 is fill value */
 
 					if(exr_has_zbuffer(file)) 
 					{

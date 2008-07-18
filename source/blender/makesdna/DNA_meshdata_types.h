@@ -69,6 +69,21 @@ typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
 
+/*bmesh custom data stuff*/
+typedef struct MTexPoly{
+	struct Image *tpage;
+	char flag, transp;
+	short mode,tile,unwrap;
+}MTexPoly;
+
+typedef struct MLoopUV{
+	float uv[2];
+}MLoopUV;
+
+typedef struct MLoopCol{
+	char a, r, g, b;
+}MLoopCol;
+
 typedef struct MSticky {
 	float co[2];
 } MSticky;
@@ -229,13 +244,15 @@ typedef struct PartialVisibility {
 #define TF_SHADOW		8192
 #define TF_BMFONT		16384
 
-/* mtface->transp */
+/* mtface->transp, values 1-4 are used as flags in the GL, WARNING, TF_SUB cant work with this */
 #define TF_SOLID	0
 #define TF_ADD		1
 #define TF_ALPHA	2
+#define TF_CLIP		4 /* clipmap alpha/binary alpha all or nothing! */
 
 /* sub is not available in the user interface anymore */
 #define TF_SUB		3
+
 
 /* mtface->unwrap */
 #define TF_DEPRECATED1	1

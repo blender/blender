@@ -694,7 +694,7 @@ void mouse_select_sima(void)
 	EditFace *efa;
 	MTFace *tf, *nearesttf;
 	EditFace *nearestefa=NULL;
-	int a, selectsticky, edgeloop, actface, nearestuv, nearestedge, i, shift;
+	int a, selectsticky, edgeloop, actface, nearestuv, nearestedge, i, shift, island=0;
 	char sticky= 0;
 	int flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	unsigned int hitv[4], nearestv;
@@ -706,7 +706,7 @@ void mouse_select_sima(void)
 	
 	edgeloop= G.qual & LR_ALTKEY;
 	shift= G.qual & LR_SHIFTKEY;
-
+	
 	if (G.sima->flag & SI_SYNC_UVSEL) {
 		/* copy from mesh */
 		if (G.scene->selectmode == SCE_SELECT_FACE) {
@@ -718,7 +718,8 @@ void mouse_select_sima(void)
 		}
 	} else {
 		/* normal operation */
-		actface= G.sima->flag & SI_SELACTFACE;
+		actface= G.sima->selectmode == SI_SELECT_FACE;
+		island= G.sima->selectmode == SI_SELECT_ISLAND;
 		
 		switch(G.sima->sticky) {
 		case SI_STICKY_LOC:
@@ -761,6 +762,9 @@ void mouse_select_sima(void)
 		if (nearestefa->v4)	hitv[3]= nearestefa->v4->tmp.l;
 		else				hitv[3]= 0xFFFFFFFF;
 	}
+	else if (island) {
+
+	}
 	else {
 		find_nearest_uv(&nearesttf, &nearestefa, &nearestv, &nearestuv);
 		if(nearesttf==NULL)
@@ -774,7 +778,11 @@ void mouse_select_sima(void)
 		}
 	}
 
-	if(!edgeloop && shift) {
+	if (island) {
+		if(shift) select_linked_tface_uv(1);
+		else select_linked_tface_uv(0);
+	}
+	else if(!edgeloop && shift) {
 		/* (de)select face */
 		if(actface) {
 			if(simaFaceSel_Check(nearestefa, nearesttf)) {
@@ -2690,15 +2698,17 @@ void image_changed(SpaceImage *sima, Image *image)
 					
 					if(image->id.us==0) id_us_plus(&image->id);
 					else id_lib_extern(&image->id);
-					
+#if 0				/* GE People dont like us messing with their face modes */
 					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
 					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
 					else								tface->transp = TF_SOLID;
-					
+#endif
 				} else {
 					tface->tpage= NULL;
 					tface->mode &= ~TF_TEX;
+#if 0
 					tface->transp = TF_SOLID;
+#endif
 				}
 				change = 1;
 			}

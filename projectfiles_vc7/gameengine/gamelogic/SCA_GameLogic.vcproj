@@ -333,6 +333,12 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_2DFilterActuator.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorEventManager.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorSensor.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.cpp">
 			</File>
 			<File
@@ -396,6 +402,12 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_MouseSensor.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NANDController.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NORController.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ORController.cpp">
 			</File>
 			<File
@@ -425,12 +437,24 @@
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_TimeEventManager.cpp">
 			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XNORController.cpp">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XORController.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_2DFilterActuator.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorEventManager.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ActuatorSensor.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_AlwaysEventManager.h">
@@ -499,6 +523,12 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_MouseSensor.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NANDController.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_NORController.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ORController.h">
 			</File>
 			<File
@@ -527,6 +557,12 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_TimeEventManager.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XNORController.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_XORController.h">
 			</File>
 		</Filter>
 	</Files>

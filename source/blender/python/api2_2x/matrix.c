@@ -483,7 +483,7 @@ static char MatrixObject_doc[] = "This is a wrapper for matrix objects.";
   sequence length*/
 static int Matrix_len(MatrixObject * self)
 {
-	return (self->colSize * self->rowSize);
+	return (self->rowSize);
 }
 /*----------------------------object[]---------------------------
   sequence accessor (get)

@@ -38,7 +38,7 @@
 #ifndef BKE_BMESHCUSTOMDATA_H
 #define BKE_BMESHCUSTOMDATA_H
 
-struct BME_mempool;
+struct BLI_mempool;
 
 /*Custom Data Types and defines
 	Eventual plan is to move almost everything to custom data and let caller
@@ -62,7 +62,7 @@ typedef struct BME_CustomDataLayer {
 
 typedef struct BME_CustomData {
 	struct BME_CustomDataLayer *layers;	/*Custom Data Layers*/
-	struct BME_mempool *pool;				/*pool for alloc of blocks*/
+	struct BLI_mempool *pool;				/*pool for alloc of blocks*/
 	int totlayer, totsize;         	/*total layers and total size in bytes of each block*/
 } BME_CustomData;
 

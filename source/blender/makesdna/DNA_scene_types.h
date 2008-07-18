@@ -543,8 +543,8 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 	
-	short jumpframe, pad1;
-	short snap_flag, snap_target;
+	short jumpframe;
+	short snap_mode, snap_flag, snap_target;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -707,11 +707,16 @@ typedef struct Scene {
 
 /* scene->snap_flag */
 #define SCE_SNAP				1
+#define SCE_SNAP_ROTATE			2
 /* scene->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
 #define SCE_SNAP_TARGET_MEDIAN	2
 #define SCE_SNAP_TARGET_ACTIVE	3
+/* scene->snap_mode */
+#define SCE_SNAP_MODE_VERTEX	0
+#define SCE_SNAP_MODE_EDGE		1
+#define SCE_SNAP_MODE_FACE		2
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */

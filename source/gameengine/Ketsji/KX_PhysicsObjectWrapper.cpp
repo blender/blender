@@ -58,6 +58,9 @@ PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self,
 	{
 		m_ctrl->setPosition(x,y,z);
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -72,6 +75,9 @@ PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self,
 	{
 		m_ctrl->SetLinearVelocity(x,y,z,local != 0);
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -85,6 +91,9 @@ PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self,
 	{
 		m_ctrl->SetAngularVelocity(x,y,z,local != 0);
 	}
+	else {
+		return NULL;
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
@@ -96,6 +105,9 @@ PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&active))
 	{
 		m_ctrl->SetActive(active!=0);
+	}
+	else {
+		return NULL;
 	}
 	Py_INCREF(Py_None); return Py_None;
 }

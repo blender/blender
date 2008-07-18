@@ -168,7 +168,7 @@ static void realloc_particles(Object *ob, ParticleSystem *psys, int new_totpart)
 	int i, totpart, totsaved = 0;
 
 	if(new_totpart<0) {
-		if(psys->part->distr==PART_DISTR_GRID) {
+		if(psys->part->distr==PART_DISTR_GRID  && psys->part->from != PART_FROM_VERT) {
 			totpart= psys->part->grid_res;
 			totpart*=totpart*totpart;
 		}
@@ -1056,7 +1056,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		dm= CDDM_from_mesh((Mesh*)ob->data, ob);
 
 		/* special handling of grid distribution */
-		if(part->distr==PART_DISTR_GRID){
+		if(part->distr==PART_DISTR_GRID && from != PART_FROM_VERT){
 			distribute_particles_in_grid(dm,psys);
 			dm->release(dm);
 			return 0;
@@ -1600,7 +1600,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 
 	NormalQuat(pa->r_rot);
 
-	if(part->distr!=PART_DISTR_GRID){
+	if(part->distr!=PART_DISTR_GRID && part->from != PART_FROM_VERT){
 		/* any unique random number will do (r_ave[0]) */
 		if(ptex.exist < 0.5*(1.0+pa->r_ave[0]))
 			pa->flag |= PARS_UNEXIST;
@@ -2596,6 +2596,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 	
 	for(ec= lb->first; ec; ec= ec->next) {
 		PartDeflect *pd= ec->ob->pd;
+		co = NULL;
 		
 		if(ec->type==PSYS_EC_EFFECTOR && pd->forcefield==PFIELD_GUIDE && ec->ob->type==OB_CURVE 
 			&& part->phystype!=PART_PHYS_BOIDS) {
@@ -4514,7 +4515,7 @@ void psys_changed_type(ParticleSystem *psys)
 	if(part->from == PART_FROM_PARTICLE) {
 		if(part->type != PART_REACTOR)
 			part->from = PART_FROM_FACE;
-		if(part->distr == PART_DISTR_GRID)
+		if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
 			part->distr = PART_DISTR_JIT;
 	}
 
@@ -4709,7 +4710,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	oldtotpart = psys->totpart;
 	oldtotchild = psys->totchild;
 
-	if(part->distr == PART_DISTR_GRID)
+	if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
 		totpart = part->grid_res*part->grid_res*part->grid_res;
 	else
 		totpart = psys->part->totpart;
@@ -4814,9 +4815,20 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			pa->flag &= ~PARS_NO_DISP;
 	}
 
-	/* ok now we're all set so let's go */
-	if(psys->totpart)
-		dynamics_step(ob,psys,psmd,cfra,vg_vel,vg_tan,vg_rot,vg_size);
+	if(psys->totpart) {
+		int dframe, totframesback = 0;
+
+		/* handle negative frame start at the first frame by doing
+		 * all the steps before the first frame */
+		if(framenr == startframe && part->sta < startframe)
+			totframesback = (startframe - (int)part->sta);
+
+		for(dframe=-totframesback; dframe<=0; dframe++) {
+			/* ok now we're all set so let's go */
+			dynamics_step(ob,psys,psmd,cfra+dframe,vg_vel,vg_tan,vg_rot,vg_size);
+			psys->cfra = cfra+dframe;
+		}
+	}
 	
 	cache->simframe= framenr;
 	cache->flag |= PTCACHE_SIMULATION_VALID;

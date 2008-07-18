@@ -65,6 +65,7 @@ SET(INC
   ../../../../source/blender/misc
   ../../../../source/blender/blenloader
   ../../../../extern/solid
+  ../../../../extern/glew/include
   ${PYTHON_INC}
 )
 

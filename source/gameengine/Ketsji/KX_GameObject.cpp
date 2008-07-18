@@ -78,11 +78,12 @@ KX_GameObject::KX_GameObject(
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
+	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
-	m_isDeformable(false),
-	m_pHitObject(NULL)
+	m_pHitObject(NULL),
+	m_isDeformable(false)
 {
 	m_ignore_activity_culling = false;
 	m_pClient_info = new KX_ClientObjectInfo(this, KX_ClientObjectInfo::ACTOR);
@@ -237,6 +238,10 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		if (rootlist->RemoveValue(this))
 			// the object was in parent list, decrement ref count as it's now removed
 			Release();
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->SuspendDynamics(true);
+		}
 	}
 }
 
@@ -257,6 +262,10 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 		if (!rootlist->SearchValue(this))
 			// object was not in root list, add it now and increment ref count
 			rootlist->Add(AddRef());
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
 	}
 }
 
@@ -404,34 +413,25 @@ void KX_GameObject::ResetDebugColor()
 	SetDebugColor(0xff000000);
 }
 
+void KX_GameObject::InitIPO(bool ipo_as_force,
+							bool ipo_add,
+							bool ipo_local)
+{
+	SGControllerList::iterator it = GetSGNode()->GetSGControllerList().begin();
 
+	while (it != GetSGNode()->GetSGControllerList().end()) {
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, ipo_as_force);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, ipo_add);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, ipo_local);
+		it++;
+	}
+} 
 
 void KX_GameObject::UpdateIPO(float curframetime,
-							  bool recurse,
-							  bool ipo_as_force,
-							  bool force_local) 
+							  bool recurse) 
 {
-
-	// The ipo-actuator needs a sumo reference... this is retrieved (unfortunately)
-	// by the iposgcontr itself...
-//		ipocontr->SetSumoReference(gameobj->GetSumoScene(), 
-//								   gameobj->GetSumoObject());
-
-
-	// The ipo has to be treated as a force, and not a displacement!
-	// For this case, we send some settings to the controller. This
-	// may need some caching...
-	if (ipo_as_force) {
-		SGControllerList::iterator it = GetSGNode()->GetSGControllerList().begin();
-
-		while (it != GetSGNode()->GetSGControllerList().end()) {
-			(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, ipo_as_force);
-			(*it)->SetOption(SG_Controller::SG_CONTR_IPO_FORCES_ACT_LOCAL, force_local);
-			it++;
-		}
-	} 
-
-	// The rest is the 'normal' update procedure.
+	// just the 'normal' update procedure.
 	GetSGNode()->SetSimulatedTime(curframetime,recurse);
 	GetSGNode()->UpdateWorldData(curframetime);
 	UpdateTransform();
@@ -580,7 +580,7 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 	m_objectColor = rgbavec;
 }
 
-void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
+void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 {
 	MT_Matrix3x3 orimat;
 	MT_Vector3 vect,ori,z,x,y;
@@ -593,6 +593,11 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 		cout << "alignAxisToVect() Error: Null vector!\n";
 		return;
 	}
+	
+	if (fac<=0.0) {
+		return;
+	}
+	
 	// normalize
 	vect /= len;
 	orimat = GetSGNode()->GetWorldOrientation();
@@ -602,7 +607,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]); //pivot axis
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON) //is the vector paralell to the pivot?
 				ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]); //change the pivot!
-			x = vect; 
+			if (fac == 1.0) {
+				x = vect;
+			} else {
+				x = (vect * fac) + ((orimat * MT_Vector3(1.0, 0.0, 0.0)) * (1-fac));
+				len = x.length();
+				if (MT_fuzzyZero(len)) x = vect;
+				else x /= len;
+			}
 			y = ori.cross(x);
 			z = x.cross(y);
 			break;
@@ -610,7 +622,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori = MT_Vector3(orimat[0][2], orimat[1][2], orimat[2][2]);
-			y = vect;
+			if (fac == 1.0) {
+				y = vect;
+			} else {
+				y = (vect * fac) + ((orimat * MT_Vector3(0.0, 1.0, 0.0)) * (1-fac));
+				len = y.length();
+				if (MT_fuzzyZero(len)) y = vect;
+				else y /= len;
+			}
 			z = ori.cross(y);
 			x = y.cross(z);
 			break;
@@ -618,7 +637,14 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 			ori = MT_Vector3(orimat[0][1], orimat[1][1], orimat[2][1]);
 			if (MT_abs(vect.dot(ori)) > 1.0-3.0*MT_EPSILON)
 				ori = MT_Vector3(orimat[0][0], orimat[1][0], orimat[2][0]);
-			z = vect;
+			if (fac == 1.0) {
+				z = vect;
+			} else {
+				z = (vect * fac) + ((orimat * MT_Vector3(0.0, 0.0, 1.0)) * (1-fac));
+				len = z.length();
+				if (MT_fuzzyZero(len)) z = vect;
+				else z /= len;
+			}
 			x = ori.cross(z);
 			y = z.cross(x);
 			break;
@@ -643,11 +669,19 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis)
 		NodeSetLocalOrientation(orimat);
 }
 
+MT_Scalar KX_GameObject::GetMass()
+{
+	if (m_pPhysicsController1)
+	{
+		return m_pPhysicsController1->GetMass();
+	}
+	return 0.0;
+}
+
 MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 {
-	MT_Vector3 velocity(0.0,0.0,0.0);
-	MT_Matrix3x3 ori, locvel;
-	int i, j; 
+	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Matrix3x3 ori;
 	if (m_pPhysicsController1)
 	{
 		velocity = m_pPhysicsController1->GetLinearVelocity();
@@ -656,15 +690,32 @@ MT_Vector3 KX_GameObject::GetLinearVelocity(bool local)
 		{
 			ori = GetSGNode()->GetWorldOrientation();
 			
-			for(i=0; i < 3; i++)
-				for(j=0; j < 3; j++)
-					locvel[i][j]= velocity[i]*ori[i][j];
-			for(i=0; i < 3; i++)
-				velocity[i] = locvel[0][i] + locvel[1][i] + locvel[2][i];
+			locvel = velocity * ori;
+			return locvel;
 		}
 	}
 	return velocity;	
 }
+
+MT_Vector3 KX_GameObject::GetAngularVelocity(bool local)
+{
+	MT_Vector3 velocity(0.0,0.0,0.0), locvel;
+	MT_Matrix3x3 ori;
+	if (m_pPhysicsController1)
+	{
+		velocity = m_pPhysicsController1->GetAngularVelocity();
+		
+		if (local)
+		{
+			ori = GetSGNode()->GetWorldOrientation();
+			
+			locvel = velocity * ori;
+			return locvel;
+		}
+	}
+	return velocity;	
+}
+
 
 
 // scenegraph node stuff
@@ -718,6 +769,31 @@ void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 		GetSGNode()->RelativeScale(scale);
 }
 
+void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
+{
+	SG_Node* parent = m_pSGNode->GetSGParent();
+	if (parent != NULL)
+	{
+		// Make sure the objects have some scale
+		MT_Vector3 scale = parent->GetWorldScaling();
+		if (fabs(scale[0]) < FLT_EPSILON || 
+			fabs(scale[1]) < FLT_EPSILON || 
+			fabs(scale[2]) < FLT_EPSILON)
+		{ 
+			return; 
+		}
+		scale[0] = 1.0/scale[0];
+		scale[1] = 1.0/scale[1];
+		scale[2] = 1.0/scale[2];
+		MT_Matrix3x3 invori = parent->GetWorldOrientation().inverse();
+		MT_Vector3 newpos = invori*(trans-parent->GetWorldPosition())*scale;
+		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
+	}
+	else 
+	{
+		NodeSetLocalPosition(trans);
+	}
+}
 
 
 void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)
@@ -764,7 +840,7 @@ void KX_GameObject::Resume(void)
 	}
 }
 
-void KX_GameObject::Suspend(void)
+void KX_GameObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {
@@ -783,30 +859,37 @@ void KX_GameObject::Suspend(void)
 
 
 PyMethodDef KX_GameObject::Methods[] = {
-	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},  
-	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
-	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_VARARGS},
-	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_VARARGS},
-	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_VARARGS},
-	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_VARARGS},
+	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
+	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
 	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
+	{"setLinearVelocity", (PyCFunction) KX_GameObject::sPySetLinearVelocity, METH_VARARGS},
 	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
-	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_VARARGS},
-	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_VARARGS},
+	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_NOARGS},
+	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_NOARGS},
+	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_NOARGS},
+	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_O},
+	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_NOARGS},
+	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_O},
+	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_NOARGS},
+	{"setState",(PyCFunction) KX_GameObject::sPySetState, METH_O},
+	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
+	{"getAxisVect",(PyCFunction) KX_GameObject::sPyGetAxisVect, METH_O},
+	{"suspendDynamics", (PyCFunction)KX_GameObject::sPySuspendDynamics,METH_NOARGS},
+	{"restoreDynamics", (PyCFunction)KX_GameObject::sPyRestoreDynamics,METH_NOARGS},
+	{"enableRigidBody", (PyCFunction)KX_GameObject::sPyEnableRigidBody,METH_NOARGS},
+	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_NOARGS},
 	{"applyImpulse", (PyCFunction) KX_GameObject::sPyApplyImpulse, METH_VARARGS},
-	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_VARARGS},
-	{"suspendDynamics", (PyCFunction)KX_GameObject::sPySuspendDynamics,METH_VARARGS},
-	{"restoreDynamics", (PyCFunction)KX_GameObject::sPyRestoreDynamics,METH_VARARGS},
-	{"enableRigidBody", (PyCFunction)KX_GameObject::sPyEnableRigidBody,METH_VARARGS},
-	{"disableRigidBody", (PyCFunction)KX_GameObject::sPyDisableRigidBody,METH_VARARGS},
-	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_VARARGS},
-	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_VARARGS},
-	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_VARARGS},
+	{"setCollisionMargin", (PyCFunction) KX_GameObject::sPySetCollisionMargin, METH_O},
+	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
+	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
+	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
-	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_VARARGS},
-	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
+	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
+	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
+	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_NOARGS},
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
+	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
 	{NULL,NULL} //Sentinel
 };
 
@@ -828,19 +911,18 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 }
 */
 
-
-PyObject* KX_GameObject::sPySetPosition(PyObject* self,
-										PyObject* args,
-										PyObject* kwds)
+PyObject* KX_GameObject::PyEndObject(PyObject* self)
 {
-	return ((KX_GameObject*) self)->PySetPosition(self, args, kwds);
-}
+
+	KX_Scene *scene = PHY_GetActiveScene();
+	scene->DelayedRemoveObject(this);
 	
+	return Py_None;
+
+}
 
 
-PyObject* KX_GameObject::PyGetPosition(PyObject* self,
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_GameObject::PyGetPosition(PyObject* self)
 {
 	return PyObjectFrom(NodeGetWorldPosition());
 }
@@ -894,7 +976,7 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 			parent->AddRef();
 			return parent;
 		}
-		Py_Return;
+		Py_RETURN_NONE;
 	}
 
 	if (attr == "visible")
@@ -911,6 +993,14 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 		
 	if (attr == "name")
 		return PyString_FromString(m_name.ReadPtr());
+	if (attr == "timeOffset") {
+		if (m_pSGNode->GetSGParent()->IsSlowParent()) {
+			return PyFloat_FromDouble(static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->GetTimeOffset());
+		} else {
+			return PyFloat_FromDouble(0.0);
+		}
+	}
+	
 	
 	_getattr_up(SCA_IObject);
 }
@@ -930,6 +1020,19 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 		{
 			SetVisible(val != 0);
 			return 0;
+		}
+	}
+
+	if (PyFloat_Check(value))
+	{
+		MT_Scalar val = PyFloat_AsDouble(value);
+		if (attr == "timeOffset") {
+			if (m_pSGNode->GetSGParent() && m_pSGNode->GetSGParent()->IsSlowParent()) {
+				static_cast<KX_SlowParentRelation *>(m_pSGNode->GetSGParent()->GetParentRelation())->SetTimeOffset(val);
+				return 0;
+			} else {
+				return 0;
+			}		
 		}
 	}
 	
@@ -1034,25 +1137,68 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self,
 	}
 }
 
-
-
-PyObject* KX_GameObject::PySetVisible(PyObject* self,
-									  PyObject* args,
-									  PyObject* kwds)
+PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, 
+											 PyObject* args, 
+											 PyObject* kwds)
 {
-	int visible = 1;
+	int local = 0;
+	PyObject* pyvect;
 	
-	if (PyArg_ParseTuple(args,"i",&visible))
-	{
-		MarkVisible(visible!=0);
-		m_bVisible = (visible!=0);
+	if (PyArg_ParseTuple(args,"O|i",&pyvect,&local)) {
+		MT_Vector3 velocity;
+		if (PyVecTo(pyvect, velocity)) {
+			setLinearVelocity(velocity, (local!=0));
+			Py_RETURN_NONE;
+		}
 	}
-	else
-	{
-		return NULL;	     
-	}
-	Py_Return;
+	return NULL;
+}
+
+PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* value)
+{
+	int visible = PyInt_AsLong(value);
 	
+	if (visible==-1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "expected 0 or 1");
+		return NULL;
+	}
+	
+	MarkVisible(visible!=0);
+	m_bVisible = (visible!=0);
+	Py_RETURN_NONE;
+	
+}
+
+PyObject* KX_GameObject::PyGetVisible(PyObject* self)
+{
+	return PyInt_FromLong(m_bVisible);	
+}
+
+PyObject* KX_GameObject::PyGetState(PyObject* self)
+{
+	int state = 0;
+	state |= GetState();
+	return PyInt_FromLong(state);
+}
+
+PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
+{
+	int state_i = PyInt_AsLong(value);
+	unsigned int state = 0;
+	
+	if (state_i == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "expected an int bit field");
+		return NULL;
+	}
+	
+	state |= state_i;
+	if ((state & ((1<<30)-1)) == 0) {
+		PyErr_SetString(PyExc_AttributeError, "The state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
+		return NULL;
+	}
+	SetState(state);
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -1072,6 +1218,9 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self,
 		if (pypos)
 			PyVecTo(pypos, point);
 	}
+	else {
+		return NULL;
+	}
 	
 	if (m_pPhysicsController1)
 	{
@@ -1083,26 +1232,14 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* self,
 
 
 
-PyObject* KX_GameObject::PyGetMass(PyObject* self, 
-								   PyObject* args, 
-								   PyObject* kwds)
+PyObject* KX_GameObject::PyGetMass(PyObject* self)
 {
-	PyObject* pymass = NULL;
-	
-	float mass = GetPhysicsController()->GetMass();
-	pymass = PyFloat_FromDouble(mass);
-
-	if (pymass)
-		return pymass;
-	
-	Py_Return;
+	return PyFloat_FromDouble(GetPhysicsController()->GetMass());
 }
 
 
 
-PyObject* KX_GameObject::PyGetReactionForce(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_GameObject::PyGetReactionForce(PyObject* self)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	return PyObjectFrom(GetPhysicsController()->getReactionForce());
@@ -1110,32 +1247,25 @@ PyObject* KX_GameObject::PyGetReactionForce(PyObject* self,
 
 
 
-PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* KX_GameObject::PyEnableRigidBody(PyObject* self)
 {
-	
 	GetPhysicsController()->setRigidBody(true);
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
 
-PyObject* KX_GameObject::PyDisableRigidBody(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds)
+PyObject* KX_GameObject::PyDisableRigidBody(PyObject* self)
 {
 	GetPhysicsController()->setRigidBody(false);
 
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
 
-PyObject* KX_GameObject::PyGetParent(PyObject* self, 
-									 PyObject* args, 
-									 PyObject* kwds)
+PyObject* KX_GameObject::PyGetParent(PyObject* self)
 {
 	KX_GameObject* parent = this->GetParent();
 	if (parent)
@@ -1143,33 +1273,31 @@ PyObject* KX_GameObject::PyGetParent(PyObject* self,
 		parent->AddRef();
 		return parent;
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PySetParent(PyObject* self, 
-									 PyObject* args, 
-									 PyObject* kwds)
+PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
 {
-	PyObject* gameobj;
-	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
-	{
-		// The object we want to set as parent
-		CValue *m_ob = (CValue*)gameobj;
-		KX_GameObject *obj = ((KX_GameObject*)m_ob);
-		KX_Scene *scene = PHY_GetActiveScene();
-		
-		this->SetParent(scene, obj);
+	if (!PyObject_TypeCheck(value, &KX_GameObject::Type)) {
+		PyErr_SetString(PyExc_TypeError, "expected a KX_GameObject type");
+		return NULL;
 	}
-	Py_Return;
+	
+	// The object we want to set as parent
+	CValue *m_ob = (CValue*)value;
+	KX_GameObject *obj = ((KX_GameObject*)m_ob);
+	KX_Scene *scene = PHY_GetActiveScene();
+	
+	this->SetParent(scene, obj);
+		
+	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyRemoveParent(PyObject* self, 
-									 PyObject* args, 
-									 PyObject* kwds)
+PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 {
 	KX_Scene *scene = PHY_GetActiveScene();
 	this->RemoveParent(scene);
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* self, 
@@ -1186,28 +1314,28 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 			return meshproxy;
 		}
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 
 
 
 
-PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, PyObject* value)
 {
-	float collisionMargin;
-	if (PyArg_ParseTuple(args, "f", &collisionMargin))
-	{
-		if (m_pPhysicsController1)
-		{
-			m_pPhysicsController1->setMargin(collisionMargin);
-			Py_Return;
-		}
-
+	float collisionMargin = PyFloat_AsDouble(value);
+	
+	if (collisionMargin==-1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "expected a float");
+		return NULL;
 	}
 	
+	if (m_pPhysicsController1)
+	{
+		m_pPhysicsController1->setMargin(collisionMargin);
+		Py_RETURN_NONE;
+	}
+	PyErr_SetString(PyExc_RuntimeError, "This object has no physics controller");
 	return NULL;
 }
 
@@ -1219,17 +1347,20 @@ PyObject* KX_GameObject::PyApplyImpulse(PyObject* self,
 {
 	PyObject* pyattach;
 	PyObject* pyimpulse;
+	
+	if (!m_pPhysicsController1)	{
+		PyErr_SetString(PyExc_RuntimeError, "This object has no physics controller");
+		return NULL;
+	}
+	
 	if (PyArg_ParseTuple(args, "OO", &pyattach, &pyimpulse))
 	{
 		MT_Point3  attach;
 		MT_Vector3 impulse;
-		if (m_pPhysicsController1)
+		if (PyVecTo(pyattach, attach) && PyVecTo(pyimpulse, impulse))
 		{
-			if (PyVecTo(pyattach, attach) && PyVecTo(pyimpulse, impulse))
-			{
-				m_pPhysicsController1->applyImpulse(attach, impulse);
-				Py_Return;
-			}
+			m_pPhysicsController1->applyImpulse(attach, impulse);
+			Py_RETURN_NONE;
 		}
 
 	}
@@ -1239,80 +1370,46 @@ PyObject* KX_GameObject::PyApplyImpulse(PyObject* self,
 
 
 
-PyObject* KX_GameObject::PySuspendDynamics(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* KX_GameObject::PySuspendDynamics(PyObject* self)
 {
-	if (m_bSuspendDynamics)
-	{
-		Py_Return;
-	}
-	
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->SuspendDynamics();
-	}
-	m_bSuspendDynamics = true;
-	
-	Py_Return;
+	SuspendDynamics();
+	Py_RETURN_NONE;
 }
 
 
 
-PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* KX_GameObject::PyRestoreDynamics(PyObject* self)
 {
-	
-	if (!m_bSuspendDynamics)
-	{
-		Py_Return;
-	}
-	
-	if (m_pPhysicsController1)
-	{
-		m_pPhysicsController1->RestoreDynamics();
-	}
-	m_bSuspendDynamics = false;
-	
-	Py_Return;
+	RestoreDynamics();
+	Py_RETURN_NONE;
 }
 
 
 
-PyObject* KX_GameObject::PyGetOrientation(PyObject* self,
-										  PyObject* args,
-										  PyObject* kwds) //keywords
+PyObject* KX_GameObject::PyGetOrientation(PyObject* self) //keywords
 {
 	return PyObjectFrom(NodeGetWorldOrientation());
 }
 
 
 
-PyObject* KX_GameObject::PySetOrientation(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds)
+PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
 {
-	PyObject* pylist;
-	
-	if (PyArg_ParseTuple(args,"O",&pylist))
+	MT_Matrix3x3 matrix;
+	if (PyObject_IsMT_Matrix(value, 3) && PyMatTo(value, matrix))
 	{
-		MT_Matrix3x3 matrix;
-		if (PyObject_IsMT_Matrix(pylist, 3) && PyMatTo(pylist, matrix))
-		{
-			NodeSetLocalOrientation(matrix);
-			NodeUpdateGS(0.f,true);
-			Py_Return;
-		}
-	
-		MT_Quaternion quat;
-		if (PyVecTo(pylist, quat))
-		{
-			matrix.setRotation(quat);
-			NodeSetLocalOrientation(matrix);
-			NodeUpdateGS(0.f,true);
-			Py_Return;
-		}
+		NodeSetLocalOrientation(matrix);
+		NodeUpdateGS(0.f,true);
+		Py_RETURN_NONE;
+	}
+
+	MT_Quaternion quat;
+	if (PyVecTo(value, quat))
+	{
+		matrix.setRotation(quat);
+		NodeSetLocalOrientation(matrix);
+		NodeUpdateGS(0.f,true);
+		Py_RETURN_NONE;
 	}
 	return NULL;
 }
@@ -1323,37 +1420,44 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self,
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default
+	float fac = 1.0;
 	
-	if (PyArg_ParseTuple(args,"O|i",&pyvect,&axis))
+	if (PyArg_ParseTuple(args,"O|if",&pyvect,&axis, &fac))
 	{
 		MT_Vector3 vect;
 		if (PyVecTo(pyvect, vect))
 		{
-			AlignAxisToVect(vect,axis);				
-			Py_Return;
+			AlignAxisToVect(vect,axis,fac);
+			Py_RETURN_NONE;
 		}
 	}
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetPosition(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_GameObject::PyGetAxisVect(PyObject* self, PyObject* value)
 {
-	MT_Point3 pos;
-	if (PyVecArgTo(args, pos))
+	MT_Vector3 vect;
+	if (PyVecTo(value, vect))
 	{
-		NodeSetLocalPosition(pos);
-		NodeUpdateGS(0.f,true);
-		Py_Return;
+		return PyObjectFrom(NodeGetWorldOrientation() * vect);
 	}
-	
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,
-											   PyObject* args,
-											   PyObject* kwds)
+PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
+{
+	MT_Point3 pos;
+	if (PyVecTo(value, pos))
+	{
+		NodeSetLocalPosition(pos);
+		NodeUpdateGS(0.f,true);
+		Py_RETURN_NONE;
+	}
+
+	return NULL;
+}
+
+PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self)
 {
 	KX_IPhysicsController* ctrl = GetPhysicsController();
 	uint_ptr physid=0;
@@ -1362,6 +1466,11 @@ PyObject* KX_GameObject::PyGetPhysicsId(PyObject* self,
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
 	return PyInt_FromLong((long)physid);
+}
+
+PyObject* KX_GameObject::PyGetPropertyNames(PyObject* self)
+{
+	return ConvertKeysToPython();
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
@@ -1423,8 +1532,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	{
 		KX_GameObject *other;
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyarg->ob_type, &KX_GameObject::Type))
+		if (!PyType_IsSubtype(pyarg->ob_type, &KX_GameObject::Type)) {
+			PyErr_SetString(PyExc_TypeError, "the first argument to rayCastTo must be a vector or a KX_GameObject");
 			return NULL;
+		}
 		other = static_cast<KX_GameObject*>(pyarg);
 		toPoint = other->NodeGetWorldPosition();
 	}
@@ -1458,7 +1569,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		m_pHitObject->AddRef();
 		return m_pHitObject;
 	}
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
@@ -1484,8 +1595,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	if (!PyVecTo(pyto, toPoint))
 	{
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyto->ob_type, &KX_GameObject::Type))
+		if (!PyType_IsSubtype(pyto->ob_type, &KX_GameObject::Type)) {
+			PyErr_SetString(PyExc_TypeError, "the first argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
+		}
 		other = static_cast<KX_GameObject*>(pyto);
 		toPoint = other->NodeGetWorldPosition();
 	}
@@ -1496,19 +1609,25 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	else if (!PyVecTo(pyfrom, fromPoint))
 	{
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyfrom->ob_type, &KX_GameObject::Type))
+		if (!PyType_IsSubtype(pyfrom->ob_type, &KX_GameObject::Type)) {
+			PyErr_SetString(PyExc_TypeError, "the second optional argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
+		}
 		other = static_cast<KX_GameObject*>(pyfrom);
 		fromPoint = other->NodeGetWorldPosition();
 	}
-
-	if (dist != 0.0f)
-	{
+	
+	if (dist != 0.0f) {
 		MT_Vector3 toDir = toPoint-fromPoint;
+		if (MT_fuzzyZero(toDir.length2())) {
+			return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
+		}
 		toDir.normalize();
 		toPoint = fromPoint + (dist) * toDir;
+	} else if (MT_fuzzyZero((toPoint-fromPoint).length2())) {
+		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 	}
-
+	
 	MT_Point3 resultPoint;
 	MT_Vector3 resultNormal;
 	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
@@ -1541,7 +1660,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		//	resultNormal[0], resultNormal[1], resultNormal[2]);
 	}
 	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
-	//Py_Return;
+	//Py_RETURN_NONE;
 }
 
 /* --------------------------------------------------------------------- 

@@ -60,6 +60,7 @@
 #define SMALL_NUMBER	1.e-8
 #define ABS(x)	((x) < 0 ? -(x) : (x))
 #define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 
 
 #if defined(WIN32) || defined(__APPLE__)
@@ -1335,6 +1336,22 @@ void NormalQuat(float *q)
 	}
 }
 
+void AxisAngleToQuat(float *q, float *axis, float angle)
+{
+	float nor[3];
+	float si;
+	
+	VecCopyf(nor, axis);
+	Normalize(nor);
+	
+	angle /= 2;
+	si = (float)sin(angle);
+	q[0] = (float)cos(angle);
+	q[1] = nor[0] * si;
+	q[2] = nor[1] * si;
+	q[3] = nor[2] * si;	
+}
+
 void vectoquat(float *vec, short axis, short upflag, float *q)
 {
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
@@ -2256,6 +2273,20 @@ double Sqrt3d(double d)
 	if(d==0.0) return 0;
 	if(d<0) return -exp(log(-d)/3);
 	else return exp(log(d)/3);
+}
+
+void NormalShortToFloat(float *out, short *in)
+{
+	out[0] = in[0] / 32767.0;
+	out[1] = in[1] / 32767.0;
+	out[2] = in[2] / 32767.0;
+}
+
+void NormalFloatToShort(short *out, float *in)
+{
+	out[0] = (short)(in[0] * 32767.0);
+	out[1] = (short)(in[1] * 32767.0);
+	out[2] = (short)(in[2] * 32767.0);
 }
 
 /* distance v1 to line v2-v3 */
@@ -3384,6 +3415,66 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lv = v;
 }
 
+/*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+ * SMPTE-C XYZ to RGB matrix*/
+void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b)
+{
+	*r = (3.50570	* xc) + (-1.73964	* yc) + (-0.544011	* zc);
+	*g = (-1.06906	* xc) + (1.97781	* yc) + (0.0351720	* zc);
+	*b = (0.0563117	* xc) + (-0.196994	* yc) + (1.05005	* zc);
+}
+
+/*If the requested RGB shade contains a negative weight for
+  one of the primaries, it lies outside the colour gamut 
+  accessible from the given triple of primaries.  Desaturate
+  it by adding white, equal quantities of R, G, and B, enough
+  to make RGB all positive.  The function returns 1 if the
+  components were modified, zero otherwise.*/
+int constrain_rgb(float *r, float *g, float *b)
+{
+	float w;
+
+    /* Amount of white needed is w = - min(0, *r, *g, *b) */
+    
+    w = (0 < *r) ? 0 : *r;
+    w = (w < *g) ? w : *g;
+    w = (w < *b) ? w : *b;
+    w = -w;
+
+    /* Add just enough white to make r, g, b all positive. */
+    
+    if (w > 0) {
+        *r += w;  *g += w; *b += w;
+        return 1;                     /* Colour modified to fit RGB gamut */
+    }
+
+    return 0;                         /* Colour within RGB gamut */
+}
+
+/*Transform linear RGB values to nonlinear RGB values. Rec.
+  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
+  Parameter Values for the HDTV Standard for the Studio and
+  for International Programme Exchange'', formerly CCIR Rec.
+  709.*/
+void gamma_correct(float *c)
+{
+	/* Rec. 709 gamma correction. */
+	float cc = 0.018;
+	
+	if (*c < cc) {
+	    *c *= ((1.099 * pow(cc, 0.45)) - 0.099) / cc;
+	} else {
+	    *c = (1.099 * pow(*c, 0.45)) - 0.099;
+	}
+}
+
+void gamma_correct_rgb(float *r, float *g, float *b)
+{
+    gamma_correct(r);
+    gamma_correct(g);
+    gamma_correct(b);
+}
+
 
 /* we define a 'cpack' here as a (3 byte color code) number that can be expressed like 0xFFAA66 or so.
    for that reason it is sensitive for endianness... with this function it works correctly
@@ -3671,14 +3762,89 @@ int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], f
 	return 1;
 }
 
+/* moved from effect.c
+   test if the ray starting at p1 going in d direction intersects the triangle v0..v2
+   return non zero if it does 
+*/
+int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv)
+{
+	float p[3], s[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	
+	VecSubf(e1, v1, v0);
+	VecSubf(e2, v2, v0);
+	
+	Crossf(p, d, e2);
+	a = Inpf(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0f/a;
+	
+	VecSubf(s, p1, v0);
+	
+	Crossf(q, s, e1);
+	*lambda = f * Inpf(e2, q);
+	if ((*lambda < 0.0)) return 0;
+	
+	u = f * Inpf(s, p);
+	if ((u < 0.0)||(u > 1.0)) return 0;
+	
+	v = f * Inpf(d, q);
+	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+	}
+	
+	return 1;
+}
+
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
+static int getLowestRoot(float a, float b, float c, float maxR, float* root)
+{
+	// Check if a solution exists
+	float determinant = b*b - 4.0f*a*c;
+
+	// If determinant is negative it means no solutions.
+	if (determinant >= 0.0f)
+	{
+		// calculate the two roots: (if determinant == 0 then
+		// x1==x2 but let’s disregard that slight optimization)
+		float sqrtD = sqrt(determinant);
+		float r1 = (-b - sqrtD) / (2.0f*a);
+		float r2 = (-b + sqrtD) / (2.0f*a);
+		
+		// Sort so x1 <= x2
+		if (r1 > r2)
+			SWAP( float, r1, r2);
+
+		// Get lowest root:
+		if (r1 > 0.0f && r1 < maxR)
+		{
+			*root = r1;
+			return 1;
+		}
+
+		// It is possible that we want x2 - this can happen
+		// if x1 < 0
+		if (r2 > 0.0f && r2 < maxR)
+		{
+			*root = r2;
+			return 1;
+		}
+	}
+	// No (valid) solutions
+	return 0;
+}
+
 int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint)
 {
 	float e1[3], e2[3], e3[3], point[3], vel[3], /*dist[3],*/ nor[3], temp[3], bv[3];
-	float a, b, c, d, e, x, y, z, t, t0, t1, radius2=radius*radius;
+	float a, b, c, d, e, x, y, z, radius2=radius*radius;
 	float elen2,edotv,edotbv,nordotv,vel2;
-	int embedded_in_plane=0, found_by_sweep=0;
+	float newLambda;
+	int found_by_sweep=0;
 
 	VecSubf(e1,v1,v0);
 	VecSubf(e2,v2,v0);
@@ -3687,44 +3853,41 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 /*---test plane of tri---*/
 	Crossf(nor,e1,e2);
 	Normalize(nor);
+
 	/* flip normal */
 	if(Inpf(nor,vel)>0.0f) VecMulf(nor,-1.0f);
 	
 	a=Inpf(p1,nor)-Inpf(v0,nor);
-
 	nordotv=Inpf(nor,vel);
 
-	if ((nordotv > -0.000001) && (nordotv < 0.000001)) {
-		if(fabs(a)>=1.0f)
+	if (fabs(nordotv) < 0.000001)
+	{
+		if(fabs(a)>=radius)
+		{
 			return 0;
-		else{
-			embedded_in_plane=1;
-			t0=0.0f;
-			t1=1.0f;
 		}
 	}
-	else{
-		t0=(radius-a)/nordotv;
-		t1=(-radius-a)/nordotv;
-		/* make t0<t1 */
-		if(t0>t1){b=t1; t1=t0; t0=b;}
+	else
+	{
+		float t0=(-a+radius)/nordotv;
+		float t1=(-a-radius)/nordotv;
+
+		if(t0>t1)
+			SWAP(float, t0, t1);
 
 		if(t0>1.0f || t1<0.0f) return 0;
 
 		/* clamp to [0,1] */
-		t0=(t0<0.0f)?0.0f:((t0>1.0f)?1.0:t0);
-		t1=(t1<0.0f)?0.0f:((t1>1.0f)?1.0:t1);
-	}
+		CLAMP(t0, 0.0f, 1.0f);
+		CLAMP(t1, 0.0f, 1.0f);
 
-/*---test inside of tri---*/
-	if(embedded_in_plane==0){
+		/*---test inside of tri---*/
 		/* plane intersection point */
-		VecCopyf(point,vel);
-		VecMulf(point,t0);
-		VecAddf(point,point,p1);
-		VecCopyf(temp,nor);
-		VecMulf(temp,radius);
-		VecSubf(point,point,temp);
+
+		point[0] = p1[0] + vel[0]*t0 - nor[0]*radius;
+		point[1] = p1[1] + vel[1]*t0 - nor[1]*radius;
+		point[2] = p1[2] + vel[2]*t0 - nor[2]*radius;
+
 
 		/* is the point in the tri? */
 		a=Inpf(e1,e1);
@@ -3739,14 +3902,19 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 		y=e*a-d*b;
 		z=x+y-(a*c-b*b);
 
-		if(( ((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y)) ) & 0x80000000){
+
+		if( z <= 0.0f && (x >= 0.0f && y >= 0.0f))
+		{
+		//( ((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y)) ) & 0x80000000){
 			*lambda=t0;
 			VecCopyf(ipoint,point);
 			return 1;
 		}
 	}
 
+
 	*lambda=1.0f;
+
 /*---test points---*/
 	a=vel2=Inpf(vel,vel);
 
@@ -3754,73 +3922,42 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	VecSubf(temp,p1,v0);
 	b=2.0f*Inpf(vel,temp);
 	c=Inpf(temp,temp)-radius2;
-	d=b*b-4*a*c;
 
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
-
-		if(t>0.0 && t < *lambda){
-			*lambda=t;
-			VecCopyf(ipoint,v0);
-			found_by_sweep=1;
-		}
+	if(getLowestRoot(a, b, c, *lambda, lambda))
+	{
+		VecCopyf(ipoint,v0);
+		found_by_sweep=1;
 	}
 
 	/*v1*/
 	VecSubf(temp,p1,v1);
 	b=2.0f*Inpf(vel,temp);
 	c=Inpf(temp,temp)-radius2;
-	d=b*b-4*a*c;
 
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
-
-		if(t>0.0 && t < *lambda){
-			*lambda=t;
-			VecCopyf(ipoint,v1);
-			found_by_sweep=1;
-		}
+	if(getLowestRoot(a, b, c, *lambda, lambda))
+	{
+		VecCopyf(ipoint,v1);
+		found_by_sweep=1;
 	}
+	
 	/*v2*/
 	VecSubf(temp,p1,v2);
 	b=2.0f*Inpf(vel,temp);
 	c=Inpf(temp,temp)-radius2;
-	d=b*b-4*a*c;
 
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
-
-		if(t>0.0 && t < *lambda){
-			*lambda=t;
-			VecCopyf(ipoint,v2);
-			found_by_sweep=1;
-		}
+	if(getLowestRoot(a, b, c, *lambda, lambda))
+	{
+		VecCopyf(ipoint,v2);
+		found_by_sweep=1;
 	}
 
 /*---test edges---*/
+	VecSubf(e3,v2,v1); //wasnt yet calculated
+
+
 	/*e1*/
 	VecSubf(bv,v0,p1);
+
 	elen2 = Inpf(e1,e1);
 	edotv = Inpf(e1,vel);
 	edotbv = Inpf(e1,bv);
@@ -3828,27 +3965,18 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
 	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
-	d=b*b-4*a*c;
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
 
-		e=(edotv*t-edotbv)/elen2;
+	if(getLowestRoot(a, b, c, *lambda, &newLambda))
+	{
+		e=(edotv*newLambda-edotbv)/elen2;
 
-		if((e>=0.0f) && (e<=1.0f)){
-			if(t>0.0 && t < *lambda){
-				*lambda=t;
-				VecCopyf(ipoint,e1);
-				VecMulf(ipoint,e);
-				VecAddf(ipoint,ipoint,v0);
-				found_by_sweep=1;
-			}
+		if(e >= 0.0f && e <= 1.0f)
+		{
+			*lambda = newLambda;
+			VecCopyf(ipoint,e1);
+			VecMulf(ipoint,e);
+			VecAddf(ipoint,ipoint,v0);
+			found_by_sweep=1;
 		}
 	}
 
@@ -3861,32 +3989,27 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
 	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
-	d=b*b-4*a*c;
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
 
-		e=(edotv*t-edotbv)/elen2;
+	if(getLowestRoot(a, b, c, *lambda, &newLambda))
+	{
+		e=(edotv*newLambda-edotbv)/elen2;
 
-		if((e>=0.0f) && (e<=1.0f)){
-			if(t>0.0 && t < *lambda){
-				*lambda=t;
-				VecCopyf(ipoint,e2);
-				VecMulf(ipoint,e);
-				VecAddf(ipoint,ipoint,v0);
-				found_by_sweep=1;
-			}
+		if(e >= 0.0f && e <= 1.0f)
+		{
+			*lambda = newLambda;
+			VecCopyf(ipoint,e2);
+			VecMulf(ipoint,e);
+			VecAddf(ipoint,ipoint,v0);
+			found_by_sweep=1;
 		}
 	}
 
 	/*e3*/
-	VecSubf(e3,v2,v1);
+	VecSubf(bv,v0,p1);
+	elen2 = Inpf(e1,e1);
+	edotv = Inpf(e1,vel);
+	edotbv = Inpf(e1,bv);
+
 	VecSubf(bv,v1,p1);
 	elen2 = Inpf(e3,e3);
 	edotv = Inpf(e3,vel);
@@ -3895,29 +4018,21 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
 	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
-	d=b*b-4*a*c;
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
 
-		e=(edotv*t-edotbv)/elen2;
+	if(getLowestRoot(a, b, c, *lambda, &newLambda))
+	{
+		e=(edotv*newLambda-edotbv)/elen2;
 
-		if((e>=0.0f) && (e<=1.0f)){
-			if(t>0.0 && t < *lambda){
-				*lambda=t;
-				VecCopyf(ipoint,e3);
-				VecMulf(ipoint,e);
-				VecAddf(ipoint,ipoint,v1);
-				found_by_sweep=1;
-			}
+		if(e >= 0.0f && e <= 1.0f)
+		{
+			*lambda = newLambda;
+			VecCopyf(ipoint,e3);
+			VecMulf(ipoint,e);
+			VecAddf(ipoint,ipoint,v1);
+			found_by_sweep=1;
 		}
 	}
+
 
 	return found_by_sweep;
 }
@@ -3964,6 +4079,74 @@ int AxialLineIntersectsTriangle(int axis, float p1[3], float p2[3], float v0[3],
 
 	return 1;
 }
+
+/* Returns the number of point of interests
+ * 0 - lines are colinear
+ * 1 - lines are coplanar, i1 is set to intersection
+ * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively 
+ * */
+int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3])
+{
+	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
+	float d;
+	
+	VecSubf(c, v3, v1);
+	VecSubf(a, v2, v1);
+	VecSubf(b, v4, v3);
+
+	VecCopyf(dir1, a);
+	Normalize(dir1);
+	VecCopyf(dir2, b);
+	Normalize(dir2);
+	d = Inpf(dir1, dir2);
+	if (d == 1.0f || d == -1.0f) {
+		/* colinear */
+		return 0;
+	}
+
+	Crossf(ab, a, b);
+	d = Inpf(c, ab);
+
+	/* test if the two lines are coplanar */
+	if (d > -0.000001f && d < 0.000001f) {
+		Crossf(cb, c, b);
+
+		VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+		VecAddf(i1, v1, a);
+		VecCopyf(i2, i1);
+		
+		return 1; /* one intersection only */
+	}
+	/* if not */
+	else {
+		float n[3], t[3];
+		float v3t[3], v4t[3];
+		VecSubf(t, v1, v3);
+
+		/* offset between both plane where the lines lies */
+		Crossf(n, a, b);
+		Projf(t, t, n);
+
+		/* for the first line, offset the second line until it is coplanar */
+		VecAddf(v3t, v3, t);
+		VecAddf(v4t, v4, t);
+		
+		VecSubf(c, v3t, v1);
+		VecSubf(a, v2, v1);
+		VecSubf(b, v4t, v3);
+
+		Crossf(ab, a, b);
+		Crossf(cb, c, b);
+
+		VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+		VecAddf(i1, v1, a);
+
+		/* for the second line, just substract the offset from the first intersection point */
+		VecSubf(i2, i1, t);
+		
+		return 2; /* two nearest points */
+	}
+} 
 
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3])
 {

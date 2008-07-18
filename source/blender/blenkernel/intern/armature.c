@@ -1709,13 +1709,13 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 	if (tree->totchannel == 0)
 		return;
-
+	
 	iktree= MEM_mallocN(sizeof(void*)*tree->totchannel, "ik tree");
 
 	for(a=0; a<tree->totchannel; a++) {
 		pchan= tree->pchan[a];
 		bone= pchan->bone;
-
+		
 		/* set DoF flag */
 		flag= 0;
 		if(!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP))
@@ -1724,32 +1724,32 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 			flag |= IK_YDOF;
 		if(!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP))
 			flag |= IK_ZDOF;
-
+		
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			flag |= IK_TRANS_YDOF;
 			hasstretch = 1;
 		}
-
+		
 		seg= iktree[a]= IK_CreateSegment(flag);
-
+		
 		/* find parent */
 		if(a == 0)
 			parent= NULL;
 		else
 			parent= iktree[tree->parent[a]];
-
+			
 		IK_SetParent(seg, parent);
-	
+			
 		/* get the matrix that transforms from prevbone into this bone */
 		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
-
+		
 		/* gather transformations for this IK segment */
-
+		
 		if (pchan->parent)
 			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
 		else
 			Mat3One(R_parmat);
-
+		
 		/* bone offset */
 		if (pchan->parent && (a > 0))
 			VecSubf(start, pchan->pose_head, pchan->parent->pose_tail);
@@ -1759,37 +1759,37 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		
 		/* change length based on bone size */
 		length= bone->length*VecLength(R_bonemat[1]);
-
+		
 		/* compute rest basis and its inverse */
 		Mat3CpyMat3(rest_basis, bone->bone_mat);
 		Mat3CpyMat3(irest_basis, bone->bone_mat);
 		Mat3Transp(irest_basis);
-
+		
 		/* compute basis with rest_basis removed */
 		Mat3Inv(iR_parmat, R_parmat);
 		Mat3MulMat3(full_basis, iR_parmat, R_bonemat);
 		Mat3MulMat3(basis, irest_basis, full_basis);
-
+		
 		/* basis must be pure rotation */
 		Mat3Ortho(basis);
-
+		
 		/* transform offset into local bone space */
 		Mat3Ortho(iR_parmat);
 		Mat3MulVecfl(iR_parmat, start);
-
+		
 		IK_SetTransform(seg, start, rest_basis, basis, length);
-
+		
 		if (pchan->ikflag & BONE_IK_XLIMIT)
 			IK_SetLimit(seg, IK_X, pchan->limitmin[0], pchan->limitmax[0]);
 		if (pchan->ikflag & BONE_IK_YLIMIT)
 			IK_SetLimit(seg, IK_Y, pchan->limitmin[1], pchan->limitmax[1]);
 		if (pchan->ikflag & BONE_IK_ZLIMIT)
 			IK_SetLimit(seg, IK_Z, pchan->limitmin[2], pchan->limitmax[2]);
-
+		
 		IK_SetStiffness(seg, IK_X, pchan->stiffness[0]);
 		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
-
+		
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			float ikstretch = pchan->ikstretch*pchan->ikstretch;
 			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
@@ -1818,7 +1818,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	for (target=tree->targets.first; target; target=target->next) {
 		float polepos[3];
 		int poleconstrain= 0;
-
+		
 		data= (bKinematicConstraint*)target->con->data;
 		
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
@@ -1835,7 +1835,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		/* same for pole vector target */
 		if(data->poletar) {
 			get_constraint_target_matrix(target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
-
+			
 			if(data->flag & CONSTRAINT_IK_SETANGLE) {
 				/* don't solve IK when we are setting the pole angle */
 				break;
@@ -1844,7 +1844,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 				Mat4MulMat4(goal, rootmat, goalinv);
 				VECCOPY(polepos, goal[3]);
 				poleconstrain= 1;
-
+				
 				if(data->flag & CONSTRAINT_IK_GETANGLE) {
 					poleangledata= data;
 					data->flag &= ~CONSTRAINT_IK_GETANGLE;
@@ -1903,36 +1903,35 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	tree->basis_change= MEM_mallocN(sizeof(float[3][3])*tree->totchannel, "ik basis change");
 	if(hasstretch)
 		ikstretch= MEM_mallocN(sizeof(float)*tree->totchannel, "ik stretch");
-
+		
 	for(a=0; a<tree->totchannel; a++) {
 		IK_GetBasisChange(iktree[a], tree->basis_change[a]);
-
+		
 		if(hasstretch) {
 			/* have to compensate for scaling received from parent */
 			float parentstretch, stretch;
-
+			
 			pchan= tree->pchan[a];
 			parentstretch= (tree->parent[a] >= 0)? ikstretch[tree->parent[a]]: 1.0;
-
+			
 			if(tree->stretch && (pchan->ikstretch > 0.0)) {
 				float trans[3], length;
-
+				
 				IK_GetTranslationChange(iktree[a], trans);
 				length= pchan->bone->length*VecLength(pchan->pose_mat[1]);
-
+				
 				ikstretch[a]= (length == 0.0)? 1.0: (trans[1]+length)/length;
 			}
 			else
 				ikstretch[a] = 1.0;
-
+			
 			stretch= (parentstretch == 0.0)? 1.0: ikstretch[a]/parentstretch;
-
+			
 			VecMulf(tree->basis_change[a][0], stretch);
 			VecMulf(tree->basis_change[a][1], stretch);
 			VecMulf(tree->basis_change[a][2], stretch);
-
 		}
-
+		
 		IK_FreeSegment(iktree[a]);
 	}
 	

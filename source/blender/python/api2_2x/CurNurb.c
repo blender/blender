@@ -53,6 +53,8 @@ static int CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getFlagV( BPy_CurNurb * self );
 static PyObject *CurNurb_oldsetFlagV( BPy_CurNurb * self, PyObject * args );
 static int CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_getOrderU( BPy_CurNurb * self );
+static int CurNurb_setOrderU( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getType( BPy_CurNurb * self );
 static PyObject *CurNurb_oldsetType( BPy_CurNurb * self, PyObject * args );
 static int CurNurb_setType( BPy_CurNurb * self, PyObject * args );
@@ -176,6 +178,9 @@ static PyGetSetDef BPy_CurNurb_getseters[] = {
 	 (getter)CurNurb_getFlagV, (setter)CurNurb_setFlagV,
 	 "The knot type in the V direction",
 	 NULL},
+	{"orderU",
+	 (getter)CurNurb_getOrderU, (setter)CurNurb_setOrderU,
+	 "order setting for U direction", NULL},
 	{"type",
 	 (getter)CurNurb_getType, (setter)CurNurb_setType,
 	 "The curve type (poly: bezier, or NURBS)",
@@ -706,6 +711,35 @@ static int CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
 		self->nurb->flagv = (short)value;
 		makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
 	}
+
+	return 0;
+}
+
+static PyObject *CurNurb_getOrderU( BPy_CurNurb * self )
+{
+	return PyInt_FromLong( ( long ) self->nurb->orderu );
+}
+
+static int CurNurb_setOrderU( BPy_CurNurb * self, PyObject * args )
+{
+	int order;
+
+	args = PyNumber_Int( args );
+	if( !args )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			   "expected integer argument" );
+
+	order = ( int )PyInt_AS_LONG( args );
+	Py_DECREF( args );
+
+	if( order < 2 ) order = 2;
+	else if( order > 6 ) order = 6;
+
+	if( self->nurb->pntsu < order )
+		order = self->nurb->pntsu;
+
+	self->nurb->orderu = (short)order;
+	makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
 
 	return 0;
 }

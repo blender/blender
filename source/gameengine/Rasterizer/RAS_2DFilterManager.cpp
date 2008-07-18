@@ -46,30 +46,22 @@
 #include "RAS_2DFilterManager.h"
 #include <iostream>
 
-#ifdef WIN32
-// OpenGL gl.h needs 'windows.h' on windows platforms 
-#include <windows.h>
-#endif //WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
-
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
+#include "GL/glew.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include "Value.h"
 
 RAS_2DFilterManager::RAS_2DFilterManager():
 texturewidth(-1), textureheight(-1),
 canvaswidth(-1), canvasheight(-1),
-numberoffilters(0),texname(-1)
+numberoffilters(0)
 {
-	isshadersupported = bgl::QueryVersion(2,0);
+	isshadersupported = GLEW_ARB_shader_objects &&
+		GLEW_ARB_fragment_shader && GLEW_ARB_multitexture;
+
 	if(!isshadersupported)
 	{
 		std::cout<<"shaders not supported!" << std::endl;
@@ -81,26 +73,28 @@ numberoffilters(0),texname(-1)
 	{
 		m_filters[passindex] = 0;
 		m_enabled[passindex] = 0;
+		texflag[passindex] = 0;
+		m_gameObjects[passindex] = NULL;
 	}
-
+	texname[0] = texname[1] = texname[2] = -1;
 }
 
 RAS_2DFilterManager::~RAS_2DFilterManager()
 {
+	FreeTextures();
 }
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 {
 		GLuint program = 0;	
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
-		GLuint fShader = bgl::blCreateShaderObjectARB(GL_FRAGMENT_SHADER);
+		GLuint fShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
         GLint success;
 
-		bgl::blShaderSourceARB(fShader, 1, (const char**)&shadersource, NULL);
+		glShaderSourceARB(fShader, 1, (const char**)&shadersource, NULL);
 
-		bgl::blCompileShaderARB(fShader);
+		glCompileShaderARB(fShader);
 
-		bgl::blGetObjectParameterivARB(fShader, GL_COMPILE_STATUS, &success);
+		glGetObjectParameterivARB(fShader, GL_COMPILE_STATUS, &success);
 		if(!success)
 		{
 			/*Shader Comile Error*/
@@ -108,11 +102,11 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 			return 0;
 		}
 		    
-		program = bgl::blCreateProgramObjectARB();
-		bgl::blAttachObjectARB(program, fShader);
+		program = glCreateProgramObjectARB();
+		glAttachObjectARB(program, fShader);
 
-		bgl::blLinkProgramARB(program);
-		bgl::blGetObjectParameterivARB(program, GL_LINK_STATUS, &success);
+		glLinkProgramARB(program);
+		glGetObjectParameterivARB(program, GL_LINK_STATUS, &success);
 		if (!success)
 		{
 			/*Program Link Error*/
@@ -120,15 +114,15 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
 			return 0;
 		}
    		
-		bgl::blValidateProgramARB(program);
-		bgl::blGetObjectParameterivARB(program, GL_VALIDATE_STATUS, &success);
+		glValidateProgramARB(program);
+		glGetObjectParameterivARB(program, GL_VALIDATE_STATUS, &success);
         if (!success)
 		{
 			/*Program Validation Error*/
 			std::cout << "2dFilters - Shader program validation error" << std::endl;
 			return 0;
 		}
-#endif
+
 		return program;
 }
 
@@ -159,60 +153,144 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 		}
 		return 0;
 }
-
-void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
+void	RAS_2DFilterManager::AnalyseShader(int passindex, vector<STR_String>& propNames)
 {
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
+	texflag[passindex] = 0;
+	if(glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture") != -1)
+	{
+		texflag[passindex] |= 0x1;
+	}
+	if(glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture") != -1)
+	{
+		texflag[passindex] |= 0x2;
+	}
+
+	if(m_gameObjects[passindex])
+	{
+		int objProperties = propNames.size();
+		int i;
+		for(i=0; i<objProperties; i++)
+			if(glGetUniformLocationARB(m_filters[passindex], propNames[i]) != -1)
+				m_properties[passindex].push_back(propNames[i]);
+	}
+}
+
+void RAS_2DFilterManager::StartShaderProgram(int passindex)
+{
 	GLint uniformLoc;
-	bgl::blUseProgramObjectARB(shaderprogram);
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
-	bgl::blActiveTextureARB(GL_TEXTURE0);
-	//glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texname);
+	glUseProgramObjectARB(m_filters[passindex]);
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTexture");
+	glActiveTextureARB(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texname[0]);
 
     if (uniformLoc != -1)
     {
-		bgl::blUniform1iARB(uniformLoc, 0);
+		glUniform1iARB(uniformLoc, 0);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_TextureCoordinateOffset");
+
+    /* send depth texture to glsl program if it needs */
+	if(texflag[passindex] & 0x1){
+    	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture");
+    	glActiveTextureARB(GL_TEXTURE1);
+    	glBindTexture(GL_TEXTURE_2D, texname[1]);
+
+    	if (uniformLoc != -1)
+    	{
+    		glUniform1iARB(uniformLoc, 1);
+    	}
+    }
+
+    /* send luminance texture to glsl program if it needs */
+	if(texflag[passindex] & 0x2){
+    	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture");
+    	glActiveTextureARB(GL_TEXTURE2);
+    	glBindTexture(GL_TEXTURE_2D, texname[2]);
+
+    	if (uniformLoc != -1)
+    	{
+    		glUniform1iARB(uniformLoc, 2);
+    	}
+	}
+	
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_TextureCoordinateOffset");
     if (uniformLoc != -1)
     {
-        bgl::blUniform2fvARB(uniformLoc, 9, textureoffsets);
+        glUniform2fvARB(uniformLoc, 9, textureoffsets);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTextureWidth");
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTextureWidth");
     if (uniformLoc != -1)
     {
-		bgl::blUniform1fARB(uniformLoc,texturewidth);
+		glUniform1fARB(uniformLoc,texturewidth);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTextureHeight");
+	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTextureHeight");
     if (uniformLoc != -1)
     {
-		bgl::blUniform1fARB(uniformLoc,textureheight);
+		glUniform1fARB(uniformLoc,textureheight);
     }
-#endif
+
+	int i, objProperties = m_properties[passindex].size();
+	for(i=0; i<objProperties; i++)
+	{
+		uniformLoc = glGetUniformLocationARB(m_filters[passindex], m_properties[passindex][i]);
+		if(uniformLoc != -1)
+		{
+			float value = ((CValue*)m_gameObjects[passindex])->GetPropertyNumber(m_properties[passindex][i], 0.0);
+			glUniform1fARB(uniformLoc,value);
+		}
+	}
 }
 
 void RAS_2DFilterManager::EndShaderProgram()
 {
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
-	bgl::blUseProgramObjectARB(0);
-#endif
+	glUseProgramObjectARB(0);
 }
 
-void RAS_2DFilterManager::SetupTexture()
+void RAS_2DFilterManager::FreeTextures()
 {
-	if(texname!=-1)
-	{
-		glDeleteTextures(1,(const GLuint *)&texname);
-	}
-	glGenTextures(1, (GLuint *)&texname);
-	glBindTexture(GL_TEXTURE_2D, texname);
+	if(texname[0]!=-1)
+		glDeleteTextures(1, (GLuint*)&texname[0]);
+	if(texname[1]!=-1)
+		glDeleteTextures(1, (GLuint*)&texname[1]);
+	if(texname[2]!=-1)
+		glDeleteTextures(1, (GLuint*)&texname[2]);
+}
+
+void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
+{
+	FreeTextures();
+	
+	glGenTextures(1, (GLuint*)&texname[0]);
+	glBindTexture(GL_TEXTURE_2D, texname[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGB,
-		GL_UNSIGNED_BYTE, 0);
+			GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	if(depth){
+		glGenTextures(1, (GLuint*)&texname[1]);
+		glBindTexture(GL_TEXTURE_2D, texname[1]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texturewidth,textureheight, 
+			0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE,NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+		                GL_NONE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	}
+
+	if(luminance){
+		glGenTextures(1, (GLuint*)&texname[2]);
+		glBindTexture(GL_TEXTURE_2D, texname[2]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16, texturewidth, textureheight,
+			 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	}
 }
 
 void RAS_2DFilterManager::UpdateOffsetMatrix(int width, int height)
@@ -243,45 +321,72 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(int width, int height)
 			textureoffsets[(((i*3)+j)*2)+1] = (-1.0f * yInc) + ((GLfloat)j * yInc);
 		}
 	}
-
-	SetupTexture();
 }
 
 void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 {
+	bool need_depth=false;
+	bool need_luminance=false;
+	int num_filters = 0;
+
+	int passindex;
+
 	if(!isshadersupported)
+		return;
+
+	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)
+	{
+		if(m_filters[passindex] && m_enabled[passindex]){
+			num_filters ++;
+			if(texflag[passindex] & 0x1)
+				need_depth = true;
+			if(texflag[passindex] & 0x2)
+				need_luminance = true;
+			if(need_depth && need_luminance)
+				break;
+		}
+	}
+
+	if(num_filters <= 0)
 		return;
 
 	if(canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
 	{
 		UpdateOffsetMatrix(canvas->GetWidth(), canvas->GetHeight());
+		SetupTextures(need_depth, need_luminance);
 	}
 	GLuint	viewport[4]={0};
 
-	int passindex;
-	bool first = true;
+	if(need_depth){
+		glActiveTextureARB(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texname[1]);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0,0, texturewidth,textureheight, 0);
+	}
+	
+	if(need_luminance){
+		glActiveTextureARB(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texname[2]);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0,0, texturewidth,textureheight, 0);
+	}
+
+	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
+	glViewport(0, 0, texturewidth, textureheight);
+
+	glDisable(GL_DEPTH_TEST);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
 	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)
 	{
 		if(m_filters[passindex] && m_enabled[passindex])
 		{
-			if(first)
-			{
-				glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
-				glViewport(0, 0, texturewidth, textureheight);
+			StartShaderProgram(passindex);
 
-				glDisable(GL_DEPTH_TEST);
-				glMatrixMode(GL_PROJECTION);
-				glLoadIdentity();
-				glMatrixMode(GL_MODELVIEW);
-				glLoadIdentity();
-				first = false;
-			}
-			
-			StartShaderProgram(m_filters[passindex]);
-
-			glBindTexture(GL_TEXTURE_2D, texname);
+			glActiveTextureARB(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texname[0]);
 			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, texturewidth, textureheight, 0);
-
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			glBegin(GL_QUADS);
@@ -294,19 +399,15 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		}
 	}
 
-	if(!first)
-	{
-		glEnable(GL_DEPTH_TEST);
-		glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
-		EndShaderProgram();	
-	}
+	glEnable(GL_DEPTH_TEST);
+	glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
+	EndShaderProgram();	
 }
 
-void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text)
+void RAS_2DFilterManager::EnableFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text)
 {
 	if(!isshadersupported)
 		return;
-#if defined(GL_ARB_shader_objects) && defined(WITH_GLEXT)
 	if(pass<0 || pass>=MAX_RENDER_PASS)
 		return;
 
@@ -325,17 +426,22 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 	if(mode == RAS_2DFILTER_NOFILTER)
 	{
 		if(m_filters[pass])
-			bgl::blDeleteObjectARB(m_filters[pass]);
+			glDeleteObjectARB(m_filters[pass]);
 		m_enabled[pass] = 0;
 		m_filters[pass] = 0;
+		m_gameObjects[pass] = NULL;
+		m_properties[pass].clear();
+		texflag[pass] = 0;
 		return;
 	}
 	
 	if(mode == RAS_2DFILTER_CUSTOMFILTER)
 	{
 		if(m_filters[pass])
-			bgl::blDeleteObjectARB(m_filters[pass]);
+			glDeleteObjectARB(m_filters[pass]);
 		m_filters[pass] = CreateShaderProgram(text.Ptr());
+		m_gameObjects[pass] = gameObj;
+		AnalyseShader(pass, propNames);
 		m_enabled[pass] = 1;
 		return;
 	}
@@ -343,9 +449,8 @@ void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_Str
 	if(mode>=RAS_2DFILTER_MOTIONBLUR && mode<=RAS_2DFILTER_INVERT)
 	{
 		if(m_filters[pass])
-			bgl::blDeleteObjectARB(m_filters[pass]);
+			glDeleteObjectARB(m_filters[pass]);
 		m_filters[pass] = CreateShaderProgram(mode);
 		m_enabled[pass] = 1;
 	}
-#endif
 }

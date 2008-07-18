@@ -6,15 +6,10 @@
 #ifdef WIN32
 #include <windows.h>
 #endif // WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+
+#include "GL/glew.h"
 
 #include "RAS_TexVert.h"
-#include "RAS_GLExtensionManager.h"
 #include "MT_assert.h"
 
 //#ifndef NDEBUG
@@ -27,8 +22,8 @@
 
 RAS_ListSlot::RAS_ListSlot(RAS_ListRasterizer* rasty)
 :	KX_ListSlot(),
-	m_flag(LIST_MODIFY|LIST_CREATE),
 	m_list(0),
+	m_flag(LIST_MODIFY|LIST_CREATE),
 	m_rasty(rasty)
 {
 }
@@ -166,9 +161,7 @@ void RAS_ListRasterizer::ReleaseAlloc()
 void RAS_ListRasterizer::IndexPrimitives(
 	const vecVertexArray & vertexarrays,
 	const vecIndexArrays & indexarrays,
-	int mode,
-	class RAS_IPolyMaterial* polymat,
-	class RAS_IRenderTools* rendertools,
+	DrawMode mode,
 	bool useObjectColor,
 	const MT_Vector4& rgbacolor,
 	class KX_ListSlot** slot)
@@ -176,7 +169,7 @@ void RAS_ListRasterizer::IndexPrimitives(
 	RAS_ListSlot* localSlot =0;
 
 	// useObjectColor(are we updating every frame?)
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 		if(localSlot->End()) {
@@ -190,20 +183,18 @@ void RAS_ListRasterizer::IndexPrimitives(
 	if (mUseVertexArrays) {
 		RAS_VAOpenGLRasterizer::IndexPrimitives(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	} else {
 		RAS_OpenGLRasterizer::IndexPrimitives(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	}
 
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot->EndList();
 		*slot = localSlot;
 	}
@@ -213,9 +204,7 @@ void RAS_ListRasterizer::IndexPrimitives(
 void RAS_ListRasterizer::IndexPrimitivesMulti(
 		const vecVertexArray& vertexarrays,
 		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
+		DrawMode mode,
 		bool useObjectColor,
 		const MT_Vector4& rgbacolor,
 		class KX_ListSlot** slot)
@@ -223,7 +212,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 	RAS_ListSlot* localSlot =0;
 
 	// useObjectColor(are we updating every frame?)
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 
@@ -235,23 +224,24 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(
 		}
 	}
 
-	if (mUseVertexArrays) {
+	// workaround: note how we do not use vertex arrays for making display
+	// lists, since glVertexAttribPointerARB doesn't seem to work correct
+	// in display lists on ATI? either a bug in the driver or in Blender ..
+	if (mUseVertexArrays && !localSlot) {
 		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	} else {
 		RAS_OpenGLRasterizer::IndexPrimitivesMulti(
 				vertexarrays, indexarrays,
-				mode, polymat,
-				rendertools, useObjectColor,
+				mode, useObjectColor,
 				rgbacolor,slot
 		);
 	}
 
-	if(!useObjectColor) {
+	if(!useObjectColor && slot) {
 		localSlot->EndList();
 		*slot = localSlot;
 	}

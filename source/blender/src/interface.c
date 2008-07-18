@@ -2797,6 +2797,10 @@ static void ui_add_link_line(ListBase *listb, uiBut *but, uiBut *bt)
 	line->to= bt;
 }
 
+uiBut *uiFindInlink(uiBlock *block, void *poin)
+{
+	return ui_find_inlink(block, poin);
+}
 
 void uiComposeLinks(uiBlock *block)
 {
@@ -5401,7 +5405,9 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 		int getsizex, getsizey;
 
 		bwin_getsize(win, &getsizex, &getsizey);
-		block->aspect= 2.0/( (getsizex)*block->winmat[0][0]);
+		/* TODO - investigate why block->winmat[0][0] is negative
+		 * in the image view when viewRedrawForce is called */
+		block->aspect= 2.0/fabs( (getsizex)*block->winmat[0][0]);
 	}
 
 	uiSetCurFont(block, font);

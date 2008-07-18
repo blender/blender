@@ -159,6 +159,14 @@ public:
 		bool	
 	IsVertexParent(
 	) ;
+	
+	/**
+	 * Return slow parent status.
+	 */
+
+		bool	
+	IsSlowParent(
+	) ;
 
 	/**		
 	 * Update the spatial data of this node. Iterate through
@@ -197,7 +205,7 @@ private:
 
 		void		
 	ProcessSGReplica(
-		SG_Node* replica
+		SG_Node** replica
 	);
 
 	/**

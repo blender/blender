@@ -58,7 +58,6 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 {
 	m_mousemode   = mousemode;
 	m_triggermode = true;
-	m_val         = 0; /* stores the latest attribute */
 
 	switch (m_mousemode) {
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
@@ -79,7 +78,13 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	default:
 		; /* ignore, no hotkey */
 	}
+	Init();
+}
 
+void SCA_MouseSensor::Init()
+{
+	m_val = (m_invert)?1:0; /* stores the latest attribute */
+	m_reset = true;
 }
 
 SCA_MouseSensor::~SCA_MouseSensor() 
@@ -91,9 +96,10 @@ SCA_MouseSensor::~SCA_MouseSensor()
 
 CValue* SCA_MouseSensor::GetReplica()
 {
-	CValue* replica = new SCA_MouseSensor(*this);
+	SCA_MouseSensor* replica = new SCA_MouseSensor(*this);
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
+	replica->Init();
 
 	return replica;
 }
@@ -128,6 +134,7 @@ SCA_IInputDevice::KX_EnumInputs SCA_MouseSensor::GetHotKey()
 bool SCA_MouseSensor::Evaluate(CValue* event)
 {
 	bool result = false;
+	bool reset = m_reset && m_level;
 	SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
 
 
@@ -139,7 +146,7 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 	/* both MOUSEX and MOUSEY. Treat all of these as key-presses.            */
 	/* So, treat KX_MOUSESENSORMODE_POSITION as                              */
 	/* KX_MOUSESENSORMODE_POSITIONX || KX_MOUSESENSORMODE_POSITIONY          */
-
+	m_reset = false;
 	switch (m_mousemode) {
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
 	case KX_MOUSESENSORMODE_MIDDLEBUTTON:
@@ -164,10 +171,11 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 					{
 						if (m_val == 0)
 						{
-							//dangerous
-							//m_val = 1;
-							//result = true;
-							;
+							m_val = 1;
+							if (m_level)
+							{
+								result = true;
+							}
 						}
 					} else
 					{
@@ -217,6 +225,9 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 		; /* error */
 	}
 
+	if (reset)
+		// force an event
+		result = true;
 	return result;
 }
 

@@ -883,6 +883,15 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			dir = dir+2; /* skip the first // */
 		}
 	}
+	
+	/* Note
+	 *   memmove( start, eind, strlen(eind)+1 );
+	 * is the same as
+	 *   strcpy( start, eind ); 
+	 * except strcpy should not be used because there is overlap,
+	  * so use memmove's slightly more obscure syntax - Campbell
+	 */
+	
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
@@ -896,17 +905,21 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '\\') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ){
 		eind = start + strlen("\\.\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"\\\\" )) ){
 		eind = start + strlen("\\\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if((a = strlen(dir))){				/* remove the '\\' at the end */
@@ -929,17 +942,21 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 			if (dir[a] == '/') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
 		eind = start + strlen("/./") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"//" )) ){
 		eind = start + strlen("//") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
@@ -1118,8 +1135,8 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
-	wasrelative= (strncmp(vol, "//", 2)==0);
-
+	wasrelative= (vol[0]=='/' && vol[1]=='/');
+	
 #ifdef WIN32
 	/* we are checking here if we have an absolute path that is not in the current
 	   blend file as a lib main - we are basically checking for the case that a 
@@ -1156,7 +1173,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 
 	/* Paths starting with // will get the blend file as their base,
 	 * this isnt standard in any os but is uesed in blender all over the place */
-	if (tmp[0] == '/' && tmp[1] == '/') {
+	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
@@ -1705,6 +1722,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 	path = br_find_exe( NULL );
 	if (path) {
 		strcpy(fullname, path);
+		free(path);
 		return;
 	}
 #endif

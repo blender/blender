@@ -49,12 +49,12 @@ struct RAS_CameraData
 		m_clipstart(clipstart),
 		m_clipend(clipend),
 		m_perspective(perspective),
-		m_focallength(focallength),
 		m_viewport(viewport),
 		m_viewportleft(viewportleft),
 		m_viewportbottom(viewportbottom),
 		m_viewportright(viewportright),
-		m_viewporttop(viewporttop)
+		m_viewporttop(viewporttop),
+		m_focallength(focallength)
 	{
 	}
 };

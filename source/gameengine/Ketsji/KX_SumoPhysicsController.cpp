@@ -101,7 +101,7 @@ void	KX_SumoPhysicsController::SetSumoTransform(bool nondynaonly)
 
 }
 
-void	KX_SumoPhysicsController::SuspendDynamics()
+void	KX_SumoPhysicsController::SuspendDynamics(bool)
 {
 	SumoPhysicsController::SuspendDynamics();
 }

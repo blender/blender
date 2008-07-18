@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "FloatValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,14 +135,14 @@ void BL_ActionActuator::SetStartTime(float curtime)
 	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
 	
 	if (!(m_flag & ACT_FLAG_REVERSE))
-		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
 	else
-		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_FIXED_FRAME_PER_SEC;
+		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_KetsjiEngine::GetAnimFrameRate();
 }
 
 void BL_ActionActuator::SetLocalTime(float curtime)
 {
-	float delta_time = (curtime - m_starttime)*KX_FIXED_FRAME_PER_SEC;
+	float delta_time = (curtime - m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
 	
 	if (m_endframe < m_startframe)
 		delta_time = -delta_time;
@@ -183,6 +184,11 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		
 		if (bNegativeEvent)
 		{
+			// dont continue where we left off when restarting
+			if (m_end_reset) {
+				m_flag &= ~ACT_FLAG_LOCKINPUT;
+			}
+			
 			if (!(m_flag & ACT_FLAG_ACTIVE))
 				return false;
 			m_flag &= ~ACT_FLAG_ACTIVE;
@@ -348,6 +354,18 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		break;
 	}
 	
+	/* Set the property if its defined */
+	if (m_framepropname[0] != '\0') {
+		CValue* propowner = GetParent();
+		CValue* oldprop = propowner->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(m_localtime);
+		if (oldprop) {
+			oldprop->SetValue(newval);
+		} else {
+			propowner->SetProperty(m_framepropname, newval);
+		}
+		newval->Release();
+	}
 	
 	if (bNegativeEvent)
 		m_blendframe=0.0;
@@ -385,7 +403,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				blend_poses(m_pose, m_blendpose, 1.0 - newweight, ACTSTRIPMODE_BLEND);
 
 				/* Increment current blending percentage */
-				m_blendframe = (curtime - m_blendstart)*KX_FIXED_FRAME_PER_SEC;
+				m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
 				if (m_blendframe>m_blendin)
 					m_blendframe = m_blendin;
 				
@@ -446,6 +464,7 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"setPriority", (PyCFunction) BL_ActionActuator::sPySetPriority, METH_VARARGS, SetPriority_doc},
 	{"setFrame", (PyCFunction) BL_ActionActuator::sPySetFrame, METH_VARARGS, SetFrame_doc},
 	{"setProperty", (PyCFunction) BL_ActionActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
+	{"setFrameProperty", (PyCFunction) BL_ActionActuator::sPySetFrameProperty, METH_VARARGS, SetFrameProperty_doc},
 	{"setBlendtime", (PyCFunction) BL_ActionActuator::sPySetBlendtime, METH_VARARGS, SetBlendtime_doc},
 
 	{"getAction", (PyCFunction) BL_ActionActuator::sPyGetAction, METH_VARARGS, GetAction_doc},
@@ -455,10 +474,13 @@ PyMethodDef BL_ActionActuator::Methods[] = {
 	{"getPriority", (PyCFunction) BL_ActionActuator::sPyGetPriority, METH_VARARGS, GetPriority_doc},
 	{"getFrame", (PyCFunction) BL_ActionActuator::sPyGetFrame, METH_VARARGS, GetFrame_doc},
 	{"getProperty", (PyCFunction) BL_ActionActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
+	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, GetFrameProperty_doc},
 	{"setChannel", (PyCFunction) BL_ActionActuator::sPySetChannel, METH_VARARGS, SetChannel_doc},
 //	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_VARARGS},
-	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},	
+	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, GetType_doc},
 	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, SetType_doc},
+	{"getContinue", (PyCFunction) BL_ActionActuator::sPyGetContinue, METH_NOARGS, 0},	
+	{"setContinue", (PyCFunction) BL_ActionActuator::sPySetContinue, METH_O, 0},
 	{NULL,NULL} //Sentinel
 };
 
@@ -498,6 +520,21 @@ PyObject* BL_ActionActuator::PyGetProperty(PyObject* self,
 	PyObject *result;
 	
 	result = Py_BuildValue("s", (const char *)m_propname);
+	
+	return result;
+}
+
+/*     getProperty                                                             */
+char BL_ActionActuator::GetFrameProperty_doc[] = 
+"getFrameProperty()\n"
+"\tReturns the name of the property, that is set to the current frame number.\n";
+
+PyObject* BL_ActionActuator::PyGetFrameProperty(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds) {
+	PyObject *result;
+	
+	result = Py_BuildValue("s", (const char *)m_framepropname);
 	
 	return result;
 }
@@ -611,6 +648,9 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 				m_blendframe = 0;
 		}
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -629,6 +669,9 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&start))
 	{
 		m_startframe = start;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -649,6 +692,9 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 	{
 		m_endframe = end;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -668,6 +714,9 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 	if (PyArg_ParseTuple(args,"f",&blendin))
 	{
 		m_blendin = blendin;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -694,6 +743,9 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 		if (m_blendframe>m_blendin)
 			m_blendframe = m_blendin;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -714,6 +766,9 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&priority))
 	{
 		m_priority = priority;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -738,6 +793,9 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 		else if (m_localtime>m_endframe)
 			m_localtime=m_endframe;
 	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -758,6 +816,31 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 	{
 		m_propname = string;
 	}
+	else {
+		return NULL;
+	}
+	
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+/*     setFrameProperty                                                          */
+char BL_ActionActuator::SetFrameProperty_doc[] = 
+"setFrameProperty(prop)\n"
+"\t - prop      : A string specifying the property of the frame set up update.\n";
+
+PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds) {
+	char *string;
+	
+	if (PyArg_ParseTuple(args,"s",&string))
+	{
+		m_framepropname = string;
+	}
+	else {
+		return NULL;
+	}
 	
 	Py_INCREF(Py_None);
 	return Py_None;
@@ -772,6 +855,9 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 	if (PyArg_ParseTuple(args,"s",&string))
 	{
 		m_propname = string;
+	}
+	else {
+		return NULL;
 	}
 	
 	Py_INCREF(Py_None);
@@ -797,7 +883,8 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 	int row,col;
 	int	mode = 0;	/* 0 for bone space, 1 for armature/world space */
 	
-	PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode);
+	if (!PyArg_ParseTuple(args,"sO|i", &string, &pylist, &mode))
+		return NULL;
 	
 	if (pylist->ob_type == &CListValue::Type)
 	{
@@ -898,7 +985,26 @@ PyObject* BL_ActionActuator::PySetType(PyObject* self,
 	default:
 		printf("Invalid type for action actuator: %d\n", typeArg); /* error */
     }
+	Py_RETURN_NONE;
+}
+
+PyObject* BL_ActionActuator::PyGetContinue(PyObject* self) {
+    return PyInt_FromLong((long)(m_end_reset==0));
+}
+
+PyObject* BL_ActionActuator::PySetContinue(PyObject* self, PyObject* value) {
+	int param = PyObject_IsTrue( value );
 	
-    Py_Return;
+	if( param == -1 ) {
+		PyErr_SetString( PyExc_TypeError, "expected True/False or 0/1" );
+		return NULL;
+	}
+
+	if (param) {
+		m_end_reset = 0;
+	} else {
+		m_end_reset = 1;
+	}
+    Py_RETURN_NONE;
 }
 

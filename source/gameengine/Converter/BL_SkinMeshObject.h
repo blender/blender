@@ -33,7 +33,7 @@
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
-
+#include "MEM_guardedalloc.h"
 #include "RAS_MeshObject.h"
 #include "RAS_Deformer.h"
 #include "RAS_IPolygonMaterial.h"
@@ -41,49 +41,8 @@
 #include "BL_MeshDeformer.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
-
-typedef vector<struct MVert*> BL_MVertArray;
-typedef vector<struct MDeformVert*> BL_DeformVertArray;
-typedef vector<class BL_TexVert> BL_VertexArray;
-
-
-typedef vector<vector<struct MDeformVert*>*> vecMDVertArray;
-typedef vector<vector<class BL_TexVert>*> vecBVertexArray;
-
-class BL_SkinArrayOptimizer : public KX_ArrayOptimizer  
-{
-public:
-	BL_SkinArrayOptimizer(int index)
-		:KX_ArrayOptimizer (index) {};
-	virtual ~BL_SkinArrayOptimizer(){
-
-		for (vector<KX_IndexArray*>::iterator itv = m_MvertArrayCache1.begin();
-		!(itv == m_MvertArrayCache1.end());itv++)
-		{
-			delete (*itv);
-		}
-		for (vector<BL_DeformVertArray*>::iterator itd = m_DvertArrayCache1.begin();
-		!(itd == m_DvertArrayCache1.end());itd++)
-		{
-			delete (*itd);
-		}
-		for (vector<KX_IndexArray*>::iterator iti = m_DIndexArrayCache1.begin();
-		!(iti == m_DIndexArrayCache1.end());iti++)
-		{
-			delete (*iti);
-		}
-		
-		m_MvertArrayCache1.clear();
-		m_DvertArrayCache1.clear();
-		m_DIndexArrayCache1.clear();
-	};
-
-	vector<KX_IndexArray*>		m_MvertArrayCache1;
-	vector<BL_DeformVertArray*>	m_DvertArrayCache1;
-	vector<KX_IndexArray*>		m_DIndexArrayCache1;
-
-};
 
 class BL_SkinMeshObject : public RAS_MeshObject
 {
@@ -91,86 +50,44 @@ class BL_SkinMeshObject : public RAS_MeshObject
 //	enum	{	BUCKET_MAX_INDICES = 16384};//2048};//8192};
 //	enum	{	BUCKET_MAX_TRIANGLES = 4096};
 
-	KX_ArrayOptimizer*		GetArrayOptimizer(RAS_IPolyMaterial* polymat)
-	{
-		KX_ArrayOptimizer** aop = (m_matVertexArrayS[*polymat]);
-		if (aop)
-			return *aop;
-		int numelements = m_matVertexArrayS.size();
-		m_sortedMaterials.push_back(polymat);
-		
-		BL_SkinArrayOptimizer* ao = new BL_SkinArrayOptimizer(numelements);
-		m_matVertexArrayS.insert(*polymat,ao);
-		return ao;
-	}
-
 protected:
+	vector<int>				 m_cacheWeightIndex;
+
 public:
 	void Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec);
 //	void Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec,class RAS_BucketManager* bucketmgr);
 
-	int FindVertexArray(int numverts,RAS_IPolyMaterial* polymat);
-	BL_SkinMeshObject(int lightlayer) : RAS_MeshObject (lightlayer)
-	{ m_class = 1;};
-
-	virtual ~BL_SkinMeshObject(){
+	BL_SkinMeshObject(Mesh* mesh, int lightlayer) : RAS_MeshObject (mesh, lightlayer)
+	{ 
+		m_class = 1;
+		if (m_mesh && m_mesh->key)
+		{
+			KeyBlock *kb;
+			int count=0;
+			// initialize weight cache for shape objects
+			// count how many keys in this mesh
+			for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next)
+				count++;
+			m_cacheWeightIndex.resize(count,-1);
+		}
 	};
 
-	const vecIndexArrays& GetDIndexCache (RAS_IPolyMaterial* mat)
+	virtual ~BL_SkinMeshObject()
 	{
-		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		return ao->m_DIndexArrayCache1;
-	}
-	const vecMDVertArray&	GetDVertCache (RAS_IPolyMaterial* mat)
-	{
-		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		return ao->m_DvertArrayCache1;
-	}
-	const vecIndexArrays&	GetMVertCache (RAS_IPolyMaterial* mat)
-	{
-		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		return ao->m_MvertArrayCache1;
-	}
-	
-	void AddPolygon(RAS_Polygon* poly);
-	int FindOrAddDeform(unsigned int vtxarray, unsigned int mv, struct MDeformVert *dv, RAS_IPolyMaterial* mat);
-	int FindOrAddVertex(int vtxarray,const MT_Point3& xyz,
-		const MT_Point2& uv,
-		const MT_Point2& uv2,
-		const MT_Vector4& tangent,
-		const unsigned int rgbacolor,
-		const MT_Vector3& normal, int defnr, bool flat, RAS_IPolyMaterial* mat)
-	{
-		RAS_TexVert tempvert(xyz,uv,uv2, tangent,rgbacolor,normal,flat ? TV_CALCFACENORMAL : 0);
-		
-		//		KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		BL_SkinArrayOptimizer* ao = (BL_SkinArrayOptimizer*)GetArrayOptimizer(mat);//*(m_matVertexArrays[*mat]);
-		
-		int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-		
-		int index=-1;
-		
-		for (int i=0;i<numverts;i++)
+		if (m_mesh && m_mesh->key) 
 		{
-			const RAS_TexVert&  vtx = (*ao->m_VertexArrayCache1[vtxarray])[i];
-			if (tempvert.closeTo(&vtx))
-			{
-				index = i;
-				break;
+			KeyBlock *kb;
+			// remove the weight cache to avoid memory leak 
+			for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next) {
+				if(kb->weights) 
+					MEM_freeN(kb->weights);
+				kb->weights= NULL;
 			}
-			
 		}
-		if (index >= 0)
-			return index;
-		
-		// no vertex found, add one
-		ao->m_VertexArrayCache1[vtxarray]->push_back(tempvert);
-		ao->m_DIndexArrayCache1[vtxarray]->push_back(defnr);
-		
-		return numverts;
-		
-		
-	}
+	};
+	
+	// for shape keys, 
+	void CheckWeightCache(struct Object* obj);
 
 };
 

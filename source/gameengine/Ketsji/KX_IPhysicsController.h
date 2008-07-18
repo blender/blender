@@ -64,6 +64,7 @@ public:
 	virtual void	ApplyTorque(const MT_Vector3& torque,bool local)=0;
 	virtual void	ApplyForce(const MT_Vector3& force,bool local)=0;
 	virtual MT_Vector3 GetLinearVelocity()=0;
+	virtual MT_Vector3 GetAngularVelocity()=0;
 	virtual MT_Vector3 GetVelocity(const MT_Point3& pos)=0;
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
@@ -77,7 +78,7 @@ public:
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
 
-	virtual void	SuspendDynamics()=0;
+	virtual void	SuspendDynamics(bool ghost=false)=0;
 	virtual void	RestoreDynamics()=0;
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode)=0;

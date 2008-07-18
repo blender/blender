@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef DNA_CUSTOMDATA_TYPES_H
 #define DNA_CUSTOMDATA_TYPES_H
 
@@ -48,6 +49,7 @@ typedef struct CustomData {
 	CustomDataLayer *layers;  /* CustomDataLayers, ordered by type */
 	int totlayer, maxlayer;   /* number of layers, size of layers array */
 	int totsize, pad;         /* in editmode, total size of all data layers */
+	void *pool;		  /* for Bmesh: Memory pool for allocation of blocks*/
 } CustomData;
 
 /* CustomData.type */
@@ -66,7 +68,10 @@ typedef struct CustomData {
 #define CD_PROP_STR		12
 #define CD_ORIGSPACE	13 /* for modifier stack face location mapping */
 #define CD_ORCO			14
-#define CD_NUMTYPES		15
+#define CD_MTEXPOLY		15
+#define CD_MLOOPUV		16
+#define CD_MLOOPCOL		17
+#define CD_NUMTYPES		18
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -84,6 +89,9 @@ typedef struct CustomData {
 #define CD_MASK_PROP_STR	(1 << CD_PROP_STR)
 #define CD_MASK_ORIGSPACE	(1 << CD_ORIGSPACE)
 #define CD_MASK_ORCO		(1 << CD_ORCO)
+#define CD_MASK_MTEXPOLY	(1 << CD_MTEXPOLY)
+#define CD_MASK_MLOOPUV		(1 << CD_MLOOPUV)
+#define CD_MASK_MLOOPCOL	(1 << CD_MLOOPCOL)
 
 
 /* CustomData.flag */

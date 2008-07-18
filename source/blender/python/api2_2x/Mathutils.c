@@ -725,28 +725,33 @@ PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		vec->vec[0] /= norm;
 		vec->vec[1] /= norm;
 		vec->vec[2] /= norm;
-
-		//create matrix
-		cosAngle = (float) cos(angle);
-		sinAngle = (float) sin(angle);
-		mat[0] = ((vec->vec[0] * vec->vec[0]) * (1 - cosAngle)) +
-			cosAngle;
-		mat[1] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) +
-			(vec->vec[2] * sinAngle);
-		mat[2] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) -
-			(vec->vec[1] * sinAngle);
-		mat[3] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) -
-			(vec->vec[2] * sinAngle);
-		mat[4] = ((vec->vec[1] * vec->vec[1]) * (1 - cosAngle)) +
-			cosAngle;
-		mat[5] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) +
-			(vec->vec[0] * sinAngle);
-		mat[6] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) +
-			(vec->vec[1] * sinAngle);
-		mat[7] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) -
-			(vec->vec[0] * sinAngle);
-		mat[8] = ((vec->vec[2] * vec->vec[2]) * (1 - cosAngle)) +
-			cosAngle;
+		
+		if (isnan(vec->vec[0]) || isnan(vec->vec[1]) || isnan(vec->vec[2])) {
+			/* zero length vector, return an identity matrix, could also return an error */
+			mat[0]= mat[4] = mat[8] = 1.0f;
+		} else {	
+			/* create matrix */
+			cosAngle = (float) cos(angle);
+			sinAngle = (float) sin(angle);
+			mat[0] = ((vec->vec[0] * vec->vec[0]) * (1 - cosAngle)) +
+				cosAngle;
+			mat[1] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) +
+				(vec->vec[2] * sinAngle);
+			mat[2] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) -
+				(vec->vec[1] * sinAngle);
+			mat[3] = ((vec->vec[0] * vec->vec[1]) * (1 - cosAngle)) -
+				(vec->vec[2] * sinAngle);
+			mat[4] = ((vec->vec[1] * vec->vec[1]) * (1 - cosAngle)) +
+				cosAngle;
+			mat[5] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) +
+				(vec->vec[0] * sinAngle);
+			mat[6] = ((vec->vec[0] * vec->vec[2]) * (1 - cosAngle)) +
+				(vec->vec[1] * sinAngle);
+			mat[7] = ((vec->vec[1] * vec->vec[2]) * (1 - cosAngle)) -
+				(vec->vec[0] * sinAngle);
+			mat[8] = ((vec->vec[2] * vec->vec[2]) * (1 - cosAngle)) +
+				cosAngle;
+		}
 	} else {
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Mathutils.RotationMatrix(): unrecognizable axis of rotation type - expected x,y,z or r\n");
@@ -1447,8 +1452,8 @@ PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 						"vectors must be of the same size\n" ) );
 
 	if( vec1->size == 3 || vec1->size == 2) {
-		float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
-		float d;
+		int result;
+		
 		if (vec1->size == 3) {
 			VECCOPY(v1, vec1->vec);
 			VECCOPY(v2, vec2->vec);
@@ -1472,63 +1477,19 @@ PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 			v4[1] = vec4->vec[1];
 			v4[2] = 0.0f;
 		}
+		
+		result = LineIntersectLine(v1, v2, v3, v4, i1, i2);
 
-		VecSubf(c, v3, v1);
-		VecSubf(a, v2, v1);
-		VecSubf(b, v4, v3);
-
-		VECCOPY(dir1, a);
-		Normalize(dir1);
-		VECCOPY(dir2, b);
-		Normalize(dir2);
-		d = Inpf(dir1, dir2);
-		if (d == 1.0f || d == -1.0f) {
+		if (result == 0) {
 			/* colinear */
 			return EXPP_incr_ret( Py_None );
 		}
-
-		Crossf(ab, a, b);
-		d = Inpf(c, ab);
-
-		/* test if the two lines are coplanar */
-		if (d > -0.000001f && d < 0.000001f) {
-			Crossf(cb, c, b);
-
-			VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
-			VecAddf(i1, v1, a);
-			VECCOPY(i2, i1);
-		}
-		/* if not */
 		else {
-			float n[3], t[3];
-			VecSubf(t, v1, v3);
-
-			/* offset between both plane where the lines lies */
-			Crossf(n, a, b);
-			Projf(t, t, n);
-
-			/* for the first line, offset the second line until it is coplanar */
-			VecAddf(v3, v3, t);
-			VecAddf(v4, v4, t);
-			
-			VecSubf(c, v3, v1);
-			VecSubf(a, v2, v1);
-			VecSubf(b, v4, v3);
-
-			Crossf(ab, a, b);
-			Crossf(cb, c, b);
-
-			VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
-			VecAddf(i1, v1, a);
-
-			/* for the second line, just substract the offset from the first intersection point */
-			VecSubf(i2, i1, t);
+			tuple = PyTuple_New( 2 );
+			PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW) );
+			PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW) );
+			return tuple;
 		}
-
-		tuple = PyTuple_New( 2 );
-		PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW) );
-		PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW) );
-		return tuple;
 	}
 	else {
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,

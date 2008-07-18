@@ -1859,7 +1859,7 @@ void set_icu_vars(IpoCurve *icu)
 		/* yafray: aperture & focal distance params */
 		switch(icu->adrcode) {
 		case CAM_LENS:
-			icu->ymin= 5.0;
+			icu->ymin= 1.0;
 			icu->ymax= 1000.0;
 			break;
 		case CAM_STA:

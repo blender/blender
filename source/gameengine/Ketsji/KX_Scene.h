@@ -216,6 +216,16 @@ protected:
 	 */
 	std::vector<KX_GameObject*>	m_logicHierarchicalGameObjects;
 	
+	/**
+	 * This temporary variable will contain the list of 
+	 * object that can be added during group instantiation.
+	 * objects outside this list will not be added (can 
+	 * happen with children that are outside the group).
+	 * Used in AddReplicaObject. If the list is empty, it
+	 * means don't care.
+	 */
+	std::set<CValue*>	m_groupGameObjects;
+	
 	/** 
 	 * Pointer to system variable passed in in constructor
 	 * only used in constructor so we do not need to keep it
@@ -260,9 +270,9 @@ protected:
 	/**
 	 * Visibility testing functions.
 	 */
-	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam);
-	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam);
-	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam);
+	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam,int layer=0);
+	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam,int layer=0);
+	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam, int layer=0);
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
@@ -291,6 +301,12 @@ public:
 	 * Update all transforms according to the scenegraph.
 	 */
 	void UpdateParents(double curtime);
+	void DupliGroupRecurse(CValue* gameobj, int level);
+	bool IsObjectInGroup(CValue* gameobj)
+	{ 
+		return (m_groupGameObjects.empty() || 
+				m_groupGameObjects.find(gameobj) != m_groupGameObjects.end());
+	}
 	SCA_IObject* AddReplicaObject(CValue* gameobj,
 								  CValue* locationobj,
 								  int lifespan=0);
@@ -483,7 +499,7 @@ public:
 	void SetNetworkScene(NG_NetworkScene *newScene);
 	void SetWorldInfo(class KX_WorldInfo* wi);
 	KX_WorldInfo* GetWorldInfo();
-	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam);
+	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam, int layer=0);
 	void UpdateMeshTransformations();
 	KX_Camera* GetpCamera();
 	SND_Scene* GetSoundScene();

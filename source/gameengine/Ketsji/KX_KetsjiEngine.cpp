@@ -55,6 +55,7 @@
 #include "KX_Scene.h"
 #include "MT_CmMatrix4x4.h"
 #include "KX_Camera.h"
+#include "KX_Light.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
@@ -71,6 +72,7 @@
 #include "KX_TimeCategoryLogger.h"
 
 #include "RAS_FramingManager.h"
+#include "stdio.h"
 
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
@@ -91,7 +93,7 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 };
 
 double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
-
+double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
 
@@ -229,7 +231,10 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 }
 
 
-
+/*
+ * At the moment the GameLogic module is imported into 'pythondictionary' after this function is called.
+ * if this function ever changes to assign a copy, make sure the game logic module is imported into this dictionary before hand.
+ */
 void KX_KetsjiEngine::SetPythonDictionary(PyObject* pythondictionary)
 {
 	MT_assert(pythondictionary);
@@ -613,6 +618,9 @@ void KX_KetsjiEngine::Render()
 		// pass the scene's worldsettings to the rasterizer
 		SetWorldSettings(scene->GetWorldInfo());
 
+		// shadow buffers
+		RenderShadowBuffers(scene);
+
 		// Avoid drawing the scene with the active camera twice when it's viewport is enabled
 		if(cam && !cam->GetViewport())
 		{
@@ -884,8 +892,48 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 		viewport.GetTop()
 	);	
 
-}		
+}
 
+void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
+{
+	CListValue *lightlist = scene->GetLightList();
+	int i, drawmode;
+
+	for(i=0; i<lightlist->GetCount(); i++) {
+		KX_LightObject *light = (KX_LightObject*)lightlist->GetValue(i);
+
+		light->Update();
+
+		if(m_drawingmode == RAS_IRasterizer::KX_TEXTURED && light->HasShadowBuffer()) {
+			/* make temporary camera */
+			RAS_CameraData camdata = RAS_CameraData();
+			KX_Camera *cam = new KX_Camera(scene, scene->m_callbacks, camdata, false);
+			cam->SetName("__shadow__cam__");
+
+			MT_Transform camtrans;
+
+			/* switch drawmode for speed */
+			drawmode = m_rasterizer->GetDrawingMode();
+			m_rasterizer->SetDrawingMode(RAS_IRasterizer::KX_SHADOW);
+
+			/* binds framebuffer object, sets up camera .. */
+			light->BindShadowBuffer(m_rasterizer, cam, camtrans);
+
+			/* update scene */
+			scene->UpdateMeshTransformations();
+			scene->CalculateVisibleMeshes(m_rasterizer, cam, light->GetShadowLayer());
+
+			/* render */
+			m_rasterizer->ClearDepthBuffer();
+			scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+			/* unbind framebuffer object, restore drawmode, free camera */
+			light->UnbindShadowBuffer(m_rasterizer);
+			m_rasterizer->SetDrawingMode(drawmode);
+			cam->Release();
+		}
+	}
+}
 	
 // update graphics
 void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
@@ -1381,6 +1429,16 @@ double KX_KetsjiEngine::GetTicRate()
 void KX_KetsjiEngine::SetTicRate(double ticrate)
 {
 	m_ticrate = ticrate;
+}
+
+double KX_KetsjiEngine::GetAnimFrameRate()
+{
+	return m_anim_framerate;
+}
+
+void KX_KetsjiEngine::SetAnimFrameRate(double framerate)
+{
+	m_anim_framerate = framerate;
 }
 
 void KX_KetsjiEngine::SetTimingDisplay(bool frameRate, bool profile, bool properties)
