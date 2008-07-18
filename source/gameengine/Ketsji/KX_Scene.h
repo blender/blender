@@ -216,6 +216,16 @@ protected:
 	 */
 	std::vector<KX_GameObject*>	m_logicHierarchicalGameObjects;
 	
+	/**
+	 * This temporary variable will contain the list of 
+	 * object that can be added during group instantiation.
+	 * objects outside this list will not be added (can 
+	 * happen with children that are outside the group).
+	 * Used in AddReplicaObject. If the list is empty, it
+	 * means don't care.
+	 */
+	std::set<CValue*>	m_groupGameObjects;
+	
 	/** 
 	 * Pointer to system variable passed in in constructor
 	 * only used in constructor so we do not need to keep it
@@ -292,6 +302,11 @@ public:
 	 */
 	void UpdateParents(double curtime);
 	void DupliGroupRecurse(CValue* gameobj, int level);
+	bool IsObjectInGroup(CValue* gameobj)
+	{ 
+		return (m_groupGameObjects.empty() || 
+				m_groupGameObjects.find(gameobj) != m_groupGameObjects.end());
+	}
 	SCA_IObject* AddReplicaObject(CValue* gameobj,
 								  CValue* locationobj,
 								  int lifespan=0);
