@@ -5,6 +5,7 @@
 using namespace Geometry;
 
 #include "Id.h"
+#include "IntegrationType.h"
 #include "Interface0D.h"
 #include "Interface0D/SVertex.h"
 #include "Interface1D/FEdge.h"

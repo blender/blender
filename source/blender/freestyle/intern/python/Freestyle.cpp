@@ -3,9 +3,11 @@
 #include "BinaryPredicate0D.h"
 #include "BinaryPredicate1D.h"
 #include "Id.h"
+#include "IntegrationType.h"
 #include "Interface0D.h"
 #include "Interface0D/CurvePoint.h"
 #include "Interface1D.h"
+#include "Nature.h"
 #include "UnaryFunction0D.h"
 #include "UnaryFunction1D.h"
 #include "UnaryPredicate0D.h"
@@ -128,8 +130,10 @@ PyObject *Freestyle_Init( void )
 	BinaryPredicate0D_Init( module );
 	BinaryPredicate1D_Init( module );
 	Id_Init( module );
+	IntegrationType_Init( module );
 	Interface0D_Init( module );
 	Interface1D_Init( module );
+	Nature_Init( module );
 	UnaryFunction0D_Init( module );
 	UnaryFunction1D_Init( module );
 	UnaryPredicate0D_Init( module );

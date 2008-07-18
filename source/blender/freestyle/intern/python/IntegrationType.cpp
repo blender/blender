@@ -1,7 +1,6 @@
-#include "SVertex.h"
+#include "IntegrationType.h"
 
-#include "../Convert.h"
-#include "../Id.h"
+#include "Convert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,24 +8,21 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ViewVertex instance  -----------*/
-static int ViewVertex___init__(BPy_ViewVertex *self);
-//static PyObject * ViewVertex___copy__( BPy_ViewVertex *self );
+/*---------------  Python API function prototypes for IntegrationType instance  -----------*/
+static int IntegrationType___init__(BPy_IntegrationType *self, PyObject *args, PyObject *kwds);
 
-
-/*----------------------ViewVertex instance definitions ----------------------------*/
-static PyMethodDef BPy_ViewVertex_methods[] = {
-//	{"__copy__", ( PyCFunction ) ViewVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
+/*----------------------IntegrationType instance definitions ----------------------------*/
+static PyMethodDef BPy_IntegrationType_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_ViewVertex type definition ------------------------------*/
+/*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
-PyTypeObject ViewVertex_Type = {
+PyTypeObject IntegrationType_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"ViewVertex",				/* tp_name */
-	sizeof( BPy_ViewVertex ),	/* tp_basicsize */
+	"IntegrationType",				/* tp_name */
+	sizeof( BPy_IntegrationType ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
@@ -78,17 +74,17 @@ PyTypeObject ViewVertex_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_ViewVertex_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_IntegrationType_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&Interface0D_Type,				/* struct _typeobject *tp_base; */
+	&PyInt_Type,							/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)ViewVertex___init__,                       	/* initproc tp_init; */
+	(initproc)IntegrationType___init__,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	NULL,		/* newfunc tp_new; */
+	PyType_GenericNew,			/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -106,32 +102,48 @@ PyTypeObject ViewVertex_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
+PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
+{	
+	PyObject *tmp;
+	
+	if( module == NULL )
+		return;
 
+	if( PyType_Ready( &IntegrationType_Type ) < 0 )
+		return;
+	Py_INCREF( &IntegrationType_Type );
+	PyModule_AddObject(module, "IntegrationType", (PyObject *)&IntegrationType_Type);
 
-//------------------------INSTANCE METHODS ----------------------------------
+	tmp = PyInt_FromLong( MEAN );
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MEAN", tmp);
+	Py_DECREF(tmp);
+	
+	tmp = PyInt_FromLong( MIN );
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MIN", tmp);
+	Py_DECREF(tmp);
+	
+	tmp = PyInt_FromLong( MAX );
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MAX", tmp);
+	Py_DECREF(tmp);
+	
+	tmp = PyInt_FromLong( FIRST );
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "FIRST", tmp);
+	Py_DECREF(tmp);
+	
+	tmp = PyInt_FromLong( LAST );
+	PyDict_SetItemString( IntegrationType_Type.tp_dict, "LAST", tmp);
+	Py_DECREF(tmp);
+	
+	
+}
 
-int ViewVertex___init__(BPy_ViewVertex *self )
+int IntegrationType___init__(BPy_IntegrationType *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *py_point = 0;
-	BPy_Id *py_id = 0;
-
-	self->vv = new ViewVertex();
-	self->py_if0D.if0D = self->vv;
+    if (PyInt_Type.tp_init((PyObject *)self, args, kwds) < 0)
+        return -1;
 	
 	return 0;
 }
-
-// PyObject * ViewVertex___copy__( BPy_ViewVertex *self ) {
-// 	BPy_ViewVertex *py_vv;
-// 	
-// 	py_vv = (BPy_ViewVertex *) ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
-// 	
-// 	py_vv->vv = self->vv->duplicate();
-// 	py_svertex->py_if0D.if0D = py_svertex->sv;
-// 
-// 	return (PyObject *) py_svertex;
-// }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,13 +151,3 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 }
 #endif
 
-
-// virtual string 	getExactTypeName () const
-//  	ViewVertex ()
-// virtual 	~ViewVertex ()
-// virtual Nature::VertexNature 	getNature () const
-// void 	setNature (Nature::VertexNature iNature)
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesBegin ()=0
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesEnd ()=0
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesIterator (ViewEdge *iEdge)=0
-// 

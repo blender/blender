@@ -1,7 +1,6 @@
-#include "SVertex.h"
+#include "Nature.h"
 
-#include "../Convert.h"
-#include "../Id.h"
+#include "Convert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,24 +8,21 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ViewVertex instance  -----------*/
-static int ViewVertex___init__(BPy_ViewVertex *self);
-//static PyObject * ViewVertex___copy__( BPy_ViewVertex *self );
+/*---------------  Python API function prototypes for Nature instance  -----------*/
+static int Nature___init__(BPy_Nature *self, PyObject *args, PyObject *kwds);
 
-
-/*----------------------ViewVertex instance definitions ----------------------------*/
-static PyMethodDef BPy_ViewVertex_methods[] = {
-//	{"__copy__", ( PyCFunction ) ViewVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
+/*----------------------Nature instance definitions ----------------------------*/
+static PyMethodDef BPy_Nature_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_ViewVertex type definition ------------------------------*/
+/*-----------------------BPy_Nature type definition ------------------------------*/
 
-PyTypeObject ViewVertex_Type = {
+PyTypeObject Nature_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"ViewVertex",				/* tp_name */
-	sizeof( BPy_ViewVertex ),	/* tp_basicsize */
+	"Nature",				/* tp_name */
+	sizeof( BPy_Nature ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
@@ -78,17 +74,17 @@ PyTypeObject ViewVertex_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_ViewVertex_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_Nature_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&Interface0D_Type,				/* struct _typeobject *tp_base; */
+	&PyInt_Type,							/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)ViewVertex___init__,                       	/* initproc tp_init; */
+	(initproc)Nature___init__,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	NULL,		/* newfunc tp_new; */
+	PyType_GenericNew,			/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -106,32 +102,44 @@ PyTypeObject ViewVertex_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
+PyMODINIT_FUNC Nature_Init( PyObject *module )
+{	
+	PyObject *tmp;
+	
+	if( module == NULL )
+		return;
 
+	if( PyType_Ready( &Nature_Type ) < 0 )
+		return;
+	Py_INCREF( &Nature_Type );
+	PyModule_AddObject(module, "Nature", (PyObject *)&Nature_Type);
 
-//------------------------INSTANCE METHODS ----------------------------------
+	// VertexNature
+	tmp = PyInt_FromLong( Nature::POINT ); PyDict_SetItemString( Nature_Type.tp_dict, "POINT", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::S_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "S_VERTEX", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::VIEW_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "VIEW_VERTEX", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::NON_T_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "NON_T_VERTEX", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::T_VERTEX ); PyDict_SetItemString( Nature_Type.tp_dict, "T_VERTEX", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::CUSP ); PyDict_SetItemString( Nature_Type.tp_dict, "CUSP", tmp); Py_DECREF(tmp);
+	
+	// EdgeNature
+	tmp = PyInt_FromLong( Nature::NO_FEATURE ); PyDict_SetItemString( Nature_Type.tp_dict, "NO_FEATURE", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::SILHOUETTE ); PyDict_SetItemString( Nature_Type.tp_dict, "SILHOUETTE", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::BORDER ); PyDict_SetItemString( Nature_Type.tp_dict, "BORDER", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::CREASE ); PyDict_SetItemString( Nature_Type.tp_dict, "CREASE", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::RIDGE ); PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::VALLEY ); PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", tmp); Py_DECREF(tmp);
+	tmp = PyInt_FromLong( Nature::SUGGESTIVE_CONTOUR ); PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", tmp); Py_DECREF(tmp);
+	
+}
 
-int ViewVertex___init__(BPy_ViewVertex *self )
+int Nature___init__(BPy_Nature *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *py_point = 0;
-	BPy_Id *py_id = 0;
-
-	self->vv = new ViewVertex();
-	self->py_if0D.if0D = self->vv;
+    if (PyInt_Type.tp_init((PyObject *)self, args, kwds) < 0)
+        return -1;
 	
 	return 0;
 }
-
-// PyObject * ViewVertex___copy__( BPy_ViewVertex *self ) {
-// 	BPy_ViewVertex *py_vv;
-// 	
-// 	py_vv = (BPy_ViewVertex *) ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
-// 	
-// 	py_vv->vv = self->vv->duplicate();
-// 	py_svertex->py_if0D.if0D = py_svertex->sv;
-// 
-// 	return (PyObject *) py_svertex;
-// }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -139,13 +147,3 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 }
 #endif
 
-
-// virtual string 	getExactTypeName () const
-//  	ViewVertex ()
-// virtual 	~ViewVertex ()
-// virtual Nature::VertexNature 	getNature () const
-// void 	setNature (Nature::VertexNature iNature)
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesBegin ()=0
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesEnd ()=0
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesIterator (ViewEdge *iEdge)=0
-// 
