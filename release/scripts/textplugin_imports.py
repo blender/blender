@@ -24,7 +24,7 @@ def main():
 	line, c = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(txt) != 0:
+	if get_context(txt) != NORMAL:
 		return
 	
 	pos = line.rfind('from ', 0, c)

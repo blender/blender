@@ -4,8 +4,7 @@ Name: 'Member Suggest'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Period'
-Tooltip: 'Lists members of the object preceding the cursor in the current text \
-space'
+Tooltip: 'Lists members of the object preceding the cursor in the current text space'
 """
 
 # Only run if we have the required modules
@@ -32,13 +31,14 @@ def main():
 	if len(pre) <= 1:
 		return
 	
-	list = []
-	
 	imports = get_imports(txt)
+	builtins = get_builtins()
 	
 	# Identify the root (root.sub.sub.)
 	if imports.has_key(pre[0]):
 		obj = imports[pre[0]]
+	elif builtins.has_key(pre[0]):
+		obj = builtins[pre[0]]
 	else:
 		return
 	
@@ -52,9 +52,12 @@ def main():
 	
 	try:
 		attr = obj.__dict__.keys()
+		if not attr:
+			attr = dir(obj)
 	except AttributeError:
 		attr = dir(obj)
 	
+	list = []
 	for k in attr:
 		try:
 			v = getattr(obj, k)
