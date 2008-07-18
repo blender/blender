@@ -592,6 +592,19 @@ static void printCostCube(float *cost_cube, int nb_joints)
 	printf("\n");
 }
 
+static void printMovesNeeded(int *positions, int nb_positions)
+{
+	int moves = 0;
+	int i;
+	
+	for (i = 0; i < nb_positions; i++)
+	{
+		moves += positions[i] - (i + 1);
+	}
+	
+	printf("%i moves needed\n", moves);
+}
+
 static void printPositions(int *positions, int nb_positions)
 {
 	int i;
@@ -810,7 +823,7 @@ static float probability(float delta_cost, float temperature)
 	}
 	else
 	{
-		return (float)exp(delta_cost) * temperature;
+		return (float)exp(delta_cost / temperature);
 	}
 }
 
@@ -1069,7 +1082,9 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		float *cost_cube;
 		float cost;
 #ifdef ANNEALING_ITERATION
-		int k, kmax = 100000;
+		int k;
+		//int kmax = 100000;
+		int kmax = nb_joints * earc->bcount * 200;
 #else
 		double time_start, time_current, time_length = 3;
 		int k;
@@ -1102,6 +1117,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 		}
 		
 		printf("initial cost: %f\n", cost);
+		printf("kmax: %i\n", kmax);
 		
 #ifdef ANNEALING_ITERATION
 		for (k = 0; k < kmax; k++)
@@ -1121,6 +1137,12 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 			
 			if (status == 0)
 			{
+				/* if current state is still a minimum, copy it */
+				if (cost < min_cost)
+				{
+					min_cost = cost;
+					memcpy(best_positions, positions, sizeof(int) * nb_joints);
+				}
 				break;
 			}
 			
@@ -1143,6 +1165,13 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 				
 				cost += delta_cost;
 	
+				/* cost optimizing */
+				if (cost < min_cost)
+				{
+					min_cost = cost;
+					memcpy(best_positions, positions, sizeof(int) * nb_joints);
+				}
+
 				/* update cost cube */			
 				for (previous = iarc->edges.first, edge = previous->next, i = 0;
 					 edge;
@@ -1157,12 +1186,12 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 				}
 			}
 		}
-		
-		min_cost = cost;
+
+		//min_cost = cost;
+		//memcpy(best_positions, positions, sizeof(int) * nb_joints);
 		
 //		printf("k = %i\n", k);
 		
-		memcpy(best_positions, positions, sizeof(int) * nb_joints);
 		
 		MEM_freeN(cost_cube);
 	}	
@@ -1251,6 +1280,7 @@ static void retargetArctoArcAggresive(RigArc *iarc)
 	initArcIterator(&iter, earc, node_start);
 	
 	printPositions(best_positions, nb_joints);
+	printMovesNeeded(best_positions, nb_joints);
 	printf("min_cost %f\n", min_cost);
 	printf("buckets: %i\n", earc->bcount);
 
