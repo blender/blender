@@ -42,7 +42,27 @@ typedef char* BitSet;
 #define bitset_unset(set,index)	((set)[(index)>>3] &= ~(1 << ((index)&0x7)))
 
 
+/* SpaceTransform stuff */
+//TODO: should move to other generic space?
+struct Object;
 
+typedef struct SpaceTransform
+{
+	float local2target[4][4];
+	float target2local[4][4];
+
+} SpaceTransform;
+
+void space_transform_setup(SpaceTransform *data, struct Object *local, struct Object *target);
+
+void space_transform_apply (SpaceTransform *data, float *co);
+void space_transform_invert(SpaceTransform *data, float *co);
+
+void space_transform_apply_normal (SpaceTransform *data, float *co);
+void space_transform_invert_normal(SpaceTransform *data, float *co);
+
+
+/* Shrinkwrap stuff */
 struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
@@ -59,9 +79,7 @@ typedef struct ShrinkwrapCalcData
 
 	struct DerivedMesh *target;		//mesh we are shrinking to
 	
-	//matrixs for local<->target space transform
-	float local2target[4][4];		
-	float target2local[4][4];
+	SpaceTransform local2target;
 
 	float keptDist;					//Distance to kept from target (units are in local space)
 	//float *weights;				//weights of vertexs
@@ -74,6 +92,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *data);
 void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
 
 struct DerivedMesh *shrinkwrapModifier_do(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+
 
 #endif
 

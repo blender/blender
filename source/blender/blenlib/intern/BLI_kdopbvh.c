@@ -925,7 +925,7 @@ static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	}
 }
 
-int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
+int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
 {
 	int i;
 
@@ -1051,7 +1051,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 
 
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, float *co, float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
 	int i;
 	BVHRayCastData data;

@@ -121,6 +121,38 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 	return FLT_MAX;
 }
 
+/* Space transform */
+void space_transform_setup(SpaceTransform *data, struct Object *local, struct Object *target)
+{
+	Mat4Invert(target->imat, target->obmat); //Invserse might be outdated
+	Mat4MulSerie(data->local2target, target->imat, local->obmat, 0, 0, 0, 0, 0, 0);
+	Mat4Invert(data->target2local, data->local2target);
+}
+
+void space_transform_apply(/* const */ SpaceTransform *data, float *co)
+{
+	VecMat4MulVecfl(co, data->local2target, co);
+//	Mat4Mul3Vecfl(data->local2target, co);
+}
+
+void space_transform_invert(/* const */SpaceTransform *data, float *co)
+{
+	VecMat4MulVecfl(co, data->target2local, co);
+//	Mat4Mul3Vecfl(data->target2local, co);
+}
+
+void space_transform_apply_normal(/* const */ SpaceTransform *data, float *no)
+{
+	Mat4Mul3Vecfl(data->local2target, no);
+	Normalize(no); // TODO: could we just determine de scale value from the matrix?
+}
+
+void space_transform_invert_normal(/* const */ SpaceTransform *data, float *no)
+{
+	Mat4Mul3Vecfl(data->target2local, no);
+	Normalize(no); // TODO: could we just determine de scale value from the matrix?
+}
+
 
 /*
  * BVH tree from mesh vertices
@@ -328,6 +360,8 @@ static float mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *
 			hit->index = index;
 			hit->dist = dist;
 			VECADDFAC(hit->co, ray->origin, ray->direction, dist);
+
+			CalcNormFloat(t0, t1, t2, hit->no);
 		}
 
 		t1 = t2;
@@ -883,25 +917,24 @@ static void shrinkwrap_calc_foreach_vertex(ShrinkwrapCalcData *calc, Shrinkwrap_
 	{
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 
-		float orig[3], final[3]; //Coords relative to target
+		float final[3]; //Coords relative to target
 		float normal[3];
 		float dist;
 
 		if(weight == 0.0f) continue;	//Skip vertexs where we have no influence
 
-		VecMat4MulVecfl(orig, calc->local2target, vert[i].co);
-		VECCOPY(final, orig);
+		VECCOPY(final, vert[i].co);
+		space_transform_apply(&calc->local2target, final);
 
 		//We also need to apply the rotation to normal
 		if(calc->smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
 		{
 			NormalShortToFloat(normal, vert[i].no);
-			Mat4Mul3Vecfl(calc->local2target, normal);
-			Normalize(normal);	//Watch out for scaling (TODO: do we really needed a unit-len normal?)
+			space_transform_apply_normal(&calc->local2target, normal);
 		}
 		(callback)(calc->target, final, normal);
 
-		VecMat4MulVecfl(final, calc->target2local, final);
+		space_transform_invert(&calc->local2target, final);
 
 		dist = VecLenf(vert[i].co, final);
 		if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
@@ -1075,6 +1108,7 @@ static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
 	calc->final = new;
 }
 
+
 void shrinkwrap_projectToCutPlane(ShrinkwrapCalcData *calc_data)
 {
 	if(calc_data->smd->cutPlane && calc_data->moved)
@@ -1099,10 +1133,7 @@ void shrinkwrap_projectToCutPlane(ShrinkwrapCalcData *calc_data)
 				return;
 			}
 
-			Mat4Invert (calc.smd->cutPlane->imat, calc.smd->cutPlane->obmat);	//inverse is outdated
-			Mat4MulSerie(calc.local2target, calc.smd->cutPlane->imat, calc.ob->obmat, 0, 0, 0, 0, 0, 0);
-			Mat4Invert(calc.target2local, calc.local2target);
-	
+			space_transform_setup(&calc.local2target, calc.ob, calc.smd->cutPlane);
 			calc.keptDist = 0;
 		}
 
@@ -1172,12 +1203,10 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 			printf("Target derived mesh is null! :S\n");
 		}
 
-		//TODO should we reduce the number of matrix mults? by choosing applying matrixs to target or to derived mesh?
-		//Calculate matrixs for local <-> target
-		Mat4Invert (smd->target->imat, smd->target->obmat);	//inverse is outdated
-		Mat4MulSerie(calc.local2target, smd->target->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
-		Mat4Invert(calc.target2local, calc.local2target);
-	
+		//TODO there might be several "bugs" on non-uniform scales matrixs.. because it will no longer be nearest surface, not sphere projection
+		//because space has been deformed
+		space_transform_setup(&calc.local2target, ob, smd->target);
+
 		calc.keptDist = smd->keptDist;	//TODO: smd->keptDist is in global units.. must change to local
 	}
 
@@ -1282,7 +1311,8 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
-		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
+		VECCOPY(tmp_co, vert[i].co);
+		space_transform_apply(&calc->local2target, tmp_co);
 
 		if(nearest.index != -1)
 		{
@@ -1296,7 +1326,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		{
 			float dist;
 
-			VecMat4MulVecfl(tmp_co, calc->target2local, nearest.nearest);
+			space_transform_invert(&calc->local2target, tmp_co);
 			dist = VecLenf(vert[i].co, tmp_co);
 			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
 			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
@@ -1314,6 +1344,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  * it builds a RayTree from the target mesh and then performs a
  * raycast for each vertex (ray direction = normal)
  */
+/*
 void shrinkwrap_calc_normal_projection_raytree(ShrinkwrapCalcData *calc)
 {
 	int i;
@@ -1353,7 +1384,6 @@ void shrinkwrap_calc_normal_projection_raytree(ShrinkwrapCalcData *calc)
 		NormalShortToFloat(tmp_no, vert[i].no);
 		Mat4Mul3Vecfl(calc->local2target, tmp_no);	//Watch out for scaling on normal
 		Normalize(tmp_no);							//(TODO: do we really needed a unit-len normal? and we could know the scale factor before hand?)
-
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
 		{
@@ -1404,6 +1434,61 @@ void shrinkwrap_calc_normal_projection_raytree(ShrinkwrapCalcData *calc)
 
 	free_raytree_from_mesh(target);
 }
+*/
+
+
+/*
+ * This function raycast a single vertex and updates the hit if the "hit" is considered valid.
+ * Returns TRUE if "hit" was updated.
+ * Opts control whether an hit is valid or not
+ * Supported options are:
+ *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
+ *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
+ */
+static int normal_projection_project_vertex(char options, const float *vert, const float *dir,/* const */ SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, BVHMeshCallbackUserdata *userdata)
+{
+	float tmp_co[3], tmp_no[3];
+	BVHTreeRayHit hit_tmp;
+	memcpy( &hit_tmp, hit, sizeof(hit_tmp) );
+
+	//Apply space transform (TODO readjust dist)
+	if(transf)
+	{
+		VECCOPY( tmp_co, vert );
+		space_transform_apply( transf, tmp_co );
+		vert = tmp_co;
+
+		VECCOPY( tmp_no, dir );
+		space_transform_apply_normal( transf, tmp_no );
+		dir = tmp_no;
+	}
+
+	hit_tmp.index = -1;
+
+	BLI_bvhtree_ray_cast(tree, vert, dir, &hit_tmp, callback, userdata);
+
+	if(hit_tmp.index != -1)
+	{
+		float dot = INPR( dir, hit_tmp.no);
+
+		if(((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot < 0)
+		|| ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot > 0))
+			return FALSE; //Ignore hit
+
+
+		//Inverting space transform (TODO readjust dist)
+		if(transf)
+		{
+			space_transform_invert( transf, hit_tmp.co );
+			space_transform_invert_normal( transf, hit_tmp.no );
+		}
+
+		memcpy(hit, &hit_tmp, sizeof(hit_tmp) );
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 {
@@ -1417,6 +1502,14 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	BVHMeshCallbackUserdata userdata;
 	BVHTree_RayCastCallback callback = NULL;
 
+
+	//cutTree
+	BVHTree *limit_tree = NULL;
+	BVHMeshCallbackUserdata limit_userdata;
+	BVHTree_RayCastCallback limit_callback = NULL;
+	SpaceTransform local2cut;
+
+
 	int	numVerts;
 	MVert *vert = NULL;
 	MDeformVert *dvert = NULL;
@@ -1429,6 +1522,21 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	bvhtree_meshcallbackdata_init(&userdata, calc->target, calc->keptDist);
 	callback = mesh_faces_spherecast;
 
+	if(calc->smd->cutPlane)
+	{
+		DerivedMesh * limit_mesh = (DerivedMesh *)calc->smd->cutPlane->derivedFinal;
+		if(limit_mesh)
+		{
+			BENCH(limit_tree = bvhtree_from_mesh_faces(limit_mesh, 0.0, 4, 6));
+			bvhtree_meshcallbackdata_init(&limit_userdata, limit_mesh, 0.0);
+			limit_callback = mesh_faces_spherecast;
+
+			space_transform_setup( &local2cut, calc->ob, calc->smd->cutPlane);
+		}
+		else printf("CutPlane finalDerived mesh is null\n");
+	}
+
+
 	//Project each vertex along normal
 	numVerts= calc->final->getNumVerts(calc->final);
 	vert	= calc->final->getVertDataArray(calc->final, CD_MVERT);	
@@ -1437,69 +1545,39 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	for(i=0; i<numVerts; i++)
 	{
 		float tmp_co[3], tmp_no[3];
+		float lim = 1000;		//TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 
 		if(weight == 0.0f) continue;
 
-		//Transform coordinates local->target
-		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
-
+		VECCOPY(tmp_co, vert[i].co);
 		NormalShortToFloat(tmp_no, vert[i].no);
-		Mat4Mul3Vecfl(calc->local2target, tmp_no);	//Watch out for scaling on normal
-		Normalize(tmp_no);							//(TODO: do we really needed a unit-len normal? and we could know the scale factor before hand?)
+
 
 		hit.index = -1;
-		hit.dist = 1000;							//TODO: we should use FLT_MAX here
+		hit.dist = lim;
 
+/*		if(limit_tree)
+		{
+			normal_projection_project_vertex(0, tmp_co, tmp_no, &local2cut, limit_tree, &hit, callback, &userdata);
+		}
+*/
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
 		{
-			BLI_bvhtree_ray_cast(tree, tmp_co, tmp_no, &hit, callback, &userdata);
-
-			if(hit.index != -1)
-			{
-				float *v0, *v1, *v2;
-				float facenormal[3], dot;
-
-				bvhtree_from_mesh_get_tri(&userdata, hit.index, &v0, &v1, &v2);
-				CalcNormFloat(v0, v1, v2, facenormal);
-				dot = INPR( facenormal, tmp_no);
-
-				if(((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot < 0)
-				|| ((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot > 0))
-				{
-					hit.index = -1;
-					hit.dist = 1000;				//TODO: we should use FLT_MAX here
-				}
-			}
+			normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, tree, &hit, callback, &userdata);
 		}
+
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL)
 		{
-			float inv[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
-			BLI_bvhtree_ray_cast(tree, tmp_co, inv, &hit, callback, &userdata);
-
-			if(hit.index != -1)
-			{
-				float *v0, *v1, *v2;
-				float facenormal[3], dot;
-
-				bvhtree_from_mesh_get_tri(&userdata, hit.index, &v0, &v1, &v2);
-				CalcNormFloat(v0, v1, v2, facenormal);
-				dot = INPR( facenormal, inv);
-
-				if(((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot < 0)
-				|| ((calc->smd->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot > 0))
-				{
-					hit.index = -1;
-					hit.dist = 1000;				//TODO: we should use FLT_MAX here
-				}
-			}
+			float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
+			normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, tree, &hit, callback, &userdata);
 		}
+
 
 		if(hit.index != -1)
 		{
-			VecMat4MulVecfl(tmp_co, calc->target2local, hit.co);
-			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
+			VecLerpf(vert[i].co, vert[i].co, hit.co, weight);	//linear interpolation
 
 			if(calc->moved)
 				bitset_set(calc->moved, i);
@@ -1507,6 +1585,9 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	}
 
 	BLI_bvhtree_free(tree);
+
+	if(limit_tree)
+		BLI_bvhtree_free(limit_tree);
 }
 
 /*
@@ -1551,7 +1632,8 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
-		VecMat4MulVecfl(tmp_co, calc->local2target, vert[i].co);
+		VECCOPY(tmp_co, vert[i].co);
+		space_transform_apply(&calc->local2target, tmp_co);
 
 		if(nearest.index != -1)
 		{
@@ -1563,11 +1645,22 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 		if(index != -1)
 		{
-			float dist;
+			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE)
+			{
+				float *t0, *t1, *t2;
+				float surface_normal[3], tmp[3];
+				bvhtree_from_mesh_get_tri(&userdata, index, &t0, &t1, &t2);
+				CalcNormFloat(t0, t1, t2, surface_normal);
+				VECSUB(tmp, vert[i].co, t0 );
+				VECADDFAC(tmp_co, nearest.nearest, surface_normal, calc->keptDist);
 
-			VecMat4MulVecfl(tmp_co, calc->target2local, nearest.nearest);
-			dist = VecLenf(vert[i].co, tmp_co);
-			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
+			}
+			else
+			{
+				float dist = VecLenf(tmp_co, nearest.nearest);
+				VecLerpf(tmp_co, tmp_co, nearest.nearest, (dist - calc->keptDist)/dist);	//linear interpolation
+			}
+			space_transform_invert(&calc->local2target, tmp_co);
 			VecLerpf(vert[i].co, vert[i].co, tmp_co, weight);	//linear interpolation
 		}
 	}

@@ -57,6 +57,7 @@ typedef struct BVHTreeRayHit
 {
 	int index;			/* index of the tree node (untouched if no hit is found) */
 	float co[3];		/* coordinates of the hit point */
+	float no[3];		/* normal on hit point */
 	float dist;			/* distance to the hit point */
 } BVHTreeRayHit;
 
@@ -84,9 +85,9 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 float BLI_bvhtree_getepsilon(BVHTree *tree);
 
 /* find nearest node to the given coordinates (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
-int BLI_bvhtree_find_nearest(BVHTree *tree, float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
+int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, float *co, float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
+int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
 #endif // BLI_KDOPBVH_H
 

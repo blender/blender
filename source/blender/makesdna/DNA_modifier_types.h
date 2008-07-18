@@ -519,6 +519,8 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)
 #define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)
 
+#define MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE		(1<<5)
+
 typedef struct SimpleDeformModifierData {
 	ModifierData modifier;
 

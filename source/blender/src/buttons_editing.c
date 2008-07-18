@@ -1906,6 +1906,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 86;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
 				height += 19*5;
+			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
+				height += 19;
+
 		} else if (md->type==eModifierType_SimpleDeform) {
 			height += 19*5;
 		}
@@ -2546,6 +2549,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance");
 				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Cut: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Target to project points that didn't got projected over target");
+			}
+			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
 			}
 
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
