@@ -17,7 +17,8 @@
 
 KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna)
 : KX_IPhysicsController(dyna,(PHY_IPhysicsController*)this),
-CcdPhysicsController(ci)
+CcdPhysicsController(ci),
+m_savedCollisionFlags(0)
 {
 
 }
@@ -161,14 +162,26 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 {
 }
 
-void	KX_BulletPhysicsController::SuspendDynamics()
+void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
-	GetRigidBody()->setActivationState(DISABLE_SIMULATION);
-
+	btRigidBody *body = GetRigidBody();
+	if (body->getActivationState() != DISABLE_SIMULATION)
+	{
+		m_savedCollisionFlags = body->getCollisionFlags();
+		body->setActivationState(DISABLE_SIMULATION);
+		body->setCollisionFlags((btCollisionObject::CF_STATIC_OBJECT)|
+			((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:0));
+	}
 }
+
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
-	GetRigidBody()->forceActivationState(ACTIVE_TAG);
+	btRigidBody *body = GetRigidBody();
+	if (body->getActivationState() == DISABLE_SIMULATION)
+	{
+		GetRigidBody()->forceActivationState(ACTIVE_TAG);
+		body->setCollisionFlags(m_savedCollisionFlags);
+	}
 }
 
 SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)

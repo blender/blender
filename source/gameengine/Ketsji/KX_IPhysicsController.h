@@ -78,7 +78,7 @@ public:
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
 
-	virtual void	SuspendDynamics()=0;
+	virtual void	SuspendDynamics(bool ghost=false)=0;
 	virtual void	RestoreDynamics()=0;
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode)=0;

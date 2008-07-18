@@ -76,7 +76,7 @@ public:
 	void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
 
-	void	SuspendDynamics();
+	void	SuspendDynamics(bool);
 	void	RestoreDynamics();
 	virtual	void	getOrientation(MT_Quaternion& orn);
 	virtual	void setOrientation(const MT_Quaternion& orn);

@@ -238,6 +238,10 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		if (rootlist->RemoveValue(this))
 			// the object was in parent list, decrement ref count as it's now removed
 			Release();
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->SuspendDynamics(true);
+		}
 	}
 }
 
@@ -258,6 +262,10 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 		if (!rootlist->SearchValue(this))
 			// object was not in root list, add it now and increment ref count
 			rootlist->Add(AddRef());
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
 	}
 }
 
@@ -832,7 +840,7 @@ void KX_GameObject::Resume(void)
 	}
 }
 
-void KX_GameObject::Suspend(void)
+void KX_GameObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {
