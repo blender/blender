@@ -82,7 +82,10 @@ void SCA_ILogicBrick::ReParent(SCA_IObject* parent)
 	m_gameobj = parent;
 }
 
-
+void SCA_ILogicBrick::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	// nothing to do
+}
 
 CValue* SCA_ILogicBrick::Calc(VALUE_OPERATOR op, CValue *val)
 {

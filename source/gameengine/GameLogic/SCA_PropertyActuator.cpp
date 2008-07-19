@@ -42,7 +42,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,CValue* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
+SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
    :	SCA_IActuator(gameobj,T),
 	m_type(acttype),
 	m_propname(propname),
@@ -51,14 +51,14 @@ SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,CValue* sourceOb
 {
 	// protect ourselves against someone else deleting the source object
 	// don't protect against ourselves: it would create a dead lock
-	if (m_sourceObj && m_sourceObj != GetParent())
-		m_sourceObj->AddRef();
+	if (m_sourceObj)
+		m_sourceObj->RegisterActuator(this);
 }
 
 SCA_PropertyActuator::~SCA_PropertyActuator()
 {
-	if (m_sourceObj && m_sourceObj != GetParent())
-		m_sourceObj->Release();
+	if (m_sourceObj)
+		m_sourceObj->UnregisterActuator(this);
 }
 
 bool SCA_PropertyActuator::Update()
@@ -185,10 +185,31 @@ void SCA_PropertyActuator::ProcessReplica()
 	// no need to check for self reference like in the constructor:
 	// the replica will always have a different parent
 	if (m_sourceObj)
-		m_sourceObj->AddRef();
+		m_sourceObj->RegisterActuator(this);
 	SCA_IActuator::ProcessReplica();
 }
 
+bool SCA_PropertyActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == m_sourceObj)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_sourceObj = NULL;
+		return true;
+	}
+	return false;
+}
+
+void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_sourceObj];
+	if (h_obj) {
+		if (m_sourceObj)
+			m_sourceObj->UnregisterActuator(this);
+		m_sourceObj = (SCA_IObject*)(*h_obj);
+		m_sourceObj->RegisterActuator(this);
+	}
+}
 
 
 /* ------------------------------------------------------------------------- */

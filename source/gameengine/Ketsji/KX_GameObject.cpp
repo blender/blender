@@ -61,6 +61,8 @@ typedef unsigned long uint_ptr;
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
+#include "SCA_IActuator.h"
+#include "SCA_ISensor.h"
 
 // This file defines relationships between parents and children
 // in the game engine.
@@ -1668,6 +1670,20 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
  * --------------------------------------------------------------------- */
 void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)	
 {
-	/* intentionally empty ? */
+	// we will relink the sensors and actuators that use object references
+	// if the object is part of the replicated hierarchy, use the new
+	// object reference instead
+	SCA_SensorList& sensorlist = GetSensors();
+	SCA_SensorList::iterator sit;
+	for (sit=sensorlist.begin(); sit != sensorlist.end(); sit++)
+	{
+		(*sit)->Relink(map_parameter);
+	}
+	SCA_ActuatorList& actuatorlist = GetActuators();
+	SCA_ActuatorList::iterator ait;
+	for (ait=actuatorlist.begin(); ait != actuatorlist.end(); ait++)
+	{
+		(*ait)->Relink(map_parameter);
+	}
 }
 
