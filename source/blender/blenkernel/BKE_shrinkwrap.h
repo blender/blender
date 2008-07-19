@@ -55,11 +55,11 @@ typedef struct SpaceTransform
 
 void space_transform_setup(SpaceTransform *data, struct Object *local, struct Object *target);
 
-void space_transform_apply (SpaceTransform *data, float *co);
-void space_transform_invert(SpaceTransform *data, float *co);
+void space_transform_apply (const SpaceTransform *data, float *co);
+void space_transform_invert(const SpaceTransform *data, float *co);
 
-void space_transform_apply_normal (SpaceTransform *data, float *co);
-void space_transform_invert_normal(SpaceTransform *data, float *co);
+void space_transform_apply_normal (const SpaceTransform *data, float *co);
+void space_transform_invert_normal(const SpaceTransform *data, float *co);
 
 
 /* Shrinkwrap stuff */

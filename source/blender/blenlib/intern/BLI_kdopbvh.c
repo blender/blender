@@ -897,6 +897,7 @@ static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *near
 }
 
 
+// TODO: use a priority queue to reduce the number of nodes looked on
 static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 {
 	int i;
@@ -908,20 +909,18 @@ static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	if(node->totnode == 0)
 	{
 		if(data->callback)
-			sdist = data->callback(data->userdata , node->index, data->co, nearest);
-
-		if(sdist >= data->nearest.dist) return;
-
-		data->nearest.index	= node->index;
-		VECCOPY(data->nearest.nearest, nearest);
-		data->nearest.dist	= sdist;
+			data->callback(data->userdata , node->index, data->co, &data->nearest);
+		else
+		{
+			data->nearest.index	= node->index;
+			VECCOPY(data->nearest.co, nearest);
+			data->nearest.dist	= sdist;
+		}
 	}
 	else
 	{
 		for(i=0; i != node->totnode; i++)
-		{
 			dfs_find_nearest(data, node->children[i]);
-		}
 	}
 }
 
