@@ -27,17 +27,37 @@ Example::
 """
 
 def load(filename,relative=False):
-  """
-  Select an existing .blend file for use as a library.  Unlike the 
-  Library module, multiple libraries can be defined at the same time.  
-  
-  @type filename: string
-  @param filename: The filename of a Blender file. Filenames starting with "//" will be loaded relative to the blend file's location.
-  @type relative: boolean
-  @param relative: Convert relative paths to absolute paths (default).  Setting this parameter to True will leave paths relative.
-  @rtype: Library
-  @return: return a L{Library} object.
-  """
+	"""
+	Select an existing .blend file for use as a library.  Unlike the 
+	Library module, multiple libraries can be defined at the same time.  
+	
+	@type filename: string
+	@param filename: The filename of a Blender file. Filenames starting with "//" will be loaded relative to the blend file's location.
+	@type relative: boolean
+	@param relative: Convert relative paths to absolute paths (default).  Setting this parameter to True will leave paths relative.
+	@rtype: Library
+	@return: return a L{Library} object.
+	"""
+
+def paths(link=0):
+	"""
+	Returns a list of paths used in the current blend file.
+	
+	@type link: int
+	@param link: 0 (default if no args given) for all library paths, 1 for directly linked library paths only, 2 for indirectly linked library paths only.
+	@rtype: List
+	@return: return a list of path strings.
+	"""
+
+def replace(pathFrom, pathTo):
+	"""
+	Replaces an existing directly linked path.
+	
+	@type pathFrom: string
+	@param pathFrom: An existing library path.
+	@type pathTo: string
+	@param pathTo: A new library path.
+	"""
 
 class Libraries:
 	"""
