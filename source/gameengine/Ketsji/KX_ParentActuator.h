@@ -69,8 +69,8 @@ class KX_ParentActuator : public SCA_IActuator
 	
 	virtual CValue* GetReplica();
 	virtual void ProcessReplica();
-	virtual void KX_ParentActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
-	virtual bool KX_ParentActuator::UnlinkObject(SCA_IObject* clientobj);
+	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual bool UnlinkObject(SCA_IObject* clientobj);
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
