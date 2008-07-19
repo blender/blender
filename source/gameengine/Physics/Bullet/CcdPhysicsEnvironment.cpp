@@ -466,6 +466,16 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 
 }
 
+void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
+{
+	// this function is used when the collisionning group of a controller is changed
+	// remove and add the collistioning object
+	btRigidBody* body = ctrl->GetRigidBody();
+
+	m_dynamicsWorld->removeCollisionObject(body);
+	body->setCollisionFlags(newCollisionFlags);
+	m_dynamicsWorld->addCollisionObject(body, newCollisionGroup, newCollisionMask);
+}
 
 void	CcdPhysicsEnvironment::beginFrame()
 {

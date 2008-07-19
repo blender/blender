@@ -9,6 +9,8 @@ class KX_BulletPhysicsController : public KX_IPhysicsController ,public CcdPhysi
 {
 private:
 	int m_savedCollisionFlags;
+	short int m_savedCollisionFilterGroup;
+	short int m_savedCollisionFilterMask;
 public:
 
 	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna);

@@ -183,6 +183,8 @@ protected:
 
 		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
+		void	updateCcdPhysicsController(CcdPhysicsController* ctrl, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask);
+
 		btBroadphaseInterface*	getBroadphase();
 
 		
