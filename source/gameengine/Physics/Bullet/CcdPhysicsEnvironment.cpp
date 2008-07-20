@@ -466,16 +466,38 @@ void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctr
 
 }
 
-void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
+void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
 {
 	// this function is used when the collisionning group of a controller is changed
 	// remove and add the collistioning object
 	btRigidBody* body = ctrl->GetRigidBody();
+	btVector3 inertia;
 
 	m_dynamicsWorld->removeCollisionObject(body);
 	body->setCollisionFlags(newCollisionFlags);
+	body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
+	body->setMassProps(newMass, inertia);
 	m_dynamicsWorld->addCollisionObject(body, newCollisionGroup, newCollisionMask);
+	// to avoid nasty interaction, we must update the property of the controller as well
+	ctrl->m_cci.m_mass = newMass;
+	ctrl->m_cci.m_collisionFilterGroup = newCollisionGroup;
+	ctrl->m_cci.m_collisionFilterMask = newCollisionMask;
+	ctrl->m_cci.m_collisionFlags = newCollisionFlags;
 }
+
+void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctrl)
+{
+	std::vector<CcdPhysicsController*>::iterator i =
+		std::find(m_controllers.begin(), m_controllers.end(), ctrl);
+	if (i == m_controllers.end())
+	{
+		btRigidBody* body = ctrl->GetRigidBody();
+		m_dynamicsWorld->addCollisionObject(body, 
+			ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
+	}
+}
+
+
 
 void	CcdPhysicsEnvironment::beginFrame()
 {

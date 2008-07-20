@@ -170,10 +170,12 @@ void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 	{
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		m_savedCollisionFlags = body->getCollisionFlags();
+		m_savedMass = GetMass();
 		m_savedCollisionFilterGroup = handle->m_collisionFilterGroup;
 		m_savedCollisionFilterMask = handle->m_collisionFilterMask;
 		body->setActivationState(DISABLE_SIMULATION);
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			0.0,
 			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
 			btBroadphaseProxy::StaticFilter, 
 			btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
@@ -185,11 +187,12 @@ void	KX_BulletPhysicsController::RestoreDynamics()
 	btRigidBody *body = GetRigidBody();
 	if (body->getActivationState() == DISABLE_SIMULATION)
 	{
-		GetRigidBody()->forceActivationState(ACTIVE_TAG);
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			m_savedMass,
 			m_savedCollisionFlags,
 			m_savedCollisionFilterGroup,
 			m_savedCollisionFilterMask);
+		GetRigidBody()->forceActivationState(ACTIVE_TAG);
 	}
 }
 

@@ -224,6 +224,10 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		RemoveParent(scene);
 		obj->GetSGNode()->AddChild(GetSGNode());
 
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->SuspendDynamics(true);
+		}
 		// Set us to our new scale, position, and orientation
 		scale1[0] = scale1[0]/scale2[0];
 		scale1[1] = scale1[1]/scale2[1];
@@ -240,10 +244,6 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		if (rootlist->RemoveValue(this))
 			// the object was in parent list, decrement ref count as it's now removed
 			Release();
-		if (m_pPhysicsController1) 
-		{
-			m_pPhysicsController1->SuspendDynamics(true);
-		}
 	}
 }
 
@@ -724,8 +724,12 @@ MT_Vector3 KX_GameObject::GetAngularVelocity(bool local)
 
 void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 {
-	if (m_pPhysicsController1)
+	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
+		// don't update physic controller if the object is a child:
+		// 1) the transformation will not be right
+		// 2) in this case, the physic controller is necessarily a static object
+		//    that is updated from the normal kinematic synchronization
 		m_pPhysicsController1->setPosition(trans);
 	}
 
@@ -737,25 +741,22 @@ void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 
 void KX_GameObject::NodeSetLocalOrientation(const MT_Matrix3x3& rot)
 {
-	if (m_pPhysicsController1)
+	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
+		// see note above
 		m_pPhysicsController1->setOrientation(rot.getRotation());
 	}
 	if (GetSGNode())
 		GetSGNode()->SetLocalOrientation(rot);
-	else
-	{
-		int i;
-		i=0;
-	}
 }
 
 
 
 void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 {
-	if (m_pPhysicsController1)
+	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
+		// see note above
 		m_pPhysicsController1->setScaling(scale);
 	}
 	
