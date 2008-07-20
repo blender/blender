@@ -159,7 +159,8 @@ void	RAS_2DFilterManager::AnalyseShader(int passindex, vector<STR_String>& propN
 	texflag[passindex] = 0;
 	if(glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture") != -1)
 	{
-		texflag[passindex] |= 0x1;
+		if(GLEW_ARB_depth_texture)
+			texflag[passindex] |= 0x1;
 	}
 	if(glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture") != -1)
 	{
@@ -262,7 +263,7 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 	
 	glGenTextures(1, (GLuint*)&texname[0]);
 	glBindTexture(GL_TEXTURE_2D, texname[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGB,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texturewidth, textureheight, 0, GL_RGBA,
 			GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
