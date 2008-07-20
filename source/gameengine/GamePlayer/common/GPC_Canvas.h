@@ -130,6 +130,12 @@ public:
 	) {
 		return m_displayarea;
 	};
+	
+		RAS_Rect &
+	GetWindowArea(
+	) {
+		return m_displayarea;
+	}
 
 		void 
 	BeginFrame(

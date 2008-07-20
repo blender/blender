@@ -43,6 +43,7 @@
 
 #include "STR_String.h"
 #include "RAS_ICanvas.h"
+#include "RAS_Rect.h"
 #include "RAS_2DFilterManager.h"
 #include <iostream>
 
@@ -293,10 +294,13 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 	}
 }
 
-void RAS_2DFilterManager::UpdateOffsetMatrix(int width, int height)
+void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 {
-	canvaswidth = texturewidth = width;
-	canvasheight = textureheight = height;
+	RAS_Rect canvas_rect = canvas->GetWindowArea();
+	canvaswidth = canvas->GetWidth();
+	canvasheight = canvas->GetHeight();
+	texturewidth = canvaswidth + canvas_rect.GetLeft();
+	textureheight = canvasheight + canvas_rect.GetBottom();
 
 	GLint i,j;
 	i = 0;
@@ -352,7 +356,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 	if(canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
 	{
-		UpdateOffsetMatrix(canvas->GetWidth(), canvas->GetHeight());
+		UpdateOffsetMatrix(canvas);
 		SetupTextures(need_depth, need_luminance);
 	}
 	GLuint	viewport[4]={0};
@@ -360,19 +364,21 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if(need_depth){
 		glActiveTextureARB(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0,0, texturewidth,textureheight, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0, 0, texturewidth,textureheight, 0);
 	}
 	
 	if(need_luminance){
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0,0, texturewidth,textureheight, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0, 0 , texturewidth,textureheight, 0);
 	}
 
 	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
-	glViewport(0, 0, texturewidth, textureheight);
+	glViewport(0,0, texturewidth, textureheight);
 
 	glDisable(GL_DEPTH_TEST);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
