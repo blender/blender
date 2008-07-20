@@ -280,10 +280,11 @@ public:
   // this vertex in CCW order (order defined in 2D in the image plan)
   virtual edge_iterator edges_begin() = 0;
   virtual const_edge_iterator edges_begin() const = 0;
-  virtual edge_iterator edges_end()   = 0;
-  virtual const_edge_iterator edges_end() const   = 0;
+  virtual edge_iterator edges_end() = 0;
+  virtual const_edge_iterator edges_end() const = 0;
   virtual edge_iterator edges_iterator(ViewEdge *iEdge) = 0;
-  virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const = 0;
+  virtual const_edge_iterator edges_iterator(ViewEdge *iEdge) const  = 0;
+
 
   // Iterator access
   /*! Returns an iterator over the ViewEdges that goes to or comes from
@@ -292,14 +293,16 @@ public:
    *  and to get the orientation for each ViewEdge (incoming/outgoing).
    */
   virtual ViewVertexInternal::orientedViewEdgeIterator edgesBegin() = 0;
+
   /*! Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex,
    *  pointing after the last ViewEdge.
    */
-  virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd() = 0;
+	virtual ViewVertexInternal::orientedViewEdgeIterator edgesEnd() = 0;
+
   /*! Returns an orientedViewEdgeIterator pointing to the ViewEdge
    *  given as argument.
    */
-  virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge) = 0;
+	virtual ViewVertexInternal::orientedViewEdgeIterator edgesIterator(ViewEdge *iEdge) = 0;
   
 };
 

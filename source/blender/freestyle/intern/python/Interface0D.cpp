@@ -3,7 +3,9 @@
 #include "Convert.h"
 #include "Interface0D/CurvePoint.h"
 #include "Interface0D/SVertex.h"
+#include "Interface0D/ViewVertex.h"
 #include "Interface1D/FEdge.h"
+#include "Nature.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,6 +154,11 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 	Py_INCREF( &SVertex_Type );
 	PyModule_AddObject(module, "SVertex", (PyObject *)&SVertex_Type);	
 	
+	if( PyType_Ready( &ViewVertex_Type ) < 0 )
+		return;
+	Py_INCREF( &ViewVertex_Type );
+	PyModule_AddObject(module, "ViewVertex", (PyObject *)&ViewVertex_Type);
+	
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
@@ -243,8 +250,7 @@ PyObject *Interface0D_getId( BPy_Interface0D *self ) {
 
 
 PyObject *Interface0D_getNature( BPy_Interface0D *self ) {
-	// VertexNature
-	Py_RETURN_NONE;
+	return BPy_Nature_from_Nature( self->if0D->getNature() );
 }
 
 

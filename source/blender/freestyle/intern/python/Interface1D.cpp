@@ -180,8 +180,7 @@ PyObject *Interface1D_getId( BPy_Interface1D *self ) {
 }
 
 PyObject *Interface1D_getNature( BPy_Interface1D *self ) {
-	// EdgeNature
-	Py_RETURN_NONE;
+	return BPy_Nature_from_Nature( self->if1D->getNature() );
 }
 
 PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self ) {

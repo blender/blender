@@ -123,13 +123,13 @@ PyMODINIT_FUNC Nature_Init( PyObject *module )
 	tmp = PyInt_FromLong( Nature::CUSP ); PyDict_SetItemString( Nature_Type.tp_dict, "CUSP", tmp); Py_DECREF(tmp);
 	
 	// EdgeNature
-	tmp = PyInt_FromLong( Nature::NO_FEATURE ); PyDict_SetItemString( Nature_Type.tp_dict, "NO_FEATURE", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::SILHOUETTE ); PyDict_SetItemString( Nature_Type.tp_dict, "SILHOUETTE", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::BORDER ); PyDict_SetItemString( Nature_Type.tp_dict, "BORDER", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::CREASE ); PyDict_SetItemString( Nature_Type.tp_dict, "CREASE", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::RIDGE ); PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::VALLEY ); PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", tmp); Py_DECREF(tmp);
-	tmp = PyInt_FromLong( Nature::SUGGESTIVE_CONTOUR ); PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::NO_FEATURE ); PyDict_SetItemString( Nature_Type.tp_dict, "NO_FEATURE", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::SILHOUETTE ); PyDict_SetItemString( Nature_Type.tp_dict, "SILHOUETTE", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::BORDER ); PyDict_SetItemString( Nature_Type.tp_dict, "BORDER", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::CREASE ); PyDict_SetItemString( Nature_Type.tp_dict, "CREASE", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::RIDGE ); PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::VALLEY ); PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", tmp); Py_DECREF(tmp);
+	tmp = BPy_Nature_from_Nature( Nature::SUGGESTIVE_CONTOUR ); PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", tmp); Py_DECREF(tmp);
 	
 }
 

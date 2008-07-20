@@ -9,6 +9,7 @@ using namespace Geometry;
 #include "Interface0D.h"
 #include "Interface0D/SVertex.h"
 #include "Interface1D/FEdge.h"
+#include "Nature.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,6 +31,7 @@ PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
+PyObject * BPy_Nature_from_Nature( unsigned short n );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

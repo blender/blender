@@ -1,7 +1,6 @@
-#include "SVertex.h"
+#include "ViewVertex.h"
 
 #include "../Convert.h"
-#include "../Id.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,12 +10,12 @@ extern "C" {
 
 /*---------------  Python API function prototypes for ViewVertex instance  -----------*/
 static int ViewVertex___init__(BPy_ViewVertex *self);
-//static PyObject * ViewVertex___copy__( BPy_ViewVertex *self );
+static PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args );
 
 
 /*----------------------ViewVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_ViewVertex_methods[] = {
-//	{"__copy__", ( PyCFunction ) ViewVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
+	{"setNature", ( PyCFunction ) ViewVertex_setNature, METH_VARARGS, "（Nature n ）Sets the nature of the vertex."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -111,13 +110,8 @@ PyTypeObject ViewVertex_Type = {
 //------------------------INSTANCE METHODS ----------------------------------
 
 int ViewVertex___init__(BPy_ViewVertex *self )
-{
-	PyObject *py_point = 0;
-	BPy_Id *py_id = 0;
-
-	self->vv = new ViewVertex();
-	self->py_if0D.if0D = self->vv;
-	
+{	
+	self->py_if0D.if0D = new Interface0D();
 	return 0;
 }
 
@@ -127,10 +121,25 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 // 	py_vv = (BPy_ViewVertex *) ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
 // 	
 // 	py_vv->vv = self->vv->duplicate();
-// 	py_svertex->py_if0D.if0D = py_svertex->sv;
+// 	py_svertex->py_if0D.if->sv;
 // 
 // 	return (PyObject *) py_svertex;
 // }
+
+PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
+	PyObject *py_n;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
+		cout << "ERROR: ViewVertex_setNature" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
+	((ViewVertex *) self->py_if0D.if0D)->setNature( PyInt_AsLong(i) );
+
+	Py_RETURN_NONE;
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -141,9 +150,7 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 
 
 // virtual string 	getExactTypeName () const
-//  	ViewVertex ()
-// virtual 	~ViewVertex ()
-// virtual Nature::VertexNature 	getNature () const
+
 // void 	setNature (Nature::VertexNature iNature)
 // virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesBegin ()=0
 // virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesEnd ()=0

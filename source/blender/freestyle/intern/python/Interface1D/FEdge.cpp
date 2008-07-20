@@ -26,6 +26,7 @@ static PyObject * FEdge_SetId( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_SetNextEdge( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_SetPreviousEdge( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_SetSmooth( BPy_FEdge *self , PyObject *args); 
+static PyObject * FEdge_SetNature( BPy_FEdge *self, PyObject *args );
 
 /*----------------------FEdge instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdge_methods[] = {	
@@ -44,6 +45,7 @@ static PyMethodDef BPy_FEdge_methods[] = {
 	{"SetNextEdge", ( PyCFunction ) FEdge_SetNextEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the next FEdge. "},
 	{"SetPreviousEdge", ( PyCFunction ) FEdge_SetPreviousEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the previous FEdge. "},
 	{"SetSmooth", ( PyCFunction ) FEdge_SetSmooth, METH_VARARGS, "(bool b) Sets the flag telling whether this FEdge is smooth or sharp. true for Smooth, false for Sharp. "},
+	{"SetNature", ( PyCFunction ) FEdge_SetNature, METH_VARARGS, "(Nature n) Sets the nature of this FEdge. "},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -294,6 +296,20 @@ PyObject *FEdge_SetSmooth( BPy_FEdge *self , PyObject *args) {
 	}
 
 	self->fe->SetSmooth( (bool) b );
+
+	Py_RETURN_NONE;
+}
+
+PyObject * FEdge_SetNature( BPy_FEdge *self, PyObject *args ) {
+	PyObject *py_n;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
+		cout << "ERROR: FEdge_setNature" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
+	((FEdge *) self->py_if1D.if1D)->SetNature( PyInt_AsLong(i) );
 
 	Py_RETURN_NONE;
 }

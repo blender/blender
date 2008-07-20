@@ -69,13 +69,14 @@ python_sources = [
 					prefix + '/Interface0D.cpp',
 					prefix + '/Interface0D/CurvePoint.cpp',
 					prefix + '/Interface0D/SVertex.cpp',
+					prefix + '/Interface0D/ViewVertex.cpp',
 					prefix + '/Interface1D.cpp',
 					prefix + '/Interface1D/FEdge.cpp',
 					prefix + '/Nature.cpp',
 					prefix + '/UnaryFunction0D.cpp',
 					prefix + '/UnaryFunction1D.cpp',
 					prefix + '/UnaryPredicate0D.cpp',
-					prefix + '/UnaryPredicate1D.cpp'
+					prefix + '/UnaryPredicate1D.cpp',
 				]
 
 sources = 	system_sources + image_sources + geometry_sources + scene_graph_sources \
