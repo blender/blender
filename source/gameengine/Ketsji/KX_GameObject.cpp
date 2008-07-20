@@ -886,6 +886,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
 	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
+	{"getChildren", (PyCFunction)KX_GameObject::sPyGetChildren,METH_NOARGS},
+	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
@@ -1301,6 +1303,43 @@ PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 	KX_Scene *scene = PHY_GetActiveScene();
 	this->RemoveParent(scene);
 	Py_RETURN_NONE;
+}
+
+
+static void walk_children(SG_Node* node, PyObject *list, bool recursive)
+{
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		KX_GameObject* childobj = (KX_GameObject*)childnode->GetSGClientObject();
+		if (childobj != NULL) // This is a GameObject
+		{
+			// add to the list
+			PyList_Append(list, (PyObject *)childobj);
+		}
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		if (recursive || childobj==NULL) {
+			walk_children(childnode, list, recursive);
+		}
+	}
+}
+
+PyObject* KX_GameObject::PyGetChildren(PyObject* self)
+{
+	PyObject * list = PyList_New(0);
+	walk_children(m_pSGNode, list, 0);
+	return list;
+}
+
+PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
+{
+	PyObject * list = PyList_New(0);
+	walk_children(m_pSGNode, list, 1);
+	return list;
 }
 
 PyObject* KX_GameObject::PyGetMesh(PyObject* self, 

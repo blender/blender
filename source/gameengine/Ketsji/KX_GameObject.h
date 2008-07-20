@@ -746,6 +746,8 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
 	KX_PYMETHOD_O(KX_GameObject,SetParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);	
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildrenRecursive);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
