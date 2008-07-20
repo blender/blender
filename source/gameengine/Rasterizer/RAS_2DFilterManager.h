@@ -28,8 +28,6 @@
 #ifndef __RAS_I2DFILTER
 #define __RAS_I2DFILTER
 
-
-
 #define MAX_RENDER_PASS	100
 
 class RAS_2DFilterManager
@@ -37,8 +35,14 @@ class RAS_2DFilterManager
 private:
 	unsigned int	CreateShaderProgram(char* shadersource);
 	unsigned int	CreateShaderProgram(int filtermode);
+	void		AnalyseShader(int passindex, vector<STR_String>& propNames);
 	void			StartShaderProgram(int passindex);
 	void			EndShaderProgram();
+
+	void SetupTextures(bool depth, bool luminance);
+	void FreeTextures();
+
+	void UpdateOffsetMatrix(int width, int height);
 
 	float			textureoffsets[18];
 	float			view[4];
@@ -54,6 +58,13 @@ private:
 	short			texflag[MAX_RENDER_PASS];
 
 	bool			isshadersupported;
+
+	unsigned int	m_filters[MAX_RENDER_PASS];
+	short		m_enabled[MAX_RENDER_PASS];
+
+	// stores object properties to send to shaders in each pass
+	vector<STR_String>	m_properties[MAX_RENDER_PASS];
+	void* m_gameObjects[MAX_RENDER_PASS];
 public:
 	enum RAS_2DFILTER_MODE {
 		RAS_2DFILTER_ENABLED = -2,
@@ -74,19 +85,12 @@ public:
 		RAS_2DFILTER_NUMBER_OF_FILTERS
 	};
 
-	unsigned int	m_filters[MAX_RENDER_PASS];
-	short			m_enabled[MAX_RENDER_PASS];
-
 	RAS_2DFilterManager();
 
 	~RAS_2DFilterManager();
 
-	void SetupTexture();
-
-	void UpdateOffsetMatrix(int width, int height);
-
 	void RenderFilters(RAS_ICanvas* canvas);
 
-	void EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text, short tflag);
+	void EnableFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text);
 };
 #endif

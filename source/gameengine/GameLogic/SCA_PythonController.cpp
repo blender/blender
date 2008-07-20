@@ -116,7 +116,7 @@ CValue* SCA_PythonController::GetReplica()
 
 void SCA_PythonController::SetScriptText(const STR_String& text)
 { 
-	m_scriptText = "import GameLogic\n" + text;
+	m_scriptText = text;
 	m_bModified = true;
 }
 
@@ -354,8 +354,10 @@ SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 			return sensor->AddRef();
 		}
 	}
-		
-	PyErr_SetString(PyExc_AttributeError, "Unable to find requested sensor");
+	
+	char emsg[96];
+	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested sensor \"%s\"", scriptArg );
+	PyErr_SetString(PyExc_AttributeError, emsg);
 	return NULL;
 }
 
@@ -382,8 +384,10 @@ SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 			return actua->AddRef();
 		}
 	}
-		
-	PyErr_SetString(PyExc_AttributeError, "Unable to find requested actuator");
+	
+	char emsg[96];
+	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested actuator \"%s\"", scriptArg );
+	PyErr_SetString(PyExc_AttributeError, emsg);
 	return NULL;
 }
 

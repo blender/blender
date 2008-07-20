@@ -704,7 +704,7 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		//std::cerr<<" memEstFine "<< memEstFine <<" maxWin:" <<maxWinMemChunk <<" maxMac:" <<maxMacMemChunk ; // DEBUG
 #ifdef WIN32
 		double maxWinMemChunk = 1100.*1024.*1024.;
-		if(memEstFine> maxWinMemChunk) {
+		if(sizeof(void *)==4 && memEstFine>maxWinMemChunk) {
 			memBlockAllocProblem = true;
 		}
 #endif // WIN32

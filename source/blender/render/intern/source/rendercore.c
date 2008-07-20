@@ -671,8 +671,10 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	RenderPass *zpass;
 	GroupObject *go;
 	LampRen *lar;
-	
-	int x, y;
+	RenderLayer *rlpp[RE_MAX_OSA];
+
+	int totsample, fullsample, sample;
+	int x, y,od;
 	short first_lamp;
 	float *zrect;
 	float *rgbrect;
@@ -683,7 +685,10 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	
 	fac = 0.5;
 	facm = 1.0 - fac;
-	
+
+	totsample= get_sample_layers(pa, rl, rlpp);
+	fullsample= (totsample > 1);
+
 	/* check that z pass is enabled */
 	if(pa->rectz==NULL) return;
 	for(zpass= rl->passes.first; zpass; zpass= zpass->next)
@@ -708,9 +713,10 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	
 	zrect = zpass->rect;
 	rgbrect = rl->rectf;
+	od=0;
 	/* for each x,y and sun lamp*/
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, zrect++, rgbrect+=4) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, zrect++, od++) {
 			
 			first_lamp = 1;
 			for(go=R.lights.first; go; go= go->next) {
@@ -724,7 +730,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 					}
 
 					if(lar->sunsky->effect_type & LA_SUN_EFFECT_AP){	
-						VECCOPY(tmp_rgb, rgbrect);
+						VECCOPY(tmp_rgb, (float*)(rgbrect+4*od));
 
 						shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
 						
@@ -743,7 +749,16 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 
 			/* if at least for one sun lamp aerial perspective was applied*/
 			if(first_lamp==0)
-				VECCOPY(rgbrect, rgb);
+			{
+				if(fullsample) {
+					for(sample=0; sample<totsample; sample++) {
+						VECCOPY((float*)(rlpp[sample]->rectf + od*4), rgb);
+					}
+				}
+				else {
+					VECCOPY((float*)(rgbrect+4*od), rgb);
+				}
+			}
 		}
 	}
 }

@@ -4844,9 +4844,9 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					if( cfra!=CFRA || first ) {
 						first= 0;
-				
+						
 						CFRA= cfra;
-						force_draw(0);
+						force_draw_all(0);
 						update_for_newframe();	/* for audio scrubbing */						
 					}
 					else PIL_sleep_ms(30);

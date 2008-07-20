@@ -61,6 +61,8 @@ typedef unsigned long uint_ptr;
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
+#include "SCA_IActuator.h"
+#include "SCA_ISensor.h"
 
 // This file defines relationships between parents and children
 // in the game engine.
@@ -238,6 +240,10 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		if (rootlist->RemoveValue(this))
 			// the object was in parent list, decrement ref count as it's now removed
 			Release();
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->SuspendDynamics(true);
+		}
 	}
 }
 
@@ -258,6 +264,10 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 		if (!rootlist->SearchValue(this))
 			// object was not in root list, add it now and increment ref count
 			rootlist->Add(AddRef());
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
 	}
 }
 
@@ -832,7 +842,7 @@ void KX_GameObject::Resume(void)
 	}
 }
 
-void KX_GameObject::Suspend(void)
+void KX_GameObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {
@@ -1660,6 +1670,20 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
  * --------------------------------------------------------------------- */
 void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)	
 {
-	/* intentionally empty ? */
+	// we will relink the sensors and actuators that use object references
+	// if the object is part of the replicated hierarchy, use the new
+	// object reference instead
+	SCA_SensorList& sensorlist = GetSensors();
+	SCA_SensorList::iterator sit;
+	for (sit=sensorlist.begin(); sit != sensorlist.end(); sit++)
+	{
+		(*sit)->Relink(map_parameter);
+	}
+	SCA_ActuatorList& actuatorlist = GetActuators();
+	SCA_ActuatorList::iterator ait;
+	for (ait=actuatorlist.begin(); ait != actuatorlist.end(); ait++)
+	{
+		(*ait)->Relink(map_parameter);
+	}
 }
 

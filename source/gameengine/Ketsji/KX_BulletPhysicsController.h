@@ -7,7 +7,10 @@
 
 class KX_BulletPhysicsController : public KX_IPhysicsController ,public CcdPhysicsController
 {
-
+private:
+	int m_savedCollisionFlags;
+	short int m_savedCollisionFilterGroup;
+	short int m_savedCollisionFilterMask;
 public:
 
 	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna);
@@ -39,7 +42,7 @@ public:
 
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
-	virtual void	SuspendDynamics();
+	virtual void	SuspendDynamics(bool ghost);
 	virtual void	RestoreDynamics();
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);

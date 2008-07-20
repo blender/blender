@@ -47,7 +47,7 @@ class KX_ParentActuator : public SCA_IActuator
 	int m_mode;
 	
 	/** Object to set as parent */
-	CValue *m_ob;
+	SCA_IObject *m_ob;
 	
 	
 
@@ -62,12 +62,15 @@ class KX_ParentActuator : public SCA_IActuator
  
 	KX_ParentActuator(class SCA_IObject* gameobj,
 						int mode,
-						CValue *ob,
+						SCA_IObject *ob,
 						PyTypeObject* T=&Type);
 	virtual ~KX_ParentActuator();
 	virtual bool Update();
 	
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
+	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
+	virtual bool UnlinkObject(SCA_IObject* clientobj);
 	
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */

@@ -177,7 +177,7 @@ void	KX_OdePhysicsController::setRigidBody(bool rigid)
 
 }
 
-void	KX_OdePhysicsController::SuspendDynamics()
+void	KX_OdePhysicsController::SuspendDynamics(bool)
 {
 	ODEPhysicsController::SuspendDynamics();
 }

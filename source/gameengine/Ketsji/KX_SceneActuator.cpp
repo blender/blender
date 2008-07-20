@@ -58,13 +58,16 @@ KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 	m_KetsjiEngine=ketsjiEngine;
 	m_camera = camera;
 	m_nextSceneName = nextSceneName;
+	if (m_camera)
+		m_camera->RegisterActuator(this);
 } /* End of constructor */
 
 
 
 KX_SceneActuator::~KX_SceneActuator()
 { 
-	// there's nothing to be done here, really....
+	if (m_camera)
+		m_camera->UnregisterActuator(this);
 } /* end of destructor */
 
 
@@ -79,6 +82,34 @@ CValue* KX_SceneActuator::GetReplica()
 	return replica;
 }
 
+void KX_SceneActuator::ProcessReplica()
+{
+	if (m_camera)
+		m_camera->RegisterActuator(this);
+	SCA_IActuator::ProcessReplica();
+}
+
+bool KX_SceneActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == (SCA_IObject*)m_camera)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_camera = NULL;
+		return true;
+	}
+	return false;
+}
+
+void KX_SceneActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_camera];
+	if (h_obj) {
+		if (m_camera)
+			m_camera->UnregisterActuator(this);
+		m_camera = (KX_Camera*)(*h_obj);
+		m_camera->RegisterActuator(this);
+	}
+}
 
 
 bool KX_SceneActuator::Update()
@@ -332,7 +363,11 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 	PyObject *cam;
 	if (PyArg_ParseTuple(args, "O!", &KX_Camera::Type, &cam))
 	{
+		if (m_camera)
+			m_camera->UnregisterActuator(this);
 		m_camera = (KX_Camera*) cam;
+		if (m_camera)
+			m_camera->RegisterActuator(this);
 		Py_Return;
 	}
 	PyErr_Clear();
@@ -345,7 +380,13 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 	}
 
 	KX_Camera *camOb = FindCamera(camName);
-	if (camOb) m_camera = camOb;
+	if (camOb) 
+	{
+		if (m_camera)
+			m_camera->UnregisterActuator(this);
+		m_camera = camOb;
+		m_camera->RegisterActuator(this);
+	}
 
 	Py_Return;
 }

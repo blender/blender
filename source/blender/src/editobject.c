@@ -5505,6 +5505,7 @@ void selectlinks(int nr)
 		allqueue(REDRAWDATASELECT, 0);
 		allqueue(REDRAWOOPS, 0);
 		BIF_undo_push("Select linked");
+		countall();
 	}
 }
 

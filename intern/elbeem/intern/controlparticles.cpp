@@ -177,8 +177,6 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	}
 	
 	model->setGeoInitType(FGI_CONTROL);
-	
-	initTime(mCPSTimeStart , mCPSTimeEnd);
 
 	delete tree;
 	delete genscene;

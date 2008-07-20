@@ -142,7 +142,7 @@ public:
 
 	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
 
-	virtual void Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text, short texture_flag);
+	virtual void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 

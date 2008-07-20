@@ -1135,9 +1135,78 @@ static PyObject *M_Library_Load(PyObject *self, PyObject * args)
 	return (PyObject *)lib;
 }
 
+static PyObject *M_Library_GetPaths(PyObject *self, PyObject * args)
+{	
+	PyObject *list;
+	PyObject *name;
+	int type=0;
+	Library *lib;
+	
+	if( !PyArg_ParseTuple( args, "|i", &type ) || type < 0 || type > 2 ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected an int between 0 and 2." );
+	}
+	
+	list = PyList_New(0);
+	
+	for(lib= G.main->library.first; lib; lib= lib->id.next) {
+		if (type==0) {
+			/* any type is ok */
+		} else if (type==1 && lib->parent == 0) {
+			/* only direct linked */
+		} else if (type==2 && lib->parent != 0) {
+			/* only indirect */
+		} else {
+			continue; /* incompatible type */
+		}
+		
+		name = PyString_FromString(lib->name);
+		PyList_Append(list, name);
+		Py_DECREF(name);
+	}
+	return list;
+}
+
+static PyObject *M_Library_ReplacePath(PyObject *self, PyObject * args)
+{
+	char *name_from, *name_to;
+	Library *lib;
+	
+	if( !PyArg_ParseTuple( args, "ss", &name_from, &name_to )) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected the name of a library path" );
+	}
+	
+	for(lib= G.main->library.first; lib; lib= lib->id.next) {
+		if (strcmp(lib->name, name_from)==0) {
+			if (lib->parent) {
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"path is indirectly linked, cannot be changed." );
+			}
+			
+			if (strlen(name_to) > sizeof(lib->name)) {
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"string length too long, cannot set path." );
+			}
+			
+			strcpy(lib->name, name_to);
+			Py_RETURN_NONE;
+		}
+	}
+	
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+		"path given does not exist as a library" );
+}
+
+
+
 static struct PyMethodDef M_Library_methods[] = {
 	{"load", (PyCFunction)M_Library_Load, METH_VARARGS,
 	"(string) - declare a .blend file for use as a library"},
+	{"paths", (PyCFunction)M_Library_GetPaths, METH_VARARGS,
+	"(type) - return a list of library paths, type 0 for all, 1 only direct links, 2 only indirect links"},
+	{"replace", (PyCFunction)M_Library_ReplacePath, METH_VARARGS,
+	"(from, to) - replace the path of an existing, directly linked library."},
 	{NULL, NULL, 0, NULL}
 };
 

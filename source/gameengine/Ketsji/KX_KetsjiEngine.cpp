@@ -231,7 +231,10 @@ void KX_KetsjiEngine::SetRasterizer(RAS_IRasterizer* rasterizer)
 }
 
 
-
+/*
+ * At the moment the GameLogic module is imported into 'pythondictionary' after this function is called.
+ * if this function ever changes to assign a copy, make sure the game logic module is imported into this dictionary before hand.
+ */
 void KX_KetsjiEngine::SetPythonDictionary(PyObject* pythondictionary)
 {
 	MT_assert(pythondictionary);

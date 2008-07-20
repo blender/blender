@@ -833,9 +833,7 @@ class RenderData:
 
   def enableCropping(toggle):
     """
-    Enable/disable exclusion of border rendering from total image.
-    @type toggle: int
-    @param toggle: pass 1 for on / 0 for off
+    Deprecated: see the L{crop} attribute.
     """
 
   def setImageType(type):

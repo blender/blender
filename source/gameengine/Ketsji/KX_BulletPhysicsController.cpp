@@ -13,11 +13,13 @@
 #include "KX_ClientObjectInfo.h"
 
 #include "PHY_IPhysicsEnvironment.h"
+#include "CcdPhysicsEnvironment.h"
 
 
 KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna)
 : KX_IPhysicsController(dyna,(PHY_IPhysicsController*)this),
-CcdPhysicsController(ci)
+CcdPhysicsController(ci),
+m_savedCollisionFlags(0)
 {
 
 }
@@ -161,14 +163,34 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 {
 }
 
-void	KX_BulletPhysicsController::SuspendDynamics()
+void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
-	GetRigidBody()->setActivationState(DISABLE_SIMULATION);
-
+	btRigidBody *body = GetRigidBody();
+	if (body->getActivationState() != DISABLE_SIMULATION)
+	{
+		btBroadphaseProxy* handle = body->getBroadphaseHandle();
+		m_savedCollisionFlags = body->getCollisionFlags();
+		m_savedCollisionFilterGroup = handle->m_collisionFilterGroup;
+		m_savedCollisionFilterMask = handle->m_collisionFilterMask;
+		body->setActivationState(DISABLE_SIMULATION);
+		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
+			btBroadphaseProxy::StaticFilter, 
+			btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
+	}
 }
+
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
-	GetRigidBody()->forceActivationState(ACTIVE_TAG);
+	btRigidBody *body = GetRigidBody();
+	if (body->getActivationState() == DISABLE_SIMULATION)
+	{
+		GetRigidBody()->forceActivationState(ACTIVE_TAG);
+		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			m_savedCollisionFlags,
+			m_savedCollisionFilterGroup,
+			m_savedCollisionFilterMask);
+	}
 }
 
 SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
