@@ -106,6 +106,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	btRigidBody* m_body;
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
+	friend class CcdPhysicsEnvironment;	// needed when updating the controller
 
 
 	void*		m_newClientInfo;
@@ -193,7 +194,6 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		{
 			return m_cci.m_collisionFilterMask;
 		}
-
 
 		virtual void	calcXform() {} ;
 		virtual void SetMargin(float margin) {};

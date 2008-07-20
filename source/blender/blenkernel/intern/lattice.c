@@ -915,7 +915,10 @@ void lattice_calc_modifiers(Object *ob)
 		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
 	}
 
-	if (vertexCos) {
+	/* always displist to make this work like derivedmesh */
+	if (!vertexCos) vertexCos = lattice_getVertexCos(ob, &numVerts);
+	
+	{
 		DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
 		dl->type = DL_VERTS;
 		dl->parts = 1;

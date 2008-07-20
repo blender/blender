@@ -1199,7 +1199,12 @@ static void drawlattice(Object *ob)
 	int use_wcol= 0;
 
 	lt= (ob==G.obedit)?editLatt:ob->data;
+	
+	/* now we default make displist, this will modifiers work for non animated case */
+	if(ob->disp.first==NULL)
+		lattice_calc_modifiers(ob);
 	dl= find_displist(&ob->disp, DL_VERTS);
+	
 	if(ob==G.obedit) {
 		cpack(0x004000);
 		
