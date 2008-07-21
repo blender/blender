@@ -42,6 +42,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_deform.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_displist.h"
 #include "BKE_global.h"
 
 #include "BLI_arithb.h"
@@ -90,7 +91,20 @@ typedef void ( *Shrinkwrap_ForeachVertexCallback) (DerivedMesh *target, float *c
 static float nearest_point_in_tri_surface(const float *point, const float *v0, const float *v1, const float *v2, float *nearest);
 static float ray_intersect_plane(const float *point, const float *dir, const float *plane_point, const float *plane_normal);
 
-
+/* get derived mesh */
+//TODO is anyfunction that does this? returning the derivedFinal witouth we caring if its in edit mode or not?
+DerivedMesh *object_get_derived_final(Object *ob, CustomDataMask dataMask)
+{
+	if (ob==G.obedit)
+	{
+		DerivedMesh *final = NULL;
+		editmesh_get_derived_cage_and_final(&final, dataMask);
+		return final;
+	}
+	else
+		return mesh_get_derived_final(ob, dataMask);
+}
+	
 /* ray - triangle */
 #define ISECT_EPSILON 1e-6
 static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float *v0, const float *v1, const float *v2)
@@ -184,8 +198,15 @@ static BVHTree* bvhtree_from_mesh_verts(DerivedMesh *mesh, float epsilon, int tr
 	int i;
 	int numVerts= mesh->getNumVerts(mesh);
 	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+	BVHTree *tree = NULL;
 
-	BVHTree *tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
+	if(vert == NULL)
+	{
+		printf("bvhtree cant be build: cant get a vertex array");
+		return NULL;
+	}
+
+	tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
 	if(tree != NULL)
 	{
 		for(i = 0; i < numVerts; i++)
@@ -206,9 +227,13 @@ static BVHTree* bvhtree_from_mesh_faces(DerivedMesh *mesh, float epsilon, int tr
 	int numFaces= mesh->getNumFaces(mesh);
 	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
 	MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
-	BVHTree *tree= NULL;
+	BVHTree *tree = NULL;
 
-	/* Count needed faces */
+	if(vert == NULL && face == NULL)
+	{
+		printf("bvhtree cant be build: cant get a vertex/face array");
+		return NULL;
+	}
 
 	/* Create a bvh-tree of the given target */
 	tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
@@ -217,7 +242,6 @@ static BVHTree* bvhtree_from_mesh_faces(DerivedMesh *mesh, float epsilon, int tr
 		for(i = 0; i < numFaces; i++)
 		{
 			float co[4][3];
-
 			VECCOPY(co[0], vert[ face[i].v1 ].co);
 			VECCOPY(co[1], vert[ face[i].v2 ].co);
 			VECCOPY(co[2], vert[ face[i].v3 ].co);
@@ -226,7 +250,6 @@ static BVHTree* bvhtree_from_mesh_faces(DerivedMesh *mesh, float epsilon, int tr
 
 			BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 		}
-
 		BLI_bvhtree_balance(tree);
 	}
 
@@ -1141,9 +1164,15 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 		return dm;
 	}
 
+	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
+	if(smd->target == ob) smd->target = NULL;
+	if(smd->cutPlane == ob) smd->cutPlane = NULL;
+
+
 	if(smd->target)
 	{
-		calc.target = (DerivedMesh *)smd->target->derivedFinal;
+		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
+		calc.target = CDDM_copy( object_get_derived_final(smd->target, CD_MASK_BAREMESH) );
 
 		if(!calc.target)
 		{
@@ -1190,7 +1219,7 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 				if(calc.moved)
 				{
 					//Adjust vertxs that didn't moved (project to cut plane)
-					shrinkwrap_projectToCutPlane(&calc);
+//					shrinkwrap_projectToCutPlane(&calc);
 
 					//Destroy faces, edges and stuff
 					shrinkwrap_removeUnused(&calc);
@@ -1208,6 +1237,9 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 			break;
 		}
 
+		//free derived mesh
+		calc.target->release( calc.target );
+		calc.target = NULL;
 	}
 
 	CDDM_calc_normals(calc.final);
@@ -1392,7 +1424,7 @@ void shrinkwrap_calc_normal_projection_raytree(ShrinkwrapCalcData *calc)
  *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
  *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
-static int normal_projection_project_vertex(char options, const float *vert, const float *dir,/* const */ SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, BVHMeshCallbackUserdata *userdata)
+static int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, BVHMeshCallbackUserdata *userdata)
 {
 	float tmp_co[3], tmp_no[3];
 	const float *co, *no;
@@ -1461,6 +1493,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 	//cutTree
+	DerivedMesh * limit_mesh = NULL;
 	BVHTree *limit_tree = NULL;
 	BVHMeshCallbackUserdata limit_userdata;
 	BVHTree_RayCastCallback limit_callback = NULL;
@@ -1481,7 +1514,8 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 	if(calc->smd->cutPlane)
 	{
-		DerivedMesh * limit_mesh = (DerivedMesh *)calc->smd->cutPlane->derivedFinal;
+		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
+		limit_mesh = CDDM_copy( object_get_derived_final(calc->smd->cutPlane, CD_MASK_BAREMESH) );
 		if(limit_mesh)
 		{
 			BENCH(limit_tree = bvhtree_from_mesh_faces(limit_mesh, 0.0, 4, 6));
@@ -1518,10 +1552,9 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
 		{
-/*
+
 			if(limit_tree)
 				normal_projection_project_vertex(0, tmp_co, tmp_no, &local2cut, limit_tree, &hit, limit_callback, &limit_userdata);
-*/
 
 			if(normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, tree, &hit, callback, &userdata))
 				moved = TRUE;
@@ -1532,10 +1565,10 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		{
 			float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
 
-/*
+
 			if(limit_tree)
 				normal_projection_project_vertex(0, tmp_co, inv_no, &local2cut, limit_tree, &hit, limit_callback, &limit_userdata);
-*/
+
 			if(normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, tree, &hit, callback, &userdata))
 				moved = TRUE;
 		}
@@ -1554,6 +1587,9 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 	if(limit_tree)
 		BLI_bvhtree_free(limit_tree);
+
+	if(limit_mesh)
+		limit_mesh->release(limit_mesh);
 }
 
 /*
