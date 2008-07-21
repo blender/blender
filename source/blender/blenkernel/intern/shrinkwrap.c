@@ -1096,7 +1096,8 @@ void shrinkwrap_projectToCutPlane(ShrinkwrapCalcData *calc_data)
 
 		if(calc.smd->cutPlane)
 		{
-			calc.target = (DerivedMesh *)calc.smd->cutPlane->derivedFinal;
+			//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
+			calc.target = CDDM_copy( object_get_derived_final(calc.smd->cutPlane, CD_MASK_BAREMESH) );
 
 			if(!calc.target)
 			{
@@ -1139,6 +1140,7 @@ void shrinkwrap_projectToCutPlane(ShrinkwrapCalcData *calc_data)
 
 		//free memory
 		calc.final->release(calc.final);
+		calc.target->release(calc.target);
 	}	
 
 }
@@ -1163,6 +1165,8 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 		OUT_OF_MEMORY();
 		return dm;
 	}
+
+	CDDM_calc_normals(calc.final);	//Normals maybe not be calculated yet
 
 	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
 	if(smd->target == ob) smd->target = NULL;
@@ -1219,7 +1223,7 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 				if(calc.moved)
 				{
 					//Adjust vertxs that didn't moved (project to cut plane)
-//					shrinkwrap_projectToCutPlane(&calc);
+					shrinkwrap_projectToCutPlane(&calc);
 
 					//Destroy faces, edges and stuff
 					shrinkwrap_removeUnused(&calc);
@@ -1552,9 +1556,10 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
 		{
-
+/*
 			if(limit_tree)
 				normal_projection_project_vertex(0, tmp_co, tmp_no, &local2cut, limit_tree, &hit, limit_callback, &limit_userdata);
+*/
 
 			if(normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, tree, &hit, callback, &userdata))
 				moved = TRUE;
@@ -1565,10 +1570,10 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		{
 			float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
 
-
+/*
 			if(limit_tree)
 				normal_projection_project_vertex(0, tmp_co, inv_no, &local2cut, limit_tree, &hit, limit_callback, &limit_userdata);
-
+*/
 			if(normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, tree, &hit, callback, &userdata))
 				moved = TRUE;
 		}
