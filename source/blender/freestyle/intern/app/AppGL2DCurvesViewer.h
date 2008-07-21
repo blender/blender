@@ -46,8 +46,8 @@ public:
   
   /*! Sets the ranges.
    */
-  void SetRange(const Vec2d& vmin, const Vec2d& vmax, const char * xlabel, const char *ylabel);
-  void SetCurve(const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iPoints, const char *xlabel, const char *ylabel);
+  void setRange(const Vec2d& vmin, const Vec2d& vmax, const char * xlabel, const char *ylabel);
+  void setCurve(const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iPoints, const char *xlabel, const char *ylabel);
   void AddNode(Node* iNode);
   void DetachNode(Node* iNode);
   void RetrieveNodes(vector<Node*>& oNodes);

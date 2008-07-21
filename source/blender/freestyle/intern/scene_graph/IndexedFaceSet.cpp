@@ -317,5 +317,5 @@ void IndexedFaceSet::ComputeBBox()
     v++;
   }
 
-  SetBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
+  setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
 }

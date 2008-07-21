@@ -59,7 +59,7 @@ namespace Functions0D {
      *    value. (the larger, the smoother)
      */
     DensityF0D(double sigma = 2) : UnaryFunction0D<double>() {
-      _filter.SetSigma((float)sigma);
+      _filter.setSigma((float)sigma);
     }
     /*! Returns the string "DensityF0D"*/
     string getName() const {
@@ -87,7 +87,7 @@ namespace Functions0D {
      *   will be used.
      */
     LocalAverageDepthF0D(real maskSize=5.f) : UnaryFunction0D<double>() {
-      _filter.SetSigma((float)maskSize/2.f);
+      _filter.setSigma((float)maskSize/2.f);
     }
     /*! Returns the string "LocalAverageDepthF0D"*/
     string getName() const {

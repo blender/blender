@@ -152,7 +152,7 @@ public:
   bool isAttributeAvailableVec3f(const char *iName) const ;
   
   /* modifiers */
-  /*! Sets the attribute's color.
+  /*! sets the attribute's color.
    *    \param r
    *      The new R value.
    *    \param g
@@ -161,31 +161,31 @@ public:
    *      The new B value.
    */
   inline void setColor(float r, float g, float b) { _color[0]=r; _color[1]=g; _color[2]=b; }
-  /*! Sets the attribute's color.
+  /*! sets the attribute's color.
    *    \param iRGB
    *      The new RGB values.
    */
   inline void setColor(const Vec3f& iRGB) { _color[0]=iRGB[0]; _color[1]=iRGB[1]; _color[2]=iRGB[2]; }
-  /*! Sets the attribute's alpha value.
+  /*! sets the attribute's alpha value.
    *  \param alpha
    *    The new alpha value.
    */
   inline void setAlpha(float alpha) { _alpha = alpha; }
-  /*! Sets the attribute's thickness.
+  /*! sets the attribute's thickness.
    *  \param tr
    *    The thickness on the right of the vertex when following the stroke.
    *  \param tl
    *    The thickness on the left of the vertex when following the stroke.
    */
   inline void setThickness(float tr, float tl) { _thickness[0]=tr; _thickness[1]=tl; }
-  /*! Sets the attribute's thickness.
+  /*! sets the attribute's thickness.
    *  \param tRL
    *    The thickness on the right and on the left of the vertex when following the stroke.
    */
   inline void setThickness(const Vec2f& tRL) { _thickness[0]=tRL[0]; _thickness[1]=tRL[1]; }
 
-  /*! Sets the visible flag. True means visible. */
-  inline void SetVisible(bool iVisible){ _visible = iVisible; }
+  /*! sets the visible flag. True means visible. */
+  inline void setVisible(bool iVisible){ _visible = iVisible; }
 
   /*! Adds a user defined attribute of type real
    *  If there is no attribute of name iName, it is added.
@@ -295,24 +295,24 @@ public:
   inline float u() const {return _CurvilignAbscissa/_StrokeLength;}
 
   /* modifiers */
-  /*! Sets the 2D x value */
-  inline void SetX(real x) { _Point2d[0]=x; }
-  /*! Sets the 2D y value */
-  inline void SetY(real y) { _Point2d[1]=y; }
-  /*! Sets the 2D x and y values */
-  inline void SetPoint(real x, real y) { _Point2d[0]=x; _Point2d[1]=y;}
-  /*! Sets the 2D x and y values */
-  inline void SetPoint(const Vec2f& p) { _Point2d[0] = p[0];_Point2d[1] = p[1];}
+  /*! sets the 2D x value */
+  inline void setX(real x) { _Point2d[0]=x; }
+  /*! sets the 2D y value */
+  inline void setY(real y) { _Point2d[1]=y; }
+  /*! sets the 2D x and y values */
+  inline void setPoint(real x, real y) { _Point2d[0]=x; _Point2d[1]=y;}
+  /*! sets the 2D x and y values */
+  inline void setPoint(const Vec2f& p) { _Point2d[0] = p[0];_Point2d[1] = p[1];}
   /*! Returns a reference to the ith 2D point coordinate (i=0 or 1) */
   inline real& operator[](const int i) { return _Point2d[i]; }
-  /*! Sets the attribute. */
-  inline void SetAttribute(const StrokeAttribute& iAttribute) { _Attribute = iAttribute; }
-  /*! Sets the curvilinear abscissa of this StrokeVertex in the Stroke */
-  inline void SetCurvilinearAbscissa(float iAbscissa) {_CurvilignAbscissa = iAbscissa;}
-  /*! Sets the Stroke's length (it's only a value stored by the Stroke Vertex, it won't
+  /*! sets the attribute. */
+  inline void setAttribute(const StrokeAttribute& iAttribute) { _Attribute = iAttribute; }
+  /*! sets the curvilinear abscissa of this StrokeVertex in the Stroke */
+  inline void setCurvilinearAbscissa(float iAbscissa) {_CurvilignAbscissa = iAbscissa;}
+  /*! sets the Stroke's length (it's only a value stored by the Stroke Vertex, it won't
    *  change the real Stroke's length.)
    */
-  inline void SetStrokeLength(float iLength) {_StrokeLength = iLength;}
+  inline void setStrokeLength(float iLength) {_StrokeLength = iLength;}
   
   /* interface definition */
   /* inherited */  
@@ -502,26 +502,26 @@ public:
 
 
   /* modifiers */
-  /*! Sets the Id of the Stroke. */
-  inline void SetId(const Id& id) {_id = id;}
-  /*! Sets the 2D length of the Stroke. */
-  void SetLength(float iLength);
-  /*! Sets the medium type that must be used for this Stroke. */
-  inline void SetMediumType(MediumType iType) {_mediumType = iType;}
-  /*! Sets the texture id to be used to simulate the marks system for this Stroke. */
-  inline void SetTextureId(unsigned int id) {_textureId = id;}
-  /*! Sets the flag telling whether this stroke is using a texture with
+  /*! sets the Id of the Stroke. */
+  inline void setId(const Id& id) {_id = id;}
+  /*! sets the 2D length of the Stroke. */
+  void setLength(float iLength);
+  /*! sets the medium type that must be used for this Stroke. */
+  inline void setMediumType(MediumType iType) {_mediumType = iType;}
+  /*! sets the texture id to be used to simulate the marks system for this Stroke. */
+  inline void setTextureId(unsigned int id) {_textureId = id;}
+  /*! sets the flag telling whether this stroke is using a texture with
    *  tips or not.
    */
-  inline void SetTips(bool iTips) {_tips = iTips;}
+  inline void setTips(bool iTips) {_tips = iTips;}
   
   inline void push_back(StrokeVertex* iVertex) { _Vertices.push_back(iVertex); }
   inline void push_front(StrokeVertex* iVertex) { _Vertices.push_front(iVertex); }
   inline void AddViewEdge(ViewEdge *iViewEdge) {_ViewEdges.push_back(iViewEdge);}
-  inline void SetBeginningOrientation(const Vec2r& iOrientation) {_extremityOrientations[0] = iOrientation;}
-  inline void SetBeginningOrientation(real x, real y) {_extremityOrientations[0] = Vec2r(x,y);}
-  inline void SetEndingOrientation(const Vec2r& iOrientation) {_extremityOrientations[1] = iOrientation;}
-  inline void SetEndingOrientation(real x, real y) {_extremityOrientations[1] = Vec2r(x,y);}
+  inline void setBeginningOrientation(const Vec2r& iOrientation) {_extremityOrientations[0] = iOrientation;}
+  inline void setBeginningOrientation(real x, real y) {_extremityOrientations[0] = Vec2r(x,y);}
+  inline void setEndingOrientation(const Vec2r& iOrientation) {_extremityOrientations[1] = iOrientation;}
+  inline void setEndingOrientation(real x, real y) {_extremityOrientations[1] = Vec2r(x,y);}
 
   /* Information access interface */
   

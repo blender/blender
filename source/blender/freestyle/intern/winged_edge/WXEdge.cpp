@@ -162,16 +162,16 @@ WXSmoothEdge* WXFaceLayer::BuildSmoothEdge(){
   }
   if(ok){
     _pSmoothEdge = new WXSmoothEdge;
-    _pSmoothEdge->SetWOeA(woea);
-    _pSmoothEdge->SetWOeB(woeb);
-    _pSmoothEdge->SetTa(ta);
-    _pSmoothEdge->SetTb(tb);
+    _pSmoothEdge->setWOeA(woea);
+    _pSmoothEdge->setWOeB(woeb);
+    _pSmoothEdge->setTa(ta);
+    _pSmoothEdge->setTb(tb);
     if(_Nature & Nature::SILHOUETTE){
       if(_nNullDotP != 2){
         if(_DotP[_ClosestPointIndex] + 0.01 > 0)
-          _pSmoothEdge->SetFront(true);
+          _pSmoothEdge->setFront(true);
         else
-          _pSmoothEdge->SetFront(false); 
+          _pSmoothEdge->setFront(false); 
       }
     }
   }
@@ -221,10 +221,10 @@ WXSmoothEdge* WXFaceLayer::BuildSmoothEdge(){
   //          } 
   //      
   //        _pSmoothEdge = new ExactSilhouetteEdge(ExactSilhouetteEdge::VERTEX_VERTEX);
-  //        _pSmoothEdge->SetWOeA(woea);
-  //        _pSmoothEdge->SetWOeA(woeb);
-  //        _pSmoothEdge->SetTa(ta);
-  //        _pSmoothEdge->SetTb(tb);
+  //        _pSmoothEdge->setWOeA(woea);
+  //        _pSmoothEdge->setWOeA(woeb);
+  //        _pSmoothEdge->setTa(ta);
+  //        _pSmoothEdge->setTb(tb);
   //
   //        return _pSmoothEdge;
   //        }
@@ -246,7 +246,7 @@ void WXFace::ComputeCenter()
     center += (*wv)->GetVertex();
   }
   center /= (real)iVertexList.size();
-  SetCenter(center);
+  setCenter(center);
 }
 
                   /**********************************/
@@ -272,7 +272,7 @@ WFace* WXShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterialIndex)
     center += (*wv)->GetVertex();
   }
   center /= (real)iVertexList.size();
-  ((WXFace*)face)->SetCenter(center);
+  ((WXFace*)face)->setCenter(center);
 
   return face;
 }
@@ -289,7 +289,7 @@ WFace * WXShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormals
   //    center += (*wv)->GetVertex();
   //  }
   //  center /= (real)iVertexList.size();
-  //  ((WSFace*)face)->SetCenter(center);
+  //  ((WSFace*)face)->setCenter(center);
 
   return face;
 }

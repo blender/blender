@@ -55,7 +55,7 @@ class pyDiffusion2Shader(StrokeShader):
 				v=it.getObject()
 				p1 = v.getPoint()
 				p2 = normalInfo(it.castToInterface0DIterator())*self._lambda*curvatureInfo(it.castToInterface0DIterator())
-				v.SetPoint(p1+p2)
+				v.setPoint(p1+p2)
 				it.increment()
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())

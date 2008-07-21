@@ -49,7 +49,7 @@ public:
   virtual void retrieveMeanAndVariance(int x, int y, float &oMean, float &oVariance) ;
 
   inline const QImage& map() const {return _map;}
-  inline void SetMap(const QImage& iMap, float iw, float ih) {_map = iMap.copy();_w=iw;_h=ih;}
+  inline void setMap(const QImage& iMap, float iw, float ih) {_map = iMap.copy();_w=iw;_h=ih;}
 
 protected:
   virtual float computeGaussian(int x, int y);

@@ -14,10 +14,10 @@ static int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds);
 static PyObject * SVertex___copy__( BPy_SVertex *self );
 static PyObject * SVertex_normals( BPy_SVertex *self );
 static PyObject * SVertex_normalsSize( BPy_SVertex *self );
-static PyObject * SVertex_SetPoint3D( BPy_SVertex *self , PyObject *args);
-static PyObject * SVertex_SetPoint2D( BPy_SVertex *self , PyObject *args);
+static PyObject * SVertex_setPoint3D( BPy_SVertex *self , PyObject *args);
+static PyObject * SVertex_setPoint2D( BPy_SVertex *self , PyObject *args);
 static PyObject * SVertex_AddNormal( BPy_SVertex *self , PyObject *args);
-static PyObject * SVertex_SetId( BPy_SVertex *self , PyObject *args);
+static PyObject * SVertex_setId( BPy_SVertex *self , PyObject *args);
 static PyObject *SVertex_AddFEdge( BPy_SVertex *self , PyObject *args);
 
 /*----------------------SVertex instance definitions ----------------------------*/
@@ -25,10 +25,10 @@ static PyMethodDef BPy_SVertex_methods[] = {
 	{"__copy__", ( PyCFunction ) SVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
 	{"normals", ( PyCFunction ) SVertex_normals, METH_NOARGS, "Returns the normals for this Vertex as a list. In a smooth surface, a vertex has exactly one normal. In a sharp surface, a vertex can have any number of normals."},
 	{"normalsSize", ( PyCFunction ) SVertex_normalsSize, METH_NOARGS, "Returns the number of different normals for this vertex." },
-	{"SetPoint3D", ( PyCFunction ) SVertex_SetPoint3D, METH_VARARGS, "Sets the 3D coordinates of the SVertex." },
-	{"SetPoint2D", ( PyCFunction ) SVertex_SetPoint2D, METH_VARARGS, "Sets the 3D projected coordinates of the SVertex." },
+	{"setPoint3D", ( PyCFunction ) SVertex_setPoint3D, METH_VARARGS, "Sets the 3D coordinates of the SVertex." },
+	{"setPoint2D", ( PyCFunction ) SVertex_setPoint2D, METH_VARARGS, "Sets the 3D projected coordinates of the SVertex." },
 	{"AddNormal", ( PyCFunction ) SVertex_AddNormal, METH_VARARGS, "Adds a normal to the Svertex's set of normals. If the same normal is already in the set, nothing changes." },
-	{"SetId", ( PyCFunction ) SVertex_SetId, METH_VARARGS, "Sets the Id." },
+	{"setId", ( PyCFunction ) SVertex_setId, METH_VARARGS, "Sets the Id." },
 	{"AddFEdge", ( PyCFunction ) SVertex_AddFEdge, METH_VARARGS, "Add an FEdge to the list of edges emanating from this SVertex." },	
 	{NULL, NULL, 0, NULL}
 };
@@ -177,36 +177,36 @@ PyObject * SVertex_normalsSize( BPy_SVertex *self ) {
 	return PyInt_FromLong( self->sv->normalsSize() );
 }
 
-PyObject *SVertex_SetPoint3D( BPy_SVertex *self , PyObject *args) {
+PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_point) 
 			&& PyList_Check(py_point) && PyList_Size(py_point) == 3 )) {
-		cout << "ERROR: SVertex_SetPoint3D" << endl;
+		cout << "ERROR: SVertex_setPoint3D" << endl;
 		Py_RETURN_NONE;
 	}
 
 	Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
 				PyFloat_AsDouble( PyList_GetItem(py_point, 1) ),
 				PyFloat_AsDouble( PyList_GetItem(py_point, 2) )  );
-	self->sv->SetPoint3D( v );
+	self->sv->setPoint3D( v );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *SVertex_SetPoint2D( BPy_SVertex *self , PyObject *args) {
+PyObject *SVertex_setPoint2D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_point) 
 			&& PyList_Check(py_point) && PyList_Size(py_point) == 3 )) {
-		cout << "ERROR: SVertex_SetPoint2D" << endl;
+		cout << "ERROR: SVertex_setPoint2D" << endl;
 		Py_RETURN_NONE;
 	}
 
 	Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
 				PyFloat_AsDouble( PyList_GetItem(py_point, 1) ),
 				PyFloat_AsDouble( PyList_GetItem(py_point, 2) )  );
-	self->sv->SetPoint2D( v );
+	self->sv->setPoint2D( v );
 
 	Py_RETURN_NONE;
 }
@@ -228,15 +228,15 @@ PyObject *SVertex_AddNormal( BPy_SVertex *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
-PyObject *SVertex_SetId( BPy_SVertex *self , PyObject *args) {
+PyObject *SVertex_setId( BPy_SVertex *self , PyObject *args) {
 	BPy_Id *py_id;
 
 	if( !PyArg_ParseTuple(args, "O", &py_id) ) {
-		cout << "ERROR: SVertex_SetId" << endl;
+		cout << "ERROR: SVertex_setId" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->sv->SetId( *(py_id->id) );
+	self->sv->setId( *(py_id->id) );
 
 	Py_RETURN_NONE;
 }

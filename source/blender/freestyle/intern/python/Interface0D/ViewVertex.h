@@ -15,8 +15,7 @@ extern "C" {
 
 extern PyTypeObject ViewVertex_Type;
 
-#define BPy_ViewVertex_Check(v) \
-    ((v)->ob_type == &ViewVertex_Type)
+#define BPy_ViewVertex_Check(v)	(( (PyObject *) v)->ob_type == &ViewVertex_Type)
 
 /*---------------------------Python BPy_ViewVertex structure definition----------*/
 typedef struct {

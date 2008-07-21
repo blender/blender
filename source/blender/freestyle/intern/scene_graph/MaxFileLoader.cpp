@@ -58,7 +58,7 @@ MaxFileLoader::~MaxFileLoader()
   _Scene = NULL;
 }
 
-void MaxFileLoader::SetFileName(const char *iFileName)
+void MaxFileLoader::setFileName(const char *iFileName)
 {
   if(NULL != _FileName)
     delete [] _FileName;
@@ -224,17 +224,17 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
 
         if (mat) 
         {
-          tmpMat.SetDiffuse(mat->diffuse[0], mat->diffuse[1], mat->diffuse[2], mat->diffuse[3]);
-          tmpMat.SetSpecular(mat->specular[0], mat->specular[1], mat->specular[2], mat->specular[3]);
+          tmpMat.setDiffuse(mat->diffuse[0], mat->diffuse[1], mat->diffuse[2], mat->diffuse[3]);
+          tmpMat.setSpecular(mat->specular[0], mat->specular[1], mat->specular[2], mat->specular[3]);
           float s = (float)pow(2.0, 10.0*mat->shininess);
           if(s > 128.f)
             s = 128.f;
-          tmpMat.SetShininess(s);
+          tmpMat.setShininess(s);
         }
         
         if(meshMaterials.empty()){
           meshMaterials.push_back(tmpMat);
-          shape->SetMaterial(tmpMat);
+          shape->setMaterial(tmpMat);
         }else{
           // find if the material is aleady in the list
           unsigned i=0;
@@ -357,12 +357,12 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
                                0,0,
                                0);
 	  // sets the id of the rep
-	  rep->SetId(Id(iNode->node_id, 0));
+	  rep->setId(Id(iNode->node_id, 0));
 
 
       const BBox<Vec3r> bbox = BBox<Vec3r>(Vec3r(minBBox[0], minBBox[1], minBBox[2]), 
                                            Vec3r(maxBBox[0], maxBBox[1], maxBBox[2]));
-      rep->SetBBox(bbox);
+      rep->setBBox(bbox);
       shape->AddRep(rep);
     }
 
@@ -376,7 +376,7 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
           for(unsigned j=0; j<4; j++)
             M44f(i,j) = iNode->matrix[j][i];
           
-          currentMesh->SetMatrix(Matrix44r(M44f));
+          currentMesh->setMatrix(Matrix44r(M44f));
           currentMesh->Translate(-d->pivot[0], -d->pivot[1], -d->pivot[2]);
       }
       shape = (NodeShape*)iNode->user.d;

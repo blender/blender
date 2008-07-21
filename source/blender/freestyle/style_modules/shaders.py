@@ -603,8 +603,8 @@ class pyBackboneStretcherShader(StrokeShader):
 		dn = dn/dn.norm()
 		newFirst = p0+d1*float(self._l)
 		newLast = pn+dn*float(self._l)
-		v0.SetPoint(newFirst)
-		vn.SetPoint(newLast)
+		v0.setPoint(newFirst)
+		vn.setPoint(newLast)
 		
 class pyLengthDependingBackboneStretcherShader(StrokeShader):
 	def __init__(self, l):
@@ -636,8 +636,8 @@ class pyLengthDependingBackboneStretcherShader(StrokeShader):
 		dn = dn/dn.norm()
 		newFirst = p0+d1*float(stretch)
 		newLast = pn+dn*float(stretch)
-		v0.SetPoint(newFirst)
-		vn.SetPoint(newLast)
+		v0.setPoint(newFirst)
+		vn.setPoint(newLast)
 
 
 ## Shader to replace a stroke by its corresponding tangent
@@ -656,16 +656,16 @@ class pyGuidingLineShader(StrokeShader):
 		it = StrokeVertexIterator(itmiddle)	
 		it.increment()
 		while(it.isEnd() == 0):			## position all the vertices along the tangent for the right part
-			it.getObject().SetPoint(itmiddle.getObject().getPoint() \
+			it.getObject().setPoint(itmiddle.getObject().getPoint() \
 			+t*(it.getObject().u()-itmiddle.getObject().u()))
 			it.increment()
 		it = StrokeVertexIterator(itmiddle)
 		it.decrement()
 		while(it.isBegin() == 0):		## position all the vertices along the tangent for the left part
-			it.getObject().SetPoint(itmiddle.getObject().getPoint() \
+			it.getObject().setPoint(itmiddle.getObject().getPoint() \
 			-t*(itmiddle.getObject().u()-it.getObject().u()))
 			it.decrement()
-		it.getObject().SetPoint(itmiddle.getObject().getPoint()-t*(itmiddle.getObject().u())) ## first vertex
+		it.getObject().setPoint(itmiddle.getObject().getPoint()-t*(itmiddle.getObject().u())) ## first vertex
 
 
 class pyBackboneStretcherNoCuspShader(StrokeShader):
@@ -690,7 +690,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			d1 = p0-p1
 			d1 = d1/d1.norm()
 			newFirst = p0+d1*float(self._l)
-			v0.SetPoint(newFirst)
+			v0.setPoint(newFirst)
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
 		if((vn.getNature() & CUSP == 0) and (vn_1.getNature() & CUSP == 0)):
@@ -699,7 +699,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			dn = pn-pn_1
 			dn = dn/dn.norm()
 			newLast = pn+dn*float(self._l)	
-			vn.SetPoint(newLast)
+			vn.setPoint(newLast)
 
 normalInfo=Normal2DF0D()
 curvatureInfo=Curvature2DAngleF0D()
@@ -723,7 +723,7 @@ class pyDiffusion2Shader(StrokeShader):
 				v=it.getObject()
 				p1 = v.getPoint()
 				p2 = self._normalInfo(it.castToInterface0DIterator())*self._lambda*self._curvatureInfo(it.castToInterface0DIterator())
-				v.SetPoint(p1+p2)
+				v.setPoint(p1+p2)
 				it.increment()
 
 class pyTipRemoverShader(StrokeShader):
@@ -757,7 +757,7 @@ class pyTipRemoverShader(StrokeShader):
 			if(it.isEnd() == 1):
 				break
 			v = it.getObject()
-			v.SetAttribute(a)
+			v.setAttribute(a)
 			it.increment()
 
 class pyTVertexRemoverShader(StrokeShader):
@@ -784,8 +784,8 @@ class pyExtremitiesOrientationShader(StrokeShader):
 		return "pyExtremitiesOrientationShader"
 	def shade(self, stroke):
 		print self._v1.x(),self._v1.y()
-		stroke.SetBeginningOrientation(self._v1.x(),self._v1.y())
-		stroke.SetEndingOrientation(self._v2.x(),self._v2.y())
+		stroke.setBeginningOrientation(self._v1.x(),self._v1.y())
+		stroke.setEndingOrientation(self._v2.x(),self._v2.y())
 
 class pyHLRShader(StrokeShader):
 	def getName(self):
@@ -813,7 +813,7 @@ class pyHLRShader(StrokeShader):
 				else:
 					invisible = 0
 			if(invisible == 1):		
-				v.attribute().SetVisible(0)
+				v.attribute().setVisible(0)
 			it.increment()
 			it2.increment()
 
@@ -902,8 +902,8 @@ class pySinusDisplacementShader(StrokeShader):
 			a = self._a*(1-2*(fabs(u-0.5)))
 			n = n*a*cos(self._f*u*6.28)
 			#print n.x(), n.y()
-			v.SetPoint(p+n)
-			#v.SetPoint(v.getPoint()+n*a*cos(f*v.u()))
+			v.setPoint(p+n)
+			#v.setPoint(v.getPoint()+n*a*cos(f*v.u()))
 			it.increment()
 
 class pyPerlinNoise1DShader(StrokeShader):
@@ -921,7 +921,7 @@ class pyPerlinNoise1DShader(StrokeShader):
 		while it.isEnd() == 0:
 			v = it.getObject()
 			nres = self.__noise.turbulence1(i, self.__freq, self.__amp, self.__oct)
-			v.SetPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
+			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
 			i = i+1
 			it.increment()
 
@@ -940,7 +940,7 @@ class pyPerlinNoise2DShader(StrokeShader):
 			v = it.getObject()
 			vec = Vec2f(v.getProjectedX(), v.getProjectedY())
 			nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
-			v.SetPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
+			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
 			it.increment()
 
 class pyBluePrintCirclesShader(StrokeShader):
@@ -987,7 +987,7 @@ class pyBluePrintCirclesShader(StrokeShader):
 			while i < sv_nb:
 				p_new.setX(center.x() + radius * cos(2 * pi * float(i) / float(sv_nb - 1)))
    				p_new.setY(center.y() + radius * sin(2 * pi * float(i) / float(sv_nb - 1)))
-				it.getObject().SetPoint(p_new.x(), p_new.y())
+				it.getObject().setPoint(p_new.x(), p_new.y())
 				i = i + 1
 				it.increment()
 		while it.isEnd() == 0:
@@ -1041,7 +1041,7 @@ class pyBluePrintEllipsesShader(StrokeShader):
 			while i < sv_nb:
 				p_new.setX(center.x() + radius_x * cos(2 * pi * float(i) / float(sv_nb - 1)))
    				p_new.setY(center.y() + radius_y * sin(2 * pi * float(i) / float(sv_nb - 1)))
-				it.getObject().SetPoint(p_new.x(), p_new.y())
+				it.getObject().setPoint(p_new.x(), p_new.y())
 				i = i + 1
 				it.increment()
 		while it.isEnd() == 0:
@@ -1109,8 +1109,8 @@ class pyBluePrintSquaresShader(StrokeShader):
 					p_new = p_fourth + vec_fourth * float(i - third)/float(fourth - third - 1)
 					if i == fourth - 1:
 						visible = 0
-				it.getObject().SetPoint(p_new.x(), p_new.y())
-				it.getObject().attribute().SetVisible(visible)
+				it.getObject().setPoint(p_new.x(), p_new.y())
+				it.getObject().attribute().setVisible(visible)
 				if visible == 0:
 					visible = 1
 				i = i + 1
@@ -1214,8 +1214,8 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 					p_new = p_fourth + vec_fourth * float(i - third)/float(fourth - third - 1)
 					if i == fourth - 1:
 						visible = 0
-				it.getObject().SetPoint(p_new.x(), p_new.y())
-				it.getObject().attribute().SetVisible(visible)
+				it.getObject().setPoint(p_new.x(), p_new.y())
+				it.getObject().attribute().setVisible(visible)
 				if visible == 0:
 					visible = 1
 				i = i + 1

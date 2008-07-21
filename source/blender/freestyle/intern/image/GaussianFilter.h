@@ -82,7 +82,7 @@ public:
   inline int getBound() {return _bound;}
 
   /*! modifiers */
-  void SetSigma(float sigma) ;
+  void setSigma(float sigma) ;
   // void SetMaskSize(int size) {_maskSize = size;_storedMaskSize=(_maskSize+1)>>1;}
   
     

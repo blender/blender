@@ -756,7 +756,7 @@ void Operators::sort(BinaryPredicate1D& pred) {
 
 Stroke* createStroke(Interface1D& inter) {
   Stroke* stroke = new Stroke;
-  stroke->SetId(inter.getId());
+  stroke->setId(inter.getId());
 
   float currentCurvilignAbscissa = 0.f;
 
@@ -784,7 +784,7 @@ Stroke* createStroke(Interface1D& inter) {
     current = stroke_vertex->point2d();
     Vec3r vec_tmp(current - previous);
     currentCurvilignAbscissa += vec_tmp.norm();
-    stroke_vertex->SetCurvilinearAbscissa(currentCurvilignAbscissa);
+    stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
     stroke->push_back(stroke_vertex);
     previous = current;
     ++it;
@@ -805,10 +805,10 @@ Stroke* createStroke(Interface1D& inter) {
     current = stroke_vertex->point2d();
     Vec3r vec_tmp(current - previous);
     currentCurvilignAbscissa += vec_tmp.norm();
-    stroke_vertex->SetCurvilinearAbscissa(currentCurvilignAbscissa);
+    stroke_vertex->setCurvilinearAbscissa(currentCurvilignAbscissa);
     stroke->push_back(stroke_vertex);
   }
-  stroke->SetLength(currentCurvilignAbscissa);
+  stroke->setLength(currentCurvilignAbscissa);
   return stroke;
 }
 

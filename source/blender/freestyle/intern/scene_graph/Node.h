@@ -68,7 +68,7 @@ public:
   virtual const BBox<Vec3r>& bbox() const {return _BBox;}
 
   /*! Sets the Node bounding box */
-  virtual void SetBBox(const BBox<Vec3r>& iBox) {_BBox = iBox;}
+  virtual void setBBox(const BBox<Vec3r>& iBox) {_BBox = iBox;}
 
   /*! Makes the union of _BBox and iBox */
   virtual void AddBBox(const BBox<Vec3r>& iBox) 

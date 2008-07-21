@@ -166,7 +166,7 @@ public:
   virtual void ComputeBBox();
 
   /*! modifiers */
-  inline void SetDisplayList(unsigned int index) {_displayList = index;}
+  inline void setDisplayList(unsigned int index) {_displayList = index;}
 
   /*! Accessors */
   virtual const real * vertices() const {return _Vertices;}

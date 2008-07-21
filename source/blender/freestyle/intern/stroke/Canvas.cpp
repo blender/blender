@@ -258,7 +258,7 @@ void Canvas::ReplaceStyleModule(unsigned index, StyleModule *iStyleModule)
     }
 }
 
-void Canvas::SetVisible(unsigned index, bool iVisible) {
+void Canvas::setVisible(unsigned index, bool iVisible) {
   _StyleModules[index]->setDisplayed(iVisible);
 }
  

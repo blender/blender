@@ -44,10 +44,10 @@ public:
   /*! operators */
   inline DrawingStyle& operator=(const DrawingStyle& ds);
   
-  inline void SetStyle(const STYLE iStyle) {Style = iStyle;}
-  inline void SetLineWidth(const float iLineWidth) {LineWidth = iLineWidth;}
-  inline void SetPointSize(const float iPointSize) {PointSize = iPointSize;}
-  inline void SetLightingEnabled(const bool on) {LightingEnabled = on;}
+  inline void setStyle(const STYLE iStyle) {Style = iStyle;}
+  inline void setLineWidth(const float iLineWidth) {LineWidth = iLineWidth;}
+  inline void setPointSize(const float iPointSize) {PointSize = iPointSize;}
+  inline void setLightingEnabled(const bool on) {LightingEnabled = on;}
 
   inline STYLE style() const {return Style;}
   inline float lineWidth() const {return LineWidth;}

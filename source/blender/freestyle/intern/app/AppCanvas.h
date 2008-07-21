@@ -77,7 +77,7 @@ public:
   inline const AppGLWidget * viewer() const {return _pViewer;}
 
   /*! modifiers */
-  void SetViewer(AppGLWidget *iViewer) ;
+  void setViewer(AppGLWidget *iViewer) ;
 };
 
 

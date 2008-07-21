@@ -67,7 +67,7 @@ public:
   inline bool empty() const {return _strokes.empty();}
 
   /*! modifiers */
-  inline void SetStrokes(stroke_container& iStrokes) {_strokes = iStrokes;}
+  inline void setStrokes(stroke_container& iStrokes) {_strokes = iStrokes;}
   inline void AddStroke(Stroke *iStroke) {_strokes.push_back(iStroke);}
   
 };

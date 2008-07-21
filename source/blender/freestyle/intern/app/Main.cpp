@@ -44,8 +44,8 @@ int main(int argc, char** argv)
   //app->setMainWidget(mainWindow); // QT3
 
   g_pController = new Controller;
-  g_pController->SetMainWindow(&mainWindow);
-  g_pController->SetView(mainWindow.pQGLWidget);
+  g_pController->setMainWindow(&mainWindow);
+  g_pController->setView(mainWindow.pQGLWidget);
   
   mainWindow.show();
 

@@ -144,7 +144,7 @@ TVertex* ViewMap::CreateTVertex(const Vec3r& iA3D, const Vec3r& iA2D, FEdge *iFE
     else
       tvertex = new TVertex(Ib,Ia);
 
-    tvertex->SetId(id);
+    tvertex->setId(id);
     
     // add these vertices to the view map
     AddViewVertex(tvertex);
@@ -191,18 +191,18 @@ ViewVertex * ViewMap::InsertViewVertex(SVertex *iVertex,
   // a new VEdge
   if(ioEdge->A() == 0){
     // closed loop
-    ioEdge->SetA(vva);
-    ioEdge->SetB(vva);
+    ioEdge->setA(vva);
+    ioEdge->setB(vva);
     // update sshape
     vshape->sshape()->RemoveEdgeFromChain(ioEdge->fedgeA());
     vshape->sshape()->RemoveEdgeFromChain(ioEdge->fedgeB());
 
-    ioEdge->SetFEdgeA(fbegin);
-    ioEdge->SetFEdgeB(fend);
+    ioEdge->setFEdgeA(fbegin);
+    ioEdge->setFEdgeB(fend);
 
     // Update FEdges
-    fend->SetNextEdge(0);
-    fbegin->SetPreviousEdge(0);
+    fend->setNextEdge(0);
+    fbegin->setPreviousEdge(0);
     
     // update new View Vertex:
     vva->AddOutgoingViewEdge(ioEdge);
@@ -213,16 +213,16 @@ ViewVertex * ViewMap::InsertViewVertex(SVertex *iVertex,
   }else{
     // Create new ViewEdge
     ViewEdge * newVEdge = new ViewEdge(vva, ioEdge->B(), fbegin, ioEdge->fedgeB(), vshape);
-    newVEdge->SetId(Id(ioEdge->getId().getFirst(), ioEdge->getId().getSecond()+1));
-    newVEdge->SetNature(ioEdge->getNature());
+    newVEdge->setId(Id(ioEdge->getId().getFirst(), ioEdge->getId().getSecond()+1));
+    newVEdge->setNature(ioEdge->getNature());
     //newVEdge->UpdateFEdges(); // done in the ViewEdge constructor
     // Update old ViewEdge
-    ioEdge->SetB(vva);
-    ioEdge->SetFEdgeB(fend);
+    ioEdge->setB(vva);
+    ioEdge->setFEdgeB(fend);
 
     // Update FEdges
-    fend->SetNextEdge(0);
-    fbegin->SetPreviousEdge(0);
+    fend->setNextEdge(0);
+    fbegin->setPreviousEdge(0);
 
     // update new View Vertex:
     vva->AddOutgoingViewEdge(newVEdge);
@@ -291,9 +291,9 @@ bool ViewEdgeComp(ViewVertex::directedViewEdge& dve1, ViewVertex::directedViewEd
   }
   return false;
 }
-void TVertex::SetFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming) {
+void TVertex::setFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming) {
   if (!iFrontEdgeA) {
-    cerr << "Warning: null pointer passed as argument of TVertex::SetFrontEdgeA()" << endl;
+    cerr << "Warning: null pointer passed as argument of TVertex::setFrontEdgeA()" << endl;
     return;
   }
   _FrontEdgeA = directedViewEdge(iFrontEdgeA, incoming);
@@ -307,9 +307,9 @@ void TVertex::SetFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming) {
   else
     _sortedEdges.push_back(&_FrontEdgeA);
 }
-void TVertex::SetFrontEdgeB(ViewEdge *iFrontEdgeB, bool incoming) {
+void TVertex::setFrontEdgeB(ViewEdge *iFrontEdgeB, bool incoming) {
   if (!iFrontEdgeB) {
-    cerr << "Warning: null pointer passed as argument of TVertex::SetFrontEdgeB()" << endl;
+    cerr << "Warning: null pointer passed as argument of TVertex::setFrontEdgeB()" << endl;
     return;
   }
   _FrontEdgeB = directedViewEdge(iFrontEdgeB, incoming);
@@ -323,9 +323,9 @@ void TVertex::SetFrontEdgeB(ViewEdge *iFrontEdgeB, bool incoming) {
   else
     _sortedEdges.push_back(&_FrontEdgeB);
 }
-void TVertex::SetBackEdgeA(ViewEdge *iBackEdgeA, bool incoming) {
+void TVertex::setBackEdgeA(ViewEdge *iBackEdgeA, bool incoming) {
   if (!iBackEdgeA) {
-    cerr << "Warning: null pointer passed as argument of TVertex::SetBackEdgeA()" << endl;
+    cerr << "Warning: null pointer passed as argument of TVertex::setBackEdgeA()" << endl;
     return;
   }
   _BackEdgeA = directedViewEdge(iBackEdgeA, incoming);
@@ -339,9 +339,9 @@ void TVertex::SetBackEdgeA(ViewEdge *iBackEdgeA, bool incoming) {
   else
     _sortedEdges.push_back(&_BackEdgeA);
 }
-void TVertex::SetBackEdgeB(ViewEdge *iBackEdgeB, bool incoming) {
+void TVertex::setBackEdgeB(ViewEdge *iBackEdgeB, bool incoming) {
   if (!iBackEdgeB) {
-    cerr << "Warning: null pointer passed as argument of TVertex::SetBackEdgeB()" << endl;
+    cerr << "Warning: null pointer passed as argument of TVertex::setBackEdgeB()" << endl;
     return;
   }
   _BackEdgeB = directedViewEdge(iBackEdgeB, incoming);
@@ -694,10 +694,10 @@ void ViewEdge::UpdateFEdges()
   FEdge *currentEdge = _FEdgeA;
   do
   {
-    currentEdge->SetViewEdge(this);
+    currentEdge->setViewEdge(this);
     currentEdge = currentEdge->nextEdge();
   }while((currentEdge != NULL) && (currentEdge!= _FEdgeB));
   // last one
-  _FEdgeB->SetViewEdge(this);
+  _FEdgeB->setViewEdge(this);
 
 }

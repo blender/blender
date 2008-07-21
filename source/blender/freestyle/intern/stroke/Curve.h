@@ -218,14 +218,14 @@ public:
   /*! Sets the first SVertex upon which to build
    *  the CurvePoint.
    */
-  inline void SetA(SVertex *iA) {__A = iA;}
+  inline void setA(SVertex *iA) {__A = iA;}
   /*! Sets the second SVertex upon which to build
    *  the CurvePoint.
    */
-  inline void SetB(SVertex *iB) {__B = iB;}
+  inline void setB(SVertex *iB) {__B = iB;}
   /*! Sets the 2D interpolation parameter to use.
    */
-  inline void SetT2d(float t) {_t2d = t;}
+  inline void setT2d(float t) {_t2d = t;}
   //inline void SetT3d(float t) {_t3d = t;}
 
   /* Information access interface */

@@ -240,9 +240,9 @@ public:
 
   /*! modifiers */
   /*! Sets the 3D coordinates of the SVertex. */
-  inline void SetPoint3D(const Vec3r &iPoint3D) {_Point3D = iPoint3D;}
+  inline void setPoint3D(const Vec3r &iPoint3D) {_Point3D = iPoint3D;}
   /*! Sets the 3D projected coordinates of the SVertex. */
-  inline void SetPoint2D(const Vec3r &iPoint2D) {_Point2D = iPoint2D;}
+  inline void setPoint2D(const Vec3r &iPoint2D) {_Point2D = iPoint2D;}
   /*! Adds a normal to the Svertex's set of normals. If the same
    * normal is already in the set, nothing changes.
    */
@@ -266,10 +266,10 @@ public:
   const Vec2r directionFredo () {return _directionFredo;}
 
   /*! Sets the Id */
-  inline void SetId(const Id& id) {_Id = id;}
-  inline void SetFEdges(const vector<FEdge*>& iFEdges) {_FEdges = iFEdges;}
-  inline void SetShape(SShape *iShape) {_Shape = iShape;}
-  inline void SetViewVertex(ViewVertex *iViewVertex) {_pViewVertex = iViewVertex;}
+  inline void setId(const Id& id) {_Id = id;}
+  inline void setFEdges(const vector<FEdge*>& iFEdges) {_FEdges = iFEdges;}
+  inline void setShape(SShape *iShape) {_Shape = iShape;}
+  inline void setViewVertex(ViewVertex *iViewVertex) {_pViewVertex = iViewVertex;}
   /*! Add an FEdge to the list of edges emanating from this SVertex. */
   inline void AddFEdge(FEdge* iFEdge) {_FEdges.push_back(iFEdge);}
   /* replaces edge 1 by edge 2 in the list of edges */
@@ -501,30 +501,30 @@ public:
 
   /* modifiers */
   /*! Sets the first SVertex. */
-  inline void SetVertexA(SVertex *vA) {_VertexA = vA;}
+  inline void setVertexA(SVertex *vA) {_VertexA = vA;}
   /*! Sets the second SVertex. */
-  inline void SetVertexB(SVertex *vB) {_VertexB = vB;}
+  inline void setVertexB(SVertex *vB) {_VertexB = vB;}
   /*! Sets the FEdge Id . */
-  inline void SetId(const Id& id) {_Id = id;}
+  inline void setId(const Id& id) {_Id = id;}
   /*! Sets the pointer to the next FEdge. */
-  inline void SetNextEdge(FEdge* iEdge) {_NextEdge = iEdge;}
+  inline void setNextEdge(FEdge* iEdge) {_NextEdge = iEdge;}
   /*! Sets the pointer to the previous FEdge. */
-  inline void SetPreviousEdge(FEdge *iEdge) {_PreviousEdge = iEdge;}
+  inline void setPreviousEdge(FEdge *iEdge) {_PreviousEdge = iEdge;}
   /*! Sets the nature of this FEdge. */
-  inline void SetNature(Nature::EdgeNature iNature) {_Nature = iNature;}
+  inline void setNature(Nature::EdgeNature iNature) {_Nature = iNature;}
   //inline void AddOccluder(Polygon3r& iPolygon) {_Occluders.push_back(iPolygon);}
   /*! Sets the ViewEdge to which this FEdge belongs to. */
-  inline void SetViewEdge(ViewEdge *iViewEdge) {_ViewEdge = iViewEdge;}
-  //  inline void SetHasVisibilityPoint(bool iBool) {_hasVisibilityPoint = iBool;}
-  //  inline void SetVisibilityPointA(const Vec3r& iPoint) {_VisibilityPointA = iPoint;}
-  //  inline void SetVisibilityPointB(const Vec3r& iPoint) {_VisibilityPointB = iPoint;}
-  inline void SetaFace(Polygon3r& iFace) {_aFace = iFace;}
-  inline void SetOccludeeIntersection(const Vec3r& iPoint) {_occludeeIntersection = iPoint;}
-  inline void SetOccludeeEmpty(bool iempty) {_occludeeEmpty = iempty;}
+  inline void setViewEdge(ViewEdge *iViewEdge) {_ViewEdge = iViewEdge;}
+  //  inline void setHasVisibilityPoint(bool iBool) {_hasVisibilityPoint = iBool;}
+  //  inline void setVisibilityPointA(const Vec3r& iPoint) {_VisibilityPointA = iPoint;}
+  //  inline void setVisibilityPointB(const Vec3r& iPoint) {_VisibilityPointB = iPoint;}
+  inline void setaFace(Polygon3r& iFace) {_aFace = iFace;}
+  inline void setOccludeeIntersection(const Vec3r& iPoint) {_occludeeIntersection = iPoint;}
+  inline void setOccludeeEmpty(bool iempty) {_occludeeEmpty = iempty;}
   /*! Sets the flag telling whether this FEdge is smooth or sharp.
    *  true for Smooth, false for Sharp.
    */
-  inline void SetSmooth(bool iFlag) {_isSmooth = iFlag;}
+  inline void setSmooth(bool iFlag) {_isSmooth = iFlag;}
   
   /* checks whether two FEdge have a common vertex.
    *  Returns a pointer on the common vertex if it exists, 
@@ -840,13 +840,13 @@ public:
   const Material& bMaterial() const ;
 
   /*! Sets the normal to the face lying on the right of the FEdge. */
-  inline void SetNormalA(const Vec3r& iNormal) {_aNormal = iNormal;}
+  inline void setNormalA(const Vec3r& iNormal) {_aNormal = iNormal;}
   /*! Sets the normal to the face lying on the left of the FEdge. */ 
-  inline void SetNormalB(const Vec3r& iNormal) {_bNormal = iNormal;}
+  inline void setNormalB(const Vec3r& iNormal) {_bNormal = iNormal;}
   /*! Sets the index of the material lying on the right of the FEdge.*/
-  inline void SetaMaterialIndex(unsigned i) {_aMaterialIndex = i;}
+  inline void setaMaterialIndex(unsigned i) {_aMaterialIndex = i;}
   /*! Sets the index of the material lying on the left of the FEdge.*/
-  inline void SetbMaterialIndex(unsigned i) {_bMaterialIndex = i;}
+  inline void setbMaterialIndex(unsigned i) {_bMaterialIndex = i;}
   
 };
 
@@ -901,11 +901,11 @@ public:
   /*! Returns the material of the face it is running accross. */
   const Material& material() const ;
 
-  inline void SetFace(void * iFace) {_Face = iFace;}
+  inline void setFace(void * iFace) {_Face = iFace;}
   /*! Sets the normal to the Face it is running accross. */
-  inline void SetNormal(const Vec3r& iNormal) {_Normal = iNormal;}
+  inline void setNormal(const Vec3r& iNormal) {_Normal = iNormal;}
   /*! Sets the index of the material of the face it is running accross. */
-  inline void SetMaterialIndex(unsigned i) {_MaterialIndex = i;}
+  inline void setMaterialIndex(unsigned i) {_MaterialIndex = i;}
 };
                   /**********************************/
                   /*                                */
@@ -969,7 +969,7 @@ public:
         sv++)
       {
         SVertex *newv = new SVertex(*(*sv));
-        newv->SetShape(this);
+        newv->setShape(this);
         _verticesList.push_back(newv);
       }
     
@@ -1015,7 +1015,7 @@ public:
             FEdge *current = *fed;
             newfedgelist.push_back((FEdge*)current->userdata);
           }
-        (*sv)->SetFEdges(newfedgelist); 
+        (*sv)->setFEdges(newfedgelist); 
       }
     
     //-------------------------------------
@@ -1025,10 +1025,10 @@ public:
         e!=eend;
         e++)
       {
-        (*e)->SetVertexA((SVertex*)((*e)->vertexA()->userdata));
-        (*e)->SetVertexB((SVertex*)((*e)->vertexB()->userdata));
-        (*e)->SetNextEdge((FEdge*)((*e)->nextEdge()->userdata));
-        (*e)->SetPreviousEdge((FEdge*)((*e)->previousEdge()->userdata));
+        (*e)->setVertexA((SVertex*)((*e)->vertexA()->userdata));
+        (*e)->setVertexB((SVertex*)((*e)->vertexB()->userdata));
+        (*e)->setNextEdge((FEdge*)((*e)->nextEdge()->userdata));
+        (*e)->setPreviousEdge((FEdge*)((*e)->previousEdge()->userdata));
       }
     
 
@@ -1104,7 +1104,7 @@ public:
   /*! Adds a SVertex to the list of SVertex of this Shape.
    * The SShape attribute of the SVertex is also set to 'this'.
    */
-  inline void AddNewVertex(SVertex* iv) {iv->SetShape(this);_verticesList.push_back(iv);}
+  inline void AddNewVertex(SVertex* iv) {iv->setShape(this);_verticesList.push_back(iv);}
   inline void AddChain(FEdge *iEdge){
     _chains.push_back(iEdge);
   }
@@ -1112,7 +1112,7 @@ public:
   inline SVertex * CreateSVertex(const Vec3r& P3D, const Vec3r& P2D, const Id& id)
   {
     SVertex *Ia = new SVertex(P3D, id);
-    Ia->SetPoint2D(P2D);
+    Ia->setPoint2D(P2D);
     AddNewVertex(Ia);
     return Ia;
   }
@@ -1172,7 +1172,7 @@ public:
       // create new SVertex:
       // (we keep B's id)
       SVertex* newVertex = new SVertex(newpoint3d, ioB->getId());
-      newVertex->SetPoint2D(newpoint2d);
+      newVertex->setPoint2D(newpoint2d);
       
       // Add this vertex to the intersections list:
       intersections.push_back(newVertex);
@@ -1192,23 +1192,23 @@ public:
       // AB becomes (address speaking) AA'. B is updated.
       //--------------------------------------------------
       // The edge AB becomes edge AA'.
-      (fe)->SetVertexB((*sv));
+      (fe)->setVertexB((*sv));
       // a new edge, A'B is created.
       FEdge *newEdge;
       if(fe->isSmooth()){
         newEdge = new FEdgeSmooth((*sv), svB);
         FEdgeSmooth * se = dynamic_cast<FEdgeSmooth*>(newEdge);
         FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-        se->SetMaterialIndex(fes->materialIndex());
+        se->setMaterialIndex(fes->materialIndex());
       }else{
         newEdge = new FEdgeSharp((*sv), svB);
         FEdgeSharp * se = dynamic_cast<FEdgeSharp*>(newEdge);
         FEdgeSharp * fes = dynamic_cast<FEdgeSharp*>(fe);
-        se->SetaMaterialIndex(fes->aMaterialIndex());
-        se->SetbMaterialIndex(fes->bMaterialIndex());
+        se->setaMaterialIndex(fes->aMaterialIndex());
+        se->setbMaterialIndex(fes->bMaterialIndex());
       }
         
-      newEdge->SetNature((fe)->getNature());
+      newEdge->setNature((fe)->getNature());
       
 
       // to build a new chain:
@@ -1219,15 +1219,15 @@ public:
       ioNewEdges.push_back(newEdge);
 
       // update edge A'B for the next pointing edge
-      newEdge->SetNextEdge((fe)->nextEdge());
-      fe->nextEdge()->SetPreviousEdge(newEdge);
+      newEdge->setNextEdge((fe)->nextEdge());
+      fe->nextEdge()->setPreviousEdge(newEdge);
       Id id(fe->getId().getFirst(), fe->getId().getSecond()+1);
-      newEdge->SetId(fe->getId());
-      fe->SetId(id);
+      newEdge->setId(fe->getId());
+      fe->setId(id);
 
       // update edge AA' for the next pointing edge
-      //ioEdge->SetNextEdge(newEdge);
-      (fe)->SetNextEdge(NULL);
+      //ioEdge->setNextEdge(newEdge);
+      (fe)->setNextEdge(NULL);
 
       // update vertex pointing edges list:
       // -- vertex B --
@@ -1264,30 +1264,30 @@ public:
         newEdge = new FEdgeSmooth(ioNewVertex, B);
         FEdgeSmooth * se = dynamic_cast<FEdgeSmooth*>(newEdge);
         FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(ioEdge);
-        se->SetMaterialIndex(fes->materialIndex());
+        se->setMaterialIndex(fes->materialIndex());
       }else{
         newEdge = new FEdgeSharp(ioNewVertex, B);
         FEdgeSharp * se = dynamic_cast<FEdgeSharp*>(newEdge);
         FEdgeSharp * fes = dynamic_cast<FEdgeSharp*>(ioEdge);
-        se->SetaMaterialIndex(fes->aMaterialIndex());
-        se->SetbMaterialIndex(fes->bMaterialIndex());
+        se->setaMaterialIndex(fes->aMaterialIndex());
+        se->setbMaterialIndex(fes->bMaterialIndex());
       }
-      newEdge->SetNature(ioEdge->getNature());
+      newEdge->setNature(ioEdge->getNature());
       
       
       if(ioEdge->nextEdge() != 0)
-        ioEdge->nextEdge()->SetPreviousEdge(newEdge);
+        ioEdge->nextEdge()->setPreviousEdge(newEdge);
 
       // update edge A'B for the next pointing edge
-      newEdge->SetNextEdge(ioEdge->nextEdge());
+      newEdge->setNextEdge(ioEdge->nextEdge());
       // update edge A'B for the previous pointing edge
-      newEdge->SetPreviousEdge(0); // because it is now a TVertex
+      newEdge->setPreviousEdge(0); // because it is now a TVertex
       Id id(ioEdge->getId().getFirst(), ioEdge->getId().getSecond()+1);
-      newEdge->SetId(ioEdge->getId());
-      ioEdge->SetId(id);
+      newEdge->setId(ioEdge->getId());
+      ioEdge->setId(id);
    
       // update edge AA' for the next pointing edge
-      ioEdge->SetNextEdge(0); // because it is now a TVertex
+      ioEdge->setNextEdge(0); // because it is now a TVertex
 
       // update vertex pointing edges list:
       // -- vertex B --
@@ -1301,17 +1301,17 @@ public:
       AddEdge(newEdge); // FIXME ??
       
       // The edge AB becomes edge AA'.
-      ioEdge->SetVertexB(ioNewVertex);
+      ioEdge->setVertexB(ioNewVertex);
       
       if(ioEdge->isSmooth()){
-        ((FEdgeSmooth*)newEdge)->SetFace(((FEdgeSmooth*)ioEdge)->face());
+        ((FEdgeSmooth*)newEdge)->setFace(((FEdgeSmooth*)ioEdge)->face());
       }
       
       return newEdge;
     }
 
   /*! Sets the Bounding Box of the Shape */
-  inline void SetBBox(const BBox<Vec3r>& iBBox) {_BBox = iBBox;}
+  inline void setBBox(const BBox<Vec3r>& iBBox) {_BBox = iBBox;}
 
   /*! Compute the bbox of the sshape */
   inline void ComputeBBox()
@@ -1359,7 +1359,7 @@ public:
       }
     
     
-    SetBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
+    setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
   }
 
   inline void RemoveEdgeFromChain(FEdge *iEdge)
@@ -1409,11 +1409,11 @@ public:
   
   /* Modififers */
   /*! Sets the Id of the shape.*/
-  inline void SetId(Id id) {_Id = id;}
+  inline void setId(Id id) {_Id = id;}
   /*! Sets the list of materials for the shape */
-  inline void SetMaterials(const vector<Material>& iMaterials) {_Materials = iMaterials;}
-  inline void SetViewShape(ViewShape *iShape) {_ViewShape = iShape;}
-  inline void SetImportance(float importance){_importance = importance;}
+  inline void setMaterials(const vector<Material>& iMaterials) {_Materials = iMaterials;}
+  inline void setViewShape(ViewShape *iShape) {_ViewShape = iShape;}
+  inline void setImportance(float importance){_importance = importance;}
 };
 
 #endif // SILHOUETTE_H

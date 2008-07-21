@@ -132,11 +132,11 @@ void FEdgeXDetector::preProcessFace(WXFace *iFace){
   Vec3r V(_Viewpoint - firstPoint);
   N.normalize();
   V.normalize();
-  iFace->SetDotP(N * V);
+  iFace->setDotP(N * V);
   
   // compute the distance between the face center and the viewpoint:
   Vec3r dist_vec(iFace->center() - _Viewpoint);
-  iFace->SetZ(dist_vec.norm());
+  iFace->setZ(dist_vec.norm());
 }
 
 void FEdgeXDetector::computeCurvatures(WXVertex *vertex){
@@ -257,7 +257,7 @@ void FEdgeXDetector::ProcessSilhouetteFace(WXFace *iFace)
     }
   }
   // Set the closest point id:
-  faceLayer->SetClosestPointIndex(closestPointId);
+  faceLayer->setClosestPointIndex(closestPointId);
   // Add this layer to the face:
   iFace->AddSmoothLayer(faceLayer);
 }
@@ -281,9 +281,9 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
       return;
     iEdge->AddNature(Nature::SILHOUETTE);
     if(fB->front())
-      iEdge->SetOrder(1);
+      iEdge->setOrder(1);
     else
-      iEdge->SetOrder(-1);
+      iEdge->setOrder(-1);
   }
 }
 

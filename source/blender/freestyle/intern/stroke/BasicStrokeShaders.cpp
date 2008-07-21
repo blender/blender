@@ -520,9 +520,9 @@ namespace StrokeShaders {
       break;
     }
     unsigned int texId = instance->getBrushTextureIndex(pathname, mediumType);
-    stroke.SetMediumType(mediumType);
-    stroke.SetTips(hasTips);
-    stroke.SetTextureId(texId);
+    stroke.setMediumType(mediumType);
+    stroke.setTips(hasTips);
+    stroke.setTextureId(texId);
   }
 
   // FIXME
@@ -533,9 +533,9 @@ namespace StrokeShaders {
       return;
     string pathname = TextureManager::Options::getBrushesPath() + "/" + _texturePath;
     unsigned int texId = instance->getBrushTextureIndex(pathname, _mediumType);
-    stroke.SetMediumType(_mediumType);
-    stroke.SetTips(_tips);
-    stroke.SetTextureId(texId);
+    stroke.setMediumType(_mediumType);
+    stroke.setTips(_tips);
+    stroke.setTextureId(texId);
   }
 
   //
@@ -564,9 +564,9 @@ namespace StrokeShaders {
     dn.normalize();
 
     Vec2d newFirst(first+_amount*d1);
-    (v0)->SetPoint(newFirst[0], newFirst[1]);
+    (v0)->setPoint(newFirst[0], newFirst[1]);
     Vec2d newLast(last+_amount*dn);
-    (vn)->SetPoint(newLast[0], newLast[1]);
+    (vn)->setPoint(newLast[0], newLast[1]);
   }
 
   void SamplingShader::shade(Stroke& stroke) const
@@ -585,7 +585,7 @@ namespace StrokeShaders {
 	Vec2f n(fun(it));
 	sv = dynamic_cast<StrokeVertex*>(&(*it));
 	Vec2d newPoint(sv->x()+_amount*n.x(), sv->y()+_amount*n.y());
-	sv->SetPoint(newPoint[0], newPoint[1]);
+	sv->setPoint(newPoint[0], newPoint[1]);
 	++it;
       }
   }
@@ -686,8 +686,8 @@ namespace StrokeShaders {
 	((it!=itend) && (p!=pend));
 	++it)
       {
-	it->SetX(p->x());
-	it->SetY(p->y());
+	it->setX(p->x());
+	it->setY(p->y());
 	last = p;
 	++p;
 	++n;
@@ -695,8 +695,8 @@ namespace StrokeShaders {
     // nExtraVertex should stay unassigned
     for(int i=0; i< nExtraVertex; ++i)
       {
-	it->SetX(last->x());
-	it->SetY(last->y());
+	it->setX(last->x());
+	it->setY(last->y());
 	if(it.isEnd())
 	  cerr << "Warning: Problem encountered while creating B-spline" << endl;
 	++it;
@@ -810,8 +810,8 @@ namespace StrokeShaders {
 	((it!=itend) && (p!=pend));
 	++it)
       {
-	it->SetX(p->x());
-	it->SetY(p->y());
+	it->setX(p->x());
+	it->setY(p->y());
 	//      double x = p->x();
 	//      double y = p->y();
 	//      cout << "x = " << x << "-" << "y = " << y << endl;
@@ -859,7 +859,7 @@ namespace StrokeShaders {
     (it!=itend) && (a!=aend);
     ++it)
     {
-      (it)->SetAttribute(*a);
+      (it)->setAttribute(*a);
       if((index <= index1)||(index>index2))
         ++a;
       ++index;
@@ -894,7 +894,7 @@ namespace StrokeShaders {
 	float t = 4.f*(0.25f - (u-0.5)*(u-0.5));
 	float curvature_coeff = (M_PI-curv_fun(it))/M_PI;
 	Vec2d newPoint(sv->x()+curvature_coeff*t*_amount*n.x(), sv->y()+curvature_coeff*t*_amount*n.y());
-	sv->SetPoint(newPoint[0], newPoint[1]);
+	sv->setPoint(newPoint[0], newPoint[1]);
 	++it;
       }
   }
@@ -998,10 +998,10 @@ namespace StrokeShaders {
 	    v!=b;
 	    ++v)
 	  {
-	    v->SetPoint((*cp)->A.x()+v->u()*u.x()+n.x()*offset, (*cp)->A.y()+v->u()*u.y()+n.y()*offset);
+	    v->setPoint((*cp)->A.x()+v->u()*u.x()+n.x()*offset, (*cp)->A.y()+v->u()*u.y()+n.y()*offset);
 	  }
 	//    u.normalize();
-	//    (*a)->SetPoint((*a)->x()-u.x()*10, (*a)->y()-u.y()*10);
+	//    (*a)->setPoint((*a)->x()-u.x()*10, (*a)->y()-u.y()*10);
       }
 
     // delete stuff
@@ -1036,7 +1036,7 @@ namespace StrokeShaders {
 	v!=vend;
 	++v)
       {
-	v->SetPoint(piece.A.x()+v->u()*u.x()+n.x()*offset, piece.A.y()+v->u()*u.y()+n.y()*offset);
+	v->setPoint(piece.A.x()+v->u()*u.x()+n.x()*offset, piece.A.y()+v->u()*u.y()+n.y()*offset);
       }
   }
 
@@ -1101,7 +1101,7 @@ namespace StrokeShaders {
     //cout << "-----------------------------------------------" << endl;
     for(;(v!=vend)&&(a!=aend);++v,++a)
       {
-	v->SetAttribute(*a);
+	v->setAttribute(*a);
 	//cout << "thickness = " << (*a).getThickness()[0] << "-" << (*a).getThickness()[1] << endl;
       }
     // we're done!

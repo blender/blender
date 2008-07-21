@@ -38,7 +38,7 @@ class StrokeTesselator
 {
 public:
 
-  inline StrokeTesselator() {_Material.SetDiffuse(0,0,0,1);_overloadMaterial=false;}
+  inline StrokeTesselator() {_Material.setDiffuse(0,0,0,1);_overloadMaterial=false;}
   virtual ~StrokeTesselator() {}
 
   /*! Builds a line rep contained from a Stroke
@@ -54,7 +54,7 @@ public:
 
   
   
-  inline void SetMaterial(const Material& iMaterial) {_Material=iMaterial;_overloadMaterial=true;}
+  inline void setMaterial(const Material& iMaterial) {_Material=iMaterial;_overloadMaterial=true;}
   inline const Material& material() const {return _Material;}
 
 private:

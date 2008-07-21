@@ -69,7 +69,7 @@ AppCanvas::~AppCanvas()
   _pViewer = 0;
 }
 
-void AppCanvas::SetViewer(AppGLWidget *iViewer)
+void AppCanvas::setViewer(AppGLWidget *iViewer)
 {
   _pViewer = iViewer;
 }  
@@ -182,7 +182,7 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
   //    qtmp.save("densityQuery"+QString::number(number)+".png", "PNG");
   //    
   //    GaussianFilter filter;
-  //    filter.SetSigma(4.0);
+  //    filter.setSigma(4.0);
   //    int bound = filter.getBound();
   //    QImage qtmp2(width(), height(), 32);
   //    for(int py2=0;py2<height();++py2){
@@ -247,7 +247,7 @@ void AppCanvas::Render(const StrokeRenderer *iRenderer)
     
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
-    _pViewer->Set3DContext();
+    _pViewer->set3DContext();
     _pViewer->DrawScene(_pViewer->glRenderer());
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
@@ -349,7 +349,7 @@ void AppCanvas::RenderBasic(const StrokeRenderer *iRenderer)
     
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
-    _pViewer->Set3DContext();
+    _pViewer->set3DContext();
     _pViewer->DrawScene(_pViewer->glRenderer());
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);

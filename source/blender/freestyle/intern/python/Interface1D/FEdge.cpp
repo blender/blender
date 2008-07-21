@@ -20,13 +20,13 @@ static PyObject * FEdge_previousEdge( BPy_FEdge *self );
 static PyObject * FEdge_getVertices( BPy_FEdge *self );
 static PyObject * FEdge_getPoints( BPy_FEdge *self );
 static PyObject * FEdge_isSmooth( BPy_FEdge *self );
-static PyObject * FEdge_SetVertexA( BPy_FEdge *self , PyObject *args);
-static PyObject * FEdge_SetVertexB( BPy_FEdge *self , PyObject *args);
-static PyObject * FEdge_SetId( BPy_FEdge *self , PyObject *args);
-static PyObject * FEdge_SetNextEdge( BPy_FEdge *self , PyObject *args);
-static PyObject * FEdge_SetPreviousEdge( BPy_FEdge *self , PyObject *args);
-static PyObject * FEdge_SetSmooth( BPy_FEdge *self , PyObject *args); 
-static PyObject * FEdge_SetNature( BPy_FEdge *self, PyObject *args );
+static PyObject * FEdge_setVertexA( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_setVertexB( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_setId( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_setNextEdge( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args);
+static PyObject * FEdge_setSmooth( BPy_FEdge *self , PyObject *args); 
+static PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args );
 
 /*----------------------FEdge instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdge_methods[] = {	
@@ -39,13 +39,13 @@ static PyMethodDef BPy_FEdge_methods[] = {
 	{"getVertices", ( PyCFunction ) FEdge_getVertices, METH_NOARGS, "Returns the vertices"},
 	{"getPoints", ( PyCFunction ) FEdge_getPoints, METH_NOARGS, "Returns the points. The difference with getVertices() is that here we can iterate over points of the 1D element at any given sampling. At each call, a virtual point is created."}, 
 	{"isSmooth", ( PyCFunction ) FEdge_isSmooth, METH_NOARGS, "() Returns true if this FEdge is a smooth FEdge."},
-	{"SetVertexA", ( PyCFunction ) FEdge_SetVertexA, METH_VARARGS, "(SVertex v) Sets the first SVertex. ."},
-	{"SetVertexB", ( PyCFunction ) FEdge_SetVertexB, METH_VARARGS, "(SVertex v) Sets the second SVertex. "},
-	{"SetId", ( PyCFunction ) FEdge_SetId, METH_VARARGS, "(Id id) Sets the FEdge Id ."},
-	{"SetNextEdge", ( PyCFunction ) FEdge_SetNextEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the next FEdge. "},
-	{"SetPreviousEdge", ( PyCFunction ) FEdge_SetPreviousEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the previous FEdge. "},
-	{"SetSmooth", ( PyCFunction ) FEdge_SetSmooth, METH_VARARGS, "(bool b) Sets the flag telling whether this FEdge is smooth or sharp. true for Smooth, false for Sharp. "},
-	{"SetNature", ( PyCFunction ) FEdge_SetNature, METH_VARARGS, "(Nature n) Sets the nature of this FEdge. "},
+	{"setVertexA", ( PyCFunction ) FEdge_setVertexA, METH_VARARGS, "(SVertex v) Sets the first SVertex. ."},
+	{"setVertexB", ( PyCFunction ) FEdge_setVertexB, METH_VARARGS, "(SVertex v) Sets the second SVertex. "},
+	{"setId", ( PyCFunction ) FEdge_setId, METH_VARARGS, "(Id id) Sets the FEdge Id ."},
+	{"setNextEdge", ( PyCFunction ) FEdge_setNextEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the next FEdge. "},
+	{"setPreviousEdge", ( PyCFunction ) FEdge_setPreviousEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the previous FEdge. "},
+	{"setSmooth", ( PyCFunction ) FEdge_setSmooth, METH_VARARGS, "(bool b) Sets the flag telling whether this FEdge is smooth or sharp. true for Smooth, false for Sharp. "},
+	{"setNature", ( PyCFunction ) FEdge_setNature, METH_VARARGS, "(Nature n) Sets the nature of this FEdge. "},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -221,86 +221,86 @@ PyObject * FEdge_isSmooth( BPy_FEdge *self ) {
 	return PyBool_from_bool( self->fe->isSmooth() );
 }
 	
-PyObject *FEdge_SetVertexA( BPy_FEdge *self , PyObject *args) {
+PyObject *FEdge_setVertexA( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_sv;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: FEdge_SetVertexA" << endl;
+		cout << "ERROR: FEdge_setVertexA" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->SetVertexA( ((BPy_SVertex *) py_sv)->sv );
+	self->fe->setVertexA( ((BPy_SVertex *) py_sv)->sv );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *FEdge_SetVertexB( BPy_FEdge *self , PyObject *args) {
+PyObject *FEdge_setVertexB( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_sv;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: FEdge_SetVertexB" << endl;
+		cout << "ERROR: FEdge_setVertexB" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->SetVertexB( ((BPy_SVertex *) py_sv)->sv );
+	self->fe->setVertexB( ((BPy_SVertex *) py_sv)->sv );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *FEdge_SetId( BPy_FEdge *self , PyObject *args) {
+PyObject *FEdge_setId( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_id;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_id) && BPy_Id_Check(py_id) )) {
-		cout << "ERROR: FEdge_SetId" << endl;
+		cout << "ERROR: FEdge_setId" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->SetId(*( ((BPy_Id *) py_id)->id ));
+	self->fe->setId(*( ((BPy_Id *) py_id)->id ));
 
 	Py_RETURN_NONE;
 }
 
 
-PyObject *FEdge_SetNextEdge( BPy_FEdge *self , PyObject *args) {
+PyObject *FEdge_setNextEdge( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_fe;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: FEdge_SetNextEdge" << endl;
+		cout << "ERROR: FEdge_setNextEdge" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->SetNextEdge( ((BPy_FEdge *) py_fe)->fe );
+	self->fe->setNextEdge( ((BPy_FEdge *) py_fe)->fe );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *FEdge_SetPreviousEdge( BPy_FEdge *self , PyObject *args) {
+PyObject *FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args) {
 	PyObject *py_fe;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_fe) && BPy_FEdge_Check(py_fe) )) {
-		cout << "ERROR: FEdge_SetPreviousEdge" << endl;
+		cout << "ERROR: FEdge_setPreviousEdge" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->SetPreviousEdge( ((BPy_FEdge *) py_fe)->fe );
+	self->fe->setPreviousEdge( ((BPy_FEdge *) py_fe)->fe );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *FEdge_SetSmooth( BPy_FEdge *self , PyObject *args) {
+PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 	int b;
 
 	if(!( PyArg_ParseTuple(args, "i", &b) )) {
-		cout << "ERROR: FEdge_SetSmooth" << endl;
+		cout << "ERROR: FEdge_setSmooth" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->SetSmooth( (bool) b );
+	self->fe->setSmooth( (bool) b );
 
 	Py_RETURN_NONE;
 }
 
-PyObject * FEdge_SetNature( BPy_FEdge *self, PyObject *args ) {
+PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args ) {
 	PyObject *py_n;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
@@ -309,7 +309,7 @@ PyObject * FEdge_SetNature( BPy_FEdge *self, PyObject *args ) {
 	}
 	
 	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
-	((FEdge *) self->py_if1D.if1D)->SetNature( PyInt_AsLong(i) );
+	((FEdge *) self->py_if1D.if1D)->setNature( PyInt_AsLong(i) );
 
 	Py_RETURN_NONE;
 }

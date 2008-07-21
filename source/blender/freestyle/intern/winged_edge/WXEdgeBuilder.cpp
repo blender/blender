@@ -25,8 +25,8 @@ void WXEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs)
 {
   WXShape *shape = new WXShape;
   buildWShape(*shape, ifs);
-  shape->SetId(ifs.getId().getFirst());
-  //ifs.SetId(shape->GetId());
+  shape->setId(ifs.getId().getFirst());
+  //ifs.setId(shape->GetId());
 }
 
 void WXEdgeBuilder::buildWVertices(WShape& shape,
@@ -37,7 +37,7 @@ void WXEdgeBuilder::buildWVertices(WShape& shape,
     vertex = new WXVertex(Vec3r(vertices[i],
 				      vertices[i + 1],
 				      vertices[i + 2]));
-    vertex->SetId(i / 3);
+    vertex->setId(i / 3);
     shape.AddVertex(vertex);
   }
 }

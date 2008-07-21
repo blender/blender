@@ -427,8 +427,8 @@ public:
     _FrontEdgeB.first = 0;
     _BackEdgeA.first = 0;
     _BackEdgeB.first = 0;
-    svFront->SetViewVertex(this);
-    svBack->SetViewVertex(this);
+    svFront->setViewVertex(this);
+    svBack->setViewVertex(this);
   }
 
 protected:
@@ -465,15 +465,15 @@ public:
   
   /* modifiers */
   /*! Sets the SVertex that is closer to the viewpoint. */
-  inline void SetFrontVertex(SVertex  *iFrontSVertex) {_FrontSVertex = iFrontSVertex;_FrontSVertex->SetViewVertex(this);}
+  inline void setFrontVertex(SVertex  *iFrontSVertex) {_FrontSVertex = iFrontSVertex;_FrontSVertex->setViewVertex(this);}
   /*! Sets the SVertex that is further away from the viewpoint. */
-  inline void SetBackSVertex(SVertex  *iBackSVertex) {_BackSVertex = iBackSVertex;_BackSVertex->SetViewVertex(this);}
-  void SetFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming=true);
-  void SetFrontEdgeB(ViewEdge *iFrontEdgeB, bool incoming=true) ;
-  void SetBackEdgeA(ViewEdge *iBackEdgeA, bool incoming=true);
-  void SetBackEdgeB(ViewEdge *iBackEdgeB, bool incoming=true) ;
+  inline void setBackSVertex(SVertex  *iBackSVertex) {_BackSVertex = iBackSVertex;_BackSVertex->setViewVertex(this);}
+  void setFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming=true);
+  void setFrontEdgeB(ViewEdge *iFrontEdgeB, bool incoming=true) ;
+  void setBackEdgeA(ViewEdge *iBackEdgeA, bool incoming=true);
+  void setBackEdgeB(ViewEdge *iBackEdgeB, bool incoming=true) ;
   /*! Sets the Id. */
-  inline void SetId(const Id& iId) {_Id = iId;}
+  inline void setId(const Id& iId) {_Id = iId;}
   
   /*! Returns the SVertex (among the 2) belonging to the FEdge iFEdge */
   inline SVertex * GetSVertex(FEdge *iFEdge)
@@ -641,7 +641,7 @@ public:
   inline NonTVertex(SVertex* iSVertex) : ViewVertex(Nature::NON_T_VERTEX)
   {
     _SVertex = iSVertex;
-    _SVertex->SetViewVertex(this);
+    _SVertex->setViewVertex(this);
   }
 protected:
   /*! Copy constructor. */
@@ -649,7 +649,7 @@ protected:
     : ViewVertex(iBrother)
   {
     _SVertex = iBrother._SVertex;
-    _SVertex->SetViewVertex(this);
+    _SVertex->setViewVertex(this);
     _ViewEdges = iBrother._ViewEdges;
   }
   /*! Cloning method. */
@@ -669,8 +669,8 @@ public:
   
   /* modifiers */
   /*! Sets the SVertex on top of which this NonTVertex is built. */
-  inline void SetSVertex(SVertex *iSVertex) {_SVertex = iSVertex;_SVertex->SetViewVertex(this);}
-  inline void SetViewEdges(const vector<directedViewEdge>& iViewEdges) {_ViewEdges = iViewEdges;}
+  inline void setSVertex(SVertex *iSVertex) {_SVertex = iSVertex;_SVertex->setViewVertex(this);}
+  inline void setViewEdges(const vector<directedViewEdge>& iViewEdges) {_ViewEdges = iViewEdges;}
   void AddIncomingViewEdge(ViewEdge * iVEdge) ;
   void AddOutgoingViewEdge(ViewEdge * iVEdge) ;
   inline void AddViewEdge(ViewEdge * iVEdge, bool incoming=true) {
@@ -938,28 +938,28 @@ public:
   
   /* modifiers */
   /*! Sets the first ViewVertex of the ViewEdge. */
-  inline void SetA(ViewVertex* iA) { __A = iA; }
+  inline void setA(ViewVertex* iA) { __A = iA; }
   /*! Sets the last ViewVertex of the ViewEdge. */
-  inline void SetB(ViewVertex* iB) { __B = iB; }
+  inline void setB(ViewVertex* iB) { __B = iB; }
   /*! Sets the nature of the ViewEdge. */
-  inline void SetNature(Nature::EdgeNature iNature) { _Nature = iNature; }
+  inline void setNature(Nature::EdgeNature iNature) { _Nature = iNature; }
   /*! Sets the first FEdge of the ViewEdge. */
-  inline void SetFEdgeA(FEdge* iFEdge) { _FEdgeA = iFEdge; }
+  inline void setFEdgeA(FEdge* iFEdge) { _FEdgeA = iFEdge; }
   /*! Sets the last FEdge of the ViewEdge. */
-  inline void SetFEdgeB(FEdge* iFEdge) { _FEdgeB = iFEdge; }
+  inline void setFEdgeB(FEdge* iFEdge) { _FEdgeB = iFEdge; }
   /*! Sets the ViewShape to which this ViewEdge belongs to.*/
-  inline void SetShape(ViewShape *iVShape) 
+  inline void setShape(ViewShape *iVShape) 
   {
     _Shape = iVShape;
   }
   /*! Sets the ViewEdge id. */
-  inline void SetId(const Id& id) {_Id = id;}
+  inline void setId(const Id& id) {_Id = id;}
   /*! Sets Viewedge to this for all embedded fedges */
   void UpdateFEdges();
   /*! Sets the occluded ViewShape */
-  inline void SetaShape(ViewShape * iShape) {_aShape = iShape;}
+  inline void setaShape(ViewShape * iShape) {_aShape = iShape;}
   /*! Sets the quantitative invisibility value. */
-  inline void SetQI(int qi) {_qi = qi;}
+  inline void setQI(int qi) {_qi = qi;}
   /*! Sets the time stamp value. */
   inline void setChainingTimeStamp(unsigned ts) {_ChainingTimeStamp = ts;}
   inline void AddOccluder(ViewShape *iShape) {_Occluders.push_back(iShape);}
@@ -1099,7 +1099,7 @@ public:
   /*! Default constructor.*/
   inline ViewShape() { userdata = 0; _SShape = 0;}
   /*! Builds a ViewShape from a SShape. */
-  inline ViewShape(SShape *iSShape) {userdata = 0; _SShape = iSShape;}//_SShape->SetViewShape(this);}
+  inline ViewShape(SShape *iSShape) {userdata = 0; _SShape = iSShape;}//_SShape->setViewShape(this);}
   /*! Copy constructor. */
   inline ViewShape(ViewShape& iBrother)
   {
@@ -1146,10 +1146,10 @@ public:
           ViewEdge *veBackA = (ViewEdge*)(v)->backEdgeA().first->userdata;
           ViewEdge *veBackB = (ViewEdge*)(v)->backEdgeB().first->userdata;
 
-          v->SetFrontEdgeA(veFrontA, v->frontEdgeA().second);
-          v->SetFrontEdgeB(veFrontB, v->frontEdgeB().second);
-          v->SetBackEdgeA(veBackA, v->backEdgeA().second);
-          v->SetBackEdgeB(veBackB, v->backEdgeB().second);
+          v->setFrontEdgeA(veFrontA, v->frontEdgeA().second);
+          v->setFrontEdgeB(veFrontB, v->frontEdgeB().second);
+          v->setBackEdgeA(veBackA, v->backEdgeA().second);
+          v->setBackEdgeB(veBackB, v->backEdgeB().second);
         }
         break;
       case Nature::NON_T_VERTEX:
@@ -1164,7 +1164,7 @@ public:
             ViewEdge *current = (ViewEdge*)((ve)->first)->userdata;
             newEdges.push_back(ViewVertex::directedViewEdge(current, ve->second));
           }
-          (v)->SetViewEdges(newEdges);
+          (v)->setViewEdges(newEdges);
         }
         break;
       default:
@@ -1179,8 +1179,8 @@ public:
         ve!=veend;
         ve++)
       {
-        (*ve)->SetA((ViewVertex*)((*ve)->A()->userdata));
-        (*ve)->SetB((ViewVertex*)((*ve)->B()->userdata));
+        (*ve)->setA((ViewVertex*)((*ve)->A()->userdata));
+        (*ve)->setB((ViewVertex*)((*ve)->B()->userdata));
         //---------------------------------------
         // Update all embedded FEdges
         //---------------------------------------
@@ -1253,11 +1253,11 @@ public:
 
   /* modifiers */
   /*! Sets the SShape on top of which the ViewShape is built. */
-  inline void SetSShape(SShape* iSShape) {_SShape = iSShape;}
+  inline void setSShape(SShape* iSShape) {_SShape = iSShape;}
   /*! Sets the list of ViewVertex contained in this ViewShape. */
-  inline void SetVertices(const vector<ViewVertex*>& iVertices) {_Vertices = iVertices;}
+  inline void setVertices(const vector<ViewVertex*>& iVertices) {_Vertices = iVertices;}
   /*! Sets the list of ViewEdge contained in this ViewShape. */
-  inline void SetEdges(const vector<ViewEdge*>& iEdges) {_Edges = iEdges;}
+  inline void setEdges(const vector<ViewEdge*>& iEdges) {_Edges = iEdges;}
   /*! Adds a ViewVertex to the list. */
   inline void AddVertex(ViewVertex *iVertex) 
   {
@@ -1268,7 +1268,7 @@ public:
   inline void AddEdge(ViewEdge *iEdge) 
   {
     _Edges.push_back(iEdge);
-    iEdge->SetShape(this);
+    iEdge->setShape(this);
     //_SShape->AddNewEdge(iEdge->fedge());
   }
 
@@ -1358,13 +1358,13 @@ void ViewShape::SplitEdge(FEdge *fe,
         // remove the chain that was starting by the fedge A of vEdge (which is different from fe !!!!)
         shape->RemoveEdgeFromChain(vEdge->fedgeA());
         // we set 
-        vEdge->SetA(*vv);
-        vEdge->SetB(*vv);
-        vEdge->SetFEdgeA(newEdge);
+        vEdge->setA(*vv);
+        vEdge->setB(*vv);
+        vEdge->setFEdgeA(newEdge);
         //FEdge *previousEdge = newEdge->previousEdge();  
-        vEdge->SetFEdgeB(fe);
+        vEdge->setFEdgeB(fe);
         newVEdge = vEdge;
-        vEdge->fedgeA()->SetViewEdge(newVEdge);
+        vEdge->fedgeA()->setViewEdge(newVEdge);
       }
       else
       {
@@ -1372,15 +1372,15 @@ void ViewShape::SplitEdge(FEdge *fe,
         // while we create the view edge, it updates the "ViewEdge" pointer 
         // of every underlying FEdges to this.
         newVEdge = new ViewEdge((*vv),vvb);//, newEdge, vEdge->fedgeB());
-        newVEdge->SetNature((fe)->getNature());
-        newVEdge->SetFEdgeA(newEdge);
-        //newVEdge->SetFEdgeB(fe);
+        newVEdge->setNature((fe)->getNature());
+        newVEdge->setFEdgeA(newEdge);
+        //newVEdge->setFEdgeB(fe);
         // If our original viewedge is made of one FEdge, 
         // then 
         if((vEdge->fedgeA() == vEdge->fedgeB()) || (fe == vEdge->fedgeB()))
-          newVEdge->SetFEdgeB(newEdge);
+          newVEdge->setFEdgeB(newEdge);
         else
-          newVEdge->SetFEdgeB(vEdge->fedgeB()); //MODIF
+          newVEdge->setFEdgeB(vEdge->fedgeB()); //MODIF
 
         Id * newId = vEdge->splittingId();
         if(newId == 0){
@@ -1388,11 +1388,11 @@ void ViewShape::SplitEdge(FEdge *fe,
           vEdge->setSplittingId(newId);
         }
         newId->setSecond(newId->getSecond()+1);
-        newVEdge->SetId(*newId);
+        newVEdge->setId(*newId);
         newVEdge->setSplittingId(newId);
         //        Id id(vEdge->getId().getFirst(), vEdge->getId().getSecond()+1);
-        //        newVEdge->SetId(vEdge->getId());
-        //        vEdge->SetId(id);
+        //        newVEdge->setId(vEdge->getId());
+        //        vEdge->setId(id);
         
         AddEdge(newVEdge); // here this shape is set as the edge's shape
       
@@ -1405,8 +1405,8 @@ void ViewShape::SplitEdge(FEdge *fe,
           vvb->Replace((vEdge), newVEdge);
 
         // we split the view edge:
-        vEdge->SetB((*vv));
-        vEdge->SetFEdgeB(fe); //MODIF
+        vEdge->setB((*vv));
+        vEdge->setFEdgeB(fe); //MODIF
       
         // Update fedges so that they point to the new viewedge:
         newVEdge->UpdateFEdges();
@@ -1418,14 +1418,14 @@ void ViewShape::SplitEdge(FEdge *fe,
       if(sv == (*vv)->frontSVertex())
       { 
         // -- View Vertex A' --
-        (*vv)->SetFrontEdgeA(vEdge, true);
-        (*vv)->SetFrontEdgeB(newVEdge, false);
+        (*vv)->setFrontEdgeA(vEdge, true);
+        (*vv)->setFrontEdgeB(newVEdge, false);
       }
       else
       {
         // -- View Vertex A' --
-        (*vv)->SetBackEdgeA(vEdge, true);
-        (*vv)->SetBackEdgeB(newVEdge, false);
+        (*vv)->setBackEdgeA(vEdge, true);
+        (*vv)->setBackEdgeB(newVEdge, false);
       }
     }
 } 

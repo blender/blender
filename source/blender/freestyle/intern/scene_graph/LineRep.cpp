@@ -54,5 +54,5 @@ void LineRep::ComputeBBox()
       ZMin = (*v)[2];
   }
 
-  SetBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
+  setBBox(BBox<Vec3r>(Vec3r(XMin, YMin, ZMin), Vec3r(XMax, YMax, ZMax)));
 }

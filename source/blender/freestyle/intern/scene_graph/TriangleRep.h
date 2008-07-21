@@ -85,11 +85,11 @@ public:
   inline const Vec3r& vertex(int index) const {return _vertices[index];}
   inline const Vec3r& color(int index) const {return _colors[index];}
   /*! modifiers */
-  inline void SetStyle(const TRIANGLE_STYLE iStyle) {_Style = iStyle;}
-  inline void SetVertex(int index, const Vec3r& iVertex) {_vertices[index] = iVertex;}
-  inline void SetColor(int index, const Vec3r& iColor) {_colors[index] = iColor;}
-  inline void SetVertices(const Vec3r& v0, const Vec3r& v1, const Vec3r& v2) {_vertices[0] = v0; _vertices[1] = v1; _vertices[2] = v2;}
-  inline void SetColors(const Vec3r& c0, const Vec3r& c1, const Vec3r& c2) {_colors[0] = c0; _colors[1] = c1; _colors[2] = c2;}
+  inline void setStyle(const TRIANGLE_STYLE iStyle) {_Style = iStyle;}
+  inline void setVertex(int index, const Vec3r& iVertex) {_vertices[index] = iVertex;}
+  inline void setColor(int index, const Vec3r& iColor) {_colors[index] = iColor;}
+  inline void setVertices(const Vec3r& v0, const Vec3r& v1, const Vec3r& v2) {_vertices[0] = v0; _vertices[1] = v1; _vertices[2] = v2;}
+  inline void setColors(const Vec3r& c0, const Vec3r& c1, const Vec3r& c2) {_colors[0] = c0; _colors[1] = c1; _colors[2] = c2;}
 
   /*! Accept the corresponding visitor */
   virtual void accept(SceneVisitor& v) {

@@ -60,7 +60,7 @@ public:
    *  \param ylabel
    *    The label of the y-axis
    */
-  void SetOrientationCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel);
+  void setOrientationCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel);
 
   /*! Sets the node that contains the level curve i in 
    *  viewer i (i in [1,8]).
@@ -77,7 +77,7 @@ public:
    *  \param ylabel
    *    The label of the y-axis
    */
-  void SetLevelCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel);
+  void setLevelCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel);
 };
 
 #endif // APPDENSITYCURVESWINDOW_H

@@ -57,7 +57,7 @@ public:
   Controller() ;
   ~Controller() ;
   
-  void SetView(AppGLWidget *iView);
+  void setView(AppGLWidget *iView);
 
   //soc
 	void init_options();

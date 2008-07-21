@@ -91,7 +91,7 @@ void NodeTransform::MultiplyMatrix(const Matrix44r &iMatrix)
   _Matrix = mat_tmp * iMatrix;
 }
 
-void NodeTransform::SetMatrix(const Matrix44r &iMatrix)
+void NodeTransform::setMatrix(const Matrix44r &iMatrix)
 {
   _Matrix = iMatrix;
   if(isScaled(iMatrix))

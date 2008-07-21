@@ -106,7 +106,7 @@ public:
   virtual void buildSmoothEdges(WXShape* iShape);
 
   /*! Sets the current viewpoint */
-  inline void SetViewpoint(const Vec3r& ivp) {_Viewpoint = ivp;}
+  inline void setViewpoint(const Vec3r& ivp) {_Viewpoint = ivp;}
   inline void enableRidgesAndValleysFlag(bool b) {_computeRidgesAndValleys = b;}
   inline void enableSuggestiveContours(bool b) {_computeSuggestiveContours = b;}
   /*! Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
@@ -120,7 +120,7 @@ public:
     }
   }
 
-  inline void SetProgressBar(ProgressBar *iProgressBar) {_pProgressBar = iProgressBar;}
+  inline void setProgressBar(ProgressBar *iProgressBar) {_pProgressBar = iProgressBar;}
 
 protected:
 

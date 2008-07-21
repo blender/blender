@@ -55,7 +55,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			d1 = p0-p1
 			d1 = d1/d1.norm()
 			newFirst = p0+d1*float(self._l)
-			v0.SetPoint(newFirst)
+			v0.setPoint(newFirst)
 		else:
 			print "got a v0 cusp"
 		vn_1 = itn_1.getObject()
@@ -66,7 +66,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			dn = pn-pn_1
 			dn = dn/dn.norm()
 			newLast = pn+dn*float(self._l)	
-			vn.SetPoint(newLast)
+			vn.setPoint(newLast)
 		else:
 			print "got a vn cusp"
 

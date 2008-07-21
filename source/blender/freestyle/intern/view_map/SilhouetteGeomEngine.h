@@ -75,7 +75,7 @@ public:
   }
 
   /*! Sets the current viewpoint */
-  static inline void SetViewpoint(const Vec3r& ivp) {_Viewpoint = ivp;}
+  static inline void setViewpoint(const Vec3r& ivp) {_Viewpoint = ivp;}
 
   /*! Sets the current transformation
    *    iModelViewMatrix
@@ -87,11 +87,11 @@ public:
    *    iFocal
    *      The focal length
    */
-  static void SetTransform(const real iModelViewMatrix[4][4], const real iProjectionMatrix[4][4], const int iViewport[4], real iFocal) ;  
+  static void setTransform(const real iModelViewMatrix[4][4], const real iProjectionMatrix[4][4], const int iViewport[4], real iFocal) ;  
 
   /*! Sets the current znear and zfar
    */
-  static void SetFrustum(real iZNear, real iZFar) ;  
+  static void setFrustum(real iZNear, real iZFar) ;  
 
   /* accessors */
   static void retrieveViewport(int viewport[4]);

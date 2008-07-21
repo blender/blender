@@ -120,7 +120,7 @@ public:
    *    \param a
    *      Alpha component
    */
-  inline void SetDiffuse(const float r, const float g, const float b, const float a);
+  inline void setDiffuse(const float r, const float g, const float b, const float a);
   /*! Sets the specular color.
    *    \param r
    *      Red component
@@ -131,7 +131,7 @@ public:
    *    \param a
    *      Alpha component
    */
-  inline void SetSpecular(const float r, const float g, const float b, const float a);
+  inline void setSpecular(const float r, const float g, const float b, const float a);
   /*! Sets the ambiant color.
    *    \param r
    *      Red component
@@ -142,7 +142,7 @@ public:
    *    \param a
    *      Alpha component
    */
-  inline void SetAmbient(const float r, const float g, const float b, const float a);
+  inline void setAmbient(const float r, const float g, const float b, const float a);
 
   /*! Sets the emissive color.
    *    \param r
@@ -154,13 +154,13 @@ public:
    *    \param a
    *      Alpha component
    */
-  inline void SetEmission(const float r, const float g, const float b, const float a);
+  inline void setEmission(const float r, const float g, const float b, const float a);
 
   /*! Sets the shininess.
    *    \param s
    *      Shininess
    */
-  inline void SetShininess(const float s);
+  inline void setShininess(const float s);
 
   /* operators */
   inline Material& operator=(const Material& m);
@@ -225,7 +225,7 @@ Material::Material(const Material& m)
   Shininess = m.shininess();
 }
 
-void Material::SetDiffuse(const float r, const float g, const float b, const float a)
+void Material::setDiffuse(const float r, const float g, const float b, const float a)
 {
   Diffuse[0] = r;
   Diffuse[1] = g;
@@ -233,7 +233,7 @@ void Material::SetDiffuse(const float r, const float g, const float b, const flo
   Diffuse[3] = a;
 }
 
-void Material::SetSpecular(const float r, const float g, const float b, const float a)
+void Material::setSpecular(const float r, const float g, const float b, const float a)
 {
   Specular[0] = r;
   Specular[1] = g;
@@ -241,7 +241,7 @@ void Material::SetSpecular(const float r, const float g, const float b, const fl
   Specular[3] = a;
 }
   
-void Material::SetAmbient(const float r, const float g, const float b, const float a)
+void Material::setAmbient(const float r, const float g, const float b, const float a)
 {
   Ambient[0] = r;
   Ambient[1] = g;
@@ -249,7 +249,7 @@ void Material::SetAmbient(const float r, const float g, const float b, const flo
   Ambient[3] = a;
 }
 
-void Material::SetEmission(const float r, const float g, const float b, const float a)
+void Material::setEmission(const float r, const float g, const float b, const float a)
 {
   Emission[0] = r;
   Emission[1] = g;
@@ -257,7 +257,7 @@ void Material::SetEmission(const float r, const float g, const float b, const fl
   Emission[3] = a;
 }
 
-void Material::SetShininess(const float s)
+void Material::setShininess(const float s)
 {
   Shininess = s;
 }

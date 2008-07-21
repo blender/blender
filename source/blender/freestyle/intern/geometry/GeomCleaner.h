@@ -189,8 +189,8 @@ public:
   inline real z() {return _Vector[2];}
   
   /*! modifiers */
-  inline void SetVector(const Vec3r& iVector) {_Vector = iVector;}
-  inline void SetIndex(unsigned iIndex) {_index = iIndex;}
+  inline void setVector(const Vec3r& iVector) {_Vector = iVector;}
+  inline void setIndex(unsigned iIndex) {_index = iIndex;}
 
   /*! operators */
   IndexedVertex& operator=(const IndexedVertex& iv)

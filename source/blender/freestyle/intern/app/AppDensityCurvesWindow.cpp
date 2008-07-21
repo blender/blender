@@ -33,7 +33,7 @@ AppDensityCurvesWindow::AppDensityCurvesWindow(QWidget *parent, const char *name
 AppDensityCurvesWindow::~AppDensityCurvesWindow(){ 
 }
 
-void AppDensityCurvesWindow::SetOrientationCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel){
+void AppDensityCurvesWindow::setOrientationCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel){
   AppGL2DCurvesViewer * viewer = 0;
   switch(i){
   case 0:viewer = CurvesViewer0; break;
@@ -44,10 +44,10 @@ void AppDensityCurvesWindow::SetOrientationCurve(int i, const Vec2d& vmin, const
   default:return;
   }
   
-  viewer->SetCurve(vmin, vmax, iCurve, xlabel, ylabel);
+  viewer->setCurve(vmin, vmax, iCurve, xlabel, ylabel);
 }
 
-void AppDensityCurvesWindow::SetLevelCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel){
+void AppDensityCurvesWindow::setLevelCurve(int i, const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iCurve, const char *xlabel, const char *ylabel){
   AppGL2DCurvesViewer * viewer = 0;
   switch(i){
   case 1:viewer = LevelCurveViewer1; break;
@@ -61,5 +61,5 @@ void AppDensityCurvesWindow::SetLevelCurve(int i, const Vec2d& vmin, const Vec2d
   default:return;
   }
   
-  viewer->SetCurve(vmin, vmax, iCurve, xlabel, ylabel);
+  viewer->setCurve(vmin, vmax, iCurve, xlabel, ylabel);
 }

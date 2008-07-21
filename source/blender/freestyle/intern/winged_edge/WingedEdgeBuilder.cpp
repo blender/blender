@@ -28,8 +28,8 @@ using namespace std;
 void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs) {
   WShape *shape = new WShape;
   buildWShape(*shape, ifs);
-  shape->SetId(ifs.getId().getFirst());
-  //ifs.SetId(shape->GetId());
+  shape->setId(ifs.getId().getFirst());
+  //ifs.setId(shape->GetId());
 }
 
 void WingedEdgeBuilder::visitNodeShape(NodeShape& ns) {
@@ -93,14 +93,14 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 		const Material*const* mats = ifs.materials();
 		for(unsigned i=0; i<ifs.msize(); ++i)
 			materials.push_back(*(mats[i]));
-		shape.SetMaterials(materials);
+		shape.setMaterials(materials);
 	}
 
   //  const Material * mat = (ifs.material());
   //  if (mat)
-  //    shape.SetMaterial(*mat);
+  //    shape.setMaterial(*mat);
   //  else if(_current_material)
-  //    shape.SetMaterial(*_current_material);
+  //    shape.setMaterial(*_current_material);
 
   // sets the current WShape to shape
   _current_wshape = &shape;
@@ -193,7 +193,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
       ++fit;
     }
     if(normalsSet.size()!=1){
-      (*wv)->SetSmooth(false);
+      (*wv)->setSmooth(false);
     }
   }
   // Adds the new WShape to the WingedEdge structure
@@ -208,7 +208,7 @@ void WingedEdgeBuilder::buildWVertices(WShape& shape,
     vertex = new WVertex(Vec3r(vertices[i],
 			       vertices[i + 1],
 			       vertices[i + 2]));
-    vertex->SetId(i / 3);
+    vertex->setId(i / 3);
     shape.AddVertex(vertex);
   }
 }

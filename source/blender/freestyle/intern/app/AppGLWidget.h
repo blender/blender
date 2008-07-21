@@ -297,7 +297,7 @@ public:
   // when a model is added to the scene.
   void ReInitRenderers();
 
-  inline void SetSelectedFEdge(FEdge* iFEdge) { _pDebugRenderer->SetSelectedFEdge(iFEdge); }
+  inline void SetSelectedFEdge(FEdge* iFEdge) { _pDebugRenderer->setSelectedFEdge(iFEdge); }
 
   inline GLDebugRenderer* debugRenderer() { return _pDebugRenderer; }
   inline void toggle3D() { _Draw3DScene == true ? _Draw3DScene = false : _Draw3DScene = true; updateGL();}

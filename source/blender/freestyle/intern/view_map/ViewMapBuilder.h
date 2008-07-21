@@ -113,7 +113,7 @@ public:
 
 
   /*! Sets the current viewpoint */
-  inline void SetViewpoint(const Vec3r& ivp) {_viewpoint = ivp; SilhouetteGeomEngine::SetViewpoint(ivp);}
+  inline void setViewpoint(const Vec3r& ivp) {_viewpoint = ivp; SilhouetteGeomEngine::setViewpoint(ivp);}
 
   /*! Sets the current transformation
    *    iModelViewMatrix
@@ -123,17 +123,17 @@ public:
    *    iViewport
    *      The viewport. 4 real array: origin.x, origin.y, width, length
    */
-  inline void SetTransform(const real iModelViewMatrix[4][4],
+  inline void setTransform(const real iModelViewMatrix[4][4],
 			   const real iProjectionMatrix[4][4],
 			   const int iViewport[4],
 			   real iFocalLength,
 			   real iAspect,
 			   real iFovy) {
-    SilhouetteGeomEngine::SetTransform(iModelViewMatrix, iProjectionMatrix, iViewport, iFocalLength);
+    SilhouetteGeomEngine::setTransform(iModelViewMatrix, iProjectionMatrix, iViewport, iFocalLength);
   }
   
-  inline void SetFrustum(real iZnear, real iZfar) {
-    SilhouetteGeomEngine::SetFrustum(iZnear, iZfar);
+  inline void setFrustum(real iZnear, real iZfar) {
+    SilhouetteGeomEngine::setFrustum(iZnear, iZfar);
   }
 
   /*! Builds the scene view map
@@ -164,13 +164,13 @@ public:
    */
   void ComputeEdgesVisibility(ViewMap *ioViewMap, visibility_algo iAlgo= ray_casting, Grid* iGrid = 0, real epsilon=1e-6);
 
-  void SetGrid(Grid *iGrid) {_Grid = iGrid;}
+  void setGrid(Grid *iGrid) {_Grid = iGrid;}
   
   /*! accessors */
  
   /*! Modifiers */
-  inline void SetProgressBar(ProgressBar *iProgressBar) {_pProgressBar = iProgressBar;}
-  inline void SetEnableQI(bool iBool) {_EnableQI = iBool;}
+  inline void setProgressBar(ProgressBar *iProgressBar) {_pProgressBar = iProgressBar;}
+  inline void setEnableQI(bool iBool) {_EnableQI = iBool;}
 
 protected:
 

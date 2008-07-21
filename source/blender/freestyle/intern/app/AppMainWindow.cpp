@@ -40,7 +40,7 @@ AppMainWindow::AppMainWindow(QWidget *parent, const char *name, Qt::WindowFlags 
 
   // setCaption(Config::APPLICATION_NAME + " " + Config::APPLICATION_VERSION);
   setGeometry(20,20,700,700);
-  pQGLWidget->SetMainWindow(this);
+  pQGLWidget->setMainWindow(this);
 
   _ProgressBar = new QProgressDialog(Config::APPLICATION_NAME + " Progress Dialog", "Cancel", 
 				     0, 100, this);

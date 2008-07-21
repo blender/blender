@@ -43,16 +43,16 @@ public:
   virtual ~NodeDrawingStyle() {}
 
   inline const DrawingStyle& drawingStyle() const { return _DrawingStyle; }
-  inline void SetDrawingStyle(const DrawingStyle& iDrawingStyle) { _DrawingStyle = iDrawingStyle; }
+  inline void setDrawingStyle(const DrawingStyle& iDrawingStyle) { _DrawingStyle = iDrawingStyle; }
 
   /*! Sets the style. Must be one of FILLED, LINES, POINTS, INVISIBLE. */
-  inline void SetStyle(const DrawingStyle::STYLE iStyle) { _DrawingStyle.SetStyle(iStyle); }
+  inline void setStyle(const DrawingStyle::STYLE iStyle) { _DrawingStyle.setStyle(iStyle); }
   /*! Sets the line width in the LINES style case */
-  inline void SetLineWidth(const float iLineWidth) { _DrawingStyle.SetLineWidth(iLineWidth); }
+  inline void setLineWidth(const float iLineWidth) { _DrawingStyle.setLineWidth(iLineWidth); }
   /*! Sets the Point size in the POINTS style case */
-  inline void SetPointSize(const float iPointSize) { _DrawingStyle.SetPointSize(iPointSize); }
+  inline void setPointSize(const float iPointSize) { _DrawingStyle.setPointSize(iPointSize); }
   /*! Enables or disables the lighting. TRUE = enable */
-  inline void SetLightingEnabled(const bool iEnableLighting) { _DrawingStyle.SetLightingEnabled(iEnableLighting); }
+  inline void setLightingEnabled(const bool iEnableLighting) { _DrawingStyle.setLightingEnabled(iEnableLighting); }
 
   /*! Accept the corresponding visitor */
   virtual void accept(SceneVisitor& v);

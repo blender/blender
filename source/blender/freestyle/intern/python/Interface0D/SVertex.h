@@ -15,8 +15,7 @@ extern "C" {
 
 extern PyTypeObject SVertex_Type;
 
-#define BPy_SVertex_Check(v) \
-    ((v)->ob_type == &SVertex_Type)
+#define BPy_SVertex_Check(v)	(( (PyObject *) v)->ob_type == &SVertex_Type)
 
 /*---------------------------Python BPy_SVertex structure definition----------*/
 typedef struct {

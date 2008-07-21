@@ -130,7 +130,7 @@ public:
  
   /*! modifiers */
   inline void setMediumType(Stroke::MediumType itype) {_strokeType=itype;}
-  inline void SetTextureId(unsigned textureId) {_textureId = textureId;}
+  inline void setTextureId(unsigned textureId) {_textureId = textureId;}
 
   
 };

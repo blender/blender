@@ -28,8 +28,8 @@
 AppGL2DCurvesViewer::AppGL2DCurvesViewer(QWidget *iParent, const char *iName)
 : QGLViewer(iParent)
 {
-  _RootNode.SetLightingEnabled(false);
-  _RootNode.SetLineWidth(1.0);
+  _RootNode.setLightingEnabled(false);
+  _RootNode.setLineWidth(1.0);
   _pGLRenderer = new GLRenderer;
 }
 AppGL2DCurvesViewer::~AppGL2DCurvesViewer(){
@@ -39,7 +39,7 @@ AppGL2DCurvesViewer::~AppGL2DCurvesViewer(){
     delete _pGLRenderer;
 }
   
-void AppGL2DCurvesViewer::SetRange(const Vec2d& vmin, const Vec2d& vmax, const char * xlabel, const char *ylabel){
+void AppGL2DCurvesViewer::setRange(const Vec2d& vmin, const Vec2d& vmax, const char * xlabel, const char *ylabel){
   _vmin = vmin;
   _vmax = vmax;
   _xmargin = (vmax.x()-vmin.x())/20.0;
@@ -53,8 +53,8 @@ void AppGL2DCurvesViewer::SetRange(const Vec2d& vmin, const Vec2d& vmax, const c
   if(ylabel)
     _ylabel = ylabel;
 }
-void AppGL2DCurvesViewer::SetCurve(const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iPoints, const char *xlabel, const char *ylabel){
-  SetRange(vmin, vmax, xlabel, ylabel);
+void AppGL2DCurvesViewer::setCurve(const Vec2d& vmin, const Vec2d& vmax, const vector<Vec3r>& iPoints, const char *xlabel, const char *ylabel){
+  setRange(vmin, vmax, xlabel, ylabel);
   vector<Node*> nodes;
   _RootNode.RetrieveChildren(nodes);
   _RootNode.DetachChildren();
@@ -67,7 +67,7 @@ void AppGL2DCurvesViewer::SetCurve(const Vec2d& vmin, const Vec2d& vmax, const v
   _curve = iPoints;
   NodeGroup * curveNode = new NodeGroup;
   NodeShape * shape = new NodeShape;
-  shape->material().SetDiffuse(0,0,0,1);
+  shape->material().setDiffuse(0,0,0,1);
   curveNode->AddChild(shape);
   shape->AddRep(new LineRep(iPoints));
   for(vector<Vec3r>::const_iterator v=iPoints.begin(), vend=iPoints.end();

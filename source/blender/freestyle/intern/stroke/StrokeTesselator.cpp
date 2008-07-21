@@ -36,7 +36,7 @@ LineRep* StrokeTesselator::Tesselate(Stroke *iStroke)
   Stroke::vertex_iterator v,vend;
   if(2 == iStroke->vertices_size())
   {
-    line->SetStyle(LineRep::LINES);
+    line->setStyle(LineRep::LINES);
     v = iStroke->vertices_begin();
     StrokeVertex *svA= (*v);
     v++;
@@ -49,9 +49,9 @@ LineRep* StrokeTesselator::Tesselate(Stroke *iStroke)
   else
   {
     if(_overloadMaterial)
-      line->SetMaterial(_Material);
+      line->setMaterial(_Material);
 
-    line->SetStyle(LineRep::LINE_STRIP);
+    line->setStyle(LineRep::LINE_STRIP);
 
     for(v=iStroke->vertices_begin(), vend=iStroke->vertices_end();
     v!=vend;
@@ -62,7 +62,7 @@ LineRep* StrokeTesselator::Tesselate(Stroke *iStroke)
       line->AddVertex(V);         
     } 
   }
-  line->SetId(iStroke->getId());
+  line->setId(iStroke->getId());
   line->ComputeBBox();
 
   return line;
@@ -74,8 +74,8 @@ NodeGroup* StrokeTesselator::Tesselate(StrokeVertexIterator begin, StrokeVertexI
   NodeGroup *group = new NodeGroup;
   NodeShape *tshape = new NodeShape;
   group->AddChild(tshape);
-  //tshape->material().SetDiffuse(0.f, 0.f, 0.f, 1.f);
-  tshape->SetMaterial(_Material);
+  //tshape->material().setDiffuse(0.f, 0.f, 0.f, 1.f);
+  tshape->setMaterial(_Material);
 
   for(StrokeVertexIterator c=begin, cend=end;
   c!=cend;

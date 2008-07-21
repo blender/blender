@@ -99,26 +99,26 @@ namespace ViewMapIO {
       // Diffuse
       for (i = 0; i < 4; i++)
 	READ(tmp_array[i]);
-      m.SetDiffuse(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
+      m.setDiffuse(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
 
       // Specular
       for (i = 0; i < 4; i++)
 	READ(tmp_array[i]);
-      m.SetSpecular(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
+      m.setSpecular(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
 
       // Ambient
       for (i = 0; i < 4; i++)
 	READ(tmp_array[i]);
-      m.SetAmbient(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
+      m.setAmbient(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
 
       // Emission
       for (i = 0; i < 4; i++)
 	READ(tmp_array[i]);
-      m.SetEmission(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
+      m.setEmission(tmp_array[0], tmp_array[1], tmp_array[2], tmp_array[3]);
 
       // Shininess
       READ(tmp_array[0]);
-      m.SetShininess(tmp_array[0]);
+      m.setShininess(tmp_array[0]);
 
       return 0;
     }
@@ -135,12 +135,12 @@ namespace ViewMapIO {
       Id::id_type id1, id2;
       READ(id1);
       READ(id2);
-      vs->sshape()->SetId(Id(id1, id2));
+      vs->sshape()->setId(Id(id1, id2));
 
       // -> Importance
       float importance;
       READ(importance);
-      vs->sshape()->SetImportance(importance);
+      vs->sshape()->setImportance(importance);
 
       // -> BBox
       //    Not necessary (only used during view map computatiom)
@@ -155,7 +155,7 @@ namespace ViewMapIO {
         load(in, m);
         materials.push_back(m);
       }
-      vs->sshape()->SetMaterials(materials);
+      vs->sshape()->setMaterials(materials);
 
       
 
@@ -222,51 +222,51 @@ namespace ViewMapIO {
       Id::id_type id1, id2;
       READ(id1);
       READ(id2);
-      fe->SetId(Id(id1, id2));
+      fe->setId(Id(id1, id2));
 
       // Nature
       Nature::EdgeNature nature;
       READ(nature);
-      fe->SetNature(nature);
+      fe->setNature(nature);
 
       // hasVisibilityPoint
       //      bool b;
       //      READ(b);
-      //      fe->SetHasVisibilityPoint(b);
+      //      fe->setHasVisibilityPoint(b);
  
       Vec3r v;
       unsigned int matindex;
 
       // VisibilityPointA
       //      load(in, v);
-      //      fe->SetVisibilityPointA(v);
+      //      fe->setVisibilityPointA(v);
 
       // VisibilityPointB
       //      load(in, v);
-      //      fe->SetVisibilityPointB(v);
+      //      fe->setVisibilityPointB(v);
 
       if(fe->isSmooth()){
         // Normal
         load(in, v);
-        fesmooth->SetNormal(v);
+        fesmooth->setNormal(v);
 
         // Material
         READ(matindex);
-        fesmooth->SetMaterialIndex(matindex);
+        fesmooth->setMaterialIndex(matindex);
       }else{
         // aNormal
         load(in, v);
-        fesharp->SetNormalA(v);
+        fesharp->setNormalA(v);
 
         // bNormal
         load(in, v);
-        fesharp->SetNormalB(v);
+        fesharp->setNormalB(v);
 
         // Materials 
         READ(matindex);
-        fesharp->SetaMaterialIndex(matindex);
+        fesharp->setaMaterialIndex(matindex);
         READ(matindex);
-        fesharp->SetbMaterialIndex(matindex);
+        fesharp->setbMaterialIndex(matindex);
       }
       
       unsigned tmp;
@@ -274,27 +274,27 @@ namespace ViewMapIO {
       // VertexA
       SVertex* sva;
       READ_IF_NON_NULL(sva, g_vm->SVertices());
-      fe->SetVertexA(sva);
+      fe->setVertexA(sva);
      
       // VertexB
       SVertex* svb;
       READ_IF_NON_NULL(svb, g_vm->SVertices());
-      fe->SetVertexB(svb);
+      fe->setVertexB(svb);
 
       // NextEdge
       FEdge* nfe;
       READ_IF_NON_NULL(nfe, g_vm->FEdges());
-      fe->SetNextEdge(nfe);
+      fe->setNextEdge(nfe);
 
       // PreviousEdge
       FEdge* pfe;
       READ_IF_NON_NULL(pfe, g_vm->FEdges());
-      fe->SetPreviousEdge(pfe);
+      fe->setPreviousEdge(pfe);
 
       // ViewEdge
       ViewEdge* ve;
       READ_IF_NON_NULL(ve, g_vm->ViewEdges());
-      fe->SetViewEdge(ve);
+      fe->setViewEdge(ve);
 
       // Face
       // Not necessary (only used during view map computatiom)
@@ -303,15 +303,15 @@ namespace ViewMapIO {
     
       // aFace
       load(in, p);
-      fe->SetaFace(p);
+      fe->setaFace(p);
 
       // occludeeEmpty
       READ(b);
-      fe->SetOccludeeEmpty(b);
+      fe->setOccludeeEmpty(b);
       
       // occludeeIntersection
       load(in, v);
-      fe->SetOccludeeIntersection(v);
+      fe->setOccludeeIntersection(v);
 
       return 0;
     }
@@ -326,29 +326,29 @@ namespace ViewMapIO {
       Id::id_type id1, id2;
       READ(id1);
       READ(id2);
-      sv->SetId(Id(id1, id2));
+      sv->setId(Id(id1, id2));
 
       Vec3r v;
 
       // Point3D
       load(in, v);
-      sv->SetPoint3D(v);
+      sv->setPoint3D(v);
 
       // Point2D
       load(in, v);
-      sv->SetPoint2D(v);
+      sv->setPoint2D(v);
 
       unsigned tmp;
 
       // Shape
       ViewShape* vs;
       READ_IF_NON_NULL(vs, g_vm->ViewShapes());
-      sv->SetShape(vs->sshape());
+      sv->setShape(vs->sshape());
 
       // pViewVertex
       ViewVertex* vv;
       READ_IF_NON_NULL(vv, g_vm->ViewVertices());
-      sv->SetViewVertex(vv);
+      sv->setViewVertex(vv);
 
       unsigned i, size;
 
@@ -382,46 +382,46 @@ namespace ViewMapIO {
       Id::id_type id1, id2;
       READ(id1);
       READ(id2);
-      ve->SetId(Id(id1, id2));
+      ve->setId(Id(id1, id2));
 
       // Nature
       Nature::EdgeNature nature;
       READ(nature);
-      ve->SetNature(nature);
+      ve->setNature(nature);
 
       // QI
       READ(tmp);
-      ve->SetQI(tmp);
+      ve->setQI(tmp);
 
       // Shape
       ViewShape* vs;
       READ_IF_NON_NULL(vs, g_vm->ViewShapes());
-      ve->SetShape(vs);
+      ve->setShape(vs);
 
       // aShape
       ViewShape* avs;
       READ_IF_NON_NULL(avs, g_vm->ViewShapes());
-      ve->SetaShape(avs);
+      ve->setaShape(avs);
 
       // FEdgeA
       FEdge* fea;
       READ_IF_NON_NULL(fea, g_vm->FEdges());
-      ve->SetFEdgeA(fea);
+      ve->setFEdgeA(fea);
 
       // FEdgeB
       FEdge* feb;
       READ_IF_NON_NULL(feb, g_vm->FEdges());
-      ve->SetFEdgeB(feb);
+      ve->setFEdgeB(feb);
 
       // A
       ViewVertex* vva;
       READ_IF_NON_NULL(vva, g_vm->ViewVertices());
-      ve->SetA(vva);
+      ve->setA(vva);
 
       // B
       ViewVertex* vvb;
       READ_IF_NON_NULL(vvb, g_vm->ViewVertices());
-      ve->SetB(vvb);
+      ve->setB(vvb);
 
       // Occluders (List)
       if (!(Options::getFlags() & Options::NO_OCCLUDERS)) {
@@ -458,41 +458,41 @@ namespace ViewMapIO {
 	Id::id_type id1, id2;
 	READ(id1);
 	READ(id2);
-	tv->SetId(Id(id1, id2));
+	tv->setId(Id(id1, id2));
 
 	// FrontSVertex
 	SVertex* fsv;
 	READ_IF_NON_NULL(fsv, g_vm->SVertices());
-	tv->SetFrontVertex(fsv);
+	tv->setFrontVertex(fsv);
 
 	// BackSVertex
 	SVertex* bsv;
 	READ_IF_NON_NULL(bsv, g_vm->SVertices());
-	tv->SetBackSVertex(bsv);
+	tv->setBackSVertex(bsv);
 
 	// FrontEdgeA
 	ViewEdge* fea;
 	READ_IF_NON_NULL(fea, g_vm->ViewEdges());
 	READ(b);
-	tv->SetFrontEdgeA(fea, b);
+	tv->setFrontEdgeA(fea, b);
 
 	// FrontEdgeB
 	ViewEdge* feb;
 	READ_IF_NON_NULL(feb, g_vm->ViewEdges());
 	READ(b);
-	tv->SetFrontEdgeB(feb, b);
+	tv->setFrontEdgeB(feb, b);
 
 	// BackEdgeA
 	ViewEdge* bea;
 	READ_IF_NON_NULL(bea, g_vm->ViewEdges());
 	READ(b);
-	tv->SetBackEdgeA(bea, b);
+	tv->setBackEdgeA(bea, b);
 
 	// BackEdgeB
 	ViewEdge* beb;
 	READ_IF_NON_NULL(beb, g_vm->ViewEdges());
 	READ(b);
-	tv->SetBackEdgeB(beb, b);
+	tv->setBackEdgeB(beb, b);
       }
       else if (vv->getNature() & Nature::NON_T_VERTEX) {
 	NonTVertex* ntv = dynamic_cast<NonTVertex*>(vv);
@@ -500,7 +500,7 @@ namespace ViewMapIO {
 	// SVertex
 	SVertex* sv;
 	READ_IF_NON_NULL(sv, g_vm->SVertices());
-	ntv->SetSVertex(sv);
+	ntv->setSVertex(sv);
 	
 	// ViewEdges (List)
 	unsigned size;
@@ -1015,8 +1015,8 @@ namespace ViewMapIO {
     for (unsigned i0 = 0; i0 < vs_s; i0++) {
       SShape* ss = new SShape();
       ViewShape* vs = new ViewShape();
-      vs->SetSShape(ss);
-      ss->SetViewShape(vs);
+      vs->setSShape(ss);
+      ss->setViewShape(vs);
       vm->AddViewShape(vs);
     }
     //    for (unsigned i1 = 0; i1 < fe_s; i1++) {

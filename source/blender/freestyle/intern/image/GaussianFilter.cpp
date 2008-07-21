@@ -69,7 +69,7 @@ int GaussianFilter::computeMaskSize(float sigma)
   return maskSize;
 }
 
-void GaussianFilter::SetSigma(float sigma)
+void GaussianFilter::setSigma(float sigma)
 {
   _sigma = sigma;
   computeMask();

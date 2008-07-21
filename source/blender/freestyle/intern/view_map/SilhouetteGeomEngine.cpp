@@ -55,7 +55,7 @@ real SilhouetteGeomEngine::_zfar = 100.0;
   
 SilhouetteGeomEngine * SilhouetteGeomEngine::_pInstance = 0;
 
-void SilhouetteGeomEngine::SetTransform(const real iModelViewMatrix[4][4], const real iProjectionMatrix[4][4], const int iViewport[4], real iFocal) 
+void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4], const real iProjectionMatrix[4][4], const int iViewport[4], real iFocal) 
 {
   unsigned int i,j;
   _translation[0] = iModelViewMatrix[3][0];
@@ -93,7 +93,7 @@ void SilhouetteGeomEngine::SetTransform(const real iModelViewMatrix[4][4], const
   _Focal = iFocal;
 }
 
-void SilhouetteGeomEngine::SetFrustum(real iZNear, real iZFar) 
+void SilhouetteGeomEngine::setFrustum(real iZNear, real iZFar) 
 {
   _znear = iZNear;
   _zfar = iZFar;
@@ -117,7 +117,7 @@ void SilhouetteGeomEngine::ProjectSilhouette(vector<SVertex*>& ioVertices)
     {
       GeomUtils::fromWorldToImage((*sv)->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
       newPoint[2] = (-newPoint[2]-_znear)/(_zfar-_znear); // normalize Z between 0 and 1
-      (*sv)->SetPoint2D(newPoint);  
+      (*sv)->setPoint2D(newPoint);  
       //cerr << (*sv)->point2d().z() << "  ";
       //      real d=(*sv)->point2d()[2];
       //      if (d>max) max =d;
@@ -128,7 +128,7 @@ void SilhouetteGeomEngine::ProjectSilhouette(vector<SVertex*>& ioVertices)
       //      sv++)
       //    {
       //      Vec3r P((*sv)->point2d());
-      //      (*sv)->SetPoint2D(Vec3r(P[0], P[1], 1.0-(P[2]-min)/(max-min)));
+      //      (*sv)->setPoint2D(Vec3r(P[0], P[1], 1.0-(P[2]-min)/(max-min)));
       //      //cerr<<(*sv)->point2d()[2]<<"  ";
       //    }
 }
@@ -141,7 +141,7 @@ void SilhouetteGeomEngine::ProjectSilhouette(SVertex* ioVertex)
   vector<SVertex*>::iterator sv, svend;
   GeomUtils::fromWorldToImage(ioVertex->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
   newPoint[2] = (-newPoint[2]-_znear)/(_zfar-_znear); // normalize Z between 0 and 1
-  ioVertex->SetPoint2D(newPoint);  
+  ioVertex->setPoint2D(newPoint);  
 }
 
 real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)

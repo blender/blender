@@ -111,9 +111,9 @@ public:
   inline const Material * material() const {return _Material;}
 
   /*! Sets the Rep bounding box */
-  virtual void SetBBox(const BBox<Vec3r>& iBox) {_BBox = iBox;}
-  inline void SetId(const Id& id) {_Id = id;}
-  inline void SetMaterial(const Material& iMaterial) 
+  virtual void setBBox(const BBox<Vec3r>& iBox) {_BBox = iBox;}
+  inline void setId(const Id& id) {_Id = id;}
+  inline void setMaterial(const Material& iMaterial) 
   {
     _Material = new Material(iMaterial);
   }

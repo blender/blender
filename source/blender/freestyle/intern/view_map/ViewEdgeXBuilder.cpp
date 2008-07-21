@@ -160,7 +160,7 @@ ViewEdge * ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
   
   // Start a new chain edges
   ViewEdge * newVEdge = new ViewEdge;
-  newVEdge->SetId(_currentViewId);
+  newVEdge->setId(_currentViewId);
   ++_currentViewId;
   
   _pCurrentVShape->AddEdge(newVEdge);
@@ -174,23 +174,23 @@ ViewEdge * ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
   fl!=flend;
   ++fl){
     fe = BuildSmoothFEdge(feprevious, (*fl));
-    fe->SetViewEdge(newVEdge);
+    fe->setViewEdge(newVEdge);
     if(!fefirst)
       fefirst = fe;
     feprevious = fe;
   }
   // Store the chain starting edge:
   _pCurrentSShape->AddChain(fefirst);
-  newVEdge->SetNature(iFaceLayer.fl->nature());
-  newVEdge->SetFEdgeA(fefirst);
-  newVEdge->SetFEdgeB(fe);
+  newVEdge->setNature(iFaceLayer.fl->nature());
+  newVEdge->setFEdgeA(fefirst);
+  newVEdge->setFEdgeB(fe);
 
   // is it a closed loop ?
   if((first == end) && (size != 1)){
-    fefirst->SetPreviousEdge(fe);
-    fe->SetNextEdge(fefirst);
-    newVEdge->SetA(0);
-    newVEdge->SetB(0);
+    fefirst->setPreviousEdge(fe);
+    fe->setNextEdge(fefirst);
+    newVEdge->setA(0);
+    newVEdge->setB(0);
   }else{
     ViewVertex *vva = MakeViewVertex(fefirst->vertexA());
     ViewVertex *vvb = MakeViewVertex(fe->vertexB());
@@ -198,8 +198,8 @@ ViewEdge * ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
     ((NonTVertex*)vva)->AddOutgoingViewEdge(newVEdge);
     ((NonTVertex*)vvb)->AddIncomingViewEdge(newVEdge);
 
-    newVEdge->SetA(vva);
-    newVEdge->SetB(vvb);
+    newVEdge->setA(vva);
+    newVEdge->setB(vvb);
   } 
   
   return newVEdge;
@@ -208,7 +208,7 @@ ViewEdge * ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
 ViewEdge * ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge) {
   // Start a new sharp chain edges
   ViewEdge * newVEdge = new ViewEdge;
-  newVEdge->SetId(_currentViewId);
+  newVEdge->setId(_currentViewId);
   ++_currentViewId;
   unsigned size=0;
   
@@ -248,23 +248,23 @@ ViewEdge * ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge) {
   we!=weend;
   ++we){
     fe = BuildSharpFEdge(feprevious, (*we));
-    fe->SetViewEdge(newVEdge);
+    fe->setViewEdge(newVEdge);
     if(!fefirst)
       fefirst = fe;
     feprevious = fe;
   }
   // Store the chain starting edge:
   _pCurrentSShape->AddChain(fefirst);
-  newVEdge->SetNature(iWEdge.e->nature());
-  newVEdge->SetFEdgeA(fefirst);
-  newVEdge->SetFEdgeB(fe);
+  newVEdge->setNature(iWEdge.e->nature());
+  newVEdge->setFEdgeA(fefirst);
+  newVEdge->setFEdgeB(fe);
 
   // is it a closed loop ?
   if((firstWEdge == endWEdge) && (size!=1)){
-    fefirst->SetPreviousEdge(fe);
-    fe->SetNextEdge(fefirst);
-    newVEdge->SetA(0);
-    newVEdge->SetB(0);
+    fefirst->setPreviousEdge(fe);
+    fe->setNextEdge(fefirst);
+    newVEdge->setA(0);
+    newVEdge->setB(0);
   }else{
     ViewVertex *vva = MakeViewVertex(fefirst->vertexA());
     ViewVertex *vvb = MakeViewVertex(fe->vertexB());
@@ -272,8 +272,8 @@ ViewEdge * ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge) {
     ((NonTVertex*)vva)->AddOutgoingViewEdge(newVEdge);
     ((NonTVertex*)vvb)->AddIncomingViewEdge(newVEdge);
 
-    newVEdge->SetA(vva);
-    newVEdge->SetB(vvb);
+    newVEdge->setA(vva);
+    newVEdge->setB(vvb);
   }
 
   return newVEdge;
@@ -468,14 +468,14 @@ FEdge * ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer
   
   // Creates the corresponding feature edge
   fe = new FEdgeSmooth(va, vb);
-  fe->SetNature(ifl.fl->nature());
-  fe->SetId(_currentFId);
-  fe->SetMaterialIndex(ifl.fl->getFace()->materialIndex());
-  fe->SetFace(ifl.fl->getFace());
-  fe->SetNormal(normal);
-  fe->SetPreviousEdge(feprevious);
+  fe->setNature(ifl.fl->nature());
+  fe->setId(_currentFId);
+  fe->setMaterialIndex(ifl.fl->getFace()->materialIndex());
+  fe->setFace(ifl.fl->getFace());
+  fe->setNormal(normal);
+  fe->setPreviousEdge(feprevious);
   if(feprevious)
-    feprevious->SetNextEdge(fe);
+    feprevious->setNextEdge(fe);
   _pCurrentSShape->AddEdge(fe);
   va->AddFEdge(fe);
   vb->AddFEdge(fe);
@@ -603,15 +603,15 @@ FEdge * ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe)
   // Creates the corresponding feature edge
   // Creates the corresponding feature edge
   fe = new FEdgeSharp(va, vb);
-  fe->SetNature(iwe.e->nature());
-  fe->SetId(_currentFId);
-  fe->SetaMaterialIndex(matA);
-  fe->SetbMaterialIndex(matB);
-  fe->SetNormalA(normalA);
-  fe->SetNormalB(normalB);
-  fe->SetPreviousEdge(feprevious);
+  fe->setNature(iwe.e->nature());
+  fe->setId(_currentFId);
+  fe->setaMaterialIndex(matA);
+  fe->setbMaterialIndex(matB);
+  fe->setNormalA(normalA);
+  fe->setNormalB(normalB);
+  fe->setPreviousEdge(feprevious);
   if(feprevious)
-    feprevious->SetNextEdge(fe);
+    feprevious->setNextEdge(fe);
   _pCurrentSShape->AddEdge(fe);
   va->AddFEdge(fe);
   vb->AddFEdge(fe);

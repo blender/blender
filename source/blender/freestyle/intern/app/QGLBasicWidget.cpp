@@ -37,8 +37,8 @@ QGLBasicWidget::QGLBasicWidget( QWidget* parent, const char* name, int w, int h,
 //   _Pbuffer->create(false);
 // #endif 
   resizeGL(w,h);
-  _RootNode.SetLightingEnabled(false);
-  _RootNode.SetLineWidth(1.0);
+  _RootNode.setLightingEnabled(false);
+  _RootNode.setLineWidth(1.0);
 }
 
 QGLBasicWidget::QGLBasicWidget( const QGLFormat& format, QWidget* parent, const char* name, 
@@ -54,8 +54,8 @@ QGLBasicWidget::QGLBasicWidget( const QGLFormat& format, QWidget* parent, const 
 //   _Pbuffer->create(false);
 // #endif 
   resizeGL(w,h);
-  _RootNode.SetLightingEnabled(false);
-  _RootNode.SetLineWidth(1.0);
+  _RootNode.setLightingEnabled(false);
+  _RootNode.setLineWidth(1.0);
 }
 
 QGLBasicWidget::~QGLBasicWidget()

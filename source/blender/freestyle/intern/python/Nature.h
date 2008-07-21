@@ -13,8 +13,7 @@ extern "C" {
 
 extern PyTypeObject Nature_Type;
 
-#define BPy_Nature_Check(v) \
-    ((v)->ob_type == &Nature_Type)
+#define BPy_Nature_Check(v)	(( (PyObject *) v)->ob_type == &Nature_Type)
 
 /*---------------------------Python BPy_Nature structure definition----------*/
 typedef struct {

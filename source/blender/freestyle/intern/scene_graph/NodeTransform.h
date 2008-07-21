@@ -77,7 +77,7 @@ public:
   void MultiplyMatrix(const Matrix44r &iMatrix);
 
   /*! Sets the current matrix to iMatrix */
-  void SetMatrix(const Matrix44r &iMatrix);
+  void setMatrix(const Matrix44r &iMatrix);
 
   /*! Accept the corresponding visitor */
   virtual void accept(SceneVisitor& v);

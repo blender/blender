@@ -129,10 +129,10 @@ public:
   inline int order() const {return _order;}
   
   /*! modifiers */
-  inline void SetFront(bool iFront) {_front = iFront;}
-  inline void SetNature(WXNature iNature) {_nature = iNature;}
+  inline void setFront(bool iFront) {_front = iFront;}
+  inline void setNature(WXNature iNature) {_nature = iNature;}
   inline void AddNature(WXNature iNature) {_nature = _nature|iNature;}
-  inline void SetOrder(int i) {_order = i;}
+  inline void setOrder(int i) {_order = i;}
   
 };
 
@@ -186,12 +186,12 @@ public:
   inline Configuration configuration() const {return _config;} 
   
   /*! modifiers */
-  inline void SetWOeA(WOEdge *iwoea) {_woea = iwoea;}
-  inline void SetWOeB(WOEdge *iwoeb) {_woeb = iwoeb;}
-  inline void SetTa(real ta) {_ta = ta;}
-  inline void SetTb(real tb) {_tb = tb;}
-  inline void SetFront(bool iFront) {_front = iFront;}
-  inline void SetConfiguration(Configuration iConf) {_config = iConf;}
+  inline void setWOeA(WOEdge *iwoea) {_woea = iwoea;}
+  inline void setWOeB(WOEdge *iwoeb) {_woeb = iwoeb;}
+  inline void setTa(real ta) {_ta = ta;}
+  inline void setTb(real tb) {_tb = tb;}
+  inline void setFront(bool iFront) {_front = iFront;}
+  inline void setConfiguration(Configuration iConf) {_config = iConf;}
   
 };
 /* Class to store a value per vertex and a smooth edge. 
@@ -256,7 +256,7 @@ public:
   inline WXFace * getFace() {return _pWXFace;}
   inline WXSmoothEdge * getSmoothEdge() {return _pSmoothEdge;}
   inline bool isViewDependant() const {return _viewDependant;}
-  inline void SetClosestPointIndex(int iIndex) {_ClosestPointIndex = iIndex;}
+  inline void setClosestPointIndex(int iIndex) {_ClosestPointIndex = iIndex;}
 
   inline void removeSmoothEdge() {
     if(!_DotP.empty())
@@ -283,7 +283,7 @@ public:
    */
   void RetrieveCuspEdgesIndices(vector<int>& oCuspEdges);
   WXSmoothEdge * BuildSmoothEdge();
-  inline void SetDotP(const vector<real>& iDotP) {_DotP = iDotP;}
+  inline void setDotP(const vector<real>& iDotP) {_DotP = iDotP;}
   inline void PushDotP(real iDotP) {
     _DotP.push_back(iDotP);
     if(iDotP > 0)
@@ -401,11 +401,11 @@ public:
     }
   }
   /*! modifiers */
-  inline void SetCenter(const Vec3r& iCenter) {_center = iCenter;}
+  inline void setCenter(const Vec3r& iCenter) {_center = iCenter;}
   void ComputeCenter();
-  inline void SetZ(real z) {_Z = z;}
-  inline void SetFront(bool iFront) {_front = iFront;}
-  inline void SetDotP(real iDotP) 
+  inline void setZ(real z) {_Z = z;}
+  inline void setFront(bool iFront) {_front = iFront;}
+  inline void setDotP(real iDotP) 
   {
     _dotp = iDotP;
     if(_dotp > 0)

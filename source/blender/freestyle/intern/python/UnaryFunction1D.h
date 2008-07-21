@@ -13,8 +13,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1D_Type;
 
-#define BPy_UnaryFunction1D_Check(v) \
-    ((v)->ob_type == &UnaryFunction1D_Type)
+#define BPy_UnaryFunction1D_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction1D_Type)
 
 /*---------------------------Python BPy_UnaryFunction1D structure definition----------*/
 typedef struct {

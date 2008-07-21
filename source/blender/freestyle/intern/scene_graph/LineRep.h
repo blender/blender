@@ -55,7 +55,7 @@ public:
   inline LineRep(const Vec3r& v1, const Vec3r& v2)
     : Rep()
   {
-    SetStyle(LINES);
+    setStyle(LINES);
     AddVertex(v1);
     AddVertex(v2);
     _width = 0.f;
@@ -66,7 +66,7 @@ public:
     : Rep()
   {
     _vertices = vertices;
-    SetStyle(LINE_STRIP);
+    setStyle(LINE_STRIP);
     _width = 0.f;
   }
 
@@ -80,7 +80,7 @@ public:
     {
       _vertices.push_back(*v);
     }
-    SetStyle(LINE_STRIP);
+    setStyle(LINE_STRIP);
     _width = 0.f;
   }
 
@@ -95,9 +95,9 @@ public:
   inline float width() const {return _width;}
 
   /*! modifiers */
-  inline void SetStyle(const LINES_STYLE iStyle) {_Style = iStyle;}
+  inline void setStyle(const LINES_STYLE iStyle) {_Style = iStyle;}
   inline void AddVertex(const Vec3r& iVertex) {_vertices.push_back(iVertex);}
-  inline void SetVertices(const vector<Vec3r>& iVertices)
+  inline void setVertices(const vector<Vec3r>& iVertices)
   {
     if(0 != _vertices.size())
     {
@@ -110,7 +110,7 @@ public:
           _vertices.push_back(*v);
         }
   }
-  inline void SetWidth(float iWidth) {_width=iWidth;}
+  inline void setWidth(float iWidth) {_width=iWidth;}
 
   /*! Accept the corresponding visitor */
   virtual void accept(SceneVisitor& v) {

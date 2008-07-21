@@ -64,7 +64,7 @@ struct TimestampModifier : public EdgeModifier<Edge>
   virtual void operator()(Edge& iEdge) 
   {
     TimeStamp *timestamp = TimeStamp::instance();
-    iEdge.SetTimeStamp(timestamp->getTimeStamp());
+    iEdge.setTimeStamp(timestamp->getTimeStamp());
   }
 };
 

@@ -14,9 +14,9 @@ static PyObject * CurvePoint___copy__( BPy_CurvePoint *self );
 static PyObject * CurvePoint_A( BPy_CurvePoint *self );
 static PyObject * CurvePoint_B( BPy_CurvePoint *self );
 static PyObject * CurvePoint_t2d( BPy_CurvePoint *self );
-static PyObject *CurvePoint_SetA( BPy_CurvePoint *self , PyObject *args);
-static PyObject *CurvePoint_SetB( BPy_CurvePoint *self , PyObject *args);
-static PyObject *CurvePoint_SetT2d( BPy_CurvePoint *self , PyObject *args);
+static PyObject *CurvePoint_setA( BPy_CurvePoint *self , PyObject *args);
+static PyObject *CurvePoint_setB( BPy_CurvePoint *self , PyObject *args);
+static PyObject *CurvePoint_setT2d( BPy_CurvePoint *self , PyObject *args);
 static PyObject *CurvePoint_curvatureFredo( BPy_CurvePoint *self , PyObject *args);
 
 /*----------------------CurvePoint instance definitions ----------------------------*/
@@ -25,9 +25,9 @@ static PyMethodDef BPy_CurvePoint_methods[] = {
 	{"A", ( PyCFunction ) CurvePoint_A, METH_NOARGS, "（ ）Returns the first SVertex upon which the CurvePoint is built."},
 	{"B", ( PyCFunction ) CurvePoint_B, METH_NOARGS, "（ ）Returns the second SVertex upon which the CurvePoint is built."},
 	{"t2d", ( PyCFunction ) CurvePoint_t2d, METH_NOARGS, "（ ）Returns the interpolation parameter."},
-	{"SetA", ( PyCFunction ) CurvePoint_SetA, METH_VARARGS, "（SVertex sv ）Sets the first SVertex upon which to build the CurvePoint."},
-	{"SetB", ( PyCFunction ) CurvePoint_SetB, METH_VARARGS, "（SVertex sv ）Sets the second SVertex upon which to build the CurvePoint."},
-	{"SetT2d", ( PyCFunction ) CurvePoint_SetT2d, METH_VARARGS, "（ ）Sets the 2D interpolation parameter to use."},
+	{"setA", ( PyCFunction ) CurvePoint_setA, METH_VARARGS, "（SVertex sv ）Sets the first SVertex upon which to build the CurvePoint."},
+	{"setB", ( PyCFunction ) CurvePoint_setB, METH_VARARGS, "（SVertex sv ）Sets the second SVertex upon which to build the CurvePoint."},
+	{"setT2d", ( PyCFunction ) CurvePoint_setT2d, METH_VARARGS, "（ ）Sets the 2D interpolation parameter to use."},
 	{"curvatureFredo", ( PyCFunction ) CurvePoint_curvatureFredo, METH_NOARGS, "（ ）angle in radians."},
 	{NULL, NULL, 0, NULL}
 };
@@ -182,41 +182,41 @@ PyObject * CurvePoint_t2d( BPy_CurvePoint *self ) {
 	return PyFloat_FromDouble( self->cp->t2d() );
 }
 
-PyObject *CurvePoint_SetA( BPy_CurvePoint *self , PyObject *args) {
+PyObject *CurvePoint_setA( BPy_CurvePoint *self , PyObject *args) {
 	PyObject *py_sv;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv)  )) {
-		cout << "ERROR: CurvePoint_SetA" << endl;
+		cout << "ERROR: CurvePoint_setA" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->cp->SetA( ((BPy_SVertex *) py_sv)->sv );
+	self->cp->setA( ((BPy_SVertex *) py_sv)->sv );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *CurvePoint_SetB( BPy_CurvePoint *self , PyObject *args) {
+PyObject *CurvePoint_setB( BPy_CurvePoint *self , PyObject *args) {
 	PyObject *py_sv;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv)  )) {
-		cout << "ERROR: CurvePoint_SetB" << endl;
+		cout << "ERROR: CurvePoint_setB" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->cp->SetB( ((BPy_SVertex *) py_sv)->sv );
+	self->cp->setB( ((BPy_SVertex *) py_sv)->sv );
 
 	Py_RETURN_NONE;
 }
 
-PyObject *CurvePoint_SetT2d( BPy_CurvePoint *self , PyObject *args) {
+PyObject *CurvePoint_setT2d( BPy_CurvePoint *self , PyObject *args) {
 	float t;
 
 	if( !PyArg_ParseTuple(args, "f", &t) ) {
-		cout << "ERROR: CurvePoint_SetT2d" << endl;
+		cout << "ERROR: CurvePoint_setT2d" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->cp->SetT2d( t );
+	self->cp->setT2d( t );
 
 	Py_RETURN_NONE;
 }

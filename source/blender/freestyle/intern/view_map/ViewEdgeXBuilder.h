@@ -175,9 +175,9 @@ public:
   inline int currentFId() const { return _currentFId; }
   inline int currentSVertexId() const { return _currentSVertexId; }
   /*! modifiers */
-  inline void SetCurrentViewId(int id) { _currentViewId = id; }
-  inline void SetCurrentFId(int id) { _currentFId = id; }
-  inline void SetCurrentSVertexId(int id) { _currentSVertexId = id; }
+  inline void setCurrentViewId(int id) { _currentViewId = id; }
+  inline void setCurrentFId(int id) { _currentFId = id; }
+  inline void setCurrentSVertexId(int id) { _currentSVertexId = id; }
 
 protected:
   /*! Init the view edges building */

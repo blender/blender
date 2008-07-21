@@ -177,16 +177,16 @@ public:
   virtual bool getRecordFlag() const {return false;}
 
   /*! modifiers */
-  inline void SetSelectedFEdge(FEdge *iFEdge) {_SelectedFEdge = iFEdge;}
+  inline void setSelectedFEdge(FEdge *iFEdge) {_SelectedFEdge = iFEdge;}
   /*! inserts a shader at pos index+1 */
   void InsertStyleModule(unsigned index, StyleModule *iStyleModule);
   void RemoveStyleModule(unsigned index);
   void SwapStyleModules(unsigned i1, unsigned i2);
   void ReplaceStyleModule(unsigned index, StyleModule *iStyleModule);
-  void SetVisible(unsigned index, bool iVisible) ;
-  //inline void SetDensityMap(InformationMap<RGBImage>* iMap) {_DensityMap = iMap;}
+  void setVisible(unsigned index, bool iVisible) ;
+  //inline void setDensityMap(InformationMap<RGBImage>* iMap) {_DensityMap = iMap;}
   inline void AddLayer(StrokeLayer *iLayer) {_Layers.push_back(iLayer);}
-  inline void SetCurrentPaperTextureIndex(int i) {_paperTextureIndex = i;}
+  inline void setCurrentPaperTextureIndex(int i) {_paperTextureIndex = i;}
   void changePaperTexture(bool increment=true) ;
   /*! enables/disables paper texture */
   inline void togglePaperTexture() {_drawPaper = !_drawPaper;}

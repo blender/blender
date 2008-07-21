@@ -159,13 +159,13 @@ Controller::~Controller()
   //delete _current_dirs;
 }
 
-void Controller::SetView(AppGLWidget *iView)
+void Controller::setView(AppGLWidget *iView)
 {
   if(NULL == iView)
     return;
   
   _pView = iView;
-  _Canvas->SetViewer(_pView);
+  _Canvas->setViewer(_pView);
 }
 
 
@@ -208,7 +208,7 @@ int Controller::Load3DSFile(const char *iFileName)
   _RootNode->AddChild(maxScene);
   _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
 
-  _pView->SetModel(_RootNode);
+  _pView->setModel(_RootNode);
   //_pView->FitBBox();
 
 
@@ -245,7 +245,7 @@ int Controller::Load3DSFile(const char *iFileName)
   // DEBUG
 //   _Grid.displayDebug();
    
-  _pView->SetDebug(_DebugNode);
+  _pView->setDebug(_DebugNode);
 
   //delete stuff
   //  if(0 != ws_builder)
@@ -273,7 +273,7 @@ int Controller::Load3DSFile(const char *iFileName)
 
 void Controller::CloseFile()
 {
-  WShape::SetCurrentId(0);
+  WShape::setCurrentId(0);
   _pView->DetachModel();
   _ListOfModels.clear();
   if(NULL != _RootNode)
@@ -460,7 +460,7 @@ void Controller::SaveViewMapFile(const char *oFileName)
 //       }
 //   }
 // 
-//   // Set the camera position
+//   // set the camera position
 //   float position[3];
 //   float orientation[4];
 //   ifs.read((char*)position, 3 * sizeof(*position));
@@ -514,8 +514,8 @@ void Controller::SaveViewMapFile(const char *oFileName)
 //   // Update display
 //   ViewMapTesselator3D sTesselator3d;
 //   //ViewMapTesselator2D sTesselator2d;
-//   //sTesselator2d.SetNature(_edgeTesselationNature);
-//   sTesselator3d.SetNature(_edgeTesselationNature);
+//   //sTesselator2d.setNature(_edgeTesselationNature);
+//   sTesselator3d.setNature(_edgeTesselationNature);
 //   
 //   // Tesselate the 3D edges:
 //   _SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
@@ -596,7 +596,7 @@ void Controller::ComputeViewMap()
   // Restore the context of view:
   // we need to perform all these operations while the 
   // 3D context is on.
-  _pView->Set3DContext();
+  _pView->set3DContext();
   float src[3] = { 0, 0, 0 };
   float vp_tmp[3] = { 0, 0, 0 };
   _pView->_camera->getWorldCoordinatesOf(src, vp_tmp);
@@ -616,7 +616,7 @@ void Controller::ComputeViewMap()
 
   _Chrono.start();
  
-  edgeDetector.SetViewpoint(Vec3r(vp));
+  edgeDetector.setViewpoint(Vec3r(vp));
   edgeDetector.enableRidgesAndValleysFlag(_ComputeRidges);
   edgeDetector.enableSuggestiveContours(_ComputeSuggestive);
   edgeDetector.setSphereRadius(_sphereRadius);
@@ -629,20 +629,20 @@ void Controller::ComputeViewMap()
   // Builds the view map structure from the flagged WSEdge structure:
   //----------------------------------------------------------
   ViewMapBuilder vmBuilder;
-  vmBuilder.SetEnableQI(_EnableQI);
-  vmBuilder.SetViewpoint(Vec3r(vp));
+  vmBuilder.setEnableQI(_EnableQI);
+  vmBuilder.setViewpoint(Vec3r(vp));
   
-  vmBuilder.SetTransform(mv, proj, viewport, focalLength, _pView->GetAspect(), _pView->GetFovyRadian());
-  vmBuilder.SetFrustum(_pView->znear(), _pView->zfar());
+  vmBuilder.setTransform(mv, proj, viewport, focalLength, _pView->GetAspect(), _pView->GetFovyRadian());
+  vmBuilder.setFrustum(_pView->znear(), _pView->zfar());
   
-  vmBuilder.SetGrid(&_Grid);
+  vmBuilder.setGrid(&_Grid);
   
   // Builds a tesselated form of the silhouette for display purpose:
   //---------------------------------------------------------------
   ViewMapTesselator3D sTesselator3d;
   //ViewMapTesselator2D sTesselator2d;
-  //sTesselator2d.SetNature(_edgeTesselationNature);
-  sTesselator3d.SetNature(_edgeTesselationNature);
+  //sTesselator2d.setNature(_edgeTesselationNature);
+  sTesselator3d.setNature(_edgeTesselationNature);
     
   _Chrono.start();
   // Build View Map
@@ -689,7 +689,7 @@ void Controller::ComputeSteerableViewMap(){
   //   ng[i] = new NodeGroup;
   // }
   // NodeShape *completeNS = new NodeShape;
-  // completeNS->material().SetDiffuse(c,c,c,1);
+  // completeNS->material().setDiffuse(c,c,c,1);
   // ng[Canvas::NB_STEERABLE_VIEWMAP-1]->AddChild(completeNS);
   // SteerableViewMap * svm = _Canvas->getSteerableViewMap();
   // svm->Reset();
@@ -710,7 +710,7 @@ void Controller::ComputeSteerableViewMap(){
   //     double wc = oweights[i]*c;
   //     if(oweights[i] == 0)
   //       continue;
-  //     ns->material().SetDiffuse(wc, wc, wc, 1);
+  //     ns->material().setDiffuse(wc, wc, wc, 1);
   //     ns->AddRep(fRep);
   //     ng[i]->AddChild(ns);
   //   }
@@ -895,7 +895,7 @@ void Controller::SwapStyleModules(unsigned i1, unsigned i2)
 
 void Controller::toggleLayer(unsigned index, bool iDisplay)
 {
-  _Canvas->SetVisible(index, iDisplay);
+  _Canvas->setVisible(index, iDisplay);
   _pView->updateGL();
 }
 
@@ -932,8 +932,8 @@ FEdge* Controller::SelectFEdge(real x, real y)
 
   FEdge *fedge = (FEdge*)_ViewMap->GetClosestFEdge(x,y);
   //ViewEdge *selection = fedge->viewedge();
-  _pView->SetSelectedFEdge(fedge);
-  _Canvas->SetSelectedFEdge(fedge);
+  _pView->setSelectedFEdge(fedge);
+  _Canvas->setSelectedFEdge(fedge);
   return fedge;
 }
 
@@ -944,8 +944,8 @@ ViewEdge* Controller::SelectViewEdge(real x, real y)
 
   FEdge *fedge = (FEdge*)_ViewMap->GetClosestFEdge(x,y);
   ViewEdge *selection = fedge->viewedge();
-  _pView->SetSelectedFEdge(fedge);
-  _Canvas->SetSelectedFEdge(fedge);
+  _pView->setSelectedFEdge(fedge);
+  _Canvas->setSelectedFEdge(fedge);
   return selection;
 }
 
@@ -954,8 +954,8 @@ NodeGroup * Controller::BuildRep(vector<ViewEdge*>::iterator vedges_begin,
 {
   ViewMapTesselator2D tesselator2D;
   Material mat;
-  mat.SetDiffuse(1,1,0.3,1);
-  tesselator2D.SetMaterial(mat);
+  mat.setDiffuse(1,1,0.3,1);
+  tesselator2D.setMaterial(mat);
 
   return (tesselator2D.Tesselate(vedges_begin, vedges_end));
 }
@@ -1049,9 +1049,9 @@ void Controller::displayDensityCurves(int x, int y){
 
   // display the curves
   // for(i=0; i<nbCurves; ++i)
-  //     _pDensityCurvesWindow->SetOrientationCurve(i, Vec2d(0,0), Vec2d(nbPoints, 1), curves[i], "scale", "density");
+  //     _pDensityCurvesWindow->setOrientationCurve(i, Vec2d(0,0), Vec2d(nbPoints, 1), curves[i], "scale", "density");
   //   for(i=1; i<=8; ++i)
-  //     _pDensityCurvesWindow->SetLevelCurve(i, Vec2d(0,0), Vec2d(nbCurves, 1), curvesDirection[i], "orientation", "density");
+  //     _pDensityCurvesWindow->setLevelCurve(i, Vec2d(0,0), Vec2d(nbCurves, 1), curvesDirection[i], "orientation", "density");
   //   _pDensityCurvesWindow->show();
 }
 

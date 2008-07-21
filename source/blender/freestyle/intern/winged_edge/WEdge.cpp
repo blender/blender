@@ -292,10 +292,10 @@ WOEdge * WFace::MakeEdge(WVertex *v1, WVertex *v2)
       // Adds the edge to the face
       //AddEdge((*it1)->GetaOEdge());
       AddEdge(woea);
-      (*it1)->SetNumberOfOEdges((*it1)->GetNumberOfOEdges()+1);
+      (*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges()+1);
       //sets these vertices as border:
-      v1->SetBorder(true);
-      v2->SetBorder(true);
+      v1->setBorder(true);
+      v2->setBorder(true);
       //return (*it1)->GetaOEdge();
       return woea;
     }
@@ -311,10 +311,10 @@ WOEdge * WFace::MakeEdge(WVertex *v1, WVertex *v2)
       // Adds the edge to the face
       //AddEdge((*it1)->GetaOEdge());
       AddEdge(woeb);
-      (*it1)->SetNumberOfOEdges((*it1)->GetNumberOfOEdges()+1);
+      (*it1)->setNumberOfOEdges((*it1)->GetNumberOfOEdges()+1);
       //sets these vertices as border:
-      v1->SetBorder(true);
-      v2->SetBorder(true);
+      v1->setBorder(true);
+      v2->setBorder(true);
       //return (*it1)->GetaOEdge();
       return woeb;
     }
@@ -352,10 +352,10 @@ WOEdge * WFace::MakeEdge(WVertex *v1, WVertex *v2)
     edge = pInvertEdge->GetOwner(); 
     
     // Sets the a Face (retrieved from pInvertEdge
-    pOEdge->SetaFace(pInvertEdge->GetbFace());
+    pOEdge->setaFace(pInvertEdge->GetbFace());
     
     // Updates the invert edge:
-    pInvertEdge->SetaFace(this);
+    pInvertEdge->setaFace(this);
   }
   else // The invert edge does not exist yet
   {
@@ -369,20 +369,20 @@ WOEdge * WFace::MakeEdge(WVertex *v1, WVertex *v2)
 
   }
 
-  pOEdge->SetOwner(edge);
+  pOEdge->setOwner(edge);
   // Add the vertices:
-  pOEdge->SetaVertex(v1);
-  pOEdge->SetbVertex(v2);
+  pOEdge->setaVertex(v1);
+  pOEdge->setbVertex(v2);
 
   // Debug:
   if(v1->GetId() == v2->GetId())
     cerr << "Warning: edge " << this << " null with vertex " << v1->GetId() << endl;
 
   edge->AddOEdge(pOEdge);
-  //edge->SetNumberOfOEdges(edge->GetNumberOfOEdges()+1);
+  //edge->setNumberOfOEdges(edge->GetNumberOfOEdges()+1);
 
   // Add this face (the b face)
-  pOEdge->SetbFace(this);
+  pOEdge->setbFace(this);
 
   // Adds the edge to the face
   AddEdge(pOEdge);
@@ -487,7 +487,7 @@ WShape::WShape(WShape& iBrother)
     //WVertex *newVertex = new WVertex(*(*v));
     WVertex *newVertex = (*v)->duplicate();
 
-    newVertex->SetShape(this);
+    newVertex->setShape(this);
     AddVertex(newVertex);
   }
 
@@ -528,7 +528,7 @@ WShape::WShape(WShape& iBrother)
       edgedata * currentvedata = (edgedata*)current->userdata;
       newvedgelist.push_back(currentvedata->_copy);
     }
-    (*v)->SetEdges(newvedgelist);
+    (*v)->setEdges(newvedgelist);
   }
 
   eend = _EdgeList.end();
@@ -538,23 +538,23 @@ WShape::WShape(WShape& iBrother)
   {
     // update aOedge:
     WOEdge *aoEdge = (*e)->GetaOEdge();
-    aoEdge->SetaVertex(((vertexdata*)(aoEdge->GetaVertex()->userdata))->_copy);
-    aoEdge->SetbVertex(((vertexdata*)(aoEdge->GetbVertex()->userdata))->_copy);
+    aoEdge->setaVertex(((vertexdata*)(aoEdge->GetaVertex()->userdata))->_copy);
+    aoEdge->setbVertex(((vertexdata*)(aoEdge->GetbVertex()->userdata))->_copy);
     if(NULL != aoEdge->GetaFace())
-      aoEdge->SetaFace(((facedata*)(aoEdge->GetaFace()->userdata))->_copy);
-    aoEdge->SetbFace(((facedata*)(aoEdge->GetbFace()->userdata))->_copy);
-    aoEdge->SetOwner(((edgedata*)(aoEdge->GetOwner()->userdata))->_copy);
+      aoEdge->setaFace(((facedata*)(aoEdge->GetaFace()->userdata))->_copy);
+    aoEdge->setbFace(((facedata*)(aoEdge->GetbFace()->userdata))->_copy);
+    aoEdge->setOwner(((edgedata*)(aoEdge->GetOwner()->userdata))->_copy);
     // update bOedge:
 
     WOEdge *boEdge = (*e)->GetbOEdge();
     if(boEdge != 0)
     {
-      boEdge->SetaVertex(((vertexdata*)(boEdge->GetaVertex()->userdata))->_copy);
-      boEdge->SetbVertex(((vertexdata*)(boEdge->GetbVertex()->userdata))->_copy);
+      boEdge->setaVertex(((vertexdata*)(boEdge->GetaVertex()->userdata))->_copy);
+      boEdge->setbVertex(((vertexdata*)(boEdge->GetbVertex()->userdata))->_copy);
       if(NULL != boEdge->GetaFace())
-        boEdge->SetaFace(((facedata*)(boEdge->GetaFace()->userdata))->_copy);
-      boEdge->SetbFace(((facedata*)(boEdge->GetbFace()->userdata))->_copy);
-      boEdge->SetOwner(((edgedata*)(boEdge->GetOwner()->userdata))->_copy);
+        boEdge->setaFace(((facedata*)(boEdge->GetaFace()->userdata))->_copy);
+      boEdge->setbFace(((facedata*)(boEdge->GetbFace()->userdata))->_copy);
+      boEdge->setOwner(((edgedata*)(boEdge->GetOwner()->userdata))->_copy);
     }
   }
 
@@ -576,7 +576,7 @@ WShape::WShape(WShape& iBrother)
       //oedgeList[i] = currentoedata->_copy;
       //oedgeList[i] = ((oedgedata*)(oedgeList[i]->userdata))->_copy;
     }
-    (*f)->SetEdgeList(newoedgelist);
+    (*f)->setEdgeList(newoedgelist);
   }
 
   // Free all memory (arghh!)
@@ -638,9 +638,9 @@ WFace * WShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsL
     return 0;
 
   // set the list of per-vertex normals
-  face->SetNormalList(iNormalsList);
+  face->setNormalList(iNormalsList);
   // set the list of per-vertex tex coords
-  face->SetTexCoordsList(iTexCoordsList);
+  face->setTexCoordsList(iTexCoordsList);
 
   return face;
 }
@@ -650,7 +650,7 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
 
   int id = _FaceList.size();
 
-  face->SetMaterialIndex(iMaterial);
+  face->setMaterialIndex(iMaterial);
 
   // Check whether we have a degenerated face:
 
@@ -701,7 +701,7 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
     {
       // means that we just created a new edge and that we must add it to the 
       // shape's edges list
-      edge->SetId(_EdgeList.size());
+      edge->setId(_EdgeList.size());
       AddEdge(edge);
       // compute the mean edge value:
       _meanEdgeSize += edge->GetaOEdge()->getVec3r().norm();
@@ -722,10 +722,10 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
 
   Vec3r normal(vector1 ^ vector2);
   normal.normalize();
-  face->SetNormal(normal);
+  face->setNormal(normal);
 
   // Add the face to the shape's faces list:
-  face->SetId(id);
+  face->setId(id);
   AddFace(face);
 
   return face;

@@ -58,22 +58,22 @@ AppGLWidget::AppGLWidget(QWidget *iParent, const char *iName)
   _Fovy        = 30.f;
   //_SceneDepth = 2.f;
   _RenderStyle = LINE;
-  //_ModelRootNode->SetBBox(BBox<Vec3f>(Vec3f(-10.f, -10.f, -10.f), Vec3f(10.f, 10.f, 10.f)));
+  //_ModelRootNode->setBBox(BBox<Vec3f>(Vec3f(-10.f, -10.f, -10.f), Vec3f(10.f, 10.f, 10.f)));
   _ModelRootNode = new NodeDrawingStyle;
   _SilhouetteRootNode = new NodeDrawingStyle;
   _DebugRootNode = new NodeDrawingStyle;
   
   _RootNode.AddChild(_ModelRootNode);
-  _SilhouetteRootNode->SetStyle(DrawingStyle::LINES);
-  _SilhouetteRootNode->SetLightingEnabled(false);
-  _SilhouetteRootNode->SetLineWidth(2.f);
-  _SilhouetteRootNode->SetPointSize(3.f);
+  _SilhouetteRootNode->setStyle(DrawingStyle::LINES);
+  _SilhouetteRootNode->setLightingEnabled(false);
+  _SilhouetteRootNode->setLineWidth(2.f);
+  _SilhouetteRootNode->setPointSize(3.f);
 
   _RootNode.AddChild(_SilhouetteRootNode);
 
-  _DebugRootNode->SetStyle(DrawingStyle::LINES);
-  _DebugRootNode->SetLightingEnabled(false);
-  _DebugRootNode->SetLineWidth(1.f);
+  _DebugRootNode->setStyle(DrawingStyle::LINES);
+  _DebugRootNode->setLightingEnabled(false);
+  _DebugRootNode->setLineWidth(1.f);
   
   _RootNode.AddChild(_DebugRootNode);
 
@@ -91,23 +91,23 @@ AppGLWidget::AppGLWidget(QWidget *iParent, const char *iName)
 
   // 2D Scene
   //  _pFENode = new NodeDrawingStyle;
-  //  _pFENode->SetStyle(DrawingStyle::LINES);
-  //  _pFENode->SetLightingEnabled(false);
-  //  _pFENode->SetLineWidth(1.f);
+  //  _pFENode->setStyle(DrawingStyle::LINES);
+  //  _pFENode->setLightingEnabled(false);
+  //  _pFENode->setLineWidth(1.f);
   //
   //  _p2DNode.AddChild(_pFENode);
   //  
   //  _pVisibleSilhouetteNode = new NodeDrawingStyle;
-  //  _pVisibleSilhouetteNode->SetStyle(DrawingStyle::LINES);
-  //  _pVisibleSilhouetteNode->SetLightingEnabled(false);
-  //  _pVisibleSilhouetteNode->SetLineWidth(3.f);
+  //  _pVisibleSilhouetteNode->setStyle(DrawingStyle::LINES);
+  //  _pVisibleSilhouetteNode->setLightingEnabled(false);
+  //  _pVisibleSilhouetteNode->setLineWidth(3.f);
   //
   //  _p2DNode.AddChild(_pVisibleSilhouetteNode);
   //  
   _p2DSelectionNode = new NodeDrawingStyle;
-  _p2DSelectionNode->SetLightingEnabled(false);
-  _p2DSelectionNode->SetStyle(DrawingStyle::LINES);
-  _p2DSelectionNode->SetLineWidth(5.f);
+  _p2DSelectionNode->setLightingEnabled(false);
+  _p2DSelectionNode->setStyle(DrawingStyle::LINES);
+  _p2DSelectionNode->setLineWidth(5.f);
   
   _p2DNode.AddChild(_p2DSelectionNode);
 
@@ -188,7 +188,7 @@ AppGLWidget::~AppGLWidget()
   //saveToFile(filename);
 }
 
-void AppGLWidget::SetMainWindow(QMainWindow *iMainWindow) {
+void AppGLWidget::setMainWindow(QMainWindow *iMainWindow) {
 	_pMainWindow = iMainWindow;
 }
 void AppGLWidget::captureMovie()
@@ -315,18 +315,18 @@ AppGLWidget::select(const QMouseEvent *e) {
     _p2DSelectionNode->AddChild(g_pController->BuildRep(vedges.begin(), vedges.end()));
     // FEdge
     LineRep * fedgeRep = new LineRep(fe->vertexA()->point2d(), fe->vertexB()->point2d());
-    fedgeRep->SetWidth(3.f);
+    fedgeRep->setWidth(3.f);
     NodeShape * fedgeNode = new NodeShape;
     fedgeNode->AddRep(fedgeRep);
-    fedgeNode->material().SetDiffuse(0.2, 1, 0.2, 1.0);
+    fedgeNode->material().setDiffuse(0.2, 1, 0.2, 1.0);
     _p2DSelectionNode->AddChild(fedgeNode);
     //SVertex A
     Vec3r A(fe->vertexA()->point2d());
     VertexRep * aVertexRep = new VertexRep(A.x(), A.y(), A.z());
-    aVertexRep->SetPointSize(3.f);
+    aVertexRep->setPointSize(3.f);
     NodeShape * aVertexNode = new NodeShape;
     aVertexNode->AddRep(aVertexRep);
-    aVertexNode->material().SetDiffuse(1, 0, 0, 1.0);
+    aVertexNode->material().setDiffuse(1, 0, 0, 1.0);
     _p2DSelectionNode->AddChild(aVertexNode);
     // and its fedges
     const vector<FEdge*>& afedges = fe->vertexA()->fedges();
@@ -336,16 +336,16 @@ AppGLWidget::select(const QMouseEvent *e) {
     ++f)
     {
       LineRep * lrep = new LineRep((*f)->vertexA()->point2d(), (*f)->vertexB()->point2d());
-      lrep->SetWidth(1.f);
+      lrep->setWidth(1.f);
       aVertexNode->AddRep(lrep);
     }
     //SVertex B
     Vec3r B(fe->vertexB()->point2d());
     VertexRep * bVertexRep = new VertexRep(B.x(), B.y(), B.z());
-    bVertexRep->SetPointSize(3.f);
+    bVertexRep->setPointSize(3.f);
     NodeShape * bVertexNode = new NodeShape;
     bVertexNode->AddRep(bVertexRep);
-    bVertexNode->material().SetDiffuse(0, 0, 1, 1.0);
+    bVertexNode->material().setDiffuse(0, 0, 1, 1.0);
     _p2DSelectionNode->AddChild(bVertexNode);
     // and its fedges
     const vector<FEdge*>& bfedges = fe->vertexB()->fedges();
@@ -356,7 +356,7 @@ AppGLWidget::select(const QMouseEvent *e) {
     ++f)
     {
       LineRep * lrep = new LineRep((*f)->vertexA()->point2d(), (*f)->vertexB()->point2d());
-      lrep->SetWidth(1.f);
+      lrep->setWidth(1.f);
       bVertexNode->AddRep(lrep);
     }
 
@@ -458,9 +458,9 @@ AppGLWidget::keyPressEvent(QKeyEvent* e)
     }
     updateGL();
     break;
-  case Qt::Key_1: _ModelRootNode->SetStyle(DrawingStyle::FILLED); updateGL(); break;
-  case Qt::Key_2: _ModelRootNode->SetStyle(DrawingStyle::LINES); _ModelRootNode->SetLineWidth(1.0); updateGL(); break;
-  case Qt::Key_3: _ModelRootNode->SetStyle(DrawingStyle::INVISIBLE); updateGL(); break;
+  case Qt::Key_1: _ModelRootNode->setStyle(DrawingStyle::FILLED); updateGL(); break;
+  case Qt::Key_2: _ModelRootNode->setStyle(DrawingStyle::LINES); _ModelRootNode->setLineWidth(1.0); updateGL(); break;
+  case Qt::Key_3: _ModelRootNode->setStyle(DrawingStyle::INVISIBLE); updateGL(); break;
   case Qt::Key_B:
     {
 //       if(e->state() == ShiftButton)
@@ -737,7 +737,7 @@ void AppGLWidget::draw()
 
   if (true == _Draw2DScene) {
     Draw2DScene(_pGLRenderer);
-    Set3DContext();
+    set3DContext();
   }
   if(_record){
     saveSnapshot(true);
@@ -759,7 +759,7 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
 
   if(_drawEnvMap)
   {
-    _ModelRootNode->SetLightingEnabled(false);
+    _ModelRootNode->setLightingEnabled(false);
     glEnable(GL_COLOR_MATERIAL);
 
     glEnable(GL_TEXTURE_2D);
@@ -800,15 +800,15 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
   }
 
   // FIXME
-  //  //_ModelRootNode->SetLightingEnabled(true);
+  //  //_ModelRootNode->setLightingEnabled(true);
   //  if(_ModelRootNode->style() == DrawingStyle::LINES){
   //    glPushAttrib(GL_ALL_ATTRIB_BITS);
   //    //glDisable(GL_COLOR_MATERIAL);
-  //    _ModelRootNode->SetStyle(DrawingStyle::FILLED);
-  //    _ModelRootNode->SetLightingEnabled(true);
+  //    _ModelRootNode->setStyle(DrawingStyle::FILLED);
+  //    _ModelRootNode->setLightingEnabled(true);
   //    _ModelRootNode->accept(*iRenderer);  
-  //    _ModelRootNode->SetStyle(DrawingStyle::LINES);
-  //    _ModelRootNode->SetLightingEnabled(false);
+  //    _ModelRootNode->setStyle(DrawingStyle::LINES);
+  //    _ModelRootNode->setLightingEnabled(false);
   //    _ModelRootNode->accept(*iRenderer);  
   //    glPopAttrib();
   //  }
@@ -819,7 +819,7 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
   glDisable(GL_TEXTURE_GEN_T);
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_COLOR_MATERIAL);
-  _ModelRootNode->SetLightingEnabled(true);
+  _ModelRootNode->setLightingEnabled(true);
 
   if(_fedges == true)
     _SilhouetteRootNode->accept(*iRenderer);

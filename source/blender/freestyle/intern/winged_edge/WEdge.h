@@ -80,12 +80,12 @@ public:
   bool isBoundary();
   
   /*! modifiers */
-  inline void SetVertex(const Vec3r& v) {_Vertex = v;}
-  inline void SetEdges(const vector<WEdge *>& iEdgeList) {_EdgeList = iEdgeList;}
-  inline void SetId(int id) {_Id = id;}
-  inline void SetShape(WShape *iShape) {_Shape = iShape;}
-  inline void SetSmooth(bool b) {_Smooth = b;}
-  inline void SetBorder(bool b) {if(b) _Border= 1; else _Border = 0;}
+  inline void setVertex(const Vec3r& v) {_Vertex = v;}
+  inline void setEdges(const vector<WEdge *>& iEdgeList) {_EdgeList = iEdgeList;}
+  inline void setId(int id) {_Id = id;}
+  inline void setShape(WShape *iShape) {_Shape = iShape;}
+  inline void setSmooth(bool b) {_Smooth = b;}
+  inline void setBorder(bool b) {if(b) _Border= 1; else _Border = 0;}
   
   /*! Adds an edge to the edges list */
   void AddEdge(WEdge *iEdge) ;
@@ -333,11 +333,11 @@ public:
   //  inline void SetbCWEdge(WOEdge *pe) {_pbCWEdge = pe;}
   //  inline void SetaCCWEdge(WOEdge *pe) {_paCCWEdge = pe;}
   //  inline void SetbCCCWEdge(WOEdge *pe) {_pbCCWEdge = pe;}
-  inline void SetaVertex(WVertex *pv) {_paVertex = pv;}
-  inline void SetbVertex(WVertex *pv) {_pbVertex = pv;}
-  inline void SetaFace(WFace *pf) {_paFace = pf;}
-  inline void SetbFace(WFace *pf) {_pbFace = pf;}
-  inline void SetOwner(WEdge *pe) {_pOwner = pe;}
+  inline void setaVertex(WVertex *pv) {_paVertex = pv;}
+  inline void setbVertex(WVertex *pv) {_pbVertex = pv;}
+  inline void setaFace(WFace *pf) {_paFace = pf;}
+  inline void setbFace(WFace *pf) {_pbFace = pf;}
+  inline void setOwner(WEdge *pe) {_pOwner = pe;}
 
   /*! Retrieves the list of edges in CW order */
   inline void RetrieveCWOrderedEdges(vector<WEdge*>& oEdges);
@@ -453,8 +453,8 @@ public:
   }
 
   /*! modifiers */
-  inline void SetaOEdge(WOEdge *iEdge) {_paOEdge = iEdge;}
-  inline void SetbOEdge(WOEdge *iEdge) {_pbOEdge = iEdge;}
+  inline void setaOEdge(WOEdge *iEdge) {_paOEdge = iEdge;}
+  inline void setbOEdge(WOEdge *iEdge) {_pbOEdge = iEdge;}
   inline void AddOEdge(WOEdge *iEdge) 
   {
     if(NULL == _paOEdge)
@@ -470,8 +470,8 @@ public:
       return;
     }
   }
-  inline void SetNumberOfOEdges(int n) {_nOEdges = n;}
-  inline void SetId(int id) {_Id = id;}
+  inline void setNumberOfOEdges(int n) {_nOEdges = n;}
+  inline void setId(int id) {_Id = id;}
   virtual void ResetUserData() {userdata = 0;}
 };
 
@@ -648,12 +648,12 @@ public:
     return false;
   }
   /*! modifiers */
-  inline void SetEdgeList(const vector<WOEdge*>& iEdgeList) {_OEdgeList = iEdgeList;}
-  inline void SetNormal(const Vec3r& iNormal) {_Normal = iNormal;}
-  inline void SetNormalList(const vector<Vec3r>& iNormalsList) {_VerticesNormals = iNormalsList;}
-  inline void SetTexCoordsList(const vector<Vec2r>& iTexCoordsList) {_VerticesTexCoords = iTexCoordsList;}
-  inline void SetId(int id) {_Id = id;}
-  inline void SetMaterialIndex(unsigned iMaterialIndex) {_MaterialIndex = iMaterialIndex;}
+  inline void setEdgeList(const vector<WOEdge*>& iEdgeList) {_OEdgeList = iEdgeList;}
+  inline void setNormal(const Vec3r& iNormal) {_Normal = iNormal;}
+  inline void setNormalList(const vector<Vec3r>& iNormalsList) {_VerticesNormals = iNormalsList;}
+  inline void setTexCoordsList(const vector<Vec2r>& iTexCoordsList) {_VerticesTexCoords = iTexCoordsList;}
+  inline void setId(int id) {_Id = id;}
+  inline void setMaterialIndex(unsigned iMaterialIndex) {_MaterialIndex = iMaterialIndex;}
 
   /*! designed to build a specialized WEdge 
    *  for use in MakeEdge
@@ -753,14 +753,14 @@ public:
   inline const vector<Material>& materials() const {return _Materials;}
   inline const real getMeanEdgeSize() const {return _meanEdgeSize;}
   /*! modifiers */
-  static inline void SetCurrentId(const unsigned id) { _SceneCurrentId = id; }
-  inline void SetEdgeList(const vector<WEdge*>& iEdgeList) {_EdgeList = iEdgeList;}
-  inline void SetVertexList(const vector<WVertex*>& iVertexList) {_VertexList = iVertexList;}
-  inline void SetFaceList(const vector<WFace*>& iFaceList) {_FaceList = iFaceList;}
-  inline void SetId(int id) {_Id = id;}
-  inline void SetBBox(const Vec3r& min, const Vec3r& max) {_min = min; _max=max;}
-  inline void SetMaterial(const Material& material, unsigned i) {_Materials[i]=material;}
-  inline void SetMaterials(const vector<Material>& iMaterials) {_Materials = iMaterials;}
+  static inline void setCurrentId(const unsigned id) { _SceneCurrentId = id; }
+  inline void setEdgeList(const vector<WEdge*>& iEdgeList) {_EdgeList = iEdgeList;}
+  inline void setVertexList(const vector<WVertex*>& iVertexList) {_VertexList = iVertexList;}
+  inline void setFaceList(const vector<WFace*>& iFaceList) {_FaceList = iFaceList;}
+  inline void setId(int id) {_Id = id;}
+  inline void setBBox(const Vec3r& min, const Vec3r& max) {_min = min; _max=max;}
+  inline void setMaterial(const Material& material, unsigned i) {_Materials[i]=material;}
+  inline void setMaterials(const vector<Material>& iMaterials) {_Materials = iMaterials;}
 
   /*! designed to build a specialized WFace 
    *  for use in MakeFace
@@ -806,7 +806,7 @@ public:
 
   inline void AddEdge(WEdge *iEdge) {_EdgeList.push_back(iEdge);}
   inline void AddFace(WFace* iFace) {_FaceList.push_back(iFace);}
-  inline void AddVertex(WVertex *iVertex) {iVertex->SetShape(this); _VertexList.push_back(iVertex);}
+  inline void AddVertex(WVertex *iVertex) {iVertex->setShape(this); _VertexList.push_back(iVertex);}
 
   inline void ResetUserData()
   {

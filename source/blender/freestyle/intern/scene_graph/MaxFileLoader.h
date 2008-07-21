@@ -70,7 +70,7 @@ public:
   virtual ~MaxFileLoader();
 
   /*! Sets the name of the 3dsMax file to load */
-  void SetFileName(const char *iFileName);
+  void setFileName(const char *iFileName);
 
   /*! Loads the 3D scene and returns 
    *  a pointer to the scene root node

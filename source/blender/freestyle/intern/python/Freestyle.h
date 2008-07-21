@@ -11,8 +11,7 @@ extern "C" {
 
 extern PyTypeObject Freestyle_Type;
 
-#define BPy_Freestyle_Check(v) \
-    ((v)->ob_type == &Freestyle_Type)
+#define BPy_Freestyle_Check(v)	(( (PyObject *) v)->ob_type == &Freestyle_Type)
 
 /*---------------------------Python BPy_Freestyle structure definition----------*/
 typedef struct {

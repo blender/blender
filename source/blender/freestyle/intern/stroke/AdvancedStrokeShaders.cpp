@@ -153,7 +153,7 @@ SpatialNoiseShader::shade(Stroke &ioStroke) const
       Vec2r noise(-ori2d[1]*_amount*bruit,
 		  ori2d[0]*_amount*bruit);
 
-      sv->SetPoint(p[0]+noise[0], p[1]+noise[1]);
+      sv->setPoint(p[0]+noise[0], p[1]+noise[1]);
       p0=p;
 
       ++v;
@@ -351,7 +351,7 @@ Smoother::copyVertices ()
       const Vec2r p1(_vertex[i]);
       Vec2r p(p0 + _carricatureFactor * (p1 - p0));
 
-      (v)->SetPoint(p[0], p[1]);
+      (v)->setPoint(p[0], p[1]);
       i++;
     }
 

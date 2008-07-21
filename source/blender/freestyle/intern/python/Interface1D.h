@@ -13,8 +13,7 @@ extern "C" {
 
 extern PyTypeObject Interface1D_Type;
 
-#define BPy_Interface1D_Check(v) \
-    ((v)->ob_type == &Interface1D_Type)
+#define BPy_Interface1D_Check(v)	(( (PyObject *) v)->ob_type == &Interface1D_Type)
 
 /*---------------------------Python BPy_Interface1D structure definition----------*/
 typedef struct {

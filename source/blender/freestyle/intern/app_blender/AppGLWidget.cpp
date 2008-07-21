@@ -63,22 +63,22 @@ AppGLWidget::AppGLWidget(const char *iName)
   _Fovy        = 30.f;
   //_SceneDepth = 2.f;
   _RenderStyle = LINE;
-  //_ModelRootNode->SetBBox(BBox<Vec3f>(Vec3f(-10.f, -10.f, -10.f), Vec3f(10.f, 10.f, 10.f)));
+  //_ModelRootNode->setBBox(BBox<Vec3f>(Vec3f(-10.f, -10.f, -10.f), Vec3f(10.f, 10.f, 10.f)));
   _ModelRootNode = new NodeDrawingStyle;
   _SilhouetteRootNode = new NodeDrawingStyle;
   _DebugRootNode = new NodeDrawingStyle;
   
   _RootNode.AddChild(_ModelRootNode);
-  _SilhouetteRootNode->SetStyle(DrawingStyle::LINES);
-  _SilhouetteRootNode->SetLightingEnabled(false);
-  _SilhouetteRootNode->SetLineWidth(2.f);
-  _SilhouetteRootNode->SetPointSize(3.f);
+  _SilhouetteRootNode->setStyle(DrawingStyle::LINES);
+  _SilhouetteRootNode->setLightingEnabled(false);
+  _SilhouetteRootNode->setLineWidth(2.f);
+  _SilhouetteRootNode->setPointSize(3.f);
 
   _RootNode.AddChild(_SilhouetteRootNode);
 
-  _DebugRootNode->SetStyle(DrawingStyle::LINES);
-  _DebugRootNode->SetLightingEnabled(false);
-  _DebugRootNode->SetLineWidth(1.f);
+  _DebugRootNode->setStyle(DrawingStyle::LINES);
+  _DebugRootNode->setLightingEnabled(false);
+  _DebugRootNode->setLineWidth(1.f);
   
   _RootNode.AddChild(_DebugRootNode);
 
@@ -96,23 +96,23 @@ AppGLWidget::AppGLWidget(const char *iName)
 
   // 2D Scene
   //  _pFENode = new NodeDrawingStyle;
-  //  _pFENode->SetStyle(DrawingStyle::LINES);
-  //  _pFENode->SetLightingEnabled(false);
-  //  _pFENode->SetLineWidth(1.f);
+  //  _pFENode->setStyle(DrawingStyle::LINES);
+  //  _pFENode->setLightingEnabled(false);
+  //  _pFENode->setLineWidth(1.f);
   //
   //  _p2DNode.AddChild(_pFENode);
   //  
   //  _pVisibleSilhouetteNode = new NodeDrawingStyle;
-  //  _pVisibleSilhouetteNode->SetStyle(DrawingStyle::LINES);
-  //  _pVisibleSilhouetteNode->SetLightingEnabled(false);
-  //  _pVisibleSilhouetteNode->SetLineWidth(3.f);
+  //  _pVisibleSilhouetteNode->setStyle(DrawingStyle::LINES);
+  //  _pVisibleSilhouetteNode->setLightingEnabled(false);
+  //  _pVisibleSilhouetteNode->setLineWidth(3.f);
   //
   //  _p2DNode.AddChild(_pVisibleSilhouetteNode);
   //  
   _p2DSelectionNode = new NodeDrawingStyle;
-  _p2DSelectionNode->SetLightingEnabled(false);
-  _p2DSelectionNode->SetStyle(DrawingStyle::LINES);
-  _p2DSelectionNode->SetLineWidth(5.f);
+  _p2DSelectionNode->setLightingEnabled(false);
+  _p2DSelectionNode->setStyle(DrawingStyle::LINES);
+  _p2DSelectionNode->setLineWidth(5.f);
   
   _p2DNode.AddChild(_p2DSelectionNode);
 
@@ -315,7 +315,7 @@ void AppGLWidget::draw()
 
   if (true == _Draw2DScene) {
     Draw2DScene(_pGLRenderer);
-    Set3DContext();
+    set3DContext();
   }
   if(_record){
     saveSnapshot(true);
@@ -328,7 +328,7 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
 
   if(_drawEnvMap)
   {
-    _ModelRootNode->SetLightingEnabled(false);
+    _ModelRootNode->setLightingEnabled(false);
     glEnable(GL_COLOR_MATERIAL);
 
     glEnable(GL_TEXTURE_2D);
@@ -369,15 +369,15 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
   }
 
   // FIXME
-  //  //_ModelRootNode->SetLightingEnabled(true);
+  //  //_ModelRootNode->setLightingEnabled(true);
   //  if(_ModelRootNode->style() == DrawingStyle::LINES){
   //    glPushAttrib(GL_ALL_ATTRIB_BITS);
   //    //glDisable(GL_COLOR_MATERIAL);
-  //    _ModelRootNode->SetStyle(DrawingStyle::FILLED);
-  //    _ModelRootNode->SetLightingEnabled(true);
+  //    _ModelRootNode->setStyle(DrawingStyle::FILLED);
+  //    _ModelRootNode->setLightingEnabled(true);
   //    _ModelRootNode->accept(*iRenderer);  
-  //    _ModelRootNode->SetStyle(DrawingStyle::LINES);
-  //    _ModelRootNode->SetLightingEnabled(false);
+  //    _ModelRootNode->setStyle(DrawingStyle::LINES);
+  //    _ModelRootNode->setLightingEnabled(false);
   //    _ModelRootNode->accept(*iRenderer);  
   //    glPopAttrib();
   //  }
@@ -388,7 +388,7 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
   glDisable(GL_TEXTURE_GEN_T);
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_COLOR_MATERIAL);
-  _ModelRootNode->SetLightingEnabled(true);
+  _ModelRootNode->setLightingEnabled(true);
 
   if(_fedges == true)
     _SilhouetteRootNode->accept(*iRenderer);

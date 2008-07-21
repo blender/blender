@@ -46,7 +46,7 @@ public:
 
   inline GLDebugRenderer() : GLRenderer() {
     _bboxSize = 2.0;
-    SetMaxValue(&_minEdgeSize);
+    setMaxValue(&_minEdgeSize);
     _SelectedFEdge = 0;
   }
 
@@ -84,9 +84,9 @@ public:
    *  iBBoxSize
    *    The size of the scene bounding box.
    */
-  inline void ReInit(real iBBoxSize) {_bboxSize = iBBoxSize; SetMaxValue(&_minEdgeSize);}
+  inline void ReInit(real iBBoxSize) {_bboxSize = iBBoxSize; setMaxValue(&_minEdgeSize);}
 
-  inline void SetSelectedFEdge(FEdge *iFEdge) {_SelectedFEdge = iFEdge;}
+  inline void setSelectedFEdge(FEdge *iFEdge) {_SelectedFEdge = iFEdge;}
   inline FEdge * selectedFEdge() {return _SelectedFEdge;}
 
 protected:
@@ -170,8 +170,8 @@ protected:
 
 private:
 
-  inline void SetMaxValue(float *oValue) {*oValue = FLT_MAX;}
-  inline void SetMaxValue(real *oValue) {*oValue = DBL_MAX;}
+  inline void setMaxValue(float *oValue) {*oValue = FLT_MAX;}
+  inline void setMaxValue(real *oValue) {*oValue = DBL_MAX;}
 
   mutable real _bboxSize; 
   mutable real _minEdgeSize;

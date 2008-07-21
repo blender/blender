@@ -55,17 +55,17 @@ void ViewMapBuilder::computeInitialViewEdges(WingedEdge& we)
        it++) {
     // create the embedding
     psShape = new SShape;
-    psShape->SetId((*it)->GetId());
-    psShape->SetMaterials((*it)->materials()); // FIXME
+    psShape->setId((*it)->GetId());
+    psShape->setMaterials((*it)->materials()); // FIXME
 
     // create the view shape
     ViewShape * vshape = new ViewShape(psShape);
     // add this view shape to the view map:
     _ViewMap->AddViewShape(vshape);
   
-    _pViewEdgeBuilder->SetCurrentViewId(_currentId); // we want to number the view edges in a unique way for the while scene.
-    _pViewEdgeBuilder->SetCurrentFId(_currentFId); // we want to number the feature edges in a unique way for the while scene.
-    _pViewEdgeBuilder->SetCurrentSVertexId(_currentFId); // we want to number the SVertex in a unique way for the while scene.
+    _pViewEdgeBuilder->setCurrentViewId(_currentId); // we want to number the view edges in a unique way for the while scene.
+    _pViewEdgeBuilder->setCurrentFId(_currentFId); // we want to number the feature edges in a unique way for the while scene.
+    _pViewEdgeBuilder->setCurrentSVertexId(_currentFId); // we want to number the SVertex in a unique way for the while scene.
     _pViewEdgeBuilder->BuildViewEdges(dynamic_cast<WXShape*>(*it), vshape, 
 				      _ViewMap->ViewEdges(), 
 				      _ViewMap->ViewVertices(), 
@@ -239,12 +239,12 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, Grid* iGrid
 	FindOccludee(fe, iGrid, epsilon, &aFace, timestamp++);
 
       if(aFace) { 
-	fe->SetaFace(*aFace);
+	fe->setaFace(*aFace);
 	aFaces.push_back(aFace);
-	fe->SetOccludeeEmpty(false);
+	fe->setOccludeeEmpty(false);
       }
       else
-	fe->SetOccludeeEmpty(true);
+	fe->setOccludeeEmpty(true);
 
       ++nSamples;
       fe = fe->nextEdge();
@@ -253,7 +253,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, Grid* iGrid
 
     // ViewEdge
     // qi --
-    (*ve)->SetQI(maxIndex);
+    (*ve)->setQI(maxIndex);
     // occluders --
     for(set<ViewShape*>::iterator o=occluders.begin(), oend=occluders.end();
     o!=oend;
@@ -264,7 +264,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, Grid* iGrid
     {
       if(aFaces.size() <= (float)nSamples/2.f)
       {
-        (*ve)->SetaShape(0);
+        (*ve)->setaShape(0);
       }
       else
       {
@@ -272,7 +272,7 @@ void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, Grid* iGrid
         WFace * wface = (WFace*)((*p)->userdata);
         ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
         ++p;
-        (*ve)->SetaShape(vshape);
+        (*ve)->setaShape(vshape);
       }
     }
     
@@ -360,7 +360,7 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, Grid* i
 
         if(aFace)
         { 
-          fe->SetaFace(*aFace);
+          fe->setaFace(*aFace);
           aFaces.push_back(aFace);
         } 
         ++nSamples;
@@ -371,13 +371,13 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, Grid* i
       fe = fe->nextEdge();
     } while ((maxCard < qiMajority) && (0!=fe) && (fe!=festart));
 
-    (*ve)->SetQI(maxIndex);
+    (*ve)->setQI(maxIndex);
 
     if(!aFaces.empty())
     {
       if(aFaces.size() < nSamples / 2)
       {
-        (*ve)->SetaShape(0);
+        (*ve)->setaShape(0);
       }
       else
       {
@@ -398,11 +398,11 @@ void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, Grid* i
         //          } 
         //        } 
         //        if(sameShape)
-        (*ve)->SetaShape(vshape);
+        (*ve)->setaShape(vshape);
       }
     }
     
-    //(*ve)->SetaFace(aFace);
+    //(*ve)->setaFace(aFace);
     
     if(progressBarDisplay) {  
       counter--;
@@ -448,17 +448,17 @@ void ViewMapBuilder::ComputeVeryFastRayCastingVisibility(ViewMap *ioViewMap, Gri
     qi = ComputeRayCastingVisibility(fe, iGrid, epsilon, occluders, &aFace, timestamp++);
     if(aFace)
     { 
-      fe->SetaFace(*aFace);
+      fe->setaFace(*aFace);
       WFace * wface = (WFace*)(aFace->userdata);
       ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
-      (*ve)->SetaShape(vshape);
+      (*ve)->setaShape(vshape);
     } 
     else
     {
-      (*ve)->SetaShape(0);
+      (*ve)->setaShape(0);
     }
 
-    (*ve)->SetQI(qi);
+    (*ve)->setQI(qi);
     
     if(progressBarDisplay) {  
       counter--;
@@ -562,7 +562,7 @@ void ViewMapBuilder::FindOccludee(FEdge *fe, Grid* iGrid, real epsilon, Polygon3
               *oaPolygon = (*p);
               mint = t;
               noIntersection = false;
-              fe->SetOccludeeIntersection(Vec3r(A+t*v));
+              fe->setOccludeeIntersection(Vec3r(A+t*v));
             }
           }
       }  

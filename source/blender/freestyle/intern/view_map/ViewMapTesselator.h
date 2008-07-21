@@ -49,7 +49,7 @@ class LIB_VIEW_MAP_EXPORT ViewMapTesselator
 {
 public:
 
-  inline ViewMapTesselator() {_nature = Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE;_Material.SetDiffuse(0,0,0,1);_overloadMaterial=false;}
+  inline ViewMapTesselator() {_nature = Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE;_Material.setDiffuse(0,0,0,1);_overloadMaterial=false;}
   virtual ~ViewMapTesselator() {}
 
   /*! Builds a set of lines rep contained under a 
@@ -70,8 +70,8 @@ public:
   NodeGroup* Tesselate(WShape* iWShape);
 
   
-  inline void SetNature(Nature::EdgeNature iNature) {_nature = iNature;}
-  inline void SetMaterial(const Material& iMaterial) {_Material=iMaterial;_overloadMaterial=true;}
+  inline void setNature(Nature::EdgeNature iNature) {_nature = iNature;}
+  inline void setMaterial(const Material& iMaterial) {_Material=iMaterial;_overloadMaterial=true;}
   inline Nature::EdgeNature nature() {return _nature;}
   inline const Material& material() const {return _Material;}
 
@@ -123,8 +123,8 @@ NodeGroup * ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesItera
   NodeGroup *group = new NodeGroup;
   NodeShape *tshape = new NodeShape;
   group->AddChild(tshape);
-  //tshape->material().SetDiffuse(0.f, 0.f, 0.f, 1.f);
-  tshape->SetMaterial(_Material);
+  //tshape->material().setDiffuse(0.f, 0.f, 0.f, 1.f);
+  tshape->setMaterial(_Material);
 
   LineRep* line;
 
@@ -153,12 +153,12 @@ NodeGroup * ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesItera
       
       line = new OrientedLineRep();
       if(_overloadMaterial)
-        line->SetMaterial(_Material);
+        line->setMaterial(_Material);
 
       // there might be chains containing a single element
       if(0 == (firstEdge)->nextEdge())
       {
-        line->SetStyle(LineRep::LINES);
+        line->setStyle(LineRep::LINES);
         // line->AddVertex((*c)->vertexA()->point3D());
         // line->AddVertex((*c)->vertexB()->point3D());
         AddVertexToLine(line, firstEdge->vertexA());
@@ -166,7 +166,7 @@ NodeGroup * ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesItera
       }
       else
       {
-        line->SetStyle(LineRep::LINE_STRIP);
+        line->setStyle(LineRep::LINE_STRIP);
 
         //firstEdge = (*c);
         nextFEdge = firstEdge;
@@ -184,7 +184,7 @@ NodeGroup * ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesItera
                 
       }
 
-      line->SetId((*c)->getId().getFirst());
+      line->setId((*c)->getId().getFirst());
       line->ComputeBBox();
       tshape->AddRep(line);
       id++;

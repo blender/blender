@@ -24,6 +24,6 @@
 void VertexRep::ComputeBBox()
 {
 
-  SetBBox(BBox<Vec3r>(Vec3r(_coordinates[0], _coordinates[1], _coordinates[2]), 
+  setBBox(BBox<Vec3r>(Vec3r(_coordinates[0], _coordinates[1], _coordinates[2]), 
                       Vec3r(_coordinates[0], _coordinates[1], _coordinates[2])));
 }

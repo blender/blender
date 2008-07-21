@@ -71,12 +71,12 @@ public:
   inline float pointSize() const {return _PointSize;}
 
   /*! modifiers */
-  inline void SetVid(int id) {_vid = id;}
+  inline void setVid(int id) {_vid = id;}
   inline void setX(real x) {_coordinates[0] = x;}
   inline void setY(real y) {_coordinates[1] = y;}
   inline void setZ(real z) {_coordinates[2] = z;}
-  inline void SetCoordinates(real x, real y, real z) {_coordinates[0] = x;_coordinates[1] = y; _coordinates[2] = z;}
-  inline void SetPointSize(float iPointSize) {_PointSize = iPointSize;}
+  inline void setCoordinates(real x, real y, real z) {_coordinates[0] = x;_coordinates[1] = y; _coordinates[2] = z;}
+  inline void setPointSize(float iPointSize) {_PointSize = iPointSize;}
 
 private:
   int _vid; // vertex id

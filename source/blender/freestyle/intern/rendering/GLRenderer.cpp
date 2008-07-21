@@ -93,7 +93,7 @@ void GLRenderer::visitIndexedFaceSet(IndexedFaceSet& ifs)
         pti += numVertexPerFace[fIndex];
   }
   //glEndList();
-  //ifs.SetDisplayList(dl);
+  //ifs.setDisplayList(dl);
 }
 
 void GLRenderer::visitNodeTransform(NodeTransform& tn) {

@@ -71,7 +71,7 @@ public:
   virtual void accept(SceneVisitor& v);
 
   /*! Sets the shape material */
-  inline void SetMaterial(const Material& iMaterial) { _Material = iMaterial; }
+  inline void setMaterial(const Material& iMaterial) { _Material = iMaterial; }
 
   /*! accessors */
   /*! returns the shape's material */

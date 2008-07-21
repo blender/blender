@@ -110,7 +110,7 @@ public:
           LINES       : line rendering
           DEPTHBUFFER : grey-levels rendering of the depth buffer
           */
-  inline void SetRenderStyle(RenderStyle iStyle)
+  inline void setRenderStyle(RenderStyle iStyle)
   {
     _RenderStyle = iStyle;
   }
@@ -119,7 +119,7 @@ public:
    *  iModel
    *    The Root Node of the model 
    */
-  inline void SetModel(NodeGroup *iModel)
+  inline void setModel(NodeGroup *iModel)
   {
     if(0 != _ModelRootNode->numberOfChildren())
     {
@@ -173,7 +173,7 @@ public:
     updateGL();
   }
 
-  inline void SetDebug(NodeGroup* iDebug)
+  inline void setDebug(NodeGroup* iDebug)
   {
     if(0 != _DebugRootNode->numberOfChildren())
     {
@@ -240,9 +240,9 @@ public:
     updateGL();
   }
 
-  void SetMainWindow(QMainWindow *iMainWindow) ;
+  void setMainWindow(QMainWindow *iMainWindow) ;
 
-  inline void Set3DContext()
+  inline void set3DContext()
   {
     // GL_PROJECTION matrix
     _camera->loadProjectionMatrix();
@@ -323,7 +323,7 @@ public:
   // when a model is added to the scene.
   void ReInitRenderers();
 
-  inline void SetSelectedFEdge(FEdge* iFEdge) { _pDebugRenderer->SetSelectedFEdge(iFEdge); }
+  inline void setSelectedFEdge(FEdge* iFEdge) { _pDebugRenderer->setSelectedFEdge(iFEdge); }
 
   inline GLDebugRenderer* debugRenderer() { return _pDebugRenderer; }
   inline void toggle3D() { _Draw3DScene == true ? _Draw3DScene = false : _Draw3DScene = true; updateGL();}
