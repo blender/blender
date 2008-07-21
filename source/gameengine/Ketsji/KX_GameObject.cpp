@@ -744,7 +744,7 @@ void KX_GameObject::NodeSetLocalOrientation(const MT_Matrix3x3& rot)
 	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
 		// see note above
-		m_pPhysicsController1->setOrientation(rot.getRotation());
+		m_pPhysicsController1->setOrientation(rot);
 	}
 	if (GetSGNode())
 		GetSGNode()->SetLocalOrientation(rot);

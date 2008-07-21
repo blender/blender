@@ -35,7 +35,7 @@ public:
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 	virtual	void	getOrientation(MT_Quaternion& orn);
-	virtual	void setOrientation(const MT_Quaternion& orn);
+	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();

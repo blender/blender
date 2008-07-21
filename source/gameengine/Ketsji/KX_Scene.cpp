@@ -712,8 +712,12 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 
 		if (replica->GetPhysicsController())
 		{
-			replica->GetPhysicsController()->setPosition(newpos);
-			replica->GetPhysicsController()->setOrientation(newori.getRotation());
+			// not required, already done in NodeSetLocalOrientation..
+			//replica->GetPhysicsController()->setPosition(newpos);
+			//replica->GetPhysicsController()->setOrientation(newori.getRotation());
+			// Scaling has been set relatively hereabove, this does not 
+			// set the scaling of the controller. I don't know why it's just the
+			// relative scale and not the full scale that has to be put here...
 			replica->GetPhysicsController()->setScaling(newscale);
 		}
 
@@ -843,8 +847,9 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	if (replica->GetPhysicsController())
 	{
-		replica->GetPhysicsController()->setPosition(newpos);
-		replica->GetPhysicsController()->setOrientation(newori.getRotation());
+		// not needed, already done in NodeSetLocalPosition()
+		//replica->GetPhysicsController()->setPosition(newpos);
+		//replica->GetPhysicsController()->setOrientation(newori.getRotation());
 		replica->GetPhysicsController()->setScaling(newscale);
 	}
 

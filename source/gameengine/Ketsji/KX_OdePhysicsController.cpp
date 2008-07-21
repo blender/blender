@@ -133,8 +133,9 @@ void	KX_OdePhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool l
 	ODEPhysicsController::SetLinearVelocity(lin_vel[0],lin_vel[1],lin_vel[2],local);
 }
 
-void KX_OdePhysicsController::setOrientation(const MT_Quaternion& orn)
+void KX_OdePhysicsController::setOrientation(const MT_Matrix3x3& rot)
 {
+	MT_Quaternion orn = rot.getRotation();
 	ODEPhysicsController::setOrientation(orn[0],orn[1],orn[2],orn[3]);
 }
 
