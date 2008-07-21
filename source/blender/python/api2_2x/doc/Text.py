@@ -162,14 +162,31 @@ class Text:
 			cursor.
 		"""
 
-	def suggest(list):
+	def suggest(list, prefix=''):
 		"""
-		Set the suggestion list to the given list of tuples. This list *must* be
-		sorted by its first element, name.
-		@type list: list of tuples
+		Suggest a list of names. If list is a list of tuples (name, type) the
+		list will be formatted to syntax-highlight each entry type. Types must
+		be strings in the list ['m', 'f', 'v', 'k', '?']. It is recommended that
+		the list be sorted, case-insensitively by name.
+		
+		@type list: list of tuples or strings
 		@param list:  List of pair-tuples of the form (name, type) where name is
 			the suggested name and type is one of 'm' (module or class), 'f'
-			(function or method), 'v' (variable).
+			(function or method), 'v' (variable), 'k' (keyword), '?' (other).
+			Lists of plain strings are also accepted where the type is always
+			'?'.
+		@type prefix: string
+		@param prefix: The optional prefix used to limit what is suggested from
+			the list. This is usually whatever precedes the cursor so that
+			backspace will update it.
+		"""
+	
+	def showDocs(docs):
+		"""
+		Displays a word-wrapped message box containing the specified
+		documentation when this Text object is visible.
+		@type docs: string
+		@param docs: The documentation string to display.
 		"""
 
 import id_generics

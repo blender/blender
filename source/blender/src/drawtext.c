@@ -1203,6 +1203,7 @@ void draw_suggestion_list(SpaceText *st)
 			case 'm': BIF_ThemeColor(TH_TEXT); break;
 			case 'f': BIF_ThemeColor(TH_SYNTAX_L); break;
 			case 'v': BIF_ThemeColor(TH_SYNTAX_N); break;
+			case '?': BIF_ThemeColor(TH_TEXT); b=0; break;
 		}
 		if (b) {
 			glRecti(x+8, y+2, x+11, y+5);

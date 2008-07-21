@@ -137,7 +137,7 @@ static PyMethodDef BPy_Text_methods[] = {
 	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
 	 "(row, col) - Set the cursor position to (row, col)"},
 	{"suggest", ( PyCFunction ) Text_suggest, METH_VARARGS,
-	 "(list, prefix) - List of tuples of the form (name, type) where type is one of 'm', 'v', 'f', 'k' for module, variable, function and keyword respectively"},
+	 "(list, prefix='') - Presents a list of suggestions. List is of strings, or tuples. Tuples must be of the form (name, type) where type is one of 'm', 'v', 'f', 'k' for module, variable, function and keyword respectively or '?' for other types"},
 	{"showDocs", ( PyCFunction ) Text_showDocs, METH_VARARGS,
 	 "(docs) - Documentation string"},
 	{NULL, NULL, 0, NULL}
@@ -574,20 +574,20 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 
 static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 {
-	PyObject *item = NULL;
+	PyObject *item = NULL, *tup1 = NULL, *tup2 = NULL;
 	PyObject *list = NULL, *resl = NULL;
 	int list_len, i;
-	char *prefix, *name, type;
+	char *prefix = NULL, *name, type;
 	SpaceText *st;
 
 	if (!self->text)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"This object isn't linked to a Blender Text Object");
 
-	/* Parse args for a list of tuples */
-	if (!PyArg_ParseTuple(args, "O!s", &PyList_Type, &list, &prefix))
+	/* Parse args for a list of strings/tuples */
+	if (!PyArg_ParseTuple(args, "O!|s", &PyList_Type, &list, &prefix))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
-				"expected list of tuples followed by a string");
+				"expected list of strings or tuples followed by an optional string");
 
 	if (curarea->spacetype != SPACE_TEXT)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
@@ -598,24 +598,37 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"Active text area has no Text object");
 	
+	suggest_clear_list();
 	suggest_set_active(st->text);
 	list_len = PyList_Size(list);
 	
 	for (i = 0; i < list_len; i++) {
 		item = PyList_GetItem(list, i);
-		if (!PyTuple_Check(item) || PyTuple_GET_SIZE(item) != 2)
-			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-					"list must contain only tuples of size 2" );
 
-		name = PyString_AsString(PyTuple_GetItem(item, 0));
-		type = PyString_AsString(PyTuple_GetItem(item, 1))[0];
-
-		if (!strlen(name) || (type!='m' && type!='v' && type!='f' && type!='k'))
+		if (PyString_Check(item)) {
+			name = PyString_AsString(item);
+			type = '?';
+		} else if (PyTuple_Check(item) && PyTuple_GET_SIZE(item) == 2) {
+			tup1 = PyTuple_GetItem(item, 0);
+			tup2 = PyTuple_GetItem(item, 1);
+			if (PyString_Check(tup1) && PyString_Check(tup2)) {
+				name = PyString_AsString(tup1);
+				type = PyString_AsString(tup2)[0];
+			} else
+				return EXPP_ReturnPyObjError(PyExc_AttributeError,
+						"list must contain tuples of two strings only: (name, type)" );
+		} else
 			return EXPP_ReturnPyObjError(PyExc_AttributeError,
-					"names must be non-empty and types in ['m', 'v', 'f', 'k']" );
+					"list must contain only individual strings or tuples of size 2" );
+
+		if (!strlen(name) || (type!='m' && type!='v' && type!='f' && type!='k' && type!='?'))
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+					"names must be non-empty and types in ['m', 'v', 'f', 'k', '?']" );
 
 		suggest_add(name, type);
 	}
+	if (!prefix)
+		prefix = "";
 	suggest_prefix(prefix);
 	scrarea_queue_redraw(curarea);
 

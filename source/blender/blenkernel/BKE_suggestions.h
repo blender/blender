@@ -34,8 +34,10 @@ extern "C" {
 #endif
 
 /* ****************************************************************************
-Suggestions must be added in sorted order (no attempt is made to sort the list)
-The list is then divided up based on the prefix provided by update_suggestions:
+Suggestions should be added in sorted order although a linear sorting method is
+implemented. The list is then divided up based on the prefix provided by
+update_suggestions:
+
 Example:
   Prefix: ab
   aaa <-- first
@@ -70,6 +72,7 @@ short suggest_is_active(Text *text);
 
 void suggest_add(const char *name, char type);
 void suggest_prefix(const char *prefix);
+void suggest_clear_list();
 SuggItem *suggest_first();
 SuggItem *suggest_last();
 

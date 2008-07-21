@@ -37,6 +37,10 @@
 #include "BKE_text.h"
 #include "BKE_suggestions.h"
 
+/**********************/
+/* Static definitions */
+/**********************/
+
 static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
 static Text *suggText = NULL;
 static SuggItem *lastInsert = NULL;
@@ -71,13 +75,37 @@ static void docs_free() {
 	}
 }
 
+/**************************/
+/* General tool functions */
+/**************************/
+
 void free_suggestions() {
 	sugg_free();
 	docs_free();
 }
 
+void suggest_set_active(Text *text) {
+	if (suggText == text) return;
+	suggest_clear_active();
+	suggText = text;
+}
+
+void suggest_clear_active() {
+	free_suggestions();
+	suggText = NULL;
+}
+
+short suggest_is_active(Text *text) {
+	return suggText==text ? 1 : 0;
+}
+
+/***************************/
+/* Suggestion list methods */
+/***************************/
+
 void suggest_add(const char *name, char type) {
-	SuggItem *newitem;
+	SuggItem *newitem, *item;
+	int len, cmp;
 
 	newitem = MEM_mallocN(sizeof(SuggItem) + strlen(name) + 1, "SuggestionItem");
 	if (!newitem) {
@@ -86,18 +114,42 @@ void suggest_add(const char *name, char type) {
 	}
 
 	newitem->name = (char *) (newitem + 1);
-	strcpy(newitem->name, name);
+	len = strlen(name);
+	strncpy(newitem->name, name, len);
+	newitem->name[len] = '\0';
 	newitem->type = type;
 	newitem->prev = newitem->next = NULL;
 
-	if (!suggestions.first) {
+	/* Perform simple linear search for ordered storage */
+	if (!suggestions.first || !suggestions.last) {
 		suggestions.first = suggestions.last = newitem;
 	} else {
-		newitem->prev = suggestions.last;
-		suggestions.last->next = newitem;
-		suggestions.last = newitem;
+		cmp = -1;
+		for (item=suggestions.last; item; item=item->prev) {
+			cmp = suggest_cmp(name, item->name, len);
+
+			/* Newitem comes after this item, insert here */
+			if (cmp >= 0) {
+				newitem->prev = item;
+				if (item->next)
+					item->next->prev = newitem;
+				newitem->next = item->next;
+				item->next = newitem;
+
+				/* At last item, set last pointer here */
+				if (item == suggestions.last)
+					suggestions.last = newitem;
+				break;
+			}
+		}
+		/* Reached beginning of list, insert before first */
+		if (cmp < 0) {
+			newitem->next = suggestions.first;
+			suggestions.first->prev = newitem;
+			suggestions.first = newitem;
+		}
 	}
-	suggestions.selected = NULL;
+	suggestions.firstmatch = suggestions.lastmatch = suggestions.selected = NULL;
 }
 
 void suggest_prefix(const char *prefix) {
@@ -136,6 +188,10 @@ void suggest_prefix(const char *prefix) {
 	}
 }
 
+void suggest_clear_list() {
+	sugg_free();
+}
+
 SuggItem *suggest_first() {
 	return suggestions.firstmatch;
 }
@@ -144,30 +200,17 @@ SuggItem *suggest_last() {
 	return suggestions.lastmatch;
 }
 
-void suggest_set_active(Text *text) {
-	if (suggText == text) return;
-	suggest_clear_active();
-	suggText = text;
-}
-
-void suggest_clear_active() {
-	free_suggestions();
-	suggText = NULL;
-}
-
-short suggest_is_active(Text *text) {
-	return suggText==text ? 1 : 0;
+SuggItem *suggest_get_selected() {
+	return suggestions.selected;
 }
 
 void suggest_set_selected(SuggItem *sel) {
 	suggestions.selected = sel;
 }
 
-SuggItem *suggest_get_selected() {
-	return suggestions.selected;
-}
-
+/*************************/
 /* Documentation methods */
+/*************************/
 
 void suggest_documentation(const char *docs) {
 	int len;
