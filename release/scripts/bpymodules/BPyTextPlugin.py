@@ -350,7 +350,7 @@ def parse_text(txt):
 					close = line.find(')', end[1])
 					var_type = dict
 				if var_type and close+1 < len(line):
-					if line[close]+1 != ' ' and line[close+1] != '\t':
+					if line[close+1] != ' ' and line[close+1] != '\t':
 						var_type = None
 				cls_vars[var_name] = VarDesc(var_name, var_type, start[0])
 				var1_step = 0
