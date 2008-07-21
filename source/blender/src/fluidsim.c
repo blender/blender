@@ -1066,7 +1066,7 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
 				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
 				fsmesh.obstacleImpactFactor = obit->fluidsimSettings->surfaceSmoothing; // misused value
-				/*
+				
 				if(fsmesh.type == OB_FLUIDSIM_CONTROL)
 				{
 					// control fluids will get exported as whole
@@ -1086,7 +1086,7 @@ void fluidsimBake(struct Object *ob)
 					fsmesh.channelVelocityforceStrength = channelVelocityforceStrength[o];
 					fsmesh.channelVelocityforceRadius = channelVelocityforceRadius[o];
 				}
-				else */
+				else 
 				{
 					// set channels to 0
 					fsmesh.channelAttractforceStrength =
@@ -1219,6 +1219,8 @@ void fluidsimBake(struct Object *ob)
 			pupmenu(fsmessage);
 		} // init error
 	}
+	
+	// elbeemFree();
 }
 
 void fluidsimFreeBake(struct Object *ob)
