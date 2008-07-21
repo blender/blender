@@ -40,6 +40,7 @@
 #include "BKE_material.h"
 #include "BKE_utildefines.h"
 #include "BKE_pointcache.h"
+#include "BKE_DerivedMesh.h"
 #include "BIF_editparticle.h"
 #include "BIF_space.h"
 #include "blendef.h"
@@ -799,22 +800,27 @@ static PyObject *Part_freeEdit( BPy_PartSys * self, PyObject * args ){
 	Py_RETURN_NONE;
 }
 
-static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
+static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args )
+{
 	ParticleSystem *psys = 0L;
 	Object *ob = 0L;
 	PyObject *partlist,*seglist;
-	PyObject* loc = 0L;
 	ParticleCacheKey **cache,*path;
+	PyObject* loc = 0L;
 	ParticleKey state;
-	float cfra=bsystem_time(ob,(float)CFRA,0.0);
+	DerivedMesh* dm;
+	float cfra;
 	int i,j,k;
+	float vm[4][4],wm[4][4];
 	int	childexists = 0;
 	int all = 0;
 	int id = 0;
 
+	cfra = bsystem_time(ob,(float)CFRA,0.0);
+
 	if( !PyArg_ParseTuple( args, "|ii", &all,&id ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected one optional integer as argument" );
+				"expected two optional integers as arguments" );
 
 	psys = self->psys;
 	ob = self->object;
@@ -822,88 +828,118 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 	if (!ob || !psys)
 		Py_RETURN_NONE;
 
-	if (psys->part->type == 2){
-		cache=psys->pathcache;
+	G.rendering = 1;
 
-		/* little hack to calculate hair steps in render mode */
-		psys->renderdata = (void*)(int)1;
+	/* Just to create a valid rendering context */
+	psys_render_set(ob,psys,vm,wm,0,0,0);
 
-		psys_cache_paths(ob, psys, cfra, 1);
+	dm = mesh_create_derived_render(ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+	dm->release(dm);
 
-		psys->renderdata = NULL;
+	if ( !psys_check_enabled(ob,psys) ){
+		G.rendering = 0;
+		psys_render_restore(ob,psys);
+		Particle_Recalc(self,1);
+		Py_RETURN_NONE;
+	}
 
-		partlist = PyList_New( 0 );
-		if( !partlist )
-			return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
+	partlist = PyList_New( 0 );
+	if( !partlist ){
+		PyErr_SetString( PyExc_MemoryError, "PyList_New() failed" );
+		goto error;
+	}
 
-		for(i = 0; i < psys->totpart; i++){
-			path=cache[i];
-			seglist = PyList_New( 0 );
-			k = path->steps+1;
-			for( j = 0; j < k ; j++){
-				loc = PyTuple_New(3);
+	if (psys->part->type == PART_HAIR){
+		cache = psys->pathcache;
 
-				PyTuple_SetItem(loc,0,PyFloat_FromDouble((double)path->co[0]));
-				PyTuple_SetItem(loc,1,PyFloat_FromDouble((double)path->co[1]));
-				PyTuple_SetItem(loc,2,PyFloat_FromDouble((double)path->co[2]));
+		if ( ((self->psys->part->draw & PART_DRAW_PARENT) && (self->psys->part->childtype != 0)) || (self->psys->part->childtype == 0) ){
 
-				if ( (PyList_Append(seglist,loc) < 0) ){
-					Py_DECREF(seglist);
-					Py_DECREF(partlist);
-					Py_XDECREF(loc);
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"Couldn't append item to PyList" );
+			for(i = 0; i < psys->totpart; i++){
+				seglist = PyList_New( 0 );
+				if (!seglist){
+					PyErr_SetString( PyExc_MemoryError,
+							"PyList_New() failed" );
+					goto error;
 				}
-				Py_DECREF(loc); /* PyList_Append increfs */
-				path++;
-			}
 
-			if ( PyList_Append(partlist,seglist) < 0 ){
-				Py_DECREF(seglist);
-				Py_DECREF(partlist);
-				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"Couldn't append item to PyList" );		
+				path=cache[i];
+				k = path->steps+1;
+				for( j = 0; j < k ; j++, path++){
+					loc = Py_BuildValue("(fff)",(double)path->co[0],
+							(double)path->co[1], (double)path->co[2]);
+
+					if (!loc){
+						PyErr_SetString( PyExc_RuntimeError,
+								"Couldn't build tuple" );
+						goto error;
+					}
+
+					if ( (PyList_Append(seglist,loc) < 0) ){
+						PyErr_SetString( PyExc_RuntimeError,
+								"Couldn't append item to PyList" );
+						goto error;
+					}
+					Py_DECREF(loc); /* PyList_Append increfs */
+					loc = NULL;
+				}
+
+				if ( PyList_Append(partlist,seglist) < 0 ){
+					PyErr_SetString( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );		
+					goto error;
+				}
+				Py_DECREF(seglist); /* PyList_Append increfs */
+				seglist = NULL;
 			}
-			Py_DECREF(seglist); /* PyList_Append increfs */
 		}
 
 		cache=psys->childcache;
 
 		for(i = 0; i < psys->totchild; i++){
-			path=cache[i];
 			seglist = PyList_New( 0 );
-			k = path->steps+1;
-			for( j = 0; j < k ; j++){
-				loc = PyTuple_New(3);
+			if (!seglist){
+				PyErr_SetString( PyExc_MemoryError,
+						"PyList_New() failed" );
+				goto error;
+			}
 
-				PyTuple_SetItem(loc,0,PyFloat_FromDouble((double)path->co[0]));
-				PyTuple_SetItem(loc,1,PyFloat_FromDouble((double)path->co[1]));
-				PyTuple_SetItem(loc,2,PyFloat_FromDouble((double)path->co[2]));
+			path=cache[i];
+			k = path->steps+1;
+			for( j = 0; j < k ; j++, path++ ){
+				loc = Py_BuildValue("(fff)",(double)path->co[0],
+						(double)path->co[1], (double)path->co[2]);
+
+				if (!loc){
+					PyErr_SetString( PyExc_RuntimeError,
+							"Couldn't build tuple" );
+					goto error;
+				}
 
 				if ( PyList_Append(seglist,loc) < 0){
-					Py_DECREF(partlist);
-					Py_XDECREF(loc);
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					PyErr_SetString( PyExc_RuntimeError,
 							"Couldn't append item to PyList" );
+					goto error;
 				}
 				Py_DECREF(loc);/* PyList_Append increfs */
-				path++;
+				loc = NULL;
 			}
 
 			if ( PyList_Append(partlist,seglist) < 0){
-				Py_DECREF(partlist);
-				Py_XDECREF(loc);
-				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				PyErr_SetString( PyExc_RuntimeError,
 						"Couldn't append item to PyList" );	
+				goto error;
 			}
 			Py_DECREF(seglist); /* PyList_Append increfs */
+			seglist = NULL;
 		}
-		
 	} else {
 		int init;
-		partlist = PyList_New( 0 );
-		if( !partlist )
-			return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
+		char *fmt = NULL;
+
+		if(id)
+			fmt = "(fffi)";
+		else
+			fmt = "(fff)";
 
 		if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
 			childexists = 1;
@@ -919,55 +955,67 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args ){
 				init = 1;
 
 			if (init){
-				if (!id)
-					loc = PyTuple_New(3);
-				else
-					loc = PyTuple_New(4);
-				PyTuple_SetItem(loc,0,PyFloat_FromDouble((double)state.co[0]));
-				PyTuple_SetItem(loc,1,PyFloat_FromDouble((double)state.co[1]));
-				PyTuple_SetItem(loc,2,PyFloat_FromDouble((double)state.co[2]));
-				if (id)
-					PyTuple_SetItem(loc,3,PyInt_FromLong(i));
+				loc = Py_BuildValue(fmt,(double)state.co[0],
+						(double)state.co[1], (double)state.co[2],i);
+				
+				if (!loc){
+					PyErr_SetString( PyExc_RuntimeError,
+							"Couldn't build tuple" );
+					goto error;
+				}
 
 				if ( PyList_Append(partlist,loc) < 0 ){
-					Py_DECREF(partlist);
-					Py_XDECREF(loc);
-					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-								"Couldn't append item to PyList" );
+					PyErr_SetString( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );
+					goto error;
 				}
-				Py_DECREF(loc);/* PyList_Append increfs */
-			}
-			else {
-				if ( all ){
-					if ( PyList_Append(partlist,Py_None) < 0 ){
-						Py_DECREF(partlist);
-						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-									"Couldn't append item to PyList" );
-					}
-					Py_DECREF(Py_None); /* PyList_Append increfs */
+				Py_DECREF(loc);
+				loc = NULL;
+			} else {
+				if ( all && PyList_Append(partlist,Py_None) < 0 ){
+					PyErr_SetString( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );
+					goto error;
 				}
 			}
 		}
 	}
+
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
 	return partlist;
+
+error:
+	Py_XDECREF(partlist);
+	Py_XDECREF(seglist);
+	Py_XDECREF(loc);
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
+	return NULL;
 }
 
-static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args ){
+static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args )
+{
 	ParticleSystem *psys = 0L;
 	Object *ob = 0L;
 	PyObject *partlist = 0L;
 	PyObject* loc = 0L;
 	ParticleKey state;
+	DerivedMesh* dm;
+	float vm[4][4],wm[4][4];
 	int i;
 	int childexists = 0;
 	int all = 0;
 	int id = 0;
+    char *fmt = NULL;
 
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
 
 	if( !PyArg_ParseTuple( args, "|ii", &all, &id ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected one optional integer as argument" );
+				"expected two optional integers as arguments" );
 
 	psys = self->psys;
 	ob = self->object;
@@ -975,11 +1023,36 @@ static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args ){
 	if (!ob || !psys)
 		Py_RETURN_NONE;
 
-	if (psys->part->type != 2){
+	G.rendering = 1;
+
+	/* Just to create a valid rendering context */
+	psys_render_set(ob,psys,vm,wm,0,0,0);
+
+	dm = mesh_create_derived_render(ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+	dm->release(dm);
+
+	if ( !psys_check_enabled(ob,psys) ){
+		G.rendering = 0;
+		psys_render_restore(ob,psys);
+		Particle_Recalc(self,1);
+		Py_RETURN_NONE;
+	}
+
+	if (psys->part->type != PART_HAIR){
 		partlist = PyList_New( 0 );
+
+		if( !partlist ){
+			PyErr_SetString( PyExc_MemoryError, "PyList_New() failed" );
+			goto error;
+		}
 
 		if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
 			childexists = 1;
+
+		if(id)
+			fmt = "(ffffi)";
+		else
+			fmt = "(ffff)";
 
 		for (i = 0; i < psys->totpart + psys->totchild; i++){
 			if (childexists && (i < psys->totpart))
@@ -987,51 +1060,68 @@ static PyObject *Part_GetRot( BPy_PartSys * self, PyObject * args ){
 
 			state.time = cfra;
 			if(psys_get_particle_state(ob,psys,i,&state,0)==0){
-				if ( all ){
-					PyList_Append(partlist,Py_None);
-					Py_DECREF(Py_None); /* PyList_Append increfs */
-					continue;
-				} else {
-					continue;
+				if ( all && PyList_Append(partlist,Py_None) < 0){
+					PyErr_SetString( PyExc_RuntimeError,
+						"Couldn't append item to PyList" );
+					goto error;
 				}
+			} else {
+				loc = Py_BuildValue(fmt,(double)state.rot[0], (double)state.rot[1],
+						(double)state.rot[2], (double)state.rot[3], i);
+
+				if (!loc){
+					PyErr_SetString( PyExc_RuntimeError,
+							"Couldn't build tuple" );
+					goto error;
+				}
+				if (PyList_Append(partlist,loc) < 0){
+					PyErr_SetString ( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );
+					goto error;
+				}
+				Py_DECREF(loc); /* PyList_Append increfs */
+				loc = NULL;
 			}
-			if (!id)
-				loc = PyTuple_New(4);
-			else
-				loc = PyTuple_New(5);
-			PyTuple_SetItem(loc,0,PyFloat_FromDouble((double)state.rot[0]));
-			PyTuple_SetItem(loc,1,PyFloat_FromDouble((double)state.rot[1]));
-			PyTuple_SetItem(loc,2,PyFloat_FromDouble((double)state.rot[2]));
-			PyTuple_SetItem(loc,3,PyFloat_FromDouble((double)state.rot[3]));
-			if (id)
-				PyTuple_SetItem(loc,4,PyInt_FromLong(i));
-			PyList_Append(partlist,loc);
-			Py_DECREF(loc); /* PyList_Append increfs */
 		}
+	} else {
+		partlist = EXPP_incr_ret( Py_None );
 	}
+
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
 	return partlist;
+
+error:
+	Py_XDECREF(partlist);
+	Py_XDECREF(loc);
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
+	return NULL;
 }
 
-static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args ){
+static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args )
+{
 	ParticleKey state;
 	ParticleSystem *psys = 0L;
 	ParticleData *data;
 	Object *ob = 0L;
 	PyObject *partlist,*tuple;
-	PyObject* siz = 0L;
+	DerivedMesh* dm;
+	float vm[4][4],wm[4][4];
 	float size;
 	int i;
 	int childexists = 0;
 	int all = 0;
 	int id = 0;
+    char *fmt = NULL;
 
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
 
 	if( !PyArg_ParseTuple( args, "|ii", &all, &id ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected one optional integer as argument" );
-
-	data = self->psys->particles;
+				"expected two optional integers as arguments" );
 
 	psys = self->psys;
 	ob = self->object;
@@ -1039,13 +1129,39 @@ static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args ){
 	if (!ob || !psys)
 		Py_RETURN_NONE;
 
-		partlist = PyList_New( 0 );
+	G.rendering = 1;
 
-		if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
-			childexists = 1;
+	/* Just to create a valid rendering context */
+	psys_render_set(ob,psys,vm,wm,0,0,0);
 
-		for (i = 0; i < psys->totpart + psys->totchild; i++, data++){
-		if (psys->part->type != 2){
+	dm = mesh_create_derived_render(ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+	dm->release(dm);
+	data = self->psys->particles;
+
+	if ( !psys_check_enabled(ob,psys) ){
+		psys_render_restore(ob,psys);
+		G.rendering = 0;
+		Particle_Recalc(self,1);
+		Py_RETURN_NONE;
+	}
+
+	partlist = PyList_New( 0 );
+
+	if( !partlist ){
+		PyErr_SetString( PyExc_MemoryError, "PyList_New() failed" );
+		goto error;
+	}
+
+	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
+		childexists = 1;
+
+	if(id)
+		fmt = "(fi)";
+	else
+		fmt = "f";
+
+	for (i = 0; i < psys->totpart + psys->totchild; i++, data++){
+		if (psys->part->type != PART_HAIR){
 			if (childexists && (i < psys->totpart))
 				continue;
 
@@ -1061,43 +1177,61 @@ static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args ){
 				ChildParticle *cpa= &psys->child[i-psys->totpart];
 				size = psys_get_child_size(psys,cpa,cfra,0);
 			}
-			if (id){
-				tuple = PyTuple_New(2);
-				PyTuple_SetItem(tuple,0,PyFloat_FromDouble((double)size));
-				PyTuple_SetItem(tuple,1,PyInt_FromLong(i));
-				PyList_Append(partlist,tuple);
-				Py_DECREF(tuple);
-			} else {
-				siz = PyFloat_FromDouble((double)size);
-				PyList_Append(partlist,siz);
-				Py_DECREF(siz);
+
+			tuple = Py_BuildValue(fmt,(double)size,i);
+
+			if (!tuple){
+				PyErr_SetString( PyExc_RuntimeError,
+						"Couldn't build tuple" );
+				goto error;
 			}
+
+			if (PyList_Append(partlist,tuple) < 0){
+				PyErr_SetString( PyExc_RuntimeError,
+						"Couldn't append item to PyList" );
+				goto error;
+			}
+			Py_DECREF(tuple);
+			tuple = NULL;
 		}
 	}
+
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
 	return partlist;
+
+error:
+	Py_XDECREF(partlist);
+	Py_XDECREF(tuple);
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
+	return NULL;
 }
 
 
-static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args ){
+static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args )
+{
 	ParticleKey state;
 	ParticleSystem *psys = 0L;
 	ParticleData *data;
 	Object *ob = 0L;
 	PyObject *partlist,*tuple;
-	PyObject* lif = 0L;
+	DerivedMesh* dm;
+	float vm[4][4],wm[4][4];
 	float life;
 	int i;
 	int childexists = 0;
 	int all = 0;
 	int id = 0;
+	char *fmt = NULL;
 
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
 
 	if( !PyArg_ParseTuple( args, "|ii", &all, &id ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected one optional integer as argument" );
-
-	data = self->psys->particles;
+				"expected two optional integers as arguments" );
 
 	psys = self->psys;
 	ob = self->object;
@@ -1105,13 +1239,37 @@ static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args ){
 	if (!ob || !psys)
 		Py_RETURN_NONE;
 
-		partlist = PyList_New( 0 );
+	G.rendering = 1;
 
-		if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
-			childexists = 1;
+	/* Just to create a valid rendering context */
+	psys_render_set(ob,psys,vm,wm,0,0,0);
 
-		for (i = 0; i < psys->totpart + psys->totchild; i++, data++){
-		if (psys->part->type != 2){
+	dm = mesh_create_derived_render(ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+	dm->release(dm);
+	data = self->psys->particles;
+
+	if ( !psys_check_enabled(ob,psys) ){
+		psys_render_restore(ob,psys);
+		G.rendering = 0;
+		Py_RETURN_NONE;
+	}
+
+	partlist = PyList_New( 0 );
+	if( !partlist ){
+		PyErr_SetString( PyExc_MemoryError, "PyList_New() failed" );
+		goto error;
+	}
+
+	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
+		childexists = 1;
+
+	if(id)
+		fmt = "(fi)";
+	else
+		fmt = "f";
+
+	for (i = 0; i < psys->totpart + psys->totchild; i++, data++){
+		if (psys->part->type != PART_HAIR){
 
 			if (childexists && (i < psys->totpart))
 				continue;
@@ -1128,20 +1286,37 @@ static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args ){
 				ChildParticle *cpa= &psys->child[i-psys->totpart];
 				life = psys_get_child_time(psys,cpa,cfra);
 			}
-			if (id){
-				tuple = PyTuple_New(2);
-				PyTuple_SetItem(tuple,0,PyFloat_FromDouble((double)life));
-				PyTuple_SetItem(tuple,1,PyInt_FromLong(i));
-				PyList_Append(partlist,tuple);
-				Py_DECREF(tuple);
-			} else {
-				lif = PyFloat_FromDouble((double)life);
-				PyList_Append(partlist,lif);
-				Py_DECREF(lif);
+
+			tuple = Py_BuildValue(fmt,(double)life,i);
+
+			if (!tuple){
+				PyErr_SetString( PyExc_RuntimeError,
+						"Couldn't build tuple" );
+				goto error;
 			}
+
+			if (PyList_Append(partlist,tuple) < 0){
+				PyErr_SetString( PyExc_RuntimeError,
+						"Couldn't append item to PyList" );
+				goto error;
+			}
+			Py_DECREF(tuple);
+			tuple = NULL;
 		}
 	}
+
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
 	return partlist;
+
+error:
+	Py_XDECREF(partlist);
+	Py_XDECREF(tuple);
+	psys_render_restore(ob,psys);
+	G.rendering = 0;
+	Particle_Recalc(self,1);
+	return NULL;
 }
 
 
@@ -1376,11 +1551,8 @@ static int Part_set2d( BPy_PartSys * self, PyObject * args )
 {
 	int number;
 
-	if( !PyInt_Check( args ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument" );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
 
 	number = PyInt_AS_LONG( args );
 
@@ -1526,7 +1698,7 @@ static int Part_setRandEmission( BPy_PartSys * self, PyObject * args )
 
 static PyObject *Part_getRandEmission( BPy_PartSys * self )
 {
-	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_BOIDS_2D )) > 0 );
+	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_TRAND )) > 0 );
 }
 
 static int Part_setParticleDist( BPy_PartSys * self, PyObject * args )
@@ -1546,7 +1718,7 @@ static int Part_setParticleDist( BPy_PartSys * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 
-	self->psys->part->from = number;
+	self->psys->part->from = (short)number;
 
 	Particle_RecalcPsys_distr(self,1);
 
@@ -1603,7 +1775,7 @@ static int Part_setDist( BPy_PartSys * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 
-	self->psys->part->distr = number;
+	self->psys->part->distr = (short)number;
 
 	Particle_RecalcPsys_distr(self,1);
 
@@ -1731,7 +1903,7 @@ static int Part_setTargetPsys( BPy_PartSys * self, PyObject * args ){
 
 	res = EXPP_setIValueRange( args, &self->psys->target_psys, 0, tottpsys, 'h' );
 
-	if((psys=psys_get_current(ob))){
+	if( ( psys = psys_get_current(ob) ) ){
 		if(psys->keyed_ob==ob || psys->target_ob==ob){
 			if(psys->keyed_ob==ob)
 				psys->keyed_ob=NULL;
