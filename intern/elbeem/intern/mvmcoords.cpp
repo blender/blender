@@ -32,7 +32,9 @@ void MeanValueMeshCoords::calculateMVMCs(vector<ntlVec3Gfx> &reference_vertices,
 	mNumVerts = (int)reference_vertices.size();
 
 	for (vector<ntlVec3Gfx>::iterator iter = points.begin(); iter != points.end(); ++iter, ++i) {
+		/*
 		if(i%(points.size()/10)==1) debMsgStd("MeanValueMeshCoords::calculateMVMCs",DM_MSG,"Computing weights, points: "<<i<<"/"<<points.size(),5 );
+		*/
 		tds.lastpos = *iter;
 		tds.weights.resize(0);	// clear
 		computeWeights(reference_vertices, tris, tds, numweights);
