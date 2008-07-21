@@ -16,62 +16,118 @@ try:
 except ImportError:
 	OK = False
 
-def do_long_menu(title, items):
+def make_menu(items, eventoffs):
 	n = len(items)
 	if n < 20:
-		return Draw.PupMenu(title+'%t|'+'|'.join(items))
+		return [(items[i], i+1+eventoffs) for i in range(len(items))]
 	
 	letters = []
-	check = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_' # Cannot start 0-9 so just letters
+	check = 'abcdefghijklmnopqrstuvwxyz_' # Names cannot start 0-9
 	for c in check:
 		for item in items:
-			if item[0].upper() == c:
+			if item[0].lower() == c:
 				letters.append(c)
 				break
 	
-	i = Draw.PupMenu(title+'%t|'+'|'.join(letters))
-	if i < 1:
-		return i
-	
-	c = letters[i-1]
-	newitems = []
-	
+	dict = {}
 	i = 0
 	for item in items:
 		i += 1
-		if item[0].upper() == c:
-			newitems.append(item+'%x'+str(i))
+		c = item[0].lower()
+		if not dict.has_key(c): dict[c] = []
+		dict[c].append((item, i+eventoffs))
 	
-	return Draw.PupMenu(title+'%t|'+'|'.join(newitems))
+	subs = []
+	for c in letters:
+		subs.append((c, dict[c]))
+	
+	return subs
+
+def find_word(txt, word):
+	i = 0
+	for line in txt.asLines():
+		c = line.find(word)
+		if c != -1:
+			txt.setCursorPos(i, c)
+			break
+		i += 1
 
 def main():
 	txt = bpy.data.texts.active
 	if not txt:
 		return
 	
-	items = []
-	i = Draw.PupMenu('Outliner%t|Classes|Defs|Variables')
-	if i < 1: return
+	# Identify word under cursor
+	if get_context(txt) == CTX_NORMAL:
+		line, c = current_line(txt)
+		start = c-1
+		end = c
+		while start >= 0:
+			if not line[start].lower() in 'abcdefghijklmnopqrstuvwxyz0123456789_':
+				break
+			start -= 1
+		while end < len(line):
+			if not line[end].lower() in 'abcdefghijklmnopqrstuvwxyz0123456789_':
+				break
+			end += 1
+		word = line[start+1:end]
+		if word in KEYWORDS:
+			word = None
+	else:
+		word = None
 	
 	script = get_cached_descriptor(txt)
-	if i == 1:
-		type = script.classes
-	elif i == 2:
-		type = script.defs
-	elif i == 3:
-		type = script.vars
-	else:
-		return
-	items.extend(type.keys())
-	items.sort(cmp = suggest_cmp)
-	i = do_long_menu('Outliner', items)
-	if i < 1:
+	items = []
+	desc = None
+	
+	tmp = script.classes.keys()
+	tmp.sort(cmp = suggest_cmp)
+	class_menu = make_menu(tmp, len(items))
+	class_menu_length = len(tmp)
+	items.extend(tmp)
+	
+	tmp = script.defs.keys()
+	tmp.sort(cmp = suggest_cmp)
+	defs_menu = make_menu(tmp, len(items))
+	defs_menu_length = len(tmp)
+	items.extend(tmp)
+	
+	tmp = script.vars.keys()
+	tmp.sort(cmp = suggest_cmp)
+	vars_menu = make_menu(tmp, len(items))
+	vars_menu_length = len(tmp)
+	items.extend(tmp)
+	
+	menu = [('Outliner%t', 0),
+			('Classes', class_menu),
+			('Functions', defs_menu),
+			('Variables', vars_menu)]
+	if word:
+		menu.extend([None, ('Locate', [(word, -10)])])
+	
+	i = Draw.PupTreeMenu(menu)
+	if i == -1:
 		return
 	
-	try:
-		desc = type[items[i-1]]
-	except:
-		desc = None
+	# Chosen to search for word under cursor
+	if i == -10:
+		if script.classes.has_key(word):
+			desc = script.classes[word]
+		elif script.defs.has_key(word):
+			desc = script.defs[word]
+		elif script.vars.has_key(word):
+			desc = script.vars[word]
+		else:
+			find_word(txt, word)
+			return
+	else:
+		i -= 1
+		if i < class_menu_length:
+			desc = script.classes[items[i]]
+		elif i < class_menu_length + defs_menu_length:
+			desc = script.defs[items[i]]
+		elif i < class_menu_length + defs_menu_length + vars_menu_length:
+			desc = script.vars[items[i]]
 	
 	if desc:
 		txt.setCursorPos(desc.lineno-1, 0)
