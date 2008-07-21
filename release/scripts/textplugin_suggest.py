@@ -25,9 +25,9 @@ def check_membersuggest(line, c):
 	return True
 
 def check_imports(line, c):
-	if line.rfind('import ', 0, c) == c-7:
+	if c >= 7 and line.rfind('import ', 0, c) == c-7:
 		return True
-	if line.rfind('from ', 0, c) == c-5:
+	if c >= 5 and line.rfind('from ', 0, c) == c-5:
 		return True
 	return False
 
@@ -39,7 +39,7 @@ def main():
 	(line, c) = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(txt) != NORMAL:
+	if get_context(txt) != CTX_NORMAL:
 		return
 	
 	# Check the character preceding the cursor and execute the corresponding script

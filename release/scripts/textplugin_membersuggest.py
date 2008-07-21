@@ -23,7 +23,7 @@ def main():
 	(line, c) = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(txt) != NORMAL:
+	if get_context(txt) != CTX_NORMAL:
 		return
 	
 	pre = get_targets(line, c)
@@ -35,11 +35,17 @@ def main():
 	builtins = get_builtins()
 	
 	# Identify the root (root.sub.sub.)
+	obj = None
 	if imports.has_key(pre[0]):
 		obj = imports[pre[0]]
 	elif builtins.has_key(pre[0]):
 		obj = builtins[pre[0]]
 	else:
+		desc = get_cached_descriptor(txt)
+		if desc.vars.has_key(pre[0]):
+			obj = desc.vars[pre[0]].type
+	
+	if not obj:
 		return
 	
 	# Step through sub-attributes

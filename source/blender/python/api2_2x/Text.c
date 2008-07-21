@@ -550,6 +550,7 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 {
 	int row, col;
 	int oldstate;
+	SpaceText *st;
 
 	if (!self->text)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
@@ -564,6 +565,9 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 	oldstate = txt_get_undostate();
 	txt_move_to(self->text, row, col, 0);
 	txt_set_undostate(oldstate);
+
+	if (curarea->spacetype == SPACE_TEXT && (st=curarea->spacedata.first))
+		pop_space_text(st);
 
 	Py_RETURN_NONE;
 }

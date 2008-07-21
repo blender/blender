@@ -23,7 +23,7 @@ def main():
 	(line, c) = current_line(txt)
 	
 	# Check we are in a normal context
-	if get_context(txt) != NORMAL:
+	if get_context(txt) != CTX_NORMAL:
 		return
 	
 	# Look backwards for first '(' without ')'

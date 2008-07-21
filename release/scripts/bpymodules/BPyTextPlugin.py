@@ -1,16 +1,8 @@
 import bpy, sys
 import __builtin__, tokenize
 from Blender.sys import time
-from tokenize import generate_tokens, TokenError
-
-# TODO: Remove the dependency for a full Python installation.
-
-class ClassDesc():
-	
-	def __init__(self, name, defs, vars):
-		self.name = name
-		self.defs = defs
-		self.vars = vars
+from tokenize import generate_tokens, TokenError, \
+		COMMENT, DEDENT, INDENT, NAME, NEWLINE, NL
 
 class ScriptDesc():
 	
@@ -26,12 +18,34 @@ class ScriptDesc():
 	def set_time(self):
 		self.time = time()
 
+class ClassDesc():
+	
+	def __init__(self, name, defs, vars, lineno):
+		self.name = name
+		self.defs = defs
+		self.vars = vars
+		self.lineno = lineno
+
+class FunctionDesc():
+	
+	def __init__(self, name, params, lineno):
+		self.name = name
+		self.params = params
+		self.lineno = lineno
+
+class VarDesc():
+	
+	def __init__(self, name, type, lineno):
+		self.name = name
+		self.type = type # None for unknown (supports: dict/list/str)
+		self.lineno = lineno
+
 # Context types
-UNSET = -1
-NORMAL = 0
-SINGLE_QUOTE = 1
-DOUBLE_QUOTE = 2
-COMMENT = 3
+CTX_UNSET = -1
+CTX_NORMAL = 0
+CTX_SINGLE_QUOTE = 1
+CTX_DOUBLE_QUOTE = 2
+CTX_COMMENT = 3
 
 # Special period constants
 AUTO = -1
@@ -91,12 +105,11 @@ def parse_text(txt):
 	"""Parses an entire script's text and returns a ScriptDesc instance
 	containing information about the script.
 	
-	If the text is not a valid Python script a TokenError will be thrown.
-	Currently this means leaving brackets open will result in the script failing
-	to complete.
+	If the text is not a valid Python script (for example if brackets are left
+	open), parsing may fail to complete. However, if this occurs, no exception
+	is thrown. Instead the returned ScriptDesc instance will have its incomplete
+	flag set and information processed up to this point will still be accessible.
 	"""
-	
-	global NORMAL, SINGLE_QUOTE, DOUBLE_QUOTE, COMMENT
 	
 	txt.reset()
 	tokens = generate_tokens(txt.readline) # Throws TokenError
@@ -114,7 +127,9 @@ def parse_text(txt):
 	def_step = 0
 	
 	vars = dict()
-	var_step = 0
+	var1_step = 0
+	var2_step = 0
+	var3_step = 0
 	var_accum = dict()
 	var_forflag = False
 	
@@ -126,13 +141,17 @@ def parse_text(txt):
 	try:
 	 for type, string, start, end, line in tokens:
 		
+		# Skip all comments and line joining characters
+		if type == COMMENT or type == NL:
+			continue
+		
 		#################
 		## Indentation ##
 		#################
 		
-		if type == tokenize.INDENT:
+		if type == INDENT:
 			indent += 1
-		elif type == tokenize.DEDENT:
+		elif type == DEDENT:
 			indent -= 1
 		
 		#########################
@@ -157,7 +176,7 @@ def parse_text(txt):
 				imp_from = '.'.join(imp_tmp)
 				imp_tmp = []
 				imp_step = 2
-			elif type == tokenize.NAME:
+			elif type == NAME:
 				imp_tmp.append(string)
 			elif string != '.':
 				imp_step = 0 # Invalid syntax
@@ -167,7 +186,7 @@ def parse_text(txt):
 			if string == 'as':
 				imp_name = '.'.join(imp_tmp)
 				imp_step = 3
-			elif type == tokenize.NAME or string == '*':
+			elif type == NAME or string == '*':
 				imp_tmp.append(string)
 			elif string != '.':
 				imp_name = '.'.join(imp_tmp)
@@ -176,7 +195,7 @@ def parse_text(txt):
 		
 		# Found 'as', change imp_symb to this value and go back to step 2
 		elif imp_step == 3:
-			if type == tokenize.NAME:
+			if type == NAME:
 				imp_symb = string
 			else:
 				imp_store = True
@@ -223,13 +242,14 @@ def parse_text(txt):
 		if cls_step == 0:
 			if string == 'class':
 				cls_name = None
+				cls_lineno = start[0]
 				cls_indent = indent
 				cls_step = 1
 		
 		# Found 'class', look for cls_name followed by '('
 		elif cls_step == 1:
 			if not cls_name:
-				if type == tokenize.NAME:
+				if type == NAME:
 					cls_name = string
 					cls_sline = False
 					cls_defs = dict()
@@ -239,21 +259,21 @@ def parse_text(txt):
 		
 		# Found 'class' name ... ':', now check if it's a single line statement
 		elif cls_step == 2:
-			if type == tokenize.NEWLINE:
+			if type == NEWLINE:
 				cls_sline = False
 				cls_step = 3
-			elif type != tokenize.COMMENT and type != tokenize.NL:
+			else:
 				cls_sline = True
 				cls_step = 3
 		
 		elif cls_step == 3:
 			if cls_sline:
-				if type == tokenize.NEWLINE:
-					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars)
+				if type == NEWLINE:
+					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno)
 					cls_step = 0
 			else:
-				if type == tokenize.DEDENT and indent <= cls_indent:
-					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars)
+				if type == DEDENT and indent <= cls_indent:
+					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno)
 					cls_step = 0
 		
 		#################
@@ -264,11 +284,12 @@ def parse_text(txt):
 		if def_step == 0:
 			if string == 'def':
 				def_name = None
+				def_lineno = start[0]
 				def_step = 1
 		
 		# Found 'def', look for def_name followed by '('
 		elif def_step == 1:
-			if type == tokenize.NAME:
+			if type == NAME:
 				def_name = string
 				def_params = []
 			elif def_name and string == '(':
@@ -277,13 +298,13 @@ def parse_text(txt):
 		# Found 'def' name '(', now identify the parameters upto ')'
 		# TODO: Handle ellipsis '...'
 		elif def_step == 2:
-			if type == tokenize.NAME:
+			if type == NAME:
 				def_params.append(string)
 			elif string == ')':
 				if cls_step > 0: # Parsing a class
-					cls_defs[def_name] = def_params
+					cls_defs[def_name] = FunctionDesc(def_name, def_params, def_lineno)
 				else:
-					defs[def_name] = def_params
+					defs[def_name] = FunctionDesc(def_name, def_params, def_lineno)
 				def_step = 0
 		
 		##########################
@@ -292,49 +313,87 @@ def parse_text(txt):
 		
 		if cls_step > 0: # Parsing a class
 			# Look for 'self.???'
-			if var_step == 0:
+			if var1_step == 0:
 				if string == 'self':
-					var_step = 1
-			elif var_step == 1:
+					var1_step = 1
+			elif var1_step == 1:
 				if string == '.':
 					var_name = None
-					var_step = 2
+					var1_step = 2
 				else:
-					var_step = 0
-			elif var_step == 2:
-				if type == tokenize.NAME:
+					var1_step = 0
+			elif var1_step == 2:
+				if type == NAME:
 					var_name = string
-					var_step = 3
-			elif var_step == 3:
+					if cls_vars.has_key(var_name):
+						var_step = 0
+					else:
+						var1_step = 3
+			elif var1_step == 3:
 				if string == '=':
-					cls_vars[var_name] = True
-					var_step = 0
+					var1_step = 4
+			elif var1_step == 4:
+				var_type = None
+				if string == '[':
+					close = line.find(']', end[1])
+					var_type = list
+				elif string == '"' or string == '"':
+					close = line.find(string, end[1])
+					var_type = str
+				elif string == '(':
+					close = line.find(')', end[1])
+					var_type = tuple
+				elif string == '{':
+					close = line.find('}', end[1])
+					var_type = dict
+				elif string == 'dict':
+					close = line.find(')', end[1])
+					var_type = dict
+				if var_type and close+1 < len(line):
+					if line[close]+1 != ' ' and line[close+1] != '\t':
+						var_type = None
+				cls_vars[var_name] = VarDesc(var_name, var_type, start[0])
+				var1_step = 0
 		
 		elif def_step > 0: # Parsing a def
 			# Look for 'global ???[,???]'
-			if var_step == 0:
+			if var2_step == 0:
 				if string == 'global':
-					var_step = 1
-			elif var_step == 1:
-				if type == tokenize.NAME:
+					var2_step = 1
+			elif var2_step == 1:
+				if type == NAME:
 					vars[string] = True
-				elif string != ',' and type != tokenize.NL:
-					var_step == 0
+				elif string != ',' and type != NL:
+					var2_step == 0
 		
 		else: # In global scope
-			# Look for names
-			if string == 'for':
-				var_accum = dict()
-				var_forflag = True
-			elif string == '=' or (var_forflag and string == 'in'):
-				vars.update(var_accum)
-				var_accum = dict()
-				var_forflag = False
-			elif type == tokenize.NAME:
-				var_accum[string] = True
-			elif not string in [',', '(', ')', '[', ']']:
-				var_accum = dict()
-				var_forflag = False
+			if var3_step == 0:
+				# Look for names
+				if string == 'for':
+					var_accum = dict()
+					var_forflag = True
+				elif string == '=' or (var_forflag and string == 'in'):
+					var_forflag = False
+					var3_step = 1
+				elif type == NAME:
+					if prev_string != '.' and not vars.has_key(string):
+						var_accum[string] = VarDesc(string, None, start[0])
+				elif not string in [',', '(', ')', '[', ']']:
+					var_accum = dict()
+					var_forflag = False
+			elif var3_step == 1:
+				if len(var_accum) != 1:
+					var_type = None
+					vars.update(var_accum)
+				else:
+					var_name = var_accum.keys()[0]
+					var_type = None
+					if string == '[': var_type = list
+					elif string == '"' or string == '"': var_type = string
+					elif string == '(': var_type = tuple
+					elif string == 'dict': var_type = dict
+					vars[var_name] = VarDesc(var_name, var_type, start[0])
+				var3_step = 0
 		
 		#######################
 		## General utilities ##
@@ -408,18 +467,19 @@ def get_context(txt):
 	"""Establishes the context of the cursor in the given Blender Text object
 	
 	Returns one of:
-	  NORMAL - Cursor is in a normal context
-	  SINGLE_QUOTE - Cursor is inside a single quoted string
-	  DOUBLE_QUOTE - Cursor is inside a double quoted string
-	  COMMENT - Cursor is inside a comment
+	  CTX_NORMAL - Cursor is in a normal context
+	  CTX_SINGLE_QUOTE - Cursor is inside a single quoted string
+	  CTX_DOUBLE_QUOTE - Cursor is inside a double quoted string
+	  CTX_COMMENT - Cursor is inside a comment
 	
 	"""
 	
+	global CTX_NORMAL, CTX_SINGLE_QUOTE, CTX_DOUBLE_QUOTE, CTX_COMMENT
 	l, cursor = txt.getCursorPos()
 	lines = txt.asLines()[:l+1]
 	
 	# Detect context (in string or comment)
-	in_str = 0			# 1-single quotes, 2-double quotes
+	in_str = CTX_NORMAL
 	for line in lines:
 		if l == 0:
 			end = cursor
@@ -428,25 +488,25 @@ def get_context(txt):
 			l -= 1
 		
 		# Comments end at new lines
-		if in_str == 3:
-			in_str = 0
+		if in_str == CTX_COMMENT:
+			in_str = CTX_NORMAL
 		
 		for i in range(end):
 			if in_str == 0:
-				if line[i] == "'": in_str = 1
-				elif line[i] == '"': in_str = 2
-				elif line[i] == '#': in_str = 3
+				if line[i] == "'": in_str = CTX_SINGLE_QUOTE
+				elif line[i] == '"': in_str = CTX_DOUBLE_QUOTE
+				elif line[i] == '#': in_str = CTX_COMMENT
 			else:
-				if in_str == 1:
+				if in_str == CTX_SINGLE_QUOTE:
 					if line[i] == "'":
-						in_str = 0
+						in_str = CTX_NORMAL
 						# In again if ' escaped, out again if \ escaped, and so on
 						for a in range(i-1, -1, -1):
 							if line[a] == '\\': in_str = 1-in_str
 							else: break
-				elif in_str == 2:
+				elif in_str == CTX_DOUBLE_QUOTE:
 					if line[i] == '"':
-						in_str = 0
+						in_str = CTX_NORMAL
 						# In again if " escaped, out again if \ escaped, and so on
 						for a in range(i-1, -1, -1):
 							if line[i-a] == '\\': in_str = 2-in_str
@@ -460,7 +520,7 @@ def current_line(txt):
 	cursor).
 	"""
 	
-	(lineindex, cursor) = txt.getCursorPos()
+	lineindex, cursor = txt.getCursorPos()
 	lines = txt.asLines()
 	line = lines[lineindex]
 	
@@ -548,12 +608,12 @@ def print_cache_for(txt, period=sys.maxint):
 	print 'Name:', desc.name, '('+str(hash(txt))+')'
 	print '------------------------------------------------'
 	print 'Defs:'
-	for name, params in desc.defs.items():
-		print ' ', name, params
+	for name, ddesc in desc.defs.items():
+		print ' ', name, ddesc.params, ddesc.lineno
 	print '------------------------------------------------'
 	print 'Vars:'
-	for name in desc.vars.keys():
-		print ' ', name
+	for name, vdesc in desc.vars.items():
+		print ' ', name, vdesc.type, vdesc.lineno
 	print '------------------------------------------------'
 	print 'Imports:'
 	for name, item in desc.imports.items():
@@ -565,11 +625,11 @@ def print_cache_for(txt, period=sys.maxint):
 		print '  Name:', clsnme
 		print '  ---------------------------------'
 		print '  Defs:'
-		for name, params in clsdsc.defs.items():
-			print '   ', name, params
+		for name, ddesc in clsdsc.defs.items():
+			print '   ', name, ddesc.params, ddesc.lineno
 		print '  ---------------------------------'
 		print '  Vars:'
-		for name in clsdsc.vars.keys():
-			print '   ', name
+		for name, vdesc in clsdsc.vars.items():
+			print '   ', name, vdesc.type, vdesc.lineno
 		print '  *********************************'
 	print '================================================'
