@@ -2,7 +2,7 @@
 #define FREESTYLE_PYTHON_STROKEVERTEX_H
 
 #include "../CurvePoint.h"
-#include "../../stroke/Stroke.h"
+#include "../../../stroke/Stroke.h"
 
 #ifdef __cplusplus
 extern "C" {

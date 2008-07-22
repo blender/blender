@@ -68,7 +68,7 @@ python_sources = [
 					prefix + '/IntegrationType.cpp',
 					prefix + '/Interface0D.cpp',
 					prefix + '/Interface0D/CurvePoint.cpp',
-					# prefix + '/Interface0D/CurvePoint/StrokeVertex.cpp',
+					prefix + '/Interface0D/CurvePoint/StrokeVertex.cpp',
 					prefix + '/Interface0D/SVertex.cpp',
 					prefix + '/Interface0D/ViewVertex.cpp',
 					prefix + '/Interface1D.cpp',

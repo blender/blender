@@ -2,6 +2,7 @@
 
 #include "Convert.h"
 #include "Interface0D/CurvePoint.h"
+#include "Interface0D/CurvePoint/StrokeVertex.h"
 #include "Interface0D/SVertex.h"
 #include "Interface0D/ViewVertex.h"
 #include "Interface1D/FEdge.h"
@@ -159,6 +160,10 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 	Py_INCREF( &ViewVertex_Type );
 	PyModule_AddObject(module, "ViewVertex", (PyObject *)&ViewVertex_Type);
 	
+	if( PyType_Ready( &StrokeVertex_Type ) < 0 )
+		return;
+	Py_INCREF( &StrokeVertex_Type );
+	PyModule_AddObject(module, "StrokeVertex", (PyObject *)&StrokeVertex_Type);
 }
 
 //------------------------INSTANCE METHODS ----------------------------------

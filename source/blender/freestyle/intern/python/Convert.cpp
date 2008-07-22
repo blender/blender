@@ -75,6 +75,13 @@ PyObject * BPy_Nature_from_Nature( unsigned short n ) {
 	return py_n;
 }
 
+PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa ) {
+	PyObject *py_sa = StrokeAttribute_Type.tp_new( &StrokeAttribute_Type, 0, 0 );
+	((BPy_StrokeAttribute *) py_sa)->sa = new StrokeAttribute( sa );
+
+	return py_sa;	
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
