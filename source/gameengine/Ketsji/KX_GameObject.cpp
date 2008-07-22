@@ -1306,18 +1306,18 @@ PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 }
 
 
-static void walk_children(SG_Node* node, PyObject *list, bool recursive)
+static void walk_children(SG_Node* node, CListValue* list, bool recursive)
 {
 	NodeList& children = node->GetSGChildren();
 
 	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
 	{
 		SG_Node* childnode = (*childit);
-		KX_GameObject* childobj = (KX_GameObject*)childnode->GetSGClientObject();
+		CValue* childobj = (CValue*)childnode->GetSGClientObject();
 		if (childobj != NULL) // This is a GameObject
 		{
 			// add to the list
-			PyList_Append(list, (PyObject *)childobj);
+			list->Add(childobj->AddRef());
 		}
 		
 		// if the childobj is NULL then this may be an inverse parent link
@@ -1330,14 +1330,14 @@ static void walk_children(SG_Node* node, PyObject *list, bool recursive)
 
 PyObject* KX_GameObject::PyGetChildren(PyObject* self)
 {
-	PyObject * list = PyList_New(0);
+	CListValue* list = new CListValue();
 	walk_children(m_pSGNode, list, 0);
 	return list;
 }
 
 PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
 {
-	PyObject * list = PyList_New(0);
+	CListValue* list = new CListValue();
 	walk_children(m_pSGNode, list, 1);
 	return list;
 }
