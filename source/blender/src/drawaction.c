@@ -58,6 +58,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -74,6 +75,7 @@
 #include "BIF_editnla.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_drawgpencil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_resources.h"
@@ -83,6 +85,7 @@
 
 #include "BDR_drawaction.h"
 #include "BDR_editcurve.h"
+#include "BDR_gpencil.h"
 
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
@@ -622,6 +625,28 @@ static void draw_channel_names(void)
 					sprintf(name, "Constraint");
 				}
 					break;
+				case ACTTYPE_GPLAYER: /* gpencil layer */
+				{
+					bGPDlayer *gpl = (bGPDlayer *)ale->data;
+					
+					indent = 0;
+					special = -1;
+					expand = -1;
+						
+					if (EDITABLE_GPL(gpl))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					if (gpl->flag & GP_LAYER_HIDE)
+						mute = ICON_MUTE_IPO_ON;
+					else
+						mute = ICON_MUTE_IPO_OFF;
+					
+					sel = SEL_GPL(gpl);
+					BLI_snprintf(name, 32, gpl->info);
+				}
+					break;
 			}	
 
 			/* now, start drawing based on this information */
@@ -827,6 +852,12 @@ static void draw_channel_strips(void)
 					sel = SEL_ICU(icu);
 				}
 					break;
+				case ACTTYPE_GPLAYER:
+				{
+					bGPDlayer *gpl = (bGPDlayer *)ale->data;
+					sel = SEL_GPL(gpl);
+				}
+					break;
 			}
 			
 			if (datatype == ACTCONT_ACTION) {
@@ -865,6 +896,19 @@ static void draw_channel_strips(void)
 				glColor4ub(col2[0], col2[1], col2[2], 0x44);
 				glRectf(frame1_x, channel_y-CHANNELHEIGHT/2, G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 			}
+			else if (datatype == ACTCONT_GPENCIL) {
+				gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
+				
+				/* frames less than one get less saturated background */
+				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(0, channel_y-CHANNELHEIGHT/2, frame1_x, channel_y+CHANNELHEIGHT/2);
+				
+				/* frames one and higher get a saturated background */
+				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x44);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x44);
+				glRectf(frame1_x, channel_y-CHANNELHEIGHT/2, G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
+			}
 		}
 		
 		/*	Increment the step */
@@ -898,6 +942,9 @@ static void draw_channel_strips(void)
 					break;
 				case ALE_ICU:
 					draw_icu_channel(di, ale->key_data, y);
+					break;
+				case ALE_GPFRAME:
+					draw_gpl_channel(di, ale->data, y);
 					break;
 			}
 		}
@@ -1075,6 +1122,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 {
 	bAction *act = NULL;
 	Key *key = NULL;
+	bGPdata *gpd = NULL;
 	void *data;
 	short datatype;
 	
@@ -1090,18 +1138,38 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	/* only try to refresh action that's displayed if not pinned */
 	if (G.saction->pin==0) {
-		if (OBACT)
-			G.saction->action = OBACT->action;
-		else
-			G.saction->action= NULL;
+		/* depends on mode */
+		switch (G.saction->mode) {
+			case SACTCONT_ACTION:
+			{
+				if (OBACT)
+					G.saction->action = OBACT->action;
+				else
+					G.saction->action= NULL;
+			}
+				break;
+			case SACTCONT_GPENCIL:
+			{
+				/* this searching could be slow (so users should pin after this is found) */
+				G.saction->gpd= gpencil_data_getetime(G.curscreen);
+			}
+				break;
+		}
 	}
 	
 	/* get data */
 	data = get_action_context(&datatype);
-	if (datatype == ACTCONT_ACTION)
-		act = data;
-	else if (datatype == ACTCONT_SHAPEKEY)
-		key = data;
+	switch (datatype) {
+		case ACTCONT_ACTION:
+			act = data;
+			break;
+		case ACTCONT_SHAPEKEY:
+			key = data;
+			break;
+		case ACTCONT_GPENCIL:
+			gpd = data;
+			break;
+	}
 	
 	/* Lets make sure the width of the left hand of the screen
 	 * is set to an appropriate value based on whether sliders
@@ -1450,10 +1518,15 @@ static ActKeysInc *init_aki_data()
 	static ActKeysInc aki;
 	
 	/* init data of static struct here */
-	if ((curarea->spacetype == SPACE_ACTION) && NLA_ACTION_SCALED)
+	if ((curarea->spacetype == SPACE_ACTION) && NLA_ACTION_SCALED &&
+		(G.saction->mode == SACTCONT_ACTION))
+	{
 		aki.ob= OBACT;
+	}
 	else if (curarea->spacetype == SPACE_NLA)
+	{
 		aki.ob= NULL; // FIXME
+	}
 	else
 		aki.ob= NULL;
 		
@@ -1524,6 +1597,16 @@ void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 	ActKeysInc *aki = init_aki_data();
 
 	action_to_keylist(act, &keys, NULL, aki);
+	draw_keylist(di, &keys, NULL, ypos);
+	BLI_freelistN(&keys);
+}
+
+void draw_gpl_channel(gla2DDrawInfo *di, bGPDlayer *gpl, float ypos)
+{
+	ListBase keys = {0, 0};
+	ActKeysInc *aki = init_aki_data();
+	
+	gpl_to_keylist(gpl, &keys, NULL, aki);
 	draw_keylist(di, &keys, NULL, ypos);
 	BLI_freelistN(&keys);
 }
@@ -1670,6 +1753,29 @@ void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks, ActKeysIn
 				if (conchan->ipo)
 					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
 			}
+		}
+	}
+}
+
+void gpl_to_keylist(bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+{
+	bGPDframe *gpf;
+	ActKeyColumn *ak;
+	
+	if (gpl && keys) {
+		/* loop over frames, converting directly to 'keyframes' (should be in order too) */
+		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+			ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
+			BLI_addtail(keys, ak);
+			
+			ak->cfra= gpf->framenum;
+			ak->modified = 1;
+			ak->handle_type= 0; 
+			
+			if (gpf->flag & GP_FRAME_SELECT)
+				ak->sel = SELECT;
+			else
+				ak->sel = 0;
 		}
 	}
 }

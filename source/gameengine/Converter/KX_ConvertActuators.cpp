@@ -503,7 +503,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_PROPERTY:
 			{
 				bPropertyActuator* propact = (bPropertyActuator*) bact->data;
-				CValue* destinationObj = NULL;
+				SCA_IObject* destinationObj = NULL;
 				
 				/*
 				here the destinationobject is searched. problem with multiple scenes: other scenes

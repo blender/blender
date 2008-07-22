@@ -59,6 +59,7 @@
 
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER	1.e-8
+#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 
 
 #if defined(WIN32) || defined(__APPLE__)

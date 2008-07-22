@@ -47,6 +47,7 @@
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h" /* for m_anim_framerate */
 #include "KX_IPhysicsController.h" /* for suspend/resume */
+#include "DNA_object_types.h"
 #define KX_OB_DYNAMIC 1
 
 
@@ -392,6 +393,13 @@ public:
 		m_pBlenderObject = obj;
 	}
 	
+	bool IsDupliGroup()
+	{ 
+		return (m_pBlenderObject &&
+				(m_pBlenderObject->transflag & OB_DUPLIGROUP) &&
+				m_pBlenderObject->dup_group != NULL) ? true : false;
+	}
+
 	/**
 	 * Set the Scene graph node for this game object.
 	 * warning - it is your responsibility to make sure
@@ -738,6 +746,8 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
 	KX_PYMETHOD_O(KX_GameObject,SetParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);	
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildrenRecursive);
 	KX_PYMETHOD(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);

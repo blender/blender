@@ -202,7 +202,7 @@ public:
 
 protected :
 
-		void
+		bool
 	ActivateReplicationCallback(
 		SG_IObject *replica
 	);

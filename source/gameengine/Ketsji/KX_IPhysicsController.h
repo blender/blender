@@ -71,14 +71,15 @@ public:
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
 
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;
-	virtual	void setOrientation(const MT_Quaternion& orn)=0;
+	virtual	void setOrientation(const MT_Matrix3x3& orn)=0;
+	//virtual	void setOrientation(const MT_Quaternion& orn)=0;
 	virtual	void setPosition(const MT_Point3& pos)=0;
 	virtual	void setScaling(const MT_Vector3& scaling)=0;
 	virtual	MT_Scalar	GetMass()=0;
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
 
-	virtual void	SuspendDynamics()=0;
+	virtual void	SuspendDynamics(bool ghost=false)=0;
 	virtual void	RestoreDynamics()=0;
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode)=0;

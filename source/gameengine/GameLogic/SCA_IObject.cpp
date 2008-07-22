@@ -306,7 +306,7 @@ const MT_Point3& SCA_IObject::ConvertPythonPylist(PyObject* pylist)
 }
 #endif
 
-void SCA_IObject::Suspend(void)
+void SCA_IObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {

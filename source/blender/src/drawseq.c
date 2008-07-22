@@ -43,6 +43,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "DNA_gpencil_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -66,6 +67,9 @@
 #include "BIF_resources.h"
 #include "BIF_space.h"
 #include "BIF_interface.h"
+
+#include "BIF_drawgpencil.h"
+#include "BDR_gpencil.h"
 
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
@@ -97,6 +101,70 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
 static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2);
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
 static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq, int outline_tint, float pixelx);
+
+
+static void seq_panel_gpencil(short cntrl)	// SEQ_HANDLER_GREASEPENCIL
+{
+	uiBlock *block;
+	SpaceSeq *sseq;
+	
+	sseq= curarea->spacedata.first;
+
+	block= uiNewBlock(&curarea->uiblocks, "seq_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_GREASEPENCIL);  // for close and esc
+	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceSeq", 100, 30, 318, 204)==0) return;
+	
+	/* only draw settings if right mode */
+	if (sseq->mainb == 0)
+		return;
+	
+	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
+	if (sseq->flag & SEQ_DRAW_GPENCIL) {
+		if (sseq->gpd == NULL)
+			gpencil_data_setactive(curarea, gpencil_data_addnew());
+	}
+	
+	if (sseq->flag & SEQ_DRAW_GPENCIL) {
+		bGPdata *gpd= sseq->gpd;
+		short newheight;
+		
+		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+		/* so first we make it default height */
+		uiNewPanelHeight(block, 204);
+		
+		/* draw button for showing gpencil settings and drawings */
+		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View");
+		
+		/* extend the panel if the contents won't fit */
+		newheight= draw_gpencil_panel(block, gpd, curarea); 
+		uiNewPanelHeight(block, newheight);
+	}
+	else {
+		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+}
+
+static void seq_blockhandlers(ScrArea *sa)
+{
+	SpaceSeq *sseq= sa->spacedata.first;
+	short a;
+
+	/* warning; blocks need to be freed each time, handlers dont remove (for ipo moved to drawipospace) */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
+
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(sseq->blockhandler[a]) {
+			case SEQ_HANDLER_GREASEPENCIL:
+				seq_panel_gpencil(sseq->blockhandler[a+1]);
+				break;
+		}
+	}
+	uiDrawBlocksPanels(sa, 0);
+
+}
+
 
 static void draw_cfra_seq(void)
 {
@@ -907,6 +975,17 @@ static void draw_image_seq(ScrArea *sa)
 	if (free_ibuf) {
 		IMB_freeImBuf(ibuf);
 	} 
+	
+	/* draw grease-pencil (screen aligned) */
+	if (sseq->flag & SEQ_DRAW_GPENCIL)
+		draw_gpencil_2dview(sa, 0);
+	
+	/* ortho at pixel level sa */
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+	
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, sseq->blockscale, sseq->blockscale, sseq->blockscale);
+	seq_blockhandlers(sa);
 
 	sa->win_swap= WIN_BACK_OK;
 }
@@ -1021,24 +1100,6 @@ void seq_viewmove(SpaceSeq *sseq)
 		else BIF_wait_for_statechange();
 	}
 	window_set_cursor(win, oldcursor);
-}
-
-
-
-static void seq_blockhandlers(ScrArea *sa)
-{
-	SpaceSeq *sseq= sa->spacedata.first;
-	short a;
-
-	/* warning; blocks need to be freed each time, handlers dont remove (for ipo moved to drawipospace) */
-	uiFreeBlocksWin(&sa->uiblocks, sa->win);
-
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		/* clear action value for event */
-		sseq->blockhandler[a+1]= 0;
-	}
-	uiDrawBlocksPanels(sa, 0);
-
 }
 
 void drawprefetchseqspace(ScrArea *sa, void *spacedata)

@@ -178,16 +178,18 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				direction[2] = rotation[2][1];
 				axis = 1;
 				break;
-			case KX_ACT_CONSTRAINT_ORIZ:
+			default:
 				direction[0] = rotation[0][2];
 				direction[1] = rotation[1][2];
 				direction[2] = rotation[2][2];
 				axis = 2;
 				break;
 			}
-			// apply damping on the direction
 			if (m_posDampTime) {
+				// apply damping on the direction
 				direction = filter*direction + (1.0-filter)*m_refDirection;
+			} else {
+				direction = m_refDirection;
 			}
 			obj->AlignAxisToVect(direction, axis);
 			result = true;

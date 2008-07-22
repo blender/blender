@@ -104,7 +104,7 @@ SetSGClientObject(
 }
 
 
-	void
+	bool
 SG_IObject::
 ActivateReplicationCallback(
 	SG_IObject *replica
@@ -112,8 +112,10 @@ ActivateReplicationCallback(
 	if (m_callbacks.m_replicafunc)
 	{
 		// Call client provided replication func
-		m_callbacks.m_replicafunc(replica,m_SGclientObject,m_SGclientInfo);
+		if (m_callbacks.m_replicafunc(replica,m_SGclientObject,m_SGclientInfo) == NULL)
+			return false;
 	}
+	return true;
 };	
 
 	void

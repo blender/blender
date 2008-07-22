@@ -42,7 +42,7 @@ private:
 	void SetupTextures(bool depth, bool luminance);
 	void FreeTextures();
 
-	void UpdateOffsetMatrix(int width, int height);
+	void UpdateOffsetMatrix(RAS_ICanvas* canvas);
 
 	float			textureoffsets[18];
 	float			view[4];

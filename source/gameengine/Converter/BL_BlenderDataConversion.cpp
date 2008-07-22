@@ -1847,7 +1847,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	int aspect_width;
 	int aspect_height;
 	vector<MT_Vector3> inivel,iniang;
-	
+	set<Group*> grouplist;	// list of groups to be converted
+	set<Object*> allblobj;	// all objects converted
+	set<Object*> groupobj;	// objects from groups (never in active layer)
+
 	if (alwaysUseExpandFraming) {
 		frame_type = RAS_FrameSettings::e_frame_extend;
 		aspect_width = canvas->GetWidth();
@@ -1919,6 +1922,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for (SETLOOPER(blenderscene, base))
 	{
 		Object* blenderobject = base->object;
+		allblobj.insert(blenderobject);
+
 		KX_GameObject* gameobj = gameobject_from_blenderobject(
 										base->object, 
 										kxscene, 
@@ -2046,7 +2051,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				
 				gameobj->NodeUpdateGS(0,true);
 				gameobj->Bucketize();
-				
+		
+				if (gameobj->IsDupliGroup())
+					grouplist.insert(blenderobject->dup_group);
 			}
 			else
 			{
@@ -2073,6 +2080,188 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	}
 
+	if (!grouplist.empty())
+	{
+		// now convert the group referenced by dupli group object
+		// keep track of all groups already converted
+		set<Group*> allgrouplist = grouplist;
+		set<Group*> tempglist;
+		// recurse
+		while (!grouplist.empty())
+		{
+			set<Group*>::iterator git;
+			tempglist.clear();
+			tempglist.swap(grouplist);
+			for (git=tempglist.begin(); git!=tempglist.end(); git++)
+			{
+				Group* group = *git;
+				GroupObject* go;
+				for(go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
+				{
+					Object* blenderobject = go->ob;
+					if (converter->FindGameObject(blenderobject) == NULL)
+					{
+						allblobj.insert(blenderobject);
+						groupobj.insert(blenderobject);
+						KX_GameObject* gameobj = gameobject_from_blenderobject(
+														blenderobject, 
+														kxscene, 
+														rendertools, 
+														converter,
+														blenderscene);
+										
+						// this code is copied from above except that
+						// object from groups are never is active layer
+						bool isInActiveLayer = false;
+						bool addobj=true;
+						
+						if (converter->addInitFromFrame)
+							if (!isInActiveLayer)
+								addobj=false;
+														
+						if (gameobj&&addobj)
+						{
+							MT_Point3 posPrev;			
+							MT_Matrix3x3 angor;			
+							if (converter->addInitFromFrame) 
+								blenderscene->r.cfra=blenderscene->r.sfra;
+							
+							MT_Point3 pos = MT_Point3(
+								blenderobject->loc[0]+blenderobject->dloc[0],
+								blenderobject->loc[1]+blenderobject->dloc[1],
+								blenderobject->loc[2]+blenderobject->dloc[2]
+							);
+							MT_Vector3 eulxyz = MT_Vector3(
+								blenderobject->rot[0],
+								blenderobject->rot[1],
+								blenderobject->rot[2]
+							);
+							MT_Vector3 scale = MT_Vector3(
+								blenderobject->size[0],
+								blenderobject->size[1],
+								blenderobject->size[2]
+							);
+							if (converter->addInitFromFrame){//rcruiz
+								float eulxyzPrev[3];
+								blenderscene->r.cfra=blenderscene->r.sfra-1;
+								update_for_newframe();
+								MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
+															blenderobject->loc[1]+blenderobject->dloc[1],
+															blenderobject->loc[2]+blenderobject->dloc[2]
+													);
+								eulxyzPrev[0]=blenderobject->rot[0];
+								eulxyzPrev[1]=blenderobject->rot[1];
+								eulxyzPrev[2]=blenderobject->rot[2];
+
+								double fps = (double) blenderscene->r.frs_sec/
+									(double) blenderscene->r.frs_sec_base;
+
+								tmp.scale(fps, fps, fps);
+								inivel.push_back(tmp);
+								tmp=eulxyz-eulxyzPrev;
+								tmp.scale(fps, fps, fps);
+								iniang.push_back(tmp);
+								blenderscene->r.cfra=blenderscene->r.sfra;
+								update_for_newframe();
+							}		
+										
+							gameobj->NodeSetLocalPosition(pos);
+							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
+							gameobj->NodeSetLocalScale(scale);
+							gameobj->NodeUpdateGS(0,true);
+							
+							BL_ConvertIpos(blenderobject,gameobj,converter);
+							// TODO: expand to multiple ipos per mesh
+							Material *mat = give_current_material(blenderobject, 1);
+							if(mat) BL_ConvertMaterialIpos(mat, gameobj, converter);	
+					
+							sumolist->Add(gameobj->AddRef());
+							
+							BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);
+							
+					
+							gameobj->SetName(blenderobject->id.name);
+					
+							// templist to find Root Parents (object with no parents)
+							templist->Add(gameobj->AddRef());
+							
+							// update children/parent hierarchy
+							if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
+							{
+								// blender has an additional 'parentinverse' offset in each object
+								SG_Node* parentinversenode = new SG_Node(NULL,NULL,SG_Callbacks());
+							
+								// define a normal parent relationship for this node.
+								KX_NormalParentRelation * parent_relation = KX_NormalParentRelation::New();
+								parentinversenode->SetParentRelation(parent_relation);
+					
+								parentChildLink pclink;
+								pclink.m_blenderchild = blenderobject;
+								pclink.m_gamechildnode = parentinversenode;
+								vec_parent_child.push_back(pclink);
+
+								float* fl = (float*) blenderobject->parentinv;
+								MT_Transform parinvtrans(fl);
+								parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
+								parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
+								
+								parentinversenode->AddChild(gameobj->GetSGNode());
+							}
+							
+							// needed for python scripting
+							logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
+
+							// needed for dynamic object morphing
+							logicmgr->RegisterGameObj(gameobj, blenderobject);
+							for (int i = 0; i < gameobj->GetMeshCount(); i++)
+								logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
+					
+							converter->RegisterGameObject(gameobj, blenderobject);	
+							// this was put in rapidly, needs to be looked at more closely
+							// only draw/use objects in active 'blender' layers
+					
+							logicbrick_conversionlist->Add(gameobj->AddRef());
+							
+							if (converter->addInitFromFrame){
+								posPrev=gameobj->NodeGetWorldPosition();
+								angor=gameobj->NodeGetWorldOrientation();
+							}
+							if (isInActiveLayer)
+							{
+								objectlist->Add(gameobj->AddRef());
+								//tf.Add(gameobj->GetSGNode());
+								
+								gameobj->NodeUpdateGS(0,true);
+								gameobj->Bucketize();
+						
+							}
+							else
+							{
+								//we must store this object otherwise it will be deleted 
+								//at the end of this function if it is not a root object
+								inactivelist->Add(gameobj->AddRef());
+
+							}
+							if (gameobj->IsDupliGroup())
+							{
+								// check that the group is not already converted
+								if (allgrouplist.insert(blenderobject->dup_group).second)
+									grouplist.insert(blenderobject->dup_group);
+							}
+							if (converter->addInitFromFrame){
+								gameobj->NodeSetLocalPosition(posPrev);
+								gameobj->NodeSetLocalOrientation(angor);
+							}
+										
+						}
+						if (gameobj)
+							gameobj->Release();
+					}
+				}
+			}
+		}
+	}
+
 	if (blenderscene->camera) {
 		KX_Camera *gamecamera= (KX_Camera*) converter->FindGameObject(blenderscene->camera);
 		
@@ -2081,15 +2270,18 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	}
 
 	//	Set up armatures
-	for(SETLOOPER(blenderscene, base)){
-		if (base->object->type==OB_MESH){
-			Mesh *me = (Mesh*)base->object->data;
+	set<Object*>::iterator oit;
+	for(oit=allblobj.begin(); oit!=allblobj.end(); oit++)
+	{
+		Object* blenderobj = *oit;
+		if (blenderobj->type==OB_MESH){
+			Mesh *me = (Mesh*)blenderobj->data;
 	
 			if (me->dvert){
-				KX_GameObject *obj = converter->FindGameObject(base->object);
+				KX_GameObject *obj = converter->FindGameObject(blenderobj);
 	
-				if (base->object->parent && base->object->parent->type==OB_ARMATURE && base->object->partype==PARSKEL){
-					KX_GameObject *par = converter->FindGameObject(base->object->parent);
+				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
+					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
 					if (par)
 						((BL_SkinDeformer*)(((BL_DeformableGameObject*)obj)->m_pDeformer))->SetArmature((BL_ArmatureObject*) par);
 				}
@@ -2174,7 +2366,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		{
 			meshobj = gameobj->GetMesh(0);
 		}
-		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter,processCompoundChildren);
+		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
+		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
 	}
 
 	processCompoundChildren = true;
@@ -2189,7 +2382,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		{
 			meshobj = gameobj->GetMesh(0);
 		}
-		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter,processCompoundChildren);
+		int layerMask = (groupobj.find(blenderobject) == groupobj.end()) ? activeLayerBitInfo : 0;
+		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,layerMask,physics_engine,converter,processCompoundChildren);
 	}
 	
 	
@@ -2311,22 +2505,25 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
-		bool isInActiveLayer = (blenderobj->lay & activeLayerBitInfo)!=0;
-		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,executePriority, activeLayerBitInfo,isInActiveLayer,rendertools,converter);
+		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
+		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
+		BL_ConvertActuators(maggie->name, blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,executePriority, layerMask,isInActiveLayer,rendertools,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
-		bool isInActiveLayer = (blenderobj->lay & activeLayerBitInfo)!=0;
-		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,executePriority,activeLayerBitInfo,isInActiveLayer,converter);
+		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
+		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
+		BL_ConvertControllers(blenderobj,gameobj,logicmgr,pythondictionary,executePriority,layerMask,isInActiveLayer,converter);
 	}
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
 		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
-		bool isInActiveLayer = (blenderobj->lay & activeLayerBitInfo)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,activeLayerBitInfo,isInActiveLayer,canvas,converter);
+		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
+		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
 	}
 	// apply the initial state to controllers
 	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
@@ -2344,5 +2541,19 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	// Calculate the scene btree -
 	// too slow - commented out.
 	//kxscene->SetNodeTree(tf.MakeTree());
+
+	// instantiate dupli group, we will loop trough the object
+	// that are in active layers. Note that duplicating group
+	// has the effect of adding objects at the end of objectlist.
+	// Only loop through the first part of the list.
+	int objcount = objectlist->GetCount();
+	for (i=0;i<objcount;i++)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) objectlist->GetValue(i);
+		if (gameobj->IsDupliGroup())
+		{
+			kxscene->DupliGroupRecurse(gameobj, 0);
+		}
+	}
 }
 

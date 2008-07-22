@@ -708,7 +708,7 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 					      "expected filename and optional int (overwrite flag) as arguments" );
 
 	for( li = G.main->library.first; li; li = li->id.next ) {
-		if( BLI_streq( li->name, fname ) ) {
+		if( li->parent==NULL && BLI_streq( li->name, fname ) ) {
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 						      "cannot overwrite used library" );
 		}

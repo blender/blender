@@ -66,7 +66,8 @@ BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 							m_armobj(arma),
 							m_lastArmaUpdate(-1),
 							m_defbase(&bmeshobj->defbase),
-							m_releaseobject(false)
+							m_releaseobject(false),
+							m_poseApplied(false)
 {
 	Mat4CpyMat4(m_obmat, bmeshobj->obmat);
 };
@@ -98,32 +99,28 @@ BL_SkinDeformer::~BL_SkinDeformer()
 		m_armobj->Release();
 }
 
-bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *)
+bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
 	size_t i, j;
 
-	if (!Update())
-		// no need to update the cache
-		return false;
+	// update the vertex in m_transverts
+	Update();
 
-	// Update all materials at once, so we can do the above update test
-	// without ending up with some materials not updated
-	for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
-		mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
-		RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
+	// The vertex cache can only be updated for this deformer:
+	// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+	// share the same mesh (=the same cache). As the rendering is done per polymaterial
+	// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+	vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
 
-		vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
+	// For each array
+	for (i=0; i<vertexarrays.size(); i++) {
+		KX_VertexArray& vertexarray = (*vertexarrays[i]);
 
-		// For each array
-		for (i=0; i<vertexarrays.size(); i++) {
-			KX_VertexArray& vertexarray = (*vertexarrays[i]);
-
-			// For each vertex
-			// copy the untransformed data from the original mvert
-			for (j=0; j<vertexarray.size(); j++) {
-				RAS_TexVert& v = vertexarray[j];
-				v.SetXYZ(m_transverts[v.getOrigIndex()]);
-			}
+		// For each vertex
+		// copy the untransformed data from the original mvert
+		for (j=0; j<vertexarray.size(); j++) {
+			RAS_TexVert& v = vertexarray[j];
+			v.SetXYZ(m_transverts[v.getOrigIndex()]);
 		}
 	}
 
@@ -153,9 +150,11 @@ bool BL_SkinDeformer::Update(void)
 		
 		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
 		/* but it requires the blender object pointer... */
-
 		Object* par_arma = m_armobj->GetArmatureObject();
-		where_is_pose( par_arma ); 
+		if (!PoseApplied()){
+			m_armobj->ApplyPose();
+			where_is_pose( par_arma ); 
+		}
 
 		/* store verts locally */
 		VerifyStorage();
@@ -180,7 +179,8 @@ bool BL_SkinDeformer::Update(void)
 
 		/* Update the current frame */
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
-		
+		/* reset for next frame */
+		PoseApplied(false);
 		/* indicate that the m_transverts and normals are up to date */
 		return true;
 	}

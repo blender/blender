@@ -61,6 +61,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -111,6 +112,7 @@
 
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
+#include "BIF_drawgpencil.h"
 #include "BIF_editgroup.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
@@ -137,6 +139,7 @@
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
 #include "BDR_sculptmode.h"
+#include "BDR_gpencil.h"
 
 #include "BSE_drawview.h"
 #include "BSE_filesel.h"
@@ -2498,7 +2501,7 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	uiSetPanelHandler(VIEW3D_HANDLER_BACKGROUND);  // for close and esc
 	if(uiNewPanel(curarea, block, "Background Image", "View3d", 340, 10, 318, 204)==0) return;
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT) {
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT || G.f & G_GREASEPENCIL) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 	
@@ -2546,7 +2549,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	/* to force height */
 	uiNewPanelHeight(block, 264);
 
-	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT|G_GREASEPENCIL)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 
@@ -2620,6 +2623,49 @@ static void view3d_panel_preview(ScrArea *sa, short cntrl)	// VIEW3D_HANDLER_PRE
 	}
 }
 
+static void view3d_panel_gpencil(short cntrl)	// VIEW3D_HANDLER_GREASEPENCIL
+{
+	uiBlock *block;
+	View3D *vd;
+	
+	vd= G.vd;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_GREASEPENCIL);  // for close and esc
+	if (uiNewPanel(curarea, block, "Grease Pencil", "View3d", 100, 30, 318, 204)==0) return;
+
+	if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT|G_GREASEPENCIL)) {
+		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
+	}
+	
+	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
+	if (vd->flag2 & V3D_DISPGP) {
+		if (vd->gpd == NULL)
+			gpencil_data_setactive(curarea, gpencil_data_addnew());
+	}
+	
+	if (vd->flag2 & V3D_DISPGP) {
+		bGPdata *gpd= vd->gpd;
+		short newheight;
+		
+		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+		/* so first we make it default height */
+		uiNewPanelHeight(block, 204);
+		
+		/* draw button for showing gpencil settings and drawings */
+		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &vd->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
+		
+		/* extend the panel if the contents won't fit */
+		newheight= draw_gpencil_panel(block, gpd, curarea); 
+		uiNewPanelHeight(block, newheight);
+	}
+	else {
+		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &vd->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+}
+
 
 static void view3d_blockhandlers(ScrArea *sa)
 {
@@ -2634,9 +2680,7 @@ static void view3d_blockhandlers(ScrArea *sa)
 	glDisable(GL_DEPTH_TEST); 
 	
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-	
 		switch(v3d->blockhandler[a]) {
-
 		case VIEW3D_HANDLER_PROPERTIES:
 			view3d_panel_properties(v3d->blockhandler[a+1]);
 			break;
@@ -2651,7 +2695,10 @@ static void view3d_blockhandlers(ScrArea *sa)
 			break;			
 		case VIEW3D_HANDLER_TRANSFORM:
 			view3d_panel_transform_spaces(v3d->blockhandler[a+1]);
- 			break;			
+ 			break;
+		case VIEW3D_HANDLER_GREASEPENCIL:
+			view3d_panel_gpencil(v3d->blockhandler[a+1]);
+			break;
 		}
 		/* clear action value for event */
 		v3d->blockhandler[a+1]= 0;
@@ -3169,7 +3216,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
-
+	
+	/* draw grease-pencil stuff */
+	if (v3d->flag2 & V3D_DISPGP)
+		draw_gpencil_3dview(sa, 1);
+	
 	persp(PERSP_WIN);  // set ortho
 
 	/* Draw Sculpt Mode brush */
@@ -3211,6 +3262,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	if(v3d->persp>1) drawviewborder();
 	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();
+	
+	/* draw grease-pencil stuff */
+	if (v3d->flag2 & V3D_DISPGP)
+		draw_gpencil_3dview(sa, 0);
+	
 	if(!(G.f & G_PLAYANIM)) drawcursor(v3d);
 	if(U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis();
@@ -3311,16 +3367,15 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 
 	/* first draw set */
 	if(G.scene->set) {
-	
 		for(SETLOOPER(G.scene->set, base)) {
 			if(v3d->lay & base->lay) {
 				if ELEM3(base->object->type, OB_LAMP, OB_CAMERA, OB_LATTICE);
 				else {
 					where_is_object(base->object);
-	
+					
 					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 					draw_object(base, DRAW_CONSTCOLOR|DRAW_SCENESET);
-	
+					
 					if(base->object->transflag & OB_DUPLI) {
 						draw_dupli_objects(v3d, base);
 					}
@@ -3375,6 +3430,13 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
+	}
+	
+	if(v3d->gpd) {
+		/* draw grease-pencil overlays 
+		 * WARNING: view matrices are altered here!
+		 */
+		draw_gpencil_oglrender(v3d, winx, winy);
 	}
 	
 	G.f &= ~G_SIMULATION;

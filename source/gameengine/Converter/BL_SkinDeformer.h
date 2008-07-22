@@ -81,10 +81,13 @@ public:
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
+	bool PoseApplied()
+		{ return m_poseApplied; }
+	void PoseApplied(bool applied)
+		{ m_poseApplied = applied; }
 	bool PoseUpdated(void)
 		{ 
 			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {
-				m_armobj->ApplyPose();
 				return true;
 			}
 			return false;
@@ -102,6 +105,7 @@ protected:
 	ListBase*				m_defbase;
 	float					m_obmat[4][4];	// the reference matrix for skeleton deform
 	bool					m_releaseobject;
+	bool					m_poseApplied;
 
 };
 
