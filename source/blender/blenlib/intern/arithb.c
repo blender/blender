@@ -1335,6 +1335,18 @@ void NormalQuat(float *q)
 	}
 }
 
+void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3])
+{
+	float axis[3];
+	float angle;
+	
+	Crossf(axis, v1, v2);
+	
+	angle = NormalizedVecAngle2(v1, v2);
+	
+	AxisAngleToQuat(q, axis, angle);
+}
+
 void AxisAngleToQuat(float *q, float *axis, float angle)
 {
 	float nor[3];

@@ -262,6 +262,7 @@ void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
 
 void AxisAngleToQuat(float *q, float *axis, float angle);
+void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
 void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);
