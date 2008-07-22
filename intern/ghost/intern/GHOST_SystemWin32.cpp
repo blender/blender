@@ -919,6 +919,8 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const
 	
 	if ( OpenClipboard(NULL) ) {
 		HANDLE hData = GetClipboardData( CF_TEXT );
+		if (hData == NULL)
+			return NULL;
 		buffer = (char*)GlobalLock( hData );
 		
 		temp_buff = (char*) malloc(strlen(buffer)+1);
