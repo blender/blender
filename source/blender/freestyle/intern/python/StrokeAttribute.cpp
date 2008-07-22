@@ -28,13 +28,13 @@ static PyObject * StrokeAttribute_getAttributeVec3f( BPy_StrokeAttribute *self, 
 static PyObject * StrokeAttribute_isAttributeAvailableReal( BPy_StrokeAttribute *self, PyObject *args );
 static PyObject * StrokeAttribute_isAttributeAvailableVec2f( BPy_StrokeAttribute *self, PyObject *args );
 static PyObject * StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args );
-static int StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args );
+static PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args );
 
 
 /*----------------------StrokeAttribute instance definitions ----------------------------*/
@@ -63,6 +63,8 @@ static PyMethodDef BPy_StrokeAttribute_methods[] = {
 	{"setAttributeVec3f", ( PyCFunction ) StrokeAttribute_setAttributeVec3f, METH_VARARGS, "(name, float att) Adds a user defined attribute of type Vec4f. If there is no attribute of specified by name, it is added. Otherwise, the new value replaces the old one."},
 	{NULL, NULL, 0, NULL}
 };
+
+
 
 /*-----------------------BPy_StrokeAttribute type definition ------------------------------*/
 
@@ -124,7 +126,7 @@ PyTypeObject StrokeAttribute_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_StrokeAttribute_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
-	NULL,         					/* struct PyGetSetDef *tp_getset; */
+	NULL,  							/* struct PyGetSetDef *tp_getset; */
 	NULL,							/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
@@ -184,9 +186,7 @@ int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, PyObject
 											*( ((BPy_StrokeAttribute *) obj2)->sa ),
 											PyFloat_AsDouble( obj3 ) );	
 										
-	} else if( 	obj4 && obj5 && obj6 &&
-				PyFloat_Check(obj1) && PyFloat_Check(obj2) && PyFloat_Check(obj2) &&
-				PyFloat_Check(obj4) && PyFloat_Check(obj5) && PyFloat_Check(obj6) ) {
+	} else if( 	obj4 && obj5 && obj6 ) {
 	
 			self->sa = new StrokeAttribute(	PyFloat_AsDouble( obj1 ),
 											PyFloat_AsDouble( obj2 ),
@@ -212,17 +212,17 @@ void StrokeAttribute___dealloc__(BPy_StrokeAttribute* self)
 
 PyObject * StrokeAttribute___repr__(BPy_StrokeAttribute* self)
 {
-    return PyString_FromFormat("StrokeAttribute: r:%f g:%f b:%f a:%f - R:%f L:%f", 
-		self->sa->getColorR(), self->sa->getColorG(), self->sa->getColorB(), self->sa->getAlpha(),
-		self->sa->getThicknessR(), self->sa->getThicknessL() );
+	stringstream repr("StrokeAttribute:");
+	repr << " r: " << self->sa->getColorR()
+		 << " g: " << self->sa->getColorG()
+		 << " b: " << self->sa->getColorB()
+		 << " a: " << self->sa->getAlpha()
+		 << " - R: " << self->sa->getThicknessR() 
+		 << " L: " << self->sa->getThicknessL();
+
+	return PyString_FromFormat( repr.str().c_str() );
 }
 
-
-// PyObject *StrokeAttribute_getColor( BPy_StrokeAttribute *self ) {
-// 	float *c = self->sa->getColor();
-// 	Vec3f v( c[0], c[1], c[2]);
-// 	return Vector_from_Vec3f( v );
-// }
 
 PyObject *StrokeAttribute_getColorR( BPy_StrokeAttribute *self ) {
 	return PyFloat_FromDouble( self->sa->getColorR() );	
@@ -244,11 +244,6 @@ PyObject *StrokeAttribute_getColorRGB( BPy_StrokeAttribute *self ) {
 PyObject *StrokeAttribute_getAlpha( BPy_StrokeAttribute *self ) {
 	return PyFloat_FromDouble( self->sa->getAlpha() );	
 }
-
-// PyObject *StrokeAttribute_getThickness( BPy_StrokeAttribute *self ) {
-// 	// vector
-// 	return PyString_FromString( self->sa->getExactTypeName() );	
-// }
 
 PyObject *StrokeAttribute_getThicknessR( BPy_StrokeAttribute *self ) {
 	return PyFloat_FromDouble( self->sa->getThicknessR() );	
@@ -337,14 +332,14 @@ PyObject *StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute *self, 
 }
 
 
-int StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args ) {
+PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0 ;
 
 	if(!( PyArg_ParseTuple(args, "O|OO", &obj1, &obj2, &obj3) )) {
 		cout << "ERROR: StrokeAttribute_setColor" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
-
+	
 	if( PyList_Check(obj1) && !obj2 && !obj3 ){
 		
 		Vec3f v( 	PyFloat_AsDouble( PyList_GetItem(obj1, 0) ),
@@ -352,39 +347,35 @@ int StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args ) {
 					PyFloat_AsDouble( PyList_GetItem(obj1, 2) )  );
 		
 		self->sa->setColor( v );
-		return 0;
 		
-	} else if( 	obj1 && PyFloat_Check(obj1) &&
-				obj2 && PyFloat_Check(obj2) &&
-				obj3 && PyFloat_Check(obj3)	   ){
-					
+	} else if( 	obj1 && obj2 && obj3 ){
+
 		self->sa->setColor(	PyFloat_AsDouble(obj1),
 							PyFloat_AsDouble(obj2),
 							PyFloat_AsDouble(obj3) );
-		return 0;
 	}
 	
-	return -1;
+	Py_RETURN_NONE;
 }
 
-int StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args ){
+PyObject * StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args ){
 	float f = 0;
 
 	if(!( PyArg_ParseTuple(args, "f", &f) )) {
 		cout << "ERROR: StrokeAttribute_setAlpha" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
 	
 	self->sa->setAlpha( f );
-	return 0;
+	Py_RETURN_NONE;
 }
 
-int StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args )  {
+PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args )  {
 	PyObject *obj1 = 0, *obj2 = 0;
 
 	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) )) {
 		cout << "ERROR: StrokeAttribute_setThickness" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
 
 	if( PyList_Check(obj1) && !obj2 ){
@@ -393,51 +384,48 @@ int StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args )  {
 					PyFloat_AsDouble( PyList_GetItem(obj1, 1) )  );
 		
 		self->sa->setThickness( v );
-		return 0;
 		
-	} else if( 	obj1 && PyFloat_Check(obj1) &&
-				obj2 && PyFloat_Check(obj2)	   ){
+	} else if( 	obj1 && obj2 ){
 					
 		self->sa->setThickness(	PyFloat_AsDouble(obj1),
 								PyFloat_AsDouble(obj2) );
-		return 0;
 	}
 	
-	return -1;
+	Py_RETURN_NONE;
 }
 
-int StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args ) {
+PyObject * StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args ) {
 	int i = 0;
 
 	if(!( PyArg_ParseTuple(args, "i", &i) )) {
 		cout << "ERROR: StrokeAttribute_setVisible" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
 
 	self->sa->setVisible( i );
-	return 0;
+	Py_RETURN_NONE;
 }
 
-int StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject *args ) {
+PyObject * StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s = 0;
 	double d = 0;
 
 	if(!( PyArg_ParseTuple(args, "sd", &s, &d) )) {
 		cout << "ERROR: StrokeAttribute_setAttributeReal" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
 
 	self->sa->setAttributeReal( s, d );
-	return 0;
+	Py_RETURN_NONE;
 }
 
-int StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
+PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s;
 	PyObject *obj = 0;
 
 	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) )) {
 		cout << "ERROR: StrokeAttribute_setAttributeVec2f" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
 
 	if( PyList_Check(obj) && PyList_Size(obj) > 1) {
@@ -446,20 +434,18 @@ int StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args
 					PyFloat_AsDouble( PyList_GetItem(obj, 1) )  );
 
 		self->sa->setAttributeVec2f( s, v );
-		return 0;
-		
 	}
 	
-	return -1;
+	Py_RETURN_NONE;
 }
 
-int StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
+PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s;
 	PyObject *obj = 0;
 
 	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) )) {
 		cout << "ERROR: StrokeAttribute_setAttributeVec3f" << endl;
-		return -1;
+		Py_RETURN_NONE;
 	}
 
 	if( PyList_Check(obj)  && PyList_Size(obj) > 2 ) {
@@ -469,11 +455,9 @@ int StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args
 					PyFloat_AsDouble( PyList_GetItem(obj, 2) )  );
 
 		self->sa->setAttributeVec3f( s, v );
-		return 0;
-
 	}
 
-	return -1;
+	Py_RETURN_NONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
