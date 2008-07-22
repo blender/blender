@@ -2548,10 +2548,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx+buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
 
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance");
-				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Cut: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Target to project points that didn't got projected over target");
+				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Target to project points that didn't got projected over target");
 			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
 			}
 
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");

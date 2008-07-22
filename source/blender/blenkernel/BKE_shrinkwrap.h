@@ -61,11 +61,46 @@ void space_transform_invert(const SpaceTransform *data, float *co);
 void space_transform_apply_normal (const SpaceTransform *data, float *co);
 void space_transform_invert_normal(const SpaceTransform *data, float *co);
 
+/* BVH from mesh */
+#include "BLI_kdopbvh.h"
+
+struct DerivedMesh;
+struct MVert;
+struct MFace;
+
+//struct that kepts basic information about a BVHTree build from a mesh
+typedef struct BVHTreeFromMesh
+{
+	struct BVHTree *tree;
+
+	//Callbacks
+	BVHTree_NearestPointCallback nearest_callback;
+	BVHTree_RayCastCallback      raycast_callback;
+	
+	//Mesh represented on this BVH
+	struct DerivedMesh *mesh;
+	struct MVert *vert;
+	struct MFace *face;
+
+	//radius for sphere cast
+	float sphere_radius;
+
+} BVHTreeFromMesh;
+
+// Builds a bvh tree where nodes are the vertexs of the given mesh. And configures BVHMesh if one given.
+struct BVHTree* bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+
+// Builds a bvh tree where nodes are the faces of the given mesh. And configures BVHMesh if one is given.
+struct BVHTree* bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+
+
+
 
 /* Shrinkwrap stuff */
 struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
+struct BVHTree;
 
 
 
@@ -75,6 +110,9 @@ typedef struct ShrinkwrapCalcData
 
 	struct Object *ob;				//object we are applying shrinkwrap to
 	struct DerivedMesh *original;	//mesh before shrinkwrap (TODO clean this variable.. we don't really need it)
+	struct BVHTree *original_tree;	//BVHTree build with the original mesh (to be used on kept volume)
+	struct BVHMeshCallbackUserdata *callback;
+
 	struct DerivedMesh *final;		//initially a copy of original mesh.. mesh thats going to be shrinkwrapped
 
 	struct DerivedMesh *target;		//mesh we are shrinking to
