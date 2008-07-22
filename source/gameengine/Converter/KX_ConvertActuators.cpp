@@ -628,6 +628,8 @@ void BL_ConvertActuators(char* maggiename,
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
 				if (conact->type == ACT_CONST_TYPE_ORI) {
+					min = (MT_2_PI * conact->minloc[0])/360.0;
+					max = (MT_2_PI * conact->maxloc[0])/360.0;
 					switch (conact->mode) {
 					case ACT_CONST_DIRPX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;

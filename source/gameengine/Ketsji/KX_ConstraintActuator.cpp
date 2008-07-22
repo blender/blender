@@ -88,11 +88,17 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 			} else {
 				m_refDirection /= len;
 			}
+			m_minimumBound = cos(minBound);
+			m_maximumBound = cos(maxBound);
+			m_minimumSine = sin(minBound);
+			m_maximumSine = sin(maxBound);
 		}
 		break;
 	default:
 		m_minimumBound = minBound;
 		m_maximumBound = maxBound;
+		m_minimumSine = 0.f;
+		m_maximumSine = 0.f;
 		break;
 	}
 
@@ -153,9 +159,9 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		KX_GameObject  *obj = (KX_GameObject*) GetParent();
 		MT_Point3    position = obj->NodeGetWorldPosition();
 		MT_Point3    newposition;
-		MT_Vector3   direction;
+		MT_Vector3   direction, refDirection;
 		MT_Matrix3x3 rotation = obj->NodeGetWorldOrientation();
-		MT_Scalar    filter, newdistance;
+		MT_Scalar    filter, newdistance, cosangle;
 		int axis, sign;
 
 		if (m_posDampTime) {
@@ -185,11 +191,45 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				axis = 2;
 				break;
 			}
+			if ((m_maximumBound < (1.0f-FLT_EPSILON)) || (m_minimumBound < (1.0f-FLT_EPSILON))) {
+				// reference direction needs to be evaluated
+				// 1. get the cosine between current direction and target
+				cosangle = direction.dot(m_refDirection);
+				if (cosangle >= (m_maximumBound-FLT_EPSILON) && cosangle <= (m_minimumBound+FLT_EPSILON)) {
+					// no change to do
+					result = true;
+					goto CHECK_TIME;
+				}
+				// 2. define a new reference direction
+				//    compute local axis with reference direction as X and
+				//    Y in direction X refDirection plane
+				MT_Vector3 zaxis = m_refDirection.cross(direction);
+				if (MT_fuzzyZero2(zaxis.length2())) {
+					// direction and refDirection are identical,
+					// choose any other direction to define plane
+					if (direction[0] < 0.9999)
+						zaxis = m_refDirection.cross(MT_Vector3(1.0,0.0,0.0));
+					else
+						zaxis = m_refDirection.cross(MT_Vector3(0.0,1.0,0.0));
+				}
+				MT_Vector3 yaxis = zaxis.cross(m_refDirection);
+				yaxis.normalize();
+				if (cosangle > m_minimumBound) {
+					// angle is too close to reference direction,
+					// choose a new reference that is exactly at minimum angle
+					refDirection = m_minimumBound * m_refDirection + m_minimumSine * yaxis;
+				} else {
+					// angle is too large, choose new reference direction at maximum angle
+					refDirection = m_maximumBound * m_refDirection + m_maximumSine * yaxis;
+				}
+			} else {
+				refDirection = m_refDirection;
+			}
 			if (m_posDampTime) {
 				// apply damping on the direction
-				direction = filter*direction + (1.0-filter)*m_refDirection;
+				direction = filter*direction + (1.0-filter)*refDirection;
 			} else {
-				direction = m_refDirection;
+				direction = refDirection;
 			}
 			obj->AlignAxisToVect(direction, axis);
 			result = true;

@@ -48,6 +48,10 @@ protected:
 	float m_minimumBound;
 	// max (float)
 	float m_maximumBound;
+	// sinus of minimum angle
+	float m_minimumSine;
+	// sinus of maximum angle
+	float m_maximumSine;
 	// reference direction
 	MT_Vector3 m_refDirection;
 	// locrotxyz choice (pick one): only one choice allowed at a time!
