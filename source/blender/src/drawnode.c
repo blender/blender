@@ -37,6 +37,7 @@
 #include "DNA_action_types.h"
 #include "DNA_color_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
@@ -65,8 +66,11 @@
 #include "CMP_node.h"
 #include "SHD_node.h"
 
+#include "BDR_gpencil.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_drawgpencil.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
 #include "BIF_language.h"
@@ -3300,6 +3304,66 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 }
 
 
+
+static void nodes_panel_gpencil(short cntrl)	// NODES_HANDLER_GREASEPENCIL
+{
+	uiBlock *block;
+	SpaceNode *snode;
+	
+	snode= curarea->spacedata.first;
+
+	block= uiNewBlock(&curarea->uiblocks, "nodes_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(NODES_HANDLER_GREASEPENCIL);  // for close and esc
+	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceNode", 100, 30, 318, 204)==0) return;
+	
+	/* we can only really draw stuff if there are nodes (otherwise no events are handled */
+	if (snode->nodetree == NULL)
+		return;
+	
+	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
+	if (snode->flag & SNODE_DISPGP) {
+		if (snode->gpd == NULL)
+			gpencil_data_setactive(curarea, gpencil_data_addnew());
+	}
+	
+	if (snode->flag & SNODE_DISPGP) {
+		bGPdata *gpd= snode->gpd;
+		short newheight;
+		
+		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+		/* so first we make it default height */
+		uiNewPanelHeight(block, 204);
+		
+		/* draw button for showing gpencil settings and drawings */
+		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor");
+		
+		/* extend the panel if the contents won't fit */
+		newheight= draw_gpencil_panel(block, gpd, curarea); 
+		uiNewPanelHeight(block, newheight);
+	}
+	else {
+		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+}
+
+static void nodes_blockhandlers(ScrArea *sa)
+{
+	SpaceNode *snode= sa->spacedata.first;
+	short a;
+	
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		/* clear action value for event */
+		switch(snode->blockhandler[a]) {
+			case NODES_HANDLER_GREASEPENCIL:
+				nodes_panel_gpencil(snode->blockhandler[a+1]);
+				break;
+		}
+	}
+	uiDrawBlocksPanels(sa, 0);
+}
+
 void drawnodespace(ScrArea *sa, void *spacedata)
 {
 	SpaceNode *snode= sa->spacedata.first;
@@ -3354,13 +3418,26 @@ void drawnodespace(ScrArea *sa, void *spacedata)
 		}
 	}
 	
+	/* draw grease-pencil ('canvas' strokes) */
+	if ((snode->flag & SNODE_DISPGP) && (snode->nodetree))
+		draw_gpencil_2dview(sa, 1);
+	
 	/* restore viewport (not needed yet) */
 	mywinset(sa->win);
 
 	/* ortho at pixel level curarea */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+	
+	/* draw grease-pencil (screen strokes) */
+	if ((snode->flag & SNODE_DISPGP) && (snode->nodetree))
+		draw_gpencil_2dview(sa, 0);
 
 	draw_area_emboss(sa);
+	
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, snode->blockscale, snode->blockscale, snode->blockscale);
+	nodes_blockhandlers(sa);
+	
 	curarea->win_swap= WIN_BACK_OK;
 	
 	/* in the end, this is a delayed previewrender test, to allow buttons to be first */

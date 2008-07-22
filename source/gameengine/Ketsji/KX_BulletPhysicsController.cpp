@@ -135,7 +135,7 @@ void	KX_BulletPhysicsController::getOrientation(MT_Quaternion& orn)
 }
 void KX_BulletPhysicsController::setOrientation(const MT_Matrix3x3& orn)
 {
-	btMatrix3x3 btmat(orn[0][0], orn[0][1], orn[1][2], orn[1][0], orn[1][1], orn[1][2], orn[2][0], orn[2][1], orn[2][2]);
+	btMatrix3x3 btmat(orn[0][0], orn[0][1], orn[0][2], orn[1][0], orn[1][1], orn[1][2], orn[2][0], orn[2][1], orn[2][2]);
 	CcdPhysicsController::setWorldOrientation(btmat);
 }
 void KX_BulletPhysicsController::setPosition(const MT_Point3& pos)

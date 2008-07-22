@@ -601,6 +601,9 @@ static void do_view3d_viewmenu(void *arg, int event)
 		break;
 	case 20: /* Transform  Space Panel */
 		add_blockhandler(curarea, VIEW3D_HANDLER_TRANSFORM, UI_PNL_UNSTOW);
+		break;	
+	case 21: /* Grease Pencil */
+		add_blockhandler(curarea, VIEW3D_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
 		break;		
 	}
 	allqueue(REDRAWVIEW3D, 1);
@@ -619,6 +622,7 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Render Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 16, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Background Image...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Grease Pencil...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 21, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

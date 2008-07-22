@@ -40,6 +40,7 @@ struct Base;
 struct BoundBox;
 struct RenderInfo;
 struct RetopoViewData;
+struct bGPdata;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -53,9 +54,12 @@ struct RetopoViewData;
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
 
+/* ******************************** */
+
 /* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
  * code, and patch for windows. */
-
+ 
+/* Background Picture in 3D-View */
 typedef struct BGpic {
     struct Image *ima;
 	struct ImageUser iuser;
@@ -63,6 +67,9 @@ typedef struct BGpic {
     short xim, yim;
 } BGpic;
 
+/* ********************************* */
+
+/* 3D ViewPort Struct */
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
 	int spacetype;
@@ -135,8 +142,9 @@ typedef struct View3D {
 	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
-
+	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 } View3D;
+
 
 /* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
@@ -158,10 +166,12 @@ typedef struct View3D {
 #define V3D_DRAW_CENTERS	32768
 
 /* View3d->flag2 (short) */
+#define V3D_MODE2			(32)
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
 #define V3D_DEPRECATED			4 /* V3D_TRANSFORM_SNAP, moved to a scene setting */
 #define V3D_SOLID_TEX			8
+#define V3D_DISPGP				16
 
 /* View3D->around */
 #define V3D_CENTER		 0
@@ -202,4 +212,5 @@ typedef struct View3D {
 
 
 #endif
+
 

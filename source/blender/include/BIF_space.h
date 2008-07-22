@@ -53,6 +53,7 @@ struct SpaceOops;
 #define VIEW3D_HANDLER_PREVIEW		4
 #define VIEW3D_HANDLER_MULTIRES         5
 #define VIEW3D_HANDLER_TRANSFORM	6
+#define VIEW3D_HANDLER_GREASEPENCIL 7
 
 /* ipo handler codes */
 #define IPO_HANDLER_PROPERTIES	20
@@ -73,10 +74,14 @@ struct SpaceOops;
 #define NLA_HANDLER_PROPERTIES	50
 
 /* sequence handler codes */
-#define SEQ_HANDLER_PROPERTIES	60
+#define SEQ_HANDLER_PROPERTIES		60
+#define SEQ_HANDLER_GREASEPENCIL 	61
 
 /* imasel handler codes */
 #define IMASEL_HANDLER_IMAGE	70
+
+/* nodes handler codes */
+#define NODES_HANDLER_GREASEPENCIL		80
 
 /* theme codes */
 #define B_ADD_THEME 	3301
@@ -144,4 +149,5 @@ extern		 void mainwindow_make_active(void);
 extern		 void mainwindow_close(void);
 
 #endif
+
 

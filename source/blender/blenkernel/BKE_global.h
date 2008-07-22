@@ -175,6 +175,7 @@ typedef struct Global {
 #define G_WEIGHTPAINT	(1 << 15)	
 #define G_TEXTUREPAINT	(1 << 16)
 /* #define G_NOFROZEN	(1 << 17) also removed */
+#define G_GREASEPENCIL 	(1 << 17)
 #define G_DRAWEDGES		(1 << 18)
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
@@ -264,4 +265,5 @@ extern Global G;
 #endif
 	
 #endif
+
 

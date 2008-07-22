@@ -618,6 +618,9 @@ void uiBoundsBlock(uiBlock *block, int addval)
 	uiBut *bt;
 	int xof;
 	
+	if(block==NULL)
+		return;
+	
 	if(block->buttons.first==NULL) {
 		if(block->panel) {
 			block->minx= 0.0; block->maxx= block->panel->sizex;
