@@ -598,8 +598,8 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"Active text area has no Text object");
 	
-	suggest_clear_list();
-	suggest_set_active(st->text);
+	texttool_suggest_clear();
+	texttool_text_set_active(st->text);
 	list_len = PyList_Size(list);
 	
 	for (i = 0; i < list_len; i++) {
@@ -625,11 +625,11 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 			return EXPP_ReturnPyObjError(PyExc_AttributeError,
 					"names must be non-empty and types in ['m', 'v', 'f', 'k', '?']" );
 
-		suggest_add(name, type);
+		texttool_suggest_add(name, type);
 	}
 	if (!prefix)
 		prefix = "";
-	suggest_prefix(prefix);
+	texttool_suggest_prefix(prefix);
 	scrarea_queue_redraw(curarea);
 
 	Py_RETURN_NONE;
@@ -657,8 +657,8 @@ static PyObject *Text_showDocs( BPy_Text * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"Active text area has no Text object");
 
-	suggest_set_active(st->text);
-	suggest_documentation(docs);
+	texttool_text_set_active(st->text);
+	texttool_docs_show(docs);
 	scrarea_queue_redraw(curarea);
 
 	Py_RETURN_NONE;

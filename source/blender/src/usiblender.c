@@ -1101,7 +1101,7 @@ void exit_usiblender(void)
 	free_actcopybuf();
 	free_vertexpaint();
 	free_imagepaint();
-	free_suggestions();
+	free_texttools();
 	
 	/* editnurb can remain to exist outside editmode */
 	freeNurblist(&editNurb);

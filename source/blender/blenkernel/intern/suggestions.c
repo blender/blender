@@ -41,13 +41,12 @@
 /* Static definitions */
 /**********************/
 
+static Text *activeToolText = NULL;
 static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
-static Text *suggText = NULL;
-static SuggItem *lastInsert = NULL;
 static char *documentation = NULL;
 static int doc_lines = 0;
 
-static int suggest_cmp(const char *first, const char *second, int len) {	
+static int txttl_cmp(const char *first, const char *second, int len) {	
 	int cmp, i;
 	for (cmp=0, i=0; i<len; i++) {
 		if (cmp= toupper(first[i])-toupper(second[i])) {
@@ -57,7 +56,7 @@ static int suggest_cmp(const char *first, const char *second, int len) {
 	return cmp;
 }
 
-static void sugg_free() {
+static void txttl_free_suggest() {
 	SuggItem *item, *prev;
 	for (item = suggestions.last; item; item=prev) {
 		prev = item->prev;
@@ -68,7 +67,7 @@ static void sugg_free() {
 	suggestions.selected = NULL;
 }
 
-static void docs_free() {
+static void txttl_free_docs() {
 	if (documentation) {
 		MEM_freeN(documentation);
 		documentation = NULL;
@@ -79,31 +78,31 @@ static void docs_free() {
 /* General tool functions */
 /**************************/
 
-void free_suggestions() {
-	sugg_free();
-	docs_free();
+void free_texttools() {
+	txttl_free_suggest();
+	txttl_free_docs();
 }
 
-void suggest_set_active(Text *text) {
-	if (suggText == text) return;
-	suggest_clear_active();
-	suggText = text;
+void texttool_text_set_active(Text *text) {
+	if (activeToolText == text) return;
+	texttool_text_clear();
+	activeToolText = text;
 }
 
-void suggest_clear_active() {
-	free_suggestions();
-	suggText = NULL;
+void texttool_text_clear() {
+	free_texttools();
+	activeToolText = NULL;
 }
 
-short suggest_is_active(Text *text) {
-	return suggText==text ? 1 : 0;
+short texttool_text_is_active(Text *text) {
+	return activeToolText==text ? 1 : 0;
 }
 
 /***************************/
 /* Suggestion list methods */
 /***************************/
 
-void suggest_add(const char *name, char type) {
+void texttool_suggest_add(const char *name, char type) {
 	SuggItem *newitem, *item;
 	int len, cmp;
 
@@ -126,7 +125,7 @@ void suggest_add(const char *name, char type) {
 	} else {
 		cmp = -1;
 		for (item=suggestions.last; item; item=item->prev) {
-			cmp = suggest_cmp(name, item->name, len);
+			cmp = txttl_cmp(name, item->name, len);
 
 			/* Newitem comes after this item, insert here */
 			if (cmp >= 0) {
@@ -152,7 +151,7 @@ void suggest_add(const char *name, char type) {
 	suggestions.firstmatch = suggestions.lastmatch = suggestions.selected = NULL;
 }
 
-void suggest_prefix(const char *prefix) {
+void texttool_suggest_prefix(const char *prefix) {
 	SuggItem *match, *first, *last;
 	int cmp, len = strlen(prefix);
 
@@ -165,7 +164,7 @@ void suggest_prefix(const char *prefix) {
 	
 	first = last = NULL;
 	for (match=suggestions.first; match; match=match->next) {
-		cmp = suggest_cmp(prefix, match->name, len);
+		cmp = txttl_cmp(prefix, match->name, len);
 		if (cmp==0) {
 			if (!first)
 				first = match;
@@ -188,31 +187,31 @@ void suggest_prefix(const char *prefix) {
 	}
 }
 
-void suggest_clear_list() {
-	sugg_free();
+void texttool_suggest_clear() {
+	txttl_free_suggest();
 }
 
-SuggItem *suggest_first() {
+SuggItem *texttool_suggest_first() {
 	return suggestions.firstmatch;
 }
 
-SuggItem *suggest_last() {
+SuggItem *texttool_suggest_last() {
 	return suggestions.lastmatch;
 }
 
-SuggItem *suggest_get_selected() {
-	return suggestions.selected;
+void texttool_suggest_select(SuggItem *sel) {
+	suggestions.selected = sel;
 }
 
-void suggest_set_selected(SuggItem *sel) {
-	suggestions.selected = sel;
+SuggItem *texttool_suggest_selected() {
+	return suggestions.selected;
 }
 
 /*************************/
 /* Documentation methods */
 /*************************/
 
-void suggest_documentation(const char *docs) {
+void texttool_docs_show(const char *docs) {
 	int len;
 
 	if (!docs) return;
@@ -236,10 +235,10 @@ void suggest_documentation(const char *docs) {
 	documentation[len] = '\0';
 }
 
-char *suggest_get_docs() {
+char *texttool_docs_get() {
 	return documentation;
 }
 
-void suggest_clear_docs() {
-	docs_free();
+void texttool_docs_clear() {
+	txttl_free_docs();
 }
