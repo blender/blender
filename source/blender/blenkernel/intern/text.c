@@ -1080,22 +1080,31 @@ char *txt_to_buf (Text *text)
 	return buf;
 }
 
-int txt_find_string(Text *text, char *findstr)
+int txt_find_string(Text *text, char *findstr, int wrap)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;
+	int oldcl, oldsl, oldcc, oldsc;
 
 	if (!text || !text->curl || !text->sell) return 0;
 	
 	txt_order_cursors(text);
 
+	oldcl= txt_get_span(text->lines.first, text->curl);
+	oldsl= txt_get_span(text->lines.first, text->sell);
 	tl= startl= text->sell;
+	oldcc= text->curc;
+	oldsc= text->selc;
 	
 	s= strstr(&tl->line[text->selc], findstr);
 	while (!s) {
 		tl= tl->next;
-		if (!tl)
-			tl= text->lines.first;
+		if (!tl) {
+			if (wrap)
+				tl= text->lines.first;
+			else
+				break;
+		}
 
 		s= strstr(tl->line, findstr);
 		if (tl==startl)
@@ -1103,10 +1112,10 @@ int txt_find_string(Text *text, char *findstr)
 	}
 	
 	if (s) {
-		text->curl= text->sell= tl;
-		text->curc= (int) (s-tl->line);
-		text->selc= text->curc + strlen(findstr);
-		
+		int newl= txt_get_span(text->lines.first, tl);
+		int newc= (int)(s-tl->line);
+		txt_move_to(text, newl, newc, 0);
+		txt_move_to(text, newl, newc + strlen(findstr), 1);
 		return 1;				
 	} else
 		return 0;

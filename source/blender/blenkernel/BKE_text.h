@@ -52,7 +52,7 @@ void	txt_free_cut_buffer	(void);
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
 void	txt_order_cursors	(struct Text *text);
-int		txt_find_string		(struct Text *text, char *findstr);
+int		txt_find_string		(struct Text *text, char *findstr, int wrap);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
 void	txt_move_up			(struct Text *text, short sel);
@@ -87,7 +87,7 @@ void	txt_backspace_char	(struct Text *text);
 void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
 int		txt_replace_char	(struct Text *text, char add);
-void	txt_find_panel		(struct SpaceText *st, int again);
+void	txt_find_panel		(struct SpaceText *st, int again, int flags);
 void	run_python_script	(struct SpaceText *st);
 int	jumptoline_interactive	(struct SpaceText *st);
 void	txt_export_to_object	(struct Text *text);
@@ -140,6 +140,11 @@ void	txt_paste_clipboard	(struct Text *text);
 #define UNDO_UNINDENT		033
 #define UNDO_COMMENT		034
 #define UNDO_UNCOMMENT		035
+
+/* Find and replace flags */
+#define TXT_FIND_REPLACE 0x01
+#define TXT_FIND_ALLTEXTS 0x02
+#define TXT_FIND_WRAP 0x04
 
 #ifdef __cplusplus
 }
