@@ -368,9 +368,9 @@ typedef struct FreeCamera {
 #define ACT_CONST_DIRPX		1
 #define ACT_CONST_DIRPY		2
 #define ACT_CONST_DIRPZ		4
-#define ACT_CONST_DIRMX		8
-#define ACT_CONST_DIRMY		16
-#define ACT_CONST_DIRMZ		32
+#define ACT_CONST_DIRNX		8
+#define ACT_CONST_DIRNY		16
+#define ACT_CONST_DIRNZ		32
 
 /* constraint type */
 #define ACT_CONST_TYPE_LOC	0

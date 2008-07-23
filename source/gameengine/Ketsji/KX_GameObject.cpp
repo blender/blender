@@ -1568,8 +1568,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	float dist = 0.0f;
 	char *propName = NULL;
 
-	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName))
+	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
+	}
 
 	if (!PyVecTo(pyarg, toPoint))
 	{
@@ -1616,11 +1618,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
-"rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or None if no hit\n"
+				   "rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or (None,None,None) tuple if no hit\n"
 " prop = property name that object must have; can be omitted => detect any object\n"
 " dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to to\n"
 " from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"
-"        Can None or omitted => start from self object center\n"
+"        Can be None or omitted => start from self object center\n"
 " to = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
 "Note: the object on which you call this method matters: the ray will ignore it if it goes through it\n")
 {
@@ -1632,8 +1634,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	char *propName = NULL;
 	KX_GameObject *other;
 
-	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName))
+	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
+	}
 
 	if (!PyVecTo(pyto, toPoint))
 	{
@@ -1691,16 +1695,14 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
     if (m_pHitObject)
 	{
 		PyObject* returnValue = PyTuple_New(3);
-		if (!returnValue)
+		if (!returnValue) {
+			PyErr_SetString(PyExc_TypeError, "PyTuple_New() failed");
 			return NULL;
+		}
 		PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
 		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
 		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
 		return returnValue;
-		//return Py_BuildValue("(O,(fff),(fff))", 
-		//	m_pHitObject->AddRef(),		// trick: KX_GameObject are not true Python object, they use a difference reference count system
-		//	resultPoint[0], resultPoint[1], resultPoint[2],
-		//	resultNormal[0], resultNormal[1], resultNormal[2]);
 	}
 	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 	//Py_RETURN_NONE;

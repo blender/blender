@@ -84,9 +84,9 @@ protected:
 		KX_ACT_CONSTRAINT_DIRPX,
 		KX_ACT_CONSTRAINT_DIRPY,
 		KX_ACT_CONSTRAINT_DIRPZ,
-		KX_ACT_CONSTRAINT_DIRMX,
-		KX_ACT_CONSTRAINT_DIRMY,
-		KX_ACT_CONSTRAINT_DIRMZ,
+		KX_ACT_CONSTRAINT_DIRNX,
+		KX_ACT_CONSTRAINT_DIRNY,
+		KX_ACT_CONSTRAINT_DIRNZ,
 		KX_ACT_CONSTRAINT_ORIX,
 		KX_ACT_CONSTRAINT_ORIY,
 		KX_ACT_CONSTRAINT_ORIZ,
@@ -131,27 +131,27 @@ protected:
 	virtual PyObject* _getattr(const STR_String& attr);
 
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDamp);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetDamp);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDamp);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetRotDamp);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetRotDamp);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetRotDamp);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDirection);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetDirection);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDirection);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetOption);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetOption);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetOption);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetTime);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetTime);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetTime);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetProperty);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetProperty);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMin);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetMin);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
 	static char SetDistance_doc[];
 	static char GetDistance_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMax);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetMax);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
 	static char SetRayLength_doc[];
 	static char GetRayLength_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetLimit);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetLimit);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };
 
 #endif //__KX_CONSTRAINTACTUATOR
