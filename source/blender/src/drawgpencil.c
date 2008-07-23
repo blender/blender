@@ -94,6 +94,7 @@
 void gp_ui_activelayer_cb (void *gpd, void *gpl)
 {
 	gpencil_layer_setactive(gpd, gpl);
+	force_draw_plus(SPACE_ACTION, 0);
 }
 
 /* rename layer and set active */
@@ -104,18 +105,21 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 	
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
 	gpencil_layer_setactive(gpd, gpl);
+	force_draw_plus(SPACE_ACTION, 0);
 }
 
 /* add a new layer */
 void gp_ui_addlayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_addnew(gpd);
+	force_draw_plus(SPACE_ACTION, 0);
 }
 
 /* delete active layer */
 void gp_ui_dellayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_delactive(gpd);
+	force_draw_plus(SPACE_ACTION, 0);
 }
 
 /* delete last stroke of active layer */
@@ -134,21 +138,9 @@ void gp_ui_delframe_cb (void *gpd, void *gpl)
 	
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_layer_delframe(gpl, gpf);
-}
-
-
-/* set this set of gpencil data for editing in action editor */
-void gp_ui_dotime_cb (void *gpd_arg, void *dummy)
-{
-	bGPdata *gpd= (bGPdata *)gpd_arg;
 	
-	/* check if setting or clearing (note: setting was just set...) */
-	if (gpd->flag & GP_DATA_EDITTIME)
-		gpencil_data_setetime(G.curscreen, gpd);
-	else	
-		gpencil_data_setetime(G.curscreen, NULL);
+	force_draw_plus(SPACE_ACTION, 0);
 }
-
 
 /* ------- Drawing Code ------- */
 
@@ -168,35 +160,31 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* rounded header */
-		rb_col= (gpl->flag & GP_LAYER_ACTIVE)?50:20;
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+		//uiBlockSetCol(block, TH_BUT_SETTING1); // FIXME: maybe another color
+			rb_col= (gpl->flag & GP_LAYER_ACTIVE)?50:20;
+			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+		//uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
 		uiDefIconButBitI(block, ICONTOG, GP_LAYER_LOCKED, B_REDR, ICON_UNLOCKED,	*xco-7, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Layer cannot be modified");
 	}
 	
-	/* when layer is locked or hidden, don't draw the rest of its settings */
+	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {
+		char name[256]; /* gpl->info is 128, but we need space for 'locked/hidden' as well */
+		
 		height= 26;
 		
-		/* draw rest of header */
-		{
-			/* visibility button (only if hidden but not locked!) */
-			if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
-				uiDefIconButBitI(block, ICONTOG, GP_LAYER_HIDE, B_REDR, ICON_RESTRICT_VIEW_OFF,	*xco+12, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Visibility of layer");
-			
-			/* name */
-			uiDefBut(block, LABEL, 1, gpl->info,	*xco+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "Short description of what this layer is for (optional)");
-		}
+		/* visibility button (only if hidden but not locked!) */
+		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
+			uiDefIconButBitI(block, ICONTOG, GP_LAYER_HIDE, B_REDR, ICON_RESTRICT_VIEW_OFF,	*xco+12, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Visibility of layer");
 		
-		/* draw backdrop */
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
-		
-		/* draw settings... (i.e. just warning for this one) */
+		/* name */
 		if (gpl->flag & GP_LAYER_HIDE)
-			uiDefBut(block, LABEL, 1, "Grease Pencil Layer Hidden",	*xco+60, *yco-26, 205, 20, NULL, 0.0, 0.0, 0, 0, "");
+			sprintf(name, "%s (Hidden)", gpl->info);
 		else
-			uiDefBut(block, LABEL, 1, "Grease Pencil Layer Locked",	*xco+60, *yco-26, 205, 20, NULL, 0.0, 0.0, 0, 0, "");
+			sprintf(name, "%s (Locked)", gpl->info);
+		uiDefBut(block, LABEL, 1, name,	*xco+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "Short description of what this layer is for (optional)");
 			
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
@@ -211,7 +199,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			uiBlockSetEmboss(block, UI_EMBOSS);
 			
 			/* name */
-			but= uiDefButC(block, TEX, B_REDR, "Info:",	*xco+35, *yco, 240, 20, gpl->info, 0, 127, 0, 0, "Short description of what this layer is for (optional)");
+			but= uiDefButC(block, TEX, B_REDR, "Info:",	*xco+36, *yco, 240, 19, gpl->info, 0, 127, 0, 0, "Short description of what this layer is for (optional)");
 			uiButSetFunc(but, gp_ui_renamelayer_cb, gpd, gpl);
 			
 			/* delete 'button' */
@@ -224,7 +212,9 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		}
 		
 		/* draw backdrop */
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+		//uiBlockSetCol(block, TH_BUT_SETTING1); // fixme: maybe another color
+			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+		//uiBlockSetCol(block, TH_AUTO);
 		
 		/* draw settings */
 		{
@@ -241,7 +231,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			/* onion-skinning */
 			uiBlockBeginAlign(block);
 				uiDefButBitI(block, TOG, GP_LAYER_ONIONSKIN, B_REDR, "Onion-Skin", *xco+160, *yco-26, 140, 20, &gpl->flag, 0, 0, 0, 0, "Ghost frames on either side of frame");
-				uiDefButS(block, NUMSLI, B_REDR, "GStep:",	*xco+160, *yco-46, 140, 20, &gpl->gstep, 0, 120, 0, 0, "Maximum frame range on either side of active frame to show (0 = just 'first' available frame on either side)");
+				uiDefButS(block, NUMSLI, B_REDR, "GStep:",	*xco+160, *yco-46, 140, 20, &gpl->gstep, 0, 120, 0, 0, "Max number of frames on either side of active frame to show (0 = just 'first' available sketch on either side)");
 			uiBlockEndAlign(block);
 			
 			/* options */
@@ -262,21 +252,19 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 /* Draw the contents for a grease-pencil panel. This assumes several things:
  * 	- that panel has been created, is 318 x 204. max yco is 225
  *	- that a toggle for turning on/off gpencil drawing is 150 x 20, starting from (10,225)
+ *		which is basically the top left-hand corner
  * It will return the amount of extra space to extend the panel by
  */
 short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 {
 	uiBut *but;
 	bGPDlayer *gpl;
-	short xco= 10, yco= 155;
+	short xco= 10, yco= 170;
 	
 	/* draw gpd settings first */
 	{
-		/* show status info button */
-		uiDefButBitI(block, TOG, GP_DATA_DISPINFO, B_REDR, "Show Status Info", 10, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "Display status info about current status of Grease Pencil");
-		
-		/* add new/duplicate layer buttons */
-		but= uiDefBut(block, BUT, B_REDR, "Add New Layer", 10,182,150,20, 0, 0, 0, 0, 0, "Adds a new Grease Pencil Layer");
+		/* add new layer buttons */
+		but= uiDefBut(block, BUT, B_REDR, "Add New Layer", 10,205,150,20, 0, 0, 0, 0, 0, "Adds a new Grease Pencil Layer");
 		uiButSetFunc(but, gp_ui_addlayer_cb, gpd, NULL);
 		
 		
@@ -285,13 +273,9 @@ short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 		
 		/* 'view align' button (naming depends on context) */
 		if (sa->spacetype == SPACE_VIEW3D)
-			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Draw in 3D", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added in 3D-space");
+			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Sketch in 3D", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added in 3D-space");
 		else if (sa->spacetype != SPACE_SEQ) /* not available for sequencer yet */
 			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Stick to View", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added on 2d-canvas");
-		
-		/* show edit-in-action button */
-		but= uiDefButBitI(block, TOG, GP_DATA_EDITTIME, B_REDR, "Edit Timing", 170, 182, 150, 20, &gpd->flag, 0, 0, 0, 0, "Edit timing of frames for the Grease Pencil block");
-		uiButSetFunc(but, gp_ui_dotime_cb, gpd, NULL);
 	}
 	
 	/* draw for each layer */

@@ -134,7 +134,7 @@ static void seq_panel_gpencil(short cntrl)	// SEQ_HANDLER_GREASEPENCIL
 		uiNewPanelHeight(block, 204);
 		
 		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View");
+		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View (draw using Shift-LMB)");
 		
 		/* extend the panel if the contents won't fit */
 		newheight= draw_gpencil_panel(block, gpd, curarea); 

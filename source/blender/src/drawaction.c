@@ -89,6 +89,7 @@
 
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
+#include "BSE_drawview.h"
 #include "BSE_editaction_types.h"
 #include "BSE_editipo.h"
 #include "BSE_time.h"
@@ -467,7 +468,7 @@ static void draw_channel_names(void)
 			bActionGroup *grp = NULL;
 			short indent= 0, offset= 0, sel= 0, group=0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
-			char name[32];
+			char name[64];
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
@@ -625,6 +626,70 @@ static void draw_channel_names(void)
 					sprintf(name, "Constraint");
 				}
 					break;
+				case ACTTYPE_GPDATABLOCK: /* gpencil datablock */
+				{
+					bGPdata *gpd = (bGPdata *)ale->data;
+					ScrArea *sa = (ScrArea *)ale->owner;
+					
+					indent = 0;
+					group= 3;
+					
+					/* only show expand if there are any channels */
+					if (gpd->layers.first) {
+						if (gpd->flag & GP_DATA_EXPAND)
+							expand = ICON_TRIA_DOWN;
+						else
+							expand = ICON_TRIA_RIGHT;
+					}
+					
+					switch (sa->spacetype) {
+						case SPACE_VIEW3D:
+						{
+							/* this shouldn't cause any overflow... */
+							sprintf(name, "3D-View: <%s>", view3d_get_name(sa->spacedata.first));
+							special= ICON_VIEW3D;
+						}
+							break;
+						case SPACE_NODE:
+						{
+							SpaceNode *snode= sa->spacedata.first;
+							char treetype[12];
+							
+							if (snode->treetype == 1)
+								sprintf(treetype, "Composite");
+							else
+								sprintf(treetype, "Material");
+							sprintf(name, "Nodes: %s", treetype);
+							
+							special= ICON_NODE;
+						}
+							break;
+						case SPACE_SEQ:
+						{
+							SpaceSeq *sseq= sa->spacedata.first;
+							char imgpreview[10];
+							
+							switch (sseq->mainb) {
+								case 1: 	sprintf(imgpreview, "Image..."); 	break;
+								case 2: 	sprintf(imgpreview, "Luma..."); 	break;
+								case 3: 	sprintf(imgpreview, "Chroma...");	break;
+								case 4: 	sprintf(imgpreview, "Histogram");	break;
+								
+								default:	sprintf(imgpreview, "Sequence");	break;
+							}
+							sprintf(name, "Sequencer: %s", imgpreview);
+							
+							special= ICON_SEQUENCE;
+						}
+							break;
+						
+						default:
+							sprintf(name, "GP-Data");
+							special= -1;
+							break;
+					}
+				}
+					break;
 				case ACTTYPE_GPLAYER: /* gpencil layer */
 				{
 					bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -632,7 +697,8 @@ static void draw_channel_names(void)
 					indent = 0;
 					special = -1;
 					expand = -1;
-						
+					group = 1;
+					
 					if (EDITABLE_GPL(gpl))
 						protect = ICON_UNLOCKED;
 					else
@@ -651,8 +717,19 @@ static void draw_channel_names(void)
 
 			/* now, start drawing based on this information */
 			/* draw backing strip behind channel name */
-			if (group == 2) {
-				/* only for group-channels */
+			if (group == 3) {
+				/* only for gp-data channels */
+				if (ale->owner == curarea) // fixme... currently useless
+					BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+				else
+					BIF_ThemeColorShade(TH_GROUP, 20);
+				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+				gl_round_box(GL_POLYGON, x,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+				
+				offset = 0;
+			}
+			else if (group == 2) {
+				/* only for action group channels */
 				if (ale->flag & AGRP_ACTIVE)
 					BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
 				else
@@ -1146,12 +1223,6 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 					G.saction->action = OBACT->action;
 				else
 					G.saction->action= NULL;
-			}
-				break;
-			case SACTCONT_GPENCIL:
-			{
-				/* this searching could be slow (so users should pin after this is found) */
-				G.saction->gpd= gpencil_data_getetime(G.curscreen);
 			}
 				break;
 		}

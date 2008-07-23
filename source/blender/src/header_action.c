@@ -1683,7 +1683,7 @@ void action_buttons(void)
 						  "Channel", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
 		}
-		else if ((G.saction->gpd) && (G.saction->mode==SACTCONT_GPENCIL)) {
+		else if (G.saction->mode==SACTCONT_GPENCIL) {
 			xmax= GetButStringLength("Channel");
 			uiDefPulldownBut(block, action_gplayermenu, NULL, 
 						  "Channel", xco, -2, xmax-3, 24, "");
@@ -1722,24 +1722,7 @@ void action_buttons(void)
 	xco += (90 + 8);
 	
 	/* MODE-DEPENDENT DRAWING */
-	if (G.saction->mode == SACTCONT_GPENCIL) {
-		char gp_name[64];
-		
-		/* pin button */
-		uiDefIconButS(block, ICONTOG, B_ACTPIN, ICON_PIN_DEHLT, xco,0,XIC,YIC, &G.saction->pin, 0, 0, 0, 0, "Keeps this view displaying the current data regardless of what Grease Pencil set is active");
-		xco += (XIC + 5);
-		
-		/* just a simple string to help identify if any content */
-		glRasterPos2f((float)xco, 5.0);
-		BIF_RasterPos((float)xco, 5.0);	// stupid texture fonts
-		BIF_ThemeColor(TH_TEXT);
-		
-		sprintf(gp_name, (G.saction->gpd)?"Grease Pencil Data":"<None>");
-		xmax= GetButStringLength(gp_name);
-		BIF_DrawString(uiBlockGetCurFont(block), gp_name, (U.transopts & USER_TR_BUTTONS));
-		xco += xmax;
-	}
-	else {
+	if (G.saction->mode != SACTCONT_GPENCIL) {
 		/* NAME ETC */
 		ob= OBACT;
 		from = (ID *)ob;

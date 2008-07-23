@@ -53,8 +53,6 @@ struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd);
 
 struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
 short gpencil_data_setactive(struct ScrArea *sa, struct bGPdata *gpd);
-struct bGPdata *gpencil_data_getetime(struct bScreen *sc);
-void gpencil_data_setetime(struct bScreen *sc, struct bGPdata *gpd);
 
 void gpencil_frame_delete_laststroke(struct bGPDframe *gpf);
 

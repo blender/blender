@@ -131,8 +131,8 @@ typedef struct bGPdata {
 #define GP_DATA_DISP		(1<<0)
 	/* show debugging info in viewport (i.e. status print) */
 #define GP_DATA_DISPINFO	(1<<1)
-	/* is the block being shown in Action Editor */
-#define GP_DATA_EDITTIME	(1<<2)
+	/* in Action Editor, show as expanded channel */
+#define GP_DATA_EXPAND	(1<<2)
 	/* is the block overriding all clicks? */
 #define GP_DATA_EDITPAINT	(1<<3)
 	/* new strokes are added in viewport space */

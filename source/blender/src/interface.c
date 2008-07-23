@@ -5651,6 +5651,8 @@ static int ui_auto_themecol(uiBut *but)
 		// (weak!) detect if it is a blockloop
 		if(but->block->dt == UI_EMBOSSP) return TH_MENU_ITEM;
 		return TH_BUT_POPUP;
+	case ROUNDBOX:
+		return TH_PANEL;
 	default:
 		return TH_BUT_NEUTRAL;
 	}

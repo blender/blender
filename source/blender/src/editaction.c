@@ -517,23 +517,43 @@ static void actdata_filter_shapekey (ListBase *act_data, Key *key, int filter_mo
 	}
 }
  
-static void actdata_filter_gpencil (ListBase *act_data, bGPdata *gpd, int filter_mode)
+
+static void actdata_filter_gpencil (ListBase *act_data, bScreen *sc, int filter_mode)
 {
 	bActListElem *ale;
+	ScrArea *sa;
+	bGPdata *gpd;
 	bGPDlayer *gpl;
 	
 	/* check if filtering types are appropriate */
 	if ( !(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU|ACTFILTER_ACTGROUPED)) ) 
 	{
-		/* loop over layers as the conditions are acceptable */
-		for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-			/* only if selected */
-			if (!(filter_mode & ACTFILTER_SEL) || SEL_GPL(gpl)) {
-				/* only if editable */
-				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
-					/* add to list */
-					ale= make_new_actlistelem(gpl, ACTTYPE_GPLAYER, NULL, ACTTYPE_NONE);
-					if (ale) BLI_addtail(act_data, ale);
+		/* loop over spaces in current screen, finding gpd blocks (could be slow!) */
+		for (sa= sc->areabase.first; sa; sa= sa->next) {
+			/* try to get gp data */
+			gpd= gpencil_data_getactive(sa);
+			if (gpd == NULL) continue;
+			
+			/* add gpd as channel too (if for drawing, and it has layers) */
+			if ((filter_mode & ACTFILTER_FORDRAWING) && (gpd->layers.first)) {
+				/* add to list */
+				ale= make_new_actlistelem(gpd, ACTTYPE_GPDATABLOCK, sa, ACTTYPE_SPECIALDATA);
+				if (ale) BLI_addtail(act_data, ale);
+			}
+			
+			/* only add layers if they will be visible (if drawing channels) */
+			if ( !(filter_mode & ACTFILTER_VISIBLE) || (EXPANDED_GPD(gpd)) ) {
+				/* loop over layers as the conditions are acceptable */
+				for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+					/* only if selected */
+					if (!(filter_mode & ACTFILTER_SEL) || SEL_GPL(gpl)) {
+						/* only if editable */
+						if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
+							/* add to list */
+							ale= make_new_actlistelem(gpl, ACTTYPE_GPLAYER, gpd, ACTTYPE_GPDATABLOCK);
+							if (ale) BLI_addtail(act_data, ale);
+						}
+					}
 				}
 			}
 		}
@@ -637,11 +657,8 @@ int get_nearest_key_num (Key *key, short *mval, float *x)
     return (num + 1);
 }
 
-/* this function is used to get a pointer to an action or shapekey 
- * datablock, thus simplying that process.
- */
-/* this function is intended for use */
-void *get_nearest_act_channel (short mval[], short *ret_type)
+/* this function finds the channel that mouse is floating over */
+void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -651,6 +668,9 @@ void *get_nearest_act_channel (short mval[], short *ret_type)
 	
 	int clickmin, clickmax;
 	float x,y;
+	
+	/* init 'owner' return val */
+	*owner= NULL;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -679,6 +699,7 @@ void *get_nearest_act_channel (short mval[], short *ret_type)
 			/* found match */
 			*ret_type= ale->type;
 			data= ale->data;
+			*owner= ale->owner;
 			
 			BLI_freelistN(&act_data);
 			
@@ -854,10 +875,7 @@ void *get_action_context (short *datatype)
 				
 			case SACTCONT_GPENCIL:
 				*datatype= ACTCONT_GPENCIL;
-				if (G.saction->pin)
-					return G.saction->gpd;
-				else
-					return gpencil_data_getetime(G.curscreen);
+				return G.curscreen; // FIXME: add that dopesheet type thing here!
 			
 			default: /* includes SACTCONT_DOPESHEET for now */
 				*datatype= ACTCONT_NONE;
@@ -2327,7 +2345,7 @@ static void numbuts_action ()
 	void *data;
 	short datatype;
 	
-	void *act_channel;
+	void *act_channel, *channel_owner;
 	short chantype;
 	
 	bActionGroup *agrp= NULL;
@@ -2335,6 +2353,7 @@ static void numbuts_action ()
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
 	KeyBlock *kb= NULL;
+	bGPdata *gpd= NULL;
 	bGPDlayer *gpl= NULL;
 	
 	short mval[2];
@@ -2353,7 +2372,7 @@ static void numbuts_action ()
 	getmouseco_areawin(mval);
 	if (mval[0] > NAMEWIDTH) 
 		return;
-	act_channel= get_nearest_act_channel(mval, &chantype);
+	act_channel= get_nearest_act_channel(mval, &chantype, &channel_owner);
 	
 	/* create items for clever-numbut */
 	if (chantype == ACTTYPE_ACHAN) {
@@ -2451,6 +2470,7 @@ static void numbuts_action ()
 	}
 	else if (chantype == ACTTYPE_GPLAYER) {
 		/* Grease-Pencil Layer */
+		gpd= (bGPdata *)channel_owner;
 		gpl= (bGPDlayer *)act_channel;
 		
 		strcpy(str, gpl->info);
@@ -2511,7 +2531,7 @@ static void numbuts_action ()
 		}
 		else if (gpl) {
 			strcpy(gpl->info, str);
-			BLI_uniquename(&( ((bGPdata *)data)->layers ), gpl, "GP_Layer", offsetof(bGPDlayer, info), 128);
+			BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info), 128);
 			
 			if (mute) gpl->flag |= GP_LAYER_HIDE;
 			else gpl->flag &= ~GP_LAYER_HIDE;;
@@ -2871,9 +2891,10 @@ int select_gplayer_channel (bGPdata *gpd, bGPDlayer *gpl, int selectmode)
 		gpl->flag ^= GP_LAYER_SELECT;
 		break;
 	}
+	
 	flag = (gpl->flag & GP_LAYER_SELECT) ? 1 : 0;
-
-	gpencil_layer_setactive(gpd, gpl);
+	if (flag)
+		gpencil_layer_setactive(gpd, gpl);
 
 	return flag;
 }
@@ -3100,11 +3121,11 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 	switch (mode) {
 		case 0: /* all in channel*/
 		{
-			void *act_channel;
+			void *act_channel, *channel_owner;
 			short chantype;
 			
 			/* get channel, and act according to type */
-			act_channel= get_nearest_act_channel(mval, &chantype);
+			act_channel= get_nearest_act_channel(mval, &chantype, &channel_owner);
 			switch (chantype) {
 				case ACTTYPE_GROUP:	
 				{
@@ -3939,8 +3960,7 @@ static void mouse_action (int selectmode)
 static void mouse_actionchannels (short mval[])
 {
 	bAction *act= G.saction->action;
-	bGPdata *gpd= G.saction->gpd;
-	void *data, *act_channel;
+	void *data, *act_channel, *channel_owner;
 	short datatype, chantype;
 	
 	/* determine what type of data we are operating on */
@@ -3948,7 +3968,7 @@ static void mouse_actionchannels (short mval[])
 	if (data == NULL) return;
 	
 	/* get channel to work on */
-	act_channel= get_nearest_act_channel(mval, &chantype);
+	act_channel= get_nearest_act_channel(mval, &chantype, &channel_owner);
 	
 	/* action to take depends on what channel we've got */
 	switch (chantype) {
@@ -4086,8 +4106,17 @@ static void mouse_actionchannels (short mval[])
 				}
 			}
 				break;
+		case ACTTYPE_GPDATABLOCK:
+			{
+				bGPdata *gpd= (bGPdata *)act_channel;
+				
+				/* toggle expand */
+				gpd->flag ^= GP_DATA_EXPAND;
+			}
+				break;
 		case ACTTYPE_GPLAYER:
 			{
+				bGPdata *gpd= (bGPdata *)channel_owner;
 				bGPDlayer *gpl= (bGPDlayer *)act_channel;
 				
 				if (mval[0] >= (NAMEWIDTH-16)) {
@@ -4100,7 +4129,13 @@ static void mouse_actionchannels (short mval[])
 				}
 				else {
 					/* select/deselect */
-					select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+					if (G.qual & LR_SHIFTKEY) {
+						select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+					}
+					else {
+						deselect_gpencil_layers(data, 0);
+						select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+					}
 				}
 			}
 				break;

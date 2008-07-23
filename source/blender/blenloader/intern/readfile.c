@@ -4161,15 +4161,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					link_gpencil(fd, sseq->gpd);
 				}
 			}
-			else if(sl->spacetype==SPACE_ACTION) {
-				SpaceAction *sact= (SpaceAction *)sl;
-				
-				/* WARNING: action-editor doesn't have it's own gpencil data! 
-				 * so only adjust pointer, but DON'T LINK
-				 */
-				if (sact->gpd) 
-					sact->gpd= newdataadr(fd, sact->gpd);
-			}
 		}
 
 		sa->v1= newdataadr(fd, sa->v1);

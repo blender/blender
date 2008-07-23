@@ -383,111 +383,6 @@ short gpencil_data_setactive (ScrArea *sa, bGPdata *gpd)
 	return 0;
 }
 
-/* Find gp-data destined for editing in animation editor (for editing time) */
-bGPdata *gpencil_data_getetime (bScreen *sc)
-{
-	bGPdata *gpd= NULL;
-	ScrArea *sa;
-	
-	/* error checking */
-	if (sc == NULL)
-		return NULL;
-	
-	/* search through areas, checking if an appropriate gp-block is available 
-	 * (this assumes that only one will have the active flag set)
-	 */
-	for (sa= sc->areabase.first; sa; sa= sa->next) {
-		/* handle depending on space type */
-		switch (sa->spacetype) {
-			case SPACE_VIEW3D: /* 3d-view */
-			{
-				View3D *v3d= sa->spacedata.first;
-				gpd= v3d->gpd;
-			}
-				break;
-			case SPACE_NODE: /* Node Editor */
-			{
-				SpaceNode *snode= sa->spacedata.first;
-				gpd= snode->gpd;
-			}
-				break;
-			case SPACE_SEQ: /* Sequence Editor - Image Preview */
-			{
-				SpaceSeq *sseq= sa->spacedata.first;
-				
-				if (sseq->mainb)
-					gpd= sseq->gpd;
-				else
-					gpd= NULL;
-			}
-				break;
-				
-			default: /* unsupported space-type */
-				gpd= NULL;
-				break;
-		}
-		
-		/* check if ok */
-		if ((gpd) && (gpd->flag & GP_DATA_EDITTIME))
-			return gpd;
-	}
-	
-	/* didn't find a match */
-	return NULL;
-}
-
-/* make sure only the specified view can have gp-data for time editing 
- *	- gpd can be NULL, if we wish to make sure no gp-data is being edited
- */
-void gpencil_data_setetime (bScreen *sc, bGPdata *gpd)
-{
-	bGPdata *gpdn= NULL;
-	ScrArea *sa;
-	
-	/* error checking */
-	if (sc == NULL)
-		return;
-	
-	/* search through areas, checking if an appropriate gp-block is available 
-	 * (this assumes that only one will have the active flag set)
-	 */
-	for (sa= sc->areabase.first; sa; sa= sa->next) {
-		/* handle depending on space type */
-		switch (sa->spacetype) {
-			case SPACE_VIEW3D: /* 3d-view */
-			{
-				View3D *v3d= sa->spacedata.first;
-				gpdn= v3d->gpd;
-			}
-				break;
-			case SPACE_NODE: /* Node Editor */
-			{
-				SpaceNode *snode= sa->spacedata.first;
-				gpdn= snode->gpd;
-			}
-				break;
-			case SPACE_SEQ: /* Sequence Editor - Image Preview */
-			{
-				SpaceSeq *sseq= sa->spacedata.first;
-				gpdn= sseq->gpd;
-			}
-				break;
-				
-			default: /* unsupported space-type */
-				gpdn= NULL;
-				break;
-		}
-		
-		/* clear flag if a gp-data block found */
-		if (gpdn)
-			gpdn->flag &= ~GP_DATA_EDITTIME;
-	}
-	
-	/* set active flag for this block (if it is provided) */
-	if (gpd)
-		gpd->flag |= GP_DATA_EDITTIME;
-}
-
 /* -------- GP-Frame API ---------- */
 
 /* delete the last stroke of the given frame */
@@ -1151,7 +1046,7 @@ static void gp_paint_cleanup (tGPsdata *p)
 	//BIF_undo_push("GPencil Stroke");
 	
 	/* force redraw after drawing action */
-	force_draw(0);
+	force_draw_plus(SPACE_ACTION, 0);
 }
 
 /* -------- */

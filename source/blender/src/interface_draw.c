@@ -2351,7 +2351,8 @@ static void ui_draw_roundbox(uiBut *but)
 {
 	glEnable(GL_BLEND);
 	
-	BIF_ThemeColorShadeAlpha(TH_PANEL, but->a2, but->a2);
+	//BIF_ThemeColorShadeAlpha(TH_PANEL, but->a2, but->a2);
+	BIF_ThemeColorShadeAlpha(but->themecol, but->a2, but->a2);
 
 	uiSetRoundBox(but->a1);
 	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, but->min);
