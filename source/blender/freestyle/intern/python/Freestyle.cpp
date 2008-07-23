@@ -9,6 +9,7 @@
 #include "Interface1D.h"
 #include "Nature.h"
 #include "StrokeAttribute.h"
+#include "StrokeShader.h"
 #include "UnaryFunction0D.h"
 #include "UnaryFunction1D.h"
 #include "UnaryPredicate0D.h"
@@ -136,6 +137,7 @@ PyObject *Freestyle_Init( void )
 	Interface1D_Init( module );
 	Nature_Init( module );
 	StrokeAttribute_Init( module );
+	StrokeShader_Init( module );
 	UnaryFunction0D_Init( module );
 	UnaryFunction1D_Init( module );
 	UnaryPredicate0D_Init( module );

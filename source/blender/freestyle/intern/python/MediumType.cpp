@@ -1,7 +1,6 @@
-#include "StrokeShader.h"
+#include "MediumType.h"
 
 #include "Convert.h"
-#include "Interface1D/Stroke.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,37 +8,30 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for StrokeShader instance  -----------*/
-static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds);
-static void StrokeShader___dealloc__(BPy_StrokeShader *self);
-static PyObject * StrokeShader___repr__(BPy_StrokeShader *self);
+/*---------------  Python API function prototypes for MediumType instance  -----------*/
+static int MediumType___init__(BPy_MediumType *self, PyObject *args, PyObject *kwds);
 
-static PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args);
-static PyObject * StrokeShader_shade( BPy_StrokeShader *self , PyObject *args);
-
-/*----------------------StrokeShader instance definitions ----------------------------*/
-static PyMethodDef BPy_StrokeShader_methods[] = {
-	{"getName", ( PyCFunction ) StrokeShader_getName, METH_NOARGS, "（ ）Returns the string of the name of the binary predicate."},
-	{"shade", ( PyCFunction ) StrokeShader_shade, METH_VARARGS, "（Stroke s ）The shading method. This method must be overloaded by inherited classes. The shading method is designed to modify any Stroke's attribute such as Thickness, Color, Geometry, Texture, Blending mode... The basic way to achieve this operation consists in iterating over the StrokeVertices of the Stroke and to modify each one's StrokeAttribute."},
+/*----------------------MediumType instance definitions ----------------------------*/
+static PyMethodDef BPy_MediumType_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_StrokeShader type definition ------------------------------*/
+/*-----------------------BPy_MediumType type definition ------------------------------*/
 
-PyTypeObject StrokeShader_Type = {
+PyTypeObject MediumType_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"StrokeShader",				/* tp_name */
-	sizeof( BPy_StrokeShader ),	/* tp_basicsize */
+	"MediumType",				/* tp_name */
+	sizeof( BPy_MediumType ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
-	(destructor)StrokeShader___dealloc__,	/* tp_dealloc */
+	NULL,	/* tp_dealloc */
 	NULL,                       				/* printfunc tp_print; */
 	NULL,                       				/* getattrfunc tp_getattr; */
 	NULL,                       				/* setattrfunc tp_setattr; */
 	NULL,										/* tp_compare */
-	(reprfunc)StrokeShader___repr__,					/* tp_repr */
+	NULL,					/* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -82,17 +74,17 @@ PyTypeObject StrokeShader_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_StrokeShader_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_MediumType_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	NULL,							/* struct _typeobject *tp_base; */
+	&PyInt_Type,							/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)StrokeShader___init__, /* initproc tp_init; */
+	(initproc)MediumType___init__,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	PyType_GenericNew,		/* newfunc tp_new; */
+	PyType_GenericNew,			/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -110,61 +102,18 @@ PyTypeObject StrokeShader_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyMODINIT_FUNC StrokeShader_Init( PyObject *module )
+
+int MediumType___init__(BPy_MediumType *self, PyObject *args, PyObject *kwds)
 {
-	if( module == NULL )
-		return;
-
-	if( PyType_Ready( &StrokeShader_Type ) < 0 )
-		return;
-
-	Py_INCREF( &StrokeShader_Type );
-	PyModule_AddObject(module, "StrokeShader", (PyObject *)&StrokeShader_Type);
-}
-
-//------------------------INSTANCE METHODS ----------------------------------
-
-int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
-{
-	self->ss = new StrokeShader();
+    if (PyInt_Type.tp_init((PyObject *)self, args, kwds) < 0)
+        return -1;
+	
 	return 0;
 }
-
-void StrokeShader___dealloc__(BPy_StrokeShader* self)
-{
-	delete self->ss;
-    self->ob_type->tp_free((PyObject*)self);
-}
-
-
-PyObject * StrokeShader___repr__(BPy_StrokeShader* self)
-{
-    return PyString_FromFormat("type: %s - address: %p", self->ss->getName().c_str(), self->ss );
-}
-
-
-PyObject * StrokeShader_getName( BPy_StrokeShader *self, PyObject *args)
-{
-	return PyString_FromString( self->ss->getName().c_str() );
-}
-
-PyObject *StrokeShader_shade( BPy_StrokeShader *self , PyObject *args) {
-	PyObject *py_s = 0;
-
-	if(!( PyArg_ParseTuple(args, "O", &py_s) && BPy_Stroke_Check(py_s) )) {
-		cout << "ERROR: StrokeShader_shade" << endl;
-		Py_RETURN_NONE;
-	}
-	
-	self->ss->shade(*( ((BPy_Stroke *) py_s)->s ));
-
-	Py_RETURN_NONE;
-}
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus
 }
 #endif
+

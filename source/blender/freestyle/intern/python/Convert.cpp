@@ -82,6 +82,26 @@ PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa ) {
 	return py_sa;	
 }
 
+PyObject * BPy_MediumType_from_MediumType( unsigned short n ) {
+	PyObject *py_mt =  MediumType_Type.tp_new( &MediumType_Type, 0, 0 );
+
+	PyObject *args = PyTuple_New(1);
+	PyTuple_SetItem( args, 0, PyInt_FromLong(n) );
+	MediumType_Type.tp_init( py_mt, args, 0 );
+	Py_DECREF(args);
+
+	return py_mt;
+}
+
+PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv ) {
+	PyObject *py_sv = StrokeVertex_Type.tp_new( &StrokeVertex_Type, 0, 0 );
+	((BPy_StrokeVertex *) py_sv)->sv = new StrokeVertex( sv );
+	((BPy_StrokeVertex *) py_sv)->py_cp.cp = ((BPy_StrokeVertex *) py_sv)->sv;
+	((BPy_StrokeVertex *) py_sv)->py_cp.py_if0D.if0D = ((BPy_StrokeVertex *) py_sv)->sv;
+
+	return py_sv;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

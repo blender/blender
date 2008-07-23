@@ -2,6 +2,8 @@
 
 #include "Convert.h"
 #include "Interface1D/FEdge.h"
+#include "Interface1D/Stroke.h"
+#include "MediumType.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,6 +126,8 @@ PyTypeObject Interface1D_Type = {
 //-------------------MODULE INITIALIZATION--------------------------------
 PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 {
+	PyObject *tmp;
+	
 	if( module == NULL )
 		return;
 
@@ -136,6 +140,16 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 		return;
 	Py_INCREF( &FEdge_Type );
 	PyModule_AddObject(module, "FEdge", (PyObject *)&FEdge_Type);
+
+	if( PyType_Ready( &Stroke_Type ) < 0 )
+		return;
+	Py_INCREF( &Stroke_Type );
+	PyModule_AddObject(module, "Stroke", (PyObject *)&Stroke_Type);
+
+	tmp = BPy_MediumType_from_MediumType( Stroke::DRY_MEDIUM ); PyDict_SetItemString( Stroke_Type.tp_dict, "DRY_MEDIUM", tmp); Py_DECREF(tmp);
+	tmp = BPy_MediumType_from_MediumType( Stroke::HUMID_MEDIUM ); PyDict_SetItemString( Stroke_Type.tp_dict, "HUMID_MEDIUM", tmp); Py_DECREF(tmp);
+	tmp = BPy_MediumType_from_MediumType( Stroke::OPAQUE_MEDIUM ); PyDict_SetItemString( Stroke_Type.tp_dict, "OPAQUE_MEDIUM", tmp); Py_DECREF(tmp);
+
 	
 }
 

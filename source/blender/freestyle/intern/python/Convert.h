@@ -7,9 +7,11 @@ using namespace Geometry;
 #include "Id.h"
 #include "IntegrationType.h"
 #include "Interface0D.h"
+#include "Interface0D/CurvePoint/StrokeVertex.h"
 #include "Interface0D/SVertex.h"
 #include "Interface1D/FEdge.h"
 #include "Nature.h"
+#include "MediumType.h"
 #include "StrokeAttribute.h"
 
 #ifdef __cplusplus
@@ -32,7 +34,9 @@ PyObject * BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
+PyObject * BPy_MediumType_from_MediumType( unsigned short n );
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );
+PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
