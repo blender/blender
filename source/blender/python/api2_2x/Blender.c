@@ -97,7 +97,8 @@ struct ID; /*keep me up here */
 #include "World.h"
 #include "Types.h"
 #include "Particle.h"
-#include "Freestyle.h"
+
+#include "BPy_Freestyle.h"
 
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
