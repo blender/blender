@@ -32,6 +32,8 @@
 # define VIEWMAPITERATORS_H
 
 #include "ViewMap.h"
+#include "../system/Iterator.h" //soc 
+
 
                   /**********************************/
                   /*                                */
@@ -57,7 +59,7 @@ namespace ViewVertexInternal{
    *  An instance of an orientedViewEdgeIterator can only
    *  be obtained from a ViewVertex by calling edgesBegin() or edgesEnd().
    */
-  class orientedViewEdgeIterator 
+  class orientedViewEdgeIterator : Iterator
   {
   public:
     friend class ViewVertex;
@@ -204,7 +206,7 @@ namespace ViewVertexInternal{
 
   public:
     /*! increments.*/
-    inline void increment()
+    virtual inline void increment()
     {
       if(_Nature & Nature::T_VERTEX)
       { 
@@ -336,11 +338,11 @@ namespace ViewEdgeInternal {
       _previous_edge = _previous_edge->previousEdge();
   } 
 
-    bool isBegin() const {
+    virtual bool isBegin() const {
       return _vertex == _begin;
     }
 
-    bool isEnd() const {
+    virtual bool isEnd() const {
       return (!_vertex) || (_vertex == _begin && _previous_edge);
     }
 
@@ -385,7 +387,7 @@ namespace ViewEdgeInternal {
    *  ::Caution::: the dereferencing operator returns a *pointer* to
    *  the pointed ViewEdge.
    */
-class ViewEdgeIterator
+class ViewEdgeIterator : Iterator
 {
 public:
 

@@ -32,7 +32,7 @@
 # define VIEWMAPADVANCEDITERATORS_H
 
 #include "ViewMap.h"
-
+#include "../system/Iterator.h" //soc 
 
                   /**********************************/
                   /*                                */

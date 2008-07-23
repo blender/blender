@@ -34,13 +34,15 @@
 # include "../view_map/ViewMapAdvancedIterators.h"
 # include "Predicates1D.h"
 
+#include "../system/Iterator.h" //soc 
+
 //using namespace ViewEdgeInternal;
 
 //
 // Adjacency iterator used in the chaining process
 //
 ///////////////////////////////////////////////////////////
-class LIB_STROKE_EXPORT AdjacencyIterator{
+class LIB_STROKE_EXPORT AdjacencyIterator : Iterator {
 protected:
   ViewVertexInternal::orientedViewEdgeIterator _internalIterator;
   bool _restrictToSelection;
@@ -71,10 +73,10 @@ public:
   virtual ~AdjacencyIterator(){
   }
   
-  inline bool isEnd(){
+  virtual inline bool isEnd(){
     return _internalIterator.isEnd();
   }
-  inline bool isBegin(){
+  virtual inline bool isBegin(){
     return _internalIterator.isBegin();
   }
   /*! Returns true if the current ViewEdge is is coming
@@ -94,8 +96,8 @@ public:
     increment();
     return tmp;
   }
-  void increment();
-  
+  virtual void increment();
+
 protected:
   bool isValid(ViewEdge* edge);
 };

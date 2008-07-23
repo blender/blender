@@ -5,6 +5,7 @@
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
+#include "BPy_Iterator.h"
 #include "Interface0D/BPy_CurvePoint.h"
 #include "BPy_Interface1D.h"
 #include "BPy_MediumType.h"
@@ -142,6 +143,7 @@ PyObject *Freestyle_Init( void )
 	IntegrationType_Init( module );
 	Interface0D_Init( module );
 	Interface1D_Init( module );
+	Iterator_Init( module );
 	StrokeAttribute_Init( module );
 	StrokeShader_Init( module );
 	UnaryFunction0D_Init( module );

@@ -38,6 +38,9 @@
 # include "../geometry/Geom.h"
 using namespace std;
 
+#include "../system/Iterator.h" //soc 
+
+
 //
 // Interface0D
 //
@@ -160,7 +163,7 @@ public:
 //
 //////////////////////////////////////////////////
 
-class Interface0DIteratorNested
+class Interface0DIteratorNested : Iterator
 {
 public:
 

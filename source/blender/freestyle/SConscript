@@ -74,6 +74,7 @@ python_sources = [
 					prefix + '/BPy_Interface1D.cpp',
 					prefix + '/Interface1D/BPy_FEdge.cpp',
 					prefix + '/Interface1D/BPy_Stroke.cpp',
+					prefix + '/BPy_Iterator.cpp',
 					prefix + '/BPy_MediumType.cpp',
 					prefix + '/BPy_Nature.cpp',
 					prefix + '/BPy_StrokeAttribute.cpp',
