@@ -7,6 +7,11 @@
 
 class KX_BulletPhysicsController : public KX_IPhysicsController ,public CcdPhysicsController
 {
+private:
+	int m_savedCollisionFlags;
+	short int m_savedCollisionFilterGroup;
+	short int m_savedCollisionFilterMask;
+	MT_Scalar m_savedMass;
 
 public:
 
@@ -30,7 +35,7 @@ public:
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 	virtual	void	getOrientation(MT_Quaternion& orn);
-	virtual	void setOrientation(const MT_Quaternion& orn);
+	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
@@ -39,7 +44,7 @@ public:
 
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
-	virtual void	SuspendDynamics();
+	virtual void	SuspendDynamics(bool ghost);
 	virtual void	RestoreDynamics();
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);

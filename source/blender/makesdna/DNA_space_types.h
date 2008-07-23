@@ -50,6 +50,7 @@ struct RenderInfo;
 struct bNodeTree;
 struct uiBlock;
 struct FileList;
+struct bGPdata;
 
 	/**
 	 * The base structure all the other spaces
@@ -150,6 +151,8 @@ typedef struct SpaceSeq {
 	short zebra;
 	int flag;
 	float zoom;
+	
+	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceSeq;
 
 typedef struct SpaceFile {
@@ -339,6 +342,8 @@ typedef struct SpaceNode {
 	float blockscale;
 	struct ScrArea *area;
 	
+	short blockhandler[8];
+	
 	View2D v2d;
 	
 	struct ID *id, *from;		/* context, no need to save in file? well... pinning... */
@@ -351,11 +356,13 @@ typedef struct SpaceNode {
 	struct bNodeTree *nodetree, *edittree;
 	int treetype, pad;			/* treetype: as same nodetree->type */
 	
+	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceNode;
 
 /* snode->flag */
 #define SNODE_DO_PREVIEW	1
 #define SNODE_BACKDRAW		2
+#define SNODE_DISPGP		4
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
@@ -657,6 +664,7 @@ typedef struct SpaceImaSel {
 #define SEQ_MARKER_TRANS 2
 #define SEQ_DRAW_COLOR_SEPERATED     4
 #define SEQ_DRAW_SAFE_MARGINS        8
+#define SEQ_DRAW_GPENCIL			16
 
 /* space types, moved from DNA_screen_types.h */
 enum {

@@ -3545,7 +3545,7 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *col= NULL;
-		int pixsize= 0;
+		int pixsize= 3;
 		
 		switch(rpass->passtype) {
 			case SCE_PASS_RGBA:
@@ -3580,6 +3580,10 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				col= &shr->mist;
 				pixsize= 1;
 				break;
+			case SCE_PASS_Z:
+				col= &shr->z;
+				pixsize= 1;
+				break;
 			case SCE_PASS_VECTOR:
 				
 				{
@@ -3612,14 +3616,18 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			
 			for(samp= 1; samp<R.osa; samp++, fp+=delta) {
 				col[0]+= fp[0];
-				col[1]+= fp[1];
-				col[2]+= fp[2];
-				if(pixsize) col[3]+= fp[3];
+				if(pixsize>1) {
+					col[1]+= fp[1];
+					col[2]+= fp[2];
+					if(pixsize==4) col[3]+= fp[3];
+				}
 			}
 			col[0]*= weight;
-			col[1]*= weight;
-			col[2]*= weight;
-			if(pixsize) col[3]*= weight;
+			if(pixsize>1) {
+				col[1]*= weight;
+				col[2]*= weight;
+				if(pixsize==4) col[3]*= weight;
+			}
 		}
 	}
 				
@@ -3973,7 +3981,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 
 	/* general shader info, passes */
 	shade_sample_initialize(&ssamp, pa, rl);
-	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
+	addpassflag= rl->passflag & ~(SCE_PASS_COMBINED);
 	addzbuf= rl->passflag & SCE_PASS_Z;
 	
 	if(R.osa)

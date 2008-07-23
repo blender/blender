@@ -42,6 +42,14 @@
 
 #include "GHOST_SystemWin32.h"
 
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
+
 /*
  * According to the docs the mouse wheel message is supported from windows 98 
  * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 

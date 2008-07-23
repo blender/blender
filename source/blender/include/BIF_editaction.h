@@ -48,7 +48,8 @@ enum {
 	ACTTYPE_FILLIPO,
 	ACTTYPE_FILLCON,
 	ACTTYPE_IPO,
-	ACTTYPE_SHAPEKEY
+	ACTTYPE_SHAPEKEY,
+	ACTTYPE_GPLAYER
 };
 
 /* Macros for easier/more consistant state testing */
@@ -69,7 +70,10 @@ enum {
 #define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
 #define SEL_ICU(icu) (icu->flag & IPO_SELECT)
 
-#define NLA_ACTION_SCALED (G.saction->pin==0 && OBACT && OBACT->action)
+#define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED)==0)
+#define SEL_GPL(gpl) ((gpl->flag & GP_LAYER_ACTIVE) || (gpl->flag & GP_LAYER_SELECT))
+
+#define NLA_ACTION_SCALED (G.saction->mode==SACTCONT_ACTION && G.saction->pin==0 && OBACT && OBACT->action)
 #define NLA_IPO_SCALED (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname)
 
 /* constants for setting ipo-interpolation type */
@@ -114,6 +118,8 @@ struct BWinEvent;
 struct Key;
 struct ListBase;
 struct TimeMarker;
+struct bGPdata;
+struct bGPDlayer;
 
 /* Key operations */
 void transform_action_keys(int mode, int dummy);
@@ -141,6 +147,7 @@ void paste_actdata(void);
 /* Group/Channel Operations */
 struct bActionGroup *get_active_actiongroup(struct bAction *act);
 void set_active_actiongroup(struct bAction *act, struct bActionGroup *agrp, short select);
+void actionbone_group_copycolors(struct bActionGroup *grp, short init_new);
 void verify_pchan2achan_grouping(struct bAction *act, struct bPose *pose, char name[]);
 void sync_pchan2achan_grouping(void); 
 void action_groups_group(short add_group);
@@ -166,6 +173,7 @@ void deselect_action_channels(short mode);
 void deselect_actionchannels(struct bAction *act, short mode);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name(struct bAction *act, char *name, int select);
+void select_action_group_channels(struct bAction *act, struct bActionGroup *agrp);
 void selectkeys_leftright (short leftright, short select_mode);
 
 /* Action Markers */
@@ -173,6 +181,24 @@ void action_set_activemarker(struct bAction *act, struct TimeMarker *active, sho
 void action_add_localmarker(struct bAction *act, int frame);
 void action_rename_localmarker(struct bAction *act);
 void action_remove_localmarkers(struct bAction *act);
+
+/* Grease-Pencil Data */
+void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
+
+void deselect_gpencil_layers(struct bGPdata *gpd, short select_mode);
+
+short is_gplayer_frame_selected(struct bGPDlayer *gpl);
+void set_gplayer_frame_selection(struct bGPDlayer *gpl, short mode);
+void select_gpencil_frames(struct bGPDlayer *gpl, short select_mode);
+void select_gpencil_frame(struct bGPDlayer *gpl, int selx, short select_mode);
+void borderselect_gplayer_frames(struct bGPDlayer *gpl, float min, float max, short select_mode);
+
+void delete_gpencil_layers(void);
+void delete_gplayer_frames(struct bGPDlayer *gpl);
+void duplicate_gplayer_frames(struct bGPDlayer *gpd);
+
+void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
+void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 
 /* ShapeKey stuff */
 struct Key *get_action_mesh_key(void);

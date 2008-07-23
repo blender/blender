@@ -503,7 +503,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_PROPERTY:
 			{
 				bPropertyActuator* propact = (bPropertyActuator*) bact->data;
-				CValue* destinationObj = NULL;
+				SCA_IObject* destinationObj = NULL;
 				
 				/*
 				here the destinationobject is searched. problem with multiple scenes: other scenes
@@ -539,7 +539,7 @@ void BL_ConvertActuators(char* maggiename,
 						
 						// does the 'original' for replication exists, and 
 						// is it in a non-active layer ?
-						CValue* originalval = NULL;
+						SCA_IObject* originalval = NULL;
 						if (editobact->ob && !(editobact->ob->lay & activeLayerBitInfo))
 							originalval = converter->FindGameObject(editobact->ob);
 						
@@ -628,6 +628,8 @@ void BL_ConvertActuators(char* maggiename,
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
 				if (conact->type == ACT_CONST_TYPE_ORI) {
+					min = (MT_2_PI * conact->minloc[0])/360.0;
+					max = (MT_2_PI * conact->maxloc[0])/360.0;
 					switch (conact->mode) {
 					case ACT_CONST_DIRPX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;
@@ -1000,7 +1002,7 @@ void BL_ConvertActuators(char* maggiename,
 			}
             
 			tmp = new SCA_2DFilterActuator(gameobj, filtermode, _2dfilter->flag,
-				_2dfilter->float_arg,_2dfilter->int_arg,_2dfilter->texture_flag,ketsjiEngine->GetRasterizer(),rendertools);
+				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),rendertools);
 
 			if (_2dfilter->text)
 			{

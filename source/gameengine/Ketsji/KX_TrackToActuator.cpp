@@ -210,6 +210,18 @@ bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
 	return false;
 }
 
+void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_object];
+	if (h_obj) {
+		if (m_object)
+			m_object->UnregisterActuator(this);
+		m_object = (SCA_IObject*)(*h_obj);
+		m_object->RegisterActuator(this);
+	}
+}
+
+
 bool KX_TrackToActuator::Update(double curtime, bool frame)
 {
 	bool result = false;	

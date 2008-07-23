@@ -60,6 +60,7 @@ public:
 	{
 		if (m_pDeformer)
 			m_pDeformer->Relink (map);
+		KX_GameObject::Relink(map);
 	};
 	void ProcessReplica(KX_GameObject* replica);
 

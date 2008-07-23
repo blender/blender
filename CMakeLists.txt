@@ -197,9 +197,16 @@ IF(UNIX)
 ENDIF(UNIX)
 
 IF(WIN32)
-  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
 
+  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
+  
   SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+
+  # Setup 64bit and 64bit windows systems
+  IF(CMAKE_CL_64)
+    message("64 bit compiler detected.")
+    SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+  ENDIF(CMAKE_CL_64)
 
   SET(PYTHON ${LIBDIR}/python)
   SET(PYTHON_VERSION 2.5)
@@ -214,12 +221,20 @@ IF(WIN32)
   SET(OPENAL_LIB openal_static)
   SET(OPENAL_LIBPATH ${OPENAL}/lib)
 
-  SET(PNG_LIB libpng_st)
+  IF(CMAKE_CL_64)
+  	SET(PNG_LIB libpng)
+  ELSE(CMAKE_CL_64)
+  	SET(PNG_LIB libpng_st)
+  ENDIF(CMAKE_CL_64)
   SET(JPEG_LIB libjpeg)
 
   SET(ZLIB ${LIBDIR}/zlib)
   SET(ZLIB_INC ${ZLIB}/include)
-  SET(ZLIB_LIB libz)
+  IF(CMAKE_CL_64)
+  	SET(ZLIB_LIB zlib)
+  ELSE(CMAKE_CL_64)
+  	SET(ZLIB_LIB libz)
+  ENDIF(CMAKE_CL_64)
   SET(ZLIB_LIBPATH ${ZLIB}/lib)
   
   SET(PTHREADS ${LIBDIR}/pthreads)
@@ -302,7 +317,11 @@ IF(WIN32)
   
   SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
-  SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib")
+  IF(CMAKE_CL_64)
+  SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib;MSVCRT.lib ")
+  ELSE(CMAKE_CL_64)
+  SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib ")
+  ENDIF(CMAKE_CL_64)
   SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
 ENDIF(WIN32)
 

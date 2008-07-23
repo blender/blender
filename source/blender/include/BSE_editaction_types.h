@@ -38,7 +38,8 @@ typedef enum ALE_KEYTYPE {
 	ALE_NONE = 0,
 	ALE_IPO,	
 	ALE_ICU,
-	ALE_GROUP	
+	ALE_GROUP,
+	ALE_GPFRAME,
 } ALE_KEYTYPE;
 
 /* This struct defines a structure used for quick access */
@@ -78,7 +79,8 @@ typedef enum ACTFILTER_FLAGS {
 typedef enum ACTCONT_TYPES {
 	ACTCONT_NONE = 0,
 	ACTCONT_ACTION,
-	ACTCONT_SHAPEKEY
+	ACTCONT_SHAPEKEY,
+	ACTCONT_GPENCIL
 } ACTCONT_TYPES;
 
 #endif

@@ -185,7 +185,7 @@ public:
 
 	virtual
 		void
-		Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text, short textureflag)=0;
+		Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)=0;
 
 	virtual
 		void

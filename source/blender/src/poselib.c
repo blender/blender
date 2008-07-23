@@ -756,6 +756,13 @@ static void poselib_keytag_pose (tPoseLib_PreviewData *pld)
  */
 static void poselib_preview_get_next (tPoseLib_PreviewData *pld, int step)
 {
+	/* check if we no longer have search-string, but don't have any marker */
+	if (pld->marker == NULL) {
+		if ((step) && (pld->searchstr[0] == 0))
+			pld->marker= pld->act->markers.first;
+	}	
+	
+	/* the following operations assume that there is a starting point and direction */
 	if ((pld->marker) && (step)) {
 		/* search-string dictates a special approach */
 		if (pld->searchstr[0]) {
@@ -1262,9 +1269,14 @@ void poselib_preview_poses (Object *ob, short apply_active)
 					/* get search-string */
 					index= pld.search_cursor;
 					
-					memcpy(&tempstr[0], &pld.searchstr[0], index);
-					tempstr[index]= '|';
-					memcpy(&tempstr[index+1], &pld.searchstr[index], 64-index);
+					if (IN_RANGE(index, 0, 64)) {
+						memcpy(&tempstr[0], &pld.searchstr[0], index);
+						tempstr[index]= '|';
+						memcpy(&tempstr[index+1], &pld.searchstr[index], 64-index);
+					}
+					else {
+						strncpy(tempstr, pld.searchstr, 64);
+					}
 					
 					/* get marker name */
 					if (pld.marker)

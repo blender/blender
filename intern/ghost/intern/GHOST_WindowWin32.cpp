@@ -48,6 +48,14 @@
 #define M_PI 3.1415926536
 #endif
 
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
+
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
 HGLRC GHOST_WindowWin32::s_firsthGLRc = NULL;

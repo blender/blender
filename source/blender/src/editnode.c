@@ -82,6 +82,7 @@
 #include "BLI_storage_types.h"
 
 #include "BDR_editobject.h"
+#include "BDR_gpencil.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf_types.h"
@@ -2305,6 +2306,7 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 	SpaceNode *snode= sa->spacedata.first;
 	ListBase *lb= &sa->uiblocks;
 	ListBase listb= *lb;
+	uiBlock *block;
 	bNode *node;
 	rctf rect;
 	void *prev, *next;
@@ -2319,13 +2321,36 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 		return UI_NOTHING;
 	}
 	
+	/* evil hack: try to do grease-pencil floating panel (like for nodes) */
+	block= uiGetBlock("nodes_panel_gpencil", sa);
+	if (block) {
+		/* try to process events here... if failed, just carry on */
+			/* when there's menus, the prev pointer becomes zero! */
+		prev= ((struct Link *)block)->prev;
+		next= ((struct Link *)block)->next;
+		((struct Link *)block)->prev= NULL;
+		((struct Link *)block)->next= NULL;
+		
+		lb->first= lb->last= block;
+		retval= uiDoBlocks(lb, event, 1);
+		
+		((struct Link *)block)->prev= prev;
+		((struct Link *)block)->next= next;
+		
+		*lb= listb;
+		
+		/* if something happened, get the heck outta here */
+		if (retval != UI_NOTHING)
+			return retval;
+	}
+	
+	
 	rect.xmin -= 2.0f;
 	rect.ymin -= 2.0f;
 	rect.xmax = rect.xmin + 4.0f;
 	rect.ymax = rect.ymin + 4.0f;
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		uiBlock *block;
 		char str[32];
 		
 		/* retreive unique block name, see also drawnode.c */
@@ -2369,14 +2394,16 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(snode->nodetree==NULL) return;
 	
 	if(val) {
-
-		if( node_uiDoBlocks(sa, event)!=UI_NOTHING ) event= 0;	
-
+		if( node_uiDoBlocks(sa, event)!=UI_NOTHING ) event= 0;
+		
 		fromlib= (snode->id && snode->id->lib);
 		
 		switch(event) {
 		case LEFTMOUSE:
-			if(fromlib) {
+			if(gpencil_do_paint(sa)) {
+				return;
+			}
+			else if(fromlib) {
 				if(node_mouse_groupheader(snode)==0)
 					node_mouse_select(snode, event);
 			}

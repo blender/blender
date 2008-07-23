@@ -61,6 +61,8 @@ typedef unsigned long uint_ptr;
 #include "KX_RayCast.h"
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
+#include "SCA_IActuator.h"
+#include "SCA_ISensor.h"
 
 // This file defines relationships between parents and children
 // in the game engine.
@@ -222,6 +224,10 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		RemoveParent(scene);
 		obj->GetSGNode()->AddChild(GetSGNode());
 
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->SuspendDynamics(true);
+		}
 		// Set us to our new scale, position, and orientation
 		scale1[0] = scale1[0]/scale2[0];
 		scale1[1] = scale1[1]/scale2[1];
@@ -258,6 +264,10 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 		if (!rootlist->SearchValue(this))
 			// object was not in root list, add it now and increment ref count
 			rootlist->Add(AddRef());
+		if (m_pPhysicsController1) 
+		{
+			m_pPhysicsController1->RestoreDynamics();
+		}
 	}
 }
 
@@ -714,8 +724,12 @@ MT_Vector3 KX_GameObject::GetAngularVelocity(bool local)
 
 void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 {
-	if (m_pPhysicsController1)
+	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
+		// don't update physic controller if the object is a child:
+		// 1) the transformation will not be right
+		// 2) in this case, the physic controller is necessarily a static object
+		//    that is updated from the normal kinematic synchronization
 		m_pPhysicsController1->setPosition(trans);
 	}
 
@@ -727,25 +741,22 @@ void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 
 void KX_GameObject::NodeSetLocalOrientation(const MT_Matrix3x3& rot)
 {
-	if (m_pPhysicsController1)
+	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
-		m_pPhysicsController1->setOrientation(rot.getRotation());
+		// see note above
+		m_pPhysicsController1->setOrientation(rot);
 	}
 	if (GetSGNode())
 		GetSGNode()->SetLocalOrientation(rot);
-	else
-	{
-		int i;
-		i=0;
-	}
 }
 
 
 
 void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 {
-	if (m_pPhysicsController1)
+	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
 	{
+		// see note above
 		m_pPhysicsController1->setScaling(scale);
 	}
 	
@@ -832,7 +843,7 @@ void KX_GameObject::Resume(void)
 	}
 }
 
-void KX_GameObject::Suspend(void)
+void KX_GameObject::Suspend()
 {
 	if ((!m_ignore_activity_culling) 
 		&& (!m_suspended))  {
@@ -875,6 +886,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
 	{"setParent", (PyCFunction)KX_GameObject::sPySetParent,METH_O},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
+	{"getChildren", (PyCFunction)KX_GameObject::sPyGetChildren,METH_NOARGS},
+	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
@@ -1292,6 +1305,43 @@ PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 	Py_RETURN_NONE;
 }
 
+
+static void walk_children(SG_Node* node, CListValue* list, bool recursive)
+{
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		CValue* childobj = (CValue*)childnode->GetSGClientObject();
+		if (childobj != NULL) // This is a GameObject
+		{
+			// add to the list
+			list->Add(childobj->AddRef());
+		}
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		if (recursive || childobj==NULL) {
+			walk_children(childnode, list, recursive);
+		}
+	}
+}
+
+PyObject* KX_GameObject::PyGetChildren(PyObject* self)
+{
+	CListValue* list = new CListValue();
+	walk_children(m_pSGNode, list, 0);
+	return list;
+}
+
+PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
+{
+	CListValue* list = new CListValue();
+	walk_children(m_pSGNode, list, 1);
+	return list;
+}
+
 PyObject* KX_GameObject::PyGetMesh(PyObject* self, 
 								   PyObject* args, 
 								   PyObject* kwds)
@@ -1660,6 +1710,20 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
  * --------------------------------------------------------------------- */
 void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)	
 {
-	/* intentionally empty ? */
+	// we will relink the sensors and actuators that use object references
+	// if the object is part of the replicated hierarchy, use the new
+	// object reference instead
+	SCA_SensorList& sensorlist = GetSensors();
+	SCA_SensorList::iterator sit;
+	for (sit=sensorlist.begin(); sit != sensorlist.end(); sit++)
+	{
+		(*sit)->Relink(map_parameter);
+	}
+	SCA_ActuatorList& actuatorlist = GetActuators();
+	SCA_ActuatorList::iterator ait;
+	for (ait=actuatorlist.begin(); ait != actuatorlist.end(); ait++)
+	{
+		(*ait)->Relink(map_parameter);
+	}
 }
 

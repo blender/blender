@@ -76,10 +76,10 @@ public:
 	void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
 
-	void	SuspendDynamics();
+	void	SuspendDynamics(bool);
 	void	RestoreDynamics();
 	virtual	void	getOrientation(MT_Quaternion& orn);
-	virtual	void setOrientation(const MT_Quaternion& orn);
+	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);

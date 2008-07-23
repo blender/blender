@@ -112,6 +112,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_fileglobal_types.h"
@@ -1565,6 +1566,32 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_gpencil(WriteData *wd, bGPdata *gpd)
+{
+	bGPDlayer *gpl;
+	bGPDframe *gpf;
+	bGPDstroke *gps;
+	
+	/* write gpd data block to file */
+	writestruct(wd, DATA, "bGPdata", 1, gpd);
+	
+	/* write grease-pencil layers to file */
+	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+		writestruct(wd, DATA, "bGPDlayer", 1, gpl);
+		
+		/* write this layer's frames to file */
+		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+			writestruct(wd, DATA, "bGPDframe", 1, gpf);
+			
+			/* write strokes */
+			for (gps= gpf->strokes.first; gps; gps= gps->next) {
+				writestruct(wd, DATA, "bGPDstroke", 1, gps);
+				writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+			}
+		}
+	}
+}
+
 static void write_screens(WriteData *wd, ListBase *scrbase)
 {
 	bScreen *sc;
@@ -1610,11 +1637,12 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 			sl= sa->spacedata.first;
 			while(sl) {
 				if(sl->spacetype==SPACE_VIEW3D) {
-					View3D *v3d= (View3D*) sl;
+					View3D *v3d= (View3D *) sl;
 					writestruct(wd, DATA, "View3D", 1, v3d);
 					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
 					if(v3d->clipbb) writestruct(wd, DATA, "BoundBox", 1, v3d->clipbb);
+					if(v3d->gpd) write_gpencil(wd, v3d->gpd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					writestruct(wd, DATA, "SpaceIpo", 1, sl);
@@ -1626,7 +1654,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceFile", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_SEQ) {
+					SpaceSeq *sseq= (SpaceSeq *)sl;
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
+					if(sseq->gpd) write_gpencil(wd, sseq->gpd);
 				}
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
@@ -1689,7 +1719,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NODE){
+					SpaceNode *snode= (SpaceNode *)sl;
 					writestruct(wd, DATA, "SpaceNode", 1, sl);
+					if(snode->gpd) write_gpencil(wd, snode->gpd);
 				}
 				sl= sl->next;
 			}

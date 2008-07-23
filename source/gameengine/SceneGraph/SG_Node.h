@@ -205,7 +205,7 @@ private:
 
 		void		
 	ProcessSGReplica(
-		SG_Node* replica
+		SG_Node** replica
 	);
 
 	/**
