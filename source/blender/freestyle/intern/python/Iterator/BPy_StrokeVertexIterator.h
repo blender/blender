@@ -2,7 +2,6 @@
 #define FREESTYLE_PYTHON_STROKEVERTEXITERATOR_H
 
 #include "../../stroke/StrokeIterators.h"
-using namespace StrokeInternal;
 
 #include "../BPy_Iterator.h"
 
@@ -21,7 +20,7 @@ extern PyTypeObject StrokeVertexIterator_Type;
 /*---------------------------Python BPy_StrokeVertexIterator structure definition----------*/
 typedef struct {
 	BPy_Iterator py_it;
-	StrokeVertexIterator *sv_it;
+	StrokeInternal::StrokeVertexIterator *sv_it;
 } BPy_StrokeVertexIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

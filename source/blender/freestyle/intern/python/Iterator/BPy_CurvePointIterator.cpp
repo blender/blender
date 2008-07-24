@@ -121,13 +121,13 @@ int CurvePointIterator___init__(BPy_CurvePointIterator *self, PyObject *args )
 	    return -1;
 
 	if( !obj ){
-		self->cp_it = new CurvePointIterator();
+		self->cp_it = new CurveInternal::CurvePointIterator();
 		
 	} else if( BPy_CurvePointIterator_Check(obj) ) {
-		self->cp_it = new CurvePointIterator(*( ((BPy_CurvePointIterator *) obj)->cp_it ));
+		self->cp_it = new CurveInternal::CurvePointIterator(*( ((BPy_CurvePointIterator *) obj)->cp_it ));
 	
 	} else if( PyFloat_Check(obj) ) {
-		self->cp_it = new CurvePointIterator( PyFloat_AsDouble(obj) );
+		self->cp_it = new CurveInternal::CurvePointIterator( PyFloat_AsDouble(obj) );
 			
 	} else {
 		return -1;

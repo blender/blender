@@ -1,6 +1,7 @@
 #ifndef FREESTYLE_PYTHON_CONVERT_H
 #define FREESTYLE_PYTHON_CONVERT_H
 
+
 #include "../geometry/Geom.h"
 using namespace Geometry;
 
@@ -21,6 +22,17 @@ using namespace Geometry;
 
 // NonTVertex, TVertex, ViewEdge, ViewMap, ViewShape, ViewVertex
 #include "../view_map/ViewMap.h"
+
+// ViewVertexInternal::orientedViewEdgeIterator
+// ViewEdgeInternal::SVertexIterator
+// ViewEdgeInternal::ViewEdgeIterator
+#include "../view_map/ViewMapIterators.h"
+//#####################    IMPORTANT   #####################
+//  Do not use the following namespaces within this file :
+//   - ViewVertexInternal 
+//   - ViewEdgeInternal
+//##########################################################
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +57,7 @@ PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
+PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it );
 PyObject * BPy_SShape_from_SShape( SShape& ss );
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );
 PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );

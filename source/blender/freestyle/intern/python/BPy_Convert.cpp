@@ -9,6 +9,7 @@
 #include "Interface0D/BPy_ViewVertex.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_ViewEdge.h"
+#include "Iterator/BPy_orientedViewEdgeIterator.h"
 #include "BPy_SShape.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
@@ -149,6 +150,12 @@ PyObject * BPy_SShape_from_SShape( SShape& ss ) {
 	return py_ss;	
 }
 
+PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it ) {
+	PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new( &orientedViewEdgeIterator_Type, 0, 0 );
+	((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it = new ViewVertexInternal::orientedViewEdgeIterator( ove_it );
+
+	return py_ove_it;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

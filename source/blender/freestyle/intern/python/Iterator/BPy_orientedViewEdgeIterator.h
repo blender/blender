@@ -3,7 +3,6 @@
 
 #include "../../stroke/Stroke.h"
 #include "../../view_map/ViewMapIterators.h"
-using namespace ViewVertexInternal;
 
 #include "../BPy_Iterator.h"
 
@@ -22,7 +21,7 @@ extern PyTypeObject orientedViewEdgeIterator_Type;
 /*---------------------------Python BPy_orientedViewEdgeIterator structure definition----------*/
 typedef struct {
 	BPy_Iterator py_it;
-	orientedViewEdgeIterator *ove_it;
+	ViewVertexInternal::orientedViewEdgeIterator *ove_it;
 } BPy_orientedViewEdgeIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

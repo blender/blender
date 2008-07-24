@@ -115,13 +115,13 @@ int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
 	    return -1;
 
 	if( obj1 && BPy_ViewEdgeIterator_Check(obj1)  ) {
-		self->ve_it = new ViewEdgeIterator(*( ((BPy_ViewEdgeIterator *) obj1)->ve_it ));
+		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*( ((BPy_ViewEdgeIterator *) obj1)->ve_it ));
 	
 	} else {
 		ViewEdge *begin = ( obj1 && BPy_ViewEdge_Check(obj1) ) ? ((BPy_ViewEdge *) obj1)->ve : 0;
 		bool orientation = ( obj2 && PyBool_Check(obj2) ) ? bool_from_PyBool(obj2) : true;
 		
-		self->ve_it = new ViewEdgeIterator( begin, orientation);
+		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator( begin, orientation);
 		
 	}
 		

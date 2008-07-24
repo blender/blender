@@ -2,7 +2,6 @@
 #define FREESTYLE_PYTHON_CURVEPOINTITERATOR_H
 
 #include "../../stroke/CurveIterators.h"
-using namespace CurveInternal;
 
 #include "../BPy_Iterator.h"
 
@@ -21,7 +20,7 @@ extern PyTypeObject CurvePointIterator_Type;
 /*---------------------------Python BPy_CurvePointIterator structure definition----------*/
 typedef struct {
 	BPy_Iterator py_it;
-	CurvePointIterator *cp_it;
+	CurveInternal::CurvePointIterator *cp_it;
 } BPy_CurvePointIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

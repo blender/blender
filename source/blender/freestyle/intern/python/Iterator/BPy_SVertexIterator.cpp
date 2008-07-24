@@ -121,21 +121,22 @@ int SVertexIterator___init__(BPy_SVertexIterator *self, PyObject *args )
 	    return -1;
 
 	if( !obj1 ){
-		self->sv_it = new SVertexIterator();
+		self->sv_it = new ViewEdgeInternal::SVertexIterator();
 		
 	} else if( BPy_SVertexIterator_Check(obj1) ) {
-		self->sv_it = new SVertexIterator(*( ((BPy_SVertexIterator *) obj1)->sv_it ));
+		self->sv_it = new ViewEdgeInternal::SVertexIterator(*( ((BPy_SVertexIterator *) obj1)->sv_it ));
 	
 	} else if(  obj1 && BPy_SVertex_Check(obj1) &&
 	 			obj2 && BPy_SVertex_Check(obj2) &&
 				obj3 && BPy_FEdge_Check(obj3) &&
 				obj4 && BPy_FEdge_Check(obj4) ) {
 
-		self->sv_it = new SVertexIterator(	((BPy_SVertex *) obj1)->sv,
-											((BPy_SVertex *) obj2)->sv,
-											((BPy_FEdge *) obj3)->fe,
-											((BPy_FEdge *) obj4)->fe,
-											f );
+		self->sv_it = new ViewEdgeInternal::SVertexIterator(
+							((BPy_SVertex *) obj1)->sv,
+							((BPy_SVertex *) obj2)->sv,
+							((BPy_FEdge *) obj3)->fe,
+							((BPy_FEdge *) obj4)->fe,
+							f );
 			
 	} else {
 		return -1;

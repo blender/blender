@@ -2,7 +2,6 @@
 #define FREESTYLE_PYTHON_SVERTEXITERATOR_H
 
 #include "../../view_map/ViewMapIterators.h"
-using namespace ViewEdgeInternal;
 
 #include "../BPy_Iterator.h"
 
@@ -22,7 +21,7 @@ extern PyTypeObject SVertexIterator_Type;
 /*---------------------------Python BPy_SVertexIterator structure definition----------*/
 typedef struct {
 	BPy_Iterator py_it;
-	SVertexIterator *sv_it;
+	ViewEdgeInternal::SVertexIterator *sv_it;
 } BPy_SVertexIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

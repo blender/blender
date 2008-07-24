@@ -120,10 +120,10 @@ int StrokeVertexIterator___init__(BPy_StrokeVertexIterator *self, PyObject *args
 	    return -1;
 
 	if( !obj ){
-		self->sv_it = new StrokeVertexIterator();
+		self->sv_it = new StrokeInternal::StrokeVertexIterator();
 		
 	} else if( BPy_StrokeVertexIterator_Check(obj) ) {
-		self->sv_it = new StrokeVertexIterator(*( ((BPy_StrokeVertexIterator *) obj)->sv_it ));
+		self->sv_it = new StrokeInternal::StrokeVertexIterator(*( ((BPy_StrokeVertexIterator *) obj)->sv_it ));
 	
 	} else {
 		return -1;

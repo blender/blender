@@ -112,9 +112,9 @@ int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObje
 	    return -1;
 
 	if( !obj )
-		self->ove_it = new orientedViewEdgeIterator();
+		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator();
 	else if( BPy_orientedViewEdgeIterator_Check(obj) )
-		self->ove_it = new orientedViewEdgeIterator(*( ((BPy_orientedViewEdgeIterator *) obj)->ove_it ));
+		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*( ((BPy_orientedViewEdgeIterator *) obj)->ove_it ));
 	
 	self->py_it.it = self->ove_it;
 	
