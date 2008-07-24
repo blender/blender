@@ -163,7 +163,7 @@ public:
 //
 //////////////////////////////////////////////////
 
-class Interface0DIteratorNested : Iterator
+class Interface0DIteratorNested : public Iterator
 {
 public:
 
@@ -215,7 +215,7 @@ public:
  *  where \a it1 and \a it2 are 2 Interface0DIterator.
  *  Otherwise, incrementing \a it1 will also increment \a it2.
  */
-class Interface0DIterator
+class Interface0DIterator : public Iterator
 {
 public:
 
@@ -248,7 +248,7 @@ public:
   }
 
   /*! Returns the string "Interface0DIterator". */
-  string getExactTypeName() const {
+  virtual string getExactTypeName() const {
     if (!_iterator)
       return "Interface0DIterator";
     return _iterator->getExactTypeName() + "Proxy";
@@ -306,12 +306,12 @@ public:
   }
 
   /*! Increments. */
-  void increment() {
+  virtual void increment() {
     _iterator->increment();
   }
   
   /*! Decrements. */
-  void decrement() {
+  virtual void decrement() {
     _iterator->decrement();
   }
 
@@ -319,14 +319,14 @@ public:
    * first of the 1D element containing the points over
    * which we're iterating.
    */
-  bool isBegin() const {
+  virtual bool isBegin() const {
     return _iterator->isBegin();
   }
 
   /*! Returns true if the pointed Interface0D is after the
    * after the last point of the 1D element we're iterating from.
    */
-  bool isEnd() const {
+  virtual bool isEnd() const {
     return _iterator->isEnd();
   }
 

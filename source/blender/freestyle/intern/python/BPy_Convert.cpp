@@ -105,6 +105,37 @@ PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv ) {
 	return py_sv;
 }
 
+PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv ) {
+	PyObject *py_vv = ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
+	((BPy_ViewVertex *) py_vv)->vv = vv;
+	((BPy_ViewVertex *) py_vv)->py_if0D.if0D = ((BPy_ViewVertex *) py_vv)->vv;
+
+	return py_vv;
+}
+
+PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb ) {
+	PyObject *py_bb = BBox_Type.tp_new( &BBox_Type, 0, 0 );
+	((BPy_BBox *) py_bb)->bb = new BBox< Vec3r >( bb );
+
+	return py_bb;
+}
+
+PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve ) {
+	PyObject *py_ve = ViewEdge_Type.tp_new( &ViewEdge_Type, 0, 0 );
+	((BPy_ViewEdge *) py_ve)->ve = new ViewEdge( ve );
+	((BPy_ViewEdge *) py_ve)->py_if1D.if1D = ((BPy_ViewEdge *) py_ve)->ve;
+
+	return py_ve;
+}
+
+PyObject * BPy_SShape_from_SShape( SShape& ss ) {
+	PyObject *py_ss = SShape_Type.tp_new( &SShape_Type, 0, 0 );
+	((BPy_SShape *) py_ss)->ss = new SShape( ss );
+
+	return py_ss;	
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

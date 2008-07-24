@@ -1,7 +1,5 @@
 #include "BPy_Interface0DIterator.h"
 
-#include "../BPy_Convert.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

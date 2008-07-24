@@ -1142,9 +1142,9 @@ class SShape(_object):
     def ComputeBBox(*args): return _Freestyle.SShape_ComputeBBox(*args)
     def RemoveEdgeFromChain(*args): return _Freestyle.SShape_RemoveEdgeFromChain(*args)
     def RemoveEdge(*args): return _Freestyle.SShape_RemoveEdge(*args)
-    def GetVertexList(*args): return _Freestyle.SShape_GetVertexList(*args)
-    def GetEdgeList(*args): return _Freestyle.SShape_GetEdgeList(*args)
-    def GetChains(*args): return _Freestyle.SShape_GetChains(*args)
+    def getVertexList(*args): return _Freestyle.SShape_getVertexList(*args)
+    def getEdgeList(*args): return _Freestyle.SShape_getEdgeList(*args)
+    def getChains(*args): return _Freestyle.SShape_getChains(*args)
     def bbox(*args): return _Freestyle.SShape_bbox(*args)
     def material(*args): return _Freestyle.SShape_material(*args)
     def materials(*args): return _Freestyle.SShape_materials(*args)
@@ -1566,6 +1566,7 @@ class ViewEdge(Interface1D):
         this = _Freestyle.new_ViewEdge(*args)
         try: self.this.append(this)
         except: self.this = this
+    def duplicate(*args): return _Freestyle.ViewEdge_duplicate(*args)
     __swig_destroy__ = _Freestyle.delete_ViewEdge
     __del__ = lambda self : None;
     def A(*args): return _Freestyle.ViewEdge_A(*args)
@@ -1790,6 +1791,7 @@ class ViewEdgeViewEdgeIterator(_object):
     __swig_setmethods__["userdata"] = _Freestyle.ViewEdgeViewEdgeIterator_userdata_set
     __swig_getmethods__["userdata"] = _Freestyle.ViewEdgeViewEdgeIterator_userdata_get
     if _newclass:userdata = _swig_property(_Freestyle.ViewEdgeViewEdgeIterator_userdata_get, _Freestyle.ViewEdgeViewEdgeIterator_userdata_set)
+    def duplicate(*args): return _Freestyle.ViewEdgeViewEdgeIterator_duplicate(*args)
     def A(*args): return _Freestyle.ViewEdgeViewEdgeIterator_A(*args)
     def B(*args): return _Freestyle.ViewEdgeViewEdgeIterator_B(*args)
     def fedgeA(*args): return _Freestyle.ViewEdgeViewEdgeIterator_fedgeA(*args)
@@ -3247,18 +3249,20 @@ class AdjacencyIterator(_object):
         except: self.this = this
     __swig_destroy__ = _Freestyle.delete_AdjacencyIterator
     __del__ = lambda self : None;
+    def getExactTypeName(*args): return _Freestyle.AdjacencyIterator_getExactTypeName(*args)
     def isEnd(*args): return _Freestyle.AdjacencyIterator_isEnd(*args)
     def isBegin(*args): return _Freestyle.AdjacencyIterator_isBegin(*args)
     def isIncoming(*args): return _Freestyle.AdjacencyIterator_isIncoming(*args)
     def getObject(*args): return _Freestyle.AdjacencyIterator_getObject(*args)
     def __deref__(*args): return _Freestyle.AdjacencyIterator___deref__(*args)
     def increment(*args): return _Freestyle.AdjacencyIterator_increment(*args)
-    def getExactTypeName(*args): return _Freestyle.AdjacencyIterator_getExactTypeName(*args)
+    def decrement(*args): return _Freestyle.AdjacencyIterator_decrement(*args)
     def getId(*args): return _Freestyle.AdjacencyIterator_getId(*args)
     def getNature(*args): return _Freestyle.AdjacencyIterator_getNature(*args)
     __swig_setmethods__["userdata"] = _Freestyle.AdjacencyIterator_userdata_set
     __swig_getmethods__["userdata"] = _Freestyle.AdjacencyIterator_userdata_get
     if _newclass:userdata = _swig_property(_Freestyle.AdjacencyIterator_userdata_get, _Freestyle.AdjacencyIterator_userdata_set)
+    def duplicate(*args): return _Freestyle.AdjacencyIterator_duplicate(*args)
     def A(*args): return _Freestyle.AdjacencyIterator_A(*args)
     def B(*args): return _Freestyle.AdjacencyIterator_B(*args)
     def fedgeA(*args): return _Freestyle.AdjacencyIterator_fedgeA(*args)
@@ -3837,13 +3841,17 @@ class CurvePointIterator(Interface0DIteratorNested):
     __swig_destroy__ = _Freestyle.delete_CurvePointIterator
     __del__ = lambda self : None;
     def copy(*args): return _Freestyle.CurvePointIterator_copy(*args)
-    def CastToInterface0DIterator(*args): return _Freestyle.CurvePointIterator_CastToInterface0DIterator(*args)
+    def castToInterface0DIterator(*args): return _Freestyle.CurvePointIterator_castToInterface0DIterator(*args)
     def getExactTypeName(*args): return _Freestyle.CurvePointIterator_getExactTypeName(*args)
     def __eq__(*args): return _Freestyle.CurvePointIterator___eq__(*args)
     def getObject(*args): return _Freestyle.CurvePointIterator_getObject(*args)
     def __deref__(*args): return _Freestyle.CurvePointIterator___deref__(*args)
     def isBegin(*args): return _Freestyle.CurvePointIterator_isBegin(*args)
     def isEnd(*args): return _Freestyle.CurvePointIterator_isEnd(*args)
+    def increment(*args): return _Freestyle.CurvePointIterator_increment(*args)
+    def decrement(*args): return _Freestyle.CurvePointIterator_decrement(*args)
+    def t(*args): return _Freestyle.CurvePointIterator_t(*args)
+    def u(*args): return _Freestyle.CurvePointIterator_u(*args)
     def getX(*args): return _Freestyle.CurvePointIterator_getX(*args)
     def getY(*args): return _Freestyle.CurvePointIterator_getY(*args)
     def getZ(*args): return _Freestyle.CurvePointIterator_getZ(*args)

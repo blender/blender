@@ -4,7 +4,6 @@
 #include "../../view_map/ViewMap.h"
 #include "../BPy_Interface0D.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

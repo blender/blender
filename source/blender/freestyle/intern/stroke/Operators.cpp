@@ -464,14 +464,14 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   CurveInternal::CurvePointIterator end               = _curve->curvePointsEnd(sampling);
   CurveInternal::CurvePointIterator it                = second;
   CurveInternal::CurvePointIterator split             = second;
-  Interface0DIterator it0d                            = it.CastToInterface0DIterator();
+  Interface0DIterator it0d                            = it.castToInterface0DIterator();
   real _min                                           = FLT_MAX;++it;//func(it0d);++it;
   CurveInternal::CurvePointIterator next              = it;++next;
   real tmp;
   
   bool bsplit = false;
   for(; ((it != end) && (next != end)); ++it,++next){
-    it0d = it.CastToInterface0DIterator();
+    it0d = it.castToInterface0DIterator();
     tmp = func(it0d);
     if(tmp < _min){
       _min = tmp;
@@ -600,7 +600,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   CurveInternal::CurvePointIterator end               = _curve->curvePointsEnd(sampling);
   CurveInternal::CurvePointIterator it                = second;
   CurveInternal::CurvePointIterator split             = second;
-  Interface0DIterator it0d                            = it.CastToInterface0DIterator();
+  Interface0DIterator it0d                            = it.castToInterface0DIterator();
   //real _min                                           = func(it0d);++it;
   real _min                                           = FLT_MAX;++it;
   real mean                                           = 0.f;
@@ -612,7 +612,7 @@ void __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredica
   bool bsplit = false;
   for(; ((it != end) && (next != end)); ++it,++next){
     ++count;
-    it0d = it.CastToInterface0DIterator();
+    it0d = it.castToInterface0DIterator();
     if(!pred0d(it0d))
       continue;
     tmp = func(it0d);

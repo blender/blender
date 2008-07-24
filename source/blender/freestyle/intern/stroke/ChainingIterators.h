@@ -42,7 +42,7 @@
 // Adjacency iterator used in the chaining process
 //
 ///////////////////////////////////////////////////////////
-class LIB_STROKE_EXPORT AdjacencyIterator : Iterator {
+class LIB_STROKE_EXPORT AdjacencyIterator : public Iterator {
 protected:
   ViewVertexInternal::orientedViewEdgeIterator _internalIterator;
   bool _restrictToSelection;
@@ -73,6 +73,10 @@ public:
   virtual ~AdjacencyIterator(){
   }
   
+  virtual string getExactTypeName() const {
+    return "AdjacencyIterator";
+  }
+
   virtual inline bool isEnd(){
     return _internalIterator.isEnd();
   }
@@ -97,6 +101,10 @@ public:
     return tmp;
   }
   virtual void increment();
+
+  virtual void decrement(){
+    cerr << "Warning: method decrement() not implemented" << endl;
+  }
 
 protected:
   bool isValid(ViewEdge* edge);

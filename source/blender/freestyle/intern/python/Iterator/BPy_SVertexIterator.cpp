@@ -1,6 +1,5 @@
 #include "BPy_SVertexIterator.h"
 
-#include "../BPy_Convert.h"
 #include "../Interface0D/BPy_SVertex.h"
 #include "../Interface1D/BPy_FEdge.h"
 

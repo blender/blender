@@ -175,7 +175,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 
   // Parse the built winged-edge shape to update post-flags
   set<Vec3r> normalsSet;
-  vector<WVertex*>& wvertices = shape.GetVertexList();
+  vector<WVertex*>& wvertices = shape.getVertexList();
   for(vector<WVertex*>::iterator wv=wvertices.begin(), wvend=wvertices.end();
   wv!=wvend;
   ++wv){
@@ -238,9 +238,9 @@ void WingedEdgeBuilder::buildTriangleStrip( const real *vertices,
     //Then rebuild it:
     if(0 == nTriangle%2) // if nTriangle is even
     {
-      triangleVertices.push_back(currentShape->GetVertexList()[vindices[nTriangle]/3]);
-      triangleVertices.push_back(currentShape->GetVertexList()[vindices[nTriangle+1]/3]);
-      triangleVertices.push_back(currentShape->GetVertexList()[vindices[nTriangle+2]/3]);
+      triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle]/3]);
+      triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle+1]/3]);
+      triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle+2]/3]);
 
       triangleNormals.push_back(Vec3r(normals[nindices[nTriangle]],normals[nindices[nTriangle]+1], normals[nindices[nTriangle]+2]));
       triangleNormals.push_back(Vec3r(normals[nindices[nTriangle+1]],normals[nindices[nTriangle+1]+1],normals[nindices[nTriangle+1]+2]));
@@ -254,9 +254,9 @@ void WingedEdgeBuilder::buildTriangleStrip( const real *vertices,
     }
     else                 // if nTriangle is odd
     {
-      triangleVertices.push_back(currentShape->GetVertexList()[vindices[nTriangle]/3]);
-      triangleVertices.push_back(currentShape->GetVertexList()[vindices[nTriangle+2]/3]);
-      triangleVertices.push_back(currentShape->GetVertexList()[vindices[nTriangle+1]/3]);
+      triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle]/3]);
+      triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle+2]/3]);
+      triangleVertices.push_back(currentShape->getVertexList()[vindices[nTriangle+1]/3]);
 
       triangleNormals.push_back(Vec3r(normals[nindices[nTriangle]],normals[nindices[nTriangle]+1], normals[nindices[nTriangle]+2]));
       triangleNormals.push_back(Vec3r(normals[nindices[nTriangle+2]],normals[nindices[nTriangle+2]+1],normals[nindices[nTriangle+2]+2]));
@@ -306,9 +306,9 @@ void WingedEdgeBuilder::buildTriangles(const real *vertices,
   // Each triplet of vertices is considered as an independent triangle
   for(unsigned i = 0; i < nvertices / 3; i++)
   {
-    triangleVertices.push_back(currentShape->GetVertexList()[vindices[3*i]/3]);
-    triangleVertices.push_back(currentShape->GetVertexList()[vindices[3*i+1]/3]);
-    triangleVertices.push_back(currentShape->GetVertexList()[vindices[3*i+2]/3]);
+    triangleVertices.push_back(currentShape->getVertexList()[vindices[3*i]/3]);
+    triangleVertices.push_back(currentShape->getVertexList()[vindices[3*i+1]/3]);
+    triangleVertices.push_back(currentShape->getVertexList()[vindices[3*i+2]/3]);
 
     triangleNormals.push_back(Vec3r(normals[nindices[3*i]],normals[nindices[3*i]+1], normals[nindices[3*i]+2]));
     triangleNormals.push_back(Vec3r(normals[nindices[3*i+1]],normals[nindices[3*i+1]+1],normals[nindices[3*i+1]+2]));

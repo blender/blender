@@ -134,7 +134,7 @@ namespace CurveInternal {
       return new CurvePointIterator(*this);
     }
 
-    inline Interface0DIterator CastToInterface0DIterator() const{
+    inline Interface0DIterator castToInterface0DIterator() const{
       Interface0DIterator ret(new CurveInternal::CurvePointIterator(*this));
       return ret;
     }
@@ -183,7 +183,9 @@ namespace CurveInternal {
         return true;
       return false;
     }
-  protected:
+ 
+// protected:
+
     virtual void increment() 
     {
       if((_currentn == _n-1) && (_t == 1.f))

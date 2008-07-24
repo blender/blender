@@ -628,24 +628,24 @@ namespace ViewMapIO {
         save(out, vs->sshape()->material(i));
 
       // -> VerticesList (List)
-      tmp = vs->sshape()->GetVertexList().size();
+      tmp = vs->sshape()->getVertexList().size();
       WRITE(tmp);
-      for (vector<SVertex*>::const_iterator i1 = vs->sshape()->GetVertexList().begin();
-	   i1 != vs->sshape()->GetVertexList().end(); i1++)
+      for (vector<SVertex*>::const_iterator i1 = vs->sshape()->getVertexList().begin();
+	   i1 != vs->sshape()->getVertexList().end(); i1++)
 	WRITE_IF_NON_NULL(*i1);
 
       // -> Chains (List)
-      tmp = vs->sshape()->GetChains().size();
+      tmp = vs->sshape()->getChains().size();
       WRITE(tmp);
-      for (vector<FEdge*>::const_iterator i2 = vs->sshape()->GetChains().begin();
-	   i2 != vs->sshape()->GetChains().end(); i2++)
+      for (vector<FEdge*>::const_iterator i2 = vs->sshape()->getChains().begin();
+	   i2 != vs->sshape()->getChains().end(); i2++)
 	WRITE_IF_NON_NULL(*i2);
 
       // -> EdgesList (List)
-      tmp = vs->sshape()->GetEdgeList().size();
+      tmp = vs->sshape()->getEdgeList().size();
       WRITE(tmp);
-      for (vector<FEdge*>::const_iterator i3 = vs->sshape()->GetEdgeList().begin();
-	   i3 != vs->sshape()->GetEdgeList().end(); i3++)
+      for (vector<FEdge*>::const_iterator i3 = vs->sshape()->getEdgeList().begin();
+	   i3 != vs->sshape()->getEdgeList().end(); i3++)
 	WRITE_IF_NON_NULL(*i3);
 
       // ViewEdges (List)

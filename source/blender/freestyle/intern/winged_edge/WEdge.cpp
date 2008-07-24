@@ -249,7 +249,7 @@ WEdge * WEdge::duplicate()
 
 WFace::WFace(WFace& iBrother)
 {
-  _OEdgeList = iBrother.GetEdgeList();
+  _OEdgeList = iBrother.getEdgeList();
   _Normal = iBrother.GetNormal();
   _VerticesNormals = iBrother._VerticesNormals;
   _VerticesTexCoords = iBrother._VerticesTexCoords;
@@ -478,7 +478,7 @@ WShape::WShape(WShape& iBrother)
   _Materials = iBrother._Materials;
   _meanEdgeSize = iBrother._meanEdgeSize;
   iBrother.bbox(_min, _max);
-  vector<WVertex*>& vertexList = iBrother.GetVertexList();
+  vector<WVertex*>& vertexList = iBrother.getVertexList();
   vector<WVertex*>::iterator v=vertexList.begin(), vend=vertexList.end();
   for(;
   v!=vend;
@@ -491,7 +491,7 @@ WShape::WShape(WShape& iBrother)
     AddVertex(newVertex);
   }
 
-  vector<WEdge*>& edgeList = iBrother.GetEdgeList();
+  vector<WEdge*>& edgeList = iBrother.getEdgeList();
   vector<WEdge*>::iterator e=edgeList.begin(), eend=edgeList.end();
   for(;
   e!=eend;
@@ -564,7 +564,7 @@ WShape::WShape(WShape& iBrother)
   f++)
   {
     unsigned i;
-    const vector<WOEdge*>& oedgeList = (*f)->GetEdgeList();
+    const vector<WOEdge*>& oedgeList = (*f)->getEdgeList();
     vector<WOEdge*> newoedgelist;
 
     unsigned n = oedgeList.size();
@@ -581,8 +581,8 @@ WShape::WShape(WShape& iBrother)
 
   // Free all memory (arghh!)
   // Vertex
-  vend = iBrother.GetVertexList().end();
-  for(v=iBrother.GetVertexList().begin();
+  vend = iBrother.getVertexList().end();
+  for(v=iBrother.getVertexList().begin();
   v!=vend;
   v++)
   {
@@ -591,8 +591,8 @@ WShape::WShape(WShape& iBrother)
   }
 
   // Edges and OEdges:
-  eend = iBrother.GetEdgeList().end();
-  for(e=iBrother.GetEdgeList().begin();
+  eend = iBrother.getEdgeList().end();
+  for(e=iBrother.getEdgeList().begin();
   e!=eend;
   e++)
   {

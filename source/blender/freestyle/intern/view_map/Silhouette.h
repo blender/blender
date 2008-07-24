@@ -963,7 +963,7 @@ public:
     // vertices
     //---------
     vector<SVertex*>::iterator sv,svend;
-    vector<SVertex*>& verticesList = iBrother.GetVertexList();
+    vector<SVertex*>& verticesList = iBrother.getVertexList();
     for(sv=verticesList.begin(), svend=verticesList.end();
         sv!=svend;
         sv++)
@@ -977,7 +977,7 @@ public:
     // edges
     //------
     vector<FEdge*>::iterator e,eend;
-    vector<FEdge*>& edgesList = iBrother.GetEdgeList();
+    vector<FEdge*>& edgesList = iBrother.getEdgeList();
     for(e=edgesList.begin(),eend=edgesList.end();
         e!=eend;
         e++)
@@ -990,7 +990,7 @@ public:
         // starting chain edges
         //-------------------------
         vector<FEdge*>::iterator fe,fend;
-        vector<FEdge*>& fedges = iBrother.GetChains();
+        vector<FEdge*>& fedges = iBrother.getChains();
         for(fe=fedges.begin(),fend=fedges.end();
         fe!=fend;
         fe++)
@@ -1392,10 +1392,10 @@ public:
 
   /* accessors */
   /*! Returns the list of SVertex of the Shape. */
-  inline vector<SVertex*>& GetVertexList() {return _verticesList;} // Get vertices list
+  inline vector<SVertex*>& getVertexList() {return _verticesList;} // Get vertices list
   /*! Returns the list of FEdges of the Shape. */
-  inline vector<FEdge*>& GetEdgeList() {return _edgesList;} // Get edges list
-  inline vector<FEdge*>& GetChains() {return _chains;}
+  inline vector<FEdge*>& getEdgeList() {return _edgesList;} // Get edges list
+  inline vector<FEdge*>& getChains() {return _chains;}
   /*! Returns the bounding box of the shape. */
   inline const BBox<Vec3r>& bbox() {return _BBox;}
   /*! Returns the ith material of the shape. */

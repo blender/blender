@@ -3,6 +3,7 @@
 #include "BPy_Convert.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_Stroke.h"
+#include "Interface1D/BPy_ViewEdge.h"
 #include "BPy_MediumType.h"
 
 #ifdef __cplusplus
@@ -149,6 +150,11 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 	tmp = BPy_MediumType_from_MediumType( Stroke::DRY_MEDIUM ); PyDict_SetItemString( Stroke_Type.tp_dict, "DRY_MEDIUM", tmp); Py_DECREF(tmp);
 	tmp = BPy_MediumType_from_MediumType( Stroke::HUMID_MEDIUM ); PyDict_SetItemString( Stroke_Type.tp_dict, "HUMID_MEDIUM", tmp); Py_DECREF(tmp);
 	tmp = BPy_MediumType_from_MediumType( Stroke::OPAQUE_MEDIUM ); PyDict_SetItemString( Stroke_Type.tp_dict, "OPAQUE_MEDIUM", tmp); Py_DECREF(tmp);
+
+	if( PyType_Ready( &ViewEdge_Type ) < 0 )
+		return;
+	Py_INCREF( &ViewEdge_Type );
+	PyModule_AddObject(module, "ViewEdge", (PyObject *)&ViewEdge_Type);
 
 	
 }

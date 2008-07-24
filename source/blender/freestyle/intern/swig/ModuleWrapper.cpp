@@ -37821,7 +37821,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_SShape_GetVertexList(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SShape_getVertexList(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   SShape *arg1 = (SShape *) 0 ;
   std::vector< SVertex * > *result = 0 ;
@@ -37829,16 +37829,16 @@ SWIGINTERN PyObject *_wrap_SShape_GetVertexList(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:SShape_GetVertexList",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:SShape_getVertexList",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SShape, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_GetVertexList" "', argument " "1"" of type '" "SShape *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_getVertexList" "', argument " "1"" of type '" "SShape *""'"); 
   }
   arg1 = reinterpret_cast< SShape * >(argp1);
   {
     try {
       {
-        std::vector< SVertex * > &_result_ref = (arg1)->GetVertexList();
+        std::vector< SVertex * > &_result_ref = (arg1)->getVertexList();
         result = (std::vector< SVertex * > *) &_result_ref;
       }
     }
@@ -37856,7 +37856,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_SShape_GetEdgeList(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SShape_getEdgeList(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   SShape *arg1 = (SShape *) 0 ;
   std::vector< FEdge * > *result = 0 ;
@@ -37864,16 +37864,16 @@ SWIGINTERN PyObject *_wrap_SShape_GetEdgeList(PyObject *SWIGUNUSEDPARM(self), Py
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:SShape_GetEdgeList",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:SShape_getEdgeList",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SShape, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_GetEdgeList" "', argument " "1"" of type '" "SShape *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_getEdgeList" "', argument " "1"" of type '" "SShape *""'"); 
   }
   arg1 = reinterpret_cast< SShape * >(argp1);
   {
     try {
       {
-        std::vector< FEdge * > &_result_ref = (arg1)->GetEdgeList();
+        std::vector< FEdge * > &_result_ref = (arg1)->getEdgeList();
         result = (std::vector< FEdge * > *) &_result_ref;
       }
     }
@@ -37891,7 +37891,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_SShape_GetChains(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_SShape_getChains(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   SShape *arg1 = (SShape *) 0 ;
   std::vector< FEdge * > *result = 0 ;
@@ -37899,16 +37899,16 @@ SWIGINTERN PyObject *_wrap_SShape_GetChains(PyObject *SWIGUNUSEDPARM(self), PyOb
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:SShape_GetChains",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:SShape_getChains",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_SShape, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_GetChains" "', argument " "1"" of type '" "SShape *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SShape_getChains" "', argument " "1"" of type '" "SShape *""'"); 
   }
   arg1 = reinterpret_cast< SShape * >(argp1);
   {
     try {
       {
-        std::vector< FEdge * > &_result_ref = (arg1)->GetChains();
+        std::vector< FEdge * > &_result_ref = (arg1)->getChains();
         result = (std::vector< FEdge * > *) &_result_ref;
       }
     }
@@ -52210,6 +52210,41 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_new_ViewEdge__SWIG_4(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ViewEdge *arg1 = 0 ;
+  ViewEdge *result = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:new_ViewEdge",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_ViewEdge,  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_ViewEdge" "', argument " "1"" of type '" "ViewEdge &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_ViewEdge" "', argument " "1"" of type '" "ViewEdge &""'"); 
+  }
+  arg1 = reinterpret_cast< ViewEdge * >(argp1);
+  {
+    try {
+      result = (ViewEdge *)new ViewEdge(*arg1);
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ViewEdge, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_ViewEdge(PyObject *self, PyObject *args) {
   int argc;
   PyObject *argv[6];
@@ -52222,6 +52257,15 @@ SWIGINTERN PyObject *_wrap_new_ViewEdge(PyObject *self, PyObject *args) {
   }
   if (argc == 0) {
     return _wrap_new_ViewEdge__SWIG_0(self, args);
+  }
+  if (argc == 1) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_ViewEdge, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      return _wrap_new_ViewEdge__SWIG_4(self, args);
+    }
   }
   if (argc == 2) {
     int _v;
@@ -52292,7 +52336,40 @@ fail:
     "    ViewEdge()\n"
     "    ViewEdge(ViewVertex *,ViewVertex *)\n"
     "    ViewEdge(ViewVertex *,ViewVertex *,FEdge *)\n"
-    "    ViewEdge(ViewVertex *,ViewVertex *,FEdge *,FEdge *,ViewShape *)\n");
+    "    ViewEdge(ViewVertex *,ViewVertex *,FEdge *,FEdge *,ViewShape *)\n"
+    "    ViewEdge(ViewEdge &)\n");
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ViewEdge_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ViewEdge *arg1 = (ViewEdge *) 0 ;
+  ViewEdge *result = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:ViewEdge_duplicate",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ViewEdge, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewEdge_duplicate" "', argument " "1"" of type '" "ViewEdge *""'"); 
+  }
+  arg1 = reinterpret_cast< ViewEdge * >(argp1);
+  {
+    try {
+      result = (ViewEdge *)(arg1)->duplicate();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ViewEdge, 0 |  0 );
+  return resultobj;
+fail:
   return NULL;
 }
 
@@ -59219,6 +59296,38 @@ SWIGINTERN PyObject *_wrap_ViewEdgeViewEdgeIterator_userdata_get(PyObject *SWIGU
   arg1 = reinterpret_cast< ViewEdgeInternal::ViewEdgeIterator * >(argp1);
   result = (void *) ((*arg1)->userdata);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_ViewEdgeViewEdgeIterator_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  ViewEdgeInternal::ViewEdgeIterator *arg1 = (ViewEdgeInternal::ViewEdgeIterator *) 0 ;
+  ViewEdge *result = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:ViewEdgeViewEdgeIterator_duplicate",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ViewEdgeInternal__ViewEdgeIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewEdgeViewEdgeIterator_duplicate" "', argument " "1"" of type '" "ViewEdgeInternal::ViewEdgeIterator *""'"); 
+  }
+  arg1 = reinterpret_cast< ViewEdgeInternal::ViewEdgeIterator * >(argp1);
+  {
+    try {
+      result = (ViewEdge *)(*arg1)->duplicate();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ViewEdge, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -75335,6 +75444,38 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_AdjacencyIterator_getExactTypeName(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  AdjacencyIterator *arg1 = (AdjacencyIterator *) 0 ;
+  std::string result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:AdjacencyIterator_getExactTypeName",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_AdjacencyIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AdjacencyIterator_getExactTypeName" "', argument " "1"" of type '" "AdjacencyIterator const *""'"); 
+  }
+  arg1 = reinterpret_cast< AdjacencyIterator * >(argp1);
+  {
+    try {
+      result = ((AdjacencyIterator const *)arg1)->getExactTypeName();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_From_std_string(static_cast< std::string >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_AdjacencyIterator_isEnd(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   AdjacencyIterator *arg1 = (AdjacencyIterator *) 0 ;
@@ -75526,23 +75667,22 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_AdjacencyIterator_getExactTypeName(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_AdjacencyIterator_decrement(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   AdjacencyIterator *arg1 = (AdjacencyIterator *) 0 ;
-  std::string result;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:AdjacencyIterator_getExactTypeName",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:AdjacencyIterator_decrement",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_AdjacencyIterator, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AdjacencyIterator_getExactTypeName" "', argument " "1"" of type '" "AdjacencyIterator const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AdjacencyIterator_decrement" "', argument " "1"" of type '" "AdjacencyIterator *""'"); 
   }
   arg1 = reinterpret_cast< AdjacencyIterator * >(argp1);
   {
     try {
-      result = (*arg1)->getExactTypeName();
+      (arg1)->decrement();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -75551,7 +75691,7 @@ SWIGINTERN PyObject *_wrap_AdjacencyIterator_getExactTypeName(PyObject *SWIGUNUS
       cout << "Warning: director exception catched" << endl;
     }
   }
-  resultobj = SWIG_From_std_string(static_cast< std::string >(result));
+  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -75667,6 +75807,38 @@ SWIGINTERN PyObject *_wrap_AdjacencyIterator_userdata_get(PyObject *SWIGUNUSEDPA
   arg1 = reinterpret_cast< AdjacencyIterator * >(argp1);
   result = (void *) ((*arg1)->userdata);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_AdjacencyIterator_duplicate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  AdjacencyIterator *arg1 = (AdjacencyIterator *) 0 ;
+  ViewEdge *result = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:AdjacencyIterator_duplicate",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_AdjacencyIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AdjacencyIterator_duplicate" "', argument " "1"" of type '" "AdjacencyIterator *""'"); 
+  }
+  arg1 = reinterpret_cast< AdjacencyIterator * >(argp1);
+  {
+    try {
+      result = (ViewEdge *)(*arg1)->duplicate();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_ViewEdge, 0 |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -84139,7 +84311,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_CurvePointIterator_CastToInterface0DIterator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_CurvePointIterator_castToInterface0DIterator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   CurveInternal::CurvePointIterator *arg1 = (CurveInternal::CurvePointIterator *) 0 ;
   Interface0DIterator result;
@@ -84147,15 +84319,15 @@ SWIGINTERN PyObject *_wrap_CurvePointIterator_CastToInterface0DIterator(PyObject
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:CurvePointIterator_CastToInterface0DIterator",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:CurvePointIterator_castToInterface0DIterator",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CurveInternal__CurvePointIterator, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CurvePointIterator_CastToInterface0DIterator" "', argument " "1"" of type '" "CurveInternal::CurvePointIterator const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CurvePointIterator_castToInterface0DIterator" "', argument " "1"" of type '" "CurveInternal::CurvePointIterator const *""'"); 
   }
   arg1 = reinterpret_cast< CurveInternal::CurvePointIterator * >(argp1);
   {
     try {
-      result = ((CurveInternal::CurvePointIterator const *)arg1)->CastToInterface0DIterator();
+      result = ((CurveInternal::CurvePointIterator const *)arg1)->castToInterface0DIterator();
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -84372,6 +84544,132 @@ SWIGINTERN PyObject *_wrap_CurvePointIterator_isEnd(PyObject *SWIGUNUSEDPARM(sel
     }
   }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_CurvePointIterator_increment(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CurveInternal::CurvePointIterator *arg1 = (CurveInternal::CurvePointIterator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:CurvePointIterator_increment",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CurveInternal__CurvePointIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CurvePointIterator_increment" "', argument " "1"" of type '" "CurveInternal::CurvePointIterator *""'"); 
+  }
+  arg1 = reinterpret_cast< CurveInternal::CurvePointIterator * >(argp1);
+  {
+    try {
+      (arg1)->increment();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_CurvePointIterator_decrement(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CurveInternal::CurvePointIterator *arg1 = (CurveInternal::CurvePointIterator *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:CurvePointIterator_decrement",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CurveInternal__CurvePointIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CurvePointIterator_decrement" "', argument " "1"" of type '" "CurveInternal::CurvePointIterator *""'"); 
+  }
+  arg1 = reinterpret_cast< CurveInternal::CurvePointIterator * >(argp1);
+  {
+    try {
+      (arg1)->decrement();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_CurvePointIterator_t(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CurveInternal::CurvePointIterator *arg1 = (CurveInternal::CurvePointIterator *) 0 ;
+  float result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:CurvePointIterator_t",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CurveInternal__CurvePointIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CurvePointIterator_t" "', argument " "1"" of type '" "CurveInternal::CurvePointIterator const *""'"); 
+  }
+  arg1 = reinterpret_cast< CurveInternal::CurvePointIterator * >(argp1);
+  {
+    try {
+      result = (float)((CurveInternal::CurvePointIterator const *)arg1)->t();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_From_float(static_cast< float >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_CurvePointIterator_u(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CurveInternal::CurvePointIterator *arg1 = (CurveInternal::CurvePointIterator *) 0 ;
+  float result;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:CurvePointIterator_u",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CurveInternal__CurvePointIterator, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CurvePointIterator_u" "', argument " "1"" of type '" "CurveInternal::CurvePointIterator const *""'"); 
+  }
+  arg1 = reinterpret_cast< CurveInternal::CurvePointIterator * >(argp1);
+  {
+    try {
+      result = (float)((CurveInternal::CurvePointIterator const *)arg1)->u();
+    }
+    //    catch (Swig::DirectorTypeMismatch&) {
+    //      cout << "Warning: return type mismatch" << endl;
+    //    }
+    catch (Swig::DirectorException&) {
+      cout << "Warning: director exception catched" << endl;
+    }
+  }
+  resultobj = SWIG_From_float(static_cast< float >(result));
   return resultobj;
 fail:
   return NULL;
@@ -107127,9 +107425,9 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SShape_ComputeBBox", _wrap_SShape_ComputeBBox, METH_VARARGS, NULL},
 	 { (char *)"SShape_RemoveEdgeFromChain", _wrap_SShape_RemoveEdgeFromChain, METH_VARARGS, NULL},
 	 { (char *)"SShape_RemoveEdge", _wrap_SShape_RemoveEdge, METH_VARARGS, NULL},
-	 { (char *)"SShape_GetVertexList", _wrap_SShape_GetVertexList, METH_VARARGS, NULL},
-	 { (char *)"SShape_GetEdgeList", _wrap_SShape_GetEdgeList, METH_VARARGS, NULL},
-	 { (char *)"SShape_GetChains", _wrap_SShape_GetChains, METH_VARARGS, NULL},
+	 { (char *)"SShape_getVertexList", _wrap_SShape_getVertexList, METH_VARARGS, NULL},
+	 { (char *)"SShape_getEdgeList", _wrap_SShape_getEdgeList, METH_VARARGS, NULL},
+	 { (char *)"SShape_getChains", _wrap_SShape_getChains, METH_VARARGS, NULL},
 	 { (char *)"SShape_bbox", _wrap_SShape_bbox, METH_VARARGS, NULL},
 	 { (char *)"SShape_material", _wrap_SShape_material, METH_VARARGS, NULL},
 	 { (char *)"SShape_materials", _wrap_SShape_materials, METH_VARARGS, NULL},
@@ -107416,6 +107714,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ViewEdge_userdata_set", _wrap_ViewEdge_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"ViewEdge_userdata_get", _wrap_ViewEdge_userdata_get, METH_VARARGS, NULL},
 	 { (char *)"new_ViewEdge", _wrap_new_ViewEdge, METH_VARARGS, NULL},
+	 { (char *)"ViewEdge_duplicate", _wrap_ViewEdge_duplicate, METH_VARARGS, NULL},
 	 { (char *)"delete_ViewEdge", _wrap_delete_ViewEdge, METH_VARARGS, NULL},
 	 { (char *)"ViewEdge_A", _wrap_ViewEdge_A, METH_VARARGS, NULL},
 	 { (char *)"ViewEdge_B", _wrap_ViewEdge_B, METH_VARARGS, NULL},
@@ -107582,6 +107881,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ViewEdgeViewEdgeIterator_getNature", _wrap_ViewEdgeViewEdgeIterator_getNature, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeViewEdgeIterator_userdata_set", _wrap_ViewEdgeViewEdgeIterator_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeViewEdgeIterator_userdata_get", _wrap_ViewEdgeViewEdgeIterator_userdata_get, METH_VARARGS, NULL},
+	 { (char *)"ViewEdgeViewEdgeIterator_duplicate", _wrap_ViewEdgeViewEdgeIterator_duplicate, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeViewEdgeIterator_A", _wrap_ViewEdgeViewEdgeIterator_A, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeViewEdgeIterator_B", _wrap_ViewEdgeViewEdgeIterator_B, METH_VARARGS, NULL},
 	 { (char *)"ViewEdgeViewEdgeIterator_fedgeA", _wrap_ViewEdgeViewEdgeIterator_fedgeA, METH_VARARGS, NULL},
@@ -108010,17 +108310,19 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GetSelectedFEdgeCF", _wrap_GetSelectedFEdgeCF, METH_VARARGS, NULL},
 	 { (char *)"new_AdjacencyIterator", _wrap_new_AdjacencyIterator, METH_VARARGS, NULL},
 	 { (char *)"delete_AdjacencyIterator", _wrap_delete_AdjacencyIterator, METH_VARARGS, NULL},
+	 { (char *)"AdjacencyIterator_getExactTypeName", _wrap_AdjacencyIterator_getExactTypeName, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_isEnd", _wrap_AdjacencyIterator_isEnd, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_isBegin", _wrap_AdjacencyIterator_isBegin, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_isIncoming", _wrap_AdjacencyIterator_isIncoming, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_getObject", _wrap_AdjacencyIterator_getObject, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator___deref__", _wrap_AdjacencyIterator___deref__, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_increment", _wrap_AdjacencyIterator_increment, METH_VARARGS, NULL},
-	 { (char *)"AdjacencyIterator_getExactTypeName", _wrap_AdjacencyIterator_getExactTypeName, METH_VARARGS, NULL},
+	 { (char *)"AdjacencyIterator_decrement", _wrap_AdjacencyIterator_decrement, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_getId", _wrap_AdjacencyIterator_getId, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_getNature", _wrap_AdjacencyIterator_getNature, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_userdata_set", _wrap_AdjacencyIterator_userdata_set, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_userdata_get", _wrap_AdjacencyIterator_userdata_get, METH_VARARGS, NULL},
+	 { (char *)"AdjacencyIterator_duplicate", _wrap_AdjacencyIterator_duplicate, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_A", _wrap_AdjacencyIterator_A, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_B", _wrap_AdjacencyIterator_B, METH_VARARGS, NULL},
 	 { (char *)"AdjacencyIterator_fedgeA", _wrap_AdjacencyIterator_fedgeA, METH_VARARGS, NULL},
@@ -108217,13 +108519,17 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"new_CurvePointIterator", _wrap_new_CurvePointIterator, METH_VARARGS, NULL},
 	 { (char *)"delete_CurvePointIterator", _wrap_delete_CurvePointIterator, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_copy", _wrap_CurvePointIterator_copy, METH_VARARGS, NULL},
-	 { (char *)"CurvePointIterator_CastToInterface0DIterator", _wrap_CurvePointIterator_CastToInterface0DIterator, METH_VARARGS, NULL},
+	 { (char *)"CurvePointIterator_castToInterface0DIterator", _wrap_CurvePointIterator_castToInterface0DIterator, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_getExactTypeName", _wrap_CurvePointIterator_getExactTypeName, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator___eq__", _wrap_CurvePointIterator___eq__, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_getObject", _wrap_CurvePointIterator_getObject, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator___deref__", _wrap_CurvePointIterator___deref__, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_isBegin", _wrap_CurvePointIterator_isBegin, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_isEnd", _wrap_CurvePointIterator_isEnd, METH_VARARGS, NULL},
+	 { (char *)"CurvePointIterator_increment", _wrap_CurvePointIterator_increment, METH_VARARGS, NULL},
+	 { (char *)"CurvePointIterator_decrement", _wrap_CurvePointIterator_decrement, METH_VARARGS, NULL},
+	 { (char *)"CurvePointIterator_t", _wrap_CurvePointIterator_t, METH_VARARGS, NULL},
+	 { (char *)"CurvePointIterator_u", _wrap_CurvePointIterator_u, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_getX", _wrap_CurvePointIterator_getX, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_getY", _wrap_CurvePointIterator_getY, METH_VARARGS, NULL},
 	 { (char *)"CurvePointIterator_getZ", _wrap_CurvePointIterator_getZ, METH_VARARGS, NULL},

@@ -112,7 +112,7 @@ void FEdgeXDetector::preProcessShape(WXShape* iWShape) {
     preProcessFace((WXFace*)(*f));
   }
 
-  vector<WVertex*>& wvertices = iWShape->GetVertexList();
+  vector<WVertex*>& wvertices = iWShape->getVertexList();
   for(vector<WVertex*>::iterator wv=wvertices.begin(), wvend=wvertices.end(); 
   wv!=wvend;
   ++wv){
@@ -219,7 +219,7 @@ void FEdgeXDetector::processSilhouetteShape(WXShape* iWShape) {
   // the silhouette edges that are not smooth
   // --------------------
   vector<WEdge*>::iterator we, weend;
-  vector<WEdge*> &wedges = iWShape->GetEdgeList();
+  vector<WEdge*> &wedges = iWShape->getEdgeList();
   for(we=wedges.begin(), weend=wedges.end();
   we!=weend;
   ++we)
@@ -298,7 +298,7 @@ void FEdgeXDetector::processBorderShape(WXShape* iWShape) {
   // the BORDER
   // --------------------
   vector<WEdge*>::iterator we, weend;
-  vector<WEdge*> &wedges = iWShape->GetEdgeList();
+  vector<WEdge*> &wedges = iWShape->getEdgeList();
   for(we=wedges.begin(), weend=wedges.end();
   we!=weend;
   ++we){
@@ -328,7 +328,7 @@ void FEdgeXDetector::processCreaseShape(WXShape* iWShape) {
   // the CREASE 
   // --------------------
   vector<WEdge*>::iterator we, weend;
-  vector<WEdge*> &wedges = iWShape->GetEdgeList();
+  vector<WEdge*> &wedges = iWShape->getEdgeList();
   for(we=wedges.begin(), weend=wedges.end();
   we!=weend;
   ++we){

@@ -59,7 +59,7 @@ namespace ViewVertexInternal{
    *  An instance of an orientedViewEdgeIterator can only
    *  be obtained from a ViewVertex by calling edgesBegin() or edgesEnd().
    */
-  class orientedViewEdgeIterator : Iterator
+  class orientedViewEdgeIterator : public Iterator
   {
   public:
     friend class ViewVertex;
@@ -387,7 +387,7 @@ namespace ViewEdgeInternal {
    *  ::Caution::: the dereferencing operator returns a *pointer* to
    *  the pointed ViewEdge.
    */
-class ViewEdgeIterator : Iterator
+class ViewEdgeIterator : public Iterator
 {
 public:
 

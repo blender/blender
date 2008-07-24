@@ -4,12 +4,17 @@
 #include "../geometry/Geom.h"
 using namespace Geometry;
 
+
+#include "BPy_BBox.h"
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
 #include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/BPy_SVertex.h"
+#include "Interface0D/BPy_ViewVertex.h"
 #include "Interface1D/BPy_FEdge.h"
+#include "Interface1D/BPy_ViewEdge.h"
+#include "BPy_SShape.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
 #include "BPy_StrokeAttribute.h"
@@ -31,14 +36,18 @@ PyObject * Vector_from_Vec2f( Vec2f& v );
 PyObject * Vector_from_Vec3f( Vec3f& v );
 PyObject * Vector_from_Vec3r( Vec3r& v );
 
+PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
+PyObject * BPy_SShape_from_SShape( SShape& ss );
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );
 PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv );
+PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv );
+PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve );
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -506,7 +506,7 @@ public:
   virtual ~WFace() {}
 
   /*! accessors */
-  inline const vector<WOEdge*>& GetEdgeList() {return _OEdgeList;}
+  inline const vector<WOEdge*>& getEdgeList() {return _OEdgeList;}
   inline WOEdge * GetOEdge(int i) {return _OEdgeList[i];}
   inline Vec3r& GetNormal() {return _Normal;}
   inline int    GetId()     {return _Id;}
@@ -744,8 +744,8 @@ public:
   }
 
   /*! accessors */
-  inline vector<WEdge *>& GetEdgeList() {return _EdgeList;}
-  inline vector<WVertex*>& GetVertexList() {return _VertexList;}
+  inline vector<WEdge *>& getEdgeList() {return _EdgeList;}
+  inline vector<WVertex*>& getVertexList() {return _VertexList;}
   inline vector<WFace*>& GetFaceList() {return _FaceList;}
   inline unsigned GetId() {return _Id;}
   inline void bbox(Vec3r& min, Vec3r& max) {min=_min; max=_max;}

@@ -1,4 +1,4 @@
-#include "BPy_orientedViewEdgeIterator.h"
+#include "BPy_BBox.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -6,30 +6,32 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for orientedViewEdgeIterator instance  -----------*/
-static int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObject *args);
+/*---------------  Python API function prototypes for BBox instance  -----------*/
+static int BBox___init__(BPy_BBox *self, PyObject *args, PyObject *kwds);
+static void BBox___dealloc__(BPy_BBox *self);
+static PyObject * BBox___repr__(BPy_BBox *self);
 
-/*----------------------orientedViewEdgeIterator instance definitions ----------------------------*/
-static PyMethodDef BPy_orientedViewEdgeIterator_methods[] = {
+/*----------------------BBox instance definitions ----------------------------*/
+static PyMethodDef BPy_BBox_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_orientedViewEdgeIterator type definition ------------------------------*/
+/*-----------------------BPy_BBox type definition ------------------------------*/
 
-PyTypeObject orientedViewEdgeIterator_Type = {
+PyTypeObject BBox_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"orientedViewEdgeIterator",				/* tp_name */
-	sizeof( BPy_orientedViewEdgeIterator ),	/* tp_basicsize */
+	"BBox",				/* tp_name */
+	sizeof( BPy_BBox ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
-	NULL,	/* tp_dealloc */
+	(destructor)BBox___dealloc__,	/* tp_dealloc */
 	NULL,                       				/* printfunc tp_print; */
 	NULL,                       				/* getattrfunc tp_getattr; */
 	NULL,                       				/* setattrfunc tp_setattr; */
 	NULL,										/* tp_compare */
-	NULL,					/* tp_repr */
+	(reprfunc)BBox___repr__,					/* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -72,17 +74,17 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_orientedViewEdgeIterator_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_BBox_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&Iterator_Type,				/* struct _typeobject *tp_base; */
+	NULL,							/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)orientedViewEdgeIterator___init__,                       	/* initproc tp_init; */
+	(initproc)BBox___init__, /* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	NULL,		/* newfunc tp_new; */
+	PyType_GenericNew,		/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -100,26 +102,38 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
+PyMODINIT_FUNC BBox_Init( PyObject *module )
+{
+	if( module == NULL )
+		return;
 
+	if( PyType_Ready( &BBox_Type ) < 0 )
+		return;
+
+	Py_INCREF( &BBox_Type );
+	PyModule_AddObject(module, "BBox", (PyObject *)&BBox_Type);
+}
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObject *args )
-{	
-	PyObject *obj = 0;
-
-	if (!( PyArg_ParseTuple(args, "|O", &obj) ))
-	    return -1;
-
-	if( !obj )
-		self->ove_it = new orientedViewEdgeIterator();
-	else if( BPy_orientedViewEdgeIterator_Check(obj) )
-		self->ove_it = new orientedViewEdgeIterator(*( ((BPy_orientedViewEdgeIterator *) obj)->ove_it ));
-	
-	self->py_it.it = self->ove_it;
-	
+int BBox___init__(BPy_BBox *self, PyObject *args, PyObject *kwds)
+{
+	self->bb = new BBox< Vec3r>();
 	return 0;
 }
+
+void BBox___dealloc__(BPy_BBox* self)
+{
+	delete self->bb;
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+
+PyObject * BBox___repr__(BPy_BBox* self)
+{
+    return PyString_FromFormat("BBox - address: %p", self->bb );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,6 +1,5 @@
 #include "BPy_StrokeVertexIterator.h"
 
-#include "../BPy_Convert.h"
 #include "BPy_Interface0DIterator.h"
 
 #ifdef __cplusplus

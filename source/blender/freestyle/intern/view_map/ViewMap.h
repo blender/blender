@@ -862,7 +862,9 @@ public:
     _splittingId = 0;
     UpdateFEdges(); // tells every FEdge between iFEdgeA and iFEdgeB that this is theit ViewEdge
   }
-protected:
+
+//soc protected:
+
   /*! Copy constructor. */
   inline ViewEdge(ViewEdge& iBrother)
   {

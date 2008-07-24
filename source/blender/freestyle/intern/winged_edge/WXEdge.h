@@ -527,7 +527,7 @@ public:
    */
   virtual void Reset(){
     // Reset Edges
-    vector<WEdge*>& wedges = GetEdgeList();
+    vector<WEdge*>& wedges = getEdgeList();
     for(vector<WEdge*>::iterator we=wedges.begin(),weend=wedges.end();
     we!=weend;
     we++){

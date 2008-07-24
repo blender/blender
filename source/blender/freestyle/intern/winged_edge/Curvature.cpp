@@ -42,7 +42,7 @@ static bool triangle_obtuse (WVertex*, WFace * f)
   bool b=false;
   for (int i=0; i<3; i++)
     b = b ||
-      ((f->GetEdgeList()[i]->getVec3r() * f->GetEdgeList()[(i+1)%3]->getVec3r()) < 0);
+      ((f->getEdgeList()[i]->getVec3r() * f->getEdgeList()[(i+1)%3]->getVec3r()) < 0);
   return b;
 }
 

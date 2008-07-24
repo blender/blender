@@ -87,7 +87,7 @@ void ViewEdgeXBuilder::BuildViewEdges( WXShape *iWShape, ViewShape *oVShape,
   //iWShape->ResetUserData();
   
   WXEdge * wxe;
-  vector<WEdge*>& wedges = iWShape->GetEdgeList();
+  vector<WEdge*>& wedges = iWShape->getEdgeList();
   // 
   //------------------------------
   for(vector<WEdge*>::iterator we=wedges.begin(),weend=wedges.end();
@@ -111,8 +111,8 @@ void ViewEdgeXBuilder::BuildViewEdges( WXShape *iWShape, ViewShape *oVShape,
  
   // Add all these new edges to the scene's feature edges list:
   //-----------------------------------------------------------
-  vector<FEdge*>& newedges = _pCurrentSShape->GetEdgeList();
-  vector<SVertex*>& newVertices = _pCurrentSShape->GetVertexList();
+  vector<FEdge*>& newedges = _pCurrentSShape->getEdgeList();
+  vector<SVertex*>& newVertices = _pCurrentSShape->getVertexList();
   vector<ViewVertex*>& newVVertices = _pCurrentVShape->vertices();
   vector<ViewEdge*>& newVEdges = _pCurrentVShape->edges();
 
