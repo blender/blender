@@ -4,20 +4,23 @@
 #include "../geometry/Geom.h"
 using namespace Geometry;
 
+// BBox
+#include "../geometry/BBox.h"
 
-#include "BPy_BBox.h"
-#include "BPy_Id.h"
-#include "BPy_IntegrationType.h"
-#include "BPy_Interface0D.h"
-#include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
-#include "Interface0D/BPy_SVertex.h"
-#include "Interface0D/BPy_ViewVertex.h"
-#include "Interface1D/BPy_FEdge.h"
-#include "Interface1D/BPy_ViewEdge.h"
-#include "BPy_SShape.h"
-#include "BPy_Nature.h"
-#include "BPy_MediumType.h"
-#include "BPy_StrokeAttribute.h"
+// FEdge, FEdgeSharp, FEdgeSmooth, SShape, SVertex, FEdgeInternal::SVertexIterator
+#include "../view_map/Silhouette.h" 
+
+// Id
+#include "../system/Id.h"
+
+// Interface0D, Interface0DIteratorNested, Interface0DIterator
+#include "../view_map/Interface0D.h"
+
+// Stroke, StrokeAttribute, StrokeVertex
+#include "../stroke/Stroke.h"
+
+// NonTVertex, TVertex, ViewEdge, ViewMap, ViewShape, ViewVertex
+#include "../view_map/ViewMap.h"
 
 #ifdef __cplusplus
 extern "C" {

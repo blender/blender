@@ -1,5 +1,19 @@
 #include "BPy_Convert.h"
 
+#include "BPy_BBox.h"
+#include "BPy_Id.h"
+#include "BPy_IntegrationType.h"
+#include "BPy_Interface0D.h"
+#include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
+#include "Interface0D/BPy_SVertex.h"
+#include "Interface0D/BPy_ViewVertex.h"
+#include "Interface1D/BPy_FEdge.h"
+#include "Interface1D/BPy_ViewEdge.h"
+#include "BPy_SShape.h"
+#include "BPy_Nature.h"
+#include "BPy_MediumType.h"
+#include "BPy_StrokeAttribute.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

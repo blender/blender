@@ -1,6 +1,7 @@
 #include "BPy_CurvePoint.h"
 
 #include "../BPy_Convert.h"
+#include "../Interface0D/BPy_SVertex.h"
 
 #ifdef __cplusplus
 extern "C" {

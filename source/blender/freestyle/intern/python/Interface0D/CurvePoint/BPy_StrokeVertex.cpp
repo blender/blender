@@ -2,6 +2,7 @@
 
 #include "../../BPy_Convert.h"
 #include "../../BPy_StrokeAttribute.h"
+#include "../../Interface0D/BPy_SVertex.h"
 
 #ifdef __cplusplus
 extern "C" {

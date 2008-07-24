@@ -2,6 +2,7 @@
 
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
+#include "../Interface1D/BPy_FEdge.h"
 
 #ifdef __cplusplus
 extern "C" {

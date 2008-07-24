@@ -1,7 +1,11 @@
 #include "BPy_Stroke.h"
 
 #include "../BPy_Convert.h"
+#include "../BPy_Id.h"
 #include "../Interface0D/BPy_SVertex.h"
+#include "../Interface0D/CurvePoint/BPy_StrokeVertex.h"
+#include "../BPy_MediumType.h"
+
 #include "../../stroke/StrokeIterators.h"
 
 #ifdef __cplusplus

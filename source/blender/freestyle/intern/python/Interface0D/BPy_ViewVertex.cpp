@@ -1,6 +1,7 @@
 #include "BPy_ViewVertex.h"
 
 #include "../BPy_Convert.h"
+#include "../BPy_Nature.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,16 +116,7 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 	return 0;
 }
 
-// PyObject * ViewVertex___copy__( BPy_ViewVertex *self ) {
-// 	BPy_ViewVertex *py_vv;
-// 	
-// 	py_vv = (BPy_ViewVertex *) ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
-// 	
-// 	py_vv->vv = self->vv->duplicate();
-// 	py_svertex->py_if0D.if->sv;
-// 
-// 	return (PyObject *) py_svertex;
-// }
+
 
 PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 	PyObject *py_n;
@@ -140,7 +132,10 @@ PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-
+//PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self ) {
+	// orientedViewEdgeIterator ove( self->vv->edgesBegin() )
+	// return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove );
+//}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -149,9 +144,8 @@ PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 #endif
 
 
-// virtual string 	getExactTypeName () const
 
-// void 	setNature (Nature::VertexNature iNature)
+
 // virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesBegin ()=0
 // virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesEnd ()=0
 // virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesIterator (ViewEdge *iEdge)=0
