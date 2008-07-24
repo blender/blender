@@ -2711,6 +2711,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DELKEY:
 				if(G.qual==0 || G.qual==LR_SHIFTKEY)
 					delete_context_selected();
+				if(G.qual==LR_ALTKEY)
+					gpencil_delete_menu();
 				break;
 			case YKEY:
 				if((G.qual==0) && (G.obedit)) {
@@ -5098,6 +5100,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(sseq->mainb) break;
 				if((G.qual==0))
 					del_seq();
+			}
+			else if(G.qual==LR_ALTKEY) {
+				if(sseq->mainb)
+					gpencil_delete_menu();
 			}
 			break;
 		case PAD1: case PAD2: case PAD4: case PAD8:

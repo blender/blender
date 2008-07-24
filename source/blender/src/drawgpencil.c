@@ -94,7 +94,7 @@
 void gp_ui_activelayer_cb (void *gpd, void *gpl)
 {
 	gpencil_layer_setactive(gpd, gpl);
-	force_draw_plus(SPACE_ACTION, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* rename layer and set active */
@@ -105,21 +105,21 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 	
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
 	gpencil_layer_setactive(gpd, gpl);
-	force_draw_plus(SPACE_ACTION, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* add a new layer */
 void gp_ui_addlayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_addnew(gpd);
-	force_draw_plus(SPACE_ACTION, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* delete active layer */
 void gp_ui_dellayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_delactive(gpd);
-	force_draw_plus(SPACE_ACTION, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* delete last stroke of active layer */
@@ -139,7 +139,7 @@ void gp_ui_delframe_cb (void *gpd, void *gpl)
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_layer_delframe(gpl, gpf);
 	
-	force_draw_plus(SPACE_ACTION, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* ------- Drawing Code ------- */
@@ -148,6 +148,7 @@ void gp_ui_delframe_cb (void *gpd, void *gpl)
 static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short *xco, short *yco)
 {
 	uiBut *but;
+	short active= (gpl->flag & GP_LAYER_ACTIVE);
 	short width= 314;
 	short height;
 	int rb_col;
@@ -160,10 +161,10 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* rounded header */
-		//uiBlockSetCol(block, TH_BUT_SETTING1); // FIXME: maybe another color
-			rb_col= (gpl->flag & GP_LAYER_ACTIVE)?50:20;
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
+			rb_col= (active)?-20:20;
 			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
-		//uiBlockSetCol(block, TH_AUTO);
+		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
 		uiDefIconButBitI(block, ICONTOG, GP_LAYER_LOCKED, B_REDR, ICON_UNLOCKED,	*xco-7, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Layer cannot be modified");
@@ -212,9 +213,9 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		}
 		
 		/* draw backdrop */
-		//uiBlockSetCol(block, TH_BUT_SETTING1); // fixme: maybe another color
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
 			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
-		//uiBlockSetCol(block, TH_AUTO);
+		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* draw settings */
 		{
@@ -235,11 +236,13 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			uiBlockEndAlign(block);
 			
 			/* options */
-			but= uiDefBut(block, BUT, B_REDR, "Del Active Frame", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Erases the the active frame for this layer");
-			uiButSetFunc(but, gp_ui_delframe_cb, gpd, gpl);
-			
-			but= uiDefBut(block, BUT, B_REDR, "Del Last Stroke", *xco+160, *yco-95, 140, 20, NULL, 0, 0, 0, 0, "Erases the last stroke from the active frame");
-			uiButSetFunc(but, gp_ui_delstroke_cb, gpd, gpl);
+			uiBlockBeginAlign(block);
+				but= uiDefBut(block, BUT, B_REDR, "Del Active Frame", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Erases the the active frame for this layer (Hotkey = Alt-XKEY/DEL)");
+				uiButSetFunc(but, gp_ui_delframe_cb, gpd, gpl);
+				
+				but= uiDefBut(block, BUT, B_REDR, "Del Last Stroke", *xco+160, *yco-95, 140, 20, NULL, 0, 0, 0, 0, "Erases the last stroke from the active frame (Hotkey = Alt-XKEY/DEL)");
+				uiButSetFunc(but, gp_ui_delstroke_cb, gpd, gpl);
+			uiBlockEndAlign(block);
 			
 			//uiDefButBitI(block, TOG, GP_LAYER_DRAWDEBUG, B_REDR, "Show Points", *xco+160, *yco-75, 130, 20, &gpl->flag, 0, 0, 0, 0, "Show points which form the strokes");
 		}
@@ -268,8 +271,14 @@ short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 		uiButSetFunc(but, gp_ui_addlayer_cb, gpd, NULL);
 		
 		
-		/* show override lmb-clicks button */
-		uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 150, 20, &gpd->flag, 0, 0, 0, 0, "Interpret LMB-click as new strokes (same as holding Shift-Key per stroke)");
+		/* show override lmb-clicks button + painting lock */
+		uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 130, 20, &gpd->flag, 0, 0, 0, 0, "Interpret LMB-click as new strokes (same as holding Shift-Key per stroke)");
+			
+			uiBlockSetCol(block, TH_BUT_SETTING);
+				uiDefIconButBitI(block, ICONTOG, GP_DATA_LMBPLOCK, B_REDR, ICON_UNLOCKED,	300, 225, 20, 20, &gpd->flag, 0.0, 0.0, 0, 0, "Painting cannot occur with Shift-LMB (when making selections)");
+			uiBlockSetCol(block, TH_AUTO);
+		uiBlockEndAlign(block);
 		
 		/* 'view align' button (naming depends on context) */
 		if (sa->spacetype == SPACE_VIEW3D)

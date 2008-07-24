@@ -646,7 +646,7 @@ static void draw_channel_names(void)
 						case SPACE_VIEW3D:
 						{
 							/* this shouldn't cause any overflow... */
-							sprintf(name, "3D-View: <%s>", view3d_get_name(sa->spacedata.first));
+							sprintf(name, "3DView: %s", view3d_get_name(sa->spacedata.first));
 							special= ICON_VIEW3D;
 						}
 							break;
@@ -684,8 +684,10 @@ static void draw_channel_names(void)
 							break;
 						
 						default:
-							sprintf(name, "GP-Data");
+						{
+							sprintf(name, "<Unknown GP-Data Source>");
 							special= -1;
+						}
 							break;
 					}
 				}
@@ -775,13 +777,19 @@ static void draw_channel_names(void)
 				offset += 17;
 			}
 			
-			/* draw special icon indicating type of ipo-blocktype? 
-			 * 	only for expand widgets for Ipo and Constraint Channels 
-			 */
-			if (special > 0) {
-				offset = (group) ? 29 : 24;
-				BIF_icon_draw(x+offset, yminc, special);
-				offset += 17;
+			/* draw special icon indicating certain data-types */
+			if (special > -1) {
+				if (group == 3) {
+					/* for gpdatablock channels */
+					BIF_icon_draw(x+offset, yminc, special);
+					offset += 17;
+				}
+				else {
+					/* for ipo/constraint channels */
+					offset = (group) ? 29 : 24;
+					BIF_icon_draw(x+offset, yminc, special);
+					offset += 17;
+				}
 			}
 				
 			/* draw name */
@@ -797,13 +805,13 @@ static void draw_channel_names(void)
 			offset = 0;
 			
 			/* draw protect 'lock' */
-			if (protect > 0) {
+			if (protect > -1) {
 				offset = 16;
 				BIF_icon_draw(NAMEWIDTH-offset, yminc, protect);
 			}
 			
 			/* draw mute 'eye' */
-			if (mute > 0) {
+			if (mute > -1) {
 				offset += 16;
 				BIF_icon_draw(NAMEWIDTH-offset, yminc, mute);
 			}

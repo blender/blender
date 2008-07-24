@@ -127,12 +127,12 @@ typedef struct bGPdata {
 } bGPdata;
 
 /* bGPdata->flag */
-	/* draw this datablock's data (not used) */
-#define GP_DATA_DISP		(1<<0)
+	/* don't allow painting to occur at all */
+#define GP_DATA_LMBPLOCK	(1<<0)
 	/* show debugging info in viewport (i.e. status print) */
 #define GP_DATA_DISPINFO	(1<<1)
 	/* in Action Editor, show as expanded channel */
-#define GP_DATA_EXPAND	(1<<2)
+#define GP_DATA_EXPAND		(1<<2)
 	/* is the block overriding all clicks? */
 #define GP_DATA_EDITPAINT	(1<<3)
 	/* new strokes are added in viewport space */

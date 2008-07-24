@@ -2568,8 +2568,13 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case DELKEY:
 		case XKEY:
-			if(fromlib) fromlib= -1;
-			else node_delete(snode);
+			if(G.qual==LR_ALTKEY) {
+				gpencil_delete_menu();
+			}
+			else {
+				if(fromlib) fromlib= -1;
+				else node_delete(snode);
+			}
 			break;
 		}
 	}

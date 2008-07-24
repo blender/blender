@@ -616,7 +616,7 @@ void gpencil_delete_actframe (bGPdata *gpd)
  *		 	2 - active frame
  *			3 - active layer
  */
-void gpencil_delete_operation (short mode) // unused
+void gpencil_delete_operation (short mode)
 {
 	bGPdata *gpd;
 	
@@ -642,11 +642,15 @@ void gpencil_delete_operation (short mode) // unused
 }
 
 /* display a menu for deleting different grease-pencil elements */
-void gpencil_delete_menu (void) // unused
+void gpencil_delete_menu (void)
 {
+	bGPdata *gpd= gpencil_data_getactive(NULL);
 	short mode;
 	
-	mode= pupmenu("Erase...%t|Last Stroke%x1|Active Frame%x2|Active Layer%x3");
+	/* only show menu if it will be relevant */
+	if (gpd == NULL) return;
+	
+	mode= pupmenu("Grease Pencil Erase...%t|Last Stroke%x1|Active Frame%x2|Active Layer%x3");
 	if (mode <= 0) return;
 	
 	gpencil_delete_operation(mode);
@@ -1173,7 +1177,7 @@ short gpencil_do_paint (ScrArea *sa)
 		/* try to paint */
 		retval = gpencil_paint(mousebutton);
 	}
-	else if (G.qual == LR_SHIFTKEY) {
+	else if (!(gpd->flag & GP_DATA_LMBPLOCK) && (G.qual == LR_SHIFTKEY)) {
 		/* try to paint */
 		retval = gpencil_paint(mousebutton);
 	}
