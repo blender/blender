@@ -3539,6 +3539,13 @@ static void restrictbutton_modifier_cb(void *poin, void *poin2)
 	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
+static void restrictbutton_bone_cb(void *poin, void *poin2)
+{
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 static void namebutton_cb(void *tep, void *oldnamep)
 {
 	SpaceOops *soops= curarea->spacedata.first;
@@ -3721,6 +3728,25 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
 						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, ob, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+			}
+			else if(tselem->type==TSE_POSE_CHANNEL)  {
+				bPoseChannel *pchan= (bPoseChannel *)te->directdata;
+				Bone *bone = pchan->bone;
+				
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				uiButSetFunc(bt, restrictbutton_bone_cb, ob, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+			}
+			else if(tselem->type==TSE_EBONE)  {
+				EditBone *ebone= (EditBone *)te->directdata;
+				
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				uiButSetFunc(bt, restrictbutton_bone_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 		}
