@@ -1347,8 +1347,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		for (i=0; i<prop->len; i++) {
-			SWITCH_INT(((int*)prop->data.pointer)[i]);
+		if (prop->subtype != IDP_DOUBLE) {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_INT(((int*)prop->data.pointer)[i]);
+			}
+		} else {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
+			}
 		}
 	}
 }
@@ -1384,6 +1390,24 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
 			break;
 		case IDP_ARRAY:
 			IDP_DirectLinkArray(prop, switch_endian, fd);
+			break;
+		case IDP_DOUBLE:
+			/*erg, stupid doubles.  since I'm storing them
+			 in the same field as int val; val2 in the
+			 IDPropertyData struct, they have to deal with
+			 endianness specifically
+			 
+			 in theory, val and val2 would've already been swapped
+			 if switch_endian is true, so we have to first unswap
+			 them then reswap them as a single 64-bit entity.
+			 */
+			
+			if (switch_endian) {
+				SWITCH_INT(prop->data.val);
+				SWITCH_INT(prop->data.val2);
+				SWITCH_LONGINT(prop->data.val);
+			}
+			
 			break;
 	}
 }
