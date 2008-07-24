@@ -139,11 +139,14 @@ typedef struct RigEdge {
 	EditBone *bone;
 } RigEdge;
 
+#define RIG_CTRL_DONE	1
+
 typedef struct RigControl {
 	struct RigControl *next, *prev;
 	EditBone *bone;
 	EditBone *parent;
-	float offset[3];
+	float	offset[3];
+	int		flag;
 } RigControl;
 
 /*******************************************************************************************************/
@@ -622,11 +625,13 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
 
 /************************************ RETARGETTING *****************************************************/
 
-static void repositionControl(RigControl *ctrl, float parent[3], float qrot[4], float resize)
+static void repositionControl(RigGraph *rigg, RigControl *ctrl, float parent[3], float qrot[4], float resize)
 {
+	RigControl *ctrl_child;
 	float parent_offset[3], tail_offset[3];
 	
 	VecSubf(tail_offset, ctrl->bone->tail, ctrl->bone->head);
+	VecMulf(tail_offset, resize);
 	
 	VECCOPY(parent_offset, ctrl->offset);
 	VecMulf(parent_offset, resize);
@@ -636,6 +641,18 @@ static void repositionControl(RigControl *ctrl, float parent[3], float qrot[4], 
 	
 	VecAddf(ctrl->bone->head, parent, parent_offset); 
 	VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
+	
+	ctrl->flag |= RIG_CTRL_DONE;
+
+	/* Cascade to connected control bones */
+	for (ctrl_child = rigg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
+	{
+		if (ctrl_child->parent == ctrl->bone)
+		{
+			repositionControl(rigg, ctrl_child, ctrl->bone->tail, qrot, resize);
+		}
+	}
+
 }
 
 static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float vec1[3])
@@ -665,7 +682,7 @@ static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float 
 				RotationBetweenVectorsToQuat(qrot, v1, v2);
 			}
 			
-			repositionControl(ctrl, vec1, qrot, resize);
+			repositionControl(rigg, ctrl, vec1, qrot, resize);
 		}
 	}
 	
