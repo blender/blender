@@ -1,7 +1,15 @@
 #include "BPy_Iterator.h"
 
 #include "BPy_Convert.h"
+#include "Iterator/BPy_AdjacencyIterator.h"
+#include "Iterator/BPy_Interface0DIterator.h"
+#include "Iterator/BPy_CurvePointIterator.h"
+#include "Iterator/BPy_StrokeVertexIterator.h"
+#include "Iterator/BPy_SVertexIterator.h"
+#include "Iterator/BPy_orientedViewEdgeIterator.h"
+#include "Iterator/BPy_ViewEdgeIterator.h"
 
+	
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -115,8 +123,7 @@ PyTypeObject Iterator_Type = {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 PyMODINIT_FUNC Iterator_Init( PyObject *module )
-{
-	
+{	
 	if( module == NULL )
 		return;
 
@@ -124,6 +131,42 @@ PyMODINIT_FUNC Iterator_Init( PyObject *module )
 		return;
 	Py_INCREF( &Iterator_Type );
 	PyModule_AddObject(module, "Iterator", (PyObject *)&Iterator_Type);
+
+	if( PyType_Ready( &AdjacencyIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &AdjacencyIterator_Type );
+	PyModule_AddObject(module, "AdjacencyIterator", (PyObject *)&AdjacencyIterator_Type);
+
+	if( PyType_Ready( &Interface0DIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &Interface0DIterator_Type );
+	PyModule_AddObject(module, "Interface0DIterator", (PyObject *)&Interface0DIterator_Type);
+	
+	if( PyType_Ready( &CurvePointIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &CurvePointIterator_Type );
+	PyModule_AddObject(module, "CurvePointIterator", (PyObject *)&CurvePointIterator_Type);
+	
+	if( PyType_Ready( &StrokeVertexIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &StrokeVertexIterator_Type );
+	PyModule_AddObject(module, "StrokeVertexIterator", (PyObject *)&StrokeVertexIterator_Type);
+	
+	if( PyType_Ready( &SVertexIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &SVertexIterator_Type );
+	PyModule_AddObject(module, "SVertexIterator", (PyObject *)&SVertexIterator_Type);
+	
+	if( PyType_Ready( &orientedViewEdgeIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &orientedViewEdgeIterator_Type );
+	PyModule_AddObject(module, "orientedViewEdgeIterator", (PyObject *)&orientedViewEdgeIterator_Type);
+	
+	if( PyType_Ready( &ViewEdgeIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &ViewEdgeIterator_Type );
+	PyModule_AddObject(module, "ViewEdgeIterator", (PyObject *)&ViewEdgeIterator_Type);
+	
 	
 }
 

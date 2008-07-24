@@ -282,7 +282,7 @@ PyObject *Stroke_setTips( BPy_Stroke *self , PyObject *args) {
 		Py_RETURN_NONE;
 	}
 
-	self->s->setTips( py_b == Py_True );
+	self->s->setTips( bool_from_PyBool(py_b) );
 
 	Py_RETURN_NONE;
 }

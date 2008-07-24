@@ -12,6 +12,9 @@ PyObject * PyBool_from_bool( bool b ){
 	return PyBool_FromLong( b ? 1 : 0);
 }
 
+bool bool_from_PyBool( PyObject *b ) {
+	return b == Py_True;
+}
 
 PyObject * Vector_from_Vec2f( Vec2f& vec ) {
 	float vec_data[2]; // because vec->_coord is protected

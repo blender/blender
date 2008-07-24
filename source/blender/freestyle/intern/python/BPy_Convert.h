@@ -25,6 +25,7 @@ extern "C" {
 #include "api2_2x/gen_utils.h"
 
 PyObject * PyBool_from_bool( bool b );
+bool bool_from_PyBool( PyObject *b );
 
 PyObject * Vector_from_Vec2f( Vec2f& v );
 PyObject * Vector_from_Vec3f( Vec3f& v );

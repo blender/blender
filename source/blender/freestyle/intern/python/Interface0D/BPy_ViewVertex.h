@@ -20,6 +20,7 @@ extern PyTypeObject ViewVertex_Type;
 /*---------------------------Python BPy_ViewVertex structure definition----------*/
 typedef struct {
 	BPy_Interface0D py_if0D;
+	ViewVertex *vv;
 } BPy_ViewVertex;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
