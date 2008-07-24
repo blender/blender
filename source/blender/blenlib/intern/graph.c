@@ -714,14 +714,27 @@ static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNo
 {
 	float nor[3], vec[3], p[3];
 
-	VecSubf(vec, node1->p, root_node->p);
-	Normalize(vec);
-	VecSubf(p, root_node->p, node2->p);
-	Normalize(p);
-	VecAddf(p, p, vec);
+	VecSubf(p, node1->p, root_node->p);
+	Crossf(nor, p, axis);
 
+	VecSubf(p, root_node->p, node2->p);
 	Crossf(vec, p, axis);
+	VecAddf(vec, vec, nor);
+	
 	Crossf(nor, vec, axis);
+	
+	if (abs(nor[0]) > abs(nor[1]) && abs(nor[0]) > abs(nor[2]) && nor[0] < 0)
+	{
+		VecMulf(nor, -1);
+	}
+	else if (abs(nor[1]) > abs(nor[0]) && abs(nor[1]) > abs(nor[2]) && nor[1] < 0)
+	{
+		VecMulf(nor, -1);
+	}
+	else if (abs(nor[2]) > abs(nor[1]) && abs(nor[2]) > abs(nor[0]) && nor[2] < 0)
+	{
+		VecMulf(nor, -1);
+	}
 	
 	/* mirror node2 along axis */
 	VECCOPY(p, node2->p);
