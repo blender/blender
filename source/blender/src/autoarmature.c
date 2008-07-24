@@ -149,6 +149,18 @@ typedef struct RigControl {
 	int		flag;
 } RigControl;
 
+typedef enum 
+{
+	RETARGET_LENGTH,
+	RETARGET_AGGRESSIVE
+} RetargetMode; 
+
+typedef enum
+{
+	METHOD_BRUTE_FORCE = 0,
+	METHOD_ANNEALING = 1
+} RetargetMethod;
+
 /*******************************************************************************************************/
 
 static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second);
@@ -690,12 +702,6 @@ static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float 
 	VECCOPY(bone->tail, vec1);
 }
 
-typedef enum 
-{
-	RETARGET_LENGTH,
-	RETARGET_AGGRESSIVE
-} RetargetMode; 
-
 static RetargetMode detectArcRetargetMode(RigArc *arc);
 static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc);
 
@@ -1081,9 +1087,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	int nb_edges = BLI_countlist(&iarc->edges);
 	int nb_joints = nb_edges - 1;
 	int symmetry_axis = 0;
-	int last_index = 0;
-	int first_pass = 1;
-	int must_move = nb_joints - 1;
+	RetargetMethod method = METHOD_ANNEALING; //G.scene->toolsettings->skgen_optimisation_method;
 	int i;
 
 	positions = MEM_callocN(sizeof(int) * nb_joints, "Aggresive positions");
@@ -1119,10 +1123,24 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	
 	vec_cache[0] = node_start->p;
 	vec_cache[nb_edges] = node_end->p;
-
-	/* BRUTE FORCE */
+	
+	if (nb_joints < 3)
+	{
+		method = METHOD_BRUTE_FORCE;
+	}
+	
 	if (G.scene->toolsettings->skgen_optimisation_method == 0)
 	{
+		method = METHOD_BRUTE_FORCE;
+	}
+
+	/* BRUTE FORCE */
+	if (method == METHOD_BRUTE_FORCE)
+	{
+		int last_index = 0;
+		int first_pass = 1;
+		int must_move = nb_joints - 1;
+		
 		while(1)
 		{
 			float cost = 0;
@@ -1259,20 +1277,23 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 		}
 	}
 	/* SIMULATED ANNEALING */
-#define ANNEALING_ITERATION
-	else if (G.scene->toolsettings->skgen_optimisation_method == 1)
+	else if (method == METHOD_ANNEALING)
 	{
 		RigEdge *previous;
 		float *cost_cube;
 		float cost;
-#ifdef ANNEALING_ITERATION
 		int k;
-		//int kmax = 100000;
-		int kmax = nb_joints * earc->bcount * 200;
-#else
-		double time_start, time_current, time_length = 3;
-		int k;
-#endif
+		int kmax;
+
+		switch (G.scene->toolsettings->skgen_optimisation_method)
+		{
+			case 1:
+				kmax = 100000;
+				break;
+			case 2:
+				kmax = nb_joints * earc->bcount * 200;
+				break;
+		}
 		
 		BLI_srand(nb_joints);
 		
@@ -1303,13 +1324,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 		printf("initial cost: %f\n", cost);
 		printf("kmax: %i\n", kmax);
 		
-#ifdef ANNEALING_ITERATION
 		for (k = 0; k < kmax; k++)
-#else
-		for (time_start = PIL_check_seconds_timer(), time_current = time_start, k = 0;
-			 time_current - time_start < time_length;
-			 time_current = PIL_check_seconds_timer(), k++)
-#endif
 		{
 			int status;
 			int moving_joint = -1;
@@ -1332,12 +1347,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 			
 			delta_cost = cost_cube[moving_joint * 3 + (1 + move_direction)];
 
-#ifdef ANNEALING_ITERATION
 			temperature = 1 - (float)k / (float)kmax;
-#else
-			temperature = 1 - (float)((time_current - time_start) / time_length);
-			temperature = temperature * temperature;
-#endif
 			if (probability(delta_cost, temperature) > BLI_frand())
 			{
 				/* update position */			
@@ -1390,7 +1400,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	printf("buckets: %i\n", earc->bcount);
 
 	/* set joints to best position */
-	for (edge = iarc->edges.first, i = 0, last_index = 0;
+	for (edge = iarc->edges.first, i = 0;
 		 edge;
 		 edge = edge->next, i++)
 	{
