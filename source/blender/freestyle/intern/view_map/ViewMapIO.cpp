@@ -463,7 +463,7 @@ namespace ViewMapIO {
 	// FrontSVertex
 	SVertex* fsv;
 	READ_IF_NON_NULL(fsv, g_vm->SVertices());
-	tv->setFrontVertex(fsv);
+	tv->setFrontSVertex(fsv);
 
 	// BackSVertex
 	SVertex* bsv;

@@ -72,6 +72,8 @@ python_sources = [
 						prefix + '/Interface0D/CurvePoint/BPy_StrokeVertex.cpp',
 						prefix + '/Interface0D/BPy_SVertex.cpp',
 						prefix + '/Interface0D/BPy_ViewVertex.cpp',
+						prefix + '/Interface0D/ViewVertex/BPy_NonTVertex.cpp',
+						prefix + '/Interface0D/ViewVertex/BPy_TVertex.cpp',
 					prefix + '/BPy_Interface1D.cpp',
 						prefix + '/Interface1D/BPy_Curve.cpp',
 						prefix + '/Interface1D/BPy_FEdge.cpp',

@@ -465,7 +465,7 @@ public:
   
   /* modifiers */
   /*! Sets the SVertex that is closer to the viewpoint. */
-  inline void setFrontVertex(SVertex  *iFrontSVertex) {_FrontSVertex = iFrontSVertex;_FrontSVertex->setViewVertex(this);}
+  inline void setFrontSVertex(SVertex  *iFrontSVertex) {_FrontSVertex = iFrontSVertex;_FrontSVertex->setViewVertex(this);}
   /*! Sets the SVertex that is further away from the viewpoint. */
   inline void setBackSVertex(SVertex  *iBackSVertex) {_BackSVertex = iBackSVertex;_BackSVertex->setViewVertex(this);}
   void setFrontEdgeA(ViewEdge *iFrontEdgeA, bool incoming=true);
@@ -476,7 +476,7 @@ public:
   inline void setId(const Id& iId) {_Id = iId;}
   
   /*! Returns the SVertex (among the 2) belonging to the FEdge iFEdge */
-  inline SVertex * GetSVertex(FEdge *iFEdge)
+  inline SVertex * getSVertex(FEdge *iFEdge)
   {
     const vector<FEdge*>& vfEdges = _FrontSVertex->fedges();
     vector<FEdge*>::const_iterator fe,fend;

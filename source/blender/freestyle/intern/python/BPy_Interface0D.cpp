@@ -5,6 +5,8 @@
 #include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface0D/BPy_ViewVertex.h"
+#include "Interface0D/ViewVertex/BPy_NonTVertex.h"
+#include "Interface0D/ViewVertex/BPy_TVertex.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "BPy_Nature.h"
 
@@ -164,6 +166,16 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 		return;
 	Py_INCREF( &StrokeVertex_Type );
 	PyModule_AddObject(module, "StrokeVertex", (PyObject *)&StrokeVertex_Type);
+	
+	if( PyType_Ready( &NonTVertex_Type ) < 0 )
+		return;
+	Py_INCREF( &NonTVertex_Type );
+	PyModule_AddObject(module, "NonTVertex", (PyObject *)&NonTVertex_Type);
+	
+	if( PyType_Ready( &TVertex_Type ) < 0 )
+		return;
+	Py_INCREF( &TVertex_Type );
+	PyModule_AddObject(module, "TVertex", (PyObject *)&TVertex_Type);
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
