@@ -166,8 +166,8 @@ CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
 CPPFLAGS = ['-DXP_UNIX']
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-REL_CFLAGS = ['-O2']
-REL_CCFLAGS = ['-O2']
+REL_CFLAGS = ['-O3']
+REL_CCFLAGS = ['-O3']
 ##BF_DEPEND = 'true'
 ##
 ##AR = ar

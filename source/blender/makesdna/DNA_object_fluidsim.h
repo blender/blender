@@ -128,7 +128,7 @@ typedef struct FluidsimSettings {
 	float velocityforceStrength;
 	float velocityforceRadius;
 
-	int pad;
+	int lastgoodframe;
 
 } FluidsimSettings;
 

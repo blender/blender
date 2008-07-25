@@ -1963,12 +1963,6 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
-				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
-					// fluidsimSettings might not be initialized during load...
-					if(ob->fluidsimSettings->type & (OB_FLUIDSIM_DOMAIN|OB_FLUIDSIM_PARTICLE)) {
-						ob->recalc |= OB_RECALC_DATA; // NT FSPARTICLE
-					}
-				}
 				if(ob->particlesystem.first)
 					ob->recalc |= OB_RECALC_DATA;
 				break;

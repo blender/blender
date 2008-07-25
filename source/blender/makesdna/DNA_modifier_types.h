@@ -35,6 +35,7 @@ typedef enum ModifierType {
 	eModifierType_Cloth,
 	eModifierType_Collision,
 	eModifierType_Bevel,
+	eModifierType_Fluidsim,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -489,5 +490,12 @@ typedef struct ExplodeModifierData {
 	short flag, vgroup;
 	float protect;
 } ExplodeModifierData;
+
+typedef struct FluidsimModifierData {
+	ModifierData modifier;
+	
+	struct FluidsimSettings *fss; /* definition is is DNA_object_fluidsim.h */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+} FluidsimModifierData;
 
 #endif

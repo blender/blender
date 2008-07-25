@@ -54,7 +54,8 @@
 /* PTCacheID types */
 #define PTCACHE_TYPE_SOFTBODY	0
 #define PTCACHE_TYPE_PARTICLES	1
-#define PTCACHE_TYPE_CLOTH		2
+#define PTCACHE_TYPE_CLOTH	2
+#define PTCACHE_TYPE_FLUIDSIM	3
 
 /* Structs */
 struct Object;
@@ -83,6 +84,7 @@ typedef struct PTCacheID {
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
+void BKE_ptcache_id_from_fluidsim(PTCacheID *pid, struct Object *ob, struct FluidsimModifierData *fluidmd);
 
 void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob);
 

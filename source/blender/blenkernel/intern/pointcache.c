@@ -123,6 +123,17 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 	pid->cache= clmd->point_cache;
 }
 
+void BKE_ptcache_id_from_fluidsim(PTCacheID *pid, Object *ob, FluidsimModifierData *fluidmd)
+{
+	memset(pid, 0, sizeof(PTCacheID));
+
+	pid->ob= ob;
+	pid->data= fluidmd;
+	pid->type= PTCACHE_TYPE_FLUIDSIM;
+	pid->stack_index= modifiers_indexInObject(ob, (ModifierData *)fluidmd);
+	pid->cache= fluidmd->point_cache;
+}
+
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 {
 	PTCacheID *pid;
@@ -153,6 +164,11 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 		if(md->type == eModifierType_Cloth) {
 			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
 			BKE_ptcache_id_from_cloth(pid, ob, (ClothModifierData*)md);
+			BLI_addtail(lb, pid);
+		}
+		else if(md->type == eModifierType_Fluidsim) {
+			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
+			BKE_ptcache_id_from_fluidsim(pid, ob, (FluidsimModifierData*)md);
 			BLI_addtail(lb, pid);
 		}
 	}

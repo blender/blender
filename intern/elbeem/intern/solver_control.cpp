@@ -236,7 +236,6 @@ LbmFsgrSolver::initCpdata()
 			// dont load any file
 			cset->mContrPartFile = string("");
 
-			// TODO dg: switch to channels later
 			cset->mcForceAtt = obj->getCpsAttrFStr();
 			cset->mcRadiusAtt = obj->getCpsAttrFRad();
 			cset->mcForceVel = obj->getCpsVelFStr();
@@ -491,8 +490,8 @@ LbmFsgrSolver::handleCpdata()
 	// init for current time
 	for(int cpssi=0; cpssi<(int)mpControl->mCons.size(); cpssi++) {
 		ControlParticles *cparts = mpControl->mCons[cpssi]->mCparts;
-
 		LbmControlSet *cset = mpControl->mCons[cpssi];
+		
 		cparts->setRadiusAtt(cset->mcRadiusAtt.get(mSimulationTime));
 		cparts->setRadiusVel(cset->mcRadiusVel.get(mSimulationTime));
 		cparts->setInfluenceAttraction(cset->mcForceAtt.get(mSimulationTime) );
@@ -506,18 +505,22 @@ LbmFsgrSolver::handleCpdata()
 		cparts->setInfluenceVelocity( cset->mcForceVel.get(mSimulationTime), mLevel[fineLev].timestep );
 		cparts->setLastOffset( vec2L(cset->mcCpOffset.get(mSimulationTime-mLevel[fineLev].timestep)) );
 		cparts->setLastScale(  vec2L(cset->mcCpScale.get(mSimulationTime-mLevel[fineLev].timestep)) );
+		
 	}
 
 	// check actual values
-	LbmFloat iatt  = mpControl->mCons[0]->mCparts->getInfluenceAttraction();
+	LbmFloat iatt  = ABS(mpControl->mCons[0]->mCparts->getInfluenceAttraction());
 	LbmFloat ivel  = mpControl->mCons[0]->mCparts->getInfluenceVelocity();
 	LbmFloat imaxd = mpControl->mCons[0]->mCparts->getInfluenceMaxdist();
 	//errMsg("FINCIT","iatt="<<iatt<<" ivel="<<ivel<<" imaxd="<<imaxd);
 	for(int cpssi=1; cpssi<(int)mpControl->mCons.size(); cpssi++) {
-		LbmFloat iatt2  = mpControl->mCons[cpssi]->mCparts->getInfluenceAttraction();
+		LbmFloat iatt2  = ABS(mpControl->mCons[cpssi]->mCparts->getInfluenceAttraction());
 		LbmFloat ivel2  = mpControl->mCons[cpssi]->mCparts->getInfluenceVelocity();
 		LbmFloat imaxd2 = mpControl->mCons[cpssi]->mCparts->getInfluenceMaxdist();
-		if(iatt2 >iatt)   iatt = iatt2;
+		
+		// we allow negative attraction force here!
+		if(iatt2 > iatt)   iatt = iatt2;
+		
 		if(ivel2 >ivel)   ivel = ivel2;
 		if(imaxd2>imaxd)  imaxd= imaxd2;
 		//errMsg("FINCIT"," "<<cpssi<<" iatt2="<<iatt2<<" ivel2="<<ivel2<<" imaxd2="<<imaxd<<" NEW "<<" iatt="<<iatt<<" ivel="<<ivel<<" imaxd="<<imaxd);
@@ -581,6 +584,12 @@ LbmFsgrSolver::handleCpdata()
 	for(int cpssi=0; cpssi<(int)mpControl->mCons.size(); cpssi++) {
 		ControlParticles *cparts = mpControl->mCons[cpssi]->mCparts;
 		// ControlParticles *cpmotion = mpControl->mCons[cpssi]->mCpmotion;
+		
+		// if control set is not active skip it
+		if((cparts->getControlTimStart() > mSimulationTime) || (cparts->getControlTimEnd() < mLastSimTime))
+		{
+			continue;
+		}
 
 		const LbmFloat velLatticeScale = mLevel[lev].timestep/mLevel[lev].nodeSize;
 		LbmFloat gsx = ((mvGeoEnd[0]-mvGeoStart[0])/(LbmFloat)mLevel[lev].lSizex);

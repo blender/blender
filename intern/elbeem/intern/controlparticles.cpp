@@ -57,6 +57,7 @@ void ControlParticles::initBlenderTest() {
 	initTime(0. , 1.);
 }
 
+// blender control object gets converted to mvm flui control object
 int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	vector<ntlTriangle> triangles;
 	vector<ntlVec3Gfx> vertices;
@@ -73,6 +74,7 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	printf("a animated? %d\n", model->getIsAnimated());
 	printf("b animated? %d\n", model->getMeshAnimated());
 	*/
+	
 	model->setGeoInitType(FGI_FLUID);
 	
 	model->getTriangles(mCPSTimeStart, &triangles, &vertices, &normals, 1 ); 
@@ -137,7 +139,7 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	// init first set, check dist
 	ControlParticleSet firstcps; //T
 	mPartSets.push_back(firstcps);
-	mPartSets[mPartSets.size()-1].time = (gfxReal)0.;
+	mPartSets[mPartSets.size()-1].time = mCPSTimeStart;
 	vector<bool> useCP;
 
 	for(int i=0; i<(int)inspos.size(); i++) {
@@ -1378,8 +1380,10 @@ void ControlParticles::calculateCpInfluenceOpt(ControlParticle *cp, LbmVec fluid
 #if (CP_PROJECT2D==1) && (defined(MAIN_2D) || LBMDIM==2)
 	// fillFactor *= 2.0 *0.75 * pdistance; // 2d>3d sampling
 #endif // (CP_PROJECT2D==1) && (defined(MAIN_2D) || LBMDIM==2)
+	
+	LbmFloat signum = getInfluenceAttraction() > 0.0 ? 1.0 : -1.0;	
 	cp->density += falloffAtt * fillFactor;
-	force->forceAtt += posDelta *cp->densityWeight *cp->influence; 
+	force->forceAtt +=  posDelta *cp->densityWeight *cp->influence *signum; 
 	force->weightAtt += falloffAtt*cp->densityWeight *cp->influence;
 	
 	LbmFloat falloffVel = 0.; //CPKernel::kernel(cpfo * 1.0, pdistance);

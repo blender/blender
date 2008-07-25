@@ -985,7 +985,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		/* Only allow adding through appropriate other interfaces */
 		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
 		
-		if(ELEM(i, eModifierType_Cloth, eModifierType_Collision)) continue;
+		if(ELEM3(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1742,7 +1742,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		
 		// deletion over the deflection panel
 		// fluid particle modifier can't be deleted here
-		if(md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
+		if(md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
 		{
 			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
 			uiButSetFunc(but, modifiers_del, ob, md);
@@ -1826,6 +1826,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Explode) {
 			height = 94;
+		} else if (md->type==eModifierType_Fluidsim) {
+			height = 31;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -1843,7 +1845,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_applyModifier, ob, md);
 			}
 			
-			if (md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
+			if (md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}

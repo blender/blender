@@ -55,7 +55,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -66,8 +68,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_camera_types.h"
 
 #include "BLI_editVert.h"
 
@@ -77,29 +77,30 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_bmesh.h"
+#include "BKE_booleanops.h"
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
-#include "BKE_global.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_booleanops.h"
 #include "BKE_displist.h"
-#include "BKE_modifier.h"
+#include "BKE_fluidsim.h"
+#include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
-#include "BKE_subsurf.h"
-#include "BKE_object.h"
-#include "BKE_mesh.h"
-#include "BKE_softbody.h"
-#include "BKE_cloth.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_softbody.h"
+#include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
+
 #include "depsgraph_private.h"
-#include "BKE_bmesh.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -6890,6 +6891,49 @@ static DerivedMesh * explodeModifier_applyModifier(
 	}
 	return derivedData;
 }
+
+/* Fluidsim */
+static void fluidsimModifier_initData(ModifierData *md)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	
+	fluidsim_init(fluidmd);
+}
+static void fluidsimModifier_freeData(ModifierData *md)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	
+	fluidsim_free(fluidmd);
+}
+
+static DerivedMesh * fluidsimModifier_applyModifier(
+		ModifierData *md, Object *ob, DerivedMesh *derivedData,
+  int useRenderParams, int isFinalCalc)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	DerivedMesh *result = NULL;
+	
+	/* check for alloc failing */
+	if(!fluidmd->fss)
+	{
+		fluidsimModifier_initData(md);
+		
+		if(!fluidmd->fss)
+			return derivedData;
+	}
+
+	result = fluidsimModifier_do(fluidmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result) { CDDM_calc_normals(result); return result; }
+	
+	return derivedData;
+}
+
+static int fluidsimModifier_dependsOnTime(ModifierData *md) 
+{
+	return 1;
+}
+
 /* MeshDeform */
 
 static void meshdeformModifier_initData(ModifierData *md)
@@ -7521,6 +7565,15 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->dependsOnTime = explodeModifier_dependsOnTime;
 		mti->requiredDataMask = explodeModifier_requiredDataMask;
 		mti->applyModifier = explodeModifier_applyModifier;
+		
+		mti = INIT_TYPE(Fluidsim);
+		mti->type = eModifierTypeType_Nonconstructive
+				| eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->initData = fluidsimModifier_initData;
+		mti->freeData = fluidsimModifier_freeData;
+		mti->dependsOnTime = fluidsimModifier_dependsOnTime;
+		mti->applyModifier = fluidsimModifier_applyModifier;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

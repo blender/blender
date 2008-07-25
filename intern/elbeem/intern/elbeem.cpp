@@ -96,6 +96,13 @@ int elbeemInit() {
 	return 0;
 }
 
+// fluidsim end
+extern "C" 
+int elbeemFree() {
+	
+	return 0;
+}
+
 // start fluidsim init
 extern "C" 
 int elbeemAddDomain(elbeemSimulationSettings *settings) {
@@ -253,6 +260,7 @@ int elbeemSimulate(void) {
 		if(getElbeemState() != SIMWORLD_STOP) {
 			// ok, we're done...
 			delete gpWorld;
+			
 			gpWorld = NULL;
 			debMsgStd("elbeemSimulate",DM_NOTIFY, "El'Beem simulation done, time: "<<getTimeString(timeend-timestart)<<".\n", 2 ); 
 		} else {

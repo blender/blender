@@ -32,7 +32,7 @@ typedef struct elbeemSimulationSettings {
   short version;
 	/* id number of simulation domain, needed if more than a
 	 * single domain should be simulated */
-	short domainId;
+	short domainId; // unused within blender
 
 	/* geometrical extent */
 	float geoStart[3], geoSize[3];
@@ -186,6 +186,9 @@ void elbeemResetSettings(struct elbeemSimulationSettings*);
  
 // start fluidsim init (returns !=0 upon failure)
 int elbeemInit(void);
+
+// frees fluidsim
+int elbeemFree(void);
 
 // start fluidsim init (returns !=0 upon failure)
 int elbeemAddDomain(struct elbeemSimulationSettings*);

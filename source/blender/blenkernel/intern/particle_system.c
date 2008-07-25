@@ -4540,7 +4540,7 @@ void psys_changed_type(ParticleSystem *psys)
 }
 
 static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
-{
+{	
 	if(psys->particles){
 		MEM_freeN(psys->particles);
 		psys->particles = 0;
@@ -4549,94 +4549,98 @@ static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
 
 	/* fluid sim particle import handling, actual loading of particles from file */
 	#ifndef DISABLE_ELBEEM
-	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // broken, disabled for now!
-		(ob->fluidsimSettings)) { 
-		ParticleSettings *part = psys->part;
-		ParticleData *pa=0;
-		char *suffix  = "fluidsurface_particles_####";
-		char *suffix2 = ".gz";
-		char filename[256];
-		char debugStrBuffer[256];
-		int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
-		int  p, j, numFileParts, totpart;
-		int readMask, activeParts = 0, fileParts = 0;
-		gzFile gzf;
-
-		if(ob==G.obedit) // off...
-			return;
-
-		// ok, start loading
-		strcpy(filename, ob->fluidsimSettings->surfdataPath);
-		strcat(filename, suffix);
-		BLI_convertstringcode(filename, G.sce);
-		BLI_convertstringframe(filename, curFrame); // fixed #frame-no 
-		strcat(filename, suffix2);
-
-		gzf = gzopen(filename, "rb");
-		if (!gzf) {
-			snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
-			//elbeemDebugOut(debugStrBuffer);
-			return;
-		}
-
-		gzread(gzf, &totpart, sizeof(totpart));
-		numFileParts = totpart;
-		totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+	{
+		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 		
-		part->totpart= totpart;
-		part->sta=part->end = 1.0f;
-		part->lifetime = G.scene->r.efra + 1;
-
-		/* initialize particles */
-		realloc_particles(ob, psys, part->totpart);
-		initialize_all_particles(ob, psys, 0);
-
-		// set up reading mask
-		readMask = ob->fluidsimSettings->typeFlags;
-		
-		for(p=0, pa=psys->particles; p<totpart; p++, pa++) {
-			int ptype=0;
-
-			gzread(gzf, &ptype, sizeof( ptype )); 
-			if(ptype&readMask) {
-				activeParts++;
-
-				gzread(gzf, &(pa->size), sizeof( float )); 
-
-				pa->size /= 10.0f;
-
-				for(j=0; j<3; j++) {
-					float wrf;
-					gzread(gzf, &wrf, sizeof( wrf )); 
-					pa->state.co[j] = wrf;
-					//fprintf(stderr,"Rj%d ",j);
-				}
-				for(j=0; j<3; j++) {
-					float wrf;
-					gzread(gzf, &wrf, sizeof( wrf )); 
-					pa->state.vel[j] = wrf;
-				}
-
-				pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
-				pa->state.rot[0] = 1.0;
-				pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
-
-				pa->alive = PARS_ALIVE;
-				//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
-			} else {
-				// skip...
-				for(j=0; j<2*3+1; j++) {
-					float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
-				}
+		if( fluidmd && fluidmd->fss) { 
+			FluidsimSettings *fss= fluidmd->fss;
+			ParticleSettings *part = psys->part;
+			ParticleData *pa=0;
+			char *suffix  = "fluidsurface_particles_####";
+			char *suffix2 = ".gz";
+			char filename[256];
+			char debugStrBuffer[256];
+			int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
+			int  p, j, numFileParts, totpart;
+			int readMask, activeParts = 0, fileParts = 0;
+			gzFile gzf;
+	
+			if(ob==G.obedit) // off...
+				return;
+	
+			// ok, start loading
+			strcpy(filename, fss->surfdataPath);
+			strcat(filename, suffix);
+			BLI_convertstringcode(filename, G.sce);
+			BLI_convertstringframe(filename, curFrame); // fixed #frame-no 
+			strcat(filename, suffix2);
+	
+			gzf = gzopen(filename, "rb");
+			if (!gzf) {
+				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+				//elbeemDebugOut(debugStrBuffer);
+				return;
 			}
-			fileParts++;
-		}
-		gzclose( gzf );
-
-		totpart = psys->totpart = activeParts;
-		snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
-		elbeemDebugOut(debugStrBuffer);
-	} // fluid sim particles done
+	
+			gzread(gzf, &totpart, sizeof(totpart));
+			numFileParts = totpart;
+			totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+			
+			part->totpart= totpart;
+			part->sta=part->end = 1.0f;
+			part->lifetime = G.scene->r.efra + 1;
+	
+			/* initialize particles */
+			realloc_particles(ob, psys, part->totpart);
+			initialize_all_particles(ob, psys, 0);
+	
+			// set up reading mask
+			readMask = fss->typeFlags;
+			
+			for(p=0, pa=psys->particles; p<totpart; p++, pa++) {
+				int ptype=0;
+	
+				gzread(gzf, &ptype, sizeof( ptype )); 
+				if(ptype&readMask) {
+					activeParts++;
+	
+					gzread(gzf, &(pa->size), sizeof( float )); 
+	
+					pa->size /= 10.0f;
+	
+					for(j=0; j<3; j++) {
+						float wrf;
+						gzread(gzf, &wrf, sizeof( wrf )); 
+						pa->state.co[j] = wrf;
+						//fprintf(stderr,"Rj%d ",j);
+					}
+					for(j=0; j<3; j++) {
+						float wrf;
+						gzread(gzf, &wrf, sizeof( wrf )); 
+						pa->state.vel[j] = wrf;
+					}
+	
+					pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
+					pa->state.rot[0] = 1.0;
+					pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
+	
+					pa->alive = PARS_ALIVE;
+					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+				} else {
+					// skip...
+					for(j=0; j<2*3+1; j++) {
+						float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
+					}
+				}
+				fileParts++;
+			}
+			gzclose( gzf );
+	
+			totpart = psys->totpart = activeParts;
+			snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
+			elbeemDebugOut(debugStrBuffer);
+		} // fluid sim particles done
+	}
 	#endif // DISABLE_ELBEEM
 }
 
