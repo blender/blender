@@ -565,6 +565,8 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 {
 	Scene *oldsce;
+	/* this prevents a deadlock when there are pynodes: */
+	PyThreadState *tstate = PyEval_SaveThread();
 
 	if (!G.background) {
 		oldsce = G.scene;
@@ -582,9 +584,9 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		if (G.scene->r.sfra > G.scene->r.efra)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"start frame must be less or equal to end frame");
-		
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 	}
+	PyEval_RestoreThread(tstate);
 	Py_RETURN_NONE;
 }
 
