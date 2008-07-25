@@ -3,6 +3,7 @@
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
 #include "../Interface0D/BPy_SVertex.h"
+#include "../Interface1D/BPy_ViewEdge.h"
 #include "../BPy_Nature.h"
 
 #ifdef __cplusplus
@@ -19,8 +20,7 @@ static PyObject * FEdge_vertexB( BPy_FEdge *self );
 static PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args );
 static PyObject * FEdge_nextEdge( BPy_FEdge *self );
 static PyObject * FEdge_previousEdge( BPy_FEdge *self );
-static PyObject * FEdge_getVertices( BPy_FEdge *self );
-static PyObject * FEdge_getPoints( BPy_FEdge *self );
+static PyObject * FEdge_viewedge( BPy_FEdge *self );
 static PyObject * FEdge_isSmooth( BPy_FEdge *self );
 static PyObject * FEdge_setVertexA( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_setVertexB( BPy_FEdge *self , PyObject *args);
@@ -29,6 +29,11 @@ static PyObject * FEdge_setNextEdge( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args);
 static PyObject * FEdge_setSmooth( BPy_FEdge *self , PyObject *args); 
 static PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args );
+static PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args );
+static PyObject * FEdge_verticesBegin( BPy_FEdge *self );
+static PyObject * FEdge_verticesEnd( BPy_FEdge *self );
+static PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args );
+static PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args );
 
 /*----------------------FEdge instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdge_methods[] = {	
@@ -38,8 +43,7 @@ static PyMethodDef BPy_FEdge_methods[] = {
 	{"__getitem__", ( PyCFunction ) FEdge___getitem__, METH_VARARGS, "(int i) Returns the first SVertex if i=0, the seccond SVertex if i=1."},
 	{"nextEdge", ( PyCFunction ) FEdge_nextEdge, METH_NOARGS, "() Returns the FEdge following this one in the ViewEdge. If this FEdge is the last of the ViewEdge, 0 is returned."},
 	{"previousEdge", ( PyCFunction ) FEdge_previousEdge, METH_NOARGS, "Returns the Edge preceding this one in the ViewEdge. If this FEdge is the first one of the ViewEdge, 0 is returned."},
-	{"getVertices", ( PyCFunction ) FEdge_getVertices, METH_NOARGS, "Returns the vertices"},
-	{"getPoints", ( PyCFunction ) FEdge_getPoints, METH_NOARGS, "Returns the points. The difference with getVertices() is that here we can iterate over points of the 1D element at any given sampling. At each call, a virtual point is created."}, 
+	{"viewedge", ( PyCFunction ) FEdge_viewedge, METH_NOARGS, "Returns a pointer to the ViewEdge to which this FEdge belongs to."},
 	{"isSmooth", ( PyCFunction ) FEdge_isSmooth, METH_NOARGS, "() Returns true if this FEdge is a smooth FEdge."},
 	{"setVertexA", ( PyCFunction ) FEdge_setVertexA, METH_VARARGS, "(SVertex v) Sets the first SVertex. ."},
 	{"setVertexB", ( PyCFunction ) FEdge_setVertexB, METH_VARARGS, "(SVertex v) Sets the second SVertex. "},
@@ -47,7 +51,12 @@ static PyMethodDef BPy_FEdge_methods[] = {
 	{"setNextEdge", ( PyCFunction ) FEdge_setNextEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the next FEdge. "},
 	{"setPreviousEdge", ( PyCFunction ) FEdge_setPreviousEdge, METH_VARARGS, "(FEdge e) Sets the pointer to the previous FEdge. "},
 	{"setSmooth", ( PyCFunction ) FEdge_setSmooth, METH_VARARGS, "(bool b) Sets the flag telling whether this FEdge is smooth or sharp. true for Smooth, false for Sharp. "},
+	{"setViewEdge", ( PyCFunction ) FEdge_setViewEdge, METH_VARARGS, "(ViewEdge ve) Sets the ViewEdge to which this FEdge belongs to."},
 	{"setNature", ( PyCFunction ) FEdge_setNature, METH_VARARGS, "(Nature n) Sets the nature of this FEdge. "},
+	{"verticesBegin", ( PyCFunction ) FEdge_verticesBegin, METH_NOARGS, "() Returns an iterator over the 2 (!) SVertex pointing to the first SVertex."},
+	{"verticesEnd", ( PyCFunction ) FEdge_verticesEnd, METH_NOARGS, "() Returns an iterator over the 2 (!) SVertex pointing after the last SVertex. "},
+	{"pointsBegin", ( PyCFunction ) FEdge_pointsBegin, METH_VARARGS, "(float t=0) Returns an iterator over the FEdge points, pointing to the first point. The difference with verticesBegin() is that here we can iterate over points of the FEdge at a any given sampling t. Indeed, for each iteration, a virtual point is created."},
+	{"pointsEnd", ( PyCFunction ) FEdge_pointsEnd, METH_VARARGS, "(float t=0) Returns an iterator over the FEdge points, pointing after the last point. The difference with verticesEnd() is that here we can iterate over points of the FEdge at a any given sampling t. Indeed, for each iteration, a virtual point is created."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -219,6 +228,13 @@ PyObject * FEdge_previousEdge( BPy_FEdge *self ) {
 	Py_RETURN_NONE;
 }
 
+PyObject * FEdge_viewedge( BPy_FEdge *self ) {
+	if( ViewEdge *ve = self->fe->viewedge() )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
+
+	Py_RETURN_NONE;
+}
+
 PyObject * FEdge_isSmooth( BPy_FEdge *self ) {
 	return PyBool_from_bool( self->fe->isSmooth() );
 }
@@ -289,6 +305,37 @@ PyObject *FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args ) {
+	PyObject *py_n;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
+		cout << "ERROR: FEdge_setNature" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
+	self->fe->setNature( PyInt_AsLong(i) );
+
+	Py_RETURN_NONE;
+}
+
+
+PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args ) {
+	PyObject *py_ve;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
+		cout << "ERROR: FEdge_setViewEdge" << endl;
+		Py_RETURN_NONE;
+	}
+
+	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
+	self->fe->setViewEdge( ve );
+
+	Py_RETURN_NONE;
+}
+
+
+
 PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 	int b;
 
@@ -302,40 +349,41 @@ PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
-PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args ) {
-	PyObject *py_n;
 
-	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
-		cout << "ERROR: FEdge_setNature" << endl;
+PyObject * FEdge_verticesBegin( BPy_FEdge *self ) {
+	Interface0DIterator if0D_it( self->fe->verticesBegin() );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+PyObject * FEdge_verticesEnd( BPy_FEdge *self ) {
+	Interface0DIterator if0D_it( self->fe->verticesEnd() );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+
+PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args ) {
+	float f = 0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+		cout << "ERROR: FEdge_pointsBegin" << endl;
 		Py_RETURN_NONE;
 	}
 	
-	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
-	((FEdge *) self->py_if1D.if1D)->setNature( PyInt_AsLong(i) );
-
-	Py_RETURN_NONE;
+	Interface0DIterator if0D_it( self->fe->pointsBegin(f) );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
 
-PyObject *FEdge_getVertices( BPy_FEdge *self ) {
-	PyObject *py_vertices = PyList_New(NULL);
-		
-	for( Interface0DIterator it = self->fe->verticesBegin(); it != self->fe->verticesEnd(); it++ ) {
-		PyList_Append( py_vertices, BPy_Interface0D_from_Interface0D( *it ) );
+PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args ) {
+	float f = 0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+		cout << "ERROR: FEdge_pointsEnd" << endl;
+		Py_RETURN_NONE;
 	}
 	
-	return py_vertices;
+	Interface0DIterator if0D_it( self->fe->pointsEnd(f) );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
-
-PyObject *FEdge_getPoints( BPy_FEdge *self ) {
-	PyObject *py_points = PyList_New(NULL);
-	
-	for( Interface0DIterator it = self->fe->pointsBegin(); it != self->fe->pointsEnd(); it++ ) {
-		PyList_Append( py_points, BPy_Interface0D_from_Interface0D( *it ) );
-	}
-	
-	return py_points;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

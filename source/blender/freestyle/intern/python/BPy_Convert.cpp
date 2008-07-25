@@ -9,7 +9,9 @@
 #include "Interface0D/BPy_ViewVertex.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_ViewEdge.h"
+#include "Iterator/BPy_Interface0DIterator.h"
 #include "Iterator/BPy_orientedViewEdgeIterator.h"
+#include "Iterator/BPy_StrokeVertexIterator.h"
 #include "BPy_SShape.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
@@ -155,6 +157,20 @@ PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVerte
 	((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it = new ViewVertexInternal::orientedViewEdgeIterator( ove_it );
 
 	return py_ove_it;
+}
+
+PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it ) {
+	PyObject *py_if0D_it = Interface0DIterator_Type.tp_new( &Interface0DIterator_Type, 0, 0 );
+	((BPy_Interface0DIterator *) py_if0D_it)->if0D_it = new Interface0DIterator( if0D_it );
+
+	return py_if0D_it;
+}
+
+PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it) {
+	PyObject *py_sv_it = StrokeVertexIterator_Type.tp_new( &StrokeVertexIterator_Type, 0, 0 );
+	((BPy_StrokeVertexIterator*) py_sv_it)->sv_it = new StrokeInternal::StrokeVertexIterator( sv_it );
+
+	return py_sv_it;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

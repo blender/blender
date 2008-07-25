@@ -15,6 +15,7 @@ static int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds);
 static PyObject * SVertex___copy__( BPy_SVertex *self );
 static PyObject * SVertex_normals( BPy_SVertex *self );
 static PyObject * SVertex_normalsSize( BPy_SVertex *self );
+static PyObject * SVertex_viewvertex( BPy_SVertex *self );
 static PyObject * SVertex_setPoint3D( BPy_SVertex *self , PyObject *args);
 static PyObject * SVertex_setPoint2D( BPy_SVertex *self , PyObject *args);
 static PyObject * SVertex_AddNormal( BPy_SVertex *self , PyObject *args);
@@ -26,6 +27,7 @@ static PyMethodDef BPy_SVertex_methods[] = {
 	{"__copy__", ( PyCFunction ) SVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
 	{"normals", ( PyCFunction ) SVertex_normals, METH_NOARGS, "Returns the normals for this Vertex as a list. In a smooth surface, a vertex has exactly one normal. In a sharp surface, a vertex can have any number of normals."},
 	{"normalsSize", ( PyCFunction ) SVertex_normalsSize, METH_NOARGS, "Returns the number of different normals for this vertex." },
+	{"viewvertex", ( PyCFunction ) SVertex_viewvertex, METH_NOARGS, "If this SVertex is also a ViewVertex, this method returns a pointer onto this ViewVertex. 0 is returned otherwise." },	
 	{"setPoint3D", ( PyCFunction ) SVertex_setPoint3D, METH_VARARGS, "Sets the 3D coordinates of the SVertex." },
 	{"setPoint2D", ( PyCFunction ) SVertex_setPoint2D, METH_VARARGS, "Sets the 3D projected coordinates of the SVertex." },
 	{"AddNormal", ( PyCFunction ) SVertex_AddNormal, METH_VARARGS, "Adds a normal to the Svertex's set of normals. If the same normal is already in the set, nothing changes." },
@@ -176,6 +178,10 @@ PyObject * SVertex_normals( BPy_SVertex *self ) {
 
 PyObject * SVertex_normalsSize( BPy_SVertex *self ) {
 	return PyInt_FromLong( self->sv->normalsSize() );
+}
+
+PyObject * SVertex_viewvertex( BPy_SVertex *self ) {
+	return BPy_ViewVertex_from_ViewVertex_ptr( self->sv->viewvertex() );
 }
 
 PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {

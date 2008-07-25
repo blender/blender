@@ -4,9 +4,8 @@
 #include "../BPy_Id.h"
 #include "../Interface0D/BPy_SVertex.h"
 #include "../Interface0D/CurvePoint/BPy_StrokeVertex.h"
+#include "../Iterator/BPy_StrokeVertexIterator.h"
 #include "../BPy_MediumType.h"
-
-#include "../../stroke/StrokeIterators.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,7 +18,7 @@ static int Stroke___init__(BPy_Stroke *self, PyObject *args, PyObject *kwds);
 
 static PyObject * Stroke_ComputeSampling( BPy_Stroke *self, PyObject *args );
 static PyObject * Stroke_Resample( BPy_Stroke *self, PyObject *args );
-//static PyObject * Stroke_InsertVertex( BPy_Stroke *self, PyObject *args );
+static PyObject * Stroke_InsertVertex( BPy_Stroke *self, PyObject *args );
 static PyObject * Stroke_RemoveVertex( BPy_Stroke *self, PyObject *args );
 static PyObject * Stroke_getMediumType( BPy_Stroke *self );
 static PyObject * Stroke_getTextureId( BPy_Stroke *self );
@@ -29,14 +28,20 @@ static PyObject * Stroke_setLength( BPy_Stroke *self , PyObject *args);
 static PyObject * Stroke_setMediumType( BPy_Stroke *self , PyObject *args);
 static PyObject * Stroke_setTextureId( BPy_Stroke *self , PyObject *args);
 static PyObject * Stroke_setTips( BPy_Stroke *self , PyObject *args);
+static PyObject * Stroke_strokeVerticesBegin( BPy_Stroke *self , PyObject *args);
+static PyObject * Stroke_strokeVerticesEnd( BPy_Stroke *self );
 static PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self );
-static PyObject * Stroke_getStrokeVertices( BPy_Stroke *self );
+static PyObject * Stroke_verticesBegin( BPy_Stroke *self );
+static PyObject * Stroke_verticesEnd( BPy_Stroke *self );
+static PyObject * Stroke_pointsBegin( BPy_Stroke *self , PyObject *args);
+static PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args);
 
 /*----------------------Stroke instance definitions ----------------------------*/
 static PyMethodDef BPy_Stroke_methods[] = {	
 	{"ComputeSampling", ( PyCFunction ) Stroke_ComputeSampling, METH_VARARGS, "(int nVertices) Compute the sampling needed to get nVertices vertices. If the specified number of vertices is less than the actual number of vertices, the actual sampling value is returned."},
 		{"Resample", ( PyCFunction ) Stroke_Resample, METH_VARARGS, "(float f | int n) Resampling method. If the argument is a float, Resamples the curve with a given sampling; if this sampling is < to the actual sampling value, no resampling is done. If the argument is an integer, Resamples the curve so that it eventually has n. That means it is going to add n-vertices_size, if vertices_size is the number of points we already have. Is vertices_size >= n, no resampling is done."},
 	{"RemoveVertex", ( PyCFunction ) Stroke_RemoveVertex, METH_VARARGS, "(StrokeVertex sv) Removes the stroke vertex sv from the stroke. The length and curvilinear abscissa are updated consequently."},
+	{"InsertVertex", ( PyCFunction ) Stroke_InsertVertex, METH_VARARGS, "(StrokeVertex sv, StrokeVertexIterator next) Inserts the stroke vertex iVertex in the stroke before next. The length, curvilinear abscissa are updated consequently."},
 	{"getMediumType", ( PyCFunction ) Stroke_getMediumType, METH_NOARGS, "() Returns the MediumType used for this Stroke."},
 	{"getTextureId", ( PyCFunction ) Stroke_getTextureId, METH_NOARGS, "() Returns the id of the texture used to simulate th marks system for this Stroke."},
 	{"hasTips", ( PyCFunction ) Stroke_hasTips, METH_NOARGS, "() Returns true if this Stroke uses a texture with tips, false otherwise."},
@@ -45,9 +50,14 @@ static PyMethodDef BPy_Stroke_methods[] = {
 	{"setMediumType", ( PyCFunction ) Stroke_setMediumType, METH_VARARGS, "(MediumType mt) Sets the medium type that must be used for this Stroke."},
 	{"setTextureId", ( PyCFunction ) Stroke_setTextureId, METH_VARARGS, "(unsigned int id) Sets the texture id to be used to simulate the marks system for this Stroke."},
 	{"setTips", ( PyCFunction ) Stroke_setTips, METH_VARARGS, "(bool b) Sets the flag telling whether this stroke is using a texture with tips or not."},
+	{"strokeVerticesBegin", ( PyCFunction ) Stroke_strokeVerticesBegin, METH_VARARGS, "(float t=0.f) Returns a StrokeVertexIterator pointing on the first StrokeVertex of the Stroke. One can specifly a sampling value t to resample the Stroke on the fly if needed. "},
+	{"strokeVerticesEnd", ( PyCFunction ) Stroke_strokeVerticesEnd, METH_NOARGS, "() Returns a StrokeVertexIterator pointing after the last StrokeVertex of the Stroke."},
 	{"strokeVerticesSize", ( PyCFunction ) Stroke_strokeVerticesSize, METH_NOARGS, "() Returns the number of StrokeVertex constituing the Stroke."},
-	{"getStrokeVertices", ( PyCFunction ) Stroke_getStrokeVertices, METH_NOARGS, "() Returns the stroke vertices. The difference with vertices() is that here we can iterate over points of the 1D element at a any given sampling. Indeed, for each iteration, a virtual point is created."},
-	//{"InsertVertex", ( PyCFunction ) Stroke_InsertVertex, METH_NOARGS, "(StrokeVertex sv, int i) Inserts the stroke vertex iVertex in the stroke before i. The length, curvilinear abscissa are updated consequently."},
+	{"verticesBegin", ( PyCFunction ) Stroke_verticesBegin, METH_NOARGS, "() Returns an Interface0DIterator pointing on the first StrokeVertex of the Stroke. "},
+	{"verticesEnd", ( PyCFunction ) Stroke_verticesEnd, METH_NOARGS, "() Returns an Interface0DIterator pointing after the last StrokeVertex of the Stroke. "},
+	{"pointsBegin", ( PyCFunction ) Stroke_pointsBegin, METH_VARARGS, "(float t=0.f) Returns an iterator over the Interface1D points, pointing to the first point. The difference with verticesBegin() is that here we can iterate over points of the 1D element at a any given sampling t. Indeed, for each iteration, a virtual point is created. "},
+	{"pointsEnd", ( PyCFunction ) Stroke_pointsEnd, METH_VARARGS, "(float t=0.f) Returns an iterator over the Interface1D points, pointing after the last point. The difference with verticesEnd() is that here we can iterate over points of the 1D element at a any given sampling t. Indeed, for each iteration, a virtual point is created. "},
+
 	{NULL, NULL, 0, NULL}
 };
 
@@ -194,6 +204,21 @@ PyObject * Stroke_Resample( BPy_Stroke *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
+PyObject * Stroke_InsertVertex( BPy_Stroke *self, PyObject *args ) {
+	PyObject *py_sv = 0, *py_sv_it = 0;
+
+	if(!( PyArg_ParseTuple(args, "OO", &py_sv, &py_sv_it) &&
+			BPy_StrokeVertex_Check(py_sv) && BPy_StrokeVertexIterator_Check(py_sv_it) )) {
+		cout << "ERROR: Stroke_InsertVertex" << endl;
+		Py_RETURN_NONE;
+	}
+
+	StrokeVertex *sv = ((BPy_StrokeVertex *) py_sv)->sv;
+	StrokeInternal::StrokeVertexIterator sv_it(*( ((BPy_StrokeVertexIterator *) py_sv_it)->sv_it ));
+	self->s->InsertVertex( sv, sv_it );
+
+	Py_RETURN_NONE;
+}
 
 PyObject * Stroke_RemoveVertex( BPy_Stroke *self, PyObject *args ) {	
 	PyObject *py_sv;
@@ -208,9 +233,6 @@ PyObject * Stroke_RemoveVertex( BPy_Stroke *self, PyObject *args ) {
 		
 	Py_RETURN_NONE;
 }
-
-// pb: 'iterator <=> list' correspondence
-// void 	InsertVertex (StrokeVertex *iVertex, StrokeInternal::StrokeVertexIterator next)
 
 PyObject * Stroke_getMediumType( BPy_Stroke *self ) {	
 	return BPy_MediumType_from_MediumType( self->s->getMediumType() );
@@ -291,26 +313,54 @@ PyObject *Stroke_setTips( BPy_Stroke *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
+PyObject * Stroke_strokeVerticesBegin( BPy_Stroke *self , PyObject *args) {
+	StrokeInternal::StrokeVertexIterator sv_it( self->s->strokeVerticesBegin() );
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it );
+}
 
-PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self ) {	
+PyObject * Stroke_strokeVerticesEnd( BPy_Stroke *self ) {
+	StrokeInternal::StrokeVertexIterator sv_it( self->s->strokeVerticesEnd() );
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it );
+}
+
+PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self ) {
 	return PyInt_FromLong( self->s->strokeVerticesSize() );
 }
 
-
-PyObject *Stroke_getStrokeVertices( BPy_Stroke *self ) {
-	PyObject *py_stroke_vertices = PyList_New(NULL);
-		
-	for( StrokeInternal::StrokeVertexIterator it = self->s->strokeVerticesBegin();
-		it != self->s->strokeVerticesEnd();
-		it++ ) {
-		PyList_Append( py_stroke_vertices, BPy_StrokeVertex_from_StrokeVertex( *it ) );
-	}
-	
-	return py_stroke_vertices;
+PyObject * Stroke_verticesBegin( BPy_Stroke *self ) {
+	Interface0DIterator if0D_it( self->s->verticesBegin() );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
 
+PyObject * Stroke_verticesEnd( BPy_Stroke *self ) {
+	Interface0DIterator if0D_it( self->s->verticesEnd() );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );	
+}
 
+PyObject * Stroke_pointsBegin( BPy_Stroke *self , PyObject *args) {
+	float f = 0;
 
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+		cout << "ERROR: Stroke_pointsBegin" << endl;
+		Py_RETURN_NONE;
+	}
+
+	Interface0DIterator if0D_it( self->s->pointsBegin(f) );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args) {
+	float f = 0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+		cout << "ERROR: Stroke_pointsEnd" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	Interface0DIterator if0D_it( self->s->pointsEnd(f) );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+	
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

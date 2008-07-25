@@ -33,6 +33,8 @@ using namespace Geometry;
 //   - ViewEdgeInternal
 //##########################################################
 
+// StrokeInternal::StrokeVertexIterator
+#include "../stroke/StrokeIterators.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,13 +59,16 @@ PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
-PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it );
 PyObject * BPy_SShape_from_SShape( SShape& ss );
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );
 PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv );
 PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv );
 PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve );
+
+PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it );
+PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it );
+PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

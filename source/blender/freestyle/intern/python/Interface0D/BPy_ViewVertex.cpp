@@ -1,6 +1,7 @@
 #include "BPy_ViewVertex.h"
 
 #include "../BPy_Convert.h"
+#include "../Interface1D/BPy_ViewEdge.h"
 #include "../BPy_Nature.h"
 
 #ifdef __cplusplus
@@ -12,11 +13,16 @@ extern "C" {
 /*---------------  Python API function prototypes for ViewVertex instance  -----------*/
 static int ViewVertex___init__(BPy_ViewVertex *self);
 static PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args );
-
+static PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self );
+static PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self );
+static PyObject * ViewVertex_edgesIterator( BPy_ViewVertex *self, PyObject *args );
 
 /*----------------------ViewVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_ViewVertex_methods[] = {
 	{"setNature", ( PyCFunction ) ViewVertex_setNature, METH_VARARGS, "（Nature n ）Sets the nature of the vertex."},
+	{"edgesBegin", ( PyCFunction ) ViewVertex_edgesBegin, METH_NOARGS, "() Returns an iterator over the ViewEdges that goes to or comes from this ViewVertex pointing to the first ViewEdge of the list. The orientedViewEdgeIterator allows to iterate in CCW order over these ViewEdges and to get the orientation for each ViewEdge (incoming/outgoing). "},
+	{"edgesEnd", ( PyCFunction ) ViewVertex_edgesEnd, METH_NOARGS, "() Returns an orientedViewEdgeIterator over the ViewEdges around this ViewVertex, pointing after the last ViewEdge."},
+	{"edgesIterator", ( PyCFunction ) ViewVertex_edgesIterator, METH_VARARGS, "(ViewEdge ve) Returns an orientedViewEdgeIterator pointing to the ViewEdge given as argument. "},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -112,6 +118,7 @@ PyTypeObject ViewVertex_Type = {
 
 int ViewVertex___init__(BPy_ViewVertex *self )
 {	
+	self->vv = 0; // ViewVertex is abstract
 	self->py_if0D.if0D = new Interface0D();
 	return 0;
 }
@@ -121,6 +128,9 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 	PyObject *py_n;
 
+	if( !self->vv )
+		Py_RETURN_NONE;
+		
 	if(!( PyArg_ParseTuple(args, "O", &py_n) && BPy_Nature_Check(py_n) )) {
 		cout << "ERROR: ViewVertex_setNature" << endl;
 		Py_RETURN_NONE;
@@ -132,10 +142,39 @@ PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-//PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self ) {
-	// orientedViewEdgeIterator ove( self->vv->edgesBegin() )
-	// return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove );
-//}
+PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self ) {
+	if( !self->vv )
+		Py_RETURN_NONE;
+		
+	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesBegin() );
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it );
+}
+
+PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self ) {
+	if( !self->vv )
+		Py_RETURN_NONE;
+		
+	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesEnd() );
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it );
+}
+
+
+PyObject * ViewVertex_edgesIterator( BPy_ViewVertex *self, PyObject *args ) {
+	PyObject *py_ve;
+
+	if( !self->vv )
+		Py_RETURN_NONE;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
+		cout << "ERROR: ViewVertex_setNature" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
+	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesIterator( ve ) );
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -143,10 +182,3 @@ PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
 }
 #endif
 
-
-
-
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesBegin ()=0
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesEnd ()=0
-// virtual ViewVertexInternal::orientedViewEdgeIterator 	edgesIterator (ViewEdge *iEdge)=0
-// 
