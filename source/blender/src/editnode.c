@@ -2400,7 +2400,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case LEFTMOUSE:
-			if(gpencil_do_paint(sa)) {
+			if(gpencil_do_paint(sa, L_MOUSE)) {
 				return;
 			}
 			else if(fromlib) {
@@ -2421,7 +2421,10 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case RIGHTMOUSE: 
-			if(find_indicated_socket(snode, &actnode, &actsock, SOCK_IN)) {
+			if(gpencil_do_paint(sa, R_MOUSE)) {
+				return;
+			}
+			else if(find_indicated_socket(snode, &actnode, &actsock, SOCK_IN)) {
 				if(actsock->flag & SOCK_SEL) {
 					snode->edittree->selin= NULL;
 					actsock->flag&= ~SOCK_SEL;

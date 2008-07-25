@@ -1205,8 +1205,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
 			
-			if(gpencil_do_paint(sa)) return;
+			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
+		}
+		else if(event==RIGHTMOUSE) {
+			if(gpencil_do_paint(sa, R_MOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */
@@ -4825,8 +4828,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* grease-pencil defaults to leftmouse */
-		if(event==LEFTMOUSE) {
-			if(gpencil_do_paint(sa)) return;
+		if (event == LEFTMOUSE) {
+			if(gpencil_do_paint(sa, L_MOUSE)) return;
+		}
+		else if (event == RIGHTMOUSE) {
+			if(gpencil_do_paint(sa, R_MOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */

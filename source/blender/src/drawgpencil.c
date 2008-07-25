@@ -415,6 +415,45 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 	}
 }
 
+/* draw a set of strokes */
+static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, short debug, 
+							 short lthick, float color[4])
+{
+	bGPDstroke *gps;
+	
+	/* set color first (may need to reset it again later too) */
+	glColor4f(color[0], color[1], color[2], color[3]);
+	
+	for (gps= gpf->strokes.first; gps; gps= gps->next) {	
+		/* handle 'eraser' strokes differently */
+		if (gps->flag & GP_STROKE_ERASER) {
+			// FIXME: this method is a failed experiment
+#if 0
+			/* draw stroke twice, first time with 'white' to set a mask to invert
+			 * contents of framebuffer, then second-time the same again but to restore
+			 * the contents
+			 */
+			glEnable(GL_COLOR_LOGIC_OP); 
+			glLogicOp(GL_XOR);
+			
+			glColor4f(1, 1, 1, 1); /* white */
+			
+			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, 0, winx, winy);
+			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, 0, winx, winy);
+			
+			glDisable(GL_COLOR_LOGIC_OP);
+			
+			/* reset color for drawing next stroke */
+			glColor4f(color[0], color[1], color[2], color[3]);
+#endif
+		}
+		else {
+			/* just draw the stroke once */
+			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+		}
+	}
+}
+
 /* draw grease-pencil datablock */
 static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 {
@@ -430,11 +469,10 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 	/* loop over layers, drawing them */
 	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
 		bGPDframe *gpf;
-		bGPDstroke *gps;
 		
 		short debug = (gpl->flag & GP_LAYER_DRAWDEBUG) ? 1 : 0;
 		short lthick= gpl->thickness;
-		float color[4];
+		float color[4], tcolor[4];
 		
 		/* don't draw layer if hidden */
 		if (gpl->flag & GP_LAYER_HIDE) 
@@ -452,6 +490,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		/* set color, stroke thickness, and point size */
 		glLineWidth(lthick);
 		QUATCOPY(color, gpl->color); // just for copying 4 array elements
+		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4f(color[0], color[1], color[2], color[3]);
 		glPointSize(gpl->thickness + 2);
 		
@@ -467,11 +506,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						glColor4f(color[0], color[1], color[2], (color[3]-(i*0.7)));
-						
-						for (gps= gf->strokes.first; gps; gps= gps->next) {	
-							gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-						}
+						tcolor[3] = color[3] - (i * 0.7);
+						gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -482,11 +518,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						glColor4f(color[0], color[1], color[2], (color[3]-(i*0.7)));
-						
-						for (gps= gf->strokes.first; gps; gps= gps->next) {								
-							gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-						}
+						tcolor[3] = color[3] - (i * 0.7);
+						gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -497,19 +530,14 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 			}
 			else {
 				/* draw the strokes for the ghost frames (at half of the alpha set by user) */
-				glColor4f(color[0], color[1], color[2], (color[3] / 7));
-				
 				if (gpf->prev) {
-					for (gps= gpf->prev->strokes.first; gps; gps= gps->next) {
-						gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-					}
+					tcolor[3] = (color[3] / 7);
+					gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
-				glColor4f(color[0], color[1], color[2], (color[3] / 4));
 				if (gpf->next) {
-					for (gps= gpf->next->strokes.first; gps; gps= gps->next) {	
-						gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-					}
+					tcolor[3] = (color[3] / 4);
+					gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				/* restore alpha */
@@ -518,9 +546,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		}
 		
 		/* draw the strokes already in active frame */
-		for (gps= gpf->strokes.first; gps; gps= gps->next) {	
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-		}
+		tcolor[3]= color[3];
+		gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 		
 		/* Check if may need to draw the active stroke cache, only if this layer is the active layer
 		 * that is being edited. (Stroke cache is currently stored in gp-data)

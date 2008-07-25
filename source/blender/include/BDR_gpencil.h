@@ -69,6 +69,6 @@ void gpencil_delete_operation(short mode);
 void gpencil_delete_menu(void);
 
 //short gpencil_paint(short mousebutton);
-short gpencil_do_paint(struct ScrArea *sa);
+short gpencil_do_paint(struct ScrArea *sa, short mousebutton);
 
 #endif /*  BDR_GPENCIL_H */

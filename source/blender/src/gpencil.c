@@ -972,7 +972,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 /* ---------- 'Paint' Tool ------------ */
 
 /* init new stroke */
-static void gp_paint_initstroke (tGPsdata *p)
+static void gp_paint_initstroke (tGPsdata *p, short mousebutton)
 {	
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl= gpencil_layer_getactive(p->gpd);
@@ -995,8 +995,17 @@ static void gp_paint_initstroke (tGPsdata *p)
 	}
 	else
 		p->gpf->flag |= GP_FRAME_PAINT;
+	
+	/* set 'eraser' for this stroke if using eraser or right-mouse in action */
+	if ( get_activedevice() == 2 || (mousebutton & R_MOUSE) ) {
+		p->gpd->sbuffer_sflag |= GP_STROKE_ERASER;
 		
-	/* check if points will need to be made in 3d-space */
+		// for now: eraser isn't ready for prime-time yet, so no painting available here yet
+		p->status= GP_STATUS_ERROR;
+		return;
+	}
+	
+	/* check if points will need to be made in view-aligned space */
 	if (p->gpd->flag & GP_DATA_VIEWALIGN) {
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
@@ -1069,7 +1078,7 @@ short gpencil_paint (short mousebutton)
 		gp_session_cleanup(&p);
 		return 0;
 	}
-	gp_paint_initstroke(&p);
+	gp_paint_initstroke(&p, mousebutton);
 	if (p.status == GP_STATUS_ERROR) {
 		gp_session_cleanup(&p);
 		return 0;
@@ -1158,10 +1167,9 @@ short gpencil_paint (short mousebutton)
 /* All event (loops) handling checking if stroke drawing should be initiated
  * should call this function.
  */
-short gpencil_do_paint (ScrArea *sa)
+short gpencil_do_paint (ScrArea *sa, short mousebutton)
 {
 	bGPdata *gpd = gpencil_data_getactive(sa);
-	short mousebutton = L_MOUSE; /* for now, this is always on L_MOUSE*/
 	short retval= 0;
 	
 	/* check if possible to do painting */
