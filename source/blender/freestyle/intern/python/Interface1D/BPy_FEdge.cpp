@@ -337,14 +337,14 @@ PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args ) {
 
 
 PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
-	int b;
+	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "i", &b) )) {
+	if(!( PyArg_ParseTuple(args, "O", &py_b) && PyBool_Check(py_b) )) {
 		cout << "ERROR: FEdge_setSmooth" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->fe->setSmooth( (bool) b );
+	self->fe->setSmooth( bool_from_PyBool(py_b) );
 
 	Py_RETURN_NONE;
 }

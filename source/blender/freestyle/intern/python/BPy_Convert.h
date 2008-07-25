@@ -65,6 +65,7 @@ PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv );
 PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv );
 PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve );
+PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs );
 
 PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it );
 PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it );

@@ -395,16 +395,18 @@ PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *ar
 }
 
 PyObject * StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args ) {
-	int i = 0;
+	PyObject *py_b;
 
-	if(!( PyArg_ParseTuple(args, "i", &i) )) {
+	if(!( PyArg_ParseTuple(args, "O", &py_b) && PyBool_Check(py_b) )) {
 		cout << "ERROR: StrokeAttribute_setVisible" << endl;
 		Py_RETURN_NONE;
 	}
 
-	self->sa->setVisible( i );
+	self->sa->setVisible( bool_from_PyBool(py_b) );
+
 	Py_RETURN_NONE;
 }
+
 
 PyObject * StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s = 0;

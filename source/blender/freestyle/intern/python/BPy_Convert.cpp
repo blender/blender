@@ -12,10 +12,11 @@
 #include "Iterator/BPy_Interface0DIterator.h"
 #include "Iterator/BPy_orientedViewEdgeIterator.h"
 #include "Iterator/BPy_StrokeVertexIterator.h"
-#include "BPy_SShape.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
+#include "BPy_SShape.h"
 #include "BPy_StrokeAttribute.h"
+#include "BPy_ViewShape.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,6 +153,13 @@ PyObject * BPy_SShape_from_SShape( SShape& ss ) {
 	return py_ss;	
 }
 
+PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs ) {
+	PyObject *py_vs = ViewShape_Type.tp_new( &ViewShape_Type, 0, 0 );
+	((BPy_ViewShape *) py_vs)->vs = new ViewShape( vs );
+
+	return py_vs;
+}
+
 PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it ) {
 	PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new( &orientedViewEdgeIterator_Type, 0, 0 );
 	((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it = new ViewVertexInternal::orientedViewEdgeIterator( ove_it );
@@ -172,6 +180,8 @@ PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::S
 
 	return py_sv_it;
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
