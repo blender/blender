@@ -7198,7 +7198,6 @@ static void shrinkwrapModifier_initData(ModifierData *md)
 	smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
 	smd->shrinkOpts = MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL;
 	smd->keptDist	= 0.0f;
-	smd->mergeDist	= 0.0f;
 
 	smd->target = 0;
 	smd->cutPlane = 0;
@@ -7213,7 +7212,6 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->cutPlane = smd->cutPlane;
 	strcpy(tsmd->vgroup_name, smd->vgroup_name);
 	tsmd->keptDist = smd->keptDist;
-	tsmd->mergeDist = smd->mergeDist;
 	tsmd->shrinkType = smd->shrinkType;
 	tsmd->shrinkOpts = smd->shrinkOpts;
 }
@@ -7243,7 +7241,7 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 	walk(userData, ob, &smd->target);
 	walk(userData, ob, &smd->cutPlane);
 }
-
+/*
 static DerivedMesh *shrinkwrapModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData, int useRenderParams, int isFinalCalc)
 {
 	return shrinkwrapModifier_do((ShrinkwrapModifierData*)md,ob,derivedData,useRenderParams,isFinalCalc);
@@ -7252,6 +7250,26 @@ static DerivedMesh *shrinkwrapModifier_applyModifier(ModifierData *md, Object *o
 static DerivedMesh *shrinkwrapModifier_applyModifierEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData)
 {
 	return shrinkwrapModifier_do((ShrinkwrapModifierData*)md,ob,derivedData,0,0);
+}
+*/
+static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, derivedData, vertexCos, numVerts);
+}
+
+static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm;
+
+	if(!derivedData && ob->type == OB_MESH)
+		dm = CDDM_from_editmesh(editData, ob->data);
+	else
+		dm = CDDM_copy(derivedData);	//TODO: this is only needed if derevedData doenst supports getVertexArray
+
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
@@ -7645,8 +7663,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->applyModifier = explodeModifier_applyModifier;
 
 		mti = INIT_TYPE(Shrinkwrap);
-		mti->type = eModifierTypeType_Nonconstructive;
+		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs
 				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode;
 
@@ -7655,8 +7674,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->requiredDataMask = shrinkwrapModifier_requiredDataMask;
 		mti->isDisabled = shrinkwrapModifier_isDisabled;
 		mti->foreachObjectLink = shrinkwrapModifier_foreachObjectLink;
-		mti->applyModifier = shrinkwrapModifier_applyModifier;
-		mti->applyModifierEM = shrinkwrapModifier_applyModifierEM;
+		mti->deformVerts = shrinkwrapModifier_deformVerts;
+		mti->deformVertsEM = shrinkwrapModifier_deformVertsEM;
 		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
 
 		mti = INIT_TYPE(SimpleDeform);

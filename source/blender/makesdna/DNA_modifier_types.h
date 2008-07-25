@@ -499,11 +499,9 @@ typedef struct ShrinkwrapModifierData {
 	struct Object *cutPlane;/* shrink target */
 	char vgroup_name[32];	/* optional vertexgroup name */
 	float keptDist;			/* distance offset from mesh/projection point */
-	float mergeDist;		/* distance to merge vertexs */
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
 
-	int pad;
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */
@@ -514,7 +512,7 @@ typedef struct ShrinkwrapModifierData {
 /* Shrinkwrap->shrinkOpts */
 #define MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL		(1<<0)
 #define MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL	(1<<1)
-#define MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES	(1<<2)
+/* #define MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES	(1<<2) / * Currently dropped to make shrinkwrap a deform only modifier */
 
 #define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)
 #define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)

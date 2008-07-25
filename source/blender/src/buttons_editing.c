@@ -1903,9 +1903,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
-			height = 86;
+			height = 86 + 3;
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
-				height += 19*5;
+				height += 19*3;
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
 				height += 19;
 
@@ -2535,31 +2535,35 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
 			char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|normal projection %x1|nearest vertex %x2";
-			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
 
+			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
+
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keptDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to kept from the target");
+
+			cy -= 3;
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
 			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL){
 
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL, B_MODIFIER_RECALC, "Default normal",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the normal direction");
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL, B_MODIFIER_RECALC, "Invert normal",	lx + buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the inverse direction of their normal");
 
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES, B_MODIFIER_RECALC, "Remove faces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Remove faces where all vertices haven't been projected");
+/*				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES, B_MODIFIER_RECALC, "Remove faces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Remove faces where all vertices haven't been projected"); */
 
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx+buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
 
-				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance");
-				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Target to project points that didn't got projected over target");
+/* 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance"); */
+				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Aditional mesh to project over");
 			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
 			}
 
-			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
-			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
-
-			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keptDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to kept from the target");
 			uiBlockEndAlign(block);
+
 		} else if (md->type==eModifierType_SimpleDeform) {
 			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
 

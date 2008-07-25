@@ -53,7 +53,8 @@ typedef struct SpaceTransform
 
 } SpaceTransform;
 
-void space_transform_setup(SpaceTransform *data, struct Object *local, struct Object *target);
+void space_transform_from_matrixs(SpaceTransform *data, float local[][4], float target[][4]);
+#define space_transform_setup(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
 
 void space_transform_apply (const SpaceTransform *data, float *co);
 void space_transform_invert(const SpaceTransform *data, float *co);
@@ -93,8 +94,7 @@ struct BVHTree* bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct Der
 // Builds a bvh tree where nodes are the faces of the given mesh. And configures BVHMesh if one is given.
 struct BVHTree* bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
 
-
-
+int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
 /* Shrinkwrap stuff */
 struct Object;
@@ -109,18 +109,15 @@ typedef struct ShrinkwrapCalcData
 	ShrinkwrapModifierData *smd;	//shrinkwrap modifier data
 
 	struct Object *ob;				//object we are applying shrinkwrap to
-	struct DerivedMesh *original;	//mesh before shrinkwrap (TODO clean this variable.. we don't really need it)
-	struct BVHTree *original_tree;	//BVHTree build with the original mesh (to be used on kept volume)
-	struct BVHMeshCallbackUserdata *callback;
+	struct DerivedMesh *original;	//mesh before shrinkwrap
 
-	struct DerivedMesh *final;		//initially a copy of original mesh.. mesh thats going to be shrinkwrapped
+	float (*vertexCos)[3];			//vertexs being shrinkwraped
+	int numVerts;
 
-	struct DerivedMesh *target;		//mesh we are shrinking to
-	
-	SpaceTransform local2target;
+	struct DerivedMesh *target;		//mesh we are shrinking to	
+	SpaceTransform local2target;	//transform to move bettwem local and target space
 
 	float keptDist;					//Distance to kept from target (units are in local space)
-	//float *weights;				//weights of vertexs
 	BitSet moved;					//BitSet indicating if vertex has moved
 
 } ShrinkwrapCalcData;
@@ -130,6 +127,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *data);
 void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
 
 struct DerivedMesh *shrinkwrapModifier_do(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
 
 #endif
