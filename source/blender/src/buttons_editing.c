@@ -982,12 +982,11 @@ static uiBlock *modifiers_select_simpledeform_typemenu(void *ob_v)
 	block= uiNewBlock(&curarea->uiblocks, "modifiers_select_simpledeform_typemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_modifiers_select_simpledeform_typemenu, ob_v);
 
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Twist",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TWIST, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Bend",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_BEND, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Tapper X",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_X, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Tapper XY",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_XY, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Strech",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_STRECH, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Squash",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_SQUASH, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Twist",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TWIST, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Bend",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_BEND, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Tapper X",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_X, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Tapper XY",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER_XY, "");
+	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Strech Squash",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_STRECH_SQUASH, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
