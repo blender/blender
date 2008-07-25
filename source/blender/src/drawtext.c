@@ -92,6 +92,7 @@
 #define SUGG_LIST_SIZE	7
 #define SUGG_LIST_WIDTH	20
 #define DOC_WIDTH		40
+#define DOC_HEIGHT		10
 
 #define TOOL_SUGG_LIST	0x01
 #define TOOL_DOCUMENT	0x02
@@ -119,6 +120,7 @@ static int last_txt_find_flags= 0;
 static void *last_txt_find_string= NULL;
 static void *last_txt_repl_string= NULL;
 
+static int doc_scroll= 0;
 static double last_check_time= 0;
 
 static BMF_Font *spacetext_get_font(SpaceText *st) {
@@ -1080,9 +1082,9 @@ static int do_suggest_select(SpaceText *st)
 void draw_documentation(SpaceText *st)
 {
 	TextLine *tmp;
-	char *docs, buf[DOC_WIDTH+1];
-	int len, prevsp, i, a;
-	int boxw=0, boxh, l, x, y;
+	char *docs, buf[DOC_WIDTH+1], *p;
+	int len, i, br, lines;
+	int boxw, boxh, l, x, y, top;
 	
 	if (!st || !st->text) return;
 	if (!texttool_text_is_active(st->text)) return;
@@ -1096,54 +1098,69 @@ void draw_documentation(SpaceText *st)
 	if (l<0) return;
 	
 	if(st->showlinenrs) {
-		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+		x= spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
 	} else {
-		x = spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+		x= spacetext_get_fontwidth(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
 	}
 	if (texttool_suggest_first()) {
 		x += SUGG_LIST_WIDTH*spacetext_get_fontwidth(st) + 50;
 	}
-	y = curarea->winy - st->lheight*l - 2;
 
-	len = strlen(docs);
+	top= y= curarea->winy - st->lheight*l - 2;
+	len= strlen(docs);
+	boxw= DOC_WIDTH*spacetext_get_fontwidth(st) + 20;
+	boxh= (DOC_HEIGHT+1)*st->lheight;
 
-	boxw = DOC_WIDTH*spacetext_get_fontwidth(st) + 20;
-	boxh = (2*len/DOC_WIDTH+1)*st->lheight + 8; /* Rough guess at box height */
-	
-	BIF_ThemeColor(TH_SHADE1);
-	glRecti(x-1, y+1, x+boxw+1, y-boxh-1);
+	/* Draw panel */
 	BIF_ThemeColor(TH_BACK);
 	glRecti(x, y, x+boxw, y-boxh);
+	BIF_ThemeColor(TH_SHADE1);
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(x, y);
+	glVertex2i(x+boxw, y);
+	glVertex2i(x+boxw, y-boxh);
+	glVertex2i(x, y-boxh);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(x+boxw-10, y-7);
+	glVertex2i(x+boxw-4, y-7);
+	glVertex2i(x+boxw-7, y-2);
+	glEnd();
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(x+boxw-10, y-boxh+7);
+	glVertex2i(x+boxw-4, y-boxh+7);
+	glVertex2i(x+boxw-7, y-boxh+2);
+	glEnd();
 	BIF_ThemeColor(TH_TEXT);
 
-	len = strlen(docs);
-	prevsp = a = 0;
-
-	for (i=0; i<len; i++) {
-		if (docs[i] == ' ' || docs[i] == '\t' || docs[i] == '\n') {
-
-			/* If we would exceed the line length, print up to the last space */
-			if (a + i-prevsp > DOC_WIDTH) {
+	i= 0; br= DOC_WIDTH; lines= -doc_scroll;
+	for (p=docs; *p; p++) {
+		if (*p == '\r' && *(++p) != '\n') *(--p)= '\n'; /* Fix line endings */
+		if (*p == ' ' || *p == '\t')
+			br= i;
+		else if (*p == '\n') {
+			buf[i]= '\0';
+			if (lines>=0) {
 				y -= st->lheight;
-				buf[a] = '\0';
-				text_draw(st, buf, 0, 0, 1, x+4, y-1, NULL);
-				a = 0;
+				text_draw(st, buf, 0, 0, 1, x+4, y-3, NULL);
 			}
-
-			/* Buffer up the next bit ready to draw */
-			if (i-prevsp > DOC_WIDTH) break; /* TODO: Deal with long, unbroken strings */
-			strncpy(buf+a, docs+prevsp, i-prevsp);
-			a += i-prevsp;
-			prevsp = i;
-
-			/* Hit a new line, print what we have */
-			if (docs[i] == '\n') {
-				y -= st->lheight;
-				buf[a] = '\0';
-				text_draw(st, buf, 0, 0, 1, x+4, y-1, NULL);
-				a = 0;
-			}
+			i= 0; br= DOC_WIDTH; lines++;
 		}
+		buf[i++]= *p;
+		if (i == DOC_WIDTH) { /* Reached the width, go to last break and wrap there */
+			buf[br]= '\0';
+			if (lines>=0) {
+				y -= st->lheight;
+				text_draw(st, buf, 0, 0, 1, x+4, y-3, NULL);
+			}
+			p -= i-br-1; /* Rewind pointer to last break */
+			i= 0; br= DOC_WIDTH; lines++;
+		}
+		if (lines >= DOC_HEIGHT) break;
+	}
+	if (doc_scroll > 0 && lines < DOC_HEIGHT) {
+		doc_scroll--;
+		draw_documentation(st);
 	}
 }
 
@@ -2018,10 +2035,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					do_selection(st, G.qual&LR_SHIFTKEY);
 					get_selection_buffer(text);
 					do_draw= 1;
+					tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 				} else {
 					do_textscroll(st, 1);
+					tools_cancel |= TOOL_SUGG_LIST;
 				}
-				tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 			}
 		}
 	} else if (event==RIGHTMOUSE) {
@@ -2453,7 +2471,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			tools_cancel = 0;
 			break;
 		case DOWNARROWKEY:
-			if (tools & TOOL_SUGG_LIST) {
+			if (tools & TOOL_DOCUMENT) {
+				doc_scroll++;
+				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
+				break;
+			} else if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = texttool_suggest_selected();
 				if (!sel) {
 					texttool_suggest_select(texttool_suggest_first());
@@ -2491,7 +2513,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case UPARROWKEY:
-			if (tools & TOOL_SUGG_LIST) {
+			if (tools & TOOL_DOCUMENT) {
+				if (doc_scroll) doc_scroll--;
+				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
+				break;
+			} else if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = texttool_suggest_selected();
 				if (sel && sel!=texttool_suggest_first() && sel->prev)
 					texttool_suggest_select(sel->prev);
@@ -2542,7 +2568,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case WHEELUPMOUSE:
-			if (tools & TOOL_SUGG_LIST) {
+			if (tools & TOOL_DOCUMENT) {
+				if (doc_scroll) doc_scroll--;
+				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
+				break;
+			} else if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = texttool_suggest_selected();
 				if (sel && sel!=texttool_suggest_first() && sel->prev)
 					texttool_suggest_select(sel->prev);
@@ -2554,7 +2584,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_draw= 1;
 			break;
 		case WHEELDOWNMOUSE:
-			if (tools & TOOL_SUGG_LIST) {
+			if (tools & TOOL_DOCUMENT) {
+				doc_scroll++;
+				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
+				break;
+			} else if (tools & TOOL_SUGG_LIST) {
 				SuggItem *sel = texttool_suggest_selected();
 				if (!sel) {
 					texttool_suggest_select(texttool_suggest_first());
@@ -2644,6 +2678,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (tools & TOOL_DOCUMENT) {
 		if (tools_cancel & TOOL_DOCUMENT) {
 			texttool_docs_clear();
+			doc_scroll= 0;
 		}
 		do_draw= 1;
 	}
