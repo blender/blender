@@ -1548,7 +1548,7 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
 				/* note we don't use sb->mediafrict but use sb->aeroedge for magnitude of effect*/ 
 				if(sb->aeroedge){
 					float vel[3],sp[3],pr[3],force[3];
-					float f,windfactor  = 10.0f;   
+					float f,windfactor  = 250.0f;   
 					/*see if we have wind*/
 					if(do_effector) {
 						float speed[3]={0.0f,0.0f,0.0f};
@@ -2034,7 +2034,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 	BodySpring *bs;	
 	ListBase *do_effector;
 	float iks, ks, kd, gravity;
-	float fieldfactor = -100.0f, windfactor  = 10.0f;   
+	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
 	float tune = sb->ballstiff;
 	int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
 
