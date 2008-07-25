@@ -189,6 +189,7 @@ public:
 						);
 
 	void				DebugColor(unsigned int abgr);
+	void 				SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba);
 	
 	/**
 	 *  Sorts the polygons by their transformed z values.

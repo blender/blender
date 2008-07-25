@@ -139,6 +139,11 @@ const STR_String& RAS_IPolyMaterial::GetMaterialName() const
 	return m_materialname;
 }
 
+dword RAS_IPolyMaterial::GetMaterialNameHash() const
+{
+	return m_materialname.hash();
+}
+
 const STR_String& RAS_IPolyMaterial::GetTextureName() const
 {
 	return m_texturename;

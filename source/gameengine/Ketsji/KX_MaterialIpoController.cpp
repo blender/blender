@@ -37,6 +37,7 @@ bool KX_MaterialIpoController::Update(double currentTime)
 
 		//kxgameobj->SetObjectColor(m_rgba);
 		kxgameobj->UpdateMaterialData( 
+			m_matname_hash,
 			m_rgba, 
 			m_specrgb, 
 			m_hard, 
