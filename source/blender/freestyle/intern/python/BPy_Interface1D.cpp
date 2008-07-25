@@ -1,6 +1,7 @@
 #include "BPy_Interface1D.h"
 
 #include "BPy_Convert.h"
+#include "Interface1D/BPy_Curve.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_Stroke.h"
 #include "Interface1D/BPy_ViewEdge.h"
@@ -136,6 +137,11 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 		return;
 	Py_INCREF( &Interface1D_Type );
 	PyModule_AddObject(module, "Interface1D", (PyObject *)&Interface1D_Type);
+	
+	if( PyType_Ready( &Curve_Type ) < 0 )
+		return;
+	Py_INCREF( &Curve_Type );
+	PyModule_AddObject(module, "Curve", (PyObject *)&Curve_Type);
 	
 	if( PyType_Ready( &FEdge_Type ) < 0 )
 		return;
