@@ -164,7 +164,7 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 						case MAT_IN_MIR:
 							VECCOPY(&ma->mirr, sock->ns.vec); break;
 						case MAT_IN_AMB:
-							VECCOPY(&ma->ambr, sock->ns.vec); break;
+							ma->amb= sock->ns.vec[0]; break;
 						case MAT_IN_EMIT:
 							ma->emit= sock->ns.vec[0]; break;
 						case MAT_IN_SPECTRA:
@@ -188,7 +188,7 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 						case MAT_IN_MIR:
 							VECCOPY(sock->ns.vec, &ma->mirr); break;
 						case MAT_IN_AMB:
-							VECCOPY(sock->ns.vec, &ma->ambr); break;
+							sock->ns.vec[0]= ma->amb; break;
 						case MAT_IN_EMIT:
 							sock->ns.vec[0]= ma->emit; break;
 						case MAT_IN_SPECTRA:
