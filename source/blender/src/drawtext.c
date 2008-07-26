@@ -737,11 +737,12 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	}
 
 	/* Calculate line offset for earlier lines */
-	end= max= get_wrap_width(st);
-	taboffs= start= 0;
+	max= get_wrap_width(st);
 	*offl= 0;
 
 	while (linep) {
+		taboffs= start= 0;
+		end= max;
 		*offc= 0;
 		for (i=0; linep->line[i]!='\0'; i++) {
 			if (i-start+taboffs>=max) {
