@@ -278,6 +278,11 @@ void recalcData(TransInfo *t)
 		data = get_action_context(&context);
 		if (data == NULL) return;
 		
+		/* always flush data if gpencil context */
+		if (context == ACTCONT_GPENCIL) {
+			flushTransGPactionData(t);
+		}
+		
 		if (G.saction->lock) {
 			if (context == ACTCONT_ACTION) {
 				if(ob) {
@@ -752,6 +757,10 @@ void postTrans (TransInfo *t)
 	if(t->spacetype==SPACE_IMAGE) {
 		if (G.sima->flag & SI_LIVE_UNWRAP)
 			unwrap_lscm_live_end(t->state == TRANS_CANCEL);
+	}
+	else if(t->spacetype==SPACE_ACTION) {
+		if (t->customData)
+			MEM_freeN(t->customData);
 	}
 }
 

@@ -110,12 +110,16 @@ static void do_node_viewmenu(void *arg, int event)
 		case 3: /* View all */
 			snode_home(curarea, snode);
 			break;
+		case 4: /* Grease Pencil */
+			add_blockhandler(curarea, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
+		break;
 	}
 	allqueue(REDRAWNODE, 0);
 }
 
 static uiBlock *node_viewmenu(void *arg_unused)
 {
+	SpaceNode *snode= curarea->spacedata.first; 
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -123,6 +127,12 @@ static uiBlock *node_viewmenu(void *arg_unused)
 					  UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_node_viewmenu, NULL);
 
+	if (snode->nodetree) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Grease Pencil...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+		
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	}
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom In|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Out|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	

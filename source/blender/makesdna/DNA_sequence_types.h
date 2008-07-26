@@ -257,6 +257,7 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_CROP                           131072
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
+#define SEQ_ACTIVE                            1048576
 
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2

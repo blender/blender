@@ -1929,7 +1929,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Width: ",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->value,
-					  0.0, 0.5, 5, 2,
+					  0.0, 0.5, 5, 4,
 					  "Bevel value/amount");
 			/*uiDefButI(block, NUM, B_MODIFIER_RECALC, "Recurs",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->res,

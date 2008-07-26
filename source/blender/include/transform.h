@@ -397,6 +397,7 @@ int Align(TransInfo *t, short mval[2]);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
+void flushTransGPactionData(TransInfo *t);
 void flushTransIpoData(TransInfo *t);
 void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);

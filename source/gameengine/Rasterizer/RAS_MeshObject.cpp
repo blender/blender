@@ -201,7 +201,20 @@ void RAS_MeshObject::DebugColor(unsigned int abgr)
 	m_debugcolor = abgr;	
 }
 
-
+void RAS_MeshObject::SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba)
+{
+	RAS_TexVert* vertex = NULL;
+	const vecVertexArray & vertexvec = GetVertexCache(mat);
+			
+	for (vector<KX_VertexArray*>::const_iterator it = vertexvec.begin(); it != vertexvec.end(); ++it)
+	{
+		KX_VertexArray::iterator vit;
+		for (vit=(*it)->begin(); vit != (*it)->end(); vit++)
+		{
+			vit->SetRGBA(rgba);
+		}
+	}	
+}
 
 void RAS_MeshObject::SchedulePoly(const KX_VertexIndex& idx,
 								  int numverts,

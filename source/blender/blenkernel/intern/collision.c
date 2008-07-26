@@ -1437,6 +1437,9 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 
 					if(coll_ob == self)
 						continue;
+					
+					if( !collmd->bvhtree)
+						continue;
 
 					if(numobj >= maxobj)
 					{

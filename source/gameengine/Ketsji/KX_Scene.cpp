@@ -712,8 +712,12 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 
 		if (replica->GetPhysicsController())
 		{
-			replica->GetPhysicsController()->setPosition(newpos);
-			replica->GetPhysicsController()->setOrientation(newori.getRotation());
+			// not required, already done in NodeSetLocalOrientation..
+			//replica->GetPhysicsController()->setPosition(newpos);
+			//replica->GetPhysicsController()->setOrientation(newori.getRotation());
+			// Scaling has been set relatively hereabove, this does not 
+			// set the scaling of the controller. I don't know why it's just the
+			// relative scale and not the full scale that has to be put here...
 			replica->GetPhysicsController()->setScaling(newscale);
 		}
 
@@ -724,21 +728,23 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		replica->Release();
 	}
 
-	//	relink any pointers as necessary, sort of a temporary solution
+	// the logic must be replicated first because we need
+	// the new logic bricks before relinking
 	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		(*git)->Relink(&m_map_gameobject_to_replica);
-		// add the object in the layer of the parent
-		(*git)->SetLayer(groupobj->GetLayer());
-	}
-
-	// now replicate logic
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
 		(*git)->ReParentLogic();
 	}
 	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuator to objects within the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(groupobj->GetLayer());
+	}
+
 	// replicate crosslinks etc. between logic bricks
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
@@ -805,21 +811,22 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 			replica->GetSGNode()->AddChild(childreplicanode);
 	}
 
-	//	relink any pointers as necessary, sort of a temporary solution
-	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		(*git)->Relink(&m_map_gameobject_to_replica);
-		// add the object in the layer of the parent
-		(*git)->SetLayer(parentobj->GetLayer());
-	}
-
 	// now replicate logic
+	vector<KX_GameObject*>::iterator git;
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
 		(*git)->ReParentLogic();
 	}
 	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuators in the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(parentobj->GetLayer());
+	}
+
 	// replicate crosslinks etc. between logic bricks
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
@@ -840,8 +847,9 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	if (replica->GetPhysicsController())
 	{
-		replica->GetPhysicsController()->setPosition(newpos);
-		replica->GetPhysicsController()->setOrientation(newori.getRotation());
+		// not needed, already done in NodeSetLocalPosition()
+		//replica->GetPhysicsController()->setPosition(newpos);
+		//replica->GetPhysicsController()->setOrientation(newori.getRotation());
 		replica->GetPhysicsController()->setScaling(newscale);
 	}
 

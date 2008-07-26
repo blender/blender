@@ -146,19 +146,19 @@ void compatible_eulFast(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
 	
-	/* verschillen van ong 360 graden corrigeren */
+	/* angular difference of 360 degrees */
 
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
 
-	if( fabs(dx) > 5.1) {
+	if( fabs(dx) > MT_PI) {
 		if(dx > 0.0) eul[0] -= MT_2_PI; else eul[0]+= MT_2_PI;
 	}
-	if( fabs(dy) > 5.1) {
+	if( fabs(dy) > MT_PI) {
 		if(dy > 0.0) eul[1] -= MT_2_PI; else eul[1]+= MT_2_PI;
 	}
-	if( fabs(dz) > 5.1 ) {
+	if( fabs(dz) > MT_PI ) {
 		if(dz > 0.0) eul[2] -= MT_2_PI; else eul[2]+= MT_2_PI;
 	}
 }
@@ -209,6 +209,18 @@ bool KX_TrackToActuator::UnlinkObject(SCA_IObject* clientobj)
 	}
 	return false;
 }
+
+void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_object];
+	if (h_obj) {
+		if (m_object)
+			m_object->UnregisterActuator(this);
+		m_object = (SCA_IObject*)(*h_obj);
+		m_object->RegisterActuator(this);
+	}
+}
+
 
 bool KX_TrackToActuator::Update(double curtime, bool frame)
 {

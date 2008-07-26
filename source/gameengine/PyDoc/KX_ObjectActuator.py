@@ -6,6 +6,7 @@ class KX_ObjectActuator(SCA_IActuator):
 	"""
 	The object actuator ("Motion Actuator") applies force, torque, displacement, angular displacement,
 	velocity, or angular velocity to an object.
+	Servo control allows to regulate force to achieve a certain speed target.
 	"""
 	def getForce():
 		"""
@@ -107,15 +108,17 @@ class KX_ObjectActuator(SCA_IActuator):
 	def getLinearVelocity():
 		"""
 		Returns the linear velocity applied by the actuator.
+		For the servo control actuator, this is the target speed.
 		
 		@rtype: list [vx, vy, vz, local]
 		@return: A four item list, containing the vector velocity, and whether
 		         the velocity is applied in local coordinates (True) or world
-			 coordinates (False)
+			     coordinates (False)
 		"""
 	def setLinearVelocity(vx, vy, vz, local):
 		"""
 		Sets the linear velocity applied by the actuator.
+		For the servo control actuator, sets the target speed.
 		
 		@type vx: float
 		@param vx: the x component of the velocity vector.
@@ -124,8 +127,8 @@ class KX_ObjectActuator(SCA_IActuator):
 		@type vz: float
 		@param vz: the z component of the velocity vector.
 		@type local: boolean
-		@param local: - False: the velocity vector is applied in world coordinates.
-		              - True: the velocity vector is applied in local coordinates.
+		@param local: - False: the velocity vector is in world coordinates.
+		              - True: the velocity vector is in local coordinates.
 		"""
 	def getAngularVelocity():
 		"""
@@ -149,6 +152,101 @@ class KX_ObjectActuator(SCA_IActuator):
 		@type local: boolean
 		@param local: - False: the velocity vector is applied in world coordinates.
 		              - True: the velocity vector is applied in local coordinates.
+		"""
+	def getDamping():
+		"""
+		Returns the damping parameter of the servo controller.
+		
+		@rtype: integer
+		@return: the time constant of the servo controller in frame unit.
+		"""
+	def setDamping(damp):
+		"""
+		Sets the damping parameter of the servo controller.
+		
+		@type damp: integer
+		@param damp: the damping parameter in frame unit.
+		"""
+	def getForceLimitX():
+		"""
+		Returns the min/max force limit along the X axis used by the servo controller.
+		
+		@rtype: list [min, max, enabled]
+		@return: A three item list, containing the min and max limits of the force as float
+		         and whether the limits are active(true) or inactive(true)
+		"""
+	def setForceLimitX(min, max, enable):
+		"""
+		Sets the min/max force limit along the X axis and activates or deactivates the limits in the servo controller.
+		
+		@type min: float
+		@param min: the minimum value of the force along the X axis.
+		@type max: float
+		@param max: the maximum value of the force along the X axis.
+		@type enable: boolean
+		@param enable: - True: the force will be limited to the min/max
+		               - False: the force will not be limited		               
+		"""
+	def getForceLimitY():
+		"""
+		Returns the min/max force limit along the Y axis used by the servo controller.
+		
+		@rtype: list [min, max, enabled]
+		@return: A three item list, containing the min and max limits of the force as float
+		         and whether the limits are active(true) or inactive(true)
+		"""
+	def setForceLimitY(min, max, enable):
+		"""
+		Sets the min/max force limit along the Y axis and activates or deactivates the limits in the servo controller.
+		
+		@type min: float
+		@param min: the minimum value of the force along the Y axis.
+		@type max: float
+		@param max: the maximum value of the force along the Y axis.
+		@type enable: boolean
+		@param enable: - True: the force will be limited to the min/max
+		               - False: the force will not be limited		               
+		"""
+	def getForceLimitZ():
+		"""
+		Returns the min/max force limit along the Z axis used by the servo controller.
+		
+		@rtype: list [min, max, enabled]
+		@return: A three item list, containing the min and max limits of the force as float
+		         and whether the limits are active(true) or inactive(true)
+		"""
+	def setForceLimitZ(min, max, enable):
+		"""
+		Sets the min/max force limit along the Z axis and activates or deactivates the limits in the servo controller.
+		
+		@type min: float
+		@param min: the minimum value of the force along the Z axis.
+		@type max: float
+		@param max: the maximum value of the force along the Z axis.
+		@type enable: boolean
+		@param enable: - True: the force will be limited to the min/max
+		               - False: the force will not be limited		               
+		"""
+	def getPID():
+		"""
+		Returns the PID coefficient of the servo controller.
+		
+		@rtype: list [P, I, D]
+		@return: A three item list, containing the PID coefficient as floats:
+		         P : proportional coefficient
+		         I : Integral coefficient
+		         D : Derivate coefficient
+		"""
+	def setPID(P, I, D):
+		"""
+		Sets the PID coefficients of the servo controller.
+		
+		@type P: flat
+		@param P: proportional coefficient
+		@type I: float
+		@param I: Integral coefficient
+		@type D: float
+		@param D: Derivate coefficient
 		"""
 
 

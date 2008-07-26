@@ -137,6 +137,14 @@ public:
 	) = 0;
 
 	/**
+	 * Used to get canvas area within blender.
+	 */
+	virtual
+		RAS_Rect &
+	GetWindowArea(
+	) = 0;
+
+	/**
 	 * Set the visible vieport 
 	 */
 

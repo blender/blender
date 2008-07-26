@@ -143,17 +143,17 @@ public:
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetProperty);
 /*  	KX_PYMETHOD_DOC(KX_IpoActuator,SetKey2Key); */
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetStart);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetStart);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetStart);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetEnd);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetEnd);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetEnd);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAsForce);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetIpoAsForce);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetIpoAsForce);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAdd);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetIpoAdd);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetIpoAdd);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetType);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetType);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetType);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetForceIpoActsLocal);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetForceIpoActsLocal);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetForceIpoActsLocal);
 	
 };
 

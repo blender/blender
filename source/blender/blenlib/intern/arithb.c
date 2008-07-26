@@ -2536,11 +2536,6 @@ int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
 }
 
 
-
-			/* copied from Geometry.c - todo - move to arithb.c or some other generic place we can reuse */
-#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
-#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
-
 /**
  * 
  * @param min 

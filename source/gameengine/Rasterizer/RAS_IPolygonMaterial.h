@@ -138,6 +138,7 @@ public:
 	unsigned int		hash() const;
 	int					GetDrawingMode() const;
 	const STR_String&	GetMaterialName() const;
+	dword				GetMaterialNameHash() const;
 	const STR_String&	GetTextureName() const;
 	const unsigned int	GetFlag() const;
 

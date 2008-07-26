@@ -214,6 +214,18 @@ class KX_GameObject:
 		"""
 		Removes this objects parent.
 		"""
+	def getChildren():
+		"""
+		Return a list of immediate children of this object.
+		@rtype: list
+		@return: a list of all this objects children.
+		"""
+	def getChildrenRecursive():
+		"""
+		Return a list of children of this object, including all their childrens children.
+		@rtype: list
+		@return: a list of all this objects children recursivly.
+		"""
 	def getMesh(mesh):
 		"""
 		Gets the mesh object for this object.

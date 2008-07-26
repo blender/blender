@@ -49,7 +49,7 @@ STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
 
 KX_CameraActuator::KX_CameraActuator(
 	SCA_IObject* gameobj, 
-	CValue *obj,
+	SCA_IObject *obj,
 	MT_Scalar hght,
 	MT_Scalar minhght,
 	MT_Scalar maxhght,
@@ -63,11 +63,14 @@ KX_CameraActuator::KX_CameraActuator(
 	m_maxHeight (maxhght),
 	m_x (xytog)
 {
+	if (m_ob)
+		m_ob->RegisterActuator(this);
 }
 
 KX_CameraActuator::~KX_CameraActuator()
 {
-	//nothing to do
+	if (m_ob)
+		m_ob->UnregisterActuator(this);
 }
 
 	CValue* 
@@ -81,8 +84,35 @@ GetReplica(
 	return replica;
 };
 
+void KX_CameraActuator::ProcessReplica()
+{
+	if (m_ob)
+		m_ob->RegisterActuator(this);
+	SCA_IActuator::ProcessReplica();
+}
+
+bool KX_CameraActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == m_ob)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_ob = NULL;
+		return true;
+	}
+	return false;
+}
 
 
+void KX_CameraActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_ob];
+	if (h_obj) {
+		if (m_ob)
+			m_ob->UnregisterActuator(this);
+		m_ob = (SCA_IObject*)(*h_obj);
+		m_ob->RegisterActuator(this);
+	}
+}
 
 /* three functions copied from blender arith... don't know if there's an equivalent */
 
@@ -181,8 +211,14 @@ static void Kx_VecUpMat3(float *vec, float mat[][3], short axis)
 
 bool KX_CameraActuator::Update(double curtime, bool frame)
 {
-	bool result = true;
+	/* wondering... is it really neccesary/desirable to suppress negative    */
+	/* events here?                                                          */
+	bool bNegativeEvent = IsNegativeEvent();
+	RemoveAllEvents();
 
+	if (bNegativeEvent || !m_ob) 
+		return false;
+	
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	MT_Point3 from = obj->NodeGetWorldPosition();
 	MT_Matrix3x3 frommat = obj->NodeGetWorldOrientation();
@@ -194,13 +230,6 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	float inp, fac; //, factor = 0.0; /* some factor...                                    */
 	float mindistsq, maxdistsq, distsq;
 	float mat[3][3];
-	
-	/* wondering... is it really neccesary/desirable to suppress negative    */
-	/* events here?                                                          */
-	bool bNegativeEvent = IsNegativeEvent();
-	RemoveAllEvents();
-
-	if (bNegativeEvent) return false;
 	
 	/* The rules:                                                            */
 	/* CONSTRAINT 1: not implemented */
@@ -315,7 +344,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	actormat[2][0]= mat[0][2]; actormat[2][1]= mat[1][2]; actormat[2][2]= mat[2][2];
 	obj->NodeSetLocalOrientation(actormat);
 
-	return result;
+	return true;
 }
 
 CValue *KX_CameraActuator::findObject(char *obName) 
@@ -404,7 +433,11 @@ PyObject* KX_CameraActuator::PySetObject(PyObject* self,
 	PyObject* gameobj;
 	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
 	{
-		m_ob = (CValue*)gameobj;
+		if (m_ob)
+			m_ob->UnregisterActuator(this);
+		m_ob = (SCA_IObject*)gameobj;
+		if (m_ob)
+			m_ob->RegisterActuator(this);
 		Py_Return;
 	}
 	PyErr_Clear();
@@ -412,10 +445,13 @@ PyObject* KX_CameraActuator::PySetObject(PyObject* self,
 	char* objectname;
 	if (PyArg_ParseTuple(args, "s", &objectname))
 	{
-		CValue *object = (CValue*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));
+		SCA_IObject *object = (SCA_IObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));
 		if(object)
 		{
+			if (m_ob != NULL)
+				m_ob->UnregisterActuator(this);
 			m_ob = object;
+			m_ob->RegisterActuator(this);
 			Py_Return;
 		}
 	}
