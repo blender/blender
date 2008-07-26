@@ -2608,7 +2608,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if (event && val) {
+	/* Run text plugin scripts if in syntax mode */
+	if (st->showsyntax && event && val) {
 		if (BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, G.qual)) {
 			do_draw= 1;
 		}
