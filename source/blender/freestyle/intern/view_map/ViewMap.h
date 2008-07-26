@@ -99,12 +99,12 @@ public:
   /*! Gets the viewedge the nearest to the 
    *  2D position specified as argument
    */
-  const ViewEdge * GetClosestViewEdge(real x, real y) const ;
+  const ViewEdge * getClosestViewEdge(real x, real y) const ;
 
   /*! Gets the Fedge the nearest to the 
    *  2D position specified as argument
    */
-  const FEdge * GetClosestFEdge(real x, real y) const ;
+  const FEdge * getClosestFEdge(real x, real y) const ;
 
   /* accessors */
   /*! The ViewMap is a singleton class. This static method

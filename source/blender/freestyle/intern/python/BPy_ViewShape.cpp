@@ -16,12 +16,27 @@ static int ViewShape___init__(BPy_ViewShape *self, PyObject *args, PyObject *kwd
 static void ViewShape___dealloc__(BPy_ViewShape *self);
 static PyObject * ViewShape___repr__(BPy_ViewShape* self);
 
+static PyObject * ViewShape_sshape( BPy_ViewShape *self );
+static PyObject * ViewShape_vertices( BPy_ViewShape *self );
+static PyObject * ViewShape_edges( BPy_ViewShape *self );
+static PyObject * ViewShape_getId( BPy_ViewShape *self );
+static PyObject * ViewShape_setSShape( BPy_ViewShape *self , PyObject *args);
+static PyObject * ViewShape_setVertices( BPy_ViewShape *self , PyObject *args);
+static PyObject * ViewShape_setEdges( BPy_ViewShape *self , PyObject *args);
+static PyObject * ViewShape_AddEdge( BPy_ViewShape *self , PyObject *args);
+static PyObject * ViewShape_AddVertex( BPy_ViewShape *self , PyObject *args);
 
 /*---------------------- BPy_ViewShape instance definitions ----------------------------*/
 static PyMethodDef BPy_ViewShape_methods[] = {
-	//{"AddEdge", ( PyCFunction ) ViewShape_AddEdge, METH_VARARGS, "（FEdge fe ）Adds a FEdge to the list of FEdges. "},
-
-	
+	{"sshape", ( PyCFunction ) ViewShape_sshape, METH_NOARGS, "() Returns the SShape on top of which this ViewShape is built. "},
+	{"vertices", ( PyCFunction ) ViewShape_vertices, METH_NOARGS, "() Returns the list of ViewVertex contained in this ViewShape."},
+	{"edges", ( PyCFunction ) ViewShape_edges, METH_NOARGS, "() Returns the list of ViewEdge contained in this ViewShape. "},
+	{"getId", ( PyCFunction ) ViewShape_getId, METH_NOARGS, "() Returns the ViewShape id. "},
+	{"setSShape", ( PyCFunction ) ViewShape_setSShape, METH_VARARGS, "(SShape ss) Sets the SShape on top of which the ViewShape is built. "},
+	{"setVertices", ( PyCFunction ) ViewShape_setVertices, METH_VARARGS, "([<ViewVertex>]) Sets the list of ViewVertex contained in this ViewShape."},
+	{"setEdges", ( PyCFunction ) ViewShape_setEdges, METH_VARARGS, "([<ViewEdge>]) Sets the list of ViewEdge contained in this ViewShape."},
+	{"AddEdge", ( PyCFunction ) ViewShape_AddEdge, METH_VARARGS, "(ViewEdge ve) Adds a ViewEdge to the list "},
+	{"AddVertex", ( PyCFunction ) ViewShape_AddVertex, METH_VARARGS, "(ViewVertex ve) Adds a ViewVertex to the list. "},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -231,7 +246,6 @@ PyObject * ViewShape_setVertices( BPy_ViewShape *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
-//void 	SetEdges (const vector< ViewEdge * > &iEdges)
 PyObject * ViewShape_setEdges( BPy_ViewShape *self , PyObject *args) {
 	PyObject *list = 0;
 	PyObject *tmp;

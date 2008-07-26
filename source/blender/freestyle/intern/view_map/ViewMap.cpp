@@ -69,7 +69,7 @@ void  ViewMap::AddViewShape(ViewShape *iVShape) {
     _shapeIdToIndex[iVShape->getId().getFirst()] = _VShapes.size(); 
     _VShapes.push_back(iVShape);
 }
-const FEdge * ViewMap::GetClosestFEdge(real x, real y) const
+const FEdge * ViewMap::getClosestFEdge(real x, real y) const
 {
   // find the closest of this candidates:
   real minDist = DBL_MAX;
@@ -94,7 +94,7 @@ const FEdge * ViewMap::GetClosestFEdge(real x, real y) const
   return winner;
 }
 
-const ViewEdge * ViewMap::GetClosestViewEdge(real x, real y) const
+const ViewEdge * ViewMap::getClosestViewEdge(real x, real y) const
 {
   // find the closest of this candidates:
   real minDist = DBL_MAX;

@@ -7,11 +7,11 @@
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
-#include "BPy_Iterator.h"
-#include "Interface0D/BPy_CurvePoint.h"
 #include "BPy_Interface1D.h"
+#include "BPy_Iterator.h"
 #include "BPy_MediumType.h"
 #include "BPy_Nature.h"
+#include "BPy_Noise.h"
 #include "BPy_SShape.h"
 #include "BPy_StrokeAttribute.h"
 #include "BPy_StrokeShader.h"
@@ -19,6 +19,7 @@
 #include "BPy_UnaryFunction1D.h"
 #include "BPy_UnaryPredicate0D.h"
 #include "BPy_UnaryPredicate1D.h"
+#include "BPy_ViewMap.h"
 #include "BPy_ViewShape.h"
 
 
@@ -151,6 +152,7 @@ PyObject *Freestyle_Init( void )
 	Interface0D_Init( module );
 	Interface1D_Init( module );
 	Iterator_Init( module );
+	Noise_Init( module );
 	SShape_Init( module );
 	StrokeAttribute_Init( module );
 	StrokeShader_Init( module );
@@ -158,8 +160,9 @@ PyObject *Freestyle_Init( void )
 	UnaryFunction1D_Init( module );
 	UnaryPredicate0D_Init( module );
 	UnaryPredicate1D_Init( module );
+	ViewMap_Init( module );
 	ViewShape_Init( module );
-	
+
 	return module;
 }
 

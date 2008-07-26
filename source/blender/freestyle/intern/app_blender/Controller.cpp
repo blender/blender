@@ -930,7 +930,7 @@ FEdge* Controller::SelectFEdge(real x, real y)
   if (!_ViewMap)
     return NULL;
 
-  FEdge *fedge = (FEdge*)_ViewMap->GetClosestFEdge(x,y);
+  FEdge *fedge = (FEdge*)_ViewMap->getClosestFEdge(x,y);
   //ViewEdge *selection = fedge->viewedge();
   _pView->setSelectedFEdge(fedge);
   _Canvas->setSelectedFEdge(fedge);
@@ -942,7 +942,7 @@ ViewEdge* Controller::SelectViewEdge(real x, real y)
   if (!_ViewMap)
     return NULL;
 
-  FEdge *fedge = (FEdge*)_ViewMap->GetClosestFEdge(x,y);
+  FEdge *fedge = (FEdge*)_ViewMap->getClosestFEdge(x,y);
   ViewEdge *selection = fedge->viewedge();
   _pView->setSelectedFEdge(fedge);
   _Canvas->setSelectedFEdge(fedge);
