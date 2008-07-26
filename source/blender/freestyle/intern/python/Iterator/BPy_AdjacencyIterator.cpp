@@ -115,22 +115,22 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 	    return -1;
 
 	if( !obj1 && !obj2 && !obj3 ){
-		self->ai = new AdjacencyIterator();
+		self->a_it = new AdjacencyIterator();
 		
 	} else if( BPy_AdjacencyIterator_Check(obj1) ) {
-		self->ai = new AdjacencyIterator(*( ((BPy_AdjacencyIterator *) obj1)->ai ));
+		self->a_it = new AdjacencyIterator(*( ((BPy_AdjacencyIterator *) obj1)->a_it ));
 	
 	} else if( BPy_ViewVertex_Check(obj1) ) {
 		bool restrictToSelection = ( obj2 && PyBool_Check(obj2) ) ? bool_from_PyBool(obj2) : true;
 		bool restrictToUnvisited = ( obj3 && PyBool_Check(obj3) ) ? bool_from_PyBool(obj3) : true;
 		
-		self->ai = new AdjacencyIterator( ((BPy_ViewVertex *) obj1)->vv, restrictToSelection, restrictToUnvisited );
+		self->a_it = new AdjacencyIterator( ((BPy_ViewVertex *) obj1)->vv, restrictToSelection, restrictToUnvisited );
 			
 	} else {
 		return -1;
 	}
 
-	self->py_it.it = self->ai;
+	self->py_it.it = self->a_it;
 	return 0;
 
 }

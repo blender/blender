@@ -1,6 +1,7 @@
 #include "BPy_UnaryPredicate0D.h"
 
 #include "BPy_Convert.h"
+#include "Iterator/BPy_Interface0DIterator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,6 +125,7 @@ PyMODINIT_FUNC UnaryPredicate0D_Init( PyObject *module )
 
 int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
+	self->up0D = new UnaryPredicate0D();
 	return 0;
 }
 
@@ -147,15 +149,18 @@ PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self, PyObject *args)
 
 PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args)
 {
-	PyObject *l;
+	PyObject *py_if0D_it;
 
-	if( !PyArg_ParseTuple(args, "O", &l) ) {
+	if(!( PyArg_ParseTuple(args, "O", &py_if0D_it) && BPy_Interface0DIterator_Check(py_if0D_it) )) {
 		cout << "ERROR: UnaryPredicate0D___call__ " << endl;		
 		return NULL;
 	}
-	
-	//TBD
-	
+
+	Interface0DIterator *if0D_it = ((BPy_Interface0DIterator *) py_if0D_it)->if0D_it;
+
+	if( if0D_it )
+		return PyBool_from_bool( self->up0D->operator()(*if0D_it) );
+
 	Py_RETURN_NONE;
 }
 

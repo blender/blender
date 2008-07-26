@@ -20,7 +20,7 @@ extern PyTypeObject AdjacencyIterator_Type;
 /*---------------------------Python BPy_AdjacencyIterator structure definition----------*/
 typedef struct {
 	BPy_Iterator py_it;
-	AdjacencyIterator *ai;
+	AdjacencyIterator *a_it;
 } BPy_AdjacencyIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

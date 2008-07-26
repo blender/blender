@@ -8,6 +8,10 @@
 #include "Iterator/BPy_SVertexIterator.h"
 #include "Iterator/BPy_orientedViewEdgeIterator.h"
 #include "Iterator/BPy_ViewEdgeIterator.h"
+#include "Iterator/BPy_ChainingIterator.h"
+// #include "Iterator/BPy_ChainPredicateIterator.h"
+// #include "Iterator/BPy_ChainSilhouetteIterator.h"
+
 
 	
 #ifdef __cplusplus
@@ -166,6 +170,21 @@ PyMODINIT_FUNC Iterator_Init( PyObject *module )
 		return;
 	Py_INCREF( &ViewEdgeIterator_Type );
 	PyModule_AddObject(module, "ViewEdgeIterator", (PyObject *)&ViewEdgeIterator_Type);
+	
+	if( PyType_Ready( &ChainingIterator_Type ) < 0 )
+		return;
+	Py_INCREF( &ChainingIterator_Type );
+	PyModule_AddObject(module, "ChainingIterator", (PyObject *)&ChainingIterator_Type);
+	
+	// if( PyType_Ready( &ChainPredicateIterator_Type ) < 0 )
+	// 	return;
+	// Py_INCREF( &ChainPredicateIterator_Type );
+	// PyModule_AddObject(module, "ChainPredicateIterator", (PyObject *)&ChainPredicateIterator_Type);
+	// 
+	// if( PyType_Ready( &ChainSilhouetteIterator_Type ) < 0 )
+	// 	return;
+	// Py_INCREF( &ChainSilhouetteIterator_Type );
+	// PyModule_AddObject(module, "ChainSilhouetteIterator", (PyObject *)&ChainSilhouetteIterator_Type);
 	
 	
 }

@@ -1,9 +1,7 @@
-#include "BPy_ChainingIterator.h"
+#include "BPy_ChainPredicateIterator.h"
 
 #include "../BPy_Convert.h"
-#include "../Interface0D/BPy_ViewVertex.h"
-#include "../Interface1D/BPy_ViewEdge.h"
-#include "BPy_AdjacencyIterator.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,29 +9,27 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for ChainingIterator instance  -----------*/
-static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args);
-static PyObject * ChainingIterator_init( BPy_ChainingIterator *self );
-static PyObject * ChainingIterator_traverse( BPy_ChainingIterator *self, PyObject *args );
-static PyObject * ChainingIterator_getVertex( BPy_ChainingIterator *self );
-static PyObject * ChainingIterator_isIncrementing( BPy_ChainingIterator *self );
+/*---------------  Python API function prototypes for ChainPredicateIterator instance  -----------*/
+static int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *args);
 
-/*----------------------ChainingIterator instance definitions ----------------------------*/
-static PyMethodDef BPy_ChainingIterator_methods[] = {
-	{"init", ( PyCFunction ) ChainingIterator_init, METH_NOARGS, "() Inits the iterator context. This method is called each time a new chain is started. It can be used to reset some history information that you might want to keep."},
-	{"traverse", ( PyCFunction ) ChainingIterator_traverse, METH_VARARGS, "(AdjacencyIterator ai) This method iterates over the potential next ViewEdges and returns the one that will be followed next. Returns the next ViewEdge to follow or 0 when the end of the chain is reached. "},
-	{"getVertex", ( PyCFunction ) ChainingIterator_getVertex, METH_NOARGS, "() Returns the vertex which is the next crossing "},
-	{"isIncrementing", ( PyCFunction ) ChainingIterator_isIncrementing, METH_NOARGS, "() Returns true if the current iteration is an incrementation."},
+static PyObject * ChainPredicateIterator_traverse( BPy_ViewEdgeIterator *self, PyObject *args );
+
+
+/*----------------------ChainPredicateIterator instance definitions ----------------------------*/
+static PyMethodDef BPy_ChainPredicateIterator_methods[] = {
+
+	{"traverse", ( PyCFunction ) ChainPredicateIterator_traverse, METH_VARARGS, "(AdjacencyIterator ai) This method iterates over the potential next ViewEdges and returns the one that will be followed next. Returns the next ViewEdge to follow or 0 when the end of the chain is reached. "},
+
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_ChainingIterator type definition ------------------------------*/
+/*-----------------------BPy_ChainPredicateIterator type definition ------------------------------*/
 
-PyTypeObject ChainingIterator_Type = {
+PyTypeObject ChainPredicateIterator_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"ChainingIterator",				/* tp_name */
-	sizeof( BPy_ChainingIterator ),	/* tp_basicsize */
+	"ChainPredicateIterator",				/* tp_name */
+	sizeof( BPy_ChainPredicateIterator ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
@@ -85,15 +81,15 @@ PyTypeObject ChainingIterator_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_ChainingIterator_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_ChainPredicateIterator_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&ViewEdgeIterator_Type,				/* struct _typeobject *tp_base; */
+	&ChainingIterator_Type,				/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)ChainingIterator___init__,                       	/* initproc tp_init; */
+	(initproc)ChainPredicateIterator___init__,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	NULL,		/* newfunc tp_new; */
 	
@@ -114,15 +110,22 @@ PyTypeObject ChainingIterator_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
+// ChainPredicateIterator (bool iRestrictToSelection=true, bool iRestrictToUnvisited=true, ViewEdge *begin=NULL, bool orientation=true)
+//  	ChainPredicateIterator (UnaryPredicate1D &upred, BinaryPredicate1D &bpred, bool iRestrictToSelection=true, bool iRestrictToUnvisited=true, ViewEdge *begin=NULL, bool orientation=true)
+//  	ChainPredicateIterator (const ChainPredicateIterator &brother)
+
+int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *args )
 {	
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
 
-	if (!( PyArg_ParseTuple(args, "O|OOO", &obj1, &obj2, &obj3, &obj4) ))
+	if (!( PyArg_ParseTuple(args, "O|OOOOO", &obj1, &obj2, &obj3, &obj4) ))
 	    return -1;
 
-	if( obj1 && BPy_ChainingIterator_Check(obj1)  ) {
-		self->c_it = new ChainingIterator(*( ((BPy_ChainingIterator *) obj1)->c_it ));
+	if( obj1 && BPy_ChainPredicateIterator_Check(obj1)  ) {
+		self->c_it = new ChainPredicateIterator(*( ((BPy_ChainPredicateIterator *) obj1)->c_it ));
+	
+	} else 	if( obj1 && BPy_ChainPredicateIterator_Check(obj1)  ) {
+			self->c_it = new ChainPredicateIterator(*( ((BPy_ChainPredicateIterator *) obj1)->c_it ));
 	
 	} else {
 		bool restrictToSelection = ( obj1 && PyBool_Check(obj1) ) ? bool_from_PyBool(obj1) : true;
@@ -130,7 +133,7 @@ int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
 		ViewEdge *begin = ( obj3 && BPy_ViewEdge_Check(obj3) ) ? ((BPy_ViewEdge *) obj3)->ve : 0;
 		bool orientation = ( obj4 && PyBool_Check(obj4) ) ? bool_from_PyBool(obj4) : true;
 		
-		self->c_it = new ChainingIterator( restrictToSelection, restrictToUnvisited, begin, orientation);	
+		self->c_it = new ChainPredicateIterator( restrictToSelection, restrictToUnvisited, begin, orientation);	
 	}
 	
 	self->py_ve_it.ve_it = self->c_it;
@@ -139,40 +142,20 @@ int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
 	return 0;
 }
 
-PyObject *ChainingIterator_init( BPy_ChainingIterator *self ) {
-	self->c_it->init();
-	
-	Py_RETURN_NONE;
-}
-
-PyObject *ChainingIterator_traverse( BPy_ChainingIterator *self, PyObject *args ) {
+//virtual ViewEdge * 	traverse (const AdjacencyIterator &it)
+PyObject *ChainPredicateIterator_traverse( BPy_ViewEdgeIterator *self, PyObject *args ) {
 	PyObject *py_a_it;
 
 	if(!( PyArg_ParseTuple(args, "O", &py_a_it) && BPy_AdjacencyIterator_Check(py_a_it) )) {
-		cout << "ERROR: ChainingIterator_traverse" << endl;
+		cout << "ERROR: ChainPredicateIterator_traverse" << endl;
 		Py_RETURN_NONE;
 	}
 	
 	if( ((BPy_AdjacencyIterator *) py_a_it)->a_it )
-		self->c_it->traverse(*( ((BPy_AdjacencyIterator *) py_a_it)->a_it ));
+		self->ve_it->traverse(*( ((BPy_AdjacencyIterator *) py_a_it)->a_it ));
 		
 	Py_RETURN_NONE;
 }
-
-
-PyObject *ChainingIterator_getVertex( BPy_ChainingIterator *self ) {
-	if( self->c_it->getVertex() )
-		return BPy_ViewVertex_from_ViewVertex_ptr( self->c_it->getVertex()  );
-		
-	Py_RETURN_NONE;
-}
-
-PyObject *ChainingIterator_isIncrementing( BPy_ChainingIterator *self ) {
-	return PyBool_from_bool( self->c_it->isIncrementing() );
-}
-
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

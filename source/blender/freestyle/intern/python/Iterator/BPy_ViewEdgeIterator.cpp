@@ -3,6 +3,7 @@
 #include "../BPy_Convert.h"
 #include "../Interface1D/BPy_ViewEdge.h"
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,8 +13,23 @@ extern "C" {
 /*---------------  Python API function prototypes for ViewEdgeIterator instance  -----------*/
 static int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args);
 
+static PyObject * ViewEdgeIterator_getCurrentEdge( BPy_ViewEdgeIterator *self );
+static PyObject * ViewEdgeIterator_setCurrentEdge( BPy_ViewEdgeIterator *self, PyObject *args );
+static PyObject * ViewEdgeIterator_getBegin( BPy_ViewEdgeIterator *self );
+static PyObject * ViewEdgeIterator_setBegin( BPy_ViewEdgeIterator *self, PyObject *args );
+static PyObject * ViewEdgeIterator_getOrientation( BPy_ViewEdgeIterator *self );
+static PyObject * ViewEdgeIterator_setOrientation( BPy_ViewEdgeIterator *self, PyObject *args );
+static PyObject * ViewEdgeIterator_changeOrientation( BPy_ViewEdgeIterator *self );
+
 /*----------------------ViewEdgeIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
+	{"getCurrentEdge", ( PyCFunction ) ViewEdgeIterator_getCurrentEdge, METH_NOARGS, "() Returns the current pointed ViewEdge."},
+	{"setCurrentEdge", ( PyCFunction ) ViewEdgeIterator_setCurrentEdge, METH_VARARGS, "(ViewEdge ve) Sets the current pointed ViewEdge. "},	
+	{"getBegin", ( PyCFunction ) ViewEdgeIterator_getBegin, METH_NOARGS, "() Returns the first ViewEdge used for the iteration."},
+	{"setBegin", ( PyCFunction ) ViewEdgeIterator_setBegin, METH_VARARGS, "(ViewEdge ve) Sets the first ViewEdge used for the iteration."},
+	{"getOrientation", ( PyCFunction ) ViewEdgeIterator_getOrientation, METH_NOARGS, "() Gets the orientation of the pointed ViewEdge in the iteration. "},
+	{"setOrientation", ( PyCFunction ) ViewEdgeIterator_setOrientation, METH_VARARGS, "(bool b) Sets the orientation of the pointed ViewEdge in the iteration. "},
+	{"changeOrientation", ( PyCFunction ) ViewEdgeIterator_changeOrientation, METH_NOARGS, "() Changes the current orientation."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -102,9 +118,6 @@ PyTypeObject ViewEdgeIterator_Type = {
 	NULL
 };
 
-//-------------------MODULE INITIALIZATION--------------------------------
-
-
 //------------------------INSTANCE METHODS ----------------------------------
 
 int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
@@ -131,18 +144,71 @@ int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
 }
 
 
+PyObject *ViewEdgeIterator_getCurrentEdge( BPy_ViewEdgeIterator *self ) {
+	if( self->ve_it->getCurrentEdge() )
+		return BPy_ViewEdge_from_ViewEdge(*( self->ve_it->getCurrentEdge()  ));
+		
+	Py_RETURN_NONE;
+}
 
-// ViewEdge * 	getCurrentEdge ()
-// void 	setCurrentEdge (ViewEdge *edge)
-// ViewEdge * 	getBegin ()
-// bool 	getOrientation () const
+PyObject *ViewEdgeIterator_setCurrentEdge( BPy_ViewEdgeIterator *self, PyObject *args ) {
+	PyObject *py_ve;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
+		cout << "ERROR: ViewEdgeIterator_setCurrentEdge" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->ve_it->setCurrentEdge( ((BPy_ViewEdge *) py_ve)->ve );
+		
+	Py_RETURN_NONE;
+}
 
 
+PyObject *ViewEdgeIterator_getBegin( BPy_ViewEdgeIterator *self ) {
+	if( self->ve_it->getBegin() )
+		return BPy_ViewEdge_from_ViewEdge(*( self->ve_it->getBegin()  ));
+		
+	Py_RETURN_NONE;
+}
 
-// void 	setCurrentEdge (ViewEdge *edge)
-// void 	setBegin (ViewEdge *begin)
-// void 	setOrientation (bool orientation)
-// void 	changeOrientation ()
+PyObject *ViewEdgeIterator_setBegin( BPy_ViewEdgeIterator *self, PyObject *args ) {
+	PyObject *py_ve;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_ve) && BPy_ViewEdge_Check(py_ve) )) {
+		cout << "ERROR: ViewEdgeIterator_setBegin" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->ve_it->setBegin( ((BPy_ViewEdge *) py_ve)->ve );
+		
+	Py_RETURN_NONE;
+}
+
+PyObject *ViewEdgeIterator_getOrientation( BPy_ViewEdgeIterator *self ) {
+	return PyBool_from_bool( self->ve_it->getOrientation() );
+}
+
+PyObject *ViewEdgeIterator_setOrientation( BPy_ViewEdgeIterator *self, PyObject *args ) {
+	PyObject *py_b;
+
+	if(!( PyArg_ParseTuple(args, "O", &py_b) && PyBool_Check(py_b) )) {
+		cout << "ERROR: ViewEdgeIterator_setOrientation" << endl;
+		Py_RETURN_NONE;
+	}
+
+	self->ve_it->setOrientation( bool_from_PyBool(py_b) );
+		
+	Py_RETURN_NONE;
+}
+
+PyObject *ViewEdgeIterator_changeOrientation( BPy_ViewEdgeIterator *self ) {
+	self->ve_it->changeOrientation();
+	
+	Py_RETURN_NONE;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
