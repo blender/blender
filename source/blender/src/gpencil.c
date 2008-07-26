@@ -662,7 +662,7 @@ void gpencil_delete_menu (void)
 /* ---------- 'Globals' and Defines ----------------- */
 
 /* maximum sizes of gp-session buffer */
-#define GP_STROKE_BUFFER_MAX	500	
+#define GP_STROKE_BUFFER_MAX	5000	
 
 /* ------ */
 
