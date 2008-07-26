@@ -275,21 +275,22 @@ typedef struct SpaceText {
 	struct Text *text;	
 
 	int top, viewlines;
-	short flags, menunr;
-	
-	int font_id;	
+	short flags, menunr;	
+	int font_id;
+
 	int lheight;
 	int left;
 	int showlinenrs;
-	
 	int tabnumber;
+
 	int currtab_set; 
 	int showsyntax;
 	int overwrite;
-	
 	float pix_per_line;
 
 	struct rcti txtscroll, txtbar;
+
+	int wordwrap, pad1;
 
 } SpaceText;
 

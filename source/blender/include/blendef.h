@@ -377,6 +377,7 @@
 #define B_TEXTLINENUM		507
 #define B_TAB_NUMBERS		508
 #define B_SYNTAX		509
+#define B_WORDWRAP		510
 
 /* SCRIPT: 525 */
 #define B_SCRIPTBROWSE		526
