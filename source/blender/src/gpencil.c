@@ -662,7 +662,13 @@ void gpencil_delete_menu (void)
 /* ---------- 'Globals' and Defines ----------------- */
 
 /* maximum sizes of gp-session buffer */
-#define GP_STROKE_BUFFER_MAX	5000	
+#define GP_STROKE_BUFFER_MAX	5000
+
+	/* 'Hardcoded' sensitivity thresholds... */
+/* minimum number of pixels mouse should move before new point created */
+#define MIN_MMOVE_PX		3	
+/* minimum length of new segment before new point can be added */
+#define MIN_MDIST_PX		20
 
 /* ------ */
 
@@ -877,8 +883,27 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	}
 }
 
+/* check if the current mouse position is suitable for adding a new point */
+static short gp_stroke_filtermval (tGPsdata *p, short mval[2], short pmval[2])
+{
+	short dx= abs(mval[0] - pmval[0]);
+	short dy= abs(mval[1] - pmval[1]);
+	
+	/* check if mouse moved at least certain distance on both axes (best case) */
+	if ((dx > MIN_MMOVE_PX) && (dy > MIN_MMOVE_PX))
+		return 1;
+	
+	/* check if the distance since the last point is significant enough */
+	else if (sqrt(dx*dx + dy*dy) > MIN_MDIST_PX)
+		return 1;
+	
+	/* mouse 'didn't move' */
+	else
+		return 0;
+}
+
 /* add current stroke-point to buffer (returns whether point was successfully added) */
-static short gp_stroke_addpoint (tGPsdata *p, short mval[], float pressure)
+static short gp_stroke_addpoint (tGPsdata *p, short mval[2], float pressure)
 {
 	bGPdata *gpd= p->gpd;
 	bGPDspoint *pt;
@@ -912,6 +937,9 @@ static void gp_stroke_smooth (tGPsdata *p)
 {
 	bGPdata *gpd= p->gpd;
 	int i=0, cmx=gpd->sbuffer_size;
+	
+	// fixme: currently disabled as it damages too much sometimes
+	return;
 	
 	/* don't try if less than 2 points in buffer */
 	if ((cmx <= 2) || (gpd->sbuffer == NULL))
@@ -1033,11 +1061,17 @@ static void gp_paint_initstroke (tGPsdata *p, short mousebutton)
 /* finish off a stroke (clears buffer, but doesn't finish the paint operation) */
 static void gp_paint_strokeend (tGPsdata *p)
 {
-	/* sanitize stroke-points in buffer */
+	/* sanitize stroke-points in buffer (remove jitter) */
 	gp_stroke_smooth(p);
 	
-	/* transfer stroke to frame */
-	gp_stroke_newfrombuffer(p);
+	/* check if doing eraser or not */
+	if (p->gpd->sbuffer_sflag & GP_STROKE_ERASER) {
+		/* get rid of relevant sections of strokes */
+	}
+	else {
+		/* transfer stroke to frame */
+		gp_stroke_newfrombuffer(p);
+	}
 	
 	/* clean up buffer now */
 	gp_session_validatebuffer(p);
@@ -1110,7 +1144,7 @@ short gpencil_paint (short mousebutton)
 		pressure = get_pressure();
 		
 		/* only add current point to buffer if mouse moved (otherwise wait until it does) */
-		if ((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
+		if (gp_stroke_filtermval(&p, mval, prevmval)) {
 			/* try to add point */
 			ok= gp_stroke_addpoint(&p, mval, pressure);
 			

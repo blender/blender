@@ -228,6 +228,10 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			/* stroke thickness */
 			uiDefButS(block, NUMSLI, B_REDR, "Thickness:",	*xco, *yco-75, 150, 20, &gpl->thickness, 1, 10, 0, 0, "Thickness of strokes (in pixels)");
 			
+			/* debugging options */
+			if (G.f & G_DEBUG) {
+				uiDefButBitI(block, TOG, GP_LAYER_DRAWDEBUG, B_REDR, "Show Points", *xco, *yco-95, 150, 20, &gpl->flag, 0, 0, 0, 0, "Show points which form the strokes");
+			}
 			
 			/* onion-skinning */
 			uiBlockBeginAlign(block);
@@ -243,8 +247,6 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 				but= uiDefBut(block, BUT, B_REDR, "Del Last Stroke", *xco+160, *yco-95, 140, 20, NULL, 0, 0, 0, 0, "Erases the last stroke from the active frame (Hotkey = Alt-XKEY/DEL)");
 				uiButSetFunc(but, gp_ui_delstroke_cb, gpd, gpl);
 			uiBlockEndAlign(block);
-			
-			//uiDefButBitI(block, TOG, GP_LAYER_DRAWDEBUG, B_REDR, "Show Points", *xco+160, *yco-75, 130, 20, &gpl->flag, 0, 0, 0, 0, "Show points which form the strokes");
 		}
 	}
 	
@@ -425,32 +427,8 @@ static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, shor
 	glColor4f(color[0], color[1], color[2], color[3]);
 	
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {	
-		/* handle 'eraser' strokes differently */
-		if (gps->flag & GP_STROKE_ERASER) {
-			// FIXME: this method is a failed experiment
-#if 0
-			/* draw stroke twice, first time with 'white' to set a mask to invert
-			 * contents of framebuffer, then second-time the same again but to restore
-			 * the contents
-			 */
-			glEnable(GL_COLOR_LOGIC_OP); 
-			glLogicOp(GL_XOR);
-			
-			glColor4f(1, 1, 1, 1); /* white */
-			
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, 0, winx, winy);
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, 0, winx, winy);
-			
-			glDisable(GL_COLOR_LOGIC_OP);
-			
-			/* reset color for drawing next stroke */
-			glColor4f(color[0], color[1], color[2], color[3]);
-#endif
-		}
-		else {
-			/* just draw the stroke once */
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-		}
+		/* just draw the stroke once */
+		gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
 	}
 }
 
