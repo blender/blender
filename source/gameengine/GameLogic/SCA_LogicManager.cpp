@@ -127,12 +127,17 @@ void SCA_LogicManager::RegisterGameMeshName(const STR_String& gamemeshname, void
 
 
 
-void SCA_LogicManager::RegisterGameObj(CValue* gameobj, void* blendobj) 
+void SCA_LogicManager::RegisterGameObj(void* blendobj, CValue* gameobj) 
 {
-	m_map_gameobj_to_blendobj.insert(CHashedPtr(gameobj), blendobj);
+	m_map_blendobj_to_gameobj.insert(CHashedPtr(blendobj), gameobj);
 }
 
-
+void SCA_LogicManager::UnregisterGameObj(void* blendobj, CValue* gameobj) 
+{
+	void **obp = m_map_blendobj_to_gameobj[CHashedPtr(blendobj)];
+	if (obp && (CValue*)(*obp) == gameobj)
+		m_map_blendobj_to_gameobj.remove(CHashedPtr(blendobj));
+}
 
 CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 {
@@ -146,10 +151,10 @@ CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 }
 
 
-void* SCA_LogicManager::FindBlendObjByGameObj(CValue* gameobject) 
+CValue* SCA_LogicManager::FindGameObjByBlendObj(void* blendobj) 
 {
-	void **obp= m_map_gameobj_to_blendobj[CHashedPtr(gameobject)];
-	return obp?*obp:NULL;
+	void **obp= m_map_blendobj_to_gameobj[CHashedPtr(blendobj)];
+	return obp?(CValue*)(*obp):NULL;
 }
 
 

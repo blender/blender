@@ -650,7 +650,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		if (blgroupobj == blenderobj)
 			// this check is also in group_duplilist()
 			continue;
-		gameobj = m_sceneConverter->FindGameObject(blenderobj);
+		gameobj = (KX_GameObject*)m_logicmgr->FindGameObjByBlendObj(blenderobj);
 		if (gameobj == NULL) 
 		{
 			// this object has not been converted!!!
@@ -860,6 +860,20 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
+	// check if there are objects with dupligroup in the hierarchy
+	vector<KX_GameObject*> duplilist;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git)->IsDupliGroup())
+		{
+			// separate list as m_logicHierarchicalGameObjects is also used by DupliGroupRecurse()
+			duplilist.push_back(*git);
+		}
+	}
+	for (git = duplilist.begin();!(git==duplilist.end());++git)
+	{
+		DupliGroupRecurse(*git, 0);
+	}
 	//	don't release replica here because we are returning it, not done with it...
 	return replica;
 }
@@ -905,6 +919,12 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	// keep the blender->game object association up to date
+	// note that all the replicas of an object will have the same
+	// blender object, that's why we need to check the game object
+	// as only the deletion of the original object must be recorded
+	m_logicmgr->UnregisterGameObj(newobj->GetBlenderObject(), gameobj);
 
 	//todo: look at this
 	//GetPhysicsEnvironment()->RemovePhysicsController(gameobj->getPhysicsController());
