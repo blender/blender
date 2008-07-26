@@ -17,6 +17,9 @@ using namespace Geometry;
 // Interface0D, Interface0DIteratorNested, Interface0DIterator
 #include "../view_map/Interface0D.h"
 
+// Material
+#include "../scene_graph/Material.h"
+
 // Stroke, StrokeAttribute, StrokeVertex
 #include "../stroke/Stroke.h"
 
@@ -35,6 +38,8 @@ using namespace Geometry;
 
 // StrokeInternal::StrokeVertexIterator
 #include "../stroke/StrokeIterators.h"
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +62,7 @@ PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
+PyObject * BPy_FrsMaterial_from_Material( Material& m );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
 PyObject * BPy_SShape_from_SShape( SShape& ss );

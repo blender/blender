@@ -1,6 +1,7 @@
 #include "BPy_Convert.h"
 
 #include "BPy_BBox.h"
+#include "BPy_FrsMaterial.h"
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
@@ -181,6 +182,12 @@ PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::S
 	return py_sv_it;
 }
 
+PyObject * BPy_FrsMaterial_from_Material( Material& m ){
+	PyObject *py_m = FrsMaterial_Type.tp_new( &FrsMaterial_Type, 0, 0 );
+	((BPy_FrsMaterial*) py_m)->m = new Material( m );
+
+	return py_m;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

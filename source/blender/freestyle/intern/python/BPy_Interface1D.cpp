@@ -2,9 +2,13 @@
 
 #include "BPy_Convert.h"
 #include "Interface1D/BPy_Curve.h"
+#include "Interface1D/Curve/BPy_Chain.h"
 #include "Interface1D/BPy_FEdge.h"
+#include "Interface1D/FEdge/BPy_FEdgeSharp.h"
+#include "Interface1D/FEdge/BPy_FEdgeSmooth.h"
 #include "Interface1D/BPy_Stroke.h"
 #include "Interface1D/BPy_ViewEdge.h"
+
 #include "BPy_MediumType.h"
 
 #ifdef __cplusplus
@@ -142,11 +146,26 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 		return;
 	Py_INCREF( &Curve_Type );
 	PyModule_AddObject(module, "Curve", (PyObject *)&Curve_Type);
+
+	if( PyType_Ready( &Chain_Type ) < 0 )
+		return;
+	Py_INCREF( &Chain_Type );
+	PyModule_AddObject(module, "Chain", (PyObject *)&Chain_Type);
 	
 	if( PyType_Ready( &FEdge_Type ) < 0 )
 		return;
 	Py_INCREF( &FEdge_Type );
 	PyModule_AddObject(module, "FEdge", (PyObject *)&FEdge_Type);
+
+	if( PyType_Ready( &FEdgeSharp_Type ) < 0 )
+		return;
+	Py_INCREF( &FEdgeSharp_Type );
+	PyModule_AddObject(module, "FEdgeSharp", (PyObject *)&FEdgeSharp_Type);
+	
+	if( PyType_Ready( &FEdgeSmooth_Type ) < 0 )
+		return;
+	Py_INCREF( &FEdgeSmooth_Type );
+	PyModule_AddObject(module, "FEdgeSmooth", (PyObject *)&FEdgeSmooth_Type);
 
 	if( PyType_Ready( &Stroke_Type ) < 0 )
 		return;
