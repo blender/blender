@@ -628,8 +628,7 @@ void txt_move_up(Text *text, short sel)
 			if(!undoing) txt_undo_add_op(text, sel?UNDO_SUP:UNDO_CUP);
 		}
 	} else {
-		*charp= 0;
-		if(!undoing) txt_undo_add_op(text, sel?UNDO_SUP:UNDO_CUP);
+		txt_move_bol(text, sel);
 	}
 
 	if(!sel) txt_pop_sel(text);
@@ -654,8 +653,7 @@ void txt_move_down(Text *text, short sel)
 		} else
 			if(!undoing) txt_undo_add_op(text, sel?UNDO_SDOWN:UNDO_CDOWN);	
 	} else {
-		*charp= (*linep)->len;
-		if(!undoing) txt_undo_add_op(text, sel?UNDO_SDOWN:UNDO_CDOWN);
+		txt_move_eol(text, sel);
 	}
 
 	if(!sel) txt_pop_sel(text);
