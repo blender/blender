@@ -618,8 +618,23 @@ int main(int argc, char **argv)
 				if (G.scene) {
 					if (a < argc) {
 						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+						int slink_flag= 0;
 						Render *re= RE_NewRender(G.scene->id.name);
+
+						if (G.f & G_DOSCRIPTLINKS) {
+							BPY_do_all_scripts(SCRIPT_RENDER);
+							/* avoid FRAMECHANGED slink event
+							 * (should only be triggered in anims): */
+							G.f &= ~G_DOSCRIPTLINKS;
+							slink_flag= 1;
+						}
+
 						RE_BlenderAnim(re, G.scene, frame, frame);
+
+						if (slink_flag) {
+							G.f |= G_DOSCRIPTLINKS;
+							BPY_do_all_scripts(SCRIPT_POSTRENDER);
+						}
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -628,7 +643,14 @@ int main(int argc, char **argv)
 			case 'a':
 				if (G.scene) {
 					Render *re= RE_NewRender(G.scene->id.name);
+
+					if (G.f & G_DOSCRIPTLINKS)
+						BPY_do_all_scripts(SCRIPT_RENDER);
+
 					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+
+					if (G.f & G_DOSCRIPTLINKS)
+						BPY_do_all_scripts(SCRIPT_POSTRENDER);
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
