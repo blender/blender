@@ -2,9 +2,9 @@
 #define FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H
 
 
-#include "../../view_map/ChainingIterators.h"
+#include "../../stroke/ChainingIterators.h"
 
-#include "BPy_ChainPredicateIterator.h"
+#include "BPy_ChainingIterator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +20,7 @@ extern PyTypeObject ChainPredicateIterator_Type;
 
 /*---------------------------Python BPy_ChainPredicateIterator structure definition----------*/
 typedef struct {
-	ChainingIterator py_c_it;
+	BPy_ChainingIterator py_c_it;
 	ChainPredicateIterator *cp_it;
 } BPy_ChainPredicateIterator;
 
