@@ -8,13 +8,13 @@ Tooltip: 'Lists modules when import or from is typed'
 """
 
 # Only run if we have the required modules
-OK = False
 try:
 	import bpy, sys
 	from BPyTextPlugin import *
-	OK = True
 except ImportError:
-	pass
+	OK = False
+else:
+	OK = True
 
 def main():
 	txt = bpy.data.texts.active

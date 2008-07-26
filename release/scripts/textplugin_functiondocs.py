@@ -11,9 +11,10 @@ Tooltip: 'Attempts to display documentation about the function preceding the cur
 try:
 	import bpy
 	from BPyTextPlugin import *
-	OK = True
 except ImportError:
 	OK = False
+else:
+	OK = True
 
 def main():
 	txt = bpy.data.texts.active

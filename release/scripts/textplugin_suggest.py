@@ -11,9 +11,10 @@ Tooltip: 'Performs suggestions based on the context of the cursor'
 try:
 	import bpy
 	from BPyTextPlugin import *
-	OK = True
 except ImportError:
 	OK = False
+else:
+	OK = True
 
 def check_membersuggest(line, c):
 	pos = line.rfind('.', 0, c)

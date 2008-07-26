@@ -12,9 +12,10 @@ try:
 	import bpy
 	from BPyTextPlugin import *
 	from Blender import Draw
-	OK = True
 except ImportError:
 	OK = False
+else:
+	OK = True
 
 def make_menu(items, eventoffs):
 	n = len(items)

@@ -2,9 +2,15 @@ import bpy, sys
 import __builtin__, tokenize
 from Blender.sys import time
 from tokenize import generate_tokens, TokenError, \
-		COMMENT, DEDENT, INDENT, NAME, NEWLINE, NL
+		COMMENT, DEDENT, INDENT, NAME, NEWLINE, NL, STRING
 
 class ScriptDesc():
+	"""Describes a script through lists of further descriptor objects (classes,
+	defs, vars) and dictionaries to built-in types (imports). If a script has
+	not been fully parsed, its incomplete flag will be set. The time of the last
+	parse is held by the time field and the name of the text object from which
+	it was parsed, the name field.
+	"""
 	
 	def __init__(self, name, imports, classes, defs, vars, incomplete=False):
 		self.name = name
@@ -19,6 +25,10 @@ class ScriptDesc():
 		self.time = time()
 
 class ClassDesc():
+	"""Describes a class through lists of further descriptor objects (defs and
+	vars). The name of the class is held by the name field and the line on
+	which it is defined is held in lineno.
+	"""
 	
 	def __init__(self, name, defs, vars, lineno):
 		self.name = name
@@ -27,6 +37,9 @@ class ClassDesc():
 		self.lineno = lineno
 
 class FunctionDesc():
+	"""Describes a function through its name and list of parameters (name,
+	params) and the line on which it is defined (lineno).
+	"""
 	
 	def __init__(self, name, params, lineno):
 		self.name = name
@@ -34,6 +47,10 @@ class FunctionDesc():
 		self.lineno = lineno
 
 class VarDesc():
+	"""Describes a variable through its name and type (if ascertainable) and the
+	line on which it is defined (lineno). If no type can be determined, type
+	will equal None.
+	"""
 	
 	def __init__(self, name, type, lineno):
 		self.name = name
@@ -47,7 +64,7 @@ CTX_SINGLE_QUOTE = 1
 CTX_DOUBLE_QUOTE = 2
 CTX_COMMENT = 3
 
-# Special period constants
+# Special time period constants
 AUTO = -1
 
 # Python keywords
@@ -84,20 +101,15 @@ def get_cached_descriptor(txt, period=AUTO):
 			r = r << 1
 		period = r
 	
-	key = hash(txt)
 	parse = True
+	key = hash(txt)
 	if _parse_cache.has_key(key):
 		desc = _parse_cache[key]
 		if desc.time >= time() - period:
 			parse = desc.incomplete
 	
 	if parse:
-		try:
-			desc = parse_text(txt)
-		except:
-			if _parse_cache.has_key(key):
-				del _parse_cache[key]
-			desc = NoneScriptDesc
+		desc = parse_text(txt)
 	
 	return desc
 
@@ -138,8 +150,14 @@ def parse_text(txt):
 	prev_string = ''
 	incomplete = False
 	
-	try:
-	 for type, string, start, end, line in tokens:
+	while True:
+		try:
+			type, string, start, end, line = tokens.next()
+		except StopIteration:
+			break
+		except TokenError:
+			incomplete = True
+			break
 		
 		# Skip all comments and line joining characters
 		if type == COMMENT or type == NL:
@@ -215,14 +233,16 @@ def parse_text(txt):
 						module = get_module(imp_from +'.'+ imp_name)
 					else:
 						module = get_module(imp_name)
-					imports[imp_symb] = module
 				except (ImportError, ValueError, AttributeError, TypeError):
 					# Try importing name as an attribute of the parent
 					try:
 						module = __import__(imp_from, globals(), locals(), [imp_name])
-						imports[imp_symb] = getattr(module, imp_name)
 					except (ImportError, ValueError, AttributeError, TypeError):
 						pass
+					else:
+						imports[imp_symb] = getattr(module, imp_name)
+				else:
+					imports[imp_symb] = module
 			
 			# More to import from the same module?
 			if string == ',':
@@ -337,8 +357,8 @@ def parse_text(txt):
 				if string == '[':
 					close = line.find(']', end[1])
 					var_type = list
-				elif string == '"' or string == '"':
-					close = line.find(string, end[1])
+				elif type == STRING:
+					close = end[1]
 					var_type = str
 				elif string == '(':
 					close = line.find(')', end[1])
@@ -389,9 +409,9 @@ def parse_text(txt):
 					var_name = var_accum.keys()[0]
 					var_type = None
 					if string == '[': var_type = list
-					elif string == '"' or string == '"': var_type = string
+					elif type == STRING: var_type = str
 					elif string == '(': var_type = tuple
-					elif string == 'dict': var_type = dict
+					elif string == '{': var_type = dict
 					vars[var_name] = VarDesc(var_name, var_type, start[0])
 				var3_step = 0
 		
@@ -401,12 +421,6 @@ def parse_text(txt):
 		
 		prev_type = type
 		prev_string = string
-	
-	 # end:for
-	
-	except TokenError:
-		incomplete = True
-		pass
 	
 	desc = ScriptDesc(txt.name, imports, classes, defs, vars, incomplete)
 	desc.set_time()

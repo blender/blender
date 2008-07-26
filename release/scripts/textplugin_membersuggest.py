@@ -11,9 +11,10 @@ Tooltip: 'Lists members of the object preceding the cursor in the current text s
 try:
 	import bpy
 	from BPyTextPlugin import *
-	OK = True
 except ImportError:
 	OK = False
+else:
+	OK = True
 
 def main():
 	txt = bpy.data.texts.active
@@ -36,7 +37,25 @@ def main():
 	
 	# Identify the root (root.sub.sub.)
 	obj = None
-	if imports.has_key(pre[0]):
+	if pre[0] == '':
+		i = c - len('.'.join(pre)) - 1
+		if i >= 0:
+			if line[i] == '"' or line[i] == "'":
+				obj = str
+			elif line[i] == '}':
+				obj = dict
+			elif line[i] == ']': # Could be array elem x[y] or list [y]
+				i = line.rfind('[', 0, i) - 1
+				while i >= 0:
+					if line[i].isalnum() or line[i] == '_':
+						break
+					elif line[i] != ' ' and line[i] != '\t':
+						i = -1
+						break
+					i -= 1
+				if i < 0: 
+					obj = list
+	elif imports.has_key(pre[0]):
 		obj = imports[pre[0]]
 	elif builtins.has_key(pre[0]):
 		obj = builtins[pre[0]]
@@ -58,22 +77,24 @@ def main():
 	
 	try:
 		attr = obj.__dict__.keys()
-		if not attr:
-			attr = dir(obj)
 	except AttributeError:
 		attr = dir(obj)
+	else:
+		if not attr:
+			attr = dir(obj)
 	
-	list = []
+	items = []
 	for k in attr:
 		try:
 			v = getattr(obj, k)
-			list.append((k, type_char(v)))
 		except (AttributeError, TypeError): # Some attributes are not readable
 			pass
+		else:
+			items.append((k, type_char(v)))
 	
-	if list != []:
-		list.sort(cmp = suggest_cmp)
-		txt.suggest(list, pre[-1])
+	if items != []:
+		items.sort(cmp = suggest_cmp)
+		txt.suggest(items, pre[-1])
 
 # Check we are running as a script and not imported as a module
 if __name__ == "__main__" and OK:
