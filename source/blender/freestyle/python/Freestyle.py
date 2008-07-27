@@ -1403,8 +1403,8 @@ class ViewMap(_object):
         except: self.this = this
     __swig_destroy__ = _Freestyle.delete_ViewMap
     __del__ = lambda self : None;
-    def GetClosestViewEdge(*args): return _Freestyle.ViewMap_GetClosestViewEdge(*args)
-    def GetClosestFEdge(*args): return _Freestyle.ViewMap_GetClosestFEdge(*args)
+    def getClosestViewEdge(*args): return _Freestyle.ViewMap_getClosestViewEdge(*args)
+    def getClosestFEdge(*args): return _Freestyle.ViewMap_getClosestFEdge(*args)
     __swig_getmethods__["getInstance"] = lambda x: _Freestyle.ViewMap_getInstance
     if _newclass:getInstance = staticmethod(_Freestyle.ViewMap_getInstance)
     def ViewShapes(*args): return _Freestyle.ViewMap_ViewShapes(*args)
@@ -1487,14 +1487,14 @@ class TVertex(ViewVertex):
     def frontEdgeB(*args): return _Freestyle.TVertex_frontEdgeB(*args)
     def backEdgeA(*args): return _Freestyle.TVertex_backEdgeA(*args)
     def backEdgeB(*args): return _Freestyle.TVertex_backEdgeB(*args)
-    def setFrontVertex(*args): return _Freestyle.TVertex_setFrontVertex(*args)
+    def setFrontSVertex(*args): return _Freestyle.TVertex_setFrontSVertex(*args)
     def setBackSVertex(*args): return _Freestyle.TVertex_setBackSVertex(*args)
     def setFrontEdgeA(*args): return _Freestyle.TVertex_setFrontEdgeA(*args)
     def setFrontEdgeB(*args): return _Freestyle.TVertex_setFrontEdgeB(*args)
     def setBackEdgeA(*args): return _Freestyle.TVertex_setBackEdgeA(*args)
     def setBackEdgeB(*args): return _Freestyle.TVertex_setBackEdgeB(*args)
     def setId(*args): return _Freestyle.TVertex_setId(*args)
-    def GetSVertex(*args): return _Freestyle.TVertex_GetSVertex(*args)
+    def getSVertex(*args): return _Freestyle.TVertex_getSVertex(*args)
     def Replace(*args): return _Freestyle.TVertex_Replace(*args)
     def mate(*args): return _Freestyle.TVertex_mate(*args)
     def edges_end(*args): return _Freestyle.TVertex_edges_end(*args)

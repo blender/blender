@@ -47350,7 +47350,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ViewMap_GetClosestViewEdge(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ViewMap_getClosestViewEdge(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ViewMap *arg1 = (ViewMap *) 0 ;
   real arg2 ;
@@ -47366,25 +47366,25 @@ SWIGINTERN PyObject *_wrap_ViewMap_GetClosestViewEdge(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:ViewMap_GetClosestViewEdge",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:ViewMap_getClosestViewEdge",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ViewMap, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewMap_GetClosestViewEdge" "', argument " "1"" of type '" "ViewMap const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewMap_getClosestViewEdge" "', argument " "1"" of type '" "ViewMap const *""'"); 
   }
   arg1 = reinterpret_cast< ViewMap * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ViewMap_GetClosestViewEdge" "', argument " "2"" of type '" "real""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ViewMap_getClosestViewEdge" "', argument " "2"" of type '" "real""'");
   } 
   arg2 = static_cast< real >(val2);
   ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ViewMap_GetClosestViewEdge" "', argument " "3"" of type '" "real""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ViewMap_getClosestViewEdge" "', argument " "3"" of type '" "real""'");
   } 
   arg3 = static_cast< real >(val3);
   {
     try {
-      result = (ViewEdge *)((ViewMap const *)arg1)->GetClosestViewEdge(arg2,arg3);
+      result = (ViewEdge *)((ViewMap const *)arg1)->getClosestViewEdge(arg2,arg3);
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -47400,7 +47400,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ViewMap_GetClosestFEdge(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_ViewMap_getClosestFEdge(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ViewMap *arg1 = (ViewMap *) 0 ;
   real arg2 ;
@@ -47416,25 +47416,25 @@ SWIGINTERN PyObject *_wrap_ViewMap_GetClosestFEdge(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:ViewMap_GetClosestFEdge",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:ViewMap_getClosestFEdge",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ViewMap, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewMap_GetClosestFEdge" "', argument " "1"" of type '" "ViewMap const *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ViewMap_getClosestFEdge" "', argument " "1"" of type '" "ViewMap const *""'"); 
   }
   arg1 = reinterpret_cast< ViewMap * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ViewMap_GetClosestFEdge" "', argument " "2"" of type '" "real""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ViewMap_getClosestFEdge" "', argument " "2"" of type '" "real""'");
   } 
   arg2 = static_cast< real >(val2);
   ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ViewMap_GetClosestFEdge" "', argument " "3"" of type '" "real""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ViewMap_getClosestFEdge" "', argument " "3"" of type '" "real""'");
   } 
   arg3 = static_cast< real >(val3);
   {
     try {
-      result = (FEdge *)((ViewMap const *)arg1)->GetClosestFEdge(arg2,arg3);
+      result = (FEdge *)((ViewMap const *)arg1)->getClosestFEdge(arg2,arg3);
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -49638,7 +49638,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_TVertex_setFrontVertex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_TVertex_setFrontSVertex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   TVertex *arg1 = (TVertex *) 0 ;
   SVertex *arg2 = (SVertex *) 0 ;
@@ -49649,20 +49649,20 @@ SWIGINTERN PyObject *_wrap_TVertex_setFrontVertex(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:TVertex_setFrontVertex",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:TVertex_setFrontSVertex",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_TVertex, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "TVertex_setFrontVertex" "', argument " "1"" of type '" "TVertex *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "TVertex_setFrontSVertex" "', argument " "1"" of type '" "TVertex *""'"); 
   }
   arg1 = reinterpret_cast< TVertex * >(argp1);
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_SVertex, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "TVertex_setFrontVertex" "', argument " "2"" of type '" "SVertex *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "TVertex_setFrontSVertex" "', argument " "2"" of type '" "SVertex *""'"); 
   }
   arg2 = reinterpret_cast< SVertex * >(argp2);
   {
     try {
-      (arg1)->setFrontVertex(arg2);
+      (arg1)->setFrontSVertex(arg2);
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -50333,7 +50333,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_TVertex_GetSVertex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_TVertex_getSVertex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   TVertex *arg1 = (TVertex *) 0 ;
   FEdge *arg2 = (FEdge *) 0 ;
@@ -50345,20 +50345,20 @@ SWIGINTERN PyObject *_wrap_TVertex_GetSVertex(PyObject *SWIGUNUSEDPARM(self), Py
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:TVertex_GetSVertex",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OO:TVertex_getSVertex",&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_TVertex, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "TVertex_GetSVertex" "', argument " "1"" of type '" "TVertex *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "TVertex_getSVertex" "', argument " "1"" of type '" "TVertex *""'"); 
   }
   arg1 = reinterpret_cast< TVertex * >(argp1);
   res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_FEdge, 0 |  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "TVertex_GetSVertex" "', argument " "2"" of type '" "FEdge *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "TVertex_getSVertex" "', argument " "2"" of type '" "FEdge *""'"); 
   }
   arg2 = reinterpret_cast< FEdge * >(argp2);
   {
     try {
-      result = (SVertex *)(arg1)->GetSVertex(arg2);
+      result = (SVertex *)(arg1)->getSVertex(arg2);
     }
     //    catch (Swig::DirectorTypeMismatch&) {
     //      cout << "Warning: return type mismatch" << endl;
@@ -107608,8 +107608,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ViewMap_userdata_get", _wrap_ViewMap_userdata_get, METH_VARARGS, NULL},
 	 { (char *)"new_ViewMap", _wrap_new_ViewMap, METH_VARARGS, NULL},
 	 { (char *)"delete_ViewMap", _wrap_delete_ViewMap, METH_VARARGS, NULL},
-	 { (char *)"ViewMap_GetClosestViewEdge", _wrap_ViewMap_GetClosestViewEdge, METH_VARARGS, NULL},
-	 { (char *)"ViewMap_GetClosestFEdge", _wrap_ViewMap_GetClosestFEdge, METH_VARARGS, NULL},
+	 { (char *)"ViewMap_getClosestViewEdge", _wrap_ViewMap_getClosestViewEdge, METH_VARARGS, NULL},
+	 { (char *)"ViewMap_getClosestFEdge", _wrap_ViewMap_getClosestFEdge, METH_VARARGS, NULL},
 	 { (char *)"ViewMap_getInstance", _wrap_ViewMap_getInstance, METH_VARARGS, NULL},
 	 { (char *)"ViewMap_ViewShapes", _wrap_ViewMap_ViewShapes, METH_VARARGS, NULL},
 	 { (char *)"ViewMap_ViewEdges", _wrap_ViewMap_ViewEdges, METH_VARARGS, NULL},
@@ -107664,14 +107664,14 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"TVertex_frontEdgeB", _wrap_TVertex_frontEdgeB, METH_VARARGS, NULL},
 	 { (char *)"TVertex_backEdgeA", _wrap_TVertex_backEdgeA, METH_VARARGS, NULL},
 	 { (char *)"TVertex_backEdgeB", _wrap_TVertex_backEdgeB, METH_VARARGS, NULL},
-	 { (char *)"TVertex_setFrontVertex", _wrap_TVertex_setFrontVertex, METH_VARARGS, NULL},
+	 { (char *)"TVertex_setFrontSVertex", _wrap_TVertex_setFrontSVertex, METH_VARARGS, NULL},
 	 { (char *)"TVertex_setBackSVertex", _wrap_TVertex_setBackSVertex, METH_VARARGS, NULL},
 	 { (char *)"TVertex_setFrontEdgeA", _wrap_TVertex_setFrontEdgeA, METH_VARARGS, NULL},
 	 { (char *)"TVertex_setFrontEdgeB", _wrap_TVertex_setFrontEdgeB, METH_VARARGS, NULL},
 	 { (char *)"TVertex_setBackEdgeA", _wrap_TVertex_setBackEdgeA, METH_VARARGS, NULL},
 	 { (char *)"TVertex_setBackEdgeB", _wrap_TVertex_setBackEdgeB, METH_VARARGS, NULL},
 	 { (char *)"TVertex_setId", _wrap_TVertex_setId, METH_VARARGS, NULL},
-	 { (char *)"TVertex_GetSVertex", _wrap_TVertex_GetSVertex, METH_VARARGS, NULL},
+	 { (char *)"TVertex_getSVertex", _wrap_TVertex_getSVertex, METH_VARARGS, NULL},
 	 { (char *)"TVertex_Replace", _wrap_TVertex_Replace, METH_VARARGS, NULL},
 	 { (char *)"TVertex_mate", _wrap_TVertex_mate, METH_VARARGS, NULL},
 	 { (char *)"TVertex_edges_end", _wrap_TVertex_edges_end, METH_VARARGS, NULL},

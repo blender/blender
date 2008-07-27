@@ -59,6 +59,7 @@ PyObject * Vector_from_Vec3f( Vec3f& v );
 PyObject * Vector_from_Vec3r( Vec3r& v );
 
 IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj );
+Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj );
 
 PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );

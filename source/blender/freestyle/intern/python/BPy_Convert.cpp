@@ -204,6 +204,9 @@ IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {
 	return static_cast<IntegrationType>( PyInt_AsLong(obj) );
 }
 
+Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj ) {
+	return static_cast<Stroke::MediumType>( PyInt_AsLong(obj) );
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
