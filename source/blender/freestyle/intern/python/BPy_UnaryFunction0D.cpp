@@ -1,6 +1,16 @@
 #include "BPy_UnaryFunction0D.h"
 
 #include "UnaryFunction0D/BPy_UnaryFunction0DDouble.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DEdgeNature.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DFloat.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DId.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DMaterial.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DUnsigned.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DVec2f.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DVec3f.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DVectorViewShape.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DViewShape.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,6 +124,15 @@ PyMODINIT_FUNC UnaryFunction0D_Init( PyObject *module )
 	PyModule_AddObject(module, "UnaryFunction0D", (PyObject *)&UnaryFunction0D_Type);
 
 	UnaryFunction0DDouble_Init( module );
+	UnaryFunction0DEdgeNature_Init( module );
+	UnaryFunction0DFloat_Init( module );
+	UnaryFunction0DId_Init( module );
+	UnaryFunction0DMaterial_Init( module );
+	UnaryFunction0DUnsigned_Init( module );
+	UnaryFunction0DVec2f_Init( module );
+	UnaryFunction0DVec3f_Init( module );
+	UnaryFunction0DVectorViewShape_Init( module );
+	UnaryFunction0DViewShape_Init( module );
 }
 
 //------------------------INSTANCE METHODS ----------------------------------

@@ -3,8 +3,16 @@
 #include "../BPy_Convert.h"
 #include "../Iterator/BPy_Interface0DIterator.h"
 
+#include "UnaryFunction0D_double/BPy_Curvature2DAngleF0D.h"
 #include "UnaryFunction0D_double/BPy_DensityF0D.h"
+#include "UnaryFunction0D_double/BPy_GetProjectedXF0D.h"
+#include "UnaryFunction0D_double/BPy_GetProjectedYF0D.h"
+#include "UnaryFunction0D_double/BPy_GetProjectedZF0D.h"
+#include "UnaryFunction0D_double/BPy_GetXF0D.h"
+#include "UnaryFunction0D_double/BPy_GetYF0D.h"
+#include "UnaryFunction0D_double/BPy_GetZF0D.h"
 #include "UnaryFunction0D_double/BPy_LocalAverageDepthF0D.h"
+#include "UnaryFunction0D_double/BPy_ZDiscontinuityF0D.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +141,47 @@ PyMODINIT_FUNC UnaryFunction0DDouble_Init( PyObject *module ) {
 		return;
 	Py_INCREF( &LocalAverageDepthF0D_Type );
 	PyModule_AddObject(module, "LocalAverageDepthF0D", (PyObject *)&LocalAverageDepthF0D_Type);
+	
+	if( PyType_Ready( &Curvature2DAngleF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &Curvature2DAngleF0D_Type );
+	PyModule_AddObject(module, "Curvature2DAngleF0D", (PyObject *)&Curvature2DAngleF0D_Type);
+	
+	if( PyType_Ready( &GetProjectedXF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &GetProjectedXF0D_Type );
+	PyModule_AddObject(module, "GetProjectedXF0D", (PyObject *)&GetProjectedXF0D_Type);
+	
+	if( PyType_Ready( &GetProjectedYF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &GetProjectedYF0D_Type );
+	PyModule_AddObject(module, "GetProjectedYF0D", (PyObject *)&GetProjectedYF0D_Type);
+	
+	if( PyType_Ready( &GetProjectedZF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &GetProjectedZF0D_Type );
+	PyModule_AddObject(module, "GetProjectedZF0D", (PyObject *)&GetProjectedZF0D_Type);
+		
+	if( PyType_Ready( &GetXF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &GetXF0D_Type );
+	PyModule_AddObject(module, "GetXF0D", (PyObject *)&GetXF0D_Type);
+	
+	if( PyType_Ready( &GetYF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &GetYF0D_Type );
+	PyModule_AddObject(module, "GetYF0D", (PyObject *)&GetYF0D_Type);
+	
+	if( PyType_Ready( &GetZF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &GetZF0D_Type );
+	PyModule_AddObject(module, "GetZF0D", (PyObject *)&GetZF0D_Type);
+	
+	if( PyType_Ready( &ZDiscontinuityF0D_Type ) < 0 )
+		return;
+	Py_INCREF( &ZDiscontinuityF0D_Type );
+	PyModule_AddObject(module, "ZDiscontinuityF0D", (PyObject *)&ZDiscontinuityF0D_Type);
+
 		
 }
 
