@@ -5041,7 +5041,6 @@ static void object_panel_fluidsim(Object *ob)
 		{
 			const int maxRes = 512;
 			char memString[32];
-			int i;
 			Mesh *mesh = ob->data;
 		
 			// use mesh bounding box and object scaling

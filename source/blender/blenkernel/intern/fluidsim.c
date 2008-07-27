@@ -179,9 +179,9 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 	// clmd->sim_parms->timescale= timescale;
 	
 	/* try to read from cache */
-	if((result = fluidsim_read_cache(ob, fluidmd, framenr, useRenderParams))) 
+	if(((fss->lastgoodframe >= framenr) || (fss->lastgoodframe < 0)) && (result = fluidsim_read_cache(ob, dm, fluidmd, framenr, useRenderParams)))
 	{
-		fss->lastgoodframe = framenr;
+		// fss->lastgoodframe = framenr; // set also in src/fluidsim.c
 		return result;
 	}
 	else
@@ -189,13 +189,20 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 		// display last known good frame
 		if(fss->lastgoodframe >= 0)
 		{
-			if((result = fluidsim_read_cache(ob, fluidmd, fss->lastgoodframe, useRenderParams))) 
+			if((result = fluidsim_read_cache(ob, dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
 			{
 				return result;
 			}
 			
 			// it was supposed to be a valid frame but it isn't!
-			fss->lastgoodframe = -1;
+			fss->lastgoodframe = framenr - 1;
+			
+			
+			// this could be likely the case when you load an old fluidsim
+			if((result = fluidsim_read_cache(ob, dm, fluidmd, fss->lastgoodframe, useRenderParams))) 
+			{
+				return result;
+			}
 		}
 		
 		result = CDDM_copy(dm);
@@ -216,7 +223,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 	float wrf;
 	int gotBytes;
 	gzFile gzf;
-	int numverts = 0, numfaces = 0, numedges = 0;
+	int numverts = 0, numfaces = 0;
 	DerivedMesh *dm = NULL;
 	MFace *mface;
 	MVert *mvert;
@@ -364,13 +371,16 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 	return dm;
 }
 
-DerivedMesh *fluidsim_read_cache(Object *ob, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
+DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
 	int curFrame = framenr - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
+	MFace *mface;
+	int numfaces;
+	int mat_nr, flag, i;
 	
 	if(!useRenderParams) {
 		displaymode = fss->guiDisplayMode;
@@ -420,6 +430,19 @@ DerivedMesh *fluidsim_read_cache(Object *ob, FluidsimModifierData *fluidmd, int 
 		
 		// display org. object upon failure which is in dm
 		return NULL;
+	}
+	
+	// assign material + flags to new dm
+	mface = orgdm->getFaceArray(orgdm);
+	mat_nr = mface[0].mat_nr;
+	flag = mface[0].flag;
+	
+	mface = dm->getFaceArray(dm);
+	numfaces = dm->getNumFaces(dm);
+	for(i=0; i<numfaces; i++) 
+	{
+		mface[i].mat_nr = mat_nr;
+		mface[i].flag = flag;
 	}
 
 	// load vertex velocities, if they exist...

@@ -7745,6 +7745,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				fluidmd->fss = MEM_dupallocN(ob->fluidsimSettings);
 				fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, ob->fluidsimSettings->ipo);
 				MEM_freeN(ob->fluidsimSettings);
+				
+				fluidmd->fss->lastgoodframe = INT_MAX;
 			}
 		}
 	}

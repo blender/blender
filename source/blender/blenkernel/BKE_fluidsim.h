@@ -47,7 +47,7 @@ void loadFluidsimMesh(Object *srcob, int useRenderParams);
 void fluidsim_init(FluidsimModifierData *fluidmd);
 void fluidsim_free(FluidsimModifierData *fluidmd);
 
-DerivedMesh *fluidsim_read_cache(Object *ob, FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
+DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],

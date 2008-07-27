@@ -1038,6 +1038,10 @@ void fluidsimBake(struct Object *ob)
 					if(event == ESCKEY) {
 						// abort...
 						SDL_mutexP(globalBakeLock);
+						
+						if(domainSettings)
+							domainSettings->lastgoodframe = startFrame+globalBakeFrame;
+						
 						done = -1;
 						globalBakeFrame = 0;
 						globalBakeState = -1;
@@ -1078,6 +1082,13 @@ void fluidsimBake(struct Object *ob)
 
 	// go back to "current" blender time
 	waitcursor(0);
+	
+	if(globalBakeState >= 0)
+	{
+		if(domainSettings)
+			domainSettings->lastgoodframe = startFrame+globalBakeFrame;
+	}
+	
   G.scene->r.cfra = origFrame;
   scene_update_for_newframe(G.scene, G.scene->lay);
 	allqueue(REDRAWVIEW3D, 0);

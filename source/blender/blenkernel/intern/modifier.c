@@ -6932,6 +6932,36 @@ static DerivedMesh * fluidsimModifier_applyModifier(
 	return derivedData;
 }
 
+static void fluidsimModifier_updateDepgraph(
+		ModifierData *md, DagForest *forest,
+      Object *ob, DagNode *obNode)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	Base *base;
+
+	if(fluidmd && fluidmd->fss)
+	{
+		if(fluidmd->fss->type == OB_FLUIDSIM_DOMAIN)
+		{
+			for(base = G.scene->base.first; base; base= base->next) 
+			{
+				Object *ob1= base->object;
+				if(ob1 != ob)
+				{
+					FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
+					
+					// only put dependancies from NON-DOMAIN fluids in here
+					if(fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type!=OB_FLUIDSIM_DOMAIN))
+					{
+						DagNode *curNode = dag_get_node(forest, ob1);
+						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Fluidsim Object");
+					}
+				}
+			}
+		}
+	}
+}
+
 static int fluidsimModifier_dependsOnTime(ModifierData *md) 
 {
 	return 1;
@@ -7577,6 +7607,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->freeData = fluidsimModifier_freeData;
 		mti->dependsOnTime = fluidsimModifier_dependsOnTime;
 		mti->applyModifier = fluidsimModifier_applyModifier;
+		mti->updateDepgraph = fluidsimModifier_updateDepgraph;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
