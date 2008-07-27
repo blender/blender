@@ -505,6 +505,9 @@ void fluidsimBake(struct Object *ob)
 	// calculate bounding box
 	fluid_get_bb(mesh->mvert, mesh->totvert, fsDomain->obmat, domainSettings->bbStart, domainSettings->bbSize);
 	
+	// reset last valid frame
+	domainSettings->lastgoodframe = -1;
+	
 	/* rough check of settings... */
 	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 

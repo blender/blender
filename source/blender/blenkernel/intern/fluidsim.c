@@ -161,7 +161,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 {
 	DerivedMesh *result = NULL;
 	int framenr;
-	FluidsimSettings *fss;
+	FluidsimSettings *fss = NULL;
 
 	framenr= (int)G.scene->r.cfra;
 	
@@ -169,32 +169,41 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 	if(fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN))
 		return dm;
 	
+	// sanity check
+	if(!fluidmd || (fluidmd && !fluidmd->fss))
+		return dm;
+	
+	fss = fluidmd->fss;
+	
 	// timescale not supported yet
 	// clmd->sim_parms->timescale= timescale;
 	
 	/* try to read from cache */
-	if((result = fluidsim_read_cache(ob, fluidmd, framenr, useRenderParams))) {
+	if((result = fluidsim_read_cache(ob, fluidmd, framenr, useRenderParams))) 
+	{
 		fss->lastgoodframe = framenr;
 		return result;
 	}
 	else
-	{
+	{	
 		// display last known good frame
 		if(fss->lastgoodframe >= 0)
 		{
-			if((result = fluidsim_read_cache(ob, fluidmd, framenr, useRenderParams))) {
+			if((result = fluidsim_read_cache(ob, fluidmd, fss->lastgoodframe, useRenderParams))) 
+			{
 				return result;
 			}
 		}
 		
 		result = CDDM_copy(dm);
 
-		if(!result) {
-			return dm;
+		if(result) 
+		{
+			return result;
 		}
 	}
-
-	return result;
+	
+	return dm;
 }
 
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
@@ -245,8 +254,6 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 	gzclose( gzf );
 	// ------------------------------------------------
 	
-	
-	// dg - TODO: check for numfaces / numverts = 0
 	if(!numfaces || !numverts)
 		return NULL;
 	
@@ -289,7 +296,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 		gzclose( gzf );
 		return NULL;
 	}
-	/*
+	
 	normals = MEM_callocN(sizeof(short) * numverts * 3, "fluid_tmp_normals" );	
 	if(!normals)
 	{
@@ -298,14 +305,13 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 		gzclose( gzf );
 		return NULL;
 	}	
-	*/
+	
 	// read normals from file (but don't save them yet)
-	for(i=0; i<numverts*3;i++) 
+	for(i=0; i<numverts*3; i++) 
 	{ 
 		gotBytes = gzread(gzf, &wrf, sizeof( wrf )); 
-		// normals[i] = (short)(wrf*32767.0f);
+		normals[i] = (short)(wrf*32767.0f);
 	}
-	
 	
 	/* read no. of triangles */
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
@@ -338,7 +344,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 			mf->v2 = face[2];
 			mf->v3 = face[0];
 		}
-		mface[i].v4 = face[3];
+		mf->v4 = face[3];
 		
 		test_index_face(mf, NULL, 0, 3);
 	}
@@ -347,7 +353,9 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 	
 	CDDM_calc_edges(dm);
 	
-	// CDDM_apply_vert_normals(dm, (short (*)[3])normals);
+	CDDM_apply_vert_normals(dm, (short (*)[3])normals);
+	MEM_freeN(normals);
+	
 	// CDDM_calc_normals(result);
 
 	return dm;
@@ -356,7 +364,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 DerivedMesh *fluidsim_read_cache(Object *ob, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
-	int curFrame = G.scene->r.cfra - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
+	int curFrame = framenr - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;

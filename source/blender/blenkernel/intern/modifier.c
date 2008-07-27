@@ -6924,7 +6924,10 @@ static DerivedMesh * fluidsimModifier_applyModifier(
 
 	result = fluidsimModifier_do(fluidmd, ob, derivedData, useRenderParams, isFinalCalc);
 
-	if(result) { CDDM_calc_normals(result); return result; }
+	if(result) 
+	{ 
+		return result; 
+	}
 	
 	return derivedData;
 }
