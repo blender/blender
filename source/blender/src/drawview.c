@@ -1995,6 +1995,8 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	tfp->ob_eul[0]= 180.0*ebone->roll/M_PI;
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, tfp->ob_eul, -lim, lim, 1000, 3, "");
 
+	uiDefButBitI(block, TOG, BONE_EDITMODE_LOCKED, REDRAWVIEW3D, "Lock", 160, 100, 140, 19, &(ebone->flag), 0, 0, 0, 0, "Prevents bone from being transformed in edit mode");
+	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
 	if (ebone->parent && ebone->flag & BONE_CONNECTED )

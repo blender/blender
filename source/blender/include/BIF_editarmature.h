@@ -134,6 +134,7 @@ void	transform_armature_mirror_update(void);
 void	hide_selected_armature_bones(void);
 void	hide_unselected_armature_bones(void);
 void	show_all_armature_bones(void);
+void	set_locks_armature_bones(short lock);
 
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000
