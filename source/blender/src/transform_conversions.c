@@ -70,6 +70,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_listBase.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -125,6 +126,7 @@
 
 #include "BDR_drawaction.h"		// list of keyframes in action
 #include "BDR_editobject.h"		// reset_slowparents()
+#include "BDR_gpencil.h"
 #include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
@@ -1087,6 +1089,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->tail;
 					td->flag= TD_SELECTED;
+					if (ebo->flag & BONE_EDITMODE_LOCKED)
+						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
@@ -1102,6 +1106,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->head;
 					td->flag= TD_SELECTED;
+					if (ebo->flag & BONE_EDITMODE_LOCKED)
+						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
@@ -2474,6 +2480,96 @@ void flushTransIpoData(TransInfo *t)
 
 /* ********************* ACTION/NLA EDITOR ****************** */
 
+/* Called by special_aftertrans_update to make sure selected gp-frames replace
+ * any other gp-frames which may reside on that frame (that are not selected).
+ * It also makes sure gp-frames are still stored in chronological order after
+ * transform.
+ */
+static void posttrans_gpd_clean (bGPdata *gpd)
+{
+	bGPDlayer *gpl;
+	
+	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+		ListBase sel_buffer = {NULL, NULL};
+		bGPDframe *gpf, *gpfn;
+		bGPDframe *gfs, *gfsn;
+		
+		/* loop 1: loop through and isolate selected gp-frames to buffer 
+		 * (these need to be sorted as they are isolated)
+		 */
+		for (gpf= gpl->frames.first; gpf; gpf= gpfn) {
+			gpfn= gpf->next;
+			
+			if (gpf->flag & GP_FRAME_SELECT) {
+				BLI_remlink(&gpl->frames, gpf);
+				
+				/* find place to add them in buffer
+				 * - go backwards as most frames will still be in order,
+				 *   so doing it this way will be faster 
+				 */
+				for (gfs= sel_buffer.last; gfs; gfs= gfs->prev) {
+					/* if current (gpf) occurs after this one in buffer, add! */
+					if (gfs->framenum < gpf->framenum) {
+						BLI_insertlinkafter(&sel_buffer, gfs, gpf);
+						break;
+					}
+				}
+				if (gfs == NULL)
+					BLI_addhead(&sel_buffer, gpf);
+			}
+		}
+		
+		/* error checking: it is unlikely, but may be possible to have none selected */
+		if (sel_buffer.first == NULL)
+			continue;
+		
+		/* if all were selected (i.e. gpl->frames is empty), then just transfer sel-buf over */
+		if (gpl->frames.first == NULL) {
+			gpl->frames.first= sel_buffer.first;
+			gpl->frames.last= sel_buffer.last;
+			
+			continue;
+		}
+		
+		/* loop 2: remove duplicates of frames in buffers */
+		//gfs= sel_buffer.first;
+		//gfsn= gfs->next;
+		
+		for (gpf= gpl->frames.first; gpf && sel_buffer.first; gpf= gpfn) {
+			gpfn= gpf->next;
+			 
+			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
+			for (gfs= sel_buffer.first; gfs && gpf; gfs= gfsn) {
+				gfsn= gfs->next;
+				
+				/* if this buffer frame needs to go before current, add it! */
+				if (gfs->framenum < gpf->framenum) {
+					/* transfer buffer frame to frames list (before current) */
+					BLI_remlink(&sel_buffer, gfs);
+					BLI_insertlinkbefore(&gpl->frames, gpf, gfs);
+				}
+				/* if this buffer frame is on same frame, replace current with it and stop */
+				else if (gfs->framenum == gpf->framenum) {
+					/* transfer buffer frame to frames list (before current) */
+					BLI_remlink(&sel_buffer, gfs);
+					BLI_insertlinkbefore(&gpl->frames, gpf, gfs);
+					
+					/* get rid of current frame */
+					gpencil_layer_delframe(gpl, gpf);
+				}
+			}
+		}
+		
+		/* if anything is still in buffer, append to end */
+		for (gfs= sel_buffer.first; gfs; gfs= gfsn) {
+			gfsn= gfs->next;
+			
+			BLI_remlink(&sel_buffer, gfs);
+			BLI_addtail(&gpl->frames, gfs);
+		}
+	}
+}
+
 /* Called by special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
@@ -2698,6 +2794,26 @@ static int count_ipo_keys(Ipo *ipo, char side, float cfra)
 	return count;
 }
 
+/* fully select selected beztriples, but only include if it's on the right side of cfra */
+static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
+{
+	bGPDframe *gpf;
+	int count = 0;
+	
+	if (gpl == NULL)
+		return count;
+	
+	/* only include points that occur on the right side of cfra */
+	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+		if (gpf->flag & GP_FRAME_SELECT) {
+			if (FrameOnMouseSide(side, gpf->framenum, cfra))
+				count++;
+		}
+	}
+	
+	return count;
+}
+
 /* This function assigns the information to transdata */
 static void TimeToTransData(TransData *td, float *time, Object *ob)
 {
@@ -2751,9 +2867,68 @@ static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob, char side,
 	return td;
 }
 
+/* helper struct for gp-frame transforms (only used here) */
+typedef struct tGPFtransdata {
+	float val;			/* where transdata writes transform */
+	int *sdata;			/* pointer to gpf->framenum */
+} tGPFtransdata;
+
+/* This function helps flush transdata written to tempdata into the gp-frames  */
+void flushTransGPactionData (TransInfo *t)
+{
+	tGPFtransdata *tfd;
+	int i;
+	
+	/* find the first one to start from */
+	if (t->mode == TFM_TIME_SLIDE)
+		tfd= (tGPFtransdata *)( (float *)(t->customData) + 2 );
+	else
+		tfd= (tGPFtransdata *)(t->customData);
+		
+	/* flush data! */
+	for (i = 0; i < t->total; i++, tfd++) {
+		*(tfd->sdata)= (int)floor(tfd->val + 0.5);
+	}	
+}
+
+/* This function advances the address to which td points to, so it must return
+ * the new address so that the next time new transform data is added, it doesn't
+ * overwrite the existing ones...  i.e.   td = GPLayerToTransData(td, ipo, ob, side, cfra);
+ *
+ * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
+ * on the named side are used. 
+ */
+static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, short side, float cfra)
+{
+	bGPDframe *gpf;
+	int count= 0;
+	
+	/* check for select frames on right side of current frame */
+	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+		if (gpf->flag & GP_FRAME_SELECT) {
+			if (FrameOnMouseSide(side, gpf->framenum, cfra)) {
+				/* memory is calloc'ed, so that should zero everything nicely for us */
+				td->val= &tfd->val;
+				td->ival= gpf->framenum;
+				
+				tfd->val= gpf->framenum;
+				tfd->sdata= &gpf->framenum;
+				
+				/* advance td now */
+				td++;
+				tfd++;
+				count++;
+			}
+		}
+	}
+	
+	return count;
+}
+
 static void createTransActionData(TransInfo *t)
 {
 	TransData *td = NULL;
+	tGPFtransdata *tfd = NULL;
 	Object *ob= NULL;
 	
 	ListBase act_data = {NULL, NULL};
@@ -2771,7 +2946,10 @@ static void createTransActionData(TransInfo *t)
 	if (data == NULL) return;
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* is the action scaled? if so, the it should belong to the active object */
@@ -2800,8 +2978,12 @@ static void createTransActionData(TransInfo *t)
 		cfra = CFRA;
 	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
-	for (ale= act_data.first; ale; ale= ale->next)
-		count += count_ipo_keys(ale->key_data, side, cfra);
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if (ale->type == ACTTYPE_GPLAYER)
+			count += count_gplayer_frames(ale->data, side, cfra);
+		else
+			count += count_ipo_keys(ale->key_data, side, cfra);
+	}
 	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
@@ -2812,16 +2994,38 @@ static void createTransActionData(TransInfo *t)
 	
 	/* allocate memory for data */
 	t->total= count;
+	
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(Action Editor)");
-	if (t->mode == TFM_TIME_SLIDE)
+	td= t->data;
+	
+	if (datatype == ACTCONT_GPENCIL) {
+		if (t->mode == TFM_TIME_SLIDE) {
+			t->customData= MEM_callocN((sizeof(float)*2)+(sizeof(tGPFtransdata)*count), "TimeSlide + tGPFtransdata");
+			tfd= (tGPFtransdata *)( (float *)(t->customData) + 2 );
+		}
+		else {
+			t->customData= MEM_callocN(sizeof(tGPFtransdata)*count, "tGPFtransdata");
+			tfd= (tGPFtransdata *)(t->customData);
+		}
+	}
+	else if (t->mode == TFM_TIME_SLIDE)
 		t->customData= MEM_callocN(sizeof(float)*2, "TimeSlide Min/Max");
 	
-	td= t->data;
 	/* loop 2: build transdata array */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		Ipo *ipo= (Ipo *)ale->key_data;
-		
-		td= IpoToTransData(td, ipo, ob, side, cfra);
+		if (ale->type == ACTTYPE_GPLAYER) {
+			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			int i;
+			
+			i = GPLayerToTransData(td, tfd, gpl, side, cfra);
+			td += i;
+			tfd += i;
+		}
+		else {
+			Ipo *ipo= (Ipo *)ale->key_data;
+			
+			td= IpoToTransData(td, ipo, ob, side, cfra);
+		}
 	}
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
@@ -3672,6 +3876,13 @@ void special_aftertrans_update(TransInfo *t)
 			}
 			
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+		}
+		else if (datatype == ACTCONT_GPENCIL) {
+			/* remove duplicate frames and also make sure points are in order! */
+			if ((cancelled == 0) || (duplicate))
+			{
+				posttrans_gpd_clean(data);
+			}
 		}
 		
 		G.saction->flag &= ~SACTION_MOVING;

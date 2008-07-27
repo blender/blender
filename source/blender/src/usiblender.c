@@ -883,7 +883,7 @@ void BIF_write_file(char *target)
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&G.scene->id, SCRIPT_ONSAVE);
 
 	for (li= G.main->library.first; li; li= li->id.next) {
-		if (BLI_streq(li->name, target)) {
+		if (li->parent==NULL && BLI_streq(li->name, target)) {
 			error("Cannot overwrite used library");
 			return;
 		}

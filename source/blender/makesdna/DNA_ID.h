@@ -46,7 +46,7 @@ struct ID;
 typedef struct IDPropertyData {
 	void *pointer;
 	ListBase group;
-	int val, pad;
+	int val, val2; /*note, we actually fit a double into these two ints*/
 } IDPropertyData;
 
 typedef struct IDProperty {
@@ -77,6 +77,7 @@ typedef struct IDProperty {
 /*the ID link property type hasn't been implemented yet, this will require
   some cleanup of blenkernel, most likely.*/
 #define IDP_ID		7
+#define IDP_DOUBLE	8
 
 /*add any future new id property types here.*/
 

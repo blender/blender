@@ -54,7 +54,6 @@ static bNodeSocketType sh_node_material_ext_in[]= {
 	{	SOCK_VALUE, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Mirror",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 1, "AmbCol",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Ambient",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Emit",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "SpecTra",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
@@ -117,8 +116,6 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		if (node->type == SH_NODE_MATERIAL_EXT) {
 			if(in[MAT_IN_MIR]->hasinput)
 				nodestack_get_vec(&shi->mirr, SOCK_VECTOR, in[MAT_IN_MIR]);
-			if(in[MAT_IN_AMBCOL]->hasinput)
-				nodestack_get_vec(&shi->ambr, SOCK_VECTOR, in[MAT_IN_AMBCOL]);
 			if(in[MAT_IN_AMB]->hasinput)
 				nodestack_get_vec(&shi->amb, SOCK_VALUE, in[MAT_IN_AMB]);
 			if(in[MAT_IN_EMIT]->hasinput)

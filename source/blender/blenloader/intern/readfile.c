@@ -69,6 +69,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_group_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
@@ -1346,8 +1347,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		for (i=0; i<prop->len; i++) {
-			SWITCH_INT(((int*)prop->data.pointer)[i]);
+		if (prop->subtype != IDP_DOUBLE) {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_INT(((int*)prop->data.pointer)[i]);
+			}
+		} else {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
+			}
 		}
 	}
 }
@@ -1383,6 +1390,24 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
 			break;
 		case IDP_ARRAY:
 			IDP_DirectLinkArray(prop, switch_endian, fd);
+			break;
+		case IDP_DOUBLE:
+			/*erg, stupid doubles.  since I'm storing them
+			 in the same field as int val; val2 in the
+			 IDPropertyData struct, they have to deal with
+			 endianness specifically
+			 
+			 in theory, val and val2 would've already been swapped
+			 if switch_endian is true, so we have to first unswap
+			 them then reswap them as a single 64-bit entity.
+			 */
+			
+			if (switch_endian) {
+				SWITCH_INT(prop->data.val);
+				SWITCH_INT(prop->data.val2);
+				SWITCH_LONGINT(prop->data.val);
+			}
+			
 			break;
 	}
 }
@@ -3693,6 +3718,32 @@ static void lib_link_screen_sequence_ipos(Main *main)
 
 /* ************ READ SCREEN ***************** */
 
+/* relinks grease-pencil data for 3d-view(s) - used for direct_link */
+static void link_gpencil(FileData *fd, bGPdata *gpd)
+{
+	bGPDlayer *gpl;
+	bGPDframe *gpf;
+	bGPDstroke *gps;
+	
+	/* relink layers */
+	link_list(fd, &gpd->layers);
+	
+	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+		/* relink frames */
+		link_list(fd, &gpl->frames);
+		gpl->actframe= newdataadr(fd, gpl->actframe);
+		
+		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+			/* relink strokes (and their points) */
+			link_list(fd, &gpf->strokes);
+			
+			for (gps= gpf->strokes.first; gps; gps= gps->next) {
+				gps->points= newdataadr(fd, gps->points);
+			}
+		}
+	}
+}
+
 /* note: file read without screens option G_FILE_NO_UI; 
    check lib pointers in call below */
 static void lib_link_screen(FileData *fd, Main *main)
@@ -3704,23 +3755,23 @@ static void lib_link_screen(FileData *fd, Main *main)
 		if(sc->id.flag & LIB_NEEDLINK) {
 			sc->id.us= 1;
 			sc->scene= newlibadr(fd, sc->id.lib, sc->scene);
-
+			
 			sa= sc->areabase.first;
 			while(sa) {
 				SpaceLink *sl;
-
+				
 				sa->full= newlibadr(fd, sc->id.lib, sa->full);
-
+				
 				/* space handler scriptlinks */
 				lib_link_scriptlink(fd, &sc->id, &sa->scriptlink);
-
+				
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
-
+						
 						v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
 						v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
-
+						
 						if(v3d->bgpic) {
 							v3d->bgpic->ima= newlibadr_us(fd, sc->id.lib, v3d->bgpic->ima);
 						}
@@ -4076,6 +4127,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->bgpic= newdataadr(fd, v3d->bgpic);
 				if(v3d->bgpic)
 					v3d->bgpic->iuser.ok= 1;
+				if(v3d->gpd) {
+					v3d->gpd= newdataadr(fd, v3d->gpd);
+					link_gpencil(fd, v3d->gpd);
+				}
 				v3d->localvd= newdataadr(fd, v3d->localvd);
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
 				v3d->clipbb= newdataadr(fd, v3d->clipbb);
@@ -4110,8 +4165,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
+				
+				if(snode->gpd) {
+					snode->gpd= newdataadr(fd, snode->gpd);
+					link_gpencil(fd, snode->gpd);
+				}
 				snode->nodetree= snode->edittree= NULL;
 				snode->flag |= SNODE_DO_PREVIEW;
+			}
+			else if(sl->spacetype==SPACE_SEQ) {
+				SpaceSeq *sseq= (SpaceSeq *)sl;
+				if(sseq->gpd) {
+					sseq->gpd= newdataadr(fd, sseq->gpd);
+					link_gpencil(fd, sseq->gpd);
+				}
 			}
 		}
 

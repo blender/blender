@@ -36,6 +36,7 @@
 #pragma warning (disable:4786)
 #endif
 
+#include "BKE_material.h" /* give_current_material */
 
 #include "KX_GameObject.h"
 #include "KX_IpoConvert.h"
@@ -67,6 +68,8 @@
 #include "KX_MaterialIpoController.h"
 
 #include "SG_Node.h"
+
+#include "STR_HashedString.h"
 
 static BL_InterpolatorList *GetIpoList(struct Ipo *for_ipo, KX_BlenderSceneConverter *converter) {
 	BL_InterpolatorList *ipoList= converter->FindInterpolatorList(for_ipo);
@@ -560,16 +563,15 @@ void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *co
 	}
 }
 
-
-void BL_ConvertMaterialIpos(
-	Material* blendermaterial, 
+static void ConvertMaterialIpos(
+	Material* blendermaterial,
+	dword matname_hash,
 	KX_GameObject* gameobj,  
 	KX_BlenderSceneConverter *converter
 	)
 {
 	if (blendermaterial->ipo) {
-	
-		KX_MaterialIpoController* ipocontr = new KX_MaterialIpoController();
+		KX_MaterialIpoController* ipocontr = new KX_MaterialIpoController(matname_hash);
 		gameobj->GetSGNode()->AddSGController(ipocontr);
 		ipocontr->SetObject(gameobj->GetSGNode());
 		
@@ -596,7 +598,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_COL_R);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -610,7 +612,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_COL_G);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -624,7 +626,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_COL_B);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -638,7 +640,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_ALPHA);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -653,7 +655,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_SPEC_R );
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -667,7 +669,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_SPEC_G);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -681,7 +683,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_SPEC_B);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -696,7 +698,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_HARD);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -710,7 +712,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_SPEC);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -725,7 +727,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_REF);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -739,7 +741,7 @@ void BL_ConvertMaterialIpos(
 		ipo = ipoList->GetScalarInterpolator(MA_EMIT);
 		if (ipo) {
 			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController();
+				ipocontr = new KX_MaterialIpoController(matname_hash);
 				gameobj->GetSGNode()->AddSGController(ipocontr);
 				ipocontr->SetObject(gameobj->GetSGNode());
 			}
@@ -750,5 +752,30 @@ void BL_ConvertMaterialIpos(
 			ipocontr->AddInterpolator(interpolator);
 		}
 	}		
+}
+
+void BL_ConvertMaterialIpos(
+	struct Object* blenderobject,
+	KX_GameObject* gameobj,  
+	KX_BlenderSceneConverter *converter
+	)
+{
+	if (blenderobject->totcol==1)
+	{
+		Material *mat = give_current_material(blenderobject, 1);
+		// if there is only one material attached to the mesh then set material_index in BL_ConvertMaterialIpos to NULL
+		// --> this makes the UpdateMaterialData function in KX_GameObject.cpp use the old hack of using SetObjectColor
+		// because this yields a better performance as not all the vertex colors need to be edited
+		if(mat) ConvertMaterialIpos(mat, NULL, gameobj, converter);
+	}
+	else
+	{
+		for (int material_index=1; material_index <= blenderobject->totcol; material_index++)
+		{
+			Material *mat = give_current_material(blenderobject, material_index);
+			STR_HashedString matname = mat->id.name;
+			if(mat) ConvertMaterialIpos(mat, matname.hash(), gameobj, converter);
+		}
+	}
 }
 

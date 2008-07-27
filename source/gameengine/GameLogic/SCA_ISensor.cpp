@@ -168,23 +168,23 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	{"isPositive", (PyCFunction) SCA_ISensor::sPyIsPositive, 
 	 METH_VARARGS, IsPositive_doc},
 	{"getUsePosPulseMode", (PyCFunction) SCA_ISensor::sPyGetUsePosPulseMode, 
-	 METH_VARARGS, GetUsePosPulseMode_doc},
+	 METH_NOARGS, GetUsePosPulseMode_doc},
 	{"setUsePosPulseMode", (PyCFunction) SCA_ISensor::sPySetUsePosPulseMode, 
 	 METH_VARARGS, SetUsePosPulseMode_doc},
 	{"getFrequency", (PyCFunction) SCA_ISensor::sPyGetFrequency, 
-	 METH_VARARGS, GetFrequency_doc},
+	 METH_NOARGS, GetFrequency_doc},
 	{"setFrequency", (PyCFunction) SCA_ISensor::sPySetFrequency, 
 	 METH_VARARGS, SetFrequency_doc},
 	{"getUseNegPulseMode", (PyCFunction) SCA_ISensor::sPyGetUseNegPulseMode, 
-	 METH_VARARGS, GetUseNegPulseMode_doc},
+	 METH_NOARGS, GetUseNegPulseMode_doc},
 	{"setUseNegPulseMode", (PyCFunction) SCA_ISensor::sPySetUseNegPulseMode, 
 	 METH_VARARGS, SetUseNegPulseMode_doc},
 	{"getInvert", (PyCFunction) SCA_ISensor::sPyGetInvert, 
-	 METH_VARARGS, GetInvert_doc},
+	 METH_NOARGS, GetInvert_doc},
 	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
 	 METH_VARARGS, SetInvert_doc},
 	{"getLevel", (PyCFunction) SCA_ISensor::sPyGetLevel, 
-	 METH_VARARGS, GetLevel_doc},
+	 METH_NOARGS, GetLevel_doc},
 	{"setLevel", (PyCFunction) SCA_ISensor::sPySetLevel, 
 	 METH_VARARGS, SetLevel_doc},
 	{NULL,NULL} //Sentinel
@@ -259,7 +259,7 @@ PyObject* SCA_ISensor::PyIsPositive(PyObject* self, PyObject* args, PyObject* kw
 char SCA_ISensor::GetUsePosPulseMode_doc[] = 
 "getUsePosPulseMode()\n"
 "\tReturns whether positive pulse mode is active.\n";
-PyObject* SCA_ISensor::PyGetUsePosPulseMode(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PyGetUsePosPulseMode(PyObject* self)
 {
 	return BoolToPyArg(m_pos_pulsemode);
 }
@@ -286,7 +286,7 @@ PyObject* SCA_ISensor::PySetUsePosPulseMode(PyObject* self, PyObject* args, PyOb
 char SCA_ISensor::GetFrequency_doc[] = 
 "getFrequency()\n"
 "\tReturns the frequency of the updates in pulse mode.\n" ;
-PyObject* SCA_ISensor::PyGetFrequency(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PyGetFrequency(PyObject* self)
 {
 	return PyInt_FromLong(m_pulse_frequency);
 }
@@ -321,7 +321,7 @@ PyObject* SCA_ISensor::PySetFrequency(PyObject* self, PyObject* args, PyObject* 
 char SCA_ISensor::GetInvert_doc[] = 
 "getInvert()\n"
 "\tReturns whether or not pulses from this sensor are inverted.\n" ;
-PyObject* SCA_ISensor::PyGetInvert(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PyGetInvert(PyObject* self)
 {
 	return BoolToPyArg(m_invert);
 }
@@ -342,11 +342,10 @@ char SCA_ISensor::GetLevel_doc[] =
 "getLevel()\n"
 "\tReturns whether this sensor is a level detector or a edge detector.\n"
 "\tIt makes a difference only in case of logic state transition (state actuator).\n"
-"\tA level detector will immediately generate a pulse if the condition for the\n"
-"\tdetector is met when entering the state. A edge detector will wait for an off-on\n"
-"\ttransition to occur.\n"
-"\tOnly some sensors implement this feature: keyboard.\n";
-PyObject* SCA_ISensor::PyGetLevel(PyObject* self, PyObject* args, PyObject* kwds)
+"\tA level detector will immediately generate a pulse, negative or positive\n"
+"\tdepending on the sensor condition, as soon as the state is activated.\n"
+"\tA edge detector will wait for a state change before generating a pulse.\n";
+PyObject* SCA_ISensor::PyGetLevel(PyObject* self)
 {
 	return BoolToPyArg(m_level);
 }
@@ -366,7 +365,7 @@ PyObject* SCA_ISensor::PySetLevel(PyObject* self, PyObject* args, PyObject* kwds
 char SCA_ISensor::GetUseNegPulseMode_doc[] = 
 "getUseNegPulseMode()\n"
 "\tReturns whether negative pulse mode is active.\n";
-PyObject* SCA_ISensor::PyGetUseNegPulseMode(PyObject* self, PyObject* args, PyObject* kwds)
+PyObject* SCA_ISensor::PyGetUseNegPulseMode(PyObject* self)
 {
 	return BoolToPyArg(m_neg_pulsemode);
 }

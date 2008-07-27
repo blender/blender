@@ -149,7 +149,7 @@ PyParentObject SCA_ActuatorSensor::Parents[] = {
 };
 
 PyMethodDef SCA_ActuatorSensor::Methods[] = {
-	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_VARARGS, GetActuator_doc},
+	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_NOARGS, GetActuator_doc},
 	{"setActuator", (PyCFunction) SCA_ActuatorSensor::sPySetActuator, METH_VARARGS, SetActuator_doc},
 	{NULL,NULL} //Sentinel
 };
@@ -162,7 +162,7 @@ PyObject* SCA_ActuatorSensor::_getattr(const STR_String& attr) {
 char SCA_ActuatorSensor::GetActuator_doc[] = 
 "getActuator()\n"
 "\tReturn the Actuator with which the sensor operates.\n";
-PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self, PyObject* args, PyObject* kwds) 
+PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self) 
 {
 	return PyString_FromString(m_checkactname);
 }
@@ -180,6 +180,7 @@ PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyOb
 	char *actNameArg = NULL;
 
 	if (!PyArg_ParseTuple(args, "s", &actNameArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 

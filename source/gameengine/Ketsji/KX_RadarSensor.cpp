@@ -176,8 +176,10 @@ void KX_RadarSensor::SynchronizeTransform()
 
 	if (m_physCtrl)
 	{
-		m_physCtrl->setPosition(trans.getOrigin().x(),trans.getOrigin().y(),trans.getOrigin().z());
-		m_physCtrl->setOrientation(trans.getRotation().x(),trans.getRotation().y(),trans.getRotation().z(),trans.getRotation().w());
+		MT_Quaternion orn = trans.getRotation();
+		MT_Point3 pos = trans.getOrigin();
+		m_physCtrl->setPosition(pos[0],pos[1],pos[2]);
+		m_physCtrl->setOrientation(orn[0],orn[1],orn[2],orn[3]);
 		m_physCtrl->calcXform();
 	}
 

@@ -154,7 +154,8 @@ typedef enum eBone_Flag {
 	BONE_NO_SCALE				= (1<<15), 	/* No parent scale */
 	BONE_HIDDEN_PG				= (1<<16),	/* hidden bone when drawing PoseChannels (for ghost drawing) */
 	BONE_DRAWWIRE				= (1<<17),	/* bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
-	BONE_NO_CYCLICOFFSET		= (1<<18)	/* when no parent, bone will not get cyclic offset */
+	BONE_NO_CYCLICOFFSET		= (1<<18),	/* when no parent, bone will not get cyclic offset */
+	BONE_EDITMODE_LOCKED		= (1<<19),	/* bone transforms are locked in EditMode */
 } eBone_Flag;
 
 #endif

@@ -410,12 +410,14 @@ void BPY_rebuild_syspath( void )
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
 		printf("error: could not import python sys module. some modules may not import.\n");
+		PyGILState_Release(gilstate);
 		return;
 	}
 	
 	if (!bpy_orig_syspath_List) { /* should never happen */
 		printf("error refershing python path\n");
 		Py_DECREF(mod);
+		PyGILState_Release(gilstate);
 		return;
 	}
 	

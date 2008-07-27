@@ -133,9 +133,10 @@ void	KX_BulletPhysicsController::getOrientation(MT_Quaternion& orn)
 	CcdPhysicsController::getOrientation(myorn[0],myorn[1],myorn[2],myorn[3]);
 	orn = MT_Quaternion(myorn[0],myorn[1],myorn[2],myorn[3]);
 }
-void KX_BulletPhysicsController::setOrientation(const MT_Quaternion& orn)
+void KX_BulletPhysicsController::setOrientation(const MT_Matrix3x3& orn)
 {
-	CcdPhysicsController::setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
+	btMatrix3x3 btmat(orn[0][0], orn[0][1], orn[0][2], orn[1][0], orn[1][1], orn[1][2], orn[2][0], orn[2][1], orn[2][2]);
+	CcdPhysicsController::setWorldOrientation(btmat);
 }
 void KX_BulletPhysicsController::setPosition(const MT_Point3& pos)
 {
@@ -170,10 +171,12 @@ void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 	{
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		m_savedCollisionFlags = body->getCollisionFlags();
+		m_savedMass = GetMass();
 		m_savedCollisionFilterGroup = handle->m_collisionFilterGroup;
 		m_savedCollisionFilterMask = handle->m_collisionFilterMask;
 		body->setActivationState(DISABLE_SIMULATION);
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			0.0,
 			btCollisionObject::CF_STATIC_OBJECT|((ghost)?btCollisionObject::CF_NO_CONTACT_RESPONSE:(m_savedCollisionFlags&btCollisionObject::CF_NO_CONTACT_RESPONSE)),
 			btBroadphaseProxy::StaticFilter, 
 			btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter);
@@ -185,11 +188,12 @@ void	KX_BulletPhysicsController::RestoreDynamics()
 	btRigidBody *body = GetRigidBody();
 	if (body->getActivationState() == DISABLE_SIMULATION)
 	{
-		GetRigidBody()->forceActivationState(ACTIVE_TAG);
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			m_savedMass,
 			m_savedCollisionFlags,
 			m_savedCollisionFilterGroup,
 			m_savedCollisionFilterMask);
+		GetRigidBody()->forceActivationState(ACTIVE_TAG);
 	}
 }
 

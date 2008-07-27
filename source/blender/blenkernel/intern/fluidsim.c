@@ -193,6 +193,9 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 			{
 				return result;
 			}
+			
+			// it was supposed to be a valid frame but it isn't!
+			fss->lastgoodframe = -1;
 		}
 		
 		result = CDDM_copy(dm);

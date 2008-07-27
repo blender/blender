@@ -89,6 +89,8 @@ Example::
 @type BONE_SELECTED: Constant
 @var TIP_SELECTED: Tip of the Bone is selected
 @type TIP_SELECTED: Constant
+@var LOCKED_EDIT: Prevents the bone from being transformed in editmode
+@type LOCKED_EDIT: Constant
 @var OCTAHEDRON: Bones drawn as octahedrons
 @type OCTAHEDRON: Constant
 @var STICK: Bones drawn as a line
@@ -286,6 +288,7 @@ class Bone:
 			 - Armature.ROOT_SELECTED: Selection of root ball of bone
 			 - Armature.BONE_SELECTED: Selection of bone
 			 - Armature.TIP_SELECTED: Selection of tip ball of bone
+			 - Armature.LOCKED_EDIT: Prevents the bone from being transformed in editmode
 	@type options: List of Constants
 	@ivar subdivision: The number of bone subdivisions.
 	@type subdivision: Int

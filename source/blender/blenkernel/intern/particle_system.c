@@ -2797,7 +2797,10 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				epart= epsys->part;
 				pd= epart->pd;
 				totepart= epsys->totpart;
-
+				
+				if(totepart <= 0)
+					continue;
+				
 				if(pd->forcefield==PFIELD_HARMONIC){
 					/* every particle is mapped to only one harmonic effector particle */
 					p= pa_no%epsys->totpart;

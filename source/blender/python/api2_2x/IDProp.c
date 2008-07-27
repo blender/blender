@@ -60,6 +60,8 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 			return PyInt_FromLong( (long)prop->data.val );
 		case IDP_FLOAT:
 			return PyFloat_FromDouble( (double)(*(float*)(&prop->data.val)) );
+		case IDP_DOUBLE:
+			return PyFloat_FromDouble( (*(double*)(&prop->data.val)) );
 		case IDP_GROUP:
 			/*blegh*/
 			{
@@ -128,7 +130,19 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 			Py_XDECREF(value);
 			break;
 		}
-
+		case IDP_DOUBLE:
+		{
+			double dvalue;
+			if (!PyNumber_Check(value))
+				return EXPP_ReturnIntError(PyExc_TypeError, "expected a float!");
+			value = PyNumber_Float(value);
+			if (!value)
+				return EXPP_ReturnIntError(PyExc_TypeError, "expected a float!");
+			dvalue = (float) PyFloat_AsDouble(value);
+			*(double*)&self->prop->data.val = dvalue;
+			Py_XDECREF(value);
+			break;
+		}
 		default:
 			return EXPP_ReturnIntError(PyExc_AttributeError, "attempt to set read-only attribute!");
 	}
@@ -204,8 +218,8 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 	IDPropertyTemplate val = {0};
 	
 	if (PyFloat_Check(ob)) {
-		val.f = (float) PyFloat_AsDouble(ob);
-		prop = IDP_New(IDP_FLOAT, val, name);
+		val.d = PyFloat_AsDouble(ob);
+		prop = IDP_New(IDP_DOUBLE, val, name);
 	} else if (PyInt_Check(ob)) {
 		val.i = (int) PyInt_AsLong(ob);
 		prop = IDP_New(IDP_INT, val, name);
@@ -223,7 +237,7 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		val.array.len = PySequence_Length(ob);
 		for (i=0; i<val.array.len; i++) {
 			item = PySequence_GetItem(ob, i);
-			if (PyFloat_Check(item)) val.array.type = IDP_FLOAT;
+			if (PyFloat_Check(item)) val.array.type = IDP_DOUBLE;
 			else if (!PyInt_Check(item)) return "only floats and ints are allowed in ID property arrays";
 			Py_XDECREF(item);
 		}
@@ -236,7 +250,7 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 				((int*)prop->data.pointer)[i] = (int)PyInt_AsLong(item);
 			} else {
 				item = PyNumber_Float(item);
-				((float*)prop->data.pointer)[i] = (float)PyFloat_AsDouble(item);
+				((double*)prop->data.pointer)[i] = (float)PyFloat_AsDouble(item);
 			}
 			Py_XDECREF(item);
 		}
@@ -334,6 +348,9 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 		case IDP_FLOAT:
 			return PyFloat_FromDouble(*((float*)&prop->data.val));
 			break;
+		case IDP_DOUBLE:
+			return PyFloat_FromDouble(*((double*)&prop->data.val));
+			break;
 		case IDP_INT:
 			return PyInt_FromLong( (long)prop->data.val );
 			break;
@@ -347,12 +364,15 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 					   "PyList_New() failed" );
 			
 			for (i=0; i<prop->len; i++) {
-				if (prop->subtype == IDP_FLOAT)
+				if (prop->subtype == IDP_FLOAT) {
 						PyList_SetItem(seq, i,
 						PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
-				
-				else 	PyList_SetItem(seq, i,
-						PyInt_FromLong(((int*)prop->data.pointer)[i]));
+				} else if (prop->subtype == IDP_DOUBLE) {
+						PyList_SetItem(seq, i,
+						PyFloat_FromDouble(((double*)prop->data.pointer)[i]));				
+				} else 	{ PyList_SetItem(seq, i,
+						  PyInt_FromLong(((int*)prop->data.pointer)[i]));
+				}
 			}
 			return seq;
 		}
@@ -451,7 +471,7 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 		/*set correct group length*/
 		self->prop->len = i;
 		
-		/*free the old list*/
+		/*free the list*/
 		Py_DECREF(seq);
 		
 		/*call self again*/
@@ -688,6 +708,9 @@ PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
 		case IDP_FLOAT:
 			return PyFloat_FromDouble( (double)(((float*)self->prop->data.pointer)[index]));
 			break;
+		case IDP_DOUBLE:
+			return PyFloat_FromDouble( (((double*)self->prop->data.pointer)[index]));
+			break;		
 		case IDP_INT:
 			return PyInt_FromLong( (long)((int*)self->prop->data.pointer)[index] );
 			break;
@@ -700,7 +723,8 @@ int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *val)
 {
 	int i;
 	float f;
-
+	double d;
+	
 	if (index < 0 || index >= self->prop->len)
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"index out of range!");
@@ -715,6 +739,17 @@ int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *val)
 
 			f = (float) PyFloat_AsDouble(val);
 			((float*)self->prop->data.pointer)[index] = f;
+			Py_XDECREF(val);
+			break;
+		case IDP_DOUBLE:
+			if (!PyNumber_Check(val)) return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a float");
+			val = PyNumber_Float(val);
+			if (!val) return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a float");
+
+			d = (double) PyFloat_AsDouble(val);
+			((double*)self->prop->data.pointer)[index] = d;
 			Py_XDECREF(val);
 			break;
 		case IDP_INT:

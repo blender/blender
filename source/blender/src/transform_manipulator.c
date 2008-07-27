@@ -170,6 +170,13 @@ static void stats_pose(View3D *v3d, bPoseChannel *pchan)
 	}
 }
 
+/* for editmode*/
+static void stats_editbone(View3D *v3d, EditBone *ebo)
+{
+	if (ebo->flag & BONE_EDITMODE_LOCKED)
+		protectflag_to_drawflags(OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE, &v3d->twdrawflag);
+}
+
 /* only counts the parent selection, and tags transform flag */
 /* bad call... should re-use method from transform_conversion once */
 static void count_bone_select(TransInfo *t, bArmature *arm, ListBase *lb, int do_it) 
@@ -257,6 +264,9 @@ int calc_manipulator_stats(ScrArea *sa)
 					if (ebo->flag & BONE_ROOTSEL) {
 						calc_tw_center(ebo->head);
 						totsel++;
+					}
+					if (ebo->flag & BONE_SELECTED) {
+						stats_editbone(v3d, ebo);
 					}
 				}
 			}

@@ -170,8 +170,9 @@ void	KX_SumoPhysicsController::setMargin(float collisionMargin)
 }
 
 
-void KX_SumoPhysicsController::setOrientation(const MT_Quaternion& orn)
+void KX_SumoPhysicsController::setOrientation(const MT_Matrix3x3& rot)
 {
+	MT_Quaternion orn = rot.getRotation();
 	SumoPhysicsController::setOrientation(
 		orn[0],orn[1],orn[2],orn[3]);
 

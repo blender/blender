@@ -472,6 +472,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_fileglobal_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_gpencil_types.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_group_types.h">
 			</File>
 			<File

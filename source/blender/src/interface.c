@@ -618,6 +618,9 @@ void uiBoundsBlock(uiBlock *block, int addval)
 	uiBut *bt;
 	int xof;
 	
+	if(block==NULL)
+		return;
+	
 	if(block->buttons.first==NULL) {
 		if(block->panel) {
 			block->minx= 0.0; block->maxx= block->panel->sizex;
@@ -5648,6 +5651,8 @@ static int ui_auto_themecol(uiBut *but)
 		// (weak!) detect if it is a blockloop
 		if(but->block->dt == UI_EMBOSSP) return TH_MENU_ITEM;
 		return TH_BUT_POPUP;
+	case ROUNDBOX:
+		return TH_PANEL;
 	default:
 		return TH_BUT_NEUTRAL;
 	}

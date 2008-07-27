@@ -1473,8 +1473,8 @@ static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
 		dy = sy;
 
 		if (seq->flag & SEQ_USE_TRANSFORM) {
-			dx = seqrectx;
-			dy = seqrecty;
+			dx = G.scene->r.xsch;
+			dy = G.scene->r.ysch;
 		}
 
 		if (c.top + c.bottom >= se->ibuf->y ||

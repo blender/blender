@@ -88,11 +88,17 @@ KX_ConstraintActuator::KX_ConstraintActuator(SCA_IObject *gameobj,
 			} else {
 				m_refDirection /= len;
 			}
+			m_minimumBound = cos(minBound);
+			m_maximumBound = cos(maxBound);
+			m_minimumSine = sin(minBound);
+			m_maximumSine = sin(maxBound);
 		}
 		break;
 	default:
 		m_minimumBound = minBound;
 		m_maximumBound = maxBound;
+		m_minimumSine = 0.f;
+		m_maximumSine = 0.f;
 		break;
 	}
 
@@ -153,9 +159,9 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		KX_GameObject  *obj = (KX_GameObject*) GetParent();
 		MT_Point3    position = obj->NodeGetWorldPosition();
 		MT_Point3    newposition;
-		MT_Vector3   direction;
+		MT_Vector3   direction, refDirection;
 		MT_Matrix3x3 rotation = obj->NodeGetWorldOrientation();
-		MT_Scalar    filter, newdistance;
+		MT_Scalar    filter, newdistance, cosangle;
 		int axis, sign;
 
 		if (m_posDampTime) {
@@ -178,16 +184,52 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				direction[2] = rotation[2][1];
 				axis = 1;
 				break;
-			case KX_ACT_CONSTRAINT_ORIZ:
+			default:
 				direction[0] = rotation[0][2];
 				direction[1] = rotation[1][2];
 				direction[2] = rotation[2][2];
 				axis = 2;
 				break;
 			}
-			// apply damping on the direction
+			if ((m_maximumBound < (1.0f-FLT_EPSILON)) || (m_minimumBound < (1.0f-FLT_EPSILON))) {
+				// reference direction needs to be evaluated
+				// 1. get the cosine between current direction and target
+				cosangle = direction.dot(m_refDirection);
+				if (cosangle >= (m_maximumBound-FLT_EPSILON) && cosangle <= (m_minimumBound+FLT_EPSILON)) {
+					// no change to do
+					result = true;
+					goto CHECK_TIME;
+				}
+				// 2. define a new reference direction
+				//    compute local axis with reference direction as X and
+				//    Y in direction X refDirection plane
+				MT_Vector3 zaxis = m_refDirection.cross(direction);
+				if (MT_fuzzyZero2(zaxis.length2())) {
+					// direction and refDirection are identical,
+					// choose any other direction to define plane
+					if (direction[0] < 0.9999)
+						zaxis = m_refDirection.cross(MT_Vector3(1.0,0.0,0.0));
+					else
+						zaxis = m_refDirection.cross(MT_Vector3(0.0,1.0,0.0));
+				}
+				MT_Vector3 yaxis = zaxis.cross(m_refDirection);
+				yaxis.normalize();
+				if (cosangle > m_minimumBound) {
+					// angle is too close to reference direction,
+					// choose a new reference that is exactly at minimum angle
+					refDirection = m_minimumBound * m_refDirection + m_minimumSine * yaxis;
+				} else {
+					// angle is too large, choose new reference direction at maximum angle
+					refDirection = m_maximumBound * m_refDirection + m_maximumSine * yaxis;
+				}
+			} else {
+				refDirection = m_refDirection;
+			}
 			if (m_posDampTime) {
-				direction = filter*direction + (1.0-filter)*m_refDirection;
+				// apply damping on the direction
+				direction = filter*direction + (1.0-filter)*refDirection;
+			} else {
+				direction = refDirection;
 			}
 			obj->AlignAxisToVect(direction, axis);
 			result = true;
@@ -195,9 +237,9 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_DIRPX:
 		case KX_ACT_CONSTRAINT_DIRPY:
 		case KX_ACT_CONSTRAINT_DIRPZ:
-		case KX_ACT_CONSTRAINT_DIRMX:
-		case KX_ACT_CONSTRAINT_DIRMY:
-		case KX_ACT_CONSTRAINT_DIRMZ:
+		case KX_ACT_CONSTRAINT_DIRNX:
+		case KX_ACT_CONSTRAINT_DIRNY:
+		case KX_ACT_CONSTRAINT_DIRNZ:
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_DIRPX:
 				direction[0] = rotation[0][0];
@@ -220,21 +262,21 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				axis = 2;
 				sign = 1;
 				break;
-			case KX_ACT_CONSTRAINT_DIRMX:
+			case KX_ACT_CONSTRAINT_DIRNX:
 				direction[0] = -rotation[0][0];
 				direction[1] = -rotation[1][0];
 				direction[2] = -rotation[2][0];
 				axis = 0;
 				sign = 0;
 				break;
-			case KX_ACT_CONSTRAINT_DIRMY:
+			case KX_ACT_CONSTRAINT_DIRNY:
 				direction[0] = -rotation[0][1];
 				direction[1] = -rotation[1][1];
 				direction[2] = -rotation[2][1];
 				axis = 1;
 				sign = 0;
 				break;
-			case KX_ACT_CONSTRAINT_DIRMZ:
+			case KX_ACT_CONSTRAINT_DIRNZ:
 				direction[0] = -rotation[0][2];
 				direction[1] = -rotation[1][2];
 				direction[2] = -rotation[2][2];
@@ -395,27 +437,27 @@ PyParentObject KX_ConstraintActuator::Parents[] = {
 
 PyMethodDef KX_ConstraintActuator::Methods[] = {
 	{"setDamp", (PyCFunction) KX_ConstraintActuator::sPySetDamp, METH_VARARGS, SetDamp_doc},
-	{"getDamp", (PyCFunction) KX_ConstraintActuator::sPyGetDamp, METH_VARARGS, GetDamp_doc},
+	{"getDamp", (PyCFunction) KX_ConstraintActuator::sPyGetDamp, METH_NOARGS, GetDamp_doc},
 	{"setRotDamp", (PyCFunction) KX_ConstraintActuator::sPySetRotDamp, METH_VARARGS, SetRotDamp_doc},
-	{"getRotDamp", (PyCFunction) KX_ConstraintActuator::sPyGetRotDamp, METH_VARARGS, GetRotDamp_doc},
+	{"getRotDamp", (PyCFunction) KX_ConstraintActuator::sPyGetRotDamp, METH_NOARGS, GetRotDamp_doc},
 	{"setDirection", (PyCFunction) KX_ConstraintActuator::sPySetDirection, METH_VARARGS, SetDirection_doc},
-	{"getDirection", (PyCFunction) KX_ConstraintActuator::sPyGetDirection, METH_VARARGS, GetDirection_doc},
+	{"getDirection", (PyCFunction) KX_ConstraintActuator::sPyGetDirection, METH_NOARGS, GetDirection_doc},
 	{"setOption", (PyCFunction) KX_ConstraintActuator::sPySetOption, METH_VARARGS, SetOption_doc},
-	{"getOption", (PyCFunction) KX_ConstraintActuator::sPyGetOption, METH_VARARGS, GetOption_doc},
+	{"getOption", (PyCFunction) KX_ConstraintActuator::sPyGetOption, METH_NOARGS, GetOption_doc},
 	{"setTime", (PyCFunction) KX_ConstraintActuator::sPySetTime, METH_VARARGS, SetTime_doc},
-	{"getTime", (PyCFunction) KX_ConstraintActuator::sPyGetTime, METH_VARARGS, GetTime_doc},
+	{"getTime", (PyCFunction) KX_ConstraintActuator::sPyGetTime, METH_NOARGS, GetTime_doc},
 	{"setProperty", (PyCFunction) KX_ConstraintActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getProperty", (PyCFunction) KX_ConstraintActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
+	{"getProperty", (PyCFunction) KX_ConstraintActuator::sPyGetProperty, METH_NOARGS, GetProperty_doc},
 	{"setMin", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, SetMin_doc},
-	{"getMin", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_VARARGS, GetMin_doc},
+	{"getMin", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, GetMin_doc},
 	{"setDistance", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, SetDistance_doc},
-	{"getDistance", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_VARARGS, GetDistance_doc},
+	{"getDistance", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, GetDistance_doc},
 	{"setMax", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, SetMax_doc},
-	{"getMax", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_VARARGS, GetMax_doc},
+	{"getMax", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, GetMax_doc},
 	{"setRayLength", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, SetRayLength_doc},
-	{"getRayLength", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_VARARGS, GetRayLength_doc},
+	{"getRayLength", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, GetRayLength_doc},
 	{"setLimit", (PyCFunction) KX_ConstraintActuator::sPySetLimit, METH_VARARGS, SetLimit_doc},
-	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_VARARGS, GetLimit_doc},
+	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_NOARGS, GetLimit_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -434,6 +476,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 										   PyObject* kwds) {
 	int dampArg;
 	if(!PyArg_ParseTuple(args, "i", &dampArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -446,9 +489,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 char KX_ConstraintActuator::GetDamp_doc[] = 
 "getDamp()\n"
 "\tReturns the damping parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
 	return PyInt_FromLong(m_posDampTime);
 }
 
@@ -463,6 +504,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 										      PyObject* kwds) {
 	int dampArg;
 	if(!PyArg_ParseTuple(args, "i", &dampArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -475,9 +517,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 char KX_ConstraintActuator::GetRotDamp_doc[] = 
 "getRotDamp()\n"
 "\tReturns the damping time for application of the constraint.\n";
-PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self, 
-										      PyObject* args, 
-										      PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
 	return PyInt_FromLong(m_rotDampTime);
 }
 
@@ -494,6 +534,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 	MT_Vector3 dir;
 
 	if(!PyArg_ParseTuple(args, "(fff)", &x, &y, &z)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	dir[0] = x;
@@ -512,9 +553,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 char KX_ConstraintActuator::GetDirection_doc[] = 
 "getDirection()\n"
 "\tReturns the reference direction of the orientation constraint as a 3-tuple.\n";
-PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self, 
-										        PyObject* args, 
-										        PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
 	PyObject *retVal = PyList_New(3);
 
 	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
@@ -538,6 +577,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 										     PyObject* kwds) {
 	int option;
 	if(!PyArg_ParseTuple(args, "i", &option)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -549,9 +589,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 char KX_ConstraintActuator::GetOption_doc[] = 
 "getOption()\n"
 "\tReturns the option parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self, 
-										     PyObject* args, 
-										     PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
 	return PyInt_FromLong(m_option);
 }
 
@@ -567,6 +605,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 										   PyObject* kwds) {
 	int t;
 	if(!PyArg_ParseTuple(args, "i", &t)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -580,9 +619,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 char KX_ConstraintActuator::GetTime_doc[] = 
 "getTime()\n"
 "\tReturns the time parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
 	return PyInt_FromLong(m_activeTime);
 }
 
@@ -597,6 +634,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 										       PyObject* kwds) {
 	char *property;
 	if (!PyArg_ParseTuple(args, "s", &property)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	if (property == NULL) {
@@ -612,9 +650,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 char KX_ConstraintActuator::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturns the property parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self, 
-										       PyObject* args, 
-										       PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
 	return PyString_FromString(m_property);
 }
 
@@ -634,6 +670,7 @@ PyObject* KX_ConstraintActuator::PySetMin(PyObject* self,
 										  PyObject* kwds) {
 	float minArg;
 	if(!PyArg_ParseTuple(args, "f", &minArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 
@@ -659,9 +696,7 @@ char KX_ConstraintActuator::GetMin_doc[] =
 "getMin()\n"
 "\tReturns the lower value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self) {
 	return PyFloat_FromDouble(m_minimumBound);
 }
 
@@ -681,6 +716,7 @@ PyObject* KX_ConstraintActuator::PySetMax(PyObject* self,
 										  PyObject* kwds){
 	float maxArg;
 	if(!PyArg_ParseTuple(args, "f", &maxArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 
@@ -706,9 +742,7 @@ char KX_ConstraintActuator::GetMax_doc[] =
 "getMax()\n"
 "\tReturns the upper value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self) {
 	return PyFloat_FromDouble(m_maximumBound);
 }
 
@@ -736,6 +770,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 											PyObject* kwds) {
 	int locrotArg;
 	if(!PyArg_ParseTuple(args, "i", &locrotArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -747,9 +782,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 char KX_ConstraintActuator::GetLimit_doc[] = 
 "getLimit()\n"
 "\tReturns the type of constraint.\n";
-PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self) {
 	return PyInt_FromLong(m_locrot);
 }
 
