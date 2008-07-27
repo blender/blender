@@ -664,11 +664,12 @@ void gpencil_delete_menu (void)
 /* maximum sizes of gp-session buffer */
 #define GP_STROKE_BUFFER_MAX	5000
 
-	/* 'Hardcoded' sensitivity thresholds... */
-/* minimum number of pixels mouse should move before new point created */
-#define MIN_MMOVE_PX		3	
-/* minimum length of new segment before new point can be added */
-#define MIN_MDIST_PX		20
+/* Hardcoded sensitivity thresholds... */
+// TODO: one day, these might be added to the UI if it is necessary
+	/* minimum number of pixels mouse should move before new point created */
+#define MIN_MANHATTEN_PX		3	
+	/* minimum length of new segment before new point can be added */
+#define MIN_EUCLIDEAN_PX		20
 
 /* ------ */
 
@@ -890,11 +891,11 @@ static short gp_stroke_filtermval (tGPsdata *p, short mval[2], short pmval[2])
 	short dy= abs(mval[1] - pmval[1]);
 	
 	/* check if mouse moved at least certain distance on both axes (best case) */
-	if ((dx > MIN_MMOVE_PX) && (dy > MIN_MMOVE_PX))
+	if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
 		return 1;
 	
 	/* check if the distance since the last point is significant enough */
-	else if (sqrt(dx*dx + dy*dy) > MIN_MDIST_PX)
+	else if (sqrt(dx*dx + dy*dy) > MIN_EUCLIDEAN_PX)
 		return 1;
 	
 	/* mouse 'didn't move' */

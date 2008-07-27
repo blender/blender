@@ -187,10 +187,15 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			sprintf(name, "%s (Locked)", gpl->info);
 		uiDefBut(block, LABEL, 1, name,	*xco+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "Short description of what this layer is for (optional)");
 			
+		/* delete button (only if hidden but not locked!) */
+		if ((gpl->flag & GP_LAYER_HIDE) & !(gpl->flag & GP_LAYER_LOCKED)) {
+			but= uiDefIconBut(block, BUT, B_REDR, ICON_X, *xco+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
+			uiButSetFunc(but, gp_ui_dellayer_cb, gpd, NULL);
+		}	
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else {
-		height= 100;
+		height= 97;
 		
 		/* draw rest of header */
 		{
