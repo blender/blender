@@ -1,6 +1,13 @@
 #include "BPy_UnaryFunction1D.h"
 
-#include "BPy_Convert.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DDouble.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DEdgeNature.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DFloat.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DUnsigned.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DVec2f.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DVec3f.h"
+#include "UnaryFunction1D/BPy_UnaryFunction1DVectorViewShape.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,17 +16,11 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction1D instance  -----------*/
-static int UnaryFunction1D___init__(BPy_UnaryFunction1D *self, PyObject *args, PyObject *kwds);
 static void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D *self);
 static PyObject * UnaryFunction1D___repr__(BPy_UnaryFunction1D *self);
 
-static PyObject * UnaryFunction1D_getName( BPy_UnaryFunction1D *self, PyObject *args);
-static PyObject * UnaryFunction1D___call__( BPy_UnaryFunction1D *self, PyObject *args);
-
 /*----------------------UnaryFunction1D instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction1D_methods[] = {
-	{"getName", ( PyCFunction ) UnaryFunction1D_getName, METH_NOARGS, ""},
-	{"__call__", ( PyCFunction ) UnaryFunction1D___call__, METH_VARARGS, "" },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -73,7 +74,7 @@ PyTypeObject UnaryFunction1D_Type = {
 	NULL,                       /* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
-	NULL,                          /* long tp_weaklistoffset; */
+	0,                          /* long tp_weaklistoffset; */
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
@@ -88,8 +89,8 @@ PyTypeObject UnaryFunction1D_Type = {
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
-	NULL,                          	/* long tp_dictoffset; */
-	(initproc)UnaryFunction1D___init__, /* initproc tp_init; */
+	0,                          	/* long tp_dictoffset; */
+	NULL, /* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	PyType_GenericNew,		/* newfunc tp_new; */
 	
@@ -118,55 +119,28 @@ PyMODINIT_FUNC UnaryFunction1D_Init( PyObject *module )
 		return;
 	Py_INCREF( &UnaryFunction1D_Type );
 	PyModule_AddObject(module, "UnaryFunction1D", (PyObject *)&UnaryFunction1D_Type);
+
+	UnaryFunction1DDouble_Init( module );
+	UnaryFunction1DEdgeNature_Init( module );
+	UnaryFunction1DFloat_Init( module );
+	UnaryFunction1DUnsigned_Init( module );
+	UnaryFunction1DVec2f_Init( module );
+	UnaryFunction1DVec3f_Init( module );
+	UnaryFunction1DVectorViewShape_Init( module );
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction1D___init__(BPy_UnaryFunction1D *self, PyObject *args, PyObject *kwds)
-{
-	return 0;
-}
-
 void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D* self)
 {
-	//delete self->uf1D;
     self->ob_type->tp_free((PyObject*)self);
 }
 
 
 PyObject * UnaryFunction1D___repr__(BPy_UnaryFunction1D* self)
 {
-    return PyString_FromFormat("type: %s - address: %p", ((UnaryFunction1D<void> *) self->uf1D)->getName().c_str(), self->uf1D );
+    return PyString_FromString("UnaryFunction1D");
 }
-
-
-PyObject * UnaryFunction1D_getName( BPy_UnaryFunction1D *self, PyObject *args)
-{
-	return PyString_FromString( ((UnaryFunction1D<void> *) self->uf1D)->getName().c_str() );
-}
-
-PyObject * UnaryFunction1D___call__( BPy_UnaryFunction1D *self, PyObject *args)
-{
-	PyObject *l;
-
-	if( !PyArg_ParseTuple(args, "O", &l) ) {
-		cout << "ERROR: UnaryFunction1D___call__ " << endl;		
-		return NULL;
-	}
-	
-	// pb: operator() is called on Interface0DIterator while we have a list
-	// solutions:
-	// 1)reconvert back to iterator ?
-	// 2) adapt interface0d to have t(), u() functions
-	
-	// b = self->bp0D->operator()( *(obj1->uf0D) );
-	// return PyBool_from_bool( b );
-	
-	Py_RETURN_NONE;
-}
-
-// void 	setIntegrationType (IntegrationType integration)
-// IntegrationType 	getIntegrationType () const
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

@@ -58,10 +58,13 @@ PyObject * Vector_from_Vec2f( Vec2f& v );
 PyObject * Vector_from_Vec3f( Vec3f& v );
 PyObject * Vector_from_Vec3r( Vec3r& v );
 
+IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj );
+
 PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
+PyObject * BPy_IntegrationType_from_IntegrationType( int i );
 PyObject * BPy_FrsMaterial_from_Material( Material& m );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );

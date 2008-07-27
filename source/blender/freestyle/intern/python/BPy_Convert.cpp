@@ -189,6 +189,22 @@ PyObject * BPy_FrsMaterial_from_Material( Material& m ){
 	return py_m;
 }
 
+PyObject * BPy_IntegrationType_from_IntegrationType( int i ) {
+	PyObject *py_it = IntegrationType_Type.tp_new( &IntegrationType_Type, 0, 0 );
+
+	PyObject *args = PyTuple_New(1);
+	PyTuple_SetItem( args, 0, PyInt_FromLong(i) );
+	IntegrationType_Type.tp_init( py_it, args, 0 );
+	Py_DECREF(args);
+
+	return py_it;
+}
+
+IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {
+	return static_cast<IntegrationType>( PyInt_AsLong(obj) );
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

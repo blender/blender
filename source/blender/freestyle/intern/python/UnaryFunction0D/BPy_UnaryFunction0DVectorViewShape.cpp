@@ -168,7 +168,7 @@ PyObject * UnaryFunction0DVectorViewShape___call__( BPy_UnaryFunction0DVectorVie
 	std::vector<ViewShape*> vs( self->uf0D_vectorviewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
 	PyObject *list = PyList_New(NULL);
 	
-	for( int i = 0; i < vs.size(); i++)
+	for( unsigned int i = 0; i < vs.size(); i++)
 		PyList_Append(list, BPy_ViewShape_from_ViewShape(*( vs[i] )) );
 	
 	return list;
