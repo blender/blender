@@ -1,6 +1,6 @@
 #include "BPy_UnaryFunction0D.h"
 
-#include "BPy_Convert.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DDouble.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,17 +9,11 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0D instance  -----------*/
-static int UnaryFunction0D___init__(BPy_UnaryFunction0D *self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0D___dealloc__(BPy_UnaryFunction0D *self);
 static PyObject * UnaryFunction0D___repr__(BPy_UnaryFunction0D *self);
 
-static PyObject * UnaryFunction0D_getName( BPy_UnaryFunction0D *self, PyObject *args);
-static PyObject * UnaryFunction0D___call__( BPy_UnaryFunction0D *self, PyObject *args);
-
 /*----------------------UnaryFunction0D instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction0D_methods[] = {
-	{"getName", ( PyCFunction ) UnaryFunction0D_getName, METH_NOARGS, ""},
-	{"__call__", ( PyCFunction ) UnaryFunction0D___call__, METH_VARARGS, "" },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -89,7 +83,7 @@ PyTypeObject UnaryFunction0D_Type = {
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)UnaryFunction0D___init__, /* initproc tp_init; */
+	NULL, /* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	PyType_GenericNew,		/* newfunc tp_new; */
 	
@@ -118,53 +112,22 @@ PyMODINIT_FUNC UnaryFunction0D_Init( PyObject *module )
 		return;
 	Py_INCREF( &UnaryFunction0D_Type );
 	PyModule_AddObject(module, "UnaryFunction0D", (PyObject *)&UnaryFunction0D_Type);
+
+	UnaryFunction0DDouble_Init( module );
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0D___init__(BPy_UnaryFunction0D *self, PyObject *args, PyObject *kwds)
-{
-	return 0;
-}
-
 void UnaryFunction0D___dealloc__(BPy_UnaryFunction0D* self)
 {
-	//delete self->uf0D;
     self->ob_type->tp_free((PyObject*)self);
 }
 
 
 PyObject * UnaryFunction0D___repr__(BPy_UnaryFunction0D* self)
 {
-    return PyString_FromFormat("type: %s - address: %p", ((UnaryFunction0D<void> *) self->uf0D)->getName().c_str(), self->uf0D );
+    return PyString_FromString("UnaryFunction0D");
 }
-
-
-PyObject * UnaryFunction0D_getName( BPy_UnaryFunction0D *self, PyObject *args)
-{
-	return PyString_FromString( ((UnaryFunction0D<void> *) self->uf0D)->getName().c_str() );
-}
-
-PyObject * UnaryFunction0D___call__( BPy_UnaryFunction0D *self, PyObject *args)
-{
-	PyObject *l;
-
-	if( !PyArg_ParseTuple(args, "O", &l) ) {
-		cout << "ERROR: UnaryFunction0D___call__ " << endl;		
-		return NULL;
-	}
-	
-	// pb: operator() is called on Interface0DIterator while we have a list
-	// solutions:
-	// 1)reconvert back to iterator ?
-	// 2) adapt interface0d to have t(), u() functions
-	
-	// b = self->bp0D->operator()( *(obj1->uf0D) );
-	// return PyBool_from_bool( b );
-	
-	Py_RETURN_NONE;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

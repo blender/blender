@@ -18,7 +18,6 @@ extern PyTypeObject UnaryFunction0D_Type;
 /*---------------------------Python BPy_UnaryFunction0D structure definition----------*/
 typedef struct {
 	PyObject_HEAD
-	void *uf0D;
 } BPy_UnaryFunction0D;
 
 /*---------------------------Python BPy_UnaryFunction0D visible prototypes-----------*/
