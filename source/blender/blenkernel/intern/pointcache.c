@@ -166,11 +166,13 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 			BKE_ptcache_id_from_cloth(pid, ob, (ClothModifierData*)md);
 			BLI_addtail(lb, pid);
 		}
+		/*
 		else if(md->type == eModifierType_Fluidsim) {
 			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
 			BKE_ptcache_id_from_fluidsim(pid, ob, (FluidsimModifierData*)md);
 			BLI_addtail(lb, pid);
 		}
+		*/
 	}
 }
 
