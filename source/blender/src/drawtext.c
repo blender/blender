@@ -695,17 +695,17 @@ static void draw_cursor(SpaceText *st) {
 
 	}
 
-	/* Draw the cursor itself */
-	x= text_draw(st, text->curl->line, st->left, text->curc, 0, 0, 0, NULL);
+	/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
+	x= text_draw(st, text->sell->line, st->left, text->selc, 0, 0, 0, NULL);
 	
 	if (x) {
 		offl= offc= 0;
-		if (st->wordwrap) wrap_offset(st, text->curl, text->curc, &offl, &offc);
+		if (st->wordwrap) wrap_offset(st, text->sell, text->selc, &offl, &offc);
 		x += offc*spacetext_get_fontwidth(st);
-		h= txt_get_span(text->lines.first, text->curl) - st->top + offl;
+		h= txt_get_span(text->lines.first, text->sell) - st->top + offl;
 
 		if (st->overwrite) {
-			ch[0]= (unsigned char) text->curl->line[text->curc];
+			ch[0]= (unsigned char) text->sell->line[text->selc];
 			if (ch[0]=='\0') ch[0]=' ';
 			ch[1]= '\0';
 			w= BMF_GetStringWidth(spacetext_get_font(st), ch);

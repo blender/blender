@@ -1712,7 +1712,6 @@ void txt_do_undo(Text *text)
 
 		case UNDO_SWAP:
 			txt_curs_swap(text);
-			txt_do_undo(text); /* swaps should appear transparent */
 			break;
 
 		case UNDO_DBLOCK:
@@ -1829,9 +1828,16 @@ void txt_do_undo(Text *text)
 	}
 
 	/* next undo step may need evaluating */
-	if (text->undo_pos>=0 && text->undo_buf[text->undo_pos] == UNDO_STO) {
-		txt_do_undo(text);
-		txt_do_redo(text); /* selections need restoring */
+	if (text->undo_pos>=0) {
+		switch (text->undo_buf[text->undo_pos]) {
+			case UNDO_STO:
+				txt_do_undo(text);
+				txt_do_redo(text); /* selections need restoring */
+				break;
+			case UNDO_SWAP:
+				txt_do_undo(text); /* swaps should appear transparent */
+				break;
+		}
 	}
 	
 	undoing= 0;	
