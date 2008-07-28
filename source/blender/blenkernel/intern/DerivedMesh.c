@@ -1904,7 +1904,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			}
 			
 			/* grab modifiers until index i */
-			if(modifiers_indexInObject(ob, md) >= index)
+			if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
 				break;
 		}
 
@@ -2060,7 +2060,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		}
 		
 		/* grab modifiers until index i */
-		if(modifiers_indexInObject(ob, md) >= index)
+		if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
 			break;
 	}
 
