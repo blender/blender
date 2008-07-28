@@ -129,7 +129,7 @@ void do_text_buttons(unsigned short event)
 				st->top= 0;
 				
 				pop_space_text(st);
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 				allqueue(REDRAWTEXT, 0);
 				allqueue(REDRAWHEADERS, 0);
 			}
@@ -195,14 +195,12 @@ void do_text_buttons(unsigned short event)
 
 		break;
 	case B_TAB_NUMBERS:
-		if (st->showsyntax) get_format_string(st);
+		if (st->showsyntax) txt_format_text(st);
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	case B_SYNTAX:
-		if (st->showsyntax) {
-			get_format_string(st);
-		}
+		if (st->showsyntax) txt_format_text(st);
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -304,7 +302,7 @@ static void do_text_filemenu(void *arg, int event)
 				if (!reopen_text(text)) {
 					error("Could not reopen file");
 				}
-			if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 			}
 		break;
 	case 5:
@@ -399,7 +397,7 @@ static void do_text_editmenu(void *arg, int event)
 			break;
 		}
 		txt_paste_clipboard(text);
-		if (st->showsyntax) get_format_string(st);
+		if (st->showsyntax) txt_format_text(st);
 		break;
 	case 6:
 		txt_print_cutbuffer();
@@ -538,7 +536,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			comment(text);
-			if (st->showsyntax) get_format_string(st);
+			if (st->showsyntax) txt_format_text(st);
 			break;
 		}
 		break;
@@ -550,7 +548,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			uncomment(text);
-			if (st->showsyntax) get_format_string(st);
+			if (st->showsyntax) txt_format_text(st);
 			break;
 		}
 		break;

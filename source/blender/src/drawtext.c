@@ -134,10 +134,10 @@ void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *ev
 void txt_copy_selectbuffer (Text *text);
 void do_brackets();
 
-void get_selection_buffer(Text *text);
-int check_bracket(char *string);
-static int check_delim(char *string);
-static int check_numbers(char *string);
+static void get_selection_buffer(Text *text);
+static int check_bracket(char ch);
+static int check_delim(char ch);
+static int check_digit(char ch);
 static int check_builtinfuncs(char *string);
 static int check_specialvars(char *string);
 static int check_identifier(char ch);
@@ -237,349 +237,203 @@ static int render_string (SpaceText *st, char *in) {
 	return r;
 }
 
-void get_format_string(SpaceText *st) 
+static int find_builtinfunc(char *string)
 {
-	Text *text = st->text;
-	TextLine *tmp;
-	char *in_line;
-	char format[2000], check[200], other[2];
-	unsigned char c;
-	int spot, letter, tabs, mem_amount;
-	size_t a, b, len;
-	
-	if(!text) return;
-	tmp = text->lines.first;
-	
-	while(tmp) {
-		in_line = tmp->line;
-		
-		len = strlen(in_line);
-		/* weak code... but we dont want crashes (ton) */
-		if(len>2000-1) {
-			if (tmp->format) MEM_freeN(tmp->format);
-			tmp->format= NULL;
-		}
-		else {
-			
-			spot = 0;
-			tabs = 0;
-			//see how many tabs we have
-			for(a = 0; a <len; a++) {
-				c = (unsigned char) in_line[a];
-				if(c == '\t') {
-					tabs++;
-				}
+	int a, i;
+	char builtinfuncs[][11] = {"and", "as", "assert", "break", "class", "continue", "def",
+								"del", "elif", "else", "except", "exec", "finally",
+								"for", "from", "global", "if", "import", "in",
+								"is", "lambda", "not", "or", "pass", "print",
+								"raise", "return", "try", "while", "yield"};
+	for (a=0; a<30; a++) {
+		i = 0;
+		while (1) {
+			if (builtinfuncs[a][i]=='\0') {
+				if (check_identifier(string[i]))
+					i = -1;
+				break;
+			} else if (string[i]!=builtinfuncs[a][i]) {
+				i = -1;
+				break;
 			}
-			//calculate the amount of MEM_mallocN we neen
-			mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len; // +2 for good measure
-			if (tmp->format) MEM_freeN(tmp->format);
-			tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-			
-			for (a = 0; a < len; a++) {
-				c = (unsigned char) in_line[a];
-
-				check[0] = c;
-				check[1] = '\0';
-
-				if (check_delim(check))
-				{
-					switch (c) {
-						case '\"':
-							if(in_line[a] == '\"' && in_line[a+1] == '\"' && in_line[a+2] == '\"') { 
-								format[spot] = format[spot+1] = format[spot+2] = 'l';
-								spot +=3;
-								a += 3;
-								while(in_line[a] != '\"' || in_line[a-1] != '\"' || in_line[a-2] != '\"') {
-									c = (unsigned char) in_line[a];
-									if(a >= len) {
-										format[spot] = '\0';
-										memcpy(tmp->format, format, strlen(format));
-										if(!(tmp= tmp->next)) {
-											return;
-										} else {
-											in_line = tmp->line;
-											len = strlen(in_line);
-											tabs = 0;
-											for(b = 0; b <len; b++) {
-												c = (unsigned char) in_line[b];
-												if(c == '\t') {
-													tabs++;
-												}
-											}
-											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-											if (tmp->format) MEM_freeN(tmp->format);
-											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-											a = 0; spot = 0;
-										}
-									} else {
-										if(c == '\t' || c == ' ') {
-											if(c == '\t') {
-												for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-													format[spot] = ' ';
-													spot++;
-												}
-												a++;
-											} else {
-												format[spot] = ' ';
-												a++; spot++;
-										}
-										} else {
-											format[spot] = 'l';
-											a++; spot++;
-										}
-									}
-								}
-								format[spot] = 'l';
-								spot++;
-							} else {
-								format[spot] = 'l';
-								a++; spot++;
-								while(in_line[a] != '\"') {
-									c = (unsigned char) in_line[a];
-									if(a >= len) {
-										format[spot] = '\0';
-										memcpy(tmp->format, format, strlen(format));
-										if(!(tmp= tmp->next)) {
-											return;
-										} else {
-											in_line = tmp->line;
-											len = strlen(in_line);
-											for(b = 0; b <len; b++) {
-												c = (unsigned char) in_line[b];
-												if(c == '\t') {
-													tabs++;
-												}
-											}
-											//calculate the amount of MEM_mallocN we neen
-											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-											if (tmp->format) MEM_freeN(tmp->format);
-											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-											a = 0; spot = 0;
-										}
-									}
-									if(c == '\t' || c == ' ') {
-										if(c == '\t') {
-											for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-												format[spot] = ' ';
-												spot++;
-											}
-											a++;
-										} else {
-											format[spot] = ' ';
-											a++; spot++;
-										}
-									} else {
-										format[spot] = 'l';
-										a++; spot++;
-									}
-								}
-								format[spot] = 'l';
-								spot++;
-							}
-							break;
-						case '\'':
-							if(in_line[a] == '\'' && in_line[a+1] == '\'' && in_line[a+2] == '\'') { 
-								format[spot] = format[spot+1] = format[spot+2] = 'l';
-								spot +=3;
-								a += 3;
-								while(in_line[a] != '\'' || in_line[a-1] != '\'' || in_line[a-2] != '\'') {
-									c = (unsigned char) in_line[a];
-									if(a >= len) {
-										format[spot] = '\0';
-										memcpy(tmp->format, format, strlen(format));
-										if(!(tmp= tmp->next)) {
-											return;
-										} else {
-											in_line = tmp->line;
-											len = strlen(in_line);
-											tabs = 0;
-											for(b = 0; b <len; b++) {
-												c = (unsigned char) in_line[b];
-												if(c == '\t') {
-													tabs++;
-												}
-											}
-											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-											if (tmp->format) MEM_freeN(tmp->format);
-											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-											a = 0; spot = 0;
-										}
-									} else {
-										if(c == '\t' || c == ' ') {
-											if(c == '\t') {
-												for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-													format[spot] = ' ';
-													spot++;
-												}
-												a++;
-											} else {
-												format[spot] = ' ';
-												a++; spot++;
-											}
-										} else {
-											format[spot] = 'l';
-											a++; spot++;
-										}
-									}
-								}
-								format[spot] = 'l';
-								spot++;
-							} else {
-								format[spot] = 'l';
-								a++; spot++;
-								while(in_line[a] != '\'') {
-									c = (unsigned char) in_line[a];
-									if(a >= len) {
-										format[spot] = '\0';
-										memcpy(tmp->format, format, strlen(format));
-										if(!(tmp= tmp->next)) {
-											return;
-										} else {
-											in_line = tmp->line;
-											len = strlen(in_line);
-											for(b = 0; b <len; b++) {
-												c = (unsigned char) in_line[b];
-												if(c == '\t') {
-													tabs++;
-												}
-											}
-											//calculate the amount of MEM_mallocN we neen
-											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-											if (tmp->format) MEM_freeN(tmp->format);
-											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-											a = 0; spot = 0;
-										}
-									}
-									if(c == '\t' || c == ' ') {
-										if(c == '\t') {
-											for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-												format[spot] = ' ';
-												spot++;
-											}
-											a++;
-										} else {
-											format[spot] = ' ';
-											a++; spot++;
-										}
-									} else {
-										format[spot] = 'l';
-										a++; spot++;
-									}
-								}
-								format[spot] = 'l';
-								spot++;
-							}
-							break;
-						case '#':
-							while(a<len) {
-								c = (unsigned char) in_line[a];
-								if(c == '\t' || c == ' ') {
-									if(c == '\t') {
-										for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-											format[spot] = '#';
-											spot++;
-										}
-										a++;
-									} else {
-										format[spot] = '#';
-										a++; spot++;
-									}
-								} else {
-									format[spot] = '#';
-									a++; spot++;
-								}
-							}
-							break;
-						case ' ':
-							format[spot] = ' ';
-							spot++;
-							break;
-						case '\t':
-							for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-								format[spot] = ' ';
-								spot++;
-							}
-							break;
-						default:
-							format[spot] = 'q';
-							spot++;
-							 
-							break;
-					}
-				} else if (check_numbers(check)) {
-					while (a < len) {
-						c = (unsigned char) in_line[a];
-						other[0] = c;
-						other[1] = '\0';
-						if (check_delim(other) && c != '.') {
-							a--; break;
-						} else {
-							format[spot] = 'n';
-							a++; spot++;
-						}
-					}
-				} else {
-					letter = 0;
-					while (a < len) {
-						c = (unsigned char) in_line[a];
-						other[0] = c;
-						other[1] = '\0';
-						if (check_delim(other)) {
-							a--; 
-							break;
-						} else {
-							check[letter] = (unsigned char) in_line[a];
-							letter++; 
-							a++;
-						}
-					}
-					check[letter] = '\0';
-					if (check_builtinfuncs(check)) {
-						for (b = 0; b < strlen(check); b++) {
-							format[spot] = 'b'; 
-							spot++;
-						}
-					} else if (check_specialvars(check)) { /*If TRUE then color and color next word*/
-						for (b = 0; b < strlen(check); b++) {
-							format[spot] = 'b';
-							spot++;
-						}
-						a++;
-						format[spot] = 'q';
-						spot++; a++;
-						letter = 0;
-						while (a < len) {
-							c = (unsigned char) in_line[a];
-							other[0] = c;
-							other[1] = '\0';
-							if (check_delim(other)) {
-								a--; 
-								break;
-							} else {
-								check[letter] = (unsigned char) in_line[a];
-								letter++; 
-								a++;
-							}
-						}
-						check[letter] = '\0';
-						for (b = 0; b < strlen(check); b++) {
-							format[spot] = 'v';
-							spot++;
-						}
-					}else {
-						for (b = 0; b < strlen(check); b++) {
-							format[spot] = 'q';
-							spot++;
-						}
-					}
-				}
-			}
-			format[spot] = '\0';
-			memcpy(tmp->format, format, strlen(format));
+			i++;
 		}
-		
-		tmp = tmp->next;
+		if (i>0) break;
 	}
+	return i;
+}
+
+static int find_specialvar(char *string) 
+{
+	int i = 0;
+	if (string[0]=='d' && string[1]=='e' && string[2]=='f')
+		i = 3;
+	else if (string[0]=='c' && string[1]=='l' && string[2]=='a' && string[3]=='s' && string[4]=='s')
+		i = 5;
+	if (i==0 || check_identifier(string[i]))
+		return -1;
+	return i;
+}
+
+static void print_format(SpaceText *st, TextLine *line) {
+	int i, a;
+	char *s, *f;
+	s = line->line;
+	f = line->format;
+	for (a=0; *s; s++) {
+		if (*s == '\t') {
+			for (i=st->tabnumber-(a%st->tabnumber); i>0; i--)
+				printf(" "), f++, a++;
+		} else
+			printf("%c", *s), f++, a++;
+	}
+	printf("\n%s [%#x]\n", line->format, (int) (f[strlen(f)+1]));
+}
+
+/* Ensures the format string for the given line is long enough, reallocating as needed */
+static int check_format_len(TextLine *line, unsigned int len) {
+	if (line->format) {
+		if (strlen(line->format) < len) {
+			MEM_freeN(line->format);
+			line->format = MEM_mallocN(len+2, "SyntaxFormat");
+			if (!line->format) return 0;
+		}
+	} else {
+		line->format = MEM_mallocN(len+2, "SyntaxFormat");
+		if (!line->format) return 0;
+	}
+	return 1;
+}
+
+/* Formats the specified line and if allowed and needed will move on to the
+ * next line. The format string contains the following characters:
+ *		'_'		Whitespace
+ *		'#'		Comment text
+ *		'!'		Punctuation and other symbols
+ *		'n'		Numerals
+ *		'l'		String letters
+ *		'v'		Special variables (class, def)
+ *		'b'		Built-in names (print, for, etc.)
+ *		'q'		Other text (identifiers, etc.)
+ * It is terminated with a null-terminator '\0' followed by a continuation
+ * flag indicating whether the line is part of a multi-line string.
+ */
+void txt_format_line(SpaceText *st, TextLine *line, int do_next) {
+	char *str, *fmt, orig, cont, find, prev = ' ';
+	int len, i;
+
+	/* Get continuation from previous line */
+	if (line->prev && (fmt=line->prev->format)) {
+		cont = fmt[strlen(fmt)+1]; /* Just after the null-terminator */
+	} else cont = 0;
+
+	/* Get original continuation from this line */
+	if (fmt=line->format) {
+		orig = fmt[strlen(fmt)+1]; /* Just after the null-terminator */
+	} else orig = 0xFF;
+
+	render_string(st, line->line);
+	str = temp_char_buf;
+	len = strlen(str);
+	if (!check_format_len(line, len)) return;
+	fmt = line->format;
+
+	while (*str) {
+		/* Handle escape sequences by skipping both \ and next char */
+		if (*str == '\\') {
+			*fmt = prev; fmt++; str++;
+			if (*str == '\0') break;
+			*fmt = prev; fmt++; str++;
+			continue;
+		}
+		/* Handle continuations */
+		else if (cont) {
+			/* Triple strings ("""...""" or '''...''') */
+			if (cont & TXT_TRISTR) {
+				find = (cont & TXT_DBLQUOTSTR) ? '"' : '\'';
+				if (*str==find && *(str+1)==find && *(str+2)==find) {
+					*fmt = 'l'; fmt++; str++;
+					*fmt = 'l'; fmt++; str++;
+					cont = 0;
+				}
+			/* Handle other strings */
+			} else {
+				find = (cont & TXT_DBLQUOTSTR) ? '"' : '\'';
+				if (*str == find) cont = 0;
+			}
+			*fmt = 'l';
+		}
+		/* Not in a string... */
+		else {
+			/* Deal with comments first */
+			if (prev == '#' || *str == '#')
+				*fmt = '#';
+			/* Strings */
+			else if (*str == '"' || *str == '\'') {
+				find = *str;
+				cont = (*str== '"') ? TXT_DBLQUOTSTR : TXT_SNGQUOTSTR;
+				if (*(str+1) == find && *(str+2) == find) {
+					*fmt = 'l'; fmt++; str++;
+					*fmt = 'l'; fmt++; str++;
+					cont |= TXT_TRISTR;
+				}
+				*fmt = 'l';
+			}
+			/* Whitespace (all ws. has been converted to spaces) */
+			else if (*str == ' ')
+				*fmt = '_';
+			/* Numbers (digits not part of an identifier and periods followed by digits) */
+			else if ((prev != 'q' && check_digit(*str)) || (*str == '.' && check_digit(*(str+1))))
+				*fmt = 'n';
+			/* Punctuation */
+			else if (check_delim(*str))
+				*fmt = '!';
+			/* Identifiers and other text (no previous ws. or delims. so text continues) */
+			else if (prev == 'q')
+				*fmt = 'q';
+			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
+			else {
+				/* Special vars(v) or built-in keywords(b) */
+				if ((i=find_specialvar(str)) != -1)
+					prev = 'v';
+				else if ((i=find_builtinfunc(str)) != -1)
+					prev = 'b';
+				if (i>0) {
+					while (i>1) {
+						*fmt = prev; *fmt++; *str++;
+						i--;
+					}
+					*fmt = prev;
+				} else
+					*fmt = 'q';
+			}
+		}
+		prev = *fmt;
+		fmt++;
+		str++;
+	}
+
+	/* Terminate and add continuation char */
+	*fmt = '\0'; fmt++;
+	*fmt = cont;
+
+	/* Debugging */
+	//print_format(st, line);
+
+	/* If continuation has changed and we're allowed, process the next line */
+	if (cont!=orig && do_next && line->next) {
+		txt_format_line(st, line->next, do_next);
+	}
+}
+
+void txt_format_text(SpaceText *st) 
+{
+	TextLine *linep;
+
+	if (!st->text) return;
+
+	for (linep=st->text->lines.first; linep; linep=linep->next)
+		txt_format_line(st, linep, 0);
 }
 
 static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format) {
@@ -606,24 +460,27 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 				out[0] = (unsigned char) in[a]; 
 				out[1] = '\0';
 				switch (format[a]) {
-					case 'l':
-						BIF_ThemeColor(TH_SYNTAX_L);
+					case '_': /* Whitespace */
 						break;
-					case 'b':
-						BIF_ThemeColor(TH_SYNTAX_B);
+					case '!': /* Symbols */
+						BIF_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
 						break;
-					case '#':
+					case '#': /* Comments */
 						BIF_ThemeColor(TH_SYNTAX_C);
 						break;
-					case 'v': 
-						BIF_ThemeColor(TH_SYNTAX_V);
-						break;
-					case 'n':
+					case 'n': /* Numerals */
 						BIF_ThemeColor(TH_SYNTAX_N);
 						break;
-					case 'q':
-						BIF_ThemeColor(TH_TEXT);
+					case 'l': /* Strings */
+						BIF_ThemeColor(TH_SYNTAX_L);
 						break;
+					case 'v': /* Specials: class, def */
+						BIF_ThemeColor(TH_SYNTAX_V);
+						break;
+					case 'b': /* Keywords: for, print, etc. */
+						BIF_ThemeColor(TH_SYNTAX_B);
+						break;
+					case 'q': /* Other text (identifiers) */
 					default:
 						BIF_ThemeColor(TH_TEXT);
 						break;
@@ -1395,12 +1252,6 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 		tmp= tmp->next;
 		linecount++;
 	}
-	
-	if(st->showsyntax) {
-		if (tmp && !tmp->format) {
-			get_format_string(st);
-		}
-	}
 
 	y= curarea->winy-st->lheight;
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
@@ -1408,6 +1259,9 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	wrapbuf= MEM_mallocN(max+1, "wrapbuffer");
 
 	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next) {
+		if (st->showsyntax && !tmp->format) {
+			txt_format_line(st, tmp, 0);
+		}
 		if(st->showlinenrs) {
 			/*Change the color of the current line the cursor is on*/
 			if(tmp == text->curl) { 
@@ -1502,7 +1356,7 @@ void add_text_fs(char *file) /* bad but cant pass an as arg here */
 
 	st->top= 0;
 
-	if (st->showsyntax) get_format_string(st);
+	if (st->showsyntax) txt_format_text(st);
 	allqueue(REDRAWTEXT, 0);
 	allqueue(REDRAWHEADERS, 0);	
 }
@@ -1913,7 +1767,7 @@ void txt_find_panel(SpaceText *st, int again, int flags)
 				tmp= txt_sel_to_buf(text);
 				if (strcmp(buf, tmp)==0) { /* Searching for same thing? */
 					txt_insert_buf(text, repbuf);
-					if (st->showsyntax) get_format_string(st);
+					if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				}
 				MEM_freeN(tmp);
 				tmp= NULL;
@@ -2229,13 +2083,13 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			error_libdata();
 
 		} else if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
-			if (st->showsyntax) get_format_string(st);
+			if (st->showsyntax) txt_format_line(st, text->curl, 1);
 			pop_space_text(st);
 			do_draw= 1;
 			if (tools & TOOL_SUGG_LIST) {
 				if ((ascii != '_' && ascii != '*' && ispunct(ascii)) || check_whitespace(ascii)) {
 					confirm_suggestion(text, 1);
-					if (st->showsyntax) get_format_string(st);
+					if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				} else {
 					tools_update |= TOOL_SUGG_LIST;
 				}
@@ -2280,11 +2134,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				txt_order_cursors(text);
 				uncomment(text);
 				do_draw = 1;
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 				break;
 			} else if (G.qual == LR_CTRLKEY) {
 				txt_delete_char(text);
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				do_draw= 1;
 				pop_space_text(st);
 			}
@@ -2313,7 +2167,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					//txt_paste(text);
 					txt_paste_clipboard(text);
-					if (st->showsyntax) get_format_string(st);
+					if (st->showsyntax) txt_format_text(st);
 					do_draw= 1;
 					break;
 				case 3:
@@ -2409,7 +2263,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (okee("Reopen text")) {
 					if (!reopen_text(text))
 						error("Could not reopen file");
-				if (st->showsyntax) get_format_string(st);
+					if (st->showsyntax) txt_format_text(st);
 				}
 				do_draw= 1;	
 			}
@@ -2453,7 +2307,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (G.qual == LR_ALTKEY) {
 				txt_do_undo(text);
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 				do_draw= 1;
 			}
 			break; /* BREAK U */
@@ -2491,7 +2345,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					txt_paste_clipboard(text);
 				else
 					txt_paste_clipboard(text);
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
@@ -2503,7 +2357,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				}
 				txt_cut_sel(text);
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
@@ -2515,7 +2369,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else {
 					txt_do_undo(text);
 				}
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_text(st);
 				do_draw= 1;
 			}
 			break;
@@ -2534,17 +2388,18 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (txt_has_sel(text)) {
 					txt_order_cursors(text);
 					unindent(text);
-					
+					if (st->showsyntax) txt_format_text(st);
 				}
 			} else {
 				if ( txt_has_sel(text)) {
 					txt_order_cursors(text);
 					indent(text);
+					if (st->showsyntax) txt_format_text(st);
 				} else {
 					txt_add_char(text, '\t');
+					if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				}
 			}
-			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
 			st->currtab_set = setcurr_tab(text);
@@ -2556,7 +2411,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (tools & TOOL_SUGG_LIST) {
 				confirm_suggestion(text, 0);
-				if (st->showsyntax) get_format_string(st);
+				if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				break;
 			}
 			//double check tabs before splitting the line
@@ -2572,7 +2427,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
-			if (st->showsyntax) get_format_string(st);
+			if (st->showsyntax) {
+				if (text->curl->prev) txt_format_line(st, text->curl->prev, 0);
+				txt_format_line(st, text->curl, 1);
+			}
 			do_draw= 1;
 			pop_space_text(st);
 			break;
@@ -2595,7 +2453,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				txt_backspace_char(text);
 			}
 			set_tabs(text);
-			if (st->showsyntax) get_format_string(st);
+			if (st->showsyntax) txt_format_line(st, text->curl, 1);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
@@ -2609,7 +2467,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			} else {
 				txt_delete_char(text);
 			}
-			if (st->showsyntax) get_format_string(st);
+			if (st->showsyntax) txt_format_line(st, text->curl, 1);
 			do_draw= 1;
 			pop_space_text(st);
 			st->currtab_set = setcurr_tab(text);
@@ -2772,7 +2630,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				switch (pupmenu("External File Modified with Local Changes %t|Load external changes (overwrite local) %x0|Save local changes (overwrite external) %x1|Make text internal %x2")) {
 				case 0:
 					reopen_text(text);
-					if (st->showsyntax) get_format_string(st);
+					if (st->showsyntax) txt_format_text(st);
 					do_draw= 1;
 					break;
 				case 1:
@@ -2790,7 +2648,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				switch (pupmenu("External File Modified %t|Reload from disk %x0|Make text internal %x1")) {
 				case 0:
 					reopen_text(text);
-					if (st->showsyntax) get_format_string(st);
+					if (st->showsyntax) txt_format_text(st);
 					do_draw= 1;
 					break;
 				case 1:
@@ -2851,7 +2709,7 @@ void do_brackets(void)
 	SpaceText *st = curarea->spacedata.first;
 	Text *text = st->text;
 	TextLine *tmp, *start;
-	char test[2];
+	char test;
 	int d, pos, open, x, y, x2, y2, h=0;
 	
 	if(!text) return;
@@ -2859,14 +2717,12 @@ void do_brackets(void)
 	tmp = text->curl;
 	start = text->curl;
 
-	test[0] = (unsigned char) tmp->line[text->curc];
-	test[1] = '\0';
+	test = (unsigned char) tmp->line[text->curc];
 	
 	d = check_bracket(test);
 	if (!d) /*  If not pri char */
 	{
-		test[0] = (unsigned char) tmp->line[text->curc-1];
-		test[1] = '\0';
+		test = (unsigned char) tmp->line[text->curc-1];
 		d = check_bracket(test);
 		if(!d) {
 			return; /*If the current char or prev is not a bracket then return*/
@@ -2896,8 +2752,7 @@ void do_brackets(void)
 		open = 1; 
 		while ( tmp ) {
 			while (pos <= tmp->len) {
-				test[0] = (unsigned char) tmp->line[pos];
-				test[1] = '\0';
+				test = (unsigned char) tmp->line[pos];
 				if(check_bracket(test) == d) {
 					open++;
 				} else if (check_bracket(test) == d+3) {
@@ -2923,8 +2778,7 @@ void do_brackets(void)
 		open = 1; 
 		while ( tmp ) {
 			while (pos >= 0) {
-				test[0] = (unsigned char) tmp->line[pos];
-				test[1] = '\0';
+				test = (unsigned char) tmp->line[pos];
 				if(check_bracket(test) == d) {
 					open++;
 				} else if (check_bracket(test) == d-3) {
@@ -2952,73 +2806,33 @@ void do_brackets(void)
 	
 }
 
-int check_bracket(char *string)
+static int check_bracket(char ch)
 {
-	int number, a = 0;
-	char other[][3] = {"(", "[", "{", ")", "]", "}"};
+	int a;
+	char brackets[] = "([{)]}";
 	
-	number = 6;
-	
-	while(a < number) {
-		if(strcmp(other[a], string) == 0)
-		{
-			return a+1;
-		}
-		a++;
-	}
-	return 0;
-}
-
-static int check_builtinfuncs(char *string) 
-{
-	int number = 30, a = 0;
-	
-	char builtinfuncs[][11] = {"and", "as", "assert", "break", "class", "continue", "def",
-								"del", "elif", "else", "except", "exec", "finally",
-								"for", "from", "global", "if", "import", "in",
-								"is", "lambda", "not", "or", "pass", "print",
-								"raise", "return", "try", "while", "yield"};
-
-	for( a = 0; a < number; a++) {
-		if(!strcmp(builtinfuncs[a], string))
-			return 1;
-	}
-	return 0;
-}
-
-static int check_specialvars(char *string) 
-{
-	int number = 2, a = 0;
-	char specialvars[][7] = {"def", "class"};
-	
-	for( a = 0; a < number; a++) {
-		if(!strcmp(specialvars[a], string))
+	for (a=0; a<6; a++) {
+		if(ch==brackets[a])
 			return a+1;
 	}
 	return 0;
 }
 
-static int check_delim(char *string) 
+static int check_delim(char ch) 
 {
-	int number = 28, a = 0;
-	char other[][3] = {"(", ")", ":", "\"", "\'", " ", "~", "!", "%", "^", "&", "*", "-", "+", "=", "[", "]", "{", "}", ";", "/", "<", ">", "|", ".", "#", "\t", ","};
+	int a;
+	char delims[] = "():\"\' ~!%^&*-+=[]{};/<>|.#\t,";
 	
-	for( a = 0; a < number; a++) {
-		if(!strcmp(other[a], string))
+	for (a=0; a<28; a++) {
+		if (ch==delims[a])
 			return 1;
 	}
 	return 0;
 }
 
-static int check_numbers(char *string)
-{
-	int number = 10, a = 0;
-	char other[][2] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-	
-	for( a = 0; a < number; a++) {
-		if(!strcmp(other[a], string))
-			return 1;
-	}
+static int check_digit(char ch) {
+	if (ch < '0') return 0;
+	if (ch <= '9') return 1;
 	return 0;
 }
 
@@ -3042,7 +2856,7 @@ void convert_tabs (struct SpaceText *st, int tab)
 {
 	Text *text = st->text;
 	TextLine *tmp;
-	char *check_line, *new_line, *format;
+	char *check_line, *new_line;
 	int extra, number; //unknown for now
 	size_t a, j;
 	
@@ -3054,7 +2868,6 @@ void convert_tabs (struct SpaceText *st, int tab)
 	while(tmp) {
 		check_line = tmp->line;
 		new_line = MEM_mallocN(render_string(st, check_line)+1, "Converted_Line");
-		format = MEM_mallocN(render_string(st, check_line)+1, "Converted_Syntax_format");
 		j = 0;
 		for (a=0; a < strlen(check_line); a++) { //foreach char in line
 			if(check_line[a] == '\t') { //checking for tabs
@@ -3081,7 +2894,7 @@ void convert_tabs (struct SpaceText *st, int tab)
 		
 		tmp->line = new_line;
 		tmp->len = strlen(new_line);
-		tmp->format = format;
+		tmp->format = NULL;
 		tmp = tmp->next;
 	}
 	
@@ -3109,7 +2922,6 @@ void convert_tabs (struct SpaceText *st, int tab)
 			
 			if ( extra > 0 ) { //got tabs make malloc and do what you have to do
 				new_line = MEM_mallocN(strlen(check_line)-(((st->tabnumber*extra)-extra)-1), "Converted_Line");
-				format = MEM_mallocN(strlen(check_line)-(((st->tabnumber*extra)-extra)-1), "Converted_Syntax_format");
 				extra = 0; //reuse vars
 				for (a = 0; a < strlen(check_line); a++) {
 					number = 0;
@@ -3137,12 +2949,11 @@ void convert_tabs (struct SpaceText *st, int tab)
 				
 				tmp->line = new_line;
 				tmp->len = strlen(new_line);
-				tmp->format = format;
+				tmp->format = NULL;
 			}
 			tmp = tmp->next;
 		}
 	}
 
-	if (st->showsyntax)
-		get_format_string(st);
+	if (st->showsyntax) txt_format_text(st);
 }
