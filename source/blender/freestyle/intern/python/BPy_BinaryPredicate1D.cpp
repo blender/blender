@@ -3,6 +3,12 @@
 #include "BPy_Convert.h"
 #include "BPy_Interface1D.h"
 
+#include "BinaryPredicate1D/BPy_FalseBP1D.h"
+#include "BinaryPredicate1D/BPy_Length2DBP1D.h"
+#include "BinaryPredicate1D/BPy_SameShapeIdBP1D.h"
+#include "BinaryPredicate1D/BPy_TrueBP1D.h"
+#include "BinaryPredicate1D/BPy_ViewMapGradientNormBP1D.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,9 +122,35 @@ PyMODINIT_FUNC BinaryPredicate1D_Init( PyObject *module )
 
 	if( PyType_Ready( &BinaryPredicate1D_Type ) < 0 )
 		return;
-
 	Py_INCREF( &BinaryPredicate1D_Type );
 	PyModule_AddObject(module, "BinaryPredicate1D", (PyObject *)&BinaryPredicate1D_Type);
+	
+	if( PyType_Ready( &FalseBP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &FalseBP1D_Type );
+	PyModule_AddObject(module, "FalseBP1D", (PyObject *)&FalseBP1D_Type);
+	
+	if( PyType_Ready( &Length2DBP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &Length2DBP1D_Type );
+	PyModule_AddObject(module, "Length2DBP1D", (PyObject *)&Length2DBP1D_Type);
+	
+	if( PyType_Ready( &SameShapeIdBP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &SameShapeIdBP1D_Type );
+	PyModule_AddObject(module, "SameShapeIdBP1D", (PyObject *)&SameShapeIdBP1D_Type);
+	
+	if( PyType_Ready( &TrueBP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &TrueBP1D_Type );
+	PyModule_AddObject(module, "TrueBP1D", (PyObject *)&TrueBP1D_Type);
+	
+	if( PyType_Ready( &ViewMapGradientNormBP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &ViewMapGradientNormBP1D_Type );
+	PyModule_AddObject(module, "ViewMapGradientNormBP1D", (PyObject *)&ViewMapGradientNormBP1D_Type);
+	
+	
 }
 
 

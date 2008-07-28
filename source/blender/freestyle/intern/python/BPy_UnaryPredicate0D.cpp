@@ -2,6 +2,8 @@
 
 #include "BPy_Convert.h"
 #include "Iterator/BPy_Interface0DIterator.h"
+#include "UnaryPredicate0D/BPy_FalseUP0D.h"
+#include "UnaryPredicate0D/BPy_TrueUP0D.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,13 +16,13 @@ static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args,
 static void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D *self);
 static PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D *self);
 
-static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self, PyObject *args);
+static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self );
 static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args);
 
 /*----------------------UnaryPredicate0D instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryPredicate0D_methods[] = {
-	{"getName", ( PyCFunction ) UnaryPredicate0D_getName, METH_NOARGS, ""},
-	{"__call__", ( PyCFunction ) UnaryPredicate0D___call__, METH_VARARGS, "" },
+	{"getName", ( PyCFunction ) UnaryPredicate0D_getName, METH_NOARGS, "Returns the string of the name of the UnaryPredicate0D."},
+	{"__call__", ( PyCFunction ) UnaryPredicate0D___call__, METH_VARARGS, "The () operator. Must be overload by inherited classes." },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -119,6 +121,17 @@ PyMODINIT_FUNC UnaryPredicate0D_Init( PyObject *module )
 		return;
 	Py_INCREF( &UnaryPredicate0D_Type );
 	PyModule_AddObject(module, "UnaryPredicate0D", (PyObject *)&UnaryPredicate0D_Type);
+	
+	if( PyType_Ready( &FalseUP0D_Type ) < 0 )
+		return;
+	Py_INCREF( &FalseUP0D_Type );
+	PyModule_AddObject(module, "FalseUP0D", (PyObject *)&FalseUP0D_Type);
+	
+	if( PyType_Ready( &TrueUP0D_Type ) < 0 )
+		return;
+	Py_INCREF( &TrueUP0D_Type );
+	PyModule_AddObject(module, "TrueUP0D", (PyObject *)&TrueUP0D_Type);
+	
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
@@ -142,7 +155,7 @@ PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D* self)
 }
 
 
-PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self, PyObject *args)
+PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
 {
 	return PyString_FromString( self->up0D->getName().c_str() );
 }

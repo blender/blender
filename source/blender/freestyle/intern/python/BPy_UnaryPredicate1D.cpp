@@ -3,6 +3,16 @@
 #include "BPy_Convert.h"
 #include "BPy_Interface1D.h"
 
+#include "UnaryPredicate1D/BPy_ContourUP1D.h"
+#include "UnaryPredicate1D/BPy_DensityLowerThanUP1D.h"
+#include "UnaryPredicate1D/BPy_EqualToChainingTimeStampUP1D.h"
+#include "UnaryPredicate1D/BPy_EqualToTimeStampUP1D.h"
+#include "UnaryPredicate1D/BPy_ExternalContourUP1D.h"
+#include "UnaryPredicate1D/BPy_FalseUP1D.h"
+#include "UnaryPredicate1D/BPy_QuantitativeInvisibilityUP1D.h"
+#include "UnaryPredicate1D/BPy_ShapeUP1D.h"
+#include "UnaryPredicate1D/BPy_TrueUP1D.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -119,6 +129,51 @@ PyMODINIT_FUNC UnaryPredicate1D_Init( PyObject *module )
 		return;
 	Py_INCREF( &UnaryPredicate1D_Type );
 	PyModule_AddObject(module, "UnaryPredicate1D", (PyObject *)&UnaryPredicate1D_Type);
+	
+	if( PyType_Ready( &ContourUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &ContourUP1D_Type );
+	PyModule_AddObject(module, "ContourUP1D", (PyObject *)&ContourUP1D_Type);
+	
+	if( PyType_Ready( &DensityLowerThanUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &DensityLowerThanUP1D_Type );
+	PyModule_AddObject(module, "DensityLowerThanUP1D", (PyObject *)&DensityLowerThanUP1D_Type);
+	
+	if( PyType_Ready( &EqualToChainingTimeStampUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &EqualToChainingTimeStampUP1D_Type );
+	PyModule_AddObject(module, "EqualToChainingTimeStampUP1D", (PyObject *)&EqualToChainingTimeStampUP1D_Type);
+
+	if( PyType_Ready( &EqualToTimeStampUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &EqualToTimeStampUP1D_Type );
+	PyModule_AddObject(module, "EqualToTimeStampUP1D", (PyObject *)&EqualToTimeStampUP1D_Type);
+	
+	if( PyType_Ready( &ExternalContourUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &ExternalContourUP1D_Type );
+	PyModule_AddObject(module, "ExternalContourUP1D", (PyObject *)&ExternalContourUP1D_Type);
+	
+	if( PyType_Ready( &FalseUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &FalseUP1D_Type );
+	PyModule_AddObject(module, "FalseUP1D", (PyObject *)&FalseUP1D_Type);
+	
+	if( PyType_Ready( &QuantitativeInvisibilityUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &QuantitativeInvisibilityUP1D_Type );
+	PyModule_AddObject(module, "QuantitativeInvisibilityUP1D", (PyObject *)&QuantitativeInvisibilityUP1D_Type);
+	
+	if( PyType_Ready( &ShapeUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &ShapeUP1D_Type );
+	PyModule_AddObject(module, "ShapeUP1D", (PyObject *)&ShapeUP1D_Type);
+	
+	if( PyType_Ready( &TrueUP1D_Type ) < 0 )
+		return;
+	Py_INCREF( &TrueUP1D_Type );
+	PyModule_AddObject(module, "TrueUP1D", (PyObject *)&TrueUP1D_Type);
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
