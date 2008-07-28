@@ -2717,7 +2717,7 @@ void set_locks_armature_bones(short lock)
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		if (arm->layer & ebone->layer) {
-			if (ebone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL)) {
+			if (ebone->flag & BONE_SELECTED) {
 				if (lock)
 					ebone->flag |= BONE_EDITMODE_LOCKED;
 				else	
