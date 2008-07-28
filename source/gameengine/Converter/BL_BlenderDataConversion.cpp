@@ -2258,7 +2258,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	if (blenderscene->camera) {
+	// non-camera objects not supported as camera currently
+	if (blenderscene->camera && blenderscene->camera->type == OB_CAMERA) {
 		KX_Camera *gamecamera= (KX_Camera*) converter->FindGameObject(blenderscene->camera);
 		
 		if(gamecamera)
