@@ -2681,6 +2681,98 @@ EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v)
 	return e;
 }
 
+void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edges)
+{
+	EditVert *current_eve = NULL;
+	EditEdge *eed = NULL;
+	EditEdge *select_eed = NULL;
+	float	 current_weight = 0;
+	int 	 next_edge_index = 0;
+	int		 selected_edge_index = 0;
+	
+	current_eve = starting_vert;
+
+	/* Initialize edge flag */
+	for(eed= em->edges.first; eed; eed= eed->next)
+	{
+		eed->f1 = 0;
+	}
+	
+	do {
+		int i;
+		
+		current_eve->f1 = 1; /* mark vertex as selected */
+		
+		/* Add all new edges connected to current_eve to the list */
+		NextEdgeForVert(NULL, NULL); // Reset next edge
+		for(eed = NextEdgeForVert(em, current_eve); eed; eed = NextEdgeForVert(em, current_eve))
+		{ 
+			if (eed->f1 == 0)
+			{
+				edges[next_edge_index] = eed;
+				eed->f1 = 1;
+				next_edge_index++;
+			}
+		}
+		
+		/* Find next shortest edge */
+		select_eed = NULL;
+		for(i = 0; i < next_edge_index; i++)
+		{
+			eed = edges[i];
+			
+			if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) /* eed is not selected yet and leads to a new node */
+			{
+				float new_weight = 0;
+				if (eed->v1->f1 == 1)
+				{
+					new_weight = eed->v1->tmp.fp + eed->tmp.fp;
+				}
+				else
+				{
+					new_weight = eed->v2->tmp.fp + eed->tmp.fp;
+				}
+				
+				if (select_eed == NULL || new_weight < current_weight) /* no selected edge or current smaller than selected */
+				{
+					current_weight = new_weight;
+					select_eed = eed;
+					selected_edge_index = i;
+				}
+			}
+			else
+			{
+				/* edge shouldn't be in list. Decrement next index and insert last edge in this place and reset iteration*/
+				next_edge_index--;
+				edges[i] = edges[next_edge_index];
+				i--;
+			}
+		}
+		
+		if (select_eed != NULL)
+		{
+			select_eed->f1 = 2;
+			
+			/* decrement next index and swap selected with last edge in list */
+			next_edge_index--;
+			edges[selected_edge_index] = edges[next_edge_index];
+			
+			if (select_eed->v1->f1 == 0) /* v1 is the new vertex */
+			{
+				current_eve = select_eed->v1;
+			}
+			else /* otherwise, it's v2 */
+			{
+				current_eve = select_eed->v2;
+			}				
+			current_eve->tmp.fp = current_weight;
+		}
+		
+	} while (select_eed != NULL);
+	
+	printf("\n");
+}
+
 int weightFromDistance(EditMesh *em)
 {
 	EditVert *eve;
@@ -2716,99 +2808,71 @@ int weightFromDistance(EditMesh *em)
 	}
 	else
 	{
-		EditVert *eve, *current_eve = NULL;
+		EditVert *eve;
+		EditEdge *eed;
+		EditEdge **edges;
+		int allDone = 0;
+	
+		/* Allocate scratch array for edges */
+		edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
+
+		/* Calculate edge weight */
+		for(eed = em->edges.first; eed; eed= eed->next)
+		{
+			eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
+		}
+
 		/* Apply dijkstra spf for each selected vert */
 		for(eve = em->verts.first; eve; eve = eve->next)
 		{
 			if (eve->f & SELECT)
 			{
-				current_eve = eve;
-				eve->f1 = 1;
-				
-				{
-					EditEdge *eed = NULL;
-					EditEdge *select_eed = NULL;
-					EditEdge **edges = NULL;
-					float	 currentWeight = 0;
-					int 	 eIndex = 0;
-					
-					edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
-					
-					/* Calculate edge weight and initialize edge flag */
-					for(eed= em->edges.first; eed; eed= eed->next)
-					{
-						eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
-						eed->f1 = 0;
-					}
-					
-					do {
-						int i;
-						
-						current_eve->f1 = 1; /* mark vertex as selected */
-						
-						/* Add all new edges connected to current_eve to the list */
-						NextEdgeForVert(NULL, NULL); // Reset next edge
-						for(eed = NextEdgeForVert(em, current_eve); eed; eed = NextEdgeForVert(em, current_eve))
-						{ 
-							if (eed->f1 == 0)
-							{
-								edges[eIndex] = eed;
-								eed->f1 = 1;
-								eIndex++;
-							}
-						}
-						
-						/* Find next shortest edge */
-						select_eed = NULL;
-						for(i = 0; i < eIndex; i++)
-						{
-							eed = edges[i];
-							
-							if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) /* eed is not selected yet and leads to a new node */
-							{
-								float newWeight = 0;
-								if (eed->v1->f1 == 1)
-								{
-									newWeight = eed->v1->tmp.fp + eed->tmp.fp;
-								}
-								else
-								{
-									newWeight = eed->v2->tmp.fp + eed->tmp.fp;
-								}
-								
-								if (select_eed == NULL || newWeight < currentWeight) /* no selected edge or current smaller than selected */
-								{
-									currentWeight = newWeight;
-									select_eed = eed;
-								}
-							}
-						}
-						
-						if (select_eed != NULL)
-						{
-							select_eed->f1 = 2;
-							
-							if (select_eed->v1->f1 == 0) /* v1 is the new vertex */
-							{
-								current_eve = select_eed->v1;
-							}
-							else /* otherwise, it's v2 */
-							{
-								current_eve = select_eed->v2;
-							}				
-							current_eve->tmp.fp = currentWeight;
-						}
-						
-					printf("\redge %i / %i", eIndex, totedge);
-						
-					} while (select_eed != NULL);
-					
-					MEM_freeN(edges);
-					
-					printf("\n");
-				}
+				shortestPathsFromVert(em, eve, edges);				
 			}
 		}
+		
+		/* connect unselected islands */
+		while (allDone == 0)
+		{
+			EditVert *selected_eve = NULL;
+			float selected_weight = 0;
+			float min_distance = FLT_MAX;
+			
+			allDone = 1;
+			
+			for (eve = em->verts.first; eve; eve = eve->next)
+			{
+				if (eve->f1 != 1)
+				{
+					EditVert *closest_eve;
+					
+					for (closest_eve = em->verts.first; closest_eve; closest_eve = closest_eve->next)
+					{
+						/* vertex is already processed and distance is smaller than current minimum */
+						if (closest_eve->f1 == 1)
+						{
+							float distance = VecLenf(closest_eve->co, eve->co);
+							if (distance < min_distance)
+							{
+								min_distance = distance;
+								selected_eve = eve;
+								selected_weight = closest_eve->tmp.fp;
+							}
+						}
+					}
+				}
+			}
+			
+			if (selected_eve)
+			{
+				allDone = 0;
+
+				selected_eve->tmp.fp = selected_weight + min_distance;
+				shortestPathsFromVert(em, selected_eve, edges);
+			}
+		}
+		
+		MEM_freeN(edges);
 	}
 
 	for(eve = em->verts.first; eve && vCount == 0; eve = eve->next)
