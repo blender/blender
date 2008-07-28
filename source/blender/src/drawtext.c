@@ -97,7 +97,7 @@ All word-wrap functions follow the algorithm below to maintain consistency.
 				This equals region_width/font_width for the region
 	wrap_chars	Characters that allow wrapping. This equals [' ', '\t', '-']
 
-def wrap(line, view_width, wrap_chars):
+def wrap(line, view_width, wrap_chars, tab_size):
 	draw_start = 0
 	draw_end = view_width
 	tab_offset = 0
@@ -111,7 +111,7 @@ def wrap(line, view_width, wrap_chars):
 		elif c in wrap_chars:
 			draw_end = pos+1
 			if c == '\t':
-				tab_offset += tab_size-(pos-draw_start)%tab_size
+				tab_offset += tab_size-(pos-draw_start+tab_offset+1)%tab_size
 		pos += 1
 	print line[draw_start:]
 
@@ -574,7 +574,7 @@ static int get_wrap_points(SpaceText *st, char *line) {
 	return count;
 }
 
-/* Sets (offl, offc) to transform (line, curs) combination to its wrapped position */
+/* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
 static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) {
 	Text *text;
 	TextLine *linep;
@@ -603,8 +603,10 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 		*offc= 0;
 		for (i=0; linep->line[i]!='\0'; i++) {
 			if (i-start+taboffs>=max) {
+				if (end-start==max && linep==linein && i >= cursin)
+					break;
 				(*offl)++;
-				*offc -= end-start;
+				*offc -= end-start+taboffs;
 				start= end;
 				end += max;
 				taboffs= 0;
@@ -613,7 +615,7 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 				if (linep==linein && i >= cursin)
 					break;
 				else if (linep->line[i]=='\t')
-					taboffs += st->tabnumber-(i-start)%st->tabnumber;
+					taboffs += st->tabnumber-(i-start+taboffs+1)%st->tabnumber;
 			}
 		}
 		if (linep==linein) break;
@@ -1213,7 +1215,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
-	int i, a, x, y, max, offs, len;
+	int i, a, x, y, max, len;
 	TextLine *tmp;
 	char linenr[12], *wrapbuf;
 	float col[3];
@@ -1258,7 +1260,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	max= get_wrap_width(st);
 	wrapbuf= MEM_mallocN(max+1, "wrapbuffer");
 
-	for (i=0; i<st->viewlines && tmp; i++, tmp= tmp->next) {
+	for (i=0; y>0 && i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if (st->showsyntax && !tmp->format) {
 			txt_format_line(st, tmp, 0);
 		}
@@ -1280,26 +1282,27 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 			BMF_DrawString(spacetext_get_font(st), linenr);
 		}
 		if (st->wordwrap) {
-			int start, end, taboffs;
-			offs= 0;
+			int start, end, taboffs, fmtoffs;
 			len= tmp->len;
-			taboffs= start= 0; end= max;
+			fmtoffs= taboffs= start= 0;
+			end= max;
 			for (a=0; a<len; a++) {
 				if (a-start+taboffs>=max) {
 					strncpy(wrapbuf, tmp->line+start, end-start);
 					wrapbuf[end-start]= '\0';
-					text_draw(st, wrapbuf, st->left, 0, 1, x, y, tmp->format+start);
+					text_draw(st, wrapbuf, st->left, 0, 1, x, y, tmp->format+start+fmtoffs);
 					y -= st->lheight;
 					start= end;
 					end += max;
+					fmtoffs += taboffs;
 					taboffs= 0;
 				} else if (tmp->line[a]==' ' || tmp->line[a]=='\t' || tmp->line[a]=='-') {
 					if (tmp->line[a]=='\t')
-						taboffs += st->tabnumber-(a-start)%st->tabnumber;
+						taboffs += st->tabnumber-(a-start+taboffs+1)%st->tabnumber;
 					end = a+1;
 				}
 			}
-			text_draw(st, tmp->line+start, st->left, 0, 1, x, y, tmp->format+start);
+			text_draw(st, tmp->line+start, st->left, 0, 1, x, y, tmp->format+start+fmtoffs);
 		} else {
 			text_draw(st, tmp->line, st->left, 0, 1, x, y, tmp->format);
 		}
