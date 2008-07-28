@@ -141,6 +141,8 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		*/
 		
 		fss->lastgoodframe = -1;
+		
+		fss->flag = 0;
 
 	}
 	

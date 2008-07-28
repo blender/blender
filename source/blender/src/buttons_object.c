@@ -5051,9 +5051,10 @@ static void object_panel_fluidsim(Object *ob)
 					       fss->bbSize[0],fss->bbSize[1],fss->bbSize[2], fss->maxRefine, memString );
 		
 			uiBlockBeginAlign ( block );
-			uiDefButBitS ( block, TOG, 4, REDRAWBUTSOBJECT, "Std",     0, yline,25,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show standard domain options." );
-			uiDefButBitS ( block, TOG, 1, REDRAWBUTSOBJECT, "Adv",     25, yline,25,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show advanced domain options." );
-			uiDefButBitS ( block, TOG, 2, REDRAWBUTSOBJECT, "Bnd",     50, yline,25,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show domain boundary options." );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Std",	 0,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 0, 20.0, 0, "Show standard domain options." );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Adv",	25,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 1, 20.0, 1, "Show advanced domain options." );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Bnd",	50,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 2, 20.0, 2, "Show domain boundary options." );
+			
 			uiBlockEndAlign ( block );
 		
 			uiDefBut ( block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame." );
@@ -5061,7 +5062,7 @@ static void object_panel_fluidsim(Object *ob)
 			yline -= lineHeight;
 			yline -= 2*separateHeight;
 		
-			if ( fss->show_advancedoptions & 1 )
+			if ( fss->show_advancedoptions == 1 )
 			{
 				// advanced options
 				uiDefBut ( block, LABEL, 0, "Gravity:",		0, yline,  90,objHeight, NULL, 0.0, 0, 0, 0, "" );
@@ -5106,7 +5107,7 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= lineHeight;
 		
 			}
-			else if ( fss->show_advancedoptions & 2 )
+			else if ( fss->show_advancedoptions == 2 )
 			{
 				// copied from obstacle...
 				//yline -= lineHeight + 5;
@@ -5183,7 +5184,7 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= 1*separateHeight;
 		
 				uiBlockBeginAlign ( block );
-				uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Reverse fluidsim frames" );
+				uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->flag, 0, 0, 0, 0, "Reverse fluidsim frames" );
 				uiDefBut ( block, LABEL,   0, "",  50,yline,25,objHeight, NULL, 0.0, 0, 0, 0, "" );
 				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  75, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in" );
 				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      95, yline, 205, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in" );
@@ -5340,7 +5341,7 @@ static void object_panel_fluidsim(Object *ob)
 		
 			yline -= lineHeight;
 			uiDefButF ( block, NUM, B_DIFF, "Quality:", 0, yline,150,20, &fss->cpsQuality, 5.0, 100.0,   10,0, "Specifies the quality which is used for object sampling (higher = better but slower)." );
-			uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     150, yline,150,20, &fss->show_advancedoptions, 0, 0, 0, 0, "Reverse control object movement." );
+			uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     150, yline,150,20, &fss->flag, 0, 0, 0, 0, "Reverse control object movement." );
 		}
 		else
 		{
