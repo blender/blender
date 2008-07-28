@@ -412,7 +412,10 @@ DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct Modifier
 
 DerivedMesh *mesh_create_derived_render(struct Object *ob,
                                         CustomDataMask dataMask);
-/* same as above but wont use render settings */
+
+DerivedMesh *mesh_create_derived_index_render(struct Object *ob, CustomDataMask dataMask, int index);
+
+		/* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived_view(struct Object *ob,
                                       CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,

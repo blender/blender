@@ -511,118 +511,10 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 // file handling
 //-------------------------------------------------------------------------------
 
-
-/* write .bobj.gz file for a mesh object */
-void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time) 
-{
-	int wri,i,j,totvert,totface;
-	float wrf;
-	gzFile gzf;
-	DerivedMesh *dm;
-	float vec[3];
-	float rotmat[3][3];
-	MVert *mvert;
-	MFace *mface;
-	//if(append)return; // DEBUG
-
-	if(!ob->data || (ob->type!=OB_MESH)) 
-	{
-		return;
-	}
-	if((ob->size[0]<0.0) || (ob->size[0]<0.0) || (ob->size[0]<0.0) ) 
-	{
-		return;
-	}
-
-	if(append) gzf = gzopen(filename, "a+b9");
-	else       gzf = gzopen(filename, "wb9");
-	
-	if (!gzf) 
-		return;
-
-	dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH);
-	//dm = mesh_create_derived_no_deform(ob,NULL);
-
-	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
-	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
-
-	// write time value for appended anim mesh
-	if(append) 
-	{
-		gzwrite(gzf, &time, sizeof(time));
-	}
-
-	// continue with verts/norms
-	if(sizeof(wri)!=4) { return; } // paranoia check
-	wri = dm->getNumVerts(dm);
-	mvert = dm->getVertArray(dm);
-	gzwrite(gzf, &wri, sizeof(wri));
-	for(i=0; i<wri;i++) 
-	{
-		VECCOPY(vec, mvert[i].co);
-		if(useGlobalCoords) { Mat4MulVecfl(ob->obmat, vec); }
-		for(j=0; j<3; j++) {
-			wrf = vec[j]; 
-			gzwrite(gzf, &wrf, sizeof( wrf )); 
-		}
-	}
-
-	// should be the same as Vertices.size
-	wri = totvert;
-	gzwrite(gzf, &wri, sizeof(wri));
-	EulToMat3(ob->rot, rotmat);
-	for(i=0; i<wri;i++) 
-	{
-		VECCOPY(vec, mvert[i].no);
-		Normalize(vec);
-		if(useGlobalCoords) { Mat3MulVecfl(rotmat, vec); }
-		for(j=0; j<3; j++) {
-			wrf = vec[j];
-			gzwrite(gzf, &wrf, sizeof( wrf )); 
-		}
-	}
-
-	// append only writes verts&norms 
-	if(!append) {
-		// compute no. of triangles 
-		wri = 0;
-		for(i=0; i<totface; i++) 
-		{
-			wri++;
-			if(mface[i].v4) { wri++; }
-		}
-		gzwrite(gzf, &wri, sizeof(wri));
-		for(i=0; i<totface; i++) 
-		{
-
-			int face[4];
-			face[0] = mface[i].v1;
-			face[1] = mface[i].v2;
-			face[2] = mface[i].v3;
-			face[3] = mface[i].v4;
-
-			gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
-			gzwrite(gzf, &(face[1]), sizeof( face[1] )); 
-			gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-			if(face[3]) 
-			{ 
-				gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
-				gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-				gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
-			} // quad
-		}
-	}
-	
-	gzclose( gzf );
-	dm->release(dm);
-}
-
 void initElbeemMesh(struct Object *ob, 
 		    int *numVertices, float **vertices, 
       int *numTriangles, int **triangles,
-      int useGlobalCoords) 
+      int useGlobalCoords, int modifierIndex) 
 {
 	DerivedMesh *dm = NULL;
 	MVert *mvert;
@@ -631,7 +523,7 @@ void initElbeemMesh(struct Object *ob,
 	float *verts;
 	int *tris;
 
-	dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH);
+	dm = mesh_create_derived_index_render(ob, CD_MASK_BAREMESH, modifierIndex);
 	//dm = mesh_create_derived_no_deform(ob,NULL);
 
 	mvert = dm->getVertArray(dm);

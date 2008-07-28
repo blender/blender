@@ -35,12 +35,9 @@
 #include "BKE_DerivedMesh.h"
 
 /* old interface */
-FluidsimSettings *fluidsimSettingsNew(struct Object *srcob);
+FluidsimSettings *fluidsimSettingsNew(Object *srcob);
 
-
-void initElbeemMesh(Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords);
-
-void loadFluidsimMesh(Object *srcob, int useRenderParams);
+void initElbeemMesh(Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords, int modifierIndex);
 
 
 /* new fluid-modifier interface */
@@ -50,6 +47,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd);
 DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
+// get bounding box of mesh
 void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 		 /*RET*/ float start[3], /*RET*/ float size[3] );
 

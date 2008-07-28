@@ -1856,7 +1856,7 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
                                 DerivedMesh **deform_r, DerivedMesh **final_r,
                                 int useRenderParams, int useDeform,
-                                int needMapping, CustomDataMask dataMask)
+                                int needMapping, CustomDataMask dataMask, int index)
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
@@ -1865,7 +1865,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm, *orcodm, *finaldm;
 	int numVerts = me->totvert;
-	int required_mode;
+	int required_mode, i;
 
 	md = firstmd = modifiers_getVirtualModifierList(ob);
 
@@ -1888,7 +1888,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			deformedVerts = mesh_getVertexCos(me, &numVerts);
 		
 		/* Apply all leading deforming modifiers */
-		for(; md; md = md->next, curr = curr->next) {
+		for(i = 0; md; md = md->next, curr = curr->next, i++) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			if((md->mode & required_mode) != required_mode) continue;
@@ -1902,6 +1902,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			} else {
 				break;
 			}
+			
+			/* grab modifiers until index i */
+			if(i==index)
+				break;
 		}
 
 		/* Result of all leading deforming modifiers is cached for
@@ -1948,7 +1952,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	if(me->vnode) dm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 #endif
 
-	for(; md; md = md->next, curr = curr->next) {
+	for(i = 0; md; md = md->next, curr = curr->next, i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if((md->mode & required_mode) != required_mode) continue;
@@ -2054,6 +2058,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 				}
 			} 
 		}
+		
+		/* grab modifiers until index i */
+		if(i==index)
+			break;
 	}
 
 	for(md=firstmd; md; md=md->next)
@@ -2428,13 +2436,13 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, 0, 1,
-			                    needMapping, dataMask);
+			                    needMapping, dataMask, -1);
 
 			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, G.rendering, 1,
-			                    needMapping, dataMask);
+			                    needMapping, dataMask, -1);
 		}
 
 		INIT_MINMAX(min, max);
@@ -2605,7 +2613,21 @@ DerivedMesh *mesh_create_derived_render(Object *ob, CustomDataMask dataMask)
 	int orig_lvl= 0;
 	
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
-	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1);
+	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
+
+	return final;
+}
+
+DerivedMesh *mesh_create_derived_index_render(Object *ob, CustomDataMask dataMask, int index)
+{
+	DerivedMesh *final;
+	Mesh *me= get_mesh(ob);
+	float *vert_copy= NULL;
+	int orig_lvl= 0;
+	
+	vert_copy= multires_render_pin(ob, me, &orig_lvl);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask, index);
 	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
@@ -2615,7 +2637,7 @@ DerivedMesh *mesh_create_derived_view(Object *ob, CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(ob, NULL, NULL, &final, 0, 1, 0, dataMask);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1);
 
 	return final;
 }
@@ -2625,7 +2647,7 @@ DerivedMesh *mesh_create_derived_no_deform(Object *ob, float (*vertCos)[3],
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0, 0, dataMask);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1);
 
 	return final;
 }
@@ -2640,7 +2662,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob,
 	int orig_lvl= 0;
 
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
-	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0, dataMask);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1);
 	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;

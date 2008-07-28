@@ -1813,6 +1813,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 31;
 		} else if (md->type==eModifierType_Collision) {
 			height = 31;
+		} else if (md->type==eModifierType_Fluidsim) {
+			height = 31;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
@@ -1826,8 +1828,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Explode) {
 			height = 94;
-		} else if (md->type==eModifierType_Fluidsim) {
-			height = 31;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2242,6 +2242,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefBut(block, LABEL, 1, "See Cloth panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Collision) {
 			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Fluidsim) {
+			uiDefBut(block, LABEL, 1, "See Fluidsim panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Boolean) {
 			BooleanModifierData *bmd = (BooleanModifierData*) md;
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");

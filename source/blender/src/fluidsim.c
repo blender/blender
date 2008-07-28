@@ -251,7 +251,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	*setchannel = channel;
 }
 
-static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, int vertices, float *time) {
+static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, int vertices, float *time, int modifierIndex) {
 	float *channel = NULL;
 	int mallsize = size* (3*vertices+1);
 	int frame,i;
@@ -267,7 +267,7 @@ static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, i
 		G.scene->r.cfra = frame;
 		scene_update_for_newframe(G.scene, G.scene->lay);
 
-		initElbeemMesh(obm, &numVerts, &verts, &numTris, &tris, 1);
+		initElbeemMesh(obm, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
 		//fprintf(stderr,"\nfluidsimInitMeshChannel frame%d verts%d/%d \n\n",frame,vertices,numVerts);
 		for(i=0; i<3*vertices;i++) {
 			channel[(frame-1)*setsize + i] = verts[i];
@@ -911,13 +911,15 @@ void fluidsimBake(struct Object *ob)
 				int o = channelObjCount;
 				int	deform = (fluidmdtmp->fss->domainNovecgen); // misused value
 				// todo - use blenderInitElbeemMesh
+				int modifierIndex = modifiers_indexInObject(obit, fluidmdtmp);
+				
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
 				fsmesh.type = fluidmdtmp->fss->type;
 				// get name of object for debugging solver
 				fsmesh.name = obit->id.name; 
 
-				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris, 0);
+				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris, 0, modifierIndex);
 				fsmesh.numVertices   = numVerts;
 				fsmesh.numTriangles  = numTris;
 				fsmesh.vertices      = verts;
@@ -977,7 +979,7 @@ void fluidsimBake(struct Object *ob)
 				// animated meshes
 				if(deform) {
 					fsmesh.channelSizeVertices = allchannelSize;
-					fluidsimInitMeshChannel( &fsmesh.channelVertices, allchannelSize, obit, numVerts, timeAtFrame);
+					fluidsimInitMeshChannel( &fsmesh.channelVertices, allchannelSize, obit, numVerts, timeAtFrame, modifierIndex);
 					G.scene->r.cfra = startFrame;
 					scene_update_for_newframe(G.scene, G.scene->lay);
 					// remove channels
