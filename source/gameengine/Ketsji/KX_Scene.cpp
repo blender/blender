@@ -657,7 +657,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 			// Should not happen as dupli group are created automatically 
 			continue;
 		}
-		if (blenderobj->lay & group->layer==0)
+		if ((blenderobj->lay & group->layer)==0)
 		{
 			// object is not visible in the 3D view, will not be instantiated
 			continue;
