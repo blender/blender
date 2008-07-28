@@ -1865,7 +1865,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm, *orcodm, *finaldm;
 	int numVerts = me->totvert;
-	int required_mode, i;
+	int required_mode;
 
 	md = firstmd = modifiers_getVirtualModifierList(ob);
 
@@ -1888,7 +1888,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			deformedVerts = mesh_getVertexCos(me, &numVerts);
 		
 		/* Apply all leading deforming modifiers */
-		for(i = 0; md; md = md->next, curr = curr->next, i++) {
+		for(;md; md = md->next, curr = curr->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			if((md->mode & required_mode) != required_mode) continue;
@@ -1904,7 +1904,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			}
 			
 			/* grab modifiers until index i */
-			if(i==index)
+			if(modifiers_indexInObject(ob, md) >= index)
 				break;
 		}
 
@@ -1952,7 +1952,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	if(me->vnode) dm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 #endif
 
-	for(i = 0; md; md = md->next, curr = curr->next, i++) {
+	for(;md; md = md->next, curr = curr->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if((md->mode & required_mode) != required_mode) continue;
@@ -2060,7 +2060,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		}
 		
 		/* grab modifiers until index i */
-		if(i==index)
+		if(modifiers_indexInObject(ob, md) >= index)
 			break;
 	}
 
