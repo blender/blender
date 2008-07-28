@@ -5182,9 +5182,9 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= lineHeight;
 				yline -= 1*separateHeight;
 		
+				uiBlockBeginAlign ( block );
 				uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Reverse fluidsim frames" );
 				uiDefBut ( block, LABEL,   0, "",  50,yline,25,objHeight, NULL, 0.0, 0, 0, 0, "" );
-				uiBlockBeginAlign ( block );
 				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  75, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in" );
 				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      95, yline, 205, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in" );
 				
