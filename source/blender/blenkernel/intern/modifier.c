@@ -6906,6 +6906,17 @@ static void fluidsimModifier_freeData(ModifierData *md)
 	fluidsim_free(fluidmd);
 }
 
+static void fluidsimModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	FluidsimModifierData *tfluidmd= (FluidsimModifierData*) target;
+	
+	if(tfluidmd->fss)
+		MEM_freeN(tfluidmd->fss);
+	
+	tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
+}
+
 static DerivedMesh * fluidsimModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
@@ -7605,6 +7616,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->initData = fluidsimModifier_initData;
 		mti->freeData = fluidsimModifier_freeData;
+		mti->copyData = fluidsimModifier_copyData;
 		mti->dependsOnTime = fluidsimModifier_dependsOnTime;
 		mti->applyModifier = fluidsimModifier_applyModifier;
 		mti->updateDepgraph = fluidsimModifier_updateDepgraph;

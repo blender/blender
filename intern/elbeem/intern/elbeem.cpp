@@ -217,7 +217,13 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	obj->setGeoInitId( mesh->parentDomainId+1 );
 	obj->setGeoInitIntersect(true);
 	obj->setGeoInitType(initType);
-	obj->setGeoPartSlipValue(mesh->obstaclePartslip);
+	
+	// abuse partslip value for control fluid: reverse control keys or not
+	if(initType == FGI_CONTROL)
+		obj->setGeoPartSlipValue(mesh->obstacleType);
+	else
+		obj->setGeoPartSlipValue(mesh->obstaclePartslip);
+	
 	obj->setGeoImpactFactor(mesh->obstacleImpactFactor);
 	
 	/* fluid control features */

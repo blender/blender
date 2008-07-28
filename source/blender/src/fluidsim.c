@@ -911,7 +911,7 @@ void fluidsimBake(struct Object *ob)
 				int o = channelObjCount;
 				int	deform = (fluidmdtmp->fss->domainNovecgen); // misused value
 				// todo - use blenderInitElbeemMesh
-				int modifierIndex = modifiers_indexInObject(obit, fluidmdtmp);
+				int modifierIndex = modifiers_indexInObject(obit, (ModifierData *)fluidmdtmp);
 				
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
@@ -956,6 +956,7 @@ void fluidsimBake(struct Object *ob)
 					fsmesh.cpsTimeStart = fluidmdtmp->fss->cpsTimeStart;
 					fsmesh.cpsTimeEnd = fluidmdtmp->fss->cpsTimeEnd;
 					fsmesh.cpsQuality = fluidmdtmp->fss->cpsQuality;
+					fsmesh.obstacleType = (fluidmdtmp->fss->show_advancedoptions & OB_FLUIDSIM_REVERSE);
 					
 					fsmesh.channelSizeAttractforceRadius = 
 					fsmesh.channelSizeVelocityforceStrength = 

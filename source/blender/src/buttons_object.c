@@ -2406,6 +2406,7 @@ void do_object_panels(unsigned short event)
 	case B_FLUIDSIM_CHANGETYPE:
 	{
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+		fluidmd->fss->show_advancedoptions &= ~OB_FLUIDSIM_REVERSE; // clear flag
 		if(ob && ob->particlesystem.first && fluidmd->fss->type!=OB_FLUIDSIM_PARTICLE){
 			ParticleSystem *psys;
 			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
@@ -5050,53 +5051,17 @@ static void object_panel_fluidsim(Object *ob)
 					       fss->bbSize[0],fss->bbSize[1],fss->bbSize[2], fss->maxRefine, memString );
 		
 			uiBlockBeginAlign ( block );
-			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Std",	 0,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 0, 20.0, 0, "Show standard domain options." );
-			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Adv",	25,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 1, 20.0, 1, "Show advanced domain options." );
-			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Bnd",	50,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 2, 20.0, 2, "Show domain boundary options." );
+			uiDefButBitS ( block, TOG, 4, REDRAWBUTSOBJECT, "Std",     0, yline,25,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show standard domain options." );
+			uiDefButBitS ( block, TOG, 1, REDRAWBUTSOBJECT, "Adv",     25, yline,25,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show advanced domain options." );
+			uiDefButBitS ( block, TOG, 2, REDRAWBUTSOBJECT, "Bnd",     50, yline,25,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show domain boundary options." );
 			uiBlockEndAlign ( block );
 		
 			uiDefBut ( block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame." );
+			
 			yline -= lineHeight;
 			yline -= 2*separateHeight;
 		
-			if ( fss->show_advancedoptions == 0 )
-			{
-				uiDefBut ( block, LABEL,   0, "Req. BAKE Memory:",  0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
-				uiDefBut ( block, LABEL,   0, memString,  200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "" );
-				yline -= lineHeight;
-		
-				uiBlockBeginAlign ( block );
-				uiDefButS ( block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X, Y and Z direction" );
-				uiDefButS ( block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X, Y and Z direction" );
-				uiBlockEndAlign ( block );
-				yline -= lineHeight;
-				yline -= 1*separateHeight;
-		
-				uiBlockBeginAlign ( block );
-				uiDefButF ( block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame." );
-				uiDefButF ( block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame." );
-				uiBlockEndAlign ( block );
-				yline -= lineHeight;
-				yline -= 2*separateHeight;
-		
-				if ( ( fss->guiDisplayMode<1 ) || ( fss->guiDisplayMode>3 ) ) { fss->guiDisplayMode=2; } // can be changed by particle setting
-				uiDefBut ( block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "" );
-				uiBlockBeginAlign ( block );
-				uiDefButS ( block, MENU, B_BAKE_CACHE_CHANGE, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",
-						90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the Blender GUI." );
-				uiDefButS ( block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",
-						195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering." );
-				uiBlockEndAlign ( block );
-				yline -= lineHeight;
-				yline -= 1*separateHeight;
-		
-				uiBlockBeginAlign ( block );
-				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in" );
-				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in" );
-				uiBlockEndAlign ( block );
-				// FIXME what is the 79.0 above?
-			}
-			else if ( fss->show_advancedoptions == 1 )
+			if ( fss->show_advancedoptions & 1 )
 			{
 				// advanced options
 				uiDefBut ( block, LABEL, 0, "Gravity:",		0, yline,  90,objHeight, NULL, 0.0, 0, 0, 0, "" );
@@ -5141,7 +5106,7 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= lineHeight;
 		
 			}
-			else if ( fss->show_advancedoptions == 2 )
+			else if ( fss->show_advancedoptions & 2 )
 			{
 				// copied from obstacle...
 				//yline -= lineHeight + 5;
@@ -5185,7 +5150,47 @@ static void object_panel_fluidsim(Object *ob)
 				uiDefBut ( block, LABEL, 0, "Generate&Use SpeedVecs:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
 				uiDefButBitC ( block, TOG, 1, REDRAWBUTSOBJECT, "Disable",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Default is to generate and use fluidsim vertex speed vectors, this option switches calculation off during bake, and disables loading." );
 				yline -= lineHeight;
-			} // domain 3
+			}
+			else
+			{
+				uiDefBut ( block, LABEL,   0, "Req. BAKE Memory:",  0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefBut ( block, LABEL,   0, memString,  200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				yline -= lineHeight;
+		
+				uiBlockBeginAlign ( block );
+				uiDefButS ( block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X, Y and Z direction" );
+				uiDefButS ( block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X, Y and Z direction" );
+				uiBlockEndAlign ( block );
+				yline -= lineHeight;
+				yline -= 1*separateHeight;
+		
+				uiBlockBeginAlign ( block );
+				uiDefButF ( block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame." );
+				uiDefButF ( block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame." );
+				uiBlockEndAlign ( block );
+				yline -= lineHeight;
+				yline -= 2*separateHeight;
+		
+				if ( ( fss->guiDisplayMode<1 ) || ( fss->guiDisplayMode>3 ) ) { fss->guiDisplayMode=2; } // can be changed by particle setting
+				uiDefBut ( block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiBlockBeginAlign ( block );
+				uiDefButS ( block, MENU, B_BAKE_CACHE_CHANGE, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",
+					    90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the Blender GUI." );
+				uiDefButS ( block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",
+					    195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering." );
+				uiBlockEndAlign ( block );
+				yline -= lineHeight;
+				yline -= 1*separateHeight;
+		
+				uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Reverse fluidsim frames" );
+				uiDefBut ( block, LABEL,   0, "",  50,yline,25,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiBlockBeginAlign ( block );
+				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  75, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in" );
+				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      95, yline, 205, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in" );
+				
+				uiBlockEndAlign ( block );
+				// FIXME what is the 79.0 above?
+			}
 		}
 		else if (
 			( fss->type == OB_FLUIDSIM_FLUID )
@@ -5335,6 +5340,7 @@ static void object_panel_fluidsim(Object *ob)
 		
 			yline -= lineHeight;
 			uiDefButF ( block, NUM, B_DIFF, "Quality:", 0, yline,150,20, &fss->cpsQuality, 5.0, 100.0,   10,0, "Specifies the quality which is used for object sampling (higher = better but slower)." );
+			uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     150, yline,150,20, &fss->show_advancedoptions, 0, 0, 0, 0, "Reverse control object movement." );
 		}
 		else
 		{

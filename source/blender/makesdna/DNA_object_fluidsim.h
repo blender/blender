@@ -158,6 +158,9 @@ typedef struct FluidsimSettings {
 #define OB_FSPART_NEWPART (1<<3)
 #define OB_FSPART_FLOAT   (1<<4)
 
+// new fluid bit flags for show_advancedoptions (min 8 - 1,2,4 reserved) - dg
+#define OB_FLUIDSIM_REVERSE 8
+
 #ifdef __cplusplus
 }
 #endif

@@ -184,6 +184,12 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	delete genscene;
 	delete glob;
 	
+	// do reverse here
+	if(model->getGeoPartSlipValue())
+	{
+		mirrorTime();
+	}
+	
 	return 1;
 }
 
