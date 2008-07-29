@@ -19,10 +19,33 @@ extern "C" {
 static void Operators___dealloc__(BPy_Operators *self);
 
 static PyObject * Operators_select(BPy_Operators* self, PyObject *args);
+static PyObject * Operators_bidirectionalChain(BPy_Operators* self, PyObject *args);
+static PyObject * Operators_sequentialSplit(BPy_Operators* self, PyObject *args);
+static PyObject * Operators_recursiveSplit(BPy_Operators* self, PyObject *args);
+static PyObject * Operators_sort(BPy_Operators* self, PyObject *args);
+static PyObject * Operators_create(BPy_Operators* self, PyObject *args);
 
 /*----------------------Operators instance definitions ----------------------------*/
 static PyMethodDef BPy_Operators_methods[] = {
-	{"select", ( PyCFunction ) Operators_select, METH_VARARGS | METH_STATIC, "（UnaryPredicate1D up1D ）Selects the ViewEdges of the ViewMap verifying a specified condition. "},
+	{"select", ( PyCFunction ) Operators_select, METH_VARARGS | METH_STATIC, 
+	"select operator"},
+	
+	{"bidirectionalChain", ( PyCFunction ) Operators_bidirectionalChain, METH_VARARGS | METH_STATIC,
+	 "select operator"},
+	
+	{"sequentialSplit", ( PyCFunction ) Operators_sequentialSplit, METH_VARARGS | METH_STATIC,
+	 "select operator"},
+	
+	{"recursiveSplit", ( PyCFunction ) Operators_recursiveSplit, METH_VARARGS | METH_STATIC, 
+	"select operator"},
+	
+	{"sort", ( PyCFunction ) Operators_sort, METH_VARARGS | METH_STATIC, 
+	"select operator"},
+	
+	{"create", ( PyCFunction ) Operators_create, METH_VARARGS | METH_STATIC, 
+	"select operator"},
+	
+		
 	{NULL, NULL, 0, NULL}
 };
 
