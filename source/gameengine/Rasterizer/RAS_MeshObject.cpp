@@ -35,6 +35,8 @@
 #include "MT_MinMax.h"
 #include "MT_Point3.h"
 
+#include <algorithm>
+
 
 STR_String RAS_MeshObject::s_emptyname = "";
 
