@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject Length2DBP1D_Type;
 
-#define BPy_Length2DBP1D_Check(v)	(( (PyObject *) v)->ob_type == &Length2DBP1D_Type)
+#define BPy_Length2DBP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Length2DBP1D_Type)  )
 
 /*---------------------------Python BPy_Length2DBP1D structure definition----------*/
 typedef struct {

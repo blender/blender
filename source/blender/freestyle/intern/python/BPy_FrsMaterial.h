@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject FrsMaterial_Type;
 
-#define BPy_FrsMaterial_Check(v)	(( (PyObject *) v)->ob_type == &FrsMaterial_Type)
+#define BPy_FrsMaterial_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FrsMaterial_Type)  )
 
 /*---------------------------Python BPy_FrsMaterial structure definition----------*/
 typedef struct {

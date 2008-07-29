@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject IncrementChainingTimeStampF1D_Type;
 
-#define BPy_IncrementChainingTimeStampF1D_Check(v)	(( (PyObject *) v)->ob_type == &IncrementChainingTimeStampF1D_Type)
+#define BPy_IncrementChainingTimeStampF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &IncrementChainingTimeStampF1D_Type)  )
 
 /*---------------------------Python BPy_IncrementChainingTimeStampF1D structure definition----------*/
 typedef struct {

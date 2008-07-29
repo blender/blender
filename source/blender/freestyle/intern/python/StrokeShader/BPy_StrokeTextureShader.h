@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject StrokeTextureShader_Type;
 
-#define BPy_StrokeTextureShader_Check(v)	(( (PyObject *) v)->ob_type == &StrokeTextureShader_Type)
+#define BPy_StrokeTextureShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeTextureShader_Type)  )
 
 /*---------------------------Python BPy_StrokeTextureShader structure definition----------*/
 typedef struct {

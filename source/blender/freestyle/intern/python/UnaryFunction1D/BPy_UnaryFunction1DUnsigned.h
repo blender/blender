@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DUnsigned_Type;
 
-#define BPy_UnaryFunction1DUnsigned_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction1DUnsigned_Type)
+#define BPy_UnaryFunction1DUnsigned_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DUnsigned_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction1DUnsigned structure definition----------*/
 typedef struct {

@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject PolygonalizationShader_Type;
 
-#define BPy_PolygonalizationShader_Check(v)	(( (PyObject *) v)->ob_type == &PolygonalizationShader_Type)
+#define BPy_PolygonalizationShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &PolygonalizationShader_Type)  )
 
 /*---------------------------Python BPy_PolygonalizationShader structure definition----------*/
 typedef struct {

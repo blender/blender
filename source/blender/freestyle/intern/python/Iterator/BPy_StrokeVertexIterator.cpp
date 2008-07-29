@@ -1,5 +1,6 @@
 #include "BPy_StrokeVertexIterator.h"
 
+#include "../BPy_Convert.h"
 #include "BPy_Interface0DIterator.h"
 
 #ifdef __cplusplus
@@ -14,11 +15,15 @@ static PyObject * StrokeVertexIterator_t( BPy_StrokeVertexIterator *self );
 static PyObject * StrokeVertexIterator_u( BPy_StrokeVertexIterator *self );
 static PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexIterator *self );
 
+static PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self);
+
+
 /*----------------------StrokeVertexIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
 	{"t", ( PyCFunction ) StrokeVertexIterator_t, METH_NOARGS, "（ ）Returns the curvilinear abscissa."},
 	{"u", ( PyCFunction ) StrokeVertexIterator_u, METH_NOARGS, "（ ）Returns the point parameter in the curve 0<=u<=1."},
 	{"castToInterface0DIterator", ( PyCFunction ) StrokeVertexIterator_castToInterface0DIterator, METH_NOARGS, "() Casts this StrokeVertexIterator into an Interface0DIterator. Useful for any call to a function of the type UnaryFunction0D."},
+	{"getObject", ( PyCFunction ) StrokeVertexIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -147,6 +152,10 @@ PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexItera
 	((BPy_Interface0DIterator *) py_if0D_it)->if0D_it = new Interface0DIterator( self->sv_it->castToInterface0DIterator() );
 
 	return py_if0D_it;
+}
+
+PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self) {
+	return BPy_StrokeVertex_from_StrokeVertex( self->sv_it->operator*() );
 }
 
 

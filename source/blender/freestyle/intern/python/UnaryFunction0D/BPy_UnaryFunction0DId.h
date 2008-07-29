@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DId_Type;
 
-#define BPy_UnaryFunction0DId_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction0DId_Type)
+#define BPy_UnaryFunction0DId_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction0DId_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction0DId structure definition----------*/
 typedef struct {

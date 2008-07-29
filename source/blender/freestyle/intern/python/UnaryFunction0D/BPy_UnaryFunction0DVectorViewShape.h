@@ -16,7 +16,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DVectorViewShape_Type;
 
-#define BPy_UnaryFunction0DVectorViewShape_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction0DVectorViewShape_Type)
+#define BPy_UnaryFunction0DVectorViewShape_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction0DVectorViewShape_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction0DVectorViewShape structure definition----------*/
 typedef struct {

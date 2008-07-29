@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DFloat_Type;
 
-#define BPy_UnaryFunction0DFloat_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction0DFloat_Type)
+#define BPy_UnaryFunction0DFloat_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction0DFloat_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction0DFloat structure definition----------*/
 typedef struct {

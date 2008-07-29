@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject GetProjectedYF0D_Type;
 
-#define BPy_GetProjectedYF0D_Check(v)	(( (PyObject *) v)->ob_type == &GetProjectedYF0D_Type)
+#define BPy_GetProjectedYF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GetProjectedYF0D_Type)  )
 
 /*---------------------------Python BPy_GetProjectedYF0D structure definition----------*/
 typedef struct {

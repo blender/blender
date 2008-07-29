@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject QuantitativeInvisibilityF1D_Type;
 
-#define BPy_QuantitativeInvisibilityF1D_Check(v)	(( (PyObject *) v)->ob_type == &QuantitativeInvisibilityF1D_Type)
+#define BPy_QuantitativeInvisibilityF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &QuantitativeInvisibilityF1D_Type)  )
 
 /*---------------------------Python BPy_QuantitativeInvisibilityF1D structure definition----------*/
 typedef struct {

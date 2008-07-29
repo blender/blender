@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ContourUP1D_Type;
 
-#define BPy_ContourUP1D_Check(v)	(( (PyObject *) v)->ob_type == &ContourUP1D_Type)
+#define BPy_ContourUP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ContourUP1D_Type)  )
 
 /*---------------------------Python BPy_ContourUP1D structure definition----------*/
 typedef struct {

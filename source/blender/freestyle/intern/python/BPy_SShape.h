@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject SShape_Type;
 
-#define BPy_SShape_Check(v)	(( (PyObject *) v)->ob_type == &SShape_Type)
+#define BPy_SShape_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SShape_Type)  )
 
 /*---------------------------Python BPy_SShape structure definition----------*/
 typedef struct {

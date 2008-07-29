@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject StrokeVertex_Type;
 
-#define BPy_StrokeVertex_Check(v)	(( (PyObject *) v)->ob_type == &StrokeVertex_Type)
+#define BPy_StrokeVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeVertex_Type)  )
 
 /*---------------------------Python BPy_StrokeVertex structure definition----------*/
 typedef struct {

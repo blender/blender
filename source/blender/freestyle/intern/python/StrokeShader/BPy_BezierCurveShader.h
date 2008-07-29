@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject BezierCurveShader_Type;
 
-#define BPy_BezierCurveShader_Check(v)	(( (PyObject *) v)->ob_type == &BezierCurveShader_Type)
+#define BPy_BezierCurveShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BezierCurveShader_Type)  )
 
 /*---------------------------Python BPy_BezierCurveShader structure definition----------*/
 typedef struct {

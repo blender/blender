@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject DensityF0D_Type;
 
-#define BPy_DensityF0D_Check(v)	(( (PyObject *) v)->ob_type == &DensityF0D_Type)
+#define BPy_DensityF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &DensityF0D_Type)  )
 
 /*---------------------------Python BPy_DensityF0D structure definition----------*/
 typedef struct {

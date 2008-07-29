@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject CurvePointIterator_Type;
 
-#define BPy_CurvePointIterator_Check(v)	(( (PyObject *) v)->ob_type == &CurvePointIterator_Type)
+#define BPy_CurvePointIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &CurvePointIterator_Type)  )
 
 /*---------------------------Python BPy_CurvePointIterator structure definition----------*/
 typedef struct {

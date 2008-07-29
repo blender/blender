@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject NonTVertex_Type;
 
-#define BPy_NonTVertex_Check(v)	(( (PyObject *) v)->ob_type == &NonTVertex_Type)
+#define BPy_NonTVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &NonTVertex_Type)  )
 
 /*---------------------------Python BPy_NonTVertex structure definition----------*/
 typedef struct {

@@ -12,8 +12,11 @@ extern "C" {
 /*---------------  Python API function prototypes for AdjacencyIterator instance  -----------*/
 static int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args);
 
+static PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self);
+
 /*----------------------AdjacencyIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_AdjacencyIterator_methods[] = {
+	{"getObject", ( PyCFunction ) AdjacencyIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -134,6 +137,16 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 	return 0;
 
 }
+
+PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self) {
+	
+	ViewEdge *ve = self->a_it->operator*();
+	if( ve )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
+
+	Py_RETURN_NONE;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

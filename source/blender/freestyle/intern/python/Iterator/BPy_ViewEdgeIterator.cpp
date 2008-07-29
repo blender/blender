@@ -21,6 +21,9 @@ static PyObject * ViewEdgeIterator_getOrientation( BPy_ViewEdgeIterator *self );
 static PyObject * ViewEdgeIterator_setOrientation( BPy_ViewEdgeIterator *self, PyObject *args );
 static PyObject * ViewEdgeIterator_changeOrientation( BPy_ViewEdgeIterator *self );
 
+static PyObject * ViewEdgeIterator_getObject(BPy_ViewEdgeIterator *self);
+
+
 /*----------------------ViewEdgeIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
 	{"getCurrentEdge", ( PyCFunction ) ViewEdgeIterator_getCurrentEdge, METH_NOARGS, "() Returns the current pointed ViewEdge."},
@@ -30,6 +33,7 @@ static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
 	{"getOrientation", ( PyCFunction ) ViewEdgeIterator_getOrientation, METH_NOARGS, "() Gets the orientation of the pointed ViewEdge in the iteration. "},
 	{"setOrientation", ( PyCFunction ) ViewEdgeIterator_setOrientation, METH_VARARGS, "(bool b) Sets the orientation of the pointed ViewEdge in the iteration. "},
 	{"changeOrientation", ( PyCFunction ) ViewEdgeIterator_changeOrientation, METH_NOARGS, "() Changes the current orientation."},
+	{"getObject", ( PyCFunction ) ViewEdgeIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -208,6 +212,14 @@ PyObject *ViewEdgeIterator_changeOrientation( BPy_ViewEdgeIterator *self ) {
 	Py_RETURN_NONE;
 }
 
+PyObject * ViewEdgeIterator_getObject( BPy_ViewEdgeIterator *self) {
+
+	ViewEdge *ve = self->ve_it->operator*();
+	if( ve )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
+
+	Py_RETURN_NONE;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

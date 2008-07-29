@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ViewMapGradientNormBP1D_Type;
 
-#define BPy_ViewMapGradientNormBP1D_Check(v)	(( (PyObject *) v)->ob_type == &ViewMapGradientNormBP1D_Type)
+#define BPy_ViewMapGradientNormBP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewMapGradientNormBP1D_Type)  )
 
 /*---------------------------Python BPy_ViewMapGradientNormBP1D structure definition----------*/
 typedef struct {

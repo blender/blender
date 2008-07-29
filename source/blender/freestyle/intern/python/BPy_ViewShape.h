@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ViewShape_Type;
 
-#define BPy_ViewShape_Check(v)	(( (PyObject *) v)->ob_type == &ViewShape_Type)
+#define BPy_ViewShape_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewShape_Type)  )
 
 /*---------------------------Python BPy_ViewShape structure definition----------*/
 typedef struct {

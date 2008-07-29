@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ShapeUP1D_Type;
 
-#define BPy_ShapeUP1D_Check(v)	(( (PyObject *) v)->ob_type == &ShapeUP1D_Type)
+#define BPy_ShapeUP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ShapeUP1D_Type)  )
 
 /*---------------------------Python BPy_ShapeUP1D structure definition----------*/
 typedef struct {

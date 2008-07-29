@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject TextureAssignerShader_Type;
 
-#define BPy_TextureAssignerShader_Check(v)	(( (PyObject *) v)->ob_type == &TextureAssignerShader_Type)
+#define BPy_TextureAssignerShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TextureAssignerShader_Type)  )
 
 /*---------------------------Python BPy_TextureAssignerShader structure definition----------*/
 typedef struct {

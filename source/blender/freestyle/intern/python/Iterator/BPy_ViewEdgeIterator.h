@@ -16,7 +16,7 @@ extern "C" {
 
 extern PyTypeObject ViewEdgeIterator_Type;
 
-#define BPy_ViewEdgeIterator_Check(v)	(( (PyObject *) v)->ob_type == &ViewEdgeIterator_Type)
+#define BPy_ViewEdgeIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewEdgeIterator_Type)  )
 
 /*---------------------------Python BPy_ViewEdgeIterator structure definition----------*/
 typedef struct {

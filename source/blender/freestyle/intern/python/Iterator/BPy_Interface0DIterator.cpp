@@ -1,5 +1,7 @@
 #include "BPy_Interface0DIterator.h"
 
+#include "../BPy_Convert.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,10 +14,13 @@ static int Interface0DIterator___init__(BPy_Interface0DIterator *self, PyObject 
 static PyObject * Interface0DIterator_t( BPy_Interface0DIterator *self );
 static PyObject * Interface0DIterator_u( BPy_Interface0DIterator *self );
 
+static PyObject * Interface0DIterator_getObject(BPy_Interface0DIterator *self);
+
 /*----------------------Interface0DIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_Interface0DIterator_methods[] = {
 	{"t", ( PyCFunction ) Interface0DIterator_t, METH_NOARGS, "（ ）Returns the curvilinear abscissa."},
 	{"u", ( PyCFunction ) Interface0DIterator_u, METH_NOARGS, "（ ）Returns the point parameter in the curve 0<=u<=1."},
+	{"getObject", ( PyCFunction ) Interface0DIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -129,6 +134,11 @@ PyObject * Interface0DIterator_t( BPy_Interface0DIterator *self ) {
 PyObject * Interface0DIterator_u( BPy_Interface0DIterator *self ) {
 	return PyFloat_FromDouble( self->if0D_it->u() );
 }
+
+PyObject * Interface0DIterator_getObject(BPy_Interface0DIterator *self) {
+	return BPy_Interface0D_from_Interface0D( self->if0D_it->operator*() );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

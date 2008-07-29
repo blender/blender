@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject BackboneStretcherShader_Type;
 
-#define BPy_BackboneStretcherShader_Check(v)	(( (PyObject *) v)->ob_type == &BackboneStretcherShader_Type)
+#define BPy_BackboneStretcherShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BackboneStretcherShader_Type)  )
 
 /*---------------------------Python BPy_BackboneStretcherShader structure definition----------*/
 typedef struct {

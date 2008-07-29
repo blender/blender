@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DDouble_Type;
 
-#define BPy_UnaryFunction1DDouble_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction1DDouble_Type)
+#define BPy_UnaryFunction1DDouble_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DDouble_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction1DDouble structure definition----------*/
 typedef struct {

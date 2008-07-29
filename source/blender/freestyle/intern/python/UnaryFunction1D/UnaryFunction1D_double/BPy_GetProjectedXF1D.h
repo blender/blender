@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject GetProjectedXF1D_Type;
 
-#define BPy_GetProjectedXF1D_Check(v)	(( (PyObject *) v)->ob_type == &GetProjectedXF1D_Type)
+#define BPy_GetProjectedXF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GetProjectedXF1D_Type)  )
 
 /*---------------------------Python BPy_GetProjectedXF1D structure definition----------*/
 typedef struct {

@@ -1,5 +1,6 @@
 #include "BPy_CurvePointIterator.h"
 
+#include "../BPy_Convert.h"
 #include "BPy_Interface0DIterator.h"
 
 #ifdef __cplusplus
@@ -14,12 +15,14 @@ static PyObject * CurvePointIterator_t( BPy_CurvePointIterator *self );
 static PyObject * CurvePointIterator_u( BPy_CurvePointIterator *self );
 static PyObject * CurvePointIterator_castToInterface0DIterator( BPy_CurvePointIterator *self );
 
+static PyObject * CurvePointIterator_getObject(BPy_CurvePointIterator *self);
 
 /*----------------------CurvePointIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_CurvePointIterator_methods[] = {
 	{"t", ( PyCFunction ) CurvePointIterator_t, METH_NOARGS, "（ ）Returns the curvilinear abscissa."},
 	{"u", ( PyCFunction ) CurvePointIterator_u, METH_NOARGS, "（ ）Returns the point parameter in the curve 0<=u<=1."},
 	{"castToInterface0DIterator", ( PyCFunction ) CurvePointIterator_castToInterface0DIterator, METH_NOARGS, "() Casts this CurvePointIterator into an Interface0DIterator. Useful for any call to a function of the type UnaryFunction0D."},
+	{"getObject", ( PyCFunction ) CurvePointIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -151,6 +154,10 @@ PyObject * CurvePointIterator_castToInterface0DIterator( BPy_CurvePointIterator 
 	((BPy_Interface0DIterator *) py_if0D_it)->if0D_it = new Interface0DIterator( self->cp_it->castToInterface0DIterator() );
 
 	return py_if0D_it;
+}
+
+PyObject * CurvePointIterator_getObject(BPy_CurvePointIterator *self) {
+	return BPy_CurvePoint_from_CurvePoint( self->cp_it->operator*() );
 }
 
 

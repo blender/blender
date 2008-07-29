@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject VertexOrientation3DF0D_Type;
 
-#define BPy_VertexOrientation3DF0D_Check(v)	(( (PyObject *) v)->ob_type == &VertexOrientation3DF0D_Type)
+#define BPy_VertexOrientation3DF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &VertexOrientation3DF0D_Type)  )
 
 /*---------------------------Python BPy_VertexOrientation3DF0D structure definition----------*/
 typedef struct {

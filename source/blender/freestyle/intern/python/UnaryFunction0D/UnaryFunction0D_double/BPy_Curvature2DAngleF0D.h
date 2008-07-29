@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject Curvature2DAngleF0D_Type;
 
-#define BPy_Curvature2DAngleF0D_Check(v)	(( (PyObject *) v)->ob_type == &Curvature2DAngleF0D_Type)
+#define BPy_Curvature2DAngleF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Curvature2DAngleF0D_Type)  )
 
 /*---------------------------Python BPy_Curvature2DAngleF0D structure definition----------*/
 typedef struct {

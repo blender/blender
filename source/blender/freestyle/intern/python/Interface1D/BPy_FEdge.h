@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject FEdge_Type;
 
-#define BPy_FEdge_Check(v)	(( (PyObject *) v)->ob_type == &FEdge_Type)
+#define BPy_FEdge_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FEdge_Type)  )
 
 /*---------------------------Python BPy_FEdge structure definition----------*/
 typedef struct {

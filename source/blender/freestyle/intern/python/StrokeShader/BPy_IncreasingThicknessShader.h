@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject IncreasingThicknessShader_Type;
 
-#define BPy_IncreasingThicknessShader_Check(v)	(( (PyObject *) v)->ob_type == &IncreasingThicknessShader_Type)
+#define BPy_IncreasingThicknessShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &IncreasingThicknessShader_Type)  )
 
 /*---------------------------Python BPy_IncreasingThicknessShader structure definition----------*/
 typedef struct {

@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DEdgeNature_Type;
 
-#define BPy_UnaryFunction0DEdgeNature_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction0DEdgeNature_Type)
+#define BPy_UnaryFunction0DEdgeNature_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction0DEdgeNature_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction0DEdgeNature structure definition----------*/
 typedef struct {

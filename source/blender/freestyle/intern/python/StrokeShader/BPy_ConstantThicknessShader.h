@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ConstantThicknessShader_Type;
 
-#define BPy_ConstantThicknessShader_Check(v)	(( (PyObject *) v)->ob_type == &ConstantThicknessShader_Type)
+#define BPy_ConstantThicknessShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ConstantThicknessShader_Type)  )
 
 /*---------------------------Python BPy_ConstantThicknessShader structure definition----------*/
 typedef struct {

@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject FalseUP0D_Type;
 
-#define BPy_FalseUP0D_Check(v)	(( (PyObject *) v)->ob_type == &FalseUP0D_Type)
+#define BPy_FalseUP0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FalseUP0D_Type)  )
 
 /*---------------------------Python BPy_FalseUP0D structure definition----------*/
 typedef struct {

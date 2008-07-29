@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject IntegrationType_Type;
 
-#define BPy_IntegrationType_Check(v)	(( (PyObject *) v)->ob_type == &IntegrationType_Type)
+#define BPy_IntegrationType_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &IntegrationType_Type)  )
 
 /*---------------------------Python BPy_IntegrationType structure definition----------*/
 typedef struct {

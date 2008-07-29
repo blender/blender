@@ -16,7 +16,7 @@ extern "C" {
 
 extern PyTypeObject ChainPredicateIterator_Type;
 
-#define BPy_ChainPredicateIterator_Check(v)	(( (PyObject *) v)->ob_type == &ChainPredicateIterator_Type)
+#define BPy_ChainPredicateIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ChainPredicateIterator_Type)  )
 
 /*---------------------------Python BPy_ChainPredicateIterator structure definition----------*/
 typedef struct {

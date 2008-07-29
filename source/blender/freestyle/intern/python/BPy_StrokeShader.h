@@ -18,7 +18,7 @@ extern "C" {
 
 extern PyTypeObject StrokeShader_Type;
 
-#define BPy_StrokeShader_Check(v)	(( (PyObject *) v)->ob_type == &StrokeShader_Type)
+#define BPy_StrokeShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeShader_Type)  )
 
 /*---------------------------Python BPy_StrokeShader structure definition----------*/
 typedef struct {

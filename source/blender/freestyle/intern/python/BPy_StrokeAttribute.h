@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject StrokeAttribute_Type;
 
-#define BPy_StrokeAttribute_Check(v)	(( (PyObject *) v)->ob_type == &StrokeAttribute_Type)
+#define BPy_StrokeAttribute_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeAttribute_Type)  )
 
 /*---------------------------Python BPy_StrokeAttribute structure definition----------*/
 typedef struct {

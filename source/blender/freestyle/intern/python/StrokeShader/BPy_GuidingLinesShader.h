@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject GuidingLinesShader_Type;
 
-#define BPy_GuidingLinesShader_Check(v)	(( (PyObject *) v)->ob_type == &GuidingLinesShader_Type)
+#define BPy_GuidingLinesShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GuidingLinesShader_Type)  )
 
 /*---------------------------Python BPy_GuidingLinesShader structure definition----------*/
 typedef struct {

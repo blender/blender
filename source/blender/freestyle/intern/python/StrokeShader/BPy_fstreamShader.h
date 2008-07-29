@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject fstreamShader_Type;
 
-#define BPy_fstreamShader_Check(v)	(( (PyObject *) v)->ob_type == &fstreamShader_Type)
+#define BPy_fstreamShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &fstreamShader_Type)  )
 
 /*---------------------------Python BPy_fstreamShader structure definition----------*/
 typedef struct {

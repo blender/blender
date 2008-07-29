@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject Curve_Type;
 
-#define BPy_Curve_Check(v)	(( (PyObject *) v)->ob_type == &Curve_Type)
+#define BPy_Curve_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Curve_Type)  )
 
 /*---------------------------Python BPy_Curve structure definition----------*/
 typedef struct {

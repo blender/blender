@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject LocalAverageDepthF0D_Type;
 
-#define BPy_LocalAverageDepthF0D_Check(v)	(( (PyObject *) v)->ob_type == &LocalAverageDepthF0D_Type)
+#define BPy_LocalAverageDepthF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &LocalAverageDepthF0D_Type)  )
 
 /*---------------------------Python BPy_LocalAverageDepthF0D structure definition----------*/
 typedef struct {

@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject IncreasingColorShader_Type;
 
-#define BPy_IncreasingColorShader_Check(v)	(( (PyObject *) v)->ob_type == &IncreasingColorShader_Type)
+#define BPy_IncreasingColorShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &IncreasingColorShader_Type)  )
 
 /*---------------------------Python BPy_IncreasingColorShader structure definition----------*/
 typedef struct {

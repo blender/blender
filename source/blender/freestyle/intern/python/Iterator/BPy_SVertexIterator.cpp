@@ -1,5 +1,6 @@
 #include "BPy_SVertexIterator.h"
 
+#include "../BPy_Convert.h"
 #include "../Interface0D/BPy_SVertex.h"
 #include "../Interface1D/BPy_FEdge.h"
 
@@ -15,10 +16,13 @@ static int SVertexIterator___init__(BPy_SVertexIterator *self, PyObject *args);
 static PyObject * SVertexIterator_t( BPy_SVertexIterator *self );
 static PyObject * SVertexIterator_u( BPy_SVertexIterator *self );
 
+static PyObject * SVertexIterator_getObject( BPy_SVertexIterator *self);
+
 /*----------------------SVertexIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_SVertexIterator_methods[] = {
 	{"t", ( PyCFunction ) SVertexIterator_t, METH_NOARGS, "（ ）Returns the curvilinear abscissa."},
 	{"u", ( PyCFunction ) SVertexIterator_u, METH_NOARGS, "（ ）Returns the point parameter in the curve 0<=u<=1."},
+	{"getObject", ( PyCFunction ) SVertexIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -154,6 +158,11 @@ PyObject * SVertexIterator_t( BPy_SVertexIterator *self ) {
 PyObject * SVertexIterator_u( BPy_SVertexIterator *self ) {
 	return PyFloat_FromDouble( self->sv_it->u() );
 }
+
+PyObject * SVertexIterator_getObject( BPy_SVertexIterator *self) {
+	return BPy_SVertex_from_SVertex( self->sv_it->operator*() );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

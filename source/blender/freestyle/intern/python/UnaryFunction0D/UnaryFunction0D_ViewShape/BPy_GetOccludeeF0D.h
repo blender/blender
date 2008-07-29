@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject GetOccludeeF0D_Type;
 
-#define BPy_GetOccludeeF0D_Check(v)	(( (PyObject *) v)->ob_type == &GetOccludeeF0D_Type)
+#define BPy_GetOccludeeF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GetOccludeeF0D_Type)  )
 
 /*---------------------------Python BPy_GetOccludeeF0D structure definition----------*/
 typedef struct {

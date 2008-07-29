@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject BinaryPredicate1D_Type;
 
-#define BPy_BinaryPredicate1D_Check(v)	(( (PyObject *) v)->ob_type == &BinaryPredicate1D_Type)
+#define BPy_BinaryPredicate1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BinaryPredicate1D_Type)  )
 
 /*---------------------------Python BPy_BinaryPredicate1D structure definition----------*/
 typedef struct {

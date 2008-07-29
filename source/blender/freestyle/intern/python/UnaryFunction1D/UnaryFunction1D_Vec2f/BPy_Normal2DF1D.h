@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject Normal2DF1D_Type;
 
-#define BPy_Normal2DF1D_Check(v)	(( (PyObject *) v)->ob_type == &Normal2DF1D_Type)
+#define BPy_Normal2DF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Normal2DF1D_Type)  )
 
 /*---------------------------Python BPy_Normal2DF1D structure definition----------*/
 typedef struct {

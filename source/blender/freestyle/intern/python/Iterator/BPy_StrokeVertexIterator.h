@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject StrokeVertexIterator_Type;
 
-#define BPy_StrokeVertexIterator_Check(v)	(( (PyObject *) v)->ob_type == &StrokeVertexIterator_Type)
+#define BPy_StrokeVertexIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeVertexIterator_Type)  )
 
 /*---------------------------Python BPy_StrokeVertexIterator structure definition----------*/
 typedef struct {

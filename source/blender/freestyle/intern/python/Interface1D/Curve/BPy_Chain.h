@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject Chain_Type;
 
-#define BPy_Chain_Check(v)	(( (PyObject *) v)->ob_type == &Chain_Type)
+#define BPy_Chain_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Chain_Type)  )
 
 /*---------------------------Python BPy_Chain structure definition----------*/
 typedef struct {

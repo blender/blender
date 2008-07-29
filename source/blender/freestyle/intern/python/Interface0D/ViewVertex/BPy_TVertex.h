@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject TVertex_Type;
 
-#define BPy_TVertex_Check(v)	(( (PyObject *) v)->ob_type == &TVertex_Type)
+#define BPy_TVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TVertex_Type)  )
 
 /*---------------------------Python BPy_TVertex structure definition----------*/
 typedef struct {

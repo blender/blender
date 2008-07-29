@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ZDiscontinuityF1D_Type;
 
-#define BPy_ZDiscontinuityF1D_Check(v)	(( (PyObject *) v)->ob_type == &ZDiscontinuityF1D_Type)
+#define BPy_ZDiscontinuityF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ZDiscontinuityF1D_Type)  )
 
 /*---------------------------Python BPy_ZDiscontinuityF1D structure definition----------*/
 typedef struct {

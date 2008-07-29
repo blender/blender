@@ -16,7 +16,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DVec3f_Type;
 
-#define BPy_UnaryFunction1DVec3f_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction1DVec3f_Type)
+#define BPy_UnaryFunction1DVec3f_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DVec3f_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction1DVec3f structure definition----------*/
 typedef struct {

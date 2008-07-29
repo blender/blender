@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ThicknessNoiseShader_Type;
 
-#define BPy_ThicknessNoiseShader_Check(v)	(( (PyObject *) v)->ob_type == &ThicknessNoiseShader_Type)
+#define BPy_ThicknessNoiseShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ThicknessNoiseShader_Type)  )
 
 /*---------------------------Python BPy_ThicknessNoiseShader structure definition----------*/
 typedef struct {

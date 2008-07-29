@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject SamplingShader_Type;
 
-#define BPy_SamplingShader_Check(v)	(( (PyObject *) v)->ob_type == &SamplingShader_Type)
+#define BPy_SamplingShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SamplingShader_Type)  )
 
 /*---------------------------Python BPy_SamplingShader structure definition----------*/
 typedef struct {

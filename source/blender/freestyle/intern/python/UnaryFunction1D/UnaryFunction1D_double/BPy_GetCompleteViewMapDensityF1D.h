@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject GetCompleteViewMapDensityF1D_Type;
 
-#define BPy_GetCompleteViewMapDensityF1D_Check(v)	(( (PyObject *) v)->ob_type == &GetCompleteViewMapDensityF1D_Type)
+#define BPy_GetCompleteViewMapDensityF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GetCompleteViewMapDensityF1D_Type)  )
 
 /*---------------------------Python BPy_GetCompleteViewMapDensityF1D structure definition----------*/
 typedef struct {

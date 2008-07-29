@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ThicknessVariationPatternShader_Type;
 
-#define BPy_ThicknessVariationPatternShader_Check(v)	(( (PyObject *) v)->ob_type == &ThicknessVariationPatternShader_Type)
+#define BPy_ThicknessVariationPatternShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ThicknessVariationPatternShader_Type)  )
 
 /*---------------------------Python BPy_ThicknessVariationPatternShader structure definition----------*/
 typedef struct {

@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject TimeStampF1D_Type;
 
-#define BPy_TimeStampF1D_Check(v)	(( (PyObject *) v)->ob_type == &TimeStampF1D_Type)
+#define BPy_TimeStampF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TimeStampF1D_Type)  )
 
 /*---------------------------Python BPy_TimeStampF1D structure definition----------*/
 typedef struct {

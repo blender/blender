@@ -227,6 +227,12 @@ PyObject * Iterator_isEnd(BPy_Iterator* self) {
 	return PyBool_from_bool( self->it->isEnd() );
 }
 
+//%rename(getObject) Interface0DIterator::operator*
+PyObject * Iterator_getObject(BPy_Iterator* self) {
+	return PyBool_from_bool( self->it->isEnd() );
+}
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

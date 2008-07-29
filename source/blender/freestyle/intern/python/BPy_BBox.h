@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject BBox_Type;
 
-#define BPy_BBox_Check(v)	(( (PyObject *) v)->ob_type == &BBox_Type)
+#define BPy_BBox_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BBox_Type)  )
 
 /*---------------------------Python BPy_BBox structure definition----------*/
 typedef struct {

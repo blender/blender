@@ -18,12 +18,15 @@ static PyObject * ChainingIterator_traverse( BPy_ChainingIterator *self, PyObjec
 static PyObject * ChainingIterator_getVertex( BPy_ChainingIterator *self );
 static PyObject * ChainingIterator_isIncrementing( BPy_ChainingIterator *self );
 
+static PyObject * ChainingIterator_getObject( BPy_ChainingIterator *self);
+
 /*----------------------ChainingIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_ChainingIterator_methods[] = {
 	{"init", ( PyCFunction ) ChainingIterator_init, METH_NOARGS, "() Inits the iterator context. This method is called each time a new chain is started. It can be used to reset some history information that you might want to keep."},
 	{"traverse", ( PyCFunction ) ChainingIterator_traverse, METH_VARARGS, "(AdjacencyIterator ai) This method iterates over the potential next ViewEdges and returns the one that will be followed next. Returns the next ViewEdge to follow or 0 when the end of the chain is reached. "},
 	{"getVertex", ( PyCFunction ) ChainingIterator_getVertex, METH_NOARGS, "() Returns the vertex which is the next crossing "},
 	{"isIncrementing", ( PyCFunction ) ChainingIterator_isIncrementing, METH_NOARGS, "() Returns true if the current iteration is an incrementation."},
+	{"getObject", ( PyCFunction ) ChainingIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -171,7 +174,14 @@ PyObject *ChainingIterator_isIncrementing( BPy_ChainingIterator *self ) {
 	return PyBool_from_bool( self->c_it->isIncrementing() );
 }
 
+PyObject * ChainingIterator_getObject( BPy_ChainingIterator *self) {
+	
+	ViewEdge *ve = self->c_it->operator*();
+	if( ve )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 
+	Py_RETURN_NONE;
+}
 
 
 

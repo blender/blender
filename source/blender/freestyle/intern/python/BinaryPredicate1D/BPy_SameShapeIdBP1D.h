@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject SameShapeIdBP1D_Type;
 
-#define BPy_SameShapeIdBP1D_Check(v)	(( (PyObject *) v)->ob_type == &SameShapeIdBP1D_Type)
+#define BPy_SameShapeIdBP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SameShapeIdBP1D_Type)  )
 
 /*---------------------------Python BPy_SameShapeIdBP1D structure definition----------*/
 typedef struct {

@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject SpatialNoiseShader_Type;
 
-#define BPy_SpatialNoiseShader_Check(v)	(( (PyObject *) v)->ob_type == &SpatialNoiseShader_Type)
+#define BPy_SpatialNoiseShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SpatialNoiseShader_Type)  )
 
 /*---------------------------Python BPy_SpatialNoiseShader structure definition----------*/
 typedef struct {

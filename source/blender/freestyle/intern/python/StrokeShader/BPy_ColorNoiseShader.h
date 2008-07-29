@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ColorNoiseShader_Type;
 
-#define BPy_ColorNoiseShader_Check(v)	(( (PyObject *) v)->ob_type == &ColorNoiseShader_Type)
+#define BPy_ColorNoiseShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ColorNoiseShader_Type)  )
 
 /*---------------------------Python BPy_ColorNoiseShader structure definition----------*/
 typedef struct {

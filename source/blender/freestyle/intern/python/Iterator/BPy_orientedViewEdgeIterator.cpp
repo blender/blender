@@ -1,5 +1,7 @@
 #include "BPy_orientedViewEdgeIterator.h"
 
+#include "../BPy_Convert.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -9,8 +11,12 @@ extern "C" {
 /*---------------  Python API function prototypes for orientedViewEdgeIterator instance  -----------*/
 static int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObject *args);
 
+static PyObject * orientedViewEdgeIterator_getObject(BPy_orientedViewEdgeIterator *self);
+
+
 /*----------------------orientedViewEdgeIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_orientedViewEdgeIterator_methods[] = {
+	{"getObject", ( PyCFunction ) orientedViewEdgeIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -99,9 +105,6 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 	NULL
 };
 
-//-------------------MODULE INITIALIZATION--------------------------------
-
-
 //------------------------INSTANCE METHODS ----------------------------------
 
 int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObject *args )
@@ -119,6 +122,10 @@ int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObje
 	self->py_it.it = self->ove_it;
 	
 	return 0;
+}
+
+PyObject * orientedViewEdgeIterator_getObject( BPy_orientedViewEdgeIterator *self) {
+	return BPy_directedViewEdge_from_directedViewEdge( self->ove_it->operator*() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

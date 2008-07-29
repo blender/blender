@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject AdjacencyIterator_Type;
 
-#define BPy_AdjacencyIterator_Check(v)	(( (PyObject *) v)->ob_type == &AdjacencyIterator_Type)
+#define BPy_AdjacencyIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &AdjacencyIterator_Type)  )
 
 /*---------------------------Python BPy_AdjacencyIterator structure definition----------*/
 typedef struct {

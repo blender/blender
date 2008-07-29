@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject FEdgeSmooth_Type;
 
-#define BPy_FEdgeSmooth_Check(v)	(( (PyObject *) v)->ob_type == &FEdgeSmooth_Type)
+#define BPy_FEdgeSmooth_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FEdgeSmooth_Type)  )
 
 /*---------------------------Python BPy_FEdgeSmooth structure definition----------*/
 typedef struct {

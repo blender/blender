@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DVoid_Type;
 
-#define BPy_UnaryFunction1DVoid_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction1DVoid_Type)
+#define BPy_UnaryFunction1DVoid_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DVoid_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction1DVoid structure definition----------*/
 typedef struct {

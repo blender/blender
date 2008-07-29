@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ReadMapPixelF0D_Type;
 
-#define BPy_ReadMapPixelF0D_Check(v)	(( (PyObject *) v)->ob_type == &ReadMapPixelF0D_Type)
+#define BPy_ReadMapPixelF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ReadMapPixelF0D_Type)  )
 
 /*---------------------------Python BPy_ReadMapPixelF0D structure definition----------*/
 typedef struct {

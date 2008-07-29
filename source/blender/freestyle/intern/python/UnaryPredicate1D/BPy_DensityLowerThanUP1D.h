@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject DensityLowerThanUP1D_Type;
 
-#define BPy_DensityLowerThanUP1D_Check(v)	(( (PyObject *) v)->ob_type == &DensityLowerThanUP1D_Type)
+#define BPy_DensityLowerThanUP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &DensityLowerThanUP1D_Type)  )
 
 /*---------------------------Python BPy_DensityLowerThanUP1D structure definition----------*/
 typedef struct {

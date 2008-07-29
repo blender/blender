@@ -14,7 +14,7 @@ extern "C" {
 
 extern PyTypeObject FEdgeSharp_Type;
 
-#define BPy_FEdgeSharp_Check(v)	(( (PyObject *) v)->ob_type == &FEdgeSharp_Type)
+#define BPy_FEdgeSharp_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FEdgeSharp_Type)  )
 
 /*---------------------------Python BPy_FEdgeSharp structure definition----------*/
 typedef struct {

@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject Interface0DIterator_Type;
 
-#define BPy_Interface0DIterator_Check(v)	(( (PyObject *) v)->ob_type == &Interface0DIterator_Type)
+#define BPy_Interface0DIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Interface0DIterator_Type)  )
 
 /*---------------------------Python BPy_Interface0DIterator structure definition----------*/
 typedef struct {

@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject Noise_Type;
 
-#define BPy_Noise_Check(v)	(( (PyObject *) v)->ob_type == &Noise_Type)
+#define BPy_Noise_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Noise_Type)  )
 
 /*---------------------------Python BPy_Noise structure definition----------*/
 typedef struct {

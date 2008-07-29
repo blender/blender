@@ -16,7 +16,7 @@ extern "C" {
 
 extern PyTypeObject Id_Type;
 
-#define BPy_Id_Check(v)	(( (PyObject *) v)->ob_type == &Id_Type)
+#define BPy_Id_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Id_Type)  )
 
 /*---------------------------Python BPy_Id structure definition----------*/
 typedef struct {

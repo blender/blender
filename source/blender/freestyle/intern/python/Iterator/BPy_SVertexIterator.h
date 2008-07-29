@@ -16,7 +16,7 @@ extern "C" {
 
 extern PyTypeObject SVertexIterator_Type;
 
-#define BPy_SVertexIterator_Check(v)	(( (PyObject *) v)->ob_type == &SVertexIterator_Type)
+#define BPy_SVertexIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SVertexIterator_Type)  )
 
 /*---------------------------Python BPy_SVertexIterator structure definition----------*/
 typedef struct {

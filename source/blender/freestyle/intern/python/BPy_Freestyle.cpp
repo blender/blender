@@ -11,6 +11,7 @@
 #include "BPy_Iterator.h"
 #include "BPy_MediumType.h"
 #include "BPy_Nature.h"
+#include "BPy_Operators.h"
 #include "BPy_Noise.h"
 #include "BPy_SShape.h"
 #include "BPy_StrokeAttribute.h"
@@ -152,6 +153,7 @@ PyObject *Freestyle_Init( void )
 	Interface0D_Init( module );
 	Interface1D_Init( module );
 	Iterator_Init( module );
+	Operators_Init( module );
 	Noise_Init( module );
 	SShape_Init( module );
 	StrokeAttribute_Init( module );

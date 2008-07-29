@@ -15,7 +15,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DMaterial_Type;
 
-#define BPy_UnaryFunction0DMaterial_Check(v)	(( (PyObject *) v)->ob_type == &UnaryFunction0DMaterial_Type)
+#define BPy_UnaryFunction0DMaterial_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction0DMaterial_Type)  )
 
 /*---------------------------Python BPy_UnaryFunction0DMaterial structure definition----------*/
 typedef struct {

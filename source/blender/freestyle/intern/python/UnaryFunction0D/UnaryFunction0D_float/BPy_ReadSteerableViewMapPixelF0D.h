@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ReadSteerableViewMapPixelF0D_Type;
 
-#define BPy_ReadSteerableViewMapPixelF0D_Check(v)	(( (PyObject *) v)->ob_type == &ReadSteerableViewMapPixelF0D_Type)
+#define BPy_ReadSteerableViewMapPixelF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ReadSteerableViewMapPixelF0D_Type)  )
 
 /*---------------------------Python BPy_ReadSteerableViewMapPixelF0D structure definition----------*/
 typedef struct {

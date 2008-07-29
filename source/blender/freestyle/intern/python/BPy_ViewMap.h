@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ViewMap_Type;
 
-#define BPy_ViewMap_Check(v)	(( (PyObject *) v)->ob_type == &ViewMap_Type)
+#define BPy_ViewMap_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewMap_Type)  )
 
 /*---------------------------Python BPy_ViewMap structure definition----------*/
 typedef struct {

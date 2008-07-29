@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject CurveNatureF0D_Type;
 
-#define BPy_CurveNatureF0D_Check(v)	(( (PyObject *) v)->ob_type == &CurveNatureF0D_Type)
+#define BPy_CurveNatureF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &CurveNatureF0D_Type)  )
 
 /*---------------------------Python BPy_CurveNatureF0D structure definition----------*/
 typedef struct {

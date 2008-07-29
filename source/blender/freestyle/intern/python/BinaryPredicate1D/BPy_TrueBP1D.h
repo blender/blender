@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject TrueBP1D_Type;
 
-#define BPy_TrueBP1D_Check(v)	(( (PyObject *) v)->ob_type == &TrueBP1D_Type)
+#define BPy_TrueBP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TrueBP1D_Type)  )
 
 /*---------------------------Python BPy_TrueBP1D structure definition----------*/
 typedef struct {

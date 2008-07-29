@@ -13,7 +13,7 @@ extern "C" {
 
 extern PyTypeObject ConstantColorShader_Type;
 
-#define BPy_ConstantColorShader_Check(v)	(( (PyObject *) v)->ob_type == &ConstantColorShader_Type)
+#define BPy_ConstantColorShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ConstantColorShader_Type)  )
 
 /*---------------------------Python BPy_ConstantColorShader structure definition----------*/
 typedef struct {
