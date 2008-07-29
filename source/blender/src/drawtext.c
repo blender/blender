@@ -580,6 +580,7 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	TextLine *linep;
 	int i, start, end, taboffs, max;
 
+	*offl= *offc= 0;
 	if (!st->text) return;
 	if (!st->wordwrap) return;
 
@@ -593,9 +594,7 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 		i--;
 	}
 
-	/* Calculate line offset for earlier lines */
 	max= get_wrap_width(st);
-	*offl= 0;
 
 	while (linep) {
 		taboffs= start= 0;
@@ -623,102 +622,76 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	}
 }
 
+static int get_char_pos(SpaceText *st, char *line, int cur) {
+	int a=0, i;
+	for (i=0; i<cur && line[i]; i++) {
+		if (line[i]=='\t')
+			a += st->tabnumber-a%st->tabnumber;
+		else
+			a++;
+	}
+	return a;
+}
+
 static void draw_cursor(SpaceText *st) {
-	int h, x, i, w;
 	Text *text= st->text;
 	TextLine *linef, *linel;
-	int charf, charl, offl, offc;
-	char ch[2];
+	int vcurl, vcurc, vsell, vselc, offl, offc, x, y, w, i;
 	
 	/* Draw the selection */
 	if (text->curl!=text->sell || text->curc!=text->selc) {
-		int span= txt_get_span(text->curl, text->sell);
-		
-		if (span<0) {
-			linef= text->sell;
-			charf= text->selc;
-			
-			linel= text->curl;
-			charl= text->curc;
-		} else if (span>0) {
-			linef= text->curl;
-			charf= text->curc;
-	
-			linel= text->sell;		
-			charl= text->selc;
-		} else {
-			linef= linel= text->curl;
-			
-			if (text->curc<text->selc) {
-				charf= text->curc;
-				charl= text->selc;
-			} else {
-				charf= text->selc;
-				charl= text->curc;
-			}
-		}
-	
-		/* Walk to the beginning of visible text */
-		h= txt_get_span(text->lines.first, linef) - st->top;
-		while (h++<-1 && linef!=linel) linef= linef->next;
-	
-		x= text_draw(st, linef->line, st->left, charf, 0, 0, 0, NULL);
 
+		/* Convert all to view space character coordinates */
+		wrap_offset(st, text->curl, text->curc, &offl, &offc);
+		vcurl = txt_get_span(text->lines.first, text->curl) - st->top + offl;
+		vcurc = get_char_pos(st, text->curl->line, text->curc) + offc;
+		wrap_offset(st, text->sell, text->selc, &offl, &offc);
+		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
+		vselc = get_char_pos(st, text->sell->line, text->selc) + offc;
+		
 		BIF_ThemeColor(TH_SHADE2);
+		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+		y= curarea->winy-2;
 
-		if(st->showlinenrs) {
-			if (!x) x= TXT_OFFSET + TEXTXLOC -4;
+		if (vcurl==vsell) {
+			y -= vcurl*st->lheight;
+			if (vcurc < vselc)
+				glRecti(x+vcurc*spacetext_get_fontwidth(st), y, x+vselc*spacetext_get_fontwidth(st), y-st->lheight);
+			else
+				glRecti(x+vselc*spacetext_get_fontwidth(st), y, x+vcurc*spacetext_get_fontwidth(st), y-st->lheight);
 		} else {
-			if (!x) x= TXT_OFFSET - 4;
+			int froml, fromc, tol, toc;
+			if (vcurl < vsell) {
+				froml= vcurl; tol= vsell;
+				fromc= vcurc; toc= vselc;
+			} else {
+				froml= vsell; tol= vcurl;
+				fromc= vselc; toc= vcurc;
+			}
+			y -= froml*st->lheight;
+			glRecti(x+fromc*spacetext_get_fontwidth(st), y, curarea->winx, y-st->lheight); y-=st->lheight;
+			for (i=froml+1; i<tol; i++)
+				glRecti(x-4, y, curarea->winx, y-st->lheight),  y-=st->lheight;
+			glRecti(x-4, y, x+toc*spacetext_get_fontwidth(st), y-st->lheight);  y-=st->lheight;
 		}
-		
-		while (linef && linef != linel) {
-			h= txt_get_span(text->lines.first, linef) - st->top;
-			if (h>st->viewlines) break;
-			
-			glRecti(x, curarea->winy-st->lheight*(h)-2, curarea->winx, curarea->winy-st->lheight*(h+1)-2);
-			if(st->showlinenrs)
-				glRecti(TXT_OFFSET+TEXTXLOC-4, curarea->winy-st->lheight*(h+1)-2, TXT_OFFSET+TEXTXLOC, curarea->winy-st->lheight*(h+2)-2);
-			else
-				glRecti(TXT_OFFSET-4, curarea->winy-st->lheight*(h+1)-2, TXT_OFFSET, curarea->winy-st->lheight*(h+2)-2);
-
-			if(st->showlinenrs)
-				x= TXT_OFFSET + TEXTXLOC;
-			else
-				x= TXT_OFFSET;
-			
-			linef= linef->next;
-		}
-		
-		h= txt_get_span(text->lines.first, linef) - st->top;
-
-		i= text_draw(st, linel->line, st->left, charl, 0, 0, 0, NULL);
-		if(i) glRecti(x, curarea->winy-st->lheight*(h)-2, i, curarea->winy-st->lheight*(h+1)-2);
-
+	} else {
+		wrap_offset(st, text->sell, text->selc, &offl, &offc);
+		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
+		vselc = get_char_pos(st, text->sell->line, text->selc) + offc;
 	}
 
 	/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
-	x= text_draw(st, text->sell->line, st->left, text->selc, 0, 0, 0, NULL);
+	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+	x += vselc*spacetext_get_fontwidth(st);
+	y= curarea->winy-2 - vsell*st->lheight;
 	
-	if (x) {
-		offl= offc= 0;
-		if (st->wordwrap) wrap_offset(st, text->sell, text->selc, &offl, &offc);
-		x += offc*spacetext_get_fontwidth(st);
-		h= txt_get_span(text->lines.first, text->sell) - st->top + offl;
-
-		if (st->overwrite) {
-			ch[0]= (unsigned char) text->sell->line[text->selc];
-			if (ch[0]=='\0') ch[0]=' ';
-			ch[1]= '\0';
-			w= BMF_GetStringWidth(spacetext_get_font(st), ch);
-			BIF_ThemeColor(TH_SHADE2);
-			glRecti(x, curarea->winy-st->lheight*(h)-2, x+w, curarea->winy-st->lheight*(h+1)-2);
-			BIF_ThemeColor(TH_HILITE);
-			glRecti(x, curarea->winy-st->lheight*(h+1)-3, x+w, curarea->winy-st->lheight*(h+1)-1);
-		} else {
-			BIF_ThemeColor(TH_HILITE);
-			glRecti(x-1, curarea->winy-st->lheight*(h)-2, x+1, curarea->winy-st->lheight*(h+1)-2);
-		}
+	if (st->overwrite) {
+		w= BMF_GetCharacterWidth(spacetext_get_font(st), text->sell->line[text->selc]);
+		BIF_ThemeColor(TH_HILITE);
+		glRecti(x, y-st->lheight-1, x+w, y-st->lheight+1);
+	} else {
+		BIF_ThemeColor(TH_HILITE);
+		glRecti(x-1, y, x+1, y-st->lheight);
 	}
 
 	do_brackets();
