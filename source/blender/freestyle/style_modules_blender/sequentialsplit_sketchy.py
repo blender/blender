@@ -27,7 +27,7 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from PredicatesU1D import *
 from PredicatesU0D import *
@@ -44,7 +44,7 @@ class pyBackTVertexUP0D(UnaryPredicate0D):
 	def __call__(self, iter):
 		v = iter.getObject()
 		nat = v.getNature()
-		if(nat & T_VERTEX == 0):
+		if(nat & Nature.T_VERTEX == 0):
 			return 0
 		if(self._getQI(iter) != 0):
 			return 1
@@ -55,7 +55,7 @@ upred = QuantitativeInvisibilityUP1D(0)
 Operators.select(upred)
 Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
 ## starting and stopping predicates:
-start = pyVertexNatureUP0D(NON_T_VERTEX)
+start = pyVertexNatureUP0D(Nature.NON_Nature.T_VERTEX)
 stop = pyBackTVertexUP0D()
 Operators.sequentialSplit(start, stop, 10)
 shaders_list = [

@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 from Functions0D import *
 import string 
 

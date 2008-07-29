@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 from PredicatesU0D import *
 from PredicatesB1D import *
 from PredicatesU1D import *
@@ -253,7 +253,7 @@ class pyTVertexThickenerShader(StrokeShader): ## FIXME
 
 	def shade(self, stroke):
 		it = stroke.strokeVerticesBegin()
-		predTVertex = pyVertexNatureUP0D(T_VERTEX)
+		predTVertex = pyVertexNatureUP0D(Nature.T_VERTEX)
 		while it.isEnd() == 0:
 			if(predTVertex(it) == 1):
 				it2 = StrokeVertexIterator(it)
@@ -684,7 +684,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 		itn_1.decrement()
 		v0 = it0.getObject()
 		v1 = it1.getObject()
-		if((v0.getNature() & CUSP == 0) and (v1.getNature() & CUSP == 0)):
+		if((v0.getNature() & Nature.CUSP == 0) and (v1.getNature() & Nature.CUSP == 0)):
 			p0 = v0.getPoint()
 			p1 = v1.getPoint()
 			d1 = p0-p1
@@ -693,7 +693,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			v0.setPoint(newFirst)
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
-		if((vn.getNature() & CUSP == 0) and (vn_1.getNature() & CUSP == 0)):
+		if((vn.getNature() & Nature.CUSP == 0) and (vn_1.getNature() & Nature.CUSP == 0)):
 			pn = vn.getPoint()
 			pn_1 = vn_1.getPoint()
 			dn = pn-pn_1
@@ -766,7 +766,7 @@ class pyTVertexRemoverShader(StrokeShader):
 	def shade(self, stroke):
 		if(stroke.strokeVerticesSize() <= 3 ):
 			return
- 		predTVertex = pyVertexNatureUP0D(T_VERTEX)
+ 		predTVertex = pyVertexNatureUP0D(Nature.T_VERTEX)
 		it = stroke.strokeVerticesBegin()
 		itlast = stroke.strokeVerticesEnd()
 		itlast.decrement()
@@ -804,8 +804,8 @@ class pyHLRShader(StrokeShader):
 		while(it2.isEnd() == 0):
 			v = it.getObject()
 			vnext = it2.getObject()
-			if(v.getNature() & VIEW_VERTEX):
-				#if(v.getNature() & T_VERTEX):
+			if(v.getNature() & Nature.VIEW_VERTEX):
+				#if(v.getNature() & Nature.T_VERTEX):
 				fe = getFEdge(v,vnext)
 				qi = fe.qi()
 				if(qi != 0):
@@ -851,7 +851,7 @@ class pyTVertexOrientationShader(StrokeShader):
 		it2.increment()
 		## case where the first vertex is a TVertex
 		v = it.getObject() 
-		if(v.getNature() & T_VERTEX):
+		if(v.getNature() & Nature.T_VERTEX):
 			tv = v.castToTVertex()
 			ve = getFEdge(v, it2.getObject()).viewedge()
 			if(tv != None):			
@@ -861,7 +861,7 @@ class pyTVertexOrientationShader(StrokeShader):
 		while(it2.isEnd() == 0):
 			vprevious = it.getObject()
 			v = it2.getObject()
-			if(v.getNature() & T_VERTEX):
+			if(v.getNature() & Nature.T_VERTEX):
 				tv = v.castToTVertex()
 				ve = getFEdge(vprevious, v).viewedge()
 				if(tv != None):	
@@ -872,7 +872,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			it2.increment()
 		## case where the last vertex is a TVertex
 		v = it.getObject() 
-		if(v.getNature() & T_VERTEX):
+		if(v.getNature() & Nature.T_VERTEX):
 			itPrevious = StrokeVertexIterator(it)
 			itPrevious.decrement()
 			tv = v.castToTVertex()

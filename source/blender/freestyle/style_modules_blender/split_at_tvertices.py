@@ -25,7 +25,7 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from PredicatesU1D import *
 from PredicatesU0D import *
@@ -33,7 +33,7 @@ from Functions0D import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
-start = pyVertexNatureUP0D(T_VERTEX)
+start = pyVertexNatureUP0D(Nature.T_VERTEX)
 ## use the same predicate to decide where to start and where to stop 
 ## the strokes:
 Operators.sequentialSplit(start, start, 10)

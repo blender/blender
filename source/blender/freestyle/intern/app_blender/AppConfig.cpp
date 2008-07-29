@@ -61,7 +61,7 @@ namespace Config{
               string(PATH_SEP.c_str()) +
               _ProjectDir +
 				string(DIR_SEP.c_str()) +
-              "style_modules" +
+              "style_modules_blender" +
               string(DIR_SEP.c_str()) ;
     if (getenv("PYTHONPATH")) {
       _PythonPath += string(PATH_SEP.c_str()) + string(getenv("PYTHONPATH"));

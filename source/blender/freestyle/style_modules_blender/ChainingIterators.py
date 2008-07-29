@@ -25,7 +25,7 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 
 ## the natural chaining iterator
 ## It follows the edges of same nature following the topology of
@@ -41,7 +41,7 @@ class pyChainSilhouetteIterator(ChainingIterator):
 		winner = None
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -52,7 +52,7 @@ class pyChainSilhouetteIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
 				currentNature = self.getCurrentEdge().getNature()
 				if(natures[i] & currentNature):
@@ -92,7 +92,7 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 		winner = None
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -103,7 +103,7 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
 				currentNature = self.getCurrentEdge().getNature()
 				if(natures[i] & currentNature):
@@ -195,7 +195,7 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 		winner = None
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -206,7 +206,7 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
 				currentNature = self.getCurrentEdge().getNature()
 				if(natures[i] & currentNature):
@@ -292,7 +292,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -307,7 +307,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
 				if(self.getCurrentEdge().getNature() & nat != 0):
 					count=0
@@ -390,7 +390,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 		#print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -405,7 +405,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
 				if(self.getCurrentEdge().getNature() & nat != 0):
 					count=0
@@ -466,7 +466,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -481,7 +481,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
 				if(self.getCurrentEdge().getNature() & nat != 0):
 					count=0
@@ -572,7 +572,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -587,7 +587,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
 				if(self.getCurrentEdge().getNature() & nat != 0):
 					count=0
@@ -669,7 +669,7 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 		winner = None
 		it = AdjacencyIterator(iter)
 		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & T_VERTEX != 0):
+		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
 			tvertex = nextVertex.castToTVertex()
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
@@ -705,7 +705,7 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 				it.increment()
 		else:
 			## case of NonTVertex
-			natures = [SILHOUETTE,BORDER,CREASE,SUGGESTIVE_CONTOUR,VALLEY,RIDGE]
+			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
 				currentNature = self.getCurrentEdge().getNature()
 				if(natures[i] & currentNature):

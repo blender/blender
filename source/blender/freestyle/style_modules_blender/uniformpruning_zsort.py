@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from PredicatesU1D import *
 from PredicatesU0D import *
@@ -27,7 +27,7 @@ class pyDensityUP1D(UnaryPredicate1D):
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectionalChain(ChainSilhouetteIterator())
-#Operators.sequentialSplit(pyVertexNatureUP0D(VIEW_VERTEX), 2)
+#Operators.sequentialSplit(pyVertexNatureUP0D(Nature.VIEW_VERTEX), 2)
 Operators.sort(pyZBP1D())
 shaders_list = 	[
 		StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, 0),

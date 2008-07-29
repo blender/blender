@@ -25,7 +25,7 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from PredicatesU1D import *
 from shaders import *

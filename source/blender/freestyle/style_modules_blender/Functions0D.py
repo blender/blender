@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 
 
 class pyInverseCurvature2DAngleF0D(UnaryFunction0DDouble):

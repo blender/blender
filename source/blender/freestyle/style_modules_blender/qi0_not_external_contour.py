@@ -26,7 +26,7 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())

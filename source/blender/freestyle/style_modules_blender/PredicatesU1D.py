@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 from Functions1D import *
 
 count = 0

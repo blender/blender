@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 from Functions0D import *
 
 class pyHigherCurvature2DAngleUP0D(UnaryPredicate0D):
@@ -55,7 +55,7 @@ class pyBackTVertexUP0D(UnaryPredicate0D):
 	def __call__(self, iter):
 		v = iter.getObject()
 		nat = v.getNature()
-		if(nat & T_VERTEX == 0):
+		if(nat & Nature.T_VERTEX == 0):
 			return 0
 		next = iter
 		if(next.isEnd()):

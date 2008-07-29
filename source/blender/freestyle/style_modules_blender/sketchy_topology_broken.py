@@ -27,7 +27,7 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from ChainingIterators import *
 from shaders import *
@@ -49,7 +49,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 		itn_1.decrement()
 		v0 = it0.getObject()
 		v1 = it1.getObject()
-		if((v0.getNature() & CUSP == 0) and (v1.getNature() & CUSP == 0)):
+		if((v0.getNature() & Nature.CUSP == 0) and (v1.getNature() & Nature.CUSP == 0)):
 			p0 = v0.getPoint()
 			p1 = v1.getPoint()
 			d1 = p0-p1
@@ -60,7 +60,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			print "got a v0 cusp"
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
-		if((vn.getNature() & CUSP == 0) and (vn_1.getNature() & CUSP == 0)):
+		if((vn.getNature() & Nature.CUSP == 0) and (vn_1.getNature() & Nature.CUSP == 0)):
 			pn = vn.getPoint()
 			pn_1 = vn_1.getPoint()
 			dn = pn-pn_1

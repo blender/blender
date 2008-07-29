@@ -24,7 +24,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 #############################################################################
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from ChainingIterators import *
 from shaders import *

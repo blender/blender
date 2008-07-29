@@ -27,13 +27,13 @@
 #
 #############################################################################
 
-from Blender.Freestyle import *
+from freestyle_init import *
 from logical_operators import *
 from PredicatesB1D import *
 from PredicatesU1D import *
 from shaders import *
 
-upred = AndUP1D(pyNatureUP1D(SUGGESTIVE_CONTOUR), QuantitativeInvisibilityUP1D(0))
+upred = AndUP1D(pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR), QuantitativeInvisibilityUP1D(0))
 Operators.select(upred)
 Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[

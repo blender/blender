@@ -1,4 +1,4 @@
-from Blender.Freestyle import *
+from freestyle_init import *
 from Functions1D import *
 from random import *
 
@@ -36,8 +36,8 @@ class pySilhouetteFirstBP1D(BinaryPredicate1D):
 		bpred = SameShapeIdBP1D()
 		if (bpred(inter1, inter2) != 1):
 			return 0
-		if (inter1.getNature() & SILHOUETTE):
-			return (inter2.getNature() & SILHOUETTE)
+		if (inter1.getNature() & Nature.SILHOUETTE):
+			return (inter2.getNature() & Nature.SILHOUETTE)
 		return (inter1.getNature() == inter2.getNature())
 
 class pyNatureBP1D(BinaryPredicate1D):

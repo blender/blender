@@ -114,7 +114,7 @@ extern "C" {
 		
 		// add style module
 		string style_module = pathconfig->getProjectDir() + 
-								Config::DIR_SEP + "style_modules" + 
+								Config::DIR_SEP + "style_modules_blender" + 
 								Config::DIR_SEP + "contour.py";
 		controller->InsertStyleModule( 0, const_cast<char *>(style_module.c_str()) 	 );
 		controller->toggleLayer(0, true);
