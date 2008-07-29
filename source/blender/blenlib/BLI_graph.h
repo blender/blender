@@ -80,6 +80,7 @@ void BLI_rebuildAdjacencyListForNode(BGraph* rg, BNode *node);
 void BLI_freeAdjacencyList(BGraph *rg);
 
 int BLI_FlagSubgraphs(BGraph *graph);
+void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph);
 
 #define SHAPE_RADIX 10 /* each shape level is encoded this base */
 

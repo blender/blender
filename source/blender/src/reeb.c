@@ -350,7 +350,8 @@ void printArc(ReebArc *arc)
 {
 	ReebEdge *edge;
 	ReebNode *head = (ReebNode*)arc->head;
-	printf("arc: (%i)%f -> (%i)%f\n", head->index, head->weight, head->index, head->weight);
+	ReebNode *tail = (ReebNode*)arc->tail;
+	printf("arc: (%i) %f -> (%i) %f\n", head->index, head->weight, tail->index, tail->weight);
 	
 	for(edge = arc->edges.first; edge ; edge = edge->next)
 	{
@@ -499,7 +500,7 @@ void verifyFaces(ReebGraph *rg)
 #endif
 }
 
-void verifyMultiResolutionLinks(ReebGraph *rg)
+void verifyMultiResolutionLinks(ReebGraph *rg, int level)
 {
 #ifdef DEBUG_REEB
 	ReebGraph *lower_rg = rg->link_up;
@@ -512,12 +513,16 @@ void verifyMultiResolutionLinks(ReebGraph *rg)
 		{
 			if (BLI_findindex(&lower_rg->arcs, arc->link_up) == -1)
 			{
-				printf("missing arc %p\n", arc->link_up);
+				printf("missing arc %p for level %i\n", arc->link_up, level);
+				printf("Source arc was ---\n");
+				printArc(arc);
+
+				arc->link_up = NULL;
 			}
 		}
 		
 		
-		verifyMultiResolutionLinks(lower_rg);
+		verifyMultiResolutionLinks(lower_rg, level + 1);
 	}
 #endif
 }
@@ -1160,7 +1165,9 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 					
 
 					if (merging)
-					{					
+					{
+						BLI_ReflagSubgraph((BGraph*)rg, end_node->flag, subgraph);
+											
 						resizeArcBuckets(start_arc);
 						fillArcEmptyBuckets(start_arc);
 						
@@ -1334,7 +1341,7 @@ void filterNullReebGraph(ReebGraph *rg)
 			
 			blend = (float)newNode->degree / (float)(newNode->degree + removedNode->degree); // blending factors
 			
-			VecLerpf(newNode->p, newNode->p, removedNode->p, blend);
+			VecLerpf(newNode->p, removedNode->p, newNode->p, blend);
 			
 			filterArc(rg, newNode, removedNode, arc, 0);
 
@@ -1440,9 +1447,6 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 			if (middleNode->degree == 2)
 			{
 				continue;
-//				removedNode = middleNode;
-//
-//				filterArc(rg, terminalNode, removedNode, arc, 1);
 			}
 			// Otherwise, just plain remove of the arc
 			else
@@ -1463,9 +1467,6 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 			value = 1;
 		}
 	}
-
-	/* join on normal nodes */	
-	removeNormalNodes(rg);
 	
 	return value;
 }
@@ -1690,17 +1691,17 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 	{
 		done = 0; /* no work done yet */
 		
-		if (options & SKGEN_FILTER_EXTERNAL)
-		{
-//			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
-			done |= filterExternalReebGraph(rg, threshold_external);
-			verifyNodeDegree(rg);
-		}
-	
 		if (options & SKGEN_FILTER_INTERNAL)
 		{
 //			done |= filterInternalReebGraph(rg, threshold_internal * rg->resolution);
 			done |= filterInternalReebGraph(rg, threshold_internal);
+			verifyNodeDegree(rg);
+		}
+
+		if (options & SKGEN_FILTER_EXTERNAL)
+		{
+//			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
+			done |= filterExternalReebGraph(rg, threshold_external);
 			verifyNodeDegree(rg);
 		}
 	}
@@ -2842,10 +2843,12 @@ int weightFromDistance(EditMesh *em)
 			
 			for (eve = em->verts.first; eve; eve = eve->next)
 			{
-				if (eve->f1 != 1)
+				/* for every vertex visible that hasn't been processed yet */
+				if (eve->h == 0 && eve->f1 != 1)
 				{
 					EditVert *closest_eve;
 					
+					/* find the closest processed vertex */
 					for (closest_eve = em->verts.first; closest_eve; closest_eve = closest_eve->next)
 					{
 						/* vertex is already processed and distance is smaller than current minimum */
@@ -3292,7 +3295,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 		relinkNodes(previous, rgi);
 	}
 	
-	verifyMultiResolutionLinks(rg);
+	verifyMultiResolutionLinks(rg, 0);
 
 	return rg;
 }

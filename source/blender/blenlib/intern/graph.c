@@ -275,6 +275,19 @@ int BLI_FlagSubgraphs(BGraph *graph)
 	return subgraph;
 }
 
+void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph)
+{
+	BNode *node;
+
+	for (node = graph->nodes.first; node; node = node->next)
+	{
+		if (node->flag == old_subgraph)
+		{
+			node->flag = new_subgraph;
+		}
+	}
+}
+
 /*************************************** CYCLE DETECTION ***********************************************/
 
 int detectCycle(BNode *node, BArc *src_arc)
