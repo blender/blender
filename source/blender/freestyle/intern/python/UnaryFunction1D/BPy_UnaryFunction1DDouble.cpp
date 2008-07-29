@@ -147,6 +147,11 @@ PyMODINIT_FUNC UnaryFunction1DDouble_Init( PyObject *module ) {
 	Py_INCREF( &DensityF1D_Type );
 	PyModule_AddObject(module, "DensityF1D", (PyObject *)&DensityF1D_Type);
 
+	if( PyType_Ready( &Curvature2DAngleF1D_Type ) < 0 )
+		return;
+	Py_INCREF( &Curvature2DAngleF1D_Type );
+	PyModule_AddObject(module, "Curvature2DAngleF1D", (PyObject *)&Curvature2DAngleF1D_Type);
+
 	if( PyType_Ready( &GetCompleteViewMapDensityF1D_Type ) < 0 )
 		return;
 	Py_INCREF( &GetCompleteViewMapDensityF1D_Type );

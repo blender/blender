@@ -7,7 +7,7 @@
 #include "UnaryFunction1D/BPy_UnaryFunction1DVec2f.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVec3f.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVectorViewShape.h"
-
+#include "UnaryFunction1D/BPy_UnaryFunction1DVoid.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -127,6 +127,7 @@ PyMODINIT_FUNC UnaryFunction1D_Init( PyObject *module )
 	UnaryFunction1DVec2f_Init( module );
 	UnaryFunction1DVec3f_Init( module );
 	UnaryFunction1DVectorViewShape_Init( module );
+	UnaryFunction1DVoid_Init( module );
 }
 
 //------------------------INSTANCE METHODS ----------------------------------

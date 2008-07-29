@@ -246,8 +246,8 @@ class UnaryFunction1DVec3f(Blender.Freestyle.UnaryFunction1DVec3f):
 class UnaryFunction1DVectorViewShape(Blender.Freestyle.UnaryFunction1DVectorViewShape):
 	pass
 
-# class UnaryFunction1DVoid(Blender.Freestyle.UnaryFunction1DVoid):
-# 	pass
+class UnaryFunction1DVoid(Blender.Freestyle.UnaryFunction1DVoid):
+	pass
 
 class FalseUP0D(Blender.Freestyle.FalseUP0D):
 	def __call__(*args): return Blender.Freestyle.FalseUP0D.__call__(*args)
@@ -378,8 +378,8 @@ class GetOccludeeF0D(Blender.Freestyle.GetOccludeeF0D):
 class GetShapeF0D(Blender.Freestyle.GetShapeF0D):
 	def __call__(*args): return Blender.Freestyle.GetShapeF0D.__call__(*args)
 
-# class Curvature2DAngleF1D(Blender.Freestyle.Curvature2DAngleF1D):
-# 	def __call__(*args): return Blender.Freestyle.Curvature2DAngleF1D.__call__(*args)
+class Curvature2DAngleF1D(Blender.Freestyle.Curvature2DAngleF1D):
+	def __call__(*args): return Blender.Freestyle.Curvature2DAngleF1D.__call__(*args)
 
 class DensityF1D(Blender.Freestyle.DensityF1D):
 	def __call__(*args): return Blender.Freestyle.DensityF1D.__call__(*args)
@@ -444,12 +444,12 @@ class GetOccludersF1D(Blender.Freestyle.GetOccludersF1D):
 class GetShapeF1D(Blender.Freestyle.GetShapeF1D):
 	def __call__(*args): return Blender.Freestyle.GetShapeF1D.__call__(*args)
 
-# class ChainingTimeStampF1D(Blender.Freestyle.ChainingTimeStampF1D):
-# 	def __call__(*args): return Blender.Freestyle.ChainingTimeStampF1D.__call__(*args)
+class ChainingTimeStampF1D(Blender.Freestyle.ChainingTimeStampF1D):
+	def __call__(*args): return Blender.Freestyle.ChainingTimeStampF1D.__call__(*args)
 
-# class IncrementChainingTimeStampF1D(Blender.Freestyle.IncrementChainingTimeStampF1D):
-# 	def __call__(*args): return Blender.Freestyle.IncrementChainingTimeStampF1D.__call__(*args)
+class IncrementChainingTimeStampF1D(Blender.Freestyle.IncrementChainingTimeStampF1D):
+	def __call__(*args): return Blender.Freestyle.IncrementChainingTimeStampF1D.__call__(*args)
 
-# class TimeStampF1D(Blender.Freestyle.TimeStampF1D):
-# 	def __call__(*args): return Blender.Freestyle.TimeStampF1D.__call__(*args)
+class TimeStampF1D(Blender.Freestyle.TimeStampF1D):
+	def __call__(*args): return Blender.Freestyle.TimeStampF1D.__call__(*args)
 
