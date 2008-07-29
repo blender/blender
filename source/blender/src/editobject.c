@@ -3506,6 +3506,17 @@ void copy_attr(short event)
 					base->object->damping= ob->damping;
 					base->object->rdamping= ob->rdamping;
 				}
+				else if(event==11) {	/* all physical attributes */
+					base->object->gameflag = ob->gameflag;
+					base->object->inertia = ob->inertia;
+					base->object->formfactor = ob->formfactor;
+					base->object->damping= ob->damping;
+					base->object->rdamping= ob->rdamping;
+					base->object->mass= ob->mass;
+					if (ob->gameflag & OB_BOUNDS) {
+						base->object->boundtype = ob->boundtype;
+					}
+				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
 				}
@@ -3692,7 +3703,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
