@@ -4870,6 +4870,49 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	}
 }
 
+void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+{
+	Material *ma;
+	MFace *mf;
+	MTFace *tf;
+	int a, b, texalpha;
+
+	/* verify we have a tface layer */
+	for(b=0; b<me->fdata.totlayer; b++)
+		if(me->fdata.layers[b].type == CD_MTFACE)
+			break;
+	
+	if(b == me->fdata.totlayer)
+		return;
+
+	/* if we do, set alpha sort if the game engine did it before */
+	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+		if(mf->mat_nr < me->totcol) {
+			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
+			texalpha = 0;
+
+			for(b=0; ma && b<MAX_MTEX; b++)
+				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
+					texalpha = 1;
+		}
+		else {
+			ma= NULL;
+			texalpha = 0;
+		}
+
+		for(b=0; b<me->fdata.totlayer; b++) {
+			if(me->fdata.layers[b].type == CD_MTFACE) {
+				tf = ((MTFace*)me->fdata.layers[b].data) + a;
+
+				tf->mode &= ~TF_ALPHASORT;
+				if(ma && (ma->mode & MA_ZTRA))
+					if(ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
+						tf->mode |= TF_ALPHASORT;
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7714,8 +7757,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* sun/sky */
-	if ((main->versionfile < 246) ){
+	if(main->versionfile < 246) {
 		Lamp *la;
+
 		for(la=main->lamp.first; la; la= la->id.next) {
 			la->sun_effect_type = 0;
 			la->horizon_brightness = 1.0;
@@ -7729,6 +7773,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->atm_distance_factor = 1.0;
 			la->sun_intensity = 1.0;
 		}
+	}
+
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Mesh *me;
+
+		for(me=main->mesh.first; me; me= me->id.next)
+			alphasort_version_246(fd, lib, me);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -129,8 +129,7 @@ enum BL_flag
 	TEXALPHA=8,		// use alpha combiner functions
 	TEXNEG=16,		// negate blending
 	HASIPO=32,
-	USENEGALPHA=64,
-	ALPHA_TEST=128
+	USENEGALPHA=64
 };
 
 // BL_Material::ras_mode
@@ -139,7 +138,7 @@ enum BL_ras_mode
 	POLY_VIS=1,
 	COLLIDER=2,
 	ZSORT=4,
-	TRANSP=8,
+	ALPHA=8,
 	TRIANGLE=16,
 	USE_LIGHT=32,
 	WIRE=64

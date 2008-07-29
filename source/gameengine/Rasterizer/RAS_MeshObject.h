@@ -137,6 +137,18 @@ class RAS_MeshObject
 	struct backtofront;
 	struct fronttoback;
 
+	void				SchedulePoly(
+							const KX_VertexIndex& idx,
+							int numverts,
+							RAS_IPolyMaterial* mat
+						);
+
+	void				ScheduleWireframePoly(
+							const KX_VertexIndex& idx,
+							int numverts,
+							int edgecode,
+							RAS_IPolyMaterial* mat
+						);
 	
 protected:
 	enum { BUCKET_MAX_INDICES = 65535 };//2048};//8192};
@@ -196,10 +208,7 @@ public:
 	 */
 	void				SortPolygons(const MT_Transform &transform);
 
-	void				SchedulePolygons(
-							const MT_Transform &transform,
-							int drawingmode
-						);
+	void				SchedulePolygons(int drawingmode);
 
 	void				ClearArrayData();
 	
@@ -216,19 +225,7 @@ public:
 							int numverts,
 							RAS_IPolyMaterial* polymat
 						);
-	
-	void				SchedulePoly(
-							const KX_VertexIndex& idx,
-							int numverts,
-							RAS_IPolyMaterial* mat
-						);
 
-	void				ScheduleWireframePoly(
-							const KX_VertexIndex& idx,
-							int numverts,
-							int edgecode,
-							RAS_IPolyMaterial* mat
-						);
 	
 	// find (and share) or add vertices
 	// for some speedup, only the last 20 added vertices are searched for equality

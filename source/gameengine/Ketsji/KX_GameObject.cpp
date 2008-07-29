@@ -77,10 +77,10 @@ KX_GameObject::KX_GameObject(
 	SCA_IObject(T),
 	m_bDyna(false),
 	m_layer(0),
+	m_pBlenderObject(NULL),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
-	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
@@ -96,10 +96,7 @@ KX_GameObject::KX_GameObject(
 	KX_NormalParentRelation * parent_relation = 
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
-	
-
 };
-
 
 
 KX_GameObject::~KX_GameObject()
@@ -165,6 +162,7 @@ STR_String KX_GameObject::GetName()
 void KX_GameObject::SetName(STR_String name)
 {
 	m_name = name;
+
 };								// Set the name of the value
 
 
@@ -454,12 +452,13 @@ KX_GameObject::UpdateMaterialData(
 	)
 {
 	int mesh = 0;
+
 	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0) {
 		RAS_MaterialBucket::Set::iterator mit = m_meshes[mesh]->GetFirstMaterial();
 		for(; mit != m_meshes[mesh]->GetLastMaterial(); ++mit)
 		{
 			RAS_IPolyMaterial* poly = (*mit)->GetPolyMaterial();
-			if(poly->GetFlag() & RAS_BLENDERMAT )
+			if(poly->GetFlag() & RAS_BLENDERMAT)
 			{
 				KX_BlenderMaterial *m =  static_cast<KX_BlenderMaterial*>(poly);
 				
@@ -467,7 +466,8 @@ KX_GameObject::UpdateMaterialData(
 				{
 					m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
 					// if mesh has only one material attached to it then use original hack with no need to edit vertices (better performance)
-					SetObjectColor(rgba);
+					if(!(poly->GetFlag() & RAS_BLENDERGLSL))
+						SetObjectColor(rgba);
 				}
 				else
 				{

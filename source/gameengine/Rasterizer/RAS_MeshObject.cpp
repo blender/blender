@@ -203,7 +203,6 @@ void RAS_MeshObject::DebugColor(unsigned int abgr)
 
 void RAS_MeshObject::SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba)
 {
-	RAS_TexVert* vertex = NULL;
 	const vecVertexArray & vertexvec = GetVertexCache(mat);
 			
 	for (vector<KX_VertexArray*>::const_iterator it = vertexvec.begin(); it != vertexvec.end(); ++it)
@@ -220,20 +219,15 @@ void RAS_MeshObject::SchedulePoly(const KX_VertexIndex& idx,
 								  int numverts,
 								  RAS_IPolyMaterial* mat)
 {
-	//int indexpos = m_IndexArrayCount[idx.m_vtxarray];
-	//m_IndexArrayCount[idx.m_vtxarray] = indexpos + 3;
-	
 	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
+
 	ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[0]);
 	ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[1]);
 	ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[2]);
-	if (!mat->UsesTriangles()) //if (!m_bUseTriangles)
-	{	
-		//m_IndexArrayCount[idx.m_vtxarray] = indexpos+4;
-		ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[3]);
-	}
-}
 
+	if (!mat->UsesTriangles())
+		ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[3]);
+}
 
 
 void RAS_MeshObject::ScheduleWireframePoly(const KX_VertexIndex& idx,
@@ -422,7 +416,6 @@ void RAS_MeshObject::Bucketize(double* oglmatrix,
 	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
-		bucket->SchedulePolygons(0);
 //		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
 		bucket->SetMeshSlot(ms);
 	}
@@ -447,7 +440,6 @@ void RAS_MeshObject::MarkVisible(double* oglmatrix,
 	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
 		RAS_MaterialBucket* bucket = *it;
-		bucket->SchedulePolygons(0);
 //		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
 		bucket->MarkVisibleMeshSlot(ms,visible,useObjectColor,rgbavec);
 	}
@@ -466,7 +458,6 @@ void RAS_MeshObject::RemoveFromBuckets(double* oglmatrix,
 	{
 		RAS_MaterialBucket* bucket = *it;
 //		RAS_IPolyMaterial* polymat = bucket->GetPolyMaterial();
-		bucket->SchedulePolygons(0);
 		//KX_ArrayOptimizer* oa = GetArrayOptimizer(polymat);
 		bucket->RemoveMeshSlot(ms);
 	}
@@ -585,31 +576,36 @@ void RAS_MeshObject::UpdateMaterialList()
 
 struct RAS_MeshObject::polygonSlot
 {
-	float        m_z;
-	RAS_Polygon *m_poly;
-		
-	polygonSlot(float z, RAS_Polygon* poly) :
-		m_z(z),
-		m_poly(poly)
-	{}
-	/**
-	 * pnorm and pval form the plane equation that the distance from is used to
-	 * sort against.
-	 */
-        polygonSlot(const MT_Vector3 &pnorm, const MT_Scalar &pval, RAS_MeshObject *mesh, RAS_Polygon* poly) :
-			m_poly(poly)
+	float m_z;
+	int m_index[4];
+	
+	polygonSlot() {}
+
+	/* pnorm is the normal from the plane equation that the distance from is
+	 * used to sort again. */
+	void get(const KX_VertexArray& vertexarray, const KX_IndexArray& indexarray,
+		int offset, int nvert, const MT_Vector3& pnorm)
 	{
-		const KX_VertexIndex &base = m_poly->GetIndexBase();
-		RAS_TexVert *vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[0], poly->GetMaterial()->GetPolyMaterial());
-		m_z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
-		
-		for(int i = 1; i < m_poly->VertexCount(); i++)
-		{
-			vert = mesh->GetVertex(base.m_vtxarray, base.m_indexarray[i], poly->GetMaterial()->GetPolyMaterial());
-			float z = MT_dot(pnorm, vert->getLocalXYZ()) + pval;
-			m_z += z;
+		MT_Vector3 center(0, 0, 0);
+		int i;
+
+		for(i=0; i<nvert; i++) {
+			m_index[i] = indexarray[offset+i];
+			center += vertexarray[m_index[i]].getLocalXYZ();
 		}
-		m_z /= m_poly->VertexCount();
+
+		/* note we don't divide center by the number of vertices, since all
+		 * polygons have the same number of vertices, and that we leave out
+		 * the 4-th component of the plane equation since it is constant. */
+		m_z = MT_dot(pnorm, center);
+	}
+
+	void set(KX_IndexArray& indexarray, int offset, int nvert)
+	{
+		int i;
+
+		for(i=0; i<nvert; i++)
+			indexarray[offset+i] = m_index[i];
 	}
 };
 	
@@ -629,100 +625,100 @@ struct RAS_MeshObject::fronttoback
 	}
 };
 
-
 void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 {
+	// Limitations: sorting is quite simple, and handles many
+	// cases wrong, partially due to polygons being sorted per
+	// bucket.
+	// 
+	// a) mixed triangles/quads are sorted wrong
+	// b) mixed materials are sorted wrong
+	// c) more than 65k faces are sorted wrong
+	// d) intersecting objects are sorted wrong
+	// e) intersecting polygons are sorted wrong
+	//
+	// a) can be solved by making all faces either triangles or quads
+	// if they need to be z-sorted. c) could be solved by allowing
+	// larger buckets, b) and d) cannot be solved easily if we want
+	// to avoid excessive state changes while drawing. e) would
+	// require splitting polygons.
+
 	if (!m_zsort)
 		return;
-		
+
 	// Extract camera Z plane...
 	const MT_Vector3 pnorm(transform.getBasis()[2]);
-	const MT_Scalar pval = transform.getOrigin()[2];
-	
-	unsigned int numpolys = m_Polygons.size();
-	std::multiset<polygonSlot, backtofront> alphapolyset;
-	std::multiset<polygonSlot, fronttoback> solidpolyset;
-	
-	for (unsigned int p = 0; p < numpolys; p++)
-	{
-		RAS_Polygon* poly = m_Polygons[p];
-		if (poly->IsVisible())
-		{
-			if (poly->GetMaterial()->GetPolyMaterial()->IsTransparant())
-			{
-				alphapolyset.insert(polygonSlot(pnorm, pval, this, poly));
-			} else {
-				solidpolyset.insert(polygonSlot(pnorm, pval, this, poly));
-			}
-		}
-	}
-	
-	// Clear current array data.
+	// unneeded: const MT_Scalar pval = transform.getOrigin()[2];
+
 	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
 	{
-		vector<KX_IndexArray*> *indexcache = &GetArrayOptimizer((*it)->GetPolyMaterial())->m_IndexArrayCache1;
-		for (vector<KX_IndexArray*>::iterator iit = indexcache->begin(); iit != indexcache->end(); ++iit)
-			(*iit)->clear();
-	}
+		if(!(*it)->IsZSort())
+			continue;
 
-	std::multiset<polygonSlot, fronttoback>::iterator sit = solidpolyset.begin();
-	for (; sit != solidpolyset.end(); ++sit)
-		SchedulePoly((*sit).m_poly->GetVertexIndexBase(), (*sit).m_poly->VertexCount(), (*sit).m_poly->GetMaterial()->GetPolyMaterial());
-	
-	std::multiset<polygonSlot, backtofront>::iterator ait = alphapolyset.begin();
-	for (; ait != alphapolyset.end(); ++ait)
-		SchedulePoly((*ait).m_poly->GetVertexIndexBase(), (*ait).m_poly->VertexCount(), (*ait).m_poly->GetMaterial()->GetPolyMaterial());
+		RAS_IPolyMaterial *mat = (*it)->GetPolyMaterial();
+		KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
+
+		vecIndexArrays& indexarrays = ao->m_IndexArrayCache1;
+		vecVertexArray& vertexarrays = ao->m_VertexArrayCache1;
+		unsigned int i, j, nvert = (mat->UsesTriangles())? 3: 4;
+
+		for(i=0; i<indexarrays.size(); i++) {
+			KX_IndexArray& indexarray = *indexarrays[i];
+			KX_VertexArray& vertexarray = *vertexarrays[i];
+
+			unsigned int totpoly = indexarray.size()/nvert;
+			vector<polygonSlot> slots(totpoly);
+
+			/* get indices and z into temporary array */
+			for(j=0; j<totpoly; j++)
+				slots[j].get(vertexarray, indexarray, j*nvert, nvert, pnorm);
+
+			/* sort (stable_sort might be better, if flickering happens?) */
+			sort(slots.begin(), slots.end(), backtofront());
+
+			/* get indices from temporary array again */
+			for(j=0; j<totpoly; j++)
+				slots[j].set(indexarray, j*nvert, nvert);
+		}
+	}
 }
 
 
-void RAS_MeshObject::SchedulePolygons(const MT_Transform &transform, int drawingmode)
+void RAS_MeshObject::SchedulePolygons(int drawingmode)
 {
-//	int nummaterials = m_materials.size();
-	int i;
-
 	if (m_bModified)
 	{
+		int i, numpolys = m_Polygons.size();
+
 		for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
-		{
-			RAS_MaterialBucket* bucket = *it;
-
-			bucket->SchedulePolygons(drawingmode);
-			if (bucket->GetPolyMaterial()->IsZSort())
+			if ((*it)->IsZSort())
 				m_zsort = true;
-		}
-
-		int numpolys = m_Polygons.size();
 		
-		if ((drawingmode > RAS_IRasterizer::KX_BOUNDINGBOX) && 
-			(drawingmode < RAS_IRasterizer::KX_SOLID))
+		if (drawingmode == RAS_IRasterizer::KX_WIREFRAME)
 		{
 			for (i=0;i<numpolys;i++)
 			{
 				RAS_Polygon* poly = m_Polygons[i];
 				if (poly->IsVisible())
-					ScheduleWireframePoly(poly->GetVertexIndexBase(),poly->VertexCount(),poly->GetEdgeCode()
-					,poly->GetMaterial()->GetPolyMaterial());
+					ScheduleWireframePoly(poly->GetVertexIndexBase(),poly->VertexCount(),poly->GetEdgeCode(),
+						poly->GetMaterial()->GetPolyMaterial());
 				
 			}
 			m_zsort = false;
 		}
 		else
 		{
-			if (!m_zsort)
+			for (i=0;i<numpolys;i++)
 			{
-				for (i=0;i<numpolys;i++)
-				{
-					RAS_Polygon* poly = m_Polygons[i];
-					if (poly->IsVisible())
-					{
-						SchedulePoly(poly->GetVertexIndexBase(),poly->VertexCount(),poly->GetMaterial()->GetPolyMaterial());
-					}
-				}
+				RAS_Polygon* poly = m_Polygons[i];
+				if (poly->IsVisible())
+					SchedulePoly(poly->GetVertexIndexBase(),poly->VertexCount(),
+						poly->GetMaterial()->GetPolyMaterial());
 			}
 		}
 
 		m_bModified = false;
-
 		m_MeshMod = true;
 	} 
 }
+

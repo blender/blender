@@ -40,7 +40,6 @@
 // it needs the gameobject and the sumo physics scene for a raycast
 #include "KX_GameObject.h"
 
-#include "KX_BlenderPolyMaterial.h"
 #include "KX_PolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 

@@ -228,7 +228,7 @@ typedef struct PartialVisibility {
 
 /* mtface->mode */
 #define TF_DYNAMIC		1
-#define TF_DEPRECATED	2
+#define TF_ALPHASORT	2
 #define TF_TEX			4
 #define TF_SHAREDVERT	8
 #define TF_LIGHT		16

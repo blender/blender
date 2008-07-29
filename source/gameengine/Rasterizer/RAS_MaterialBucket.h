@@ -125,11 +125,9 @@ public:
 					   class RAS_IRasterizer* rasty,
 					   class RAS_IRenderTools* rendertools);
 	
-	void	SchedulePolygons(int drawingmode);
-	void	ClearScheduledPolygons();
-	
 	RAS_IPolyMaterial*		GetPolyMaterial() const;
-	bool	IsTransparant() const;
+	bool	IsAlpha() const;
+	bool	IsZSort() const;
 		
 	static void	StartFrame();
 	static void EndFrame();
@@ -162,7 +160,6 @@ public:
 private:
 	
 	T_MeshSlotList				m_meshSlots;
-	bool						m_bScheduled;
 	bool						m_bModified;
 	RAS_IPolyMaterial*			m_material;
 	double*						m_pOGLMatrix;

@@ -59,7 +59,8 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 											   int tilexrep,
 											   int tileyrep,
 											   int mode,
-											   bool transparant,
+											   int transp,
+											   bool alpha,
 											   bool zsort,
 											   int lightlayer,
 											   bool bIsTriangle,
@@ -74,7 +75,8 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 							tilexrep,
 							tileyrep,
 							mode,
-							transparant,
+							transp,
+							alpha,
 							zsort,
 							lightlayer,
 							bIsTriangle,
@@ -245,7 +247,7 @@ PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
 	if (attr == "drawingmode")
 		return PyInt_FromLong(m_drawingmode);
 	if (attr == "transparent")
-		return PyInt_FromLong(m_transparant);
+		return PyInt_FromLong(m_alpha);
 	if (attr == "zsort")
 		return PyInt_FromLong(m_zsort);
 	if (attr == "lightlayer")
@@ -312,7 +314,7 @@ int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
 		
 		if (attr == "transparent")
 		{
-			m_transparant = value;
+			m_alpha = value;
 			return 0;
 		}
 		
