@@ -47,7 +47,6 @@ void pop_space_text(struct SpaceText *st);
 
 void txt_format_text(struct SpaceText *st);
 void txt_format_line(struct SpaceText *st, struct TextLine *line, int do_next);
-void do_brackets(void);
 
 #endif
 

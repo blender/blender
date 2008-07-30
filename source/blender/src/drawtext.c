@@ -132,7 +132,7 @@ def wrap(line, view_width, wrap_chars, tab_size):
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 void txt_copy_selectbuffer (Text *text);
-void do_brackets();
+void draw_brackets(SpaceText *st);
 
 static void get_selection_buffer(Text *text);
 static int check_bracket(char ch);
@@ -635,7 +635,6 @@ static int get_char_pos(SpaceText *st, char *line, int cur) {
 
 static void draw_cursor(SpaceText *st) {
 	Text *text= st->text;
-	TextLine *linef, *linel;
 	int vcurl, vcurc, vsell, vselc, offl, offc, x, y, w, i;
 	
 	/* Draw the selection */
@@ -651,7 +650,7 @@ static void draw_cursor(SpaceText *st) {
 		
 		BIF_ThemeColor(TH_SHADE2);
 		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-		y= curarea->winy-2;
+		y= curarea->winy-3;
 
 		if (vcurl==vsell) {
 			y -= vcurl*st->lheight;
@@ -683,7 +682,7 @@ static void draw_cursor(SpaceText *st) {
 	/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 	x += vselc*spacetext_get_fontwidth(st);
-	y= curarea->winy-2 - vsell*st->lheight;
+	y= curarea->winy-3 - vsell*st->lheight;
 	
 	if (st->overwrite) {
 		w= BMF_GetCharacterWidth(spacetext_get_font(st), text->sell->line[text->selc]);
@@ -693,9 +692,6 @@ static void draw_cursor(SpaceText *st) {
 		BIF_ThemeColor(TH_HILITE);
 		glRecti(x-1, y, x+1, y-st->lheight);
 	}
-
-	do_brackets();
-	BIF_ThemeColor(TH_TEXT);
 }
 
 static void calc_text_rcts(SpaceText *st)
@@ -1218,8 +1214,6 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 		glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
 	}
 
-	BIF_ThemeColor(TH_TEXT);
-
 	draw_cursor(st);
 
 	tmp= text->lines.first;
@@ -1282,6 +1276,8 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 		y -= st->lheight;
 	}
 	MEM_freeN(wrapbuf);
+	
+	draw_brackets(st);
 
 	draw_textscroll(st);
 	draw_documentation(st);
@@ -2680,116 +2676,112 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 }
 
-void do_brackets(void) 
+void draw_brackets(SpaceText *st)
 {
-	SpaceText *st = curarea->spacedata.first;
+	char ch;
+	int b, c, startc, endc, find, stack;
+	int viewc, viewl, offl, offc, x, y;
+	TextLine *startl, *endl, *linep;
 	Text *text = st->text;
-	TextLine *tmp, *start;
-	char test;
-	int d, pos, open, x, y, x2, y2, h=0;
-	
-	if(!text) return;
-	
-	tmp = text->curl;
-	start = text->curl;
 
-	test = (unsigned char) tmp->line[text->curc];
+	if (!text || !text->curl) return;
+
+	startl= text->curl;
+	startc= text->curc;
+	b= check_bracket(startl->line[startc]);
+	if (b==0 && startc>0) b = check_bracket(startl->line[--startc]);
+	if (b==0) return;
 	
-	d = check_bracket(test);
-	if (!d) /*  If not pri char */
-	{
-		test = (unsigned char) tmp->line[text->curc-1];
-		d = check_bracket(test);
-		if(!d) {
-			return; /*If the current char or prev is not a bracket then return*/
-		} else { /* current char */
-			h= txt_get_span(text->lines.first, start) - st->top;
-			x = text_draw(st, start->line, st->left, text->curc-1, 0, 0, 0, NULL);
-			y = text_draw(st, start->line, st->left, text->curc, 0, 0, 0, NULL);
-			if (d < 4) {
-				pos = text->curc;
-			} else {
-				pos = text->curc-2;
+	linep= startl;
+	c= startc;
+	endl= NULL;
+	endc= -1;
+	find= -b;
+	stack= 0;
+
+	/* Opening bracket, search forward for close */
+	if (b>0) {
+		c++;
+		while (linep) {
+			while (c<linep->len) {
+				b= check_bracket(linep->line[c]);
+				if (b==find) {
+					if (stack==0) {
+						endl= linep;
+						endc= c;
+						break;
+					}
+					stack--;
+				} else if (b==-find) {
+					stack++;
+				}
+				c++;
 			}
-		}
-	} else { /* is pri char */
-		h= txt_get_span(text->lines.first, start) - st->top;
-		x = text_draw(st, start->line, st->left, text->curc, 0, 0, 0, NULL);
-		y = text_draw(st, start->line, st->left, text->curc+1, 0, 0, 0, NULL);
-		if (d < 4) {
-			pos = text->curc+1;
-		} else {
-			pos = text->curc-1;
+			if (endl) break;
+			linep= linep->next;
+			c= 0;
 		}
 	}
-	
-	if (d < 4) /*reading forward*/
-	{
-		open = 1; 
-		while ( tmp ) {
-			while (pos <= tmp->len) {
-				test = (unsigned char) tmp->line[pos];
-				if(check_bracket(test) == d) {
-					open++;
-				} else if (check_bracket(test) == d+3) {
-					open--;
-					if (open == 0) {
-						BIF_ThemeColorBlend(TH_BACK, TH_SHADE2, 0.5);
-						glRecti(x, curarea->winy-st->lheight*(h)-2, y, curarea->winy-st->lheight*(h+1)-2);
-
-						h= txt_get_span(text->lines.first, tmp) - st->top;
-						x2= text_draw(st, tmp->line, st->left, pos, 0, 0, 0, NULL);
-						y2= text_draw(st, tmp->line, st->left, pos+1, 0, 0, 0, NULL);
-						glRecti(x2, curarea->winy-st->lheight*(h)-2, y2, curarea->winy-st->lheight*(h+1)-2);
-						BIF_ThemeColor(TH_TEXT);
-						return;
+	/* Closing bracket, search backward for open */
+	else {
+		c--;
+		while (linep) {
+			while (c>=0) {
+				b= check_bracket(linep->line[c]);
+				if (b==find) {
+					if (stack==0) {
+						endl= linep;
+						endc= c;
+						break;
 					}
+					stack--;
+				} else if (b==-find) {
+					stack++;
 				}
-				pos++;
+				c--;
 			}
-			tmp = tmp->next;
-			pos = 0;
-		}
-	} else { /*  reading back */
-		open = 1; 
-		while ( tmp ) {
-			while (pos >= 0) {
-				test = (unsigned char) tmp->line[pos];
-				if(check_bracket(test) == d) {
-					open++;
-				} else if (check_bracket(test) == d-3) {
-					open--;
-					if (open == 0) {
-						BIF_ThemeColorBlend(TH_BACK, TH_SHADE2, 0.5);
-						glRecti(x, curarea->winy-st->lheight*(h)-2, y, curarea->winy-st->lheight*(h+1)-2);
-
-						h= txt_get_span(text->lines.first, tmp) - st->top;
-						x2= text_draw(st, tmp->line, st->left, pos, 0, 0, 0, NULL);
-						y2= text_draw(st, tmp->line, st->left, pos+1, 0, 0, 0, NULL);
-						glRecti(x2, curarea->winy-st->lheight*(h)-2, y2, curarea->winy-st->lheight*(h+1)-2);
-						BIF_ThemeColor(TH_TEXT);
-						return;
-					}
-				}
-				pos--;
-			}
-			tmp = tmp->prev;
-			if (tmp) {
-				pos = tmp->len;
-			}
+			if (endl) break;
+			linep= linep->prev;
+			if (linep) c= linep->len-1;
 		}
 	}
-	
+
+	if (!endl || endc==-1) return;
+
+	BIF_ThemeColor(TH_HILITE);	
+	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+	y= curarea->winy - st->lheight;
+
+	ch= startl->line[startc];
+	wrap_offset(st, startl, startc, &offl, &offc);
+	viewc= get_char_pos(st, startl->line, startc) + offc;
+	viewl= txt_get_span(text->lines.first, startl) + offl;
+	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st), y-viewl*st->lheight);
+	BMF_DrawCharacter(spacetext_get_font(st), ch);
+	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st)+1, y-viewl*st->lheight);
+	BMF_DrawCharacter(spacetext_get_font(st), ch);
+
+	ch= endl->line[endc];
+	wrap_offset(st, endl, endc, &offl, &offc);
+	viewc= get_char_pos(st, endl->line, endc) + offc;
+	viewl= txt_get_span(text->lines.first, endl) + offl;
+	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st), y-viewl*st->lheight);
+	BMF_DrawCharacter(spacetext_get_font(st), ch);
+	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st)+1, y-viewl*st->lheight);
+	BMF_DrawCharacter(spacetext_get_font(st), ch);
 }
 
 static int check_bracket(char ch)
 {
 	int a;
-	char brackets[] = "([{)]}";
+	char opens[] = "([{";
+	char close[] = ")]}";
 	
-	for (a=0; a<6; a++) {
-		if(ch==brackets[a])
+	for (a=0; a<3; a++) {
+		if(ch==opens[a])
 			return a+1;
+		else if (ch==close[a])
+			return -(a+1);
 	}
 	return 0;
 }
