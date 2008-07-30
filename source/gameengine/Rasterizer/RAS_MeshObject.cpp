@@ -676,7 +676,7 @@ void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 				slots[j].get(vertexarray, indexarray, j*nvert, nvert, pnorm);
 
 			/* sort (stable_sort might be better, if flickering happens?) */
-			sort(slots.begin(), slots.end(), backtofront());
+			std::sort(slots.begin(), slots.end(), backtofront());
 
 			/* get indices from temporary array again */
 			for(j=0; j<totpoly; j++)
