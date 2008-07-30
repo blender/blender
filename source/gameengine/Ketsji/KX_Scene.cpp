@@ -93,6 +93,9 @@ void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
 
+	if(replica)
+		replica->Release();
+
 	return (void*)replica;
 }
 
@@ -670,8 +673,12 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	for (oit=m_groupGameObjects.begin(); oit != m_groupGameObjects.end(); oit++)
 	{
 		gameobj = (KX_GameObject*)(*oit);
-		if (gameobj->GetParent() != NULL)
+
+		KX_GameObject *parent = gameobj->GetParent();
+		if (parent != NULL)
 		{
+			parent->Release(); // GetParent() increased the refcount
+
 			// this object is not a top parent. Either it is the child of another
 			// object in the group and it will be added automatically when the parent
 			// is added. Or it is the child of an object outside the group and the group

@@ -628,7 +628,8 @@ BL_Material* ConvertMaterial(
 		material->transp = TF_ALPHA;
 
 	// always zsort alpha + add
-	if(material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha) {
+	if((material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha)
+		&& (material->transp != TF_CLIP)) {
 		material->ras_mode |= ALPHA;
 		material->ras_mode |= (material->mode & TF_ALPHASORT)? ZSORT: 0;
 	}
@@ -1856,7 +1857,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (converter->addInitFromFrame)
 			if (!isInActiveLayer)
 				addobj=false;
-										
+
 		if (gameobj&&addobj)
 		{
 			MT_Point3 posPrev;			
