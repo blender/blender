@@ -29,6 +29,7 @@
 #define BOP_EDGE_H
 
 #include "BOP_Indexs.h"
+#include "BOP_Misc.h"
 
 class BOP_Edge
 {
@@ -47,6 +48,10 @@ public:
 	inline unsigned int getNumFaces(){return m_faces.size();};
 	inline BOP_Indexs &getFaces(){return m_faces;};
 	void addFace(BOP_Index face);
+#ifdef BOP_DEBUG
+	friend ostream &operator<<(ostream &stream, BOP_Edge *e);
+#endif
+
 };
 
 #endif

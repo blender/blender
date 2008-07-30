@@ -75,4 +75,19 @@ void BOP_Edge::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 	else if (m_vertexs[1] == oldIndex) m_vertexs[1] = newIndex;
 }
 
+#ifdef BOP_DEBUG
+
+#include <iostream>
+using namespace std;
+
+/**
+ * Implements operator <<.
+ */
+ostream &operator<<(ostream &stream, BOP_Edge *e)
+{
+	stream << "Edge[" << e->getVertex1() << "," << e->getVertex2();
+	return stream;
+}
+#endif
+
 

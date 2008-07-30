@@ -794,7 +794,8 @@ bool BOP_Mesh::isClosedMesh()
 }
 
 
-/** ***************************************************************************
+#ifdef BOP_DEBUG
+/******************************************************************************
  * DEBUG METHODS                                                              * 
  * This functions are used to test the mesh state and debug program errors.   *
  ******************************************************************************/
@@ -1075,3 +1076,4 @@ void BOP_Mesh::updatePlanes()
 	}
 }
 
+#endif

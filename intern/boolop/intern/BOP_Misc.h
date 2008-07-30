@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id: BOP_Misc.h 14444 2008-04-16 22:40:48Z khughes $
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -20,43 +23,21 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Ken Hughes
  *
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#ifndef BOP_VERTEX_H
-#define BOP_VERTEX_H
+/*
+ * This file contains various definitions used across the modules
+ */
 
-#include "BOP_Tag.h"
-#include "BOP_Indexs.h"
-#include "MT_Point3.h"
-#include "BOP_Misc.h"
+/*
+ * define operator>> for faces, edges and vertices, and also add some
+ * debugging functions for displaying various internal data structures
+ */
 
-class BOP_Vertex 
-{
-private:
-	MT_Point3 m_point;
-	BOP_Indexs  m_edges;
-	BOP_TAG m_tag;
-	
-	bool containsEdge(BOP_Index i);
+// #define	BOP_DEBUG
 
-public:
-	BOP_Vertex(double x, double y, double z);
-	BOP_Vertex(MT_Point3 d);
-	void addEdge(BOP_Index i);
-	void removeEdge(BOP_Index i);
-	inline BOP_Index getEdge(unsigned int i) { return m_edges[i];};
-	inline unsigned int getNumEdges() { return m_edges.size();};
-	inline BOP_Indexs &getEdges() { return m_edges;};
-	inline MT_Point3 getPoint() const { return m_point;};
-	inline BOP_TAG getTAG() { return m_tag;};
-	inline void setTAG(BOP_TAG t) { m_tag = t;};
-#ifdef BOP_DEBUG
-	friend ostream &operator<<(ostream &stream, BOP_Vertex *v);
-#endif
-
-};
-
-#endif
+#define HASH(x) ((x) >> 5)		/* each "hash" covers 32 indices */
+// #define HASH_PRINTF_DEBUG	/* uncomment to enable debug output */
