@@ -280,11 +280,15 @@ short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 		
 		/* show override lmb-clicks button + painting lock */
 		uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 130, 20, &gpd->flag, 0, 0, 0, 0, "Interpret LMB-click as new strokes (same as holding Shift-Key per stroke)");
-			
-			uiBlockSetCol(block, TH_BUT_SETTING);
-				uiDefIconButBitI(block, ICONTOG, GP_DATA_LMBPLOCK, B_REDR, ICON_UNLOCKED,	300, 225, 20, 20, &gpd->flag, 0.0, 0.0, 0, 0, "Painting cannot occur with Shift-LMB (when making selections)");
-			uiBlockSetCol(block, TH_AUTO);
+			if ((gpd->flag & GP_DATA_EDITPAINT)==0) {
+				uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 130, 20, &gpd->flag, 0, 0, 0, 0, "Interpret click-drag as new strokes");
+				
+				uiBlockSetCol(block, TH_BUT_SETTING);
+					uiDefIconButBitI(block, ICONTOG, GP_DATA_LMBPLOCK, B_REDR, ICON_UNLOCKED,	300, 225, 20, 20, &gpd->flag, 0.0, 0.0, 0, 0, "Painting cannot occur with Shift-LMB (when making selections)");
+				uiBlockSetCol(block, TH_AUTO);
+			}
+			else
+				uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 150, 20, &gpd->flag, 0, 0, 0, 0, "Interpret click-drag as new strokes");
 		uiBlockEndAlign(block);
 		
 		/* 'view align' button (naming depends on context) */
@@ -312,6 +316,66 @@ enum {
 	GP_DRAWDATA_ONLY3D		= (1<<1),	/* only draw 3d-strokes */
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 };
+
+/* draw stroke in buffer */
+static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thickness, short dflag, short sflag)
+{
+	tGPspoint *pt;
+	int i;
+	
+	/* error checking */
+	if ((points == NULL) || (totpoints <= 0))
+		return;
+	
+	/* check if buffer can be drawn */
+	if (dflag & (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_ONLYV2D))
+		return;
+	
+	/* if drawing a single point, draw it larger */	
+	if (totpoints == 1) {		
+		/* draw point */
+		glBegin(GL_POINTS);
+			glVertex2f(points->x, points->y);
+		glEnd();
+	}
+	else if (sflag & GP_STROKE_ERASER) {
+		/* draw stroke curve - just standard thickness */
+		setlinestyle(4);
+		glLineWidth(1.0f);
+		
+		glBegin(GL_LINE_STRIP);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			glVertex2f(pt->x, pt->y);
+		}
+		glEnd();
+		
+		setlinestyle(0);
+	}
+	else {
+		float oldpressure = 0.0f;
+		
+		/* draw stroke curve */
+		setlinestyle(2);
+		
+		glBegin(GL_LINE_STRIP);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			if (fabs(pt->pressure - oldpressure) > 0.2f) {
+				glEnd();
+				glLineWidth(pt->pressure * thickness);
+				glBegin(GL_LINE_STRIP);
+				
+				glVertex2f(pt->x, pt->y);
+				
+				oldpressure = pt->pressure;
+			}
+			else
+				glVertex2f(pt->x, pt->y);
+		}
+		glEnd();
+		
+		setlinestyle(0);
+	}
+}
 
 /* draw a given stroke */
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
@@ -489,8 +553,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i * 0.7);
-						gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+						tcolor[3] = color[3] - (i/gpl->gstep);
+						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -501,8 +565,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i * 0.7);
-						gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+						tcolor[3] = color[3] - (i/gpl->gstep);
+						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -515,12 +579,12 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 				/* draw the strokes for the ghost frames (at half of the alpha set by user) */
 				if (gpf->prev) {
 					tcolor[3] = (color[3] / 7);
-					gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+					gp_draw_strokes(gpf->prev, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				if (gpf->next) {
 					tcolor[3] = (color[3] / 4);
-					gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+					gp_draw_strokes(gpf->next, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				/* restore alpha */
@@ -533,15 +597,13 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 		
 		/* Check if may need to draw the active stroke cache, only if this layer is the active layer
-		 * that is being edited. (Stroke cache is currently stored in gp-data)
+		 * that is being edited. (Stroke buffer is currently stored in gp-data)
 		 */
 		if ((G.f & G_GREASEPENCIL) && (gpl->flag & GP_LAYER_ACTIVE) &&
 			(gpf->flag & GP_FRAME_PAINT)) 
 		{
 			/* Buffer stroke needs to be drawn with a different linestyle to help differentiate them from normal strokes. */
-			setlinestyle(2);
-			gp_draw_stroke(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag, debug, winx, winy);
-			setlinestyle(0);
+			gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag);
 		}
 	}
 	

@@ -125,7 +125,7 @@ typedef struct bGPdata {
 	 */
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
-	bGPDspoint *sbuffer;		/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
+	void *sbuffer;				/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
 } bGPdata;
 
 /* bGPdata->flag */
