@@ -1130,13 +1130,24 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 			
 			if (start_node->flag == subgraph && start_node->degree == 1)
 			{
+				ReebNode *min_node = NULL;
+				float min_distance = FLT_MAX;
+				
 				for (end_node = rg->nodes.first; end_node; end_node = end_node->next)
 				{
-					if (end_node->flag != subgraph && VecLenf(start_node->p, end_node->p) < threshold)
+					if (end_node->flag != subgraph)
 					{
-						break;
+						float distance = VecLenf(start_node->p, end_node->p);
+						
+						if (distance < threshold && distance < min_distance)
+						{
+							min_distance = distance;
+							min_node = end_node;
+						}
 					}
 				}
+				
+				end_node = min_node;
 				
 				if (end_node)
 				{
