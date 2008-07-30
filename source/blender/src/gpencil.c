@@ -1163,14 +1163,15 @@ static void gp_stroke_doeraser (tGPsdata *p)
 {
 	bGPdata *gpd= p->gpd;
 	bGPDframe *gpf= p->gpf;
-	bGPDstroke *gps;
+	bGPDstroke *gps, *gpn;
 	short (*mcoords)[2];
 	
 	/* get buffer-stroke coordinates as shorts array */
 	mcoords= gp_stroke_eraser_2mco(gpd);
 	
 	/* loop over strokes, checking segments for intersections */
-	for (gps= gpf->strokes.first; gps; gps= gps->next) {
+	for (gps= gpf->strokes.first; gps; gps= gpn) {
+		gpn= gps->next;
 		gp_stroke_eraser_dostroke(p, mcoords, gpd->sbuffer_size, gpf, gps);
 	}
 	
