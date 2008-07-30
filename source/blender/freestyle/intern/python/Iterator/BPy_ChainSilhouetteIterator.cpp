@@ -111,7 +111,7 @@ int ChainSilhouetteIterator___init__(BPy_ChainSilhouetteIterator *self, PyObject
 {	
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
 
-	if (!( PyArg_ParseTuple(args, "O|OO", &obj1, &obj2, &obj3) ))
+	if (!( PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3) ))
 	    return -1;
 
 	if( obj1 && BPy_ChainSilhouetteIterator_Check(obj1)  ) { 

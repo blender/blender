@@ -36,6 +36,8 @@
 # include "../view_map/Functions1D.h"
 # include "AdvancedFunctions1D.h"
 
+# include  "../python/Director.h"
+
 //
 // UnaryPredicate1D (base class for predicates in 1D)
 //
@@ -52,8 +54,13 @@
 class UnaryPredicate1D
 {
 public:
+	
+	PyObject *py_up1D;
+	
   /*! Default constructor. */
-  UnaryPredicate1D() {}
+  UnaryPredicate1D() { 
+	py_up1D = 0;
+  }
   /*! Destructor. */
   virtual ~UnaryPredicate1D() {}
   /*! Returns the string of the name
@@ -71,9 +78,17 @@ public:
    *    false otherwise.
    */
   virtual bool operator()(Interface1D& inter) {
-    cerr << "Warning: operator() not implemented" << endl;
-    return false;
+	
+	if( py_up1D ) {
+		return director_BPy_UnaryPredicate1D___call__(py_up1D, inter);
+	} else {
+		cerr << "Warning: operator() not implemented" << endl;
+	    return false;
+	}
   }
+
+	inline void setPythonObject(PyObject *_py_up1D) { py_up1D = _py_up1D; }
+
 };
 
 

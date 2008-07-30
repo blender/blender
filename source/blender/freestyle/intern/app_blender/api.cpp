@@ -42,6 +42,7 @@ extern "C" {
 		if( view == NULL )
 			view = new AppGLWidget;
 		
+		controller->Clear();
 		controller->setView(view);
 	}
 

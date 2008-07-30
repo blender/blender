@@ -49,16 +49,16 @@ class StrokeShader(Blender.Freestyle.StrokeShader):
 	pass
 
 class UnaryFunction0D(Blender.Freestyle.UnaryFunction0D):
-	pass
+	def __call__(*args): return Blender.Freestyle.UnaryFunction0D.__call__(*args)
 
 class UnaryFunction1D(Blender.Freestyle.UnaryFunction1D):
-	pass
+	def __call__(*args): return Blender.Freestyle.UnaryFunction1D.__call__(*args)
 
 class UnaryPredicate0D(Blender.Freestyle.UnaryPredicate0D):
 	pass
 
 class UnaryPredicate1D(Blender.Freestyle.UnaryPredicate1D):
-	def __call__(*args): return Blender.Freestyle.UnaryPredicate1D.__call__(*args)
+	pass
 
 class ViewMap(Blender.Freestyle.ViewMap):
 	pass

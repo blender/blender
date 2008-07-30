@@ -9,6 +9,7 @@
 #include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface0D/BPy_ViewVertex.h"
+#include "BPy_Interface1D.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_ViewEdge.h"
 #include "BPy_Nature.h"
@@ -78,6 +79,14 @@ PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D ) {
 
 	return py_if0D;
 }
+
+PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D ) {
+	PyObject *py_if1D =  Interface1D_Type.tp_new( &Interface1D_Type, 0, 0 );
+	((BPy_Interface1D *) py_if1D)->if1D = &if1D;
+
+	return py_if1D;
+}
+
 
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv ) {
 	PyObject *py_sv = SVertex_Type.tp_new( &SVertex_Type, 0, 0 );

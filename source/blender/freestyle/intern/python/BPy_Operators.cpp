@@ -164,7 +164,11 @@ PyObject * Operators_select(BPy_Operators* self, PyObject *args)
 		Py_RETURN_NONE;
 	}
 
-	Operators::select(*( ((BPy_UnaryPredicate1D *) obj)->up1D ));
+	UnaryPredicate1D *up1D = ((BPy_UnaryPredicate1D *) obj)->up1D;
+	if( PyObject_HasAttrString( obj, "__call__") )
+		up1D->setPythonObject( obj );
+	
+	Operators::select(*up1D);
 
 	Py_RETURN_NONE;
 }

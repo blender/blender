@@ -1,8 +1,8 @@
 from freestyle_init import *
 
-class AndUP1D(ContourUP1D):
+class AndUP1D(UnaryPredicate1D):
     def __init__(self, pred1, pred2):
-        ContourUP1D.__init__(self)
+        UnaryPredicate1D.__init__(self)
         self.__pred1 = pred1
         self.__pred2 = pred2
 
@@ -12,9 +12,9 @@ class AndUP1D(ContourUP1D):
     def __call__(self, inter):
         return self.__pred1(inter) and self.__pred2(inter)
     
-class OrUP1D(ContourUP1D):
+class OrUP1D(UnaryPredicate1D):
     def __init__(self, pred1, pred2):
-        ContourUP1D.__init__(self)
+        UnaryPredicate1D.__init__(self)
         self.__pred1 = pred1
         self.__pred2 = pred2
 
@@ -24,9 +24,9 @@ class OrUP1D(ContourUP1D):
     def __call__(self, inter):
         return self.__pred1(inter) or self.__pred2(inter)
 
-class NotUP1D(ContourUP1D):
+class NotUP1D(UnaryPredicate1D):
 	def __init__(self, pred):
-		ContourUP1D.__init__(self)
+		UnaryPredicate1D.__init__(self)
 		self.__pred = pred
 
 	def getName(self):

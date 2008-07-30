@@ -215,7 +215,7 @@ PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args
 	
 	if( if1D )
 		return PyBool_from_bool( self->up1D->operator()(*if1D) );
-	
+		
 	Py_RETURN_NONE;
 }
 
