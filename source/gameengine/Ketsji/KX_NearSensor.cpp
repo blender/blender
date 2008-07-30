@@ -98,6 +98,14 @@ void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
 	}
 }
 
+void KX_NearSensor::UnregisterSumo(KX_TouchEventManager* touchman)
+{
+	if (m_physCtrl)
+	{
+		touchman->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+	}
+}
+
 CValue* KX_NearSensor::GetReplica()
 {
 	KX_NearSensor* replica = new KX_NearSensor(*this);

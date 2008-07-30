@@ -2441,13 +2441,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
 		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
-	}
-	// apply the initial state to controllers
-	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
-	{
-		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
+	}
+	// apply the initial state to controllers, only on the active objects as this registers the sensors
+	for ( i=0;i<objectlist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
 		gameobj->ResetState();
 	}
 

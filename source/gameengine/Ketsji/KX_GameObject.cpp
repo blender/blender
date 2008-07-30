@@ -275,6 +275,7 @@ void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 	replica->m_pSGNode = NULL;
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
+	replica->m_state = 0;
 }
 
 

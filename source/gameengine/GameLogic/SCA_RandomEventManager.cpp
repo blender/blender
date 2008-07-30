@@ -50,16 +50,9 @@ SCA_RandomEventManager::SCA_RandomEventManager(class SCA_LogicManager* logicmgr)
 
 void SCA_RandomEventManager::NextFrame()
 {
-	for (vector<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
+	for (set<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
 	{
-		SCA_ISensor *sensor = *i;
-		sensor->Activate(m_logicmgr, NULL);
+		(*i)->Activate(m_logicmgr, NULL);
 	}
 }
 
-
-
-void	SCA_RandomEventManager::RegisterSensor(SCA_ISensor* sensor)
-{
-	m_sensors.push_back(sensor);
-};
