@@ -635,7 +635,8 @@ static int get_char_pos(SpaceText *st, char *line, int cur) {
 
 static void draw_cursor(SpaceText *st) {
 	Text *text= st->text;
-	int vcurl, vcurc, vsell, vselc, offl, offc, x, y, w, i;
+	int vcurl, vcurc, vsell, vselc, hidden=0;
+	int offl, offc, x, y, w, i;
 	
 	/* Draw the selection */
 	if (text->curl!=text->sell || text->curc!=text->selc) {
@@ -643,10 +644,13 @@ static void draw_cursor(SpaceText *st) {
 		/* Convert all to view space character coordinates */
 		wrap_offset(st, text->curl, text->curc, &offl, &offc);
 		vcurl = txt_get_span(text->lines.first, text->curl) - st->top + offl;
-		vcurc = get_char_pos(st, text->curl->line, text->curc) + offc;
+		vcurc = get_char_pos(st, text->curl->line, text->curc) - st->left + offc;
 		wrap_offset(st, text->sell, text->selc, &offl, &offc);
 		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
-		vselc = get_char_pos(st, text->sell->line, text->selc) + offc;
+		vselc = get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
+
+		if (vcurc<0) vcurc=0;
+		if (vselc<0) vselc=0, hidden=1;
 		
 		BIF_ThemeColor(TH_SHADE2);
 		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
@@ -676,21 +680,24 @@ static void draw_cursor(SpaceText *st) {
 	} else {
 		wrap_offset(st, text->sell, text->selc, &offl, &offc);
 		vsell = txt_get_span(text->lines.first, text->sell) - st->top + offl;
-		vselc = get_char_pos(st, text->sell->line, text->selc) + offc;
+		vselc = get_char_pos(st, text->sell->line, text->selc) - st->left + offc;
+		if (vselc<0) vselc=0, hidden=1;
 	}
 
-	/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
-	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	x += vselc*spacetext_get_fontwidth(st);
-	y= curarea->winy-3 - vsell*st->lheight;
-	
-	if (st->overwrite) {
-		w= BMF_GetCharacterWidth(spacetext_get_font(st), text->sell->line[text->selc]);
-		BIF_ThemeColor(TH_HILITE);
-		glRecti(x, y-st->lheight-1, x+w, y-st->lheight+1);
-	} else {
-		BIF_ThemeColor(TH_HILITE);
-		glRecti(x-1, y, x+1, y-st->lheight);
+	if (!hidden) {
+		/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
+		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+		x += vselc*spacetext_get_fontwidth(st);
+		y= curarea->winy-3 - vsell*st->lheight;
+		
+		if (st->overwrite) {
+			w= BMF_GetCharacterWidth(spacetext_get_font(st), text->sell->line[text->selc]);
+			BIF_ThemeColor(TH_HILITE);
+			glRecti(x, y-st->lheight-1, x+w, y-st->lheight+1);
+		} else {
+			BIF_ThemeColor(TH_HILITE);
+			glRecti(x-1, y, x+1, y-st->lheight);
+		}
 	}
 }
 
@@ -2754,21 +2761,24 @@ void draw_brackets(SpaceText *st)
 
 	ch= startl->line[startc];
 	wrap_offset(st, startl, startc, &offl, &offc);
-	viewc= get_char_pos(st, startl->line, startc) + offc;
-	viewl= txt_get_span(text->lines.first, startl) + offl;
-	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st), y-viewl*st->lheight);
-	BMF_DrawCharacter(spacetext_get_font(st), ch);
-	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st)+1, y-viewl*st->lheight);
-	BMF_DrawCharacter(spacetext_get_font(st), ch);
-
+	viewc= get_char_pos(st, startl->line, startc) - st->left + offc;
+	if (viewc >= 0){
+		viewl= txt_get_span(text->lines.first, startl) - st->top + offl;
+		glRasterPos2i(x+viewc*spacetext_get_fontwidth(st), y-viewl*st->lheight);
+		BMF_DrawCharacter(spacetext_get_font(st), ch);
+		glRasterPos2i(x+viewc*spacetext_get_fontwidth(st)+1, y-viewl*st->lheight);
+		BMF_DrawCharacter(spacetext_get_font(st), ch);
+	}
 	ch= endl->line[endc];
 	wrap_offset(st, endl, endc, &offl, &offc);
-	viewc= get_char_pos(st, endl->line, endc) + offc;
-	viewl= txt_get_span(text->lines.first, endl) + offl;
-	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st), y-viewl*st->lheight);
-	BMF_DrawCharacter(spacetext_get_font(st), ch);
-	glRasterPos2i(x+viewc*spacetext_get_fontwidth(st)+1, y-viewl*st->lheight);
-	BMF_DrawCharacter(spacetext_get_font(st), ch);
+	viewc= get_char_pos(st, endl->line, endc) - st->left + offc;
+	if (viewc >= 0) {
+		viewl= txt_get_span(text->lines.first, endl) - st->top + offl;
+		glRasterPos2i(x+viewc*spacetext_get_fontwidth(st), y-viewl*st->lheight);
+		BMF_DrawCharacter(spacetext_get_font(st), ch);
+		glRasterPos2i(x+viewc*spacetext_get_fontwidth(st)+1, y-viewl*st->lheight);
+		BMF_DrawCharacter(spacetext_get_font(st), ch);
+	}
 }
 
 static int check_bracket(char ch)
