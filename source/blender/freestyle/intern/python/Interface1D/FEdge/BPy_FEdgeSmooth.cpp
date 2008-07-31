@@ -158,7 +158,7 @@ PyObject * FEdgeSmooth_materialIndex( BPy_FEdgeSmooth *self ) {
 
 PyObject * FEdgeSmooth_material( BPy_FEdgeSmooth *self ) {
 	Material m( self->fes->material() );
-	return BPy_FrsMaterial_from_Material(m);
+	return BPy_Material_from_Material(m);
 }
 
 PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
