@@ -371,7 +371,7 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 	}
 }
 
-static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
+void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
 {
 	short a;
 	

@@ -48,6 +48,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_global.h"
@@ -920,7 +921,6 @@ static short gp_stroke_addpoint (tGPsdata *p, short mval[2], float pressure)
 	if (gpd->sbuffer_size >= GP_STROKE_BUFFER_MAX)
 		return GP_STROKEADD_OVERFLOW;
 	
-	
 	/* get pointer to destination point */
 	pt= ((tGPspoint *)(gpd->sbuffer) + gpd->sbuffer_size);
 	
@@ -1012,8 +1012,76 @@ static short (*gp_stroke_eraser_2mco (bGPdata *gpd))[2]
 	return mcoords;
 }
 
-/* eraser tool evaluation per curve */
-static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short moves, bGPDframe *gpf, bGPDstroke *gps)
+/* eraser tool - remove segment from stroke/split stroke (after lasso inside) */
+static short gp_stroke_eraser_splitdel (bGPDframe *gpf, bGPDstroke *gps, int i)
+{
+	bGPDspoint *pt_tmp= gps->points;
+	bGPDstroke *gsn = NULL;
+
+	/* if stroke only had two points, get rid of stroke */
+	if (gps->totpoints == 2) {
+		/* free stroke points, then stroke */
+		MEM_freeN(pt_tmp);
+		BLI_freelinkN(&gpf->strokes, gps);
+		
+		/* nothing left in stroke, so stop */
+		return 1;
+	}
+
+	/* if last segment, just remove segment from the stroke */
+	else if (i == gps->totpoints - 2) {
+		/* allocate new points array, and assign most of the old stroke there */
+		gps->totpoints--;
+		gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
+		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint)*gps->totpoints);
+		
+		/* free temp buffer */
+		MEM_freeN(pt_tmp);
+		
+		/* nothing left in stroke, so stop */
+		return 1;
+	}
+
+	/* if first segment, just remove segment from the stroke */
+	else if (i == 0) {
+		/* allocate new points array, and assign most of the old stroke there */
+		gps->totpoints--;
+		gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
+		memcpy(gps->points, pt_tmp + 1, sizeof(bGPDspoint)*gps->totpoints);
+		
+		/* free temp buffer */
+		MEM_freeN(pt_tmp);
+		
+		/* no break here, as there might still be stuff to remove in this stroke */
+		return 0;
+	}
+
+	/* segment occurs in 'middle' of stroke, so split */
+	else {
+		/* duplicate stroke, and assign 'later' data to that stroke */
+		gsn= MEM_dupallocN(gps);
+		gsn->prev= gsn->next= NULL;
+		BLI_insertlinkafter(&gpf->strokes, gps, gsn);
+		
+		gsn->totpoints= gps->totpoints - i;
+		gsn->points= MEM_callocN(sizeof(bGPDspoint)*gsn->totpoints, "gp_stroke_points");
+		memcpy(gsn->points, pt_tmp + i, sizeof(bGPDspoint)*gsn->totpoints);
+		
+		/* adjust existing stroke  */
+		gps->totpoints= i;
+		gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
+		memcpy(gps->points, pt_tmp, sizeof(bGPDspoint)*i);
+		
+		/* free temp buffer */
+		MEM_freeN(pt_tmp);
+		
+		/* nothing left in stroke, so stop */
+		return 1;
+	}
+}
+
+/* eraser tool - evaluation per stroke */
+static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short moves, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
 	short x0=0, y0=0, x1=0, y1=0;
@@ -1044,11 +1112,14 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 			y0= (gps->points->y / 1000 * p->sa->winy);
 		}
 		
-		/* only check if point is inside */
-		if (lasso_inside(mcoords, moves, x0, y0)) {
-			/* free stroke */
-			MEM_freeN(gps->points);
-			BLI_freelinkN(&gpf->strokes, gps);
+		/* do boundbox check first */
+		if (BLI_in_rcti(rect, x0, y0)) {
+			/* only check if point is inside */
+			if (lasso_inside(mcoords, moves, x0, y0)) {
+				/* free stroke */
+				MEM_freeN(gps->points);
+				BLI_freelinkN(&gpf->strokes, gps);
+			}
 		}
 	}
 	else {	
@@ -1083,73 +1154,17 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 				y1= (pt2->y / 1000 * p->sa->winy);
 			}
 			
-			/* check if point segment of stroke had anything to do with
-			 * eraser region  (either within stroke painted, or on its lines)
-			 * 	- this assumes that linewidth is irrelevant
-			 *	- handled using the lasso-select checking code
-			 */
-			if (lasso_inside_edge(mcoords, moves, x0, y0, x1, x1)) {
-				bGPDspoint *pt_tmp= gps->points;
-				bGPDstroke *gsn = NULL;
-				
-				/* if stroke only had two points, get rid of stroke */
-				if (gps->totpoints == 2) {
-					/* free stroke points, then stroke */
-					MEM_freeN(pt_tmp);
-					BLI_freelinkN(&gpf->strokes, gps);
-					
-					/* nothing left in stroke, so stop */
-					break;
-				}
-				
-				/* if last segment, just remove segment from the stroke */
-				else if (i == gps->totpoints - 2) {
-					/* allocate new points array, and assign most of the old stroke there */
-					gps->totpoints--;
-					gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
-					memcpy(gps->points, pt_tmp, sizeof(bGPDspoint)*gps->totpoints);
-					
-					/* free temp buffer */
-					MEM_freeN(pt_tmp);
-					
-					/* nothing left in stroke, so stop */
-					break;
-				}
-				
-				/* if first segment, just remove segment from the stroke */
-				else if (i == 0) {
-					/* allocate new points array, and assign most of the old stroke there */
-					gps->totpoints--;
-					gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
-					memcpy(gps->points, pt_tmp + 1, sizeof(bGPDspoint)*gps->totpoints);
-					
-					/* free temp buffer */
-					MEM_freeN(pt_tmp);
-					
-					/* no break here, as there might still be stuff to remove in this stroke */
-				}
-				
-				/* segment occurs in 'middle' of stroke, so split */
-				else {
-					/* duplicate stroke, and assign 'later' data to that stroke */
-					gsn= MEM_dupallocN(gps);
-					gsn->prev= gsn->next= NULL;
-					BLI_insertlinkafter(&gpf->strokes, gps, gsn);
-					
-					gsn->totpoints= gps->totpoints - i;
-					gsn->points= MEM_callocN(sizeof(bGPDspoint)*gsn->totpoints, "gp_stroke_points");
-					memcpy(gsn->points, pt_tmp + i, sizeof(bGPDspoint)*gsn->totpoints);
-					
-					/* adjust existing stroke  */
-					gps->totpoints= i;
-					gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
-					memcpy(gps->points, pt_tmp, sizeof(bGPDspoint)*i);
-					
-					/* free temp buffer */
-					MEM_freeN(pt_tmp);
-					
-					/* nothing left in stroke, so stop */
-					break;
+			/* check that point segment of the boundbox of the eraser stroke */
+			if (BLI_in_rcti(rect, x0, y0) || BLI_in_rcti(rect, x1, y1)) {
+				/* check if point segment of stroke had anything to do with
+				 * eraser region  (either within stroke painted, or on its lines)
+				 * 	- this assumes that linewidth is irrelevant
+				 *	- handled using the lasso-select checking code
+				 */
+				if (lasso_inside_edge(mcoords, moves, x0, y0, x1, x1)) {
+					/* if function returns true, break this loop (as no more point to check) */
+					if (gp_stroke_eraser_splitdel(gpf, gps, i))
+						break;
 				}
 			}
 		}
@@ -1165,14 +1180,16 @@ static void gp_stroke_doeraser (tGPsdata *p)
 	bGPDframe *gpf= p->gpf;
 	bGPDstroke *gps, *gpn;
 	short (*mcoords)[2];
+	rcti rect;
 	
-	/* get buffer-stroke coordinates as shorts array */
+	/* get buffer-stroke coordinates as shorts array, and then get bounding box */
 	mcoords= gp_stroke_eraser_2mco(gpd);
+	lasso_select_boundbox(&rect, mcoords, gpd->sbuffer_size);
 	
 	/* loop over strokes, checking segments for intersections */
 	for (gps= gpf->strokes.first; gps; gps= gpn) {
 		gpn= gps->next;
-		gp_stroke_eraser_dostroke(p, mcoords, gpd->sbuffer_size, gpf, gps);
+		gp_stroke_eraser_dostroke(p, mcoords, gpd->sbuffer_size, &rect, gpf, gps);
 	}
 	
 	/* free mcoords array */
