@@ -30,7 +30,8 @@ extern "C" {
 	static Controller *controller = NULL;
 	static AppGLWidget *view = NULL;
 
-	
+	char style_module[255] = "";
+
 	void FRS_initialize(){
 		
 		if( pathconfig == NULL )
@@ -42,8 +43,14 @@ extern "C" {
 		if( view == NULL )
 			view = new AppGLWidget;
 		
-		controller->Clear();
 		controller->setView(view);
+		controller->Clear();
+		
+		if( strlen(style_module) == 0 ){
+			string path( pathconfig->getProjectDir() +  Config::DIR_SEP + "style_modules_blender" + Config::DIR_SEP + "contour.py" );
+			strcpy( style_module, path.c_str() );
+		}
+		
 	}
 
 
@@ -114,10 +121,8 @@ extern "C" {
 		}
 		
 		// add style module
-		string style_module = pathconfig->getProjectDir() + 
-								Config::DIR_SEP + "style_modules_blender" + 
-								Config::DIR_SEP + "contour.py";
-		controller->InsertStyleModule( 0, const_cast<char *>(style_module.c_str()) 	 );
+		cout << "Module: " << style_module << endl;
+		controller->InsertStyleModule( 0, style_module );
 		controller->toggleLayer(0, true);
 		
 		// compute view map

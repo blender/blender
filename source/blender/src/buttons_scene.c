@@ -120,6 +120,8 @@ extern void makeffmpegstring(char* string);
 
 #endif
 
+#include "FRS_freestyle.h"
+
 /* here the calls for scene buttons
    - render
    - world
@@ -1362,6 +1364,15 @@ static void backbuf_pic(char *name)
 	BIF_undo_push("Change background picture");
 }
 
+static void freestyle_module(char *name)
+{
+	strcpy(style_module, name);
+	allqueue(REDRAWBUTSSCENE, 0);
+	BIF_undo_push("Change style module");
+}
+
+
+
 static void run_playanim(char *file) 
 {
 	extern char bprogname[];	/* usiblender.c */
@@ -1462,6 +1473,13 @@ void do_render_panels(unsigned short event)
 		else
 			activate_fileselect(FILE_SPECIAL, "SELECT BACKBUF PICTURE", G.scene->r.backbuf, backbuf_pic);
 		break;
+	
+	case B_FS_FRS:
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		activate_fileselect(FILE_SPECIAL, "SELECT STYLE MODULE", style_module, freestyle_module);
+		break;
+		
 	
 	case B_PR_PAL:
 		G.scene->r.xsch= 720;
@@ -3235,6 +3253,26 @@ static void render_panel_yafrayGlobal()
 }
 #endif /* disable yafray stuff */
 
+static void render_panel_freestyle()
+{
+	uiBlock *block;
+
+	if( strlen(style_module) == 0 )
+		FRS_initialize();
+
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_freestyle", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Render", "Render");
+	if(uiNewPanel(curarea, block, "Freestyle", "Render", 320, 0, 318, 204)==0) return;
+
+	// label to force a boundbox for buttons not to be centered
+	uiBlockBeginAlign(block);
+	uiDefIconBut(block, BUT, B_FS_FRS, ICON_FILESEL, 10, 190, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get style module");
+	uiDefBut(block, TEX,0,"", 31, 190, 279, 20, style_module, 0.0,79.0, 0, 0, "Style module path name");
+	uiBlockEndAlign(block);
+
+
+}
+
 static void layer_copy_func(void *lay_v, void *lay_p)
 {
 	unsigned int *lay= lay_p;
@@ -3452,6 +3490,11 @@ void render_panels()
 		render_panel_yafrayGI();
 	}
 #endif
+
+	if (G.scene->r.renderer==R_FREESTYLE) {
+		render_panel_freestyle();
+	}
+
 
 }
 

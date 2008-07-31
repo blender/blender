@@ -27,7 +27,7 @@ incs += ' #/intern/decimation/extern ../blenloader ../python'
 incs += ' ../../kernel/gen_system #/intern/SoundSystem ../readstreamglue ../nodes'
 incs += ' ../quicktime #/intern/elbeem/extern'
 incs += ' #/intern/ghost #/intern/opennl/extern #/extern/glew/include'
-
+incs += ' ../freestyle'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_SDL_INC']
