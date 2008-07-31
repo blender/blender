@@ -90,7 +90,7 @@ public:
    *  \return the result of the function of type T.
    */
   virtual T operator()(Interface0DIterator& iter) {
-    cerr << "Warning: operator() not implemented" << endl;
+    cerr << "Warning: UnaryFunction0D operator() not implemented" << endl;
     return T();
   }
 };

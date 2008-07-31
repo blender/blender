@@ -32,6 +32,8 @@
 
 # include "../view_map/Functions0D.h"
 
+# include  "../python/Director.h"
+
 //
 // UnaryPredicate0D (base class for predicates in 0D)
 //
@@ -48,8 +50,11 @@
 class UnaryPredicate0D
 {
 public:
+	
+	PyObject *py_up0D;
+	
   /*! Default constructor. */
-  UnaryPredicate0D() {}
+	UnaryPredicate0D() { py_up0D = 0; }
   /*! Destructor. */
   virtual ~UnaryPredicate0D() {}
   /*! Returns the string of the name
@@ -68,9 +73,16 @@ public:
    *    false otherwise.
    */
   virtual bool operator()(Interface0DIterator& it) {
-    cerr << "Warning: operator() not implemented" << endl;
-    return false;
+	string name( py_up0D ? PyString_AsString(PyObject_CallMethod(py_up0D, "getName", "")) : getName() );
+	
+	if( py_up0D && PyObject_HasAttrString(py_up0D, "__call__") ) {
+		return Director_BPy_UnaryPredicate0D___call__(py_up0D, it);
+	} else {
+		cerr << "Warning: " << name << " operator() not implemented" << endl;
+		return false;
+	}
   }
+
 };
 
 
@@ -88,8 +100,11 @@ public:
 class BinaryPredicate0D
 {
 public:
+	
+		PyObject *py_bp0D;
+	
   /*! Default constructor. */
-  BinaryPredicate0D() {}
+		BinaryPredicate0D() { py_bp0D = 0; }
   /*! Destructor. */
   virtual ~BinaryPredicate0D() {}
   /*! Returns the string of the name of the
@@ -108,9 +123,16 @@ public:
    *  \return true or false.
    */
   virtual bool operator()(Interface0D& inter1, Interface0D& inter2) {
-    cerr << "Warning: operator() not implemented" << endl;
-    return false;
+	string name( py_bp0D ? PyString_AsString(PyObject_CallMethod(py_bp0D, "getName", "")) : getName() );
+
+	if( py_bp0D && PyObject_HasAttrString(py_bp0D, "__call__") ) {
+		return Director_BPy_BinaryPredicate0D___call__(py_bp0D, inter1, inter2);
+	} else {
+		cerr << "Warning: " << name << " operator() not implemented" << endl;
+		return false;
+	}
   }
+
 };
 
 

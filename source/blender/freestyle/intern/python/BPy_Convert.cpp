@@ -11,6 +11,7 @@
 #include "Interface0D/BPy_ViewVertex.h"
 #include "BPy_Interface1D.h"
 #include "Interface1D/BPy_FEdge.h"
+#include "Interface1D/BPy_Stroke.h"
 #include "Interface1D/BPy_ViewEdge.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
@@ -113,6 +114,14 @@ PyObject * BPy_Nature_from_Nature( unsigned short n ) {
 	Py_DECREF(args);
 
 	return py_n;
+}
+
+PyObject * BPy_Stroke_from_Stroke( Stroke& s ) {
+	PyObject *py_s = Stroke_Type.tp_new( &Stroke_Type, 0, 0 );
+	((BPy_Stroke *) py_s)->s = new Stroke( s );
+	((BPy_Stroke *) py_s)->py_if1D.if1D = ((BPy_Stroke *) py_s)->s;
+
+	return py_s;
 }
 
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa ) {

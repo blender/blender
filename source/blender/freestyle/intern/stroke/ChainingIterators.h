@@ -36,6 +36,8 @@
 
 #include "../system/Iterator.h" //soc 
 
+# include  "../python/Director.h"
+
 //using namespace ViewEdgeInternal;
 
 //
@@ -135,6 +137,9 @@ protected:
   bool _increment; //true if we're currently incrementing, false when decrementing
   
 public:
+	
+	PyObject *py_c_it;
+	
   /*! Builds a Chaining Iterator from the first ViewEdge used for iteration
    *  and its orientation.
    *  \param iRestrictToSelection
@@ -154,6 +159,7 @@ public:
     _restrictToSelection = iRestrictToSelection;
     _restrictToUnvisited = iRestrictToUnvisited;
     _increment = true;
+	py_c_it = 0;
   }
 
   /*! Copy constructor */
@@ -162,6 +168,7 @@ public:
     _restrictToSelection = brother._restrictToSelection;
     _restrictToUnvisited = brother._restrictToUnvisited;
     _increment = brother._increment;
+	py_c_it = brother.py_c_it;
   }
 
   /*! Returns the string "ChainingIterator" */
@@ -176,7 +183,16 @@ public:
    *  history information that you 
    *  might want to keep.  
    */
-  virtual void init(){}
+  virtual void init() {
+	string name( py_c_it ? PyString_AsString(PyObject_CallMethod(py_c_it, "getExactTypeName", "")) : getExactTypeName() );
+	
+	if( py_c_it && PyObject_HasAttrString(py_c_it, "init") ) {
+		Director_BPy_ChainingIterator_init( py_c_it );
+	} else {
+		cerr << "Warning: " << name << " method init() not implemented" << endl;
+	}
+	
+  }
   
   /*! This method iterates over the potential next 
    *  ViewEdges and returns the one that will be 
@@ -190,10 +206,16 @@ public:
    *    rules by only iterating over the valid ViewEdges.
    */
   virtual ViewEdge * traverse(const AdjacencyIterator &it){
-    cerr << "Warning: the traverse method was not defined" << endl;
-    return 0;
+	string name( py_c_it ? PyString_AsString(PyObject_CallMethod(py_c_it, "getExactTypeName", "")) : getExactTypeName() );
+	
+	if( py_c_it && PyObject_HasAttrString(py_c_it, "traverse") ) {
+		return Director_BPy_ChainingIterator_traverse(py_c_it, const_cast<AdjacencyIterator &>(it) );
+	} else {
+	    cerr << "Warning: the " << name << " traverse method was not defined" << endl;
+	    return 0;
+	}
   }
-  
+
   /* accessors */
   /*! Returns true if the orientation of the current ViewEdge 
    *  corresponds to its natural orientation
@@ -274,6 +296,8 @@ public:
    */
   virtual ViewEdge * traverse(const AdjacencyIterator& it);
 
+	/*! Inits the iterator context */ 
+	virtual void init() {}
 };
 
 //
@@ -368,7 +392,11 @@ public:
    *  followed next.
    *  When reaching the end of a chain, 0 is returned.
    */
-  virtual ViewEdge * traverse(const AdjacencyIterator &it); 
+  virtual ViewEdge * traverse(const AdjacencyIterator &it);
+
+	/*! Inits the iterator context */ 
+	virtual void init() {}
+ 
 };
 
 #endif // CHAININGITERATORS_H

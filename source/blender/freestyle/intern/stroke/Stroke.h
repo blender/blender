@@ -38,6 +38,7 @@
 # include "../view_map/Interface1D.h"
 # include "../system/StringUtils.h"
 
+
 //
 //  StrokeAttribute
 //

@@ -92,7 +92,7 @@ public:
    *  \return the result of the function of type T.
    */
   virtual T operator()(Interface1D& inter) {
-    cerr << "Warning: operator() not implemented" << endl;
+    cerr << "Warning: UnaryFunction1D operator() not implemented" << endl;
     return T(0);
   }
   /*! Sets the integration method */

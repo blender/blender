@@ -181,6 +181,7 @@ PyMODINIT_FUNC UnaryPredicate1D_Init( PyObject *module )
 int UnaryPredicate1D___init__(BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
 	self->up1D = new UnaryPredicate1D();
+	self->up1D->py_up1D = (PyObject *) self;
 	return 0;
 }
 

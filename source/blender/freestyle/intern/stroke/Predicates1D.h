@@ -58,9 +58,7 @@ public:
 	PyObject *py_up1D;
 	
   /*! Default constructor. */
-  UnaryPredicate1D() { 
-	py_up1D = 0;
-  }
+  UnaryPredicate1D() { py_up1D = 0; }
   /*! Destructor. */
   virtual ~UnaryPredicate1D() {}
   /*! Returns the string of the name
@@ -78,16 +76,15 @@ public:
    *    false otherwise.
    */
   virtual bool operator()(Interface1D& inter) {
+	string name( py_up1D ? PyString_AsString(PyObject_CallMethod(py_up1D, "getName", "")) : getName() );
 	
-	if( py_up1D ) {
-		return director_BPy_UnaryPredicate1D___call__(py_up1D, inter);
+	if( py_up1D && PyObject_HasAttrString(py_up1D, "__call__")) {
+		return Director_BPy_UnaryPredicate1D___call__(py_up1D, inter);
 	} else {
-		cerr << "Warning: operator() not implemented" << endl;
-	    return false;
+		cerr << "Warning: " << name << " operator() not implemented" << endl;
+		return false;
 	}
   }
-
-	inline void setPythonObject(PyObject *_py_up1D) { py_up1D = _py_up1D; }
 
 };
 
@@ -106,8 +103,11 @@ public:
 class BinaryPredicate1D
 {
 public:
+	
+		PyObject *py_bp1D;
+	
   /*! Default constructor. */
-  BinaryPredicate1D() {}
+		BinaryPredicate1D() { py_bp1D = 0; }
   /*! Destructor. */
   virtual ~BinaryPredicate1D() {}
   /*! Returns the string of the name of the
@@ -125,9 +125,16 @@ public:
    *  \return true or false.
    */
   virtual bool operator()(Interface1D& inter1, Interface1D& inter2) {
-    cerr << "Warning: operator() not implemented" << endl;
-    return false;
+	string name( py_bp1D ? PyString_AsString(PyObject_CallMethod(py_bp1D, "getName", "")) : getName() );
+	
+	if( py_bp1D && py_bp1D && PyObject_HasAttrString(py_bp1D, "__call__") ) {
+		return Director_BPy_BinaryPredicate1D___call__(py_bp1D, inter1, inter2);
+	} else {
+		cerr << "Warning: " << name << " operator() not implemented" << endl;
+		return false;
+	}
   }
+
 };
 
 

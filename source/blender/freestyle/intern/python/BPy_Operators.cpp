@@ -164,21 +164,19 @@ PyObject * Operators_select(BPy_Operators* self, PyObject *args)
 		Py_RETURN_NONE;
 	}
 
-	UnaryPredicate1D *up1D = ((BPy_UnaryPredicate1D *) obj)->up1D;
-	if( PyObject_HasAttrString( obj, "__call__") )
-		up1D->setPythonObject( obj );
-	
-	Operators::select(*up1D);
+	Operators::select(*( ((BPy_UnaryPredicate1D *) obj)->up1D ));
 
 	Py_RETURN_NONE;
 }
+
+// CHANGE: first parameter is a chaining iterator, not just a view
 
 PyObject * Operators_chain(BPy_Operators* self, PyObject *args)
 {
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
 
 	if(!( 	PyArg_ParseTuple(args, "OO|O", &obj1, &obj2, &obj3) && 
-			BPy_ViewEdgeIterator_Check(obj1) && ((BPy_ViewEdgeIterator *) obj1)->ve_it &&
+			BPy_ChainingIterator_Check(obj1) && ((BPy_ChainingIterator *) obj1)->c_it &&
 			BPy_UnaryPredicate1D_Check(obj2) && ((BPy_UnaryPredicate1D *) obj2)->up1D )) {
 		cout << "ERROR: Operators_chain" << endl;
 		Py_RETURN_NONE;
@@ -186,12 +184,13 @@ PyObject * Operators_chain(BPy_Operators* self, PyObject *args)
 
 	if( !obj3 ) {
 		
-		Operators::chain( 	*( ((BPy_ViewEdgeIterator *) obj1)->ve_it ),
+		Operators::chain( 	*( ((BPy_ChainingIterator *) obj1)->c_it ),
 							*( ((BPy_UnaryPredicate1D *) obj2)->up1D )  );
 							
 	} else if( BPy_UnaryFunction1DVoid_Check(obj3) && ((BPy_UnaryFunction1DVoid *) obj3)->uf1D_void ) {
 		
-		Operators::chain( 	*( ((BPy_ViewEdgeIterator *) obj1)->ve_it ),
+		
+		Operators::chain( 	*( ((BPy_ChainingIterator *) obj1)->c_it ),
 							*( ((BPy_UnaryPredicate1D *) obj2)->up1D ),
 							*( ((BPy_UnaryFunction1DVoid *) obj3)->uf1D_void )  );
 		
@@ -209,7 +208,7 @@ PyObject * Operators_bidirectionalChain(BPy_Operators* self, PyObject *args)
 		cout << "ERROR: Operators_bidirectionalChain" << endl;
 		Py_RETURN_NONE;
 	}
-
+	
 	if( !obj2 ) {
 
 		Operators::bidirectionalChain( 	*( ((BPy_ChainingIterator *) obj1)->c_it ) );
@@ -234,7 +233,7 @@ PyObject * Operators_sequentialSplit(BPy_Operators* self, PyObject *args)
 		cout << "ERROR: Operators_sequentialSplit" << endl;
 		Py_RETURN_NONE;
 	}
-
+	
 	if( obj2 && BPy_UnaryPredicate0D_Check(obj2) ) {
 		
 		Operators::sequentialSplit( 	*( ((BPy_UnaryPredicate0D *) obj1)->up0D ),
@@ -266,7 +265,7 @@ PyObject * Operators_recursiveSplit(BPy_Operators* self, PyObject *args)
 	if( BPy_UnaryPredicate1D_Check(obj2) && ((BPy_UnaryPredicate1D *) obj2)->up1D ) {
 		
 		float f = ( obj3 && PyFloat_Check(obj3) ) ? PyFloat_AsDouble(obj3) : 0.0;
-		
+				
 		Operators::recursiveSplit( 	*( ((BPy_UnaryFunction0DDouble *) obj1)->uf0D_double ),
 									*( ((BPy_UnaryPredicate1D *) obj2)->up1D ),
 									f );
@@ -313,8 +312,9 @@ PyObject * Operators_create(BPy_Operators* self, PyObject *args)
 	vector<StrokeShader *> shaders;
 	for( int i = 0; i < PyList_Size(obj2); i++) {
 		PyObject *py_ss = PyList_GetItem(obj2,i);
-		if( BPy_StrokeShader_Check(py_ss) )
-		 shaders.push_back( ((BPy_StrokeShader *) py_ss)->ss );
+		
+		if( BPy_StrokeShader_Check(py_ss) )	
+			shaders.push_back( ((BPy_StrokeShader *) py_ss)->ss );
 	}
 	
 	Operators::create( *( ((BPy_UnaryPredicate1D *) obj1)->up1D ), shaders);

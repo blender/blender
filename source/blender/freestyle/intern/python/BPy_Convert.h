@@ -80,6 +80,7 @@ PyObject * BPy_FrsMaterial_from_Material( Material& m );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
 PyObject * BPy_SShape_from_SShape( SShape& ss );
+PyObject * BPy_Stroke_from_Stroke( Stroke& s );
 PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );
 PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );
 PyObject * BPy_SVertex_from_SVertex( SVertex& sv );

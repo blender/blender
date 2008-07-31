@@ -33,6 +33,8 @@
 # include <iostream>
 # include <vector>
 
+# include  "../python/Director.h"
+
 //
 //  StrokeShader base class
 //
@@ -69,8 +71,11 @@ class Stroke;
 class LIB_STROKE_EXPORT StrokeShader
 {
 public:
+	
+	PyObject *py_ss;
+	
   /*! Default constructor. */
-  StrokeShader() {}
+	StrokeShader() { py_ss = 0; }
   /*! Destructor. */
   virtual ~StrokeShader() {}
   /*! Returns the string corresponding to the
@@ -111,7 +116,13 @@ public:
    *    as Color, Thickness, Geometry...)
    */
   virtual void shade(Stroke& ioStroke) const {
-    cerr << "Warning: method shade() not implemented" << endl;
+	string name( py_ss ? PyString_AsString(PyObject_CallMethod(py_ss, "getName", "")) : getName() );
+	
+	if( py_ss && PyObject_HasAttrString(py_ss, "shade") ) {
+		return Director_BPy_StrokeShader_shade(py_ss, ioStroke);
+	} else {
+		cerr << "Warning: " << name << " method shade() not implemented" << endl;
+	}
   }
 
 };

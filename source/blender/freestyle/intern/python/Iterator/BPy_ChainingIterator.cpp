@@ -139,6 +139,8 @@ int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
 	self->py_ve_it.ve_it = self->c_it;
 	self->py_ve_it.py_it.it = self->c_it;
 	
+	self->c_it->py_c_it = (PyObject *) self;
+	
 	return 0;
 }
 

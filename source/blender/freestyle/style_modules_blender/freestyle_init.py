@@ -49,10 +49,10 @@ class StrokeShader(Blender.Freestyle.StrokeShader):
 	pass
 
 class UnaryFunction0D(Blender.Freestyle.UnaryFunction0D):
-	def __call__(*args): return Blender.Freestyle.UnaryFunction0D.__call__(*args)
+	pass
 
 class UnaryFunction1D(Blender.Freestyle.UnaryFunction1D):
-	def __call__(*args): return Blender.Freestyle.UnaryFunction1D.__call__(*args)
+	pass
 
 class UnaryPredicate0D(Blender.Freestyle.UnaryPredicate0D):
 	pass
@@ -67,19 +67,19 @@ class ViewShape(Blender.Freestyle.ViewShape):
 	pass
 
 class FalseBP1D(Blender.Freestyle.FalseBP1D):
-	def __call__(*args): return Blender.Freestyle.FalseBP1D.__call__(*args)
+	pass
 
 class Length2DBP1D(Blender.Freestyle.Length2DBP1D):
-	def __call__(*args): return Blender.Freestyle.Length2DBP1D.__call__(*args)
+	pass
 
 class SameShapeIdBP1D(Blender.Freestyle.SameShapeIdBP1D):
-	def __call__(*args): return Blender.Freestyle.SameShapeIdBP1D.__call__(*args)
+	pass
 
 class TrueBP1D(Blender.Freestyle.TrueBP1D):
-	def __call__(*args): return Blender.Freestyle.TrueBP1D.__call__(*args)
+	pass
 
 class ViewMapGradientNormBP1D(Blender.Freestyle.ViewMapGradientNormBP1D):
-	def __call__(*args): return Blender.Freestyle.ViewMapGradientNormBP1D.__call__(*args)
+	pass
 
 class CurvePoint(Blender.Freestyle.CurvePoint):
 	pass
@@ -250,37 +250,37 @@ class UnaryFunction1DVoid(Blender.Freestyle.UnaryFunction1DVoid):
 	pass
 
 class FalseUP0D(Blender.Freestyle.FalseUP0D):
-	def __call__(*args): return Blender.Freestyle.FalseUP0D.__call__(*args)
+	pass
 
 class TrueUP0D(Blender.Freestyle.TrueUP0D):
-	def __call__(*args): return Blender.Freestyle.TrueUP0D.__call__(*args)
+	pass
 
 class ContourUP1D(Blender.Freestyle.ContourUP1D):
-	def __call__(*args): return Blender.Freestyle.ContourUP1D.__call__(*args)
+	pass
 
 class DensityLowerThanUP1D(Blender.Freestyle.DensityLowerThanUP1D):
-	def __call__(*args): return Blender.Freestyle.DensityLowerThanUP1D.__call__(*args)
+	pass
 
 class EqualToChainingTimeStampUP1D(Blender.Freestyle.EqualToChainingTimeStampUP1D):
-	def __call__(*args): return Blender.Freestyle.EqualToChainingTimeStampUP1D.__call__(*args)
+	pass
 
 class EqualToTimeStampUP1D(Blender.Freestyle.EqualToTimeStampUP1D):
-	def __call__(*args): return Blender.Freestyle.EqualToTimeStampUP1D.__call__(*args)
+	pass
 
 class ExternalContourUP1D(Blender.Freestyle.ExternalContourUP1D):
-	def __call__(*args): return Blender.Freestyle.ExternalContourUP1D.__call__(*args)
+	pass
 
 class FalseUP1D(Blender.Freestyle.FalseUP1D):
-	def __call__(*args): return Blender.Freestyle.FalseUP1D.__call__(*args)
+	pass
 
 class QuantitativeInvisibilityUP1D(Blender.Freestyle.QuantitativeInvisibilityUP1D):
-	def __call__(*args): return Blender.Freestyle.QuantitativeInvisibilityUP1D.__call__(*args)
+	pass
 
 class ShapeUP1D(Blender.Freestyle.ShapeUP1D):
-	def __call__(*args): return Blender.Freestyle.ShapeUP1D.__call__(*args)
+	pass
 
 class TrueUP1D(Blender.Freestyle.TrueUP1D):
-	def __call__(*args): return Blender.Freestyle.TrueUP1D.__call__(*args)
+	pass
 
 class StrokeVertex(Blender.Freestyle.StrokeVertex):
 	pass
@@ -301,155 +301,155 @@ class FEdgeSmooth(Blender.Freestyle.FEdgeSmooth):
 	pass
 
 class Curvature2DAngleF0D(Blender.Freestyle.Curvature2DAngleF0D):
-	def __call__(*args): return Blender.Freestyle.Curvature2DAngleF0D.__call__(*args)
+	pass
 
 class DensityF0D(Blender.Freestyle.DensityF0D):
-	def __call__(*args): return Blender.Freestyle.DensityF0D.__call__(*args)
+	pass
 
 class GetProjectedXF0D(Blender.Freestyle.GetProjectedXF0D):
-	def __call__(*args): return Blender.Freestyle.GetProjectedXF0D.__call__(*args)
+	pass
 
 class GetProjectedYF0D(Blender.Freestyle.GetProjectedYF0D):
-	def __call__(*args): return Blender.Freestyle.GetProjectedYF0D.__call__(*args)
+	pass
 
 class GetProjectedZF0D(Blender.Freestyle.GetProjectedZF0D):
-	def __call__(*args): return Blender.Freestyle.GetProjectedZF0D.__call__(*args)
+	pass
 
 class GetXF0D(Blender.Freestyle.GetXF0D):
-	def __call__(*args): return Blender.Freestyle.GetXF0D.__call__(*args)
+	pass
 
 class GetYF0D(Blender.Freestyle.GetYF0D):
-	def __call__(*args): return Blender.Freestyle.GetYF0D.__call__(*args)
+	pass
 
 class GetZF0D(Blender.Freestyle.GetZF0D):
-	def __call__(*args): return Blender.Freestyle.GetZF0D.__call__(*args)
+	pass
 
 class LocalAverageDepthF0D(Blender.Freestyle.LocalAverageDepthF0D):
-	def __call__(*args): return Blender.Freestyle.LocalAverageDepthF0D.__call__(*args)
+	pass
 
 class ZDiscontinuityF0D(Blender.Freestyle.ZDiscontinuityF0D):
-	def __call__(*args): return Blender.Freestyle.ZDiscontinuityF0D.__call__(*args)
+	pass
 
 class GetCurvilinearAbscissaF0D(Blender.Freestyle.GetCurvilinearAbscissaF0D):
-	def __call__(*args): return Blender.Freestyle.GetCurvilinearAbscissaF0D.__call__(*args)
+	pass
 
 class GetParameterF0D(Blender.Freestyle.GetParameterF0D):
-	def __call__(*args): return Blender.Freestyle.GetParameterF0D.__call__(*args)
+	pass
 
 class GetViewMapGradientNormF0D(Blender.Freestyle.GetViewMapGradientNormF0D):
-	def __call__(*args): return Blender.Freestyle.GetViewMapGradientNormF0D.__call__(*args)
+	pass
 
 class ReadCompleteViewMapPixelF0D(Blender.Freestyle.ReadCompleteViewMapPixelF0D):
-	def __call__(*args): return Blender.Freestyle.ReadCompleteViewMapPixelF0D.__call__(*args)
+	pass
 
 class ReadMapPixelF0D(Blender.Freestyle.ReadMapPixelF0D):
-	def __call__(*args): return Blender.Freestyle.ReadMapPixelF0D.__call__(*args)
+	pass
 
 class ReadSteerableViewMapPixelF0D(Blender.Freestyle.ReadSteerableViewMapPixelF0D):
-	def __call__(*args): return Blender.Freestyle.ReadSteerableViewMapPixelF0D.__call__(*args)
+	pass
 
 class ShapeIdF0D(Blender.Freestyle.ShapeIdF0D):
-	def __call__(*args): return Blender.Freestyle.ShapeIdF0D.__call__(*args)
+	pass
 
 class MaterialF0D(Blender.Freestyle.MaterialF0D):
-	def __call__(*args): return Blender.Freestyle.MaterialF0D.__call__(*args)
+	pass
 
 class CurveNatureF0D(Blender.Freestyle.CurveNatureF0D):
-	def __call__(*args): return Blender.Freestyle.CurveNatureF0D.__call__(*args)
+	pass
 
 class QuantitativeInvisibilityF0D(Blender.Freestyle.QuantitativeInvisibilityF0D):
-	def __call__(*args): return Blender.Freestyle.QuantitativeInvisibilityF0D.__call__(*args)
+	pass
 
 class Normal2DF0D(Blender.Freestyle.Normal2DF0D):
-	def __call__(*args): return Blender.Freestyle.Normal2DF0D.__call__(*args)
+	pass
 
 class VertexOrientation2DF0D(Blender.Freestyle.VertexOrientation2DF0D):
-	def __call__(*args): return Blender.Freestyle.VertexOrientation2DF0D.__call__(*args)
+	pass
 
 class VertexOrientation3DF0D(Blender.Freestyle.VertexOrientation3DF0D):
-	def __call__(*args): return Blender.Freestyle.VertexOrientation3DF0D.__call__(*args)
+	pass
 
 class GetOccludersF0D(Blender.Freestyle.GetOccludersF0D):
-	def __call__(*args): return Blender.Freestyle.GetOccludersF0D.__call__(*args)
+	pass
 
 class GetOccludeeF0D(Blender.Freestyle.GetOccludeeF0D):
-	def __call__(*args): return Blender.Freestyle.GetOccludeeF0D.__call__(*args)
+	pass
 
 class GetShapeF0D(Blender.Freestyle.GetShapeF0D):
-	def __call__(*args): return Blender.Freestyle.GetShapeF0D.__call__(*args)
+	pass
 
 class Curvature2DAngleF1D(Blender.Freestyle.Curvature2DAngleF1D):
-	def __call__(*args): return Blender.Freestyle.Curvature2DAngleF1D.__call__(*args)
+	pass
 
 class DensityF1D(Blender.Freestyle.DensityF1D):
-	def __call__(*args): return Blender.Freestyle.DensityF1D.__call__(*args)
+	pass
 
 class GetCompleteViewMapDensityF1D(Blender.Freestyle.GetCompleteViewMapDensityF1D):
-	def __call__(*args): return Blender.Freestyle.GetCompleteViewMapDensityF1D.__call__(*args)
+	pass
 
 class GetDirectionalViewMapDensityF1D(Blender.Freestyle.GetDirectionalViewMapDensityF1D):
-	def __call__(*args): return Blender.Freestyle.GetDirectionalViewMapDensityF1D.__call__(*args)
+	pass
 
 class GetProjectedXF1D(Blender.Freestyle.GetProjectedXF1D):
-	def __call__(*args): return Blender.Freestyle.GetProjectedXF1D.__call__(*args)
+	pass
 
 class GetProjectedYF1D(Blender.Freestyle.GetProjectedYF1D):
-	def __call__(*args): return Blender.Freestyle.GetProjectedYF1D.__call__(*args)
+	pass
 
 class GetProjectedZF1D(Blender.Freestyle.GetProjectedZF1D):
-	def __call__(*args): return Blender.Freestyle.GetProjectedZF1D.__call__(*args)
+	pass
 
 class GetSteerableViewMapDensityF1D(Blender.Freestyle.GetSteerableViewMapDensityF1D):
-	def __call__(*args): return Blender.Freestyle.GetSteerableViewMapDensityF1D.__call__(*args)
+	pass
 
 class GetViewMapGradientNormF1D(Blender.Freestyle.GetViewMapGradientNormF1D):
-	def __call__(*args): return Blender.Freestyle.GetViewMapGradientNormF1D.__call__(*args)
+	pass
 
 class GetXF1D(Blender.Freestyle.GetXF1D):
-	def __call__(*args): return Blender.Freestyle.GetXF1D.__call__(*args)
+	pass
 
 class GetYF1D(Blender.Freestyle.GetYF1D):
-	def __call__(*args): return Blender.Freestyle.GetYF1D.__call__(*args)
+	pass
 
 class GetZF1D(Blender.Freestyle.GetZF1D):
-	def __call__(*args): return Blender.Freestyle.GetZF1D.__call__(*args)
+	pass
 
 class LocalAverageDepthF1D(Blender.Freestyle.LocalAverageDepthF1D):
-	def __call__(*args): return Blender.Freestyle.LocalAverageDepthF1D.__call__(*args)
+	pass
 
 class ZDiscontinuityF1D(Blender.Freestyle.ZDiscontinuityF1D):
-	def __call__(*args): return Blender.Freestyle.ZDiscontinuityF1D.__call__(*args)
+	pass
 
 class CurveNatureF1D(Blender.Freestyle.CurveNatureF1D):
-	def __call__(*args): return Blender.Freestyle.CurveNatureF1D.__call__(*args)
+	pass
 
 class QuantitativeInvisibilityF1D(Blender.Freestyle.QuantitativeInvisibilityF1D):
-	def __call__(*args): return Blender.Freestyle.QuantitativeInvisibilityF1D.__call__(*args)
+	pass
 
 class Normal2DF1D(Blender.Freestyle.Normal2DF1D):
-	def __call__(*args): return Blender.Freestyle.Normal2DF1D.__call__(*args)
+	pass
 
 class Orientation2DF1D(Blender.Freestyle.Orientation2DF1D):
-	def __call__(*args): return Blender.Freestyle.Orientation2DF1D.__call__(*args)
+	pass
 
 class Orientation3DF1D(Blender.Freestyle.Orientation3DF1D):
-	def __call__(*args): return Blender.Freestyle.Orientation3DF1D.__call__(*args)
+	pass
 
 class GetOccludeeF1D(Blender.Freestyle.GetOccludeeF1D):
-	def __call__(*args): return Blender.Freestyle.GetOccludeeF1D.__call__(*args)
+	pass
 
 class GetOccludersF1D(Blender.Freestyle.GetOccludersF1D):
-	def __call__(*args): return Blender.Freestyle.GetOccludersF1D.__call__(*args)
+	pass
 
 class GetShapeF1D(Blender.Freestyle.GetShapeF1D):
-	def __call__(*args): return Blender.Freestyle.GetShapeF1D.__call__(*args)
+	pass
 
 class ChainingTimeStampF1D(Blender.Freestyle.ChainingTimeStampF1D):
-	def __call__(*args): return Blender.Freestyle.ChainingTimeStampF1D.__call__(*args)
+	pass
 
 class IncrementChainingTimeStampF1D(Blender.Freestyle.IncrementChainingTimeStampF1D):
-	def __call__(*args): return Blender.Freestyle.IncrementChainingTimeStampF1D.__call__(*args)
+	pass
 
 class TimeStampF1D(Blender.Freestyle.TimeStampF1D):
-	def __call__(*args): return Blender.Freestyle.TimeStampF1D.__call__(*args)
+	pass
 
