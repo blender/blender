@@ -449,6 +449,13 @@ bool BOP_Mesh::getIndexEdge(BOP_Index v1, BOP_Index v2, BOP_Index &e)
 			printf ("found edge (%d %d)\n",v1,v2);
 #endif
 		  	e = edge->index;
+#ifdef BOP_NEW_MERGE
+			if( m_edges[e]->getUsed() == false ) {
+				m_edges[e]->setUsed(true);
+				m_vertexs[v1]->addEdge(e);
+				m_vertexs[v2]->addEdge(e);
+			}
+#endif
 			return true;
 		}
 #ifdef HASH_PRINTF_DEBUG

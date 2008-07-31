@@ -39,7 +39,7 @@
 #define OUTON_TAG        0x11  // Above and on the plane  
 #define UNCLASSIFIED_TAG 0x0F  // Expecting to be classified
 
-#define PHANTOM_TAG      0x0C  // Phantom face
+#define PHANTOM_TAG      0x0C  // Phantom face: verts form collinear triangle
 #define OVERLAPPED_TAG   0x0D  // Overlapped face
 #define BROKEN_TAG       0x0B  // Splitted and unused ... 
 

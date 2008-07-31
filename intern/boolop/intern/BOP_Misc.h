@@ -41,3 +41,14 @@
 
 #define HASH(x) ((x) >> 5)		/* each "hash" covers 32 indices */
 // #define HASH_PRINTF_DEBUG	/* uncomment to enable debug output */
+
+/*
+ * temporary: control which method is used to merge final triangles and
+ * quads back together after an operation.  If both methods are included,
+ * the "rt" debugging button on the Scene panel (F10) is used to control
+ * which is active.  Setting it to 100 enables the original method, any
+ * other value enables the new method.
+ */
+
+#define BOP_ORIG_MERGE			/* include original merge code */
+#define BOP_NEW_MERGE			/* include new merge code */
