@@ -1122,16 +1122,14 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 	
 	for (subgraph = 1; subgraph <= nb_subgraphs; subgraph++)
 	{
-		ReebNode *start_node, *end_node, *next_node;
+		ReebNode *start_node, *end_node;
+		ReebNode *min_node_start, *min_node_end = NULL;
+		float min_distance = FLT_MAX;
 		
-		for (start_node = rg->nodes.first; start_node; start_node = next_node)
+		for (start_node = rg->nodes.first; start_node; start_node = start_node->next)
 		{
-			next_node = start_node->next;
-			
 			if (start_node->flag == subgraph && start_node->degree == 1)
 			{
-				ReebNode *min_node = NULL;
-				float min_distance = FLT_MAX;
 				
 				for (end_node = rg->nodes.first; end_node; end_node = end_node->next)
 				{
@@ -1142,57 +1140,58 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 						if (distance < threshold && distance < min_distance)
 						{
 							min_distance = distance;
-							min_node = end_node;
+							min_node_end = end_node;
+							min_node_start = start_node;
 						}
 					}
 				}
-				
-				end_node = min_node;
-				
-				if (end_node)
-				{
-					ReebArc *start_arc, *end_arc;
-					int merging = 0;
-					
-					start_arc = start_node->arcs[0];
-					end_arc = end_node->arcs[0];
-					
-					if (start_arc->tail == start_node)
-					{
-						reweightSubgraph(rg, end_node, start_node->weight);
-						
-						start_arc->tail = end_node;
-						
-						merging = 1;
-					}
-					else if (start_arc->head == start_node)
-					{
-						reweightSubgraph(rg, start_node, end_node->weight);
-
-						start_arc->head = end_node;
-
-						merging = 1;
-					}
-					
-
-					if (merging)
-					{
-						BLI_ReflagSubgraph((BGraph*)rg, end_node->flag, subgraph);
-											
-						resizeArcBuckets(start_arc);
-						fillArcEmptyBuckets(start_arc);
-						
-						NodeDegreeIncrement(rg, end_node);
-						BLI_rebuildAdjacencyListForNode((BGraph*)rg, (BNode*)end_node);
-						
-						BLI_removeNode((BGraph*)rg, (BNode*)start_node);
-					}
-					
-					joined = 1;
-					break;
-				}
 			}
 		}
+		
+		end_node = min_node_end;
+		start_node = min_node_start;
+		
+		if (end_node && start_node)
+		{
+			ReebArc *start_arc, *end_arc;
+			int merging = 0;
+			
+			start_arc = start_node->arcs[0];
+			end_arc = end_node->arcs[0];
+			
+			if (start_arc->tail == start_node)
+			{
+				reweightSubgraph(rg, end_node, start_node->weight);
+				
+				start_arc->tail = end_node;
+				
+				merging = 1;
+			}
+			else if (start_arc->head == start_node)
+			{
+				reweightSubgraph(rg, start_node, end_node->weight);
+
+				start_arc->head = end_node;
+
+				merging = 1;
+			}
+			
+
+			if (merging)
+			{
+				BLI_ReflagSubgraph((BGraph*)rg, end_node->flag, subgraph);
+									
+				resizeArcBuckets(start_arc);
+				fillArcEmptyBuckets(start_arc);
+				
+				NodeDegreeIncrement(rg, end_node);
+				BLI_rebuildAdjacencyListForNode((BGraph*)rg, (BNode*)end_node);
+				
+				BLI_removeNode((BGraph*)rg, (BNode*)start_node);
+			}
+			
+			joined = 1;
+		}		
 	}
 	
 	return joined;
@@ -1204,6 +1203,10 @@ int joinSubgraphs(ReebGraph *rg, float threshold)
 	int joined = 0;
 	
 	BLI_buildAdjacencyList((BGraph*)rg);
+	
+	
+	/* sort nodes before flagging subgraphs to make sure root node is subgraph 0 */
+	sortNodes(rg);
 	
 	nb_subgraphs = BLI_FlagSubgraphs((BGraph*)rg);
 	
