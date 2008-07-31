@@ -100,18 +100,15 @@ All word-wrap functions follow the algorithm below to maintain consistency.
 def wrap(line, view_width, wrap_chars, tab_size):
 	draw_start = 0
 	draw_end = view_width
-	tab_offset = 0
 	pos = 0
 	for c in line:
-		if pos-draw_start+tab_offset >= view_width:
+		if pos-draw_start >= view_width:
 			print line[draw_start:draw_end]
 			draw_start = draw_end
 			draw_end += view_width
 			tab_offset = 0
 		elif c in wrap_chars:
 			draw_end = pos+1
-			if c == '\t':
-				tab_offset += tab_size-(pos-draw_start+tab_offset+1)%tab_size
 		pos += 1
 	print line[draw_start:]
 
@@ -436,7 +433,78 @@ void txt_format_text(SpaceText *st)
 		txt_format_line(st, linep, 0);
 }
 
-static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format) {
+static void format_draw_color(char formatchar) {
+	switch (formatchar) {
+		case '_': /* Whitespace */
+			break;
+		case '!': /* Symbols */
+			BIF_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
+			break;
+		case '#': /* Comments */
+			BIF_ThemeColor(TH_SYNTAX_C);
+			break;
+		case 'n': /* Numerals */
+			BIF_ThemeColor(TH_SYNTAX_N);
+			break;
+		case 'l': /* Strings */
+			BIF_ThemeColor(TH_SYNTAX_L);
+			break;
+		case 'v': /* Specials: class, def */
+			BIF_ThemeColor(TH_SYNTAX_V);
+			break;
+		case 'b': /* Keywords: for, print, etc. */
+			BIF_ThemeColor(TH_SYNTAX_B);
+			break;
+		case 'q': /* Other text (identifiers) */
+		default:
+			BIF_ThemeColor(TH_TEXT);
+			break;
+	}
+}
+
+static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char *format)
+{
+	int basex, i, a, len, start, end, max, lines;
+	
+	len= render_string(st, str);
+	str= temp_char_buf;
+	max= w/spacetext_get_fontwidth(st);
+	if (max<8) max= 8;
+	basex= x;
+
+	lines= 1;
+	start= 0;
+	end= max;
+	for (i=0; i<len; i++) {
+		if (i-start >= max) {
+			/* Draw the visible portion of text on the overshot line */
+			for (a=start; a<end; a++) {
+				if (st->showsyntax && format) format_draw_color(format[a]);
+				glRasterPos2i(x, y);
+				BMF_DrawCharacter(spacetext_get_font(st), str[a]);
+				x += BMF_GetCharacterWidth(spacetext_get_font(st), str[a]);
+			}
+			y -= st->lheight;
+			x= basex;
+			lines++;
+			start= end;
+			end += max;
+		} else if (str[i]==' ' || str[i]=='-') {
+			end = i+1;
+		}
+	}
+	/* Draw the remaining text */
+	for (a=start; a<len; a++) {
+		if (st->showsyntax && format) format_draw_color(format[a]);
+		glRasterPos2i(x, y);
+		BMF_DrawCharacter(spacetext_get_font(st), str[a]);
+		x += BMF_GetCharacterWidth(spacetext_get_font(st), str[a]);
+	}
+	return lines;
+}
+
+static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format)
+{
 	int r=0, w= 0;
 	char *in;
 	int *acc;
@@ -451,43 +519,15 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 	if (draw) {
 		if(st->showsyntax && format) {
 			int amount, a;
-			char out[2];
 			format = format+cshift;
 		
 			amount = strlen(in);
 			
 			for(a = 0; a < amount; a++) {
-				out[0] = (unsigned char) in[a]; 
-				out[1] = '\0';
-				switch (format[a]) {
-					case '_': /* Whitespace */
-						break;
-					case '!': /* Symbols */
-						BIF_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
-						break;
-					case '#': /* Comments */
-						BIF_ThemeColor(TH_SYNTAX_C);
-						break;
-					case 'n': /* Numerals */
-						BIF_ThemeColor(TH_SYNTAX_N);
-						break;
-					case 'l': /* Strings */
-						BIF_ThemeColor(TH_SYNTAX_L);
-						break;
-					case 'v': /* Specials: class, def */
-						BIF_ThemeColor(TH_SYNTAX_V);
-						break;
-					case 'b': /* Keywords: for, print, etc. */
-						BIF_ThemeColor(TH_SYNTAX_B);
-						break;
-					case 'q': /* Other text (identifiers) */
-					default:
-						BIF_ThemeColor(TH_TEXT);
-						break;
-				}
+				format_draw_color(format[a]);
 				glRasterPos2i(x, y);
-				BMF_DrawString(spacetext_get_font(st), out);
-				x = x+BMF_GetStringWidth(spacetext_get_font(st), out);
+				BMF_DrawCharacter(spacetext_get_font(st), in[a]);
+				x = x+BMF_GetCharacterWidth(spacetext_get_font(st), in[a]);
 			}
 		} else {
 			glRasterPos2i(x, y);
@@ -546,7 +586,7 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 static int get_wrap_width(SpaceText *st) {
 	int x, max;
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	max= (curarea->winrct.xmax-curarea->winrct.xmin-x)/spacetext_get_fontwidth(st);
+	max= (curarea->winx-x)/spacetext_get_fontwidth(st);
 	return max>8 ? max : 8;
 }
 
@@ -578,9 +618,11 @@ static int get_wrap_points(SpaceText *st, char *line) {
 static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) {
 	Text *text;
 	TextLine *linep;
-	int i, start, end, taboffs, max;
+	int i, j, start, end, chars, max, chop;
+	char ch;
 
 	*offl= *offc= 0;
+
 	if (!st->text) return;
 	if (!st->wordwrap) return;
 
@@ -590,6 +632,7 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	linep= text->lines.first;
 	i= st->top;
 	while (i>0 && linep) {
+		if (linep == linein) return; /* Line before top */
 		linep= linep->next;
 		i--;
 	}
@@ -597,24 +640,38 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	max= get_wrap_width(st);
 
 	while (linep) {
-		taboffs= start= 0;
+		start= 0;
 		end= max;
+		chop= 1;
+		chars= 0;
 		*offc= 0;
-		for (i=0; linep->line[i]!='\0'; i++) {
-			if (i-start+taboffs>=max) {
-				if (end-start==max && linep==linein && i >= cursin)
-					break;
-				(*offl)++;
-				*offc -= end-start+taboffs;
-				start= end;
-				end += max;
-				taboffs= 0;
-			} else if (linep->line[i]==' ' || linep->line[i]=='\t' || linep->line[i]=='-') {
-				end = i+1;
-				if (linep==linein && i >= cursin)
-					break;
-				else if (linep->line[i]=='\t')
-					taboffs += st->tabnumber-(i-start+taboffs+1)%st->tabnumber;
+		for (i=0, j=0; linep->line[j]!='\0'; j++) {
+
+			/* Mimic replacement of tabs */
+			ch= linep->line[j];
+			if (ch=='\t') {
+				chars= st->tabnumber-i%st->tabnumber;
+				if (linep==linein && i<cursin) cursin += chars-1;
+				ch= ' ';
+			} else
+				chars= 1;
+
+			while (chars--) {
+				if (i-start>=max) {
+					if (chop && linep==linein && i >= cursin)
+						return;
+					(*offl)++;
+					*offc -= end-start;
+					start= end;
+					end += max;
+					chop= 1;
+				} else if (ch==' ' || ch=='-') {
+					end = i+1;
+					chop= 0;
+					if (linep==linein && i >= cursin)
+						return;
+				}
+				i++;
 			}
 		}
 		if (linep==linein) break;
@@ -654,7 +711,7 @@ static void draw_cursor(SpaceText *st) {
 		
 		BIF_ThemeColor(TH_SHADE2);
 		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-		y= curarea->winy-3;
+		y= curarea->winy-2;
 
 		if (vcurl==vsell) {
 			y -= vcurl*st->lheight;
@@ -688,10 +745,12 @@ static void draw_cursor(SpaceText *st) {
 		/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
 		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 		x += vselc*spacetext_get_fontwidth(st);
-		y= curarea->winy-3 - vsell*st->lheight;
+		y= curarea->winy-2 - vsell*st->lheight;
 		
 		if (st->overwrite) {
-			w= BMF_GetCharacterWidth(spacetext_get_font(st), text->sell->line[text->selc]);
+			char ch= text->sell->line[text->selc];
+			if (!ch) ch= ' ';
+			w= BMF_GetCharacterWidth(spacetext_get_font(st), ch);
 			BIF_ThemeColor(TH_HILITE);
 			glRecti(x, y-st->lheight-1, x+w, y-st->lheight+1);
 		} else {
@@ -1191,9 +1250,9 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
-	int i, a, x, y, max, len;
+	int i, x, y;
 	TextLine *tmp;
-	char linenr[12], *wrapbuf;
+	char linenr[12];
 	float col[3];
 	int linecount = 0;
 
@@ -1231,8 +1290,6 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 
 	y= curarea->winy-st->lheight;
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	max= get_wrap_width(st);
-	wrapbuf= MEM_mallocN(max+1, "wrapbuffer");
 
 	for (i=0; y>0 && i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if (st->showsyntax && !tmp->format) {
@@ -1256,33 +1313,13 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 			BMF_DrawString(spacetext_get_font(st), linenr);
 		}
 		if (st->wordwrap) {
-			int start, end, taboffs, fmtoffs;
-			len= tmp->len;
-			fmtoffs= taboffs= start= 0;
-			end= max;
-			for (a=0; a<len; a++) {
-				if (a-start+taboffs>=max) {
-					strncpy(wrapbuf, tmp->line+start, end-start);
-					wrapbuf[end-start]= '\0';
-					text_draw(st, wrapbuf, st->left, 0, 1, x, y, tmp->format+start+fmtoffs);
-					y -= st->lheight;
-					start= end;
-					end += max;
-					fmtoffs += taboffs;
-					taboffs= 0;
-				} else if (tmp->line[a]==' ' || tmp->line[a]=='\t' || tmp->line[a]=='-') {
-					if (tmp->line[a]=='\t')
-						taboffs += st->tabnumber-(a-start+taboffs+1)%st->tabnumber;
-					end = a+1;
-				}
-			}
-			text_draw(st, tmp->line+start, st->left, 0, 1, x, y, tmp->format+start+fmtoffs);
+			int lines = text_draw_wrapped(st, tmp->line, x, y, curarea->winx-x, tmp->format);
+			y -= lines*st->lheight;
 		} else {
 			text_draw(st, tmp->line, st->left, 0, 1, x, y, tmp->format);
+			y -= st->lheight;
 		}
-		y -= st->lheight;
 	}
-	MEM_freeN(wrapbuf);
 	
 	draw_brackets(st);
 
