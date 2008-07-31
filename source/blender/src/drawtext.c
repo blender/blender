@@ -92,12 +92,12 @@
 Notes on word-wrap
 --
 All word-wrap functions follow the algorithm below to maintain consistency.
-	line		The line to wrap
+	line		The line to wrap (tabs converted to spaces)
 	view_width	The maximum number of characters displayable in the region
 				This equals region_width/font_width for the region
 	wrap_chars	Characters that allow wrapping. This equals [' ', '\t', '-']
 
-def wrap(line, view_width, wrap_chars, tab_size):
+def wrap(line, view_width, wrap_chars):
 	draw_start = 0
 	draw_end = view_width
 	pos = 0
@@ -106,7 +106,6 @@ def wrap(line, view_width, wrap_chars, tab_size):
 			print line[draw_start:draw_end]
 			draw_start = draw_end
 			draw_end += view_width
-			tab_offset = 0
 		elif c in wrap_chars:
 			draw_end = pos+1
 		pos += 1
@@ -1291,6 +1290,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	y= curarea->winy-st->lheight;
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 
+	BIF_ThemeColor(TH_TEXT);
 	for (i=0; y>0 && i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if (st->showsyntax && !tmp->format) {
 			txt_format_line(st, tmp, 0);
