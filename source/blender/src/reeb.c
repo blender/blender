@@ -737,6 +737,71 @@ void fillArcEmptyBuckets(ReebArc *arc)
 	}
 }
 
+static void ExtendArcBuckets(ReebArc *arc)
+{
+	ReebArcIterator iter;
+	EmbedBucket *previous, *bucket, *last_bucket, *first_bucket;
+	float average_length = 0, length;
+	int padding_head = 0, padding_tail = 0;
+	
+	initArcIterator(&iter, arc, arc->head);
+	
+	for (	previous = nextBucket(&iter), bucket = nextBucket(&iter);
+			bucket;
+			previous = bucket, bucket = nextBucket(&iter)
+		)
+	{
+		average_length += VecLenf(previous->p, bucket->p);
+	}
+	average_length /= (arc->bcount - 1);
+	
+	first_bucket = arc->buckets;
+	last_bucket = arc->buckets + (arc->bcount - 1);
+	
+	length = VecLenf(first_bucket->p, arc->head->p);
+	if (length > 2 * average_length)
+	{
+		padding_head = (int)floor(length / average_length);
+	}
+
+	length = VecLenf(last_bucket->p, arc->tail->p);
+	if (length > 2 * average_length)
+	{
+		padding_tail = (int)floor(length / average_length);
+	}
+	
+	if (padding_head + padding_tail > 0)
+	{
+		EmbedBucket *old_buckets = arc->buckets;
+		
+		arc->buckets = MEM_callocN(sizeof(EmbedBucket) * (padding_head + arc->bcount + padding_tail), "embed bucket");
+		memcpy(arc->buckets + padding_head, old_buckets, arc->bcount * sizeof(EmbedBucket));
+		
+		arc->bcount = padding_head + arc->bcount + padding_tail;
+	}
+	
+	if (padding_head > 0)
+	{
+		interpolateBuckets(arc, arc->head->p, first_bucket->p, 0, padding_head);
+	}
+	
+	if (padding_tail > 0)
+	{
+		interpolateBuckets(arc, last_bucket->p, arc->tail->p, arc->bcount - padding_tail, arc->bcount - 1);
+	}
+}
+
+/* CALL THIS ONLY AFTER FILTERING, SINCE IT MESSES UP WEIGHT DISTRIBUTION */
+void extendGraphBuckets(ReebGraph *rg)
+{
+	ReebArc *arc;
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		ExtendArcBuckets(arc);
+	}
+}
+
 /**************************************** LENGTH CALCULATIONS ****************************************/
 
 void calculateArcLength(ReebArc *arc)
@@ -1749,6 +1814,8 @@ void finalizeGraph(ReebGraph *rg, char passes, char method)
 	{
 		postprocessGraph(rg, method);
 	}
+	
+	extendGraphBuckets(rg);
 }
 
 /************************************** WEIGHT SPREADING ***********************************************/
