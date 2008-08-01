@@ -59,7 +59,10 @@ double Director_BPy_UnaryFunction0DDouble___call__( PyObject *obj, Interface0DIt
 // BPy_UnaryFunction1DVoid
 void Director_BPy_UnaryFunction1DVoid___call__( PyObject *obj, Interface1D& if1D);
 
-
-
+// BPy_Iterator: increment, decrement, isBegin, isEnd
+void Director_BPy_Iterator_increment( PyObject *obj );
+void Director_BPy_Iterator_decrement( PyObject *obj );
+bool Director_BPy_Iterator_isBegin( PyObject *obj );
+bool Director_BPy_Iterator_isEnd( PyObject *obj );
 
 #endif // FREESTYLE_PYTHON_DIRECTOR

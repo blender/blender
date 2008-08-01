@@ -142,6 +142,7 @@ int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *
 	self->py_c_it.py_ve_it.ve_it = self->cp_it;
 	self->py_c_it.py_ve_it.py_it.it = self->cp_it;
 	
+	
 	return 0;
 	
 }

@@ -4,6 +4,7 @@
 #include "BPy_BinaryPredicate0D.h"
 #include "BPy_BinaryPredicate1D.h"
 #include "BPy_Material.h"
+#include "BPy_FrsNoise.h"
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
@@ -12,7 +13,6 @@
 #include "BPy_MediumType.h"
 #include "BPy_Nature.h"
 #include "BPy_Operators.h"
-#include "BPy_Noise.h"
 #include "BPy_SShape.h"
 #include "BPy_StrokeAttribute.h"
 #include "BPy_StrokeShader.h"
@@ -148,13 +148,13 @@ PyObject *Freestyle_Init( void )
 	BinaryPredicate0D_Init( module );
 	BinaryPredicate1D_Init( module );
 	Material_Init( module );
+	FrsNoise_Init( module );
 	Id_Init( module );
 	IntegrationType_Init( module );
 	Interface0D_Init( module );
 	Interface1D_Init( module );
 	Iterator_Init( module );
 	Operators_Init( module );
-	Noise_Init( module );
 	SShape_Init( module );
 	StrokeAttribute_Init( module );
 	StrokeShader_Init( module );

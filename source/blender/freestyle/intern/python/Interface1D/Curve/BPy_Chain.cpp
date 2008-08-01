@@ -84,7 +84,7 @@ PyTypeObject Chain_Type = {
 	BPy_Chain_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&Curve_Type,				/* struct _typeobject *tp_base; */
+	&FrsCurve_Type,				/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */

@@ -1,5 +1,5 @@
-#ifndef FREESTYLE_PYTHON_CURVE_H
-#define FREESTYLE_PYTHON_CURVE_H
+#ifndef FREESTYLE_PYTHON_FRSCURVE_H
+#define FREESTYLE_PYTHON_FRSCURVE_H
 
 #include "../BPy_Interface1D.h"
 #include "../../stroke/Curve.h"
@@ -12,15 +12,15 @@ extern "C" {
 
 #include <Python.h>
 
-extern PyTypeObject Curve_Type;
+extern PyTypeObject FrsCurve_Type;
 
-#define BPy_Curve_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Curve_Type)  )
+#define BPy_FrsCurve_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FrsCurve_Type)  )
 
-/*---------------------------Python BPy_Curve structure definition----------*/
+/*---------------------------Python BPy_FrsCurve structure definition----------*/
 typedef struct {
 	BPy_Interface1D py_if1D;
 	Curve *c;
-} BPy_Curve;
+} BPy_FrsCurve;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,4 +28,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CURVE_H */
+#endif /* FREESTYLE_PYTHON_FRSCURVE_H */

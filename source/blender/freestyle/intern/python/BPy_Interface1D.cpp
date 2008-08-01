@@ -1,7 +1,7 @@
 #include "BPy_Interface1D.h"
 
 #include "BPy_Convert.h"
-#include "Interface1D/BPy_Curve.h"
+#include "Interface1D/BPy_FrsCurve.h"
 #include "Interface1D/Curve/BPy_Chain.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/FEdge/BPy_FEdgeSharp.h"
@@ -142,10 +142,10 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 	Py_INCREF( &Interface1D_Type );
 	PyModule_AddObject(module, "Interface1D", (PyObject *)&Interface1D_Type);
 	
-	if( PyType_Ready( &Curve_Type ) < 0 )
+	if( PyType_Ready( &FrsCurve_Type ) < 0 )
 		return;
-	Py_INCREF( &Curve_Type );
-	PyModule_AddObject(module, "Curve", (PyObject *)&Curve_Type);
+	Py_INCREF( &FrsCurve_Type );
+	PyModule_AddObject(module, "FrsCurve", (PyObject *)&FrsCurve_Type);
 
 	if( PyType_Ready( &Chain_Type ) < 0 )
 		return;

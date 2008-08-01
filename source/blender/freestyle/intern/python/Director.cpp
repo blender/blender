@@ -61,7 +61,6 @@ ViewEdge * Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyItera
 	return ((BPy_ViewEdge *) result)->ve;
 }
 
-
 // BPy_UnaryFunction{0D,1D}: __call__
 // BPy_UnaryFunction0DDouble
 // BPy_UnaryFunction0DEdgeNature
@@ -82,5 +81,27 @@ ViewEdge * Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyItera
 // BPy_UnaryFunction1DVec3f
 // BPy_UnaryFunction1DVectorViewShape
 // BPy_UnaryFunction1DVoid
+
+// BPy_Iterator: increment, decrement, isBegin, isEnd
+void Director_BPy_Iterator_increment( PyObject *obj ) {
+	PyObject_CallMethod( obj, "increment", "", 0 );
+}
+
+void Director_BPy_Iterator_decrement( PyObject *obj ) {
+	PyObject_CallMethod( obj, "decrement", "", 0 );
+}
+
+bool Director_BPy_Iterator_isBegin( PyObject *obj ) {
+	PyObject *result = PyObject_CallMethod( obj, "isBegin", "", 0 );
+
+	return bool_from_PyBool(result);
+}
+
+bool Director_BPy_Iterator_isEnd( PyObject *obj ) {
+	PyObject *result = PyObject_CallMethod( obj, "isEnd", "", 0 );
+
+	return bool_from_PyBool(result);
+}
+
 
 

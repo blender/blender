@@ -123,8 +123,8 @@ int Interface0DIterator___init__(BPy_Interface0DIterator *self, PyObject *args )
 
 	self->if0D_it = new Interface0DIterator(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));
 	self->py_it.it = self->if0D_it;
+	
 	return 0;
-
 }
 
 PyObject * Interface0DIterator_t( BPy_Interface0DIterator *self ) {

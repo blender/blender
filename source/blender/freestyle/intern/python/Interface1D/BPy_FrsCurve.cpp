@@ -1,4 +1,4 @@
-#include "BPy_Curve.h"
+#include "BPy_FrsCurve.h"
 
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
@@ -11,38 +11,38 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Curve instance  -----------*/
-static int Curve___init__(BPy_Curve *self, PyObject *args, PyObject *kwds);
-static PyObject * Curve_push_vertex_back( BPy_Curve *self, PyObject *args );
-static PyObject * Curve_push_vertex_front( BPy_Curve *self, PyObject *args );
-static PyObject * Curve_empty( BPy_Curve *self );
-static PyObject * Curve_nSegments( BPy_Curve *self );
+/*---------------  Python API function prototypes for FrsCurve instance  -----------*/
+static int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds);
+static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args );
+static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args );
+static PyObject * FrsCurve_empty( BPy_FrsCurve *self );
+static PyObject * FrsCurve_nSegments( BPy_FrsCurve *self );
 // point_iterator 	points_begin (float step=0)
-static PyObject * Curve_verticesBegin( BPy_Curve *self );
-static PyObject * Curve_verticesEnd( BPy_Curve *self );
-static PyObject * Curve_pointsBegin( BPy_Curve *self, PyObject *args );
-static PyObject * Curve_pointsEnd( BPy_Curve *self, PyObject *args );
+static PyObject * FrsCurve_verticesBegin( BPy_FrsCurve *self );
+static PyObject * FrsCurve_verticesEnd( BPy_FrsCurve *self );
+static PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args );
+static PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args );
 
-/*----------------------Curve instance definitions ----------------------------*/
-static PyMethodDef BPy_Curve_methods[] = {	
-	{"push_vertex_back", ( PyCFunction ) Curve_push_vertex_back, METH_VARARGS, "(CurvePoint cp | SVertex sv) Adds a single vertex at the front of the Curve."},
-	{"push_vertex_front", ( PyCFunction ) Curve_push_vertex_front, METH_VARARGS, "(CurvePoint cp | SVertex sv) Adds a single vertex at the end of the Curve."},
-	{"empty", ( PyCFunction ) Curve_empty, METH_NOARGS, "() Returns true is the Curve doesn't have any Vertex yet."},
-	{"nSegments", ( PyCFunction ) Curve_nSegments, METH_NOARGS, "() Returns the number of segments in the oplyline constituing the Curve."},
-	{"verticesBegin", ( PyCFunction ) Curve_verticesBegin, METH_NOARGS, "() Returns an Interface0DIterator pointing onto the first vertex of the Curve and that can iterate over the vertices of the Curve."},
-	{"verticesEnd", ( PyCFunction ) Curve_verticesEnd, METH_NOARGS, "() Returns an Interface0DIterator pointing after the last vertex of the Curve and that can iterate over the vertices of the Curve."},
-	{"pointsBegin", ( PyCFunction ) Curve_pointsBegin, METH_VARARGS, "(float t=0) Returns an Interface0DIterator pointing onto the first point of the Curve and that can iterate over the points of the Curve at any resolution t. At each iteration a virtual temporary CurvePoint is created."},
-	{"pointsEnd", ( PyCFunction ) Curve_pointsEnd, METH_VARARGS, "(float t=0) Returns an Interface0DIterator pointing after the last point of the Curve and that can iterate over the points of the Curve at any resolution t. At each iteration a virtual temporary CurvePoint is created."},
+/*----------------------FrsCurve instance definitions ----------------------------*/
+static PyMethodDef BPy_FrsCurve_methods[] = {	
+	{"push_vertex_back", ( PyCFunction ) FrsCurve_push_vertex_back, METH_VARARGS, "(CurvePoint cp | SVertex sv) Adds a single vertex at the front of the Curve."},
+	{"push_vertex_front", ( PyCFunction ) FrsCurve_push_vertex_front, METH_VARARGS, "(CurvePoint cp | SVertex sv) Adds a single vertex at the end of the Curve."},
+	{"empty", ( PyCFunction ) FrsCurve_empty, METH_NOARGS, "() Returns true is the Curve doesn't have any Vertex yet."},
+	{"nSegments", ( PyCFunction ) FrsCurve_nSegments, METH_NOARGS, "() Returns the number of segments in the oplyline constituing the Curve."},
+	{"verticesBegin", ( PyCFunction ) FrsCurve_verticesBegin, METH_NOARGS, "() Returns an Interface0DIterator pointing onto the first vertex of the Curve and that can iterate over the vertices of the Curve."},
+	{"verticesEnd", ( PyCFunction ) FrsCurve_verticesEnd, METH_NOARGS, "() Returns an Interface0DIterator pointing after the last vertex of the Curve and that can iterate over the vertices of the Curve."},
+	{"pointsBegin", ( PyCFunction ) FrsCurve_pointsBegin, METH_VARARGS, "(float t=0) Returns an Interface0DIterator pointing onto the first point of the Curve and that can iterate over the points of the Curve at any resolution t. At each iteration a virtual temporary CurvePoint is created."},
+	{"pointsEnd", ( PyCFunction ) FrsCurve_pointsEnd, METH_VARARGS, "(float t=0) Returns an Interface0DIterator pointing after the last point of the Curve and that can iterate over the points of the Curve at any resolution t. At each iteration a virtual temporary CurvePoint is created."},
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_Curve type definition ------------------------------*/
+/*-----------------------BPy_FrsCurve type definition ------------------------------*/
 
-PyTypeObject Curve_Type = {
+PyTypeObject FrsCurve_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"Curve",				/* tp_name */
-	sizeof( BPy_Curve ),	/* tp_basicsize */
+	"FrsCurve",				/* tp_name */
+	sizeof( BPy_FrsCurve ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
@@ -94,7 +94,7 @@ PyTypeObject Curve_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_Curve_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_FrsCurve_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
 	&Interface1D_Type,				/* struct _typeobject *tp_base; */
@@ -102,7 +102,7 @@ PyTypeObject Curve_Type = {
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)Curve___init__,                       	/* initproc tp_init; */
+	(initproc)FrsCurve___init__,                       	/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	NULL,		/* newfunc tp_new; */
 	
@@ -126,7 +126,7 @@ PyTypeObject Curve_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 	
-int Curve___init__(BPy_Curve *self, PyObject *args, PyObject *kwds)
+int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
 
 	PyObject *obj = 0;
@@ -137,9 +137,9 @@ int Curve___init__(BPy_Curve *self, PyObject *args, PyObject *kwds)
 	if( !obj ){
 		self->c = new Curve();
 		
-	} else if( BPy_Curve_Check(obj) ) {
-		if( ((BPy_Curve *) obj)->c )
-			self->c = new Curve(*( ((BPy_Curve *) obj)->c ));
+	} else if( BPy_FrsCurve_Check(obj) ) {
+		if( ((BPy_FrsCurve *) obj)->c )
+			self->c = new Curve(*( ((BPy_FrsCurve *) obj)->c ));
 		else
 			return -1;
 		
@@ -159,11 +159,11 @@ int Curve___init__(BPy_Curve *self, PyObject *args, PyObject *kwds)
 }
 
 
-PyObject * Curve_push_vertex_back( BPy_Curve *self, PyObject *args ) {
+PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args ) {
 	PyObject *obj;
 
 	if(!( PyArg_ParseTuple(args, "O", &obj) )) {
-		cout << "ERROR: Curve_push_vertex_back" << endl;
+		cout << "ERROR: FrsCurve_push_vertex_back" << endl;
 		Py_RETURN_NONE;
 	}
 
@@ -176,11 +176,11 @@ PyObject * Curve_push_vertex_back( BPy_Curve *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-PyObject * Curve_push_vertex_front( BPy_Curve *self, PyObject *args ) {
+PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args ) {
 		PyObject *obj;
 
 		if(!( PyArg_ParseTuple(args, "O", &obj) )) {
-			cout << "ERROR: Curve_push_vertex_front" << endl;
+			cout << "ERROR: FrsCurve_push_vertex_front" << endl;
 			Py_RETURN_NONE;
 		}
 
@@ -193,11 +193,11 @@ PyObject * Curve_push_vertex_front( BPy_Curve *self, PyObject *args ) {
 		Py_RETURN_NONE;
 	}
 
-PyObject * Curve_empty( BPy_Curve *self ) {
+PyObject * FrsCurve_empty( BPy_FrsCurve *self ) {
 	return PyBool_from_bool( self->c->empty() );
 }
 
-PyObject * Curve_nSegments( BPy_Curve *self ) {
+PyObject * FrsCurve_nSegments( BPy_FrsCurve *self ) {
 	return PyInt_FromLong( self->c->nSegments() );
 }
 
@@ -205,18 +205,18 @@ PyObject * Curve_nSegments( BPy_Curve *self ) {
 // not implemented
 
 
-PyObject * Curve_verticesBegin( BPy_Curve *self ) {
+PyObject * FrsCurve_verticesBegin( BPy_FrsCurve *self ) {
 	Interface0DIterator if0D_it( self->c->verticesBegin() );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
 
-PyObject * Curve_verticesEnd( BPy_Curve *self ) {
+PyObject * FrsCurve_verticesEnd( BPy_FrsCurve *self ) {
 	Interface0DIterator if0D_it( self->c->verticesEnd() );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
 
 
-PyObject * Curve_pointsBegin( BPy_Curve *self, PyObject *args ) {
+PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args ) {
 	float f = 0;
 
 	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
@@ -228,7 +228,7 @@ PyObject * Curve_pointsBegin( BPy_Curve *self, PyObject *args ) {
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
 
-PyObject * Curve_pointsEnd( BPy_Curve *self, PyObject *args ) {
+PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args ) {
 	float f = 0;
 
 	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {

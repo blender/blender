@@ -30,6 +30,8 @@
 #include "Iterator/BPy_ViewEdgeIterator.h"
 #include "Iterator/BPy_orientedViewEdgeIterator.h"
 
+#include "../stroke/StrokeRep.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -242,6 +244,7 @@ Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj ) {
 PyObject * BPy_AdjacencyIterator_from_AdjacencyIterator( AdjacencyIterator& a_it ) {
 	PyObject *py_a_it = AdjacencyIterator_Type.tp_new( &AdjacencyIterator_Type, 0, 0 );
 	((BPy_AdjacencyIterator *) py_a_it)->a_it = new AdjacencyIterator( a_it );
+	((BPy_AdjacencyIterator *) py_a_it)->py_it.it = ((BPy_AdjacencyIterator *) py_a_it)->a_it;
 
 	return py_a_it;
 }
@@ -249,62 +252,72 @@ PyObject * BPy_AdjacencyIterator_from_AdjacencyIterator( AdjacencyIterator& a_it
 PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it ) {
 	PyObject *py_if0D_it = Interface0DIterator_Type.tp_new( &Interface0DIterator_Type, 0, 0 );
 	((BPy_Interface0DIterator *) py_if0D_it)->if0D_it = new Interface0DIterator( if0D_it );
+	((BPy_Interface0DIterator *) py_if0D_it)->py_it.it = ((BPy_Interface0DIterator *) py_if0D_it)->if0D_it;
 
 	return py_if0D_it;
 }
 
 PyObject * BPy_CurvePointIterator_from_CurvePointIterator( CurveInternal::CurvePointIterator& cp_it ) {
 	PyObject *py_cp_it = CurvePointIterator_Type.tp_new( &CurvePointIterator_Type, 0, 0 );
-	((BPy_CurvePointIterator*) py_cp_it)->cp_it = new CurveInternal::CurvePointIterator( cp_it );
+	((BPy_CurvePointIterator *) py_cp_it)->cp_it = new CurveInternal::CurvePointIterator( cp_it );
+	((BPy_CurvePointIterator *) py_cp_it)->py_it.it = ((BPy_CurvePointIterator *) py_cp_it)->cp_it;
 
 	return py_cp_it;
 }
 
 PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it) {
 	PyObject *py_sv_it = StrokeVertexIterator_Type.tp_new( &StrokeVertexIterator_Type, 0, 0 );
-	((BPy_StrokeVertexIterator*) py_sv_it)->sv_it = new StrokeInternal::StrokeVertexIterator( sv_it );
+	((BPy_StrokeVertexIterator *) py_sv_it)->sv_it = new StrokeInternal::StrokeVertexIterator( sv_it );
+	((BPy_StrokeVertexIterator *) py_sv_it)->py_it.it = ((BPy_StrokeVertexIterator *) py_sv_it)->sv_it;
 
 	return py_sv_it;
 }
 
 PyObject * BPy_SVertexIterator_from_SVertexIterator( ViewEdgeInternal::SVertexIterator& sv_it ) {
 	PyObject *py_sv_it = SVertexIterator_Type.tp_new( &SVertexIterator_Type, 0, 0 );
-	((BPy_SVertexIterator*) py_sv_it)->sv_it = new ViewEdgeInternal::SVertexIterator( sv_it );
-
+	((BPy_SVertexIterator *) py_sv_it)->sv_it = new ViewEdgeInternal::SVertexIterator( sv_it );
+	((BPy_SVertexIterator *) py_sv_it)->py_it.it = ((BPy_SVertexIterator *) py_sv_it)->sv_it;
+	
 	return py_sv_it;
 }
+
 
 PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it ) {
 	PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new( &orientedViewEdgeIterator_Type, 0, 0 );
 	((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it = new ViewVertexInternal::orientedViewEdgeIterator( ove_it );
-
+	((BPy_orientedViewEdgeIterator *) py_ove_it)->py_it.it = ((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it;
+	
 	return py_ove_it;
 }
 
 PyObject * BPy_ViewEdgeIterator_from_ViewEdgeIterator( ViewEdgeInternal::ViewEdgeIterator& ve_it )  {
 	PyObject *py_ve_it = ViewEdgeIterator_Type.tp_new( &ViewEdgeIterator_Type, 0, 0 );
-	((BPy_ViewEdgeIterator*) py_ve_it)->ve_it = new ViewEdgeInternal::ViewEdgeIterator( ve_it );
-
+	((BPy_ViewEdgeIterator *) py_ve_it)->ve_it = new ViewEdgeInternal::ViewEdgeIterator( ve_it );
+	((BPy_ViewEdgeIterator *) py_ve_it)->py_it.it =	((BPy_ViewEdgeIterator *) py_ve_it)->ve_it;
+	
 	return py_ve_it;
 }
 
 PyObject * BPy_ChainingIterator_from_ChainingIterator( ChainingIterator& c_it ) {
 	PyObject *py_c_it = ChainingIterator_Type.tp_new( &ChainingIterator_Type, 0, 0 );
-	((BPy_ChainingIterator*) py_c_it)->c_it = new ChainingIterator( c_it );
-
+	((BPy_ChainingIterator *) py_c_it)->c_it = new ChainingIterator( c_it );
+	((BPy_ChainingIterator *) py_c_it)->py_ve_it.py_it.it = ((BPy_ChainingIterator *) py_c_it)->c_it;
+	
 	return py_c_it;
 }
 
 PyObject * BPy_ChainPredicateIterator_from_ChainPredicateIterator( ChainPredicateIterator& cp_it ) {
 	PyObject *py_cp_it = ChainPredicateIterator_Type.tp_new( &ChainPredicateIterator_Type, 0, 0 );
-	((BPy_ChainPredicateIterator*) py_cp_it)->cp_it = new ChainPredicateIterator( cp_it );
+	((BPy_ChainPredicateIterator *) py_cp_it)->cp_it = new ChainPredicateIterator( cp_it );
+	((BPy_ChainPredicateIterator *) py_cp_it)->py_c_it.py_ve_it.py_it.it = ((BPy_ChainPredicateIterator *) py_cp_it)->cp_it;
 
 	return py_cp_it;
 }
 
 PyObject * BPy_ChainSilhouetteIterator_from_ChainSilhouetteIterator( ChainSilhouetteIterator& cs_it ) {
 	PyObject *py_cs_it = ChainSilhouetteIterator_Type.tp_new( &ChainSilhouetteIterator_Type, 0, 0 );
-	((BPy_ChainSilhouetteIterator*) py_cs_it)->cs_it = new ChainSilhouetteIterator( cs_it );
+	((BPy_ChainSilhouetteIterator *) py_cs_it)->cs_it = new ChainSilhouetteIterator( cs_it );
+	((BPy_ChainSilhouetteIterator *) py_cs_it)->py_c_it.py_ve_it.py_it.it = ((BPy_ChainSilhouetteIterator *) py_cs_it)->cs_it;
 
 	return py_cs_it;
 }

@@ -143,7 +143,7 @@ int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
 	}
 		
 	self->py_it.it = self->ve_it;
-	
+
 	return 0;
 }
 

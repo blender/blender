@@ -1,7 +1,7 @@
 #ifndef FREESTYLE_PYTHON_CHAIN_H
 #define FREESTYLE_PYTHON_CHAIN_H
 
-#include "../BPy_Curve.h"
+#include "../BPy_FrsCurve.h"
 #include "../../../stroke/Chain.h"
 
 #ifdef __cplusplus
@@ -18,7 +18,7 @@ extern PyTypeObject Chain_Type;
 
 /*---------------------------Python BPy_Chain structure definition----------*/
 typedef struct {
-	BPy_Curve py_c;
+	BPy_FrsCurve py_c;
 	Chain *c;
 } BPy_Chain;
 

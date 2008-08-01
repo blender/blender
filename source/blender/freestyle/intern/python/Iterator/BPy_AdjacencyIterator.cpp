@@ -134,6 +134,7 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 	}
 
 	self->py_it.it = self->a_it;
+	
 	return 0;
 
 }
