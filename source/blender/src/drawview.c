@@ -1502,43 +1502,51 @@ static void draw_view_icon(void)
 	glDisable(GL_BLEND);
 }
 
-static void draw_viewport_name(ScrArea *sa)
+char *view3d_get_name(View3D *v3d)
 {
 	char *name = NULL;
-	char *printable = NULL;
 	
-	switch(G.vd->view) {
+	switch (v3d->view) {
 		case 1:
-			if (G.vd->persp == V3D_ORTHO)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
+			if (v3d->persp == V3D_ORTHO)
+				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
 			else
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
+				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
 			break;
 		case 3:
-			if (G.vd->persp == V3D_ORTHO)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
+			if (v3d->persp == V3D_ORTHO)
+				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
 			else
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
+				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
 			break;
 		case 7:
-			if (G.vd->persp == V3D_ORTHO)
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
+			if (v3d->persp == V3D_ORTHO)
+				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
 			else
-				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
+				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
 			break;
 		default:
-			if (G.vd->persp==V3D_CAMOB) {
-				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
+			if (v3d->persp==V3D_CAMOB) {
+				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
 					Camera *cam;
-					cam = G.vd->camera->data;
+					cam = v3d->camera->data;
 					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";
 				} else {
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (G.vd->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
+				name = (v3d->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
+			break;
 	}
+	
+	return name;
+}
+
+static void draw_viewport_name(ScrArea *sa)
+{
+	char *name = view3d_get_name(sa->spacedata.first);
+	char *printable = NULL;
 	
 	if (G.vd->localview) {
 		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
@@ -1987,6 +1995,8 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	tfp->ob_eul[0]= 180.0*ebone->roll/M_PI;
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, tfp->ob_eul, -lim, lim, 1000, 3, "");
 
+	uiDefButBitI(block, TOG, BONE_EDITMODE_LOCKED, REDRAWVIEW3D, "Lock", 160, 100, 140, 19, &(ebone->flag), 0, 0, 0, 0, "Prevents bone from being transformed in edit mode");
+	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
 	if (ebone->parent && ebone->flag & BONE_CONNECTED )
@@ -2654,7 +2664,7 @@ static void view3d_panel_gpencil(short cntrl)	// VIEW3D_HANDLER_GREASEPENCIL
 		uiNewPanelHeight(block, 204);
 		
 		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &vd->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
+		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &vd->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View (draw using Shift-LMB)");
 		
 		/* extend the panel if the contents won't fit */
 		newheight= draw_gpencil_panel(block, gpd, curarea); 

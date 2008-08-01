@@ -1089,6 +1089,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->tail;
 					td->flag= TD_SELECTED;
+					if (ebo->flag & BONE_EDITMODE_LOCKED)
+						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
@@ -1104,6 +1106,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->head;
 					td->flag= TD_SELECTED;
+					if (ebo->flag & BONE_EDITMODE_LOCKED)
+						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);

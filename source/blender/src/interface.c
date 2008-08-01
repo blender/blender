@@ -532,7 +532,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			/* give butfunc the original text too */
 			/* feature used for bone renaming, channels, etc */
 			if(but->func_arg2==NULL) {
-				strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
+				strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 				but->func_arg2= backstr;
 			}
 			strncpy(but->poin, but_copypaste_str, but->max);
@@ -5651,6 +5651,8 @@ static int ui_auto_themecol(uiBut *but)
 		// (weak!) detect if it is a blockloop
 		if(but->block->dt == UI_EMBOSSP) return TH_MENU_ITEM;
 		return TH_BUT_POPUP;
+	case ROUNDBOX:
+		return TH_PANEL;
 	default:
 		return TH_BUT_NEUTRAL;
 	}

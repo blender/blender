@@ -1347,8 +1347,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		for (i=0; i<prop->len; i++) {
-			SWITCH_INT(((int*)prop->data.pointer)[i]);
+		if (prop->subtype != IDP_DOUBLE) {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_INT(((int*)prop->data.pointer)[i]);
+			}
+		} else {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
+			}
 		}
 	}
 }
@@ -1384,6 +1390,24 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
 			break;
 		case IDP_ARRAY:
 			IDP_DirectLinkArray(prop, switch_endian, fd);
+			break;
+		case IDP_DOUBLE:
+			/*erg, stupid doubles.  since I'm storing them
+			 in the same field as int val; val2 in the
+			 IDPropertyData struct, they have to deal with
+			 endianness specifically
+			 
+			 in theory, val and val2 would've already been swapped
+			 if switch_endian is true, so we have to first unswap
+			 them then reswap them as a single 64-bit entity.
+			 */
+			
+			if (switch_endian) {
+				SWITCH_INT(prop->data.val);
+				SWITCH_INT(prop->data.val2);
+				SWITCH_LONGINT(prop->data.val);
+			}
+			
 			break;
 	}
 }
@@ -4161,15 +4185,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					link_gpencil(fd, sseq->gpd);
 				}
 			}
-			else if(sl->spacetype==SPACE_ACTION) {
-				SpaceAction *sact= (SpaceAction *)sl;
-				
-				/* WARNING: action-editor doesn't have it's own gpencil data! 
-				 * so only adjust pointer, but DON'T LINK
-				 */
-				if (sact->gpd) 
-					sact->gpd= newdataadr(fd, sact->gpd);
-			}
 		}
 
 		sa->v1= newdataadr(fd, sa->v1);
@@ -4851,6 +4866,49 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	for (id=idlist.first; id; id=id->next) {
 		if (id->properties) {
 			idproperties_fix_groups_lengths_recurse(id->properties);
+		}
+	}
+}
+
+void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+{
+	Material *ma;
+	MFace *mf;
+	MTFace *tf;
+	int a, b, texalpha;
+
+	/* verify we have a tface layer */
+	for(b=0; b<me->fdata.totlayer; b++)
+		if(me->fdata.layers[b].type == CD_MTFACE)
+			break;
+	
+	if(b == me->fdata.totlayer)
+		return;
+
+	/* if we do, set alpha sort if the game engine did it before */
+	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+		if(mf->mat_nr < me->totcol) {
+			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
+			texalpha = 0;
+
+			for(b=0; ma && b<MAX_MTEX; b++)
+				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
+					texalpha = 1;
+		}
+		else {
+			ma= NULL;
+			texalpha = 0;
+		}
+
+		for(b=0; b<me->fdata.totlayer; b++) {
+			if(me->fdata.layers[b].type == CD_MTFACE) {
+				tf = ((MTFace*)me->fdata.layers[b].data) + a;
+
+				tf->mode &= ~TF_ALPHASORT;
+				if(ma && (ma->mode & MA_ZTRA))
+					if(ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
+						tf->mode |= TF_ALPHASORT;
+			}
 		}
 	}
 }
@@ -7699,8 +7757,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* sun/sky */
-	if ((main->versionfile < 246) ){
+	if(main->versionfile < 246) {
 		Lamp *la;
+
 		for(la=main->lamp.first; la; la= la->id.next) {
 			la->sun_effect_type = 0;
 			la->horizon_brightness = 1.0;
@@ -7714,6 +7773,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->atm_distance_factor = 1.0;
 			la->sun_intensity = 1.0;
 		}
+	}
+
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Mesh *me;
+
+		for(me=main->mesh.first; me; me= me->id.next)
+			alphasort_version_246(fd, lib, me);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

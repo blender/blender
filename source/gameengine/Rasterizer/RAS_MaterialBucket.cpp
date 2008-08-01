@@ -76,25 +76,10 @@ KX_MeshSlot::~KX_MeshSlot()
 RAS_MaterialBucket::RAS_MaterialBucket(RAS_IPolyMaterial* mat)
 	:m_bModified(true)
 {
-	m_bScheduled=true;
 	m_material = mat;
 }
 
 
-
-void RAS_MaterialBucket::SchedulePolygons(int drawingmode)
-{ 
-	m_bScheduled = true;
-}
-
-
-
-void RAS_MaterialBucket::ClearScheduledPolygons()
-{ 
-	m_bScheduled = false;
-}
-
-	
 
 RAS_IPolyMaterial* RAS_MaterialBucket::GetPolyMaterial() const
 { 
@@ -134,9 +119,14 @@ void RAS_MaterialBucket::MarkVisibleMeshSlot(KX_MeshSlot& ms,
 	(*it).m_RGBAcolor= rgbavec;
 }
 
-bool RAS_MaterialBucket::IsTransparant() const
+bool RAS_MaterialBucket::IsAlpha() const
 {	
-	return (m_material->IsTransparant());
+	return (m_material->IsAlpha());
+}
+
+bool RAS_MaterialBucket::IsZSort() const
+{	
+	return (m_material->IsZSort());
 }
 
 

@@ -303,7 +303,7 @@ void set_scene_bg(Scene *sce)
 	int flag;
 	
 	// Note: this here is defined in editseq.c (BIF_editseq.h), NOT in blenkernel! 
-	set_last_seq(NULL);
+	clear_last_seq();
 	
 	G.scene= sce;
 	

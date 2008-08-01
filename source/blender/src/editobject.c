@@ -2760,7 +2760,7 @@ void special_editmenu(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 	else if(G.obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
+		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6|%l|Lock%x7|Unlock%x8");
 		if(nr==1)
 			subdivide_armature(1);
 		if(nr==2) {
@@ -2773,6 +2773,10 @@ void special_editmenu(void)
 		else if(ELEM3(nr, 4, 5, 6)) {
 			armature_autoside_names(nr-4);
 		}
+		else if(nr==7)
+			set_locks_armature_bones(1);
+		else if(nr==8)
+			set_locks_armature_bones(0);
 	}
 	else if(G.obedit->type==OB_LATTICE) {
 		static float weight= 1.0f;
@@ -3502,6 +3506,17 @@ void copy_attr(short event)
 					base->object->damping= ob->damping;
 					base->object->rdamping= ob->rdamping;
 				}
+				else if(event==11) {	/* all physical attributes */
+					base->object->gameflag = ob->gameflag;
+					base->object->inertia = ob->inertia;
+					base->object->formfactor = ob->formfactor;
+					base->object->damping= ob->damping;
+					base->object->rdamping= ob->rdamping;
+					base->object->mass= ob->mass;
+					if (ob->gameflag & OB_BOUNDS) {
+						base->object->boundtype = ob->boundtype;
+					}
+				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
 				}
@@ -3688,7 +3703,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");

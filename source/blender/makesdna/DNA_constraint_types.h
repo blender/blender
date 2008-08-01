@@ -317,6 +317,13 @@ typedef struct bDistLimitConstraint {
 	int 		pad;
 } bDistLimitConstraint;
 
+typedef struct bShrinkwrapConstraint {
+	Object		*target;
+	float		dist;			/* distance to kept from target */
+	short		shrinkType;		/* shrink type (look on MOD shrinkwrap for values) */
+	short 		pad[5];
+} bShrinkwrapConstraint;
+
 /* ------------------------------------------ */
 
 /* bConstraint->type 
@@ -344,10 +351,9 @@ typedef enum B_CONSTAINT_TYPES {
 	CONSTRAINT_TYPE_RIGIDBODYJOINT,		/* rigidbody constraint */
 	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
 	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
+	CONSTRAINT_TYPE_SHRINKWRAP,			/* shrinkwrap (loc/rot) constraint */
 	
-	
-	/* NOTE: everytime a new constraint is added, update this */
-	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_TRANSFORM
+	NUM_CONSTRAINT_TYPES
 } B_CONSTRAINT_TYPES; 
 
 /* bConstraint->flag */
@@ -375,11 +381,13 @@ typedef enum B_CONSTRAINT_SPACETYPES {
 		/* for objects (relative to parent/without parent influence), 
 		 * for bones (along normals of bone, without parent/restpositions) 
 		 */
-	CONSTRAINT_SPACE_LOCAL,
+	CONSTRAINT_SPACE_LOCAL, /* = 1 */
 		/* for posechannels - pose space  */
-	CONSTRAINT_SPACE_POSE,
-		/* for posechannels - local with parent  */
-	CONSTRAINT_SPACE_PARLOCAL,
+	CONSTRAINT_SPACE_POSE, /* = 2 */
+ 		/* for posechannels - local with parent  */
+	CONSTRAINT_SPACE_PARLOCAL, /* = 3 */
+		/* for files from between 2.43-2.46 (should have been parlocal) */
+	CONSTRAINT_SPACE_INVALID, /* = 4. do not exchange for anything! */
 } B_CONSTRAINT_SPACETYPES;
 
 /* bConstraintChannel.flag */

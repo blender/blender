@@ -34,9 +34,12 @@ struct Base;
 struct Object;
 struct Camera;
 struct View3D;
+struct rcti;
 
 void	arrows_move_cursor(unsigned short event);
+void 	lasso_select_boundbox(struct rcti *rect, short mcords[][2], short moves);
 int		lasso_inside(short mcords[][2], short moves, short sx, short sy);
+int 	lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1);
 void	borderselect(void);
 void	circle_select(void);
 void	deselectall(void);

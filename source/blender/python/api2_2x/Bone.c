@@ -368,6 +368,10 @@ static PyObject *EditBone_getOptions(BPy_EditBone *self, void *closure)
 			if (PyList_Append(list, 
 				EXPP_GetModuleConstant("Blender.Armature", "TIP_SELECTED")) == -1)
 				goto RuntimeError;
+		if(self->editbone->flag & BONE_EDITMODE_LOCKED)
+			if (PyList_Append(list, 
+				EXPP_GetModuleConstant("Blender.Armature", "LOCKED_EDIT")) == -1)
+				goto RuntimeError;
 	}else{
 		if(self->flag & BONE_CONNECTED)
 			if (PyList_Append(list, 
@@ -401,6 +405,10 @@ static PyObject *EditBone_getOptions(BPy_EditBone *self, void *closure)
 			if (PyList_Append(list, 
 				EXPP_GetModuleConstant("Blender.Armature", "TIP_SELECTED")) == -1)
 				goto RuntimeError;
+		if(self->flag & BONE_EDITMODE_LOCKED)
+			if (PyList_Append(list, 
+				EXPP_GetModuleConstant("Blender.Armature", "LOCKED_EDIT")) == -1)
+ 				goto RuntimeError;
 	}
 
 	return list;
@@ -422,7 +430,7 @@ static int EditBone_CheckValidConstant(PyObject *constant)
 				return 0;
 			if (!STREQ3(PyString_AsString(name), "CONNECTED", "HINGE", "NO_DEFORM")	&&
 				!STREQ3(PyString_AsString(name), "ROOT_SELECTED", "BONE_SELECTED", "TIP_SELECTED")	&&
-				!STREQ2(PyString_AsString(name), "MULTIPLY", "HIDDEN_EDIT"))
+				!STREQ3(PyString_AsString(name), "MULTIPLY", "HIDDEN_EDIT", "LOCKED_EDIT"))
 				return 0;
 			else
 				return 1;

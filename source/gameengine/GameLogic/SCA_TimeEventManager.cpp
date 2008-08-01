@@ -65,6 +65,11 @@ void SCA_TimeEventManager::RegisterSensor(SCA_ISensor* sensor)
 	// not yet
 }
 
+void SCA_TimeEventManager::RemoveSensor(SCA_ISensor* sensor)
+{
+	// empty
+}
+
 
 
 void SCA_TimeEventManager::NextFrame(double curtime, double fixedtime)

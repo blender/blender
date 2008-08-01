@@ -368,7 +368,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	body->setUserPointer(ctrl);
 
 	body->setGravity( m_gravity );
-	m_controllers.push_back(ctrl);
+	m_controllers.insert(ctrl);
 
 	//use explicit group/filter for finer control over collision in bullet => near/radar sensor
 	m_dynamicsWorld->addRigidBody(body, ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
@@ -434,36 +434,13 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
-
 	//also remove constraint
 
-	
-
 	m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
-
-
-	{
-		std::vector<CcdPhysicsController*>::iterator i =
-			std::find(m_controllers.begin(), m_controllers.end(), ctrl);
-		if (!(i == m_controllers.end()))
-		{
-			std::swap(*i, m_controllers.back());
-			m_controllers.pop_back();
-		}
-	}
+	m_controllers.erase(ctrl);
 
 	//remove it from the triggers
-	{
-		std::vector<CcdPhysicsController*>::iterator i =
-			std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
-		if (!(i == m_triggerControllers.end()))
-		{
-			std::swap(*i, m_triggerControllers.back());
-			m_triggerControllers.pop_back();
-		}
-	}
-
-
+	m_triggerControllers.erase(ctrl);
 }
 
 void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
@@ -487,11 +464,10 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 
 void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctrl)
 {
-	std::vector<CcdPhysicsController*>::iterator i =
-		std::find(m_controllers.begin(), m_controllers.end(), ctrl);
-	if (i == m_controllers.end())
+	if (m_controllers.insert(ctrl).second)
 	{
 		btRigidBody* body = ctrl->GetRigidBody();
+		body->setUserPointer(ctrl);
 		m_dynamicsWorld->addCollisionObject(body, 
 			ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
 	}
@@ -507,12 +483,12 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
+	std::set<CcdPhysicsController*>::iterator it;
+	int i;
 
-	int i,numCtrl = GetNumControllers();
-	for (i=0;i<numCtrl;i++)
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
-		CcdPhysicsController* ctrl = GetPhysicsController(i);
-		ctrl->SynchronizeMotionStates(timeStep);
+		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
 	float subStep = timeStep / float(m_numTimeSubSteps);
@@ -521,11 +497,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		m_dynamicsWorld->stepSimulation(subStep,0);//perform always a full simulation step
 	}
 
-	numCtrl = GetNumControllers();
-	for (i=0;i<numCtrl;i++)
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
-		CcdPhysicsController* ctrl = GetPhysicsController(i);
-		ctrl->SynchronizeMotionStates(timeStep);
+		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
 	for (i=0;i<m_wrapperVehicles.size();i++)
@@ -852,20 +826,6 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 }
 
 
-int	CcdPhysicsEnvironment::GetNumControllers()
-{
-	return m_controllers.size();
-}
-
-
-CcdPhysicsController* CcdPhysicsEnvironment::GetPhysicsController( int index)
-{
-	return m_controllers[index];
-}
-
-
-
-
 void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float value0,float value1)
 {
 	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
@@ -905,12 +865,14 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 {
 
 	CcdPhysicsController* ctrl1 = (CcdPhysicsController* )ctrl;
-	std::vector<CcdPhysicsController*>::iterator i =
-		std::find(m_controllers.begin(), m_controllers.end(), ctrl);
-	if ((i == m_controllers.end()))
-	{
-		addCcdPhysicsController(ctrl1);
-	}
+	// addSensor() is a "light" function for bullet because it is used
+	// dynamically when the sensor is activated. Use enableCcdPhysicsController() instead 
+	//if (m_controllers.insert(ctrl1).second)
+	//{
+	//	addCcdPhysicsController(ctrl1);
+	//}
+	enableCcdPhysicsController(ctrl1);
+
 	//Collision filter/mask is now set at the time of the creation of the controller 
 	//force collision detection with everything, including static objects (might hurt performance!)
 	//ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::SensorTrigger;
@@ -923,21 +885,15 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 
 void CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
 {
-	std::vector<CcdPhysicsController*>::iterator i =
-		std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
-	if (!(i == m_triggerControllers.end()))
-	{
-		std::swap(*i, m_triggerControllers.back());
-		m_triggerControllers.pop_back();
-	}
+	m_triggerControllers.erase((CcdPhysicsController*)ctrl);
 }
 
 
 void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
 {
-	removeCollisionCallback(ctrl);
-	//printf("removeSensor\n");
+	removeCcdPhysicsController((CcdPhysicsController*)ctrl);
 }
+
 void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 {
 	/*	printf("addTouchCallback\n(response class = %i)\n",response_class);
@@ -975,9 +931,8 @@ void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctr
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
 
 	//printf("requestCollisionCallback\n");
-	m_triggerControllers.push_back(ccdCtrl);
+	m_triggerControllers.insert(ccdCtrl);
 }
-
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
 {
@@ -1011,11 +966,10 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->getUserPointer());
 				CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(obj1->getUserPointer());
 
-				std::vector<CcdPhysicsController*>::iterator i =
-					std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl0);
+				std::set<CcdPhysicsController*>::const_iterator i = m_triggerControllers.find(ctrl0);
 				if (i == m_triggerControllers.end())
 				{
-					i = std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl1);
+					i = m_triggerControllers.find(ctrl1);
 				}
 
 				if (!(i == m_triggerControllers.end()))
@@ -1125,7 +1079,6 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 
 	CcdPhysicsController* sphereController = new CcdPhysicsController(cinfo);
 	
-
 	return sphereController;
 }
 

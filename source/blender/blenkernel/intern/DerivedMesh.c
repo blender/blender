@@ -59,6 +59,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
+#include "BLI_memarena.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
@@ -2843,6 +2844,127 @@ int editmesh_get_first_deform_matrices(float (**deformmats)[3][3], float (**defo
 
 	return numleft;
 }
+
+void DM_add_tangent_layer(DerivedMesh *dm)
+{
+	/* mesh vars */
+	MTFace *mtface, *tf;
+	MFace *mface, *mf;
+	MVert *mvert, *v1, *v2, *v3, *v4;
+	MemArena *arena= NULL;
+	VertexTangent **vtangents= NULL;
+	float (*orco)[3]= NULL, (*tangent)[3];
+	float *uv1, *uv2, *uv3, *uv4, *vtang;
+	float fno[3], tang[3], uv[4][2];
+	int i, j, len, mf_vi[4], totvert, totface;
+
+	if(CustomData_get_layer_index(&dm->faceData, CD_TANGENT) != -1)
+		return;
+
+	/* check we have all the needed layers */
+	totvert= dm->getNumVerts(dm);
+	totface= dm->getNumFaces(dm);
+
+	mvert= dm->getVertArray(dm);
+	mface= dm->getFaceArray(dm);
+	mtface= dm->getFaceDataArray(dm, CD_MTFACE);
+
+	if(!mtface) {
+		orco= dm->getVertDataArray(dm, CD_ORCO);
+		if(!orco)
+			return;
+	}
+	
+	/* create tangent layer */
+	DM_add_face_layer(dm, CD_TANGENT, CD_CALLOC, NULL);
+	tangent= DM_get_face_data_layer(dm, CD_TANGENT);
+	
+	/* allocate some space */
+	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	BLI_memarena_use_calloc(arena);
+	vtangents= MEM_callocN(sizeof(VertexTangent*)*totvert, "VertexTangent");
+	
+	/* sum tangents at connected vertices */
+	for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++) {
+		v1= &mvert[mf->v1];
+		v2= &mvert[mf->v2];
+		v3= &mvert[mf->v3];
+
+		if (mf->v4) {
+			v4= &mvert[mf->v4];
+			CalcNormFloat4(v4->co, v3->co, v2->co, v1->co, fno);
+		}
+		else {
+			v4= NULL;
+			CalcNormFloat(v3->co, v2->co, v1->co, fno);
+		}
+		
+		if(mtface) {
+			uv1= tf->uv[0];
+			uv2= tf->uv[1];
+			uv3= tf->uv[2];
+			uv4= tf->uv[3];
+		}
+		else {
+			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
+			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
+			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			if(v4)
+				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+		}
+		
+		tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, fno, tang);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v2], tang, uv2);
+		sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+		
+		if(mf->v4) {
+			v4= &mvert[mf->v4];
+			
+			tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, fno, tang);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v1], tang, uv1);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v3], tang, uv3);
+			sum_or_add_vertex_tangent(arena, &vtangents[mf->v4], tang, uv4);
+		}
+	}
+	
+	/* write tangent to layer */
+	for(i=0, tf=mtface, mf=mface; i < totface; mf++, tf++, i++, tangent+=4) {
+		len= (mf->v4)? 4 : 3; 
+		
+		if(mtface) {
+			uv1= tf->uv[0];
+			uv2= tf->uv[1];
+			uv3= tf->uv[2];
+			uv4= tf->uv[3];
+		}
+		else {
+			uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+			spheremap(orco[mf->v1][0], orco[mf->v1][1], orco[mf->v1][2], &uv[0][0], &uv[0][1]);
+			spheremap(orco[mf->v2][0], orco[mf->v2][1], orco[mf->v2][2], &uv[1][0], &uv[1][1]);
+			spheremap(orco[mf->v3][0], orco[mf->v3][1], orco[mf->v3][2], &uv[2][0], &uv[2][1]);
+			if(len==4)
+				spheremap(orco[mf->v4][0], orco[mf->v4][1], orco[mf->v4][2], &uv[3][0], &uv[3][1]);
+		}
+		
+		mf_vi[0]= mf->v1;
+		mf_vi[1]= mf->v2;
+		mf_vi[2]= mf->v3;
+		mf_vi[3]= mf->v4;
+		
+		for(j=0; j<len; j++) {
+			vtang= find_vertex_tangent(vtangents[mf_vi[j]], mtface ? tf->uv[j] : uv[j]);
+
+			VECCOPY(tangent[j], vtang);
+			Normalize(tangent[j]);
+		}
+	}
+	
+	BLI_memarena_free(arena);
+	MEM_freeN(vtangents);
+}
+
 
 /* ************************* fluidsim bobj file handling **************************** */
 

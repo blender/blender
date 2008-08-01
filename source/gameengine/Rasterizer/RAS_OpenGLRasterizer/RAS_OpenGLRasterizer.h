@@ -99,6 +99,7 @@ protected:
 	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
 	int				m_texco_num;
 	int				m_attrib_num;
+	int				m_last_blendmode;
 
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
@@ -141,8 +142,6 @@ public:
 	virtual float	GetEyeSeparation();
 	virtual void	SetFocalLength(const float focallength);
 	virtual float	GetFocalLength();
-
-	virtual void	SetAlphaTest(bool enable);
 
 	virtual void	SwapBuffers();
 	virtual void	IndexPrimitives(
@@ -282,8 +281,8 @@ public:
 	virtual void	EnableMotionBlur(float motionblurvalue);
 	virtual void	DisableMotionBlur();
 	virtual float	GetMotionBlurValue(){return m_motionblurvalue;};
-	virtual int	GetMotionBlurState(){return m_motionblur;};
-	virtual void SetMotionBlurState(int newstate)
+	virtual int		GetMotionBlurState(){return m_motionblur;};
+	virtual void	SetMotionBlurState(int newstate)
 	{
 		if(newstate<0) 
 			m_motionblur = 0;
@@ -292,6 +291,8 @@ public:
 		else 
 			m_motionblur = newstate;
 	};
+
+	virtual void	SetBlendingMode(int blendmode);
 };
 
 #endif //__RAS_OPENGLRASTERIZER

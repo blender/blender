@@ -1281,9 +1281,9 @@ static int meshdeform_inside_cage(MeshDeformBind *mdb, float *co)
 		outside[1] = co[1] + (mdb->max[1] - mdb->min[1] + 1.0f)*MESHDEFORM_OFFSET[i][1];
 		outside[2] = co[2] + (mdb->max[2] - mdb->min[2] + 1.0f)*MESHDEFORM_OFFSET[i][2];
 
+		VECCOPY(start, co);
 		VECSUB(dir, outside, start);
 		Normalize(dir);
-		VECCOPY(start, co);
 		
 		isect = meshdeform_ray_tree_intersect(mdb, start, outside);
 		if(isect && !isect->facing)

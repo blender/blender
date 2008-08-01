@@ -29,6 +29,13 @@
 #ifndef BKE_SHRINKWRAP_H
 #define BKE_SHRINKWRAP_H
 
+/* mesh util */
+//TODO move this somewhere else
+#include "BKE_customdata.h"
+struct DerivedMesh;
+struct Object;
+struct DerivedMesh *object_get_derived_final(struct Object *ob, CustomDataMask dataMask);
+
 /* bitset stuff */
 //TODO: should move this to other generic lib files?
 typedef char* BitSet;

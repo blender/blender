@@ -59,4 +59,22 @@ class SCA_ISensor(SCA_ILogicBrick):
 		@type invert: boolean
 		@param invert: true if activates on negative events; false if activates on positive events.
 		"""
+	def getLevel():
+		"""
+		Returns whether this sensor is a level detector or a edge detector.
+		It makes a difference only in case of logic state transition (state actuator).
+		A level detector will immediately generate a pulse, negative or positive
+		depending on the sensor condition, as soon as the state is activated.
+		A edge detector will wait for a state change before generating a pulse.
+		
+		@rtype: boolean
+		@return: true if sensor is level sensitive, false if it is edge sensitive
+		"""
+	def setLevel(level):
+		"""
+		Set whether to detect level or edge transition when entering a state.
+		
+		@param level: Detect level instead of edge? (KX_TRUE, KX_FALSE)
+		@type level: boolean
+		"""
 

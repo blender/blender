@@ -480,7 +480,7 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	
 	/* Target-Space */
 	if (target == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
 												tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 	}
 	else if (target == 0) {
@@ -490,7 +490,7 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	
 	/* Owner-Space */
 	if (owner == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
 												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
 	}
 	else if (owner == 0) {
@@ -1739,6 +1739,16 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 			}
 			break;
+
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = con->data;
+
+				height = 44;
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->target, "Target Object");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "dist", *xco+120, *yco-44, 135, 18, &data->dist, 0.0f, 100.0f, 1.0f, 0.0f, "Distance to target"); 
+			}
+			break;
 		default:
 			height = 0;
 			break;
@@ -1800,6 +1810,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_MINMAX, "Floor",	0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK, "Locked Track", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH, "Follow Path", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SHRINKWRAP, "Shrinkwrap" , 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -2030,6 +2041,14 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_ADD_DISTLIMIT:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
+			add_constraint_to_active(ob, con);
+			
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_SHRINKWRAP:
+		{
+			con = add_new_constraint(CONSTRAINT_TYPE_SHRINKWRAP);
 			add_constraint_to_active(ob, con);
 			
 			BIF_undo_push("Add constraint");

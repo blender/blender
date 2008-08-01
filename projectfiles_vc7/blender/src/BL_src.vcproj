@@ -182,6 +182,9 @@
 				RelativePath="..\..\..\source\blender\src\drawdeps.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\drawgpencil.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\drawimage.c">
 			</File>
 			<File
@@ -231,6 +234,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\editaction.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editaction_gpencil.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\editarmature.c">
@@ -348,6 +354,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\glutil.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\gpencil.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\hddaudio.c">
@@ -618,6 +627,9 @@
 				RelativePath="..\..\..\source\blender\include\BDR_editobject.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\include\BDR_gpencil.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\include\BDR_imagepaint.h">
 			</File>
 			<File
@@ -634,6 +646,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_cursors.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_drawgpencil.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_drawimage.h">

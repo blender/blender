@@ -3336,7 +3336,7 @@ static void nodes_panel_gpencil(short cntrl)	// NODES_HANDLER_GREASEPENCIL
 		uiNewPanelHeight(block, 204);
 		
 		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor");
+		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor (draw using Shift-LMB)");
 		
 		/* extend the panel if the contents won't fit */
 		newheight= draw_gpencil_panel(block, gpd, curarea); 

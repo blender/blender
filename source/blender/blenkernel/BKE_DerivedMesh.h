@@ -437,5 +437,7 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 /* determines required DerivedMesh data according to view and edit modes */
 CustomDataMask get_viewedit_datamask();
 
+void DM_add_tangent_layer(DerivedMesh *dm);
+
 #endif
 

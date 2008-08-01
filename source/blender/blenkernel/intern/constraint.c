@@ -40,6 +40,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_idprop.h"
+#include "BKE_shrinkwrap.h"
 
 
 #include "BPY_extern.h"
@@ -457,7 +459,6 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
 							VECCOPY(offs_bone[3], pchan->bone->head);
 							offs_bone[3][1]+= pchan->bone->parent->length;
-							
 							if (pchan->bone->flag & BONE_HINGE) {
 								/* pose_mat = par_pose-space_location * chan_mat */
 								float tmat[4][4];
@@ -558,8 +559,8 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
-	if (G.obedit && G.editMesh) {
-		/* we are in editmode, so get a special derived mesh */
+	if ((G.obedit == ob) && (G.editMesh)) {
+		/* target is in editmode, so get a special derived mesh */
 		dm = CDDM_from_editmesh(G.editMesh, ob->data);
 	}
 	else {
@@ -3228,6 +3229,140 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 	transform_evaluate /* evaluate */
 };
 
+/* ---------- Shrinkwrap Constraint ----------- */
+static void shrinkwrap_new_data (void *cdata)
+{
+	bShrinkwrapConstraint *data= (bShrinkwrapConstraint *)cdata;
+
+	data->target = NULL;
+	data->dist = 0.0f;
+	data->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
+}
+
+static int shrinkwrap_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bShrinkwrapConstraint *data = con->data;
+		bConstraintTarget *ct;
+		
+		SINGLETARGETNS_GET_TARS(con, data->target, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void shrinkwrap_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bShrinkwrapConstraint *data = con->data;
+		bConstraintTarget *ct= list->first;
+		
+		SINGLETARGETNS_FLUSH_TARS(con, data->target, ct, list, nocopy)
+	}
+}
+
+static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
+{
+	if (ct)
+		Mat4One(ct->matrix);
+}
+
+static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
+	bConstraintTarget *ct = targets->first;
+	
+	if( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) )
+	{
+		float co[3] = {0.0f, 0.0f, 0.0f};
+		float no[3] = {0.0f, 0.0f, 1.0f};
+		float dist;
+
+		SpaceTransform transform;
+		DerivedMesh *target = CDDM_copy( object_get_derived_final(ct->tar, CD_MASK_BAREMESH) );
+		BVHTreeRayHit hit;
+		BVHTreeNearest nearest;
+
+		//TODO
+		//Its stupid to create a bvhtree.. if we are only going to project one vertex
+		//But lets do it this way.. (so that in future maybe bvhtree gets a cache system and then the tree would already be build)
+		BVHTreeFromMesh treeData;
+		memset( &treeData, 0, sizeof(treeData) );
+
+		nearest.index = -1;
+		nearest.dist = 100000.0f; //TODO should use FLT_MAX.. but normal projection doenst yet supports it
+
+		if(target != NULL)
+		{
+
+			space_transform_from_matrixs(&transform, cob->matrix, ct->matrix);
+
+			space_transform_apply(&transform, co);
+			space_transform_apply_normal(&transform, no);
+
+
+			switch(scon->shrinkType)
+			{
+				case MOD_SHRINKWRAP_NEAREST_SURFACE:
+					if(bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6) == NULL) return;
+					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
+					VECCOPY(co, nearest.co);
+					
+					dist = VecLenf(co, nearest.co);
+					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
+				break;
+
+				case MOD_SHRINKWRAP_NEAREST_VERTEX:
+					if(bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6) == NULL) return;
+					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
+					VECCOPY(co, nearest.co);
+
+					dist = VecLenf(co, nearest.co);
+					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
+				break;
+
+				case MOD_SHRINKWRAP_NORMAL:
+					if(bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6) == NULL) return;
+					if(normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
+						return;
+
+					VECCOPY(co, hit.co);
+				break;
+			}
+
+			space_transform_invert(&transform, co);
+			VECADD(cob->matrix[3], cob->matrix[3], co);
+
+
+			if(treeData.tree)
+				BLI_bvhtree_free(treeData.tree);
+
+			target->release(target);
+		}
+		
+
+	}
+}
+
+static bConstraintTypeInfo CTI_SHRINKWRAP = {
+	CONSTRAINT_TYPE_SHRINKWRAP, /* type */
+	sizeof(bShrinkwrapConstraint), /* size */
+	"Shrinkwrap", /* name */
+	"bShrinkwrapConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	shrinkwrap_new_data, /* new data */
+	shrinkwrap_get_tars, /* get constraint targets */
+	shrinkwrap_flush_tars, /* flush constraint targets */
+	shrinkwrap_get_tarmat, /* get a target matrix */
+	shrinkwrap_evaluate /* evaluate */
+};
+
+
+
 /* ************************* Constraints Type-Info *************************** */
 /* All of the constraints api functions use bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specifc code.
@@ -3259,6 +3394,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[17]= &CTI_RIGIDBODYJOINT;	/* RigidBody Constraint */
 	constraintsTypeInfo[18]= &CTI_CLAMPTO; 			/* ClampTo Constraint */	
 	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */
+	constraintsTypeInfo[20]= &CTI_SHRINKWRAP;		/* Shrinkwrap Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

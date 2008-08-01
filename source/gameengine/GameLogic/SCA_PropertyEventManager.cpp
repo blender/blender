@@ -47,19 +47,10 @@ SCA_PropertyEventManager::~SCA_PropertyEventManager()
 
 }
 
-
-
-void SCA_PropertyEventManager::RegisterSensor(SCA_ISensor* sensor)
-{
-	m_sensors.push_back(sensor);
-}
-
-
-
 void SCA_PropertyEventManager::NextFrame()
 {
 	// check for changed properties
-	for (vector<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
+	for (set<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
 	{
 		(*it)->Activate(m_logicmgr,NULL);
 	}

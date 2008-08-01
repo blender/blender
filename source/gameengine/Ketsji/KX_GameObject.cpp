@@ -77,10 +77,10 @@ KX_GameObject::KX_GameObject(
 	SCA_IObject(T),
 	m_bDyna(false),
 	m_layer(0),
+	m_pBlenderObject(NULL),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
-	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
@@ -96,10 +96,7 @@ KX_GameObject::KX_GameObject(
 	KX_NormalParentRelation * parent_relation = 
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
-	
-
 };
-
 
 
 KX_GameObject::~KX_GameObject()
@@ -165,6 +162,7 @@ STR_String KX_GameObject::GetName()
 void KX_GameObject::SetName(STR_String name)
 {
 	m_name = name;
+
 };								// Set the name of the value
 
 
@@ -277,6 +275,7 @@ void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 	replica->m_pSGNode = NULL;
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
+	replica->m_state = 0;
 }
 
 
@@ -442,6 +441,7 @@ void KX_GameObject::UpdateIPO(float curframetime,
 // IPO update
 void 
 KX_GameObject::UpdateMaterialData(
+		dword matname_hash,
 		MT_Vector4 rgba,
 		MT_Vector3 specrgb,
 		MT_Scalar hard,
@@ -453,16 +453,35 @@ KX_GameObject::UpdateMaterialData(
 	)
 {
 	int mesh = 0;
+
 	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0) {
 		RAS_MaterialBucket::Set::iterator mit = m_meshes[mesh]->GetFirstMaterial();
 		for(; mit != m_meshes[mesh]->GetLastMaterial(); ++mit)
 		{
 			RAS_IPolyMaterial* poly = (*mit)->GetPolyMaterial();
-			if(poly->GetFlag() & RAS_BLENDERMAT )
+			if(poly->GetFlag() & RAS_BLENDERMAT)
 			{
-				SetObjectColor(rgba);
 				KX_BlenderMaterial *m =  static_cast<KX_BlenderMaterial*>(poly);
-				m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
+				
+				if (matname_hash == NULL)
+				{
+					m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
+					// if mesh has only one material attached to it then use original hack with no need to edit vertices (better performance)
+					if(!(poly->GetFlag() & RAS_BLENDERGLSL))
+						SetObjectColor(rgba);
+				}
+				else
+				{
+					if (matname_hash == poly->GetMaterialNameHash())
+					{
+						m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
+						m_meshes[mesh]->SetVertexColor(poly,rgba);
+						
+						// no break here, because one blender material can be split into several game engine materials
+						// (e.g. one uvsphere material is split into one material at poles with ras_mode TRIANGLE and one material for the body
+						// if here was a break then would miss some vertices if material was split
+					}
+				}
 			}
 		}
 	}
@@ -1306,18 +1325,18 @@ PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 }
 
 
-static void walk_children(SG_Node* node, PyObject *list, bool recursive)
+static void walk_children(SG_Node* node, CListValue* list, bool recursive)
 {
 	NodeList& children = node->GetSGChildren();
 
 	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
 	{
 		SG_Node* childnode = (*childit);
-		KX_GameObject* childobj = (KX_GameObject*)childnode->GetSGClientObject();
+		CValue* childobj = (CValue*)childnode->GetSGClientObject();
 		if (childobj != NULL) // This is a GameObject
 		{
 			// add to the list
-			PyList_Append(list, (PyObject *)childobj);
+			list->Add(childobj->AddRef());
 		}
 		
 		// if the childobj is NULL then this may be an inverse parent link
@@ -1330,14 +1349,14 @@ static void walk_children(SG_Node* node, PyObject *list, bool recursive)
 
 PyObject* KX_GameObject::PyGetChildren(PyObject* self)
 {
-	PyObject * list = PyList_New(0);
+	CListValue* list = new CListValue();
 	walk_children(m_pSGNode, list, 0);
 	return list;
 }
 
 PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
 {
-	PyObject * list = PyList_New(0);
+	CListValue* list = new CListValue();
 	walk_children(m_pSGNode, list, 1);
 	return list;
 }
@@ -1470,6 +1489,7 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self,
 		if (PyVecTo(pyvect, vect))
 		{
 			AlignAxisToVect(vect,axis,fac);
+			NodeUpdateGS(0.f,true);
 			Py_RETURN_NONE;
 		}
 	}
@@ -1567,8 +1587,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	float dist = 0.0f;
 	char *propName = NULL;
 
-	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName))
+	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
+	}
 
 	if (!PyVecTo(pyarg, toPoint))
 	{
@@ -1615,11 +1637,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
-"rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or None if no hit\n"
+				   "rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or (None,None,None) tuple if no hit\n"
 " prop = property name that object must have; can be omitted => detect any object\n"
 " dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to to\n"
 " from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"
-"        Can None or omitted => start from self object center\n"
+"        Can be None or omitted => start from self object center\n"
 " to = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
 "Note: the object on which you call this method matters: the ray will ignore it if it goes through it\n")
 {
@@ -1631,8 +1653,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	char *propName = NULL;
 	KX_GameObject *other;
 
-	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName))
+	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
+	}
 
 	if (!PyVecTo(pyto, toPoint))
 	{
@@ -1690,16 +1714,14 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
     if (m_pHitObject)
 	{
 		PyObject* returnValue = PyTuple_New(3);
-		if (!returnValue)
+		if (!returnValue) {
+			PyErr_SetString(PyExc_TypeError, "PyTuple_New() failed");
 			return NULL;
+		}
 		PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
 		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
 		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
 		return returnValue;
-		//return Py_BuildValue("(O,(fff),(fff))", 
-		//	m_pHitObject->AddRef(),		// trick: KX_GameObject are not true Python object, they use a difference reference count system
-		//	resultPoint[0], resultPoint[1], resultPoint[2],
-		//	resultNormal[0], resultNormal[1], resultNormal[2]);
 	}
 	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 	//Py_RETURN_NONE;

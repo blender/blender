@@ -44,7 +44,6 @@ public:
 	virtual ~SCA_ActuatorEventManager();
 	virtual void NextFrame();
 	virtual void UpdateFrame();
-	virtual void	RegisterSensor(SCA_ISensor* sensor);
 	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 };
 

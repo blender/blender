@@ -521,6 +521,7 @@ public:
 	 */
 		void 
 	UpdateMaterialData(
+		dword matname_hash,
 		MT_Vector4 rgba,
 		MT_Vector3 specrgb,
 		MT_Scalar hard,

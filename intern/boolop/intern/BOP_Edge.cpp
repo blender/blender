@@ -75,4 +75,47 @@ void BOP_Edge::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 	else if (m_vertexs[1] == oldIndex) m_vertexs[1] = newIndex;
 }
 
+#ifdef BOP_NEW_MERGE
+
+/**
+ * Returns if this edge contains the specified face index.
+ * @param i face index
+ * @return true if this edge contains the specified face index, false otherwise
+ */
+bool BOP_Edge::removeFace(BOP_Index i)
+{
+	int pos=0;
+	for(BOP_IT_Indexs it = m_faces.begin();it!=m_faces.end();pos++,it++) {
+		if ((*it) == i) {
+			m_faces.erase(it);
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+#endif
+
+#ifdef BOP_DEBUG
+
+#include <iostream>
+using namespace std;
+
+/**
+ * Implements operator <<.
+ */
+ostream &operator<<(ostream &stream, BOP_Edge *e)
+{
+	stream << "Edge[" << e->getVertex1() << "," << e->getVertex2();
+#ifdef BOP_NEW_MERGE
+	if(e->m_used)
+		stream << "] (used)";
+	else
+		stream << "] (unused)";
+#endif
+	return stream;
+}
+#endif
+
 

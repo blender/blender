@@ -304,27 +304,27 @@ PyParentObject KX_ObjectActuator::Parents[] = {
 };
 
 PyMethodDef KX_ObjectActuator::Methods[] = {
-	{"getForce", (PyCFunction) KX_ObjectActuator::sPyGetForce, METH_VARARGS},
+	{"getForce", (PyCFunction) KX_ObjectActuator::sPyGetForce, METH_NOARGS},
 	{"setForce", (PyCFunction) KX_ObjectActuator::sPySetForce, METH_VARARGS},
-	{"getTorque", (PyCFunction) KX_ObjectActuator::sPyGetTorque, METH_VARARGS},
+	{"getTorque", (PyCFunction) KX_ObjectActuator::sPyGetTorque, METH_NOARGS},
 	{"setTorque", (PyCFunction) KX_ObjectActuator::sPySetTorque, METH_VARARGS},
-	{"getDLoc", (PyCFunction) KX_ObjectActuator::sPyGetDLoc, METH_VARARGS},
+	{"getDLoc", (PyCFunction) KX_ObjectActuator::sPyGetDLoc, METH_NOARGS},
 	{"setDLoc", (PyCFunction) KX_ObjectActuator::sPySetDLoc, METH_VARARGS},
-	{"getDRot", (PyCFunction) KX_ObjectActuator::sPyGetDRot, METH_VARARGS},
+	{"getDRot", (PyCFunction) KX_ObjectActuator::sPyGetDRot, METH_NOARGS},
 	{"setDRot", (PyCFunction) KX_ObjectActuator::sPySetDRot, METH_VARARGS},
-	{"getLinearVelocity", (PyCFunction) KX_ObjectActuator::sPyGetLinearVelocity, METH_VARARGS},
+	{"getLinearVelocity", (PyCFunction) KX_ObjectActuator::sPyGetLinearVelocity, METH_NOARGS},
 	{"setLinearVelocity", (PyCFunction) KX_ObjectActuator::sPySetLinearVelocity, METH_VARARGS},
-	{"getAngularVelocity", (PyCFunction) KX_ObjectActuator::sPyGetAngularVelocity, METH_VARARGS},
+	{"getAngularVelocity", (PyCFunction) KX_ObjectActuator::sPyGetAngularVelocity, METH_NOARGS},
 	{"setAngularVelocity", (PyCFunction) KX_ObjectActuator::sPySetAngularVelocity, METH_VARARGS},
 	{"setDamping", (PyCFunction) KX_ObjectActuator::sPySetDamping, METH_VARARGS},
-	{"getDamping", (PyCFunction) KX_ObjectActuator::sPyGetDamping, METH_VARARGS},
+	{"getDamping", (PyCFunction) KX_ObjectActuator::sPyGetDamping, METH_NOARGS},
 	{"setForceLimitX", (PyCFunction) KX_ObjectActuator::sPySetForceLimitX, METH_VARARGS},
-	{"getForceLimitX", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitX, METH_VARARGS},
+	{"getForceLimitX", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitX, METH_NOARGS},
 	{"setForceLimitY", (PyCFunction) KX_ObjectActuator::sPySetForceLimitY, METH_VARARGS},
-	{"getForceLimitY", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitY, METH_VARARGS},
+	{"getForceLimitY", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitY, METH_NOARGS},
 	{"setForceLimitZ", (PyCFunction) KX_ObjectActuator::sPySetForceLimitZ, METH_VARARGS},
-	{"getForceLimitZ", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitZ, METH_VARARGS},
-	{"setPID", (PyCFunction) KX_ObjectActuator::sPyGetPID, METH_VARARGS},
+	{"getForceLimitZ", (PyCFunction) KX_ObjectActuator::sPyGetForceLimitZ, METH_NOARGS},
+	{"setPID", (PyCFunction) KX_ObjectActuator::sPyGetPID, METH_NOARGS},
 	{"getPID", (PyCFunction) KX_ObjectActuator::sPySetPID, METH_VARARGS},
 
 
@@ -340,9 +340,7 @@ PyObject* KX_ObjectActuator::_getattr(const STR_String& attr) {
 /* Removed! */
 
 /* 2. getForce                                                               */
-PyObject* KX_ObjectActuator::PyGetForce(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetForce(PyObject* self)
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -362,6 +360,7 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_force.setValue(vecArg);
@@ -371,9 +370,7 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 }
 
 /* 4. getTorque                                                              */
-PyObject* KX_ObjectActuator::PyGetTorque(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetTorque(PyObject* self)
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -393,6 +390,7 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_torque.setValue(vecArg);
@@ -402,9 +400,7 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 }
 
 /* 6. getDLoc                                                                */
-PyObject* KX_ObjectActuator::PyGetDLoc(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetDLoc(PyObject* self)
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -424,6 +420,7 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						 &vecArg[2], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_dloc.setValue(vecArg);
@@ -433,9 +430,7 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 }
 
 /* 8. getDRot                                                                */
-PyObject* KX_ObjectActuator::PyGetDRot(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetDRot(PyObject* self)
 {
 	PyObject *retVal = PyList_New(4);
 
@@ -455,6 +450,7 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot.setValue(vecArg);
@@ -464,9 +460,7 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 }
 
 /* 10. getLinearVelocity                                                 */
-PyObject* KX_ObjectActuator::PyGetLinearVelocity(PyObject* self, 
-												 PyObject* args, 
-												 PyObject* kwds) {
+PyObject* KX_ObjectActuator::PyGetLinearVelocity(PyObject* self) {
 	PyObject *retVal = PyList_New(4);
 
 	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_linear_velocity[0]));
@@ -485,6 +479,7 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_linear_velocity.setValue(vecArg);
@@ -495,9 +490,7 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 
 
 /* 12. getAngularVelocity                                                */
-PyObject* KX_ObjectActuator::PyGetAngularVelocity(PyObject* self, 
-												  PyObject* args, 
-												  PyObject* kwds) {
+PyObject* KX_ObjectActuator::PyGetAngularVelocity(PyObject* self) {
 	PyObject *retVal = PyList_New(4);
 
 	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_angular_velocity[0]));
@@ -515,6 +508,7 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_angular_velocity.setValue(vecArg);
@@ -529,6 +523,7 @@ PyObject* KX_ObjectActuator::PySetDamping(PyObject* self,
 										  PyObject* kwds) {
 	int damping = 0;
 	if (!PyArg_ParseTuple(args, "i", &damping) || damping < 0 || damping > 1000) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_damping = damping;
@@ -536,15 +531,11 @@ PyObject* KX_ObjectActuator::PySetDamping(PyObject* self,
 }
 
 /* 13. getVelocityDamping                                                */
-PyObject* KX_ObjectActuator::PyGetDamping(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ObjectActuator::PyGetDamping(PyObject* self) {
 	return Py_BuildValue("i",m_damping);
 }
 /* 6. getForceLimitX                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitX(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetForceLimitX(PyObject* self)
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -562,6 +553,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self,
 	float vecArg[2];
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot[0] = vecArg[0];
@@ -571,9 +563,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self,
 }
 
 /* 6. getForceLimitY                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitY(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetForceLimitY(PyObject* self)
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -591,6 +581,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self,
 	float vecArg[2];
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot[1] = vecArg[0];
@@ -600,9 +591,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self,
 }
 
 /* 6. getForceLimitZ                                                                */
-PyObject* KX_ObjectActuator::PyGetForceLimitZ(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetForceLimitZ(PyObject* self)
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -620,6 +609,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self,
 	float vecArg[2];
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot[2] = vecArg[0];
@@ -629,9 +619,7 @@ PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self,
 }
 
 /* 4. getPID                                                              */
-PyObject* KX_ObjectActuator::PyGetPID(PyObject* self, 
-									  PyObject* args, 
-									  PyObject* kwds)
+PyObject* KX_ObjectActuator::PyGetPID(PyObject* self)
 {
 	PyObject *retVal = PyList_New(3);
 
@@ -648,6 +636,7 @@ PyObject* KX_ObjectActuator::PySetPID(PyObject* self,
 {
 	float vecArg[3];
 	if (!PyArg_ParseTuple(args, "fff", &vecArg[0], &vecArg[1], &vecArg[2])) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_torque.setValue(vecArg);

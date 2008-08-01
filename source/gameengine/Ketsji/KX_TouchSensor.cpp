@@ -153,6 +153,14 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 	}
 }
 
+void KX_TouchSensor::UnregisterSumo(KX_TouchEventManager* touchman)
+{
+	if (m_physCtrl)
+	{
+		touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl);
+	}
+}
+
 bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_CollData* colldata)
 {
 //	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;

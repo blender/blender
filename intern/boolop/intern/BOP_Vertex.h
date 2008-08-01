@@ -31,6 +31,7 @@
 #include "BOP_Tag.h"
 #include "BOP_Indexs.h"
 #include "MT_Point3.h"
+#include "BOP_Misc.h"
 
 class BOP_Vertex 
 {
@@ -52,6 +53,10 @@ public:
 	inline MT_Point3 getPoint() const { return m_point;};
 	inline BOP_TAG getTAG() { return m_tag;};
 	inline void setTAG(BOP_TAG t) { m_tag = t;};
+#ifdef BOP_DEBUG
+	friend ostream &operator<<(ostream &stream, BOP_Vertex *v);
+#endif
+
 };
 
 #endif

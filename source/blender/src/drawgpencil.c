@@ -94,6 +94,7 @@
 void gp_ui_activelayer_cb (void *gpd, void *gpl)
 {
 	gpencil_layer_setactive(gpd, gpl);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* rename layer and set active */
@@ -104,18 +105,21 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 	
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
 	gpencil_layer_setactive(gpd, gpl);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* add a new layer */
 void gp_ui_addlayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_addnew(gpd);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* delete active layer */
 void gp_ui_dellayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_delactive(gpd);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* delete last stroke of active layer */
@@ -134,21 +138,9 @@ void gp_ui_delframe_cb (void *gpd, void *gpl)
 	
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_layer_delframe(gpl, gpf);
-}
-
-
-/* set this set of gpencil data for editing in action editor */
-void gp_ui_dotime_cb (void *gpd_arg, void *dummy)
-{
-	bGPdata *gpd= (bGPdata *)gpd_arg;
 	
-	/* check if setting or clearing (note: setting was just set...) */
-	if (gpd->flag & GP_DATA_EDITTIME)
-		gpencil_data_setetime(G.curscreen, gpd);
-	else	
-		gpencil_data_setetime(G.curscreen, NULL);
+	allqueue(REDRAWACTION, 0);
 }
-
 
 /* ------- Drawing Code ------- */
 
@@ -156,6 +148,7 @@ void gp_ui_dotime_cb (void *gpd_arg, void *dummy)
 static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short *xco, short *yco)
 {
 	uiBut *but;
+	short active= (gpl->flag & GP_LAYER_ACTIVE);
 	short width= 314;
 	short height;
 	int rb_col;
@@ -168,40 +161,41 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* rounded header */
-		rb_col= (gpl->flag & GP_LAYER_ACTIVE)?50:20;
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
+			rb_col= (active)?-20:20;
+			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
 		uiDefIconButBitI(block, ICONTOG, GP_LAYER_LOCKED, B_REDR, ICON_UNLOCKED,	*xco-7, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Layer cannot be modified");
 	}
 	
-	/* when layer is locked or hidden, don't draw the rest of its settings */
+	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {
+		char name[256]; /* gpl->info is 128, but we need space for 'locked/hidden' as well */
+		
 		height= 26;
 		
-		/* draw rest of header */
-		{
-			/* visibility button (only if hidden but not locked!) */
-			if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
-				uiDefIconButBitI(block, ICONTOG, GP_LAYER_HIDE, B_REDR, ICON_RESTRICT_VIEW_OFF,	*xco+12, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Visibility of layer");
-			
-			/* name */
-			uiDefBut(block, LABEL, 1, gpl->info,	*xco+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "Short description of what this layer is for (optional)");
-		}
+		/* visibility button (only if hidden but not locked!) */
+		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
+			uiDefIconButBitI(block, ICONTOG, GP_LAYER_HIDE, B_REDR, ICON_RESTRICT_VIEW_OFF,	*xco+12, *yco-1, 20, 20, &gpl->flag, 0.0, 0.0, 0, 0, "Visibility of layer");
 		
-		/* draw backdrop */
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
-		
-		/* draw settings... (i.e. just warning for this one) */
+		/* name */
 		if (gpl->flag & GP_LAYER_HIDE)
-			uiDefBut(block, LABEL, 1, "Grease Pencil Layer Hidden",	*xco+60, *yco-26, 205, 20, NULL, 0.0, 0.0, 0, 0, "");
+			sprintf(name, "%s (Hidden)", gpl->info);
 		else
-			uiDefBut(block, LABEL, 1, "Grease Pencil Layer Locked",	*xco+60, *yco-26, 205, 20, NULL, 0.0, 0.0, 0, 0, "");
+			sprintf(name, "%s (Locked)", gpl->info);
+		uiDefBut(block, LABEL, 1, name,	*xco+35, *yco, 240, 20, NULL, 0.0, 0.0, 0, 0, "Short description of what this layer is for (optional)");
 			
+		/* delete button (only if hidden but not locked!) */
+		if ((gpl->flag & GP_LAYER_HIDE) & !(gpl->flag & GP_LAYER_LOCKED)) {
+			but= uiDefIconBut(block, BUT, B_REDR, ICON_X, *xco+(width-30), *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete layer");
+			uiButSetFunc(but, gp_ui_dellayer_cb, gpd, NULL);
+		}	
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else {
-		height= 100;
+		height= 97;
 		
 		/* draw rest of header */
 		{
@@ -211,7 +205,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			uiBlockSetEmboss(block, UI_EMBOSS);
 			
 			/* name */
-			but= uiDefButC(block, TEX, B_REDR, "Info:",	*xco+35, *yco, 240, 20, gpl->info, 0, 127, 0, 0, "Short description of what this layer is for (optional)");
+			but= uiDefButC(block, TEX, B_REDR, "Info:",	*xco+36, *yco, 240, 19, gpl->info, 0, 127, 0, 0, "Short description of what this layer is for (optional)");
 			uiButSetFunc(but, gp_ui_renamelayer_cb, gpd, gpl);
 			
 			/* delete 'button' */
@@ -224,7 +218,9 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		}
 		
 		/* draw backdrop */
-		uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
+			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* draw settings */
 		{
@@ -237,21 +233,25 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			/* stroke thickness */
 			uiDefButS(block, NUMSLI, B_REDR, "Thickness:",	*xco, *yco-75, 150, 20, &gpl->thickness, 1, 10, 0, 0, "Thickness of strokes (in pixels)");
 			
+			/* debugging options */
+			if (G.f & G_DEBUG) {
+				uiDefButBitI(block, TOG, GP_LAYER_DRAWDEBUG, B_REDR, "Show Points", *xco, *yco-95, 150, 20, &gpl->flag, 0, 0, 0, 0, "Show points which form the strokes");
+			}
 			
 			/* onion-skinning */
 			uiBlockBeginAlign(block);
 				uiDefButBitI(block, TOG, GP_LAYER_ONIONSKIN, B_REDR, "Onion-Skin", *xco+160, *yco-26, 140, 20, &gpl->flag, 0, 0, 0, 0, "Ghost frames on either side of frame");
-				uiDefButS(block, NUMSLI, B_REDR, "GStep:",	*xco+160, *yco-46, 140, 20, &gpl->gstep, 0, 120, 0, 0, "Maximum frame range on either side of active frame to show (0 = just 'first' available frame on either side)");
+				uiDefButS(block, NUMSLI, B_REDR, "GStep:",	*xco+160, *yco-46, 140, 20, &gpl->gstep, 0, 120, 0, 0, "Max number of frames on either side of active frame to show (0 = just 'first' available sketch on either side)");
 			uiBlockEndAlign(block);
 			
 			/* options */
-			but= uiDefBut(block, BUT, B_REDR, "Del Active Frame", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Erases the the active frame for this layer");
-			uiButSetFunc(but, gp_ui_delframe_cb, gpd, gpl);
-			
-			but= uiDefBut(block, BUT, B_REDR, "Del Last Stroke", *xco+160, *yco-95, 140, 20, NULL, 0, 0, 0, 0, "Erases the last stroke from the active frame");
-			uiButSetFunc(but, gp_ui_delstroke_cb, gpd, gpl);
-			
-			//uiDefButBitI(block, TOG, GP_LAYER_DRAWDEBUG, B_REDR, "Show Points", *xco+160, *yco-75, 130, 20, &gpl->flag, 0, 0, 0, 0, "Show points which form the strokes");
+			uiBlockBeginAlign(block);
+				but= uiDefBut(block, BUT, B_REDR, "Del Active Frame", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Erases the the active frame for this layer (Hotkey = Alt-XKEY/DEL)");
+				uiButSetFunc(but, gp_ui_delframe_cb, gpd, gpl);
+				
+				but= uiDefBut(block, BUT, B_REDR, "Del Last Stroke", *xco+160, *yco-95, 140, 20, NULL, 0, 0, 0, 0, "Erases the last stroke from the active frame (Hotkey = Alt-XKEY/DEL)");
+				uiButSetFunc(but, gp_ui_delstroke_cb, gpd, gpl);
+			uiBlockEndAlign(block);
 		}
 	}
 	
@@ -262,36 +262,40 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 /* Draw the contents for a grease-pencil panel. This assumes several things:
  * 	- that panel has been created, is 318 x 204. max yco is 225
  *	- that a toggle for turning on/off gpencil drawing is 150 x 20, starting from (10,225)
+ *		which is basically the top left-hand corner
  * It will return the amount of extra space to extend the panel by
  */
 short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 {
 	uiBut *but;
 	bGPDlayer *gpl;
-	short xco= 10, yco= 155;
+	short xco= 10, yco= 170;
 	
 	/* draw gpd settings first */
 	{
-		/* show status info button */
-		uiDefButBitI(block, TOG, GP_DATA_DISPINFO, B_REDR, "Show Status Info", 10, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "Display status info about current status of Grease Pencil");
-		
-		/* add new/duplicate layer buttons */
-		but= uiDefBut(block, BUT, B_REDR, "Add New Layer", 10,182,150,20, 0, 0, 0, 0, 0, "Adds a new Grease Pencil Layer");
+		/* add new layer buttons */
+		but= uiDefBut(block, BUT, B_REDR, "Add New Layer", 10,205,150,20, 0, 0, 0, 0, 0, "Adds a new Grease Pencil Layer");
 		uiButSetFunc(but, gp_ui_addlayer_cb, gpd, NULL);
 		
 		
-		/* show override lmb-clicks button */
-		uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 150, 20, &gpd->flag, 0, 0, 0, 0, "Interpret LMB-click as new strokes (same as holding Shift-Key per stroke)");
+		/* show override lmb-clicks button + painting lock */
+		uiBlockBeginAlign(block);
+			if ((gpd->flag & GP_DATA_EDITPAINT)==0) {
+				uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 130, 20, &gpd->flag, 0, 0, 0, 0, "Interpret click-drag as new strokes");
+				
+				uiBlockSetCol(block, TH_BUT_SETTING);
+					uiDefIconButBitI(block, ICONTOG, GP_DATA_LMBPLOCK, B_REDR, ICON_UNLOCKED,	300, 225, 20, 20, &gpd->flag, 0.0, 0.0, 0, 0, "Painting cannot occur with Shift-LMB (when making selections)");
+				uiBlockSetCol(block, TH_AUTO);
+			}
+			else
+				uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 150, 20, &gpd->flag, 0, 0, 0, 0, "Interpret click-drag as new strokes");
+		uiBlockEndAlign(block);
 		
 		/* 'view align' button (naming depends on context) */
 		if (sa->spacetype == SPACE_VIEW3D)
-			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Draw in 3D", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added in 3D-space");
+			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Sketch in 3D", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added in 3D-space");
 		else if (sa->spacetype != SPACE_SEQ) /* not available for sequencer yet */
 			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Stick to View", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added on 2d-canvas");
-		
-		/* show edit-in-action button */
-		but= uiDefButBitI(block, TOG, GP_DATA_EDITTIME, B_REDR, "Edit Timing", 170, 182, 150, 20, &gpd->flag, 0, 0, 0, 0, "Edit timing of frames for the Grease Pencil block");
-		uiButSetFunc(but, gp_ui_dotime_cb, gpd, NULL);
 	}
 	
 	/* draw for each layer */
@@ -312,6 +316,66 @@ enum {
 	GP_DRAWDATA_ONLY3D		= (1<<1),	/* only draw 3d-strokes */
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 };
+
+/* draw stroke in buffer */
+static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thickness, short dflag, short sflag)
+{
+	tGPspoint *pt;
+	int i;
+	
+	/* error checking */
+	if ((points == NULL) || (totpoints <= 0))
+		return;
+	
+	/* check if buffer can be drawn */
+	if (dflag & (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_ONLYV2D))
+		return;
+	
+	/* if drawing a single point, draw it larger */	
+	if (totpoints == 1) {		
+		/* draw point */
+		glBegin(GL_POINTS);
+			glVertex2f(points->x, points->y);
+		glEnd();
+	}
+	else if (sflag & GP_STROKE_ERASER) {
+		/* draw stroke curve - just standard thickness */
+		setlinestyle(4);
+		glLineWidth(1.0f);
+		
+		glBegin(GL_LINE_STRIP);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			glVertex2f(pt->x, pt->y);
+		}
+		glEnd();
+		
+		setlinestyle(0);
+	}
+	else {
+		float oldpressure = 0.0f;
+		
+		/* draw stroke curve */
+		setlinestyle(2);
+		
+		glBegin(GL_LINE_STRIP);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			if (fabs(pt->pressure - oldpressure) > 0.2f) {
+				glEnd();
+				glLineWidth(pt->pressure * thickness);
+				glBegin(GL_LINE_STRIP);
+				
+				glVertex2f(pt->x, pt->y);
+				
+				oldpressure = pt->pressure;
+			}
+			else
+				glVertex2f(pt->x, pt->y);
+		}
+		glEnd();
+		
+		setlinestyle(0);
+	}
+}
 
 /* draw a given stroke */
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
@@ -422,6 +486,21 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 	}
 }
 
+/* draw a set of strokes */
+static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, short debug, 
+							 short lthick, float color[4])
+{
+	bGPDstroke *gps;
+	
+	/* set color first (may need to reset it again later too) */
+	glColor4f(color[0], color[1], color[2], color[3]);
+	
+	for (gps= gpf->strokes.first; gps; gps= gps->next) {	
+		/* just draw the stroke once */
+		gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+	}
+}
+
 /* draw grease-pencil datablock */
 static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 {
@@ -437,11 +516,10 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 	/* loop over layers, drawing them */
 	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
 		bGPDframe *gpf;
-		bGPDstroke *gps;
 		
 		short debug = (gpl->flag & GP_LAYER_DRAWDEBUG) ? 1 : 0;
 		short lthick= gpl->thickness;
-		float color[4];
+		float color[4], tcolor[4];
 		
 		/* don't draw layer if hidden */
 		if (gpl->flag & GP_LAYER_HIDE) 
@@ -459,6 +537,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		/* set color, stroke thickness, and point size */
 		glLineWidth(lthick);
 		QUATCOPY(color, gpl->color); // just for copying 4 array elements
+		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4f(color[0], color[1], color[2], color[3]);
 		glPointSize(gpl->thickness + 2);
 		
@@ -474,11 +553,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						glColor4f(color[0], color[1], color[2], (color[3]-(i*0.7)));
-						
-						for (gps= gf->strokes.first; gps; gps= gps->next) {	
-							gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-						}
+						tcolor[3] = color[3] - (i/gpl->gstep);
+						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -489,11 +565,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						glColor4f(color[0], color[1], color[2], (color[3]-(i*0.7)));
-						
-						for (gps= gf->strokes.first; gps; gps= gps->next) {								
-							gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-						}
+						tcolor[3] = color[3] - (i/gpl->gstep);
+						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -504,19 +577,14 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 			}
 			else {
 				/* draw the strokes for the ghost frames (at half of the alpha set by user) */
-				glColor4f(color[0], color[1], color[2], (color[3] / 7));
-				
 				if (gpf->prev) {
-					for (gps= gpf->prev->strokes.first; gps; gps= gps->next) {
-						gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-					}
+					tcolor[3] = (color[3] / 7);
+					gp_draw_strokes(gpf->prev, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
-				glColor4f(color[0], color[1], color[2], (color[3] / 4));
 				if (gpf->next) {
-					for (gps= gpf->next->strokes.first; gps; gps= gps->next) {	
-						gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-					}
+					tcolor[3] = (color[3] / 4);
+					gp_draw_strokes(gpf->next, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				/* restore alpha */
@@ -525,20 +593,17 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		}
 		
 		/* draw the strokes already in active frame */
-		for (gps= gpf->strokes.first; gps; gps= gps->next) {	
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
-		}
+		tcolor[3]= color[3];
+		gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 		
 		/* Check if may need to draw the active stroke cache, only if this layer is the active layer
-		 * that is being edited. (Stroke cache is currently stored in gp-data)
+		 * that is being edited. (Stroke buffer is currently stored in gp-data)
 		 */
 		if ((G.f & G_GREASEPENCIL) && (gpl->flag & GP_LAYER_ACTIVE) &&
 			(gpf->flag & GP_FRAME_PAINT)) 
 		{
 			/* Buffer stroke needs to be drawn with a different linestyle to help differentiate them from normal strokes. */
-			setlinestyle(2);
-			gp_draw_stroke(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag, debug, winx, winy);
-			setlinestyle(0);
+			gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag);
 		}
 	}
 	

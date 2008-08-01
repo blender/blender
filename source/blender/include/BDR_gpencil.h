@@ -38,6 +38,15 @@ struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
 
+/* ------------- Grease-Pencil Helpers -------------- */
+
+/* Temporary 'Stroke Point' data */
+typedef struct tGPspoint {
+	short x, y;				/* x and y coordinates of cursor (in relative to area) */
+	float xf, yf;			/* same as x and y, but as floats */
+	float pressure;			/* pressure of tablet at this point */
+} tGPspoint;
+
 /* ------------ Grease-Pencil API ------------------ */
 
 void free_gpencil_strokes(struct bGPDframe *gpf);
@@ -53,8 +62,6 @@ struct bGPdata *gpencil_data_duplicate(struct bGPdata *gpd);
 
 struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
 short gpencil_data_setactive(struct ScrArea *sa, struct bGPdata *gpd);
-struct bGPdata *gpencil_data_getetime(struct bScreen *sc);
-void gpencil_data_setetime(struct bScreen *sc, struct bGPdata *gpd);
 
 void gpencil_frame_delete_laststroke(struct bGPDframe *gpf);
 
@@ -71,6 +78,6 @@ void gpencil_delete_operation(short mode);
 void gpencil_delete_menu(void);
 
 //short gpencil_paint(short mousebutton);
-short gpencil_do_paint(struct ScrArea *sa);
+short gpencil_do_paint(struct ScrArea *sa, short mousebutton);
 
 #endif /*  BDR_GPENCIL_H */
