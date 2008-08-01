@@ -231,6 +231,8 @@ int UnaryFunction1DDouble___init__(BPy_UnaryFunction1DDouble* self, PyObject *ar
 		self->uf1D_double = new UnaryFunction1D<double>( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
 	
+	self->uf1D_double->py_uf1D = (PyObject *)self;
+	
 	return 0;
 }
 

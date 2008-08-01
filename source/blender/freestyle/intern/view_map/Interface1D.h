@@ -38,6 +38,8 @@
 # include "../winged_edge/Nature.h"
 # include "Functions0D.h"
 
+#include "../python/Director.h"
+
 using namespace std;
 /*! \file Interface1D.h
  *  Interface1D and related tools definitions
@@ -125,8 +127,10 @@ class Interface1D
 {
 public:
 
+	PyObject *py_if1D;
+
   /*! Default constructor */
-  Interface1D() {_timeStamp=0;}
+	Interface1D() {_timeStamp=0; py_if1D = 0; }
    virtual ~Interface1D() {}; //soc
 
   /*! Returns the string "Interface1D" .*/
@@ -140,16 +144,28 @@ public:
    *  pointing to the first vertex.
    */
   virtual Interface0DIterator verticesBegin() {
-	    cerr << "Warning: method verticesBegin() not implemented" << endl;
-	    return Interface0DIterator();
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "verticesBegin") ) {
+			return Director_BPy_Interface1D_verticesBegin(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " verticesBegin() not implemented" << endl;
+			return Interface0DIterator();
+		}
   }
 	
   /*! Returns an iterator over the Interface1D vertices,
    *  pointing after the last vertex.
    */
   virtual Interface0DIterator verticesEnd(){
-	    cerr << "Warning: method verticesEnd() not implemented" << endl;
-	    return Interface0DIterator();
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "verticesEnd") ) {
+			return Director_BPy_Interface1D_verticesEnd(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " verticesEnd() not implemented" << endl;
+			return Interface0DIterator();
+		}
   }
 
   /*! Returns an iterator over the Interface1D points,
@@ -162,8 +178,14 @@ public:
    *    this 1D element.
    */
   virtual Interface0DIterator pointsBegin(float t=0.f) {
-	    cerr << "Warning: method pointsBegin() not implemented" << endl;
-	    return Interface0DIterator();
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "pointsBegin") ) {
+			return Director_BPy_Interface1D_pointsBegin(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " pointsBegin() not implemented" << endl;
+			return Interface0DIterator();
+		}
   }
 
   /*! Returns an iterator over the Interface1D points,
@@ -176,8 +198,14 @@ public:
    *    this 1D element.
    */
   virtual Interface0DIterator pointsEnd(float t=0.f) {
-	    cerr << "Warning: method pointsEnd() not implemented" << endl;
-	    return Interface0DIterator();
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "pointsEnd") ) {
+			return Director_BPy_Interface1D_pointsEnd(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " pointsEnd() not implemented" << endl;
+			return Interface0DIterator();
+		}
   }
 
   // Data access methods

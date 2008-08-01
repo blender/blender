@@ -404,9 +404,11 @@ Stroke::Stroke(const Stroke& iBrother)
   _mediumType = iBrother._mediumType;
   _textureId = iBrother._textureId;
   _tips = iBrother._tips;
-  
-	if(iBrother._rep) 
+
+	if( iBrother._rep )
 		_rep = new StrokeRep(*(iBrother._rep));
+	else
+		_rep = new StrokeRep(this);
 }
 
 Stroke::~Stroke()

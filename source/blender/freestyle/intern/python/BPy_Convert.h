@@ -23,6 +23,9 @@ using namespace Geometry;
 // Material
 #include "../scene_graph/Material.h"
 
+// Nature::VertexNature, Nature::EdgeNature
+#include "../winged_edge/Nature.h"
+
 // Stroke, StrokeAttribute, StrokeVertex
 #include "../stroke/Stroke.h"
 
@@ -58,15 +61,14 @@ extern "C" {
 #include "api2_2x/vector.h"
 #include "api2_2x/gen_utils.h"
 
-PyObject * PyBool_from_bool( bool b );
-bool bool_from_PyBool( PyObject *b );
+//==============================
+// C++ => Python
+//==============================
 
+PyObject * PyBool_from_bool( bool b );
 PyObject * Vector_from_Vec2f( Vec2f& v );
 PyObject * Vector_from_Vec3f( Vec3f& v );
 PyObject * Vector_from_Vec3r( Vec3r& v );
-
-IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj );
-Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj );
 
 PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
 PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp );
@@ -99,8 +101,19 @@ PyObject * BPy_ChainingIterator_from_ChainingIterator( ChainingIterator& c_it );
 PyObject * BPy_ChainPredicateIterator_from_ChainPredicateIterator( ChainPredicateIterator& cp_it );
 PyObject * BPy_ChainSilhouetteIterator_from_ChainSilhouetteIterator( ChainSilhouetteIterator& cs_it );
 
+//==============================
+// Python => C++
+//==============================
 
-   
+bool bool_from_PyBool( PyObject *b );
+IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj );
+Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj );
+Nature::EdgeNature EdgeNature_from_BPy_Nature( PyObject* obj );
+Vec2f * Vec2f_ptr_from_Vector( PyObject* obj );
+Vec3f * Vec3f_ptr_from_Vector( PyObject* obj );
+Vec3r * Vec3r_ptr_from_Vector( PyObject* obj );
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

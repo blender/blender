@@ -152,6 +152,8 @@ int UnaryFunction1DUnsigned___init__(BPy_UnaryFunction1DUnsigned* self, PyObject
 		self->uf1D_unsigned = new UnaryFunction1D<unsigned int>( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
 	
+	self->uf1D_unsigned->py_uf1D = (PyObject *)self;
+	
 	return 0;
 }
 void UnaryFunction1DUnsigned___dealloc__(BPy_UnaryFunction1DUnsigned* self)

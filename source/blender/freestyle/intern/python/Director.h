@@ -37,32 +37,22 @@ void Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s);
 void Director_BPy_ChainingIterator_init( PyObject *obj );
 ViewEdge * Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it );
 
-// BPy_UnaryFunction0DDouble
-double Director_BPy_UnaryFunction0DDouble___call__( PyObject *obj, Interface0DIterator& if0D_it);
-// BPy_UnaryFunction0DEdgeNature
-// BPy_UnaryFunction0DFloat
-// BPy_UnaryFunction0DId
-// BPy_UnaryFunction0DMaterial
-// BPy_UnaryFunction0DUnsigned
-// BPy_UnaryFunction0DVec2f
-// BPy_UnaryFunction0DVec3f
-// BPy_UnaryFunction0DVectorViewShape
-// BPy_UnaryFunction0DViewShape
-
-// BPy_UnaryFunction1DDouble
-// BPy_UnaryFunction1DEdgeNature
-// BPy_UnaryFunction1DFloat
-// BPy_UnaryFunction1DUnsigned
-// BPy_UnaryFunction1DVec2f
-// BPy_UnaryFunction1DVec3f
-// BPy_UnaryFunction1DVectorViewShape
-// BPy_UnaryFunction1DVoid
-void Director_BPy_UnaryFunction1DVoid___call__( PyObject *obj, Interface1D& if1D);
+// BPy_UnaryFunction{0D,1D}: __call__
+void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it);
+void Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D);
 
 // BPy_Iterator: increment, decrement, isBegin, isEnd
 void Director_BPy_Iterator_increment( PyObject *obj );
 void Director_BPy_Iterator_decrement( PyObject *obj );
 bool Director_BPy_Iterator_isBegin( PyObject *obj );
 bool Director_BPy_Iterator_isEnd( PyObject *obj );
+
+// BPy_Interface1D: verticesBegin, verticesEnd, pointsBegin, pointsEnd
+Interface0DIterator Director_BPy_Interface1D_verticesBegin( PyObject *obj );
+Interface0DIterator Director_BPy_Interface1D_verticesEnd( PyObject *obj );
+Interface0DIterator Director_BPy_Interface1D_pointsBegin( PyObject *obj );
+Interface0DIterator Director_BPy_Interface1D_pointsEnd( PyObject *obj );
+
+
 
 #endif // FREESTYLE_PYTHON_DIRECTOR

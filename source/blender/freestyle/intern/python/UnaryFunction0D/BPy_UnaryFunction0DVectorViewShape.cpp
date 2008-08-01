@@ -135,6 +135,7 @@ PyMODINIT_FUNC UnaryFunction0DVectorViewShape_Init( PyObject *module ) {
 int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape* self)
 {
 	self->uf0D_vectorviewshape = new UnaryFunction0D< std::vector<ViewShape*> >();
+	self->uf0D_vectorviewshape->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

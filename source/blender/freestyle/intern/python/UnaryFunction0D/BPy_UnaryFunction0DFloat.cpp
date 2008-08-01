@@ -164,6 +164,7 @@ PyMODINIT_FUNC UnaryFunction0DFloat_Init( PyObject *module ) {
 int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat* self)
 {
 	self->uf0D_float = new UnaryFunction0D<float>();
+	self->uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

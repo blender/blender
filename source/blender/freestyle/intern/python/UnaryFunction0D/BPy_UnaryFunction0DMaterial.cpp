@@ -135,6 +135,7 @@ PyMODINIT_FUNC UnaryFunction0DMaterial_Init( PyObject *module ) {
 int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self)
 {
 	self->uf0D_material = new UnaryFunction0D<Material>();
+	self->uf0D_material->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

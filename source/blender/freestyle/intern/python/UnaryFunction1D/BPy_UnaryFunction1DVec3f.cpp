@@ -152,6 +152,8 @@ int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObject *args
 		self->uf1D_vec3f = new UnaryFunction1D<Vec3f>( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
 	
+	self->uf1D_vec3f->py_uf1D = (PyObject *)self;
+	
 	return 0;
 }
 void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)

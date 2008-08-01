@@ -145,6 +145,8 @@ int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat* self, PyObject *args
 		self->uf1D_float = new UnaryFunction1D<float>( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
 	
+	self->uf1D_float->py_uf1D = (PyObject *)self;
+	
 	return 0;
 }
 void UnaryFunction1DFloat___dealloc__(BPy_UnaryFunction1DFloat* self)

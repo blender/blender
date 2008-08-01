@@ -39,14 +39,15 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+//==============================
+// C++ => Python
+//==============================
+
 
 PyObject * PyBool_from_bool( bool b ){
 	return PyBool_FromLong( b ? 1 : 0);
 }
 
-bool bool_from_PyBool( PyObject *b ) {
-	return b == Py_True;
-}
 
 PyObject * Vector_from_Vec2f( Vec2f& vec ) {
 	float vec_data[2]; // because vec->_coord is protected
@@ -224,19 +225,6 @@ PyObject * BPy_directedViewEdge_from_directedViewEdge( ViewVertex::directedViewE
 	return py_dve;
 }
 
-
-//==============================
-// Constants
-//==============================
-
-IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {
-	return static_cast<IntegrationType>( PyInt_AsLong(obj) );
-}
-
-Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj ) {
-	return static_cast<Stroke::MediumType>( PyInt_AsLong(obj) );
-}
-
 //==============================
 // Iterators
 //==============================
@@ -323,7 +311,48 @@ PyObject * BPy_ChainSilhouetteIterator_from_ChainSilhouetteIterator( ChainSilhou
 }
 
 
+//==============================
+// Python => C++
+//==============================
 
+bool bool_from_PyBool( PyObject *b ) {
+	return b == Py_True;
+}
+
+IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {
+	return static_cast<IntegrationType>( PyInt_AsLong(obj) );
+}
+
+Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj ) {
+	return static_cast<Stroke::MediumType>( PyInt_AsLong(obj) );
+}
+
+Nature::EdgeNature EdgeNature_from_BPy_Nature( PyObject* obj ) {
+	return static_cast<Nature::EdgeNature>( PyInt_AsLong(obj) );
+}
+
+Vec2f * Vec2f_ptr_from_Vector( PyObject* obj ) {
+	float x = PyFloat_AsDouble( PyObject_GetAttrString(obj,"x") );
+	float y = PyFloat_AsDouble( PyObject_GetAttrString(obj,"y") );
+	
+	return new Vec2f(x,y);
+}
+
+Vec3f * Vec3f_ptr_from_Vector( PyObject* obj ) {
+	float x = PyFloat_AsDouble( PyObject_GetAttrString(obj,"x") );
+	float y = PyFloat_AsDouble( PyObject_GetAttrString(obj,"y") );
+	float z = PyFloat_AsDouble( PyObject_GetAttrString(obj,"z") );
+	
+	return new Vec3f(x,y,z);
+}
+
+Vec3r * Vec3r_ptr_from_Vector( PyObject* obj ) {
+	double x = PyFloat_AsDouble( PyObject_GetAttrString(obj,"x") );
+	double y = PyFloat_AsDouble( PyObject_GetAttrString(obj,"y") );
+	double z = PyFloat_AsDouble( PyObject_GetAttrString(obj,"z") );
+	
+	return new Vec3r(x,y,z);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

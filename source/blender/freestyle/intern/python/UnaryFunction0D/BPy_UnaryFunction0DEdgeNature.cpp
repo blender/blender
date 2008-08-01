@@ -135,6 +135,7 @@ PyMODINIT_FUNC UnaryFunction0DEdgeNature_Init( PyObject *module ) {
 int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self)
 {
 	self->uf0D_edgenature = new UnaryFunction0D<Nature::EdgeNature>();
+	self->uf0D_edgenature->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

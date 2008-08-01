@@ -30,6 +30,10 @@ static PyObject *Interface1D_getId( BPy_Interface1D *self );
 static PyObject *Interface1D_getNature( BPy_Interface1D *self );
 static PyObject *Interface1D_getTimeStamp( BPy_Interface1D *self );
 static PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args);
+static PyObject * Interface1D_verticesBegin( BPy_Interface1D *self );
+static PyObject * Interface1D_verticesEnd( BPy_Interface1D *self );
+static PyObject * Interface1D_pointsBegin( BPy_Interface1D *self, PyObject *args );
+static PyObject * Interface1D_pointsEnd( BPy_Interface1D *self, PyObject *args );
 
 /*----------------------Interface1D instance definitions ----------------------------*/
 static PyMethodDef BPy_Interface1D_methods[] = {
@@ -41,6 +45,11 @@ static PyMethodDef BPy_Interface1D_methods[] = {
 	{"getNature", ( PyCFunction ) Interface1D_getNature, METH_NOARGS, "Returns the nature of the 1D element"},
 	{"getTimeStamp", ( PyCFunction ) Interface1D_getTimeStamp, METH_NOARGS, "Returns the time stamp of the 1D element. Mainly used for selection"},
 	{"setTimeStamp", ( PyCFunction ) Interface1D_setTimeStamp, METH_VARARGS, "Sets the time stamp for the 1D element"},
+	{"verticesBegin", ( PyCFunction ) Interface1D_verticesBegin, METH_NOARGS, ""},
+	{"verticesEnd", ( PyCFunction ) Interface1D_verticesEnd, METH_NOARGS, ""},
+	{"pointsBegin", ( PyCFunction ) Interface1D_pointsBegin, METH_VARARGS, ""},
+	{"pointsEnd", ( PyCFunction ) Interface1D_pointsEnd, METH_VARARGS, ""},
+
 	{NULL, NULL, 0, NULL}
 };
 
@@ -189,6 +198,7 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 int Interface1D___init__(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
 	self->if1D = new Interface1D();
+	self->if1D->py_if1D = (PyObject *) self;
 	return 0;
 }
 
@@ -243,6 +253,41 @@ PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args) {
 	self->if1D->setTimeStamp( timestamp );
 
 	Py_RETURN_NONE;
+}
+
+PyObject * Interface1D_verticesBegin( BPy_Interface1D *self ) {
+	Interface0DIterator if0D_it( self->if1D->verticesBegin() );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+PyObject * Interface1D_verticesEnd( BPy_Interface1D *self ) {
+	Interface0DIterator if0D_it( self->if1D->verticesEnd() );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+
+PyObject * Interface1D_pointsBegin( BPy_Interface1D *self, PyObject *args ) {
+	float f = 0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+		cout << "ERROR: Interface1D_pointsBegin" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	Interface0DIterator if0D_it( self->if1D->pointsBegin(f) );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+PyObject * Interface1D_pointsEnd( BPy_Interface1D *self, PyObject *args ) {
+	float f = 0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )) {
+		cout << "ERROR: Interface1D_pointsEnd" << endl;
+		Py_RETURN_NONE;
+	}
+	
+	Interface0DIterator if0D_it( self->if1D->pointsEnd(f) );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

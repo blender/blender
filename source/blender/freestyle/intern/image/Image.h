@@ -44,12 +44,12 @@
  *  size w*h, and access these pixels using x,y coordinates 
  *  specified in the whole image coordinate system.
  */
-class Image
+class FrsImage
 {
  public:
 
    /*! Default constructor */
-  Image() {
+  FrsImage() {
     _storedWidth = 0;
     _storedHeight = 0;
     _width = 0;
@@ -59,7 +59,7 @@ class Image
   }
 
   /*! Copy constructor */
-  Image(const Image& brother) {
+  FrsImage(const FrsImage& brother) {
     _storedWidth = brother._storedWidth;
     _storedHeight = brother._storedHeight;
     _width = brother._width;
@@ -68,10 +68,10 @@ class Image
     _Oy = brother._Oy;
   }
 
-  /*! Builds an image from its width and height.
+  /*! Builds an FrsImage from its width and height.
    *  The memory is allocated consequently.
    */
-  Image(unsigned w, unsigned h) {
+  FrsImage(unsigned w, unsigned h) {
     _width = w;
     _height = h;
     _storedWidth = w;
@@ -98,7 +98,7 @@ class Image
    *    The x-abscissa of the origin of the rectangle that will actually 
    *    be stored.
    */
-  Image(unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy) {
+  FrsImage(unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy) {
     _width = w;
     _height = h;
     _storedWidth = sw;
@@ -108,7 +108,7 @@ class Image
   }
 
   /*! Operator= */
-  Image& operator=(const Image& brother) {
+  FrsImage& operator=(const FrsImage& brother) {
     _width = brother._width;
     _height = brother._height;
     _storedWidth = brother._storedWidth;
@@ -119,7 +119,7 @@ class Image
   }
 
   /*! Destructor */
-  virtual ~Image() {}
+  virtual ~FrsImage() {}
 
   /*! Returns the width of the complete image */
   inline unsigned width() const {
@@ -181,24 +181,24 @@ class Image
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class RGBImage : public Image
+class RGBImage : public FrsImage
 {
  public:
 
-  RGBImage() : Image() {
+  RGBImage() : FrsImage() {
     _rgb = 0;
   }
 
-  RGBImage(const RGBImage& brother) : Image(brother) {
+  RGBImage(const RGBImage& brother) : FrsImage(brother) {
     _rgb = new float[3 * _storedWidth * _storedHeight];
     memcpy(_rgb, brother._rgb, 3 * _storedWidth * _storedHeight * sizeof(float));
   }
 
-  RGBImage(unsigned w, unsigned h) : Image(w, h) {
+  RGBImage(unsigned w, unsigned h) : FrsImage(w, h) {
     _rgb = new float[3 * _width * _height];
   }
 
-  RGBImage(float* rgb, unsigned w, unsigned h) : Image(w, h) {
+  RGBImage(float* rgb, unsigned w, unsigned h) : FrsImage(w, h) {
     _rgb = new float[3 * _width * _height];
     memcpy(_rgb, rgb, 3 * _width * _height * sizeof(float));
   }
@@ -218,13 +218,13 @@ class RGBImage : public Image
    *  \param sh
    *    The height of the part of the image we want to store and work on
    */
-  RGBImage(float* rgb, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy) : Image(w, h, sw, sh, ox, oy) {
+  RGBImage(float* rgb, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy) : FrsImage(w, h, sw, sh, ox, oy) {
     _rgb = new float[3 * _storedWidth * _storedHeight];
     memcpy(_rgb, rgb, 3 * _storedWidth * _storedHeight * sizeof(float));
   }
 
   RGBImage& operator=(const RGBImage& brother) {
-    dynamic_cast<Image&>(*this) = brother;
+    dynamic_cast<FrsImage&>(*this) = brother;
     _rgb = new float[3 * _storedWidth * _storedHeight];
     memcpy(_rgb, brother._rgb, 3 * _storedWidth * _storedHeight * sizeof(float));
     return* this;
@@ -296,25 +296,25 @@ class RGBImage : public Image
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class GrayImage : public Image
+class GrayImage : public FrsImage
 {
  public:
 
-  GrayImage() : Image() {
+  GrayImage() : FrsImage() {
     _lvl = 0;
   }
 
-  GrayImage(const GrayImage& brother) : Image(brother) {
+  GrayImage(const GrayImage& brother) : FrsImage(brother) {
     _lvl = new float[_storedWidth*_storedHeight];
     memcpy(_lvl, brother._lvl, _storedWidth*_storedHeight*sizeof(*_lvl));
   }
 
   /*! Builds an empty gray image */
-  GrayImage(unsigned w, unsigned h) : Image(w, h) {
+  GrayImage(unsigned w, unsigned h) : FrsImage(w, h) {
     _lvl = new float[_width*_height];
   }
 
-  GrayImage(float* lvl, unsigned w, unsigned h) : Image(w, h) {
+  GrayImage(float* lvl, unsigned w, unsigned h) : FrsImage(w, h) {
     _lvl = new float[_width*_height];
     memcpy(_lvl, lvl, _width*_height*sizeof(*_lvl));
   }
@@ -334,13 +334,13 @@ class GrayImage : public Image
    *  \param sh
    *    The height of the part of the image we want to store and work on
    */
-  GrayImage(float* lvl, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy) : Image(w, h, sw, sh, ox, oy) {
+  GrayImage(float* lvl, unsigned w, unsigned h, unsigned sw, unsigned sh, unsigned ox, unsigned oy) : FrsImage(w, h, sw, sh, ox, oy) {
     _lvl = new float[_storedWidth*_storedHeight];
     memcpy(_lvl, lvl, _storedWidth*_storedHeight*sizeof(float));
   }
 
   GrayImage& operator=(const GrayImage& brother) {
-    dynamic_cast<Image&>(*this) = brother;
+    dynamic_cast<FrsImage&>(*this) = brother;
     _lvl = new float[_storedWidth * _storedHeight];
     memcpy(_lvl, brother._lvl, _storedWidth * _storedHeight * sizeof(float));
   return *this;

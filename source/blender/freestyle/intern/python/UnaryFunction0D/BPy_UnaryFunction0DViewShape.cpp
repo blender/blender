@@ -141,6 +141,7 @@ PyMODINIT_FUNC UnaryFunction0DViewShape_Init( PyObject *module ) {
 int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self)
 {
 	self->uf0D_viewshape = new UnaryFunction0D<ViewShape*>();
+	self->uf0D_viewshape->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

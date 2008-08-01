@@ -65,7 +65,7 @@ void Operators::select(UnaryPredicate1D& pred) {
 
 void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		      UnaryPredicate1D& pred,
-		      UnaryFunction1D<void>& modifier) {
+		      UnaryFunction1D_void& modifier) {
   if (_current_view_edges_set.empty())
     return;
 
@@ -137,7 +137,7 @@ void Operators::chain(ViewEdgeInternal::ViewEdgeIterator& it,
 
 //void Operators::bidirectionalChain(ViewEdgeIterator& it,
 //				   UnaryPredicate1D& pred,
-//				   UnaryFunction1D<void>& modifier) {
+//				   UnaryFunction1D_void& modifier) {
 //  if (_current_view_edges_set.empty())
 //    return;
 //

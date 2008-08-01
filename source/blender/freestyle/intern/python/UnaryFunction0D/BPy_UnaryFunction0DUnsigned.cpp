@@ -135,6 +135,7 @@ PyMODINIT_FUNC UnaryFunction0DUnsigned_Init( PyObject *module ) {
 int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self)
 {
 	self->uf0D_unsigned = new UnaryFunction0D<unsigned int>();
+	self->uf0D_unsigned->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

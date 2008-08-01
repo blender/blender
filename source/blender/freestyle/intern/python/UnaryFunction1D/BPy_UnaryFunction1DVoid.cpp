@@ -161,10 +161,12 @@ int UnaryFunction1DVoid___init__(BPy_UnaryFunction1DVoid* self, PyObject *args)
 	}
 	
 	if( !obj )
-		self->uf1D_void = new UnaryFunction1D<void>();
+		self->uf1D_void = new UnaryFunction1D_void();
 	else {
-		self->uf1D_void = new UnaryFunction1D<void>( IntegrationType_from_BPy_IntegrationType(obj) );
+		self->uf1D_void = new UnaryFunction1D_void( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
+	
+	self->uf1D_void->py_uf1D = (PyObject *)self;
 	
 	return 0;
 }

@@ -43,6 +43,8 @@ class SShape;
 
 using namespace Geometry;
 
+#include "../python/Director.h"
+
 //
 // UnaryFunction0D (base class for functions in 0D)
 //
@@ -70,12 +72,15 @@ class /*LIB_VIEW_MAP_EXPORT*/ UnaryFunction0D
 {
 public:
 
+	T result;
+	PyObject *py_uf0D;
+
   /*! The type of the value
    *  returned by the functor.
    */
   typedef T ReturnedValueType;
   /*! Default constructor. */
-  UnaryFunction0D() {}
+UnaryFunction0D() { py_uf0D  = 0;}
   /*! Destructor; */
   virtual ~UnaryFunction0D() {}
   /*! Returns the string "UnaryFunction0D" */
@@ -90,9 +95,17 @@ public:
    *  \return the result of the function of type T.
    */
   virtual T operator()(Interface0DIterator& iter) {
-    cerr << "Warning: UnaryFunction0D operator() not implemented" << endl;
-    return T();
+	string name( py_uf0D ? PyString_AsString(PyObject_CallMethod(py_uf0D, "getName", "")) : getName() );
+	
+	if( py_uf0D && PyObject_HasAttrString(py_uf0D, "__call__") ) {
+		Director_BPy_UnaryFunction0D___call__( this, py_uf0D, iter);
+		return result;
+	} else {
+		cerr << "Warning: " << name << " operator() not implemented" << endl;
+	    return T();
+	}
   }
+
 };
 
 # ifdef SWIG

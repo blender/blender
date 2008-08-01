@@ -127,7 +127,7 @@ public:
   virtual bool operator()(Interface1D& inter1, Interface1D& inter2) {
 	string name( py_bp1D ? PyString_AsString(PyObject_CallMethod(py_bp1D, "getName", "")) : getName() );
 	
-	if( py_bp1D && py_bp1D && PyObject_HasAttrString(py_bp1D, "__call__") ) {
+	if( py_bp1D && PyObject_HasAttrString(py_bp1D, "__call__") ) {
 		return Director_BPy_BinaryPredicate1D___call__(py_bp1D, inter1, inter2);
 	} else {
 		cerr << "Warning: " << name << " operator() not implemented" << endl;

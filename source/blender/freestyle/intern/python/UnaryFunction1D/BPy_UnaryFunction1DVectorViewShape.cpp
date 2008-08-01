@@ -165,6 +165,8 @@ int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorViewShape* 
 		self->uf1D_vectorviewshape = new UnaryFunction1D< std::vector<ViewShape*> >( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
 	
+	self->uf1D_vectorviewshape->py_uf1D = (PyObject *)self;
+	
 	return 0;
 }
 

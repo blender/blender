@@ -36,6 +36,9 @@
 # include "Functions0D.h"
 # include "Interface1D.h"
 # include "../system/FreestyleConfig.h"
+
+#include "../python/Director.h"
+
 //
 // UnaryFunction1D (base class for functions in 1D)
 //
@@ -62,6 +65,10 @@ template <class T>
 class /*LIB_VIEW_MAP_EXPORT*/ UnaryFunction1D
 {
 public:
+
+	T result;
+	PyObject *py_uf1D;
+
   /*! The type of the value
    *  returned by the functor.
    */
@@ -92,9 +99,17 @@ public:
    *  \return the result of the function of type T.
    */
   virtual T operator()(Interface1D& inter) {
-    cerr << "Warning: UnaryFunction1D operator() not implemented" << endl;
-    return T(0);
+	string name( py_uf1D ? PyString_AsString(PyObject_CallMethod(py_uf1D, "getName", "")) : getName() );
+
+	if( py_uf1D && PyObject_HasAttrString(py_uf1D, "__call__") ) {
+		Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter);
+		return result;
+	} else {
+		cerr << "Warning: " << name << " operator() not implemented" << endl;
+	    return T(0);
+	}
   }
+	
   /*! Sets the integration method */
   void setIntegrationType(IntegrationType integration) {
     _integration = integration;
@@ -109,22 +124,37 @@ protected:
   IntegrationType _integration;
 };
 
-# ifdef SWIG
-%feature("director")			UnaryFunction1D<void>;
-%feature("director")			UnaryFunction1D<unsigned>;
-%feature("director")			UnaryFunction1D<float>;
-%feature("director")			UnaryFunction1D<double>;
-%feature("director")			UnaryFunction1D<Vec2f>;
-%feature("director")			UnaryFunction1D<Vec3f>;
 
-%template(UnaryFunction1DVoid)		UnaryFunction1D<void>;
-%template(UnaryFunction1DUnsigned)	UnaryFunction1D<unsigned>;
-%template(UnaryFunction1DFloat)		UnaryFunction1D<float>;
-%template(UnaryFunction1DDouble)	UnaryFunction1D<double>;
-%template(UnaryFunction1DVec2f)		UnaryFunction1D<Vec2f>;
-%template(UnaryFunction1DVec3f)		UnaryFunction1D<Vec3f>;
-%template(UnaryFunction1DVectorViewShape)		UnaryFunction1D<std::vector<ViewShape*> >;
-# endif // SWIG
+class  UnaryFunction1D_void
+{
+public:
+
+	PyObject *py_uf1D;
+
+	UnaryFunction1D_void(){_integration = MEAN;}
+	UnaryFunction1D_void(IntegrationType iType){_integration = iType;}
+	virtual ~UnaryFunction1D_void() {}
+	
+	virtual string getName() const {
+		return "UnaryFunction1D_void";
+	}
+	
+	void operator()(Interface1D& inter) {
+		string name( py_uf1D ? PyString_AsString(PyObject_CallMethod(py_uf1D, "getName", "")) : getName() );
+
+		if( py_uf1D && PyObject_HasAttrString(py_uf1D, "__call__") ) {
+			Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter);
+		} else {
+			cerr << "Warning: " << name << " operator() not implemented" << endl;
+		}
+	  }
+	
+	void setIntegrationType(IntegrationType integration) { _integration = integration; }
+	IntegrationType getIntegrationType() const { return _integration; }
+	
+	protected:
+		IntegrationType _integration;
+};
 
 
 //
@@ -385,7 +415,7 @@ namespace Functions1D {
 
   // TimeStampF1D
 /*! Returns the time stamp of the Interface1D. */
-  class LIB_VIEW_MAP_EXPORT TimeStampF1D : public UnaryFunction1D<void>
+  class LIB_VIEW_MAP_EXPORT TimeStampF1D : public UnaryFunction1D_void
   {
   public:
     /*! Returns the string "TimeStampF1D"*/
@@ -398,7 +428,7 @@ namespace Functions1D {
 
   // IncrementChainingTimeStampF1D
 /*! Increments the chaining time stamp of the Interface1D. */
-  class LIB_VIEW_MAP_EXPORT IncrementChainingTimeStampF1D : public UnaryFunction1D<void>
+  class LIB_VIEW_MAP_EXPORT IncrementChainingTimeStampF1D : public UnaryFunction1D_void
   {
   public:
     /*! Returns the string "IncrementChainingTimeStampF1D"*/
@@ -411,7 +441,7 @@ namespace Functions1D {
 
   // ChainingTimeStampF1D
 /*! Sets the chaining time stamp of the Interface1D. */
-  class LIB_VIEW_MAP_EXPORT ChainingTimeStampF1D : public UnaryFunction1D<void>
+  class LIB_VIEW_MAP_EXPORT ChainingTimeStampF1D : public UnaryFunction1D_void
   {
   public:
     /*! Returns the string "ChainingTimeStampF1D"*/

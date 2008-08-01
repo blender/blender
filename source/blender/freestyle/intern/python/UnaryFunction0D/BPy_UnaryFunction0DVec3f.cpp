@@ -135,6 +135,7 @@ PyMODINIT_FUNC UnaryFunction0DVec3f_Init( PyObject *module ) {
 int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f* self)
 {
 	self->uf0D_vec3f = new UnaryFunction0D<Vec3f>();
+	self->uf0D_vec3f->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

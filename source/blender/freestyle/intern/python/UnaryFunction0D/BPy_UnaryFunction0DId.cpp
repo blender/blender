@@ -135,6 +135,7 @@ PyMODINIT_FUNC UnaryFunction0DId_Init( PyObject *module ) {
 int UnaryFunction0DId___init__(BPy_UnaryFunction0DId* self)
 {
 	self->uf0D_id = new UnaryFunction0D<Id>();
+	self->uf0D_id->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

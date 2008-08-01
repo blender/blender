@@ -85,7 +85,7 @@ public:
    */
   static void chain(ViewEdgeInternal::ViewEdgeIterator& it,
 		    UnaryPredicate1D& pred,
-		    UnaryFunction1D<void>& modifier);
+		    UnaryFunction1D_void& modifier);
 
   /*! Builds a set of chains from the current set of ViewEdges.
    *  Each ViewEdge of the current list starts a new chain. The chaining

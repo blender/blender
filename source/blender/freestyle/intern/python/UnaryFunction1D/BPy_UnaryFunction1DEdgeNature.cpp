@@ -152,6 +152,8 @@ int UnaryFunction1DEdgeNature___init__(BPy_UnaryFunction1DEdgeNature* self, PyOb
 		self->uf1D_edgenature = new UnaryFunction1D<Nature::EdgeNature>( IntegrationType_from_BPy_IntegrationType(obj) );
 	}
 	
+	self->uf1D_edgenature->py_uf1D = (PyObject *)self;
+	
 	return 0;
 }
 void UnaryFunction1DEdgeNature___dealloc__(BPy_UnaryFunction1DEdgeNature* self)

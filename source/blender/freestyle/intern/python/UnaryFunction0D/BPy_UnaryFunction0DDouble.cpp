@@ -14,6 +14,8 @@
 #include "UnaryFunction0D_double/BPy_LocalAverageDepthF0D.h"
 #include "UnaryFunction0D_double/BPy_ZDiscontinuityF0D.h"
 
+#include "../Director.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -190,6 +192,7 @@ PyMODINIT_FUNC UnaryFunction0DDouble_Init( PyObject *module ) {
 int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble* self)
 {
 	self->uf0D_double = new UnaryFunction0D<double>();
+	self->uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 
@@ -219,7 +222,8 @@ PyObject * UnaryFunction0DDouble___call__( BPy_UnaryFunction0DDouble *self, PyOb
 		return NULL;
 	}
 	
-	double d = self->uf0D_double->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));
+	double d = self->uf0D_double->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it));
+		
 	return PyFloat_FromDouble( d );
 
 }
