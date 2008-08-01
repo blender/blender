@@ -139,6 +139,9 @@ static int check_specialvars(char *string);
 static int check_identifier(char ch);
 static int check_whitespace(char ch);
 
+static int get_wrap_width(SpaceText *st);
+static int get_wrap_points(SpaceText *st, char *line);
+
 static void get_suggest_prefix(Text *text);
 static void confirm_suggestion(Text *text, int skipleft);
 
@@ -558,14 +561,6 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	else { linep= &text->curl; charp= &text->curc; }
 	
 	y= (curarea->winy - y)/st->lheight;
-	
-	y-= txt_get_span(text->lines.first, *linep) - st->top;
-	
-	if (y>0) {
-		while (y-- != 0) if((*linep)->next) *linep= (*linep)->next;
-	} else if (y<0) {
-		while (y++ != 0) if((*linep)->prev) *linep= (*linep)->prev;
-	}
 
 	if(st->showlinenrs)
 		x-= TXT_OFFSET+TEXTXLOC;
@@ -575,10 +570,103 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	if (x<0) x= 0;
 	x = (x/spacetext_get_fontwidth(st)) + st->left;
 	
-	w= render_string(st, (*linep)->line);
-	if(x<w) *charp= temp_char_accum[x];
-	else *charp= (*linep)->len;
-	
+	if (st->wordwrap) {
+		int i, j, endj, curs, max, chop, start, end, chars, loop;
+		char ch;
+
+		/* Point to first visible line */
+		*linep= text->lines.first;
+		for (i=0; i<st->top && (*linep)->next; i++) *linep= (*linep)->next;
+
+		max= get_wrap_width(st);
+
+		loop= 1;
+		while (loop && *linep) {
+			start= 0;
+			end= max;
+			chop= 1;
+			chars= 0;
+			curs= 0;
+			for (i=0, j=0; loop; j++) {
+
+				/* Mimic replacement of tabs */
+				ch= (*linep)->line[j];
+				if (ch=='\t') {
+					chars= st->tabnumber-i%st->tabnumber;
+					ch= ' ';
+				} else
+					chars= 1;
+
+				while (chars--) {
+					/* Gone too far, go back to last wrap point */
+					if (y<0) {
+						*charp= endj;
+						loop= 0;
+						break;
+					/* Exactly at the cursor, done */
+					} else if (y==0 && i-start==x) {
+						*charp= curs= j;
+						loop= 0;
+						break;
+					/* Prepare curs for next wrap */
+					} else if (i-end==x) {
+						curs= j;
+					}
+					if (i-start>=max) {
+						if (chop) endj= j;
+						y--;
+						start= end;
+						end += max;
+						chop= 1;
+						if (y==0 && i-start>=x) {
+							*charp= curs;
+							loop= 0;
+							break;
+						}
+					} else if (ch==' ' || ch=='-' || ch=='\0') {
+						if (y==0 && i-start>=x) {
+							*charp= curs;
+							loop= 0;
+							break;
+						}
+						end = i+1;
+						endj = j;
+						chop= 0;
+					}
+					i++;
+				}
+				if (ch=='\0') break;
+			}
+			if (!loop || y<0) break;
+
+			if (!(*linep)->next) {
+				*charp= (*linep)->len;
+				break;
+			}
+			
+			/* On correct line but didn't meet cursor, must be at end */
+			if (y==0) {
+				*charp= (*linep)->len;
+				break;
+			}
+			*linep= (*linep)->next;
+			y--;
+		}
+
+	} else {
+		y-= txt_get_span(text->lines.first, *linep) - st->top;
+		
+		if (y>0) {
+			while (y-- != 0) if((*linep)->next) *linep= (*linep)->next;
+		} else if (y<0) {
+			while (y++ != 0) if((*linep)->prev) *linep= (*linep)->prev;
+		}
+
+		
+		w= render_string(st, (*linep)->line);
+		if(x<w) *charp= temp_char_accum[x];
+		else *charp= (*linep)->len;
+	}
 	if(!sel) txt_pop_sel(text);
 }
 
@@ -1000,7 +1088,7 @@ static void do_selection(SpaceText *st, int selecting)
 
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-		} else if (mval[0]<0 || mval[0]>curarea->winx) {
+		} else if (!st->wordwrap && (mval[0]<0 || mval[0]>curarea->winx)) {
 			if (mval[0]>curarea->winx) st->left++;
 			else if (mval[0]<0 && st->left>0) st->left--;
 			
