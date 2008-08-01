@@ -118,7 +118,6 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_bInitialized(false),
 	m_activecam(0),
 	m_bFixedTime(false),
-	m_game2ipo(false),
 	
 	m_firstframe(true),
 	
@@ -147,6 +146,8 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_showProperties(false),
 	m_showBackground(false),
 	m_show_debug_properties(false),
+
+	m_game2ipo(false),
 
 	// Default behavior is to hide the cursor every frame.
 	m_hideCursor(false),

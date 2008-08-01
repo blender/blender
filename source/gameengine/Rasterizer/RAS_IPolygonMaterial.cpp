@@ -39,7 +39,8 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int tilexrep,
 									 int tileyrep,
 									 int mode,
-									 bool transparant,
+									 int transp,
+									 bool alpha,
 									 bool zsort,
 									 int lightlayer,
 									 bool bIsTriangle,
@@ -51,7 +52,8 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_tilexrep(tilexrep),
 		m_tileyrep(tileyrep),
 		m_drawingmode (mode),
-		m_transparant(transparant),
+		m_transp(transp),
+		m_alpha(alpha),
 		m_zsort(zsort),
 		m_lightlayer(lightlayer),
 		m_bIsTriangle(bIsTriangle),
@@ -74,6 +76,7 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 			this->m_multimode			==		lhs.m_multimode &&
 			this->m_flag				==		lhs.m_flag		&&
 			this->m_drawingmode			==		lhs.m_drawingmode &&
+			this->m_transp				==		lhs.m_transp &&
 			this->m_lightlayer			==		lhs.m_lightlayer &&
 			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 			this->m_materialname.hash() ==		lhs.m_materialname.hash()
@@ -85,7 +88,8 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 				this->m_tile		==		lhs.m_tile &&
 				this->m_tilexrep	==		lhs.m_tilexrep &&
 				this->m_tileyrep	==		lhs.m_tileyrep &&
-				this->m_transparant	==		lhs.m_transparant &&
+				this->m_transp		==		lhs.m_transp &&
+				this->m_alpha		==		lhs.m_alpha &&
 				this->m_zsort		==		lhs.m_zsort &&
 				this->m_drawingmode	==		lhs.m_drawingmode &&
 				this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
@@ -109,9 +113,9 @@ int RAS_IPolyMaterial::GetLightLayer() const
 	return m_lightlayer;
 }
 
-bool RAS_IPolyMaterial::IsTransparant() const
+bool RAS_IPolyMaterial::IsAlpha() const
 {
-	return m_transparant;
+	return m_alpha || m_zsort;
 }
 
 bool RAS_IPolyMaterial::IsZSort() const

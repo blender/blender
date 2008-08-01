@@ -228,6 +228,12 @@ void SumoPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ct
 		m_sumoScene->requestCollisionCallback(*smObject);
 	}
 }
+
+void SumoPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
+{
+	// intentionally empty
+}
+
 PHY_IPhysicsController*	SumoPhysicsEnvironment::CreateSphereController(float radius,const PHY__Vector3& position)
 {
 	DT_ShapeHandle shape	=	DT_NewSphere(0.0);

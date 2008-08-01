@@ -136,8 +136,12 @@
 #include "BKE_mesh.h"
 #include "MT_Point3.h"
 
+#include "BLI_arithb.h"
+
 extern "C" {
-	#include "BKE_customdata.h"
+#include "BKE_customdata.h"
+#include "BKE_cdderivedmesh.h"
+#include "BKE_DerivedMesh.h"
 }
 
 #include "BKE_material.h" /* give_current_material */
@@ -309,7 +313,6 @@ typedef struct MTF_localLayer
 
 // ------------------------------------
 BL_Material* ConvertMaterial(
-	Mesh* mesh, 
 	Material *mat, 
 	MTFace* tface,  
 	const char *tfaceName,
@@ -323,15 +326,16 @@ BL_Material* ConvertMaterial(
 	//this needs some type of manager
 	BL_Material *material = new BL_Material();
 
-	int numchan =	-1;
+	int numchan =	-1, texalpha = 0;
 	bool validmat	= (mat!=0);
-	bool validface	= (mesh->mtface && tface);
+	bool validface	= (tface!=0);
 	
 	short type = 0;
 	if( validmat )
 		type = 1; // material color 
 	
 	material->IdMode = DEFAULT_BLENDER;
+	material->glslmat = (validmat)? glslmat: false;
 
 	// --------------------------------
 	if(validmat) {
@@ -367,12 +371,13 @@ BL_Material* ConvertMaterial(
 
 			if(i==0 && facetex ) {
 				Image*tmp = (Image*)(tface->tpage);
+
 				if(tmp) {
 					material->img[i] = tmp;
 					material->texname[i] = material->img[i]->id.name;
 					material->flag[i] |= ( tface->transp  &TF_ALPHA	)?USEALPHA:0;
 					material->flag[i] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
-					material->ras_mode|= ( tface->transp  &(TF_ADD | TF_ALPHA))?TRANSP:0;
+
 					if(material->img[i]->flag & IMA_REFLECT)
 						material->mapping[i].mapping |= USEREFL;
 					else
@@ -430,6 +435,8 @@ BL_Material* ConvertMaterial(
 							material->flag[i] |= ( mttmp->mapto  & MAP_ALPHA		)?TEXALPHA:0;
 							material->flag[i] |= ( mttmp->texflag& MTEX_NEGATIVE	)?TEXNEG:0;
 
+							if(!glslmat && (material->flag[i] & TEXALPHA))
+								texalpha = 1;
 						}
 					}
 					else if(mttmp->tex->type == TEX_ENVMAP) {
@@ -546,17 +553,7 @@ BL_Material* ConvertMaterial(
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
 
-		// set alpha testing without z-sorting
-		if( ( validface && (!(tface->transp &~ TF_CLIP))) && mat->mode & MA_ZTRA) {
-			// sets the RAS_IPolyMaterial::m_flag |RAS_FORCEALPHA
-			// this is so we don't have the overhead of the z-sorting code
-			material->ras_mode|=ALPHA_TEST;
-		}
-		else{
-			// use regular z-sorting
-			material->ras_mode |= ((mat->mode & MA_ZTRA) != 0)?ZSORT:0;
-		}
-		material->ras_mode |= ((mat->mode & MA_WIRE) != 0)?WIRE:0;
+		material->ras_mode |= (mat->mode & MA_WIRE)? WIRE: 0;
 	}
 	else {
 		int valid = 0;
@@ -574,7 +571,6 @@ BL_Material* ConvertMaterial(
 				material->mapping[0].mapping |= ( (material->img[0]->flag & IMA_REFLECT)!=0 )?USEREFL:0;
 				material->flag[0] |= ( tface->transp  &TF_ALPHA	)?USEALPHA:0;
 				material->flag[0] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
-				material->ras_mode|= ( tface->transp  & (TF_ADD|TF_ALPHA))?TRANSP:0;
 				valid++;
 			}
 		}
@@ -607,10 +603,6 @@ BL_Material* ConvertMaterial(
 
 		material->ras_mode |= ( (tface->mode & TF_DYNAMIC)!= 0 )?COLLIDER:0;
 		material->transp = tface->transp;
-		
-		if(tface->transp&~TF_CLIP)
-			material->ras_mode |= TRANSP;
-
 		material->tile	= tface->tile;
 		material->mode	= tface->mode;
 			
@@ -631,7 +623,16 @@ BL_Material* ConvertMaterial(
 		material->tile		= 0;
 	}
 
+	// with ztransp enabled, enforce alpha blending mode
+	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
+		material->transp = TF_ALPHA;
 
+	// always zsort alpha + add
+	if((material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha)
+		&& (material->transp != TF_CLIP)) {
+		material->ras_mode |= ALPHA;
+		material->ras_mode |= (material->mode & TF_ALPHASORT)? ZSORT: 0;
+	}
 
 	// get uv sets
 	if(validmat) 
@@ -711,132 +712,54 @@ BL_Material* ConvertMaterial(
 }
 
 
-static void BL_ComputeTriTangentSpace(const MT_Vector3 &v1, const MT_Vector3 &v2, const MT_Vector3 &v3, 
-	const MT_Vector2 &uv1, const MT_Vector2 &uv2, const MT_Vector2 &uv3, 
-	MFace* mface, MT_Vector3 *tan1, MT_Vector3 *tan2)
-{
-		MT_Vector3 dx1(v2 - v1), dx2(v3 - v1);
-		MT_Vector2 duv1(uv2 - uv1), duv2(uv3 - uv1);
-		
-		MT_Scalar r = 1.0 / (duv1.x() * duv2.y() - duv2.x() * duv1.y());
-		duv1 *= r;
-		duv2 *= r;
-		MT_Vector3 sdir(duv2.y() * dx1 - duv1.y() * dx2);
-		MT_Vector3 tdir(duv1.x() * dx2 - duv2.x() * dx1);
-		
-		tan1[mface->v1] += sdir;
-		tan1[mface->v2] += sdir;
-		tan1[mface->v3] += sdir;
-		
-		tan2[mface->v1] += tdir;
-		tan2[mface->v2] += tdir;
-		tan2[mface->v3] += tdir;
-}
-
-static MT_Vector4*  BL_ComputeMeshTangentSpace(Mesh* mesh)
-{
-	MFace* mface = static_cast<MFace*>(mesh->mface);
-	MTFace* tface = static_cast<MTFace*>(mesh->mtface);
-
-	MT_Vector3 *tan1 = new MT_Vector3[mesh->totvert];
-	MT_Vector3 *tan2 = new MT_Vector3[mesh->totvert];
-	
-	int v;
-	for (v = 0; v < mesh->totvert; v++)
-	{
-		tan1[v] = MT_Vector3(0.0, 0.0, 0.0);
-		tan2[v] = MT_Vector3(0.0, 0.0, 0.0);
-	}
-	
-	for (int p = 0; p < mesh->totface; p++, mface++, tface++)
-	{
-		MT_Vector3 	v1(mesh->mvert[mface->v1].co),
-				v2(mesh->mvert[mface->v2].co),
-				v3(mesh->mvert[mface->v3].co);
-				
-		MT_Vector2	uv1(tface->uv[0]),
-				uv2(tface->uv[1]),
-				uv3(tface->uv[2]);
-				
-		BL_ComputeTriTangentSpace(v1, v2, v3, uv1, uv2, uv3, mface, tan1, tan2);
-		if (mface->v4)
-		{
-			MT_Vector3 v4(mesh->mvert[mface->v4].co);
-			MT_Vector2 uv4(tface->uv[3]);
-			
-			BL_ComputeTriTangentSpace(v1, v3, v4, uv1, uv3, uv4, mface, tan1, tan2);
-		}
-	}
-	
-	MT_Vector4 *tangent = new MT_Vector4[mesh->totvert];
-	for (v = 0; v < mesh->totvert; v++)
-	{
-		const MT_Vector3 no(mesh->mvert[v].no[0]/32767.0, 
-					mesh->mvert[v].no[1]/32767.0, 
-					mesh->mvert[v].no[2]/32767.0);
-		// Gram-Schmidt orthogonalize
-		MT_Vector3 t(tan1[v] - no.cross(no.cross(tan1[v])));
-		if (!MT_fuzzyZero(t))
-			t /= t.length();
-
-		tangent[v].x() = t.x();
-		tangent[v].y() = t.y();
-		tangent[v].z() = t.z();
-		// Calculate handedness
-		tangent[v].w() = no.dot(tan1[v].cross(tan2[v])) < 0.0 ? -1.0 : 1.0;
-	}
-	
-	delete [] tan1;
-	delete [] tan2;
-	
-	return tangent;
-}
-
 RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools* rendertools, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_MeshObject *meshobj;
-	bool	skinMesh = false;
-	
+	bool skinMesh = false;
 	int lightlayer = blenderobj->lay;
-	
-	MFace* mface = static_cast<MFace*>(mesh->mface);
-	MTFace* tface = static_cast<MTFace*>(mesh->mtface);
-	const char *tfaceName = "";
-	MCol* mmcol = mesh->mcol;
-	MT_assert(mface || mesh->totface == 0);
 
+	// Get DerivedMesh data
+	DerivedMesh *dm = CDDM_from_mesh(mesh, blenderobj);
+
+	MVert *mvert = dm->getVertArray(dm);
+	int totvert = dm->getNumVerts(dm);
+
+	MFace *mface = dm->getFaceArray(dm);
+	MTFace *tface = static_cast<MTFace*>(dm->getFaceDataArray(dm, CD_MTFACE));
+	MCol *mcol = static_cast<MCol*>(dm->getFaceDataArray(dm, CD_MCOL));
+	float (*tangent)[3] = NULL;
+	int totface = dm->getNumFaces(dm);
+	const char *tfaceName = "";
+
+	if(tface) {
+		DM_add_tangent_layer(dm);
+		tangent = (float(*)[3])dm->getFaceDataArray(dm, CD_TANGENT);
+	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key){
+	if (mesh->dvert || mesh->key) {
 		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
 		skinMesh = true;
 	}
-	else {
+	else
 		meshobj = new RAS_MeshObject(mesh, lightlayer);
-	}
-	MT_Vector4 *tangent = 0;
-	if (tface)
-		tangent = BL_ComputeMeshTangentSpace(mesh);
-	
 
 	// Extract avaiable layers
 	MTF_localLayer *layers =  new MTF_localLayer[MAX_MTFACE];
-	for (int lay=0; lay<MAX_MTFACE; lay++)
-	{
+	for (int lay=0; lay<MAX_MTFACE; lay++) {
 		layers[lay].face = 0;
 		layers[lay].name = "";
 	}
 
-
 	int validLayers = 0;
-	for (int i=0; i<mesh->fdata.totlayer; i++)
+	for (int i=0; i<dm->faceData.totlayer; i++)
 	{
-		if (mesh->fdata.layers[i].type == CD_MTFACE)
+		if (dm->faceData.layers[i].type == CD_MTFACE)
 		{
 			assert(validLayers <= 8);
 
-			layers[validLayers].face = (MTFace*)mesh->fdata.layers[i].data;;
-			layers[validLayers].name = mesh->fdata.layers[i].name;
+			layers[validLayers].face = (MTFace*)(dm->faceData.layers[i].data);
+			layers[validLayers].name = dm->faceData.layers[i].name;
 			if(tface == layers[validLayers].face)
 				tfaceName = layers[validLayers].name;
 			validLayers++;
@@ -844,271 +767,269 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	meshobj->SetName(mesh->id.name);
-	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
-	for (int f=0;f<mesh->totface;f++,mface++)
+	meshobj->m_xyz_index_to_vertex_index_mapping.resize(totvert);
+
+	for (int f=0;f<totface;f++,mface++)
 	{
-		
+		Material* ma = 0;
 		bool collider = true;
-		
-		// only add valid polygons
-		if (mface->v3)
-		{
-			MT_Point2 uv0(0.0,0.0),uv1(0.0,0.0),uv2(0.0,0.0),uv3(0.0,0.0);
-			MT_Point2 uv20(0.0,0.0),uv21(0.0,0.0),uv22(0.0,0.0),uv23(0.0,0.0);
-			// rgb3 is set from the adjoint face in a square
-			unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
-			MT_Vector3	no0(mesh->mvert[mface->v1].no[0], mesh->mvert[mface->v1].no[1], mesh->mvert[mface->v1].no[2]),
-					no1(mesh->mvert[mface->v2].no[0], mesh->mvert[mface->v2].no[1], mesh->mvert[mface->v2].no[2]),
-					no2(mesh->mvert[mface->v3].no[0], mesh->mvert[mface->v3].no[1], mesh->mvert[mface->v3].no[2]),
-					no3(0.0, 0.0, 0.0);
-			MT_Point3	pt0(mesh->mvert[mface->v1].co),
-					pt1(mesh->mvert[mface->v2].co),
-					pt2(mesh->mvert[mface->v3].co),
-					pt3(0.0, 0.0, 0.0);
-			MT_Vector4	tan0(0.0, 0.0, 0.0, 0.0),
-					tan1(0.0, 0.0, 0.0, 0.0),
-					tan2(0.0, 0.0, 0.0, 0.0),
-					tan3(0.0, 0.0, 0.0, 0.0);
+		MT_Point2 uv0(0.0,0.0),uv1(0.0,0.0),uv2(0.0,0.0),uv3(0.0,0.0);
+		MT_Point2 uv20(0.0,0.0),uv21(0.0,0.0),uv22(0.0,0.0),uv23(0.0,0.0);
+		unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
 
-			no0 /= 32767.0;
-			no1 /= 32767.0;
-			no2 /= 32767.0;
+		MT_Vector3 no0, no1, no2, no3;
+		MT_Point3 pt0, pt1, pt2, pt3;
+		MT_Vector4 tan0, tan1, tan2, tan3;
+
+		/* get coordinates, normals and tangents */
+		pt0 = MT_Point3(mvert[mface->v1].co);
+		pt1 = MT_Point3(mvert[mface->v2].co);
+		pt2 = MT_Point3(mvert[mface->v3].co);
+		pt3 = (mface->v4)? MT_Point3(mvert[mface->v4].co): MT_Point3(0.0, 0.0, 0.0);
+
+		if(mface->flag & ME_SMOOTH) {
+			float n0[3], n1[3], n2[3], n3[3];
+
+			NormalShortToFloat(n0, mvert[mface->v1].no);
+			NormalShortToFloat(n1, mvert[mface->v2].no);
+			NormalShortToFloat(n2, mvert[mface->v3].no);
+			no0 = n0;
+			no1 = n1;
+			no2 = n2;
+
+			if(mface->v4) {
+				NormalShortToFloat(n3, mvert[mface->v4].no);
+				no3 = n3;
+			}
+			else
+				no3 = MT_Vector3(0.0, 0.0, 0.0);
+		}
+		else {
+			float fno[3];
+
+			if(mface->v4)
+				CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
+					mvert[mface->v3].co, mvert[mface->v4].co, fno);
+			else
+				CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
+					mvert[mface->v3].co, fno);
+
+			no0 = no1 = no2 = no3 = MT_Vector3(fno);
+		}
+
+		if(tangent) {
+			tan0 = tangent[f*4 + 0];
+			tan1 = tangent[f*4 + 1];
+			tan2 = tangent[f*4 + 2];
+
 			if (mface->v4)
-			{
-				pt3 = MT_Point3(mesh->mvert[mface->v4].co);
-				no3 = MT_Vector3(mesh->mvert[mface->v4].no[0], mesh->mvert[mface->v4].no[1], mesh->mvert[mface->v4].no[2]);
-				no3 /= 32767.0;
-			}
+				tan3 = tangent[f*4 + 3];
+		}
+
+		/* get material */
+		ma = give_current_material(blenderobj, mface->mat_nr+1);
 	
-			if(!(mface->flag & ME_SMOOTH))
-			{
-				MT_Vector3 norm = ((pt1-pt0).cross(pt2-pt0)).safe_normalized();
-				norm[0] = ((int) (10*norm[0]))/10.0;
-				norm[1] = ((int) (10*norm[1]))/10.0;
-				norm[2] = ((int) (10*norm[2]))/10.0;
-				no0=no1=no2=no3= norm;
-	
-			}
-		
-			{
-				Material* ma = 0;
-				bool polyvisible = true;
-				RAS_IPolyMaterial* polymat = NULL;
-				BL_Material *bl_mat = NULL;
+		{
+			bool polyvisible = true;
+			RAS_IPolyMaterial* polymat = NULL;
+			BL_Material *bl_mat = NULL;
 
-				if(converter->GetMaterials()) 
-				{	
-					if(mesh->totcol > 1)
-						ma = mesh->mat[mface->mat_nr];
-					else 
-						ma = give_current_material(blenderobj, 1);
+			if(converter->GetMaterials()) {
+				/* do Blender Multitexture and Blender GLSL materials */
+				unsigned int rgb[4];
+				MT_Point2 uv[4];
 
-					bl_mat = ConvertMaterial(mesh, ma, tface, tfaceName, mface, mmcol, lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
-					// set the index were dealing with
-					bl_mat->material_index =  (int)mface->mat_nr;
+				/* first is the BL_Material */
+				bl_mat = ConvertMaterial(ma, tface, tfaceName, mface, mcol,
+					lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
 
-					polyvisible = ((bl_mat->ras_mode & POLY_VIS)!=0);
-					collider = ((bl_mat->ras_mode & COLLIDER)!=0);
-					
-					polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer, blenderobj );
-					
-					unsigned int rgb[4];
-					bl_mat->GetConversionRGB(rgb);
-					rgb0 = rgb[0]; rgb1 = rgb[1];
-					rgb2 = rgb[2]; rgb3 = rgb[3];
-					MT_Point2 uv[4];
-					bl_mat->GetConversionUV(uv);
-					uv0 = uv[0]; uv1 = uv[1];
-					uv2 = uv[2]; uv3 = uv[3];
+				bl_mat->material_index =  (int)mface->mat_nr;
 
-					bl_mat->GetConversionUV2(uv);
-					uv20 = uv[0]; uv21 = uv[1];
-					uv22 = uv[2]; uv23 = uv[3];
+				polyvisible = ((bl_mat->ras_mode & POLY_VIS)!=0);
+				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
 
-					if(tangent){
-						tan0 = tangent[mface->v1];
-						tan1 = tangent[mface->v2];
-						tan2 = tangent[mface->v3];
-						if (mface->v4)
-							tan3 = tangent[mface->v4];
-					}
-				}
-				else
-				{
-					ma = give_current_material(blenderobj, 1);
+				/* vertex colors and uv's were stored in bl_mat temporarily */
+				bl_mat->GetConversionRGB(rgb);
+				rgb0 = rgb[0]; rgb1 = rgb[1];
+				rgb2 = rgb[2]; rgb3 = rgb[3];
 
-					Image* bima = ((mesh->mtface && tface) ? (Image*) tface->tpage : NULL);
-		
-					STR_String imastr = 
-						((mesh->mtface && tface) ? 
-						(bima? (bima)->id.name : "" ) : "" );
-			
-					char transp=0;
-					short mode=0, tile=0;
-					int	tilexrep=4,tileyrep = 4;
-					
-					if (bima)
-					{
-						tilexrep = bima->xrep;
-						tileyrep = bima->yrep;
+				bl_mat->GetConversionUV(uv);
+				uv0 = uv[0]; uv1 = uv[1];
+				uv2 = uv[2]; uv3 = uv[3];
+
+				bl_mat->GetConversionUV2(uv);
+				uv20 = uv[0]; uv21 = uv[1];
+				uv22 = uv[2]; uv23 = uv[3];
 				
-					}
-
-					if (mesh->mtface && tface)
-					{
-						// Use texface colors if available
-						//TF_DYNAMIC means the polygon is a collision face
-						collider = ((tface->mode & TF_DYNAMIC) != 0);
-						transp = tface->transp &~ TF_CLIP;
-						tile = tface->tile;
-						mode = tface->mode;
-						
-						polyvisible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
-						
-						uv0 = MT_Point2(tface->uv[0]);
-						uv1 = MT_Point2(tface->uv[1]);
-						uv2 = MT_Point2(tface->uv[2]);
+				/* then the KX_BlenderMaterial */
+				polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer, blenderobj );
+			}
+			else {
+				/* do Texture Face materials */
+				Image* bima = (tface)? (Image*)tface->tpage: NULL;
+				STR_String imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
 		
-						if (mface->v4)
-							uv3 = MT_Point2(tface->uv[3]);
-					} 
-					else
-					{
-						// no texfaces, set COLLSION true and everything else FALSE
-						
-						mode = default_face_mode;	
-						transp = TF_SOLID;
-						tile = 0;
-					}
+				char transp=0;
+				short mode=0, tile=0;
+				int	tilexrep=4,tileyrep = 4;
+				
+				if (bima) {
+					tilexrep = bima->xrep;
+					tileyrep = bima->yrep;
+				}
 
-					if (mmcol)
-					{
-						// Use vertex colors
-						rgb0 = KX_Mcol2uint_new(mmcol[0]);
-						rgb1 = KX_Mcol2uint_new(mmcol[1]);
-						rgb2 = KX_Mcol2uint_new(mmcol[2]);
-						
-						if (mface->v4)
-							rgb3 = KX_Mcol2uint_new(mmcol[3]);
-					}
-					else {
-						// no vertex colors: take from material if we have one,
-						// otherwise set to white
-						unsigned int color = 0xFFFFFFFFL;
-
-						if (ma)
-						{
-							union
-							{
-								unsigned char cp[4];
-								unsigned int integer;
-							} col_converter;
-							
-							col_converter.cp[3] = (unsigned char) (ma->r*255.0);
-							col_converter.cp[2] = (unsigned char) (ma->g*255.0);
-							col_converter.cp[1] = (unsigned char) (ma->b*255.0);
-							col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
-							
-							color = col_converter.integer;
-						}
+				/* get tface properties if available */
+				if(tface) {
+					/* TF_DYNAMIC means the polygon is a collision face */
+					collider = ((tface->mode & TF_DYNAMIC) != 0);
+					transp = tface->transp;
+					tile = tface->tile;
+					mode = tface->mode;
+					
+					polyvisible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
+					
+					uv0 = MT_Point2(tface->uv[0]);
+					uv1 = MT_Point2(tface->uv[1]);
+					uv2 = MT_Point2(tface->uv[2]);
 	
-						rgb0 = KX_rgbaint2uint_new(color);
-						rgb1 = KX_rgbaint2uint_new(color);
-						rgb2 = KX_rgbaint2uint_new(color);	
-						
-						if (mface->v4)
-							rgb3 = KX_rgbaint2uint_new(color);
-					}
+					if (mface->v4)
+						uv3 = MT_Point2(tface->uv[3]);
+				} 
+				else {
+					/* no texfaces, set COLLSION true and everything else FALSE */
+					mode = default_face_mode;	
+					transp = TF_SOLID;
+					tile = 0;
+				}
+
+				/* get vertex colors */
+				if (mcol) {
+					/* we have vertex colors */
+					rgb0 = KX_Mcol2uint_new(mcol[0]);
+					rgb1 = KX_Mcol2uint_new(mcol[1]);
+					rgb2 = KX_Mcol2uint_new(mcol[2]);
 					
-					bool istriangle = (mface->v4==0);
-					bool zsort = ma?(ma->mode & MA_ZTRA) != 0:false;
-					
-					polymat = new KX_PolygonMaterial(imastr, ma,
-						tile, tilexrep, tileyrep, 
-						mode, transp, zsort, lightlayer, istriangle, blenderobj, tface, (unsigned int*)mmcol);
-		
+					if (mface->v4)
+						rgb3 = KX_Mcol2uint_new(mcol[3]);
+				}
+				else {
+					/* no vertex colors, take from material, otherwise white */
+					unsigned int color = 0xFFFFFFFFL;
+
 					if (ma)
 					{
-						polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
-						polymat->m_shininess = (float)ma->har/4.0; // 0 < ma->har <= 512
-						polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
-
-					} else
-					{
-						polymat->m_specular = MT_Vector3(0.0f,0.0f,0.0f);
-						polymat->m_shininess = 35.0;
+						union
+						{
+							unsigned char cp[4];
+							unsigned int integer;
+						} col_converter;
+						
+						col_converter.cp[3] = (unsigned char) (ma->r*255.0);
+						col_converter.cp[2] = (unsigned char) (ma->g*255.0);
+						col_converter.cp[1] = (unsigned char) (ma->b*255.0);
+						col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
+						
+						color = col_converter.integer;
 					}
-				}
-	
-				// see if a bucket was reused or a new one was created
-				// this way only one KX_BlenderMaterial object has to exist per bucket
-				bool bucketCreated; 
-				RAS_MaterialBucket* bucket = scene->FindBucket(polymat, bucketCreated);
-				if (bucketCreated) {
-					// this is needed to free up memory afterwards
-					converter->RegisterPolyMaterial(polymat);
-					if(converter->GetMaterials()) {
-						converter->RegisterBlenderMaterial(bl_mat);
-					}
-				} else {
-					// delete the material objects since they are no longer needed
-					// from now on, use the polygon material from the material bucket
-					delete polymat;
-					if(converter->GetMaterials()) {
-						delete bl_mat;
-					}
-					polymat = bucket->GetPolyMaterial();
-				}
-							 
-				int nverts = mface->v4?4:3;
-				int vtxarray = meshobj->FindVertexArray(nverts,polymat);
-				RAS_Polygon* poly = new RAS_Polygon(bucket,polyvisible,nverts,vtxarray);
 
-				bool flat;
-
-				if (skinMesh) {
-					/* If the face is set to solid, all fnors are the same */
-					if (mface->flag & ME_SMOOTH)
-						flat = false;
-					else
-						flat = true;
-				}
-				else
-					flat = false;
-
-				poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,flat,polymat,mface->v1));
-				poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,flat,polymat,mface->v2));
-				poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,flat,polymat,mface->v3));
-				if (nverts==4)
-					poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,flat,polymat,mface->v4));
-
-				meshobj->AddPolygon(poly);
-				if (poly->IsCollider())
-				{
-					RAS_TriangleIndex idx;
-					idx.m_index[0] = mface->v1;
-					idx.m_index[1] = mface->v2;
-					idx.m_index[2] = mface->v3;
-					idx.m_collider = collider;
-					meshobj->m_triangle_indices.push_back(idx);
-					if (nverts==4)
-					{
-					idx.m_index[0] = mface->v1;
-					idx.m_index[1] = mface->v3;
-					idx.m_index[2] = mface->v4;
-					idx.m_collider = collider;
-					meshobj->m_triangle_indices.push_back(idx);
-					}
+					rgb0 = KX_rgbaint2uint_new(color);
+					rgb1 = KX_rgbaint2uint_new(color);
+					rgb2 = KX_rgbaint2uint_new(color);	
+					
+					if (mface->v4)
+						rgb3 = KX_rgbaint2uint_new(color);
 				}
 				
-//				poly->SetVisibleWireframeEdges(mface->edcode);
-				poly->SetCollider(collider);
+				bool istriangle = (mface->v4==0);
+
+				// only zsort alpha + add
+				bool alpha = (transp == TF_ALPHA || transp == TF_ADD);
+				bool zsort = (mode & TF_ALPHASORT)? alpha: 0;
+
+				polymat = new KX_PolygonMaterial(imastr, ma,
+					tile, tilexrep, tileyrep, 
+					mode, transp, alpha, zsort, lightlayer, istriangle, blenderobj, tface, (unsigned int*)mcol);
+	
+				if (ma) {
+					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
+					polymat->m_shininess = (float)ma->har/4.0; // 0 < ma->har <= 512
+					polymat->m_diffuse = MT_Vector3(ma->r, ma->g, ma->b)*(ma->emit + ma->ref);
+				}
+				else {
+					polymat->m_specular = MT_Vector3(0.0f,0.0f,0.0f);
+					polymat->m_shininess = 35.0;
+				}
 			}
+
+			// see if a bucket was reused or a new one was created
+			// this way only one KX_BlenderMaterial object has to exist per bucket
+			bool bucketCreated; 
+			RAS_MaterialBucket* bucket = scene->FindBucket(polymat, bucketCreated);
+			if (bucketCreated) {
+				// this is needed to free up memory afterwards
+				converter->RegisterPolyMaterial(polymat);
+				if(converter->GetMaterials()) {
+					converter->RegisterBlenderMaterial(bl_mat);
+				}
+			} else {
+				// delete the material objects since they are no longer needed
+				// from now on, use the polygon material from the material bucket
+				delete polymat;
+				if(converter->GetMaterials()) {
+					delete bl_mat;
+				}
+				polymat = bucket->GetPolyMaterial();
+			}
+						 
+			int nverts = mface->v4?4:3;
+			int vtxarray = meshobj->FindVertexArray(nverts,polymat);
+			RAS_Polygon* poly = new RAS_Polygon(bucket,polyvisible,nverts,vtxarray);
+
+			bool flat;
+
+			if (skinMesh) {
+				/* If the face is set to solid, all fnors are the same */
+				if (mface->flag & ME_SMOOTH)
+					flat = false;
+				else
+					flat = true;
+			}
+			else
+				flat = false;
+
+			poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,flat,polymat,mface->v1));
+			poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,flat,polymat,mface->v2));
+			poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,flat,polymat,mface->v3));
+			if (nverts==4)
+				poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,flat,polymat,mface->v4));
+
+			meshobj->AddPolygon(poly);
+			if (poly->IsCollider())
+			{
+				RAS_TriangleIndex idx;
+				idx.m_index[0] = mface->v1;
+				idx.m_index[1] = mface->v2;
+				idx.m_index[2] = mface->v3;
+				idx.m_collider = collider;
+				meshobj->m_triangle_indices.push_back(idx);
+				if (nverts==4)
+				{
+				idx.m_index[0] = mface->v1;
+				idx.m_index[1] = mface->v3;
+				idx.m_index[2] = mface->v4;
+				idx.m_collider = collider;
+				meshobj->m_triangle_indices.push_back(idx);
+				}
+			}
+			
+//				poly->SetVisibleWireframeEdges(mface->edcode);
+			poly->SetCollider(collider);
 		}
+
 		if (tface) 
 			tface++;
-		if (mmcol)
-			mmcol+=4;
+		if (mcol)
+			mcol+=4;
 
 		for (int lay=0; lay<MAX_MTFACE; lay++)
 		{
@@ -1127,11 +1048,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		(*mit)->GetPolyMaterial()->OnConstruction();
 	}
 
-	if(tangent)
-		delete [] tangent;
-
 	if (layers)
 		delete []layers;
+	
+	dm->release(dm);
 
 	return meshobj;
 }
@@ -1819,7 +1739,7 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 	return 0;
 
 }
-#include "BLI_arithb.h"
+
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
 							  const STR_String& scenename,
@@ -1937,7 +1857,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		if (converter->addInitFromFrame)
 			if (!isInActiveLayer)
 				addobj=false;
-										
+
 		if (gameobj&&addobj)
 		{
 			MT_Point3 posPrev;			
@@ -2027,8 +1947,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			// needed for python scripting
 			logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
 
-			// needed for dynamic object morphing
-			logicmgr->RegisterGameObj(gameobj, blenderobject);
+			// needed for group duplication
+			logicmgr->RegisterGameObj(blenderobject, gameobj);
 			for (int i = 0; i < gameobj->GetMeshCount(); i++)
 				logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
 	
@@ -2050,8 +1970,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				gameobj->NodeUpdateGS(0,true);
 				gameobj->Bucketize();
 		
-				if (gameobj->IsDupliGroup())
-					grouplist.insert(blenderobject->dup_group);
 			}
 			else
 			{
@@ -2059,6 +1977,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				//at the end of this function if it is not a root object
 				inactivelist->Add(gameobj->AddRef());
 			}
+			if (gameobj->IsDupliGroup())
+				grouplist.insert(blenderobject->dup_group);
 			if (converter->addInitFromFrame){
 				gameobj->NodeSetLocalPosition(posPrev);
 				gameobj->NodeSetLocalOrientation(angor);
@@ -2109,7 +2029,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 														blenderscene);
 										
 						// this code is copied from above except that
-						// object from groups are never is active layer
+						// object from groups are never in active layer
 						bool isInActiveLayer = false;
 						bool addobj=true;
 						
@@ -2207,8 +2127,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							// needed for python scripting
 							logicmgr->RegisterGameObjectName(gameobj->GetName(),gameobj);
 
-							// needed for dynamic object morphing
-							logicmgr->RegisterGameObj(gameobj, blenderobject);
+							// needed for group duplication
+							logicmgr->RegisterGameObj(blenderobject, gameobj);
 							for (int i = 0; i < gameobj->GetMeshCount(); i++)
 								logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
 					
@@ -2258,7 +2178,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 
-	if (blenderscene->camera) {
+	// non-camera objects not supported as camera currently
+	if (blenderscene->camera && blenderscene->camera->type == OB_CAMERA) {
 		KX_Camera *gamecamera= (KX_Camera*) converter->FindGameObject(blenderscene->camera);
 		
 		if(gamecamera)
@@ -2520,13 +2441,13 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
 		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
-	}
-	// apply the initial state to controllers
-	for ( i=0;i<logicbrick_conversionlist->GetCount();i++)
-	{
-		KX_GameObject* gameobj = static_cast<KX_GameObject*>(logicbrick_conversionlist->GetValue(i));
-		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
+		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
+	}
+	// apply the initial state to controllers, only on the active objects as this registers the sensors
+	for ( i=0;i<objectlist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
 		gameobj->ResetState();
 	}
 

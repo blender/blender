@@ -180,27 +180,26 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
-/* if a selected or active bone is protected, throw error and return 1 */
+/* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
 /* only_selected==1 : the active bone is allowed to be protected */
-static int pose_has_protected_selected(Object *ob, int only_selected)
+static short pose_has_protected_selected(Object *ob, short only_selected, short warn)
 {
-	
 	/* check protection */
-	if(ob->proxy) {
+	if (ob->proxy) {
 		bPoseChannel *pchan;
 		bArmature *arm= ob->data;
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(pchan->bone && (pchan->bone->layer & arm->layer)) {
-				if(pchan->bone->layer & arm->layer_protected) {
-					if(only_selected && (pchan->bone->flag & BONE_ACTIVE));
-					else if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) 
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->bone && (pchan->bone->layer & arm->layer)) {
+				if (pchan->bone->layer & arm->layer_protected) {
+					if (only_selected && (pchan->bone->flag & BONE_ACTIVE));
+					else if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) 
 					   break;
 				}
 			}
 		}
-		if(pchan) {
-			error("Cannot change Proxy protected bones");
+		if (pchan) {
+			if (warn) error("Cannot change Proxy protected bones");
 			return 1;
 		}
 	}
@@ -540,7 +539,7 @@ void pose_clear_IK(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	if(pose_has_protected_selected(ob, 0))
+	if(pose_has_protected_selected(ob, 0, 1))
 		return;
 	
 	if(okee("Remove IK constraint(s)")==0) return;
@@ -581,7 +580,7 @@ void pose_clear_constraints(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	if(pose_has_protected_selected(ob, 0))
+	if(pose_has_protected_selected(ob, 0, 1))
 		return;
 	
 	if(okee("Remove Constraints")==0) return;
@@ -612,38 +611,49 @@ void pose_copy_menu(void)
 	Object *ob= OBACT;
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan, *pchanact;
-	short nr;
+	short nr=0;
 	int i=0;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	if (ELEM(NULL, ob, ob->pose)) return;
+	if ((ob==G.obedit) || (ob->flag & OB_POSEMODE)==0) return;
 	
 	/* find active */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & BONE_ACTIVE) break;
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->flag & BONE_ACTIVE) 
+			break;
 	}
 	
-	if(pchan==NULL) return;
-	
-	if(pose_has_protected_selected(ob, 1))
-		return;
-
+	if (pchan==NULL) return;
 	pchanact= pchan;
 	
-	i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
-	if (i<25)
-		nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
-	else
-		nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+	/* if proxy-protected bones selected, some things (such as locks + displays) shouldn't be changable, 
+	 * but for constraints (just add local constraints)
+	 */
+	if (pose_has_protected_selected(ob, 1, 0)) {
+		i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
+		if (i < 25)
+			nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5");
+		else
+			nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4");
+	}
+	else {
+		i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
+		if (i < 25)
+			nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+		else
+			nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+	}
 	
-	if(nr==-1) return;
-	if(nr!=5)  {
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(	(arm->layer & pchan->bone->layer) &&
-				(pchan->bone->flag & BONE_SELECTED) &&
-				(pchan!=pchanact)
-			) {
+	if (nr <= 0) 
+		return;
+	
+	if (nr != 5)  {
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ( (arm->layer & pchan->bone->layer) &&
+				 (pchan->bone->flag & BONE_SELECTED) &&
+				 (pchan != pchanact) ) 
+			{
 				switch (nr) {
 					case 1: /* Local Location */
 						VECCOPY(pchan->loc, pchanact->loc);
@@ -656,13 +666,26 @@ void pose_copy_menu(void)
 						break;
 					case 4: /* All Constraints */
 					{
-						free_constraints(&pchan->constraints);
-						copy_constraints(&pchan->constraints, &pchanact->constraints);
-						pchan->constflag = pchanact->constflag;
+						ListBase tmp_constraints = {NULL, NULL};
 						
-						if (ob->pose) {
-							ob->pose->flag |= POSE_RECALC;
+						/* copy constraints to tmpbase and apply 'local' tags before 
+						 * appending to list of constraints for this channel
+						 */
+						copy_constraints(&tmp_constraints, &pchanact->constraints);
+						if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
+							bConstraint *con;
+							
+							/* add proxy-local tags */
+							for (con= tmp_constraints.first; con; con= con->next)
+								con->flag |= CONSTRAINT_PROXY_LOCAL;
 						}
+						addlisttolist(&pchan->constraints, &tmp_constraints);
+						
+						/* update flags (need to add here, not just copy) */
+						pchan->constflag |= pchanact->constflag;
+						
+						if (ob->pose)
+							ob->pose->flag |= POSE_RECALC;
 					}
 						break;
 					case 6: /* Transform Locks */
@@ -703,12 +726,13 @@ void pose_copy_menu(void)
 				}
 			}
 		}
-	} else { /* constraints, optional */
+	} 
+	else { /* constraints, optional (note: max we can have is 24 constraints) */
 		bConstraint *con, *con_back;
 		int const_toggle[24];
-		ListBase const_copy={0, 0};
+		ListBase const_copy = {NULL, NULL};
 		
-		duplicatelist (&const_copy, &(pchanact->constraints));
+		duplicatelist(&const_copy, &(pchanact->constraints));
 		
 		/* build the puplist of constraints */
 		for (con = pchanact->constraints.first, i=0; con; con=con->next, i++){
@@ -723,32 +747,46 @@ void pose_copy_menu(void)
 		
 		/* now build a new listbase from the options selected */
 		for (i=0, con=const_copy.first; con; i++) {
+			/* if not selected, free/remove it from the list */
 			if (!const_toggle[i]) {
 				con_back= con->next;
 				BLI_freelinkN(&const_copy, con);
 				con= con_back;
-			} else {
+			} 
+			else
 				con= con->next;
-			}
 		}
 		
 		/* Copy the temo listbase to the selected posebones */
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(	(arm->layer & pchan->bone->layer) &&
-				(pchan->bone->flag & BONE_SELECTED) &&
-				(pchan!=pchanact)
-			) {
-				free_constraints(&pchan->constraints);
-				copy_constraints(&pchan->constraints, &const_copy);
-				pchan->constflag = pchanact->constflag;
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ( (arm->layer & pchan->bone->layer) &&
+				 (pchan->bone->flag & BONE_SELECTED) &&
+				 (pchan!=pchanact) ) 
+			{
+				ListBase tmp_constraints = {NULL, NULL};
+				
+				/* copy constraints to tmpbase and apply 'local' tags before 
+				 * appending to list of constraints for this channel
+				 */
+				copy_constraints(&tmp_constraints, &const_copy);
+				if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
+					bConstraint *con;
+					
+					/* add proxy-local tags */
+					for (con= tmp_constraints.first; con; con= con->next)
+						con->flag |= CONSTRAINT_PROXY_LOCAL;
+				}
+				addlisttolist(&pchan->constraints, &tmp_constraints);
+				
+				/* update flags (need to add here, not just copy) */
+				pchan->constflag |= pchanact->constflag;
 			}
 		}
 		BLI_freelistN(&const_copy);
 		update_pose_constraint_flags(ob->pose); /* we could work out the flags but its simpler to do this */
 		
-		if (ob->pose) {
+		if (ob->pose)
 			ob->pose->flag |= POSE_RECALC;
-		}
 	}
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
@@ -808,7 +846,7 @@ void paste_posebuf (int flip)
 	
 	/*
 	// disabled until protected bones in proxies follow the rules everywhere else!
-	if(pose_has_protected_selected(ob, 1))
+	if(pose_has_protected_selected(ob, 1, 1))
 		return;
 	*/
 	
@@ -1249,7 +1287,7 @@ void pose_flip_names(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	if(pose_has_protected_selected(ob, 0))
+	if(pose_has_protected_selected(ob, 0, 1))
 		return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -1282,7 +1320,7 @@ void pose_autoside_names(short axis)
 	if (ELEM(NULL, ob, ob->pose)) return;
 	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	if (pose_has_protected_selected(ob, 0))
+	if (pose_has_protected_selected(ob, 0, 1))
 		return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -1415,7 +1453,7 @@ void pose_movetolayer(void)
 		/* pose-channel layers */
 		bPoseChannel *pchan;
 		
-		if (pose_has_protected_selected(ob, 0))
+		if (pose_has_protected_selected(ob, 0, 1))
 			return;
 		
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {

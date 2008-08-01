@@ -298,7 +298,7 @@ int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
-static int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1)
+int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1)
 {
 	short v1[2], v2[2];
 	int a;
@@ -371,7 +371,7 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 	}
 }
 
-static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
+void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
 {
 	short a;
 	

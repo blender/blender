@@ -337,12 +337,31 @@ void SCA_IObject::Resume(void)
 
 void SCA_IObject::SetState(unsigned int state)
 {
-	m_state = state;
-	// update the status of the controllers
+	unsigned int tmpstate;
 	SCA_ControllerList::iterator contit;
-	for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+
+	// we will update the state in two steps:
+	// 1) set the new state bits that are 1
+	// 2) clr the new state bits that are 0
+	// This to ensure continuity if a sensor is attached to two states
+	// that are switching state: no need to deactive and reactive the sensor 
+	
+	tmpstate = m_state | state;
+	if (tmpstate != m_state)
 	{
-		(*contit)->ApplyState(m_state);
+		// update the status of the controllers
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		{
+			(*contit)->ApplyState(tmpstate);
+		}
+	}
+	m_state = state;
+	if (m_state != tmpstate)
+	{
+		for (contit = m_controllers.begin(); contit != m_controllers.end(); contit++)
+		{
+			(*contit)->ApplyState(m_state);
+		}
 	}
 }
 

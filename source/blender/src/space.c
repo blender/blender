@@ -5119,7 +5119,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}	
 	}
 
-	if(doredraw) scrarea_queue_winredraw(curarea);
+	if(doredraw) {
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+	}
 }
 
 

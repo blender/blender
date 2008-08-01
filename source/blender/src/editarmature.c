@@ -2709,6 +2709,32 @@ void show_all_armature_bones(void)
 	BIF_undo_push("Reveal Bones");
 }
 
+/* Sets editmode transform locks for bones (adds if lock==1, clears otherwise) */
+void set_locks_armature_bones(short lock)
+{
+	bArmature *arm= G.obedit->data;
+	EditBone *ebone;
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if (ebone->flag & BONE_SELECTED) {
+				if (lock)
+					ebone->flag |= BONE_EDITMODE_LOCKED;
+				else	
+					ebone->flag &= ~BONE_EDITMODE_LOCKED;
+			}
+		}
+	}
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	
+	if (lock)
+		BIF_undo_push("Lock Bones");
+	else
+		BIF_undo_push("Unlock Bones");
+}
+
 /* check for null, before calling! */
 static void bone_connect_to_existing_parent(EditBone *bone)
 {

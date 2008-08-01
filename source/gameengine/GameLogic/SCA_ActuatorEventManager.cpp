@@ -48,19 +48,10 @@ SCA_ActuatorEventManager::~SCA_ActuatorEventManager()
 
 }
 
-
-
-void SCA_ActuatorEventManager::RegisterSensor(SCA_ISensor* sensor)
-{
-	m_sensors.push_back(sensor);
-}
-
-
-
 void SCA_ActuatorEventManager::NextFrame()
 {
 	// check for changed actuator
-	for (vector<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
+	for (set<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
 	{
 		(*it)->Activate(m_logicmgr,NULL);
 	}
@@ -69,7 +60,7 @@ void SCA_ActuatorEventManager::NextFrame()
 void SCA_ActuatorEventManager::UpdateFrame()
 {
 	// update the state of actuator before executing them
-	for (vector<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
+	for (set<SCA_ISensor*>::const_iterator it = m_sensors.begin();!(it==m_sensors.end());it++)
 	{
 		((SCA_ActuatorSensor*)(*it))->Update();
 	}

@@ -37,6 +37,7 @@
 #include "MT_assert.h"
 
 #include "KX_KetsjiEngine.h"
+#include "KX_BlenderMaterial.h"
 #include "RAS_IPolygonMaterial.h"
 #include "ListValue.h"
 #include "SCA_LogicManager.h"
@@ -92,6 +93,9 @@ void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
 
+	if(replica)
+		replica->Release();
+
 	return (void*)replica;
 }
 
@@ -116,13 +120,13 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	PyObjectPlus(&KX_Scene::Type),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
+	m_sceneConverter(NULL),
 	m_physicsEnvironment(0),
 	m_sceneName(sceneName),
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0),
-	m_sceneConverter(NULL)
+	m_ueberExecutionPriority(0)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -650,14 +654,14 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		if (blgroupobj == blenderobj)
 			// this check is also in group_duplilist()
 			continue;
-		gameobj = m_sceneConverter->FindGameObject(blenderobj);
+		gameobj = (KX_GameObject*)m_logicmgr->FindGameObjByBlendObj(blenderobj);
 		if (gameobj == NULL) 
 		{
 			// this object has not been converted!!!
 			// Should not happen as dupli group are created automatically 
 			continue;
 		}
-		if (blenderobj->lay & group->layer==0)
+		if ((blenderobj->lay & group->layer)==0)
 		{
 			// object is not visible in the 3D view, will not be instantiated
 			continue;
@@ -669,8 +673,12 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	for (oit=m_groupGameObjects.begin(); oit != m_groupGameObjects.end(); oit++)
 	{
 		gameobj = (KX_GameObject*)(*oit);
-		if (gameobj->GetParent() != NULL)
+
+		KX_GameObject *parent = gameobj->GetParent();
+		if (parent != NULL)
 		{
+			parent->Release(); // GetParent() increased the refcount
+
 			// this object is not a top parent. Either it is the child of another
 			// object in the group and it will be added automatically when the parent
 			// is added. Or it is the child of an object outside the group and the group
@@ -860,6 +868,20 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
+	// check if there are objects with dupligroup in the hierarchy
+	vector<KX_GameObject*> duplilist;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git)->IsDupliGroup())
+		{
+			// separate list as m_logicHierarchicalGameObjects is also used by DupliGroupRecurse()
+			duplilist.push_back(*git);
+		}
+	}
+	for (git = duplilist.begin();!(git==duplilist.end());++git)
+	{
+		DupliGroupRecurse(*git, 0);
+	}
 	//	don't release replica here because we are returning it, not done with it...
 	return replica;
 }
@@ -905,6 +927,12 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	// keep the blender->game object association up to date
+	// note that all the replicas of an object will have the same
+	// blender object, that's why we need to check the game object
+	// as only the deletion of the original object must be recorded
+	m_logicmgr->UnregisterGameObj(newobj->GetBlenderObject(), gameobj);
 
 	//todo: look at this
 	//GetPhysicsEnvironment()->RemovePhysicsController(gameobj->getPhysicsController());
@@ -964,6 +992,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
+
 	// in case this is a camera
 	m_cameras.remove((KX_Camera*)newobj);
 
@@ -1220,14 +1249,10 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 			if (visible)
 			{
 				int nummeshes = gameobj->GetMeshCount();
-				MT_Transform t( cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
-	
 				
+				// this adds the vertices to the display list
 				for (int m=0;m<nummeshes;m++)
-				{
-					// this adds the vertices to the display list
-					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
-				}
+					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 			}
 			gameobj->MarkVisible(visible);
 		}
@@ -1284,12 +1309,11 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	if (vis)
 	{
 		int nummeshes = gameobj->GetMeshCount();
-		MT_Transform t(cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 		
 		for (int m=0;m<nummeshes;m++)
 		{
 			// this adds the vertices to the display list
-			(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
+			(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 		}
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
@@ -1402,7 +1426,7 @@ void KX_Scene::UpdateParents(double curtime)
 
 RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool &bucketCreated)
 {
-	return m_bucketmanager->RAS_BucketManagerFindBucket(polymat, bucketCreated);
+	return m_bucketmanager->FindBucket(polymat, bucketCreated);
 }
 
 
@@ -1412,9 +1436,8 @@ void KX_Scene::RenderBuckets(const MT_Transform & cameratransform,
 							 class RAS_IRenderTools* rendertools)
 {
 	m_bucketmanager->Renderbuckets(cameratransform,rasty,rendertools);
+	KX_BlenderMaterial::EndFrame();
 }
-
-
 
 void KX_Scene::UpdateObjectActivity(void) 
 {

@@ -45,7 +45,6 @@ public:
 	SCA_JoystickManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_JoystickManager();
 	virtual void NextFrame(double curtime,double deltatime);
-	virtual void	RegisterSensor(SCA_ISensor* sensor);
 	SCA_Joystick* GetJoystickDevice(void);
 
 };

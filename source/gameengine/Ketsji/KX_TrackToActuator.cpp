@@ -195,6 +195,8 @@ void KX_TrackToActuator::ProcessReplica()
 	// the replica is tracking the same object => register it
 	if (m_object)
 		m_object->RegisterActuator(this);
+	if (m_parentobj)
+		m_parentobj->AddRef();
 	SCA_IActuator::ProcessReplica();
 }
 
@@ -218,6 +220,14 @@ void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 			m_object->UnregisterActuator(this);
 		m_object = (SCA_IObject*)(*h_obj);
 		m_object->RegisterActuator(this);
+	}
+
+	void **h_parobj = (*obj_map)[m_parentobj];
+	if (h_parobj) {
+		if (m_parentobj)
+			m_parentobj->Release();
+		m_parentobj= (KX_GameObject*)(*h_parobj);
+		m_parentobj->AddRef();
 	}
 }
 

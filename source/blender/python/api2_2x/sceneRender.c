@@ -56,6 +56,7 @@ struct View3D; /* keep me up here */
 #include "gen_utils.h"
 #include "gen_library.h"
 
+#include "../BPY_extern.h" /* for BPY_do_all_scripts() */
 #include "Scene.h"
 #include "Group.h"
 
@@ -469,18 +470,19 @@ PyObject *M_Render_EnableDispWin( PyObject * self )
 PyObject *RenderData_Render( BPy_RenderData * self )
 {
 	Scene *oldsce;
+	/* unlock to prevent a deadlock when there are pynodes: */
+	PyThreadState *tstate = NULL;
 
 	if (!G.background) {
 		oldsce = G.scene;
 		set_scene( self->scene );
+		tstate = PyEval_SaveThread();
 		BIF_do_render( 0 );
 		set_scene( oldsce );
 	}
-
 	else { /* background mode (blender -b file.blend -P script) */
+		int slink_flag = 0;
 		Render *re= RE_NewRender(G.scene->id.name);
-
-
 
 		int end_frame = G.scene->r.efra;
 
@@ -490,11 +492,25 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		G.scene->r.efra = G.scene->r.sfra;
 
+		if (G.f & G_DOSCRIPTLINKS) {
+			BPY_do_all_scripts(SCRIPT_RENDER);
+			G.f &= ~G_DOSCRIPTLINKS; /* avoid FRAMECHANGED events*/
+			slink_flag = 1;
+		}
+
+		tstate = PyEval_SaveThread();
+
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+
+		if (slink_flag) {
+			G.f |= G_DOSCRIPTLINKS;
+			BPY_do_all_scripts(SCRIPT_POSTRENDER);
+		}
 
 		G.scene->r.efra = end_frame;
 	}
 
+	PyEval_RestoreThread(tstate);
 	Py_RETURN_NONE;
 }
 
@@ -565,12 +581,13 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 {
 	Scene *oldsce;
-	/* this prevents a deadlock when there are pynodes: */
-	PyThreadState *tstate = PyEval_SaveThread();
-
+	/* unlock to prevent a deadlock when there are pynodes: */
+	PyThreadState *tstate = NULL;
+		
 	if (!G.background) {
 		oldsce = G.scene;
 		set_scene( self->scene );
+		tstate = PyEval_SaveThread();
 		BIF_do_render( 1 );
 		set_scene( oldsce );
 	}
@@ -584,8 +601,17 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		if (G.scene->r.sfra > G.scene->r.efra)
 			return EXPP_ReturnPyObjError (PyExc_RuntimeError,
 				"start frame must be less or equal to end frame");
+
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_do_all_scripts(SCRIPT_RENDER);
+
+		tstate = PyEval_SaveThread();
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_do_all_scripts(SCRIPT_POSTRENDER);
 	}
+
 	PyEval_RestoreThread(tstate);
 	Py_RETURN_NONE;
 }

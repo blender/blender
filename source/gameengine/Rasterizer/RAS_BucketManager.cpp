@@ -94,7 +94,6 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	const MT_Scalar cam_origin = cameratrans.getOrigin()[2];
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit)
 	{
-		(*bit)->ClearScheduledPolygons();
 		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
 		{
 			if ((*mit).m_bVisible)
@@ -133,28 +132,15 @@ void RAS_BucketManager::Renderbuckets(
 	rasty->ClearCachingInfo();
 
 	RAS_MaterialBucket::StartFrame();
-	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
-	{
-		(*bucket)->ClearScheduledPolygons();
-	}
 	
 	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
-	{
-		RAS_IPolyMaterial *tmp = (*bucket)->GetPolyMaterial();
-		if(tmp->IsZSort() || tmp->GetFlag() &RAS_FORCEALPHA )
-			rasty->SetAlphaTest(true);
-		else
-			rasty->SetAlphaTest(false);
-
 		(*bucket)->Render(cameratrans,rasty,rendertools);
-	}
-	rasty->SetAlphaTest(false);
 
 	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
 	RAS_MaterialBucket::EndFrame();
 }
 
-RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material, bool &bucketCreated)
+RAS_MaterialBucket* RAS_BucketManager::FindBucket(RAS_IPolyMaterial * material, bool &bucketCreated)
 {
 	bucketCreated = false;
 	BucketList::iterator it;
@@ -172,7 +158,7 @@ RAS_MaterialBucket* RAS_BucketManager::RAS_BucketManagerFindBucket(RAS_IPolyMate
 	
 	RAS_MaterialBucket *bucket = new RAS_MaterialBucket(material);
 	bucketCreated = true;
-	if (bucket->IsTransparant())
+	if (bucket->IsAlpha())
 		m_AlphaBuckets.push_back(bucket);
 	else
 		m_MaterialBuckets.push_back(bucket);
@@ -195,3 +181,28 @@ void RAS_BucketManager::RAS_BucketManagerClearAll()
 	m_MaterialBuckets.clear();
 	m_AlphaBuckets.clear();
 }
+
+void RAS_BucketManager::ReleaseDisplayLists()
+{
+	BucketList::iterator bit;
+	RAS_MaterialBucket::T_MeshSlotList::iterator mit;
+
+	for (bit = m_MaterialBuckets.begin(); bit != m_MaterialBuckets.end(); ++bit) {
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+			if(mit->m_DisplayList) {
+				mit->m_DisplayList->Release();
+				mit->m_DisplayList = NULL;
+			}
+		}
+	}
+	
+	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+			if(mit->m_DisplayList) {
+				mit->m_DisplayList->Release();
+				mit->m_DisplayList = NULL;
+			}
+		}
+	}
+}
+

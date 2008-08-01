@@ -354,7 +354,6 @@ TimeMarker *get_frame_marker(int frame){return 0;};
 
 /* editseq.c */
 Sequence *get_forground_frame_seq(int frame){return 0;};
-void set_last_seq(Sequence *seq){};
 void clear_last_seq(Sequence *seq){};
     
 

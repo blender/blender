@@ -45,17 +45,14 @@ SCA_EventManager::~SCA_EventManager()
 {
 }
 
-
+void SCA_EventManager::RegisterSensor(class SCA_ISensor* sensor)
+{
+	m_sensors.insert(sensor);
+}
 
 void SCA_EventManager::RemoveSensor(class SCA_ISensor* sensor)
 {
-	std::vector<SCA_ISensor*>::iterator i =
-	std::find(m_sensors.begin(), m_sensors.end(), sensor);
-	if (!(i == m_sensors.end()))
-	{
-		std::swap(*i, m_sensors.back());
-		m_sensors.pop_back();
-	}
+	m_sensors.erase(sensor);
 }
 
 void SCA_EventManager::NextFrame(double curtime, double fixedtime)

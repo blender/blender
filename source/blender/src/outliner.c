@@ -3654,7 +3654,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 	uiBut *bt;
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	Object *ob;
+	Object *ob = NULL;
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
@@ -3662,7 +3662,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 			/* objects have toggle-able restriction flags */
 			if(tselem->type==0 && te->idcode==ID_OB) {
 				ob = (Object *)tselem->id;
-
+				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
 						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
@@ -3718,13 +3718,6 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 				uiButSetFunc(bt, restrictbutton_modifier_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				/*
-				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Editmode, REDRAWALL, VICON_EDIT, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
-				uiButSetFunc(bt, restrictbutton_modifier_cb, ob, NULL);
-				uiButSetFlag(bt, UI_NO_HILITE);
-				*/
-				
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
 						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, ob, NULL);
@@ -3733,20 +3726,20 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 			else if(tselem->type==TSE_POSE_CHANNEL)  {
 				bPoseChannel *pchan= (bPoseChannel *)te->directdata;
 				Bone *bone = pchan->bone;
-				
+
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
 						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, ob, NULL);
+				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 			else if(tselem->type==TSE_EBONE)  {
 				EditBone *ebone= (EditBone *)te->directdata;
-				
+
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
 						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_bone_cb, ob, NULL);
+				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 			}
 		}

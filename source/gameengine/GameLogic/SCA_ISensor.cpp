@@ -41,7 +41,8 @@
 void	SCA_ISensor::ReParent(SCA_IObject* parent)
 {
 	SCA_ILogicBrick::ReParent(parent);
-	m_eventmgr->RegisterSensor(this);
+	// will be done when the sensor is activated
+	//m_eventmgr->RegisterSensor(this);
 	this->SetActive(false);
 }
 
@@ -133,6 +134,7 @@ void SCA_ISensor::DecLink() {
 	{
 		// sensor is detached from all controllers, initialize it so that it
 		// is fresh as at startup when it is reattached again.
+		UnregisterToManager();
 		Init();
 	}
 }
@@ -201,6 +203,11 @@ SCA_ISensor::_getattr(const STR_String& attr)
 void SCA_ISensor::RegisterToManager()
 {
 	m_eventmgr->RegisterSensor(this);
+}
+
+void SCA_ISensor::UnregisterToManager()
+{
+	m_eventmgr->RemoveSensor(this);
 }
 
 void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
