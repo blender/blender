@@ -3432,8 +3432,6 @@ void REEB_draw()
 		char text[128];
 		char *s = text;
 		
-		initArcIterator(&iter, arc, arc->head);
-		
 		if (arc->symmetry_level == 1)
 		{
 			glColor3f(1, 0, 0);
@@ -3455,6 +3453,7 @@ void REEB_draw()
 			
 			if (arc->bcount)
 			{
+				initArcIterator(&iter, arc, arc->head);
 				for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
 				{
 					glVertex3fv(bucket->p);
@@ -3469,6 +3468,16 @@ void REEB_draw()
 		glBegin(GL_POINTS);
 			glVertex3fv(arc->head->p);
 			glVertex3fv(arc->tail->p);
+			
+			glColor3f(0.5f, 0.5f, 1);				
+			if (arc->bcount)
+			{
+				initArcIterator(&iter, arc, arc->head);
+				for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+				{
+					glVertex3fv(bucket->p);
+				}
+			}
 		glEnd();
 		
 		VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
