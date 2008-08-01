@@ -1,4 +1,4 @@
-#include "BPy_Material.h"
+#include "BPy_FrsMaterial.h"
 
 #include "BPy_Convert.h"
 
@@ -8,85 +8,85 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Material instance  -----------*/
-static int Material___init__(BPy_Material *self, PyObject *args, PyObject *kwds);
-static void Material___dealloc__(BPy_Material *self);
-static PyObject * Material___repr__(BPy_Material *self);
+/*---------------  Python API function prototypes for FrsMaterial instance  -----------*/
+static int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds);
+static void FrsMaterial___dealloc__(BPy_FrsMaterial *self);
+static PyObject * FrsMaterial___repr__(BPy_FrsMaterial *self);
 
-static PyObject * Material_diffuse( BPy_Material* self);
-static PyObject * Material_diffuseR( BPy_Material* self);
-static PyObject * Material_diffuseG( BPy_Material* self) ;
-static PyObject * Material_diffuseB( BPy_Material* self) ;
-static PyObject * Material_diffuseA( BPy_Material* self);
-static PyObject * Material_specular( BPy_Material* self);
-static PyObject * Material_specularR( BPy_Material* self);
-static PyObject * Material_specularG( BPy_Material* self);
-static PyObject * Material_specularB( BPy_Material* self) ;
-static PyObject * Material_specularA( BPy_Material* self) ;
-static PyObject * Material_ambient( BPy_Material* self) ;
-static PyObject * Material_ambientR( BPy_Material* self);
-static PyObject * Material_ambientG( BPy_Material* self);
-static PyObject * Material_ambientB( BPy_Material* self);
-static PyObject * Material_ambientA( BPy_Material* self);
-static PyObject * Material_emission( BPy_Material* self);
-static PyObject * Material_emissionR( BPy_Material* self);
-static PyObject * Material_emissionG( BPy_Material* self) ;
-static PyObject * Material_emissionB( BPy_Material* self);
-static PyObject * Material_emissionA( BPy_Material* self);
-static PyObject * Material_shininess( BPy_Material* self);
-static PyObject * Material_setDiffuse( BPy_Material *self, PyObject *args );
-static PyObject * Material_setSpecular( BPy_Material *self, PyObject *args );
-static PyObject * Material_setAmbient( BPy_Material *self, PyObject *args );
-static PyObject * Material_setEmission( BPy_Material *self, PyObject *args );
-static PyObject * Material_setShininess( BPy_Material *self, PyObject *args );
+static PyObject * FrsMaterial_diffuse( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_diffuseR( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_diffuseG( BPy_FrsMaterial* self) ;
+static PyObject * FrsMaterial_diffuseB( BPy_FrsMaterial* self) ;
+static PyObject * FrsMaterial_diffuseA( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_specular( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_specularR( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_specularG( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_specularB( BPy_FrsMaterial* self) ;
+static PyObject * FrsMaterial_specularA( BPy_FrsMaterial* self) ;
+static PyObject * FrsMaterial_ambient( BPy_FrsMaterial* self) ;
+static PyObject * FrsMaterial_ambientR( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_ambientG( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_ambientB( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_ambientA( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_emission( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_emissionR( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_emissionG( BPy_FrsMaterial* self) ;
+static PyObject * FrsMaterial_emissionB( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_emissionA( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_shininess( BPy_FrsMaterial* self);
+static PyObject * FrsMaterial_setDiffuse( BPy_FrsMaterial *self, PyObject *args );
+static PyObject * FrsMaterial_setSpecular( BPy_FrsMaterial *self, PyObject *args );
+static PyObject * FrsMaterial_setAmbient( BPy_FrsMaterial *self, PyObject *args );
+static PyObject * FrsMaterial_setEmission( BPy_FrsMaterial *self, PyObject *args );
+static PyObject * FrsMaterial_setShininess( BPy_FrsMaterial *self, PyObject *args );
 
-/*----------------------Material instance definitions ----------------------------*/
-static PyMethodDef BPy_Material_methods[] = {
-	{"diffuse", ( PyCFunction ) Material_diffuse, METH_NOARGS, "() Returns the diffuse color as a 4 float array"},
-	{"diffuseR", ( PyCFunction ) Material_diffuseR, METH_NOARGS, "() Returns the red component of the diffuse color "},
-	{"diffuseG", ( PyCFunction ) Material_diffuseG, METH_NOARGS, "() Returns the green component of the diffuse color "},
-	{"diffuseB", ( PyCFunction ) Material_diffuseB, METH_NOARGS, "() Returns the blue component of the diffuse color "},
-	{"diffuseA", ( PyCFunction ) Material_diffuseA, METH_NOARGS, "() Returns the alpha component of the diffuse color "},
-	{"specular", ( PyCFunction ) Material_specular, METH_NOARGS, "() Returns the specular color as a 4 float array"},
-	{"specularR", ( PyCFunction ) Material_specularR, METH_NOARGS, "() Returns the red component of the specular color "},
-	{"specularG", ( PyCFunction ) Material_specularG, METH_NOARGS, "() Returns the green component of the specular color "},
-	{"specularB", ( PyCFunction ) Material_specularB, METH_NOARGS, "() Returns the blue component of the specular color "},
-	{"specularA", ( PyCFunction ) Material_specularA, METH_NOARGS, "() Returns the alpha component of the specular color "},
-	{"ambient", ( PyCFunction ) Material_ambient, METH_NOARGS, "() Returns the ambient color as a 4 float array"},
-	{"ambientR", ( PyCFunction ) Material_ambientR, METH_NOARGS, "() Returns the red component of the ambient color "},
-	{"ambientG", ( PyCFunction ) Material_ambientG, METH_NOARGS, "() Returns the green component of the ambient color "},
-	{"ambientB", ( PyCFunction ) Material_ambientB, METH_NOARGS, "() Returns the blue component of the ambient color "},
-	{"ambientA", ( PyCFunction ) Material_ambientA, METH_NOARGS, "() Returns the alpha component of the ambient color "},
-	{"emission", ( PyCFunction ) Material_emission, METH_NOARGS, "() Returns the emission color as a 4 float array"},
-	{"emissionR", ( PyCFunction ) Material_emissionR, METH_NOARGS, "() Returns the red component of the emission color "},
-	{"emissionG", ( PyCFunction ) Material_emissionG, METH_NOARGS, "() Returns the green component of the emission color "},
-	{"emissionB", ( PyCFunction ) Material_emissionB, METH_NOARGS, "() Returns the blue component of the emission color "},
-	{"emissionA", ( PyCFunction ) Material_emissionA, METH_NOARGS, "() Returns the alpha component of the emission color "},
-	{"shininess", ( PyCFunction ) Material_shininess, METH_NOARGS, "() Returns the shininess coefficient "},
-	{"setDiffuse", ( PyCFunction ) Material_setDiffuse, METH_NOARGS, "(float r, float g, float b, float a) Sets the diffuse color"},
-	{"setSpecular", ( PyCFunction ) Material_setSpecular, METH_NOARGS, "(float r, float g, float b, float a) Sets the specular color"},
-	{"setAmbient", ( PyCFunction ) Material_setAmbient, METH_NOARGS, "(float r, float g, float b, float a) Sets the ambient color"},
-	{"setEmission", ( PyCFunction ) Material_setEmission, METH_NOARGS, "(float r, float g, float b, float a) Sets the emission color"},
-	{"setShininess", ( PyCFunction ) Material_setShininess, METH_NOARGS, "(float r, float g, float b, float a) Sets the shininess color"},
+/*----------------------FrsMaterial instance definitions ----------------------------*/
+static PyMethodDef BPy_FrsMaterial_methods[] = {
+	{"diffuse", ( PyCFunction ) FrsMaterial_diffuse, METH_NOARGS, "() Returns the diffuse color as a 4 float array"},
+	{"diffuseR", ( PyCFunction ) FrsMaterial_diffuseR, METH_NOARGS, "() Returns the red component of the diffuse color "},
+	{"diffuseG", ( PyCFunction ) FrsMaterial_diffuseG, METH_NOARGS, "() Returns the green component of the diffuse color "},
+	{"diffuseB", ( PyCFunction ) FrsMaterial_diffuseB, METH_NOARGS, "() Returns the blue component of the diffuse color "},
+	{"diffuseA", ( PyCFunction ) FrsMaterial_diffuseA, METH_NOARGS, "() Returns the alpha component of the diffuse color "},
+	{"specular", ( PyCFunction ) FrsMaterial_specular, METH_NOARGS, "() Returns the specular color as a 4 float array"},
+	{"specularR", ( PyCFunction ) FrsMaterial_specularR, METH_NOARGS, "() Returns the red component of the specular color "},
+	{"specularG", ( PyCFunction ) FrsMaterial_specularG, METH_NOARGS, "() Returns the green component of the specular color "},
+	{"specularB", ( PyCFunction ) FrsMaterial_specularB, METH_NOARGS, "() Returns the blue component of the specular color "},
+	{"specularA", ( PyCFunction ) FrsMaterial_specularA, METH_NOARGS, "() Returns the alpha component of the specular color "},
+	{"ambient", ( PyCFunction ) FrsMaterial_ambient, METH_NOARGS, "() Returns the ambient color as a 4 float array"},
+	{"ambientR", ( PyCFunction ) FrsMaterial_ambientR, METH_NOARGS, "() Returns the red component of the ambient color "},
+	{"ambientG", ( PyCFunction ) FrsMaterial_ambientG, METH_NOARGS, "() Returns the green component of the ambient color "},
+	{"ambientB", ( PyCFunction ) FrsMaterial_ambientB, METH_NOARGS, "() Returns the blue component of the ambient color "},
+	{"ambientA", ( PyCFunction ) FrsMaterial_ambientA, METH_NOARGS, "() Returns the alpha component of the ambient color "},
+	{"emission", ( PyCFunction ) FrsMaterial_emission, METH_NOARGS, "() Returns the emission color as a 4 float array"},
+	{"emissionR", ( PyCFunction ) FrsMaterial_emissionR, METH_NOARGS, "() Returns the red component of the emission color "},
+	{"emissionG", ( PyCFunction ) FrsMaterial_emissionG, METH_NOARGS, "() Returns the green component of the emission color "},
+	{"emissionB", ( PyCFunction ) FrsMaterial_emissionB, METH_NOARGS, "() Returns the blue component of the emission color "},
+	{"emissionA", ( PyCFunction ) FrsMaterial_emissionA, METH_NOARGS, "() Returns the alpha component of the emission color "},
+	{"shininess", ( PyCFunction ) FrsMaterial_shininess, METH_NOARGS, "() Returns the shininess coefficient "},
+	{"setDiffuse", ( PyCFunction ) FrsMaterial_setDiffuse, METH_NOARGS, "(float r, float g, float b, float a) Sets the diffuse color"},
+	{"setSpecular", ( PyCFunction ) FrsMaterial_setSpecular, METH_NOARGS, "(float r, float g, float b, float a) Sets the specular color"},
+	{"setAmbient", ( PyCFunction ) FrsMaterial_setAmbient, METH_NOARGS, "(float r, float g, float b, float a) Sets the ambient color"},
+	{"setEmission", ( PyCFunction ) FrsMaterial_setEmission, METH_NOARGS, "(float r, float g, float b, float a) Sets the emission color"},
+	{"setShininess", ( PyCFunction ) FrsMaterial_setShininess, METH_NOARGS, "(float r, float g, float b, float a) Sets the shininess color"},
 	{NULL, NULL, 0, NULL}
 };
 
-/*-----------------------BPy_Material type definition ------------------------------*/
+/*-----------------------BPy_FrsMaterial type definition ------------------------------*/
 
-PyTypeObject Material_Type = {
+PyTypeObject FrsMaterial_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"Material",				/* tp_name */
-	sizeof( BPy_Material ),	/* tp_basicsize */
+	"FrsMaterial",				/* tp_name */
+	sizeof( BPy_FrsMaterial ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
-	(destructor)Material___dealloc__,	/* tp_dealloc */
+	(destructor)FrsMaterial___dealloc__,	/* tp_dealloc */
 	NULL,                       				/* printfunc tp_print; */
 	NULL,                       				/* getattrfunc tp_getattr; */
 	NULL,                       				/* setattrfunc tp_setattr; */
 	NULL,										/* tp_compare */
-	(reprfunc)Material___repr__,					/* tp_repr */
+	(reprfunc)FrsMaterial___repr__,					/* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -129,7 +129,7 @@ PyTypeObject Material_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_Material_methods,	/* struct PyMethodDef *tp_methods; */
+	BPy_FrsMaterial_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
 	NULL,							/* struct _typeobject *tp_base; */
@@ -137,7 +137,7 @@ PyTypeObject Material_Type = {
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)Material___init__, /* initproc tp_init; */
+	(initproc)FrsMaterial___init__, /* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	PyType_GenericNew,		/* newfunc tp_new; */
 	
@@ -157,21 +157,21 @@ PyTypeObject Material_Type = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyMODINIT_FUNC Material_Init( PyObject *module )
+PyMODINIT_FUNC FrsMaterial_Init( PyObject *module )
 {
 	if( module == NULL )
 		return;
 
-	if( PyType_Ready( &Material_Type ) < 0 )
+	if( PyType_Ready( &FrsMaterial_Type ) < 0 )
 		return;
 
-	Py_INCREF( &Material_Type );
-	PyModule_AddObject(module, "Material", (PyObject *)&Material_Type);
+	Py_INCREF( &FrsMaterial_Type );
+	PyModule_AddObject(module, "FrsMaterial", (PyObject *)&FrsMaterial_Type);
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int Material___init__(BPy_Material *self, PyObject *args, PyObject *kwds)
+int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj1 = 0;
 	float f1 = 0, f2 = 0., f3 = 0., f4 = 0., f5 = 0.;
@@ -182,9 +182,9 @@ int Material___init__(BPy_Material *self, PyObject *args, PyObject *kwds)
 	if( !obj1 ){
 		self->m = new Material();
 
-	} else if( BPy_Material_Check(obj1) ) {
-		if( ((BPy_Material *) obj1)->m )
-			self->m = new Material(*( ((BPy_Material *) obj1)->m ));
+	} else if( BPy_FrsMaterial_Check(obj1) ) {
+		if( ((BPy_FrsMaterial *) obj1)->m )
+			self->m = new Material(*( ((BPy_FrsMaterial *) obj1)->m ));
 		else
 			return -1;
 
@@ -199,19 +199,19 @@ int Material___init__(BPy_Material *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-void Material___dealloc__( BPy_Material* self)
+void FrsMaterial___dealloc__( BPy_FrsMaterial* self)
 {
 	delete self->m;
     self->ob_type->tp_free((PyObject*)self);
 }
 
 
-PyObject * Material___repr__( BPy_Material* self)
+PyObject * FrsMaterial___repr__( BPy_FrsMaterial* self)
 {
-    return PyString_FromFormat("Material - address: %p", self->m );
+    return PyString_FromFormat("FrsMaterial - address: %p", self->m );
 }
 
-PyObject * Material_diffuse( BPy_Material* self) {
+PyObject * FrsMaterial_diffuse( BPy_FrsMaterial* self) {
 	PyObject *tmp;
 	
 	const float *diffuse = self->m->diffuse();
@@ -225,23 +225,23 @@ PyObject * Material_diffuse( BPy_Material* self) {
 	return py_diffuse;
 }
 
-PyObject * Material_diffuseR( BPy_Material* self) {
+PyObject * FrsMaterial_diffuseR( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->diffuseR() );
 }
 
-PyObject * Material_diffuseG( BPy_Material* self) {
+PyObject * FrsMaterial_diffuseG( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->diffuseG() );
 }
 
-PyObject * Material_diffuseB( BPy_Material* self) {
+PyObject * FrsMaterial_diffuseB( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->diffuseB() );
 }
 
-PyObject * Material_diffuseA( BPy_Material* self) {
+PyObject * FrsMaterial_diffuseA( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->diffuseA() );
 }
 
-PyObject * Material_specular( BPy_Material* self) {
+PyObject * FrsMaterial_specular( BPy_FrsMaterial* self) {
 	PyObject *tmp;
 	
 	const float *specular = self->m->specular();
@@ -255,23 +255,23 @@ PyObject * Material_specular( BPy_Material* self) {
 	return py_specular;
 }
 
-PyObject * Material_specularR( BPy_Material* self) {
+PyObject * FrsMaterial_specularR( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->specularR() );
 }
 
-PyObject * Material_specularG( BPy_Material* self) {
+PyObject * FrsMaterial_specularG( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->specularG() );
 }
 
-PyObject * Material_specularB( BPy_Material* self) {
+PyObject * FrsMaterial_specularB( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->specularB() );
 }
 
-PyObject * Material_specularA( BPy_Material* self) {
+PyObject * FrsMaterial_specularA( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->specularA() );
 }
 
-PyObject * Material_ambient( BPy_Material* self) {
+PyObject * FrsMaterial_ambient( BPy_FrsMaterial* self) {
 	PyObject *tmp;
 	
 	const float *ambient = self->m->ambient();
@@ -285,23 +285,23 @@ PyObject * Material_ambient( BPy_Material* self) {
 	return py_ambient;
 }
 
-PyObject * Material_ambientR( BPy_Material* self) {
+PyObject * FrsMaterial_ambientR( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->ambientR() );
 }
 
-PyObject * Material_ambientG( BPy_Material* self) {
+PyObject * FrsMaterial_ambientG( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->ambientG() );
 }
 
-PyObject * Material_ambientB( BPy_Material* self) {
+PyObject * FrsMaterial_ambientB( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->ambientB() );
 }
 
-PyObject * Material_ambientA( BPy_Material* self) {
+PyObject * FrsMaterial_ambientA( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->ambientA() );
 }
 
-PyObject * Material_emission( BPy_Material* self) {
+PyObject * FrsMaterial_emission( BPy_FrsMaterial* self) {
 	PyObject *tmp;
 	
 	const float *emission = self->m->emission();
@@ -315,31 +315,31 @@ PyObject * Material_emission( BPy_Material* self) {
 	return py_emission;
 }
 
-PyObject * Material_emissionR( BPy_Material* self) {
+PyObject * FrsMaterial_emissionR( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->emissionR() );
 }
 
-PyObject * Material_emissionG( BPy_Material* self) {
+PyObject * FrsMaterial_emissionG( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->emissionG() );
 }
 
-PyObject * Material_emissionB( BPy_Material* self) {
+PyObject * FrsMaterial_emissionB( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->emissionB() );
 }
 
-PyObject * Material_emissionA( BPy_Material* self) {
+PyObject * FrsMaterial_emissionA( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->emissionA() );
 }
 
-PyObject * Material_shininess( BPy_Material* self) {
+PyObject * FrsMaterial_shininess( BPy_FrsMaterial* self) {
 	return PyFloat_FromDouble( self->m->shininess() );
 }
 
-PyObject * Material_setDiffuse( BPy_Material *self, PyObject *args ) {
+PyObject * FrsMaterial_setDiffuse( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
 	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: Material_setDiffuse" << endl;
+		cout << "ERROR: FrsMaterial_setDiffuse" << endl;
 		Py_RETURN_NONE;
 	}
 
@@ -348,11 +348,11 @@ PyObject * Material_setDiffuse( BPy_Material *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
  
-PyObject * Material_setSpecular( BPy_Material *self, PyObject *args ) {
+PyObject * FrsMaterial_setSpecular( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
 	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: Material_setSpecular" << endl;
+		cout << "ERROR: FrsMaterial_setSpecular" << endl;
 		Py_RETURN_NONE;
 	}
 
@@ -361,11 +361,11 @@ PyObject * Material_setSpecular( BPy_Material *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-PyObject * Material_setAmbient( BPy_Material *self, PyObject *args ) {
+PyObject * FrsMaterial_setAmbient( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
 	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: Material_setAmbient" << endl;
+		cout << "ERROR: FrsMaterial_setAmbient" << endl;
 		Py_RETURN_NONE;
 	}
 
@@ -374,11 +374,11 @@ PyObject * Material_setAmbient( BPy_Material *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-PyObject * Material_setEmission( BPy_Material *self, PyObject *args ) {
+PyObject * FrsMaterial_setEmission( BPy_FrsMaterial *self, PyObject *args ) {
 	float f1, f2, f3, f4;
 
 	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  )) {
-		cout << "ERROR: Material_setEmission" << endl;
+		cout << "ERROR: FrsMaterial_setEmission" << endl;
 		Py_RETURN_NONE;
 	}
 
@@ -387,11 +387,11 @@ PyObject * Material_setEmission( BPy_Material *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-PyObject * Material_setShininess( BPy_Material *self, PyObject *args ) {
+PyObject * FrsMaterial_setShininess( BPy_FrsMaterial *self, PyObject *args ) {
 	float f;
 
 	if(!( PyArg_ParseTuple(args, "f", &f)  )) {
-		cout << "ERROR: Material_setShininess" << endl;
+		cout << "ERROR: FrsMaterial_setShininess" << endl;
 		Py_RETURN_NONE;
 	}
 

@@ -5,6 +5,7 @@
 #include <string>
 using namespace std;
 
+
 class Iterator
 {
 public:
@@ -16,20 +17,20 @@ public:
   }
 
   virtual void increment() {
-	cerr << "Warning: method increment() not implemented" << endl;
+	cerr << "Warning: increment() not implemented" << endl;
   }
 
   virtual void decrement() {
-	cerr << "Warning: method decrement() not implemented" << endl;
+	cerr << "Warning: decrement() not implemented" << endl;
   }
 
   virtual bool isBegin() const {
-	cerr << "Warning: method isBegin() not implemented" << endl;
+	cerr << "Warning: isBegin() not implemented" << endl;
 	return false;
-  }
+  }	
 
   virtual bool isEnd() const {
-	cerr << "Warning: method isEnd() not implemented" << endl;
+	cerr << "Warning:  isEnd() not implemented" << endl;
 	return false;
   }
 

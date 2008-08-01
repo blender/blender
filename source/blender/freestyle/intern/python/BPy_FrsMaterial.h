@@ -1,5 +1,5 @@
-#ifndef FREESTYLE_PYTHON_MATERIAL_H
-#define FREESTYLE_PYTHON_MATERIAL_H
+#ifndef FREESTYLE_PYTHON_FRSMATERIAL_H
+#define FREESTYLE_PYTHON_FRSMATERIAL_H
 
 #include "../scene_graph/Material.h"
 
@@ -11,19 +11,19 @@ extern "C" {
 
 #include <Python.h>
 
-extern PyTypeObject Material_Type;
+extern PyTypeObject FrsMaterial_Type;
 
-#define BPy_Material_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Material_Type)  )
+#define BPy_FrsMaterial_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FrsMaterial_Type)  )
 
-/*---------------------------Python BPy_Material structure definition----------*/
+/*---------------------------Python BPy_FrsMaterial structure definition----------*/
 typedef struct {
 	PyObject_HEAD
 	Material *m;
-} BPy_Material;
+} BPy_FrsMaterial;
 
-/*---------------------------Python BPy_Material visible prototypes-----------*/
+/*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/
 
-PyMODINIT_FUNC Material_Init( PyObject *module );
+PyMODINIT_FUNC FrsMaterial_Init( PyObject *module );
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -33,4 +33,4 @@ PyMODINIT_FUNC Material_Init( PyObject *module );
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_MATERIAL_H */
+#endif /* FREESTYLE_PYTHON_FRSMATERIAL_H */

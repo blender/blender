@@ -1,7 +1,7 @@
 #include "BPy_Convert.h"
 
 #include "BPy_BBox.h"
-#include "BPy_Material.h"
+#include "BPy_FrsMaterial.h"
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
@@ -190,9 +190,9 @@ PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs ) {
 	return py_vs;
 }
 
-PyObject * BPy_Material_from_Material( Material& m ){
-	PyObject *py_m = Material_Type.tp_new( &Material_Type, 0, 0 );
-	((BPy_Material*) py_m)->m = new Material( m );
+PyObject * BPy_FrsMaterial_from_Material( Material& m ){
+	PyObject *py_m = FrsMaterial_Type.tp_new( &FrsMaterial_Type, 0, 0 );
+	((BPy_FrsMaterial*) py_m)->m = new Material( m );
 
 	return py_m;
 }

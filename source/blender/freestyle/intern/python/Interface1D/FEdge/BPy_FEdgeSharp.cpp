@@ -175,12 +175,12 @@ PyObject * FEdgeSharp_bMaterialIndex( BPy_FEdgeSharp *self ) {
 
 PyObject * FEdgeSharp_aMaterial( BPy_FEdgeSharp *self ) {
 	Material m( self->fes->aMaterial() );
-	return BPy_Material_from_Material(m);
+	return BPy_FrsMaterial_from_Material(m);
 }
 
 PyObject * FEdgeSharp_bMaterial( BPy_FEdgeSharp *self ) {
 	Material m( self->fes->aMaterial() );
-	return BPy_Material_from_Material(m);
+	return BPy_FrsMaterial_from_Material(m);
 }
 
 PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {

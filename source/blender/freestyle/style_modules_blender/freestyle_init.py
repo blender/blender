@@ -33,8 +33,8 @@ class MediumType(Blender.Freestyle.MediumType):
 class Nature(Blender.Freestyle.Nature):
 	pass
 
-# class Noise(Blender.Freestyle.Noise):
-# 	pass
+class FrsNoise(Blender.Freestyle.FrsNoise):
+	pass
 
 class Operators(Blender.Freestyle.Operators):
 	pass
@@ -90,8 +90,8 @@ class SVertex(Blender.Freestyle.SVertex):
 class ViewVertex(Blender.Freestyle.ViewVertex):
 	pass
 
-# class Curve(Blender.Freestyle.Curve):
-# 	pass
+class FrsCurve(Blender.Freestyle.FrsCurve):
+	pass
 
 class FEdge(Blender.Freestyle.FEdge):
 	pass

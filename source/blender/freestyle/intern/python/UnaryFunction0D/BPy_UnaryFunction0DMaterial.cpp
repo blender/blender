@@ -165,7 +165,7 @@ PyObject * UnaryFunction0DMaterial___call__( BPy_UnaryFunction0DMaterial *self, 
 	}
 	
 	Material m( self->uf0D_material->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
-	return BPy_Material_from_Material( m );
+	return BPy_FrsMaterial_from_Material( m );
 
 }
 
