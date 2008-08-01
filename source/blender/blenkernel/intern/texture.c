@@ -53,6 +53,7 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
+#include "DNA_scene_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -731,7 +732,7 @@ Tex *give_current_texture(Object *ob, int act)
 	bNode *node;
 	
 	if(ob==0) return 0;
-	if(ob->totcol==0) return 0;
+	if(ob->totcol==0 && !(ob->type==OB_LAMP)) return 0;
 	
 	if(ob->type==OB_LAMP) {
 		la=(Lamp *)ob->data;
@@ -775,6 +776,18 @@ Tex *give_current_texture(Object *ob, int act)
 	return tex;
 }
 
+Tex *give_current_world_texture(void)
+{
+	MTex *mtex = 0;
+	Tex *tex = 0;
+	
+	if(!(G.scene->world)) return 0;
+	
+	mtex= G.scene->world->mtex[(int)(G.scene->world->texact)];
+	if(mtex) tex= mtex->tex;
+	
+	return tex;
+}
 
 /* ------------------------------------------------------------------------- */
 
