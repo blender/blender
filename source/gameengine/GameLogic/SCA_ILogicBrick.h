@@ -32,6 +32,8 @@
 #include "Value.h"
 #include "SCA_IObject.h"
 #include "BoolValue.h"
+#include "GEN_Map.h"
+#include "GEN_HashedPtr.h"
 
 class SCA_ILogicBrick : public CValue
 {
@@ -59,6 +61,7 @@ public:
 
 	SCA_IObject*	GetParent();
 	virtual void	ReParent(SCA_IObject* parent);
+	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	// act as a BoolValue (with value IsPositiveTrigger)
 	virtual CValue*	Calc(VALUE_OPERATOR op, CValue *val);
@@ -82,9 +85,9 @@ public:
 
 	// python methods
 
-	KX_PYMETHOD(SCA_ILogicBrick,GetOwner);
+	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetOwner);
 	KX_PYMETHOD(SCA_ILogicBrick,SetExecutePriority);
-	KX_PYMETHOD(SCA_ILogicBrick,GetExecutePriority);
+	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
 
 	enum KX_BOOL_TYPE {
 		KX_BOOL_NODEF = 0,

@@ -43,6 +43,7 @@
 
 #include "GEN_HashedPtr.h"
 
+struct Mesh;
 /**
  * This class holds an array of vertices and indicies.
  */
@@ -136,17 +137,30 @@ class RAS_MeshObject
 	struct backtofront;
 	struct fronttoback;
 
+	void				SchedulePoly(
+							const KX_VertexIndex& idx,
+							int numverts,
+							RAS_IPolyMaterial* mat
+						);
+
+	void				ScheduleWireframePoly(
+							const KX_VertexIndex& idx,
+							int numverts,
+							int edgecode,
+							RAS_IPolyMaterial* mat
+						);
 	
 protected:
 	enum { BUCKET_MAX_INDICES = 65535 };//2048};//8192};
 	enum { BUCKET_MAX_TRIANGLES = 65535 };
 	
-	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
+	GEN_Map<GEN_HashedPtr,KX_ArrayOptimizer*> m_matVertexArrayS;
 	
 	RAS_MaterialBucket::Set			m_materials;
+	Mesh*							m_mesh;
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
-	RAS_MeshObject(int lightlayer);
+	RAS_MeshObject(Mesh* mesh, int lightlayer);
 	virtual ~RAS_MeshObject();
 
 	vector<RAS_IPolyMaterial*>				m_sortedMaterials;
@@ -187,16 +201,14 @@ public:
 						);
 
 	void				DebugColor(unsigned int abgr);
+	void 				SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba);
 	
 	/**
 	 *  Sorts the polygons by their transformed z values.
 	 */
 	void				SortPolygons(const MT_Transform &transform);
 
-	void				SchedulePolygons(
-							const MT_Transform &transform,
-							int drawingmode
-						);
+	void				SchedulePolygons(int drawingmode);
 
 	void				ClearArrayData();
 	
@@ -213,19 +225,7 @@ public:
 							int numverts,
 							RAS_IPolyMaterial* polymat
 						);
-	
-	void				SchedulePoly(
-							const KX_VertexIndex& idx,
-							int numverts,
-							RAS_IPolyMaterial* mat
-						);
 
-	void				ScheduleWireframePoly(
-							const KX_VertexIndex& idx,
-							int numverts,
-							int edgecode,
-							RAS_IPolyMaterial* mat
-						);
 	
 	// find (and share) or add vertices
 	// for some speedup, only the last 20 added vertices are searched for equality
@@ -238,11 +238,12 @@ public:
 							const MT_Vector4& tangent,
 							const unsigned int rgbacolor,
 							const MT_Vector3& normal,
+							bool flat,
 							RAS_IPolyMaterial* mat,
-							int orgindex
+							int origindex
 						);
 	
-	const vecVertexArray&	GetVertexCache (RAS_IPolyMaterial* mat);
+	vecVertexArray&		GetVertexCache (RAS_IPolyMaterial* mat);
 	
 	int					GetVertexArrayLength(RAS_IPolyMaterial* mat);
 
@@ -257,6 +258,7 @@ public:
 
 	bool				MeshModified();
 	void				SetMeshModified(bool v){m_MeshMod = v;}
+	Mesh*				GetMesh() { return m_mesh; }
 
 };
 

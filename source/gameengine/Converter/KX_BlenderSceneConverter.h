@@ -75,6 +75,7 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	class KX_Scene*			m_currentScene;	// Scene being converted
 	bool					m_alwaysUseExpandFraming;
 	bool					m_usemat;
+	bool					m_useglslmat;
 
 	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
 //	struct Ipo* findIpoForName(char* objName);
@@ -145,6 +146,10 @@ public:
 	// use blender materials
 	virtual void SetMaterials(bool val);
 	virtual bool GetMaterials();
+
+	// use blender glsl materials
+	virtual void SetGLSLMaterials(bool val);
+	virtual bool GetGLSLMaterials();
 
 };
 

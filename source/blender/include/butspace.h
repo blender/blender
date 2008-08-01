@@ -52,6 +52,8 @@ struct Image;
 #define BUTS_ACT_SEL		64
 #define BUTS_ACT_ACT		128
 #define BUTS_ACT_LINK		256
+#define BUTS_SENS_STATE		512
+#define BUTS_ACT_STATE		1024
 
 /* internal */
 
@@ -583,6 +585,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETACTOR		2715
 #define B_SETMAINACTOR		2716
 #define B_SETDYNA		2717
+#define B_SET_STATE_BIT	2718
+#define B_INIT_STATE_BIT	2719
 
 /* *********************** */
 #define B_FPAINTBUTS		2900

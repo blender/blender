@@ -22,11 +22,37 @@ class KX_GameObject:
 	@type orientation: 3x3 Matrix [[float]]
 	@ivar scaling: The object's scaling factor. list [sx, sy, sz]
 	@type scaling: list [sx, sy, sz]
+	@ivar timeOffset: adjust the slowparent delay at runtime.
+	@type timeOffset: float
 	"""
-	
+	def endObject(visible):
+		"""
+		Delete this object, can be used inpace of the EndObject Actuator.
+		The actual removal of the object from the scene is delayed.
+		"""	
+	def getVisible(visible):
+		"""
+		Gets the game object's visible flag.
+		
+		@type visible: boolean
+		"""	
 	def setVisible(visible):
 		"""
 		Sets the game object's visible flag.
+		
+		@type visible: boolean
+		"""
+	def getState():
+		"""
+		Gets the game object's state bitmask.
+		
+		@rtype: int
+		@return: the objects state.
+		"""	
+	def setState():
+		"""
+		Sets the game object's visible flag.
+		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29)
 		
 		@type visible: boolean
 		"""
@@ -48,8 +74,31 @@ class KX_GameObject:
 		"""
 		Sets the game object's orientation.
 		
-		@type orn: 3x3 rotation matrix, or Quaternion.
+		@type orn: 3x3 inverted rotation matrix, or Quaternion.
 		@param orn: a rotation matrix specifying the new rotation.
+		"""
+	def alignAxisToVect(vect, axis):
+		"""
+		Aligns any of the game object's axis along the given vector.
+		
+		@type vect: 3d vector.
+		@param vect: a vector to align the axis.
+		@type axis: integer.
+		@param axis:The axis you want to align
+					- 0: X axis
+					- 1: Y axis
+					- 2: Z axis (default) 
+		"""
+	def getAxisVect(vect):
+		"""
+		Returns the axis vector rotates by the objects worldspace orientation.
+		This is the equivalent if multiplying the vector by the orientation matrix.
+		
+		@type vect: 3d vector.
+		@param vect: a vector to align the axis.
+		@rtype: 3d vector.
+		@return: The vector in relation to the objects rotation.
+
 		"""
 	def getOrientation():
 		"""
@@ -58,7 +107,7 @@ class KX_GameObject:
 		@rtype: 3x3 rotation matrix
 		@return: The game object's rotation matrix
 		"""
-	def getLinearVelocity(local):
+	def getLinearVelocity(local = 0):
 		"""
 		Gets the game object's linear velocity.
 		
@@ -66,10 +115,23 @@ class KX_GameObject:
 		ie no angular velocity component.
 		
 		@type local: boolean
-		@param local: - False: you get the "global" velocity ie: relative to world orientation.
+		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
 		              - True: you get the "local" velocity ie: relative to object orientation.
 		@rtype: list [vx, vy, vz]
 		@return: the object's linear velocity.
+		"""
+	def setLinearVelocity(velocity, local = 0):
+		"""
+		Sets the game object's linear velocity.
+		
+		This method sets game object's velocity through it's centre of mass,
+		ie no angular velocity component.
+		
+		@type velocity: 3d vector.
+		@param velocity: linear velocity vector.
+		@type local: boolean
+		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
+		              - True: you get the "local" velocity ie: relative to object orientation.
 		"""
 	def getVelocity(point):
 		"""
@@ -118,16 +180,19 @@ class KX_GameObject:
 	def restoreDynamics():
 		"""
 		Resumes physics for this object.
+		@Note: The objects linear velocity will be applied from when the dynamics were suspended.
 		"""
 	def enableRigidBody():
 		"""
 		Enables rigid body physics for this object.
 		
 		Rigid body physics allows the object to roll on collisions.
+		@Note: This is not working with bullet physics yet.
 		"""
 	def disableRigidBody():
 		"""
 		Disables rigid body physics for this object.
+		@Note: This is not working with bullet physics yet. The angular is removed but rigid body physics can still rotate it later.
 		"""
 	def getParent():
 		"""
@@ -147,6 +212,18 @@ class KX_GameObject:
 		"""
 		Removes this objects parent.
 		"""
+	def getChildren():
+		"""
+		Return a list of immediate children of this object.
+		@rtype: list
+		@return: a list of all this objects children.
+		"""
+	def getChildrenRecursive():
+		"""
+		Return a list of children of this object, including all their childrens children.
+		@rtype: list
+		@return: a list of all this objects children recursivly.
+		"""
 	def getMesh(mesh):
 		"""
 		Gets the mesh object for this object.
@@ -159,6 +236,12 @@ class KX_GameObject:
 	def getPhysicsId():
 		"""
 		Returns the user data object associated with this game object's physics controller.
+		"""
+	def getPropertyNames():
+		"""
+		Gets a list of all property names.
+		@rtype: list
+		@return: All property names for this object.
 		"""
 	def getDistanceTo(other):
 		"""
@@ -174,9 +257,10 @@ class KX_GameObject:
 
 		The ray is always casted from the center of the object, ignoring the object itself.
 		The ray is casted towards the center of another object or an explicit [x,y,z] point.
+		Use rayCast() if you need to retrieve the hit point 
 
 		@param other: [x,y,z] or object towards which the ray is casted
-		@type other: L{KX_GameObject} or string
+		@type other: L{KX_GameObject} or 3-tuple
 		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to other
 		@type dist: float
 		@param prop: property name that object must have; can be omitted => detect any object
@@ -184,4 +268,33 @@ class KX_GameObject:
 		@rtype: L{KX_GameObject}
 		@return: the first object hit or None if no object or object does not match prop
 		"""
-	
+	def rayCast(to,from,dist,prop):
+		"""
+		Look from a point/object to another point/object and find first object hit within dist that matches prop.
+		Returns a 3-tuple with object reference, hit point and hit normal or (None,None,None) if no hit.
+		Ex:
+			# shoot along the axis gun-gunAim (gunAim should be collision-free)
+			ob,point,normal = gun.rayCast(gunAim,None,50)
+			if ob:
+				# hit something
+
+		Notes:				
+		The ray ignores the object on which the method is called.
+		If is casted from/to object center or explicit [x,y,z] points.
+		The ray does not have X-Ray capability: the first object hit (other than self object) stops the ray
+		If a property was specified and the first object hit does not have that property, there is no hit
+		The	ray ignores collision-free objects and faces that dont have the collision flag enabled, you can however use ghost objects.
+
+		@param to: [x,y,z] or object to which the ray is casted
+		@type to: L{KX_GameObject} or 3-tuple
+		@param from: [x,y,z] or object from which the ray is casted; None or omitted => use self object center
+		@type from: L{KX_GameObject} or 3-tuple or None
+		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to to
+		@type dist: float
+		@param prop: property name that object must have; can be omitted => detect any object
+		@type prop: string
+		@rtype: 3-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz))
+		@return: (object,hitpoint,hitnormal) or (None,None,None)
+		"""
+
+

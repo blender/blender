@@ -87,6 +87,13 @@ SG_Spatial::
 	delete (m_parent_relation);
 }
 
+	SG_ParentRelation *
+SG_Spatial::
+GetParentRelation(
+){
+	return m_parent_relation;
+}
+
 	void
 SG_Spatial::
 SetParentRelation(

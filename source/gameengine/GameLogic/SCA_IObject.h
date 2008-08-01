@@ -67,7 +67,17 @@ protected:
 	 * Ignore updates?
 	 */
 	bool m_suspended;
-	
+
+	/**
+	 * init state of object (used when object is created)
+	 */
+	unsigned int			m_initState;
+
+	/**
+	 * current state = bit mask of state that are active
+	 */
+	unsigned int			m_state;
+
 public:
 	
 	SCA_IObject(PyTypeObject* T=&Type);
@@ -111,7 +121,27 @@ public:
 	 * Resume progress
 	 */
 	void Resume(void);
-	
+
+	/**
+	 * Set init state
+	 */
+	void SetInitState(unsigned int initState) { m_initState = initState; }
+
+	/**
+	 * initialize the state when object is created
+	 */
+	void ResetState(void) { SetState(m_initState); }
+
+	/**
+	 * Set the object state
+	 */
+	void SetState(unsigned int state);
+
+	/**
+	 * Get the object state
+	 */
+	unsigned int GetState(void)	{ return m_state; }
+
 //	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
 	
 	// here come the python forwarded methods
@@ -120,7 +150,7 @@ public:
 	virtual int GetGameObjectType() {return -1;}
 	
 	typedef enum ObjectTypes {
-		OBJ_ARMATURE=0
+		OBJ_ARMATURE=0,
 	}ObjectTypes;
 
 };

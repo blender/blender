@@ -2991,6 +2991,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					bActionActuator *aa= act->data;
 					aa->act= newlibadr(fd, ob->id.lib, aa->act);
 				}
+				else if(act->type==ACT_SHAPEACTION) {
+					bActionActuator *aa= act->data;
+					aa->act= newlibadr(fd, ob->id.lib, aa->act);
+				}
 				else if(act->type==ACT_PROPERTY) {
 					bPropertyActuator *pa= act->data;
 					pa->ob= newlibadr(fd, ob->id.lib, pa->ob);
@@ -3006,6 +3010,9 @@ static void lib_link_object(FileData *fd, Main *main)
 				else if(act->type==ACT_PARENT) {
 					bParentActuator *parenta = act->data; 
 					parenta->ob = newlibadr(fd, ob->id.lib, parenta->ob);
+				}
+				else if(act->type==ACT_STATE) {
+					/* bStateActuator *statea = act->data; */
 				}
 				act= act->next;
 			}
@@ -3303,11 +3310,19 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_constraints(fd, &ob->constraints);
 
 	link_glob_list(fd, &ob->controllers);
+	if (ob->init_state) {
+		/* if a known first state is specified, set it so that the game will start ok */
+		ob->state = ob->init_state;
+	} else if (!ob->state) {
+		ob->state = 1;
+	}
 	cont= ob->controllers.first;
 	while(cont) {
 		cont->data= newdataadr(fd, cont->data);
 		cont->links= newdataadr(fd, cont->links);
 		test_pointer_array(fd, (void **)&cont->links);
+		if (cont->state_mask == 0)
+			cont->state_mask = 1;
 		cont= cont->next;
 	}
 
@@ -4784,6 +4799,49 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	for (id=idlist.first; id; id=id->next) {
 		if (id->properties) {
 			idproperties_fix_groups_lengths_recurse(id->properties);
+		}
+	}
+}
+
+void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+{
+	Material *ma;
+	MFace *mf;
+	MTFace *tf;
+	int a, b, texalpha;
+
+	/* verify we have a tface layer */
+	for(b=0; b<me->fdata.totlayer; b++)
+		if(me->fdata.layers[b].type == CD_MTFACE)
+			break;
+	
+	if(b == me->fdata.totlayer)
+		return;
+
+	/* if we do, set alpha sort if the game engine did it before */
+	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+		if(mf->mat_nr < me->totcol) {
+			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
+			texalpha = 0;
+
+			for(b=0; ma && b<MAX_MTEX; b++)
+				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
+					texalpha = 1;
+		}
+		else {
+			ma= NULL;
+			texalpha = 0;
+		}
+
+		for(b=0; b<me->fdata.totlayer; b++) {
+			if(me->fdata.layers[b].type == CD_MTFACE) {
+				tf = ((MTFace*)me->fdata.layers[b].data) + a;
+
+				tf->mode &= ~TF_ALPHASORT;
+				if(ma && (ma->mode & MA_ZTRA))
+					if(ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
+						tf->mode |= TF_ALPHASORT;
+			}
 		}
 	}
 }
@@ -7631,6 +7689,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Mesh *me;
+
+		for(me=main->mesh.first; me; me= me->id.next)
+			alphasort_version_246(fd, lib, me);
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -8396,6 +8461,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 			expand_doit(fd, mainvar, sa->scene);
 		}
 		else if(act->type==ACT_ACTION) {
+			bActionActuator *aa= act->data;
+			expand_doit(fd, mainvar, aa->act);
+		}
+		else if(act->type==ACT_SHAPEACTION) {
 			bActionActuator *aa= act->data;
 			expand_doit(fd, mainvar, aa->act);
 		}

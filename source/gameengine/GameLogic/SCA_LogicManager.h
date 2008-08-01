@@ -109,7 +109,7 @@ class SCA_LogicManager
 	GEN_Map<STR_HashedString,void*>		m_mapStringToActions;
 
 	GEN_Map<STR_HashedString,void*>		m_map_gamemeshname_to_blendobj;
-	GEN_Map<CHashedPtr,void*>			m_map_gameobj_to_blendobj;
+	GEN_Map<CHashedPtr,void*>			m_map_blendobj_to_gameobj;
 
 	vector<SmartActuatorPtr>			m_removedActuators;
 public:
@@ -152,8 +152,9 @@ public:
 	void	RegisterGameMeshName(const STR_String& gamemeshname, void* blendobj);
 	void*	FindBlendObjByGameMeshName(const STR_String& gamemeshname);
 
-	void	RegisterGameObj(CValue* gameobj, void* blendobj);
-	void*	FindBlendObjByGameObj(CValue* gameobj);
+	void	RegisterGameObj(void* blendobj, CValue* gameobj);
+	void	UnregisterGameObj(void* blendobj, CValue* gameobj);
+	CValue*	FindGameObjByBlendObj(void* blendobj);
 };
 
 #endif //__KX_LOGICMANAGER

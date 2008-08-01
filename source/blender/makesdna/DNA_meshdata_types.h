@@ -213,7 +213,7 @@ typedef struct PartialVisibility {
 
 /* mtface->mode */
 #define TF_DYNAMIC		1
-#define TF_DEPRECATED	2
+#define TF_ALPHASORT	2
 #define TF_TEX			4
 #define TF_SHAREDVERT	8
 #define TF_LIGHT		16
@@ -229,13 +229,15 @@ typedef struct PartialVisibility {
 #define TF_SHADOW		8192
 #define TF_BMFONT		16384
 
-/* mtface->transp */
+/* mtface->transp, values 1-4 are used as flags in the GL, WARNING, TF_SUB cant work with this */
 #define TF_SOLID	0
 #define TF_ADD		1
 #define TF_ALPHA	2
+#define TF_CLIP		4 /* clipmap alpha/binary alpha all or nothing! */
 
 /* sub is not available in the user interface anymore */
 #define TF_SUB		3
+
 
 /* mtface->unwrap */
 #define TF_DEPRECATED1	1

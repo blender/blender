@@ -246,7 +246,8 @@ void default_gl_light(void)
 	glDisable(GL_COLOR_MATERIAL);
 }
 
-/* also called when render 'ogl' */
+/* also called when render 'ogl'
+   keep synced with Myinit_gl_stuff in the game engine! */
 void init_gl_stuff(void)	
 {
 	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };

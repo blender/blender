@@ -48,8 +48,11 @@ class KX_IpoSGController : public SG_Controller
 	/** Interpret the ipo as a force rather than a displacement? */
 	bool                m_ipo_as_force;
 
-	/** Ipo-as-force acts in local rather than in global coordinates? */
-	bool                m_force_ipo_acts_local;
+	/** Add Ipo curve to current loc/rot/scale */
+	bool                m_ipo_add;
+
+	/** Ipo must be applied in local coordinate rather than in global coordinates (used for force and Add mode)*/
+	bool                m_ipo_local;
 	
 	/** Were settings altered since the last update? */
 	bool				m_modified;

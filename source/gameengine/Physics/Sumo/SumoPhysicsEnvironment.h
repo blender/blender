@@ -84,6 +84,7 @@ public:
 	virtual void removeSensor(PHY_IPhysicsController* ctrl);
 	virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
 	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
+	virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
 	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 

@@ -116,6 +116,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 	void CreateRigidbody();
 
+	protected:
+		void setWorldOrientation(const btMatrix3x3& mat);
+
 	public:
 	
 		int				m_collisionDelay;

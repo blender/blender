@@ -64,9 +64,14 @@ std::cout << " button flag "<< m_buttonf	<< std::endl;
 std::cout << " hat "		<< m_hat		<< std::endl;
 std::cout << " hat flag "	<< m_hatf		<< std::endl;
 */
-	m_istrig=0;
+	Init();
 }
 
+void SCA_JoystickSensor::Init()
+{
+	m_istrig=(m_invert)?1:0;
+	m_reset = true;
+}
 
 SCA_JoystickSensor::~SCA_JoystickSensor()
 {
@@ -75,9 +80,10 @@ SCA_JoystickSensor::~SCA_JoystickSensor()
 
 CValue* SCA_JoystickSensor::GetReplica()
 {
-	CValue* replica = new SCA_JoystickSensor(*this);
+	SCA_JoystickSensor* replica = new SCA_JoystickSensor(*this);
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
+	replica->Init();
 	return replica;
 }
 
@@ -95,7 +101,9 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 {
 	SCA_Joystick *js = m_pJoystickMgr->GetJoystickDevice();
 	bool result = false;
+	bool reset = m_reset && m_level;
 	
+	m_reset = false;
 	switch(m_joymode)
 	{
 	case KX_JOYSENSORMODE_AXIS:
@@ -236,6 +244,8 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 	if(!js->IsTrig()){
 		m_istrig = 0;
 	}
+	if (reset)
+		result = true;
 	return result;
 }
 

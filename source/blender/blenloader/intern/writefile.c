@@ -603,6 +603,9 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 		case SENS_PROPERTY:
 			writestruct(wd, DATA, "bPropertySensor", 1, sens->data);
 			break;
+		case SENS_ACTUATOR:
+			writestruct(wd, DATA, "bActuatorSensor", 1, sens->data);
+			break;
 		case SENS_COLLISION:
 			writestruct(wd, DATA, "bCollisionSensor", 1, sens->data);
 			break;
@@ -664,6 +667,7 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 
 		switch(act->type) {
 		case ACT_ACTION:
+		case ACT_SHAPEACTION:
 			writestruct(wd, DATA, "bActionActuator", 1, act->data);
 			break;
 		case ACT_SOUND:
@@ -713,6 +717,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 			break;
 		case ACT_PARENT:
 			writestruct(wd, DATA, "bParentActuator", 1, act->data);
+			break;
+		case ACT_STATE:
+			writestruct(wd, DATA, "bStateActuator", 1, act->data);
 			break;
 		default:
 			; /* error: don't know how to write this file */

@@ -60,17 +60,20 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					m_bFindMaterial(bFindMaterial),
 					m_distance(distance),
 					m_scene(ketsjiScene),
-					m_bTriggered(false),
-					m_axis(axis),
-					m_rayHit(false),
-					m_hitObject(NULL)
+					m_axis(axis)
 
 				
 {
-
+	Init();
 }
 
-
+void KX_RaySensor::Init()
+{
+	m_bTriggered = (m_invert)?true:false;
+	m_rayHit = false;
+	m_hitObject = NULL;
+	m_reset = true;
+}
 
 KX_RaySensor::~KX_RaySensor() 
 {
@@ -81,9 +84,10 @@ KX_RaySensor::~KX_RaySensor()
 
 CValue* KX_RaySensor::GetReplica()
 {
-	CValue* replica = new KX_RaySensor(*this);
+	KX_RaySensor* replica = new KX_RaySensor(*this);
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
+	replica->Init();
 
 	return replica;
 }
@@ -149,6 +153,7 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_
 bool KX_RaySensor::Evaluate(CValue* event)
 {
 	bool result = false;
+	bool reset = m_reset && m_level;
 	m_rayHit = false; 
 	m_hitObject = NULL;
 	m_hitPosition = MT_Vector3(0,0,0);
@@ -160,6 +165,7 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	MT_Matrix3x3 invmat = matje.inverse();
 	
 	MT_Vector3 todir;
+	m_reset = false;
 	switch (m_axis)
 	{
 	case 1: // X
@@ -261,7 +267,9 @@ bool KX_RaySensor::Evaluate(CValue* event)
 		}
 	
       }
-    
+    if (reset)
+		// force an event
+		result = true;
 
 	return result;
 }

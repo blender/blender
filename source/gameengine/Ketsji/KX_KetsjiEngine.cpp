@@ -55,6 +55,7 @@
 #include "KX_Scene.h"
 #include "MT_CmMatrix4x4.h"
 #include "KX_Camera.h"
+#include "KX_Light.h"
 #include "KX_PythonInit.h"
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
@@ -117,7 +118,6 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_bInitialized(false),
 	m_activecam(0),
 	m_bFixedTime(false),
-	m_game2ipo(false),
 	
 	m_firstframe(true),
 	
@@ -146,6 +146,8 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_showProperties(false),
 	m_showBackground(false),
 	m_show_debug_properties(false),
+
+	m_game2ipo(false),
 
 	// Default behavior is to hide the cursor every frame.
 	m_hideCursor(false),
@@ -617,6 +619,9 @@ void KX_KetsjiEngine::Render()
 		// pass the scene's worldsettings to the rasterizer
 		SetWorldSettings(scene->GetWorldInfo());
 
+		// shadow buffers
+		RenderShadowBuffers(scene);
+
 		// Avoid drawing the scene with the active camera twice when it's viewport is enabled
 		if(cam && !cam->GetViewport())
 		{
@@ -888,8 +893,48 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 		viewport.GetTop()
 	);	
 
-}		
+}
 
+void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
+{
+	CListValue *lightlist = scene->GetLightList();
+	int i, drawmode;
+
+	for(i=0; i<lightlist->GetCount(); i++) {
+		KX_LightObject *light = (KX_LightObject*)lightlist->GetValue(i);
+
+		light->Update();
+
+		if(m_drawingmode == RAS_IRasterizer::KX_TEXTURED && light->HasShadowBuffer()) {
+			/* make temporary camera */
+			RAS_CameraData camdata = RAS_CameraData();
+			KX_Camera *cam = new KX_Camera(scene, scene->m_callbacks, camdata, false);
+			cam->SetName("__shadow__cam__");
+
+			MT_Transform camtrans;
+
+			/* switch drawmode for speed */
+			drawmode = m_rasterizer->GetDrawingMode();
+			m_rasterizer->SetDrawingMode(RAS_IRasterizer::KX_SHADOW);
+
+			/* binds framebuffer object, sets up camera .. */
+			light->BindShadowBuffer(m_rasterizer, cam, camtrans);
+
+			/* update scene */
+			scene->UpdateMeshTransformations();
+			scene->CalculateVisibleMeshes(m_rasterizer, cam, light->GetShadowLayer());
+
+			/* render */
+			m_rasterizer->ClearDepthBuffer();
+			scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+			/* unbind framebuffer object, restore drawmode, free camera */
+			light->UnbindShadowBuffer(m_rasterizer);
+			m_rasterizer->SetDrawingMode(drawmode);
+			cam->Release();
+		}
+	}
+}
 	
 // update graphics
 void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)

@@ -454,13 +454,14 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
-	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
+	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco"};
+	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDTangent"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
@@ -474,7 +475,7 @@ const CustomDataMask CD_MASK_EDITMESH =
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
-	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO;
+	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT;
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {

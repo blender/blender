@@ -35,6 +35,10 @@
 // Controller
 #include "SCA_ANDController.h"
 #include "SCA_ORController.h"
+#include "SCA_NANDController.h"
+#include "SCA_NORController.h"
+#include "SCA_XORController.h"
+#include "SCA_XNORController.h"
 #include "SCA_PythonController.h"
 #include "SCA_ExpressionController.h"
 
@@ -112,6 +116,30 @@ void BL_ConvertControllers(
 				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
 				break;
 			}
+			case CONT_LOGIC_NAND:
+			{
+				gamecontroller = new SCA_NANDController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
+			case CONT_LOGIC_NOR:
+			{
+				gamecontroller = new SCA_NORController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
+			case CONT_LOGIC_XOR:
+			{
+				gamecontroller = new SCA_XORController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
+			case CONT_LOGIC_XNOR:
+			{
+				gamecontroller = new SCA_XNORController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
 			case CONT_EXPRESSION:
 			{
 				bExpressionCont* bexpcont = (bExpressionCont*) bcontr->data;
@@ -161,6 +189,7 @@ void BL_ConvertControllers(
 		if (gamecontroller)
 		{
 			gamecontroller->SetExecutePriority(executePriority++);
+			gamecontroller->SetState(bcontr->state_mask);
 			STR_String uniquename = bcontr->name;
 			uniquename += "#CONTR#";
 			uniqueint++;

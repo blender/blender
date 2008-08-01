@@ -35,16 +35,12 @@
 
 #include "MT_Transform.h"
 #include "RAS_IPolygonMaterial.h"
+#include "RAS_IRasterizer.h"
 #include "RAS_Deformer.h"	// __NLA
 #include <vector>
 #include <map>
 #include <set>
 using namespace std;
-
-typedef vector<unsigned short> KX_IndexArray;
-typedef vector<RAS_TexVert> KX_VertexArray;
-typedef vector< KX_VertexArray* >  vecVertexArray;
-typedef vector< KX_IndexArray* > vecIndexArrays;
 
 /**
  * KX_VertexIndex
@@ -129,11 +125,9 @@ public:
 					   class RAS_IRasterizer* rasty,
 					   class RAS_IRenderTools* rendertools);
 	
-	void	SchedulePolygons(int drawingmode);
-	void	ClearScheduledPolygons();
-	
 	RAS_IPolyMaterial*		GetPolyMaterial() const;
-	bool	IsTransparant() const;
+	bool	IsAlpha() const;
+	bool	IsZSort() const;
 		
 	static void	StartFrame();
 	static void EndFrame();
@@ -146,9 +140,9 @@ public:
 								const MT_Vector4& rgbavec);
 
 	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, int drawmode);
+		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, RAS_IRasterizer::DrawMode drawmode);
 	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools *rendertools, int &drawmode);
+		RAS_IRenderTools *rendertools, RAS_IRasterizer::DrawMode& drawmode);
 	
 	unsigned int NumMeshSlots();
 	T_MeshSlotList::iterator msBegin();
@@ -166,7 +160,6 @@ public:
 private:
 	
 	T_MeshSlotList				m_meshSlots;
-	bool						m_bScheduled;
 	bool						m_bModified;
 	RAS_IPolyMaterial*			m_material;
 	double*						m_pOGLMatrix;

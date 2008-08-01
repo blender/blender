@@ -37,24 +37,6 @@
 
 #include "RAS_Polygon.h"
 
-/*
-RAS_TexVert*	RAS_Polygon::GetVertex(int index)
-{ 
-		if (m_bucket)
-			return m_bucket->GetVertex(m_vertexindexbase.m_vtxarray, m_vertexindexbase.m_indexarray[index]);
-		else
-			return NULL;
-}
-*/
-
-/*void RAS_Polygon::Bucketize(double* oglmatrix)
-{
-		//Transform(trans);
-		if (m_bucket)
-			m_bucket->AddPolygon(this,oglmatrix);
-}
-*/
-
 RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket,
 				bool visible,
 				int numverts,

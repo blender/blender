@@ -34,6 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "GL/glew.h"
+
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
 #ifndef _WIN32_IE
@@ -1038,6 +1040,7 @@ void BIF_init(void)
 	BIF_filelist_init_icons();
 
 	init_gl_stuff();	/* drawview.c, after homefile */
+	glewInit();
 	readBlog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }

@@ -52,7 +52,7 @@ class SCA_PropertyActuator : public SCA_IActuator
 	int			m_type;
 	STR_String	m_propname;
 	STR_String	m_exprtxt;
-	CValue*		m_sourceObj; // for copy property actuator
+	SCA_IObject* m_sourceObj; // for copy property actuator
 
 public:
 
@@ -60,7 +60,7 @@ public:
 
 	SCA_PropertyActuator(
 		SCA_IObject* gameobj,
-		CValue* sourceObj,
+		SCA_IObject* sourceObj,
 		const STR_String& propname,
 		const STR_String& expr,
 		int acttype,
@@ -74,7 +74,9 @@ public:
 	GetReplica(
 	);
 
-	void ProcessReplica();
+	virtual void ProcessReplica();
+	virtual bool UnlinkObject(SCA_IObject* clientobj);
+	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	virtual bool 
 	Update();

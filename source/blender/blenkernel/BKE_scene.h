@@ -53,7 +53,7 @@ struct RenderData;
 }
 
 /* note; doesn't work when scene is empty */
-#define SETLOOPER(s, b) sce= s, b= sce->base.first; b; b= (b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
+#define SETLOOPER(s, b) sce= s, b= (Base*)sce->base.first; b; b= (Base*)(b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
 
 
 void free_avicodecdata(struct AviCodecData *acd);

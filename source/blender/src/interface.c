@@ -2797,6 +2797,10 @@ static void ui_add_link_line(ListBase *listb, uiBut *but, uiBut *bt)
 	line->to= bt;
 }
 
+uiBut *uiFindInlink(uiBlock *block, void *poin)
+{
+	return ui_find_inlink(block, poin);
+}
 
 void uiComposeLinks(uiBlock *block)
 {

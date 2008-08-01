@@ -99,6 +99,16 @@ public :
 	) { 
 		return false;
 	}
+	
+	/**
+	 * Need this to see if we are able to adjust time-offset from the python api
+	 */
+	virtual
+		bool
+	IsSlowRelation(
+	) { 
+		return false;
+	}
 protected :
 
 	/** 

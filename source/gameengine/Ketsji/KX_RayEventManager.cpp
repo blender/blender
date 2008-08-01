@@ -44,14 +44,9 @@ using namespace std;
 
 void KX_RayEventManager::NextFrame()
 {
-	for (vector<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
+	for (set<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
 	{
-		SCA_ISensor *sensor = *i;
-		sensor->Activate(m_logicmgr, NULL);
+		(*i)->Activate(m_logicmgr, NULL);
 	}
 }
 
-void	KX_RayEventManager::RegisterSensor(SCA_ISensor* sensor)
-{
-	m_sensors.push_back(sensor);
-};

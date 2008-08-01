@@ -39,51 +39,57 @@
 #endif
 
 #include "RAS_IPolygonMaterial.h"
+#include "BL_DeformableGameObject.h"
 #include "BL_MeshDeformer.h"
 #include "BL_SkinMeshObject.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "BLI_arithb.h"
 
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 
-
-bool BL_MeshDeformer::Apply(RAS_IPolyMaterial *mat)
+bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 {
-	size_t			i, j, index;
-	vecVertexArray	array;
-	vecIndexArrays	mvarray;
-	vecIndexArrays	diarray;
-	
-	RAS_TexVert *tv;
-	MVert	*mvert;
-	
-	// For each material
-	array = m_pMeshObject->GetVertexCache(mat);
-	mvarray = m_pMeshObject->GetMVertCache(mat);
-	diarray = m_pMeshObject->GetDIndexCache(mat);
-	
-	// For each array
-	for (i=0; i<array.size(); i++){
-		//	For each vertex
-		for (j=0; j<array[i]->size(); j++){
-			tv = &((*array[i])[j]);
-			index = ((*diarray[i])[j]);
+	size_t i, j;
+	float *co;
 
-			mvert = &(m_bmesh->mvert[((*mvarray[i])[index])]);
-			tv->SetXYZ(MT_Point3(mvert->co));
+	// only apply once per frame if the mesh is actually modified
+	if(m_pMeshObject->MeshModified() &&
+	   m_lastDeformUpdate != m_gameobj->GetLastFrame()) {
+		// For each material
+		for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
+			mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
+			RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
+
+			vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
+
+			// For each array
+			for (i=0; i<vertexarrays.size(); i++){
+				KX_VertexArray& vertexarray = (*vertexarrays[i]);
+
+				//	For each vertex
+				for (j=0; j<vertexarray.size(); j++){
+					RAS_TexVert& v = vertexarray[j];
+					co = m_bmesh->mvert[v.getOrigIndex()].co;
+					v.SetXYZ(MT_Point3(co));
+				}
+			}
 		}
+
+		m_lastDeformUpdate = m_gameobj->GetLastFrame();
+
+		return true;
 	}
-	return true;
+
+	return false;
 }
 
 BL_MeshDeformer::~BL_MeshDeformer()
 {	
 	if (m_transverts)
-		delete []m_transverts;
+		delete [] m_transverts;
 	if (m_transnors)
-		delete []m_transnors;
+		delete [] m_transnors;
 };
 
 /**
@@ -91,65 +97,125 @@ BL_MeshDeformer::~BL_MeshDeformer()
  */
 void BL_MeshDeformer::RecalcNormals()
 {
-	int v, f;
-	float fnor[3], co1[3], co2[3], co3[3], co4[3];
+	/* We don't normalize for performance, not doing it for faces normals
+	 * gives area-weight normals which often look better anyway, and use
+	 * GL_NORMALIZE so we don't have to do per vertex normalization either
+	 * since the GPU can do it faster */
+	size_t i, j;
 
-	/* Clear all vertex normal accumulators */
-	for (v =0; v<m_bmesh->totvert; v++){
-		m_transnors[v]=MT_Point3(0,0,0);
-	}
-	
-	/* Find the face normals */
-	for (f = 0; f<m_bmesh->totface; f++){
-		// Make new face normal based on the transverts
-		MFace *mf= &((MFace*)m_bmesh->mface)[f];
-		
-		if (mf->v3) {
-			for (int vl=0; vl<3; vl++){
-				co1[vl]=m_transverts[mf->v1][vl];
-				co2[vl]=m_transverts[mf->v2][vl];
-				co3[vl]=m_transverts[mf->v3][vl];
-				if (mf->v4)
-					co4[vl]=m_transverts[mf->v4][vl];
+	/* set vertex normals to zero */
+	memset(m_transnors, 0, sizeof(float)*3*m_bmesh->totvert);
+
+	/* add face normals to vertices. */
+	for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
+		mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
+		RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
+
+		const vecIndexArrays& indexarrays = m_pMeshObject->GetIndexCache(mat);
+		vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
+
+		for (i=0; i<indexarrays.size(); i++) {
+			KX_VertexArray& vertexarray = (*vertexarrays[i]);
+			const KX_IndexArray& indexarray = (*indexarrays[i]);
+			int nvert = mat->UsesTriangles()? 3: 4;
+
+			for(j=0; j<indexarray.size(); j+=nvert) {
+				RAS_TexVert& v1 = vertexarray[indexarray[j]];
+				RAS_TexVert& v2 = vertexarray[indexarray[j+1]];
+				RAS_TexVert& v3 = vertexarray[indexarray[j+2]];
+				RAS_TexVert *v4 = NULL;
+
+				const float *co1 = v1.getLocalXYZ();
+				const float *co2 = v2.getLocalXYZ();
+				const float *co3 = v3.getLocalXYZ();
+				const float *co4 = NULL;
+				
+				/* compute face normal */
+				float fnor[3], n1[3], n2[3];
+
+				if(nvert == 4) {
+					v4 = &vertexarray[indexarray[j+3]];
+					co4 = v4->getLocalXYZ();
+
+					n1[0]= co1[0]-co3[0];
+					n1[1]= co1[1]-co3[1];
+					n1[2]= co1[2]-co3[2];
+
+					n2[0]= co2[0]-co4[0];
+					n2[1]= co2[1]-co4[1];
+					n2[2]= co2[2]-co4[2];
+				}
+				else {
+					n1[0]= co1[0]-co2[0];
+					n2[0]= co2[0]-co3[0];
+					n1[1]= co1[1]-co2[1];
+
+					n2[1]= co2[1]-co3[1];
+					n1[2]= co1[2]-co2[2];
+					n2[2]= co2[2]-co3[2];
+				}
+
+				fnor[0]= n1[1]*n2[2] - n1[2]*n2[1];
+				fnor[1]= n1[2]*n2[0] - n1[0]*n2[2];
+				fnor[2]= n1[0]*n2[1] - n1[1]*n2[0];
+
+				/* add to vertices for smooth normals */
+				float *vn1 = m_transnors[v1.getOrigIndex()];
+				float *vn2 = m_transnors[v2.getOrigIndex()];
+				float *vn3 = m_transnors[v3.getOrigIndex()];
+
+				vn1[0] += fnor[0]; vn1[1] += fnor[1]; vn1[2] += fnor[2];
+				vn2[0] += fnor[0]; vn2[1] += fnor[1]; vn2[2] += fnor[2];
+				vn3[0] += fnor[0]; vn3[1] += fnor[1]; vn3[2] += fnor[2];
+
+				if(v4) {
+					float *vn4 = m_transnors[v4->getOrigIndex()];
+					vn4[0] += fnor[0]; vn4[1] += fnor[1]; vn4[2] += fnor[2];
+				}
+
+				/* in case of flat - just assign, the vertices are split */
+				if(v1.getFlag() & TV_CALCFACENORMAL) {
+					v1.SetNormal(fnor);
+					v2.SetNormal(fnor);
+					v3.SetNormal(fnor);
+					if(v4)
+						v4->SetNormal(fnor);
+				}
 			}
-
-			/* FIXME: Use moto */
-			if (mf->v4)
-				CalcNormFloat4(co1, co2, co3, co4, fnor);
-			else
-				CalcNormFloat(co1, co2, co3, fnor);
-	
-			/* Decide which normals are affected by this face's normal */
-			m_transnors[mf->v1]+=MT_Point3(fnor);
-			m_transnors[mf->v2]+=MT_Point3(fnor);
-			m_transnors[mf->v3]+=MT_Point3(fnor);
-			if (mf->v4)
-				m_transnors[mf->v4]+=MT_Point3(fnor);
 		}
 	}
-	
-	for (v =0; v<m_bmesh->totvert; v++){
-//		float nor[3];
 
-		m_transnors[v]=m_transnors[v].safe_normalized();
-//		nor[0]=m_transnors[v][0];
-//		nor[1]=m_transnors[v][1];
-//		nor[2]=m_transnors[v][2];
-		
-	};
+	/* assign smooth vertex normals */
+	for(RAS_MaterialBucket::Set::iterator mit = m_pMeshObject->GetFirstMaterial();
+		mit != m_pMeshObject->GetLastMaterial(); ++ mit) {
+		RAS_IPolyMaterial *mat = (*mit)->GetPolyMaterial();
+
+		vecVertexArray& vertexarrays = m_pMeshObject->GetVertexCache(mat);
+
+		for (i=0; i<vertexarrays.size(); i++) {
+			KX_VertexArray& vertexarray = (*vertexarrays[i]);
+			
+			for(j=0; j<vertexarray.size(); j++) {
+				RAS_TexVert& v = vertexarray[j];
+
+				if(!(v.getFlag() & TV_CALCFACENORMAL))
+					v.SetNormal(m_transnors[v.getOrigIndex()]); //.safe_normalized()
+			}
+		}
+	}
 }
 
 void BL_MeshDeformer::VerifyStorage()
 {
 	/* Ensure that we have the right number of verts assigned */
-	if (m_tvtot!=m_bmesh->totvert+m_bmesh->totface){
+	if (m_tvtot!=m_bmesh->totvert){
 		if (m_transverts)
-			delete []m_transverts;
+			delete [] m_transverts;
 		if (m_transnors)
-			delete []m_transnors;
+			delete [] m_transnors;
 		
-		m_transnors =new MT_Point3[m_bmesh->totvert+m_bmesh->totface];
-		m_transverts=new float[(sizeof(*m_transverts)*m_bmesh->totvert)][3];
+		m_transverts=new float[m_bmesh->totvert][3];
+		m_transnors=new float[m_bmesh->totvert][3];
 		m_tvtot = m_bmesh->totvert;
 	}
 }
