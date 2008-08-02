@@ -1026,7 +1026,7 @@ static uiBlock *info_externalfiles(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "info_externalfiles", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_externalfiles, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into Blend",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into .blend file",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
 #if 0
 	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Removes all packed files from the project and saves them to the current directory");
 #endif
@@ -1036,8 +1036,8 @@ static uiBlock *info_externalfiles(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Relative",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Absolute",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
