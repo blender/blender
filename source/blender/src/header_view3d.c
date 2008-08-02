@@ -166,9 +166,9 @@ void do_layer_buttons(short event)
 	if(event==-1 && (G.qual & LR_CTRLKEY)) {
 		G.vd->scenelock= !G.vd->scenelock;
 		do_view3d_buttons(B_SCENELOCK);
-	} else if (event==-1) {
+	} else if (event<0) {
 		if(G.vd->lay== (1<<20)-1) {
-			if(G.qual & LR_SHIFTKEY) G.vd->lay= oldlay;
+			if(event==-2 || G.qual & LR_SHIFTKEY) G.vd->lay= oldlay;
 		}
 		else {
 			oldlay= G.vd->lay;
@@ -605,6 +605,9 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 21: /* Grease Pencil */
 		add_blockhandler(curarea, VIEW3D_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
 		break;		
+	case 22: /* View all layers */
+		do_layer_buttons(-2);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
@@ -645,6 +648,11 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	if(G.vd->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(G.vd->lay== (1<<20)-1) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Previous Layers|Shift ~", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show All Layers| ~", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -725,6 +733,9 @@ void do_view3d_select_object_typemenu(void *arg, int event)
 		break;
 	case 10: /* Lamp */
 		selectall_type(OB_LAMP);
+		break;
+	case 20:
+		do_layer_buttons(-2);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
