@@ -1,5 +1,5 @@
 #!BPY
-# coding: utf-8
+
 """
 Name: 'Autodesk DXF (.dxf)'
 Blender: 244
@@ -7,14 +7,15 @@ Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.0.12 - 2008.02.08 by migius'
+__version__ = '1.0.12 - 2008.06.05 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["Kitsune_e(at)yahoo.com", "migius(at)4d-vectors.de"]
 __bpydoc__ = """\
 This script imports objects from DXF (2d/3d) into Blender.
 
-This script imports 2d and 3d geometery from DXFr12 format files.
+This script imports 2d and 3d geometery from DXF files.
+Supported DXF format versions: from (r2.5) r12 up to 2008.
 Enhanced features are:
 - configurable object filtering and geometry manipulation,
 - configurable material pre-processing,
@@ -40,22 +41,23 @@ XREF (External Reference).
 
 Supported DXF>r12 objects:
 ELLIPSE,
-(wip v1.0.12 partly supported) LWPOLYLINE (LightWeight),
-(wip v1.0.12) MLINE,
-(wip v1.0.12) MTEXT
+LWPOLYLINE (LightWeight Polylines),
+(wip v1.0.12) SPLINE,
+(wip v1.0.13) MLINE,
+(wip v1.0.13) MTEXT
 
-Unsupported Objects:
+Unsupported objects:
 DXF r12: DIMENSION.
-DXF>r12: SPLINE, GROUP, RAY/XLINE, LEADER, 3DSOLID, BODY, REGION, dynamic BLOCK
+DXF>r12: GROUP, RAY/XLINE, LEADER, 3DSOLID, BODY, REGION, dynamic BLOCK
 
-Supported Geometry: 2d and 3d DXF-objects.
-Curves imported as curves or meshes optionally.
+Supported geometry: 2d and 3d DXF-objects.
+Curves imported as Blender curves or meshes optionally.
 
 Supported layout modes:
 "model space" is default,
 "paper space" as option (= "layout views")
 
-Scene definitions produced with AVE_RENDER:
+Supported scene definition objescts produced with AVE_RENDER:
 scene: selection of lights assigned to the camera,
 lights: DIRECT, OVERHEAD, SH_SPOT,
 (wip v1.0.13 import of AVE_RENDER material definitions)
@@ -77,14 +79,10 @@ It is recommended to use DXF-object properties for assign Blender materials.
 Notes:
 - Recommend that you run 'RemoveDoubles' on each imported mesh after using this script
 - Blocks are created on layer 19 then referenced at each insert point.
-- Big DXF-files (over 1500 objects) decrease import performance.
+- support for DXF-files up to 160MB on systems with 1GB RAM
+- DXF-files with over 1500 objects decrease import performance.
 The problem is not the inefficiency of python-scripting but Blenders performance
-in creating new objects in his database - probably a database management problem.
-	
-TODO:  
-- the new style object visibility
-- support for real 3d-solids (ACIS)
-- (to see more, search for "--todo--" in script code)
+in creating new objects in scene database - probably a database management problem.
 
 """
 
@@ -92,6 +90,7 @@ TODO:
 History:
  v1.0 - 2008.01. by migius
  planned tasks:
+ -- (to see more, search for "--todo--" in script code)
  -- command-line-mode/batch-mode
  -- in-place-editing for dupliGroups
  -- support for MLINE (is exported to r12 as BLOCK*Unnamed with LINEs)
@@ -102,17 +101,23 @@ History:
  -- added f_layerFilter
  -- to-check: obj/mat/group/_mapping-idea from ideasman42:
  -- curves: added "fill/non-fill" option for closed curves: CIRCLEs,ELLIPSEs,POLYLINEs
- -- bug:? object = Object.Get(obname) -> = SCENE.getChildren(obname)
  -- "normalize Z" option to correct non-planar figures
  -- LINEs need "width" in 3d-space incl vGroups
  -- support width_force for LINEs/ELLIPSEs = "solidify"
  -- add better support for color_index BYLAYER=256, BYBLOCK=0 
- -- bug: "oneMesh" produces sometimes errors
+ -- bug: "oneMesh" produces irregularly errors
  -- bug: Registry recall from hd_cache ?? only win32 bug??
-
- v1.0.12: 2008.02.08 by migius
  -- support DXF-definitions of scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
+ -- add support for SPLINEs
+
+ v1.0.12: 2008.06.05 by migius
+ b3 bugfix: ob.name conflict with existing meshes (different ob.name/mesh.name)
+ v1.0.12: 2008.05.24 by migius
+ b2 added support for LWPOLYLINEs
+ b2 added support for ProE in readerDXF.py
+ v1.0.12: 2008.02.08 by migius
+ b1 update: object = Object.Get(obname) -> f_getSceChild().getChildren()
  a9 bugfix by non-existing tables views, vports, layers (Kai reported)
  v1.0.12: 2008.01.17 by migius
  a8 lately used INI-dir/filename persistently stored in Registry
@@ -279,9 +284,9 @@ History:
 # --------------------------------------------------------------------------
 
 import Blender
-#import bpy
 from Blender import *
 #from Blender.Mathutils import Vector, Matrix
+import bpy
 #import BPyMessages
 
 from dxfReader import readDXF
@@ -313,6 +318,8 @@ WORLDX = Mathutils.Vector((1,0,0))
 WORLDY = Mathutils.Vector((1,1,0))
 WORLDZ = Mathutils.Vector((0,0,1))
 
+oblist = [] #to be sure, it is an empty list
+
 G_SCALE = 1.0	   #(0.0001-1000) global scaling factor for all dxf data
 G_ORIGIN_X = 0.0   #global translation-vector (x,y,z) in DXF units
 G_ORIGIN_Y = 0.0
@@ -330,6 +337,10 @@ ELEVATION = 0.0 #standard elevation = coordinate Z
 
 TARGET_LAYER = 3	#target blender_layer
 GROUP_BYLAYER = 0   #(0/1) all entities from same layer import into one blender-group
+cur_COUNTER = 0  #counter for progress_bar
+M_OBJ = False
+BYBLOCK = 0
+BYLAYER = 256
 
 FILENAME_MAX = 180	#max length of path+file_name string  (FILE_MAXDIR + FILE_MAXFILE)
 MAX_NAMELENGTH = 17   #max_effective_obnamelength in blender =21=17+(.001)
@@ -342,75 +353,6 @@ AUTO = BezTriple.HandleTypes.AUTO
 FREE = BezTriple.HandleTypes.FREE
 VECT = BezTriple.HandleTypes.VECT
 ALIGN = BezTriple.HandleTypes.ALIGN
-cur_COUNTER = 0  #counter for progress_bar
-
-
-"""This module provides wrapper objects for dxf entities.
-
-	The wrappers expect a "dxf object" as input.  The dxf object is
-	an object with a type and a data attribute.  Type is a lowercase
-	string matching the 0 code of a dxf entity.  Data is a list containing
-	dxf objects or lists of [code, data] pairs.
-
-	This module is not general, and is only for dxf import.
-"""
-
-# from Stani's dxf writer v1.1 (c)www.stani.be (GPL)
-#---color values
-BYBLOCK = 0
-BYLAYER = 256
-
-#---block-type flags (bit coded values, may be combined):
-ANONYMOUS		   =1  # This is an anonymous block generated by hatching, associative dimensioning, other internal operations, or an application
-NON_CONSTANT_ATTRIBUTES =2  # This block has non-constant attribute definitions (this bit is not set if the block has any attribute definitions that are constant, or has no attribute definitions at all)
-XREF					=4  # This block is an external reference (xref)
-XREF_OVERLAY			=8  # This block is an xref overlay
-EXTERNAL				=16 # This block is externally dependent
-RESOLVED				=32 # This is a resolved external reference, or dependent of an external reference (ignored on input)
-REFERENCED	  =64 # This definition is a referenced external reference (ignored on input)
-
-#---polyline flags
-CLOSED			  =1  # This is a closed polyline (or a polygon mesh closed in the M direction)
-CURVE_FIT			   =2  # Curve-fit vertices have been added
-SPLINE_FIT		  =4  # Spline-fit vertices have been added
-POLYLINE_3D	 =8   # This is a 3D polyline
-POLYGON_MESH				=16  # This is a 3D polygon mesh
-CLOSED_N					=32  # The polygon mesh is closed in the N direction
-POLYFACE_MESH		   =64   # The polyline is a polyface mesh
-CONTINOUS_LINETYPE_PATTERN  =128	# The linetype pattern is generated continuously around the vertices of this polyline
-
-#---text flags
-#horizontal
-LEFT		= 0
-CENTER  = 1
-RIGHT   = 2
-ALIGNED  = 3 #if vertical alignment = 0
-MIDDLE  = 4 #if vertical alignment = 0
-FIT   = 5 #if vertical alignment = 0
-#vertical
-BASELINE	= 0
-BOTTOM  = 1
-MIDDLE  = 2
-TOP   = 3
-
-#---mtext flags
-#attachment point
-TOP_LEFT		= 1
-TOP_CENTER  = 2
-TOP_RIGHT   = 3
-MIDDLE_LEFT  = 4
-MIDDLE_CENTER   = 5
-MIDDLE_RIGHT	= 6
-BOTTOM_LEFT  = 7
-BOTTOM_CENTER   = 8
-BOTTOM_RIGHT	= 9
-#drawing direction
-LEFT_RIGHT  = 1
-TOP_BOTTOM  = 3
-BY_STYLE		= 5 #the flow direction is inherited from the associated text style
-#line spacing style (optional):
-AT_LEAST		= 1 #taller characters will override
-EXACT	   = 2 #taller characters will not override
 
 
 class View:  #-----------------------------------------------------------------
@@ -652,6 +594,14 @@ def get_extrusion(data):	 #-------------------------------------------------
 	return vec
 
 
+#------------------------------------------
+def getSceneChild(name):
+	dudu = [i for i in SCENE.objects if i.name==name]
+#	dudu = [i for i in SCENE.getChildren() if i.name==name]
+	#print 'deb:getSceneChild %s -result: %s:' %(name,dudu) #-----------------
+	if dudu!=[]: return dudu[0]
+	return None
+
 
 class Solid:  #-----------------------------------------------------------------
 	"""Class for objects representing dxf SOLID or TRACE.
@@ -754,16 +704,16 @@ class Solid:  #-----------------------------------------------------------------
 			if   l == 4: faces = [[0,1,3,2]]
 			elif l == 3: faces = [[0,1,2]]
 			elif l == 2: edges = [[0,1]]
-
-
-
-		me = Mesh.New(obname)		  # create a new mesh
+		
+		if M_OBJ: obname, me, ob = makeNewObject()
+		else: 
+			me = Mesh.New(obname)		# create a new mesh
+			ob = SCENE.objects.new(me) # create a new mesh_object
 		me.verts.extend(points)		# add vertices to mesh
 		if faces: me.faces.extend(faces)		   # add faces to the mesh
 		if edges: me.edges.extend(edges)		   # add faces to the mesh
 
-		ob = SCENE.objects.new(me) # create a new mesh_object
-		if settings.var['vGroup_on']:
+		if settings.var['vGroup_on'] and not M_OBJ:
 			# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 			replace = Blender.Mesh.AssignModes.ADD  #or .AssignModes.ADD/REPLACE
 			if vg_left: me.addVertGroup('side.left')  ; me.assignVertsToGroup('side.left',  vg_left, 1.0, replace)
@@ -776,9 +726,6 @@ class Solid:  #-----------------------------------------------------------------
 		transform(self.extrusion, 0, ob)
 
 		return ob
-
-
-
 
 class Line:  #-----------------------------------------------------------------
 	"""Class for objects representing dxf LINEs.
@@ -838,7 +785,7 @@ class Line:  #-----------------------------------------------------------------
 		elif settings.var['lines_as'] == 3: # as thin cylinder
 			cyl_rad = 0.5 * settings.var['width_min']
 
-		if settings.var['lines_as'] == 5: # LINE curve representation-------------------------
+		elif settings.var['lines_as'] == 5: # LINE curve representation-------------------------
 			obname = 'li_%s' %self.layer  # create object name from layer name
 			obname = obname[:MAX_NAMELENGTH]
 
@@ -872,20 +819,23 @@ class Line:  #-----------------------------------------------------------------
 			global activObjectName
 			#print 'deb:draw:line.ob IN activObjectName: ', activObjectName #---------------------
 	
-			if activObjectLayer == self.layer and settings.var['one_mesh_on']:
-				obname = activObjectName
-				#print 'deb:line.draw obname from activObjectName: ', obname #---------------------
-				ob = Object.Get(obname)  # open an existing mesh_object
-				#ob = SCENE.getChildren(obname)  # open an existing mesh_object
-				me = Mesh.Get(ob.name)   # open objects mesh data
-			else:
-				obname = 'li_%s' %self.layer  # create object name from layer name
-				obname = obname[:MAX_NAMELENGTH]
-				me = Mesh.New(obname)		  # create a new mesh
-				ob = SCENE.objects.new(me) # create a new mesh_object
-				activObjectName = ob.name
-				activObjectLayer = self.layer
-				#print ('deb:line.draw new line.ob+mesh:"%s" created!' %ob.name) #---------------------
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				if activObjectLayer == self.layer and settings.var['one_mesh_on']:
+					obname = activObjectName
+					#print 'deb:line.draw obname from activObjectName: ', obname #---------------------
+					ob = getSceneChild(obname)  # open an existing mesh_object
+					#ob = SCENE.getChildren(obname)  # open an existing mesh_object
+					#me = Mesh.Get(ob.name)   # open objects mesh data
+					me = ob.getData(name_only=False, mesh=True)
+				else:
+					obname = 'li_%s' %self.layer  # create object name from layer name
+					obname = obname[:MAX_NAMELENGTH]
+					me = Mesh.New(obname)		  # create a new mesh
+					ob = SCENE.objects.new(me) # create a new mesh_object
+					activObjectName = ob.name
+					activObjectLayer = self.layer
+					#print ('deb:line.draw new line.ob+mesh:"%s" created!' %ob.name) #---------------------
 	
 			faces, edges = [], []
 			n = len(me.verts)
@@ -904,7 +854,7 @@ class Line:  #-----------------------------------------------------------------
 			if faces: me.faces.extend(faces)	   # add faces to the mesh
 			if edges: me.edges.extend(edges)	   # add faces to the mesh
 	
-			if settings.var['vGroup_on']:
+			if settings.var['vGroup_on'] and not M_OBJ:
 				# entities with the same color build one vertexGroup for easier material assignment ----
 				ob.link(me) # link mesh to that object
 				vG_name = 'color_%s' %self.color_index
@@ -988,155 +938,23 @@ class Point:  #-----------------------------------------------------------------
 			global activObjectLayer
 			global activObjectName
 			#print 'deb:draw:point.ob IN activObjectName: ', activObjectName #---------------------
-			if activObjectLayer == self.layer and settings.var['one_mesh_on']:
-				obname = activObjectName
-				#print 'deb:draw:point.ob obname from activObjectName: ', obname #---------------------
-				ob = Object.Get(obname)  # open an existing mesh_object
-				#ob = SCENE.getChildren(obname)  # open an existing mesh_object
-				me = Mesh.Get(ob.name)   # open objects mesh data
-			else:
-				me = Mesh.New(obname)		  # create a new mesh
-				ob = SCENE.objects.new(me) # create a new mesh_object
-				activObjectName = ob.name
-				activObjectLayer = self.layer
-				#print ('deb:draw:point new point.ob+mesh:"%s" created!' %ob.name) #---------------------
-			me.verts.extend(points) # add vertices to mesh
-
-		return ob
-
-
-
-class LWpolyline:  #-----------------------------------------------------------------
-	"""Class for objects representing dxf LWPOLYLINEs.
-	"""
-	def __init__(self, obj):
-		"""Expects an entity object of type lwpolyline as input.
-		"""
-		#print 'deb:LWpolyline.START:----------------' #------------------------
-		if not obj.type == 'lwpolyline':
-			raise TypeError, "Wrong type %s for polyline object!" %obj.type
-		self.type = obj.type
-		self.data = obj.data[:]
-
-		# required data
-		self.num_points = obj.get_type(90)[0]
-
-		# optional data (with defaults)
-		self.space = getit(obj, 67, 0)
-
-		self.color_index = getit(obj, 62, BYLAYER)
-
-		self.elevation =  getit(obj, 30, 0)
-		self.thic =  getit(obj, 39, 0)
-		self.flags = getit(obj, 70, 0)
-
-		self.closed = self.flags&1 # byte coded, 1 = closed, 128 = plinegen
-
-		self.layer = getit(obj.data, 8, None)
-		self.points = self.get_points(obj.data)
-		self.extrusion = get_extrusion(obj.data)
-
-		#print 'deb:LWpolyline.obj.data:\n', obj.data #------------------------
-		#print 'deb:LWpolyline.ENDinit:----------------' #------------------------
-
-
-	def get_points(self, data):
-		"""Gets points for a polyline type object.
-
-		LW-Polylines have no fixed number of verts, and
-		each vert can have a number of properties.
-		Verts should be coded as
-		10:xvalue
-		20:yvalue
-		40:startwidth or 0
-		41:endwidth or 0
-		42:bulge or 0
-		for each vert
-		"""
-		num = self.num_points
-		point = None
-		points = []
-		for item in data:
-			if item[0] == 10:   # 10 = x
-				if point:
-					points.append(point)
-				point = Vertex()
-				point.x = item[1]
-			elif item[0] == 20: # 20 = y
-				point.y = item[1]
-			elif item[0] == 40: # 40 = start width
-				point.swidth = item[1]
-			elif item[0] == 41: # 41 = end width
-				point.ewidth = item[1]
-			elif item[0] == 42: # 42 = bulge
-				point.bulge = item[1]
-		points.append(point)
-		return points
-
-
-
-	def __repr__(self):
-		return "%s: layer - %s, points - %s" %(self.__class__.__name__, self.layer, self.points)
-
-
-	def draw(self, settings):
-		"""for LWPOLYLINE: generate Blender_geometry.
-		"""
-		#print 'deb:LWpolyline.draw.START:----------------' #------------------------
-		points = []
-		obname = 'lw_%s' %self.layer  # create object name from layer name
-		obname = obname[:MAX_NAMELENGTH]
-		#settings.var['curves_on'] == True
-		#print 'deb:index_len: ', len(self.points) #------------------
-		for i, point in enumerate(self.points):
-			#print 'deb:index: ', i #------------------
-			if not point.bulge:
-				points.append(point.loc)
-			elif point.bulge and not self.closed and i == len(self.points)-1:
-				points.append(point.loc)
-			elif point.bulge:	 #
-				if i == len(self.points)-1:
-					point2 = self.points[0]
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				if activObjectLayer == self.layer and settings.var['one_mesh_on']:
+					obname = activObjectName
+					#print 'deb:draw:point.ob obname from activObjectName: ', obname #---------------------
+					ob = getSceneChild(obname)  # open an existing mesh_object
+					#ob = SCENE.getChildren(obname)  # open an existing mesh_object
+					me = ob.getData(name_only=False, mesh=True)
+					#me = Mesh.Get(ob.name)   # open objects mesh data
 				else:
-					point2 = self.points[i+1]
-				arc_res = settings.var['arc_res']/sqrt(settings.var['arc_rad'])
-				verts, center = calcBulge(point, point2, arc_res)
-#			   if i == len(self.points)-1:
-#				   if self.closed:
-#					   verts.pop() #remove last(=first) vertex
-#			   else:
-#				   verts.pop() #remove last vertex, because this point will be writen as the next vertex
-				points.extend(verts)
-
-		thic = self.thic
-		if settings.var['thick_force'] and thic == 0: thic = settings.var['thick_min']
-		if settings.var['thick_on'] and thic != 0:
-			len1 = len(points)
-			points.extend([[point[0], point[1], point[2]+thic] for point in points])
-			faces = []
-			#print 'deb:len1:', len1  #-----------------------
-			faces = [[num, num+1, num+len1+1, num+len1] for num in xrange(len1 - 1)]
-			if self.closed:
-				faces.append([len1-1, 0, len1, 2*len1-1])
-			#print 'deb:faces_list:\n', faces  #-----------------------
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
+					me = Mesh.New(obname)		  # create a new mesh
+					ob = SCENE.objects.new(me) # create a new mesh_object
+					activObjectName = ob.name
+					activObjectLayer = self.layer
+					#print ('deb:draw:point new point.ob+mesh:"%s" created!' %ob.name) #---------------------
 			me.verts.extend(points) # add vertices to mesh
-			me.faces.extend(faces)   # add faces to the mesh
-		else:
-			edges = [[num, num+1] for num in xrange(len(points)-1)]
-			if self.closed:
-				edges.append([len(points)-1, 0])
-			#print 'deb:edges_list:\n', edges  #-----------------------
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
-			me.verts.extend(points) # add vertices to mesh
-			me.edges.extend(edges)   # add edges to the mesh
 
-		ob.LocZ = self.elevation
-		transform(self.extrusion, 0, ob)
-
-		#print 'deb:LWpolyline.draw.END:----------------' #------------------------
 		return ob
 
 
@@ -1172,10 +990,10 @@ class Polyline:  #--------------------------------------------------------------
 		self.plface = self.flags & 64  # 3D-polyface mesh
 		self.contin = self.flags & 128 # the linetype pattern is generated continuously
 
-		if self.poly3d or self.plface or self.plmesh:
-			self.poly2d = False  # its not a 2D-polyline
-		else:
-			self.poly2d = True   # it is a 2D-polyline
+		self.pltype='poly2d'   # default is a 2D-polyline
+		if self.poly3d: self.pltype='poly3d'
+		elif self.plface: self.pltype='plface'
+		elif self.plmesh: self.pltype='plmesh'
 
 		self.swidth =  getit(obj, 40, 0) # default start width
 		self.ewidth =  getit(obj, 41, 0) # default end width
@@ -1213,19 +1031,19 @@ class Polyline:  #--------------------------------------------------------------
 		"""
 		ob = []
 		#---- 3dPolyFace - mesh with free topology
-		if self.plface and settings.drawTypes['plmesh']:
+		if self.pltype=='plface' and settings.drawTypes['plmesh']:
 			ob = self.drawPlFace(settings)
 		#---- 3dPolyMesh - mesh with ortogonal topology
-		elif self.plmesh and settings.drawTypes['plmesh']:
+		elif self.pltype=='plmesh' and settings.drawTypes['plmesh']:
 			ob = self.drawPlMesh(settings)
 		#---- 2dPolyline - plane polyline with arc/wide/thic segments
-		elif (self.poly2d and settings.drawTypes['polyline']):
+		elif self.pltype=='poly2d' and settings.drawTypes['polyline']:
 			if settings.var['plines_as'] == 5: # and self.spline:
 				ob = self.drawPolyCurve(settings)
 			else:
 				ob = self.drawPoly2d(settings)
 		#---- 3dPolyline - non-plane polyline (thin segments = without arc/wide/thic)
-		elif (self.poly3d and settings.drawTypes['pline3']):
+		elif self.pltype=='poly3d' and settings.drawTypes['pline3']:
 			if settings.var['plines3_as'] == 5: # and self.spline:
 				ob = self.drawPolyCurve(settings)
 			else:
@@ -1355,21 +1173,7 @@ class Polyline:  #--------------------------------------------------------------
 		pline = Curve.New(obname)   # create new curve data
 		#pline.setResolu(24) #--todo-----						
 
-		if False: #self.spline:  # NURBSplines-----FAKE(with Bezier)-----
-			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
-			curve = pline.appendNurb(BezTriple.New(d_points[0]))
-			for p in d_points[1:]:
-				curve.append(BezTriple.New(p))
-			for point in curve:
-				point.handleTypes = [AUTO, AUTO]
-			if self.closed:
-				curve.flagU = 1 # Set curve cyclic=close
-			else:
-				curve.flagU = 0 # Set curve not cyclic=open
-				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
-				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
-
-		elif self.spline:  # NURBSplines-----OK-----
+		if self.spline:  # NURBSplines-----OK-----
 			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
 			weight1 = 0.5
 			weight2 = 1.0
@@ -1562,6 +1366,7 @@ class Polyline:  #--------------------------------------------------------------
 		ewidths = []
 		swidth_default = self.swidth #default start width of POLYLINEs segments
 		ewidth_default = self.ewidth #default end width of POLYLINEs segments
+		#print 'deb:drawPoly2d self.swidth=', self.swidth #------------------------
 		thic = set_thick(self.thic, settings)
 		if self.spline: pline_typ = 'ps'
 		elif self.curved: pline_typ = 'pc'
@@ -1633,9 +1438,11 @@ class Polyline:  #--------------------------------------------------------------
 
 			swidth = point1.swidth
 			ewidth = point1.ewidth
+			#print 'deb:drawPoly2d point1.swidth=', swidth #------------------------
 			if swidth == None: swidth = swidth_default
 			if ewidth == None: ewidth = ewidth_default
 			if swidth != 0.0 or ewidth != 0.0: wide_segment_exist = True
+			#print 'deb:drawPoly2d vertex_swidth=', swidth #------------------------
 
 			if settings.var['width_force']:  # force minimal width for thin segments
 				width_min = settings.var['width_min']
@@ -1819,14 +1626,14 @@ class Polyline:  #--------------------------------------------------------------
 								left_angle = False
 							limit_dist = settings.var['dist_min']
 							if left_angle:  # if left turning angle
-								print 'deb:drawPoly2d it is left turning angle' #-------------
+								#print 'deb:drawPoly2d it is left turning angle' #-------------
 								# to avoid triangelface/doubleVertex
 								delta1 = (cornerpointL - vecL1).normalize() * limit_dist
 								delta4 = (cornerpointL - vecL4).normalize() * limit_dist
 								pointsLc.extend((cornerpointL - delta1, cornerpointL - delta4))
 								pointsRc.extend((pointsRe[i],pointsRs[i+1]))
 							else:  # if right turning angle
-								print 'deb:drawPoly2d right turning angle' #-------------
+								#print 'deb:drawPoly2d right turning angle' #-------------
 								delta1 = (cornerpointR - vecR1).normalize() * limit_dist
 								delta4 = (cornerpointR - vecR4).normalize() * limit_dist
 								pointsRc.extend((cornerpointR - delta1, cornerpointR - delta4))
@@ -1917,8 +1724,10 @@ class Polyline:  #--------------------------------------------------------------
 				#faces = f_bottom + f_top
 				#faces = f_left + f_right + f_start + f_end
 				#print 'deb:faces_list:\n', faces  #-----------------------
-				me = Mesh.New(obname)		  # create a new mesh
-				ob = SCENE.objects.new(me) # create a new mesh_object
+				if M_OBJ: obname, me, ob = makeNewObject()
+				else: 
+					me = Mesh.New(obname)		# create a new mesh
+					ob = SCENE.objects.new(me) # create a new mesh_object
 				me.verts.extend(pointsW)		# add vertices to mesh
 				me.faces.extend(faces)  # add faces to the mesh
 
@@ -1926,7 +1735,7 @@ class Polyline:  #--------------------------------------------------------------
 				# The mesh must first be linked to an object so the method knows which object to update.
 				# This is because vertex groups in Blender are stored in the object -- not in the mesh,
 				# which may be linked to more than one object.
-				if settings.var['vGroup_on']:
+				if settings.var['vGroup_on'] and not M_OBJ:
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
@@ -1956,8 +1765,10 @@ class Polyline:  #--------------------------------------------------------------
 				faces = [[num, len1+num, len1+num+1, num+1] for num in xrange(len1 - 1)]
 				if self.closed:
 					faces.append([len1, 0, len1-1, len1+len1-1])
-				me = Mesh.New(obname)		  # create a new mesh
-				ob = SCENE.objects.new(me) # create a new mesh_object
+				if M_OBJ: obname, me, ob = makeNewObject()
+				else: 
+					me = Mesh.New(obname)		# create a new mesh
+					ob = SCENE.objects.new(me) # create a new mesh_object
 				me.verts.extend(pointsW)		# add vertices to mesh
 				me.faces.extend(faces)  # add faces to the mesh
 
@@ -1976,8 +1787,10 @@ class Polyline:  #--------------------------------------------------------------
 			faces = [[num, num+1, num+len1+1, num+len1] for num in xrange(len1 - 1)]
 			if self.closed:
 				faces.append([len1-1, 0, len1, 2*len1-1])
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				me = Mesh.New(obname)		# create a new mesh
+				ob = SCENE.objects.new(me) # create a new mesh_object
 			me.verts.extend(points)   # add vertices to mesh
 			me.faces.extend(faces)  # add faces to the mesh
 
@@ -1993,8 +1806,10 @@ class Polyline:  #--------------------------------------------------------------
 			edges = [[num, num+1] for num in xrange(len(points)-1)]
 			if self.closed:
 				edges.append([len(points)-1, 0])
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				me = Mesh.New(obname)		# create a new mesh
+				ob = SCENE.objects.new(me) # create a new mesh_object
 			me.verts.extend(points)   # add vertices to mesh
 			me.edges.extend(edges)  # add edges to the mesh
 
@@ -2006,7 +1821,8 @@ class Polyline:  #--------------------------------------------------------------
 
 
 class Vertex(object):  #-----------------------------------------------------------------
-	"""Generic vertex object used by POLYLINEs (and maybe others).
+	"""Generic vertex object used by POLYLINEs, (and maybe others).
+	also used by class_LWPOLYLINEs but without obj-parameter
 	"""
 
 	def __init__(self, obj=None):
@@ -2017,8 +1833,8 @@ class Vertex(object):  #--------------------------------------------------------
 		#print 'deb:Vertex.init.START:----------------' #-----------------------
 		self.loc = [0,0,0]
 		self.face = []
-		self.swidth = 0
-		self.ewidth = 0
+		self.swidth = None #0
+		self.ewidth = None #0
 		self.bulge = 0
 		if obj is not None:
 			if not obj.type == 'vertex':
@@ -2058,14 +1874,14 @@ class Vertex(object):  #--------------------------------------------------------
 			self.curv_tangent =  getit(data, 50, None) # curve_tangent
 
 		if self.plface and not self.plmesh:
-				v1 = getit(data, 71, 0) # polyface:Face.vertex 1.
-				v2 = getit(data, 72, 0) # polyface:Face.vertex 2.
-				v3 = getit(data, 73, 0) # polyface:Face.vertex 3.
-				v4 = getit(data, 74, None) # polyface:Face.vertex 4.
-				self.face = [abs(v1)-1,abs(v2)-1,abs(v3)-1]
-				if v4 != None:
-					if abs(v4) != abs(v1):
-						self.face.append(abs(v4)-1)
+			v1 = getit(data, 71, 0) # polyface:Face.vertex 1.
+			v2 = getit(data, 72, 0) # polyface:Face.vertex 2.
+			v3 = getit(data, 73, 0) # polyface:Face.vertex 3.
+			v4 = getit(data, 74, None) # polyface:Face.vertex 4.
+			self.face = [abs(v1)-1,abs(v2)-1,abs(v3)-1]
+			if v4 != None:
+				if abs(v4) != abs(v1):
+					self.face.append(abs(v4)-1)
 		else:   #--parameter for polyline2d
 			self.swidth = getit(data, 40, None) # start width
 			self.ewidth = getit(data, 41, None) # end width
@@ -2117,6 +1933,304 @@ class Vertex(object):  #--------------------------------------------------------
 		self.loc[2] = value
 	z = property(getz, setz)
 
+
+
+class Spline(Polyline):  #-----------------------------------------------------------------
+	"""Class for objects representing dxf SPLINEs.
+	"""
+	def __init__(self, obj):
+		"""Expects an entity object of type spline as input.
+100 - Subclass marker (AcDbSpline)
+210,220, 230  - Normal vector (omitted if the spline is nonplanar) X,Y,Z values of normal vector
+70 - Spline flag (bit coded):
+  1 = Closed spline
+  2 = Periodic spline
+  4 = Rational spline
+  8 = Planar
+ 16 = Linear (planar bit is also set)
+71 - Degree of the spline curve
+72 - Number of knots
+73 - Number of control points
+74 - Number of fit points (if any)
+42 - Knot tolerance (default = 0.0000001)
+43 - Control-point tolerance (default = 0.0000001)
+44 - Fit tolerance (default = 0.0000000001)
+12,22,32 - Start tangent--may be omitted (in WCS). X,Y,Z values of start tangent--may be omitted (in WCS).
+13,23, 33 - End tangent--may be omitted (in WCS). X,Y,Z values of end tangent--may be omitted (in WCS)
+40 - Knot value (one entry per knot)
+41 - Weight (if not 1); with multiple group pairs, are present if all are not 1
+10,20, 30  - Control points (in WCS) one entry per control point.
+DXF: X value; APP: 3D point, Y and Z values of control points (in WCS) (one entry per control point)
+11,21, 31 - Fit points (in WCS) one entry per fit point.
+ X,Y,Z values of fit points (in WCS) (one entry per fit point)
+		"""
+		#print 'deb:Spline.START:----------------' #------------------------
+		if not obj.type == 'spline':
+			raise TypeError, "Wrong type %s for spline object!" %obj.type
+		self.type = obj.type
+		self.data = obj.data[:]
+
+		# required data
+		self.num_points = obj.get_type(73)[0]
+
+		# optional data (with defaults)
+		self.space = getit(obj, 67, 0)
+
+		self.color_index = getit(obj, 62, BYLAYER)
+
+		#self.elevation =  getit(obj, 30, 0)
+		self.thic = 0 # getit(obj, 39, 0)
+
+		width = 0
+		self.swidth =  width # default start width
+		self.ewidth =  width # default end width
+
+		self.flags = getit(obj, 70, 0)
+		self.closed = self.flags & 1   # closed spline
+		self.period = self.flags & 2   # Periodic spline
+		self.ration = self.flags & 4   # Rational spline
+		self.planar = self.flags & 8   # Planar
+		self.linear = self.flags & 16  # Linear (and Planar)
+
+		self.degree = getit(obj, 71, 0) # Degree of the spline curve
+		self.curvNormal = False
+		self.curvQBspline = False
+		self.curvCBspline = False
+		self.curvBezier = False
+		if   self.degree == 0: self.curvNormal = True
+		elif self.degree == 1: self.curvQBspline = True
+		elif self.degree == 2: self.curvCBspline = True
+		#elif self.degree == 3: self.curvBezier = True
+		elif self.degree == 3: self.spline = True
+	
+		self.num_knots = getit(obj, 72, 0) # Number of knots
+		self.num_contr = getit(obj, 73, 0) # Number of control points
+		self.num_fitpk = getit(obj, 74, 0) # Number of fit points (if any)
+
+		self.layer = getit(obj.data, 8, None)
+		self.extrusion = get_extrusion(obj.data)
+
+		self.points = self.get_points(obj.data)
+
+		if self.planar: self.pltype = 'poly2d'
+		else: self.pltype = 'poly3d'
+		self.curved = False
+		#self.curved = False
+
+		#print 'deb:Spline obj.data:\n', obj.data #------------------------
+		#print 'deb:Spline self.points:\n', self.points #------------------------
+		#print 'deb:Spline.ENDinit:----------------' #------------------------
+
+
+	def get_points(self, data):
+		"""Gets points for a spline type object.
+
+		Splines have fixed number of verts, and
+		each vert can have a number of properties.
+		Verts should be coded as
+		10:xvalue
+		20:yvalue
+		for each vert
+		"""
+		num = self.num_contr
+		point = None
+		points = []
+		#point = Vertex()
+		for item in data:
+			#print 'deb:Spline item:', item #------------------------
+			if item[0] == 10:   # control point
+				if point: points.append(point)
+				point = Vertex()
+				point.curved = True
+				point.x = item[1]
+			elif item[0] == 20: # 20 = y
+				point.y = item[1]
+			elif item[0] == 30: # 30 = z
+				point.z = item[1]
+
+			elif item[0] == 11:   # fit point
+				if point: points.append(point)
+				point = Vertex()
+				point.curved = True
+				point.x = item[1]
+			elif item[0] == 21: # 20 = y
+				point.y = item[1]
+			elif item[0] == 31: # 30 = z
+				point.z = item[1]
+
+			elif item[0] == 12:   # start tangent
+				if point: points.append(point)
+				point = Vertex()
+				point.curved = True
+				point.x = item[1]
+			elif item[0] == 22: # = y
+				point.y = item[1]
+			elif item[0] == 32: # = z
+				point.z = item[1]
+
+			elif item[0] == 13:   # end tangent
+				if point: points.append(point)
+				point = Vertex()
+				point.curved = True
+				point.x = item[1]
+			elif item[0] == 23: # 20 = y
+				point.y = item[1]
+			elif item[0] == 33: # 30 = z
+				point.z = item[1]
+		points.append(point)
+		#print 'deb:Spline points:\n', points #------------------------
+		return points
+
+
+
+	def __repr__(self):
+		return "%s: layer - %s, points - %s" %(self.__class__.__name__, self.layer, self.points)
+
+
+	
+
+class LWpolyline(Polyline):  #-------------------------------------------------------------
+	"""Class for objects representing dxf LWPOLYLINEs.
+	"""
+	def __init__(self, obj):
+		"""Expects an entity object of type lwpolyline as input.
+		"""
+		#print 'deb:LWpolyline.START:----------------' #------------------------
+		if not obj.type == 'lwpolyline':
+			raise TypeError, "Wrong type %s for polyline object!" %obj.type
+		self.type = obj.type
+		self.data = obj.data[:]
+
+		# required data
+		self.num_points = obj.get_type(90)[0]
+
+		# optional data (with defaults)
+		self.space = getit(obj, 67, 0)
+		self.elevation =  getit(obj, 38, 0)
+		self.thic =  getit(obj, 39, 0)
+		self.color_index = getit(obj, 62, BYLAYER)
+		width =  getit(obj, 43, 0)
+		self.swidth =  width # default start width
+		self.ewidth =  width # default end width
+		#print 'deb:LWpolyline width=', width #------------------------
+		#print 'deb:LWpolyline elevation=', self.elevation #------------------------
+	
+		self.flags = getit(obj, 70, 0)
+		self.closed = self.flags&1 # byte coded, 1 = closed, 128 = plinegen
+
+		self.layer = getit(obj.data, 8, None)
+		self.extrusion = get_extrusion(obj.data)
+
+		self.points = self.get_points(obj.data)
+
+		self.pltype = 'poly2d'   # LW-polyline is a 2D-polyline
+		self.spline = False
+		self.curved = False
+
+
+		#print 'deb:LWpolyline.obj.data:\n', obj.data #------------------------
+		#print 'deb:LWpolyline.ENDinit:----------------' #------------------------
+
+
+	def get_points(self, data):
+		"""Gets points for a polyline type object.
+
+		LW-Polylines have no fixed number of verts, and
+		each vert can have a number of properties.
+		Verts should be coded as
+		10:xvalue
+		20:yvalue
+		40:startwidth or 0
+		41:endwidth or 0
+		42:bulge or 0
+		for each vert
+		"""
+		num = self.num_points
+		point = None
+		points = []
+		for item in data:
+			if item[0] == 10:   # 10 = x
+				if point:
+					points.append(point)
+				point = Vertex()
+				point.x = item[1]
+				point.z = self.elevation
+			elif item[0] == 20: # 20 = y
+				point.y = item[1]
+			elif item[0] == 40: # 40 = start width
+				point.swidth = item[1]
+			elif item[0] == 41: # 41 = end width
+				point.ewidth = item[1]
+			elif item[0] == 42: # 42 = bulge
+				point.bulge = item[1]
+		points.append(point)
+		return points
+
+
+
+	def __repr__(self):
+		return "%s: layer - %s, points - %s" %(self.__class__.__name__, self.layer, self.points)
+
+
+	def draw_old(self, settings):
+		"""for LWPOLYLINE: generate Blender_geometry.
+		"""
+		#print 'deb:LWpolyline.draw.START:----------------' #------------------------
+		points = []
+		obname = 'lw_%s' %self.layer  # create object name from layer name
+		obname = obname[:MAX_NAMELENGTH]
+		#settings.var['curves_on'] == True
+		#print 'deb:index_len: ', len(self.points) #------------------
+		for i, point in enumerate(self.points):
+			#print 'deb:index: ', i #------------------
+			if not point.bulge:
+				points.append(point.loc)
+			elif point.bulge and not self.closed and i == len(self.points)-1:
+				points.append(point.loc)
+			elif point.bulge:	 #
+				if i == len(self.points)-1:
+					point2 = self.points[0]
+				else:
+					point2 = self.points[i+1]
+				arc_res = settings.var['arc_res']/sqrt(settings.var['arc_rad'])
+				verts, center = calcBulge(point, point2, arc_res)
+#			   if i == len(self.points)-1:
+#				   if self.closed:
+#					   verts.pop() #remove last(=first) vertex
+#			   else:
+#				   verts.pop() #remove last vertex, because this point will be writen as the next vertex
+				points.extend(verts)
+
+		thic = self.thic
+		if settings.var['thick_force'] and thic == 0: thic = settings.var['thick_min']
+		if settings.var['thick_on'] and thic != 0:
+			len1 = len(points)
+			points.extend([[point[0], point[1], point[2]+thic] for point in points])
+			faces = []
+			#print 'deb:len1:', len1  #-----------------------
+			faces = [[num, num+1, num+len1+1, num+len1] for num in xrange(len1 - 1)]
+			if self.closed:
+				faces.append([len1-1, 0, len1, 2*len1-1])
+			#print 'deb:faces_list:\n', faces  #-----------------------
+			me = Mesh.New(obname)		  # create a new mesh
+			ob = SCENE.objects.new(me) # create a new mesh_object
+			me.verts.extend(points) # add vertices to mesh
+			me.faces.extend(faces)   # add faces to the mesh
+		else:
+			edges = [[num, num+1] for num in xrange(len(points)-1)]
+			if self.closed:
+				edges.append([len(points)-1, 0])
+			#print 'deb:edges_list:\n', edges  #-----------------------
+			me = Mesh.New(obname)		  # create a new mesh
+			ob = SCENE.objects.new(me) # create a new mesh_object
+			me.verts.extend(points) # add vertices to mesh
+			me.edges.extend(edges)   # add edges to the mesh
+
+		ob.LocZ = self.elevation
+		transform(self.extrusion, 0, ob)
+
+		#print 'deb:LWpolyline.draw.END:----------------' #------------------------
+		return ob
 
 
 class Text:  #-----------------------------------------------------------------
@@ -2363,8 +2477,6 @@ class Mtext:  #-----------------------------------------------------------------
 		return ob
 
 
-
-
 class Circle:  #-----------------------------------------------------------------
 	"""Class for objects representing dxf CIRCLEs.
 	"""
@@ -2494,8 +2606,10 @@ class Circle:  #----------------------------------------------------------------
 			return ob
 
 		else:  # draw CIRCLE as mesh -----------------------------------------------
-			cir = Mesh.New(obname)		 # create a new mesh
-			ob = SCENE.objects.new(cir) # create a new circle_object
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				me = Mesh.New(obname)		# create a new mesh
+				ob = SCENE.objects.new(me) # create a new mesh_object
 			# set a number of segments in entire circle
 			arc_res = settings.var['arc_res'] * sqrt(radius) / sqrt(settings.var['arc_rad'])
 			start, end = 0.0 , 360.0
@@ -2534,24 +2648,24 @@ class Circle:  #----------------------------------------------------------------
 					#print 'deb:circleDraw:verts:', verts  #---------------
 					faces = f_band + f_bottom + f_top
 					#print 'deb:circleDraw:faces:', faces  #---------------
-				cir.verts.extend(verts) # add vertices to mesh
-				cir.faces.extend(faces)  # add faces to the mesh
+				me.verts.extend(verts) # add vertices to mesh
+				me.faces.extend(faces)  # add faces to the mesh
 
 				if settings.var['meshSmooth_on']:  # left and right side become smooth ----------------------
 					for i in xrange(smooth_len):
-						cir.faces[i].smooth = True
+						me.faces[i].smooth = True
 				# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-				if settings.var['vGroup_on']:
+				if settings.var['vGroup_on'] and not M_OBJ:
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 					replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 					vg_band, vg_top, vg_bottom = [], [], []
 					for v in f_band: vg_band.extend(v)
-					cir.addVertGroup('side.band')  ; cir.assignVertsToGroup('side.band',  list(set(vg_band)), 1.0, replace)
+					me.addVertGroup('side.band')  ; me.assignVertsToGroup('side.band',  list(set(vg_band)), 1.0, replace)
 					if settings.var['fill_on']:
 						for v in f_top: vg_top.extend(v)
 						for v in f_bottom: vg_bottom.extend(v)
-						cir.addVertGroup('side.top')   ; cir.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
-						cir.addVertGroup('side.bottom'); cir.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
+						me.addVertGroup('side.top')   ; me.assignVertsToGroup('side.top',   list(set(vg_top)), 1.0, replace)
+						me.addVertGroup('side.bottom'); me.assignVertsToGroup('side.bottom',list(set(vg_bottom)), 1.0, replace)
 
 			else: # if thic == 0
 				if settings.var['fill_on']:
@@ -2563,20 +2677,18 @@ class Circle:  #----------------------------------------------------------------
 					faces.append([len1-1, 0, center1])
 					#print 'deb:circleDraw:verts:', verts  #---------------
 					#print 'deb:circleDraw:faces:', faces  #---------------
-					cir.verts.extend(verts) # add vertices to mesh
-					cir.faces.extend(faces)  # add faces to the mesh
+					me.verts.extend(verts) # add vertices to mesh
+					me.faces.extend(faces)  # add faces to the mesh
 				else:
-					cir.verts.extend(verts) # add vertices to mesh
+					me.verts.extend(verts) # add vertices to mesh
 					edges = [[num, num+1] for num in xrange(len(verts))]
 					edges[-1][1] = 0   # it points the "new" last edge to the first vertex
-					cir.edges.extend(edges)  # add edges to the mesh
+					me.edges.extend(edges)  # add edges to the mesh
 
 			ob.loc = tuple(self.loc)
 			transform(self.extrusion, 0, ob)
 			return ob
 			
-			
-
 
 class Arc:  #-----------------------------------------------------------------
 	"""Class for objects representing dxf ARCs.
@@ -2670,8 +2782,10 @@ class Arc:  #-----------------------------------------------------------------
 			return ob
 
 		else:  # draw ARC as mesh --------------------
-			me = Mesh.New(obname)  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				me = Mesh.New(obname)		# create a new mesh
+				ob = SCENE.objects.new(me) # create a new mesh_object
 			# set a number of segments in entire circle
 			arc_res = settings.var['arc_res'] * sqrt(radius) / sqrt(settings.var['arc_rad'])
 
@@ -2719,7 +2833,7 @@ class Arc:  #-----------------------------------------------------------------
 						for i in xrange(smooth_len):
 							me.faces[i].smooth = True
 					# each MeshSide becomes vertexGroup for easier material assignment ---------------------
-					if settings.var['vGroup_on']:
+					if settings.var['vGroup_on'] and not M_OBJ:
 						# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 						replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 						vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
@@ -2792,8 +2906,8 @@ class BlockRecord:  #-----------------------------------------------------------
 		# optional data (with defaults)
 		self.insertion_units =  getit(obj, 70, None)
 		self.insert_units = getit(obj, 1070, None)
-		"""code 1070 Einfügeeinheiten:
-		0 = Keine Einheiten; 1 = Zoll; 2 = Fuß; 3 = Meilen; 4 = Millimeter;
+		"""code 1070 Einfuegeeinheiten:
+		0 = Keine Einheiten; 1 = Zoll; 2 = Fuss; 3 = Meilen; 4 = Millimeter;
 		5 = Zentimeter; 6 = Meter; 7 = Kilometer; 8 = Mikrozoll;
 		9 = Mils; 10 = Yard; 11 = Angstrom; 12 = Nanometer;
 		13 = Mikrons; 14 = Dezimeter; 15 = Dekameter;
@@ -3048,7 +3162,7 @@ class Insert:  #----------------------------------------------------------------
 				return ob
 
 		elif settings.drawTypes['insert']:  #if insert_drawType activated
-			print 'deb:draw.  settings.blocknamesmap:', settings.blocknamesmap #--------------------
+			#print 'deb:draw.  settings.blocknamesmap:', settings.blocknamesmap #--------------------
 			obname = settings.blocknamesmap[self.name]
 			obname = 'in_%s' %obname  # create object name from block name
 			#obname = obname[:MAX_NAMELENGTH]
@@ -3193,10 +3307,10 @@ class Ellipse:  #---------------------------------------------------------------
 		if settings.var['lines_as'] == 4: # as thin_box
 			thic = settings.var['thick_min']
 			width = settings.var['width_min']
-		if settings.var['lines_as'] == 3: # as thin cylinder
+		elif settings.var['lines_as'] == 3: # as thin cylinder
 			cyl_rad = 0.5 * settings.var['width_min']
 
-		if settings.var['lines_as'] == 5:  # draw ELLIPSE as curve -------------
+		elif settings.var['lines_as'] == 5:  # draw ELLIPSE as curve -------------
 			arc_res = settings.var['curve_arc']
 			triples = True
 			VectorTriples = calcArc(None, radius, start, end, arc_res, triples)
@@ -3236,11 +3350,12 @@ class Ellipse:  #---------------------------------------------------------------
 
 
 		else: # draw ELLIPSE as mesh --------------------------------------
-			me = Mesh.New(obname)  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
+			if M_OBJ: obname, me, ob = makeNewObject()
+			else: 
+				me = Mesh.New(obname)		# create a new mesh
+				ob = SCENE.objects.new(me) # create a new mesh_object
 			# set a number of segments in entire circle
 			arc_res = settings.var['arc_res'] * sqrt(radius) / sqrt(settings.var['arc_rad'])
-
 
 			verts = calcArc(None, radius, start, end, arc_res, False)
 			#verts = [list(point) for point in verts]
@@ -3287,8 +3402,7 @@ class Ellipse:  #---------------------------------------------------------------
 						smooth_len = len(f_left) + len(f_right)
 						for i in xrange(smooth_len):
 							me.faces[i].smooth = True
-
-					if settings.var['vGroup_on']:
+					if settings.var['vGroup_on'] and not M_OBJ:
 						# each MeshSide becomes vertexGroup for easier material assignment ---------------------
 						replace = Blender.Mesh.AssignModes.REPLACE  #or .AssignModes.ADD
 						vg_left, vg_right, vg_top, vg_bottom = [], [], [], []
@@ -3408,21 +3522,24 @@ class Face:  #-----------------------------------------------------------------
 		global activObjectName
 		#print 'deb:draw:face.ob IN activObjectName: ', activObjectName #---------------------
 
-		if activObjectLayer == self.layer and settings.var['one_mesh_on']:
-			obname = activObjectName
-			#print 'deb:face.draw obname from activObjectName: ', obname #---------------------
-			ob = Object.Get(obname)  # open an existing mesh_object
-			#ob = SCENE.getChildren(obname)  # open an existing mesh_object
-		else:
-			obname = 'fa_%s' %self.layer  # create object name from layer name
-			obname = obname[:MAX_NAMELENGTH]
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
-			activObjectName = ob.name
-			activObjectLayer = self.layer
-			#print ('deb:except. new face.ob+mesh:"%s" created!' %ob.name) #---------------------
-
-		me = Mesh.Get(ob.name)   # open objects mesh data
+		if M_OBJ: obname, me, ob = makeNewObject()
+		else: 
+			if activObjectLayer == self.layer and settings.var['one_mesh_on']:
+				obname = activObjectName
+				#print 'deb:face.draw obname from activObjectName: ', obname #---------------------
+				ob = getSceneChild(obname)  # open an existing mesh_object
+				#ob = SCENE.getChildren(obname)  # open an existing mesh_object
+				me = ob.getData(name_only=False, mesh=True)
+			else:
+				obname = 'fa_%s' %self.layer  # create object name from layer name
+				obname = obname[:MAX_NAMELENGTH]
+				me = Mesh.New(obname)		  # create a new mesh
+				ob = SCENE.objects.new(me) # create a new mesh_object
+				activObjectName = ob.name
+				activObjectLayer = self.layer
+				#print ('deb:except. new face.ob+mesh:"%s" created!' %ob.name) #---------------------
+	
+		#me = Mesh.Get(ob.name)   # open objects mesh data
 		faces, edges = [], []
 		n = len(me.verts)
 		if len(self.points) == 4:
@@ -3435,7 +3552,7 @@ class Face:  #-----------------------------------------------------------------
 		me.verts.extend(points) # add vertices to mesh
 		if faces: me.faces.extend(faces)	   # add faces to the mesh
 		if edges: me.edges.extend(edges)	   # add faces to the mesh
-		if settings.var['vGroup_on']:
+		if settings.var['vGroup_on'] and not M_OBJ:
 			# entities with the same color build one vertexGroup for easier material assignment ---------------------
 			ob.link(me) # link mesh to that object
 			vG_name = 'color_%s' %self.color_index
@@ -3468,6 +3585,7 @@ type_map = {
 #   'mline':MLine,
 	'polyline':Polyline,
 	'lwpolyline':LWpolyline,
+	'spline':Spline,
 #   'region':Region,
 	'trace':Solid,
 	'solid':Solid,
@@ -3738,7 +3856,11 @@ class Blocks:  #----------------------------------------------------------------
 			global oblist
 			oblist.append((ob, insertFlag, blockFlag))
 		else:		
+			if M_OBJ:
+				car_end()
+				car_start()
 			drawEntities(block.entities, self.settings, block_def)
+			if M_OBJ: car_end()
 		self.settings.write("Drawing block:\'%s\' done!" %name)
 		self.blocks[name] = blender_group
 
@@ -3809,7 +3931,8 @@ class Settings:  #--------------------------------------------------------------
 		"""Given the drawing, build dictionaries of Layers, Colors and Blocks.
 		"""
 
-		#de:	paßt die distance parameter an globalScale
+		global oblist
+		#adjust the distance parameter to globalScale
 		if self.var['g_scale'] != 1.0:
 			self.var['dist_min']  = self.var['dist_min'] / self.var['g_scale']
 			self.var['thick_min'] = self.var['thick_min'] / self.var['g_scale']
@@ -3859,7 +3982,6 @@ class Settings:  #--------------------------------------------------------------
 
 			if views: #----------------------------------
 				if self.var['views_on']:
-					global oblist
 					for item in views.data:
 						if type(item) != list and item.type == 'view':
 							#print 'deb:settings_valid views dir(item)=', dir(item) #-------------
@@ -3876,7 +3998,6 @@ class Settings:  #--------------------------------------------------------------
 
 			if vports: #----------------------------------
 				if self.var['views_on']:
-					global oblist
 					for item in vports.data:
 						if type(item) != list and item.type == 'vport':
 							#print 'deb:settings_valid views dir(item)=', dir(item) #-------------
@@ -3901,7 +4022,8 @@ class Settings:  #--------------------------------------------------------------
 			# Read the block definitions and build our block object
 			if self.drawTypes['insert']: #if support for entity type 'Insert' is activated
 				#Build a dictionary of blockname:block_data pairs
-				blocksmap, self.obj_number = getBlocksmap(drawing, layersmap, self.var['layFrozen_on'])
+				blocksmap, obj_number = getBlocksmap(drawing, layersmap, self.var['layFrozen_on'])
+				self.obj_number += obj_number
 				self.blocknamesmap = getBlocknamesmap(blocksmap)
 				self.blocks = Blocks(blocksmap, self) # initiates container for blocks_data
 				self.usedBlocks = blocksmap.keys()
@@ -3916,9 +4038,7 @@ class Settings:  #--------------------------------------------------------------
 		# The section:entities
 		if 'entities' in sections.keys():
 			self.write("found section:entities")
-
 			self.obj_number += len(drawing.entities.data)
-			#print 'deb:settings_valid self.obj_number', self.obj_number #----------
 			self.obj_number = 1.0 / self.obj_number
 
 
@@ -4152,6 +4272,7 @@ def	analyzeDXF(dxfFile): #---------------------------------------
 def main(dxfFile):  #---------------#############################-----------
 	#print 'deb:filename:', filename #--------------
 	global SCENE
+	global oblist
 	editmode = Window.EditMode()	# are we in edit mode?  If so ...
 	if editmode:
 		Window.EditMode(0) # leave edit mode before
@@ -4206,7 +4327,6 @@ def main(dxfFile):  #---------------#############################-----------
 			return None
 
 		# Draw all the know entity types in the current scene
-		global oblist
 		oblist = []  # a list of all created AND linked objects for final f_globalScale
 		time2 = Blender.sys.time()  #time marker2
 
@@ -4218,9 +4338,12 @@ def main(dxfFile):  #---------------#############################-----------
 		global activObjectLayer, activObjectName
 		activObjectLayer, activObjectName = None, None
 
+		if M_OBJ: car_init()
+
 		drawEntities(drawing.entities, settings)
 
 		#print 'deb:drawEntities after: oblist:', oblist #-----------------------
+		if M_OBJ: car_end()
 		if oblist: # and settings.var['g_scale'] != 1:
 			globalScale(oblist, settings.var['g_scale'])
 
@@ -4357,7 +4480,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 			try: usedblocks[item.name] = [used, childList]
 			except KeyError: print 'Cannot map "%s" - "%s" as Block!' %(item.name, item)
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------
-	print 'deb:getBlocksmap:  layersmap=' , layersmap #-------------
+	#print 'deb:getBlocksmap:  layersmap=' , layersmap #-------------
 
 	for item in drawing.entities.data:
 		if type(item) != list and item.type == 'insert':
@@ -4527,19 +4650,27 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 				insertFlag = False
 				alt_obname = activObjectName
 				ob = entity.draw(settings)
-				if ob and ob.name != alt_obname:
-					if block_def:
-						blockFlag = True
-						bl_loc = block_def[1]
-						ob.loc = [ob.loc[0]-bl_loc[0],ob.loc[1]-bl_loc[1],ob.loc[2]-bl_loc[2]]
-					else: blockFlag = False
-					setObjectProperties(ob, group, entity, settings, block_def)
-					if settings.var['optimization'] <= settings.MIN:
-						#if settings.var['g_origin_on'] and not block_def: ob.loc = Mathutils.Vector(ob.loc) + settings.g_origin
-						if settings.var['g_scale_on']: globalScaleOne(ob, insertFlag, blockFlag, settings.var['g_scale'])
-						settings.redraw()
-					else: oblist.append((ob, insertFlag, blockFlag))
-
+				if ob:
+					if M_OBJ and ob.type=='Mesh': #'Curve', 'Text'
+						if block_def:
+							blockFlag = True
+							bl_loc = block_def[1]
+							ob.loc = [ob.loc[0]-bl_loc[0],ob.loc[1]-bl_loc[1],ob.loc[2]-bl_loc[2]]
+						car_nr()
+	
+					elif ob.name != alt_obname:
+						if block_def:
+							blockFlag = True
+							bl_loc = block_def[1]
+							ob.loc = [ob.loc[0]-bl_loc[0],ob.loc[1]-bl_loc[1],ob.loc[2]-bl_loc[2]]
+						else: blockFlag = False
+						setObjectProperties(ob, group, entity, settings, block_def)
+						if settings.var['optimization'] <= settings.MIN:
+							#if settings.var['g_origin_on'] and not block_def: ob.loc = Mathutils.Vector(ob.loc) + settings.g_origin
+							if settings.var['g_scale_on']: globalScaleOne(ob, insertFlag, blockFlag, settings.var['g_scale'])
+							settings.redraw()
+						else: oblist.append((ob, insertFlag, blockFlag))
+	
 		#print 'deb:Finished drawing:', entities[0].type   #------------------------
 		message = "\nDrawing dxf\'%ss\' done!" % _type
 		settings.write(message, True)
@@ -4569,7 +4700,8 @@ def globalScaleOne(ob, insertFlag, blockFlag, SCALE):  #------------------------
 		ob.loc = Mathutils.Vector(ob.loc) * SCALE_MAT
 	else:   # entire scaling for all other imported objects ------------
 		if ob.type == 'Mesh':		
-			me = Mesh.Get(ob.name)
+			me = ob.getData(name_only=False, mesh=True)
+			#me = Mesh.Get(ob.name)
 			# set centers of all objects in (0,0,0)
 			#me.transform(ob.matrixWorld*SCALE_MAT) 
 			#ob.loc = Mathutils.Vector([0,0,0])
@@ -4990,6 +5122,7 @@ points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin
 lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|curve %x5"
 mlines_as_menu  = "convert to: %t|*edge %x1|*mesh %x2|*thin cylinder %x3|*thin box %x|*curve %x5"
 plines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|curve %x5"
+splines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|curve %x5"
 plines3_as_menu = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|curve %x5"
 plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
 solids_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
@@ -5072,6 +5205,7 @@ keywords_org = {
 	'lines_as'  : 2,
 	'mlines_as' : 2,
 	'plines_as' : 2,
+	'splines_as' : 2,
 	'plines3_as': 2,
 	'plmesh_as' : 2,
 	'solids_as' : 2,
@@ -5087,6 +5221,7 @@ drawTypes_org = {
 	'ellipse': 1,
 	'mline' : 0,
 	'polyline': 1,
+	'spline': 0,
 	'plmesh': 1,
 	'pline3': 1,
 	'lwpolyline': 1,
@@ -5272,12 +5407,14 @@ def presetConfig_curv():  #-----------------------------------------------
 		GUI_A['lines_as'].val  = 5
 		GUI_A['mlines_as'].val = 5
 		GUI_A['plines_as'].val = 5
+		GUI_A['splines_as'].val = 5
 		GUI_A['plines3_as'].val = 5
 	else:
 		GUI_A['points_as'].val = 2
 		GUI_A['lines_as'].val  = 2
 		GUI_A['mlines_as'].val = 2
 		GUI_A['plines_as'].val = 2
+		GUI_A['splines_as'].val = 2
 		GUI_A['plines3_as'].val = 2
 
 	
@@ -5315,6 +5452,7 @@ def resetDefaultConfig_2D():  #-----------------------------------------------
 		'ellipse': 1,
 		'mline' : 0,
 		'polyline': 1,
+		'spline': 0,
 		'plmesh': 0,
 		'pline3': 0,
 		'lwpolyline': 1,
@@ -5361,6 +5499,7 @@ def resetDefaultConfig_3D():  #-----------------------------------------------
 		'ellipse': 1,
 		'mline' : 0,
 		'polyline': 1,
+		'spline': 0,
 		'plmesh': 1,
 		'pline3': 1,
 		'lwpolyline': 1,
@@ -5429,7 +5568,7 @@ def draw_UI():  #---------------------------------------------------------------
 	menu_w = (3 * butt_margin) + but_0c + but_1c + but_2c + but_3c  #menu width
 
 	simple_menu_h = 80
-	extend_menu_h = 350
+	extend_menu_h = 370
 	y = simple_menu_h		 # y is menu upper.y
 	if config_UI.val: y += extend_menu_h
 	x = 20 #menu left.x
@@ -5450,8 +5589,9 @@ def draw_UI():  #---------------------------------------------------------------
 	if config_UI.val:
 		b0, b0_ = but0c, but_0c + butt_margin
 		b1, b1_ = but1c, but_1c
-		y -= 10
+		y_top = y
 
+		y -= 10
 		y -= 20
 		Draw.BeginAlign()
 		GUI_B['point'] = Draw.Toggle('POINT', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['point'].val, "support dxf-POINT on/off")
@@ -5476,7 +5616,14 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['polyline'] = Draw.Toggle('2D-PLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['polyline'].val, "support dxf-2D-POLYLINE on/off")
+		GUI_B['spline'] = Draw.Toggle('SPLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['spline'].val, "support dxf-SPLINE on/off")
+		if GUI_B['spline'].val:
+			GUI_A['splines_as'] = Draw.Menu(splines_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['splines_as'].val, "select target Blender-object")
+		Draw.EndAlign()
+
+		y -= 20
+		Draw.BeginAlign()
+		GUI_B['polyline'] = Draw.Toggle('2D/LWPLINE', EVENT_REDRAW, b0, y, b0_, 20, GUI_B['polyline'].val, "support dxf-2D-POLYLINE on/off")
 		if GUI_B['polyline'].val:
 			GUI_A['plines_as'] = Draw.Menu(plines_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['plines_as'].val, "select target Blender-object")
 		Draw.EndAlign()
@@ -5488,6 +5635,64 @@ def draw_UI():  #---------------------------------------------------------------
 			GUI_A['plines3_as'] = Draw.Menu(plines3_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['plines3_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
+		y_down = y
+		# -----------------------------------------------
+
+		y = y_top
+		b0, b0_ = but2c, but_2c + butt_margin
+		b1, b1_ = but3c, but_3c
+
+		y -= 10
+		y -= 20
+		Draw.BeginAlign()
+		GUI_B['plmesh'] = Draw.Toggle('POLY-MESH/FACE', EVENT_NONE, b0, y, b0_+b1_, 20, GUI_B['plmesh'].val, "support dxf-POLYMESH/POLYFACE on/off")
+#		GUI_A['plmesh_as'] = Draw.Menu(plmesh_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['plmesh_as'].val, "select target Blender-object")
+		Draw.EndAlign()
+
+		y -= 20
+		Draw.BeginAlign()
+		GUI_B['solid'] = Draw.Toggle('SOLID', EVENT_NONE, b0, y, b0_, 20, GUI_B['solid'].val, "support dxf-SOLID and TRACE on/off")
+		GUI_B['face'] = Draw.Toggle('3DFACE', EVENT_NONE, b1, y, b1_, 20, GUI_B['face'].val, "support dxf-3DFACE on/off")
+#		GUI_A['solids_as'] = Draw.Menu(solids_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['solids_as'].val, "select target Blender-object")
+		Draw.EndAlign()
+		#print 'deb:support solid, trace', GUI_B['trace'].val, GUI_B['solid'].val # ------------
+
+
+		y -= 20
+		Draw.BeginAlign()
+		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, b0, y, b0_, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
+		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
+#		GUI_A['texts_as'] = Draw.Menu(texts_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['texts_as'].val, "select target Blender-object")
+		Draw.EndAlign()
+
+		y -= 20
+		Draw.BeginAlign()
+		GUI_B['block'] = Draw.Toggle('BLOCK', EVENT_REDRAW, b0, y, b0_-30, 20, GUI_B['block'].val, "support dxf-BLOCK and ARRAY on/off")
+		GUI_B['insert'].val = GUI_B['block'].val
+		if GUI_B['block'].val:
+			GUI_A['block_nn'] = Draw.Toggle('n', EVENT_NONE, b1-30, y, 15, 20, GUI_A['block_nn'].val, "support hatch/noname BLOCKs *X... on/off")
+			GUI_A['blockFilter_on'] = Draw.Toggle('F', EVENT_NONE, b1-15, y, 15, 20, GUI_A['blockFilter_on'].val, "(*wip) support name filtering of BLOCKs on/off")
+			GUI_A['xref_on'] = Draw.Toggle('Xref', EVENT_NONE, b1, y, 20, 20, GUI_A['xref_on'].val, "support place holder for XREF-BLOCKs on/off")
+			GUI_A['blocks_as'] = Draw.Menu(blocks_as_menu, EVENT_NONE, b1+20, y, b1_-20, 20, GUI_A['blocks_as'].val, "select target representation for imported BLOCKs")
+		Draw.EndAlign()
+
+
+		y -= 20
+		Draw.BeginAlign()
+		GUI_A['views_on'] = Draw.Toggle('views', EVENT_NONE, b0, y, b0_-25, 20, GUI_A['views_on'].val, "imports VIEWs and VIEWPORTs as cameras on/off")
+		GUI_A['cams_on'] = Draw.Toggle('*cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*wip) support ASHADE cameras on/off")
+		GUI_A['lights_on'] = Draw.Toggle('*lights', EVENT_NONE, b1+25, y, b1_-25, 20, GUI_A['lights_on'].val, "(*wip) support AVE_RENDER lights on/off")
+		Draw.EndAlign()
+
+
+		if y < y_down: y_down = y
+		# -----end supported objects--------------------------------------
+
+		b0, b0_ = but0c, but_0c + butt_margin
+		b1, b1_ = but1c, but_1c
+
+		y_top = y_down
+		y = y_top
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
@@ -5534,6 +5739,14 @@ def draw_UI():  #---------------------------------------------------------------
 			Draw.Label(scale_str, b1+45, y, 200, 20)
 		Draw.EndAlign()
 
+		y_down = y
+		# -----end material,translate,scale------------------------------------------
+
+		b0, b0_ = but0c, but_0c + butt_margin
+		b1, b1_ = but1c, but_1c
+
+		y_top = y_down
+		y = y_top
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
@@ -5571,56 +5784,11 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y_down = y
 		# -----------------------------------------------
-		y = simple_menu_h + extend_menu_h +20
+
 		b0, b0_ = but2c, but_2c + butt_margin
 		b1, b1_ = but3c, but_3c
 
-		y -= 20
-		Draw.BeginAlign()
-		GUI_B['plmesh'] = Draw.Toggle('POLY-MESH/FACE', EVENT_NONE, b0, y, b0_+b1_, 20, GUI_B['plmesh'].val, "support dxf-POLYMESH/POLYFACE on/off")
-#		GUI_A['plmesh_as'] = Draw.Menu(plmesh_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['plmesh_as'].val, "select target Blender-object")
-		Draw.EndAlign()
-
-		y -= 20
-		Draw.BeginAlign()
-		GUI_B['solid'] = Draw.Toggle('SOLID', EVENT_NONE, b0, y, b0_, 20, GUI_B['solid'].val, "support dxf-SOLID and TRACE on/off")
-		GUI_B['face'] = Draw.Toggle('3DFACE', EVENT_NONE, b1, y, b1_, 20, GUI_B['face'].val, "support dxf-3DFACE on/off")
-#		GUI_A['solids_as'] = Draw.Menu(solids_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['solids_as'].val, "select target Blender-object")
-		Draw.EndAlign()
-		#print 'deb:support solid, trace', GUI_B['trace'].val, GUI_B['solid'].val # ------------
-
-
-		y -= 20
-		Draw.BeginAlign()
-		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, b0, y, b0_, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
-		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
-#		GUI_A['texts_as'] = Draw.Menu(texts_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['texts_as'].val, "select target Blender-object")
-		Draw.EndAlign()
-
-		y -= 20
-		Draw.BeginAlign()
-		GUI_B['block'] = Draw.Toggle('BLOCK', EVENT_REDRAW, b0, y, b0_-30, 20, GUI_B['block'].val, "support dxf-BLOCK and ARRAY on/off")
-		GUI_B['insert'].val = GUI_B['block'].val
-		if GUI_B['block'].val:
-			GUI_A['block_nn'] = Draw.Toggle('n', EVENT_NONE, b1-30, y, 15, 20, GUI_A['block_nn'].val, "support hatch/noname BLOCKs *X... on/off")
-			GUI_A['blockFilter_on'] = Draw.Toggle('F', EVENT_NONE, b1-15, y, 15, 20, GUI_A['blockFilter_on'].val, "(*wip) support name filtering of BLOCKs on/off")
-			GUI_A['xref_on'] = Draw.Toggle('Xref', EVENT_NONE, b1, y, 20, 20, GUI_A['xref_on'].val, "support place holder for XREF-BLOCKs on/off")
-			GUI_A['blocks_as'] = Draw.Menu(blocks_as_menu, EVENT_NONE, b1+20, y, b1_-20, 20, GUI_A['blocks_as'].val, "select target representation for imported BLOCKs")
-		Draw.EndAlign()
-
-
-		y -= 20
-		Draw.BeginAlign()
-		GUI_A['views_on'] = Draw.Toggle('views', EVENT_NONE, b0, y, b0_-25, 20, GUI_A['views_on'].val, "imports VIEWs and VIEWPORTs as cameras on/off")
-		GUI_A['cams_on'] = Draw.Toggle('*cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*wip) support ASHADE cameras on/off")
-		GUI_A['lights_on'] = Draw.Toggle('*lights', EVENT_NONE, b1+25, y, b1_-25, 20, GUI_A['lights_on'].val, "(*wip) support AVE_RENDER lights on/off")
-		Draw.EndAlign()
-
-		y -= 10
-		y -= 20
-		y -= 20
-		y -= 20
-
+		y = y_top
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
@@ -5656,8 +5824,13 @@ def draw_UI():  #---------------------------------------------------------------
 		GUI_A['newScene_on'] = Draw.Toggle('newScene', EVENT_NONE, b0, y, b0_, 20, GUI_A['newScene_on'].val, "creates new Blender-Scene for each import on/off")
 		GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, b1, y, b1_, 20, GUI_A['target_layer'].val, 1, 18, "imports into this Blender-layer (<19> reserved for block_definitions)")
 
+		if y < y_down: y_down = y
+		# -----end options --------------------------------------
+
+
 		#--------------------------------------
-		if y > y_down: y = y_down
+		y_top = y_down
+		y = y_top
 		#GUI_A['dummy_on'] = Draw.Toggle(' - ', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['dummy_on'].val, "reserved")
 		y -= 30
 		Draw.BeginAlign()
@@ -5891,6 +6064,7 @@ def multi_import(DIR):
 
 
 
+UI_MODE = True
 
 if __name__ == "__main__":
 	UI_MODE = True
@@ -5943,4 +6117,3 @@ if 1:
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 """
-
