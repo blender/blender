@@ -814,10 +814,14 @@ Stroke* createStroke(Interface1D& inter) {
 
 
 inline void applyShading(Stroke& stroke, vector<StrokeShader*>& shaders) {
-  for (vector<StrokeShader*>::iterator it = shaders.begin();
-       it != shaders.end();
-       ++it)
-    (*it)->shade(stroke);
+  for (vector<StrokeShader*>::iterator it = shaders.begin(); it != shaders.end(); ++it) {
+	StrokeShader *ss = *it;
+	string name( ss->py_ss ? PyString_AsString(PyObject_CallMethod(ss->py_ss, "getName", "")) : ss->getName() );
+	
+	cout << "Shading: " << name << endl;
+	(*it)->shade(stroke);
+		
+	}
 }
 
 
@@ -832,7 +836,8 @@ void Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders) {
        ++it) {
     if (!pred(**it))
       continue;
-    Stroke* stroke = createStroke(**it);
+	
+	Stroke* stroke = createStroke(**it);
     if (stroke) {
       applyShading(*stroke, shaders);
       canvas->RenderStroke(stroke);

@@ -174,6 +174,8 @@ PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args
 
 	if( if0D_it )
 		return PyBool_from_bool( self->up0D->operator()(*if0D_it) );
+	else
+		cerr << "ERROR: UnaryPredicate0D___call__ (no Interface0DIterator)" << endl;
 
 	Py_RETURN_NONE;
 }

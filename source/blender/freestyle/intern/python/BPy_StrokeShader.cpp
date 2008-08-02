@@ -17,6 +17,7 @@
 #include "StrokeShader/BPy_IncreasingThicknessShader.h"
 #include "StrokeShader/BPy_PolygonalizationShader.h"
 #include "StrokeShader/BPy_SamplingShader.h"
+#include "StrokeShader/BPy_SmoothingShader.h"
 #include "StrokeShader/BPy_SpatialNoiseShader.h"
 #include "StrokeShader/BPy_streamShader.h"
 #include "StrokeShader/BPy_StrokeTextureShader.h"
@@ -211,6 +212,11 @@ PyMODINIT_FUNC StrokeShader_Init( PyObject *module )
 		return;
 	Py_INCREF( &SamplingShader_Type );
 	PyModule_AddObject(module, "SamplingShader", (PyObject *)&SamplingShader_Type);
+
+	if( PyType_Ready( &SmoothingShader_Type ) < 0 )
+		return;
+	Py_INCREF( &SmoothingShader_Type );
+	PyModule_AddObject(module, "SmoothingShader", (PyObject *)&SmoothingShader_Type);
 
 	if( PyType_Ready( &SpatialNoiseShader_Type ) < 0 )
 		return;

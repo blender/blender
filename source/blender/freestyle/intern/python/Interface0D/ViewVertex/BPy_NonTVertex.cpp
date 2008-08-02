@@ -165,7 +165,7 @@ PyObject * NonTVertex_castToNonTVertex( BPy_NonTVertex *self ) {
 
 PyObject * NonTVertex_svertex( BPy_NonTVertex *self ) {
 	if( self->ntv->svertex() ){
-		return BPy_SVertex_from_SVertex(*( self->ntv->svertex() ));
+		return BPy_SVertex_from_SVertex_ptr( self->ntv->svertex() );
 	}
 
 	Py_RETURN_NONE;

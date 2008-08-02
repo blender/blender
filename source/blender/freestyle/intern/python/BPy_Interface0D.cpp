@@ -183,12 +183,14 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 int Interface0D___init__(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
 	self->if0D = new Interface0D();
+	self->if0D->py_if0D = (PyObject *)self;
 	return 0;
 }
 
 void Interface0D___dealloc__(BPy_Interface0D* self)
 {
-	delete self->if0D;
+	if( self->if0D->py_if0D )
+		delete self->if0D;
     self->ob_type->tp_free((PyObject*)self);
 }
 

@@ -155,7 +155,7 @@ PyObject * TVertex_castToTVertex( BPy_TVertex *self ) {
 
 PyObject * TVertex_frontSVertex( BPy_TVertex *self ) {
 	if( self->tv->frontSVertex() ){
-		return BPy_SVertex_from_SVertex(*( self->tv->frontSVertex() ));
+		return BPy_SVertex_from_SVertex_ptr( self->tv->frontSVertex() );
 	}
 
 	Py_RETURN_NONE;
@@ -163,7 +163,7 @@ PyObject * TVertex_frontSVertex( BPy_TVertex *self ) {
 
 PyObject * TVertex_backSVertex( BPy_TVertex *self ) {
 	if( self->tv->backSVertex() ){
-		return BPy_SVertex_from_SVertex(*( self->tv->backSVertex() ));
+		return BPy_SVertex_from_SVertex_ptr( self->tv->backSVertex() );
 	}
 
 	Py_RETURN_NONE;
@@ -219,7 +219,7 @@ PyObject * TVertex_getSVertex( BPy_TVertex *self, PyObject *args) {
 
 	SVertex *sv = self->tv->getSVertex( ((BPy_FEdge *) py_fe)->fe );
 	if( sv ){
-		return BPy_SVertex_from_SVertex(*( sv ));
+		return BPy_SVertex_from_SVertex_ptr( sv );
 	}
 
 	Py_RETURN_NONE;
@@ -235,7 +235,7 @@ PyObject * TVertex_mate( BPy_TVertex *self, PyObject *args) {
 
 	ViewEdge *ve = self->tv->mate( ((BPy_ViewEdge *) py_ve)->ve );
 	if( ve ){
-		return BPy_ViewEdge_from_ViewEdge(*( ve ));
+		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
 	}
 
 	Py_RETURN_NONE;

@@ -92,9 +92,9 @@ PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D ) {
 }
 
 
-PyObject * BPy_SVertex_from_SVertex( SVertex& sv ) {
+PyObject * BPy_SVertex_from_SVertex_ptr( SVertex *sv ) {
 	PyObject *py_sv = SVertex_Type.tp_new( &SVertex_Type, 0, 0 );
-	((BPy_SVertex *) py_sv)->sv = new SVertex( sv );
+	((BPy_SVertex *) py_sv)->sv = sv;
 	((BPy_SVertex *) py_sv)->py_if0D.if0D = ((BPy_SVertex *) py_sv)->sv;
 
 	return py_sv;
@@ -119,18 +119,17 @@ PyObject * BPy_Nature_from_Nature( unsigned short n ) {
 	return py_n;
 }
 
-PyObject * BPy_Stroke_from_Stroke( Stroke& s ) {
+PyObject * BPy_Stroke_from_Stroke_ptr( Stroke* s ) {
 	PyObject *py_s = Stroke_Type.tp_new( &Stroke_Type, 0, 0 );
-	((BPy_Stroke *) py_s)->s = new Stroke( s );
+	((BPy_Stroke *) py_s)->s = s;
 	((BPy_Stroke *) py_s)->py_if1D.if1D = ((BPy_Stroke *) py_s)->s;
 
 	return py_s;
 }
 
-PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa ) {
+PyObject * BPy_StrokeAttribute_from_StrokeAttribute_ptr( StrokeAttribute *sa ) {
 	PyObject *py_sa = StrokeAttribute_Type.tp_new( &StrokeAttribute_Type, 0, 0 );
-	((BPy_StrokeAttribute *) py_sa)->sa = new StrokeAttribute( sa );
-
+	((BPy_StrokeAttribute *) py_sa)->sa = sa;
 	return py_sa;	
 }
 
@@ -145,9 +144,9 @@ PyObject * BPy_MediumType_from_MediumType( int n ) {
 	return py_mt;
 }
 
-PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv ) {
+PyObject * BPy_StrokeVertex_from_StrokeVertex_ptr( StrokeVertex *sv ) {
 	PyObject *py_sv = StrokeVertex_Type.tp_new( &StrokeVertex_Type, 0, 0 );
-	((BPy_StrokeVertex *) py_sv)->sv = new StrokeVertex( sv );
+	((BPy_StrokeVertex *) py_sv)->sv = sv;
 	((BPy_StrokeVertex *) py_sv)->py_cp.cp = ((BPy_StrokeVertex *) py_sv)->sv;
 	((BPy_StrokeVertex *) py_sv)->py_cp.py_if0D.if0D = ((BPy_StrokeVertex *) py_sv)->sv;
 
@@ -169,9 +168,9 @@ PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb ) {
 	return py_bb;
 }
 
-PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve ) {
+PyObject * BPy_ViewEdge_from_ViewEdge_ptr( ViewEdge* ve ) {
 	PyObject *py_ve = ViewEdge_Type.tp_new( &ViewEdge_Type, 0, 0 );
-	((BPy_ViewEdge *) py_ve)->ve = new ViewEdge( ve );
+	((BPy_ViewEdge *) py_ve)->ve = ve;
 	((BPy_ViewEdge *) py_ve)->py_if1D.if1D = ((BPy_ViewEdge *) py_ve)->ve;
 
 	return py_ve;
@@ -219,7 +218,7 @@ PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp ) {
 PyObject * BPy_directedViewEdge_from_directedViewEdge( ViewVertex::directedViewEdge& dve ) {
 	PyObject *py_dve = PyList_New(2);
 	
-	PyList_SetItem(	py_dve, 0, BPy_ViewEdge_from_ViewEdge(*(dve.first)) );
+	PyList_SetItem(	py_dve, 0, BPy_ViewEdge_from_ViewEdge_ptr(dve.first) );
 	PyList_SetItem(	py_dve, 1, PyBool_from_bool(dve.second) );
 	
 	return py_dve;
@@ -316,7 +315,7 @@ PyObject * BPy_ChainSilhouetteIterator_from_ChainSilhouetteIterator( ChainSilhou
 //==============================
 
 bool bool_from_PyBool( PyObject *b ) {
-	return b == Py_True;
+	return (b == Py_True || PyInt_AsLong(b) != 0);
 }
 
 IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj ) {

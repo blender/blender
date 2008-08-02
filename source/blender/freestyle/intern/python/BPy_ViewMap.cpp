@@ -157,7 +157,7 @@ PyObject * ViewMap_getClosestViewEdge( BPy_ViewMap *self , PyObject *args) {
 
 	ViewEdge *ve = const_cast<ViewEdge *>( self->vm->getClosestViewEdge(x,y) );
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge(*ve);
+		return BPy_ViewEdge_from_ViewEdge_ptr(ve);
 
 	Py_RETURN_NONE;
 }

@@ -32,7 +32,6 @@ from PredicatesB1D import *
 from Functions0D import *
 from shaders import *
 
-
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectionalChain(ChainSilhouetteIterator(),NotUP1D(QuantitativeInvisibilityUP1D(0)))
 ## Splits strokes at points of highest 2D curavture 
@@ -48,11 +47,13 @@ shaders_list = 	[
 		pySamplingShader(10),
 		BezierCurveShader(30),
 		SamplingShader(50),
+		ConstantThicknessShader(10),
 		pyNonLinearVaryingThicknessShader(4,25, 0.6),
 		TextureAssignerShader(6),
 		ConstantColorShader(0.2, 0.2, 0.2,1.0),
 		TipRemoverShader(10)
 		]
+		
 ## Use the causal density to avoid cluttering
 Operators.create(pyDensityUP1D(8,0.4, IntegrationType.MEAN), shaders_list)
 

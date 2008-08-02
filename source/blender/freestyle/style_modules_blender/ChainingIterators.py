@@ -37,6 +37,8 @@ class pyChainSilhouetteIterator(ChainingIterator):
 		ChainingIterator.__init__(self, stayInSelection, 1,None,1)
 	def getExactTypeName(self):
 		return "pyChainSilhouetteIterator"
+	def init(self):
+		pass
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
@@ -88,6 +90,8 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 		ChainingIterator.__init__(self, stayInSelection, stayInUnvisited,None,1)
 	def getExactTypeName(self):
 		return "pyChainSilhouetteGenericIterator"
+	def init(self):
+		pass
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
@@ -384,6 +388,8 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 		self._length = float(length)
 	def getExactTypeName(self):
 		return "pySmallFillOcclusionsChainingIterator"
+	def init(self):
+		pass
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
@@ -665,6 +671,8 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 		ChainingIterator.__init__(self, stayInSelection, 1,None,1)
 	def getExactTypeName(self):
 		return "pyChainSilhouetteIterator"
+	def init(self):
+		pass
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)

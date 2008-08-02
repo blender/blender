@@ -160,7 +160,12 @@ PyObject * SVertexIterator_u( BPy_SVertexIterator *self ) {
 }
 
 PyObject * SVertexIterator_getObject( BPy_SVertexIterator *self) {
-	return BPy_SVertex_from_SVertex( self->sv_it->operator*() );
+	SVertex *sv = self->sv_it->operator->();
+	
+	if( sv )
+		return BPy_SVertex_from_SVertex_ptr( sv );
+		
+	Py_RETURN_NONE;	
 }
 
 

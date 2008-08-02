@@ -82,7 +82,7 @@ public:
    *  shader's name.
    */
   virtual string getName() const {
-    return "StrokeShader";
+	return "StrokeShader";
   }
   /*! The shading method. This method must
    *  be overloaded by inherited classes.
@@ -119,7 +119,7 @@ public:
 	string name( py_ss ? PyString_AsString(PyObject_CallMethod(py_ss, "getName", "")) : getName() );
 	
 	if( py_ss && PyObject_HasAttrString(py_ss, "shade") ) {
-		return Director_BPy_StrokeShader_shade(py_ss, ioStroke);
+		Director_BPy_StrokeShader_shade(py_ss, ioStroke);
 	} else {
 		cerr << "Warning: " << name << " method shade() not implemented" << endl;
 	}

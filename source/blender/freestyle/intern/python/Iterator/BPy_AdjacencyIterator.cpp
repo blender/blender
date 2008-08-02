@@ -143,7 +143,7 @@ PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self) {
 	
 	ViewEdge *ve = self->a_it->operator*();
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
+		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
 
 	Py_RETURN_NONE;
 }

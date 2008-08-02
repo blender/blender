@@ -212,22 +212,41 @@ public:
 
   /*! Returns the 2D length of the 1D element. */
   virtual real getLength2D() const {
-    cerr << "Warning: method getLength2D() not implemented" << endl;
-    return 0;
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "getLength2D") ) {
+			return Director_BPy_Interface1D_getLength2D(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " getLength2D() not implemented" << endl;
+			return 0;
+		}
   }
 
   /*! Returns the Id of the 1D element .*/
   virtual Id getId() const {
-    cerr << "Warning: method getId() not implemented" << endl;
-    return Id(0, 0);
-  }
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "getId") ) {
+			return Director_BPy_Interface1D_getId(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " getId() not implemented" << endl;
+			return Id(0, 0);
+		}
+  }	
+
 
   // FIXME: ce truc n'a rien a faire la...(c une requete complexe qui doit etre ds les Function1D)
   /*! Returns the nature of the 1D element. */
   virtual Nature::EdgeNature getNature() const {
-    cerr << "Warning: method getNature() not implemented" << endl;
-    return Nature::NO_FEATURE;
-  }
+		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
+
+		if( py_if1D && PyObject_HasAttrString(py_if1D, "getNature") ) {
+			return Director_BPy_Interface1D_getNature(py_if1D);
+		} else {
+			cerr << "Warning: " << name << " getNature() not implemented" << endl;
+			return Nature::NO_FEATURE;
+		}
+  }	
   
   /*! Returns the time stamp of the 1D element. Mainly used for selection. */
   virtual unsigned getTimeStamp() const {

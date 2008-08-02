@@ -155,7 +155,11 @@ PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexItera
 }
 
 PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self) {
-	return BPy_StrokeVertex_from_StrokeVertex( self->sv_it->operator*() );
+	StrokeVertex *sv = self->sv_it->operator->();
+	if( sv )	
+		return BPy_StrokeVertex_from_StrokeVertex_ptr( sv );
+
+	Py_RETURN_NONE;
 }
 
 

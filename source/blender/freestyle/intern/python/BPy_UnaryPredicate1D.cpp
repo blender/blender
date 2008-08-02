@@ -216,6 +216,8 @@ PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args
 	
 	if( if1D )
 		return PyBool_from_bool( self->up1D->operator()(*if1D) );
+	else
+		cerr << "ERROR: UnaryPredicate1D___call__ (no Interface1D)" << endl;
 		
 	Py_RETURN_NONE;
 }

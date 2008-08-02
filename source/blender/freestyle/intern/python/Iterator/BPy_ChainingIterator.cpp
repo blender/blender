@@ -180,7 +180,7 @@ PyObject * ChainingIterator_getObject( BPy_ChainingIterator *self) {
 	
 	ViewEdge *ve = self->c_it->operator*();
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
+		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
 
 	Py_RETURN_NONE;
 }

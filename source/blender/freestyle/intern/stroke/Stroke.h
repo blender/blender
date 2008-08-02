@@ -52,6 +52,8 @@ class LIB_STROKE_EXPORT StrokeAttribute
 {
 public:
 
+	PyObject *py_sa;
+
   /*! default constructor */
   StrokeAttribute();
   /*! Copy constructor */

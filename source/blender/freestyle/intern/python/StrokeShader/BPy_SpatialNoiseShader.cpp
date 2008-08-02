@@ -107,7 +107,7 @@ int SpatialNoiseShader___init__( BPy_SpatialNoiseShader* self, PyObject *args)
 	
 
 	if(!( PyArg_ParseTuple(args, "ffiOO", &f1, &f2, &i3, &obj4, &obj5)
-		&& PyList_Check(obj4) && PyBool_Check(obj5) )) {
+		&& PyBool_Check(obj4) && PyBool_Check(obj5) )) {
 		cout << "ERROR: SpatialNoiseShader___init__" << endl;		
 		return -1;
 	}

@@ -1,3 +1,4 @@
+from Blender.Mathutils import Vector
 import Blender.Freestyle
 
 class BBox(Blender.Freestyle.BBox):
@@ -172,6 +173,9 @@ class PolygonalizationShader(Blender.Freestyle.PolygonalizationShader):
 	pass
 
 class SamplingShader(Blender.Freestyle.SamplingShader):
+	pass
+
+class SmoothingShader(Blender.Freestyle.SmoothingShader):
 	pass
 
 class SpatialNoiseShader(Blender.Freestyle.SpatialNoiseShader):

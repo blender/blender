@@ -45,6 +45,9 @@ StrokeAttribute::StrokeAttribute()
   _userAttributesVec2f = 0;
   _userAttributesVec3f = 0;
   _visible = true;
+
+	py_sa = 0;
+
 }
 StrokeAttribute::StrokeAttribute(const StrokeAttribute& iBrother)
 {
@@ -66,6 +69,10 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute& iBrother)
     _userAttributesVec3f = new Vec3fMap(*iBrother._userAttributesVec3f);
   else
     _userAttributesVec3f = 0;
+
+	py_sa = 0;
+
+
 }
 StrokeAttribute::StrokeAttribute( float iRColor, float iGColor, float iBColor,
                                   float iAlpha,
@@ -85,6 +92,9 @@ StrokeAttribute::StrokeAttribute( float iRColor, float iGColor, float iBColor,
   _userAttributesReal = 0;
   _userAttributesVec2f = 0;
   _userAttributesVec3f = 0;
+
+py_sa = 0;
+
 }
 StrokeAttribute::StrokeAttribute(const StrokeAttribute& a1, const StrokeAttribute& a2, float t)
 
@@ -136,7 +146,9 @@ StrokeAttribute::StrokeAttribute(const StrokeAttribute& a1, const StrokeAttribut
     _userAttributesVec3f = 0;
   }
 
+	py_sa = 0;
 }
+
 StrokeAttribute::~StrokeAttribute()
 {
   if(_userAttributesReal){
@@ -404,11 +416,8 @@ Stroke::Stroke(const Stroke& iBrother)
   _mediumType = iBrother._mediumType;
   _textureId = iBrother._textureId;
   _tips = iBrother._tips;
+	_rep = new StrokeRep(*(iBrother._rep));
 
-	if( iBrother._rep )
-		_rep = new StrokeRep(*(iBrother._rep));
-	else
-		_rep = new StrokeRep(this);
 }
 
 Stroke::~Stroke()

@@ -34,7 +34,7 @@ Operators.select(upred)
 Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		SamplingShader(4),
-		SpatialNoiseShader(4, 150, 2, 1, 1), 
+		SpatialNoiseShader(4, 150, 2, True, True), 
 		IncreasingThicknessShader(2, 5), 
 		BackboneStretcherShader(20),
 		IncreasingColorShader(1,0,0,1,0,1,0,1),

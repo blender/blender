@@ -183,8 +183,7 @@ PyObject * StrokeVertex_getPoint( BPy_StrokeVertex *self ) {
 }
 
 PyObject * StrokeVertex_attribute( BPy_StrokeVertex *self ) {
-	StrokeAttribute sa( self->sv->attribute() );
-	return BPy_StrokeAttribute_from_StrokeAttribute( sa );
+	return BPy_StrokeAttribute_from_StrokeAttribute_ptr( &(self->sv->attribute()) );
 }
 
 PyObject * StrokeVertex_curvilinearAbscissa( BPy_StrokeVertex *self ) {

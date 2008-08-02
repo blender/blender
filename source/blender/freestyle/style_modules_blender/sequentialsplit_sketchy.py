@@ -55,11 +55,11 @@ upred = QuantitativeInvisibilityUP1D(0)
 Operators.select(upred)
 Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
 ## starting and stopping predicates:
-start = pyVertexNatureUP0D(Nature.NON_Nature.T_VERTEX)
+start = pyVertexNatureUP0D(Nature.NON_T_VERTEX)
 stop = pyBackTVertexUP0D()
 Operators.sequentialSplit(start, stop, 10)
 shaders_list = [
-		SpatialNoiseShader(7, 120, 2, 1, 1), 
+		SpatialNoiseShader(7, 120, 2, True, True), 
 		IncreasingThicknessShader(5, 8), 
 		ConstantColorShader(0.2, 0.2, 0.2, 1), 
 		TextureAssignerShader(4)

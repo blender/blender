@@ -126,6 +126,11 @@ namespace StrokeShaders {
     }
     /*! Destructor.*/
     virtual ~IncreasingThicknessShader() {}
+
+	virtual string getName() const {
+      return "IncreasingThicknessShader";
+    }
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
 
@@ -165,6 +170,11 @@ namespace StrokeShaders {
     }
     /*! Destructor.*/
     virtual ~ConstrainedIncreasingThicknessShader() {}
+
+	virtual string getName() const {
+      return "ConstrainedIncreasingThicknessShader";
+    }
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
   };
@@ -191,6 +201,10 @@ namespace StrokeShaders {
       _maxThickness = iMaxThickness;
     }
     virtual ~LengthDependingThicknessShader() {}
+
+	virtual string getName() const {
+      return "LengthDependingThicknessShader";
+    }
 
     virtual void shade(Stroke& stroke) const;
   };
@@ -228,6 +242,11 @@ namespace StrokeShaders {
 	  _aThickness = 0;
 	}
     }
+	
+	virtual string getName() const {
+      return "ThicknessVariationPatternShader";
+    }
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
 
@@ -258,6 +277,11 @@ namespace StrokeShaders {
      *      The period of the noise signal
      */
     ThicknessNoiseShader(float iAmplitude, float iPeriod);
+
+	virtual string getName() const {
+      return "ThicknessNoiseShader";
+    }
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
   };
@@ -347,6 +371,11 @@ namespace StrokeShaders {
       _colorMax[2] = iBM;
       _colorMax[3] = iAlphaM;
     }
+
+	virtual string getName() const {
+      return "IncreasingColorShader";
+    }
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
   };
@@ -376,6 +405,11 @@ namespace StrokeShaders {
 	  _aVariation = 0;
 	}
     }
+
+	virtual string getName() const {
+      return "ColorVariationPatternShader";
+    }
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
 
@@ -400,6 +434,10 @@ namespace StrokeShaders {
       : StrokeShader()
     {_coefficient=coeff;}
 
+	virtual string getName() const {
+      return "MaterialColorShader";
+    }
+
     virtual void shade(Stroke& stroke) const;
   };
 
@@ -416,6 +454,11 @@ namespace StrokeShaders {
       _orientation=iOrientation;
       _orientation.normalize();
     } 
+
+	virtual string getName() const {
+      return "CalligraphicColorShader";
+    }
+
     virtual void shade(Stroke& stroke) const;
 
   };
@@ -438,6 +481,11 @@ namespace StrokeShaders {
      *      The period of the noise signal
      */
     ColorNoiseShader(float iAmplitude, float iPeriod);
+
+	virtual string getName() const {
+	  return "ColorNoiseShader";
+	}
+
     /*! The shading method. */
     virtual void shade(Stroke& stroke) const;
   };
@@ -477,6 +525,11 @@ namespace StrokeShaders {
     {
       _textureId = id;
     }
+
+	virtual string getName() const {
+      return "TextureAssignerShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   
@@ -526,6 +579,11 @@ namespace StrokeShaders {
       _mediumType = mediumType;
       _tips = iTips;
     }
+
+	virtual string getName() const {
+      return "StrokeTextureShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   
@@ -554,6 +612,11 @@ namespace StrokeShaders {
     {
       _amount = iAmount;
     }
+
+	virtual string getName() const {
+      return "BackboneStretcherShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   };
@@ -577,6 +640,11 @@ namespace StrokeShaders {
     {
       _sampling = sampling;
     }
+
+	virtual string getName() const {
+      return "SamplingShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   };
@@ -593,6 +661,10 @@ namespace StrokeShaders {
       _amount = iAmount;
     }
 
+	virtual string getName() const {
+      return "ExternalContourStretcherShader";
+    }
+
     virtual void shade(Stroke& stroke) const;
   };
 
@@ -603,6 +675,10 @@ namespace StrokeShaders {
     BSplineShader()
       : StrokeShader()
     {}
+
+	virtual string getName() const {
+	  return "BSplineShader";
+	}
 
     virtual void shade(Stroke& stroke) const;
   };
@@ -629,6 +705,10 @@ namespace StrokeShaders {
     BezierCurveShader(float error = 4.0)
       : StrokeShader()
     {_error=error;}
+
+	virtual string getName() const {
+      return "BezierCurveShader";
+    }
 
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
@@ -661,6 +741,11 @@ namespace StrokeShaders {
       _amount = iAmount;
       _curvatureThreshold = iThreshold;
     }
+
+	virtual string getName() const {
+      return "InflateShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   };
@@ -690,6 +775,11 @@ namespace StrokeShaders {
      */
     PolygonalizationShader(float iError) : StrokeShader() 
     {_error = iError;}
+
+	virtual string getName() const {
+      return "PolygonalizationShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   };
@@ -720,6 +810,11 @@ namespace StrokeShaders {
      */
     GuidingLinesShader(float iOffset) : StrokeShader()
     {_offset = iOffset;}
+
+	virtual string getName() const {
+      return "GuidingLinesShader";
+    }
+
     /*! The shading method */
     virtual void shade(Stroke& stroke) const;
   };
@@ -739,6 +834,10 @@ namespace StrokeShaders {
     /*! Destructor. */
     virtual ~TipRemoverShader () {}
     /*! The shading method */
+	virtual string getName() const {
+      return "TipRemoverShader";
+    }
+
     virtual void shade(Stroke &stroke) const;
 
   protected:

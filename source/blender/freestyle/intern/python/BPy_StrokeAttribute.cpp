@@ -199,6 +199,7 @@ int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, PyObject
 		return -1;
 	}
 
+	self->sa->py_sa = (PyObject *) self;
 
 	return 0;
 
@@ -206,7 +207,8 @@ int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, PyObject
 
 void StrokeAttribute___dealloc__(BPy_StrokeAttribute* self)
 {
-	delete self->sa;
+	if( self->sa->py_sa )
+		delete self->sa;
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -384,7 +386,7 @@ PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *ar
 					PyFloat_AsDouble( PyList_GetItem(obj1, 1) )  );
 		
 		self->sa->setThickness( v );
-		
+				
 	} else if( 	obj1 && obj2 ){
 					
 		self->sa->setThickness(	PyFloat_AsDouble(obj1),

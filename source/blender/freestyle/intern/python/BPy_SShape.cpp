@@ -228,7 +228,7 @@ PyObject * SShape_getVertexList( BPy_SShape *self ) {
 	vector< SVertex * >::iterator it;
 	
 	for( it = vertices.begin(); it != vertices.end(); it++ ) {
-		PyList_Append( py_vertices, BPy_SVertex_from_SVertex(*( *it )) );
+		PyList_Append( py_vertices, BPy_SVertex_from_SVertex_ptr(*it) );
 	}
 	
 	return py_vertices;

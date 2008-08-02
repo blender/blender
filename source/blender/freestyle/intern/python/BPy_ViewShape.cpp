@@ -198,7 +198,7 @@ PyObject * ViewShape_edges( BPy_ViewShape *self ) {
 	vector< ViewEdge * >::iterator it;
 	
 	for( it = edges.begin(); it != edges.end(); it++ ) {
-		PyList_Append( py_edges, BPy_ViewEdge_from_ViewEdge(*( *it )) );
+		PyList_Append( py_edges, BPy_ViewEdge_from_ViewEdge_ptr(*it) );
 	}
 	
 	return py_edges;

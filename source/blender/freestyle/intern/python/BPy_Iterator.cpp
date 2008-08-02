@@ -227,10 +227,6 @@ PyObject * Iterator_isEnd(BPy_Iterator* self) {
 	return PyBool_from_bool( self->it->isEnd() );
 }
 
-PyObject * Iterator_getObject(BPy_Iterator* self) {
-	return PyBool_from_bool( self->it->isEnd() );
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

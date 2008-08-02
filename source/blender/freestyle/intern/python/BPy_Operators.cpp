@@ -24,28 +24,27 @@ static PyObject * Operators_sequentialSplit(BPy_Operators* self, PyObject *args)
 static PyObject * Operators_recursiveSplit(BPy_Operators* self, PyObject *args);
 static PyObject * Operators_sort(BPy_Operators* self, PyObject *args);
 static PyObject * Operators_create(BPy_Operators* self, PyObject *args);
+static PyObject * Operators_getViewEdgesSize( BPy_Operators* self);
+static PyObject * Operators_getChainsSize( BPy_Operators* self);
+static PyObject * Operators_getStrokesSize( BPy_Operators* self);
 
 /*----------------------Operators instance definitions ----------------------------*/
 static PyMethodDef BPy_Operators_methods[] = {
 	{"select", ( PyCFunction ) Operators_select, METH_VARARGS | METH_STATIC, 
 	"select operator"},
-	
 	{"bidirectionalChain", ( PyCFunction ) Operators_bidirectionalChain, METH_VARARGS | METH_STATIC,
-	 "select operator"},
-	
+	 "bidirectionalChain operator"},
 	{"sequentialSplit", ( PyCFunction ) Operators_sequentialSplit, METH_VARARGS | METH_STATIC,
-	 "select operator"},
-	
+	 "sequentialSplit operator"},
 	{"recursiveSplit", ( PyCFunction ) Operators_recursiveSplit, METH_VARARGS | METH_STATIC, 
-	"select operator"},
-	
+	"recursiveSplit operator"},
 	{"sort", ( PyCFunction ) Operators_sort, METH_VARARGS | METH_STATIC, 
-	"select operator"},
-	
+	"sort operator"},
 	{"create", ( PyCFunction ) Operators_create, METH_VARARGS | METH_STATIC, 
-	"select operator"},
-	
-		
+	"create operator"},
+	{"getViewEdgesSize", ( PyCFunction ) Operators_getViewEdgesSize, METH_NOARGS | METH_STATIC, ""},
+	{"getChainsSize", ( PyCFunction ) Operators_getChainsSize, METH_NOARGS | METH_STATIC, ""},
+	{"getStrokesSize", ( PyCFunction ) Operators_getStrokesSize, METH_NOARGS | METH_STATIC, ""},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -321,6 +320,19 @@ PyObject * Operators_create(BPy_Operators* self, PyObject *args)
 
 	Py_RETURN_NONE;
 }
+
+PyObject * Operators_getViewEdgesSize( BPy_Operators* self) {
+	return PyInt_FromLong( Operators::getViewEdgesSize() );
+}
+
+PyObject * Operators_getChainsSize( BPy_Operators* self ) {
+	return PyInt_FromLong( Operators::getChainsSize() );
+}
+
+PyObject * Operators_getStrokesSize( BPy_Operators* self) {
+	return PyInt_FromLong( Operators::getStrokesSize() );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

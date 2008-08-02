@@ -185,7 +185,7 @@ PyObject * FEdge___copy__( BPy_FEdge *self ) {
 
 PyObject * FEdge_vertexA( BPy_FEdge *self ) {	
 	if( self->fe->vertexA() ){
-		return BPy_SVertex_from_SVertex( *(self->fe->vertexA()) );
+		return BPy_SVertex_from_SVertex_ptr( self->fe->vertexA() );
 	}
 		
 	Py_RETURN_NONE;
@@ -193,7 +193,7 @@ PyObject * FEdge_vertexA( BPy_FEdge *self ) {
 
 PyObject * FEdge_vertexB( BPy_FEdge *self ) {
 	if( self->fe->vertexB() ){
-		return BPy_SVertex_from_SVertex( *(self->fe->vertexB()) );
+		return BPy_SVertex_from_SVertex_ptr( self->fe->vertexB() );
 	}
 		
 	Py_RETURN_NONE;
@@ -209,7 +209,7 @@ PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args ) {
 	}
 	
 	if( SVertex *v = self->fe->operator[](i) )
-		return BPy_SVertex_from_SVertex( *v );
+		return BPy_SVertex_from_SVertex_ptr( v );
 
 	Py_RETURN_NONE;
 }
@@ -230,7 +230,7 @@ PyObject * FEdge_previousEdge( BPy_FEdge *self ) {
 
 PyObject * FEdge_viewedge( BPy_FEdge *self ) {
 	if( ViewEdge *ve = self->fe->viewedge() )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
+		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
 
 	Py_RETURN_NONE;
 }

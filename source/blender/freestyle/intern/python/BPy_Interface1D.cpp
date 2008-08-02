@@ -204,7 +204,8 @@ int Interface1D___init__(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 
 void Interface1D___dealloc__(BPy_Interface1D* self)
 {
-	delete self->if1D;
+	if( self->if1D->py_if1D )
+		delete self->if1D;
     self->ob_type->tp_free((PyObject*)self);
 }
 

@@ -28,6 +28,7 @@
 
 from freestyle_init import *
 from logical_operators import *
+from PredicatesU0D import *
 from PredicatesU1D import *
 from Functions0D import *
 

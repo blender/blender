@@ -82,12 +82,12 @@ PyObject * BPy_FrsMaterial_from_Material( Material& m );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
 PyObject * BPy_SShape_from_SShape( SShape& ss );
-PyObject * BPy_Stroke_from_Stroke( Stroke& s );
-PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa );
-PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv );
-PyObject * BPy_SVertex_from_SVertex( SVertex& sv );
+PyObject * BPy_Stroke_from_Stroke_ptr( Stroke* s );
+PyObject * BPy_StrokeAttribute_from_StrokeAttribute_ptr( StrokeAttribute *sa );
+PyObject * BPy_StrokeVertex_from_StrokeVertex_ptr( StrokeVertex *sv );
+PyObject * BPy_SVertex_from_SVertex_ptr( SVertex *sv );
 PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv );
-PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve );
+PyObject * BPy_ViewEdge_from_ViewEdge_ptr( ViewEdge *ve );
 PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs );
 
 PyObject * BPy_AdjacencyIterator_from_AdjacencyIterator( AdjacencyIterator& a_it );

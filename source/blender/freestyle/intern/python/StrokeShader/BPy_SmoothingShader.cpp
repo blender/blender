@@ -1,8 +1,6 @@
-#include "BPy_StrokeTextureShader.h"
+#include "BPy_SmoothingShader.h"
 
-#include "../../stroke/BasicStrokeShaders.h"
-#include "../BPy_Convert.h"
-#include "../BPy_MediumType.h"
+#include "../../stroke/AdvancedStrokeShaders.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,16 +8,16 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for StrokeTextureShader instance  -----------*/
-	static int StrokeTextureShader___init__( BPy_StrokeTextureShader* self, PyObject *args);
+/*---------------  Python API function prototypes for SmoothingShader instance  -----------*/
+	static int SmoothingShader___init__( BPy_SmoothingShader* self, PyObject *args);
 
-/*-----------------------BPy_StrokeTextureShader type definition ------------------------------*/
+/*-----------------------BPy_SmoothingShader type definition ------------------------------*/
 
-PyTypeObject StrokeTextureShader_Type = {
+PyTypeObject SmoothingShader_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
-	"StrokeTextureShader",				/* tp_name */
-	sizeof( BPy_StrokeTextureShader ),	/* tp_basicsize */
+	"SmoothingShader",				/* tp_name */
+	sizeof( BPy_SmoothingShader ),	/* tp_basicsize */
 	0,							/* tp_itemsize */
 	
 	/* methods */
@@ -79,7 +77,7 @@ PyTypeObject StrokeTextureShader_Type = {
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)StrokeTextureShader___init__, /* initproc tp_init; */
+	(initproc)SmoothingShader___init__, /* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
 	NULL,				/* newfunc tp_new; */
 	
@@ -100,20 +98,17 @@ PyTypeObject StrokeTextureShader_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int StrokeTextureShader___init__( BPy_StrokeTextureShader* self, PyObject *args)
+int SmoothingShader___init__( BPy_SmoothingShader* self, PyObject *args)
 {
-	const char *s1;
-	PyObject *obj2 = 0, *obj3 = 0;
-	
-	if(!( PyArg_ParseTuple(args, "s|OO", &s1, &obj2, &obj3) )) {
-		cout << "ERROR: StrokeTextureShader___init__" << endl;		
+	int i1;
+	double d2, d3, d4, d5, d6, d7, d8;
+
+	if(!( PyArg_ParseTuple(args, "iddddddd", &i1, &d2, &d3, &d4, &d5, &d6, &d7, &d8) )) {
+		cout << "ERROR: SmoothingShader___init__" << endl;		
 		return -1;
 	}
 
-	Stroke::MediumType mt = (obj2 && BPy_MediumType_Check(obj2)) ? MediumType_from_BPy_MediumType(obj2) : Stroke::OPAQUE_MEDIUM; 
-	bool b = (obj3 && PyBool_Check(obj3)) ? bool_from_PyBool(obj3) : true;
-	
-	self->py_ss.ss = new StrokeShaders::StrokeTextureShader(s1,mt,b);
+	self->py_ss.ss = new SmoothingShader::SmoothingShader(i1, d2, d3, d4, d5, d6, d7, d8);
 	return 0;
 
 }
