@@ -1078,9 +1078,9 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot All|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 #if GAMEBLENDER == 1
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Game As Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 #ifdef _WIN32
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Dynamic Runtime...",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
+//	 uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Dynamic Runtime...",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 #endif
 #endif
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
