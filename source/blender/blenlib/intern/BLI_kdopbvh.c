@@ -28,8 +28,9 @@
 
 #include "math.h"
 #include <stdio.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -294,10 +295,32 @@ void BLI_bvhtree_free(BVHTree *tree)
 	}
 }
 
+// calculate max number of branches
+int needed_branches(int tree_type, int leafs)
+{
+#if 1
+	//Worst case scenary  ( return max(0, leafs-tree_type)+1 )
+	if(leafs <= tree_type)
+		return 1;
+	else
+		return leafs-tree_type+1;
+
+#else
+	//If our bvh kdop is "almost perfect"
+	//TODO i dont trust the float arithmetic in here (and I am not sure this formula is according to our splitting method)
+	int i, numbranches = 0;
+	for(i = 1; i <= (int)ceil((float)((float)log(leafs)/(float)log(tree_type))); i++)
+		numbranches += (pow(tree_type, i) / tree_type);
+
+	return numbranches;
+#endif
+}
+		
+
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 {
 	BVHTree *tree;
-	int numbranches=0, i;
+	int numnodes, i;
 	
 	// theres not support for trees below binary-trees :P
 	if(tree_type < 2)
@@ -343,11 +366,10 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		}
 
 
-		// calculate max number of branches, our bvh kdop is "almost perfect"
-		for(i = 1; i <= (int)ceil((float)((float)log(maxsize)/(float)log(tree_type))); i++)
-			numbranches += (pow(tree_type, i) / tree_type);
-		
-		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *)*(numbranches+maxsize + tree_type), "BVHNodes");
+		//Allocate arrays
+		numnodes = maxsize + needed_branches(tree_type, maxsize) + tree_type;
+
+		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *)*numnodes, "BVHNodes");
 		
 		if(!tree->nodes)
 		{
@@ -355,14 +377,14 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 			return NULL;
 		}
 		
-		tree->nodebv = (float*)MEM_callocN(sizeof(float)* axis * (numbranches+maxsize + tree_type), "BVHNodeBV");
+		tree->nodebv = (float*)MEM_callocN(sizeof(float)* axis * numnodes, "BVHNodeBV");
 		if(!tree->nodebv)
 		{
 			MEM_freeN(tree->nodes);
 			MEM_freeN(tree);
 		}
 
-		tree->nodechild = (BVHNode**)MEM_callocN(sizeof(BVHNode*) * tree_type * (numbranches+maxsize + tree_type), "BVHNodeBV");
+		tree->nodechild = (BVHNode**)MEM_callocN(sizeof(BVHNode*) * tree_type * numnodes, "BVHNodeBV");
 		if(!tree->nodechild)
 		{
 			MEM_freeN(tree->nodebv);
@@ -370,7 +392,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 			MEM_freeN(tree);
 		}
 
-		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode)*(numbranches+maxsize + tree_type), "BVHNodeArray");
+		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode)* numnodes, "BVHNodeArray");
 		
 		if(!tree->nodearray)
 		{
@@ -382,7 +404,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		}
 
 		//link the dynamic bv and child links
-		for(i=0; i< numbranches+maxsize + tree_type; i++)
+		for(i=0; i< numnodes; i++)
 		{
 			tree->nodearray[i].bv = tree->nodebv + i * axis;
 			tree->nodearray[i].children = tree->nodechild + i * tree_type;
@@ -422,6 +444,13 @@ static void create_kdop_hull(BVHTree *tree, BVHNode *node, float *co, int numpoi
 				bv[(2 * i) + 1] = newminmax;
 		}
 	}
+
+	// inflate the bv with some epsilon
+	for (i = tree->start_axis; i < tree->stop_axis; i++)
+	{
+		bv[(2 * i)] -= tree->epsilon; // minimum 
+		bv[(2 * i) + 1] += tree->epsilon; // maximum 
+	}
 }
 
 // depends on the fact that the BVH's for each face is already build
@@ -457,14 +486,13 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 
 int BLI_bvhtree_insert(BVHTree *tree, int index, float *co, int numpoints)
 {
-	BVHNode *node= NULL;
-	int i;
+	BVHNode *node = NULL;
 	
 	// insert should only possible as long as tree->totbranch is 0
 	if(tree->totbranch > 0)
 		return 0;
 	
-	if(tree->totleaf+1 >= MEM_allocN_len(tree->nodes))
+	if(tree->totleaf+1 >= MEM_allocN_len(tree->nodes)/sizeof(*(tree->nodes)))
 		return 0;
 	
 	// TODO check if have enough nodes in array
@@ -473,14 +501,6 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, float *co, int numpoints)
 	tree->totleaf++;
 	
 	create_kdop_hull(tree, node, co, numpoints, 0);
-	
-	// inflate the bv with some epsilon
-	for (i = tree->start_axis; i < tree->stop_axis; i++)
-	{
-		node->bv[(2 * i)] -= tree->epsilon; // minimum 
-		node->bv[(2 * i) + 1] += tree->epsilon; // maximum 
-	}
-
 	node->index= index;
 	
 	return 1;
@@ -511,25 +531,24 @@ static char get_largest_axis(float *bv)
 	}
 }
 
-static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char lastaxis)
+static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, int free_node_index)
 {
-	char laxis;
-	int i, tend;
-	BVHNode *tnode;
-	int slice = (end-start+tree->tree_type-1)/tree->tree_type;	//division rounded up
+	int i;
+
+	const char laxis = get_largest_axis(node->bv); 	//determine longest axis to split along
+	const int  slice = (end-start)/tree->tree_type;	//division rounded down
+	const int  rest  = (end-start)%tree->tree_type;	//remainder of division
 	
-	// Determine which axis to split along
-	laxis = get_largest_axis(node->bv);
-	//laxis = (lastaxis + 2) % tree->axis; // XYZ split
+	assert( node->totnode == 0 );
 
 	node->main_axis = laxis/2;
 	
 	// split nodes along longest axis
-	for (i=0; start < end; start += slice, i++) //i counts the current child
+	for (i=0; start < end; node->totnode = ++i) //i counts the current child
 	{	
-		tend = start + slice;
+		int tend = start + slice + (i < rest ? 1 : 0);
 		
-		if(tend > end) tend = end;
+		assert( tend <= end);
 		
 		if(tend-start == 1)	// ok, we have 1 left for this node
 		{
@@ -538,20 +557,85 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 		}
 		else
 		{
-			tnode = node->children[i] = tree->nodes[tree->totleaf  + tree->totbranch] = &(tree->nodearray[tree->totbranch + tree->totleaf]);
-			tree->totbranch++;
+			BVHNode *tnode = node->children[i] = tree->nodes[free_node_index] = &(tree->nodearray[free_node_index]);
+//			printf("Used %d (%d)\n", free_node_index, tend-start);
 			tnode->parent = node;
 			
 			if(tend != end)
 				partition_nth_element(tree->nodes, start, end, tend, laxis);
+
 			refit_kdop_hull(tree, tnode, start, tend);
-			bvh_div_nodes(tree, tnode, start, tend, laxis); // not called on XYZ split
+
+			bvh_div_nodes(tree, tnode, start, tend, free_node_index+1);
+			free_node_index += needed_branches(tree->tree_type, tend-start);
 		}
-		node->totnode++;
+		start = tend;
 	}
 	
 	return;
 }
+
+static void omp_bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, int free_node_index)
+{
+	int i;
+
+	const char laxis = get_largest_axis(node->bv); 	//determine longest axis to split along
+	const int  slice = (end-start)/tree->tree_type;	//division rounded down
+	const int  rest  = (end-start)%tree->tree_type;	//remainder of division
+
+	int omp_data_start[tree->tree_type];
+	int omp_data_end  [tree->tree_type];
+	int omp_data_index[tree->tree_type];
+	
+	assert( node->totnode == 0 );
+
+	node->main_axis = laxis/2;	
+
+	// split nodes along longest axis
+	for (i=0; start < end; node->totnode = ++i) //i counts the current child
+	{	
+		//Split the rest from left to right (TODO: this doenst makes an optimal tree)
+		int tend = start + slice + (i < rest ? 1 : 0);
+		
+		assert( tend <= end);
+		
+		//save data for later OMP
+		omp_data_start[i] = start;
+		omp_data_end  [i] = tend;
+		omp_data_index[i] = free_node_index;
+
+		if(tend-start == 1)
+		{
+			node->children[i] = tree->nodes[start];
+			node->children[i]->parent = node;
+		}
+		else
+		{
+			node->children[i] = tree->nodes[free_node_index] = &(tree->nodearray[free_node_index]);
+
+			if(tend != end)
+				partition_nth_element(tree->nodes, start, end, tend, laxis);
+
+			free_node_index += needed_branches(tree->tree_type, tend-start);
+		}
+
+		start = tend;
+	}
+
+#pragma omp parallel for private(i) schedule(static)
+	for( i = 0; i < node->totnode; i++)
+	{
+		if(omp_data_end[i]-omp_data_start[i] > 1)
+		{
+			BVHNode *tnode = node->children[i];
+			refit_kdop_hull(tree, tnode, omp_data_start[i], omp_data_end[i]);
+			bvh_div_nodes  (tree, tnode, omp_data_start[i], omp_data_end[i], omp_data_index[i]+1);
+		}
+	}
+	
+	return;
+}
+
 
 #if 0
 static void verify_tree(BVHTree *tree)
@@ -604,23 +688,21 @@ static void verify_tree(BVHTree *tree)
 	
 void BLI_bvhtree_balance(BVHTree *tree)
 {
-	int i;
-	BVHNode *node;
+	assert(tree->totbranch == 0);
+	if(tree->totleaf != 0)
+	{
+		// create root node
+		BVHNode *node = tree->nodes[tree->totleaf] = &(tree->nodearray[tree->totleaf]);
+		tree->totbranch++;
 	
-	if(tree->totleaf == 0)
-		return;
-	
-	// create root node
-	node = tree->nodes[tree->totleaf] = &(tree->nodearray[tree->totleaf]);
-	tree->totbranch++;
-	
-	// refit root bvh node
-	refit_kdop_hull(tree, tree->nodes[tree->totleaf], 0, tree->totleaf);  // not called on XYZ split
-	// create + balance tree
-	bvh_div_nodes(tree, tree->nodes[tree->totleaf], 0, tree->totleaf, 0);
-	//BLI_bvhtree_update_tree(tree); // XYZ split
-	
-	// verify_tree(tree);
+		// refit root bvh node
+		refit_kdop_hull(tree, node, 0, tree->totleaf);
+
+		// create + balance tree
+		omp_bvh_div_nodes(tree, node, 0, tree->totleaf, tree->totleaf+1);
+		tree->totbranch = needed_branches( tree->tree_type, tree->totleaf );
+		// verify_tree(tree);
+	}
 }
 
 // overlap - is it possbile for 2 bv's to collide ?
@@ -796,7 +878,6 @@ static void node_join(BVHTree *tree, BVHNode *node)
 int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_moving, int numpoints)
 {
 	BVHNode *node= NULL;
-	int i = 0;
 	
 	// check if index exists
 	if(index > tree->totleaf)
@@ -808,13 +889,6 @@ int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_movin
 	
 	if(co_moving)
 		create_kdop_hull(tree, node, co_moving, numpoints, 1);
-	
-	// inflate the bv with some epsilon
-	for (i = tree->start_axis; i < tree->stop_axis; i++)
-	{
-		node->bv[(2 * i)] -= tree->epsilon; // minimum 
-		node->bv[(2 * i) + 1] += tree->epsilon; // maximum 
-	}
 	
 	return 1;
 }

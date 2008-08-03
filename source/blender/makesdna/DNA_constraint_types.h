@@ -325,7 +325,6 @@ typedef struct bShrinkwrapConstraint {
 	char 		pad[9];
 } bShrinkwrapConstraint;
 
-#define SHRINKWRAP
 
 /* ------------------------------------------ */
 

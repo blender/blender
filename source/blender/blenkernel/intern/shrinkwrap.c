@@ -1024,7 +1024,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 			break;
 
 			case MOD_SHRINKWRAP_NORMAL:
-				shrinkwrap_calc_normal_projection(&calc);
+				BENCH(shrinkwrap_calc_normal_projection(&calc));
 			break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
