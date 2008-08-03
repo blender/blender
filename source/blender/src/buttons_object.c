@@ -1743,10 +1743,32 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_SHRINKWRAP:
 			{
 				bShrinkwrapConstraint *data = con->data;
+				char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|normal projection %x1|nearest vertex %x2";
 
-				height = 44;
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->target, "Target Object");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "dist", *xco+120, *yco-44, 135, 18, &data->dist, 0.0f, 100.0f, 1.0f, 0.0f, "Distance to target"); 
+				height = 60;
+				if(data->shrinkType == MOD_SHRINKWRAP_NORMAL)
+					height += 18;
+
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+
+				/* Draw parameters */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->target, "Target Object");
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Dist:", *xco + 75, *yco-42, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+120, *yco-42, 135, 18, &data->dist, 0.0f, 100.0f, 1.0f, 0.0f, "Distance to target");
+
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Type:", *xco + 70, *yco-60, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, *xco+120, *yco-60, 135, 18, &data->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
+
+				if(data->shrinkType == MOD_SHRINKWRAP_NORMAL)
+				{
+					/* Draw XYZ toggles */
+					uiDefBut(block, LABEL,B_CONSTRAINT_TEST, "Axis:", *xco+ 75, *yco-78, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButC(block, ROW, B_CONSTRAINT_TEST, "X"    , *xco+120, *yco-78, 45, 18, &data->normalAxis, 18.0, UP_X, 0, 0, "Direction of normal projection is x-axis");
+					uiDefButC(block, ROW, B_CONSTRAINT_TEST, "Y"    , *xco+165, *yco-78, 45, 18, &data->normalAxis, 18.0, UP_Y, 0, 0, "Direction of normal projection is y-axis");
+					uiDefButC(block, ROW, B_CONSTRAINT_TEST, "Z"    , *xco+210, *yco-78, 45, 18, &data->normalAxis, 18.0, UP_Z, 0, 0, "Direction of normal projection is z-axis");
+				}
 			}
 			break;
 		default:

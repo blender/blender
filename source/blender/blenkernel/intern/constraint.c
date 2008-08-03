@@ -3253,6 +3253,7 @@ static int shrinkwrap_get_tars (bConstraint *con, ListBase *list)
 	return 0;
 }
 
+
 static void shrinkwrap_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 {
 	if (con && list) {
@@ -3263,21 +3264,18 @@ static void shrinkwrap_flush_tars (bConstraint *con, ListBase *list, short nocop
 	}
 }
 
+
 static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
 {
-	if (ct)
-		Mat4One(ct->matrix);
-}
-
-static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
-{
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
-	bConstraintTarget *ct = targets->first;
 	
+	if (ct)
+		Mat4CpyMat4(ct->matrix, cob->startmat);
+
 	if( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) )
 	{
 		float co[3] = {0.0f, 0.0f, 0.0f};
-		float no[3] = {0.0f, 0.0f, 1.0f};
+		float no[3] = {0.0f, 0.0f, 0.0f};
 		float dist;
 
 		SpaceTransform transform;
@@ -3292,23 +3290,35 @@ static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		memset( &treeData, 0, sizeof(treeData) );
 
 		nearest.index = -1;
-		nearest.dist = 100000.0f; //TODO should use FLT_MAX.. but normal projection doenst yet supports it
+		nearest.dist = FLT_MAX;
+
+		hit.index = -1;
+		hit.dist = 100000.0f;  //TODO should use FLT_MAX.. but normal projection doenst yet supports it
+
+		switch(scon->normalAxis)
+		{
+			case UP_X: no[0] = 1.0f; break;
+			case UP_Y: no[1] = 1.0f; break;
+			case UP_Z: no[2] = 1.0f; break;
+		}
 
 		if(target != NULL)
 		{
 
-			space_transform_from_matrixs(&transform, cob->matrix, ct->matrix);
+			space_transform_from_matrixs(&transform, cob->startmat, ct->tar->obmat);
 
-			space_transform_apply(&transform, co);
-			space_transform_apply_normal(&transform, no);
-
+			//Normal projection applies the transform later
+			if(scon->shrinkType != MOD_SHRINKWRAP_NORMAL)
+			{
+				space_transform_apply(&transform, co);
+				space_transform_apply_normal(&transform, no);
+			}
 
 			switch(scon->shrinkType)
 			{
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
 					if(bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6) == NULL) return;
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
-					VECCOPY(co, nearest.co);
 					
 					dist = VecLenf(co, nearest.co);
 					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
@@ -3317,7 +3327,6 @@ static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
 					if(bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6) == NULL) return;
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
-					VECCOPY(co, nearest.co);
 
 					dist = VecLenf(co, nearest.co);
 					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
@@ -3325,25 +3334,41 @@ static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 
 				case MOD_SHRINKWRAP_NORMAL:
 					if(bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6) == NULL) return;
-					if(normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
-						return;
 
+					if(normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
+					{
+						if(treeData.tree)
+							BLI_bvhtree_free(treeData.tree);
+
+						target->release(target);
+
+						return;
+					}
 					VECCOPY(co, hit.co);
 				break;
 			}
-
-			space_transform_invert(&transform, co);
-			VECADD(cob->matrix[3], cob->matrix[3], co);
-
 
 			if(treeData.tree)
 				BLI_bvhtree_free(treeData.tree);
 
 			target->release(target);
-		}
-		
 
+			if(scon->shrinkType != MOD_SHRINKWRAP_NORMAL)
+			{
+				space_transform_invert(&transform, co);
+			}
+			VECADD(ct->matrix[3], ct->matrix[3], co);
+		}
 	}
+}
+
+static void shrinkwrap_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bConstraintTarget *ct= targets->first;
+	
+	/* only evaluate if there is a target */
+	if (VALID_CONS_TARGET(ct))
+		Mat4CpyMat4(cob->matrix, ct->matrix);
 }
 
 static bConstraintTypeInfo CTI_SHRINKWRAP = {

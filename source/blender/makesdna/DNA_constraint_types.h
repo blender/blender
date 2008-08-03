@@ -321,8 +321,11 @@ typedef struct bShrinkwrapConstraint {
 	Object		*target;
 	float		dist;			/* distance to kept from target */
 	short		shrinkType;		/* shrink type (look on MOD shrinkwrap for values) */
-	short 		pad[5];
+	char		normalAxis;		/* axis to project over UP_X, UP_Y, UP_Z */
+	char 		pad[9];
 } bShrinkwrapConstraint;
+
+#define SHRINKWRAP
 
 /* ------------------------------------------ */
 

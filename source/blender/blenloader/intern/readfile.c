@@ -1819,6 +1819,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data;
+				data= ((bShrinkwrapConstraint*)con->data);
+				data->target = newlibadr(fd, id->lib, data->target);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -8351,6 +8358,11 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_SHRINKWRAP:
+			{
+				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->target);
+			}
 		default:
 			break;
 		}
