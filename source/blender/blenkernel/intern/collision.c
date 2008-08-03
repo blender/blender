@@ -1661,7 +1661,7 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 	while ( ret2 && ( clmd->coll_parms->loop_count>rounds ) );
 	
 	if(collobjs)
-		+		MEM_freeN(collobjs);
+		MEM_freeN(collobjs);
 
 	return MIN2 ( ret, 1 );
 }
