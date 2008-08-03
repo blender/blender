@@ -253,6 +253,16 @@ class KX_GameObject:
 		@type other: L{KX_GameObject} or list [x, y, z]
 		@rtype: float
 		"""
+	def getVectTo(other):
+		"""
+		Returns the vector and the distance to another object or point.
+		The vector is normalized unless the distance is 0, in which a NULL vector is returned.
+		
+		@param other: a point or another L{KX_GameObject} to get the vector and distance to.
+		@type other: L{KX_GameObject} or list [x, y, z]
+		@rtype: 3-tuple (float, 3-tuple (x,y,z), 3-tuple (x,y,z))
+		@return: (distance, globalVector(3), localVector(3))
+		"""
 	def rayCastTo(other,dist,prop):
 		"""
 		Look towards another point/object and find first object hit within dist that matches prop.

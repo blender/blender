@@ -914,6 +914,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
+	KX_PYMETHODTABLE(KX_GameObject, getVectTo),
 	{NULL,NULL} //Sentinel
 };
 
@@ -1553,6 +1554,57 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
 	}
 	
 	return NULL;
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
+"getVectTo(other): get vector and the distance to another point/KX_GameObject\n"
+"Returns a 3-tuple with (distance,worldVector,localVector)\n")
+{
+	MT_Point3 toPoint, fromPoint;
+	MT_Vector3 toDir, locToDir;
+	MT_Scalar distance;
+
+	PyObject *returnValue = PyTuple_New(3);
+	PyObject *pyother;
+
+	if (!returnValue)
+	{
+		PyErr_SetString(PyExc_MemoryError, "PyTuple_New() failed");
+		return NULL;
+	}
+	if (!PyVecArgTo(args, toPoint))
+	{
+		PyErr_Clear();
+		if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &pyother))
+		{
+			KX_GameObject *other = static_cast<KX_GameObject*>(pyother);
+			toPoint = other->NodeGetWorldPosition();
+		}else
+		{
+			PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+			return NULL;
+		}
+	}
+
+	fromPoint = NodeGetWorldPosition();
+	toDir = toPoint-fromPoint;
+	distance = toDir.length();
+
+	if (MT_fuzzyZero(distance))
+	{
+		//cout << "getVectTo() Error: Null vector!\n";
+		locToDir = toDir = MT_Vector3(0.0,0.0,0.0);
+		distance = 0.0;
+	} else {
+		toDir.normalize();
+		locToDir = toDir * NodeGetWorldOrientation();
+	}
+
+	PyTuple_SET_ITEM(returnValue, 0, PyFloat_FromDouble(distance));
+	PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(toDir));
+	PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(locToDir));
+
+	return returnValue;
 }
 
 bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
