@@ -136,6 +136,11 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
 struct DerivedMesh *shrinkwrapModifier_do(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
+#define NULL_ShrinkwrapCalcData	{NULL, }
+#define NULL_BVHTreeFromMesh	{NULL, }
+#define NULL_BVHTreeRayHit		{NULL, }
+#define NULL_BVHTreeNearest		{NULL, }
+
 
 #endif
 

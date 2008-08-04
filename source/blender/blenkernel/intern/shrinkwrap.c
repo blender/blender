@@ -973,8 +973,7 @@ DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, Deri
 void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 
-	ShrinkwrapCalcData calc;
-	memset(&calc, 0, sizeof(calc));
+	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
 
 	//Init Shrinkwrap calc data
 	calc.smd = smd;
@@ -1050,8 +1049,8 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
 	float *co;
 
-	BVHTreeFromMesh treeData;
-	BVHTreeNearest nearest;
+	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
 
 	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
@@ -1109,6 +1108,8 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 	float tmp_co[3], tmp_no[3];
 	const float *co, *no;
 	BVHTreeRayHit hit_tmp;
+
+	//Copy from hit (we need to convert hit rays from one space coordinates to the other
 	memcpy( &hit_tmp, hit, sizeof(hit_tmp) );
 
 	//Apply space transform (TODO readjust dist)
@@ -1167,12 +1168,12 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	float *co;
 
 	//setup raytracing
-	BVHTreeFromMesh treeData;
-	BVHTreeRayHit hit;
+	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+	BVHTreeRayHit   hit      = NULL_BVHTreeRayHit;
 
 	//cutTree
 	DerivedMesh * limit_mesh = NULL;
-	BVHTreeFromMesh limitData;
+	BVHTreeFromMesh limitData= NULL_BVHTreeFromMesh;
 	SpaceTransform local2cut;
 
 	MVert        *vert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MVERT) : NULL;		//Needed because of vertex normal
@@ -1276,8 +1277,8 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
 	float *co;
 
-	BVHTreeFromMesh treeData;
-	BVHTreeNearest  nearest;
+	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
 
 	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
