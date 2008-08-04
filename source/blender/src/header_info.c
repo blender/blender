@@ -540,6 +540,7 @@ static void check_packAll()
 	}
 }
 
+#ifdef _WIN32
 static void copy_game_dll(char *dll_filename, char *source_dir, char *dest_dir)
 {
 	char source_filename[FILE_MAX];
@@ -573,6 +574,7 @@ static void copy_all_game_dlls(char *str)
 		copy_game_dll(game_dll_list[i], source_dir, dest_dir );
 	};
 }
+#endif
 
 static int write_runtime(char *str, char *exename)
 {

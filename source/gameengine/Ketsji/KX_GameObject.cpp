@@ -1368,14 +1368,15 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 {
 	int mesh = 0;
 
-	if (PyArg_ParseTuple(args, "|i", &mesh))
+	if (!PyArg_ParseTuple(args, "|i", &mesh))
+		return NULL; // python sets a simple error
+	
+	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
 	{
-		if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
-		{
-			KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
-			return meshproxy;
-		}
+		KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
+		return meshproxy;
 	}
+	
 	Py_RETURN_NONE;
 }
 
@@ -1564,14 +1565,9 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
 	MT_Vector3 toDir, locToDir;
 	MT_Scalar distance;
 
-	PyObject *returnValue = PyTuple_New(3);
+	PyObject *returnValue;
 	PyObject *pyother;
 
-	if (!returnValue)
-	{
-		PyErr_SetString(PyExc_MemoryError, "PyTuple_New() failed");
-		return NULL;
-	}
 	if (!PyVecArgTo(args, toPoint))
 	{
 		PyErr_Clear();
@@ -1581,7 +1577,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
 			toPoint = other->NodeGetWorldPosition();
 		}else
 		{
-			PyErr_SetString(PyExc_TypeError, "Invalid arguments");
+			PyErr_SetString(PyExc_TypeError, "Expected a 3D Vector or GameObject type");
 			return NULL;
 		}
 	}
@@ -1599,11 +1595,13 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
 		toDir.normalize();
 		locToDir = toDir * NodeGetWorldOrientation();
 	}
-
-	PyTuple_SET_ITEM(returnValue, 0, PyFloat_FromDouble(distance));
-	PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(toDir));
-	PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(locToDir));
-
+	
+	returnValue = PyTuple_New(3);
+	if (returnValue) { // very unlikely to fail, python sets a memory error here.
+		PyTuple_SET_ITEM(returnValue, 0, PyFloat_FromDouble(distance));
+		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(toDir));
+		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(locToDir));
+	}
 	return returnValue;
 }
 
@@ -1640,8 +1638,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	char *propName = NULL;
 
 	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-		return NULL;
+		return NULL; // python sets simple error
 	}
 
 	if (!PyVecTo(pyarg, toPoint))
@@ -1706,8 +1703,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	KX_GameObject *other;
 
 	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-		return NULL;
+		return NULL; // Python sets a simple error
 	}
 
 	if (!PyVecTo(pyto, toPoint))
@@ -1766,13 +1762,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
     if (m_pHitObject)
 	{
 		PyObject* returnValue = PyTuple_New(3);
-		if (!returnValue) {
-			PyErr_SetString(PyExc_TypeError, "PyTuple_New() failed");
-			return NULL;
+		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
+			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
+			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
+			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
 		}
-		PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
-		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
-		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
 		return returnValue;
 	}
 	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
