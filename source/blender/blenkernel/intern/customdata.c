@@ -265,14 +265,34 @@ static void layerSwap_tface(void *data, int *corner_indices)
 {
 	MTFace *tf = data;
 	float uv[4][2];
+	const static short pin_flags[4] =
+	    { TF_PIN1, TF_PIN2, TF_PIN3, TF_PIN4 };
+	const static char sel_flags[4] =
+	    { TF_SEL1, TF_SEL2, TF_SEL3, TF_SEL4 };
+	short unwrap = tf->unwrap & ~(TF_PIN1 | TF_PIN2 | TF_PIN3 | TF_PIN4);
+	char flag = tf->flag & ~(TF_SEL1 | TF_SEL2 | TF_SEL3 | TF_SEL4);
 	int j;
 
 	for(j = 0; j < 4; ++j) {
-		uv[j][0] = tf->uv[corner_indices[j]][0];
-		uv[j][1] = tf->uv[corner_indices[j]][1];
+		int source_index = corner_indices[j];
+
+		uv[j][0] = tf->uv[source_index][0];
+		uv[j][1] = tf->uv[source_index][1];
+
+		// swap pinning flags around
+		if(tf->unwrap & pin_flags[source_index]) {
+			unwrap |= pin_flags[j];
+		}
+
+		// swap selection flags around
+		if(tf->flag & sel_flags[source_index]) {
+			flag |= sel_flags[j];
+		}
 	}
 
 	memcpy(tf->uv, uv, sizeof(tf->uv));
+	tf->unwrap = unwrap;
+	tf->flag = flag;
 }
 
 static void layerDefault_tface(void *data, int count)
