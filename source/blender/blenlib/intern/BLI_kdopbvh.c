@@ -45,12 +45,10 @@
 
 typedef struct BVHNode
 {
-	struct BVHNode **children; // max 8 children
-	struct BVHNode *parent; // needed for bottom - top update
-	float *bv; // Bounding volume of all nodes, max 13 axis
-	int index; /* face, edge, vertex index */
-	char totnode; // how many nodes are used, used for speedup
-	char traversed;  // how many nodes already traversed until this level?
+	struct BVHNode **children;	// max 8 children
+	float *bv;		// Bounding volume of all nodes, max 13 axis
+	int index;		// face, edge, vertex index
+	char totnode;	// how many nodes are used, used for speedup
 	char main_axis;
 } BVHNode;
 
@@ -554,13 +552,10 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, int 
 		if(tend-start == 1)	// ok, we have 1 left for this node
 		{
 			node->children[i] = tree->nodes[start];
-			node->children[i]->parent = node;
 		}
 		else
 		{
 			BVHNode *tnode = node->children[i] = tree->nodes[free_node_index] = &(tree->nodearray[free_node_index]);
-//			printf("Used %d (%d)\n", free_node_index, tend-start);
-			tnode->parent = node;
 			
 			if(tend != end)
 				partition_nth_element(tree->nodes, start, end, tend, laxis);
@@ -608,7 +603,6 @@ static void omp_bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, 
 		if(tend-start == 1)
 		{
 			node->children[i] = tree->nodes[start];
-			node->children[i]->parent = node;
 		}
 		else
 		{
@@ -905,23 +899,13 @@ int BLI_bvhtree_update_node(BVHTree *tree, int index, float *co, float *co_movin
 // call BLI_bvhtree_update_node() first for every node/point/triangle
 void BLI_bvhtree_update_tree(BVHTree *tree)
 {
-	BVHNode *leaf, *parent;
-	
-	// reset tree traversing flag
-	for (leaf = tree->nodearray + tree->totleaf; leaf != tree->nodearray + tree->totleaf + tree->totbranch; leaf++)
-		leaf->traversed = 0;
-	
-	for (leaf = tree->nodearray; leaf != tree->nodearray + tree->totleaf; leaf++)
-	{
-		for (parent = leaf->parent; parent; parent = parent->parent)
-		{
-			parent->traversed++;	// we tried to go up in hierarchy 
-			if (parent->traversed < parent->totnode) 
-				break;	// we do not need to check further 
-			else 
-				node_join(tree, parent);
-		}
-	}
+	BVHNode** root  = tree->nodes + tree->totleaf;
+	BVHNode** index = tree->nodes + tree->totleaf + tree->totbranch-1;
+
+	//Update bottom=>top
+	//TRICKY: the way we build the tree the parent of a child has an index < then the child index
+	for (; index != root; index--)
+		node_join(tree, *index);
 }
 
 float BLI_bvhtree_getepsilon(BVHTree *tree)
