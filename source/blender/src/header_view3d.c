@@ -1325,11 +1325,20 @@ static void do_view3d_select_armaturemenu(void *arg, int event)
 		case 2: /* Select/Deselect all */
 			deselectall_armature(1, 1);
 			break;
-		case 3: /* Select Parent(s) */	
-			select_bone_parent();
-			break;
-		case 4: /* Swap Select All */
+		case 3: /* Swap Select All */
 			deselectall_armature(3, 1);
+			break;
+		case 4: /* Select parent */
+			armature_select_hierarchy(BONE_SELECT_PARENT, 0);
+			break;
+		case 5: /* Select child */
+			armature_select_hierarchy(BONE_SELECT_CHILD, 0);
+			break;
+		case 6: /* Extend Select parent */
+			armature_select_hierarchy(BONE_SELECT_PARENT, 1);
+			break;
+		case 7: /* Extend Select child */
+			armature_select_hierarchy(BONE_SELECT_CHILD, 1);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1348,11 +1357,18 @@ static uiBlock *view3d_select_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Swap Select All|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent|[",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Child|]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Parent|Shift [",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Child|Shift ]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -1379,11 +1395,20 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 	case 3: /* Select Target(s) of Constraint(s) */
 		pose_select_constraint_target();
 		break;
-	case 4: /* Select Bone's Parent */
-		select_bone_parent();
-		break;
 	case 5: /* Swap Select All */
 		deselectall_posearmature(OBACT, 3, 1);
+		break;
+	case 6: /* Select parent */
+		pose_select_hierarchy(BONE_SELECT_PARENT, 0);
+		break;
+	case 7: /* Select child */
+		pose_select_hierarchy(BONE_SELECT_CHILD, 0);
+		break;
+	case 8: /* Extend Select parent */
+		pose_select_hierarchy(BONE_SELECT_PARENT, 1);
+		break;
+	case 9: /* Extend Select child */
+		pose_select_hierarchy(BONE_SELECT_CHILD, 1);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1404,8 +1429,17 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Swap Select All|Ctrl I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Constraint Target|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent|[",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Child|]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Parent|Shift [",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Child|Shift ]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
