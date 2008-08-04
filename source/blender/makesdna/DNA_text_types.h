@@ -42,6 +42,12 @@ typedef struct TextLine {
 	int len, blen;
 } TextLine;
 
+typedef struct TextMarker {
+	struct TextMarker *next, *prev;
+	int lineno, start, end, flags;
+	char clr[4], pad[4];
+} TextMarker;
+
 typedef struct Text {
 	ID id;
 	
@@ -52,12 +58,12 @@ typedef struct Text {
 	ListBase lines;
 	TextLine *curl, *sell;
 	int curc, selc;
+	ListBase markers;
 	
 	char *undo_buf;
 	int undo_pos, undo_len;
 	
 	void *compiled;
-
 	double mtime;
 } Text;
 

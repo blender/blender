@@ -100,6 +100,15 @@ int	setcurr_tab		(struct Text *text);
 void	convert_tabs		(struct SpaceText *st, int tab);
 void	txt_copy_clipboard	(struct Text *text);
 void	txt_paste_clipboard	(struct Text *text);
+
+void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, char clr[4], int flags);
+void	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int flags);
+void	txt_clear_markers					(struct Text *text, int flags);
+struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, int curs, int flags);
+struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int flags);
+struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marker);
+struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
+
 /* Undo opcodes */
 
 /* Simple main cursor movement */
@@ -145,6 +154,10 @@ void	txt_paste_clipboard	(struct Text *text);
 #define TXT_FIND_REPLACE 0x01
 #define TXT_FIND_ALLTEXTS 0x02
 #define TXT_FIND_WRAP 0x04
+
+/* Marker flags */
+#define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */
+#define TMARK_EDITALL	0x02	/* Edit all markers of the same group as one */
 
 #ifdef __cplusplus
 }

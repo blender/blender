@@ -123,6 +123,9 @@ def wrap(line, view_width, wrap_chars):
 #define TOOL_SUGG_LIST	0x01
 #define TOOL_DOCUMENT	0x02
 
+#define TMARK_GRP_CUSTOM	0x00010000	/* Lower 2 bytes used for flags */
+#define TMARK_GRP_FINDALL	0x00020000	/* Upper 2 bytes used for group */
+
 /* forward declarations */
 
 void drawtextspace(ScrArea *sa, void *spacedata);
@@ -141,7 +144,6 @@ static int check_whitespace(char ch);
 
 static int get_wrap_width(SpaceText *st);
 static int get_wrap_points(SpaceText *st, char *line);
-
 static void get_suggest_prefix(Text *text);
 static void confirm_suggestion(Text *text, int skipleft);
 
@@ -777,6 +779,77 @@ static int get_char_pos(SpaceText *st, char *line, int cur) {
 	return a;
 }
 
+static void draw_markers(SpaceText *st) {
+	Text *text= st->text;
+	TextMarker *marker, *next;
+	TextLine *top, *bottom, *line;
+	int offl, offc, i, cy, x1, x2, y1, y2, x, y;
+
+	for (i=st->top, top= text->lines.first; top->next && i>0; i--) top= top->next;
+	for (i=st->viewlines-1, bottom=top; bottom->next && i>0; i--) bottom= bottom->next;
+	
+	for (marker= text->markers.first; marker; marker= next) {
+		next= marker->next;
+		for (cy= 0, line= top; line; cy++, line= line->next) {
+			if (cy+st->top==marker->lineno) {
+				/* Remove broken markers */
+				if (marker->end>line->len || marker->start>marker->end) {
+					BLI_freelinkN(&text->markers, marker);
+					break;
+				}
+
+				wrap_offset(st, line, marker->start, &offl, &offc);
+				x1= get_char_pos(st, line->line, marker->start) - st->left + offc;
+				y1= cy + offl;
+				wrap_offset(st, line, marker->end, &offl, &offc);
+				x2= get_char_pos(st, line->line, marker->end) - st->left + offc;
+				y2= cy + offl;
+
+				glColor3ub(marker->clr[0], marker->clr[1], marker->clr[2]);
+				x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
+				y= curarea->winy-3;
+
+				if (y1==y2) {
+					y -= y1*st->lheight;
+					glBegin(GL_LINE_LOOP);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st), y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y-st->lheight);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st), y-st->lheight);
+					glEnd();
+				} else {
+					y -= y1*st->lheight;
+					glBegin(GL_LINE_STRIP);
+					glVertex2i(curarea->winx, y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y-st->lheight);
+					glVertex2i(curarea->winx, y-st->lheight);
+					glEnd();
+					y-=st->lheight;
+					for (i=y1+1; i<y2; i++) {
+						glBegin(GL_LINES);
+						glVertex2i(x, y);
+						glVertex2i(curarea->winx, y);
+						glVertex2i(x, y-st->lheight);
+						glVertex2i(curarea->winx, y-st->lheight);
+						glEnd();
+						y-=st->lheight;
+					}
+					glBegin(GL_LINE_STRIP);
+					glVertex2i(x, y);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st), y);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st), y-st->lheight);
+					glVertex2i(x, y-st->lheight);
+					glEnd();
+				}
+
+				break;
+			}
+			if (line==bottom) break;
+		}
+	}
+}
+
 static void draw_cursor(SpaceText *st) {
 	Text *text= st->text;
 	int vcurl, vcurc, vsell, vselc, hidden=0;
@@ -1410,6 +1483,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	}
 	
 	draw_brackets(st);
+	draw_markers(st);
 
 	draw_textscroll(st);
 	draw_documentation(st);
@@ -2032,6 +2106,277 @@ static void confirm_suggestion(Text *text, int skipleft) {
 	texttool_text_clear();
 }
 
+static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val) {
+	int draw=0, swallow=0, tools=0, tools_cancel=0, tools_update=0, scroll=1;
+	if (!texttool_text_is_active(st->text)) return 0;
+	if (!st->text || st->text->id.lib) return 0;
+
+	if (st->showsyntax && texttool_text_is_active(st->text)) {
+		if (texttool_suggest_first()) tools |= TOOL_SUGG_LIST;
+		if (texttool_docs_get()) tools |= TOOL_DOCUMENT;
+	}
+
+	if (ascii) {
+		if (tools & TOOL_SUGG_LIST) {
+			if ((ascii != '_' && ascii != '*' && ispunct(ascii)) || check_whitespace(ascii)) {
+				confirm_suggestion(st->text, 0);
+				if (st->showsyntax) txt_format_line(st, st->text->curl, 1);
+			} else if ((st->overwrite && txt_replace_char(st->text, ascii)) || txt_add_char(st->text, ascii)) {
+				tools_update |= TOOL_SUGG_LIST;
+				swallow= 1;
+				draw= 1;
+			}
+		}
+		tools_cancel |= TOOL_DOCUMENT;
+
+	} else if (val) {
+		switch (evnt) {
+			case LEFTMOUSE:
+				if (do_suggest_select(st)) swallow= 1;
+				else tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+				draw= 1;
+				break;
+			case MIDDLEMOUSE:
+				if (do_suggest_select(st)) {
+					confirm_suggestion(st->text, 0);
+					if (st->showsyntax) txt_format_line(st, st->text->curl, 1);
+					swallow= 1;
+				} else
+					tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+				draw= 1;
+				break;
+			case ESCKEY:
+				swallow= 1;
+				if (tools & TOOL_SUGG_LIST)
+					tools_cancel |= TOOL_SUGG_LIST;
+				else if (tools & TOOL_DOCUMENT)
+					tools_cancel |= TOOL_DOCUMENT;
+				else
+					swallow= 0;
+				break;
+			case RETKEY:
+				if (tools & TOOL_SUGG_LIST) {
+					confirm_suggestion(st->text, 0);
+					if (st->showsyntax) txt_format_line(st, st->text->curl, 1);
+					swallow= 1;
+					draw= 1;
+				}
+				tools_cancel |= TOOL_DOCUMENT;
+				break;
+			case BACKSPACEKEY:
+				if (tools & TOOL_SUGG_LIST) {
+					if (G.qual) tools_cancel |= TOOL_SUGG_LIST;
+					else {
+						/* Work out which char we are about to delete */
+						if (st->text->curl && st->text->curc > 0) {
+							char ch= st->text->curl->line[st->text->curc-1];
+							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch))
+								tools_update |= TOOL_SUGG_LIST;
+							else
+								tools_cancel |= TOOL_SUGG_LIST;
+						}
+					}
+				}
+				tools_cancel |= TOOL_DOCUMENT;
+				break;
+			case PAGEDOWNKEY:
+				scroll= SUGG_LIST_SIZE-1;
+			case WHEELDOWNMOUSE:
+			case DOWNARROWKEY:
+				if (tools & TOOL_DOCUMENT) {
+					doc_scroll++;
+					swallow= 1;
+					draw= 1;
+					break;
+				} else if (tools & TOOL_SUGG_LIST) {
+					SuggItem *sel = texttool_suggest_selected();
+					if (!sel) {
+						texttool_suggest_select(texttool_suggest_first());
+					} else while (sel && sel!=texttool_suggest_last() && sel->next && scroll--) {
+						texttool_suggest_select(sel->next);
+						sel= sel->next;
+					}
+					swallow= 1;
+					draw= 1;
+					break;
+				}
+			case PAGEUPKEY:
+				scroll= SUGG_LIST_SIZE-1;
+			case WHEELUPMOUSE:
+			case UPARROWKEY:
+				if (tools & TOOL_DOCUMENT) {
+					if (doc_scroll>0) doc_scroll--;
+					swallow= 1;
+					draw= 1;
+					break;
+				} else if (tools & TOOL_SUGG_LIST) {
+					SuggItem *sel = texttool_suggest_selected();
+					while (sel && sel!=texttool_suggest_first() && sel->prev && scroll--) {
+						texttool_suggest_select(sel->prev);
+						sel= sel->prev;
+					}
+					swallow= 1;
+					draw= 1;
+					break;
+				}
+			default:
+				if (G.qual!=0 && G.qual!=LR_SHIFTKEY)
+					tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+		}
+	}
+
+	if (tools & TOOL_SUGG_LIST) {
+		if (tools_update & TOOL_SUGG_LIST) {
+			get_suggest_prefix(st->text);
+		} else if (tools_cancel & TOOL_SUGG_LIST) {
+			texttool_suggest_clear();
+		}
+		draw= 1;
+	}
+	if (tools & TOOL_DOCUMENT) {
+		if (tools_cancel & TOOL_DOCUMENT) {
+			texttool_docs_clear();
+			doc_scroll= 0;
+		}
+		draw= 1;
+	}
+
+	if (draw) {
+		ScrArea *sa;
+		
+		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+			SpaceText *st= sa->spacedata.first;
+			
+			if (st && st->spacetype==SPACE_TEXT) {
+				scrarea_queue_redraw(sa);
+			}
+		}
+	}
+
+	return swallow;
+}
+
+static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val) {
+	Text *text;
+	TextMarker *marker, *mrk, *nxt;
+	int c, s, draw=0, swallow=0;
+
+	text= st->text;
+	if (!text || text->curl != text->sell) return 0;
+
+	marker= txt_find_marker(text, text->curl, text->curc, 0);
+	if (!marker || text->id.lib) return 0;
+
+	if (ascii) {
+		if (marker->flags & TMARK_EDITALL) {
+			c= text->curc-marker->start;
+			s= text->selc-marker->start;
+			if (s<0 || s>marker->end-marker->start) return 0;
+			
+			mrk= txt_next_marker(text, marker);
+			while (mrk) {
+				txt_move_to(text, mrk->lineno, mrk->start+c, 0);
+				if (s!=c) txt_move_to(text, mrk->lineno, mrk->start+s, 1);
+				if (st->overwrite) {
+					if (txt_replace_char(text, ascii))
+						if (st->showsyntax) txt_format_line(st, text->curl, 1);
+				} else {
+					if (txt_add_char(text, ascii)) {
+						if (st->showsyntax) txt_format_line(st, text->curl, 1);
+					}
+				}
+
+				if (mrk==marker) break;
+				mrk=txt_next_marker(text, mrk);
+			}
+			swallow= 1;
+			draw= 1;
+		}
+	} else if (val) {
+		switch(evnt) {
+			case BACKSPACEKEY:
+				if (marker->flags & TMARK_EDITALL) {
+					c= text->curc-marker->start;
+					s= text->selc-marker->start;
+					if (s<0 || s>marker->end-marker->start) return 0;
+					
+					mrk= txt_next_marker(text, marker);
+					while (mrk) {
+						nxt= txt_next_marker(text, mrk); /* mrk may become invalid */
+						txt_move_to(text, mrk->lineno, mrk->start+c, 0);
+						if (s!=c) txt_move_to(text, mrk->lineno, mrk->start+s, 1);
+						txt_backspace_char(text);
+						if (st->showsyntax) txt_format_line(st, text->curl, 1);
+						if (mrk==marker) break;
+						mrk= nxt;
+					}
+					swallow= 1;
+					draw= 1;
+				}
+				break;
+			case DELKEY:
+				if (marker->flags & TMARK_EDITALL) {
+					c= text->curc-marker->start;
+					s= text->selc-marker->start;
+					if (s<0 || s>marker->end-marker->start) return 0;
+					
+					mrk= txt_next_marker(text, marker);
+					while (mrk) {
+						nxt= txt_next_marker(text, mrk); /* mrk may become invalid */
+						txt_move_to(text, mrk->lineno, mrk->start+c, 0);
+						if (s!=c) txt_move_to(text, mrk->lineno, mrk->start+s, 1);
+						txt_delete_char(text);
+						if (st->showsyntax) txt_format_line(st, text->curl, 1);
+						if (mrk==marker) break;
+						mrk= nxt;
+					}
+					swallow= 1;
+					draw= 1;
+				}
+				break;
+			case TABKEY:
+				marker= (G.qual & LR_SHIFTKEY) ? txt_prev_marker(text, marker) : txt_next_marker(text, marker);
+				txt_move_to(text, marker->lineno, marker->start, 0);
+				txt_move_to(text, marker->lineno, marker->end, 1);
+				pop_space_text(st);
+				swallow= 1;
+				draw= 1;
+				break;
+
+			/* Events that should clear markers */
+			case RETKEY:
+			case ESCKEY:
+				if (marker->flags & (TMARK_EDITALL | TMARK_TEMP))
+					txt_clear_markers(text, marker->flags);
+				else
+					BLI_freelinkN(&text->markers, marker);
+				swallow= 1;
+				draw= 1;
+				break;
+			case RIGHTMOUSE: /* Marker context menu? */
+			case LEFTMOUSE:
+				break;
+
+			default:
+				if (G.qual!=0 && G.qual!=LR_SHIFTKEY)
+					swallow= 1; /* Swallow all other shortcut events */
+		}
+	}
+	
+	if (draw) {
+		ScrArea *sa;
+		
+		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+			SpaceText *st= sa->spacedata.first;
+			
+			if (st && st->spacetype==SPACE_TEXT) {
+				scrarea_queue_redraw(sa);
+			}
+		}
+	}
+	return swallow;
+}
+
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -2040,7 +2385,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	int do_draw=0, p;
-	int tools=0, tools_cancel=0, tools_update=0; /* Bitmasks for operations */
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -2104,10 +2448,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 	}
 
-	if (st->showsyntax && texttool_text_is_active(text)) {
-		if (texttool_suggest_first()) tools |= TOOL_SUGG_LIST;
-		if (texttool_docs_get()) tools |= TOOL_DOCUMENT;
-	}
+	if (st->showsyntax && do_texttools(st, ascii, event, val)) return;
+	if (do_markers(st, ascii, event, val)) return;
 	
 	if (event==LEFTMOUSE) {
 		if (val) {
@@ -2118,9 +2460,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 			if (mval[0]>2 && mval[0]<20 && mval[1]>2 && mval[1]<curarea->winy-2) {
 				do_textscroll(st, 2);
-				tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
-			} else if (do_suggest_select(st)) {
-				do_draw= 1;
 			} else {
 				do_selection(st, G.qual&LR_SHIFTKEY);
 				if (txt_has_sel(text)) {
@@ -2129,24 +2468,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					MEM_freeN(buffer);
 				}
 				do_draw= 1;
-				tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 			}
 		}
 	} else if (event==MIDDLEMOUSE) {
 		if (val) {
-			if (do_suggest_select(st)) {
-				confirm_suggestion(text, 0);
+			if (U.uiflag & USER_MMB_PASTE) {
+				do_selection(st, G.qual&LR_SHIFTKEY);
+				get_selection_buffer(text);
 				do_draw= 1;
 			} else {
-				if (U.uiflag & USER_MMB_PASTE) {
-					do_selection(st, G.qual&LR_SHIFTKEY);
-					get_selection_buffer(text);
-					do_draw= 1;
-					tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
-				} else {
-					do_textscroll(st, 1);
-					tools_cancel |= TOOL_SUGG_LIST;
-				}
+				do_textscroll(st, 1);
 			}
 		}
 	} else if (event==RIGHTMOUSE) {
@@ -2180,33 +2511,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				default:
 					break;
 			}
-			tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
 		}
 	} else if (ascii) {
 		if (text && text->id.lib) {
 			error_libdata();
-
 		} else if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
 			if (st->showsyntax) txt_format_line(st, text->curl, 1);
 			pop_space_text(st);
 			do_draw= 1;
-			if (tools & TOOL_SUGG_LIST) {
-				if ((ascii != '_' && ascii != '*' && ispunct(ascii)) || check_whitespace(ascii)) {
-					confirm_suggestion(text, 1);
-					if (st->showsyntax) txt_format_line(st, text->curl, 1);
-				} else {
-					tools_update |= TOOL_SUGG_LIST;
-				}
-			}
-			tools_cancel |= TOOL_DOCUMENT;
 		}
 	} else if (val) {
-
-		/* Cases that require tools not to be cancelled must explicitly say so.
-		 * The default case does this to prevent window/mousemove events
-		 * from cancelling. */
-		tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
-
 		switch (event) {
 		case AKEY:
 			if (G.qual & LR_ALTKEY) {
@@ -2334,6 +2648,16 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual == LR_ALTKEY) {
 				txt_export_to_object(text);
 				do_draw= 1;	
+			} else if ((G.qual & LR_CTRLKEY) && text->sell==text->curl) {
+				int a= text->curc < text->selc ? text->curc : text->selc;
+				int b= text->curc < text->selc ? text->selc : text->curc;
+
+				/* Don't allow overlapping markers */
+				txt_clear_marker_region(text, text->curl, a, b, TMARK_GRP_CUSTOM);
+				if (!(G.qual & LR_ALTKEY)) {
+					txt_add_marker(text, text->curl, a, b, "\xFF\xC0\xFF\xFF", TMARK_GRP_CUSTOM | TMARK_EDITALL);
+					do_draw= 1;
+				}
 			}
 			break; /* BREAK M */
 		case NKEY:
@@ -2477,31 +2801,26 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				do_draw= 1;
 			}
 			break;
-		case ESCKEY:
-			/* To allow ESC to close one tool at a time we remove all others from the cancel list */
-			if (tools & TOOL_DOCUMENT) {
-				tools_cancel &= ~TOOL_SUGG_LIST;
-			}
-			break;
 		case TABKEY:
 			if (text && text->id.lib) {
 				error_libdata();
 				break;
-			}
-			if (G.qual & LR_SHIFTKEY) {
-				if (txt_has_sel(text)) {
-					txt_order_cursors(text);
-					unindent(text);
-					if (st->showsyntax) txt_format_text(st);
-				}
 			} else {
-				if ( txt_has_sel(text)) {
-					txt_order_cursors(text);
-					indent(text);
-					if (st->showsyntax) txt_format_text(st);
+				if (G.qual & LR_SHIFTKEY) {
+					if (txt_has_sel(text)) {
+						txt_order_cursors(text);
+						unindent(text);
+						if (st->showsyntax) txt_format_text(st);
+					}
 				} else {
-					txt_add_char(text, '\t');
-					if (st->showsyntax) txt_format_line(st, text->curl, 1);
+					if ( txt_has_sel(text)) {
+						txt_order_cursors(text);
+						indent(text);
+						if (st->showsyntax) txt_format_text(st);
+					} else {
+						txt_add_char(text, '\t');
+						if (st->showsyntax) txt_format_line(st, text->curl, 1);
+					}
 				}
 			}
 			pop_space_text(st);
@@ -2511,11 +2830,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RETKEY:
 			if (text && text->id.lib) {
 				error_libdata();
-				break;
-			}
-			if (tools & TOOL_SUGG_LIST) {
-				confirm_suggestion(text, 0);
-				if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				break;
 			}
 			//double check tabs before splitting the line
@@ -2545,15 +2859,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (G.qual & (LR_ALTKEY | LR_CTRLKEY)) {
 				txt_backspace_word(text);
-				tools_cancel |= TOOL_SUGG_LIST;
 			} else {
-				/* Work out which char we are about to delete */
-				if (text && text->curl && text->curc > 0) {
-					char ch= text->curl->line[text->curc-1];
-					if (!ispunct(ch) && !check_whitespace(ch)) {
-						tools_update |= TOOL_SUGG_LIST;
-					}
-				}
 				txt_backspace_char(text);
 			}
 			set_tabs(text);
@@ -2579,23 +2885,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case INSERTKEY:
 			st->overwrite= !st->overwrite;
 			do_draw= 1;
-			tools_cancel = 0;
 			break;
 		case DOWNARROWKEY:
-			if (tools & TOOL_DOCUMENT) {
-				doc_scroll++;
-				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
-				break;
-			} else if (tools & TOOL_SUGG_LIST) {
-				SuggItem *sel = texttool_suggest_selected();
-				if (!sel) {
-					texttool_suggest_select(texttool_suggest_first());
-				} else if (sel!=texttool_suggest_last() && sel->next) {
-					texttool_suggest_select(sel->next);
-				}
-				tools_cancel &= ~TOOL_SUGG_LIST;
-				break;
-			}
 			txt_move_down(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
@@ -2624,48 +2915,17 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case UPARROWKEY:
-			if (tools & TOOL_DOCUMENT) {
-				if (doc_scroll) doc_scroll--;
-				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
-				break;
-			} else if (tools & TOOL_SUGG_LIST) {
-				SuggItem *sel = texttool_suggest_selected();
-				if (sel && sel!=texttool_suggest_first() && sel->prev)
-					texttool_suggest_select(sel->prev);
-				tools_cancel &= ~TOOL_SUGG_LIST;
-				break;
-			}
 			txt_move_up(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case PAGEDOWNKEY:
-			if (tools & TOOL_SUGG_LIST) {
-				int i;
-				SuggItem *sel = texttool_suggest_selected();
-				if (!sel)
-					sel = texttool_suggest_first();
-				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=texttool_suggest_last() && sel->next; i++, sel=sel->next)
-					texttool_suggest_select(sel->next);
-				tools_cancel &= ~TOOL_SUGG_LIST;
-				break;
-			} else {
-				screen_skip(st, st->viewlines);
-			}
+			screen_skip(st, st->viewlines);
 			do_draw= 1;
 			break;
 		case PAGEUPKEY:
-			if (tools & TOOL_SUGG_LIST) {
-				int i;
-				SuggItem *sel = texttool_suggest_selected();
-				for (i=0; i<SUGG_LIST_SIZE-1 && sel && sel!=texttool_suggest_first() && sel->prev; i++, sel=sel->prev)
-					texttool_suggest_select(sel->prev);
-				tools_cancel &= ~TOOL_SUGG_LIST;
-				break;
-			} else {
-				screen_skip(st, -st->viewlines);
-			}
+			screen_skip(st, -st->viewlines);
 			do_draw= 1;
 			break;
 		case HOMEKEY:
@@ -2679,43 +2939,13 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case WHEELUPMOUSE:
-			if (tools & TOOL_DOCUMENT) {
-				if (doc_scroll) doc_scroll--;
-				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
-				break;
-			} else if (tools & TOOL_SUGG_LIST) {
-				SuggItem *sel = texttool_suggest_selected();
-				if (sel && sel!=texttool_suggest_first() && sel->prev)
-					texttool_suggest_select(sel->prev);
-				tools_cancel &= ~TOOL_SUGG_LIST;
-			} else {
-				screen_skip(st, -U.wheellinescroll);
-				tools_cancel &= ~TOOL_DOCUMENT;
-			}
+			screen_skip(st, -U.wheellinescroll);
 			do_draw= 1;
 			break;
 		case WHEELDOWNMOUSE:
-			if (tools & TOOL_DOCUMENT) {
-				doc_scroll++;
-				tools_cancel &= ~(TOOL_SUGG_LIST | TOOL_DOCUMENT);
-				break;
-			} else if (tools & TOOL_SUGG_LIST) {
-				SuggItem *sel = texttool_suggest_selected();
-				if (!sel) {
-					texttool_suggest_select(texttool_suggest_first());
-				} else if (sel && sel!=texttool_suggest_last() && sel->next) {
-					texttool_suggest_select(sel->next);
-				}
-				tools_cancel &= ~TOOL_SUGG_LIST;
-			} else {
-				screen_skip(st, U.wheellinescroll);
-				tools_cancel &= ~TOOL_DOCUMENT;
-			}
+			screen_skip(st, U.wheellinescroll);
 			do_draw= 1;
 			break;
-		default:
-			/* We don't want all sorts of events closing the suggestions box */
-			tools_cancel &= ~TOOL_SUGG_LIST & ~TOOL_DOCUMENT;
 		}
 	}
 
@@ -2777,22 +3007,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		default:
 			last_check_time = PIL_check_seconds_timer();
 		}
-	}
-
-	if (tools & TOOL_SUGG_LIST) {
-		if (tools_update & TOOL_SUGG_LIST) {
-			get_suggest_prefix(text);
-		} else if (tools_cancel & TOOL_SUGG_LIST) {
-			texttool_suggest_clear();
-		}
-		do_draw= 1;
-	}
-	if (tools & TOOL_DOCUMENT) {
-		if (tools_cancel & TOOL_DOCUMENT) {
-			texttool_docs_clear();
-			doc_scroll= 0;
-		}
-		do_draw= 1;
 	}
 
 	if (do_draw) {

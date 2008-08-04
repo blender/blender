@@ -148,6 +148,7 @@ void free_text(Text *text)
 	}
 	
 	BLI_freelistN(&text->lines);
+	BLI_freelistN(&text->markers);
 
 	if(text->name) MEM_freeN(text->name);
 	MEM_freeN(text->undo_buf);
@@ -172,6 +173,7 @@ Text *add_empty_text(char *name)
 	ta->flags= TXT_ISDIRTY | TXT_ISTMP | TXT_ISMEM;
 
 	ta->lines.first= ta->lines.last= NULL;
+	ta->markers.first= ta->markers.last= NULL;
 
 	tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= (char*) MEM_mallocN(1, "textline_string");
@@ -334,6 +336,7 @@ Text *add_text(char *file)
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;
+	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
 
 /* 	ta->flags= TXT_ISTMP | TXT_ISEXT; */
@@ -421,6 +424,7 @@ Text *copy_text(Text *ta)
 	tan->flags = ta->flags | TXT_ISDIRTY | TXT_ISTMP;
 	
 	tan->lines.first= tan->lines.last= NULL;
+	tan->markers.first= tan->markers.last= NULL;
 	tan->curl= tan->sell= NULL;
 	
 	tan->nlines= ta->nlines;
@@ -948,7 +952,9 @@ int txt_has_sel(Text *text)
 static void txt_delete_sel (Text *text)
 {
 	TextLine *tmpl;
+	TextMarker *mrk;
 	char *buf;
+	int move, lineno;
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -966,6 +972,23 @@ static void txt_delete_sel (Text *text)
 
 	buf= MEM_mallocN(text->curc+(text->sell->len - text->selc)+1, "textline_string");
 	
+	if (text->curl != text->sell) {
+		txt_clear_marker_region(text, text->curl, text->curc, text->curl->len, 0);
+		move= txt_get_span(text->curl, text->sell);
+	} else
+		move= 0;
+
+	mrk= txt_find_marker_region(text, text->sell, text->selc-1, text->sell->len, 0);
+	if (mrk) {
+		lineno= mrk->lineno;
+		do {
+			mrk->lineno -= move;
+			if (mrk->start > text->curc) mrk->start -= text->selc - text->curc;
+			mrk->end -= text->selc - text->curc;
+			mrk= mrk->next;
+		} while (mrk && mrk->lineno==lineno);
+	}
+
 	strncpy(buf, text->curl->line, text->curc);
 	strcpy(buf+text->curc, text->sell->line + text->selc);
 	buf[text->curc+(text->sell->len - text->selc)]=0;
@@ -2050,12 +2073,29 @@ void txt_do_redo(Text *text)
 void txt_split_curline (Text *text) 
 {
 	TextLine *ins;
+	TextMarker *mrk;
 	char *left, *right;
+	int lineno= -1;
 	
 	if (!text) return;
 	if (!text->curl) return;
 
-	txt_delete_sel(text);	
+	txt_delete_sel(text);
+
+	/* Move markers */
+
+	lineno= txt_get_span(text->lines.first, text->curl);
+	mrk= text->markers.first;
+	while (mrk) {
+		if (mrk->lineno==lineno && mrk->start>text->curc) {
+			mrk->lineno++;
+			mrk->start -= text->curc;
+			mrk->end -= text->curc;
+		} else if (mrk->lineno > lineno) {
+			mrk->lineno++;
+		}
+		mrk= mrk->next;
+	}
 
 	/* Make the two half strings */
 
@@ -2094,8 +2134,22 @@ void txt_split_curline (Text *text)
 
 static void txt_delete_line (Text *text, TextLine *line) 
 {
+	TextMarker *mrk=NULL, *nxt;
+	int lineno= -1;
+
 	if (!text) return;
 	if (!text->curl) return;
+
+	lineno= txt_get_span(text->lines.first, line);
+	mrk= text->markers.first;
+	while (mrk) {
+		nxt= mrk->next;
+		if (mrk->lineno==lineno)
+			BLI_freelinkN(&text->markers, mrk);
+		else if (mrk->lineno > lineno)
+			mrk->lineno--;
+		mrk= nxt;
+	}
 
 	BLI_remlink (&text->lines, line);
 	
@@ -2111,10 +2165,25 @@ static void txt_delete_line (Text *text, TextLine *line)
 static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 {
 	char *tmp;
+	TextMarker *mrk= NULL;
+	int lineno=-1;
 	
 	if (!text) return;
 	
 	if(!linea || !lineb) return;
+
+	mrk= txt_find_marker_region(text, lineb, 0, lineb->len, 0);
+	if (mrk) {
+		lineno= mrk->lineno;
+		do {
+			mrk->lineno--;
+			mrk->start += linea->len;
+			mrk->end += linea->len;
+			mrk= mrk->next;
+		} while (mrk && mrk->lineno==lineno);
+	}
+	if (lineno==-1) lineno= txt_get_span(text->lines.first, lineb);
+	if (!mrk) mrk= text->markers.first;
 	
 	tmp= MEM_mallocN(linea->len+lineb->len+1, "textline_string");
 	
@@ -2123,7 +2192,7 @@ static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 
 	make_new_line(linea, tmp);
 	
-	txt_delete_line(text, lineb); 
+	txt_delete_line(text, lineb);
 	
 	txt_make_dirty(text);
 	txt_clean_text(text);
@@ -2137,8 +2206,8 @@ void txt_delete_char (Text *text)
 	if (!text->curl) return;
 
 	if (txt_has_sel(text)) { /* deleting a selection */
-	  txt_delete_sel(text);
-	  return;
+		txt_delete_sel(text);
+		return;
 	}
 	else if (text->curc== text->curl->len) { /* Appending two lines */
 		if (text->curl->next) {
@@ -2147,6 +2216,25 @@ void txt_delete_char (Text *text)
 		}
 	} else { /* Just deleting a char */
 		int i= text->curc;
+
+		TextMarker *mrk= txt_find_marker_region(text, text->curl, i-1, text->curl->len, 0);
+		if (mrk) {
+			int lineno= mrk->lineno;
+			if (mrk->end==i) {
+				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
+					txt_clear_markers(text, mrk->flags);
+				} else {
+					TextMarker *nxt= mrk->next;
+					BLI_freelinkN(&text->markers, mrk);
+				}
+				return;
+			}
+			do {
+				if (mrk->start>i) mrk->start--;
+				mrk->end--;
+				mrk= mrk->next;
+			} while (mrk && mrk->lineno==lineno);
+		}
 		
 		c= text->curl->line[i];
 		while(i< text->curl->len) {
@@ -2178,8 +2266,8 @@ void txt_backspace_char (Text *text)
 	if (!text->curl) return;
 	
 	if (txt_has_sel(text)) { /* deleting a selection */
-	  txt_delete_sel(text);
-	  return;
+		txt_delete_sel(text);
+		return;
 	}
 	else if (text->curc==0) { /* Appending two lines */
 		if (!text->curl->prev) return;
@@ -2189,19 +2277,38 @@ void txt_backspace_char (Text *text)
 		
 		txt_combine_lines(text, text->curl, text->curl->next);
 		txt_pop_sel(text);
-	} 
+	}
 	else { /* Just backspacing a char */
-	  int i= text->curc-1;
+		int i= text->curc-1;
+
+		TextMarker *mrk= txt_find_marker_region(text, text->curl, i, text->curl->len, 0);
+		if (mrk) {
+			int lineno= mrk->lineno;
+			if (mrk->start==i+1) {
+				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
+					txt_clear_markers(text, mrk->flags);
+				} else {
+					TextMarker *nxt= mrk->next;
+					BLI_freelinkN(&text->markers, mrk);
+				}
+				return;
+			}
+			do {
+				if (mrk->start>i) mrk->start--;
+				mrk->end--;
+				mrk= mrk->next;
+			} while (mrk && mrk->lineno==lineno);
+		}
 		
-	  c= text->curl->line[i];
-	  while(i< text->curl->len) {
-	    text->curl->line[i]= text->curl->line[i+1];
-	    i++;
-	  }
-	  text->curl->len--;
-	  text->curc--;
-		
-	  txt_pop_sel(text);
+		c= text->curl->line[i];
+		while(i< text->curl->len) {
+			text->curl->line[i]= text->curl->line[i+1];
+			i++;
+		}
+		text->curl->len--;
+		text->curc--;
+
+		txt_pop_sel(text);
 	}
 
 	txt_make_dirty(text);
@@ -2218,8 +2325,9 @@ void txt_backspace_word (Text *text)
 
 int txt_add_char (Text *text, char add) 
 {
-	int len;
+	int len, lineno;
 	char *tmp;
+	TextMarker *mrk;
 	
 	if (!text) return 0;
 	if (!text->curl) return 0;
@@ -2230,6 +2338,16 @@ int txt_add_char (Text *text, char add)
 	}
 	
 	txt_delete_sel(text);
+	
+	mrk= txt_find_marker_region(text, text->curl, text->curc-1, text->curl->len, 0);
+	if (mrk) {
+		lineno= mrk->lineno;
+		do {
+			if (mrk->start>text->curc) mrk->start++;
+			mrk->end++;
+			mrk= mrk->next;
+		} while (mrk && mrk->lineno==lineno);
+	}
 	
 	tmp= MEM_mallocN(text->curl->len+2, "textline_string");
 	
@@ -2535,3 +2653,124 @@ int setcurr_tab (Text *text)
 	return i;
 }
 
+/*********************************/
+/* Text marker utility functions */
+/*********************************/
+
+/* Creates and adds a marker to the list maintaining sorted order */
+void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4], int flags) {
+	TextMarker *tmp, *marker;
+
+	marker= MEM_mallocN(sizeof(TextMarker), "text_marker");
+	
+	marker->lineno= txt_get_span(text->lines.first, line);
+	marker->start= MIN2(start, end);
+	marker->end= MAX2(start, end);
+	marker->flags= flags;
+
+	marker->clr[0]= clr[0];
+	marker->clr[1]= clr[1];
+	marker->clr[2]= clr[2];
+	marker->clr[3]= clr[3];
+
+	for (tmp=text->markers.last; tmp; tmp=tmp->prev)
+		if (tmp->lineno < marker->lineno || (tmp->lineno==marker->lineno && tmp->start < marker->start))
+			break;
+
+	if (tmp) BLI_insertlinkafter(&text->markers, tmp, marker);
+	else BLI_addhead(&text->markers, marker);
+}
+
+/* Returns the first matching marker on the specified line between two points
+   If flags is zero, all markers will be searched */
+TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
+	TextMarker *marker, *next;
+	int lineno= txt_get_span(text->lines.first, line);
+	
+	for (marker=text->markers.first; marker; marker=next) {
+		next= marker->next;
+
+		if (flags && marker->flags != flags) continue;
+		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno > lineno) break;
+
+		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
+				(marker->start<end && marker->end>start))
+			return marker;
+	}
+	return NULL;
+}
+
+/* Clears all matching markers on the specified line between two points
+   If flags is zero, all markers will be cleared */
+void txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
+	TextMarker *marker, *next;
+	int lineno= txt_get_span(text->lines.first, line);
+	
+	for (marker=text->markers.first; marker; marker=next) {
+		next= marker->next;
+
+		if (flags && marker->flags != flags) continue;
+		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno > lineno) break;
+
+		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
+				(marker->start<end && marker->end>start))
+			BLI_freelinkN(&text->markers, marker);
+	}
+}
+
+/* Clears all markers with matching flags (useful for clearing temporary markers) */
+void txt_clear_markers(Text *text, int flags) {
+	TextMarker *marker, *next;
+	
+	for (marker=text->markers.first; marker; marker=next) {
+		next= marker->next;
+
+		if (marker->flags == flags)
+			BLI_freelinkN(&text->markers, marker);
+	}
+}
+
+/* Finds the marker at the specified line and cursor position with matching flags.
+   If flags is zero, all markers will be searched */
+TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int flags) {
+	TextMarker *marker;
+	int lineno= txt_get_span(text->lines.first, line);
+	
+	for (marker=text->markers.first; marker; marker=marker->next) {
+		if (flags && marker->flags != flags) continue;
+		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno > lineno) break;
+
+		if (marker->start <= curs && curs <= marker->end)
+			return marker;
+	}
+	return NULL;
+}
+
+/* Finds the previous marker with matching flags. If no other marker is found, the
+   same one will be returned */
+TextMarker *txt_prev_marker(Text *text, TextMarker *marker) {
+	TextMarker *tmp= marker;
+	while (tmp) {
+		if (tmp->prev) tmp= tmp->prev;
+		else tmp= text->markers.last;
+		if (tmp->flags == marker->flags)
+			return tmp;
+	}
+	return NULL; /* Only if marker==NULL */
+}
+
+/* Finds the next marker with matching flags. If no other marker is found, the
+   same one will be returned */
+TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
+	TextMarker *tmp= marker;
+	while (tmp) {
+		if (tmp->next) tmp= tmp->next;
+		else tmp= text->markers.first;
+		if (tmp->flags == marker->flags)
+			return tmp;
+	}
+	return NULL; /* Only if marker==NULL */
+}
