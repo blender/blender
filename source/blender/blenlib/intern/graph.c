@@ -397,25 +397,23 @@ int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 	}
 }
 
-float BLI_subtreeLength(BNode *node, BArc *rootArc)
+float BLI_subtreeLength(BNode *node)
 {
 	float length = 0;
 	int i;
 
+	node->flag = 0; /* flag node as visited */
+
 	for(i = 0; i < node->degree; i++)
 	{
 		BArc *arc = node->arcs[i];
+		BNode *other_node = BLI_otherNode(arc, node);
 		
-		/* don't go back on the root arc */
-		if (arc != rootArc)
+		if (other_node->flag != 0)
 		{
-			length = MAX2(length, BLI_subtreeLength(BLI_otherNode(arc, node), arc));
+			float subgraph_length = arc->length + BLI_subtreeLength(other_node); 
+			length = MAX2(length, subgraph_length);
 		}
-	}
-	
-	if (rootArc)
-	{
-		length += rootArc->length;
 	}
 	
 	return length;
@@ -423,31 +421,29 @@ float BLI_subtreeLength(BNode *node, BArc *rootArc)
 
 void BLI_calcGraphLength(BGraph *graph)
 {
-	if (BLI_isGraphCyclic(graph) == 0)
+	float length = 0;
+	int nb_subgraphs;
+	int i;
+	
+	nb_subgraphs = BLI_FlagSubgraphs(graph);
+	
+	for (i = 1; i <= nb_subgraphs; i++)
 	{
-		float length = 0;
-		int nb_subgraphs;
-		int i;
+		BNode *node;
 		
-		nb_subgraphs = BLI_FlagSubgraphs(graph);
-		
-		for (i = 1; i <= nb_subgraphs; i++)
+		for (node = graph->nodes.first; node; node = node->next)
 		{
-			BNode *node;
-			
-			for (node = graph->nodes.first; node; node = node->next)
+			/* start on an external node  of the subgraph */
+			if (node->flag == i && node->degree == 1)
 			{
-				/* start on an external node  of the subgraph */
-				if (node->flag == i && node->degree == 1)
-				{
-					length = MAX2(length, BLI_subtreeLength(node, NULL));
-					break;
-				}
+				float subgraph_length = BLI_subtreeLength(node);
+				length = MAX2(length, subgraph_length);
+				break;
 			}
 		}
-		
-		graph->length = length;
 	}
+	
+	graph->length = length;
 }
 
 /********************************* SYMMETRY DETECTION **************************************************/

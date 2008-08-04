@@ -85,7 +85,7 @@ void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph);
 #define SHAPE_RADIX 10 /* each shape level is encoded this base */
 
 int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root);
-float BLI_subtreeLength(BNode *node, BArc *rootArc);
+float BLI_subtreeLength(BNode *node);
 void BLI_calcGraphLength(BGraph *graph);
 
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced);

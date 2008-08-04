@@ -744,6 +744,11 @@ static void ExtendArcBuckets(ReebArc *arc)
 	float average_length = 0, length;
 	int padding_head = 0, padding_tail = 0;
 	
+	if (arc->bcount == 0)
+	{
+		return; /* failsafe, shouldn't happen */
+	}
+	
 	initArcIterator(&iter, arc, arc->head);
 	
 	for (	previous = nextBucket(&iter), bucket = nextBucket(&iter);
@@ -778,6 +783,8 @@ static void ExtendArcBuckets(ReebArc *arc)
 		memcpy(arc->buckets + padding_head, old_buckets, arc->bcount * sizeof(EmbedBucket));
 		
 		arc->bcount = padding_head + arc->bcount + padding_tail;
+		
+		MEM_freeN(old_buckets);
 	}
 	
 	if (padding_head > 0)
@@ -1437,41 +1444,27 @@ void filterNullReebGraph(ReebGraph *rg)
 	}
 }
 
-int filterInternalReebGraph(ReebGraph *rg, float threshold)
+int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, float threshold_external)
 {
 	ReebArc *arc = NULL, *nextArc = NULL;
 	int value = 0;
 	
 	BLI_sortlist(&rg->arcs, compareArcs);
 
-	arc = rg->arcs.first;
-	while(arc)
+	
+	for (arc = rg->arcs.first; arc; arc = nextArc)
 	{
 		nextArc = arc->next;
 
 		// Only collapse non-terminal arcs that are shorter than threshold
-		if (arc->head->degree > 1 && arc->tail->degree > 1 && (lengthArc(arc) < threshold))
+		if (threshold_internal > 0 && arc->head->degree > 1 && arc->tail->degree > 1 && (lengthArc(arc) < threshold_internal))
 		{
 			ReebNode *newNode = NULL;
 			ReebNode *removedNode = NULL;
 			
-#if 0 // Old method
-			/* Keep the node with the highestn number of connected arcs */
-			if (arc->head->degree >= arc->tail->degree)
-			{
-				newNode = arc->head;
-				removedNode = arc->tail;
-			}
-			else
-			{
-				newNode = arc->tail;
-				removedNode = arc->head;
-			}
-#else
 			/* Always remove lower node, so arcs don't flip */
 			newNode = arc->head;
 			removedNode = arc->tail;
-#endif
 			
 			filterArc(rg, newNode, removedNode, arc, 1);
 
@@ -1485,26 +1478,8 @@ int filterInternalReebGraph(ReebGraph *rg, float threshold)
 			value = 1;
 		}
 		
-		arc = nextArc;
-	}
-	
-	return value;
-}
-
-int filterExternalReebGraph(ReebGraph *rg, float threshold)
-{
-	ReebArc *arc = NULL, *nextArc = NULL;
-	int value = 0;
-	
-	BLI_sortlist(&rg->arcs, compareArcs);
-
-	
-	for (arc = rg->arcs.first; arc; arc = nextArc)
-	{
-		nextArc = arc->next;
-
 		// Only collapse terminal arcs that are shorter than threshold
-		if ((arc->head->degree == 1 || arc->tail->degree == 1) && (lengthArc(arc) < threshold))
+		else if (threshold_external > 0 && (arc->head->degree == 1 || arc->tail->degree == 1) && (lengthArc(arc) < threshold_external))
 		{
 			ReebNode *terminalNode = NULL;
 			ReebNode *middleNode = NULL;
@@ -1552,32 +1527,28 @@ int filterExternalReebGraph(ReebGraph *rg, float threshold)
 
 int filterCyclesReebGraph(ReebGraph *rg, float distance_threshold)
 {
+	ReebArc *arc1, *arc2;
+	ReebArc *next2;
 	int filtered = 0;
 	
-	if (BLI_isGraphCyclic((BGraph*)rg))
+	for (arc1 = rg->arcs.first; arc1; arc1 = arc1->next)
 	{
-		ReebArc *arc1, *arc2;
-		ReebArc *next2;
-		
-		for (arc1 = rg->arcs.first; arc1; arc1 = arc1->next)
+		for (arc2 = arc1->next; arc2; arc2 = next2)
 		{
-			for (arc2 = rg->arcs.first; arc2; arc2 = next2)
+			next2 = arc2->next;
+			if (arc1 != arc2 && arc1->head == arc2->head && arc1->tail == arc2->tail)
 			{
-				next2 = arc2->next;
-				if (arc1 != arc2 && arc1->head == arc2->head && arc1->tail == arc2->tail)
-				{
-					mergeArcEdges(rg, arc1, arc2, MERGE_APPEND);
-					mergeArcFaces(rg, arc1, arc2);
-					mergeArcBuckets(arc1, arc2, arc1->head->weight, arc1->tail->weight);
+				mergeArcEdges(rg, arc1, arc2, MERGE_APPEND);
+				mergeArcFaces(rg, arc1, arc2);
+				mergeArcBuckets(arc1, arc2, arc1->head->weight, arc1->tail->weight);
 
-					NodeDegreeDecrement(rg, arc1->head);
-					NodeDegreeDecrement(rg, arc1->tail);
+				NodeDegreeDecrement(rg, arc1->head);
+				NodeDegreeDecrement(rg, arc1->tail);
 
-					BLI_remlink(&rg->arcs, arc2);
-					REEB_freeArc((BArc*)arc2);
-					
-					filtered = 1;
-				}
+				BLI_remlink(&rg->arcs, arc2);
+				REEB_freeArc((BArc*)arc2);
+				
+				filtered = 1;
 			}
 		}
 	}
@@ -1765,22 +1736,24 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 
 	verifyNodeDegree(rg);
 
-	/* filter until there's nothing more to do */
-	while (done == 1)
+	if ((options & SKGEN_FILTER_EXTERNAL) == 0)
 	{
-		done = 0; /* no work done yet */
-		
-		if (options & SKGEN_FILTER_INTERNAL)
-		{
-//			done |= filterInternalReebGraph(rg, threshold_internal * rg->resolution);
-			done |= filterInternalReebGraph(rg, threshold_internal);
-			verifyNodeDegree(rg);
-		}
+		threshold_external = 0;
+	}
 
-		if (options & SKGEN_FILTER_EXTERNAL)
+	if ((options & SKGEN_FILTER_INTERNAL) == 0)
+	{
+		threshold_internal = 0;
+	}
+
+	if (threshold_internal > 0 || threshold_external > 0)
+	{ 
+		/* filter until there's nothing more to do */
+		while (done == 1)
 		{
-//			done |= filterExternalReebGraph(rg, threshold_external * rg->resolution);
-			done |= filterExternalReebGraph(rg, threshold_external);
+			done = 0; /* no work done yet */
+			
+			done = filterInternalExternalReebGraph(rg, threshold_internal, threshold_external);
 			verifyNodeDegree(rg);
 		}
 	}
@@ -1788,7 +1761,6 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 	if (options & SKGEN_FILTER_SMART)
 	{
 		filterSmartReebGraph(rg, 0.5);
-		BLI_buildAdjacencyList((BGraph*)rg);
 		filterCyclesReebGraph(rg, 0.5);
 	}
 	
@@ -3338,6 +3310,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	
 	joinSubgraphs(rg, 1.0);
 	
+	BLI_buildAdjacencyList((BGraph*)rg);
+	
 	/* calc length before copy, so we have same length on all levels */
 	BLI_calcGraphLength((BGraph*)rg);
 
@@ -3351,8 +3325,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 		/* don't filter last level */
 		if (rgi->link_up)
 		{
-			float internal_threshold = rg->length * G.scene->toolsettings->skgen_threshold_internal * (i / (float)nb_levels);
-			float external_threshold = rg->length * G.scene->toolsettings->skgen_threshold_external * (i / (float)nb_levels);
+			float internal_threshold;
+			float external_threshold;
 
 			/* filter internal progressively in second half only*/
 			if (i > nb_levels / 2)
@@ -3530,22 +3504,25 @@ void REEB_draw()
 			glVertex3fv(arc->tail->p);
 		glEnd();
 
-
-		glColor3f(1, 1, 1);				
-		glBegin(GL_POINTS);
-			glVertex3fv(arc->head->p);
-			glVertex3fv(arc->tail->p);
-			
-			glColor3f(0.5f, 0.5f, 1);				
-			if (arc->bcount)
-			{
-				initArcIterator(&iter, arc, arc->head);
-				for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+		
+		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_EMBED)
+		{
+			glColor3f(1, 1, 1);				
+			glBegin(GL_POINTS);
+				glVertex3fv(arc->head->p);
+				glVertex3fv(arc->tail->p);
+				
+				glColor3f(0.5f, 0.5f, 1);				
+				if (arc->bcount)
 				{
-					glVertex3fv(bucket->p);
+					initArcIterator(&iter, arc, arc->head);
+					for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+					{
+						glVertex3fv(bucket->p);
+					}
 				}
-			}
-		glEnd();
+			glEnd();
+		}
 		
 		VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
 		

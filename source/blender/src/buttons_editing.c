@@ -5046,9 +5046,12 @@ static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
 	
 	skgen_graph_block(block);
 
-	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 40, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
-	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1108, 40, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
-	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1191, 40, 84,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 40, 63,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
+	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1088, 40, 63,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
+	uiDefButBitS(block, TOG, SKGEN_DISP_EMBED, REDRAWVIEW3D,	"Embed",			1151, 40, 62,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Arc Embedings");
+	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1213, 40, 62,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
+	uiBlockEndAlign(block);
 
 	uiDefButC(block, NUM, REDRAWVIEW3D, 						"Level:",			1025, 20, 125,19, &G.scene->toolsettings->skgen_multi_level, 0, REEB_MAX_MULTI_LEVEL, 1, 0,"Specify the level to draw");
 }

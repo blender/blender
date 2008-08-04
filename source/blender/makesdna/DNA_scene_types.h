@@ -849,6 +849,7 @@ typedef struct Scene {
 #define SKGEN_DISP_LENGTH		(1 << 10)
 #define SKGEN_DISP_WEIGHT		(1 << 11)
 #define SKGEN_DISP_ORIG			(1 << 12)
+#define SKGEN_DISP_EMBED		(1 << 13)
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1
