@@ -524,17 +524,21 @@ typedef struct SimpleDeformModifierData {
 
 	struct Object *origin;	/* object to control the origin of modifier space coordinates */
 	char vgroup_name[32];	/* optional vertexgroup name */
-	float factor[4];		/* factors to control simple deforms */
+	float factor;			/* factors to control simple deforms */
+	float limit[2];			/* lower and upper limit */		
 
-	char mode;
-	char pad[7];
+	char mode;				/* deform function */
+	char axis;				/* lock axis (for taper and strech) */
+	char pad[2];
 
 } SimpleDeformModifierData;
 
-#define MOD_SIMPLEDEFORM_MODE_TWIST			1
-#define MOD_SIMPLEDEFORM_MODE_BEND			2
-#define MOD_SIMPLEDEFORM_MODE_TAPER_X		3
-#define MOD_SIMPLEDEFORM_MODE_TAPER_XY		4
-#define MOD_SIMPLEDEFORM_MODE_STRECH_SQUASH	5
+#define MOD_SIMPLEDEFORM_MODE_TWIST		1
+#define MOD_SIMPLEDEFORM_MODE_BEND		2
+#define MOD_SIMPLEDEFORM_MODE_TAPER		3
+#define MOD_SIMPLEDEFORM_MODE_STRETCH	4
+
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_X			(1<<0)
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
 
 #endif

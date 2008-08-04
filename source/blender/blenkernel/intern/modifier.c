@@ -7289,10 +7289,12 @@ static void simpledeformModifier_initData(ModifierData *md)
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
 
 	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
-	smd->origin = 0;
-	smd->factor[0] = 0.35;
-	smd->factor[1] = -1000.0;
-	smd->factor[2] =  1000.0;
+	smd->axis	  =  0;
+
+	smd->origin   =  NULL;
+	smd->factor   =  0.35;
+	smd->limit[0] = -1000.0f;
+	smd->limit[1] =  1000.0f;
 }
 
 static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)
@@ -7301,8 +7303,10 @@ static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target
 	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData*)target;
 
 	tsmd->mode	= smd->mode;
+	tsmd->axis  = smd->axis;
 	tsmd->origin= smd->origin;
-	memcpy(tsmd->factor, smd->factor, sizeof(tsmd->factor));
+	tsmd->factor= smd->factor;
+	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
 }
 
 static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
@@ -7681,6 +7685,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(SimpleDeform);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs				
 				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode;
 		mti->initData = simpledeformModifier_initData;

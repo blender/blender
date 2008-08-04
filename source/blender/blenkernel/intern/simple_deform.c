@@ -40,7 +40,9 @@
 #include <math.h>
 
 
-static void axis_limit(int axis, const float limits[2], float *co, float *dcut)
+//Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]
+//The ammount of clamp is saved on dcut
+static void axis_limit(int axis, const float limits[2], float co[3], float dcut[3])
 {
 	float val = co[axis];
 	if(limits[0] > val) val = limits[0];
@@ -50,10 +52,9 @@ static void axis_limit(int axis, const float limits[2], float *co, float *dcut)
 	co[axis] = val;
 }
 
-static void simpleDeform_tapperXY(const float factor, const float *dcut, float *co)
+static void simpleDeform_taper(const float factor, const float dcut[3], float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
-
 	float scale = z*factor;
 
 	co[0] = x + x*scale;
@@ -62,13 +63,13 @@ static void simpleDeform_tapperXY(const float factor, const float *dcut, float *
 
 	if(dcut)
 	{
-		co[0] += dcut[0]*scale;
-		co[1] += dcut[1]*scale;
+		co[0] += dcut[0];
+		co[1] += dcut[1];
 		co[2] += dcut[2];
 	}
 }
 
-static void simpleDeform_strech(const float factor, const float dcut[3], float *co)
+static void simpleDeform_stretch(const float factor, const float dcut[3], float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
 	float scale;
@@ -82,46 +83,9 @@ static void simpleDeform_strech(const float factor, const float dcut[3], float *
 
 	if(dcut)
 	{
-		co[0] += dcut[0]*scale;
-		co[1] += dcut[0]*scale;
-		co[2] += dcut[2]; 
-	}
-}
-
-static void simpleDeform_squash(const float factor, const float dcut[3], float *co)
-{
-	float x = co[0], y = co[1], z = co[2];
-	float scale;
-
-	scale = z*factor;
-	scale = -scale*scale;
-
-	co[0] += x+x*scale;
-	co[1] += y+y*scale;
-
-	if(dcut)
-	{
-		co[0] += dcut[0]*scale;
-		co[1] += dcut[0]*scale;
-		co[2] += dcut[2]; 
-	}
-}
-
-static void simpleDeform_tapperX(const float factor, const float *dcut, float *co)
-{
-	float x = co[0], y = co[1], z = co[2];
-
-	float scale = z*factor;
-
-	co[0] = x+ x*scale;
-	co[1] = y;
-	co[2] = z;
-
-	if(dcut)
-	{
-		co[0] += dcut[0]*scale;
+		co[0] += dcut[0];
 		co[1] += dcut[1];
-		co[2] += dcut[2];
+		co[2] += dcut[2]; 
 	}
 }
 
@@ -179,6 +143,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	int i;
 	float (*ob2mod)[4] = NULL, (*mod2ob)[4] = NULL;
 	float tmp_matrix[2][4][4];
+	static const float lock_axis[2] = {0.0f, 0.0f};
 
 	int vgroup = get_named_vertexgroup_num(ob, smd->vgroup_name);
 
@@ -205,41 +170,41 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	{
 		float co[3], dcut[3];
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+		float factor = smd->factor;
 
 		if(weight == 0) continue;
 
 		if(ob2mod)
 			Mat4MulVecfl(ob2mod, vertexCos[i]);
 
-		dcut[0] = dcut[1] = dcut[2] = 0.0f;
 		VECCOPY(co, vertexCos[i]);
+
+		dcut[0] = dcut[1] = dcut[2] = 0.0f;
+		if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) axis_limit(0, lock_axis, co, dcut);
+		if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) axis_limit(1, lock_axis, co, dcut);
 
 		switch(smd->mode)
 		{
 			case MOD_SIMPLEDEFORM_MODE_TWIST:
-				axis_limit(2, smd->factor+1, co, dcut);
-				simpleDeform_twist	 (smd->factor[0], dcut, co);
-				break;
+				axis_limit(2, smd->limit, co, dcut);
+				simpleDeform_twist(factor, dcut, co);
+			break;
 
 			case MOD_SIMPLEDEFORM_MODE_BEND:
-				axis_limit(0, smd->factor+1, co, dcut);
-				simpleDeform_bend	 (smd->factor[0], dcut, co);
-				break;
+				axis_limit(0, smd->limit, co, dcut);
+				simpleDeform_bend(factor, dcut, co);
+			break;
 
-			case MOD_SIMPLEDEFORM_MODE_TAPER_X:
-				axis_limit(2, smd->factor+1, co, dcut);
-				simpleDeform_tapperX (smd->factor[0], dcut, co);
-				break;
+			case MOD_SIMPLEDEFORM_MODE_TAPER:
+				axis_limit(2, smd->limit, co, dcut);
+				simpleDeform_taper(factor, dcut, co);
+			break;
 
-			case MOD_SIMPLEDEFORM_MODE_TAPER_XY:
-				axis_limit(2, smd->factor+1, co, dcut);
-				simpleDeform_tapperXY(smd->factor[0], dcut, co);
-				break;
 
-			case MOD_SIMPLEDEFORM_MODE_STRECH_SQUASH:
-				axis_limit(2, smd->factor+1, co, dcut);
-				simpleDeform_strech(smd->factor[0], dcut, co);
-				break;
+			case MOD_SIMPLEDEFORM_MODE_STRETCH:
+				axis_limit(2, smd->limit, co, dcut);
+				simpleDeform_stretch(factor, dcut, co);
+			break;
 		}
 
 		//linear interpolation
