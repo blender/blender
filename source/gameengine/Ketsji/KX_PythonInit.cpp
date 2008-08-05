@@ -738,9 +738,6 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 	ErrorObject = PyString_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
 	
-	// Add Blender.Mathutils module, duplicate code :/
-	PyDict_SetItemString(d, "Mathutils", Mathutils_Init("GameLogic.Mathutils"));
-	
 	// XXXX Add constants here
 	/* To use logic bricks, we need some sort of constants. Here, we associate */
 	/* constants and sumbolic names. Add them to dictionary d.                 */
@@ -883,7 +880,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
 		
@@ -1174,6 +1171,11 @@ PyObject* initGameKeys()
     }
 
 	return d;
+}
+
+PyObject* initMathutils()
+{
+	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
 }
 
 void PHY_SetActiveScene(class KX_Scene* scene)
