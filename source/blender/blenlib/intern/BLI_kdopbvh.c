@@ -680,10 +680,146 @@ static void verify_tree(BVHTree *tree)
 	printf("branches: %d, leafs: %d, total: %d\n", tree->totbranch, tree->totleaf, tree->totbranch + tree->totleaf);
 }
 #endif
-	
+
+//Helper data and structures to build generalized implicit trees
+//This code can be easily reduced
+typedef struct BVHBuildHelper
+{
+	int tree_type;				//
+	int totleafs;				//
+
+	int leafs_per_child  [32];	//Min number of leafs that are archievable from a node at depth N
+	int branches_on_level[32];	//Number of nodes at depth N (tree_type^N)
+
+	int remain_leafs;			//Number of leafs that are placed on the level that is not 100% filled
+
+} BVHBuildHelper;
+
+static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
+{
+	int depth = 0;
+	int remain;
+	int nnodes;
+
+	data->totleafs = tree->totleaf;
+	data->tree_type= tree->tree_type;
+
+	//Calculate the smallest tree_type^n such that tree_type^n >= num_leafs
+	for(
+		data->leafs_per_child[0] = 1;
+		data->leafs_per_child[0] <  data->totleafs;
+		data->leafs_per_child[0] *= data->tree_type
+	);
+
+
+	data->branches_on_level[0] = 1;
+
+
+	//We could stop the loop first (but I am lazy to find out when)
+	for(depth = 1; depth < 32; depth++)
+	{
+		data->branches_on_level[depth] = data->branches_on_level[depth-1] * data->tree_type;
+		data->leafs_per_child  [depth] = data->leafs_per_child  [depth-1] / data->tree_type;
+	}
+
+	remain = data->totleafs - data->leafs_per_child[1];
+	nnodes = (remain + data->tree_type - 2) / (data->tree_type - 1);
+	data->remain_leafs = remain + nnodes;
+}
+
+// return the min index of all the leafs archivable with the given branch
+static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index)
+{
+	int min_leaf_index = child_index * data->leafs_per_child[depth-1];
+	if(min_leaf_index < data->remain_leafs)
+		return min_leaf_index;
+	else
+		return data->totleafs - (data->branches_on_level[depth-1] - child_index) * data->leafs_per_child[depth];
+}
+
+//WARNING: Beautifull/tricky code starts here :P
+//Generalized implicit trees
+static void non_recursive_bvh_div_nodes(BVHTree *tree)
+{
+	int i;
+
+	const int tree_type   = tree->tree_type;
+	const int tree_offset = 2 - tree->tree_type; //this value is 0 (on binary trees) and negative on the others
+	const int num_leafs   = tree->totleaf;
+	const int num_branches= MAX2(1, (num_leafs + tree_type - 3) / (tree_type-1) );
+
+	BVHNode*  branches_array = tree->nodearray + tree->totleaf - 1; // This ocde uses 1 index arrays
+	BVHNode** leafs_array    = tree->nodes;
+
+	BVHBuildHelper data;
+	int depth  = 0;
+
+	build_implicit_tree_helper(tree, &data);
+
+	//YAY this could be 1 loop.. but had to split in 2 to remove OMP dependencies
+	for(i=1; i <= num_branches; i = i*tree_type + tree_offset)
+	{
+		const int first_of_next_level = i*tree_type + tree_offset;
+		const int  end_j = MIN2(first_of_next_level, num_branches + 1);	//index of last branch on this level
+		int j;
+
+		depth++;
+
+//#pragma omp parallel for private(j) schedule(static)
+		for(j = i; j < end_j; j++)
+		{
+			int k;
+			const int parent_level_index= j-i;
+			BVHNode* parent = branches_array + j;
+			char split_axis;
+
+			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
+			int parent_leafs_end   = implicit_leafs_index(&data, depth, parent_level_index+1);
+
+			refit_kdop_hull(tree, parent, parent_leafs_begin, parent_leafs_end);
+			split_axis = get_largest_axis(parent->bv);
+			parent->main_axis = split_axis / 2;
+
+			for(k = 0; k < tree_type; k++)
+			{
+				int child_index = j * tree_type + tree_offset + k;
+				int child_level_index = child_index - first_of_next_level; //child level index
+
+				int child_leafs_begin = implicit_leafs_index(&data, depth+1, child_level_index);
+				int child_leafs_end   = implicit_leafs_index(&data, depth+1, child_level_index+1);
+
+				assert( k != 0 || child_leafs_begin == parent_leafs_begin);
+
+				if(child_leafs_end - child_leafs_begin > 1)
+				{
+					parent->children[k] = branches_array  + child_index;
+					partition_nth_element(leafs_array, child_leafs_begin, parent_leafs_end, child_leafs_end, split_axis);
+				}
+				else if(child_leafs_end - child_leafs_begin == 1)
+				{
+					parent->children[k] = leafs_array[ child_leafs_begin ];
+				}
+				else
+				{
+					parent->children[k] = NULL;
+				}
+			}
+		}
+	}
+	tree->nodes[tree->totleaf] = branches_array+0;
+	tree->totbranch = num_branches;
+
+
+}
+
 void BLI_bvhtree_balance(BVHTree *tree)
 {
 	assert(tree->totbranch == 0);
+	assert(tree->totleaf   != 0);
+
+	non_recursive_bvh_div_nodes(tree);
+	printf("here\n");
+/*
 	if(tree->totleaf != 0)
 	{
 		// create root node
@@ -698,6 +834,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 		tree->totbranch = needed_branches( tree->tree_type, tree->totleaf );
 		// verify_tree(tree);
 	}
+*/
 }
 
 // overlap - is it possbile for 2 bv's to collide ?
