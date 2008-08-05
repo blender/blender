@@ -970,7 +970,7 @@ static char *ipo_modeselect_pup(void)
 	if(ob && ob->type==OB_LAMP)
 		str += sprintf(str,formatstring, "Lamp",ID_LA, ICON_LAMP);
 
-	if(ob && give_current_texture(ob, ob->actcol))
+	if((ob && give_current_texture(ob, ob->actcol))||(give_current_world_texture()))
 		str += sprintf(str,formatstring, "Texture",ID_TE, ICON_TEXTURE);
 
 	if(ob){

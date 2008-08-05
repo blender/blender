@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id:SCA_ActuatorEventManager.h 15567 2008-07-14 14:09:36Z theeth $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -44,7 +44,6 @@ public:
 	virtual ~SCA_ActuatorEventManager();
 	virtual void NextFrame();
 	virtual void UpdateFrame();
-	virtual void	RegisterSensor(SCA_ISensor* sensor);
 	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 };
 

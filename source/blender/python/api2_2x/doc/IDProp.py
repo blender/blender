@@ -18,7 +18,9 @@ class IDGroup:
 	
 	Note that for arrays, the array type defaults to int unless a float is found
 	while scanning the template list; if any floats are found, then the whole
-	array is float.
+	array is float.  Note that double-precision floating point numbers are used for
+	python-created float ID properties and arrays (though the internal C api does 
+	support single-precision floats, and the python code will read them).
 	
 	You can also delete properties with the del operator.  For example:
 	

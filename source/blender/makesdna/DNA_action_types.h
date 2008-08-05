@@ -32,6 +32,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
 
@@ -183,8 +184,10 @@ typedef struct SpaceAction {
 	View2D v2d;	
 	
 	bAction		*action;		/* the currently active action */
-	short flag, autosnap;		/* flag: bitmapped settings; autosnap: automatic keyframe snapping mode */
-	short pin, actnr, lock;		/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
+	
+	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
+	short flag, actnr; 			/* flag: bitmapped settings; */
+	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
 	short actwidth;				/* width of the left-hand side name panel (in pixels?) */
 	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
@@ -237,6 +240,18 @@ typedef enum SACTION_FLAG {
 		/* don't draw action channels using group colours (where applicable) */
 	SACTION_NODRAWGCOLORS = (1<<7)
 } SACTION_FLAG;	
+
+/* SpaceAction Mode Settings */
+typedef enum SACTCONT_MODES {
+		/* action (default) */
+	SACTCONT_ACTION	= 0,
+		/* editing of shapekey's IPO block */
+	SACTCONT_SHAPEKEY,
+		/* editing of gpencil data */
+	SACTCONT_GPENCIL,
+		/* dopesheet (unimplemented... future idea?) */
+	SACTCONT_DOPESHEET
+} SACTCONTEXT_MODES;
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
 typedef enum SACTSNAP_MODES {

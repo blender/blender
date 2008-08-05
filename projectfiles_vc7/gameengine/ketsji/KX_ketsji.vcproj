@@ -237,6 +237,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\KX_ketsji.pch"
 				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\gameengine\ketsji\debug\"

@@ -430,27 +430,27 @@ PyMethodDef KX_IpoActuator::Methods[] = {
 	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, 
 		METH_VARARGS, SetStart_doc},
 	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, 
-		METH_VARARGS, GetStart_doc},
+		METH_NOARGS, GetStart_doc},
 	{"setEnd", (PyCFunction) KX_IpoActuator::sPySetEnd, 
 		METH_VARARGS, SetEnd_doc},
 	{"getEnd", (PyCFunction) KX_IpoActuator::sPyGetEnd, 
-		METH_VARARGS, GetEnd_doc},
+		METH_NOARGS, GetEnd_doc},
 	{"setIpoAsForce", (PyCFunction) KX_IpoActuator::sPySetIpoAsForce, 
 		METH_VARARGS, SetIpoAsForce_doc},
 	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, 
-		METH_VARARGS, GetIpoAsForce_doc},
+		METH_NOARGS, GetIpoAsForce_doc},
 	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, 
 		METH_VARARGS, SetIpoAdd_doc},
 	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, 
-		METH_VARARGS, GetIpoAdd_doc},
+		METH_NOARGS, GetIpoAdd_doc},
 	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, 
 		METH_VARARGS, SetType_doc},
 	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, 
-		METH_VARARGS, GetType_doc},	
+		METH_NOARGS, GetType_doc},	
 	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal,
 		METH_VARARGS, SetForceIpoActsLocal_doc},
 	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,
-		METH_VARARGS, GetForceIpoActsLocal_doc},
+		METH_NOARGS, GetForceIpoActsLocal_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -480,6 +480,7 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 	int startFrame, stopFrame;
 	if(!PyArg_ParseTuple(args, "siii", &mode, &startFrame, 
 						 &stopFrame, &forceToggle)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	modenum = string2mode(mode);
@@ -515,6 +516,7 @@ PyObject* KX_IpoActuator::PySetProperty(PyObject* self,
 	/* args: property */
 	char *propertyName;
 	if(!PyArg_ParseTuple(args, "s", &propertyName)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -533,6 +535,7 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 									 PyObject* kwds) {
 	float startArg;
 	if(!PyArg_ParseTuple(args, "f", &startArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -544,9 +547,7 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 char KX_IpoActuator::GetStart_doc[] = 
 "getStart()\n"
 "\tReturns the frame from which the ipo starts playing.\n";
-PyObject* KX_IpoActuator::PyGetStart(PyObject* self, 
-									 PyObject* args, 
-									 PyObject* kwds) {
+PyObject* KX_IpoActuator::PyGetStart(PyObject* self) {
 	return PyFloat_FromDouble(m_startframe);
 }
 
@@ -560,6 +561,7 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 								   PyObject* kwds) {
 	float endArg;
 	if(!PyArg_ParseTuple(args, "f", &endArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -571,9 +573,7 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 char KX_IpoActuator::GetEnd_doc[] = 
 "getEnd()\n"
 "\tReturns the frame at which the ipo stops playing.\n";
-PyObject* KX_IpoActuator::PyGetEnd(PyObject* self, 
-								   PyObject* args, 
-								   PyObject* kwds) {
+PyObject* KX_IpoActuator::PyGetEnd(PyObject* self) {
 	return PyFloat_FromDouble(m_endframe);
 }
 
@@ -588,6 +588,7 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -601,9 +602,7 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 char KX_IpoActuator::GetIpoAsForce_doc[] = 
 "getIpoAsForce()\n"
 "\tReturns whether to interpret the ipo as a force rather than a displacement.\n";
-PyObject* KX_IpoActuator::PyGetIpoAsForce(PyObject* self, 
-									   	  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_IpoActuator::PyGetIpoAsForce(PyObject* self) {
 	return BoolToPyArg(m_ipo_as_force);
 }
 
@@ -618,6 +617,7 @@ PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self,
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -631,9 +631,7 @@ PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self,
 char KX_IpoActuator::GetIpoAdd_doc[] = 
 "getIpoAsAdd()\n"
 "\tReturns whether to interpret the ipo as additive rather than absolute.\n";
-PyObject* KX_IpoActuator::PyGetIpoAdd(PyObject* self, 
-									  PyObject* args, 
-									  PyObject* kwds) {
+PyObject* KX_IpoActuator::PyGetIpoAdd(PyObject* self) {
 	return BoolToPyArg(m_ipo_add);
 }
 
@@ -648,6 +646,7 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 	int typeArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
@@ -662,9 +661,7 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 char KX_IpoActuator::GetType_doc[] = 
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
-PyObject* KX_IpoActuator::PyGetType(PyObject* self, 
-									PyObject* args, 
-									PyObject* kwds) {
+PyObject* KX_IpoActuator::PyGetType(PyObject* self) {
 	return PyInt_FromLong(m_type);
 }
 
@@ -681,6 +678,7 @@ PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self,
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
+		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -693,9 +691,7 @@ char KX_IpoActuator::GetForceIpoActsLocal_doc[] =
 "getForceIpoActsLocal()\n"
 "\tReturn whether to apply the force in the object's local\n"
 "\tcoordinates rather than the world global coordinates.\n";
-PyObject* KX_IpoActuator::PyGetForceIpoActsLocal(PyObject* self, 
-									   	         PyObject* args, 
-										         PyObject* kwds) {
+PyObject* KX_IpoActuator::PyGetForceIpoActsLocal(PyObject* self) {
 	return BoolToPyArg(m_ipo_local);
 }
 

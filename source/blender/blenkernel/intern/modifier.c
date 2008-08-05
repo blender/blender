@@ -1130,8 +1130,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
 				  mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-				  if(mface[numFaces].v4)
+				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
+
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 4);
+				  }
+				  else
+				  {
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 3);
+				  }
+
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
 				  numFaces++;
@@ -1221,8 +1231,17 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
 				  mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-				  if(mface[numFaces].v4)
+				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
+
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 4);
+				  }
+				  else
+				  {
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 3);
+				  }
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
 				  numFaces++;

@@ -115,6 +115,8 @@ public:
 	void SetLevel(bool lvl);
 
 	void RegisterToManager();
+	void UnregisterToManager();
+
 	virtual float GetNumber();
 
 	/** Stop sensing for a while. */
@@ -129,22 +131,22 @@ public:
 	void ClrLink()
 		{ m_links = 0; }
 	void IncLink()
-		{ m_links++; }
+		{ if (!m_links++) RegisterToManager(); }
 	void DecLink();
 	bool IsNoLink() const 
 		{ return !m_links; }
 
 	/* Python functions: */
 	KX_PYMETHOD_DOC(SCA_ISensor,IsPositive);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetUsePosPulseMode);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUsePosPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetFrequency);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetFrequency);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetFrequency);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetUseNegPulseMode);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUseNegPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUseNegPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetInvert);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetInvert);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetLevel);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
 
 };

@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id:BL_ShapeActionActuator.h 15330 2008-06-23 16:37:51Z theeth $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -87,15 +87,15 @@ public:
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendtime);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetChannel);
 
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetAction);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetBlendin);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetPriority);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetStart);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetEnd);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetFrame);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetProperty);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetAction);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetBlendin);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetPriority);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetStart);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetEnd);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrame);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
-	KX_PYMETHOD_DOC(BL_ShapeActionActuator,GetType);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
 
 	virtual PyObject* _getattr(const STR_String& attr);

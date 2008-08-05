@@ -55,28 +55,13 @@ KX_NetworkEventManager::~KX_NetworkEventManager()
 	//printf("KX_NetworkEventManager destructor\n");
 }
 
-void KX_NetworkEventManager::RegisterSensor(class SCA_ISensor* sensor)
-{
-	//printf("KX_NetworkEventManager RegisterSensor\n");
-	m_sensors.push_back(sensor);
-}
-
-void KX_NetworkEventManager::RemoveSensor(class SCA_ISensor* sensor)
-{
-	//printf("KX_NetworkEventManager RemoveSensor\n");
-	// Network specific RemoveSensor stuff goes here
-
-	// parent
-	SCA_EventManager::RemoveSensor(sensor);
-}
-
 void KX_NetworkEventManager::NextFrame()
 {
 // printf("KX_NetworkEventManager::proceed %.2f - %.2f\n", curtime, deltatime);
 	// each frame, the logicmanager will call the network
 	// eventmanager to look for network events, and process it's
 	// 'network' sensors
-	vector<class SCA_ISensor*>::iterator it;
+	set<class SCA_ISensor*>::iterator it;
 
 	for (it = m_sensors.begin(); !(it==m_sensors.end()); it++) {
 //	    printf("KX_NetworkEventManager::proceed sensor %.2f\n", curtime);

@@ -14,7 +14,7 @@ __url__ = ("blender", "blenderartists.org",
 __version__ = "2007/04/27"
 
 __bpydoc__ = """\
-"DEFORM to RVK2" copies deform data (except EDGESPLIT,DECIMATE,SUBSURF,BOOLEAN, 
+"DEFORM to RVK2" copies deform data (except EDGESPLIT,DECIMATE,SUBSURF,BOOLEAN,
 BUILD,MIRROR,ARRAY) of the active object to the RVK (relative vertex key) of
 the other selected object.
 
@@ -25,7 +25,7 @@ key.
 The new version of this scrit (Blender 2.43) manages the modifier changes.
 There are a lot of modifiers but only the ones which just deforms the shape
 can be used : LATTICE, CURVE, WAVE, ARMATURE. You can unset these modifiers
-from the script. 
+from the script.
 
 Usage:
 
@@ -35,7 +35,7 @@ the 3d View.  If the active object has subsurf turned on and nonzero subdiv
 level, the script will ask if it should change that.  Before copying data to
 the rvk it will also ask whether it should replace or add a new vertex group.
 
- 
+
 """
 
 #----------------------------------------------
@@ -70,7 +70,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA 
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 # Copy the rvk (1, or armature, lattice, or
 # any mesh deformation except surface
@@ -83,7 +83,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # download the script :
 # http://jmsoler.free.fr/util/blenderfile/py/rvk1_torvk2.py
 # Communicate upon problems or errors:
-# http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender 
+# http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #----------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/util/blenderfile/py/rvk1_torvk2.py
@@ -101,22 +101,22 @@ def Value(t):
 	exec "t=Modifier.Types.%s"%t
  	return t
 
-def deform2rvk():  
+def deform2rvk():
 	POSSMOD_list=['EDGESPLIT',
 								'DECIMATE',
-								'SUBSURF', 
-								'BOOLEAN', 
+								'SUBSURF',
+								'BOOLEAN',
 								'BUILD',
-								'MIRROR', 
+								'MIRROR',
 								'ARRAY']
 
 	AUTHMOD_list=['LATTICE',
-	              'CURVE', 
+	              'CURVE',
 	              'WAVE',
 	              'ARMATURE']
 
 	MODIFIERS=0
-	
+
 	BMOD=[['Possible Modifiers'],
 				['Allowed Modifiers']]
 
@@ -129,8 +129,8 @@ def deform2rvk():
 		# =============================================================
 		# must be 2 meshes ============================================
 		# =============================================================
-		if RVK1.getType()=='Mesh' and RVK2.getType()=='Mesh': 
-			FRAME=Blender.Get('curframe') 
+		if RVK1.getType()=='Mesh' and RVK2.getType()=='Mesh':
+			FRAME=Blender.Get('curframe')
 			DATA2=RVK2.getData()
 			if DEBUG: print DATA2.getKey()
 			# ============================================================
@@ -151,7 +151,7 @@ def deform2rvk():
 					# ===  Bloc Menu Modifiers ===1 doc =================
 					# ===================================================
 					m=0
-					for mod in  MODRVK1: 
+					for mod in  MODRVK1:
 						if DEBUG: print mod.type
 						if mod.type in POSSMOD:
 							BMOD[0].append([Draw.Create(0),mod.type,
@@ -183,7 +183,7 @@ def deform2rvk():
 					retval = Blender.Draw.PupBlock("MESH 2 RVK", block)
 					# ===================================================
 					# ===  unset Modifiers  =============================
-					# ===================================================	
+					# ===================================================
 					for	B in BMOD[0][1:]:
 						if DEBUG: print B[2]
 						MODRVK1[B[2]][Modifier.Settings.RENDER]=0
@@ -193,12 +193,12 @@ def deform2rvk():
 					# ===================================================
 					# ===  update Modifiers =============================
 					# ===================================================
-					RVK1.makeDisplayList()									
+					#RVK1.makeDisplayList()
 				# =======================================================
 				# ===  get deformed mesh ================================
 				# =======================================================
 				RVK1NAME=Object.GetSelected()[0].getName()
-				meshrvk1=NMesh.GetRawFromObject(RVK1NAME)  
+				meshrvk1=NMesh.GetRawFromObject(RVK1NAME)
 				if DEBUG: print len(meshrvk1.verts)
 				# =======================================================
 				# ===  get normal mesh for vertex group =================
@@ -209,18 +209,18 @@ def deform2rvk():
 				# =======================================================
 				DATA2=RVK2.getData()
 				if DEBUG: print len(meshrvk1.verts)
-				if DEBUG: print len(DATA2.verts)							
+				if DEBUG: print len(DATA2.verts)
 				# ========================================================
 				# ===== is there the same number of vertices =============
 				# ========================================================
-				if len(meshrvk1.verts)==len(DATA2.verts): 
-					name = "Do you want to replace or add vertex groups ? %t| YES %x1| NO ? %x2 " 
+				if len(meshrvk1.verts)==len(DATA2.verts):
+					name = "Do you want to replace or add vertex groups ? %t| YES %x1| NO ? %x2 "
 					result = Draw.PupMenu(name)
-					if result==1:       
+					if result==1:
 						# =====================================================
 						# ===== Do we save vertex groups ?  ===================
 						# =====================================================
-						GROUPNAME2=DATA2.getVertGroupNames() 
+						GROUPNAME2=DATA2.getVertGroupNames()
 						if len(GROUPNAME2)!=0:
 							for GROUP2 in GROUPNAME2:
 								DATA2.removeVertGroup(GROUP2)
@@ -233,11 +233,11 @@ def deform2rvk():
 					# ===== now copy the vertices coords =====================
 					# ========================================================
 					for v in meshrvk1.verts:
-						i= meshrvk1.verts.index(v) 
+						i= meshrvk1.verts.index(v)
 						v1=DATA2.verts[i]
 						for n in [0,1,2]:
 							v1.co[n]=v.co[n]
-					DATA2.update() 
+					DATA2.update()
 					DATA2.insertKey(FRAME,'relative')
 					DATA2.update()
 					RVK2.makeDisplayList()
@@ -251,22 +251,22 @@ def deform2rvk():
 							if not B[1]:
 								MODRVK1[B[2]][Modifier.Settings.RENDER]|=B[-2]
 				else:
-					name = "Meshes Objects must the same number of vertices %t| Ok. %x1" 
+					name = "Meshes Objects must the same number of vertices %t| Ok. %x1"
 					result = Draw.PupMenu(name)
 					return
 			else:
-				name = "Second Object must have  at least a shape key %t| Ok. %x1" 
+				name = "Second Object must have  at least a shape key %t| Ok. %x1"
 				result = Draw.PupMenu(name)
 				return
-		else:	
-			name = "Object must be Meshes %t| Ok. %x1" 
+		else:
+			name = "Object must be Meshes %t| Ok. %x1"
 			result = Draw.PupMenu(name)
-			return 
+			return
 	else :
-		name = "At least 2 Meshes as to be selected %t| Ok. %x1" 
+		name = "At least 2 Meshes as to be selected %t| Ok. %x1"
 		result = Draw.PupMenu(name)
 		return
-	Blender.Redraw()  
+	Blender.Redraw()
 EDITMODE=Blender.Window.EditMode()
 Blender.Window.EditMode(0)
 deform2rvk()

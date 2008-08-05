@@ -1379,6 +1379,8 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		}
 		
 		/* specularity */
+		shadfac[3]*= phongcorr;	/* note, shadfac not allowed to be stored nonlocal */
+		
 		if(shadfac[3]>0.0f && shi->spec!=0.0f && !(lar->mode & LA_NO_SPEC) && !(lar->mode & LA_ONLYSHADOW)) {
 			
 			if(!(passflag & (SCE_PASS_COMBINED|SCE_PASS_SPEC)));

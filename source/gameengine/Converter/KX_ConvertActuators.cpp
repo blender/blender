@@ -503,7 +503,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_PROPERTY:
 			{
 				bPropertyActuator* propact = (bPropertyActuator*) bact->data;
-				CValue* destinationObj = NULL;
+				SCA_IObject* destinationObj = NULL;
 				
 				/*
 				here the destinationobject is searched. problem with multiple scenes: other scenes
@@ -628,6 +628,8 @@ void BL_ConvertActuators(char* maggiename,
 				/* convert settings... degrees in the ui become radians  */ 
 				/* internally                                            */ 
 				if (conact->type == ACT_CONST_TYPE_ORI) {
+					min = (MT_2_PI * conact->minloc[0])/360.0;
+					max = (MT_2_PI * conact->maxloc[0])/360.0;
 					switch (conact->mode) {
 					case ACT_CONST_DIRPX:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_ORIX;
@@ -656,18 +658,18 @@ void BL_ConvertActuators(char* maggiename,
 						min = conact->minloc[2];
 						max = conact->maxloc[2];
 						break;
-					case ACT_CONST_DIRMX:
-						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMX;
+					case ACT_CONST_DIRNX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNX;
 						min = conact->minloc[0];
 						max = conact->maxloc[0];
 						break;
-					case ACT_CONST_DIRMY:
-						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMY;
+					case ACT_CONST_DIRNY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNY;
 						min = conact->minloc[1];
 						max = conact->maxloc[1];
 						break;
-					case ACT_CONST_DIRMZ:
-						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMZ;
+					case ACT_CONST_DIRNZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNZ;
 						min = conact->minloc[2];
 						max = conact->maxloc[2];
 						break;

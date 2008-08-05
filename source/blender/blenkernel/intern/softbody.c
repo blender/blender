@@ -2053,7 +2053,6 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 	
 	/* check conditions for various options */
 	do_deflector= query_external_colliders(ob);
-	do_effector= pdInitEffectors(ob,NULL);
 	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
 	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
@@ -2061,9 +2060,10 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
-
-	
 	if (do_springcollision || do_aero)  scan_for_ext_spring_forces(ob,timenow);
+	/* after spring scan because it uses Effoctors too */
+	do_effector= pdInitEffectors(ob,NULL);
+
 	if (do_deflector) {
 		float defforce[3];
 		do_deflector = sb_detect_aabb_collisionCached(defforce,ob->lay,ob,timenow);

@@ -43,6 +43,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "DNA_gpencil_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -66,6 +67,9 @@
 #include "BIF_resources.h"
 #include "BIF_space.h"
 #include "BIF_interface.h"
+
+#include "BIF_drawgpencil.h"
+#include "BDR_gpencil.h"
 
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
@@ -94,9 +98,73 @@
 int no_rightbox=0, no_leftbox= 0;
 static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction);
 static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
-static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2);
+static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2, char *background_col);
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
 static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq, int outline_tint, float pixelx);
+
+
+static void seq_panel_gpencil(short cntrl)	// SEQ_HANDLER_GREASEPENCIL
+{
+	uiBlock *block;
+	SpaceSeq *sseq;
+	
+	sseq= curarea->spacedata.first;
+
+	block= uiNewBlock(&curarea->uiblocks, "seq_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_GREASEPENCIL);  // for close and esc
+	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceSeq", 100, 30, 318, 204)==0) return;
+	
+	/* only draw settings if right mode */
+	if (sseq->mainb == 0)
+		return;
+	
+	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
+	if (sseq->flag & SEQ_DRAW_GPENCIL) {
+		if (sseq->gpd == NULL)
+			gpencil_data_setactive(curarea, gpencil_data_addnew());
+	}
+	
+	if (sseq->flag & SEQ_DRAW_GPENCIL) {
+		bGPdata *gpd= sseq->gpd;
+		short newheight;
+		
+		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+		/* so first we make it default height */
+		uiNewPanelHeight(block, 204);
+		
+		/* draw button for showing gpencil settings and drawings */
+		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View (draw using Shift-LMB)");
+		
+		/* extend the panel if the contents won't fit */
+		newheight= draw_gpencil_panel(block, gpd, curarea); 
+		uiNewPanelHeight(block, newheight);
+	}
+	else {
+		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+}
+
+static void seq_blockhandlers(ScrArea *sa)
+{
+	SpaceSeq *sseq= sa->spacedata.first;
+	short a;
+
+	/* warning; blocks need to be freed each time, handlers dont remove (for ipo moved to drawipospace) */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
+
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(sseq->blockhandler[a]) {
+			case SEQ_HANDLER_GREASEPENCIL:
+				seq_panel_gpencil(sseq->blockhandler[a+1]);
+				break;
+		}
+	}
+	uiDrawBlocksPanels(sa, 0);
+
+}
+
 
 static void draw_cfra_seq(void)
 {
@@ -536,7 +604,7 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq)
 }
 
 /* draw info text on a sequence strip */
-static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
+static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2, char *background_col)
 {
 	float v1[2], v2[2];
 	int len, size;
@@ -602,8 +670,13 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 	mval[1]= 1;
 	areamouseco_to_ipoco(G.v2d, mval, &x1, &x2);
 	
-	if(seq->flag & SELECT) cpack(0xFFFFFF);
-	else cpack(0);
+	if(seq->flag & SELECT){
+		cpack(0xFFFFFF);
+	}else if ((((int)background_col[0] + (int)background_col[1] + (int)background_col[2]) / 3) < 50){
+		cpack(0x505050); /* use lighter text colour for dark background */
+	}else{
+		cpack(0);
+	}
 	glRasterPos3f(x1,  y1+SEQ_STRIP_OFSBOTTOM, 0.0);
 	BMF_DrawString(G.font, strp);
 }
@@ -672,7 +745,7 @@ so wave file sample drawing precission is zoom adjusted
 static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outline_tint, float pixelx)
 {
 	float x1, x2, y1, y2;
-	char col[3], is_single_image;
+	char col[3], background_col[3], is_single_image;
 
 	/* we need to know if this is a single image/color or not for drawing */
 	is_single_image = (char)check_single_seq(seq);
@@ -687,13 +760,14 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 	
 	
 	/* get the correct color per strip type*/
-	get_seq_color3ubv(seq, col);
+	//get_seq_color3ubv(seq, col);
+	get_seq_color3ubv(seq, background_col);
 	
 	/* draw the main strip body */
 	if (is_single_image) /* single image */
-		draw_shadedstrip(seq, col, seq_tx_get_final_left(seq, 0), y1, seq_tx_get_final_right(seq, 0), y2);
+		draw_shadedstrip(seq, background_col, seq_tx_get_final_left(seq, 0), y1, seq_tx_get_final_right(seq, 0), y2);
 	else /* normal operation */
-		draw_shadedstrip(seq, col, x1, y1, x2, y2);
+		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
 	
 	/* draw additional info and controls */
 	if (seq->type == SEQ_RAM_SOUND)
@@ -746,7 +820,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 
 	/* nice text here would require changing the view matrix for texture text */
 	if( (x2-x1) / pixelx > 32) {
-		draw_seq_text(seq, x1, x2, y1, y2);
+		draw_seq_text(seq, x1, x2, y1, y2, background_col);
 	}
 }
 
@@ -907,6 +981,17 @@ static void draw_image_seq(ScrArea *sa)
 	if (free_ibuf) {
 		IMB_freeImBuf(ibuf);
 	} 
+	
+	/* draw grease-pencil (screen aligned) */
+	if (sseq->flag & SEQ_DRAW_GPENCIL)
+		draw_gpencil_2dview(sa, 0);
+	
+	/* ortho at pixel level sa */
+	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+	
+	/* it is important to end a view in a transform compatible with buttons */
+	bwin_scalematrix(sa->win, sseq->blockscale, sseq->blockscale, sseq->blockscale);
+	seq_blockhandlers(sa);
 
 	sa->win_swap= WIN_BACK_OK;
 }
@@ -1021,24 +1106,6 @@ void seq_viewmove(SpaceSeq *sseq)
 		else BIF_wait_for_statechange();
 	}
 	window_set_cursor(win, oldcursor);
-}
-
-
-
-static void seq_blockhandlers(ScrArea *sa)
-{
-	SpaceSeq *sseq= sa->spacedata.first;
-	short a;
-
-	/* warning; blocks need to be freed each time, handlers dont remove (for ipo moved to drawipospace) */
-	uiFreeBlocksWin(&sa->uiblocks, sa->win);
-
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		/* clear action value for event */
-		sseq->blockhandler[a+1]= 0;
-	}
-	uiDrawBlocksPanels(sa, 0);
-
 }
 
 void drawprefetchseqspace(ScrArea *sa, void *spacedata)

@@ -58,6 +58,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -74,6 +75,7 @@
 #include "BIF_editnla.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_drawgpencil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_resources.h"
@@ -83,9 +85,11 @@
 
 #include "BDR_drawaction.h"
 #include "BDR_editcurve.h"
+#include "BDR_gpencil.h"
 
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
+#include "BSE_drawview.h"
 #include "BSE_editaction_types.h"
 #include "BSE_editipo.h"
 #include "BSE_time.h"
@@ -464,7 +468,7 @@ static void draw_channel_names(void)
 			bActionGroup *grp = NULL;
 			short indent= 0, offset= 0, sel= 0, group=0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
-			char name[32];
+			char name[64];
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
@@ -622,12 +626,112 @@ static void draw_channel_names(void)
 					sprintf(name, "Constraint");
 				}
 					break;
+				case ACTTYPE_GPDATABLOCK: /* gpencil datablock */
+				{
+					bGPdata *gpd = (bGPdata *)ale->data;
+					ScrArea *sa = (ScrArea *)ale->owner;
+					
+					indent = 0;
+					group= 3;
+					
+					/* only show expand if there are any channels */
+					if (gpd->layers.first) {
+						if (gpd->flag & GP_DATA_EXPAND)
+							expand = ICON_TRIA_DOWN;
+						else
+							expand = ICON_TRIA_RIGHT;
+					}
+					
+					switch (sa->spacetype) {
+						case SPACE_VIEW3D:
+						{
+							/* this shouldn't cause any overflow... */
+							sprintf(name, "3DView: %s", view3d_get_name(sa->spacedata.first));
+							special= ICON_VIEW3D;
+						}
+							break;
+						case SPACE_NODE:
+						{
+							SpaceNode *snode= sa->spacedata.first;
+							char treetype[12];
+							
+							if (snode->treetype == 1)
+								sprintf(treetype, "Composite");
+							else
+								sprintf(treetype, "Material");
+							sprintf(name, "Nodes: %s", treetype);
+							
+							special= ICON_NODE;
+						}
+							break;
+						case SPACE_SEQ:
+						{
+							SpaceSeq *sseq= sa->spacedata.first;
+							char imgpreview[10];
+							
+							switch (sseq->mainb) {
+								case 1: 	sprintf(imgpreview, "Image..."); 	break;
+								case 2: 	sprintf(imgpreview, "Luma..."); 	break;
+								case 3: 	sprintf(imgpreview, "Chroma...");	break;
+								case 4: 	sprintf(imgpreview, "Histogram");	break;
+								
+								default:	sprintf(imgpreview, "Sequence");	break;
+							}
+							sprintf(name, "Sequencer: %s", imgpreview);
+							
+							special= ICON_SEQUENCE;
+						}
+							break;
+						
+						default:
+						{
+							sprintf(name, "<Unknown GP-Data Source>");
+							special= -1;
+						}
+							break;
+					}
+				}
+					break;
+				case ACTTYPE_GPLAYER: /* gpencil layer */
+				{
+					bGPDlayer *gpl = (bGPDlayer *)ale->data;
+					
+					indent = 0;
+					special = -1;
+					expand = -1;
+					group = 1;
+					
+					if (EDITABLE_GPL(gpl))
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
+						
+					if (gpl->flag & GP_LAYER_HIDE)
+						mute = ICON_MUTE_IPO_ON;
+					else
+						mute = ICON_MUTE_IPO_OFF;
+					
+					sel = SEL_GPL(gpl);
+					BLI_snprintf(name, 32, gpl->info);
+				}
+					break;
 			}	
 
 			/* now, start drawing based on this information */
 			/* draw backing strip behind channel name */
-			if (group == 2) {
-				/* only for group-channels */
+			if (group == 3) {
+				/* only for gp-data channels */
+				if (ale->owner == curarea) // fixme... currently useless
+					BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
+				else
+					BIF_ThemeColorShade(TH_GROUP, 20);
+				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
+				gl_round_box(GL_POLYGON, x,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+				
+				offset = 0;
+			}
+			else if (group == 2) {
+				/* only for action group channels */
 				if (ale->flag & AGRP_ACTIVE)
 					BIF_ThemeColorShade(TH_GROUP_ACTIVE, 10);
 				else
@@ -673,13 +777,19 @@ static void draw_channel_names(void)
 				offset += 17;
 			}
 			
-			/* draw special icon indicating type of ipo-blocktype? 
-			 * 	only for expand widgets for Ipo and Constraint Channels 
-			 */
-			if (special > 0) {
-				offset = (group) ? 29 : 24;
-				BIF_icon_draw(x+offset, yminc, special);
-				offset += 17;
+			/* draw special icon indicating certain data-types */
+			if (special > -1) {
+				if (group == 3) {
+					/* for gpdatablock channels */
+					BIF_icon_draw(x+offset, yminc, special);
+					offset += 17;
+				}
+				else {
+					/* for ipo/constraint channels */
+					offset = (group) ? 29 : 24;
+					BIF_icon_draw(x+offset, yminc, special);
+					offset += 17;
+				}
 			}
 				
 			/* draw name */
@@ -695,13 +805,13 @@ static void draw_channel_names(void)
 			offset = 0;
 			
 			/* draw protect 'lock' */
-			if (protect > 0) {
+			if (protect > -1) {
 				offset = 16;
 				BIF_icon_draw(NAMEWIDTH-offset, yminc, protect);
 			}
 			
 			/* draw mute 'eye' */
-			if (mute > 0) {
+			if (mute > -1) {
 				offset += 16;
 				BIF_icon_draw(NAMEWIDTH-offset, yminc, mute);
 			}
@@ -827,6 +937,12 @@ static void draw_channel_strips(void)
 					sel = SEL_ICU(icu);
 				}
 					break;
+				case ACTTYPE_GPLAYER:
+				{
+					bGPDlayer *gpl = (bGPDlayer *)ale->data;
+					sel = SEL_GPL(gpl);
+				}
+					break;
 			}
 			
 			if (datatype == ACTCONT_ACTION) {
@@ -865,6 +981,19 @@ static void draw_channel_strips(void)
 				glColor4ub(col2[0], col2[1], col2[2], 0x44);
 				glRectf(frame1_x, channel_y-CHANNELHEIGHT/2, G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 			}
+			else if (datatype == ACTCONT_GPENCIL) {
+				gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
+				
+				/* frames less than one get less saturated background */
+				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(0, channel_y-CHANNELHEIGHT/2, frame1_x, channel_y+CHANNELHEIGHT/2);
+				
+				/* frames one and higher get a saturated background */
+				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x44);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x44);
+				glRectf(frame1_x, channel_y-CHANNELHEIGHT/2, G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
+			}
 		}
 		
 		/*	Increment the step */
@@ -898,6 +1027,9 @@ static void draw_channel_strips(void)
 					break;
 				case ALE_ICU:
 					draw_icu_channel(di, ale->key_data, y);
+					break;
+				case ALE_GPFRAME:
+					draw_gpl_channel(di, ale->data, y);
 					break;
 			}
 		}
@@ -1075,6 +1207,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 {
 	bAction *act = NULL;
 	Key *key = NULL;
+	bGPdata *gpd = NULL;
 	void *data;
 	short datatype;
 	
@@ -1090,18 +1223,32 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	/* only try to refresh action that's displayed if not pinned */
 	if (G.saction->pin==0) {
-		if (OBACT)
-			G.saction->action = OBACT->action;
-		else
-			G.saction->action= NULL;
+		/* depends on mode */
+		switch (G.saction->mode) {
+			case SACTCONT_ACTION:
+			{
+				if (OBACT)
+					G.saction->action = OBACT->action;
+				else
+					G.saction->action= NULL;
+			}
+				break;
+		}
 	}
 	
 	/* get data */
 	data = get_action_context(&datatype);
-	if (datatype == ACTCONT_ACTION)
-		act = data;
-	else if (datatype == ACTCONT_SHAPEKEY)
-		key = data;
+	switch (datatype) {
+		case ACTCONT_ACTION:
+			act = data;
+			break;
+		case ACTCONT_SHAPEKEY:
+			key = data;
+			break;
+		case ACTCONT_GPENCIL:
+			gpd = data;
+			break;
+	}
 	
 	/* Lets make sure the width of the left hand of the screen
 	 * is set to an appropriate value based on whether sliders
@@ -1450,10 +1597,15 @@ static ActKeysInc *init_aki_data()
 	static ActKeysInc aki;
 	
 	/* init data of static struct here */
-	if ((curarea->spacetype == SPACE_ACTION) && NLA_ACTION_SCALED)
+	if ((curarea->spacetype == SPACE_ACTION) && NLA_ACTION_SCALED &&
+		(G.saction->mode == SACTCONT_ACTION))
+	{
 		aki.ob= OBACT;
+	}
 	else if (curarea->spacetype == SPACE_NLA)
+	{
 		aki.ob= NULL; // FIXME
+	}
 	else
 		aki.ob= NULL;
 		
@@ -1524,6 +1676,16 @@ void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 	ActKeysInc *aki = init_aki_data();
 
 	action_to_keylist(act, &keys, NULL, aki);
+	draw_keylist(di, &keys, NULL, ypos);
+	BLI_freelistN(&keys);
+}
+
+void draw_gpl_channel(gla2DDrawInfo *di, bGPDlayer *gpl, float ypos)
+{
+	ListBase keys = {0, 0};
+	ActKeysInc *aki = init_aki_data();
+	
+	gpl_to_keylist(gpl, &keys, NULL, aki);
 	draw_keylist(di, &keys, NULL, ypos);
 	BLI_freelistN(&keys);
 }
@@ -1670,6 +1832,29 @@ void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks, ActKeysIn
 				if (conchan->ipo)
 					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
 			}
+		}
+	}
+}
+
+void gpl_to_keylist(bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+{
+	bGPDframe *gpf;
+	ActKeyColumn *ak;
+	
+	if (gpl && keys) {
+		/* loop over frames, converting directly to 'keyframes' (should be in order too) */
+		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+			ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
+			BLI_addtail(keys, ak);
+			
+			ak->cfra= gpf->framenum;
+			ak->modified = 1;
+			ak->handle_type= 0; 
+			
+			if (gpf->flag & GP_FRAME_SELECT)
+				ak->sel = SELECT;
+			else
+				ak->sel = 0;
 		}
 	}
 }

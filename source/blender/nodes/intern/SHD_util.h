@@ -117,13 +117,12 @@ typedef struct ShaderCallData {
 #define MAT_IN_REFL		2
 #define MAT_IN_NORMAL	3
 #define MAT_IN_MIR		4
-#define MAT_IN_AMBCOL	5
-#define MAT_IN_AMB		6
-#define MAT_IN_EMIT	7
-#define MAT_IN_SPECTRA	8
-#define MAT_IN_RAY_MIRROR	9
-#define MAT_IN_ALPHA	10
-#define MAT_IN_TRANSLUCENCY	11
+#define MAT_IN_AMB		5
+#define MAT_IN_EMIT	6
+#define MAT_IN_SPECTRA	7
+#define MAT_IN_RAY_MIRROR	8
+#define MAT_IN_ALPHA	9
+#define MAT_IN_TRANSLUCENCY	10
 
 /* output socket defines */
 #define MAT_OUT_COLOR		0

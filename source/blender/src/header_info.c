@@ -540,6 +540,42 @@ static void check_packAll()
 	}
 }
 
+#ifdef _WIN32
+static void copy_game_dll(char *dll_filename, char *source_dir, char *dest_dir)
+{
+	char source_filename[FILE_MAX];
+	char dest_filename[FILE_MAX];
+
+	strcpy( source_filename, source_dir );
+	strcat( source_filename, dll_filename );
+
+	strcpy( dest_filename, dest_dir );
+	strcat( dest_filename, dll_filename );
+	
+	if(!BLI_exists(dest_filename)) {
+		BLI_copy_fileops( source_filename, dest_filename );
+	}
+}
+
+static void copy_all_game_dlls(char *str)
+{
+#define GAME_DLL_COUNT		7
+	char *game_dll_list[GAME_DLL_COUNT]={"gnu_gettext.dll", "libpng.dll", "libtiff.dll", "pthreadVC2.dll", "python25.dll", "SDL.dll", "zlib.dll"};
+
+	char dest_dir[FILE_MAX];
+	char source_dir[FILE_MAX];
+	int i;
+
+	strcpy(source_dir, get_install_dir());
+	strcat(source_dir, "\\");
+	BLI_split_dirfile_basic(str, dest_dir, NULL);
+
+	for (i= 0; i< GAME_DLL_COUNT; i++) {
+		copy_game_dll(game_dll_list[i], source_dir, dest_dir );
+	};
+}
+#endif
+
 static int write_runtime(char *str, char *exename)
 {
 	char *freestr= NULL;
@@ -587,7 +623,14 @@ static void write_runtime_check(char *str)
 #endif
 
 	write_runtime(str, player);
+
+#ifdef _WIN32
+	// get a list of the .DLLs in the Blender folder and copy all of these to the destination folder if they don't exist
+	copy_all_game_dlls(str);
+#endif
 }
+
+
 /* end keyed functions */
 
 /************************** MAIN MENU *****************************/
@@ -1026,7 +1069,7 @@ static uiBlock *info_externalfiles(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "info_externalfiles", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_externalfiles, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into Blend",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into .blend file",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
 #if 0
 	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Removes all packed files from the project and saves them to the current directory");
 #endif
@@ -1036,8 +1079,8 @@ static uiBlock *info_externalfiles(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Relative",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Absolute",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -1078,9 +1121,9 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot All|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 #if GAMEBLENDER == 1
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Game As Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 #ifdef _WIN32
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Dynamic Runtime...",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
+//	 uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Dynamic Runtime...",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 #endif
 #endif
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

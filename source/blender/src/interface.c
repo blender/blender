@@ -532,7 +532,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			/* give butfunc the original text too */
 			/* feature used for bone renaming, channels, etc */
 			if(but->func_arg2==NULL) {
-				strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
+				strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 				but->func_arg2= backstr;
 			}
 			strncpy(but->poin, but_copypaste_str, but->max);
@@ -617,6 +617,9 @@ void uiBoundsBlock(uiBlock *block, int addval)
 {
 	uiBut *bt;
 	int xof;
+	
+	if(block==NULL)
+		return;
 	
 	if(block->buttons.first==NULL) {
 		if(block->panel) {
@@ -5405,7 +5408,9 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 		int getsizex, getsizey;
 
 		bwin_getsize(win, &getsizex, &getsizey);
-		block->aspect= 2.0/( (getsizex)*block->winmat[0][0]);
+		/* TODO - investigate why block->winmat[0][0] is negative
+		 * in the image view when viewRedrawForce is called */
+		block->aspect= 2.0/fabs( (getsizex)*block->winmat[0][0]);
 	}
 
 	uiSetCurFont(block, font);
@@ -5646,6 +5651,8 @@ static int ui_auto_themecol(uiBut *but)
 		// (weak!) detect if it is a blockloop
 		if(but->block->dt == UI_EMBOSSP) return TH_MENU_ITEM;
 		return TH_BUT_POPUP;
+	case ROUNDBOX:
+		return TH_PANEL;
 	default:
 		return TH_BUT_NEUTRAL;
 	}

@@ -68,7 +68,7 @@ SG_Node* SG_Node::GetSGReplica()
 	SG_Node* replica = new SG_Node(*this);
 	if (replica == NULL) return NULL;
 
-	ProcessSGReplica(replica);
+	ProcessSGReplica(&replica);
 	
 	return replica;
 }
@@ -76,24 +76,41 @@ SG_Node* SG_Node::GetSGReplica()
 	void 
 SG_Node::
 ProcessSGReplica(
-	SG_Node* replica
+	SG_Node** replica
 ){
 	// Apply the replication call back function.
-	ActivateReplicationCallback(replica);
+	if (!ActivateReplicationCallback(*replica)) 
+	{
+		delete (*replica);
+		*replica = NULL;
+		return;
+	}
 
 	// clear the replica node of it's parent.
-	static_cast<SG_Node*>(replica)->m_SGparent = NULL;
+	static_cast<SG_Node*>(*replica)->m_SGparent = NULL;
 
 	if (m_children.begin() != m_children.end())
 	{
 		// if this node has children, the replica has too, so clear and clone children
-		replica->ClearSGChildren();
+		(*replica)->ClearSGChildren();
 	
 		NodeList::iterator childit;
 		for (childit = m_children.begin();childit!=m_children.end();++childit)
 		{
-			replica->AddChild((*childit)->GetSGReplica());
+			SG_Node* childnode = (*childit)->GetSGReplica();
+			if (childnode)
+				(*replica)->AddChild(childnode);
 		}
+	}
+	// Nodes without children and without client object are
+	// not worth to keep, they will just take up CPU
+	// This can happen in partial replication of hierarchy
+	// during group duplication.
+	if ((*replica)->m_children.empty() && 
+		(*replica)->GetSGClientObject() == NULL)
+	{
+		delete (*replica);
+		*replica = NULL;
 	}
 }
 

@@ -143,9 +143,6 @@
 				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderMouseDevice.cpp">
 			</File>
 			<File
-				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderPolyMaterial.cpp">
-			</File>
-			<File
 				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderRenderTools.cpp">
 			</File>
 			<File
@@ -169,9 +166,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderMouseDevice.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderPolyMaterial.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\BlenderRoutines\KX_BlenderRenderTools.h">

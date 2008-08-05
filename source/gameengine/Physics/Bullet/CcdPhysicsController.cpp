@@ -337,12 +337,33 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 		{
 			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-
-		m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
+		// not required
+		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
 		btTransform xform  = m_body->getCenterOfMassTransform();
 		xform.setRotation(btQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
 		m_body->setCenterOfMassTransform(xform);
-		m_bulletMotionState->setWorldTransform(xform);
+		// not required
+		//m_bulletMotionState->setWorldTransform(xform);
+	}
+
+}
+
+void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
+{
+	if (m_body)
+	{
+		m_body->activate(true);
+		if (m_body->isStaticObject())
+		{
+			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		}
+		// not required
+		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
+		btTransform xform  = m_body->getCenterOfMassTransform();
+		xform.setBasis(orn);
+		m_body->setCenterOfMassTransform(xform);
+		// not required
+		//m_bulletMotionState->setWorldTransform(xform);
 	}
 
 }
@@ -356,12 +377,13 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 		{
 			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-		
-		m_MotionState->setWorldPosition(posX,posY,posZ);
+		// not required, this function is only used to update the physic controller
+		//m_MotionState->setWorldPosition(posX,posY,posZ);
 		btTransform xform  = m_body->getCenterOfMassTransform();
 		xform.setOrigin(btVector3(posX,posY,posZ));
 		m_body->setCenterOfMassTransform(xform);
-		m_bulletMotionState->setWorldTransform(xform);
+		// not required
+		//m_bulletMotionState->setWorldTransform(xform);
 	}
 
 

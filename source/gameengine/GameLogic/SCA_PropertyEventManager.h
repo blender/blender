@@ -43,7 +43,6 @@ public:
 	SCA_PropertyEventManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_PropertyEventManager();
 	virtual void NextFrame();
-	virtual void	RegisterSensor(SCA_ISensor* sensor);
 	//SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 };
 

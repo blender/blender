@@ -484,15 +484,14 @@ static char get_largest_axis(float *bv)
 	}
 }
 
-static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char lastaxis)
+static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end)
 {
-	char laxis;
 	int i, tend;
 	BVHNode *tnode;
 	int slice = (end-start+tree->tree_type-1)/tree->tree_type;	//division rounded up
 	
 	// Determine which axis to split along
-	laxis = get_largest_axis(node->bv);
+	char laxis = get_largest_axis(node->bv);
 	
 	// split nodes along longest axis
 	for (i=0; start < end; start += slice, i++) //i counts the current child
@@ -515,7 +514,7 @@ static void bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, char
 			if(tend != end)
 				partition_nth_element(tree->nodes, start, end, tend, laxis);
 			refit_kdop_hull(tree, tnode, start, tend);
-			bvh_div_nodes(tree, tnode, start, tend, laxis);
+			bvh_div_nodes(tree, tnode, start, tend);
 		}
 		node->totnode++;
 	}
@@ -586,7 +585,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 	// refit root bvh node
 	refit_kdop_hull(tree, tree->nodes[tree->totleaf], 0, tree->totleaf);
 	// create + balance tree
-	bvh_div_nodes(tree, tree->nodes[tree->totleaf], 0, tree->totleaf, 0);
+	bvh_div_nodes(tree, tree->nodes[tree->totleaf], 0, tree->totleaf);
 	
 	// verify_tree(tree);
 }

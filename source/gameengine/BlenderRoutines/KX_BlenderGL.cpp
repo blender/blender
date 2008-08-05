@@ -170,6 +170,7 @@ void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface
 void DisableForText()
 {
 	if(glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
+	if(glIsEnabled(GL_ALPHA_TEST)) glDisable(GL_ALPHA_TEST);
 
 	if(glIsEnabled(GL_LIGHTING)) {
 		glDisable(GL_LIGHTING);

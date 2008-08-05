@@ -1931,7 +1931,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Width: ",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->value,
-					  0.0, 0.5, 5, 2,
+					  0.0, 0.5, 5, 4,
 					  "Bevel value/amount");
 			/*uiDefButI(block, NUM, B_MODIFIER_RECALC, "Recurs",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->res,
@@ -4373,11 +4373,12 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", 225, by-19,105, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
 			
 			/* bone types */
-			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
-			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
-			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
-			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,60,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		50,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
+			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	70, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 150,by-38,60,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	210,by-38,60,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_EDITMODE_LOCKED, REDRAWVIEW3D, "Lock",	270,by-38,60,18, &curBone->flag, 0, 0, 0, 0, "Prevents this bone from being transformed in Edit Mode");
 			
 			/* layers */
 			uiBlockBeginAlign(block);
@@ -6263,6 +6264,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &tf->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
 		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &tf->mode, 0, 0, 0, 0, "Face is used for shadow");
 		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable bitmap text on face");
+		uiDefButBitS(block, TOG, TF_ALPHASORT, REDRAWVIEW3D, "Sort", 840,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable sorting of faces for correct alpha drawing (slow, use Clip Alpha instead when possible)");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);

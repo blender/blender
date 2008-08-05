@@ -30,12 +30,14 @@
 #define __KX_EVENTMANAGER
 
 #include <vector>
+#include <set>
 #include <algorithm>
 
 class SCA_EventManager
 {
 protected:
-	std::vector <class SCA_ISensor*>				m_sensors;
+	// use a set to speed-up insertion/removal
+	std::set <class SCA_ISensor*>				m_sensors;
 
 public:
 	enum EVENT_MANAGER_TYPE {
@@ -61,7 +63,7 @@ public:
 	virtual void	NextFrame();
 	virtual void    UpdateFrame();
 	virtual void	EndFrame();
-	virtual void	RegisterSensor(class SCA_ISensor* sensor)=0;
+	virtual void	RegisterSensor(class SCA_ISensor* sensor);
 	int		GetType();
 
 protected:

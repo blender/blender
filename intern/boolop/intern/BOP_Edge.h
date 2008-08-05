@@ -29,12 +29,16 @@
 #define BOP_EDGE_H
 
 #include "BOP_Indexs.h"
+#include "BOP_Misc.h"
 
 class BOP_Edge
 {
 private:
 	BOP_Index  m_vertexs[2];
 	BOP_Indexs m_faces;
+#ifdef BOP_NEW_MERGE
+	bool m_used;
+#endif
 
 	bool containsFace(BOP_Index i);
 
@@ -47,6 +51,15 @@ public:
 	inline unsigned int getNumFaces(){return m_faces.size();};
 	inline BOP_Indexs &getFaces(){return m_faces;};
 	void addFace(BOP_Index face);
+#ifdef BOP_NEW_MERGE
+	bool removeFace(BOP_Index i);
+	bool getUsed() { return m_used;};
+	void setUsed(bool setting) { m_used=setting;};
+#endif
+#ifdef BOP_DEBUG
+	friend ostream &operator<<(ostream &stream, BOP_Edge *e);
+#endif
+
 };
 
 #endif

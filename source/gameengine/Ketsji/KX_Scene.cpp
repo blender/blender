@@ -37,6 +37,7 @@
 #include "MT_assert.h"
 
 #include "KX_KetsjiEngine.h"
+#include "KX_BlenderMaterial.h"
 #include "RAS_IPolygonMaterial.h"
 #include "ListValue.h"
 #include "SCA_LogicManager.h"
@@ -66,6 +67,8 @@
 #include "SG_Controller.h"
 #include "SG_IObject.h"
 #include "SG_Tree.h"
+#include "DNA_group_types.h"
+#include "BKE_anim.h"
 
 #include "KX_SG_NodeRelationships.h"
 
@@ -89,6 +92,9 @@
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
+
+	if(replica)
+		replica->Release();
 
 	return (void*)replica;
 }
@@ -114,13 +120,13 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	PyObjectPlus(&KX_Scene::Type),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
+	m_sceneConverter(NULL),
 	m_physicsEnvironment(0),
 	m_sceneName(sceneName),
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0),
-	m_sceneConverter(NULL)
+	m_ueberExecutionPriority(0)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -429,6 +435,11 @@ void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gam
 
 KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CValue* gameobj)
 {
+	// for group duplication, limit the duplication of the hierarchy to the
+	// objects that are part of the group. 
+	if (!IsObjectInGroup(gameobj))
+		return NULL;
+	
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;
 	KX_GameObject* newobj = (KX_GameObject*)orgobj->GetReplica();
 	m_map_gameobject_to_replica.insert(orgobj, newobj);
@@ -506,6 +517,11 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 // hierarchy that's because first ALL bricks must exist in the new
 // replica of the hierarchy in order to make cross-links work properly
 // !
+// It is VERY important that the order of sensors and actuators in
+// the replicated object is preserved: it is is used to reconnect the logic.
+// This method is more robust then using the bricks name in case of complex 
+// group replication. The replication of logic bricks is done in 
+// SCA_IObject::ReParentLogic(), make sure it preserves the order of the bricks.
 void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 {
 	// also relink the controller to sensors/actuators
@@ -528,37 +544,38 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		for (vector<SCA_ISensor*>::iterator its = linkedsensors.begin();!(its==linkedsensors.end());its++)
 		{
 			SCA_ISensor* oldsensor = (*its);
-			STR_String name = oldsensor->GetName();
-			//find this name in the list
-			SCA_ISensor* newsensor = newobj->FindSensor(name);
+			SCA_IObject* oldsensorobj = oldsensor->GetParent();
+			SCA_IObject* newsensorobj = NULL;
 		
-			if (newsensor)
+			// the original owner of the sensor has been replicated?
+			void **h_obj = m_map_gameobject_to_replica[oldsensorobj];
+			if (h_obj)
+				newsensorobj = (SCA_IObject*)(*h_obj);
+			if (!newsensorobj)
 			{
-				// relink this newsensor to the controller
-				m_logicmgr->RegisterToSensor(cont,newsensor);
+				// no, then the sensor points outside the hierachy, keep it the same
+				if (m_objectlist->SearchValue(oldsensorobj))
+					// only replicate links that points to active objects
+					m_logicmgr->RegisterToSensor(cont,oldsensor);
 			}
 			else
 			{
-				// it can be linked somewhere in the hierarchy or...
-				for (vector<KX_GameObject*>::iterator git = m_logicHierarchicalGameObjects.begin();
-				!(git==m_logicHierarchicalGameObjects.end());++git)
-				{
-					newsensor = (*git)->FindSensor(name);
-					if (newsensor)
-						break;
-				} 
+				// yes, then the new sensor has the same position
+				SCA_SensorList& sensorlist = oldsensorobj->GetSensors();
+				SCA_SensorList::iterator sit;
+				SCA_ISensor* newsensor = NULL;
+				int sensorpos;
 
-				if (newsensor)
+				for (sensorpos=0, sit=sensorlist.begin(); sit!=sensorlist.end(); sit++, sensorpos++)
 				{
-					// relink this newsensor to the controller somewhere else within this
-					// hierarchy
-					m_logicmgr->RegisterToSensor(cont,newsensor);
+					if ((*sit) == oldsensor) 
+					{
+						newsensor = newsensorobj->GetSensors().at(sensorpos);
+						break;
+					}
 				}
-				else
-				{
-					// must be an external sensor, so...
-					m_logicmgr->RegisterToSensor(cont,oldsensor);
-				}
+				assert(newsensor != NULL);
+				m_logicmgr->RegisterToSensor(cont,newsensor);
 			}
 		}
 		
@@ -566,38 +583,40 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		for (vector<SCA_IActuator*>::iterator ita = linkedactuators.begin();!(ita==linkedactuators.end());ita++)
 		{
 			SCA_IActuator* oldactuator = (*ita);
-			STR_String name = oldactuator->GetName();
-			//find this name in the list
-			SCA_IActuator* newactuator = newobj->FindActuator(name);
-			if (newactuator)
+			SCA_IObject* oldactuatorobj = oldactuator->GetParent();
+			SCA_IObject* newactuatorobj = NULL;
+
+			// the original owner of the sensor has been replicated?
+			void **h_obj = m_map_gameobject_to_replica[oldactuatorobj];
+			if (h_obj)
+				newactuatorobj = (SCA_IObject*)(*h_obj);
+
+			if (!newactuatorobj)
 			{
-				// relink this newsensor to the controller
-				m_logicmgr->RegisterToActuator(cont,newactuator);
-				newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
+				// no, then the sensor points outside the hierachy, keep it the same
+				if (m_objectlist->SearchValue(oldactuatorobj))
+					// only replicate links that points to active objects
+					m_logicmgr->RegisterToActuator(cont,oldactuator);
 			}
 			else
 			{
-				// it can be linked somewhere in the hierarchy or...
-				for (vector<KX_GameObject*>::iterator git = m_logicHierarchicalGameObjects.begin();
-				!(git==m_logicHierarchicalGameObjects.end());++git)
-				{
-					newactuator= (*git)->FindActuator(name);
-					if (newactuator)
-						break;
-				} 
+				// yes, then the new sensor has the same position
+				SCA_ActuatorList& actuatorlist = oldactuatorobj->GetActuators();
+				SCA_ActuatorList::iterator ait;
+				SCA_IActuator* newactuator = NULL;
+				int actuatorpos;
 
-				if (newactuator)
+				for (actuatorpos=0, ait=actuatorlist.begin(); ait!=actuatorlist.end(); ait++, actuatorpos++)
 				{
-					// relink this actuator to the controller somewhere else within this
-					// hierarchy
-					m_logicmgr->RegisterToActuator(cont,newactuator);
-					newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
+					if ((*ait) == oldactuator) 
+					{
+						newactuator = newactuatorobj->GetActuators().at(actuatorpos);
+						break;
+					}
 				}
-				else
-				{
-					// must be an external actuator, so...
-					m_logicmgr->RegisterToActuator(cont,oldactuator);
-				}
+				assert(newactuator != NULL);
+				m_logicmgr->RegisterToActuator(cont,newactuator);
+				newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
 			}
 		}
 	}
@@ -605,6 +624,154 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 	newobj->ResetState();
 }
 
+void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
+{
+	KX_GameObject* groupobj = (KX_GameObject*) obj;
+	KX_GameObject* replica;
+	KX_GameObject* gameobj;
+	Object* blgroupobj = groupobj->GetBlenderObject();
+	Group* group;
+	GroupObject *go;
+	vector<KX_GameObject*> duplilist;
+
+	if (!groupobj->IsDupliGroup() ||
+		level>MAX_DUPLI_RECUR)
+		return;
+
+	// we will add one group at a time
+	m_logicHierarchicalGameObjects.clear();
+	m_map_gameobject_to_replica.clear();
+	m_ueberExecutionPriority++;
+	// for groups will do something special: 
+	// we will force the creation of objects to those in the group only
+	// Again, this is match what Blender is doing (it doesn't care of parent relationship)
+	m_groupGameObjects.clear();
+
+	group = blgroupobj->dup_group;
+	for(go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
+	{
+		Object* blenderobj = go->ob;
+		if (blgroupobj == blenderobj)
+			// this check is also in group_duplilist()
+			continue;
+		gameobj = (KX_GameObject*)m_logicmgr->FindGameObjByBlendObj(blenderobj);
+		if (gameobj == NULL) 
+		{
+			// this object has not been converted!!!
+			// Should not happen as dupli group are created automatically 
+			continue;
+		}
+		if ((blenderobj->lay & group->layer)==0)
+		{
+			// object is not visible in the 3D view, will not be instantiated
+			continue;
+		}
+		m_groupGameObjects.insert(gameobj);
+	}
+
+	set<CValue*>::iterator oit;
+	for (oit=m_groupGameObjects.begin(); oit != m_groupGameObjects.end(); oit++)
+	{
+		gameobj = (KX_GameObject*)(*oit);
+
+		KX_GameObject *parent = gameobj->GetParent();
+		if (parent != NULL)
+		{
+			parent->Release(); // GetParent() increased the refcount
+
+			// this object is not a top parent. Either it is the child of another
+			// object in the group and it will be added automatically when the parent
+			// is added. Or it is the child of an object outside the group and the group
+			// is inconsistent, skip it anyway
+			continue;
+		}
+		replica = (KX_GameObject*) AddNodeReplicaObject(NULL,gameobj);
+		// add to 'rootparent' list (this is the list of top hierarchy objects, updated each frame)
+		m_parentlist->Add(replica->AddRef());
+
+		// recurse replication into children nodes
+		NodeList& children = gameobj->GetSGNode()->GetSGChildren();
+
+		replica->GetSGNode()->ClearSGChildren();
+		for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+		{
+			SG_Node* orgnode = (*childit);
+			SG_Node* childreplicanode = orgnode->GetSGReplica();
+			if (childreplicanode)
+				replica->GetSGNode()->AddChild(childreplicanode);
+		}
+		// don't replicate logic now: we assume that the objects in the group can have
+		// logic relationship, even outside parent relationship
+		// In order to match 3D view, the position of groupobj is used as a 
+		// transformation matrix instead of the new position. This means that 
+		// the group reference point is 0,0,0
+
+		// get the rootnode's scale
+		MT_Vector3 newscale = groupobj->NodeGetWorldScaling();
+		// set the replica's relative scale with the rootnode's scale
+		replica->NodeSetRelativeScale(newscale);
+
+		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
+		replica->NodeSetLocalOrientation(newori);
+
+		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
+			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
+		replica->NodeSetLocalPosition(newpos);
+
+		if (replica->GetPhysicsController())
+		{
+			// not required, already done in NodeSetLocalOrientation..
+			//replica->GetPhysicsController()->setPosition(newpos);
+			//replica->GetPhysicsController()->setOrientation(newori.getRotation());
+			// Scaling has been set relatively hereabove, this does not 
+			// set the scaling of the controller. I don't know why it's just the
+			// relative scale and not the full scale that has to be put here...
+			replica->GetPhysicsController()->setScaling(newscale);
+		}
+
+		replica->GetSGNode()->UpdateWorldData(0);
+		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
+		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
+		// done with replica
+		replica->Release();
+	}
+
+	// the logic must be replicated first because we need
+	// the new logic bricks before relinking
+	vector<KX_GameObject*>::iterator git;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		(*git)->ReParentLogic();
+	}
+	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuator to objects within the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(groupobj->GetLayer());
+	}
+
+	// replicate crosslinks etc. between logic bricks
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		ReplicateLogic((*git));
+	}
+	
+	// now look if object in the hierarchy have dupli group and recurse
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git) != groupobj && (*git)->IsDupliGroup())
+			// can't instantiate group immediately as it destroys m_logicHierarchicalGameObjects
+			duplilist.push_back((*git));
+	}
+
+	for (git = duplilist.begin(); !(git == duplilist.end()); ++git)
+	{
+		DupliGroupRecurse((*git), level+1);
+	}
+}
 
 
 SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
@@ -614,6 +781,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	m_logicHierarchicalGameObjects.clear();
 	m_map_gameobject_to_replica.clear();
+	m_groupGameObjects.clear();
 
 	// todo: place a timebomb in the object, for temporarily objects :)
 	// lifespan of zero means 'this object lives forever'
@@ -647,24 +815,26 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	{
 		SG_Node* orgnode = (*childit);
 		SG_Node* childreplicanode = orgnode->GetSGReplica();
-		replica->GetSGNode()->AddChild(childreplicanode);
-	}
-
-	//	relink any pointers as necessary, sort of a temporary solution
-	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		(*git)->Relink(&m_map_gameobject_to_replica);
-		// add the object in the layer of the parent
-		(*git)->SetLayer(parentobj->GetLayer());
+		if (childreplicanode)
+			replica->GetSGNode()->AddChild(childreplicanode);
 	}
 
 	// now replicate logic
+	vector<KX_GameObject*>::iterator git;
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
 		(*git)->ReParentLogic();
 	}
 	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuators in the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(parentobj->GetLayer());
+	}
+
 	// replicate crosslinks etc. between logic bricks
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
@@ -685,8 +855,9 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	if (replica->GetPhysicsController())
 	{
-		replica->GetPhysicsController()->setPosition(newpos);
-		replica->GetPhysicsController()->setOrientation(newori.getRotation());
+		// not needed, already done in NodeSetLocalPosition()
+		//replica->GetPhysicsController()->setPosition(newpos);
+		//replica->GetPhysicsController()->setOrientation(newori.getRotation());
 		replica->GetPhysicsController()->setScaling(newscale);
 	}
 
@@ -697,6 +868,20 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
+	// check if there are objects with dupligroup in the hierarchy
+	vector<KX_GameObject*> duplilist;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git)->IsDupliGroup())
+		{
+			// separate list as m_logicHierarchicalGameObjects is also used by DupliGroupRecurse()
+			duplilist.push_back(*git);
+		}
+	}
+	for (git = duplilist.begin();!(git==duplilist.end());++git)
+	{
+		DupliGroupRecurse(*git, 0);
+	}
 	//	don't release replica here because we are returning it, not done with it...
 	return replica;
 }
@@ -742,6 +927,12 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
 	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	// keep the blender->game object association up to date
+	// note that all the replicas of an object will have the same
+	// blender object, that's why we need to check the game object
+	// as only the deletion of the original object must be recorded
+	m_logicmgr->UnregisterGameObj(newobj->GetBlenderObject(), gameobj);
 
 	//todo: look at this
 	//GetPhysicsEnvironment()->RemovePhysicsController(gameobj->getPhysicsController());
@@ -801,6 +992,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
+
 	// in case this is a camera
 	m_cameras.remove((KX_Camera*)newobj);
 
@@ -1057,14 +1249,10 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 			if (visible)
 			{
 				int nummeshes = gameobj->GetMeshCount();
-				MT_Transform t( cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
-	
 				
+				// this adds the vertices to the display list
 				for (int m=0;m<nummeshes;m++)
-				{
-					// this adds the vertices to the display list
-					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
-				}
+					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 			}
 			gameobj->MarkVisible(visible);
 		}
@@ -1121,12 +1309,11 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	if (vis)
 	{
 		int nummeshes = gameobj->GetMeshCount();
-		MT_Transform t(cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 		
 		for (int m=0;m<nummeshes;m++)
 		{
 			// this adds the vertices to the display list
-			(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
+			(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 		}
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
@@ -1239,7 +1426,7 @@ void KX_Scene::UpdateParents(double curtime)
 
 RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool &bucketCreated)
 {
-	return m_bucketmanager->RAS_BucketManagerFindBucket(polymat, bucketCreated);
+	return m_bucketmanager->FindBucket(polymat, bucketCreated);
 }
 
 
@@ -1249,9 +1436,8 @@ void KX_Scene::RenderBuckets(const MT_Transform & cameratransform,
 							 class RAS_IRenderTools* rendertools)
 {
 	m_bucketmanager->Renderbuckets(cameratransform,rasty,rendertools);
+	KX_BlenderMaterial::EndFrame();
 }
-
-
 
 void KX_Scene::UpdateObjectActivity(void) 
 {

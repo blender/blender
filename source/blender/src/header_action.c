@@ -50,8 +50,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
 #include "BIF_editaction.h"
 #include "BIF_interface.h"
+#include "BIF_language.h"
 #include "BIF_poseobject.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -76,6 +79,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+/* ------------------------------- */
 /* enums declaring constants that are used as menu event codes  */
 
 enum {
@@ -211,6 +215,16 @@ enum {
 	ACTMENU_MARKERS_LOCALDELETE,
 	ACTMENU_MARKERS_LOCALMOVE
 };
+
+/* ------------------------------- */
+/* macros for easier state testing (only for use here) */
+
+/* test if active action editor is showing any markers */
+#define G_SACTION_HASMARKERS \
+	((G.saction->action && G.saction->action->markers.first) \
+	 || (G.scene->markers.first))
+
+/* ------------------------------- */
 
 void do_action_buttons(unsigned short event)
 {
@@ -398,32 +412,41 @@ static uiBlock *action_viewmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_SLIDERS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
-					 "Show Sliders|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_SLIDERS, "");
-					 
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOHIDE)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
-					 "Show Hidden Channels|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_NOHIDE, "");
-					 
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NODRAWGCOLORS)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "Use Group Colors|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_GCOLORS, "");
-					 
-		// this option may get removed in future
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
-					 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_HORIZOPTIMISE, "");
+	if (G.saction->mode == SACTCONT_GPENCIL) {
+			// this option may get removed in future
+		uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+						 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						 ACTMENU_VIEW_HORIZOPTIMISE, "");
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_SLIDERS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+						 "Show Sliders|", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						 ACTMENU_VIEW_SLIDERS, "");
+						 
+		uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOHIDE)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+						 "Show Hidden Channels|", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						 ACTMENU_VIEW_NOHIDE, "");
+						 
+		uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NODRAWGCOLORS)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+						 "Use Group Colors|", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						 ACTMENU_VIEW_GCOLORS, "");
+						 
+			// this option may get removed in future
+		uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_HORIZOPTIMISEON)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+						 "Cull Out-of-View Keys (Time)|", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						 ACTMENU_VIEW_HORIZOPTIMISE, "");
+		
+		uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+						 "AutoMerge Keyframes|", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						 ACTMENU_VIEW_TRANSDELDUPS, "");
+	}	
 	
-	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "AutoMerge Keyframes|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_TRANSDELDUPS, "");
-			
 		
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, 
@@ -476,7 +499,7 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_PREVRANGECLEAR, "");
 		
-	if (G.saction->action) {
+	if ((G.saction->mode == SACTCONT_ACTION) && (G.saction->action)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Preview Range from Action Length|Ctrl Alt P", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
@@ -550,13 +573,15 @@ static uiBlock *action_selectmenu_columnmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "On Current Frame|Ctrl K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
 					 ACTMENU_SEL_COLUMN_CFRA, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "On Selected Markers|Shift K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_COLUMN_MARKERSCOLUMN, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Between Selected Markers|Alt K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_COLUMN_MARKERSBETWEEN, "");
 	
+	if (G_SACTION_HASMARKERS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "On Selected Markers|Shift K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_COLUMN_MARKERSCOLUMN, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Between Selected Markers|Alt K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_COLUMN_MARKERSBETWEEN, "");
+	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -659,14 +684,18 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Border Select Keys|B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_BORDER, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Border Select Channels|B", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_BORDERC, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Border Select Markers|Ctrl B", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_BORDERM, "");
+	if (G_SACTION_HASMARKERS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Border Select Markers|Ctrl B", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_BORDERM, "");
+	}
+	if (G.saction->mode != SACTCONT_SHAPEKEY) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Border Select Channels|B", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_BORDERC, "");
+	}
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -675,14 +704,18 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Select/Deselect All Keys|A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_KEYS, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select/Deselect All Markers|Ctrl A", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_ALL_MARKERS, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select/Deselect All Channels|A", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_ALL_CHAN, "");
+	if (G_SACTION_HASMARKERS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Select/Deselect All Markers|Ctrl A", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_ALL_MARKERS, "");
+	}
+	if (G.saction->mode != SACTCONT_SHAPEKEY) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Select/Deselect All Channels|A", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_ALL_CHAN, "");
+	}
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -691,14 +724,18 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Inverse Keys|Ctrl I", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_INVERSE_KEYS, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Inverse Markers|Ctrl Shift I", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_INVERSE_MARKERS, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Inverse All Channels|Ctrl I", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_INVERSE_CHANNELS, "");
+	if (G_SACTION_HASMARKERS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Inverse Markers|Ctrl Shift I", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_INVERSE_MARKERS, "");
+	}
+	if (G.saction->mode != SACTCONT_SHAPEKEY) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Inverse All Channels|Ctrl I", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_SEL_INVERSE_CHANNELS, "");
+	}
 		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -957,6 +994,40 @@ static uiBlock *action_channelmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 			"Collapse One Level|Ctrl NumPad-", 0, yco-=20,
 			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_CLOSELEVELS, "");
+	
+	if (curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+/* note: uses do_action_channelmenu too... */
+static uiBlock *action_gplayermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_gplayermenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_action_channelmenu, NULL);
+	
+	uiDefIconTextBlockBut(block, action_channelmenu_settingsmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Settings", 0, yco-=20, 120, 20, "");	
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			"Delete|X", 0, yco-=20,
+			menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_CHANNELS_DELETE, "");
 	
 	if (curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1400,6 +1471,51 @@ static uiBlock *action_keymenu(void *arg_unused)
 	return block;
 }
 
+/* note: uses do_action_keymenu too! */
+static uiBlock *action_framemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_framemenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_action_keymenu, NULL);
+	
+	uiDefIconTextBlockBut(block, action_keymenu_transformmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
+	
+	uiDefIconTextBlockBut(block, action_keymenu_snapmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 20, "");
+	
+	uiDefIconTextBlockBut(block, action_keymenu_mirrormenu, 
+						  NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 20, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					"Duplicate|Shift D", 0, yco-=20, 
+					menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					ACTMENU_KEY_DUPLICATE, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					"Delete|X", 0, yco-=20, 
+					menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					ACTMENU_KEY_DELETE, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
 static void do_action_markermenu(void *arg, int event)
 {	
 	switch(event)
@@ -1461,17 +1577,19 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
-					 
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Pose Marker|Shift L", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALADD, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Pose Marker|Ctrl Shift L", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALRENAME, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Pose Marker|Alt L", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALDELETE, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Pose Marker|Ctrl L", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALMOVE, "");
+		
+	if (G.saction->mode == SACTCONT_ACTION) {
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Pose Marker|Shift L", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALADD, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Pose Marker|Ctrl Shift L", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALRENAME, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Pose Marker|Alt L", 0, yco-=20,
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALDELETE, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Pose Marker|Ctrl L", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALMOVE, "");
+	}
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1498,6 +1616,7 @@ void action_buttons(void)
 		return;
 
 	/* copied from drawactionspace.... */
+	// FIXME: do for gpencil too?
 	if (!G.saction->pin) {
 		if (OBACT)
 			G.saction->action = OBACT->action;
@@ -1558,9 +1677,15 @@ void action_buttons(void)
 					  "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		if (G.saction->action) {
+		if ((G.saction->action) && (G.saction->mode==SACTCONT_ACTION)) {
 			xmax= GetButStringLength("Channel");
 			uiDefPulldownBut(block, action_channelmenu, NULL, 
+						  "Channel", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
+		else if (G.saction->mode==SACTCONT_GPENCIL) {
+			xmax= GetButStringLength("Channel");
+			uiDefPulldownBut(block, action_gplayermenu, NULL, 
 						  "Channel", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
 		}
@@ -1570,55 +1695,76 @@ void action_buttons(void)
 					  "Marker", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		xmax= GetButStringLength("Key");
-		uiDefPulldownBut(block, action_keymenu, NULL, 
-					  "Key", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+		if (G.saction->mode == SACTCONT_GPENCIL) {
+			xmax= GetButStringLength("Frame");
+			uiDefPulldownBut(block, action_framemenu, NULL, 
+						  "Frame", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+
+		}
+		else {
+			xmax= GetButStringLength("Key");
+			uiDefPulldownBut(block, action_keymenu, NULL, 
+						  "Key", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	/* NAME ETC */
-	ob= OBACT;
-	from = (ID *)ob;
+	/* MODE SELECTOR */
+	uiDefButC(block, MENU, B_REDR, 
+			"Editor Mode %t|Action Editor %x0|ShapeKey Editor %x1|Grease Pencil %x2", 
+			xco,0,90,YIC, &(G.saction->mode), 0, 1, 0, 0, 
+			"Editing modes for this editor");
 
-	xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
-						B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
-						from, &(G.saction->actnr), B_ACTALONE, 
-						B_ACTLOCAL, B_ACTIONDELETE, 0, B_KEEPDATA);	
-
-	uiClearButLock();
-
-	xco += 8;
 	
-	/* COPY PASTE */
-	uiBlockBeginAlign(block);
-	if (curarea->headertype==HEADERTOP) {
-		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYUP,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
-		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
-	}
-	else {
-		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYDOWN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
-		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
-	}
-	uiBlockEndAlign(block);
-	xco += (XIC + 8);
+	xco += (90 + 8);
 	
-	/* draw AUTOSNAP */
-	if (G.saction->flag & SACTION_DRAWTIME) {
-		uiDefButS(block, MENU, B_REDR,
-				"Auto-Snap Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
-				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
-				"Auto-snapping mode for keyframes when transforming");
+	/* MODE-DEPENDENT DRAWING */
+	if (G.saction->mode != SACTCONT_GPENCIL) {
+		/* NAME ETC */
+		ob= OBACT;
+		from = (ID *)ob;
+		
+		xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
+							B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
+							from, &(G.saction->actnr), B_ACTALONE, 
+							B_ACTLOCAL, B_ACTIONDELETE, 0, B_KEEPDATA);	
+		
+		uiClearButLock();
+		
+		xco += 8;
+		
+		/* COPY PASTE */
+		uiBlockBeginAlign(block);
+		if (curarea->headertype==HEADERTOP) {
+			uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYUP,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+		}
+		else {
+			uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYDOWN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+		}
+		uiBlockEndAlign(block);
+		xco += (XIC + 8);
+		
+		/* draw AUTOSNAP */
+		if (G.saction->flag & SACTION_DRAWTIME) {
+			uiDefButC(block, MENU, B_REDR,
+					"Auto-Snap Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
+					xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+					"Auto-snapping mode for keyframes when transforming");
+		}
+		else {
+			uiDefButC(block, MENU, B_REDR, 
+					"Auto-Snap Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
+					xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+					"Auto-snapping mode for keyframes when transforming");
+		}
+		
+		xco += (70 + 8);
 	}
-	else {
-		uiDefButS(block, MENU, B_REDR, 
-				"Auto-Snap Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
-				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
-				"Auto-snapping mode for keyframes when transforming");
-	}
-	
-	xco += (70 + 8);
 	
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco, 0, XIC, YIC, 

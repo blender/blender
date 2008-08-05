@@ -558,8 +558,8 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
-	if (G.obedit && G.editMesh) {
-		/* we are in editmode, so get a special derived mesh */
+	if ((G.obedit == ob) && (G.editMesh)) {
+		/* target is in editmode, so get a special derived mesh */
 		dm = CDDM_from_editmesh(G.editMesh, ob->data);
 	}
 	else {

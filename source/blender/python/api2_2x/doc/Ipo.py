@@ -250,7 +250,7 @@ class Ipo:
 			OfsZ, SizeX, SizeY, SizeZ, texR, texG, texB, DefVar, Col, Nor, Var,
 			Disp.
 			3. Object Ipo: LocX, LocY, LocZ, dLocX, dLocY, dLocZ, RotX, RotY, RotZ,
-			dRotX, dRotY, dRotZ, SizeX, SizeY, SizeZ, dSizeX, dSizeY, dSizeZ,
+			dRotX, dRotY, dRotZ, ScaleX, ScaleY, ScaleZ, dScaleX, dScaleY, dScaleZ,
 			Layer, Time, ColR, ColG, ColB, ColA, FStreng, FFall, Damping,
 			RDamp, Perm.
 			4. Lamp Ipo: Energ, R, G, B, Dist, SpoSi, SpoBl, Quad1, Quad2, HaInt.
@@ -289,7 +289,7 @@ class Ipo:
 			OfsZ, SizeX, SizeY, SizeZ, texR, texG, texB, DefVar, Col, Nor, Var,
 			Disp.
 			3. Object Ipo: LocX, LocY, LocZ, dLocX, dLocY, dLocZ, RotX, RotY, RotZ,
-			dRotX, dRotY, dRotZ, SizeX, SizeY, SizeZ, dSizeX, dSizeY, dSizeZ,
+			dRotX, dRotY, dRotZ, ScaleX, ScaleY, ScaleZ, dScaleX, dScaleY, dScaleZ,
 			Layer, Time, ColR, ColG, ColB, ColA, FStreng, FFall, Damping,
 			RDamp, Perm.
 			4. Lamp Ipo: Energ, R, G, B, Dist, SpoSi, SpoBl, Quad1, Quad2, HaInt.

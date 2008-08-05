@@ -1469,6 +1469,8 @@ PyObject *Armature_Init(void)
 		PyConstant_NewInt("BONE_SELECTED", BONE_SELECTED));
 	PyModule_AddObject(module, "TIP_SELECTED", 
 		PyConstant_NewInt("TIP_SELECTED", BONE_TIPSEL));
+	PyModule_AddObject(module, "LOCKED_EDIT", 
+		PyConstant_NewInt("LOCKED_EDIT", BONE_EDITMODE_LOCKED));
 
 	PyModule_AddObject(module, "OCTAHEDRON", 
 		PyConstant_NewInt("OCTAHEDRON", ARM_OCTA));

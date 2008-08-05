@@ -52,6 +52,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -90,6 +91,7 @@
 
 #include "BDR_drawaction.h"
 #include "BDR_editobject.h"
+#include "BDR_gpencil.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -294,6 +296,16 @@ bActListElem *make_new_actlistelem (void *data, short datatype, void *owner, sho
 				ale->flag= 0;
 				ale->key_data= data;
 				ale->datatype= ALE_IPO;
+			}
+				break;
+			case ACTTYPE_GPLAYER:
+			{
+				bGPDlayer *gpl= (bGPDlayer *)data;
+				
+				ale->flag= gpl->flag;
+				
+				ale->key_data= NULL;
+				ale->datatype= ALE_GPFRAME;
 			}
 				break;
 		}
@@ -505,6 +517,49 @@ static void actdata_filter_shapekey (ListBase *act_data, Key *key, int filter_mo
 	}
 }
  
+
+static void actdata_filter_gpencil (ListBase *act_data, bScreen *sc, int filter_mode)
+{
+	bActListElem *ale;
+	ScrArea *sa;
+	bGPdata *gpd;
+	bGPDlayer *gpl;
+	
+	/* check if filtering types are appropriate */
+	if ( !(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU|ACTFILTER_ACTGROUPED)) ) 
+	{
+		/* loop over spaces in current screen, finding gpd blocks (could be slow!) */
+		for (sa= sc->areabase.first; sa; sa= sa->next) {
+			/* try to get gp data */
+			gpd= gpencil_data_getactive(sa);
+			if (gpd == NULL) continue;
+			
+			/* add gpd as channel too (if for drawing, and it has layers) */
+			if ((filter_mode & ACTFILTER_FORDRAWING) && (gpd->layers.first)) {
+				/* add to list */
+				ale= make_new_actlistelem(gpd, ACTTYPE_GPDATABLOCK, sa, ACTTYPE_SPECIALDATA);
+				if (ale) BLI_addtail(act_data, ale);
+			}
+			
+			/* only add layers if they will be visible (if drawing channels) */
+			if ( !(filter_mode & ACTFILTER_VISIBLE) || (EXPANDED_GPD(gpd)) ) {
+				/* loop over layers as the conditions are acceptable */
+				for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+					/* only if selected */
+					if (!(filter_mode & ACTFILTER_SEL) || SEL_GPL(gpl)) {
+						/* only if editable */
+						if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
+							/* add to list */
+							ale= make_new_actlistelem(gpl, ACTTYPE_GPLAYER, gpd, ACTTYPE_GPDATABLOCK);
+							if (ale) BLI_addtail(act_data, ale);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+ 
 /* This function filters the active data source to leave only the desired
  * data types. 'Public' api call.
  * 	*act_data: is a pointer to a ListBase, to which the filtered action data 
@@ -524,6 +579,9 @@ void actdata_filter (ListBase *act_data, int filter_mode, void *data, short data
 				break;
 			case ACTCONT_SHAPEKEY:
 				actdata_filter_shapekey(act_data, data, filter_mode);
+				break;
+			case ACTCONT_GPENCIL:
+				actdata_filter_gpencil(act_data, data, filter_mode);
 				break;
 		}
 			
@@ -599,11 +657,8 @@ int get_nearest_key_num (Key *key, short *mval, float *x)
     return (num + 1);
 }
 
-/* this function is used to get a pointer to an action or shapekey 
- * datablock, thus simplying that process.
- */
-/* this function is intended for use */
-void *get_nearest_act_channel (short mval[], short *ret_type)
+/* this function finds the channel that mouse is floating over */
+void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -613,6 +668,9 @@ void *get_nearest_act_channel (short mval[], short *ret_type)
 	
 	int clickmin, clickmax;
 	float x,y;
+	
+	/* init 'owner' return val */
+	*owner= NULL;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -641,6 +699,7 @@ void *get_nearest_act_channel (short mval[], short *ret_type)
 			/* found match */
 			*ret_type= ale->type;
 			data= ale->data;
+			*owner= ale->owner;
 			
 			BLI_freelistN(&act_data);
 			
@@ -743,6 +802,10 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				agroup_to_keylist(agrp, &act_keys, NULL, NULL);
 			}
+			else if (ale->type == ACTTYPE_GPLAYER) {
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				gpl_to_keylist(gpl, &act_keys, NULL, NULL);
+			}
 			
 			/* loop through keyframes, finding one that was clicked on */
 			for (ak= act_keys.first; ak; ak= ak->next) {
@@ -765,6 +828,10 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 			else if (datatype == ACTCONT_SHAPEKEY) {
 				data = ale->key_data;
 				*ret_type= ACTTYPE_ICU;
+			}
+			else if (datatype == ACTCONT_GPENCIL) {
+				data = ale->data;
+				*ret_type= ACTTYPE_GPLAYER;
 			}
 			
 			/* cleanup tempolary lists */
@@ -795,17 +862,40 @@ void *get_action_context (short *datatype)
 	act = (G.saction)? G.saction->action: NULL;
 	key = get_action_mesh_key();
 	
-	if (act) {
-		*datatype= ACTCONT_ACTION;
-		return act;
-	}
-	else if (key) {
-		*datatype= ACTCONT_SHAPEKEY;
-		return key;
+	/* check mode selector */
+	if (G.saction) {
+		switch (G.saction->mode) {
+			case SACTCONT_ACTION: 
+				*datatype= ACTCONT_ACTION;
+				return act;
+				
+			case SACTCONT_SHAPEKEY:
+				*datatype= ACTCONT_SHAPEKEY;
+				return key;
+				
+			case SACTCONT_GPENCIL:
+				*datatype= ACTCONT_GPENCIL;
+				return G.curscreen; // FIXME: add that dopesheet type thing here!
+			
+			default: /* includes SACTCONT_DOPESHEET for now */
+				*datatype= ACTCONT_NONE;
+				return NULL;
+		}
 	}
 	else {
-		*datatype= ACTCONT_NONE;
-		return NULL;
+		/* resort to guessing based on what is available */
+		if (act) {
+			*datatype= ACTCONT_ACTION;
+			return act;
+		}
+		else if (key) {
+			*datatype= ACTCONT_SHAPEKEY;
+			return key;
+		}
+		else {
+			*datatype= ACTCONT_NONE;
+			return NULL;
+		}
 	}
 }
 
@@ -1307,12 +1397,18 @@ void duplicate_action_keys (void)
 	if (data == NULL) return;
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* loop through filtered data and duplicate selected keys */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		duplicate_ipo_keys((Ipo *)ale->key_data);
+		if (ale->type == ACTTYPE_GPLAYER)
+			duplicate_gplayer_frames(ale->data);
+		else
+			duplicate_ipo_keys((Ipo *)ale->key_data);
 	}
 	
 	/* free filtered list */
@@ -1398,7 +1494,10 @@ void snap_action_keys(short mode)
 	}
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* snap to frame */
@@ -1408,6 +1507,8 @@ void snap_action_keys(short mode)
 			snap_ipo_keys(ale->key_data, mode);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
 		}
+		else if (ale->type == ACTTYPE_GPLAYER)
+			snap_gplayer_frames(ale->data, mode);
 		else 
 			snap_ipo_keys(ale->key_data, mode);
 	}
@@ -1421,6 +1522,7 @@ void snap_action_keys(short mode)
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 /* this function is responsible for snapping keyframes to frame-times */
@@ -1456,7 +1558,10 @@ void mirror_action_keys(short mode)
 	}
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* mirror */
@@ -1466,6 +1571,8 @@ void mirror_action_keys(short mode)
 			mirror_ipo_keys(ale->key_data, mode);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
 		}
+		else if (ale->type == ACTTYPE_GPLAYER)
+			mirror_gplayer_frames(ale->data, mode);
 		else 
 			mirror_ipo_keys(ale->key_data, mode);
 	}
@@ -1550,6 +1657,10 @@ void insertkey_action(void)
 			}
 		}
 	}
+	else {
+		/* this tool is not supported in this mode */
+		return;
+	}
 	
 	BIF_undo_push("Insert Key");
 	allspace(REMAKEIPO, 0);
@@ -1573,12 +1684,18 @@ void delete_action_keys (void)
 	if (data == NULL) return;
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		delete_ipo_keys((Ipo *)ale->key_data);
+		if (ale->type == ACTTYPE_GPLAYER)
+			delete_gplayer_frames((bGPDlayer *)ale->data);
+		else
+			delete_ipo_keys((Ipo *)ale->key_data);
 	}
 	
 	/* free filtered list */
@@ -1699,6 +1816,7 @@ void clean_action (void)
 				0.0000001f, 1.0, 0.001, 0.1,
 				"Clean Threshold");
 	if (!ok) return;
+	if (datatype == ACTCONT_GPENCIL) return;
 	
 	/* filter data */
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_SEL | ACTFILTER_ONLYICU);
@@ -1737,6 +1855,7 @@ void sample_action_keys (void)
 	/* sanity checks */
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
+	if (datatype == ACTCONT_GPENCIL) return;
 	
 	/* filter data */
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU);
@@ -2096,6 +2215,7 @@ void action_set_ipo_flags (short mode, short event)
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
+	if (datatype == ACTCONT_GPENCIL) return;
 	
 	/* determine which set of processing we are doing */
 	switch (mode) {
@@ -2194,6 +2314,7 @@ void sethandles_action_keys (int code)
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
+	if (datatype == ACTCONT_GPENCIL) return;
 	
 	/* filter data */
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
@@ -2224,7 +2345,7 @@ static void numbuts_action ()
 	void *data;
 	short datatype;
 	
-	void *act_channel;
+	void *act_channel, *channel_owner;
 	short chantype;
 	
 	bActionGroup *agrp= NULL;
@@ -2232,11 +2353,13 @@ static void numbuts_action ()
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
 	KeyBlock *kb= NULL;
+	bGPdata *gpd= NULL;
+	bGPDlayer *gpl= NULL;
 	
 	short mval[2];
 	
 	int but=0;
-    char str[64];
+    char str[128];
 	short expand, protect, mute;
 	float slidermin, slidermax;
 	
@@ -2249,7 +2372,7 @@ static void numbuts_action ()
 	getmouseco_areawin(mval);
 	if (mval[0] > NAMEWIDTH) 
 		return;
-	act_channel= get_nearest_act_channel(mval, &chantype);
+	act_channel= get_nearest_act_channel(mval, &chantype, &channel_owner);
 	
 	/* create items for clever-numbut */
 	if (chantype == ACTTYPE_ACHAN) {
@@ -2345,6 +2468,19 @@ static void numbuts_action ()
 		add_numbut(but++, TOG|SHO, "Expanded", 0, 24, &expand, "Action Group is Expanded");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Group is Protected");
 	}
+	else if (chantype == ACTTYPE_GPLAYER) {
+		/* Grease-Pencil Layer */
+		gpd= (bGPdata *)channel_owner;
+		gpl= (bGPDlayer *)act_channel;
+		
+		strcpy(str, gpl->info);
+		protect= (gpl->flag & GP_LAYER_LOCKED);
+		mute = (gpl->flag & GP_LAYER_HIDE);
+		
+		add_numbut(but++, TEX, "GP-Layer: ", 0, 128, str, "Name of Grease Pencil Layer");
+		add_numbut(but++, TOG|SHO, "Hide", 0, 24, &mute, "Grease Pencil Layer is Visible");
+		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Grease Pencil Layer is Protected");
+	}
 	else {
 		/* nothing under-cursor */
 		return;
@@ -2392,6 +2528,16 @@ static void numbuts_action ()
 			
 			if (protect) agrp->flag |= AGRP_PROTECTED;
 			else agrp->flag &= ~AGRP_PROTECTED;
+		}
+		else if (gpl) {
+			strcpy(gpl->info, str);
+			BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info), 128);
+			
+			if (mute) gpl->flag |= GP_LAYER_HIDE;
+			else gpl->flag &= ~GP_LAYER_HIDE;;
+			
+			if (protect) gpl->flag |= GP_LAYER_LOCKED;
+			else gpl->flag &= ~GP_LAYER_LOCKED;
 		}
 		
         allqueue(REDRAWACTION, 0);
@@ -2524,6 +2670,31 @@ void setflag_action_channels (short mode)
 				}
 			}
 				break;
+			case ACTTYPE_GPLAYER:
+			{
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if (val == 2) {
+					/* mute */
+					if (mode == 2)
+						gpl->flag &= ~GP_LAYER_HIDE;
+					else if (mode == 1)
+						gpl->flag |= GP_LAYER_HIDE;
+					else
+						gpl->flag ^= GP_LAYER_HIDE;
+				}
+				else if (val == 1) {
+					/* protected */
+					if (mode == 2)
+						gpl->flag &= ~GP_LAYER_LOCKED;
+					else if (mode == 1)
+						gpl->flag |= GP_LAYER_LOCKED;
+					else
+						gpl->flag ^= GP_LAYER_LOCKED;
+				}
+			}
+				break;
 		}
 	}
 	BLI_freelistN(&act_data);
@@ -2564,7 +2735,7 @@ static void select_action_group (bAction *act, bActionGroup *agrp, int selectmod
 	set_active_actiongroup(act, agrp, select);
 }
 
-static void hilight_channel(bAction *act, bActionChannel *achan, short select)
+static void hilight_channel (bAction *act, bActionChannel *achan, short select)
 {
 	bActionChannel *curchan;
 
@@ -2637,7 +2808,7 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 
 /* exported for outliner (ton) */
 /* apparently within active object context */
-int select_channel(bAction *act, bActionChannel *achan, int selectmode) 
+int select_channel (bAction *act, bActionChannel *achan, int selectmode) 
 {
 	/* Select the channel based on the selection mode */
 	int flag;
@@ -2661,9 +2832,9 @@ int select_channel(bAction *act, bActionChannel *achan, int selectmode)
 	return flag;
 }
 
-static int select_constraint_channel(bAction *act, 
-                                     bConstraintChannel *conchan, 
-                                     int selectmode) 
+static int select_constraint_channel (bAction *act, 
+                                      bConstraintChannel *conchan, 
+                                      int selectmode) 
 {
 	/* Select the constraint channel based on the selection mode */
 	int flag;
@@ -2684,7 +2855,7 @@ static int select_constraint_channel(bAction *act,
 	return flag;
 }
 
-int select_icu_channel(bAction *act, IpoCurve *icu, int selectmode) 
+int select_icu_channel (bAction *act, IpoCurve *icu, int selectmode) 
 {
 	/* Select the channel based on the selection mode */
 	int flag;
@@ -2701,6 +2872,30 @@ int select_icu_channel(bAction *act, IpoCurve *icu, int selectmode)
 		break;
 	}
 	flag = (icu->flag & IPO_SELECT) ? 1 : 0;
+	return flag;
+}
+
+int select_gplayer_channel (bGPdata *gpd, bGPDlayer *gpl, int selectmode) 
+{
+	/* Select the channel based on the selection mode */
+	int flag;
+
+	switch (selectmode) {
+	case SELECT_ADD:
+		gpl->flag |= GP_LAYER_SELECT;
+		break;
+	case SELECT_SUBTRACT:
+		gpl->flag &= ~GP_LAYER_SELECT;
+		break;
+	case SELECT_INVERT:
+		gpl->flag ^= GP_LAYER_SELECT;
+		break;
+	}
+	
+	flag = (gpl->flag & GP_LAYER_SELECT) ? 1 : 0;
+	if (flag)
+		gpencil_layer_setactive(gpd, gpl);
+
 	return flag;
 }
 
@@ -2848,6 +3043,8 @@ void deselect_action_channels (short mode)
 	/* based on type */
 	if (datatype == ACTCONT_ACTION)
 		deselect_actionchannels(data, mode);
+	else if (datatype == ACTCONT_GPENCIL)
+		deselect_gpencil_layers(data, mode);
 	// should shapekey channels be allowed to do this? 
 }
 
@@ -2863,24 +3060,40 @@ void deselect_action_keys (short test, short sel)
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
-		
+	
+	/* determine type-based settings */
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* See if we should be selecting or deselecting */
 	if (test) {
 		for (ale= act_data.first; ale; ale= ale->next) {
-			if (is_ipo_key_selected(ale->key_data)) {
-				sel= 0;
-				break;
+			if (ale->type == ACTTYPE_GPLAYER) {
+				if (is_gplayer_frame_selected(ale->data)) {
+					sel= 0;
+					break;
+				}
+			}
+			else {
+				if (is_ipo_key_selected(ale->key_data)) {
+					sel= 0;
+					break;
+				}
 			}
 		}
 	}
 		
 	/* Now set the flags */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		set_ipo_key_selection(ale->key_data, sel);
+		if (ale->type == ACTTYPE_GPLAYER)
+			set_gplayer_frame_selection(ale->data, sel);
+		else
+			set_ipo_key_selection(ale->key_data, sel);
 	}
 	
 	/* Cleanup */
@@ -2908,11 +3121,11 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 	switch (mode) {
 		case 0: /* all in channel*/
 		{
-			void *act_channel;
+			void *act_channel, *channel_owner;
 			short chantype;
 			
 			/* get channel, and act according to type */
-			act_channel= get_nearest_act_channel(mval, &chantype);
+			act_channel= get_nearest_act_channel(mval, &chantype, &channel_owner);
 			switch (chantype) {
 				case ACTTYPE_GROUP:	
 				{
@@ -2946,6 +3159,12 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 					select_icu_bezier_keys(icu, select_mode);
 				}
 					break;
+				case ACTTYPE_GPLAYER:
+				{
+					bGPDlayer *gpl= (bGPDlayer *)act_channel;
+					select_gpencil_frames(gpl, select_mode);
+				}
+					break;
 			}
 		}
 			break;
@@ -2971,12 +3190,16 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 			rectf.xmax = rectf.xmax + 0.5;
 			
 			/* filter data */
-			filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+			if (datatype == ACTCONT_GPENCIL)
+				filter= (ACTFILTER_VISIBLE);
+			else
+				filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
 			actdata_filter(&act_data, filter, data, datatype);
 				
 			/* Now set the flags */
-			for (ale= act_data.first; ale; ale= ale->next)
+			for (ale= act_data.first; ale; ale= ale->next) {
 				borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, select_mode);
+			}
 			
 			/* Cleanup */
 			BLI_freelistN(&act_data);
@@ -3058,19 +3281,23 @@ void selectkeys_leftright (short leftright, short select_mode)
 	}
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 		
 	/* select keys on the side where most data occurs */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		if(NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1);
 			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
 		}
-		else {
+		else if (ale->type == ACTTYPE_GPLAYER)
+			borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
+		else
 			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
-		}
 	}
 	
 	/* Cleanup */
@@ -3108,7 +3335,10 @@ void nextprev_action_keyframe (short dir)
 		return;
 	
 	/* get list of keyframes that can be used (in global-time) */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -3117,6 +3347,8 @@ void nextprev_action_keyframe (short dir)
 			make_cfra_list(ale->key_data, &elems);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
 		}
+		else if (ale->type == ACTTYPE_GPLAYER)
+			gplayer_make_cfra_list(ale->key_data, &elems, 0);
 		else 
 			make_cfra_list(ale->key_data, &elems);
 	}
@@ -3199,11 +3431,20 @@ void column_select_action_keys (int mode)
 	/* build list of columns */
 	switch (mode) {
 		case 1: /* list of selected keys */
-			filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
-			actdata_filter(&act_data, filter, data, datatype);
-			
-			for (ale= act_data.first; ale; ale= ale->next)
-				make_sel_cfra_list(ale->key_data, &elems);
+			if (datatype == ACTCONT_GPENCIL) {
+				filter= (ACTFILTER_VISIBLE);
+				actdata_filter(&act_data, filter, data, datatype);
+				
+				for (ale= act_data.first; ale; ale= ale->next)
+					gplayer_make_cfra_list(ale->data, &elems, 1);
+			}
+			else {
+				filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+				actdata_filter(&act_data, filter, data, datatype);
+				
+				for (ale= act_data.first; ale; ale= ale->next)
+					make_sel_cfra_list(ale->key_data, &elems);
+			}
 			
 			BLI_freelistN(&act_data);
 			break;
@@ -3231,19 +3472,34 @@ void column_select_action_keys (int mode)
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
 	 */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_ONLYICU);
+	if (datatype == ACTCONT_GPENCIL)
+		filter= (ACTFILTER_VISIBLE);
+	else
+		filter= (ACTFILTER_VISIBLE | ACTFILTER_ONLYICU);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
 		for (ce= elems.first; ce; ce= ce->next) {
-			for (icu= ale->key_data; icu; icu= icu->next) {
-				BezTriple *bezt;
-				int verts = 0;
+			/* select elements with frame number matching cfraelem */
+			if (ale->type == ACTTYPE_GPLAYER) {
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				bGPDframe *gpf;
 				
-				for (bezt=icu->bezt; verts<icu->totvert; bezt++, verts++) {
-					if (bezt) {
-						if( (int)(ce->cfra) == (int)(bezt->vec[1][0]) )
-							bezt->f2 |= 1;
+				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+					if ( (int)ce->cfra == gpf->framenum ) 
+						gpf->flag |= GP_FRAME_SELECT;
+				}
+			}
+			else {
+				for (icu= ale->key_data; icu; icu= icu->next) {
+					BezTriple *bezt;
+					int verts = 0;
+					
+					for (bezt=icu->bezt; verts<icu->totvert; bezt++, verts++) {
+						if (bezt) {
+							if( (int)(ce->cfra) == (int)(bezt->vec[1][0]) )
+								bezt->f2 |= 1;
+						}
 					}
 				}
 			}
@@ -3272,7 +3528,7 @@ void borderselect_actionchannels (void)
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
-	if (datatype != ACTCONT_ACTION) return;
+	if (ELEM(datatype, ACTCONT_ACTION, ACTCONT_GPENCIL)==0) return;
 	
 	/* draw and handle the borderselect stuff (ui) and get the select rect */
 	if ( (val = get_border(&rect, 3)) ) {
@@ -3342,6 +3598,16 @@ void borderselect_actionchannels (void)
 							icu->flag |= IPO_SELECT;
 						else
 							icu->flag &= ~IPO_SELECT;
+					}
+						break;
+					case ACTTYPE_GPLAYER: /* grease-pencil layer */
+					{
+						bGPDlayer *gpl = (bGPDlayer *)ale->data;
+						
+						if (selectmode == SELECT_ADD)
+							gpl->flag |= GP_LAYER_SELECT;
+						else
+							gpl->flag &= ~GP_LAYER_SELECT;
 					}
 						break;
 				}
@@ -3460,6 +3726,9 @@ void borderselect_action (void)
 							borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
 					}
 				}
+				else if (ale->type == ACTTYPE_GPLAYER) {
+					borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+				}
 				break;
 			case ACTEDIT_BORDERSEL_CHA: /* all in channel(s) */
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
@@ -3480,6 +3749,9 @@ void borderselect_action (void)
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
 								select_ipo_bezier_keys(conchan->ipo, selectmode);
 						}
+					}
+					else if (ale->type == ACTTYPE_GPLAYER) {
+						select_gpencil_frames(ale->data, selectmode);
 					}
 				}
 				break;
@@ -3502,6 +3774,9 @@ void borderselect_action (void)
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
 								borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
 						}
+					}
+					else if (ale->type == ACTTYPE_GPLAYER) {
+						borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
 					}
 				}
 			}
@@ -3533,6 +3808,8 @@ static void mouse_action (int selectmode)
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
+	bGPdata *gpd = NULL;
+	bGPDlayer *gpl = NULL;
 	TimeMarker *marker, *pmarker;
 	
 	void *act_channel;
@@ -3543,6 +3820,7 @@ static void mouse_action (int selectmode)
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
 	if (datatype == ACTCONT_ACTION) act= (bAction *)data;
+	if (datatype == ACTCONT_GPENCIL) gpd= (bGPdata *)data;
 
 	act_channel= get_nearest_action_key(&selx, &sel, &act_type, &achan);
 	marker= find_nearest_marker(SCE_MARKERS, 1);
@@ -3615,6 +3893,9 @@ static void mouse_action (int selectmode)
 			case ACTTYPE_GROUP:
 				agrp= (bActionGroup *)act_channel;
 				break;
+			case ACTTYPE_GPLAYER:
+				gpl= (bGPDlayer *)act_channel;
+				break;
 			default:
 				return;
 		}
@@ -3638,6 +3919,13 @@ static void mouse_action (int selectmode)
 					set_active_actiongroup(act, agrp, 1);
 				}
 			}
+			else if (datatype == ACTCONT_GPENCIL) {
+				deselect_action_channels(0);
+				
+				/* Highlight gpencil layer */
+				gpl->flag |= GP_LAYER_SELECT;
+				gpencil_layer_setactive(gpd, gpl);
+			}
 		}
 		
 		if (icu)
@@ -3654,6 +3942,8 @@ static void mouse_action (int selectmode)
 					select_ipo_key(conchan->ipo, selx, selectmode);
 			}
 		}
+		else if (gpl)
+			select_gpencil_frame(gpl, selx, selectmode);
 		
 		std_rmouse_transform(transform_action_keys);
 		
@@ -3670,7 +3960,7 @@ static void mouse_action (int selectmode)
 static void mouse_actionchannels (short mval[])
 {
 	bAction *act= G.saction->action;
-	void *data, *act_channel;
+	void *data, *act_channel, *channel_owner;
 	short datatype, chantype;
 	
 	/* determine what type of data we are operating on */
@@ -3678,7 +3968,7 @@ static void mouse_actionchannels (short mval[])
 	if (data == NULL) return;
 	
 	/* get channel to work on */
-	act_channel= get_nearest_act_channel(mval, &chantype);
+	act_channel= get_nearest_act_channel(mval, &chantype, &channel_owner);
 	
 	/* action to take depends on what channel we've got */
 	switch (chantype) {
@@ -3813,6 +4103,39 @@ static void mouse_actionchannels (short mval[])
 				else {
 					/* select/deselect */
 					select_constraint_channel(act, conchan, SELECT_INVERT);
+				}
+			}
+				break;
+		case ACTTYPE_GPDATABLOCK:
+			{
+				bGPdata *gpd= (bGPdata *)act_channel;
+				
+				/* toggle expand */
+				gpd->flag ^= GP_DATA_EXPAND;
+			}
+				break;
+		case ACTTYPE_GPLAYER:
+			{
+				bGPdata *gpd= (bGPdata *)channel_owner;
+				bGPDlayer *gpl= (bGPDlayer *)act_channel;
+				
+				if (mval[0] >= (NAMEWIDTH-16)) {
+					/* toggle lock */
+					gpl->flag ^= GP_LAYER_LOCKED;
+				}
+				else if (mval[0] >= (NAMEWIDTH-32)) {
+					/* toggle hide */
+					gpl->flag ^= GP_LAYER_HIDE;
+				}
+				else {
+					/* select/deselect */
+					if (G.qual & LR_SHIFTKEY) {
+						select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+					}
+					else {
+						deselect_gpencil_layers(data, 0);
+						select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+					}
 				}
 			}
 				break;
@@ -4482,7 +4805,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RIGHTMOUSE:
 			/* Clicking in the channel area */
 			if ((G.v2d->mask.xmin) && (mval[0] < NAMEWIDTH)) {
-				if (datatype == ACTCONT_ACTION) {
+				if (ELEM(datatype, ACTCONT_ACTION, ACTCONT_GPENCIL)) {
 					/* mouse is over action channels */
 					if (G.qual == LR_CTRLKEY)
 						numbuts_action();
@@ -4832,8 +5155,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case DELKEY:
 		case XKEY:
 			if (okee("Erase selected")) {
-				if (mval[0] < NAMEWIDTH)
-					delete_action_channels();
+				if (mval[0] < NAMEWIDTH) {
+					if (datatype == ACTCONT_ACTION)
+						delete_action_channels();
+					else if (datatype == ACTCONT_GPENCIL)
+						delete_gpencil_layers();
+				}
 				else
 					delete_action_keys();
 				

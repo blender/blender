@@ -60,6 +60,7 @@
 #define SMALL_NUMBER	1.e-8
 #define ABS(x)	((x) < 0 ? -(x) : (x))
 #define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 
 
 #if defined(WIN32) || defined(__APPLE__)
@@ -2547,11 +2548,6 @@ int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
 }
 
 
-
-			/* copied from Geometry.c - todo - move to arithb.c or some other generic place we can reuse */
-#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
-#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
-
 /**
  * 
  * @param min 
@@ -3812,12 +3808,50 @@ int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], flo
 
 /* Adapted from the paper by Kasper Fauerby */
 /* "Improved Collision detection and Response" */
+static int getLowestRoot(float a, float b, float c, float maxR, float* root)
+{
+	// Check if a solution exists
+	float determinant = b*b - 4.0f*a*c;
+
+	// If determinant is negative it means no solutions.
+	if (determinant >= 0.0f)
+	{
+		// calculate the two roots: (if determinant == 0 then
+		// x1==x2 but let’s disregard that slight optimization)
+		float sqrtD = sqrt(determinant);
+		float r1 = (-b - sqrtD) / (2.0f*a);
+		float r2 = (-b + sqrtD) / (2.0f*a);
+		
+		// Sort so x1 <= x2
+		if (r1 > r2)
+			SWAP( float, r1, r2);
+
+		// Get lowest root:
+		if (r1 > 0.0f && r1 < maxR)
+		{
+			*root = r1;
+			return 1;
+		}
+
+		// It is possible that we want x2 - this can happen
+		// if x1 < 0
+		if (r2 > 0.0f && r2 < maxR)
+		{
+			*root = r2;
+			return 1;
+		}
+	}
+	// No (valid) solutions
+	return 0;
+}
+
 int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint)
 {
 	float e1[3], e2[3], e3[3], point[3], vel[3], /*dist[3],*/ nor[3], temp[3], bv[3];
-	float a, b, c, d, e, x, y, z, t, t0, t1, radius2=radius*radius;
+	float a, b, c, d, e, x, y, z, radius2=radius*radius;
 	float elen2,edotv,edotbv,nordotv,vel2;
-	int embedded_in_plane=0, found_by_sweep=0;
+	float newLambda;
+	int found_by_sweep=0;
 
 	VecSubf(e1,v1,v0);
 	VecSubf(e2,v2,v0);
@@ -3826,44 +3860,41 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 /*---test plane of tri---*/
 	Crossf(nor,e1,e2);
 	Normalize(nor);
+
 	/* flip normal */
 	if(Inpf(nor,vel)>0.0f) VecMulf(nor,-1.0f);
 	
 	a=Inpf(p1,nor)-Inpf(v0,nor);
-
 	nordotv=Inpf(nor,vel);
 
-	if ((nordotv > -0.000001) && (nordotv < 0.000001)) {
-		if(fabs(a)>=1.0f)
+	if (fabs(nordotv) < 0.000001)
+	{
+		if(fabs(a)>=radius)
+		{
 			return 0;
-		else{
-			embedded_in_plane=1;
-			t0=0.0f;
-			t1=1.0f;
 		}
 	}
-	else{
-		t0=(radius-a)/nordotv;
-		t1=(-radius-a)/nordotv;
-		/* make t0<t1 */
-		if(t0>t1){b=t1; t1=t0; t0=b;}
+	else
+	{
+		float t0=(-a+radius)/nordotv;
+		float t1=(-a-radius)/nordotv;
+
+		if(t0>t1)
+			SWAP(float, t0, t1);
 
 		if(t0>1.0f || t1<0.0f) return 0;
 
 		/* clamp to [0,1] */
-		t0=(t0<0.0f)?0.0f:((t0>1.0f)?1.0:t0);
-		t1=(t1<0.0f)?0.0f:((t1>1.0f)?1.0:t1);
-	}
+		CLAMP(t0, 0.0f, 1.0f);
+		CLAMP(t1, 0.0f, 1.0f);
 
-/*---test inside of tri---*/
-	if(embedded_in_plane==0){
+		/*---test inside of tri---*/
 		/* plane intersection point */
-		VecCopyf(point,vel);
-		VecMulf(point,t0);
-		VecAddf(point,point,p1);
-		VecCopyf(temp,nor);
-		VecMulf(temp,radius);
-		VecSubf(point,point,temp);
+
+		point[0] = p1[0] + vel[0]*t0 - nor[0]*radius;
+		point[1] = p1[1] + vel[1]*t0 - nor[1]*radius;
+		point[2] = p1[2] + vel[2]*t0 - nor[2]*radius;
+
 
 		/* is the point in the tri? */
 		a=Inpf(e1,e1);
@@ -3878,14 +3909,19 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 		y=e*a-d*b;
 		z=x+y-(a*c-b*b);
 
-		if(( ((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y)) ) & 0x80000000){
+
+		if( z <= 0.0f && (x >= 0.0f && y >= 0.0f))
+		{
+		//( ((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y)) ) & 0x80000000){
 			*lambda=t0;
 			VecCopyf(ipoint,point);
 			return 1;
 		}
 	}
 
+
 	*lambda=1.0f;
+
 /*---test points---*/
 	a=vel2=Inpf(vel,vel);
 
@@ -3893,73 +3929,42 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	VecSubf(temp,p1,v0);
 	b=2.0f*Inpf(vel,temp);
 	c=Inpf(temp,temp)-radius2;
-	d=b*b-4*a*c;
 
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
-
-		if(t>0.0 && t < *lambda){
-			*lambda=t;
-			VecCopyf(ipoint,v0);
-			found_by_sweep=1;
-		}
+	if(getLowestRoot(a, b, c, *lambda, lambda))
+	{
+		VecCopyf(ipoint,v0);
+		found_by_sweep=1;
 	}
 
 	/*v1*/
 	VecSubf(temp,p1,v1);
 	b=2.0f*Inpf(vel,temp);
 	c=Inpf(temp,temp)-radius2;
-	d=b*b-4*a*c;
 
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
-
-		if(t>0.0 && t < *lambda){
-			*lambda=t;
-			VecCopyf(ipoint,v1);
-			found_by_sweep=1;
-		}
+	if(getLowestRoot(a, b, c, *lambda, lambda))
+	{
+		VecCopyf(ipoint,v1);
+		found_by_sweep=1;
 	}
+	
 	/*v2*/
 	VecSubf(temp,p1,v2);
 	b=2.0f*Inpf(vel,temp);
 	c=Inpf(temp,temp)-radius2;
-	d=b*b-4*a*c;
 
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
-
-		if(t>0.0 && t < *lambda){
-			*lambda=t;
-			VecCopyf(ipoint,v2);
-			found_by_sweep=1;
-		}
+	if(getLowestRoot(a, b, c, *lambda, lambda))
+	{
+		VecCopyf(ipoint,v2);
+		found_by_sweep=1;
 	}
 
 /*---test edges---*/
+	VecSubf(e3,v2,v1); //wasnt yet calculated
+
+
 	/*e1*/
 	VecSubf(bv,v0,p1);
+
 	elen2 = Inpf(e1,e1);
 	edotv = Inpf(e1,vel);
 	edotbv = Inpf(e1,bv);
@@ -3967,27 +3972,18 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
 	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
-	d=b*b-4*a*c;
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
 
-		e=(edotv*t-edotbv)/elen2;
+	if(getLowestRoot(a, b, c, *lambda, &newLambda))
+	{
+		e=(edotv*newLambda-edotbv)/elen2;
 
-		if((e>=0.0f) && (e<=1.0f)){
-			if(t>0.0 && t < *lambda){
-				*lambda=t;
-				VecCopyf(ipoint,e1);
-				VecMulf(ipoint,e);
-				VecAddf(ipoint,ipoint,v0);
-				found_by_sweep=1;
-			}
+		if(e >= 0.0f && e <= 1.0f)
+		{
+			*lambda = newLambda;
+			VecCopyf(ipoint,e1);
+			VecMulf(ipoint,e);
+			VecAddf(ipoint,ipoint,v0);
+			found_by_sweep=1;
 		}
 	}
 
@@ -4000,32 +3996,27 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
 	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
-	d=b*b-4*a*c;
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
 
-		e=(edotv*t-edotbv)/elen2;
+	if(getLowestRoot(a, b, c, *lambda, &newLambda))
+	{
+		e=(edotv*newLambda-edotbv)/elen2;
 
-		if((e>=0.0f) && (e<=1.0f)){
-			if(t>0.0 && t < *lambda){
-				*lambda=t;
-				VecCopyf(ipoint,e2);
-				VecMulf(ipoint,e);
-				VecAddf(ipoint,ipoint,v0);
-				found_by_sweep=1;
-			}
+		if(e >= 0.0f && e <= 1.0f)
+		{
+			*lambda = newLambda;
+			VecCopyf(ipoint,e2);
+			VecMulf(ipoint,e);
+			VecAddf(ipoint,ipoint,v0);
+			found_by_sweep=1;
 		}
 	}
 
 	/*e3*/
-	VecSubf(e3,v2,v1);
+	VecSubf(bv,v0,p1);
+	elen2 = Inpf(e1,e1);
+	edotv = Inpf(e1,vel);
+	edotbv = Inpf(e1,bv);
+
 	VecSubf(bv,v1,p1);
 	elen2 = Inpf(e3,e3);
 	edotv = Inpf(e3,vel);
@@ -4034,29 +4025,21 @@ int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, f
 	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
 	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
 	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
-	d=b*b-4*a*c;
-	if(d>=0.0f){
-		if(d==0.0f)
-			t=-b/2*a;
-		else{
-			z=sqrt(d);
-			x=(-b-z)*0.5/a;
-			y=(-b+z)*0.5/a;
-			t=x<y?x:y;
-		}
 
-		e=(edotv*t-edotbv)/elen2;
+	if(getLowestRoot(a, b, c, *lambda, &newLambda))
+	{
+		e=(edotv*newLambda-edotbv)/elen2;
 
-		if((e>=0.0f) && (e<=1.0f)){
-			if(t>0.0 && t < *lambda){
-				*lambda=t;
-				VecCopyf(ipoint,e3);
-				VecMulf(ipoint,e);
-				VecAddf(ipoint,ipoint,v1);
-				found_by_sweep=1;
-			}
+		if(e >= 0.0f && e <= 1.0f)
+		{
+			*lambda = newLambda;
+			VecCopyf(ipoint,e3);
+			VecMulf(ipoint,e);
+			VecAddf(ipoint,ipoint,v1);
+			found_by_sweep=1;
 		}
 	}
+
 
 	return found_by_sweep;
 }

@@ -76,6 +76,7 @@ void inner_play_anim_loop(int init, int mode);
 int play_anim(int mode);
 
 void make_axis_color(char *col, char *col2, char axis);
+char *view3d_get_name(struct View3D *v3d);
 
 /* SMOOTHVIEW */
 void smooth_view(struct View3D *v3d, float *ofs, float *quat, float *dist, float *lens);

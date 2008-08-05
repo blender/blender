@@ -56,6 +56,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h" /* used for select_same_group */
+#include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
@@ -159,6 +160,7 @@
 #include "BDR_imagepaint.h"
 #include "BDR_sculptmode.h"
 #include "BDR_unwrapper.h"
+#include "BDR_gpencil.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
@@ -1193,21 +1195,28 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
-		/* we consider manipulator a button, defaulting to leftmouse */
+		/* - we consider manipulator a button, defaulting to leftmouse 
+		 * - grease-pencil also defaults to leftmouse
+		 */
 		if(event==LEFTMOUSE) {
 			/* run any view3d event handler script links */
-			if (event && sa->scriptlink.totscript)
+			if (event && sa->scriptlink.totscript) {
 				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
 					return; /* return if event was processed (swallowed) by handler(s) */
-
+			}
+			
+			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
+		}
+		else if(event==RIGHTMOUSE) {
+			if(gpencil_do_paint(sa, R_MOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
 			/* only swap mouse button for selection, in modes where it is relevant.
 			 * painting/sculpting stays on LEFTMOUSE */
-			if (   !((G.f & G_SCULPTMODE) || (G.f & G_WEIGHTPAINT) ||
+			if (   !((G.f & G_SCULPTMODE) || (G.f & G_WEIGHTPAINT) || (G.f & G_GREASEPENCIL) ||
 				(G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_PARTICLEEDIT)) ||
 				(G.obedit) )
 			{			
@@ -1945,7 +1954,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						adduplicate(0, 0);
 				}
 				else if(G.qual==LR_CTRLKEY) {
-					imagestodisplist();
+					imagestodisplist(); // removed
 				}
 				else if((G.qual==0)){
 					pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
@@ -2419,7 +2428,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
-						select_bone_parent();
+						armature_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
 					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
@@ -2449,7 +2458,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
                 	start_RBSimulation();
 				}
 				else if((G.qual==0) && (OBACT) && (OBACT->type==OB_ARMATURE) && (OBACT->flag & OB_POSEMODE))
-					select_bone_parent();
+					pose_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
 				else if((G.qual==0)) {
                 	start_game();
 				}
@@ -2705,6 +2714,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DELKEY:
 				if(G.qual==0 || G.qual==LR_SHIFTKEY)
 					delete_context_selected();
+				if(G.qual==LR_ALTKEY)
+					gpencil_delete_menu();
 				break;
 			case YKEY:
 				if((G.qual==0) && (G.obedit)) {
@@ -2748,6 +2759,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
+				break;
+			
+			case LEFTBRACKETKEY:
+				if ((G.obedit) && (G.obedit->type == OB_ARMATURE))
+					armature_select_hierarchy(BONE_SELECT_PARENT, (G.qual == LR_SHIFTKEY));
+				else if ((ob) && (ob->flag & OB_POSEMODE))
+					pose_select_hierarchy(BONE_SELECT_PARENT, (G.qual == LR_SHIFTKEY));
+				break;
+			case RIGHTBRACKETKEY:
+				if ((G.obedit) && (G.obedit->type == OB_ARMATURE))
+					armature_select_hierarchy(BONE_SELECT_CHILD, (G.qual == LR_SHIFTKEY));
+				if ((ob) && (ob->flag & OB_POSEMODE))
+					pose_select_hierarchy(BONE_SELECT_CHILD, (G.qual == LR_SHIFTKEY));
 				break;
 			
 			case PADSLASHKEY:
@@ -4816,6 +4840,14 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
+		/* grease-pencil defaults to leftmouse */
+		if (event == LEFTMOUSE) {
+			if(gpencil_do_paint(sa, L_MOUSE)) return;
+		}
+		else if (event == RIGHTMOUSE) {
+			if(gpencil_do_paint(sa, R_MOUSE)) return;
+		}
+		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
 			if (event == LEFTMOUSE) {
@@ -4829,11 +4861,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case LEFTMOUSE:
-			if(sseq->mainb || view2dmove(event)==0) {
+			if(sseq->mainb==0 && view2dmove(event)==0) {
 				
 				first= 1;		
 				set_special_seq_update(1);
-
+				
 				do {
 					getmouseco_areawin(mval);
 					areamouseco_to_ipoco(v2d, mval, &dx, &dy);
@@ -5088,6 +5120,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if((G.qual==0))
 					del_seq();
 			}
+			else if(G.qual==LR_ALTKEY) {
+				if(sseq->mainb)
+					gpencil_delete_menu();
+			}
 			break;
 		case PAD1: case PAD2: case PAD4: case PAD8:
 			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
@@ -5096,7 +5132,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}	
 	}
 
-	if(doredraw) scrarea_queue_winredraw(curarea);
+	if(doredraw) {
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+	}
 }
 
 
@@ -6241,6 +6280,7 @@ void freespacelist(ScrArea *sa)
 				if(vd->bgpic->ima) vd->bgpic->ima->id.us--;
 				MEM_freeN(vd->bgpic);
 			}
+			if(vd->gpd) free_gpencil_data(vd->gpd);
 			if(vd->localvd) MEM_freeN(vd->localvd);
 			if(vd->clipbb) MEM_freeN(vd->clipbb);
 			if(vd->depths) {
@@ -6284,7 +6324,12 @@ void freespacelist(ScrArea *sa)
 				curvemapping_free(sima->cumap);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
-/*			SpaceNode *snode= (SpaceNode *)sl; */
+			SpaceNode *snode= (SpaceNode *)sl;
+			if(snode->gpd) free_gpencil_data(snode->gpd);
+		}
+		else if(sl->spacetype==SPACE_SEQ) {
+			SpaceSeq *sseq= (SpaceSeq *)sl;
+			if(sseq->gpd) free_gpencil_data(sseq->gpd);
 		}
 	}
 
@@ -6314,6 +6359,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			BIF_view3d_previewrender_free(v3d);
 			v3d->depths= NULL;
 			v3d->retopo_view_data= NULL;
+			v3d->gpd= gpencil_data_duplicate(v3d->gpd);
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			SpaceOops *so= (SpaceOops *)sl;
@@ -6333,10 +6379,15 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
+			snode->gpd= gpencil_data_duplicate(snode->gpd);
 		}
 		else if(sl->spacetype==SPACE_SCRIPT) {
 			SpaceScript *sc = ( SpaceScript * ) sl;
 			sc->but_refs = NULL;
+		}
+		else if(sl->spacetype==SPACE_SEQ) {
+			SpaceSeq *sseq= (SpaceSeq *)sl;
+			sseq->gpd= gpencil_data_duplicate(sseq->gpd);
 		}
 		sl= sl->next;
 	}

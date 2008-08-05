@@ -1,7 +1,7 @@
 /**
  * Actuator sensor
  *
- * $Id$
+ * $Id:SCA_ActuatorSensor.h 15567 2008-07-14 14:09:36Z theeth $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -66,7 +66,7 @@ public:
 	/* 3. setProperty */
 	KX_PYMETHOD_DOC(SCA_ActuatorSensor,SetActuator);
 	/* 4. getProperty */
-	KX_PYMETHOD_DOC(SCA_ActuatorSensor,GetActuator);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ActuatorSensor,GetActuator);
 	
 };
 

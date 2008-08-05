@@ -100,6 +100,9 @@ static void do_seq_viewmenu(void *arg, int event)
 	case 6: /* Draw time/frames */
 		sseq->flag ^= SEQ_DRAWFRAMES;
 		break;
+	case 7: /* Grease Pencil */
+		add_blockhandler(curarea, SEQ_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
+		break;
 	}
 }
 
@@ -111,7 +114,15 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "seq_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_viewmenu, NULL);
-
+	
+	if (sseq->mainb) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, 
+				 "Grease Pencil...", 0, yco-=20,
+				 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+				 
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	}
+	
 	if (sseq->mainb == 0) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 				 "Play Back Animation "

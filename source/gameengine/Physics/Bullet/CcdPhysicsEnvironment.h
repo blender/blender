@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "PHY_IPhysicsEnvironment.h"
 #include <vector>
+#include <set>
 class CcdPhysicsController;
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
@@ -183,6 +184,15 @@ protected:
 
 		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
+		void	updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask);
+
+		void	disableCcdPhysicsController(CcdPhysicsController* ctrl)
+		{ 
+			removeCcdPhysicsController(ctrl); 
+		}
+
+		void	enableCcdPhysicsController(CcdPhysicsController* ctrl);
+
 		btBroadphaseInterface*	getBroadphase();
 
 		
@@ -200,12 +210,6 @@ protected:
 		}
 
 	
-		int	GetNumControllers();
-
-		CcdPhysicsController* GetPhysicsController( int index);
-
-		
-
 		const btPersistentManifold*	GetManifold(int index) const;
 
 	
@@ -220,9 +224,9 @@ protected:
 		
 
 		
-		std::vector<CcdPhysicsController*> m_controllers;
+		std::set<CcdPhysicsController*> m_controllers;
 		
-		std::vector<CcdPhysicsController*> m_triggerControllers;
+		std::set<CcdPhysicsController*> m_triggerControllers;
 
 		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];
 		void*			m_triggerCallbacksUserPtrs[PHY_NUM_RESPONSE];

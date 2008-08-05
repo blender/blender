@@ -160,7 +160,6 @@ ScriptError g_script_error;
 * Function prototypes 
 ***************************************************************************/
 PyObject *RunPython( Text * text, PyObject * globaldict );
-char *GetName( Text * text );
 PyObject *CreateGlobalDictionary( void );
 void ReleaseGlobalDictionary( PyObject * dict );
 void DoAllScriptsFromList( ListBase * list, short event );
@@ -410,12 +409,14 @@ void BPY_rebuild_syspath( void )
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
 		printf("error: could not import python sys module. some modules may not import.\n");
+		PyGILState_Release(gilstate);
 		return;
 	}
 	
 	if (!bpy_orig_syspath_List) { /* should never happen */
 		printf("error refershing python path\n");
 		Py_DECREF(mod);
+		PyGILState_Release(gilstate);
 		return;
 	}
 	
@@ -649,7 +650,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	}
 
 	/* Create a new script structure and initialize it: */
-	script = alloc_libblock( &G.main->script, ID_SCRIPT, GetName( text ) );
+	script = alloc_libblock( &G.main->script, ID_SCRIPT, text->id.name+2 );
 
 	if( !script ) {
 		printf( "couldn't allocate memory for Script struct!" );
@@ -660,8 +661,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	 * an error after it will call BPY_Err_Handle below, but the text struct
 	 * will have been deallocated already, so we need to copy its name here.
 	 */
-	BLI_strncpy( textname, GetName( text ),
-		     strlen( GetName( text ) ) + 1 );
+	BLI_strncpy( textname, text->id.name+2, 21 );
 
 	script->id.us = 1;
 	script->flags = SCRIPT_RUNNING;
@@ -2722,8 +2722,7 @@ PyObject *RunPython( Text * text, PyObject * globaldict )
 		buf = txt_to_buf( text );
 
 		text->compiled =
-			Py_CompileString( buf, GetName( text ),
-					  Py_file_input );
+			Py_CompileString( buf, text->id.name+2, Py_file_input );
 
 		MEM_freeN( buf );
 
@@ -2735,15 +2734,6 @@ PyObject *RunPython( Text * text, PyObject * globaldict )
 	}
 
 	return PyEval_EvalCode( text->compiled, globaldict, globaldict );
-}
-
-/*****************************************************************************
-* Description: This function returns the value of the name field of the	
-*	given Text struct.
-*****************************************************************************/
-char *GetName( Text * text )
-{
-	return ( text->id.name + 2 );
 }
 
 /*****************************************************************************
@@ -2807,7 +2797,7 @@ PyObject *importText( char *name )
 	text = ( Text * ) & ( G.main->text.first );
 
 	while( text ) {
-		if( !strcmp( txtname, GetName( text ) ) )
+		if( !strcmp( txtname, text->id.name+2 ) )
 			break;
 		text = text->id.next;
 	}
@@ -2820,8 +2810,7 @@ PyObject *importText( char *name )
 	if( !text->compiled ) {
 		buf = txt_to_buf( text );
 		text->compiled =
-			Py_CompileString( buf, GetName( text ),
-					  Py_file_input );
+			Py_CompileString( buf, text->id.name+2, Py_file_input );
 		MEM_freeN( buf );
 
 		if( PyErr_Occurred(  ) ) {
@@ -2903,7 +2892,7 @@ static PyObject *reimportText( PyObject *module )
 	/* look up the text object */
 	text = ( Text * ) & ( G.main->text.first );
 	while( text ) {
-		if( !strcmp( txtname, GetName( text ) ) )
+		if( !strcmp( txtname, text->id.name+2 ) )
 			break;
 		text = text->id.next;
 	}
@@ -2920,8 +2909,7 @@ static PyObject *reimportText( PyObject *module )
 
 	/* compile the buffer */
 	buf = txt_to_buf( text );
-	text->compiled = Py_CompileString( buf, GetName( text ),
-			Py_file_input );
+	text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
 	MEM_freeN( buf );
 
 	/* if compile failed.... return this error */

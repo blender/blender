@@ -372,10 +372,6 @@ public:
 	
 	virtual void	SetAmbientColor(float red, float green, float blue)=0;
 	virtual void	SetAmbient(float factor)=0;
-	/**
-	 * Sets alpha testing
-	 */
-	virtual void	SetAlphaTest(bool enable)=0;
 
 	/**
 	 * Sets a polygon offset.  z depth will be: z1 = mult*z0 + add
@@ -398,8 +394,10 @@ public:
 	virtual void	DisableMotionBlur()=0;
 	
 	virtual float	GetMotionBlurValue()=0;
-	virtual int	GetMotionBlurState()=0;
-	virtual void SetMotionBlurState(int newstate)=0;
+	virtual int		GetMotionBlurState()=0;
+	virtual void	SetMotionBlurState(int newstate)=0;
+
+	virtual void	SetBlendingMode(int blendmode)=0;
 };
 
 #endif //__RAS_IRASTERIZER

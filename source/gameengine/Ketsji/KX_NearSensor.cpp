@@ -98,6 +98,14 @@ void KX_NearSensor::RegisterSumo(KX_TouchEventManager *touchman)
 	}
 }
 
+void KX_NearSensor::UnregisterSumo(KX_TouchEventManager* touchman)
+{
+	if (m_physCtrl)
+	{
+		touchman->GetPhysicsEnvironment()->removeSensor(m_physCtrl);
+	}
+}
+
 CValue* KX_NearSensor::GetReplica()
 {
 	KX_NearSensor* replica = new KX_NearSensor(*this);
@@ -135,9 +143,6 @@ CValue* KX_NearSensor::GetReplica()
 
 void KX_NearSensor::ReParent(SCA_IObject* parent)
 {
-
-	SCA_ISensor::ReParent(parent);
-	
 	m_client_info->m_gameobject = static_cast<KX_GameObject*>(parent); 
 	m_client_info->m_sensors.push_back(this);
 	
@@ -151,6 +156,7 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 */
 	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
 	SynchronizeTransform();
+	SCA_ISensor::ReParent(parent);
 }
 
 

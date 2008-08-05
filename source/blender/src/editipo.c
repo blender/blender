@@ -82,6 +82,7 @@
 #include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_particle.h"
 #include "BKE_texture.h"
@@ -933,6 +934,9 @@ static void make_editipo(void)
 			ob->ipowin= ID_TE;
 			make_texture_editipo(G.sipo);
 		}
+		else if(G.scene->world && give_current_world_texture()) {
+			make_texture_editipo(G.sipo);
+		}
 	}
 	else if(G.sipo->blocktype==ID_CA) {
 		if (ob) {
@@ -1117,6 +1121,11 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 	else if(blocktype==ID_TE) {
 		if(ob) {
 			Tex *tex= give_current_texture(ob, ob->actcol);
+			*from= (ID *)tex;
+			if(tex) *ipo= tex->ipo;
+		}
+		else if(G.scene->world) {
+			Tex *tex= give_current_world_texture();
 			*from= (ID *)tex;
 			if(tex) *ipo= tex->ipo;
 		}

@@ -33,9 +33,12 @@
 #include "BOP_Mesh.h"
 #include "BOP_Face2Face.h"
 #include "BOP_Merge.h"
+#include "BOP_Merge2.h"
 #include "BOP_Chrono.h"
 
-//#define DEBUG
+#if defined(BOP_ORIG_MERGE) && defined(BOP_NEW_MERGE) 
+#include "../../../source/blender/blenkernel/BKE_global.h"
+#endif
 
 BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 								   BOP_Faces* facesA,
@@ -208,7 +211,32 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	#endif
 
 	// Merge faces
+#ifdef BOP_ORIG_MERGE
+#ifndef BOP_NEW_MERGE
 	BOP_Merge::getInstance().mergeFaces(meshC,numVertices);
+#endif
+#endif
+
+#ifdef BOP_NEW_MERGE
+#ifndef BOP_ORIG_MERGE
+	BOP_Merge2::getInstance().mergeFaces(meshC,numVertices);
+#else
+	static int state = -1;
+	if (G.rt == 100) {
+		if( state != 1 ) {
+			cout << "Boolean code using old merge technique." << endl;
+			state = 1;
+		}
+		BOP_Merge::getInstance().mergeFaces(meshC,numVertices);
+	} else {
+		if( state != 0 ) {
+			cout << "Boolean code using new merge technique." << endl;
+			state = 0;
+		}
+		BOP_Merge2::getInstance().mergeFaces(meshC,numVertices);
+	}
+#endif
+#endif
 
 	#ifdef DEBUG
 	c = chrono.stamp(); t += c;
