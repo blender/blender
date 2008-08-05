@@ -814,17 +814,17 @@ static void draw_markers(SpaceText *st) {
 				if (y1==y2) {
 					y -= y1*st->lheight;
 					glBegin(GL_LINE_LOOP);
-					glVertex2i(x+x2*spacetext_get_fontwidth(st), y);
-					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y);
-					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y-st->lheight);
-					glVertex2i(x+x2*spacetext_get_fontwidth(st), y-st->lheight);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st)+1, y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-2, y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-2, y-st->lheight);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st)+1, y-st->lheight);
 					glEnd();
 				} else {
 					y -= y1*st->lheight;
 					glBegin(GL_LINE_STRIP);
 					glVertex2i(curarea->winx, y);
-					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y);
-					glVertex2i(x+x1*spacetext_get_fontwidth(st)-1, y-st->lheight);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-2, y);
+					glVertex2i(x+x1*spacetext_get_fontwidth(st)-2, y-st->lheight);
 					glVertex2i(curarea->winx, y-st->lheight);
 					glEnd();
 					y-=st->lheight;
@@ -839,8 +839,8 @@ static void draw_markers(SpaceText *st) {
 					}
 					glBegin(GL_LINE_STRIP);
 					glVertex2i(x, y);
-					glVertex2i(x+x2*spacetext_get_fontwidth(st), y);
-					glVertex2i(x+x2*spacetext_get_fontwidth(st), y-st->lheight);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st)+1, y);
+					glVertex2i(x+x2*spacetext_get_fontwidth(st)+1, y-st->lheight);
 					glVertex2i(x, y-st->lheight);
 					glEnd();
 				}
@@ -2329,10 +2329,23 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 				}
 				break;
 			case TABKEY:
-				marker= (G.qual & LR_SHIFTKEY) ? txt_prev_marker(text, marker) : txt_next_marker(text, marker);
-				txt_move_to(text, marker->lineno, marker->start, 0);
-				txt_move_to(text, marker->lineno, marker->end, 1);
-				pop_space_text(st);
+				if (G.qual & LR_SHIFTKEY) {
+					nxt= marker->prev;
+					if (!nxt) nxt= text->markers.last;
+				} else {
+					nxt= marker->next;
+					if (!nxt) nxt= text->markers.first;
+				}
+				if (marker->flags & TMARK_TEMP) {
+					if (nxt==marker) nxt= NULL;
+					BLI_freelinkN(&text->markers, marker);
+				}
+				mrk= nxt;
+				if (mrk) {
+					txt_move_to(text, mrk->lineno, mrk->start, 0);
+					txt_move_to(text, mrk->lineno, mrk->end, 1);
+					pop_space_text(st);
+				}
 				swallow= 1;
 				draw= 1;
 				break;
@@ -2707,7 +2720,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break; /* BREAK S */
 		case UKEY:
-			txt_print_undo(text); //debug buffer in console
+			//txt_print_undo(text); //debug buffer in console
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				txt_do_redo(text);
 				do_draw= 1;
@@ -2785,17 +2798,21 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				error_libdata();
 				break;
 			} else {
-				if (G.qual & LR_SHIFTKEY) {
-					if (txt_has_sel(text)) {
+				if (txt_has_sel(text)) {
+					if (G.qual & LR_SHIFTKEY) {
 						txt_order_cursors(text);
 						unindent(text);
 						if (st->showsyntax) txt_format_text(st);
-					}
-				} else {
-					if ( txt_has_sel(text)) {
+					} else {
 						txt_order_cursors(text);
 						indent(text);
 						if (st->showsyntax) txt_format_text(st);
+					}
+				} else {
+					TextMarker *mrk= txt_find_marker_region(text, text->curl, 0, text->curl->len, 0);
+					if (mrk) {
+						txt_move_to(text, mrk->lineno, mrk->start, 0);
+						txt_move_to(text, mrk->lineno, mrk->end, 1);
 					} else {
 						txt_add_char(text, '\t');
 						if (st->showsyntax) txt_format_line(st, text->curl, 1);

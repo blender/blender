@@ -98,10 +98,14 @@ static PyObject *Text_reset( BPy_Text * self );
 static PyObject *Text_readline( BPy_Text * self );
 static PyObject *Text_write( BPy_Text * self, PyObject * value );
 static PyObject *Text_insert( BPy_Text * self, PyObject * value );
+static PyObject *Text_delete( BPy_Text * self, PyObject * value );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
 static PyObject *Text_asLines( BPy_Text * self );
 static PyObject *Text_getCursorPos( BPy_Text * self );
 static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args );
+static PyObject *Text_getSelectPos( BPy_Text * self );
+static PyObject *Text_setSelectPos( BPy_Text * self, PyObject * args );
+static PyObject *Text_markSelection( BPy_Text * self, PyObject * args );
 static PyObject *Text_suggest( BPy_Text * self, PyObject * args );
 static PyObject *Text_showDocs( BPy_Text * self, PyObject * args );
 
@@ -128,6 +132,8 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "(line) - Append string 'str' to Text buffer"},
 	{"insert", ( PyCFunction ) Text_insert, METH_O,
 	 "(line) - Insert string 'str' to Text buffer at cursor location"},
+	{"delete", ( PyCFunction ) Text_delete, METH_O,
+	 "(chars) - Deletes a number of characters to the left (chars<0) or right (chars>0)"},
 	{"set", ( PyCFunction ) Text_set, METH_VARARGS,
 	 "(name, val) - Set attribute 'name' to value 'val'"},
 	{"asLines", ( PyCFunction ) Text_asLines, METH_NOARGS,
@@ -136,6 +142,12 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "() - Return cursor position as (row, col) tuple"},
 	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
 	 "(row, col) - Set the cursor position to (row, col)"},
+	{"getSelectPos", ( PyCFunction ) Text_getSelectPos, METH_NOARGS,
+	 "() - Return the selection cursor position as (row, col) tuple"},
+	{"setSelectPos", ( PyCFunction ) Text_setSelectPos, METH_VARARGS,
+	 "(row, col) - Set the selection cursor position to (row, col)"},
+	{"markSelection", ( PyCFunction ) Text_markSelection, METH_VARARGS,
+	 "(group, (r, g, b), flags) - Places a marker over the current selection. Group: number > 0, flags: TMARK_TEMP, TMARK_EDITALL, etc."},
 	{"suggest", ( PyCFunction ) Text_suggest, METH_VARARGS,
 	 "(list, prefix='') - Presents a list of suggestions. List is of strings, or tuples. Tuples must be of the form (name, type) where type is one of 'm', 'v', 'f', 'k' for module, variable, function and keyword respectively or '?' for other types"},
 	{"showDocs", ( PyCFunction ) Text_showDocs, METH_VARARGS,
@@ -327,13 +339,26 @@ static PyObject *M_Text_unlink( PyObject * self, PyObject * args )
 /*****************************************************************************/
 PyObject *Text_Init( void )
 {
-	PyObject *submodule;
+	PyObject *submodule, *dict;
 
 	if( PyType_Ready( &Text_Type ) < 0 )
 		return NULL;
 
 	submodule =
 		Py_InitModule3( "Blender.Text", M_Text_methods, M_Text_doc );
+
+	dict = PyModule_GetDict( submodule );
+	
+#define EXPP_ADDCONST(x) \
+	EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
+
+	/* So, for example:
+	 * EXPP_ADDCONST(LEFTMOUSE) becomes
+	 * EXPP_dict_set_item_str(dict, "LEFTMOUSE", PyInt_FromLong(LEFTMOUSE)) 
+	 */
+
+	EXPP_ADDCONST( TMARK_TEMP );
+	EXPP_ADDCONST( TMARK_EDITALL );
 
 	return ( submodule );
 }
@@ -483,6 +508,33 @@ static PyObject *Text_insert( BPy_Text * self, PyObject * value )
 	Py_RETURN_NONE;
 }
 
+static PyObject *Text_delete( BPy_Text * self, PyObject * value )
+{
+	int num = PyInt_AsLong(value);
+	int oldstate;
+
+	if( !self->text )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object" );
+
+	if( !num )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected non-zero int argument" );
+
+	oldstate = txt_get_undostate(  );
+	while (num<0) {
+		txt_backspace_char(self->text);
+		num++;
+	}
+	while (num>0) {
+		txt_delete_char(self->text);
+		num--;
+	}
+	txt_set_undostate( oldstate );
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *Text_set( BPy_Text * self, PyObject * args )
 {
 	int ival;
@@ -549,7 +601,6 @@ static PyObject *Text_getCursorPos( BPy_Text * self )
 static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 {
 	int row, col;
-	int oldstate;
 	SpaceText *st;
 
 	if (!self->text)
@@ -559,16 +610,84 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 	if (!PyArg_ParseTuple(args, "ii", &row, &col))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 					      "expected two ints as arguments.");
+	if (row<0) row=0;
 	if (col<0) col=0;
-	if (col>self->text->curl->len) col=self->text->curl->len;
 
-	oldstate = txt_get_undostate();
 	txt_move_to(self->text, row, col, 0);
-	txt_set_undostate(oldstate);
 
 	if (curarea->spacetype == SPACE_TEXT && (st=curarea->spacedata.first))
 		pop_space_text(st);
 
+	Py_RETURN_NONE;
+}
+
+static PyObject *Text_getSelectPos( BPy_Text * self )
+{
+	Text *text;
+	TextLine *linep;
+	int row, col;
+
+	text = self->text;
+	if( !text )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object" );
+
+	for (row=0,linep=text->lines.first; linep!=text->sell; linep=linep->next)
+		row++;
+	col= text->selc;
+
+	return Py_BuildValue( "ii", row, col );
+}
+
+static PyObject *Text_setSelectPos( BPy_Text * self, PyObject * args )
+{
+	int row, col;
+	SpaceText *st;
+
+	if (!self->text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object");
+
+	if (!PyArg_ParseTuple(args, "ii", &row, &col))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+					      "expected two ints as arguments.");
+	if (row<0) row=0;
+	if (col<0) col=0;
+
+	txt_move_to(self->text, row, col, 1);
+
+	if (curarea->spacetype == SPACE_TEXT && (st=curarea->spacedata.first))
+		pop_space_text(st);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Text_markSelection( BPy_Text * self, PyObject * args )
+{
+	int group = 0, flags = 0,r, g, b;
+	Text *text;
+	char clr[4];
+
+	text = self->text;
+	if (!text)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					      "This object isn't linked to a Blender Text Object");
+
+	if (!PyArg_ParseTuple(args, "i(iii)i", &group, &r, &g, &b, &flags))
+		return EXPP_ReturnPyObjError(PyExc_TypeError,
+					      "expected int, 3-tuple of ints and int as arguments.");
+
+	if (text->curl != text->sell)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					      "Cannot mark multi-line selection.");
+
+	clr[0] = (char) (r&0xFF);
+	clr[1] = (char) (g&0xFF);
+	clr[2] = (char) (b&0xFF);
+	clr[3] = 255;
+
+	txt_add_marker(text, text->curl, text->curc, text->selc, clr, ((group+2)<<16)|flags);
+	
 	Py_RETURN_NONE;
 }
 
