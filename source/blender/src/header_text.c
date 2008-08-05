@@ -205,6 +205,7 @@ void do_text_buttons(unsigned short event)
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	case B_WORDWRAP:
+		st->left= 0;
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -406,16 +407,10 @@ static void do_text_editmenu(void *arg, int event)
 		jumptoline_interactive(st);
 		break;
 	case 8:
-		txt_find_panel(st, 0, TXT_FIND_WRAP);
+		txt_find_panel(st, 0, TXT_FIND_WRAP | TXT_FIND_KEEP);
 		break;
 	case 9:
 		txt_find_panel(st, 1, TXT_FIND_WRAP);
-		break;
-	case 10:
-		txt_find_panel(st, 0, TXT_FIND_WRAP | TXT_FIND_REPLACE);
-		break;
-	case 11:
-		txt_find_panel(st, 1, TXT_FIND_WRAP | TXT_FIND_REPLACE);
 		break;
 	default:
 		break;
@@ -715,10 +710,8 @@ static uiBlock *text_editmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, text_editmenu_selectmenu, NULL, ICON_RIGHTARROW_THIN, "Select|Alt Shift S   ", 0, yco-=20, 120, 19, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump...|Alt J", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find...|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find And Replace...|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Alt Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace Again|Alt Ctrl H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, text_editmenu_to3dmenu, NULL, ICON_RIGHTARROW_THIN, "Text to 3d Object", 0, yco-=20, 120, 19, "");
 	

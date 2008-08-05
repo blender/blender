@@ -151,9 +151,11 @@ struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marke
 #define UNDO_UNCOMMENT		035
 
 /* Find and replace flags */
-#define TXT_FIND_REPLACE 0x01
-#define TXT_FIND_ALLTEXTS 0x02
-#define TXT_FIND_WRAP 0x04
+#define TXT_FIND_REPLACE	0x01
+#define TXT_FIND_ALLTEXTS	0x02
+#define TXT_FIND_WRAP		0x04
+#define TXT_FIND_MARKALL	0x08
+#define TXT_FIND_KEEP		0x10
 
 /* Marker flags */
 #define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */
