@@ -65,6 +65,7 @@ public:
 	{
 	}
 	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl) {}
+	virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl) {}
 	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
 	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
 

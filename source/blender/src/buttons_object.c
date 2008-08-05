@@ -174,6 +174,7 @@ static void constraint_active_func(void *ob_v, void *con_v)
 	}
 	
 	lb= get_active_constraints(ob);
+	if (lb == NULL) return;
 	
 	for(con= lb->first; con; con= con->next) {
 		if(con==con_v) con->flag |= CONSTRAINT_ACTIVE;
@@ -308,7 +309,7 @@ void del_constr_func (void *ob_v, void *con_v)
 	}
 	/* remove constraint itself */
 	lb= get_active_constraints(ob_v);
-	free_constraint_data (con);
+	free_constraint_data(con);
 	BLI_freelinkN(lb, con);
 	
 	constraint_active_func(ob_v, NULL);
@@ -481,7 +482,7 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	
 	/* Target-Space */
 	if (target == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
 												tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 	}
 	else if (target == 0) {
@@ -491,7 +492,7 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	
 	/* Owner-Space */
 	if (owner == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x2|Local with Parent %x3|Local Space %x1", 
 												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
 	}
 	else if (owner == 0) {

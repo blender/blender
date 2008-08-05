@@ -77,10 +77,10 @@ KX_GameObject::KX_GameObject(
 	SCA_IObject(T),
 	m_bDyna(false),
 	m_layer(0),
+	m_pBlenderObject(NULL),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
-	m_pBlenderObject(NULL),
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
@@ -96,10 +96,7 @@ KX_GameObject::KX_GameObject(
 	KX_NormalParentRelation * parent_relation = 
 		KX_NormalParentRelation::New();
 	m_pSGNode->SetParentRelation(parent_relation);
-	
-
 };
-
 
 
 KX_GameObject::~KX_GameObject()
@@ -165,6 +162,7 @@ STR_String KX_GameObject::GetName()
 void KX_GameObject::SetName(STR_String name)
 {
 	m_name = name;
+
 };								// Set the name of the value
 
 
@@ -277,6 +275,7 @@ void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 	replica->m_pSGNode = NULL;
 	replica->m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	replica->m_pClient_info->m_gameobject = replica;
+	replica->m_state = 0;
 }
 
 
@@ -454,12 +453,13 @@ KX_GameObject::UpdateMaterialData(
 	)
 {
 	int mesh = 0;
+
 	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0) {
 		RAS_MaterialBucket::Set::iterator mit = m_meshes[mesh]->GetFirstMaterial();
 		for(; mit != m_meshes[mesh]->GetLastMaterial(); ++mit)
 		{
 			RAS_IPolyMaterial* poly = (*mit)->GetPolyMaterial();
-			if(poly->GetFlag() & RAS_BLENDERMAT )
+			if(poly->GetFlag() & RAS_BLENDERMAT)
 			{
 				KX_BlenderMaterial *m =  static_cast<KX_BlenderMaterial*>(poly);
 				
@@ -467,7 +467,8 @@ KX_GameObject::UpdateMaterialData(
 				{
 					m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
 					// if mesh has only one material attached to it then use original hack with no need to edit vertices (better performance)
-					SetObjectColor(rgba);
+					if(!(poly->GetFlag() & RAS_BLENDERGLSL))
+						SetObjectColor(rgba);
 				}
 				else
 				{
@@ -913,6 +914,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
 	KX_PYMETHODTABLE(KX_GameObject, getDistanceTo),
+	KX_PYMETHODTABLE(KX_GameObject, getVectTo),
 	{NULL,NULL} //Sentinel
 };
 
@@ -1366,14 +1368,15 @@ PyObject* KX_GameObject::PyGetMesh(PyObject* self,
 {
 	int mesh = 0;
 
-	if (PyArg_ParseTuple(args, "|i", &mesh))
+	if (!PyArg_ParseTuple(args, "|i", &mesh))
+		return NULL; // python sets a simple error
+	
+	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
 	{
-		if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
-		{
-			KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
-			return meshproxy;
-		}
+		KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
+		return meshproxy;
 	}
+	
 	Py_RETURN_NONE;
 }
 
@@ -1554,6 +1557,54 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
 	return NULL;
 }
 
+KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
+"getVectTo(other): get vector and the distance to another point/KX_GameObject\n"
+"Returns a 3-tuple with (distance,worldVector,localVector)\n")
+{
+	MT_Point3 toPoint, fromPoint;
+	MT_Vector3 toDir, locToDir;
+	MT_Scalar distance;
+
+	PyObject *returnValue;
+	PyObject *pyother;
+
+	if (!PyVecArgTo(args, toPoint))
+	{
+		PyErr_Clear();
+		if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &pyother))
+		{
+			KX_GameObject *other = static_cast<KX_GameObject*>(pyother);
+			toPoint = other->NodeGetWorldPosition();
+		}else
+		{
+			PyErr_SetString(PyExc_TypeError, "Expected a 3D Vector or GameObject type");
+			return NULL;
+		}
+	}
+
+	fromPoint = NodeGetWorldPosition();
+	toDir = toPoint-fromPoint;
+	distance = toDir.length();
+
+	if (MT_fuzzyZero(distance))
+	{
+		//cout << "getVectTo() Error: Null vector!\n";
+		locToDir = toDir = MT_Vector3(0.0,0.0,0.0);
+		distance = 0.0;
+	} else {
+		toDir.normalize();
+		locToDir = toDir * NodeGetWorldOrientation();
+	}
+	
+	returnValue = PyTuple_New(3);
+	if (returnValue) { // very unlikely to fail, python sets a memory error here.
+		PyTuple_SET_ITEM(returnValue, 0, PyFloat_FromDouble(distance));
+		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(toDir));
+		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(locToDir));
+	}
+	return returnValue;
+}
+
 bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
 {
 
@@ -1587,8 +1638,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	char *propName = NULL;
 
 	if (!PyArg_ParseTuple(args,"O|fs", &pyarg, &dist, &propName)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-		return NULL;
+		return NULL; // python sets simple error
 	}
 
 	if (!PyVecTo(pyarg, toPoint))
@@ -1653,8 +1703,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	KX_GameObject *other;
 
 	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
-		return NULL;
+		return NULL; // Python sets a simple error
 	}
 
 	if (!PyVecTo(pyto, toPoint))
@@ -1713,13 +1762,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
     if (m_pHitObject)
 	{
 		PyObject* returnValue = PyTuple_New(3);
-		if (!returnValue) {
-			PyErr_SetString(PyExc_TypeError, "PyTuple_New() failed");
-			return NULL;
+		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
+			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
+			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
+			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
 		}
-		PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
-		PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
-		PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
 		return returnValue;
 	}
 	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);

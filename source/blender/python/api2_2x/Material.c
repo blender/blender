@@ -131,11 +131,11 @@
 #define EXPP_MAT_RAYMIRRGLOSS_MIN			 0.0
 #define EXPP_MAT_RAYMIRRGLOSS_MAX			 1.0
 #define EXPP_MAT_RAYMIRRGLOSSSAMPLES_MIN	 0
-#define EXPP_MAT_RAYMIRRGLOSSSAMPLES_MAX	 255
+#define EXPP_MAT_RAYMIRRGLOSSSAMPLES_MAX	 1024
 #define EXPP_MAT_RAYTRANSPGLOSS_MIN			 0.0
 #define EXPP_MAT_RAYTRANSPGLOSS_MAX			 1.0
 #define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MIN	 0
-#define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MAX	 255
+#define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MAX	 1024
 #define EXPP_MAT_FILTER_MIN			0.0
 #define EXPP_MAT_FILTER_MAX			1.0
 #define EXPP_MAT_TRANSLUCENCY_MIN			0.0
@@ -738,8 +738,10 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return fresnel power for refractions factor"},
 	{"getRayTransGloss", ( PyCFunction ) Material_getGlossTrans, METH_NOARGS,
 	 "() - Return amount refraction glossiness"},
+	{"getRayTransGlossSamples", ( PyCFunction ) Material_getGlossTransSamples, METH_NOARGS,
+	 "() - Return number of sampels for transparent glossiness"},
 	{"getRayMirrGlossSamples", ( PyCFunction ) Material_getGlossMirrSamples, METH_NOARGS,
-	 "() - Return amount mirror glossiness"},
+	 "() - Return number of sampels for mirror glossiness"},
 	{"getFilter", ( PyCFunction ) Material_getFilter, METH_NOARGS,
 	 "() - Return the amount of filtering when transparent raytrace is enabled"},
 	{"getTranslucency", ( PyCFunction ) Material_getTranslucency, METH_NOARGS,
@@ -847,8 +849,10 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(f) - Set blend fac for mirror fresnel - [1.0, 5.0]"},
 	{"setRayTransGloss", ( PyCFunction ) Material_setGlossTrans, METH_VARARGS,
 	 "(f) - Set amount refraction glossiness - [0.0, 1.0]"},
+	{"setRayTransGlossSamples", ( PyCFunction ) Material_setGlossTransSamples, METH_VARARGS,
+	 "(i) - Set number transparent gloss samples - [1, 1024]"},
 	{"setRayMirrGlossSamples", ( PyCFunction ) Material_setGlossMirrSamples, METH_VARARGS,
-	 "(f) - Set amount mirror glossiness - [0.0, 1.0]"},
+	 "(i) - Set number mirror gloss samples - [1, 1024]"},
 	{"setFilter", ( PyCFunction ) Matr_oldsetFilter, METH_VARARGS,
 	 "(f) - Set the amount of filtering when transparent raytrace is enabled"},
 	{"setTranslucency", ( PyCFunction ) Matr_oldsetTranslucency, METH_VARARGS,

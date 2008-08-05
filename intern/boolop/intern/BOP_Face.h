@@ -32,6 +32,7 @@
 #include "MT_Plane3.h"
 #include "BOP_Indexs.h"
 #include "BOP_BBox.h"
+#include "BOP_Misc.h"
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -80,7 +81,9 @@ public:
 	virtual void replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex) = 0;
 	virtual bool containsVertex(BOP_Index v) = 0;
 		
+#ifdef BOP_DEBUG
 	friend ostream &operator<<(ostream &stream, BOP_Face *f);
+#endif
 };
 
 class BOP_Face3: public BOP_Face 

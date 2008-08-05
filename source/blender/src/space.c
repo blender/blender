@@ -2428,7 +2428,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
-						select_bone_parent();
+						armature_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
 					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
@@ -2458,7 +2458,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
                 	start_RBSimulation();
 				}
 				else if((G.qual==0) && (OBACT) && (OBACT->type==OB_ARMATURE) && (OBACT->flag & OB_POSEMODE))
-					select_bone_parent();
+					pose_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
 				else if((G.qual==0)) {
                 	start_game();
 				}
@@ -2759,6 +2759,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
+				break;
+			
+			case LEFTBRACKETKEY:
+				if ((G.obedit) && (G.obedit->type == OB_ARMATURE))
+					armature_select_hierarchy(BONE_SELECT_PARENT, (G.qual == LR_SHIFTKEY));
+				else if ((ob) && (ob->flag & OB_POSEMODE))
+					pose_select_hierarchy(BONE_SELECT_PARENT, (G.qual == LR_SHIFTKEY));
+				break;
+			case RIGHTBRACKETKEY:
+				if ((G.obedit) && (G.obedit->type == OB_ARMATURE))
+					armature_select_hierarchy(BONE_SELECT_CHILD, (G.qual == LR_SHIFTKEY));
+				if ((ob) && (ob->flag & OB_POSEMODE))
+					pose_select_hierarchy(BONE_SELECT_CHILD, (G.qual == LR_SHIFTKEY));
 				break;
 			
 			case PADSLASHKEY:
@@ -5119,7 +5132,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}	
 	}
 
-	if(doredraw) scrarea_queue_winredraw(curarea);
+	if(doredraw) {
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+	}
 }
 
 

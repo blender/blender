@@ -733,9 +733,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			gameobj->AddSensor(gamesensor);
 			
 			// only register to manager if it's in an active layer
-			
-			if (isInActiveLayer)
-				gamesensor->RegisterToManager();
+			// Make registration dynamic: only when sensor is activated
+			//if (isInActiveLayer)
+			//	gamesensor->RegisterToManager();
 			
 			
 			for (int i=0;i<sens->totlinks;i++)

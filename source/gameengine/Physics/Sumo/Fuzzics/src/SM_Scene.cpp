@@ -98,12 +98,17 @@ void SM_Scene::addTouchCallback(int response_class, DT_ResponseCallback callback
 
 void SM_Scene::addSensor(SM_Object& object) 
 {
-	object.calcXform();
-	m_objectList.push_back(&object);
-	DT_AddObject(m_scene, object.getObjectHandle());
-	DT_SetResponseClass(m_respTable, object.getObjectHandle(), m_ResponseClass[SENSOR_RESPONSE]);
-	DT_SetResponseClass(m_secondaryRespTable, object.getObjectHandle(), m_secondaryResponseClass[SENSOR_RESPONSE]);
-	DT_SetResponseClass(m_fixRespTable, object.getObjectHandle(), m_fixResponseClass[SENSOR_RESPONSE]);
+	T_ObjectList::iterator i =
+		std::find(m_objectList.begin(), m_objectList.end(), &object);
+	if (i == m_objectList.end())
+	{
+		object.calcXform();
+		m_objectList.push_back(&object);
+		DT_AddObject(m_scene, object.getObjectHandle());
+		DT_SetResponseClass(m_respTable, object.getObjectHandle(), m_ResponseClass[SENSOR_RESPONSE]);
+		DT_SetResponseClass(m_secondaryRespTable, object.getObjectHandle(), m_secondaryResponseClass	[SENSOR_RESPONSE]);
+		DT_SetResponseClass(m_fixRespTable, object.getObjectHandle(), m_fixResponseClass[SENSOR_RESPONSE]);
+	}
 }
 
 void SM_Scene::add(SM_Object& object) {

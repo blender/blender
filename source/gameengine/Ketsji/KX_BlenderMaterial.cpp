@@ -38,6 +38,7 @@ extern "C" {
 // ------------------------------------
 #define spit(x) std::cout << x << std::endl;
 
+BL_Shader *KX_BlenderMaterial::mLastShader = NULL;
 BL_BlenderShader *KX_BlenderMaterial::mLastBlenderShader = NULL;
 
 //static PyObject *gTextureDict = 0;
@@ -58,7 +59,8 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 		data->tilexrep[0],
 		data->tileyrep[0],
 		data->mode,
-		((data->ras_mode &TRANSP)!=0),
+		data->transp,
+		((data->ras_mode &ALPHA)!=0),
 		((data->ras_mode &ZSORT)!=0),
 		lightlayer,
 		((data->ras_mode &TRIANGLE)!=0),
@@ -79,7 +81,6 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 	m_flag |=RAS_BLENDERMAT;
 	m_flag |=(mMaterial->IdMode>=ONETEX)?RAS_MULTITEX:0;
 	m_flag |=(mMaterial->ras_mode & USE_LIGHT)!=0?RAS_MULTILIGHT:0;
-	m_flag |=(mMaterial->ras_mode &ALPHA_TEST)!=0?RAS_FORCEALPHA:0;
 
 	// figure max
 	int enabled = mMaterial->num_enabled;
@@ -158,12 +159,29 @@ void KX_BlenderMaterial::OnConstruction()
 	mConstructed = true;
 }
 
+void KX_BlenderMaterial::EndFrame()
+{
+	if(mLastBlenderShader) {
+		mLastBlenderShader->SetProg(false);
+		mLastBlenderShader = NULL;
+	}
+
+	if(mLastShader) {
+		mLastShader->SetProg(false);
+		mLastShader = NULL;
+	}
+}
+
 void KX_BlenderMaterial::OnExit()
 {
 	if( mShader ) {
-		 //note, the shader here is allocated, per unique material
-		 //and this function is called per face
-		mShader->SetProg(false);
+		//note, the shader here is allocated, per unique material
+		//and this function is called per face
+		if(mShader == mLastShader) {
+			mShader->SetProg(false);
+			mLastShader = NULL;
+		}
+
 		delete mShader;
 		mShader = 0;
 	}
@@ -197,13 +215,19 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 	int i;
 	if( !enable || !mShader->Ok() ) {
 		// frame cleanup.
-		mShader->SetProg(false);
+		if(mShader == mLastShader) {
+			mShader->SetProg(false);
+			mLastShader = NULL;
+		}
+
+		ras->SetBlendingMode(TF_SOLID);
 		BL_Texture::DisableAllTextures();
 		return;
 	}
 
 	BL_Texture::DisableAllTextures();
 	mShader->SetProg(true);
+	mLastShader = mShader;
 	
 	BL_Texture::ActivateFirst();
 
@@ -217,9 +241,12 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 	}
 
 	if(!mUserDefBlend) {
-		setDefaultBlending();
+		ras->SetBlendingMode(mMaterial->transp);
 	}
 	else {
+		ras->SetBlendingMode(TF_SOLID);
+		ras->SetBlendingMode(-1); // indicates custom mode
+
 		// tested to be valid enums
 		glEnable(GL_BLEND);
 		glBlendFunc(mBlendFunc[0], mBlendFunc[1]);
@@ -234,11 +261,14 @@ void KX_BlenderMaterial::setBlenderShaderData( bool enable, RAS_IRasterizer *ras
 			mLastBlenderShader->SetProg(false);
 			mLastBlenderShader= NULL;
 		}
+
+		ras->SetBlendingMode(TF_SOLID);
 		BL_Texture::DisableAllTextures();
 		return;
 	}
 
 	if(!mBlenderShader->Equals(mLastBlenderShader)) {
+		ras->SetBlendingMode(mMaterial->transp);
 		BL_Texture::DisableAllTextures();
 
 		if(mLastBlenderShader)
@@ -251,17 +281,17 @@ void KX_BlenderMaterial::setBlenderShaderData( bool enable, RAS_IRasterizer *ras
 
 void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 {
-	if(GLEW_ARB_shader_objects && mShader) 
-		mShader->SetProg(false);
-
 	BL_Texture::DisableAllTextures();
-	if( !enable )
+
+	if( !enable ) {
+		ras->SetBlendingMode(TF_SOLID);
 		return;
+	}
 
 	BL_Texture::ActivateFirst();
 
 	if( mMaterial->IdMode == DEFAULT_BLENDER ) {
-		setDefaultBlending();
+		ras->SetBlendingMode(mMaterial->transp);
 		return;
 	}
 
@@ -271,7 +301,7 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 			mTextures[0].ActivateTexture();
 			mTextures[0].setTexEnv(0, true);
 			mTextures[0].SetMapping(mMaterial->mapping[0].mapping);
-			setDefaultBlending(); 
+			ras->SetBlendingMode(mMaterial->transp);
 		}
 		return;
 	}
@@ -294,9 +324,12 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 	}
 
 	if(!mUserDefBlend) {
-		setDefaultBlending();
+		ras->SetBlendingMode(mMaterial->transp);
 	}
 	else {
+		ras->SetBlendingMode(TF_SOLID);
+		ras->SetBlendingMode(-1); // indicates custom mode
+
 		glEnable(GL_BLEND);
 		glBlendFunc(mBlendFunc[0], mBlendFunc[1]);
 	}
@@ -356,6 +389,11 @@ KX_BlenderMaterial::ActivateBlenderShaders(
 {
 	KX_BlenderMaterial *tmp = const_cast<KX_BlenderMaterial*>(this);
 
+	if(mLastShader) {
+		mLastShader->SetProg(false);
+		mLastShader= NULL;
+	}
+
 	// reset... 
 	if(tmp->mMaterial->IsShared()) 
 		cachingInfo =0;
@@ -401,6 +439,11 @@ KX_BlenderMaterial::ActivateMat(
 	)const
 {
 	KX_BlenderMaterial *tmp = const_cast<KX_BlenderMaterial*>(this);
+
+	if(mLastShader) {
+		mLastShader->SetProg(false);
+		mLastShader= NULL;
+	}
 
 	if(mLastBlenderShader) {
 		mLastBlenderShader->SetProg(false);
@@ -451,7 +494,10 @@ KX_BlenderMaterial::Activate(
 			return dopass;
 		}
 		else {
-			mShader->SetProg(false);
+			if(mShader == mLastShader) {
+				mShader->SetProg(false);
+				mLastShader = NULL;
+			}
 			mPass = 0;
 			dopass = false;
 			return dopass;
@@ -499,10 +545,22 @@ bool KX_BlenderMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 
 void KX_BlenderMaterial::ActivateMeshSlot(const KX_MeshSlot & ms, RAS_IRasterizer* rasty) const
 {
-	if(mShader && GLEW_ARB_shader_objects)
+	if(mShader && GLEW_ARB_shader_objects) {
 		mShader->Update(ms, rasty);
-	else if(mBlenderShader && GLEW_ARB_shader_objects)
+	}
+	else if(mBlenderShader && GLEW_ARB_shader_objects) {
+		int blendmode;
+
 		mBlenderShader->Update(ms, rasty);
+
+		/* we do blend modes here, because they can change per object
+		 * with the same material due to obcolor */
+		blendmode = mBlenderShader->GetBlendMode();
+		if((blendmode == TF_SOLID || blendmode == TF_ALPHA) && mMaterial->transp != TF_SOLID)
+			blendmode = mMaterial->transp;
+
+		rasty->SetBlendingMode(blendmode);
+	}
 }
 
 void KX_BlenderMaterial::ActivatGLMaterials( RAS_IRasterizer* rasty )const
@@ -580,31 +638,6 @@ void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 	}
 	else
 		ras->EnableTextures(false);
-}
-
-bool KX_BlenderMaterial::setDefaultBlending()
-{
-	if( mMaterial->transp &TF_ADD) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-		glDisable ( GL_ALPHA_TEST );
-		return true;
-	}
-	
-	if( mMaterial->transp & TF_ALPHA ) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDisable ( GL_ALPHA_TEST );
-		return true;
-	}
-	
-	if( mMaterial->transp & TF_CLIP ) {
-		glDisable(GL_BLEND); 
-		glEnable ( GL_ALPHA_TEST );
-		glAlphaFunc(GL_GREATER, 0.5f);
-		return false;
-	}
-	return false;
 }
 
 void KX_BlenderMaterial::setTexMatrixData(int i)
@@ -831,12 +864,14 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 void KX_BlenderMaterial::SetBlenderGLSLShader(void)
 {
 	if(!mBlenderShader)
-		mBlenderShader = new BL_BlenderShader(mMaterial->material, m_lightlayer);
+		mBlenderShader = new BL_BlenderShader(mScene, mMaterial->material, m_lightlayer);
 
 	if(!mBlenderShader->Ok()) {
 		delete mBlenderShader;
 		mBlenderShader = 0;
 	}
+	else
+		m_flag |= RAS_BLENDERGLSL;
 }
 
 KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getMaterialIndex, "getMaterialIndex()")

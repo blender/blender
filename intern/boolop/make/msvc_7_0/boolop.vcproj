@@ -279,6 +279,9 @@ ECHO Done
 					RelativePath="..\..\intern\BOP_Merge.cpp">
 				</File>
 				<File
+					RelativePath="..\..\intern\BOP_Merge2.cpp">
+				</File>
+				<File
 					RelativePath="..\..\intern\BOP_Mesh.cpp">
 				</File>
 				<File
@@ -331,7 +334,13 @@ ECHO Done
 					RelativePath="..\..\intern\BOP_Merge.h">
 				</File>
 				<File
+					RelativePath="..\..\intern\BOP_Merge2.h">
+				</File>
+				<File
 					RelativePath="..\..\intern\BOP_Mesh.h">
+				</File>
+				<File
+					RelativePath="..\..\intern\BOP_Misc.h">
 				</File>
 				<File
 					RelativePath="..\..\intern\BOP_Segment.h">

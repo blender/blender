@@ -1,7 +1,6 @@
 /**
- * Manager for random events
  *
- * $Id$
+ * $Id: BOP_Misc.h 14444 2008-04-16 22:40:48Z khughes $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,35 +23,32 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Ken Hughes
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include "SCA_RandomEventManager.h"
-#include "SCA_LogicManager.h"
-#include "SCA_ISensor.h"
-#include <vector>
-using namespace std;
+ 
+/*
+ * This file contains various definitions used across the modules
+ */
 
-#include <iostream>
-#include <stdio.h>
+/*
+ * define operator>> for faces, edges and vertices, and also add some
+ * debugging functions for displaying various internal data structures
+ */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+// #define	BOP_DEBUG
 
-SCA_RandomEventManager::SCA_RandomEventManager(class SCA_LogicManager* logicmgr)
-		: SCA_EventManager(RANDOM_EVENTMGR),
-		m_logicmgr(logicmgr)
-{
-}
+#define HASH(x) ((x) >> 5)		/* each "hash" covers 32 indices */
+// #define HASH_PRINTF_DEBUG	/* uncomment to enable debug output */
 
+/*
+ * temporary: control which method is used to merge final triangles and
+ * quads back together after an operation.  If both methods are included,
+ * the "rt" debugging button on the Scene panel (F10) is used to control
+ * which is active.  Setting it to 100 enables the original method, any
+ * other value enables the new method.
+ */
 
-void SCA_RandomEventManager::NextFrame()
-{
-	for (set<class SCA_ISensor*>::const_iterator i= m_sensors.begin();!(i==m_sensors.end());i++)
-	{
-		(*i)->Activate(m_logicmgr, NULL);
-	}
-}
-
+#define BOP_ORIG_MERGE			/* include original merge code */
+#define BOP_NEW_MERGE			/* include new merge code */

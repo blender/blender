@@ -71,8 +71,8 @@ public:
 		PHY_IPhysicsEnvironment* physEnv);
 	virtual void NextFrame();
 	virtual void	EndFrame();
-	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void RegisterSensor(SCA_ISensor* sensor);
+	virtual void RemoveSensor(SCA_ISensor* sensor);
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 	PHY_IPhysicsEnvironment *GetPhysicsEnvironment() { return m_physEnv; }
 

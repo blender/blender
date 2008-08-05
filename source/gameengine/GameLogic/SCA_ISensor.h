@@ -115,6 +115,8 @@ public:
 	void SetLevel(bool lvl);
 
 	void RegisterToManager();
+	void UnregisterToManager();
+
 	virtual float GetNumber();
 
 	/** Stop sensing for a while. */
@@ -129,7 +131,7 @@ public:
 	void ClrLink()
 		{ m_links = 0; }
 	void IncLink()
-		{ m_links++; }
+		{ if (!m_links++) RegisterToManager(); }
 	void DecLink();
 	bool IsNoLink() const 
 		{ return !m_links; }

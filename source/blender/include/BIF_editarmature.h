@@ -108,7 +108,8 @@ void	mouse_armature(void);
 void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
-void	select_bone_parent(void);
+void	armature_select_hierarchy(short direction, short add_to_sel);
+
 void	setflag_armature(short mode);
 void    unique_editbone_name (struct ListBase *ebones, char *name);
 
@@ -142,6 +143,10 @@ void	set_locks_armature_bones(short lock);
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
+
+/* used in bone_select_hierachy() */
+#define BONE_SELECT_PARENT	0
+#define BONE_SELECT_CHILD	1
 
 #endif
 

@@ -38,6 +38,15 @@ struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
 
+/* ------------- Grease-Pencil Helpers -------------- */
+
+/* Temporary 'Stroke Point' data */
+typedef struct tGPspoint {
+	short x, y;				/* x and y coordinates of cursor (in relative to area) */
+	float xf, yf;			/* same as x and y, but as floats */
+	float pressure;			/* pressure of tablet at this point */
+} tGPspoint;
+
 /* ------------ Grease-Pencil API ------------------ */
 
 void free_gpencil_strokes(struct bGPDframe *gpf);

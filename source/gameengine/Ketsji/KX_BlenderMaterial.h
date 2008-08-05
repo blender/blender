@@ -90,11 +90,13 @@ public:
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup
 	virtual void OnConstruction( );
+
+	static void	EndFrame();
+
 private:
 	BL_Material*		mMaterial;
 	BL_Shader*			mShader;
 	BL_BlenderShader*	mBlenderShader;
-	static BL_BlenderShader *mLastBlenderShader;
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
 	bool			mUserDefBlend;
@@ -114,7 +116,6 @@ private:
 	void	setBlenderShaderData( bool enable, RAS_IRasterizer *ras);
 	void	setShaderData( bool enable, RAS_IRasterizer *ras);
 
-	bool	setDefaultBlending();
 	void	setObjectMatrixData(int i, RAS_IRasterizer *ras);
 	void	setTexMatrixData(int i);
 
@@ -122,6 +123,10 @@ private:
 
 	// cleanup stuff
 	void	OnExit();
+
+	// shader chacing
+	static BL_BlenderShader *mLastBlenderShader;
+	static BL_Shader		*mLastShader;
 
 	mutable int	mPass;
 };

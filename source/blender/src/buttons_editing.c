@@ -6193,6 +6193,7 @@ static void editing_panel_mesh_texface(void)
 		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &tf->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
 		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &tf->mode, 0, 0, 0, 0, "Face is used for shadow");
 		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable bitmap text on face");
+		uiDefButBitS(block, TOG, TF_ALPHASORT, REDRAWVIEW3D, "Sort", 840,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable sorting of faces for correct alpha drawing (slow, use Clip Alpha instead when possible)");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);

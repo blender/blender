@@ -280,11 +280,15 @@ short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 		
 		/* show override lmb-clicks button + painting lock */
 		uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 130, 20, &gpd->flag, 0, 0, 0, 0, "Interpret LMB-click as new strokes (same as holding Shift-Key per stroke)");
-			
-			uiBlockSetCol(block, TH_BUT_SETTING);
-				uiDefIconButBitI(block, ICONTOG, GP_DATA_LMBPLOCK, B_REDR, ICON_UNLOCKED,	300, 225, 20, 20, &gpd->flag, 0.0, 0.0, 0, 0, "Painting cannot occur with Shift-LMB (when making selections)");
-			uiBlockSetCol(block, TH_AUTO);
+			if ((gpd->flag & GP_DATA_EDITPAINT)==0) {
+				uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 130, 20, &gpd->flag, 0, 0, 0, 0, "Interpret click-drag as new strokes");
+				
+				uiBlockSetCol(block, TH_BUT_SETTING);
+					uiDefIconButBitI(block, ICONTOG, GP_DATA_LMBPLOCK, B_REDR, ICON_UNLOCKED,	300, 225, 20, 20, &gpd->flag, 0.0, 0.0, 0, 0, "Painting cannot occur with Shift-LMB (when making selections)");
+				uiBlockSetCol(block, TH_AUTO);
+			}
+			else
+				uiDefButBitI(block, TOG, GP_DATA_EDITPAINT, B_REDR, "Draw Mode", 170, 225, 150, 20, &gpd->flag, 0, 0, 0, 0, "Interpret click-drag as new strokes");
 		uiBlockEndAlign(block);
 		
 		/* 'view align' button (naming depends on context) */
@@ -306,6 +310,8 @@ short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 /* ************************************************** */
 /* GREASE PENCIL DRAWING */
 
+/* ----- General Defines ------ */
+
 /* flags for sflag */
 enum {
 	GP_DRAWDATA_NOSTATUS 	= (1<<0),	/* don't draw status info */
@@ -313,114 +319,293 @@ enum {
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 };
 
-/* draw a given stroke */
-static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
+/* ----- Tool Buffer Drawing ------ */
+
+/* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
+static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thickness, short dflag, short sflag)
 {
-	bGPDspoint *pt;
+	tGPspoint *pt;
 	int i;
 	
 	/* error checking */
 	if ((points == NULL) || (totpoints <= 0))
 		return;
 	
-	/* check if stroke can be drawn */
-	if ((dflag & GP_DRAWDATA_ONLY3D) && !(sflag & GP_STROKE_3DSPACE))
-		return;
-	if (!(dflag & GP_DRAWDATA_ONLY3D) && (sflag & GP_STROKE_3DSPACE))
-		return;
-	if ((dflag & GP_DRAWDATA_ONLYV2D) && !(sflag & GP_STROKE_2DSPACE))
-		return;
-	if (!(dflag & GP_DRAWDATA_ONLYV2D) && (sflag & GP_STROKE_2DSPACE))
+	/* check if buffer can be drawn */
+	if (dflag & (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_ONLYV2D))
 		return;
 	
-	/* if drawing a single point, draw it larger */
+	/* if drawing a single point, draw it larger */	
 	if (totpoints == 1) {		
 		/* draw point */
-		if (sflag & GP_STROKE_3DSPACE) {
-			glBegin(GL_POINTS);
-				glVertex3f(points->x, points->y, points->z);
-			glEnd();
+		glBegin(GL_POINTS);
+			glVertex2f(points->x, points->y);
+		glEnd();
+	}
+	else if (sflag & GP_STROKE_ERASER) {
+		/* draw stroke curve - just standard thickness */
+		setlinestyle(4);
+		glLineWidth(1.0f);
+		
+		glBegin(GL_LINE_STRIP);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			glVertex2f(pt->x, pt->y);
 		}
-		else if (sflag & GP_STROKE_2DSPACE) {
-			glBegin(GL_POINTS);
-				glVertex2f(points->x, points->y);
-			glEnd();
-		}
-		else {
-			const float x= (points->x / 1000 * winx);
-			const float y= (points->y / 1000 * winy);
-			
-			glBegin(GL_POINTS);
-				glVertex2f(x, y);
-			glEnd();
-		}
+		glEnd();
+		
+		setlinestyle(0);
 	}
 	else {
 		float oldpressure = 0.0f;
 		
 		/* draw stroke curve */
+		setlinestyle(2);
+		
 		glBegin(GL_LINE_STRIP);
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
-			float x, y, z;
-			
-			if (sflag & GP_STROKE_3DSPACE) {
-				x= pt->x;
-				y= pt->y;
-				z= pt->z;
-			}
-			else if (sflag & GP_STROKE_2DSPACE) {
-				x= pt->x;
-				y= pt->y;
-				z= 0;
-			}
-			else {
-				x= (pt->x / 1000 * winx);
-				y= (pt->y / 1000 * winy);
-				z= 0;
-			}
-			
 			if (fabs(pt->pressure - oldpressure) > 0.2f) {
 				glEnd();
 				glLineWidth(pt->pressure * thickness);
 				glBegin(GL_LINE_STRIP);
 				
-				if (sflag & GP_STROKE_3DSPACE) 
-					glVertex3f(x, y, z);
-				else
-					glVertex2f(x, y);
+				glVertex2f(pt->x, pt->y);
 				
 				oldpressure = pt->pressure;
 			}
-			else {
-				if (sflag & GP_STROKE_3DSPACE) 
-					glVertex3f(x, y, z);
-				else
-					glVertex2f(x, y);
-			}
+			else
+				glVertex2f(pt->x, pt->y);
 		}
 		glEnd();
 		
-		/* draw debug points of curve on top? */
-		if (debug) {
-			glBegin(GL_POINTS);
-			for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
-				if (sflag & GP_STROKE_3DSPACE) {
-					glVertex3f(pt->x, pt->y, pt->z);
-				}
-				else if (sflag & GP_STROKE_2DSPACE) {
-					glVertex2f(pt->x, pt->y);
-				}
-				else {
-					const float x= (pt->x / 1000 * winx);
-					const float y= (pt->y / 1000 * winy);
-					
-					glVertex2f(x, y);
-				}
-			}
-			glEnd();
-		}
+		setlinestyle(0);
 	}
 }
+
+/* ----- Existing Strokes Drawing (3D and Point) ------ */
+
+/* draw a given stroke - just a single dot (only one point) */
+static void gp_draw_stroke_point (bGPDspoint *points, short sflag, int winx, int winy)
+{
+	/* draw point */
+	if (sflag & GP_STROKE_3DSPACE) {
+		glBegin(GL_POINTS);
+			glVertex3f(points->x, points->y, points->z);
+		glEnd();
+	}
+	else if (sflag & GP_STROKE_2DSPACE) {
+		glBegin(GL_POINTS);
+			glVertex2f(points->x, points->y);
+		glEnd();
+	}
+	else {
+		const float x= (points->x / 1000 * winx);
+		const float y= (points->y / 1000 * winy);
+		
+		glBegin(GL_POINTS);
+			glVertex2f(x, y);
+		glEnd();
+	}
+}
+
+/* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
+static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
+{
+	bGPDspoint *pt;
+	float oldpressure = 0.0f;
+	int i;
+	
+	/* draw stroke curve */
+	glBegin(GL_LINE_STRIP);
+	for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+		if (fabs(pt->pressure - oldpressure) > 0.2f) {
+			glEnd();
+			glLineWidth(pt->pressure * thickness);
+			glBegin(GL_LINE_STRIP);
+			
+			glVertex3f(pt->x, pt->y, pt->z);
+			
+			oldpressure = pt->pressure;
+		}
+		else
+			glVertex3f(pt->x, pt->y, pt->z);
+	}
+	glEnd();
+	
+	/* draw debug points of curve on top? */
+	if (debug) {
+		glBegin(GL_POINTS);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++)
+			glVertex3f(pt->x, pt->y, pt->z);
+		glEnd();
+	}
+}
+
+/* ----- Fancy 2D-Stroke Drawing ------ */
+
+/* draw a given stroke in 2d */
+static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
+{	
+	/* if thickness is less than 3, 'smooth' opengl lines look better */
+	if ((thickness < 3) || (G.rt==0)) {
+		bGPDspoint *pt;
+		int i;
+		
+		glBegin(GL_LINE_STRIP);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			if (sflag & GP_STROKE_2DSPACE) {
+				glVertex2f(pt->x, pt->y);
+			}
+			else {
+				const float x= (pt->x / 1000 * winx);
+				const float y= (pt->y / 1000 * winy);
+				
+				glVertex2f(x, y);
+			}
+		}
+		glEnd();
+	}
+	else { /* tesselation code: currently only enabled with rt != 0 */
+		bGPDspoint *pt1, *pt2;
+		float p0[2], p1[2], pm[2];
+		int i;
+		
+		glShadeModel(GL_FLAT);
+		glBegin(GL_QUAD_STRIP);
+		
+		for (i=0, pt1=points, pt2=points+1; i < (totpoints-1); i++, pt1++, pt2++) {
+			float s0[2], s1[2];		/* segment 'center' points */
+			float t0[2], t1[2];		/* tesselated coordinates */
+			float m1[2], m2[2];		/* gradient and normal */
+			float pthick, dist;		/* thickness at segment point, and length of segment */
+			float sminorang;		/* minor angle between strokes */
+			
+			/* get x and y coordinates from points */
+			if (sflag & GP_STROKE_2DSPACE) {
+				s0[0]= pt1->x; 		s0[1]= pt1->y;
+				s1[0]= pt2->x;		s1[1]= pt2->y;
+			}
+			else {
+				s0[0]= (pt1->x / 1000 * winx);
+				s0[1]= (pt1->y / 1000 * winy);
+				s1[0]= (pt2->x / 1000 * winx);
+				s1[1]= (pt2->y / 1000 * winy);
+			}		
+			
+			/* calculate gradient and normal - 'angle'=(ny/nx) */
+			m1[1]= s1[1] - s0[1];		
+			m1[0]= s1[0] - s0[0];
+			dist = Vec2Lenf(s0, s1);
+			m2[1]= -(m1[0]) / dist;
+			m2[0]= m1[1] / dist;
+			
+			/* if the first segment, initialise the first segment using segment's normal */
+			if (i == 0) {	
+				pthick= (pt1->pressure * thickness);
+				
+				// TODO: also draw/do a round end-cap first
+				
+				p0[0]= s0[0] - (pthick * m2[0]);
+				p0[1]= s0[1] - (pthick * m2[1]);
+				p1[0]= s1[0] + (pthick * m2[0]);
+				p1[1]= s1[1] + (pthick * m2[1]);
+				
+				Vec2Copyf(pm, m1);
+			}
+			
+			/* if the minor angle between the current segment and the previous one is less than 90 degrees */
+			if (i)
+				sminorang= NormalizedVecAngle2_2D(pm, m1);
+			else
+				sminorang= 0.0f;
+			
+			if ((IS_EQ(sminorang, 0)==0) && (abs(sminorang) < M_PI_2) ) 
+			{
+				float closep[2];
+				
+				/* recalculate startpoint of segment, where the new start-line:
+				 * 	- starts a new gl-quad-strip
+				 *	- uses the vert of old startpoint closer to our endpoint
+				 *	- distance between new startpoints = distance between old startpoints
+				 *	- new startpoints occur on same gradient as old segment does (has potential for some 'minor' overlap, but ok)
+				 */
+				
+				/* find the closer vertex, and distance between startpoints */
+				if (Vec2Lenf(p0, s1) > Vec2Lenf(p1, s1))
+					Vec2Copyf(closep, p1);
+				else
+					Vec2Copyf(closep, p0);
+					
+				/* determine which side this closer vertex should be on */
+				pthick= (pt1->pressure * thickness * 2);
+				if ( ((closep[0] - s0[0]) > 0) || ((closep[1] - s0[1]) > 0) ) {
+					/* assumes this is the 'second' point, (i.e. the 'plus' one), so the other is subtracting */
+					p0[0]= closep[0] - (pthick * pm[0]);
+					p0[1]= closep[1] - (pthick * pm[1]);
+					p1[0]= closep[0];
+					p1[1]= closep[1];
+				}
+				else if ( ((closep[0] - s0[0]) < 0) || ((closep[1] - s0[1]) < 0) ) {
+					/* assumes this is the 'first' point, (i.e. the 'minus' one), so the other is adding */
+					p0[0]= closep[0];
+					p0[1]= closep[1];
+					p1[0]= closep[0] + (pthick * pm[0]);
+					p1[1]= closep[1] + (pthick * pm[1]);
+				}
+				
+				/* reset gl-states! */
+				glEnd();
+				glBegin(GL_QUAD_STRIP);				
+			}
+			
+			/* do the end of this segment */
+			pthick= (pt2->pressure * thickness);
+			t0[0] = s1[0] - (pthick * m2[0]);
+			t0[1] = s1[1] - (pthick * m2[1]);
+			t1[0] = s1[0] + (pthick * m2[0]);
+			t1[1] = s1[1] + (pthick * m2[1]);
+			
+			/* draw this segment */
+			glVertex2f(p0[0], p0[1]);
+			glVertex2f(p1[0], p1[1]);
+			glVertex2f(t0[0], t0[1]);
+			glVertex2f(t1[0], t1[1]);
+			
+			// TODO: draw end cap if last segment
+			if (i == totpoints-2) {
+			
+			}
+			
+			/* store current points for next segment to use */
+			Vec2Copyf(p0, t0);
+			Vec2Copyf(p1, t1);
+			Vec2Copyf(pm, m1);
+		}
+		
+		glEnd();
+	}
+	
+	/* draw debug points of curve on top? (original stroke points) */
+	if (debug) {
+		bGPDspoint *pt;
+		int i;
+		
+		glBegin(GL_POINTS);
+		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			if (sflag & GP_STROKE_2DSPACE) {
+				glVertex2f(pt->x, pt->y);
+			}
+			else {
+				const float x= (pt->x / 1000 * winx);
+				const float y= (pt->y / 1000 * winy);
+				
+				glVertex2f(x, y);
+			}
+		}
+		glEnd();
+	}
+}
+
+/* ----- General Drawing ------ */
 
 /* draw a set of strokes */
 static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, short debug, 
@@ -431,9 +616,26 @@ static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, shor
 	/* set color first (may need to reset it again later too) */
 	glColor4f(color[0], color[1], color[2], color[3]);
 	
-	for (gps= gpf->strokes.first; gps; gps= gps->next) {	
-		/* just draw the stroke once */
-		gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+	for (gps= gpf->strokes.first; gps; gps= gps->next) {
+		/* check if stroke can be drawn */
+		if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE))
+			continue;
+		if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE))
+			continue;
+		if ((dflag & GP_DRAWDATA_ONLYV2D) && !(gps->flag & GP_STROKE_2DSPACE))
+			continue;
+		if (!(dflag & GP_DRAWDATA_ONLYV2D) && (gps->flag & GP_STROKE_2DSPACE))
+			continue;
+		if ((gps->points == 0) || (gps->totpoints < 1))
+			continue;
+		
+		/* check which stroke-drawer to use */
+		if (gps->totpoints == 1)
+			gp_draw_stroke_point(gps->points, gps->flag, winx, winy);
+		else if (dflag & GP_DRAWDATA_ONLY3D)
+			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+		else if (gps->totpoints > 1)	
+			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
 	}
 }
 
@@ -489,8 +691,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i * 0.7);
-						gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+						tcolor[3] = color[3] - (i/gpl->gstep);
+						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -501,8 +703,8 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i * 0.7);
-						gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+						tcolor[3] = color[3] - (i/gpl->gstep);
+						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -515,12 +717,12 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 				/* draw the strokes for the ghost frames (at half of the alpha set by user) */
 				if (gpf->prev) {
 					tcolor[3] = (color[3] / 7);
-					gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+					gp_draw_strokes(gpf->prev, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				if (gpf->next) {
 					tcolor[3] = (color[3] / 4);
-					gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+					gp_draw_strokes(gpf->next, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				/* restore alpha */
@@ -533,15 +735,13 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
 		
 		/* Check if may need to draw the active stroke cache, only if this layer is the active layer
-		 * that is being edited. (Stroke cache is currently stored in gp-data)
+		 * that is being edited. (Stroke buffer is currently stored in gp-data)
 		 */
 		if ((G.f & G_GREASEPENCIL) && (gpl->flag & GP_LAYER_ACTIVE) &&
 			(gpf->flag & GP_FRAME_PAINT)) 
 		{
 			/* Buffer stroke needs to be drawn with a different linestyle to help differentiate them from normal strokes. */
-			setlinestyle(2);
-			gp_draw_stroke(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag, debug, winx, winy);
-			setlinestyle(0);
+			gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag);
 		}
 	}
 	
@@ -594,7 +794,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 	glColor4f(0, 0, 0, 1);
 }
 
-/* ----------- */
+/* ----- Grease Pencil Sketches Drawing API ------ */
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes, second time with onlyv2d=0 for screen-aligned strokes

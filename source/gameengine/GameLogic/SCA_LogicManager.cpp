@@ -176,12 +176,7 @@ void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 		(*c)->UnlinkSensor(sensor);
 	}
     m_sensorcontrollermapje.erase(sensor);
-	
-	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin();
-	!(ie==m_eventmanagers.end());ie++)
-	{
-		(*ie)->RemoveSensor(sensor);
-	}
+	sensor->UnregisterToManager();
 }
 
 void SCA_LogicManager::RemoveController(SCA_IController* controller)

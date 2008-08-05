@@ -763,7 +763,16 @@ static void seq_panel_input()
 	}
 
 	if (last_seq->type == SEQ_IMAGE) {
-		StripElem * se = give_stripelem(last_seq, CFRA);
+		int cfra = CFRA;
+		StripElem * se;
+
+		if(last_seq->startdisp >cfra) {
+			cfra = last_seq->startdisp;
+		} else if (last_seq->enddisp <= cfra) {
+			cfra = last_seq->enddisp - 1;
+		}
+
+		se = give_stripelem(last_seq, cfra);
 
 		if (se) {
 			uiDefBut(block, TEX, 

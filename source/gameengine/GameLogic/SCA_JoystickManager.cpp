@@ -52,21 +52,16 @@ SCA_JoystickManager::~SCA_JoystickManager()
 
 void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 {
-	for (unsigned int i = 0; i < m_sensors.size(); i++)
+	set<SCA_ISensor*>::iterator it;
+	for (it = m_sensors.begin(); it != m_sensors.end(); it++)
 	{
-		SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*) m_sensors[i];
+		SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*)(*it);
 		if(!joysensor->IsSuspended())
 		{
 			m_joystick->HandleEvents();
 			joysensor->Activate(m_logicmgr, NULL);
 		}
 	}
-}
-
-
-void SCA_JoystickManager::RegisterSensor(SCA_ISensor* sensor)
-{
-	m_sensors.push_back(sensor);
 }
 
 
