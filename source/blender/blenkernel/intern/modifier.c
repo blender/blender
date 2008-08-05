@@ -97,6 +97,7 @@
 #include "BKE_material.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 #include "BKE_bmesh.h"
