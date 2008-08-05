@@ -773,8 +773,11 @@ void BL_ConvertMaterialIpos(
 		for (int material_index=1; material_index <= blenderobject->totcol; material_index++)
 		{
 			Material *mat = give_current_material(blenderobject, material_index);
-			STR_HashedString matname = mat->id.name;
-			if(mat) ConvertMaterialIpos(mat, matname.hash(), gameobj, converter);
+			STR_HashedString matname;
+			if(mat) {
+				matname= mat->id.name;
+				ConvertMaterialIpos(mat, matname.hash(), gameobj, converter);
+			}
 		}
 	}
 }
