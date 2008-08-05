@@ -2999,6 +2999,20 @@ CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
 	return dataMask;
 }
 
+static int displaceModifier_dependsOnTime(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+
+	if(dmd->texture)
+	{
+		return BKE_texture_dependsOnTime(dmd->texture);
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 static void displaceModifier_foreachObjectLink(ModifierData *md, Object *ob,
 					       ObjectWalkFunc walk, void *userData)
 {
@@ -7354,6 +7368,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = displaceModifier_initData;
 		mti->copyData = displaceModifier_copyData;
 		mti->requiredDataMask = displaceModifier_requiredDataMask;
+		mti->dependsOnTime = displaceModifier_dependsOnTime;
 		mti->foreachObjectLink = displaceModifier_foreachObjectLink;
 		mti->foreachIDLink = displaceModifier_foreachIDLink;
 		mti->updateDepgraph = displaceModifier_updateDepgraph;
