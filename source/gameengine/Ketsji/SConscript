@@ -5,7 +5,21 @@ Import ('env')
 
 sources = env.Glob('*.cpp')
 
-incs = '. #source/kernel/gen_system #intern/string #intern/guardedalloc'
+# Mathutils C files.
+sources.extend([\
+	'#source/blender/python/api2_2x/Mathutils.c',\
+	'#source/blender/python/api2_2x/constant.c',\
+	'#source/blender/python/api2_2x/euler.c',\
+	'#source/blender/python/api2_2x/gen_utils.c',\
+	'#source/blender/python/api2_2x/matrix.c',\
+	'#source/blender/python/api2_2x/point.c',\
+	'#source/blender/python/api2_2x/quat.c',\
+	'#source/blender/python/api2_2x/vector.c',\
+])
+
+incs = '. #source/blender/python/api2_2x' # Only for Mathutils! - no other deps
+
+incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer #intern/bmfont'
 incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
 incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
