@@ -766,7 +766,7 @@ void BL_ConvertMaterialIpos(
 		// if there is only one material attached to the mesh then set material_index in BL_ConvertMaterialIpos to NULL
 		// --> this makes the UpdateMaterialData function in KX_GameObject.cpp use the old hack of using SetObjectColor
 		// because this yields a better performance as not all the vertex colors need to be edited
-		if(mat) ConvertMaterialIpos(mat, NULL, gameobj, converter);
+		if(mat) ConvertMaterialIpos(mat, 0, gameobj, converter);
 	}
 	else
 	{
