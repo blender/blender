@@ -186,10 +186,7 @@ protected:
 
 		void	updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask);
 
-		void	disableCcdPhysicsController(CcdPhysicsController* ctrl)
-		{ 
-			removeCcdPhysicsController(ctrl); 
-		}
+		void	disableCcdPhysicsController(CcdPhysicsController* ctrl);
 
 		void	enableCcdPhysicsController(CcdPhysicsController* ctrl);
 

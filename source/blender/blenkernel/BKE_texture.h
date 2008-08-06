@@ -73,6 +73,7 @@ void    BKE_free_envmap(struct EnvMap *env);
 struct EnvMap *BKE_add_envmap(void);
 struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
 
+int     BKE_texture_dependsOnTime(const struct Tex *texture);
 
 #endif
 

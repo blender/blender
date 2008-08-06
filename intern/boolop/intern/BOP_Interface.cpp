@@ -37,7 +37,7 @@
 #include "BOP_Chrono.h"
 
 #if defined(BOP_ORIG_MERGE) && defined(BOP_NEW_MERGE) 
-#include "../../source/blender/blenkernel/BKE_global.h"
+#include "../../../source/blender/blenkernel/BKE_global.h"
 #endif
 
 BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,

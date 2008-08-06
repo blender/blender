@@ -42,7 +42,8 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 {
 	m_collisionDelay = 0;
 	m_newClientInfo = 0;
-	
+	m_registerCount = 0;
+		
 	m_MotionState = ci.m_MotionState;
 	m_bulletMotionState = 0;
 	
@@ -217,7 +218,7 @@ void		CcdPhysicsController::WriteDynamicsToMotionState()
 void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
 	m_MotionState = motionstate;
-
+	m_registerCount = 0;
 	
 
 	m_body = 0;

@@ -2275,7 +2275,7 @@ static int handle_append_runtime(int handle, char *exename, char **cause_r) {
 	unsigned char buf[1024];
 	int count, progfd= -1;
 
-	if (!runtime) {
+	if (!BLI_exists(runtime)) {
 		cause= "Unable to find runtime";
 		goto cleanup;
 	}

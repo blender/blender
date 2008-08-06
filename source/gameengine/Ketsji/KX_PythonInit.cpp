@@ -62,6 +62,10 @@
 
 #include "KX_PyMath.h"
 
+extern "C" {
+	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
+}
+
 #include "PHY_IPhysicsEnvironment.h"
 // FIXME: Enable for access to blender python modules.  This is disabled because
 // python has dependencies on a lot of other modules and is a pain to link.
@@ -733,7 +737,7 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 
 	ErrorObject = PyString_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
-
+	
 	// XXXX Add constants here
 	/* To use logic bricks, we need some sort of constants. Here, we associate */
 	/* constants and sumbolic names. Add them to dictionary d.                 */
@@ -876,7 +880,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
 		
@@ -1167,6 +1171,11 @@ PyObject* initGameKeys()
     }
 
 	return d;
+}
+
+PyObject* initMathutils()
+{
+	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
 }
 
 void PHY_SetActiveScene(class KX_Scene* scene)

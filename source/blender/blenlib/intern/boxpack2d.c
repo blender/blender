@@ -42,6 +42,8 @@
 #define TRF 2
 #define TLF 4
 #define BRF 8
+#define CORNERFLAGS (BLF|TRF|TLF|BRF)
+
 #define BL 0
 #define TR 1
 #define TL 2
@@ -159,7 +161,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->blb = vert->brb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ TRF;
+		vert->free = CORNERFLAGS &~ TRF;
 		vert->trb = box;
 		vert->index = i; i++;
 		box->v[BL] = vert; vert++;
@@ -167,7 +169,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->trb= vert->brb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ BLF;
+		vert->free = CORNERFLAGS &~ BLF;
 		vert->blb = box;
 		vert->index = i; i++;
 		box->v[TR] = vert; vert++;
@@ -175,7 +177,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->trb = vert->blb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ BRF;
+		vert->free = CORNERFLAGS &~ BRF;
 		vert->brb = box;
 		vert->index = i; i++;
 		box->v[TL] = vert; vert++;
@@ -183,7 +185,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->trb = vert->blb = vert->brb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ TLF;
+		vert->free = CORNERFLAGS &~ TLF;
 		vert->tlb = box; 
 		vert->index = i; i++;
 		box->v[BR] = vert; vert++;

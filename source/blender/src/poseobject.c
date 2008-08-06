@@ -479,6 +479,67 @@ void pose_select_constraint_target(void)
 
 }
 
+void pose_select_hierarchy(short direction, short add_to_sel)
+{
+	Object *ob= OBACT;
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	Bone *curbone, *pabone, *chbone;
+	
+	/* paranoia checks */
+	if (!ob && !ob->pose) return;
+	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		curbone= pchan->bone;
+		
+		if (arm->layer & curbone->layer) {
+			if (curbone->flag & (BONE_ACTIVE)) {
+				if (direction == BONE_SELECT_PARENT) {
+				
+					if (pchan->parent == NULL) continue;
+					else pabone= pchan->parent->bone;
+					
+					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_P)) {
+						
+						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
+						curbone->flag &= ~BONE_ACTIVE;
+						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
+						
+						select_actionchannel_by_name (ob->action, pchan->name, 0);
+						select_actionchannel_by_name (ob->action, pchan->parent->name, 1);
+						break;
+					}
+				} else { // BONE_SELECT_CHILD
+				
+					if (pchan->child == NULL) continue;
+					else chbone = pchan->child->bone;
+					
+					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_P)) {
+					
+						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
+						curbone->flag &= ~BONE_ACTIVE;
+						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
+						
+						select_actionchannel_by_name (ob->action, pchan->name, 0);
+						select_actionchannel_by_name (ob->action, pchan->child->name, 1);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
+	
+	if (direction==BONE_SELECT_PARENT)
+		BIF_undo_push("Select pose bone parent");
+	if (direction==BONE_SELECT_CHILD)
+		BIF_undo_push("Select pose bone child");
+}
+
 /* context: active channel */
 void pose_special_editmenu(void)
 {

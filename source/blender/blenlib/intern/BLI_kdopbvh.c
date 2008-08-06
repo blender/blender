@@ -865,7 +865,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 		// create root node
 		BVHNode *node = tree->nodes[tree->totleaf] = &(tree->nodearray[tree->totleaf]);
 		tree->totbranch++;
-	
+<	
 		// refit root bvh node
 		refit_kdop_hull(tree, node, 0, tree->totleaf);
 
@@ -875,6 +875,7 @@ void BLI_bvhtree_balance(BVHTree *tree)
 		// verify_tree(tree);
 	}
 */
+
 }
 
 // overlap - is it possbile for 2 bv's to collide ?

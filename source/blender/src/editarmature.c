@@ -1033,87 +1033,6 @@ static void *get_nearest_bone (short findunsel)
 	return NULL;
 }
 
-/* used by posemode and editmode */
-void select_bone_parent (void)
-{
-	Object *ob;
-	bArmature *arm;	
-	
-	/* get data */
-	if (G.obedit)
-		ob= G.obedit;
-	else if (OBACT)
-		ob= OBACT;
-	else
-		return;
-	arm= (bArmature *)ob->data;
-	
-	/* determine which mode armature is in */
-	if ((!G.obedit) && (ob->flag & OB_POSEMODE)) {
-		/* deal with pose channels */
-		/* channels are sorted on dependency, so the loop below won't result in a flood-select */
-		bPoseChannel *pchan=NULL;
-		
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			/* check if bone in original selection */
-			if (pchan->bone->flag & BONE_SELECTED) {
-				bPoseChannel *chanpar= pchan->parent;
-				
-				/* check if any parent */
-				if ((chanpar) && ((chanpar->bone->flag & BONE_SELECTED)==0)) {
-					chanpar->bone->flag |= BONE_SELECTED;
-					select_actionchannel_by_name (ob->action, pchan->name, 1);
-				}
-			}
-		}
-	}
-	else if (G.obedit) {
-		/* deal with editbones */
-		EditBone *curbone, *parbone, *parpar;
-		
-		/* prevent floods */
-		for (curbone= G.edbo.first; curbone; curbone= curbone->next)
-			curbone->temp= NULL;
-		
-		for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
-			/* check if bone selected */
-			if ((curbone->flag & BONE_SELECTED) && curbone->temp==NULL) {
-				parbone= curbone->parent;
-				
-				/* check if any parent */
-				if ((parbone) && ((parbone->flag & BONE_SELECTED)==0)) {
-					/* select the parent bone */
-					parbone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-					
-					/* check if parent has parent */
-					parpar= parbone->parent;
-					
-					if ((parpar) && (parbone->flag & BONE_CONNECTED)) {
-						parpar->flag |= BONE_TIPSEL;
-					}
-					/* tag this bone to not flood selection */
-					parbone->temp= parbone;
-				}
-			}
-		}
-		
-		/* to be sure... */
-		for (curbone= G.edbo.first; curbone; curbone= curbone->next)
-			curbone->temp= NULL;
-		
-	}
-	
-	/* undo + redraw pushes */
-	countall(); // flushes selection!
-
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWOOPS, 0);
-	
-	BIF_undo_push("Select Parent");
-}
-
 /* helper for setflag_sel_bone() */
 static void bone_setflag (int *bone, int flag, short mode)
 {
@@ -1137,6 +1056,89 @@ static void bone_setflag (int *bone, int flag, short mode)
 				*bone ^= flag;
 		}
 	}
+}
+
+/* Get the first available child of an editbone */
+static EditBone *editbone_get_child(EditBone *pabone, short use_visibility)
+{
+	Object *ob;
+	bArmature *arm;
+	EditBone *curbone, *chbone=NULL;
+	
+	if (!G.obedit) return NULL;
+	else ob= G.obedit;
+	arm= (bArmature *)ob->data;
+
+	for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+		if (curbone->parent == pabone) {
+			if (use_visibility) {
+				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A))
+					chbone = curbone;
+			}
+			else
+				chbone = curbone;
+		}
+	}
+	
+	return chbone;
+}
+
+void armature_select_hierarchy(short direction, short add_to_sel)
+{
+	Object *ob;
+	bArmature *arm;
+	EditBone *curbone, *pabone, *chbone;
+
+	if (!G.obedit) return;
+	else ob= G.obedit;
+	arm= (bArmature *)ob->data;
+	
+	for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+		if (arm->layer & curbone->layer) {
+			if (curbone->flag & (BONE_ACTIVE)) {
+				if (direction == BONE_SELECT_PARENT) {
+					if (curbone->parent == NULL) continue;
+					else pabone = curbone->parent;
+					
+					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_A)) {
+						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+						if (pabone->parent)	pabone->parent->flag |= BONE_TIPSEL;
+						
+						if (!add_to_sel) curbone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+						curbone->flag &= ~BONE_ACTIVE;
+						break;
+					}
+					
+				} else { // BONE_SELECT_CHILD
+					chbone = editbone_get_child(curbone, 1);
+					if (chbone == NULL) continue;
+					
+					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_A)) {
+						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+						
+						if (!add_to_sel) {
+							curbone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL);
+							if (curbone->parent) curbone->parent->flag &= ~BONE_TIPSEL;
+						}
+						curbone->flag &= ~BONE_ACTIVE;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	countall(); // flushes selection!
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSEDIT, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
+	
+	if (direction==BONE_SELECT_PARENT)
+		BIF_undo_push("Select edit bone parent");
+	if (direction==BONE_SELECT_CHILD)
+		BIF_undo_push("Select edit bone child");
 }
 
 /* used by posemode and editmode */
