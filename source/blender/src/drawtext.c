@@ -878,9 +878,9 @@ static void draw_cursor(SpaceText *st) {
 		if (vcurl==vsell) {
 			y -= vcurl*st->lheight;
 			if (vcurc < vselc)
-				glRecti(x+vcurc*spacetext_get_fontwidth(st), y, x+vselc*spacetext_get_fontwidth(st), y-st->lheight);
+				glRecti(x+vcurc*spacetext_get_fontwidth(st)-1, y, x+vselc*spacetext_get_fontwidth(st), y-st->lheight);
 			else
-				glRecti(x+vselc*spacetext_get_fontwidth(st), y, x+vcurc*spacetext_get_fontwidth(st), y-st->lheight);
+				glRecti(x+vselc*spacetext_get_fontwidth(st)-1, y, x+vcurc*spacetext_get_fontwidth(st), y-st->lheight);
 		} else {
 			int froml, fromc, tol, toc;
 			if (vcurl < vsell) {
@@ -891,7 +891,7 @@ static void draw_cursor(SpaceText *st) {
 				fromc= vselc; toc= vcurc;
 			}
 			y -= froml*st->lheight;
-			glRecti(x+fromc*spacetext_get_fontwidth(st), y, curarea->winx, y-st->lheight); y-=st->lheight;
+			glRecti(x+fromc*spacetext_get_fontwidth(st)-1, y, curarea->winx, y-st->lheight); y-=st->lheight;
 			for (i=froml+1; i<tol; i++)
 				glRecti(x-4, y, curarea->winx, y-st->lheight),  y-=st->lheight;
 			glRecti(x-4, y, x+toc*spacetext_get_fontwidth(st), y-st->lheight);  y-=st->lheight;
@@ -1446,6 +1446,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 
 	tmp= text->lines.first;
 	for (i= 0; i<st->top && tmp; i++) {
+		if (st->showsyntax && !tmp->format) txt_format_line(st, tmp, 0);
 		tmp= tmp->next;
 		linecount++;
 	}
@@ -1504,7 +1505,7 @@ void pop_space_text (SpaceText *st)
 	if(!st->text) return;
 	if(!st->text->curl) return;
 		
-	i= txt_get_span(st->text->lines.first, st->text->curl);
+	i= txt_get_span(st->text->lines.first, st->text->sell);
 	if (st->top+st->viewlines <= i || st->top > i) {
 		st->top= i - st->viewlines/2;
 	}
@@ -1512,7 +1513,7 @@ void pop_space_text (SpaceText *st)
 	if (st->wordwrap) {
 		st->left= 0;
 	} else {
-		x= text_draw(st, st->text->curl->line, st->left, st->text->curc, 0, 0, 0, NULL);
+		x= text_draw(st, st->text->sell->line, st->left, st->text->selc, 0, 0, 0, NULL);
 
 		if (x==0 || x>curarea->winx) {
 			st->left= st->text->curc-0.5*(curarea->winx)/spacetext_get_fontwidth(st);
@@ -1962,7 +1963,7 @@ void txt_find_panel(SpaceText *st, int again, int flags)
 		int first= 1;
 		do {
 			if (first && (flags & TXT_FIND_MARKALL))
-				txt_clear_markers(text, TMARK_EDITALL | TMARK_GRP_FINDALL);
+				txt_clear_markers(text, TMARK_GRP_FINDALL);
 			first= 0;
 			
 			/* Replace current */
@@ -1975,11 +1976,11 @@ void txt_find_panel(SpaceText *st, int again, int flags)
 					} else {
 						char clr[4];
 						BIF_GetThemeColor4ubv(TH_SHADE2, clr);
-						if (txt_find_marker(text, text->curl, text->selc, TMARK_EDITALL | TMARK_GRP_FINDALL)) {
+						if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL)) {
 							if (tmp) MEM_freeN(tmp), tmp=NULL;
 							break;
 						}
-						txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_EDITALL | TMARK_GRP_FINDALL);
+						txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_GRP_FINDALL | TMARK_EDITALL);
 					}
 				}
 				MEM_freeN(tmp);
@@ -2256,10 +2257,33 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 	int c, s, draw=0, swallow=0;
 
 	text= st->text;
-	if (!text || text->curl != text->sell) return 0;
+	if (!text || text->id.lib || text->curl != text->sell) return 0;
 
 	marker= txt_find_marker(text, text->curl, text->curc, 0);
-	if (!marker || text->id.lib) return 0;
+	if (!marker) {
+		/* Find the next temporary marker */
+		if (evnt==TABKEY) {
+			int lineno= txt_get_span(text->lines.first, text->curl);
+			TextMarker *mrk= text->markers.first;
+			while (mrk) {
+				if (!marker && (mrk->flags & TMARK_TEMP)) marker= mrk;
+				if ((mrk->flags & TMARK_TEMP) && (mrk->lineno > lineno || (mrk->lineno==lineno && mrk->end > text->curc))) {
+					marker= mrk;
+					break;
+				}
+				mrk= mrk->next;
+			}
+			if (marker) {
+				txt_move_to(text, marker->lineno, marker->start, 0);
+				txt_move_to(text, marker->lineno, marker->end, 1);
+				pop_space_text(st);
+				evnt= ascii= val= 0;
+				draw= 1;
+				swallow= 1;
+			}
+		}
+		if (!swallow) return 0;
+	}
 
 	if (ascii) {
 		if (marker->flags & TMARK_EDITALL) {
@@ -2351,6 +2375,8 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 				break;
 
 			/* Events that should clear markers */
+			case UKEY: if (!(G.qual & LR_ALTKEY)) break;
+			case ZKEY: if (evnt==ZKEY && !(G.qual & LR_CTRLKEY)) break;
 			case RETKEY:
 			case ESCKEY:
 				if (marker->flags & (TMARK_EDITALL | TMARK_TEMP))
@@ -2809,14 +2835,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if (st->showsyntax) txt_format_text(st);
 					}
 				} else {
-					TextMarker *mrk= txt_find_marker_region(text, text->curl, 0, text->curl->len, 0);
-					if (mrk) {
-						txt_move_to(text, mrk->lineno, mrk->start, 0);
-						txt_move_to(text, mrk->lineno, mrk->end, 1);
-					} else {
-						txt_add_char(text, '\t');
-						if (st->showsyntax) txt_format_line(st, text->curl, 1);
-					}
+					txt_add_char(text, '\t');
+					if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				}
 			}
 			pop_space_text(st);
@@ -2847,6 +2867,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			do_draw= 1;
 			pop_space_text(st);
+			break;
+		case ESCKEY:
+			txt_clear_markers(text, TMARK_TEMP);
 			break;
 		case BACKSPACEKEY:
 			if (text && text->id.lib) {

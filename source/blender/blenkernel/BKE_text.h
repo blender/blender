@@ -108,6 +108,8 @@ struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, i
 struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int flags);
 struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marker);
 struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
+struct TextMarker	*txt_prev_marker_color	(struct Text *text, struct TextMarker *marker);
+struct TextMarker	*txt_next_marker_color	(struct Text *text, struct TextMarker *marker);
 
 /* Undo opcodes */
 

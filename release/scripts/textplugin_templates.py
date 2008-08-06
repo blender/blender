@@ -48,9 +48,10 @@ def main():
 	if not txt:
 		return
 	
-	line, c = current_line(txt)
+	row, c = txt.getCursorPos()
+	line = txt.asLines()[row]
 	indent=0
-	while indent<len(line) and (line[indent]==' ' or line[indent]=='\t'):
+	while indent<c and (line[indent]==' ' or line[indent]=='\t'):
 		indent += 1
 	
 	# Check we are in a normal context

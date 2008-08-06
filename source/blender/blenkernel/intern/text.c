@@ -83,12 +83,19 @@ The st->top determines at what line the top of the text is displayed.
 If the user moves the cursor the st containing that cursor should
 be popped ... other st's retain their own top location.
 
-*/ /***************/
+Markers
+--
+The mrk->flags define the behaviour and relationships between markers. The
+upper two bytes are used to hold a group ID, the lower two are normal flags. If
+TMARK_EDITALL is set the group ID defines which other markers should be edited.
 
+The mrk->clr field is used to visually group markers where the flags may not
+match. A template system, for example, may allow editing of repeating tokens
+(in one group) but include other marked positions (in another group) all in the
+same template with the same colour.
 
-/****************/ /*
-	Undo
-
+Undo
+--
 Undo/Redo works by storing
 events in a queue, and a pointer
 to the current position in the
@@ -2657,6 +2664,13 @@ int setcurr_tab (Text *text)
 /* Text marker utility functions */
 /*********************************/
 
+static int color_match(TextMarker *a, TextMarker *b) {
+	return (a->clr[0]==b->clr[0] &&
+			a->clr[1]==b->clr[1] &&
+			a->clr[2]==b->clr[2] &&
+			a->clr[3]==b->clr[3]);
+}
+
 /* Creates and adds a marker to the list maintaining sorted order */
 void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4], int flags) {
 	TextMarker *tmp, *marker;
@@ -2681,8 +2695,9 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4],
 	else BLI_addhead(&text->markers, marker);
 }
 
-/* Returns the first matching marker on the specified line between two points
-   If flags is zero, all markers will be searched */
+/* Returns the first matching marker on the specified line between two points,
+   with at least the specified flags set. If flags is zero, all markers will be
+   searched */
 TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
@@ -2690,7 +2705,7 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if (flags && marker->flags != flags) continue;
+		if ((marker->flags & flags) != flags) continue;
 		else if (marker->lineno < lineno) continue;
 		else if (marker->lineno > lineno) break;
 
@@ -2701,8 +2716,8 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 	return NULL;
 }
 
-/* Clears all matching markers on the specified line between two points
-   If flags is zero, all markers will be cleared */
+/* Clears all markers on the specified line between two points with at least
+   the specified flags set. If flags is zero, all markers will be cleared */
 void txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
@@ -2710,7 +2725,7 @@ void txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if (flags && marker->flags != flags) continue;
+		if ((marker->flags & flags) != flags) continue;
 		else if (marker->lineno < lineno) continue;
 		else if (marker->lineno > lineno) break;
 
@@ -2720,26 +2735,27 @@ void txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int
 	}
 }
 
-/* Clears all markers with matching flags (useful for clearing temporary markers) */
+/* Clears all markers with at least the specified flags set (useful for
+   clearing temporary markers) */
 void txt_clear_markers(Text *text, int flags) {
 	TextMarker *marker, *next;
 	
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if (marker->flags == flags)
+		if ((marker->flags & flags) == flags)
 			BLI_freelinkN(&text->markers, marker);
 	}
 }
 
-/* Finds the marker at the specified line and cursor position with matching flags.
-   If flags is zero, all markers will be searched */
+/* Finds the marker at the specified line and cursor position with at least the
+   specified flags set. If flags is zero, all markers will be searched */
 TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int flags) {
 	TextMarker *marker;
 	int lineno= txt_get_span(text->lines.first, line);
 	
 	for (marker=text->markers.first; marker; marker=marker->next) {
-		if (flags && marker->flags != flags) continue;
+		if ((marker->flags & flags) != flags) continue;
 		else if (marker->lineno < lineno) continue;
 		else if (marker->lineno > lineno) break;
 
@@ -2749,8 +2765,8 @@ TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int flags) {
 	return NULL;
 }
 
-/* Finds the previous marker with matching flags. If no other marker is found, the
-   same one will be returned */
+/* Finds the previous marker with matching flags. If no other marker is found,
+   the same one will be returned */
 TextMarker *txt_prev_marker(Text *text, TextMarker *marker) {
 	TextMarker *tmp= marker;
 	while (tmp) {
@@ -2770,6 +2786,32 @@ TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
 		if (tmp->next) tmp= tmp->next;
 		else tmp= text->markers.first;
 		if (tmp->flags == marker->flags)
+			return tmp;
+	}
+	return NULL; /* Only if marker==NULL */
+}
+
+/* Finds the previous marker with matching colour. If no other marker is found,
+   the same one will be returned */
+TextMarker *txt_prev_marker_color(Text *text, TextMarker *marker) {
+	TextMarker *tmp= marker;
+	while (tmp) {
+		if (tmp->prev) tmp= tmp->prev;
+		else tmp= text->markers.last;
+		if (color_match(tmp, marker))
+			return tmp;
+	}
+	return NULL; /* Only if marker==NULL */
+}
+
+/* Finds the next marker with matching colour. If no other marker is found, the
+   same one will be returned */
+TextMarker *txt_next_marker_color(Text *text, TextMarker *marker) {
+	TextMarker *tmp= marker;
+	while (tmp) {
+		if (tmp->next) tmp= tmp->next;
+		else tmp= text->markers.first;
+		if (color_match(tmp, marker))
 			return tmp;
 	}
 	return NULL; /* Only if marker==NULL */
