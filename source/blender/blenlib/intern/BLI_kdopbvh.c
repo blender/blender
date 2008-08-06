@@ -632,7 +632,22 @@ static void omp_bvh_div_nodes(BVHTree *tree, BVHNode *node, int start, int end, 
 }
 
 
+static void print_tree(BVHTree *tree, BVHNode *node, int depth)
+{
+	int i;
+	for(i=0; i<depth; i++) printf(" ");
+	printf(" - %d (%d): ", node->index, node - tree->nodearray);
+	for(i=2*tree->start_axis; i<2*tree->stop_axis; i++)
+		printf("%.3f ", node->bv[i]);
+	printf("\n");
+
+	for(i=0; i<tree->tree_type; i++)
+		if(node->children[i])
+			print_tree(tree, node->children[i], depth+1);
+}
+
 #if 0
+
 static void verify_tree(BVHTree *tree)
 {
 	int i, j, check = 0;
@@ -711,9 +726,7 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 		data->leafs_per_child[0] *= data->tree_type
 	);
 
-
 	data->branches_on_level[0] = 1;
-
 
 	//We could stop the loop first (but I am lazy to find out when)
 	for(depth = 1; depth < 32; depth++)
@@ -731,13 +744,15 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index)
 {
 	int min_leaf_index = child_index * data->leafs_per_child[depth-1];
-	if(min_leaf_index < data->remain_leafs)
+	if(min_leaf_index <= data->remain_leafs)
 		return min_leaf_index;
-	else
+	else if(data->leafs_per_child[depth])
 		return data->totleafs - (data->branches_on_level[depth-1] - child_index) * data->leafs_per_child[depth];
+	else
+		return data->remain_leafs;
 }
 
-//WARNING: Beautifull/tricky code starts here :P
+//WARNING: Beautiful/tricky code starts here :P
 //Generalized implicit trees
 static void non_recursive_bvh_div_nodes(BVHTree *tree)
 {
@@ -748,7 +763,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree)
 	const int num_leafs   = tree->totleaf;
 	const int num_branches= MAX2(1, (num_leafs + tree_type - 3) / (tree_type-1) );
 
-	BVHNode*  branches_array = tree->nodearray + tree->totleaf - 1; // This ocde uses 1 index arrays
+	BVHNode*  branches_array = tree->nodearray + tree->totleaf - 1; // This code uses 1 index arrays
 	BVHNode** leafs_array    = tree->nodes;
 
 	BVHBuildHelper data;
@@ -765,7 +780,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree)
 
 		depth++;
 
-//#pragma omp parallel for private(j) schedule(static)
+#pragma omp parallel for private(j) schedule(static)
 		for(j = i; j < end_j; j++)
 		{
 			int k;
@@ -776,8 +791,11 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree)
 			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
 			int parent_leafs_end   = implicit_leafs_index(&data, depth, parent_level_index+1);
 
+			//split_axis = (depth*2 % 6); //use this instead of the 2 following lines for XYZ splitting
+
 			refit_kdop_hull(tree, parent, parent_leafs_begin, parent_leafs_end);
 			split_axis = get_largest_axis(parent->bv);
+
 			parent->main_axis = split_axis / 2;
 
 			for(k = 0; k < tree_type; k++)
@@ -792,33 +810,55 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree)
 
 				if(child_leafs_end - child_leafs_begin > 1)
 				{
-					parent->children[k] = branches_array  + child_index;
+					parent->children[k] = branches_array + child_index;
+
+/*
+					printf("Add child %d (%d) to branch %d\n",
+								branches_array  + child_index - tree->nodearray,
+								branches_array[ child_index ].index,
+								parent - tree->nodearray
+						);
+*/
+
 					partition_nth_element(leafs_array, child_leafs_begin, parent_leafs_end, child_leafs_end, split_axis);
 				}
 				else if(child_leafs_end - child_leafs_begin == 1)
 				{
+/*
+					printf("Add child %d (%d) to branch %d\n",
+								leafs_array[ child_leafs_begin ] - tree->nodearray,
+								leafs_array[ child_leafs_begin ]->index,
+								parent - tree->nodearray
+						);
+*/
 					parent->children[k] = leafs_array[ child_leafs_begin ];
 				}
 				else
 				{
 					parent->children[k] = NULL;
+					break;
 				}
+				parent->totnode = k+1;
 			}
 		}
 	}
-	tree->nodes[tree->totleaf] = branches_array+0;
+
+
+	for(i = 0; i<num_branches; i++)
+		tree->nodes[tree->totleaf + i] = branches_array + 1 + i;
+
 	tree->totbranch = num_branches;
 
-
+//	BLI_bvhtree_update_tree(tree); //Uncoment this for XYZ splitting
 }
 
 void BLI_bvhtree_balance(BVHTree *tree)
 {
-	assert(tree->totbranch == 0);
-	assert(tree->totleaf   != 0);
+	if(tree->totleaf == 0) return;
 
+	assert(tree->totbranch == 0);
 	non_recursive_bvh_div_nodes(tree);
-	printf("here\n");
+
 /*
 	if(tree->totleaf != 0)
 	{

@@ -62,6 +62,8 @@
 /* Benchmark macros */
 #if 1
 
+
+#if 0
 #define BENCH(a)	\
 	do {			\
 		clock_t _clock_init = clock();	\
@@ -74,6 +76,30 @@
 #define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
 #define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
 #define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
+
+#else
+#include <sys/time.h>
+
+#define BENCH(a)	\
+	do {			\
+		double _t1, _t2;				\
+		struct timeval _tstart, _tend;	\
+		gettimeofday ( &_tstart, NULL);	\
+		(a);							\
+		gettimeofday ( &_tend, NULL);	\
+		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
+		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
+		printf("%s: %fms\n", #a, _t2-_t1);\
+	} while(0)
+
+#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
+#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
+#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
+#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
+#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
+
+
+#endif
 
 #else
 
@@ -1019,7 +1045,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
-				shrinkwrap_calc_nearest_surface_point(&calc);
+				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
 			break;
 
 			case MOD_SHRINKWRAP_NORMAL:
@@ -1027,7 +1053,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 			break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
-				shrinkwrap_calc_nearest_vertex(&calc);
+				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
 			break;
 		}
 
@@ -1047,7 +1073,6 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
 	int i;
 	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	float *co;
 
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
@@ -1055,15 +1080,17 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 
-	bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6);
+	BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
 
 	//Setup nearest
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
 
-	for(co = calc->vertexCos[i=0]; i<calc->numVerts; co = calc->vertexCos[++i])
+//#pragma omp parallel for private(i) private(nearest) schedule(static)
+	for(i = 0; i<calc->numVerts; ++i)
 	{
+		float *co = calc->vertexCos[i];
 		int index;
 		float tmp_co[3];
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
@@ -1165,7 +1192,6 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	int i;
 	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
 	char use_normal = calc->smd->shrinkOpts;
-	float *co;
 
 	//setup raytracing
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
@@ -1189,7 +1215,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 	CDDM_calc_normals(calc->original);	//Normals maybe arent yet calculated
 
-	bvhtree_from_mesh_faces(&treeData, calc->target, calc->keptDist, 4, 6);
+	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, calc->keptDist, 4, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
 
 
@@ -1200,13 +1226,15 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
 		limit_mesh = CDDM_copy( object_get_derived_final(calc->smd->cutPlane, CD_MASK_BAREMESH) );
 		if(limit_mesh)
-			bvhtree_from_mesh_faces(&limitData, limit_mesh, 0.0, 4, 6);
+			BENCH(bvhtree_from_mesh_faces(&limitData, limit_mesh, 0.0, 4, 6));
 		else
 			printf("CutPlane finalDerived mesh is null\n");
 	}
 
-	for(co = calc->vertexCos[i=0]; i<calc->numVerts; co = calc->vertexCos[++i])
+//#pragma omp parallel for private(i) private(hit) schedule(static)
+	for(i = 0; i<calc->numVerts; ++i)
 	{
+		float *co = calc->vertexCos[i];
 		float tmp_co[3], tmp_no[3];
 		float lim = 1000;		//TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
@@ -1274,17 +1302,17 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
 	int i;
-	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	float *co;
+
+	const int vgroup		 = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	const MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
 
-	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 
 	//Create a bvh-tree of the given target
-	bvhtree_from_mesh_faces( &treeData, calc->target, 0.0, 2, 6);
+	BENCH(bvhtree_from_mesh_faces( &treeData, calc->target, 0.0, 2, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
 
 	//Setup nearest
@@ -1293,8 +1321,10 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 
 	//Find the nearest vertex 
-	for(co = calc->vertexCos[i=0]; i<calc->numVerts; co = calc->vertexCos[++i])
+//#pragma omp parallel for private(i) private(nearest) schedule(static)
+	for(i = 0; i<calc->numVerts; ++i)
 	{
+		float *co = calc->vertexCos[i];
 		int index;
 		float tmp_co[3];
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
