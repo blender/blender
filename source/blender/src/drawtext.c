@@ -155,6 +155,8 @@ static char *last_repl_string= NULL;
 
 static int doc_scroll= 0;
 static double last_check_time= 0;
+static int jump_to= 0;
+static double last_jump= 0;
 
 static BMF_Font *spacetext_get_font(SpaceText *st) {
 	static BMF_Font *scr12= NULL;
@@ -2674,8 +2676,20 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	} else if (ascii) {
 		if (text && text->id.lib) {
 			error_libdata();
-		} else if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
-			if (st->showsyntax) txt_format_line(st, text->curl, 1);
+		} else {
+			short mval[2];
+			getmouseco_areawin(mval);
+			if (st->showlinenrs && mval[0]>2 && mval[0]<60 && mval[1]>2 && mval[1]<curarea->winy-2) {
+				if (ascii>='0' && ascii<='9') {
+					double time = PIL_check_seconds_timer();
+					if (last_jump < time-1) jump_to= 0;
+					jump_to *= 10; jump_to += (int)(ascii-'0');
+					txt_move_toline(text, jump_to-1, 0);
+					last_jump= time;
+				}
+			} else if ((st->overwrite && txt_replace_char(text, ascii)) || txt_add_char(text, ascii)) {
+				if (st->showsyntax) txt_format_line(st, text->curl, 1);
+			}
 			pop_space_text(st);
 			do_draw= 1;
 		}
