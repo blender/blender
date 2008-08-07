@@ -593,7 +593,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 
 #define B_VPCOLSLI		2801
 #define B_VPGAMMA		2802
-
+#define B_COPY_TF_TRANSP	2803
 #define B_COPY_TF_MODE		2804
 #define B_COPY_TF_UV		2805
 #define B_COPY_TF_COL		2806
