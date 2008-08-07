@@ -2046,6 +2046,126 @@ static void set_tabs(Text *text)
 	st->currtab_set = setcurr_tab(text);
 }
 
+static void wrap_move_bol(SpaceText *st, short sel) {
+	int offl, offc, lin;
+	Text *text= st->text;
+
+	lin= txt_get_span(text->lines.first, text->sell);
+	wrap_offset(st, text->sell, text->selc, &offl, &offc);
+
+	if (sel) {
+		txt_undo_add_toop(text, UNDO_STO, lin, text->selc, lin, -offc);
+		text->selc= -offc;
+	} else {
+		txt_undo_add_toop(text, UNDO_CTO, lin, text->curc, lin, -offc);
+		text->curc= -offc;
+		txt_pop_sel(text);
+	}
+}
+
+static void wrap_move_eol(SpaceText *st, short sel) {
+	int offl, offc, lin, startl, c;
+	Text *text= st->text;
+
+	lin= txt_get_span(text->lines.first, text->sell);
+	wrap_offset(st, text->sell, text->selc, &offl, &offc);
+	startl= offl;
+	c= text->selc;
+	while (offl==startl && text->sell->line[c]!='\0') {
+		c++;
+		wrap_offset(st, text->sell, c, &offl, &offc);
+	} if (offl!=startl) c--;
+
+	if (sel) {
+		txt_undo_add_toop(text, UNDO_STO, lin, text->selc, lin, c);
+		text->selc= c;
+	} else {
+		txt_undo_add_toop(text, UNDO_CTO, lin, text->curc, lin, c);
+		text->curc= c;
+		txt_pop_sel(text);
+	}
+}
+
+static void wrap_move_up(SpaceText *st, short sel) {
+	int offl, offl_1, offc, fromline, toline, c, target;
+	Text *text= st->text;
+
+	wrap_offset(st, text->sell, 0, &offl_1, &offc);
+	wrap_offset(st, text->sell, text->selc, &offl, &offc);
+	fromline= toline= txt_get_span(text->lines.first, text->sell);
+	target= text->selc + offc;
+
+	if (offl==offl_1) {
+		if (!text->sell->prev) {
+			txt_move_bol(text, sel);
+			return;
+		}
+		toline--;
+		c= text->sell->prev->len; /* End of prev. line */
+		wrap_offset(st, text->sell->prev, c, &offl, &offc);
+		c= -offc+target;
+	} else {
+		c= -offc-1; /* End of prev. line */
+		wrap_offset(st, text->sell, c, &offl, &offc);
+		c= -offc+target;
+	}
+	if (c<0) c=0;
+
+	if (sel) {
+		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
+		if (toline<fromline) text->sell= text->sell->prev;
+		if (c>text->sell->len) c= text->sell->len;
+		text->selc= c;
+	} else {
+		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
+		if (toline<fromline) text->curl= text->curl->prev;
+		if (c>text->curl->len) c= text->curl->len;
+		text->curc= c;
+		txt_pop_sel(text);
+	}
+}
+
+static void wrap_move_down(SpaceText *st, short sel) {
+	int offl, startoff, offc, fromline, toline, c, target;
+	Text *text= st->text;
+
+	wrap_offset(st, text->sell, text->selc, &offl, &offc);
+	fromline= toline= txt_get_span(text->lines.first, text->sell);
+	target= text->selc + offc;
+	startoff= offl;
+	c= text->selc;
+	while (offl==startoff && text->sell->line[c]!='\0') {
+		c++;
+		wrap_offset(st, text->sell, c, &offl, &offc);
+	}
+
+	if (text->sell->line[c]=='\0') {
+		if (!text->sell->next) {
+			txt_move_eol(text, sel);
+			return;
+		}
+		toline++;
+		c= target;
+	} else {
+		c += target;
+		if (c > text->sell->len) c= text->sell->len;
+	}
+	if (c<0) c=0;
+
+	if (sel) {
+		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
+		if (toline>fromline) text->sell= text->sell->next;
+		if (c>text->sell->len) c= text->sell->len;
+		text->selc= c;
+	} else {
+		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
+		if (toline>fromline) text->curl= text->curl->next;
+		if (c>text->curl->len) c= text->curl->len;
+		text->curc= c;
+		txt_pop_sel(text);
+	}
+}
+
 static void get_suggest_prefix(Text *text) {
 	int i, len;
 	char *line, tmp[256];
@@ -2905,12 +3025,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			st->overwrite= !st->overwrite;
 			do_draw= 1;
 			break;
-		case DOWNARROWKEY:
-			txt_move_down(text, G.qual & LR_SHIFTKEY);
-			set_tabs(text);
-			do_draw= 1;
-			pop_space_text(st);
-			break;
 		case LEFTARROWKEY:
 			if (G.qual & LR_COMMANDKEY)
 				txt_move_bol(text, G.qual & LR_SHIFTKEY);
@@ -2934,7 +3048,15 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case UPARROWKEY:
-			txt_move_up(text, G.qual & LR_SHIFTKEY);
+			if (st->wordwrap) wrap_move_up(st, G.qual & LR_SHIFTKEY);
+			else txt_move_up(text, G.qual & LR_SHIFTKEY);
+			set_tabs(text);
+			do_draw= 1;
+			pop_space_text(st);
+			break;
+		case DOWNARROWKEY:
+			if (st->wordwrap) wrap_move_down(st, G.qual & LR_SHIFTKEY);
+			else txt_move_down(text, G.qual & LR_SHIFTKEY);
 			set_tabs(text);
 			do_draw= 1;
 			pop_space_text(st);
@@ -2948,12 +3070,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			do_draw= 1;
 			break;
 		case HOMEKEY:
-			txt_move_bol(text, G.qual & LR_SHIFTKEY);
+			if (st->wordwrap) wrap_move_bol(st, G.qual & LR_SHIFTKEY);
+			else txt_move_bol(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case ENDKEY:
-			txt_move_eol(text, G.qual & LR_SHIFTKEY);
+			if (st->wordwrap) wrap_move_eol(st, G.qual & LR_SHIFTKEY);
+			else txt_move_eol(text, G.qual & LR_SHIFTKEY);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
