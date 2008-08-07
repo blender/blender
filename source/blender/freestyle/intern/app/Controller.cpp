@@ -251,8 +251,8 @@ int Controller::Load3DSFile(const char *iFileName)
   _ProgressBar->setProgress(1);
 
   // DEBUG
-//   ScenePrettyPrinter spp;
-//   maxScene->accept(spp);
+  // ScenePrettyPrinter spp;
+  // maxScene->accept(spp);
 
   _RootNode->AddChild(maxScene);
   _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox

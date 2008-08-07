@@ -53,7 +53,10 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	// lib3ds_matrix_copy(M, mesh->matrix);
 	// lib3ds_matrix_inv(M);
 	//---------------------
-	// M => obr->ob->imat
+	// M allows to recover world coordinates from camera coordinates
+	// M => obr->ob->imat * obr->obmat  (multiplication from left to right)
+	float M[4][4];
+	MTC_Mat4MulMat4(M, obr->ob->imat, obr->ob->obmat); 
 	
 	// We compute a normal per vertex and manages the smoothing of the shape:
 	// Lib3dsVector *normalL=(Lib3dsVector*)malloc(3*sizeof(Lib3dsVector)*mesh->faces);
@@ -68,7 +71,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	for(int a=0; a < obr->totvlak; a++) {
 		if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 		else vlr++;
-
+	
 		if(vlr->v4)
 			numFaces += 2;
 		else
@@ -115,7 +118,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	pvtmp[1] = obr->vertnodes[0].vert->co[1];
 	pvtmp[2] = obr->vertnodes[0].vert->co[2];
 	
-	MTC_Mat4MulVecfl( obr->ob->imat, pvtmp);
+	MTC_Mat4MulVecfl( M, pvtmp);
 	
 	minBBox[0] = pvtmp[0];
 	maxBBox[0] = pvtmp[0];
@@ -179,44 +182,44 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 			for(i=0; i<3; ++i) // we parse the vertices of the face f
 			{
 				unsigned j;
-
+	
 				//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
 				for(j=0; j<3; j++)
 					pv[j] = fv[i]->co[j];
-				MTC_Mat4MulVecfl( obr->ob->imat, pv);
-
+				MTC_Mat4MulVecfl( M, pv);
+	
 				for(j=0; j<3; j++) // we parse the xyz coordinates of the vertex i
 				{
 			  		if(minBBox[j] > pv[j])
 			    		minBBox[j] = pv[j];
-
+	
 			  		if(maxBBox[j] < pv[j])
 			    		maxBBox[j] = pv[j];
-
+	
 			  		vert[i][j] = pv[j];
 				}
-
+	
 				for(j=0; j<3; j++)
 			  		pn[j] = fv[i]->n[j];
 			
-				MTC_Mat4MulVecfl( obr->ob->imat, pn);
-
+				MTC_Mat4MulVecfl( M, pn);
+	
 			//lib3ds_normal_transform(pn, M, normalL[3*p+i]); //fills the cells of the pv array
 			//lib3ds_vector_normalize(pn);
-
+	
 				*pvi = currentIndex;
 				*pni = currentIndex;
 				*pmi = currentMIndex;
-
+	
 				currentIndex +=3;
 				pv += 3;
 				pn += 3;
 				pvi++;
 				pni++;
 				pmi++;
-
+	
 			}
-
+	
 			for(i=0; i<3; i++)
 			{
 				norm = 0.0;
@@ -238,51 +241,51 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 						for(i=0; i<3; ++i) // we parse the vertices of the face f
 						{
 							unsigned j;
-
+	
 							//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
 							for(j=0; j<3; j++)
 								pv[j] = fv[i]->co[j];
-							MTC_Mat4MulVecfl( obr->ob->imat, pv);
-
+							MTC_Mat4MulVecfl( M, pv);
+	
 							for(j=0; j<3; j++) // we parse the xyz coordinates of the vertex i
 							{
 						  		if(minBBox[j] > pv[j])
 						    		minBBox[j] = pv[j];
-
+	
 						  		if(maxBBox[j] < pv[j])
 						    		maxBBox[j] = pv[j];
-
+	
 						  		vert[i][j] = pv[j];
 							}
-
+	
 							for(j=0; j<3; j++)
 						  		pn[j] = fv[i]->n[j];
-
-							MTC_Mat4MulVecfl( obr->ob->imat, pn);
-
+	
+							MTC_Mat4MulVecfl( M, pn);
+	
 						//lib3ds_normal_transform(pn, M, normalL[3*p+i]); //fills the cells of the pv array
 						//lib3ds_vector_normalize(pn);
-
+	
 							*pvi = currentIndex;
 							*pni = currentIndex;
 							*pmi = currentMIndex;
-
+	
 							currentIndex +=3;
 							pv += 3;
 							pn += 3;
 							pvi++;
 							pni++;
 							pmi++;
-
+	
 						}
-
+	
 						for(i=0; i<3; i++)
 						{
 							norm = 0.0;
-
+	
 							for (unsigned j = 0; j < 3; j++)
 						  		norm += (vert[i][j] - vert[(i+1)%3][j])*(vert[i][j] - vert[(i+1)%3][j]);
-
+	
 							norm = sqrt(norm);
 							if(_minEdgeSize > norm)
 						  		_minEdgeSize = norm;
@@ -290,7 +293,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 				
 					++_numFacesRead;
 			}
-
+	
 	}
 	
 	// We might have several times the same vertex. We want a clean 
@@ -350,8 +353,8 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	rep->setBBox(bbox);
 	shape->AddRep(rep);
 	
-	Matrix44r M = Matrix44r::identity();
-	currentMesh->setMatrix(M);
+	Matrix44r meshMat = Matrix44r::identity();
+	currentMesh->setMatrix(meshMat);
 	currentMesh->Translate(0,0,0);
 	
 	currentMesh->AddChild(shape);

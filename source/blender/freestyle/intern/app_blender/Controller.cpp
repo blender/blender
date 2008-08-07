@@ -202,8 +202,8 @@ int Controller::LoadMesh(Render *re)
   cout << "Epsilon computed : " << _EPSILON << endl;
 
   // DEBUG
-//   ScenePrettyPrinter spp;
-//   blenderScene->accept(spp);
+  // ScenePrettyPrinter spp;
+  // blenderScene->accept(spp);
 	
   _RootNode->AddChild(blenderScene);
   _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
@@ -243,9 +243,9 @@ int Controller::LoadMesh(Render *re)
   printf("Grid building    : %lf\n", _Chrono.stop());
   
   // DEBUG
-//   _Grid.displayDebug();
-   
-  _pView->setDebug(_DebugNode);
+  _Grid.displayDebug();
+  //  
+  // _pView->setDebug(_DebugNode);
 
   //delete stuff
   //  if(0 != ws_builder)
@@ -305,8 +305,8 @@ int Controller::Load3DSFile(const char *iFileName)
   cout << "Epsilon computed : " << _EPSILON << endl;
 
   // DEBUG
-//   ScenePrettyPrinter spp;
-//   maxScene->accept(spp);
+  // ScenePrettyPrinter spp;
+  // maxScene->accept(spp);
 	
   _RootNode->AddChild(maxScene);
   _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
@@ -346,7 +346,7 @@ int Controller::Load3DSFile(const char *iFileName)
   printf("Grid building    : %lf\n", _Chrono.stop());
   
   // DEBUG
-//   _Grid.displayDebug();
+  _Grid.displayDebug();
    
   _pView->setDebug(_DebugNode);
 
