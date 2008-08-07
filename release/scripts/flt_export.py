@@ -1070,7 +1070,7 @@ class FLTNode(Node):
 
                 if self.opcode == 63 and options.state['externalspath']:
 				try:
-					exportdict['3t200!filename'] = os.path.join(options.state['externalspath'],self.object.DupGroup.name+'.flt')
+					exportdict['3t200!filename'] = os.path.join(options.state['externalspath'],self.object.DupGroup.name+'.flt').replace("\\", "/")
 					self.header.xrefnames.append(self.object.DupGroup.name)
 				except:
 					pass
@@ -1199,7 +1199,7 @@ class Database(Node):
 			print 'Writing texture palette.'
 		# Write record for texture palette
 		for i, img in enumerate(self.GRR.texture_lst):
-			filename = tex_files[img.name]
+			filename = tex_files[img.name].replace("\\", "/")
 			self.fw.write_short(64)                                         # Texture palette opcode.
 			self.fw.write_short(216)                                        # Length of record
 			self.fw.write_string(filename, 200) # Filename
