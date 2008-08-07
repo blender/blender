@@ -63,43 +63,26 @@
 #if 1
 
 
-#if 0
-#define BENCH(a)	\
-	do {			\
-		clock_t _clock_init = clock();	\
-		(a);							\
-		printf("%s: %fms\n", #a, (float)(clock()-_clock_init)*1000/CLOCKS_PER_SEC);	\
-	} while(0)
-
-#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
-#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
-#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
-#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
-#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
-
-#else
 #include <sys/time.h>
 
 #define BENCH(a)	\
 	do {			\
 		double _t1, _t2;				\
 		struct timeval _tstart, _tend;	\
+		clock_t _clock_init = clock();	\
 		gettimeofday ( &_tstart, NULL);	\
 		(a);							\
 		gettimeofday ( &_tend, NULL);	\
 		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
 		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
-		printf("%s: %fms\n", #a, _t2-_t1);\
+		printf("%s: %fs (real) %fs (cpu)\n", #a, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
 	} while(0)
 
 #define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
 #define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
 #define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
 #define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
-#define BENCH_REPORT(name)	printf("%s: %fms\n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
-
-
-#endif
+#define BENCH_REPORT(name)	printf("%s: %fms (cpu) \n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
 
 #else
 
@@ -1109,12 +1092,11 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 		if(index != -1)
 		{
-			float dist;
+			float dist = nearest.dist;
+			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
+
 			VECCOPY(tmp_co, nearest.co);
 			space_transform_invert(&calc->local2target, tmp_co);
-
-			dist = VecLenf(co, tmp_co);
-			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
 			VecLerpf(co, co, tmp_co, weight);	//linear interpolation
 		}
 	}
@@ -1349,7 +1331,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 			}
 			else
 			{
-				float dist = VecLenf(tmp_co, nearest.co);
+				float dist = sasqrt( nearest.dist );
 				VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keptDist)/dist);	//linear interpolation
 			}
 			space_transform_invert(&calc->local2target, tmp_co);
