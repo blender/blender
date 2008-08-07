@@ -3317,7 +3317,9 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			switch(scon->shrinkType)
 			{
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
-					if(bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6) == NULL) return;
+					bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
+					if(treeData.tree == NULL) return;
+
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 					
 					dist = VecLenf(co, nearest.co);
@@ -3325,7 +3327,9 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				break;
 
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
-					if(bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6) == NULL) return;
+					bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
+					if(treeData.tree == NULL) return;
+
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 
 					dist = VecLenf(co, nearest.co);
@@ -3333,12 +3337,12 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				break;
 
 				case MOD_SHRINKWRAP_NORMAL:
-					if(bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6) == NULL) return;
+					bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6);
+					if(treeData.tree == NULL) return;
 
 					if(normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
 					{
-						if(treeData.tree)
-							BLI_bvhtree_free(treeData.tree);
+						free_bvhtree_from_mesh(&treeData);
 
 						target->release(target);
 
@@ -3348,8 +3352,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 				break;
 			}
 
-			if(treeData.tree)
-				BLI_bvhtree_free(treeData.tree);
+			free_bvhtree_from_mesh(&treeData);
 
 			target->release(target);
 

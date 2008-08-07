@@ -69,46 +69,16 @@ void space_transform_invert(const SpaceTransform *data, float *co);
 void space_transform_apply_normal (const SpaceTransform *data, float *co);
 void space_transform_invert_normal(const SpaceTransform *data, float *co);
 
-/* BVH from mesh */
-#include "BLI_kdopbvh.h"
-
-struct DerivedMesh;
-struct MVert;
-struct MFace;
-
-//struct that kepts basic information about a BVHTree build from a mesh
-typedef struct BVHTreeFromMesh
-{
-	struct BVHTree *tree;
-
-	//Callbacks
-	BVHTree_NearestPointCallback nearest_callback;
-	BVHTree_RayCastCallback      raycast_callback;
-	
-	//Mesh represented on this BVH
-	struct DerivedMesh *mesh;
-	struct MVert *vert;
-	struct MFace *face;
-
-	//radius for sphere cast
-	float sphere_radius;
-
-} BVHTreeFromMesh;
-
-// Builds a bvh tree where nodes are the vertexs of the given mesh. And configures BVHMesh if one given.
-struct BVHTree* bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
-
-// Builds a bvh tree where nodes are the faces of the given mesh. And configures BVHMesh if one is given.
-struct BVHTree* bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
-
-int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
-
 /* Shrinkwrap stuff */
+#include "BKE_bvhutils.h"
+
 struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
 struct BVHTree;
 
+/* maybe move to bvh util */
+int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
 
 typedef struct ShrinkwrapCalcData
