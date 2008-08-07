@@ -1491,7 +1491,7 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self,
 		if (PyVecTo(pyvect, vect))
 		{
 			if (fac<=0.0) Py_RETURN_NONE; // Nothing to do.
-			if (fac< 1.0) fac= 1.0;
+			if (fac> 1.0) fac= 1.0;
 			
 			AlignAxisToVect(vect,axis,fac);
 			NodeUpdateGS(0.f,true);
