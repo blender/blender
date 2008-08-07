@@ -100,17 +100,17 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	m_sensors.insert(touchsensor);
-
-	touchsensor->RegisterSumo(this);
+	if (m_sensors.insert(touchsensor).second)
+		// the sensor was effectively inserted, register it
+		touchsensor->RegisterSumo(this);
 }
 
 void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	m_sensors.erase(touchsensor);
-
-	touchsensor->UnregisterSumo(this);
+	if (m_sensors.erase(touchsensor))
+		// the sensor was effectively removed, unregister it
+		touchsensor->UnregisterSumo(this);
 }
 
 

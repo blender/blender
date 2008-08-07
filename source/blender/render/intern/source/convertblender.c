@@ -1864,9 +1864,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			num= cpa->num;
 
 			/* get orco */
-			psys_particle_on_emitter(ob, psmd,
-				(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
-				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
+			if(part->childtype == PART_CHILD_FACES) {
+				psys_particle_on_emitter(ob, psmd,
+					PART_FROM_FACE, cpa->num,DMCACHE_ISCHILD,
+					cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
+			}
+			else {
+				ParticleData *par = psys->particles + cpa->parent;
+				psys_particle_on_emitter(ob, psmd, part->from,
+					par->num,DMCACHE_ISCHILD,par->fuv,
+					par->foffset,co,nor,0,0,orco,0);
+			}
 
 			if(uvco){
 				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){

@@ -94,6 +94,7 @@
 #include "BKE_material.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 #include "BKE_bmesh.h"
@@ -1127,8 +1128,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
 				  mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-				  if(mface[numFaces].v4)
+				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
+
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 4);
+				  }
+				  else
+				  {
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 3);
+				  }
+
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
 				  numFaces++;
@@ -1218,8 +1229,17 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
 				  mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-				  if(mface[numFaces].v4)
+				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
+
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 4);
+				  }
+				  else
+				  {
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 3);
+				  }
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
 				  numFaces++;
@@ -2811,6 +2831,20 @@ CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
 	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
 
 	return dataMask;
+}
+
+static int displaceModifier_dependsOnTime(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+
+	if(dmd->texture)
+	{
+		return BKE_texture_dependsOnTime(dmd->texture);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static void displaceModifier_foreachObjectLink(ModifierData *md, Object *ob,
@@ -7144,6 +7178,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = displaceModifier_initData;
 		mti->copyData = displaceModifier_copyData;
 		mti->requiredDataMask = displaceModifier_requiredDataMask;
+		mti->dependsOnTime = displaceModifier_dependsOnTime;
 		mti->foreachObjectLink = displaceModifier_foreachObjectLink;
 		mti->foreachIDLink = displaceModifier_foreachIDLink;
 		mti->updateDepgraph = displaceModifier_updateDepgraph;

@@ -171,6 +171,7 @@
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\PHY_Sumo.pch"
 				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\sumo\debug\"

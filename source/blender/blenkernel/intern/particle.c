@@ -3744,6 +3744,9 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 			
 			/* TODO: pa_clump vgroup */
 			do_clump(state,key1,t,part->clumpfac,part->clumppow,1.0);
+
+			if(psys->lattice)
+				calc_latt_deform(state->co,1.0f);
 		}
 		else{
 			if (pa) { /* TODO PARTICLE - should this ever be NULL? - Campbell */
