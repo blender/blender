@@ -43,6 +43,10 @@
 #include <omp.h>
 #endif
 
+
+
+#define MAX_TREETYPE 32
+
 typedef struct BVHNode
 {
 	struct BVHNode **children;
@@ -490,7 +494,7 @@ static void verify_tree(BVHTree *tree)
 #endif
 
 //Helper data and structures to build a min-leaf generalized implicit tree
-//This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and sutff like that)
+//This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that)
 typedef struct BVHBuildHelper
 {
 	int tree_type;				//
@@ -648,7 +652,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 			int k;
 			const int parent_level_index= j-i;
 			BVHNode* parent = branches_array + j;
-			int nth_positions[ tree_type + 1 ];
+			int nth_positions[ MAX_TREETYPE + 1];
 			char split_axis;
 
 			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
@@ -712,6 +716,9 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	
 	// theres not support for trees below binary-trees :P
 	if(tree_type < 2)
+		return NULL;
+	
+	if(tree_type > MAX_TREETYPE)
 		return NULL;
 
 	tree = (BVHTree *)MEM_callocN(sizeof(BVHTree), "BVHTree");
