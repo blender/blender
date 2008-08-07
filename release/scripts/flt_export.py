@@ -525,8 +525,8 @@ class FaceDesc:
 	def __init__(self):
 		self.vertex_index_lst = []
 		self.mface = None
-		self.texture_index = -1
-		self.material_index = -1
+		self.texture_index = 65535
+		self.material_index = 65535
 		self.color_index = 127
 		self.renderstyle = 0
 		self.twoside = 0
@@ -979,8 +979,14 @@ class FLTNode(Node):
 			self.header.fw.write_char(0)                                    # Reserved
 			self.header.fw.write_char(alpha)                                    # Template
 			self.header.fw.write_short(-1)                                  # Detail tex pat index
-			self.header.fw.write_short(face_desc.texture_index)             # Tex pattern index
-			self.header.fw.write_short(face_desc.material_index)            # material index
+			if face_desc.texture_index == -1:
+				self.header.fw.write_ushort(65535)
+			else:
+				self.header.fw.write_ushort(face_desc.texture_index)	# Tex pattern index
+			if face_desc.material_index == -1:
+				self.header.fw.write_ushort(65535)
+			else:
+				self.header.fw.write_ushort(face_desc.material_index)		# material index
 			self.header.fw.write_short(0)                                   # SMC code
 			self.header.fw.write_short(0)                                   # Feature 					code
 			self.header.fw.write_int(0)                                     # IR material code
@@ -1015,7 +1021,10 @@ class FLTNode(Node):
 				self.header.fw.write_ushort(8 + (mtex * 8))		# Length
 				self.header.fw.write_uint(uvmask)								# UV mask
 				for i in xrange(mtex):
-					self.header.fw.write_ushort(face_desc.images[i])			# Tex pattern index
+					if face_desc.images[i] == -1:
+						self.header.fw.write_ushort(65535)
+					else:
+						self.header.fw.write_ushort(face_desc.images[i])			# Tex pattern index
 					self.header.fw.write_ushort(0)								# Tex effect
 					self.header.fw.write_ushort(0)								# Tex Mapping index
 					self.header.fw.write_ushort(0)								# Tex data. User defined
@@ -1092,7 +1101,7 @@ class FLTNode(Node):
 				write_prop(self.header.fw,ftype,self.object.properties['FLT']['EXT'][propname],length)
 			#write extension data
 			for i in xrange(datalen):
-				self.header.fw.write_char(self.object.properties['FLT']['EXT']['data'][i])
+				self.header.fw.write_uchar(struct.unpack('>B', struct.pack('>B', self.object.properties['FLT']['EXT']['data'][i]))[0])
 			self.write_pop_extension()
 
 
@@ -1180,8 +1189,8 @@ class Database(Node):
 			desc = self.GRR.request_vertex_desc(i)
 			self.fw.write_short(70)                         # Vertex with color normal and uv opcode.
 			self.fw.write_ushort(64)                        # Length of record
-			self.fw.write_ushort(0)							# Color name index
-			self.fw.write_short(0x20000000)					# Flags
+			self.fw.write_ushort(0)				# Color name index
+			self.fw.write_short(1 << 14)			# Frozen Normal
 			self.fw.write_double(desc.x)
 			self.fw.write_double(desc.y)
 			self.fw.write_double(desc.z)
@@ -1199,7 +1208,7 @@ class Database(Node):
 			print 'Writing texture palette.'
 		# Write record for texture palette
 		for i, img in enumerate(self.GRR.texture_lst):
-			filename = tex_files[img.name].replace("\\", "/")
+			filename = tex_files[img.name]
 			self.fw.write_short(64)                                         # Texture palette opcode.
 			self.fw.write_short(216)                                        # Length of record
 			self.fw.write_string(filename, 200) # Filename
@@ -1245,7 +1254,7 @@ class Database(Node):
 			cpalette = defaultp.pal
 		count = len(cpalette)
 		for i in xrange(count):
-			color = struct.unpack('>BBBB',struct.pack('>I',cpalette[i]))
+			color = struct.unpack('>BBBB',struct.pack('>i',cpalette[i]))
 			self.fw.write_uchar(color[3])               # alpha
 			self.fw.write_uchar(color[2])               # b
 			self.fw.write_uchar(color[1])               # g
