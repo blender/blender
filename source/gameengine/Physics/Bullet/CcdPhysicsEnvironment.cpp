@@ -956,13 +956,25 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE] || (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints)))
 	{
 		//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback
-		int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
+		btDispatcher* dispatcher = m_dynamicsWorld->getDispatcher();
+		int numManifolds = dispatcher->getNumManifolds();
 		for (int i=0;i<numManifolds;i++)
 		{
-			btPersistentManifold* manifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+			btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
 			int numContacts = manifold->getNumContacts();
 			if (numContacts)
 			{
+				btRigidBody* rb0 = static_cast<btRigidBody*>(manifold->getBody0());
+				btRigidBody* rb1 = static_cast<btRigidBody*>(manifold->getBody1());
+				// Bullet does not refresh the manifold contact point for object without contact response
+				// may need to remove this when a newer Bullet version is integrated
+				if (!dispatcher->needsResponse(rb0, rb1))
+				{
+					manifold->refreshContactPoints(rb0->getCenterOfMassTransform(),rb1->getCenterOfMassTransform());
+					numContacts = manifold->getNumContacts();
+					if (!numContacts)
+						continue;
+				}
 				if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints))
 				{
 					for (int j=0;j<numContacts;j++)
@@ -973,8 +985,8 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 							m_debugDrawer->drawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.getDistance(),cp.getLifeTime(),color);
 					}
 				}
-				btRigidBody* obj0 = static_cast<btRigidBody* >(manifold->getBody0());
-				btRigidBody* obj1 = static_cast<btRigidBody* >(manifold->getBody1());
+				btRigidBody* obj0 = rb0;
+				btRigidBody* obj1 = rb1;
 
 				//m_internalOwner is set in 'addPhysicsController'
 				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->getUserPointer());
