@@ -55,7 +55,7 @@ static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, con
 {
 	float dist;
 
-	if(RayIntersectsTriangle(ray->origin, ray->direction, v0, v1, v2, &dist, NULL))
+	if(RayIntersectsTriangle((float*)ray->origin, (float*)ray->direction, (float*)v0, (float*)v1, (float*)v2, &dist, NULL))
 		return dist;
 
 	return FLT_MAX;
@@ -71,7 +71,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 	CalcNormFloat((float*)v0, (float*)v1, (float*)v2, plane_normal);
 
 	VECADDFAC( p1, ray->origin, ray->direction, m_dist);
-	if(SweepingSphereIntersectsTriangleUV(ray->origin, p1, radius, v0, v1, v2, &idist, &hit_point))
+	if(SweepingSphereIntersectsTriangleUV((float*)ray->origin, p1, radius, (float*)v0, (float*)v1, (float*)v2, &idist, hit_point))
 	{
 		return idist * m_dist;
 	}
