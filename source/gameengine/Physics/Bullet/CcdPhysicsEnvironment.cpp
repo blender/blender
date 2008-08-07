@@ -966,15 +966,6 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 			{
 				btRigidBody* rb0 = static_cast<btRigidBody*>(manifold->getBody0());
 				btRigidBody* rb1 = static_cast<btRigidBody*>(manifold->getBody1());
-				// Bullet does not refresh the manifold contact point for object without contact response
-				// may need to remove this when a newer Bullet version is integrated
-				if (!dispatcher->needsResponse(rb0, rb1))
-				{
-					manifold->refreshContactPoints(rb0->getCenterOfMassTransform(),rb1->getCenterOfMassTransform());
-					numContacts = manifold->getNumContacts();
-					if (!numContacts)
-						continue;
-				}
 				if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints))
 				{
 					for (int j=0;j<numContacts;j++)
@@ -1002,6 +993,15 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 				{
 					m_triggerCallbacks[PHY_OBJECT_RESPONSE](m_triggerCallbacksUserPtrs[PHY_OBJECT_RESPONSE],
 						ctrl0,ctrl1,0);
+				}
+				// Bullet does not refresh the manifold contact point for object without contact response
+				// may need to remove this when a newer Bullet version is integrated
+				if (!dispatcher->needsResponse(rb0, rb1))
+				{
+					// Refresh algorithm fails sometimes when there is penetration 
+					// (usuall the case with ghost and sensor objects)
+					// Let's just clear the manifold, in any case, it is recomputed on each frame.
+					manifold->clearManifold(); //refreshContactPoints(rb0->getCenterOfMassTransform(),rb1->getCenterOfMassTransform());
 				}
 			}
 		}
