@@ -254,7 +254,7 @@ WFace::WFace(WFace& iBrother)
   _VerticesNormals = iBrother._VerticesNormals;
   _VerticesTexCoords = iBrother._VerticesTexCoords;
   _Id = iBrother.GetId();
-  _MaterialIndex = iBrother._MaterialIndex;
+  _FrsMaterialIndex = iBrother._FrsMaterialIndex;
   userdata = NULL;
   iBrother.userdata = new facedata;
   ((facedata*)(iBrother.userdata))->_copy = this;
@@ -266,8 +266,8 @@ WFace * WFace::duplicate()
   return clone;
 }
 
-const Material& WFace::material() {
-  return getShape()->material(_MaterialIndex);
+const FrsMaterial& WFace::frs_material() {
+  return getShape()->frs_material(_FrsMaterialIndex);
 }
 
 WOEdge * WFace::MakeEdge(WVertex *v1, WVertex *v2)
@@ -475,7 +475,7 @@ WShape * WShape::duplicate()
 WShape::WShape(WShape& iBrother)
 {
   _Id = iBrother.GetId();
-  _Materials = iBrother._Materials;
+  _FrsMaterials = iBrother._FrsMaterials;
   _meanEdgeSize = iBrother._meanEdgeSize;
   iBrother.bbox(_min, _max);
   vector<WVertex*>& vertexList = iBrother.getVertexList();
@@ -650,7 +650,7 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
 
   int id = _FaceList.size();
 
-  face->setMaterialIndex(iMaterial);
+  face->setFrsMaterialIndex(iMaterial);
 
   // Check whether we have a degenerated face:
 

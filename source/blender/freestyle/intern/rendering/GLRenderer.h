@@ -67,9 +67,9 @@ class LIB_RENDERING_EXPORT GLRenderer : public SceneVisitor
   VISIT_DECL(VertexRep)
   VISIT_DECL(IndexedFaceSet)
   VISIT_DECL(DrawingStyle)
-  VISIT_DECL(Material)
+  VISIT_DECL(FrsMaterial)
 
-  virtual void visitMaterial(const Material&);
+  virtual void visitFrsMaterial(const FrsMaterial&);
   virtual void visitNodeTransformBefore(NodeTransform&);
   virtual void visitNodeTransformAfter(NodeTransform&);
   virtual void visitNodeDrawingStyleBefore(NodeDrawingStyle&);
@@ -101,7 +101,7 @@ class LIB_RENDERING_EXPORT GLRenderer : public SceneVisitor
    */
   virtual void RenderTriangleStrip(const real *iVertices, 
                                    const real *iNormals,
-                                   const Material *const*iMaterials, 
+                                   const FrsMaterial *const*iMaterials, 
                                    const real *iTexCoords,
                                    const unsigned* iVIndices, 
                                    const unsigned* iNIndices,
@@ -133,7 +133,7 @@ class LIB_RENDERING_EXPORT GLRenderer : public SceneVisitor
    */
   virtual void RenderTriangleFan(const real *iVertices, 
                                  const real *iNormals,
-                                 const Material *const* iMaterials,
+                                 const FrsMaterial *const* iMaterials,
                                  const real *iTexCoords,
                                  const unsigned* iVIndices, 
                                  const unsigned* iNIndices,
@@ -165,7 +165,7 @@ class LIB_RENDERING_EXPORT GLRenderer : public SceneVisitor
    */
   virtual void RenderTriangles(const real *iVertices, 
                                const real *iNormals,
-                               const Material *const* iMaterials, 
+                               const FrsMaterial *const* iMaterials, 
                                const real *iTexCoords,
                                const unsigned* iVIndices, 
                                const unsigned* iNIndices,

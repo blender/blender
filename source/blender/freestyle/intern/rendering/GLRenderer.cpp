@@ -54,7 +54,7 @@ void GLRenderer::visitIndexedFaceSet(IndexedFaceSet& ifs)
   const real * vertices = ifs.vertices();
   const real * normals = ifs.normals();
   const real * texCoords = ifs.texCoords();
-  const Material *const* materials = ifs.materials();
+  const FrsMaterial *const* frs_materials = ifs.frs_materials();
   const unsigned *vindices = ifs.vindices();
   const unsigned *nindices = ifs.nindices();
   const unsigned *mindices = ifs.mindices();
@@ -76,13 +76,13 @@ void GLRenderer::visitIndexedFaceSet(IndexedFaceSet& ifs)
     switch(faceStyle[fIndex])
     {
     case IndexedFaceSet::TRIANGLE_STRIP:
-      RenderTriangleStrip(vertices, normals, materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
+      RenderTriangleStrip(vertices, normals, frs_materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
       break;
     case IndexedFaceSet::TRIANGLE_FAN:
-      RenderTriangleFan(vertices, normals, materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
+      RenderTriangleFan(vertices, normals, frs_materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
       break;
     case IndexedFaceSet::TRIANGLES:
-      RenderTriangles(vertices, normals, materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
+      RenderTriangles(vertices, normals, frs_materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
       break;
     }
     pvi += numVertexPerFace[fIndex];
@@ -153,7 +153,7 @@ void GLRenderer::visitNodeDrawingStyleAfter(NodeDrawingStyle&) {
 
 void GLRenderer::RenderTriangleStrip( const real *iVertices, 
                                      const real *iNormals,
-                                     const Material *const* iMaterials,
+                                     const FrsMaterial *const* iMaterials,
                                      const real *iTexCoords,
                                      const unsigned* iVIndices, 
                                      const unsigned* iNIndices,
@@ -167,7 +167,7 @@ void GLRenderer::RenderTriangleStrip( const real *iVertices,
   {
 		if(iMIndices){
 			if(iMIndices[i] != index){
-				visitMaterial(*(iMaterials[iMIndices[i]]));
+				visitFrsMaterial(*(iMaterials[iMIndices[i]]));
 				index = iMIndices[i];
 			}
 		}
@@ -190,7 +190,7 @@ void GLRenderer::RenderTriangleStrip( const real *iVertices,
 
 void GLRenderer::RenderTriangleFan( const real *iVertices, 
                                     const real *iNormals,
-                                    const Material *const* iMaterials,
+                                    const FrsMaterial *const* iMaterials,
                                     const real *iTexCoords,
                                     const unsigned* iVIndices, 
                                     const unsigned* iNIndices,
@@ -204,7 +204,7 @@ void GLRenderer::RenderTriangleFan( const real *iVertices,
   {
 		if(iMIndices){
 			if(iMIndices[i] != index){
-				visitMaterial(*(iMaterials[iMIndices[i]]));
+				visitFrsMaterial(*(iMaterials[iMIndices[i]]));
 				index = iMIndices[i];
 			}
 		}
@@ -226,7 +226,7 @@ void GLRenderer::RenderTriangleFan( const real *iVertices,
 
 void GLRenderer::RenderTriangles( const real *iVertices, 
                                  const real *iNormals,
-                                 const Material *const* iMaterials,
+                                 const FrsMaterial *const* iMaterials,
                                  const real *iTexCoords,
                                  const unsigned* iVIndices, 
                                  const unsigned* iNIndices,
@@ -240,7 +240,7 @@ void GLRenderer::RenderTriangles( const real *iVertices,
   {
 		if(iMIndices){
 			if(iMIndices[i] != index){
-				visitMaterial(*(iMaterials[iMIndices[i]]));
+				visitFrsMaterial(*(iMaterials[iMIndices[i]]));
 				index = iMIndices[i];
 			}
 		}
@@ -424,7 +424,7 @@ void GLRenderer::visitDrawingStyle(DrawingStyle& iDrawingStyle)
     glDisable(GL_LIGHTING);
 }
 
-void GLRenderer::visitMaterial(Material& m) {
+void GLRenderer::visitFrsMaterial(FrsMaterial& m) {
   const float* diff = m.diffuse();
   const float* amb = m.ambient();
   const float* spec = m.specular();
@@ -438,7 +438,7 @@ void GLRenderer::visitMaterial(Material& m) {
   glMaterialf(GL_FRONT, GL_SHININESS, m.shininess());
 }
 
-void GLRenderer::visitMaterial(const Material& m) {
+void GLRenderer::visitFrsMaterial(const FrsMaterial& m) {
   const float* diff = m.diffuse();
   const float* amb = m.ambient();
   const float* spec = m.specular();

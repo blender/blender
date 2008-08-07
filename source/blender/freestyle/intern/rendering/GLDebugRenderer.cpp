@@ -40,7 +40,7 @@ void GLDebugRenderer::visitIndexedFaceSet(IndexedFaceSet& iFaceSet)
   
   const real * vertices = iFaceSet.vertices();
   const real * normals = iFaceSet.normals();
-  const Material *const* materials = (const Material**)iFaceSet.materials();
+  const FrsMaterial *const* frs_materials = (const FrsMaterial**)iFaceSet.frs_materials();
   const unsigned *vindices = iFaceSet.vindices();
   const unsigned *nindices = iFaceSet.nindices();
   const unsigned *mindices = iFaceSet.mindices();
@@ -57,13 +57,13 @@ void GLDebugRenderer::visitIndexedFaceSet(IndexedFaceSet& iFaceSet)
     switch(faceStyle[fIndex])
     {
     case IndexedFaceSet::TRIANGLE_STRIP:
-      RenderTriangleStrip(vertices, normals, materials, pvi, pni, pmi, numVertexPerFace[fIndex]);
+      RenderTriangleStrip(vertices, normals, frs_materials, pvi, pni, pmi, numVertexPerFace[fIndex]);
       break;
     case IndexedFaceSet::TRIANGLE_FAN:
-      RenderTriangleFan(vertices, normals, materials, pvi, pni, pmi, numVertexPerFace[fIndex]);
+      RenderTriangleFan(vertices, normals, frs_materials, pvi, pni, pmi, numVertexPerFace[fIndex]);
       break;
     case IndexedFaceSet::TRIANGLES:
-      RenderTriangles(vertices, normals, materials, pvi, pni, pmi, numVertexPerFace[fIndex]);
+      RenderTriangles(vertices, normals, frs_materials, pvi, pni, pmi, numVertexPerFace[fIndex]);
       break;
     }
     pvi += numVertexPerFace[fIndex];
@@ -131,7 +131,7 @@ void GLDebugRenderer::renderBitmapString(real x,
 
 void GLDebugRenderer::RenderTriangleStrip(const real *iVertices, 
                                           const real *iNormals,
-                                          const Material *const* iMaterials, 
+                                          const FrsMaterial *const* iMaterials, 
                                           const unsigned* iVIndices, 
                                           const unsigned* iNIndices,
                                           const unsigned* iMIndices,
@@ -153,7 +153,7 @@ void GLDebugRenderer::RenderTriangleStrip(const real *iVertices,
 
 void GLDebugRenderer::RenderTriangleFan(const real *iVertices, 
                                         const real *iNormals,
-                                        const Material *const* iMaterials, 
+                                        const FrsMaterial *const* iMaterials, 
                                         const unsigned* iVIndices, 
                                         const unsigned* iNIndices,
                                         const unsigned* iMIndices,
@@ -175,7 +175,7 @@ void GLDebugRenderer::RenderTriangleFan(const real *iVertices,
 
 void GLDebugRenderer::RenderTriangles(const real *iVertices, 
                                       const real *iNormals,
-                                      const Material *const* iMaterials, 
+                                      const FrsMaterial *const* iMaterials, 
                                       const unsigned* iVIndices, 
                                       const unsigned* iNIndices,
                                       const unsigned* iMIndices,

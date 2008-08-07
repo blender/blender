@@ -174,7 +174,7 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
       unsigned nSize = vSize;
       float *normals = new float[nSize];
       unsigned *numVertexPerFaces = new unsigned[numFaces];
-      vector<Material> meshMaterials;
+      vector<FrsMaterial> meshFrsMaterials;
 
       IndexedFaceSet::TRIANGLES_STYLE *faceStyle = new IndexedFaceSet::TRIANGLES_STYLE[numFaces];
       unsigned i;
@@ -199,7 +199,7 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
       unsigned currentIndex = 0;
       unsigned currentMIndex = 0;
 
-      Material tmpMat;
+      FrsMaterial tmpMat;
       
       // we want to find the min and max coordinates as we build the rep. 
       // We initialize the min and max values whith the first vertex.
@@ -232,14 +232,14 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
           tmpMat.setShininess(s);
         }
         
-        if(meshMaterials.empty()){
-          meshMaterials.push_back(tmpMat);
-          shape->setMaterial(tmpMat);
+        if(meshFrsMaterials.empty()){
+          meshFrsMaterials.push_back(tmpMat);
+          shape->setFrsMaterial(tmpMat);
         }else{
           // find if the material is aleady in the list
           unsigned i=0;
           bool found = false;
-          for(vector<Material>::iterator it=meshMaterials.begin(), itend=meshMaterials.end();
+          for(vector<FrsMaterial>::iterator it=meshFrsMaterials.begin(), itend=meshFrsMaterials.end();
           it!=itend;
           ++it){
             if(*it == tmpMat){
@@ -250,8 +250,8 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
             ++i;
           }
           if(!found){
-            meshMaterials.push_back(tmpMat);
-            currentMIndex = meshMaterials.size()-1;
+            meshFrsMaterials.push_back(tmpMat);
+            currentMIndex = meshFrsMaterials.size()-1;
           }
         }
         
@@ -271,8 +271,8 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
             vert[i][j] = pv[j];
           }
           
-          for(j=0; j<3; j++)
-            pn[j] = f->normal[j];
+          // for(j=0; j<3; j++)
+          //     pn[j] = f->normal[j];
 
           lib3ds_normal_transform(pn, M, normalL[3*p+i]); //fills the cells of the pv array
           //lib3ds_vector_normalize(pn);
@@ -331,12 +331,12 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
         &cleanNIndices);
 
       // format materials array
-      Material** marray = new Material*[meshMaterials.size()];
+      FrsMaterial** marray = new FrsMaterial*[meshFrsMaterials.size()];
       unsigned mindex=0;
-      for(vector<Material>::iterator m=meshMaterials.begin(), mend=meshMaterials.end();
+      for(vector<FrsMaterial>::iterator m=meshFrsMaterials.begin(), mend=meshFrsMaterials.end();
           m!=mend;
           ++m){
-        marray[mindex] = new Material(*m);
+        marray[mindex] = new FrsMaterial(*m);
         ++mindex;
       }
       // deallocates memory:
@@ -348,7 +348,7 @@ void MaxFileLoader::RenderNode(Lib3dsNode *iNode)
       // Create the IndexedFaceSet with the retrieved attributes
       rep = new IndexedFaceSet(cleanVertices, cvSize, 
                                cleanNormals, cnSize,
-                               marray, meshMaterials.size(),
+                               marray, meshFrsMaterials.size(),
                                0, 0,
                                numFaces, numVertexPerFaces, faceStyle,
                                cleanVIndices, viSize,

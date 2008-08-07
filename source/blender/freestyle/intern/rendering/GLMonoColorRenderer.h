@@ -45,7 +45,7 @@ class LIB_RENDERING_EXPORT GLMonoColorRenderer : public GLRenderer
   virtual ~GLMonoColorRenderer() {}
 
   VISIT_DECL(DrawingStyle)
-  VISIT_DECL(Material)
+  VISIT_DECL(FrsMaterial)
 
   void setColor(float r, float g, float b, float alpha = 1.f);
 

@@ -60,7 +60,7 @@ class TriangleRep;
 class VertexRep;
 class IndexedFaceSet;
 class DrawingStyle;
-class Material;
+class FrsMaterial;
 
 class LIB_SCENE_GRAPH_EXPORT SceneVisitor
 {
@@ -92,7 +92,7 @@ public:
   VISIT_COMPLETE_DEF(VertexRep)
   VISIT_COMPLETE_DEF(IndexedFaceSet)
   VISIT_COMPLETE_DEF(DrawingStyle)
-  VISIT_COMPLETE_DEF(Material)
+  VISIT_COMPLETE_DEF(FrsMaterial)
 };
 
 #endif // SCENEVISITOR_H

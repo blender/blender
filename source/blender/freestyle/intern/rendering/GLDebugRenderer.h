@@ -109,7 +109,7 @@ protected:
    */
   virtual void RenderTriangleStrip(const real *iVertices, 
                                    const real *iNormals,
-                                   const Material *const* iMaterials, 
+                                   const FrsMaterial *const* iMaterials, 
                                    const unsigned* iVIndices, 
                                    const unsigned* iNIndices,
                                    const unsigned* iMIndices,
@@ -133,7 +133,7 @@ protected:
    */
   virtual void RenderTriangleFan(const real *iVertices, 
                                    const real *iNormals,
-                                   const Material *const*iMaterials, 
+                                   const FrsMaterial *const*iMaterials, 
                                    const unsigned* iVIndices, 
                                    const unsigned* iNIndices,
                                    const unsigned* iMIndices,
@@ -157,7 +157,7 @@ protected:
    */
   virtual void RenderTriangles(const real *iVertices, 
                                    const real *iNormals,
-                                   const Material *const* iMaterials, 
+                                   const FrsMaterial *const* iMaterials, 
                                    const unsigned* iVIndices, 
                                    const unsigned* iNIndices,
                                    const unsigned* iMIndices,

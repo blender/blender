@@ -33,7 +33,7 @@
 # include <deque>
 # include "../system/BaseIterator.h"
 # include "../geometry/Geom.h"
-//# include "../scene_graph/Material.h"
+//# include "../scene_graph/FrsMaterial.h"
 # include "../view_map/Silhouette.h"
 # include "../view_map/SilhouetteGeomEngine.h"
 # include "../view_map/Interface0D.h"
@@ -234,7 +234,7 @@ public:
   inline const Vec3r& point2d() const {return _Point2d;}
   inline const Vec3r& point3d() const {return _Point3d;}
    Vec3r normal() const ;
-   //Material material() const ;
+   //FrsMaterial material() const ;
   // Id shape_id() const ;
    const SShape * shape() const ;
   // float shape_importance() const ;
@@ -392,7 +392,7 @@ public:
    //Vec3r  orientation3d(int iCombination = 0) const ;
   // real curvature2d(point_iterator it) const {return (*it)->curvature2d();}
   // real curvature2d(int iCombination = 0) const ;
-   //Material material() const ;
+   //FrsMaterial material() const ;
    //int qi() const ;
    //   occluder_container::const_iterator occluders_begin() const ;
    //   occluder_container::const_iterator occluders_end() const ;

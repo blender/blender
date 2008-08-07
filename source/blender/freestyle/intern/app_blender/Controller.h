@@ -51,6 +51,16 @@ class AppCanvas;
 class InteractiveShader;
 class Shader;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	#include "render_types.h"
+
+#ifdef __cplusplus
+}
+#endif
+
 class Controller
 {
 public:
@@ -62,6 +72,7 @@ public:
   //soc
 	void init_options();
 
+	int  LoadMesh( Render *re );
   int  Load3DSFile(const char *iFileName);
   void CloseFile();
   void LoadViewMapFile(const char *iFileName, bool only_camera = false);

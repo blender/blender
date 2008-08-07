@@ -20,8 +20,8 @@ using namespace Geometry;
 // Interface1D
 #include "../view_map/Interface1D.h"
 
-// Material
-#include "../scene_graph/Material.h"
+// FrsMaterial
+#include "../scene_graph/FrsMaterial.h"
 
 // Nature::VertexNature, Nature::EdgeNature
 #include "../winged_edge/Nature.h"
@@ -78,7 +78,7 @@ PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D );
 PyObject * BPy_IntegrationType_from_IntegrationType( int i );
-PyObject * BPy_FrsMaterial_from_Material( Material& m );
+PyObject * BPy_FrsMaterial_from_FrsMaterial( FrsMaterial& m );
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( int n );
 PyObject * BPy_SShape_from_SShape( SShape& ss );

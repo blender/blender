@@ -109,7 +109,7 @@ void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface
 		((UnaryFunction0D<Id> *) uf0D)->result = *( ((BPy_Id *) result)->id );
 	
 	} else if ( BPy_UnaryFunction0DMaterial_Check(obj) ) {
-		((UnaryFunction0D<Material> *) uf0D)->result = *( ((BPy_FrsMaterial *) result)->m );
+		((UnaryFunction0D<FrsMaterial> *) uf0D)->result = *( ((BPy_FrsMaterial *) result)->m );
 	
 	} else if ( BPy_UnaryFunction0DUnsigned_Check(obj) ) {
 		((UnaryFunction0D<unsigned> *) uf0D)->result = PyInt_AsLong(result);

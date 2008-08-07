@@ -36,7 +36,7 @@
 # include "../geometry/BBox.h"
 # include "../geometry/Geom.h"
 # include "../system/Precision.h"
-# include "Material.h"
+# include "FrsMaterial.h"
 # include "../system/Id.h"
 
 using namespace Geometry;
@@ -45,33 +45,33 @@ class LIB_SCENE_GRAPH_EXPORT Rep : public BaseObject
 {
 public:
   
-  inline Rep() : BaseObject() {_Id = 0; _Material=0;}
+  inline Rep() : BaseObject() {_Id = 0; _FrsMaterial=0;}
   inline Rep(const Rep& iBrother)
     : BaseObject()
   {
     _Id = iBrother._Id;
-    if(0 == iBrother._Material)
-      _Material = 0;
+    if(0 == iBrother._FrsMaterial)
+      _FrsMaterial = 0;
     else
-      _Material = new Material(*(iBrother._Material));
+      _FrsMaterial = new FrsMaterial(*(iBrother._FrsMaterial));
 
     _BBox = iBrother.bbox();
   }
 	inline void swap(Rep& ioOther){
 		std::swap(_BBox,ioOther._BBox);
 		std::swap(_Id, ioOther._Id);
-		std::swap(_Material,ioOther._Material);
+		std::swap(_FrsMaterial,ioOther._FrsMaterial);
 	}
 	Rep& operator=(const Rep& iBrother){
 		if(&iBrother != this){
 			_Id = iBrother._Id;
-			if(0 == iBrother._Material)
-				_Material = 0;
+			if(0 == iBrother._FrsMaterial)
+				_FrsMaterial = 0;
 			else{
-				if(_Material == 0){
-					_Material = new Material(*iBrother._Material);
+				if(_FrsMaterial == 0){
+					_FrsMaterial = new FrsMaterial(*iBrother._FrsMaterial);
 				}else{
-					(*_Material)=(*(iBrother._Material));
+					(*_FrsMaterial)=(*(iBrother._FrsMaterial));
 				}
 				_BBox = iBrother.bbox();
 			}
@@ -80,10 +80,10 @@ public:
 	}
   virtual ~Rep() 
   {
-    if(0 != _Material)
+    if(0 != _FrsMaterial)
     {
-      delete _Material;
-      _Material = 0;
+      delete _FrsMaterial;
+      _FrsMaterial = 0;
     }
   }
 
@@ -92,8 +92,8 @@ public:
    *  inherited classes
    */
   virtual void accept(SceneVisitor& v) {
-    if(_Material)
-      v.visitMaterial(*_Material);
+    if(_FrsMaterial)
+      v.visitFrsMaterial(*_FrsMaterial);
     v.visitRep(*this);
   }
 
@@ -108,20 +108,20 @@ public:
   /*! Returns the rep bounding box */
   virtual const BBox<Vec3r>& bbox() const {return _BBox;}
   inline Id getId() const {return _Id;}
-  inline const Material * material() const {return _Material;}
+  inline const FrsMaterial * frs_material() const {return _FrsMaterial;}
 
   /*! Sets the Rep bounding box */
   virtual void setBBox(const BBox<Vec3r>& iBox) {_BBox = iBox;}
   inline void setId(const Id& id) {_Id = id;}
-  inline void setMaterial(const Material& iMaterial) 
+  inline void setFrsMaterial(const FrsMaterial& iMaterial) 
   {
-    _Material = new Material(iMaterial);
+    _FrsMaterial = new FrsMaterial(iMaterial);
   }
 
 private:
   BBox<Vec3r> _BBox;
   Id _Id;
-  Material *_Material;
+  FrsMaterial *_FrsMaterial;
 };
 
 #endif // REP_H

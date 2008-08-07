@@ -49,7 +49,7 @@ class LIB_VIEW_MAP_EXPORT ViewMapTesselator
 {
 public:
 
-  inline ViewMapTesselator() {_nature = Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE;_Material.setDiffuse(0,0,0,1);_overloadMaterial=false;}
+  inline ViewMapTesselator() {_nature = Nature::SILHOUETTE | Nature::BORDER | Nature::CREASE;_FrsMaterial.setDiffuse(0,0,0,1);_overloadFrsMaterial=false;}
   virtual ~ViewMapTesselator() {}
 
   /*! Builds a set of lines rep contained under a 
@@ -71,17 +71,17 @@ public:
 
   
   inline void setNature(Nature::EdgeNature iNature) {_nature = iNature;}
-  inline void setMaterial(const Material& iMaterial) {_Material=iMaterial;_overloadMaterial=true;}
+  inline void setFrsMaterial(const FrsMaterial& iMaterial) {_FrsMaterial=iMaterial;_overloadFrsMaterial=true;}
   inline Nature::EdgeNature nature() {return _nature;}
-  inline const Material& material() const {return _Material;}
+  inline const FrsMaterial& frs_material() const {return _FrsMaterial;}
 
 protected:
   virtual void AddVertexToLine(LineRep *iLine, SVertex *v) = 0;
   
 private:
   Nature::EdgeNature _nature;
-  Material _Material;
-  bool _overloadMaterial;
+  FrsMaterial _FrsMaterial;
+  bool _overloadFrsMaterial;
 };
 
 /*! Class to tesselate the 2D projected silhouette */
@@ -123,8 +123,8 @@ NodeGroup * ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesItera
   NodeGroup *group = new NodeGroup;
   NodeShape *tshape = new NodeShape;
   group->AddChild(tshape);
-  //tshape->material().setDiffuse(0.f, 0.f, 0.f, 1.f);
-  tshape->setMaterial(_Material);
+  //tshape->frs_material().setDiffuse(0.f, 0.f, 0.f, 1.f);
+  tshape->setFrsMaterial(_FrsMaterial);
 
   LineRep* line;
 
@@ -152,8 +152,8 @@ NodeGroup * ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesItera
       //        continue;
       
       line = new OrientedLineRep();
-      if(_overloadMaterial)
-        line->setMaterial(_Material);
+      if(_overloadFrsMaterial)
+        line->setFrsMaterial(_FrsMaterial);
 
       // there might be chains containing a single element
       if(0 == (firstEdge)->nextEdge())

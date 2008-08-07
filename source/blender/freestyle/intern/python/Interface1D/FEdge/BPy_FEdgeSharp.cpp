@@ -166,21 +166,21 @@ PyObject * FEdgeSharp_normalB( BPy_FEdgeSharp *self ) {
 }
 
 PyObject * FEdgeSharp_aMaterialIndex( BPy_FEdgeSharp *self ) {
-	return PyInt_FromLong( self->fes->aMaterialIndex() );
+	return PyInt_FromLong( self->fes->aFrsMaterialIndex() );
 }
 
 PyObject * FEdgeSharp_bMaterialIndex( BPy_FEdgeSharp *self ) {
-	return PyInt_FromLong( self->fes->bMaterialIndex() );
+	return PyInt_FromLong( self->fes->bFrsMaterialIndex() );
 }
 
 PyObject * FEdgeSharp_aMaterial( BPy_FEdgeSharp *self ) {
-	Material m( self->fes->aMaterial() );
-	return BPy_FrsMaterial_from_Material(m);
+	FrsMaterial m( self->fes->aFrsMaterial() );
+	return BPy_FrsMaterial_from_FrsMaterial(m);
 }
 
 PyObject * FEdgeSharp_bMaterial( BPy_FEdgeSharp *self ) {
-	Material m( self->fes->aMaterial() );
-	return BPy_FrsMaterial_from_Material(m);
+	FrsMaterial m( self->fes->aFrsMaterial() );
+	return BPy_FrsMaterial_from_FrsMaterial(m);
 }
 
 PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
@@ -225,7 +225,7 @@ PyObject * FEdgeSharp_setaMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) 
 		Py_RETURN_NONE;
 	}
 	
-	self->fes->setaMaterialIndex( i );
+	self->fes->setaFrsMaterialIndex( i );
 
 	Py_RETURN_NONE;
 }
@@ -238,7 +238,7 @@ PyObject * FEdgeSharp_setbMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) 
 		Py_RETURN_NONE;
 	}
 	
-	self->fes->setbMaterialIndex( i );
+	self->fes->setbFrsMaterialIndex( i );
 
 	Py_RETURN_NONE;
 }

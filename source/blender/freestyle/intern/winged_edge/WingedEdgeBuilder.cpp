@@ -34,7 +34,7 @@ void WingedEdgeBuilder::visitIndexedFaceSet(IndexedFaceSet& ifs) {
 
 void WingedEdgeBuilder::visitNodeShape(NodeShape& ns) {
   //Sets the current material to iShapeode->material:
-  _current_material = &(ns.material());
+  _current_frs_material = &(ns.frs_material());
 }
 
 void WingedEdgeBuilder::visitNodeTransform(NodeTransform& tn) {
@@ -88,19 +88,19 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 
   const IndexedFaceSet::TRIANGLES_STYLE*	faceStyle = ifs.trianglesStyle();
 
-	vector<Material> materials;
+	vector<FrsMaterial> frs_materials;
 	if(ifs.msize()){
-		const Material*const* mats = ifs.materials();
+		const FrsMaterial*const* mats = ifs.frs_materials();
 		for(unsigned i=0; i<ifs.msize(); ++i)
-			materials.push_back(*(mats[i]));
-		shape.setMaterials(materials);
+			frs_materials.push_back(*(mats[i]));
+		shape.setFrsMaterials(frs_materials);
 	}
 
-  //  const Material * mat = (ifs.material());
+  //  const FrsMaterial * mat = (ifs.frs_material());
   //  if (mat)
-  //    shape.setMaterial(*mat);
-  //  else if(_current_material)
-  //    shape.setMaterial(*_current_material);
+  //    shape.setFrsMaterial(*mat);
+  //  else if(_current_frs_material)
+  //    shape.setFrsMaterial(*_current_frs_material);
 
   // sets the current WShape to shape
   _current_wshape = &shape;
@@ -126,7 +126,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
     case IndexedFaceSet::TRIANGLE_STRIP:
       buildTriangleStrip(new_vertices,
 			 new_normals,
-       materials,
+       frs_materials,
        texCoords,
 			 vindices,
 			 nindices,
@@ -137,7 +137,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
     case IndexedFaceSet::TRIANGLE_FAN:
       buildTriangleFan(new_vertices,
 		       new_normals,
-           materials, 
+           frs_materials, 
            texCoords,
 		       vindices,
 		       nindices,
@@ -148,7 +148,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
     case IndexedFaceSet::TRIANGLES:
       buildTriangles(new_vertices,
 		     new_normals,
-         materials,
+         frs_materials,
          texCoords,
 		     vindices,
 		     nindices,
@@ -215,7 +215,7 @@ void WingedEdgeBuilder::buildWVertices(WShape& shape,
 
 void WingedEdgeBuilder::buildTriangleStrip( const real *vertices, 
 			                                      const real *normals, 
-                                           vector<Material>& iMaterials, 
+                                           vector<FrsMaterial>& iMaterials, 
                                            const real *texCoords, 
 			                                      const unsigned *vindices, 
 			                                      const unsigned *nindices,
@@ -279,7 +279,7 @@ void WingedEdgeBuilder::buildTriangleStrip( const real *vertices,
 
 void WingedEdgeBuilder::buildTriangleFan( const real *vertices, 
 			                                      const real *normals, 
-                                            vector<Material>&  iMaterials, 
+                                            vector<FrsMaterial>&  iMaterials, 
                                             const real *texCoords, 
 			                                      const unsigned *vindices, 
 			                                      const unsigned *nindices,
@@ -291,7 +291,7 @@ void WingedEdgeBuilder::buildTriangleFan( const real *vertices,
 
 void WingedEdgeBuilder::buildTriangles(const real *vertices, 
 			                                      const real *normals, 
-                                            vector<Material>&  iMaterials, 
+                                            vector<FrsMaterial>&  iMaterials, 
                                             const real *texCoords, 
 			                                      const unsigned *vindices, 
 			                                      const unsigned *nindices,

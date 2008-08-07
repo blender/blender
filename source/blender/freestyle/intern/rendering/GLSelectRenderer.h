@@ -51,9 +51,9 @@ class LIB_RENDERING_EXPORT GLSelectRenderer : public GLRenderer
   VISIT_DECL(NodeShape)
 
   VISIT_DECL(IndexedFaceSet)
-  VISIT_DECL(Material)
+  VISIT_DECL(FrsMaterial)
 
-  virtual void visitMaterial(const Material&);
+  virtual void visitFrsMaterial(const FrsMaterial&);
   virtual void visitNodeShapeBefore(NodeShape&);
   virtual void visitNodeShapeAfter(NodeShape&);
 

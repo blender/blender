@@ -349,12 +349,12 @@ real FEdge::z_discontinuity() const
 //{
 //  return _VertexA->shape()->material();
 //}
-const Material& FEdgeSharp::aMaterial() const {
-  return _VertexA->shape()->material(_aMaterialIndex);
+const FrsMaterial& FEdgeSharp::aFrsMaterial() const {
+  return _VertexA->shape()->frs_material(_aFrsMaterialIndex);
 }
 
-const Material& FEdgeSharp::bMaterial() const {
-  return _VertexA->shape()->material(_bMaterialIndex);
+const FrsMaterial& FEdgeSharp::bFrsMaterial() const {
+  return _VertexA->shape()->frs_material(_bFrsMaterialIndex);
 }
 
                  /**********************************/
@@ -365,6 +365,6 @@ const Material& FEdgeSharp::bMaterial() const {
                   /*                                */
                   /**********************************/
 
-const Material& FEdgeSmooth::material() const {
-  return _VertexA->shape()->material(_MaterialIndex);
+const FrsMaterial& FEdgeSmooth::frs_material() const {
+  return _VertexA->shape()->frs_material(_FrsMaterialIndex);
 }

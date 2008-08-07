@@ -24,7 +24,7 @@
 
 void OrientedLineRep::accept(SceneVisitor& v) {
   Rep::accept(v);
-  if(!material())
+  if(!frs_material())
     v.visitOrientedLineRep(*this);
   else
     v.visitLineRep(*this);

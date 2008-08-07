@@ -34,7 +34,7 @@
 # include <iterator>
 # include "../system/FreestyleConfig.h"
 # include "../geometry/Geom.h"
-# include "../scene_graph/Material.h"
+# include "../scene_graph/FrsMaterial.h"
 
 using namespace std;
 using namespace Geometry;
@@ -495,11 +495,11 @@ protected:
   vector<Vec2r> _VerticesTexCoords;
 
   int   _Id;
-  unsigned _MaterialIndex;
+  unsigned _FrsMaterialIndex;
 
 public:
   void *userdata;
-  inline WFace() {userdata = NULL;_MaterialIndex = 0;}
+  inline WFace() {userdata = NULL;_FrsMaterialIndex = 0;}
   /*! copy constructor */
   WFace(WFace& iBrother);
   virtual WFace * duplicate();
@@ -510,8 +510,8 @@ public:
   inline WOEdge * GetOEdge(int i) {return _OEdgeList[i];}
   inline Vec3r& GetNormal() {return _Normal;}
   inline int    GetId()     {return _Id;}
-  inline unsigned materialIndex() const {return _MaterialIndex;}
-  const Material& material()  ;
+  inline unsigned frs_materialIndex() const {return _FrsMaterialIndex;}
+  const FrsMaterial& frs_material()  ;
 
   /*! The vertex of index i corresponds to the a vertex 
    *  of the edge of index i
@@ -653,7 +653,7 @@ public:
   inline void setNormalList(const vector<Vec3r>& iNormalsList) {_VerticesNormals = iNormalsList;}
   inline void setTexCoordsList(const vector<Vec2r>& iTexCoordsList) {_VerticesTexCoords = iTexCoordsList;}
   inline void setId(int id) {_Id = id;}
-  inline void setMaterialIndex(unsigned iMaterialIndex) {_MaterialIndex = iMaterialIndex;}
+  inline void setFrsMaterialIndex(unsigned iMaterialIndex) {_FrsMaterialIndex = iMaterialIndex;}
 
   /*! designed to build a specialized WEdge 
    *  for use in MakeEdge
@@ -702,7 +702,7 @@ protected:
   static unsigned _SceneCurrentId;
   Vec3r _min;
   Vec3r _max;
-  vector<Material> _Materials;
+  vector<FrsMaterial> _FrsMaterials;
   real _meanEdgeSize;
 
 public:
@@ -749,8 +749,8 @@ public:
   inline vector<WFace*>& GetFaceList() {return _FaceList;}
   inline unsigned GetId() {return _Id;}
   inline void bbox(Vec3r& min, Vec3r& max) {min=_min; max=_max;}
-  inline const Material& material(unsigned i) const  {return _Materials[i];}
-  inline const vector<Material>& materials() const {return _Materials;}
+  inline const FrsMaterial& frs_material(unsigned i) const  {return _FrsMaterials[i];}
+  inline const vector<FrsMaterial>& frs_materials() const {return _FrsMaterials;}
   inline const real getMeanEdgeSize() const {return _meanEdgeSize;}
   /*! modifiers */
   static inline void setCurrentId(const unsigned id) { _SceneCurrentId = id; }
@@ -759,8 +759,8 @@ public:
   inline void setFaceList(const vector<WFace*>& iFaceList) {_FaceList = iFaceList;}
   inline void setId(int id) {_Id = id;}
   inline void setBBox(const Vec3r& min, const Vec3r& max) {_min = min; _max=max;}
-  inline void setMaterial(const Material& material, unsigned i) {_Materials[i]=material;}
-  inline void setMaterials(const vector<Material>& iMaterials) {_Materials = iMaterials;}
+  inline void setFrsMaterial(const FrsMaterial& frs_material, unsigned i) {_FrsMaterials[i]=frs_material;}
+  inline void setFrsMaterials(const vector<FrsMaterial>& iMaterials) {_FrsMaterials = iMaterials;}
 
   /*! designed to build a specialized WFace 
    *  for use in MakeFace

@@ -152,13 +152,13 @@ PyObject * FEdgeSmooth_normal( BPy_FEdgeSmooth *self ) {
 }
 
 PyObject * FEdgeSmooth_materialIndex( BPy_FEdgeSmooth *self ) {
-	return PyInt_FromLong( self->fes->materialIndex() );
+	return PyInt_FromLong( self->fes->frs_materialIndex() );
 }
 
 
 PyObject * FEdgeSmooth_material( BPy_FEdgeSmooth *self ) {
-	Material m( self->fes->material() );
-	return BPy_FrsMaterial_from_Material(m);
+	FrsMaterial m( self->fes->frs_material() );
+	return BPy_FrsMaterial_from_FrsMaterial(m);
 }
 
 PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
@@ -186,7 +186,7 @@ PyObject * FEdgeSmooth_setMaterialIndex( BPy_FEdgeSmooth *self, PyObject *args )
 		Py_RETURN_NONE;
 	}
 	
-	self->fes->setMaterialIndex( i );
+	self->fes->setFrsMaterialIndex( i );
 
 	Py_RETURN_NONE;
 }

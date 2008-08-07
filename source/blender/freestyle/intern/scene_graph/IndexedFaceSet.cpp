@@ -26,7 +26,7 @@ IndexedFaceSet::IndexedFaceSet()
 {
   _Vertices = NULL;
   _Normals = NULL;
-  _Materials = 0;
+  _FrsMaterials = 0;
   _TexCoords = 0;
   _VSize = 0;
   _NSize = 0;
@@ -48,7 +48,7 @@ IndexedFaceSet::IndexedFaceSet()
 
 IndexedFaceSet::IndexedFaceSet( real *iVertices, unsigned iVSize, 
                                 real *iNormals, unsigned iNSize,
-                                Material **iMaterials, unsigned iMSize,
+                                FrsMaterial **iMaterials, unsigned iMSize,
                                 real *iTexCoords, unsigned iTSize,
                                 unsigned iNumFaces, unsigned *iNumVertexPerFace, TRIANGLES_STYLE *iFaceStyle,
                                 unsigned *iVIndices, unsigned iVISize,
@@ -69,11 +69,11 @@ IndexedFaceSet::IndexedFaceSet( real *iVertices, unsigned iVSize,
     memcpy(_Normals, iNormals, iNSize*sizeof(real));
 
     _MSize = iMSize;
-    _Materials = 0;
+    _FrsMaterials = 0;
 	if(iMaterials){
-		_Materials = new Material*[_MSize];
+		_FrsMaterials = new FrsMaterial*[_MSize];
 		for(unsigned i=0; i<_MSize; ++i)
-			_Materials[i] = new Material(*(iMaterials[i]));
+			_FrsMaterials[i] = new FrsMaterial(*(iMaterials[i]));
 	}
     _TSize = iTSize;
     _TexCoords = 0;
@@ -119,9 +119,9 @@ IndexedFaceSet::IndexedFaceSet( real *iVertices, unsigned iVSize,
     _Normals = iNormals;
 
     _MSize = iMSize;
-		_Materials = 0;
+		_FrsMaterials = 0;
 		if(iMaterials)
-			_Materials = iMaterials;
+			_FrsMaterials = iMaterials;
     
     _TSize = iTSize;
     _TexCoords = iTexCoords;
@@ -161,12 +161,12 @@ IndexedFaceSet::IndexedFaceSet( const IndexedFaceSet& iBrother)
 
   _MSize = iBrother.msize();
 	if(_MSize){
-		_Materials = new Material*[_MSize];
+		_FrsMaterials = new FrsMaterial*[_MSize];
 		for(unsigned i=0; i<_MSize; ++i){
-			_Materials[i] = new Material(*(iBrother._Materials[i]));
+			_FrsMaterials[i] = new FrsMaterial(*(iBrother._FrsMaterials[i]));
 		}
 	}else{
-		_Materials = 0;
+		_FrsMaterials = 0;
 	}
 
     _TSize = iBrother.tsize();
@@ -223,12 +223,12 @@ IndexedFaceSet::~IndexedFaceSet()
     _Normals = NULL;
   }
 
-  if(NULL != _Materials)
+  if(NULL != _FrsMaterials)
   {
     for(unsigned i=0; i<_MSize; ++i)
-      delete _Materials[i];
-    delete [] _Materials;
-    _Materials = NULL;
+      delete _FrsMaterials[i];
+    delete [] _FrsMaterials;
+    _FrsMaterials = NULL;
   }
 
   if(NULL != _TexCoords)

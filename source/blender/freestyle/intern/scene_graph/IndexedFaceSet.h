@@ -106,7 +106,7 @@ public:
   */
   IndexedFaceSet( real *iVertices, unsigned iVSize, 
 		  real *iNormals, unsigned iNSize,
-                  Material **iMaterials, unsigned iMSize,
+                  FrsMaterial **iMaterials, unsigned iMSize,
                   real *iTexCoords, unsigned iTSize,
 		  unsigned iNumFaces, unsigned *iNumVertexPerFace, TRIANGLES_STYLE *iFaceStyle,
 		  unsigned *iVIndices, unsigned iVISize,
@@ -122,7 +122,7 @@ public:
 	void swap(IndexedFaceSet& ioOther){
 		std::swap(_Vertices, ioOther._Vertices);
 		std::swap(_Normals, ioOther._Normals);
-		std::swap(_Materials, ioOther._Materials);
+		std::swap(_FrsMaterials, ioOther._FrsMaterials);
         std::swap(_TexCoords, ioOther._TexCoords);
 
 		std::swap(_VSize, ioOther._VSize);
@@ -171,7 +171,7 @@ public:
   /*! Accessors */
   virtual const real * vertices() const {return _Vertices;}
   virtual const real * normals() const {return _Normals;}
-  virtual const Material*const* materials() const {return _Materials;}
+  virtual const FrsMaterial*const* frs_materials() const {return _FrsMaterials;}
   virtual const real* texCoords() const {return _TexCoords;}
   virtual const unsigned vsize() const {return _VSize;}
   virtual const unsigned nsize() const {return _NSize;}
@@ -193,7 +193,7 @@ public:
 protected:
   real *_Vertices;
   real *_Normals;
-  Material** _Materials;
+  FrsMaterial** _FrsMaterials;
   real *_TexCoords;
   
   unsigned _VSize;

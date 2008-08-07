@@ -37,7 +37,7 @@
 # include "Rep.h"
 # include "../geometry/BBox.h"
 # include "../geometry/Geom.h"
-# include "Material.h"
+# include "FrsMaterial.h"
 
 using namespace std;
 using namespace Geometry;
@@ -71,11 +71,11 @@ public:
   virtual void accept(SceneVisitor& v);
 
   /*! Sets the shape material */
-  inline void setMaterial(const Material& iMaterial) { _Material = iMaterial; }
+  inline void setFrsMaterial(const FrsMaterial& iMaterial) { _FrsMaterial = iMaterial; }
 
   /*! accessors */
   /*! returns the shape's material */
-  inline Material& material() { return _Material; }
+  inline FrsMaterial& frs_material() { return _FrsMaterial; }
   inline const vector<Rep*>& shapes() {return _Shapes;}
 
 private:
@@ -83,7 +83,7 @@ private:
   vector<Rep*> _Shapes;
 
   /*! Shape Material */
-  Material _Material;
+  FrsMaterial _FrsMaterial;
 };
 
 #endif // NODESHAPE_H

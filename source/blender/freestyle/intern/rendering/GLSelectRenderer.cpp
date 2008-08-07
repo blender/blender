@@ -58,7 +58,7 @@ void GLSelectRenderer::visitNodeShape(NodeShape& sn) {
   _current_shape_active = false;
 }
 
-void GLSelectRenderer::visitMaterial(Material& m) {
+void GLSelectRenderer::visitFrsMaterial(FrsMaterial& m) {
   if (_gl_select_rendering)
     return;
 
@@ -79,7 +79,7 @@ void GLSelectRenderer::visitMaterial(Material& m) {
   glMaterialf(GL_FRONT, GL_SHININESS, m.shininess());
 }
 
-void GLSelectRenderer::visitMaterial(const Material& m) {
+void GLSelectRenderer::visitFrsMaterial(const FrsMaterial& m) {
   if (_gl_select_rendering)
     return;
 
@@ -106,7 +106,7 @@ void GLSelectRenderer::visitIndexedFaceSet(IndexedFaceSet& ifs)
   
   const real * vertices = ifs.vertices();
   const real * normals = ifs.normals();
-  const Material *const* materials = ifs.materials();
+  const FrsMaterial *const* frs_materials = ifs.frs_materials();
   const real * texCoords= ifs.texCoords();
   const unsigned *vindices = ifs.vindices();
   const unsigned *nindices = ifs.nindices();
@@ -127,13 +127,13 @@ void GLSelectRenderer::visitIndexedFaceSet(IndexedFaceSet& ifs)
     switch(faceStyle[fIndex])
     {
     case IndexedFaceSet::TRIANGLE_STRIP:
-      RenderTriangleStrip(vertices, normals, materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
+      RenderTriangleStrip(vertices, normals, frs_materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
       break;
     case IndexedFaceSet::TRIANGLE_FAN:
-      RenderTriangleFan(vertices, normals, materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
+      RenderTriangleFan(vertices, normals, frs_materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
       break;
     case IndexedFaceSet::TRIANGLES:
-      RenderTriangles(vertices, normals, materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
+      RenderTriangles(vertices, normals, frs_materials, texCoords, pvi, pni, pmi, pti, numVertexPerFace[fIndex]);
       break;
     }
     pvi += numVertexPerFace[fIndex];

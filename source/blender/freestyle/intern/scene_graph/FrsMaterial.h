@@ -1,5 +1,5 @@
 //
-//  Filename         : Material.h
+//  Filename         : FrsMaterial.h
 //  Author(s)        : Stephane Grabli
 //  Purpose          : Class used to handle materials.
 //  Date of creation : 10/10/2002
@@ -27,17 +27,17 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef  MATERIAL_H
-# define MATERIAL_H
+#ifndef  FRS_MATERIAL_H
+# define FRS_MATERIAL_H
 
 # include "../system/FreestyleConfig.h"
 
 /*! Class defining a material */
-class Material
+class FrsMaterial
 {
 public:
   /*! Default constructor */
-  inline Material();
+  inline FrsMaterial();
   /*! Builds a Material from its diffuse, ambiant, specular, emissive
    *  colors and a shininess coefficient.
    *    \param iDiffuse
@@ -51,16 +51,16 @@ public:
    *    \param iShininess
    *      The shininess coefficient.
    */
-  inline Material(const float *iDiffuse,
+  inline FrsMaterial(const float *iDiffuse,
                   const float *iAmbiant,
                   const float *iSpecular, 
                   const float *iEmission, 
                   const float iShininess);
 
   /*! Copy constructor */
-  inline Material(const Material& m);
+  inline FrsMaterial(const FrsMaterial& m);
   /*! Destructor */
-  virtual ~Material() {}
+  virtual ~FrsMaterial() {}
 
 
   /*! Returns the diffuse color as a 4 float array */
@@ -163,9 +163,9 @@ public:
   inline void setShininess(const float s);
 
   /* operators */
-  inline Material& operator=(const Material& m);
-  inline bool operator!=(const Material& m) const;
-  inline bool operator==(const Material& m) const;
+  inline FrsMaterial& operator=(const FrsMaterial& m);
+  inline bool operator!=(const FrsMaterial& m) const;
+  inline bool operator==(const FrsMaterial& m) const;
 
 private:
 
@@ -178,7 +178,7 @@ private:
 
 };
 
-Material::Material()
+FrsMaterial::FrsMaterial()
 {
   Ambient[0] = Ambient[1] = Ambient[2] = 0.2f;
   Ambient[3] = 1.f;
@@ -195,7 +195,7 @@ Material::Material()
   Shininess = 0.f;
 }
 
-Material::Material(const float *iDiffuse,
+FrsMaterial::FrsMaterial(const float *iDiffuse,
                    const float *iAmbiant,
                    const float *iSpecular, 
                    const float *iEmission, 
@@ -212,7 +212,7 @@ Material::Material(const float *iDiffuse,
   Shininess = iShininess;
 }
 
-Material::Material(const Material& m)
+FrsMaterial::FrsMaterial(const FrsMaterial& m)
 {
   for(int i=0; i<4; i++)
   {
@@ -225,7 +225,7 @@ Material::Material(const Material& m)
   Shininess = m.shininess();
 }
 
-void Material::setDiffuse(const float r, const float g, const float b, const float a)
+void FrsMaterial::setDiffuse(const float r, const float g, const float b, const float a)
 {
   Diffuse[0] = r;
   Diffuse[1] = g;
@@ -233,7 +233,7 @@ void Material::setDiffuse(const float r, const float g, const float b, const flo
   Diffuse[3] = a;
 }
 
-void Material::setSpecular(const float r, const float g, const float b, const float a)
+void FrsMaterial::setSpecular(const float r, const float g, const float b, const float a)
 {
   Specular[0] = r;
   Specular[1] = g;
@@ -241,7 +241,7 @@ void Material::setSpecular(const float r, const float g, const float b, const fl
   Specular[3] = a;
 }
   
-void Material::setAmbient(const float r, const float g, const float b, const float a)
+void FrsMaterial::setAmbient(const float r, const float g, const float b, const float a)
 {
   Ambient[0] = r;
   Ambient[1] = g;
@@ -249,7 +249,7 @@ void Material::setAmbient(const float r, const float g, const float b, const flo
   Ambient[3] = a;
 }
 
-void Material::setEmission(const float r, const float g, const float b, const float a)
+void FrsMaterial::setEmission(const float r, const float g, const float b, const float a)
 {
   Emission[0] = r;
   Emission[1] = g;
@@ -257,12 +257,12 @@ void Material::setEmission(const float r, const float g, const float b, const fl
   Emission[3] = a;
 }
 
-void Material::setShininess(const float s)
+void FrsMaterial::setShininess(const float s)
 {
   Shininess = s;
 }
 
-Material& Material::operator=(const Material& m)
+FrsMaterial& FrsMaterial::operator=(const FrsMaterial& m)
 {
   for(int i=0; i<4; i++)
   {
@@ -277,7 +277,7 @@ Material& Material::operator=(const Material& m)
   return *this;
 }
 
-bool Material::operator!=(const Material& m) const
+bool FrsMaterial::operator!=(const FrsMaterial& m) const
 {
   if(Shininess != m.shininess())
     return true;
@@ -296,9 +296,9 @@ bool Material::operator!=(const Material& m) const
   return false;
 }
 
-bool Material::operator==(const Material& m) const
+bool FrsMaterial::operator==(const FrsMaterial& m) const
 {
   return (!((*this)!=m));
 }
 
-#endif // MATERIAL_H
+#endif // FRS_MATERIAL_H

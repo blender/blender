@@ -1,7 +1,7 @@
 #ifndef FREESTYLE_PYTHON_FRSMATERIAL_H
 #define FREESTYLE_PYTHON_FRSMATERIAL_H
 
-#include "../scene_graph/Material.h"
+#include "../scene_graph/FrsMaterial.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +18,7 @@ extern PyTypeObject FrsMaterial_Type;
 /*---------------------------Python BPy_FrsMaterial structure definition----------*/
 typedef struct {
 	PyObject_HEAD
-	Material *m;
+	FrsMaterial *m;
 } BPy_FrsMaterial;
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/

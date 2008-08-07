@@ -21,7 +21,7 @@
 
 #include "GLMonoColorRenderer.h"
 
-void GLMonoColorRenderer::visitMaterial(Material&) {
+void GLMonoColorRenderer::visitFrsMaterial(FrsMaterial&) {
   glColor3f(_r, _g, _b);
 }
 

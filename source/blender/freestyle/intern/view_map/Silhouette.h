@@ -38,7 +38,7 @@
 # include "../system/FreestyleConfig.h"
 # include "../geometry/Geom.h"
 # include "../geometry/BBox.h"
-# include "../scene_graph/Material.h"
+# include "../scene_graph/FrsMaterial.h"
 # include "../geometry/Polygon.h"
 # include "../system/Exception.h"
 # include "Interface0D.h"
@@ -785,24 +785,24 @@ class LIB_VIEW_MAP_EXPORT FEdgeSharp : public FEdge
 protected:
   Vec3r _aNormal; // When following the edge, normal of the right face
   Vec3r _bNormal; // When following the edge, normal of the left face
-  unsigned _aMaterialIndex;
-  unsigned _bMaterialIndex;
+  unsigned _aFrsMaterialIndex;
+  unsigned _bFrsMaterialIndex;
   
 public:
   /*! Default constructor. */
   inline FEdgeSharp() : FEdge(){
-    _aMaterialIndex = _bMaterialIndex = 0;
+    _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
   }
   /*! Builds an FEdgeSharp going from vA to vB. */ 
   inline FEdgeSharp(SVertex *vA, SVertex *vB) : FEdge(vA, vB){
-    _aMaterialIndex = _bMaterialIndex = 0;
+    _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
   }
   /*! Copy constructor. */
   inline FEdgeSharp(FEdgeSharp& iBrother) : FEdge(iBrother){
     _aNormal = iBrother._aNormal;
     _bNormal = iBrother._bNormal;
-    _aMaterialIndex = iBrother._aMaterialIndex;
-    _bMaterialIndex = iBrother._bMaterialIndex;
+    _aFrsMaterialIndex = iBrother._aFrsMaterialIndex;
+    _bFrsMaterialIndex = iBrother._bFrsMaterialIndex;
   }
   /*! Destructor. */
   virtual ~FEdgeSharp() {}
@@ -824,29 +824,29 @@ public:
    *  right of the FEdge. If this FEdge is a border,
    *  it has no Face on its right and therefore, no material.
    */
-  inline unsigned aMaterialIndex() const {return _aMaterialIndex;}
+  inline unsigned aFrsMaterialIndex() const {return _aFrsMaterialIndex;}
   /*! Returns the material of the face lying on the
    *  right of the FEdge. If this FEdge is a border,
    *  it has no Face on its right and therefore, no material.
    */
-  const Material& aMaterial() const ;
+  const FrsMaterial& aFrsMaterial() const ;
   /*! Returns the index of the material of the face lying on the
    *  left of the FEdge.
    */
-  inline unsigned bMaterialIndex() const {return _bMaterialIndex;}
+  inline unsigned bFrsMaterialIndex() const {return _bFrsMaterialIndex;}
   /*! Returns the  material of the face lying on the
    *  left of the FEdge.
    */
-  const Material& bMaterial() const ;
+  const FrsMaterial& bFrsMaterial() const ;
 
   /*! Sets the normal to the face lying on the right of the FEdge. */
   inline void setNormalA(const Vec3r& iNormal) {_aNormal = iNormal;}
   /*! Sets the normal to the face lying on the left of the FEdge. */ 
   inline void setNormalB(const Vec3r& iNormal) {_bNormal = iNormal;}
   /*! Sets the index of the material lying on the right of the FEdge.*/
-  inline void setaMaterialIndex(unsigned i) {_aMaterialIndex = i;}
+  inline void setaFrsMaterialIndex(unsigned i) {_aFrsMaterialIndex = i;}
   /*! Sets the index of the material lying on the left of the FEdge.*/
-  inline void setbMaterialIndex(unsigned i) {_bMaterialIndex = i;}
+  inline void setbFrsMaterialIndex(unsigned i) {_bFrsMaterialIndex = i;}
   
 };
 
@@ -858,7 +858,7 @@ class LIB_VIEW_MAP_EXPORT FEdgeSmooth : public FEdge
 {
 protected:
   Vec3r _Normal;
-  unsigned _MaterialIndex;
+  unsigned _FrsMaterialIndex;
   //  bool _hasVisibilityPoint;
   //  Vec3r _VisibilityPointA;  // The edge on which the visibility will be computed represented 
   //  Vec3r _VisibilityPointB;  // using its 2 extremity points A and B
@@ -868,13 +868,13 @@ public:
   /*! Default constructor. */
   inline FEdgeSmooth() : FEdge(){
     _Face=0;
-    _MaterialIndex = 0;
+    _FrsMaterialIndex = 0;
     _isSmooth = true;
   }
   /*! Builds an FEdgeSmooth going from vA to vB. */  
   inline FEdgeSmooth(SVertex *vA, SVertex *vB) : FEdge(vA, vB){
     _Face=0;
-    _MaterialIndex = 0;
+    _FrsMaterialIndex = 0;
     _isSmooth = true;
 
   }
@@ -882,7 +882,7 @@ public:
   inline FEdgeSmooth(FEdgeSmooth& iBrother) : FEdge(iBrother){
     _Normal = iBrother._Normal;
     _Face = iBrother._Face;
-    _MaterialIndex = iBrother._MaterialIndex;
+    _FrsMaterialIndex = iBrother._FrsMaterialIndex;
     _isSmooth = true;
   }
   /*! Destructor. */
@@ -897,15 +897,15 @@ public:
   /*! Returns the normal to the Face it is running accross. */
   inline const Vec3r& normal() {return _Normal;}
   /*! Returns the index of the material of the face it is running accross. */
-  inline unsigned materialIndex() const {return _MaterialIndex;}
+  inline unsigned frs_materialIndex() const {return _FrsMaterialIndex;}
   /*! Returns the material of the face it is running accross. */
-  const Material& material() const ;
+  const FrsMaterial& frs_material() const ;
 
   inline void setFace(void * iFace) {_Face = iFace;}
   /*! Sets the normal to the Face it is running accross. */
   inline void setNormal(const Vec3r& iNormal) {_Normal = iNormal;}
   /*! Sets the index of the material of the face it is running accross. */
-  inline void setMaterialIndex(unsigned i) {_MaterialIndex = i;}
+  inline void setFrsMaterialIndex(unsigned i) {_FrsMaterialIndex = i;}
 };
                   /**********************************/
                   /*                                */
@@ -927,7 +927,7 @@ private:
   vector<FEdge*>   _edgesList;     // list of all edges
   Id _Id;
   BBox<Vec3r> _BBox;
-  vector<Material> _Materials;  
+  vector<FrsMaterial> _FrsMaterials;  
 
   float _importance;
 
@@ -952,7 +952,7 @@ public:
     userdata = 0;
     _Id = iBrother._Id;
     _BBox = iBrother.bbox();
-    _Materials = iBrother._Materials;
+    _FrsMaterials = iBrother._FrsMaterials;
 
     _importance = iBrother._importance;
 
@@ -1199,13 +1199,13 @@ public:
         newEdge = new FEdgeSmooth((*sv), svB);
         FEdgeSmooth * se = dynamic_cast<FEdgeSmooth*>(newEdge);
         FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-        se->setMaterialIndex(fes->materialIndex());
+        se->setFrsMaterialIndex(fes->frs_materialIndex());
       }else{
         newEdge = new FEdgeSharp((*sv), svB);
         FEdgeSharp * se = dynamic_cast<FEdgeSharp*>(newEdge);
         FEdgeSharp * fes = dynamic_cast<FEdgeSharp*>(fe);
-        se->setaMaterialIndex(fes->aMaterialIndex());
-        se->setbMaterialIndex(fes->bMaterialIndex());
+        se->setaFrsMaterialIndex(fes->aFrsMaterialIndex());
+        se->setbFrsMaterialIndex(fes->bFrsMaterialIndex());
       }
         
       newEdge->setNature((fe)->getNature());
@@ -1264,13 +1264,13 @@ public:
         newEdge = new FEdgeSmooth(ioNewVertex, B);
         FEdgeSmooth * se = dynamic_cast<FEdgeSmooth*>(newEdge);
         FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(ioEdge);
-        se->setMaterialIndex(fes->materialIndex());
+        se->setFrsMaterialIndex(fes->frs_materialIndex());
       }else{
         newEdge = new FEdgeSharp(ioNewVertex, B);
         FEdgeSharp * se = dynamic_cast<FEdgeSharp*>(newEdge);
         FEdgeSharp * fes = dynamic_cast<FEdgeSharp*>(ioEdge);
-        se->setaMaterialIndex(fes->aMaterialIndex());
-        se->setbMaterialIndex(fes->bMaterialIndex());
+        se->setaFrsMaterialIndex(fes->aFrsMaterialIndex());
+        se->setbFrsMaterialIndex(fes->bFrsMaterialIndex());
       }
       newEdge->setNature(ioEdge->getNature());
       
@@ -1399,9 +1399,9 @@ public:
   /*! Returns the bounding box of the shape. */
   inline const BBox<Vec3r>& bbox() {return _BBox;}
   /*! Returns the ith material of the shape. */
-  inline const Material& material(unsigned i) const {return _Materials[i];}
+  inline const FrsMaterial& frs_material(unsigned i) const {return _FrsMaterials[i];}
   /*! Returns the list of materials of the Shape. */
-  inline const vector<Material>& materials() const {return _Materials;}
+  inline const vector<FrsMaterial>& frs_materials() const {return _FrsMaterials;}
   inline ViewShape * viewShape() {return _ViewShape;}
   inline float importance() const {return _importance;}
   /*! Returns the Id of the Shape. */
@@ -1411,7 +1411,7 @@ public:
   /*! Sets the Id of the shape.*/
   inline void setId(Id id) {_Id = id;}
   /*! Sets the list of materials for the shape */
-  inline void setMaterials(const vector<Material>& iMaterials) {_Materials = iMaterials;}
+  inline void setFrsMaterials(const vector<FrsMaterial>& iMaterials) {_FrsMaterials = iMaterials;}
   inline void setViewShape(ViewShape *iShape) {_ViewShape = iShape;}
   inline void setImportance(float importance){_importance = importance;}
 };

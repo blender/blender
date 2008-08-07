@@ -48,8 +48,8 @@ LineRep* StrokeTesselator::Tesselate(Stroke *iStroke)
   }
   else
   {
-    if(_overloadMaterial)
-      line->setMaterial(_Material);
+    if(_overloadFrsMaterial)
+      line->setFrsMaterial(_FrsMaterial);
 
     line->setStyle(LineRep::LINE_STRIP);
 
@@ -75,7 +75,7 @@ NodeGroup* StrokeTesselator::Tesselate(StrokeVertexIterator begin, StrokeVertexI
   NodeShape *tshape = new NodeShape;
   group->AddChild(tshape);
   //tshape->material().setDiffuse(0.f, 0.f, 0.f, 1.f);
-  tshape->setMaterial(_Material);
+  tshape->setFrsMaterial(_FrsMaterial);
 
   for(StrokeVertexIterator c=begin, cend=end;
   c!=cend;

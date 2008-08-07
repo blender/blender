@@ -91,7 +91,7 @@ namespace ViewMapIO {
 
 
     inline
-    int load(istream& in, Material& m) {
+    int load(istream& in, FrsMaterial& m) {
 
       float tmp_array[4];
       int i;
@@ -149,13 +149,13 @@ namespace ViewMapIO {
 
       // -> Material
       READ(size);
-      vector<Material> materials;
-      Material m;
+      vector<FrsMaterial> frs_materials;
+      FrsMaterial m;
       for(i=0; i<size; ++i){
         load(in, m);
-        materials.push_back(m);
+        frs_materials.push_back(m);
       }
-      vs->sshape()->setMaterials(materials);
+      vs->sshape()->setFrsMaterials(frs_materials);
 
       
 
@@ -252,7 +252,7 @@ namespace ViewMapIO {
 
         // Material
         READ(matindex);
-        fesmooth->setMaterialIndex(matindex);
+        fesmooth->setFrsMaterialIndex(matindex);
       }else{
         // aNormal
         load(in, v);
@@ -264,9 +264,9 @@ namespace ViewMapIO {
 
         // Materials 
         READ(matindex);
-        fesharp->setaMaterialIndex(matindex);
+        fesharp->setaFrsMaterialIndex(matindex);
         READ(matindex);
-        fesharp->setbMaterialIndex(matindex);
+        fesharp->setbFrsMaterialIndex(matindex);
       }
       
       unsigned tmp;
@@ -569,7 +569,7 @@ namespace ViewMapIO {
 
 
     inline
-    int save(ostream& out, const Material& m) {
+    int save(ostream& out, const FrsMaterial& m) {
 
       unsigned i;
       
@@ -622,10 +622,10 @@ namespace ViewMapIO {
       //    Not necessary (only used during view map computatiom)
 
       // -> Material
-      unsigned size = vs->sshape()->materials().size();
+      unsigned size = vs->sshape()->frs_materials().size();
       WRITE(size);
       for(unsigned i=0; i<size; ++i)
-        save(out, vs->sshape()->material(i));
+        save(out, vs->sshape()->frs_material(i));
 
       // -> VerticesList (List)
       tmp = vs->sshape()->getVertexList().size();
@@ -704,7 +704,7 @@ namespace ViewMapIO {
         // normal
         save(out, fesmooth->normal());
         // material
-        index = fesmooth->materialIndex();
+        index = fesmooth->frs_materialIndex();
         WRITE(index);
       }else{
         // aNormal
@@ -712,10 +712,10 @@ namespace ViewMapIO {
         // bNormal
         save(out, fesharp->normalB());
         // aMaterial
-        index = fesharp->aMaterialIndex();
+        index = fesharp->aFrsMaterialIndex();
         WRITE(index);
         // bMaterial
-        index = fesharp->bMaterialIndex();
+        index = fesharp->bFrsMaterialIndex();
         WRITE(index);
       }
       

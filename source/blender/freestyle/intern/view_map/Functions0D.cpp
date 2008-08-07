@@ -288,17 +288,17 @@ namespace Functions0D {
     return n;
   }
 
-  Material MaterialF0D::operator()(Interface0DIterator& iter) {
+  FrsMaterial MaterialF0D::operator()(Interface0DIterator& iter) {
     FEdge *fe1, *fe2;
     getFEdges(iter,fe1,fe2);
     
     if(fe1 == 0)
       getFEdges(iter, fe1, fe2);
-    Material mat;
+    FrsMaterial mat;
     if(fe1->isSmooth())
-      mat = ((FEdgeSmooth*)fe1)->material();
+      mat = ((FEdgeSmooth*)fe1)->frs_material();
     else
-      mat = ((FEdgeSharp*)fe1)->bMaterial();
+      mat = ((FEdgeSharp*)fe1)->bFrsMaterial();
     //    const SShape * sshape = getShapeF0D(iter);
     //    return sshape->material();
     return mat;

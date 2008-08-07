@@ -2209,11 +2209,12 @@ static void freestyleRender(Render *re)
 	// set camera
 	RE_SetCamera(re, re->scene->camera);
 	
-	// set view
-	Mat4Ortho(re->scene->camera->obmat);
-	Mat4Invert(mat, re->scene->camera->obmat);
-	RE_SetView(re, mat);
-	
+	// set up render database
+	if(render_scene_needs_vector(re))
+		RE_Database_FromScene_Vectors(re, re->scene);
+	else
+	   RE_Database_FromScene(re, re->scene, 1);
+		
 	// Freestyle initialization
 	FRS_prepare(re);
 	

@@ -134,7 +134,7 @@ PyMODINIT_FUNC UnaryFunction0DMaterial_Init( PyObject *module ) {
 
 int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self)
 {
-	self->uf0D_material = new UnaryFunction0D<Material>();
+	self->uf0D_material = new UnaryFunction0D<FrsMaterial>();
 	self->uf0D_material->py_uf0D = (PyObject *)self;
 	return 0;
 }
@@ -165,8 +165,8 @@ PyObject * UnaryFunction0DMaterial___call__( BPy_UnaryFunction0DMaterial *self, 
 		return NULL;
 	}
 	
-	Material m( self->uf0D_material->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
-	return BPy_FrsMaterial_from_Material( m );
+	FrsMaterial m( self->uf0D_material->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) );
+	return BPy_FrsMaterial_from_FrsMaterial( m );
 
 }
 

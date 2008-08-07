@@ -38,7 +38,7 @@ class StrokeTesselator
 {
 public:
 
-  inline StrokeTesselator() {_Material.setDiffuse(0,0,0,1);_overloadMaterial=false;}
+  inline StrokeTesselator() {_FrsMaterial.setDiffuse(0,0,0,1);_overloadFrsMaterial=false;}
   virtual ~StrokeTesselator() {}
 
   /*! Builds a line rep contained from a Stroke
@@ -54,13 +54,13 @@ public:
 
   
   
-  inline void setMaterial(const Material& iMaterial) {_Material=iMaterial;_overloadMaterial=true;}
-  inline const Material& material() const {return _Material;}
+  inline void setFrsMaterial(const FrsMaterial& iMaterial) {_FrsMaterial=iMaterial;_overloadFrsMaterial=true;}
+  inline const FrsMaterial& frs_material() const {return _FrsMaterial;}
 
 private:
 
-  Material _Material;
-  bool _overloadMaterial;
+  FrsMaterial _FrsMaterial;
+  bool _overloadFrsMaterial;
 };
 
 #endif // STROKETESSELATOR_H

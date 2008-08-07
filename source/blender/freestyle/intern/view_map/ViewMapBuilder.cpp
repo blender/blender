@@ -56,7 +56,7 @@ void ViewMapBuilder::computeInitialViewEdges(WingedEdge& we)
     // create the embedding
     psShape = new SShape;
     psShape->setId((*it)->GetId());
-    psShape->setMaterials((*it)->materials()); // FIXME
+    psShape->setFrsMaterials((*it)->frs_materials()); // FIXME
 
     // create the view shape
     ViewShape * vshape = new ViewShape(psShape);

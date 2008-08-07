@@ -180,17 +180,17 @@ int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
         return -1;
 
 	if( !obj1 ){
-		self->m = new Material();
+		self->m = new FrsMaterial();
 
 	} else if( BPy_FrsMaterial_Check(obj1) ) {
 		if( ((BPy_FrsMaterial *) obj1)->m )
-			self->m = new Material(*( ((BPy_FrsMaterial *) obj1)->m ));
+			self->m = new FrsMaterial(*( ((BPy_FrsMaterial *) obj1)->m ));
 		else
 			return -1;
 
 	} else if( PyFloat_Check(obj1) ) {
 		f1 = PyFloat_AsDouble(obj1);
-		self->m = new Material(&f1, &f2, &f3, &f4, f5);
+		self->m = new FrsMaterial(&f1, &f2, &f3, &f4, f5);
 
 	} else {
 		return -1;

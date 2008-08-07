@@ -41,7 +41,7 @@ NodeShape::~NodeShape()
 void NodeShape::accept(SceneVisitor& v) {
   v.visitNodeShape(*this);
   
-  v.visitMaterial(_Material);
+  v.visitFrsMaterial(_FrsMaterial);
  
   v.visitNodeShapeBefore(*this);
   vector<Rep *>::iterator rep;

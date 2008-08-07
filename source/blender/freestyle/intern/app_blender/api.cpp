@@ -14,6 +14,7 @@ extern "C" {
 #include "renderpipeline.h"
 
 #include "BLI_blenlib.h"
+#include "BIF_renderwin.h"
 #include "BPY_extern.h"
 
 #ifdef __cplusplus
@@ -103,6 +104,10 @@ extern "C" {
 		}
 	}
 	
+	void FRS_load_mesh( Render *re ){
+		controller->LoadMesh(re);
+	}
+	
 	void FRS_prepare(Render* re) {
 		FRS_initialize();
 		
@@ -110,15 +115,12 @@ extern "C" {
 		FRS_init_camera(re);
 		
 		FRS_scene_3ds_export(re);
+		//FRS_load_mesh(re);
 	}
 
 	void FRS_render(Render* re, int render_in_layer) {
 		
-		if(render_in_layer) {
-			view->workingBuffer = GL_COLOR_ATTACHMENT1_EXT;
-		} else {
-			view->workingBuffer = GL_BACK;
-		}
+		view->workingBuffer = GL_BACK;
 		
 		// add style module
 		cout << "Module: " << style_module << endl;
@@ -185,8 +187,13 @@ extern "C" {
 			}
 			
 		} else {
-			FRS_render(re, render_in_layer);
+			// used to reobtain ogl context after RE_Database_FromScene call
+			re->display_clear(re->result);
 			
+			// render strokes
+			FRS_render(re, render_in_layer);		
+			
+			// display result
 			RenderResult rres;
 			RE_GetResultImage(re, &rres);
 			view->readPixels(0, 0, re->winx, re->winy, AppGLWidget::RGBA, rres.rectf );		

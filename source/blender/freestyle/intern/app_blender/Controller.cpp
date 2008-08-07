@@ -64,6 +64,8 @@
 
 #include "../system/StringUtils.h"
 
+#include "../scene_graph/BlenderFileLoader.h"
+
 Controller::Controller()
 {
 	
@@ -166,6 +168,107 @@ void Controller::setView(AppGLWidget *iView)
   
   _pView = iView;
   _Canvas->setViewer(_pView);
+}
+
+int Controller::LoadMesh(Render *re)
+{
+  if (_pView)
+    _pView->setUpdateMode(false);
+  
+  BlenderFileLoader loader(re);
+  
+  _Chrono.start();
+  
+  NodeGroup *blenderScene = loader.Load();
+
+  if (blenderScene == NULL) {
+	cout << "Cannot load scene" << endl;
+    return 1;
+  }
+
+  cout << "Scene loaded\n" << endl;
+
+  printf("Mesh cleaning    : %lf\n", _Chrono.stop());
+  _SceneNumFaces += loader.numFacesRead();
+
+  if(loader.minEdgeSize() < _minEdgeSize)
+    {
+      _minEdgeSize = loader.minEdgeSize();
+      _EPSILON = _minEdgeSize*1e-6;
+      if(_EPSILON < DBL_MIN)
+	_EPSILON = 0.0;
+    }
+
+  cout << "Epsilon computed : " << _EPSILON << endl;
+
+  // DEBUG
+//   ScenePrettyPrinter spp;
+//   blenderScene->accept(spp);
+	
+  _RootNode->AddChild(blenderScene);
+  _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
+
+  _pView->setModel(_RootNode);
+  //_pView->FitBBox();
+
+
+  _Chrono.start();
+
+  
+  WXEdgeBuilder wx_builder;
+  blenderScene->accept(wx_builder);
+  _winged_edge = wx_builder.getWingedEdge();
+
+  printf("WEdge building   : %lf\n", _Chrono.stop());
+
+ _Chrono.start();
+
+  _Grid.clear();
+  Vec3r size;
+  for(unsigned int i=0; i<3; i++)
+    {
+      size[i] = fabs(_RootNode->bbox().getMax()[i] - _RootNode->bbox().getMin()[i]);
+      size[i] += size[i]/10.0; // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells intersections
+      if(size[i]==0){
+          cout << "Warning: the bbox size is 0 in dimension "<<i<<endl;
+      }
+    }
+  _Grid.configure(Vec3r(_RootNode->bbox().getMin() - size / 20.0), size,
+		  _SceneNumFaces);
+
+  // Fill in the grid:
+  WFillGrid fillGridRenderer(&_Grid, _winged_edge);
+  fillGridRenderer.fillGrid();
+
+  printf("Grid building    : %lf\n", _Chrono.stop());
+  
+  // DEBUG
+//   _Grid.displayDebug();
+   
+  _pView->setDebug(_DebugNode);
+
+  //delete stuff
+  //  if(0 != ws_builder)
+  //    {
+  //      delete ws_builder;
+  //      ws_builder = 0;
+  //    }
+  _pView->updateGL();
+  
+
+	//soc QFileInfo qfi(iFileName);
+	//soc string basename((const char*)qfi.fileName().toAscii().data());
+	// char cleaned[FILE_MAX];
+	// BLI_strncpy(cleaned, iFileName, FILE_MAX);
+	// BLI_cleanup_file(NULL, cleaned);
+	// string basename = StringUtils::toAscii( string(cleaned) );
+
+  _ListOfModels.push_back("Blender_models");
+
+  cout << "Triangles nb     : " << _SceneNumFaces << endl;
+  _bboxDiag = (_RootNode->bbox().getMax()-_RootNode->bbox().getMin()).norm();
+  cout << "Bounding Box     : " << _bboxDiag << endl;
+  return 0;
 }
 
 
@@ -649,6 +752,8 @@ void Controller::ComputeViewMap()
   _ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON);
   _ViewMap->setScene3dBBox(_RootNode->bbox());
   
+	printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size() );
+
   //Tesselate the 3D edges:
   _SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
   _SilhouetteNode->addRef();
@@ -953,9 +1058,9 @@ NodeGroup * Controller::BuildRep(vector<ViewEdge*>::iterator vedges_begin,
                                        vector<ViewEdge*>::iterator vedges_end)
 {
   ViewMapTesselator2D tesselator2D;
-  Material mat;
+  FrsMaterial mat;
   mat.setDiffuse(1,1,0.3,1);
-  tesselator2D.setMaterial(mat);
+  tesselator2D.setFrsMaterial(mat);
 
   return (tesselator2D.Tesselate(vedges_begin, vedges_end));
 }

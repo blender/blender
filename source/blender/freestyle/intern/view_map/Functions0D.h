@@ -34,7 +34,7 @@
 # include "Interface0D.h"
 # include "../geometry/Geom.h"
 # include "../system/Exception.h"
-# include "../scene_graph/Material.h"
+# include "../scene_graph/FrsMaterial.h"
 # include <set>
 # include <vector>
 class FEdge;
@@ -350,7 +350,7 @@ namespace Functions0D {
    *  to deal with this cases in a specific way should implement
    *  its own getMaterial functor.
    */
-  class LIB_VIEW_MAP_EXPORT MaterialF0D : public UnaryFunction0D<Material>
+  class LIB_VIEW_MAP_EXPORT MaterialF0D : public UnaryFunction0D<FrsMaterial>
   {
   public:
     /*! Returns the string "MaterialF0D"*/
@@ -358,7 +358,7 @@ namespace Functions0D {
       return "MaterialF0D";
     }
     /*! the () operator.*/
-    Material operator()(Interface0DIterator& iter);
+    FrsMaterial operator()(Interface0DIterator& iter);
   };
 
   // ShapeIdF0D

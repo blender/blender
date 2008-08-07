@@ -44,7 +44,7 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
 
   inline WingedEdgeBuilder() : SceneVisitor() {
     _current_wshape = NULL;
-    _current_material = NULL;
+    _current_frs_material = NULL;
     _current_matrix = NULL;
     _winged_edge = new WingedEdge; // Not deleted by the destructor
   }
@@ -76,8 +76,8 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
     return _current_wshape;
   }
  
-  inline Material*	getCurrentMaterial() {
-    return _current_material;
+  inline FrsMaterial*	getCurrentFrsMaterial() {
+    return _current_frs_material;
   }
 
   inline Matrix44r*	getCurrentMatrix() {
@@ -93,8 +93,8 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
     _current_wshape = wshape;
   }
 
-  inline void setCurrentMaterial(Material* mat) {
-    _current_material = mat;
+  inline void setCurrentFrsMaterial(FrsMaterial* mat) {
+    _current_frs_material = mat;
   }
 
   //  inline void setCurrentMatrix(Matrix44r* matrix) {
@@ -112,7 +112,7 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
 
   void buildTriangleStrip(const real *vertices, 
 			  const real *normals, 
-        vector<Material>&  iMaterials, 
+        vector<FrsMaterial>&  iMaterials, 
         const real *texCoords,
 			  const unsigned *vindices, 
 			  const unsigned *nindices,
@@ -122,7 +122,7 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
 
   void buildTriangleFan(const real *vertices, 
 			const real *normals, 
-      vector<Material>&  iMaterials,
+      vector<FrsMaterial>&  iMaterials,
       const real *texCoords,
 			const unsigned *vindices, 
 			const unsigned *nindices,
@@ -132,7 +132,7 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
 
   void buildTriangles(const real *vertices, 
 		      const real *normals, 
-          vector<Material>&  iMaterials,
+          vector<FrsMaterial>&  iMaterials,
           const real *texCoords,
 		      const unsigned *vindices, 
 		      const unsigned *nindices,
@@ -151,7 +151,7 @@ class LIB_WINGED_EDGE_EXPORT WingedEdgeBuilder : public SceneVisitor
 			real *res);
  
   WShape*		_current_wshape;
-  Material*		_current_material;
+  FrsMaterial*		_current_frs_material;
   WingedEdge*		_winged_edge;
   Matrix44r*		_current_matrix;
   vector<Matrix44r*>	_matrices_stack;

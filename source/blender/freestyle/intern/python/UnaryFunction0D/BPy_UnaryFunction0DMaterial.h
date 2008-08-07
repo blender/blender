@@ -3,7 +3,7 @@
 
 #include "../BPy_UnaryFunction0D.h"
 
-#include "../../scene_graph/Material.h"
+#include "../../scene_graph/FrsMaterial.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +20,7 @@ extern PyTypeObject UnaryFunction0DMaterial_Type;
 /*---------------------------Python BPy_UnaryFunction0DMaterial structure definition----------*/
 typedef struct {
 	BPy_UnaryFunction0D py_uf0D;
-	UnaryFunction0D<Material> *uf0D_material;
+	UnaryFunction0D<FrsMaterial> *uf0D_material;
 } BPy_UnaryFunction0DMaterial;
 
 /*---------------------------Python BPy_UnaryFunction0DMaterial visible prototypes-----------*/
