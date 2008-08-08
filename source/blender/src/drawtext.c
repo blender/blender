@@ -145,7 +145,7 @@ static int check_whitespace(char ch);
 
 static int get_wrap_width(SpaceText *st);
 static int get_wrap_points(SpaceText *st, char *line);
-static void get_suggest_prefix(Text *text);
+static void get_suggest_prefix(Text *text, int offset);
 static void confirm_suggestion(Text *text, int skipleft);
 
 #define TXT_MAXFINDSTR 255
@@ -2168,7 +2168,7 @@ static void wrap_move_down(SpaceText *st, short sel) {
 	}
 }
 
-static void get_suggest_prefix(Text *text) {
+static void get_suggest_prefix(Text *text, int offset) {
 	int i, len;
 	char *line, tmp[256];
 
@@ -2176,11 +2176,11 @@ static void get_suggest_prefix(Text *text) {
 	if (!texttool_text_is_active(text)) return;
 
 	line= text->curl->line;
-	for (i=text->curc-1; i>=0; i--)
+	for (i=text->curc-1+offset; i>=0; i--)
 		if (!check_identifier(line[i]))
 			break;
 	i++;
-	len= text->curc-i;
+	len= text->curc-i+offset;
 	if (len > 255) {
 		printf("Suggestion prefix too long\n");
 		len = 255;
@@ -2224,7 +2224,7 @@ static void confirm_suggestion(Text *text, int skipleft) {
 }
 
 static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val) {
-	int draw=0, swallow=0, tools=0, tools_cancel=0, tools_update=0, scroll=1;
+	int draw=0, tools=0, swallow=0, scroll=1;
 	if (!texttool_text_is_active(st->text)) return 0;
 	if (!st->text || st->text->id.lib) return 0;
 
@@ -2239,18 +2239,22 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 				confirm_suggestion(st->text, 0);
 				if (st->showsyntax) txt_format_line(st, st->text->curl, 1);
 			} else if ((st->overwrite && txt_replace_char(st->text, ascii)) || txt_add_char(st->text, ascii)) {
-				tools_update |= TOOL_SUGG_LIST;
+				get_suggest_prefix(st->text, 0);
 				swallow= 1;
 				draw= 1;
 			}
 		}
-		tools_cancel |= TOOL_DOCUMENT;
+		if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0, draw= 1;
 
-	} else if (val) {
+	} else if (val==1) {
 		switch (evnt) {
 			case LEFTMOUSE:
-				if (do_suggest_select(st)) swallow= 1;
-				else tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+				if (do_suggest_select(st))
+					swallow= 1;
+				else {
+					if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
+					if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0;
+				}
 				draw= 1;
 				break;
 			case MIDDLEMOUSE:
@@ -2258,18 +2262,17 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 					confirm_suggestion(st->text, 0);
 					if (st->showsyntax) txt_format_line(st, st->text->curl, 1);
 					swallow= 1;
-				} else
-					tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+				} else {
+					if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
+					if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0;
+				}
 				draw= 1;
 				break;
 			case ESCKEY:
-				swallow= 1;
-				if (tools & TOOL_SUGG_LIST)
-					tools_cancel |= TOOL_SUGG_LIST;
-				else if (tools & TOOL_DOCUMENT)
-					tools_cancel |= TOOL_DOCUMENT;
-				else
-					swallow= 0;
+				draw= swallow= 1;
+				if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
+				else if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0;
+				else draw= swallow= 0;
 				break;
 			case RETKEY:
 				if (tools & TOOL_SUGG_LIST) {
@@ -2278,23 +2281,44 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 					swallow= 1;
 					draw= 1;
 				}
-				tools_cancel |= TOOL_DOCUMENT;
+				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0, draw= 1;
 				break;
+			case LEFTARROWKEY:
 			case BACKSPACEKEY:
 				if (tools & TOOL_SUGG_LIST) {
-					if (G.qual) tools_cancel |= TOOL_SUGG_LIST;
+					if (G.qual)
+						texttool_suggest_clear();
 					else {
-						/* Work out which char we are about to delete */
+						/* Work out which char we are about to delete/pass */
 						if (st->text->curl && st->text->curc > 0) {
 							char ch= st->text->curl->line[st->text->curc-1];
 							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch))
-								tools_update |= TOOL_SUGG_LIST;
+								get_suggest_prefix(st->text, -1);
 							else
-								tools_cancel |= TOOL_SUGG_LIST;
-						}
+								texttool_suggest_clear();
+						} else
+							texttool_suggest_clear();
 					}
 				}
-				tools_cancel |= TOOL_DOCUMENT;
+				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0;
+				break;
+			case RIGHTARROWKEY:
+				if (tools & TOOL_SUGG_LIST) {
+					if (G.qual)
+						texttool_suggest_clear();
+					else {
+						/* Work out which char we are about to pass */
+						if (st->text->curl && st->text->curc < st->text->curl->len) {
+							char ch= st->text->curl->line[st->text->curc+1];
+							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch))
+								get_suggest_prefix(st->text, 1);
+							else
+								texttool_suggest_clear();
+						} else
+							texttool_suggest_clear();
+					}
+				}
+				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0;
 				break;
 			case PAGEDOWNKEY:
 				scroll= SUGG_LIST_SIZE-1;
@@ -2337,25 +2361,9 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 					break;
 				}
 			default:
-				if (G.qual!=0 && G.qual!=LR_SHIFTKEY)
-					tools_cancel |= TOOL_SUGG_LIST | TOOL_DOCUMENT;
+				if (tools & TOOL_SUGG_LIST) texttool_suggest_clear(), draw= 1;
+				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0, draw= 1;
 		}
-	}
-
-	if (tools & TOOL_SUGG_LIST) {
-		if (tools_update & TOOL_SUGG_LIST) {
-			get_suggest_prefix(st->text);
-		} else if (tools_cancel & TOOL_SUGG_LIST) {
-			texttool_suggest_clear();
-		}
-		draw= 1;
-	}
-	if (tools & TOOL_DOCUMENT) {
-		if (tools_cancel & TOOL_DOCUMENT) {
-			texttool_docs_clear();
-			doc_scroll= 0;
-		}
-		draw= 1;
 	}
 
 	if (draw) {
