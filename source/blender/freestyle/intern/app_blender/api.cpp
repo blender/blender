@@ -82,28 +82,7 @@ extern "C" {
 		view->_camera->setUpVector(camUp);	
 		view->_camera->setViewDirection(camDirection);
 	}
-	
-	void FRS_scene_3ds_export(Render* re) {
-		// export scene to 3ds format
-		string script_3ds_export = 	pathconfig->getProjectDir() + 
-									Config::DIR_SEP + "python" + 
-									Config::DIR_SEP + "3ds_export.py";
-		BPY_run_python_script( const_cast<char *>(script_3ds_export.c_str()) );
 		
-		// load 3ds scene
-		char btempdir[255];
-		BLI_where_is_temp(btempdir,1);
-		string exported_3ds_file =  btempdir;
-		exported_3ds_file += Config::DIR_SEP + "tmp_scene_freestyle.3ds";
-		if( BLI_exists( const_cast<char *>(exported_3ds_file.c_str()) ) ) {
-			controller->Load3DSFile( exported_3ds_file.c_str() );
-		}
-		else {
-			cout << "Cannot find" << exported_3ds_file << endl;
-			return;
-		}
-	}
-	
 	void FRS_load_mesh( Render *re ){
 		controller->LoadMesh(re);
 	}
@@ -113,8 +92,7 @@ extern "C" {
 		
 		FRS_init_view(re);
 		FRS_init_camera(re);
-		
-		//FRS_scene_3ds_export(re);
+
 		FRS_load_mesh(re);
 	}
 

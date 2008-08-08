@@ -32,7 +32,6 @@
 
 
 #include "../system/StringUtils.h"
-#include "../scene_graph/MaxFileLoader.h"
 #include "../scene_graph/NodeShape.h"
 #include "../scene_graph/NodeTransform.h"
 #include "../scene_graph/NodeDrawingStyle.h"
@@ -271,108 +270,6 @@ int Controller::LoadMesh(Render *re)
   return 0;
 }
 
-
-int Controller::Load3DSFile(const char *iFileName)
-{
-  if (_pView)
-    _pView->setUpdateMode(false);
-  
-  MaxFileLoader loader3DS(iFileName);
-  //_RootNode->AddChild(BuildSceneTest());
-  
-  _Chrono.start();
-  
-  NodeGroup *maxScene = loader3DS.Load();
-
-  if (maxScene == NULL) {
-	cout << "Cannot load scene" << endl;
-    return 1;
-  }
-
-  cout << "Scene loaded\n" << endl;
-
-  printf("Mesh cleaning    : %lf\n", _Chrono.stop());
-  _SceneNumFaces += loader3DS.numFacesRead();
-
-  if(loader3DS.minEdgeSize() < _minEdgeSize)
-    {
-      _minEdgeSize = loader3DS.minEdgeSize();
-      _EPSILON = _minEdgeSize*1e-6;
-      if(_EPSILON < DBL_MIN)
-	_EPSILON = 0.0;
-    }
-
-  cout << "Epsilon computed : " << _EPSILON << endl;
-
-  // DEBUG
-  // ScenePrettyPrinter spp;
-  // maxScene->accept(spp);
-	
-  _RootNode->AddChild(maxScene);
-  _RootNode->UpdateBBox(); // FIXME: Correct that by making a Renderer to compute the bbox
-
-  _pView->setModel(_RootNode);
-  //_pView->FitBBox();
-
-
-  _Chrono.start();
-
-  
-  WXEdgeBuilder wx_builder;
-  maxScene->accept(wx_builder);
-  _winged_edge = wx_builder.getWingedEdge();
-
-  printf("WEdge building   : %lf\n", _Chrono.stop());
-
- _Chrono.start();
-
-  _Grid.clear();
-  Vec3r size;
-  for(unsigned int i=0; i<3; i++)
-    {
-      size[i] = fabs(_RootNode->bbox().getMax()[i] - _RootNode->bbox().getMin()[i]);
-      size[i] += size[i]/10.0; // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells intersections
-      if(size[i]==0){
-          cout << "Warning: the bbox size is 0 in dimension "<<i<<endl;
-      }
-    }
-  _Grid.configure(Vec3r(_RootNode->bbox().getMin() - size / 20.0), size,
-		  _SceneNumFaces);
-
-  // Fill in the grid:
-  WFillGrid fillGridRenderer(&_Grid, _winged_edge);
-  fillGridRenderer.fillGrid();
-
-  printf("Grid building    : %lf\n", _Chrono.stop());
-  
-  // DEBUG
-  _Grid.displayDebug();
-   
-  _pView->setDebug(_DebugNode);
-
-  //delete stuff
-  //  if(0 != ws_builder)
-  //    {
-  //      delete ws_builder;
-  //      ws_builder = 0;
-  //    }
-  _pView->updateGL();
-  
-
-	//soc QFileInfo qfi(iFileName);
-	//soc string basename((const char*)qfi.fileName().toAscii().data());
-	char cleaned[FILE_MAX];
-	BLI_strncpy(cleaned, iFileName, FILE_MAX);
-	BLI_cleanup_file(NULL, cleaned);
-	string basename = StringUtils::toAscii( string(cleaned) );
-
-  _ListOfModels.push_back(basename);
-
-  cout << "Triangles nb     : " << _SceneNumFaces << endl;
-  _bboxDiag = (_RootNode->bbox().getMax()-_RootNode->bbox().getMin()).norm();
-  cout << "Bounding Box     : " << _bboxDiag << endl;
-  return 0;
-}
 
 void Controller::CloseFile()
 {
