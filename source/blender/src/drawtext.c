@@ -2643,7 +2643,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (event==RIGHTMOUSE) {
 		if (val) {
-			p= pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3|Execute Script%x4");
+			if (txt_has_sel(text))
+				p= pupmenu("Text %t|Cut%x10|Copy%x11|Paste%x12|New %x0|Open... %x1|Save %x2|Save As...%x3|Execute Script%x4");
+			else
+				p= pupmenu("Text %t|Paste%x12|New %x0|Open... %x1|Save %x2|Save As...%x3|Execute Script%x4");
 
 			switch(p) {
 				case 0:
@@ -2669,7 +2672,28 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					run_python_script(st);
 					do_draw= 1;
 					break;
-				default:
+				case 10:
+					if (text && text->id.lib) {
+						error_libdata();
+						break;
+					}
+					txt_copy_clipboard(text);
+					txt_cut_sel(text);
+					pop_space_text(st);
+					do_draw= 1;
+					break;
+				case 11:
+					//txt_copy_sel(text);
+					txt_copy_clipboard(text);
+					break;
+				case 12:
+					if (text && text->id.lib) {
+						error_libdata();
+						break;
+					}
+					txt_paste_clipboard(text);
+					if (st->showsyntax) txt_format_text(st);
+					do_draw= 1;
 					break;
 			}
 		}
