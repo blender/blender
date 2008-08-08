@@ -114,8 +114,8 @@ extern "C" {
 		FRS_init_view(re);
 		FRS_init_camera(re);
 		
-		FRS_scene_3ds_export(re);
-		//FRS_load_mesh(re);
+		//FRS_scene_3ds_export(re);
+		FRS_load_mesh(re);
 	}
 
 	void FRS_render(Render* re, int render_in_layer) {

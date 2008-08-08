@@ -25,6 +25,7 @@ extern "C" {
 	#include "BKE_mesh.h"
 	#include "BKE_scene.h"
 	#include "MTC_matrixops.h"
+	#include "MTC_vectorops.h"
 	
 #ifdef __cplusplus
 }

@@ -18,13 +18,19 @@ NodeGroup* BlenderFileLoader::Load()
 	ObjectInstanceRen *obi;
 	ObjectRen *obr;
 
+	cout << "Shape loading" << endl;
+
   // creation of the scene root node
   _Scene = new NodeGroup;
 
 	int id = 0;
 	for(obi= (ObjectInstanceRen *) _re->instancetable.first; obi; obi=obi->next) {
 		obr= obi->obr;
-		insertShapeNode(obr, ++id);
+		
+		if( obr->totvlak > 0)
+			insertShapeNode(obr, ++id);
+		else
+			cout << "  Sorry, only vlak-based shapes are supported." << endl;
 	}
 
   //Returns the built scene.
@@ -175,13 +181,14 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 		      		currentMIndex = meshFrsMaterials.size()-1;
 		    	}
 	  		}
-	  
+	
+			unsigned j;
 			fv[0] = vlr->v1;
 			fv[1] = vlr->v2;
 			fv[2] = vlr->v3;
+			float *pv_ptr[3];
 			for(i=0; i<3; ++i) // we parse the vertices of the face f
 			{
-				unsigned j;
 	
 				//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
 				for(j=0; j<3; j++)
@@ -198,26 +205,44 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	
 			  		vert[i][j] = pv[j];
 				}
-	
-				for(j=0; j<3; j++)
-			  		pn[j] = fv[i]->n[j];
-			
-				MTC_Mat4MulVecfl( M, pn);
-	
-			//lib3ds_normal_transform(pn, M, normalL[3*p+i]); //fills the cells of the pv array
-			//lib3ds_vector_normalize(pn);
-	
+				
+				pv_ptr[i] = pv;
 				*pvi = currentIndex;
-				*pni = currentIndex;
 				*pmi = currentMIndex;
-	
+
 				currentIndex +=3;
 				pv += 3;
-				pn += 3;
+
 				pvi++;
-				pni++;
 				pmi++;
-	
+			}
+			
+			currentIndex -= 9;
+						
+			float vec01[3];
+			vec01[0] = pv_ptr[1][0] - pv_ptr[0][0]; 
+			vec01[1] = pv_ptr[1][1] - pv_ptr[0][1];
+			vec01[2] = pv_ptr[1][2] - pv_ptr[0][2];
+			
+			float vec02[3];
+			vec02[0] = pv_ptr[2][0] - pv_ptr[0][0]; 
+			vec02[1] = pv_ptr[2][1] - pv_ptr[0][1];
+			vec02[2] = pv_ptr[2][2] - pv_ptr[0][2];
+			
+			float n[3];
+			MTC_cross3Float(n, vec01, vec02);
+			MTC_normalize3DF(n);
+			
+			for(i=0; i<3; ++i) {
+				for(j=0; j<3; ++j) {
+					pn[j] = n[j];
+				}
+				*pni = currentIndex;
+
+				pn += 3;
+				pni++;
+
+				currentIndex +=3;
 			}
 	
 			for(i=0; i<3; i++)
@@ -233,65 +258,89 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 			}
 			
 			++_numFacesRead;
+
 			
 			if(vlr->v4){
-						fv[0] = vlr->v1;
-						fv[1] = vlr->v3;
-						fv[2] = vlr->v4;
-						for(i=0; i<3; ++i) // we parse the vertices of the face f
-						{
-							unsigned j;
-	
-							//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
-							for(j=0; j<3; j++)
-								pv[j] = fv[i]->co[j];
-							MTC_Mat4MulVecfl( M, pv);
-	
-							for(j=0; j<3; j++) // we parse the xyz coordinates of the vertex i
-							{
-						  		if(minBBox[j] > pv[j])
-						    		minBBox[j] = pv[j];
-	
-						  		if(maxBBox[j] < pv[j])
-						    		maxBBox[j] = pv[j];
-	
-						  		vert[i][j] = pv[j];
-							}
-	
-							for(j=0; j<3; j++)
-						  		pn[j] = fv[i]->n[j];
-	
-							MTC_Mat4MulVecfl( M, pn);
-	
-						//lib3ds_normal_transform(pn, M, normalL[3*p+i]); //fills the cells of the pv array
-						//lib3ds_vector_normalize(pn);
-	
-							*pvi = currentIndex;
-							*pni = currentIndex;
-							*pmi = currentMIndex;
-	
-							currentIndex +=3;
-							pv += 3;
-							pn += 3;
-							pvi++;
-							pni++;
-							pmi++;
-	
-						}
-	
-						for(i=0; i<3; i++)
-						{
-							norm = 0.0;
-	
-							for (unsigned j = 0; j < 3; j++)
-						  		norm += (vert[i][j] - vert[(i+1)%3][j])*(vert[i][j] - vert[(i+1)%3][j]);
-	
-							norm = sqrt(norm);
-							if(_minEdgeSize > norm)
-						  		_minEdgeSize = norm;
-						}
+
+				unsigned j;
+				fv[0] = vlr->v1;
+				fv[1] = vlr->v3;
+				fv[2] = vlr->v4;
+				float *pv_ptr[3];
+				for(i=0; i<3; ++i) // we parse the vertices of the face f
+				{
+
+					//lib3ds_vector_transform(pv, M, mesh->pointL[f->points[i]].pos); //fills the cells of the pv array
+					for(j=0; j<3; j++)
+						pv[j] = fv[i]->co[j];
+					MTC_Mat4MulVecfl( M, pv);
+
+					for(j=0; j<3; j++) // we parse the xyz coordinates of the vertex i
+					{
+				  		if(minBBox[j] > pv[j])
+				    		minBBox[j] = pv[j];
+
+				  		if(maxBBox[j] < pv[j])
+				    		maxBBox[j] = pv[j];
+
+				  		vert[i][j] = pv[j];
+					}
+
+					pv_ptr[i] = pv;
+					*pvi = currentIndex;
+					*pmi = currentMIndex;
+
+					currentIndex +=3;
+					pv += 3;
+
+					pvi++;
+					pmi++;
+				}
+
+				currentIndex -= 9;
+
+				float vec01[3];
+				vec01[0] = pv_ptr[1][0] - pv_ptr[0][0]; 
+				vec01[1] = pv_ptr[1][1] - pv_ptr[0][1];
+				vec01[2] = pv_ptr[1][2] - pv_ptr[0][2];
+
+				float vec02[3];
+				vec02[0] = pv_ptr[2][0] - pv_ptr[0][0]; 
+				vec02[1] = pv_ptr[2][1] - pv_ptr[0][1];
+				vec02[2] = pv_ptr[2][2] - pv_ptr[0][2];
+
+				float n[3];
+				MTC_cross3Float(n, vec01, vec02);
+				MTC_normalize3DF(n);
 				
-					++_numFacesRead;
+				for(i=0; i<3; ++i) {
+					for(j=0; j<3; ++j) {
+						pn[j] = n[j];
+					}
+					*pni = currentIndex;
+
+					pn += 3;
+					pni++;
+
+					currentIndex +=3;
+				}
+
+				for(i=0; i<3; i++)
+				{
+					norm = 0.0;
+
+					for (unsigned j = 0; j < 3; j++)
+				  		norm += (vert[i][j] - vert[(i+1)%3][j])*(vert[i][j] - vert[(i+1)%3][j]);
+
+					norm = sqrt(norm);
+					if(_minEdgeSize > norm)
+				  		_minEdgeSize = norm;
+				}
+
+				++_numFacesRead;
+
+
+
 			}
 	
 	}
