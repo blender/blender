@@ -126,7 +126,6 @@ static void txt_pop_last(Text *text);
 static void txt_undo_add_op(Text *text, int op);
 static void txt_undo_add_block(Text *text, int op, char *buf);
 static void txt_delete_line(Text *text, TextLine *line);
-static int txt_word_boundary(char ch);
 
 /***/
 
@@ -575,15 +574,17 @@ static void txt_make_dirty (Text *text)
 	if (text->compiled) BPY_free_compiled_text(text);
 }
 
-static int txt_word_boundary (char ch)
+/* 0:whitespace, 1:punct, 2:alphanumeric */
+static short txt_char_type (char ch)
 {
-	if (ch < '0') return TRUE;
-	if (ch <= '9') return FALSE;
-	if (ch < 'A') return TRUE;
-	if (ch <= 'Z') return FALSE;
-	if (ch < 'a') return TRUE;
-	if (ch <= 'z') return FALSE;
-	return TRUE;
+	if (ch <= ' ') return 0;
+	if (ch <= '/') return 1;
+	if (ch <= '9') return 2;
+	if (ch <= '@') return 1;
+	if (ch <= 'Z') return 2;
+	if (ch <= '`') return 1;
+	if (ch <= 'z') return 2;
+	return 1;
 }
 
 /****************************/
@@ -723,7 +724,7 @@ void txt_move_right(Text *text, short sel)
 void txt_jump_left(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, count=-1;
+	int *charp, oldc, count, i;
 	unsigned char oldu;
 
 	if (!text) return;
@@ -736,14 +737,16 @@ void txt_jump_left(Text *text, short sel)
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	do {
-		txt_move_left(text, sel);
-		count++;
-	} while (*charp>0 && *charp<(*linep)->len && txt_word_boundary((*linep)->line[*charp-1]));
-	if (!count) {
-		while (*charp>0 && *charp<(*linep)->len && !txt_word_boundary((*linep)->line[*charp-1]))
-			txt_move_left(text, sel);
+	count= 0;
+	for (i=0; i<3; i++) {
+		if (count < 2) {
+			while (*charp>0 && txt_char_type((*linep)->line[*charp-1])==i) {
+				txt_move_left(text, sel);
+				count++;
+			}
+		}
 	}
+	if (count==0) txt_move_left(text, sel);
 
 	undoing= oldu;
 	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
@@ -752,7 +755,7 @@ void txt_jump_left(Text *text, short sel)
 void txt_jump_right(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc;
+	int *charp, oldc, count, i;
 	unsigned char oldu;
 
 	if (!text) return;
@@ -765,12 +768,16 @@ void txt_jump_right(Text *text, short sel)
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	do {
-		txt_move_right(text, sel);
-	} while (*charp>0 && *charp<(*linep)->len && !txt_word_boundary((*linep)->line[*charp]));
-	while (*charp>0 && *charp<(*linep)->len && txt_word_boundary((*linep)->line[*charp])) {
-		txt_move_right(text, sel);
+	count= 0;
+	for (i=0; i<3; i++) {
+		if (count < 2) {
+			while (*charp<(*linep)->len && txt_char_type((*linep)->line[*charp])==i) {
+				txt_move_right(text, sel);
+				count++;
+			}
+		}
 	}
+	if (count==0) txt_move_right(text, sel);
 
 	undoing= oldu;
 	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
