@@ -237,10 +237,9 @@ def parse_text(txt):
 					# Try importing name as an attribute of the parent
 					try:
 						module = __import__(imp_from, globals(), locals(), [imp_name])
+						imports[imp_symb] = getattr(module, imp_name)
 					except (ImportError, ValueError, AttributeError, TypeError):
 						pass
-					else:
-						imports[imp_symb] = getattr(module, imp_name)
 				else:
 					imports[imp_symb] = module
 			
