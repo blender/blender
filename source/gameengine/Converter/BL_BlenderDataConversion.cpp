@@ -1939,7 +1939,17 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				float* fl = (float*) blenderobject->parentinv;
 				MT_Transform parinvtrans(fl);
 				parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
-				parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
+				// problem here: the parent inverse transform combines scaling and rotation 
+				// in the basis but the scenegraph needs separate rotation and scaling.
+				// This is not important for OpenGL (it uses 4x4 matrix) but it is important
+				// for the physic engine that needs a separate scaling
+				//parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
+
+				// Extract the rotation and the scaling from the basis
+				MT_Matrix3x3 inverseOrientation(parinvtrans.getRotation());
+				parentinversenode->SetLocalOrientation(inverseOrientation);
+				MT_Matrix3x3 scale(inverseOrientation.transposed()*parinvtrans.getBasis());
+				parentinversenode->SetLocalScale(MT_Vector3(scale[0][0], scale[1][1], scale[2][2]));
 				
 				parentinversenode->AddChild(gameobj->GetSGNode());
 			}
