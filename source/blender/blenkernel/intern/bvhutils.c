@@ -268,16 +268,23 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float *co,
 	do
 	{	
 		float nearest_tmp[3], dist;
-
-		dist = nearest_point_in_tri_surface(co,t0, t1, t2, nearest_tmp);
-		if(dist < nearest->dist)
+		float vec[3][3];
+		
+		// only insert valid triangles / quads with area > 0
+		VECSUB(vec[0], t2, t1);
+		VECSUB(vec[1], t0, t1);
+		Crossf(vec[2], vec[0], vec[1]);
+		if(INPR(vec[2], vec[2]) >= FLT_EPSILON)
 		{
-			nearest->index = index;
-			nearest->dist = dist;
-			VECCOPY(nearest->co, nearest_tmp);
-			CalcNormFloat((float*)t0, (float*)t1, (float*)t2, nearest->no); //TODO.. (interpolate normals from the vertexs coordinates?
+			dist = nearest_point_in_tri_surface(co,t0, t1, t2, nearest_tmp);
+			if(dist < nearest->dist)
+			{
+				nearest->index = index;
+				nearest->dist = dist;
+				VECCOPY(nearest->co, nearest_tmp);
+				CalcNormFloat((float*)t0, (float*)t1, (float*)t2, nearest->no); //TODO.. (interpolate normals from the vertexs coordinates?
+			}
 		}
-
 
 		t1 = t2;
 		t2 = t3;
@@ -396,7 +403,7 @@ void bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float eps
 			VECCOPY(co[2], vert[ face[i].v3 ].co);
 			if(face[i].v4)
 				VECCOPY(co[3], vert[ face[i].v4 ].co);
-
+			
 			BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 		}
 		BLI_bvhtree_balance(tree);
