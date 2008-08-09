@@ -556,6 +556,7 @@ void BPY_Err_Handle( char *script_name )
 	if( exception
 	    && PyErr_GivenExceptionMatches( exception, PyExc_SyntaxError ) ) {
 		/* no traceback available when SyntaxError */
+		PyErr_NormalizeException( &exception, &err, &tb );
 		PyErr_Restore( exception, err, tb );	/* takes away reference! */
 		PyErr_Print(  );
 		v = PyObject_GetAttrString( err, "lineno" );
