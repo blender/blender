@@ -89,6 +89,7 @@ extern "C" {
 	
 	int BPY_Err_getLinenumber( void );
 	const char *BPY_Err_getFilename( void );
+	const char *BPY_Err_getMessage( void );
 
 	int BPY_txt_do_python_Text( struct Text *text );
 	int BPY_menu_do_python( short menutype, int event );
