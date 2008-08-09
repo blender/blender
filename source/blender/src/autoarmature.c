@@ -165,6 +165,9 @@ typedef enum
 
 static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second);
 
+/* two levels */
+#define SHAPE_LEVELS (SHAPE_RADIX * SHAPE_RADIX) 
+
 /*********************************** EDITBONE UTILS ****************************************************/
 
 int countEditBoneChildren(ListBase *list, EditBone *parent)
@@ -839,14 +842,12 @@ static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i
 				max_dist = dist > max_dist ? dist : max_dist;
 			}
 			
-			return max_dist;
+			return G.scene->toolsettings->skgen_retarget_distance_weight * max_dist;
 		}
 		else
 		{
 			return MAX_COST;
 		}
-		
-		return G.scene->toolsettings->skgen_retarget_distance_weight * max_dist;
 	}
 	else
 	{
@@ -1550,14 +1551,34 @@ static void retargetArctoArc(RigGraph *rigg, RigArc *iarc)
 	}
 }
 
+static void matchMultiResolutionNode(RigNode *inode, ReebNode *top_node)
+{
+	ReebNode *enode;
+	int ishape, eshape;
+	
+	enode = top_node;
+	
+	ishape = BLI_subtreeShape((BNode*)inode, NULL, 0) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+	
+	inode->link_mesh = enode;
+
+	while (ishape == eshape && enode->link_down)
+	{
+		inode->link_mesh = enode;
+
+		enode = enode->link_down;
+		eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+	} 
+}
+
 static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, ReebArc *next_earc)
 {
 	ReebNode *enode = next_earc->head;
 	int ishape, eshape;
-	int shape_levels = SHAPE_RADIX * SHAPE_RADIX; /* two levels */
 
-	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % shape_levels;
-	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % shape_levels;
+	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	
 	while (ishape != eshape && next_earc->link_up)
 	{
@@ -1565,23 +1586,29 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 		
 		next_earc = next_earc->link_up;
 		enode = next_earc->head;
-		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % shape_levels;
+		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	} 
 
 	next_earc->flag = 1; // mark as taken
 	next_iarc->link_mesh = next_earc;
+	
+	/* mark all higher levels as taken too */
+	while (next_earc->link_up)
+	{
+		next_earc = next_earc->link_up;
+		next_earc->flag = 1; // mark as taken
+	}
 }
 
 static void matchMultiResolutionStartingNode(ReebGraph *reebg, RigNode *inode)
 {
 	ReebNode *enode;
 	int ishape, eshape;
-	int shape_levels = SHAPE_RADIX * SHAPE_RADIX; /* two levels */
 	
 	enode = reebg->nodes.first;
 	
-	ishape = BLI_subtreeShape((BNode*)inode, NULL, 0) % shape_levels;
-	eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % shape_levels;
+	ishape = BLI_subtreeShape((BNode*)inode, NULL, 0) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	
 	while (ishape != eshape && reebg->link_up)
 	{
@@ -1589,7 +1616,7 @@ static void matchMultiResolutionStartingNode(ReebGraph *reebg, RigNode *inode)
 		
 		enode = reebg->nodes.first;
 		
-		eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % shape_levels;
+		eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	} 
 
 	inode->link_mesh = enode;
@@ -1670,10 +1697,8 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 		enode = BIF_otherNodeFromIndex(earc, enode);
 		inode = (RigNode*)BLI_otherNode((BArc*)start_arc, (BNode*)inode);
 	
-		/* Link with lowest possible node
-		 * Enabling going back to lower levels for each arc
-		 * */
-		inode->link_mesh = BIF_lowestLevelNode(enode);
+		/* match with lowest node with correct shape */
+		matchMultiResolutionNode(inode, enode);
 	}
 	
 	for(i = 0; i < inode->degree; i++)
