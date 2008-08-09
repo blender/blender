@@ -545,6 +545,8 @@ Tex *copy_texture(Tex *tex)
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= 0;
 	
+	id_us_plus((ID *)texn->ipo);
+	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
 		open_plugin_tex(texn->plugin);
@@ -842,6 +844,22 @@ void BKE_free_envmap(EnvMap *env)
 	BKE_free_envmapdata(env);
 	MEM_freeN(env);
 	
+}
+
+/* ------------------------------------------------------------------------- */
+int BKE_texture_dependsOnTime(const struct Tex *texture)
+{
+	if(texture->plugin) {
+		// assume all plugins depend on time
+		return 1;
+	} else if(	texture->ima && 
+			ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		return 1;
+	} else if(texture->ipo) {
+		// assume any ipo means the texture is animated
+		return 1;
+	}
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

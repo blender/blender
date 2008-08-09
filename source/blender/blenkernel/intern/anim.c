@@ -734,9 +734,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	ParticleCacheKey *cache;
 	ParticleSystemModifierData *psmd;
 	float ctime, pa_time, scale = 1.0f;
-	float tmat[4][4], mat[4][4], obrotmat[4][4], pamat[4][4], size=0.0;
+	float tmat[4][4], mat[4][4], pamat[4][4], size=0.0;
 	float (*obmat)[4], (*oldobmat)[4];
-	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 	int lay, a, b, k, step_nbr = 0, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
@@ -898,14 +897,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					/* to give ipos in object correct offset */
 					where_is_object_time(ob, ctime-pa_time);
 					
-					if(!hair) {
-						vectoquat(xvec, ob->trackflag, ob->upflag, q);
-						QuatToMat4(q, obrotmat);
-						obrotmat[3][3]= 1.0f;
-						Mat4MulMat4(mat, obrotmat, pamat);
-					}
-					else
-						Mat4CpyMat4(mat, pamat);
+					Mat4CpyMat4(mat, pamat);
 
 					Mat4MulMat4(tmat, obmat, mat);
 					Mat4MulFloat3((float *)tmat, size*scale);

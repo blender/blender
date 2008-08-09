@@ -183,9 +183,9 @@ IF(UNIX)
   SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++")
 
   IF(WITH_OPENMP)
-    SET(LLIBS "${LLIBS} -lgomp ")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp ")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ")
+    SET(LLIBS "${LLIBS} -lgomp")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
   ENDIF(WITH_OPENMP)
 
 

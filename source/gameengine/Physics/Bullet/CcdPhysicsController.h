@@ -110,11 +110,18 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 
 	void*		m_newClientInfo;
-
+	int			m_registerCount;	// needed when multiple sensors use the same controller
 	CcdConstructionInfo	m_cci;//needed for replication
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
+
+	bool Register()	{ 
+		return (m_registerCount++ == 0) ? true : false;
+	}
+	bool Unregister() {
+		return (--m_registerCount == 0) ? true : false;
+	}
 
 	protected:
 		void setWorldOrientation(const btMatrix3x3& mat);

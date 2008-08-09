@@ -772,7 +772,7 @@ class RenderData:
     """
     Get/set the starting frame for sequence rendering.
     @type frame: int (optional)
-    @param frame: must be between 1 - 18000
+    @param frame: must be a valid Blender frame number.
     @rtype: int (if prototype is empty)
     @return: Current starting frame for the scene.
     """
@@ -781,7 +781,7 @@ class RenderData:
     """
     Get/set the ending frame for sequence rendering.
     @type frame: int (optional)
-    @param frame: must be between 1 - 18000
+    @param frame: must be a valid Blender frame number.
     @rtype: int (if prototype is empty)
     @return: Current ending frame for the scene.
     """

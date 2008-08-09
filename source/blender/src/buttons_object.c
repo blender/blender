@@ -173,6 +173,7 @@ static void constraint_active_func(void *ob_v, void *con_v)
 	}
 	
 	lb= get_active_constraints(ob);
+	if (lb == NULL) return;
 	
 	for(con= lb->first; con; con= con->next) {
 		if(con==con_v) con->flag |= CONSTRAINT_ACTIVE;
@@ -307,7 +308,7 @@ void del_constr_func (void *ob_v, void *con_v)
 	}
 	/* remove constraint itself */
 	lb= get_active_constraints(ob_v);
-	free_constraint_data (con);
+	free_constraint_data(con);
 	BLI_freelinkN(lb, con);
 	
 	constraint_active_func(ob_v, NULL);

@@ -125,8 +125,6 @@
 
 void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 {
-	if( isalpha(ch)==0 ) return;
-	
 	if( isupper(ch) ) {
 		*qual= LEFTSHIFTKEY;
 		ch= tolower(ch);
@@ -804,7 +802,10 @@ static void tb_do_hotkey(void *arg, int event)
 		case 'd': key= PAGEDOWNKEY; break;
 		}
 	}
-	else asciitoraw(event, &key, &qual[3]);
+	else if (isalpha(event))
+		asciitoraw(event, &key, &qual[3]);
+	else if (event == '~')
+		key = ACCENTGRAVEKEY;
 
 	for (i=0;i<4;i++)
 	{
@@ -1212,6 +1213,8 @@ static TBitem tb_view[]= {
 {	0, "SEPR", 						0, NULL},
 {	0, "Ortho/Perspective|NumPad 5", 	TB_PAD|'5', NULL},
 {	0, "Local/Global View|NumPad /", 	TB_PAD|'/', NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Show All Layers|Shift ~",  TB_SHIFT|'~', NULL},
 {	0, "SEPR", 						0, NULL},
 {	0, "Align View", 			0, tb_view_alignview},
 {	0, "SEPR", 		0, NULL},

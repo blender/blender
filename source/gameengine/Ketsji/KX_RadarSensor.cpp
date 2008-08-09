@@ -147,23 +147,23 @@ void KX_RadarSensor::SynchronizeTransform()
 		};
 	case 3: // -X Axis
 		{
-			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));
+			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(-90));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
 	case 4: // -Y Axis
 		{
-			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
-			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, m_coneheight/2.0 ,0));
+			//MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
+			//trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
 	case 5: // -Z Axis
 		{
-			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-90));
+			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(90));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
 	default:

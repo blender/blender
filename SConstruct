@@ -184,15 +184,16 @@ if env['WITH_BF_OPENMP'] == 1:
                 env['CPPFLAGS'].append('/openmp')
                 env['CXXFLAGS'].append('/openmp')
         else:
-            if env['CC'] == 'icc':
+            if env['CC'][-3:] == 'icc': # to be able to handle CC=/opt/bla/icc case
                 env.Append(LINKFLAGS=['-openmp', '-static-intel'])
                 env['CCFLAGS'].append('-openmp')
                 env['CPPFLAGS'].append('-openmp')
                 env['CXXFLAGS'].append('-openmp')
             else:
-                env['CCFLAGS'].append('-fopenmp')
-                env['CPPFLAGS'].append('-fopenmp')
-                env['CXXFLAGS'].append('-fopenmp')
+                env.Append(CCFLAGS=['-fopenmp']) 
+                env.Append(CPPFLAGS=['-fopenmp'])
+                env.Append(CXXFLAGS=['-fopenmp'])
+                # env.Append(LINKFLAGS=['-fprofile-generate'])
 
 #check for additional debug libnames
 

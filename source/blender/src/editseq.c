@@ -644,6 +644,7 @@ static int seq_is_parent(Sequence *par, Sequence *seq)
 
 static int seq_is_predecessor(Sequence *pred, Sequence *seq)
 {
+	if (!pred) return 0;
 	if(pred == seq) return 0;
 	else if(seq_is_parent(pred, seq)) return 1;
 	else if(pred->seq1 && seq_is_predecessor(pred->seq1, seq)) return 1;

@@ -366,6 +366,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\brush.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\bvhutils.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c">
 			</File>
 			<File
@@ -575,6 +578,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_brush.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_bvhutils.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_cdderivedmesh.h">

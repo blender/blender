@@ -106,8 +106,9 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"Point", (PyCFunction) M_Mathutils_Point, METH_VARARGS, M_Mathutils_Point_doc},
 	{NULL, NULL, 0, NULL}
 };
-//----------------------------MODULE INIT-------------------------
-PyObject *Mathutils_Init(void)
+/*----------------------------MODULE INIT-------------------------*/
+/* from can be Blender.Mathutils or GameLogic.Mathutils for the BGE */
+PyObject *Mathutils_Init(char *from)
 {
 	PyObject *submodule;
 
@@ -125,8 +126,7 @@ PyObject *Mathutils_Init(void)
 	if( PyType_Ready( &quaternion_Type ) < 0 )
 		return NULL;
 	
-	submodule = Py_InitModule3("Blender.Mathutils",
-				    M_Mathutils_methods, M_Mathutils_doc);
+	submodule = Py_InitModule3(from, M_Mathutils_methods, M_Mathutils_doc);
 	return (submodule);
 }
 //-----------------------------METHODS----------------------------
