@@ -170,17 +170,6 @@ def SetRenderWinPos(locationList):
   the location of the Render window on the screen.
   """
 
-def EnableEdgeShift():
-  """
-  Globally with the unified renderer enabled the outlines of the render
-  are shifted a bit.
-  """
-
-def EnableEdgeAll():
-  """
-  Globally consider transparent faces for edge-rendering with the unified renderer.
-  """
-
 class RenderData:
   """
   The RenderData object
