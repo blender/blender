@@ -1560,14 +1560,18 @@ int txt_file_modified(Text *text)
 {
 	struct stat st;
 	int result;
+	char file[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!text || !text->name)
 		return 0;
 
-	if (!BLI_exists(text->name))
+	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_convertstringcode(file, G.sce);
+
+	if (!BLI_exists(file))
 		return 2;
 
-	result = stat(text->name, &st);
+	result = stat(file, &st);
 	
 	if(result == -1)
 		return -1;
@@ -1609,6 +1613,7 @@ void txt_write_file(Text *text)
 	TextLine *tmp;
 	int res;
 	struct stat st;
+	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
 	/* Do we need to get a filename? */
 	if (text->flags & TXT_ISMEM) {
@@ -1618,17 +1623,20 @@ void txt_write_file(Text *text)
 			activate_fileselect(FILE_SPECIAL, "SAVE TEXT FILE", text->id.name+2, save_mem_text);
 		return;
 	}
+
+	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_convertstringcode(file, G.sce);
 	
 	/* Should we ask to save over? */
 	if (text->flags & TXT_ISTMP) {
-		if (BLI_exists(text->name)) {
+		if (BLI_exists(file)) {
 			if (!okee("Save over")) return;
 		} else if (!okee("Create new file")) return;
 
 		text->flags ^= TXT_ISTMP;
 	}
 		
-	fp= fopen(text->name, "w");
+	fp= fopen(file, "w");
 	if (fp==NULL) {
 		error("Unable to save file");
 		return;
@@ -1644,7 +1652,7 @@ void txt_write_file(Text *text)
 	
 	fclose (fp);
 
-	res= stat(text->name, &st);
+	res= stat(file, &st);
 	text->mtime= st.st_mtime;
 	
 	if (text->flags & TXT_ISDIRTY) text->flags ^= TXT_ISDIRTY;
@@ -3157,12 +3165,12 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if (last_check_time < PIL_check_seconds_timer() - 1.0) {
+	if (last_check_time < PIL_check_seconds_timer() - 10.0) {
 		switch (txt_file_modified(text)) {
 		case 1:
 			/* Modified locally and externally, ahhh. Offer more possibilites. */
 			if (text->flags & TXT_ISDIRTY) {
-				switch (pupmenu("External File Modified with Local Changes %t|Load external changes (overwrite local) %x0|Save local changes (overwrite external) %x1|Make text internal %x2")) {
+				switch (pupmenu("File Modified Outside and Inside Blender %t|Load outside changes (ignore local changes) %x0|Save local changes (ignore outside changes) %x1|Make text internal (separate copy) %x2")) {
 				case 0:
 					reopen_text(text);
 					if (st->showsyntax) txt_format_text(st);
@@ -3180,7 +3188,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				}
 			} else {
-				switch (pupmenu("External File Modified %t|Reload from disk %x0|Make text internal %x1")) {
+				switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1")) {
 				case 0:
 					reopen_text(text);
 					if (st->showsyntax) txt_format_text(st);
@@ -3196,11 +3204,15 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case 2:
-			switch (pupmenu("External File Deleted %t|Make text internal %x0")) {
+			switch (pupmenu("File Deleted Outside Blender %t|Make text internal %x0|Recreate file %x1")) {
 			case 0:
 				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
 				MEM_freeN(text->name);
 				text->name= NULL;
+				do_draw= 1;
+				break;
+			case 1:
+				txt_write_file(text);
 				do_draw= 1;
 				break;
 			}
