@@ -2267,7 +2267,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 		}
 		if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0, draw= 1;
 
-	} else if (val==1) {
+	} else if (val==1 && evnt) {
 		switch (evnt) {
 			case LEFTMOUSE:
 				if (do_suggest_select(st))

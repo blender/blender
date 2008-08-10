@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Suggest All'
+Name: 'Suggest All | Ctrl Space'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Ctrl+Space'
@@ -21,14 +21,22 @@ def check_membersuggest(line, c):
 	if pos == -1:
 		return False
 	for s in line[pos+1:c]:
-		if not s.isalnum() and not s == '_':
+		if not s.isalnum() and s != '_':
 			return False
 	return True
 
 def check_imports(line, c):
-	if c >= 7 and line.rfind('import ', 0, c) == c-7:
+	pos = line.rfind('import ', 0, c)
+	if pos > -1:
+		for s in line[pos+7:c]:
+			if not s.isalnum() and s != '_':
+				return False
 		return True
-	if c >= 5 and line.rfind('from ', 0, c) == c-5:
+	pos = line.rfind('from ', 0, c)
+	if pos > -1:
+		for s in line[pos+5:c]:
+			if not s.isalnum() and s != '_':
+				return False
 		return True
 	return False
 

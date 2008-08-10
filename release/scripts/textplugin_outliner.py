@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Outline'
+Name: 'Code Outline | Ctrl T'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Ctrl+T'
@@ -99,7 +99,7 @@ def main():
 	vars_menu_length = len(tmp)
 	items.extend(tmp)
 	
-	menu = [('Outliner%t', 0),
+	menu = [('Script %t', 0),
 			('Classes', class_menu),
 			('Functions', defs_menu),
 			('Variables', vars_menu)]

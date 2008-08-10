@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Import Complete'
+Name: 'Import Complete|Space'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Space'
@@ -31,41 +31,62 @@ def main():
 	
 	# No 'from' found
 	if pos == -1:
-		# Check instead for straight 'import'
+		# Check instead for straight 'import xxxx'
 		pos2 = line.rfind('import ', 0, c)
-		if pos2 != -1 and (pos2 == c-7 or (pos2 < c-7 and line[c-2]==',')):
+		if pos2 != -1:
+			pos2 += 7
+			for i in range(pos2, c):
+				if line[i]==',' or (line[i]==' ' and line[i-1]==','):
+					pos2 = i+1
+				elif not line[i].isalnum() and line[i] != '_':
+					return
 			items = [(m, 'm') for m in get_modules()]
 			items.sort(cmp = suggest_cmp)
-			txt.suggest(items, '')
+			txt.suggest(items, line[pos2:c].strip())
+		return
 	
-	# Immediate 'from' before cursor
-	elif pos == c-5:
+	# Found 'from xxxxx' before cursor
+	immediate = True
+	pos += 5
+	for i in range(pos, c):
+		if line[i]=='.':
+			pos = i+1
+		elif not line[i].isalnum() and line[i] != '_':
+			immediate = False
+			break
+	
+	# Immediate 'from' followed by at most a module name
+	if immediate:
 		items = [(m, 'm') for m in get_modules()]
 		items.sort(cmp = suggest_cmp)
 		txt.suggest(items, '')
+		return
 	
-	# Found 'from' earlier
-	else:
-		pos2 = line.rfind('import ', pos+5, c)
+	# Found 'from' earlier, suggest import if not already there
+	pos2 = line.rfind('import ', pos, c)
+	
+	# No 'import' found after 'from' so suggest it
+	if pos2 == -1:
+		txt.suggest([('import', 'k')], '')
+		return
 		
-		# No 'import' found after 'from' so suggest it
-		if pos2 == -1:
-			txt.suggest([('import', 'k')], '')
-			
-		# Immediate 'import' before cursor and after 'from...'
-		elif pos2 == c-7 or line[c-2] == ',':
-			between = line[pos+5:pos2-1].strip()
-			try:
-				mod = get_module(between)
-			except ImportError:
-				print 'Module not found:', between
-				return
-			
-			items = [('*', 'k')]
-			for (k,v) in mod.__dict__.items():
-				items.append((k, type_char(v)))
-			items.sort(cmp = suggest_cmp)
-			txt.suggest(items, '')
+	# Immediate 'import' before cursor and after 'from...'
+	for i in range(pos2+7, c):
+		if line[i]==',' or (line[i]==' ' and line[i-1]==','):
+			pass
+		elif not line[i].isalnum() and line[i] != '_':
+			return
+	between = line[pos:pos2-1].strip()
+	try:
+		mod = get_module(between)
+	except ImportError:
+		return
+	
+	items = [('*', 'k')]
+	for (k,v) in mod.__dict__.items():
+		items.append((k, type_char(v)))
+	items.sort(cmp = suggest_cmp)
+	txt.suggest(items, '')
 
 # Check we are running as a script and not imported as a module
 if __name__ == "__main__" and OK:

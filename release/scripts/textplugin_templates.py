@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Templates'
+Name: 'Template Completion | Tab'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Tab'

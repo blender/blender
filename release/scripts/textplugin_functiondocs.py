@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Function Documentation'
+Name: 'Function Documentation | Ctrl I'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Ctrl+I'
@@ -29,13 +29,21 @@ def main():
 	
 	# Look backwards for first '(' without ')'
 	b = 0
+	found = False
 	for i in range(c-1, -1, -1):
 		if line[i] == ')': b += 1
 		elif line[i] == '(':
 			b -= 1
 			if b < 0:
+				found = True
 				c = i
 				break
+	
+	# Otherwise identify the name under the cursor
+	if not found:
+		llen = len(line)
+		while c<llen and (line[c].isalnum() or line[c]=='_'):
+			c += 1
 	
 	pre = get_targets(line, c)
 	

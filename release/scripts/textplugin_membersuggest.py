@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Member Suggest'
+Name: 'Member Suggest | .'
 Blender: 246
 Group: 'TextPlugin'
 Shortcut: 'Period'
