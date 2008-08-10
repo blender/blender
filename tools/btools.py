@@ -332,6 +332,8 @@ def read_opts(cfg, args):
 
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
+        
+        ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 
     ) # end of opts.AddOptions()
 
