@@ -1159,17 +1159,18 @@ void setflag_armature (short mode)
 	
 	/* get flag to set (sync these with the ones used in eBone_Flag */
 	if (mode == 2)
-		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
 	else if (mode == 1)
-		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
 	else
-		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
 	switch (flag) {
 		case 1: 	flag = BONE_DRAWWIRE; 	break;
 		case 2:		flag = BONE_NO_DEFORM; break;
 		case 3: 	flag = BONE_MULT_VG_ENV; break;
 		case 4:		flag = BONE_HINGE; break;
 		case 5:		flag = BONE_NO_SCALE; break;
+		case 6: 	flag = BONE_EDITMODE_LOCKED; break;
 		default:	return;
 	}
 	
@@ -2711,32 +2712,6 @@ void show_all_armature_bones(void)
 	BIF_undo_push("Reveal Bones");
 }
 
-/* Sets editmode transform locks for bones (adds if lock==1, clears otherwise) */
-void set_locks_armature_bones(short lock)
-{
-	bArmature *arm= G.obedit->data;
-	EditBone *ebone;
-	
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_SELECTED) {
-				if (lock)
-					ebone->flag |= BONE_EDITMODE_LOCKED;
-				else	
-					ebone->flag &= ~BONE_EDITMODE_LOCKED;
-			}
-		}
-	}
-	countall();
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	
-	if (lock)
-		BIF_undo_push("Lock Bones");
-	else
-		BIF_undo_push("Unlock Bones");
-}
-
 /* check for null, before calling! */
 static void bone_connect_to_existing_parent(EditBone *bone)
 {
@@ -3174,6 +3149,59 @@ void subdivide_armature(int numcuts)
 	
 	if (numcuts==1) BIF_undo_push("Subdivide");
 	else BIF_undo_push("Subdivide multi");
+}
+
+/* switch direction of bone chains */
+void switch_direction_armature (void)
+{
+	bArmature *arm= (G.obedit) ? G.obedit->data : NULL;
+	ListBase chains = {NULL, NULL};
+	LinkData *chain;
+	
+	/* error checking paranoia */
+	if (arm == NULL)
+		return;
+	
+	/* get chains of bones (ends on chains) */
+	chains_find_tips(&chains);
+	if (chains.first == NULL) return;
+	
+	/* loop over chains, only considering selected and visible bones */
+	for (chain= chains.first; chain; chain= chain->next) {
+		EditBone *ebo, *child=NULL, *parent=NULL;
+		
+		/* loop over bones in chain */
+		for (ebo= chain->data; ebo; child= ebo, ebo=parent) {
+			parent= ebo->parent;
+			
+			/* only if selected and editable */
+			if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {				
+				/* swap head and tail coordinates */
+				SWAP(float, ebo->head[0], ebo->tail[0]);
+				SWAP(float, ebo->head[1], ebo->tail[1]);
+				SWAP(float, ebo->head[2], ebo->tail[2]);
+				
+				/* do parent swapping:
+				 *	- use 'child' as new parent
+				 *	- connected flag is only set if points are coincidental
+				 */
+				ebo->parent= child;
+				if ((child) && VecEqual(ebo->head, child->tail))
+					ebo->flag |= BONE_CONNECTED;
+				else	
+					ebo->flag &= ~BONE_CONNECTED;
+				
+				/* FIXME: other things that need fixing?
+				 *		i.e. roll?
+				 */
+			}
+		}
+	}
+	
+	/* free chains */
+	BLI_freelistN(&chains);
+	
+	BIF_undo_push("Switch Direction");
 }
 
 /* ***************** Pose tools ********************* */
