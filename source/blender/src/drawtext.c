@@ -2381,6 +2381,9 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 					draw= 1;
 					break;
 				}
+			case RIGHTSHIFTKEY:
+			case LEFTSHIFTKEY:
+				break;
 			default:
 				if (tools & TOOL_SUGG_LIST) texttool_suggest_clear(), draw= 1;
 				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll= 0, draw= 1;
