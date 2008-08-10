@@ -1,4 +1,4 @@
-import bpy, sys
+import bpy, sys, os
 import __builtin__, tokenize
 from Blender.sys import time
 from tokenize import generate_tokens, TokenError, \
@@ -65,7 +65,7 @@ CTX_DOUBLE_QUOTE = 2
 CTX_COMMENT = 3
 
 # Special time period constants
-AUTO = -1
+TP_AUTO = -1
 
 # Python keywords
 KEYWORDS = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global',
@@ -74,25 +74,49 @@ KEYWORDS = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global',
 			'raise', 'continue', 'finally', 'is', 'return', 'def', 'for',
 			'lambda', 'try' ]
 
+# Module file extensions
+MODULE_EXTS = ['.py', '.pyc', '.pyo', '.pyw', '.pyd']
+
 ModuleType = type(__builtin__)
 NoneScriptDesc = ScriptDesc('', dict(), dict(), dict(), dict(), True)
 
-_modules = dict([(n, None) for n in sys.builtin_module_names])
+_modules = {}
 _modules_updated = 0
 _parse_cache = dict()
 
-def get_cached_descriptor(txt, period=AUTO):
+def _load_module_names():
+	"""Searches the sys.path for module files and lists them, along with
+	sys.builtin_module_names, in the global dict _modules.
+	"""
+	
+	global _modules
+	
+	for n in sys.builtin_module_names:
+		_modules[n] = None
+	for p in sys.path:
+		if p == '': p = os.curdir
+		if not os.path.isdir(p): continue
+		for f in os.listdir(p):
+			for ext in MODULE_EXTS:
+				if f.endswith(ext):
+					_modules[f[:-len(ext)]] = None
+					break
+
+_load_module_names()
+
+
+def get_cached_descriptor(txt, period=TP_AUTO):
 	"""Returns the cached ScriptDesc for the specified Text object 'txt'. If the
 	script has not been parsed in the last 'period' seconds it will be reparsed
 	to obtain this descriptor.
 	
-	Specifying AUTO for the period (default) will choose a period based on the
+	Specifying TP_AUTO for the period (default) will choose a period based on the
 	size of the Text object. Larger texts are parsed less often.
 	"""
 	
-	global _parse_cache, NoneScriptDesc, AUTO
+	global _parse_cache
 	
-	if period == AUTO:
+	if period == TP_AUTO:
 		m = txt.nlines
 		r = 1
 		while True:
@@ -155,7 +179,7 @@ def parse_text(txt):
 			type, string, start, end, line = tokens.next()
 		except StopIteration:
 			break
-		except TokenError:
+		except TokenError, IndentationError:
 			incomplete = True
 			break
 		
