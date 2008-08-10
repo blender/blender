@@ -144,6 +144,7 @@ void	show_all_armature_bones(void);
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
+/* useful macros */
 #define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
 #define EBONE_EDITABLE(ebone) ((ebone->flag & BONE_SELECTED) && !(ebone->flag & BONE_EDITMODE_LOCKED)) 
 

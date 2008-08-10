@@ -854,6 +854,7 @@ static void separate_armature_bones (Object *ob, short sel)
 	BLI_freelistN(&edbo);
 }
 
+/* separate selected bones into their armature */
 void separate_armature (void)
 {
 	Object *oldob, *newob;
@@ -1094,13 +1095,13 @@ void armature_select_hierarchy(short direction, short add_to_sel)
 	arm= (bArmature *)ob->data;
 	
 	for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
-		if (arm->layer & curbone->layer) {
+		if (EBONE_VISIBLE(arm, curbone)) {
 			if (curbone->flag & (BONE_ACTIVE)) {
 				if (direction == BONE_SELECT_PARENT) {
 					if (curbone->parent == NULL) continue;
 					else pabone = curbone->parent;
 					
-					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_A)) {
+					if (EBONE_VISIBLE(arm, pabone)) {
 						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 						if (pabone->parent)	pabone->parent->flag |= BONE_TIPSEL;
 						
@@ -1109,11 +1110,12 @@ void armature_select_hierarchy(short direction, short add_to_sel)
 						break;
 					}
 					
-				} else { // BONE_SELECT_CHILD
+				} 
+				else { // BONE_SELECT_CHILD
 					chbone = editbone_get_child(curbone, 1);
 					if (chbone == NULL) continue;
 					
-					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_A)) {
+					if (EBONE_VISIBLE(arm, chbone)) {
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 						
 						if (!add_to_sel) {
@@ -1726,12 +1728,12 @@ void auto_align_armature(short mode)
 	float  	*cursor= give_cursor();
 		
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (arm->flag & ARM_MIRROR_EDIT)
 				flipbone = armature_bone_get_mirrored(ebone);
 			
 			if ((ebone->flag & BONE_SELECTED) || 
-				(flipbone && flipbone->flag & BONE_SELECTED)) 
+				(flipbone && (flipbone->flag & BONE_SELECTED))) 
 			{
 				/* specific method used to calculate roll depends on mode */
 				if (mode == 1) {
@@ -1976,7 +1978,7 @@ void addvert_armature(void)
 	
 	/* find the active or selected bone */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & (BONE_ACTIVE|BONE_TIPSEL)) 
 				break;
 		}
@@ -1984,7 +1986,7 @@ void addvert_armature(void)
 	
 	if (ebone==NULL) {
 		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-			if (arm->layer & ebone->layer) {
+			if (EBONE_VISIBLE(arm, ebone)) {
 				if (ebone->flag & (BONE_ACTIVE|BONE_ROOTSEL)) 
 					break;
 			}
@@ -2067,11 +2069,12 @@ static EditBone *get_named_editbone(char *name)
 {
 	EditBone  *eBone;
 
-	if (name)
+	if (name) {
 		for (eBone=G.edbo.first; eBone; eBone=eBone->next) {
 			if (!strcmp(name, eBone->name))
 				return eBone;
 		}
+	}
 
 	return NULL;
 }
@@ -2137,7 +2140,7 @@ void adduplicate_armature(void)
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
 		for (curBone=G.edbo.first; curBone; curBone=curBone->next) {
-			if (arm->layer & curBone->layer) {
+			if (EBONE_VISIBLE(arm, curBone)) {
 				if (curBone->flag & BONE_SELECTED) {
 					eBone = armature_bone_get_mirrored(curBone);
 					if (eBone)
@@ -2149,13 +2152,13 @@ void adduplicate_armature(void)
 	
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
-		if (arm->layer & curBone->layer) {
+		if (EBONE_VISIBLE(arm, curBone)) {
 			if (curBone->flag & BONE_SELECTED) {
 				eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
 				eBone->flag |= BONE_SELECTED;
 				
 				/*	Copy data from old bone to new bone */
-				memcpy (eBone, curBone, sizeof(EditBone));
+				memcpy(eBone, curBone, sizeof(EditBone));
 				
 				curBone->temp = eBone;
 				eBone->temp = curBone;
@@ -2205,7 +2208,7 @@ void adduplicate_armature(void)
 
 	/*	Run though the list and fix the pointers */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
-		if (arm->layer & curBone->layer) {
+		if (EBONE_VISIBLE(arm, curBone)) {
 			if (curBone->flag & BONE_SELECTED) {
 				eBone=(EditBone*) curBone->temp;
 				
@@ -2237,7 +2240,7 @@ void adduplicate_armature(void)
 	/*	Deselect the old bones and select the new ones */
 	
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
-		if (arm->layer & curBone->layer)
+		if (EBONE_VISIBLE(arm, curBone))
 			curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 	}
 	
@@ -2374,7 +2377,7 @@ void fill_bones_armature(void)
 	
 	/* loop over all bones, and only consider if visible */
 	for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
-		if ((arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A)) {
+		if (EBONE_VISIBLE(arm, ebo)) {
 			if (!(ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL))
 				fill_add_joint(ebo, 0, &points);
 			if (ebo->flag & BONE_TIPSEL) 
@@ -2609,7 +2612,7 @@ void merge_armature(void)
 			/* only consider bones that are visible and selected */
 			for (ebo=chain->data; ebo; child=ebo, ebo=ebo->parent) {
 				/* check if visible + selected */
-				if ( (arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A) &&
+				if ( EBONE_VISIBLE(arm, ebo) &&
 					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
 					 (ebo->flag & (BONE_SELECTED|BONE_ACTIVE)) )
 				{
@@ -2660,7 +2663,7 @@ void hide_selected_armature_bones(void)
 	EditBone *ebone;
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & (BONE_SELECTED)) {
 				ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 				ebone->flag |= BONE_HIDDEN_A;
@@ -2679,7 +2682,7 @@ void hide_unselected_armature_bones(void)
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		bArmature *arm= G.obedit->data;
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL));
 			else {
 				ebone->flag &= ~BONE_ACTIVE;
@@ -2778,7 +2781,7 @@ void make_bone_parent(void)
 	
 	/* find active bone to parent to */
 	for (actbone = G.edbo.first; actbone; actbone=actbone->next) {
-		if (arm->layer & actbone->layer) {
+		if (EBONE_VISIBLE(arm, actbone)) {
 			if (actbone->flag & BONE_ACTIVE)
 				break;
 		}
@@ -2790,7 +2793,7 @@ void make_bone_parent(void)
 
 	/* find selected bones */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
 				foundselbone++;
 				if (ebone->parent != actbone) allchildbones= 1; 
@@ -2826,7 +2829,7 @@ void make_bone_parent(void)
 	else {
 		/* loop through all editbones, parenting all selected bones to the active bone */
 		for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
-			if (arm->layer & selbone->layer) {
+			if (EBONE_VISIBLE(arm, selbone)) {
 				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
 					/* parent selbone to actbone */
 					bone_connect_to_new_parent(selbone, actbone, val);
@@ -2884,7 +2887,7 @@ void clear_bone_parent(void)
 	if (val<1) return;
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & BONE_SELECTED) {
 				if (arm->flag & ARM_MIRROR_EDIT)
 					flipbone = armature_bone_get_mirrored(ebone);
@@ -2934,7 +2937,7 @@ void unique_editbone_name (ListBase *ebones, char *name)
 		}
 		
 		for (number = 1; number <=999; number++) {
-			sprintf (tempname, "%s.%03d", name, number);
+			sprintf(tempname, "%s.%03d", name, number);
 			if (!editbone_name_exists(ebones, tempname)) {
 				BLI_strncpy(name, tempname, 32);
 				return;
@@ -2955,7 +2958,7 @@ void extrude_armature(int forked)
 	
 	/* since we allow root extrude too, we have to make sure selection is OK */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & BONE_ROOTSEL) {
 				if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 					if (ebone->parent->flag & BONE_TIPSEL)
@@ -2967,7 +2970,7 @@ void extrude_armature(int forked)
 	
 	/* Duplicate the necessary bones */
 	for (ebone = G.edbo.first; ((ebone) && (ebone!=first)); ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			/* we extrude per definition the tip */
 			do_extrude= 0;
 			if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED))
@@ -2981,7 +2984,7 @@ void extrude_armature(int forked)
 			if (do_extrude) {
 				/* we re-use code for mirror editing... */
 				flipbone= NULL;
-				if(arm->flag & ARM_MIRROR_EDIT) {
+				if (arm->flag & ARM_MIRROR_EDIT) {
 					flipbone= armature_bone_get_mirrored(ebone);
 					if (flipbone) {
 						forked= 0;	// we extrude 2 different bones
@@ -3011,7 +3014,7 @@ void extrude_armature(int forked)
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
-
+						
 						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
@@ -3021,7 +3024,7 @@ void extrude_armature(int forked)
 						
 						newbone->flag= BONE_TIPSEL;
 						
-						if (newbone->parent && ebone->flag & BONE_CONNECTED) {
+						if (newbone->parent && (ebone->flag & BONE_CONNECTED)) {
 							newbone->flag |= BONE_CONNECTED;
 						}
 					}
@@ -3040,8 +3043,8 @@ void extrude_armature(int forked)
 					BLI_strncpy (newbone->name, ebone->name, 32);
 					
 					if (flipbone && forked) {	// only set if mirror edit
-						if(strlen(newbone->name)<30) {
-							if(a==0) strcat(newbone->name, "_L");
+						if (strlen(newbone->name)<30) {
+							if (a==0) strcat(newbone->name, "_L");
 							else strcat(newbone->name, "_R");
 						}
 					}
@@ -3086,7 +3089,7 @@ void subdivide_armature(int numcuts)
 	if (numcuts < 1) return;
 
 	for (mbone = G.edbo.last; mbone; mbone= mbone->prev) {
-		if (arm->layer & mbone->layer) {
+		if (EBONE_VISIBLE(arm, mbone)) {
 			if (mbone->flag & BONE_SELECTED) {
 				for (i=numcuts+1; i>1; i--) {
 					/* compute cut ratio first */
