@@ -60,6 +60,7 @@ typedef struct SuggList {
 	SuggItem *first, *last;
 	SuggItem *firstmatch, *lastmatch;
 	SuggItem *selected;
+	int top;
 } SuggList;
 
 /* Free all text tool memory */
@@ -78,6 +79,7 @@ SuggItem *texttool_suggest_first();
 SuggItem *texttool_suggest_last();
 void texttool_suggest_select(SuggItem *sel);
 SuggItem *texttool_suggest_selected();
+int *texttool_suggest_top();
 
 /* Documentation */
 void texttool_docs_show(const char *docs);

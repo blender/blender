@@ -65,6 +65,7 @@ static void txttl_free_suggest() {
 	suggestions.first = suggestions.last = NULL;
 	suggestions.firstmatch = suggestions.lastmatch = NULL;
 	suggestions.selected = NULL;
+	suggestions.top = 0;
 }
 
 static void txttl_free_docs() {
@@ -149,11 +150,12 @@ void texttool_suggest_add(const char *name, char type) {
 		}
 	}
 	suggestions.firstmatch = suggestions.lastmatch = suggestions.selected = NULL;
+	suggestions.top= 0;
 }
 
 void texttool_suggest_prefix(const char *prefix) {
 	SuggItem *match, *first, *last;
-	int cmp, len = strlen(prefix);
+	int cmp, len = strlen(prefix), top = 0;
 
 	if (!suggestions.first) return;
 	if (len==0) {
@@ -166,14 +168,17 @@ void texttool_suggest_prefix(const char *prefix) {
 	for (match=suggestions.first; match; match=match->next) {
 		cmp = txttl_cmp(prefix, match->name, len);
 		if (cmp==0) {
-			if (!first)
+			if (!first) {
 				first = match;
+				suggestions.top = top;
+			}
 		} else if (cmp<0) {
 			if (!last) {
 				last = match->prev;
 				break;
 			}
 		}
+		top++;
 	}
 	if (first) {
 		if (!last) last = suggestions.last;
@@ -184,6 +189,7 @@ void texttool_suggest_prefix(const char *prefix) {
 		suggestions.firstmatch = NULL;
 		suggestions.lastmatch = NULL;
 		suggestions.selected = NULL;
+		suggestions.top = 0;
 	}
 }
 
@@ -205,6 +211,10 @@ void texttool_suggest_select(SuggItem *sel) {
 
 SuggItem *texttool_suggest_selected() {
 	return suggestions.selected;
+}
+
+int *texttool_suggest_top() {
+	return &suggestions.top;
 }
 
 /*************************/

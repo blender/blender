@@ -1202,7 +1202,7 @@ static int do_suggest_select(SpaceText *st)
 	short mval[2];
 	TextLine *tmp;
 	int l, x, y, w, h, i;
-	int seli, tgti;
+	int tgti, *top;
 	
 	if (!st || !st->text) return 0;
 	if (!texttool_text_is_active(st->text)) return 0;
@@ -1210,6 +1210,7 @@ static int do_suggest_select(SpaceText *st)
 	first = texttool_suggest_first();
 	last = texttool_suggest_last();
 	sel = texttool_suggest_selected();
+	top = texttool_suggest_top();
 
 	if (!last || !first)
 		return 0;
@@ -1233,24 +1234,37 @@ static int do_suggest_select(SpaceText *st)
 	if (mval[0]<x || x+w<mval[0] || mval[1]<y-h || y<mval[1])
 		return 0;
 
-	/* Work out which of the visible SUGG_LIST_SIZE items is selected */
-	for (seli=0, item=sel; seli<3 && item && item!=first; seli++, item=item->prev);
+	/* Work out which of the items is at the top of the visible list */
+	for (i=0, item=first; i<*top && item->next; i++, item=item->next);
 
 	/* Work out the target item index in the visible list */
 	tgti = (y-mval[1]-4) / st->lheight;
 	if (tgti<0 || tgti>SUGG_LIST_SIZE)
 		return 1;
 
-	if (seli<tgti) {
-		for (i=seli; i<tgti && sel && sel!=last; i++, sel=sel->next);
-		if (sel)
-			texttool_suggest_select(sel);
-	} else {
-		for (i=seli; i>tgti && sel && sel!=first; i--, sel=sel->prev);
-		if (sel)
-			texttool_suggest_select(sel);
-	}
+	for (i=tgti; i>0 && item->next; i--, item=item->next);
+	if (item)
+		texttool_suggest_select(item);
 	return 1;
+}
+
+static void pop_suggest_list() {
+	SuggItem *item, *sel;
+	int *top, i;
+
+	item= texttool_suggest_first();
+	sel= texttool_suggest_selected();
+	top= texttool_suggest_top();
+
+	i= 0;
+	while (item && item != sel) {
+		item= item->next;
+		i++;
+	}
+	if (i > *top+SUGG_LIST_SIZE-1)
+		*top= i-SUGG_LIST_SIZE+1;
+	else if (i < *top)
+		*top= i;
 }
 
 void draw_documentation(SpaceText *st)
@@ -1343,7 +1357,7 @@ void draw_suggestion_list(SpaceText *st)
 	SuggItem *item, *first, *last, *sel;
 	TextLine *tmp;
 	char str[SUGG_LIST_WIDTH+1];
-	int w, boxw=0, boxh, i, l, x, y, b;
+	int w, boxw=0, boxh, i, l, x, y, b, *top;
 	
 	if (!st || !st->text) return;
 	if (!texttool_text_is_active(st->text)) return;
@@ -1353,7 +1367,9 @@ void draw_suggestion_list(SpaceText *st)
 
 	if (!first || !last) return;
 
+	pop_suggest_list();
 	sel = texttool_suggest_selected();
+	top = texttool_suggest_top();
 
 	/* Count the visible lines to the cursor */
 	for (tmp=st->text->curl, l=-st->top; tmp; tmp=tmp->prev, l++);
@@ -1375,9 +1391,7 @@ void draw_suggestion_list(SpaceText *st)
 	glRecti(x, y, x+boxw, y-boxh);
 
 	/* Set the top 'item' of the visible list */
-	for (i=0, item=sel; i<3 && item && item!=first; i++, item=item->prev);
-	if (!item)
-		item = first;
+	for (i=0, item=first; i<*top && item->next; i++, item=item->next);
 
 	for (i=0; i<SUGG_LIST_SIZE && item; i++, item=item->next) {
 
@@ -2261,6 +2275,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 				if (st->showsyntax) txt_format_line(st, st->text->curl, 1);
 			} else if ((st->overwrite && txt_replace_char(st->text, ascii)) || txt_add_char(st->text, ascii)) {
 				get_suggest_prefix(st->text, 0);
+				pop_suggest_list();
 				swallow= 1;
 				draw= 1;
 			}
@@ -2313,8 +2328,10 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 						/* Work out which char we are about to delete/pass */
 						if (st->text->curl && st->text->curc > 0) {
 							char ch= st->text->curl->line[st->text->curc-1];
-							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch))
+							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch)) {
 								get_suggest_prefix(st->text, -1);
+								pop_suggest_list();
+							}
 							else
 								texttool_suggest_clear();
 						} else
@@ -2331,8 +2348,10 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 						/* Work out which char we are about to pass */
 						if (st->text->curl && st->text->curc < st->text->curl->len) {
 							char ch= st->text->curl->line[st->text->curc+1];
-							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch))
+							if ((ch=='_' || !ispunct(ch)) && !check_whitespace(ch)) {
 								get_suggest_prefix(st->text, 1);
+								pop_suggest_list();
+							}
 							else
 								texttool_suggest_clear();
 						} else
@@ -2358,6 +2377,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 						texttool_suggest_select(sel->next);
 						sel= sel->next;
 					}
+					pop_suggest_list();
 					swallow= 1;
 					draw= 1;
 					break;
@@ -2377,6 +2397,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 						texttool_suggest_select(sel->prev);
 						sel= sel->prev;
 					}
+					pop_suggest_list();
 					swallow= 1;
 					draw= 1;
 					break;
