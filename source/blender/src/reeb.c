@@ -1161,17 +1161,21 @@ void reweightArc(ReebArc *arc, ReebNode *start_node, float start_weight)
 			reweightArc(next_arc, node, end_weight);
 		}
 	}
-	
-	old_weight = arc->head->weight; /* backup head weight, other arcs need it intact, it will be fixed by the source arc */
-	
-	arc->head->weight = start_weight;
-	arc->tail->weight = end_weight;
-	
-	reweightBuckets(arc);
-	resizeArcBuckets(arc);
-	fillArcEmptyBuckets(arc);
-	
-	arc->head->weight = old_weight;
+
+	/* update only if needed */	
+	if (arc->head->weight != start_weight)
+	{
+		old_weight = arc->head->weight; /* backup head weight, other arcs need it intact, it will be fixed by the source arc */
+		
+		arc->head->weight = start_weight;
+		arc->tail->weight = end_weight;
+		
+		reweightBuckets(arc);
+		resizeArcBuckets(arc);
+		fillArcEmptyBuckets(arc);
+		
+		arc->head->weight = old_weight;
+	}
 } 
 
 void reweightSubgraph(ReebGraph *rg, ReebNode *start_node, float start_weight)
@@ -1269,6 +1273,34 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 	return joined;
 }
 
+/* Reweight graph from smallest node, fix fliped arcs */
+void fixSubgraphsOrientation(ReebGraph *rg, int nb_subgraphs)
+{
+	int subgraph;
+	
+	for (subgraph = 1; subgraph <= nb_subgraphs; subgraph++)
+	{
+		ReebNode *node;
+		ReebNode *start_node = NULL;
+		
+		for (node = rg->nodes.first; node; node = node->next)
+		{
+			if (node->flag == subgraph)
+			{
+				if (start_node == NULL || node->weight < start_node->weight)
+				{
+					start_node = node;
+				}
+			}
+		}
+		
+		if (start_node)
+		{
+			reweightSubgraph(rg, start_node, start_node->weight);
+		}
+	}
+}
+
 int joinSubgraphs(ReebGraph *rg, float threshold)
 {
 	int nb_subgraphs;
@@ -1282,6 +1314,12 @@ int joinSubgraphs(ReebGraph *rg, float threshold)
 	
 	nb_subgraphs = BLI_FlagSubgraphs((BGraph*)rg);
 	
+	/* Harmonic function can create flipped arcs, take the occasion to fix them */
+	if (G.scene->toolsettings->skgen_options & SKGEN_HARMONIC)
+	{
+		fixSubgraphsOrientation(rg, nb_subgraphs);
+	}
+
 	if (nb_subgraphs > 1)
 	{
 		joined |= joinSubgraphsEnds(rg, threshold, nb_subgraphs);
