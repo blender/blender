@@ -105,6 +105,10 @@
 #define EXPP_TEX_LACUNARITY_MAX             6.0f
 #define EXPP_TEX_OCTS_MIN                   0.0f
 #define EXPP_TEX_OCTS_MAX                   8.0f
+#define EXPP_TEX_OFST_MIN                   0.0f
+#define EXPP_TEX_OFST_MAX                   6.0f
+#define EXPP_TEX_GAIN_MIN                   0.0f
+#define EXPP_TEX_GAIN_MAX                   6.0f
 #define EXPP_TEX_ISCALE_MIN                 0.0f
 #define EXPP_TEX_ISCALE_MAX                 10.0f
 #define EXPP_TEX_EXP_MIN                    0.010f
@@ -430,6 +434,8 @@ GETFUNC( getNoiseDepth );
 GETFUNC( getNoiseSize );
 GETFUNC( getNoiseType );
 GETFUNC( getOcts );
+GETFUNC( getOffset );
+GETFUNC( getGain );
 GETFUNC( getRepeat );
 GETFUNC( getRGBCol );
 GETFUNC( getSType );
@@ -478,6 +484,8 @@ SETFUNC( setNoiseDepth );
 SETFUNC( setNoiseSize );
 SETFUNC( setNoiseType );
 SETFUNC( setOcts );
+SETFUNC( setOffset );
+SETFUNC( setGain );
 SETFUNC( setRepeat );
 SETFUNC( setRGBCol );
 SETFUNC( setSType );
@@ -645,6 +653,14 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	{"lacunarity",
 	 (getter)Texture_getLacunarity, (setter)Texture_setLacunarity,
 	 "Gap between succesive frequencies (for Musgrave textures)",
+	 NULL},
+	{"offset",
+	 (getter)Texture_getOffset, (setter)Texture_setOffset,
+	 "Fractal offset (for Musgrave textures)",
+	 NULL},
+	{"gain",
+	 (getter)Texture_getGain, (setter)Texture_setGain,
+	 "Gain multiplier (for Musgrave textures)",
 	 NULL},
 	{"noiseBasis",
 	 (getter)Texture_getNoiseBasis, (setter)Texture_setNoiseBasis,
@@ -1837,6 +1853,20 @@ static int Texture_setLacunarity( BPy_Texture * self, PyObject * value )
 								EXPP_TEX_LACUNARITY_MAX );
 }
 
+static int Texture_setOffset( BPy_Texture * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->texture->mg_offset,
+								EXPP_TEX_OFST_MIN,
+								EXPP_TEX_OFST_MAX );
+}
+
+static int Texture_setGain( BPy_Texture * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->texture->mg_gain,
+								EXPP_TEX_GAIN_MIN,
+								EXPP_TEX_GAIN_MAX );
+}
+
 static int Texture_setOcts( BPy_Texture * self, PyObject * value )
 {
 	return EXPP_setFloatClamped ( value, &self->texture->mg_octaves,
@@ -2166,6 +2196,16 @@ static PyObject *Texture_getNoiseType( BPy_Texture *self )
 static PyObject *Texture_getOcts( BPy_Texture *self )
 {
 	return PyFloat_FromDouble( self->texture->mg_octaves );
+}
+
+static PyObject *Texture_getOffset( BPy_Texture *self )
+{
+	return PyFloat_FromDouble( self->texture->mg_offset );
+}
+
+static PyObject *Texture_getGain( BPy_Texture *self )
+{
+	return PyFloat_FromDouble( self->texture->mg_gain );
 }
 
 static PyObject *Texture_getRepeat( BPy_Texture *self )

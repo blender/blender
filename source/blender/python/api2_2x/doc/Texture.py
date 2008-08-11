@@ -344,6 +344,12 @@ class Texture:
 	@ivar octs:  Number of frequencies (for Musgrave textures).
 	Value is clamped to the range [0.0,8.0].
 	@type octs:  float
+	@ivar offset:  Fractal offset (for hetero terrain and multifractal Musgrave textures).
+	Value is clamped to the range [0.0,6.0].
+	@type offset:  float
+	@ivar gain:  Gain multiplier (for multifractal Musgrave textures).
+	Value is clamped to the range [0.0,6.0].
+	@type gain:  float
 	@ivar repeat:  Repetition multiplier (for image textures).
 	@type repeat:  tuple of 2 ints
 	@ivar rgbCol:  RGB color tuple.
