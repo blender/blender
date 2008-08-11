@@ -43,6 +43,10 @@
 #include <omp.h>
 #endif
 
+
+
+#define MAX_TREETYPE 32
+
 typedef struct BVHNode
 {
 	struct BVHNode **children;
@@ -71,6 +75,7 @@ typedef struct BVHOverlapData
 	BVHTree *tree1, *tree2; 
 	BVHTreeOverlap *overlap; 
 	int i, max_overlap; /* i is number of overlaps */
+	int start_axis, stop_axis;
 } BVHOverlapData;
 
 typedef struct BVHNearestData
@@ -489,7 +494,7 @@ static void verify_tree(BVHTree *tree)
 #endif
 
 //Helper data and structures to build a min-leaf generalized implicit tree
-//This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and sutff like that)
+//This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that)
 typedef struct BVHBuildHelper
 {
 	int tree_type;				//
@@ -647,7 +652,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 			int k;
 			const int parent_level_index= j-i;
 			BVHNode* parent = branches_array + j;
-			int nth_positions[ tree_type + 1 ];
+			int nth_positions[ MAX_TREETYPE + 1];
 			char split_axis;
 
 			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
@@ -711,6 +716,9 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	
 	// theres not support for trees below binary-trees :P
 	if(tree_type < 2)
+		return NULL;
+	
+	if(tree_type > MAX_TREETYPE)
 		return NULL;
 
 	tree = (BVHTree *)MEM_callocN(sizeof(BVHTree), "BVHTree");
@@ -904,7 +912,7 @@ void BLI_bvhtree_update_tree(BVHTree *tree)
 	BVHNode** root  = tree->nodes + tree->totleaf;
 	BVHNode** index = tree->nodes + tree->totleaf + tree->totbranch-1;
 
-	for (; index != root; index--)
+	for (; index >= root; index--)
 		node_join(tree, *index);
 }
 
@@ -942,7 +950,7 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 {
 	int j;
 	
-	if(tree_overlap(node1, node2, MIN2(data->tree1->start_axis, data->tree2->start_axis), MIN2(data->tree1->stop_axis, data->tree2->stop_axis)))
+	if(tree_overlap(node1, node2, data->start_axis, data->stop_axis))
 	{
 		// check if node1 is a leaf
 		if(!node1->totnode)
@@ -1023,6 +1031,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 		data[j]->tree2 = tree2;
 		data[j]->max_overlap = MAX2(tree1->totleaf, tree2->totleaf);
 		data[j]->i = 0;
+		data[j]->start_axis = MIN2(tree1->start_axis, tree2->start_axis);
+		data[j]->stop_axis  = MIN2(tree1->stop_axis,  tree2->stop_axis );
 	}
 
 #pragma omp parallel for private(j) schedule(static)

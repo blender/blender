@@ -545,6 +545,8 @@ Tex *copy_texture(Tex *tex)
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= 0;
 	
+	id_us_plus((ID *)texn->ipo);
+	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
 		open_plugin_tex(texn->plugin);

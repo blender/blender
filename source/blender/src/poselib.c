@@ -312,7 +312,7 @@ void poselib_add_current_pose (Object *ob, int val)
 	/* mode - add new or replace existing */
 	if (val == 0) {
 		if ((ob->poselib) && (ob->poselib->markers.first)) {
-			val= pupmenu("PoseLib Add Current Pose%t|Add New%x1|Replace Existing%x2");
+			val= pupmenu("PoseLib Add Current Pose%t|Add New%x1|Add New (Current Frame)%x3|Replace Existing%x2");
 			if (val <= 0) return;
 		}
 		else 
@@ -347,7 +347,10 @@ void poselib_add_current_pose (Object *ob, int val)
 		act= poselib_validate(ob);
 		
 		/* get frame */
-		frame= poselib_get_free_index(act);
+		if (val == 3)
+			frame= CFRA;
+		else /* if (val == 1) */
+			frame= poselib_get_free_index(act);
 		
 		/* add pose to poselib - replaces any existing pose there */
 		for (marker= act->markers.first; marker; marker= marker->next) {
