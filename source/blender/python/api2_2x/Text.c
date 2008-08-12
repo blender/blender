@@ -100,7 +100,7 @@ static PyObject *Text_write( BPy_Text * self, PyObject * value );
 static PyObject *Text_insert( BPy_Text * self, PyObject * value );
 static PyObject *Text_delete( BPy_Text * self, PyObject * value );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
-static PyObject *Text_asLines( BPy_Text * self );
+static PyObject *Text_asLines( BPy_Text * self, PyObject * args );
 static PyObject *Text_getCursorPos( BPy_Text * self );
 static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args );
 static PyObject *Text_getSelectPos( BPy_Text * self );
@@ -136,8 +136,8 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "(chars) - Deletes a number of characters to the left (chars<0) or right (chars>0)"},
 	{"set", ( PyCFunction ) Text_set, METH_VARARGS,
 	 "(name, val) - Set attribute 'name' to value 'val'"},
-	{"asLines", ( PyCFunction ) Text_asLines, METH_NOARGS,
-	 "() - Return text buffer as a list of lines"},
+	{"asLines", ( PyCFunction ) Text_asLines, METH_VARARGS,
+	 "(start=0, end=nlines) - Return text buffer as a list of lines between start and end"},
 	{"getCursorPos", ( PyCFunction ) Text_getCursorPos, METH_NOARGS,
 	 "() - Return cursor position as (row, col) tuple"},
 	{"setCursorPos", ( PyCFunction ) Text_setCursorPos, METH_VARARGS,
@@ -377,8 +377,8 @@ PyObject *Text_CreatePyObject( Text * txt )
 					      "couldn't create BPy_Text PyObject" );
 
 	pytxt->text = txt;
-	pytxt->iol = 0;
-	pytxt->ioc = 0;
+	pytxt->iol = NULL;
+	pytxt->ioc = -1;
 
 	return ( PyObject * ) pytxt;
 }
@@ -430,8 +430,8 @@ static PyObject *Text_clear( BPy_Text * self)
 
 static PyObject *Text_reset( BPy_Text * self )
 {
-	self->iol = 0;
-	self->ioc = 0;
+	self->iol = NULL;
+	self->ioc = -1;
 
 	Py_RETURN_NONE;
 }
@@ -439,29 +439,33 @@ static PyObject *Text_reset( BPy_Text * self )
 static PyObject *Text_readline( BPy_Text * self )
 {
 	PyObject *tmpstr;
-	TextLine *line;
-	int i;
 	
 	if( !self->text )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "This object isn't linked to a Blender Text Object" );
 
-	for (i=0, line=self->text->lines.first; i<self->iol && line; i++, line=line->next);
+	/* Reset */
+	if (!self->iol && self->ioc == -1) {
+		self->iol = self->text->lines.first;
+		self->ioc = 0;
+	}
 
-	if (!line) {
+	if (!self->iol) {
 		PyErr_SetString( PyExc_StopIteration, "End of buffer reached" );
 		return PyString_FromString( "" );
 	}
 
-	if (self->ioc > line->len)
+	if (self->ioc > self->iol->len) {
+		self->iol = NULL;
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						  "Line length exceeded, text may have changed while reading" );
+	}
 
-	tmpstr = PyString_FromString( line->line + self->ioc );
-	if (line->next)
+	tmpstr = PyString_FromString( self->iol->line + self->ioc );
+	if (self->iol->next)
 		PyString_ConcatAndDel( &tmpstr, PyString_FromString("\n") );
 
-	self->iol++;
+	self->iol = self->iol->next;
 	self->ioc = 0;
 
 	return tmpstr;
@@ -485,6 +489,8 @@ static PyObject *Text_write( BPy_Text * self, PyObject * value )
 	txt_move_eof( self->text, 0 );
 	txt_set_undostate( oldstate );
 
+	Text_reset( self );
+
 	Py_RETURN_NONE;
 }
 
@@ -504,6 +510,8 @@ static PyObject *Text_insert( BPy_Text * self, PyObject * value )
 	oldstate = txt_get_undostate(  );
 	txt_insert_buf( self->text, str );
 	txt_set_undostate( oldstate );
+
+	Text_reset( self );
 
 	Py_RETURN_NONE;
 }
@@ -531,6 +539,8 @@ static PyObject *Text_delete( BPy_Text * self, PyObject * value )
 		num--;
 	}
 	txt_set_undostate( oldstate );
+	
+	Text_reset( self );
 
 	Py_RETURN_NONE;
 }
@@ -554,27 +564,39 @@ static PyObject *Text_set( BPy_Text * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Text_asLines( BPy_Text * self )
+static PyObject *Text_asLines( BPy_Text * self, PyObject * args )
 {
 	TextLine *line;
 	PyObject *list, *tmpstr;
+	int start=0, end=-1, i;
 
 	if( !self->text )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "This object isn't linked to a Blender Text Object" );
 
+	if( !PyArg_ParseTuple( args, "|ii", &start, &end ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+							  "expected upto two optional ints as arguments" );
+	
+	if (start<0)
+		start=0;
+
 	line = self->text->lines.first;
+	for (i = 0; i < start && line->next; i++)
+		line= line->next;
+
 	list = PyList_New( 0 );
 
 	if( !list )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create PyList" );
 
-	while( line ) {
+	while( line && (i < end || end == -1) ) {
 		tmpstr = PyString_FromString( line->line );
 		PyList_Append( list, tmpstr );
 		Py_DECREF(tmpstr);
 		line = line->next;
+		i++;
 	}
 
 	return list;

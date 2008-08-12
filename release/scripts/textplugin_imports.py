@@ -49,9 +49,7 @@ def main():
 	immediate = True
 	pos += 5
 	for i in range(pos, c):
-		if line[i]=='.':
-			pos = i+1
-		elif not line[i].isalnum() and line[i] != '_':
+		if not line[i].isalnum() and line[i] != '_' and line[i] != '.':
 			immediate = False
 			break
 	
@@ -59,7 +57,7 @@ def main():
 	if immediate:
 		items = [(m, 'm') for m in get_modules()]
 		items.sort(cmp = suggest_cmp)
-		txt.suggest(items, '')
+		txt.suggest(items, line[pos:c])
 		return
 	
 	# Found 'from' earlier, suggest import if not already there

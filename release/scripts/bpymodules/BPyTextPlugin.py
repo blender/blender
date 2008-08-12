@@ -449,7 +449,7 @@ def parse_text(txt):
 	desc.set_time()
 	
 	global _parse_cache
-	_parse_cache[hash(txt.name)] = desc
+	_parse_cache[hash(txt)] = desc
 	return desc
 
 def get_modules(since=1):
@@ -511,9 +511,12 @@ def get_context(txt):
 	
 	"""
 	
-	global CTX_NORMAL, CTX_SINGLE_QUOTE, CTX_DOUBLE_QUOTE, CTX_COMMENT
 	l, cursor = txt.getCursorPos()
-	lines = txt.asLines()[:l+1]
+	lines = txt.asLines(0, l+1)
+	
+	# FIXME: This method is too slow in large files for it to be called as often
+	# as it is. So for lines below the 1000th line we do this... (quorn)
+	if l > 1000: return CTX_NORMAL
 	
 	# Detect context (in string or comment)
 	in_str = CTX_NORMAL

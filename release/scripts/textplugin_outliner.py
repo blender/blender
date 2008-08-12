@@ -30,23 +30,27 @@ def make_menu(items, eventoffs):
 				letters.append(c)
 				break
 	
-	dict = {}
+	entries = {}
 	i = 0
 	for item in items:
 		i += 1
 		c = item[0].lower()
-		if not dict.has_key(c): dict[c] = []
-		dict[c].append((item, i+eventoffs))
+		entries.setdefault(c, []).append((item, i+eventoffs))
 	
 	subs = []
 	for c in letters:
-		subs.append((c, dict[c]))
+		subs.append((c, entries[c]))
 	
 	return subs
 
 def find_word(txt, word):
 	i = 0
-	for line in txt.asLines():
+	txt.reset()
+	while True:
+		try:
+			line = txt.readline()
+		except StopIteration:
+			break
 		c = line.find(word)
 		if c != -1:
 			txt.setCursorPos(i, c)

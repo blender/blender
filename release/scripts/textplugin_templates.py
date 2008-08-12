@@ -49,7 +49,7 @@ def main():
 		return
 	
 	row, c = txt.getCursorPos()
-	line = txt.asLines()[row]
+	line = txt.asLines(row, row+1)[0]
 	indent=0
 	while indent<c and (line[indent]==' ' or line[indent]=='\t'):
 		indent += 1

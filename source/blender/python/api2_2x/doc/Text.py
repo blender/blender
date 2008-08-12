@@ -108,7 +108,8 @@ class Text:
 	def readline():
 		"""
 		Reads a line of text from the buffer from the current IO pointer
-		position to the end of the line.
+		position to the end of the line. If the text has changed since the last
+		read, reset() *must* be called.
 		@rtype: string
 		"""
 
@@ -137,11 +138,19 @@ class Text:
 		@param data:  The string to insert into the text buffer.
 		"""
 
-	def asLines():
+	def asLines(start=0, end=-1):
 		"""
-		Retrieve the contents of this Text buffer as a list of strings.
+		Retrieve the contents of this Text buffer as a list of strings between
+		the start and end lines specified. If end < 0 all lines from start will
+		be included.
+		@type start int
+		@param start:  Optional index of first line of the span to return
+		@type end int
+		@param end:  Optional index of the line to which the span is taken or
+			-1 to include all lines from start
 		@rtype: list of strings
-		@return:  A list of strings, one for each line in the buffer
+		@return:  A list of strings, one for each line in the buffer between 
+			start and end.
 		"""
 
 	def getCursorPos():
@@ -154,7 +163,29 @@ class Text:
 
 	def setCursorPos(row, col):
 		"""
-		Set the position of the cursor in this Text buffer.
+		Set the position of the cursor in this Text buffer. Any selection will
+		be cleared. Use setSelectPos to extend a selection from the point
+		specified here.
+		@type row: int
+		@param row:  The index of the line in which to position the cursor.
+		@type col: int
+		@param col:  The index of the character within the line to position the
+			cursor.
+		"""
+
+	def getSelectPos():
+		"""
+		Retrieve the position of the selection cursor in this Text buffer.
+		@rtype: (int, int)
+		@return:  A pair (row, col) indexing the line and character of the
+			selection cursor.
+		"""
+
+	def setSelectPos(row, col):
+		"""
+		Set the position of the selection cursor in this Text buffer. This
+		method should be called after setCursorPos to extend the selection to
+		the specified point.
 		@type row: int
 		@param row:  The index of the line in which to position the cursor.
 		@type col: int
@@ -180,7 +211,7 @@ class Text:
 			the list. This is usually whatever precedes the cursor so that
 			backspace will update it.
 		"""
-	
+
 	def showDocs(docs):
 		"""
 		Displays a word-wrapped message box containing the specified

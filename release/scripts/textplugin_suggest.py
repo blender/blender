@@ -66,6 +66,7 @@ def main():
 	# Otherwise we suggest globals, keywords, etc.
 	list = []
 	pre = get_targets(line, c)
+	desc = get_cached_descriptor(txt)
 	
 	for k in KEYWORDS:
 		list.append((k, 'k'))
@@ -73,13 +74,16 @@ def main():
 	for k, v in get_builtins().items():
 		list.append((k, type_char(v)))
 	
-	for k, v in get_imports(txt).items():
+	for k, v in desc.imports.items():
 		list.append((k, type_char(v)))
 	
-	for k, v in get_defs(txt).items():
+	for k, v in desc.classes.items():
 		list.append((k, 'f'))
 	
-	for k in get_vars(txt):
+	for k, v in desc.defs.items():
+		list.append((k, 'f'))
+	
+	for k, v in desc.vars.items():
 		list.append((k, 'v'))
 	
 	list.sort(cmp = suggest_cmp)
