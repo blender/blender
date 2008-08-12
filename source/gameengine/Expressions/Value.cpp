@@ -700,9 +700,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 	CValue* vallie = NULL;
 
-	PyTypeObject* type = pyobj->ob_type;
-
-	if (type == &PyList_Type)
+	if (PyList_Check(pyobj))
 	{
 		CListValue* listval = new CListValue();
 		bool error = false;
@@ -732,26 +730,25 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		}
 
 	} else
-	if (type == &PyFloat_Type)
+	if (PyFloat_Check(pyobj))
 	{
-		float fl;
-		PyArg_Parse(pyobj,"f",&fl);
-		vallie = new CFloatValue(fl);
+		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
 	} else
-	if (type==&PyInt_Type)
+	if (PyInt_Check(pyobj))
 	{
-		int innie;
-		PyArg_Parse(pyobj,"i",&innie);
-		vallie = new CIntValue(innie);
+		vallie = new CIntValue( (int)PyInt_AS_LONG(pyobj) );
 	} else
-	
-	if (type==&PyString_Type)
+	if (PyString_Check(pyobj))
 	{
 		vallie = new CStringValue(PyString_AsString(pyobj),"");
 	} else
-	if (type==&CValue::Type || type==&CListValue::Type)
+	if (pyobj->ob_type==&CValue::Type || pyobj->ob_type==&CListValue::Type)
 	{
 		vallie = ((CValue*) pyobj)->AddRef();
+	} else
+	{
+		/* return an error value from the caller */
+		PyErr_SetString(PyExc_TypeError, "This python value could not be assigned to a game engine property");
 	}
 	return vallie;
 
@@ -778,6 +775,9 @@ int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 			SetProperty(attr,vallie);
 		}
 		vallie->Release();
+	} else
+	{
+		return 1; /* ConvertPythonToValue sets the error message */
 	}
 	
 	//PyObjectPlus::_setattr(attr,value);
