@@ -145,11 +145,9 @@ static struct _inittab BPy_Inittab_Modules[] = {
 * Structure definitions	
 **************************************************************************/
 #define FILENAME_LENGTH 24
-#define MESSAGE_LENGTH 256
 
 typedef struct _ScriptError {
 	char filename[FILENAME_LENGTH];
-	char message[MESSAGE_LENGTH+1];
 	int lineno;
 } ScriptError;
 
@@ -510,15 +508,6 @@ const char *BPY_Err_getFilename( void )
 }
 
 /*****************************************************************************/
-/* Description: This function will return the short message of the error     */
-/* that has occured in the python script.                                    */
-/*****************************************************************************/
-const char *BPY_Err_getMessage( void )
-{
-	return g_script_error.message;
-}
-
-/*****************************************************************************/
 /* Description: Return PyString filename from a traceback object	    */
 /*****************************************************************************/
 PyObject *traceback_getFilename( PyObject * tb )
@@ -577,15 +566,6 @@ void BPY_Err_Handle( char *script_name )
 		} else {
 			g_script_error.lineno = -1;
 		}
-		v = PyObject_GetAttrString( err, "text" );
-		if ( v && PyString_Check(v) ) {
-			strcpy(g_script_error.message, "Invalid syntax: ");
-			strncpy(g_script_error.message+16, PyString_AS_STRING( v ), MESSAGE_LENGTH-16);
-			g_script_error.message[MESSAGE_LENGTH]= '\0';
-			Py_DECREF( v );
-		} else {
-			strcpy(g_script_error.message, "Invalid Syntax");
-		}
 		/* this avoids an abort in Python 2.3's garbage collecting: */
 		PyErr_Clear(  );
 		return;
@@ -631,14 +611,6 @@ void BPY_Err_Handle( char *script_name )
 			strncpy( g_script_error.filename, PyString_AsString( v ),
 				FILENAME_LENGTH );
 			Py_DECREF(v);
-		}
-		v = PyObject_GetAttrString( err, "message" );
-		if ( v && PyString_Check(v) ) {
-			strncpy(g_script_error.message, PyString_AS_STRING( v ), MESSAGE_LENGTH);
-			g_script_error.message[MESSAGE_LENGTH]= '\0';
-			Py_DECREF( v );
-		} else {
-			g_script_error.message[0] = '\0';
 		}
 		Py_DECREF( tb );
 	}

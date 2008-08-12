@@ -2036,18 +2036,6 @@ void txt_find_panel(SpaceText *st, int again, int flags)
 	}
 }
 
-static void txt_print_error(SpaceText *st, char* str)
-{
-	if (curarea->spacetype != SPACE_TEXT) return;
-	drawtextspace(curarea, st);
-	glColor3ub(128, 16, 16);
-	glRecti(22, curarea->winy-2, curarea->winx-2, curarea->winy-st->lheight-3);
-	glColor3ub(255, 32, 32);
-	glRasterPos2i(22, curarea->winy-st->lheight);
-	BMF_DrawString(spacetext_get_font(st), str);
-	curarea->win_swap= WIN_BACK_OK;
-}
-
 void run_python_script(SpaceText *st)
 {
 	char *py_filename;
@@ -2063,17 +2051,16 @@ void run_python_script(SpaceText *st)
 		if (!st->text) return;
 
 		if (!strcmp(py_filename, st->text->id.name+2)) {
-			//error_pyscript(  );
+			error_pyscript(  );
 			if (lineno >= 0) {
 				txt_move_toline(text, lineno-1, 0);
 				txt_sel_line(text);
 				pop_space_text(st);
-			}
-			txt_print_error(st, BPY_Err_getMessage());
+			}	
 		} else {
 			error("Error in other (possibly external) file, "\
 				"check console");
-		}
+		}	
 	}
 }
 
@@ -2907,6 +2894,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PKEY:
 			if (G.qual == LR_ALTKEY) {
 				run_python_script(st);
+				do_draw= 1;
 			}
 			break; /* BREAK P */
 		case QKEY:
