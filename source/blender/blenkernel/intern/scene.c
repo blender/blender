@@ -252,6 +252,21 @@ Scene *add_scene(char *name)
 	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
 
+	sce->toolsettings->skgen_resolution = 100;
+	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+	sce->toolsettings->skgen_threshold_external 	= 0.01f;
+	sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+	sce->toolsettings->skgen_length_ratio			= 1.3f;
+	sce->toolsettings->skgen_length_limit			= 1.5f;
+	sce->toolsettings->skgen_correlation_limit		= 0.98f;
+	sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+	sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+	sce->toolsettings->skgen_postpro_passes = 1;
+	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_HARMONIC|SKGEN_SUB_CORRELATION|SKGEN_STICK_TO_EMBEDDING;
+	sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+
 	pset= &sce->toolsettings->particle;
 	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
 	pset->emitterdist= 0.25f;
