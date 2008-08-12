@@ -48,9 +48,6 @@
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
-static float nearest_point_in_tri_surface(const float *point, const float *v0, const float *v1, const float *v2, float *nearest);
-
-#define ISECT_EPSILON 1e-6
 static float ray_tri_intersection(const BVHTreeRay *ray, const float m_dist, const float *v0, const float *v1, const float *v2)
 {
 	float dist;
@@ -79,170 +76,324 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
 	return FLT_MAX;
 }
 
+
 /*
- * This calculates the distance from point to the plane
- * Distance is negative if point is on the back side of plane
+ * Function adapted from David Eberly's distance tools (LGPL)
+ * http://www.geometrictools.com/LibFoundation/Distance/Distance.html
  */
-static float point_plane_distance(const float *point, const float *plane_point, const float *plane_normal)
+static float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *d, float *nearest )
 {
-	float pp[3];
-	VECSUB(pp, point, plane_point);
-	return INPR(pp, plane_normal);
-}
-static float choose_nearest(const float v0[2], const float v1[2], const float point[2], float closest[2])
-{
-	float d[2][2], sdist[2];
-	VECSUB2D(d[0], v0, point);
-	VECSUB2D(d[1], v1, point);
+	float diff[3];
+	float e0[3];
+	float e1[3];
+	float A00;
+	float A01;
+	float A11;
+	float B0;
+	float B1;
+	float C;
+	float Det;
+	float S;
+	float T;
+	float sqrDist;
+	int lv = -1, le = -1;
+	
+	VECSUB(diff, v0, p);
+	VECSUB(e0, v1, v0);
+	VECSUB(e1, v2, v0);
+	
+	A00 = INPR ( e0, e0 );
+	A01 = INPR( e0, e1 );
+	A11 = INPR ( e1, e1 );
+	B0 = INPR( diff, e0 );
+	B1 = INPR( diff, e1 );
+	C = INPR( diff, diff );
+	Det = fabs( A00 * A11 - A01 * A01 );
+	S = A01 * B1 - A11 * B0;
+	T = A01 * B0 - A00 * B1;
 
-	sdist[0] = d[0][0]*d[0][0] + d[0][1]*d[0][1];
-	sdist[1] = d[1][0]*d[1][0] + d[1][1]*d[1][1];
-
-	if(sdist[0] < sdist[1])
+	if ( S + T <= Det )
 	{
-		if(closest)
-			VECCOPY2D(closest, v0);
-		return sdist[0];
+		if ( S < 0.0f )
+		{
+			if ( T < 0.0f )  // Region 4
+			{
+				if ( B0 < 0.0f )
+				{
+					T = 0.0f;
+					if ( -B0 >= A00 )
+					{
+						S = (float)1.0;
+						sqrDist = A00 + 2.0f * B0 + C;
+						lv = 1;
+					}
+					else
+					{
+						if(fabs(A00) > FLT_EPSILON)
+							S = -B0/A00;
+						else
+							S = 0.0f;
+						sqrDist = B0 * S + C;
+						le = 0;
+					}
+				}
+				else
+				{
+					S = 0.0f;
+					if ( B1 >= 0.0f )
+					{
+						T = 0.0f;
+						sqrDist = C;
+						lv = 0;
+					}
+					else if ( -B1 >= A11 )
+					{
+						T = 1.0f;
+						sqrDist = A11 + 2.0f * B1 + C;
+						lv = 2;
+					}
+					else
+					{
+						if(fabs(A11) > FLT_EPSILON)
+							T = -B1 / A11;
+						else
+							T = 0.0f;
+						sqrDist = B1 * T + C;
+						le = 1;
+					}
+				}
+			}
+			else  // Region 3
+			{
+				S = 0.0f;
+				if ( B1 >= 0.0f )
+				{
+					T = 0.0f;
+					sqrDist = C;
+					lv = 0;
+				}
+				else if ( -B1 >= A11 )
+				{
+					T = 1.0f;
+					sqrDist = A11 + 2.0f * B1 + C;
+					lv = 2;
+				}
+				else
+				{
+					if(fabs(A11) > FLT_EPSILON)
+						T = -B1 / A11;
+					else
+						T = 0.0;
+					sqrDist = B1 * T + C;
+					le = 1;
+				}
+			}
+		}
+		else if ( T < 0.0f )  // Region 5
+		{
+			T = 0.0f;
+			if ( B0 >= 0.0f )
+			{
+				S = 0.0f;
+				sqrDist = C;
+				lv = 0;
+			}
+			else if ( -B0 >= A00 )
+			{
+				S = 1.0f;
+				sqrDist = A00 + 2.0f * B0 + C;
+				lv = 1;
+			}
+			else
+			{
+				if(fabs(A00) > FLT_EPSILON)
+					S = -B0 / A00;
+				else
+					S = 0.0f;
+				sqrDist = B0 * S + C;
+				le = 0;
+			}
+		}
+		else  // Region 0
+		{
+            // Minimum at interior lv
+			float invDet;
+			if(fabs(Det) > FLT_EPSILON)
+				invDet = 1.0f / Det;
+			else
+				invDet = 0.0f;
+			S *= invDet;
+			T *= invDet;
+			sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0) +
+					T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+		}
 	}
 	else
 	{
-		if(closest)
-			VECCOPY2D(closest, v1);
-		return sdist[1];
-	}
-}
-/*
- * calculates the closest point between point-tri (2D)
- * returns that tri must be right-handed
- * Returns square distance
- */
-static float closest_point_in_tri2D(const float point[2], /*const*/ float tri[3][2], float closest[2])
-{
-	float edge_di[2];
-	float v_point[2];
-	float proj[2];					//point projected over edge-dir, edge-normal (witouth normalized edge)
-	const float *v0 = tri[2], *v1;
-	float edge_slen, d;				//edge squared length
-	int i;
-	const float *nearest_vertex = NULL;
+		float tmp0, tmp1, numer, denom;
 
-
-	//for each edge
-	for(i=0, v0=tri[2], v1=tri[0]; i < 3; v0=tri[i++], v1=tri[i])
-	{
-		VECSUB2D(edge_di,    v1, v0);
-		VECSUB2D(v_point, point, v0);
-
-		proj[1] =  v_point[0]*edge_di[1] - v_point[1]*edge_di[0];	//dot product with edge normal
-
-		//point inside this edge
-		if(proj[1] < 0)
-			continue;
-
-		proj[0] = v_point[0]*edge_di[0] + v_point[1]*edge_di[1];
-
-		//closest to this edge is v0
-		if(proj[0] < 0)
+		if ( S < 0.0f )  // Region 2
 		{
-			if(nearest_vertex == NULL || nearest_vertex == v0)
-				nearest_vertex = v0;
+			tmp0 = A01 + B0;
+			tmp1 = A11 + B1;
+			if ( tmp1 > tmp0 )
+			{
+				numer = tmp1 - tmp0;
+				denom = A00 - 2.0f * A01 + A11;
+				if ( numer >= denom )
+				{
+					S = 1.0f;
+					T = 0.0f;
+					sqrDist = A00 + 2.0f * B0 + C;
+					lv = 1;
+				}
+				else
+				{
+					if(fabs(denom) > FLT_EPSILON)
+						S = numer / denom;
+					else
+						S = 0.0f;
+					T = 1.0f - S;
+					sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0 ) +
+							T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+					le = 2;
+				}
+			}
 			else
 			{
-				//choose nearest
-				return choose_nearest(nearest_vertex, v0, point, closest);
+				S = 0.0f;
+				if ( tmp1 <= 0.0f )
+				{
+					T = 1.0f;
+					sqrDist = A11 + 2.0f * B1 + C;
+					lv = 2;
+				}
+				else if ( B1 >= 0.0f )
+				{
+					T = 0.0f;
+					sqrDist = C;
+					lv = 0;
+				}
+				else
+				{
+					if(fabs(A11) > FLT_EPSILON)
+						T = -B1 / A11;
+					else
+						T = 0.0f;
+					sqrDist = B1 * T + C;
+					le = 1;
+				}
 			}
-			i++;	//We can skip next edge
-			continue;
 		}
-
-		edge_slen = edge_di[0]*edge_di[0] + edge_di[1]*edge_di[1];	//squared edge len
-		//closest to this edge is v1
-		if(proj[0] > edge_slen)
+		else if ( T < 0.0f )  // Region 6
 		{
-			if(nearest_vertex == NULL || nearest_vertex == v1)
-				nearest_vertex = v1;
+			tmp0 = A01 + B1;
+			tmp1 = A00 + B0;
+			if ( tmp1 > tmp0 )
+			{
+				numer = tmp1 - tmp0;
+				denom = A00 - 2.0f * A01 + A11;
+				if ( numer >= denom )
+				{
+					T = 1.0f;
+					S = 0.0f;
+					sqrDist = A11 + 2.0f * B1 + C;
+					lv = 2;
+				}
+				else
+				{
+					if(fabs(denom) > FLT_EPSILON)
+						T = numer / denom;
+					else
+						T = 0.0f;
+					S = 1.0f - T;
+					sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0 ) +
+							T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+					le = 2;
+				}
+			}
 			else
 			{
-				return choose_nearest(nearest_vertex, v1, point, closest);
+				T = 0.0f;
+				if ( tmp1 <= 0.0f )
+				{
+					S = 1.0f;
+					sqrDist = A00 + 2.0f * B0 + C;
+					lv = 1;
+				}
+				else if ( B0 >= 0.0f )
+				{
+					S = 0.0f;
+					sqrDist = C;
+					lv = 0;
+				}
+				else
+				{
+					if(fabs(A00) > FLT_EPSILON)
+						S = -B0 / A00;
+					else
+						S = 0.0f;
+					sqrDist = B0 * S + C;
+					le = 0;
+				}
 			}
-			continue;
 		}
-
-		//nearest is on this edge
-		d= proj[1] / edge_slen;
-		closest[0] = point[0] - edge_di[1] * d;
-		closest[1] = point[1] + edge_di[0] * d;
-
-		return proj[1]*proj[1]/edge_slen;
+		else  // Region 1
+		{
+			numer = A11 + B1 - A01 - B0;
+			if ( numer <= 0.0f )
+			{
+				S = 0.0f;
+				T = 1.0f;
+				sqrDist = A11 + 2.0f * B1 + C;
+				lv = 2;
+			}
+			else
+			{
+				denom = A00 - 2.0f * A01 + A11;
+				if ( numer >= denom )
+				{
+					S = 1.0f;
+					T = 0.0f;
+					sqrDist = A00 + 2.0f * B0 + C;
+					lv = 1;
+				}
+				else
+				{
+					if(fabs(denom) > FLT_EPSILON)
+						S = numer / denom;
+					else
+						S = 0.0f;
+					T = 1.0f - S;
+					sqrDist = S * ( A00 * S + A01 * T + 2.0f * B0 ) +
+							T * ( A01 * S + A11 * T + 2.0f * B1 ) + C;
+					le = 2;
+				}
+			}
+		}
 	}
 
-	if(nearest_vertex)
+	// Account for numerical round-off error
+	if ( sqrDist < FLT_EPSILON )
+		sqrDist = 0.0f;
+	
 	{
-		VECSUB2D(v_point, nearest_vertex, point);
-		VECCOPY2D(closest, nearest_vertex);
-		return v_point[0]*v_point[0] + v_point[1]*v_point[1];
+		float w[3], x[3], y[3], z[3];
+		VECCOPY(w, v0);
+		VECCOPY(x, e0);
+		VecMulf(x, S);
+		VECCOPY(y, e1);
+		VecMulf(y, T);
+		VECADD(z, w, x);
+		VECADD(z, z, y);
+		VECSUB(d, p, z);
+		VECCOPY(nearest, z);
+		// d = p - ( v0 + S * e0 + T * e1 );
 	}
-	else
-	{
-		VECCOPY(closest, point);	//point is already inside
-		return 0.0f;
-	}
-}
+	*v = lv;
+	*e = le;
 
-/*
- * Returns the square of the minimum distance between the point and a triangle surface
- * If nearest is not NULL the nearest surface point is written on it
- */
-static float nearest_point_in_tri_surface(const float *point, const float *v0, const float *v1, const float *v2, float *nearest)
-{
-	//Lets solve the 2D problem (closest point-tri)
-	float normal_dist, plane_sdist, plane_offset;
-	float du[3], dv[3], dw[3];	//orthogonal axis (du=(v0->v1), dw=plane normal)
-
-	float p_2d[2], tri_2d[3][2], nearest_2d[2];
-
-	CalcNormFloat((float*)v0, (float*)v1, (float*)v2, dw);
-
-	//point-plane distance and calculate axis
-	normal_dist = point_plane_distance(point, v0, dw);
-
-	// OPTIMIZATION
-	//	if we are only interested in nearest distance if its closer than some distance already found
-	//  we can:
-	//		if(normal_dist*normal_dist >= best_dist_so_far) return FLOAT_MAX;
-	//
-
-	VECSUB(du, v1, v0);
-	Normalize(du);
-	Crossf(dv, dw, du);
-	plane_offset = INPR(v0, dw);
-
-	//project stuff to 2d
-	tri_2d[0][0] = INPR(du, v0);
-	tri_2d[0][1] = INPR(dv, v0);
-
-	tri_2d[1][0] = INPR(du, v1);
-	tri_2d[1][1] = INPR(dv, v1);
-
-	tri_2d[2][0] = INPR(du, v2);
-	tri_2d[2][1] = INPR(dv, v2);
-
-	p_2d[0] = INPR(du, point);
-	p_2d[1] = INPR(dv, point);
-
-	//we always have a right-handed tri
-	//this should always happen because of the way normal is calculated
-	plane_sdist = closest_point_in_tri2D(p_2d, tri_2d, nearest_2d);
-
-	//project back to 3d
-	if(nearest)
-	{
-		nearest[0] = du[0]*nearest_2d[0] + dv[0] * nearest_2d[1] + dw[0] * plane_offset;
-		nearest[1] = du[1]*nearest_2d[0] + dv[1] * nearest_2d[1] + dw[1] * plane_offset;
-		nearest[2] = du[2]*nearest_2d[0] + dv[2] * nearest_2d[1] + dw[2] * plane_offset;
-	}
-
-	return plane_sdist + normal_dist*normal_dist;
+	return sqrDist;
 }
 
 
@@ -267,23 +418,16 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float *co,
 	
 	do
 	{	
-		float nearest_tmp[3], dist;
-		float vec[3][3];
+		float nearest_tmp[3], col_normal[3], dist;
+		int vertex, edge;
 		
-		// only insert valid triangles / quads with area > 0
-		VECSUB(vec[0], t2, t1);
-		VECSUB(vec[1], t0, t1);
-		Crossf(vec[2], vec[0], vec[1]);
-		if(INPR(vec[2], vec[2]) >= FLT_EPSILON)
+		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, col_normal, nearest_tmp);
+		if(dist < nearest->dist)
 		{
-			dist = nearest_point_in_tri_surface(co,t0, t1, t2, nearest_tmp);
-			if(dist < nearest->dist)
-			{
-				nearest->index = index;
-				nearest->dist = dist;
-				VECCOPY(nearest->co, nearest_tmp);
-				CalcNormFloat((float*)t0, (float*)t1, (float*)t2, nearest->no); //TODO.. (interpolate normals from the vertexs coordinates?
-			}
+			nearest->index = index;
+			nearest->dist = dist;
+			VECCOPY(nearest->co, nearest_tmp);
+			VECCOPY(nearest->no, col_normal);
 		}
 
 		t1 = t2;
