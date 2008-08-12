@@ -19,6 +19,13 @@
 #include <vector>
 #define mvmFloat double
 
+#ifdef WIN32
+#ifndef FREE_WINDOWS
+#define isnan(n) _isnan(n)
+#define finite _finite
+#endif
+#endif
+
 // weight and triangle index
 class mvmIndexWeight {
 	public:

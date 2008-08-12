@@ -37,6 +37,9 @@
 #ifdef WIN32
 #include "winsock2.h"
 #include "BLI_winstuff.h"
+#ifndef INT_MAX
+#include "limits.h"
+#endif
 #endif
 
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
