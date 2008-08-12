@@ -290,7 +290,7 @@ typedef struct SpaceText {
 
 	struct rcti txtscroll, txtbar;
 
-	int wordwrap, pad1;
+	int wordwrap, doplugins;
 
 } SpaceText;
 

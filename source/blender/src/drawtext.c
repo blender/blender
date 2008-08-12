@@ -2250,7 +2250,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 	if (!texttool_text_is_active(st->text)) return 0;
 	if (!st->text || st->text->id.lib) return 0;
 
-	if (st->showsyntax && texttool_text_is_active(st->text)) {
+	if (st->doplugins && texttool_text_is_active(st->text)) {
 		if (texttool_suggest_first()) tools |= TOOL_SUGG_LIST;
 		if (texttool_docs_get()) tools |= TOOL_DOCUMENT;
 	}
@@ -2646,7 +2646,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 	}
 
-	if (st->showsyntax && do_texttools(st, ascii, event, val)) return;
+	if (st->doplugins && do_texttools(st, ascii, event, val)) return;
 	if (do_markers(st, ascii, event, val)) return;
 	
 	if (event==UI_BUT_EVENT) {
@@ -3170,8 +3170,8 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	/* Run text plugin scripts if in syntax mode */
-	if (st->showsyntax && event && val) {
+	/* Run text plugin scripts if enabled */
+	if (st->doplugins && event && val) {
 		if (BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, G.qual)) {
 			do_draw= 1;
 		}

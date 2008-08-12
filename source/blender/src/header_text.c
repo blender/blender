@@ -204,6 +204,9 @@ void do_text_buttons(unsigned short event)
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
+	case B_TEXTPLUGINS:
+		allqueue(REDRAWHEADERS, 0);
+		break;
 	case B_WORDWRAP:
 		st->left= 0;
 		allqueue(REDRAWTEXT, 0);
@@ -841,8 +844,9 @@ void text_buttons(void)
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 		
 	uiDefIconButI(block, ICONTOG, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, &st->showlinenrs, 0, 0, 0, 0, "Displays line numbers");
-	uiDefIconButI(block, ICONTOG, B_SYNTAX, ICON_SYNTAX, xco+=XIC,0,XIC,YIC, &st->showsyntax, 0, 0, 0, 0, "Enables Syntax Highlighting");
 	uiDefIconButI(block, ICONTOG, B_WORDWRAP, ICON_WORDWRAP, xco+=XIC,0,XIC,YIC, &st->wordwrap, 0, 0, 0, 0, "Enables word wrap");
+	uiDefIconButI(block, ICONTOG, B_SYNTAX, ICON_SYNTAX, xco+=XIC,0,XIC,YIC, &st->showsyntax, 0, 0, 0, 0, "Enables Syntax Highlighting");
+	uiDefIconButI(block, ICONTOG, B_TEXTPLUGINS, ICON_CLIPUV_DEHLT, xco+=XIC,0,XIC,YIC, &st->doplugins, 0, 0, 0, 0, "Enables text plugins");
 	uiBlockEndAlign(block);
 	
 	/* STD TEXT BUTTONS */
