@@ -30,27 +30,36 @@
 #define BKE_SHRINKWRAP_H
 
 /* mesh util */
-//TODO move this somewhere else
+//TODO: move this somewhere else
 #include "BKE_customdata.h"
 struct DerivedMesh;
 struct Object;
 struct DerivedMesh *object_get_derived_final(struct Object *ob, CustomDataMask dataMask);
 
-/* bitset stuff */
-//TODO: should move this to other generic lib files?
-typedef char* BitSet;
-#define bitset_memsize(size)		(sizeof(char)*((size+7)>>3))
-
-#define bitset_new(size,name)		((BitSet)MEM_callocN( bitset_memsize(size) , name))
-#define bitset_free(set)			(MEM_freeN((void*)set))
-
-#define bitset_get(set,index)	((set)[(index)>>3] & (1 << ((index)&0x7)))
-#define bitset_set(set,index)	((set)[(index)>>3] |= (1 << ((index)&0x7)))
-#define bitset_unset(set,index)	((set)[(index)>>3] &= ~(1 << ((index)&0x7)))
-
 
 /* SpaceTransform stuff */
-//TODO: should move to other generic space?
+/*
+ * TODO: move this somewhere else
+ *
+ * this structs encapsulates all needed data to convert between 2 coordinate spaces
+ * (where conversion can be represented by a matrix multiplication)
+ *
+ * This is used to reduce the number of arguments to pass to functions that need to perform
+ * this kind of operation and make it easier for the coder, as he/she doenst needs to recode
+ * the matrix calculation.
+ *
+ * A SpaceTransform is initialized using:
+ *   space_transform_setup( &data,  ob1, ob2 )
+ *
+ * After that the following calls can be used:
+ *   space_transform_apply (&data, co); //converts a coordinate in ob1 coords space to the corresponding ob2 coords
+ *   space_transform_invert(&data, co); //converts a coordinate in ob2 coords space to the corresponding ob1 coords
+ *
+ *	//Same Concept as space_transform_apply and space_transform_invert, but no is normalized after conversion
+ *   space_transform_apply_normal (&data, &no);
+ *   space_transform_invert_normal(&data, &no);
+ *
+ */
 struct Object;
 
 typedef struct SpaceTransform
@@ -66,19 +75,28 @@ void space_transform_from_matrixs(SpaceTransform *data, float local[][4], float 
 void space_transform_apply (const SpaceTransform *data, float *co);
 void space_transform_invert(const SpaceTransform *data, float *co);
 
-void space_transform_apply_normal (const SpaceTransform *data, float *co);
-void space_transform_invert_normal(const SpaceTransform *data, float *co);
+void space_transform_apply_normal (const SpaceTransform *data, float *no);
+void space_transform_invert_normal(const SpaceTransform *data, float *no);
 
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.h"
+
+/*
+ * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
+ *
+ * 3 modes are available:
+ *    - Nearest vertex
+ *	  - Nearest surface
+ *    - Normal projection
+ *
+ * ShrinkwrapCalcData encapsulates all needed data for shrinkwrap functions.
+ * (So that you dont have to pass an enormous ammount of arguments to functions)
+ */
 
 struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
 struct BVHTree;
-
-/* maybe move to bvh util */
-int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
 
 typedef struct ShrinkwrapCalcData
@@ -95,7 +113,6 @@ typedef struct ShrinkwrapCalcData
 	SpaceTransform local2target;	//transform to move bettwem local and target space
 
 	float keptDist;					//Distance to kept from target (units are in local space)
-	BitSet moved;					//BitSet indicating if vertex has moved
 
 } ShrinkwrapCalcData;
 
@@ -103,15 +120,27 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *data);
 void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *data);
 void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
 
-struct DerivedMesh *shrinkwrapModifier_do(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
+/*
+ * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:
+ *
+ * if transf was configured with "space_transform_setup( &transf,  ob1, ob2 )"
+ * then the input (vert, dir, BVHTreeRayHit) must be defined in ob1 coordinates space
+ * and the BVHTree must be built in ob2 coordinate space.
+ *
+ * Thus it provides an easy way to cast the same ray across several trees (where each tree was built on its own coords space)
+ */
+int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
+
+/*
+ * NULL initializers to local data
+ */
 #define NULL_ShrinkwrapCalcData	{NULL, }
 #define NULL_BVHTreeFromMesh	{NULL, }
 #define NULL_BVHTreeRayHit		{NULL, }
-#define NULL_BVHTreeNearest		{NULL, }
+#define NULL_BVHTreeNearest		{0, }
 
 
 #endif
-
 

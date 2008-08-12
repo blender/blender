@@ -496,28 +496,35 @@ typedef struct ShrinkwrapModifierData {
 	ModifierData modifier;
 
 	struct Object *target;	/* shrink target */
-	struct Object *cutPlane;/* shrink target */
+	struct Object *auxTarget; /* additional shrink target */
 	char vgroup_name[32];	/* optional vertexgroup name */
 	float keptDist;			/* distance offset from mesh/projection point */
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
+	char projAxis;			/* axis to project over */
+	char pad[7];
 
 } ShrinkwrapModifierData;
 
 /* Shrinkwrap->shrinkType */
 #define MOD_SHRINKWRAP_NEAREST_SURFACE	0
-#define MOD_SHRINKWRAP_NORMAL			1
+#define MOD_SHRINKWRAP_PROJECT			1
 #define MOD_SHRINKWRAP_NEAREST_VERTEX	2
 
 /* Shrinkwrap->shrinkOpts */
-#define MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL		(1<<0)
-#define MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL	(1<<1)
-/* #define MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES	(1<<2) / * Currently dropped to make shrinkwrap a deform only modifier */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR	(1<<0)	/* allow shrinkwrap to move the vertex in the positive direction of axis */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR	(1<<1)	/* allow shrinkwrap to move the vertex in the negative direction of axis */
 
-#define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)
-#define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)
+#define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)	/* ignore vertex moves if a vertex ends projected on a front face of the target */
+#define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)	/* ignore vertex moves if a vertex ends projected on a back face of the target */
 
-#define MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE		(1<<5)
+#define MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE		(1<<5)	/* distance is measure to the front face of the target */
+
+#define MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS		(1<<0)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS		(1<<1)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
+#define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
+
 
 typedef struct SimpleDeformModifierData {
 	ModifierData modifier;

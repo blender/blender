@@ -62,7 +62,6 @@
 /* Benchmark macros */
 #if 1
 
-
 #include <sys/time.h>
 
 #define BENCH(a)	\
@@ -78,20 +77,9 @@
 		printf("%s: %fs (real) %fs (cpu)\n", #a, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
 	} while(0)
 
-#define BENCH_VAR(name)		clock_t JOIN(_bench_step,name) = 0, JOIN(_bench_total,name) = 0
-#define BENCH_BEGIN(name)	JOIN(_bench_step, name) = clock()
-#define BENCH_END(name)		JOIN(_bench_total,name) += clock() - JOIN(_bench_step,name)
-#define BENCH_RESET(name)	JOIN(_bench_total, name) = 0
-#define BENCH_REPORT(name)	printf("%s: %fms (cpu) \n", TO_STR(name), JOIN(_bench_total,name)*1000.0f/CLOCKS_PER_SEC)
-
 #else
 
 #define BENCH(a)	(a)
-#define BENCH_VAR(name)
-#define BENCH_BEGIN(name)
-#define BENCH_END(name)
-#define BENCH_RESET(name)
-#define BENCH_REPORT(name)
 
 #endif
 
@@ -115,7 +103,7 @@ DerivedMesh *object_get_derived_final(Object *ob, CustomDataMask dataMask)
 void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float target[4][4])
 {
 	float itarget[4][4];
-	Mat4Invert(itarget, target); //Invserse might be outdated
+	Mat4Invert(itarget, target);
 	Mat4MulSerie(data->local2target, itarget, local, 0, 0, 0, 0, 0, 0);
 	Mat4Invert(data->target2local, data->local2target);
 }
@@ -152,442 +140,23 @@ static float squared_dist(const float *a, const float *b)
 	return INPR(tmp, tmp);
 }
 
-/*
- *
- */
-static void derivedmesh_mergeNearestPoints(DerivedMesh *dm, float mdist, BitSet skipVert)
-{
-	if(mdist > 0.0f)
-	{
-		int i, j, merged;
-		int	numVerts = dm->getNumVerts(dm);
-		int *translate_vert = MEM_mallocN( sizeof(int)*numVerts, "merge points array");
-
-		MVert *vert = dm->getVertDataArray(dm, CD_MVERT);
-
-		if(!translate_vert) return;
-
-		merged = 0;
-		for(i=0; i<numVerts; i++)
-		{
-			translate_vert[i] = i;
-
-			if(skipVert && bitset_get(skipVert, i)) continue;
-
-			for(j = 0; j<i; j++)
-			{
-				if(skipVert && bitset_get(skipVert, j)) continue;
-				if(squared_dist(vert[i].co, vert[j].co) < mdist)
-				{
-					translate_vert[i] = j;
-					merged++;
-					break;
-				}
-			}
-		}
-
-		//some vertexs were merged.. recalculate structure (edges and faces)
-		if(merged > 0)
-		{
-			int	numFaces = dm->getNumFaces(dm);
-			int freeVert;
-			MFace *face = dm->getFaceDataArray(dm, CD_MFACE);
-
-
-			//Adjust vertexs using the translation_table.. only translations to back indexs are allowed
-			//which means t[i] <= i must always verify
-			for(i=0, freeVert = 0; i<numVerts; i++)
-			{
-				if(translate_vert[i] == i)
-				{
-					memcpy(&vert[freeVert], &vert[i], sizeof(*vert));
-					translate_vert[i] = freeVert++;
-				}
-				else translate_vert[i] = translate_vert[ translate_vert[i] ];
-			}
-
-			CDDM_lower_num_verts(dm, numVerts - merged);
-
-			for(i=0; i<numFaces; i++)
-			{
-				MFace *f = face+i;
-				f->v1 = translate_vert[f->v1];
-				f->v2 = translate_vert[f->v2];
-				f->v3 = translate_vert[f->v3];
-				//TODO be carefull with vertexs v4 being translated to 0
-				f->v4 = translate_vert[f->v4];
-			}
-
-			//TODO: maybe update edges could be done outside this function
-			CDDM_calc_edges(dm);
-			//CDDM_calc_normals(dm);
-		}
-
-		if(translate_vert) MEM_freeN( translate_vert );
-	}
-}
-
-
-/*
- * This function removes Unused faces, vertexs and edges from calc->target
- *
- * This function may modify calc->final. As so no data retrieved from
- * it before the call to this function  can be considered valid
- * In case it creates a new DerivedMesh, the old calc->final is freed
- */
-//TODO memory checks on allocs
-/*
-static void shrinkwrap_removeUnused(ShrinkwrapCalcData *calc)
-{
-	int i, t;
-
-	DerivedMesh *old = calc->final, *new = NULL;
-	MFace *new_face = NULL;
-	MVert *new_vert  = NULL;
-
-	int numVerts= old->getNumVerts(old);
-	MVert *vert = old->getVertDataArray(old, CD_MVERT);
-
-	int	numFaces= old->getNumFaces(old);
-	MFace *face = old->getFaceDataArray(old, CD_MFACE);
-
-	BitSet moved_verts = calc->moved;
-
-	//Arrays to translate to new vertexs indexs
-	int *vert_index = (int*)MEM_callocN(sizeof(int)*(numVerts), "shrinkwrap used verts");
-	BitSet used_faces = bitset_new(numFaces, "shrinkwrap used faces");
-	int numUsedFaces = 0;
-
-
-	//calculate which vertexs need to be used
-	//even unmoved vertices might need to be used if theres a face that needs it
-	//calc real number of faces, and vertices
-	//Count used faces
-	for(i=0; i<numFaces; i++)
-	{
-		char res = 0;
-		if(bitset_get(moved_verts, face[i].v1)) res++;
-		if(bitset_get(moved_verts, face[i].v2)) res++;
-		if(bitset_get(moved_verts, face[i].v3)) res++;
-		if(face[i].v4 && bitset_get(moved_verts, face[i].v4)) res++;
-
-		//Ignore a face were not a single vertice moved
-		if(res == 0) continue;
-
-
-		//Only 1 vertice moved.. (if its a quad.. remove the vertice oposite to it)
-		if(res == 1 && face[i].v4)
-		{
-			if(bitset_get(moved_verts, face[i].v1))
-			{
-				//remove vertex 3
-				face[i].v3 = face[i].v4;
-			}
-			else if(bitset_get(moved_verts, face[i].v2))
-			{
-				//remove vertex 4
-			}
-			else if(bitset_get(moved_verts, face[i].v3))
-			{
-				//remove vertex 1
-				face[i].v1 = face[i].v4;
-			}
-			else if(bitset_get(moved_verts, face[i].v4))
-			{
-				//remove vertex 2
-				face[i].v2 = face[i].v3;
-				face[i].v3 = face[i].v4;
-			}
-
-			face[i].v4 = 0;	//this quad turned on a tri
-		}
-		
-#if 0
-		if(face[i].v4 && res == 3)
-		{
-			if(!bitset_get(moved_verts, face[i].v1))
-			{
-				face[i].v1 = face[i].v4;
-			}
-			else if(!bitset_get(moved_verts, face[i].v2))
-			{
-				face[i].v2 = face[i].v3;
-				face[i].v3 = face[i].v4;
-			}
-			else if(!bitset_get(moved_verts, face[i].v3))
-			{
-				face[i].v3 = face[i].v4;
-			}
-
-			face[i].v4 = 0;	//this quad turned on a tri
-		}
-#endif
-
-		bitset_set(used_faces, i);	//Mark face to maintain
-		numUsedFaces++;
-
-		//Mark vertices are needed
-		vert_index[face[i].v1] = 1;
-		vert_index[face[i].v2] = 1;
-		vert_index[face[i].v3] = 1;
-		if(face[i].v4) vert_index[face[i].v4] = 1;
-	}
-
-	//DP: Accumulate vertexs indexs.. (will calculate the new vertex index with a 1 offset)
-	for(i=1; i<numVerts; i++)
-		vert_index[i] += vert_index[i-1];
-		
-	
-	//Start creating the clean mesh
-	new = CDDM_new(vert_index[numVerts-1], 0, numUsedFaces);
-
-	//Copy vertexs (unused are are removed)
-	new_vert  = new->getVertDataArray(new, CD_MVERT);
-	for(i=0, t=0; i<numVerts; i++)
-	{
-		
-		if(vert_index[i] != t)
-		{
-			t = vert_index[i];
-			memcpy(new_vert++, vert+i, sizeof(MVert));
-
-			if(bitset_get(moved_verts, i))
-				bitset_set(moved_verts, t-1);
-			else
-				bitset_unset(moved_verts, t-1);
-		}
-	}
-
-	//Copy faces
-	new_face = new->getFaceDataArray(new, CD_MFACE);
-	for(i=0, t=0; i<numFaces; i++)
-	{
-		if(bitset_get(used_faces, i))
-		{
-			memcpy(new_face, face+i, sizeof(MFace));
-			//update vertices indexs
-			new_face->v1 = vert_index[new_face->v1]-1;
-			new_face->v2 = vert_index[new_face->v2]-1;
-			new_face->v3 = vert_index[new_face->v3]-1;
-			if(new_face->v4)
-			{
-				new_face->v4 = vert_index[new_face->v4]-1;
-
-				//Ups translated vertex ended on 0 .. TODO fix this
-				if(new_face->v4 == 0)
-				{
-				}
-			}			
-			new_face++;
-		}
-	}
-
-	//Free memory
-	bitset_free(used_faces);
-	MEM_freeN(vert_index);
-	old->release(old);
-
-	//Update edges
-	CDDM_calc_edges(new);
-	CDDM_calc_normals(new);
-
-	calc->final = new;
-}
-
-
-void shrinkwrap_projectToCutPlane(ShrinkwrapCalcData *calc_data)
-{
-	if(calc_data->smd->cutPlane && calc_data->moved)
-	{
-		int i;
-		int unmoved = 0;
-		int numVerts= 0;
-		MVert *vert = NULL;
-		MVert *vert_unmoved = NULL;
-
-		ShrinkwrapCalcData calc;
-		memcpy(&calc, calc_data, sizeof(calc));
-
-		calc.moved = 0;
-
-		if(calc.smd->cutPlane)
-		{
-			//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
-			calc.target = CDDM_copy( object_get_derived_final(calc.smd->cutPlane, CD_MASK_BAREMESH) );
-
-			if(!calc.target)
-			{
-				return;
-			}
-
-			space_transform_setup(&calc.local2target, calc.ob, calc.smd->cutPlane);
-			calc.keptDist = 0;
-		}
-
-
-		//Make a mesh with the points we want to project
-		numVerts = calc_data->final->getNumVerts(calc_data->final);
-
-		unmoved = 0;
-		for(i=0; i<numVerts; i++)
-			if(!bitset_get(calc_data->moved, i))
-				unmoved++;
-
-		calc.final = CDDM_new(unmoved, 0, 0);
-		if(!calc.final) return;
-
-
-		vert = calc_data->final->getVertDataArray(calc_data->final, CD_MVERT);
-		vert_unmoved = calc.final->getVertDataArray(calc.final, CD_MVERT);
-
-		for(i=0; i<numVerts; i++)
-			if(!bitset_get(calc_data->moved, i))
-				memcpy(vert_unmoved++, vert+i, sizeof(*vert_unmoved));
-
-		//use shrinkwrap projection
-		shrinkwrap_calc_normal_projection(&calc);
-
-		//Copy the points back to the mesh
-		vert = calc_data->final->getVertDataArray(calc_data->final, CD_MVERT);
-		vert_unmoved = calc.final->getVertDataArray(calc.final, CD_MVERT);
-		for(i=0; i<numVerts; i++)
-			if(!bitset_get(calc_data->moved, i))
-				memcpy(vert+i, vert_unmoved++, sizeof(*vert_unmoved) );
-
-		//free memory
-		calc.final->release(calc.final);
-		calc.target->release(calc.target);
-	}	
-
-}
-*/
-
-/* Main shrinkwrap function */
-/*
-DerivedMesh *shrinkwrapModifier_do(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
-{
-
-	ShrinkwrapCalcData calc;
-	memset(&calc, 0, sizeof(calc));
-
-	//Init Shrinkwrap calc data
-	calc.smd = smd;
-
-	calc.ob = ob;
-	calc.original = dm;
-	calc.final = CDDM_copy(calc.original);
-
-	if(!calc.final)
-	{
-		OUT_OF_MEMORY();
-		return dm;
-	}
-
-	CDDM_calc_normals(calc.final);	//Normals maybe not be calculated yet
-
-	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
-	if(smd->target == ob) smd->target = NULL;
-	if(smd->cutPlane == ob) smd->cutPlane = NULL;
-
-
-	if(smd->target)
-	{
-		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
-		calc.target = CDDM_copy( object_get_derived_final(smd->target, CD_MASK_BAREMESH) );
-
-		if(!calc.target)
-		{
-			printf("Target derived mesh is null! :S\n");
-		}
-
-		//TODO there might be several "bugs" on non-uniform scales matrixs.. because it will no longer be nearest surface, not sphere projection
-		//because space has been deformed
-		space_transform_setup(&calc.local2target, ob, smd->target);
-
-		calc.keptDist = smd->keptDist;	//TODO: smd->keptDist is in global units.. must change to local
-	}
-
-	//Projecting target defined - lets work!
-	if(calc.target)
-	{
-
-		printf("Shrinkwrap (%s)%d over (%s)%d\n",
-			calc.ob->id.name,			calc.final->getNumVerts(calc.final),
-			calc.smd->target->id.name,	calc.target->getNumVerts(calc.target)
-		);
-
-
-		switch(smd->shrinkType)
-		{
-			case MOD_SHRINKWRAP_NEAREST_SURFACE:
-				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
-//				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_surface_point));
-			break;
-
-			case MOD_SHRINKWRAP_NORMAL:
-
-				if(calc.smd->shrinkOpts & MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES)
-				calc.moved = bitset_new( calc.final->getNumVerts(calc.final), "shrinkwrap bitset data");
-
-
-//				BENCH(shrinkwrap_calc_normal_projection_raytree(&calc));
-//				calc.final->release( calc.final );
-//				calc.final = CDDM_copy(calc.original);
-
-				BENCH(shrinkwrap_calc_normal_projection(&calc));
-//				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_normal_projection));
-
-				if(calc.moved)
-				{
-					//Adjust vertxs that didn't moved (project to cut plane)
-					shrinkwrap_projectToCutPlane(&calc);
-
-					//Destroy faces, edges and stuff
-					shrinkwrap_removeUnused(&calc);
-
-					//Merge points that didn't moved
-					derivedmesh_mergeNearestPoints(calc.final, calc.smd->mergeDist, calc.moved);
-					bitset_free(calc.moved);
-				}
-			break;
-
-			case MOD_SHRINKWRAP_NEAREST_VERTEX:
-
-				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
-//				BENCH(shrinkwrap_calc_foreach_vertex(&calc, bruteforce_shrinkwrap_calc_nearest_vertex));
-			break;
-		}
-
-		//free derived mesh
-		calc.target->release( calc.target );
-		calc.target = NULL;
-	}
-
-	CDDM_calc_normals(calc.final);
-
-	return calc.final;
-}
-*/
-
 /* Main shrinkwrap function */
 void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
 
 	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
 
-	//Init Shrinkwrap calc data
-	calc.smd = smd;
-
-	calc.ob = ob;
-	calc.original = dm;
-
-	calc.numVerts = numVerts;
-	calc.vertexCos = vertexCos;
-
 	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
 	if(smd->target == ob) smd->target = NULL;
-	if(smd->cutPlane == ob) smd->cutPlane = NULL;
+	if(smd->auxTarget == ob) smd->auxTarget = NULL;
 
+
+	//Configure Shrinkwrap calc data
+	calc.smd = smd;
+	calc.ob = ob;
+	calc.original = dm;
+	calc.numVerts = numVerts;
+	calc.vertexCos = vertexCos;
 
 	if(smd->target)
 	{
@@ -605,6 +174,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 		calc.keptDist = smd->keptDist;	//TODO: smd->keptDist is in global units.. must change to local
 	}
+
 
 	//Projecting target defined - lets work!
 	if(calc.target)
@@ -615,14 +185,13 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 			calc.smd->target->id.name,	calc.target->getNumVerts(calc.target)
 		);
 
-
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
 			break;
 
-			case MOD_SHRINKWRAP_NORMAL:
+			case MOD_SHRINKWRAP_PROJECT:
 				BENCH(shrinkwrap_calc_normal_projection(&calc));
 			break;
 
@@ -630,18 +199,18 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
 			break;
 		}
-
-		//free derived mesh
-		calc.target->release( calc.target );
-		calc.target = NULL;
 	}
+
+	//free memory
+	if(calc.target)
+		calc.target->release( calc.target );
 }
 
 /*
  * Shrinkwrap to the nearest vertex
  *
  * it builds a kdtree of vertexs we can attach to and then
- * for each vertex on performs a nearest vertex search on the tree
+ * for each vertex performs a nearest vertex search on the tree
  */
 void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
@@ -652,7 +221,6 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
 
 	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
-
 
 	BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
@@ -665,29 +233,37 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
-		int index;
 		float tmp_co[3];
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
 		VECCOPY(tmp_co, co);
-		space_transform_apply(&calc->local2target, tmp_co);
+		space_transform_apply(&calc->local2target, tmp_co); //Convert the coordinates to the tree coordinates
 
 		//Use local proximity heuristics (to reduce the nearest search)
+		//
+		//If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
+		//so we can initiate the "nearest.dist" with the expected value to that last hit.
+		//This will lead in prunning of the search tree.
 		if(nearest.index != -1)
 			nearest.dist = squared_dist(tmp_co, nearest.co);
 		else
 			nearest.dist = FLT_MAX;
 
-		index = BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
+		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
-		if(index != -1)
+
+		//Found the nearest vertex
+		if(nearest.index != -1)
 		{
-			float dist = nearest.dist;
-			if(dist > 1e-5) weight *= (dist - calc->keptDist)/dist;
+			//Adjusting the vertex weight, so that after interpolating it kepts a certain distance from the nearest position
+			float dist = sasqrt(nearest.dist);
+			if(dist > FLT_EPSILON) weight *= (dist - calc->keptDist)/dist;
 
+			//Convert the coordinates back to mesh coordinates
 			VECCOPY(tmp_co, nearest.co);
 			space_transform_invert(&calc->local2target, tmp_co);
+
 			VecLerpf(co, co, tmp_co, weight);	//linear interpolation
 		}
 	}
@@ -763,104 +339,132 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 {
 	int i;
-	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	char use_normal = calc->smd->shrinkOpts;
 
-	//setup raytracing
-	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
-	BVHTreeRayHit   hit      = NULL_BVHTreeRayHit;
+	//Options about projection direction
+	char use_normal    = calc->smd->shrinkOpts;
+	float proj_axis[3] = {0.0f, 0.0f, 0.0f};
+	MVert *vert  = NULL; //Needed in case of vertex normal
 
-	//cutTree
-	DerivedMesh * limit_mesh = NULL;
-	BVHTreeFromMesh limitData= NULL_BVHTreeFromMesh;
-	SpaceTransform local2cut;
-
-	MVert        *vert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MVERT) : NULL;		//Needed because of vertex normal
+	//Vertex group data
+	int vgroup		   = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
 	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
-	if(vert == NULL)
+
+	//Raycast and tree stuff
+	BVHTreeRayHit hit;
+	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh; 	//target
+
+	//auxiliar target
+	DerivedMesh * aux_mesh = NULL;
+	BVHTreeFromMesh auxData= NULL_BVHTreeFromMesh;
+	SpaceTransform local2aux;
+
+
+	//Prepare data to retrieve the direction in which we should project each vertex
+	if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
 	{
-		printf("Shrinkwrap cant normal project witouth normal information");
+		vert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MVERT) : NULL;
+		if(vert) CDDM_calc_normals(calc->original);	//Maybe normals aren't yet calculated
+	}
+	else
+	{
+		//The code supports any axis that is a combination of X,Y,Z.. altought currently UI only allows to set the 3 diferent axis
+		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) proj_axis[0] = 1.0f;
+		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) proj_axis[1] = 1.0f;
+		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;
+
+		Normalize(proj_axis);
+	}
+
+	if(vert == NULL && (INPR(proj_axis, proj_axis) < FLT_EPSILON))
+	{
+		printf("Shrinkwrap can't project witouth normal information");
 		return;
 	}
-	if((use_normal & (MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL | MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)) == 0)
-		return;	//Nothing todo
 
-	CDDM_calc_normals(calc->original);	//Normals maybe arent yet calculated
+	//If the user doesn't allows to project in any direction of projection axis... then theres nothing todo.
+	if((use_normal & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
+		return;
 
+
+	//Build target tree
 	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, calc->keptDist, 4, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
 
-
-	if(calc->smd->cutPlane)
+	//Build auxiliar target
+	if(calc->smd->auxTarget)
 	{
-		space_transform_setup( &local2cut, calc->ob, calc->smd->cutPlane);
+		space_transform_setup( &local2aux, calc->ob, calc->smd->auxTarget);
 
-		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
-		limit_mesh = CDDM_copy( object_get_derived_final(calc->smd->cutPlane, CD_MASK_BAREMESH) );
-		if(limit_mesh)
-			BENCH(bvhtree_from_mesh_faces(&limitData, limit_mesh, 0.0, 4, 6));
+		aux_mesh = CDDM_copy( object_get_derived_final(calc->smd->auxTarget, CD_MASK_BAREMESH) ); 		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
+		if(aux_mesh)
+			BENCH(bvhtree_from_mesh_faces(&auxData, aux_mesh, 0.0, 4, 6));
 		else
-			printf("CutPlane finalDerived mesh is null\n");
+			printf("Auxiliar target finalDerived mesh is null\n");
 	}
+
+
+	//Now, everything is ready to project the vertexs!
 
 //#pragma omp parallel for private(i) private(hit) schedule(static)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3], tmp_no[3];
-		float lim = 1000;		//TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
+		float lim = 1000; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
-		char moved = FALSE;
 
 		if(weight == 0.0f) continue;
 
 		VECCOPY(tmp_co, co);
-		NormalShortToFloat(tmp_no, vert[i].no);
+
+		if(vert)
+			NormalShortToFloat(tmp_no, vert[i].no);
+		else
+			VECCOPY( tmp_no, proj_axis );
 
 
 		hit.index = -1;
 		hit.dist = lim;
 
 
-		if(use_normal & MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL)
+		//Project over positive direction of axis
+		if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR)
 		{
 
-			if(limitData.tree)
-				normal_projection_project_vertex(0, tmp_co, tmp_no, &local2cut, limitData.tree, &hit, limitData.raycast_callback, &limitData);
+			if(auxData.tree)
+				normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
 
-			if(normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData))
-				moved = TRUE;
+			normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
 		}
 
-
-		if(use_normal & MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL)
+		//Project over negative direction of axis
+		if(use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)
 		{
 			float inv_no[3] = { -tmp_no[0], -tmp_no[1], -tmp_no[2] };
 
 
-			if(limitData.tree)
-				normal_projection_project_vertex(0, tmp_co, inv_no, &local2cut, limitData.tree, &hit, limitData.raycast_callback, &limitData);
+			if(auxData.tree)
+				normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
 
-			if(normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData))
-				moved = TRUE;
+			normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
 		}
 
 
 		if(hit.index != -1)
 		{
 			VecLerpf(co, co, hit.co, weight);
-
-			if(moved && calc->moved)
-				bitset_set(calc->moved, i);
 		}
 	}
 
-	free_bvhtree_from_mesh(&treeData);
-	free_bvhtree_from_mesh(&limitData);
 
-	if(limit_mesh)
-		limit_mesh->release(limit_mesh);
+	//free data structures
+
+	free_bvhtree_from_mesh(&treeData);
+	free_bvhtree_from_mesh(&auxData);
+
+	if(aux_mesh)
+		aux_mesh->release(aux_mesh);
 }
 
 /*
@@ -920,7 +524,14 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 			else
 			{
 				float dist = sasqrt( nearest.dist );
-				VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keptDist)/dist);	//linear interpolation
+				if(dist > FLT_EPSILON)
+				{
+					VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keptDist)/dist);	//linear interpolation
+				}
+				else
+				{
+					VECCOPY( tmp_co, nearest.co );
+				}
 			}
 			space_transform_invert(&calc->local2target, tmp_co);
 			VecLerpf(co, co, tmp_co, weight);	//linear interpolation

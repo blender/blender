@@ -3274,6 +3274,7 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 
 	if( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) )
 	{
+		int fail = FALSE;
 		float co[3] = {0.0f, 0.0f, 0.0f};
 		float no[3] = {0.0f, 0.0f, 0.0f};
 		float dist;
@@ -3295,58 +3296,72 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		hit.index = -1;
 		hit.dist = 100000.0f;  //TODO should use FLT_MAX.. but normal projection doenst yet supports it
 
-		switch(scon->normalAxis)
-		{
-			case UP_X: no[0] = 1.0f; break;
-			case UP_Y: no[1] = 1.0f; break;
-			case UP_Z: no[2] = 1.0f; break;
-		}
-
 		if(target != NULL)
 		{
 
 			space_transform_from_matrixs(&transform, cob->startmat, ct->tar->obmat);
 
-			//Normal projection applies the transform later
-			if(scon->shrinkType != MOD_SHRINKWRAP_NORMAL)
-			{
-				space_transform_apply(&transform, co);
-				space_transform_apply_normal(&transform, no);
-			}
-
 			switch(scon->shrinkType)
 			{
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
 					bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
-					if(treeData.tree == NULL) return;
+					if(treeData.tree == NULL)
+					{
+						fail = TRUE;
+						break;
+					}
+
+					space_transform_apply(&transform, co);
 
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 					
 					dist = VecLenf(co, nearest.co);
 					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
+					space_transform_invert(&transform, co);
 				break;
 
 				case MOD_SHRINKWRAP_NEAREST_VERTEX:
 					bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
-					if(treeData.tree == NULL) return;
+					if(treeData.tree == NULL)
+					{
+						fail = TRUE;
+						break;
+					}
+
+					space_transform_apply_normal(&transform, no);
 
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 
 					dist = VecLenf(co, nearest.co);
 					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
+					space_transform_invert(&transform, co);
 				break;
 
-				case MOD_SHRINKWRAP_NORMAL:
+				case MOD_SHRINKWRAP_PROJECT:
+					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) no[0] = 1.0f;
+					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) no[1] = 1.0f;
+					if(scon->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) no[2] = 1.0f;
+
+					if(INPR(no,no) < FLT_EPSILON)
+					{
+						fail = TRUE;
+						break;
+					}
+
+					Normalize(no);
+
+
 					bvhtree_from_mesh_faces(&treeData, target, scon->dist, 4, 6);
-					if(treeData.tree == NULL) return;
+					if(treeData.tree == NULL)
+					{
+						fail = TRUE;
+						break;
+					}
 
 					if(normal_projection_project_vertex(0, co, no, &transform, treeData.tree, &hit, treeData.raycast_callback, &treeData) == FALSE)
 					{
-						free_bvhtree_from_mesh(&treeData);
-
-						target->release(target);
-
-						return;
+						fail = TRUE;
+						break;
 					}
 					VECCOPY(co, hit.co);
 				break;
@@ -3356,11 +3371,8 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 
 			target->release(target);
 
-			if(scon->shrinkType != MOD_SHRINKWRAP_NORMAL)
-			{
-				space_transform_invert(&transform, co);
-			}
-			VECADD(ct->matrix[3], ct->matrix[3], co);
+			if(fail == FALSE)
+				VECADD(ct->matrix[3], ct->matrix[3], co);
 		}
 	}
 }

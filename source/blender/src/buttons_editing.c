@@ -1902,8 +1902,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 			height = 86 + 3;
-			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL)
-				height += 19*3;
+			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
+				height += 19*5;
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
 				height += 19;
 
@@ -2538,7 +2538,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
-			char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|normal projection %x1|nearest vertex %x2";
+			char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|projection %x1|nearest vertex %x2";
 
 			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
 
@@ -2549,18 +2549,25 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			cy -= 3;
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
-			if (smd->shrinkType == MOD_SHRINKWRAP_NORMAL){
 
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_DEFAULT_NORMAL, B_MODIFIER_RECALC, "Default normal",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the normal direction");
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_ALLOW_INVERTED_NORMAL, B_MODIFIER_RECALC, "Invert normal",	lx + buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows vertices to move in the inverse direction of their normal");
+			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT){
 
-/*				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_REMOVE_UNPROJECTED_FACES, B_MODIFIER_RECALC, "Remove faces",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Remove faces where all vertices haven't been projected"); */
+
+				/* UI for projection axis */
+				uiBlockBeginAlign(block);
+				uiDefButC(block, ROW, B_MODIFIER_RECALC, "Normal"    , lx,(cy-=19),buttonWidth,19, &smd->projAxis, 18.0, MOD_SHRINKWRAP_PROJECT_OVER_NORMAL, 0, 0, "Projection over X axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, B_MODIFIER_RECALC, "X",	lx+buttonWidth/3*0,(cy-=19),buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over X axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, B_MODIFIER_RECALC, "Y",	lx+buttonWidth/3*1,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Y axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, B_MODIFIER_RECALC, "Z",	lx+buttonWidth/3*2,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Z axis");
+
+
+				/* allowed directions of projection axis */
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR, B_MODIFIER_RECALC, "Negative",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows to move the vertex in the negative direction of axis");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, B_MODIFIER_RECALC, "Positive",	lx + buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows to move the vertex in the positive direction of axis");
 
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx+buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
-
-/* 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Dist:",	lx,(cy-=19),buttonWidth,19, &smd->mergeDist, 0.0f, 0.01f, 0.01f, 0.01f, "Specify merge distance"); */
-				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->cutPlane, "Aditional mesh to project over");
+				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->auxTarget, "Aditional mesh to project over");
 			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
 				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
