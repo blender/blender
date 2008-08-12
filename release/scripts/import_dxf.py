@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2008.07.04 by migius'
+__version__ = '1.12 - 2008.08.03 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -88,7 +88,7 @@ in creating new objects in scene database - probably a database management probl
 
 """
 History:
- v1.0 - 2008.01. by migius
+ v1.0 - 2007/2008 by migius
  planned tasks:
  -- (to see more, search for "--todo--" in script code)
  -- command-line-mode/batch-mode

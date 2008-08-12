@@ -4657,7 +4657,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	PTCacheID pid;
 	int totpart, oldtotpart, totchild, oldtotchild, p;
 	float disp, *vg_vel= 0, *vg_tan= 0, *vg_rot= 0, *vg_size= 0;
-	int init= 0, distr= 0, alloc= 0, usecache= 0;
+	int init= 0, distr= 0, alloc= 0, usecache= 0, only_children_changed= 0;
 	int framenr, framedelta, startframe, endframe;
 
 	part= psys->part;
@@ -4724,6 +4724,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	totchild = get_psys_tot_child(psys);
 
 	if(oldtotpart != totpart || (psys->part->childtype && oldtotchild != totchild)) {
+		only_children_changed = (oldtotpart == totpart);
 		realloc_particles(ob, psys, totpart);
 		alloc = 1;
 		distr= 1;
@@ -4744,14 +4745,17 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 			if((psys->part->type == PART_HAIR) && !(psys->flag & PSYS_HAIR_DONE))
 			/* don't generate children while growing hair - waste of time */
-			psys_free_children(psys);
-		else if(get_psys_tot_child(psys))
-			distribute_particles(ob, psys, PART_FROM_CHILD);
+				psys_free_children(psys);
+			else if(get_psys_tot_child(psys))
+				distribute_particles(ob, psys, PART_FROM_CHILD);
 		}
-		initialize_all_particles(ob, psys, psmd);
 
-		if(alloc)
-			reset_all_particles(ob, psys, psmd, 0.0, cfra, oldtotpart);
+		if(only_children_changed==0) {
+			initialize_all_particles(ob, psys, psmd);
+
+			if(alloc)
+				reset_all_particles(ob, psys, psmd, 0.0, cfra, oldtotpart);
+		}
 
 		/* flag for possible explode modifiers after this system */
 		psmd->flag |= eParticleSystemFlag_Pars;

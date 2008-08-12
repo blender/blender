@@ -98,6 +98,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_subsurf.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #include "depsgraph_private.h"

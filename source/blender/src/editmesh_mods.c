@@ -1432,348 +1432,78 @@ int mesh_layers_menu(CustomData *data, int type) {
 	return ret;
 }
 
-/* ctrl+c in mesh editmode */
-void mesh_copy_menu(void)
+void EM_mesh_copy_edge(short type) 
 {
 	EditMesh *em = G.editMesh;
 	EditSelection *ese;
-	short ret, change=0;
+	short change=0;
+	
+	EditEdge *eed, *eed_act;
+	float vec[3], vec_mid[3], eed_len, eed_len_act;
 	
 	if (!em) return;
 	
 	ese = em->selected.last;
+	if (!ese) return;
 	
-	/* Faces can have a NULL ese, so dont return on a NULL ese here */
+	eed_act = (EditEdge*)ese->data;
 	
-	if(ese && ese->type == EDITVERT) {
-		
-		if (!ese) return;
-		/*EditVert *ev, *ev_act = (EditVert*)ese->data;
-		ret= pupmenu("");*/
-	} else if(ese && ese->type == EDITEDGE) {
-		EditEdge *eed, *eed_act;
-		float vec[3], vec_mid[3], eed_len, eed_len_act;
-		
-		if (!ese) return;
-		
-		eed_act = (EditEdge*)ese->data;
-		
-		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Bevel Weight%x2|Length%x3");
-		if (ret<1) return;
-		
+	switch (type) {
+	case 1: /* copy crease */
+		for(eed=em->edges.first; eed; eed=eed->next) {
+			if (eed->f & SELECT && eed != eed_act && eed->crease != eed_act->crease) {
+				eed->crease = eed_act->crease;
+				change = 1;
+			}
+		}
+		break;
+	case 2: /* copy bevel weight */
+		for(eed=em->edges.first; eed; eed=eed->next) {
+			if (eed->f & SELECT && eed != eed_act && eed->bweight != eed_act->bweight) {
+				eed->bweight = eed_act->bweight;
+				change = 1;
+			}
+		}
+		break;
+
+	case 3: /* copy length */
 		eed_len_act = VecLenf(eed_act->v1->co, eed_act->v2->co);
-		
-		switch (ret) {
-		case 1: /* copy crease */
-			for(eed=em->edges.first; eed; eed=eed->next) {
-				if (eed->f & SELECT && eed != eed_act && eed->crease != eed_act->crease) {
-					eed->crease = eed_act->crease;
-					change = 1;
+		for(eed=em->edges.first; eed; eed=eed->next) {
+			if (eed->f & SELECT && eed != eed_act) {
+
+				eed_len = VecLenf(eed->v1->co, eed->v2->co);
+
+				if (eed_len == eed_len_act) continue;
+				/* if this edge is zero length we cont do anything with it*/
+				if (eed_len == 0.0f) continue;
+				if (eed_len_act == 0.0f) {
+					VecAddf(vec_mid, eed->v1->co, eed->v2->co);
+					VecMulf(vec_mid, 0.5);
+					VECCOPY(eed->v1->co, vec_mid);
+					VECCOPY(eed->v2->co, vec_mid);
+				} else {
+					/* copy the edge length */
+					VecAddf(vec_mid, eed->v1->co, eed->v2->co);
+					VecMulf(vec_mid, 0.5);
+
+					/* SCALE 1 */
+					VecSubf(vec, eed->v1->co, vec_mid);
+					VecMulf(vec, eed_len_act/eed_len);
+					VecAddf(eed->v1->co, vec, vec_mid);
+
+					/* SCALE 2 */
+					VecSubf(vec, eed->v2->co, vec_mid);
+					VecMulf(vec, eed_len_act/eed_len);
+					VecAddf(eed->v2->co, vec, vec_mid);
 				}
+				change = 1;
 			}
-			break;
-		case 2: /* copy bevel weight */
-			for(eed=em->edges.first; eed; eed=eed->next) {
-				if (eed->f & SELECT && eed != eed_act && eed->bweight != eed_act->bweight) {
-					eed->bweight = eed_act->bweight;
-					change = 1;
-				}
-			}
-			break;
-			
-		case 3: /* copy length */
-			
-			for(eed=em->edges.first; eed; eed=eed->next) {
-				if (eed->f & SELECT && eed != eed_act) {
-					
-					eed_len = VecLenf(eed->v1->co, eed->v2->co);
-					
-					if (eed_len == eed_len_act) continue;
-					/* if this edge is zero length we cont do anything with it*/
-					if (eed_len == 0.0f) continue;
-					if (eed_len_act == 0.0f) {
-						VecAddf(vec_mid, eed->v1->co, eed->v2->co);
-						VecMulf(vec_mid, 0.5);
-						VECCOPY(eed->v1->co, vec_mid);
-						VECCOPY(eed->v2->co, vec_mid);
-					} else {
-						/* copy the edge length */
-						VecAddf(vec_mid, eed->v1->co, eed->v2->co);
-						VecMulf(vec_mid, 0.5);
-						
-						/* SCALE 1 */
-						VecSubf(vec, eed->v1->co, vec_mid);
-						VecMulf(vec, eed_len_act/eed_len);
-						VecAddf(eed->v1->co, vec, vec_mid);
-						
-						/* SCALE 2 */
-						VecSubf(vec, eed->v2->co, vec_mid);
-						VecMulf(vec, eed_len_act/eed_len);
-						VecAddf(eed->v2->co, vec, vec_mid);
-					}
-					change = 1;
-				}
-			}
-			
-			if (change)
-				recalc_editnormals();
-			
-			
-			break;
 		}
-		
-	} else if(ese==NULL || ese->type == EDITFACE) {
-		EditFace *efa, *efa_act;
-		MTFace *tf, *tf_act = NULL;
-		MCol *mcol, *mcol_act = NULL;
-		
-		efa_act = EM_get_actFace(0);
-		
-		if (efa_act) {
-			ret= pupmenu(
-				"Copy Face Selected%t|"
-				"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
-				"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
-				
-				"TexFace UVs from layer%x7|"
-				"TexFace Images from layer%x8|"
-				"TexFace All from layer%x9|"
-				"Vertex Colors from layer%x10");
-			if (ret<1) return;
-			tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
-			mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
-		} else {
-			ret= pupmenu(
-				"Copy Face Selected%t|"
-				
-				/* Make sure these are always the same as above */
-				"TexFace UVs from layer%x7|"
-				"TexFace Images from layer%x8|"
-				"TexFace All from layer%x9|"
-				"Vertex Colors from layer%x10");
-			if (ret<1) return;
-		}
-		
-		switch (ret) {
-		case 1: /* copy material */
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT && efa->mat_nr != efa_act->mat_nr) {
-					efa->mat_nr = efa_act->mat_nr;
-					change = 1;
-				}
-			}
-			break;
-		case 2:	/* copy image */
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			}
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT && efa != efa_act) {
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if (tf_act->tpage) {
-						tf->tpage = tf_act->tpage;
-						tf->mode |= TF_TEX;
-					} else {
-						tf->tpage = NULL;
-						tf->mode &= ~TF_TEX;
-					}
-					tf->tile= tf_act->tile;
-					change = 1;
-				}
-			}
-			break;
-			
-		case 3: /* copy UV's */
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			}
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT && efa != efa_act) {
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					memcpy(tf->uv, tf_act->uv, sizeof(tf->uv));
-					change = 1;
-				}
-			}
-			break;
-		case 4: /* mode's */
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			}
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT && efa != efa_act) {
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					tf->mode= tf_act->mode;
-					change = 1;
-				}
-			}
-			break;
-		case 5: /* copy transp's */
-			if (!tf_act) {
-				error("mesh has no uv/image layers");
-				return;
-			}
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT && efa != efa_act) {
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					tf->transp= tf_act->transp;
-					change = 1;
-				}
-			}
-			break;
-			
-		case 6: /* copy vcols's */
-			if (!mcol_act) {
-				error("mesh has no color layers");
-				return;
-			} else {
-				/* guess the 4th color if needs be */
-				float val =- 1;
-				
-				if (!efa_act->v4) {
-					/* guess the othe vale, we may need to use it
-					 * 
-					 * Modifying the 4th value of the mcol is ok here since its not seen
-					 * on a triangle
-					 * */
-					val = ((float)(mcol_act->r +  (mcol_act+1)->r + (mcol_act+2)->r)) / 3; CLAMP(val, 0, 255);
-					(mcol_act+3)->r = (char)val;
-					
-					val = ((float)(mcol_act->g +  (mcol_act+1)->g + (mcol_act+2)->g)) / 3; CLAMP(val, 0, 255);
-					(mcol_act+3)->g = (char)val;
-					
-					val = ((float)(mcol_act->b +  (mcol_act+1)->b + (mcol_act+2)->b)) / 3; CLAMP(val, 0, 255);
-					(mcol_act+3)->b = (char)val;
-				} 
-				
-				
-				for(efa=em->faces.first; efa; efa=efa->next) {
-					if (efa->f & SELECT && efa != efa_act) {
-						/* TODO - make copy from tri to quad guess the 4th vert */
-						mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-						memcpy(mcol, mcol_act, sizeof(MCol)*4);	
-						change = 1;
-					}
-				}
-			}
-			
-			break;
-		
-		/* Copy from layer - Warning! tf_act and mcol_act will be NULL here */
-		case 7:
-		case 8:
-		case 9:
-			if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
-				error("mesh does not have multiple uv/image layers");
-				return;
-			} else {
-				int layer_orig_idx, layer_idx;
-				
-				layer_idx = mesh_layers_menu(&em->fdata, CD_MTFACE);
-				if (layer_idx<0) return;
-				
-				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
-				layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MTFACE);
-				if (layer_idx==layer_orig_idx)
-					return;
-				
-				/* get the tfaces */
-				CustomData_set_layer_active(&em->fdata, CD_MTFACE, (int)layer_idx);
-				/* store the tfaces in our temp */
-				for(efa=em->faces.first; efa; efa=efa->next) {
-					if (efa->f & SELECT) {
-						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					}	
-				}
-				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layer_orig_idx);
-			}
-			break;
-			
-		case 10: /* select vcol layers - make sure this stays in sync with above code */
-			if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
-				error("mesh does not have multiple color layers");
-				return;
-			} else {
-				int layer_orig_idx, layer_idx;
-				
-				layer_idx = mesh_layers_menu(&em->fdata, CD_MCOL);
-				if (layer_idx<0) return;
-				
-				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
-				layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MCOL);
-				if (layer_idx==layer_orig_idx)
-					return;
-				
-				/* get the tfaces */
-				CustomData_set_layer_active(&em->fdata, CD_MCOL, (int)layer_idx);
-				/* store the tfaces in our temp */
-				for(efa=em->faces.first; efa; efa=efa->next) {
-					if (efa->f & SELECT) {
-						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-					}	
-				}
-				CustomData_set_layer_active(&em->fdata, CD_MCOL, layer_orig_idx);
-				
-			}
-			break;
-		}
-		
-		/* layer copy only - sanity checks done above */
-		switch (ret) {
-		case 7: /* copy UV's only */
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT) {
-					tf_act = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					memcpy(tf->uv, tf_act->uv, sizeof(tf->uv));
-					change = 1;
-				}
-			}
-			break;
-		case 8: /* copy image settings only */
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT) {
-					tf_act = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if (tf_act->tpage) {
-						tf->tpage = tf_act->tpage;
-						tf->mode |= TF_TEX;
-					} else {
-						tf->tpage = NULL;
-						tf->mode &= ~TF_TEX;
-					}
-					tf->tile= tf_act->tile;
-					change = 1;
-				}
-			}
-			break;
-		case 9: /* copy all tface info */
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT) {
-					tf_act = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					memcpy(tf->uv, ((MTFace *)efa->tmp.p)->uv, sizeof(tf->uv));
-					tf->tpage = tf_act->tpage;
-					tf->mode = tf_act->mode;
-					tf->transp = tf_act->transp;
-					change = 1;
-				}
-			}
-			break;
-		case 10:
-			for(efa=em->faces.first; efa; efa=efa->next) {
-				if (efa->f & SELECT) {
-					mcol_act = (MCol *)efa->tmp.p; 
-					mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-					memcpy(mcol, mcol_act, sizeof(MCol)*4);	
-					change = 1;
-				}
-			}
-			break;
-		}
-		
+
+		if (change)
+			recalc_editnormals();
+
+		break;
 	}
 	
 	if (change) {
@@ -1781,12 +1511,319 @@ void mesh_copy_menu(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		
-		if (ese==NULL ||	ese->type == EDITFACE)	BIF_undo_push("Copy Face Attribute");
-		else if (			ese->type == EDITEDGE)	BIF_undo_push("Copy Edge Attribute");
-		else if (			ese->type == EDITVERT)	BIF_undo_push("Copy Vert Attribute");
-		
+		BIF_undo_push("Copy Edge Attribute");
+	}
+}
+
+void EM_mesh_copy_face(short type)
+{
+	EditMesh *em = G.editMesh;
+	short change=0;
+	
+	EditFace *efa, *efa_act;
+	MTFace *tf, *tf_act = NULL;
+	MCol *mcol, *mcol_act = NULL;
+	if (!em) return;
+	efa_act = EM_get_actFace(0);
+	
+	if (!efa_act) return;
+	
+	tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
+	mcol_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MCOL);
+	
+	switch (type) {
+	case 1: /* copy material */
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT && efa->mat_nr != efa_act->mat_nr) {
+				efa->mat_nr = efa_act->mat_nr;
+				change = 1;
+			}
+		}
+		break;
+	case 2:	/* copy image */
+		if (!tf_act) {
+			error("mesh has no uv/image layers");
+			return;
+		}
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT && efa != efa_act) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (tf_act->tpage) {
+					tf->tpage = tf_act->tpage;
+					tf->mode |= TF_TEX;
+				} else {
+					tf->tpage = NULL;
+					tf->mode &= ~TF_TEX;
+				}
+				tf->tile= tf_act->tile;
+				change = 1;
+			}
+		}
+		break;
+
+	case 3: /* copy UV's */
+		if (!tf_act) {
+			error("mesh has no uv/image layers");
+			return;
+		}
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT && efa != efa_act) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				memcpy(tf->uv, tf_act->uv, sizeof(tf->uv));
+				change = 1;
+			}
+		}
+		break;
+	case 4: /* mode's */
+		if (!tf_act) {
+			error("mesh has no uv/image layers");
+			return;
+		}
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT && efa != efa_act) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				tf->mode= tf_act->mode;
+				change = 1;
+			}
+		}
+		break;
+	case 5: /* copy transp's */
+		if (!tf_act) {
+			error("mesh has no uv/image layers");
+			return;
+		}
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT && efa != efa_act) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				tf->transp= tf_act->transp;
+				change = 1;
+			}
+		}
+		break;
+
+	case 6: /* copy vcols's */
+		if (!mcol_act) {
+			error("mesh has no color layers");
+			return;
+		} else {
+			/* guess the 4th color if needs be */
+			float val =- 1;
+
+			if (!efa_act->v4) {
+				/* guess the othe vale, we may need to use it
+				 * 
+				 * Modifying the 4th value of the mcol is ok here since its not seen
+				 * on a triangle
+				 * */
+				val = ((float)(mcol_act->r +  (mcol_act+1)->r + (mcol_act+2)->r)) / 3; CLAMP(val, 0, 255);
+				(mcol_act+3)->r = (char)val;
+
+				val = ((float)(mcol_act->g +  (mcol_act+1)->g + (mcol_act+2)->g)) / 3; CLAMP(val, 0, 255);
+				(mcol_act+3)->g = (char)val;
+
+				val = ((float)(mcol_act->b +  (mcol_act+1)->b + (mcol_act+2)->b)) / 3; CLAMP(val, 0, 255);
+				(mcol_act+3)->b = (char)val;
+			} 
+
+
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT && efa != efa_act) {
+					/* TODO - make copy from tri to quad guess the 4th vert */
+					mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+					memcpy(mcol, mcol_act, sizeof(MCol)*4);	
+					change = 1;
+				}
+			}
+		}
+		break;
 	}
 	
+	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		if (type==3) {
+			allqueue(REDRAWIMAGE, 0);			
+		}
+		
+		BIF_undo_push("Copy Face Attribute");
+	}
+}
+
+
+void EM_mesh_copy_face_layer(short type) 
+{
+	EditMesh *em = G.editMesh;
+	short change=0;
+	
+	EditFace *efa;
+	MTFace *tf, *tf_from;
+	MCol *mcol, *mcol_from;
+	
+	if (!em) return;
+	
+	switch(type) {
+	case 7:
+	case 8:
+	case 9:
+		if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
+			error("mesh does not have multiple uv/image layers");
+			return;
+		} else {
+			int layer_orig_idx, layer_idx;
+
+			layer_idx = mesh_layers_menu(&em->fdata, CD_MTFACE);
+			if (layer_idx<0) return;
+
+			/* warning, have not updated mesh pointers however this is not needed since we swicth back */
+			layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MTFACE);
+			if (layer_idx==layer_orig_idx)
+				return;
+
+			/* get the tfaces */
+			CustomData_set_layer_active(&em->fdata, CD_MTFACE, (int)layer_idx);
+			/* store the tfaces in our temp */
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT) {
+					efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				}	
+			}
+			CustomData_set_layer_active(&em->fdata, CD_MTFACE, layer_orig_idx);
+		}
+		break;
+
+	case 10: /* select vcol layers - make sure this stays in sync with above code */
+		if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
+			error("mesh does not have multiple color layers");
+			return;
+		} else {
+			int layer_orig_idx, layer_idx;
+
+			layer_idx = mesh_layers_menu(&em->fdata, CD_MCOL);
+			if (layer_idx<0) return;
+
+			/* warning, have not updated mesh pointers however this is not needed since we swicth back */
+			layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MCOL);
+			if (layer_idx==layer_orig_idx)
+				return;
+
+			/* get the tfaces */
+			CustomData_set_layer_active(&em->fdata, CD_MCOL, (int)layer_idx);
+			/* store the tfaces in our temp */
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT) {
+					efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+				}	
+			}
+			CustomData_set_layer_active(&em->fdata, CD_MCOL, layer_orig_idx);
+
+		}
+		break;
+	}
+
+	/* layer copy only - sanity checks done above */
+	switch (type) {
+	case 7: /* copy UV's only */
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT) {
+				tf_from = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				memcpy(tf->uv, tf_from->uv, sizeof(tf->uv));
+				change = 1;
+			}
+		}
+		break;
+	case 8: /* copy image settings only */
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT) {
+				tf_from = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (tf_from->tpage) {
+					tf->tpage = tf_from->tpage;
+					tf->mode |= TF_TEX;
+				} else {
+					tf->tpage = NULL;
+					tf->mode &= ~TF_TEX;
+				}
+				tf->tile= tf_from->tile;
+				change = 1;
+			}
+		}
+		break;
+	case 9: /* copy all tface info */
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT) {
+				tf_from = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				memcpy(tf->uv, ((MTFace *)efa->tmp.p)->uv, sizeof(tf->uv));
+				tf->tpage = tf_from->tpage;
+				tf->mode = tf_from->mode;
+				tf->transp = tf_from->transp;
+				change = 1;
+			}
+		}
+		break;
+	case 10:
+		for(efa=em->faces.first; efa; efa=efa->next) {
+			if (efa->f & SELECT) {
+				mcol_from = (MCol *)efa->tmp.p; 
+				mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+				memcpy(mcol, mcol_from, sizeof(MCol)*4);	
+				change = 1;
+			}
+		}
+		break;
+	}
+
+	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		
+		BIF_undo_push("Copy Face Layer");
+	}
+}
+
+
+/* ctrl+c in mesh editmode */
+void mesh_copy_menu(void)
+{
+	EditMesh *em = G.editMesh;
+	EditSelection *ese;
+	int ret;
+	if (!em) return;
+	
+	ese = em->selected.last;
+	
+	/* Faces can have a NULL ese, so dont return on a NULL ese here */
+	
+	if(ese && ese->type == EDITVERT) {
+		/* EditVert *ev, *ev_act = (EditVert*)ese->data;
+		ret= pupmenu(""); */
+	} else if(ese && ese->type == EDITEDGE) {
+		ret= pupmenu("Copy Active Edge to Selected%t|Crease%x1|Bevel Weight%x2|Length%x3");
+		if (ret<1) return;
+		
+		EM_mesh_copy_edge(ret);
+		
+	} else if(ese==NULL || ese->type == EDITFACE) {
+		ret= pupmenu(
+			"Copy Face Selected%t|"
+			"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
+			"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
+
+			"TexFace UVs from layer%x7|"
+			"TexFace Images from layer%x8|"
+			"TexFace All from layer%x9|"
+			"Vertex Colors from layer%x10");
+		if (ret<1) return;
+		
+		if (ret<=6) {
+			EM_mesh_copy_face(ret);
+		} else {
+			EM_mesh_copy_face_layer(ret);
+		}
+	}
 }
 
 

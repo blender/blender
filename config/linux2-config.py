@@ -139,7 +139,7 @@ BF_OPENJPEG_LIB = ''
 BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
-WITH_BF_REDCODE = 'true'  
+WITH_BF_REDCODE = 'false'  
 BF_REDCODE = '#extern/libredcode'
 BF_REDCODE_LIB = ''
 # Uncomment the following two lines to use system's ffmpeg

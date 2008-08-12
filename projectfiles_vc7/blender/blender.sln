@@ -152,6 +152,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GP_ghost", "..\gameengine\g
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B} = {E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA} = {727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358} = {E90C7BC2-CF30-4A60-A8F2-0050D592E358}
+		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA} = {5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43} = {32CC75E2-EE85-45E6-8E3D-513F58464F43}
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8} = {9A307EE5-CD77-47BC-BD87-62508C7E19D8}
 		{AB590CED-F71F-4A17-A89B-18583ECD633D} = {AB590CED-F71F-4A17-A89B-18583ECD633D}
@@ -247,6 +248,8 @@ Global
 		BlenderPlayer Release = BlenderPlayer Release
 		Debug = Debug
 		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
@@ -387,8 +390,10 @@ Global
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Blender Debug.Build.0 = Blender Debug|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Blender Release.ActiveCfg = Blender Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Blender Release.Build.0 = Blender Release|Win32
-		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
-		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
+		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Debug.ActiveCfg = BlenderPlayer Debug|Win32
+		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
+		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
+		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Debug.ActiveCfg = Blender Debug|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Debug.Build.0 = Blender Debug|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Release.ActiveCfg = Blender Release|Win32

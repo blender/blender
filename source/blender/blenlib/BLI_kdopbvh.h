@@ -1,5 +1,7 @@
 /**
  *
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -40,6 +42,35 @@ typedef struct BVHTreeOverlap {
 	int indexB;
 } BVHTreeOverlap;
 
+typedef struct BVHTreeNearest
+{
+	int index;			/* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
+	float co[3];		/* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
+	float no[3];		/* normal at nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
+	float dist;			/* squared distance to search arround */
+} BVHTreeNearest;
+
+typedef struct BVHTreeRay
+{
+	float origin[3];	/* ray origin */
+	float direction[3];	/* ray direction */
+} BVHTreeRay;
+
+typedef struct BVHTreeRayHit
+{
+	int index;			/* index of the tree node (untouched if no hit is found) */
+	float co[3];		/* coordinates of the hit point */
+	float no[3];		/* normal on hit point */
+	float dist;			/* distance to the hit point */
+} BVHTreeRayHit;
+
+/* callback must update nearest in case it finds a nearest result */
+typedef void (*BVHTree_NearestPointCallback) (void *userdata, int index, const float *co, BVHTreeNearest *nearest);
+
+/* callback must update hit in case it finds a nearest successful hit */
+typedef void (*BVHTree_RayCastCallback) (void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
+
+
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
 
@@ -55,6 +86,11 @@ void BLI_bvhtree_update_tree(BVHTree *tree);
 BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result);
 
 float BLI_bvhtree_getepsilon(BVHTree *tree);
+
+/* find nearest node to the given coordinates (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
+int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
+
+int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
 #endif // BLI_KDOPBVH_H
 
