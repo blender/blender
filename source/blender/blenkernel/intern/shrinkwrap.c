@@ -364,7 +364,6 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
 	{
 		vert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MVERT) : NULL;
-		if(vert) CDDM_calc_normals(calc->original);	//Maybe normals aren't yet calculated
 	}
 	else
 	{

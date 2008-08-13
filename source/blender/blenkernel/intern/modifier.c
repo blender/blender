@@ -7285,21 +7285,50 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 
 static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, derivedData, vertexCos, numVerts);
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(shrinkwrapModifier_requiredDataMask(md))
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
 }
 
 static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
 
-	if(!derivedData && ob->type == OB_MESH)
-		dm = CDDM_from_editmesh(editData, ob->data);
-	else
-		dm = CDDM_copy(derivedData);	//TODO: this is only needed if derevedData doenst supports getVertexArray
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData)
+	if(dm)
 		dm->release(dm);
 }
 
