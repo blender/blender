@@ -378,9 +378,11 @@ static void do_text_editmenu(void *arg, int event)
 	switch(event) {
 	case 1:
 		txt_do_undo(text);
+		pop_space_text(st);
 		break;
 	case 2:
 		txt_do_redo(text);
+		pop_space_text(st);
 		break;
 	case 3:
 		if (text && text->id.lib) {

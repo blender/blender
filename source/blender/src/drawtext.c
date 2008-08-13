@@ -1064,6 +1064,38 @@ static void screen_skip(SpaceText *st, int lines)
 	if (st->top<0) st->top= 0;
 }
 
+static void cursor_skip(SpaceText *st, int lines, int sel)
+{
+	Text *text;
+	TextLine **linep;
+	int oldl, oldc, *charp;
+	
+	if (!st) return;
+	if (st->spacetype != SPACE_TEXT) return;
+	if (!st->text) return;
+
+	text= st->text;
+
+	if (sel) linep= &text->sell, charp= &text->selc;
+	else linep= &text->curl, charp= &text->curc;
+	oldl= txt_get_span(text->lines.first, *linep);
+	oldc= *charp;
+
+	while (lines>0 && (*linep)->next) {
+		*linep= (*linep)->next;
+		lines--;
+	}
+	while (lines<0 && (*linep)->prev) {
+		*linep= (*linep)->prev;
+		lines++;
+	}
+
+	if (*charp > (*linep)->len) *charp= (*linep)->len;
+
+	if (!sel) txt_pop_sel(st->text);
+	txt_undo_add_toop(st->text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, *linep), *charp);
+}
+
 /* 
  * mode 1 == view scroll
  * mode 2 == scrollbar
@@ -1194,6 +1226,8 @@ static void do_selection(SpaceText *st, int selecting)
 		
 	if (sell!=linep2 || selc!=charp2)
 		txt_undo_add_toop(st->text, UNDO_STO, sell, selc, linep2, charp2);
+
+	pop_space_text(st);
 }
 
 static int do_suggest_select(SpaceText *st)
@@ -2947,11 +2981,13 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			//txt_print_undo(text); //debug buffer in console
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				txt_do_redo(text);
+				pop_space_text(st);
 				do_draw= 1;
 			}
 			if (G.qual == LR_ALTKEY) {
 				txt_do_undo(text);
 				if (st->showsyntax) txt_format_text(st);
+				pop_space_text(st);
 				do_draw= 1;
 			}
 			break; /* BREAK U */
@@ -3014,6 +3050,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					txt_do_undo(text);
 				}
 				if (st->showsyntax) txt_format_text(st);
+				pop_space_text(st);
 				do_draw= 1;
 			}
 			break;
@@ -3140,11 +3177,13 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			pop_space_text(st);
 			break;
 		case PAGEDOWNKEY:
-			screen_skip(st, st->viewlines);
+			cursor_skip(st, st->viewlines, G.qual & LR_SHIFTKEY);
+			pop_space_text(st);
 			do_draw= 1;
 			break;
 		case PAGEUPKEY:
-			screen_skip(st, -st->viewlines);
+			cursor_skip(st, -st->viewlines, G.qual & LR_SHIFTKEY);
+			pop_space_text(st);
 			do_draw= 1;
 			break;
 		case HOMEKEY:
