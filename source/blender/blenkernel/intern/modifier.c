@@ -7231,7 +7231,7 @@ static void shrinkwrapModifier_initData(ModifierData *md)
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 	smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
 	smd->shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
-	smd->keptDist	= 0.0f;
+	smd->keepDist	= 0.0f;
 
 	smd->target		= NULL;
 	smd->auxTarget	= NULL;
@@ -7247,7 +7247,7 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 
 	strcpy(tsmd->vgroup_name, smd->vgroup_name);
 
-	tsmd->keptDist	= smd->keptDist;
+	tsmd->keepDist	= smd->keepDist;
 	tsmd->shrinkType= smd->shrinkType;
 	tsmd->shrinkOpts= smd->shrinkOpts;
 }

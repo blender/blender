@@ -2545,7 +2545,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keptDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to kept from the target");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keepDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to keep from the target");
 
 			cy -= 3;
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
@@ -2570,7 +2570,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->auxTarget, "Aditional mesh to project over");
 			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
-				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
 			}
 
 			uiBlockEndAlign(block);

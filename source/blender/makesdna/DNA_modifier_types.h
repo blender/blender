@@ -498,7 +498,7 @@ typedef struct ShrinkwrapModifierData {
 	struct Object *target;	/* shrink target */
 	struct Object *auxTarget; /* additional shrink target */
 	char vgroup_name[32];	/* optional vertexgroup name */
-	float keptDist;			/* distance offset from mesh/projection point */
+	float keepDist;			/* distance offset to keep from mesh/projection point */
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
 	char projAxis;			/* axis to project over */
@@ -518,7 +518,7 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)	/* ignore vertex moves if a vertex ends projected on a front face of the target */
 #define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)	/* ignore vertex moves if a vertex ends projected on a back face of the target */
 
-#define MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE		(1<<5)	/* distance is measure to the front face of the target */
+#define MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE		(1<<5)	/* distance is measure to the front face of the target */
 
 #define MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS		(1<<0)
 #define MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS		(1<<1)

@@ -112,7 +112,7 @@ typedef struct ShrinkwrapCalcData
 	struct DerivedMesh *target;		//mesh we are shrinking to	
 	SpaceTransform local2target;	//transform to move bettwem local and target space
 
-	float keptDist;					//Distance to kept from target (units are in local space)
+	float keepDist;					//Distance to kept from target (units are in local space)
 
 } ShrinkwrapCalcData;
 

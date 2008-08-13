@@ -172,7 +172,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		//because space has been deformed
 		space_transform_setup(&calc.local2target, ob, smd->target);
 
-		calc.keptDist = smd->keptDist;	//TODO: smd->keptDist is in global units.. must change to local
+		calc.keepDist = smd->keepDist;	//TODO: smd->keepDist is in global units.. must change to local
 	}
 
 
@@ -256,9 +256,9 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		//Found the nearest vertex
 		if(nearest.index != -1)
 		{
-			//Adjusting the vertex weight, so that after interpolating it kepts a certain distance from the nearest position
+			//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
 			float dist = sasqrt(nearest.dist);
-			if(dist > FLT_EPSILON) weight *= (dist - calc->keptDist)/dist;
+			if(dist > FLT_EPSILON) weight *= (dist - calc->keepDist)/dist;
 
 			//Convert the coordinates back to mesh coordinates
 			VECCOPY(tmp_co, nearest.co);
@@ -388,7 +388,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 	//Build target tree
-	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, calc->keptDist, 4, 6));
+	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, calc->keepDist, 4, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
 
 	//Build auxiliar target
@@ -521,17 +521,17 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		//Found the nearest vertex
 		if(nearest.index)
 		{
-			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE)
+			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE)
 			{
 				//Make the vertex stay on the front side of the face
-				VECADDFAC(tmp_co, nearest.co, nearest.no, calc->keptDist);
+				VECADDFAC(tmp_co, nearest.co, nearest.no, calc->keepDist);
 			}
 			else
 			{
-				//Adjusting the vertex weight, so that after interpolating it kepts a certain distance from the nearest position
+				//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
 				float dist = sasqrt( nearest.dist );
 				if(dist > FLT_EPSILON)
-					VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keptDist)/dist);	//linear interpolation
+					VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist)/dist);	//linear interpolation
 				else
 					VECCOPY( tmp_co, nearest.co );
 			}
