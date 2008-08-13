@@ -60,7 +60,7 @@
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
-#if 1
+#ifndef _WIN32
 
 #include <sys/time.h>
 
