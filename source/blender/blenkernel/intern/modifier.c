@@ -7258,8 +7258,13 @@ CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(smd->vgroup_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+	if(smd->vgroup_name[0])
+		dataMask |= (1 << CD_MDEFORMVERT);
 
+	if(smd->shrinkType == MOD_SHRINKWRAP_PROJECT
+	&& smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
+		dataMask |= (1 << CD_MVERT);
+		
 	return dataMask;
 }
 

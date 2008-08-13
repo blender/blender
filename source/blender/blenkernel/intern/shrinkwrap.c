@@ -215,12 +215,12 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
 	int i;
-	int vgroup		= get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	const int vgroup		 = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	MDeformVert *const dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
 
-	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 	BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6));
 	if(treeData.tree == NULL) return OUT_OF_MEMORY();
@@ -229,7 +229,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
 
-//#pragma omp parallel for private(i) private(nearest) schedule(static)
+#pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(treeData,calc) schedule(static)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
@@ -315,8 +315,8 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 	{
 		float dot = INPR( dir, hit_tmp.no);
 
-		if(((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot < 0)
-		|| ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot > 0))
+		if(((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f)
+		|| ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f))
 			return FALSE; //Ignore hit
 
 
@@ -341,13 +341,13 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	int i;
 
 	//Options about projection direction
-	char use_normal    = calc->smd->shrinkOpts;
+	const char use_normal    = calc->smd->shrinkOpts;
 	float proj_axis[3] = {0.0f, 0.0f, 0.0f};
 	MVert *vert  = NULL; //Needed in case of vertex normal
 
 	//Vertex group data
-	int vgroup		   = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
+	const int vgroup		   = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	const MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 
 	//Raycast and tree stuff
@@ -405,8 +405,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 	//Now, everything is ready to project the vertexs!
-
-//#pragma omp parallel for private(i) private(hit) schedule(static)
+//#pragma omp parallel for private(i,hit) schedule(static)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
@@ -477,8 +476,8 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
 	int i;
 
-	const int vgroup		 = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	const MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
+	const int vgroup = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
+	const MDeformVert *const dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
@@ -495,48 +494,54 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 
 	//Find the nearest vertex 
-//#pragma omp parallel for private(i) private(nearest) schedule(static)
+#pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc,treeData) schedule(static)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
-		int index;
 		float tmp_co[3];
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 		if(weight == 0.0f) continue;
 
+		//Convert the vertex to tree coordinates
 		VECCOPY(tmp_co, co);
 		space_transform_apply(&calc->local2target, tmp_co);
 
+		//Use local proximity heuristics (to reduce the nearest search)
+		//
+		//If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
+		//so we can initiate the "nearest.dist" with the expected value to that last hit.
+		//This will lead in prunning of the search tree.
 		if(nearest.index != -1)
-		{
 			nearest.dist = squared_dist(tmp_co, nearest.co);
-		}
-		else nearest.dist = FLT_MAX;
+		else
+			nearest.dist = FLT_MAX;
 
-		index = BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
+		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
-		if(index != -1)
+		//Found the nearest vertex
+		if(nearest.index)
 		{
 			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEPT_ABOVE_SURFACE)
 			{
+				//Make the vertex stay on the front side of the face
 				VECADDFAC(tmp_co, nearest.co, nearest.no, calc->keptDist);
 			}
 			else
 			{
+				//Adjusting the vertex weight, so that after interpolating it kepts a certain distance from the nearest position
 				float dist = sasqrt( nearest.dist );
 				if(dist > FLT_EPSILON)
-				{
 					VecLerpf(tmp_co, tmp_co, nearest.co, (dist - calc->keptDist)/dist);	//linear interpolation
-				}
 				else
-				{
 					VECCOPY( tmp_co, nearest.co );
-				}
 			}
+
+			//Convert the coordinates back to mesh coordinates
 			space_transform_invert(&calc->local2target, tmp_co);
 			VecLerpf(co, co, tmp_co, weight);	//linear interpolation
 		}
 	}
+
 
 	free_bvhtree_from_mesh(&treeData);
 }
