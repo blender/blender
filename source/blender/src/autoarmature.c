@@ -52,6 +52,7 @@
 #include "BLI_ghash.h"
 #include "BLI_graph.h"
 #include "BLI_rand.h"
+#include "BLI_threads.h"
 
 #include "BDR_editobject.h"
 
@@ -92,6 +93,7 @@ typedef struct RigGraph {
 	ReebGraph *link_mesh;
 	
 	ListBase controls;
+	ListBase threads;
 	
 	GHash *bones_map;
 	
@@ -149,6 +151,11 @@ typedef struct RigControl {
 	int		flag;
 } RigControl;
 
+typedef struct RetargetParam {
+	RigGraph	*rigg;
+	RigArc		*iarc;
+} RetargetParam;
+
 typedef enum 
 {
 	RETARGET_LENGTH,
@@ -162,6 +169,8 @@ typedef enum
 } RetargetMethod;
 
 /*******************************************************************************************************/
+
+void *exec_retargetArctoArc(void *param);
 
 static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second);
 
@@ -248,6 +257,8 @@ static RigGraph *newRigGraph()
 	
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
+	
+	BLI_init_threads(&rg->threads, exec_retargetArctoArc, 2); /* fix number of threads */
 	
 	return rg;
 }
@@ -1549,6 +1560,19 @@ static void retargetArctoArc(RigGraph *rigg, RigArc *iarc)
 			retargetArctoArcLength(rigg, iarc);
 		}
 	}
+}
+
+void *exec_retargetArctoArc(void *param)
+{
+	RetargetParam *p = (RetargetParam*)param;
+	retargetArctoArc(p->rigg, p->iarc);
+	MEM_freeN(param);
+	
+	return NULL;
+}
+
+void thread_retargetArctoArc(RigGraph *rigg, RigArc *iarc)
+{
 }
 
 static void matchMultiResolutionNode(RigNode *inode, ReebNode *top_node)
