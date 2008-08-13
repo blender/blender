@@ -42,6 +42,7 @@
 
 #include "BMF_Api.h"
 #include "BIF_language.h"
+#include "MEM_guardedalloc.h"
 
 #include "BSE_headerbuttons.h"
 
@@ -315,9 +316,14 @@ static void do_text_filemenu(void *arg, int event)
 		txt_write_file(text);
 		break;
 	case 6:
-		run_python_script(st);
+		text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+		MEM_freeN(text->name);
+		text->name= NULL;
 		break;
 	case 7:
+		run_python_script(st);
+		break;
+	case 8:
 	{
 		Object *ob;
 		bConstraint *con;
@@ -491,6 +497,57 @@ static void do_text_editmenu_selectmenu(void *arg, int event)
 	}
 }
 
+/* action executed after clicking in Markers menu */
+static void do_text_editmenu_markermenu(void *arg, int event)
+{
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
+	TextMarker *mrk;
+	ScrArea *sa;
+	int lineno;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
+	
+	switch(event) {
+	case 1:
+		txt_clear_markers(text, 0);
+		break;
+	case 2:
+		lineno= txt_get_span(text->lines.first, text->curl);
+		mrk= text->markers.first;
+		while (mrk && (mrk->lineno<lineno || (mrk->lineno==lineno && mrk->start <= text->curc)))
+			mrk= mrk->next;
+		if (!mrk) mrk= text->markers.first;
+		if (mrk) {
+			txt_move_to(text, mrk->lineno, mrk->start, 0);
+			txt_move_to(text, mrk->lineno, mrk->end, 1);
+		}
+		break;
+	case 3:
+		lineno= txt_get_span(text->lines.first, text->curl);
+		mrk= text->markers.last;
+		while (mrk && (mrk->lineno>lineno || (mrk->lineno==lineno && mrk->end > text->curc)))
+			mrk= mrk->prev;
+		if (!mrk) mrk= text->markers.last;
+		if (mrk) {
+			txt_move_to(text, mrk->lineno, mrk->start, 0);
+			txt_move_to(text, mrk->lineno, mrk->end, 1);
+		}
+		break;
+	default:
+		break;
+	}
+
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
+}
+
 /* action executed after clicking in Format menu */
 static void do_text_formatmenu(void *arg, int event)
 {
@@ -593,6 +650,25 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select All|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Line", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
+/* Select menu */
+static uiBlock *text_editmenu_markermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "text_editmenu_markermenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_editmenu_markermenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Marker", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Marker", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -713,6 +789,7 @@ static uiBlock *text_editmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, text_editmenu_viewmenu, NULL, ICON_RIGHTARROW_THIN, "View|Alt Shift V   ", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, text_editmenu_selectmenu, NULL, ICON_RIGHTARROW_THIN, "Select|Alt Shift S   ", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, text_editmenu_markermenu, NULL, ICON_RIGHTARROW_THIN, "Markers", 0, yco-=20, 120, 19, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump...|Alt J", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find And Replace...|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
@@ -754,12 +831,15 @@ static uiBlock *text_filemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		
+		if (text->name)
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Internal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 		
 		if (BPY_is_pyconstraint(text))
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Refresh All PyConstraints", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Refresh All PyConstraints", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 			
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}

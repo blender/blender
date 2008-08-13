@@ -2455,7 +2455,7 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 	text= st->text;
 	if (!text || text->id.lib || text->curl != text->sell) return 0;
 
-	marker= txt_find_marker(text, text->curl, text->curc, 0);
+	marker= txt_find_marker(text, text->sell, text->selc, 0);
 	if (!marker) {
 		/* Find the next temporary marker */
 		if (evnt==TABKEY) {
