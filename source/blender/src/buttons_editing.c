@@ -6720,3 +6720,4 @@ void editing_panels()
 	}
 	uiClearButLock();
 }
+

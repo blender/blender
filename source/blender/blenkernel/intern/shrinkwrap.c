@@ -405,7 +405,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 	//Now, everything is ready to project the vertexs!
-//#pragma omp parallel for private(i,hit) schedule(static)
+#pragma omp parallel for private(i,hit) schedule(static)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
