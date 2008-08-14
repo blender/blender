@@ -44,22 +44,7 @@
 ------------------------------*/
 
 								// some basic python macros
-#define Py_NEWARGS 1			
 #define Py_Return { Py_INCREF(Py_None); return Py_None;}
-static inline PyObject* Py_Success(bool truth)
-{
-	if (truth)
-	{
-		Py_INCREF(Py_True);
-		return Py_True;
-	}
-	Py_INCREF(Py_False);
-	return Py_False;
-}
-
-#define Py_Error(E, M)   {PyErr_SetString(E, M); return NULL;}
-#define Py_Try(F) {if (!(F)) return NULL;}
-#define Py_Assert(A,E,M) {if (!(A)) {PyErr_SetString(E, M); return NULL;}}
 
 static inline void Py_Fatal(char *M) {
 	//cout << M << endl; 
