@@ -1689,7 +1689,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 					uiDefBut(block, LABEL, 0, "Torque", xco, yco-106, 55, 19, NULL, 0, 0, 0, 0, "Sets the torque");
 					uiDefButF(block, NUM, 0, "",		xco+45, yco-106, wval, 19, oa->forcerot, -10000.0, 10000.0, 10, 0, "");
 					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-106, wval, 19, oa->forcerot+1, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-6106, wval, 19, oa->forcerot+2, -10000.0, 10000.0, 10, 0, "");				
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-106, wval, 19, oa->forcerot+2, -10000.0, 10000.0, 10, 0, "");				
 				}
 				
 				if ( ob->gameflag & OB_DYNAMIC )
