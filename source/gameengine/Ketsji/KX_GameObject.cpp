@@ -942,7 +942,7 @@ PyObject* KX_GameObject::PyEndObject(PyObject* self)
 	KX_Scene *scene = PHY_GetActiveScene();
 	scene->DelayedRemoveObject(this);
 	
-	return Py_None;
+	Py_RETURN_NONE;
 
 }
 
