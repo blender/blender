@@ -181,7 +181,7 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 	// clmd->sim_parms->timescale= timescale;
 	
 	// support reversing of baked fluid frames here
-	if((fss->show_advancedoptions & OB_FLUIDSIM_REVERSE) && (fss->lastgoodframe >= 0))
+	if((fss->flag & OB_FLUIDSIM_REVERSE) && (fss->lastgoodframe >= 0))
 	{
 		framenr = fss->lastgoodframe - framenr + 1;
 		CLAMP(framenr, 1, fss->lastgoodframe);

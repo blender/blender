@@ -3045,6 +3045,13 @@ static void lib_link_object(FileData *fd, Main *main)
 				act= act->next;
 			}
 			
+			{
+				FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+				
+				if(fluidmd && fluidmd->fss) 
+					fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, fluidmd->fss->ipo);
+			}
+			
 			/* texture field */
 			if(ob->pd)
 				if(ob->pd->tex)
@@ -3121,7 +3128,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
-			fluidmd->fss->ipo = newlibadr_us(fd, lb, fluidmd->fss->ipo);
 		}
 		else if (md->type==eModifierType_Collision) {
 			
@@ -7794,6 +7800,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				MEM_freeN(ob->fluidsimSettings);
 				
 				fluidmd->fss->lastgoodframe = INT_MAX;
+				fluidmd->fss->flag = 0;
 			}
 		}
 	}

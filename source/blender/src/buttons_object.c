@@ -2407,7 +2407,7 @@ void do_object_panels(unsigned short event)
 	case B_FLUIDSIM_CHANGETYPE:
 	{
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-		fluidmd->fss->show_advancedoptions &= ~OB_FLUIDSIM_REVERSE; // clear flag
+		fluidmd->fss->flag &= ~OB_FLUIDSIM_REVERSE; // clear flag
 		if(ob && ob->particlesystem.first && fluidmd->fss->type!=OB_FLUIDSIM_PARTICLE){
 			ParticleSystem *psys;
 			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
@@ -5185,7 +5185,7 @@ static void object_panel_fluidsim(Object *ob)
 				yline -= 1*separateHeight;
 		
 				uiBlockBeginAlign ( block );
-				uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->flag, 0, 0, 0, 0, "Reverse fluidsim frames" );
+				uiDefButBitI ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->flag, 0, 0, 0, 0, "Reverse fluidsim frames" );
 				uiDefBut ( block, LABEL,   0, "",  50,yline,25,objHeight, NULL, 0.0, 0, 0, 0, "" );
 				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  75, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in" );
 				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      95, yline, 205, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in" );
@@ -5342,7 +5342,7 @@ static void object_panel_fluidsim(Object *ob)
 		
 			yline -= lineHeight;
 			uiDefButF ( block, NUM, B_DIFF, "Quality:", 0, yline,150,20, &fss->cpsQuality, 5.0, 100.0,   10,0, "Specifies the quality which is used for object sampling (higher = better but slower)." );
-			uiDefButBitS ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     150, yline,150,20, &fss->flag, 0, 0, 0, 0, "Reverse control object movement." );
+			uiDefButBitI ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     150, yline,150,20, &fss->flag, 0, 0, 0, 0, "Reverse control object movement." );
 		}
 		else
 		{
