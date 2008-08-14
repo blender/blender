@@ -722,6 +722,11 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		return NULL;
 
 	tree = (BVHTree *)MEM_callocN(sizeof(BVHTree), "BVHTree");
+
+	//tree epsilon must be >= FLT_EPSILON
+	//so that tangent rays can still hit a bounding volume..
+	//this bug would show up when casting a ray aligned with a kdop-axis and with an edge of 2 faces
+	epsilon = MAX2(FLT_EPSILON, epsilon);
 	
 	if(tree)
 	{
@@ -1212,7 +1217,7 @@ static float ray_nearest_hit(BVHRayCastData *data, BVHNode *node)
 			float ll = (bv[0] - data->ray.origin[i]) / data->ray_dot_axis[i];
 			float lu = (bv[1] - data->ray.origin[i]) / data->ray_dot_axis[i];
 
-			if(data->ray_dot_axis[i] > 0)
+			if(data->ray_dot_axis[i] > 0.0f)
 			{
 				if(ll > low)   low = ll;
 				if(lu < upper) upper = lu;
@@ -1252,7 +1257,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	else
 	{
 		//pick loop direction to dive into the tree (based on ray direction and split axis)
-		if(data->ray_dot_axis[ node->main_axis ] > 0)
+		if(data->ray_dot_axis[ node->main_axis ] > 0.0f)
 		{
 			for(i=0; i != node->totnode; i++)
 			{
@@ -1289,7 +1294,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, BVHTr
 	{
 		data.ray_dot_axis[i] = INPR( data.ray.direction, KDOP_AXES[i]);
 
-		if(fabs(data.ray_dot_axis[i]) < 1e-7)
+		if(fabs(data.ray_dot_axis[i]) < FLT_EPSILON)
 			data.ray_dot_axis[i] = 0.0;
 	}
 
