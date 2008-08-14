@@ -929,8 +929,8 @@ void text_buttons(void)
 		
 	uiDefIconButI(block, ICONTOG, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, &st->showlinenrs, 0, 0, 0, 0, "Displays line numbers");
 	uiDefIconButI(block, ICONTOG, B_WORDWRAP, ICON_WORDWRAP, xco+=XIC,0,XIC,YIC, &st->wordwrap, 0, 0, 0, 0, "Enables word wrap");
-	uiDefIconButI(block, ICONTOG, B_SYNTAX, ICON_SYNTAX, xco+=XIC,0,XIC,YIC, &st->showsyntax, 0, 0, 0, 0, "Enables Syntax Highlighting");
-	uiDefIconButI(block, ICONTOG, B_TEXTPLUGINS, ICON_CLIPUV_DEHLT, xco+=XIC,0,XIC,YIC, &st->doplugins, 0, 0, 0, 0, "Enables text plugins");
+	uiDefIconButI(block, ICONTOG, B_SYNTAX, ICON_SYNTAX, xco+=XIC,0,XIC,YIC, &st->showsyntax, 0, 0, 0, 0, "Enables syntax highlighting");
+	uiDefIconButI(block, ICONTOG, B_TEXTPLUGINS, ICON_PYTHON, xco+=XIC,0,XIC,YIC, &st->doplugins, 0, 0, 0, 0, "Enables Python text plugins");
 	uiBlockEndAlign(block);
 	
 	/* STD TEXT BUTTONS */
