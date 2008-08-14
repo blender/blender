@@ -213,6 +213,8 @@ char KX_ParentActuator::GetObject_doc[] =
 "getObject()\n"
 "\tReturns the object that is set to.\n";
 PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args, PyObject* kwds) {
+	if(!m_ob)
+		Py_Return;
 	return PyString_FromString(m_ob->GetName());
 }
 	
