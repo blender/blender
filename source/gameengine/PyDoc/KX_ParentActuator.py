@@ -12,11 +12,12 @@ class KX_ParentActuator(SCA_IActuator):
 		
 		Object can be either a L{KX_GameObject} or the name of the object.
 		
-		@type object: L{KX_GameObject} or string
+		@type object: L{KX_GameObject}, string or None
 		"""
-	def getObject():
+	def getObject(name_only = 1):
 		"""
 		Returns the name of the object to change to.
-		
-		@rtype: string
+		@type name_only: bool
+		@param name_only: optional argument, when 0 return a KX_GameObject
+		@rtype: string, KX_GameObject or None if no object is set
 		"""

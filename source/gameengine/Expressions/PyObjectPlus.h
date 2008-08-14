@@ -121,6 +121,13 @@ static inline void Py_Fatal(char *M) {
 	}; \
     static char method_name##_doc[]; \
 
+#define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
+	}; \
+    static char method_name##_doc[]; \
+
 #define KX_PYMETHOD_DOC_O(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* value); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \

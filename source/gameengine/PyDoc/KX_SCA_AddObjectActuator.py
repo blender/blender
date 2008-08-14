@@ -13,7 +13,7 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		  
 		  C{ERROR: GameObject I{OBName} has a AddObjectActuator I{ActuatorName} without object (in 'nonactive' layer)}
 	"""
-	def setObject(obj):
+	def setObject(object):
 		"""
 		Sets the game object to add.
 		
@@ -21,17 +21,18 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		
 		If the object does not exist, this function is ignored.
 		
-		obj can either be a L{KX_GameObject} or the name of an object.
+		object can either be a L{KX_GameObject} or the name of an object or None.
 		
-		@type obj: L{KX_GameObject} or string
+		@type object: L{KX_GameObject}, string or None
 		"""
-	def getObject():
+	def getObject(name_only = 0):
 		"""
 		Returns the name of the game object to be added.
 		
 		Returns None if no game object has been assigned to be added.
-		
-		@rtype: string
+		@type name_only: bool
+		@param name_only: optional argument, when 0 return a KX_GameObject
+		@rtype: string, KX_GameObject or None if no object is set
 		"""
 	def setTime(time):
 		"""

@@ -18,16 +18,16 @@ class KX_TrackToActuator(SCA_IActuator):
 		"""
 		Sets the object to track.
 		
-		@type object: L{KX_GameObject} or string
+		@type object: L{KX_GameObject}, string or None
 		@param object: Either a reference to a game object or the name of the object to track.
 		"""
 	def getObject():
 		"""
 		Returns the name of the object to track.
 		
-		Returns None if no object has been set to track.
-		
-		@rtype: string
+		@type name_only: bool
+		@param name_only: optional argument, when 0 return a KX_GameObject
+		@rtype: string, KX_GameObject or None if no object is set
 		"""
 	def setTime(time):
 		"""
