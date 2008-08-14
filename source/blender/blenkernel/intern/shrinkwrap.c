@@ -32,10 +32,12 @@
 #include <memory.h>
 #include <stdio.h>
 #include <time.h>
+#include <assert.h>
 
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
@@ -44,6 +46,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_subsurf.h"
 
 #include "BLI_arithb.h"
 #include "BLI_kdtree.h"
@@ -344,6 +347,7 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	const char use_normal    = calc->smd->shrinkOpts;
 	float proj_axis[3] = {0.0f, 0.0f, 0.0f};
 	MVert *vert  = NULL; //Needed in case of vertex normal
+	DerivedMesh* ss_mesh = NULL;
 
 	//Vertex group data
 	const int vgroup		   = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
@@ -359,11 +363,46 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	BVHTreeFromMesh auxData= NULL_BVHTreeFromMesh;
 	SpaceTransform local2aux;
 
+do
+{
 
 	//Prepare data to retrieve the direction in which we should project each vertex
 	if(calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
 	{
-		vert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MVERT) : NULL;
+		//No Mvert information: jump to "free memory and return" part
+		if(calc->original == NULL) break;
+
+		if(calc->smd->subsurfLevels)
+		{
+			SubsurfModifierData smd;
+			memset(&smd, 0, sizeof(smd));
+			smd.subdivType = ME_CC_SUBSURF;			//catmull clark
+			smd.levels = calc->smd->subsurfLevels;	//levels
+
+			ss_mesh = subsurf_make_derived_from_derived(calc->original, &smd, FALSE, NULL, 0, 0);
+
+			if(ss_mesh)
+			{
+				vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);
+				if(vert)
+				{
+					//TRICKY: this code assumes subsurface will have the transformed original vertices
+					//in their original order at the end of the vert array.
+					vert = vert
+						 + ss_mesh->getNumVerts(ss_mesh)
+						 - calc->original->getNumVerts(calc->original);
+				}
+			}
+
+			//To make sure we are not letting any memory behind
+			assert(smd.emCache == NULL);
+			assert(smd.mCache == NULL);
+		}
+		else
+			vert = calc->original->getVertDataArray(calc->original, CD_MVERT);
+
+		//Not able to get vert information: jump to "free memory and return" part
+		if(vert == NULL) break;
 	}
 	else
 	{
@@ -373,22 +412,21 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		if(calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;
 
 		Normalize(proj_axis);
-	}
 
-	if(vert == NULL && (INPR(proj_axis, proj_axis) < FLT_EPSILON))
-	{
-		printf("Shrinkwrap can't project witouth normal information");
-		return;
+		//Invalid projection direction: jump to "free memory and return" part
+		if(INPR(proj_axis, proj_axis) < FLT_EPSILON) break; 
 	}
 
 	//If the user doesn't allows to project in any direction of projection axis... then theres nothing todo.
 	if((use_normal & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
-		return;
+		break; //jump to "free memory and return" part
 
 
 	//Build target tree
 	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, calc->keepDist, 4, 6));
-	if(treeData.tree == NULL) return OUT_OF_MEMORY();
+	if(treeData.tree == NULL)
+		break; //jump to "free memory and return" part
+
 
 	//Build auxiliar target
 	if(calc->smd->auxTarget)
@@ -414,7 +452,15 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 		if(weight == 0.0f) continue;
 
-		VECCOPY(tmp_co, co);
+		if(ss_mesh)
+		{
+			VECCOPY(tmp_co, vert[i].co);
+		}
+		else
+		{
+			VECCOPY(tmp_co, co);
+		}
+
 
 		if(vert)
 			NormalShortToFloat(tmp_no, vert[i].no);
@@ -456,6 +502,9 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	}
 
 
+//Simple do{} while(0) structure to allow to easily jump to the "free memory and return" part
+} while(0);
+
 	//free data structures
 
 	free_bvhtree_from_mesh(&treeData);
@@ -463,6 +512,9 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 	if(aux_mesh)
 		aux_mesh->release(aux_mesh);
+
+	if(ss_mesh)
+		ss_mesh->release(ss_mesh);
 }
 
 /*
@@ -492,7 +544,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	nearest.dist = FLT_MAX;
 
 
-	//Find the nearest vertex 
+	//Find the nearest vertex
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc,treeData) schedule(static)
 	for(i = 0; i<calc->numVerts; ++i)
 	{
@@ -518,7 +570,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
 		//Found the nearest vertex
-		if(nearest.index)
+		if(nearest.index != -1)
 		{
 			if(calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE)
 			{

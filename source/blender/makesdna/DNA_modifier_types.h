@@ -502,7 +502,15 @@ typedef struct ShrinkwrapModifierData {
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
 	char projAxis;			/* axis to project over */
-	char pad[7];
+
+	/*
+	 * if using projection over vertex normal this controls the
+	 * the level of subsurface that must be done before getting the
+	 * vertex coordinates and normal
+	 */
+	char subsurfLevels;
+
+	char pad[6];
 
 } ShrinkwrapModifierData;
 

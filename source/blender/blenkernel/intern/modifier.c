@@ -7316,7 +7316,7 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditM
 	if(dataMask)
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob);
+		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
 		else return;
 
 		if(dataMask & CD_MVERT)
