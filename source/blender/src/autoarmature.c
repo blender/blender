@@ -77,6 +77,9 @@ struct RigNode;
 struct RigArc;
 struct RigEdge;
 
+#define NB_THREADS 4
+#define USE_THREADS
+
 typedef struct RigGraph {
 	ListBase	arcs;
 	ListBase	nodes;
@@ -94,6 +97,7 @@ typedef struct RigGraph {
 	
 	ListBase controls;
 	ListBase threads;
+	char threads_used[NB_THREADS];
 	
 	GHash *bones_map;
 	
@@ -154,6 +158,7 @@ typedef struct RigControl {
 typedef struct RetargetParam {
 	RigGraph	*rigg;
 	RigArc		*iarc;
+	int			 index;
 } RetargetParam;
 
 typedef enum 
@@ -258,7 +263,7 @@ static RigGraph *newRigGraph()
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
 	
-	BLI_init_threads(&rg->threads, exec_retargetArctoArc, 2); /* fix number of threads */
+	BLI_init_threads(&rg->threads, exec_retargetArctoArc, NB_THREADS); /* fix number of threads */
 	
 	return rg;
 }
@@ -308,16 +313,24 @@ static void addRigNodeHead(RigGraph *rg, RigArc *arc, RigNode *node)
 	arc->head = node;
 }
 
-static RigNode *newRigNodeTail(RigGraph *rg, RigArc *arc, float p[3])
+static RigNode *newRigNode(RigGraph *rg, float p[3])
 {
 	RigNode *node;
 	node = MEM_callocN(sizeof(RigNode), "rig node");
 	BLI_addtail(&rg->nodes, node);
 
 	VECCOPY(node->p, p);
-	node->degree = 1;
+	node->degree = 0;
 	node->arcs = NULL;
 	
+	return node;
+}
+
+static RigNode *newRigNodeTail(RigGraph *rg, RigArc *arc, float p[3])
+{
+	RigNode *node = newRigNode(rg, p);
+	
+	node->degree = 1;
 	arc->tail = node;
 
 	return node;
@@ -376,14 +389,18 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 	ctrl->bone = bone;
 }
 
-static void RIG_parentControl(RigControl *ctrl, EditBone *parent)
+static int RIG_parentControl(RigControl *ctrl, EditBone *parent)
 {
 	if (parent)
 	{
 		ctrl->parent = parent;
 		
 		VecSubf(ctrl->offset, ctrl->bone->head, ctrl->parent->tail);
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void RIG_reconnectControlBones(RigGraph *rg)
@@ -431,8 +448,37 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 		/* if not found yet, check parent */		
 		if (found == 0)
 		{
-			RIG_parentControl(ctrl, ctrl->bone->parent);
+			found = RIG_parentControl(ctrl, ctrl->bone->parent);
 		}
+		
+		/* if not found yet, check child */		
+		if (found == 0)
+		{
+			RigArc *arc;
+			RigArc *best_arc = NULL;
+			EditBone *parent = NULL;
+			
+			for (arc = rg->arcs.first; arc; arc = arc->next)
+			{
+				RigEdge *edge;
+				for (edge = arc->edges.first; edge; edge = edge->next)
+				{
+					if (edge->bone && edge->bone->parent == ctrl->bone)
+					{
+						/* pick the bone on the arc with the lowest symmetry level
+						 * means you connect control to the trunk of the skeleton */
+						if (best_arc == NULL || arc->symmetry_level < best_arc->symmetry_level)
+						{
+							best_arc = arc;
+							parent = edge->bone;
+						}
+					}
+				}
+			}
+			
+			found = RIG_parentControl(ctrl, parent);
+		}
+		
 	}
 }
 
@@ -488,9 +534,18 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 		nb_children = countEditBoneChildren(list, bone);
 		if (nb_children > 1)
 		{
-			RigNode *end_node = newRigNodeTail(rg, arc, bone->tail);
+			RigNode *end_node;
 			int i;
 			
+			if (arc != NULL)
+			{
+				end_node = newRigNodeTail(rg, arc, bone->tail);
+			}
+			else
+			{
+				end_node = newRigNode(rg, bone->tail);
+			}
+
 			for (i = 0; i < nb_children; i++)
 			{
 				root_bone = nextEditBoneChild(list, bone, i);
@@ -638,13 +693,15 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
 		}
 	}
 	
-	RIG_reconnectControlBones(rg);
-	
 	BLI_removeDoubleNodes((BGraph*)rg, 0.001);
 	
 	BLI_buildAdjacencyList((BGraph*)rg);
 	
 	RIG_findHead(rg);
+
+	BLI_markdownSymmetry((BGraph*)rg, (BNode*)rg->head, G.scene->toolsettings->skgen_symmetry_limit);
+	
+	RIG_reconnectControlBones(rg); /* after symmetry, because we use levels to find best match */
 	
 	return rg;
 }
@@ -1333,8 +1390,10 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 			cost += cost_cube[3 * i + 1];
 		}
 		
+#ifndef USE_THREADS
 		printf("initial cost: %f\n", cost);
 		printf("kmax: %i\n", kmax);
+#endif
 		
 		for (k = 0; k < kmax; k++)
 		{
@@ -1406,10 +1465,12 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	vec0 = node_start->p;
 	initArcIterator(&iter, earc, node_start);
 	
+#ifndef USE_THREADS
 	printPositions(best_positions, nb_joints);
 	printMovesNeeded(best_positions, nb_joints);
 	printf("min_cost %f\n", min_cost);
 	printf("buckets: %i\n", earc->bcount);
+#endif
 
 	/* set joints to best position */
 	for (edge = iarc->edges.first, i = 0;
@@ -1529,6 +1590,53 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc)
 
 static void retargetArctoArc(RigGraph *rigg, RigArc *iarc)
 {
+#ifdef USE_THREADS
+	RetargetParam *p = MEM_callocN(sizeof(RetargetParam), "RetargetParam");
+	int index;
+	
+	p->rigg = rigg;
+	p->iarc = iarc;
+	
+	/* fix that with proper flagging */
+	if (BLI_available_threads(&rigg->threads) == 0)
+	{
+		index = NB_THREADS;
+		while(index == NB_THREADS)
+		{
+			PIL_sleep_ms(20);
+			
+			for (index = 0; index < NB_THREADS; index++)
+			{
+				if (rigg->threads_used[index] == 0)
+				{
+					BLI_remove_thread_index(&rigg->threads, index);
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		index = BLI_available_thread_index(&rigg->threads);
+	}
+	
+	p->index = index;
+	rigg->threads_used[index] = 1;
+	BLI_insert_thread(&rigg->threads, p);
+	
+#else
+	RetargetParam p;
+	p.rigg = rigg;
+	p.iarc = iarc;
+	exec_retargetArctoArc(&p);
+#endif
+}
+
+void *exec_retargetArctoArc(void *param)
+{
+	RetargetParam *p = (RetargetParam*)param;
+	RigGraph *rigg = p->rigg;
+	RigArc *iarc = p->iarc;	
 	ReebArc *earc = iarc->link_mesh;
 	
 	if (BLI_countlist(&iarc->edges) == 1)
@@ -1560,19 +1668,13 @@ static void retargetArctoArc(RigGraph *rigg, RigArc *iarc)
 			retargetArctoArcLength(rigg, iarc);
 		}
 	}
-}
 
-void *exec_retargetArctoArc(void *param)
-{
-	RetargetParam *p = (RetargetParam*)param;
-	retargetArctoArc(p->rigg, p->iarc);
+#ifdef USE_THREADS
 	MEM_freeN(param);
+	rigg->threads_used[p->index] = 0;
+#endif
 	
 	return NULL;
-}
-
-void thread_retargetArctoArc(RigGraph *rigg, RigArc *iarc)
-{
 }
 
 static void matchMultiResolutionNode(RigNode *inode, ReebNode *top_node)
@@ -1757,6 +1859,8 @@ static void retargetGraphs(RigGraph *rigg)
 	matchMultiResolutionStartingNode(reebg, inode);
 
 	retargetSubgraph(rigg, NULL, inode);
+	
+	BLI_end_threads(&rigg->threads);
 }
 
 void BIF_retargetArmature()
@@ -1789,8 +1893,6 @@ void BIF_retargetArmature()
 				make_boneList(&list, &arm->bonebase, NULL);
 			
 				rigg = armatureToGraph(ob, &list);
-				
-				BLI_markdownSymmetry((BGraph*)rigg, (BNode*)rigg->head, G.scene->toolsettings->skgen_symmetry_limit);
 				
 				printf("Armature graph created\n");
 		
