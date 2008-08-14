@@ -51,5 +51,21 @@
 #endif
 #endif
 
+/* 
+   Py_RETURN_NONE
+   Python 2.4 macro.  
+   defined here until we switch to 2.4
+*/
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE	return Py_BuildValue("O", Py_None)
+#endif
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE  return PyBool_FromLong(0) 
+#endif
+#ifndef Py_RETURN_TRUE
+#define Py_RETURN_TRUE  return PyBool_FromLong(1)
+#endif
+
+
 #endif // KX_PYTHON_H
 
