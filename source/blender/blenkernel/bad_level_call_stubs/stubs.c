@@ -117,10 +117,14 @@ float BPY_pydriver_eval(struct IpoDriver *driver)
 {
 	return 0;
 }
+
+/*
 int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value)
 {
 	return 0;
 }
+*/
+
 void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type){}
 void InitNode(struct BPy_Node *self, struct bNode *node){}
 void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi){}

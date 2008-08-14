@@ -123,9 +123,9 @@ private :
 	virtual PyObject* _getattr(const STR_String& attr);
 	
 	/* set object to look at */
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_CameraActuator,SetObject);
 	/* get current object  */
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,GetObject);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetMin);
 	KX_PYMETHOD_DOC(KX_CameraActuator,GetMin);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetMax);

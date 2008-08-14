@@ -540,9 +540,16 @@ void BL_ConvertActuators(char* maggiename,
 						// does the 'original' for replication exists, and 
 						// is it in a non-active layer ?
 						SCA_IObject* originalval = NULL;
-						if (editobact->ob && !(editobact->ob->lay & activeLayerBitInfo))
-							originalval = converter->FindGameObject(editobact->ob);
-						
+						if (editobact->ob)
+						{
+							if (editobact->ob->lay & activeLayerBitInfo)
+							{
+								fprintf(stderr, "Warning, object \"%s\" from AddObject actuator \"%s\" is not in a hidden layer.\n", objectname.Ptr(), uniquename.Ptr());
+							}
+							else {
+								originalval = converter->FindGameObject(editobact->ob);
+							}
+						}
 						MT_Vector3 linvelvec ( KX_BLENDERTRUNC(editobact->linVelocity[0]),
 							KX_BLENDERTRUNC(editobact->linVelocity[1]),
 							KX_BLENDERTRUNC(editobact->linVelocity[2]));

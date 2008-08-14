@@ -942,7 +942,7 @@ PyObject* KX_GameObject::PyEndObject(PyObject* self)
 	KX_Scene *scene = PHY_GetActiveScene();
 	scene->DelayedRemoveObject(this);
 	
-	return Py_None;
+	Py_RETURN_NONE;
 
 }
 
@@ -1490,6 +1490,9 @@ PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self,
 		MT_Vector3 vect;
 		if (PyVecTo(pyvect, vect))
 		{
+			if (fac<=0.0) Py_RETURN_NONE; // Nothing to do.
+			if (fac> 1.0) fac= 1.0;
+			
 			AlignAxisToVect(vect,axis,fac);
 			NodeUpdateGS(0.f,true);
 			Py_RETURN_NONE;
@@ -1548,9 +1551,9 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getDistanceTo,
 	PyErr_Clear();
 	
 	PyObject *pyother;
-	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &pyother))
+	KX_GameObject *other;
+	if (PyArg_ParseTuple(args, "O", &pyother) && ConvertPythonToGameObject(pyother, &other, false))
 	{
-		KX_GameObject *other = static_cast<KX_GameObject*>(pyother);
 		return PyFloat_FromDouble(NodeGetWorldPosition().distance(other->NodeGetWorldPosition()));
 	}
 	
@@ -1571,11 +1574,12 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
 	if (!PyVecArgTo(args, toPoint))
 	{
 		PyErr_Clear();
-		if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &pyother))
+		
+		KX_GameObject *other;
+		if (PyArg_ParseTuple(args, "O", &pyother) && ConvertPythonToGameObject(pyother, &other, false))
 		{
-			KX_GameObject *other = static_cast<KX_GameObject*>(pyother);
 			toPoint = other->NodeGetWorldPosition();
-		}else
+		} else
 		{
 			PyErr_SetString(PyExc_TypeError, "Expected a 3D Vector or GameObject type");
 			return NULL;
@@ -1645,12 +1649,15 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	{
 		KX_GameObject *other;
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyarg->ob_type, &KX_GameObject::Type)) {
+		
+		if (ConvertPythonToGameObject(pyarg, &other, false))
+		{
+			toPoint = other->NodeGetWorldPosition();
+		} else
+		{
 			PyErr_SetString(PyExc_TypeError, "the first argument to rayCastTo must be a vector or a KX_GameObject");
 			return NULL;
 		}
-		other = static_cast<KX_GameObject*>(pyarg);
-		toPoint = other->NodeGetWorldPosition();
 	}
 	MT_Point3 fromPoint = NodeGetWorldPosition();
 	if (dist != 0.0f)
@@ -1709,12 +1716,15 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	if (!PyVecTo(pyto, toPoint))
 	{
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyto->ob_type, &KX_GameObject::Type)) {
+		
+		if (ConvertPythonToGameObject(pyto, &other, false))
+		{
+			toPoint = other->NodeGetWorldPosition();
+		} else
+		{
 			PyErr_SetString(PyExc_TypeError, "the first argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
 		}
-		other = static_cast<KX_GameObject*>(pyto);
-		toPoint = other->NodeGetWorldPosition();
 	}
 	if (!pyfrom || pyfrom == Py_None)
 	{
@@ -1723,12 +1733,15 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	else if (!PyVecTo(pyfrom, fromPoint))
 	{
 		PyErr_Clear();
-		if (!PyType_IsSubtype(pyfrom->ob_type, &KX_GameObject::Type)) {
+		
+		if (ConvertPythonToGameObject(pyfrom, &other, false))
+		{
+			fromPoint = other->NodeGetWorldPosition();
+		} else
+		{
 			PyErr_SetString(PyExc_TypeError, "the second optional argument to rayCast must be a vector or a KX_GameObject");
 			return NULL;
 		}
-		other = static_cast<KX_GameObject*>(pyfrom);
-		fromPoint = other->NodeGetWorldPosition();
 	}
 	
 	if (dist != 0.0f) {
@@ -1795,3 +1808,49 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 	}
 }
 
+bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok)
+{
+	if (value==NULL) {
+		PyErr_SetString(PyExc_TypeError, "Error in ConvertPythonToGameObject, python pointer NULL, should never happen");
+		*object = NULL;
+		return false;
+	}
+		
+	if (value==Py_None) {
+		*object = NULL;
+		
+		if (py_none_ok) {
+			return true;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "Expected KX_GameObject or a string for a name of a KX_GameObject, None is invalid");
+			return false;
+		}
+		return (py_none_ok ? true : false);
+	}
+	
+	if (PyString_Check(value)) {
+		*object = (KX_GameObject *)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String( PyString_AsString(value) ));
+		
+		if (*object) {
+			return true;
+		} else {
+			PyErr_SetString(PyExc_ValueError, "Requested name did not match any KX_GameObject");
+			return false;
+		}
+	}
+	
+	if (PyObject_TypeCheck(value, &KX_GameObject::Type)) {
+		*object = static_cast<KX_GameObject*>(value);
+		return true;
+	}
+	
+	*object = NULL;
+	
+	if (py_none_ok) {
+		PyErr_SetString(PyExc_TypeError, "Expect a KX_GameObject, a string or None");
+	} else {
+		PyErr_SetString(PyExc_TypeError, "Expect a KX_GameObject or a string");
+	}
+	
+	return false;
+}

@@ -132,7 +132,7 @@ extern int EM_check_backbuf(unsigned int index);
 extern void EM_free_backbuf(void);
 
 extern void EM_selectmode_menu(void);
-
+extern void EM_mesh_copy_face(short type);
 
 extern void vertexnoise(void);
 extern void vertexsmooth(void);

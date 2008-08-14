@@ -29,6 +29,7 @@
 
 #include "Constraint.h" /*This must come first*/
 
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_vec_types.h"
@@ -43,6 +44,7 @@
 #include "BKE_constraint.h"
 #include "BLI_blenlib.h"
 #include "BIF_editconstraint.h"
+#include "BIF_poseobject.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"
 #include "butspace.h"
@@ -2286,19 +2288,32 @@ static PyObject *ConstraintSeq_moveDown( BPy_ConstraintSeq *self, BPy_Constraint
 
 static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, BPy_Constraint *value )
 {
-	bConstraint *con = locate_constr( self,  value );
+	bConstraint *con = locate_constr(self, value);
+	bPoseChannel *active= NULL;
 
 	/* if we can't locate the constraint, return (exception already set) */
-	if( !con )
+	if (!con)
 		return (PyObject *)NULL;
 
-	/* do the actual removal */
-	if( self->pchan )
-		BLI_remlink( &self->pchan->constraints, con );
-	else
-		BLI_remlink( &self->obj->constraints, con);
+	/* check if we need to set temporary 'active' flag for pchan */
+	if (self->pchan) {
+		active= get_active_posechannel(self->obj);
+		
+		if (active != self->pchan) {
+			if (active) active->bone->flag &= ~BONE_ACTIVE;
+			self->pchan->bone->flag |= BONE_ACTIVE;
+		}
+	}
+	
+	/* del_constr_func() frees constraint + its data */
 	del_constr_func( self->obj, con );
 
+	/* reset active pchan (if applicable) */
+	if (self->pchan && self->pchan!=active) {
+		if (active) active->bone->flag |= BONE_ACTIVE;
+		self->pchan->bone->flag &= ~BONE_ACTIVE;
+	}
+	
 	/* erase the link to the constraint */
 	value->con = NULL;
 

@@ -116,6 +116,7 @@ void	setflag_armature(short mode);
 void    unique_editbone_name (struct ListBase *ebones, char *name);
 
 void	auto_align_armature(short mode);
+void	switch_direction_armature(void);
 
 void	create_vgroups_from_armature(struct Object *ob, struct Object *par);
 void 	add_verts_to_dgroups(struct Object *ob, struct Object *par, int heat, int mirror);
@@ -137,7 +138,6 @@ void	transform_armature_mirror_update(void);
 void	hide_selected_armature_bones(void);
 void	hide_unselected_armature_bones(void);
 void	show_all_armature_bones(void);
-void	set_locks_armature_bones(short lock);
 
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000
@@ -148,6 +148,10 @@ void	set_locks_armature_bones(short lock);
 
 /* from autoarmature */
 void BIF_retargetArmature();
+
+/* useful macros */
+#define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
+#define EBONE_EDITABLE(ebone) ((ebone->flag & BONE_SELECTED) && !(ebone->flag & BONE_EDITMODE_LOCKED)) 
 
 /* used in bone_select_hierachy() */
 #define BONE_SELECT_PARENT	0

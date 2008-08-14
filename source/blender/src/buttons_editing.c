@@ -5746,13 +5746,9 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 
 void do_fpaintbuts(unsigned short event)
 {
-	Mesh *me;
 	Object *ob;
 	bDeformGroup *defGroup;
-	MTFace *activetf, *tf;
-	MFace *mf;
-	MCol *activemcol;
-	int a;
+	MTFace *activetf;
 	SculptData *sd= &G.scene->sculptdata;
 	ID *id, *idtest;
 	extern VPaint Gwp;         /* from vpaint */
@@ -5770,45 +5766,19 @@ void do_fpaintbuts(unsigned short event)
 		vpaint_dogamma();
 		break;
 	case B_COPY_TF_MODE:
+		EM_mesh_copy_face(4); /* todo, get rid of magic numbers */
+		break;
+	case B_COPY_TF_TRANSP:
+		EM_mesh_copy_face(5);
+		break;
 	case B_COPY_TF_UV:
+		EM_mesh_copy_face(3);
+		break;
 	case B_COPY_TF_COL:
+		EM_mesh_copy_face(6);
+		break;
 	case B_COPY_TF_TEX:
-		me= get_mesh(OBACT);
-		activetf= get_active_mtface(NULL, &activemcol, 0);
-
-		if(me && activetf) {
-			for (a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
-				if(tf!=activetf && (mf->flag & ME_FACE_SEL)) {
-					if(event==B_COPY_TF_MODE) {
-						tf->mode= activetf->mode;
-						tf->transp= activetf->transp;
-					}
-					else if(event==B_COPY_TF_UV) {
-						memcpy(tf->uv, activetf->uv, sizeof(tf->uv));
-						tf->tpage= activetf->tpage;
-						tf->tile= activetf->tile;
-
-						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
-						else tf->mode &= ~TF_TILES;
-
-					}
-					else if(event==B_COPY_TF_TEX) {
-						tf->tpage= activetf->tpage;
-						tf->tile= activetf->tile;
-
-						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
-						else tf->mode &= ~TF_TILES;
-					}
-					else if(event==B_COPY_TF_COL && activemcol)
-						memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4);
-				}
-			}
-
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			do_shared_vertexcol(me);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWIMAGE, 0);
-		}
+		EM_mesh_copy_face(2);
 		break;
 	case B_SET_VCOL:
 		if(FACESEL_PAINT_TEST) 
@@ -6245,8 +6215,20 @@ static void editing_panel_mesh_texface(void)
 	if(uiNewPanel(curarea, block, "Texture Face", "Editing", 960, 0, 318, 204)==0) return;
 	
 	tf = get_active_mtface(NULL, NULL, 0);
+	
 	if(tf) {
+		uiDefBut(block, LABEL, B_NOP, "Active Face Mode",	600,185,300,19, NULL, 0.0, 0.0, 0, 0, "Face mode its used for TexFace display and the game engine ");
+		uiDefBut(block, BUT,B_COPY_TF_MODE, "Copy", 850,185,50,19, 0, 0, 0, 0, 0, "Copy active faces mode to other selected (View3D Ctrl+C)");
+		
+		/* Other copy buttons, layout isnt that nice */
 		uiBlockBeginAlign(block);
+		uiDefBut(block, BUT,B_COPY_TF_UV, "CopyUV", 600,15,100,19, 0, 0, 0, 0, 0, "Copy active faces UVs to other selected (View3D Ctrl+C)");
+		uiDefBut(block, BUT,B_COPY_TF_TEX, "CopyTex", 700,15,100,19, 0, 0, 0, 0, 0, "Copy active faces Texture to other selected (View3D Ctrl+C)");		
+		uiDefBut(block, BUT,B_COPY_TF_COL, "CopyColor", 800,15,100,19, 0, 0, 0, 0, 0, "Copy active faces Color to other selected (View3D Ctrl+C)");
+		uiBlockEndAlign(block);
+		
+		uiBlockBeginAlign(block);
+		
 		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &tf->mode, 0, 0, 0, 0, "Render face with texture");
 		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &tf->mode, 0, 0, 0, 0, "Use tilemode for face");
 		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &tf->mode, 0, 0, 0, 0, "Use light for face");
@@ -6257,24 +6239,30 @@ static void editing_panel_mesh_texface(void)
 		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &tf->mode, 0, 0, 0, 0, "Blend vertex colors across face when vertices are shared");
 		uiDefButBitS(block, TOG, TF_TWOSIDE, REDRAWVIEW3D, "Twoside",660,135,60,19, &tf->mode, 0, 0, 0, 0, "Render face twosided");
 		uiDefButBitS(block, TOG, TF_OBCOL, REDRAWVIEW3D, "ObColor",720,135,60,19, &tf->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colors");
-
-		uiBlockBeginAlign(block);
+		uiBlockEndAlign(block);
 		
+		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_BILLBOARD, B_TFACE_HALO, "Halo",	600,110,60,19, &tf->mode, 0, 0, 0, 0, "Screen aligned billboard");
 		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &tf->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
 		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &tf->mode, 0, 0, 0, 0, "Face is used for shadow");
 		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable bitmap text on face");
 		uiDefButBitS(block, TOG, TF_ALPHASORT, REDRAWVIEW3D, "Sort", 840,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable sorting of faces for correct alpha drawing (slow, use Clip Alpha instead when possible)");
-
+		uiBlockEndAlign(block);
+		
+		uiDefBut(block, LABEL, B_NOP, "Active Face Alpha Blending (Transp)",	600,75,300,19, NULL, 0.0, 0.0, 0, 0, "Face mode its used for TexFace display and the game engine");
+		uiDefBut(block, BUT,B_COPY_TF_TRANSP, "Copy", 850,75,50,19, 0, 0, 0, 0, 0, "Copy active faces transp to other selected (View3D Ctrl+C)");
+		
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,80,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0, "Use the images alpha values clipped with no blending (binary alpha)");
-	}
-	else
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",		600,50,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",			660,50,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",		720,50,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,50,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0,  "Use the images alpha values clipped with no blending (binary alpha)");
+		uiBlockEndAlign(block);
+		
+	} else {
 		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");
+	}
 
 }
 

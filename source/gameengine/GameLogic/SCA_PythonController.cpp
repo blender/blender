@@ -273,42 +273,27 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * break it by hand, then DECREF (which in this case
 		 * should always ensure excdict is cleared).
 		 */
-/*	PyObject *excdict= myPyDict_Copy(m_pythondictionary);
-	struct _object* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		excdict, 
-		excdict
-		);
-	PyDict_Clear(excdict);
-	Py_DECREF(excdict);*/
 
-
-#if 1
 	PyObject *excdict= PyDict_Copy(m_pythondictionary);
 	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		excdict, 
-		excdict
-		);
-	PyDict_Clear(excdict);
-	Py_DECREF(excdict);
-#else
-
-	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		m_pythondictionary, 
-		m_pythondictionary
-		);
-
-#endif
+		excdict, excdict);
 
 	if (resultobj)
 	{
 		Py_DECREF(resultobj);
-	} else
+	}
+	else
 	{
 		// something is wrong, tell the user what went wrong
 		printf("PYTHON SCRIPT ERROR:\n");
 		PyErr_Print();
 		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
+
+	// clear after PyErrPrint - seems it can be using
+	// something in this dictionary and crash?
+	PyDict_Clear(excdict);
+	Py_DECREF(excdict);
 
 	m_sCurrentController = NULL;
 }

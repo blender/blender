@@ -163,7 +163,7 @@ PyObject *RunPython( Text * text, PyObject * globaldict );
 PyObject *CreateGlobalDictionary( void );
 void ReleaseGlobalDictionary( PyObject * dict );
 void DoAllScriptsFromList( ListBase * list, short event );
-PyObject *importText( char *name );
+static PyObject *importText( char *name );
 void init_ourImport( void );
 void init_ourReload( void );
 PyObject *blender_import( PyObject * self, PyObject * args );
@@ -1104,12 +1104,10 @@ int BPY_menu_do_python( short menutype, int event )
 *****************************************************************************/
 void BPY_free_compiled_text( struct Text *text )
 {
-	if( !text->compiled )
-		return;
-	Py_DECREF( ( PyObject * ) text->compiled );
-	text->compiled = NULL;
-
-	return;
+	if( text->compiled ) {
+		Py_DECREF( ( PyObject * ) text->compiled );
+		text->compiled = NULL;
+	}
 }
 
 /*****************************************************************************
@@ -2780,48 +2778,38 @@ void DoAllScriptsFromList( ListBase * list, short event )
 	return;
 }
 
-PyObject *importText( char *name )
+static PyObject *importText( char *name )
 {
 	Text *text;
-	char *txtname;
+	char txtname[22]; /* 21+NULL */
 	char *buf = NULL;
 	int namelen = strlen( name );
-
-	txtname = malloc( namelen + 3 + 1 );
-	if( !txtname )
-		return NULL;
-
+	
+	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
+	
 	memcpy( txtname, name, namelen );
 	memcpy( &txtname[namelen], ".py", 4 );
 
-	text = ( Text * ) & ( G.main->text.first );
-
-	while( text ) {
+	for(text = G.main->text.first; text; text = text->id.next) {
 		if( !strcmp( txtname, text->id.name+2 ) )
 			break;
-		text = text->id.next;
 	}
 
-	if( !text ) {
-		free( txtname );
+	if( !text )
 		return NULL;
-	}
 
 	if( !text->compiled ) {
 		buf = txt_to_buf( text );
-		text->compiled =
-			Py_CompileString( buf, text->id.name+2, Py_file_input );
+		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
 		MEM_freeN( buf );
 
 		if( PyErr_Occurred(  ) ) {
 			PyErr_Print(  );
 			BPY_free_compiled_text( text );
-			free( txtname );
 			return NULL;
 		}
 	}
 
-	free( txtname );
 	return PyImport_ExecCodeModule( name, text->compiled );
 }
 

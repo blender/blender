@@ -164,7 +164,7 @@ PyParentObject KX_ParentActuator::Parents[] = {
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_VARARGS, SetObject_doc},
+	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, SetObject_doc},
 	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, GetObject_doc},
 	{NULL,NULL} //Sentinel
 };
@@ -176,44 +176,44 @@ PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {
 /* 1. setObject                                                            */
 char KX_ParentActuator::SetObject_doc[] = 
 "setObject(object)\n"
-"\tSet the object to set as parent.\n"
-"\tCan be an object name or an object\n";
-PyObject* KX_ParentActuator::PySetObject(PyObject* self, PyObject* args, PyObject* kwds) {
-	PyObject* gameobj;
-	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
-	{
-		if (m_ob != NULL)
-			m_ob->UnregisterActuator(this);
-		m_ob = (SCA_IObject*)gameobj;
-		if (m_ob)
-			m_ob->RegisterActuator(this);
-		Py_Return;
-	}
-	PyErr_Clear();
+"\t- object: KX_GameObject, string or None\n"
+"\tSet the object to set as parent.\n";
+PyObject* KX_ParentActuator::PySetObject(PyObject* self, PyObject* value) {
+	KX_GameObject *gameobj;
 	
-	char* objectname;
-	if (PyArg_ParseTuple(args, "s", &objectname))
-	{
-		SCA_IObject *object = (SCA_IObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));
-		if(object)
-		{
-			if (m_ob != NULL)
-				m_ob->UnregisterActuator(this);
-			m_ob = object;
-			m_ob->RegisterActuator(this);
-			Py_Return;
-		}
-	}
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return NULL; // ConvertPythonToGameObject sets the error
 	
-	return NULL;
+	if (m_ob != NULL)
+		m_ob->UnregisterActuator(this);	
+
+	m_ob = (SCA_IObject*)gameobj;
+	if (m_ob)
+		m_ob->RegisterActuator(this);
+	
+	Py_RETURN_NONE;
 }
 
 /* 2. getObject                                                            */
-char KX_ParentActuator::GetObject_doc[] =
-"getObject()\n"
+
+/* get obj  ---------------------------------------------------------- */
+char KX_ParentActuator::GetObject_doc[] = 
+"getObject(name_only = 1)\n"
+"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object that is set to.\n";
-PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args, PyObject* kwds) {
-	return PyString_FromString(m_ob->GetName());
-}
+PyObject* KX_ParentActuator::PyGetObject(PyObject* self, PyObject* args)
+{
+	int ret_name_only = 1;
+	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+		return NULL;
 	
+	if (!m_ob)
+		Py_RETURN_NONE;
+	
+	if (ret_name_only)
+		return PyString_FromString(m_ob->GetName());
+	else
+		return m_ob->AddRef();
+}
+
 /* eof */

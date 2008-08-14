@@ -40,8 +40,8 @@ extern "C" {
 struct ListBase;
 struct MemFile;
 
-#define BLENDER_VERSION			246
-#define BLENDER_SUBVERSION		1
+#define BLENDER_VERSION			247
+#define BLENDER_SUBVERSION		0
 
 #define BLENDER_MINVERSION		245
 #define BLENDER_MINSUBVERSION	15

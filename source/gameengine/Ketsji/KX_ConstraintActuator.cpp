@@ -476,7 +476,6 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 										   PyObject* kwds) {
 	int dampArg;
 	if(!PyArg_ParseTuple(args, "i", &dampArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -504,7 +503,6 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 										      PyObject* kwds) {
 	int dampArg;
 	if(!PyArg_ParseTuple(args, "i", &dampArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -534,7 +532,6 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 	MT_Vector3 dir;
 
 	if(!PyArg_ParseTuple(args, "(fff)", &x, &y, &z)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	dir[0] = x;
@@ -577,7 +574,6 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 										     PyObject* kwds) {
 	int option;
 	if(!PyArg_ParseTuple(args, "i", &option)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -605,7 +601,6 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 										   PyObject* kwds) {
 	int t;
 	if(!PyArg_ParseTuple(args, "i", &t)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -634,7 +629,6 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 										       PyObject* kwds) {
 	char *property;
 	if (!PyArg_ParseTuple(args, "s", &property)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	if (property == NULL) {
@@ -670,7 +664,6 @@ PyObject* KX_ConstraintActuator::PySetMin(PyObject* self,
 										  PyObject* kwds) {
 	float minArg;
 	if(!PyArg_ParseTuple(args, "f", &minArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 
@@ -716,7 +709,6 @@ PyObject* KX_ConstraintActuator::PySetMax(PyObject* self,
 										  PyObject* kwds){
 	float maxArg;
 	if(!PyArg_ParseTuple(args, "f", &maxArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 
@@ -770,7 +762,6 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 											PyObject* kwds) {
 	int locrotArg;
 	if(!PyArg_ParseTuple(args, "i", &locrotArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
