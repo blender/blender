@@ -87,7 +87,7 @@ void	txt_backspace_char	(struct Text *text);
 void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
 int		txt_replace_char	(struct Text *text, char add);
-void	txt_find_panel		(struct SpaceText *st, int again, int flags);
+void	find_and_replace	(struct SpaceText *st, short mode);
 void	run_python_script	(struct SpaceText *st);
 int	jumptoline_interactive	(struct SpaceText *st);
 void	txt_export_to_object	(struct Text *text);
@@ -153,11 +153,8 @@ struct TextMarker	*txt_next_marker_color	(struct Text *text, struct TextMarker *
 #define UNDO_UNCOMMENT		035
 
 /* Find and replace flags */
-#define TXT_FIND_REPLACE	0x01
+#define TXT_FIND_WRAP		0x01
 #define TXT_FIND_ALLTEXTS	0x02
-#define TXT_FIND_WRAP		0x04
-#define TXT_FIND_MARKALL	0x08
-#define TXT_FIND_KEEP		0x10
 
 /* Marker flags */
 #define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */

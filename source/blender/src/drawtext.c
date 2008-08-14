@@ -149,9 +149,9 @@ static void get_suggest_prefix(Text *text, int offset);
 static void confirm_suggestion(Text *text, int skipleft);
 
 #define TXT_MAXFINDSTR 255
-static int last_find_flags= TXT_FIND_WRAP | TXT_FIND_KEEP;
-static char *last_find_string= NULL;
-static char *last_repl_string= NULL;
+static int g_find_flags= TXT_FIND_WRAP;
+static char *g_find_str= NULL;
+static char *g_replace_str= NULL;
 
 static int doc_scroll= 0;
 static double last_check_time= 0;
@@ -217,8 +217,8 @@ static void temp_char_write(char c, int accum) {
 void free_txt_data(void) {
 	txt_free_cut_buffer();
 	
-	if (last_find_string) MEM_freeN(last_find_string);
-	if (last_repl_string) MEM_freeN(last_repl_string);
+	if (g_find_str) MEM_freeN(g_find_str);
+	if (g_replace_str) MEM_freeN(g_replace_str);
 	if (temp_char_buf) MEM_freeN(temp_char_buf);
 	if (temp_char_accum) MEM_freeN(temp_char_accum);	
 }
@@ -1458,6 +1458,163 @@ void draw_suggestion_list(SpaceText *st)
 	}
 }
 
+static short check_blockhandler(SpaceText *st, short handler) {
+	short a;
+	for(a=0; a<SPACE_MAXHANDLER; a+=2)
+		if (st->blockhandler[a]==handler) return 1;
+	return 0;
+}
+
+static void text_panel_find(short cntrl)	// TEXT_HANDLER_FIND
+{
+	uiBlock *block;
+
+	if (!g_find_str || !g_replace_str) {
+		g_find_str= MEM_mallocN(TXT_MAXFINDSTR+1, "find_string");
+		g_replace_str= MEM_mallocN(TXT_MAXFINDSTR+1, "replace_string");
+		g_find_str[0]= g_replace_str[0]= '\0';
+	}
+	
+	block= uiNewBlock(&curarea->uiblocks, "text_panel_find", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(TEXT_HANDLER_FIND);  // for close and esc
+	if(uiNewPanel(curarea, block, "Find & Replace", "Text", curarea->winx-230, curarea->winy-130, 260, 120)==0) return;
+	
+	uiBlockBeginAlign(block);
+	uiDefButC(block, TEX, 0, "Find: ", 0,80,220,20, g_find_str, 0,(float)TXT_MAXFINDSTR, 0,0, "");
+	uiDefIconBut(block, BUT, B_PASTEFIND, ICON_TEXT, 220,80,20,20, NULL, 0,0,0,0, "Copy from selection");
+	uiDefButC(block, TEX, 0, "Replace: ", 0,60,220,20, g_replace_str, 0,(float)TXT_MAXFINDSTR, 0,0, "");
+	uiDefIconBut(block, BUT, B_PASTEREPLACE, ICON_TEXT, 220,60,20,20, NULL, 0,0,0,0, "Copy from selection");
+	uiBlockEndAlign(block);
+	uiDefButBitI(block, TOG, TXT_FIND_WRAP,    0,"Wrap Around", 0,30,110,20,&g_find_flags,0,0,0,0,"Wrap search around current text");
+	uiDefButBitI(block, TOG, TXT_FIND_ALLTEXTS,0,"Search All Texts",  110,30,130,20,&g_find_flags,0,0,0,0,"Search in each text");
+	uiDefBut(block, BUT, B_TEXTFIND,    "Find",       0,0,50,20, NULL, 0,0,0,0, "Find next");
+	uiDefBut(block, BUT, B_TEXTREPLACE, "Replace/Find", 50,0,110,20, NULL, 0,0,0,0, "Replace then find next");
+	uiDefBut(block, BUT, B_TEXTMARKALL, "Mark All",   160,0,80,20, NULL, 0,0,0,0, "Mark each occurrence to edit all from one");
+}
+
+/* mode: 0 find only, 1 replace/find, 2 mark all occurrences */
+void find_and_replace(SpaceText *st, short mode) {
+	char *tmp;
+	Text *start= NULL, *text= st->text;
+	int flags, first= 1;
+
+	if (!check_blockhandler(st, TEXT_HANDLER_FIND)) {
+		toggle_blockhandler(st->area, TEXT_HANDLER_FIND, UI_PNL_TO_MOUSE);
+		return;
+	}
+
+	if (!g_find_str || !g_replace_str) return;
+	if (g_find_str[0] == '\0') return;
+	flags= g_find_flags;
+	if (flags & TXT_FIND_ALLTEXTS) flags ^= TXT_FIND_WRAP;
+
+	do {
+		if (first)
+			txt_clear_markers(text, TMARK_GRP_FINDALL);
+		first= 0;
+		
+		/* Replace current */
+		if (mode && txt_has_sel(text)) {
+			tmp= txt_sel_to_buf(text);
+			if (strcmp(g_find_str, tmp)==0) {
+				if (mode==1) {
+					txt_insert_buf(text, g_replace_str);
+					if (st->showsyntax) txt_format_line(st, text->curl, 1);
+				} else if (mode==2) {
+					char clr[4];
+					BIF_GetThemeColor4ubv(TH_SHADE2, clr);
+					if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL)) {
+						if (tmp) MEM_freeN(tmp), tmp=NULL;
+						break;
+					}
+					txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_GRP_FINDALL | TMARK_EDITALL);
+				}
+			}
+			MEM_freeN(tmp);
+			tmp= NULL;
+		}
+
+		/* Find next */
+		if (txt_find_string(text, g_find_str, flags & TXT_FIND_WRAP)) {
+			pop_space_text(st);
+		} else if (flags & TXT_FIND_ALLTEXTS) {
+			if (text==start) break;
+			if (!start) start= text;
+			if (text->id.next)
+				text= st->text= text->id.next;
+			else
+				text= st->text= G.main->text.first;
+			txt_move_toline(text, 0, 0);
+			pop_space_text(st);
+			first= 1;
+		} else {
+			okee("Text not found: %s", g_find_str);
+			break;
+		}
+	} while (mode==2);
+}
+
+static void do_find_buttons(val) {
+	Text *text;
+	SpaceText *st;
+	int do_draw= 0;
+	char *tmp;
+
+	st= curarea->spacedata.first;
+	if (!st || st->spacetype != SPACE_TEXT) return;
+	text= st->text;
+	if (!text) return;
+
+	switch (val) {
+		case B_PASTEFIND:
+			if (!g_find_str) break;
+			tmp= txt_sel_to_buf(text);
+			strncpy(g_find_str, tmp, TXT_MAXFINDSTR);
+			MEM_freeN(tmp);
+			do_draw= 1;
+			break;
+		case B_PASTEREPLACE:
+			if (!g_replace_str) break;
+			tmp= txt_sel_to_buf(text);
+			strncpy(g_replace_str, tmp, TXT_MAXFINDSTR);
+			MEM_freeN(tmp);
+			do_draw= 1;
+			break;
+		case B_TEXTFIND:
+			find_and_replace(st, 0);
+			do_draw= 1;
+			break;
+		case B_TEXTREPLACE:
+			find_and_replace(st, 1);
+			do_draw= 1;
+			break;
+		case B_TEXTMARKALL:
+			find_and_replace(st, 2);
+			do_draw= 1;
+			break;
+	}
+}
+
+static void text_blockhandlers(ScrArea *sa)
+{
+	SpaceText *st= sa->spacedata.first;
+	short a;
+
+	/* warning; blocks need to be freed each time, handlers dont remove */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win);
+	
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		/* clear action value for event */
+		switch(st->blockhandler[a]) {
+			case TEXT_HANDLER_FIND:
+				text_panel_find(st->blockhandler[a+1]);
+				break;
+		}
+	}
+	uiDrawBlocksPanels(sa, 0);
+}
+
 void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
@@ -1469,6 +1626,9 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	int linecount = 0;
 
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
 	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
@@ -1541,7 +1701,10 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	draw_textscroll(st);
 	draw_documentation(st);
 	draw_suggestion_list(st);
-
+	
+	bwin_scalematrix(sa->win, st->blockscale, st->blockscale, st->blockscale);
+	text_blockhandlers(sa);
+	
 	curarea->win_swap= WIN_BACK_OK;
 }
 
@@ -1910,163 +2073,6 @@ void txt_copy_clipboard(Text *text) {
 		MEM_freeN(temp);
 		MEM_freeN(copybuffer);
 		copybuffer= NULL;
-	}
-}
-
-static short find_and_replace_popup(short focus)
-{
-	uiBlock *block;
-	ListBase listb={0, 0};
-	short x1,y1;
-	short ret=0;
-	char *editfindvar=NULL, *editreplvar=NULL; /* dont edit the original text, incase we cancel the popup */
-
-	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
-
-	x1= curarea->winrct.xmax - 240;
-	y1= curarea->winrct.ymin;
-	
-	editfindvar = MEM_callocN(TXT_MAXFINDSTR+1, "findvar");
-	editreplvar = MEM_callocN(TXT_MAXFINDSTR+1, "replvar");
-	BLI_strncpy(editfindvar, last_find_string, TXT_MAXFINDSTR);
-	BLI_strncpy(editreplvar, last_repl_string, TXT_MAXFINDSTR);
-	
-	uiDefButC(block, TEX, 1, "Find: ", x1+5,y1+85,225,20, editfindvar, 0,(float)TXT_MAXFINDSTR, 0, 0, "");
-	uiDefButC(block, TEX, 2, "Replace: ", x1+5,y1+60,225,20, editreplvar, 0,(float)TXT_MAXFINDSTR, 0, 0, "");
-	uiDefButBitI(block, TOG, TXT_FIND_WRAP,    3,"Wrap",        x1+  5,y1+35,60,20,&last_find_flags,0,0,0,0,"Wrap search around current text");
-	uiDefButBitI(block, TOG, TXT_FIND_ALLTEXTS,4,"All Texts",   x1+ 65,y1+35,70,20,&last_find_flags,0,0,0,0,"Search all texts");
-	uiDefButBitI(block, TOG, TXT_FIND_KEEP,    5,"Keep Visible",x1+135,y1+35,95,20,&last_find_flags,0,0,0,0,"Keep the find panel visible");
-	uiDefBut(block, BUT, 6, "Replace/Find", x1+  5,y1+10,90,20, NULL, 0, 0, 0, 0, "Replace then find next");
-	uiDefBut(block, BUT, 7, "Find",         x1+ 95,y1+10,60,20, NULL, 0, 0, 0, 0, "Find next");
-	uiDefBut(block, BUT, 8, "Mark All",     x1+155,y1+10,75,20, NULL, 0, 0, 0, 0, "Find and mark all");
-
-	uiBoundsBlock(block, 5);
-	
-	if (focus) mainqenter_ext(BUT_ACTIVATE, focus, 0);
-	ret= uiDoBlocks(&listb, 0, 0);
-
-	if(ret==UI_RETURN_OK) {
-		BLI_strncpy(last_find_string, editfindvar, TXT_MAXFINDSTR);
-		BLI_strncpy(last_repl_string, editreplvar, TXT_MAXFINDSTR);
-		MEM_freeN(editfindvar);
-		MEM_freeN(editreplvar);
-		return 1;
-	}
-	MEM_freeN(editfindvar);
-	MEM_freeN(editreplvar);
-	return 0;
-	
-}
-
-static void do_find_and_replace_popup(SpaceText *st, short val) {
-	last_find_flags &= ~TXT_FIND_REPLACE & ~TXT_FIND_MARKALL;
-	switch (val) {
-		case -1: case 0: return;
-		case 1: case 2: break;
-		/* Toggles */
-		case 3: if (last_find_flags & TXT_FIND_WRAP) last_find_flags &= ~TXT_FIND_ALLTEXTS; break;
-		case 4: if (last_find_flags & TXT_FIND_ALLTEXTS) last_find_flags &= ~TXT_FIND_WRAP; break;
-		case 5: break;
-		/* Buttons */
-		case 6: last_find_flags |= TXT_FIND_REPLACE;
-		case 7: break;
-		case 8: last_find_flags |= TXT_FIND_MARKALL;
-	}
-	if (val>5) {
-		txt_find_panel(st, 1, last_find_flags);
-		scrarea_do_windraw(curarea);
-		screen_swapbuffers();
-		if (!(last_find_flags & TXT_FIND_MARKALL) && (last_find_flags & TXT_FIND_KEEP))
-			find_and_replace_popup(0);
-	} else {
-		find_and_replace_popup(0);
-	}
-}
-
-/*
- * again==0 always show find panel
- * again==1 find text again (no panel) If first find, panel shown anyway
- * flags (used to initialize UI if again==0):
- *   TXT_FIND_REPLACE  replace last found occurrence before searching again
- *   TXT_FIND_ALLTEXTS search through all texts (off wraps current text)
- */
-void txt_find_panel(SpaceText *st, int again, int flags)
-{
-	Text *start, *text;
-	char *tmp;
-	
-	start= NULL; /* Set on first switch */
-	text= st->text;
-	if (!text) return;
-
-	if (!last_find_string) {
-		last_find_string= MEM_mallocN(TXT_MAXFINDSTR+1, "find_string");
-		last_find_string[0]= '\0';
-		again= 0;
-	}
-	if (!last_repl_string) {
-		last_repl_string= MEM_mallocN(TXT_MAXFINDSTR+1, "replace_string");
-		last_repl_string[0]= '\0';
-		if (flags & TXT_FIND_REPLACE) again= 0;
-	}
-	
-	if (txt_has_sel(text)) {
-		tmp= txt_sel_to_buf(text);
-		strncpy(last_find_string, tmp, TXT_MAXFINDSTR);
-		MEM_freeN(tmp);
-	}
-
-	if (again) {
-		int first= 1;
-		do {
-			if (first && (flags & TXT_FIND_MARKALL))
-				txt_clear_markers(text, TMARK_GRP_FINDALL);
-			first= 0;
-			
-			/* Replace current */
-			if ((flags & (TXT_FIND_REPLACE | TXT_FIND_MARKALL)) && txt_has_sel(text)) {
-				tmp= txt_sel_to_buf(text);
-				if (strcmp(last_find_string, tmp)==0) {
-					if (flags & TXT_FIND_REPLACE) {
-						txt_insert_buf(text, last_repl_string);
-						if (st->showsyntax) txt_format_line(st, text->curl, 1);
-					} else {
-						char clr[4];
-						BIF_GetThemeColor4ubv(TH_SHADE2, clr);
-						if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL)) {
-							if (tmp) MEM_freeN(tmp), tmp=NULL;
-							break;
-						}
-						txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_GRP_FINDALL | TMARK_EDITALL);
-					}
-				}
-				MEM_freeN(tmp);
-				tmp= NULL;
-			}
-
-			/* Find next */
-			if (txt_find_string(text, last_find_string, flags & TXT_FIND_WRAP)) {
-				pop_space_text(st);
-			} else if (flags & TXT_FIND_ALLTEXTS) {
-				if (text==start) break;
-				if (!start) start= text;
-				if (text->id.next)
-					text= st->text= text->id.next;
-				else
-					text= st->text= G.main->text.first;
-				txt_move_toline(text, 0, 0);
-				pop_space_text(st);
-				first= 1;
-			} else {
-				okee("Text not found: %s", last_find_string);
-				break;
-			}
-		} while (flags & TXT_FIND_MARKALL);
-	}
-	else {
-		last_find_flags= flags;
-		find_and_replace_popup(1);
 	}
 }
 
@@ -2680,12 +2686,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 	}
 
+	if (val && uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING) event= 0;
+
 	if (st->doplugins && do_texttools(st, ascii, event, val)) return;
 	if (do_markers(st, ascii, event, val)) return;
 	
 	if (event==UI_BUT_EVENT) {
-		do_find_and_replace_popup(st, val);
-		return;
+		do_find_buttons(val);
+		do_draw= 1;
 	} else if (event==LEFTMOUSE) {
 		if (val) {
 			short mval[2];
@@ -2891,15 +2899,17 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				}
 			}
-			else if (G.qual == LR_ALTKEY || G.qual == LR_CTRLKEY) {
-				txt_find_panel(st, 0, last_find_flags);
-				do_draw= 1;
-			}
-			else if (G.qual == (LR_ALTKEY|LR_CTRLKEY)) {
-				txt_find_panel(st, 1, last_find_flags & ~TXT_FIND_REPLACE & ~TXT_FIND_MARKALL);
+			else if (G.qual & (LR_ALTKEY|LR_CTRLKEY)) {
+				find_and_replace(st, 0);
 				do_draw= 1;
 			}
 			break; /* BREAK F */
+		case HKEY:
+			if (G.qual & (LR_ALTKEY|LR_CTRLKEY)) {
+				find_and_replace(st, 1);
+				do_draw= 1;
+			}
+			break; /* BREAK H */
 		case JKEY:
 			if (G.qual == LR_ALTKEY) {
 				do_draw= jumptoline_interactive(st);
