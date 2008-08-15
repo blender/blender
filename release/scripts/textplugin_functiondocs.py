@@ -27,49 +27,36 @@ def main():
 	if get_context(txt) != CTX_NORMAL:
 		return
 	
-	# Look backwards for first '(' without ')'
-	b = 0
-	found = False
-	for i in range(c-1, -1, -1):
-		if line[i] == ')': b += 1
-		elif line[i] == '(':
-			b -= 1
-			if b < 0:
-				found = True
-				c = i
-				break
+	# Identify the name under the cursor
+	llen = len(line)
+	while c<llen and (line[c].isalnum() or line[c]=='_'):
+		c += 1
 	
-	# Otherwise identify the name under the cursor
-	if not found:
-		llen = len(line)
-		while c<llen and (line[c].isalnum() or line[c]=='_'):
-			c += 1
+	targets = get_targets(line, c)
 	
-	pre = get_targets(line, c)
+	# If no name under cursor, look backward to see if we're in function parens
+	if len(targets) == 0 or targets[0] == '':
+		# Look backwards for first '(' without ')'
+		b = 0
+		found = False
+		for i in range(c-1, -1, -1):
+			if line[i] == ')': b += 1
+			elif line[i] == '(':
+				b -= 1
+				if b < 0:
+					found = True
+					c = i
+					break
+		if found: targets = get_targets(line, c)
+		if len(targets) == 0 or targets[0] == '':
+			return
 	
-	if len(pre) == 0:
-		return
+	obj = resolve_targets(txt, targets)
+	if not obj: return
 	
-	imports = get_imports(txt)
-	builtins = get_builtins()
-	
-	# Identify the root (root.sub.sub.)
-	if imports.has_key(pre[0]):
-		obj = imports[pre[0]]
-	elif builtins.has_key(pre[0]):
-		obj = builtins[pre[0]]
-	else:
-		return
-	
-	# Step through sub-attributes
-	try:
-		for name in pre[1:]:
-			obj = getattr(obj, name)
-	except AttributeError:
-		print "Attribute not found '%s' in '%s'" % (name, '.'.join(pre))
-		return
-	
-	if hasattr(obj, '__doc__') and obj.__doc__:
+	if isinstance(obj, Definition): # Local definition
+		txt.showDocs(obj.doc)
+	elif hasattr(obj, '__doc__') and obj.__doc__:
 		txt.showDocs(obj.__doc__)
 
 # Check we are running as a script and not imported as a module

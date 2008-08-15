@@ -1,8 +1,34 @@
+"""The BPyTextPlugin Module
+
+Use get_cached_descriptor(txt) to retrieve information about the script held in
+the txt Text object.
+
+Use print_cache_for(txt) to print the information to the console.
+
+Use line, cursor = current_line(txt) to get the logical line and cursor position
+
+Use get_targets(line, cursor) to find out what precedes the cursor:
+	aaa.bbb.cc|c.ddd -> ['aaa', 'bbb', 'cc']
+
+Use resolve_targets(txt, targets) to turn a target list into a usable object if
+one is found to match.
+"""
+
 import bpy, sys, os
 import __builtin__, tokenize
 from Blender.sys import time
 from tokenize import generate_tokens, TokenError, \
-		COMMENT, DEDENT, INDENT, NAME, NEWLINE, NL, STRING
+		COMMENT, DEDENT, INDENT, NAME, NEWLINE, NL, STRING, NUMBER
+
+class Definition():
+	"""Describes a definition or defined object through its name, line number
+	and docstring. This is the base class for definition based descriptors.
+	"""
+	
+	def __init__(self, name, lineno, doc=''):
+		self.name = name
+		self.lineno = lineno
+		self.doc = doc
 
 class ScriptDesc():
 	"""Describes a script through lists of further descriptor objects (classes,
@@ -19,43 +45,40 @@ class ScriptDesc():
 		self.defs = defs
 		self.vars = vars
 		self.incomplete = incomplete
-		self.time = 0
+		self.parse_due = 0
 	
-	def set_time(self):
-		self.time = time()
+	def set_delay(self, delay):
+		self.parse_due = time() + delay
 
-class ClassDesc():
+class ClassDesc(Definition):
 	"""Describes a class through lists of further descriptor objects (defs and
 	vars). The name of the class is held by the name field and the line on
 	which it is defined is held in lineno.
 	"""
 	
-	def __init__(self, name, defs, vars, lineno):
-		self.name = name
+	def __init__(self, name, defs, vars, lineno, doc=''):
+		Definition.__init__(self, name, lineno, doc)
 		self.defs = defs
 		self.vars = vars
-		self.lineno = lineno
 
-class FunctionDesc():
+class FunctionDesc(Definition):
 	"""Describes a function through its name and list of parameters (name,
 	params) and the line on which it is defined (lineno).
 	"""
 	
-	def __init__(self, name, params, lineno):
-		self.name = name
+	def __init__(self, name, params, lineno, doc=''):
+		Definition.__init__(self, name, lineno, doc)
 		self.params = params
-		self.lineno = lineno
 
-class VarDesc():
+class VarDesc(Definition):
 	"""Describes a variable through its name and type (if ascertainable) and the
 	line on which it is defined (lineno). If no type can be determined, type
 	will equal None.
 	"""
 	
 	def __init__(self, name, type, lineno):
-		self.name = name
+		Definition.__init__(self, name, lineno)
 		self.type = type # None for unknown (supports: dict/list/str)
-		self.lineno = lineno
 
 # Context types
 CTX_UNSET = -1
@@ -63,9 +86,6 @@ CTX_NORMAL = 0
 CTX_SINGLE_QUOTE = 1
 CTX_DOUBLE_QUOTE = 2
 CTX_COMMENT = 3
-
-# Special time period constants
-TP_AUTO = -1
 
 # Python keywords
 KEYWORDS = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global',
@@ -104,8 +124,76 @@ def _load_module_names():
 
 _load_module_names()
 
+def _trim_doc(doc):
+	"""Trims the quotes from a quoted STRING token (eg. "'''text'''" -> "text")
+	"""
+	
+	l = len(doc)
+	i = 0
+	while i < l/2 and (doc[i] == "'" or doc[i] == '"'):
+		i += 1
+	return doc[i:-i]
 
-def get_cached_descriptor(txt, period=TP_AUTO):
+def resolve_targets(txt, targets):
+	"""Attempts to return a useful object for the locally or externally defined
+	entity described by targets. If the object is local (defined in txt), a
+	Definition instance is returned. If the object is external (imported or
+	built in), the object itself is returned. If no object can be found, None is
+	returned.
+	"""
+	
+	count = len(targets)
+	if count==0: return None
+	
+	obj = None
+	local = None
+	i = 1
+	
+	desc = get_cached_descriptor(txt)
+	if desc.classes.has_key(targets[0]):
+		local = desc.classes[targets[0]]
+	elif desc.defs.has_key(targets[0]):
+		local = desc.defs[targets[0]]
+	elif desc.vars.has_key(targets[0]):
+		obj = desc.vars[targets[0]].type
+	
+	if local:
+		while i < count:
+			if hasattr(local, 'classes') and local.classes.has_key(targets[i]):
+				local = local.classes[targets[i]]
+			elif hasattr(local, 'defs') and local.defs.has_key(targets[i]):
+				local = local.defs[targets[i]]
+			elif hasattr(local, 'vars') and local.vars.has_key(targets[i]):
+				obj = local.vars[targets[i]].type
+				local = None
+				i += 1
+				break
+			else:
+				local = None
+				break
+			i += 1
+	
+	if local: return local
+	
+	if not obj:
+		if desc.imports.has_key(targets[0]):
+			obj = desc.imports[targets[0]]
+		else:
+			builtins = get_builtins()
+			if builtins.has_key(targets[0]):
+				obj = builtins[targets[0]]
+	
+	while obj and i < count:
+		if hasattr(obj, targets[i]):
+			obj = getattr(obj, targets[i])
+		else:
+			obj = None
+			break
+		i += 1
+	
+	return obj
+
+def get_cached_descriptor(txt, force_parse=0):
 	"""Returns the cached ScriptDesc for the specified Text object 'txt'. If the
 	script has not been parsed in the last 'period' seconds it will be reparsed
 	to obtain this descriptor.
@@ -116,20 +204,11 @@ def get_cached_descriptor(txt, period=TP_AUTO):
 	
 	global _parse_cache
 	
-	if period == TP_AUTO:
-		m = txt.nlines
-		r = 1
-		while True:
-			m = m >> 2
-			if not m: break
-			r = r << 1
-		period = r
-	
 	parse = True
 	key = hash(txt)
-	if _parse_cache.has_key(key):
+	if not force_parse and _parse_cache.has_key(key):
 		desc = _parse_cache[key]
-		if desc.time >= time() - period:
+		if desc.parse_due > time():
 			parse = desc.incomplete
 	
 	if parse:
@@ -147,6 +226,7 @@ def parse_text(txt):
 	flag set and information processed up to this point will still be accessible.
 	"""
 	
+	start_time = time()
 	txt.reset()
 	tokens = generate_tokens(txt.readline) # Throws TokenError
 	
@@ -171,12 +251,12 @@ def parse_text(txt):
 	
 	indent = 0
 	prev_type = -1
-	prev_string = ''
+	prev_text = ''
 	incomplete = False
 	
 	while True:
 		try:
-			type, string, start, end, line = tokens.next()
+			type, text, start, end, line = tokens.next()
 		except StopIteration:
 			break
 		except TokenError, IndentationError:
@@ -204,33 +284,33 @@ def parse_text(txt):
 		
 		# Default, look for 'from' or 'import' to start
 		if imp_step == 0:
-			if string == 'from':
+			if text == 'from':
 				imp_tmp = []
 				imp_step = 1
-			elif string == 'import':
+			elif text == 'import':
 				imp_from = None
 				imp_tmp = []
 				imp_step = 2
 		
 		# Found a 'from', create imp_from in form '???.???...'
 		elif imp_step == 1:
-			if string == 'import':
+			if text == 'import':
 				imp_from = '.'.join(imp_tmp)
 				imp_tmp = []
 				imp_step = 2
 			elif type == NAME:
-				imp_tmp.append(string)
-			elif string != '.':
+				imp_tmp.append(text)
+			elif text != '.':
 				imp_step = 0 # Invalid syntax
 		
 		# Found 'import', imp_from is populated or None, create imp_name
 		elif imp_step == 2:
-			if string == 'as':
+			if text == 'as':
 				imp_name = '.'.join(imp_tmp)
 				imp_step = 3
-			elif type == NAME or string == '*':
-				imp_tmp.append(string)
-			elif string != '.':
+			elif type == NAME or text == '*':
+				imp_tmp.append(text)
+			elif text != '.':
 				imp_name = '.'.join(imp_tmp)
 				imp_symb = imp_name
 				imp_store = True
@@ -238,7 +318,7 @@ def parse_text(txt):
 		# Found 'as', change imp_symb to this value and go back to step 2
 		elif imp_step == 3:
 			if type == NAME:
-				imp_symb = string
+				imp_symb = text
 			else:
 				imp_store = True
 		
@@ -268,7 +348,7 @@ def parse_text(txt):
 					imports[imp_symb] = module
 			
 			# More to import from the same module?
-			if string == ',':
+			if text == ',':
 				imp_tmp = []
 				imp_step = 2
 			else:
@@ -283,7 +363,7 @@ def parse_text(txt):
 		
 		# Look for 'class'
 		if cls_step == 0:
-			if string == 'class':
+			if text == 'class':
 				cls_name = None
 				cls_lineno = start[0]
 				cls_indent = indent
@@ -293,30 +373,32 @@ def parse_text(txt):
 		elif cls_step == 1:
 			if not cls_name:
 				if type == NAME:
-					cls_name = string
+					cls_name = text
 					cls_sline = False
 					cls_defs = dict()
 					cls_vars = dict()
-			elif string == ':':
+			elif text == ':':
 				cls_step = 2
 		
 		# Found 'class' name ... ':', now check if it's a single line statement
 		elif cls_step == 2:
 			if type == NEWLINE:
 				cls_sline = False
-				cls_step = 3
 			else:
 				cls_sline = True
-				cls_step = 3
+			cls_doc = ''
+			cls_step = 3
 		
 		elif cls_step == 3:
+			if not cls_doc and type == STRING:
+				cls_doc = _trim_doc(text)
 			if cls_sline:
 				if type == NEWLINE:
-					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno)
+					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno, cls_doc)
 					cls_step = 0
 			else:
 				if type == DEDENT and indent <= cls_indent:
-					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno)
+					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno, cls_doc)
 					cls_step = 0
 		
 		#################
@@ -325,7 +407,7 @@ def parse_text(txt):
 		
 		# Look for 'def'
 		if def_step == 0:
-			if string == 'def':
+			if text == 'def':
 				def_name = None
 				def_lineno = start[0]
 				def_step = 1
@@ -333,21 +415,43 @@ def parse_text(txt):
 		# Found 'def', look for def_name followed by '('
 		elif def_step == 1:
 			if type == NAME:
-				def_name = string
+				def_name = text
 				def_params = []
-			elif def_name and string == '(':
+			elif def_name and text == '(':
 				def_step = 2
 		
 		# Found 'def' name '(', now identify the parameters upto ')'
 		# TODO: Handle ellipsis '...'
 		elif def_step == 2:
 			if type == NAME:
-				def_params.append(string)
-			elif string == ')':
+				def_params.append(text)
+			elif text == ':':
+				def_step = 3
+		
+		# Found 'def' ... ':', now check if it's a single line statement
+		elif def_step == 3:
+			if type == NEWLINE:
+				def_sline = False
+			else:
+				def_sline = True
+			def_doc = ''
+			def_step = 4
+		
+		elif def_step == 4:
+			if type == STRING:
+				def_doc = _trim_doc(text)
+			newdef = None
+			if def_sline:
+				if type == NEWLINE:
+					newdef = FunctionDesc(def_name, def_params, def_lineno, def_doc)
+			else:
+				if type == NAME:
+					newdef = FunctionDesc(def_name, def_params, def_lineno, def_doc)
+			if newdef:
 				if cls_step > 0: # Parsing a class
-					cls_defs[def_name] = FunctionDesc(def_name, def_params, def_lineno)
+					cls_defs[def_name] = newdef
 				else:
-					defs[def_name] = FunctionDesc(def_name, def_params, def_lineno)
+					defs[def_name] = newdef
 				def_step = 0
 		
 		##########################
@@ -357,39 +461,42 @@ def parse_text(txt):
 		if cls_step > 0: # Parsing a class
 			# Look for 'self.???'
 			if var1_step == 0:
-				if string == 'self':
+				if text == 'self':
 					var1_step = 1
 			elif var1_step == 1:
-				if string == '.':
+				if text == '.':
 					var_name = None
 					var1_step = 2
 				else:
 					var1_step = 0
 			elif var1_step == 2:
 				if type == NAME:
-					var_name = string
+					var_name = text
 					if cls_vars.has_key(var_name):
 						var_step = 0
 					else:
 						var1_step = 3
 			elif var1_step == 3:
-				if string == '=':
+				if text == '=':
 					var1_step = 4
 			elif var1_step == 4:
 				var_type = None
-				if string == '[':
-					close = line.find(']', end[1])
-					var_type = list
+				if type == NUMBER:
+					if text.find('.') != -1: var_type = float
+					else: var_type = int
 				elif type == STRING:
 					close = end[1]
 					var_type = str
-				elif string == '(':
+				elif text == '[':
+					close = line.find(']', end[1])
+					var_type = list
+				elif text == '(':
 					close = line.find(')', end[1])
 					var_type = tuple
-				elif string == '{':
+				elif text == '{':
 					close = line.find('}', end[1])
 					var_type = dict
-				elif string == 'dict':
+				elif text == 'dict':
 					close = line.find(')', end[1])
 					var_type = dict
 				if var_type and close+1 < len(line):
@@ -401,27 +508,28 @@ def parse_text(txt):
 		elif def_step > 0: # Parsing a def
 			# Look for 'global ???[,???]'
 			if var2_step == 0:
-				if string == 'global':
+				if text == 'global':
 					var2_step = 1
 			elif var2_step == 1:
 				if type == NAME:
-					vars[string] = True
-				elif string != ',' and type != NL:
+					if not vars.has_key(text):
+						vars[text] = VarDesc(text, None, start[0])
+				elif text != ',' and type != NL:
 					var2_step == 0
 		
 		else: # In global scope
 			if var3_step == 0:
 				# Look for names
-				if string == 'for':
+				if text == 'for':
 					var_accum = dict()
 					var_forflag = True
-				elif string == '=' or (var_forflag and string == 'in'):
+				elif text == '=' or (var_forflag and text == 'in'):
 					var_forflag = False
 					var3_step = 1
 				elif type == NAME:
-					if prev_string != '.' and not vars.has_key(string):
-						var_accum[string] = VarDesc(string, None, start[0])
-				elif not string in [',', '(', ')', '[', ']']:
+					if prev_text != '.' and not vars.has_key(text):
+						var_accum[text] = VarDesc(text, None, start[0])
+				elif not text in [',', '(', ')', '[', ']']:
 					var_accum = dict()
 					var_forflag = False
 			elif var3_step == 1:
@@ -431,10 +539,13 @@ def parse_text(txt):
 				else:
 					var_name = var_accum.keys()[0]
 					var_type = None
-					if string == '[': var_type = list
+					if type == NUMBER:
+						if text.find('.') != -1: var_type = float
+						else: var_type = int
 					elif type == STRING: var_type = str
-					elif string == '(': var_type = tuple
-					elif string == '{': var_type = dict
+					elif text == '[': var_type = list
+					elif text == '(': var_type = tuple
+					elif text == '{': var_type = dict
 					vars[var_name] = VarDesc(var_name, var_type, start[0])
 				var3_step = 0
 		
@@ -443,10 +554,10 @@ def parse_text(txt):
 		#######################
 		
 		prev_type = type
-		prev_string = string
+		prev_text = text
 	
 	desc = ScriptDesc(txt.name, imports, classes, defs, vars, incomplete)
-	desc.set_time()
+	desc.set_delay(10 * (time()-start_time) + 0.05)
 	
 	global _parse_cache
 	_parse_cache[hash(txt)] = desc
@@ -587,13 +698,11 @@ def get_targets(line, cursor):
 	returns them as a list in the same order.
 	"""
 	
-	targets = []
 	i = cursor - 1
 	while i >= 0 and (line[i].isalnum() or line[i] == '_' or line[i] == '.'):
 		i -= 1
 	
-	pre = line[i+1:cursor]
-	return pre.split('.')
+	return line[i+1:cursor].split('.')
 
 def get_defs(txt):
 	"""Returns a dictionary which maps definition names in the source code to
@@ -650,6 +759,7 @@ def print_cache_for(txt, period=sys.maxint):
 	print 'Defs:'
 	for name, ddesc in desc.defs.items():
 		print ' ', name, ddesc.params, ddesc.lineno
+		print '   ', ddesc.doc
 	print '------------------------------------------------'
 	print 'Vars:'
 	for name, vdesc in desc.vars.items():
@@ -663,10 +773,12 @@ def print_cache_for(txt, period=sys.maxint):
 	for clsnme, clsdsc in desc.classes.items():
 		print '  *********************************'
 		print '  Name:', clsnme
+		print ' ', clsdsc.doc
 		print '  ---------------------------------'
 		print '  Defs:'
 		for name, ddesc in clsdsc.defs.items():
 			print '   ', name, ddesc.params, ddesc.lineno
+			print '     ', ddesc.doc
 		print '  ---------------------------------'
 		print '  Vars:'
 		for name, vdesc in clsdsc.vars.items():

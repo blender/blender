@@ -27,23 +27,15 @@ def main():
 	if get_context(txt) != CTX_NORMAL:
 		return
 	
-	pre = get_targets(line, c)
+	targets = get_targets(line, c)
 	
-	if len(pre) <= 1:
-		return
-	
-	imports = get_imports(txt)
-	builtins = get_builtins()
-	
-	# Identify the root (root.sub.sub.)
-	obj = None
-	if pre[0] == '':
-		i = c - len('.'.join(pre)) - 1
+	if targets[0] == '': # Check if we are looking at a constant [] {} '' etc.
+		i = c - len('.'.join(targets)) - 1
 		if i >= 0:
 			if line[i] == '"' or line[i] == "'":
-				obj = str
+				targets[0] = 'str'
 			elif line[i] == '}':
-				obj = dict
+				targets[0] = 'dict'
 			elif line[i] == ']': # Could be array elem x[y] or list [y]
 				i = line.rfind('[', 0, i) - 1
 				while i >= 0:
@@ -54,47 +46,44 @@ def main():
 						break
 					i -= 1
 				if i < 0: 
-					obj = list
-	elif imports.has_key(pre[0]):
-		obj = imports[pre[0]]
-	elif builtins.has_key(pre[0]):
-		obj = builtins[pre[0]]
-	else:
-		desc = get_cached_descriptor(txt)
-		if desc.vars.has_key(pre[0]):
-			obj = desc.vars[pre[0]].type
+					targets[0] = 'list'
 	
+	obj = resolve_targets(txt, targets[:-1])
 	if not obj:
 		return
 	
-	# Step through sub-attributes
-	try:
-		for name in pre[1:-1]:
-			obj = getattr(obj, name)
-	except AttributeError:
-		print "Attribute not found '%s' in '%s'" % (name, '.'.join(pre))
-		return
-	
-	try:
-		attr = obj.__dict__.keys()
-	except AttributeError:
-		attr = dir(obj)
-	else:
-		if not attr:
-			attr = dir(obj)
-	
 	items = []
-	for k in attr:
+	
+	if isinstance(obj, VarDesc):
+		obj = obj.type
+		
+	if isinstance(obj, Definition): # Locally defined
+		if hasattr(obj, 'classes'):
+			items.extend([(s, 'f') for s in obj.classes.keys()])
+		if hasattr(obj, 'defs'):
+			items.extend([(s, 'f') for s in obj.defs.keys()])
+		if hasattr(obj, 'vars'):
+			items.extend([(s, 'v') for s in obj.vars.keys()])
+	
+	else: # Otherwise we have an imported or builtin object
 		try:
-			v = getattr(obj, k)
-		except (AttributeError, TypeError): # Some attributes are not readable
-			pass
+			attr = obj.__dict__.keys()
+		except AttributeError:
+			attr = dir(obj)
 		else:
-			items.append((k, type_char(v)))
+			if not attr: attr = dir(obj)
+		
+		for k in attr:
+			try:
+				v = getattr(obj, k)
+			except (AttributeError, TypeError): # Some attributes are not readable
+				pass
+			else:
+				items.append((k, type_char(v)))
 	
 	if items != []:
 		items.sort(cmp = suggest_cmp)
-		txt.suggest(items, pre[-1])
+		txt.suggest(items, targets[-1])
 
 # Check we are running as a script and not imported as a module
 if __name__ == "__main__" and OK:

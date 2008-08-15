@@ -45,7 +45,7 @@ def main():
 	if not txt:
 		return
 	
-	(line, c) = current_line(txt)
+	line, c = current_line(txt)
 	
 	# Check we are in a normal context
 	if get_context(txt) != CTX_NORMAL:
@@ -65,7 +65,7 @@ def main():
 	
 	# Otherwise we suggest globals, keywords, etc.
 	list = []
-	pre = get_targets(line, c)
+	targets = get_targets(line, c)
 	desc = get_cached_descriptor(txt)
 	
 	for k in KEYWORDS:
@@ -87,7 +87,7 @@ def main():
 		list.append((k, 'v'))
 	
 	list.sort(cmp = suggest_cmp)
-	txt.suggest(list, pre[-1])
+	txt.suggest(list, targets[-1])
 
 # Check we are running as a script and not imported as a module
 if __name__ == "__main__" and OK:
