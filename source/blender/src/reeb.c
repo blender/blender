@@ -3515,11 +3515,11 @@ void REEB_draw()
 		{
 			glColor3f(1, 0, 0);
 		}
-		else if (arc->head->symmetry_flag & SYM_AXIAL)
+		else if (arc->symmetry_flag == SYM_SIDE_POSITIVE || arc->symmetry_flag == SYM_SIDE_NEGATIVE)
 		{
 			glColor3f(1, 0.5f, 0);
 		}
-		else if (arc->head->symmetry_flag & SYM_RADIAL)
+		else if (arc->symmetry_flag >= SYM_SIDE_RADIAL)
 		{
 			glColor3f(0.5f, 1, 0);
 		}
@@ -3564,29 +3564,35 @@ void REEB_draw()
 		
 		VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
 		
-		s += sprintf(s, "%i", i);
+		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
+		{
+			s += sprintf(s, "%i ", i);
+		}
 		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)
 		{
-			s += sprintf(s, " - %0.3f", arc->tail->weight - arc->head->weight);
+			s += sprintf(s, "w:%0.3f ", arc->tail->weight - arc->head->weight);
 		}
 		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_LENGTH)
 		{
-			s += sprintf(s, " - %0.3f", arc->length);
+			s += sprintf(s, "l:%0.3f", arc->length);
 		}
 		
 		glColor3f(0, 1, 0);
 		glRasterPos3fv(vec);
 		BMF_DrawString( G.fonts, text);
 
-		sprintf(text, "%i", arc->head->index);
-		glRasterPos3fv(arc->head->p);
-		BMF_DrawString( G.fonts, text);
-
-		sprintf(text, "%i", arc->tail->index);
-		glRasterPos3fv(arc->tail->p);
-		BMF_DrawString( G.fonts, text);
+		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
+		{
+			sprintf(text, "%i", arc->head->index);
+			glRasterPos3fv(arc->head->p);
+			BMF_DrawString( G.fonts, text);
+	
+			sprintf(text, "%i", arc->tail->index);
+			glRasterPos3fv(arc->tail->p);
+			BMF_DrawString( G.fonts, text);
+		}
 	}
 	glEnable(GL_DEPTH_TEST);
 	

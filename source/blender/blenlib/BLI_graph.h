@@ -114,5 +114,6 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3]);
 #define SYM_SIDE_POSITIVE		1
 #define SYM_SIDE_NEGATIVE		2
 /* Anything higher is the order in radial symmetry */
+#define SYM_SIDE_RADIAL			3
 
 #endif /*BLI_GRAPH_H_*/
