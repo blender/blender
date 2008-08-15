@@ -355,8 +355,7 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	if(!count)
 		pprint("No extenstions are used in this build");
 
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 

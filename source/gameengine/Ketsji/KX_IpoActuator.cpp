@@ -480,7 +480,6 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 	int startFrame, stopFrame;
 	if(!PyArg_ParseTuple(args, "siii", &mode, &startFrame, 
 						 &stopFrame, &forceToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	modenum = string2mode(mode);
@@ -516,7 +515,6 @@ PyObject* KX_IpoActuator::PySetProperty(PyObject* self,
 	/* args: property */
 	char *propertyName;
 	if(!PyArg_ParseTuple(args, "s", &propertyName)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -535,7 +533,6 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 									 PyObject* kwds) {
 	float startArg;
 	if(!PyArg_ParseTuple(args, "f", &startArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -561,7 +558,6 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 								   PyObject* kwds) {
 	float endArg;
 	if(!PyArg_ParseTuple(args, "f", &endArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;		
 	}
 	
@@ -588,7 +584,6 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -617,7 +612,6 @@ PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self,
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 
@@ -646,7 +640,6 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 	int typeArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &typeArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
@@ -678,7 +671,6 @@ PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self,
 	int boolArg;
 	
 	if (!PyArg_ParseTuple(args, "i", &boolArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 

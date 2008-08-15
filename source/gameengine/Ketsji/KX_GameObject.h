@@ -48,6 +48,7 @@
 #include "KX_KetsjiEngine.h" /* for m_anim_framerate */
 #include "KX_IPhysicsController.h" /* for suspend/resume */
 #include "DNA_object_types.h"
+#include "SCA_LogicManager.h" /* for ConvertPythonToGameObject to search object names */
 #define KX_OB_DYNAMIC 1
 
 
@@ -774,6 +775,9 @@ private :
 	);	
 
 };
+
+/* utility conversion function */
+bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py_none_ok);
 
 #endif //__KX_GAMEOBJECT
 

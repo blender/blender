@@ -180,7 +180,7 @@ PyParentObject KX_SCA_AddObjectActuator::Parents[] = {
 	NULL
 };
 PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
-  {"setObject", (PyCFunction) KX_SCA_AddObjectActuator::sPySetObject, METH_VARARGS, SetObject_doc},
+  {"setObject", (PyCFunction) KX_SCA_AddObjectActuator::sPySetObject, METH_O, SetObject_doc},
   {"setTime", (PyCFunction) KX_SCA_AddObjectActuator::sPySetTime, METH_VARARGS, SetTime_doc},
   {"getObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetObject, METH_VARARGS, GetObject_doc},
   {"getTime", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetTime, METH_VARARGS, GetTime_doc},
@@ -200,41 +200,25 @@ PyObject* KX_SCA_AddObjectActuator::_getattr(const STR_String& attr)
 
 /* 1. setObject */
 char KX_SCA_AddObjectActuator::SetObject_doc[] = 
-"setObject(name)\n"
-"\t- name: string\n"
+"setObject(object)\n"
+"\t- object: KX_GameObject, string or None\n"
 "\tSets the object that will be added. There has to be an object\n"
 "\tof this name. If not, this function does nothing.\n";
-
-
-
-PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self,
-												PyObject* args,
-												PyObject* kwds)
-{    
-	PyObject* gameobj;
-	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
-	{
-		if (m_OriginalObject != NULL)
-			m_OriginalObject->UnregisterActuator(this);
-		m_OriginalObject = (SCA_IObject*)gameobj;
-		if (m_OriginalObject)
-			m_OriginalObject->RegisterActuator(this);
-		Py_Return;
-	}
-	PyErr_Clear();
+PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self, PyObject* value)
+{
+	KX_GameObject *gameobj;
 	
-	char* objectname;
-	if (PyArg_ParseTuple(args, "s", &objectname))
-	{
-		if (m_OriginalObject != NULL)
-			m_OriginalObject->UnregisterActuator(this);
-		m_OriginalObject = (SCA_IObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));;
-		if (m_OriginalObject)
-			m_OriginalObject->RegisterActuator(this);
-		Py_Return;
-	}
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return NULL; // ConvertPythonToGameObject sets the error
 	
-	return NULL;
+	if (m_OriginalObject != NULL)
+		m_OriginalObject->UnregisterActuator(this);	
+
+	m_OriginalObject = (SCA_IObject*)gameobj;
+	if (m_OriginalObject)
+		m_OriginalObject->RegisterActuator(this);
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -280,19 +264,22 @@ PyObject* KX_SCA_AddObjectActuator::PyGetTime(PyObject* self,
 
 /* 4. getObject */
 char KX_SCA_AddObjectActuator::GetObject_doc[] = 
-"getObject()\n"
+"getObject(name_only = 1)\n"
+"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the name of the object that will be added.\n";
-
-
-	
-PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self,
-												PyObject* args,
-												PyObject* kwds)
+PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self, PyObject* args)
 {
+	int ret_name_only = 1;
+	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+		return NULL;
+	
 	if (!m_OriginalObject)
-		Py_Return;
-
-	return PyString_FromString(m_OriginalObject->GetName());
+		Py_RETURN_NONE;
+	
+	if (ret_name_only)
+		return PyString_FromString(m_OriginalObject->GetName());
+	else
+		return m_OriginalObject->AddRef();
 }
 
 

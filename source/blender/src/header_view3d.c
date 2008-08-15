@@ -5139,7 +5139,7 @@ static char *snapmode_pup(void)
 	static char string[512];
 	char *str = string;
 	
-	str += sprintf(str, "%s", "Snap Mode: %t"); 
+	str += sprintf(str, "%s", "Snap Element: %t"); 
 	str += sprintf(str, "%s", "|Vertex%x0");
 	str += sprintf(str, "%s", "|Edge%x1");
 	str += sprintf(str, "%s", "|Face%x2"); 
@@ -5777,7 +5777,7 @@ void view3d_buttons(void)
 				xco+= XIC;
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_VERTEXSEL, snapmode_pup(), xco,0,XIC+10,YIC, &(G.scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
-				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	

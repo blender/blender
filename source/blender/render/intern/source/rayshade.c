@@ -263,7 +263,12 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shade_input_set_shade_texco(shi);
 	
 	if(is->mode==RE_RAY_SHADOW_TRA) 
-		shade_color(shi, shr);
+		if(shi->mat->nodetree && shi->mat->use_nodes) {
+			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		}
+		else
+			shade_color(shi, shr);
 	else {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);

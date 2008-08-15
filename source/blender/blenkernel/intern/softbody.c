@@ -69,6 +69,8 @@ variables on the UI for now
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_ghash.h"
+#include "BLI_threads.h"
+
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -117,6 +119,20 @@ typedef struct SBScratch {
 	int totface;
 	float aabbmin[3],aabbmax[3];
 }SBScratch;
+
+typedef struct  SB_thread_context{
+        Object *ob;
+		float forcetime;
+		float timenow;
+		int ifirst;
+		int ilast;
+		ListBase *do_effector;
+		int do_deflector;
+		float fieldfactor;
+		float windfactor;
+		int nr;
+		int tot;
+}SB_thread_context;
 
 #define NLF_BUILD  1 
 #define NLF_SOLVE  2 
@@ -1514,17 +1530,15 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 
 
 
-void scan_for_ext_spring_forces(Object *ob,float timenow)
+void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int ilast, struct ListBase *do_effector)
 {
 	SoftBody *sb = ob->soft;
-	ListBase *do_effector;
 	int a;
 	float damp; 
 	float feedback[3];
-	do_effector= pdInitEffectors(ob,NULL);
 
 	if (sb && sb->totspring){
-		for(a=0; a<sb->totspring; a++) {
+		for(a=ifirst; a<ilast; a++) {
 			BodySpring *bs = &sb->bspring[a];
 			bs->ext_force[0]=bs->ext_force[1]=bs->ext_force[2]=0.0f; 
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
@@ -1584,9 +1598,88 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
 			}
 		}
 	}
-	if(do_effector)
-		pdEndEffectors(do_effector);
 }
+
+
+void scan_for_ext_spring_forces(Object *ob,float timenow)
+{
+  SoftBody *sb = ob->soft;
+  ListBase *do_effector= NULL; 
+  do_effector= pdInitEffectors(ob,NULL);
+  if (sb){
+  _scan_for_ext_spring_forces(ob,timenow,0,sb->totspring,do_effector);
+  }
+  if(do_effector)
+  pdEndEffectors(do_effector);
+}
+
+void *exec_scan_for_ext_spring_forces(void *data)
+{
+	SB_thread_context *pctx = (SB_thread_context*)data;
+	_scan_for_ext_spring_forces(pctx->ob,pctx->timenow,pctx->ifirst,pctx->ilast,pctx->do_effector);
+	return 0;
+} 
+
+void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
+{
+    ListBase *do_effector = NULL; 
+	ListBase threads;
+	SB_thread_context *sb_threads;
+	int i, totthread,left,dec;
+	int lowsprings =10; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
+
+	do_effector= pdInitEffectors(ob,NULL);
+
+	/* figure the number of threads while preventing pretty pointless threading overhead */
+	if(totsprings < lowsprings) {totthread=1;}
+	else{
+		if(G.scene->r.mode & R_FIXED_THREADS)
+			totthread= G.scene->r.threads;
+		else
+			totthread= BLI_system_thread_count();
+	}
+	/*left to do--> what if we got zillions of CPUs running but 'totsprings' tasks to spread*/
+
+	sb_threads= MEM_callocN(sizeof(SB_thread_context)*totthread, "SBSpringsThread");
+	memset(sb_threads, 0, sizeof(SB_thread_context)*totthread);
+	left = totsprings;
+	dec = totsprings/totthread +1;
+	for(i=0; i<totthread; i++) {
+		sb_threads[i].ob = ob; 
+		sb_threads[i].forcetime = 0.0; // not used here 
+		sb_threads[i].timenow = timenow; 
+		sb_threads[i].ilast   = left; 
+		left = left - dec;
+		if (left >0){
+			sb_threads[i].ifirst  = left;
+		}
+		else
+			sb_threads[i].ifirst  = 0; 
+        sb_threads[i].do_effector = do_effector;
+        sb_threads[i].do_deflector = 0;// not used here
+		sb_threads[i].fieldfactor = 0.0f;// not used here
+		sb_threads[i].windfactor  = 0.0f;// not used here
+		sb_threads[i].nr= i;
+		sb_threads[i].tot= totthread;
+	}
+	if(totthread > 1) {
+		BLI_init_threads(&threads, exec_scan_for_ext_spring_forces, totthread);
+
+		for(i=0; i<totthread; i++)
+			BLI_insert_thread(&threads, &sb_threads[i]);
+
+		BLI_end_threads(&threads);
+	}
+	else
+		exec_scan_for_ext_spring_forces(&sb_threads[0]);
+    /* clean up */
+	MEM_freeN(sb_threads);
+
+	  if(do_effector)
+  pdEndEffectors(do_effector);
+}
+
+
 /* --- the spring external section*/
 
 int choose_winner(float*w, float* pos,float*a,float*b,float*c,float*ca,float*cb,float*cc)
@@ -2023,31 +2116,277 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 }
 
 
-static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int nl_flags)
+/* since this is definitely the most CPU consuming task here .. try to spread it */
+/* core function _softbody_calc_forces_slice_in_a_thread */
+/* result is int to be able to flag user break */
+int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *ptr_to_break_func(),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+{
+	float iks;
+	int bb,do_selfcollision,do_springcollision,do_aero;
+	int number_of_points_here = ilast - ifirst;
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
+	BodyPoint  *bp;
+	/* intitialize */
+	if (sb) {
+	/* check conditions for various options */
+    /* +++ could be done on object level to squeeze out the last bits of it */
+	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
+	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
+    /* --- could be done on object level to squeeze out the last bits of it */
+	}
+	else {
+		printf("Error expected a SB here \n");
+		return (999);
+	}
+
+/* debugerin */
+	if  (sb->totpoint < ifirst) {
+		printf("Aye 998");
+		return (998);
+	}
+/* debugerin */
+
+
+	bp = &sb->bpoint[ifirst]; 
+	for(bb=number_of_points_here; bb>0; bb--, bp++) {
+		/* clear forces  accumulator */
+		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
+		/* naive ball self collision */
+		/* needs to be done if goal snaps or not */
+		if(do_selfcollision){
+			 	int attached;
+				BodyPoint   *obp;
+				BodySpring *bs;	
+				int c,b;
+				float velcenter[3],dvel[3],def[3];
+				float distance;
+				float compare;
+     	        float bstune = sb->ballstiff;
+
+				for(c=sb->totpoint, obp= sb->bpoint; c>=ifirst+bb; c--, obp++) {
+					compare = (obp->colball + bp->colball);		
+					VecSubf(def, bp->pos, obp->pos);
+					/* rather check the AABBoxes before ever calulating the real distance */
+					/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
+					if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
+                    distance = Normalize(def);
+					if (distance < compare ){
+						/* exclude body points attached with a spring */
+						attached = 0;
+						for(b=obp->nofsprings;b>0;b--){
+							bs = sb->bspring + obp->springs[b-1];
+							if (( ilast-bb == bs->v2)  || ( ilast-bb == bs->v1)){
+								attached=1;
+								continue;}
+						}
+						if (!attached){
+							float f = bstune/(distance) + bstune/(compare*compare)*distance - 2.0f*bstune/compare ;
+
+							VecMidf(velcenter, bp->vec, obp->vec);
+							VecSubf(dvel,velcenter,bp->vec);
+							VecMulf(dvel,sb->nodemass);
+
+							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
+							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
+
+							/* exploit force(a,b) == -force(b,a) part2/2 */
+							VecSubf(dvel,velcenter,obp->vec);
+							VecMulf(dvel,sb->nodemass);
+
+							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
+							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
+						}
+					}
+				}
+		}
+		/* naive ball self collision done */
+
+		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
+			float auxvect[3];  
+			float velgoal[3];
+
+			/* do goal stuff */
+			if(ob->softflag & OB_SB_GOAL) {
+				/* true elastic goal */
+				float ks,kd;
+				VecSubf(auxvect,bp->pos,bp->origT);
+				ks  = 1.0f/(1.0f- bp->goal*sb->goalspring)-1.0f ;
+				bp->force[0]+= -ks*(auxvect[0]);
+				bp->force[1]+= -ks*(auxvect[1]);
+				bp->force[2]+= -ks*(auxvect[2]);
+
+				/* calulate damping forces generated by goals*/
+				VecSubf(velgoal,bp->origS, bp->origE);
+				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
+				VecAddf(auxvect,velgoal,bp->vec);
+				
+				if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
+					bp->force[0]-= kd * (auxvect[0]);
+					bp->force[1]-= kd * (auxvect[1]);
+					bp->force[2]-= kd * (auxvect[2]);
+				}
+				else {
+					bp->force[0]-= kd * (velgoal[0] - bp->vec[0]);
+					bp->force[1]-= kd * (velgoal[1] - bp->vec[1]);
+					bp->force[2]-= kd * (velgoal[2] - bp->vec[2]);
+				}
+			}
+			/* done goal stuff */
+			
+			/* gravitation */
+			if (sb){ 
+			float gravity = sb->grav * sb_grav_force_scale(ob);	
+			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
+			}
+			
+			/* particle field & vortex */
+			if(do_effector) {
+				float kd;
+				float force[3]= {0.0f, 0.0f, 0.0f};
+				float speed[3]= {0.0f, 0.0f, 0.0f};
+				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
+				
+				pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				
+				/* apply forcefield*/
+				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
+				VECADD(bp->force, bp->force, force);
+				
+				/* BP friction in moving media */	
+				kd= sb->mediafrict* eval_sb_fric_force_scale;  
+				bp->force[0] -= kd * (bp->vec[0] + windfactor*speed[0]/eval_sb_fric_force_scale);
+				bp->force[1] -= kd * (bp->vec[1] + windfactor*speed[1]/eval_sb_fric_force_scale);
+				bp->force[2] -= kd * (bp->vec[2] + windfactor*speed[2]/eval_sb_fric_force_scale);
+				/* now we'll have nice centrifugal effect for vortex */
+				
+			}
+			else {
+				/* BP friction in media (not) moving*/
+				float kd = sb->mediafrict* sb_fric_force_scale(ob);  
+				/* assume it to be proportional to actual velocity */
+				bp->force[0]-= bp->vec[0]*kd;
+				bp->force[1]-= bp->vec[1]*kd;
+				bp->force[2]-= bp->vec[2]*kd;
+				/* friction in media done */
+			}
+			/* +++cached collision targets */
+			bp->choke = 0.0f;
+			bp->choke2 = 0.0f;
+			bp->flag &= ~SBF_DOFUZZY;
+			if(do_deflector) {
+				float cfforce[3],defforce[3] ={0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f}, facenormal[3], cf = 1.0f,intrusion;
+				float kd = 1.0f;
+
+				if (sb_deflect_face(ob,bp->pos,facenormal,defforce,&cf,timenow,vel,&intrusion)){
+
+							VECSUB(cfforce,bp->vec,vel);
+							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
+					
+					Vec3PlusStVec(bp->force,kd,defforce);  
+				}
+
+			}
+			/* ---cached collision targets */
+
+			/* +++springs */
+			iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
+			if(ob->softflag & OB_SB_EDGES) {
+				if (sb->bspring){ /* spring list exists at all ? */
+					int b;
+					BodySpring *bs;	
+					for(b=bp->nofsprings;b>0;b--){
+						bs = sb->bspring + bp->springs[b-1];
+						if (do_springcollision || do_aero){
+							VecAddf(bp->force,bp->force,bs->ext_force);
+							if (bs->flag & BSF_INTERSECT)
+								bp->choke = bs->cf; 
+
+						}
+                        // sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
+						sb_spring_force(ob,ilast-bb,bs,iks,forcetime,0);
+					}/* loop springs */
+				}/* existing spring list */ 
+			}/*any edges*/
+			/* ---springs */
+		}/*omit on snap	*/
+	}/*loop all bp's*/
+return 0; /*done fine*/
+}
+
+void *exec_softbody_calc_forces(void *data)
+{
+	SB_thread_context *pctx = (SB_thread_context*)data;
+    _softbody_calc_forces_slice_in_a_thread(pctx->ob,pctx->forcetime,pctx->timenow,pctx->ifirst,pctx->ilast,NULL,pctx->do_effector,pctx->do_deflector,pctx->fieldfactor,pctx->windfactor);
+	return 0;
+} 
+
+void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,int totpoint,int *ptr_to_break_func(),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+{
+	ListBase threads;
+	SB_thread_context *sb_threads;
+	int i, totthread,left,dec;
+	int lowpoints =10; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
+
+	/* figure the number of threads while preventing pretty pointless threading overhead */
+	if(totpoint < lowpoints) {totthread=1;}
+	else{
+		if(G.scene->r.mode & R_FIXED_THREADS)
+			totthread= G.scene->r.threads;
+		else
+			totthread= BLI_system_thread_count();
+	}
+	/*left to do--> what if we got zillions of CPUs running but 'totpoint' tasks to spread*/
+
+	sb_threads= MEM_callocN(sizeof(SB_thread_context)*totthread, "SBThread");
+	memset(sb_threads, 0, sizeof(SB_thread_context)*totthread);
+	left = totpoint;
+	dec = totpoint/totthread +1;
+	for(i=0; i<totthread; i++) {
+		sb_threads[i].ob = ob; 
+		sb_threads[i].forcetime = forcetime; 
+		sb_threads[i].timenow = timenow; 
+		sb_threads[i].ilast   = left; 
+		left = left - dec;
+		if (left >0){
+			sb_threads[i].ifirst  = left;
+		}
+		else
+			sb_threads[i].ifirst  = 0; 
+        sb_threads[i].do_effector = do_effector;
+        sb_threads[i].do_deflector = do_deflector;
+		sb_threads[i].fieldfactor = fieldfactor;
+		sb_threads[i].windfactor  = windfactor;
+		sb_threads[i].nr= i;
+		sb_threads[i].tot= totthread;
+	}
+
+
+	if(totthread > 1) {
+		BLI_init_threads(&threads, exec_softbody_calc_forces, totthread);
+
+		for(i=0; i<totthread; i++)
+			BLI_insert_thread(&threads, &sb_threads[i]);
+
+		BLI_end_threads(&threads);
+	}
+	else
+		exec_softbody_calc_forces(&sb_threads[0]);
+    /* clean up */
+	MEM_freeN(sb_threads);
+}
+
+static void softbody_calc_forcesEx(Object *ob, float forcetime, float timenow, int nl_flags)
 {
 /* rule we never alter free variables :bp->vec bp->pos in here ! 
  * this will ruin adaptive stepsize AKA heun! (BM) 
  */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
-	BodyPoint  *bp;
 	BodyPoint *bproot;
-	BodySpring *bs;	
 	ListBase *do_effector;
-	float iks, ks, kd, gravity;
+	float iks, gravity;
 	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
-	float tune = sb->ballstiff;
-	int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
-
-
-/* jacobian
-	NLboolean success;
-
-	if(nl_flags){
-		nlBegin(NL_SYSTEM);
-		nlBegin(NL_MATRIX);
-	}
-*/
-	
+	int   do_deflector,do_selfcollision,do_springcollision,do_aero;
 	
 	gravity = sb->grav * sb_grav_force_scale(ob);	
 	
@@ -2060,7 +2399,9 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
-	if (do_springcollision || do_aero)  scan_for_ext_spring_forces(ob,timenow);
+	if (do_springcollision || do_aero)  
+	sb_sfesf_threads_run(ob,timenow,sb->totspring,NULL);	
+	
 	/* after spring scan because it uses Effoctors too */
 	do_effector= pdInitEffectors(ob,NULL);
 
@@ -2069,34 +2410,102 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		do_deflector = sb_detect_aabb_collisionCached(defforce,ob->lay,ob,timenow);
 	}
 
-	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		/* clear forces  accumulator */
-		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
-		if(nl_flags & NLF_BUILD){
-			//int ia =3*(sb->totpoint-a);
-			//int op =3*sb->totpoint;
-			/* dF/dV = v */ 
-			/* jacobioan
-			nlMatrixAdd(op+ia,ia,-forcetime);
-			nlMatrixAdd(op+ia+1,ia+1,-forcetime);
-			nlMatrixAdd(op+ia+2,ia+2,-forcetime);
-     		
-			nlMatrixAdd(ia,ia,1);
-			nlMatrixAdd(ia+1,ia+1,1);
-			nlMatrixAdd(ia+2,ia+2,1);
+	sb_cf_threads_run(ob,forcetime,timenow,sb->totpoint,NULL,do_effector,do_deflector,fieldfactor,windfactor);
 
-			nlMatrixAdd(op+ia,op+ia,1);
-			nlMatrixAdd(op+ia+1,op+ia+1,1);
-			nlMatrixAdd(op+ia+2,op+ia+2,1);
-			*/
+	/* finally add forces caused by face collision */
+	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
+	
+	/* finish matrix and solve */
+	if(do_effector) pdEndEffectors(do_effector);
+}
 
 
+
+
+static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int nl_flags)
+{
+	/* redirection to the new threaded Version */
+	if (G.rt !=16){ 
+		softbody_calc_forcesEx(ob, forcetime, timenow, nl_flags);
+		return;
+	}
+	else{
+		/* so the following will die  */
+		/* |||||||||||||||||||||||||| */
+		/* VVVVVVVVVVVVVVVVVVVVVVVVVV */
+
+		/* rule we never alter free variables :bp->vec bp->pos in here ! 
+		* this will ruin adaptive stepsize AKA heun! (BM) 
+		*/
+		SoftBody *sb= ob->soft;	/* is supposed to be there */
+		BodyPoint  *bp;
+		BodyPoint *bproot;
+		BodySpring *bs;	
+		ListBase *do_effector;
+		float iks, ks, kd, gravity;
+		float fieldfactor = 1000.0f, windfactor  = 250.0f;   
+		float tune = sb->ballstiff;
+		int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
+
+
+		/* jacobian
+		NLboolean success;
+
+		if(nl_flags){
+		nlBegin(NL_SYSTEM);
+		nlBegin(NL_MATRIX);
+		}
+		*/
+
+
+		gravity = sb->grav * sb_grav_force_scale(ob);	
+
+		/* check conditions for various options */
+		do_deflector= query_external_colliders(ob);
+		do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+		do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
+		do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
+
+		iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
+		bproot= sb->bpoint; /* need this for proper spring addressing */
+
+		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(ob,timenow);
+		/* after spring scan because it uses Effoctors too */
+		do_effector= pdInitEffectors(ob,NULL);
+
+		if (do_deflector) {
+			float defforce[3];
+			do_deflector = sb_detect_aabb_collisionCached(defforce,ob->lay,ob,timenow);
 		}
 
-		/* naive ball self collision */
-		/* needs to be done if goal snaps or not */
-		if(do_selfcollision){
-			 	int attached;
+		for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+			/* clear forces  accumulator */
+			bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
+			if(nl_flags & NLF_BUILD){
+				//int ia =3*(sb->totpoint-a);
+				//int op =3*sb->totpoint;
+				/* dF/dV = v */ 
+				/* jacobioan
+				nlMatrixAdd(op+ia,ia,-forcetime);
+				nlMatrixAdd(op+ia+1,ia+1,-forcetime);
+				nlMatrixAdd(op+ia+2,ia+2,-forcetime);
+
+				nlMatrixAdd(ia,ia,1);
+				nlMatrixAdd(ia+1,ia+1,1);
+				nlMatrixAdd(ia+2,ia+2,1);
+
+				nlMatrixAdd(op+ia,op+ia,1);
+				nlMatrixAdd(op+ia+1,op+ia+1,1);
+				nlMatrixAdd(op+ia+2,op+ia+2,1);
+				*/
+
+
+			}
+
+			/* naive ball self collision */
+			/* needs to be done if goal snaps or not */
+			if(do_selfcollision){
+				int attached;
 				BodyPoint   *obp;
 				int c,b;
 				float velcenter[3],dvel[3],def[3];
@@ -2104,7 +2513,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 				float compare;
 
 				for(c=sb->totpoint, obp= sb->bpoint; c>=a; c--, obp++) {
-					
+
 					//if ((bp->octantflag & obp->octantflag) == 0) continue;
 
 					compare = (obp->colball + bp->colball);		
@@ -2114,7 +2523,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 					/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
 					if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
 
-                    distance = Normalize(def);
+					distance = Normalize(def);
 					if (distance < compare ){
 						/* exclude body points attached with a spring */
 						attached = 0;
@@ -2146,8 +2555,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 								/* exploit force(a,b) == -force(b,a) part1/2 */
 								//dfdx_goal(ic,ic,op,mpos);
 								//dfdv_goal(ic,ic,mvel);
-								
-								
+
+
 								/*TODO sit down an X-out the true jacobian entries*/
 								/*well does not make to much sense because the eigenvalues
 								of the jacobian go negative; and negative eigenvalues
@@ -2169,236 +2578,239 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 						}
 					}
 				}
-		}
-		/* naive ball self collision done */
+			}
+			/* naive ball self collision done */
 
-		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
-			float auxvect[3];  
-			float velgoal[3];
+			if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
+				float auxvect[3];  
+				float velgoal[3];
 
-			/* do goal stuff */
-			if(ob->softflag & OB_SB_GOAL) {
-				/* true elastic goal */
-				VecSubf(auxvect,bp->pos,bp->origT);
-				ks  = 1.0f/(1.0f- bp->goal*sb->goalspring)-1.0f ;
-				bp->force[0]+= -ks*(auxvect[0]);
-				bp->force[1]+= -ks*(auxvect[1]);
-				bp->force[2]+= -ks*(auxvect[2]);
+				/* do goal stuff */
+				if(ob->softflag & OB_SB_GOAL) {
+					/* true elastic goal */
+					VecSubf(auxvect,bp->pos,bp->origT);
+					ks  = 1.0f/(1.0f- bp->goal*sb->goalspring)-1.0f ;
+					bp->force[0]+= -ks*(auxvect[0]);
+					bp->force[1]+= -ks*(auxvect[1]);
+					bp->force[2]+= -ks*(auxvect[2]);
 
-				if(nl_flags & NLF_BUILD){
-					//int ia =3*(sb->totpoint-a);
-					//int op =3*(sb->totpoint);
-					/* depending on my pos */ 
-					//dfdx_goal(ia,ia,op,ks*forcetime);
-				}
-
-
-				/* calulate damping forces generated by goals*/
-				VecSubf(velgoal,bp->origS, bp->origE);
-				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
-				VecAddf(auxvect,velgoal,bp->vec);
-				
-				if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
-					bp->force[0]-= kd * (auxvect[0]);
-					bp->force[1]-= kd * (auxvect[1]);
-					bp->force[2]-= kd * (auxvect[2]);
 					if(nl_flags & NLF_BUILD){
 						//int ia =3*(sb->totpoint-a);
-						Normalize(auxvect);
-						/* depending on my vel */ 
-						//dfdv_goal(ia,ia,kd*forcetime);
+						//int op =3*(sb->totpoint);
+						/* depending on my pos */ 
+						//dfdx_goal(ia,ia,op,ks*forcetime);
 					}
+
+
+					/* calulate damping forces generated by goals*/
+					VecSubf(velgoal,bp->origS, bp->origE);
+					kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
+					VecAddf(auxvect,velgoal,bp->vec);
+
+					if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
+						bp->force[0]-= kd * (auxvect[0]);
+						bp->force[1]-= kd * (auxvect[1]);
+						bp->force[2]-= kd * (auxvect[2]);
+						if(nl_flags & NLF_BUILD){
+							//int ia =3*(sb->totpoint-a);
+							Normalize(auxvect);
+							/* depending on my vel */ 
+							//dfdv_goal(ia,ia,kd*forcetime);
+						}
+
+					}
+					else {
+						bp->force[0]-= kd * (velgoal[0] - bp->vec[0]);
+						bp->force[1]-= kd * (velgoal[1] - bp->vec[1]);
+						bp->force[2]-= kd * (velgoal[2] - bp->vec[2]);
+					}
+				}
+				/* done goal stuff */
+
+
+				/* gravitation */
+				bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
+				//bp->force[1]-= gravity*sb->nodemass; /* individual mass of node here */
+
+
+				/* particle field & vortex */
+				if(do_effector) {
+					float force[3]= {0.0f, 0.0f, 0.0f};
+					float speed[3]= {0.0f, 0.0f, 0.0f};
+					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
+
+					pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+
+					/* apply forcefield*/
+					VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
+					VECADD(bp->force, bp->force, force);
+
+					/* BP friction in moving media */	
+					kd= sb->mediafrict* eval_sb_fric_force_scale;  
+					bp->force[0] -= kd * (bp->vec[0] + windfactor*speed[0]/eval_sb_fric_force_scale);
+					bp->force[1] -= kd * (bp->vec[1] + windfactor*speed[1]/eval_sb_fric_force_scale);
+					bp->force[2] -= kd * (bp->vec[2] + windfactor*speed[2]/eval_sb_fric_force_scale);
+					/* now we'll have nice centrifugal effect for vortex */
 
 				}
 				else {
-					bp->force[0]-= kd * (velgoal[0] - bp->vec[0]);
-					bp->force[1]-= kd * (velgoal[1] - bp->vec[1]);
-					bp->force[2]-= kd * (velgoal[2] - bp->vec[2]);
-				}
-			}
-			/* done goal stuff */
-			
-			
-			/* gravitation */
-			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
-			//bp->force[1]-= gravity*sb->nodemass; /* individual mass of node here */
+					/* BP friction in media (not) moving*/
+					kd= sb->mediafrict* sb_fric_force_scale(ob);  
+					/* assume it to be proportional to actual velocity */
+					bp->force[0]-= bp->vec[0]*kd;
+					bp->force[1]-= bp->vec[1]*kd;
+					bp->force[2]-= bp->vec[2]*kd;
+					/* friction in media done */
+					if(nl_flags & NLF_BUILD){
+						//int ia =3*(sb->totpoint-a);
+						/* da/dv =  */ 
 
-			
-			/* particle field & vortex */
-			if(do_effector) {
-				float force[3]= {0.0f, 0.0f, 0.0f};
-				float speed[3]= {0.0f, 0.0f, 0.0f};
-				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
-				
-				pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
-				
-				/* apply forcefield*/
-				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
-				VECADD(bp->force, bp->force, force);
-				
-				/* BP friction in moving media */	
-				kd= sb->mediafrict* eval_sb_fric_force_scale;  
-				bp->force[0] -= kd * (bp->vec[0] + windfactor*speed[0]/eval_sb_fric_force_scale);
-				bp->force[1] -= kd * (bp->vec[1] + windfactor*speed[1]/eval_sb_fric_force_scale);
-				bp->force[2] -= kd * (bp->vec[2] + windfactor*speed[2]/eval_sb_fric_force_scale);
-				/* now we'll have nice centrifugal effect for vortex */
-				
-			}
-			else {
-				/* BP friction in media (not) moving*/
-				kd= sb->mediafrict* sb_fric_force_scale(ob);  
-				/* assume it to be proportional to actual velocity */
-				bp->force[0]-= bp->vec[0]*kd;
-				bp->force[1]-= bp->vec[1]*kd;
-				bp->force[2]-= bp->vec[2]*kd;
-				/* friction in media done */
-				if(nl_flags & NLF_BUILD){
-					//int ia =3*(sb->totpoint-a);
-					/* da/dv =  */ 
-
-//					nlMatrixAdd(ia,ia,forcetime*kd);
-//					nlMatrixAdd(ia+1,ia+1,forcetime*kd);
-//					nlMatrixAdd(ia+2,ia+2,forcetime*kd);
-				}
-
-			}
-			/* +++cached collision targets */
-			bp->choke = 0.0f;
-			bp->choke2 = 0.0f;
-			bp->flag &= ~SBF_DOFUZZY;
-			if(do_deflector) {
-				float cfforce[3],defforce[3] ={0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f}, facenormal[3], cf = 1.0f,intrusion;
-				kd = 1.0f;
-
-				if (sb_deflect_face(ob,bp->pos,facenormal,defforce,&cf,timenow,vel,&intrusion)){
-					if ((!nl_flags)&&(intrusion < 0.0f)){
-						/*bjornmose:  uugh.. what an evil hack 
-						violation of the 'don't touch bp->pos in here' rule 
-						but works nice, like this-->
-						we predict the solution beeing out of the collider
-						in heun step No1 and leave the heun step No2 adapt to it
-						so we kind of introduced a implicit solver for this case 
-						*/
-						Vec3PlusStVec(bp->pos,-intrusion,facenormal);
-
-						sb->scratch->flag |= SBF_DOFUZZY;
-						bp->flag |= SBF_DOFUZZY;
-					    bp->choke = sb->choke*0.01f;
+						//					nlMatrixAdd(ia,ia,forcetime*kd);
+						//					nlMatrixAdd(ia+1,ia+1,forcetime*kd);
+						//					nlMatrixAdd(ia+2,ia+2,forcetime*kd);
 					}
-					else{
+
+				}
+				/* +++cached collision targets */
+				bp->choke = 0.0f;
+				bp->choke2 = 0.0f;
+				bp->flag &= ~SBF_DOFUZZY;
+				if(do_deflector) {
+					float cfforce[3],defforce[3] ={0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f}, facenormal[3], cf = 1.0f,intrusion;
+					kd = 1.0f;
+
+					if (sb_deflect_face(ob,bp->pos,facenormal,defforce,&cf,timenow,vel,&intrusion)){
+						if ((!nl_flags)&&(intrusion < 0.0f)){
+							/*bjornmose:  uugh.. what an evil hack 
+							violation of the 'don't touch bp->pos in here' rule 
+							but works nice, like this-->
+							we predict the solution beeing out of the collider
+							in heun step No1 and leave the heun step No2 adapt to it
+							so we kind of introduced a implicit solver for this case 
+							*/
+							Vec3PlusStVec(bp->pos,-intrusion,facenormal);
+
+							sb->scratch->flag |= SBF_DOFUZZY;
+							bp->flag |= SBF_DOFUZZY;
+							bp->choke = sb->choke*0.01f;
+						}
+						else{
 							VECSUB(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
-					}
-					Vec3PlusStVec(bp->force,kd,defforce);
-					if (nl_flags & NLF_BUILD){
-						// int ia =3*(sb->totpoint-a);
-						// int op =3*sb->totpoint;
-						//dfdx_goal(ia,ia,op,mpos); // don't do unless you know
-						//dfdv_goal(ia,ia,-cf);
-
-					}
-  
-				}
-
-			}
-			/* ---cached collision targets */
-
-			/* +++springs */
-			if(ob->softflag & OB_SB_EDGES) {
-				if (sb->bspring){ /* spring list exists at all ? */
-					for(b=bp->nofsprings;b>0;b--){
-						bs = sb->bspring + bp->springs[b-1];
-						if (do_springcollision || do_aero){
-							VecAddf(bp->force,bp->force,bs->ext_force);
-							if (bs->flag & BSF_INTERSECT)
-								bp->choke = bs->cf; 
+						}
+						Vec3PlusStVec(bp->force,kd,defforce);
+						if (nl_flags & NLF_BUILD){
+							// int ia =3*(sb->totpoint-a);
+							// int op =3*sb->totpoint;
+							//dfdx_goal(ia,ia,op,mpos); // don't do unless you know
+							//dfdv_goal(ia,ia,-cf);
 
 						}
-                        // sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
-						sb_spring_force(ob,sb->totpoint-a,bs,iks,forcetime,nl_flags);
-					}/* loop springs */
-				}/* existing spring list */ 
-			}/*any edges*/
-			/* ---springs */
-		}/*omit on snap	*/
-	}/*loop all bp's*/
+
+					}
+
+				}
+				/* ---cached collision targets */
+
+				/* +++springs */
+				if(ob->softflag & OB_SB_EDGES) {
+					if (sb->bspring){ /* spring list exists at all ? */
+						for(b=bp->nofsprings;b>0;b--){
+							bs = sb->bspring + bp->springs[b-1];
+							if (do_springcollision || do_aero){
+								VecAddf(bp->force,bp->force,bs->ext_force);
+								if (bs->flag & BSF_INTERSECT)
+									bp->choke = bs->cf; 
+
+							}
+							// sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float forcetime,int nl_flags)
+							// rather remove nl_falgs from code .. will make things a lot cleaner
+							sb_spring_force(ob,sb->totpoint-a,bs,iks,forcetime,0);
+						}/* loop springs */
+					}/* existing spring list */ 
+				}/*any edges*/
+				/* ---springs */
+			}/*omit on snap	*/
+		}/*loop all bp's*/
 
 
-	/* finally add forces caused by face collision */
-	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
-	
-	/* finish matrix and solve */
+		/* finally add forces caused by face collision */
+		if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
+
+		/* finish matrix and solve */
 #if (0) // remove onl linking for now .. still i am not sure .. the jacobian can be usefull .. so keep that BM
-	if(nl_flags & NLF_SOLVE){
-		//double sct,sst=PIL_check_seconds_timer();
-		for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-			int iv =3*(sb->totpoint-a);
-			int ip =3*(2*sb->totpoint-a);
-			int n;
-			for (n=0;n<3;n++) {nlRightHandSideSet(0, iv+n, bp->force[0+n]);}
-			for (n=0;n<3;n++) {nlRightHandSideSet(0, ip+n, bp->vec[0+n]);}
-		}
-		nlEnd(NL_MATRIX);
-		nlEnd(NL_SYSTEM);
-
-		if ((G.rt >0) && (nl_flags & NLF_BUILD))
-		{ 
-			printf("####MEE#####\n");
-			nlPrintMatrix();
-		}
-
-		success= nlSolveAdvanced(NULL, 1);
-
-		// nlPrintMatrix(); /* for debug purpose .. anyhow cropping B vector looks like working */
-		if(success){
-			float f;
-			int index =0;
-			/* for debug purpose .. anyhow cropping B vector looks like working */
-			if (G.rt >0)
-				for(a=2*sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-					f=nlGetVariable(0,index);
-					printf("(%f ",f);index++;
-					f=nlGetVariable(0,index);
-					printf("%f ",f);index++;
-					f=nlGetVariable(0,index);
-					printf("%f)",f);index++;
-				}
-
-				index =0;
-				for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-					f=nlGetVariable(0,index);
-					bp->impdv[0] = f; index++;
-					f=nlGetVariable(0,index);
-					bp->impdv[1] = f; index++;
-					f=nlGetVariable(0,index);
-					bp->impdv[2] = f; index++;
-				}
-				/*
-				for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-				f=nlGetVariable(0,index);
-				bp->impdx[0] = f; index++;
-				f=nlGetVariable(0,index);
-				bp->impdx[1] = f; index++;
-				f=nlGetVariable(0,index);
-				bp->impdx[2] = f; index++;
-				}
-				*/
-		}
-		else{
-			printf("Matrix inversion failed \n");
+		if(nl_flags & NLF_SOLVE){
+			//double sct,sst=PIL_check_seconds_timer();
 			for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-				VECCOPY(bp->impdv,bp->force);
+				int iv =3*(sb->totpoint-a);
+				int ip =3*(2*sb->totpoint-a);
+				int n;
+				for (n=0;n<3;n++) {nlRightHandSideSet(0, iv+n, bp->force[0+n]);}
+				for (n=0;n<3;n++) {nlRightHandSideSet(0, ip+n, bp->vec[0+n]);}
+			}
+			nlEnd(NL_MATRIX);
+			nlEnd(NL_SYSTEM);
+
+			if ((G.rt == 32) && (nl_flags & NLF_BUILD))
+			{ 
+				printf("####MEE#####\n");
+				nlPrintMatrix();
 			}
 
-		}
+			success= nlSolveAdvanced(NULL, 1);
 
-		//sct=PIL_check_seconds_timer();
-		//if (sct-sst > 0.01f) printf(" implicit solver time %f %s \r",sct-sst,ob->id.name);
-	}
-	/* cleanup */
+			// nlPrintMatrix(); /* for debug purpose .. anyhow cropping B vector looks like working */
+			if(success){
+				float f;
+				int index =0;
+				/* for debug purpose .. anyhow cropping B vector looks like working */
+				if (G.rt ==32)
+					for(a=2*sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+						f=nlGetVariable(0,index);
+						printf("(%f ",f);index++;
+						f=nlGetVariable(0,index);
+						printf("%f ",f);index++;
+						f=nlGetVariable(0,index);
+						printf("%f)",f);index++;
+					}
+
+					index =0;
+					for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+						f=nlGetVariable(0,index);
+						bp->impdv[0] = f; index++;
+						f=nlGetVariable(0,index);
+						bp->impdv[1] = f; index++;
+						f=nlGetVariable(0,index);
+						bp->impdv[2] = f; index++;
+					}
+					/*
+					for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+					f=nlGetVariable(0,index);
+					bp->impdx[0] = f; index++;
+					f=nlGetVariable(0,index);
+					bp->impdx[1] = f; index++;
+					f=nlGetVariable(0,index);
+					bp->impdx[2] = f; index++;
+					}
+					*/
+			}
+			else{
+				printf("Matrix inversion failed \n");
+				for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+					VECCOPY(bp->impdv,bp->force);
+				}
+
+			}
+
+			//sct=PIL_check_seconds_timer();
+			//if (sct-sst > 0.01f) printf(" implicit solver time %f %s \r",sct-sst,ob->id.name);
+		}
+		/* cleanup */
 #endif
-	if(do_effector) pdEndEffectors(do_effector);
+		if(do_effector) pdEndEffectors(do_effector);
+	}
 }
+
 static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err, int mid_flags)
 {
 	/* time evolution */
@@ -2458,7 +2870,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			/* x(t + dt) = x(t) + v(t~) * dt */ 
 			VecMulf(dx,forcetime);
 
-			/* the freezer */
+			/* the freezer coming sooner or later */
 			/*
 			if  ((Inpf(dx,dx)<freezeloc )&&(Inpf(bp->force,bp->force)<freezeforce )){
 				bp->frozen /=2;
@@ -3529,6 +3941,7 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 							 * we don't want to lock up the system if physics fail
 		*/
 		int loops =0 ; 
+		
 		SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
 		if (sb->minloops > 0) forcetimemax = 1.0f / sb->minloops;
 		
@@ -3546,13 +3959,13 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 			sb->scratch->flag &= ~SBF_DOFUZZY;
 			/* do predictive euler step */
 			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
-			softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
 
+			softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
 
 			/* crop new slope values to do averaged slope step */
 			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
-			softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
 
+			softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
 			softbody_apply_goalsnap(ob);
 			
 			if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
@@ -3603,7 +4016,7 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 		//				if(G.f & G_DEBUG){
 		if(sb->solverflags & SBSO_MONITOR ){
 			if (loops > HEUNWARNLIMIT) /* monitor high loop counts */
-				printf("\r       needed %d steps/frame ",loops);
+				printf("\r needed %d steps/frame",loops);
 		}
 		
 	}
@@ -3627,7 +4040,7 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 
 	if(sb->solverflags & SBSO_MONITOR ){
 		sct=PIL_check_seconds_timer();
-		if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
+		if (sct-sst > 0.5f) printf(" solver time %f sec %s \n",sct-sst,ob->id.name);
 	}
 }
 

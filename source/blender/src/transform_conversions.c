@@ -913,8 +913,8 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if (arm==NULL || ob->pose==NULL) return;
 	
 	if (arm->flag & ARM_RESTPOS) {
-		if(t->mode!=TFM_BONESIZE) {
-			notice ("Pose edit not possible while Rest Position is enabled");
+		if(ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
+			notice("Pose edit not possible while Rest Position is enabled");
 			return;
 		}
 	}

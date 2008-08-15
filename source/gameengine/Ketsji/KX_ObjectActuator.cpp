@@ -360,7 +360,6 @@ PyObject* KX_ObjectActuator::PySetForce(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_force.setValue(vecArg);
@@ -390,7 +389,6 @@ PyObject* KX_ObjectActuator::PySetTorque(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_torque.setValue(vecArg);
@@ -420,7 +418,6 @@ PyObject* KX_ObjectActuator::PySetDLoc(PyObject* self,
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						 &vecArg[2], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_dloc.setValue(vecArg);
@@ -450,7 +447,6 @@ PyObject* KX_ObjectActuator::PySetDRot(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot.setValue(vecArg);
@@ -479,7 +475,6 @@ PyObject* KX_ObjectActuator::PySetLinearVelocity(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_linear_velocity.setValue(vecArg);
@@ -508,7 +503,6 @@ PyObject* KX_ObjectActuator::PySetAngularVelocity(PyObject* self,
 	int bToggle = 0;
 	if (!PyArg_ParseTuple(args, "fffi", &vecArg[0], &vecArg[1], 
 						  &vecArg[2], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_angular_velocity.setValue(vecArg);
@@ -523,7 +517,6 @@ PyObject* KX_ObjectActuator::PySetDamping(PyObject* self,
 										  PyObject* kwds) {
 	int damping = 0;
 	if (!PyArg_ParseTuple(args, "i", &damping) || damping < 0 || damping > 1000) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_damping = damping;
@@ -553,7 +546,6 @@ PyObject* KX_ObjectActuator::PySetForceLimitX(PyObject* self,
 	float vecArg[2];
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot[0] = vecArg[0];
@@ -581,7 +573,6 @@ PyObject* KX_ObjectActuator::PySetForceLimitY(PyObject* self,
 	float vecArg[2];
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot[1] = vecArg[0];
@@ -609,7 +600,6 @@ PyObject* KX_ObjectActuator::PySetForceLimitZ(PyObject* self,
 	float vecArg[2];
 	int bToggle = 0;
 	if(!PyArg_ParseTuple(args, "ffi", &vecArg[0], &vecArg[1], &bToggle)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_drot[2] = vecArg[0];
@@ -636,7 +626,6 @@ PyObject* KX_ObjectActuator::PySetPID(PyObject* self,
 {
 	float vecArg[3];
 	if (!PyArg_ParseTuple(args, "fff", &vecArg[0], &vecArg[1], &vecArg[2])) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	m_torque.setValue(vecArg);
