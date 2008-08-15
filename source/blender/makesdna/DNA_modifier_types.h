@@ -544,7 +544,8 @@ typedef struct SimpleDeformModifierData {
 
 	char mode;				/* deform function */
 	char axis;				/* lock axis (for taper and strech) */
-	char pad[2];
+	char originOpts;		/* originOptions */
+	char pad;
 
 } SimpleDeformModifierData;
 
@@ -555,5 +556,9 @@ typedef struct SimpleDeformModifierData {
 
 #define MOD_SIMPLEDEFORM_LOCK_AXIS_X			(1<<0)
 #define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
+
+/* indicates whether simple deform should use the local
+   coordinates or global coordinates of origin */
+#define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #endif

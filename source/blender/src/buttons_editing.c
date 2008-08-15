@@ -1711,32 +1711,6 @@ static int modifier_is_fluid_particles(ModifierData *md) {
 	return 0;
 }
 
-static void modifier_link_new_empty(void *pp_empty, void *p_parent)
-{
-	Object **empty = (Object**)pp_empty;
-	Object *parent = (Object*) p_parent;
-
-	/* Add object but witouth chaing layers and or changing active object */
-	Base *base= BASACT, *newbase;
-
-	(*empty) = add_object(OB_EMPTY);
-
-	newbase= BASACT;
-	newbase->lay= base->lay;
-	(*empty)->lay= newbase->lay;
-
-	/* restore, add_object sets active */
-	BASACT= base;
-
-	/* Makes parent relation and positions empty on center of object */
-	(*empty)->partype= PAROBJECT;
-	(*empty)->parent = parent;
-	Mat4CpyMat4( (*empty)->obmat, parent->obmat );
-	Mat4Invert(  (*empty)->parentinv, parent->obmat);
-	apply_obmat( (*empty) );
-	DAG_scene_sort(G.scene);
-}
-
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1912,9 +1886,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		} else if (md->type==eModifierType_SimpleDeform) {
 			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
-
 			height += 19*4;
-
+			if(smd->origin != NULL) height += 19;
 			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
 			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
 				height += 19;
@@ -2589,20 +2562,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth-17,19, &smd->origin, "Origin of modifier space coordinates");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->origin, "Origin of modifier space coordinates");
+			if(smd->origin != NULL)
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_ORIGIN_LOCAL, B_MODIFIER_RECALC, "Relative",lx,(cy-=19),buttonWidth,19, &smd->originOpts, 0, 0, 0, 0, "Sets the origin of deform space to be relative to the object");
 
-			if(smd->origin)
-			{
-				uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF,
-								lx + buttonWidth-17, cy, 17, 19,
-								&(smd->origin->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-			}
-			else
-			{
-				uiBut *bt;
-				bt= uiDefIconBut(block, BUT, B_CHANGEDEP, ICON_ZOOMIN, lx+buttonWidth-17, cy, 17, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Creates a new empty");
-				uiButSetFunc(bt, modifier_link_new_empty, &smd->origin, ob);
-			}
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor, -10.0f, 10.0f, 0.5f, 0, "Deform Factor");
 
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[1], -1000.0f, 1000.0f, 5.0f, 0, "Upper Limit Bend on X");

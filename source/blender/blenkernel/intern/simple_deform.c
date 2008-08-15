@@ -153,13 +153,24 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	if(smd->origin)
 	{
 		//inverse is outdated
-		Mat4Invert(smd->origin->imat, smd->origin->obmat);
-		Mat4Invert(ob->imat, ob->obmat);
 
-		ob2mod = tmp_matrix[0];
-		mod2ob = tmp_matrix[1];
-		Mat4MulSerie(ob2mod, smd->origin->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
-		Mat4Invert(mod2ob, ob2mod);
+		if(smd->originOpts & MOD_SIMPLEDEFORM_ORIGIN_LOCAL)
+		{
+			Mat4Invert(smd->origin->imat, smd->origin->obmat);
+			Mat4Invert(ob->imat, ob->obmat);
+			
+			ob2mod = tmp_matrix[0];
+			mod2ob = tmp_matrix[1];
+			Mat4MulSerie(ob2mod, smd->origin->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
+			Mat4Invert(mod2ob, ob2mod);
+		}
+		else
+		{
+			Mat4Invert(smd->origin->imat, smd->origin->obmat);
+			ob2mod = smd->origin->obmat;
+			mod2ob = smd->origin->imat;
+		}
+
 	}
 
 
