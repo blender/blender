@@ -2727,9 +2727,10 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 
 /* Clears all markers on the specified line between two points with at least
    the specified flags set. If flags is zero, all markers will be cleared */
-void txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
+short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
+	short cleared= 0;
 	
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
@@ -2739,22 +2740,29 @@ void txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int
 		else if (marker->lineno > lineno) break;
 
 		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
-				(marker->start<end && marker->end>start))
+			(marker->start<end && marker->end>start)) {
 			BLI_freelinkN(&text->markers, marker);
+			cleared= 1;
+		}
 	}
+	return cleared;
 }
 
 /* Clears all markers with at least the specified flags set (useful for
    clearing temporary markers) */
-void txt_clear_markers(Text *text, int flags) {
+short txt_clear_markers(Text *text, int flags) {
 	TextMarker *marker, *next;
+	short cleared= 0;
 	
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if ((marker->flags & flags) == flags)
+		if ((marker->flags & flags) == flags) {
 			BLI_freelinkN(&text->markers, marker);
+			cleared= 1;
+		}
 	}
+	return cleared;
 }
 
 /* Finds the marker at the specified line and cursor position with at least the

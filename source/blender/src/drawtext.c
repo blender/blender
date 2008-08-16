@@ -2483,6 +2483,12 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 				draw= 1;
 				swallow= 1;
 			}
+		} else if (evnt==ESCKEY) {
+			if (txt_clear_markers(text, TMARK_TEMP)) swallow= 1;
+			else if (txt_clear_markers(text, 0)) swallow= 1;
+			else return 0;
+			evnt= ascii= val= 0;
+			draw= 1;
 		}
 		if (!swallow) return 0;
 	}
@@ -3112,9 +3118,6 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			do_draw= 1;
 			pop_space_text(st);
-			break;
-		case ESCKEY:
-			txt_clear_markers(text, TMARK_TEMP);
 			break;
 		case BACKSPACEKEY:
 			if (text && text->id.lib) {
