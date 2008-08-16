@@ -3183,7 +3183,8 @@ void logic_buts(void)
 		while(cont) {
 			for (iact=0; iact<cont->totlinks; iact++) {
 				act = cont->links[iact];
-				act->flag |= ACT_LINKED;
+				if (act)
+					act->flag |= ACT_LINKED;
 			}
 			controller_state_mask |= cont->state_mask;
 			cont = cont->next;
@@ -3231,7 +3232,8 @@ void logic_buts(void)
 						/* this controller is visible, mark all its actuator */
 						for (iact=0; iact<cont->totlinks; iact++) {
 							act = cont->links[iact];
-							act->flag |= ACT_VISIBLE;
+							if (act)
+								act->flag |= ACT_VISIBLE;
 						}
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
