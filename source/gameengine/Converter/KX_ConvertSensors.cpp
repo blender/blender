@@ -65,6 +65,7 @@ probably misplaced */
 #include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
 #include "SCA_ActuatorSensor.h"
+#include "SCA_DelaySensor.h"
 
 
 #include "SCA_PropertySensor.h"
@@ -281,6 +282,22 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				break;
 			}
 			
+		case  SENS_DELAY:
+			{
+				// we can reuse the Always event manager for the delay sensor
+				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::ALWAYS_EVENTMGR);
+				if (eventmgr)
+				{
+					bDelaySensor* delaysensor = (bDelaySensor*)sens->data;
+					gamesensor = new SCA_DelaySensor(eventmgr, 
+						gameobj,
+						delaysensor->delay,
+						delaysensor->duration,
+						(delaysensor->flag & SENS_DELAY_REPEAT) != 0);
+				}
+				break;
+			}
+
 		case SENS_COLLISION:
 			{
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);

@@ -348,6 +348,9 @@
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ANDController.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_DelaySensor.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_EventManager.cpp">
 			</File>
 			<File
@@ -464,6 +467,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_ANDController.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_DelaySensor.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\GameLogic\SCA_EventManager.h">

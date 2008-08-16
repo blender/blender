@@ -683,6 +683,8 @@ static char *sensor_name(int type)
 		return "Property";
 	case SENS_ACTUATOR:
 		return "Actuator";
+	case SENS_DELAY:
+		return "Delay";
 	case SENS_MOUSE:
 		return "Mouse";
 	case SENS_COLLISION:
@@ -704,7 +706,7 @@ static char *sensor_name(int type)
 static char *sensor_pup(void)
 {
 	/* the number needs to match defines in game.h */
-	return "Sensors %t|Always %x0|Keyboard %x3|Mouse %x5|"
+	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
 		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12";
 }
@@ -1000,6 +1002,7 @@ static int get_col_sensor(int type)
 {
 	switch(type) {
 	case SENS_ALWAYS:		return TH_BUT_ACTION;
+	case SENS_DELAY:		return TH_BUT_ACTION;
 	case SENS_TOUCH:		return TH_BUT_NEUTRAL;
 	case SENS_COLLISION:	return TH_BUT_SETTING;
 	case SENS_NEAR:			return TH_BUT_SETTING1; 
@@ -1070,8 +1073,8 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	bRaySensor       *raySens      = NULL;
 	bMessageSensor   *mes          = NULL;
 	bJoystickSensor	 *joy		   = NULL;
-	bActuatorSensor  *as          = NULL;
-
+	bActuatorSensor  *as           = NULL;
+	bDelaySensor     *ds		   = NULL;
 	short ysize;
 	char *str;
 	
@@ -1294,6 +1297,27 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			
 			uiDefBut(block, TEX, 1, "Act: ",			xco+30,yco-44,width-60, 19,
 					as->name, 0, 31, 0, 0,  "Actuator name, actuator active state modifications will be detected");
+			yco-= ysize;
+			break;
+		}
+	case SENS_DELAY:
+		{
+			ysize= 48;
+			
+			glRects(xco, yco-ysize, xco+width, yco);
+			uiEmboss((float)xco, (float)yco-ysize,
+				(float)xco+width, (float)yco, 1);
+			
+			draw_default_sensor_header(sens, block, xco, yco, width);
+			ds = sens->data;
+			
+			uiDefButS(block, NUM, 0, "Delay",(short)(10+xco),(short)(yco-44),(short)((width-22)*0.4+10), 19,
+				&ds->delay, 0.0, 5000.0, 0, 0, "Delay in number of frames before the positive trigger");
+			uiDefButS(block, NUM, 0, "Dur",(short)(10+xco+(width-22)*0.4+10),(short)(yco-44),(short)((width-22)*0.4-10), 19,
+				&ds->duration, 0.0, 5000.0, 0, 0, "If >0, delay in number of frames before the negative trigger following the positive trigger");
+			uiDefButBitS(block, TOG, SENS_DELAY_REPEAT, 0, "REP",(short)(xco + 10 + (width-22)*0.8),(short)(yco - 44),
+				(short)(0.20 * (width-22)), 19, &ds->flag, 0.0, 0.0, 0, 0,
+				"Toggle repeat option. If selected, the sensor restarts after Delay+Dur frames");
 			yco-= ysize;
 			break;
 		}

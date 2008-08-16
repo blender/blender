@@ -189,6 +189,8 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	 METH_NOARGS, GetLevel_doc},
 	{"setLevel", (PyCFunction) SCA_ISensor::sPySetLevel, 
 	 METH_VARARGS, SetLevel_doc},
+	{"reset", (PyCFunction) SCA_ISensor::sPyReset, 
+	 METH_NOARGS, Reset_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -389,5 +391,16 @@ PyObject* SCA_ISensor::PySetUseNegPulseMode(PyObject* self, PyObject* args, PyOb
 	m_neg_pulsemode = PyArgToBool(pyarg);
 	Py_Return;
 }
+
+char SCA_ISensor::Reset_doc[] = 
+"reset()\n"
+"\tReset sensor internal state, effect depends on the type of sensor and settings.\n"
+"\tThe sensor is put in its initial state as if it was just activated.\n";
+PyObject* SCA_ISensor::PyReset(PyObject* self)
+{
+	Init();
+	Py_Return;
+}
+
 
 /* eof */
