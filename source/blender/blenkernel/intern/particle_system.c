@@ -3948,27 +3948,44 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 	bvf->Addf(dvec,dvec,bvec);
 	bvf->Addf(state->co,state->co,dvec);
 	
-	/* air speed from wind effectors */
-	if(psys->effectors.first){
+	/* air speed from wind and vortex effectors */
+	if(psys->effectors.first) {
 		ParticleEffectorCache *ec;
-		for(ec=psys->effectors.first; ec; ec=ec->next){
-			if(ec->type & PSYS_EC_EFFECTOR){
+		for(ec=psys->effectors.first; ec; ec=ec->next) {
+			if(ec->type & PSYS_EC_EFFECTOR) {
 				Object *eob = ec->ob;
 				PartDeflect *pd = eob->pd;
+				float direction[3], vec_to_part[3];
+				float falloff;
 
-				if(pd->forcefield==PFIELD_WIND && pd->f_strength!=0.0){
-					float distance, wind[3];
-					VecCopyf(wind,eob->obmat[2]);
-					distance=VecLenf(state->co,eob->obmat[3]);
+				if(pd->f_strength != 0.0f) {
+					VecCopyf(direction, eob->obmat[2]);
+					VecSubf(vec_to_part, state->co, eob->obmat[3]);
 
-					if (distance < 0.001) distance = 0.001f;
+					falloff=effector_falloff(pd, direction, vec_to_part);
 
-					if(pd->flag&PFIELD_USEMAX && distance > pd->maxdist)
-						;
-					else{
-						Normalize(wind);
-						VecMulf(wind,pd->f_strength/(float)pow((double)distance,(double)pd->f_power));
-						bvf->Addf(state->co,state->co,wind);
+					switch(pd->forcefield) {
+						case PFIELD_WIND:
+							if(falloff <= 0.0f)
+								;	/* don't do anything */
+							else {
+								Normalize(direction);
+								VecMulf(direction, pd->f_strength * falloff);
+								bvf->Addf(state->co, state->co, direction);
+							}
+							break;
+						case PFIELD_VORTEX:
+						{
+							float distance, mag_vec[3];
+							Crossf(mag_vec, direction, vec_to_part);
+							Normalize(mag_vec);
+
+							distance = VecLength(vec_to_part);
+
+							VecMulf(mag_vec, pd->f_strength * distance * falloff);
+							bvf->Addf(state->co, state->co, mag_vec);
+							break;
+						}
 					}
 				}
 			}
