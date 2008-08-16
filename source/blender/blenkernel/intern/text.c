@@ -989,8 +989,12 @@ static void txt_delete_sel (Text *text)
 	if (text->curl != text->sell) {
 		txt_clear_marker_region(text, text->curl, text->curc, text->curl->len, 0);
 		move= txt_get_span(text->curl, text->sell);
-	} else
+	} else {
+		mrk= txt_find_marker_region(text, text->curl, text->curc, text->selc, 0);
+		if (mrk->start > text->curc || mrk->end < text->selc)
+			txt_clear_marker_region(text, text->curl, text->curc, text->selc, 0);
 		move= 0;
+	}
 
 	mrk= txt_find_marker_region(text, text->sell, text->selc-1, text->sell->len, 0);
 	if (mrk) {
@@ -2394,8 +2398,12 @@ int txt_replace_char (Text *text, char add)
 	if (!text->curl) return 0;
 
 	/* If text is selected or we're at the end of the line just use txt_add_char */
-	if (text->curc==text->curl->len || text->sell!=text->curl || text->selc!=text->curc || add=='\n') {
-		return txt_add_char(text, add);
+	if (text->curc==text->curl->len || txt_has_sel(text) || add=='\n') {
+		TextMarker *mrk;
+		int i= txt_add_char(text, add);
+		mrk= txt_find_marker(text, text->curl, text->curc, 0);
+		if (mrk && mrk->end==text->curc) mrk->end--;
+		return i;
 	}
 	
 	del= text->curl->line[text->curc];

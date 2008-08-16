@@ -2462,6 +2462,9 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 	if (!text || text->id.lib || text->curl != text->sell) return 0;
 
 	marker= txt_find_marker(text, text->sell, text->selc, 0);
+	if (marker && (marker->start > text->curc || marker->end < text->curc))
+		marker= NULL;
+
 	if (!marker) {
 		/* Find the next temporary marker */
 		if (evnt==TABKEY) {
@@ -2498,9 +2501,10 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 			c= text->curc-marker->start;
 			s= text->selc-marker->start;
 			if (s<0 || s>marker->end-marker->start) return 0;
-			
+
 			mrk= txt_next_marker(text, marker);
 			while (mrk) {
+				nxt=txt_next_marker(text, mrk); /* mrk may become invalid */
 				txt_move_to(text, mrk->lineno, mrk->start+c, 0);
 				if (s!=c) txt_move_to(text, mrk->lineno, mrk->start+s, 1);
 				if (st->overwrite) {
@@ -2512,8 +2516,8 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 					}
 				}
 
-				if (mrk==marker) break;
-				mrk=txt_next_marker(text, mrk);
+				if (mrk==marker || mrk==nxt) break;
+				mrk=nxt;
 			}
 			swallow= 1;
 			draw= 1;
@@ -2533,7 +2537,7 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 						if (s!=c) txt_move_to(text, mrk->lineno, mrk->start+s, 1);
 						txt_backspace_char(text);
 						if (st->showsyntax) txt_format_line(st, text->curl, 1);
-						if (mrk==marker) break;
+						if (mrk==marker || mrk==nxt) break;
 						mrk= nxt;
 					}
 					swallow= 1;
@@ -2553,7 +2557,7 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 						if (s!=c) txt_move_to(text, mrk->lineno, mrk->start+s, 1);
 						txt_delete_char(text);
 						if (st->showsyntax) txt_format_line(st, text->curl, 1);
-						if (mrk==marker) break;
+						if (mrk==marker || mrk==nxt) break;
 						mrk= nxt;
 					}
 					swallow= 1;
