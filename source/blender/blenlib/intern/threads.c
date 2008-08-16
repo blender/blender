@@ -38,6 +38,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
+#include "PIL_time.h"
+
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
 #include "Windows.h"
@@ -278,6 +280,106 @@ int BLI_system_thread_count( void )
 		return 1;
 	
 	return t;
+}
+
+/* ************************************************ */
+
+typedef struct ThreadedWorker {
+	ListBase threadbase;
+	void *(*work_fnct)(void *);
+	char	 busy[RE_MAX_THREAD];
+	int		 total;
+	int		 sleep_time;
+} ThreadedWorker;
+
+typedef struct WorkParam {
+	ThreadedWorker *worker;
+	void *param;
+	int	  index;
+} WorkParam;
+
+void *exec_work_fnct(void *v_param)
+{
+	WorkParam *p = (WorkParam*)v_param;
+	void *value;
+	
+	value = p->worker->work_fnct(p->param);
+	
+	p->worker->busy[p->index] = 0;
+	MEM_freeN(p);
+	
+	return value;
+}
+
+ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep_time)
+{
+	ThreadedWorker *worker;
+	
+	worker = MEM_callocN(sizeof(ThreadedWorker), "threadedworker");
+	
+	if (tot > RE_MAX_THREAD)
+	{
+		tot = RE_MAX_THREAD;
+	}
+	else if (tot < 1)
+	{
+		tot= 1;
+	}
+	
+	worker->total = tot;
+	worker->work_fnct = do_thread;
+	
+	BLI_init_threads(&worker->threadbase, exec_work_fnct, tot);
+	
+	return worker;
+}
+
+void BLI_end_worker(ThreadedWorker *worker)
+{
+	BLI_end_threads(&worker->threadbase);
+}
+
+void BLI_destroy_worker(ThreadedWorker *worker)
+{
+	BLI_end_worker(worker);
+	BLI_freelistN(&worker->threadbase);
+	MEM_freeN(worker);
+}
+
+void BLI_insert_work(ThreadedWorker *worker, void *param)
+{
+	WorkParam *p = MEM_callocN(sizeof(WorkParam), "workparam");
+	int index;
+	
+	if (BLI_available_threads(&worker->threadbase) == 0)
+	{
+		index = worker->total;
+		while(index == worker->total)
+		{
+			PIL_sleep_ms(worker->sleep_time);
+			
+			for (index = 0; index < worker->total; index++)
+			{
+				if (worker->busy[index] == 0)
+				{
+					BLI_remove_thread_index(&worker->threadbase, index);
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		index = BLI_available_thread_index(&worker->threadbase);
+	}
+	
+	worker->busy[index] = 1;
+	
+	p->param = param;
+	p->index = index;
+	p->worker = worker;
+	
+	BLI_insert_thread(&worker->threadbase, p);
 }
 
 /* eof */
