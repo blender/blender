@@ -741,10 +741,24 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			for (int i=0;i<sens->totlinks;i++)
 			{
 				bController* linkedcont = (bController*) sens->links[i];
-				SCA_IController* gamecont = converter->FindGameController(linkedcont);
+				if (linkedcont) {
+					SCA_IController* gamecont = converter->FindGameController(linkedcont);
 
-				if (gamecont) {
-					logicmgr->RegisterToSensor(gamecont,gamesensor);
+					if (gamecont) {
+						logicmgr->RegisterToSensor(gamecont,gamesensor);
+					} else {
+						printf(
+							"Warning, sensor \"%s\" could not find its controller"
+							"(link %d of %d)\n"
+							"\tthere has been an error converting the blender controller for the game engine,"
+							"logic may be incorrect\n", sens->name, i+1, sens->totlinks);
+					}
+				} else {
+					printf(
+						"Warning, sensor \"%s\" has lost a link to a controller"
+						"(link %d of %d)\n"
+						"\tpossible causes are partially appended objects or an error reading the file,"
+						"logic may be incorrect\n", sens->name, i+1, sens->totlinks);
 				}
 			}
 			// done with gamesensor
