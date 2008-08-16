@@ -96,8 +96,7 @@ typedef struct RigGraph {
 	ReebGraph *link_mesh;
 	
 	ListBase controls;
-	ListBase threads;
-	char threads_used[NB_THREADS];
+	struct ThreadedWorker *worker;
 	
 	GHash *bones_map;
 	
@@ -158,7 +157,6 @@ typedef struct RigControl {
 typedef struct RetargetParam {
 	RigGraph	*rigg;
 	RigArc		*iarc;
-	int			 index;
 } RetargetParam;
 
 typedef enum 
@@ -263,7 +261,9 @@ static RigGraph *newRigGraph()
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
 	
-	BLI_init_threads(&rg->threads, exec_retargetArctoArc, NB_THREADS); /* fix number of threads */
+#ifdef USE_THREADS
+	rg->worker = BLI_create_worker(exec_retargetArctoArc, NB_THREADS, 20); /* fix number of threads */
+#endif
 	
 	return rg;
 }
@@ -1592,38 +1592,11 @@ static void retargetArctoArc(RigGraph *rigg, RigArc *iarc)
 {
 #ifdef USE_THREADS
 	RetargetParam *p = MEM_callocN(sizeof(RetargetParam), "RetargetParam");
-	int index;
 	
 	p->rigg = rigg;
 	p->iarc = iarc;
 	
-	/* fix that with proper flagging */
-	if (BLI_available_threads(&rigg->threads) == 0)
-	{
-		index = NB_THREADS;
-		while(index == NB_THREADS)
-		{
-			PIL_sleep_ms(20);
-			
-			for (index = 0; index < NB_THREADS; index++)
-			{
-				if (rigg->threads_used[index] == 0)
-				{
-					BLI_remove_thread_index(&rigg->threads, index);
-					break;
-				}
-			}
-		}
-	}
-	else
-	{
-		index = BLI_available_thread_index(&rigg->threads);
-	}
-	
-	p->index = index;
-	rigg->threads_used[index] = 1;
-	BLI_insert_thread(&rigg->threads, p);
-	
+	BLI_insert_work(rigg->worker, p);
 #else
 	RetargetParam p;
 	p.rigg = rigg;
@@ -1670,8 +1643,7 @@ void *exec_retargetArctoArc(void *param)
 	}
 
 #ifdef USE_THREADS
-	MEM_freeN(param);
-	rigg->threads_used[p->index] = 0;
+	MEM_freeN(p);
 #endif
 	
 	return NULL;
@@ -1860,7 +1832,9 @@ static void retargetGraphs(RigGraph *rigg)
 
 	retargetSubgraph(rigg, NULL, inode);
 	
-	BLI_end_threads(&rigg->threads);
+#ifdef USE_THREADS
+	BLI_destroy_worker(rigg->worker);
+#endif
 }
 
 void BIF_retargetArmature()
