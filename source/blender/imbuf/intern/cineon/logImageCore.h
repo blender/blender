@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+#include "BLO_sys_types.h" // for intptr_t support
 
 typedef int (GetRowFn)(LogImageFile* logImage, unsigned short* row, int lineNum);
 typedef int (SetRowFn)(LogImageFile* logImage, const unsigned short* row, int lineNum);

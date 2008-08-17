@@ -39,6 +39,8 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filter.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /************************************************************************/
 /*								SCALING									*/
 /************************************************************************/
