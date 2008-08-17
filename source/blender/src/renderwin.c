@@ -50,6 +50,8 @@
 
 #endif
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #include <limits.h>
 
 #include "BLI_blenlib.h"
