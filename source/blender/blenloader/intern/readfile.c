@@ -3593,9 +3593,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		{
 			Sequence temp;
 			char *poin;
-			long offset;
+			intptr_t offset;
 			
-			offset= ((long)&(temp.seqbase)) - ((long)&temp);
+			offset= ((intptr_t)&(temp.seqbase)) - ((intptr_t)&temp);
 			
 			/* root pointer */
 			if(ed->seqbasep == old_seqbasep) {
@@ -4094,7 +4094,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	while(se) {
 		se->v1= newdataadr(fd, se->v1);
 		se->v2= newdataadr(fd, se->v2);
-		if( (long)se->v1 > (long)se->v2) {
+		if( (intptr_t)se->v1 > (intptr_t)se->v2) {
 			sv= se->v1;
 			se->v1= se->v2;
 			se->v2= sv;

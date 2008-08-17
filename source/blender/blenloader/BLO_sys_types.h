@@ -64,6 +64,14 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
+#ifdef _WIN64
+typedef __int64 intptr_t;
+typedef unsigned __int64 uintptr_t;
+#else
+typedef long intptr_t;
+typedef unsigned long uintptr_t;
+#endif
+
 #elif defined(__linux__)
 
 	/* Linux-i386, Linux-Alpha, Linux-ppc */
