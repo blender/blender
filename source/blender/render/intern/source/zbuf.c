@@ -2278,7 +2278,7 @@ static int hashlist_projectvert(float *v1, float winmat[][4], float *hoco)
 		return 0;
 	}
 	
-	buck= &bucket[ (((long)v1)/16) & 255 ];
+	buck= &bucket[ (((intptr_t)v1)/16) & 255 ];
 	if(buck->vert==v1) {
 		QUATCOPY(hoco, buck->hoco);
 		return buck->clip;
@@ -3263,7 +3263,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 {
 	PixStr *ps;
 	int x, y, *rza, *rma;
-	long *rd;
+	intptr_t *rd;
 	
 	if(R.osa==0) {
 		memcpy(arectz, pa->rectz, sizeof(int)*pa->rectx*pa->recty);
@@ -3484,7 +3484,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 /* speed pointer NULL = sky, we clear */
 /* else if either alpha is full or no solid was filled in: copy speed */
 /* else fill in minimum speed */
-void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect)
+void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, intptr_t *rdrect)
 {
 	RenderPass *rpass;
 	
@@ -3958,7 +3958,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	ZTranspRow zrow[MAX_ZROW];
 	StrandShadeCache *sscache= NULL;
 	float sampalpha, alpha, *passrect= pass;
-	long *rdrect;
+	intptr_t *rdrect;
 	int x, y, crop=0, a, b, totface, totsample, doztra;
 	int addpassflag, offs= 0, od, addzbuf, osa = (R.osa? R.osa: 1);
 	unsigned short *ztramask= NULL, filled;

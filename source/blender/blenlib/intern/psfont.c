@@ -54,7 +54,7 @@ typedef struct chardesc {
     short llx, lly;		/* bounding box */
     short urx, ury;
     short *data;		/* char data */
-    long datalen;		
+    intptr_t datalen;		
 } chardesc;
 
 typedef struct objfnt {

@@ -171,7 +171,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 {
 	ShadSampleBuf *shsample;
 	float dist;
-	unsigned long *ztile;
+	uintptr_t *ztile;
 	int *rz, *rz1, verg, verg1, size= shb->size;
 	int a, x, y, minx, miny, byt1, byt2;
 	char *rc, *rcline, *ctile, *zt;
@@ -179,10 +179,10 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 	shsample= MEM_mallocN( sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 	
-	shsample->zbuf= MEM_mallocN( sizeof(unsigned long)*(size*size)/256, "initshadbuf2");
+	shsample->zbuf= MEM_mallocN( sizeof(uintptr_t)*(size*size)/256, "initshadbuf2");
 	shsample->cbuf= MEM_callocN( (size*size)/256, "initshadbuf3");
 	
-	ztile= (unsigned long *)shsample->zbuf;
+	ztile= (uintptr_t *)shsample->zbuf;
 	ctile= shsample->cbuf;
 	
 	/* help buffer */
@@ -237,7 +237,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				if(byt1 && byt2) {	/* only store byte */
 					*ctile= 1;
-					*ztile= (unsigned long)MEM_mallocN(256+4, "tile1");
+					*ztile= (uintptr_t)MEM_mallocN(256+4, "tile1");
 					rz= (int *)*ztile;
 					*rz= *rz1;
 					
@@ -247,7 +247,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				else if(byt1) {		/* only store short */
 					*ctile= 2;
-					*ztile= (unsigned long)MEM_mallocN(2*256+4,"Tile2");
+					*ztile= (uintptr_t)MEM_mallocN(2*256+4,"Tile2");
 					rz= (int *)*ztile;
 					*rz= *rz1;
 					
@@ -260,7 +260,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				else {			/* store triple */
 					*ctile= 3;
-					*ztile= (unsigned long)MEM_mallocN(3*256,"Tile3");
+					*ztile= (uintptr_t)MEM_mallocN(3*256,"Tile3");
 
 					zt= (char *)*ztile;
 					rc= rcline;
@@ -542,7 +542,7 @@ void freeshadowbuf(LampRen *lar)
 		v= (shb->size*shb->size)/256;
 		
 		for(shsample= shb->buffers.first; shsample; shsample= shsample->next) {
-			long *ztile= shsample->zbuf;
+			intptr_t *ztile= shsample->zbuf;
 			char *ctile= shsample->cbuf;
 			
 			for(b=0; b<v; b++, ztile++, ctile++)
@@ -1752,7 +1752,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	ISBSample *samp, *samplebuf[16];	/* should be RE_MAX_OSA */
 	ISBBranch root;
 	MemArena *memarena;
-	long *rd;
+	intptr_t *rd;
 	int *recto, *rectp, x, y, sindex, sample, bsp_err=0;
 	
 	/* storage for shadow, per thread */

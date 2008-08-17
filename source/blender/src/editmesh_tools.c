@@ -110,6 +110,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 #include "PIL_time.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* local prototypes ---------------*/
 void bevel_menu(void);
 static void free_tagged_edges_faces(EditEdge *eed, EditFace *efa);
@@ -132,7 +134,7 @@ static int vergxco(const void *v1, const void *v2)
 }
 
 struct facesort {
-	unsigned long x;
+	uintptr_t x;
 	struct EditFace *efa;
 };
 
@@ -433,8 +435,8 @@ int removedoublesflag(short flag, short automerge, float limit)		/* return amoun
 		efa= em->faces.first;
 		while(efa) {
 			if(efa->f1 & 1) {
-				if(efa->v4) vsb->x= (unsigned long) MIN4( (unsigned long)efa->v1, (unsigned long)efa->v2, (unsigned long)efa->v3, (unsigned long)efa->v4);
-				else vsb->x= (unsigned long) MIN3( (unsigned long)efa->v1, (unsigned long)efa->v2, (unsigned long)efa->v3);
+				if(efa->v4) vsb->x= (uintptr_t) MIN4( (uintptr_t)efa->v1, (uintptr_t)efa->v2, (uintptr_t)efa->v3, (uintptr_t)efa->v4);
+				else vsb->x= (uintptr_t) MIN3( (uintptr_t)efa->v1, (uintptr_t)efa->v2, (uintptr_t)efa->v3);
 
 				vsb->efa= efa;
 				vsb++;

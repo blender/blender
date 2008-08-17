@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 typedef void ParamHandle;	/* handle to a set of charts */
-typedef long ParamKey;		/* (hash) key for identifying verts and faces */
+typedef intptr_t ParamKey;		/* (hash) key for identifying verts and faces */
 typedef enum ParamBool {
 	PARAM_TRUE = 1,
 	PARAM_FALSE = 0

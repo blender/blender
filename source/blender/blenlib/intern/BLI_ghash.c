@@ -256,11 +256,7 @@ int BLI_ghashutil_ptrcmp(void *a, void *b) {
 }
 
 unsigned int BLI_ghashutil_inthash(void *ptr) {
-#if defined(_WIN64)
-	unsigned __int64 key = (unsigned __int64)ptr;
-#else
-	unsigned long key = (unsigned long)ptr;
-#endif
+	uintptr_t key = (uintptr_t)ptr;
 
 	key += ~(key << 16);
 	key ^=  (key >>  5);

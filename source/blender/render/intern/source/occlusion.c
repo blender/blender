@@ -1670,7 +1670,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 	OcclusionCacheSample *sample;
 	OccFace exclude;
 	ShadeInput *shi;
-	long *rd=NULL;
+	intptr_t *rd=NULL;
 	int *ro=NULL, *rp=NULL, *rz=NULL, onlyshadow;
 	int x, y, step = CACHE_STEP;
 

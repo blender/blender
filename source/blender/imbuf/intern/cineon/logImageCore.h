@@ -80,7 +80,7 @@ struct _Log_Image_File_t_
 	CloseFn* close;
 	
 	unsigned char *membuffer;
-	unsigned long membuffersize;
+	uintptr_t membuffersize;
 	unsigned char *memcursor;
 };
 

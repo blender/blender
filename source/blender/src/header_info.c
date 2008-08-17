@@ -122,6 +122,8 @@
 #include "interface.h"
 #include "mydevice.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 extern char versionstr[]; /* from blender.c */
 
 /*----------------------------------*/
@@ -2106,7 +2108,7 @@ static void info_text(int x, int y)
 {
 	Object *ob= OBACT;
 	extern float hashvectf[];
-	extern unsigned long mem_in_use, mmap_in_use;
+	extern uintptr_t mem_in_use, mmap_in_use;
 	unsigned int swatch_color;
 	float fac1, fac2, fac3;
 	char infostr[300], memstr[64];

@@ -50,10 +50,12 @@
 #include "plugin.h"
 #include "MEM_guardedalloc.h"
 
+#include "BLO_sys_types.h" // needed for intptr_t
+
 #include "BLI_blenlib.h"  /* util and noise functions */
 #include "BLI_threads.h"  /* For threadsfe guardedalloc malloc/calloc/free */
 #include "IMB_imbuf.h"    /* image buffer stuff       */
-#define GET_INT_FROM_POINTER(i) ((int)(long)(i)) /* should use BKE_utildefines.h */
+#define GET_INT_FROM_POINTER(i) ((int)(intptr_t)(i)) /* should use BKE_utildefines.h */
 
 /* -------------------------------------------------------------------------- */
 /* stuff from util.h                                                          */ 

@@ -1363,7 +1363,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
-	long		i 		= 0;
+	int		i 		= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
@@ -1387,7 +1387,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	/* multiply lF with mass matrix
 	// force = mass * acceleration (in this case: gravity)
 	*/
-	for(i = 0; i < (long)numverts; i++)
+	for(i = 0; i < numverts; i++)
 	{
 		float temp[3];
 		VECCOPY(temp, lF[i]);

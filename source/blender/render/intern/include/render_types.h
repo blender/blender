@@ -44,6 +44,8 @@
 #include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
 #include "sunsky.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 struct Object;
 struct MemArena;
 struct VertTableNode;
@@ -89,11 +91,11 @@ typedef struct RenderPart
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
 	int *rectmask;					/* negative zmask */
-	long *rectdaps;					/* delta acum buffer for pixel structs */
+	intptr_t *rectdaps;					/* delta acum buffer for pixel structs */
 	int *rectbacko;					/* object table for backside sss */
 	int *rectbackp;					/* polygon index table for backside sss */
 	int *rectbackz;					/* zbuffer for backside sss */
-	long *rectall;					/* buffer for all faces for sss */
+	intptr_t *rectall;					/* buffer for all faces for sss */
 
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
@@ -226,7 +228,7 @@ struct ISBData;
 
 typedef struct ShadSampleBuf {
 	struct ShadSampleBuf *next, *prev;
-	long *zbuf;
+	intptr_t *zbuf;
 	char *cbuf;
 } ShadSampleBuf;
 

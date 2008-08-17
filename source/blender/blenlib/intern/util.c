@@ -1970,7 +1970,7 @@ void BLI_timestr(double _time, char *str)
 
 int BLI_int_from_pointer(void *poin)
 {
-	long lval= (long)poin;
+	intptr_t lval= (intptr_t)poin;
 	
 	return (int)(lval>>3);
 }
@@ -1978,17 +1978,17 @@ int BLI_int_from_pointer(void *poin)
 void *BLI_pointer_from_int(int val)
 {
 	static int firsttime= 1;
-	static long basevalue= 0;
+	static intptr_t basevalue= 0;
 	
 	if(firsttime) {
 		void *poin= malloc(10000);
-		basevalue= (long)poin;
+		basevalue= (intptr_t)poin;
 		basevalue &= ~PMASK;
 		printf("base: %d pointer %p\n", basevalue, poin); /* debug */
 		firsttime= 0;
 		free(poin);
 	}
-	return (void *)(basevalue | (((long)val)<<3));
+	return (void *)(basevalue | (((intptr_t)val)<<3));
 }
 
 #else

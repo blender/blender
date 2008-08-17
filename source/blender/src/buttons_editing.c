@@ -4145,7 +4145,7 @@ static void validate_posebonebutton_cb(void *bonev, void *namev)
 static void armature_layer_cb(void *lay_v, void *value_v)
 {
 	short *layer= lay_v;
-	int value= (long)value_v;
+	int value= (intptr_t)value_v;
 	
 	if(*layer==0 || G.qual==0) *layer= value;
 	allqueue(REDRAWBUTSEDIT, 0);
