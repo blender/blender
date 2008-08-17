@@ -482,6 +482,7 @@ def parse_text(txt):
 			elif var1_step == 4:
 				var_type = None
 				if type == NUMBER:
+					close = end[1]
 					if text.find('.') != -1: var_type = float
 					else: var_type = int
 				elif type == STRING:
