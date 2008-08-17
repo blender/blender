@@ -1627,9 +1627,6 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
-	bwin_clear_viewmat(sa->win);	/* clear buttons view */
-	glLoadIdentity();
-	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1704,6 +1701,10 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	
 	bwin_scalematrix(sa->win, st->blockscale, st->blockscale, st->blockscale);
 	text_blockhandlers(sa);
+
+	/* We end here in non-buttons scale so that the scrollbar can be drawn correctly */
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
 	
 	curarea->win_swap= WIN_BACK_OK;
 }
