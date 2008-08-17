@@ -991,7 +991,7 @@ static void txt_delete_sel (Text *text)
 		move= txt_get_span(text->curl, text->sell);
 	} else {
 		mrk= txt_find_marker_region(text, text->curl, text->curc, text->selc, 0);
-		if (mrk->start > text->curc || mrk->end < text->selc)
+		if (mrk && (mrk->start > text->curc || mrk->end < text->selc))
 			txt_clear_marker_region(text, text->curl, text->curc, text->selc, 0);
 		move= 0;
 	}
