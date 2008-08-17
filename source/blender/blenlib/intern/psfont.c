@@ -43,6 +43,8 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
