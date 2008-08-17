@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+#include "BLO_sys_types.h" // for intptr_t support
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
