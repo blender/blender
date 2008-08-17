@@ -39,6 +39,8 @@
 #include <config.h>
 #endif
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #include "DNA_group_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
@@ -121,8 +123,6 @@
 #include "blendef.h"
 #include "interface.h"
 #include "mydevice.h"
-
-#include "BLO_sys_types.h" // for intptr_t support
 
 extern char versionstr[]; /* from blender.c */
 
