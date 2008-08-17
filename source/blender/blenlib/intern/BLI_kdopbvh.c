@@ -634,6 +634,18 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 	BVHBuildHelper data;
 	int depth;
 
+	//Most of bvhtree code relies on 1-leaf trees having at least one branch
+	//We handle that special case here
+	if(num_leafs == 1)
+	{
+		BVHNode *root = branches_array+0;
+		refit_kdop_hull(tree, root, 0, num_leafs);
+		root->main_axis = get_largest_axis(root->bv) / 2;
+		root->totnode = 1;
+		root->children[0] = leafs_array[0];		
+		return;
+	}
+
 	branches_array--;	//Implicit trees use 1-based indexs
 	
 	build_implicit_tree_helper(tree, &data);
