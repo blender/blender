@@ -86,6 +86,8 @@
 #include "blendef.h"
 #include "BSE_time.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX	0x7FEFEFEF
 
