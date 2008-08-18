@@ -3411,6 +3411,8 @@ static void object_panel_fields(Object *ob)
 				}
 				else if(pd->forcefield == PFIELD_HARMONIC) 
 					uiDefButF(block, NUM, B_FIELD_CHANGE, "Damp: ",	10,120,140,20, &pd->f_damp, 0, 10, 10, 0, "Damping of the harmonic force");	
+				else if(pd->forcefield == PFIELD_WIND) 
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Noise: ",10,120,140,20, &pd->f_noise, 0, 10, 100, 0, "Noise of the wind force");	
 			}
 			uiBlockEndAlign(block);
 			

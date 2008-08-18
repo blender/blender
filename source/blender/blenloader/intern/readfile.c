@@ -7730,31 +7730,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->brush);
 		idproperties_fix_group_lengths(main->particle);		
 	}
-	
-	/* only needed until old bad svn/RC1,2 files are saved with a > 17 version -dg */
-	if(main->versionfile == 245 && main->subversionfile < 17) {
-		ModifierData *md;
-		Object *ob;
-		
-		for(ob = main->object.first; ob; ob= ob->id.next) {
-			for(md=ob->modifiers.first; md; ) {
-				if(md->type==eModifierType_Cloth) {
-					ModifierData *next;
-					MEM_freeN(((ClothModifierData *)md)->sim_parms);
-					MEM_freeN(((ClothModifierData *)md)->coll_parms);
-					MEM_freeN(((ClothModifierData *)md)->point_cache);
-					((ClothModifierData *)md)->sim_parms = NULL;
-					((ClothModifierData *)md)->coll_parms = NULL;
-					((ClothModifierData *)md)->point_cache = NULL;
-					next=md->next;
-					BLI_remlink(&ob->modifiers, md);
-					md = next;
-				}
-				else
-					md = md->next;
-			}
-		}
-	}
 
 	/* sun/sky */
 	if(main->versionfile < 246) {
@@ -7780,6 +7755,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(me=main->mesh.first; me; me= me->id.next)
 			alphasort_version_246(fd, lib, me);
+	}
+	
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
+				ob->pd->f_noise = 0.0;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

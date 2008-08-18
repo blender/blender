@@ -2205,177 +2205,6 @@ static int get_particles_from_cache(Object *ob, ParticleSystem *psys, int cfra)
 	return 1;
 }
 
-/************************************************/
-/*			Effectors							*/
-/************************************************/
-static float falloff_func(float fac, int usemin, float mindist, int usemax, float maxdist, float power)
-{
-	if(!usemin)
-		mindist= 0.0f;
-
-	if(fac < mindist) {
-		return 1.0f;
-	}
-	else if(usemax) {
-		if(fac>maxdist || (maxdist-mindist)<=0.0f)
-			return 0.0f;
-
-		fac= (fac-mindist)/(maxdist-mindist);
-		return 1.0f - (float)pow((double)fac, (double)power);
-	}
-	else
-		return pow((double)1.0f+fac-mindist, (double)-power);
-}
-
-static float falloff_func_dist(PartDeflect *pd, float fac)
-{
-	return falloff_func(fac, pd->flag&PFIELD_USEMIN, pd->mindist, pd->flag&PFIELD_USEMAX, pd->maxdist, pd->f_power);
-}
-
-static float falloff_func_rad(PartDeflect *pd, float fac)
-{
-	return falloff_func(fac, pd->flag&PFIELD_USEMINR, pd->minrad, pd->flag&PFIELD_USEMAXR, pd->maxrad, pd->f_power_r);
-}
-
-static float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
-{
-	float eff_dir[3], temp[3];
-	float falloff=1.0, fac, r_fac;
-	
-	VecCopyf(eff_dir,eff_velocity);
-	Normalize(eff_dir);
-
-	if(pd->flag & PFIELD_POSZ && Inpf(eff_dir,vec_to_part)<0.0f)
-		falloff=0.0f;
-	else switch(pd->falloff){
-		case PFIELD_FALL_SPHERE:
-			fac=VecLength(vec_to_part);
-			falloff= falloff_func_dist(pd, fac);
-			break;
-
-		case PFIELD_FALL_TUBE:
-			fac=Inpf(vec_to_part,eff_dir);
-			falloff= falloff_func_dist(pd, ABS(fac));
-			if(falloff == 0.0f)
-				break;
-
-			VECADDFAC(temp,vec_to_part,eff_dir,-fac);
-			r_fac=VecLength(temp);
-			falloff*= falloff_func_rad(pd, r_fac);
-			break;
-		case PFIELD_FALL_CONE:
-			fac=Inpf(vec_to_part,eff_dir);
-			falloff= falloff_func_dist(pd, ABS(fac));
-			if(falloff == 0.0f)
-				break;
-
-			r_fac=saacos(fac/VecLength(vec_to_part))*180.0f/(float)M_PI;
-			falloff*= falloff_func_rad(pd, r_fac);
-
-			break;
-//		case PFIELD_FALL_INSIDE:
-				//for(i=0; i<totface; i++,mface++){
-				//	VECCOPY(v1,mvert[mface->v1].co);
-				//	VECCOPY(v2,mvert[mface->v2].co);
-				//	VECCOPY(v3,mvert[mface->v3].co);
-
-				//	if(AxialLineIntersectsTriangle(a,co1, co2, v2, v3, v1, &lambda)){
-				//		if(from==PART_FROM_FACE)
-				//			(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
-				//		else /* store number of intersections */
-				//			(pa+(int)(lambda*size[a])*a0mul)->loop++;
-				//	}
-				//	
-				//	if(mface->v4){
-				//		VECCOPY(v4,mvert[mface->v4].co);
-
-				//		if(AxialLineIntersectsTriangle(a,co1, co2, v4, v1, v3, &lambda)){
-				//			if(from==PART_FROM_FACE)
-				//				(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
-				//			else
-				//				(pa+(int)(lambda*size[a])*a0mul)->loop++;
-				//		}
-				//	}
-				//}
-
-//			break;
-	}
-
-	return falloff;
-}
-static void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp,
-							float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar)
-{
-	float mag_vec[3]={0,0,0};
-	float temp[3], temp2[3];
-	float eff_vel[3];
-
-	VecCopyf(eff_vel,eff_velocity);
-	Normalize(eff_vel);
-
-	switch(type){
-		case PFIELD_WIND:
-			VECCOPY(mag_vec,eff_vel);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecAddf(field,field,mag_vec);
-			break;
-
-		case PFIELD_FORCE:
-			if(planar)
-				Projf(mag_vec,vec_to_part,eff_vel);
-			else
-				VecCopyf(mag_vec,vec_to_part);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecAddf(field,field,mag_vec);
-			break;
-
-		case PFIELD_VORTEX:
-			Crossf(mag_vec,eff_vel,vec_to_part);
-			Normalize(mag_vec);
-
-			VecMulf(mag_vec,force_val*distance*falloff);
-			VecAddf(field,field,mag_vec);
-
-			break;
-		case PFIELD_MAGNET:
-			if(planar)
-				VecCopyf(temp,eff_vel);
-			else
-				/* magnetic field of a moving charge */
-				Crossf(temp,eff_vel,vec_to_part);
-
-			Crossf(temp2,velocity,temp);
-			VecAddf(mag_vec,mag_vec,temp2);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecAddf(field,field,mag_vec);
-			break;
-		case PFIELD_HARMONIC:
-			if(planar)
-				Projf(mag_vec,vec_to_part,eff_vel);
-			else
-				VecCopyf(mag_vec,vec_to_part);
-
-			VecMulf(mag_vec,force_val*falloff);
-			VecSubf(field,field,mag_vec);
-
-			VecCopyf(mag_vec,velocity);
-			/* 1.9 is an experimental value to get critical damping at damp=1.0 */
-			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
-			VecSubf(field,field,mag_vec);
-			break;
-		case PFIELD_NUCLEAR:
-			/*pow here is root of cosine expression below*/
-			//rad=(float)pow(2.0,-1.0/power)*distance/size;
-			//VECCOPY(mag_vec,vec_to_part);
-			//Normalize(mag_vec);
-			//VecMulf(mag_vec,(float)cos(3.0*M_PI/2.0*(1.0-1.0/(pow(rad,power)+1.0)))/(rad+0.2f));
-			//VECADDFAC(field,field,mag_vec,force_val);
-			break;
-	}
-}
 static void do_texture_effector(Tex *tex, short mode, short is_2d, float nabla, short object, float *pa_co, float obmat[4][4], float force_val, float falloff, float *field)
 {
 	TexResult result[4];
@@ -2788,7 +2617,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				} else {
 					do_physical_effector(pd->forcefield,pd->f_strength,distance,
 										falloff,pd->f_dist,pd->f_damp,eob->obmat[2],vec_to_part,
-										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR);
+										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
 				}
 			}
 			if(ec->type & PSYS_EC_PARTICLE){
@@ -2837,7 +2666,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 						else
 							do_physical_effector(pd->forcefield,pd->f_strength,distance,
 							falloff,epart->size,pd->f_damp,estate.vel,vec_to_part,
-							state->vel,force_field,0);
+							state->vel,force_field,0, pd->rng, pd->f_noise);
 					}
 					else if(pd->forcefield==PFIELD_HARMONIC && cfra-framestep <= epa->dietime && cfra>epa->dietime){
 						/* first step after key release */

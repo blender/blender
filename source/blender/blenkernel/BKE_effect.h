@@ -37,6 +37,7 @@ struct Effect;
 struct ListBase;
 struct Particle;
 struct Group;
+struct RNG;
 
 typedef struct pEffectorCache {
 	struct pEffectorCache *next, *prev;
@@ -63,6 +64,11 @@ struct PartEff *give_parteff(struct Object *ob);
 struct ListBase *pdInitEffectors(struct Object *obsrc, struct Group *group);
 void			pdEndEffectors(struct ListBase *lb);
 void			pdDoEffectors(struct ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags);
+
+/* required for particle_system.c */
+void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise);
+float effector_falloff(struct PartDeflect *pd, float *eff_velocity, float *vec_to_part);
+
 
 
 
