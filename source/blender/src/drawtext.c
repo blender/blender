@@ -1792,6 +1792,26 @@ int txt_file_modified(Text *text)
 	return 0;
 }
 
+void txt_ignore_modified(Text *text) {
+	struct stat st;
+	int result;
+	char file[FILE_MAXDIR+FILE_MAXFILE];
+
+	if (!text || !text->name) return;
+
+	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_convertstringcode(file, G.sce);
+
+	if (!BLI_exists(file)) return;
+
+	result = stat(file, &st);
+	
+	if(result == -1 || (st.st_mode & S_IFMT) != S_IFREG)
+		return;
+
+	text->mtime= st.st_mtime;
+}
+
 static void save_mem_text(char *str)
 {
 	SpaceText *st= curarea->spacedata.first;
@@ -2621,6 +2641,65 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 	return swallow;
 }
 
+static short do_modification_check(SpaceText *st) {
+	Text *text= st->text;
+
+	if (last_check_time < PIL_check_seconds_timer() - 2.0) {
+		switch (txt_file_modified(text)) {
+		case 1:
+			/* Modified locally and externally, ahhh. Offer more possibilites. */
+			if (text->flags & TXT_ISDIRTY) {
+				switch (pupmenu("File Modified Outside and Inside Blender %t|Load outside changes (ignore local changes) %x0|Save local changes (ignore outside changes) %x1|Make text internal (separate copy) %x2")) {
+				case 0:
+					reopen_text(text);
+					if (st->showsyntax) txt_format_text(st);
+					return 1;
+				case 1:
+					txt_write_file(text);
+					return 1;
+				case 2:
+					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+					MEM_freeN(text->name);
+					text->name= NULL;
+					return 1;
+				}
+			} else {
+				switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1|Ignore %x2")) {
+				case 0:
+					reopen_text(text);
+					if (st->showsyntax) txt_format_text(st);
+					return 1;
+				case 1:
+					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+					MEM_freeN(text->name);
+					text->name= NULL;
+					return 1;
+				case 2:
+					txt_ignore_modified(text);
+					return 1;
+				}
+			}
+			break;
+		case 2:
+			switch (pupmenu("File Deleted Outside Blender %t|Make text internal %x0|Recreate file %x1")) {
+			case 0:
+				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+				MEM_freeN(text->name);
+				text->name= NULL;
+				return 1;
+			case 1:
+				txt_write_file(text);
+				return 1;
+			}
+			break;
+		default:
+			break;
+		}
+		last_check_time = PIL_check_seconds_timer();
+	}
+	return 0;
+}
+
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -3229,62 +3308,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if (last_check_time < PIL_check_seconds_timer() - 10.0) {
-		switch (txt_file_modified(text)) {
-		case 1:
-			/* Modified locally and externally, ahhh. Offer more possibilites. */
-			if (text->flags & TXT_ISDIRTY) {
-				switch (pupmenu("File Modified Outside and Inside Blender %t|Load outside changes (ignore local changes) %x0|Save local changes (ignore outside changes) %x1|Make text internal (separate copy) %x2")) {
-				case 0:
-					reopen_text(text);
-					if (st->showsyntax) txt_format_text(st);
-					do_draw= 1;
-					break;
-				case 1:
-					txt_write_file(text);
-					do_draw= 1;
-					break;
-				case 2:
-					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-					MEM_freeN(text->name);
-					text->name= NULL;
-					do_draw= 1;
-					break;
-				}
-			} else {
-				switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1")) {
-				case 0:
-					reopen_text(text);
-					if (st->showsyntax) txt_format_text(st);
-					do_draw= 1;
-					break;
-				case 1:
-					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-					MEM_freeN(text->name);
-					text->name= NULL;
-					do_draw= 1;
-					break;
-				}
-			}
-			break;
-		case 2:
-			switch (pupmenu("File Deleted Outside Blender %t|Make text internal %x0|Recreate file %x1")) {
-			case 0:
-				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-				MEM_freeN(text->name);
-				text->name= NULL;
-				do_draw= 1;
-				break;
-			case 1:
-				txt_write_file(text);
-				do_draw= 1;
-				break;
-			}
-			break;
-		default:
-			last_check_time = PIL_check_seconds_timer();
-		}
-	}
+	if (do_modification_check(st)) do_draw= 1;
 
 	if (do_draw) {
 		ScrArea *sa;
