@@ -46,6 +46,7 @@
 
 
 #define MAX_TREETYPE 32
+#define DEFAULT_FIND_NEAREST_HEAP_SIZE 1024
 
 typedef struct BVHNode
 {
@@ -118,6 +119,72 @@ static float KDOP_AXES[13][3] =
 {1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
 {0, 1.0, -1.0}
 };
+
+/*
+ * Generic push and pop heap
+ */
+#define PUSH_HEAP_BODY(HEAP_TYPE,PRIORITY,heap,heap_size)	\
+{													\
+	HEAP_TYPE element = heap[heap_size-1];			\
+	int child = heap_size-1;						\
+	while(child != 0)								\
+	{												\
+		int parent = (child-1) / 2;					\
+		if(PRIORITY(element, heap[parent]))			\
+		{											\
+			heap[child] = heap[parent];				\
+			child = parent;							\
+		}											\
+		else break;									\
+	}												\
+	heap[child] = element;							\
+}
+
+#define POP_HEAP_BODY(HEAP_TYPE, PRIORITY,heap,heap_size)	\
+{													\
+	HEAP_TYPE element = heap[heap_size-1];			\
+	int parent = 0;									\
+	while(parent < (heap_size-1)/2 )				\
+	{												\
+		int child2 = (parent+1)*2;					\
+		if(PRIORITY(heap[child2-1], heap[child2]))	\
+			--child2;								\
+													\
+		if(PRIORITY(element, heap[child2]))			\
+			break;									\
+													\
+		heap[parent] = heap[child2];				\
+		parent = child2;							\
+	}												\
+	heap[parent] = element;							\
+}
+
+int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
+{
+	int   new_max_size = *max_size * 2;
+	void *new_memblock = NULL;
+
+	if(new_size <= *max_size)
+		return TRUE;
+
+	if(*memblock == local_memblock)
+	{
+		new_memblock = malloc( size_per_item * new_max_size );
+		memcpy( new_memblock, *memblock, size_per_item * *max_size );
+	}
+	else
+		new_memblock = realloc(*memblock, size_per_item * new_max_size );
+
+	if(new_memblock)
+	{
+		*memblock = new_memblock;
+		*max_size = new_max_size;
+		return TRUE;
+	}
+	else
+		return FALSE;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Introsort 
@@ -1131,15 +1198,18 @@ static float calc_nearest_point(BVHNearestData *data, BVHNode *node, float *near
 }
 
 
-// TODO: use a priority queue to reduce the number of nodes looked on
-static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
+typedef struct NodeDistance
 {
-	int i;
-	float nearest[3], sdist;
+	BVHNode *node;
+	float dist;
 
-	sdist = calc_nearest_point(data, node, nearest);
-	if(sdist >= data->nearest.dist) return;
+} NodeDistance;
 
+#define NodeDistance_priority(a,b)	( (a).dist < (b).dist )
+
+// TODO: use a priority queue to reduce the number of nodes looked on
+static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
+{
 	if(node->totnode == 0)
 	{
 		if(data->callback)
@@ -1147,16 +1217,129 @@ static void dfs_find_nearest(BVHNearestData *data, BVHNode *node)
 		else
 		{
 			data->nearest.index	= node->index;
-			VECCOPY(data->nearest.co, nearest);
-			data->nearest.dist	= sdist;
+			data->nearest.dist	= calc_nearest_point(data, node, data->nearest.co);
 		}
 	}
 	else
 	{
-		for(i=0; i != node->totnode; i++)
-			dfs_find_nearest(data, node->children[i]);
+		//Better heuristic to pick the closest node to dive on
+		int i;
+		float nearest[3];
+
+		if(data->proj[ node->main_axis ] <= node->children[0]->bv[node->main_axis*2+1])
+		{
+
+			for(i=0; i != node->totnode; i++)
+			{
+				if( calc_nearest_point(data, node->children[i], nearest) >= data->nearest.dist) continue;
+				dfs_find_nearest_dfs(data, node->children[i]);
+			}
+		}
+		else
+		{
+			for(i=node->totnode-1; i >= 0 ; i--)
+			{
+				if( calc_nearest_point(data, node->children[i], nearest) >= data->nearest.dist) continue;
+				dfs_find_nearest_dfs(data, node->children[i]);
+			}
+		}
 	}
 }
+
+static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
+{
+	int i;
+	float nearest[3], sdist;
+	sdist = calc_nearest_point(data, node, nearest);
+	if(sdist >= data->nearest.dist) return;
+	dfs_find_nearest_dfs(data, node);
+}
+
+
+static void NodeDistance_push_heap(NodeDistance *heap, int heap_size)
+PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
+
+static void NodeDistance_pop_heap(NodeDistance *heap, int heap_size)
+POP_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
+
+//NN function that uses an heap.. this functions leads to an optimal number of min-distance
+//but for normal tri-faces and BV 6-dop.. a simple dfs with local heuristics (as implemented
+//in source/blender/blenkernel/intern/shrinkwrap.c) works faster.
+//
+//It may make sense to use this function if the callback queries are very slow.. or if its impossible
+//to get a nice heuristic
+//
+//this function uses "malloc/free" instead of the MEM_* because it intends to be openmp safe
+static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
+{
+	int i;
+	NodeDistance default_heap[DEFAULT_FIND_NEAREST_HEAP_SIZE];
+	NodeDistance *heap=default_heap, current;
+	int heap_size = 0, max_heap_size = sizeof(default_heap)/sizeof(default_heap[0]);
+	float nearest[3];
+
+	int callbacks = 0, push_heaps = 0;
+
+	if(node->totnode == 0)
+	{
+		dfs_find_nearest_dfs(data, node);
+		return;
+	}
+
+	current.node = node;
+	current.dist = calc_nearest_point(data, node, nearest);
+
+	while(current.dist < data->nearest.dist)
+	{
+//		printf("%f : %f\n", current.dist, data->nearest.dist);
+		for(i=0; i< current.node->totnode; i++)
+		{
+			BVHNode *child = current.node->children[i];
+			if(child->totnode == 0)
+			{
+				callbacks++;
+				dfs_find_nearest_dfs(data, child);
+			}
+			else
+			{
+				//adjust heap size
+				if(heap_size >= max_heap_size
+				&& ADJUST_MEMORY(default_heap, (void**)&heap, heap_size+1, &max_heap_size, sizeof(heap[0])) == FALSE)
+				{
+					printf("WARNING: bvh_find_nearest got out of memory\n");
+
+					if(heap != default_heap)
+						free(heap);
+
+					return;
+				}
+
+				heap[heap_size].node = current.node->children[i];
+				heap[heap_size].dist = calc_nearest_point(data, current.node->children[i], nearest);
+
+				if(heap[heap_size].dist >= data->nearest.dist) continue;
+				heap_size++;
+
+				NodeDistance_push_heap(heap, heap_size);
+	//			PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size);
+				push_heaps++;
+			}
+		}
+		
+		if(heap_size == 0) break;
+
+		current = heap[0];
+		NodeDistance_pop_heap(heap, heap_size);
+//		POP_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size);
+		heap_size--;
+	}
+
+//	printf("hsize=%d, callbacks=%d, pushs=%d\n", heap_size, callbacks, push_heaps);
+
+	if(heap != default_heap)
+		free(heap);
+}
+
 
 int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
 {
@@ -1189,7 +1372,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nea
 
 	//dfs search
 	if(root)
-		dfs_find_nearest(&data, root);
+		dfs_find_nearest_begin(&data, root);
 
 	//copy back results
 	if(nearest)
