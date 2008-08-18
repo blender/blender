@@ -315,12 +315,12 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 	return falloff;
 }
 
-void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise)
+void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor)
 {
 	float mag_vec[3]={0,0,0};
 	float temp[3], temp2[3];
 	float eff_vel[3];
-	float wind = 0;
+	float noise = 0;
 
 	VecCopyf(eff_vel,eff_velocity);
 	Normalize(eff_vel);
@@ -329,11 +329,11 @@ void do_physical_effector(short type, float force_val, float distance, float fal
 		case PFIELD_WIND:
 			VECCOPY(mag_vec,eff_vel);
 			
-			// add wind noise here
-			if(noise> 0.0f)
-				wind = wind_func(rng, noise);
-
-			VecMulf(mag_vec,(force_val+wind)*falloff);
+			// add wind noise here, only if we have wind
+			if((noise_factor> 0.0f) && (force_val > FLT_EPSILON))
+				noise = wind_func(rng, noise_factor);
+			
+			VecMulf(mag_vec,(force_val+noise)*falloff);
 			VecAddf(field,field,mag_vec);
 			break;
 

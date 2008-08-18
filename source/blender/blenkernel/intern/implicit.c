@@ -1452,6 +1452,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			float triunnormal[3]={0,0,0}; // not-normalized-triangle normal
 			float tmp[3]={0,0,0};
 			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
+			factor *= 0.02;
 			
 			// calculate face normal
 			if(mfaces[i].v4)
@@ -1465,24 +1466,24 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			// add wind from v1
 			VECCOPY(tmp, trinormal);
 			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
-			VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], tmp, factor*verts[mfaces[i].v1].mass);
+			VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], tmp, factor);
 			
 			// add wind from v2
 			VECCOPY(tmp, trinormal);
 			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
-			VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], tmp, factor*verts[mfaces[i].v2].mass);
+			VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], tmp, factor);
 			
 			// add wind from v3
 			VECCOPY(tmp, trinormal);
 			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
-			VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], tmp, factor*verts[mfaces[i].v3].mass);
+			VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], tmp, factor);
 			
 			// add wind from v4
 			if(mfaces[i].v4)
 			{
 				VECCOPY(tmp, trinormal);
 				VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
-				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor*verts[mfaces[i].v4].mass);
+				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor);
 			}
 		}
 		del_lfvector(winvec);
