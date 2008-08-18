@@ -78,7 +78,7 @@ struct RigArc;
 struct RigEdge;
 
 #define NB_THREADS 4
-#define USE_THREADS
+//#define USE_THREADS
 
 typedef struct RigGraph {
 	ListBase	arcs;
@@ -110,6 +110,8 @@ typedef struct RigNode {
 
 	int degree;
 	struct BArc **arcs;
+
+	int subgraph_index;
 
 	int symmetry_level;
 	int symmetry_flag;
@@ -242,6 +244,8 @@ void RIG_freeRigGraph(BGraph *rg)
 	}
 	BLI_freelistN(&rg->nodes);
 	
+	BLI_freelistN(&((RigGraph*)rg)->controls);
+
 	BLI_ghash_free(((RigGraph*)rg)->bones_map, NULL, NULL);
 	
 	MEM_freeN(rg);
@@ -336,17 +340,10 @@ static RigNode *newRigNodeTail(RigGraph *rg, RigArc *arc, float p[3])
 	return node;
 }
 
-static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
+static void RIG_appendEdgeToArc(RigArc *arc, RigEdge *edge)
 {
-	RigEdge *edge;
-
-	edge = MEM_callocN(sizeof(RigEdge), "rig edge");
 	BLI_addtail(&arc->edges, edge);
 
-
-	VECCOPY(edge->tail, tail);
-	edge->bone = bone;
-	
 	if (edge->prev == NULL)
 	{
 		VECCOPY(edge->head, arc->head->p);
@@ -365,6 +362,17 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 	arc->count += 1;
 }
 
+static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
+{
+	RigEdge *edge;
+
+	edge = MEM_callocN(sizeof(RigEdge), "rig edge");
+
+	VECCOPY(edge->tail, tail);
+	edge->bone = bone;
+	
+	RIG_appendEdgeToArc(arc, edge);
+}
 
 /*******************************************************************************************************/
 
@@ -484,6 +492,73 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 
 /*******************************************************************************************************/
 
+static void RIG_joinArcs(RigGraph *rg, RigNode *node, RigArc *joined_arc1, RigArc *joined_arc2)
+{
+	RigEdge *edge, *next_edge;
+	
+	/* ignore cases where joint is at start or end */
+	if (joined_arc1->head == joined_arc2->head || joined_arc1->tail == joined_arc2->tail)
+	{
+		return;
+	}
+	
+	/* swap arcs to make sure arc1 is before arc2 */
+	if (joined_arc1->head == joined_arc2->tail)
+	{
+		RigArc *tmp = joined_arc1;
+		joined_arc1 = joined_arc2;
+		joined_arc2 = tmp;
+	}
+	
+	for (edge = joined_arc2->edges.first; edge; edge = next_edge)
+	{
+		next_edge = edge->next;
+		
+		RIG_appendEdgeToArc(joined_arc1, edge);
+	}
+	
+	joined_arc1->tail = joined_arc2->tail;
+	
+	joined_arc2->edges.first = joined_arc2->edges.last = NULL;
+	
+	BLI_removeArc((BGraph*)rg, (BArc*)joined_arc2);
+	
+	BLI_removeNode((BGraph*)rg, (BNode*)node);
+}
+
+static void RIG_removeNormalNodes(RigGraph *rg)
+{
+	RigNode *node, *next_node;
+	
+	for (node = rg->nodes.first; node; node = next_node)
+	{
+		next_node = node->next;
+		
+		if (node->degree == 2)
+		{
+			RigArc *arc, *joined_arc1 = NULL, *joined_arc2 = NULL;
+			
+			for (arc = rg->arcs.first; arc; arc = arc->next)
+			{
+				if (arc->head == node || arc->tail == node)
+				{
+					if (joined_arc1 == NULL)
+					{
+						joined_arc1 = arc;
+					}
+					else
+					{
+						joined_arc2 = arc;
+						break;
+					}
+				}
+			}
+			
+			RIG_joinArcs(rg, node, joined_arc1, joined_arc2);
+		}
+	}
+}
+
 static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bone, RigNode *starting_node)
 {
 	EditBone *bone, *last_bone = root_bone;
@@ -512,7 +587,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 				}
 			}
 			
-			if (bone->parent && (bone->flag & BONE_CONNECTED) == 0)
+			if (bone->parent && (bone->flag & BONE_CONNECTED) == 0 && (bone->parent->flag & BONE_NO_DEFORM) == 0)
 			{
 				RIG_addEdgeToArc(arc, bone->head, NULL);
 			}
@@ -534,14 +609,15 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 		nb_children = countEditBoneChildren(list, bone);
 		if (nb_children > 1)
 		{
-			RigNode *end_node;
+			RigNode *end_node = NULL;
 			int i;
 			
 			if (arc != NULL)
 			{
 				end_node = newRigNodeTail(rg, arc, bone->tail);
 			}
-			else
+			/* only create a new node if the parent was a deform bone */
+			else if ((bone->flag & BONE_NO_DEFORM) == 0)
 			{
 				end_node = newRigNode(rg, bone->tail);
 			}
@@ -650,7 +726,7 @@ void RIG_printArc(RigArc *arc)
 		if (edge->bone)
 			printf("\t\t%s\n", edge->bone->name);
 	}	
-	printf("symmetry level: %i\n", arc->symmetry_level);
+	printf("symmetry level: %i flag: %i group %i\n", arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 
 	RIG_printNode((RigNode*)arc->tail, "tail");
 }
@@ -695,6 +771,8 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
 	
 	BLI_removeDoubleNodes((BGraph*)rg, 0.001);
 	
+	RIG_removeNormalNodes(rg);
+	
 	BLI_buildAdjacencyList((BGraph*)rg);
 	
 	RIG_findHead(rg);
@@ -702,6 +780,11 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
 	BLI_markdownSymmetry((BGraph*)rg, (BNode*)rg->head, G.scene->toolsettings->skgen_symmetry_limit);
 	
 	RIG_reconnectControlBones(rg); /* after symmetry, because we use levels to find best match */
+	
+	if (BLI_isGraphCyclic((BGraph*)rg))
+	{
+		printf("armature cyclic\n");
+	}
 	
 	return rg;
 }
@@ -1649,15 +1732,15 @@ void *exec_retargetArctoArc(void *param)
 	return NULL;
 }
 
-static void matchMultiResolutionNode(RigNode *inode, ReebNode *top_node)
+static void matchMultiResolutionNode(RigGraph *rigg, RigNode *inode, ReebNode *top_node)
 {
 	ReebNode *enode;
 	int ishape, eshape;
 	
 	enode = top_node;
 	
-	ishape = BLI_subtreeShape((BNode*)inode, NULL, 0) % SHAPE_LEVELS;
-	eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+	ishape = BLI_subtreeShape((BGraph*)rigg, (BNode*)inode, NULL, 0) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	
 	inode->link_mesh = enode;
 
@@ -1666,17 +1749,17 @@ static void matchMultiResolutionNode(RigNode *inode, ReebNode *top_node)
 		inode->link_mesh = enode;
 
 		enode = enode->link_down;
-		eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+		eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	} 
 }
 
-static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, ReebArc *next_earc)
+static void matchMultiResolutionArc(RigGraph *rigg, RigNode *start_node, RigArc *next_iarc, ReebArc *next_earc)
 {
 	ReebNode *enode = next_earc->head;
 	int ishape, eshape;
 
-	ishape = BLI_subtreeShape((BNode*)start_node, (BArc*)next_iarc, 1) % SHAPE_LEVELS;
-	eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
+	ishape = BLI_subtreeShape((BGraph*)rigg, (BNode*)start_node, (BArc*)next_iarc, 1) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	
 	while (ishape != eshape && next_earc->link_up)
 	{
@@ -1684,7 +1767,7 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 		
 		next_earc = next_earc->link_up;
 		enode = next_earc->head;
-		eshape = BLI_subtreeShape((BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
+		eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	} 
 
 	next_earc->flag = 1; // mark as taken
@@ -1698,15 +1781,15 @@ static void matchMultiResolutionArc(RigNode *start_node, RigArc *next_iarc, Reeb
 	}
 }
 
-static void matchMultiResolutionStartingNode(ReebGraph *reebg, RigNode *inode)
+static void matchMultiResolutionStartingNode(RigGraph *rigg, ReebGraph *reebg, RigNode *inode)
 {
 	ReebNode *enode;
 	int ishape, eshape;
 	
 	enode = reebg->nodes.first;
 	
-	ishape = BLI_subtreeShape((BNode*)inode, NULL, 0) % SHAPE_LEVELS;
-	eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+	ishape = BLI_subtreeShape((BGraph*)rigg, (BNode*)inode, NULL, 0) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	
 	while (ishape != eshape && reebg->link_up)
 	{
@@ -1714,13 +1797,13 @@ static void matchMultiResolutionStartingNode(ReebGraph *reebg, RigNode *inode)
 		
 		enode = reebg->nodes.first;
 		
-		eshape = BLI_subtreeShape((BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+		eshape = BLI_subtreeShape((BGraph*)rigg, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	} 
 
 	inode->link_mesh = enode;
 }
 
-static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc *next_iarc)
+static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *start_node, RigArc *next_iarc)
 {
 	ReebNode *enode = start_node->link_mesh;
 	ReebArc *next_earc;
@@ -1734,6 +1817,15 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 	for(i = 0; i < enode->degree; i++)
 	{
 		next_earc = (ReebArc*)enode->arcs[i];
+		
+		if (next_earc->flag == 0)
+		{
+			printf("candidate (flag %i == %i) (group %i == %i) (level %i == %i)\n",
+			next_earc->symmetry_flag, symmetry_flag,
+			next_earc->symmetry_group, symmetry_group,
+			next_earc->symmetry_level, symmetry_level);
+		}
+		
 		if (next_earc->flag == 0 && /* not already taken */
 			next_earc->symmetry_flag == symmetry_flag &&
 			next_earc->symmetry_group == symmetry_group &&
@@ -1744,7 +1836,7 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 			RIG_printArcBones(next_iarc);
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
 			
-			matchMultiResolutionArc(start_node, next_iarc, next_earc);
+			matchMultiResolutionArc(rigg, start_node, next_iarc, next_earc);
 			break;
 		}
 	}
@@ -1755,7 +1847,7 @@ static void findCorrespondingArc(RigArc *start_arc, RigNode *start_node, RigArc 
 		if (enode->link_up)
 		{
 			start_node->link_mesh = enode->link_up;
-			findCorrespondingArc(start_arc, start_node, next_iarc);
+			findCorrespondingArc(rigg, start_arc, start_node, next_iarc);
 		}
 	}
 
@@ -1796,7 +1888,7 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 		inode = (RigNode*)BLI_otherNode((BArc*)start_arc, (BNode*)inode);
 	
 		/* match with lowest node with correct shape */
-		matchMultiResolutionNode(inode, enode);
+		matchMultiResolutionNode(rigg, inode, enode);
 	}
 	
 	for(i = 0; i < inode->degree; i++)
@@ -1806,7 +1898,7 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 		/* no back tracking */
 		if (next_iarc != start_arc)
 		{
-			findCorrespondingArc(start_arc, inode, next_iarc);
+			findCorrespondingArc(rigg, start_arc, inode, next_iarc);
 			if (next_iarc->link_mesh)
 			{
 				retargetSubgraph(rigg, next_iarc, inode);
@@ -1828,7 +1920,7 @@ static void retargetGraphs(RigGraph *rigg)
 	
 	inode = rigg->head;
 	
-	matchMultiResolutionStartingNode(reebg, inode);
+	matchMultiResolutionStartingNode(rigg, reebg, inode);
 
 	retargetSubgraph(rigg, NULL, inode);
 	

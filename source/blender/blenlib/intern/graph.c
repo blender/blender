@@ -64,6 +64,16 @@ BNode *BLI_otherNode(BArc *arc, BNode *node)
 	return (arc->head == node) ? arc->tail : arc->head;
 }
 
+void BLI_removeArc(BGraph *graph, BArc *arc)
+{
+	if (graph->free_arc)
+	{
+		graph->free_arc(arc);
+	}
+
+	BLI_freelinkN(&graph->arcs, arc);
+}
+
 void BLI_flagNodes(BGraph *graph, int flag)
 {
 	BNode *node;
@@ -236,12 +246,12 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 
 void flagSubgraph(BNode *node, int subgraph)
 {
-	if (node->flag == 0)
+	if (node->subgraph_index == 0)
 	{
 		BArc *arc;
 		int i;
 		
-		node->flag = subgraph;
+		node->subgraph_index = subgraph;
 		
 		for(i = 0; i < node->degree; i++)
 		{
@@ -261,11 +271,14 @@ int BLI_FlagSubgraphs(BGraph *graph)
 		BLI_buildAdjacencyList(graph);
 	}
 	
-	BLI_flagNodes(graph, 0);
+	for(node = graph->nodes.first; node; node = node->next)
+	{
+		node->subgraph_index = 0;
+	}
 	
 	for (node = graph->nodes.first; node; node = node->next)
 	{
-		if (node->flag == 0)
+		if (node->subgraph_index == 0)
 		{
 			subgraph++;
 			flagSubgraph(node, subgraph);
@@ -360,14 +373,16 @@ BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 
 /*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
 
-int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
+int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 {
 	int depth = 0;
+	
+	node->flag = 1;
 	
 	if (include_root)
 	{
 		BNode *newNode = BLI_otherNode(rootArc, node);
-		return BLI_subtreeShape(newNode, rootArc, 0);
+		return subtreeShape(newNode, rootArc, 0);
 	}
 	else
 	{
@@ -383,18 +398,24 @@ int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root)
 			for(i = 0; i < node->degree; i++)
 			{
 				BArc *arc = node->arcs[i];
+				BNode *newNode = BLI_otherNode(arc, node);
 				
-				/* only arcs that go down the tree */
-				if (arc != rootArc)
+				/* stop immediate and cyclic backtracking */
+				if (arc != rootArc && newNode->flag == 0)
 				{
-					BNode *newNode = BLI_otherNode(arc, node);
-					depth += BLI_subtreeShape(newNode, arc, 0);
+					depth += subtreeShape(newNode, arc, 0);
 				}
 			}
 		}
 		
 		return SHAPE_RADIX * depth + 1;
 	}
+}
+
+int BLI_subtreeShape(BGraph *graph, BNode *node, BArc *rootArc, int include_root)
+{
+	BLI_flagNodes(graph, 0);
+	return subtreeShape(node, rootArc, include_root);
 }
 
 float BLI_subtreeLength(BNode *node)
@@ -434,7 +455,7 @@ void BLI_calcGraphLength(BGraph *graph)
 		for (node = graph->nodes.first; node; node = node->next)
 		{
 			/* start on an external node  of the subgraph */
-			if (node->flag == i && node->degree == 1)
+			if (node->subgraph_index == i && node->degree == 1)
 			{
 				float subgraph_length = BLI_subtreeLength(node);
 				length = MAX2(length, subgraph_length);
@@ -883,7 +904,7 @@ void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level, float
 			BNode *connectedNode = BLI_otherNode(connectedArc, node);
 			
 			/* symmetry level is positive value, negative values is subtree depth */
-			connectedArc->symmetry_level = -BLI_subtreeShape(connectedNode, connectedArc, 0);
+			connectedArc->symmetry_level = -BLI_subtreeShape(graph, connectedNode, connectedArc, 0);
 		}
 	}
 

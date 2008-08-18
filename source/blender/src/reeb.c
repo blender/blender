@@ -1161,13 +1161,12 @@ void reweightArc(ReebGraph *rg, ReebArc *arc, ReebNode *start_node, float start_
 	ReebNode *node;
 	float old_weight;
 	float end_weight = start_weight + ABS(arc->tail->weight - arc->head->weight);
-	int flag = start_node->flag;
 	int i;
 	
 	node = (ReebNode*)BLI_otherNode((BArc*)arc, (BNode*)start_node);
 	
 	/* prevent backtracking */
-	if (node->flag == 0)
+	if (node->flag == 1)
 	{
 		return;
 	}
@@ -1177,7 +1176,7 @@ void reweightArc(ReebGraph *rg, ReebArc *arc, ReebNode *start_node, float start_
 		flipArc(arc);
 	}
 	
-	start_node->flag = 0;
+	start_node->flag = 1;
 	
 	for (i = 0; i < node->degree; i++)
 	{
@@ -1185,8 +1184,6 @@ void reweightArc(ReebGraph *rg, ReebArc *arc, ReebNode *start_node, float start_
 		
 		reweightArc(rg, next_arc, node, end_weight);
 	}
-	
-	start_node->flag = flag;
 
 	/* update only if needed */	
 	if (arc->head->weight != start_weight || arc->tail->weight != end_weight)
@@ -1208,6 +1205,8 @@ void reweightSubgraph(ReebGraph *rg, ReebNode *start_node, float start_weight)
 {
 	int i;
 		
+	BLI_flagNodes((BGraph*)rg, 0);
+
 	for (i = 0; i < start_node->degree; i++)
 	{
 		ReebArc *next_arc = start_node->arcs[i];
@@ -1230,12 +1229,12 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 		
 		for (start_node = rg->nodes.first; start_node; start_node = start_node->next)
 		{
-			if (start_node->flag == subgraph && start_node->degree == 1)
+			if (start_node->subgraph_index == subgraph && start_node->degree == 1)
 			{
 				
 				for (end_node = rg->nodes.first; end_node; end_node = end_node->next)
 				{
-					if (end_node->flag != subgraph)
+					if (end_node->subgraph_index != subgraph)
 					{
 						float distance = VecLenf(start_node->p, end_node->p);
 						
@@ -1311,7 +1310,7 @@ void fixSubgraphsOrientation(ReebGraph *rg, int nb_subgraphs)
 		
 		for (node = rg->nodes.first; node; node = node->next)
 		{
-			if (node->flag == subgraph)
+			if (node->subgraph_index == subgraph)
 			{
 				if (start_node == NULL || node->weight < start_node->weight)
 				{
@@ -3578,26 +3577,26 @@ void REEB_draw()
 			glEnd();
 		}
 		
-		VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
-		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
+			VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
+		
 			s += sprintf(s, "%i ", i);
-		}
 		
-		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)
-		{
-			s += sprintf(s, "w:%0.3f ", arc->tail->weight - arc->head->weight);
+			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)
+			{
+				s += sprintf(s, "w:%0.3f ", arc->tail->weight - arc->head->weight);
+			}
+			
+			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_LENGTH)
+			{
+				s += sprintf(s, "l:%0.3f", arc->length);
+			}
+			
+			glColor3f(0, 1, 0);
+			glRasterPos3fv(vec);
+			BMF_DrawString( G.fonts, text);
 		}
-		
-		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_LENGTH)
-		{
-			s += sprintf(s, "l:%0.3f", arc->length);
-		}
-		
-		glColor3f(0, 1, 0);
-		glRasterPos3fv(vec);
-		BMF_DrawString( G.fonts, text);
 
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{

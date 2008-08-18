@@ -40,6 +40,8 @@ typedef struct BNode {
 
 	int degree;
 	struct BArc **arcs;
+	
+	int subgraph_index;
 
 	int symmetry_level;
 	int symmetry_flag;
@@ -70,6 +72,8 @@ BNode *BLI_otherNode(BArc *arc, BNode *node);
 void BLI_freeNode(BGraph *graph, BNode *node);
 void BLI_removeNode(BGraph *graph, BNode *node);
 
+void BLI_removeArc(BGraph *graph, BArc *arc);
+
 void BLI_flagNodes(BGraph *graph, int flag);
 void BLI_flagArcs(BGraph *graph, int flag);
 
@@ -84,7 +88,7 @@ void BLI_ReflagSubgraph(BGraph *graph, int old_subgraph, int new_subgraph);
 
 #define SHAPE_RADIX 10 /* each shape level is encoded this base */
 
-int BLI_subtreeShape(BNode *node, BArc *rootArc, int include_root);
+int BLI_subtreeShape(BGraph *graph, BNode *node, BArc *rootArc, int include_root);
 float BLI_subtreeLength(BNode *node);
 void BLI_calcGraphLength(BGraph *graph);
 

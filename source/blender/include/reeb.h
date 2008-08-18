@@ -70,6 +70,8 @@ typedef struct ReebNode {
 	int degree;
 	struct ReebArc **arcs;
 
+	int subgraph_index;
+
 	int symmetry_level;
 	int symmetry_flag;
 	float symmetry_axis[3];
