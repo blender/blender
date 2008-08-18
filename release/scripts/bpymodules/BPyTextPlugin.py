@@ -265,7 +265,7 @@ def parse_text(txt):
 			type, text, start, end, line = tokens.next()
 		except StopIteration:
 			break
-		except TokenError, IndentationError:
+		except (TokenError, IndentationError):
 			incomplete = True
 			break
 		
