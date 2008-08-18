@@ -53,8 +53,7 @@ PyObject* KX_ConstraintWrapper::PyTestMethod(PyObject* self,
 											PyObject* kwds)
 {
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_ConstraintWrapper::PyGetConstraintId(PyObject* self, 

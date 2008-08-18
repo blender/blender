@@ -1354,25 +1354,57 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s,
 	}	
 }
 
+
+static void CalcFloat( float *v1, float *v2, float *v3, float *n)
+{
+	float n1[3],n2[3];
+
+	n1[0]= v1[0]-v2[0];
+	n2[0]= v2[0]-v3[0];
+	n1[1]= v1[1]-v2[1];
+	n2[1]= v2[1]-v3[1];
+	n1[2]= v1[2]-v2[2];
+	n2[2]= v2[2]-v3[2];
+	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
+	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
+	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+}
+
+static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
+{
+	/* real cross! */
+	float n1[3],n2[3];
+
+	n1[0]= v1[0]-v3[0];
+	n1[1]= v1[1]-v3[1];
+	n1[2]= v1[2]-v3[2];
+
+	n2[0]= v2[0]-v4[0];
+	n2[1]= v2[1]-v4[1];
+	n2[2]= v2[2]-v4[2];
+
+	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
+	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
+	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+}
+
 float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
-	return fabs(INPR(wind, vertexnormal));
+	return (INPR(wind, vertexnormal));
 }
 
 void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
-	long		i 		= 0;
+	int		i 		= 0;
 	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
 	MFace 		*mfaces 	= cloth->mfaces;
-	//ClothVertex 	*verts		= cloth->verts;
-	float wind_normalized[3];
 	unsigned int numverts = cloth->numverts;
 	LinkNode *search = cloth->springs;
-
+	lfVector *winvec;
 
 	VECCOPY(gravity, clmd->sim_parms->gravity);
 	mul_fvector_S(gravity, gravity, 0.001f); /* scale gravity force */
@@ -1387,7 +1419,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	/* multiply lF with mass matrix
 	// force = mass * acceleration (in this case: gravity)
 	*/
-	for(i = 0; i < (long)numverts; i++)
+	for(i = 0; i < numverts; i++)
 	{
 		float temp[3];
 		VECCOPY(temp, lF[i]);
@@ -1399,70 +1431,61 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	/* handle external forces like wind */
 	if(effectors)
 	{	
+		// 0 = force, 1 = normalized force
+		winvec = create_lfvector(cloth->numverts);
+		
+		if(!winvec)
+			printf("winvec: out of memory in implicit.c\n");
+		
+		// precalculate wind forces
+		for(i = 0; i < cloth->numverts; i++)
+		{
+			float speed[3] = {0.0f, 0.0f,0.0f};
+			
+			pdDoEffectors(effectors, lX[i], winvec[i], speed, (float)G.scene->r.cfra, 0.0f, 0);
+		}
+		
 		for(i = 0; i < cloth->numfaces; i++)
 		{
-			float vertexnormal[3]={0,0,0};
-			float speed[3] = {0.0f, 0.0f,0.0f};
-			float force[3]= {0.0f, 0.0f, 0.0f};
+			float trinormal[3]={0,0,0}; // normalized triangle normal
+			float triunnormal[3]={0,0,0}; // not-normalized-triangle normal
+			float tmp[3]={0,0,0};
+			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
+			factor *= 0.05;
 			
+			// calculate face normal
 			if(mfaces[i].v4)
-				CalcNormFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],vertexnormal);
+				CalcFloat4(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],lX[mfaces[i].v4],triunnormal);
 			else
-				CalcNormFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],vertexnormal);
+				CalcFloat(lX[mfaces[i].v1],lX[mfaces[i].v2],lX[mfaces[i].v3],triunnormal);
 			
-			pdDoEffectors(effectors, lX[mfaces[i].v1], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
-			VECCOPY(wind_normalized, speed);
-			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
+			VECCOPY(trinormal, triunnormal);
+			Normalize(trinormal);
 			
+			// add wind from v1
+			VECCOPY(tmp, trinormal);
+			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v1], triunnormal));
+			VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], tmp, factor);
+			
+			// add wind from v2
+			VECCOPY(tmp, trinormal);
+			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v2], triunnormal));
+			VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], tmp, factor);
+			
+			// add wind from v3
+			VECCOPY(tmp, trinormal);
+			VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v3], triunnormal));
+			VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], tmp, factor);
+			
+			// add wind from v4
 			if(mfaces[i].v4)
 			{
-				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 0.25);
+				VECCOPY(tmp, trinormal);
+				VecMulf(tmp, calculateVertexWindForce(winvec[mfaces[i].v4], triunnormal));
+				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor);
 			}
-			else
-			{
-				VECADDS(lF[mfaces[i].v1], lF[mfaces[i].v1], wind_normalized, 1.0 / 3.0);
-			}
-			
-			speed[0] = speed[1] = speed[2] = 0.0;
-			pdDoEffectors(effectors, lX[mfaces[i].v2], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
-			VECCOPY(wind_normalized, speed);
-			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
-			if(mfaces[i].v4)
-			{
-				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 0.25);
-			}
-			else
-			{
-				VECADDS(lF[mfaces[i].v2], lF[mfaces[i].v2], wind_normalized, 1.0 / 3.0);
-			}
-			
-			speed[0] = speed[1] = speed[2] = 0.0;
-			pdDoEffectors(effectors, lX[mfaces[i].v3], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
-			VECCOPY(wind_normalized, speed);
-			Normalize(wind_normalized);
-			VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
-			if(mfaces[i].v4)
-			{
-				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 0.25);
-			}
-			else
-			{
-				VECADDS(lF[mfaces[i].v3], lF[mfaces[i].v3], wind_normalized, 1.0 / 3.0);
-			}
-			
-			speed[0] = speed[1] = speed[2] = 0.0;
-			if(mfaces[i].v4)
-			{
-				pdDoEffectors(effectors, lX[mfaces[i].v4], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
-				VECCOPY(wind_normalized, speed);
-				Normalize(wind_normalized);
-				VecMulf(wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
-				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], wind_normalized, 0.25);
-			}
-			
 		}
+		del_lfvector(winvec);
 	}
 		
 	// calculate spring forces

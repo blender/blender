@@ -79,9 +79,9 @@ class KX_ParentActuator : public SCA_IActuator
 	virtual PyObject* _getattr(const STR_String& attr);
 
 	/* 1. setObject                                                            */
-	KX_PYMETHOD_DOC(KX_ParentActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_ParentActuator,SetObject);
 	/* 2. getObject                                                            */
-	KX_PYMETHOD_DOC(KX_ParentActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_ParentActuator,GetObject);
 	
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */
 

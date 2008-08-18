@@ -354,8 +354,8 @@ typedef short IPO_Channel;
 
 /* ******************** */
 /* particle ipos */
-#define PART_TOTIPO		19
-#define PART_TOTNAM		19
+#define PART_TOTIPO		22
+#define PART_TOTNAM		22
 
 #define PART_EMIT_FREQ	1
 #define PART_EMIT_LIFE	2
@@ -380,6 +380,10 @@ typedef short IPO_Channel;
 #define PART_KINK_SHAPE	18
 
 #define PART_BB_TILT	19
+
+#define PART_PD_FSTR	20
+#define PART_PD_FFALL	21
+#define PART_PD_FMAXD	22
 
 
 /* these are IpoCurve specific */

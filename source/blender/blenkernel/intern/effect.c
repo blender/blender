@@ -157,6 +157,13 @@ static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 		}
 	}
 	else if(pd->forcefield) {
+		
+		if(pd->forcefield == PFIELD_WIND)
+		{
+			pd->rng = rng_new(1);
+			rng_srandom(pd->rng, (unsigned int)(ceil(PIL_check_seconds_timer()))); // use better seed
+		}
+	
 		ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
 		ec->ob= ob;
 		BLI_addtail(lb, ec);
@@ -205,11 +212,187 @@ void pdEndEffectors(ListBase *lb)
 		pEffectorCache *ec;
 		/* restore full copy */
 		for(ec= lb->first; ec; ec= ec->next)
+		{
+			if(ec->ob->pd && (ec->ob->pd->forcefield == PFIELD_WIND))
+				rng_free(ec->ob->pd->rng);
+			
 			*(ec->ob)= ec->obcopy;
+		}
 
 		BLI_freelistN(lb);
 	}
 }
+
+
+/************************************************/
+/*			Effectors		*/
+/************************************************/
+
+// noise function for wind e.g.
+static float wind_func(struct RNG *rng, float strength)
+{
+	int random = (rng_getInt(rng)+1) % 65535; // max 2357
+	float force = rng_getFloat(rng) + 1.0f;
+	float ret;
+	float sign = 0;
+	
+	sign = (random > 32000.0) ? 1.0: -1.0; // dividing by 2 is not giving equal sign distribution
+	
+	ret = sign*((float)random / force)*strength/65535.0f;
+	
+	return ret;
+}
+
+
+static float falloff_func(float fac, int usemin, float mindist, int usemax, float maxdist, float power)
+{
+	if(!usemin)
+		mindist= 0.0f;
+
+	if(fac < mindist) {
+		return 1.0f;
+	}
+	else if(usemax) {
+		if(fac>maxdist || (maxdist-mindist)<=0.0f)
+			return 0.0f;
+
+		fac= (fac-mindist)/(maxdist-mindist);
+		return 1.0f - (float)pow((double)fac, (double)power);
+	}
+	else
+		return pow((double)1.0f+fac-mindist, (double)-power);
+}
+
+static float falloff_func_dist(PartDeflect *pd, float fac)
+{
+	return falloff_func(fac, pd->flag&PFIELD_USEMIN, pd->mindist, pd->flag&PFIELD_USEMAX, pd->maxdist, pd->f_power);
+}
+
+static float falloff_func_rad(PartDeflect *pd, float fac)
+{
+	return falloff_func(fac, pd->flag&PFIELD_USEMINR, pd->minrad, pd->flag&PFIELD_USEMAXR, pd->maxrad, pd->f_power_r);
+}
+
+float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
+{
+	float eff_dir[3], temp[3];
+	float falloff=1.0, fac, r_fac;
+	
+	VecCopyf(eff_dir,eff_velocity);
+	Normalize(eff_dir);
+
+	if(pd->flag & PFIELD_POSZ && Inpf(eff_dir,vec_to_part)<0.0f)
+		falloff=0.0f;
+	else switch(pd->falloff){
+		case PFIELD_FALL_SPHERE:
+			fac=VecLength(vec_to_part);
+			falloff= falloff_func_dist(pd, fac);
+			break;
+
+		case PFIELD_FALL_TUBE:
+			fac=Inpf(vec_to_part,eff_dir);
+			falloff= falloff_func_dist(pd, ABS(fac));
+			if(falloff == 0.0f)
+				break;
+
+			VECADDFAC(temp,vec_to_part,eff_dir,-fac);
+			r_fac=VecLength(temp);
+			falloff*= falloff_func_rad(pd, r_fac);
+			break;
+		case PFIELD_FALL_CONE:
+			fac=Inpf(vec_to_part,eff_dir);
+			falloff= falloff_func_dist(pd, ABS(fac));
+			if(falloff == 0.0f)
+				break;
+
+			r_fac=saacos(fac/VecLength(vec_to_part))*180.0f/(float)M_PI;
+			falloff*= falloff_func_rad(pd, r_fac);
+
+			break;
+	}
+
+	return falloff;
+}
+
+void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise)
+{
+	float mag_vec[3]={0,0,0};
+	float temp[3], temp2[3];
+	float eff_vel[3];
+	float wind = 0;
+
+	VecCopyf(eff_vel,eff_velocity);
+	Normalize(eff_vel);
+
+	switch(type){
+		case PFIELD_WIND:
+			VECCOPY(mag_vec,eff_vel);
+			
+			// add wind noise here
+			if(noise> 0.0f)
+				wind = wind_func(rng, noise);
+
+			VecMulf(mag_vec,(force_val+wind)*falloff);
+			VecAddf(field,field,mag_vec);
+			break;
+
+		case PFIELD_FORCE:
+			if(planar)
+				Projf(mag_vec,vec_to_part,eff_vel);
+			else
+				VecCopyf(mag_vec,vec_to_part);
+
+			VecMulf(mag_vec,force_val*falloff);
+			VecAddf(field,field,mag_vec);
+			break;
+
+		case PFIELD_VORTEX:
+			Crossf(mag_vec,eff_vel,vec_to_part);
+			Normalize(mag_vec);
+
+			VecMulf(mag_vec,force_val*distance*falloff);
+			VecAddf(field,field,mag_vec);
+
+			break;
+		case PFIELD_MAGNET:
+			if(planar)
+				VecCopyf(temp,eff_vel);
+			else
+				/* magnetic field of a moving charge */
+				Crossf(temp,eff_vel,vec_to_part);
+
+			Crossf(temp2,velocity,temp);
+			VecAddf(mag_vec,mag_vec,temp2);
+
+			VecMulf(mag_vec,force_val*falloff);
+			VecAddf(field,field,mag_vec);
+			break;
+		case PFIELD_HARMONIC:
+			if(planar)
+				Projf(mag_vec,vec_to_part,eff_vel);
+			else
+				VecCopyf(mag_vec,vec_to_part);
+
+			VecMulf(mag_vec,force_val*falloff);
+			VecSubf(field,field,mag_vec);
+
+			VecCopyf(mag_vec,velocity);
+			/* 1.9 is an experimental value to get critical damping at damp=1.0 */
+			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
+			VecSubf(field,field,mag_vec);
+			break;
+		case PFIELD_NUCLEAR:
+			/*pow here is root of cosine expression below*/
+			//rad=(float)pow(2.0,-1.0/power)*distance/size;
+			//VECCOPY(mag_vec,vec_to_part);
+			//Normalize(mag_vec);
+			//VecMulf(mag_vec,(float)cos(3.0*M_PI/2.0*(1.0-1.0/(pow(rad,power)+1.0)))/(rad+0.2f));
+			//VECADDFAC(field,field,mag_vec,force_val);
+			break;
+	}
+}
+
+
 
 
 /*  -------- pdDoEffectors() --------
@@ -244,13 +427,10 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 	pEffectorCache *ec;
 	PartDeflect *pd;
 	float vect_to_vert[3];
-	float f_force, force_vec[3];
 	float *obloc;
-	float distance, force_val, ffall_val;
-	float guidecollect[3], guidedist= 0.0f;
-	int cur_frame;
 	
-	guidecollect[0]= guidecollect[1]= guidecollect[2]=0.0f;
+	float distance, vec_to_part[3];
+	float falloff;
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
@@ -261,178 +441,32 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		pd= ob->pd;
 			
 		/* Get IPO force strength and fall off values here */
-		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
-		else 
-			force_val = pd->f_strength;
-		
-		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
-		else 
-			ffall_val = pd->f_power;
-			
-		/* Need to set r.cfra for paths (investigate, ton) (uses ob->ctime now, ton) */
-		if(ob->ctime!=cur_time) {
-			cur_frame = G.scene->r.cfra;
-			G.scene->r.cfra = (int)cur_time;
-			where_is_object_time(ob, cur_time);
-			G.scene->r.cfra = cur_frame;
-		}
+		where_is_object_time(ob,cur_time);
 			
 		/* use center of object for distance calculus */
 		obloc= ob->obmat[3];
 		VECSUB(vect_to_vert, obloc, opco);
 		distance = VecLength(vect_to_vert);
-			
-		if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist && pd->forcefield != PFIELD_GUIDE)
+		
+		VecSubf(vec_to_part, opco, ob->obmat[3]);
+		distance = VecLength(vec_to_part);
+
+		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);
+
+		if(falloff<=0.0f)
 			;	/* don't do anything */
-		else if((pd->flag & PFIELD_USEMIN) && distance<pd->mindist && pd->forcefield != PFIELD_GUIDE)
-			;	/* don't do anything */
-		else if(pd->forcefield == PFIELD_WIND) {
-			VECCOPY(force_vec, ob->obmat[2]);
+		else {
+			float field[3]={0,0,0}, tmp[3];
+			VECCOPY(field, force);
+			do_physical_effector(pd->forcefield,pd->f_strength,distance,
+								falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
+								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
 			
-			/* wind works harder perpendicular to normal, would be nice for softbody later (ton) */
-			
-			/* Limit minimum distance to vertex so that */
-			/* the force is not too big */
-			if (distance < 0.001) distance = 0.001f;
-			f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
-			/* this option for softbody only */
-			if(flags && PE_WIND_AS_SPEED){
-				speed[0] -= (force_vec[0] * f_force );
-				speed[1] -= (force_vec[1] * f_force );
-				speed[2] -= (force_vec[2] * f_force );
-			}
-			else{
-				force[0] += force_vec[0]*f_force;
-				force[1] += force_vec[1]*f_force;
-				force[2] += force_vec[2]*f_force;
+			// for softbody backward compatibility
+			if(flags & PE_WIND_AS_SPEED){
+				VECSUB(tmp, force, field);
+				VECSUB(speed, speed, tmp);
 			}
 		}
-		else if(pd->forcefield == PFIELD_FORCE) {
-			
-			/* only use center of object */
-			obloc= ob->obmat[3];
-
-			/* Now calculate the gravitational force */
-			VECSUB(vect_to_vert, obloc, opco);
-			distance = VecLength(vect_to_vert);
-
-			/* Limit minimum distance to vertex so that */
-			/* the force is not too big */
-			if (distance < 0.001) distance = 0.001f;
-			f_force = (force_val)*(1.0/(1000.0 * (float)pow((double)distance, (double)ffall_val)));
-			force[0] += (vect_to_vert[0] * f_force );
-			force[1] += (vect_to_vert[1] * f_force );
-			force[2] += (vect_to_vert[2] * f_force );
-		}
-		else if(pd->forcefield == PFIELD_VORTEX) {
-			float vortexvec[3];
-			
-			/* only use center of object */
-			obloc= ob->obmat[3];
-
-			/* Now calculate the vortex force */
-			VECSUB(vect_to_vert, obloc, opco);
-			distance = VecLength(vect_to_vert);
-
-			Crossf(force_vec, ob->obmat[2], vect_to_vert);
-			Normalize(force_vec);
-
-			/* Limit minimum distance to vertex so that */
-			/* the force is not too big */
-			if (distance < 0.001) distance = 0.001f;
-			f_force = (force_val)*(1.0/(100.0 * (float)pow((double)distance, (double)ffall_val)));
-			vortexvec[0]= -(force_vec[0] * f_force );
-			vortexvec[1]= -(force_vec[1] * f_force );
-			vortexvec[2]= -(force_vec[2] * f_force );
-			
-			/* this option for softbody only */
-			if(flags &&PE_WIND_AS_SPEED) {
-				speed[0]+= vortexvec[0];
-				speed[1]+= vortexvec[1];
-				speed[2]+= vortexvec[2];
-			}
-			else {
-				/* since vortex alters the speed, we have to correct for the previous vortex result */
-				speed[0]+= vortexvec[0] - ec->oldspeed[0];
-				speed[1]+= vortexvec[1] - ec->oldspeed[1];
-				speed[2]+= vortexvec[2] - ec->oldspeed[2];
-				
-				VECCOPY(ec->oldspeed, vortexvec);
-			}
-		}
-		else if(pd->forcefield == PFIELD_GUIDE) {
-			float guidevec[4], guidedir[3];
-			float mindist= force_val; /* force_val is actually mindist in the UI */
-			
-			distance= ec->guide_dist;
-			
-			/* WARNING: bails out with continue here */
-			if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist) continue;
-			
-			/* calculate contribution factor for this guide */
-			if(distance<=mindist) f_force= 1.0f;
-			else if(pd->flag & PFIELD_USEMAX) {
-				if(distance>pd->maxdist || mindist>=pd->maxdist) f_force= 0.0f;
-				else {
-					f_force= 1.0f - (distance-mindist)/(pd->maxdist - mindist);
-					if(ffall_val!=0.0f)
-						f_force = (float)pow(f_force, ffall_val+1.0);
-				}
-			}
-			else {
-				f_force= 1.0f/(1.0f + distance-mindist);
-				if(ffall_val!=0.0f)
-					f_force = (float)pow(f_force, ffall_val+1.0);
-			}
-			
-			/* now derive path point from loc_time */
-			if(pd->flag & PFIELD_GUIDE_PATH_ADD)
-				where_on_path(ob, f_force*loc_time*ec->time_scale, guidevec, guidedir);
-			else
-				where_on_path(ob, loc_time*ec->time_scale, guidevec, guidedir);
-			
-			VECSUB(guidedir, guidevec, ec->oldloc);
-			VECCOPY(ec->oldloc, guidevec);
-			
-			Mat4Mul3Vecfl(ob->obmat, guidedir);
-			VecMulf(guidedir, ec->scale);	/* correction for lifetime and speed */
-			
-			/* we subtract the speed we gave it previous step */
-			VECCOPY(guidevec, guidedir);
-			VECSUB(guidedir, guidedir, ec->oldspeed);
-			VECCOPY(ec->oldspeed, guidevec);
-			
-			/* if it fully contributes, we stop */
-			if(f_force==1.0) {
-				VECCOPY(guidecollect, guidedir);
-				guidedist= 1.0f;
-				break;
-			}
-			else if(guidedist<1.0f) {
-				VecMulf(guidedir, f_force);
-				VECADD(guidecollect, guidecollect, guidedir);
-				guidedist += f_force;
-			}					
-		}
-	}
-
-	/* all guides are accumulated here */
-	if(guidedist!=0.0f) {
-		if(guidedist!=1.0f) VecMulf(guidecollect, 1.0f/guidedist);
-		VECADD(speed, speed, guidecollect);
 	}
 }
-
-
-/* for paf start to end, store all matrices for objects */
-typedef struct pMatrixCache {
-	float obmat[4][4];
-	float imat[3][3];
-} pMatrixCache;
-
-/* for fluidsim win32 debug messages */
-#if defined(WIN32) && (!(defined snprintf))
-#define snprintf _snprintf
-#endif

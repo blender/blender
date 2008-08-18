@@ -88,6 +88,13 @@ typedef struct bActuatorSensor {
 	char name[32];
 } bActuatorSensor;
 
+typedef struct bDelaySensor {
+    short delay;
+	short duration;
+	short flag;
+	short pad;
+} bDelaySensor;
+
 typedef struct bCollisionSensor {
 	char name[32];          /* property name */
 	char materialName[32];  /* material      */
@@ -204,6 +211,7 @@ typedef struct bJoystickSensor {
 #define SENS_MESSAGE   10
 #define SENS_JOYSTICK  11
 #define SENS_ACTUATOR  12
+#define SENS_DELAY     13
 /* sensor->flag */
 #define SENS_SHOW		1
 #define SENS_DEL		2
@@ -253,6 +261,8 @@ typedef struct bJoystickSensor {
 
 #define SENS_JOY_HAT			2
 #define SENS_JOY_HAT_DIR		0
+
+#define SENS_DELAY_REPEAT		1
 
 #endif
 

@@ -158,15 +158,14 @@ PyParentObject CValue::Parents[] = {
 };
 
 PyMethodDef CValue::Methods[] = {
-//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, Py_NEWARGS},
-	{ "getName", (PyCFunction) CValue::sPyGetName, Py_NEWARGS},
+//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, METH_VARARGS},
+	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* CValue::PyGetName(PyObject* self,PyObject* args,PyObject* kwds)
+PyObject* CValue::PyGetName(PyObject* self)
 {
-	PyObject* pyname = PyString_FromString(this->GetName());
-	return pyname;
+	return PyString_FromString(this->GetName());
 }
 
 /*#define CVALUE_DEBUG*/
@@ -662,7 +661,7 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 
 static PyMethodDef	CValueMethods[] = 
 {
-	//{ "new", CValue::PyMake , Py_NEWARGS},
+	//{ "new", CValue::PyMake , METH_VARARGS},
 	{ NULL,NULL}	// Sentinel
 };
 
@@ -806,9 +805,8 @@ PyObject*	CValue::ConvertKeysToPython( void )
 PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 {
 
-	//Py_Try(PyArg_ParseTuple(args,"s",&name));
-	Py_INCREF(Py_None);
-	return Py_None;//new CValue();
+	//if (!PyArg_ParseTuple(args,"s",&name)) return NULL;
+	Py_RETURN_NONE;//new CValue();
 }
 */
 

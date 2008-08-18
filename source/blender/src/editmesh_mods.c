@@ -109,6 +109,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "editmesh.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
 
 /* ****************************** MIRROR **************** */
 
@@ -2937,7 +2938,7 @@ void select_sharp_edges(void)
 	EditFace *efa;
 	EditFace **efa1;
 	EditFace **efa2;
-	long edgecount = 0, i;
+	intptr_t edgecount = 0, i;
 	static short sharpness = 135;
 	float fsharpness;
 
@@ -3041,7 +3042,7 @@ void select_linked_flat_faces(void)
 	EditFace *efa;
 	EditFace **efa1;
 	EditFace **efa2;
-	long edgecount = 0, i, faceselcount=0, faceselcountold=0;
+	intptr_t edgecount = 0, i, faceselcount=0, faceselcountold=0;
 	static short sharpness = 135;
 	float fsharpness;
 

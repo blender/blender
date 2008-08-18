@@ -197,8 +197,8 @@
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
-#define SET_INT_IN_POINTER(i) ((void*)(long)(i))
-#define GET_INT_FROM_POINTER(i) ((int)(long)(i))
+#define SET_INT_IN_POINTER(i) ((void*)(intptr_t)(i))
+#define GET_INT_FROM_POINTER(i) ((int)(intptr_t)(i))
 
 #endif
 

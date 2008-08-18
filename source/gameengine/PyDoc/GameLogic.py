@@ -42,6 +42,7 @@ Documentation for the GameLogic Module.
 		- L{SCA_MouseSensor}
 		- L{SCA_PropertySensor} 
 		- L{SCA_RandomSensor} 
+		- L{SCA_DelaySensor}
 	
 	You can also access actuators linked to the controller::
 		# To get an actuator attached to the controller:

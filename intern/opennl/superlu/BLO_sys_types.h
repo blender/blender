@@ -37,6 +37,11 @@
  *
  */
 
+/* 
+// DG: original BLO_sys_types.h is in source/blender/blenkernel 
+// but is not allowed be accessed here because of bad-level-call
+*/
+
 #ifndef BLO_SYS_TYPES_H
 #define BLO_SYS_TYPES_H
 
@@ -59,12 +64,22 @@ typedef unsigned __int16 uint16_t;
 typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
+#ifndef _INTPTR_T_DEFINED
 #ifdef _WIN64
 typedef __int64 intptr_t;
-typedef unsigned __int64 uintptr_t;
 #else
 typedef long intptr_t;
+#endif
+#define _INTPTR_T_DEFINED
+#endif
+
+#ifndef _UINTPTR_T_DEFINED
+#ifdef _WIN64
+typedef unsigned __int64 uintptr_t;
+#else
 typedef unsigned long uintptr_t;
+#endif
+#define _UINTPTR_T_DEFINED
 #endif
 
 #elif defined(__linux__)
@@ -88,8 +103,12 @@ typedef unsigned long uintptr_t;
 #endif /* ifdef platform for types */
 
 #ifdef _WIN32
+#ifndef htonl
 #define htonl(x) correctByteOrder(x)
+#endif
+#ifndef ntohl
 #define ntohl(x) correctByteOrder(x)
+#endif
 #elif defined (__FreeBSD__) || defined (__OpenBSD__) 
 #include <sys/param.h>
 #elif defined (__APPLE__)

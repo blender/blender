@@ -255,7 +255,7 @@ public:
 	
 	virtual PyObject* ConvertKeysToPython( void );
 	
-	KX_PYMETHOD(CValue,GetName);
+	KX_PYMETHOD_NOARGS(CValue,GetName);
 
 #else
 	CValue();

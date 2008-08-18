@@ -148,6 +148,7 @@ public:
 	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,Reset);
 
 };
 

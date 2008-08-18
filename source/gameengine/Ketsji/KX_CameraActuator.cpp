@@ -395,8 +395,8 @@ PyParentObject KX_CameraActuator::Parents[] = {
 };
 
 PyMethodDef KX_CameraActuator::Methods[] = {
-	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_VARARGS,	SetObject_doc},
-	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_NOARGS,	GetObject_doc},
+	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,	SetObject_doc},
+	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	GetObject_doc},
 	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	SetMin_doc},
 	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	GetMin_doc},
 	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	SetMax_doc},
@@ -413,50 +413,43 @@ PyObject* KX_CameraActuator::_getattr(const STR_String& attr) {
 }
 /* get obj  ---------------------------------------------------------- */
 char KX_CameraActuator::GetObject_doc[] = 
-"getObject\n"
+"getObject(name_only = 1)\n"
+"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object this sensor reacts to.\n";
-PyObject* KX_CameraActuator::PyGetObject(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_CameraActuator::PyGetObject(PyObject* self, PyObject* args)
 {
-	return PyString_FromString(m_ob->GetName());
+	int ret_name_only = 1;
+	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+		return NULL;
+	
+	if (!m_ob)
+		Py_RETURN_NONE;
+	
+	if (ret_name_only)
+		return PyString_FromString(m_ob->GetName());
+	else
+		return m_ob->AddRef();
 }
 /* set obj  ---------------------------------------------------------- */
 char KX_CameraActuator::SetObject_doc[] = 
-"setObject\n"
+"setObject(object)\n"
+"\t- object: KX_GameObject, string or None\n"
 "\tSets the object this sensor reacts to.\n";
-PyObject* KX_CameraActuator::PySetObject(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_CameraActuator::PySetObject(PyObject* self, PyObject* value)
 {
-    
-	PyObject* gameobj;
-	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
-	{
-		if (m_ob)
-			m_ob->UnregisterActuator(this);
-		m_ob = (SCA_IObject*)gameobj;
-		if (m_ob)
-			m_ob->RegisterActuator(this);
-		Py_Return;
-	}
-	PyErr_Clear();
+	KX_GameObject *gameobj;
 	
-	char* objectname;
-	if (PyArg_ParseTuple(args, "s", &objectname))
-	{
-		SCA_IObject *object = (SCA_IObject*)SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname));
-		if(object)
-		{
-			if (m_ob != NULL)
-				m_ob->UnregisterActuator(this);
-			m_ob = object;
-			m_ob->RegisterActuator(this);
-			Py_Return;
-		}
-	}
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return NULL; // ConvertPythonToGameObject sets the error
 	
-	return NULL;
+	if (m_ob != NULL)
+		m_ob->UnregisterActuator(this);	
+
+	m_ob = (SCA_IObject*)gameobj;
+	if (m_ob)
+		m_ob->RegisterActuator(this);
+	
+	Py_RETURN_NONE;
 }
 
 /* get min  ---------------------------------------------------------- */

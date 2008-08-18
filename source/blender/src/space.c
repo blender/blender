@@ -182,6 +182,8 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
 extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);/*rcruiz*/
@@ -460,7 +462,7 @@ static LinkNode *save_and_reset_all_scene_cfra(void)
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		BLI_linklist_prepend(&storelist, (void*) (long) sc->r.cfra);
+		BLI_linklist_prepend(&storelist, (void*) (intptr_t) sc->r.cfra);
 
 		/* why is this reset to 1 ?*/
 		/* sc->r.cfra= 1;*/
@@ -478,7 +480,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		int stored_cfra= (long) sc_store->link;
+		int stored_cfra= (intptr_t) sc_store->link;
 		
 		sc->r.cfra= stored_cfra;
 		set_scene_bg(sc);

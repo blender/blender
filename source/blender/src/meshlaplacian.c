@@ -63,6 +63,8 @@
 
 #include "ONL_opennl.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /************************** Laplacian System *****************************/
 
 struct LaplacianSystem {
@@ -126,14 +128,14 @@ static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
 	void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
 
 	if(p)
-		*p = (void*)((long)*p + (long)1);
+		*p = (void*)((intptr_t)*p + (intptr_t)1);
 	else
-		BLI_edgehash_insert(edgehash, v1, v2, (void*)(long)1);
+		BLI_edgehash_insert(edgehash, v1, v2, (void*)(intptr_t)1);
 }
 
 static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)
 {
-	return (int)(long)BLI_edgehash_lookup(edgehash, v1, v2);
+	return (int)(intptr_t)BLI_edgehash_lookup(edgehash, v1, v2);
 }
 
 static float cotan_weight(float *v1, float *v2, float *v3)

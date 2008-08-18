@@ -3,6 +3,8 @@
 #include "KX_ScalarInterpolator.h"
 #include "KX_GameObject.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -76,10 +78,10 @@ SG_Controller*	KX_MaterialIpoController::GetReplica(class SG_Node* destnode)
 		iporeplica->AddInterpolator(copyipo);
 
 		MT_Scalar* scaal = ((KX_ScalarInterpolator*)*i)->GetTarget();
-		long orgbase = (long)this;
-		long orgloc = (long)scaal;
-		long offset = orgloc-orgbase;
-		long newaddrbase = (long)iporeplica + offset;
+		intptr_t orgbase = (intptr_t)this;
+		intptr_t orgloc = (intptr_t)scaal;
+		intptr_t offset = orgloc-orgbase;
+		intptr_t newaddrbase = (intptr_t)iporeplica + offset;
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}

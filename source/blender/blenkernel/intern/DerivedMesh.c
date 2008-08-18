@@ -79,6 +79,8 @@
 #include "BKE_utildefines.h"
 #include "BKE_particle.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
 #endif
@@ -479,7 +481,7 @@ static void emDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next)
 			func(userData, i, emdm->vertexCos[(int) eed->v1->tmp.l], emdm->vertexCos[(int) eed->v2->tmp.l]);
 	} else {
@@ -497,7 +499,7 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 
 		glBegin(GL_LINES);
 		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
@@ -532,7 +534,7 @@ static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(vo
 		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 
 		glBegin(GL_LINES);
 		for (i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
@@ -619,7 +621,7 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 
 	if (emdm->vertexCos) {
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 	}
 
 	for(i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
@@ -637,7 +639,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
@@ -733,7 +735,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 		EditVert *eve;
 
 		for (i=0,eve=em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 
 		for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
 			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -1053,7 +1055,7 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 	/* store vertex indices in tmp union */
 	for(ev = em->verts.first, i = 0; ev; ev = ev->next, ++i)
-		ev->tmp.l = (long) i;
+		ev->tmp.l = (intptr_t) i;
 
 	for( ; ee; ee = ee->next, ++edge_r) {
 		edge_r->crease = (unsigned char) (ee->crease*255.0f);
@@ -1081,7 +1083,7 @@ void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 
 	/* store vertexes indices in tmp union */
 	for(ev = em->verts.first, i = 0; ev; ev = ev->next, ++i)
-		ev->tmp.l = (long) i;
+		ev->tmp.l = (intptr_t) i;
 
 	for( ; ef; ef = ef->next, ++face_r) {
 		face_r->mat_nr = ef->mat_nr;
@@ -1168,7 +1170,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 		int i;
 
 		for (i=0,eve=em->verts.first; eve; eve= eve->next)
-			eve->tmp.l = (long) i++;
+			eve->tmp.l = (intptr_t) i++;
 
 		emdm->vertexNos = MEM_callocN(sizeof(*emdm->vertexNos)*i, "emdm_vno");
 		emdm->faceNos = MEM_mallocN(sizeof(*emdm->faceNos)*totface, "emdm_vno");

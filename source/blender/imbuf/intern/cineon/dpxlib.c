@@ -58,15 +58,15 @@ fillDpxChannelInfo(DpxFile* dpx, DpxChannelInformation* chan, int des) {
 
 static void
 dumpDpxChannelInfo(DpxChannelInformation* chan) {
-	d_printf("	Signage %ld", (long)ntohl(chan->signage));
-	d_printf("	Ref low data %ld\n", (long)ntohl(chan->ref_low_data));
+	d_printf("	Signage %ld", (intptr_t)ntohl(chan->signage));
+	d_printf("	Ref low data %ld\n", (intptr_t)ntohl(chan->ref_low_data));
 	d_printf("	Ref low quantity %f\n", ntohf(chan->ref_low_quantity));
-	d_printf("	Ref high data %ld\n", (long)ntohl(chan->ref_high_data));
+	d_printf("	Ref high data %ld\n", (intptr_t)ntohl(chan->ref_high_data));
 	d_printf("	Ref high quantity %f\n", ntohf(chan->ref_high_quantity));
 	d_printf("	Designator1: %d,", chan->designator1);
 	d_printf("	Bits per pixel %d\n", chan->bits_per_pixel);
 	d_printf("	Packing: %d,", ntohs(chan->packing));
-	d_printf("	Data Offset: %ld,", (long)ntohl(chan->data_offset));
+	d_printf("	Data Offset: %ld,", (intptr_t)ntohl(chan->data_offset));
 }
 
 static void
@@ -110,19 +110,19 @@ static void
 dumpDpxFileInfo(DpxFileInformation* fileInfo) {
 	d_printf("\n--File Information--\n");
 	d_printf("Magic: %8.8lX\n", (unsigned long)ntohl(fileInfo->magic_num));
-	d_printf("Image Offset %ld\n", (long)ntohl(fileInfo->offset));
+	d_printf("Image Offset %ld\n", (intptr_t)ntohl(fileInfo->offset));
 	d_printf("Version \"%s\"\n", fileInfo->vers);
-	d_printf("File size %ld\n", (long)ntohl(fileInfo->file_size));
-	d_printf("Ditto key %ld\n", (long)ntohl(fileInfo->ditto_key));
-	d_printf("Generic Header size %ld\n", (long)ntohl(fileInfo->gen_hdr_size));
-	d_printf("Industry Header size %ld\n", (long)ntohl(fileInfo->ind_hdr_size));
-	d_printf("User Data size %ld\n", (long)ntohl(fileInfo->user_data_size));
+	d_printf("File size %ld\n", (intptr_t)ntohl(fileInfo->file_size));
+	d_printf("Ditto key %ld\n", (intptr_t)ntohl(fileInfo->ditto_key));
+	d_printf("Generic Header size %ld\n", (intptr_t)ntohl(fileInfo->gen_hdr_size));
+	d_printf("Industry Header size %ld\n", (intptr_t)ntohl(fileInfo->ind_hdr_size));
+	d_printf("User Data size %ld\n", (intptr_t)ntohl(fileInfo->user_data_size));
 	d_printf("File name \"%s\"\n", fileInfo->file_name);
 	d_printf("Creation date \"%s\"\n", fileInfo->create_date);
 	d_printf("Creator \"%s\"\n", fileInfo->creator);
 	d_printf("Project \"%s\"\n", fileInfo->project);
 	d_printf("Copyright \"%s\"\n", fileInfo->copyright);
-	d_printf("Key %ld\n", (long)ntohl(fileInfo->key));
+	d_printf("Key %ld\n", (intptr_t)ntohl(fileInfo->key));
 }
 
 static void
@@ -150,8 +150,8 @@ dumpDpxImageInfo(DpxImageInformation* imageInfo) {
 	d_printf("Image orientation %d,", ntohs(imageInfo->orientation));
 	n = ntohs(imageInfo->channels_per_image);
 	d_printf("Channels %d\n", n);
-	d_printf("Pixels per line %ld\n", (long)ntohl(imageInfo->pixels_per_line));
-	d_printf("Lines per image %ld\n", (long)ntohl(imageInfo->lines_per_image));
+	d_printf("Pixels per line %ld\n", (intptr_t)ntohl(imageInfo->pixels_per_line));
+	d_printf("Lines per image %ld\n", (intptr_t)ntohl(imageInfo->lines_per_image));
 	for (i = 0; i < n; ++i) {
 		d_printf("	--Channel %d--\n", i);
 		dumpDpxChannelInfo(&imageInfo->channel[i]);
@@ -166,12 +166,12 @@ fillDpxOriginationInfo(
 static void
 dumpDpxOriginationInfo(DpxOriginationInformation* originInfo) {
 	d_printf("\n--Origination Information--\n");
-	d_printf("X offset %ld\n", (long)ntohl(originInfo->x_offset));
-	d_printf("Y offset %ld\n", (long)ntohl(originInfo->y_offset));
+	d_printf("X offset %ld\n", (intptr_t)ntohl(originInfo->x_offset));
+	d_printf("Y offset %ld\n", (intptr_t)ntohl(originInfo->y_offset));
 	d_printf("X centre %f\n", ntohf(originInfo->x_centre));
 	d_printf("Y centre %f\n", ntohf(originInfo->y_centre));
-	d_printf("Original X %ld\n", (long)ntohl(originInfo->x_original_size));
-	d_printf("Original Y %ld\n", (long)ntohl(originInfo->y_original_size));
+	d_printf("Original X %ld\n", (intptr_t)ntohl(originInfo->x_original_size));
+	d_printf("Original Y %ld\n", (intptr_t)ntohl(originInfo->y_original_size));
 	d_printf("File name \"%s\"\n", originInfo->file_name);
 	d_printf("Creation time \"%s\"\n", originInfo->creation_time);
 	d_printf("Input device \"%s\"\n", originInfo->input_device);
@@ -417,7 +417,7 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 	/* let's assume dpx files are always network order */
 	if (header.fileInfo.magic_num != ntohl(DPX_FILE_MAGIC)) {
 		if (verbose) d_printf("Bad magic number %8.8lX in \"%s\".\n",
-			(unsigned long)ntohl(header.fileInfo.magic_num), filename);
+			(uintptr_t)ntohl(header.fileInfo.magic_num), filename);
 		dpxClose(dpx);
 		return 0;
 	}

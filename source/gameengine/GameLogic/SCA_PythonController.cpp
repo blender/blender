@@ -248,7 +248,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		{
 			// didn't compile, so instead of compile, complain
 			// something is wrong, tell the user what went wrong
-			printf("PYTHON SCRIPT ERROR:\n");
+			printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
 			//PyRun_SimpleString(m_scriptText.Ptr());
 			PyErr_Print();
 			return;
@@ -285,7 +285,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	else
 	{
 		// something is wrong, tell the user what went wrong
-		printf("PYTHON SCRIPT ERROR:\n");
+		printf("Python script error from controller \"%s\": \n", GetName().Ptr());
 		PyErr_Print();
 		//PyRun_SimpleString(m_scriptText.Ptr());
 	}

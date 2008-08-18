@@ -74,7 +74,7 @@ extern "C" { extern char bprogname[]; }
 // add drive character if not in path string, using blender executable location as reference
 static void addDrive(string &path)
 {
-	int sp = path.find_first_of(":");
+	size_t sp = path.find_first_of(":");
 	if (sp==-1) {
 		string blpath = bprogname;
 		sp = blpath.find_first_of(":");

@@ -464,17 +464,10 @@ char BL_ShapeActionActuator::GetAction_doc[] =
 "\tReturns a string containing the name of the current action.\n";
 
 PyObject* BL_ShapeActionActuator::PyGetAction(PyObject* self) {
-	PyObject *result;
-	
 	if (m_action){
-		result = Py_BuildValue("s", m_action->id.name+2);
+		return PyString_FromString(m_action->id.name+2);
 	}
-	else{
-		Py_INCREF(Py_None);
-		result = Py_None;
-	}
-	
-	return result;
+	Py_RETURN_NONE;
 }
 
 /*     getProperty                                                             */
@@ -591,12 +584,10 @@ PyObject* BL_ShapeActionActuator::PySetAction(PyObject* self,
 		}
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setStart                                                              */
@@ -614,12 +605,10 @@ PyObject* BL_ShapeActionActuator::PySetStart(PyObject* self,
 		m_startframe = start;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setEnd                                                                */
@@ -637,12 +626,10 @@ PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* self,
 		m_endframe = end;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendin                                                            */
@@ -661,12 +648,10 @@ PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* self,
 		m_blendin = blendin;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendtime                                                          */
@@ -690,12 +675,10 @@ PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* self,
 			m_blendframe = m_blendin;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setPriority                                                           */
@@ -715,12 +698,10 @@ PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self,
 		m_priority = priority;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setFrame                                                              */
@@ -742,12 +723,10 @@ PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* self,
 			m_localtime=m_endframe;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setProperty                                                           */
@@ -766,12 +745,10 @@ PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self,
 		m_propname = string;
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* getType */
@@ -793,7 +770,6 @@ PyObject* BL_ShapeActionActuator::PySetType(PyObject* self,
 	short typeArg;
                                                                                                              
     if (!PyArg_ParseTuple(args, "h", &typeArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
         return NULL;
     }
 

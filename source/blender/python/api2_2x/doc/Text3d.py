@@ -287,6 +287,26 @@ class Text3d:
 		@param align: The new text3d's Alignment value. 
 		"""
 	
+	def getMaterial(index):
+		"""
+		get the material index of a character.
+		@rtype: int
+		@return: the material index if the character
+		@type index: int
+		@param index: the index of the character in a string
+		"""
+
+	def setMaterial(index, material_index):
+		"""
+		Set a characters material.
+		@note: after changing this youll need to update the object with object.makeDisplayList() to see the changes.
+		@rtype: None
+		@type index: int
+		@param index: the index of the character in a string
+		@type material_index: int
+		@param material_index: the material index set set the character.
+		"""
+	
 	def addFrame():
 		"""
 		Adds a text frame. maximum number of frames is 255.

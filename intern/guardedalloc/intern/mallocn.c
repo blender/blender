@@ -49,6 +49,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLO_sys_types.h" // needed for intptr_t
+
 /* --------------------------------------------------------------------- */
 /* Data definition                                                       */
 /* --------------------------------------------------------------------- */
@@ -112,7 +114,7 @@ static const char *check_memlist(MemHead *memh);
 	
 
 volatile int totblock= 0;
-volatile unsigned long mem_in_use= 0, mmap_in_use= 0;
+volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -335,7 +337,7 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 /* Memory statistics print */
 typedef struct MemPrintBlock {
 	const char *name;
-	unsigned long len;
+	uintptr_t len;
 	int items;
 } MemPrintBlock;
 
@@ -485,14 +487,14 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 		return(-1);
 	}
 
-	if(sizeof(long)==8) {
-		if (((long) memh) & 0x7) {
+	if(sizeof(intptr_t)==8) {
+		if (((intptr_t) memh) & 0x7) {
 			MemorY_ErroR("free","attempt to free illegal pointer");
 			return(-1);
 		}
 	}
 	else {
-		if (((long) memh) & 0x3) {
+		if (((intptr_t) memh) & 0x3) {
 			MemorY_ErroR("free","attempt to free illegal pointer");
 			return(-1);
 		}

@@ -631,7 +631,8 @@ void CParser::SetContext(CValue* context)
 PyObject*	CParserPyMake(PyObject* ignored,PyObject* args)
 {
 	char* txt;
-	Py_Try(PyArg_ParseTuple(args,"s",&txt));
+	if (!PyArg_ParseTuple(args,"s",&txt))
+		return NULL;
 	CParser parser;
 	CExpression* expr = parser.ProcessText(txt);
 	CValue* val = expr->Calculate();
@@ -641,7 +642,7 @@ PyObject*	CParserPyMake(PyObject* ignored,PyObject* args)
 
 static PyMethodDef	CParserMethods[] = 
 {
-	{ "calc", CParserPyMake , Py_NEWARGS},
+	{ "calc", CParserPyMake , METH_VARARGS},
 	{ NULL,NULL}	// Sentinel
 };
 

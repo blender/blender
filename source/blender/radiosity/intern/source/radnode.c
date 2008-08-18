@@ -50,6 +50,8 @@
 
 #include "radio.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -167,14 +169,14 @@ void *calloc_fast(int size)
 void free_fast(void *poin, int size)
 {
 	MallocGroup *mg;
-	long val;
+	intptr_t val;
 
 	mg= MallocBase.last;
 	while(mg) {
 		if(mg->size==size) {
-			if( ((long)poin) >= ((long)mg->data) ) {
-				if( ((long)poin) < ((long)(mg->data+MAL_GROUPSIZE*size)) ) {
-					val= ((long)poin) - ((long)mg->data);
+			if( ((intptr_t)poin) >= ((intptr_t)mg->data) ) {
+				if( ((intptr_t)poin) < ((intptr_t)(mg->data+MAL_GROUPSIZE*size)) ) {
+					val= ((intptr_t)poin) - ((intptr_t)mg->data);
 					val/= size;
 					mg->curfree= val;
 					mg->flags[val]= 0;
