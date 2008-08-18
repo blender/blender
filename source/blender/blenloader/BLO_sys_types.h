@@ -43,11 +43,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifdef FREE_WINDOWS
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
-#endif
  
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 
