@@ -81,6 +81,10 @@ typedef unsigned long uintptr_t;
 
 #include <inttypes.h>
 
+#elif defined(FREE_WINDOWS)
+
+#include <stdint.h>
+
 #else
 
 	/* FreeBSD, Irix, Solaris */
