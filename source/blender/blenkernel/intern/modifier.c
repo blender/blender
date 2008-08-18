@@ -5493,7 +5493,7 @@ static void collisionModifier_deformVerts(
 		
 		numverts = dm->getNumVerts ( dm );
 		
-		if(current_time > collmd->time)
+		if((current_time > collmd->time)|| (BKE_ptcache_get_continue_physics()))
 		{	
 			// check if mesh has changed
 			if(collmd->x && (numverts != collmd->numverts))

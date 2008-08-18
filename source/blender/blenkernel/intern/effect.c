@@ -59,6 +59,7 @@
 #include "BKE_armature.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
+#include "BKE_collision.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -393,6 +394,53 @@ void do_physical_effector(short type, float force_val, float distance, float fal
 }
 
 
+static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{	
+	hit->dist = -1;
+	hit->index = 1;
+}
+
+float eff_calc_visibility(Object *ob, float *co, float *dir, float cur_time)
+{
+	CollisionModifierData **collobjs = NULL;
+	int numcollobj = 0, i;
+	float norm[3], len = 0.0;
+	float visibility = 1.0;
+	
+	collobjs = get_collisionobjects(ob, &numcollobj);
+	
+	if(!collobjs)
+		return 0;
+	
+	VECCOPY(norm, dir);
+	VecMulf(norm, -1.0);
+	len = Normalize(norm);
+	
+	// check all collision objects
+	for(i = 0; i < numcollobj; i++)
+	{
+		CollisionModifierData *collmd = collobjs[i];
+		
+		if(collmd->bvhtree)
+		{
+			BVHTreeRayHit hit;
+			
+			hit.index = -1;
+			hit.dist = len + FLT_EPSILON;
+			
+			
+			// check if the way is blocked
+			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, &hit, eff_tri_ray_hit, NULL)>=0)
+			{
+				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorbation)*0.01)));
+			}
+		}
+	}
+	
+	MEM_freeN(collobjs);
+	
+	return visibility;
+}
 
 
 /*  -------- pdDoEffectors() --------
@@ -430,7 +478,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 	float *obloc;
 	
 	float distance, vec_to_part[3];
-	float falloff;
+	float falloff, visibility;
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
@@ -452,14 +500,19 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		distance = VecLength(vec_to_part);
 
 		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);
-
+		
 		if(falloff<=0.0f)
+			continue;
+		
+		visibility = eff_calc_visibility(ob, opco, vec_to_part, cur_time);
+		
+		if((visibility*falloff)<=0.0f)
 			;	/* don't do anything */
 		else {
 			float field[3]={0,0,0}, tmp[3];
 			VECCOPY(field, force);
 			do_physical_effector(pd->forcefield,pd->f_strength,distance,
-								falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
+								visibility*falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
 								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
 			
 			// for softbody backward compatibility

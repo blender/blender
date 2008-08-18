@@ -60,6 +60,7 @@
 #include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
+#include "BKE_effect.h"
 #include "BKE_particle.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"

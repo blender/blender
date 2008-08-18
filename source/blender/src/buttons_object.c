@@ -3279,6 +3279,8 @@ static void object_panel_collision(Object *ob)
 		uiDefBut(block, LABEL, 0, "",160,160,150,2, NULL, 0.0, 0, 0, 0, "");
 		
 		if(pd->deflect) {
+			CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType ( ob, eModifierType_Collision );
+			
 			uiDefBut(block, LABEL, 0, "Particle Interaction",			10,135,310,20, NULL, 0.0, 0, 0, 0, "");
 
 			uiBlockBeginAlign(block);
@@ -3294,12 +3296,18 @@ static void object_panel_collision(Object *ob)
 			uiDefBut(block, LABEL, 0, "Soft Body and Cloth Interaction",			10,65,310,20, NULL, 0.0, 0, 0, 0, "");
 
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	10,45,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during collision");
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	10,25,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	10, 5,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	10,45,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	160, 45,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			uiBlockEndAlign(block);
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	10,25,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during collision");
 
-			uiDefButBitS(block, TOG, OB_SB_COLLFINAL, B_FIELD_CHANGE, "Ev.M.Stack", 170,45,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack (softbody only)");
+			uiDefButBitS(block, TOG, OB_SB_COLLFINAL, B_FIELD_CHANGE, "Ev.M.Stack", 160,25,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack (softbody only)");
+			
+			// collision options
+			if(collmd)
+			{
+				uiDefButS(block, NUM, B_FIELD_CHANGE, "Absoption: ",	10,0,150,20, &collmd->absorbation, 0.0, 100, 1, 2, "How much of effector force gets lost during collision with this object (in percent).");
+			}
 		}
 	}
 }

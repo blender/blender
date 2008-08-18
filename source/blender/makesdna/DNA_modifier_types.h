@@ -390,7 +390,8 @@ typedef struct CollisionModifierData {
 	
 	unsigned int numverts;
 	unsigned int numfaces;
-	int pad;
+	short absorbation; /* used for forces, in % */
+	short pad;
 	float time;		/* cfra time of modifier */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
