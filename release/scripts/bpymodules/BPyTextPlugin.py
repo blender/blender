@@ -56,8 +56,9 @@ class ClassDesc(Definition):
 	which it is defined is held in lineno.
 	"""
 	
-	def __init__(self, name, defs, vars, lineno, doc=''):
+	def __init__(self, name, parents, defs, vars, lineno, doc=''):
 		Definition.__init__(self, name, lineno, doc)
+		self.parents = parents
 		self.defs = defs
 		self.vars = vars
 
@@ -150,8 +151,11 @@ def resolve_targets(txt, targets):
 	i = 1
 	
 	desc = get_cached_descriptor(txt)
-	if desc.classes.has_key(targets[0]):
-		local = desc.classes[targets[0]]
+	b = targets[0].find('(')
+	if b==-1: b = None # Trick to let us use [:b] and get the whole string
+	
+	if desc.classes.has_key(targets[0][:b]):
+		local = desc.classes[targets[0][:b]]
 	elif desc.defs.has_key(targets[0]):
 		local = desc.defs[targets[0]]
 	elif desc.vars.has_key(targets[0]):
@@ -159,8 +163,10 @@ def resolve_targets(txt, targets):
 	
 	if local:
 		while i < count:
-			if hasattr(local, 'classes') and local.classes.has_key(targets[i]):
-				local = local.classes[targets[i]]
+			b = targets[i].find('(')
+			if b==-1: b = None
+			if hasattr(local, 'classes') and local.classes.has_key(targets[i][:b]):
+				local = local.classes[targets[i][:b]]
 			elif hasattr(local, 'defs') and local.defs.has_key(targets[i]):
 				local = local.defs[targets[i]]
 			elif hasattr(local, 'vars') and local.vars.has_key(targets[i]):
@@ -369,14 +375,21 @@ def parse_text(txt):
 				cls_indent = indent
 				cls_step = 1
 		
-		# Found 'class', look for cls_name followed by '('
+		# Found 'class', look for cls_name followed by '(' parents ')'
 		elif cls_step == 1:
 			if not cls_name:
 				if type == NAME:
 					cls_name = text
 					cls_sline = False
+					cls_parents = dict()
 					cls_defs = dict()
 					cls_vars = dict()
+			elif type == NAME:
+				if classes.has_key(text):
+					parent = classes[text]
+					cls_parents[text] = parent
+					cls_defs.update(parent.defs)
+					cls_vars.update(parent.vars)
 			elif text == ':':
 				cls_step = 2
 		
@@ -394,11 +407,11 @@ def parse_text(txt):
 				cls_doc = _trim_doc(text)
 			if cls_sline:
 				if type == NEWLINE:
-					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno, cls_doc)
+					classes[cls_name] = ClassDesc(cls_name, cls_parents, cls_defs, cls_vars, cls_lineno, cls_doc)
 					cls_step = 0
 			else:
 				if type == DEDENT and indent <= cls_indent:
-					classes[cls_name] = ClassDesc(cls_name, cls_defs, cls_vars, cls_lineno, cls_doc)
+					classes[cls_name] = ClassDesc(cls_name, cls_parents, cls_defs, cls_vars, cls_lineno, cls_doc)
 					cls_step = 0
 		
 		#################
@@ -699,11 +712,22 @@ def get_targets(line, cursor):
 	returns them as a list in the same order.
 	"""
 	
-	i = cursor - 1
-	while i >= 0 and (line[i].isalnum() or line[i] == '_' or line[i] == '.'):
+	brk = 0
+	targets = []
+	j = cursor
+	i = j-1
+	while i >= 0:
+		if line[i] == ')': brk += 1
+		elif brk:
+			if line[i] == '(': brk -= 1
+		else:
+			if line[i] == '.':
+				targets.insert(0, line[i+1:j]); j=i
+			elif not (line[i].isalnum() or line[i] == '_' or line[i] == '.'):
+				break
 		i -= 1
-	
-	return line[i+1:cursor].split('.')
+	targets.insert(0, line[i+1:j])
+	return targets
 
 def get_defs(txt):
 	"""Returns a dictionary which maps definition names in the source code to
