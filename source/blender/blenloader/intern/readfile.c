@@ -2942,11 +2942,9 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			sens= ob->sensors.first;
 			while(sens) {
-				if(ob->id.lib==NULL) {	// done in expand_main
-					for(a=0; a<sens->totlinks; a++) {
-						sens->links[a]= newglobadr(fd, sens->links[a]);
-					}
-				}
+				for(a=0; a<sens->totlinks; a++)
+					sens->links[a]= newglobadr(fd, sens->links[a]);
+
 				if(sens->type==SENS_TOUCH) {
 					bTouchSensor *ts= sens->data;
 					ts->ma= newlibadr(fd, ob->id.lib, ts->ma);
@@ -2961,11 +2959,9 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			cont= ob->controllers.first;
 			while(cont) {
-				if(ob->id.lib==NULL) {	// done in expand_main
-					for(a=0; a<cont->totlinks; a++) {
-						cont->links[a]= newglobadr(fd, cont->links[a]);
-					}
-				}
+				for(a=0; a<cont->totlinks; a++)
+					cont->links[a]= newglobadr(fd, cont->links[a]);
+
 				if(cont->type==CONT_PYTHON) {
 					bPythonCont *pc= cont->data;
 					pc->text= newlibadr(fd, ob->id.lib, pc->text);
@@ -8481,9 +8477,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	sens= ob->sensors.first;
 	while(sens) {
-		for(a=0; a<sens->totlinks; a++) {
-			sens->links[a]= newglobadr(fd, sens->links[a]);
-		}
 		if(sens->type==SENS_TOUCH) {
 			bTouchSensor *ts= sens->data;
 			expand_doit(fd, mainvar, ts->ma);
@@ -8497,9 +8490,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	cont= ob->controllers.first;
 	while(cont) {
-		for(a=0; a<cont->totlinks; a++) {
-			cont->links[a]= newglobadr(fd, cont->links[a]);
-		}
 		if(cont->type==CONT_PYTHON) {
 			bPythonCont *pc= cont->data;
 			expand_doit(fd, mainvar, pc->text);
