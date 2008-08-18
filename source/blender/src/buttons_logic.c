@@ -3349,8 +3349,8 @@ void logic_buts(void)
 					ycoo= yco;
 					if(sens->flag & SENS_SHOW)
 					{
-						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 100, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, sens->name, 0, 31, 0, 0, "Sensor name");
+						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-124), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -3360,9 +3360,9 @@ void logic_buts(void)
 					else {
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
-						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 100, 19, sens, 0, 0, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, 19, sens, 0, 0, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+122), yco, (short)(width-144), 19, sens, 0, 31, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-124), 19, sens, 0, 31, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
 					}
 
@@ -3419,8 +3419,8 @@ void logic_buts(void)
 
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
-						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 100, 19, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, act->name, 0, 31, 0, 0, "Actuator name");
+						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, 19, &act->type, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-134), 19, act->name, 0, 31, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -3430,9 +3430,9 @@ void logic_buts(void)
 					else {
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
-						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 100, 19, act, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, 19, act, 0, 0, 0, 0, "Actuator type");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
-						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+122), yco, (short)(width-144), 19, act, 0, 0, 0, 0, "Actuator name");
+						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-134), 19, act, 0, 0, 0, 0, "Actuator name");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
 						ycoo= yco;
 					}
