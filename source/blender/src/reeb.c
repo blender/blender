@@ -451,38 +451,43 @@ void verifyNodeDegree(ReebGraph *rg)
 #endif
 }
 
+void verifyBucketsArc(ReebGraph *rg, ReebArc *arc)
+{
+	ReebNode *head = (ReebNode*)arc->head;
+	ReebNode *tail = (ReebNode*)arc->tail;
+
+	if (arc->bcount > 0)
+	{
+		int i;
+		for(i = 0; i < arc->bcount; i++)
+		{
+			if (arc->buckets[i].nv == 0)
+			{
+				printArc(arc);
+				printf("count error in bucket %i/%i\n", i+1, arc->bcount);
+			}
+		}
+		
+		if (ceil(head->weight) != arc->buckets[0].val)
+		{
+			printArc(arc);
+			printf("alloc error in first bucket: %f should be %f \n", arc->buckets[0].val, ceil(head->weight));
+		}
+		if (floor(tail->weight) != arc->buckets[arc->bcount - 1].val)
+		{
+			printArc(arc);
+			printf("alloc error in last bucket: %f should be %f \n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
+		}
+	}
+}
+
 void verifyBuckets(ReebGraph *rg)
 {
 #ifdef DEBUG_REEB
 	ReebArc *arc = NULL;
 	for(arc = rg->arcs.first; arc; arc = arc->next)
 	{
-		ReebNode *head = (ReebNode*)arc->head;
-		ReebNode *tail = (ReebNode*)arc->tail;
-
-		if (arc->bcount > 0)
-		{
-			int i;
-			for(i = 0; i < arc->bcount; i++)
-			{
-				if (arc->buckets[i].nv == 0)
-				{
-					printArc(arc);
-					printf("count error in bucket %i/%i\n", i+1, arc->bcount);
-				}
-			}
-			
-			if (ceil(head->weight) < arc->buckets[0].val)
-			{
-				printArc(arc);
-				printf("alloc error in first bucket: %f should be %f \n", arc->buckets[0].val, ceil(head->weight));
-			}
-			if (floor(tail->weight) < arc->buckets[arc->bcount - 1].val)
-			{
-				printArc(arc);
-				printf("alloc error in last bucket: %f should be %f \n", arc->buckets[arc->bcount - 1].val, floor(tail->weight));
-			}
-		}
+		verifyBucketsArc(rg, arc);
 	}
 #endif
 }
@@ -498,6 +503,19 @@ void verifyFaces(ReebGraph *rg)
 	}
 	
 #endif
+}
+
+void verifyArcs(ReebGraph *rg)
+{
+	ReebArc *arc;
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		if (arc->head->weight > arc->tail->weight)
+		{
+			printf("FLIPPED ARC!\n");
+		}
+	}
 }
 
 void verifyMultiResolutionLinks(ReebGraph *rg, int level)
@@ -1138,32 +1156,40 @@ void sortArcs(ReebGraph *rg)
 }
 /******************************************* JOINING ***************************************************/
 
-void reweightArc(ReebArc *arc, ReebNode *start_node, float start_weight)
+void reweightArc(ReebGraph *rg, ReebArc *arc, ReebNode *start_node, float start_weight)
 {
 	ReebNode *node;
 	float old_weight;
-	float end_weight = start_weight + (arc->tail->weight - arc->head->weight);
+	float end_weight = start_weight + ABS(arc->tail->weight - arc->head->weight);
+	int flag = start_node->flag;
 	int i;
 	
+	node = (ReebNode*)BLI_otherNode((BArc*)arc, (BNode*)start_node);
+	
+	/* prevent backtracking */
+	if (node->flag == 0)
+	{
+		return;
+	}
+
 	if (arc->tail == start_node)
 	{
 		flipArc(arc);
 	}
 	
-	node = arc->tail;
+	start_node->flag = 0;
 	
 	for (i = 0; i < node->degree; i++)
 	{
 		ReebArc *next_arc = node->arcs[i];
 		
-		if (next_arc != arc) /* prevent backtracking */
-		{
-			reweightArc(next_arc, node, end_weight);
-		}
+		reweightArc(rg, next_arc, node, end_weight);
 	}
+	
+	start_node->flag = flag;
 
 	/* update only if needed */	
-	if (arc->head->weight != start_weight)
+	if (arc->head->weight != start_weight || arc->tail->weight != end_weight)
 	{
 		old_weight = arc->head->weight; /* backup head weight, other arcs need it intact, it will be fixed by the source arc */
 		
@@ -1186,7 +1212,7 @@ void reweightSubgraph(ReebGraph *rg, ReebNode *start_node, float start_weight)
 	{
 		ReebArc *next_arc = start_node->arcs[i];
 		
-		reweightArc(next_arc, start_node, start_weight);
+		reweightArc(rg, next_arc, start_node, start_weight);
 	}
 	start_node->weight = start_weight;
 }
@@ -1249,7 +1275,7 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 
 				start_arc->head = end_node;
 
-				merging = 1;
+				merging = 2;
 			}
 			
 
@@ -1308,6 +1334,11 @@ int joinSubgraphs(ReebGraph *rg, float threshold)
 	
 	BLI_buildAdjacencyList((BGraph*)rg);
 	
+	if (BLI_isGraphCyclic((BGraph*)rg))
+	{
+		/* don't deal with cyclic graphs YET */
+		return 0;
+	}
 	
 	/* sort nodes before flagging subgraphs to make sure root node is subgraph 0 */
 	sortNodes(rg);
@@ -1326,7 +1357,6 @@ int joinSubgraphs(ReebGraph *rg, float threshold)
 		
 		if (joined)
 		{
-			verifyNodeDegree(rg);
 			removeNormalNodes(rg);
 			BLI_buildAdjacencyList((BGraph*)rg);
 		}
@@ -1503,7 +1533,7 @@ int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, flo
 			/* Always remove lower node, so arcs don't flip */
 			newNode = arc->head;
 			removedNode = arc->tail;
-			
+
 			filterArc(rg, newNode, removedNode, arc, 1);
 
 			// Reset nextArc, it might have changed
@@ -1772,8 +1802,6 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 	
 	calculateGraphLength(rg);
 
-	verifyNodeDegree(rg);
-
 	if ((options & SKGEN_FILTER_EXTERNAL) == 0)
 	{
 		threshold_external = 0;
@@ -1792,7 +1820,6 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 			done = 0; /* no work done yet */
 			
 			done = filterInternalExternalReebGraph(rg, threshold_internal, threshold_external);
-			verifyNodeDegree(rg);
 		}
 	}
 
@@ -1801,8 +1828,6 @@ void filterGraph(ReebGraph *rg, short options, float threshold_internal, float t
 		filterSmartReebGraph(rg, 0.5);
 		filterCyclesReebGraph(rg, 0.5);
 	}
-	
-	verifyNodeDegree(rg);
 
 	repositionNodes(rg);
 
@@ -2489,7 +2514,6 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 			if (countfaces % 100 == 0)
 			{
 				printf("\rface %i of %i", countfaces, totfaces);
-				verifyFaces(rg);
 			}
 #endif
 		}
@@ -3347,7 +3371,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	removeNormalNodes(rg);
 	
 	joinSubgraphs(rg, 1.0);
-	
+
 	BLI_buildAdjacencyList((BGraph*)rg);
 	
 	/* calc length before copy, so we have same length on all levels */
@@ -3420,21 +3444,13 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
 
-	verifyNodeDegree(rg);
-
 	REEB_exportGraph(rg, -1);
-
-	verifyBuckets(rg);
-	
-	verifyFaces(rg);
 
 	printf("GENERATED\n");
 	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
 
 	/* Remove arcs without embedding */
 	filterNullReebGraph(rg);
-
-	verifyBuckets(rg);
 
 	BLI_freeAdjacencyList((BGraph*)rg);
 
