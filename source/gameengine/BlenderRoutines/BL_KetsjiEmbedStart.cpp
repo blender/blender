@@ -90,33 +90,10 @@ void update_for_newframe();
 
 static BlendFileData *load_game_data(char *filename) {
 	BlendReadError error;
-	//this doesn't work anymore for relative paths, so use BLO_read_from_memory instead
-	//BlendFileData *bfd= BLO_read_from_file(filename, &error);
-	FILE* file = fopen(filename,"rb");
-	BlendFileData *bfd  = 0;
-	if (file)
-	{
-		fseek(file, 0L, SEEK_END);
-		int len= ftell(file);
-		fseek(file, 0L, SEEK_SET);	
-		char* filebuffer= new char[len];//MEM_mallocN(len, "text_buffer");
-		int sizeread = fread(filebuffer,len,1,file);
-		if (sizeread==1){
-			bfd = BLO_read_from_memory(filebuffer, len, &error);
-		} else {
-			error = BRE_UNABLE_TO_READ;
-		}
-		fclose(file);
-		// the memory is not released in BLO_read_from_memory, must do it here
-		delete filebuffer;
-	} else {
-		error = BRE_UNABLE_TO_OPEN;
-	}
-
+	BlendFileData *bfd= BLO_read_from_file(filename, &error);
 	if (!bfd) {
 		printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
 	}
-	
 	return bfd;
 }
 
