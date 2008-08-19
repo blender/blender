@@ -733,6 +733,10 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
+	
+	// can be overwritten later for gameEngine instances that can load new blend files and re-initialize this module
+	// for now its safe to make sure it exists for other areas such as the web plugin
+	PyDict_SetItemString(d, "globalDict", PyDict_New());
 
 	ErrorObject = PyString_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
