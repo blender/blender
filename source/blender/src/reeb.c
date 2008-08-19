@@ -250,6 +250,11 @@ ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node)
 	return (arc->head->index == node->index) ? arc->tail : arc->head;
 }
 
+ReebNode *BIF_NodeFromIndex(ReebArc *arc, ReebNode *node)
+{
+	return (arc->head->index == node->index) ? arc->head : arc->tail;
+}
+
 ReebNode *BIF_lowestLevelNode(ReebNode *node)
 {
 	while (node->link_down)
@@ -3581,7 +3586,7 @@ void REEB_draw()
 		{
 			VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
 		
-			s += sprintf(s, "%i ", i);
+			s += sprintf(s, "%i (%i-%i-%i) ", i, arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 		
 			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)
 			{

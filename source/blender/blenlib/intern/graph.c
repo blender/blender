@@ -194,6 +194,34 @@ int BLI_hasAdjacencyList(BGraph *rg)
 	return 1;
 }
 
+void BLI_replaceNodeInArc(BGraph *graph, BArc *arc, BNode *node_src, BNode *node_replaced)
+{
+	if (arc->head == node_replaced)
+	{
+		arc->head = node_src;
+		node_src->degree++;
+	}
+
+	if (arc->tail == node_replaced)
+	{
+		arc->tail = node_src;
+		node_src->degree++;
+	}
+	
+	if (arc->head == arc->tail)
+	{
+		node_src->degree -= 2;
+		
+		graph->free_arc(arc);
+		BLI_freelinkN(&graph->arcs, arc);
+	}
+
+	if (node_replaced->degree == 0)
+	{
+		BLI_removeNode(graph, node_replaced);
+	}
+}
+
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced)
 {
 	BArc *arc, *next_arc;
@@ -222,6 +250,11 @@ void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced)
 			BLI_freelinkN(&graph->arcs, arc);
 		}
 	}
+	
+	if (node_replaced->degree == 0)
+	{
+		BLI_removeNode(graph, node_replaced);
+	}
 }
 
 void BLI_removeDoubleNodes(BGraph *graph, float limit)
@@ -235,12 +268,28 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 			if (node_replaced != node_src && VecLenf(node_replaced->p, node_src->p) <= limit)
 			{
 				BLI_replaceNode(graph, node_src, node_replaced);
-				
-				BLI_removeNode(graph, node_replaced);
 			}
 		}
 	}
 	
+}
+
+BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
+{
+	BNode *closest_node = NULL, *node;
+	float min_distance;
+	
+	for(node = graph->nodes.first; node; node = node->next)
+	{
+		float distance = VecLenf(p, node->p); 
+		if (distance <= limit && (closest_node == NULL || distance < min_distance))
+		{
+			closest_node = node;
+			min_distance = distance;
+		}
+	}
+	
+	return closest_node;
 }
 /************************************* SUBGRAPH DETECTION **********************************************/
 
@@ -556,7 +605,7 @@ static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring,
 		for (i = 0; i < total; i++)
 		{
 			ring[i].arc->symmetry_group = group;
-			ring[i].arc->symmetry_flag = i;
+			ring[i].arc->symmetry_flag = SYM_SIDE_RADIAL + i;
 		}
 
 		if (graph->radial_symmetry)
@@ -837,7 +886,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	float axis[3] = {0, 0, 0};
 	int count = 0;
 	int i;
-
+	
 	/* count the number of branches in this symmetry group
 	 * and determinte the axis of symmetry
 	 *  */	
@@ -869,7 +918,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	{
 		handleRadialSymmetry(graph, node, depth, axis, limit);
 	}
-	
+		
 	/* markdown secondary symetries */	
 	for (i = 0; i < node->degree; i++)
 	{

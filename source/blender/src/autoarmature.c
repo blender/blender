@@ -78,7 +78,7 @@ struct RigArc;
 struct RigEdge;
 
 #define NB_THREADS 4
-//#define USE_THREADS
+#define USE_THREADS
 
 typedef struct RigGraph {
 	ListBase	arcs;
@@ -159,6 +159,7 @@ typedef struct RigControl {
 typedef struct RetargetParam {
 	RigGraph	*rigg;
 	RigArc		*iarc;
+	RigNode		*inode_start;
 } RetargetParam;
 
 typedef enum 
@@ -401,6 +402,28 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *parent)
 {
 	if (parent)
 	{
+		/* if there's already a parent, overwrite only if new parent is higher in the chain */
+		if (ctrl->parent)
+		{
+			EditBone *bone = NULL;
+			
+			for (bone = ctrl->parent; bone; bone = bone->parent)
+			{
+				/* if parent is in the chain, break and use that one */
+				if (bone == parent)
+				{
+					break;
+				}
+			}
+			
+			/* not in chain, don't update parent */
+			if (bone == NULL)
+			{
+				return 0;
+			}
+		}
+		
+		
 		ctrl->parent = parent;
 		
 		VecSubf(ctrl->offset, ctrl->bone->head, ctrl->parent->tail);
@@ -559,6 +582,61 @@ static void RIG_removeNormalNodes(RigGraph *rg)
 	}
 }
 
+static void RIG_removeUneededOffsets(RigGraph *rg)
+{
+	RigArc *arc;
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		RigEdge *first_edge, *last_edge;
+		
+		first_edge = arc->edges.first;
+		last_edge = arc->edges.last;
+		
+		if (first_edge->bone == NULL && VecLenf(first_edge->tail, arc->head->p) <= 0.001)
+		{
+			BLI_remlink(&arc->edges, first_edge);
+			MEM_freeN(first_edge);
+		}
+		else if (arc->head->degree == 1 && first_edge->bone == NULL)
+		{
+			RigNode *new_node = (RigNode*)BLI_FindNodeByPosition((BGraph*)rg, first_edge->tail, 0.001);
+			
+			if (new_node)
+			{
+				BLI_remlink(&arc->edges, first_edge);
+				MEM_freeN(first_edge);
+				BLI_replaceNodeInArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->head, (BNode*)new_node);
+			}
+		}
+		
+		if (last_edge->bone == NULL && VecLenf(last_edge->head, arc->tail->p) <= 0.001)
+		{
+			BLI_remlink(&arc->edges, last_edge);
+			MEM_freeN(last_edge);
+		}
+		else if (arc->tail->degree == 1 && last_edge->bone == NULL)
+		{
+			RigNode *new_node = (RigNode*)BLI_FindNodeByPosition((BGraph*)rg, last_edge->head, 0.001);
+			
+			if (new_node)
+			{
+				RigEdge *previous_edge = last_edge->prev;
+				
+				BLI_remlink(&arc->edges, last_edge);
+				MEM_freeN(last_edge);
+				BLI_replaceNodeInArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->tail, (BNode*)new_node);
+				
+				/* set previous angle to 0, since there's no following edges */
+				if (previous_edge)
+				{
+					previous_edge->angle = 0;
+				}
+			}
+		}
+	}
+}
+
 static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bone, RigNode *starting_node)
 {
 	EditBone *bone, *last_bone = root_bone;
@@ -587,7 +665,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 				}
 			}
 			
-			if (bone->parent && (bone->flag & BONE_CONNECTED) == 0 && (bone->parent->flag & BONE_NO_DEFORM) == 0)
+			if (bone->parent && (bone->flag & BONE_CONNECTED) == 0)
 			{
 				RIG_addEdgeToArc(arc, bone->head, NULL);
 			}
@@ -616,8 +694,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 			{
 				end_node = newRigNodeTail(rg, arc, bone->tail);
 			}
-			/* only create a new node if the parent was a deform bone */
-			else if ((bone->flag & BONE_NO_DEFORM) == 0)
+			else
 			{
 				end_node = newRigNode(rg, bone->tail);
 			}
@@ -773,6 +850,8 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
 	
 	RIG_removeNormalNodes(rg);
 	
+	RIG_removeUneededOffsets(rg);
+	
 	BLI_buildAdjacencyList((BGraph*)rg);
 	
 	RIG_findHead(rg);
@@ -857,7 +936,7 @@ static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float 
 }
 
 static RetargetMode detectArcRetargetMode(RigArc *arc);
-static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc);
+static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_start);
 
 
 static RetargetMode detectArcRetargetMode(RigArc *iarc)
@@ -1223,7 +1302,23 @@ static int neighbour(int nb_joints, float *cost_cube, int *moving_joint, int *mo
 	return 1;
 }
 
-static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
+static int testFlipArc(RigArc *iarc, RigNode *inode_start)
+{
+	ReebArc *earc = iarc->link_mesh;
+	ReebNode *enode_start = BIF_NodeFromIndex(earc, inode_start->link_mesh);
+	
+	/* no flip needed if both nodes are the same */
+	if ((enode_start == earc->head && inode_start == iarc->head) || (enode_start == earc->tail && inode_start == iarc->tail))
+	{
+		return 0;
+	}
+	else
+	{
+		return 1;
+	}
+}
+
+static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
 {
 	ReebArcIterator iter;
 	RigEdge *edge;
@@ -1238,7 +1333,6 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	int *positions;
 	int nb_edges = BLI_countlist(&iarc->edges);
 	int nb_joints = nb_edges - 1;
-	int symmetry_axis = 0;
 	RetargetMethod method = METHOD_ANNEALING; //G.scene->toolsettings->skgen_optimisation_method;
 	int i;
 
@@ -1247,10 +1341,10 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	cost_cache = MEM_callocN(sizeof(float) * nb_edges, "Cost cache");
 	vec_cache = MEM_callocN(sizeof(float*) * (nb_edges + 1), "Vec cache");
 	
-	/* symmetry axis */
-	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
+//	/* symmetry axis */
+//	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
+	if (testFlipArc(iarc, inode_start))
 	{
-		symmetry_axis = 1;
 		node_start = earc->tail;
 		node_end = earc->head;
 	}
@@ -1586,7 +1680,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc)
 	MEM_freeN(vec_cache);
 }
 
-static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc)
+static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
 {
 	ReebArcIterator iter;
 	ReebArc *earc = iarc->link_mesh;
@@ -1597,13 +1691,12 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc)
 	float *vec0 = NULL;
 	float *vec1 = NULL;
 	float *previous_vec = NULL;
-	int symmetry_axis = 0;
 
 	
-	/* symmetry axis */
-	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
+//	/* symmetry axis */
+//	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
+	if (testFlipArc(iarc, inode_start))
 	{
-		symmetry_axis = 1;
 		node_start = (ReebNode*)earc->tail;
 		node_end = (ReebNode*)earc->head;
 	}
@@ -1671,19 +1764,23 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc)
 	}
 }
 
-static void retargetArctoArc(RigGraph *rigg, RigArc *iarc)
+static void retargetArctoArc(RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
 {
 #ifdef USE_THREADS
 	RetargetParam *p = MEM_callocN(sizeof(RetargetParam), "RetargetParam");
 	
 	p->rigg = rigg;
 	p->iarc = iarc;
+	p->inode_start = inode_start;
 	
 	BLI_insert_work(rigg->worker, p);
 #else
 	RetargetParam p;
+
 	p.rigg = rigg;
 	p.iarc = iarc;
+	p.inode_start = inode_start;
+	
 	exec_retargetArctoArc(&p);
 #endif
 }
@@ -1693,6 +1790,7 @@ void *exec_retargetArctoArc(void *param)
 	RetargetParam *p = (RetargetParam*)param;
 	RigGraph *rigg = p->rigg;
 	RigArc *iarc = p->iarc;	
+	RigNode *inode_start = p->inode_start;
 	ReebArc *earc = iarc->link_mesh;
 	
 	if (BLI_countlist(&iarc->edges) == 1)
@@ -1700,8 +1798,9 @@ void *exec_retargetArctoArc(void *param)
 		RigEdge *edge = iarc->edges.first;
 		EditBone *bone = edge->bone;
 		
-		/* symmetry axis */
-		if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
+//		/* symmetry axis */
+//		if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
+		if (testFlipArc(iarc, inode_start))
 		{
 			repositionBone(rigg, bone, earc->tail->p, earc->head->p);
 		}
@@ -1717,11 +1816,11 @@ void *exec_retargetArctoArc(void *param)
 		
 		if (mode == RETARGET_AGGRESSIVE)
 		{
-			retargetArctoArcAggresive(rigg, iarc);
+			retargetArctoArcAggresive(rigg, iarc, inode_start);
 		}
 		else
 		{		
-			retargetArctoArcLength(rigg, iarc);
+			retargetArctoArcLength(rigg, iarc, inode_start);
 		}
 	}
 
@@ -1882,7 +1981,7 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 		ReebNode *enode = start_node->link_mesh;
 		ReebArc *earc = start_arc->link_mesh;
 		
-		retargetArctoArc(rigg, start_arc);
+		retargetArctoArc(rigg, start_arc, start_node);
 		
 		enode = BIF_otherNodeFromIndex(earc, enode);
 		inode = (RigNode*)BLI_otherNode((BArc*)start_arc, (BNode*)inode);
@@ -1934,6 +2033,9 @@ void BIF_retargetArmature()
 	Object *ob;
 	Base *base;
 	ReebGraph *reebg;
+	double start_time, end_time;
+	
+	start_time = PIL_check_seconds_timer();
 	
 	reebg = BIF_ReebGraphMultiFromEditMesh();
 	
@@ -1981,6 +2083,12 @@ void BIF_retargetArmature()
 	}
 
 	REEB_freeGraph(reebg);
+	
+	end_time = PIL_check_seconds_timer();
+
+	printf("-----------\n");
+	printf("runtime: %.3f\n", end_time - start_time);
+	printf("-----------\n");
 	
 	BIF_undo_push("Retarget Skeleton");
 	
