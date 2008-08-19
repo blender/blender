@@ -2616,7 +2616,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 									pd->flag & PFIELD_TEX_OBJECT, (pd->flag & PFIELD_TEX_ROOTCO) ? rootco : state->co, eob->obmat,
 									pd->f_strength, falloff, force_field);
 				} else {
-					do_physical_effector(pd->forcefield,pd->f_strength,distance,
+					do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
 										falloff,pd->f_dist,pd->f_damp,eob->obmat[2],vec_to_part,
 										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
 				}
@@ -2665,7 +2665,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 						if(falloff<=0.0f)
 							;	/* don't do anything */
 						else
-							do_physical_effector(pd->forcefield,pd->f_strength,distance,
+							do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
 							falloff,epart->size,pd->f_damp,estate.vel,vec_to_part,
 							state->vel,force_field,0, pd->rng, pd->f_noise);
 					}

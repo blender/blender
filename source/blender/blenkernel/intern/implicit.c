@@ -1405,7 +1405,6 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	unsigned int numverts = cloth->numverts;
 	LinkNode *search = cloth->springs;
 	lfVector *winvec;
-	ClothVertex *verts = cloth->verts;
 
 	VECCOPY(gravity, clmd->sim_parms->gravity);
 	mul_fvector_S(gravity, gravity, 0.001f); /* scale gravity force */

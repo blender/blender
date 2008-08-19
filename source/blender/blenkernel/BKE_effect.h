@@ -66,7 +66,7 @@ void			pdEndEffectors(struct ListBase *lb);
 void			pdDoEffectors(struct ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags);
 
 /* required for particle_system.c */
-void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor);
+void do_physical_effector(Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor);
 float effector_falloff(struct PartDeflect *pd, float *eff_velocity, float *vec_to_part);
 
 

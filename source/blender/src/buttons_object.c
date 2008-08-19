@@ -3306,7 +3306,7 @@ static void object_panel_collision(Object *ob)
 			// collision options
 			if(collmd)
 			{
-				uiDefButS(block, NUM, B_FIELD_CHANGE, "Absoption: ",	10,0,150,20, &collmd->absorbation, 0.0, 100, 1, 2, "How much of effector force gets lost during collision with this object (in percent).");
+				uiDefButS(block, NUM, B_FIELD_CHANGE, "Absorption: ",	10,0,150,20, &collmd->absorption, 0.0, 100, 1, 2, "How much of effector force gets lost during collision with this object (in percent).");
 			}
 		}
 	}

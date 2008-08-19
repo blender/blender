@@ -229,6 +229,60 @@ void pdEndEffectors(ListBase *lb)
 /*			Effectors		*/
 /************************************************/
 
+// triangle - ray callback function
+static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{	
+	// whenever we hit a bounding box, we don't check further
+	hit->dist = -1;
+	hit->index = 1;
+}
+
+// get visibility of a wind ray
+static float eff_calc_visibility(Object *ob, float *co, float *dir)
+{
+	CollisionModifierData **collobjs = NULL;
+	int numcollobj = 0, i;
+	float norm[3], len = 0.0;
+	float visibility = 1.0;
+	
+	collobjs = get_collisionobjects(ob, &numcollobj);
+	
+	if(!collobjs)
+		return 0;
+	
+	VECCOPY(norm, dir);
+	VecMulf(norm, -1.0);
+	len = Normalize(norm);
+	
+	// check all collision objects
+	for(i = 0; i < numcollobj; i++)
+	{
+		CollisionModifierData *collmd = collobjs[i];
+		
+		if(collmd->bvhtree)
+		{
+			BVHTreeRayHit hit;
+			
+			hit.index = -1;
+			hit.dist = len + FLT_EPSILON;
+			
+			// check if the way is blocked
+			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, &hit, eff_tri_ray_hit, NULL)>=0)
+			{
+				// visibility is only between 0 and 1, calculated from 1-absorption
+				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorption)*0.01)));
+				
+				if(visibility <= 0.0f)
+					break;
+			}
+		}
+	}
+	
+	MEM_freeN(collobjs);
+	
+	return visibility;
+}
+
 // noise function for wind e.g.
 static float wind_func(struct RNG *rng, float strength)
 {
@@ -315,12 +369,18 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 	return falloff;
 }
 
-void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor)
+void do_physical_effector(Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor)
 {
 	float mag_vec[3]={0,0,0};
 	float temp[3], temp2[3];
 	float eff_vel[3];
-	float noise = 0;
+	float noise = 0, visibility;
+	
+	// calculate visibility
+	visibility = eff_calc_visibility(ob, opco, vec_to_part);
+	if(visibility <= 0.0)
+		return;
+	falloff *= visibility;
 
 	VecCopyf(eff_vel,eff_velocity);
 	Normalize(eff_vel);
@@ -330,7 +390,7 @@ void do_physical_effector(short type, float force_val, float distance, float fal
 			VECCOPY(mag_vec,eff_vel);
 			
 			// add wind noise here, only if we have wind
-			if((noise_factor> 0.0f) && (force_val > FLT_EPSILON))
+			if((noise_factor > 0.0f) && (force_val > FLT_EPSILON))
 				noise = wind_func(rng, noise_factor);
 			
 			VecMulf(mag_vec,(force_val+noise)*falloff);
@@ -393,56 +453,6 @@ void do_physical_effector(short type, float force_val, float distance, float fal
 	}
 }
 
-
-static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
-{	
-	hit->dist = -1;
-	hit->index = 1;
-}
-
-float eff_calc_visibility(Object *ob, float *co, float *dir, float cur_time)
-{
-	CollisionModifierData **collobjs = NULL;
-	int numcollobj = 0, i;
-	float norm[3], len = 0.0;
-	float visibility = 1.0;
-	
-	collobjs = get_collisionobjects(ob, &numcollobj);
-	
-	if(!collobjs)
-		return 0;
-	
-	VECCOPY(norm, dir);
-	VecMulf(norm, -1.0);
-	len = Normalize(norm);
-	
-	// check all collision objects
-	for(i = 0; i < numcollobj; i++)
-	{
-		CollisionModifierData *collmd = collobjs[i];
-		
-		if(collmd->bvhtree)
-		{
-			BVHTreeRayHit hit;
-			
-			hit.index = -1;
-			hit.dist = len + FLT_EPSILON;
-			
-			
-			// check if the way is blocked
-			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, &hit, eff_tri_ray_hit, NULL)>=0)
-			{
-				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorbation)*0.01)));
-			}
-		}
-	}
-	
-	MEM_freeN(collobjs);
-	
-	return visibility;
-}
-
-
 /*  -------- pdDoEffectors() --------
     generic force/speed system, now used for particles and softbodies
 	lb			= listbase with objects that take part in effecting
@@ -478,7 +488,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 	float *obloc;
 	
 	float distance, vec_to_part[3];
-	float falloff, visibility;
+	float falloff;
 
 	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
@@ -499,20 +509,15 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		VecSubf(vec_to_part, opco, ob->obmat[3]);
 		distance = VecLength(vec_to_part);
 
-		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);
+		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);		
 		
 		if(falloff<=0.0f)
-			continue;
-		
-		visibility = eff_calc_visibility(ob, opco, vec_to_part, cur_time);
-		
-		if((visibility*falloff)<=0.0f)
 			;	/* don't do anything */
 		else {
 			float field[3]={0,0,0}, tmp[3];
 			VECCOPY(field, force);
-			do_physical_effector(pd->forcefield,pd->f_strength,distance,
-								visibility*falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
+			do_physical_effector(ob, opco, pd->forcefield,pd->f_strength,distance,
+								falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
 								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
 			
 			// for softbody backward compatibility
