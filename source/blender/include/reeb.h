@@ -53,6 +53,7 @@ typedef struct ReebGraph {
 	int resolution;
 	int totnodes;
 	struct EdgeHash *emap;
+	int multi_level;
 	struct ReebGraph *link_up; /* for multi resolution filtering, points to higher levels */
 } ReebGraph;
 
@@ -79,6 +80,7 @@ typedef struct ReebNode {
 
 	int index;
 	float weight;
+	int	multi_level;
 	struct ReebNode *link_down; /* for multi resolution filtering, points to lower levels, if present */
 	struct ReebNode *link_up;
 } ReebNode;
@@ -176,6 +178,8 @@ void BIF_GlobalReebFree(void);
 ReebNode *BIF_otherNodeFromIndex(ReebArc *arc, ReebNode *node);
 ReebNode *BIF_NodeFromIndex(ReebArc *arc, ReebNode *node);
 ReebNode *BIF_lowestLevelNode(ReebNode *node);
+
+ReebGraph *BIF_graphForMultiNode(ReebGraph *rg, ReebNode *node);
 
 void REEB_freeGraph(ReebGraph *rg);
 void REEB_exportGraph(ReebGraph *rg, int count);

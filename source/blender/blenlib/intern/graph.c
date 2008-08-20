@@ -100,12 +100,12 @@ static void addArcToNodeAdjacencyList(BNode *node, BArc *arc)
 	node->flag++;
 }
 
-void BLI_buildAdjacencyList(BGraph *rg)
+void BLI_buildAdjacencyList(BGraph *graph)
 {
 	BNode *node;
 	BArc *arc;
 
-	for(node = rg->nodes.first; node; node = node->next)
+	for(node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->arcs != NULL)
 		{
@@ -118,13 +118,13 @@ void BLI_buildAdjacencyList(BGraph *rg)
 		node->flag = 0;
 	}
 
-	for(arc = rg->arcs.first; arc; arc= arc->next)
+	for(arc = graph->arcs.first; arc; arc= arc->next)
 	{
 		addArcToNodeAdjacencyList(arc->head, arc);
 		addArcToNodeAdjacencyList(arc->tail, arc);
 	}
 
-	for(node = rg->nodes.first; node; node = node->next)
+	for(node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->degree != node->flag)
 		{
@@ -133,7 +133,7 @@ void BLI_buildAdjacencyList(BGraph *rg)
 	}
 }
 
-void BLI_rebuildAdjacencyListForNode(BGraph* rg, BNode *node)
+void BLI_rebuildAdjacencyListForNode(BGraph* graph, BNode *node)
 {
 	BArc *arc;
 
@@ -147,7 +147,7 @@ void BLI_rebuildAdjacencyListForNode(BGraph* rg, BNode *node)
 	/* temporary use to indicate the first index available in the lists */
 	node->flag = 0;
 
-	for(arc = rg->arcs.first; arc; arc= arc->next)
+	for(arc = graph->arcs.first; arc; arc= arc->next)
 	{
 		if (arc->head == node)
 		{
@@ -165,11 +165,11 @@ void BLI_rebuildAdjacencyListForNode(BGraph* rg, BNode *node)
 	}
 }
 
-void BLI_freeAdjacencyList(BGraph *rg)
+void BLI_freeAdjacencyList(BGraph *graph)
 {
 	BNode *node;
 
-	for(node = rg->nodes.first; node; node = node->next)
+	for(node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->arcs != NULL)
 		{
@@ -179,11 +179,11 @@ void BLI_freeAdjacencyList(BGraph *rg)
 	}
 }
 
-int BLI_hasAdjacencyList(BGraph *rg)
+int BLI_hasAdjacencyList(BGraph *graph)
 {
 	BNode *node;
 	
-	for(node = rg->nodes.first; node; node = node->next)
+	for(node = graph->nodes.first; node; node = node->next)
 	{
 		if (node->arcs == NULL)
 		{
@@ -233,12 +233,14 @@ void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced)
 		if (arc->head == node_replaced)
 		{
 			arc->head = node_src;
+			node_replaced->degree--;
 			node_src->degree++;
 		}
 
 		if (arc->tail == node_replaced)
 		{
 			arc->tail = node_src;
+			node_replaced->degree--;
 			node_src->degree++;
 		}
 		

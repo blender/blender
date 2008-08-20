@@ -1833,13 +1833,12 @@ void *exec_retargetArctoArc(void *param)
 
 static void matchMultiResolutionNode(RigGraph *rigg, RigNode *inode, ReebNode *top_node)
 {
-	ReebNode *enode;
+	ReebNode *enode = top_node;
+	ReebGraph *reebg = BIF_graphForMultiNode(rigg->link_mesh, enode);
 	int ishape, eshape;
 	
-	enode = top_node;
-	
 	ishape = BLI_subtreeShape((BGraph*)rigg, (BNode*)inode, NULL, 0) % SHAPE_LEVELS;
-	eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BGraph*)reebg, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	
 	inode->link_mesh = enode;
 
@@ -1848,23 +1847,26 @@ static void matchMultiResolutionNode(RigGraph *rigg, RigNode *inode, ReebNode *t
 		inode->link_mesh = enode;
 
 		enode = enode->link_down;
-		eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+		reebg = BIF_graphForMultiNode(rigg->link_mesh, enode); /* replace with call to link_down once that exists */
+		eshape = BLI_subtreeShape((BGraph*)reebg, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	} 
 }
 
 static void matchMultiResolutionArc(RigGraph *rigg, RigNode *start_node, RigArc *next_iarc, ReebArc *next_earc)
 {
 	ReebNode *enode = next_earc->head;
+	ReebGraph *reebg = BIF_graphForMultiNode(rigg->link_mesh, enode);
 	int ishape, eshape;
 
 	ishape = BLI_subtreeShape((BGraph*)rigg, (BNode*)start_node, (BArc*)next_iarc, 1) % SHAPE_LEVELS;
-	eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
+	eshape = BLI_subtreeShape((BGraph*)reebg, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	
 	while (ishape != eshape && next_earc->link_up)
 	{
 		next_earc->flag = 1; // mark previous as taken, to prevent backtrack on lower levels
 		
 		next_earc = next_earc->link_up;
+		reebg = reebg->link_up;
 		enode = next_earc->head;
 		eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	} 
@@ -1896,7 +1898,7 @@ static void matchMultiResolutionStartingNode(RigGraph *rigg, ReebGraph *reebg, R
 		
 		enode = reebg->nodes.first;
 		
-		eshape = BLI_subtreeShape((BGraph*)rigg, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
+		eshape = BLI_subtreeShape((BGraph*)reebg, (BNode*)enode, NULL, 0) % SHAPE_LEVELS;
 	} 
 
 	inode->link_mesh = enode;
@@ -1943,6 +1945,19 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 	/* not found, try at higher nodes (lower node might have filtered internal arcs, messing shape of tree */
 	if (next_iarc->link_mesh == NULL)
 	{
+		printf("--------------------------\n");
+		printf("NO CORRESPONDING ARC FOUND - GOING TO HIGHER LEVELS\n");
+		RIG_printArcBones(next_iarc);
+		
+		printf("LOOKING FOR\n");
+		printf("flag %i -- symmetry level %i -- symmetry flag %i\n", 0, symmetry_level, symmetry_flag);
+		
+		printf("CANDIDATES\n");
+		for(i = 0; i < enode->degree; i++)
+		{
+			next_earc = (ReebArc*)enode->arcs[i];
+			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
+		}
 		if (enode->link_up)
 		{
 			start_node->link_mesh = enode->link_up;

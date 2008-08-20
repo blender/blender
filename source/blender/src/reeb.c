@@ -311,7 +311,7 @@ ReebArc * copyArc(ReebGraph *rg, ReebArc *arc)
 	return cp_arc;
 }
 
-ReebGraph * copyReebGraph(ReebGraph *rg)
+ReebGraph * copyReebGraph(ReebGraph *rg, int level)
 {
 	ReebNode *node;
 	ReebArc *arc;
@@ -320,11 +320,13 @@ ReebGraph * copyReebGraph(ReebGraph *rg)
 	cp_rg->resolution = rg->resolution;
 	cp_rg->length = rg->length;
 	cp_rg->link_up = rg;
+	cp_rg->multi_level = level;
 
 	/* Copy nodes */	
 	for (node = rg->nodes.first; node; node = node->next)
 	{
-		copyNode(cp_rg, node);
+		ReebNode *cp_node = copyNode(cp_rg, node);
+		cp_node->multi_level = level;
 	}
 	
 	/* Copy arcs */
@@ -336,6 +338,18 @@ ReebGraph * copyReebGraph(ReebGraph *rg)
 	BLI_buildAdjacencyList((BGraph*)cp_rg);
 	
 	return cp_rg;
+}
+
+ReebGraph *BIF_graphForMultiNode(ReebGraph *rg, ReebNode *node)
+{
+	ReebGraph *multi_rg = rg;
+	
+	while(multi_rg && multi_rg->multi_level != node->multi_level)
+	{
+		multi_rg = multi_rg->link_up;
+	}
+	
+	return multi_rg;
 }
 
 ReebEdge * copyEdge(ReebEdge *edge)
@@ -3383,7 +3397,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 
 	for (i = 0; i < nb_levels; i++)
 	{
-		rg = copyReebGraph(rg);
+		rg = copyReebGraph(rg, i + 1);
 	}
 	
 	for (rgi = rg, i = nb_levels, previous = NULL; rgi; previous = rgi, rgi = rgi->link_up, i--)
