@@ -440,17 +440,17 @@ def draw_propsheet(x,y):
 	y = y- (row_height + pad)
 	LOD_XLABEL = Blender.Draw.Label("X Coordinate", x, y, label_width, row_height)
 	x = origx + (label_width + pad)
-	LOD_X = Blender.Draw.Number("", evcode["LOD_X"], x, y, input_width, row_height,get_prop(73,xco),  -100.0, 100.0, "")
+	LOD_X = Blender.Draw.Number("", evcode["LOD_X"], x, y, input_width, row_height,get_prop(73,xco),  -1000000.0, 1000000.0, "")
 	x = origx
 	y = y- (row_height + pad)
 	LOD_YLABEL = Blender.Draw.Label("Y Coordinate", x, y, label_width, row_height)	
 	x = origx + (label_width + pad)
-	LOD_Y = Blender.Draw.Number("", evcode["LOD_Y"], x, y, input_width, row_height,get_prop(73,yco), -100.0, 100.0, "")
+	LOD_Y = Blender.Draw.Number("", evcode["LOD_Y"], x, y, input_width, row_height,get_prop(73,yco), -1000000.0,  1000000.0, "")
 	x = origx
 	y = y- (row_height + pad)
 	LOD_ZLABEL = Blender.Draw.Label("Z Coordinate", x, y, label_width, row_height)
 	x = origx + (label_width + pad)		
-	LOD_Z = Blender.Draw.Number("", evcode["LOD_Z"], x, y, input_width, row_height,get_prop(73,zco), -100.0, 100.0, "")
+	LOD_Z = Blender.Draw.Number("", evcode["LOD_Z"], x, y, input_width, row_height,get_prop(73,zco), -1000000.0, 1000000.0, "")
 
 
 	#Switch inputs
@@ -460,22 +460,22 @@ def draw_propsheet(x,y):
 	y = y- (row_height + pad)
 	LOD_SIGLABEL = Blender.Draw.Label("Significant Size", x, y, label_width, row_height)
 	x = origx + (label_width + pad)
-	LOD_SIG = Blender.Draw.Number("", evcode["LOD_SIG"], x, y, input_width, row_height, get_prop(73,sig_size),  -100.0, 100.0, "")
+	LOD_SIG = Blender.Draw.Number("", evcode["LOD_SIG"], x, y, input_width, row_height, get_prop(73,sig_size),  -1000000.0, 1000000.0, "")
 	x = origx
 	y = y- (row_height + pad)
 	LOD_INLABEL = Blender.Draw.Label("Switch In", x, y, label_width, row_height)
 	x = origx + (label_width + pad)
-	LOD_IN = Blender.Draw.Number("", evcode["LOD_IN"], x, y, input_width, row_height, get_prop(73,switch_in), -100.0, 100.0, "")
+	LOD_IN = Blender.Draw.Number("", evcode["LOD_IN"], x, y, input_width, row_height, get_prop(73,switch_in), -1000000.0, 1000000.0, "")
 	x = origx
 	y = y- (row_height + pad)
 	LOD_OUTLABEL = Blender.Draw.Label("Switch Out", x, y, label_width, row_height)	
 	x = origx + (label_width + pad)
-	LOD_OUT = Blender.Draw.Number("", evcode["LOD_OUT"], x, y, input_width, row_height, get_prop(73,switch_out), -100.0, 100.0, "")
+	LOD_OUT = Blender.Draw.Number("", evcode["LOD_OUT"], x, y, input_width, row_height, get_prop(73,switch_out), -1000000.0, 1000000.0, "")
 	x = origx
 	y = y- (row_height + pad)
 	LOD_TRANSLABEL = Blender.Draw.Label("Transition", x, y, label_width, row_height)		
 	x = origx + (label_width + pad)
-	LOD_TRANS = Blender.Draw.Number("", evcode["LOD_TRANS"], x, y, input_width, row_height, get_prop(73,trans), -100.0, 100.0, "")	
+	LOD_TRANS = Blender.Draw.Number("", evcode["LOD_TRANS"], x, y, input_width, row_height, get_prop(73,trans), -1000000.0, 1000000.0, "")	
 
 
 	x = origx
