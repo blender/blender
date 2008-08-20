@@ -685,12 +685,13 @@ def draw_propsheet(x,y):
 	input_width = 100
 	pad = 10
 	origx = x
-	origy = y
+	origy = (row_height * 15) + (pad * 15)
 
 
 	#editor label
 	x = origx
-	y = y - (row_height + pad)
+	y = origy
+	#y = y - (row_height + pad)
 	DOF_EDITLABEL = Blender.Draw.Label("FLT Degree of Freedom Editor", x, y, 200, row_height)
 
 
@@ -705,33 +706,33 @@ def draw_propsheet(x,y):
 	y = y- (row_height + pad)
 	DOF_TRANSX = Blender.Draw.Toggle("LimX", evcode["DOF_TRANSX"], x, y, toggle_width, row_height, get_lockmask(lockxtrans), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_TRANSX = Blender.Draw.Number("MinX", evcode["DOF_MIN_TRANSX"], x, y, input_width, row_height,get_prop(14,xmin),  -100.0, 100.0, "")
+	DOF_MIN_TRANSX = Blender.Draw.Number("MinX", evcode["DOF_MIN_TRANSX"], x, y, input_width, row_height,get_prop(14,xmin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_TRANSX = Blender.Draw.Number("MaxX", evcode["DOF_MAX_TRANSX"], x, y, input_width, row_height,get_prop(14,xmax), -100.0, 100.0, "")
+	DOF_MAX_TRANSX = Blender.Draw.Number("MaxX", evcode["DOF_MAX_TRANSX"], x, y, input_width, row_height,get_prop(14,xmax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_TRANSX = Blender.Draw.Number("StepX", evcode["DOF_STEP_TRANSX"], x, y, input_width, row_height,get_prop(14,xstep), -100.0, 100.0, "")
+	DOF_STEP_TRANSX = Blender.Draw.Number("StepX", evcode["DOF_STEP_TRANSX"], x, y, input_width, row_height,get_prop(14,xstep), -1000000.0, 1000000.0, "")
 	
 	#Y limits
 	x = origx
 	y = y- (row_height + pad)
 	DOF_TRANSY = Blender.Draw.Toggle("LimY", evcode["DOF_TRANSY"], x, y, toggle_width, row_height, get_lockmask(lockytrans), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_TRANSY = Blender.Draw.Number("MinY", evcode["DOF_MIN_TRANSY"], x, y, input_width, row_height, get_prop(14,ymin),  -100.0, 100.0, "")
+	DOF_MIN_TRANSY = Blender.Draw.Number("MinY", evcode["DOF_MIN_TRANSY"], x, y, input_width, row_height, get_prop(14,ymin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_TRANSY = Blender.Draw.Number("MaxY", evcode["DOF_MAX_TRANSY"], x, y, input_width, row_height, get_prop(14,ymax), -100.0, 100.0, "")
+	DOF_MAX_TRANSY = Blender.Draw.Number("MaxY", evcode["DOF_MAX_TRANSY"], x, y, input_width, row_height, get_prop(14,ymax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_TRANSY = Blender.Draw.Number("StepY", evcode["DOF_STEP_TRANSY"], x, y, input_width, row_height, get_prop(14,ystep), -100.0, 100.0, "")	
+	DOF_STEP_TRANSY = Blender.Draw.Number("StepY", evcode["DOF_STEP_TRANSY"], x, y, input_width, row_height, get_prop(14,ystep), -1000000.0, 1000000.0, "")	
 	
 	#Z limits
 	x = origx
 	y = y- (row_height + pad)
 	DOF_TRANSZ = Blender.Draw.Toggle("LimZ", evcode["DOF_TRANSZ"], x, y, toggle_width, row_height, get_lockmask(lockztrans), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_TRANSZ = Blender.Draw.Number("MinZ", evcode["DOF_MIN_TRANSZ"], x, y, input_width, row_height, get_prop(14,zmin),  -100.0, 100.0, "")
+	DOF_MIN_TRANSZ = Blender.Draw.Number("MinZ", evcode["DOF_MIN_TRANSZ"], x, y, input_width, row_height, get_prop(14,zmin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_TRANSZ = Blender.Draw.Number("MaxZ", evcode["DOF_MAX_TRANSZ"], x, y, input_width, row_height, get_prop(14,zmax), -100.0, 100.0, "")
+	DOF_MAX_TRANSZ = Blender.Draw.Number("MaxZ", evcode["DOF_MAX_TRANSZ"], x, y, input_width, row_height, get_prop(14,zmax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_TRANSZ = Blender.Draw.Number("StepZ", evcode["DOF_STEP_TRANSZ"], x, y, input_width, row_height, get_prop(14,zstep), -100.0, 100.0, "")
+	DOF_STEP_TRANSZ = Blender.Draw.Number("StepZ", evcode["DOF_STEP_TRANSZ"], x, y, input_width, row_height, get_prop(14,zstep), -1000000.0, 1000000.0, "")
 	
 	#draw Rotation limits
 	x = origx
@@ -744,33 +745,33 @@ def draw_propsheet(x,y):
 	y = y- (row_height + pad)
 	DOF_ROTX = Blender.Draw.Toggle("LimX", evcode["DOF_ROTX"], x, y, toggle_width, row_height, get_lockmask(lockxrot), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_ROTX = Blender.Draw.Number("MinX", evcode["DOF_MIN_ROTX"], x, y, input_width, row_height, get_prop(14,pitchmin),  -100.0, 100.0, "")
+	DOF_MIN_ROTX = Blender.Draw.Number("MinX", evcode["DOF_MIN_ROTX"], x, y, input_width, row_height, get_prop(14,pitchmin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_ROTX = Blender.Draw.Number("MaxX", evcode["DOF_MAX_ROTX"], x, y, input_width, row_height, get_prop(14,pitchmax), -100.0, 100.0, "")
+	DOF_MAX_ROTX = Blender.Draw.Number("MaxX", evcode["DOF_MAX_ROTX"], x, y, input_width, row_height, get_prop(14,pitchmax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_ROTX = Blender.Draw.Number("StepX", evcode["DOF_STEP_ROTX"], x, y, input_width, row_height, get_prop(14,pitchstep), -100.0, 100.0, "")
+	DOF_STEP_ROTX = Blender.Draw.Number("StepX", evcode["DOF_STEP_ROTX"], x, y, input_width, row_height, get_prop(14,pitchstep), -1000000.0, 1000000.0, "")
 		
 	#Y limits
 	x = origx
 	y = y- (row_height + pad)
 	DOF_ROTY = Blender.Draw.Toggle("LimY", evcode["DOF_ROTY"], x, y, toggle_width, row_height, get_lockmask(lockyrot), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_ROTY = Blender.Draw.Number("MinY", evcode["DOF_MIN_ROTY"], x, y, input_width, row_height, get_prop(14,rollmin),  -100.0, 100.0, "")
+	DOF_MIN_ROTY = Blender.Draw.Number("MinY", evcode["DOF_MIN_ROTY"], x, y, input_width, row_height, get_prop(14,rollmin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_ROTY = Blender.Draw.Number("MaxY", evcode["DOF_MAX_ROTY"], x, y, input_width, row_height, get_prop(14,rollmax), -100.0, 100.0, "")
+	DOF_MAX_ROTY = Blender.Draw.Number("MaxY", evcode["DOF_MAX_ROTY"], x, y, input_width, row_height, get_prop(14,rollmax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_ROTY = Blender.Draw.Number("StepY", evcode["DOF_STEP_ROTY"], x, y, input_width, row_height, get_prop(14,rollstep), -100.0, 100.0, "")
+	DOF_STEP_ROTY = Blender.Draw.Number("StepY", evcode["DOF_STEP_ROTY"], x, y, input_width, row_height, get_prop(14,rollstep), -1000000.0, 1000000.0, "")
 		
 	#Z limits
 	x = origx
 	y = y- (row_height + pad)
 	DOF_ROTZ = Blender.Draw.Toggle("LimZ", evcode["DOF_ROTZ"], x, y, toggle_width, row_height, get_lockmask(lockzrot), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_ROTZ = Blender.Draw.Number("MinZ", evcode["DOF_MIN_ROTZ"], x, y, input_width, row_height, get_prop(14, yawmin),  -100.0, 100.0, "")
+	DOF_MIN_ROTZ = Blender.Draw.Number("MinZ", evcode["DOF_MIN_ROTZ"], x, y, input_width, row_height, get_prop(14, yawmin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_ROTZ = Blender.Draw.Number("MaxZ", evcode["DOF_MAX_ROTZ"], x, y, input_width, row_height, get_prop(14, yawmax), -100.0, 100.0, "")
+	DOF_MAX_ROTZ = Blender.Draw.Number("MaxZ", evcode["DOF_MAX_ROTZ"], x, y, input_width, row_height, get_prop(14, yawmax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_ROTZ = Blender.Draw.Number("StepZ", evcode["DOF_STEP_ROTZ"], x, y, input_width, row_height, get_prop(14, yawstep), -100.0, 100.0, "")
+	DOF_STEP_ROTZ = Blender.Draw.Number("StepZ", evcode["DOF_STEP_ROTZ"], x, y, input_width, row_height, get_prop(14, yawstep), -1000000.0, 1000000.0, "")
 			
 
 	#draw Scale limits
@@ -784,33 +785,33 @@ def draw_propsheet(x,y):
 	y = y- (row_height + pad)
 	DOF_SCALEX = Blender.Draw.Toggle("LimX", evcode["DOF_SCALEX"], x, y, toggle_width, row_height, get_lockmask(lockxscale), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_SCALEX = Blender.Draw.Number("MinX", evcode["DOF_MIN_SCALEX"], x, y, input_width, row_height, get_prop(14, xscalemin),  -100.0, 100.0, "")
+	DOF_MIN_SCALEX = Blender.Draw.Number("MinX", evcode["DOF_MIN_SCALEX"], x, y, input_width, row_height, get_prop(14, xscalemin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_SCALEX = Blender.Draw.Number("MaxX", evcode["DOF_MAX_SCALEX"], x, y, input_width, row_height, get_prop(14, xscalemax), -100.0, 100.0, "")
+	DOF_MAX_SCALEX = Blender.Draw.Number("MaxX", evcode["DOF_MAX_SCALEX"], x, y, input_width, row_height, get_prop(14, xscalemax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_SCALEX = Blender.Draw.Number("StepX", evcode["DOF_STEP_SCALEX"], x, y, input_width, row_height, get_prop(14, xscalestep), -100.0, 100.0, "")
+	DOF_STEP_SCALEX = Blender.Draw.Number("StepX", evcode["DOF_STEP_SCALEX"], x, y, input_width, row_height, get_prop(14, xscalestep), -1000000.0, 1000000.0, "")
 		
 	#Y limits
 	x = origx
 	y = y- (row_height + pad)
 	DOF_SCALEY = Blender.Draw.Toggle("LimY", evcode["DOF_SCALEY"], x, y, toggle_width, row_height, get_lockmask(lockyscale), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_SCALEY = Blender.Draw.Number("MinY", evcode["DOF_MIN_SCALEY"], x, y, input_width, row_height, get_prop(14, yscalemin),  -100.0, 100.0, "")
+	DOF_MIN_SCALEY = Blender.Draw.Number("MinY", evcode["DOF_MIN_SCALEY"], x, y, input_width, row_height, get_prop(14, yscalemin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_SCALEY = Blender.Draw.Number("MaxY", evcode["DOF_MAX_SCALEY"], x, y, input_width, row_height, get_prop(14, yscalemax), -100.0, 100.0, "")
+	DOF_MAX_SCALEY = Blender.Draw.Number("MaxY", evcode["DOF_MAX_SCALEY"], x, y, input_width, row_height, get_prop(14, yscalemax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_SCALEY = Blender.Draw.Number("StepY", evcode["DOF_STEP_SCALEY"], x, y, input_width, row_height, get_prop(14, yscalestep), -100.0, 100.0, "")		
+	DOF_STEP_SCALEY = Blender.Draw.Number("StepY", evcode["DOF_STEP_SCALEY"], x, y, input_width, row_height, get_prop(14, yscalestep), -1000000.0, 1000000.0, "")		
 
 	#Z limits
 	x = origx
 	y = y- (row_height + pad)
 	DOF_SCALEZ = Blender.Draw.Toggle("LimZ", evcode["DOF_SCALEZ"], x, y, toggle_width, row_height, get_lockmask(lockzscale), "")
 	x = x + (toggle_width + pad)
-	DOF_MIN_SCALEZ = Blender.Draw.Number("MinZ", evcode["DOF_MIN_SCALEZ"], x, y, input_width, row_height, get_prop(14, zscalemin),  -100.0, 100.0, "")
+	DOF_MIN_SCALEZ = Blender.Draw.Number("MinZ", evcode["DOF_MIN_SCALEZ"], x, y, input_width, row_height, get_prop(14, zscalemin),  -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_MAX_SCALEZ = Blender.Draw.Number("MaxZ", evcode["DOF_MAX_SCALEZ"], x, y, input_width, row_height, get_prop(14, zscalemax), -100.0, 100.0, "")
+	DOF_MAX_SCALEZ = Blender.Draw.Number("MaxZ", evcode["DOF_MAX_SCALEZ"], x, y, input_width, row_height, get_prop(14, zscalemax), -1000000.0, 1000000.0, "")
 	x = x + (input_width + pad)
-	DOF_STEP_SCALEZ = Blender.Draw.Number("StepZ", evcode["DOF_STEP_SCALEZ"], x, y, input_width, row_height, get_prop(14, zscalestep), -100.0, 100.0, "")		
+	DOF_STEP_SCALEZ = Blender.Draw.Number("StepZ", evcode["DOF_STEP_SCALEZ"], x, y, input_width, row_height, get_prop(14, zscalestep), -1000000.0, 1000000.0, "")		
 
 	#System
 	x = origx

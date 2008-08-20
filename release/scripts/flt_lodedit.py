@@ -424,12 +424,12 @@ def draw_propsheet(x,y):
 	input_width = 100
 	pad = 10
 	origx = x
-	origy = y
+	origy = (row_height * 16) + (pad * 16)
 
 
 	#editor label
 	x = origx
-	y = y - (row_height + pad)
+	y = origy
 	LOD_EDITLABEL = Blender.Draw.Label("FLT Level of Detail Editor", x, y, 250, row_height)
 
 
@@ -492,22 +492,6 @@ def draw_propsheet(x,y):
 	y = y - (row_height + pad)
 	LOD_PREVIOUS = Blender.Draw.Toggle("Previous Range", evcode["LOD_PREVIOUS"], x, y, input_width + label_width + pad, row_height, get_lockmask(previous_mask), "")
 
-	maxy = y
-
-
-
-		
-
-
-
-
-
-	#Toggles
-	x = origx
-	y = y - (row_height + (pad)*3)
-
-	
-	
 def gui():
 	#draw the propsheet/toolbox.
 	psheety = 800
