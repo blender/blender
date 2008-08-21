@@ -1296,7 +1296,6 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 				merging = 2;
 			}
 			
-
 			if (merging)
 			{
 				BLI_ReflagSubgraph((BGraph*)rg, end_node->flag, subgraph);
@@ -1978,21 +1977,21 @@ void REEB_exportGraph(ReebGraph *rg, int count)
 
 /***************************************** MAIN ALGORITHM **********************************************/
 
-ReebArc * findConnectedArc(ReebGraph *rg, ReebArc *arc, ReebNode *v)
+/* edges alone will create zero degree nodes, use this function to remove them */
+void removeZeroNodes(ReebGraph *rg)
 {
-	ReebArc *nextArc = arc->next;
+	ReebNode *node, *next_node;
 	
-	for(nextArc = rg->arcs.first; nextArc; nextArc = nextArc->next)
+	for (node = rg->nodes.first; node; node = next_node)
 	{
-		if (arc != nextArc && (nextArc->head == v || nextArc->tail == v))
+		next_node = node->next;
+		
+		if (node->degree == 0)
 		{
-			break;
+			BLI_removeNode((BGraph*)rg, (BNode*)node);
 		}
 	}
-	
-	return nextArc;
 }
-
 
 void removeNormalNodes(ReebGraph *rg)
 {
@@ -2539,8 +2538,9 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	
 	printf("\n");
 	
-	
 	BLI_listbase_from_dlist(dlist, &rg->nodes);
+	
+	removeZeroNodes(rg);
 	
 	removeNormalNodes(rg);
 	
