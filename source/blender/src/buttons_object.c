@@ -3317,6 +3317,7 @@ static void object_panel_fields(Object *ob)
 	uiBut *but;
 	int particles=0;
 	static short actpsys=-1;
+	static char slot=0;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fields", "Physics", 0, 0, 318, 204)==0) return;
@@ -3338,7 +3339,7 @@ static void object_panel_fields(Object *ob)
 		char *tipstr="Choose field type";
 
 		uiBlockBeginAlign(block);
-		
+
 		if(ob->particlesystem.first) {
 			ParticleSystem *psys;
 			char *menustr2= psys_menu_string(ob,1);
@@ -3350,8 +3351,16 @@ static void object_panel_fields(Object *ob)
 				if(psys->part->pd==NULL)
 					psys->part->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
 
-				pd= psys->part->pd;
+				if(psys->part->pd2==NULL)
+					psys->part->pd2= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+
+				pd= ((slot==1) ? psys->part->pd2 : psys->part->pd);
 				particles=1;
+
+				uiDefButC(block, ROW, B_REDR, "",	10, 163, 14, 14, &slot, 3.0, 0, 0, 0, "Edit first particle effector slot");
+				uiDefButC(block, ROW, B_REDR, "",	24, 163, 14, 14, &slot, 3.0, 1, 0, 0, "Edit second particle effector slot");
+				uiBlockEndAlign(block);
+				uiBlockBeginAlign(block);
 			}
 			else
 				actpsys= -1; /* -1 = object */
@@ -3364,8 +3373,8 @@ static void object_panel_fields(Object *ob)
 
 		/* setup menu button */
 		if(particles){
-			sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d", 
-					PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC);
+			sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d|Charge%%x%d|Lennard-Jones%%x%d", 
+					PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_CHARGE, PFIELD_LENNARDJ);
 
 			if(pd->forcefield==PFIELD_FORCE) tipstr= "Particle attracts or repels particles (On shared object layers)";
 			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of particle Z axis (On shared object layers)";
@@ -3373,11 +3382,11 @@ static void object_panel_fields(Object *ob)
 		}
 		else{
 			if(ob->type==OB_CURVE)
-				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Curve Guide%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d", 
-						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_GUIDE, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE);
+				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Curve Guide%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d|Charge%%x%d|Lennard-Jones%%x%d", 
+						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_GUIDE, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE, PFIELD_CHARGE, PFIELD_LENNARDJ);
 			else
-				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d", 
-						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE);
+				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d|Charge%%x%d|Lennard-Jones%%x%d", 
+						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE, PFIELD_CHARGE, PFIELD_LENNARDJ);
 
 			if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles (On shared object layers)";
 			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis (On shared object layers)";
@@ -3392,8 +3401,6 @@ static void object_panel_fields(Object *ob)
 
 		uiBlockEndAlign(block);
 		uiDefBut(block, LABEL, 0, "",160,180,150,2, NULL, 0.0, 0, 0, 0, "");
-
-		MEM_freeN(menustr);
 		
 		if(pd->forcefield) {
 			uiBlockBeginAlign(block);
@@ -3459,40 +3466,49 @@ static void object_panel_fields(Object *ob)
 				uiBlockEndAlign(block);
 			}
 			else{
-				uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, "Fall-off shape");
-				if(pd->falloff==PFIELD_FALL_TUBE)
-					uiDefBut(block, LABEL, 0, "Longitudinal",		160,160,140,20, NULL, 0.0, 0, 0, 0, "");
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, PFIELD_POSZ, B_FIELD_CHANGE, "Pos",	160,140,40,20, &pd->flag, 0.0, 0, 0, 0, "Effect only in direction of positive Z axis");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	200,140,100,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational falloff = 2)");
-				uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use",	160,120,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	200,120,100,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
-				uiDefButBitS(block, TOG, PFIELD_USEMIN, B_FIELD_CHANGE, "Use",	160,100,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum distance for the field's fall-off");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	200,100,100,20, &pd->mindist, 0, 1000.0, 10, 0, "Minimum distance for the field's fall-off");
-				uiBlockEndAlign(block);
-
-				if(pd->falloff==PFIELD_FALL_TUBE){
-					uiDefBut(block, LABEL, 0, "Radial",		160,80,70,20, NULL, 0.0, 0, 0, 0, "");
-					uiBlockBeginAlign(block);
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	160,60,140,20, &pd->f_power_r, 0, 10, 10, 0, "Radial falloff power (real gravitational falloff = 2)");
-					uiDefButBitS(block, TOG, PFIELD_USEMAXR, B_FIELD_CHANGE, "Use",	160,40,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum radial distance for the field to work");
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	200,40,100,20, &pd->maxrad, 0, 1000.0, 10, 0, "Maximum radial distance for the field to work");
-					uiDefButBitS(block, TOG, PFIELD_USEMINR, B_FIELD_CHANGE, "Use",	160,20,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum radial distance for the field's fall-off");
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	200,20,100,20, &pd->minrad, 0, 1000.0, 10, 0, "Minimum radial distance for the field's fall-off");
-					uiBlockEndAlign(block);
+				if(pd->forcefield==PFIELD_LENNARDJ) {
+					uiDefBut(block, LABEL, 0, "Fall-off determined",		160,140,140,20, NULL, 0.0, 0, 0, 0, "");
+					uiDefBut(block, LABEL, 0, "by particle sizes",		160,120,140,20, NULL, 0.0, 0, 0, 0, "");
 				}
-				else if(pd->falloff==PFIELD_FALL_CONE){
-					uiDefBut(block, LABEL, 0, "Angular",		160,80,70,20, NULL, 0.0, 0, 0, 0, "");
+				else {
+					uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, "Fall-off shape");
+					if(pd->falloff==PFIELD_FALL_TUBE)
+						uiDefBut(block, LABEL, 0, "Longitudinal",		160,160,140,20, NULL, 0.0, 0, 0, 0, "");
 					uiBlockBeginAlign(block);
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	160,60,140,20, &pd->f_power_r, 0, 10, 10, 0, "Radial falloff power (real gravitational falloff = 2)");
-					uiDefButBitS(block, TOG, PFIELD_USEMAXR, B_FIELD_CHANGE, "Use",	160,40,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum angle for the field to work");
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxAngle: ",	200,40,100,20, &pd->maxrad, 0, 89.0, 10, 0, "Maximum angle for the field to work (in radians)");
-					uiDefButBitS(block, TOG, PFIELD_USEMINR, B_FIELD_CHANGE, "Use",	160,20,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum angle for the field's fall-off");
-					uiDefButF(block, NUM, B_FIELD_CHANGE, "MinAngle: ",	200,20,100,20, &pd->minrad, 0, 89.0, 10, 0, "Minimum angle for the field's fall-off (in radians)");
+					uiDefButBitS(block, TOG, PFIELD_POSZ, B_FIELD_CHANGE, "Pos",	160,140,40,20, &pd->flag, 0.0, 0, 0, 0, "Effect only in direction of positive Z axis");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	200,140,100,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational falloff = 2)");
+					uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use",	160,120,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	200,120,100,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
+					uiDefButBitS(block, TOG, PFIELD_USEMIN, B_FIELD_CHANGE, "Use",	160,100,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum distance for the field's fall-off");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	200,100,100,20, &pd->mindist, 0, 1000.0, 10, 0, "Minimum distance for the field's fall-off");
 					uiBlockEndAlign(block);
+
+					if(pd->falloff==PFIELD_FALL_TUBE){
+						uiDefBut(block, LABEL, 0, "Radial",		160,80,70,20, NULL, 0.0, 0, 0, 0, "");
+						uiBlockBeginAlign(block);
+						uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	160,60,140,20, &pd->f_power_r, 0, 10, 10, 0, "Radial falloff power (real gravitational falloff = 2)");
+						uiDefButBitS(block, TOG, PFIELD_USEMAXR, B_FIELD_CHANGE, "Use",	160,40,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum radial distance for the field to work");
+						uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	200,40,100,20, &pd->maxrad, 0, 1000.0, 10, 0, "Maximum radial distance for the field to work");
+						uiDefButBitS(block, TOG, PFIELD_USEMINR, B_FIELD_CHANGE, "Use",	160,20,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum radial distance for the field's fall-off");
+						uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	200,20,100,20, &pd->minrad, 0, 1000.0, 10, 0, "Minimum radial distance for the field's fall-off");
+						uiBlockEndAlign(block);
+					}
+					else if(pd->falloff==PFIELD_FALL_CONE){
+						uiDefBut(block, LABEL, 0, "Angular",		160,80,70,20, NULL, 0.0, 0, 0, 0, "");
+						uiBlockBeginAlign(block);
+						uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	160,60,140,20, &pd->f_power_r, 0, 10, 10, 0, "Radial falloff power (real gravitational falloff = 2)");
+						uiDefButBitS(block, TOG, PFIELD_USEMAXR, B_FIELD_CHANGE, "Use",	160,40,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum angle for the field to work");
+						uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxAngle: ",	200,40,100,20, &pd->maxrad, 0, 89.0, 10, 0, "Maximum angle for the field to work (in radians)");
+						uiDefButBitS(block, TOG, PFIELD_USEMINR, B_FIELD_CHANGE, "Use",	160,20,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum angle for the field's fall-off");
+						uiDefButF(block, NUM, B_FIELD_CHANGE, "MinAngle: ",	200,20,100,20, &pd->minrad, 0, 89.0, 10, 0, "Minimum angle for the field's fall-off (in radians)");
+						uiBlockEndAlign(block);
+					}
 				}
 			}
+
 		}	
+		
+		MEM_freeN(menustr);
 	}
 }
 
@@ -4339,6 +4355,8 @@ static void object_panel_particle_extra(Object *ob)
 		uiDefButBitI(block, TOG, PART_CHILD_EFFECT, B_PART_RECALC, "Children", butx+(butw*3)/5,buty,(butw*2)/5,buth, &part->flag, 0, 0, 0, 0, "Apply effectors to children");
 		uiBlockEndAlign(block);
 	}
+	else if(part->phystype == PART_PHYS_NEWTON)
+		uiDefButBitI(block, TOG, PART_SELF_EFFECT, B_PART_RECALC, "Self Effect",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Particle effectors effect themselves");
 	else
 		buty-=buth;
 

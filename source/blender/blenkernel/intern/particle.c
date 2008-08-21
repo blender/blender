@@ -320,8 +320,14 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 /************************************************/
 void psys_free_settings(ParticleSettings *part)
 {
-	if(part->pd)
+	if(part->pd) {
 		MEM_freeN(part->pd);
+		part->pd = NULL;
+	}
+	if(part->pd2) {
+		MEM_freeN(part->pd2);
+		part->pd2 = NULL;
+	}
 }
 
 void free_hair(ParticleSystem *psys, int softbody)
@@ -3015,6 +3021,7 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	
 	partn= copy_libblock(part);
 	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
+	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
 	
 	return partn;
 }

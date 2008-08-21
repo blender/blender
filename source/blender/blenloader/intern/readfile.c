@@ -2582,6 +2582,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
 	part->pd= newdataadr(fd, part->pd);
+	part->pd2= newdataadr(fd, part->pd2);
 }
 
 static void lib_link_particlesystems(FileData *fd, ID *id, ListBase *particles)

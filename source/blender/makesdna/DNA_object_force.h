@@ -156,8 +156,8 @@ typedef struct SoftBody {
 #define PFIELD_GUIDE	5
 #define PFIELD_TEXTURE	6
 #define PFIELD_HARMONIC	7
-#define PFIELD_NUCLEAR	8
-#define PFIELD_MDIPOLE	9
+#define PFIELD_CHARGE	8
+#define PFIELD_LENNARDJ	9
 
 
 /* pd->flag: various settings */

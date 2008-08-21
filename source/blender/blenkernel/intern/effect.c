@@ -332,7 +332,10 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 {
 	float eff_dir[3], temp[3];
 	float falloff=1.0, fac, r_fac;
-	
+
+	if(pd->forcefield==PFIELD_LENNARDJ)
+		return falloff; /* Lennard-Jones field has it's own falloff built in */
+
 	VecCopyf(eff_dir,eff_velocity);
 	Normalize(eff_dir);
 
@@ -369,7 +372,7 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 	return falloff;
 }
 
-void do_physical_effector(Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor)
+void do_physical_effector(Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor, float charge, float pa_size)
 {
 	float mag_vec[3]={0,0,0};
 	float temp[3], temp2[3];
@@ -442,14 +445,44 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
 			VecSubf(field,field,mag_vec);
 			break;
-		case PFIELD_NUCLEAR:
-			/*pow here is root of cosine expression below*/
-			//rad=(float)pow(2.0,-1.0/power)*distance/size;
-			//VECCOPY(mag_vec,vec_to_part);
-			//Normalize(mag_vec);
-			//VecMulf(mag_vec,(float)cos(3.0*M_PI/2.0*(1.0-1.0/(pow(rad,power)+1.0)))/(rad+0.2f));
-			//VECADDFAC(field,field,mag_vec,force_val);
+		case PFIELD_CHARGE:
+			if(planar)
+				Projf(mag_vec,vec_to_part,eff_vel);
+			else
+				VecCopyf(mag_vec,vec_to_part);
+
+			VecMulf(mag_vec,charge*force_val*falloff);
+			VecAddf(field,field,mag_vec);
 			break;
+		case PFIELD_LENNARDJ:
+		{
+			float fac;
+
+			if(planar) {
+				Projf(mag_vec,vec_to_part,eff_vel);
+				distance = VecLength(mag_vec);
+			}
+			else
+				VecCopyf(mag_vec,vec_to_part);
+
+			/* at this distance the field is 60 times weaker than maximum */
+			if(distance > 2.22 * (size+pa_size))
+				break;
+
+			fac = pow((size+pa_size)/distance,6.0);
+			
+			fac = - fac * (1.0 - fac) / distance;
+
+			/* limit the repulsive term drastically to avoid huge forces */
+			fac = ((fac>2.0) ? 2.0 : fac);
+
+			/* 0.003715 is the fac value at 2.22 times (size+pa_size),
+			   substracted to avoid discontinuity at the border
+			*/
+			VecMulf(mag_vec, force_val * (fac-0.0037315));
+			VecAddf(field,field,mag_vec);
+			break;
+		}
 	}
 }
 
@@ -518,7 +551,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 			VECCOPY(field, force);
 			do_physical_effector(ob, opco, pd->forcefield,pd->f_strength,distance,
 								falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
-								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
+								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise, 0.0f, 0.0f);
 			
 			// for softbody backward compatibility
 			if(flags & PE_WIND_AS_SPEED){

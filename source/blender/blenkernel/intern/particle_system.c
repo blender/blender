@@ -2206,6 +2206,9 @@ static int get_particles_from_cache(Object *ob, ParticleSystem *psys, int cfra)
 	return 1;
 }
 
+/************************************************/
+/*			Effectors							*/
+/************************************************/
 static void do_texture_effector(Tex *tex, short mode, short is_2d, float nabla, short object, float *pa_co, float obmat[4][4], float force_val, float falloff, float *field)
 {
 	TexResult result[4];
@@ -2323,10 +2326,11 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 
 		for(i=0; epsys; epsys=epsys->next,i++){
 			type=0;
-			if(epsys!=psys){
+			if(epsys!=psys || (psys->part->flag & PART_SELF_EFFECT)){
 				epart=epsys->part;
 
-				if(epsys->part->pd && epsys->part->pd->forcefield)
+				if((epsys->part->pd && epsys->part->pd->forcefield)
+					|| (epsys->part->pd2 && epsys->part->pd2->forcefield))
 					type=PSYS_EC_PARTICLE;
 
 				if(epart->type==PART_REACTOR) {
@@ -2575,35 +2579,31 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 	ListBase *lb=&psys->effectors;
 	ParticleEffectorCache *ec;
 	float distance, vec_to_part[3];
-	float falloff;
+	float falloff, charge = 0.0f;
 	int p;
 
 	/* check all effector objects for interaction */
 	if(lb->first){
+		if(psys->part->pd && psys->part->pd->forcefield==PFIELD_CHARGE){
+			/* Only the charge of the effected particle is used for 
+			   interaction, not fall-offs. If the fall-offs aren't the	
+			   same this will be unphysical, but for animation this		
+			   could be the wanted behavior. If you want physical
+			   correctness the fall-off should be spherical 2.0 anyways.
+			 */
+			charge = psys->part->pd->f_strength;
+		}
+		if(psys->part->pd2 && psys->part->pd2->forcefield==PFIELD_CHARGE){
+			charge += psys->part->pd2->f_strength;
+		}
 		for(ec = lb->first; ec; ec= ec->next){
 			eob= ec->ob;
 			if(ec->type & PSYS_EC_EFFECTOR){
 				pd=eob->pd;
 				if(psys->part->type!=PART_HAIR && psys->part->integrator)
 					where_is_object_time(eob,cfra);
-				/* Get IPO force strength and fall off values here */
-				//if (has_ipo_code(eob->ipo, OB_PD_FSTR))
-				//	force_val = IPO_GetFloatValue(eob->ipo, OB_PD_FSTR, cfra);
-				//else 
-				//	force_val = pd->f_strength;
-				
-				//if (has_ipo_code(eob->ipo, OB_PD_FFALL)) 
-				//	ffall_val = IPO_GetFloatValue(eob->ipo, OB_PD_FFALL, cfra);
-				//else 
-				//	ffall_val = pd->f_power;
-
-				//if (has_ipo_code(eob->ipo, OB_PD_FMAXD)) 
-				//	maxdist = IPO_GetFloatValue(eob->ipo, OB_PD_FMAXD, cfra);
-				//else 
-				//	maxdist = pd->maxdist;
 
 				/* use center of object for distance calculus */
-				//obloc= eob->obmat[3];
 				VecSubf(vec_to_part, state->co, eob->obmat[3]);
 				distance = VecLength(vec_to_part);
 
@@ -2617,21 +2617,21 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 									pd->f_strength, falloff, force_field);
 				} else {
 					do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
-										falloff,pd->f_dist,pd->f_damp,eob->obmat[2],vec_to_part,
-										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
+										falloff,0.0,pd->f_damp,eob->obmat[2],vec_to_part,
+										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR,pd->rng,pd->f_noise,charge,pa->size);
 				}
 			}
 			if(ec->type & PSYS_EC_PARTICLE){
-				int totepart;
+				int totepart, i;
 				epsys= BLI_findlink(&eob->particlesystem,ec->psys_nbr);
 				epart= epsys->part;
-				pd= epart->pd;
+				pd=epart->pd;
 				totepart= epsys->totpart;
 				
 				if(totepart <= 0)
 					continue;
 				
-				if(pd->forcefield==PFIELD_HARMONIC){
+				if(pd && pd->forcefield==PFIELD_HARMONIC){
 					/* every particle is mapped to only one harmonic effector particle */
 					p= pa_no%epsys->totpart;
 					totepart= p+1;
@@ -2643,31 +2643,27 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				epsys->lattice=psys_get_lattice(ob,psys);
 
 				for(; p<totepart; p++){
+					/* particle skips itself as effector */
+					if(epsys==psys && p == pa_no) continue;
+
 					epa = epsys->particles + p;
 					estate.time=-1.0;
 					if(psys_get_particle_state(eob,epsys,p,&estate,0)){
 						VECSUB(vec_to_part, state->co, estate.co);
 						distance = VecLength(vec_to_part);
-
-						//if(pd->forcefield==PFIELD_HARMONIC){
-						//	//if(cfra < epa->time + radius){ /* radius is fade-in in ui */
-						//	//	eforce*=(cfra-epa->time)/radius;
-						//	//}
-						//}
-						//else{
-						//	/* Limit minimum distance to effector particle so that */
-						//	/* the force is not too big */
-						//	if (distance < 0.001) distance = 0.001f;
-						//}
 						
-						falloff=effector_falloff(pd,estate.vel,vec_to_part);
+						for(i=0, pd = epart->pd; i<2; i++,pd = epart->pd2) {
+							if(pd==NULL || pd->forcefield==0) continue;
 
-						if(falloff<=0.0f)
-							;	/* don't do anything */
-						else
-							do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
-							falloff,epart->size,pd->f_damp,estate.vel,vec_to_part,
-							state->vel,force_field,0, pd->rng, pd->f_noise);
+							falloff=effector_falloff(pd,estate.vel,vec_to_part);
+
+							if(falloff<=0.0f)
+								;	/* don't do anything */
+							else
+								do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
+								falloff,epart->size,pd->f_damp,estate.vel,vec_to_part,
+								state->vel,force_field,0, pd->rng, pd->f_noise,charge,pa->size);
+						}
 					}
 					else if(pd->forcefield==PFIELD_HARMONIC && cfra-framestep <= epa->dietime && cfra>epa->dietime){
 						/* first step after key release */
