@@ -3492,6 +3492,9 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, sh
 		uiButSetFunc(but, set_userdef_iconfile_cb, &iconfileindex, NULL);
 									
 	}
+	else if(th_curcol==TH_HANDLE_VERTEX_SIZE) {
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Handle size ", 465,y3,200,20, col, 1.0, 10.0, 0, 0, "");
+	}
 	else {
 		uiBlockBeginAlign(block);
 		if ELEM9(th_curcol, TH_PANEL, TH_LAMP, TH_FACE, TH_FACE_SELECT, TH_EDITMESH_ACTIVE, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM, TH_NODE) {

@@ -59,6 +59,7 @@
 #include "BKE_armature.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
+#include "BKE_collision.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -228,6 +229,60 @@ void pdEndEffectors(ListBase *lb)
 /*			Effectors		*/
 /************************************************/
 
+// triangle - ray callback function
+static void eff_tri_ray_hit(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
+{	
+	// whenever we hit a bounding box, we don't check further
+	hit->dist = -1;
+	hit->index = 1;
+}
+
+// get visibility of a wind ray
+static float eff_calc_visibility(Object *ob, float *co, float *dir)
+{
+	CollisionModifierData **collobjs = NULL;
+	int numcollobj = 0, i;
+	float norm[3], len = 0.0;
+	float visibility = 1.0;
+	
+	collobjs = get_collisionobjects(ob, &numcollobj);
+	
+	if(!collobjs)
+		return 0;
+	
+	VECCOPY(norm, dir);
+	VecMulf(norm, -1.0);
+	len = Normalize(norm);
+	
+	// check all collision objects
+	for(i = 0; i < numcollobj; i++)
+	{
+		CollisionModifierData *collmd = collobjs[i];
+		
+		if(collmd->bvhtree)
+		{
+			BVHTreeRayHit hit;
+			
+			hit.index = -1;
+			hit.dist = len + FLT_EPSILON;
+			
+			// check if the way is blocked
+			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, &hit, eff_tri_ray_hit, NULL)>=0)
+			{
+				// visibility is only between 0 and 1, calculated from 1-absorption
+				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorption)*0.01)));
+				
+				if(visibility <= 0.0f)
+					break;
+			}
+		}
+	}
+	
+	MEM_freeN(collobjs);
+	
+	return visibility;
+}
+
 // noise function for wind e.g.
 static float wind_func(struct RNG *rng, float strength)
 {
@@ -277,7 +332,10 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 {
 	float eff_dir[3], temp[3];
 	float falloff=1.0, fac, r_fac;
-	
+
+	if(pd->forcefield==PFIELD_LENNARDJ)
+		return falloff; /* Lennard-Jones field has it's own falloff built in */
+
 	VecCopyf(eff_dir,eff_velocity);
 	Normalize(eff_dir);
 
@@ -314,12 +372,18 @@ float effector_falloff(PartDeflect *pd, float *eff_velocity, float *vec_to_part)
 	return falloff;
 }
 
-void do_physical_effector(short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise)
+void do_physical_effector(Object *ob, float *opco, short type, float force_val, float distance, float falloff, float size, float damp, float *eff_velocity, float *vec_to_part, float *velocity, float *field, int planar, struct RNG *rng, float noise_factor, float charge, float pa_size)
 {
 	float mag_vec[3]={0,0,0};
 	float temp[3], temp2[3];
 	float eff_vel[3];
-	float wind = 0;
+	float noise = 0, visibility;
+	
+	// calculate visibility
+	visibility = eff_calc_visibility(ob, opco, vec_to_part);
+	if(visibility <= 0.0)
+		return;
+	falloff *= visibility;
 
 	VecCopyf(eff_vel,eff_velocity);
 	Normalize(eff_vel);
@@ -328,11 +392,11 @@ void do_physical_effector(short type, float force_val, float distance, float fal
 		case PFIELD_WIND:
 			VECCOPY(mag_vec,eff_vel);
 			
-			// add wind noise here
-			if(noise> 0.0f)
-				wind = wind_func(rng, noise);
-
-			VecMulf(mag_vec,(force_val+wind)*falloff);
+			// add wind noise here, only if we have wind
+			if((noise_factor > 0.0f) && (force_val > FLT_EPSILON))
+				noise = wind_func(rng, noise_factor);
+			
+			VecMulf(mag_vec,(force_val+noise)*falloff);
 			VecAddf(field,field,mag_vec);
 			break;
 
@@ -381,19 +445,46 @@ void do_physical_effector(short type, float force_val, float distance, float fal
 			VecMulf(mag_vec,damp*1.9f*(float)sqrt(force_val));
 			VecSubf(field,field,mag_vec);
 			break;
-		case PFIELD_NUCLEAR:
-			/*pow here is root of cosine expression below*/
-			//rad=(float)pow(2.0,-1.0/power)*distance/size;
-			//VECCOPY(mag_vec,vec_to_part);
-			//Normalize(mag_vec);
-			//VecMulf(mag_vec,(float)cos(3.0*M_PI/2.0*(1.0-1.0/(pow(rad,power)+1.0)))/(rad+0.2f));
-			//VECADDFAC(field,field,mag_vec,force_val);
+		case PFIELD_CHARGE:
+			if(planar)
+				Projf(mag_vec,vec_to_part,eff_vel);
+			else
+				VecCopyf(mag_vec,vec_to_part);
+
+			VecMulf(mag_vec,charge*force_val*falloff);
+			VecAddf(field,field,mag_vec);
 			break;
+		case PFIELD_LENNARDJ:
+		{
+			float fac;
+
+			if(planar) {
+				Projf(mag_vec,vec_to_part,eff_vel);
+				distance = VecLength(mag_vec);
+			}
+			else
+				VecCopyf(mag_vec,vec_to_part);
+
+			/* at this distance the field is 60 times weaker than maximum */
+			if(distance > 2.22 * (size+pa_size))
+				break;
+
+			fac = pow((size+pa_size)/distance,6.0);
+			
+			fac = - fac * (1.0 - fac) / distance;
+
+			/* limit the repulsive term drastically to avoid huge forces */
+			fac = ((fac>2.0) ? 2.0 : fac);
+
+			/* 0.003715 is the fac value at 2.22 times (size+pa_size),
+			   substracted to avoid discontinuity at the border
+			*/
+			VecMulf(mag_vec, force_val * (fac-0.0037315));
+			VecAddf(field,field,mag_vec);
+			break;
+		}
 	}
 }
-
-
-
 
 /*  -------- pdDoEffectors() --------
     generic force/speed system, now used for particles and softbodies
@@ -451,16 +542,16 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		VecSubf(vec_to_part, opco, ob->obmat[3]);
 		distance = VecLength(vec_to_part);
 
-		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);
-
+		falloff=effector_falloff(pd,ob->obmat[2],vec_to_part);		
+		
 		if(falloff<=0.0f)
 			;	/* don't do anything */
 		else {
 			float field[3]={0,0,0}, tmp[3];
 			VECCOPY(field, force);
-			do_physical_effector(pd->forcefield,pd->f_strength,distance,
+			do_physical_effector(ob, opco, pd->forcefield,pd->f_strength,distance,
 								falloff,pd->f_dist,pd->f_damp,ob->obmat[2],vec_to_part,
-								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise);
+								speed,force,pd->flag&PFIELD_PLANAR, pd->rng, pd->f_noise, 0.0f, 0.0f);
 			
 			// for softbody backward compatibility
 			if(flags & PE_WIND_AS_SPEED){

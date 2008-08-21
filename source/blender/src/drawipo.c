@@ -1212,16 +1212,9 @@ static void draw_ipovertices(int sel)
 					/*}*/
 				} else { /* normal non bit curves */
 					if(ei->flag & IPO_EDIT) {
-						if(ei->icu->ipo==IPO_BEZ) {
-							/* Draw the editmode hendels for a bezier curve */
-							if( (bezt->f1 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[0][0] < G.v2d->cur.xmax)*/
-								bglVertex3fv(bezt->vec[0]);
-							
-							if( (bezt->f3 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[2][0] < G.v2d->cur.xmax)*/
-								bglVertex3fv(bezt->vec[2]);
-							
-						}
-						
+						/* Only the vertex of the line, the
+						 * handler are draw below.
+						 */
 						if( (bezt->f2 & SELECT) == sel) /* && G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
 							bglVertex3fv(bezt->vec[1]);
 						
@@ -1237,6 +1230,45 @@ static void draw_ipovertices(int sel)
 				bezt++;
 			}
 			bglEnd();
+
+			if (ei->flag & IPO_EDIT) {
+				/* Now draw the two vertex of the handler,
+				 * need split it because we can't call glPointSize
+				 * in the middle of a glBegin/glEnd also the
+				 * bug comment before.
+				 */
+				a= ei->icu->totvert;
+				bezt= ei->icu->bezt;
+
+				glPointSize(BIF_GetThemeValuef(TH_HANDLE_VERTEX_SIZE));
+
+				if(sel) BIF_ThemeColor(TH_HANDLE_VERTEX_SELECT);
+				else BIF_ThemeColor(TH_HANDLE_VERTEX);
+
+				bglBegin(GL_POINTS);
+
+				while(a--) {
+					if (ei->disptype!=IPO_DISPBITS) {
+						if(ei->flag & IPO_EDIT) {
+							if(ei->icu->ipo==IPO_BEZ) {
+								/* Draw the editmode hendels for a bezier curve */
+								if( (bezt->f1 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[0][0] < G.v2d->cur.xmax)*/
+									bglVertex3fv(bezt->vec[0]);
+							
+								if( (bezt->f3 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[2][0] < G.v2d->cur.xmax)*/
+									bglVertex3fv(bezt->vec[2]);
+							}
+						}
+					}
+					bezt++;
+				}
+				bglEnd();
+
+				/* The color are always reset (see the while)
+				 * but the point size not so we reset now.
+				 */
+				glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
+			}
 		}
 	}
 	

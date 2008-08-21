@@ -1451,7 +1451,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			float triunnormal[3]={0,0,0}; // not-normalized-triangle normal
 			float tmp[3]={0,0,0};
 			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
-			factor *= 0.05;
+			factor *= 0.02;
 			
 			// calculate face normal
 			if(mfaces[i].v4)

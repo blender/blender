@@ -234,39 +234,8 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-#ifdef USE_BULLET
-	// This is a fix for memory leaks in bullet: the collision shapes is not destroyed 
-	// when the physical controllers are destroyed. The reason is that shapes are shared
-	// between replicas of an object. There is no reference count in Bullet so the
-	// only workaround that does not involve changes in Bullet is to save in this array
-	// the list of shapes that are created when the scene is created (see KX_ConvertPhysicsObjects.cpp)
-	class btCollisionShape* shape;
-	class btTriangleMeshShape* meshShape;
-	vector<class btCollisionShape*>::iterator it = m_shapes.begin();
-	while (it != m_shapes.end()) {
-		shape = *it;
-		if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
-		{
-			meshShape = static_cast<btTriangleMeshShape*>(shape);
-			// shapes based on meshes use an interface that contains the vertices.
-			// Again the idea is to be able to share the interface between shapes but
-			// this is not used in Blender: each base object will have its own interface 
-			btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
-			if (meshInterface)
-				delete meshInterface;
-		}
-		delete shape;
-		it++;
-	}
-#endif
 	//Py_DECREF(m_attrlist);
 }
-
-void KX_Scene::AddShape(class btCollisionShape*shape)
-{
-	m_shapes.push_back(shape);
-}
-
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
 {

@@ -313,7 +313,15 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->transition; break;
 			case TH_SEQ_META:
 				cp= ts->meta; break;
-				
+			case TH_HANDLE_VERTEX:
+				cp= ts->handle_vertex;
+				break;
+			case TH_HANDLE_VERTEX_SELECT:
+				cp= ts->handle_vertex_select;
+				break;
+			case TH_HANDLE_VERTEX_SIZE:
+				cp= &ts->handle_vertex_size;
+				break;
 			}
 
 		}
@@ -492,6 +500,10 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
 	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); 
 	btheme->tipo.vertex_size= 3;
+
+	SETCOL(btheme->tipo.handle_vertex, 0xff, 0x70, 0xff, 255);
+	SETCOL(btheme->tipo.handle_vertex_select, 0xff, 0xff, 0x70, 255);
+	btheme->tipo.handle_vertex_size= 3;
 
 	/* space file */
 	/* to have something initialized */
@@ -684,7 +696,10 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
 			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
-			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
+			str += sprintf(str, "Current Frame %%x%d|", TH_CFRAME);
+			str += sprintf(str, "Handle Vertex %%x%d|", TH_HANDLE_VERTEX);
+			str += sprintf(str, "Handle Vertex Selected %%x%d|", TH_HANDLE_VERTEX_SELECT);
+			str += sprintf(str, "Handle Vertex Size %%x%d", TH_HANDLE_VERTEX_SIZE);
 			break;
 		case SPACE_FILE:
 			str += sprintf(str, "Selected file %%x%d", TH_HILITE);

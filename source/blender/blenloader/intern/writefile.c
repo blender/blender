@@ -535,6 +535,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
 			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
 		}
 		part= part->id.next;
 	}

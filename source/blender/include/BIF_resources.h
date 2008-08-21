@@ -524,6 +524,10 @@ enum {
 	
 	TH_EDGE_SHARP,
 	TH_EDITMESH_ACTIVE,
+
+	TH_HANDLE_VERTEX,
+	TH_HANDLE_VERTEX_SELECT,
+	TH_HANDLE_VERTEX_SIZE,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

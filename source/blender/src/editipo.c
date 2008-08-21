@@ -462,24 +462,7 @@ static void make_part_editipo(SpaceIpo *si)
 		name = getname_part_ei(part_ar[a]);
 		strcpy(ei->name, name);
 		ei->adrcode= part_ar[a];
-		
-		//if(ei->adrcode & MA_MAP1) {
-		//	ei->adrcode-= MA_MAP1;
-		//	ei->adrcode |= texchannel_to_adrcode(si->channel);
-		//}
-		//else {
-		//	if(ei->adrcode==MA_MODE) ei->disptype= IPO_DISPBITS;
-		//}
-		
 		ei->col= ipo_rainbow(a, PART_TOTIPO);
-		
-		//len= strlen(ei->name);
-		//if(len) {
-		//	if( ei->name[ len-1 ]=='R') ei->col= 0x5050FF;
-		//	else if( ei->name[ len-1 ]=='G') ei->col= 0x50FF50;
-		//	else if( ei->name[ len-1 ]=='B') ei->col= 0xFF7050;
-		//}
-		
 		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
 		if(ei->icu) {
 			ei->flag= ei->icu->flag;

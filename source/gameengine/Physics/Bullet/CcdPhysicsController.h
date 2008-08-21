@@ -17,11 +17,14 @@ subject to the following restrictions:
 #ifndef BULLET2_PHYSICSCONTROLLER_H
 #define BULLET2_PHYSICSCONTROLLER_H
 
+#include <vector>
+
 #include "PHY_IPhysicsController.h"
 
 ///	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 ///	It contains the IMotionState and IDeformableMesh Interfaces.
 #include "btBulletDynamicsCommon.h"
+#include "LinearMath/btTransform.h"
 
 #include "PHY_IMotionState.h"
 
@@ -31,8 +34,66 @@ extern float gAngularSleepingTreshold;
 extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
 class btMotionState;
+class RAS_MeshObject;
+class btCollisionShape;
 
+// Shape contructor
+// It contains all the information needed to create a simple bullet shape at runtime
+class CcdShapeConstructionInfo
+{
+public:
+	CcdShapeConstructionInfo() :
+		m_shapeType(PHY_SHAPE_NONE),
+		m_radius(1.0),
+		m_height(1.0),
+		m_halfExtend(0.f,0.f,0.f),
+		m_nextShape(NULL),
+		m_refCount(1)
+	{
+		m_childTrans.setIdentity();
+	}
 
+	~CcdShapeConstructionInfo();
+
+	CcdShapeConstructionInfo* AddRef()
+	{ 
+		m_refCount++;
+		return this;
+	}
+
+	int Release()
+	{
+		if (--m_refCount > 0)
+			return m_refCount;
+		delete this;
+		return 0;
+	}
+
+	void AddShape(CcdShapeConstructionInfo* shapeInfo);
+
+	CcdShapeConstructionInfo* GetNextShape()
+	{
+		return m_nextShape;
+	}
+
+	bool SetMesh(RAS_MeshObject* mesh, bool polytope);
+
+	btCollisionShape* CreateBulletShape();
+
+	// member variables
+	PHY_ShapeType			m_shapeType;
+	btScalar				m_radius;
+	btScalar				m_height;
+	btVector3				m_halfExtend;
+	btTransform				m_childTrans;
+	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
+											// triangle array for concave mesh shape.
+											// In this case a triangle is made of 3 consecutive points
+protected:
+	CcdShapeConstructionInfo* m_nextShape;	// for compound shape
+	int						m_refCount;		// this class is shared between replicas
+											// keep track of users so that we can release it 
+};
 
 struct CcdConstructionInfo
 {
@@ -65,6 +126,7 @@ struct CcdConstructionInfo
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
 		m_MotionState(0),
+		m_shapeInfo(0),
 		m_physicsEnv(0),
 		m_inertiaFactor(1.f)
 	{
@@ -89,8 +151,11 @@ struct CcdConstructionInfo
 	short int	m_collisionFilterGroup;
 	short int	m_collisionFilterMask;
 
+	///these pointers are used as argument passing for the CcdPhysicsController constructor
+	///and not anymore after that
 	class btCollisionShape*	m_collisionShape;
 	class PHY_IMotionState*	m_MotionState;
+	class CcdShapeConstructionInfo* m_shapeInfo;
 	
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
@@ -106,6 +171,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	btRigidBody* m_body;
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
+	class btCollisionShape*	m_collisionShape;
+	class CcdShapeConstructionInfo* m_shapeInfo;
+
 	friend class CcdPhysicsEnvironment;	// needed when updating the controller
 
 
@@ -137,6 +205,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 
 		btRigidBody* GetRigidBody() { return m_body;}
+		CcdShapeConstructionInfo* GetShapeInfo() { return m_shapeInfo; }
 
 		btCollisionShape*	GetCollisionShape() { 
 			return m_body->getCollisionShape();

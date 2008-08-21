@@ -97,7 +97,7 @@ extern "C"
 #include "GHOST_IEventConsumer.h"
 #include "GHOST_IWindow.h"
 #include "GHOST_Rect.h"
-
+#include "marshal.h"
 
 static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);
 
@@ -125,7 +125,9 @@ GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR
 	  m_networkdevice(0), 
 	  m_audiodevice(0),
 	  m_blendermat(0),
-	  m_blenderglslmat(0)
+	  m_blenderglslmat(0),
+	  m_pyGlobalDictString(0),
+	  m_pyGlobalDictString_Length(0)
 {
 	fSystem = system;
 }
@@ -645,14 +647,23 @@ bool GPG_Application::startEngine(void)
 		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest);
 		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
-		PyDict_SetItemString(dictionaryobject, "GameLogic", initGameLogic(startscene)); // Same as importing the module
+		PyObject *gameLogic = initGameLogic(startscene);
+		PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
 
-
-
-
+		/* Restore the dict */
+		if (m_pyGlobalDictString) {
+			PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(m_pyGlobalDictString, m_pyGlobalDictString_Length);
+			if (pyGlobalDict) {
+				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+			} else {
+				PyErr_Clear();
+				printf("Error could not marshall string\n");
+			}
+		}
+		
 		m_sceneconverter->ConvertScene(
 			startscenename,
 			startscene,
@@ -688,6 +699,32 @@ bool GPG_Application::startEngine(void)
 
 void GPG_Application::stopEngine()
 {
+	// get the python dict and convert to a string for future use
+	{
+		SetPyGlobalDictMarshal(NULL, 0);
+		
+		PyObject* gameLogic = PyImport_ImportModule("GameLogic");
+		if (gameLogic) {
+			PyObject* pyGlobalDict = PyDict_GetItemString(PyModule_GetDict(gameLogic), "globalDict"); // Same as importing the module
+			if (pyGlobalDict) {
+				PyObject* pyGlobalDictMarshal = PyMarshal_WriteObjectToString(	pyGlobalDict, 2); // Py_MARSHAL_VERSION == 2 as of Py2.5
+				if (pyGlobalDictMarshal) {
+					m_pyGlobalDictString_Length = PyString_Size(pyGlobalDictMarshal);
+					PyObject_Print(pyGlobalDictMarshal, stderr, 0);
+					m_pyGlobalDictString = static_cast<char *> (malloc(m_pyGlobalDictString_Length));
+					memcpy(m_pyGlobalDictString, PyString_AsString(pyGlobalDictMarshal), m_pyGlobalDictString_Length);
+				} else {
+					printf("Error, GameLogic.globalDict could not be marshal'd\n");
+				}
+			} else {
+				printf("Error, GameLogic.globalDict was removed\n");
+			}
+		} else {
+			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+		}
+	}	
+	
+	
 	// when exiting the mainloop
 	exitGamePythonScripting();
 	m_ketsjiengine->StopEngine();

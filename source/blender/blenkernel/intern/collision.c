@@ -31,10 +31,11 @@
 
 #include "BKE_cloth.h"
 
-#include "DNA_group_types.h"
-#include "DNA_object_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_group_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_DerivedMesh.h"
@@ -1307,9 +1308,34 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	for ( base = G.scene->base.first; base; base = base->next )
 	{
 		coll_ob = base->object;
-		collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
-	
-		if ( !collmd )
+		
+		if(coll_ob->pd && coll_ob->pd->deflect)
+		{
+			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
+		}
+		
+		if ( collmd )
+		{
+			if(coll_ob == self)
+				continue;
+			
+			if(numobj >= maxobj)
+			{
+				// realloc
+				int oldmax = maxobj;
+				CollisionModifierData **tmp;
+				maxobj *= 2;
+				tmp = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
+				memcpy(tmp, objs, sizeof(CollisionModifierData *)*oldmax);
+				MEM_freeN(objs);
+				objs = tmp;
+				
+			}
+			
+			objs[numobj] = collmd;
+			numobj++;
+		}
+		else
 		{
 			if ( coll_ob->dup_group )
 			{
@@ -1319,8 +1345,12 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 				for ( go= group->gobject.first; go; go= go->next )
 				{
 					coll_ob = go->ob;
-
-					collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
+					collmd = NULL;
+					
+					if(coll_ob->pd && coll_ob->pd->deflect)
+					{
+						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
+					}
 
 					if ( !collmd )
 						continue;
@@ -1347,27 +1377,6 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 					numobj++;
 				}
 			}
-		}
-		else
-		{
-			if(coll_ob == self)
-				continue;
-			
-			if(numobj >= maxobj)
-			{
-				// realloc
-				int oldmax = maxobj;
-				CollisionModifierData **tmp;
-				maxobj *= 2;
-				tmp = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
-				memcpy(tmp, objs, sizeof(CollisionModifierData *)*oldmax);
-				MEM_freeN(objs);
-				objs = tmp;
-				
-			}
-			
-			objs[numobj] = collmd;
-			numobj++;
 		}	
 	}
 	*numcollobj = numobj;
@@ -1483,6 +1492,9 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 			CollisionModifierData *collmd = collobjs[i];
 			BVHTreeOverlap *overlap = NULL;
 			int result = 0;
+			
+			if(!collmd->bvhtree)
+				continue;
 			
 			/* move object to position (step) in time */
 			collision_move_object ( collmd, step + dt, step );

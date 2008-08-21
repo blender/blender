@@ -103,7 +103,8 @@ char *ic_name_empty[1] ={ "" };
 char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
 char *part_ic_names[PART_TOTNAM] = { "E_Freq", "E_Life", "E_Speed", "E_Angular", "E_Size",
 "Angular", "Size", "Drag", "Brown", "Damp", "Length", "Clump",
-"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt", "FStreng", "FFall", "FMaxD"};
+"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt",
+"FStreng", "FFall", "FMaxD", "F2Streng", "F2Fall", "F2MaxD"};
 
 /* gets the appropriate icon for the given blocktype */
 int geticon_ipo_blocktype(short blocktype)
