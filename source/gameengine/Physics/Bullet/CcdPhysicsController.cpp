@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
+#include "RAS_MeshObject.h"
 
 
 class BP_Proxy;
@@ -44,7 +45,14 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_newClientInfo = 0;
 	m_registerCount = 0;
 		
+	// copy pointers locally to allow smart release
 	m_MotionState = ci.m_MotionState;
+	m_collisionShape = ci.m_collisionShape;
+	// shape info is shared, increment ref count
+	m_shapeInfo = ci.m_shapeInfo;
+	if (m_shapeInfo)
+		m_shapeInfo->AddRef();
+	
 	m_bulletMotionState = 0;
 	
 	
@@ -116,7 +124,7 @@ void CcdPhysicsController::CreateRigidbody()
 
 	m_body = new btRigidBody(m_cci.m_mass,
 		m_bulletMotionState,
-		m_cci.m_collisionShape,
+		m_collisionShape,
 		m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor,
 		m_cci.m_linearDamping,m_cci.m_angularDamping,
 		m_cci.m_friction,m_cci.m_restitution);
@@ -144,6 +152,19 @@ void CcdPhysicsController::CreateRigidbody()
 	}
 }
 
+static void DeleteBulletShape(btCollisionShape* shape)
+{
+	if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
+	{
+		// shapes based on meshes use an interface that contains the vertices.
+		btTriangleMeshShape* meshShape = static_cast<btTriangleMeshShape*>(shape);
+		btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
+		if (meshInterface)
+			delete meshInterface;
+	}
+	delete shape;
+}
+
 CcdPhysicsController::~CcdPhysicsController()
 {
 	//will be reference counted, due to sharing
@@ -155,6 +176,27 @@ CcdPhysicsController::~CcdPhysicsController()
 	if (m_bulletMotionState)
 		delete m_bulletMotionState;
 	delete m_body;
+
+	if (m_collisionShape)
+	{
+		// collision shape is always unique to the controller, can delete it here
+		if (m_collisionShape->isCompound())
+		{
+			// bullet does not delete the child shape, must do it here
+			btCompoundShape* compoundShape = (btCompoundShape*)m_collisionShape;
+			int numChild = compoundShape->getNumChildShapes();
+			for (int i=numChild-1 ; i >= 0; i--)
+			{
+				btCollisionShape* childShape = compoundShape->getChildShape(i);
+				DeleteBulletShape(childShape);
+			}
+		}
+		DeleteBulletShape(m_collisionShape);
+	}
+	if (m_shapeInfo)
+	{
+		m_shapeInfo->Release();
+	}
 }
 
 
@@ -219,11 +261,33 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 {
 	m_MotionState = motionstate;
 	m_registerCount = 0;
-	
+	m_collisionShape = NULL;
+
+	// always create a new shape to avoid scaling bug
+	if (m_shapeInfo)
+	{
+		m_shapeInfo->AddRef();
+		m_collisionShape = m_shapeInfo->CreateBulletShape();
+
+		if (m_collisionShape)
+		{
+			// new shape has no scaling, apply initial scaling
+			m_collisionShape->setLocalScaling(m_cci.m_scaling);
+			if (m_cci.m_mass)
+				m_collisionShape->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
+		}
+	}
 
 	m_body = 0;
 	CreateRigidbody();
-	
+
+	if (m_body)
+	{
+		if (m_cci.m_mass)
+		{
+			m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		} 
+	}			
 	m_cci.m_physicsEnv->addCcdPhysicsController(this);
 
 
@@ -597,28 +661,31 @@ bool CcdPhysicsController::wantsSleeping()
 
 PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 {
-	//very experimental, shape sharing is not implemented yet.
-	//just support btSphereShape/ConeShape for now
-
+	// This is used only to replicate Near and Radar sensor controllers
+	// The replication of object physics controller is done in KX_BulletPhysicsController::GetReplica()
 	CcdConstructionInfo cinfo = m_cci;
-	if (cinfo.m_collisionShape)
+	if (m_shapeInfo)
 	{
-		switch (cinfo.m_collisionShape->getShapeType())
+		// This situation does not normally happen
+		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape();
+	} 
+	else if (m_collisionShape)
+	{
+		switch (m_collisionShape->getShapeType())
 		{
 		case SPHERE_SHAPE_PROXYTYPE:
 			{
-				btSphereShape* orgShape = (btSphereShape*)cinfo.m_collisionShape;
+				btSphereShape* orgShape = (btSphereShape*)m_collisionShape;
 				cinfo.m_collisionShape = new btSphereShape(*orgShape);
 				break;
 			}
 
-			case CONE_SHAPE_PROXYTYPE:
+		case CONE_SHAPE_PROXYTYPE:
 			{
-				btConeShape* orgShape = (btConeShape*)cinfo.m_collisionShape;
+				btConeShape* orgShape = (btConeShape*)m_collisionShape;
 				cinfo.m_collisionShape = new btConeShape(*orgShape);
 				break;
 			}
-
 
 		default:
 			{
@@ -628,6 +695,7 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 	}
 
 	cinfo.m_MotionState = new DefaultMotionState();
+	cinfo.m_shapeInfo = m_shapeInfo;
 
 	CcdPhysicsController* replica = new CcdPhysicsController(cinfo);
 	return replica;
@@ -688,4 +756,199 @@ void	DefaultMotionState::calculateWorldTransformations()
 {
 
 }
+
+// Shape constructor
+bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
+{
+	// assume no shape information
+	m_shapeType = PHY_SHAPE_NONE;
+	m_vertexArray.clear();
+
+	if (!meshobj)
+		return false;
+
+	// Mesh has no polygons!
+	int numpolys = meshobj->NumPolygons();
+	if (!numpolys)
+	{
+		return false;
+	}
+
+	// check that we have at least one colliding polygon
+	int numvalidpolys = 0;
+
+	for (int p=0; p<numpolys; p++)
+	{
+		RAS_Polygon* poly = meshobj->GetPolygon(p);
+
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{
+			numvalidpolys++;
+			break;
+		}
+	}
+
+	// No collision polygons
+	if (numvalidpolys < 1)
+		return false;
+
+	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
+
+	numvalidpolys = 0;
+
+	for (int p2=0; p2<numpolys; p2++)
+	{
+		RAS_Polygon* poly = meshobj->GetPolygon(p2);
+
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{   
+			//Bullet can raycast any shape, so
+			if (polytope)
+			{
+				for (int i=0;i<poly->VertexCount();i++)
+				{
+					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[i],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 point(vtx[0],vtx[1],vtx[2]);
+					m_vertexArray.push_back(point);
+					numvalidpolys++;
+				}
+			} else
+			{
+				{
+					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[2],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
+					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[1],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
+					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[0],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+					m_vertexArray.push_back(vertex0);
+					m_vertexArray.push_back(vertex1);
+					m_vertexArray.push_back(vertex2);
+					numvalidpolys++;
+				}
+				if (poly->VertexCount() == 4)
+				{
+					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[3],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
+					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[2],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
+					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+						poly->GetVertexIndexBase().m_indexarray[0],
+						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+					m_vertexArray.push_back(vertex0);
+					m_vertexArray.push_back(vertex1);
+					m_vertexArray.push_back(vertex2);
+					numvalidpolys++;
+				}
+			}		
+		}
+	}
+
+	if (!numvalidpolys)
+	{
+		// should not happen
+		m_shapeType = PHY_SHAPE_NONE;
+		return false;
+	}
+	return true;
+}
+
+btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
+{
+	btCollisionShape* collisionShape = 0;
+	btTriangleMeshShape* concaveShape = 0;
+	btTriangleMesh* collisionMeshData = 0;
+	btCompoundShape* compoundShape = 0;
+	CcdShapeConstructionInfo* nextShapeInfo;
+
+	switch (m_shapeType) 
+	{
+	case PHY_SHAPE_BOX:
+		collisionShape = new btBoxShape(m_halfExtend);
+		break;
+
+	case PHY_SHAPE_SPHERE:
+		collisionShape = new btSphereShape(m_radius);
+		break;
+
+	case PHY_SHAPE_CYLINDER:
+		collisionShape = new btCylinderShapeZ(m_halfExtend);
+		break;
+
+	case PHY_SHAPE_CONE:
+		collisionShape = new btConeShapeZ(m_radius, m_height);
+		break;
+
+	case PHY_SHAPE_POLYTOPE:
+		collisionShape = new btConvexHullShape(&m_vertexArray.begin()->getX(), m_vertexArray.size());
+		break;
+
+	case PHY_SHAPE_MESH:
+		collisionMeshData = new btTriangleMesh();
+		// m_vertexArray is necessarily a multiple of 3
+		for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+		{
+            collisionMeshData->addTriangle(*it++,*it++,*it++);
+		}
+		concaveShape = new btBvhTriangleMeshShape( collisionMeshData, true );
+		concaveShape->recalcLocalAabb();
+		collisionShape = concaveShape;
+		break;
+
+	case PHY_SHAPE_COMPOUND:
+		if (m_nextShape)
+		{
+			compoundShape = new btCompoundShape();
+			for (nextShapeInfo=m_nextShape; nextShapeInfo; nextShapeInfo = nextShapeInfo->m_nextShape)
+			{
+				collisionShape = nextShapeInfo->CreateBulletShape();
+				if (collisionShape)
+				{
+					compoundShape->addChildShape(nextShapeInfo->m_childTrans, collisionShape);
+				}
+			}
+			collisionShape = compoundShape;
+		}
+	}
+	return collisionShape;
+}
+
+void CcdShapeConstructionInfo::AddShape(CcdShapeConstructionInfo* shapeInfo)
+{
+	CcdShapeConstructionInfo* nextShape = this;
+	while (nextShape->m_nextShape != NULL)
+		nextShape = nextShape->m_nextShape;
+	nextShape->m_nextShape = shapeInfo;
+}
+
+CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
+{
+	CcdShapeConstructionInfo* childShape = m_nextShape;
+
+	while (childShape)
+	{
+		CcdShapeConstructionInfo* nextShape = childShape->m_nextShape;
+		childShape->m_nextShape = NULL;
+		childShape->Release();
+		childShape = nextShape;
+	}
+	
+	m_vertexArray.clear();
+}
+
 

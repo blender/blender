@@ -1370,8 +1370,9 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float coneradius,float coneheight)
 {
 	CcdConstructionInfo	cinfo;
-	//This is a memory leak: Bullet does not delete the shape and it cannot be added to 
-	//the KX_Scene.m_shapes list -- too bad but that's not a lot of data
+
+	// we don't need a CcdShapeConstructionInfo for this shape:
+	// it is simple enough for the standard copy constructor (see CcdPhysicsController::GetReplica)
 	cinfo.m_collisionShape = new btConeShape(coneradius,coneheight);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;

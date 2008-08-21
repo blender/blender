@@ -151,7 +151,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet;..\..\..\..\..\source\gameengine\Rasterizer;..\..\..\..\..\source\kernel\gen_system"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
