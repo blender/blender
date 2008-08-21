@@ -465,6 +465,8 @@ int subtreeShape(BNode *node, BArc *rootArc, int include_root)
 
 int BLI_subtreeShape(BGraph *graph, BNode *node, BArc *rootArc, int include_root)
 {
+	BNode *test_node;
+	
 	BLI_flagNodes(graph, 0);
 	return subtreeShape(node, rootArc, include_root);
 }

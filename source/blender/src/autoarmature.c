@@ -1341,8 +1341,6 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	cost_cache = MEM_callocN(sizeof(float) * nb_edges, "Cost cache");
 	vec_cache = MEM_callocN(sizeof(float*) * (nb_edges + 1), "Vec cache");
 	
-//	/* symmetry axis */
-//	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
 	if (testFlipArc(iarc, inode_start))
 	{
 		node_start = earc->tail;
@@ -1693,8 +1691,6 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 	float *previous_vec = NULL;
 
 	
-//	/* symmetry axis */
-//	if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
 	if (testFlipArc(iarc, inode_start))
 	{
 		node_start = (ReebNode*)earc->tail;
@@ -1798,13 +1794,10 @@ void *exec_retargetArctoArc(void *param)
 		RigEdge *edge = iarc->edges.first;
 		EditBone *bone = edge->bone;
 		
-//		/* symmetry axis */
-//		if (earc->symmetry_level == 1 && iarc->symmetry_level == 1)
 		if (testFlipArc(iarc, inode_start))
 		{
 			repositionBone(rigg, bone, earc->tail->p, earc->head->p);
 		}
-		/* or not */
 		else
 		{
 			repositionBone(rigg, bone, earc->head->p, earc->tail->p);
@@ -1868,7 +1861,7 @@ static void matchMultiResolutionArc(RigGraph *rigg, RigNode *start_node, RigArc 
 		next_earc = next_earc->link_up;
 		reebg = reebg->link_up;
 		enode = next_earc->head;
-		eshape = BLI_subtreeShape((BGraph*)rigg->link_mesh, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
+		eshape = BLI_subtreeShape((BGraph*)reebg, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	} 
 
 	next_earc->flag = 1; // mark as taken
@@ -1915,16 +1908,20 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 	
 	next_iarc->link_mesh = NULL;
 		
+	printf("-----------------------\n");
+	printf("MATCHING LIMB\n");
+	RIG_printArcBones(next_iarc);
+	
 	for(i = 0; i < enode->degree; i++)
 	{
 		next_earc = (ReebArc*)enode->arcs[i];
 		
 		if (next_earc->flag == 0)
 		{
-			printf("candidate (flag %i == %i) (group %i == %i) (level %i == %i)\n",
-			next_earc->symmetry_flag, symmetry_flag,
-			next_earc->symmetry_group, symmetry_group,
-			next_earc->symmetry_level, symmetry_level);
+			printf("candidate (flag %i ?= %i) (group %i ?= %i) (level %i ?= %i)\n",
+			symmetry_flag, next_earc->symmetry_flag, 
+			symmetry_group, next_earc->symmetry_flag, 
+			symmetry_level, next_earc->symmetry_level);
 		}
 		
 		if (next_earc->flag == 0 && /* not already taken */
@@ -1932,9 +1929,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 			next_earc->symmetry_group == symmetry_group &&
 			next_earc->symmetry_level == symmetry_level)
 		{
-			printf("-----------------------\n");
 			printf("CORRESPONDING ARC FOUND\n");
-			RIG_printArcBones(next_iarc);
 			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
 			
 			matchMultiResolutionArc(rigg, start_node, next_iarc, next_earc);
@@ -1945,19 +1940,8 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 	/* not found, try at higher nodes (lower node might have filtered internal arcs, messing shape of tree */
 	if (next_iarc->link_mesh == NULL)
 	{
-		printf("--------------------------\n");
 		printf("NO CORRESPONDING ARC FOUND - GOING TO HIGHER LEVELS\n");
-		RIG_printArcBones(next_iarc);
 		
-		printf("LOOKING FOR\n");
-		printf("flag %i -- symmetry level %i -- symmetry flag %i\n", 0, symmetry_level, symmetry_flag);
-		
-		printf("CANDIDATES\n");
-		for(i = 0; i < enode->degree; i++)
-		{
-			next_earc = (ReebArc*)enode->arcs[i];
-			printf("flag %i -- symmetry level %i -- symmetry flag %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag);
-		}
 		if (enode->link_up)
 		{
 			start_node->link_mesh = enode->link_up;
@@ -1968,7 +1952,6 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 	/* still not found, print debug info */
 	if (next_iarc->link_mesh == NULL)
 	{
-		printf("--------------------------\n");
 		printf("NO CORRESPONDING ARC FOUND\n");
 		RIG_printArcBones(next_iarc);
 		
