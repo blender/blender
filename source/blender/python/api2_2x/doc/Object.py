@@ -117,6 +117,10 @@ Example::
 	attribute.  Only one type can be selected at a time.  Values are
 	BOX, SPHERE, CYLINDER, CONE, and POLYHEDERON
 
+@type EmptyShapes: readonly dictionary
+@var EmptyShapes: Constant dict used for with L{Object.emptyShape} attribute.
+	Only one type can be selected at a time. Values are
+	ARROW, ARROWS, AXES, CIRCLE, CONE, CUBE AND SPHERE
 """
 
 def New (type, name='type'):
@@ -347,7 +351,7 @@ class Object:
 			ob.layers = []  # object won't be visible
 			ob.layers = [1, 4] # object visible only in layers 1 and 4
 			ls = o.layers
-			ls.append([10])
+			ls.append(10)
 			o.layers = ls
 			print ob.layers # will print: [1, 4, 10]
 		B{Note}: changes will only be visible after the screen (at least
@@ -525,6 +529,8 @@ class Object:
 	@ivar drawType: The object's drawing type.
 		See L{DrawTypes} constant dict for values.
 	@type drawType: int
+	@ivar emptyShape: The empty drawing shape.
+		See L{EmptyShapes} constant dict for values.
 	@ivar parentType: The object's parent type.  Read-only.
 		See L{ParentTypes} constant dict for values.
 	@type parentType: int
