@@ -801,9 +801,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	}
 
 	bm->setMargin(0.06);
-	if (objprop->m_dyna)
-		bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-
 
 
 		if (objprop->m_isCompoundChild)
@@ -905,6 +902,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_collisionFilterGroup = (isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) : short(CcdConstructionInfo::StaticFilter);
 	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
 	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
+	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();
+	ci.m_scaling.setValue(scaling[0], scaling[1], scaling[2]);
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
 	// shapeInfo is reference counted, decrement now as we don't use it anymore
 	if (shapeInfo)

@@ -48,6 +48,10 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	// copy pointers locally to allow smart release
 	m_MotionState = ci.m_MotionState;
 	m_collisionShape = ci.m_collisionShape;
+	// apply scaling before creating rigid body
+	m_collisionShape->setLocalScaling(m_cci.m_scaling);
+	if (m_cci.m_mass)
+		m_collisionShape->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
 	// shape info is shared, increment ref count
 	m_shapeInfo = ci.m_shapeInfo;
 	if (m_shapeInfo)
