@@ -878,6 +878,9 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 
 	switch (m_shapeType) 
 	{
+	case PHY_SHAPE_NONE:
+		break;
+
 	case PHY_SHAPE_BOX:
 		collisionShape = new btBoxShape(m_halfExtend);
 		break;
