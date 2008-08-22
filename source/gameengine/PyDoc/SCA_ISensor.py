@@ -77,4 +77,10 @@ class SCA_ISensor(SCA_ILogicBrick):
 		@param level: Detect level instead of edge? (KX_TRUE, KX_FALSE)
 		@type level: boolean
 		"""
+	def reset():
+		"""
+		Reset sensor internal state, effect depends on the type of sensor and settings.
+		
+		The sensor is put in its initial state as if it was just activated.
+		"""
 

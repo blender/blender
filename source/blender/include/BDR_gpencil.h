@@ -43,7 +43,6 @@ struct bGPDframe;
 /* Temporary 'Stroke Point' data */
 typedef struct tGPspoint {
 	short x, y;				/* x and y coordinates of cursor (in relative to area) */
-	float xf, yf;			/* same as x and y, but as floats */
 	float pressure;			/* pressure of tablet at this point */
 } tGPspoint;
 

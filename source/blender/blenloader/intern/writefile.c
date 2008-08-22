@@ -535,6 +535,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
 			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
 		}
 		part= part->id.next;
 	}
@@ -607,6 +608,9 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 			break;
 		case SENS_ACTUATOR:
 			writestruct(wd, DATA, "bActuatorSensor", 1, sens->data);
+			break;
+		case SENS_DELAY:
+			writestruct(wd, DATA, "bDelaySensor", 1, sens->data);
 			break;
 		case SENS_COLLISION:
 			writestruct(wd, DATA, "bCollisionSensor", 1, sens->data);

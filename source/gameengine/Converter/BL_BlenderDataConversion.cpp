@@ -1946,10 +1946,22 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				//parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
 
 				// Extract the rotation and the scaling from the basis
-				MT_Matrix3x3 inverseOrientation(parinvtrans.getRotation());
-				parentinversenode->SetLocalOrientation(inverseOrientation);
-				MT_Matrix3x3 scale(inverseOrientation.transposed()*parinvtrans.getBasis());
-				parentinversenode->SetLocalScale(MT_Vector3(scale[0][0], scale[1][1], scale[2][2]));
+				MT_Matrix3x3 ori(parinvtrans.getBasis());
+				MT_Vector3 x(ori.getColumn(0));
+				MT_Vector3 y(ori.getColumn(1));
+				MT_Vector3 z(ori.getColumn(2));
+				MT_Vector3 scale(x.length(), y.length(), z.length());
+				if (!MT_fuzzyZero(scale[0]))
+					x /= scale[0];
+				if (!MT_fuzzyZero(scale[1]))
+					y /= scale[1];
+				if (!MT_fuzzyZero(scale[2]))
+					z /= scale[2];
+				ori.setColumn(0, x);								
+				ori.setColumn(1, y);								
+				ori.setColumn(2, z);								
+				parentinversenode->SetLocalOrientation(ori);
+				parentinversenode->SetLocalScale(scale);
 				
 				parentinversenode->AddChild(gameobj->GetSGNode());
 			}
@@ -2129,7 +2141,24 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								float* fl = (float*) blenderobject->parentinv;
 								MT_Transform parinvtrans(fl);
 								parentinversenode->SetLocalPosition(parinvtrans.getOrigin());
-								parentinversenode->SetLocalOrientation(parinvtrans.getBasis());
+
+								// Extract the rotation and the scaling from the basis
+								MT_Matrix3x3 ori(parinvtrans.getBasis());
+								MT_Vector3 x(ori.getColumn(0));
+								MT_Vector3 y(ori.getColumn(1));
+								MT_Vector3 z(ori.getColumn(2));
+								MT_Vector3 scale(x.length(), y.length(), z.length());
+								if (!MT_fuzzyZero(scale[0]))
+									x /= scale[0];
+								if (!MT_fuzzyZero(scale[1]))
+									y /= scale[1];
+								if (!MT_fuzzyZero(scale[2]))
+									z /= scale[2];
+								ori.setColumn(0, x);								
+								ori.setColumn(1, y);								
+								ori.setColumn(2, z);								
+								parentinversenode->SetLocalOrientation(ori);
+								parentinversenode->SetLocalScale(scale);
 								
 								parentinversenode->AddChild(gameobj->GetSGNode());
 							}

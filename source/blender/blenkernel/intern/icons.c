@@ -50,6 +50,8 @@
 #include "BKE_icons.h"
 #include "BKE_utildefines.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #define GS(a)	(*((short *)(a)))
 
 /* GLOBALS */

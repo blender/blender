@@ -113,13 +113,13 @@ public:
 	void	InstantAddObject();
 
 	/* 1. setObject */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetObject);
 	/* 2. setTime */
 	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetTime);
 	/* 3. getTime */
 	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetTime);
 	/* 4. getObject */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,GetObject);
 	/* 5. getLinearVelocity */
 	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetLinearVelocity);
 	/* 6. setLinearVelocity */

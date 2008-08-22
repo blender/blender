@@ -262,6 +262,9 @@ ECHO Done
 				Name="extern"
 				Filter="">
 				<File
+					RelativePath="..\..\BLO_sys_types.h">
+				</File>
+				<File
 					RelativePath="..\..\MEM_guardedalloc.h">
 				</File>
 				<File

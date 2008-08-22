@@ -180,7 +180,6 @@ PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyOb
 	char *actNameArg = NULL;
 
 	if (!PyArg_ParseTuple(args, "s", &actNameArg)) {
-		PyErr_SetString(PyExc_TypeError, "Invalid arguments");
 		return NULL;
 	}
 

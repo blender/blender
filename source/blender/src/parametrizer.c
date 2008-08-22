@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #if defined(_WIN32)
 #define M_PI 3.14159265358979323846
 #endif
@@ -38,7 +40,7 @@ static int PHashSizes[] = {
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459
 };
 
-#define PHASH_hash(ph, item) (((unsigned long) (item))%((unsigned int) (ph)->cursize))
+#define PHASH_hash(ph, item) (((uintptr_t) (item))%((unsigned int) (ph)->cursize))
 #define PHASH_edge(v1, v2)	 ((v1)^(v2))
 
 static PHash *phash_new(PHashLink **list, int sizehint)

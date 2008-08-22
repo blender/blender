@@ -43,7 +43,7 @@ PyObject* listvalue_buffer_item(PyObject* list,Py_ssize_t index)
 			return ((CListValue*) list)->GetValue(index)->AddRef();
 
 	}
-	Py_Error(PyExc_IndexError, "Python ListIndex out of range");  
+	PyErr_SetString(PyExc_IndexError, "Python ListIndex out of range");
 	return NULL;
 }
 
@@ -130,9 +130,10 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 			}
 		}
 
-		if (error)
-			Py_Error(PyExc_SystemError, "Python Error: couldn't add one or more items to a list");  
-		
+		if (error) {
+			PyErr_SetString(PyExc_SystemError, "Python Error: couldn't add one or more items to a list");
+			return NULL;
+		}
 
 	} else
 	{
@@ -155,8 +156,8 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 				listval->Add(objval);
 			} else
 			{
-				Py_Error(PyExc_SystemError, "Python Error: couldn't add item to a list");  
-				// bad luck
+				PyErr_SetString(PyExc_SystemError, "Python Error: couldn't add item to a list");  
+				return NULL;
 			}
 		}
 	}

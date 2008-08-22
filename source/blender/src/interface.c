@@ -105,6 +105,8 @@
 #include "blendef.h"
 #include "winlay.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #define INSIDE_BLOCK		1
 #define INSIDE_PANEL_HEADER	2
 #define INSIDE_PANEL_SCALE	3
@@ -6039,7 +6041,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 /* autocomplete callback for ID buttons */
 static void autocomplete_id(char *str, void *arg_v)
 {
-	int blocktype= (long)arg_v;
+	int blocktype= (intptr_t)arg_v;
 	ListBase *listb= wich_libbase(G.main, blocktype);
 	
 	if(listb==NULL) return;
@@ -6370,7 +6372,7 @@ uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int 
 	ui_check_but(but);
 	
 	if(blocktype)
-		uiButSetCompleteFunc(but, autocomplete_id, (void *)(long)blocktype);
+		uiButSetCompleteFunc(but, autocomplete_id, (void *)(intptr_t)blocktype);
 
 	return but;
 }

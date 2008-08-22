@@ -107,6 +107,8 @@ void sort_faces(void);
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* from rendercode.c */
 #define VECMUL(dest, f)                  dest[0]*= f; dest[1]*= f; dest[2]*= f
 
@@ -592,7 +594,7 @@ void sort_faces(void)
 
 typedef struct MocNode {
 	struct MocNode *next;
-	long index[MOC_NODE_RES];
+	intptr_t index[MOC_NODE_RES];
 } MocNode;
 
 static int mesh_octree_get_base_offs(float *co, float *offs, float *div)
@@ -610,7 +612,7 @@ static int mesh_octree_get_base_offs(float *co, float *offs, float *div)
 	return (vx*MOC_RES*MOC_RES) + vy*MOC_RES + vz;
 }
 
-static void mesh_octree_add_node(MocNode **bt, long index)
+static void mesh_octree_add_node(MocNode **bt, intptr_t index)
 {
 	if(*bt==NULL) {
 		*bt= MEM_callocN(sizeof(MocNode), "MocNode");
@@ -642,7 +644,7 @@ static void mesh_octree_free_node(MocNode **bt)
 /* temporal define, just to make nicer code below */
 #define MOC_ADDNODE(vx, vy, vz)	mesh_octree_add_node(basetable + ((vx)*MOC_RES*MOC_RES) + (vy)*MOC_RES + (vz), index)
 
-static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, float *div, long index)
+static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, float *div, intptr_t index)
 {
 	float fx, fy, fz;
 	int vx, vy, vz;
@@ -690,7 +692,7 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	
 }
 
-static long mesh_octree_find_index(MocNode **bt, float (*orco)[3], MVert *mvert, float *co)
+static intptr_t mesh_octree_find_index(MocNode **bt, float (*orco)[3], MVert *mvert, float *co)
 {
 	float *vec;
 	int a;
@@ -734,7 +736,7 @@ static struct {
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
-long mesh_octree_table(Object *ob, float *co, char mode)
+intptr_t mesh_octree_table(Object *ob, float *co, char mode)
 {
 	MocNode **bt;
 	
@@ -805,7 +807,7 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 			EditVert *eve;
 
 			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
-				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (long)(eve));
+				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
 		else {		
@@ -863,7 +865,7 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 {
 	float vec[3];
-	long poinval;
+	intptr_t poinval;
 	
 	/* ignore nan verts */
 	if (isnan(co[0]) || !finite(co[0]) ||

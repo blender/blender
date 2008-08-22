@@ -44,6 +44,7 @@ CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../makesdna
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../
+CPPFLAGS += -I../../../blenloader
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # first /include is my own includes, second are the external includes

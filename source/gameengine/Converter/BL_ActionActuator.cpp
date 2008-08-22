@@ -484,17 +484,10 @@ char BL_ActionActuator::GetAction_doc[] =
 PyObject* BL_ActionActuator::PyGetAction(PyObject* self, 
 										 PyObject* args, 
 										 PyObject* kwds) {
-	PyObject *result;
-	
 	if (m_action){
-		result = Py_BuildValue("s", m_action->id.name+2);
+		return PyString_FromString(m_action->id.name+2);
 	}
-	else{
-		Py_INCREF(Py_None);
-		result = Py_None;
-	}
-	
-	return result;
+	Py_RETURN_NONE;
 }
 
 /*     getProperty                                                             */
@@ -640,8 +633,7 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setStart                                                              */
@@ -662,8 +654,7 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setEnd                                                                */
@@ -684,8 +675,7 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendin                                                            */
@@ -707,8 +697,7 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendtime                                                          */
@@ -735,8 +724,7 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setPriority                                                           */
@@ -759,8 +747,7 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setFrame                                                              */
@@ -785,8 +772,7 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setProperty                                                           */
@@ -808,8 +794,7 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setFrameProperty                                                          */
@@ -830,8 +815,7 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*
@@ -848,8 +832,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 */
 
@@ -934,8 +917,7 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 		}
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* getType */

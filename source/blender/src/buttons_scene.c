@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+#include "BLO_sys_types.h" // for intptr_t support
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -3261,7 +3262,7 @@ static void layer_copy_func(void *lay_v, void *lay_p)
 static void delete_scene_layer_func(void *srl_v, void *act_i)
 {
 	if(BLI_countlist(&G.scene->r.layers)>1) {
-		long act= (long)act_i;
+		intptr_t act= (intptr_t)act_i;
 		
 		BLI_remlink(&G.scene->r.layers, srl_v);
 		MEM_freeN(srl_v);
@@ -3322,7 +3323,7 @@ static char *scene_layer_menu(void)
 static void draw_3d_layer_buttons(uiBlock *block, int type, unsigned int *poin, short xco, short yco, short dx, short dy, char *tip)
 {
 	uiBut *bt;
-	long a;
+	intptr_t a;
 	
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) {
@@ -3381,7 +3382,7 @@ static void render_panel_layers(void)
 	
 	uiDefButBitI(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
 	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 145, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
-	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(long)G.scene->r.actlay);
+	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(intptr_t)G.scene->r.actlay);
 	uiBlockEndAlign(block);
 
 	/* RenderLayer visible-layers */

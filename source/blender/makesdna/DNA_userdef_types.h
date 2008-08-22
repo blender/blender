@@ -101,6 +101,11 @@ typedef struct ThemeSpace {
 	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
 	char editmesh_active[4]; 
+
+	char handle_vertex[4];
+	char handle_vertex_select[4];
+	char handle_vertex_size;
+	char hpad[7];
 } ThemeSpace;
 
 

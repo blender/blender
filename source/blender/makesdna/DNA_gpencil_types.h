@@ -59,8 +59,10 @@ typedef struct bGPDstroke {
 #define GP_STROKE_3DSPACE		(1<<0)
 	/* stroke is in 2d-space */
 #define GP_STROKE_2DSPACE		(1<<1)
+	/* stroke is in 2d-space (but with special 'image' scaling) */
+#define GP_STROKE_2DIMAGE		(1<<2)
 	/* stroke is an "eraser" stroke */
-#define GP_STROKE_ERASER		(1<<2)
+#define GP_STROKE_ERASER		(1<<15)
 
 
 /* Grease-Pencil Annotations - 'Frame'

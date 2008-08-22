@@ -88,6 +88,8 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 
 static void boundbox_displist(Object *ob);
 
@@ -986,9 +988,9 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 				efa= fillfacebase.first;
 				index= dlnew->index;
 				while(efa) {
-					index[0]= (long)efa->v1->tmp.l;
-					index[1]= (long)efa->v2->tmp.l;
-					index[2]= (long)efa->v3->tmp.l;
+					index[0]= (intptr_t)efa->v1->tmp.l;
+					index[1]= (intptr_t)efa->v2->tmp.l;
+					index[2]= (intptr_t)efa->v3->tmp.l;
 					
 					index+= 3;
 					efa= efa->next;

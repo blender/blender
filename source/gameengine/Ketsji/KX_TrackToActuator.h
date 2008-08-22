@@ -75,9 +75,9 @@ class KX_TrackToActuator : public SCA_IActuator
 	virtual PyObject* _getattr(const STR_String& attr);
 	
 	/* 1. setObject */
-	KX_PYMETHOD_DOC(KX_TrackToActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_TrackToActuator,SetObject);
 	/* 2. getObject */
-	KX_PYMETHOD_DOC(KX_TrackToActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_TrackToActuator,GetObject);
 	/* 3. setTime */
 	KX_PYMETHOD_DOC(KX_TrackToActuator,SetTime);
 	/* 4. getTime */

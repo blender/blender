@@ -65,6 +65,7 @@ probably misplaced */
 #include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
 #include "SCA_ActuatorSensor.h"
+#include "SCA_DelaySensor.h"
 
 
 #include "SCA_PropertySensor.h"
@@ -281,6 +282,22 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				break;
 			}
 			
+		case  SENS_DELAY:
+			{
+				// we can reuse the Always event manager for the delay sensor
+				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::ALWAYS_EVENTMGR);
+				if (eventmgr)
+				{
+					bDelaySensor* delaysensor = (bDelaySensor*)sens->data;
+					gamesensor = new SCA_DelaySensor(eventmgr, 
+						gameobj,
+						delaysensor->delay,
+						delaysensor->duration,
+						(delaysensor->flag & SENS_DELAY_REPEAT) != 0);
+				}
+				break;
+			}
+
 		case SENS_COLLISION:
 			{
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
@@ -741,10 +758,24 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			for (int i=0;i<sens->totlinks;i++)
 			{
 				bController* linkedcont = (bController*) sens->links[i];
-				SCA_IController* gamecont = converter->FindGameController(linkedcont);
+				if (linkedcont) {
+					SCA_IController* gamecont = converter->FindGameController(linkedcont);
 
-				if (gamecont) {
-					logicmgr->RegisterToSensor(gamecont,gamesensor);
+					if (gamecont) {
+						logicmgr->RegisterToSensor(gamecont,gamesensor);
+					} else {
+						printf(
+							"Warning, sensor \"%s\" could not find its controller"
+							"(link %d of %d)\n"
+							"\tthere has been an error converting the blender controller for the game engine,"
+							"logic may be incorrect\n", sens->name, i+1, sens->totlinks);
+					}
+				} else {
+					printf(
+						"Warning, sensor \"%s\" has lost a link to a controller"
+						"(link %d of %d)\n"
+						"\tpossible causes are partially appended objects or an error reading the file,"
+						"logic may be incorrect\n", sens->name, i+1, sens->totlinks);
 				}
 			}
 			// done with gamesensor

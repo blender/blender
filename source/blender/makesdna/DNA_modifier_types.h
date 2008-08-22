@@ -35,7 +35,11 @@ typedef enum ModifierType {
 	eModifierType_Cloth,
 	eModifierType_Collision,
 	eModifierType_Bevel,
+<<<<<<< .working
 	eModifierType_Fluidsim,
+=======
+	eModifierType_Shrinkwrap,
+>>>>>>> .merge-rechts.r16222
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -391,7 +395,8 @@ typedef struct CollisionModifierData {
 	
 	unsigned int numverts;
 	unsigned int numfaces;
-	int pad;
+	short absorption; /* used for forces, in % */
+	short pad;
 	float time;		/* cfra time of modifier */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
@@ -491,6 +496,7 @@ typedef struct ExplodeModifierData {
 	float protect;
 } ExplodeModifierData;
 
+<<<<<<< .working
 typedef struct FluidsimModifierData {
 	ModifierData modifier;
 	
@@ -498,4 +504,47 @@ typedef struct FluidsimModifierData {
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } FluidsimModifierData;
 
+=======
+typedef struct ShrinkwrapModifierData {
+	ModifierData modifier;
+
+	struct Object *target;	/* shrink target */
+	struct Object *auxTarget; /* additional shrink target */
+	char vgroup_name[32];	/* optional vertexgroup name */
+	float keepDist;			/* distance offset to keep from mesh/projection point */
+	short shrinkType;		/* shrink type projection */
+	short shrinkOpts;		/* shrink options */
+	char projAxis;			/* axis to project over */
+
+	/*
+	 * if using projection over vertex normal this controls the
+	 * the level of subsurface that must be done before getting the
+	 * vertex coordinates and normal
+	 */
+	char subsurfLevels;
+
+	char pad[6];
+
+} ShrinkwrapModifierData;
+
+/* Shrinkwrap->shrinkType */
+#define MOD_SHRINKWRAP_NEAREST_SURFACE	0
+#define MOD_SHRINKWRAP_PROJECT			1
+#define MOD_SHRINKWRAP_NEAREST_VERTEX	2
+
+/* Shrinkwrap->shrinkOpts */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR	(1<<0)	/* allow shrinkwrap to move the vertex in the positive direction of axis */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR	(1<<1)	/* allow shrinkwrap to move the vertex in the negative direction of axis */
+
+#define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)	/* ignore vertex moves if a vertex ends projected on a front face of the target */
+#define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)	/* ignore vertex moves if a vertex ends projected on a back face of the target */
+
+#define MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE		(1<<5)	/* distance is measure to the front face of the target */
+
+#define MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS		(1<<0)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS		(1<<1)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
+#define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
+
+>>>>>>> .merge-rechts.r16222
 #endif

@@ -86,6 +86,8 @@
 #include "blendef.h"
 #include "BSE_time.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX	0x7FEFEFEF
 
@@ -630,11 +632,11 @@ void free_old_images()
 	}
 }
 
-static unsigned long image_mem_size(Image *ima)
+static uintptr_t image_mem_size(Image *ima)
 {
 	ImBuf *ibuf, *ibufm;
 	int level;
-	unsigned long size = 0;
+	uintptr_t size = 0;
 
 	size= 0;
 	for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
@@ -656,7 +658,7 @@ static unsigned long image_mem_size(Image *ima)
 void BKE_image_print_memlist(void)
 {
 	Image *ima;
-	unsigned long size, totsize= 0;
+	uintptr_t size, totsize= 0;
 
 	for(ima= G.main->image.first; ima; ima= ima->id.next)
 		totsize += image_mem_size(ima);

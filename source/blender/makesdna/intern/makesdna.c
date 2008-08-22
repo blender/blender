@@ -55,6 +55,8 @@
 #include "MEM_guardedalloc.h"
 #include "DNA_sdna_types.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -955,7 +957,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		/* calculate size of datablock with strings */
 		cp= names[nr_names-1];
 		cp+= strlen(names[nr_names-1]) + 1;			/* +1: null-terminator */
-		len= (long) (cp - (char*) names[0]);
+		len= (intptr_t) (cp - (char*) names[0]);
 		len= (len+3) & ~3;
 		dna_write(file, names[0], len);
 		
@@ -968,7 +970,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		/* calculate datablock size */
 		cp= types[nr_types-1];
 		cp+= strlen(types[nr_types-1]) + 1;		/* +1: null-terminator */
-		len= (long) (cp - (char*) types[0]);
+		len= (intptr_t) (cp - (char*) types[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, types[0], len);
@@ -990,7 +992,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		/* calc datablock size */
 		sp= structs[nr_structs-1];
 		sp+= 2+ 2*( sp[1] );
-		len= (long) ((char*) sp - (char*) structs[0]);
+		len= (intptr_t) ((char*) sp - (char*) structs[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, structs[0], len);

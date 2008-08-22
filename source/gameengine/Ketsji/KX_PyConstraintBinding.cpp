@@ -91,7 +91,7 @@ static PyObject* gPySetGravity(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetDebugMode(PyObject* self,
@@ -112,7 +112,7 @@ static PyObject* gPySetDebugMode(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -132,7 +132,7 @@ static PyObject* gPySetNumTimeSubSteps(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -151,7 +151,7 @@ static PyObject* gPySetNumIterations(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -171,7 +171,7 @@ static PyObject* gPySetDeactivationTime(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -190,7 +190,7 @@ static PyObject* gPySetDeactivationLinearTreshold(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -209,7 +209,7 @@ static PyObject* gPySetDeactivationAngularTreshold(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetContactBreakingTreshold(PyObject* self,
@@ -227,7 +227,7 @@ static PyObject* gPySetContactBreakingTreshold(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -246,7 +246,7 @@ static PyObject* gPySetCcdMode(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetSorConstant(PyObject* self,
@@ -264,7 +264,7 @@ static PyObject* gPySetSorConstant(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetSolverTau(PyObject* self,
@@ -282,7 +282,7 @@ static PyObject* gPySetSolverTau(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -301,7 +301,7 @@ static PyObject* gPySetSolverDamping(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetLinearAirDamping(PyObject* self,
@@ -319,7 +319,7 @@ static PyObject* gPySetLinearAirDamping(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -338,7 +338,7 @@ static PyObject* gPySetUseEpa(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 static PyObject* gPySetSolverType(PyObject* self,
 										 PyObject* args, 
@@ -355,7 +355,7 @@ static PyObject* gPySetSolverType(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -388,7 +388,7 @@ static PyObject* gPyGetVehicleConstraint(PyObject* self,
 		return NULL;
 	}
 
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -448,7 +448,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 		return NULL;
 	}
 
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -502,7 +502,7 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 

@@ -39,6 +39,8 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filter.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /************************************************************************/
 /*								SCALING									*/
 /************************************************************************/
@@ -490,8 +492,8 @@ static void enlarge_picture_byte(
 		/ (double) (src_width - 1.001);
 	double ratioy = (double) (dst_height - 1.0) 
 		/ (double) (src_height - 1.001);
-	unsigned long x_src, dx_src, x_dst;
-	unsigned long y_src, dy_src, y_dst;
+	uintptr_t x_src, dx_src, x_dst;
+	uintptr_t y_src, dy_src, y_dst;
 
 	dx_src = 65536.0 / ratiox;
 	dy_src = 65536.0 / ratioy;
@@ -500,8 +502,8 @@ static void enlarge_picture_byte(
 	for (y_dst = 0; y_dst < dst_height; y_dst++) {
 		unsigned char* line1 = src + (y_src >> 16) * 4 * src_width;
 		unsigned char* line2 = line1 + 4 * src_width;
-		unsigned long weight1y = 65536 - (y_src & 0xffff);
-		unsigned long weight2y = 65536 - weight1y;
+		uintptr_t weight1y = 65536 - (y_src & 0xffff);
+		uintptr_t weight2y = 65536 - weight1y;
 
 		if ((y_src >> 16) == src_height - 1) {
 			line2 = line1;
@@ -509,8 +511,8 @@ static void enlarge_picture_byte(
 
 		x_src = 0;
 		for (x_dst = 0; x_dst < dst_width; x_dst++) {
-			unsigned long weight1x = 65536 - (x_src & 0xffff);
-			unsigned long weight2x = 65536 - weight1x;
+			uintptr_t weight1x = 65536 - (x_src & 0xffff);
+			uintptr_t weight2x = 65536 - weight1x;
 
 			unsigned long x = (x_src >> 16) * 4;
 
@@ -557,12 +559,12 @@ static void enlarge_picture_byte(
 }
 
 struct scale_outpix_byte {
-	unsigned long r;
-	unsigned long g;
-	unsigned long b;
-	unsigned long a;
+	uintptr_t r;
+	uintptr_t g;
+	uintptr_t b;
+	uintptr_t a;
 
-	unsigned long weight;
+	uintptr_t weight;
 };
 
 static void shrink_picture_byte(
@@ -571,9 +573,9 @@ static void shrink_picture_byte(
 {
 	double ratiox = (double) (dst_width) / (double) (src_width);
 	double ratioy = (double) (dst_height) / (double) (src_height);
-	unsigned long x_src, dx_dst, x_dst;
-	unsigned long y_src, dy_dst, y_dst;
-	long y_counter;
+	uintptr_t x_src, dx_dst, x_dst;
+	uintptr_t y_src, dy_dst, y_dst;
+	intptr_t y_counter;
 	unsigned char * dst_begin = dst;
 
 	struct scale_outpix_byte * dst_line1 = NULL;
@@ -593,16 +595,16 @@ static void shrink_picture_byte(
 	y_counter = 65536;
 	for (y_src = 0; y_src < src_height; y_src++) {
 		unsigned char* line = src + y_src * 4 * src_width;
-		unsigned long weight1y = 65536 - (y_dst & 0xffff);
-		unsigned long weight2y = 65536 - weight1y;
+		uintptr_t weight1y = 65536 - (y_dst & 0xffff);
+		uintptr_t weight2y = 65536 - weight1y;
 		x_dst = 0;
 		for (x_src = 0; x_src < src_width; x_src++) {
-			unsigned long weight1x = 65536 - (x_dst & 0xffff);
-			unsigned long weight2x = 65536 - weight1x;
+			uintptr_t weight1x = 65536 - (x_dst & 0xffff);
+			uintptr_t weight2x = 65536 - weight1x;
 
-			unsigned long x = x_dst >> 16;
+			uintptr_t x = x_dst >> 16;
 
-			unsigned long w;
+			uintptr_t w;
 
 			w = (weight1y * weight1x) >> 16;
 
@@ -643,13 +645,13 @@ static void shrink_picture_byte(
 		y_dst += dy_dst;
 		y_counter -= dy_dst;
 		if (y_counter < 0) {
-			unsigned long x;
+			uintptr_t x;
 			struct scale_outpix_byte * temp;
 
 			y_counter += 65536;
 			
 			for (x=0; x < dst_width; x++) {
-				unsigned long f = 0x80000000UL
+				uintptr_t f = 0x80000000UL
 					/ dst_line1[x].weight;
 				*dst++ = (dst_line1[x].r * f) >> 15;
 				*dst++ = (dst_line1[x].g * f) >> 15;
@@ -664,9 +666,9 @@ static void shrink_picture_byte(
 		}
 	}
 	if (dst - dst_begin < dst_width * dst_height * 4) {
-		unsigned long x;
+		uintptr_t x;
 		for (x = 0; x < dst_width; x++) {
-			unsigned long f = 0x80000000UL / dst_line1[x].weight;
+			uintptr_t f = 0x80000000UL / dst_line1[x].weight;
 			*dst++ = (dst_line1[x].r * f) >> 15;
 			*dst++ = (dst_line1[x].g * f) >> 15;
 			*dst++ = (dst_line1[x].b * f) >> 15;
@@ -698,8 +700,8 @@ static void enlarge_picture_float(
 		/ (double) (src_width - 1.001);
 	double ratioy = (double) (dst_height - 1.0) 
 		/ (double) (src_height - 1.001);
-	unsigned long x_dst;
-	unsigned long y_dst;
+	uintptr_t x_dst;
+	uintptr_t y_dst;
 	double x_src, dx_src;
 	double y_src, dy_src;
 
@@ -727,7 +729,7 @@ static void enlarge_picture_float(
 			float w12 = weight1y * weight2x;
 			float w22 = weight2y * weight2x;
 
-			unsigned long x = ((int) x_src) * 4;
+			uintptr_t x = ((int) x_src) * 4;
 
 			*dst++ =  line1[x]     * w11	
 				+ line2[x]     * w21
@@ -770,8 +772,8 @@ static void shrink_picture_float(
 {
 	double ratiox = (double) (dst_width) / (double) (src_width);
 	double ratioy = (double) (dst_height) / (double) (src_height);
-	unsigned long x_src;
-	unsigned long y_src;
+	uintptr_t x_src;
+	uintptr_t y_src;
         float dx_dst, x_dst;
 	float dy_dst, y_dst;
 	float y_counter;
@@ -794,14 +796,14 @@ static void shrink_picture_float(
 	y_counter = 1.0;
 	for (y_src = 0; y_src < src_height; y_src++) {
 		float* line = src + y_src * 4 * src_width;
-		unsigned long weight1y = 1.0 - (y_dst - (int) y_dst);
-		unsigned long weight2y = 1.0 - weight1y;
+		uintptr_t weight1y = 1.0 - (y_dst - (int) y_dst);
+		uintptr_t weight2y = 1.0 - weight1y;
 		x_dst = 0;
 		for (x_src = 0; x_src < src_width; x_src++) {
-			unsigned long weight1x = 1.0 - (x_dst - (int) x_dst);
-			unsigned long weight2x = 1.0 - weight1x;
+			uintptr_t weight1x = 1.0 - (x_dst - (int) x_dst);
+			uintptr_t weight2x = 1.0 - weight1x;
 
-			unsigned long x = (int) x_dst;
+			uintptr_t x = (int) x_dst;
 
 			float w;
 
@@ -844,7 +846,7 @@ static void shrink_picture_float(
 		y_dst += dy_dst;
 		y_counter -= dy_dst;
 		if (y_counter < 0) {
-			unsigned long x;
+			uintptr_t x;
 			struct scale_outpix_float * temp;
 
 			y_counter += 1.0;
@@ -864,7 +866,7 @@ static void shrink_picture_float(
 		}
 	}
 	if (dst - dst_begin < dst_width * dst_height * 4) {
-		unsigned long x;
+		uintptr_t x;
 		for (x = 0; x < dst_width; x++) {
 			float f = 1.0 / dst_line1[x].weight;
 			*dst++ = dst_line1[x].r * f;

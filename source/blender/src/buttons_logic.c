@@ -683,6 +683,8 @@ static char *sensor_name(int type)
 		return "Property";
 	case SENS_ACTUATOR:
 		return "Actuator";
+	case SENS_DELAY:
+		return "Delay";
 	case SENS_MOUSE:
 		return "Mouse";
 	case SENS_COLLISION:
@@ -704,7 +706,7 @@ static char *sensor_name(int type)
 static char *sensor_pup(void)
 {
 	/* the number needs to match defines in game.h */
-	return "Sensors %t|Always %x0|Keyboard %x3|Mouse %x5|"
+	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
 		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12";
 }
@@ -1000,6 +1002,7 @@ static int get_col_sensor(int type)
 {
 	switch(type) {
 	case SENS_ALWAYS:		return TH_BUT_ACTION;
+	case SENS_DELAY:		return TH_BUT_ACTION;
 	case SENS_TOUCH:		return TH_BUT_NEUTRAL;
 	case SENS_COLLISION:	return TH_BUT_SETTING;
 	case SENS_NEAR:			return TH_BUT_SETTING1; 
@@ -1070,8 +1073,8 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	bRaySensor       *raySens      = NULL;
 	bMessageSensor   *mes          = NULL;
 	bJoystickSensor	 *joy		   = NULL;
-	bActuatorSensor  *as          = NULL;
-
+	bActuatorSensor  *as           = NULL;
+	bDelaySensor     *ds		   = NULL;
 	short ysize;
 	char *str;
 	
@@ -1294,6 +1297,27 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			
 			uiDefBut(block, TEX, 1, "Act: ",			xco+30,yco-44,width-60, 19,
 					as->name, 0, 31, 0, 0,  "Actuator name, actuator active state modifications will be detected");
+			yco-= ysize;
+			break;
+		}
+	case SENS_DELAY:
+		{
+			ysize= 48;
+			
+			glRects(xco, yco-ysize, xco+width, yco);
+			uiEmboss((float)xco, (float)yco-ysize,
+				(float)xco+width, (float)yco, 1);
+			
+			draw_default_sensor_header(sens, block, xco, yco, width);
+			ds = sens->data;
+			
+			uiDefButS(block, NUM, 0, "Delay",(short)(10+xco),(short)(yco-44),(short)((width-22)*0.4+10), 19,
+				&ds->delay, 0.0, 5000.0, 0, 0, "Delay in number of frames before the positive trigger");
+			uiDefButS(block, NUM, 0, "Dur",(short)(10+xco+(width-22)*0.4+10),(short)(yco-44),(short)((width-22)*0.4-10), 19,
+				&ds->duration, 0.0, 5000.0, 0, 0, "If >0, delay in number of frames before the negative trigger following the positive trigger");
+			uiDefButBitS(block, TOG, SENS_DELAY_REPEAT, 0, "REP",(short)(xco + 10 + (width-22)*0.8),(short)(yco - 44),
+				(short)(0.20 * (width-22)), 19, &ds->flag, 0.0, 0.0, 0, 0,
+				"Toggle repeat option. If selected, the sensor restarts after Delay+Dur frames");
 			yco-= ysize;
 			break;
 		}
@@ -1689,7 +1713,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 					uiDefBut(block, LABEL, 0, "Torque", xco, yco-106, 55, 19, NULL, 0, 0, 0, 0, "Sets the torque");
 					uiDefButF(block, NUM, 0, "",		xco+45, yco-106, wval, 19, oa->forcerot, -10000.0, 10000.0, 10, 0, "");
 					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-106, wval, 19, oa->forcerot+1, -10000.0, 10000.0, 10, 0, "");
-					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-6106, wval, 19, oa->forcerot+2, -10000.0, 10000.0, 10, 0, "");				
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-106, wval, 19, oa->forcerot+2, -10000.0, 10000.0, 10, 0, "");				
 				}
 				
 				if ( ob->gameflag & OB_DYNAMIC )
@@ -3183,7 +3207,8 @@ void logic_buts(void)
 		while(cont) {
 			for (iact=0; iact<cont->totlinks; iact++) {
 				act = cont->links[iact];
-				act->flag |= ACT_LINKED;
+				if (act)
+					act->flag |= ACT_LINKED;
 			}
 			controller_state_mask |= cont->state_mask;
 			cont = cont->next;
@@ -3231,7 +3256,8 @@ void logic_buts(void)
 						/* this controller is visible, mark all its actuator */
 						for (iact=0; iact<cont->totlinks; iact++) {
 							act = cont->links[iact];
-							act->flag |= ACT_VISIBLE;
+							if (act)
+								act->flag |= ACT_VISIBLE;
 						}
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
@@ -3323,8 +3349,8 @@ void logic_buts(void)
 					ycoo= yco;
 					if(sens->flag & SENS_SHOW)
 					{
-						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 100, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, sens->name, 0, 31, 0, 0, "Sensor name");
+						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-124), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -3334,9 +3360,9 @@ void logic_buts(void)
 					else {
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
-						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 100, 19, sens, 0, 0, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, 19, sens, 0, 0, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+122), yco, (short)(width-144), 19, sens, 0, 31, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-124), 19, sens, 0, 31, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
 					}
 
@@ -3393,8 +3419,8 @@ void logic_buts(void)
 
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
-						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 100, 19, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, act->name, 0, 31, 0, 0, "Actuator name");
+						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, 19, &act->type, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-134), 19, act->name, 0, 31, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -3404,9 +3430,9 @@ void logic_buts(void)
 					else {
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
-						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 100, 19, act, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, 19, act, 0, 0, 0, 0, "Actuator type");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
-						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+122), yco, (short)(width-144), 19, act, 0, 0, 0, 0, "Actuator name");
+						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-134), 19, act, 0, 0, 0, 0, "Actuator name");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
 						ycoo= yco;
 					}
