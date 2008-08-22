@@ -30,8 +30,13 @@
 
 #include "GL/glew.h"
 
+// directory header for py function getBlendFileList
 #include <stdlib.h>
-#include <dirent.h> // directory header for py function getBlendFileList
+#ifndef WIN32
+  #include <dirent.h>
+#else
+  #include "BLI_winstuff.h"
+#endif
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
