@@ -450,7 +450,7 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
 {	
 	/* if thickness is less than 3, 'smooth' opengl lines look better */
-	if ((thickness < 3) || (G.rt==0)) {
+	if (thickness < 3) {
 		bGPDspoint *pt;
 		int i;
 		
@@ -472,19 +472,15 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 		bGPDspoint *pt1, *pt2;
 		float pm[2];
 		int i;
-		short n;
 		
 		glShadeModel(GL_FLAT);
-		
-		glPointSize(3.0f); // temp
-		
-		for (n= 0; n < 2; n++) { // temp
-		glBegin((n)?GL_POINTS:GL_QUADS);
+		glBegin(GL_QUADS);
 		
 		for (i=0, pt1=points, pt2=points+1; i < (totpoints-1); i++, pt1++, pt2++) {
 			float s0[2], s1[2];		/* segment 'center' points */
 			float t0[2], t1[2];		/* tesselated coordinates */
 			float m1[2], m2[2];		/* gradient and normal */
+			float mt[2], sc[2];		/* gradient for thickness, point for end-cap */
 			float pthick;			/* thickness at segment point */
 			
 			/* get x and y coordinates from points */
@@ -502,42 +498,75 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 			/* calculate gradient and normal - 'angle'=(ny/nx) */
 			m1[1]= s1[1] - s0[1];		
 			m1[0]= s1[0] - s0[0];
+			Normalize2(m1);
 			m2[1]= -m1[0];
 			m2[0]= m1[1];
-			Normalize2(m2);
 			
 			/* always use pressure from first point here */
 			pthick= (pt1->pressure * thickness);
 			
 			/* if the first segment, start of segment is segment's normal */
 			if (i == 0) {
-				// TODO: also draw/do a round end-cap first
+				/* draw start cap first 
+				 *	- make points slightly closer to center (about halfway across) 
+				 */				
+				mt[0]= m2[0] * pthick * 0.5;
+				mt[1]= m2[1] * pthick * 0.5;
+				sc[0]= s0[0] - (m1[0] * pthick * 0.75);
+				sc[1]= s0[1] - (m1[1] * pthick * 0.75);
+				
+				t0[0]= sc[0] - mt[0];
+				t0[1]= sc[1] - mt[1];
+				t1[0]= sc[0] + mt[0];
+				t1[1]= sc[1] + mt[1];
+				
+				glVertex2fv(t0);
+				glVertex2fv(t1);
 				
 				/* calculate points for start of segment */
-				t0[0]= s0[0] - (pthick * m2[0]);
-				t0[1]= s0[1] - (pthick * m2[1]);
-				t1[0]= s0[0] + (pthick * m2[0]);
-				t1[1]= s0[1] + (pthick * m2[1]);
+				mt[0]= m2[0] * pthick;
+				mt[1]= m2[1] * pthick;
 				
-				/* draw this line only once */
+				t0[0]= s0[0] - mt[0];
+				t0[1]= s0[1] - mt[1];
+				t1[0]= s0[0] + mt[0];
+				t1[1]= s0[1] + mt[1];
+				
+				/* draw this line twice (first to finish off start cap, then for stroke) */
+				glVertex2fv(t1);
+				glVertex2fv(t0);
 				glVertex2fv(t0);
 				glVertex2fv(t1);
 			}
 			/* if not the first segment, use bisector of angle between segments */
 			else {
-				float mb[2]; 	/* bisector normal */
+				float mb[2]; 		/* bisector normal */
+				float athick, dfac;		/* actual thickness, difference between thicknesses */
 				
 				/* calculate gradient of bisector (as average of normals) */
 				mb[0]= (pm[0] + m2[0]) / 2;
 				mb[1]= (pm[1] + m2[1]) / 2;
 				Normalize2(mb);
 				
+				/* calculate gradient to apply 
+				 * 	- as basis, use just pthick * bisector gradient
+				 *	- if cross-section not as thick as it should be, add extra padding to fix it
+				 */
+				mt[0]= mb[0] * pthick;
+				mt[1]= mb[1] * pthick;
+				athick= Vec2Length(mt);
+				dfac= pthick - (athick * 2);
+				if ( ((athick * 2) < pthick) && (IS_EQ(athick, pthick)==0) ) 
+				{
+					mt[0] += (mb[0] * dfac);
+					mt[1] += (mb[1] * dfac);
+				}	
+				
 				/* calculate points for start of segment */
-				// FIXME: do we need extra padding for acute angles?
-				t0[0]= s0[0] - (pthick * mb[0]);
-				t0[1]= s0[1] - (pthick * mb[1]);
-				t1[0]= s0[0] + (pthick * mb[0]);
-				t1[1]= s0[1] + (pthick * mb[1]);
+				t0[0]= s0[0] - mt[0];
+				t0[1]= s0[1] - mt[1];
+				t1[0]= s0[0] + mt[0];
+				t1[1]= s0[1] + mt[1];
 				
 				/* draw this line twice (once for end of current segment, and once for start of next) */
 				glVertex2fv(t1);
@@ -552,16 +581,36 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				pthick= (pt2->pressure * thickness);
 				
 				/* calculate points for end of segment */
-				t0[0]= s1[0] - (pthick * m2[0]);
-				t0[1]= s1[1] - (pthick * m2[1]);
-				t1[0]= s1[0] + (pthick * m2[0]);
-				t1[1]= s1[1] + (pthick * m2[1]);
+				mt[0]= m2[0] * pthick;
+				mt[1]= m2[1] * pthick;
 				
-				/* draw this line only once */
+				t0[0]= s1[0] - mt[0];
+				t0[1]= s1[1] - mt[1];
+				t1[0]= s1[0] + mt[0];
+				t1[1]= s1[1] + mt[1];
+				
+				/* draw this line twice (once for end of stroke, and once for endcap)*/
 				glVertex2fv(t1);
 				glVertex2fv(t0);
+				glVertex2fv(t0);
+				glVertex2fv(t1);
 				
-				// TODO: draw end cap as last step 
+				
+				/* draw end cap as last step 
+				 *	- make points slightly closer to center (about halfway across) 
+				 */				
+				mt[0]= m2[0] * pthick * 0.5;
+				mt[1]= m2[1] * pthick * 0.5;
+				sc[0]= s1[0] + (m1[0] * pthick * 0.75);
+				sc[1]= s1[1] + (m1[1] * pthick * 0.75);
+				
+				t0[0]= sc[0] - mt[0];
+				t0[1]= sc[1] - mt[1];
+				t1[0]= sc[0] + mt[0];
+				t1[1]= sc[1] + mt[1];
+				
+				glVertex2fv(t1);
+				glVertex2fv(t0);
 			}
 			
 			/* store stroke's 'natural' normal for next stroke to use */
@@ -569,7 +618,6 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 		}
 		
 		glEnd();
-		}
 	}
 	
 	/* draw debug points of curve on top? (original stroke points) */
