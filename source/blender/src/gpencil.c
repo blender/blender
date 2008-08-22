@@ -39,6 +39,9 @@
 
 #include "BMF_Api.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -312,9 +315,15 @@ bGPdata *gpencil_data_getactive (ScrArea *sa)
 		{
 			SpaceSeq *sseq= sa->spacedata.first;
 			
-			/* only applicable for "Image Preview" mode */
+			/* only applicable for image modes */
 			if (sseq->mainb)
 				return sseq->gpd;
+		}
+			break;
+		case SPACE_IMAGE:
+		{
+			SpaceImage *sima= sa->spacedata.first;
+			return sima->gpd;
 		}
 			break;
 	}
@@ -377,6 +386,17 @@ short gpencil_data_setactive (ScrArea *sa, bGPdata *gpd)
 				
 				return 1;
 			}
+		}
+			break;
+		case SPACE_IMAGE:
+		{
+			SpaceImage *sima= sa->spacedata.first;
+			
+			if (sima->gpd)
+				free_gpencil_data(sima->gpd);
+			sima->gpd= gpd;
+			
+			return 1;
 		}
 			break;
 	}
@@ -589,7 +609,7 @@ void gpencil_layer_delactive (bGPdata *gpd)
 }
 
 /* ************************************************** */
-/* GREASE-PENCIL EDITING MODE - Tools */
+/* GREASE-PENCIL EDITING - Tools */
 
 /* --------- Data Deletion ---------- */
 
@@ -679,6 +699,7 @@ void gpencil_delete_menu (void)
 typedef struct tGPsdata {
 	ScrArea *sa;		/* area where painting originated */
 	View2D *v2d;		/* needed for GP_STROKE_2DSPACE */
+	ImBuf *ibuf;		/* needed for GP_STROKE_2DIMAGE */
 	
 	bGPdata *gpd;		/* gp-datablock layer comes from */
 	bGPDlayer *gpl;		/* layer we're working on */
@@ -800,6 +821,16 @@ static void gp_session_initpaint (tGPsdata *p)
 			}
 		}
 			break;	
+		case SPACE_IMAGE:
+		{
+			SpaceImage *sima= curarea->spacedata.first;
+			
+			/* set the current area */
+			p->sa= curarea;
+			p->v2d= &sima->v2d;
+			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		}
+			break;
 		/* unsupported views */
 		default:
 		{
@@ -869,6 +900,7 @@ static short gp_stroke_filtermval (tGPsdata *p, short mval[2], short pmval[2])
 		return 1;
 	
 	/* check if the distance since the last point is significant enough */
+	// future optimisation: sqrt here may be too slow?
 	else if (sqrt(dx*dx + dy*dy) > MIN_EUCLIDEAN_PX)
 		return 1;
 	
@@ -884,7 +916,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		short mx=mval[0], my=mval[1];
+		const short mx=mval[0], my=mval[1];
 		float *fp= give_cursor();
 		float dvec[3];
 		
@@ -902,6 +934,26 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		
 		out[0]= x;
 		out[1]= y;
+	}
+	
+	/* 2d - on image 'canvas' (asume that p->v2d is set) */
+	else if ( (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && 
+			  (p->v2d) && (p->ibuf) ) 
+	{
+		ImBuf *ibuf= p->ibuf;
+		float x, y;
+		
+		/* convert to 'canvas' coordinates, then adjust for view */
+		areamouseco_to_ipoco(p->v2d, mval, &x, &y);
+		
+		if (ibuf) {
+			out[0]= x*ibuf->x;
+			out[1]= y*ibuf->y;
+		}
+		else {
+			out[0]= x;
+			out[1]= y;
+		}
 	}
 	
 	/* 2d - relative to screen (viewport area) */
@@ -927,8 +979,6 @@ static short gp_stroke_addpoint (tGPsdata *p, short mval[2], float pressure)
 	/* store settings */
 	pt->x= mval[0];
 	pt->y= mval[1];
-	pt->xf= (float)mval[0];
-	pt->yf= (float)mval[0];
 	pt->pressure= pressure;
 	
 	/* increment counters */

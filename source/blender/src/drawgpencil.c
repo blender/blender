@@ -37,6 +37,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
 #include "BMF_Api.h"
 
 #include "BLI_arithb.h"
@@ -317,6 +320,7 @@ enum {
 	GP_DRAWDATA_NOSTATUS 	= (1<<0),	/* don't draw status info */
 	GP_DRAWDATA_ONLY3D		= (1<<1),	/* only draw 3d-strokes */
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
+	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
 };
 
 /* ----- Tool Buffer Drawing ------ */
@@ -446,7 +450,7 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
 {	
 	/* if thickness is less than 3, 'smooth' opengl lines look better */
-	if ((thickness < 3) || (G.rt==0)) {
+	if (thickness < 3) {
 		bGPDspoint *pt;
 		int i;
 		
@@ -466,18 +470,18 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 	}
 	else { /* tesselation code: currently only enabled with rt != 0 */
 		bGPDspoint *pt1, *pt2;
-		float p0[2], p1[2], pm[2];
+		float pm[2];
 		int i;
 		
 		glShadeModel(GL_FLAT);
-		glBegin(GL_QUAD_STRIP);
+		glBegin(GL_QUADS);
 		
 		for (i=0, pt1=points, pt2=points+1; i < (totpoints-1); i++, pt1++, pt2++) {
 			float s0[2], s1[2];		/* segment 'center' points */
 			float t0[2], t1[2];		/* tesselated coordinates */
 			float m1[2], m2[2];		/* gradient and normal */
-			float pthick, dist;		/* thickness at segment point, and length of segment */
-			float sminorang;		/* minor angle between strokes */
+			float mt[2], sc[2];		/* gradient for thickness, point for end-cap */
+			float pthick;			/* thickness at segment point */
 			
 			/* get x and y coordinates from points */
 			if (sflag & GP_STROKE_2DSPACE) {
@@ -494,91 +498,123 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 			/* calculate gradient and normal - 'angle'=(ny/nx) */
 			m1[1]= s1[1] - s0[1];		
 			m1[0]= s1[0] - s0[0];
-			dist = Vec2Lenf(s0, s1);
-			m2[1]= -(m1[0]) / dist;
-			m2[0]= m1[1] / dist;
+			Normalize2(m1);
+			m2[1]= -m1[0];
+			m2[0]= m1[1];
 			
-			/* if the first segment, initialise the first segment using segment's normal */
-			if (i == 0) {	
-				pthick= (pt1->pressure * thickness);
+			/* always use pressure from first point here */
+			pthick= (pt1->pressure * thickness);
+			
+			/* if the first segment, start of segment is segment's normal */
+			if (i == 0) {
+				/* draw start cap first 
+				 *	- make points slightly closer to center (about halfway across) 
+				 */				
+				mt[0]= m2[0] * pthick * 0.5;
+				mt[1]= m2[1] * pthick * 0.5;
+				sc[0]= s0[0] - (m1[0] * pthick * 0.75);
+				sc[1]= s0[1] - (m1[1] * pthick * 0.75);
 				
-				// TODO: also draw/do a round end-cap first
+				t0[0]= sc[0] - mt[0];
+				t0[1]= sc[1] - mt[1];
+				t1[0]= sc[0] + mt[0];
+				t1[1]= sc[1] + mt[1];
 				
-				p0[0]= s0[0] - (pthick * m2[0]);
-				p0[1]= s0[1] - (pthick * m2[1]);
-				p1[0]= s1[0] + (pthick * m2[0]);
-				p1[1]= s1[1] + (pthick * m2[1]);
+				glVertex2fv(t0);
+				glVertex2fv(t1);
 				
-				Vec2Copyf(pm, m1);
+				/* calculate points for start of segment */
+				mt[0]= m2[0] * pthick;
+				mt[1]= m2[1] * pthick;
+				
+				t0[0]= s0[0] - mt[0];
+				t0[1]= s0[1] - mt[1];
+				t1[0]= s0[0] + mt[0];
+				t1[1]= s0[1] + mt[1];
+				
+				/* draw this line twice (first to finish off start cap, then for stroke) */
+				glVertex2fv(t1);
+				glVertex2fv(t0);
+				glVertex2fv(t0);
+				glVertex2fv(t1);
 			}
-			
-			/* if the minor angle between the current segment and the previous one is less than 90 degrees */
-			if (i)
-				sminorang= NormalizedVecAngle2_2D(pm, m1);
-			else
-				sminorang= 0.0f;
-			
-			if ((IS_EQ(sminorang, 0)==0) && (abs(sminorang) < M_PI_2) ) 
-			{
-				float closep[2];
+			/* if not the first segment, use bisector of angle between segments */
+			else {
+				float mb[2]; 		/* bisector normal */
+				float athick, dfac;		/* actual thickness, difference between thicknesses */
 				
-				/* recalculate startpoint of segment, where the new start-line:
-				 * 	- starts a new gl-quad-strip
-				 *	- uses the vert of old startpoint closer to our endpoint
-				 *	- distance between new startpoints = distance between old startpoints
-				 *	- new startpoints occur on same gradient as old segment does (has potential for some 'minor' overlap, but ok)
+				/* calculate gradient of bisector (as average of normals) */
+				mb[0]= (pm[0] + m2[0]) / 2;
+				mb[1]= (pm[1] + m2[1]) / 2;
+				Normalize2(mb);
+				
+				/* calculate gradient to apply 
+				 * 	- as basis, use just pthick * bisector gradient
+				 *	- if cross-section not as thick as it should be, add extra padding to fix it
 				 */
+				mt[0]= mb[0] * pthick;
+				mt[1]= mb[1] * pthick;
+				athick= Vec2Length(mt);
+				dfac= pthick - (athick * 2);
+				if ( ((athick * 2) < pthick) && (IS_EQ(athick, pthick)==0) ) 
+				{
+					mt[0] += (mb[0] * dfac);
+					mt[1] += (mb[1] * dfac);
+				}	
 				
-				/* find the closer vertex, and distance between startpoints */
-				if (Vec2Lenf(p0, s1) > Vec2Lenf(p1, s1))
-					Vec2Copyf(closep, p1);
-				else
-					Vec2Copyf(closep, p0);
-					
-				/* determine which side this closer vertex should be on */
-				pthick= (pt1->pressure * thickness * 2);
-				if ( ((closep[0] - s0[0]) > 0) || ((closep[1] - s0[1]) > 0) ) {
-					/* assumes this is the 'second' point, (i.e. the 'plus' one), so the other is subtracting */
-					p0[0]= closep[0] - (pthick * pm[0]);
-					p0[1]= closep[1] - (pthick * pm[1]);
-					p1[0]= closep[0];
-					p1[1]= closep[1];
-				}
-				else if ( ((closep[0] - s0[0]) < 0) || ((closep[1] - s0[1]) < 0) ) {
-					/* assumes this is the 'first' point, (i.e. the 'minus' one), so the other is adding */
-					p0[0]= closep[0];
-					p0[1]= closep[1];
-					p1[0]= closep[0] + (pthick * pm[0]);
-					p1[1]= closep[1] + (pthick * pm[1]);
-				}
+				/* calculate points for start of segment */
+				t0[0]= s0[0] - mt[0];
+				t0[1]= s0[1] - mt[1];
+				t1[0]= s0[0] + mt[0];
+				t1[1]= s0[1] + mt[1];
 				
-				/* reset gl-states! */
-				glEnd();
-				glBegin(GL_QUAD_STRIP);				
+				/* draw this line twice (once for end of current segment, and once for start of next) */
+				glVertex2fv(t1);
+				glVertex2fv(t0);
+				glVertex2fv(t0);
+				glVertex2fv(t1);
 			}
 			
-			/* do the end of this segment */
-			pthick= (pt2->pressure * thickness);
-			t0[0] = s1[0] - (pthick * m2[0]);
-			t0[1] = s1[1] - (pthick * m2[1]);
-			t1[0] = s1[0] + (pthick * m2[0]);
-			t1[1] = s1[1] + (pthick * m2[1]);
-			
-			/* draw this segment */
-			glVertex2f(p0[0], p0[1]);
-			glVertex2f(p1[0], p1[1]);
-			glVertex2f(t0[0], t0[1]);
-			glVertex2f(t1[0], t1[1]);
-			
-			// TODO: draw end cap if last segment
+			/* if last segment, also draw end of segment (defined as segment's normal) */
 			if (i == totpoints-2) {
-			
+				/* for once, we use second point's pressure (otherwise it won't be drawn) */
+				pthick= (pt2->pressure * thickness);
+				
+				/* calculate points for end of segment */
+				mt[0]= m2[0] * pthick;
+				mt[1]= m2[1] * pthick;
+				
+				t0[0]= s1[0] - mt[0];
+				t0[1]= s1[1] - mt[1];
+				t1[0]= s1[0] + mt[0];
+				t1[1]= s1[1] + mt[1];
+				
+				/* draw this line twice (once for end of stroke, and once for endcap)*/
+				glVertex2fv(t1);
+				glVertex2fv(t0);
+				glVertex2fv(t0);
+				glVertex2fv(t1);
+				
+				
+				/* draw end cap as last step 
+				 *	- make points slightly closer to center (about halfway across) 
+				 */				
+				mt[0]= m2[0] * pthick * 0.5;
+				mt[1]= m2[1] * pthick * 0.5;
+				sc[0]= s1[0] + (m1[0] * pthick * 0.75);
+				sc[1]= s1[1] + (m1[1] * pthick * 0.75);
+				
+				t0[0]= sc[0] - mt[0];
+				t0[1]= sc[1] - mt[1];
+				t1[0]= sc[0] + mt[0];
+				t1[1]= sc[1] + mt[1];
+				
+				glVertex2fv(t1);
+				glVertex2fv(t0);
 			}
 			
-			/* store current points for next segment to use */
-			Vec2Copyf(p0, t0);
-			Vec2Copyf(p1, t1);
-			Vec2Copyf(pm, m1);
+			/* store stroke's 'natural' normal for next stroke to use */
+			Vec2Copyf(pm, m2);
 		}
 		
 		glEnd();
@@ -625,6 +661,10 @@ static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, shor
 		if ((dflag & GP_DRAWDATA_ONLYV2D) && !(gps->flag & GP_STROKE_2DSPACE))
 			continue;
 		if (!(dflag & GP_DRAWDATA_ONLYV2D) && (gps->flag & GP_STROKE_2DSPACE))
+			continue;
+		if ((dflag & GP_DRAWDATA_ONLYI2D) && !(gps->flag & GP_STROKE_2DIMAGE))
+			continue;
+		if (!(dflag & GP_DRAWDATA_ONLYI2D) && (gps->flag & GP_STROKE_2DIMAGE))
 			continue;
 		if ((gps->points == 0) || (gps->totpoints < 1))
 			continue;
@@ -795,6 +835,22 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 }
 
 /* ----- Grease Pencil Sketches Drawing API ------ */
+
+/* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */
+void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
+{
+	bGPdata *gpd;
+	int dflag = 0;
+	
+	/* check that we have grease-pencil stuff to draw */
+	if (ELEM(NULL, sa, ibuf)) return;
+	gpd= gpencil_data_getactive(sa);
+	if (gpd == NULL) return;
+	
+	/* draw it! */
+	dflag = (GP_DRAWDATA_ONLYI2D|GP_DRAWDATA_NOSTATUS);
+	gp_draw_data(gpd, sa->winx, sa->winy, dflag);
+}
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
  * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes, second time with onlyv2d=0 for screen-aligned strokes

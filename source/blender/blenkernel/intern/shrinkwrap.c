@@ -63,7 +63,7 @@
 #define OUT_OF_MEMORY()	((void)printf("Shrinkwrap: Out of memory\n"))
 
 /* Benchmark macros */
-#ifndef _WIN32
+#if !defined(_WIN32) && 0
 
 #include <sys/time.h>
 
@@ -166,11 +166,6 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
 		calc.target = CDDM_copy( object_get_derived_final(smd->target, CD_MASK_BAREMESH) );
 
-		if(!calc.target)
-		{
-			printf("Target derived mesh is null! :S\n");
-		}
-
 		//TODO there might be several "bugs" on non-uniform scales matrixs.. because it will no longer be nearest surface, not sphere projection
 		//because space has been deformed
 		space_transform_setup(&calc.local2target, ob, smd->target);
@@ -182,12 +177,6 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	//Projecting target defined - lets work!
 	if(calc.target)
 	{
-
-		printf("Shrinkwrap (%s)%d over (%s)%d\n",
-			calc.ob->id.name,			calc.numVerts,
-			calc.smd->target->id.name,	calc.target->getNumVerts(calc.target)
-		);
-
 		switch(smd->shrinkType)
 		{
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
@@ -447,7 +436,7 @@ do
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3], tmp_no[3];
-		float lim = 1000; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
+		float lim = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
 
 		if(weight == 0.0f) continue;

@@ -3,7 +3,7 @@
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *
-* This program is free software; you can redistribute it and/orw
+* This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
 * of the License, or (at your option) any later version.
@@ -7405,7 +7405,6 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
 }
 
-
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -7733,7 +7732,6 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 				| eModifierTypeFlag_AcceptsCVs
 				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode;
-
 		mti->initData = shrinkwrapModifier_initData;
 		mti->copyData = shrinkwrapModifier_copyData;
 		mti->requiredDataMask = shrinkwrapModifier_requiredDataMask;
@@ -7756,7 +7754,6 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVertsEM = simpledeformModifier_deformVertsEM;
 		mti->foreachObjectLink = simpledeformModifier_foreachObjectLink;
 		mti->updateDepgraph = simpledeformModifier_updateDepgraph;
-
 
 		typeArrInit = 0;
 #undef INIT_TYPE
