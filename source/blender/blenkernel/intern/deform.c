@@ -220,3 +220,31 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 		}
 	}	
 }
+
+float deformvert_get_weight(const struct MDeformVert *dvert, int group_num)
+{
+	if(dvert)
+	{
+		const MDeformWeight *dw = dvert->dw;
+		int i;
+
+		for(i=dvert->totweight; i>0; i--, dw++)
+			if(dw->def_nr == group_num)
+				return dw->weight;
+	}
+
+	/* Not found */
+	return 0.0;
+}
+
+float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num)
+{
+	if(group_num == -1)
+		return 1.0;
+
+	if(dvert == 0)
+		return 0.0;
+
+	return deformvert_get_weight(dvert+index, group_num);
+}
+

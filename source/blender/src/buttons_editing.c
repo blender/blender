@@ -1826,6 +1826,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Explode) {
 			height = 94;
+		} else if (md->type==eModifierType_Shrinkwrap) {
+			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+			height = 86 + 3;
+			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
+			{
+				height += 19*5;
+				if(smd->projAxis == 0) height += 19;
+			}
+			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
+				height += 19;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2446,6 +2456,51 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
 			uiBlockEndAlign(block);
+		} else if (md->type==eModifierType_Shrinkwrap) {
+			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+			char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|projection %x1|nearest vertex %x2";
+
+			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
+
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keepDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to keep from the target");
+
+			cy -= 3;
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
+
+			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT){
+
+
+				/* UI for projection axis */
+				uiBlockBeginAlign(block);
+				uiDefButC(block, ROW, B_MODIFIER_RECALC, "Normal"    , lx,(cy-=19),buttonWidth,19, &smd->projAxis, 18.0, MOD_SHRINKWRAP_PROJECT_OVER_NORMAL, 0, 0, "Projection over X axis");
+				if(smd->projAxis == 0)
+				{
+					uiDefButC(block, NUM, B_MODIFIER_RECALC, "SS Levels:",		lx, (cy-=19), buttonWidth,19, &smd->subsurfLevels, 0, 6, 0, 0, "This indicates the number of CCSubdivisions that must be performed before extracting vertexs positions and normals");
+				}
+
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, B_MODIFIER_RECALC, "X",	lx+buttonWidth/3*0,(cy-=19),buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over X axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, B_MODIFIER_RECALC, "Y",	lx+buttonWidth/3*1,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Y axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, B_MODIFIER_RECALC, "Z",	lx+buttonWidth/3*2,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Z axis");
+
+
+				/* allowed directions of projection axis */
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR, B_MODIFIER_RECALC, "Negative",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows to move the vertex in the negative direction of axis");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, B_MODIFIER_RECALC, "Positive",	lx + buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows to move the vertex in the positive direction of axis");
+
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx+buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
+				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->auxTarget, "Aditional mesh to project over");
+			}
+			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
+			}
+
+			uiBlockEndAlign(block);
+
 		}
 
 		uiBlockEndAlign(block);

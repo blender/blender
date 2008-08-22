@@ -46,5 +46,8 @@ int get_defgroup_num (struct Object *ob, struct bDeformGroup *dg);
 int get_named_vertexgroup_num (Object *ob, char *name);
 void unique_vertexgroup_name (struct bDeformGroup *dg, struct Object *ob);
 
+float deformvert_get_weight(const struct MDeformVert *dvert, int group_num);
+float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num);
+
 #endif
 
