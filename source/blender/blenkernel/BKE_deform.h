@@ -38,6 +38,7 @@
 struct Object;
 struct ListBase;
 struct bDeformGroup;
+struct MDeformVert;
 
 void copy_defgroups (struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup *copy_defgroup (struct bDeformGroup *ingroup);
