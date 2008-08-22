@@ -14,8 +14,7 @@ Documentation for the GameLogic Module.
 	
 	Examples::
 		# To get a controller:
-		import GameLogic
-		co = GameLogic.getCurrentController()
+		co = GameLogic.getCurrentController() # GameLogic is automatically imported
 		
 		# To get the game object associated with this controller:
 		obj = co.getOwner()
@@ -236,4 +235,14 @@ def expandPath(path):
 	@type path: string
 	@return: The converted string
 	@rtype: string
+	"""
+
+def getBlendFileList(path = "//"):
+	"""
+	Returns a list of blend files in the same directory as the open blend file, or from using the option argument.
+
+	@param path: Optional directory argument, will be expanded (like expandPath) into the full path.
+	@type path: string
+	@return: A list of filenames, with no directory prefix
+	@rtype: list
 	"""
