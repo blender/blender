@@ -82,7 +82,7 @@ typedef struct BVHOverlapData
 typedef struct BVHNearestData
 {
 	BVHTree *tree;
-	float	*co;
+	const float	*co;
 	BVHTree_NearestPointCallback callback;
 	void	*userdata;
 	float proj[13];			//coordinates projection over axis
@@ -1248,7 +1248,6 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 
 static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 {
-	int i;
 	float nearest[3], sdist;
 	sdist = calc_nearest_point(data, node, nearest);
 	if(sdist >= data->nearest.dist) return;
