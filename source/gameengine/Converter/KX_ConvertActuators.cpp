@@ -384,8 +384,12 @@ void BL_ConvertActuators(char* maggiename,
 							else
 							{
 								/* but we need to convert the samplename into absolute pathname first */
-								BLI_convertstringcode(soundact->sound->name, maggiename);
-								samplename = soundact->sound->name;
+								char fullpath[sizeof(soundact->sound->name)];
+								
+								/* dont modify soundact->sound->name, only change a copy */
+								BLI_strncpy(fullpath, soundact->sound->name, sizeof(fullpath));
+								BLI_convertstringcode(fullpath, maggiename);
+								samplename = fullpath;
 								
 								/* and now we can load it */
 								if (soundscene->LoadSample(samplename, NULL, 0) > -1)
