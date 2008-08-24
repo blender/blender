@@ -708,7 +708,9 @@ static PyObject *Text_markSelection( BPy_Text * self, PyObject * args )
 	clr[2] = (char) (b&0xFF);
 	clr[3] = 255;
 
-	txt_add_marker(text, text->curl, text->curc, text->selc, clr, ((group+2)<<16)|flags);
+	group &= 0xFFFF;
+
+	txt_add_marker(text, text->curl, text->curc, text->selc, clr, group, flags);
 	
 	Py_RETURN_NONE;
 }

@@ -44,7 +44,8 @@ typedef struct TextLine {
 
 typedef struct TextMarker {
 	struct TextMarker *next, *prev;
-	int lineno, start, end, flags;
+	int lineno, start, end, pad1;
+	int group, flags;
 	char clr[4], pad[4];
 } TextMarker;
 

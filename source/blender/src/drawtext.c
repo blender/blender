@@ -124,8 +124,8 @@ def wrap(line, view_width, wrap_chars):
 #define TOOL_SUGG_LIST	0x01
 #define TOOL_DOCUMENT	0x02
 
-#define TMARK_GRP_CUSTOM	0x00010000	/* Lower 2 bytes used for flags */
-#define TMARK_GRP_FINDALL	0x00020000	/* Upper 2 bytes used for group */
+#define TMARK_GRP_CUSTOM	0x00010000	/* Lower 2 bytes used for Python groups */
+#define TMARK_GRP_FINDALL	0x00020000
 
 /* forward declarations */
 
@@ -1507,7 +1507,7 @@ void find_and_replace(SpaceText *st, short mode) {
 
 	do {
 		if (first)
-			txt_clear_markers(text, TMARK_GRP_FINDALL);
+			txt_clear_markers(text, TMARK_GRP_FINDALL, 0);
 		first= 0;
 		
 		/* Replace current */
@@ -1520,11 +1520,11 @@ void find_and_replace(SpaceText *st, short mode) {
 				} else if (mode==2) {
 					char clr[4];
 					BIF_GetThemeColor4ubv(TH_SHADE2, clr);
-					if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL)) {
+					if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL, 0)) {
 						if (tmp) MEM_freeN(tmp), tmp=NULL;
 						break;
 					}
-					txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_GRP_FINDALL | TMARK_EDITALL);
+					txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_GRP_FINDALL, TMARK_EDITALL);
 				}
 			}
 			MEM_freeN(tmp);
@@ -2477,7 +2477,7 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 	text= st->text;
 	if (!text || text->id.lib || text->curl != text->sell) return 0;
 
-	marker= txt_find_marker(text, text->sell, text->selc, 0);
+	marker= txt_find_marker(text, text->sell, text->selc, 0, 0);
 	if (marker && (marker->start > text->curc || marker->end < text->curc))
 		marker= NULL;
 
@@ -2503,8 +2503,8 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 				swallow= 1;
 			}
 		} else if (evnt==ESCKEY) {
-			if (txt_clear_markers(text, TMARK_TEMP)) swallow= 1;
-			else if (txt_clear_markers(text, 0)) swallow= 1;
+			if (txt_clear_markers(text, 0, TMARK_TEMP)) swallow= 1;
+			else if (txt_clear_markers(text, 0, 0)) swallow= 1;
 			else return 0;
 			evnt= ascii= val= 0;
 			draw= 1;
@@ -2608,7 +2608,7 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 			case RETKEY:
 			case ESCKEY:
 				if (marker->flags & (TMARK_EDITALL | TMARK_TEMP))
-					txt_clear_markers(text, marker->flags);
+					txt_clear_markers(text, marker->group, 0);
 				else
 					BLI_freelinkN(&text->markers, marker);
 				swallow= 1;

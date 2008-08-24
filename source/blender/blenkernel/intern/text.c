@@ -987,16 +987,16 @@ static void txt_delete_sel (Text *text)
 	buf= MEM_mallocN(text->curc+(text->sell->len - text->selc)+1, "textline_string");
 	
 	if (text->curl != text->sell) {
-		txt_clear_marker_region(text, text->curl, text->curc, text->curl->len, 0);
+		txt_clear_marker_region(text, text->curl, text->curc, text->curl->len, 0, 0);
 		move= txt_get_span(text->curl, text->sell);
 	} else {
-		mrk= txt_find_marker_region(text, text->curl, text->curc, text->selc, 0);
+		mrk= txt_find_marker_region(text, text->curl, text->curc, text->selc, 0, 0);
 		if (mrk && (mrk->start > text->curc || mrk->end < text->selc))
-			txt_clear_marker_region(text, text->curl, text->curc, text->selc, 0);
+			txt_clear_marker_region(text, text->curl, text->curc, text->selc, 0, 0);
 		move= 0;
 	}
 
-	mrk= txt_find_marker_region(text, text->sell, text->selc-1, text->sell->len, 0);
+	mrk= txt_find_marker_region(text, text->sell, text->selc-1, text->sell->len, 0, 0);
 	if (mrk) {
 		lineno= mrk->lineno;
 		do {
@@ -2190,7 +2190,7 @@ static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 	
 	if(!linea || !lineb) return;
 
-	mrk= txt_find_marker_region(text, lineb, 0, lineb->len, 0);
+	mrk= txt_find_marker_region(text, lineb, 0, lineb->len, 0, 0);
 	if (mrk) {
 		lineno= mrk->lineno;
 		do {
@@ -2236,12 +2236,12 @@ void txt_delete_char (Text *text)
 	} else { /* Just deleting a char */
 		int i= text->curc;
 
-		TextMarker *mrk= txt_find_marker_region(text, text->curl, i-1, text->curl->len, 0);
+		TextMarker *mrk= txt_find_marker_region(text, text->curl, i-1, text->curl->len, 0, 0);
 		if (mrk) {
 			int lineno= mrk->lineno;
 			if (mrk->end==i) {
 				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
-					txt_clear_markers(text, mrk->flags);
+					txt_clear_markers(text, mrk->group, TMARK_TEMP);
 				} else {
 					TextMarker *nxt= mrk->next;
 					BLI_freelinkN(&text->markers, mrk);
@@ -2301,12 +2301,12 @@ void txt_backspace_char (Text *text)
 	else { /* Just backspacing a char */
 		int i= text->curc-1;
 
-		TextMarker *mrk= txt_find_marker_region(text, text->curl, i, text->curl->len, 0);
+		TextMarker *mrk= txt_find_marker_region(text, text->curl, i, text->curl->len, 0, 0);
 		if (mrk) {
 			int lineno= mrk->lineno;
 			if (mrk->start==i+1) {
 				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
-					txt_clear_markers(text, mrk->flags);
+					txt_clear_markers(text, mrk->group, TMARK_TEMP);
 				} else {
 					TextMarker *nxt= mrk->next;
 					BLI_freelinkN(&text->markers, mrk);
@@ -2359,7 +2359,7 @@ int txt_add_char (Text *text, char add)
 	
 	txt_delete_sel(text);
 	
-	mrk= txt_find_marker_region(text, text->curl, text->curc-1, text->curl->len, 0);
+	mrk= txt_find_marker_region(text, text->curl, text->curc-1, text->curl->len, 0, 0);
 	if (mrk) {
 		lineno= mrk->lineno;
 		do {
@@ -2401,7 +2401,7 @@ int txt_replace_char (Text *text, char add)
 	if (text->curc==text->curl->len || txt_has_sel(text) || add=='\n') {
 		TextMarker *mrk;
 		int i= txt_add_char(text, add);
-		mrk= txt_find_marker(text, text->curl, text->curc, 0);
+		mrk= txt_find_marker(text, text->curl, text->curc, 0, 0);
 		if (mrk && mrk->end==text->curc) mrk->end--;
 		return i;
 	}
@@ -2689,7 +2689,7 @@ static int color_match(TextMarker *a, TextMarker *b) {
 }
 
 /* Creates and adds a marker to the list maintaining sorted order */
-void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4], int flags) {
+void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4], int group, int flags) {
 	TextMarker *tmp, *marker;
 
 	marker= MEM_mallocN(sizeof(TextMarker), "text_marker");
@@ -2697,6 +2697,7 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4],
 	marker->lineno= txt_get_span(text->lines.first, line);
 	marker->start= MIN2(start, end);
 	marker->end= MAX2(start, end);
+	marker->group= group;
 	marker->flags= flags;
 
 	marker->clr[0]= clr[0];
@@ -2712,17 +2713,18 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4],
 	else BLI_addhead(&text->markers, marker);
 }
 
-/* Returns the first matching marker on the specified line between two points,
-   with at least the specified flags set. If flags is zero, all markers will be
-   searched */
-TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
+/* Returns the first matching marker on the specified line between two points.
+   If the group or flags fields are non-zero the returned flag must be in the
+   specified group and have at least the specified flags set. */
+TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags) {
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
 	
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if ((marker->flags & flags) != flags) continue;
+		if (group && marker->group != group) continue;
+		else if ((marker->flags & flags) != flags) continue;
 		else if (marker->lineno < lineno) continue;
 		else if (marker->lineno > lineno) break;
 
@@ -2733,9 +2735,10 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 	return NULL;
 }
 
-/* Clears all markers on the specified line between two points with at least
-   the specified flags set. If flags is zero, all markers will be cleared */
-short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int flags) {
+/* Clears all markers on the specified line between two points. If the group or
+   flags fields are non-zero the returned flag must be in the specified group
+   and have at least the specified flags set. */
+short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags) {
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
 	short cleared= 0;
@@ -2743,7 +2746,8 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if ((marker->flags & flags) != flags) continue;
+		if (group && marker->group != group) continue;
+		else if ((marker->flags & flags) != flags) continue;
 		else if (marker->lineno < lineno) continue;
 		else if (marker->lineno > lineno) break;
 
@@ -2756,16 +2760,18 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 	return cleared;
 }
 
-/* Clears all markers with at least the specified flags set (useful for
-   clearing temporary markers) */
-short txt_clear_markers(Text *text, int flags) {
+/* Clears all markers in the specified group (if given) with at least the
+   specified flags set. Useful for clearing temporary markers (group=0,
+   flags=TMARK_TEMP) */
+short txt_clear_markers(Text *text, int group, int flags) {
 	TextMarker *marker, *next;
 	short cleared= 0;
 	
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if ((marker->flags & flags) == flags) {
+		if ((!group || marker->group==group) &&
+				(marker->flags & flags) == flags) {
 			BLI_freelinkN(&text->markers, marker);
 			cleared= 1;
 		}
@@ -2774,13 +2780,14 @@ short txt_clear_markers(Text *text, int flags) {
 }
 
 /* Finds the marker at the specified line and cursor position with at least the
-   specified flags set. If flags is zero, all markers will be searched */
-TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int flags) {
+   specified flags set in the given group (if non-zero). */
+TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int flags) {
 	TextMarker *marker;
 	int lineno= txt_get_span(text->lines.first, line);
 	
 	for (marker=text->markers.first; marker; marker=marker->next) {
-		if ((marker->flags & flags) != flags) continue;
+		if (group && marker->group != group) continue;
+		else if ((marker->flags & flags) != flags) continue;
 		else if (marker->lineno < lineno) continue;
 		else if (marker->lineno > lineno) break;
 
@@ -2790,53 +2797,27 @@ TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int flags) {
 	return NULL;
 }
 
-/* Finds the previous marker with matching flags. If no other marker is found,
-   the same one will be returned */
+/* Finds the previous marker in the same group. If no other is found, the same
+   marker will be returned */
 TextMarker *txt_prev_marker(Text *text, TextMarker *marker) {
 	TextMarker *tmp= marker;
 	while (tmp) {
 		if (tmp->prev) tmp= tmp->prev;
 		else tmp= text->markers.last;
-		if (tmp->flags == marker->flags)
+		if (tmp->group == marker->group)
 			return tmp;
 	}
 	return NULL; /* Only if marker==NULL */
 }
 
-/* Finds the next marker with matching flags. If no other marker is found, the
-   same one will be returned */
+/* Finds the next marker in the same group. If no other is found, the same
+   marker will be returned */
 TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
 	TextMarker *tmp= marker;
 	while (tmp) {
 		if (tmp->next) tmp= tmp->next;
 		else tmp= text->markers.first;
-		if (tmp->flags == marker->flags)
-			return tmp;
-	}
-	return NULL; /* Only if marker==NULL */
-}
-
-/* Finds the previous marker with matching colour. If no other marker is found,
-   the same one will be returned */
-TextMarker *txt_prev_marker_color(Text *text, TextMarker *marker) {
-	TextMarker *tmp= marker;
-	while (tmp) {
-		if (tmp->prev) tmp= tmp->prev;
-		else tmp= text->markers.last;
-		if (color_match(tmp, marker))
-			return tmp;
-	}
-	return NULL; /* Only if marker==NULL */
-}
-
-/* Finds the next marker with matching colour. If no other marker is found, the
-   same one will be returned */
-TextMarker *txt_next_marker_color(Text *text, TextMarker *marker) {
-	TextMarker *tmp= marker;
-	while (tmp) {
-		if (tmp->next) tmp= tmp->next;
-		else tmp= text->markers.first;
-		if (color_match(tmp, marker))
+		if (tmp->group == marker->group)
 			return tmp;
 	}
 	return NULL; /* Only if marker==NULL */

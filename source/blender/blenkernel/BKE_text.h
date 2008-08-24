@@ -101,11 +101,11 @@ void	convert_tabs		(struct SpaceText *st, int tab);
 void	txt_copy_clipboard	(struct Text *text);
 void	txt_paste_clipboard	(struct Text *text);
 
-void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, char clr[4], int flags);
-short	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int flags);
-short	txt_clear_markers					(struct Text *text, int flags);
-struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, int curs, int flags);
-struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int flags);
+void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, char clr[4], int group, int flags);
+short	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
+short	txt_clear_markers					(struct Text *text, int group, int flags);
+struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, int curs, int group, int flags);
+struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
 struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marker);
 struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
 struct TextMarker	*txt_prev_marker_color	(struct Text *text, struct TextMarker *marker);

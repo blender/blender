@@ -513,7 +513,7 @@ static void do_text_editmenu_markermenu(void *arg, int event)
 	
 	switch(event) {
 	case 1:
-		txt_clear_markers(text, 0);
+		txt_clear_markers(text, 0, 0);
 		break;
 	case 2:
 		lineno= txt_get_span(text->lines.first, text->curl);
