@@ -2110,6 +2110,7 @@ static void node_border_link_delete(SpaceNode *snode)
 			mval[1]= rect.ymax;
 			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmax, &rectf.ymax);
 			
+			glLoadIdentity();
 			myortho2(rectf.xmin, rectf.xmax, rectf.ymin, rectf.ymax);
 			
 			glSelectBuffer(256, buffer); 
