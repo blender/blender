@@ -544,10 +544,6 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		where_is_object_time(ob,cur_time);
 			
 		/* use center of object for distance calculus */
-		obloc= ob->obmat[3];
-		VECSUB(vect_to_vert, obloc, opco);
-		distance = VecLength(vect_to_vert);
-		
 		VecSubf(vec_to_part, opco, ob->obmat[3]);
 		distance = VecLength(vec_to_part);
 
