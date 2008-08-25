@@ -377,7 +377,10 @@ PyObject* KX_SCA_AddObjectActuator::PyGetLastCreatedObject(PyObject* self,
 														   PyObject* kwds)
 {
 	SCA_IObject* result = this->GetLastCreatedObject();
-	if (result)
+	
+	// if result->GetSGNode() is NULL
+	// it means the object has ended, The BGE python api crashes in many places if the object is returned.
+	if (result && (static_cast<KX_GameObject *>(result))->GetSGNode()) 
 	{
 		result->AddRef();
 		return result;
