@@ -1174,9 +1174,13 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				project_short(&gps->points->x, xyval);
+				project_short(&pt1->x, xyval);
 				x0= xyval[0];
 				y0= xyval[1];
+				
+				project_short(&pt2->x, xyval);
+				x1= xyval[0];
+				y1= xyval[1];
 			}
 			else if (gps->flag & GP_STROKE_2DSPACE) {
 				ipoco_to_areaco_noclip(p->v2d, &pt1->x, xyval);
