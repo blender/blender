@@ -406,12 +406,15 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			else
 				VecCopyf(mag_vec,vec_to_part);
 
+			Normalize(mag_vec);
+
 			VecMulf(mag_vec,force_val*falloff);
 			VecAddf(field,field,mag_vec);
 			break;
 
 		case PFIELD_VORTEX:
 			Crossf(mag_vec,eff_vel,vec_to_part);
+
 			Normalize(mag_vec);
 
 			VecMulf(mag_vec,force_val*distance*falloff);
@@ -425,6 +428,8 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 				/* magnetic field of a moving charge */
 				Crossf(temp,eff_vel,vec_to_part);
 
+			Normalize(temp);
+
 			Crossf(temp2,velocity,temp);
 			VecAddf(mag_vec,mag_vec,temp2);
 
@@ -436,6 +441,8 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 				Projf(mag_vec,vec_to_part,eff_vel);
 			else
 				VecCopyf(mag_vec,vec_to_part);
+
+			Normalize(mag_vec);
 
 			VecMulf(mag_vec,force_val*falloff);
 			VecSubf(field,field,mag_vec);
@@ -450,6 +457,8 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 				Projf(mag_vec,vec_to_part,eff_vel);
 			else
 				VecCopyf(mag_vec,vec_to_part);
+
+			Normalize(mag_vec);
 
 			VecMulf(mag_vec,charge*force_val*falloff);
 			VecAddf(field,field,mag_vec);
