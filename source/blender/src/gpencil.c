@@ -707,6 +707,10 @@ typedef struct tGPsdata {
 	
 	short status;		/* current status of painting */
 	short paintmode;	/* mode for painting */
+	
+	short mval[2];		/* current mouse-position */
+	short mvalo[2];		/* previous recorded mouse-position */
+	short radius;		/* radius of influence for eraser */
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -1037,30 +1041,6 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
-/* User should draw 'circles' around the parts of the sketches they wish to 
- * delete instead of drawing squiggles over existing lines. This should be 
- * easier to manage than if it was done otherwise.
- */
-
-/* convert gp-buffer stroke into mouse-coordinates array */
-static short (*gp_stroke_eraser_2mco (bGPdata *gpd))[2]
-{
-	tGPspoint *pt;
-	short (*mcoords)[2]; 
-	int i;
-	
-	/* allocate memory for coordinates array */
-	mcoords= MEM_mallocN(sizeof(*mcoords)*gpd->sbuffer_size,"gp_buf_mcords");
-	
-	/* copy coordinates */
-	for (pt=gpd->sbuffer, i=0; i < gpd->sbuffer_size; i++, pt++) {
-		mcoords[i][0]= pt->x;
-		mcoords[i][1]= pt->y;
-	}
-	
-	/* return */
-	return mcoords;
-}
 
 /* eraser tool - remove segment from stroke/split stroke (after lasso inside) */
 static short gp_stroke_eraser_splitdel (bGPDframe *gpf, bGPDstroke *gps, int i)
@@ -1130,8 +1110,20 @@ static short gp_stroke_eraser_splitdel (bGPDframe *gpf, bGPDstroke *gps, int i)
 	}
 }
 
+/* eraser tool - check if part of stroke occurs within last segment drawn by eraser */
+static short gp_stroke_eraser_strokeinside (short mval[], short mvalo[], short rad, short x0, short y0, short x1, short y1)
+{
+	/* step 1: check if within the radius for the new one */
+		/* simple within-radius check */
+	if (edge_inside_circle(mval[0], mval[1], rad, x0, y0, x1, y1))
+		return 1;
+	
+	/* step 2: check if within the quad formed between the two eraser coords */
+	return 0;
+} 
+
 /* eraser tool - evaluation per stroke */
-static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short moves, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
+static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[], short rad, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
 	short x0=0, y0=0, x1=0, y1=0;
@@ -1147,10 +1139,9 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 	else if (gps->totpoints == 1) {
 		/* get coordinates */
 		if (gps->flag & GP_STROKE_3DSPACE) {
-			// FIXME: this may not be the correct correction
 			project_short(&gps->points->x, xyval);
 			x0= xyval[0];
-			x1= xyval[1];
+			y0= xyval[1];
 		}
 		else if (gps->flag & GP_STROKE_2DSPACE) {			
 			ipoco_to_areaco_noclip(p->v2d, &gps->points->x, xyval);
@@ -1165,7 +1156,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 		/* do boundbox check first */
 		if (BLI_in_rcti(rect, x0, y0)) {
 			/* only check if point is inside */
-			if (lasso_inside(mcoords, moves, x0, y0)) {
+			if ( ((x0-mval[0])*(x0-mval[0]) + (y0-mval[1])*(y0-mval[1])) <= rad*rad ) {
 				/* free stroke */
 				MEM_freeN(gps->points);
 				BLI_freelinkN(&gpf->strokes, gps);
@@ -1183,10 +1174,9 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				// FIXME: may not be correct correction
 				project_short(&gps->points->x, xyval);
 				x0= xyval[0];
-				x1= xyval[1];
+				y0= xyval[1];
 			}
 			else if (gps->flag & GP_STROKE_2DSPACE) {
 				ipoco_to_areaco_noclip(p->v2d, &pt1->x, xyval);
@@ -1211,7 +1201,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 				 * 	- this assumes that linewidth is irrelevant
 				 *	- handled using the lasso-select checking code
 				 */
-				if (lasso_inside_edge(mcoords, moves, x0, y0, x1, x1)) {
+				if (gp_stroke_eraser_strokeinside(mval, mvalo, rad, x0, y0, x1, y1)) {
 					/* if function returns true, break this loop (as no more point to check) */
 					if (gp_stroke_eraser_splitdel(gpf, gps, i))
 						break;
@@ -1226,24 +1216,21 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mcoords[][2], short mo
 /* erase strokes which fall under the eraser strokes */
 static void gp_stroke_doeraser (tGPsdata *p)
 {
-	bGPdata *gpd= p->gpd;
 	bGPDframe *gpf= p->gpf;
 	bGPDstroke *gps, *gpn;
-	short (*mcoords)[2];
 	rcti rect;
 	
-	/* get buffer-stroke coordinates as shorts array, and then get bounding box */
-	mcoords= gp_stroke_eraser_2mco(gpd);
-	lasso_select_boundbox(&rect, mcoords, gpd->sbuffer_size);
+	/* rect is rectangle of eraser */
+	rect.xmin= p->mval[0] - p->radius;
+	rect.ymin= p->mval[1] - p->radius;
+	rect.xmax= p->mval[0] + p->radius;
+	rect.ymax= p->mval[1] + p->radius;
 	
 	/* loop over strokes, checking segments for intersections */
 	for (gps= gpf->strokes.first; gps; gps= gpn) {
 		gpn= gps->next;
-		gp_stroke_eraser_dostroke(p, mcoords, gpd->sbuffer_size, &rect, gpf, gps);
+		gp_stroke_eraser_dostroke(p, p->mval, p->mvalo, p->radius, &rect, gpf, gps);
 	}
-	
-	/* free mcoords array */
-	MEM_freeN(mcoords);
 }
 
 /* ---------- 'Paint' Tool ------------ */
@@ -1308,8 +1295,7 @@ static void gp_paint_strokeend (tGPsdata *p)
 {
 	/* check if doing eraser or not */
 	if (p->gpd->sbuffer_sflag & GP_STROKE_ERASER) {
-		/* get rid of relevant sections of strokes */
-		gp_stroke_doeraser(p);
+		/* don't do anything */
 	}
 	else {
 		/* transfer stroke to frame */
@@ -1345,7 +1331,6 @@ static void gp_paint_cleanup (tGPsdata *p)
 short gpencil_paint (short mousebutton, short paintmode)
 {
 	tGPsdata p;
-	short prevmval[2], mval[2];
 	float opressure, pressure;
 	short ok = GP_STROKEADD_NORMAL;
 	
@@ -1365,31 +1350,51 @@ short gpencil_paint (short mousebutton, short paintmode)
 	setcursor_space(p.sa->spacetype, CURSOR_VPAINT);
 	
 	/* init drawing-device settings */
-	getmouseco_areawin(mval);
+	getmouseco_areawin(p.mval);
 	pressure = get_pressure();
 	
-	prevmval[0]= mval[0];
-	prevmval[1]= mval[1];
+	p.mvalo[0]= p.mval[0];
+	p.mvalo[1]= p.mval[1];
 	opressure= pressure;
+	
+	/* radius for eraser circle is thickness^2 */
+	p.radius= p.gpl->thickness * p.gpl->thickness;
+	
+	/* start drawing eraser-circle (if applicable) */
+	if (paintmode == GP_PAINTMODE_ERASER)
+		draw_sel_circle(p.mval, NULL, p.radius, p.radius, 0); // draws frontbuffer, but sets backbuf again
 	
 	/* only allow painting of single 'dots' if: 
 	 *	- pressure is not excessive (as it can be on some windows tablets)
 	 *	- draw-mode for active datablock is turned on
+	 * 	- not erasing
 	 */
-	if (!(pressure >= 0.99f) || (p.gpd->flag & GP_DATA_EDITPAINT)) { 
-		gp_stroke_addpoint(&p, mval, pressure);
+	if (paintmode != GP_PAINTMODE_ERASER) {
+		if (!(pressure >= 0.99f) || (p.gpd->flag & GP_DATA_EDITPAINT)) { 
+			gp_stroke_addpoint(&p, p.mval, pressure);
+		}
 	}
 	
 	/* paint loop */
 	do {
 		/* get current user input */
-		getmouseco_areawin(mval);
+		getmouseco_areawin(p.mval);
 		pressure = get_pressure();
 		
 		/* only add current point to buffer if mouse moved (otherwise wait until it does) */
-		if (gp_stroke_filtermval(&p, mval, prevmval)) {
+		if (paintmode == GP_PAINTMODE_ERASER) {
+			/* do 'live' erasing now */
+			gp_stroke_doeraser(&p);
+			
+			draw_sel_circle(p.mval, p.mvalo, p.radius, p.radius, 0);
+			force_draw(0);
+			
+			p.mvalo[0]= p.mval[0];
+			p.mvalo[1]= p.mval[1];
+		}
+		else if (gp_stroke_filtermval(&p, p.mval, p.mvalo)) {
 			/* try to add point */
-			ok= gp_stroke_addpoint(&p, mval, pressure);
+			ok= gp_stroke_addpoint(&p, p.mval, pressure);
 			
 			/* handle errors while adding point */
 			if ((ok == GP_STROKEADD_FULL) || (ok == GP_STROKEADD_OVERFLOW)) {
@@ -1397,8 +1402,8 @@ short gpencil_paint (short mousebutton, short paintmode)
 				gp_paint_strokeend(&p);
 				
 				/* start a new stroke, starting from previous point */
-				gp_stroke_addpoint(&p, prevmval, opressure);
-				ok= gp_stroke_addpoint(&p, mval, pressure);
+				gp_stroke_addpoint(&p, p.mvalo, opressure);
+				ok= gp_stroke_addpoint(&p, p.mval, pressure);
 			}
 			else if (ok == GP_STROKEADD_INVALID) {
 				/* the painting operation cannot continue... */
@@ -1411,8 +1416,8 @@ short gpencil_paint (short mousebutton, short paintmode)
 			}
 			force_draw(0);
 			
-			prevmval[0]= mval[0];
-			prevmval[1]= mval[1];
+			p.mvalo[0]= p.mval[0];
+			p.mvalo[1]= p.mval[1];
 			opressure= pressure;
 		}
 		else
@@ -1430,8 +1435,10 @@ short gpencil_paint (short mousebutton, short paintmode)
 	setcursor_space(p.sa->spacetype, CURSOR_STD);
 	
 	/* check size of buffer before cleanup, to determine if anything happened here */
-	if (paintmode == GP_PAINTMODE_ERASER)
-		ok= (p.gpd->sbuffer_size > 1);
+	if (paintmode == GP_PAINTMODE_ERASER) {
+		ok= 1; // fixme
+		draw_sel_circle(NULL, p.mvalo, 0, p.radius, 0);
+	}
 	else
 		ok= p.gpd->sbuffer_size;
 	

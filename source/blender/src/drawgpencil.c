@@ -323,6 +323,9 @@ enum {
 	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
 };
 
+/* thickness above which we should use special drawing */
+#define GP_DRAWTHICKNESS_SPECIAL 	3
+
 /* ----- Tool Buffer Drawing ------ */
 
 /* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
@@ -347,23 +350,13 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		glEnd();
 	}
 	else if (sflag & GP_STROKE_ERASER) {
-		/* draw stroke curve - just standard thickness */
-		setlinestyle(4);
-		glLineWidth(1.0f);
-		
-		glBegin(GL_LINE_STRIP);
-		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
-			glVertex2f(pt->x, pt->y);
-		}
-		glEnd();
-		
-		setlinestyle(0);
+		/* don't draw stroke at all! */
 	}
 	else {
 		float oldpressure = 0.0f;
 		
 		/* draw stroke curve */
-		setlinestyle(2);
+		if (G.f & G_DEBUG) setlinestyle(2);
 		
 		glBegin(GL_LINE_STRIP);
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
@@ -381,14 +374,14 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		}
 		glEnd();
 		
-		setlinestyle(0);
+		if (G.f & G_DEBUG) setlinestyle(0);
 	}
 }
 
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke - just a single dot (only one point) */
-static void gp_draw_stroke_point (bGPDspoint *points, short sflag, int winx, int winy)
+static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sflag, int winx, int winy)
 {
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
@@ -396,18 +389,38 @@ static void gp_draw_stroke_point (bGPDspoint *points, short sflag, int winx, int
 			glVertex3f(points->x, points->y, points->z);
 		glEnd();
 	}
-	else if (sflag & GP_STROKE_2DSPACE) {
-		glBegin(GL_POINTS);
-			glVertex2f(points->x, points->y);
-		glEnd();
-	}
 	else {
-		const float x= (points->x / 1000 * winx);
-		const float y= (points->y / 1000 * winy);
+		float co[2];
 		
-		glBegin(GL_POINTS);
-			glVertex2f(x, y);
-		glEnd();
+		/* get coordinates of point */
+		if (sflag & GP_STROKE_2DSPACE) {
+			co[0]= points->x;
+			co[1]= points->y;
+		}
+		else {
+			co[0]= (points->x / 1000 * winx);
+			co[1]= (points->y / 1000 * winy);
+		}
+		
+		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple opengl point will do */
+		if (thickness < GP_DRAWTHICKNESS_SPECIAL) {
+			glBegin(GL_POINTS);
+				glVertex2fv(co);
+			glEnd();
+		}
+		else {
+			/* draw filled circle as is done in circf (but without the matrix push/pops which screwed things up) */
+			GLUquadricObj *qobj = gluNewQuadric(); 
+			
+			gluQuadricDrawStyle(qobj, GLU_FILL); 
+			
+			/* need to translate drawing position, but must reset after too! */
+			glTranslatef(co[0],  co[1], 0.); 
+			gluDisk( qobj, 0.0,  thickness, 32, 1); 
+			glTranslatef(-co[0],  -co[1], 0.);
+			
+			gluDeleteQuadric(qobj);
+		}
 	}
 }
 
@@ -449,8 +462,8 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 /* draw a given stroke in 2d */
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
 {	
-	/* if thickness is less than 3, 'smooth' opengl lines look better */
-	if (thickness < 3) {
+	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better */
+	if (thickness < GP_DRAWTHICKNESS_SPECIAL) {
 		bGPDspoint *pt;
 		int i;
 		
@@ -671,7 +684,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, shor
 		
 		/* check which stroke-drawer to use */
 		if (gps->totpoints == 1)
-			gp_draw_stroke_point(gps->points, gps->flag, winx, winy);
+			gp_draw_stroke_point(gps->points, lthick, gps->flag, winx, winy);
 		else if (dflag & GP_DRAWDATA_ONLY3D)
 			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
 		else if (gps->totpoints > 1)	

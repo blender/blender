@@ -40,6 +40,7 @@ void	arrows_move_cursor(unsigned short event);
 void 	lasso_select_boundbox(struct rcti *rect, short mcords[][2], short moves);
 int		lasso_inside(short mcords[][2], short moves, short sx, short sy);
 int 	lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1);
+int 	edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
 void	borderselect(void);
 void	circle_select(void);
 void	deselectall(void);
