@@ -1565,7 +1565,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
-	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
+	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	int totface, *origindex = 0;
 	char **uv_name=0;
@@ -1573,6 +1573,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 1. check that everything is ok & updated */
 	if(psys==NULL)
 		return 0;
+	
+	totchild=psys->totchild;
 
 	part=psys->part;
 	pars=psys->particles;

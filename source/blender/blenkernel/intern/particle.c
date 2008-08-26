@@ -379,8 +379,11 @@ void psys_free_children(ParticleSystem *psys)
 }
 /* free everything */
 void psys_free(Object *ob, ParticleSystem * psys)
-{
+{	
 	if(psys){
+		int nr = 0;
+		ParticleSystem * tpsys;
+		
 		if(ob->particlesystem.first == NULL && G.f & G_PARTICLEEDIT)
 			G.f &= ~G_PARTICLEEDIT;
 
@@ -406,6 +409,21 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		if(psys->effectors.first)
 			psys_end_effectors(psys);
+		
+		// check if we are last non-visible particle system
+		for(tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next){
+			if(tpsys->part)
+			{
+				if(ELEM(tpsys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+				{
+					nr++;
+					break;
+				}
+			}
+		}
+		// clear do-not-draw-flag
+		if(!nr)
+			ob->transflag &= ~OB_DUPLIPARTS;
 
 		if(psys->part){
 			psys->part->id.us--;		
@@ -417,7 +435,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		if(psys->pointcache)
 			BKE_ptcache_free(psys->pointcache);
-
+		
 		MEM_freeN(psys);
 	}
 }
