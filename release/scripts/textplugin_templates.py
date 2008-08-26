@@ -40,6 +40,13 @@ templates = {
 		'\t\n'
 		'\tdef __init__(self, ${4:params}):\n'
 		'\t\t"""Creates a new ${1}"""\n'
+		'\t\t${5}',
+	'class':
+		'class ${1:name}(${2:parent}):\n'
+		'\t"""${3:docs}"""\n'
+		'\t\n'
+		'\tdef __init__(self, ${4:params}):\n'
+		'\t\t"""Creates a new ${1}"""\n'
 		'\t\t${5}'
 }
 
@@ -102,7 +109,8 @@ def main():
 			for x, y in points:
 				txt.setCursorPos(y, x)
 				txt.setSelectPos(y, x+len(text))
-				txt.markSelection(hash(text)+int(id), color, Text.TMARK_TEMP | Text.TMARK_EDITALL)
+				txt.markSelection((hash(text)+int(id)) & 0xFFFF, color,
+						Text.TMARK_TEMP | Text.TMARK_EDITALL)
 		if first:
 			text, x, y = first
 			txt.setCursorPos(y, x)
