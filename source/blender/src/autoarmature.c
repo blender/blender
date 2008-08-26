@@ -95,10 +95,13 @@ typedef struct RigGraph {
 	struct RigNode *head;
 	ReebGraph *link_mesh;
 	
+	ListBase *editbones;
+	
 	ListBase controls;
 	struct ThreadedWorker *worker;
 	
-	GHash *bones_map;
+	GHash *bones_map;	/* map of editbones by name */
+	GHash *controls_map;	/* map of rigcontrols by bone pointer */
 	
 	Object *ob;
 } RigGraph;
@@ -146,12 +149,16 @@ typedef struct RigEdge {
 	EditBone *bone;
 } RigEdge;
 
-#define RIG_CTRL_DONE	1
+/* Control flags */
+#define RIG_CTRL_DONE			1
+#define RIG_CTRL_PARENT_DEFORM	2
+#define RIG_CTRL_FIT_ROOT		4
+#define RIG_CTRL_FIT_BONE		8
 
 typedef struct RigControl {
 	struct RigControl *next, *prev;
 	EditBone *bone;
-	EditBone *parent;
+	EditBone *link;
 	float	offset[3];
 	int		flag;
 } RigControl;
@@ -173,6 +180,13 @@ typedef enum
 	METHOD_BRUTE_FORCE = 0,
 	METHOD_ANNEALING = 1
 } RetargetMethod;
+
+typedef enum
+{
+	ARC_FREE = 0,
+	ARC_TAKEN = 1,
+	ARC_USED = 2
+} ArcUsageFlags;
 
 /*******************************************************************************************************/
 
@@ -248,6 +262,7 @@ void RIG_freeRigGraph(BGraph *rg)
 	BLI_freelistN(&((RigGraph*)rg)->controls);
 
 	BLI_ghash_free(((RigGraph*)rg)->bones_map, NULL, NULL);
+	BLI_ghash_free(((RigGraph*)rg)->controls_map, NULL, NULL);
 	
 	MEM_freeN(rg);
 }
@@ -262,6 +277,7 @@ static RigGraph *newRigGraph()
 	rg->head = NULL;
 	
 	rg->bones_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	rg->controls_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
@@ -396,27 +412,67 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 {
 	RigControl *ctrl = newRigControl(rg);
 	ctrl->bone = bone;
+	
+	BLI_ghash_insert(rg->controls_map, bone, ctrl);
 }
 
-static int RIG_parentControl(RigControl *ctrl, EditBone *parent)
+static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 {
-	if (parent)
+	if (link)
 	{
-		/* if there's already a parent, overwrite only if new parent is higher in the chain */
-		if (ctrl->parent)
+		float offset[3];
+		int flag = 0;
+		
+		VecSubf(offset, ctrl->bone->head, link->head);
+
+		/* if root matches, check for direction too */		
+		if (Inpf(offset, offset) < 0.0001)
+		{
+			float vbone[3], vparent[3];
+			
+			flag |= RIG_CTRL_FIT_ROOT;
+			
+			VecSubf(vbone, ctrl->bone->tail, ctrl->bone->head);
+			VecSubf(vparent, link->tail, link->head);
+			
+			/* test for opposite direction */
+			if (Inpf(vbone, vparent) > 0)
+			{
+				float nor[3];
+				float len;
+				
+				Crossf(nor, vbone, vparent);
+				
+				len = Inpf(nor, nor);
+				if (len < 0.0001)
+				{
+					flag |= RIG_CTRL_FIT_BONE;
+				}
+			}
+		}
+		
+		/* Bail out if old one is automatically better */
+		if (flag < ctrl->flag)
+		{
+			return 0;
+		}
+		
+		/* if there's already a link
+		 * 	overwrite only if new link is higher in the chain */
+		if (ctrl->link && flag == ctrl->flag)
 		{
 			EditBone *bone = NULL;
 			
-			for (bone = ctrl->parent; bone; bone = bone->parent)
+			for (bone = ctrl->link; bone; bone = bone->parent)
 			{
-				/* if parent is in the chain, break and use that one */
-				if (bone == parent)
+				/* if link is in the chain, break and use that one */
+				if (bone == link)
 				{
 					break;
 				}
 			}
 			
-			/* not in chain, don't update parent */
+			/* not in chain, don't update link */
 			if (bone == NULL)
 			{
 				return 0;
@@ -424,9 +480,10 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *parent)
 		}
 		
 		
-		ctrl->parent = parent;
+		ctrl->link = link;
+		ctrl->flag = flag;
 		
-		VecSubf(ctrl->offset, ctrl->bone->head, ctrl->parent->tail);
+		VECCOPY(ctrl->offset, offset);
 		
 		return 1;
 	}
@@ -437,7 +494,9 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *parent)
 static void RIG_reconnectControlBones(RigGraph *rg)
 {
 	RigControl *ctrl;
+	int change = 1;
 	
+	/* first pass, link to deform bones */
 	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
 	{
 		bPoseChannel *pchan;
@@ -462,10 +521,10 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 					{
 						if ((ct->tar == rg->ob) && strcmp(ct->subtarget, ctrl->bone->name) == 0)
 						{
-							/* SET bone parent to bone corresponding to pchan */
-							EditBone *parent = BLI_ghash_lookup(rg->bones_map, pchan->name);
+							/* SET bone link to bone corresponding to pchan */
+							EditBone *link = BLI_ghash_lookup(rg->bones_map, pchan->name);
 							
-							RIG_parentControl(ctrl, parent);
+							RIG_parentControl(ctrl, link);
 							found = 1;
 						}
 					}
@@ -477,9 +536,14 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 		}
 
 		/* if not found yet, check parent */		
-		if (found == 0)
+		if (found == 0 && ctrl->bone->parent)
 		{
-			found = RIG_parentControl(ctrl, ctrl->bone->parent);
+			/* make sure parent is a deforming bone
+			 * NULL if not
+			 *  */
+			EditBone *link = BLI_ghash_lookup(rg->bones_map, ctrl->bone->parent->name);
+			
+			found = RIG_parentControl(ctrl, link);
 		}
 		
 		/* if not found yet, check child */		
@@ -487,7 +551,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 		{
 			RigArc *arc;
 			RigArc *best_arc = NULL;
-			EditBone *parent = NULL;
+			EditBone *link = NULL;
 			
 			for (arc = rg->arcs.first; arc; arc = arc->next)
 			{
@@ -501,13 +565,51 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 						if (best_arc == NULL || arc->symmetry_level < best_arc->symmetry_level)
 						{
 							best_arc = arc;
-							parent = edge->bone;
+							link = edge->bone;
 						}
 					}
 				}
 			}
 			
-			found = RIG_parentControl(ctrl, parent);
+			found = RIG_parentControl(ctrl, link);
+		}
+		
+	}
+	
+	/* second pass, make chains in control bones */
+	while (change)
+	{
+		change = 0;
+		
+		for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
+		{
+			/* if control is not linked yet */
+			if (ctrl->link == NULL)
+			{
+				RigControl *ctrl_parent = BLI_ghash_lookup(rg->controls_map, ctrl->bone->parent);
+				RigControl *ctrl_child;
+
+				/* check if parent is already linked */
+				if (ctrl_parent && ctrl_parent->link)
+				{
+					RIG_parentControl(ctrl, ctrl_parent->bone);
+					change = 1;
+				}
+				else
+				{
+					/* check childs */
+					for (ctrl_child = rg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
+					{
+						/* if a child is linked, link to that one */
+						if (ctrl_child->link && ctrl_child->bone->parent == ctrl->bone)
+						{
+							RIG_parentControl(ctrl, ctrl_child->bone);
+							change = 1;
+							break;
+						}
+					}
+				}
+			}
 		}
 		
 	}
@@ -608,6 +710,18 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 				MEM_freeN(first_edge);
 				BLI_replaceNodeInArc((BGraph*)rg, (BArc*)arc, (BNode*)arc->head, (BNode*)new_node);
 			}
+			else
+			{
+				RigEdge *next_edge = first_edge->next;
+
+				if (next_edge)
+				{
+					BLI_remlink(&arc->edges, first_edge);
+					MEM_freeN(first_edge);
+					
+					VECCOPY(arc->head->p, next_edge->head);
+				}
+			}
 		}
 		
 		if (last_edge->bone == NULL && VecLenf(last_edge->head, arc->tail->p) <= 0.001)
@@ -633,6 +747,19 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 					previous_edge->angle = 0;
 				}
 			}
+			else
+			{
+				RigEdge *previous_edge = last_edge->prev;
+
+				if (previous_edge)
+				{
+					BLI_remlink(&arc->edges, last_edge);
+					MEM_freeN(last_edge);
+					
+					VECCOPY(arc->tail->p, previous_edge->tail);
+					previous_edge->angle = 0;
+				}
+			}
 		}
 	}
 }
@@ -647,10 +774,10 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 	{
 		int nb_children;
 		
-		BLI_ghash_insert(rg->bones_map, bone->name, bone);
-		
 		if ((bone->flag & BONE_NO_DEFORM) == 0)
 		{
+			BLI_ghash_insert(rg->bones_map, bone->name, bone);
+		
 			if (arc == NULL)
 			{
 				arc = newRigArc(rg);
@@ -679,7 +806,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 				contain_head = 1;
 			}
 		}
-		else
+		else if ((bone->flag & BONE_EDITMODE_LOCKED) == 0) /* ignore locked bones */
 		{
 			RIG_addControlBone(rg, bone);
 		}
@@ -787,11 +914,16 @@ void RIG_printArcBones(RigArc *arc)
 	printf("\n");
 }
 
+void RIG_printCtrl(RigControl *ctrl)
+{
+	printf("Bone: %s\n", ctrl->bone->name);
+	printf("Link: %s\n", ctrl->link ? ctrl->link->name : "!NONE!");
+	printf("Flag: %i\n", ctrl->flag);
+}
+
 void RIG_printArc(RigArc *arc)
 {
 	RigEdge *edge;
-
-	printf("\n");
 
 	RIG_printNode((RigNode*)arc->head, "head");
 
@@ -811,12 +943,22 @@ void RIG_printArc(RigArc *arc)
 void RIG_printGraph(RigGraph *rg)
 {
 	RigArc *arc;
+	RigControl *ctrl;
 
+	printf("---- ARCS ----\n");
 	for (arc = rg->arcs.first; arc; arc = arc->next)
 	{
 		RIG_printArc(arc);	
+		printf("\n");
 	}
 	
+	printf("---- CONTROLS ----\n");
+	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
+	{
+		RIG_printCtrl(ctrl);
+		printf("\n");
+	}
+
 	if (rg->head)
 	{
 		RIG_printNode(rg->head, "HEAD NODE:");
@@ -836,6 +978,7 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
  	
 	rg = newRigGraph();
 	
+	rg->editbones = list;	
 	rg->ob = ob;
 
 	/* Do the rotations */
@@ -868,9 +1011,182 @@ static RigGraph *armatureToGraph(Object *ob, ListBase *list)
 	return rg;
 }
 
+/************************************ GENERATING *****************************************************/
+
+static EditBone *add_editbonetolist(char *name, ListBase *list)
+{
+	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
+	
+	BLI_strncpy(bone->name, name, 32);
+	unique_editbone_name(list, bone->name);
+	
+	BLI_addtail(list, bone);
+	
+	bone->flag |= BONE_TIPSEL;
+	bone->weight= 1.0F;
+	bone->dist= 0.25F;
+	bone->xwidth= 0.1;
+	bone->zwidth= 0.1;
+	bone->ease1= 1.0;
+	bone->ease2= 1.0;
+	bone->rad_head= 0.10;
+	bone->rad_tail= 0.05;
+	bone->segments= 1;
+	bone->layer=  1;//arm->layer;
+	
+	return bone;
+}
+
+EditBone * generateBonesForArc(RigGraph *rigg, ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	ReebArcIterator iter;
+	float n[3];
+	float ADAPTIVE_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
+	EditBone *lastBone = NULL;
+	
+	/* init iterator to get start and end from head */
+	initArcIterator(&iter, arc, head);
+	
+	/* Calculate overall */
+	VecSubf(n, arc->buckets[iter.end].p, head->p);
+	
+	if (1 /* G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION */ )
+	{
+		EmbedBucket *bucket = NULL;
+		EmbedBucket *previous = NULL;
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		float normal[3] = {0, 0, 0};
+		float avg_normal[3];
+		int total = 0;
+		int boneStart = iter.start;
+		
+		parent = add_editbonetolist("Bone", rigg->editbones);
+		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+		VECCOPY(parent->head, head->p);
+		
+		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
+			bucket;
+			previous = bucket, bucket = nextBucket(&iter))
+		{
+			float btail[3];
+			float value = 0;
+
+			if (G.scene->toolsettings->skgen_options & SKGEN_STICK_TO_EMBEDDING)
+			{
+				VECCOPY(btail, bucket->p);
+			}
+			else
+			{
+				float length;
+				
+				/* Calculate normal */
+				VecSubf(n, bucket->p, parent->head);
+				length = Normalize(n);
+				
+				total += 1;
+				VecAddf(normal, normal, n);
+				VECCOPY(avg_normal, normal);
+				VecMulf(avg_normal, 1.0f / total);
+				 
+				VECCOPY(btail, avg_normal);
+				VecMulf(btail, length);
+				VecAddf(btail, btail, parent->head);
+			}
+
+			if (G.scene->toolsettings->skgen_options & SKGEN_ADAPTIVE_DISTANCE)
+			{
+				value = calcDistance(arc, boneStart, iter.index, parent->head, btail);
+			}
+			else
+			{
+				float n[3];
+				
+				VecSubf(n, btail, parent->head);
+				value = calcVariance(arc, boneStart, iter.index, parent->head, n);
+			}
+
+			if (value > ADAPTIVE_THRESHOLD)
+			{
+				VECCOPY(parent->tail, btail);
+
+				child = add_editbonetolist("Bone", rigg->editbones);
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+				
+				parent = child; // new child is next parent
+				boneStart = iter.index; // start from end
+				
+				normal[0] = normal[1] = normal[2] = 0;
+				total = 0;
+			}
+		}
+
+		VECCOPY(parent->tail, tail->p);
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
+void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
+{
+	while (node->multi_level > multi_level_limit && node->link_up)
+	{
+		node = node->link_up;
+	}
+	
+	while (node->multi_level < multi_level_limit && node->link_down)
+	{
+		node = node->link_down;
+	}
+	
+	if (node->multi_level == multi_level_limit)
+	{
+		int i;
+		
+		for (i = 0; i < node->degree; i++)
+		{
+			ReebArc *earc = node->arcs[i];
+			
+			if (earc->flag == ARC_FREE && earc->head == node)
+			{
+				ReebNode *other = BIF_otherNodeFromIndex(earc, node);
+				
+				earc->flag = ARC_USED;
+				
+				generateBonesForArc(rigg, earc, node, other);
+				generateMissingArcsFromNode(rigg, other, multi_level_limit);
+			}
+		}
+	}
+}
+
+void generateMissingArcs(RigGraph *rigg)
+{
+	ReebGraph *reebg = rigg->link_mesh;
+	int multi_level_limit = 5;
+	
+	for (reebg = rigg->link_mesh; reebg; reebg = reebg->link_up)
+	{
+		ReebArc *earc;
+		
+		for (earc = reebg->arcs.first; earc; earc = earc->next)
+		{
+			if (earc->flag == ARC_USED)
+			{
+				generateMissingArcsFromNode(rigg, earc->head, multi_level_limit);
+				generateMissingArcsFromNode(rigg, earc->tail, multi_level_limit);
+			}
+		}
+	}
+}
+
 /************************************ RETARGETTING *****************************************************/
 
-static void repositionControl(RigGraph *rigg, RigControl *ctrl, float parent[3], float qrot[4], float resize)
+static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize)
 {
 	RigControl *ctrl_child;
 	float parent_offset[3], tail_offset[3];
@@ -884,7 +1200,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float parent[3],
 	QuatMulVecf(qrot, parent_offset);
 	QuatMulVecf(qrot, tail_offset);
 	
-	VecAddf(ctrl->bone->head, parent, parent_offset); 
+	VecAddf(ctrl->bone->head, head, parent_offset); 
 	VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
 	
 	ctrl->flag |= RIG_CTRL_DONE;
@@ -892,9 +1208,9 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float parent[3],
 	/* Cascade to connected control bones */
 	for (ctrl_child = rigg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
 	{
-		if (ctrl_child->parent == ctrl->bone)
+		if (ctrl_child->link == ctrl->bone)
 		{
-			repositionControl(rigg, ctrl_child, ctrl->bone->tail, qrot, resize);
+			repositionControl(rigg, ctrl_child, ctrl->bone->head, ctrl->bone->tail, qrot, resize);
 		}
 	}
 
@@ -909,7 +1225,7 @@ static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float 
 	
 	for (ctrl = rigg->controls.first; ctrl; ctrl = ctrl->next)
 	{
-		if (ctrl->parent == bone)
+		if (ctrl->link == bone)
 		{
 			if (resize == 0)
 			{
@@ -927,7 +1243,7 @@ static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float 
 				RotationBetweenVectorsToQuat(qrot, v1, v2);
 			}
 			
-			repositionControl(rigg, ctrl, vec1, qrot, resize);
+			repositionControl(rigg, ctrl, vec0, vec1, qrot, resize);
 		}
 	}
 	
@@ -1335,6 +1651,12 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	int nb_joints = nb_edges - 1;
 	RetargetMethod method = METHOD_ANNEALING; //G.scene->toolsettings->skgen_optimisation_method;
 	int i;
+	
+	if (nb_joints > earc->bcount)
+	{
+		printf("NOT ENOUGH BUCKETS!\n");
+		return;
+	}
 
 	positions = MEM_callocN(sizeof(int) * nb_joints, "Aggresive positions");
 	best_positions = MEM_callocN(sizeof(int) * nb_joints, "Best Aggresive positions");
@@ -1856,7 +2178,7 @@ static void matchMultiResolutionArc(RigGraph *rigg, RigNode *start_node, RigArc 
 	
 	while (ishape != eshape && next_earc->link_up)
 	{
-		next_earc->flag = 1; // mark previous as taken, to prevent backtrack on lower levels
+		next_earc->flag = ARC_TAKEN; // mark previous as taken, to prevent backtrack on lower levels
 		
 		next_earc = next_earc->link_up;
 		reebg = reebg->link_up;
@@ -1864,14 +2186,14 @@ static void matchMultiResolutionArc(RigGraph *rigg, RigNode *start_node, RigArc 
 		eshape = BLI_subtreeShape((BGraph*)reebg, (BNode*)enode, (BArc*)next_earc, 1) % SHAPE_LEVELS;
 	} 
 
-	next_earc->flag = 1; // mark as taken
+	next_earc->flag = ARC_USED; // mark as used
 	next_iarc->link_mesh = next_earc;
 	
 	/* mark all higher levels as taken too */
 	while (next_earc->link_up)
 	{
 		next_earc = next_earc->link_up;
-		next_earc->flag = 1; // mark as taken
+		next_earc->flag = ARC_TAKEN; // mark as taken
 	}
 }
 
@@ -1916,7 +2238,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 	{
 		next_earc = (ReebArc*)enode->arcs[i];
 		
-		if (next_earc->flag == 0)
+		if (next_earc->flag == ARC_FREE)
 		{
 			printf("candidate (flag %i ?= %i) (group %i ?= %i) (level %i ?= %i)\n",
 			symmetry_flag, next_earc->symmetry_flag, 
@@ -1924,7 +2246,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 			symmetry_level, next_earc->symmetry_level);
 		}
 		
-		if (next_earc->flag == 0 && /* not already taken */
+		if (next_earc->flag == ARC_FREE &&
 			next_earc->symmetry_flag == symmetry_flag &&
 			next_earc->symmetry_group == symmetry_group &&
 			next_earc->symmetry_level == symmetry_level)
@@ -1956,7 +2278,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 		RIG_printArcBones(next_iarc);
 		
 		printf("LOOKING FOR\n");
-		printf("flag %i -- symmetry level %i -- symmetry flag %i\n", 0, symmetry_level, symmetry_flag);
+		printf("flag %i -- symmetry level %i -- symmetry flag %i\n", ARC_FREE, symmetry_level, symmetry_flag);
 		
 		printf("CANDIDATES\n");
 		for(i = 0; i < enode->degree; i++)
@@ -2009,8 +2331,8 @@ static void retargetGraphs(RigGraph *rigg)
 	ReebGraph *reebg = rigg->link_mesh;
 	RigNode *inode;
 	
-	/* flag all ReebArcs as not taken */
-	BIF_flagMultiArcs(reebg, 0);
+	/* flag all ReebArcs as free */
+	BIF_flagMultiArcs(reebg, ARC_FREE);
 	
 	/* return to first level */
 	reebg = rigg->link_mesh;
@@ -2020,6 +2342,8 @@ static void retargetGraphs(RigGraph *rigg)
 	matchMultiResolutionStartingNode(rigg, reebg, inode);
 
 	retargetSubgraph(rigg, NULL, inode);
+	
+	//generateMissingArcs(rigg);
 	
 #ifdef USE_THREADS
 	BLI_destroy_worker(rigg->worker);

@@ -1582,10 +1582,20 @@ int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, flo
 				middleNode = arc->head;
 			}
 			
-			// If middle node is a normal node, it will be removed later
 			if (middleNode->degree == 2)
 			{
+#if 1
+				// If middle node is a normal node, it will be removed later
+				/* USE THIS IF YOU WANT TO PROLONG ARCS TO THEIR TERMINAL NODES
+				 * FOR HANDS, THIS IS NOT THE BEST RESULT 
+				 * */
 				continue;
+#else
+				removedNode = terminalNode;
+
+				// removing arc, so we need to decrease the degree of the remaining node
+				NodeDegreeDecrement(rg, middleNode);
+#endif
 			}
 			// Otherwise, just plain remove of the arc
 			else
@@ -3535,6 +3545,7 @@ void REEB_draw()
 	}
 	
 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
+	glLineWidth(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	glDisable(GL_DEPTH_TEST);
 	for (arc = rg->arcs.first; arc; arc = arc->next, i++)
@@ -3630,5 +3641,6 @@ void REEB_draw()
 	}
 	glEnable(GL_DEPTH_TEST);
 	
+	glLineWidth(1.0);
 	glPointSize(1.0);
 }
