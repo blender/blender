@@ -59,6 +59,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_constraint.h"
+#include "BKE_armature.h"
 
 #include "BIF_editarmature.h"
 #include "BIF_space.h"
@@ -147,6 +148,7 @@ typedef struct RigEdge {
 	float length;
 	float angle;
 	EditBone *bone;
+	float up_axis[3];
 } RigEdge;
 
 /* Control flags */
@@ -159,6 +161,7 @@ typedef struct RigControl {
 	struct RigControl *next, *prev;
 	EditBone *bone;
 	EditBone *link;
+	float	up_axis[3];
 	float	offset[3];
 	int		flag;
 } RigControl;
@@ -234,6 +237,41 @@ EditBone* nextEditBoneChild(ListBase *list, EditBone *parent, int n)
 	return NULL;
 }
 
+void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
+{
+	float mat[3][3], nor[3];
+
+	VecSubf(nor, bone->tail, bone->head);
+	
+	vec_roll_to_mat3(nor, roll, mat);
+	VECCOPY(up_axis, mat[2]);
+}
+
+float getNewBoneRoll(EditBone *bone, float old_up_axis[3], float quat[4])
+{
+	float mat[3][3];
+	float nor[3], up_axis[3], new_up_axis[3], vec[3];
+	float roll;
+	
+	VECCOPY(new_up_axis, old_up_axis);
+	QuatMulVecf(quat, new_up_axis);
+
+	VecSubf(nor, bone->tail, bone->head);
+	
+	vec_roll_to_mat3(nor, 0, mat);
+	VECCOPY(up_axis, mat[2]);
+	
+	roll = NormalizedVecAngle2(new_up_axis, up_axis);
+	
+	Crossf(vec, up_axis, new_up_axis);
+	
+	if (Inpf(vec, nor) < 0)
+	{
+		roll = -roll;
+	}
+	
+	return roll;
+}
 
 /************************************ DESTRUCTORS ******************************************************/
 
@@ -295,7 +333,6 @@ static RigArc *newRigArc(RigGraph *rg)
 	
 	arc = MEM_callocN(sizeof(RigArc), "rig arc");
 	arc->count = 0;
-	
 	BLI_addtail(&rg->arcs, arc);
 	
 	return arc;
@@ -388,6 +425,11 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 	VECCOPY(edge->tail, tail);
 	edge->bone = bone;
 	
+	if (bone)
+	{
+		getEditBoneRollUpAxis(bone, bone->roll, edge->up_axis);
+	}
+	
 	RIG_appendEdgeToArc(arc, edge);
 }
 
@@ -412,6 +454,7 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 {
 	RigControl *ctrl = newRigControl(rg);
 	ctrl->bone = bone;
+	getEditBoneRollUpAxis(bone, bone->roll, ctrl->up_axis);
 	
 	BLI_ghash_insert(rg->controls_map, bone, ctrl);
 }
@@ -1202,6 +1245,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 	
 	VecAddf(ctrl->bone->head, head, parent_offset); 
 	VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
+	ctrl->bone->roll = getNewBoneRoll(ctrl->bone, ctrl->up_axis, qrot);
 	
 	ctrl->flag |= RIG_CTRL_DONE;
 
@@ -1216,39 +1260,37 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 
 }
 
-static void repositionBone(RigGraph *rigg, EditBone *bone, float vec0[3], float vec1[3])
+static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3])
 {
+	EditBone *bone;
 	RigControl *ctrl;
-	float qrot[4], resize = 0;
+	float qrot[4], resize;
+	float v1[3], v2[3];
+	float l1, l2;
 	
-	QuatOne(qrot);
+	bone = edge->bone;
+	
+	VecSubf(v1, bone->tail, bone->head);
+	VecSubf(v2, vec1, vec0);
+	
+	l1 = Normalize(v1);
+	l2 = Normalize(v2);
+
+	resize = l2 / l1;
+	
+	RotationBetweenVectorsToQuat(qrot, v1, v2);
 	
 	for (ctrl = rigg->controls.first; ctrl; ctrl = ctrl->next)
 	{
 		if (ctrl->link == bone)
 		{
-			if (resize == 0)
-			{
-				float v1[3], v2[3];
-				float l1, l2;
-				
-				VecSubf(v1, bone->tail, bone->head);
-				VecSubf(v2, vec1, vec0);
-				
-				l1 = Normalize(v1);
-				l2 = Normalize(v2);
-
-				resize = l2 / l1;
-				
-				RotationBetweenVectorsToQuat(qrot, v1, v2);
-			}
-			
 			repositionControl(rigg, ctrl, vec0, vec1, qrot, resize);
 		}
 	}
 	
 	VECCOPY(bone->head, vec0);
 	VECCOPY(bone->tail, vec1);
+	bone->roll = getNewBoneRoll(bone, edge->up_axis, qrot);
 }
 
 static RetargetMode detectArcRetargetMode(RigArc *arc);
@@ -1974,8 +2016,6 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		 edge;
 		 edge = edge->next, i++)
 	{
-		EditBone *bone = edge->bone;
-		
 		if (i < nb_joints)
 		{
 			bucket = peekBucket(&iter, best_positions[i]);
@@ -1986,9 +2026,9 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 			vec1 = node_end->p;
 		}
 		
-		if (bone)
+		if (edge->bone)
 		{
-			repositionBone(rigg, bone, vec0, vec1);
+			repositionBone(rigg, edge, vec0, vec1);
 		}
 		
 		vec0 = vec1;
@@ -2053,7 +2093,6 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 	
 	for (edge = iarc->edges.first; edge; edge = edge->next)
 	{
-		EditBone *bone = edge->bone;
 		float new_bone_length = edge->length / iarc->length * embedding_length;
 
 		float length = 0;
@@ -2072,9 +2111,9 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		}
 
 		/* no need to move virtual edges (space between unconnected bones) */		
-		if (bone)
+		if (edge->bone)
 		{
-			repositionBone(rigg, bone, vec0, vec1);
+			repositionBone(rigg, edge, vec0, vec1);
 		}
 		
 		vec0 = vec1;
@@ -2114,15 +2153,14 @@ void *exec_retargetArctoArc(void *param)
 	if (BLI_countlist(&iarc->edges) == 1)
 	{
 		RigEdge *edge = iarc->edges.first;
-		EditBone *bone = edge->bone;
-		
+
 		if (testFlipArc(iarc, inode_start))
 		{
-			repositionBone(rigg, bone, earc->tail->p, earc->head->p);
+			repositionBone(rigg, edge, earc->tail->p, earc->head->p);
 		}
 		else
 		{
-			repositionBone(rigg, bone, earc->head->p, earc->tail->p);
+			repositionBone(rigg, edge, earc->head->p, earc->tail->p);
 		}
 	}
 	else
