@@ -172,6 +172,7 @@
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
 #include "BDR_unwrapper.h"
+#include "BDR_gpencil.h"
 
 #include <time.h>
 #include "mydevice.h"
@@ -2827,7 +2828,10 @@ void convertmenu(void)
 	if(G.scene->id.lib) return;
 
 	obact= OBACT;
-	if(obact==0) return;
+	if(obact==0) {
+		gpencil_convert_menu();
+		return;
+	}
 	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	

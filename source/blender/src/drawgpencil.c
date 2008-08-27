@@ -177,7 +177,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {
 		char name[256]; /* gpl->info is 128, but we need space for 'locked/hidden' as well */
 		
-		height= 26;
+		height= 0;
 		
 		/* visibility button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))

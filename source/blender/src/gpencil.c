@@ -46,7 +46,9 @@
 #include "BLI_blenlib.h"
 
 #include "DNA_listBase.h"
+#include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -57,6 +59,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
+#include "BKE_curve.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -73,6 +76,8 @@
 
 #include "BDR_gpencil.h"
 #include "BIF_drawgpencil.h"
+
+#include "BDR_editobject.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
@@ -678,6 +683,152 @@ void gpencil_delete_menu (void)
 	gpencil_delete_operation(mode);
 }
 
+/* --------- Data Conversion ---------- */
+
+/* convert the coordinates from the given stroke point into 3d-coordinates */
+static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float p3d[3])
+{
+	if (gps->flag & GP_STROKE_3DSPACE) {
+		/* directly use 3d-coordinates */
+		// FIXME: maybe we need to counterotate this for object rotation?
+		VecCopyf(p3d, &pt->x);
+	}
+	else {
+		short mval[2], mx, my;
+		float *fp= give_cursor();
+		float dvec[3];
+		
+		/* get screen coordinate */
+		if (gps->flag & GP_STROKE_2DSPACE) {
+			View2D *v2d= spacelink_get_view2d(curarea->spacedata.first);
+			ipoco_to_areaco_noclip(v2d, &pt->x, mval);
+		}
+		else {
+			mval[0]= (pt->x / 1000 * curarea->winx);
+			mval[1]= (pt->y / 1000 * curarea->winy);
+		}
+		mx= mval[0]; 
+		my= mval[1];
+		
+		/* convert screen coordinate to 3d coordinates 
+		 *	- method taken from editview.c - mouse_cursor() 
+		 */
+		project_short_noclip(fp, mval);
+		window_to_3d(dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(p3d, fp, dvec);
+	}
+}
+
+/* convert a given grease-pencil layer to a 3d-curve representation (using current view if appropriate) */
+static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl)
+{
+	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
+	bGPDstroke *gps;
+	Object *ob;
+	Curve *cu;
+	float *fp= give_cursor();
+	char name[140];
+	
+	/* error checking */
+	if (ELEM3(NULL, gpd, gpl, gpf))
+		return;
+		
+	/* only convert if there are any strokes on this layer's frame to convert */
+	if (gpf->strokes.first == NULL)
+		return;
+		
+	/* initialise the curve */	
+	sprintf(name, "GP_%s", gpl->info);
+	cu= add_curve(name, 1);
+	cu->flag |= CU_3D;
+	
+	/* init the curve object (remove rotation and assign curve data to it) */
+	add_object_draw(OB_CURVE);
+	ob= OBACT;
+	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
+	ob->data= cu;
+	
+	/* initialise 3d-cursor correction globals */
+	initgrabz(fp[0], fp[1], fp[2]);
+	
+	/* add points to curve */
+	for (gps= gpf->strokes.first; gps; gps= gps->next) {
+		bGPDspoint *pt;
+		Nurb *nu;
+		BPoint *bp;
+		int i;
+		
+		/* create new 'nurb' within the curve */
+		nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_curve(nurb)");
+		
+		nu->pntsu= gps->totpoints;
+		nu->pntsv= 1;
+		nu->orderu= gps->totpoints;
+		nu->flagu= 2;	/* endpoint */
+		nu->resolu= 32;
+		
+		nu->bp= MEM_callocN(sizeof(BPoint)*gps->totpoints, "bezts");
+		
+		/* add points */
+		for (i=0, pt=gps->points, bp=nu->bp; i < gps->totpoints; i++, pt++, bp++) {
+			float p3d[3];
+			
+			/* get coordinates to add at */
+			gp_strokepoint_convertcoords(gps, pt, p3d);
+			VecCopyf(bp->vec, p3d);
+			
+			/* set settings */
+			bp->f1= SELECT;
+			bp->radius = bp->weight = pt->pressure * gpl->thickness;
+		}
+		
+		/* add nurb to curve */
+		BLI_addtail(&cu->nurb, nu);
+	}
+}
+
+/* convert grease-pencil strokes to another representation 
+ *	mode: 	1 - Active layer to curve
+ */
+void gpencil_convert_operation (short mode)
+{
+	bGPdata *gpd;	
+	
+	/* get datablock to work on */
+	gpd= gpencil_data_getactive(NULL);
+	if (gpd == NULL) return;
+	
+	/* handle selection modes */
+	switch (mode) {
+		case 1: /* active layer only */
+		{
+			bGPDlayer *gpl= gpencil_layer_getactive(gpd);
+			gp_layer_to_curve(gpd, gpl);
+		}
+			break;
+	}
+	
+	/* redraw and undo-push */
+	BIF_undo_push("GPencil Convert");
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
+}
+
+/* display a menu for converting grease-pencil strokes */
+void gpencil_convert_menu (void)
+{
+	bGPdata *gpd= gpencil_data_getactive(NULL);
+	short mode;
+	
+	/* only show menu if it will be relevant */
+	if (gpd == NULL) return;
+	
+	mode= pupmenu("Grease Pencil Convert %t|Active Layer To Curve%x1");
+	if (mode <= 0) return;
+	
+	gpencil_convert_operation(mode);
+}
+
 /* ************************************************** */
 /* GREASE-PENCIL EDITING MODE - Painting */
 
@@ -1113,12 +1264,11 @@ static short gp_stroke_eraser_splitdel (bGPDframe *gpf, bGPDstroke *gps, int i)
 /* eraser tool - check if part of stroke occurs within last segment drawn by eraser */
 static short gp_stroke_eraser_strokeinside (short mval[], short mvalo[], short rad, short x0, short y0, short x1, short y1)
 {
-	/* step 1: check if within the radius for the new one */
-		/* simple within-radius check */
+	/* simple within-radius check for now */
 	if (edge_inside_circle(mval[0], mval[1], rad, x0, y0, x1, y1))
 		return 1;
 	
-	/* step 2: check if within the quad formed between the two eraser coords */
+	/* not inside */
 	return 0;
 } 
 
@@ -1203,7 +1353,6 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 				/* check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 * 	- this assumes that linewidth is irrelevant
-				 *	- handled using the lasso-select checking code
 				 */
 				if (gp_stroke_eraser_strokeinside(mval, mvalo, rad, x0, y0, x1, y1)) {
 					/* if function returns true, break this loop (as no more point to check) */
@@ -1288,6 +1437,12 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 			case SPACE_SEQ:
 			{
 				/* for now, this is not applicable here... */
+				//p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
+			}
+				break;
+			case SPACE_IMAGE:
+			{
+				p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
 			}
 				break;
 		}
@@ -1298,10 +1453,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 static void gp_paint_strokeend (tGPsdata *p)
 {
 	/* check if doing eraser or not */
-	if (p->gpd->sbuffer_sflag & GP_STROKE_ERASER) {
-		/* don't do anything */
-	}
-	else {
+	if ((p->gpd->sbuffer_sflag & GP_STROKE_ERASER) == 0) {
 		/* transfer stroke to frame */
 		gp_stroke_newfrombuffer(p);
 	}
