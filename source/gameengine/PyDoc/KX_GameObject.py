@@ -135,6 +135,26 @@ class KX_GameObject:
 		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
 		              - True: you get the "local" velocity ie: relative to object orientation.
 		"""
+	def getAngularVelocity(local = 0):
+		"""
+		Gets the game object's angular velocity.
+		
+		@type local: boolean
+		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
+		              - True: you get the "local" velocity ie: relative to object orientation.
+		@rtype: list [vx, vy, vz]
+		@return: the object's angular velocity.
+		"""
+	def setAngularVelocity(velocity, local = 0):
+		"""
+		Sets the game object's angular velocity.
+		
+		@type velocity: 3d vector.
+		@param velocity: angular velocity vector.
+		@type local: boolean
+		@param local: - False: you get the "global" velocity ie: relative to world orientation (default).
+		              - True: you get the "local" velocity ie: relative to object orientation.
+		"""
 	def getVelocity(point):
 		"""
 		Gets the game object's velocity at the specified point.

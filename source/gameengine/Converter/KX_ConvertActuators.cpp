@@ -573,10 +573,16 @@ void BL_ConvertActuators(char* maggiename,
 								originalval = converter->FindGameObject(editobact->ob);
 							}
 						}
-						MT_Vector3 linvelvec ( KX_BLENDERTRUNC(editobact->linVelocity[0]),
+						MT_Vector3 linvelvec (
+							KX_BLENDERTRUNC(editobact->linVelocity[0]),
 							KX_BLENDERTRUNC(editobact->linVelocity[1]),
 							KX_BLENDERTRUNC(editobact->linVelocity[2]));
-							
+						
+						MT_Vector3 angvelvec (
+							KX_BLENDERTRUNC(editobact->angVelocity[0]),
+							KX_BLENDERTRUNC(editobact->angVelocity[1]),
+							KX_BLENDERTRUNC(editobact->angVelocity[2]));
+						
 						KX_SCA_AddObjectActuator* tmpaddact = 
 							new KX_SCA_AddObjectActuator(
 								gameobj, 
@@ -584,7 +590,9 @@ void BL_ConvertActuators(char* maggiename,
 								editobact->time,
 								scene,
 								linvelvec.getValue(),
-								editobact->localflag!=0
+								(editobact->localflag & ACT_EDOB_LOCAL_LINV)!=0,
+								angvelvec.getValue(),
+								(editobact->localflag & ACT_EDOB_LOCAL_ANGV)!=0
 								);
 								
 								//editobact->ob to gameobj

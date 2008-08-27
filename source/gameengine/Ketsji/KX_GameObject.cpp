@@ -885,6 +885,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
 	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
 	{"setLinearVelocity", (PyCFunction) KX_GameObject::sPySetLinearVelocity, METH_VARARGS},
+	{"getAngularVelocity", (PyCFunction) KX_GameObject::sPyGetAngularVelocity, METH_VARARGS},
+	{"setAngularVelocity", (PyCFunction) KX_GameObject::sPySetAngularVelocity, METH_VARARGS},
 	{"getVelocity", (PyCFunction) KX_GameObject::sPyGetVelocity, METH_VARARGS},
 	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_NOARGS},
 	{"getReactionForce", (PyCFunction) KX_GameObject::sPyGetReactionForce, METH_NOARGS},
@@ -1146,9 +1148,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 }
 
 
-PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds)
+PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	int local = 0;
@@ -1162,9 +1162,7 @@ PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self,
 	}
 }
 
-PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds)
+PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self, PyObject* args)
 {
 	int local = 0;
 	PyObject* pyvect;
@@ -1173,6 +1171,35 @@ PyObject* KX_GameObject::PySetLinearVelocity(PyObject* self,
 		MT_Vector3 velocity;
 		if (PyVecTo(pyvect, velocity)) {
 			setLinearVelocity(velocity, (local!=0));
+			Py_RETURN_NONE;
+		}
+	}
+	return NULL;
+}
+
+PyObject* KX_GameObject::PyGetAngularVelocity(PyObject* self, PyObject* args)
+{
+	// only can get the velocity if we have a physics object connected to us...
+	int local = 0;
+	if (PyArg_ParseTuple(args,"|i",&local))
+	{
+		return PyObjectFrom(GetAngularVelocity((local!=0)));
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+PyObject* KX_GameObject::PySetAngularVelocity(PyObject* self, PyObject* args)
+{
+	int local = 0;
+	PyObject* pyvect;
+	
+	if (PyArg_ParseTuple(args,"O|i",&pyvect,&local)) {
+		MT_Vector3 velocity;
+		if (PyVecTo(pyvect, velocity)) {
+			setAngularVelocity(velocity, (local!=0));
 			Py_RETURN_NONE;
 		}
 	}
@@ -1228,9 +1255,7 @@ PyObject* KX_GameObject::PySetState(PyObject* self, PyObject* value)
 
 
 
-PyObject* KX_GameObject::PyGetVelocity(PyObject* self, 
-									   PyObject* args, 
-									   PyObject* kwds)
+PyObject* KX_GameObject::PyGetVelocity(PyObject* self, PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
 	MT_Vector3 velocity(0.0,0.0,0.0);
@@ -1362,9 +1387,7 @@ PyObject* KX_GameObject::PyGetChildrenRecursive(PyObject* self)
 	return list;
 }
 
-PyObject* KX_GameObject::PyGetMesh(PyObject* self, 
-								   PyObject* args, 
-								   PyObject* kwds)
+PyObject* KX_GameObject::PyGetMesh(PyObject* self, PyObject* args)
 {
 	int mesh = 0;
 
@@ -1404,9 +1427,7 @@ PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self, PyObject* value)
 
 
 
-PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, 
-										PyObject* args, 
-										PyObject* kwds)
+PyObject* KX_GameObject::PyApplyImpulse(PyObject* self, PyObject* args)
 {
 	PyObject* pyattach;
 	PyObject* pyimpulse;
@@ -1477,9 +1498,7 @@ PyObject* KX_GameObject::PySetOrientation(PyObject* self, PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds)
+PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* self, PyObject* args)
 {
 	PyObject* pyvect;
 	int axis = 2; //z axis is the default

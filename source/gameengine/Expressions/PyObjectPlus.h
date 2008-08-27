@@ -102,6 +102,12 @@ static inline void Py_Fatal(char *M) {
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
 
+#define KX_PYMETHOD_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
+	}; \
+
 #define KX_PYMETHOD_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self); \
 	static PyObject* sPy##method_name( PyObject* self) { \

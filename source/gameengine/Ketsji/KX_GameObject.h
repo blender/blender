@@ -726,9 +726,11 @@ public:
 
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
-	KX_PYMETHOD(KX_GameObject,GetLinearVelocity);
-	KX_PYMETHOD(KX_GameObject,SetLinearVelocity);
-	KX_PYMETHOD(KX_GameObject,GetVelocity);
+	KX_PYMETHOD_VARARGS(KX_GameObject,GetLinearVelocity);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SetLinearVelocity);
+	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SetAngularVelocity);
+	KX_PYMETHOD_VARARGS(KX_GameObject,GetVelocity);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetMass);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetReactionForce);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
@@ -737,20 +739,20 @@ public:
 	KX_PYMETHOD_O(KX_GameObject,SetVisible);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetState);
 	KX_PYMETHOD_O(KX_GameObject,SetState);
-	KX_PYMETHOD(KX_GameObject,AlignAxisToVect);
+	KX_PYMETHOD_VARARGS(KX_GameObject,AlignAxisToVect);
 	KX_PYMETHOD_O(KX_GameObject,GetAxisVect);
 	KX_PYMETHOD_NOARGS(KX_GameObject,SuspendDynamics);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RestoreDynamics);
 	KX_PYMETHOD_NOARGS(KX_GameObject,EnableRigidBody);
 	KX_PYMETHOD_NOARGS(KX_GameObject,DisableRigidBody);
-	KX_PYMETHOD(KX_GameObject,ApplyImpulse);
+	KX_PYMETHOD_VARARGS(KX_GameObject,ApplyImpulse);
 	KX_PYMETHOD_O(KX_GameObject,SetCollisionMargin);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
 	KX_PYMETHOD_O(KX_GameObject,SetParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);	
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildrenRecursive);
-	KX_PYMETHOD(KX_GameObject,GetMesh);
+	KX_PYMETHOD_VARARGS(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
 	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);

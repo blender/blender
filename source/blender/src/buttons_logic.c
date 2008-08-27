@@ -2022,7 +2022,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
 			int wval; /* just a temp width */
-			ysize = 72;
+			ysize = 92;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
@@ -2042,9 +2042,27 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-68, wval, 19,
 					 eoa->linVelocity+2, -100.0, 100.0, 10, 0,
 					 "Velocity upon creation, z component.");
-			uiDefButBitS(block, TOG, 2, 0, "L", xco+45+3*wval, yco-68, 15, 19,
+			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_LINV, 0, "L", xco+45+3*wval, yco-68, 15, 19,
 					 &eoa->localflag, 0.0, 0.0, 0, 0,
 					 "Apply the transformation locally");
+			
+			
+			uiDefBut(block, LABEL, 0, "AngV",	xco,           yco-90,   45, 19,
+					 NULL, 0, 0, 0, 0,
+					 "Angular velocity upon creation.");
+			uiDefButF(block, NUM, 0, "",		xco+45,        yco-90, wval, 19,
+					 eoa->angVelocity, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, x component.");
+			uiDefButF(block, NUM, 0, "",		xco+45+wval,   yco-90, wval, 19,
+					 eoa->angVelocity+1, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, y component.");
+			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-90, wval, 19,
+					 eoa->angVelocity+2, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, z component.");
+			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_ANGV, 0, "L", xco+45+3*wval, yco-90, 15, 19,
+					 &eoa->localflag, 0.0, 0.0, 0, 0,
+					 "Apply the rotation locally");
+					 
 
 		}
 		else if(eoa->type==ACT_EDOB_END_OBJECT) {
