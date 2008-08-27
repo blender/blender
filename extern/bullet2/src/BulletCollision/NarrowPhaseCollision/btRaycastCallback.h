@@ -27,10 +27,11 @@ public:
 		//input
 	btVector3 m_from;
 	btVector3 m_to;
+	bool m_faceNormal;
 
 	btScalar	m_hitFraction;
 
-	btTriangleRaycastCallback(const btVector3& from,const btVector3& to);
+	btTriangleRaycastCallback(const btVector3& from,const btVector3& to,bool faceNormal);
 	
 	virtual void processTriangle(btVector3* triangle, int partId, int triangleIndex);
 

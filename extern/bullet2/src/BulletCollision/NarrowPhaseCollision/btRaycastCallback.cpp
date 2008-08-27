@@ -16,10 +16,11 @@ subject to the following restrictions:
 
 #include "btRaycastCallback.h"
 
-btTriangleRaycastCallback::btTriangleRaycastCallback(const btVector3& from,const btVector3& to)
+btTriangleRaycastCallback::btTriangleRaycastCallback(const btVector3& from,const btVector3& to,bool faceNormal)
 	:
 	m_from(from),
 	m_to(to),
+	m_faceNormal(faceNormal),
 	m_hitFraction(btScalar(1.))
 {
 
@@ -84,8 +85,7 @@ void btTriangleRaycastCallback::processTriangle(btVector3* triangle,int partId, 
 					
 					if ( (btScalar)(cp2.dot(triangleNormal)) >=edge_tolerance) 
 					{
-
-						if ( dist_a > 0 )
+						if (m_faceNormal || dist_a > 0)
 						{
 							m_hitFraction = reportHit(triangleNormal,distance,partId,triangleIndex);
 						}
