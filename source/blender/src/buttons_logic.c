@@ -1857,7 +1857,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			but = uiDefButBitS(block, TOG, ACT_IPOFORCE, ACT_IPOFORCE, 
 				"Force", xco+10+(width-20)/2, yco-24, (width-20)/4-10, 19, 
 				&ia->flag, 0, 0, 0, 0, 
-				"Convert Ipo to force. Force is applied in global or local coordinate according to Local flag"); 
+				"Apply Ipo as a global or local force depending on the local option (dynamic objects only)"); 
 			uiButSetFunc(but, change_ipo_actuator, but, ia);
 
 			but = uiDefButBitS(block, TOG, ACT_IPOADD, ACT_IPOADD, 
