@@ -104,16 +104,10 @@ bool KX_RaySensor::IsPositiveTrigger()
 	return result;
 }
 
-bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
 {
 
 	KX_GameObject* hitKXObj = client->m_gameobject;
-	
-	if (client->m_type > KX_ClientObjectInfo::ACTOR)
-	{
-		// false hit
-		return false;
-	}
 	bool bFound = false;
 
 	if (m_propertyname.Length() == 0)
@@ -139,16 +133,29 @@ bool KX_RaySensor::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_
 	{
 		m_rayHit = true;
 		m_hitObject = hitKXObj;
-		m_hitPosition = hit_point;
-		m_hitNormal = hit_normal;
+		m_hitPosition = result->m_hitPoint;
+		m_hitNormal = result->m_hitNormal;
 			
 	}
-
-	return bFound;
-	
+	// no multi-hit search yet
+	return true;
 }
 
-
+/* this function is used to pre-filter the object before casting the ray on them.
+   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ */
+bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo* client)
+{
+	if (client->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// Unknown type of object, skip it.
+		// Should not occur as the sensor objects are filtered in RayTest()
+		printf("Invalid client type %d found ray casting\n", client->m_type);
+		return false;
+	}
+	// no X-Ray function yet
+	return true;
+}
 
 bool KX_RaySensor::Evaluate(CValue* event)
 {
@@ -215,8 +222,6 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	m_rayDirection = todir;
 
 	MT_Point3 topoint = frompoint + (m_distance) * todir;
-	MT_Point3 resultpoint;
-	MT_Vector3 resultnormal;
 	PHY_IPhysicsEnvironment* pe = m_scene->GetPhysicsEnvironment();
 
 	if (!pe)
@@ -238,7 +243,7 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	PHY_IPhysicsEnvironment* physics_environment = this->m_scene->GetPhysicsEnvironment();
 	
 
-	result = KX_RayCast::RayTest(spc, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<KX_RaySensor>(this));
+	KX_RayCast::RayTest(physics_environment, frompoint, topoint, KX_RayCast::Callback<KX_RaySensor>(this, spc));
 
 	/* now pass this result to some controller */
 
@@ -264,6 +269,10 @@ bool KX_RaySensor::Evaluate(CValue* event)
 			m_bTriggered = false;
 			// notify logicsystem that ray JUST left the Object
 			result = true;
+		}
+		else
+		{
+			result = false;
 		}
 	
       }

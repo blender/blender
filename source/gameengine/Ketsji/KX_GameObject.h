@@ -54,6 +54,7 @@
 
 //Forward declarations.
 struct KX_ClientObjectInfo;
+class KX_RayCast;
 class RAS_MeshObject;
 class KX_IPhysicsController;
 class PHY_IPhysicsEnvironment;
@@ -88,6 +89,7 @@ protected:
 	// used for ray casting
 	PHY_IPhysicsEnvironment*			m_pPhysicsEnvironment;
 	STR_String							m_testPropName;
+	bool								m_xray;
 	KX_GameObject*						m_pHitObject;
 
 	SG_Node*							m_pSGNode;
@@ -428,7 +430,8 @@ public:
 		return (m_pSGNode && m_pSGNode->GetSGParent() && m_pSGNode->GetSGParent()->IsVertexParent());
 	}
 
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo* client);
 
 
 	/**

@@ -36,6 +36,7 @@
 #include "MT_Point3.h"
 
 struct KX_ClientObjectInfo;
+class KX_RayCast;
 
 class KX_RaySensor : public SCA_ISensor
 {
@@ -68,7 +69,8 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo* client);
 	
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitObject);
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitPosition);

@@ -470,11 +470,11 @@ void GPC_RenderTools::SetClientObject(void* obj)
 	}
 }
 
-bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
-	MT_Point3 resultpoint(hit_point);
-	MT_Vector3 resultnormal(hit_normal);
+	MT_Point3 resultpoint(result->m_hitPoint);
+	MT_Vector3 resultnormal(result->m_hitNormal);
 	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
 	MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
 	left = (dir.cross(resultnormal)).safe_normalized();
@@ -563,9 +563,7 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 			if (parent)
 				parent->Release();
 				
-			MT_Point3 resultpoint;
-			MT_Vector3 resultnormal;
-			if (!KX_RayCast::RayTest(physics_controller, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<GPC_RenderTools>(this, oglmatrix)))
+			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, KX_RayCast::Callback<GPC_RenderTools>(this, physics_controller, oglmatrix)))
 			{
 				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);

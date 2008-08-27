@@ -767,6 +767,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 	// assume no shape information
 	m_shapeType = PHY_SHAPE_NONE;
 	m_vertexArray.clear();
+	m_polygonIndexArray.clear();
+	m_meshObject = NULL;
 
 	if (!meshobj)
 		return false;
@@ -838,6 +840,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
 					m_vertexArray.push_back(vertex2);
+					m_polygonIndexArray.push_back(p2);
 					numvalidpolys++;
 				}
 				if (poly->VertexCount() == 4)
@@ -857,6 +860,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
 					m_vertexArray.push_back(vertex2);
+					m_polygonIndexArray.push_back(p2);
 					numvalidpolys++;
 				}
 			}		
@@ -869,6 +873,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 		m_shapeType = PHY_SHAPE_NONE;
 		return false;
 	}
+	m_meshObject = meshobj;
 	return true;
 }
 

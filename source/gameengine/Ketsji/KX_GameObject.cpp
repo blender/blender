@@ -51,6 +51,7 @@ typedef unsigned long uint_ptr;
 #include "KX_GameObject.h"
 #include "RAS_MeshObject.h"
 #include "KX_MeshProxy.h"
+#include "KX_PolyProxy.h"
 #include <stdio.h> // printf
 #include "SG_Controller.h"
 #include "KX_IPhysicsController.h"
@@ -84,6 +85,7 @@ KX_GameObject::KX_GameObject(
 	m_bVisible(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
+	m_xray(false),
 	m_pHitObject(NULL),
 	m_isDeformable(false)
 {
@@ -1628,25 +1630,45 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getVectTo,
 	return returnValue;
 }
 
-bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+bool KX_GameObject::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
 {
-
 	KX_GameObject* hitKXObj = client->m_gameobject;
 	
-	if (client->m_type > KX_ClientObjectInfo::ACTOR)
-	{
-		// false hit
-		return false;
-	}
-
-	if (m_testPropName.Length() == 0 || hitKXObj->GetProperty(m_testPropName) != NULL)
+	// if X-ray option is selected, the unwnted objects were not tested, so get here only with true hit
+	// if not, all objects were tested and the front one may not be the correct one.
+	if (m_xray || m_testPropName.Length() == 0 || hitKXObj->GetProperty(m_testPropName) != NULL)
 	{
 		m_pHitObject = hitKXObj;
 		return true;
 	}
+	// return true to stop RayCast::RayTest from looping, the above test was decisive
+	// We would want to loop only if we want to get more than one hit point
+	return true;
+}
 
-	return false;
+/* this function is used to pre-filter the object before casting the ray on them.
+   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ */
+bool KX_GameObject::NeedRayCast(KX_ClientObjectInfo* client)
+{
+	KX_GameObject* hitKXObj = client->m_gameobject;
 	
+	if (client->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// Unknown type of object, skip it.
+		// Should not occur as the sensor objects are filtered in RayTest()
+		printf("Invalid client type %d found in ray casting\n", client->m_type);
+		return false;
+	}
+	
+	// if X-Ray option is selected, skip object that don't match the criteria as we see through them
+	// if not, test all objects because we don't know yet which one will be on front
+	if (!m_xray || m_testPropName.Length() == 0 || hitKXObj->GetProperty(m_testPropName) != NULL)
+	{
+		return true;
+	}
+	// skip the object
+	return false;
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
@@ -1686,8 +1708,6 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		toPoint = fromPoint + (dist) * toDir;
 	}
 
-	MT_Point3 resultPoint;
-	MT_Vector3 resultNormal;
 	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
@@ -1701,7 +1721,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		m_testPropName = propName;
 	else
 		m_testPropName.SetLength(0);
-	KX_RayCast::RayTest(spc, pe, fromPoint, toPoint, resultPoint, resultNormal, KX_RayCast::Callback<KX_GameObject>(this));
+	KX_RayCast::RayTest(pe, fromPoint, toPoint, KX_RayCast::Callback<KX_GameObject>(this,spc));
 
     if (m_pHitObject)
 	{
@@ -1712,13 +1732,24 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
-				   "rayCast(to,from,dist,prop): cast a ray and return tuple (object,hit,normal) of contact point with object within dist that matches prop or (None,None,None) tuple if no hit\n"
-" prop = property name that object must have; can be omitted => detect any object\n"
-" dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to to\n"
+				   "rayCast(to,from,dist,prop,face,xray,poly): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) of contact point with object within dist that matches prop.\n"
+				   " If no hit, return (None,None,None) or (None,None,None,None).\n"
+" to   = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
 " from = 3-tuple or object reference for origin of ray (if object, use center of object)\n"
 "        Can be None or omitted => start from self object center\n"
-" to = 3-tuple or object reference for destination of ray (if object, use center of object)\n"
-"Note: the object on which you call this method matters: the ray will ignore it if it goes through it\n")
+" dist = max distance to look (can be negative => look behind); 0 or omitted => detect up to to\n"
+" prop = property name that object must have; can be omitted => detect any object\n"
+" face = normal option: 1=>return face normal; 0 or omitted => normal is oriented towards origin\n"
+" xray = X-ray option: 1=>skip objects that don't match prop; 0 or omitted => stop on first object\n"
+" poly = polygon option: 1=>return value is a 4-tuple and the 4th element is a KX_PolyProxy object\n"
+"                           which can be None if hit object has no mesh or if there is no hit\n"
+"        If 0 or omitted, return value is a 3-tuple\n"
+"Note: The object on which you call this method matters: the ray will ignore it.\n"
+"      prop and xray option interact as follow:\n"
+"        prop off, xray off: return closest hit or no hit if there is no object on the full extend of the ray\n"
+"        prop off, xray on : idem\n"
+"        prop on,  xray off: return closest hit if it matches prop, no hit otherwise\n"
+"        prop on,  xray on : return closest hit matching prop or no hit if there is no object matching prop on the full extend of the ray\n")
 {
 	MT_Point3 toPoint;
 	MT_Point3 fromPoint;
@@ -1727,8 +1758,9 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 	float dist = 0.0f;
 	char *propName = NULL;
 	KX_GameObject *other;
+	int face=0, xray=0, poly=0;
 
-	if (!PyArg_ParseTuple(args,"O|Ofs", &pyto, &pyfrom, &dist, &propName)) {
+	if (!PyArg_ParseTuple(args,"O|Ofsiii", &pyto, &pyfrom, &dist, &propName, &face, &xray, &poly)) {
 		return NULL; // Python sets a simple error
 	}
 
@@ -1774,8 +1806,6 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 	}
 	
-	MT_Point3 resultPoint;
-	MT_Vector3 resultNormal;
 	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
@@ -1789,20 +1819,41 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		m_testPropName = propName;
 	else
 		m_testPropName.SetLength(0);
-	KX_RayCast::RayTest(spc, pe, fromPoint, toPoint, resultPoint, resultNormal, KX_RayCast::Callback<KX_GameObject>(this));
+	m_xray = xray;
+	// to get the hit results
+	KX_RayCast::Callback<KX_GameObject> callback(this,spc,NULL,face);
+	KX_RayCast::RayTest(pe, fromPoint, toPoint, callback);
 
-    if (m_pHitObject)
+	if (m_pHitObject)
 	{
-		PyObject* returnValue = PyTuple_New(3);
+		PyObject* returnValue = (poly) ? PyTuple_New(4) : PyTuple_New(3);
 		if (returnValue) { // unlikely this would ever fail, if it does python sets an error
 			PyTuple_SET_ITEM(returnValue, 0, m_pHitObject->AddRef());
-			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(resultPoint));
-			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(resultNormal));
+			PyTuple_SET_ITEM(returnValue, 1, PyObjectFrom(callback.m_hitPoint));
+			PyTuple_SET_ITEM(returnValue, 2, PyObjectFrom(callback.m_hitNormal));
+			if (poly)
+			{
+				if (callback.m_hitMesh)
+				{
+					// if this field is set, then we can trust that m_hitPolygon is a valid polygon
+					RAS_Polygon* poly = callback.m_hitMesh->GetPolygon(callback.m_hitPolygon);
+					KX_PolyProxy* polyproxy = new KX_PolyProxy(callback.m_hitMesh, poly);
+					PyTuple_SET_ITEM(returnValue, 3, polyproxy);
+				}
+				else
+				{
+					Py_INCREF(Py_None);
+					PyTuple_SET_ITEM(returnValue, 3, Py_None);
+				}
+			}
 		}
 		return returnValue;
 	}
-	return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
-	//Py_RETURN_NONE;
+	// no hit
+	if (poly)
+		return Py_BuildValue("OOOO", Py_None, Py_None, Py_None, Py_None);
+	else
+		return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 }
 
 /* --------------------------------------------------------------------- 

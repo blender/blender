@@ -709,35 +709,51 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 
 struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResultCallback
 {
-	PHY_IPhysicsController*	m_ignoreClient;
+	PHY_IRayCastFilterCallback&	m_phyRayFilter;
+	const btCollisionShape*		m_hitTriangleShape;
+	int							m_hitTriangleIndex;
 
-	FilterClosestRayResultCallback (PHY_IPhysicsController* ignoreClient,const btVector3& rayFrom,const btVector3& rayTo)
+	FilterClosestRayResultCallback (PHY_IRayCastFilterCallback& phyRayFilter,const btVector3& rayFrom,const btVector3& rayTo)
 		: btCollisionWorld::ClosestRayResultCallback(rayFrom,rayTo),
-		m_ignoreClient(ignoreClient)
+		m_phyRayFilter(phyRayFilter),
+		m_hitTriangleShape(NULL),
+		m_hitTriangleIndex(0)
 	{
-
 	}
 
 	virtual ~FilterClosestRayResultCallback()
 	{
 	}
 
+	virtual bool    NeedRayCast(btCollisionObject* object)
+	{
+		CcdPhysicsController* phyCtrl = static_cast<CcdPhysicsController*>(object->getUserPointer());
+		if (phyCtrl != m_phyRayFilter.m_ignoreController)
+		{
+			return m_phyRayFilter.needBroadphaseRayCast(phyCtrl);
+		}
+		return false;
+	}
+
 	virtual	float	AddSingleResult( btCollisionWorld::LocalRayResult& rayResult)
 	{
 		CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->getUserPointer());
-		//ignore client...
-		if (curHit != m_ignoreClient)
-		{		
-			//if valid
-			return ClosestRayResultCallback::AddSingleResult(rayResult);
+		// save shape information as ClosestRayResultCallback::AddSingleResult() does not do it
+		if (rayResult.m_localShapeInfo)
+		{
+			m_hitTriangleShape = rayResult.m_localShapeInfo->m_triangleShape;
+			m_hitTriangleIndex = rayResult.m_localShapeInfo->m_triangleIndex;
+		} else 
+		{
+			m_hitTriangleShape = NULL;
+			m_hitTriangleIndex = 0;
 		}
-		return m_closestHitFraction;
+		return ClosestRayResultCallback::AddSingleResult(rayResult);
 	}
 
 };
 
-PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-													   float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 
 
@@ -751,18 +767,21 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 	//Either Ray Cast with or without filtering
 
 	//btCollisionWorld::ClosestRayResultCallback rayCallback(rayFrom,rayTo);
-	FilterClosestRayResultCallback	 rayCallback(ignoreClient,rayFrom,rayTo);
+	FilterClosestRayResultCallback	 rayCallback(filterCallback,rayFrom,rayTo);
 
 
-	PHY_IPhysicsController* nearestHit = 0;
+	PHY_RayCastResult result;
+	memset(&result, 0, sizeof(result));
+
 	// don't collision with sensor object
-	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter);
+	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter,filterCallback.m_faceNormal);
 	if (rayCallback.HasHit())
 	{
-		nearestHit = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
-		hitX = 	rayCallback.m_hitPointWorld.getX();
-		hitY = 	rayCallback.m_hitPointWorld.getY();
-		hitZ = 	rayCallback.m_hitPointWorld.getZ();
+		CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
+		result.m_controller = controller;
+		result.m_hitPoint[0] = rayCallback.m_hitPointWorld.getX();
+		result.m_hitPoint[1] = rayCallback.m_hitPointWorld.getY();
+		result.m_hitPoint[2] = rayCallback.m_hitPointWorld.getZ();
 
 		if (rayCallback.m_hitNormalWorld.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 		{
@@ -771,14 +790,42 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 		{
 			rayCallback.m_hitNormalWorld.setValue(1,0,0);
 		}
-		normalX = rayCallback.m_hitNormalWorld.getX();
-		normalY = rayCallback.m_hitNormalWorld.getY();
-		normalZ = rayCallback.m_hitNormalWorld.getZ();
-
+		result.m_hitNormal[0] = rayCallback.m_hitNormalWorld.getX();
+		result.m_hitNormal[1] = rayCallback.m_hitNormalWorld.getY();
+		result.m_hitNormal[2] = rayCallback.m_hitNormalWorld.getZ();
+		if (rayCallback.m_hitTriangleShape != NULL)
+		{
+			// identify the mesh polygon
+			CcdShapeConstructionInfo* shapeInfo = controller->m_shapeInfo;
+			if (shapeInfo)
+			{
+				btCollisionShape* shape = controller->GetRigidBody()->getCollisionShape();
+				if (shape->isCompound())
+				{
+					btCompoundShape* compoundShape = (btCompoundShape*)shape;
+					CcdShapeConstructionInfo* compoundShapeInfo = shapeInfo;
+					// need to search which sub-shape has been hit
+					for (int i=0; i<compoundShape->getNumChildShapes(); i++)
+					{
+						shapeInfo = compoundShapeInfo->GetChildShape(i);
+						shape=compoundShape->getChildShape(i);
+						if (shape == rayCallback.m_hitTriangleShape)
+							break;
+					}
+				}
+				if (shape == rayCallback.m_hitTriangleShape && 
+					rayCallback.m_hitTriangleIndex < shapeInfo->m_polygonIndexArray.size())
+				{
+					result.m_meshObject = shapeInfo->m_meshObject;
+					result.m_polygon = shapeInfo->m_polygonIndexArray.at(rayCallback.m_hitTriangleIndex);
+				}
+			}
+		}
+		filterCallback.reportHit(&result);
 	}	
 
 
-	return nearestHit;
+	return result.m_controller;
 }
 
 

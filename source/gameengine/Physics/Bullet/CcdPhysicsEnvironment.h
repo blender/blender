@@ -157,8 +157,7 @@ protected:
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 
 
 		//Methods for gamelogic collision/physics callbacks
