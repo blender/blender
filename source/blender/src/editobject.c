@@ -4130,15 +4130,26 @@ void apply_object( void )
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		
-	} else {
+	} 
+	else {
+		ob= OBACT;
 		
-		evt = pupmenu("Apply Object%t|Scale and Rotation to ObData|Visual Transform to Objects Loc/Scale/Rot");
+		if ((ob->pose) && (ob->flag & OB_POSEMODE))
+			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
+		else
+			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2");
 		if (evt==-1) return;
 		
-		if (evt==1) {
-			apply_objects_locrot();
-		} else if (evt==2) {
-			apply_objects_visual_tx();
+		switch (evt) {
+			case 1:
+				apply_objects_locrot();
+				break;
+			case 2:
+				apply_objects_visual_tx();
+				break;
+			case 3:
+				apply_armature_pose2bones();
+				break;
 		}
 	}
 }

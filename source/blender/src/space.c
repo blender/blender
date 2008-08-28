@@ -1966,7 +1966,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->drawtype= pupval;
 						doredraw= 1;
 					}
-                                }
+                }
 				
 				break;
 			case EKEY:

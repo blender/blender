@@ -439,6 +439,90 @@ void docenter_armature (Object *ob, int centermode)
 	}
 }
 
+/* helper for apply_armature_pose2bones - fixes parenting of objects that are bone-parented to armature */
+static void applyarmature_fix_boneparents (Object *ob)
+{
+	
+}
+
+/* set the current pose as the restpose */
+void apply_armature_pose2bones(void)
+{
+	Object	*ob;
+	bArmature *arm;
+	bPose *pose;
+	bPoseChannel *pchan;
+	EditBone *curbone;
+	
+	/* don't check if editmode (should be done by caller) */
+	ob= OBACT;
+	if (ob->type!=OB_ARMATURE) return;
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
+		return;
+	}
+	arm= get_armature(ob); 
+	
+	/* Get editbones of active armature to alter */
+	if (G.edbo.first) BLI_freelistN(&G.edbo);
+	make_boneList(&G.edbo, &arm->bonebase, NULL);
+	
+	/* get pose of active object and move it out of posemode */
+	pose= ob->pose;
+	
+	for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+		curbone= editbone_name_exists(&G.edbo, pchan->name);
+		
+		/* simply copy the head/tail values from pchan over to curbone */
+		VECCOPY(curbone->head, pchan->pose_head);
+		VECCOPY(curbone->tail, pchan->pose_tail);
+		
+		/* fix roll:
+		 *	1. find auto-calculated roll value for this bone now
+		 *	2. remove this from the 'visual' y-rotation
+		 */
+		{
+			float premat[3][3], imat[3][3],pmat[3][3], tmat[3][3];
+			float delta[3], eul[3];
+			
+			/* obtain new auto-yrotation */
+			VecSubf(delta, curbone->tail, curbone->head);
+			vec_roll_to_mat3(delta, curbone->roll, premat);
+			Mat3Inv(imat, premat);
+			
+			/* get pchan 'visual' matrix */
+			Mat3CpyMat4(pmat, pchan->pose_mat);
+			
+			/* remove auto from visual and get euler rotation */
+			Mat3MulMat3(tmat, imat, pmat);
+			Mat3ToEul(tmat, eul);
+			
+			/* just use this euler-y as new roll value */
+			curbone->roll= eul[1];
+		}
+		
+		/* clear transform values for pchan */
+		pchan->loc[0]= pchan->loc[1]= pchan->loc[2]= 0;
+		pchan->size[0]= pchan->size[1]= pchan->size[2]= 1;
+		pchan->quat[1]= pchan->quat[2]= pchan->quat[3]= 0;
+		pchan->quat[0]= 1;
+	}
+	
+	/* convert editbones back to bones */
+	editbones_to_armature(&G.edbo, ob);
+	if (G.edbo.first) BLI_freelistN(&G.edbo);
+	
+	/* flush positions of posebones */
+	where_is_pose(ob);
+	
+	/* fix parenting of objects which are bone-parented */
+	applyarmature_fix_boneparents(ob);
+	
+	BIF_undo_push("Apply new restpose");
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
 /* Helper function for armature joining - link fixing */
 static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChannel *pchan, EditBone *curbone)
 {
