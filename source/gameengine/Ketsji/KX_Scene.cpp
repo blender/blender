@@ -944,6 +944,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	
 	newobj->RemoveMeshes();
 	ret = 1;
+	if (newobj->IsLight() && m_lightlist->RemoveValue(newobj))
+		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
 		ret = newobj->Release();
 	if (m_tempObjectList->RemoveValue(newobj))
