@@ -785,7 +785,7 @@ static void gp_layer_to_bezier (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
 		VecCopyf(bezt->vec[2], p3d);
 		
 		/* set settings */
-		bezt->h1= bezt->h2= HD_ALIGN; // fixme...
+		bezt->h1= bezt->h2= HD_FREE;
 		bezt->f1= bezt->f2= bezt->f3= SELECT;
 		bezt->radius = bezt->weight = pt->pressure * gpl->thickness;
 	}
@@ -804,7 +804,6 @@ static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl, short mode)
 	bGPDstroke *gps;
 	Object *ob;
 	Curve *cu;
-	char name[140];
 	
 	/* error checking */
 	if (ELEM3(NULL, gpd, gpl, gpf))
@@ -815,8 +814,7 @@ static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl, short mode)
 		return;
 		
 	/* initialise the curve */	
-	sprintf(name, "GP_%s", gpl->info);
-	cu= add_curve(name, 1);
+	cu= add_curve(gpl->info, 1);
 	cu->flag |= CU_3D;
 	
 	/* init the curve object (remove rotation and assign curve data to it) */
