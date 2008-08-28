@@ -53,6 +53,7 @@ void DrawRasterizerLine(const float* from,const float* to,int color);
 
 
 #include <stdio.h>
+#include <string.h>		// for memset
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 class WrapperVehicle : public PHY_IVehicle
