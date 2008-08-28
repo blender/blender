@@ -406,50 +406,51 @@ void BL_ConvertActuators(char* maggiename,
 					/* Note, allowing actuators for sounds that are not there was added since 2.47
 					 * This is because python may expect the actuator and raise an exception if it dosnt find it
 					 * better just to add a dummy sound actuator. */
-					/*if (sampleisloaded)*/
-					
-					/* setup the SND_SoundObject */
-					SND_SoundObject* sndobj = new SND_SoundObject();
-					sndobj->SetSampleName(samplename.Ptr());
-					sndobj->SetObjectName(bact->name);
-					if (soundact->sound) {
-						sndobj->SetRollOffFactor(soundact->sound->attenuation);
-						sndobj->SetGain(soundact->sound->volume);
-						sndobj->SetPitch(exp((soundact->sound->pitch / 12.0) * log(2.0)));
-						//							sndobj->SetLoopStart(soundact->sound->loopstart);
-						//							sndobj->SetLoopStart(soundact->sound->loopend);
-						if (soundact->sound->flags & SOUND_FLAGS_LOOP)
-						{
-							if (soundact->sound->flags & SOUND_FLAGS_BIDIRECTIONAL_LOOP)
-								sndobj->SetLoopMode(SND_LOOP_BIDIRECTIONAL);
+					SND_SoundObject* sndobj = NULL;
+					if (sampleisloaded)
+					{
+						/* setup the SND_SoundObject */
+						sndobj = new SND_SoundObject();
+						sndobj->SetSampleName(samplename.Ptr());
+						sndobj->SetObjectName(bact->name);
+						if (soundact->sound) {
+							sndobj->SetRollOffFactor(soundact->sound->attenuation);
+							sndobj->SetGain(soundact->sound->volume);
+							sndobj->SetPitch(exp((soundact->sound->pitch / 12.0) * log(2.0)));
+							//							sndobj->SetLoopStart(soundact->sound->loopstart);
+							//							sndobj->SetLoopStart(soundact->sound->loopend);
+							if (soundact->sound->flags & SOUND_FLAGS_LOOP)
+							{
+								if (soundact->sound->flags & SOUND_FLAGS_BIDIRECTIONAL_LOOP)
+									sndobj->SetLoopMode(SND_LOOP_BIDIRECTIONAL);
+								else
+									sndobj->SetLoopMode(SND_LOOP_NORMAL);
+							}
+							else {
+								sndobj->SetLoopMode(SND_LOOP_OFF);
+							}
+							
+							if (soundact->sound->flags & SOUND_FLAGS_PRIORITY)
+								sndobj->SetHighPriority(true);
 							else
-								sndobj->SetLoopMode(SND_LOOP_NORMAL);
+								sndobj->SetHighPriority(false);
+							
+							if (soundact->sound->flags & SOUND_FLAGS_3D)
+								sndobj->Set3D(true);
+							else
+								sndobj->Set3D(false);
 						}
 						else {
+							/* dummy values for a NULL sound
+							* see editsound.c - defaults are unlikely to change soon */
+							sndobj->SetRollOffFactor(1.0);
+							sndobj->SetGain(1.0);
+							sndobj->SetPitch(1.0);
 							sndobj->SetLoopMode(SND_LOOP_OFF);
-						}
-						
-						if (soundact->sound->flags & SOUND_FLAGS_PRIORITY)
-							sndobj->SetHighPriority(true);
-						else
 							sndobj->SetHighPriority(false);
-						
-						if (soundact->sound->flags & SOUND_FLAGS_3D)
-							sndobj->Set3D(true);
-						else
 							sndobj->Set3D(false);
+						}
 					}
-					else {
-						/* dummy values for a NULL sound
-						 * see editsound.c - defaults are unlikely to change soon */
-						sndobj->SetRollOffFactor(1.0);
-						sndobj->SetGain(1.0);
-						sndobj->SetPitch(1.0);
-						sndobj->SetLoopMode(SND_LOOP_OFF);
-						sndobj->SetHighPriority(false);
-						sndobj->Set3D(false);
-					}
-					
 					KX_SoundActuator* tmpsoundact = 
 						new KX_SoundActuator(gameobj, 
 						sndobj,
@@ -460,7 +461,8 @@ void BL_ConvertActuators(char* maggiename,
 					
 					tmpsoundact->SetName(bact->name);
 					baseact = tmpsoundact;
-					soundscene->AddObject(sndobj);
+					if (sndobj)
+						soundscene->AddObject(sndobj);
 				}
 				break;
 			}
