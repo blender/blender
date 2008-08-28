@@ -236,7 +236,8 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 			if (parent)
 				parent->Release();
 				
-			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, KX_RayCast::Callback<KX_BlenderRenderTools>(this, physics_controller, oglmatrix)))
+			KX_RayCast::Callback<KX_BlenderRenderTools> callback(this, physics_controller, oglmatrix);
+			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))
 			{
 				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);

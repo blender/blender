@@ -563,7 +563,8 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 			if (parent)
 				parent->Release();
 				
-			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, KX_RayCast::Callback<GPC_RenderTools>(this, physics_controller, oglmatrix)))
+			KX_RayCast::Callback<GPC_RenderTools> callback(this, physics_controller, oglmatrix);
+			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))
 			{
 				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);
