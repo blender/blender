@@ -719,14 +719,91 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 	}
 }
 
+/* convert stroke to 3d path */
+static void gp_layer_to_path (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
+{
+	bGPDspoint *pt;
+	Nurb *nu;
+	BPoint *bp;
+	int i;
+	
+	/* create new 'nurb' within the curve */
+	nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_path(nurb)");
+	
+	nu->pntsu= gps->totpoints;
+	nu->pntsv= 1;
+	nu->orderu= gps->totpoints;
+	nu->flagu= 2;	/* endpoint */
+	nu->resolu= 32;
+	
+	nu->bp= (BPoint *)MEM_callocN(sizeof(BPoint)*gps->totpoints, "bpoints");
+	
+	/* add points */
+	for (i=0, pt=gps->points, bp=nu->bp; i < gps->totpoints; i++, pt++, bp++) {
+		float p3d[3];
+		
+		/* get coordinates to add at */
+		gp_strokepoint_convertcoords(gps, pt, p3d);
+		VecCopyf(bp->vec, p3d);
+		
+		/* set settings */
+		bp->f1= SELECT;
+		bp->radius = bp->weight = pt->pressure * gpl->thickness;
+	}
+	
+	/* add nurb to curve */
+	BLI_addtail(&cu->nurb, nu);
+}
+
+/* convert stroke to 3d bezier */
+static void gp_layer_to_bezier (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
+{
+	bGPDspoint *pt;
+	Nurb *nu;
+	BezTriple *bezt;
+	int i;
+	
+	/* create new 'nurb' within the curve */
+	nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_bezier(nurb)");
+	
+	nu->pntsu= gps->totpoints;
+	nu->resolu= 12;
+	nu->resolv= 12;
+	nu->type= CU_BEZIER;
+	nu->bezt = (BezTriple *)MEM_callocN(gps->totpoints*sizeof(BezTriple), "bezts");
+	
+	/* add points */
+	for (i=0, pt=gps->points, bezt=nu->bezt; i < gps->totpoints; i++, pt++, bezt++) {
+		float p3d[3];
+		
+		/* get coordinates to add at */
+		gp_strokepoint_convertcoords(gps, pt, p3d);
+		
+		/* TODO: maybe in future the handles shouldn't be in same place */
+		VecCopyf(bezt->vec[0], p3d);
+		VecCopyf(bezt->vec[1], p3d);
+		VecCopyf(bezt->vec[2], p3d);
+		
+		/* set settings */
+		bezt->h1= bezt->h2= HD_ALIGN; // fixme...
+		bezt->f1= bezt->f2= bezt->f3= SELECT;
+		bezt->radius = bezt->weight = pt->pressure * gpl->thickness;
+	}
+	
+	/* must calculate handles or else we crash */
+	calchandlesNurb(nu);
+	
+	/* add nurb to curve */
+	BLI_addtail(&cu->nurb, nu);
+}
+
 /* convert a given grease-pencil layer to a 3d-curve representation (using current view if appropriate) */
-static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl)
+static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl, short mode)
 {
 	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps;
 	Object *ob;
 	Curve *cu;
-	float *fp= give_cursor();
 	char name[140];
 	
 	/* error checking */
@@ -745,65 +822,46 @@ static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl)
 	/* init the curve object (remove rotation and assign curve data to it) */
 	add_object_draw(OB_CURVE);
 	ob= OBACT;
+	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0;
 	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
 	ob->data= cu;
 	
-	/* initialise 3d-cursor correction globals */
-	initgrabz(fp[0], fp[1], fp[2]);
-	
 	/* add points to curve */
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
-		bGPDspoint *pt;
-		Nurb *nu;
-		BPoint *bp;
-		int i;
-		
-		/* create new 'nurb' within the curve */
-		nu = (Nurb *)MEM_callocN(sizeof(Nurb), "gpstroke_to_curve(nurb)");
-		
-		nu->pntsu= gps->totpoints;
-		nu->pntsv= 1;
-		nu->orderu= gps->totpoints;
-		nu->flagu= 2;	/* endpoint */
-		nu->resolu= 32;
-		
-		nu->bp= MEM_callocN(sizeof(BPoint)*gps->totpoints, "bezts");
-		
-		/* add points */
-		for (i=0, pt=gps->points, bp=nu->bp; i < gps->totpoints; i++, pt++, bp++) {
-			float p3d[3];
-			
-			/* get coordinates to add at */
-			gp_strokepoint_convertcoords(gps, pt, p3d);
-			VecCopyf(bp->vec, p3d);
-			
-			/* set settings */
-			bp->f1= SELECT;
-			bp->radius = bp->weight = pt->pressure * gpl->thickness;
+		switch (mode) {
+			case 1: 
+				gp_layer_to_path(gpl, gps, cu);
+				break;
+			case 2:
+				gp_layer_to_bezier(gpl, gps, cu);
+				break;
 		}
-		
-		/* add nurb to curve */
-		BLI_addtail(&cu->nurb, nu);
 	}
 }
 
 /* convert grease-pencil strokes to another representation 
- *	mode: 	1 - Active layer to curve
+ *	mode: 	1 - Active layer to path
+ *			2 - Active layer to bezier
  */
 void gpencil_convert_operation (short mode)
 {
 	bGPdata *gpd;	
+	float *fp= give_cursor();
 	
 	/* get datablock to work on */
 	gpd= gpencil_data_getactive(NULL);
 	if (gpd == NULL) return;
 	
+	/* initialise 3d-cursor correction globals */
+	initgrabz(fp[0], fp[1], fp[2]);
+	
 	/* handle selection modes */
 	switch (mode) {
-		case 1: /* active layer only */
+		case 1: /* active layer only (to path) */
+		case 2: /* active layer only (to bezier) */
 		{
 			bGPDlayer *gpl= gpencil_layer_getactive(gpd);
-			gp_layer_to_curve(gpd, gpl);
+			gp_layer_to_curve(gpd, gpl, mode);
 		}
 			break;
 	}
@@ -823,7 +881,7 @@ void gpencil_convert_menu (void)
 	/* only show menu if it will be relevant */
 	if (gpd == NULL) return;
 	
-	mode= pupmenu("Grease Pencil Convert %t|Active Layer To Curve%x1");
+	mode= pupmenu("Grease Pencil Convert %t|Active Layer To Path%x1|Active Layer to Bezier%x2");
 	if (mode <= 0) return;
 	
 	gpencil_convert_operation(mode);

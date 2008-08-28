@@ -2828,10 +2828,6 @@ void convertmenu(void)
 	if(G.scene->id.lib) return;
 
 	obact= OBACT;
-	if(obact==0) {
-		gpencil_convert_menu();
-		return;
-	}
 	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	
