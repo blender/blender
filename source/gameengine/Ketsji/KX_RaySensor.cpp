@@ -243,7 +243,8 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	PHY_IPhysicsEnvironment* physics_environment = this->m_scene->GetPhysicsEnvironment();
 	
 
-	KX_RayCast::RayTest(physics_environment, frompoint, topoint, KX_RayCast::Callback<KX_RaySensor>(this, spc));
+	KX_RayCast::Callback<KX_RaySensor> callback(this, spc);
+	KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback);
 
 	/* now pass this result to some controller */
 
