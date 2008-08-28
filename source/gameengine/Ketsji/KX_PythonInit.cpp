@@ -852,13 +852,30 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 // override builtin functions import() and open()
 
 
-PyObject *KXpy_open(PyObject *self, PyObject *args)
-{
+PyObject *KXpy_open(PyObject *self, PyObject *args) {
 	PyErr_SetString(PyExc_RuntimeError, "Sandbox: open() function disabled!\nGame Scripts should not use this function.");
 	return NULL;
 }
 
+PyObject *KXpy_reload(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
 
+PyObject *KXpy_file(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: file() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
+
+PyObject *KXpy_execfile(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: execfile() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
+
+PyObject *KXpy_compile(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: compile() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
 
 PyObject *KXpy_import(PyObject *self, PyObject *args)
 {
@@ -895,19 +912,13 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 }
 
 
+static PyMethodDef meth_open[] = {{ "open", KXpy_open, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_reload[] = {{ "reload", KXpy_reload, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_file[] = {{ "file", KXpy_file, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_execfile[] = {{ "execfile", KXpy_execfile, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_compile[] = {{ "compile", KXpy_compile, METH_VARARGS, "(disabled)"}};
 
-static PyMethodDef meth_open[] = {
-	{ "open", KXpy_open, METH_VARARGS,
-		"(disabled)"}
-};
-
-
-static PyMethodDef meth_import[] = {
-	{ "import", KXpy_import, METH_VARARGS,
-		"our own import"}
-};
-
-
+static PyMethodDef meth_import[] = {{ "import", KXpy_import, METH_VARARGS, "our own import"}};
 
 //static PyObject *g_oldopen = 0;
 //static PyObject *g_oldimport = 0;
@@ -918,15 +929,21 @@ void setSandbox(TPythonSecurityLevel level)
 {
     PyObject *m = PyImport_AddModule("__builtin__");
     PyObject *d = PyModule_GetDict(m);
-	PyObject *meth = PyCFunction_New(meth_open, NULL);
 
 	switch (level) {
 	case psl_Highest:
 		//if (!g_security) {
 			//g_oldopen = PyDict_GetItemString(d, "open");
-			PyDict_SetItemString(d, "open", meth);
-			meth = PyCFunction_New(meth_import, NULL);
-			PyDict_SetItemString(d, "__import__", meth);
+	
+			// functions we cant trust
+			PyDict_SetItemString(d, "open", PyCFunction_New(meth_open, NULL));
+			PyDict_SetItemString(d, "reload", PyCFunction_New(meth_reload, NULL));
+			PyDict_SetItemString(d, "file", PyCFunction_New(meth_file, NULL));
+			PyDict_SetItemString(d, "execfile", PyCFunction_New(meth_execfile, NULL));
+			PyDict_SetItemString(d, "compile", PyCFunction_New(meth_compile, NULL));
+			
+			// our own import
+			PyDict_SetItemString(d, "__import__", PyCFunction_New(meth_import, NULL));
 			//g_security = level;
 		//}
 		break;
