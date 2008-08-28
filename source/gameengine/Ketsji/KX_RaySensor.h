@@ -43,6 +43,7 @@ class KX_RaySensor : public SCA_ISensor
 	Py_Header;
 	STR_String		m_propertyname;
 	bool			m_bFindMaterial;
+	bool			m_bXRay;
 	double			m_distance;
 	class KX_Scene* m_scene;
 	bool			m_bTriggered;
@@ -57,7 +58,8 @@ public:
 	KX_RaySensor(class SCA_EventManager* eventmgr,
 					SCA_IObject* gameobj,
 					const STR_String& propname,
-					bool fFindMaterial,
+					bool bFindMaterial,
+					bool bXRay,
 					double distance,
 					int axis,
 					class KX_Scene* ketsjiScene,

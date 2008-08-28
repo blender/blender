@@ -633,6 +633,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				if (eventmgr)
 				{
 					bool bFindMaterial = (blenderraysensor->mode & SENS_COLLISION_MATERIAL);
+					bool bXRay = (blenderraysensor->mode & SENS_RAY_XRAY);
 					
 					STR_String checkname = (bFindMaterial? blenderraysensor->matname : blenderraysensor->propname);
 
@@ -645,6 +646,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 												  gameobj,
 												  checkname,
 												  bFindMaterial,
+												  bXRay,
 												  distance,
 												  axis,
 												  kxscene);

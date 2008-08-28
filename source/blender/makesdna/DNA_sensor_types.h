@@ -237,6 +237,9 @@ typedef struct bJoystickSensor {
  * */
 /*  #define SENS_COLLISION_PROPERTY 0  */
 #define SENS_COLLISION_MATERIAL 1
+/* ray specific mode */
+/* X-Ray means that the ray will traverse objects that don't have the property/material */
+#define SENS_RAY_XRAY			2
 
 /* Some stuff for the mouse sensor Type: */
 #define BL_SENS_MOUSE_LEFT_BUTTON    1

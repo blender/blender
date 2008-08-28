@@ -1390,9 +1390,14 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					&raySens->propname, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
-			
+
+			/* X-Ray option */
+			uiDefButBitS(block, TOG, SENS_RAY_XRAY, 1, "X",
+				xco + 10,yco - 68, 0.10 * (width-20), 19,
+				&raySens->mode, 0.0, 0.0, 0, 0,
+				"Toggle X-Ray option (see through objects that don't have the property)");
 			/* 2. sensing range */
-			uiDefButF(block, NUM, 1, "Range", xco+10, yco-68, 0.6 * (width-20), 19,
+			uiDefButF(block, NUM, 1, "Range", xco+10 + 0.10 * (width-20), yco-68, 0.5 * (width-20), 19,
 				&raySens->range, 0.01, 10000.0, 100, 0,
 				"Sense objects no farther than this distance");
 			

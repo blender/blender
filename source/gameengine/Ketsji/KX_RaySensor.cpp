@@ -51,6 +51,7 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					SCA_IObject* gameobj,
 					const STR_String& propname,
 					bool bFindMaterial,
+					bool bXRay,
 					double distance,
 					int axis,
 					KX_Scene* ketsjiScene,
@@ -58,6 +59,7 @@ KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 			: SCA_ISensor(gameobj,eventmgr, T),
 					m_propertyname(propname),
 					m_bFindMaterial(bFindMaterial),
+					m_bXRay(bXRay),
 					m_distance(distance),
 					m_scene(ketsjiScene),
 					m_axis(axis)
@@ -153,7 +155,21 @@ bool KX_RaySensor::NeedRayCast(KX_ClientObjectInfo* client)
 		printf("Invalid client type %d found ray casting\n", client->m_type);
 		return false;
 	}
-	// no X-Ray function yet
+	if (m_bXRay && m_propertyname.Length() != 0)
+	{
+		if (m_bFindMaterial)
+		{
+			// not quite correct: an object may have multiple material
+			// should check all the material and not only the first one
+			if (!client->m_auxilary_info || (m_propertyname != ((char*)client->m_auxilary_info)))
+				return false;
+		}
+		else
+		{
+			if (client->m_gameobject->GetProperty(m_propertyname) == NULL)
+				return false;
+		}
+	}
 	return true;
 }
 
