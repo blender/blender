@@ -1048,9 +1048,38 @@ static char GameKeys_module_documentation[] =
 "This modules provides defines for key-codes"
 ;
 
+static char gPyEventToString_doc[] =
+"Take a valid event from the GameKeys module or Keyboard Sensor and return a name"
+;
 
+static PyObject* gPyEventToString(PyObject*, PyObject* value)
+{
+	PyObject* mod, *dict, *key, *val, *ret = NULL;
+	int pos = 0;
+	
+	mod = PyImport_ImportModule( "GameKeys" );
+	if (!mod)
+		return NULL;
+	
+	dict = PyModule_GetDict(mod);
+	
+	while (PyDict_Next(dict, &pos, &key, &val)) {
+		if (PyObject_Compare(value, val)==0) {
+			ret = key;
+			break;
+		}
+	}
+	
+	PyErr_Clear(); // incase there was an error clearing
+	Py_DECREF(mod);
+	if (!ret)	PyErr_SetString(PyExc_ValueError, "expected a valid int keyboard event");
+	else		Py_INCREF(ret);
+	
+	return ret;
+}
 
 static struct PyMethodDef gamekeys_methods[] = {
+	{"EventToString", (PyCFunction)gPyEventToString, METH_O, gPyEventToString_doc},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 

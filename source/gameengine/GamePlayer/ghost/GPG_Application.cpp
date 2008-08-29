@@ -716,6 +716,7 @@ void GPG_Application::stopEngine()
 				} else {
 					printf("Error, GameLogic.globalDict could not be marshal'd\n");
 				}
+				Py_DECREF(gameLogic);
 			} else {
 				printf("Error, GameLogic.globalDict was removed\n");
 			}
