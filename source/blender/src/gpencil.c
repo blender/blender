@@ -1210,9 +1210,18 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	bGPDspoint *pt;
 	tGPspoint *ptc;
 	int i, totelem;
+
+	/* macro to test if only converting endpoints  */	
+	#define GP_BUFFER2STROKE_ENDPOINTS ((gpd->flag & GP_DATA_EDITPAINT) && (G.qual & LR_CTRLKEY))
 	
-	/* get total number of points to allocate space for */
-	totelem = gpd->sbuffer_size;
+	/* get total number of points to allocate space for:
+	 *	- in 'Draw Mode', holding the Ctrl-Modifier will only take endpoints
+	 *	- otherwise, do whole stroke
+	 */
+	if (GP_BUFFER2STROKE_ENDPOINTS)
+		totelem = (gpd->sbuffer_size >= 2) ? 2: gpd->sbuffer_size;
+	else
+		totelem = gpd->sbuffer_size;
 	
 	/* exit with error if no valid points from this stroke */
 	if (totelem == 0) {
@@ -1233,18 +1242,50 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	gps->flag= gpd->sbuffer_sflag;
 	
 	/* copy points from the buffer to the stroke */
-	for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++) {
-		/* convert screen-coordinates to appropriate coordinates (and store them) */
-		gp_stroke_convertcoords(p, &ptc->x, &pt->x);
-		
-		/* copy pressure */
-		pt->pressure= ptc->pressure;
-		
-		pt++;
+	if (GP_BUFFER2STROKE_ENDPOINTS) {
+		/* 'Draw Mode' + Ctrl-Modifier - only endpoints */
+		{
+			/* first point */
+			ptc= gpd->sbuffer;
+			
+			/* convert screen-coordinates to appropriate coordinates (and store them) */
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			
+			/* copy pressure */
+			pt->pressure= ptc->pressure;
+			
+			pt++;
+		}
+			
+		if (totelem == 2) {
+			/* last point if applicable */
+			ptc= ((tGPspoint *)gpd->sbuffer) + (gpd->sbuffer_size - 1);
+			
+			/* convert screen-coordinates to appropriate coordinates (and store them) */
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			
+			/* copy pressure */
+			pt->pressure= ptc->pressure;
+		}
+	}
+	else {
+		/* convert all points (normal behaviour) */
+		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++) {
+			/* convert screen-coordinates to appropriate coordinates (and store them) */
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			
+			/* copy pressure */
+			pt->pressure= ptc->pressure;
+			
+			pt++;
+		}
 	}
 	
 	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
+	
+	/* undefine macro to test if only converting endpoints  */	
+	#undef GP_BUFFER2STROKE_ENDPOINTS
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
@@ -1677,7 +1718,8 @@ short gpencil_do_paint (ScrArea *sa, short mbut)
 	
 	/* currently, we will only 'paint' if:
 	 * 	1. draw-mode on gpd is set (for accessibility reasons)
-	 *		(single 'dots' are only available via this method)
+	 *		a) single dots are only available by this method if a single click is made
+	 *		b) a straight line is drawn if ctrl-modifier is held (check is done when stroke is converted!)
 	 *	2. if shift-modifier is held + lmb -> 'quick paint'
 	 *
 	 *	OR
