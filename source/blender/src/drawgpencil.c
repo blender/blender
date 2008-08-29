@@ -145,6 +145,13 @@ void gp_ui_delframe_cb (void *gpd, void *gpl)
 	allqueue(REDRAWACTION, 0);
 }
 
+/* convert the active layer to geometry */
+void gp_ui_convertlayer_cb (void *gpd, void *gpl)
+{
+	gpencil_layer_setactive(gpd, gpl);
+	gpencil_convert_menu();
+}
+
 /* ------- Drawing Code ------- */
 
 /* draw the controls for a given layer */
@@ -166,7 +173,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		/* rounded header */
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
 			rb_col= (active)?-20:20;
-			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
@@ -249,8 +256,14 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			
 			/* options */
 			uiBlockBeginAlign(block);
-				but= uiDefBut(block, BUT, B_REDR, "Del Active Frame", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Erases the the active frame for this layer (Hotkey = Alt-XKEY/DEL)");
-				uiButSetFunc(but, gp_ui_delframe_cb, gpd, gpl);
+				if (curarea->spacetype == SPACE_VIEW3D) {
+					but= uiDefBut(block, BUT, B_REDR, "Convert to...", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Converts this layer's strokes to geometry (Hotkey = Alt-Shift-C)");
+					uiButSetFunc(but, gp_ui_convertlayer_cb, gpd, gpl);
+				}
+				else {
+					but= uiDefBut(block, BUT, B_REDR, "Del Active Frame", *xco+160, *yco-75, 140, 20, NULL, 0, 0, 0, 0, "Erases the the active frame for this layer (Hotkey = Alt-XKEY/DEL)");
+					uiButSetFunc(but, gp_ui_delframe_cb, gpd, gpl);
+				}
 				
 				but= uiDefBut(block, BUT, B_REDR, "Del Last Stroke", *xco+160, *yco-95, 140, 20, NULL, 0, 0, 0, 0, "Erases the last stroke from the active frame (Hotkey = Alt-XKEY/DEL)");
 				uiButSetFunc(but, gp_ui_delstroke_cb, gpd, gpl);

@@ -440,9 +440,23 @@ void docenter_armature (Object *ob, int centermode)
 }
 
 /* helper for apply_armature_pose2bones - fixes parenting of objects that are bone-parented to armature */
-static void applyarmature_fix_boneparents (Object *ob)
+static void applyarmature_fix_boneparents (Object *armob)
 {
+	Object *ob;
 	
+	/* go through all objects in database */
+	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* if parent is bone in this armature, apply corrections */
+		if ((ob->parent == armob) && (ob->partype == PARBONE)) {
+			/* apply current transform from parent (not yet destroyed), 
+			 * then calculate new parent inverse matrix
+			 */
+			apply_obmat(ob);
+			
+			what_does_parent(ob);
+			Mat4Invert(ob->parentinv, workob.obmat);
+		}
+	}
 }
 
 /* set the current pose as the restpose */
@@ -462,6 +476,9 @@ void apply_armature_pose2bones(void)
 		return;
 	}
 	arm= get_armature(ob); 
+	
+	/* helpful warnings... */
+	// TODO: add warnings to be careful about actions, applying deforms first, etc.
 	
 	/* Get editbones of active armature to alter */
 	if (G.edbo.first) BLI_freelistN(&G.edbo);
@@ -504,7 +521,10 @@ void apply_armature_pose2bones(void)
 		/* clear transform values for pchan */
 		pchan->loc[0]= pchan->loc[1]= pchan->loc[2]= 0;
 		pchan->quat[1]= pchan->quat[2]= pchan->quat[3]= 0;
-		pchan->quat[0]= pchan->size[1]= 1;
+		pchan->quat[0]= pchan->size[0]= pchan->size[1]= pchan->size[2]= 1;
+		
+		/* set anim lock */
+		curbone->flag |= BONE_UNKEYED;
 	}
 	
 	/* convert editbones back to bones */
