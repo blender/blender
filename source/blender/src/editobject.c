@@ -2828,6 +2828,7 @@ void convertmenu(void)
 	if(G.scene->id.lib) return;
 
 	obact= OBACT;
+	if (obact == NULL) return;
 	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	
