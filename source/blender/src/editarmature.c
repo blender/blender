@@ -485,9 +485,9 @@ void apply_armature_pose2bones(void)
 			float premat[3][3], imat[3][3],pmat[3][3], tmat[3][3];
 			float delta[3], eul[3];
 			
-			/* obtain new auto-yrotation */
+			/* obtain new auto y-rotation */
 			VecSubf(delta, curbone->tail, curbone->head);
-			vec_roll_to_mat3(delta, curbone->roll, premat);
+			vec_roll_to_mat3(delta, 0.0, premat);
 			Mat3Inv(imat, premat);
 			
 			/* get pchan 'visual' matrix */
@@ -503,9 +503,8 @@ void apply_armature_pose2bones(void)
 		
 		/* clear transform values for pchan */
 		pchan->loc[0]= pchan->loc[1]= pchan->loc[2]= 0;
-		pchan->size[0]= pchan->size[1]= pchan->size[2]= 1;
 		pchan->quat[1]= pchan->quat[2]= pchan->quat[3]= 0;
-		pchan->quat[0]= 1;
+		pchan->quat[0]= pchan->size[1]= 1;
 	}
 	
 	/* convert editbones back to bones */
