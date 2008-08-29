@@ -1055,7 +1055,7 @@ static char gPyEventToString_doc[] =
 static PyObject* gPyEventToString(PyObject*, PyObject* value)
 {
 	PyObject* mod, *dict, *key, *val, *ret = NULL;
-	int pos = 0;
+	Py_ssize_t pos = 0;
 	
 	mod = PyImport_ImportModule( "GameKeys" );
 	if (!mod)
