@@ -1672,6 +1672,8 @@ void set_icu_vars(IpoCurve *icu)
 				icu->ymax= 5.0; break;
 			case MA_ADD:
 				icu->ymax= 1.0; break;
+			case MA_EMIT:
+				icy->ymax= 2.0; break;
 			default:
 				icu->ymax= 1.0; break;
 			}
