@@ -492,6 +492,8 @@ def parse_text(txt):
 			elif var1_step == 3:
 				if text == '=':
 					var1_step = 4
+				elif text != ',':
+					var1_step = 0
 			elif var1_step == 4:
 				var_type = None
 				if type == NUMBER:
