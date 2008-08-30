@@ -81,7 +81,9 @@ typedef struct bEditObjectActuator {
 	struct Mesh *me;
 	char name[32];
 	float linVelocity[3]; /* initial lin. velocity on creation */
-	short localflag; /* flag for the lin. vel: apply locally   */
+	float angVelocity[3]; /* initial ang. velocity on creation */
+	float pad;
+	short localflag; /* flag for the lin & ang. vel: apply locally   */
 	short dyn_operation;
 } bEditObjectActuator;
 
@@ -384,6 +386,9 @@ typedef struct FreeCamera {
 #define ACT_EDOB_TRACK_TO		3
 #define ACT_EDOB_DYNAMICS		4
 
+/* editObjectActuator->localflag */
+#define ACT_EDOB_LOCAL_LINV		2
+#define ACT_EDOB_LOCAL_ANGV		4
 
 
 /* editObjectActuator->flag */

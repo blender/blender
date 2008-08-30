@@ -81,7 +81,7 @@ static float sphereray_tri_intersection(const BVHTreeRay *ray, float radius, con
  * Function adapted from David Eberly's distance tools (LGPL)
  * http://www.geometrictools.com/LibFoundation/Distance/Distance.html
  */
-static float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *d, float *nearest )
+static float nearest_point_in_tri_surface(const float *v0,const float *v1,const float *v2,const float *p, int *v, int *e, float *nearest )
 {
 	float diff[3];
 	float e0[3];
@@ -386,7 +386,7 @@ static float nearest_point_in_tri_surface(const float *v0,const float *v1,const 
 		VecMulf(y, T);
 		VECADD(z, w, x);
 		VECADD(z, z, y);
-		VECSUB(d, p, z);
+		//VECSUB(d, p, z);
 		VECCOPY(nearest, z);
 		// d = p - ( v0 + S * e0 + T * e1 );
 	}
@@ -418,16 +418,16 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float *co,
 	
 	do
 	{	
-		float nearest_tmp[3], col_normal[3], dist;
+		float nearest_tmp[3], dist;
 		int vertex, edge;
 		
-		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, col_normal, nearest_tmp);
+		dist = nearest_point_in_tri_surface(t0, t1, t2, co, &vertex, &edge, nearest_tmp);
 		if(dist < nearest->dist)
 		{
 			nearest->index = index;
 			nearest->dist = dist;
 			VECCOPY(nearest->co, nearest_tmp);
-			VECCOPY(nearest->no, col_normal);
+			CalcNormFloat(t0, t1, t2, nearest->no);
 		}
 
 		t1 = t2;

@@ -182,7 +182,7 @@ int part_ar[PART_TOTIPO]= {
 	PART_EMIT_FREQ, PART_EMIT_LIFE, PART_EMIT_VEL, PART_EMIT_AVE, PART_EMIT_SIZE,
 	PART_AVE, PART_SIZE, PART_DRAG, PART_BROWN, PART_DAMP, PART_LENGTH, PART_CLUMP,
     PART_GRAV_X, PART_GRAV_Y, PART_GRAV_Z, PART_KINK_AMP, PART_KINK_FREQ, PART_KINK_SHAPE,
-	PART_BB_TILT
+	PART_BB_TILT, PART_PD_FSTR, PART_PD_FFALL, PART_PD_FMAXD, PART_PD2_FSTR, PART_PD2_FFALL, PART_PD2_FMAXD
 };
 
 
@@ -1608,6 +1608,18 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(part->kink_shape); break;
 		case PART_BB_TILT:
 			poin= &(part->bb_tilt); break;
+		case PART_PD_FSTR:
+			poin= (part->pd?(&(part->pd->f_strength)):NULL); break;
+		case PART_PD_FFALL:
+			poin= (part->pd?(&(part->pd->f_power)):NULL); break;
+		case PART_PD_FMAXD:
+			poin= (part->pd?(&(part->pd->maxdist)):NULL); break;
+		case PART_PD2_FSTR:
+			poin= (part->pd2?(&(part->pd2->f_strength)):NULL); break;
+		case PART_PD2_FFALL:
+			poin= (part->pd2?(&(part->pd2->f_power)):NULL); break;
+		case PART_PD2_FMAXD:
+			poin= (part->pd2?(&(part->pd2->maxdist)):NULL); break;
 		}
 	}
 

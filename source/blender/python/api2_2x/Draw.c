@@ -1554,6 +1554,12 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 
 	UI_METHOD_ERRORCHECK;
 
+	if ( !PyNumber_Check(inio) || !PyNumber_Check(mino) ||
+			!PyNumber_Check(maxo) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected ints or floats for the initial, min and max values" );
+	}
+
 	but = newbutton(  );
 	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
 	block = Get_uiBlock(  );

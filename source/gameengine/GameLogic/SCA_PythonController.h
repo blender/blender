@@ -36,6 +36,8 @@
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
 
+#include <vector>
+
 class SCA_IObject;
 class SCA_PythonController : public SCA_IController
 {
@@ -47,6 +49,7 @@ class SCA_PythonController : public SCA_IController
 	STR_String				m_scriptText;
 	STR_String				m_scriptName;
 	PyObject*				m_pythondictionary;
+	std::vector<class SCA_ISensor*>		m_triggeredSensors;
 
  public: 
 	static SCA_PythonController* m_sCurrentController; // protected !!!
@@ -64,6 +67,9 @@ class SCA_PythonController : public SCA_IController
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
 	void	SetDictionary(PyObject*	pythondictionary);
+	void	AddTriggeredSensor(class SCA_ISensor* sensor)
+		{ m_triggeredSensors.push_back(sensor); }
+	int		IsTriggered(class SCA_ISensor* sensor);
 
 	static char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);

@@ -62,6 +62,8 @@
 #include "BKE_utildefines.h"
 #include <errno.h>
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* implementations: */
 char *first_slash(char *string) {
 	char *ffslash, *fbslash;
@@ -72,7 +74,7 @@ char *first_slash(char *string) {
 	if (!ffslash) return fbslash;
 	else if (!fbslash) return ffslash;
 	
-	if ((long)ffslash < (long)fbslash) return ffslash;
+	if ((intptr_t)ffslash < (intptr_t)fbslash) return ffslash;
 	else return fbslash;
 }
 
@@ -85,7 +87,7 @@ char *BLI_last_slash(const char *string) {
 	if (!lfslash) return lbslash; 
 	else if (!lbslash) return lfslash;
 	
-	if ((long)lfslash < (long)lbslash) return lbslash;
+	if ((intptr_t)lfslash < (intptr_t)lbslash) return lbslash;
 	else return lfslash;
 }
 

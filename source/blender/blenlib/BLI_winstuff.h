@@ -61,6 +61,10 @@
 
 	// These definitions are also in arithb for simplicity
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
 #endif
@@ -115,6 +119,10 @@ struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
 void get_default_root(char *root);
 int check_file_chars(char *filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WINSTUFF_H__ */
 

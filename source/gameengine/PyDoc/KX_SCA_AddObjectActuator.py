@@ -66,6 +66,23 @@ class KX_SCA_AddObjectActuator(SCA_IActuator):
 		
 		@rtype: list [vx, vy, vz]
 		"""
+	def setAngularVelocity(vx, vy, vz):
+		"""
+		Sets the initial angular velocity of added objects.
+		
+		@type vx: float
+		@param vx: the x component of the initial angular velocity.
+		@type vy: float
+		@param vy: the y component of the initial angular velocity.
+		@type vz: float
+		@param vz: the z component of the initial angular velocity.
+		"""
+	def getAngularVelocity():
+		"""
+		Returns the initial angular velocity of added objects.
+		
+		@rtype: list [vx, vy, vz]
+		"""
 	def getLastCreatedObject():
 		"""
 		Returns the last object created by this actuator.

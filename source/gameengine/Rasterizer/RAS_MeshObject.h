@@ -178,7 +178,7 @@ public:
 	void				UpdateMaterialList();
 	
 	int					NumPolygons();
-	RAS_Polygon*		GetPolygon(int num);
+	RAS_Polygon*		GetPolygon(int num) const;
 	
 	virtual void		Bucketize(
 							double* oglmatrix,

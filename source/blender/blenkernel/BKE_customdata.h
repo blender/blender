@@ -32,9 +32,11 @@
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 struct CustomData;
 struct CustomDataLayer;
-typedef long CustomDataMask;
+typedef intptr_t CustomDataMask;
 
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;

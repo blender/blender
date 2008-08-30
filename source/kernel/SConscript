@@ -5,6 +5,6 @@ sources = 'gen_messaging/intern/messaging.c gen_system/GEN_HashedPtr.cpp'
 sources += ' gen_system/GEN_Matrix4x4.cpp gen_system/SYS_SingletonSystem.cpp'
 sources += ' gen_system/SYS_System.cpp'
 
-incs = 'gen_messaging gen_system #/intern/string #/intern/moto/include'
+incs = 'gen_messaging gen_system #/intern/string #/intern/moto/include #/source/blender/blenloader '
 
 env.BlenderLib ( 'bf_kernel', Split(sources), Split(incs), [], libtype = ['common','game2', 'player'], priority = [15, 10, 150] )

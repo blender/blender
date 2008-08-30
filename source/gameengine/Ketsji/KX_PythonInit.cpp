@@ -30,7 +30,13 @@
 
 #include "GL/glew.h"
 
+// directory header for py function getBlendFileList
 #include <stdlib.h>
+#ifndef WIN32
+  #include <dirent.h>
+#else
+  #include "BLI_winstuff.h"
+#endif
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -112,9 +118,7 @@ static PyObject* gPyGetRandomFloat(PyObject*)
 	return PyFloat_FromDouble(MT_random());
 }
 
-static PyObject* gPySetGravity(PyObject*,
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetGravity(PyObject*, PyObject* args)
 {
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
 	if (PyVecArgTo(args, vec))
@@ -138,9 +142,7 @@ file to make a full path name (doesn't change during the game, even if you load\
 other .blend).\n\
 The function also converts the directory separator to the local file system format.";
 
-static PyObject* gPyExpandPath(PyObject*,
-								PyObject* args, 
-								PyObject*)
+static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 {
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	char* filename;
@@ -185,9 +187,7 @@ static PyObject* gPyGetSpectrum(PyObject*)
 
 
 
-static PyObject* gPyStartDSP(PyObject*,
-						PyObject* args, 
-						PyObject*)
+static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
@@ -205,9 +205,7 @@ static PyObject* gPyStartDSP(PyObject*,
 
 
 
-static PyObject* gPyStopDSP(PyObject*,
-					   PyObject* args, 
-					   PyObject*)
+static PyObject* gPyStopDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
@@ -223,9 +221,7 @@ static PyObject* gPyStopDSP(PyObject*,
 	return NULL;
 }
 
-static PyObject* gPySetLogicTicRate(PyObject*,
-					PyObject* args,
-					PyObject*)
+static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
 	if (PyArg_ParseTuple(args, "f", &ticrate))
@@ -242,9 +238,7 @@ static PyObject* gPyGetLogicTicRate(PyObject*)
 	return PyFloat_FromDouble(KX_KetsjiEngine::GetTicRate());
 }
 
-static PyObject* gPySetPhysicsTicRate(PyObject*,
-					PyObject* args,
-					PyObject*)
+static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
 	if (PyArg_ParseTuple(args, "f", &ticrate))
@@ -257,9 +251,7 @@ static PyObject* gPySetPhysicsTicRate(PyObject*,
 	return NULL;
 }
 
-static PyObject* gPySetPhysicsDebug(PyObject*,
-					PyObject* args,
-					PyObject*)
+static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 {
 	int debugMode;
 	if (PyArg_ParseTuple(args, "i", &debugMode))
@@ -276,6 +268,44 @@ static PyObject* gPySetPhysicsDebug(PyObject*,
 static PyObject* gPyGetPhysicsTicRate(PyObject*)
 {
 	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->getFixedTimeStep());
+}
+
+static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
+{
+	char cpath[sizeof(G.sce)];
+	char *searchpath = NULL;
+	PyObject* list;
+	
+    DIR *dp;
+    struct dirent *dirp;
+	
+	if (!PyArg_ParseTuple(args, "|s", &searchpath))
+		return NULL;
+	
+	list = PyList_New(0);
+	
+	if (searchpath) {
+		BLI_strncpy(cpath, searchpath, FILE_MAXDIR + FILE_MAXFILE);
+		BLI_convertstringcode(cpath, G.sce);
+	} else {
+		/* Get the dir only */
+		BLI_split_dirfile_basic(G.sce, cpath, NULL);
+	}
+	
+    if((dp  = opendir(cpath)) == NULL) {
+		/* todo, show the errno, this shouldnt happen anyway if the blendfile is readable */
+		fprintf(stderr, "Could not read directoty () failed, code %d (%s)\n", cpath, errno, strerror(errno));
+		return list;
+    }
+	
+    while ((dirp = readdir(dp)) != NULL) {
+		if (BLI_testextensie(dirp->d_name, ".blend")) {
+			PyList_Append(list, PyString_FromString(dirp->d_name));
+		}
+    }
+	
+    closedir(dp);
+    return list;
 }
 
 static STR_String gPyGetCurrentScene_doc =  
@@ -377,14 +407,13 @@ static struct PyMethodDef game_methods[] = {
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, "Gets the physics tic rate"},
 	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
+	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, "Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, "Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
 
-static PyObject* gPyGetWindowHeight(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPyGetWindowHeight(PyObject*, PyObject* args)
 {
 	int height = (gp_Canvas ? gp_Canvas->GetHeight() : 0);
 
@@ -394,9 +423,7 @@ static PyObject* gPyGetWindowHeight(PyObject*,
 
 
 
-static PyObject* gPyGetWindowWidth(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPyGetWindowWidth(PyObject*, PyObject* args)
 {
 		
 
@@ -411,9 +438,7 @@ static PyObject* gPyGetWindowWidth(PyObject*,
 // temporarility visibility thing, will be moved to rasterizer/renderer later
 bool gUseVisibilityTemp = false;
 
-static PyObject* gPyEnableVisibility(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 {
 	int visible;
 	if (PyArg_ParseTuple(args,"i",&visible))
@@ -429,9 +454,7 @@ static PyObject* gPyEnableVisibility(PyObject*,
 
 
 
-static PyObject* gPyShowMouse(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 {
 	int visible;
 	if (PyArg_ParseTuple(args,"i",&visible))
@@ -455,9 +478,7 @@ static PyObject* gPyShowMouse(PyObject*,
 
 
 
-static PyObject* gPySetMousePosition(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetMousePosition(PyObject*, PyObject* args)
 {
 	int x,y;
 	if (PyArg_ParseTuple(args,"ii",&x,&y))
@@ -472,9 +493,7 @@ static PyObject* gPySetMousePosition(PyObject*,
    Py_Return;
 }
 
-static PyObject* gPySetEyeSeparation(PyObject*,
-						PyObject* args,
-						PyObject*)
+static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 {
 	float sep;
 	if (PyArg_ParseTuple(args, "f", &sep))
@@ -496,9 +515,7 @@ static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
 	return NULL;
 }
 
-static PyObject* gPySetFocalLength(PyObject*,
-					PyObject* args,
-					PyObject*)
+static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 {
 	float focus;
 	if (PyArg_ParseTuple(args, "f", &focus))
@@ -518,9 +535,7 @@ static PyObject* gPyGetFocalLength(PyObject*, PyObject*, PyObject*)
 	return NULL;
 }
 
-static PyObject* gPySetBackgroundColor(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetBackgroundColor(PyObject*, PyObject* args)
 {
 	
 	MT_Vector4 vec = MT_Vector4(0., 0., 0.3, 0.);
@@ -538,9 +553,7 @@ static PyObject* gPySetBackgroundColor(PyObject*,
 
 
 
-static PyObject* gPySetMistColor(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetMistColor(PyObject*, PyObject* args)
 {
 	
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
@@ -558,9 +571,7 @@ static PyObject* gPySetMistColor(PyObject*,
 
 
 
-static PyObject* gPySetMistStart(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 {
 
 	float miststart;
@@ -579,9 +590,7 @@ static PyObject* gPySetMistStart(PyObject*,
 
 
 
-static PyObject* gPySetMistEnd(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetMistEnd(PyObject*, PyObject* args)
 {
 
 	float mistend;
@@ -599,9 +608,7 @@ static PyObject* gPySetMistEnd(PyObject*,
 }
 
 
-static PyObject* gPySetAmbientColor(PyObject*, 
-										 PyObject* args, 
-										 PyObject*)
+static PyObject* gPySetAmbientColor(PyObject*, PyObject* args)
 {
 	
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
@@ -620,9 +627,7 @@ static PyObject* gPySetAmbientColor(PyObject*,
 
 
 
-static PyObject* gPyMakeScreenshot(PyObject*,
-									PyObject* args,
-									PyObject*)
+static PyObject* gPyMakeScreenshot(PyObject*, PyObject* args)
 {
 	char* filename;
 	if (PyArg_ParseTuple(args,"s",&filename))
@@ -638,9 +643,7 @@ static PyObject* gPyMakeScreenshot(PyObject*,
 	Py_Return;
 }
 
-static PyObject* gPyEnableMotionBlur(PyObject*,
-									PyObject* args,
-									PyObject*)
+static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 {
 	float motionblurvalue;
 	if (PyArg_ParseTuple(args,"f",&motionblurvalue))
@@ -656,9 +659,7 @@ static PyObject* gPyEnableMotionBlur(PyObject*,
 	Py_Return;
 }
 
-static PyObject* gPyDisableMotionBlur(PyObject*,
-									PyObject* args,
-									PyObject*)
+static PyObject* gPyDisableMotionBlur(PyObject*, PyObject* args)
 {
 	if(gp_Rasterizer)
 	{
@@ -733,6 +734,10 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 
 	// Add some symbolic constants to the module
 	d = PyModule_GetDict(m);
+	
+	// can be overwritten later for gameEngine instances that can load new blend files and re-initialize this module
+	// for now its safe to make sure it exists for other areas such as the web plugin
+	PyDict_SetItemString(d, "globalDict", PyDict_New());
 
 	ErrorObject = PyString_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
@@ -847,13 +852,30 @@ PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
 // override builtin functions import() and open()
 
 
-PyObject *KXpy_open(PyObject *self, PyObject *args)
-{
+PyObject *KXpy_open(PyObject *self, PyObject *args) {
 	PyErr_SetString(PyExc_RuntimeError, "Sandbox: open() function disabled!\nGame Scripts should not use this function.");
 	return NULL;
 }
 
+PyObject *KXpy_reload(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: reload() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
 
+PyObject *KXpy_file(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: file() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
+
+PyObject *KXpy_execfile(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: execfile() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
+
+PyObject *KXpy_compile(PyObject *self, PyObject *args) {
+	PyErr_SetString(PyExc_RuntimeError, "Sandbox: compile() function disabled!\nGame Scripts should not use this function.");
+	return NULL;
+}
 
 PyObject *KXpy_import(PyObject *self, PyObject *args)
 {
@@ -890,19 +912,13 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 }
 
 
+static PyMethodDef meth_open[] = {{ "open", KXpy_open, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_reload[] = {{ "reload", KXpy_reload, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_file[] = {{ "file", KXpy_file, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_execfile[] = {{ "execfile", KXpy_execfile, METH_VARARGS, "(disabled)"}};
+static PyMethodDef meth_compile[] = {{ "compile", KXpy_compile, METH_VARARGS, "(disabled)"}};
 
-static PyMethodDef meth_open[] = {
-	{ "open", KXpy_open, METH_VARARGS,
-		"(disabled)"}
-};
-
-
-static PyMethodDef meth_import[] = {
-	{ "import", KXpy_import, METH_VARARGS,
-		"our own import"}
-};
-
-
+static PyMethodDef meth_import[] = {{ "import", KXpy_import, METH_VARARGS, "our own import"}};
 
 //static PyObject *g_oldopen = 0;
 //static PyObject *g_oldimport = 0;
@@ -913,15 +929,21 @@ void setSandbox(TPythonSecurityLevel level)
 {
     PyObject *m = PyImport_AddModule("__builtin__");
     PyObject *d = PyModule_GetDict(m);
-	PyObject *meth = PyCFunction_New(meth_open, NULL);
 
 	switch (level) {
 	case psl_Highest:
 		//if (!g_security) {
 			//g_oldopen = PyDict_GetItemString(d, "open");
-			PyDict_SetItemString(d, "open", meth);
-			meth = PyCFunction_New(meth_import, NULL);
-			PyDict_SetItemString(d, "__import__", meth);
+	
+			// functions we cant trust
+			PyDict_SetItemString(d, "open", PyCFunction_New(meth_open, NULL));
+			PyDict_SetItemString(d, "reload", PyCFunction_New(meth_reload, NULL));
+			PyDict_SetItemString(d, "file", PyCFunction_New(meth_file, NULL));
+			PyDict_SetItemString(d, "execfile", PyCFunction_New(meth_execfile, NULL));
+			PyDict_SetItemString(d, "compile", PyCFunction_New(meth_compile, NULL));
+			
+			// our own import
+			PyDict_SetItemString(d, "__import__", PyCFunction_New(meth_import, NULL));
 			//g_security = level;
 		//}
 		break;
@@ -1026,9 +1048,38 @@ static char GameKeys_module_documentation[] =
 "This modules provides defines for key-codes"
 ;
 
+static char gPyEventToString_doc[] =
+"Take a valid event from the GameKeys module or Keyboard Sensor and return a name"
+;
 
+static PyObject* gPyEventToString(PyObject*, PyObject* value)
+{
+	PyObject* mod, *dict, *key, *val, *ret = NULL;
+	Py_ssize_t pos = 0;
+	
+	mod = PyImport_ImportModule( "GameKeys" );
+	if (!mod)
+		return NULL;
+	
+	dict = PyModule_GetDict(mod);
+	
+	while (PyDict_Next(dict, &pos, &key, &val)) {
+		if (PyObject_Compare(value, val)==0) {
+			ret = key;
+			break;
+		}
+	}
+	
+	PyErr_Clear(); // incase there was an error clearing
+	Py_DECREF(mod);
+	if (!ret)	PyErr_SetString(PyExc_ValueError, "expected a valid int keyboard event");
+	else		Py_INCREF(ret);
+	
+	return ret;
+}
 
 static struct PyMethodDef gamekeys_methods[] = {
+	{"EventToString", (PyCFunction)gPyEventToString, METH_O, gPyEventToString_doc},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 

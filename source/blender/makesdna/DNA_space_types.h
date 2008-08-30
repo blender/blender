@@ -247,6 +247,7 @@ typedef struct SpaceImage {
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
 	
+	struct bGPdata *gpd;			/* grease pencil data */
 } SpaceImage;
 
 typedef struct SpaceNla {

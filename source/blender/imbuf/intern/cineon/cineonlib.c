@@ -67,12 +67,12 @@ fillCineonFileInfo(CineonFile* cineon, CineonFileInformation* fileInfo, const ch
 static void
 dumpCineonFileInfo(CineonFileInformation* fileInfo) {
 	d_printf("\n--File Information--\n");
-	d_printf("Magic: %8.8lX\n", (unsigned long)ntohl(fileInfo->magic_num));
-	d_printf("Image Offset %ld\n", (long)ntohl(fileInfo->image_offset));
-	d_printf("Generic Header size %ld\n", (long)ntohl(fileInfo->gen_hdr_size));
-	d_printf("Industry Header size %ld\n", (long)ntohl(fileInfo->ind_hdr_size));
-	d_printf("User Data size %ld\n", (long)ntohl(fileInfo->user_data_size));
-	d_printf("File size %ld\n", (long)ntohl(fileInfo->file_size));
+	d_printf("Magic: %8.8lX\n", (uintptr_t)ntohl(fileInfo->magic_num));
+	d_printf("Image Offset %ld\n", (intptr_t)ntohl(fileInfo->image_offset));
+	d_printf("Generic Header size %ld\n", (intptr_t)ntohl(fileInfo->gen_hdr_size));
+	d_printf("Industry Header size %ld\n", (intptr_t)ntohl(fileInfo->ind_hdr_size));
+	d_printf("User Data size %ld\n", (intptr_t)ntohl(fileInfo->user_data_size));
+	d_printf("File size %ld\n", (intptr_t)ntohl(fileInfo->file_size));
 	d_printf("Version \"%s\"\n", fileInfo->vers);
 	d_printf("File name \"%s\"\n", fileInfo->file_name);
 	d_printf("Creation date \"%s\"\n", fileInfo->create_date);
@@ -112,11 +112,11 @@ dumpCineonChannelInfo(CineonChannelInformation* chan) {
 		default: d_printf(" (unknown)\n"); break;
 	}
 	d_printf("	Bits per pixel %d\n", chan->bits_per_pixel);
-	d_printf("	Pixels per line %ld\n", (long)ntohl(chan->pixels_per_line));
-	d_printf("	Lines per image %ld\n", (long)ntohl(chan->lines_per_image));
-	d_printf("	Ref low data %ld\n", (long)ntohl(chan->ref_low_data));
+	d_printf("	Pixels per line %ld\n", (intptr_t)ntohl(chan->pixels_per_line));
+	d_printf("	Lines per image %ld\n", (intptr_t)ntohl(chan->lines_per_image));
+	d_printf("	Ref low data %ld\n", (intptr_t)ntohl(chan->ref_low_data));
 	d_printf("	Ref low quantity %f\n", ntohf(chan->ref_low_quantity));
-	d_printf("	Ref high data %ld\n", (long)ntohl(chan->ref_high_data));
+	d_printf("	Ref high data %ld\n", (intptr_t)ntohl(chan->ref_high_data));
 	d_printf("	Ref high quantity %f\n", ntohf(chan->ref_high_quantity));
 }
 
@@ -231,8 +231,8 @@ dumpCineonFormatInfo(CineonFormatInformation* formatInfo) {
 	} else {
 		d_printf(" positive\n");
 	}
-	d_printf("End of line padding %ld\n", (long)ntohl(formatInfo->line_padding));
-	d_printf("End of channel padding %ld\n", (long)ntohl(formatInfo->channel_padding));
+	d_printf("End of line padding %ld\n", (intptr_t)ntohl(formatInfo->line_padding));
+	d_printf("End of channel padding %ld\n", (intptr_t)ntohl(formatInfo->channel_padding));
 }
 
 static void
@@ -256,8 +256,8 @@ fillCineonOriginationInfo(CineonFile* cineon,
 static void
 dumpCineonOriginationInfo(CineonOriginationInformation* originInfo) {
 	d_printf("\n--Origination Information--\n");
-	d_printf("X offset %ld\n", (long)ntohl(originInfo->x_offset));
-	d_printf("Y offset %ld\n", (long)ntohl(originInfo->y_offset));
+	d_printf("X offset %ld\n", (intptr_t)ntohl(originInfo->x_offset));
+	d_printf("Y offset %ld\n", (intptr_t)ntohl(originInfo->y_offset));
 	d_printf("File name \"%s\"\n", originInfo->file_name);
 	d_printf("Creation date \"%s\"\n", originInfo->create_date);
 	d_printf("Creation time \"%s\"\n", originInfo->create_time);
@@ -529,7 +529,7 @@ cineonOpen(const char* filename) {
 	/* let's assume cineon files are always network order */
 	if (header.fileInfo.magic_num != ntohl(CINEON_FILE_MAGIC)) {
 		if (verbose) d_printf("Bad magic number %8.8lX in \"%s\".\n",
-			(unsigned long)ntohl(header.fileInfo.magic_num), filename);
+			(uintptr_t)ntohl(header.fileInfo.magic_num), filename);
 		cineonClose(cineon);
 		return 0;
 	}
@@ -628,7 +628,7 @@ cineonOpenFromMem(unsigned char *mem, unsigned int size) {
 
 	/* let's assume cineon files are always network order */
 	if (header.fileInfo.magic_num != ntohl(CINEON_FILE_MAGIC)) {
-		if (verbose) d_printf("Bad magic number %8.8lX in\n", (unsigned long)ntohl(header.fileInfo.magic_num));
+		if (verbose) d_printf("Bad magic number %8.8lX in\n", (uintptr_t)ntohl(header.fileInfo.magic_num));
 
 		cineonClose(cineon);
 		return 0;

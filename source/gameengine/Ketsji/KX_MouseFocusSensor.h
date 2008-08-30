@@ -33,6 +33,8 @@
 
 #include "SCA_MouseSensor.h"
 
+class KX_RayCast;
+
 /**
  * The mouse focus sensor extends the basic SCA_MouseSensor. It has
  * been placed in KX because it needs access to the rasterizer and
@@ -76,7 +78,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 		return result;
 	};
 
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo* client) { return true; }
+	
 
 	
 	/* --------------------------------------------------------------------- */

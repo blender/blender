@@ -33,6 +33,8 @@
 #include <config.h>
 #endif
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 //
 // Build hash index from pointer.  Even though the final result
 // is a 32-bit integer, use all the bits of the pointer as long
@@ -41,11 +43,7 @@
 
 unsigned int GEN_Hash(void * inDWord)
 {
-#if defined(_WIN64)
-	unsigned __int64 key = (unsigned __int64)inDWord;
-#else
-	unsigned long key = (unsigned long)inDWord;
-#endif
+	uintptr_t key = (uintptr_t)inDWord;
 
 	key += ~(key << 16);
 	key ^=  (key >>  5);

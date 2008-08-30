@@ -72,6 +72,29 @@ public:
 			bool StartGameEngine(int stereoMode);
 			void StopGameEngine();
 
+			char*
+		GetPyGlobalDictMarshal()
+		{ 
+			return m_pyGlobalDictString;
+		};
+		
+			void
+		SetPyGlobalDictMarshal( char* pyGlobalDictString, int length )
+		{
+			if (m_pyGlobalDictString && m_pyGlobalDictString != pyGlobalDictString)
+				free(m_pyGlobalDictString);
+			
+			m_pyGlobalDictString = pyGlobalDictString;
+			m_pyGlobalDictString_Length = length;
+		};
+		
+			int
+		GetPyGlobalDictMarshalLength()
+		{ 
+			return m_pyGlobalDictString_Length;
+		};
+
+
 protected:
 	bool	handleWheel(GHOST_IEvent* event);
 	bool	handleButton(GHOST_IEvent* event, bool isDown);
@@ -142,6 +165,12 @@ protected:
 
 	bool m_blendermat;
 	bool m_blenderglslmat;
-
+	
+	/*
+	 * GameLogic.globalDict as a string so that loading new blend files can use the same dict.
+	 * Do this because python starts/stops when loading blend files.
+	 */
+	char* m_pyGlobalDictString;
+	int m_pyGlobalDictString_Length;
 };
 

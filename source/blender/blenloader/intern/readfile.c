@@ -2583,6 +2583,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
 	part->pd= newdataadr(fd, part->pd);
+	part->pd2= newdataadr(fd, part->pd2);
 }
 
 static void lib_link_particlesystems(FileData *fd, ID *id, ListBase *particles)
@@ -2943,11 +2944,9 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			sens= ob->sensors.first;
 			while(sens) {
-				if(ob->id.lib==NULL) {	// done in expand_main
-					for(a=0; a<sens->totlinks; a++) {
-						sens->links[a]= newglobadr(fd, sens->links[a]);
-					}
-				}
+				for(a=0; a<sens->totlinks; a++)
+					sens->links[a]= newglobadr(fd, sens->links[a]);
+
 				if(sens->type==SENS_TOUCH) {
 					bTouchSensor *ts= sens->data;
 					ts->ma= newlibadr(fd, ob->id.lib, ts->ma);
@@ -2962,11 +2961,9 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			cont= ob->controllers.first;
 			while(cont) {
-				if(ob->id.lib==NULL) {	// done in expand_main
-					for(a=0; a<cont->totlinks; a++) {
-						cont->links[a]= newglobadr(fd, cont->links[a]);
-					}
-				}
+				for(a=0; a<cont->totlinks; a++)
+					cont->links[a]= newglobadr(fd, cont->links[a]);
+
 				if(cont->type==CONT_PYTHON) {
 					bPythonCont *pc= cont->data;
 					pc->text= newlibadr(fd, ob->id.lib, pc->text);
@@ -3594,9 +3591,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		{
 			Sequence temp;
 			char *poin;
-			long offset;
+			intptr_t offset;
 			
-			offset= ((long)&(temp.seqbase)) - ((long)&temp);
+			offset= ((intptr_t)&(temp.seqbase)) - ((intptr_t)&temp);
 			
 			/* root pointer */
 			if(ed->seqbasep == old_seqbasep) {
@@ -4095,7 +4092,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	while(se) {
 		se->v1= newdataadr(fd, se->v1);
 		se->v2= newdataadr(fd, se->v2);
-		if( (long)se->v1 > (long)se->v2) {
+		if( (intptr_t)se->v1 > (intptr_t)se->v2) {
 			sv= se->v1;
 			se->v1= se->v2;
 			se->v2= sv;
@@ -7731,31 +7728,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->brush);
 		idproperties_fix_group_lengths(main->particle);		
 	}
-	
-	/* only needed until old bad svn/RC1,2 files are saved with a > 17 version -dg */
-	if(main->versionfile == 245 && main->subversionfile < 17) {
-		ModifierData *md;
-		Object *ob;
-		
-		for(ob = main->object.first; ob; ob= ob->id.next) {
-			for(md=ob->modifiers.first; md; ) {
-				if(md->type==eModifierType_Cloth) {
-					ModifierData *next;
-					MEM_freeN(((ClothModifierData *)md)->sim_parms);
-					MEM_freeN(((ClothModifierData *)md)->coll_parms);
-					MEM_freeN(((ClothModifierData *)md)->point_cache);
-					((ClothModifierData *)md)->sim_parms = NULL;
-					((ClothModifierData *)md)->coll_parms = NULL;
-					((ClothModifierData *)md)->point_cache = NULL;
-					next=md->next;
-					BLI_remlink(&ob->modifiers, md);
-					md = next;
-				}
-				else
-					md = md->next;
-			}
-		}
-	}
 
 	/* sun/sky */
 	if(main->versionfile < 246) {
@@ -7781,6 +7753,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(me=main->mesh.first; me; me= me->id.next)
 			alphasort_version_246(fd, lib, me);
+	}
+	
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
+				ob->pd->f_noise = 0.0;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -8499,9 +8479,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	sens= ob->sensors.first;
 	while(sens) {
-		for(a=0; a<sens->totlinks; a++) {
-			sens->links[a]= newglobadr(fd, sens->links[a]);
-		}
 		if(sens->type==SENS_TOUCH) {
 			bTouchSensor *ts= sens->data;
 			expand_doit(fd, mainvar, ts->ma);
@@ -8515,9 +8492,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	cont= ob->controllers.first;
 	while(cont) {
-		for(a=0; a<cont->totlinks; a++) {
-			cont->links[a]= newglobadr(fd, cont->links[a]);
-		}
 		if(cont->type==CONT_PYTHON) {
 			bPythonCont *pc= cont->data;
 			expand_doit(fd, mainvar, pc->text);

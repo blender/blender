@@ -182,6 +182,8 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
 extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);/*rcruiz*/
@@ -460,7 +462,7 @@ static LinkNode *save_and_reset_all_scene_cfra(void)
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		BLI_linklist_prepend(&storelist, (void*) (long) sc->r.cfra);
+		BLI_linklist_prepend(&storelist, (void*) (intptr_t) sc->r.cfra);
 
 		/* why is this reset to 1 ?*/
 		/* sc->r.cfra= 1;*/
@@ -478,7 +480,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		int stored_cfra= (long) sc_store->link;
+		int stored_cfra= (intptr_t) sc_store->link;
 		
 		sc->r.cfra= stored_cfra;
 		set_scene_bg(sc);
@@ -1904,6 +1906,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						copy_attr_menu();
 				}
+				else if(G.qual==(LR_ALTKEY|LR_SHIFTKEY)) 
+					gpencil_convert_menu(); /* gpencil.c */
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
@@ -1962,7 +1966,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->drawtype= pupval;
 						doredraw= 1;
 					}
-                                }
+                }
 				
 				break;
 			case EKEY:
@@ -3489,6 +3493,9 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, sh
 			465,y2,200,20, &iconfileindex, 0, 0, 0, 0, "The icon PNG file to use, searching in .blender/icons");
 		uiButSetFunc(but, set_userdef_iconfile_cb, &iconfileindex, NULL);
 									
+	}
+	else if(th_curcol==TH_HANDLE_VERTEX_SIZE) {
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Handle size ", 465,y3,200,20, col, 1.0, 10.0, 0, 0, "");
 	}
 	else {
 		uiBlockBeginAlign(block);

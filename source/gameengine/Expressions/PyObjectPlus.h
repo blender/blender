@@ -102,6 +102,12 @@ static inline void Py_Fatal(char *M) {
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
 
+#define KX_PYMETHOD_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
+	}; \
+
 #define KX_PYMETHOD_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self); \
 	static PyObject* sPy##method_name( PyObject* self) { \
@@ -150,6 +156,9 @@ static inline void Py_Fatal(char *M) {
 #define KX_PYMETHODTABLE(class_name, method_name) \
 	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, class_name::method_name##_doc}
 
+#define KX_PYMETHODTABLE_NOARG(class_name, method_name) \
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, class_name::method_name##_doc}
+
 /**
  * Function implementation macro
  */
@@ -157,6 +166,9 @@ static inline void Py_Fatal(char *M) {
 char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 
+#define KX_PYMETHODDEF_DOC_NOARG(class_name, method_name, doc_string) \
+char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject*)
 
 /*------------------------------
  * PyObjectPlus

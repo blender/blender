@@ -479,7 +479,15 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
 		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
 	}
-	
+	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile < 1)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			SETCOL(btheme->tipo.handle_vertex, 0xff, 0x70, 0xff, 255);
+			SETCOL(btheme->tipo.handle_vertex_select, 0xff, 0xff, 0x70, 255);
+			btheme->tipo.handle_vertex_size= 3;
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;

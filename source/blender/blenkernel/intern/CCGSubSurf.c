@@ -7,6 +7,8 @@
 
 #include "CCGSubSurf.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /***/
 
 typedef unsigned char	byte;
@@ -35,7 +37,7 @@ typedef struct _EHash {
 #define EHASH_alloc(eh, nb)			((eh)->allocatorIFC.alloc((eh)->allocator, nb))
 #define EHASH_free(eh, ptr)			((eh)->allocatorIFC.free((eh)->allocator, ptr))
 
-#define EHASH_hash(eh, item)	(((unsigned long) (item))%((unsigned int) (eh)->curSize))
+#define EHASH_hash(eh, item)	(((uintptr_t) (item))%((unsigned int) (eh)->curSize))
 
 static EHash *_ehash_new(int estimatedNumEntries, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator) {
 	EHash *eh = allocatorIFC->alloc(allocator, sizeof(*eh));

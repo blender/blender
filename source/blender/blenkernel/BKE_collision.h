@@ -119,8 +119,10 @@ FaceCollPair;
 /////////////////////////////////////////////////
 // used in modifier.c from collision.c
 /////////////////////////////////////////////////
+
 BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon );
 void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, MVert *xnew, int numverts, int moving );
+
 /////////////////////////////////////////////////
 
 LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
@@ -132,6 +134,15 @@ void collision_move_object ( CollisionModifierData *collmd, float step, float pr
 // interface for collision functions
 void collisions_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 );
 void interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 );
+
+/////////////////////////////////////////////////
+// used in effect.c
+/////////////////////////////////////////////////
+CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj);
+
+/////////////////////////////////////////////////
+
+
 
 /////////////////////////////////////////////////
 

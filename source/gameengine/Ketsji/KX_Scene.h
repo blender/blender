@@ -122,11 +122,6 @@ protected:
 	 */
 	list<class KX_Camera*>       m_cameras;
 	/**
-	 * The set of bullet shapes that must be deleted at the end of the scene
-	 * to avoid memory leak (not deleted by bullet because shape are shared between replicas)
-	 */
-	vector<class btCollisionShape*> m_shapes;
-	/**
 	 * Various SCA managers used by the scene
 	 */
 	SCA_LogicManager*		m_logicmgr;
@@ -322,7 +317,6 @@ public:
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
-	void AddShape(class btCollisionShape* shape);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.

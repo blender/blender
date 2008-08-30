@@ -144,6 +144,8 @@ extern ListBase editelems;
 
 #include "transform.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
 /* local function prototype - for finding number of keyframes that are selected for editing */
@@ -1913,7 +1915,7 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	EditVert *eve, *prev;
 	EditFace *efa;
 	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
-	long index= 0;
+	intptr_t index= 0;
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
@@ -1925,13 +1927,13 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		
 		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*(long)(efa->v1->prev);
-		v2= mappedcos + 3*(long)(efa->v2->prev);
-		v3= mappedcos + 3*(long)(efa->v3->prev);
+		v1= mappedcos + 3*(intptr_t)(efa->v1->prev);
+		v2= mappedcos + 3*(intptr_t)(efa->v2->prev);
+		v3= mappedcos + 3*(intptr_t)(efa->v3->prev);
 
-		co1= (origcos)? origcos + 3*(long)(efa->v1->prev): efa->v1->co;
-		co2= (origcos)? origcos + 3*(long)(efa->v2->prev): efa->v2->co;
-		co3= (origcos)? origcos + 3*(long)(efa->v3->prev): efa->v3->co;
+		co1= (origcos)? origcos + 3*(intptr_t)(efa->v1->prev): efa->v1->co;
+		co2= (origcos)? origcos + 3*(intptr_t)(efa->v2->prev): efa->v2->co;
+		co3= (origcos)? origcos + 3*(intptr_t)(efa->v3->prev): efa->v3->co;
 
 		if(efa->v2->tmp.p==NULL && efa->v2->f1) {
 			set_crazy_vertex_quat(quats, co2, co3, co1, v2, v3, v1);
@@ -1940,8 +1942,8 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 		}
 		
 		if(efa->v4) {
-			v4= mappedcos + 3*(long)(efa->v4->prev);
-			co4= (origcos)? origcos + 3*(long)(efa->v4->prev): efa->v4->co;
+			v4= mappedcos + 3*(intptr_t)(efa->v4->prev);
+			co4= (origcos)? origcos + 3*(intptr_t)(efa->v4->prev): efa->v4->co;
 
 			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, co1, co2, co4, v1, v2, v4);

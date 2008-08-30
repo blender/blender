@@ -197,7 +197,10 @@ def write_prop(fw,type,value,length):
 	elif type == 'i':
 		fw.write_int(value)
 	elif type == 'I':
-		fw.write_uint(value)
+		#NOTE!:
+		#there is no unsigned int type in python, but we can only store signed ints in ID props
+		newvalue = struct.unpack('>I', struct.pack('>i', value))[0]
+		fw.write_uint(newvalue)
 	elif type == 'd':
 		fw.write_double(value)
 	elif type == 'f':
@@ -267,16 +270,16 @@ FLTObjectDisplay = [10]
 FLTLOD = {
 	'3t8!id' : 'L',
 	'4i!reserved' : 0,
-	'5d!switch in' : 0,
-	'6d!switch out' : 0,
+	'5d!switch in' : 0.0,
+	'6d!switch out' : 0.0,
 	'7s!sfx ID1' : 0,
 	'8s!sfx ID2' : 0,
 	'9I!flags' : 0,
-	'10d!X co' : 0,
-	'11d!Y co' : 0,
-	'12d!Z co' : 0,
-	'13d!Transition' : 0,
-	'14d!Sig Size' : 0
+	'10d!X co' : 0.0,
+	'11d!Y co' : 0.0,
+	'12d!Z co' : 0.0,
+	'13d!Transition' : 0.0,
+	'14d!Sig Size' : 0.0
 }
 FLTLODDisplay = [4]
 
