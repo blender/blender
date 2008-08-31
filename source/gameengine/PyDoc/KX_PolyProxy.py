@@ -59,7 +59,7 @@ class KX_PolyProxy:
 		
 		@rtype: integer
 		@return: the material index in the mesh
-	
+		"""
 	def getNumVertex(): 
 		"""
 		Returns the number of vertex of the polygon.

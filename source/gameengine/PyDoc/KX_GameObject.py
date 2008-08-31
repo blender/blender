@@ -30,11 +30,11 @@ class KX_GameObject:
 		Delete this object, can be used inpace of the EndObject Actuator.
 		The actual removal of the object from the scene is delayed.
 		"""	
-	def getVisible(visible):
+	def getVisible():
 		"""
 		Gets the game object's visible flag.
 		
-		@type visible: boolean
+		@rtype: boolean
 		"""	
 	def setVisible(visible):
 		"""
@@ -49,12 +49,12 @@ class KX_GameObject:
 		@rtype: int
 		@return: the objects state.
 		"""	
-	def setState():
+	def setState(state):
 		"""
-		Sets the game object's visible flag.
+		Sets the game object's state flag.
 		The bitmasks for states from 1 to 30 can be set with (1<<0, 1<<1, 1<<2 ... 1<<29)
 		
-		@type visible: boolean
+		@type state: integer
 		"""
 	def setPosition(pos):
 		"""
@@ -342,7 +342,7 @@ class KX_GameObject:
 		@param poly: polygon option: 1=>return value is a 4-tuple and the 4th element is a L{KX_PolyProxy}
 		@type poly: int
 		@rtype:    3-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz))
-		        or 4-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz), L{KX_PolyProxy))
+		        or 4-tuple (L{KX_GameObject}, 3-tuple (x,y,z), 3-tuple (nx,ny,nz), L{KX_PolyProxy})
 		@return: (object,hitpoint,hitnormal) or (object,hitpoint,hitnormal,polygon)
 		         If no hit, returns (None,None,None) or (None,None,None,None)
 		         If the object hit is not a static mesh, polygon is None
