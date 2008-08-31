@@ -38,6 +38,8 @@
 #define echo(x) std::cout << x << std::endl;
 #endif
 
+#define JOYINDEX_MAX			8
+
 /* function callbacks */
 #define HANDLE_AXISMOTION(fn)	((fn)(), 0L)
 #define HANDLE_HATMOTION(fn)	((fn)(), 0L)

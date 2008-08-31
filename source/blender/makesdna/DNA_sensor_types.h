@@ -164,7 +164,7 @@ typedef struct bSensor {
 typedef struct bJoystickSensor {
 	char name[32];
 	short type;
-	short pad;
+	short joyindex;
 	int axis;
 	int axisf;
 	int button;
@@ -266,6 +266,7 @@ typedef struct bJoystickSensor {
 #define SENS_JOY_HAT_DIR		0
 
 #define SENS_DELAY_REPEAT		1
-
+// should match JOYINDEX_MAX in SCA_JoystickDefines.h */
+#define SENS_JOY_MAXINDEX		8
 #endif
 

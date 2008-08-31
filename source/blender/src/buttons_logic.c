@@ -1444,10 +1444,13 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			draw_default_sensor_header(sens, block, xco, yco, width);
 
 			joy= sens->data;
-			
+
+			uiDefButS(block, NUM, 1, "Index:", xco+10, yco-44, 0.6 * (width-120), 19,
+			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
+			"Spesify which joystick to use");			
 
 			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, 0.6 * (width-20), 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+87, yco-44, 0.6 * (width-150), 19,
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			

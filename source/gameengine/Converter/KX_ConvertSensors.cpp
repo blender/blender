@@ -713,6 +713,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					gamesensor = new SCA_JoystickSensor(
 						eventmgr,
 						gameobj,
+						bjoy->joyindex,
 						joysticktype,
 						axis,axisf,
 						prec,
