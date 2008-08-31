@@ -46,6 +46,7 @@
 #include "BLI_blenlib.h"
 
 #include "DNA_listBase.h"
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -59,11 +60,13 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
+#include "BKE_armature.h"
 #include "BKE_curve.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_butspace.h"
+#include "BIF_editarmature.h"
 #include "BIF_editview.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
@@ -719,8 +722,10 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 	}
 }
 
+/* --- */
+
 /* convert stroke to 3d path */
-static void gp_layer_to_path (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
+static void gp_stroke_to_path (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
 {
 	bGPDspoint *pt;
 	Nurb *nu;
@@ -756,7 +761,7 @@ static void gp_layer_to_path (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
 }
 
 /* convert stroke to 3d bezier */
-static void gp_layer_to_bezier (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
+static void gp_stroke_to_bezier (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
 {
 	bGPDspoint *pt;
 	Nurb *nu;
@@ -828,18 +833,105 @@ static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl, short mode)
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
 		switch (mode) {
 			case 1: 
-				gp_layer_to_path(gpl, gps, cu);
+				gp_stroke_to_path(gpl, gps, cu);
 				break;
 			case 2:
-				gp_layer_to_bezier(gpl, gps, cu);
+				gp_stroke_to_bezier(gpl, gps, cu);
 				break;
 		}
 	}
 }
 
+/* --- */
+
+/* convert a stroke to a bone chain */
+static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *arm, ListBase *bones)
+{
+	EditBone *ebo, *prev=NULL;
+	bGPDspoint *pt, *ptn;
+	int i;
+	
+	/* add each segment separately */
+	for (i=0, pt=gps->points, ptn=gps->points+1; i < (gps->totpoints-1); prev=ebo, i++, pt++, ptn++) {
+		float p3da[3], p3db[3];
+		
+		/* get coordinates to add at */
+		gp_strokepoint_convertcoords(gps, pt, p3da);
+		gp_strokepoint_convertcoords(gps, ptn, p3db);
+		
+		/* allocate new bone */
+		ebo= MEM_callocN(sizeof(EditBone), "eBone");
+		
+		VecCopyf(ebo->head, p3da);
+		VecCopyf(ebo->tail, p3db);
+		
+		/* add new bone - note: sync with editarmature.c::add_editbone() */
+		BLI_strncpy(ebo->name, "Stroke", 32);
+		unique_editbone_name(bones, ebo->name);
+		
+		BLI_addtail(bones, ebo);
+		
+		ebo->flag |= BONE_CONNECTED;
+		ebo->weight= 1.0F;
+		ebo->dist= 0.25F;
+		ebo->xwidth= 0.1;
+		ebo->zwidth= 0.1;
+		ebo->ease1= 1.0;
+		ebo->ease2= 1.0;
+		ebo->rad_head= pt->pressure * gpl->thickness * 0.1;
+		ebo->rad_tail= ptn->pressure * gpl->thickness * 0.1;
+		ebo->segments= 1;
+		ebo->layer= arm->layer;
+		
+		/* set parenting */
+		// TODO: also adjust roll....
+		ebo->parent= prev;
+	}
+}
+
+/* convert a given grease-pencil layer to a 3d-curve representation (using current view if appropriate) */
+static void gp_layer_to_armature (bGPdata *gpd, bGPDlayer *gpl, short mode)
+{
+	bGPDframe *gpf= gpencil_layer_getframe(gpl, CFRA, 0);
+	bGPDstroke *gps;
+	Object *ob;
+	bArmature *arm;
+	ListBase bones = {0,0};
+	
+	/* error checking */
+	if (ELEM3(NULL, gpd, gpl, gpf))
+		return;
+		
+	/* only convert if there are any strokes on this layer's frame to convert */
+	if (gpf->strokes.first == NULL)
+		return;
+		
+	/* initialise the armature */	
+	arm= add_armature(gpl->info);
+	
+	/* init the armature object (remove rotation and assign armature data to it) */
+	add_object_draw(OB_ARMATURE);
+	ob= OBACT;
+	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0;
+	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
+	ob->data= arm;
+	
+	/* convert segments to bones, strokes to bone chains */
+	for (gps= gpf->strokes.first; gps; gps= gps->next) {
+		gp_stroke_to_bonechain(gpl, gps, arm, &bones);
+	}
+	
+	/* flush editbones to armature */
+	editbones_to_armature(&bones, ob);
+	if (bones.first) BLI_freelistN(&bones);
+}
+
+/* --- */
+
 /* convert grease-pencil strokes to another representation 
  *	mode: 	1 - Active layer to path
  *			2 - Active layer to bezier
+ *			3 - Active layer to armature
  */
 void gpencil_convert_operation (short mode)
 {
@@ -862,6 +954,12 @@ void gpencil_convert_operation (short mode)
 			gp_layer_to_curve(gpd, gpl, mode);
 		}
 			break;
+		case 3: /* active layer only (to armature) */
+		{
+			bGPDlayer *gpl= gpencil_layer_getactive(gpd);
+			gp_layer_to_armature(gpd, gpl, mode);
+		}
+			break;
 	}
 	
 	/* redraw and undo-push */
@@ -879,7 +977,7 @@ void gpencil_convert_menu (void)
 	/* only show menu if it will be relevant */
 	if (gpd == NULL) return;
 	
-	mode= pupmenu("Grease Pencil Convert %t|Active Layer To Path%x1|Active Layer to Bezier%x2");
+	mode= pupmenu("Grease Pencil Convert %t|Active Layer To Path%x1|Active Layer to Bezier%x2|Active Layer to Armature%x3");
 	if (mode <= 0) return;
 	
 	gpencil_convert_operation(mode);

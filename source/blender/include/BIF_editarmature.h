@@ -100,13 +100,14 @@ struct Bone	*get_indexed_bone (struct Object *ob, int index);
 
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
+void	remake_editArmature(void);
+void	editbones_to_armature(struct ListBase *list, struct Object *ob);
 
 int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
 
 void generateSkeleton(void);
 
 void	mouse_armature(void);
-void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	armature_select_hierarchy(short direction, short add_to_sel);
