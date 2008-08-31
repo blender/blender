@@ -3751,6 +3751,35 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 				}
+				else if (IS_AUTOKEY_FLAG(AUTOMATKEY)) {
+					int matok=0; 
+					
+					/* check one to make sure we're not trying to set visual loc keys on
+						bones inside of a chain, which only leads to tears. */
+					matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					
+					if (matok == 0) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					}
+					
+					/* check one to make sure we're not trying to set visual rot keys on
+						bones inside of a chain, which only leads to tears. */
+					matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+					
+					if (matok == 0) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+					}
+				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
 					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
