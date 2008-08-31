@@ -1631,7 +1631,7 @@ void mouse_select(void)
 
 /* ------------------------------------------------------------------------- */
 
-static int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
+int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
 {
 	int radsq= rad*rad;
 	float v1[2], v2[2], v3[2];

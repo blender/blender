@@ -2301,7 +2301,15 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 			}
 		}
 		else if(pd->forcefield)
+		{
 			type |= PSYS_EC_EFFECTOR;
+			
+			if(pd->forcefield == PFIELD_WIND)
+			{
+				pd->rng = rng_new(1);
+				rng_srandom(pd->rng, (unsigned int)(ceil(PIL_check_seconds_timer()))); // use better seed
+			}
+		}
 	}
 	
 	if(pd && pd->deflect)
@@ -2413,6 +2421,9 @@ void psys_end_effectors(ParticleSystem *psys)
 
 			if(ec->tree)
 				BLI_kdtree_free(ec->tree);
+			
+			if(ec->ob->pd && (ec->ob->pd->forcefield == PFIELD_WIND))
+				rng_free(ec->ob->pd->rng);
 		}
 
 		BLI_freelistN(lb);

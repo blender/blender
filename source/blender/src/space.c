@@ -1906,6 +1906,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						copy_attr_menu();
 				}
+				else if(G.qual==(LR_ALTKEY|LR_SHIFTKEY)) 
+					gpencil_convert_menu(); /* gpencil.c */
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
@@ -1964,7 +1966,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->drawtype= pupval;
 						doredraw= 1;
 					}
-                                }
+                }
 				
 				break;
 			case EKEY:

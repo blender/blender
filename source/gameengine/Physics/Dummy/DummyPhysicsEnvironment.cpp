@@ -109,8 +109,7 @@ void		DummyPhysicsEnvironment::removeConstraint(int	constraintid)
 	}
 }
 
-PHY_IPhysicsController* DummyPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* DummyPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback,float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 	//collision detection / raytesting
 	return NULL;

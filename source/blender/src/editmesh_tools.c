@@ -4667,6 +4667,7 @@ int EdgeLoopDelete(void) {
 
 int EdgeSlide(short immediate, float imperc)
 {
+	NumInput num;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
@@ -4683,6 +4684,8 @@ int EdgeSlide(short immediate, float imperc)
 	char str[128]; 
 	float labda = 0.0f;
 	
+	initNumInput(&num);
+		
 	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
 	
 	mvalo[0] = -1; mvalo[1] = -1; 
@@ -4994,88 +4997,22 @@ int EdgeSlide(short immediate, float imperc)
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
 		
-		
-
 		getmouseco_areawin(mval);  
 		
 		if (!immediate && (mval[0] == mvalo[0] && mval[1] ==  mvalo[1])) {
 			PIL_sleep_ms(10);
 		} else {
+			char *p = str;;
 
 			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
 			
-			//Adjust Edgeloop
-			if(immediate) {
-				perc = imperc;   
-			}
-			percp = perc;
-			if(prop) {
-				look = vertlist;	  
-				while(look) { 
-					EditVert *tempev;
-					ev = look->link;
-					tempsv = BLI_ghash_lookup(vertgh,ev);
-					
-					tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
-					VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
-									
-					look = look->next;	 
-				}
-			}
-			else {
-				//Non prop code  
-				look = vertlist;	  
-				while(look) { 
-					float newlen;
-					ev = look->link;
-					tempsv = BLI_ghash_lookup(vertgh,ev);
-					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
-					if(newlen > 1.0) {newlen = 1.0;}
-					if(newlen < 0.0) {newlen = 0.0;}
-					if(flip == 0) {
-						VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
-					} else{
-						VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
-					}
-					look = look->next;	 
-				}
 
-			}
-			
 			tempsv = BLI_ghash_lookup(vertgh,nearest);
 
 			centerVert = editedge_getSharedVert(tempsv->up, tempsv->down);
 			upVert = editedge_getOtherVert(tempsv->up, centerVert);
 			downVert = editedge_getOtherVert(tempsv->down, centerVert);
-			 // Highlight the Control Edges
-	
-			scrarea_do_windraw(curarea);   
-			persp(PERSP_VIEW);   
-			glPushMatrix();   
-			mymultmatrix(G.obedit->obmat);
-
-			glColor3ub(0, 255, 0);   
-			glBegin(GL_LINES);
-			glVertex3fv(upVert->co);
-			glVertex3fv(downVert->co);
-			glEnd(); 
-			
-			if(prop == 0) {
-				// draw start edge for non-prop
-				glPointSize(5);
-				glBegin(GL_POINTS);
-				glColor3ub(255,0,255);
-				if(flip) {
-					glVertex3fv(upVert->co);
-				} else {
-					glVertex3fv(downVert->co);					
-				}
-				glEnd();	
-			}
-			
-			
-			glPopMatrix();		 
 
 			view3d_project_float(curarea, upVert->co, v2, projectMat);
 			view3d_project_float(curarea, downVert->co, v3, projectMat);
@@ -5114,18 +5051,126 @@ int EdgeSlide(short immediate, float imperc)
 				perc = floor(perc);
 				perc /= 10;				   
 			}			
-			if(prop) {
-				sprintf(str, "(P)ercentage: %f", perc);
-			} else {
+			
+			if(prop == 0) {
 				len = VecLenf(upVert->co,downVert->co)*((perc+1)/2);
 				if(flip == 1) {
 					len = VecLenf(upVert->co,downVert->co) - len;
 				} 
-				sprintf(str, "Non (P)rop Length: %f, Press (F) to flip control side", len);
+			}
+			
+			if (hasNumInput(&num))
+			{
+				applyNumInput(&num, &perc);
+				
+				if (prop)
+				{
+					perc = MIN2(perc, 1);
+					perc = MAX2(perc, -1);
+				}
+				else
+				{
+					len = MIN2(perc, VecLenf(upVert->co,downVert->co));
+					len = MAX2(len, 0);
+				}
 			}
 
+			//Adjust Edgeloop
+			if(immediate) {
+				perc = imperc;   
+			}
+			percp = perc;
+			if(prop) {
+				look = vertlist;	  
+				while(look) { 
+					EditVert *tempev;
+					ev = look->link;
+					tempsv = BLI_ghash_lookup(vertgh,ev);
+					
+					tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
+					VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
+									
+					look = look->next;	 
+				}
+			}
+			else {
+				//Non prop code  
+				look = vertlist;	  
+				while(look) { 
+					float newlen;
+					ev = look->link;
+					tempsv = BLI_ghash_lookup(vertgh,ev);
+					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+					if(newlen > 1.0) {newlen = 1.0;}
+					if(newlen < 0.0) {newlen = 0.0;}
+					if(flip == 0) {
+						VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
+					} else{
+						VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
+					}
+					look = look->next;	 
+				}
+
+			}
+			
+			 // Highlight the Control Edges
+			scrarea_do_windraw(curarea);   
+			persp(PERSP_VIEW);   
+			glPushMatrix();   
+			mymultmatrix(G.obedit->obmat);
+
+			glColor3ub(0, 255, 0);   
+			glBegin(GL_LINES);
+			glVertex3fv(upVert->co);
+			glVertex3fv(downVert->co);
+			glEnd(); 
+			
+			if(prop == 0) {
+				// draw start edge for non-prop
+				glPointSize(5);
+				glBegin(GL_POINTS);
+				glColor3ub(255,0,255);
+				if(flip) {
+					glVertex3fv(upVert->co);
+				} else {
+					glVertex3fv(downVert->co);					
+				}
+				glEnd();	
+			}
 			
 			
+			glPopMatrix();		 
+
+			if(prop) {
+				p += sprintf(str, "(P)ercentage: ");
+			} else {
+				p += sprintf(str, "Non (P)rop Length: ");
+			}
+			
+			if (hasNumInput(&num))
+			{
+				char num_str[20];
+				
+				outputNumInput(&num, num_str);
+				p += sprintf(p, "%s", num_str);
+			}
+			else
+			{
+				if (prop)
+				{
+					p += sprintf(p, "%f", perc);
+				}
+				else
+				{
+					p += sprintf(p, "%f", len);
+				}
+			}
+			
+			
+			if (prop == 0) {
+				p += sprintf(p, ", Press (F) to flip control side");
+			}
+
 			headerprint(str);
 			screen_swapbuffers();			
 		}
@@ -5148,7 +5193,14 @@ int EdgeSlide(short immediate, float imperc)
 							perc = 0;  
 							immediate = 1;
 					} else if(event==PKEY) {
-							(prop == 1) ? (prop = 0):(prop = 1);
+							initNumInput(&num); /* reset num input */
+							if (prop) {
+								prop = 0;
+								num.flag |= NUM_NO_NEGATIVE;
+							}
+							else {
+								prop = 1;
+							}
 							mvalo[0] = -1;  
 					} else if(event==FKEY) {
 							(flip == 1) ? (flip = 0):(flip = 1); 
@@ -5186,7 +5238,13 @@ int EdgeSlide(short immediate, float imperc)
 							look = look->next;   
 						}	  
 					}
+					
+					if (handleNumInput(&num, event))
+					{
+						mvalo[0] = -1; /* NEED A BETTER WAY TO TRIGGER REDRAW */
+					}
 				}
+				
 			} 
 		} else {
 			draw = 0;

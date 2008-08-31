@@ -633,6 +633,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				if (eventmgr)
 				{
 					bool bFindMaterial = (blenderraysensor->mode & SENS_COLLISION_MATERIAL);
+					bool bXRay = (blenderraysensor->mode & SENS_RAY_XRAY);
 					
 					STR_String checkname = (bFindMaterial? blenderraysensor->matname : blenderraysensor->propname);
 
@@ -645,6 +646,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 												  gameobj,
 												  checkname,
 												  bFindMaterial,
+												  bXRay,
 												  distance,
 												  axis,
 												  kxscene);
@@ -711,6 +713,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					gamesensor = new SCA_JoystickSensor(
 						eventmgr,
 						gameobj,
+						bjoy->joyindex,
 						joysticktype,
 						axis,axisf,
 						prec,
@@ -765,17 +768,17 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						logicmgr->RegisterToSensor(gamecont,gamesensor);
 					} else {
 						printf(
-							"Warning, sensor \"%s\" could not find its controller"
-							"(link %d of %d)\n"
+							"Warning, sensor \"%s\" could not find its controller "
+							"(link %d of %d) from object \"%s\"\n"
 							"\tthere has been an error converting the blender controller for the game engine,"
-							"logic may be incorrect\n", sens->name, i+1, sens->totlinks);
+							"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
 					}
 				} else {
 					printf(
-						"Warning, sensor \"%s\" has lost a link to a controller"
-						"(link %d of %d)\n"
+						"Warning, sensor \"%s\" has lost a link to a controller "
+						"(link %d of %d) from object \"%s\"\n"
 						"\tpossible causes are partially appended objects or an error reading the file,"
-						"logic may be incorrect\n", sens->name, i+1, sens->totlinks);
+						"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
 				}
 			}
 			// done with gamesensor

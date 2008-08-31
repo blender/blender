@@ -1390,9 +1390,14 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					&raySens->propname, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
-			
+
+			/* X-Ray option */
+			uiDefButBitS(block, TOG, SENS_RAY_XRAY, 1, "X",
+				xco + 10,yco - 68, 0.10 * (width-20), 19,
+				&raySens->mode, 0.0, 0.0, 0, 0,
+				"Toggle X-Ray option (see through objects that don't have the property)");
 			/* 2. sensing range */
-			uiDefButF(block, NUM, 1, "Range", xco+10, yco-68, 0.6 * (width-20), 19,
+			uiDefButF(block, NUM, 1, "Range", xco+10 + 0.10 * (width-20), yco-68, 0.5 * (width-20), 19,
 				&raySens->range, 0.01, 10000.0, 100, 0,
 				"Sense objects no farther than this distance");
 			
@@ -1439,10 +1444,13 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			draw_default_sensor_header(sens, block, xco, yco, width);
 
 			joy= sens->data;
-			
+
+			uiDefButS(block, NUM, 1, "Index:", xco+10, yco-44, 0.6 * (width-120), 19,
+			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
+			"Spesify which joystick to use");			
 
 			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, 0.6 * (width-20), 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+87, yco-44, 0.6 * (width-150), 19,
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			
@@ -1857,7 +1865,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			but = uiDefButBitS(block, TOG, ACT_IPOFORCE, ACT_IPOFORCE, 
 				"Force", xco+10+(width-20)/2, yco-24, (width-20)/4-10, 19, 
 				&ia->flag, 0, 0, 0, 0, 
-				"Convert Ipo to force. Force is applied in global or local coordinate according to Local flag"); 
+				"Apply Ipo as a global or local force depending on the local option (dynamic objects only)"); 
 			uiButSetFunc(but, change_ipo_actuator, but, ia);
 
 			but = uiDefButBitS(block, TOG, ACT_IPOADD, ACT_IPOADD, 
@@ -2022,7 +2030,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
 			int wval; /* just a temp width */
-			ysize = 72;
+			ysize = 92;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
@@ -2042,9 +2050,27 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-68, wval, 19,
 					 eoa->linVelocity+2, -100.0, 100.0, 10, 0,
 					 "Velocity upon creation, z component.");
-			uiDefButBitS(block, TOG, 2, 0, "L", xco+45+3*wval, yco-68, 15, 19,
+			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_LINV, 0, "L", xco+45+3*wval, yco-68, 15, 19,
 					 &eoa->localflag, 0.0, 0.0, 0, 0,
 					 "Apply the transformation locally");
+			
+			
+			uiDefBut(block, LABEL, 0, "AngV",	xco,           yco-90,   45, 19,
+					 NULL, 0, 0, 0, 0,
+					 "Angular velocity upon creation.");
+			uiDefButF(block, NUM, 0, "",		xco+45,        yco-90, wval, 19,
+					 eoa->angVelocity, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, x component.");
+			uiDefButF(block, NUM, 0, "",		xco+45+wval,   yco-90, wval, 19,
+					 eoa->angVelocity+1, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, y component.");
+			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-90, wval, 19,
+					 eoa->angVelocity+2, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, z component.");
+			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_ANGV, 0, "L", xco+45+3*wval, yco-90, 15, 19,
+					 &eoa->localflag, 0.0, 0.0, 0, 0,
+					 "Apply the rotation locally");
+					 
 
 		}
 		else if(eoa->type==ACT_EDOB_END_OBJECT) {

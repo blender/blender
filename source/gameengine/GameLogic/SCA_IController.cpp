@@ -188,6 +188,8 @@ void SCA_IController::ApplyState(unsigned int state)
 			for (sensit = m_linkedsensors.begin();!(sensit==m_linkedsensors.end());++sensit)
 			{
 				(*sensit)->IncLink();
+				// remember that this controller just activated that sensor
+				(*sensit)->AddNewController(this);
 			}
 			SetActive(true);
 		}

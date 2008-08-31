@@ -134,7 +134,7 @@ int RAS_MeshObject::NumPolygons()
 
 
 
-RAS_Polygon* RAS_MeshObject::GetPolygon(int num)
+RAS_Polygon* RAS_MeshObject::GetPolygon(int num) const
 {
 	return m_Polygons[num];
 }

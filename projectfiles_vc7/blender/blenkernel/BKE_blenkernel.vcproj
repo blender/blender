@@ -495,6 +495,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\script.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\shrinkwrap.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\softbody.c">
 			</File>
 			<File
@@ -707,6 +710,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_script.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_shrinkwrap.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_softbody.h">

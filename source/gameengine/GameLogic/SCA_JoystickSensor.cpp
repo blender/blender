@@ -39,6 +39,7 @@
 
 SCA_JoystickSensor::SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 									   SCA_IObject* gameobj,
+									   short int joyindex,
 									   short int joymode,
 									   int axis, int axisf,int prec,
 									   int button, int buttonf,
@@ -53,7 +54,8 @@ SCA_JoystickSensor::SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 									   m_hat(hat),
 									   m_hatf(hatf),
 									   m_precision(prec),
-									   m_joymode(joymode)
+									   m_joymode(joymode),
+									   m_joyindex(joyindex)
 {	
 /*
 std::cout << " axis "		<< m_axis		<< std::endl;
@@ -99,7 +101,7 @@ bool SCA_JoystickSensor::IsPositiveTrigger()
 
 bool SCA_JoystickSensor::Evaluate(CValue* event)
 {
-	SCA_Joystick *js = m_pJoystickMgr->GetJoystickDevice();
+	SCA_Joystick *js = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	bool result = false;
 	bool reset = m_reset && m_level;
 	
@@ -351,7 +353,7 @@ PyObject* SCA_JoystickSensor::PyGetRealAxis( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int a,b,c,d;
-	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	a = joy->GetAxis10();
 	b = joy->GetAxis11();
 	c = joy->GetAxis20();
@@ -451,7 +453,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfAxes( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int num;
-	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	num = joy->GetNumberOfAxes();
 	return Py_BuildValue("i",num);
 }
@@ -464,7 +466,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfButtons( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int num;
-	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	num = joy->GetNumberOfButtons();
 	return Py_BuildValue("i",num);
 }
@@ -477,7 +479,7 @@ PyObject* SCA_JoystickSensor::PyNumberOfHats( PyObject* self,
 											PyObject* args, 
 											PyObject* kwds) {
 	int num;
-	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice();
+	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	num = joy->GetNumberOfHats();
 	return Py_BuildValue("i",num);
 }

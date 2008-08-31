@@ -76,7 +76,7 @@
 class SCA_Joystick
 
 {
-	static SCA_Joystick *m_instance;
+	static SCA_Joystick *m_instance[JOYINDEX_MAX];
 	static int m_refCount;
 
 	class PrivateData;
@@ -84,14 +84,6 @@ class SCA_Joystick
 	PrivateData		*m_private;
 
 	int				m_joyindex;
-
-	/*!
-
-	 * the number of avail joysticks 
-
-	 */
-
-	int 			m_numjoys;
 
 	/* 
 
@@ -185,7 +177,7 @@ class SCA_Joystick
 
 	 */
 
-	bool pCreateJoystickDevice(void);
+	bool CreateJoystickDevice(void);
 
 	/*
 
@@ -193,7 +185,7 @@ class SCA_Joystick
 
 	 */
 
-	void pDestroyJoystickDevice(void);
+	void DestroyJoystickDevice(void);
 
 	
 
@@ -259,18 +251,13 @@ class SCA_Joystick
 
 	int pGetHat(int direction);
 
-	SCA_Joystick();
+	SCA_Joystick(short int index);
 
 	~SCA_Joystick();
 	
-	bool CreateJoystickDevice(void);
-
-	void DestroyJoystickDevice(void);
-
-
 public:
 
-	static SCA_Joystick *GetInstance();
+	static SCA_Joystick *GetInstance( short int joyindex );
 
 	void ReleaseInstance();
 	

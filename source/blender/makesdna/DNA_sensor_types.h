@@ -164,7 +164,7 @@ typedef struct bSensor {
 typedef struct bJoystickSensor {
 	char name[32];
 	short type;
-	short pad;
+	short joyindex;
 	int axis;
 	int axisf;
 	int button;
@@ -237,6 +237,9 @@ typedef struct bJoystickSensor {
  * */
 /*  #define SENS_COLLISION_PROPERTY 0  */
 #define SENS_COLLISION_MATERIAL 1
+/* ray specific mode */
+/* X-Ray means that the ray will traverse objects that don't have the property/material */
+#define SENS_RAY_XRAY			2
 
 /* Some stuff for the mouse sensor Type: */
 #define BL_SENS_MOUSE_LEFT_BUTTON    1
@@ -263,6 +266,7 @@ typedef struct bJoystickSensor {
 #define SENS_JOY_HAT_DIR		0
 
 #define SENS_DELAY_REPEAT		1
-
+// should match JOYINDEX_MAX in SCA_JoystickDefines.h */
+#define SENS_JOY_MAXINDEX		8
 #endif
 

@@ -442,7 +442,7 @@ int in_ipo_buttons(void)
 	else return 1;
 }
 
-static View2D *spacelink_get_view2d(SpaceLink *sl)
+View2D *spacelink_get_view2d(SpaceLink *sl)
 {
 	if(sl->spacetype==SPACE_IPO) 
 		return &((SpaceIpo *)sl)->v2d;

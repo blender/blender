@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include <string.h>		// memset
 #include "SumoPhysicsEnvironment.h"
 #include "PHY_IMotionState.h"
 #include "SumoPhysicsController.h"
@@ -125,37 +126,35 @@ void SumoPhysicsEnvironment::removeConstraint(int	constraintid)
 	}
 }
 
-PHY_IPhysicsController* SumoPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClientCtrl, 
+PHY_IPhysicsController* SumoPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback, 
 	float fromX,float fromY,float fromZ, 
-	float toX,float toY,float toZ, 
-	float& hitX,float& hitY,float& hitZ,
-	float& normalX,float& normalY,float& normalZ)
+	float toX,float toY,float toZ)
 {
-	SumoPhysicsController* ignoreCtr = static_cast<SumoPhysicsController*> (ignoreClientCtrl);
+	SumoPhysicsController* ignoreCtr = static_cast<SumoPhysicsController*> (filterCallback.m_ignoreController);
 
 	//collision detection / raytesting
 	MT_Point3 hit, normal;
-	PHY_IPhysicsController *ret = 0;
+	PHY_RayCastResult result;
 
 	SM_Object* sm_ignore = 0;
 	if (ignoreCtr)
 		sm_ignore = ignoreCtr->GetSumoObject();
 
+	memset(&result, 0, sizeof(result));
 
 	SM_Object* smOb = m_sumoScene->rayTest(sm_ignore,MT_Point3(fromX, fromY, fromZ),MT_Point3(toX, toY, toZ), hit, normal);
 	if (smOb)
 	{
-		ret = (PHY_IPhysicsController *) smOb->getPhysicsClientObject();
+		result.m_controller = (PHY_IPhysicsController *) smOb->getPhysicsClientObject();
+		result.m_hitPoint[0] = hit[0];
+		result.m_hitPoint[1] = hit[1];
+		result.m_hitPoint[2] = hit[2];
+		result.m_hitNormal[0] = normal[0];
+		result.m_hitNormal[1] = normal[1];
+		result.m_hitNormal[2] = normal[2];
+		filterCallback.reportHit(&result);
 	}
-	hitX = hit[0];
-	hitY = hit[1];
-	hitZ = hit[2];
-
-	normalX = normal[0];
-	normalY = normal[1];
-	normalZ = normal[2];
-	
-	return ret;
+	return result.m_controller;
 }
 //gamelogic callbacks
 void SumoPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)

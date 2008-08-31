@@ -75,6 +75,16 @@ public:
 	{
 		return m_nextShape;
 	}
+	CcdShapeConstructionInfo* GetChildShape(int i)
+	{
+		CcdShapeConstructionInfo* shape = m_nextShape;
+		while (i > 0 && shape != NULL)
+		{
+			shape = shape->m_nextShape;
+			i--;
+		}
+		return shape;
+	}
 
 	bool SetMesh(RAS_MeshObject* mesh, bool polytope);
 
@@ -89,6 +99,11 @@ public:
 	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape.
 											// In this case a triangle is made of 3 consecutive points
+	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
+													// original mesh that correspond to shape triangles.
+													// only set for concave mesh shape.
+	const RAS_MeshObject*	m_meshObject;	// Keep a pointer to the original mesh 
+
 protected:
 	CcdShapeConstructionInfo* m_nextShape;	// for compound shape
 	int						m_refCount;		// this class is shared between replicas

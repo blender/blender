@@ -72,6 +72,10 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 * The mode to determine axis,button or hat
 	 */
 	short int m_joymode;
+	/**
+	 * Select which joystick to use
+	 */
+	short int m_joyindex;
 
 	enum KX_JOYSENSORMODE {
 		KX_JOYSENSORMODE_NODEF = 0,
@@ -85,6 +89,7 @@ class SCA_JoystickSensor :public SCA_ISensor
 public:
 	SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 					   SCA_IObject* gameobj,
+					   short int joyindex,
 					   short int joymode,
 					   int axis, int axisf,int prec,
 					   int button, int buttonf,
@@ -97,6 +102,10 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 	
+	short int GetJoyIndex(void){
+		return m_joyindex;
+	}
+
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */

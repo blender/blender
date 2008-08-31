@@ -395,6 +395,9 @@
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PolygonMaterial.cpp">
 			</File>
 			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PolyProxy.cpp">
+			</File>
+			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.cpp">
 			</File>
 			<File
@@ -620,6 +623,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PolygonMaterial.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PolyProxy.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\gameengine\Ketsji\KX_PyConstraintBinding.h">

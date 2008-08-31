@@ -9,7 +9,12 @@ class SCA_ISensor(SCA_ILogicBrick):
 	
 	def isPositive():
 		"""
-		True if this sensor brick has been activated.
+		True if this sensor brick is in a positive state.
+		"""
+	
+	def isTriggered():
+		"""
+		True if this sensor brick has triggered the current controller.
 		"""
 	
 	def getUsePosPulseMode():

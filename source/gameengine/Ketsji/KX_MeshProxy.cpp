@@ -35,6 +35,7 @@
 #include "RAS_MeshObject.h"
 
 #include "KX_VertexProxy.h"
+#include "KX_PolyProxy.h"
 
 #include "KX_PolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
@@ -71,10 +72,12 @@ PyParentObject KX_MeshProxy::Parents[] = {
 
 PyMethodDef KX_MeshProxy::Methods[] = {
 {"getNumMaterials", (PyCFunction)KX_MeshProxy::sPyGetNumMaterials,METH_VARARGS},
+{"getNumPolygons", (PyCFunction)KX_MeshProxy::sPyGetNumPolygons,METH_NOARGS},
 {"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
 {"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
 {"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
 {"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
+{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
 KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
 //{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
 
@@ -143,6 +146,12 @@ PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* self,
 			       PyObject* kwds)
 {
 	int num = m_meshobj->NumMaterials();
+	return PyInt_FromLong(num);
+}
+
+PyObject* KX_MeshProxy::PyGetNumPolygons(PyObject* self)
+{
+	int num = m_meshobj->NumPolygons();
 	return PyInt_FromLong(num);
 }
 
@@ -232,6 +241,28 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 
 	return vertexob;
 		
+}
+
+PyObject* KX_MeshProxy::PyGetPolygon(PyObject* self,
+			       PyObject* args, 
+			       PyObject* kwds)
+{
+    int polyindex= 1;
+	PyObject* polyob = NULL;
+
+	if (!PyArg_ParseTuple(args,"i",&polyindex))
+		return NULL;
+
+	RAS_Polygon* polygon = m_meshobj->GetPolygon(polyindex);
+	if (polygon)
+	{
+		polyob = new KX_PolyProxy(m_meshobj, polygon);
+	}
+	else
+	{
+		PyErr_SetString(PyExc_AttributeError, "Invalid polygon index");
+	}
+	return polyob;
 }
 
 KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,

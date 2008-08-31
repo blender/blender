@@ -84,7 +84,8 @@ def setMousePosition(x, y):
 	"""
 	Sets the mouse cursor position.
 	
-	@type x, y: integer
+	@type x: integer
+	@type y: integer
 	"""
 
 def setBackgroundColor(rgba):

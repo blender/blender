@@ -181,7 +181,9 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
-					  RayResultCallback& resultCallback,short int collisionFilterMask)
+					  RayResultCallback& resultCallback,
+					  short int collisionFilterMask,
+					  bool faceNormal)
 {
 	
 	btSphereShape pointShape(btScalar(0.0));
@@ -191,14 +193,16 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 					  collisionObject,
 					  collisionShape,
 					  colObjWorldTransform,
-					  resultCallback,collisionFilterMask);
+					  resultCallback,collisionFilterMask,faceNormal);
 }
 
 void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const btTransform& rayFromTrans,const btTransform& rayToTrans,
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
-					  RayResultCallback& resultCallback,short int collisionFilterMask)
+					  RayResultCallback& resultCallback,
+					  short int collisionFilterMask,
+					  bool faceNormal)
 {
 	
 
@@ -257,9 +261,9 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 							btCollisionObject*	m_collisionObject;
 							btTriangleMeshShape*	m_triangleMesh;
 
-							BridgeTriangleRaycastCallback( const btVector3& from,const btVector3& to,
-								btCollisionWorld::RayResultCallback* resultCallback, btCollisionObject* collisionObject,btTriangleMeshShape*	triangleMesh):
-								btTriangleRaycastCallback(from,to),
+							BridgeTriangleRaycastCallback( const btVector3& from,const btVector3& to,bool faceNormal,
+								btCollisionWorld::RayResultCallback* resultCallback, btCollisionObject* collisionObject,btTriangleMeshShape* triangleMesh):
+								btTriangleRaycastCallback(from,to,faceNormal),
 									m_resultCallback(resultCallback),
 									m_collisionObject(collisionObject),
 									m_triangleMesh(triangleMesh)
@@ -272,6 +276,7 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 								btCollisionWorld::LocalShapeInfo	shapeInfo;
 								shapeInfo.m_shapePart = partId;
 								shapeInfo.m_triangleIndex = triangleIndex;
+								shapeInfo.m_triangleShape = m_triangleMesh;
 								
 								btCollisionWorld::LocalRayResult rayResult
 								(m_collisionObject, 
@@ -287,7 +292,7 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 						};
 
 
-						BridgeTriangleRaycastCallback	rcb(rayFromLocal,rayToLocal,&resultCallback,collisionObject,triangleMesh);
+						BridgeTriangleRaycastCallback	rcb(rayFromLocal,rayToLocal,faceNormal,&resultCallback,collisionObject,triangleMesh);
 						rcb.m_hitFraction = resultCallback.m_closestHitFraction;
 
 						btVector3 rayAabbMinLocal = rayFromLocal;
@@ -313,7 +318,7 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 									collisionObject,
 									childCollisionShape,
 									childWorldTrans,
-									resultCallback, collisionFilterMask);
+									resultCallback, collisionFilterMask, faceNormal);
 
 							}
 
@@ -323,7 +328,7 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 			}
 }
 
-void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback,short int collisionFilterMask)
+void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback,short int collisionFilterMask, bool faceNormal)
 {
 
 	
@@ -350,11 +355,17 @@ void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& r
 			btVector3 hitNormal;
 			if (btRayAabb(rayFromWorld,rayToWorld,collisionObjectAabbMin,collisionObjectAabbMax,hitLambda,hitNormal))
 			{
-				rayTestSingle(rayFromTrans,rayToTrans,
-					collisionObject,
-						collisionObject->getCollisionShape(),
-						collisionObject->getWorldTransform(),
-						resultCallback);
+				// before testing this object, verify that it is not filtered out
+				if (resultCallback.NeedRayCast(collisionObject))
+				{
+					rayTestSingle(rayFromTrans,rayToTrans,
+						collisionObject,
+							collisionObject->getCollisionShape(),
+							collisionObject->getWorldTransform(),
+							resultCallback,
+							collisionFilterMask,
+							faceNormal);
+				}
 			}	
 		}
 	}

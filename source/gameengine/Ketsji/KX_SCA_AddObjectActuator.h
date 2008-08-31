@@ -60,9 +60,13 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 
 	/// Linear velocity upon creation of the object. 
 	MT_Vector3  m_linear_velocity;
+	
+	/// Angular velocity upon creation of the object. 
+	MT_Vector3  m_angular_velocity;
 
 	/// Apply the velocity locally 
-	bool m_localFlag;
+	bool m_localLinvFlag;
+	bool m_localAngvFlag;
 	
 	SCA_IObject*	m_lastCreatedObject;
 	
@@ -79,7 +83,9 @@ public:
 		int time,
 		SCA_IScene* scene,
 		const MT_Vector3& linvel,
-		bool local,
+		bool linv_local,
+		const MT_Vector3& angvel,
+		bool angv_local,
 		PyTypeObject* T=&Type
 	);
 
@@ -115,19 +121,23 @@ public:
 	/* 1. setObject */
 	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetObject);
 	/* 2. setTime */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetTime);
+	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetTime);
 	/* 3. getTime */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetTime);
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetTime);
 	/* 4. getObject */
 	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,GetObject);
 	/* 5. getLinearVelocity */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetLinearVelocity);
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetLinearVelocity);
 	/* 6. setLinearVelocity */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetLinearVelocity);
-	/* 7. getLastCreatedObject */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetLastCreatedObject);
-	/* 8. instantAddObject*/
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,InstantAddObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,SetLinearVelocity);
+	/* 7. getAngularVelocity */
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetAngularVelocity);
+	/* 8. setAngularVelocity */
+	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,SetAngularVelocity);
+	/* 9. getLastCreatedObject */
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetLastCreatedObject);
+	/* 10. instantAddObject*/
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,InstantAddObject);
 
 	
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */
