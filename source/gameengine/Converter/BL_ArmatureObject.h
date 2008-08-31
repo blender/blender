@@ -80,6 +80,7 @@ protected:
 	struct bArmature	*m_armature;
 	struct bPose		*m_pose;
 	struct bPose		*m_mrdPose;
+	struct bPose		*m_framePose;
 	double	m_lastframe;
 	class BL_ActionActuator *m_activeAct;
 	short	m_activePriority;

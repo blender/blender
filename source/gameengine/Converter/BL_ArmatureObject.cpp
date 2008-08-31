@@ -54,6 +54,7 @@ BL_ArmatureObject::BL_ArmatureObject(
 :	KX_GameObject(sgReplicationInfo,callbacks),
 	m_objArma(armature),
 	m_mrdPose(NULL),
+	m_framePose(NULL),
 	m_lastframe(0.),
 	m_activeAct(NULL),
 	m_activePriority(999)
@@ -114,10 +115,15 @@ bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, 
 		m_activePriority = 9999;
 		m_lastframe= curtime;
 		m_activeAct = NULL;
+		// remember the pose at the start of the frame
+		m_framePose = m_pose;
 	}
 
 	if (priority<=m_activePriority)
 	{
+		if (priority<m_activePriority)
+			// this action overwrites the previous ones, start from initial pose to cancel their effects
+			m_pose = m_framePose;
 		if (m_activeAct && (m_activeAct!=act))
 			m_activeAct->SetBlendTime(0.0);	/* Reset the blend timer */
 		m_activeAct = act;
