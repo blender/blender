@@ -809,7 +809,7 @@ static void draw_markers(SpaceText *st) {
 				x2= get_char_pos(st, line->line, marker->end) - st->left + offc;
 				y2= cy + offl;
 
-				glColor3ub(marker->clr[0], marker->clr[1], marker->clr[2]);
+				glColor3ub(marker->color[0], marker->color[1], marker->color[2]);
 				x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 				y= curarea->winy-3;
 
@@ -1518,13 +1518,13 @@ void find_and_replace(SpaceText *st, short mode) {
 					txt_insert_buf(text, g_replace_str);
 					if (st->showsyntax) txt_format_line(st, text->curl, 1);
 				} else if (mode==2) {
-					char clr[4];
-					BIF_GetThemeColor4ubv(TH_SHADE2, clr);
+					char color[4];
+					BIF_GetThemeColor4ubv(TH_SHADE2, color);
 					if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL, 0)) {
 						if (tmp) MEM_freeN(tmp), tmp=NULL;
 						break;
 					}
-					txt_add_marker(text, text->curl, text->curc, text->selc, clr, TMARK_GRP_FINDALL, TMARK_EDITALL);
+					txt_add_marker(text, text->curl, text->curc, text->selc, color, TMARK_GRP_FINDALL, TMARK_EDITALL);
 				}
 			}
 			MEM_freeN(tmp);

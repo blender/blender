@@ -38,15 +38,17 @@ typedef struct TextLine {
 	struct TextLine *next, *prev;
 
 	char *line;
-	char *format;
-	int len, blen;
+	char *format; /* may be NULL if syntax is off or not yet formatted */
+	int len, blen; /* blen unused */
 } TextLine;
 
 typedef struct TextMarker {
 	struct TextMarker *next, *prev;
-	int lineno, start, end, pad1;
-	int group, flags;
-	char clr[4], pad[4];
+
+	int lineno, start, end, pad1; /* line number and start/end character indices */
+	
+	int group, flags; /* see BKE_text.h for flag defines */
+	char color[4], pad[4]; /* draw color of the marker */
 } TextMarker;
 
 typedef struct Text {

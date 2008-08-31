@@ -2682,14 +2682,14 @@ int setcurr_tab (Text *text)
 /*********************************/
 
 static int color_match(TextMarker *a, TextMarker *b) {
-	return (a->clr[0]==b->clr[0] &&
-			a->clr[1]==b->clr[1] &&
-			a->clr[2]==b->clr[2] &&
-			a->clr[3]==b->clr[3]);
+	return (a->color[0]==b->color[0] &&
+			a->color[1]==b->color[1] &&
+			a->color[2]==b->color[2] &&
+			a->color[3]==b->color[3]);
 }
 
 /* Creates and adds a marker to the list maintaining sorted order */
-void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4], int group, int flags) {
+void txt_add_marker(Text *text, TextLine *line, int start, int end, char color[4], int group, int flags) {
 	TextMarker *tmp, *marker;
 
 	marker= MEM_mallocN(sizeof(TextMarker), "text_marker");
@@ -2700,10 +2700,10 @@ void txt_add_marker(Text *text, TextLine *line, int start, int end, char clr[4],
 	marker->group= group;
 	marker->flags= flags;
 
-	marker->clr[0]= clr[0];
-	marker->clr[1]= clr[1];
-	marker->clr[2]= clr[2];
-	marker->clr[3]= clr[3];
+	marker->color[0]= color[0];
+	marker->color[1]= color[1];
+	marker->color[2]= color[2];
+	marker->color[3]= color[3];
 
 	for (tmp=text->markers.last; tmp; tmp=tmp->prev)
 		if (tmp->lineno < marker->lineno || (tmp->lineno==marker->lineno && tmp->start < marker->start))

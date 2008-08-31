@@ -688,7 +688,7 @@ static PyObject *Text_markSelection( BPy_Text * self, PyObject * args )
 {
 	int group = 0, flags = 0,r, g, b;
 	Text *text;
-	char clr[4];
+	char color[4];
 
 	text = self->text;
 	if (!text)
@@ -703,14 +703,14 @@ static PyObject *Text_markSelection( BPy_Text * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 					      "Cannot mark multi-line selection.");
 
-	clr[0] = (char) (r&0xFF);
-	clr[1] = (char) (g&0xFF);
-	clr[2] = (char) (b&0xFF);
-	clr[3] = 255;
+	color[0] = (char) (r&0xFF);
+	color[1] = (char) (g&0xFF);
+	color[2] = (char) (b&0xFF);
+	color[3] = 255;
 
 	group &= 0xFFFF;
 
-	txt_add_marker(text, text->curl, text->curc, text->selc, clr, group, flags);
+	txt_add_marker(text, text->curl, text->curc, text->selc, color, group, flags);
 	
 	Py_RETURN_NONE;
 }
