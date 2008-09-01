@@ -131,6 +131,7 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfAxes);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfButtons);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
+	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
 	
 };
 

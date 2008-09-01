@@ -367,6 +367,16 @@ void SCA_Joystick::DestroyJoystickDevice(void)
 	}
 }
 
+int SCA_Joystick::Connected(void)
+{
+	if (m_isinit){
+		if(SDL_JoystickOpened(m_joyindex)){
+			return 1;
+		}
+	}
+	
+	return 0;
+}
 
 void SCA_Joystick::pFillAxes()
 {
