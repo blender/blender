@@ -6060,6 +6060,10 @@ static void init_textspace(ScrArea *sa)
 	st->lheight= 12;
 	st->showlinenrs= 0;
 	st->tabnumber = 4;
+	st->showsyntax= 0;
+	st->doplugins= 0;
+	st->overwrite= 0;
+	st->wordwrap= 0;
 	st->currtab_set = 0;
 	
 	st->top= 0;

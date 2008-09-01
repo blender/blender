@@ -1849,6 +1849,7 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 {
 	Text *text;
 	TextLine *tmp;
+	TextMarker *mrk;
 
 	text= idbase->first;
 	while(text) {
@@ -1872,7 +1873,16 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 				writedata(wd, DATA, tmp->len+1, tmp->line);
 				tmp= tmp->next;
 			}
+
+			/* write markers */
+			mrk= text->markers.first;
+			while (mrk) {
+				writestruct(wd, DATA, "TextMarker", 1, mrk);
+				mrk= mrk->next;
+			}
 		}
+
+
 		text= text->id.next;
 	}
 

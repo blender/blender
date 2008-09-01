@@ -30,6 +30,8 @@
  */
 
 #include <string.h> /* strstr */
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -81,12 +83,19 @@ The st->top determines at what line the top of the text is displayed.
 If the user moves the cursor the st containing that cursor should
 be popped ... other st's retain their own top location.
 
-*/ /***************/
+Markers
+--
+The mrk->flags define the behaviour and relationships between markers. The
+upper two bytes are used to hold a group ID, the lower two are normal flags. If
+TMARK_EDITALL is set the group ID defines which other markers should be edited.
 
+The mrk->clr field is used to visually group markers where the flags may not
+match. A template system, for example, may allow editing of repeating tokens
+(in one group) but include other marked positions (in another group) all in the
+same template with the same colour.
 
-/****************/ /*
-	Undo
-
+Undo
+--
 Undo/Redo works by storing
 events in a queue, and a pointer
 to the current position in the
@@ -145,6 +154,7 @@ void free_text(Text *text)
 	}
 	
 	BLI_freelistN(&text->lines);
+	BLI_freelistN(&text->markers);
 
 	if(text->name) MEM_freeN(text->name);
 	MEM_freeN(text->undo_buf);
@@ -169,10 +179,11 @@ Text *add_empty_text(char *name)
 	ta->flags= TXT_ISDIRTY | TXT_ISTMP | TXT_ISMEM;
 
 	ta->lines.first= ta->lines.last= NULL;
+	ta->markers.first= ta->markers.last= NULL;
 
 	tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= (char*) MEM_mallocN(1, "textline_string");
-	tmp->format= (char*) MEM_mallocN(2, "Syntax_format");
+	tmp->format= NULL;
 	
 	tmp->line[0]=0;
 	tmp->len= 0;
@@ -209,11 +220,12 @@ static void cleanup_textline(TextLine * tl)
 int reopen_text(Text *text)
 {
 	FILE *fp;
-	int i, llen, len;
+	int i, llen, len, res;
 	unsigned char *buffer;
 	TextLine *tmp;
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+	struct stat st;
 
 	if (!text || !text->name) return 0;
 	
@@ -242,7 +254,7 @@ int reopen_text(Text *text)
 	text->undo_len= TXT_INIT_UNDO;
 	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
 	
-	text->flags= TXT_ISDIRTY | TXT_ISTMP; 
+	text->flags= TXT_ISTMP; 
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
@@ -256,6 +268,9 @@ int reopen_text(Text *text)
 	len = fread(buffer, 1, len, fp);
 
 	fclose(fp);
+
+	res= stat(str, &st);
+	text->mtime= st.st_mtime;
 	
 	text->nlines=0;
 	i=0;
@@ -264,7 +279,7 @@ int reopen_text(Text *text)
 		if (buffer[i]=='\n') {
 			tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 			tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
-			tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
+			tmp->format= NULL;
 			
 			if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 			tmp->line[llen]=0;
@@ -284,7 +299,7 @@ int reopen_text(Text *text)
 	if (llen!=0 || text->nlines==0) {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
-		tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
+		tmp->format= NULL;
 		
 		if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 
@@ -307,12 +322,13 @@ int reopen_text(Text *text)
 Text *add_text(char *file) 
 {
 	FILE *fp;
-	int i, llen, len;
+	int i, llen, len, res;
 	unsigned char *buffer;
 	TextLine *tmp;
 	Text *ta;
 	char sfile[FILE_MAXFILE];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+	struct stat st;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (G.scene) /* can be NULL (bg mode) */
@@ -326,6 +342,7 @@ Text *add_text(char *file)
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;
+	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
 
 /* 	ta->flags= TXT_ISTMP | TXT_ISEXT; */
@@ -348,6 +365,9 @@ Text *add_text(char *file)
 	len = fread(buffer, 1, len, fp);
 
 	fclose(fp);
+
+	res= stat(str, &st);
+	ta->mtime= st.st_mtime;
 	
 	ta->nlines=0;
 	i=0;
@@ -356,7 +376,7 @@ Text *add_text(char *file)
 		if (buffer[i]=='\n') {
 			tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 			tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
-			tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
+			tmp->format= NULL;
 			
 			if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 			tmp->line[llen]=0;
@@ -376,7 +396,7 @@ Text *add_text(char *file)
 	if (llen!=0 || ta->nlines==0) {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
-		tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
+		tmp->format= NULL;
 		
 		if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 
@@ -410,6 +430,7 @@ Text *copy_text(Text *ta)
 	tan->flags = ta->flags | TXT_ISDIRTY | TXT_ISTMP;
 	
 	tan->lines.first= tan->lines.last= NULL;
+	tan->markers.first= tan->markers.last= NULL;
 	tan->curl= tan->sell= NULL;
 	
 	tan->nlines= ta->nlines;
@@ -419,7 +440,7 @@ Text *copy_text(Text *ta)
 	while (line) {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= MEM_mallocN(line->len+1, "textline_string");
-		tmp->format= MEM_mallocN(line->len+2, "Syntax_format");
+		tmp->format= NULL;
 		
 		strcpy(tmp->line, line->line);
 
@@ -440,14 +461,14 @@ Text *copy_text(Text *ta)
 /* Editing utility functions */
 /*****************************/
 
-static void make_new_line (TextLine *line, char *newline, char *newformat) 
+static void make_new_line (TextLine *line, char *newline) 
 {
 	if (line->line) MEM_freeN(line->line);
 	if (line->format) MEM_freeN(line->format);
 	
 	line->line= newline;
 	line->len= strlen(newline);
-	line->format= newformat;
+	line->format= NULL;
 }
 
 static TextLine *txt_new_line(char *str)
@@ -458,7 +479,7 @@ static TextLine *txt_new_line(char *str)
 	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(strlen(str)+1, "textline_string");
-	tmp->format= MEM_mallocN(strlen(str)+2, "Syntax_format");
+	tmp->format= NULL;
 	
 	strcpy(tmp->line, str);
 	
@@ -476,7 +497,7 @@ static TextLine *txt_new_linen(char *str, int n)
 	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(n+1, "textline_string");
-	tmp->format= MEM_mallocN(n+2, "Syntax_format");
+	tmp->format= NULL;
 	
 	BLI_strncpy(tmp->line, str, n+1);
 	
@@ -553,6 +574,19 @@ static void txt_make_dirty (Text *text)
 	if (text->compiled) BPY_free_compiled_text(text);
 }
 
+/* 0:whitespace, 1:punct, 2:alphanumeric */
+static short txt_char_type (char ch)
+{
+	if (ch <= ' ') return 0;
+	if (ch <= '/') return 1;
+	if (ch <= '9') return 2;
+	if (ch <= '@') return 1;
+	if (ch <= 'Z') return 2;
+	if (ch <= '`') return 1;
+	if (ch <= 'z') return 2;
+	return 1;
+}
+
 /****************************/
 /* Cursor utility functions */
 /****************************/
@@ -606,8 +640,7 @@ void txt_move_up(Text *text, short sel)
 			if(!undoing) txt_undo_add_op(text, sel?UNDO_SUP:UNDO_CUP);
 		}
 	} else {
-		*charp= 0;
-		if(!undoing) txt_undo_add_op(text, sel?UNDO_SUP:UNDO_CUP);
+		txt_move_bol(text, sel);
 	}
 
 	if(!sel) txt_pop_sel(text);
@@ -632,8 +665,7 @@ void txt_move_down(Text *text, short sel)
 		} else
 			if(!undoing) txt_undo_add_op(text, sel?UNDO_SDOWN:UNDO_CDOWN);	
 	} else {
-		*charp= (*linep)->len;
-		if(!undoing) txt_undo_add_op(text, sel?UNDO_SDOWN:UNDO_CDOWN);
+		txt_move_eol(text, sel);
 	}
 
 	if(!sel) txt_pop_sel(text);
@@ -687,6 +719,68 @@ void txt_move_right(Text *text, short sel)
 	if(!undoing) txt_undo_add_op(text, sel?UNDO_SRIGHT:UNDO_CRIGHT);
 
 	if(!sel) txt_pop_sel(text);
+}
+
+void txt_jump_left(Text *text, short sel)
+{
+	TextLine **linep, *oldl;
+	int *charp, oldc, count, i;
+	unsigned char oldu;
+
+	if (!text) return;
+	if(sel) txt_curs_sel(text, &linep, &charp);
+	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
+	if (!*linep) return;
+
+	oldl= *linep;
+	oldc= *charp;
+	oldu= undoing;
+	undoing= 1; /* Don't push individual moves to undo stack */
+
+	count= 0;
+	for (i=0; i<3; i++) {
+		if (count < 2) {
+			while (*charp>0 && txt_char_type((*linep)->line[*charp-1])==i) {
+				txt_move_left(text, sel);
+				count++;
+			}
+		}
+	}
+	if (count==0) txt_move_left(text, sel);
+
+	undoing= oldu;
+	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
+}
+
+void txt_jump_right(Text *text, short sel)
+{
+	TextLine **linep, *oldl;
+	int *charp, oldc, count, i;
+	unsigned char oldu;
+
+	if (!text) return;
+	if(sel) txt_curs_sel(text, &linep, &charp);
+	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
+	if (!*linep) return;
+
+	oldl= *linep;
+	oldc= *charp;
+	oldu= undoing;
+	undoing= 1; /* Don't push individual moves to undo stack */
+
+	count= 0;
+	for (i=0; i<3; i++) {
+		if (count < 2) {
+			while (*charp<(*linep)->len && txt_char_type((*linep)->line[*charp])==i) {
+				txt_move_right(text, sel);
+				count++;
+			}
+		}
+	}
+	if (count==0) txt_move_right(text, sel);
+
+	undoing= oldu;
+	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 void txt_move_bol (Text *text, short sel) 
@@ -761,6 +855,11 @@ void txt_move_eof (Text *text, short sel)
 
 void txt_move_toline (Text *text, unsigned int line, short sel)
 {
+	txt_move_to(text, line, 0, sel);
+}
+
+void txt_move_to (Text *text, unsigned int line, unsigned int ch, short sel)
+{
 	TextLine **linep, *oldl;
 	int *charp, oldc;
 	unsigned int i;
@@ -777,10 +876,12 @@ void txt_move_toline (Text *text, unsigned int line, short sel)
 		if ((*linep)->next) *linep= (*linep)->next;
 		else break;
 	}
-	*charp= 0;
+	if (ch>(*linep)->len)
+		ch= (*linep)->len;
+	*charp= ch;
 	
 	if(!sel) txt_pop_sel(text);
-	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);	
+	if(!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 /****************************/
@@ -865,7 +966,9 @@ int txt_has_sel(Text *text)
 static void txt_delete_sel (Text *text)
 {
 	TextLine *tmpl;
-	char *buf, *format;
+	TextMarker *mrk;
+	char *buf;
+	int move, lineno;
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -882,13 +985,33 @@ static void txt_delete_sel (Text *text)
 	}
 
 	buf= MEM_mallocN(text->curc+(text->sell->len - text->selc)+1, "textline_string");
-	format= MEM_mallocN(text->curc+(text->sell->len - text->selc)+2, "Syntax_format");
 	
+	if (text->curl != text->sell) {
+		txt_clear_marker_region(text, text->curl, text->curc, text->curl->len, 0, 0);
+		move= txt_get_span(text->curl, text->sell);
+	} else {
+		mrk= txt_find_marker_region(text, text->curl, text->curc, text->selc, 0, 0);
+		if (mrk && (mrk->start > text->curc || mrk->end < text->selc))
+			txt_clear_marker_region(text, text->curl, text->curc, text->selc, 0, 0);
+		move= 0;
+	}
+
+	mrk= txt_find_marker_region(text, text->sell, text->selc-1, text->sell->len, 0, 0);
+	if (mrk) {
+		lineno= mrk->lineno;
+		do {
+			mrk->lineno -= move;
+			if (mrk->start > text->curc) mrk->start -= text->selc - text->curc;
+			mrk->end -= text->selc - text->curc;
+			mrk= mrk->next;
+		} while (mrk && mrk->lineno==lineno);
+	}
+
 	strncpy(buf, text->curl->line, text->curc);
 	strcpy(buf+text->curc, text->sell->line + text->selc);
 	buf[text->curc+(text->sell->len - text->selc)]=0;
 
-	make_new_line(text->curl, buf, format);
+	make_new_line(text->curl, buf);
 	
 	tmpl= text->sell;
 	while (tmpl != text->curl) {
@@ -995,22 +1118,31 @@ char *txt_to_buf (Text *text)
 	return buf;
 }
 
-int txt_find_string(Text *text, char *findstr)
+int txt_find_string(Text *text, char *findstr, int wrap)
 {
 	TextLine *tl, *startl;
 	char *s= NULL;
+	int oldcl, oldsl, oldcc, oldsc;
 
 	if (!text || !text->curl || !text->sell) return 0;
 	
 	txt_order_cursors(text);
 
+	oldcl= txt_get_span(text->lines.first, text->curl);
+	oldsl= txt_get_span(text->lines.first, text->sell);
 	tl= startl= text->sell;
+	oldcc= text->curc;
+	oldsc= text->selc;
 	
 	s= strstr(&tl->line[text->selc], findstr);
 	while (!s) {
 		tl= tl->next;
-		if (!tl)
-			tl= text->lines.first;
+		if (!tl) {
+			if (wrap)
+				tl= text->lines.first;
+			else
+				break;
+		}
 
 		s= strstr(tl->line, findstr);
 		if (tl==startl)
@@ -1018,10 +1150,10 @@ int txt_find_string(Text *text, char *findstr)
 	}
 	
 	if (s) {
-		text->curl= text->sell= tl;
-		text->curc= (int) (s-tl->line);
-		text->selc= text->curc + strlen(findstr);
-		
+		int newl= txt_get_span(text->lines.first, tl);
+		int newc= (int)(s-tl->line);
+		txt_move_to(text, newl, newc, 0);
+		txt_move_to(text, newl, newc + strlen(findstr), 1);
 		return 1;				
 	} else
 		return 0;
@@ -1621,7 +1753,6 @@ void txt_do_undo(Text *text)
 
 		case UNDO_SWAP:
 			txt_curs_swap(text);
-			txt_do_undo(text); /* swaps should appear transparent */
 			break;
 
 		case UNDO_DBLOCK:
@@ -1736,6 +1867,19 @@ void txt_do_undo(Text *text)
 			
 			break;
 	}
+
+	/* next undo step may need evaluating */
+	if (text->undo_pos>=0) {
+		switch (text->undo_buf[text->undo_pos]) {
+			case UNDO_STO:
+				txt_do_undo(text);
+				txt_do_redo(text); /* selections need restoring */
+				break;
+			case UNDO_SWAP:
+				txt_do_undo(text); /* swaps should appear transparent */
+				break;
+		}
+	}
 	
 	undoing= 0;	
 }
@@ -1810,7 +1954,7 @@ void txt_do_redo(Text *text)
 
 		case UNDO_SWAP:
 			txt_curs_swap(text);
-			txt_do_undo(text); /* swaps should appear transparent a*/
+			txt_do_redo(text); /* swaps should appear transparent a*/
 			break;
 			
 		case UNDO_CTO:
@@ -1947,22 +2091,37 @@ void txt_do_redo(Text *text)
 void txt_split_curline (Text *text) 
 {
 	TextLine *ins;
-	char *left, *right, *fleft, *fright;
+	TextMarker *mrk;
+	char *left, *right;
+	int lineno= -1;
 	
 	if (!text) return;
 	if (!text->curl) return;
 
-	txt_delete_sel(text);	
+	txt_delete_sel(text);
+
+	/* Move markers */
+
+	lineno= txt_get_span(text->lines.first, text->curl);
+	mrk= text->markers.first;
+	while (mrk) {
+		if (mrk->lineno==lineno && mrk->start>text->curc) {
+			mrk->lineno++;
+			mrk->start -= text->curc;
+			mrk->end -= text->curc;
+		} else if (mrk->lineno > lineno) {
+			mrk->lineno++;
+		}
+		mrk= mrk->next;
+	}
 
 	/* Make the two half strings */
 
 	left= MEM_mallocN(text->curc+1, "textline_string");
-	fleft= MEM_mallocN(text->curc+2, "Syntax_format");
 	if (text->curc) memcpy(left, text->curl->line, text->curc);
 	left[text->curc]=0;
 	
 	right= MEM_mallocN(text->curl->len - text->curc+1, "textline_string");
-	fright= MEM_mallocN(text->curl->len - text->curc+2, "Syntax_format");
 	if (text->curl->len - text->curc) memcpy(right, text->curl->line+text->curc, text->curl->len-text->curc);
 	right[text->curl->len - text->curc]=0;
 
@@ -1973,11 +2132,11 @@ void txt_split_curline (Text *text)
 	
 	ins= MEM_mallocN(sizeof(TextLine), "textline");
 	ins->line= left;
-	ins->format= fleft;
+	ins->format= NULL;
 	ins->len= text->curc;
 	
 	text->curl->line= right;
-	text->curl->format= fright;
+	text->curl->format= NULL;
 	text->curl->len= text->curl->len - text->curc;
 	
 	BLI_insertlinkbefore(&text->lines, text->curl, ins);	
@@ -1993,8 +2152,22 @@ void txt_split_curline (Text *text)
 
 static void txt_delete_line (Text *text, TextLine *line) 
 {
+	TextMarker *mrk=NULL, *nxt;
+	int lineno= -1;
+
 	if (!text) return;
 	if (!text->curl) return;
+
+	lineno= txt_get_span(text->lines.first, line);
+	mrk= text->markers.first;
+	while (mrk) {
+		nxt= mrk->next;
+		if (mrk->lineno==lineno)
+			BLI_freelinkN(&text->markers, mrk);
+		else if (mrk->lineno > lineno)
+			mrk->lineno--;
+		mrk= nxt;
+	}
 
 	BLI_remlink (&text->lines, line);
 	
@@ -2009,21 +2182,35 @@ static void txt_delete_line (Text *text, TextLine *line)
 
 static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 {
-	char *tmp, *format;
+	char *tmp;
+	TextMarker *mrk= NULL;
+	int lineno=-1;
 	
 	if (!text) return;
 	
 	if(!linea || !lineb) return;
+
+	mrk= txt_find_marker_region(text, lineb, 0, lineb->len, 0, 0);
+	if (mrk) {
+		lineno= mrk->lineno;
+		do {
+			mrk->lineno--;
+			mrk->start += linea->len;
+			mrk->end += linea->len;
+			mrk= mrk->next;
+		} while (mrk && mrk->lineno==lineno);
+	}
+	if (lineno==-1) lineno= txt_get_span(text->lines.first, lineb);
+	if (!mrk) mrk= text->markers.first;
 	
 	tmp= MEM_mallocN(linea->len+lineb->len+1, "textline_string");
-	format= MEM_mallocN(linea->len+lineb->len+1, "Syntax_format");
 	
 	strcpy(tmp, linea->line);
 	strcat(tmp, lineb->line);
 
-	make_new_line(linea, tmp, format);
+	make_new_line(linea, tmp);
 	
-	txt_delete_line(text, lineb); 
+	txt_delete_line(text, lineb);
 	
 	txt_make_dirty(text);
 	txt_clean_text(text);
@@ -2037,8 +2224,9 @@ void txt_delete_char (Text *text)
 	if (!text->curl) return;
 
 	if (txt_has_sel(text)) { /* deleting a selection */
-	  txt_delete_sel(text);
-	  return;
+		txt_delete_sel(text);
+		txt_make_dirty(text);
+		return;
 	}
 	else if (text->curc== text->curl->len) { /* Appending two lines */
 		if (text->curl->next) {
@@ -2047,6 +2235,25 @@ void txt_delete_char (Text *text)
 		}
 	} else { /* Just deleting a char */
 		int i= text->curc;
+
+		TextMarker *mrk= txt_find_marker_region(text, text->curl, i-1, text->curl->len, 0, 0);
+		if (mrk) {
+			int lineno= mrk->lineno;
+			if (mrk->end==i) {
+				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
+					txt_clear_markers(text, mrk->group, TMARK_TEMP);
+				} else {
+					TextMarker *nxt= mrk->next;
+					BLI_freelinkN(&text->markers, mrk);
+				}
+				return;
+			}
+			do {
+				if (mrk->start>i) mrk->start--;
+				mrk->end--;
+				mrk= mrk->next;
+			} while (mrk && mrk->lineno==lineno);
+		}
 		
 		c= text->curl->line[i];
 		while(i< text->curl->len) {
@@ -2064,6 +2271,12 @@ void txt_delete_char (Text *text)
 	if(!undoing) txt_undo_add_charop(text, UNDO_DEL, c);
 }
 
+void txt_delete_word (Text *text) 
+{
+	txt_jump_right(text, 1);
+	txt_delete_sel(text);
+}
+
 void txt_backspace_char (Text *text) 
 {
 	char c='\n';
@@ -2072,8 +2285,9 @@ void txt_backspace_char (Text *text)
 	if (!text->curl) return;
 	
 	if (txt_has_sel(text)) { /* deleting a selection */
-	  txt_delete_sel(text);
-	  return;
+		txt_delete_sel(text);
+		txt_make_dirty(text);
+		return;
 	}
 	else if (text->curc==0) { /* Appending two lines */
 		if (!text->curl->prev) return;
@@ -2083,19 +2297,38 @@ void txt_backspace_char (Text *text)
 		
 		txt_combine_lines(text, text->curl, text->curl->next);
 		txt_pop_sel(text);
-	} 
+	}
 	else { /* Just backspacing a char */
-	  int i= text->curc-1;
+		int i= text->curc-1;
+
+		TextMarker *mrk= txt_find_marker_region(text, text->curl, i, text->curl->len, 0, 0);
+		if (mrk) {
+			int lineno= mrk->lineno;
+			if (mrk->start==i+1) {
+				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
+					txt_clear_markers(text, mrk->group, TMARK_TEMP);
+				} else {
+					TextMarker *nxt= mrk->next;
+					BLI_freelinkN(&text->markers, mrk);
+				}
+				return;
+			}
+			do {
+				if (mrk->start>i) mrk->start--;
+				mrk->end--;
+				mrk= mrk->next;
+			} while (mrk && mrk->lineno==lineno);
+		}
 		
-	  c= text->curl->line[i];
-	  while(i< text->curl->len) {
-	    text->curl->line[i]= text->curl->line[i+1];
-	    i++;
-	  }
-	  text->curl->len--;
-	  text->curc--;
-		
-	  txt_pop_sel(text);
+		c= text->curl->line[i];
+		while(i< text->curl->len) {
+			text->curl->line[i]= text->curl->line[i+1];
+			i++;
+		}
+		text->curl->len--;
+		text->curc--;
+
+		txt_pop_sel(text);
 	}
 
 	txt_make_dirty(text);
@@ -2104,10 +2337,17 @@ void txt_backspace_char (Text *text)
 	if(!undoing) txt_undo_add_charop(text, UNDO_BS, c);
 }
 
+void txt_backspace_word (Text *text) 
+{
+	txt_jump_left(text, 1);
+	txt_delete_sel(text);
+}
+
 int txt_add_char (Text *text, char add) 
 {
-	int len;
-	char *tmp, *format;
+	int len, lineno;
+	char *tmp;
+	TextMarker *mrk;
 	
 	if (!text) return 0;
 	if (!text->curl) return 0;
@@ -2119,8 +2359,17 @@ int txt_add_char (Text *text, char add)
 	
 	txt_delete_sel(text);
 	
+	mrk= txt_find_marker_region(text, text->curl, text->curc-1, text->curl->len, 0, 0);
+	if (mrk) {
+		lineno= mrk->lineno;
+		do {
+			if (mrk->start>text->curc) mrk->start++;
+			mrk->end++;
+			mrk= mrk->next;
+		} while (mrk && mrk->lineno==lineno);
+	}
+	
 	tmp= MEM_mallocN(text->curl->len+2, "textline_string");
-	format= MEM_mallocN(text->curl->len+4, "Syntax_format");
 	
 	if(text->curc) memcpy(tmp, text->curl->line, text->curc);
 	tmp[text->curc]= add;
@@ -2128,7 +2377,7 @@ int txt_add_char (Text *text, char add)
 	len= text->curl->len - text->curc;
 	if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 	tmp[text->curl->len+1]=0;
-	make_new_line(text->curl, tmp, format);
+	make_new_line(text->curl, tmp);
 		
 	text->curc++;
 
@@ -2141,10 +2390,42 @@ int txt_add_char (Text *text, char add)
 	return 1;
 }
 
+int txt_replace_char (Text *text, char add)
+{
+	char del;
+	
+	if (!text) return 0;
+	if (!text->curl) return 0;
+
+	/* If text is selected or we're at the end of the line just use txt_add_char */
+	if (text->curc==text->curl->len || txt_has_sel(text) || add=='\n') {
+		TextMarker *mrk;
+		int i= txt_add_char(text, add);
+		mrk= txt_find_marker(text, text->curl, text->curc, 0, 0);
+		if (mrk && mrk->end==text->curc) mrk->end--;
+		return i;
+	}
+	
+	del= text->curl->line[text->curc];
+	text->curl->line[text->curc]= (unsigned char) add;
+	text->curc++;
+	txt_pop_sel(text);
+	
+	txt_make_dirty(text);
+	txt_clean_text(text);
+
+	/* Should probably create a new op for this */
+	if(!undoing) {
+		txt_undo_add_charop(text, UNDO_DEL, del);
+		txt_undo_add_charop(text, UNDO_INSERT, add);
+	}
+	return 1;
+}
+
 void indent(Text *text)
 {
 	int len, num;
-	char *tmp, *format;
+	char *tmp;
 	char add = '\t';
 	
 	if (!text) return;
@@ -2155,7 +2436,6 @@ void indent(Text *text)
 	while (TRUE)
 	{
 		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
-		format= MEM_mallocN(text->curl->len+3, "Syntax_format");
 		
 		text->curc = 0; 
 		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
@@ -2165,7 +2445,7 @@ void indent(Text *text)
 		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 		tmp[text->curl->len+1]=0;
 
-		make_new_line(text->curl, tmp, format);
+		make_new_line(text->curl, tmp);
 			
 		text->curc++;
 		
@@ -2246,7 +2526,7 @@ void unindent(Text *text)
 void comment(Text *text)
 {
 	int len, num;
-	char *tmp, *format;
+	char *tmp;
 	char add = '#';
 	
 	if (!text) return;
@@ -2257,7 +2537,6 @@ void comment(Text *text)
 	while (TRUE)
 	{
 		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
-		format = MEM_mallocN(text->curl->len+3, "Syntax_format");
 		
 		text->curc = 0; 
 		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
@@ -2267,7 +2546,7 @@ void comment(Text *text)
 		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 		tmp[text->curl->len+1]=0;
 
-		make_new_line(text->curl, tmp, format);
+		make_new_line(text->curl, tmp);
 			
 		text->curc++;
 		
@@ -2398,3 +2677,148 @@ int setcurr_tab (Text *text)
 	return i;
 }
 
+/*********************************/
+/* Text marker utility functions */
+/*********************************/
+
+static int color_match(TextMarker *a, TextMarker *b) {
+	return (a->color[0]==b->color[0] &&
+			a->color[1]==b->color[1] &&
+			a->color[2]==b->color[2] &&
+			a->color[3]==b->color[3]);
+}
+
+/* Creates and adds a marker to the list maintaining sorted order */
+void txt_add_marker(Text *text, TextLine *line, int start, int end, char color[4], int group, int flags) {
+	TextMarker *tmp, *marker;
+
+	marker= MEM_mallocN(sizeof(TextMarker), "text_marker");
+	
+	marker->lineno= txt_get_span(text->lines.first, line);
+	marker->start= MIN2(start, end);
+	marker->end= MAX2(start, end);
+	marker->group= group;
+	marker->flags= flags;
+
+	marker->color[0]= color[0];
+	marker->color[1]= color[1];
+	marker->color[2]= color[2];
+	marker->color[3]= color[3];
+
+	for (tmp=text->markers.last; tmp; tmp=tmp->prev)
+		if (tmp->lineno < marker->lineno || (tmp->lineno==marker->lineno && tmp->start < marker->start))
+			break;
+
+	if (tmp) BLI_insertlinkafter(&text->markers, tmp, marker);
+	else BLI_addhead(&text->markers, marker);
+}
+
+/* Returns the first matching marker on the specified line between two points.
+   If the group or flags fields are non-zero the returned flag must be in the
+   specified group and have at least the specified flags set. */
+TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags) {
+	TextMarker *marker, *next;
+	int lineno= txt_get_span(text->lines.first, line);
+	
+	for (marker=text->markers.first; marker; marker=next) {
+		next= marker->next;
+
+		if (group && marker->group != group) continue;
+		else if ((marker->flags & flags) != flags) continue;
+		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno > lineno) break;
+
+		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
+				(marker->start<end && marker->end>start))
+			return marker;
+	}
+	return NULL;
+}
+
+/* Clears all markers on the specified line between two points. If the group or
+   flags fields are non-zero the returned flag must be in the specified group
+   and have at least the specified flags set. */
+short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags) {
+	TextMarker *marker, *next;
+	int lineno= txt_get_span(text->lines.first, line);
+	short cleared= 0;
+	
+	for (marker=text->markers.first; marker; marker=next) {
+		next= marker->next;
+
+		if (group && marker->group != group) continue;
+		else if ((marker->flags & flags) != flags) continue;
+		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno > lineno) break;
+
+		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
+			(marker->start<end && marker->end>start)) {
+			BLI_freelinkN(&text->markers, marker);
+			cleared= 1;
+		}
+	}
+	return cleared;
+}
+
+/* Clears all markers in the specified group (if given) with at least the
+   specified flags set. Useful for clearing temporary markers (group=0,
+   flags=TMARK_TEMP) */
+short txt_clear_markers(Text *text, int group, int flags) {
+	TextMarker *marker, *next;
+	short cleared= 0;
+	
+	for (marker=text->markers.first; marker; marker=next) {
+		next= marker->next;
+
+		if ((!group || marker->group==group) &&
+				(marker->flags & flags) == flags) {
+			BLI_freelinkN(&text->markers, marker);
+			cleared= 1;
+		}
+	}
+	return cleared;
+}
+
+/* Finds the marker at the specified line and cursor position with at least the
+   specified flags set in the given group (if non-zero). */
+TextMarker *txt_find_marker(Text *text, TextLine *line, int curs, int group, int flags) {
+	TextMarker *marker;
+	int lineno= txt_get_span(text->lines.first, line);
+	
+	for (marker=text->markers.first; marker; marker=marker->next) {
+		if (group && marker->group != group) continue;
+		else if ((marker->flags & flags) != flags) continue;
+		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno > lineno) break;
+
+		if (marker->start <= curs && curs <= marker->end)
+			return marker;
+	}
+	return NULL;
+}
+
+/* Finds the previous marker in the same group. If no other is found, the same
+   marker will be returned */
+TextMarker *txt_prev_marker(Text *text, TextMarker *marker) {
+	TextMarker *tmp= marker;
+	while (tmp) {
+		if (tmp->prev) tmp= tmp->prev;
+		else tmp= text->markers.last;
+		if (tmp->group == marker->group)
+			return tmp;
+	}
+	return NULL; /* Only if marker==NULL */
+}
+
+/* Finds the next marker in the same group. If no other is found, the same
+   marker will be returned */
+TextMarker *txt_next_marker(Text *text, TextMarker *marker) {
+	TextMarker *tmp= marker;
+	while (tmp) {
+		if (tmp->next) tmp= tmp->next;
+		else tmp= text->markers.first;
+		if (tmp->group == marker->group)
+			return tmp;
+	}
+	return NULL; /* Only if marker==NULL */
+}

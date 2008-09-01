@@ -83,6 +83,9 @@ struct SpaceOops;
 /* nodes handler codes */
 #define NODES_HANDLER_GREASEPENCIL		80
 
+/* text handler codes */
+#define TEXT_HANDLER_FIND	90
+
 /* theme codes */
 #define B_ADD_THEME 	3301
 #define B_DEL_THEME 	3302

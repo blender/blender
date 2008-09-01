@@ -556,6 +556,7 @@ void BPY_Err_Handle( char *script_name )
 	if( exception
 	    && PyErr_GivenExceptionMatches( exception, PyExc_SyntaxError ) ) {
 		/* no traceback available when SyntaxError */
+		PyErr_NormalizeException( &exception, &err, &tb );
 		PyErr_Restore( exception, err, tb );	/* takes away reference! */
 		PyErr_Print(  );
 		v = PyObject_GetAttrString( err, "lineno" );
@@ -965,16 +966,44 @@ int BPY_run_script(Script *script)
 *****************************************************************************/
 int BPY_menu_do_python( short menutype, int event )
 {
-	char *argstr = NULL;
 	BPyMenu *pym;
+	pym = BPyMenu_GetEntry( menutype, ( short ) event );
+	return BPY_menu_invoke( pym, menutype );
+}
+	
+/****************************************************************************
+* Description: This function executes the script by its shortcut.
+* Notes:	It is called by the ui code in src/???.c when a user presses an
+*		unassigned key combination. Scripts are searched in the BPyMenuTable,
+*		using the given menutype and event values to know which one to invoke.
+*****************************************************************************/
+int BPY_menu_do_shortcut( short menutype, unsigned short key, unsigned short qual )
+{
+	BPyMenu *pym;
+	pym = BPyMenu_GetEntry( menutype, 0 );
+
+	while ( pym ) {
+		if ( pym->key && pym->key == key && pym->qual == qual ) {
+			return BPY_menu_invoke( pym, menutype );
+		}
+		pym = pym->next;
+	}
+	
+	return 0;
+}
+
+/****************************************************************************
+* Description: This function executes the script described by a menu item.
+*****************************************************************************/
+int BPY_menu_invoke( BPyMenu *pym, short menutype )
+{
+	char *argstr = NULL;
 	BPySubMenu *pysm;
 	char scriptname[21];
 	Script *script = NULL;
 	int ret, len;
 	PyGILState_STATE gilstate;
 	char filestr[FILE_MAX];
-
-	pym = BPyMenu_GetEntry( menutype, ( short ) event );
 
 	if( !pym )
 		return 0;
@@ -1059,6 +1088,7 @@ int BPY_menu_do_python( short menutype, int event )
 	case PYMENU_RENDER:
 	case PYMENU_WIZARDS:
 	case PYMENU_SCRIPTTEMPLATE:
+	case PYMENU_TEXTPLUGIN:
 	case PYMENU_MESHFACEKEY:
 		break;
 

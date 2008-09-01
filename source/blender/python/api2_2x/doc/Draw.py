@@ -357,12 +357,14 @@ def PupTreeMenu( menu ):
 	"""
 	Create a popup menu tree.
 	
-	Each item in the list is a menu item - (str, event), separator - None or submenu - (str, [...]).
+	Each item in the list is: a menu item - (str, event); a separator - None;
+	or submenu - (str, [...]).
 	
-	Submenus list uses the same syntax as the menu list.
+	Submenus list uses the same syntax as the menu list. To add a title to the
+	main menu, end the first entry str with '%t' - the event is ignored.
 
 	Example::
-		result = Draw.PupTreeMenu( [ ("Menu Item 1", 10), ("Menu Item 2", 12), ("SubMenu", [("Menu Item 3", 100), ("MenuItem4", 101) ]  ) ] )
+		result = Draw.PupTreeMenu( [ ("Title%t", 0), ("Menu Item 1", 10), ("Menu Item 2", 12), ("SubMenu", [("Menu Item 3", 100), ("MenuItem4", 101) ]  ) ] )
 	
 	@type menu: string
 	@param menu: A menu list
