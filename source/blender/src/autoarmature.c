@@ -168,7 +168,7 @@ typedef struct RigControl {
 
 typedef struct MemoNode {
 	float	weight;
-	int		*indexes;
+	int		*positions;
 } MemoNode;
 
 typedef struct RetargetParam {
@@ -1711,7 +1711,7 @@ static void copyMemoNode(MemoNode *dst, MemoNode *src, int size)
 {
 	if (size > 0)
 	{
-		memcpy(dst->indexes + 1, src->indexes, size * sizeof(int));
+		memcpy(dst->positions + 1, src->positions, size * sizeof(int));
 	}
 }
 
@@ -1720,10 +1720,10 @@ static int indexMemoNode(int nb_positions, int previous, int current, int joints
 	return joints_done * nb_positions * nb_positions + current * nb_positions + previous;
 }
 
-static MemoNode * minProblem(MemoNode *table, ReebArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_done)
+static MemoNode * solveJoints(MemoNode *table, ReebArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_left)
 {
 	MemoNode *node;
-	int index = indexMemoNode(nb_positions, previous, current, joints_done);
+	int index = indexMemoNode(nb_positions, previous, current, joints_left);
 	
 	node = table + index;
 	
@@ -1731,7 +1731,7 @@ static MemoNode * minProblem(MemoNode *table, ReebArcIterator *iter, float **vec
 	{
 		return node;
 	}
-	else if (joints_done == nb_joints)
+	else if (joints_left == 0)
 	{
 		float *vec1 = vec_cache[current];
 		float *vec2 = vec_cache[nb_positions + 1];
@@ -1749,7 +1749,7 @@ static MemoNode * minProblem(MemoNode *table, ReebArcIterator *iter, float **vec
 		int min_next;
 		int next;
 		
-		for (next = current + 1; next < nb_positions - joints_done; next++)
+		for (next = current + 1; next <= nb_positions - (joints_left - 1); next++)
 		{
 			MemoNode *next_node;
 			float *vec2 = vec_cache[next];
@@ -1764,7 +1764,7 @@ static MemoNode * minProblem(MemoNode *table, ReebArcIterator *iter, float **vec
 			}
 			
 			/* add node weight */
-			next_node = minProblem(table, iter, vec_cache, nb_joints, nb_positions, current, next, edge->next, joints_done + 1);
+			next_node = solveJoints(table, iter, vec_cache, nb_joints, nb_positions, current, next, edge->next, joints_left - 1);
 			weight += next_node->weight;
 			
 			if (min_node == NULL || weight < min_weight)
@@ -1777,15 +1777,15 @@ static MemoNode * minProblem(MemoNode *table, ReebArcIterator *iter, float **vec
 		
 		if (min_node)
 		{
-			node->indexes = MEM_callocN(sizeof(int) * (nb_joints - joints_done), "Memoization indexes array");
+			node->positions = MEM_callocN(sizeof(int) * joints_left, "Memoization indexes array");
 			node->weight = min_weight;
-			copyMemoNode(node, min_node, nb_joints - (joints_done + 1));
-			node->indexes[0] = min_next;
+			copyMemoNode(node, min_node, joints_left - 1);
+			node->positions[0] = min_next;
 			return node;
 		}
 		else
 		{
-			node->indexes = MEM_callocN(sizeof(int) * nb_joints - nb_joints, "Memoization indexes array");
+			node->positions = MEM_callocN(sizeof(int) * joints_left, "Memoization indexes array");
 			node->weight = MAX_COST;
 			return node;
 		}
@@ -1870,6 +1870,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		int nb_positions = earc->bcount;
 		int nb_memo_nodes = nb_positions * nb_positions * (nb_joints + 1);
 		MemoNode *table = MEM_callocN(nb_memo_nodes * sizeof(MemoNode), "memoization table");
+		MemoNode *result;
 		float **positions_cache = MEM_callocN(sizeof(float*) * (nb_positions + 2), "positions cache");
 		int i;
 		
@@ -1884,16 +1885,16 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 			positions_cache[i] = bucket->p;
 		}
 
-		minProblem(table, &iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, 0);
+		result = solveJoints(table, &iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, nb_joints);
 		
-		min_cost = table[0].weight;
-		memcpy(best_positions, table[0].indexes, sizeof(int) * nb_joints);
+		min_cost = result->weight;
+		memcpy(best_positions, result->positions, sizeof(int) * nb_joints);
 		
 		for ( i = 0; i < nb_memo_nodes; i++)
 		{
-			if (table[i].indexes)
+			if (table[i].positions)
 			{
-				MEM_freeN(table[i].indexes);
+				MEM_freeN(table[i].positions);
 			}
 		}
 		
