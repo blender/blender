@@ -245,10 +245,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 	}
 	
 	if (js->IsTrig()) {
-		/* This test detects changes with the joystick trigger state.
+		/* The if below detects changes with the joystick trigger state.
 		 * js->IsTrig() will stay true as long as the key is held.
 		 * even though the event from SDL will only be sent once.
-		 * istrig_js && m_istrig_lastjs - when this is true it means this sensor
+		 * (js->IsTrig() && m_istrig_lastjs) - when true it means this sensor
 		 * had the same joystick trigger state last time,
 		 * Setting the result false this time means it wont run the sensors
 		 * controller every time (like a pulse sensor)

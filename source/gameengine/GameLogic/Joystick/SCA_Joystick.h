@@ -29,6 +29,7 @@
 #define _SCA_JOYSTICK_H_
 
 #include "SCA_JoystickDefines.h"
+#include "SDL.h"
 
 /*
  * Basic Joystick class
@@ -104,6 +105,16 @@ class SCA_Joystick
 	bool			m_istrig;
 
 	/*
+	 * event callbacks
+	 */
+	void OnAxisMotion(SDL_Event *sdl_event);
+	void OnHatMotion(SDL_Event *sdl_event);
+	void OnButtonUp(SDL_Event *sdl_event);
+	void OnButtonDown(SDL_Event *sdl_event);
+	void OnNothing(SDL_Event *sdl_event);
+	void OnBallMotion(SDL_Event *sdl_event){}
+
+	/*
 	 * Open the joystick
 	 */
 	bool CreateJoystickDevice(void);
@@ -112,17 +123,6 @@ class SCA_Joystick
 	 * Close the joystick
 	 */
 	void DestroyJoystickDevice(void);
-	
-	/*
-	 * event callbacks
-	 */
-
-	void OnAxisMotion(void);
-	void OnHatMotion(void);
-	void OnButtonUp(void);
-	void OnButtonDown(void);
-	void OnNothing(void);
-	void OnBallMotion(void){}
 
 	/*
 	 * fills the axis mnember values 
@@ -158,9 +158,9 @@ class SCA_Joystick
 public:
 
 	static SCA_Joystick *GetInstance( short int joyindex );
+	static void HandleEvents( void );
 	void ReleaseInstance();
 	
-	void HandleEvents();
 
 	/*
 	 */
@@ -212,16 +212,6 @@ public:
 	bool IsTrig(void){
 		return m_istrig;
 	}
-	
-
-	/*
-	 * returns true if an event is being processed
-	 */
-
-	bool GetJoyAxisMotion(void);
-	bool GetJoyButtonPress(void);
-	bool GetJoyButtonRelease(void);
-	bool GetJoyHatMotion(void);
 
 	/*
 	 * returns the # of...
@@ -237,7 +227,7 @@ public:
 	int Connected(void);
 };
 
-
+void Joystick_HandleEvents( void );
 
 #endif
 

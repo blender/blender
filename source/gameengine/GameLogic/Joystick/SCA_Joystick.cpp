@@ -99,38 +99,6 @@ void SCA_Joystick::ReleaseInstance()
 	}
 }
 
-void SCA_Joystick::HandleEvents()
-{
-	if(m_isinit)
-	{
-		if(SDL_PollEvent(&m_private->m_event))
-		{
-			switch(m_private->m_event.type)
-			{
-			case SDL_JOYAXISMOTION:
-				HANDLE_AXISMOTION(OnAxisMotion);
-				break;
-			case SDL_JOYHATMOTION:
-				HANDLE_HATMOTION(OnHatMotion);
-				break;
-			case SDL_JOYBUTTONUP:
-				HANDLE_BUTTONUP(OnButtonUp);
-				break;
-			case SDL_JOYBUTTONDOWN:
-				HANDLE_BUTTONDOWN(OnButtonDown);
-				break;
-			case SDL_JOYBALLMOTION: 
-				HANDLE_BALLMOTION(OnBallMotion);
-				break;
-			default:
-				HANDLE_NOEVENT(OnNothing);
-				break;
-			}
-		}
-	}
-}
-
-
 void SCA_Joystick::cSetPrecision(int val)
 {
 	m_prec = val;
@@ -228,76 +196,6 @@ int SCA_Joystick::pGetHat(int direction)
 	}
 	return 0;
 }
-
-
-bool SCA_Joystick::GetJoyAxisMotion()
-{
-	bool result = false;
-	if(m_isinit){
-		if(SDL_PollEvent(&m_private->m_event)){
-			switch(m_private->m_event.type)
-			{
-			case SDL_JOYAXISMOTION:
-				result = true;
-				break;
-			}
-		}
-	}
-	return result;
-}
-
-
-bool SCA_Joystick::GetJoyButtonPress()
-{
-	bool result = false;
-	if(m_isinit){
-		if(SDL_PollEvent(&m_private->m_event)){
-			switch(m_private->m_event.type)
-			{
-			case SDL_JOYBUTTONDOWN:
-				result = true;
-				break;
-			}
-		}
-	}
-	return result;
-}
-
-
-bool SCA_Joystick::GetJoyButtonRelease()
-{
-	bool result = false;
-	if(m_isinit)
-	{
-		if(SDL_PollEvent(&m_private->m_event)){
-			switch(m_private->m_event.type)
-			{
-			case SDL_JOYBUTTONUP:
-				result = true;
-				break;
-			}
-		}
-	}
-	return result;
-}
-
-
-bool SCA_Joystick::GetJoyHatMotion()
-{
-	bool result = false;
-	if(m_isinit){
-		if(SDL_PollEvent(&m_private->m_event)){
-			switch(m_private->m_event.type)
-			{
-			case SDL_JOYHATMOTION:
-				result = true;
-				break;
-			}
-		}
-	}
-	return 0;
-}
-
 
 int SCA_Joystick::GetNumberOfAxes()
 {
