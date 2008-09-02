@@ -718,7 +718,7 @@ static PyObject *Text_markSelection( BPy_Text * self, PyObject * args )
 static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 {
 	PyObject *item = NULL, *tup1 = NULL, *tup2 = NULL;
-	PyObject *list = NULL, *resl = NULL;
+	PyObject *list = NULL;
 	int list_len, i;
 	char *prefix = NULL, *name, type;
 	SpaceText *st;
