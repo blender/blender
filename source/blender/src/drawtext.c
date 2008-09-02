@@ -328,12 +328,14 @@ void txt_format_line(SpaceText *st, TextLine *line, int do_next) {
 	int len, i;
 
 	/* Get continuation from previous line */
-	if (line->prev && (fmt=line->prev->format)) {
+	if (line->prev && line->prev->format != NULL) {
+		fmt= line->prev->format;
 		cont = fmt[strlen(fmt)+1]; /* Just after the null-terminator */
 	} else cont = 0;
 
 	/* Get original continuation from this line */
-	if (fmt=line->format) {
+	if (line->format != NULL) {
+		fmt= line->format;
 		orig = fmt[strlen(fmt)+1]; /* Just after the null-terminator */
 	} else orig = 0xFF;
 
@@ -405,7 +407,7 @@ void txt_format_line(SpaceText *st, TextLine *line, int do_next) {
 					prev = 'b';
 				if (i>0) {
 					while (i>1) {
-						*fmt = prev; *fmt++; *str++;
+						*fmt = prev; fmt++; str++;
 						i--;
 					}
 					*fmt = prev;
