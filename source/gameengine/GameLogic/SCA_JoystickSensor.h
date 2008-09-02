@@ -69,6 +69,12 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	bool	m_istrig;
 	/**
+	 * Last trigger state for this sensors joystick,
+	 * Otherwise it will trigger all the time
+	 * this is used to see if the trigger state changes.
+	 */
+	bool	m_istrig_lastjs;
+	/**
 	 * The mode to determine axis,button or hat
 	 */
 	short int m_joymode;

@@ -120,7 +120,7 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			js->cSetPrecision(m_precision);
 			if(m_axisf == 1){
 				if(js->aUpAxisIsPositive(m_axis)){
-					m_istrig =1;
+					m_istrig = 1;
 					result = true;
 				}else{
 					if(m_istrig){
@@ -243,11 +243,31 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 		printf("Error invalid switch statement\n");
 		break;
 	}
-	if(!js->IsTrig()){
+	
+	if (js->IsTrig()) {
+		/* This test detects changes with the joystick trigger state.
+		 * js->IsTrig() will stay true as long as the key is held.
+		 * even though the event from SDL will only be sent once.
+		 * istrig_js && m_istrig_lastjs - when this is true it means this sensor
+		 * had the same joystick trigger state last time,
+		 * Setting the result false this time means it wont run the sensors
+		 * controller every time (like a pulse sensor)
+		 *
+		 * This is not done with the joystick its self incase other sensors use
+		 * it or become active.
+		 */
+		if (m_istrig_lastjs) {
+			result = false;
+		}
+		m_istrig_lastjs = true;
+	} else {
 		m_istrig = 0;
+		m_istrig_lastjs = false;
 	}
+	
 	if (reset)
 		result = true;
+	
 	return result;
 }
 
