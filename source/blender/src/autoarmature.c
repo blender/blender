@@ -166,6 +166,11 @@ typedef struct RigControl {
 	int		flag;
 } RigControl;
 
+typedef struct MemoNode {
+	float	weight;
+	int		*indexes;
+} MemoNode;
+
 typedef struct RetargetParam {
 	RigGraph	*rigg;
 	RigArc		*iarc;
@@ -181,7 +186,8 @@ typedef enum
 typedef enum
 {
 	METHOD_BRUTE_FORCE = 0,
-	METHOD_ANNEALING = 1
+	METHOD_MEMOIZE = 1,
+	METHOD_ANNEALING = 2
 } RetargetMethod;
 
 typedef enum
@@ -1350,6 +1356,7 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 	return mode;
 }
 
+#ifndef USE_THREADS
 static void printCostCube(float *cost_cube, int nb_joints)
 {
 	int i;
@@ -1396,6 +1403,7 @@ static void printPositions(int *positions, int nb_positions)
 	}
 	printf("\n");
 }
+#endif
 
 #define MAX_COST 100 /* FIX ME */
 
@@ -1443,13 +1451,13 @@ static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i
 	}
 }
 
-static float costAngle(float original_angle, float vec_first[3], float vec_second[3], float length1, float length2)
+static float costAngle(float original_angle, float vec_first[3], float vec_second[3])
 {
 	if (G.scene->toolsettings->skgen_retarget_angle_weight > 0)
 	{
 		float current_angle;
 		
-		if (length1 > 0 && length2 > 0)
+		if (!VecIsNull(vec_first) && !VecIsNull(vec_second))
 		{
 			current_angle = saacos(Inpf(vec_first, vec_second));
 
@@ -1479,6 +1487,45 @@ static float costLength(float original_length, float current_length)
 	}
 }
 
+static float calcCostLengthDistance(ReebArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec1, float *vec2, int i1, int i2)
+{
+	float vec[3];
+	float length;
+
+	VecSubf(vec, vec2, vec1);
+	length = Normalize(vec);
+
+	return costLength(edge->length, length) + costDistance(iter, vec1, vec2, i1, i2);
+}
+
+static float calcCostAngleLengthDistance(ReebArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2)
+{
+	float vec_second[3], vec_first[3];
+	float length2;
+	float new_cost = 0;
+
+	VecSubf(vec_second, vec2, vec1);
+	length2 = Normalize(vec_second);
+
+
+	/* Angle cost */	
+	if (edge->prev)
+	{
+		VecSubf(vec_first, vec1, vec0); 
+		Normalize(vec_first);
+		
+		new_cost += costAngle(edge->prev->angle, vec_first, vec_second);
+	}
+
+	/* Length cost */
+	new_cost += costLength(edge->length, length2);
+
+	/* Distance cost */
+	new_cost += costDistance(iter, vec1, vec2, i1, i2);
+
+	return new_cost;
+}
+
 static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *vec0, float *vec1, float *vec2, int i0, int i1, int i2)
 {
 	float vec_second[3], vec_first[3];
@@ -1492,7 +1539,7 @@ static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *ve
 	length1 = Normalize(vec_first);
 
 	/* Angle cost */	
-	new_cost += costAngle(e1->angle, vec_first, vec_second, length1, length2);
+	new_cost += costAngle(e1->angle, vec_first, vec_second);
 
 	/* Length cost */
 	new_cost += costLength(e1->length, length1);
@@ -1660,6 +1707,92 @@ static int neighbour(int nb_joints, float *cost_cube, int *moving_joint, int *mo
 	return 1;
 }
 
+static void copyMemoNode(MemoNode *dst, MemoNode *src, int size)
+{
+	if (size > 0)
+	{
+		memcpy(dst->indexes + 1, src->indexes, size * sizeof(int));
+	}
+}
+
+static int indexMemoNode(int nb_positions, int previous, int current, int joints_done)
+{
+	return joints_done * nb_positions * nb_positions + current * nb_positions + previous;
+}
+
+static MemoNode * minProblem(MemoNode *table, ReebArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_done)
+{
+	MemoNode *node;
+	int index = indexMemoNode(nb_positions, previous, current, joints_done);
+	
+	node = table + index;
+	
+	if (node->weight != 0)
+	{
+		return node;
+	}
+	else if (joints_done == nb_joints)
+	{
+		float *vec1 = vec_cache[current];
+		float *vec2 = vec_cache[nb_positions + 1];
+
+		node->weight = calcCostLengthDistance(iter, vec_cache, edge, vec1, vec2, current, iter->length);
+
+		return node;
+	}
+	else
+	{
+		MemoNode *min_node = NULL;
+		float *vec0 = vec_cache[previous];
+		float *vec1 = vec_cache[current];
+		float min_weight;
+		int min_next;
+		int next;
+		
+		for (next = current + 1; next < nb_positions - joints_done; next++)
+		{
+			MemoNode *next_node;
+			float *vec2 = vec_cache[next];
+			float weight = 0;
+			
+			/* ADD WEIGHT OF PREVIOUS - CURRENT - NEXT triple */
+			weight = calcCostAngleLengthDistance(iter, vec_cache, edge, vec0, vec1, vec2, current, next);
+			
+			if (weight >= MAX_COST)
+			{
+				continue;
+			}
+			
+			/* add node weight */
+			next_node = minProblem(table, iter, vec_cache, nb_joints, nb_positions, current, next, edge->next, joints_done + 1);
+			weight += next_node->weight;
+			
+			if (min_node == NULL || weight < min_weight)
+			{
+				min_weight = weight;
+				min_node = next_node;
+				min_next = next;
+			}
+		}
+		
+		if (min_node)
+		{
+			node->indexes = MEM_callocN(sizeof(int) * (nb_joints - joints_done), "Memoization indexes array");
+			node->weight = min_weight;
+			copyMemoNode(node, min_node, nb_joints - (joints_done + 1));
+			node->indexes[0] = min_next;
+			return node;
+		}
+		else
+		{
+			node->indexes = MEM_callocN(sizeof(int) * nb_joints - nb_joints, "Memoization indexes array");
+			node->weight = MAX_COST;
+			return node;
+		}
+	}
+	
+}
+
 static int testFlipArc(RigArc *iarc, RigNode *inode_start)
 {
 	ReebArc *earc = iarc->link_mesh;
@@ -1691,7 +1824,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	int *positions;
 	int nb_edges = BLI_countlist(&iarc->edges);
 	int nb_joints = nb_edges - 1;
-	RetargetMethod method = METHOD_ANNEALING; //G.scene->toolsettings->skgen_optimisation_method;
+	RetargetMethod method = G.scene->toolsettings->skgen_optimisation_method;
 	int i;
 	
 	if (nb_joints > earc->bcount)
@@ -1731,19 +1864,44 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	
 	vec_cache[0] = node_start->p;
 	vec_cache[nb_edges] = node_end->p;
-	
-	if (nb_joints < 3)
-	{
-		method = METHOD_BRUTE_FORCE;
-	}
-	
-	if (G.scene->toolsettings->skgen_optimisation_method == 0)
-	{
-		method = METHOD_BRUTE_FORCE;
-	}
 
+	if (method == METHOD_MEMOIZE)
+	{
+		int nb_positions = earc->bcount;
+		int nb_memo_nodes = nb_positions * nb_positions * (nb_joints + 1);
+		MemoNode *table = MEM_callocN(nb_memo_nodes * sizeof(MemoNode), "memoization table");
+		float **positions_cache = MEM_callocN(sizeof(float*) * (nb_positions + 2), "positions cache");
+		int i;
+		
+		positions_cache[0] = node_start->p;
+		positions_cache[nb_positions + 1] = node_end->p;
+		
+		initArcIterator(&iter, earc, node_start);
+
+		for (i = 1; i <= nb_positions; i++)
+		{
+			EmbedBucket *bucket = peekBucket(&iter, i);
+			positions_cache[i] = bucket->p;
+		}
+
+		minProblem(table, &iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, 0);
+		
+		min_cost = table[0].weight;
+		memcpy(best_positions, table[0].indexes, sizeof(int) * nb_joints);
+		
+		for ( i = 0; i < nb_memo_nodes; i++)
+		{
+			if (table[i].indexes)
+			{
+				MEM_freeN(table[i].indexes);
+			}
+		}
+		
+		MEM_freeN(table);
+		MEM_freeN(positions_cache);
+	}
 	/* BRUTE FORCE */
-	if (method == METHOD_BRUTE_FORCE)
+	else if (method == METHOD_BRUTE_FORCE)
 	{
 		int last_index = 0;
 		int first_pass = 1;
@@ -1850,7 +2008,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 						length1 = Normalize(vec_first);
 						
 						/* Angle cost */	
-						new_cost += costAngle(previous->angle, vec_first, vec_second, length1, length2);
+						new_cost += costAngle(previous->angle, vec_first, vec_second);
 					}
 		
 					/* Length Cost */
@@ -1893,15 +2051,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		int k;
 		int kmax;
 
-		switch (G.scene->toolsettings->skgen_optimisation_method)
-		{
-			case 1:
-				kmax = 100000;
-				break;
-			case 2:
-				kmax = nb_joints * earc->bcount * 200;
-				break;
-		}
+		kmax = 100000;
 		
 		BLI_srand(nb_joints);
 		

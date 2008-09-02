@@ -2188,6 +2188,11 @@ int VecEqual(float *v1, float *v2)
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
 }
 
+int VecIsNull(float *v)
+{
+	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
+}
+
 void CalcNormShort( short *v1, short *v2, short *v3, float *n) /* is also cross product */
 {
 	float n1[3],n2[3];

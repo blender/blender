@@ -243,6 +243,7 @@ void VecMulf(float *v1, float f);
 int VecLenCompare(float *v1, float *v2, float limit);
 int VecCompare(float *v1, float *v2, float limit);
 int VecEqual(float *v1, float *v2);
+int VecIsNull(float *v);
 
 void printvecf(char *str,float v[3]);
 void printvec4f(char *str, float v[4]);
