@@ -16,21 +16,18 @@ subject to the following restrictions:
 #ifndef COLLISION_SHAPE_H
 #define COLLISION_SHAPE_H
 
-#include "LinearMath/btTransform.h"
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btMatrix3x3.h"
-#include "LinearMath/btPoint3.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
+#include "../../LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "../../LinearMath/btPoint3.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
 
-///The btCollisionShape class provides an interface for collision shapes that can be shared among btCollisionObjects.
+///btCollisionShape provides interface for collision shapes that can be shared among btCollisionObjects.
 class btCollisionShape
 {
-
-	void* m_userPointer;
-
 public:
 
-	btCollisionShape() : m_userPointer(0)
+	btCollisionShape() 
 	{
 	}
 	virtual ~btCollisionShape()
@@ -48,30 +45,30 @@ public:
 
 	///calculateTemporalAabb calculates the enclosing aabb for the moving object over interval [0..timeStep)
 	///result is conservative
-	void calculateTemporalAabb(const btTransform& curTrans,const btVector3& linvel,const btVector3& angvel,btScalar timeStep, btVector3& temporalAabbMin,btVector3& temporalAabbMax) const;
+	void calculateTemporalAabb(const btTransform& curTrans,const btVector3& linvel,const btVector3& angvel,btScalar timeStep, btVector3& temporalAabbMin,btVector3& temporalAabbMax);
 
 #ifndef __SPU__
 
-	SIMD_FORCE_INLINE bool	isPolyhedral() const
+	inline bool	isPolyhedral() const
 	{
 		return btBroadphaseProxy::isPolyhedral(getShapeType());
 	}
 
-	SIMD_FORCE_INLINE bool	isConvex() const
+	inline bool	isConvex() const
 	{
 		return btBroadphaseProxy::isConvex(getShapeType());
 	}
-	SIMD_FORCE_INLINE bool	isConcave() const
+	inline bool	isConcave() const
 	{
 		return btBroadphaseProxy::isConcave(getShapeType());
 	}
-	SIMD_FORCE_INLINE bool	isCompound() const
+	inline bool	isCompound() const
 	{
 		return btBroadphaseProxy::isCompound(getShapeType());
 	}
 
 	///isInfinite is used to catch simulation error (aabb check)
-	SIMD_FORCE_INLINE bool isInfinite() const
+	inline bool isInfinite() const
 	{
 		return btBroadphaseProxy::isInfinite(getShapeType());
 	}
@@ -79,29 +76,17 @@ public:
 	virtual int		getShapeType() const=0;
 	virtual void	setLocalScaling(const btVector3& scaling) =0;
 	virtual const btVector3& getLocalScaling() const =0;
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const = 0;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) = 0;
 
 
 //debugging support
-	virtual const char*	getName()const =0 ;
+	virtual char*	getName()const =0 ;
 #endif //__SPU__
 
 	
 
 	virtual void	setMargin(btScalar margin) = 0;
 	virtual btScalar	getMargin() const = 0;
-
-	
-	///optional user data pointer
-	void	setUserPointer(void* userPtr)
-	{
-		m_userPointer = userPtr;
-	}
-
-	void*	getUserPointer() const
-	{
-		return m_userPointer;
-	}
 
 };	
 

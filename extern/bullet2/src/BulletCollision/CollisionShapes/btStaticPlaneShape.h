@@ -19,7 +19,8 @@ subject to the following restrictions:
 #include "btConcaveShape.h"
 
 
-///The btStaticPlaneShape simulates an infinite non-moving (static) collision plane.
+///StaticPlaneShape simulates an 'infinite' plane by dynamically reporting triangles approximated by intersection of the plane with the AABB.
+///Assumed is that the other objects is not also infinite, so a reasonable sized AABB.
 class btStaticPlaneShape : public btConcaveShape
 {
 protected:
@@ -45,23 +46,14 @@ public:
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 	virtual void	setLocalScaling(const btVector3& scaling);
 	virtual const btVector3& getLocalScaling() const;
 	
-	const btVector3&	getPlaneNormal() const
-	{
-		return	m_planeNormal;
-	}
-
-	const btScalar&	getPlaneConstant() const
-	{
-		return	m_planeConstant;
-	}
 
 	//debugging
-	virtual const char*	getName()const {return "STATICPLANE";}
+	virtual char*	getName()const {return "STATICPLANE";}
 
 
 };

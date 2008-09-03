@@ -15,13 +15,16 @@ subject to the following restrictions:
 
 #include "btBoxShape.h"
 
-
+btVector3 btBoxShape::getHalfExtents() const
+{
+	return m_implicitShapeDimensions * m_localScaling;
+}
 //{ 
 
 
 void btBoxShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
-	const btVector3& halfExtents = getHalfExtentsWithoutMargin();
+	btVector3 halfExtents = getHalfExtents();
 
 	btMatrix3x3 abs_b = t.getBasis().absolute();  
 	btPoint3 center = t.getOrigin();
@@ -37,10 +40,10 @@ void btBoxShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabb
 }
 
 
-void	btBoxShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
+void	btBoxShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
 	//btScalar margin = btScalar(0.);
-	btVector3 halfExtents = getHalfExtentsWithMargin();
+	btVector3 halfExtents = getHalfExtents();
 
 	btScalar lx=btScalar(2.)*(halfExtents.x());
 	btScalar ly=btScalar(2.)*(halfExtents.y());

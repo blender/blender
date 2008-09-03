@@ -56,10 +56,6 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
-	
-	class btDefaultCollisionConfiguration* m_collisionConfiguration;
-	class btBroadphaseInterface*			m_broadphase;
-
 	//solver iterations
 	int	m_numIterations;
 	

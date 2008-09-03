@@ -16,14 +16,13 @@ subject to the following restrictions:
 #ifndef MULTI_SPHERE_MINKOWSKI_H
 #define MULTI_SPHERE_MINKOWSKI_H
 
-#include "btConvexInternalShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "btConvexShape.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 #define MAX_NUM_SPHERES 5
 
-///The btMultiSphereShape represents the convex hull of a collection of spheres. You can create special capsules or other smooth volumes.
-///It is possible to animate the spheres for deformation.
-class btMultiSphereShape : public btConvexInternalShape
+///btMultiSphereShape represents implicit convex hull of a collection of spheres (using getSupportingVertex)
+class btMultiSphereShape : public btConvexShape
 
 {
 	
@@ -40,7 +39,7 @@ public:
 	btMultiSphereShape (const btVector3& inertiaHalfExtents,const btVector3* positions,const btScalar* radi,int numSpheres);
 
 	///CollisionShape Interface
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 	/// btConvexShape Interface
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
@@ -64,7 +63,7 @@ public:
 
 	virtual int	getShapeType() const { return MULTI_SPHERE_SHAPE_PROXYTYPE; }
 
-	virtual const char*	getName()const 
+	virtual char*	getName()const 
 	{
 		return "MultiSphere";
 	}

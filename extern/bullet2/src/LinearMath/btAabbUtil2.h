@@ -18,16 +18,11 @@ subject to the following restrictions:
 #define AABB_UTIL2
 
 #include "btVector3.h"
-#include "btMinMax.h"
+#include "btSimdMinMax.h"
 
-SIMD_FORCE_INLINE void AabbExpand (btVector3& aabbMin,
-								   btVector3& aabbMax,
-								   const btVector3& expansionMin,
-								   const btVector3& expansionMax)
-{
-	aabbMin = aabbMin + expansionMin;
-	aabbMax = aabbMax + expansionMax;
-}
+
+#define btMin(a,b) ((a < b ? a : b))
+#define btMax(a,b) ((a > b ? a : b))
 
 
 /// conservative test for overlap between two aabbs
@@ -71,41 +66,6 @@ SIMD_FORCE_INLINE int	btOutcode(const btVector3& p,const btVector3& halfExtent)
 		   (p.getZ() >  halfExtent.getZ() ? 0x20 : 0x0);
 }
 
-
-SIMD_FORCE_INLINE bool btRayAabb2(const btVector3& rayFrom,
-								  const btVector3& rayInvDirection,
-								  const unsigned int raySign[3],
-								  const btVector3 bounds[2],
-								  btScalar& tmin,
-								  btScalar lambda_min,
-								  btScalar lambda_max)
-{
-	btScalar tmax, tymin, tymax, tzmin, tzmax;
-	tmin = (bounds[raySign[0]][0] - rayFrom[0]) * rayInvDirection[0];
-	tmax = (bounds[1-raySign[0]][0] - rayFrom[0]) * rayInvDirection[0];
-	tymin = (bounds[raySign[1]][1] - rayFrom[1]) * rayInvDirection[1];
-	tymax = (bounds[1-raySign[1]][1] - rayFrom[1]) * rayInvDirection[1];
-
-	if ( (tmin > tymax) || (tymin > tmax) )
-		return false;
-
-	if (tymin > tmin)
-		tmin = tymin;
-
-	if (tymax < tmax)
-		tmax = tymax;
-
-	tzmin = (bounds[raySign[2]][2] - rayFrom[2]) * rayInvDirection[2];
-	tzmax = (bounds[1-raySign[2]][2] - rayFrom[2]) * rayInvDirection[2];
-
-	if ( (tmin > tzmax) || (tzmin > tmax) )
-		return false;
-	if (tzmin > tmin)
-		tmin = tzmin;
-	if (tzmax < tmax)
-		tmax = tzmax;
-	return ( (tmin < lambda_max) && (tmax > lambda_min) );
-}
 
 SIMD_FORCE_INLINE bool btRayAabb(const btVector3& rayFrom, 
 								 const btVector3& rayTo, 
@@ -164,5 +124,4 @@ SIMD_FORCE_INLINE bool btRayAabb(const btVector3& rayFrom,
 
 
 #endif
-
 

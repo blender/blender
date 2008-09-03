@@ -20,7 +20,6 @@ subject to the following restrictions:
 
 btScalar					gContactBreakingThreshold = btScalar(0.02);
 ContactDestroyedCallback	gContactDestroyedCallback = 0;
-ContactProcessedCallback	gContactProcessedCallback = 0;
 
 
 
@@ -28,12 +27,20 @@ btPersistentManifold::btPersistentManifold()
 :m_body0(0),
 m_body1(0),
 m_cachedPoints (0),
-m_index1a(0)
+m_index1(0)
 {
 }
 
 
-
+void	btPersistentManifold::clearManifold()
+{
+	int i;
+	for (i=0;i<m_cachedPoints;i++)
+	{
+		clearUserCache(m_pointCache[i]);
+	}
+	m_cachedPoints = 0;
+}
 
 #ifdef DEBUG_PERSISTENCY
 #include <stdio.h>
@@ -162,7 +169,7 @@ int btPersistentManifold::getCacheEntry(const btManifoldPoint& newPoint) const
 	return nearestPoint;
 }
 
-int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
+void btPersistentManifold::AddManifoldPoint(const btManifoldPoint& newPoint)
 {
 	assert(validContactDistance(newPoint));
 
@@ -175,7 +182,7 @@ int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
 #else
 		insertIndex = 0;
 #endif
-		clearUserCache(m_pointCache[insertIndex]);
+
 		
 	} else
 	{
@@ -183,9 +190,7 @@ int btPersistentManifold::addManifoldPoint(const btManifoldPoint& newPoint)
 
 		
 	}
-	btAssert(m_pointCache[insertIndex].m_userPersistentData==0);
-	m_pointCache[insertIndex] = newPoint;
-	return insertIndex;
+	replaceContactPoint(newPoint,insertIndex);
 }
 
 btScalar	btPersistentManifold::getContactBreakingThreshold() const
@@ -193,20 +198,10 @@ btScalar	btPersistentManifold::getContactBreakingThreshold() const
 	return gContactBreakingThreshold;
 }
 
-
-
 void btPersistentManifold::refreshContactPoints(const btTransform& trA,const btTransform& trB)
 {
 	int i;
-#ifdef DEBUG_PERSISTENCY
-	printf("refreshContactPoints posA = (%f,%f,%f) posB = (%f,%f,%f)\n",
-		trA.getOrigin().getX(),
-		trA.getOrigin().getY(),
-		trA.getOrigin().getZ(),
-		trB.getOrigin().getX(),
-		trB.getOrigin().getY(),
-		trB.getOrigin().getZ());
-#endif //DEBUG_PERSISTENCY
+
 	/// first refresh worldspace positions and distance
 	for (i=getNumContacts()-1;i>=0;i--)
 	{
@@ -237,11 +232,6 @@ void btPersistentManifold::refreshContactPoints(const btTransform& trA,const btT
 			if (distance2d  > getContactBreakingThreshold()*getContactBreakingThreshold() )
 			{
 				removeContactPoint(i);
-			} else
-			{
-				//contact point processed callback
-				if (gContactProcessedCallback)
-					(*gContactProcessedCallback)(manifoldPoint,m_body0,m_body1);
 			}
 		}
 	}

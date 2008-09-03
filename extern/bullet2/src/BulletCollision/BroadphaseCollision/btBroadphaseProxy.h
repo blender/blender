@@ -16,8 +16,7 @@ subject to the following restrictions:
 #ifndef BROADPHASE_PROXY_H
 #define BROADPHASE_PROXY_H
 
-#include "LinearMath/btScalar.h" //for SIMD_FORCE_INLINE
-#include "LinearMath/btAlignedAllocator.h"
+#include "../../LinearMath/btScalar.h" //for SIMD_FORCE_INLINE
 
 
 /// btDispatcher uses these types
@@ -39,7 +38,6 @@ IMPLICIT_CONVEX_SHAPES_START_HERE,
 	CONE_SHAPE_PROXYTYPE,
 	CONVEX_SHAPE_PROXYTYPE,
 	CYLINDER_SHAPE_PROXYTYPE,
-	UNIFORM_SCALING_SHAPE_PROXYTYPE,
 	MINKOWSKI_SUM_SHAPE_PROXYTYPE,
 	MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE,
 //concave shapes
@@ -52,8 +50,6 @@ CONCAVE_SHAPES_START_HERE,
 	TERRAIN_SHAPE_PROXYTYPE,
 ///Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
-///Multimaterial mesh
-    MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE,
 	
 	EMPTY_SHAPE_PROXYTYPE,
 	STATIC_PLANE_PROXYTYPE,
@@ -61,18 +57,13 @@ CONCAVE_SHAPES_END_HERE,
 
 	COMPOUND_SHAPE_PROXYTYPE,
 
-	SOFTBODY_SHAPE_PROXYTYPE,
-
 	MAX_BROADPHASE_COLLISION_TYPES
 };
 
 
-///The btBroadphaseProxy is the main class that can be used with the Bullet broadphases. 
-///It stores collision shape type information, collision filter information and a client object, typically a btCollisionObject or btRigidBody.
-ATTRIBUTE_ALIGNED16(struct) btBroadphaseProxy
+///btBroadphaseProxy
+struct btBroadphaseProxy
 {
-
-BT_DECLARE_ALIGNED_ALLOCATOR();
 	
 	///optional filtering to cull potential collisions
 	enum CollisionFilterGroups
@@ -82,60 +73,44 @@ BT_DECLARE_ALIGNED_ALLOCATOR();
 	        KinematicFilter = 4,
 	        DebrisFilter = 8,
 			SensorTrigger = 16,
-	        AllFilter = -1 //all bits sets: DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger
+	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger
 	};
 
 	//Usually the client btCollisionObject or Rigidbody class
 	void*	m_clientObject;
-
 	short int m_collisionFilterGroup;
 	short int m_collisionFilterMask;
 
-	void*	m_multiSapParentProxy;		
-
-
-	int			m_uniqueId;//m_uniqueId is introduced for paircache. could get rid of this, by calculating the address offset etc.
-
-	SIMD_FORCE_INLINE int getUid() const
-	{
-		return m_uniqueId;
-	}
-
 	//used for memory pools
-	btBroadphaseProxy() :m_clientObject(0),m_multiSapParentProxy(0)
-	{
-	}
+	btBroadphaseProxy() :m_clientObject(0){}
 
-	btBroadphaseProxy(void* userPtr,short int collisionFilterGroup, short int collisionFilterMask,void* multiSapParentProxy=0)
+	btBroadphaseProxy(void* userPtr,short int collisionFilterGroup, short int collisionFilterMask)
 		:m_clientObject(userPtr),
 		m_collisionFilterGroup(collisionFilterGroup),
 		m_collisionFilterMask(collisionFilterMask)
 	{
-		m_multiSapParentProxy = multiSapParentProxy;
 	}
 
-	
-
-	static SIMD_FORCE_INLINE bool isPolyhedral(int proxyType)
+	static inline bool isPolyhedral(int proxyType)
 	{
 		return (proxyType  < IMPLICIT_CONVEX_SHAPES_START_HERE);
 	}
 
-	static SIMD_FORCE_INLINE bool	isConvex(int proxyType)
+	static inline bool	isConvex(int proxyType)
 	{
 		return (proxyType < CONCAVE_SHAPES_START_HERE);
 	}
 
-	static SIMD_FORCE_INLINE bool	isConcave(int proxyType)
+	static inline bool	isConcave(int proxyType)
 	{
 		return ((proxyType > CONCAVE_SHAPES_START_HERE) &&
 			(proxyType < CONCAVE_SHAPES_END_HERE));
 	}
-	static SIMD_FORCE_INLINE bool	isCompound(int proxyType)
+	static inline bool	isCompound(int proxyType)
 	{
 		return (proxyType == COMPOUND_SHAPE_PROXYTYPE);
 	}
-	static SIMD_FORCE_INLINE bool isInfinite(int proxyType)
+	static inline bool isInfinite(int proxyType)
 	{
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
 	}
@@ -149,9 +124,8 @@ struct btBroadphaseProxy;
 
 
 
-///The btBroadphasePair class contains a pair of aabb-overlapping objects.
-///A btDispatcher can search a btCollisionAlgorithm that performs exact/narrowphase collision detection on the actual collision shapes.
-ATTRIBUTE_ALIGNED16(struct) btBroadphasePair
+/// contains a pair of aabb-overlapping objects
+struct btBroadphasePair
 {
 	btBroadphasePair ()
 		:
@@ -161,8 +135,6 @@ ATTRIBUTE_ALIGNED16(struct) btBroadphasePair
 		m_userInfo(0)
 	{
 	}
-
-BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btBroadphasePair(const btBroadphasePair& other)
 		:		m_pProxy0(other.m_pProxy0),
@@ -207,7 +179,6 @@ SIMD_FORCE_INLINE bool operator<(const btBroadphasePair& a, const btBroadphasePa
         (a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 < b.m_pProxy1); 
 }
 */
-
 
 
 class btBroadphasePairSortPredicate

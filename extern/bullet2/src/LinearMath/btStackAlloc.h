@@ -21,7 +21,6 @@ Nov.2006
 #define BT_STACK_ALLOC
 
 #include "btScalar.h" //for btAssert
-#include "btAlignedAllocator.h"
 
 struct btBlock
 {
@@ -29,7 +28,7 @@ struct btBlock
 	unsigned char*		address;
 };
 
-///The StackAlloc class provides some fast stack-based memory allocator (LIFO last-in first-out)
+///StackAlloc provides some fast stack-based memory allocator (LIFO last-in first-out)
 class btStackAlloc
 {
 public:
@@ -40,7 +39,7 @@ public:
 	inline void		create(unsigned int size)
 	{
 		destroy();
-		data		=  (unsigned char*) btAlignedAlloc(size,16);
+		data		=	new unsigned char[size];
 		totalsize	=	size;
 	}
 	inline void		destroy()
@@ -50,20 +49,12 @@ public:
 
 		if(usedsize==0)
 		{
-			if(!ischild && data)		
-				btAlignedFree(data);
-
+			if(!ischild)		delete[] data;
 			data				=	0;
 			usedsize			=	0;
 		}
 		
 	}
-
-	int	getAvailableMemory() const
-	{
-		return static_cast<int>(totalsize - usedsize);
-	}
-
 	unsigned char*			allocate(unsigned int size)
 	{
 		const unsigned int	nus(usedsize+size);
@@ -77,7 +68,7 @@ public:
 		
 		return(0);
 	}
-	SIMD_FORCE_INLINE btBlock*		beginBlock()
+	inline btBlock*		beginBlock()
 	{
 		btBlock*	pb = (btBlock*)allocate(sizeof(btBlock));
 		pb->previous	=	current;
@@ -85,7 +76,7 @@ public:
 		current			=	pb;
 		return(pb);
 	}
-	SIMD_FORCE_INLINE void		endBlock(btBlock* block)
+	inline void		endBlock(btBlock* block)
 	{
 		btAssert(block==current);
 		//Raise(L"Unmatched blocks");

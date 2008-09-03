@@ -19,11 +19,10 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btStridingMeshInterface.h"
 
 
-btConvexTriangleMeshShape ::btConvexTriangleMeshShape (btStridingMeshInterface* meshInterface, bool calcAabb)
+btConvexTriangleMeshShape ::btConvexTriangleMeshShape (btStridingMeshInterface* meshInterface)
 :m_stridingMesh(meshInterface)
 {
-	if ( calcAabb )
-		recalcLocalAabb();
+	recalcLocalAabb();
 }
 
 

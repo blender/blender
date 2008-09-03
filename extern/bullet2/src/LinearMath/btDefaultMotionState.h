@@ -1,7 +1,7 @@
 #ifndef DEFAULT_MOTION_STATE_H
 #define DEFAULT_MOTION_STATE_H
 
-///The btDefaultMotionState provides a common implementation to synchronize world transforms with offsets.
+///btDefaultMotionState provides a common implementation to synchronize world transforms with offsets
 struct	btDefaultMotionState : public btMotionState
 {
 	btTransform m_graphicsWorldTrans;

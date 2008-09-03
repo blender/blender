@@ -47,7 +47,7 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 	btVector3 vec = vec0;
 	btScalar lenSqr = vec.length2();
-	if (lenSqr < (SIMD_EPSILON*SIMD_EPSILON))
+	if (lenSqr < btScalar(0.0001))
 	{
 		vec.setValue(1,0,0);
 	} else
@@ -116,7 +116,7 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 
 
-void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
+void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
 	//as an approximation, take the inertia of the box that bounds the spheres
 

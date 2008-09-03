@@ -24,78 +24,35 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 {
 	btVector3	m_min;
 	btVector3	m_max;
-	int			m_nextFree;
-	int			m_nextAllocated;
-//	int			m_handleId;
-
 	
 	btSimpleBroadphaseProxy() {};
 
-	btSimpleBroadphaseProxy(const btPoint3& minpt,const btPoint3& maxpt,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask,void* multiSapProxy)
-	:btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask,multiSapProxy),
+	btSimpleBroadphaseProxy(const btPoint3& minpt,const btPoint3& maxpt,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask)
+	:btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask),
 	m_min(minpt),m_max(maxpt)		
 	{
 		(void)shapeType;
 	}
 	
-	
-	SIMD_FORCE_INLINE void SetNextFree(int next) {m_nextFree = next;}
-	SIMD_FORCE_INLINE int GetNextFree() const {return m_nextFree;}
-
-	SIMD_FORCE_INLINE void SetNextAllocated(int next) {m_nextAllocated = next;}
-	SIMD_FORCE_INLINE int GetNextAllocated() const {return m_nextAllocated;}
-
 
 };
 
-///The SimpleBroadphase is just a unit-test for btAxisSweep3, bt32BitAxisSweep3, or btDbvtBroadphase, so use those classes instead.
-///It is a brute force aabb culling broadphase based on O(n^2) aabb checks
-class btSimpleBroadphase : public btBroadphaseInterface
+///SimpleBroadphase is a brute force aabb culling broadphase based on O(n^2) aabb checks
+class btSimpleBroadphase : public btOverlappingPairCache
 {
 
 protected:
 
-	int		m_numHandles;						// number of active handles
-	int		m_maxHandles;						// max number of handles
-	btSimpleBroadphaseProxy* m_pHandles;						// handles pool
-	void* m_pHandlesRawPtr;
-	int		m_firstFreeHandle;		// free handles list
-	int		m_firstAllocatedHandle;
+	btSimpleBroadphaseProxy*	m_proxies;
+	int*				m_freeProxies;
+	int				m_firstFreeProxy;
 
-	int allocHandle()
-	{
+	btSimpleBroadphaseProxy** m_pProxies;
+	int				m_numProxies;
 
-		int freeHandle = m_firstFreeHandle;
-		m_firstFreeHandle = m_pHandles[freeHandle].GetNextFree();
-		
-		m_pHandles[freeHandle].SetNextAllocated(m_firstAllocatedHandle);
-		m_firstAllocatedHandle = freeHandle;
-		
-		m_numHandles++;
+	
 
-		return freeHandle;
-	}
-
-	void freeHandle(btSimpleBroadphaseProxy* proxy)
-	{
-		int handle = int(proxy-m_pHandles);
-		btAssert(handle >= 0 && handle < m_maxHandles);
-
-		proxy->SetNextFree(m_firstFreeHandle);
-		m_firstFreeHandle = handle;
-
-		m_firstAllocatedHandle = proxy->GetNextAllocated();
-		proxy->SetNextAllocated(-1);
-
-		m_numHandles--;
-	}
-
-
-	btOverlappingPairCache*	m_pairCache;
-	bool	m_ownsPairCache;
-
-	int	m_invalidPair;
-
+	int m_maxProxies;
 	
 	
 	inline btSimpleBroadphaseProxy*	getSimpleProxyFromProxy(btBroadphaseProxy* proxy)
@@ -110,48 +67,26 @@ protected:
 protected:
 
 
-	
-
+	virtual void	refreshOverlappingPairs();
 public:
-	btSimpleBroadphase(int maxProxies=16384,btOverlappingPairCache* overlappingPairCache=0);
+	btSimpleBroadphase(int maxProxies=16384);
 	virtual ~btSimpleBroadphase();
 
 
 		static bool	aabbOverlap(btSimpleBroadphaseProxy* proxy0,btSimpleBroadphaseProxy* proxy1);
 
 
-	virtual btBroadphaseProxy*	createProxy(  const btVector3& aabbMin,  const btVector3& aabbMax,int shapeType,void* userPtr ,short int collisionFilterGroup,short int collisionFilterMask, btDispatcher* dispatcher,void* multiSapProxy);
+	virtual btBroadphaseProxy*	createProxy(  const btVector3& min,  const btVector3& max,int shapeType,void* userPtr ,short int collisionFilterGroup,short int collisionFilterMask);
 
-	virtual void	calculateOverlappingPairs(btDispatcher* dispatcher);
 
-	virtual void	destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher);
-	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax, btDispatcher* dispatcher);
+	virtual void	destroyProxy(btBroadphaseProxy* proxy);
+	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax);
 		
-	btOverlappingPairCache*	getOverlappingPairCache()
-	{
-		return m_pairCache;
-	}
-	const btOverlappingPairCache*	getOverlappingPairCache() const
-	{
-		return m_pairCache;
-	}
-
-	bool	testAabbOverlap(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1);
+	
+	
 
 
-	///getAabb returns the axis aligned bounding box in the 'global' coordinate frame
-	///will add some transform later
-	virtual void getBroadphaseAabb(btVector3& aabbMin,btVector3& aabbMax) const
-	{
-		aabbMin.setValue(-1e30f,-1e30f,-1e30f);
-		aabbMax.setValue(1e30f,1e30f,1e30f);
-	}
 
-	virtual void	printStats()
-	{
-//		printf("btSimpleBroadphase.h\n");
-//		printf("numHandles = %d, maxHandles = %d\n",m_numHandles,m_maxHandles);
-	}
 };
 
 

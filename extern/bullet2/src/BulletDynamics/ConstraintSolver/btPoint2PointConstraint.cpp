@@ -21,19 +21,18 @@ subject to the following restrictions:
 
 
 btPoint2PointConstraint::btPoint2PointConstraint()
-:btTypedConstraint(POINT2POINT_CONSTRAINT_TYPE)
 {
 }
 
 btPoint2PointConstraint::btPoint2PointConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB)
-:btTypedConstraint(POINT2POINT_CONSTRAINT_TYPE,rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB)
+:btTypedConstraint(rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB)
 {
 
 }
 
 
 btPoint2PointConstraint::btPoint2PointConstraint(btRigidBody& rbA,const btVector3& pivotInA)
-:btTypedConstraint(POINT2POINT_CONSTRAINT_TYPE,rbA),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA))
+:btTypedConstraint(rbA),m_pivotInA(pivotInA),m_pivotInB(rbA.getCenterOfMassTransform()(pivotInA))
 {
 	
 }
@@ -100,16 +99,6 @@ void	btPoint2PointConstraint::solveConstraint(btScalar	timeStep)
 		btScalar depth = -(pivotAInW - pivotBInW).dot(normal); //this is the error projected on the normal
 		
 		btScalar impulse = depth*m_setting.m_tau/timeStep  * jacDiagABInv -  m_setting.m_damping * rel_vel * jacDiagABInv;
-
-		btScalar impulseClamp = m_setting.m_impulseClamp;
-		if (impulseClamp > 0)
-		{
-			if (impulse < -impulseClamp) 
-				impulse = -impulseClamp;
-			if (impulse > impulseClamp) 
-				impulse = impulseClamp;
-		}
-
 		m_appliedImpulse+=impulse;
 		btVector3 impulse_vector = normal * impulse;
 		m_rbA.applyImpulse(impulse_vector, pivotAInW - m_rbA.getCenterOfMassPosition());

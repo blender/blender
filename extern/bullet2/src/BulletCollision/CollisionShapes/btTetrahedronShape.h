@@ -18,10 +18,10 @@ subject to the following restrictions:
 
 
 #include "btPolyhedralConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
 
 
-///The btBU_Simplex1to4 implements tetrahedron, triangle, line, vertex collision shapes. In most cases it is better to use btConvexHullShape instead.
+///BU_Simplex1to4 implements feature based and implicit simplex of up to 4 vertices (tetrahedron, triangle, line, vertex).
 class btBU_Simplex1to4 : public btPolyhedralConvexShape
 {
 protected:
@@ -68,7 +68,7 @@ public:
 
 
 	///getName is for debugging
-	virtual const char*	getName()const { return "btBU_Simplex1to4";}
+	virtual  char*	getName()const { return "btBU_Simplex1to4";}
 
 };
 

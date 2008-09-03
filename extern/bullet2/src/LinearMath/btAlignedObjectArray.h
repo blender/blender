@@ -39,8 +39,8 @@ subject to the following restrictions:
 #endif //BT_USE_PLACEMENT_NEW
 
 
-///The btAlignedObjectArray template class uses a subset of the stl::vector interface for its methods
-///It is developed to replace stl::vector to avoid portability issues, including STL alignment issues to add SIMD/SSE data
+///btAlignedObjectArray uses a subset of the stl::vector interface for its methods
+///It is developed to replace stl::vector to avoid STL alignment issues to add SIMD/SSE data
 template <typename T> 
 //template <class T> 
 class btAlignedObjectArray
@@ -50,8 +50,6 @@ class btAlignedObjectArray
 	int					m_size;
 	int					m_capacity;
 	T*					m_data;
-	//PCK: added this line
-	bool				m_ownsMemory;
 
 	protected:
 		SIMD_FORCE_INLINE	int	allocSize(int size)
@@ -71,8 +69,6 @@ class btAlignedObjectArray
 
 		SIMD_FORCE_INLINE	void	init()
 		{
-			//PCK: added this line
-			m_ownsMemory = true;
 			m_data = 0;
 			m_size = 0;
 			m_capacity = 0;
@@ -96,11 +92,7 @@ class btAlignedObjectArray
 		SIMD_FORCE_INLINE	void	deallocate()
 		{
 			if(m_data)	{
-				//PCK: enclosed the deallocation in this block
-				if (m_ownsMemory)
-				{
-					m_allocator.deallocate(m_data);
-				}
+				m_allocator.deallocate(m_data);
 				m_data = 0;
 			}
 		}
@@ -231,9 +223,6 @@ class btAlignedObjectArray
 				destroy(0,size());
 
 				deallocate();
-				
-				//PCK: added this line
-				m_ownsMemory = true;
 
 				m_data = s;
 				
@@ -253,46 +242,6 @@ class btAlignedObjectArray
 				}
 		};
 	
-		template <typename L>
-		void quickSortInternal(L CompareFunc,int lo, int hi)
-		{
-		//  lo is the lower index, hi is the upper index
-		//  of the region of array a that is to be sorted
-			int i=lo, j=hi;
-			T x=m_data[(lo+hi)/2];
-
-			//  partition
-			do
-			{    
-				while (CompareFunc(m_data[i],x)) 
-					i++; 
-				while (CompareFunc(x,m_data[j])) 
-					j--;
-				if (i<=j)
-				{
-					swap(i,j);
-					i++; j--;
-				}
-			} while (i<=j);
-
-			//  recursion
-			if (lo<j) 
-				quickSortInternal( CompareFunc, lo, j);
-			if (i<hi) 
-				quickSortInternal( CompareFunc, i, hi);
-		}
-
-
-		template <typename L>
-		void quickSort(L CompareFunc)
-		{
-			//don't sort 0 or 1 elements
-			if (size()>1)
-			{
-				quickSortInternal(CompareFunc,0,size()-1);
-			}
-		}
-
 
 		///heap sort from http://www.csse.monash.edu.au/~lloyd/tildeAlgDS/Sort/Heap/
 		template <typename L>
@@ -411,16 +360,8 @@ class btAlignedObjectArray
 		}
 	}
 
-	//PCK: whole function
-	void initializeFromBuffer(void *buffer, int size, int capacity)
-	{
-		clear();
-		m_ownsMemory = false;
-		m_data = (T*)buffer;
-		m_size = size;
-		m_capacity = capacity;
-	}
-
 };
 
 #endif //BT_OBJECT_ARRAY__
+
+

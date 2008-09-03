@@ -23,11 +23,11 @@ class btOverlappingPairCache;
 class btConstraintSolver;
 class btSimulationIslandManager;
 class btTypedConstraint;
-
+#include "../ConstraintSolver/btContactSolverInfo.h"
 
 class btRaycastVehicle;
 class btIDebugDraw;
-#include "LinearMath/btAlignedObjectArray.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
@@ -42,6 +42,7 @@ protected:
 
 	btAlignedObjectArray<btTypedConstraint*> m_constraints;
 
+	btIDebugDraw*	m_debugDrawer;
 
 	btVector3	m_gravity;
 
@@ -52,12 +53,14 @@ protected:
 	bool	m_ownsIslandManager;
 	bool	m_ownsConstraintSolver;
 
-	
+	btContactSolverInfo	m_solverInfo;
+
+
 	btAlignedObjectArray<btRaycastVehicle*>	m_vehicles;
 
 	int	m_profileTimings;
 
-	virtual void	predictUnconstraintMotion(btScalar timeStep);
+	void	predictUnconstraintMotion(btScalar timeStep);
 	
 	void	integrateTransforms(btScalar timeStep);
 		
@@ -83,13 +86,14 @@ public:
 
 
 	///this btDiscreteDynamicsWorld constructor gets created objects from the user, and will not delete those
-	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
+	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);
 
 	virtual ~btDiscreteDynamicsWorld();
 
 	///if maxSubSteps > 0, it will interpolate motion between fixedTimeStep's
 	virtual int	stepSimulation( btScalar timeStep,int maxSubSteps=1, btScalar fixedTimeStep=btScalar(1.)/btScalar(60.));
 
+	virtual void	updateAabbs();
 
 	void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false);
 
@@ -114,9 +118,17 @@ public:
 		return this;
 	}
 
+	virtual void	setDebugDrawer(btIDebugDraw*	debugDrawer)
+	{
+			m_debugDrawer = debugDrawer;
+	}
+
+	virtual btIDebugDraw*	getDebugDrawer()
+	{
+		return m_debugDrawer;
+	}
 
 	virtual void	setGravity(const btVector3& gravity);
-	virtual btVector3 getGravity () const;
 
 	virtual void	addRigidBody(btRigidBody* body);
 
@@ -126,11 +138,7 @@ public:
 
 	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
 
-	virtual void	debugDrawWorld();
-
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
-
-	virtual btConstraintSolver* getConstraintSolver();
 	
 	virtual	int		getNumConstraints() const;
 
@@ -138,21 +146,11 @@ public:
 
 	virtual const btTypedConstraint* getConstraint(int index) const;
 
-	
-	virtual btDynamicsWorldType	getWorldType() const
+	btContactSolverInfo& getSolverInfo()
 	{
-		return BT_DISCRETE_DYNAMICS_WORLD;
+		return m_solverInfo;
 	}
-	
-	///the forces on each rigidbody is accumulating together with gravity. clear this after each timestep.
-	virtual void	clearForces();
 
-	///apply gravity, call this once per timestep
-	virtual void	applyGravity();
-
-	virtual void	setNumTasks(int numTasks)
-	{
-	}
 
 };
 

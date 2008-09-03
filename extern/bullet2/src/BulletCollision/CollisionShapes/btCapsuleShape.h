@@ -16,27 +16,20 @@ subject to the following restrictions:
 #ifndef BT_CAPSULE_SHAPE_H
 #define BT_CAPSULE_SHAPE_H
 
-#include "btConvexInternalShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "btConvexShape.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 
-///The btCapsuleShape represents a capsule around the Y axis, there is also the btCapsuleShapeX aligned around the X axis and btCapsuleShapeZ around the Z axis.
-///The total height is height+2*radius, so the height is just the height between the center of each 'sphere' of the capsule caps.
-///The btCapsuleShape is a convex hull of two spheres. The btMultiSphereShape is a more general collision shape that takes the convex hull of multiple sphere, so it can also represent a capsule when just using two spheres.
-class btCapsuleShape : public btConvexInternalShape
+///btCapsuleShape represents a capsule around the Y axis
+///A more general solution that can represent capsules is the btMultiSphereShape
+class btCapsuleShape : public btConvexShape
 {
-protected:
-	int	m_upAxis;
-
-protected:
-	///only used for btCapsuleShapeZ and btCapsuleShapeX subclasses.
-	btCapsuleShape() {};
 
 public:
 	btCapsuleShape(btScalar radius,btScalar height);
 
 	///CollisionShape Interface
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 	/// btConvexShape Interface
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
@@ -45,73 +38,21 @@ public:
 	
 	virtual int	getShapeType() const { return CAPSULE_SHAPE_PROXYTYPE; }
 
-	virtual void getAabb (const btTransform& t, btVector3& aabbMin, btVector3& aabbMax) const
-	{
-			btVector3 halfExtents(getRadius(),getRadius(),getRadius());
-			halfExtents[m_upAxis] = getRadius() + getHalfHeight();
-			btMatrix3x3 abs_b = t.getBasis().absolute();  
-			btPoint3 center = t.getOrigin();
-			btVector3 extent = btVector3(abs_b[0].dot(halfExtents),abs_b[1].dot(halfExtents),abs_b[2].dot(halfExtents));		  
-			extent += btVector3(getMargin(),getMargin(),getMargin());
-			aabbMin = center - extent;
-			aabbMax = center + extent;
-	}
-
-	virtual const char*	getName()const 
+	virtual char*	getName()const 
 	{
 		return "CapsuleShape";
 	}
 
-	int	getUpAxis() const
-	{
-		return m_upAxis;
-	}
-
 	btScalar	getRadius() const
 	{
-		int radiusAxis = (m_upAxis+2)%3;
-		return m_implicitShapeDimensions[radiusAxis];
+		return m_implicitShapeDimensions.getX();
 	}
 
 	btScalar	getHalfHeight() const
 	{
-		return m_implicitShapeDimensions[m_upAxis];
+		return m_implicitShapeDimensions.getY();
 	}
 
-};
-
-///btCapsuleShapeX represents a capsule around the Z axis
-///the total height is height+2*radius, so the height is just the height between the center of each 'sphere' of the capsule caps.
-class btCapsuleShapeX : public btCapsuleShape
-{
-public:
-
-	btCapsuleShapeX(btScalar radius,btScalar height);
-		
-	//debugging
-	virtual const char*	getName()const
-	{
-		return "CapsuleX";
-	}
-
-	
-
-};
-
-///btCapsuleShapeZ represents a capsule around the Z axis
-///the total height is height+2*radius, so the height is just the height between the center of each 'sphere' of the capsule caps.
-class btCapsuleShapeZ : public btCapsuleShape
-{
-public:
-	btCapsuleShapeZ(btScalar radius,btScalar height);
-
-		//debugging
-	virtual const char*	getName()const
-	{
-		return "CapsuleZ";
-	}
-
-	
 };
 
 

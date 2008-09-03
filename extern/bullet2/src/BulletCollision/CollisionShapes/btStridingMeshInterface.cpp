@@ -51,7 +51,7 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 			{
 				for (gfxindex=0;gfxindex<numtriangles;gfxindex++)
 				{
-					unsigned int* tri_indices= (unsigned int*)(indexbase+gfxindex*indexstride);
+					int* tri_indices= (int*)(indexbase+gfxindex*indexstride);
 					graphicsbase = (btScalar*)(vertexbase+tri_indices[0]*stride);
 					triangle[0].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());
 					graphicsbase = (btScalar*)(vertexbase+tri_indices[1]*stride);
@@ -66,7 +66,7 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 			{
 				for (gfxindex=0;gfxindex<numtriangles;gfxindex++)
 				{
-					unsigned short int* tri_indices= (unsigned short int*)(indexbase+gfxindex*indexstride);
+					short int* tri_indices= (short int*)(indexbase+gfxindex*indexstride);
 					graphicsbase = (btScalar*)(vertexbase+tri_indices[0]*stride);
 					triangle[0].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());
 					graphicsbase = (btScalar*)(vertexbase+tri_indices[1]*stride);

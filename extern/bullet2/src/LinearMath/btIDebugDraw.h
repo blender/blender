@@ -31,9 +31,6 @@ DEALINGS IN THE SOFTWARE.
 #include "btVector3.h"
 
 
-///The btIDebugDraw interface class allows hooking up a debug renderer to visually debug simulations.
-///Typical use case: create a debug drawer object, and assign it to a btCollisionWorld or btDynamicsWorld using setDebugDrawer and call debugDrawWorld.
-///A class that implements the btIDebugDraw interface has to implement the drawLine method at a minimum.
 class	btIDebugDraw
 {
 	public:
@@ -58,24 +55,11 @@ class	btIDebugDraw
 	virtual ~btIDebugDraw() {};
 
 	virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)=0;
-	
-	virtual	void	drawTriangle(const btVector3& v0,const btVector3& v1,const btVector3& v2,const btVector3& /*n0*/,const btVector3& /*n1*/,const btVector3& /*n2*/,const btVector3& color, btScalar alpha)
-	{
-		drawTriangle(v0,v1,v2,color,alpha);
-	}
-	virtual	void	drawTriangle(const btVector3& v0,const btVector3& v1,const btVector3& v2,const btVector3& color, btScalar /*alpha*/)
-	{
-		drawLine(v0,v1,color);
-		drawLine(v1,v2,color);
-		drawLine(v2,v0,color);
-	}
 
 	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)=0;
 
 	virtual void	reportErrorWarning(const char* warningString) = 0;
 
-	virtual void	draw3dText(const btVector3& location,const char* textString) = 0;
-	
 	virtual void	setDebugMode(int debugMode) =0;
 	
 	virtual int		getDebugMode() const = 0;

@@ -3,24 +3,20 @@
 
 
 #include "btPolyhedralConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 
-/// The btConvexTriangleMeshShape is a convex hull of a triangle mesh, but the performance is not as good as btConvexHullShape.
-/// A small benefit of this class is that it uses the btStridingMeshInterface, so you can avoid the duplication of the triangle mesh data. Nevertheless, most users should use the much better performing btConvexHullShape instead.
+/// btConvexTriangleMeshShape is a convex hull of a triangle mesh. If you just have a point cloud, you can use btConvexHullShape instead.
+/// It uses the btStridingMeshInterface instead of a point cloud. This can avoid the duplication of the triangle mesh data.
 class btConvexTriangleMeshShape : public btPolyhedralConvexShape
 {
 
 	class btStridingMeshInterface*	m_stridingMesh;
 
 public:
-	btConvexTriangleMeshShape(btStridingMeshInterface* meshInterface, bool calcAabb = true);
+	btConvexTriangleMeshShape(btStridingMeshInterface* meshInterface);
 
-	class btStridingMeshInterface*	getMeshInterface()
-	{
-		return m_stridingMesh;
-	}
-	const class btStridingMeshInterface* getMeshInterface() const
+	class btStridingMeshInterface*	getStridingMesh()
 	{
 		return m_stridingMesh;
 	}
@@ -32,7 +28,7 @@ public:
 	virtual int	getShapeType()const { return CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE; }
 
 	//debugging
-	virtual const char*	getName()const {return "ConvexTrimesh";}
+	virtual char*	getName()const {return "ConvexTrimesh";}
 	
 	virtual int	getNumVertices() const;
 	virtual int getNumEdges() const;
@@ -51,6 +47,5 @@ public:
 
 
 #endif //CONVEX_TRIANGLEMESH_SHAPE_H
-
 
 

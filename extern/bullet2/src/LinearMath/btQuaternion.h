@@ -19,7 +19,6 @@ subject to the following restrictions:
 
 #include "btVector3.h"
 
-///The btQuaternion implements quaternion to perform linear algebra rotations in combination with btMatrix3x3, btVector3 and btTransform.
 class btQuaternion : public btQuadWord {
 public:
 	btQuaternion() {}
@@ -159,7 +158,7 @@ public:
 
 	btQuaternion inverse() const
 	{
-		return btQuaternion(-m_x, -m_y, -m_z, m_unusedW);
+		return btQuaternion(m_x, m_y, m_z, -m_unusedW);
 	}
 
 	SIMD_FORCE_INLINE btQuaternion
@@ -286,7 +285,7 @@ slerp(const btQuaternion& q1, const btQuaternion& q2, const btScalar& t)
 }
 
 SIMD_FORCE_INLINE btVector3 
-quatRotate(const btQuaternion& rotation, const btVector3& v) 
+quatRotate(btQuaternion& rotation, btVector3& v) 
 {
 	btQuaternion q = rotation * v;
 	q *= rotation.inverse();
@@ -294,7 +293,7 @@ quatRotate(const btQuaternion& rotation, const btVector3& v)
 }
 
 SIMD_FORCE_INLINE btQuaternion 
-shortestArcQuat(const btVector3& v0, const btVector3& v1) // Game Programming Gems 2.10. make sure v0,v1 are normalized
+shortestArcQuat(btVector3& v0,btVector3& v1) // Game Programming Gems 2.10. make sure v0,v1 are normalized
 {
 	btVector3 c = v0.cross(v1);
 	btScalar  d = v0.dot(v1);
@@ -309,7 +308,7 @@ shortestArcQuat(const btVector3& v0, const btVector3& v1) // Game Programming Ge
 }
 
 SIMD_FORCE_INLINE btQuaternion 
-shortestArcQuatNormalize2(btVector3& v0,btVector3& v1)
+shortestArcQuatNormalize(btVector3& v0,btVector3& v1)
 {
 	v0.normalize();
 	v1.normalize();
@@ -317,7 +316,6 @@ shortestArcQuatNormalize2(btVector3& v0,btVector3& v1)
 }
 
 #endif
-
 
 
 

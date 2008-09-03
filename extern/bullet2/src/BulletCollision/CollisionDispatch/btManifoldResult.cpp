@@ -79,30 +79,12 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 	}
 
 	btManifoldPoint newPt(localA,localB,normalOnBInWorld,depth);
-	newPt.m_positionWorldOnA = pointA;
-	newPt.m_positionWorldOnB = pointInWorld;
-	
+
 	int insertIndex = m_manifoldPtr->getCacheEntry(newPt);
 
 	newPt.m_combinedFriction = calculateCombinedFriction(m_body0,m_body1);
 	newPt.m_combinedRestitution = calculateCombinedRestitution(m_body0,m_body1);
 
-   //BP mod, store contact triangles.
-   newPt.m_partId0 = m_partId0;
-   newPt.m_partId1 = m_partId1;
-   newPt.m_index0  = m_index0;
-   newPt.m_index1  = m_index1;
-	
-	///todo, check this for any side effects
-	if (insertIndex >= 0)
-	{
-		//const btManifoldPoint& oldPoint = m_manifoldPtr->getContactPoint(insertIndex);
-		m_manifoldPtr->replaceContactPoint(newPt,insertIndex);
-	} else
-	{
-		insertIndex = m_manifoldPtr->addManifoldPoint(newPt);
-	}
-	
 	//User can override friction and/or restitution
 	if (gContactAddedCallback &&
 		//and if either of the two bodies requires custom material
@@ -112,8 +94,16 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 		//experimental feature info, for per-triangle material etc.
 		btCollisionObject* obj0 = isSwapped? m_body1 : m_body0;
 		btCollisionObject* obj1 = isSwapped? m_body0 : m_body1;
-		(*gContactAddedCallback)(m_manifoldPtr->getContactPoint(insertIndex),obj0,m_partId0,m_index0,obj1,m_partId1,m_index1);
+		(*gContactAddedCallback)(newPt,obj0,m_partId0,m_index0,obj1,m_partId1,m_index1);
 	}
 
+	if (insertIndex >= 0)
+	{
+		//const btManifoldPoint& oldPoint = m_manifoldPtr->getContactPoint(insertIndex);
+		m_manifoldPtr->replaceContactPoint(newPt,insertIndex);
+	} else
+	{
+		m_manifoldPtr->AddManifoldPoint(newPt);
+	}
 }
 

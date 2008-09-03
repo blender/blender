@@ -19,7 +19,6 @@ subject to the following restrictions:
 #include "btVector3.h"
 #include "btAlignedObjectArray.h"
 
-///The btGeometryUtil helper class provides a few methods to convert between plane equations and vertices.
 class btGeometryUtil
 {
 	public:

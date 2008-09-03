@@ -245,11 +245,6 @@ struct	BlenderDebugDraw : public btIDebugDraw
 	{
 		return m_debugMode;
 	}
-	///todo: find out if Blender can do this
-	virtual void	draw3dText(const btVector3& location,const char* textString)
-	{
-
-	}
 		
 };
 

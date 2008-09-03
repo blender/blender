@@ -19,8 +19,7 @@ subject to the following restrictions:
 
 
 btCompoundCollisionAlgorithm::btCompoundCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,bool isSwapped)
-:btCollisionAlgorithm(ci),
-m_isSwapped(isSwapped)
+:m_isSwapped(isSwapped)
 {
 	btCollisionObject* colObj = m_isSwapped? body1 : body0;
 	btCollisionObject* otherObj = m_isSwapped? body0 : body1;
@@ -33,11 +32,11 @@ m_isSwapped(isSwapped)
 	m_childCollisionAlgorithms.resize(numChildren);
 	for (i=0;i<numChildren;i++)
 	{
-		btCollisionShape* tmpShape = colObj->getCollisionShape();
 		btCollisionShape* childShape = compoundShape->getChildShape(i);
-		colObj->internalSetTemporaryCollisionShape( childShape );
-		m_childCollisionAlgorithms[i] = ci.m_dispatcher1->findAlgorithm(colObj,otherObj);
-		colObj->internalSetTemporaryCollisionShape( tmpShape );
+		btCollisionShape* orgShape = colObj->getCollisionShape();
+		colObj->setCollisionShape( childShape );
+		m_childCollisionAlgorithms[i] = ci.m_dispatcher->findAlgorithm(colObj,otherObj);
+		colObj->setCollisionShape( orgShape );
 	}
 }
 
@@ -48,8 +47,7 @@ btCompoundCollisionAlgorithm::~btCompoundCollisionAlgorithm()
 	int i;
 	for (i=0;i<numChildren;i++)
 	{
-		m_childCollisionAlgorithms[i]->~btCollisionAlgorithm();
-		m_dispatcher->freeCollisionAlgorithm(m_childCollisionAlgorithms[i]);
+		delete m_childCollisionAlgorithms[i];
 	}
 }
 
@@ -77,21 +75,17 @@ void btCompoundCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 
 		//backup
 		btTransform	orgTrans = colObj->getWorldTransform();
-		btTransform	orgInterpolationTrans = colObj->getInterpolationWorldTransform();
+		btCollisionShape* orgShape = colObj->getCollisionShape();
 
 		const btTransform& childTrans = compoundShape->getChildTransform(i);
-		btTransform	newChildWorldTrans = orgTrans*childTrans ;
-		colObj->setWorldTransform( newChildWorldTrans);
-		colObj->setInterpolationWorldTransform(newChildWorldTrans);
-
+		//btTransform	newChildWorldTrans = orgTrans*childTrans ;
+		colObj->setWorldTransform( orgTrans*childTrans );
 		//the contactpoint is still projected back using the original inverted worldtrans
-		btCollisionShape* tmpShape = colObj->getCollisionShape();
-		colObj->internalSetTemporaryCollisionShape( childShape );
+		colObj->setCollisionShape( childShape );
 		m_childCollisionAlgorithms[i]->processCollision(colObj,otherObj,dispatchInfo,resultOut);
 		//revert back
-		colObj->internalSetTemporaryCollisionShape( tmpShape);
+		colObj->setCollisionShape( orgShape);
 		colObj->setWorldTransform(  orgTrans );
-		colObj->setInterpolationWorldTransform(orgInterpolationTrans);
 	}
 }
 
@@ -123,20 +117,20 @@ btScalar	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* 
 
 		//backup
 		btTransform	orgTrans = colObj->getWorldTransform();
-	
+		btCollisionShape* orgShape = colObj->getCollisionShape();
+
 		const btTransform& childTrans = compoundShape->getChildTransform(i);
 		//btTransform	newChildWorldTrans = orgTrans*childTrans ;
 		colObj->setWorldTransform( orgTrans*childTrans );
 
-		btCollisionShape* tmpShape = colObj->getCollisionShape();
-		colObj->internalSetTemporaryCollisionShape( childShape );
+		colObj->setCollisionShape( childShape );
 		btScalar frac = m_childCollisionAlgorithms[i]->calculateTimeOfImpact(colObj,otherObj,dispatchInfo,resultOut);
 		if (frac<hitFraction)
 		{
 			hitFraction = frac;
 		}
 		//revert back
-		colObj->internalSetTemporaryCollisionShape( tmpShape);
+		colObj->setCollisionShape( orgShape);
 		colObj->setWorldTransform( orgTrans);
 	}
 	return hitFraction;

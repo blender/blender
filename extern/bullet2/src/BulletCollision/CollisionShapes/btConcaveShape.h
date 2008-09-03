@@ -17,12 +17,12 @@ subject to the following restrictions:
 #define CONCAVE_SHAPE_H
 
 #include "btCollisionShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 #include "btTriangleCallback.h"
 
 
-///The btConcaveShape class provides an interface for non-moving (static) concave shapes.
-///It has been implemented by the btStaticPlaneShape, btBvhTriangleMeshShape and btHeightfieldTerrainShape.
+///Concave shape proves an interface concave shapes that can produce triangles that overlapping a given AABB.
+///Static triangle mesh, infinite plane, height field/landscapes are example that implement this interface.
 class btConcaveShape : public btCollisionShape
 {
 protected:

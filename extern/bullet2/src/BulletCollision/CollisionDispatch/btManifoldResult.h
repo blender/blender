@@ -18,12 +18,12 @@ subject to the following restrictions:
 #define MANIFOLD_RESULT_H
 
 class btCollisionObject;
-#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+class btPersistentManifold;
 class btManifoldPoint;
 
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
 
-#include "LinearMath/btTransform.h"
+#include "../../LinearMath/btTransform.h"
 
 typedef bool (*ContactAddedCallback)(btManifoldPoint& cp,	const btCollisionObject* colObj0,int partId0,int index0,const btCollisionObject* colObj1,int partId1,int index1);
 extern ContactAddedCallback		gContactAddedCallback;
@@ -60,15 +60,6 @@ public:
 		m_manifoldPtr = manifoldPtr;
 	}
 
-	const btPersistentManifold*	getPersistentManifold() const
-	{
-		return m_manifoldPtr;
-	}
-	btPersistentManifold*	getPersistentManifold()
-	{
-		return m_manifoldPtr;
-	}
-
 	virtual void setShapeIdentifiers(int partId0,int index0,	int partId1,int index1)
 	{
 			m_partId0=partId0;
@@ -79,22 +70,6 @@ public:
 
 	virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth);
 
-	SIMD_FORCE_INLINE	void refreshContactPoints()
-	{
-		btAssert(m_manifoldPtr);
-		if (!m_manifoldPtr->getNumContacts())
-			return;
-
-		bool isSwapped = m_manifoldPtr->getBody0() != m_body0;
-
-		if (isSwapped)
-		{
-			m_manifoldPtr->refreshContactPoints(m_rootTransB,m_rootTransA);
-		} else
-		{
-			m_manifoldPtr->refreshContactPoints(m_rootTransA,m_rootTransB);
-		}
-	}
 
 
 };

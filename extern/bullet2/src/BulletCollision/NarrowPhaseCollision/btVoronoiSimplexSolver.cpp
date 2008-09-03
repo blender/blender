@@ -26,7 +26,7 @@ subject to the following restrictions:
 
 #include "btVoronoiSimplexSolver.h"
 #include <assert.h>
-//#include <stdio.h>
+#include <stdio.h>
 
 #define VERTA  0
 #define VERTB  1

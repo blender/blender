@@ -17,31 +17,19 @@ subject to the following restrictions:
 #define SIMD_QUADWORD_H
 
 #include "btScalar.h"
-#include "btMinMax.h"
-#include <math.h>
 
 
-
-///The btQuadWordStorage class is base class for btVector3 and btQuaternion. 
-///Some issues under PS3 Linux with IBM 2.1 SDK, gcc compiler prevent from using aligned quadword. todo: look into this
-///ATTRIBUTE_ALIGNED16(class) btQuadWordStorage
-class btQuadWordStorage
-{
-protected:
-
-	btScalar	m_x;
-	btScalar	m_y;
-	btScalar	m_z;
-	btScalar	m_unusedW;
-
-public:
-
-};
 
 
 ///btQuadWord is base-class for vectors, points
-class	btQuadWord : public btQuadWordStorage
+class	btQuadWord
 {
+	protected:
+		btScalar	m_x;
+		btScalar	m_y;
+		btScalar	m_z;
+		btScalar	m_unusedW;
+
 	public:
 	
 //		SIMD_FORCE_INLINE btScalar&       operator[](int i)       { return (&m_x)[i];	}      
@@ -73,8 +61,6 @@ class	btQuadWord : public btQuadWordStorage
 		SIMD_FORCE_INLINE	operator       btScalar *()       { return &m_x; }
 		SIMD_FORCE_INLINE	operator const btScalar *() const { return &m_x; }
 
-
-
 		SIMD_FORCE_INLINE void 	setValue(const btScalar& x, const btScalar& y, const btScalar& z)
 		{
 			m_x=x;
@@ -103,36 +89,47 @@ class	btQuadWord : public btQuadWordStorage
 		{
 		}
 
-		SIMD_FORCE_INLINE btQuadWord(const btQuadWordStorage& q)
+		SIMD_FORCE_INLINE btQuadWord(const btScalar& x, const btScalar& y, const btScalar& z) 
+		:m_x(x),m_y(y),m_z(z)
+		//todo, remove this in release/simd ?
+		,m_unusedW(btScalar(0.))
 		{
-			*((btQuadWordStorage*)this) = q;
-		}
-
-		SIMD_FORCE_INLINE btQuadWord(const btScalar& x, const btScalar& y, const btScalar& z)		
-		{
-			m_x = x, m_y = y, m_z = z, m_unusedW = 0.0f;
 		}
 
 		SIMD_FORCE_INLINE btQuadWord(const btScalar& x, const btScalar& y, const btScalar& z,const btScalar& w) 
+			:m_x(x),m_y(y),m_z(z),m_unusedW(w)
 		{
-			m_x = x, m_y = y, m_z = z, m_unusedW = w;
 		}
 
 
 		SIMD_FORCE_INLINE void	setMax(const btQuadWord& other)
 		{
-			btSetMax(m_x, other.m_x);
-			btSetMax(m_y, other.m_y);
-			btSetMax(m_z, other.m_z);
-			btSetMax(m_unusedW, other.m_unusedW);
+			if (other.m_x > m_x)
+				m_x = other.m_x;
+
+			if (other.m_y > m_y)
+				m_y = other.m_y;
+
+			if (other.m_z > m_z)
+				m_z = other.m_z;
+
+			if (other.m_unusedW > m_unusedW)
+				m_unusedW = other.m_unusedW;
 		}
 
 		SIMD_FORCE_INLINE void	setMin(const btQuadWord& other)
 		{
-			btSetMin(m_x, other.m_x);
-			btSetMin(m_y, other.m_y);
-			btSetMin(m_z, other.m_z);
-			btSetMin(m_unusedW, other.m_unusedW);
+			if (other.m_x < m_x)
+				m_x = other.m_x;
+
+			if (other.m_y < m_y)
+				m_y = other.m_y;
+
+			if (other.m_z < m_z)
+				m_z = other.m_z;
+
+			if (other.m_unusedW < m_unusedW)
+				m_unusedW = other.m_unusedW;
 		}
 
 

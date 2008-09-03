@@ -16,17 +16,15 @@ subject to the following restrictions:
 #ifndef SPHERE_MINKOWSKI_H
 #define SPHERE_MINKOWSKI_H
 
-#include "btConvexInternalShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "btConvexShape.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-///The btSphereShape implements an implicit sphere, centered around a local origin with radius.
-ATTRIBUTE_ALIGNED16(class) btSphereShape : public btConvexInternalShape
+///btSphereShape implements an implicit (getSupportingVertex) Sphere
+ATTRIBUTE_ALIGNED16(class) btSphereShape : public btConvexShape
 
 {
 	
 public:
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-
 	btSphereShape (btScalar radius);
 	
 	
@@ -36,26 +34,26 @@ public:
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
 	virtual int	getShapeType() const { return SPHERE_SHAPE_PROXYTYPE; }
 
-	btScalar	getRadius() const { return m_implicitShapeDimensions.getX() * m_localScaling.getX();}
+	btScalar	getRadius() const { return m_implicitShapeDimensions.getX();}
 
 	//debugging
-	virtual const char*	getName()const {return "SPHERE";}
+	virtual char*	getName()const {return "SPHERE";}
 
 	virtual void	setMargin(btScalar margin)
 	{
-		btConvexInternalShape::setMargin(margin);
+		btConvexShape::setMargin(margin);
 	}
 	virtual btScalar	getMargin() const
 	{
 		//to improve gjk behaviour, use radius+margin as the full margin, so never get into the penetration case
 		//this means, non-uniform scaling is not supported anymore
-		return getRadius();
+		return m_localScaling.getX() * getRadius() + btConvexShape::getMargin();
 	}
 
 

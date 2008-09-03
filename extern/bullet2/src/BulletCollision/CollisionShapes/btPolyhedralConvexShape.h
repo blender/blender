@@ -16,13 +16,13 @@ subject to the following restrictions:
 #ifndef BU_SHAPE
 #define BU_SHAPE
 
-#include "LinearMath/btPoint3.h"
-#include "LinearMath/btMatrix3x3.h"
-#include "btConvexInternalShape.h"
+#include "../../LinearMath/btPoint3.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "btConvexShape.h"
 
 
-///The btPolyhedralConvexShape is an internal interface class for polyhedral convex shapes.
-class btPolyhedralConvexShape : public btConvexInternalShape
+///PolyhedralConvexShape is an interface class for feature based (vertex/edge/face) convex shapes.
+class btPolyhedralConvexShape : public btConvexShape
 {
 
 protected:
@@ -38,7 +38,7 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 
 	inline void getNonvirtualAabb(const btTransform& trans,btVector3& aabbMin,btVector3& aabbMax, btScalar margin) const
@@ -72,8 +72,6 @@ public:
 
 	
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
-
-	virtual void	setLocalScaling(const btVector3& scaling);
 
 	void	recalcLocalAabb();
 

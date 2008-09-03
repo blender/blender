@@ -126,14 +126,13 @@ void CcdPhysicsController::CreateRigidbody()
 
 	m_bulletMotionState = new BlenderBulletMotionState(m_MotionState);
 
-	btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
-	rbci.m_linearDamping = m_cci.m_linearDamping;
-	rbci.m_angularDamping = m_cci.m_angularDamping;
-	rbci.m_friction = m_cci.m_friction;
-	rbci.m_restitution = m_cci.m_restitution;
-	
-	m_body = new btRigidBody(rbci);
-	
+	m_body = new btRigidBody(m_cci.m_mass,
+		m_bulletMotionState,
+		m_collisionShape,
+		m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor,
+		m_cci.m_linearDamping,m_cci.m_angularDamping,
+		m_cci.m_friction,m_cci.m_restitution);
+
 	//
 	// init the rigidbody properly
 	//

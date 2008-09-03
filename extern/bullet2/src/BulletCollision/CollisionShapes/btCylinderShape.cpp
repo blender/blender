@@ -45,7 +45,7 @@ void btCylinderShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3&
 }
 
 
-SIMD_FORCE_INLINE btVector3 CylinderLocalSupportX(const btVector3& halfExtents,const btVector3& v) 
+inline btVector3 CylinderLocalSupportX(const btVector3& halfExtents,const btVector3& v) 
 {
 const int cylinderUpAxis = 0;
 const int XX = 1;
@@ -163,24 +163,24 @@ const int ZZ = 1;
 
 btVector3	btCylinderShapeX::localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 {
-	return CylinderLocalSupportX(getHalfExtentsWithoutMargin(),vec);
+	return CylinderLocalSupportX(getHalfExtents(),vec);
 }
 
 
 btVector3	btCylinderShapeZ::localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 {
-	return CylinderLocalSupportZ(getHalfExtentsWithoutMargin(),vec);
+	return CylinderLocalSupportZ(getHalfExtents(),vec);
 }
 btVector3	btCylinderShape::localGetSupportingVertexWithoutMargin(const btVector3& vec)const
 {
-	return CylinderLocalSupportY(getHalfExtentsWithoutMargin(),vec);
+	return CylinderLocalSupportY(getHalfExtents(),vec);
 }
 
 void	btCylinderShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
 {
 	for (int i=0;i<numVectors;i++)
 	{
-		supportVerticesOut[i] = CylinderLocalSupportY(getHalfExtentsWithoutMargin(),vectors[i]);
+		supportVerticesOut[i] = CylinderLocalSupportY(getHalfExtents(),vectors[i]);
 	}
 }
 
@@ -188,7 +188,7 @@ void	btCylinderShapeZ::batchedUnitVectorGetSupportingVertexWithoutMargin(const b
 {
 	for (int i=0;i<numVectors;i++)
 	{
-		supportVerticesOut[i] = CylinderLocalSupportZ(getHalfExtentsWithoutMargin(),vectors[i]);
+		supportVerticesOut[i] = CylinderLocalSupportZ(getHalfExtents(),vectors[i]);
 	}
 }
 
@@ -199,7 +199,7 @@ void	btCylinderShapeX::batchedUnitVectorGetSupportingVertexWithoutMargin(const b
 {
 	for (int i=0;i<numVectors;i++)
 	{
-		supportVerticesOut[i] = CylinderLocalSupportX(getHalfExtentsWithoutMargin(),vectors[i]);
+		supportVerticesOut[i] = CylinderLocalSupportX(getHalfExtents(),vectors[i]);
 	}
 }
 
