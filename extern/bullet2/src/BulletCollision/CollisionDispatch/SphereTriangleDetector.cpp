@@ -26,7 +26,7 @@ m_triangle(triangle)
 
 }
 
-void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw)
+void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw,bool swapResults)
 {
 
 	(void)debugDraw;
@@ -42,7 +42,16 @@ void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Res
 
 	if (collide(sphereInTr.getOrigin(),point,normal,depth,timeOfImpact))
 	{
-		output.addContactPoint(transformB.getBasis()*normal,transformB*point,depth);
+		if (swapResults)
+		{
+			btVector3 normalOnB = transformB.getBasis()*normal;
+			btVector3 normalOnA = -normalOnB;
+			btVector3 pointOnA = transformB*point+normalOnB*depth;
+			output.addContactPoint(normalOnA,pointOnA,depth);
+		} else
+		{
+			output.addContactPoint(transformB.getBasis()*normal,transformB*point,depth);
+		}
 	}
 
 }
@@ -53,6 +62,8 @@ void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Res
 
 // See also geometrictools.com
 // Basic idea: D = |p - (lo + t0*lv)| where t0 = lv . (p - lo) / lv . lv
+btScalar SegmentSqrDistance(const btVector3& from, const btVector3& to,const btVector3 &p, btVector3 &nearest);
+
 btScalar SegmentSqrDistance(const btVector3& from, const btVector3& to,const btVector3 &p, btVector3 &nearest) {
 	btVector3 diff = p - from;
 	btVector3 v = to - from;

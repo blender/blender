@@ -21,7 +21,8 @@ subject to the following restrictions:
 #include "btMatrix3x3.h"
 
 
-///btTransform supports rigid transforms (only translation and rotation, no scaling/shear)
+///The btTransform class supports rigid transforms with only translation and rotation and no scaling/shear.
+///It can be used in combination with btVector3, btQuaternion and btMatrix3x3 linear algebra classes.
 class btTransform {
 	
 
@@ -92,13 +93,7 @@ public:
 		m_basis.getRotation(q);
 		return q;
 	}
-	template <typename Scalar2>
-		void setValue(const Scalar2 *m) 
-	{
-		m_basis.setValue(m);
-		m_origin.setValue(&m[12]);
-	}
-
+	
 	
 	void setFromOpenGLMatrix(const btScalar *m)
 	{
@@ -194,11 +189,17 @@ btTransform::operator*(const btTransform& t) const
 {
 	return btTransform(m_basis * t.m_basis, 
 		(*this)(t.m_origin));
-}	
+}
 
+SIMD_FORCE_INLINE bool operator==(const btTransform& t1, const btTransform& t2)
+{
+   return ( t1.getBasis()  == t2.getBasis() &&
+            t1.getOrigin() == t2.getOrigin() );
+}
 
 
 #endif
+
 
 
 

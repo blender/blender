@@ -330,30 +330,21 @@ m_filterCallback(NULL)
 	{
 		m_triggerCallbacks[i] = 0;
 	}
+	m_collisionConfiguration = new btDefaultCollisionConfiguration();
+
 	if (!dispatcher)
 	{
-		dispatcher = new btCollisionDispatcher();
+		dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
 		m_ownDispatcher = dispatcher;
 	}
 
-	if(!pairCache)
-	{
-
-		//todo: calculate/let user specify this world sizes
-		btVector3 worldMin(-10000,-10000,-10000);
-		btVector3 worldMax(10000,10000,10000);
-
-		pairCache = new btAxisSweep3(worldMin,worldMax);
-		// remember that this was allocated by us so that we can release it
-		m_ownPairCache = pairCache;
-		//broadphase = new btSimpleBroadphase();
-	}
+	m_broadphase = new btDbvtBroadphase();
 
 	m_filterCallback = new CcdOverlapFilterCallBack(this);
-	pairCache->setOverlapFilterCallback(m_filterCallback);
+	m_broadphase->getOverlappingPairCache()->setOverlapFilterCallback(m_filterCallback);
 
 	setSolverType(1);//issues with quickstep and memory allocations
-	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,pairCache,m_solver);
+	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
 	m_dynamicsWorld->setGravity(m_gravity);
@@ -519,6 +510,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		veh->SyncWheels();
 	}
 
+	m_dynamicsWorld->debugDrawWorld();
+
+
 	CallbackTriggers();
 
 	return true;
@@ -579,7 +573,7 @@ void		CcdPhysicsEnvironment::setSolverDamping(float damping)
 
 void		CcdPhysicsEnvironment::setLinearAirDamping(float damping)
 {
-	gLinearAirDamping = damping;
+	//gLinearAirDamping = damping;
 }
 
 void		CcdPhysicsEnvironment::setUseEpa(bool epa)
@@ -598,7 +592,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			{
 
 				m_solver = new btSequentialImpulseConstraintSolver();
-				((btSequentialImpulseConstraintSolver*)m_solver)->setSolverMode(btSequentialImpulseConstraintSolver::SOLVER_USE_WARMSTARTING | btSequentialImpulseConstraintSolver::SOLVER_RANDMIZE_ORDER);
+//				((btSequentialImpulseConstraintSolver*)m_solver)->setSolverMode(btSequentialImpulseConstraintSolver::SOLVER_USE_WARMSTARTING | btSequentialImpulseConstraintSolver::SOLVER_RANDMIZE_ORDER);
 				break;
 			}
 		}
@@ -660,9 +654,10 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 	{
 		
 
+		bool useReferenceFrameA = true;
 		genericConstraint = new btGeneric6DofConstraint(
 			*rb0,*rb1,
-			frameInA,frameInB);
+			frameInA,frameInB,useReferenceFrameA);
 		genericConstraint->setLinearLowerLimit(linearMinLimits);
 		genericConstraint->setLinearUpperLimit(linearMaxLimits);
 		genericConstraint->setAngularLowerLimit(angularMinLimits);
@@ -742,14 +737,15 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 		// save shape information as ClosestRayResultCallback::AddSingleResult() does not do it
 		if (rayResult.m_localShapeInfo)
 		{
-			m_hitTriangleShape = rayResult.m_localShapeInfo->m_triangleShape;
-			m_hitTriangleIndex = rayResult.m_localShapeInfo->m_triangleIndex;
+			m_hitTriangleShape = NULL;//rayResult.m_localShapeInfo->m_triangleShape;
+			m_hitTriangleIndex = 0;//rayResult.m_localShapeInfo->m_triangleIndex;
 		} else 
 		{
 			m_hitTriangleShape = NULL;
 			m_hitTriangleIndex = 0;
 		}
-		return ClosestRayResultCallback::AddSingleResult(rayResult);
+		bool normalInWorldspace = true;
+		return ClosestRayResultCallback::addSingleResult(rayResult,normalInWorldspace);
 	}
 
 };
@@ -775,8 +771,11 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 	memset(&result, 0, sizeof(result));
 
 	// don't collision with sensor object
-	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter,filterCallback.m_faceNormal);
-	if (rayCallback.HasHit())
+	rayCallback.m_collisionFilterMask = CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter;
+	//, ,filterCallback.m_faceNormal);
+
+	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback);
+	if (rayCallback.hasHit())
 	{
 		CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
 		result.m_controller = controller;
@@ -881,6 +880,12 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 
 	if (NULL != m_filterCallback)
 		delete m_filterCallback;
+
+	if (NULL != m_collisionConfiguration)
+		delete m_collisionConfiguration;
+
+	if (NULL != m_broadphase)
+		delete m_broadphase;
 }
 
 
@@ -893,7 +898,7 @@ void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float 
 		{
 			//param = 1..12, min0,max0,min1,max1...min6,max6
 			btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
-			genCons->SetLimit(param,value0,value1);
+			genCons->setLimit(param,value0,value1);
 			break;
 		};
 	default:
@@ -1239,10 +1244,11 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				btTransform globalFrameA = rb0->getCenterOfMassTransform() * frameInA;
 				
 				frameInB = inv  * globalFrameA;
-				
+				bool useReferenceFrameA = true;
+
 				genericConstraint = new btGeneric6DofConstraint(
 					*rb0,*rb1,
-					frameInA,frameInB);
+					frameInA,frameInB,useReferenceFrameA);
 
 
 			} else
@@ -1263,9 +1269,10 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				///frameInB in worldspace
 				frameInB = rb0->getCenterOfMassTransform() * frameInA;
 
+				bool useReferenceFrameA = true;
 				genericConstraint = new btGeneric6DofConstraint(
 					*rb0,s_fixedObject2,
-					frameInA,frameInB);
+					frameInA,frameInB,useReferenceFrameA);
 			}
 			
 			if (genericConstraint)

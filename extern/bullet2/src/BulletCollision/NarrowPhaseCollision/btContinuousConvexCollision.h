@@ -30,13 +30,13 @@ class btContinuousConvexCollision : public btConvexCast
 {
 	btSimplexSolverInterface* m_simplexSolver;
 	btConvexPenetrationDepthSolver*	m_penetrationDepthSolver;
-	btConvexShape*	m_convexA;
-	btConvexShape*	m_convexB;
+	const btConvexShape*	m_convexA;
+	const btConvexShape*	m_convexB;
 
 
 public:
 
-	btContinuousConvexCollision (btConvexShape*	shapeA,btConvexShape*	shapeB ,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver* penetrationDepthSolver);
+	btContinuousConvexCollision (const btConvexShape*	shapeA,const btConvexShape*	shapeB ,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver* penetrationDepthSolver);
 
 	virtual bool	calcTimeOfImpact(
 				const btTransform& fromA,

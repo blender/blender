@@ -18,9 +18,9 @@ subject to the following restrictions:
 #ifndef GJK_CONVEX_CAST_H
 #define GJK_CONVEX_CAST_H
 
-#include "../CollisionShapes/btCollisionMargin.h"
+#include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 
-#include "../../LinearMath/btVector3.h"
+#include "LinearMath/btVector3.h"
 #include "btConvexCast.h"
 class btConvexShape;
 class btMinkowskiSumShape;
@@ -30,12 +30,12 @@ class btMinkowskiSumShape;
 class btGjkConvexCast : public btConvexCast
 {
 	btSimplexSolverInterface*	m_simplexSolver;
-	btConvexShape*	m_convexA;
-	btConvexShape*	m_convexB;
+	const btConvexShape*	m_convexA;
+	const btConvexShape*	m_convexB;
 
 public:
 
-	btGjkConvexCast(btConvexShape*	convexA,btConvexShape* convexB,btSimplexSolverInterface* simplexSolver);
+	btGjkConvexCast(const btConvexShape*	convexA,const btConvexShape* convexB,btSimplexSolverInterface* simplexSolver);
 
 	/// cast a convex against another convex object
 	virtual bool	calcTimeOfImpact(

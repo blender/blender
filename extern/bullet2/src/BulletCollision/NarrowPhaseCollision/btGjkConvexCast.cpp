@@ -17,12 +17,17 @@ subject to the following restrictions:
 
 #include "btGjkConvexCast.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
-#include "BulletCollision/CollisionShapes/btMinkowskiSumShape.h"
 #include "btGjkPairDetector.h"
 #include "btPointCollector.h"
+#include "LinearMath/btTransformUtil.h"
 
+#ifdef BT_USE_DOUBLE_PRECISION
+#define MAX_ITERATIONS 64
+#else
+#define MAX_ITERATIONS 32
+#endif
 
-btGjkConvexCast::btGjkConvexCast(btConvexShape* convexA,btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
+btGjkConvexCast::btGjkConvexCast(const btConvexShape* convexA,const btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
 :m_simplexSolver(simplexSolver),
 m_convexA(convexA),
 m_convexB(convexB)
@@ -38,120 +43,113 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 {
 
 
-	btMinkowskiSumShape combi(m_convexA,m_convexB);
-	btMinkowskiSumShape* convex = &combi;
+	m_simplexSolver->reset();
 
-	btTransform	rayFromLocalA;
-	btTransform	rayToLocalA;
+	/// compute linear velocity for this interval, to interpolate
+	//assume no rotation/angular velocity, assert here?
+	btVector3 linVelA,linVelB;
+	linVelA = toA.getOrigin()-fromA.getOrigin();
+	linVelB = toB.getOrigin()-fromB.getOrigin();
 
-	rayFromLocalA = fromA.inverse()* fromB;
-	rayToLocalA = toA.inverse()* toB;
-
-
-	btTransform trA,trB;
-	trA = btTransform(fromA);
-	trB = btTransform(fromB);
-	trA.setOrigin(btPoint3(0,0,0));
-	trB.setOrigin(btPoint3(0,0,0));
-
-	convex->setTransformA(trA);
-	convex->setTransformB(trB);
-
-
-
-
-	btScalar radius = btScalar(0.01);
-
+	btScalar radius = btScalar(0.001);
 	btScalar lambda = btScalar(0.);
-	btVector3 s = rayFromLocalA.getOrigin();
-	btVector3 r = rayToLocalA.getOrigin()-rayFromLocalA.getOrigin();
-	btVector3 x = s;
+	btVector3 v(1,0,0);
+
+	int maxIter = MAX_ITERATIONS;
+
 	btVector3 n;
-	n.setValue(0,0,0);
+	n.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 	bool hasResult = false;
 	btVector3 c;
+	btVector3 r = (linVelA-linVelB);
 
 	btScalar lastLambda = lambda;
+	//btScalar epsilon = btScalar(0.001);
 
+	int numIter = 0;
 	//first solution, using GJK
 
-	//no penetration support for now, perhaps pass a pointer when we really want it
-	btConvexPenetrationDepthSolver* penSolverPtr = 0;
 
 	btTransform identityTrans;
 	identityTrans.setIdentity();
 
-	btSphereShape	raySphere(btScalar(0.0));
-	raySphere.setMargin(btScalar(0.));
 
-	btTransform sphereTr;
-	sphereTr.setIdentity();
-	sphereTr.setOrigin( rayFromLocalA.getOrigin());
+//	result.drawCoordSystem(sphereTr);
 
-	result.drawCoordSystem(sphereTr);
-	{
-		btPointCollector	pointCollector1;
-		btGjkPairDetector gjk(&raySphere,convex,m_simplexSolver,penSolverPtr);		
+	btPointCollector	pointCollector;
 
-		btGjkPairDetector::ClosestPointInput input;
-		input.m_transformA = sphereTr;
-		input.m_transformB = identityTrans;
-		gjk.getClosestPoints(input,pointCollector1,0);
+		
+	btGjkPairDetector gjk(m_convexA,m_convexB,m_simplexSolver,0);//m_penetrationDepthSolver);		
+	btGjkPairDetector::ClosestPointInput input;
 
-		hasResult = pointCollector1.m_hasResult;
-		c = pointCollector1.m_pointInWorld;
-		n = pointCollector1.m_normalOnBInWorld;
-	}
+	//we don't use margins during CCD
+	//	gjk.setIgnoreMargin(true);
 
-	
+	input.m_transformA = fromA;
+	input.m_transformB = fromB;
+	gjk.getClosestPoints(input,pointCollector,0);
+
+	hasResult = pointCollector.m_hasResult;
+	c = pointCollector.m_pointInWorld;
 
 	if (hasResult)
 	{
 		btScalar dist;
-		dist = (c-x).length();
-		if (dist < radius)
-		{
-			//penetration
-			lastLambda = btScalar(1.);
-		}
+		dist = pointCollector.m_distance;
+		n = pointCollector.m_normalOnBInWorld;
+
+	
 
 		//not close enough
 		while (dist > radius)
 		{
-			
-			n = x - c;
-			btScalar nDotr = n.dot(r);
+			numIter++;
+			if (numIter > maxIter)
+			{
+				return false; //todo: report a failure
+			}
+			btScalar dLambda = btScalar(0.);
 
-			if (nDotr >= -(SIMD_EPSILON*SIMD_EPSILON))
+			btScalar projectedLinearVelocity = r.dot(n);
+			
+			dLambda = dist / (projectedLinearVelocity);
+
+			lambda = lambda - dLambda;
+
+			if (lambda > btScalar(1.))
 				return false;
-			
-			lambda = lambda - n.dot(n) / nDotr;
-			if (lambda <= lastLambda)
-				break;
 
+			if (lambda < btScalar(0.))
+				return false;
+
+			//todo: next check with relative epsilon
+			if (lambda <= lastLambda)
+			{
+				return false;
+				//n.setValue(0,0,0);
+				break;
+			}
 			lastLambda = lambda;
 
-			x = s + lambda * r;
-
-			sphereTr.setOrigin( x );
-			result.drawCoordSystem(sphereTr);
-			btPointCollector	pointCollector;
-			btGjkPairDetector gjk(&raySphere,convex,m_simplexSolver,penSolverPtr);
-			btGjkPairDetector::ClosestPointInput input;
-			input.m_transformA = sphereTr;
-			input.m_transformB = identityTrans;
+			//interpolate to next lambda
+			result.DebugDraw( lambda );
+			input.m_transformA.getOrigin().setInterpolate3(fromA.getOrigin(),toA.getOrigin(),lambda);
+			input.m_transformB.getOrigin().setInterpolate3(fromB.getOrigin(),toB.getOrigin(),lambda);
+			
 			gjk.getClosestPoints(input,pointCollector,0);
 			if (pointCollector.m_hasResult)
 			{
 				if (pointCollector.m_distance < btScalar(0.))
 				{
-					//degeneracy, report a hit
 					result.m_fraction = lastLambda;
-					result.m_normal = n;
+					n = pointCollector.m_normalOnBInWorld;
+					result.m_normal=n;
+					result.m_hitPoint = pointCollector.m_pointInWorld;
 					return true;
 				}
-				c = pointCollector.m_pointInWorld;			
-				dist = (c-x).length();
+				c = pointCollector.m_pointInWorld;		
+				n = pointCollector.m_normalOnBInWorld;
+				dist = pointCollector.m_distance;
 			} else
 			{
 				//??
@@ -160,15 +158,19 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 
 		}
 
-		if (lastLambda < btScalar(1.))
-		{
-		
-			result.m_fraction = lastLambda;
-			result.m_normal = n;
-			return true;
-		}
+		//is n normalized?
+		//don't report time of impact for motion away from the contact normal (or causes minor penetration)
+		if (n.dot(r)>=-result.m_allowedPenetration)
+			return false;
+
+		result.m_fraction = lambda;
+		result.m_normal = n;
+		result.m_hitPoint = c;
+		return true;
 	}
 
 	return false;
+
+
 }
 
