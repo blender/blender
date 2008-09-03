@@ -35,11 +35,8 @@ typedef enum ModifierType {
 	eModifierType_Cloth,
 	eModifierType_Collision,
 	eModifierType_Bevel,
-<<<<<<< .working
 	eModifierType_Fluidsim,
-=======
 	eModifierType_Shrinkwrap,
->>>>>>> .merge-rechts.r16222
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -496,7 +493,6 @@ typedef struct ExplodeModifierData {
 	float protect;
 } ExplodeModifierData;
 
-<<<<<<< .working
 typedef struct FluidsimModifierData {
 	ModifierData modifier;
 	
@@ -504,7 +500,6 @@ typedef struct FluidsimModifierData {
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } FluidsimModifierData;
 
-=======
 typedef struct ShrinkwrapModifierData {
 	ModifierData modifier;
 
@@ -546,5 +541,4 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
 #define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
 
->>>>>>> .merge-rechts.r16222
 #endif
