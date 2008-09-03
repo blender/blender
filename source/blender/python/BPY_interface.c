@@ -292,7 +292,7 @@ void syspath_append( char *dirname )
 	short ok=1;
 	PyErr_Clear(  );
 
-	dir = Py_BuildValue( "s", dirname );
+	dir = PyString_FromString( dirname );
 
 	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
 	
@@ -308,32 +308,29 @@ void syspath_append( char *dirname )
 	}
 	
 	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
-		if (ok && PyList_Append( path, dir ) != 0)
+		if (ok && PyList_Append( path, dir ) != 0) /* decref below */
 			ok = 0; /* append failed */
 	
 		if( (ok==0) || PyErr_Occurred(  ) )
 			Py_FatalError( "could import or build sys.path, can't continue" );
 	}
+	Py_DECREF( dir );
 	Py_XDECREF( mod_sys );
 }
 
 void init_syspath( int first_time )
 {
-	PyObject *path;
 	PyObject *mod, *d;
 	char *progname;
 	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
-	
-	
-	path = Py_BuildValue( "s", bprogname );
 
 	mod = PyImport_ImportModule( "Blender.sys" );
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );
-		EXPP_dict_set_item_str( d, "progname", path );
+		EXPP_dict_set_item_str( d, "progname", PyString_FromString( bprogname ) );
 		Py_DECREF( mod );
 	} else
 		printf( "Warning: could not set Blender.sys.progname\n" );

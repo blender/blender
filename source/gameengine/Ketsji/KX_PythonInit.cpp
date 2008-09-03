@@ -274,7 +274,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 {
 	char cpath[sizeof(G.sce)];
 	char *searchpath = NULL;
-	PyObject* list;
+	PyObject* list, *value;
 	
     DIR *dp;
     struct dirent *dirp;
@@ -300,7 +300,9 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
     while ((dirp = readdir(dp)) != NULL) {
 		if (BLI_testextensie(dirp->d_name, ".blend")) {
-			PyList_Append(list, PyString_FromString(dirp->d_name));
+			value = PyString_FromString(dirp->d_name);
+			PyList_Append(list, value);
+			Py_DECREF(value);
 		}
     }
 	
