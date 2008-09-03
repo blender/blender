@@ -329,7 +329,7 @@ PyMethodDef SCA_JoystickSensor::Methods[] = {
 	{"getNumAxes",	 (PyCFunction) SCA_JoystickSensor::sPyNumberOfAxes,	METH_NOARGS,	NumberOfAxes_doc},
 	{"getNumButtons",(PyCFunction) SCA_JoystickSensor::sPyNumberOfButtons,METH_NOARGS,	NumberOfButtons_doc},
 	{"getNumHats",	 (PyCFunction) SCA_JoystickSensor::sPyNumberOfHats,	METH_NOARGS,	NumberOfHats_doc},
-	{"getConnected", (PyCFunction) SCA_JoystickSensor::sPyConnected,	METH_NOARGS,	Connected_doc},
+	{"isConnected", (PyCFunction) SCA_JoystickSensor::sPyConnected,		METH_NOARGS,	Connected_doc},
 	{NULL,NULL} //Sentinel
 };
 

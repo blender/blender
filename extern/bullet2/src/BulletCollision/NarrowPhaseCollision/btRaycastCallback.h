@@ -16,27 +16,44 @@ subject to the following restrictions:
 #ifndef RAYCAST_TRI_CALLBACK_H
 #define RAYCAST_TRI_CALLBACK_H
 
-#include "../CollisionShapes/btTriangleCallback.h"
+#include "BulletCollision/CollisionShapes/btTriangleCallback.h"
+#include "LinearMath/btTransform.h"
 struct btBroadphaseProxy;
-
+class btConvexShape;
 
 class  btTriangleRaycastCallback: public btTriangleCallback
 {
 public:
 
-		//input
+	//input
 	btVector3 m_from;
 	btVector3 m_to;
-	bool m_faceNormal;
 
 	btScalar	m_hitFraction;
 
-	btTriangleRaycastCallback(const btVector3& from,const btVector3& to,bool faceNormal);
+	btTriangleRaycastCallback(const btVector3& from,const btVector3& to);
 	
 	virtual void processTriangle(btVector3* triangle, int partId, int triangleIndex);
 
 	virtual btScalar reportHit(const btVector3& hitNormalLocal, btScalar hitFraction, int partId, int triangleIndex ) = 0;
 	
+};
+
+class btTriangleConvexcastCallback : public btTriangleCallback
+{
+public:
+	const btConvexShape* m_convexShape;
+	btTransform m_convexShapeFrom;
+	btTransform m_convexShapeTo;
+	btTransform m_triangleToWorld;
+	btScalar m_hitFraction;
+    btScalar m_triangleCollisionMargin;
+
+	btTriangleConvexcastCallback (const btConvexShape* convexShape, const btTransform& convexShapeFrom, const btTransform& convexShapeTo, const btTransform& triangleToWorld, const btScalar triangleCollisionMargin);
+
+	virtual void processTriangle (btVector3* triangle, int partId, int triangleIndex);
+
+	virtual btScalar reportHit (const btVector3& hitNormalLocal, const btVector3& hitPointLocal, btScalar hitFraction, int partId, int triangleIndex) = 0;
 };
 
 #endif //RAYCAST_TRI_CALLBACK_H

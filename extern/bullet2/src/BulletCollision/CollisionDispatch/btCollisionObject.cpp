@@ -13,15 +13,22 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+
 #include "btCollisionObject.h"
 
 btCollisionObject::btCollisionObject()
 	:	m_broadphaseHandle(0),
 		m_collisionShape(0),
-		m_collisionFlags(0),
+		m_rootCollisionShape(0),
+		m_collisionFlags(btCollisionObject::CF_STATIC_OBJECT),
+		m_islandTag1(-1),
+		m_companionId(-1),
 		m_activationState1(1),
 		m_deactivationTime(btScalar(0.)),
+		m_friction(btScalar(0.5)),
+		m_restitution(btScalar(0.)),
 		m_userObjectPointer(0),
+		m_internalType(CO_COLLISION_OBJECT),
 		m_hitFraction(btScalar(1.)),
 		m_ccdSweptSphereRadius(btScalar(0.)),
 		m_ccdSquareMotionThreshold(btScalar(0.)),
@@ -53,5 +60,6 @@ void btCollisionObject::activate(bool forceActivation)
 		m_deactivationTime = btScalar(0.);
 	}
 }
+
 
 

@@ -1036,11 +1036,15 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 
 int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr method
 {
-	if (attr == "mass")
+	if (attr == "mass") {
+		PyErr_SetString(PyExc_AttributeError, "attribute \"mass\" is read only");
 		return 1;
+	}
 	
-	if (attr == "parent")
+	if (attr == "parent") {
+		PyErr_SetString(PyExc_AttributeError, "attribute \"mass\" is read only\nUse setParent()");
 		return 1;
+	}
 		
 	if (PyInt_Check(value))
 	{
@@ -1106,7 +1110,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 				}
 				return 1;
 			}
-			
+			PyErr_SetString(PyExc_AttributeError, "could not set the orientation from a 3x3 matrix, quaternion or euler sequence");
 			return 1;
 		}
 		

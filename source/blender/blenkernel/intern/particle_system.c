@@ -76,6 +76,8 @@
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 
+#include "PIL_time.h"
+
 #include "BSE_headerbuttons.h"
 
 #include "blendef.h"

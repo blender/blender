@@ -119,6 +119,7 @@ PyObject *PyObjectPlus::_getattr(const STR_String& attr)
 
 int PyObjectPlus::_delattr(const STR_String& attr)
 {
+	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
 	return 1;
 }
 
@@ -126,7 +127,8 @@ int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 {
 	//return PyObject::_setattr(attr,value);
 	//cerr << "Unknown attribute" << endl;
-  return 1;
+	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
+	return 1;
 }
 
 /*------------------------------

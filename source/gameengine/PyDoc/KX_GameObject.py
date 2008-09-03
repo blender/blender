@@ -300,12 +300,13 @@ class KX_GameObject:
 		@rtype: L{KX_GameObject}
 		@return: the first object hit or None if no object or object does not match prop
 		"""
-	def rayCast(to,from,dist,prop,face,xray,poly):
+	def rayCast(objto,objfrom,dist,prop,face,xray,poly):
 		"""
 		Look from a point/object to another point/object and find first object hit within dist that matches prop.
 		if poly is 0, returns a 3-tuple with object reference, hit point and hit normal or (None,None,None) if no hit.
 		if poly is 1, returns a 4-tuple with in addition a L{KX_PolyProxy} as 4th element.
-		Ex:
+		
+		Ex::
 			# shoot along the axis gun-gunAim (gunAim should be collision-free)
 			ob,point,normal = gun.rayCast(gunAim,None,50)
 			if ob:
@@ -314,23 +315,26 @@ class KX_GameObject:
 		Notes:				
 		The ray ignores the object on which the method is called.
 		It is casted from/to object center or explicit [x,y,z] points.
-		The face paremeter determines the orientation of the normal: 
+		
+		The face paremeter determines the orientation of the normal:: 
 		  0 => hit normal is always oriented towards the ray origin (as if you casted the ray from outside)
 		  1 => hit normal is the real face normal (only for mesh object, otherwise face has no effect)
+		  
 		The ray has X-Ray capability if xray parameter is 1, otherwise the first object hit (other than self object) stops the ray.
-		The prop and xray parameters interact as follow:
+		The prop and xray parameters interact as follow::
 		    prop off, xray off: return closest hit or no hit if there is no object on the full extend of the ray.
 		    prop off, xray on : idem.
 		    prop on,  xray off: return closest hit if it matches prop, no hit otherwise.
 		    prop on,  xray on : return closest hit matching prop or no hit if there is no object matching prop on the full extend of the ray.
 		The L{KX_PolyProxy} 4th element of the return tuple when poly=1 allows to retrieve information on the polygon hit by the ray.
 		If there is no hit or the hit object is not a static mesh, None is returned as 4th element. 
-		The	ray ignores collision-free objects and faces that dont have the collision flag enabled, you can however use ghost objects.
+		
+		The ray ignores collision-free objects and faces that dont have the collision flag enabled, you can however use ghost objects.
 
-		@param to: [x,y,z] or object to which the ray is casted
-		@type to: L{KX_GameObject} or 3-tuple
-		@param from: [x,y,z] or object from which the ray is casted; None or omitted => use self object center
-		@type from: L{KX_GameObject} or 3-tuple or None
+		@param objto: [x,y,z] or object to which the ray is casted
+		@type objto: L{KX_GameObject} or 3-tuple
+		@param objfrom: [x,y,z] or object from which the ray is casted; None or omitted => use self object center
+		@type objfrom: L{KX_GameObject} or 3-tuple or None
 		@param dist: max distance to look (can be negative => look behind); 0 or omitted => detect up to to
 		@type dist: float
 		@param prop: property name that object must have; can be omitted => detect any object

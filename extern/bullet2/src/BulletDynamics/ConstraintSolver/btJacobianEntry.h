@@ -16,8 +16,8 @@ subject to the following restrictions:
 #ifndef JACOBIAN_ENTRY_H
 #define JACOBIAN_ENTRY_H
 
-#include "../../LinearMath/btVector3.h"
-#include "../Dynamics/btRigidBody.h"
+#include "LinearMath/btVector3.h"
+#include "BulletDynamics/Dynamics/btRigidBody.h"
 
 
 //notes:

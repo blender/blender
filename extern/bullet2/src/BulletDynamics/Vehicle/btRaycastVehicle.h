@@ -11,11 +11,11 @@
 #ifndef RAYCASTVEHICLE_H
 #define RAYCASTVEHICLE_H
 
-#include "../Dynamics/btRigidBody.h"
-#include "../ConstraintSolver/btTypedConstraint.h"
+#include "BulletDynamics/Dynamics/btRigidBody.h"
+#include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
 #include "btVehicleRaycaster.h"
 class btDynamicsWorld;
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
 #include "btWheelInfo.h"
 
 class btVehicleTuning;
@@ -23,6 +23,12 @@ class btVehicleTuning;
 ///rayCast vehicle, very special constraint that turn a rigidbody into a vehicle.
 class btRaycastVehicle : public btTypedConstraint
 {
+
+		btAlignedObjectArray<btVector3>	m_forwardWS;
+		btAlignedObjectArray<btVector3>	m_axle;
+		btAlignedObjectArray<btScalar>	m_forwardImpulse;
+		btAlignedObjectArray<btScalar>	m_sideImpulse;
+
 public:
 	class btVehicleTuning
 		{
@@ -114,7 +120,7 @@ public:
 	
 	void	updateSuspension(btScalar deltaTime);
 
-	void	updateFriction(btScalar	timeStep);
+	virtual void	updateFriction(btScalar	timeStep);
 
 
 
