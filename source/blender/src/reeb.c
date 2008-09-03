@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h> // for qsort
 
+#include "PIL_time.h"
+
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -88,6 +90,12 @@ ReebGraph *FILTERED_RG = NULL;
 #define DEBUG_REEB
 #define DEBUG_REEB_NODE
 
+typedef struct EdgeIndex
+{
+	EditEdge **edges;
+	int		 *offset;
+} EdgeIndex;
+
 typedef enum {
 	MERGE_LOWER,
 	MERGE_HIGHER,
@@ -97,7 +105,7 @@ typedef enum {
 int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
 void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection direction);
 int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
-EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v);
+EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, EditVert *eve);
 void mergeArcFaces(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc);
 void addFacetoArc(ReebArc *arc, EditFace *efa);
 
@@ -2648,7 +2656,7 @@ void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, long e1, long e2, lon
 	nlMatrixAdd(i1, i3, -t2);
 }
 
-int weightToHarmonic(EditMesh *em)
+int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 {
 	NLboolean success;
 	EditVert *eve;
@@ -2681,10 +2689,8 @@ int weightToHarmonic(EditMesh *em)
 			int maximum = 1;
 			int minimum = 1;
 			
-			eve->hash = index; /* Assign index to vertex */
-			
-			NextEdgeForVert(NULL, NULL); /* Reset next edge */
-			for(eed = NextEdgeForVert(em, eve); eed && (maximum || minimum); eed = NextEdgeForVert(em, eve))
+			NextEdgeForVert(indexed_edges, NULL); /* Reset next edge */
+			for(eed = NextEdgeForVert(indexed_edges, eve); eed && (maximum || minimum); eed = NextEdgeForVert(indexed_edges, eve))
 			{
 				EditVert *eve2;
 				
@@ -2792,40 +2798,32 @@ int weightToHarmonic(EditMesh *em)
 }
 
 
-EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v)
+EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, EditVert *eve)
 {
-	static EditEdge *e = NULL;
+	static int offset = -1;
 	
 	/* Reset method, call with NULL mesh pointer */
-	if (em == NULL)
+	if (eve == NULL)
 	{
-		e = NULL;
+		offset = -1;
 		return NULL;
 	}
 	
 	/* first pass, start at the head of the list */
-	if (e == NULL)
+	if (offset == -1)
 	{
-		e = em->edges.first;
+		offset = indexed_edges->offset[eve->hash];
 	}
 	/* subsequent passes, start on the next edge */
 	else
 	{
-		e = e->next;
+		offset++;
 	}
-
-	for( ; e ; e = e->next)
-	{
-		if ((e->v1 == v || e->v2 == v) && (e->h == 0))
-		{
-			break;
-		}
-	}	
 	
-	return e;
+	return indexed_edges->edges[offset];
 }
 
-void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edges)
+void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edges, EdgeIndex *indexed_edges)
 {
 	EditVert *current_eve = NULL;
 	EditEdge *eed = NULL;
@@ -2848,8 +2846,8 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edg
 		current_eve->f1 = 1; /* mark vertex as selected */
 		
 		/* Add all new edges connected to current_eve to the list */
-		NextEdgeForVert(NULL, NULL); // Reset next edge
-		for(eed = NextEdgeForVert(em, current_eve); eed; eed = NextEdgeForVert(em, current_eve))
+		NextEdgeForVert(indexed_edges, NULL); // Reset next edge
+		for(eed = NextEdgeForVert(indexed_edges, current_eve); eed; eed = NextEdgeForVert(indexed_edges, current_eve))
 		{ 
 			if (eed->f1 == 0)
 			{
@@ -2913,11 +2911,82 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edg
 		}
 		
 	} while (select_eed != NULL);
-	
-	printf("\n");
 }
 
-int weightFromDistance(EditMesh *em)
+void freeEdgeIndex(EdgeIndex *indexed_edges)
+{
+	MEM_freeN(indexed_edges->offset);
+	MEM_freeN(indexed_edges->edges);
+}
+
+void buildIndexedEdges(EditMesh *em, EdgeIndex *indexed_edges)
+{
+	EditVert *eve;
+	EditEdge *eed;
+	int tot_vert = 0;
+	int tot_indexed = 0;
+	int offset = 0;
+
+	for(tot_vert = 0, eve = em->verts.first; eve; tot_vert++, eve = eve->next)
+	{
+		eve->hash = tot_vert;
+	}
+
+	indexed_edges->offset = MEM_callocN(tot_vert * sizeof(int), "EdgeIndex offset");
+
+	for(eed = em->edges.first; eed; eed= eed->next)
+	{
+		if (eed->v1->h == 0 && eed->v2->h == 0)
+		{
+			tot_indexed += 2;
+			indexed_edges->offset[eed->v1->hash]++;
+			indexed_edges->offset[eed->v2->hash]++;
+		}
+	}
+	
+	tot_indexed += tot_vert;
+
+	indexed_edges->edges = MEM_callocN(tot_indexed * sizeof(EditEdge*), "EdgeIndex edges");
+
+	/* setting vert offsets */
+	for(eve = em->verts.first; eve; eve = eve->next)
+	{
+		if (eve->h == 0)
+		{
+			int d = indexed_edges->offset[eve->hash];
+			indexed_edges->offset[eve->hash] = offset;
+			offset += d + 1;
+		}
+	}
+
+	/* adding edges in array */
+	for(eed = em->edges.first; eed; eed= eed->next)
+	{
+		if (eed->v1->h == 0 && eed->v2->h == 0)
+		{
+			int i;
+			for (i = indexed_edges->offset[eed->v1->hash]; i < tot_indexed; i++)
+			{
+				if (indexed_edges->edges[i] == NULL)
+				{
+					indexed_edges->edges[i] = eed;
+					break;
+				}
+			}
+			
+			for (i = indexed_edges->offset[eed->v2->hash]; i < tot_indexed; i++)
+			{
+				if (indexed_edges->edges[i] == NULL)
+				{
+					indexed_edges->edges[i] = eed;
+					break;
+				}
+			}
+		}
+	}
+}
+
+int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 {
 	EditVert *eve;
 	int totedge = 0;
@@ -2952,7 +3021,6 @@ int weightFromDistance(EditMesh *em)
 	}
 	else
 	{
-		EditVert *eve;
 		EditEdge *eed;
 		EditEdge **edges;
 		int allDone = 0;
@@ -2963,7 +3031,10 @@ int weightFromDistance(EditMesh *em)
 		/* Calculate edge weight */
 		for(eed = em->edges.first; eed; eed= eed->next)
 		{
-			eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
+			if (eed->v1->h == 0 && eed->v2->h == 0)
+			{
+				eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
+			}
 		}
 
 		/* Apply dijkstra spf for each selected vert */
@@ -2971,7 +3042,7 @@ int weightFromDistance(EditMesh *em)
 		{
 			if (eve->f & SELECT)
 			{
-				shortestPathsFromVert(em, eve, edges);				
+				shortestPathsFromVert(em, eve, edges, indexed_edges);				
 			}
 		}
 		
@@ -3014,7 +3085,7 @@ int weightFromDistance(EditMesh *em)
 				allDone = 0;
 
 				selected_eve->tmp.fp = selected_weight + min_distance;
-				shortestPathsFromVert(em, selected_eve, edges);
+				shortestPathsFromVert(em, selected_eve, edges, indexed_edges);
 			}
 		}
 		
@@ -3361,16 +3432,20 @@ struct EmbedBucket * currentBucket(struct ReebArcIterator *iter)
 ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 {
 	EditMesh *em = G.editMesh;
+	EdgeIndex indexed_edges;
 	ReebGraph *rg = NULL;
 	ReebGraph *rgi, *previous;
 	int i, nb_levels = REEB_MAX_MULTI_LEVEL;
 	
 	if (em == NULL)
 		return NULL;
+	
+	buildIndexedEdges(em, &indexed_edges);
 
-	if (weightFromDistance(em) == 0)
+	if (weightFromDistance(em, &indexed_edges) == 0)
 	{
 		error("No selected vertex\n");
+		freeEdgeIndex(&indexed_edges);
 		return NULL;
 	}
 	
@@ -3378,9 +3453,11 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 
 	if (G.scene->toolsettings->skgen_options & SKGEN_HARMONIC)
 	{
-		weightToHarmonic(em);
+		weightToHarmonic(em, &indexed_edges);
 	}
 	
+	freeEdgeIndex(&indexed_edges);
+
 #ifdef DEBUG_REEB
 	weightToVCol(em, 0);
 #endif
@@ -3448,14 +3525,19 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 ReebGraph *BIF_ReebGraphFromEditMesh(void)
 {
 	EditMesh *em = G.editMesh;
+	EdgeIndex indexed_edges;
 	ReebGraph *rg = NULL;
 	
 	if (em == NULL)
 		return NULL;
 
-	if (weightFromDistance(em) == 0)
+	buildIndexedEdges(em, &indexed_edges);
+
+	if (weightFromDistance(em, &indexed_edges) == 0)
 	{
 		error("No selected vertex\n");
+		freeEdgeIndex(&indexed_edges);
+		freeEdgeIndex(&indexed_edges);
 		return NULL;
 	}
 	
@@ -3463,8 +3545,10 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 
 	if (G.scene->toolsettings->skgen_options & SKGEN_HARMONIC)
 	{
-		weightToHarmonic(em);
+		weightToHarmonic(em, &indexed_edges);
 	}
+	
+	freeEdgeIndex(&indexed_edges);
 	
 #ifdef DEBUG_REEB
 	weightToVCol(em, 1);
@@ -3610,7 +3694,6 @@ void REEB_draw()
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
 			VecLerpf(vec, arc->head->p, arc->tail->p, 0.5f);
-		
 			s += sprintf(s, "%i (%i-%i-%i) ", i, arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 		
 			if (G.scene->toolsettings->skgen_options & SKGEN_DISP_WEIGHT)

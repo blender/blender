@@ -119,14 +119,15 @@ typedef struct ReebArcIterator {
 	int index;
 	int start;
 	int end;
-	int stride;
+	int stride; 
 	int length;
 } ReebArcIterator;
 
 struct EditMesh;
+struct EdgeIndex;
 
-int weightToHarmonic(struct EditMesh *em);
-int weightFromDistance(struct EditMesh *em);
+int weightToHarmonic(struct EditMesh *em, struct EdgeIndex *indexed_edges);
+int weightFromDistance(struct EditMesh *em, struct EdgeIndex *indexed_edges);
 int weightFromLoc(struct EditMesh *me, int axis);
 void weightToVCol(struct EditMesh *em, int index);
 void arcToVCol(struct ReebGraph *rg, struct EditMesh *em, int index);
