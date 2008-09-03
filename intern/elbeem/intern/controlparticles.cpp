@@ -178,8 +178,6 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 		}
 	}
 	
-	printf("tcnt: %d\n", tcnt);
-	
 	model->setGeoInitType(FGI_CONTROL);
 
 	delete tree;
