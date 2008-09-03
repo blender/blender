@@ -45,6 +45,7 @@
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
+#include "BLI_heap.h"
 
 #include "BDR_editobject.h"
 
@@ -2823,16 +2824,19 @@ EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, EditVert *eve)
 	return indexed_edges->edges[offset];
 }
 
-void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edges, EdgeIndex *indexed_edges)
+void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EdgeIndex *indexed_edges)
 {
+	Heap	 *edge_heap;
 	EditVert *current_eve = NULL;
 	EditEdge *eed = NULL;
 	EditEdge *select_eed = NULL;
-	float	 current_weight = 0;
-	int 	 next_edge_index = 0;
-	int		 selected_edge_index = 0;
+	
+	edge_heap = BLI_heap_new();
 	
 	current_eve = starting_vert;
+	
+	/* insert guard in heap, when that is returned, no more edges */
+	BLI_heap_insert(edge_heap, FLT_MAX, NULL);
 
 	/* Initialize edge flag */
 	for(eed= em->edges.first; eed; eed= eed->next)
@@ -2840,8 +2844,9 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edg
 		eed->f1 = 0;
 	}
 	
-	do {
-		int i;
+	while (BLI_heap_size(edge_heap) > 0)
+	{
+		float current_weight;
 		
 		current_eve->f1 = 1; /* mark vertex as selected */
 		
@@ -2851,53 +2856,21 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edg
 		{ 
 			if (eed->f1 == 0)
 			{
-				edges[next_edge_index] = eed;
+				BLI_heap_insert(edge_heap, current_eve->tmp.fp + eed->tmp.fp, eed);
 				eed->f1 = 1;
-				next_edge_index++;
 			}
 		}
 		
-		/* Find next shortest edge */
-		select_eed = NULL;
-		for(i = 0; i < next_edge_index; i++)
+		/* Find next shortest edge with unselected verts */
+		do
 		{
-			eed = edges[i];
-			
-			if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) /* eed is not selected yet and leads to a new node */
-			{
-				float new_weight = 0;
-				if (eed->v1->f1 == 1)
-				{
-					new_weight = eed->v1->tmp.fp + eed->tmp.fp;
-				}
-				else
-				{
-					new_weight = eed->v2->tmp.fp + eed->tmp.fp;
-				}
-				
-				if (select_eed == NULL || new_weight < current_weight) /* no selected edge or current smaller than selected */
-				{
-					current_weight = new_weight;
-					select_eed = eed;
-					selected_edge_index = i;
-				}
-			}
-			else
-			{
-				/* edge shouldn't be in list. Decrement next index and insert last edge in this place and reset iteration*/
-				next_edge_index--;
-				edges[i] = edges[next_edge_index];
-				i--;
-			}
-		}
+			current_weight = BLI_heap_node_value(BLI_heap_top(edge_heap));
+			select_eed = BLI_heap_popmin(edge_heap);
+		} while (select_eed != NULL && select_eed->v1->f1 != 0 && select_eed->v2->f1);
 		
 		if (select_eed != NULL)
 		{
 			select_eed->f1 = 2;
-			
-			/* decrement next index and swap selected with last edge in list */
-			next_edge_index--;
-			edges[selected_edge_index] = edges[next_edge_index];
 			
 			if (select_eed->v1->f1 == 0) /* v1 is the new vertex */
 			{
@@ -2909,8 +2882,9 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EditEdge **edg
 			}				
 			current_eve->tmp.fp = current_weight;
 		}
-		
-	} while (select_eed != NULL);
+	}
+	
+	BLI_heap_free(edge_heap, NULL);
 }
 
 void freeEdgeIndex(EdgeIndex *indexed_edges)
@@ -3022,11 +2996,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 	else
 	{
 		EditEdge *eed;
-		EditEdge **edges;
 		int allDone = 0;
-	
-		/* Allocate scratch array for edges */
-		edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
 
 		/* Calculate edge weight */
 		for(eed = em->edges.first; eed; eed= eed->next)
@@ -3042,7 +3012,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 		{
 			if (eve->f & SELECT)
 			{
-				shortestPathsFromVert(em, eve, edges, indexed_edges);				
+				shortestPathsFromVert(em, eve, indexed_edges);				
 			}
 		}
 		
@@ -3085,11 +3055,9 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 				allDone = 0;
 
 				selected_eve->tmp.fp = selected_weight + min_distance;
-				shortestPathsFromVert(em, selected_eve, edges, indexed_edges);
+				shortestPathsFromVert(em, selected_eve, indexed_edges);
 			}
 		}
-		
-		MEM_freeN(edges);
 	}
 
 	for(eve = em->verts.first; eve && vCount == 0; eve = eve->next)
@@ -3436,7 +3404,10 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	ReebGraph *rg = NULL;
 	ReebGraph *rgi, *previous;
 	int i, nb_levels = REEB_MAX_MULTI_LEVEL;
+	double start_time, end_time;
 	
+	start_time = PIL_check_seconds_timer();
+
 	if (em == NULL)
 		return NULL;
 	
@@ -3457,6 +3428,12 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	}
 	
 	freeEdgeIndex(&indexed_edges);
+
+	end_time = PIL_check_seconds_timer();
+
+	printf("-----------\n");
+	printf("runtime: %.3f\n", end_time - start_time);
+	printf("-----------\n");
 
 #ifdef DEBUG_REEB
 	weightToVCol(em, 0);
