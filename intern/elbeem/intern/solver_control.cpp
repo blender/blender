@@ -49,7 +49,9 @@ void LbmControlSet::initCparts() {
 
 LbmControlData::LbmControlData() : 
 	mSetForceStrength(0.),
-	mCons(), mCpUpdateInterval(16), mCpOutfile(""),
+	mCons(), 
+	mCpUpdateInterval(8), // DG: was 16 --> causes problems (big sphere after some time), unstable
+	mCpOutfile(""), 
 	mCpForces(), mCpKernel(), mMdKernel(),
 	mDiffVelCon(1.),
 	mDebugCpscale(0.), 

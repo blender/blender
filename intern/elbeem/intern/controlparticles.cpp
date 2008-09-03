@@ -168,7 +168,7 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 		mvm.transfer(vertices, ninspos);
 		
 		tcnt++;
-		for(int i=0; i<(int)ninspos.size(); i++) {
+		for(size_t i=0; i < ninspos.size(); i++) {
 			
 			if(useCP[i]) {
 				ControlParticle p; p.reset();
@@ -177,6 +177,8 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 			}
 		}
 	}
+	
+	printf("tcnt: %d\n", tcnt);
 	
 	model->setGeoInitType(FGI_CONTROL);
 
@@ -238,7 +240,7 @@ ControlParticles::ControlParticles() :
 	_fluidSpacing(1.), _kernelWeight(-1.),
 	_charLength(1.), _charLengthInv(1.),
 	mvCPSStart(-10000.), mvCPSEnd(10000.),
-	mCPSWidth(0.1), mCPSTimestep(0.05),
+	mCPSWidth(0.1), mCPSTimestep(0.02), // was 0.05
 	mCPSTimeStart(0.), mCPSTimeEnd(0.5), mCPSWeightFac(1.),
 	mDebugInit(0)
 {
@@ -281,6 +283,7 @@ void ControlParticles::setInfluenceVelocity(LbmFloat set, LbmFloat dt) {
 int ControlParticles::initExampleSet()
 {
 	// unused
+	return 0;
 }
 
 int ControlParticles::getTotalSize()
