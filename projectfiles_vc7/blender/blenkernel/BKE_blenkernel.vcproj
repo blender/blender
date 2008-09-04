@@ -507,6 +507,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\subsurf_ccg.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\suggestions.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\text.c">
 			</File>
 			<File
@@ -722,6 +725,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_subsurf.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_suggestions.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_text.h">
