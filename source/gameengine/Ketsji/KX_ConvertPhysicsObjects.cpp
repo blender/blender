@@ -76,16 +76,16 @@
 struct KX_PhysicsInstance
 {
 	DT_VertexBaseHandle	m_vertexbase;
-	int			m_vtxarray;
+	RAS_DisplayArray*	m_darray;
 	RAS_IPolyMaterial*	m_material;
-	
-	KX_PhysicsInstance(DT_VertexBaseHandle vertex_base, int vtxarray, RAS_IPolyMaterial* mat)
+
+	KX_PhysicsInstance(DT_VertexBaseHandle vertex_base, RAS_DisplayArray *darray, RAS_IPolyMaterial* mat)
 		: m_vertexbase(vertex_base),
-		  m_vtxarray(vtxarray),
-		  m_material(mat)
+		m_darray(darray),
+		m_material(mat)
 	{
 	}
-	
+
 	~KX_PhysicsInstance()
 	{
 		DT_DeleteVertexBase(m_vertexbase);
@@ -100,11 +100,11 @@ static void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoSce
 static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope);
 
 void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
-				RAS_MeshObject* meshobj,
-				KX_Scene* kxscene,
-				PHY_ShapeProps* kxshapeprops,
-				PHY_MaterialProps*	kxmaterial,
-				struct	KX_ObjectProperties*	objprop)
+		RAS_MeshObject* meshobj,
+		KX_Scene* kxscene,
+		PHY_ShapeProps* kxshapeprops,
+		PHY_MaterialProps*	kxmaterial,
+		struct	KX_ObjectProperties*	objprop)
 
 
 {
@@ -150,23 +150,23 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 						objprop->m_boundobject.box.m_extends[1], 
 						objprop->m_boundobject.box.m_extends[2]);
 				smprop->m_inertia.scale(objprop->m_boundobject.box.m_extends[0]*objprop->m_boundobject.box.m_extends[0],
-					objprop->m_boundobject.box.m_extends[1]*objprop->m_boundobject.box.m_extends[1],
-					objprop->m_boundobject.box.m_extends[2]*objprop->m_boundobject.box.m_extends[2]);
+						objprop->m_boundobject.box.m_extends[1]*objprop->m_boundobject.box.m_extends[1],
+						objprop->m_boundobject.box.m_extends[2]*objprop->m_boundobject.box.m_extends[2]);
 				smprop->m_inertia *= smprop->m_mass/MT_Vector3(objprop->m_boundobject.box.m_extends).length();
 				break;
 			case KX_BOUNDCYLINDER:
 				shape = DT_NewCylinder(smprop->m_radius, objprop->m_boundobject.c.m_height);
 				smprop->m_inertia.scale(smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
+						smprop->m_mass*smprop->m_radius*smprop->m_radius,
+						smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
 			case KX_BOUNDCONE:
 				shape = DT_NewCone(objprop->m_radius, objprop->m_boundobject.c.m_height);
 				smprop->m_inertia.scale(smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
+						smprop->m_mass*smprop->m_radius*smprop->m_radius,
+						smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
-			/* Dynamic mesh objects.  WARNING! slow. */
+				/* Dynamic mesh objects.  WARNING! slow. */
 			case KX_BOUNDPOLYTOPE:
 				polytope = true;
 				// fall through
@@ -186,15 +186,15 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 				shape = DT_NewSphere(objprop->m_radius);
 				smprop->m_inertia *= smprop->m_mass*smprop->m_radius*smprop->m_radius;
 				break;
-				
+
 		}
-		
+
 		sumoObj = new SM_Object(shape, !objprop->m_ghost?smmaterial:NULL,smprop,NULL);
-		
+
 		sumoObj->setRigidBody(objprop->m_angular_rigidbody?true:false);
-		
+
 		BL_RegisterSumoObject(gameobj,sceneptr,sumoObj,"",true, true);
-		
+
 	} 
 	else {
 		// non physics object
@@ -320,12 +320,11 @@ static void	BL_RegisterSumoObject(
 		physicscontroller->SetObject(gameobj->GetSGNode());
 }
 
-static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, RAS_DisplayArray *darray, RAS_IPolyMaterial *mat)
 {
 	// instance a mesh from a single vertex array & material
-	const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
-	//const KX_IndexArray &index_array = *meshobj->GetIndexCache(mat)[vtxarray];
-	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getLocalXYZ(), sizeof(RAS_TexVert));
+	const RAS_TexVert *vertex_array = &darray->m_vertex[0];
+	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getXYZ(), sizeof(RAS_TexVert));
 	
 	DT_ShapeHandle shape = DT_NewComplexShape(vertex_base);
 	
@@ -337,15 +336,19 @@ static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarr
 		// only add polygons that have the collisionflag set
 		if (poly->IsCollider())
 		{
-			DT_VertexIndices(3, poly->GetVertexIndexBase().m_indexarray);
+			DT_Begin();
+			  DT_VertexIndex(poly->GetVertexOffset(0));
+			  DT_VertexIndex(poly->GetVertexOffset(1));
+			  DT_VertexIndex(poly->GetVertexOffset(2));
+			DT_End();
 			
 			// tesselate
 			if (poly->VertexCount() == 4)
 			{
 				DT_Begin();
-				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[0]);
-				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[2]);
-				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[3]);
+				  DT_VertexIndex(poly->GetVertexOffset(0));
+				  DT_VertexIndex(poly->GetVertexOffset(2));
+				  DT_VertexIndex(poly->GetVertexOffset(3));
 				DT_End();
 			}
 		}
@@ -354,16 +357,15 @@ static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarr
 	//DT_VertexIndices(indices.size(), &indices[0]);
 	DT_EndComplexShape();
 	
-	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, vtxarray, mat));
+	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, darray, mat));
 	return shape;
 }
 
-static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, RAS_DisplayArray *darray, RAS_IPolyMaterial *mat)
 {
 	// instance a mesh from a single vertex array & material
-	const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
-	//const KX_IndexArray &index_array = *meshobj->GetIndexCache(mat)[vtxarray];
-	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getLocalXYZ(), sizeof(RAS_TexVert));
+	const RAS_TexVert *vertex_array = &darray->m_vertex[0];
+	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getXYZ(), sizeof(RAS_TexVert));
 	
 	std::vector<DT_Index> indices;
 	for (int p = 0; p < meshobj->NumPolygons(); p++)
@@ -373,12 +375,12 @@ static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxar
 		// only add polygons that have the collisionflag set
 		if (poly->IsCollider())
 		{
-			indices.push_back(poly->GetVertexIndexBase().m_indexarray[0]);
-			indices.push_back(poly->GetVertexIndexBase().m_indexarray[1]);
-			indices.push_back(poly->GetVertexIndexBase().m_indexarray[2]);
+			indices.push_back(poly->GetVertexOffset(0));
+			indices.push_back(poly->GetVertexOffset(1));
+			indices.push_back(poly->GetVertexOffset(2));
 			
 			if (poly->VertexCount() == 4)
-				indices.push_back(poly->GetVertexIndexBase().m_indexarray[3]);
+				indices.push_back(poly->GetVertexOffset(3));
 		}
 	}
 
@@ -386,7 +388,7 @@ static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxar
 	DT_VertexIndices(indices.size(), &indices[0]);
 	DT_EndPolytope();
 	
-	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, vtxarray, mat));
+	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, darray, mat));
 	return shape;
 }
 
@@ -398,8 +400,8 @@ bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj)
 	KX_PhysicsInstance *instance = *map_gamemesh_to_instance[GEN_HashedPtr(meshobj)];
 	if (instance)
 	{
-		const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(instance->m_material)[instance->m_vtxarray])[0]);
-		DT_ChangeVertexBase(instance->m_vertexbase, vertex_array[0].getLocalXYZ());
+		const RAS_TexVert *vertex_array = &instance->m_darray->m_vertex[0];
+		DT_ChangeVertexBase(instance->m_vertexbase, vertex_array[0].getXYZ());
 		return true;
 	}
 	return false;
@@ -425,7 +427,7 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 	// Count the number of collision polygons and check they all come from the same 
 	// vertex array
 	int numvalidpolys = 0;
-	int vtxarray = -1;
+	RAS_DisplayArray *darray = NULL;
 	RAS_IPolyMaterial *poly_material = NULL;
 	bool reinstance = true;
 
@@ -437,14 +439,14 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 		if (poly->IsCollider())
 		{
 			// check polygon is from the same vertex array
-			if (poly->GetVertexIndexBase().m_vtxarray != vtxarray)
+			if (poly->GetDisplayArray() != darray)
 			{
-				if (vtxarray < 0)
-					vtxarray = poly->GetVertexIndexBase().m_vtxarray;
+				if (darray == NULL)
+					darray = poly->GetDisplayArray();
 				else
 				{
 					reinstance = false;
-					vtxarray = -1;
+					darray = NULL;
 				}
 			}
 			
@@ -478,9 +480,9 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 	if (reinstance)
 	{
 		if (polytope)
-			shape = InstancePhysicsPolytope(meshobj, vtxarray, poly_material);
+			shape = InstancePhysicsPolytope(meshobj, darray, poly_material);
 		else
-			shape = InstancePhysicsComplex(meshobj, vtxarray, poly_material);
+			shape = InstancePhysicsComplex(meshobj, darray, poly_material);
 	}
 	else
 	{
@@ -489,7 +491,7 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 			std::cout << "CreateShapeFromMesh: " << meshobj->GetName() << " is not suitable for polytope." << std::endl;
 			if (!poly_material)
 				std::cout << "                     Check mesh materials." << std::endl;
-			if (vtxarray < 0)
+			if (darray == NULL)
 				std::cout << "                     Check number of vertices." << std::endl;
 		}
 		
@@ -505,18 +507,10 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 			if (poly->IsCollider())
 			{   /* We have to tesselate here because SOLID can only raycast triangles */
 			   DT_Begin();
-				/* V1 */
-				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[2],
-					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-				/* V2 */
-				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[1],
-					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-				/* V3 */
-				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[0],
-					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+				/* V1, V2, V3 */
+				DT_Vertex(poly->GetVertex(2)->getXYZ());
+				DT_Vertex(poly->GetVertex(1)->getXYZ());
+				DT_Vertex(poly->GetVertex(0)->getXYZ());
 				
 				numvalidpolys++;
 			   DT_End();
@@ -524,18 +518,10 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 				if (poly->VertexCount() == 4)
 				{
 				   DT_Begin();
-					/* V1 */
-					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[3],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-					/* V3 */
-					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-					/* V4 */
-					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+					/* V1, V3, V4 */
+					DT_Vertex(poly->GetVertex(3)->getXYZ());
+					DT_Vertex(poly->GetVertex(2)->getXYZ());
+					DT_Vertex(poly->GetVertex(0)->getXYZ());
 				
 					numvalidpolys++;
 				   DT_End();

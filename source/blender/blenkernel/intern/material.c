@@ -61,6 +61,8 @@
 
 #include "BPY_extern.h"
 
+#include "GPU_material.h"
+
 /* used in UI and render */
 Material defmaterial;
 
@@ -96,6 +98,9 @@ void free_material(Material *ma)
 		ntreeFreeTree(ma->nodetree);
 		MEM_freeN(ma->nodetree);
 	}
+
+	if(ma->gpumaterial.first)
+		GPU_material_free(ma);
 }
 
 void init_material(Material *ma)
@@ -207,6 +212,8 @@ Material *copy_material(Material *ma)
 	if(ma->nodetree) {
 		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
 	}
+
+	man->gpumaterial.first= man->gpumaterial.last= NULL;
 	
 	return man;
 }

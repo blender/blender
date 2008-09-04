@@ -34,7 +34,7 @@ SET(INC
   api2_2x ../blenkernel ../blenlib ../blenloader
   ../render/extern/include ../radiosity/extern/include
   ../makesdna ../../../intern/guardedalloc ../../../intern/bmfont ../imbuf ../include
-  ${PYTHON_INC}
+  ${PYTHON_INC} ../../../extern/glew/include ../gpu
 )
 
 IF(WITH_QUICKTIME)
@@ -49,6 +49,10 @@ ENDIF(WITH_OPENEXR)
 IF(WITH_FFMPEG)
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(BF_BUILDINFO)
+  ADD_DEFINITIONS(-DNAN_BUILDINFO)
+ENDIF(BF_BUILDINFO)
 
 BLENDERLIB_NOLIST(blender_python "${SRC}" "${INC}")
 #env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )

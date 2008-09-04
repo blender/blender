@@ -79,45 +79,6 @@
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
 
-int update_realtime_texture(MTFace *tface, double time)
-{
-	Image *ima;
-	int	inc = 0;
-	float	diff;
-	int	newframe;
-
-	ima = tface->tpage;
-
-	if (!ima)
-		return 0;
-
-	if (ima->lastupdate<0)
-		ima->lastupdate = 0;
-
-	if (ima->lastupdate>time)
-		ima->lastupdate=(float)time;
-
-	if(ima->tpageflag & IMA_TWINANIM) {
-		if(ima->twend >= ima->xrep*ima->yrep) ima->twend= ima->xrep*ima->yrep-1;
-		
-		/* check: is the bindcode not in the array? Then free. (still to do) */
-		
-		diff = (float)(time-ima->lastupdate);
-
-		inc = (int)(diff*(float)ima->animspeed);
-
-		ima->lastupdate+=((float)inc/(float)ima->animspeed);
-
-		newframe = ima->lastframe+inc;
-
-		if (newframe > (int)ima->twend)
-			newframe = (int)ima->twsta-1 + (newframe-ima->twend)%(ima->twend-ima->twsta);
-
-		ima->lastframe = newframe;
-	}
-	return inc;
-}
-
 void mesh_update_customdata_pointers(Mesh *me)
 {
 	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);

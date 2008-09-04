@@ -3105,6 +3105,9 @@ void logic_buts(void)
 	int a, iact, stbit, offset;
 	short xco, yco, count, width, ycoo;
 	char *pupstr, name[32];
+	/* pin is a bool used for actuator and sensor drawing with states
+	 * pin so changing states dosnt hide the logic brick */
+	char pin;
 
 	wrld= G.scene->world;
 
@@ -3365,18 +3368,25 @@ void logic_buts(void)
 			sens= ob->sensors.first;
 			while(sens) {
 				if (!(G.buts->scaflag & BUTS_SENS_STATE) ||
-					sens->totlinks == 0 ||		/* always display sensor without links so that is can be edited */
-					is_sensor_linked(block, sens)) {
+					 (sens->totlinks == 0) ||		/* always display sensor without links so that is can be edited */
+					 (sens->flag & SENS_PIN && G.buts->scaflag & BUTS_SENS_STATE) || /* states can hide some sensors, pinned sensors ignore the visible state */
+					 (is_sensor_linked(block, sens))
+				) {
+					/* should we draw the pin? - for now always draw when there is a state */
+					pin = (G.buts->scaflag & BUTS_SENS_STATE && (sens->flag & SENS_SHOW || sens->flag & SENS_PIN)) ? 1:0 ;
+					
 					sens->flag |= SENS_VISIBLE;
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
+					if (pin)
+						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, (sens->flag & SENS_PIN) ? ICON_PIN_DEHLT:ICON_PIN_HLT, (short)(xco+width-44), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
 					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
 					if(sens->flag & SENS_SHOW)
 					{
 						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-124), 19, sens->name, 0, 31, 0, 0, "Sensor name");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -3388,7 +3398,7 @@ void logic_buts(void)
 						glRecti(xco+22, yco, xco+width-22,yco+19);
 						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, 19, sens, 0, 0, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-124), 19, sens, 0, 31, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens, 0, 31, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
 					}
 
@@ -3437,16 +3447,22 @@ void logic_buts(void)
 			while(act) {
 				if (!(G.buts->scaflag & BUTS_ACT_STATE) ||
 					!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
-					(act->flag & ACT_VISIBLE)) {		/* this actuator has visible connection, display it */
+					 (act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
+					 (act->flag & ACT_PIN && G.buts->scaflag & BUTS_ACT_STATE)) {
+					
+					pin = (G.buts->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1:0 ;
+					
 					act->flag |= ACT_VISIBLE;	/* mark the actuator as visible to help implementing the up/down action */
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, 19, &act->flag, 0, 0, 0, 0, "Delete Actuator");
-					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Actuator settings");
-
+					if (pin)
+						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, (act->flag & ACT_PIN) ? ICON_PIN_DEHLT:ICON_PIN_HLT, (short)(xco+width-44), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display the actuator");
+					
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
 						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, 19, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-134), 19, act->name, 0, 31, 0, 0, "Actuator name");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act->name, 0, 31, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -3458,7 +3474,7 @@ void logic_buts(void)
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
 						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, 19, act, 0, 0, 0, 0, "Actuator type");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
-						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-134), 19, act, 0, 0, 0, 0, "Actuator name");
+						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act, 0, 0, 0, 0, "Actuator name");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
 						ycoo= yco;
 					}

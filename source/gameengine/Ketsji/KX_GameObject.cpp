@@ -79,10 +79,12 @@ KX_GameObject::KX_GameObject(
 	m_bDyna(false),
 	m_layer(0),
 	m_pBlenderObject(NULL),
+	m_pBlenderGroupObject(NULL),
 	m_bSuspendDynamics(false),
 	m_bUseObjectColor(false),
 	m_bIsNegativeScaling(false),
 	m_bVisible(true),
+	m_bCulled(true),
 	m_pPhysicsController1(NULL),
 	m_pPhysicsEnvironment(NULL),
 	m_xray(false),
@@ -101,8 +103,11 @@ KX_GameObject::KX_GameObject(
 };
 
 
+
 KX_GameObject::~KX_GameObject()
 {
+	RemoveMeshes();
+
 	// is this delete somewhere ?
 	//if (m_sumoObj)
 	//	delete m_sumoObj;
@@ -164,7 +169,6 @@ STR_String KX_GameObject::GetName()
 void KX_GameObject::SetName(STR_String name)
 {
 	m_name = name;
-
 };								// Set the name of the value
 
 
@@ -285,11 +289,11 @@ void KX_GameObject::ProcessReplica(KX_GameObject* replica)
 CValue* KX_GameObject::GetReplica()
 {
 	KX_GameObject* replica = new KX_GameObject(*this);
-	
+
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	ProcessReplica(replica);
-	
+
 	return replica;
 }
 
@@ -355,24 +359,26 @@ double*	KX_GameObject::GetOpenGLMatrix()
 	return fl;
 }
 
+void KX_GameObject::AddMeshUser()
+{
+	for (size_t i=0;i<m_meshes.size();i++)
+		m_meshes[i]->AddMeshUser(this);
+	
+	UpdateBuckets();
+}
 
-
-void KX_GameObject::Bucketize()
+void KX_GameObject::UpdateBuckets()
 {
 	double* fl = GetOpenGLMatrix();
 
 	for (size_t i=0;i<m_meshes.size();i++)
-		m_meshes[i]->Bucketize(fl, this, m_bUseObjectColor, m_objectColor);
+		m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
 }
-
-
 
 void KX_GameObject::RemoveMeshes()
 {
-	double* fl = GetOpenGLMatrix();
-
 	for (size_t i=0;i<m_meshes.size();i++)
-		m_meshes[i]->RemoveFromBuckets(fl, this);
+		m_meshes[i]->RemoveFromBuckets(this);
 
 	//note: meshes can be shared, and are deleted by KX_BlenderSceneConverter
 
@@ -455,13 +461,14 @@ KX_GameObject::UpdateMaterialData(
 	)
 {
 	int mesh = 0;
-
 	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0) {
-		RAS_MaterialBucket::Set::iterator mit = m_meshes[mesh]->GetFirstMaterial();
+		list<RAS_MeshMaterial>::iterator mit = m_meshes[mesh]->GetFirstMaterial();
+
 		for(; mit != m_meshes[mesh]->GetLastMaterial(); ++mit)
 		{
-			RAS_IPolyMaterial* poly = (*mit)->GetPolyMaterial();
-			if(poly->GetFlag() & RAS_BLENDERMAT)
+			RAS_IPolyMaterial* poly = mit->m_bucket->GetPolyMaterial();
+
+			if(poly->GetFlag() & RAS_BLENDERMAT )
 			{
 				KX_BlenderMaterial *m =  static_cast<KX_BlenderMaterial*>(poly);
 				
@@ -469,8 +476,7 @@ KX_GameObject::UpdateMaterialData(
 				{
 					m->UpdateIPO(rgba, specrgb,hard,spec,ref,emit, alpha);
 					// if mesh has only one material attached to it then use original hack with no need to edit vertices (better performance)
-					if(!(poly->GetFlag() & RAS_BLENDERGLSL))
-						SetObjectColor(rgba);
+					SetObjectColor(rgba);
 				}
 				else
 				{
@@ -504,6 +510,23 @@ KX_GameObject::SetVisible(
 	m_bVisible = v;
 }
 
+bool
+KX_GameObject::GetCulled(
+	void
+	)
+{
+	return m_bCulled;
+}
+
+void
+KX_GameObject::SetCulled(
+	bool c
+	)
+{
+	m_bCulled = c;
+}
+
+
 void
 KX_GameObject::SetLayer(
 	int l
@@ -519,44 +542,6 @@ KX_GameObject::GetLayer(
 {
 	return m_layer;
 }
-
-// used by Python, and the actuatorshould _not_ be misused by the
-// scene!
-void 
-KX_GameObject::MarkVisible(
-	bool visible
-	)
-{
-	/* If explicit visibility settings are used, this is
-	 * determined on this level. Maybe change this to mesh level
-	 * later on? */
-	
-	double* fl = GetOpenGLMatrixPtr()->getPointer();
-	for (size_t i=0;i<m_meshes.size();i++)
-	{
-		m_meshes[i]->MarkVisible(fl,this,visible,m_bUseObjectColor,m_objectColor);
-	}
-}
-
-
-// Always use the flag?
-void 
-KX_GameObject::MarkVisible(
-	void
-	)
-{
-	double* fl = GetOpenGLMatrixPtr()->getPointer();
-	for (size_t i=0;i<m_meshes.size();i++)
-	{
-		m_meshes[i]->MarkVisible(fl,
-					 this,
-					 m_bVisible,
-					 m_bUseObjectColor,
-					 m_objectColor
-			);
-	}
-}
-
 
 void KX_GameObject::addLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
@@ -1052,6 +1037,7 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 		if (attr == "visible")
 		{
 			SetVisible(val != 0);
+			UpdateBuckets();
 			return 0;
 		}
 	}
@@ -1221,8 +1207,8 @@ PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* value)
 		return NULL;
 	}
 	
-	MarkVisible(visible!=0);
-	m_bVisible = (visible!=0);
+	SetVisible(visible != 0);
+	UpdateBuckets();
 	Py_RETURN_NONE;
 	
 }

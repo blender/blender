@@ -33,6 +33,7 @@
 struct ScrArea;
 struct SpaceText;
 struct Text;
+struct TextLine;
 
 void unlink_text(struct Text *text);
 

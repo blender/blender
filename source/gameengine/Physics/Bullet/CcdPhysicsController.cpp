@@ -816,9 +816,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 			{
 				for (int i=0;i<poly->VertexCount();i++)
 				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[i],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					const float* vtx = poly->GetVertex(i)->getXYZ();
 					btPoint3 point(vtx[0],vtx[1],vtx[2]);
 					m_vertexArray.push_back(point);
 					numvalidpolys++;
@@ -826,18 +824,15 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 			} else
 			{
 				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					const float* vtx = poly->GetVertex(2)->getXYZ();
 					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[1],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(1)->getXYZ();
 					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(0)->getXYZ();
 					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
 					m_vertexArray.push_back(vertex2);
@@ -846,18 +841,15 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 				}
 				if (poly->VertexCount() == 4)
 				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[3],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					const float* vtx = poly->GetVertex(3)->getXYZ();
 					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(2)->getXYZ();
 					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(0)->getXYZ();
 					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
 					m_vertexArray.push_back(vertex2);

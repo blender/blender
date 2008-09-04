@@ -881,7 +881,7 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 				ostr << "\t\t<input value=\"" << shader_name << "_map" << m2 << "\" />\n";
 
 			// blendtype, would have been nice if the order would have been the same as for ramps...
-			const string blendtype[9] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen"};
+			const string blendtype[MTEX_NUM_BLENDTYPES] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen", "hue", "sat", "val", "color"};
 			ostr << "\t\t<mode value=\"" << blendtype[(int)mtex->blendtype] << "\" />\n";
 
 			// texture color (for use with MUL and/or no_rgb etc..)

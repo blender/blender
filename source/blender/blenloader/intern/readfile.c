@@ -1138,6 +1138,8 @@ void blo_make_image_pointer_map(FileData *fd)
 		Link *ibuf= ima->ibufs.first;
 		for(; ibuf; ibuf= ibuf->next) 
 			oldnewmap_insert(fd->imamap, ibuf, ibuf, 0);
+		if(ima->gputexture)
+			oldnewmap_insert(fd->imamap, ima->gputexture, ima->gputexture, 0);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1172,8 +1174,11 @@ void blo_end_image_pointer_map(FileData *fd)
 			if(NULL==newimaadr(fd, ibuf)) {	/* so was restored */
 				BLI_remlink(&ima->ibufs, ibuf);
 				ima->bindcode= 0;
+				ima->gputexture= NULL;
 			}
 		}
+
+		ima->gputexture= newimaadr(fd, ima->gputexture);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -2340,8 +2345,10 @@ static void direct_link_image(FileData *fd, Image *ima)
 		ima->ibufs.first= ima->ibufs.last= NULL;
 	
 	/* if not restored, we keep the binded opengl index */
-	if(ima->ibufs.first==NULL)
+	if(ima->ibufs.first==NULL) {
 		ima->bindcode= 0;
+		ima->gputexture= NULL;
+	}
 	
 	ima->anim= NULL;
 	ima->rr= NULL;
@@ -2552,6 +2559,7 @@ static void direct_link_material(FileData *fd, Material *ma)
 		direct_link_nodetree(fd, ma->nodetree);
 
 	ma->preview = direct_link_preview_image(fd, ma->preview);
+	ma->gpumaterial.first = ma->gpumaterial.last = NULL;
 }
 
 /* ************ READ PARTICLE SETTINGS ***************** */
@@ -3390,6 +3398,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
+	ob->gpulamp.first= ob->gpulamp.last= NULL;
 }
 
 /* ************ READ SCENE ***************** */

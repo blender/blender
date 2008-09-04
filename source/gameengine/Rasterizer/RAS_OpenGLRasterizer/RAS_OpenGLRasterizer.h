@@ -41,7 +41,7 @@ using namespace std;
 #include "RAS_MaterialBucket.h"
 #include "RAS_ICanvas.h"
 
-#define RAS_MAX_TEXCO	3	// match in BL_Material
+#define RAS_MAX_TEXCO	8	// match in BL_Material
 #define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
 
 struct	OglDebugLine
@@ -77,7 +77,8 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_ambb;
 
 	double			m_time;
-	MT_CmMatrix4x4	m_viewmatrix;
+	MT_Matrix4x4	m_viewmatrix;
+	MT_Matrix4x4	m_viewinvmatrix;
 	MT_Point3		m_campos;
 
 	StereoMode		m_stereomode;
@@ -100,6 +101,7 @@ protected:
 	int				m_texco_num;
 	int				m_attrib_num;
 	int				m_last_blendmode;
+	bool			m_last_frontface;
 
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
@@ -144,33 +146,15 @@ public:
 	virtual float	GetFocalLength();
 
 	virtual void	SwapBuffers();
-	virtual void	IndexPrimitives(
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						DrawMode mode,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot
-					);
 
+	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 	virtual void	IndexPrimitives_3DText(
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						DrawMode mode,
+						class RAS_MeshSlot& ms,
 						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor
-					);
+						class RAS_IRenderTools* rendertools);
 
-	virtual void IndexPrimitivesMulti( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						DrawMode mode,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot);
-
+	void			IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi);
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
@@ -182,7 +166,6 @@ public:
 					);
 
 	virtual const	MT_Point3& GetCameraPosition();
-	virtual void	LoadViewMatrix();
 	
 	virtual void	SetFog(
 						float start,
@@ -214,7 +197,6 @@ public:
 	virtual void	SetDrawingMode(int drawingmode);
 	virtual int		GetDrawingMode();
 
-	virtual void	EnableTextures(bool enable);
 	virtual void	SetCullFace(bool enable);
 	virtual void	SetLines(bool enable);
 
@@ -270,13 +252,10 @@ public:
 	virtual void SetTexCoord(TexCoGen coords, int unit);
 	virtual void SetAttrib(TexCoGen coords, int unit);
 
-	void			TexCoord(const RAS_TexVert &tv);
-	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const;
+	void TexCoord(const RAS_TexVert &tv);
 
-	void	Tangent(const RAS_TexVert& v1,
-					const RAS_TexVert& v2,
-					const RAS_TexVert& v3,
-					const MT_Vector3 &no);
+	const MT_Matrix4x4&	GetViewMatrix() const;
+	const MT_Matrix4x4&	GetViewInvMatrix() const;
 	
 	virtual void	EnableMotionBlur(float motionblurvalue);
 	virtual void	DisableMotionBlur();
@@ -293,6 +272,7 @@ public:
 	};
 
 	virtual void	SetBlendingMode(int blendmode);
+	virtual void	SetFrontFace(bool ccw);
 };
 
 #endif //__RAS_OPENGLRASTERIZER

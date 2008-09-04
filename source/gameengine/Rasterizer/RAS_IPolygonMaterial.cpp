@@ -42,11 +42,8 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int transp,
 									 bool alpha,
 									 bool zsort,
-									 int lightlayer,
-									 bool bIsTriangle,
-									 void* clientobject=NULL) :
-
-		m_texturename(texname),
+									 int lightlayer)
+		: m_texturename(texname),
 		m_materialname(matname),
 		m_tile(tile),
 		m_tilexrep(tilexrep),
@@ -56,7 +53,6 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_alpha(alpha),
 		m_zsort(zsort),
 		m_lightlayer(lightlayer),
-		m_bIsTriangle(bIsTriangle),
 		m_polymatid(m_newpolymatid++),
 		m_flag(0),
 		m_multimode(0)
@@ -72,15 +68,16 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 {
 	if(m_flag &RAS_BLENDERMAT)
 	{
-		return (
+		bool test = (
 			this->m_multimode			==		lhs.m_multimode &&
 			this->m_flag				==		lhs.m_flag		&&
 			this->m_drawingmode			==		lhs.m_drawingmode &&
 			this->m_transp				==		lhs.m_transp &&
-			this->m_lightlayer			==		lhs.m_lightlayer &&
 			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 			this->m_materialname.hash() ==		lhs.m_materialname.hash()
 		);
+
+		return test;
 	}
 	else
 	{
@@ -92,8 +89,6 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 				this->m_alpha		==		lhs.m_alpha &&
 				this->m_zsort		==		lhs.m_zsort &&
 				this->m_drawingmode	==		lhs.m_drawingmode &&
-				this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
-				this->m_lightlayer	==		lhs.m_lightlayer &&
 				this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 				this->m_materialname.hash() ==		lhs.m_materialname.hash()
 		);
@@ -121,11 +116,6 @@ bool RAS_IPolyMaterial::IsAlpha() const
 bool RAS_IPolyMaterial::IsZSort() const
 {
 	return m_zsort;
-}
-
-bool RAS_IPolyMaterial::UsesTriangles() const
-{
-	return m_bIsTriangle;
 }
 
 unsigned int RAS_IPolyMaterial::hash() const
@@ -170,6 +160,11 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 		dolights = (m_drawingmode & 16)!=0;
 	
 	return dolights;
+}
+
+bool RAS_IPolyMaterial::UsesObjectColor() const
+{
+	return !(m_flag & RAS_BLENDERGLSL);
 }
 
 unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;

@@ -18,9 +18,9 @@ struct EnvMap;
 	this will default to users available units
 	to build with more available, just increment this value
 	although the more you add the slower the search time will be.
-	we will go for three, which should be enough
+	we will go for eight, which should be enough
 */
-#define MAXTEX			3	//match in RAS_TexVert & RAS_OpenGLRasterizer
+#define MAXTEX			8	//match in RAS_TexVert & RAS_OpenGLRasterizer
 
 // different mapping modes
 class BL_Mapping
@@ -139,7 +139,7 @@ enum BL_ras_mode
 	COLLIDER=2,
 	ZSORT=4,
 	ALPHA=8,
-	TRIANGLE=16,
+	// TRIANGLE=16,
 	USE_LIGHT=32,
 	WIRE=64
 };

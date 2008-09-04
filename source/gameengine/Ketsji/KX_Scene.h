@@ -54,6 +54,7 @@
  */
 struct SM_MaterialProps;
 struct SM_ShapeProps;
+struct Scene;
 
 class GEN_HashedPtr;
 class CListValue;
@@ -277,12 +278,15 @@ protected:
 	 */
 	PyObject* m_attrlist;
 
+	struct Scene* m_blenderScene;
+
 public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
 		class SND_IAudioDevice* adi,
-		const STR_String& scenename	);
+		const STR_String& scenename,
+		struct Scene* scene);
 
 	virtual	
 	~KX_Scene();
@@ -582,6 +586,10 @@ public:
 	 * was running and not suspended) and the "curtime"
 	 */
 	double getSuspendedDelta();
+	/**
+	 * Returns the Blender scene this was made from
+	 */
+	struct Scene *GetBlenderScene() { return m_blenderScene; }
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

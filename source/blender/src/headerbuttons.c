@@ -154,7 +154,6 @@
 #include "BSE_editipo.h"
 #include "BSE_drawipo.h"
 
-#include "BDR_drawmesh.h"
 #include "BDR_vpaint.h"
 #include "BDR_editface.h"
 #include "BDR_editobject.h"
@@ -164,6 +163,8 @@
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+
+#include "GPU_draw.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1425,11 +1426,11 @@ void do_global_buttons(unsigned short event)
 				show_splash();
 		break;
 	case B_MIPMAPCHANGED:
-		set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_GLRESLIMITCHANGED:
-		free_all_realtime_images(); /* force reloading with new res limit */
+		GPU_free_images(); /* force reloading with new res limit */
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_NEWSPACE:

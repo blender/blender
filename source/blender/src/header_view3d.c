@@ -4512,7 +4512,7 @@ static void do_view3d_tpaintmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* undo image painting */
-		imagepaint_undo();
+		undo_imagepaint_step(1);
 		break;
 	}
 

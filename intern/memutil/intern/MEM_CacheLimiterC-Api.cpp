@@ -27,18 +27,18 @@
 #include "MEM_CacheLimiter.h"
 #include "MEM_CacheLimiterC-Api.h"
 
-static int & get_max() 
+static intptr_t & get_max() 
 {
-	static int m = 32*1024*1024;
+	static intptr_t m = 32*1024*1024;
 	return m;
 }
 
-void MEM_CacheLimiter_set_maximum(int m)
+void MEM_CacheLimiter_set_maximum(intptr_t m)
 {
 	get_max() = m;
 }
 
-int MEM_CacheLimiter_get_maximum()
+intptr_t MEM_CacheLimiter_get_maximum()
 {
 	return get_max();
 }

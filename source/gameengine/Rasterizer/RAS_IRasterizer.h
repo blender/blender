@@ -217,39 +217,18 @@ public:
 	
 	// Drawing Functions
 	/**
-	 * IndexPrimitives: Renders primitives.
-	 * @param vertexarrays is an array of vertex arrays
-	 * @param indexarrays is an array of index arrays
-	 * @param mode determines the type of primitive stored in the vertex/index arrays
-	 * @param useObjectColor will render the object using @param rgbacolor instead of 
-	 *  vertex colors.
+	 * IndexPrimitives: Renders primitives from mesh slot.
 	 */
-	virtual void IndexPrimitives( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							DrawMode mode,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor,
-							class KX_ListSlot** slot)=0;
-
-	virtual void IndexPrimitivesMulti( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						DrawMode mode,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot)=0;
+	virtual void IndexPrimitives(class RAS_MeshSlot& ms)=0;
+	virtual void IndexPrimitivesMulti(class RAS_MeshSlot& ms)=0;
 
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.
 	 * The text to be rendered is from @param rendertools client object's text property.
 	 */
-	virtual void	IndexPrimitives_3DText( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							DrawMode mode,
+	virtual void	IndexPrimitives_3DText(class RAS_MeshSlot& ms,
 							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor)=0;
+							class RAS_IRenderTools* rendertools)=0;
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat)=0;
 	/* This one should become our final version, methinks. */
@@ -269,9 +248,6 @@ public:
 	/**
 	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
-	/**
-	 */
-	virtual void	LoadViewMatrix()=0;
 	/**
 	 */
 	virtual void	SetFog(float start,
@@ -308,9 +284,6 @@ public:
 	 * @return the current drawing mode: KX_BOUNDINGBOX, KX_WIREFRAME, KX_SOLID, KX_SHADED or KX_TEXTURED.
 	 */
 	virtual int	GetDrawingMode()=0;
-	/**
-	 */
-	virtual void	EnableTextures(bool enable)=0;
 	/**
 	 * Sets face culling
 	 */	
@@ -385,7 +358,9 @@ public:
 	virtual void	SetAttribNum(int num) = 0;
 	virtual void	SetTexCoord(TexCoGen coords, int unit) = 0;
 	virtual void	SetAttrib(TexCoGen coords, int unit) = 0;
-	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const = 0;
+
+	virtual const MT_Matrix4x4&	GetViewMatrix() const = 0;
+	virtual const MT_Matrix4x4&	GetViewInvMatrix() const = 0;
 
 	virtual bool	QueryLists(){return false;}
 	virtual bool	QueryArrays(){return false;}
@@ -398,6 +373,7 @@ public:
 	virtual void	SetMotionBlurState(int newstate)=0;
 
 	virtual void	SetBlendingMode(int blendmode)=0;
+	virtual void	SetFrontFace(bool ccw)=0;
 };
 
 #endif //__RAS_IRASTERIZER

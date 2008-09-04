@@ -1390,6 +1390,14 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
 			else if(icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
 			else if(icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
+			else if(icu->adrcode & MA_MAP12) mtex= ma->mtex[11];
+			else if(icu->adrcode & MA_MAP11) mtex= ma->mtex[10];
+			else if(icu->adrcode & MA_MAP13) mtex= ma->mtex[12];
+			else if(icu->adrcode & MA_MAP14) mtex= ma->mtex[13];
+			else if(icu->adrcode & MA_MAP15) mtex= ma->mtex[14];
+			else if(icu->adrcode & MA_MAP16) mtex= ma->mtex[15];
+			else if(icu->adrcode & MA_MAP17) mtex= ma->mtex[16];
+			else if(icu->adrcode & MA_MAP18) mtex= ma->mtex[17];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
@@ -1479,7 +1487,14 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP8) mtex= wo->mtex[7];
 			else if(icu->adrcode & MA_MAP9) mtex= wo->mtex[8];
 			else if(icu->adrcode & MA_MAP10) mtex= wo->mtex[9];
-			
+			else if(icu->adrcode & MA_MAP11) mtex= wo->mtex[10];
+			else if(icu->adrcode & MA_MAP12) mtex= wo->mtex[11];
+			else if(icu->adrcode & MA_MAP13) mtex= wo->mtex[12];
+			else if(icu->adrcode & MA_MAP14) mtex= wo->mtex[13];
+			else if(icu->adrcode & MA_MAP15) mtex= wo->mtex[14];
+			else if(icu->adrcode & MA_MAP16) mtex= wo->mtex[15];
+			else if(icu->adrcode & MA_MAP17) mtex= wo->mtex[16];
+			else if(icu->adrcode & MA_MAP18) mtex= wo->mtex[17];
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
 			}
@@ -1524,6 +1539,14 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP8) mtex= la->mtex[7];
 			else if(icu->adrcode & MA_MAP9) mtex= la->mtex[8];
 			else if(icu->adrcode & MA_MAP10) mtex= la->mtex[9];
+			else if(icu->adrcode & MA_MAP11) mtex= la->mtex[10];
+			else if(icu->adrcode & MA_MAP12) mtex= la->mtex[11];
+			else if(icu->adrcode & MA_MAP13) mtex= la->mtex[12];
+			else if(icu->adrcode & MA_MAP14) mtex= la->mtex[13];
+			else if(icu->adrcode & MA_MAP15) mtex= la->mtex[14];
+			else if(icu->adrcode & MA_MAP16) mtex= la->mtex[15];
+			else if(icu->adrcode & MA_MAP17) mtex= la->mtex[16];
+			else if(icu->adrcode & MA_MAP18) mtex= la->mtex[17];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );

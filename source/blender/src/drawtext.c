@@ -138,8 +138,6 @@ static void get_selection_buffer(Text *text);
 static int check_bracket(char ch);
 static int check_delim(char ch);
 static int check_digit(char ch);
-static int check_builtinfuncs(char *string);
-static int check_specialvars(char *string);
 static int check_identifier(char ch);
 static int check_whitespace(char ch);
 
@@ -595,6 +593,7 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 			chop= 1;
 			chars= 0;
 			curs= 0;
+			endj= 0;
 			for (i=0, j=0; loop; j++) {
 
 				/* Mimic replacement of tabs */
