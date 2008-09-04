@@ -721,17 +721,20 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 	{
 	}
 
-	virtual bool    NeedRayCast(btCollisionObject* object)
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
 	{
+		if (!(proxy0->m_collisionFilterGroup & m_collisionFilterMask))
+			return false;
+		if (!(m_collisionFilterGroup & proxy0->m_collisionFilterMask))
+			return false;
+		btCollisionObject* object = (btCollisionObject*)proxy0->m_clientObject;
 		CcdPhysicsController* phyCtrl = static_cast<CcdPhysicsController*>(object->getUserPointer());
-		if (phyCtrl != m_phyRayFilter.m_ignoreController)
-		{
-			return m_phyRayFilter.needBroadphaseRayCast(phyCtrl);
-		}
-		return false;
+		if (phyCtrl == m_phyRayFilter.m_ignoreController)
+			return false;
+		return m_phyRayFilter.needBroadphaseRayCast(phyCtrl);
 	}
 
-	virtual	float	AddSingleResult( btCollisionWorld::LocalRayResult& rayResult)
+	virtual	btScalar addSingleResult(btCollisionWorld::LocalRayResult& rayResult,bool normalInWorldSpace)
 	{
 		CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->getUserPointer());
 		// save shape information as ClosestRayResultCallback::AddSingleResult() does not do it
@@ -744,8 +747,7 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 			m_hitTriangleShape = NULL;
 			m_hitTriangleIndex = 0;
 		}
-		bool normalInWorldspace = true;
-		return ClosestRayResultCallback::addSingleResult(rayResult,normalInWorldspace);
+		return ClosestRayResultCallback::addSingleResult(rayResult,normalInWorldSpace);
 	}
 
 };
