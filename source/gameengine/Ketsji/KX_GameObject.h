@@ -75,15 +75,17 @@ protected:
 	int									m_layer;
 	std::vector<RAS_MeshObject*>		m_meshes;
 	struct Object*						m_pBlenderObject;
+	struct Object*						m_pBlenderGroupObject;
 	
 	bool								m_bSuspendDynamics;
 	bool								m_bUseObjectColor;
 	bool								m_bIsNegativeScaling;
 	MT_Vector4							m_objectColor;
 
-	// Is this object set to be visible? Only useful for the
-	// visibility subsystem right now.
-	bool       m_bVisible; 
+	// visible = user setting
+	// culled = while rendering, depending on camera
+	bool       							m_bVisible; 
+	bool       							m_bCulled; 
 
 	KX_IPhysicsController*				m_pPhysicsController1;
 	// used for ray casting
@@ -395,6 +397,16 @@ public:
 	{
 		m_pBlenderObject = obj;
 	}
+
+	struct Object* GetBlenderGroupObject( )
+	{
+		return m_pBlenderGroupObject;
+	}
+
+	void SetBlenderGroupObject( struct Object* obj)
+	{
+		m_pBlenderGroupObject = obj;
+	}
 	
 	bool IsDupliGroup()
 	{ 
@@ -538,18 +550,22 @@ public:
 	/**
 	 * @section Mesh accessor functions.
 	 */
-	
+
 	/**	
-	 * Run through the meshes associated with this
-	 * object and bucketize them. See RAS_Mesh for
-	 * more details on this function. Interesting to 
-	 * note that polygon bucketizing seems to happen on a per
-	 * object basis. Which may explain why there is such
-	 * a big performance gain when all static objects
-	 * are joined into 1.
+	 * Update buckets to indicate that there is a new
+	 * user of this object's meshes.
 	 */
 		void						
-	Bucketize(
+	AddMeshUser(
+	);
+	
+	/**	
+	 * Update buckets with data about the mesh after
+	 * creating or duplicating the object, changing
+	 * visibility, object color, .. .
+	 */
+		void						
+	UpdateBuckets(
 	);
 
 	/**
@@ -610,25 +626,8 @@ public:
 	ResetDebugColor(
 	);
 
-	/** 
-	 * Set the visibility of the meshes associated with this
-	 * object.
-	 */
-		void						
-	MarkVisible(
-		bool visible
-	);
-
-	/** 
-	 * Set the visibility according to the visibility flag.
-	 */
-		void						
-	MarkVisible(
-		void
-	);
-
 	/**
-	 * Was this object marked visible? (only for the ewxplicit
+	 * Was this object marked visible? (only for the explicit
 	 * visibility system).
 	 */
 		bool
@@ -642,6 +641,22 @@ public:
 		void
 	SetVisible(
 		bool b
+	);
+
+	/**
+	 * Was this object culled?
+	 */
+		bool
+	GetCulled(
+		void
+	);
+
+	/**
+	 * Set culled flag of this object
+	 */
+		void
+	SetCulled(
+		bool c
 	);
 
 	/**
@@ -668,6 +683,14 @@ public:
 	IsNegativeScaling(
 		void
 	) { return m_bIsNegativeScaling; }
+
+	/**
+	 * Is this a light?
+	 */
+		virtual bool
+	IsLight(
+		void
+	) { return false; }
 
 	/**
 	 * @section Logic bubbling methods.

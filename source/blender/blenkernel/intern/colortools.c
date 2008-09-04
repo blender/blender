@@ -730,3 +730,24 @@ void curvemapping_initialize(CurveMapping *cumap)
 			curvemap_make_table(cumap->cm+a, &cumap->clipr);
 	}
 }
+
+void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
+{
+	int a;
+	
+	*size = CM_TABLE+1;
+	*array = MEM_callocN(sizeof(float)*(*size)*4, "CurveMapping");
+	curvemapping_initialize(cumap);
+
+	for(a=0; a<*size; a++) {
+		if(cumap->cm[0].table)
+			(*array)[a*4+0]= cumap->cm[0].table[a].y;
+		if(cumap->cm[1].table)
+			(*array)[a*4+1]= cumap->cm[1].table[a].y;
+		if(cumap->cm[2].table)
+			(*array)[a*4+2]= cumap->cm[2].table[a].y;
+		if(cumap->cm[3].table)
+			(*array)[a*4+3]= cumap->cm[3].table[a].y;
+	}
+}
+

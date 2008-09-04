@@ -37,6 +37,7 @@ struct PackedFile;
 struct anim;
 struct ImBuf;
 struct RenderResult;
+struct GPUTexture;
 
 
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
@@ -62,7 +63,8 @@ typedef struct Image {
 	
 	char name[240];			/* file path */
 	
-	ListBase ibufs;			/* not written in file */
+	ListBase ibufs;					/* not written in file */
+	struct GPUTexture *gputexture;	/* not written in file */
 	
 	/* sources from: */
 	struct anim *anim;

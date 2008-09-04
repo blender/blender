@@ -30,6 +30,8 @@
 #ifndef BIF_MESHTOOLS_H
 #define BIF_MESHTOOLS_H
 
+#include "BLO_sys_types.h"
+
 struct Object;
 struct EditVert;
 

@@ -296,7 +296,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	minz= 1.0e30f; maxz= -1.0e30f;
 	Mat4CpyMat4(viewmat, lar->shb->viewmat);
 	
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 
 	maxtotvert= 0;
 	for(obr=re->objecttable.first; obr; obr=obr->next)
@@ -1520,7 +1520,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 	minmaxf[2]= (2.0f*root->box.ymin - size-2.0f)/size;
 	minmaxf[3]= (2.0f*root->box.ymax - size+2.0f)/size;
 	
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 	
 	/* (ab)use zspan, since we use zbuffer clipping code */
 	zbuf_alloc_span(&zspan, size, size, re->clipcrop);

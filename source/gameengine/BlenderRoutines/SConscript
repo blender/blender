@@ -15,7 +15,7 @@ incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common'
 incs += ' #source/gameengine/Physics/Bullet #source/gameengine/Physics/Sumo'
 incs += ' #source/gameengine/Physics/Sumo/Fuzzics/include #source/gameengine/Network/LoopBackNetwork'
 incs += ' #intern/SoundSystem #source/blender/misc #source/blender/blenloader'
-incs += ' #extern/glew/include'
+incs += ' #extern/glew/include #source/blender/gpu'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_SOLID_INC']
@@ -25,8 +25,5 @@ incs += ' ' + env['BF_OPENGL_INC']
 cxxflags = []
 if env['OURPLATFORM']=='win32-vc':
 	cxxflags.append ('/GR')
-
-if env['WITH_BF_GLEXT'] == 1:
-	env['CPPFLAGS'].append('-DWITH_GLEXT')
 
 env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , compileflags=cxxflags)

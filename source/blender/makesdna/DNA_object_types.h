@@ -223,6 +223,8 @@ typedef struct Object {
 /*#ifdef WITH_VERSE*/
 	void *vnode;			/* pointer at object VerseNode */
 /*#endif*/
+
+	ListBase gpulamp;		/* runtime, for lamps only */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */

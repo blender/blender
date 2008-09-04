@@ -184,20 +184,21 @@ bool KX_BlenderSceneConverter::TryAndLoadNewFile()
 	return result;
 }
 
-
+Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
+{
+	Scene *sce;
 
 	/**
 	 * Find the specified scene by name, or the first
 	 * scene if nothing matches (shouldn't happen).
 	 */
-static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& scenename) {
-	Scene *sce;
 
-	for (sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
-		if (scenename == (sce->id.name+2))
+	for (sce= (Scene*) m_maggie->scene.first; sce; sce= (Scene*) sce->id.next)
+		if (name == (sce->id.name+2))
 			return sce;
 
-	return (Scene*) maggie->scene.first;
+	return (Scene*)m_maggie->scene.first;
+
 }
 #include "KX_PythonInit.h"
 
@@ -258,7 +259,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 											class RAS_ICanvas* canvas)
 {
 	//find out which physics engine
-	Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
+	Scene *blenderscene = GetBlenderSceneForName(scenename);
 
 	e_PhysicsEngine physics_engine = UseBullet;
 	// hook for registration function during conversion.
@@ -818,7 +819,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsDynamic())
 			{
-				KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
+				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = FindBlenderObject(gameObj);
 				if (blenderObject)
@@ -846,7 +847,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 
 
-					const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					
 					Ipo* ipo = blenderObject->ipo;
@@ -974,7 +975,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsDynamic())
 			{
-				KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
+				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = FindBlenderObject(gameObj);
 				if (blenderObject)
@@ -1002,8 +1003,8 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 
 
 
-					const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
-					const MT_Point3& position = gameObj->NodeGetWorldPosition();
+					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					//const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					
 					Ipo* ipo = blenderObject->ipo;
 					if (ipo)

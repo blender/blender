@@ -57,13 +57,13 @@
 #include "BL_ActionActuator.h"
 #include "RAS_IRasterizer.h"
 #include "RAS_ICanvas.h"
+#include "RAS_BucketManager.h"
 #include "MT_Vector3.h"
 #include "MT_Point3.h"
 #include "ListValue.h"
 #include "KX_Scene.h"
 #include "SND_DeviceManager.h"
 
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -83,6 +83,7 @@ extern "C" {
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
+#include "GPU_material.h"
 
 static void setSandbox(TPythonSecurityLevel level);
 
@@ -90,6 +91,7 @@ static void setSandbox(TPythonSecurityLevel level);
 // 'local' copy of canvas ptr, for window height/width python scripts
 static RAS_ICanvas* gp_Canvas = NULL;
 static KX_Scene*	gp_KetsjiScene = NULL;
+static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
@@ -270,6 +272,11 @@ static PyObject* gPyGetPhysicsTicRate(PyObject*)
 	return PyFloat_FromDouble(PHY_GetActiveEnvironment()->getFixedTimeStep());
 }
 
+static PyObject* gPyGetAverageFrameRate(PyObject*)
+{
+	return PyFloat_FromDouble(KX_KetsjiEngine::GetAverageFrameRate());
+}
+
 static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 {
 	char cpath[sizeof(G.sce)];
@@ -409,6 +416,7 @@ static struct PyMethodDef game_methods[] = {
 	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
 	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, "Gets the physics tic rate"},
 	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
+	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, "Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, "Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, "Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
@@ -670,6 +678,76 @@ static PyObject* gPyDisableMotionBlur(PyObject*, PyObject* args)
 	Py_Return;
 }
 
+int getGLSLSettingFlag(char *setting)
+{
+	if(strcmp(setting, "lights") == 0)
+		return G_FILE_GLSL_NO_LIGHTS;
+	else if(strcmp(setting, "shaders") == 0)
+		return G_FILE_GLSL_NO_SHADERS;
+	else if(strcmp(setting, "shadows") == 0)
+		return G_FILE_GLSL_NO_SHADOWS;
+	else if(strcmp(setting, "ramps") == 0)
+		return G_FILE_GLSL_NO_RAMPS;
+	else if(strcmp(setting, "nodes") == 0)
+		return G_FILE_GLSL_NO_NODES;
+	else if(strcmp(setting, "extra_textures") == 0)
+		return G_FILE_GLSL_NO_EXTRA_TEX;
+	else
+		return -1;
+}
+
+static PyObject* gPySetGLSLMaterialSetting(PyObject*,
+											PyObject* args,
+											PyObject*)
+{
+	char *setting;
+	int enable, flag;
+
+	if (PyArg_ParseTuple(args,"si",&setting,&enable))
+	{
+		flag = getGLSLSettingFlag(setting);
+
+		if(flag != -1) {
+			if (enable)
+				G.fileflags &= ~flag;
+			else
+				G.fileflags |= flag;
+
+			/* display lists and GLSL materials need to be remade */
+			if(gp_KetsjiEngine) {
+				KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
+				KX_SceneList::iterator it;
+
+				for(it=scenes->begin(); it!=scenes->end(); it++)
+					if((*it)->GetBucketManager())
+						(*it)->GetBucketManager()->ReleaseDisplayLists();
+			}
+
+			GPU_materials_free();
+		}
+	}
+
+	Py_Return;
+}
+
+static PyObject* gPyGetGLSLMaterialSetting(PyObject*, 
+									 PyObject* args, 
+									 PyObject*)
+{
+	char *setting;
+	int enabled = 0, flag;
+
+	if (PyArg_ParseTuple(args,"s",&setting))
+	{
+		flag = getGLSLSettingFlag(setting);
+
+		if(flag != -1)
+			enabled = ((G.fileflags & flag) != 0);
+	}
+
+	return PyInt_FromLong(enabled);
+}
+
 STR_String	gPyGetWindowHeight__doc__="getWindowHeight doc";
 STR_String	gPyGetWindowWidth__doc__="getWindowWidth doc";
 STR_String	gPyEnableVisibility__doc__="enableVisibility doc";
@@ -703,10 +781,12 @@ static struct PyMethodDef rasterizer_methods[] = {
   {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_VARARGS, "get the eye separation for stereo mode"},
   {"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
   {"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
+  {"setGLSLMaterialSetting",(PyCFunction) gPySetGLSLMaterialSetting,
+   METH_VARARGS, "set the state of a GLSL material setting"},
+  {"getGLSLMaterialSetting",(PyCFunction) gPyGetGLSLMaterialSetting,
+   METH_VARARGS, "get the state of a GLSL material setting"},
   { NULL, (PyCFunction) NULL, 0, NULL }
 };
-
-
 
 // Initialization function for the module (*must* be called initGameLogic)
 
@@ -720,11 +800,12 @@ static char Rasterizer_module_documentation[] =
 
 
 
-PyObject* initGameLogic(KX_Scene* scene) // quick hack to get gravity hook
+PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack to get gravity hook
 {
 	PyObject* m;
 	PyObject* d;
 
+	gp_KetsjiEngine = engine;
 	gp_KetsjiScene = scene;
 
 	gUseVisibilityTemp=false;

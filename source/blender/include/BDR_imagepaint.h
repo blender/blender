@@ -34,8 +34,8 @@ void imagepaint_redraw_tool(void);
 void imagepaint_pick(short mousebutton);
 void imagepaint_paint(short mousebutton, short texturepaint);
 
-void imagepaint_undo();
-void free_imagepaint();
+void undo_imagepaint_step(int step);
+void undo_imagepaint_clear(void);
 
 #endif /*  BDR_IMAGEPAINT_H */
 

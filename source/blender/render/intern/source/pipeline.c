@@ -138,7 +138,7 @@ static void print_error(char *str) {printf("ERROR: %s\n", str);}
 
 static void stats_background(RenderStats *rs)
 {
-	extern uintptr_t mem_in_use;
+	uintptr_t mem_in_use= MEM_get_memory_in_use();
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
 	

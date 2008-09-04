@@ -55,6 +55,8 @@
 #define ELEM7(a, b, c, d, e, f, g, h)   ( ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
 #define ELEM8(a, b, c, d, e, f, g, h, i)        ( ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
 #define ELEM9(a, b, c, d, e, f, g, h, i, j)        ( ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
+#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        ( ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
+#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        ( ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
 
 /* shift around elements */
 #define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }

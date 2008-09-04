@@ -35,7 +35,7 @@
 #include "DNA_scriptlink_types.h"
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	10
+#define MAX_MTEX	18
 #endif
 
 struct MTex;
@@ -45,7 +45,8 @@ struct CurveMapping;
 typedef struct Lamp {
 	ID id;
 	
-	short type, mode;
+	short type, pad3;
+	int mode;
 	
 	short colormodel, totex;
 	float r, g, b, k;
@@ -55,10 +56,9 @@ typedef struct Lamp {
 	
 	
 	float att1, att2;	/* Quad1 and Quad2 attenuation */
-	int pad2;
 	struct CurveMapping *curfalloff;
 	short falloff_type;
-	short pad3;
+	short pad2;
 	
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
@@ -99,7 +99,7 @@ typedef struct Lamp {
 	float YF_glowint, YF_glowofs;
 	short YF_glowtype, YF_pad2;
 	
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];			/* MAX_MTEX */
 	struct Ipo *ipo;
 	
 	/* preview */
@@ -137,6 +137,12 @@ typedef struct Lamp {
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
+#define LA_LAYER_SHADOW	32768
+
+/* layer_shadow */
+#define LA_LAYER_SHADOW_BOTH	0
+#define LA_LAYER_SHADOW_CAST	1
+#define LA_LAYER_SHADOW_RECEIVE	2
 
 /* sun effect type*/
 #define LA_SUN_EFFECT_SKY			1

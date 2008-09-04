@@ -1761,7 +1761,21 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	if(shi->combinedflag & SCE_PASS_SPEC)
 		VECADD(shr->combined, shr->combined, shr->spec);
 
+	/* modulate by the object color */
+	if((ma->shade_flag & MA_OBCOLOR) && shi->obr->ob) {
+		if(!(ma->sss_flag & MA_DIFF_SSS) || !has_sss_tree(&R, ma)) {
+			float obcol[4];
+
+			QUATCOPY(obcol, shi->obr->ob->col);
+			CLAMP(obcol[3], 0.0f, 1.0f);
+
+			shr->combined[0] *= obcol[0];
+			shr->combined[1] *= obcol[1];
+			shr->combined[2] *= obcol[2];
+			shr->alpha *= obcol[3];
+		}
+	}
+
 	shr->combined[3]= shr->alpha;
 }
-
 

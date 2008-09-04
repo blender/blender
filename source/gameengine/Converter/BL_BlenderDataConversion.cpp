@@ -601,7 +601,6 @@ BL_Material* ConvertMaterial(
 			(tface->mode & TF_INVISIBLE)
 			)?POLY_VIS:0;
 
-		material->ras_mode |= ( (tface->mode & TF_DYNAMIC)!= 0 )?COLLIDER:0;
 		material->transp = tface->transp;
 		material->tile	= tface->tile;
 		material->mode	= tface->mode;
@@ -617,7 +616,7 @@ BL_Material* ConvertMaterial(
 	} 
 	else {
 		// nothing at all
-		material->ras_mode |= (COLLIDER|POLY_VIS| (validmat?0:USE_LIGHT));
+		material->ras_mode |= (POLY_VIS| (validmat?0:USE_LIGHT));
 		material->mode		= default_face_mode;	
 		material->transp	= TF_SOLID;
 		material->tile		= 0;
@@ -627,12 +626,18 @@ BL_Material* ConvertMaterial(
 	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
 		material->transp = TF_ALPHA;
 
-	// always zsort alpha + add
-	if((material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha)
-		&& (material->transp != TF_CLIP)) {
+  	// always zsort alpha + add
+	if((material->transp == TF_ALPHA || texalpha) && (material->transp != TF_CLIP)) {
 		material->ras_mode |= ALPHA;
 		material->ras_mode |= (material->mode & TF_ALPHASORT)? ZSORT: 0;
 	}
+
+	// collider or not?
+	material->ras_mode |= (material->mode & TF_DYNAMIC)? COLLIDER: 0;
+
+	// these flags are irrelevant at this point, remove so they
+	// don't hurt material bucketing 
+	material->mode &= ~(TF_DYNAMIC|TF_ALPHASORT|TF_TEX);
 
 	// get uv sets
 	if(validmat) 
@@ -644,6 +649,7 @@ BL_Material* ConvertMaterial(
 		for (int vind = 0; vind<material->num_enabled; vind++)
 		{
 			BL_Mapping &map = material->mapping[vind];
+
 			if (map.uvCoName.IsEmpty())
 				isFirstSet = false;
 			else
@@ -673,7 +679,7 @@ BL_Material* ConvertMaterial(
 							isFirstSet = false;
 							uvName = layer.name;
 						}
-						else
+						else if(strcmp(layer.name, uvName) != 0)
 						{
 							uv2[0] = uvSet[0]; uv2[1] = uvSet[1];
 							uv2[2] = uvSet[2]; uv2[3] = uvSet[3];
@@ -702,7 +708,6 @@ BL_Material* ConvertMaterial(
 	material->SetConversionUV(uvName, uv);
 	material->SetConversionUV2(uv2Name, uv2);
 
-	material->ras_mode |= (mface->v4==0)?TRIANGLE:0;
 	if(validmat)
 		material->matname	=(mat->id.name);
 
@@ -767,7 +772,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	meshobj->SetName(mesh->id.name);
-	meshobj->m_xyz_index_to_vertex_index_mapping.resize(totvert);
+	meshobj->m_sharedvertex_map.resize(totvert);
 
 	for (int f=0;f<totface;f++,mface++)
 	{
@@ -830,7 +835,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		ma = give_current_material(blenderobj, mface->mat_nr+1);
 	
 		{
-			bool polyvisible = true;
+			bool visible = true;
 			RAS_IPolyMaterial* polymat = NULL;
 			BL_Material *bl_mat = NULL;
 
@@ -845,7 +850,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 				bl_mat->material_index =  (int)mface->mat_nr;
 
-				polyvisible = ((bl_mat->ras_mode & POLY_VIS)!=0);
+				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
 
 				/* vertex colors and uv's were stored in bl_mat temporarily */
@@ -862,7 +867,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				uv22 = uv[2]; uv23 = uv[3];
 				
 				/* then the KX_BlenderMaterial */
-				polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer, blenderobj );
+				polymat = new KX_BlenderMaterial(scene, bl_mat, skinMesh, lightlayer);
 			}
 			else {
 				/* do Texture Face materials */
@@ -886,7 +891,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					tile = tface->tile;
 					mode = tface->mode;
 					
-					polyvisible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
+					visible = !((mface->flag & ME_HIDE)||(tface->mode & TF_INVISIBLE));
 					
 					uv0 = MT_Point2(tface->uv[0]);
 					uv1 = MT_Point2(tface->uv[1]);
@@ -940,15 +945,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						rgb3 = KX_rgbaint2uint_new(color);
 				}
 				
-				bool istriangle = (mface->v4==0);
-
 				// only zsort alpha + add
 				bool alpha = (transp == TF_ALPHA || transp == TF_ADD);
 				bool zsort = (mode & TF_ALPHASORT)? alpha: 0;
 
 				polymat = new KX_PolygonMaterial(imastr, ma,
 					tile, tilexrep, tileyrep, 
-					mode, transp, alpha, zsort, lightlayer, istriangle, blenderobj, tface, (unsigned int*)mcol);
+					mode, transp, alpha, zsort, lightlayer, tface, (unsigned int*)mcol);
 	
 				if (ma) {
 					polymat->m_specular = MT_Vector3(ma->specr, ma->specg, ma->specb)*ma->spec;
@@ -960,6 +963,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					polymat->m_shininess = 35.0;
 				}
 			}
+
+			/* mark face as flat, so vertices are split */
+			bool flat = (mface->flag & ME_SMOOTH) == 0;
 
 			// see if a bucket was reused or a new one was created
 			// this way only one KX_BlenderMaterial object has to exist per bucket
@@ -981,49 +987,19 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				polymat = bucket->GetPolyMaterial();
 			}
 						 
-			int nverts = mface->v4?4:3;
-			int vtxarray = meshobj->FindVertexArray(nverts,polymat);
-			RAS_Polygon* poly = new RAS_Polygon(bucket,polyvisible,nverts,vtxarray);
+			int nverts = (mface->v4)? 4: 3;
+			RAS_Polygon *poly = meshobj->AddPolygon(bucket, nverts);
 
-			bool flat;
-
-			if (skinMesh) {
-				/* If the face is set to solid, all fnors are the same */
-				if (mface->flag & ME_SMOOTH)
-					flat = false;
-				else
-					flat = true;
-			}
-			else
-				flat = false;
-
-			poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,flat,polymat,mface->v1));
-			poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,flat,polymat,mface->v2));
-			poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,flat,polymat,mface->v3));
-			if (nverts==4)
-				poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,flat,polymat,mface->v4));
-
-			meshobj->AddPolygon(poly);
-			if (poly->IsCollider())
-			{
-				RAS_TriangleIndex idx;
-				idx.m_index[0] = mface->v1;
-				idx.m_index[1] = mface->v2;
-				idx.m_index[2] = mface->v3;
-				idx.m_collider = collider;
-				meshobj->m_triangle_indices.push_back(idx);
-				if (nverts==4)
-				{
-				idx.m_index[0] = mface->v1;
-				idx.m_index[1] = mface->v3;
-				idx.m_index[2] = mface->v4;
-				idx.m_collider = collider;
-				meshobj->m_triangle_indices.push_back(idx);
-				}
-			}
-			
-//				poly->SetVisibleWireframeEdges(mface->edcode);
+			poly->SetVisible(visible);
 			poly->SetCollider(collider);
+			//poly->SetEdgeCode(mface->edcode);
+
+			meshobj->AddVertex(poly,0,pt0,uv0,uv20,tan0,rgb0,no0,flat,mface->v1);
+			meshobj->AddVertex(poly,1,pt1,uv1,uv21,tan1,rgb1,no1,flat,mface->v2);
+			meshobj->AddVertex(poly,2,pt2,uv2,uv22,tan2,rgb2,no2,flat,mface->v3);
+
+			if (nverts==4)
+				meshobj->AddVertex(poly,3,pt3,uv3,uv23,tan3,rgb3,no3,flat,mface->v4);
 		}
 
 		if (tface) 
@@ -1039,13 +1015,12 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			layer.face++;
 		}
 	}
-	meshobj->m_xyz_index_to_vertex_index_mapping.clear();
-	meshobj->UpdateMaterialList();
+	meshobj->m_sharedvertex_map.clear();
 
 	// pre calculate texture generation
-	for(RAS_MaterialBucket::Set::iterator mit = meshobj->GetFirstMaterial();
+	for(list<RAS_MeshMaterial>::iterator mit = meshobj->GetFirstMaterial();
 		mit != meshobj->GetLastMaterial(); ++ mit) {
-		(*mit)->GetPolyMaterial()->OnConstruction();
+		mit->m_bucket->GetPolyMaterial()->OnConstruction();
 	}
 
 	if (layers)
@@ -1490,14 +1465,9 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 		lightobj.m_type = RAS_LightObject::LIGHT_NORMAL;
 	}
 
-#ifdef BLENDER_GLSL
-	if(converter->GetGLSLMaterials())
-		GPU_lamp_from_blender(ob, la);
-	
-	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools, lightobj, ob->gpulamp);
-#else
-	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools, lightobj, NULL);
-#endif
+	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools,
+		lightobj, converter->GetGLSLMaterials());
+
 	BL_ConvertLampIpos(la, gamelight, converter);
 	
 	return gamelight;
@@ -1534,7 +1504,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		
 		gamelight->AddRef();
 		kxscene->GetLightList()->Add(gamelight);
-		
+
 		break;
 	}
 	
@@ -1643,20 +1613,6 @@ struct parentChildLink {
 	SG_Node* m_gamechildnode;
 };
 
-	/**
-	 * Find the specified scene by name, or the first
-	 * scene if nothing matches (shouldn't happen).
-	 */
-static struct Scene *GetSceneForName(struct Main *maggie, const STR_String& scenename) {
-	Scene *sce;
-
-	for (sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
-		if (scenename == (sce->id.name+2))
-			return sce;
-
-	return (Scene*) maggie->scene.first;
-}
-
 #include "DNA_constraint_types.h"
 #include "BIF_editconstraint.h"
 
@@ -1755,7 +1711,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  )
 {	
 
-	Scene *blenderscene = GetSceneForName(maggie, scenename);
+	Scene *blenderscene = converter->GetBlenderSceneForName(scenename);
 	// for SETLOOPER
 	Scene *sce;
 	Base *base;
@@ -1990,7 +1946,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				//tf.Add(gameobj->GetSGNode());
 				
 				gameobj->NodeUpdateGS(0,true);
-				gameobj->Bucketize();
+				gameobj->AddMeshUser();
 		
 			}
 			else
@@ -2187,7 +2143,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								//tf.Add(gameobj->GetSGNode());
 								
 								gameobj->NodeUpdateGS(0,true);
-								gameobj->Bucketize();
+								gameobj->AddMeshUser();
 						
 							}
 							else
@@ -2273,8 +2229,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			{
 				// parent this to a bone
 				Bone *parent_bone = get_named_bone(get_armature(blenderchild->parent), blenderchild->parsubstr);
-				KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);
-				pcit->m_gamechildnode->SetParentRelation(bone_parent_relation);
+
+				if(parent_bone) {
+					KX_BoneParentRelation *bone_parent_relation = KX_BoneParentRelation::New(parent_bone);
+					pcit->m_gamechildnode->SetParentRelation(bone_parent_relation);
+				}
 			
 				break;
 			}
@@ -2511,5 +2470,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			kxscene->DupliGroupRecurse(gameobj, 0);
 		}
 	}
+
+	KX_Camera *activecam = kxscene->GetActiveCamera();
+	MT_Scalar distance = (activecam)? activecam->GetCameraFar() - activecam->GetCameraNear(): 100.0f;
+	RAS_BucketManager *bucketmanager = kxscene->GetBucketManager();
+	bucketmanager->OptimizeBuckets(distance);
 }
 

@@ -182,6 +182,9 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
+#include "GPU_extensions.h"
+#include "GPU_draw.h"
+
 #include "BLO_sys_types.h" // for intptr_t support
 
 /* maybe we need this defined somewhere else */
@@ -386,7 +389,7 @@ void space_set_commmandline_options(void) {
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
 		a= (U.gameflags & USER_DISABLE_MIPMAP);
-		set_mipmap(!a);
+		GPU_set_mipmap(!a);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", a);
 
 		/* File specific settings: */
@@ -415,7 +418,9 @@ void space_set_commmandline_options(void) {
 
 		a=(G.fileflags & G_FILE_GAME_MAT);
 		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
-		a=(G.fileflags & G_FILE_DIAPLAY_LISTS);
+		a=(G.fileflags & G_FILE_GAME_MAT_GLSL);
+		SYS_WriteCommandLineInt(syshandle, "blender_glsl_material", a);
+		a=(G.fileflags & G_FILE_DISPLAY_LISTS);
 		SYS_WriteCommandLineInt(syshandle, "displaylists", a);
 
 
@@ -432,11 +437,10 @@ static void SaveState(void)
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	init_realtime_GL();
-	init_gl_stuff();
+	GPU_state_init();
 
 	if(G.f & G_TEXTUREPAINT)
-		texpaint_enable_mipmap();
+		GPU_paint_set_mipmap(1);
 
 	waitcursor(1);
 }
@@ -444,7 +448,7 @@ static void SaveState(void)
 static void RestoreState(void)
 {
 	if(G.f & G_TEXTUREPAINT)
-		texpaint_disable_mipmap();
+		GPU_paint_set_mipmap(0);
 
 	curarea->win_swap = 0;
 	curarea->head_swap=0;
@@ -1024,9 +1028,9 @@ void BIF_undo(void)
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
-			imagepaint_undo();
+			undo_imagepaint_step(1);
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
-			imagepaint_undo();
+			undo_imagepaint_step(1);
 		else if(G.f & G_PARTICLEEDIT)
 			PE_undo();
 		else {
@@ -1048,9 +1052,9 @@ void BIF_redo(void)
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
-			imagepaint_undo();
+			undo_imagepaint_step(-1);
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
-			imagepaint_undo();
+			undo_imagepaint_step(-1);
 		else if(G.f & G_PARTICLEEDIT)
 			PE_redo();
 		else {
@@ -2643,10 +2647,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.f & G_VERTEXPAINT)
 						BIF_undo();
 					else if(G.f & G_TEXTUREPAINT)
-						imagepaint_undo();
-					else {
+						undo_imagepaint_step(1);
+					else
 						single_user();
-					}
 				}
 				
 				break;
@@ -3259,7 +3262,7 @@ void initipo(ScrArea *sa)
 /* ******************** SPACE: INFO ********************** */
 
 void space_mipmap_button_function(int event) {
-	set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3949,20 +3952,23 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Transform:",
-			(xpos+(2*edgsp)+mpref),y5label, mpref,buth,
+			(xpos+(2*edgsp)+mpref),y6label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiDefButBitI(block, TOG, USER_DRAGIMMEDIATE, B_DRAWINFO, "Drag Immediately",
-			(xpos+edgsp+mpref+midsp),y4,mpref,buth,
+			(xpos+edgsp+mpref+midsp),y5,mpref,buth,
 			&(U.flag), 0, 0, 0, 0, "Moving things with a mouse drag doesn't require a click to confirm (Best for tablet users)");
 		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Undo:",
-			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
+			(xpos+(2*edgsp)+mpref),y4label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps: ",
-			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
+			(xpos+edgsp+mpref+midsp),y3,mpref,buth,
 			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available (smaller values conserve memory)");
+		uiDefButS(block, NUM, B_DRAWINFO, "Memory Limit: ",
+			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
+			&(U.undomemory), 0, 32767, -1, 0, "Maximum memory usage in megabytes (0 means unlimited)");
 
 		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global Undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
@@ -4297,6 +4303,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButI(block, NUM, 0, "Collect Rate ",
 			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
+		uiBlockEndAlign(block);
 
 		/* *** */
 		uiDefBut(block, LABEL,0,"Color range for weight paint",
@@ -4533,7 +4540,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0)
 					U.light[0].flag= 1;
 				
-				default_gl_light();
+				GPU_default_lights();
 				addqueue(sa->win, REDRAW, 1);
 				allqueue(REDRAWVIEW3D, 0);
 			} 
@@ -5173,8 +5180,8 @@ static void init_seqspace(ScrArea *sa)
 	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
-	sseq->v2d.minzoom= 0.1f;
-	sseq->v2d.maxzoom= 10.0;
+	sseq->v2d.minzoom= 0.01f;
+	sseq->v2d.maxzoom= 100.0;
 	
 	sseq->v2d.scroll= L_SCROLL+B_SCROLL;
 	sseq->v2d.keepaspect= 0;
@@ -5989,7 +5996,7 @@ static void init_oopsspace(ScrArea *sa)
 	soops= MEM_callocN(sizeof(SpaceOops), "initoopsspace");
 	BLI_addhead(&sa->spacedata, soops);
 
-	soops->visiflag= OOPS_OB+OOPS_MA+OOPS_ME+OOPS_TE+OOPS_CU+OOPS_IP;
+	soops->visiflag= OOPS_OB|OOPS_MA|OOPS_ME|OOPS_TE|OOPS_CU|OOPS_IP;
 	/* new oops is default an outliner */
 	soops->type= SO_OUTLINER;
 		

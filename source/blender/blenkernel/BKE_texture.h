@@ -53,6 +53,7 @@ void free_plugin_tex(struct PluginTex *pit);
 void init_colorband(struct ColorBand *coba, int rangetype);
 struct ColorBand *add_colorband(int rangetype);
 int do_colorband(struct ColorBand *coba, float in, float out[4]);
+void colorband_table_RGBA(struct ColorBand *coba, float **array, int *size);
 
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(char *name);

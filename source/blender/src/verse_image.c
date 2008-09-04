@@ -327,7 +327,7 @@ void post_bitmap_tile_set(VBitmapLayer *vblayer, unsigned int xs, unsigned int y
 				rect[channel] = (char)vuint8[i];
 	}
 
-	free_realtime_image(image);
+	GPU_free_image(image);
 
 	/* redraw preview of image ... uncommented, because rendering
 	 * was computed too often */

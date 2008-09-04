@@ -36,30 +36,15 @@
 #include "MT_Transform.h"
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_IRasterizer.h"
-#include "RAS_Deformer.h"	// __NLA
+#include "RAS_Deformer.h"
+
 #include <vector>
-#include <map>
 #include <set>
+#include <list>
 using namespace std;
 
-/**
- * KX_VertexIndex
- */
-struct KX_VertexIndex {
-public:
-	KX_VertexIndex(int size);
-	void	SetIndex(short loc,unsigned int index);
-	
-	// The vertex array
-	short	m_vtxarray;
-	// An index into the vertex array for up to 4 verticies
-	unsigned short	m_indexarray[4];
-	short	m_size;
-};
+/* Display List Slot */
 
-/**
- * KX_ListSlot.
- */
 class KX_ListSlot
 {
 protected:
@@ -80,91 +65,149 @@ public:
 	virtual void SetModified(bool mod)=0;
 };
 
-/**
- * KX_MeshSlot.
- */
-class KX_MeshSlot
+class RAS_DisplayArray;
+class RAS_MeshSlot;
+class RAS_MeshMaterial;
+class RAS_MaterialBucket;
+
+/* An array with data used for OpenGL drawing */
+
+class RAS_DisplayArray
 {
 public:
-	void*						m_clientObj;
-	RAS_Deformer*				m_pDeformer;	//	__NLA
-	double*						m_OpenGLMatrix;
-	class RAS_MeshObject*		m_mesh;
-	mutable bool				m_bVisible; // for visibility
-	mutable bool				m_bObjectColor;
-	mutable MT_Vector4			m_RGBAcolor;
-	mutable KX_ListSlot*		m_DisplayList; // for lists
-	KX_MeshSlot() :
-		m_pDeformer(NULL), 
-		m_bVisible(true),
-		m_DisplayList(0)
-	{
-	}
-	~KX_MeshSlot();
-	bool					Less(const KX_MeshSlot& lhs) const;
+	vector<RAS_TexVert> m_vertex;
+	vector<unsigned short> m_index;
+	enum { LINE = 2, TRIANGLE = 3, QUAD = 4 } m_type;
+	//RAS_MeshSlot *m_origSlot;
+	int m_users;
+
+	enum { BUCKET_MAX_INDEX = 65535 };
+	enum { BUCKET_MAX_VERTEX = 65535 };
 };
 
+/* Entry of a RAS_MeshObject into RAS_MaterialBucket */
 
-inline bool operator <( const KX_MeshSlot& rhs,const KX_MeshSlot& lhs)
+class RAS_MeshSlot
 {
-	return ( rhs.Less(lhs));
-}
+private:
+	//  indices into display arrays
+	int							m_startarray;
+	int							m_endarray;
+	int							m_startindex;
+	int							m_endindex;
+	int							m_startvertex;
+	int							m_endvertex;
+	vector<RAS_DisplayArray*>	m_displayArrays;
 
-/**
- * Contains a list of meshs with the same material properties.
- */
+	// for construction only
+	RAS_DisplayArray*			m_currentArray;
+
+public:
+	// for rendering
+	RAS_MaterialBucket*		m_bucket;
+	RAS_MeshObject*			m_mesh;
+	void*					m_clientObj;
+	RAS_Deformer*			m_pDeformer;
+	double*					m_OpenGLMatrix;
+	// visibility
+	bool					m_bVisible;
+	bool					m_bCulled;
+	// object color
+	bool					m_bObjectColor;
+	MT_Vector4				m_RGBAcolor;
+	// display lists
+	KX_ListSlot*			m_DisplayList;
+	bool					m_bDisplayList;
+	// joined mesh slots
+	RAS_MeshSlot*			m_joinSlot;
+	MT_Matrix4x4			m_joinInvTransform;
+	list<RAS_MeshSlot*>		m_joinedSlots;
+
+	RAS_MeshSlot();
+	RAS_MeshSlot(const RAS_MeshSlot& slot);
+	virtual ~RAS_MeshSlot();
+	
+	void init(RAS_MaterialBucket *bucket, int numverts);
+
+	struct iterator {
+		RAS_DisplayArray *array;
+		RAS_TexVert *vertex;
+		unsigned short *index;
+		size_t startvertex;
+		size_t endvertex;
+		size_t totindex;
+		size_t arraynum;
+	};
+
+	void begin(iterator& it);
+	void next(iterator& it);
+	bool end(iterator& it);
+
+	/* used during construction */
+	void SetDisplayArray(int numverts);
+	RAS_DisplayArray *CurrentDisplayArray();
+
+	void AddPolygon(int numverts);
+	int AddVertex(const RAS_TexVert& tv);
+	void AddPolygonVertex(int offset);
+
+	/* optimization */
+	bool Split(bool force=false);
+	bool Join(RAS_MeshSlot *target, MT_Scalar distance);
+	bool Equals(RAS_MeshSlot *target);
+	bool IsCulled();
+};
+
+/* Used by RAS_MeshObject, to point to it's slots in a bucket */
+
+class RAS_MeshMaterial
+{
+public:
+	RAS_MeshSlot *m_baseslot;
+	class RAS_MaterialBucket *m_bucket;
+
+	GEN_Map<GEN_HashedPtr,RAS_MeshSlot*> m_slots;
+};
+
+/* Contains a list of display arrays with the same material,
+ * and a mesh slot for each mesh that uses display arrays in
+ * this bucket */
+
 class RAS_MaterialBucket
 {
 public:
-	typedef std::set<KX_MeshSlot> T_MeshSlotList;
-	
 	RAS_MaterialBucket(RAS_IPolyMaterial* mat);
-	virtual ~RAS_MaterialBucket() {}
+	virtual ~RAS_MaterialBucket();
 	
-	void	Render(const MT_Transform& cameratrans,
-					   class RAS_IRasterizer* rasty,
-					   class RAS_IRenderTools* rendertools);
-	
-	RAS_IPolyMaterial*		GetPolyMaterial() const;
-	bool	IsAlpha() const;
-	bool	IsZSort() const;
-		
-	static void	StartFrame();
-	static void EndFrame();
-
-	void	SetMeshSlot(KX_MeshSlot& ms);
-	void	RemoveMeshSlot(KX_MeshSlot& ms);
-	void	MarkVisibleMeshSlot(KX_MeshSlot& ms,
-								bool visible,
-								bool color,
-								const MT_Vector4& rgbavec);
-
-	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools* rendertools, const KX_MeshSlot &ms, RAS_IRasterizer::DrawMode drawmode);
-	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
-		RAS_IRenderTools *rendertools, RAS_IRasterizer::DrawMode& drawmode);
-	
-	unsigned int NumMeshSlots();
-	T_MeshSlotList::iterator msBegin();
-	T_MeshSlotList::iterator msEnd();
-
-	struct less
-	{
-		bool operator()(const RAS_MaterialBucket* x, const RAS_MaterialBucket* y) const 
-		{ 
-			return *x->GetPolyMaterial() < *y->GetPolyMaterial(); 
-		}
-	};
-	
+	/* Bucket Sorting */
+	struct less;
 	typedef set<RAS_MaterialBucket*, less> Set;
-private:
+
+	/* Material Properties */
+	RAS_IPolyMaterial*		GetPolyMaterial() const;
+	bool					IsAlpha() const;
+	bool					IsZSort() const;
+		
+	/* Rendering */
+	bool ActivateMaterial(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+		RAS_IRenderTools *rendertools);
+	void RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRasterizer* rasty,
+		RAS_IRenderTools* rendertools, RAS_MeshSlot &ms);
 	
-	T_MeshSlotList				m_meshSlots;
-	bool						m_bModified;
+	/* Mesh Slot Access */
+	list<RAS_MeshSlot>::iterator msBegin();
+	list<RAS_MeshSlot>::iterator msEnd();
+
+	class RAS_MeshSlot*	AddMesh(int numverts);
+	class RAS_MeshSlot* CopyMesh(class RAS_MeshSlot *ms);
+	void				RemoveMesh(class RAS_MeshSlot* ms);
+	void				Optimize(MT_Scalar distance);
+
+private:
+	list<RAS_MeshSlot>			m_meshSlots;
 	RAS_IPolyMaterial*			m_material;
-	double*						m_pOGLMatrix;
 	
 };
 
-#endif //__KX_BUCKET
+#endif //__RAS_MATERIAL_BUCKET
 

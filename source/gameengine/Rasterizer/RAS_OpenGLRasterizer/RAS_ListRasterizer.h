@@ -4,6 +4,7 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_VAOpenGLRasterizer.h"
 #include <vector>
+#include <map>
 
 class RAS_ListRasterizer;
 class RAS_ListSlot : public KX_ListSlot
@@ -34,14 +35,14 @@ enum RAS_ListSlotFlags	{
 	LIST_REGEN		=64
 };
 
-typedef std::map<const vecVertexArray, RAS_ListSlot*> RAS_Lists;
+typedef std::map<class RAS_MeshSlot*, RAS_ListSlot*> RAS_Lists;
 
 class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {
 	bool mUseVertexArrays;
 	RAS_Lists mLists;
 
-	RAS_ListSlot* FindOrAdd(const vecVertexArray& vertexarrays, KX_ListSlot** slot);
+	RAS_ListSlot* FindOrAdd(class RAS_MeshSlot& ms);
 	void ReleaseAlloc();
 
 public:
@@ -49,23 +50,8 @@ public:
 	RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays=false, bool lock=false);
 	virtual ~RAS_ListRasterizer();
 
-	virtual void IndexPrimitives(
-			const vecVertexArray& vertexarrays,
-			const vecIndexArrays & indexarrays,
-			DrawMode mode,
-			bool useObjectColor,
-			const MT_Vector4& rgbacolor,
-			class KX_ListSlot** slot
-	);
-
-	virtual void IndexPrimitivesMulti(
-			const vecVertexArray& vertexarrays,
-			const vecIndexArrays & indexarrays,
-			DrawMode mode,
-			bool useObjectColor,
-			const MT_Vector4& rgbacolor,
-			class KX_ListSlot** slot
-	);
+	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
 	virtual bool	Init();
 	virtual void	Exit();

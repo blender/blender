@@ -79,6 +79,8 @@
 #include "DNA_scene_types.h"
 	/***/
 
+#include "GPU_extensions.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -137,6 +139,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+
+		if(GPU_extensions_minimum_support())
+			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 0) != 0);
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -304,13 +309,14 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename);
+				startscenename,
+				blscene);
 			
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
 			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
 			initGameKeys();
@@ -526,8 +532,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		// create the ketsjiengine
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
 
-		int i;
-
 		Scene *blscene = NULL;
 		if (!bfd)
 		{
@@ -543,7 +547,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		} else {
 			blscene = bfd->curscene;
 		}
-        int cframe,startFrame;
+        int cframe = 1, startFrame;
 		if (blscene)
 		{
 			cframe=blscene->r.cfra;
@@ -574,12 +578,14 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename);
+				startscenename,
+				blscene);
+
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 			initGameKeys();
 			initPythonConstraintBinding();

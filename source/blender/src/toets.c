@@ -104,6 +104,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "GPU_draw.h"
+
 #include "mydevice.h"
 
 #include "transform.h"
@@ -964,7 +966,7 @@ int blenderqread(unsigned short event, short val)
 					/* Reset lights
 					 * This isn't done when reading userdef, do it now
 					 *  */
-					default_gl_light(); 
+					GPU_default_lights();
 				}
 				return 0;
 			}

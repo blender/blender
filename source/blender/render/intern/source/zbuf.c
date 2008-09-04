@@ -2410,7 +2410,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 	float obwinmat[4][4], ho1[4], ho2[4], ho3[4], ho4[4];
 	int a, b, c, i, c1, c2, c3, c4, ok=1, lay= -1;
 
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 
 	/* 1.0f for clipping in clippyra()... bad stuff actually */
 	zbuf_alloc_span(&zspan, size, size, 1.0f);
