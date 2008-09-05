@@ -1622,23 +1622,23 @@ void *exec_scan_for_ext_spring_forces(void *data)
 
 void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
 {
-    ListBase *do_effector = NULL; 
+	ListBase *do_effector = NULL; 
 	ListBase threads;
 	SB_thread_context *sb_threads;
 	int i, totthread,left,dec;
-	int lowsprings =10; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
+	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
 	do_effector= pdInitEffectors(ob,NULL);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
-	if(totsprings < lowsprings) {totthread=1;}
-	else{
-		if(G.scene->r.mode & R_FIXED_THREADS)
-			totthread= G.scene->r.threads;
-		else
-			totthread= BLI_system_thread_count();
+	if(G.scene->r.mode & R_FIXED_THREADS)
+		totthread= G.scene->r.threads;
+	else
+		totthread= BLI_system_thread_count();
+	/* what if we got zillions of CPUs running but less to spread*/
+	while ((totsprings/totthread < lowsprings) && (totthread > 1)) {
+		totthread--;
 	}
-	/*left to do--> what if we got zillions of CPUs running but 'totsprings' tasks to spread*/
 
 	sb_threads= MEM_callocN(sizeof(SB_thread_context)*totthread, "SBSpringsThread");
 	memset(sb_threads, 0, sizeof(SB_thread_context)*totthread);
@@ -2279,6 +2279,11 @@ int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, float t
 				float kd = 1.0f;
 
 				if (sb_deflect_face(ob,bp->pos,facenormal,defforce,&cf,timenow,vel,&intrusion)){
+						if (intrusion < 0.0f){
+							sb->scratch->flag |= SBF_DOFUZZY;
+							bp->flag |= SBF_DOFUZZY;
+							bp->choke = sb->choke*0.01f;
+						}
 
 							VECSUB(cfforce,bp->vec,vel);
 							Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
@@ -2326,17 +2331,19 @@ void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,int tot
 	ListBase threads;
 	SB_thread_context *sb_threads;
 	int i, totthread,left,dec;
-	int lowpoints =10; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
+	int lowpoints =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
-	if(totpoint < lowpoints) {totthread=1;}
-	else{
-		if(G.scene->r.mode & R_FIXED_THREADS)
-			totthread= G.scene->r.threads;
-		else
-			totthread= BLI_system_thread_count();
+	if(G.scene->r.mode & R_FIXED_THREADS)
+		totthread= G.scene->r.threads;
+	else
+		totthread= BLI_system_thread_count();
+	/* what if we got zillions of CPUs running but less to spread*/
+	while ((totpoint/totthread < lowpoints) && (totthread > 1)) {
+		totthread--;
 	}
-	/*left to do--> what if we got zillions of CPUs running but 'totpoint' tasks to spread*/
+
+    /* printf("sb_cf_threads_run spawning %d threads \n",totthread); */
 
 	sb_threads= MEM_callocN(sizeof(SB_thread_context)*totthread, "SBThread");
 	memset(sb_threads, 0, sizeof(SB_thread_context)*totthread);
@@ -2425,7 +2432,7 @@ static void softbody_calc_forcesEx(Object *ob, float forcetime, float timenow, i
 static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int nl_flags)
 {
 	/* redirection to the new threaded Version */
-	if (G.rt !=16){ 
+	if (!(G.rt & 0x10)){ // 16
 		softbody_calc_forcesEx(ob, forcetime, timenow, nl_flags);
 		return;
 	}
@@ -2433,6 +2440,10 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		/* so the following will die  */
 		/* |||||||||||||||||||||||||| */
 		/* VVVVVVVVVVVVVVVVVVVVVVVVVV */
+		/*backward compatibility note:
+		fixing bug [17428] which forces adaptive step size to tiny steps 
+		in some situations 
+		.. keeping G.rt==17 0x11 option for old files 'needing' the bug*/
 
 		/* rule we never alter free variables :bp->vec bp->pos in here ! 
 		* this will ruin adaptive stepsize AKA heun! (BM) 
@@ -2681,14 +2692,25 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 
 					if (sb_deflect_face(ob,bp->pos,facenormal,defforce,&cf,timenow,vel,&intrusion)){
 						if ((!nl_flags)&&(intrusion < 0.0f)){
-							/*bjornmose:  uugh.. what an evil hack 
-							violation of the 'don't touch bp->pos in here' rule 
-							but works nice, like this-->
-							we predict the solution beeing out of the collider
-							in heun step No1 and leave the heun step No2 adapt to it
-							so we kind of introduced a implicit solver for this case 
-							*/
-							Vec3PlusStVec(bp->pos,-intrusion,facenormal);
+							if(G.rt & 0x01){ // 17 we did check for bit 0x10 before
+								/*fixing bug [17428] this forces adaptive step size to tiny steps 
+								in some situations .. keeping G.rt==17 option for old files 'needing' the bug
+								*/
+								/*bjornmose:  uugh.. what an evil hack 
+								violation of the 'don't touch bp->pos in here' rule 
+								but works nice, like this-->
+								we predict the solution beeing out of the collider
+								in heun step No1 and leave the heun step No2 adapt to it
+								so we kind of introduced a implicit solver for this case 
+								*/
+								Vec3PlusStVec(bp->pos,-intrusion,facenormal);
+							}
+							else{
+
+								VECSUB(cfforce,bp->vec,vel);
+								Vec3PlusStVec(bp->force,-cf*50.0f,cfforce);
+							}
+
 
 							sb->scratch->flag |= SBF_DOFUZZY;
 							bp->flag |= SBF_DOFUZZY;
@@ -4040,7 +4062,7 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 
 	if(sb->solverflags & SBSO_MONITOR ){
 		sct=PIL_check_seconds_timer();
-		if (sct-sst > 0.5f) printf(" solver time %f sec %s \n",sct-sst,ob->id.name);
+		if ((sct-sst > 0.5f) || (G.f & G_DEBUG)) printf(" solver time %f sec %s \n",sct-sst,ob->id.name);
 	}
 }
 
