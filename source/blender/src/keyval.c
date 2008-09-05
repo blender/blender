@@ -390,7 +390,7 @@ int decode_key_string(char *str, unsigned short *key, unsigned short *qual)
 	}
 
 	/* Compare last part against key names */
-	if (len-prev==1 || len-prev==4 && !strncmp(str+prev, "KEY", 3)) {
+	if ((len-prev==1) || ((len-prev==4) && !strncmp(str+prev, "KEY", 3))) {
 		
 		if (str[prev]>='A' && str[prev]<='Z') {
 			*key= str[prev]-'A'+AKEY;

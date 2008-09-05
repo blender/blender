@@ -2243,7 +2243,7 @@ void txt_delete_char (Text *text)
 				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
 					txt_clear_markers(text, mrk->group, TMARK_TEMP);
 				} else {
-					TextMarker *nxt= mrk->next;
+					//TextMarker *nxt= mrk->next;
 					BLI_freelinkN(&text->markers, mrk);
 				}
 				return;
@@ -2308,7 +2308,7 @@ void txt_backspace_char (Text *text)
 				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
 					txt_clear_markers(text, mrk->group, TMARK_TEMP);
 				} else {
-					TextMarker *nxt= mrk->next;
+					//TextMarker *nxt= mrk->next;
 					BLI_freelinkN(&text->markers, mrk);
 				}
 				return;
