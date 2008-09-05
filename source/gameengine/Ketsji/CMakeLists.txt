@@ -69,6 +69,7 @@ SET(INC
   ../../../intern/SoundSystem 
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
+  ../../../source/blender/gpu
   ../../../extern/bullet2/src
   ../../../extern/solid
   ../../../extern/glew/include

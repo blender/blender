@@ -292,7 +292,7 @@ void syspath_append( char *dirname )
 	short ok=1;
 	PyErr_Clear(  );
 
-	dir = Py_BuildValue( "s", dirname );
+	dir = PyString_FromString( dirname );
 
 	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
 	
@@ -308,32 +308,29 @@ void syspath_append( char *dirname )
 	}
 	
 	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
-		if (ok && PyList_Append( path, dir ) != 0)
+		if (ok && PyList_Append( path, dir ) != 0) /* decref below */
 			ok = 0; /* append failed */
 	
 		if( (ok==0) || PyErr_Occurred(  ) )
 			Py_FatalError( "could import or build sys.path, can't continue" );
 	}
+	Py_DECREF( dir );
 	Py_XDECREF( mod_sys );
 }
 
 void init_syspath( int first_time )
 {
-	PyObject *path;
 	PyObject *mod, *d;
 	char *progname;
 	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
-	
-	
-	path = Py_BuildValue( "s", bprogname );
 
 	mod = PyImport_ImportModule( "Blender.sys" );
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );
-		EXPP_dict_set_item_str( d, "progname", path );
+		EXPP_dict_set_item_str( d, "progname", PyString_FromString( bprogname ) );
 		Py_DECREF( mod );
 	} else
 		printf( "Warning: could not set Blender.sys.progname\n" );
@@ -556,6 +553,7 @@ void BPY_Err_Handle( char *script_name )
 	if( exception
 	    && PyErr_GivenExceptionMatches( exception, PyExc_SyntaxError ) ) {
 		/* no traceback available when SyntaxError */
+		PyErr_NormalizeException( &exception, &err, &tb );
 		PyErr_Restore( exception, err, tb );	/* takes away reference! */
 		PyErr_Print(  );
 		v = PyObject_GetAttrString( err, "lineno" );
@@ -965,16 +963,44 @@ int BPY_run_script(Script *script)
 *****************************************************************************/
 int BPY_menu_do_python( short menutype, int event )
 {
-	char *argstr = NULL;
 	BPyMenu *pym;
+	pym = BPyMenu_GetEntry( menutype, ( short ) event );
+	return BPY_menu_invoke( pym, menutype );
+}
+	
+/****************************************************************************
+* Description: This function executes the script by its shortcut.
+* Notes:	It is called by the ui code in src/???.c when a user presses an
+*		unassigned key combination. Scripts are searched in the BPyMenuTable,
+*		using the given menutype and event values to know which one to invoke.
+*****************************************************************************/
+int BPY_menu_do_shortcut( short menutype, unsigned short key, unsigned short qual )
+{
+	BPyMenu *pym;
+	pym = BPyMenu_GetEntry( menutype, 0 );
+
+	while ( pym ) {
+		if ( pym->key && pym->key == key && pym->qual == qual ) {
+			return BPY_menu_invoke( pym, menutype );
+		}
+		pym = pym->next;
+	}
+	
+	return 0;
+}
+
+/****************************************************************************
+* Description: This function executes the script described by a menu item.
+*****************************************************************************/
+int BPY_menu_invoke( BPyMenu *pym, short menutype )
+{
+	char *argstr = NULL;
 	BPySubMenu *pysm;
 	char scriptname[21];
 	Script *script = NULL;
 	int ret, len;
 	PyGILState_STATE gilstate;
 	char filestr[FILE_MAX];
-
-	pym = BPyMenu_GetEntry( menutype, ( short ) event );
 
 	if( !pym )
 		return 0;
@@ -1059,6 +1085,7 @@ int BPY_menu_do_python( short menutype, int event )
 	case PYMENU_RENDER:
 	case PYMENU_WIZARDS:
 	case PYMENU_SCRIPTTEMPLATE:
+	case PYMENU_TEXTPLUGIN:
 	case PYMENU_MESHFACEKEY:
 		break;
 

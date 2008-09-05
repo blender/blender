@@ -27,12 +27,7 @@
  */
 
 #include "RAS_TexVert.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#define SHORT(x) short(x*32767.0)
+#include "MT_Matrix4x4.h"
 
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Point2& uv,
@@ -40,7 +35,7 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Vector4& tangent,
 						 const unsigned int rgba,
 						 const MT_Vector3& normal,
-						 const short flag,
+						 const bool flat,
 						 const unsigned int origindex)
 {
 	xyz.getValue(m_localxyz);
@@ -49,7 +44,7 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 	SetRGBA(rgba);
 	SetNormal(normal);
 	tangent.getValue(m_tangent);
-	m_flag = flag;
+	m_flag = (flat)? FLAT: 0;
 	m_origindex = origindex;
 	m_unit = 2;
 }
@@ -101,12 +96,17 @@ void RAS_TexVert::SetFlag(const short flag)
 
 void RAS_TexVert::SetUnit(const unsigned int u)
 {
-	m_unit = u<=TV_MAX?u:TV_MAX;
+	m_unit = u<=MAX_UNIT?u:MAX_UNIT;
 }
 
 void RAS_TexVert::SetNormal(const MT_Vector3& normal)
 {
 	normal.getValue(m_normal);
+}
+
+void RAS_TexVert::SetTangent(const MT_Vector3& tangent)
+{
+	tangent.getValue(m_tangent);
 }
 
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
@@ -115,6 +115,7 @@ bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 	return (m_flag == other->m_flag &&
 		m_rgba == other->m_rgba &&
 		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
+		MT_fuzzyEqual(MT_Vector3(m_tangent), MT_Vector3(other->m_tangent)) &&
 		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
 		MT_fuzzyEqual(MT_Vector2(m_uv2), MT_Vector2(other->m_uv2)) && // p --
 		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))) ;
@@ -131,11 +132,10 @@ unsigned int RAS_TexVert::getUnit() const
 	return m_unit;
 }
 
-
-void RAS_TexVert::getOffsets(void* &xyz, void* &uv1, void* &rgba, void* &normal) const
+void RAS_TexVert::Transform(const MT_Matrix4x4& mat, const MT_Matrix4x4& nmat)
 {
-	xyz = (void *) m_localxyz;
-	uv1 = (void *) m_uv1;
-	rgba = (void *) &m_rgba;
-	normal = (void *) m_normal;
+	SetXYZ((mat*MT_Vector4(m_localxyz[0], m_localxyz[1], m_localxyz[2], 1.0)).getValue());
+	SetNormal((nmat*MT_Vector4(m_normal[0], m_normal[1], m_normal[2], 1.0)).getValue());
+	SetTangent((nmat*MT_Vector4(m_tangent[0], m_tangent[1], m_tangent[2], 1.0)).getValue());
 }
+

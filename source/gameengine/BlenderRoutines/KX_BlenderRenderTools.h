@@ -26,6 +26,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef __KX_BLENDERRENDERTOOLS
 #define __KX_BLENDERRENDERTOOLS
 
@@ -39,65 +40,50 @@
 struct KX_ClientObjectInfo;
 class KX_RayCast;
 
-/**
-BlenderRenderTools are a set of tools to apply 2D/3D graphics effects, which are not
-part of the (polygon) Rasterizer. 
-Effects like 2D text, 3D (polygon) text, lighting.
-*/
+/* BlenderRenderTools are a set of tools to apply 2D/3D graphics effects, which
+ * are not part of the (polygon) Rasterizer. Effects like 2D text, 3D (polygon)
+ * text, lighting.
+ *
+ * Most of this code is duplicated in GPC_RenderTools, so this should be
+ * moved to some common location to avoid duplication. */
 
 class KX_BlenderRenderTools  : public RAS_IRenderTools
 {
-	bool	m_lastblenderlights;
-	void*	m_lastblenderobject;
-	int		m_lastlayer;
+	int		m_lastlightlayer;
 	bool	m_lastlighting;
 	static unsigned int m_numgllights;
-	
-	
+
 public:
-	
 						KX_BlenderRenderTools();
 	virtual				~KX_BlenderRenderTools();	
 
-	virtual void		EndFrame(class RAS_IRasterizer* rasty);
-	virtual void		BeginFrame(class RAS_IRasterizer* rasty);
-	void				DisableOpenGLLights();
-	void				EnableOpenGLLights();
-	int					ProcessLighting(int layer);
+	void				EndFrame(RAS_IRasterizer* rasty);
+	void				BeginFrame(RAS_IRasterizer* rasty);
 
-	virtual void	    RenderText2D(RAS_TEXT_RENDER_MODE mode,
+	void				EnableOpenGLLights();
+	void				DisableOpenGLLights();
+	void				ProcessLighting(int layer, const MT_Transform& viewmat);
+
+	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,
 									 int xco,
 									 int yco,
 									 int width,
 									 int height);
-	virtual void		RenderText(int mode,
+	void				RenderText(int mode,
 								   class RAS_IPolyMaterial* polymat,
 								   float v1[3],
 								   float v2[3],
 								   float v3[3],
-								   float v4[3]);
-	void				applyTransform(class RAS_IRasterizer* rasty,
-									   double* oglmatrix,
-									   int objectdrawmode );
-	int					applyLights(int objectlayer);
-	virtual void		PushMatrix();
-	virtual void		PopMatrix();
+								   float v4[3],
+								   int glattrib);
 
-	virtual class RAS_IPolyMaterial* CreateBlenderPolyMaterial(const STR_String &texname,
-									bool ba,
-									const STR_String& matname,
-									int tile,
-									int tilexrep,
-									int tileyrep,
-									int mode,
-									bool transparant,
-									bool zsort,
-									int lightlayer,
-									bool bIsTriangle,
-									void* clientobject,
-									void* tface);
-	
+	void				applyTransform(RAS_IRasterizer* rasty, double* oglmatrix, int objectdrawmode);
+	int					applyLights(int objectlayer, const MT_Transform& viewmat);
+
+	void				PushMatrix();
+	void				PopMatrix();
+
 	bool RayHit(KX_ClientObjectInfo* client, class KX_RayCast* result, void * const data);
 	bool NeedRayCast(KX_ClientObjectInfo*) { return true; }
 
@@ -107,8 +93,7 @@ public:
 
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 
-	virtual void SetClientObject(void* obj);
-
+	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
 };
 
 #endif //__KX_BLENDERRENDERTOOLS

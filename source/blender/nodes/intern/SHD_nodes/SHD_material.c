@@ -182,6 +182,77 @@ static void node_shader_init_material(bNode* node)
    node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
 }
 
+static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	if(node->id) {
+		GPUShadeInput shi;
+		GPUShadeResult shr;
+
+		GPU_shadeinput_set(mat, (Material*)node->id, &shi);
+
+		/* write values */
+		if(in[MAT_IN_COLOR].hasinput)
+			shi.rgb = in[MAT_IN_COLOR].link;
+		
+		if(in[MAT_IN_SPEC].hasinput)
+			shi.specrgb = in[MAT_IN_SPEC].link;
+		
+		if(in[MAT_IN_REFL].hasinput)
+			shi.refl = in[MAT_IN_REFL].link;
+		
+		/* retrieve normal */
+		if(in[MAT_IN_NORMAL].hasinput) {
+			GPUNodeLink *tmp;
+			shi.vn = in[MAT_IN_NORMAL].link;
+			GPU_link(mat, "vec_math_normalize", shi.vn, &shi.vn, &tmp);
+		}
+		
+		/* custom option to flip normal */
+		if(node->custom1 & SH_NODE_MAT_NEG)
+			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
+
+		if (node->type == SH_NODE_MATERIAL_EXT) {
+			if(in[MAT_IN_AMB].hasinput)
+				shi.amb= in[MAT_IN_AMB].link;
+			if(in[MAT_IN_EMIT].hasinput)
+				shi.emit= in[MAT_IN_EMIT].link;
+			if(in[MAT_IN_ALPHA].hasinput)
+				shi.alpha= in[MAT_IN_ALPHA].link;
+		}
+
+		GPU_shaderesult_set(&shi, &shr); /* clears shr */
+		
+		/* write to outputs */
+		if(node->custom1 & SH_NODE_MAT_DIFF) {
+			if(node->custom1 & SH_NODE_MAT_SPEC)
+				out[MAT_OUT_COLOR].link= shr.combined;
+			else
+				out[MAT_OUT_COLOR].link= shr.diff;
+		}
+		else if(node->custom1 & SH_NODE_MAT_SPEC) {
+			out[MAT_OUT_COLOR].link= shr.spec;
+		}
+		else
+			GPU_link(mat, "set_rgb_zero", &out[MAT_OUT_COLOR].link);
+
+		GPU_link(mat, "mtex_alpha_to_col", out[MAT_OUT_COLOR].link, shr.alpha, &out[MAT_OUT_COLOR].link);
+
+		out[MAT_OUT_ALPHA].link = shr.alpha; //
+		
+		if(node->custom1 & SH_NODE_MAT_NEG)
+			GPU_link(mat, "vec_math_negate", shi.vn, &shi.vn);
+		out[MAT_OUT_NORMAL].link = shi.vn;
+
+		if (node->type == SH_NODE_MATERIAL_EXT) {
+			out[MAT_OUT_DIFFUSE].link = shr.diff;
+			out[MAT_OUT_SPEC].link = shr.spec;
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
 
 bNodeType sh_node_material= {
 	/* *next,*prev */	NULL, NULL,
@@ -197,8 +268,8 @@ bNodeType sh_node_material= {
 	/* initfunc    */	node_shader_init_material,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_material
 };
 
 bNodeType sh_node_material_ext= {
@@ -215,7 +286,7 @@ bNodeType sh_node_material_ext= {
 	/* initfunc    */	node_shader_init_material,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
-	
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_material
 };
 

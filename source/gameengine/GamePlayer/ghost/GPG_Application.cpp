@@ -38,6 +38,7 @@
 #endif
 
 #include "GL/glew.h"
+#include "GPU_extensions.h"
 
 #include "GPG_Application.h"
 
@@ -104,9 +105,10 @@ static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);
 static GHOST_ISystem* fSystem = 0;
 static const int kTimerFreq = 10;
 
-GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName)
-	: m_startSceneName(startSceneName), 
-	  m_maggie(maggie),
+GPG_Application::GPG_Application(GHOST_ISystem* system)
+	: m_startSceneName(""), 
+	  m_startScene(0),
+	  m_maggie(0),
 	  m_exitRequested(0),
 	  m_system(system), 
 	  m_mainWindow(0), 
@@ -142,15 +144,16 @@ GPG_Application::~GPG_Application(void)
 
 
 
-bool GPG_Application::SetGameEngineData(struct Main* maggie, STR_String startSceneName)
+bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
 {
 	bool result = false;
 
-	if (maggie != NULL && startSceneName != "")
+	if (maggie != NULL && scene != NULL)
 	{
-		G.scene = (Scene*)maggie->scene.first;
+		G.scene = scene;
 		m_maggie = maggie;
-		m_startSceneName = startSceneName;
+		m_startSceneName = scene->id.name+2;
+		m_startScene = scene;
 		result = true;
 	}
 
@@ -480,7 +483,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 {
 	if (!m_engineInitialized)
 	{
-		glewInit();
+		GPU_extensions_init();
 		bgl::InitExtensions(true);
 
 		// get and set the preferences
@@ -499,11 +502,17 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
+		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1) {
 			int gameflag =(G.fileflags & G_FILE_GAME_MAT);
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
+		}
+
+		if(GPU_extensions_minimum_support()) {
+			int gameflag = (G.fileflags & G_FILE_GAME_MAT_GLSL);
+
+			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", gameflag) != 0);
 		}
 	
 		// create the canvas, rasterizer and rendertools
@@ -640,14 +649,15 @@ bool GPG_Application::startEngine(void)
 			m_mouse,
 			m_networkdevice,
 			m_audiodevice,
-			startscenename);
+			startscenename,
+			m_startScene);
 		
 		
 		// some python things
 		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest);
 		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
-		PyObject *gameLogic = initGameLogic(startscene);
+		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);
 		PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 		initGameKeys();
 		initPythonConstraintBinding();
@@ -745,6 +755,8 @@ void GPG_Application::stopEngine()
 
 void GPG_Application::exitEngine()
 {
+	GPU_extensions_exit();
+
 	if (m_ketsjiengine)
 	{
 		stopEngine();

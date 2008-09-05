@@ -176,10 +176,6 @@ void free_editMesh(struct EditMesh *em){}
 void docenter_new(void){}
 int saveover(char *str){ return 0;}
 
-/* image.c */
-#include "DNA_image_types.h"
-void free_realtime_image(Image *ima){} // has to become a callback, opengl stuff
-
 /* ipo.c */
 void copy_view3d_lock(short val){}	// was a hack, to make scene layer ipo's possible
 

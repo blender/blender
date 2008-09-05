@@ -128,7 +128,8 @@ struct CcdConstructionInfo
 
 
 	CcdConstructionInfo()
-		: m_gravity(0,0,0),
+		: m_localInertiaTensor(1.f, 1.f, 1.f),
+		m_gravity(0,0,0),
 		m_scaling(1.f,1.f,1.f),
 		m_mass(0.f),
 		m_restitution(0.1f),

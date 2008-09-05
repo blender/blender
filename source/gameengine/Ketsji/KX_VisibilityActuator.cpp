@@ -76,7 +76,7 @@ KX_VisibilityActuator::Update()
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	
 	obj->SetVisible(m_visible);
-	obj->MarkVisible();
+	obj->UpdateBuckets();
 
 	return true;
 }

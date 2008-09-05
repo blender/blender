@@ -46,8 +46,13 @@ static void node_shader_exec_camera(void *data, bNode *node, bNodeStack **in, bN
 		VECCOPY(out[0]->vec, shi->co);		/* get view vector */
 		out[1]->vec[0]= fabs(shi->co[2]);		/* get view z-depth */
 		out[2]->vec[0]= Normalize(out[0]->vec);	/* get view distance */
-		}
 	}
+}
+
+static int gpu_shader_camera(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "camera", in, out, GPU_builtin(GPU_VIEW_POSITION));
+}
 
 bNodeType sh_node_camera= {
 	/* *next,*prev */	NULL, NULL,
@@ -63,6 +68,7 @@ bNodeType sh_node_camera= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_camera
 };
 

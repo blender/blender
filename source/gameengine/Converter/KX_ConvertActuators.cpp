@@ -1064,7 +1064,7 @@ void BL_ConvertActuators(char* maggiename,
 			{
 				bParentActuator *parAct = (bParentActuator *) bact->data;
 				int mode = KX_ParentActuator::KX_PARENT_NODEF;
-				KX_GameObject *tmpgob;
+				KX_GameObject *tmpgob = NULL;
 
 				switch(parAct->type)
 				{

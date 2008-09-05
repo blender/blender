@@ -96,10 +96,11 @@ KX_MeshProxy::_getattr(const STR_String& attr)
 	if (attr == "materials")
 	{
 		PyObject *materials = PyList_New(0);
-		RAS_MaterialBucket::Set::iterator mit = m_meshobj->GetFirstMaterial();
+		list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
 		for(; mit != m_meshobj->GetLastMaterial(); ++mit)
 		{
-			RAS_IPolyMaterial *polymat = (*mit)->GetPolyMaterial();
+			RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial();
+
 			if(polymat->GetFlag() & RAS_BLENDERMAT)
 			{
 				KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat);
@@ -204,11 +205,11 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self,
 	
 	if (PyArg_ParseTuple(args,"i",&matid))
 	{
-		RAS_IPolyMaterial* mat = m_meshobj->GetMaterialBucket(matid)->GetPolyMaterial();
+		RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(matid);
+		RAS_IPolyMaterial* mat = mmat->m_bucket->GetPolyMaterial();
+
 		if (mat)
-		{
-			length = m_meshobj->GetVertexArrayLength(mat);
-		}
+			length = m_meshobj->NumVertices(mat);
 	}
 	else {
 		return NULL;

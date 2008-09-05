@@ -70,13 +70,13 @@
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 
-#include "BDR_drawmesh.h"
-
 #include "IMB_imbuf.h"	// for quicktime_init
 
 #include "BPY_extern.h"
 
 #include "RE_pipeline.h"
+
+#include "GPU_draw.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -600,12 +600,12 @@ int main(int argc, char **argv)
 							/* doMipMap */
 							if (!strcmp(argv[a],"nomipmap"))
 							{
-								set_mipmap(0); //doMipMap = 0;
+								GPU_set_mipmap(0); //doMipMap = 0;
 							}
 							/* linearMipMap */
 							if (!strcmp(argv[a],"linearmipmap"))
 							{
-								set_linear_mipmap(1); //linearMipMap = 1;
+								GPU_set_linear_mipmap(1); //linearMipMap = 1;
 							}
 
 

@@ -35,6 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += $(NAN_SDLCFLAGS)
 CPPFLAGS += $(OGL_CPPFLAGS)
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
@@ -63,12 +64,8 @@ CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/include
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/imbuf
+CPPFLAGS += -I../../blender/gpu
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-
-ifeq ($(WITH_BF_GLEXT),true)
-    CPPFLAGS += -DWITH_GLEXT
-endif
-
 
 ###########################
 

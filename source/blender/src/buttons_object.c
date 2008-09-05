@@ -2592,19 +2592,32 @@ static void object_panel_object(Object *ob)
 	/* all groups */
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(object_in_group(ob, group)) {
-			xco= 160;
-			
-			uiBlockBeginAlign(block);
-			uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
-			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 150, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
-			uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
-			uiClearButLock();
+			xco= 130;
 			
 			if(group->id.lib) {
-				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 160, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+				uiBlockBeginAlign(block);
+				uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
+				uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 100, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+				uiClearButLock();
+				
+				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 110, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
 				uiButSetFunc(but, group_local, group, NULL);
-				xco= 180;
-			} else { /* cant remove objects from linked groups */
+				uiBlockEndAlign(block);
+			} else {
+				but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 120, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+				uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
+			}
+			
+			uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE);
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, REDRAWALL, "X:",			xco+5, 120-yco, 50, 20, &group->dupli_ofs[0], -100000, 100000, 100, 0, "Offset to use when instacing the group");
+			uiDefButF(block, NUM, REDRAWALL, "Y:",			xco+55, 120-yco, 50, 20, &group->dupli_ofs[1], -100000, 100000, 100, 0, "Offset to use when instacing the group");
+			uiDefButF(block, NUM, REDRAWALL, "Z:",			xco+105, 120-yco, 50, 20, &group->dupli_ofs[2], -100000, 100000, 100, 0, "Offset to use when instacing the group");
+			uiBlockEndAlign(block);
+			uiClearButLock();
+			
+			xco = 290;
+			if(group->id.lib==0) { /* cant remove objects from linked groups */
 				but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
 				uiButSetFunc(but, group_ob_rem, group, ob);
 			}

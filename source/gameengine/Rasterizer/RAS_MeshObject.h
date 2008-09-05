@@ -36,6 +36,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 
 #include "RAS_Polygon.h"
 #include "RAS_MaterialBucket.h"
@@ -44,194 +45,71 @@
 #include "GEN_HashedPtr.h"
 
 struct Mesh;
-/**
- * This class holds an array of vertices and indicies.
- */
-class KX_ArrayOptimizer
-{
-public:
-	KX_ArrayOptimizer(int index) 
-		: m_index1(index)
-	{};
-	virtual ~KX_ArrayOptimizer();
-	
-	vector<KX_VertexArray*>		m_VertexArrayCache1;
-	vector<int>					m_TriangleArrayCount;
-	vector<KX_IndexArray*>		m_IndexArrayCache1;
 
-	/**
-		order in which they are stored into the mesh
-	*/
-	int							m_index1;
-};
+/* RAS_MeshObject is a mesh used for rendering. It stores polygons,
+ * but the actual vertices and index arrays are stored in material
+ * buckets, referenced by the list of RAS_MeshMaterials. */
 
-/**
- * This struct holds a triangle.
- */
-struct	RAS_TriangleIndex
-{
-public:
-	int	m_index[3];
-	int	m_array;
-	RAS_IPolyMaterial*	m_matid;
-	bool	m_collider;
-};
-
-/**
- * This class looks horribly broken.  Only m_matid is used, and
- * m_matid is a (int) RAS_IPolyMaterial*.  
- * --> m_matid == lhs.m_matid should be *m_matid == *lhs.m_matid
- */
-class	RAS_MatArrayIndex
-{
-public:
-
-	int	m_arrayindex1;
-	RAS_IPolyMaterial*	m_matid;
-	int	m_array;
-	int	m_index;
-
-/*
-	inline bool	Less(const RAS_MatArrayIndex& lhs) const {
-		bool result = 
-			(	(m_matid < lhs.m_matid)		||
-				((m_matid == lhs.m_matid)&&(m_array < lhs.m_array)) ||
-				((m_matid == lhs.m_matid) && (m_array == lhs.m_array) &&
-				(m_index < lhs.m_index))
-					
-			);
-		return result;
-			
-	}
-*/
-	
-};
-/*
-inline  bool operator <( const RAS_MatArrayIndex& rhs,const RAS_MatArrayIndex& lhs)
-{
-	return ( rhs.Less(lhs));
-}*/
-
-/**
- * RAS_MeshObject stores mesh data for the renderer.
- */
 class RAS_MeshObject
 {
-	
-	//	GEN_Map<class RAS_IPolyMaterial,KX_ArrayOptimizer*> m_matVertexArrayS;
-	//vector<class RAS_IPolyMaterial*,KX_ArrayOptimizer> m_vertexArrays;
-	virtual KX_ArrayOptimizer* GetArrayOptimizer(RAS_IPolyMaterial* polymat);
-	//vector<RAS_Polygon*>		m_polygons;
-	
+private:
 	unsigned int				m_debugcolor;
-	bool						m_bModified;
 	int							m_lightlayer;
-	
-	vector<class RAS_Polygon*> 	m_Polygons;
+
+	bool						m_bModified;
+	bool						m_bMeshModified;
+
 	STR_String					m_name;
 	static STR_String			s_emptyname;
-	bool						m_zsort;
-	bool						m_MeshMod;
 
+	vector<class RAS_Polygon*> 	m_Polygons;
+
+	/* polygon sorting */
 	struct polygonSlot;
 	struct backtofront;
 	struct fronttoback;
 
-	void				SchedulePoly(
-							const KX_VertexIndex& idx,
-							int numverts,
-							RAS_IPolyMaterial* mat
-						);
-
-	void				ScheduleWireframePoly(
-							const KX_VertexIndex& idx,
-							int numverts,
-							int edgecode,
-							RAS_IPolyMaterial* mat
-						);
-	
 protected:
-	enum { BUCKET_MAX_INDICES = 65535 };//2048};//8192};
-	enum { BUCKET_MAX_TRIANGLES = 65535 };
-	
-	GEN_Map<GEN_HashedPtr,KX_ArrayOptimizer*> m_matVertexArrayS;
-	
-	RAS_MaterialBucket::Set			m_materials;
+	list<RAS_MeshMaterial>			m_materials;
 	Mesh*							m_mesh;
+	bool							m_bDeformed;
+
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
 	RAS_MeshObject(Mesh* mesh, int lightlayer);
 	virtual ~RAS_MeshObject();
 
-	vector<RAS_IPolyMaterial*>				m_sortedMaterials;
-	vector<vector<RAS_MatArrayIndex> >		m_xyz_index_to_vertex_index_mapping;
-	vector<RAS_TriangleIndex >				m_triangle_indices;
-	
-	int							m_class;
 
-	unsigned int				GetLightLayer();
+	bool				IsDeformed() { return m_bDeformed; }
+	
+	/* materials */
 	int					NumMaterials();
 	const STR_String&	GetMaterialName(unsigned int matid);
-	RAS_MaterialBucket*	GetMaterialBucket(unsigned int matid);
 	const STR_String&	GetTextureName(unsigned int matid);
-	virtual void		AddPolygon(RAS_Polygon* poly);
-	void				UpdateMaterialList();
-	
-	int					NumPolygons();
-	RAS_Polygon*		GetPolygon(int num) const;
-	
-	virtual void		Bucketize(
-							double* oglmatrix,
-							void* clientobj,
-							bool useObjectColor,
-							const MT_Vector4& rgbavec
-						);
 
-	void				RemoveFromBuckets(
-							double* oglmatrix,
-							void* clientobj
-						);
+	RAS_MeshMaterial* 	GetMeshMaterial(unsigned int matid);
+	RAS_MeshMaterial*	GetMeshMaterial(RAS_IPolyMaterial *mat);
 
-	void				MarkVisible(
-							double* oglmatrix,
-							void* clientobj,
-							bool visible,
-							bool useObjectColor,
-							const MT_Vector4& rgbavec
-						);
+	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
+	list<RAS_MeshMaterial>::iterator GetLastMaterial();
 
-	void				DebugColor(unsigned int abgr);
-	void 				SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba);
-	
-	/**
-	 *  Sorts the polygons by their transformed z values.
-	 */
-	void				SortPolygons(const MT_Transform &transform);
+	unsigned int		GetLightLayer();
 
-	void				SchedulePolygons(int drawingmode);
+	/* name */
+	void				SetName(STR_String name);
+	const STR_String&	GetName();
 
-	void				ClearArrayData();
-	
-	RAS_MaterialBucket::Set::iterator GetFirstMaterial();
-	RAS_MaterialBucket::Set::iterator GetLastMaterial();
-	
-	virtual RAS_TexVert*	GetVertex(
-								short array,
-								unsigned int index,
-								RAS_IPolyMaterial* polymat
-							);
-	
-	virtual int			FindVertexArray(
-							int numverts,
-							RAS_IPolyMaterial* polymat
-						);
+	/* modification state */
+	bool				MeshModified();
+	void				SetMeshModified(bool v){m_bMeshModified = v;}
 
+	/* original blender mesh */
+	Mesh*				GetMesh() { return m_mesh; }
+
+	/* mesh construction */
 	
-	// find (and share) or add vertices
-	// for some speedup, only the last 20 added vertices are searched for equality
-	
-	virtual int			FindOrAddVertex(
-							int vtxarray,
+	virtual RAS_Polygon*	AddPolygon(RAS_MaterialBucket *bucket, int numverts);
+	virtual void			AddVertex(RAS_Polygon *poly, int i,
 							const MT_Point3& xyz,
 							const MT_Point2& uv,
 							const MT_Point2& uv2,
@@ -239,27 +117,43 @@ public:
 							const unsigned int rgbacolor,
 							const MT_Vector3& normal,
 							bool flat,
-							RAS_IPolyMaterial* mat,
-							int origindex
-						);
+							int origindex);
+
+	void					SchedulePolygons(int drawingmode);
+
+	/* vertex and polygon acces */
+	int					NumVertices(RAS_IPolyMaterial* mat);
+	RAS_TexVert*		GetVertex(unsigned int matid, unsigned int index);
+
+	int					NumPolygons();
+	RAS_Polygon*		GetPolygon(int num) const;
 	
-	vecVertexArray&		GetVertexCache (RAS_IPolyMaterial* mat);
+	/* buckets */
+	virtual void		AddMeshUser(void *clientobj);
+	virtual void		UpdateBuckets(
+							void* clientobj,
+							double* oglmatrix,
+							bool useObjectColor,
+							const MT_Vector4& rgbavec,
+							bool visible,
+							bool culled);
+
+	void				RemoveFromBuckets(void *clientobj);
+
+	/* colors */
+	void				DebugColor(unsigned int abgr);
+	void 				SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba);
 	
-	int					GetVertexArrayLength(RAS_IPolyMaterial* mat);
+	/* polygon sorting by Z for alpha */
+	void				SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transform);
 
-	RAS_TexVert*		GetVertex(
-							unsigned int matid,
-							unsigned int index
-						);
+	/* for construction to find shared vertices */
+	struct SharedVertex {
+		RAS_DisplayArray *m_darray;
+		int m_offset;
+	};
 
-	const vecIndexArrays& GetIndexCache (RAS_IPolyMaterial* mat);
-	void				SetName(STR_String name);
-	const STR_String&	GetName();
-
-	bool				MeshModified();
-	void				SetMeshModified(bool v){m_MeshMod = v;}
-	Mesh*				GetMesh() { return m_mesh; }
-
+	vector<vector<SharedVertex> >	m_sharedvertex_map;
 };
 
 #endif //__RAS_MESHOBJECT

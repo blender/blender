@@ -38,7 +38,7 @@ struct Ipo;
 struct MTex;
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	10
+#define MAX_MTEX	18
 #endif
 
 
@@ -108,7 +108,7 @@ typedef struct World {
 	
 	
 	struct Ipo *ipo;
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];		/* MAX_MTEX */
 
 	/* previews */
 	struct PreviewImage *preview;

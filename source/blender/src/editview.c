@@ -2247,7 +2247,7 @@ void view3d_border_zoom(void)
 	
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	draw_depth(curarea, (void *)v3d);
+	draw_depth(curarea, (void *)v3d, NULL);
 	
 	/* force updating */
 	if (v3d->depths) {

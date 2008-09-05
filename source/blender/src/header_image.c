@@ -239,8 +239,10 @@ void do_image_buttons(unsigned short event)
 				if(ima->twsta>=nr) ima->twsta= 1;
 				if(ima->twend>=nr) ima->twend= nr-1;
 				if(ima->twsta>ima->twend) ima->twsta= 1;
-				allqueue(REDRAWIMAGE, 0);
 			}
+
+			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	}	
@@ -1293,7 +1295,7 @@ void image_buttons(void)
 			uiBlockEndAlign(block);
 			xco+= 166;
 		}
-		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
+		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enable image painting");
 		
 		xco+= XIC+8;
 

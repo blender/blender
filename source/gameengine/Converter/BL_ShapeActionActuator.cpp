@@ -134,7 +134,6 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 {
 	vector<float>::const_iterator it;
 	float dstweight;
-	int i;
 	KeyBlock *kb;
 	
 	dstweight = 1.0F - srcweight;

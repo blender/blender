@@ -64,13 +64,15 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#include "GPU_draw.h"
+
 /**********************************
 * End Blender include block
 **********************************/
 
 #include "SYS_System.h"
 #include "GPG_Application.h"
-#include "GPC_PolygonMaterial.h"
 
 #include "GHOST_ISystem.h"
 #include "RAS_IRasterizer.h"
@@ -282,7 +284,7 @@ int main(int argc, char** argv)
 	bool fullScreenParFound = false;
 	bool windowParFound = false;
 	bool closeConsole = true;
-	RAS_IRasterizer::StereoMode stereomode;
+	RAS_IRasterizer::StereoMode stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 	bool stereoWindow = false;
 	bool stereoParFound = false;
 	int windowLeft = 100;
@@ -525,8 +527,6 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (!stereoParFound) stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
-
 #ifdef WIN32
 	if (scr_saver_mode != SCREEN_SAVER_MODE_CONFIGURATION)
 #endif
@@ -539,7 +539,7 @@ int main(int argc, char** argv)
 
 		if (SYS_GetCommandLineInt(syshandle, "nomipmap", 0))
 		{
-			GPC_PolygonMaterial::SetMipMappingEnabled(0);
+			GPU_set_mipmap(0);
 		}
 		
 		// Create the system
@@ -561,7 +561,7 @@ int main(int argc, char** argv)
 			{
 				int exitcode = KX_EXIT_REQUEST_NO_REQUEST;
 				STR_String exitstring = "";
-				GPG_Application app(system, NULL, exitstring);
+				GPG_Application app(system);
 				bool firstTimeRunning = true;
 				char *filename = get_filename(argc, argv);
 				char *titlename;
@@ -619,7 +619,7 @@ int main(int argc, char** argv)
 #endif // WIN32
 						Main *maggie = bfd->main;
 						Scene *scene = bfd->curscene;
-						char *startscenename = scene->id.name + 2;
+						G.main = maggie;
 						G.fileflags  = bfd->fileflags;
 
 						//Seg Fault; icon.c gIcons == 0
@@ -661,7 +661,7 @@ int main(int argc, char** argv)
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);
-						app.SetGameEngineData(maggie, startscenename);
+						app.SetGameEngineData(maggie, scene);
 						
 						if (firstTimeRunning)
 						{

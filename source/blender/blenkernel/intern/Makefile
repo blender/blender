@@ -36,6 +36,7 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # OpenGL and Python
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
@@ -73,6 +74,9 @@ CPPFLAGS += -I$(NAN_ZLIB)/include
 
 #path to nodes
 CPPFLAGS += -I../../nodes
+
+#path to gpu
+CPPFLAGS += -I../../gpu
 
 # path to our own external headerfiles
 CPPFLAGS += -I..

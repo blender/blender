@@ -56,9 +56,6 @@ all debug::
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
 
-    export WITH_GLEXT?=true
-    export WITH_BF_GLEXT?=$(WITH_GLEXT)
-
     # Determines what targets are built
     export WITH_BF_DYNAMICOPENGL ?= true
     export WITH_BF_STATICOPENGL ?= false

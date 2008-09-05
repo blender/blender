@@ -112,6 +112,8 @@
 
 #include "BPY_extern.h"
 
+#include "GPU_material.h"
+
 #include "blendef.h"
 
 /* Local function protos */
@@ -267,6 +269,7 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
+	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -917,7 +920,7 @@ Object *add_only_object(int type, char *name)
 	QuatOne(ob->dquat);
 #endif 
 
-	ob->col[0]= ob->col[1]= ob->col[2]= 0.0;
+	ob->col[0]= ob->col[1]= ob->col[2]= 1.0;
 	ob->col[3]= 1.0;
 
 	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0;
@@ -1216,6 +1219,7 @@ Object *copy_object(Object *ob)
 	obn->vnode = NULL;
 #endif
 
+	obn->gpulamp.first = obn->gpulamp.last = NULL;
 
 	return obn;
 }

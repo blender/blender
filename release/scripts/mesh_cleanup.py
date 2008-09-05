@@ -121,25 +121,29 @@ def rem_unused_materials(me):
 	material_users= dict( [(i,0) for i in xrange(len_materials)] )
 	
 	for f in me.faces:
+		f_mat = f.mat
 		# Make sure the face index isnt too big. this happens sometimes.
-		if f.mat >= len_materials:
-			f.mat=0
-		material_users[f.mat] += 1
+		if f_mat >= len_materials:
+			f_mat = f.mat = 0
+		material_users[f_mat] += 1
 	
-	mat_idx_subtract= 0
-	reindex_mapping= dict( [(i,0) for i in xrange(len_materials)] )
-	i= len_materials
-	while i:
-		i-=1
-		
+	# mat_idx_subtract= 0
+	# reindex_mapping= dict( [(i,0) for i in xrange(len_materials)] )
+	
+	reindex_mapping_ls = range(len_materials)
+	for i in range(len_materials-1, -1, -1):
 		if material_users[i] == 0:
-			mat_idx_subtract+=1
-			reindex_mapping[i]= mat_idx_subtract
-			materials.pop(i)
+			del reindex_mapping_ls[i]
+			del materials[i]
 			rem_materials+=1
 	
+	reindex_mapping= {}
+	
+	for i, mat in enumerate(reindex_mapping_ls):
+		reindex_mapping[mat] = i		
+	
 	for f in me.faces:
-		f.mat= f.mat - reindex_mapping[f.mat]
+		f.mat= reindex_mapping[f.mat]
 	
 	me.materials= materials
 	return rem_materials

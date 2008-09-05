@@ -112,8 +112,8 @@ KX_PolyProxy::_getattr(const STR_String& attr)
 		unsigned int matid;
 		for (matid=0; matid<m_mesh->NumMaterials(); matid++)
 		{
-			RAS_MaterialBucket* meshBucket = m_mesh->GetMaterialBucket(matid);
-			if (meshBucket == polyBucket)
+			RAS_MeshMaterial* meshMat = m_mesh->GetMeshMaterial(matid);
+			if (meshMat->m_bucket == polyBucket)
 				// found it
 				break;
 		}
@@ -121,19 +121,19 @@ KX_PolyProxy::_getattr(const STR_String& attr)
 	}
 	if (attr == "v1")
 	{
-		return PyInt_FromLong(m_polygon->GetVertexIndexBase().m_indexarray[0]);
+		return PyInt_FromLong(m_polygon->GetVertexOffset(0));
 	}
 	if (attr == "v2")
 	{
-		return PyInt_FromLong(m_polygon->GetVertexIndexBase().m_indexarray[1]);
+		return PyInt_FromLong(m_polygon->GetVertexOffset(1));
 	}
 	if (attr == "v3")
 	{
-		return PyInt_FromLong(m_polygon->GetVertexIndexBase().m_indexarray[2]);
+		return PyInt_FromLong(m_polygon->GetVertexOffset(2));
 	}
 	if (attr == "v4")
 	{
-		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexIndexBase().m_indexarray[3]:0));
+		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
 	}
 	if (attr == "visible")
 	{
@@ -178,8 +178,8 @@ KX_PYMETHODDEF_DOC_NOARG(KX_PolyProxy, getMaterialIndex,
 	unsigned int matid;
 	for (matid=0; matid<m_mesh->NumMaterials(); matid++)
 	{
-		RAS_MaterialBucket* meshBucket = m_mesh->GetMaterialBucket(matid);
-		if (meshBucket == polyBucket)
+		RAS_MeshMaterial* meshMat = m_mesh->GetMeshMaterial(matid);
+		if (meshMat->m_bucket == polyBucket)
 			// found it
 			break;
 	}
@@ -234,7 +234,7 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < m_polygon->VertexCount())
 	{
-		return PyInt_FromLong(m_polygon->GetVertexIndexBase().m_indexarray[index]);
+		return PyInt_FromLong(m_polygon->GetVertexOffset(index));
 	}
 	return PyInt_FromLong(0);
 }

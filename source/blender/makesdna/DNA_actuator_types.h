@@ -300,6 +300,7 @@ typedef struct FreeCamera {
 #define ACT_NEW			4
 #define ACT_LINKED		8	
 #define ACT_VISIBLE		16	
+#define ACT_PIN			32
 
 /* link codes */
 #define LINK_SENSOR		0

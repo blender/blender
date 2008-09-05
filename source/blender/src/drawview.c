@@ -64,6 +64,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -162,6 +163,9 @@
 
 #include "RE_pipeline.h"	// make_stars
 
+#include "GPU_draw.h"
+#include "GPU_material.h"
+
 #include "multires.h"
 
 /* For MULTISAMPLE_ARB #define.
@@ -191,132 +195,6 @@ static void star_stuff_vertex_func(float* i)
 static void star_stuff_term_func(void)
 {
 	glEnd();
-}
-
-void default_gl_light(void)
-{
-	int a;
-	
-	/* initialize */
-	if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0) {
-		U.light[0].flag= 1;
-		U.light[0].vec[0]= -0.3; U.light[0].vec[1]= 0.3; U.light[0].vec[2]= 0.9;
-		U.light[0].col[0]= 0.8; U.light[0].col[1]= 0.8; U.light[0].col[2]= 0.8;
-		U.light[0].spec[0]= 0.5; U.light[0].spec[1]= 0.5; U.light[0].spec[2]= 0.5;
-		U.light[0].spec[3]= 1.0;
-		
-		U.light[1].flag= 0;
-		U.light[1].vec[0]= 0.5; U.light[1].vec[1]= 0.5; U.light[1].vec[2]= 0.1;
-		U.light[1].col[0]= 0.4; U.light[1].col[1]= 0.4; U.light[1].col[2]= 0.8;
-		U.light[1].spec[0]= 0.3; U.light[1].spec[1]= 0.3; U.light[1].spec[2]= 0.5;
-		U.light[1].spec[3]= 1.0;
-	
-		U.light[2].flag= 0;
-		U.light[2].vec[0]= 0.3; U.light[2].vec[1]= -0.3; U.light[2].vec[2]= -0.2;
-		U.light[2].col[0]= 0.8; U.light[2].col[1]= 0.5; U.light[2].col[2]= 0.4;
-		U.light[2].spec[0]= 0.5; U.light[2].spec[1]= 0.4; U.light[2].spec[2]= 0.3;
-		U.light[2].spec[3]= 1.0;
-	}
-	
-
-	glLightfv(GL_LIGHT0, GL_POSITION, U.light[0].vec); 
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, U.light[0].col); 
-	glLightfv(GL_LIGHT0, GL_SPECULAR, U.light[0].spec); 
-
-	glLightfv(GL_LIGHT1, GL_POSITION, U.light[1].vec); 
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, U.light[1].col); 
-	glLightfv(GL_LIGHT1, GL_SPECULAR, U.light[1].spec); 
-
-	glLightfv(GL_LIGHT2, GL_POSITION, U.light[2].vec); 
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, U.light[2].col); 
-	glLightfv(GL_LIGHT2, GL_SPECULAR, U.light[2].spec); 
-
-	for(a=0; a<8; a++) {
-		if(a<3) {
-			if(U.light[a].flag) glEnable(GL_LIGHT0+a);
-			else glDisable(GL_LIGHT0+a);
-			
-			// clear stuff from other opengl lamp usage
-			glLightf(GL_LIGHT0+a, GL_SPOT_CUTOFF, 180.0);
-			glLightf(GL_LIGHT0+a, GL_CONSTANT_ATTENUATION, 1.0);
-			glLightf(GL_LIGHT0+a, GL_LINEAR_ATTENUATION, 0.0);
-		}
-		else glDisable(GL_LIGHT0+a);
-	}
-	
-	glDisable(GL_LIGHTING);
-
-	glDisable(GL_COLOR_MATERIAL);
-}
-
-/* also called when render 'ogl'
-   keep synced with Myinit_gl_stuff in the game engine! */
-void init_gl_stuff(void)	
-{
-	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
-	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
-	float mat_shininess[] = { 35.0 };
-	int a, x, y;
-	GLubyte pat[32*32];
-	const GLubyte *patc= pat;
-	
-	
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
-
-	default_gl_light();
-	
-	/* no local viewer, looks ugly in ortho mode */
-	/* glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, &one); */
-	
-	glDepthFunc(GL_LEQUAL);
-	/* scaling matrices */
-	glEnable(GL_NORMALIZE);
-
-	glShadeModel(GL_FLAT);
-
-	glDisable(GL_ALPHA_TEST);
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_FOG);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_LOGIC_OP);
-	glDisable(GL_STENCIL_TEST);
-	glDisable(GL_TEXTURE_1D);
-	glDisable(GL_TEXTURE_2D);
-
-	/* default on, disable/enable should be local per function */
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	
-	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
-	glPixelTransferi(GL_RED_SCALE, 1);
-	glPixelTransferi(GL_RED_BIAS, 0);
-	glPixelTransferi(GL_GREEN_SCALE, 1);
-	glPixelTransferi(GL_GREEN_BIAS, 0);
-	glPixelTransferi(GL_BLUE_SCALE, 1);
-	glPixelTransferi(GL_BLUE_BIAS, 0);
-	glPixelTransferi(GL_ALPHA_SCALE, 1);
-	glPixelTransferi(GL_ALPHA_BIAS, 0);
-	
-	glPixelTransferi(GL_DEPTH_BIAS, 0);
-	glPixelTransferi(GL_DEPTH_SCALE, 1);
-	glDepthRange(0.0, 1.0);
-	
-	a= 0;
-	for(x=0; x<32; x++) {
-		for(y=0; y<4; y++) {
-			if( (x) & 1) pat[a++]= 0x88;
-			else pat[a++]= 0x22;
-		}
-	}
-	
-	glPolygonStipple(patc);
-
-
-	init_realtime_GL();	
 }
 
 void circf(float x, float y, float rad)
@@ -2737,7 +2615,7 @@ void add_view3d_after(View3D *v3d, Base *base, int type, int flag)
 }
 
 /* clears zbuffer and draws it over */
-static void view3d_draw_xray(View3D *v3d)
+static void view3d_draw_xray(View3D *v3d, int clear)
 {
 	View3DAfter *v3da, *next;
 	int doit= 0;
@@ -2746,7 +2624,7 @@ static void view3d_draw_xray(View3D *v3d)
 		if(v3da->type==V3D_XRAY) doit= 1;
 	
 	if(doit) {
-		if(v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
+		if(clear && v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
 		v3d->xray= TRUE;
 		
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
@@ -2768,7 +2646,7 @@ static void view3d_draw_transp(View3D *v3d)
 
 	glDepthMask(0);
 	v3d->transp= TRUE;
-		
+
 	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 		next= v3da->next;
 		if(v3da->type==V3D_TRANSP) {
@@ -2946,7 +2824,7 @@ static void draw_sculpt_depths(View3D *v3d)
 	}
 }
 
-void draw_depth(ScrArea *sa, void *spacedata)
+void draw_depth(ScrArea *sa, void *spacedata, int (* func)(void *))
 {
 	View3D *v3d= spacedata;
 	Base *base;
@@ -2986,9 +2864,11 @@ void draw_depth(ScrArea *sa, void *spacedata)
 	if(G.scene->set) {
 		for(SETLOOPER(G.scene->set, base)) {
 			if(v3d->lay & base->lay) {
-				draw_object(base, 0);
-				if(base->object->transflag & OB_DUPLI) {
-					draw_dupli_objects_color(v3d, base, TH_WIRE);
+				if (func == NULL || func(base)) {
+					draw_object(base, 0);
+					if(base->object->transflag & OB_DUPLI) {
+						draw_dupli_objects_color(v3d, base, TH_WIRE);
+					}
 				}
 			}
 		}
@@ -2996,12 +2876,13 @@ void draw_depth(ScrArea *sa, void *spacedata)
 	
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
-			
-			/* dupli drawing */
-			if(base->object->transflag & OB_DUPLI) {
-				draw_dupli_objects(v3d, base);
+			if (func == NULL || func(base)) {
+				/* dupli drawing */
+				if(base->object->transflag & OB_DUPLI) {
+					draw_dupli_objects(v3d, base);
+				}
+				draw_object(base, 0);
 			}
-			draw_object(base, 0);
 		}
 	}
 	
@@ -3046,6 +2927,84 @@ void draw_depth(ScrArea *sa, void *spacedata)
 
 static void draw_viewport_fps(ScrArea *sa);
 
+typedef struct View3DShadow{
+	struct View3DShadow*next, *prev;
+	GPULamp *lamp;
+} View3DShadow;
+
+static void gpu_render_lamp_update(View3D *v3d, Object *ob, Object *par, float obmat[][4], ListBase *shadows)
+{
+	GPULamp *lamp;
+	View3DShadow *shadow;
+
+	lamp = GPU_lamp_from_blender(G.scene, ob, par);
+
+	if(lamp) {
+		GPU_lamp_update(lamp, obmat);
+
+		if(GPU_lamp_has_shadow_buffer(lamp)) {
+			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");
+			shadow->lamp = lamp;
+			BLI_addtail(shadows, shadow);
+		}
+	}
+}
+
+static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
+{
+	ListBase shadows;
+	View3DShadow *shadow;
+	Scene *sce;
+	Base *base;
+	Object *ob;
+
+	shadows.first= shadows.last= NULL;
+
+	/* update lamp transform and gather shadow lamps */
+	for(SETLOOPER(G.scene, base)) {
+		ob= base->object;
+
+		if(ob->type == OB_LAMP)
+			gpu_render_lamp_update(v3d, ob, NULL, ob->obmat, &shadows);
+
+		if (ob->transflag & OB_DUPLI) {
+			DupliObject *dob;
+			ListBase *lb = object_duplilist(G.scene, ob);
+			
+			for(dob=lb->first; dob; dob=dob->next)
+				if(dob->ob->type==OB_LAMP)
+					gpu_render_lamp_update(v3d, dob->ob, ob, dob->mat, &shadows);
+			
+			free_object_duplilist(lb);
+		}
+	}
+
+	/* render shadows after updating all lamps, nested object_duplilist
+	 * don't work correct since it's replacing object matrices */
+	for(shadow=shadows.first; shadow; shadow=shadow->next) {
+		/* this needs to be done better .. */
+		float viewmat[4][4], winmat[4][4];
+		int drawtype, lay, winsize, flag2;
+
+		drawtype= v3d->drawtype;
+		lay= v3d->lay;
+		flag2= v3d->flag2 & V3D_SOLID_TEX;
+
+		v3d->drawtype = OB_SOLID;
+		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
+		v3d->flag2 &= ~V3D_SOLID_TEX;
+
+		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
+		drawview3d_render(v3d, viewmat, winsize, winsize, winmat, 1);
+		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
+
+		v3d->drawtype= drawtype;
+		v3d->lay= lay;
+		v3d->flag2 |= flag2;
+	}
+
+	BLI_freelistN(&shadows);
+}
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
@@ -3066,6 +3025,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	for(base= G.scene->base.first; base; base= base->next)
 		object_handle_update(base->object);   // bke_object.h
+
+	/* shadow buffers, before we setup matrices */
+	if(draw_glsl_material(NULL, v3d->drawtype))
+		gpu_update_lamps_shadows(G.scene, v3d);
 	
 	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
@@ -3208,8 +3171,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d);
+	view3d_draw_xray(v3d, 1);	// clears zbuffer if it is used!
 
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		if(G.f & G_SCULPTMODE)
@@ -3328,18 +3291,29 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	
 }
 
-
-void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4])
+void drawview3d_render(struct View3D *v3d, float viewmat[][4], int winx, int winy, float winmat[][4], int shadow)
 {
 	Base *base;
 	Scene *sce;
-	float v3dwinmat[4][4];
+	float v3dviewmat[4][4], v3dwinmat[4][4];
+
+	/* shadow buffers, before we setup matrices */
+	if(!shadow && draw_glsl_material(NULL, v3d->drawtype))
+		gpu_update_lamps_shadows(G.scene, v3d);
 	
 	if(!winmat)
 		setwinmatrixview3d(winx, winy, NULL);
 
-	setviewmatrixview3d();
-	myloadmatrix(v3d->viewmat);
+	if(viewmat) {
+		Mat4CpyMat4(v3dviewmat, viewmat);
+		Mat4CpyMat4(v3d->viewmat, viewmat);
+	}
+	else {
+		setviewmatrixview3d();
+		Mat4CpyMat4(v3dviewmat, v3d->viewmat);
+	}
+
+	myloadmatrix(v3dviewmat);
 
 	/* when winmat is not NULL, it overrides the regular window matrix */
 	glMatrixMode(GL_PROJECTION);
@@ -3348,12 +3322,14 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	mygetmatrix(v3dwinmat);
 	glMatrixMode(GL_MODELVIEW);
 
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3dwinmat);
+	Mat4MulMat4(v3d->persmat, v3dviewmat, v3dwinmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
-	free_all_realtime_images();
-	reshadeall_displist();
+	if(!shadow) {
+		GPU_free_images();
+		reshadeall_displist();
+	}
 	
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
@@ -3431,8 +3407,8 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d);
+	view3d_draw_xray(v3d, !shadow);	// clears zbuffer if it is used!
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -3451,11 +3427,12 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	
 	G.f &= ~G_SIMULATION;
 
-	glFlush();
+	if(!shadow) {
+		glFlush();
+		GPU_free_images();
+	}
 
 	glLoadIdentity();
-
-	free_all_realtime_images();
 }
 
 

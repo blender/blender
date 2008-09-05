@@ -226,6 +226,9 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 		bool result = this->Evaluate(event);
 		if (result) {
 			logicmgr->AddActivatedSensor(this);	
+			// reset these counters so that pulse are synchronized with transition
+			m_pos_ticks = 0;
+			m_neg_ticks = 0;
 		} else
 		{
 			/* First, the pulsing behaviour, if pulse mode is

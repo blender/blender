@@ -40,6 +40,7 @@ incs = ['.',
         '#source/gameengine/GamePlayer/common',
         '#source/blender/misc',
         '#source/blender/blenloader',
+        '#source/blender/gpu',
         '#extern/glew/include']
 
 incs += Split(env['BF_PYTHON_INC'])
@@ -47,9 +48,6 @@ incs += Split(env['BF_SOLID_INC'])
 cflags = []
 if env['OURPLATFORM']=='win32-vc':
     cflags = ['/GR']
-
-if env['WITH_BF_GLEXT'] == 1:
-        env['CPPFLAGS'].append('-DWITH_GLEXT')
 
 
 env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = [], libtype='player',priority=0, compileflags=cflags)

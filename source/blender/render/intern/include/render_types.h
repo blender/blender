@@ -418,7 +418,8 @@ typedef struct LampRen {
 	
 	float xs, ys, dist;
 	float co[3];
-	short type, mode;
+	short type;
+	int mode;
 	float r, g, b, k;
 	float energy, haint;
 	int lay;

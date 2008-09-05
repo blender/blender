@@ -2001,7 +2001,10 @@ void node_hide(SpaceNode *snode)
 void node_insert_key(SpaceNode *snode)
 {
 	bNode *node= editnode_get_active(snode->edittree);
-
+	
+	if(node == NULL)
+		return;
+	
 	if(node->type==CMP_NODE_TIME) {
 		if(node->custom1<node->custom2) {
 
