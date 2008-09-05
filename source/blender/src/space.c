@@ -3738,6 +3738,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Snap objects and sub-objects to grid units when scaling");
 		uiBlockEndAlign(block);
 		
+		uiDefButBitI(block, TOG, USER_ORBIT_ZBUF, B_DRAWINFO, "Auto Depth",
+			(xpos+edgsp+mpref+spref+(2*midsp)),y2,spref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Use the depth under the mouse to improve view pan/rotate/zoom functionality");
+		
 		uiDefButBitI(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
 			(xpos+edgsp+mpref+spref+(2*midsp)),y1,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,

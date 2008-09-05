@@ -2689,7 +2689,8 @@ static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
 			tbase.object= dob->ob;
 			
 			/* extra service: draw the duplicator in drawtype of parent */
-			dt= tbase.object->dt; tbase.object->dt= base->object->dt;
+			/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+			dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
 			dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
 			
 			/* negative scale flag has to propagate */
