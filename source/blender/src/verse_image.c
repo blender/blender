@@ -43,6 +43,8 @@
 #include "BIF_verse.h"
 #include "BIF_space.h"
 
+#include "GPU_draw.h"
+
 /*
  * unsubscribe from verse bitmap
  */
