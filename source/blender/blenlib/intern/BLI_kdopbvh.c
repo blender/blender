@@ -482,7 +482,7 @@ static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 {
 	int i;
 	for(i=0; i<depth; i++) printf(" ");
-	printf(" - %d (%d): ", node->index, node - tree->nodearray);
+	printf(" - %d (%ld): ", node->index, node - tree->nodearray);
 	for(i=2*tree->start_axis; i<2*tree->stop_axis; i++)
 		printf("%.3f ", node->bv[i]);
 	printf("\n");
@@ -497,10 +497,10 @@ static void bvhtree_info(BVHTree *tree)
 	printf("BVHTree info\n");
 	printf("tree_type = %d, axis = %d, epsilon = %f\n", tree->tree_type, tree->axis, tree->epsilon);
 	printf("nodes = %d, branches = %d, leafs = %d\n", tree->totbranch + tree->totleaf,  tree->totbranch, tree->totleaf);
-	printf("Memory per node = %dbytes\n", sizeof(BVHNode) + sizeof(BVHNode*)*tree->tree_type + sizeof(float)*tree->axis);
+	printf("Memory per node = %ldbytes\n", sizeof(BVHNode) + sizeof(BVHNode*)*tree->tree_type + sizeof(float)*tree->axis);
 	printf("BV memory = %dbytes\n", MEM_allocN_len(tree->nodebv));
 
-	printf("Total memory = %dbytes\n", sizeof(BVHTree)
+	printf("Total memory = %ldbytes\n", sizeof(BVHTree)
 		+ MEM_allocN_len(tree->nodes)
 		+ MEM_allocN_len(tree->nodearray)
 		+ MEM_allocN_len(tree->nodechild)
@@ -1108,7 +1108,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, int *result)
 	BVHOverlapData **data;
 	
 	// check for compatibility of both trees (can't compare 14-DOP with 18-DOP)
-	if((tree1->axis != tree2->axis) && ((tree1->axis == 14) || tree2->axis == 14))
+	if((tree1->axis != tree2->axis) && (tree1->axis == 14 || tree2->axis == 14) && (tree1->axis == 18 || tree2->axis == 18))
 		return 0;
 	
 	// fast check root nodes for collision before doing big splitting + traversal
