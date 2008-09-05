@@ -123,15 +123,13 @@ static PyObject* gPyGetRandomFloat(PyObject*)
 static PyObject* gPySetGravity(PyObject*, PyObject* args)
 {
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	if (PyVecArgTo(args, vec))
-	{
-		if (gp_KetsjiScene)
-			gp_KetsjiScene->SetGravity(vec);
-		
-		Py_Return;
-	}
+	if (!PyVecArgTo(args, vec))
+		return NULL;
+
+	if (gp_KetsjiScene)
+		gp_KetsjiScene->SetGravity(vec);
 	
-	return NULL;
+	Py_RETURN_NONE;
 }
 
 static char gPyExpandPath_doc[] =
@@ -149,13 +147,12 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	char* filename;
 	
-	if (PyArg_ParseTuple(args,"s",&filename))
-	{
-		BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
-		BLI_convertstringcode(expanded, G.sce);
-		return PyString_FromString(expanded);
-	}
-	return NULL;
+	if (!PyArg_ParseTuple(args,"s",&filename))
+		return NULL;
+
+	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
+	BLI_convertstringcode(expanded, G.sce);
+	return PyString_FromString(expanded);
 }
 
 
@@ -183,6 +180,12 @@ static PyObject* gPyGetSpectrum(PyObject*)
 			PyList_SetItem(resultlist, index, PyFloat_FromDouble(spectrum[index]));
 		}
 	}
+	else {
+		for (int index = 0; index < 512; index++)
+		{
+			PyList_SetItem(resultlist, index, PyFloat_FromDouble(0.0));
+		}
+	}
 
 	return resultlist;
 }
@@ -193,16 +196,17 @@ static PyObject* gPyStartDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
-	if (audiodevice)
-	{
-		if (!usedsp)
-		{
-			audiodevice->StartUsingDSP();
-			usedsp = true;
-			Py_Return;
-		}
+	if (!audiodevice) {
+		PyErr_SetString(PyExc_RuntimeError, "no audio device available");
+		return NULL;
 	}
-	return NULL;
+	
+	if (!usedsp) {
+		audiodevice->StartUsingDSP();
+		usedsp = true;
+	}
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -211,28 +215,27 @@ static PyObject* gPyStopDSP(PyObject*, PyObject* args)
 {
 	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
 
-	if (audiodevice)
-	{
-		if (usedsp)
-		{
-			audiodevice->StopUsingDSP();
-			usedsp = false;
-			Py_Return;
-		}
+	if (!audiodevice) {
+		PyErr_SetString(PyExc_RuntimeError, "no audio device available");
+		return NULL;
 	}
-	return NULL;
+	
+	if (usedsp) {
+		audiodevice->StopUsingDSP();
+		usedsp = true;
+	}
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetLogicTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
-	if (PyArg_ParseTuple(args, "f", &ticrate))
-	{
-		KX_KetsjiEngine::SetTicRate(ticrate);
-		Py_Return;
-	}
+	if (!PyArg_ParseTuple(args, "f", &ticrate))
+		return NULL;
 	
-	return NULL;
+	KX_KetsjiEngine::SetTicRate(ticrate);
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPyGetLogicTicRate(PyObject*)
@@ -243,26 +246,21 @@ static PyObject* gPyGetLogicTicRate(PyObject*)
 static PyObject* gPySetPhysicsTicRate(PyObject*, PyObject* args)
 {
 	float ticrate;
-	if (PyArg_ParseTuple(args, "f", &ticrate))
-	{
-
-		PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
-		Py_Return;
-	}
+	if (!PyArg_ParseTuple(args, "f", &ticrate))
+		return NULL;
 	
-	return NULL;
+	PHY_GetActiveEnvironment()->setFixedTimeStep(true,ticrate);
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetPhysicsDebug(PyObject*, PyObject* args)
 {
 	int debugMode;
-	if (PyArg_ParseTuple(args, "i", &debugMode))
-	{
-		PHY_GetActiveEnvironment()->setDebugMode(debugMode);
-		Py_Return;
-	}
+	if (!PyArg_ParseTuple(args, "i", &debugMode))
+		return NULL;
 	
-	return NULL;
+	PHY_GetActiveEnvironment()->setDebugMode(debugMode);
+	Py_RETURN_NONE;
 }
 
 
@@ -425,22 +423,14 @@ static struct PyMethodDef game_methods[] = {
 
 static PyObject* gPyGetWindowHeight(PyObject*, PyObject* args)
 {
-	int height = (gp_Canvas ? gp_Canvas->GetHeight() : 0);
-
-		PyObject* heightval = PyInt_FromLong(height);
-		return heightval;
+	return PyInt_FromLong((gp_Canvas ? gp_Canvas->GetHeight() : 0));
 }
 
 
 
 static PyObject* gPyGetWindowWidth(PyObject*, PyObject* args)
 {
-		
-
-	int width = (gp_Canvas ? gp_Canvas->GetWidth() : 0);
-	
-		PyObject* widthval = PyInt_FromLong(width);
-		return widthval;
+	return PyInt_FromLong((gp_Canvas ? gp_Canvas->GetWidth() : 0));
 }
 
 
@@ -451,15 +441,11 @@ bool gUseVisibilityTemp = false;
 static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 {
 	int visible;
-	if (PyArg_ParseTuple(args,"i",&visible))
-	{
-	    gUseVisibilityTemp = (visible != 0);
-	}
-	else
-	{
+	if (!PyArg_ParseTuple(args,"i",&visible))
 		return NULL;
-	}
-   Py_Return;
+	
+	gUseVisibilityTemp = (visible != 0);
+	Py_RETURN_NONE;
 }
 
 
@@ -467,23 +453,20 @@ static PyObject* gPyEnableVisibility(PyObject*, PyObject* args)
 static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 {
 	int visible;
-	if (PyArg_ParseTuple(args,"i",&visible))
-	{
-	    if (visible)
-		{
-			if (gp_Canvas)
-				gp_Canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
-		} else
-		{
-			if (gp_Canvas)
-				gp_Canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"i",&visible))
 		return NULL;
+	
+	if (visible)
+	{
+		if (gp_Canvas)
+			gp_Canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
+	} else
+	{
+		if (gp_Canvas)
+			gp_Canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
 	}
 	
-   Py_Return;
+	Py_RETURN_NONE;
 }
 
 
@@ -491,74 +474,81 @@ static PyObject* gPyShowMouse(PyObject*, PyObject* args)
 static PyObject* gPySetMousePosition(PyObject*, PyObject* args)
 {
 	int x,y;
-	if (PyArg_ParseTuple(args,"ii",&x,&y))
-	{
-	    if (gp_Canvas)
-			gp_Canvas->SetMousePosition(x,y);
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"ii",&x,&y))
 		return NULL;
-	}
 	
-   Py_Return;
+	if (gp_Canvas)
+		gp_Canvas->SetMousePosition(x,y);
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetEyeSeparation(PyObject*, PyObject* args)
 {
 	float sep;
-	if (PyArg_ParseTuple(args, "f", &sep))
-	{
-		if (gp_Rasterizer)
-			gp_Rasterizer->SetEyeSeparation(sep);
-			
-		Py_Return;
+	if (!PyArg_ParseTuple(args, "f", &sep))
+		return NULL;
+
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
 	}
 	
-	return NULL;
+	gp_Rasterizer->SetEyeSeparation(sep);
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPyGetEyeSeparation(PyObject*, PyObject*, PyObject*)
 {
-	if (gp_Rasterizer)
-		return PyFloat_FromDouble(gp_Rasterizer->GetEyeSeparation());
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
+	}
 	
-	return NULL;
+	return PyFloat_FromDouble(gp_Rasterizer->GetEyeSeparation());
 }
 
 static PyObject* gPySetFocalLength(PyObject*, PyObject* args)
 {
 	float focus;
-	if (PyArg_ParseTuple(args, "f", &focus))
-	{
-		if (gp_Rasterizer)
-			gp_Rasterizer->SetFocalLength(focus);
-		Py_Return;
-	}
+	if (!PyArg_ParseTuple(args, "f", &focus))
+		return NULL;
 	
-	return NULL;
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
+	}
+
+	gp_Rasterizer->SetFocalLength(focus);
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPyGetFocalLength(PyObject*, PyObject*, PyObject*)
 {
-	if (gp_Rasterizer)
-		return PyFloat_FromDouble(gp_Rasterizer->GetFocalLength());
-	return NULL;
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
+	}
+	
+	return PyFloat_FromDouble(gp_Rasterizer->GetFocalLength());
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPySetBackgroundColor(PyObject*, PyObject* args)
 {
 	
 	MT_Vector4 vec = MT_Vector4(0., 0., 0.3, 0.);
-	if (PyVecArgTo(args, vec))
-	{
-		if (gp_Canvas)
-		{
-			gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
-		}
-		Py_Return;
-	}
+	if (!PyVecArgTo(args, vec))
+		return NULL;
 	
-	return NULL;
+	if (gp_Canvas)
+	{
+		gp_Rasterizer->SetBackColor(vec[0], vec[1], vec[2], vec[3]);
+	}
+	Py_RETURN_NONE;
 }
 
 
@@ -567,16 +557,16 @@ static PyObject* gPySetMistColor(PyObject*, PyObject* args)
 {
 	
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	if (PyVecArgTo(args, vec))
-	{
-		if (gp_Rasterizer)
-		{
-			gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
-		}
-		Py_Return;
-	}
+	if (!PyVecArgTo(args, vec))
+		return NULL;
 	
-	return NULL;
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
+	}	
+	gp_Rasterizer->SetFogColor(vec[0], vec[1], vec[2]);
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -585,17 +575,17 @@ static PyObject* gPySetMistStart(PyObject*, PyObject* args)
 {
 
 	float miststart;
-	if (PyArg_ParseTuple(args,"f",&miststart))
-	{
-		if (gp_Rasterizer)
-		{
-			gp_Rasterizer->SetFogStart(miststart);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"f",&miststart))
+		return NULL;
+	
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
 		return NULL;
 	}
-   Py_Return;
+	
+	gp_Rasterizer->SetFogStart(miststart);
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -604,17 +594,17 @@ static PyObject* gPySetMistEnd(PyObject*, PyObject* args)
 {
 
 	float mistend;
-	if (PyArg_ParseTuple(args,"f",&mistend))
-	{
-		if (gp_Rasterizer)
-		{
-			gp_Rasterizer->SetFogEnd(mistend);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"f",&mistend))
+		return NULL;
+	
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
 		return NULL;
 	}
-   Py_Return;
+	
+	gp_Rasterizer->SetFogEnd(mistend);
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -622,16 +612,16 @@ static PyObject* gPySetAmbientColor(PyObject*, PyObject* args)
 {
 	
 	MT_Vector3 vec = MT_Vector3(0., 0., 0.);
-	if (PyVecArgTo(args, vec))
-	{
-		if (gp_Rasterizer)
-		{
-			gp_Rasterizer->SetAmbientColor(vec[0], vec[1], vec[2]);
-		}
-		Py_Return;
-	}
+	if (!PyVecArgTo(args, vec))
+		return NULL;
 	
-	return NULL;
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
+	}	
+	gp_Rasterizer->SetAmbientColor(vec[0], vec[1], vec[2]);
+	
+	Py_RETURN_NONE;
 }
 
 
@@ -640,42 +630,43 @@ static PyObject* gPySetAmbientColor(PyObject*, PyObject* args)
 static PyObject* gPyMakeScreenshot(PyObject*, PyObject* args)
 {
 	char* filename;
-	if (PyArg_ParseTuple(args,"s",&filename))
-	{
-		if (gp_Canvas)
-		{
-			gp_Canvas->MakeScreenShot(filename);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"s",&filename))
 		return NULL;
+	
+	if (gp_Canvas)
+	{
+		gp_Canvas->MakeScreenShot(filename);
 	}
-	Py_Return;
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPyEnableMotionBlur(PyObject*, PyObject* args)
 {
 	float motionblurvalue;
-	if (PyArg_ParseTuple(args,"f",&motionblurvalue))
-	{
-		if(gp_Rasterizer)
-		{
-			gp_Rasterizer->EnableMotionBlur(motionblurvalue);
-		}
-	}
-	else {
+	if (!PyArg_ParseTuple(args,"f",&motionblurvalue))
+		return NULL;
+	
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
 		return NULL;
 	}
-	Py_Return;
+	
+	gp_Rasterizer->EnableMotionBlur(motionblurvalue);
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPyDisableMotionBlur(PyObject*, PyObject* args)
 {
-	if(gp_Rasterizer)
-	{
-		gp_Rasterizer->DisableMotionBlur();
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
 	}
-	Py_Return;
+	
+	gp_Rasterizer->DisableMotionBlur();
+	
+	Py_RETURN_NONE;
 }
 
 int getGLSLSettingFlag(char *setting)
@@ -704,30 +695,33 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	int enable, flag;
 
 	if (PyArg_ParseTuple(args,"si",&setting,&enable))
-	{
-		flag = getGLSLSettingFlag(setting);
+		return NULL;
+	
+	flag = getGLSLSettingFlag(setting);
+	
+	if  (flag==-1) {
+		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
+		return NULL;
+	}
+	
+	if (enable)
+		G.fileflags &= ~flag;
+	else
+		G.fileflags |= flag;
 
-		if(flag != -1) {
-			if (enable)
-				G.fileflags &= ~flag;
-			else
-				G.fileflags |= flag;
+	/* display lists and GLSL materials need to be remade */
+	if(gp_KetsjiEngine) {
+		KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
+		KX_SceneList::iterator it;
 
-			/* display lists and GLSL materials need to be remade */
-			if(gp_KetsjiEngine) {
-				KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
-				KX_SceneList::iterator it;
-
-				for(it=scenes->begin(); it!=scenes->end(); it++)
-					if((*it)->GetBucketManager())
-						(*it)->GetBucketManager()->ReleaseDisplayLists();
-			}
-
-			GPU_materials_free();
-		}
+		for(it=scenes->begin(); it!=scenes->end(); it++)
+			if((*it)->GetBucketManager())
+				(*it)->GetBucketManager()->ReleaseDisplayLists();
 	}
 
-	Py_Return;
+	GPU_materials_free();
+
+	Py_RETURN_NONE;
 }
 
 static PyObject* gPyGetGLSLMaterialSetting(PyObject*, 
@@ -737,14 +731,17 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 	char *setting;
 	int enabled = 0, flag;
 
-	if (PyArg_ParseTuple(args,"s",&setting))
-	{
-		flag = getGLSLSettingFlag(setting);
-
-		if(flag != -1)
-			enabled = ((G.fileflags & flag) != 0);
+	if (!PyArg_ParseTuple(args,"s",&setting))
+		return NULL;
+	
+	flag = getGLSLSettingFlag(setting);
+	
+	if  (flag==-1) {
+		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
+		return NULL;
 	}
 
+	enabled = ((G.fileflags & flag) != 0);
 	return PyInt_FromLong(enabled);
 }
 

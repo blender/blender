@@ -108,7 +108,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 };
 /*----------------------------MODULE INIT-------------------------*/
 /* from can be Blender.Mathutils or GameLogic.Mathutils for the BGE */
-PyObject *Mathutils_Init(char *from)
+PyObject *Mathutils_Init(const char *from)
 {
 	PyObject *submodule;
 
