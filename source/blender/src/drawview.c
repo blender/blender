@@ -2941,9 +2941,9 @@ static void gpu_render_lamp_update(View3D *v3d, Object *ob, Object *par, float o
 	lamp = GPU_lamp_from_blender(G.scene, ob, par);
 
 	if(lamp) {
-		GPU_lamp_update(lamp, obmat);
-
-		if(GPU_lamp_has_shadow_buffer(lamp)) {
+		GPU_lamp_update(lamp, ob->lay, obmat);
+		
+		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
 			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;
 			BLI_addtail(shadows, shadow);

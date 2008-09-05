@@ -105,7 +105,7 @@ void KX_LightObject::Update()
 			for(int j=0; j<4; j++, dobmat++)
 				obmat[i][j] = (float)*dobmat;
 
-		GPU_lamp_update(lamp, obmat);
+		GPU_lamp_update(lamp, m_lightobj.m_layer, obmat);
 	}
 }
 

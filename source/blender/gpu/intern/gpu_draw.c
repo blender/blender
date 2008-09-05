@@ -900,7 +900,7 @@ int GPU_enable_material(int nr, void *attribs)
 
 			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
-			GPU_material_bind(gpumat, GMS.gob->lay, 1.0);
+			GPU_material_bind(gpumat, GMS.gob->lay, G.vd->lay, 1.0);
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, G.vd->viewmat, G.vd->viewinv, GMS.gob->col);
 			GMS.gboundmat= mat;
 
