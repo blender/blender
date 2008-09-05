@@ -311,6 +311,11 @@ void set_value_zero(out float outval)
 	outval = 0.0;
 }
 
+void set_value_one(out float outval)
+{
+	outval = 1.0;
+}
+
 void set_rgb_zero(out vec3 outval)
 {
 	outval = vec3(0.0);
@@ -1392,7 +1397,7 @@ void shade_blinn_spec(vec3 n, vec3 l, vec3 v, float refrac, float spec_power, ou
 				float b = (2.0*nh*nv)/vh;
 				float c = (2.0*nh*nl)/vh;
 
-				float g;
+				float g = 0.0;
 
 				if(a < b && a < c) g = a;
 				else if(b < a && b < c) g = b;

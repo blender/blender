@@ -958,10 +958,15 @@ static void do_material_tex(GPUShadeInput *shi)
 			if(ofs[0] != 0.0f || ofs[1] != 0.0f || ofs[2] != 0.0f)
 				GPU_link(mat, "mtex_mapping_ofs", texco, GPU_uniform(ofs), &texco);
 
+			talpha = 0;
+			rgbnor = 0;
+
 			if(tex && tex->type == TEX_IMAGE && tex->ima) {
 				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, NULL), &tin, &trgb, &tnor);
 				rgbnor= TEX_RGB;
-				talpha= 1;
+
+				if(tex->imaflag & TEX_USEALPHA)
+					talpha= 1;
 		    }
 			else continue;
 
@@ -1001,8 +1006,10 @@ static void do_material_tex(GPUShadeInput *shi)
 
 					if(mtex->mapto & MAP_ALPHA)
 						GPU_link(mat, "set_value", stencil, &tin);
-					else
+					else if(talpha)
 						GPU_link(mat, "mtex_alpha_from_col", trgb, &tin);
+					else
+						GPU_link(mat, "set_value_one", &tin);
 				}
 				
 				if(mtex->mapto & MAP_COL)
