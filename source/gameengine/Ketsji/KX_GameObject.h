@@ -566,6 +566,7 @@ public:
 	 */
 		void						
 	UpdateBuckets(
+		bool recursive
 	);
 
 	/**
@@ -640,7 +641,8 @@ public:
 	 */
 		void
 	SetVisible(
-		bool b
+		bool b,
+		bool recursive
 	);
 
 	/**
@@ -762,7 +764,7 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
 	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
-	KX_PYMETHOD_O(KX_GameObject,SetVisible);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SetVisible);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetState);
 	KX_PYMETHOD_O(KX_GameObject,SetState);
 	KX_PYMETHOD_VARARGS(KX_GameObject,AlignAxisToVect);
