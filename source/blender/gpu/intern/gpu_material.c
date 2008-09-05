@@ -682,8 +682,15 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			
 			if(lamp->mode & LA_ONLYSHADOW) {
 				GPU_link(mat, "shade_only_shadow", i, shadfac,
-					GPU_dynamic_uniform(&lamp->dynenergy), shi->rgb, shi->specrgb,
-					shr->diff, shr->spec, &shr->diff, &shr->spec);
+					GPU_dynamic_uniform(&lamp->dynenergy), &shadfac);
+				
+				if(!(lamp->mode & LA_NO_DIFF))
+					GPU_link(mat, "shade_only_shadow_diffuse", shadfac, shi->rgb,
+						shr->diff, &shr->diff);
+
+				if(!(lamp->mode & LA_NO_SPEC))
+					GPU_link(mat, "shade_only_shadow_specular", shadfac, shi->specrgb,
+						shr->spec, &shr->spec);
 				
 				add_user_list(&mat->lamps, lamp);
 				add_user_list(&lamp->materials, ma);

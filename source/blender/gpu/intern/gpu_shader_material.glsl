@@ -1483,11 +1483,18 @@ void ramp_rgbtobw(vec3 color, out float outval)
 	outval = color.r*0.3 + color.g*0.58 + color.b*0.12;
 }
 
-void shade_only_shadow(float i, float shadfac, float energy, vec3 rgb, vec3 specrgb, vec4 diff, vec4 spec, out vec4 outdiff, out vec4 outspec)
+void shade_only_shadow(float i, float shadfac, float energy, out float outshadfac)
 {
-	shadfac = i*energy*(1.0 - shadfac);
+	outshadfac = i*energy*(1.0 - shadfac);
+}
 
+void shade_only_shadow_diffuse(float shadfac, vec3 rgb, vec4 diff, out vec4 outdiff)
+{
 	outdiff = diff - vec4(rgb*shadfac, 0.0);
+}
+
+void shade_only_shadow_specular(float shadfac, vec3 specrgb, vec4 spec, out vec4 outspec)
+{
 	outspec = spec - vec4(specrgb*shadfac, 0.0);
 }
 
