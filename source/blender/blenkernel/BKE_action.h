@@ -159,7 +159,7 @@ float get_action_frame(struct Object *ob, float cframe);
 /* map strip time to global time (frame nr)  */
 float get_action_frame_inv(struct Object *ob, float cframe);
 /* builds a list of NlaIpoChannel with ipo values to write in datablock */
-void extract_ipochannels_from_action(ListBase *lb, struct ID *id, struct bAction *act, char *name, float ctime);
+void extract_ipochannels_from_action(ListBase *lb, struct ID *id, struct bAction *act, const char *name, float ctime);
 /* write values returned by extract_ipochannels_from_action, returns the number of value written */
 int execute_ipochannels(ListBase *lb);
 

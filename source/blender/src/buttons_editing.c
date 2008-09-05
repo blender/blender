@@ -6277,6 +6277,11 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row= 180;
 
 	uiDefButBitS(block, TOGN, UVCALC_NO_ASPECT_CORRECT, B_NOP, "Image Aspect",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Scale the UV Unwrapping to correct for the current images aspect ratio");
+
+	row-= butHB+butS;	
+		uiDefButBitS(block, TOG, UVCALC_TRANSFORM_CORRECT, B_NOP, "Transform Correction",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Correct for UV distortion while transforming, (only works with edge slide now)");
+
+	row= 180;
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Cube Size:",315,row,200,butH, &G.scene->toolsettings->uvcalc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size for cube mapping");
