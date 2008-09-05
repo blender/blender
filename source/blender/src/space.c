@@ -5336,7 +5336,15 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val==0) return;
 
 	if(uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
-
+	
+	/* grease-pencil drawing before draw-tool */
+	if (event == LEFTMOUSE) {
+		if (gpencil_do_paint(sa, L_MOUSE)) return;
+	}
+	else if (event == RIGHTMOUSE) {
+		if (gpencil_do_paint(sa, R_MOUSE)) return;
+	}
+	
 	if (sima->image && (sima->flag & SI_DRAWTOOL)) {
 		switch(event) {
 			case CKEY:
@@ -5359,7 +5367,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				event = LEFTMOUSE;
 			}
 		}
-	
+		
 		/* Draw tool is inactive, editmode is enabled and the image is not a render or composite  */
 		if (EM_texFaceCheck() && (G.sima->image==0 || (G.sima->image->type != IMA_TYPE_R_RESULT && G.sima->image->type != IMA_TYPE_COMPOSITE))) {
 			switch(event) {
@@ -6340,6 +6348,8 @@ void freespacelist(ScrArea *sa)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				curvemapping_free(sima->cumap);
+			if(sima->gpd)
+				free_gpencil_data(sima->gpd);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
@@ -6406,6 +6416,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		else if(sl->spacetype==SPACE_SEQ) {
 			SpaceSeq *sseq= (SpaceSeq *)sl;
 			sseq->gpd= gpencil_data_duplicate(sseq->gpd);
+		}
+		else if(sl->spacetype==SPACE_IMAGE) {
+			SpaceImage *sima= (SpaceImage *)sl;
+			sima->gpd= gpencil_data_duplicate(sima->gpd);
 		}
 		sl= sl->next;
 	}

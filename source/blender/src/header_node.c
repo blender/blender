@@ -112,7 +112,7 @@ static void do_node_viewmenu(void *arg, int event)
 			break;
 		case 4: /* Grease Pencil */
 			add_blockhandler(curarea, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
-		break;
+			break;
 	}
 	allqueue(REDRAWNODE, 0);
 }
