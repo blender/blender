@@ -50,6 +50,8 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #include "gpu_codegen.h"
 
 #include <string.h>
@@ -57,7 +59,7 @@
 
 #ifdef _WIN32
 #ifndef vsnprintf
-#define _vsnprintf vsnprintf
+#define vsnprintf _vsnprintf
 #endif
 #ifndef snprintf
 #define snprintf _snprintf
