@@ -65,7 +65,7 @@ typedef unsigned long uint_ptr;
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 
-#include "gen_utils.h" /* python stuff */
+#include "PyObjectPlus.h" /* python stuff */
 
 // This file defines relationships between parents and children
 // in the game engine.

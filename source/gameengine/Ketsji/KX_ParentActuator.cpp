@@ -36,7 +36,7 @@
 #include "KX_GameObject.h"
 #include "KX_PythonInit.h"
 
-#include "gen_utils.h" /* Python stuff */
+#include "PyObjectPlus.h" 
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

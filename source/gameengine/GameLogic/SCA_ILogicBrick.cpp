@@ -27,7 +27,7 @@
  */
 
 #include "SCA_ILogicBrick.h"
-#include "gen_utils.h" /* python stuff */
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

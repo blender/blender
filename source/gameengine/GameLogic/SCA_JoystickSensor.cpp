@@ -30,9 +30,10 @@
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
 
+#include "PyObjectPlus.h"
+
 #include <iostream>
 
-#include "gen_utils.h" /* python stuff */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

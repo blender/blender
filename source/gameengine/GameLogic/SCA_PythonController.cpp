@@ -33,11 +33,11 @@
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
+#include "PyObjectPlus.h"
 #include "compile.h"
 #include "eval.h"
 #include <algorithm>
 
-#include "gen_utils.h" /* python stuff */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

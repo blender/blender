@@ -39,7 +39,7 @@
 #include "KX_GameObject.h"
 #include "KX_IPhysicsController.h"
 
-#include "gen_utils.h" /* Python stuff */
+#include "PyObjectPlus.h" 
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

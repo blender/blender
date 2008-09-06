@@ -43,7 +43,7 @@
 #include "KX_PyMath.h"
 #include "KX_ConvertPhysicsObject.h"
 
-#include "gen_utils.h" /* Python stuff */
+#include "PyObjectPlus.h" 
 
 PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)

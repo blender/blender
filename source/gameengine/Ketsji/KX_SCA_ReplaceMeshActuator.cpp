@@ -37,7 +37,7 @@
 
 #include "KX_SCA_ReplaceMeshActuator.h"
 
-#include "gen_utils.h" /* Python stuff */
+#include "PyObjectPlus.h" 
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

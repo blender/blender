@@ -43,6 +43,33 @@
  * Python defines
 ------------------------------*/
 
+/*
+   Py_RETURN_NONE
+   Python 2.4 macro.
+   defined here until we switch to 2.4
+   also in api2_2x/gen_utils.h 
+*/
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE  return Py_BuildValue("O", Py_None)
+#endif
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE  return PyBool_FromLong(0)
+#endif
+#ifndef Py_RETURN_TRUE
+#define Py_RETURN_TRUE  return PyBool_FromLong(1)
+#endif
+
+/*  for pre Py 2.5 */
+#if PY_VERSION_HEX < 0x02050000
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#else
+/* Py 2.5 and later */
+#define  intargfunc  ssizeargfunc
+#define intintargfunc  ssizessizeargfunc
+#endif
+
 								// some basic python macros
 #define Py_Return { Py_INCREF(Py_None); return Py_None;}
 
