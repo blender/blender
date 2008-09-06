@@ -50,6 +50,7 @@
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
+#include "gen_utils.h" /* Python stuff */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

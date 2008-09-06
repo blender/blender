@@ -68,6 +68,8 @@
 
 #include "KX_PyMath.h"
 
+#include "gen_utils.h" /* Python stuff */
+
 extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 }

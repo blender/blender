@@ -50,6 +50,8 @@
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 
+#include "gen_utils.h"	/* python stuff */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

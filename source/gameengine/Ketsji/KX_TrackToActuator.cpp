@@ -42,6 +42,8 @@
 #include <iostream>
 #include "KX_GameObject.h"
 
+#include "gen_utils.h" /* Python stuff */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

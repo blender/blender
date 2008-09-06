@@ -32,6 +32,8 @@
 
 #include <iostream>
 
+#include "gen_utils.h" /* python stuff */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

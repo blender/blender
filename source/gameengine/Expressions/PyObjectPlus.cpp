@@ -50,6 +50,7 @@
 #include "stdlib.h"
 #include "PyObjectPlus.h"
 #include "STR_String.h"
+#include "gen_utils.h"
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
 ------------------------------*/

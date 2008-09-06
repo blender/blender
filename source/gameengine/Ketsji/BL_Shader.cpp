@@ -15,6 +15,8 @@
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
 
+#include "gen_utils.h" /* python stuff */
+
 #define spit(x) std::cout << x << std::endl;
 
 #define SORT_UNIFORMS 1
