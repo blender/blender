@@ -696,7 +696,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 	char *setting;
 	int enable, flag;
 
-	if (PyArg_ParseTuple(args,"si",&setting,&enable))
+	if (!PyArg_ParseTuple(args,"si",&setting,&enable))
 		return NULL;
 	
 	flag = getGLSLSettingFlag(setting);

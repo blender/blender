@@ -61,7 +61,19 @@ def get_object_images(ob):
 	
 	me.activeUVLayer = orig_uvlayer
 	
+	
+	# Now get material images
+	for mat in me.materials:
+		if mat:
+			for mtex in mat.getTextures():
+				if mtex:
+					tex = mtex.tex
+					i = tex.getImage()
+					if i: unique_images[i.name] = i
+	
 	return unique_images.values()
+	
+	
 	
 	# Todo, support other object types, materials
 	return []
@@ -118,7 +130,7 @@ def main():
 	def activate(ob, scn):
 		bpy.data.scenes.active = scn
 		scn.objects.selected = []
-		scn.Layers = ob.Layers
+		scn.Layers = ob.Layers & (1<<20)-1
 		ob.sel = 1
 	
 	def name_cmp(name_search, name_found):
