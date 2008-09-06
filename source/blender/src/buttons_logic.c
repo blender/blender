@@ -2350,7 +2350,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		
 		visAct = act->data;
 
-		str= "Visibility %t|Visible %x0|Invisible %x1";
+		str= "Visibility %t|Visible %x0|Invisible %x1|Visible Recursive %x2|Invisible Recursive %x3";
 
 		uiDefButI(block, MENU, B_REDR, str,
 			  xco + 10, yco - 24, width - 20, 19, &visAct->flag,

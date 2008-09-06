@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -125,7 +125,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -177,7 +177,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -229,7 +229,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -281,7 +281,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\source\kernel\gen_system;..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,EXP_PYTHON_EMBEDDING"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"

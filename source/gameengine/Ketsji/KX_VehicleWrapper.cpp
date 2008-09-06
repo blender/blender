@@ -1,6 +1,8 @@
 
 
 #include <Python.h>
+#include "PyObjectPlus.h"
+
 #include "KX_VehicleWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IVehicle.h"

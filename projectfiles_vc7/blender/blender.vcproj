@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
+				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging;..\..\..\build\msvc_7\extern\glew\include;..\..\source\blender\gpu"
 				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC;WITH_VERSE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -105,7 +105,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
+				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging;..\..\..\build\msvc_7\extern\glew\include;..\..\source\blender\gpu"
 				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;WITH_VERSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

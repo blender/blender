@@ -717,7 +717,11 @@ void GPG_Application::stopEngine()
 		if (gameLogic) {
 			PyObject* pyGlobalDict = PyDict_GetItemString(PyModule_GetDict(gameLogic), "globalDict"); // Same as importing the module
 			if (pyGlobalDict) {
+#ifdef Py_MARSHAL_VERSION	
 				PyObject* pyGlobalDictMarshal = PyMarshal_WriteObjectToString(	pyGlobalDict, 2); // Py_MARSHAL_VERSION == 2 as of Py2.5
+#else
+				PyObject* pyGlobalDictMarshal = PyMarshal_WriteObjectToString(	pyGlobalDict ); 
+#endif
 				if (pyGlobalDictMarshal) {
 					m_pyGlobalDictString_Length = PyString_Size(pyGlobalDictMarshal);
 					PyObject_Print(pyGlobalDictMarshal, stderr, 0);

@@ -62,6 +62,7 @@
 #include "BKE_blender.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
+#include "BKE_image.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1137,7 +1138,7 @@ static void gp_session_initpaint (tGPsdata *p)
 			/* set the current area */
 			p->sa= curarea;
 			p->v2d= &sima->v2d;
-			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+			p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 		}
 			break;
 		/* unsupported views */
@@ -1249,20 +1250,13 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	else if ( (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && 
 			  (p->v2d) && (p->ibuf) ) 
 	{
-		ImBuf *ibuf= p->ibuf;
 		float x, y;
 		
-		/* convert to 'canvas' coordinates, then adjust for view */
+		/* convert to 'canvas' coordinates (not need to adjust to canvas) */
 		areamouseco_to_ipoco(p->v2d, mval, &x, &y);
 		
-		if (ibuf) {
-			out[0]= x*ibuf->x;
-			out[1]= y*ibuf->y;
-		}
-		else {
-			out[0]= x;
-			out[1]= y;
-		}
+		out[0]= x;
+		out[1]= y;
 	}
 	
 	/* 2d - relative to screen (viewport area) */
@@ -1637,7 +1631,9 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				break;
 			case SPACE_IMAGE:
 			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
+				/* check if any ibuf available */
+				if (p->ibuf)
+					p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
 			}
 				break;
 		}

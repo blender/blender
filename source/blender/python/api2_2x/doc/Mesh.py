@@ -69,6 +69,7 @@ done once.
 		- BILLBOARD - always orient after camera.
 		- HALO - halo face, always point to camera.
 		- DYNAMIC - respond to collisions.
+		- ALPHASORT - game engine sorts these faces only.
 		- INVISIBLE - invisible face.
 		- LIGHT - dynamic lighting.
 		- OBCOL - use object color instead of vertex colors.

@@ -59,8 +59,9 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 	def setMesh(name):
 		"""
 		Sets the name of the mesh that will replace the current one.
+		When the name is None it will unset the mesh value so no action is taken.
 		
-		@type name: string
+		@type name: string or None
 		"""
 	def getMesh():
 		"""
@@ -68,6 +69,6 @@ class KX_SCA_ReplaceMeshActuator(SCA_IActuator):
 		
 		Returns None if no mesh has been scheduled to be added.
 		
-		@rtype: string
+		@rtype: string or None
 		"""
 

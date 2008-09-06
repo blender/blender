@@ -538,6 +538,7 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_TILE	1<<19 
 #define SI_SMOOTH_UV	1<<20
 #define SI_DRAW_STRETCH	1<<21
+#define SI_DISPGP		1<<22
 
 /* SpaceIpo->flag */
 #define SIPO_LOCK_VIEW			1<<0

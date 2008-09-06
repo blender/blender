@@ -2689,7 +2689,8 @@ static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
 			tbase.object= dob->ob;
 			
 			/* extra service: draw the duplicator in drawtype of parent */
-			dt= tbase.object->dt; tbase.object->dt= base->object->dt;
+			/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+			dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
 			dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
 			
 			/* negative scale flag has to propagate */
@@ -2940,9 +2941,9 @@ static void gpu_render_lamp_update(View3D *v3d, Object *ob, Object *par, float o
 	lamp = GPU_lamp_from_blender(G.scene, ob, par);
 
 	if(lamp) {
-		GPU_lamp_update(lamp, obmat);
-
-		if(GPU_lamp_has_shadow_buffer(lamp)) {
+		GPU_lamp_update(lamp, ob->lay, obmat);
+		
+		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
 			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");
 			shadow->lamp = lamp;
 			BLI_addtail(shadows, shadow);

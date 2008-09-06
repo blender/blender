@@ -394,7 +394,7 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke - just a single dot (only one point) */
-static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sflag, int winx, int winy)
+static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sflag, int offsx, int offsy, int winx, int winy)
 {
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
@@ -407,6 +407,10 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 		
 		/* get coordinates of point */
 		if (sflag & GP_STROKE_2DSPACE) {
+			co[0]= points->x;
+			co[1]= points->y;
+		}
+		else if (sflag & GP_STROKE_2DIMAGE) {
 			co[0]= points->x;
 			co[1]= points->y;
 		}
@@ -473,10 +477,11 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 /* ----- Fancy 2D-Stroke Drawing ------ */
 
 /* draw a given stroke in 2d */
-static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, short debug, int winx, int winy)
+static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, 
+							short debug, int offsx, int offsy, int winx, int winy)
 {	
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better */
-	if (thickness < GP_DRAWTHICKNESS_SPECIAL) {
+	if ((thickness < GP_DRAWTHICKNESS_SPECIAL) || (dflag & GP_DRAWDATA_ONLYI2D)) {
 		bGPDspoint *pt;
 		int i;
 		
@@ -484,6 +489,12 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
 			if (sflag & GP_STROKE_2DSPACE) {
 				glVertex2f(pt->x, pt->y);
+			}
+			else if (sflag & GP_STROKE_2DIMAGE) {
+				const float x= pt->x;
+				const float y= pt->y;
+				
+				glVertex2f(x, y);
 			}
 			else {
 				const float x= (pt->x / 1000 * winx);
@@ -511,6 +522,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 			
 			/* get x and y coordinates from points */
 			if (sflag & GP_STROKE_2DSPACE) {
+				s0[0]= pt1->x; 		s0[1]= pt1->y;
+				s1[0]= pt2->x;		s1[1]= pt2->y;
+			}
+			else if (sflag & GP_STROKE_2DIMAGE) {
 				s0[0]= pt1->x; 		s0[1]= pt1->y;
 				s1[0]= pt2->x;		s1[1]= pt2->y;
 			}
@@ -656,6 +671,13 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 			if (sflag & GP_STROKE_2DSPACE) {
 				glVertex2f(pt->x, pt->y);
 			}
+			else if (sflag & GP_STROKE_2DIMAGE) {
+					// fixme
+				const float x= pt->x;
+				const float y= pt->y;
+				
+				glVertex2f(x, y);
+			}
 			else {
 				const float x= (pt->x / 1000 * winx);
 				const float y= (pt->y / 1000 * winy);
@@ -670,8 +692,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 /* ----- General Drawing ------ */
 
 /* draw a set of strokes */
-static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, short debug, 
-							 short lthick, float color[4])
+static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int winy, int dflag,  
+							 short debug, short lthick, float color[4])
 {
 	bGPDstroke *gps;
 	
@@ -697,16 +719,16 @@ static void gp_draw_strokes (bGPDframe *gpf, int winx, int winy, int dflag, shor
 		
 		/* check which stroke-drawer to use */
 		if (gps->totpoints == 1)
-			gp_draw_stroke_point(gps->points, lthick, gps->flag, winx, winy);
+			gp_draw_stroke_point(gps->points, lthick, gps->flag, offsx, offsy, winx, winy);
 		else if (dflag & GP_DRAWDATA_ONLY3D)
 			gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
 		else if (gps->totpoints > 1)	
-			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, winx, winy);
+			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
 	}
 }
 
 /* draw grease-pencil datablock */
-static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
+static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy, int dflag)
 {
 	bGPDlayer *gpl, *actlay=NULL;
 	
@@ -758,7 +780,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
 						tcolor[3] = color[3] - (i/gpl->gstep);
-						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
+						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -770,7 +792,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
 						tcolor[3] = color[3] - (i/gpl->gstep);
-						gp_draw_strokes(gf, winx, winy, dflag, debug, lthick, tcolor);
+						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
 						break;
@@ -783,12 +805,12 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 				/* draw the strokes for the ghost frames (at half of the alpha set by user) */
 				if (gpf->prev) {
 					tcolor[3] = (color[3] / 7);
-					gp_draw_strokes(gpf->prev, winx, winy, dflag, debug, lthick, tcolor);
+					gp_draw_strokes(gpf->prev, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				if (gpf->next) {
 					tcolor[3] = (color[3] / 4);
-					gp_draw_strokes(gpf->next, winx, winy, dflag, debug, lthick, tcolor);
+					gp_draw_strokes(gpf->next, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 				}
 				
 				/* restore alpha */
@@ -798,7 +820,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 		
 		/* draw the strokes already in active frame */
 		tcolor[3]= color[3];
-		gp_draw_strokes(gpf, winx, winy, dflag, debug, lthick, tcolor);
+		gp_draw_strokes(gpf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 		
 		/* Check if may need to draw the active stroke cache, only if this layer is the active layer
 		 * that is being edited. (Stroke buffer is currently stored in gp-data)
@@ -866,6 +888,7 @@ static void gp_draw_data (bGPdata *gpd, int winx, int winy, int dflag)
 void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 {
 	bGPdata *gpd;
+	int offsx, offsy, sizex, sizey;
 	int dflag = 0;
 	
 	/* check that we have grease-pencil stuff to draw */
@@ -873,9 +896,34 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 	gpd= gpencil_data_getactive(sa);
 	if (gpd == NULL) return;
 	
+	/* calculate rect */
+	switch (sa->spacetype) {
+		case SPACE_IMAGE: /* image */
+		{
+			SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+			
+			// fixme... are these settings still needed?
+			offsx= 0;
+			offsy= 0;
+			sizex= sa->winx;
+			sizey= sa->winy;
+			
+			myortho2(sima->v2d.cur.xmin, sima->v2d.cur.xmax, sima->v2d.cur.ymin, sima->v2d.cur.ymax);
+		}
+			break;
+			
+		default: /* for spacetype not yet handled */
+			offsx= 0;
+			offsy= 0;
+			sizex= sa->winx;
+			sizey= sa->winy;
+			break;
+	}
+	
+	
 	/* draw it! */
 	dflag = (GP_DRAWDATA_ONLYI2D|GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(gpd, sa->winx, sa->winy, dflag);
+	gp_draw_data(gpd, offsx, offsy, sizex, sizey, dflag);
 }
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
@@ -893,7 +941,7 @@ void draw_gpencil_2dview (ScrArea *sa, short onlyv2d)
 	
 	/* draw it! */
 	if (onlyv2d) dflag |= (GP_DRAWDATA_ONLYV2D|GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(gpd, sa->winx, sa->winy, dflag);
+	gp_draw_data(gpd, 0, 0, sa->winx, sa->winy, dflag);
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
@@ -910,7 +958,7 @@ void draw_gpencil_3dview (ScrArea *sa, short only3d)
 	
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D|GP_DRAWDATA_NOSTATUS);
-	gp_draw_data(gpd, sa->winx, sa->winy, dflag);
+	gp_draw_data(gpd, 0, 0, sa->winx, sa->winy, dflag);
 }
 
 /* draw grease-pencil sketches to opengl render window assuming that matrices are already set correctly */
@@ -924,7 +972,7 @@ void draw_gpencil_oglrender (View3D *v3d, int winx, int winy)
 	if (gpd == NULL) return;
 	
 	/* pass 1: draw 3d-strokes ------------ > */
-	gp_draw_data(gpd, winx, winy, (GP_DRAWDATA_NOSTATUS|GP_DRAWDATA_ONLY3D));
+	gp_draw_data(gpd, 0, 0, winx, winy, (GP_DRAWDATA_NOSTATUS|GP_DRAWDATA_ONLY3D));
 	
 	/* pass 2: draw 2d-strokes ------------ > */
 		/* adjust view matrices */
@@ -932,7 +980,7 @@ void draw_gpencil_oglrender (View3D *v3d, int winx, int winy)
 	glLoadIdentity();
 	
 		/* draw it! */
-	gp_draw_data(gpd, winx, winy, GP_DRAWDATA_NOSTATUS);
+	gp_draw_data(gpd, 0, 0, winx, winy, GP_DRAWDATA_NOSTATUS);
 }
 
 /* ************************************************** */

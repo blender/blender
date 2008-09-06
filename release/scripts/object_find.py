@@ -195,11 +195,13 @@ def main():
 								activate(ob, scn)
 								return
 						if NAME_TEXTURE:
-							for tex in mat.getTextures():
-								if tex:
-									if name_cmp(NAME_MATERIAL, tex.name):
-										activate(ob, scn)
-										return
+							for mtex in mat.getTextures():
+								if mtex:
+									tex = mtex.tex
+									if tex:
+										if name_cmp(NAME_TEXTURE, tex.name):
+											activate(ob, scn)
+											return
 	
 	
 	Draw.PupMenu('No Objects Found')

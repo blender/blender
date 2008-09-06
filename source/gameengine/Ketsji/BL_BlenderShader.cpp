@@ -22,7 +22,7 @@ BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lig
 	mMat(ma),
 	mLightLayer(lightlayer)
 {
-	mBlenderScene = scene->GetBlenderScene(); //GetSceneForName(scene->GetName());
+	mBlenderScene = scene->GetBlenderScene();
 	mBlendMode = GPU_BLEND_SOLID;
 
 	if(mMat)
@@ -52,7 +52,7 @@ void BL_BlenderShader::SetProg(bool enable, double time)
 {
 	if(VerifyShader()) {
 		if(enable)
-			GPU_material_bind(GPU_material_from_blender(mBlenderScene, mMat), mLightLayer, time);
+			GPU_material_bind(GPU_material_from_blender(mBlenderScene, mMat), mLightLayer, ~0, time);
 		else
 			GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
 	}

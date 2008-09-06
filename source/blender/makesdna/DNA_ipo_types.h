@@ -142,24 +142,24 @@ typedef short IPO_Channel;
 #define MA_FRESTRAI	25
 #define MA_ADD		26
 
-#define MA_MAP1		1<<5
-#define MA_MAP2		1<<6
-#define MA_MAP3		1<<7
-#define MA_MAP4		1<<8
-#define MA_MAP5		1<<9
-#define MA_MAP6		1<<10
-#define MA_MAP7		1<<11
-#define MA_MAP8		1<<12
-#define MA_MAP9		1<<13
-#define MA_MAP10	1<<14
-#define MA_MAP11	1<<15
-#define MA_MAP12	1<<16
-#define MA_MAP13	1<<17
-#define MA_MAP14	1<<18
-#define MA_MAP15	1<<19
-#define MA_MAP16	1<<20
-#define MA_MAP17	1<<21
-#define MA_MAP18	1<<22
+#define MA_MAP1		(1<<5)
+#define MA_MAP2		(1<<6)
+#define MA_MAP3		(1<<7)
+#define MA_MAP4		(1<<8)
+#define MA_MAP5		(1<<9)
+#define MA_MAP6		(1<<10)
+#define MA_MAP7		(1<<11)
+#define MA_MAP8		(1<<12)
+#define MA_MAP9		(1<<13)
+#define MA_MAP10	(1<<14)
+#define MA_MAP11	(1<<15)
+#define MA_MAP12	(1<<16)
+#define MA_MAP13	(1<<17)
+#define MA_MAP14	(1<<18)
+#define MA_MAP15	(1<<19)
+#define MA_MAP16	(1<<20)
+#define MA_MAP17	(1<<21)
+#define MA_MAP18	(1<<22)
 
 #define TEX_TOTNAM	14
 
