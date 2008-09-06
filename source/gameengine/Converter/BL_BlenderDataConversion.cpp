@@ -2144,7 +2144,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								
 								gameobj->NodeUpdateGS(0,true);
 								gameobj->AddMeshUser();
-						
 							}
 							else
 							{
@@ -2209,6 +2208,24 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	{
 	
 		struct Object* blenderchild = pcit->m_blenderchild;
+		struct Object* blenderparent = blenderchild->parent;
+		KX_GameObject* parentobj = converter->FindGameObject(blenderparent);
+		KX_GameObject* childobj = converter->FindGameObject(blenderchild);
+
+		assert(childobj);
+
+		if (!parentobj || objectlist->SearchValue(childobj) != objectlist->SearchValue(parentobj))
+		{
+			// special case: the parent and child object are not in the same layer. 
+			// This weird situation is used in Apricot for test purposes.
+			// Resolve it by breaking the parent relationship
+			childobj->GetSGNode()->DisconnectFromParent();
+			delete pcit->m_gamechildnode;
+			// This leave the child object is an incorrect position: its local position becomes
+			// the global position but we don't care: the child should be in an invisble layer
+			continue;
+		}
+
 		switch (blenderchild->partype)
 		{
 			case PARVERT1:
@@ -2248,12 +2265,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				break;
 		}
 	
-		struct Object* blenderparent = blenderchild->parent;
-		KX_GameObject* parentobj = converter->FindGameObject(blenderparent);
-		if (parentobj)
-		{
-			parentobj->	GetSGNode()->AddChild(pcit->m_gamechildnode);
-		}
+		parentobj->	GetSGNode()->AddChild(pcit->m_gamechildnode);
 	}
 	vec_parent_child.clear();
 	
