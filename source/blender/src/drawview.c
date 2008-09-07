@@ -3023,9 +3023,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		for(SETLOOPER(G.scene->set, base))
 			object_handle_update(base->object);   // bke_object.h
 	}
-
-	for(base= G.scene->base.first; base; base= base->next)
+	
+	v3d->lay_used = 0;
+	for(base= G.scene->base.first; base; base= base->next) {
 		object_handle_update(base->object);   // bke_object.h
+		v3d->lay_used |= base->lay;
+	}
 
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(NULL, v3d->drawtype))

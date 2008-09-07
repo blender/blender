@@ -501,7 +501,17 @@ void KX_BlenderSceneConverter::RegisterGameObject(
 void KX_BlenderSceneConverter::UnregisterGameObject(
 									KX_GameObject *gameobject) 
 {
-	m_map_gameobject_to_blender.remove(CHashedPtr(gameobject));
+	CHashedPtr gptr(gameobject);
+	struct Object **bobp= m_map_gameobject_to_blender[gptr];
+	if (bobp) {
+		CHashedPtr bptr(*bobp);
+		KX_GameObject **gobp= m_map_blender_to_gameobject[bptr];
+		if (gobp && *gobp == gameobject)
+			// also maintain m_map_blender_to_gameobject if the gameobject
+			// being removed is matching the blender object
+			m_map_blender_to_gameobject.remove(bptr);
+		m_map_gameobject_to_blender.remove(gptr);
+	}
 }
 
 
