@@ -1766,7 +1766,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		psys->lattice=psys_get_lattice(ob,psys);
 
 /* 3. start creating renderable things */
-	for(a=0,pa=pars; a<totpart+totchild; a++, pa++) {
+	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
 		random = rng_getFloat(rng);
 
 		if(a<totpart){
