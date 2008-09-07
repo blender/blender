@@ -60,6 +60,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_butspace.h"
+#include "BIF_drawseq.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
@@ -310,7 +311,7 @@ short draw_gpencil_panel (uiBlock *block, bGPdata *gpd, ScrArea *sa)
 		/* 'view align' button (naming depends on context) */
 		if (sa->spacetype == SPACE_VIEW3D)
 			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Sketch in 3D", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added in 3D-space");
-		else if (sa->spacetype != SPACE_SEQ) /* not available for sequencer yet */
+		else
 			uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Stick to View", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added on 2d-canvas");
 	}
 	
@@ -411,8 +412,8 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 			co[1]= points->y;
 		}
 		else if (sflag & GP_STROKE_2DIMAGE) {
-			co[0]= points->x;
-			co[1]= points->y;
+			co[0]= (points->x * winx) + offsx;
+			co[1]= (points->y * winy) + offsy;
 		}
 		else {
 			co[0]= (points->x / 1000 * winx);
@@ -480,8 +481,12 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, 
 							short debug, int offsx, int offsy, int winx, int winy)
 {	
-	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better */
-	if ((thickness < GP_DRAWTHICKNESS_SPECIAL) || (dflag & GP_DRAWDATA_ONLYI2D)) {
+	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
+	 * 	- but NOT if Image Editor 'image-based' stroke
+	 */
+	if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) || 
+		 ((curarea->spacetype==SPACE_IMAGE) && (dflag & GP_DRAWDATA_ONLYV2D)) ) 
+	{
 		bGPDspoint *pt;
 		int i;
 		
@@ -491,8 +496,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				glVertex2f(pt->x, pt->y);
 			}
 			else if (sflag & GP_STROKE_2DIMAGE) {
-				const float x= pt->x;
-				const float y= pt->y;
+				const float x= (pt->x * winx) + offsx;
+				const float y= (pt->y * winy) + offsy;
 				
 				glVertex2f(x, y);
 			}
@@ -505,7 +510,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 		}
 		glEnd();
 	}
-	else { /* tesselation code: currently only enabled with rt != 0 */
+	
+	/* tesselation code: currently only enabled with rt != 0 */
+	else 
+	{ 
 		bGPDspoint *pt1, *pt2;
 		float pm[2];
 		int i;
@@ -526,8 +534,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				s1[0]= pt2->x;		s1[1]= pt2->y;
 			}
 			else if (sflag & GP_STROKE_2DIMAGE) {
-				s0[0]= pt1->x; 		s0[1]= pt1->y;
-				s1[0]= pt2->x;		s1[1]= pt2->y;
+				s0[0]= (pt1->x * winx) + offsx; 		
+				s0[1]= (pt1->y * winy) + offsy;
+				s1[0]= (pt2->x * winx) + offsx;		
+				s1[1]= (pt2->y * winy) + offsy;
 			}
 			else {
 				s0[0]= (pt1->x / 1000 * winx);
@@ -672,9 +682,8 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				glVertex2f(pt->x, pt->y);
 			}
 			else if (sflag & GP_STROKE_2DIMAGE) {
-					// fixme
-				const float x= pt->x;
-				const float y= pt->y;
+				const float x= (pt->x * winx) + offsx;
+				const float y= (pt->y * winy) + offsy;
 				
 				glVertex2f(x, y);
 			}
@@ -889,7 +898,7 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 {
 	bGPdata *gpd;
 	int offsx, offsy, sizex, sizey;
-	int dflag = 0;
+	int dflag = GP_DRAWDATA_NOSTATUS;
 	
 	/* check that we have grease-pencil stuff to draw */
 	if (ELEM(NULL, sa, ibuf)) return;
@@ -902,13 +911,39 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 		{
 			SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 			
-			// fixme... are these settings still needed?
+			/* just draw using standard scaling (settings here are currently ignored anyways) */
+			// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
 			offsx= 0;
 			offsy= 0;
 			sizex= sa->winx;
 			sizey= sa->winy;
 			
 			myortho2(sima->v2d.cur.xmin, sima->v2d.cur.xmax, sima->v2d.cur.ymin, sima->v2d.cur.ymax);
+			
+			dflag |= GP_DRAWDATA_ONLYV2D;
+		}
+			break;
+			
+		case SPACE_SEQ: /* sequence */
+		{
+			SpaceSeq *sseq= (SpaceSeq *)sa->spacedata.first;
+			float zoom, zoomx, zoomy;
+			
+			/* calculate accessory values */
+			zoom= SEQ_ZOOM_FAC(sseq->zoom);
+			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+				zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+				zoomy = zoom;
+			} 
+			else
+				zoomx = zoomy = zoom;
+			
+			sizex= zoomx * ibuf->x;
+			sizey= zoomy * ibuf->y;
+			offsx= (sa->winx-sizex)/2 + sseq->xof;
+			offsy= (sa->winy-sizey)/2 + sseq->yof;
+			
+			dflag |= GP_DRAWDATA_ONLYI2D;
 		}
 			break;
 			
@@ -917,12 +952,13 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			offsy= 0;
 			sizex= sa->winx;
 			sizey= sa->winy;
+			
+			dflag |= GP_DRAWDATA_ONLYI2D;
 			break;
 	}
 	
 	
 	/* draw it! */
-	dflag = (GP_DRAWDATA_ONLYI2D|GP_DRAWDATA_NOSTATUS);
 	gp_draw_data(gpd, offsx, offsy, sizex, sizey, dflag);
 }
 

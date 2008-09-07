@@ -67,6 +67,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_butspace.h"
+#include "BIF_drawseq.h"
 #include "BIF_editarmature.h"
 #include "BIF_editview.h"
 #include "BIF_graphics.h"
@@ -694,7 +695,6 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 {
 	if (gps->flag & GP_STROKE_3DSPACE) {
 		/* directly use 3d-coordinates */
-		// FIXME: maybe we need to counterotate this for object rotation?
 		VecCopyf(p3d, &pt->x);
 	}
 	else {
@@ -1246,17 +1246,45 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		out[1]= y;
 	}
 	
-	/* 2d - on image 'canvas' (asume that p->v2d is set) */
-	else if ( (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && 
-			  (p->v2d) && (p->ibuf) ) 
+	/* 2d - on image 'canvas' (assume that p->v2d is set) */
+	else if ( (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && (p->v2d) ) 
 	{
-		float x, y;
-		
-		/* convert to 'canvas' coordinates (not need to adjust to canvas) */
-		areamouseco_to_ipoco(p->v2d, mval, &x, &y);
-		
-		out[0]= x;
-		out[1]= y;
+		/* for now - space specific */
+		switch (p->sa->spacetype) {
+			case SPACE_SEQ: /* sequencer */
+			{
+				SpaceSeq *sseq= (SpaceSeq *)p->sa->spacedata.first;
+				int sizex, sizey, offsx, offsy, rectx, recty;
+				float zoom, zoomx, zoomy;
+				
+				/* calculate zoom factor */
+				zoom= SEQ_ZOOM_FAC(sseq->zoom);
+				if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+					zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+					zoomy = zoom;
+				} 
+				else
+					zoomx = zoomy = zoom;
+				
+				/* calculate rect size */
+				rectx= (G.scene->r.size*G.scene->r.xsch)/100;
+				recty= (G.scene->r.size*G.scene->r.ysch)/100; 
+				sizex= zoomx * rectx;
+				sizey= zoomy * recty;
+				offsx= (p->sa->winx-sizex)/2 + sseq->xof;
+				offsy= (p->sa->winy-sizey)/2 + sseq->yof;
+				
+				/* calculate new points */
+				out[0]= (float)(mval[0] - offsx) / (float)sizex;
+				out[1]= (float)(mval[1] - offsy) / (float)sizey;
+			}
+				break;
+				
+			default: /* just use raw mouse coordinates - BAD! */
+				out[0]= mval[0];
+				out[1]= mval[1];
+				break;
+		}		
 	}
 	
 	/* 2d - relative to screen (viewport area) */
@@ -1487,6 +1515,11 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 			x0= xyval[0];
 			y0= xyval[1];
 		}
+		else if (gps->flag & GP_STROKE_2DIMAGE) {			
+			ipoco_to_areaco_noclip(p->v2d, &gps->points->x, xyval);
+			x0= xyval[0];
+			y0= xyval[1];
+		}
 		else {
 			x0= (gps->points->x / 1000 * p->sa->winx);
 			y0= (gps->points->y / 1000 * p->sa->winy);
@@ -1530,6 +1563,15 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 				x1= xyval[0];
 				y1= xyval[1];
 			}
+			else if (gps->flag & GP_STROKE_2DIMAGE) {
+				ipoco_to_areaco_noclip(p->v2d, &pt1->x, xyval);
+				x0= xyval[0];
+				y0= xyval[1];
+				
+				ipoco_to_areaco_noclip(p->v2d, &pt2->x, xyval);
+				x1= xyval[0];
+				y1= xyval[1];
+			}
 			else {
 				x0= (pt1->x / 1000 * p->sa->winx);
 				y0= (pt1->y / 1000 * p->sa->winy);
@@ -1552,8 +1594,6 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 		}
 	}
 }
-
-/* -------- */
 
 /* erase strokes which fall under the eraser strokes */
 static void gp_stroke_doeraser (tGPsdata *p)
@@ -1626,14 +1666,14 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 			case SPACE_SEQ:
 			{
 				/* for now, this is not applicable here... */
-				//p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
+				p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
 			}
 				break;
 			case SPACE_IMAGE:
 			{
 				/* check if any ibuf available */
 				if (p->ibuf)
-					p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
+					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 				break;
 		}
