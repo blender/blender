@@ -5567,6 +5567,16 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	*xcoord= xco;
 }
 
+static int view3d_layer_icon(int but_lay, int ob_lay, int used_lay)
+{
+	if (but_lay & ob_lay)
+		return ICON_LAYER_ACTIVE;
+	else if (but_lay & used_lay)
+		return ICON_LAYER_USED;
+	else
+		return ICON_BLANK1;
+}
+
 void view3d_buttons(void)
 {
 	uiBlock *block;
@@ -5733,19 +5743,22 @@ void view3d_buttons(void)
  		
 		/* LAYERS */
 		if(G.obedit==NULL && G.vd->localview==0) {
+			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
-			for(a=0; a<5; a++)
-				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
-			for(a=0; a<5; a++)
-				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		
+			for(a=0; a<5; a++) {
+				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
+			for(a=0; a<5; a++) {
+				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
 			xco+= 5;
 			uiBlockBeginAlign(block);
-			for(a=5; a<10; a++)
-				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
-			for(a=5; a<10; a++)
-				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-
+			for(a=5; a<10; a++) {
+				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
+			for(a=5; a<10; a++) {
+				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), 0, XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
 			uiBlockEndAlign(block);
 		
 			xco+= (a-2)*(XIC/2)+3;
