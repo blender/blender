@@ -402,10 +402,10 @@ void NodeDegreeDecrement(ReebGraph *rg, ReebNode *node)
 {
 	node->degree--;
 
-	if (node->degree == 0)
-	{
-		printf("would remove node %i\n", node->index);
-	}
+//	if (node->degree == 0)
+//	{
+//		printf("would remove node %i\n", node->index);
+//	}
 }
 
 void NodeDegreeIncrement(ReebGraph *rg, ReebNode *node)
@@ -646,11 +646,16 @@ void flipArcBuckets(ReebArc *arc)
 	}
 }
 
+int countArcBuckets(ReebArc *arc)
+{
+	return (int)(floor(arc->tail->weight) - ceil(arc->head->weight)) + 1;
+}
+
 void allocArcBuckets(ReebArc *arc)
 {
 	int i;
 	float start = ceil(arc->head->weight);
-	arc->bcount = (int)(floor(arc->tail->weight) - start) + 1;
+	arc->bcount = countArcBuckets(arc);
 	
 	if (arc->bcount > 0)
 	{
@@ -672,6 +677,11 @@ void resizeArcBuckets(ReebArc *arc)
 {
 	EmbedBucket *oldBuckets = arc->buckets;
 	int oldBCount = arc->bcount;
+	
+	if (countArcBuckets(arc) == oldBCount)
+	{
+		return;
+	}
 	
 	allocArcBuckets(arc);
 	
@@ -1544,7 +1554,6 @@ int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, flo
 	int value = 0;
 	
 	BLI_sortlist(&rg->arcs, compareArcs);
-
 	
 	for (arc = rg->arcs.first; arc; arc = nextArc)
 	{
@@ -3459,15 +3468,13 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	/* calc length before copy, so we have same length on all levels */
 	BLI_calcGraphLength((BGraph*)rg);
 
-	for (i = 0; i < nb_levels; i++)
+	previous = NULL;
+	for (i = 0; i <= nb_levels; i++)
 	{
-		rg = copyReebGraph(rg, i + 1);
-	}
-	
-	for (rgi = rg, i = nb_levels, previous = NULL; rgi; previous = rgi, rgi = rgi->link_up, i--)
-	{
+		rgi = rg;
+		
 		/* don't filter last level */
-		if (rgi->link_up)
+		if (i > 0)
 		{
 			float internal_threshold;
 			float external_threshold;
@@ -3487,11 +3494,20 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 			filterGraph(rgi, G.scene->toolsettings->skgen_options, internal_threshold, external_threshold);
 		}
 
+		if (i < nb_levels)
+		{
+			rg = copyReebGraph(rgi, i + 1);
+		}
+
 		finalizeGraph(rgi, G.scene->toolsettings->skgen_postpro_passes, G.scene->toolsettings->skgen_postpro);
 
 		BLI_markdownSymmetry((BGraph*)rgi, rgi->nodes.first, G.scene->toolsettings->skgen_symmetry_limit);
 		
-		relinkNodes(previous, rgi);
+		if (previous != NULL)
+		{
+			relinkNodes(rgi, previous);
+		}
+		previous = rgi;
 	}
 	
 	verifyMultiResolutionLinks(rg, 0);
@@ -3602,7 +3618,7 @@ void REEB_draw()
 	{
 		i = G.scene->toolsettings->skgen_multi_level;
 		
-		for (rg = GLOBAL_RG; i && rg->link_up; i--, rg = rg->link_up) ;
+		for (rg = GLOBAL_RG; rg->multi_level != i && rg->link_up; rg = rg->link_up) ;
 	}
 	
 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
@@ -3690,11 +3706,11 @@ void REEB_draw()
 
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_INDEX)
 		{
-			sprintf(text, "%i", arc->head->index);
+			sprintf(text, "  %i", arc->head->index);
 			glRasterPos3fv(arc->head->p);
 			BMF_DrawString( G.fonts, text);
 	
-			sprintf(text, "%i", arc->tail->index);
+			sprintf(text, "  %i", arc->tail->index);
 			glRasterPos3fv(arc->tail->p);
 			BMF_DrawString( G.fonts, text);
 		}
