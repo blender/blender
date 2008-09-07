@@ -2218,11 +2218,28 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		{
 			// special case: the parent and child object are not in the same layer. 
 			// This weird situation is used in Apricot for test purposes.
-			// Resolve it by breaking the parent relationship
+			// Resolve it by not converting the child
 			childobj->GetSGNode()->DisconnectFromParent();
 			delete pcit->m_gamechildnode;
-			// This leave the child object is an incorrect position: its local position becomes
-			// the global position but we don't care: the child should be in an invisble layer
+			// Now destroy the child object but also all its descendent that may already be linked
+			// Remove the child reference in the local list!
+			// Note: there may be descendents already if the children of the child were processed
+			//       by this loop before the child. In that case, we must remove the children also
+			CListValue* childrenlist = (CListValue*)childobj->PyGetChildrenRecursive(childobj);
+			childrenlist->Add(childobj->AddRef());
+			for ( i=0;i<childrenlist->GetCount();i++)
+			{
+				KX_GameObject* obj = static_cast<KX_GameObject*>(childrenlist->GetValue(i));
+				if (templist->RemoveValue(obj))
+					obj->Release();
+				if (sumolist->RemoveValue(obj))
+					obj->Release();
+				if (logicbrick_conversionlist->RemoveValue(obj))
+					obj->Release();
+			}
+			childrenlist->Release();
+			// now destroy recursively
+			kxscene->RemoveObject(childobj);
 			continue;
 		}
 
