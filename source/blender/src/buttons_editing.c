@@ -1573,6 +1573,18 @@ static void build_uvlayer_menu_vars(CustomData *data, char **menu_string,
 	}
 }
 
+void set_wave_uvlayer(void *arg1, void *arg2)
+{
+	WaveModifierData *wmd=arg1;
+	CustomDataLayer *layer = arg2;
+
+	/*check we have UV layers*/
+	if (wmd->uvlayer_tmp < 1) return;
+	layer = layer + (wmd->uvlayer_tmp-1);
+	
+	strcpy(wmd->uvlayer_name, layer->name);
+}
+
 void set_displace_uvlayer(void *arg1, void *arg2)
 {
 	DisplaceModifierData *dmd=arg1;
@@ -2193,7 +2205,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				      0.0, 1.0, 0, 0, "Set the UV layer to use");
 				MEM_freeN(strtmp);
 				i = CustomData_get_layer_index(fdata, CD_MTFACE);
-				uiButSetFunc(but, set_displace_uvlayer, wmd,
+				uiButSetFunc(but, set_wave_uvlayer, wmd,
 				             &fdata->layers[i]);
 			}
 			if(wmd->texmapping == MOD_DISP_MAP_OBJECT) {
