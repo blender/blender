@@ -790,6 +790,7 @@ typedef struct Scene {
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+#define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
 
 /* toolsettings->edge_mode */
 #define EDGE_MODE_SELECT				0
