@@ -1855,6 +1855,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		y -= 18;
 
 		if (!isVirtual && (md->type!=eModifierType_Collision)) {
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
+
 			uiBlockBeginAlign(block);
 			if (md->type==eModifierType_ParticleSystem) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
@@ -1870,6 +1872,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
 			uiBlockEndAlign(block);
+			
+			uiSetButLock(ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 		}
 
 		lx = x + 10;
@@ -2552,7 +2556,7 @@ static void editing_panel_modifiers(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_modifiers", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Modifiers", "Editing", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock((ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	uiNewPanelHeight(block, 204);
 
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
