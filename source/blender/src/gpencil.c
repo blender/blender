@@ -224,8 +224,8 @@ bGPDlayer *gpencil_layer_addnew (bGPdata *gpd)
 	BLI_addtail(&gpd->layers, gpl);
 	
 	/* set basic settings */
-	gpl->color[3]= 1.0f;
-	gpl->thickness = 1;
+	gpl->color[3]= 0.9f;
+	gpl->thickness = 3;
 	
 	/* auto-name */
 	sprintf(gpl->info, "GP_Layer");
@@ -247,8 +247,7 @@ bGPdata *gpencil_data_addnew (void)
 	gpd= MEM_callocN(sizeof(bGPdata), "GreasePencilData");
 	
 	/* initial settings */
-		/* it is quite useful to be able to see this info, so on by default */
-	gpd->flag = GP_DATA_DISPINFO;
+	gpd->flag = (GP_DATA_DISPINFO|GP_DATA_EXPAND);
 	
 	return gpd;
 }
