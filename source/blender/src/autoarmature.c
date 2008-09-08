@@ -321,7 +321,7 @@ static RigGraph *newRigGraph()
 	rg->head = NULL;
 	
 	rg->bones_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
-	rg->controls_map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	rg->controls_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
 	
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
@@ -462,7 +462,7 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 	ctrl->bone = bone;
 	getEditBoneRollUpAxis(bone, bone->roll, ctrl->up_axis);
 	
-	BLI_ghash_insert(rg->controls_map, bone, ctrl);
+	BLI_ghash_insert(rg->controls_map, bone->name, ctrl);
 }
 
 static int RIG_parentControl(RigControl *ctrl, EditBone *link)
@@ -573,8 +573,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 							/* SET bone link to bone corresponding to pchan */
 							EditBone *link = BLI_ghash_lookup(rg->bones_map, pchan->name);
 							
-							RIG_parentControl(ctrl, link);
-							found = 1;
+							found = RIG_parentControl(ctrl, link);
 						}
 					}
 					
@@ -584,15 +583,53 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			}
 		}
 
-		/* if not found yet, check parent */		
-		if (found == 0 && ctrl->bone->parent)
-		{
-			/* make sure parent is a deforming bone
-			 * NULL if not
-			 *  */
-			EditBone *link = BLI_ghash_lookup(rg->bones_map, ctrl->bone->parent->name);
+		/* if not found yet, check parent */
+		if (found == 0)
+		{		
+			if (ctrl->bone->parent)
+			{
+				/* make sure parent is a deforming bone
+				 * NULL if not
+				 *  */
+				EditBone *link = BLI_ghash_lookup(rg->bones_map, ctrl->bone->parent->name);
+				
+				found = RIG_parentControl(ctrl, link);
+			}
 			
-			found = RIG_parentControl(ctrl, link);
+			/* check if bone is not superposed on another one */
+			{
+				RigArc *arc;
+				RigArc *best_arc = NULL;
+				EditBone *link = NULL;
+				
+				for (arc = rg->arcs.first; arc; arc = arc->next)
+				{
+					RigEdge *edge;
+					for (edge = arc->edges.first; edge; edge = edge->next)
+					{
+						if (edge->bone)
+						{
+							int fit = 0;
+							
+							fit = VecLenf(ctrl->bone->head, edge->bone->head) < 0.0001;
+							fit = fit || VecLenf(ctrl->bone->tail, edge->bone->tail) < 0.0001;
+							
+							if (fit)
+							{
+								/* pick the bone on the arc with the lowest symmetry level
+								 * means you connect control to the trunk of the skeleton */
+								if (best_arc == NULL || arc->symmetry_level < best_arc->symmetry_level)
+								{
+									best_arc = arc;
+									link = edge->bone;
+								}
+							}
+						}
+					}
+				}
+				
+				found = RIG_parentControl(ctrl, link);
+			}
 		}
 		
 		/* if not found yet, check child */		
@@ -622,39 +659,95 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			
 			found = RIG_parentControl(ctrl, link);
 		}
-		
+
 	}
+	
 	
 	/* second pass, make chains in control bones */
 	while (change)
 	{
 		change = 0;
 		
+		printf("-------------------------\n");
+		
 		for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
 		{
 			/* if control is not linked yet */
 			if (ctrl->link == NULL)
 			{
-				RigControl *ctrl_parent = BLI_ghash_lookup(rg->controls_map, ctrl->bone->parent);
+				bPoseChannel *pchan;
+				bConstraint *con;
+				RigControl *ctrl_parent = NULL;
 				RigControl *ctrl_child;
+				int found = 0;
 
-				/* check if parent is already linked */
-				if (ctrl_parent && ctrl_parent->link)
+				if (ctrl->bone->parent)
 				{
-					RIG_parentControl(ctrl, ctrl_parent->bone);
-					change = 1;
+					ctrl_parent = BLI_ghash_lookup(rg->controls_map, ctrl->bone->parent->name);
 				}
-				else
+
+				/* check constraints first */
+				
+				/* DO SOME MAGIC HERE */
+				for (pchan= rg->ob->pose->chanbase.first; pchan; pchan= pchan->next)
 				{
-					/* check childs */
-					for (ctrl_child = rg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
+					for (con= pchan->constraints.first; con; con= con->next) 
 					{
-						/* if a child is linked, link to that one */
-						if (ctrl_child->link && ctrl_child->bone->parent == ctrl->bone)
+						bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+						ListBase targets = {NULL, NULL};
+						bConstraintTarget *ct;
+						
+						/* constraint targets */
+						if (cti && cti->get_constraint_targets)
 						{
-							RIG_parentControl(ctrl, ctrl_child->bone);
-							change = 1;
-							break;
+							cti->get_constraint_targets(con, &targets);
+							
+							for (ct= targets.first; ct; ct= ct->next)
+							{
+								if ((ct->tar == rg->ob) && strcmp(ct->subtarget, ctrl->bone->name) == 0)
+								{
+									/* SET bone link to ctrl corresponding to pchan */
+									RigControl *link = BLI_ghash_lookup(rg->controls_map, pchan->name);
+
+									/* if owner is a control bone, link with it */									
+									if (link && link->link)
+									{
+										printf("%s -constraint- %s\n", ctrl->bone->name, link->bone->name);
+										RIG_parentControl(ctrl, link->bone);
+										found = 1;
+										break;
+									}
+								}
+							}
+							
+							if (cti->flush_constraint_targets)
+								cti->flush_constraint_targets(con, &targets, 0);
+						}
+					}
+				}			
+
+				if (found == 0)
+				{
+					/* check if parent is already linked */
+					if (ctrl_parent && ctrl_parent->link)
+					{
+						printf("%s -parent- %s\n", ctrl->bone->name, ctrl_parent->bone->name);
+						RIG_parentControl(ctrl, ctrl_parent->bone);
+						change = 1;
+					}
+					else
+					{
+						/* check childs */
+						for (ctrl_child = rg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
+						{
+							/* if a child is linked, link to that one */
+							if (ctrl_child->link && ctrl_child->bone->parent == ctrl->bone)
+							{
+								printf("%s -child- %s\n", ctrl->bone->name, ctrl_child->bone->name);
+								RIG_parentControl(ctrl, ctrl_child->bone);
+								change = 1;
+								break;
+							}
 						}
 					}
 				}
@@ -1067,14 +1160,44 @@ void RIG_printArcBones(RigArc *arc)
 	printf("\n");
 }
 
-void RIG_printCtrl(RigControl *ctrl)
+void RIG_printCtrl(RigControl *ctrl, char *indent)
 {
-	printf("Bone: %s\n", ctrl->bone->name);
-	printf("Link: %s\n", ctrl->link ? ctrl->link->name : "!NONE!");
-	printf("Flag: %i\n", ctrl->flag);
+	char text[128];
+	
+	printf("%sBone: %s\n", indent, ctrl->bone->name);
+	printf("%sLink: %s\n", indent, ctrl->link ? ctrl->link->name : "!NONE!");
+	
+	sprintf(text, "%soffset", indent);
+	printvecf(text, ctrl->offset);
+	
+	printf("%sFlag: %i\n", indent, ctrl->flag);
 }
 
-void RIG_printArc(RigArc *arc)
+void RIG_printLinkedCtrl(RigGraph *rg, EditBone *bone, int tabs)
+{
+	RigControl *ctrl;
+	char indent[64];
+	char *s = indent;
+	int i;
+	
+	for (i = 0; i < tabs; i++)
+	{
+		s[0] = '\t';
+		s++;
+	}
+	s[0] = 0;
+	
+	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
+	{
+		if (ctrl->link == bone)
+		{
+			RIG_printCtrl(ctrl, indent);
+			RIG_printLinkedCtrl(rg, ctrl->bone, tabs + 1);
+		}
+	}
+}
+
+void RIG_printArc(RigGraph *rg, RigArc *arc)
 {
 	RigEdge *edge;
 
@@ -1086,7 +1209,10 @@ void RIG_printArc(RigArc *arc)
 		printf("\t\tlength %f\n", edge->length);
 		printf("\t\tangle %f\n", edge->angle * 180 / M_PI);
 		if (edge->bone)
+		{
 			printf("\t\t%s\n", edge->bone->name);
+			RIG_printLinkedCtrl(rg, edge->bone, 3);
+		}
 	}	
 	printf("symmetry level: %i flag: %i group %i\n", arc->symmetry_level, arc->symmetry_flag, arc->symmetry_group);
 
@@ -1096,19 +1222,11 @@ void RIG_printArc(RigArc *arc)
 void RIG_printGraph(RigGraph *rg)
 {
 	RigArc *arc;
-	RigControl *ctrl;
 
 	printf("---- ARCS ----\n");
 	for (arc = rg->arcs.first; arc; arc = arc->next)
 	{
-		RIG_printArc(arc);	
-		printf("\n");
-	}
-	
-	printf("---- CONTROLS ----\n");
-	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
-	{
-		RIG_printCtrl(ctrl);
+		RIG_printArc(rg, arc);	
 		printf("\n");
 	}
 
@@ -2739,7 +2857,7 @@ void BIF_retargetArmature()
 				
 				printf("Armature graph created\n");
 		
-//				RIG_printGraph(rigg);
+				//RIG_printGraph(rigg);
 				
 				rigg->link_mesh = reebg;
 				
