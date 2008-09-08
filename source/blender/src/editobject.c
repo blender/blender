@@ -3023,6 +3023,10 @@ void convertmenu(void)
 		basedel = NULL;				
 	}
 	
+	/* delete object should renew depsgraph */
+	if(nr==2)
+		DAG_scene_sort(G.scene);
+
 	/* texspace and normals */
 	if(!basen) BASACT= base;
 
