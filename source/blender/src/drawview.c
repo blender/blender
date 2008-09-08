@@ -135,6 +135,7 @@
 #include "BIF_verse.h"
 #endif
 
+#include "BDR_drawaction.h"
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
@@ -1207,60 +1208,196 @@ void drawname(Object *ob)
 	BMF_DrawString(G.font, ob->id.name+2);
 }
 
+static char *get_cfra_marker_name()
+{
+	ListBase *markers= &G.scene->markers;
+	TimeMarker *m1, *m2;
+	
+	/* search through markers for match */
+	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
+		if (m1->frame==CFRA)
+			return m1->name;
+		if (m2->frame==CFRA)
+			return m2->name;
+		
+		if (m1 == m2)
+			break;
+	}
+	
+	return NULL;
+}
 
+// TODO: move this func into some keyframing API
+short ob_cfra_has_keyframe (Object *ob)
+{
+	// fixme... this is slow!
+	if (ob) {
+		ListBase keys = {NULL, NULL};
+		ActKeyColumn *ak, *akn;
+		Key *key= ob_get_key(ob);
+		int cfra, found= 0;
+		
+		/* check active action */
+		if (ob->action) {
+			/* get keyframes of action */
+			action_to_keylist(ob->action, &keys, NULL, NULL);
+			
+			cfra= frame_to_float(CFRA);
+			cfra= get_action_frame(ob, cfra);
+			
+			/* check if a keyframe occurs on current frame */
+			for (ak=keys.first, akn=keys.last; ak && akn; ak=ak->next, akn=akn->prev) {
+				if (cfra == ak->cfra) {
+					found= 1;
+					break;
+				}
+				else if (cfra == akn->cfra) {
+					found= 1;
+					break;
+				}
+				
+				if (ak == akn)
+					break;
+			}
+			
+			/* free temp list */
+			BLI_freelistN(&keys);
+			keys.first= keys.last= NULL;
+			
+			/* return if found */
+			if (found) return 1;
+		}
+		
+		/* accumulate keyframes for available ipo's */
+		if (ob->ipo)
+			ipo_to_keylist(ob->ipo, &keys, NULL, NULL);
+		if (key)
+			ipo_to_keylist(key->ipo, &keys, NULL, NULL);
+		
+		if (keys.first) {
+			cfra= frame_to_float(CFRA);
+			found= 0;
+				
+			/* check if a keyframe occurs on current frame */
+			for (ak=keys.first, akn=keys.last; ak && akn; ak=ak->next, akn=akn->prev) {
+				if (IS_EQ(cfra, ak->cfra)) {
+					found= 1;
+					break;
+				}
+				else if (IS_EQ(cfra, akn->cfra)) {
+					found= 1;
+					break;
+				}
+				
+				if (ak == akn)
+					break;
+			}
+			
+			/* free temp list */
+			BLI_freelistN(&keys);
+			keys.first= keys.last= NULL;
+			
+			/* return if found */
+			if (found) return 1;
+		}
+	}
+	
+	/* couldn't find a keyframe */
+	return 0;
+}
+
+/* draw info beside axes in bottom left-corner: 
+ * 	framenum, object name, bone name (if available), marker name (if available)
+ */
 static void draw_selected_name(Object *ob)
 {
-	char info[128];
+	char info[256], *markern;
 	short offset=30;
-
-	if(ob->type==OB_ARMATURE) {
-		bArmature *arm= ob->data;
-		char *name= NULL;
-		
-		if(ob==G.obedit) {
-			EditBone *ebo;
-			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
-				if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
-					name= ebo->name;
-					break;
+	
+	/* get name of marker on current frame (if available) */
+	markern= get_cfra_marker_name();
+	
+	/* check if there is an object */
+	if(ob) {
+		/* name(s) to display depends on type of object */
+		if(ob->type==OB_ARMATURE) {
+			bArmature *arm= ob->data;
+			char *name= NULL;
+			
+			/* show name of active bone too (if possible) */
+			if(ob==G.obedit) {
+				EditBone *ebo;
+				for (ebo=G.edbo.first; ebo; ebo=ebo->next){
+					if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
+						name= ebo->name;
+						break;
+					}
 				}
 			}
-		}
-		else if(ob->pose && (ob->flag & OB_POSEMODE)) {
-			bPoseChannel *pchan;
-			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {
-					name= pchan->name;
-					break;
+			else if(ob->pose && (ob->flag & OB_POSEMODE)) {
+				bPoseChannel *pchan;
+				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {
+						name= pchan->name;
+						break;
+					}
 				}
 			}
+			if(name && markern)
+				sprintf(info, "(%d) %s %s <%s>", CFRA, ob->id.name+2, name, markern);
+			else if(name)
+				sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, name);
+			else
+				sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
 		}
-		if(name)
-			sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, name);
+		else if(ELEM3(ob->type, OB_MESH, OB_LATTICE, OB_CURVE)) {
+			Key *key= NULL;
+			KeyBlock *kb = NULL;
+			char shapes[75];
+			
+			/* try to display active shapekey too */
+			shapes[0] = 0;
+			key = ob_get_key(ob);
+			if(key){
+				kb = BLI_findlink(&key->block, ob->shapenr-1);
+				if(kb){
+					sprintf(shapes, ": %s ", kb->name);		
+					if(ob->shapeflag == OB_SHAPE_LOCK){
+						sprintf(shapes, "%s (Pinned)",shapes);
+					}
+				}
+			}
+			
+			if(markern)
+				sprintf(info, "(%d) %s %s <%s>", CFRA, ob->id.name+2, shapes, markern);
+			else
+				sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, shapes);
+		}
+		else {
+			/* standard object */
+			if (markern)
+				sprintf(info, "(%d) %s <%s>", CFRA, ob->id.name+2, markern);
+			else
+				sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
+		}
+			
+		/* colour depends on whether there is a keyframe */
+		if (ob_cfra_has_keyframe(ob))
+			BIF_ThemeColor(TH_VERTEX_SELECT);
 		else
-			sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
+			BIF_ThemeColor(TH_TEXT_HI);
 	}
-	else if(ob->type==OB_MESH) {
-		Key *key= NULL;
-		KeyBlock *kb = NULL;
-		char shapes[75];
+	else {
+		/* no object */
+		if (markern)
+			sprintf(info, "(%d) <%s>", CFRA, markern);
+		else
+			sprintf(info, "(%d)", CFRA);
 		
-		shapes[0] = 0;
-		key = ob_get_key(ob);
-		if(key){
-			kb = BLI_findlink(&key->block, ob->shapenr-1);
-			if(kb){
-				sprintf(shapes, ": %s ", kb->name);		
-				if(ob->shapeflag == OB_SHAPE_LOCK){
-					sprintf(shapes, "%s (Pinned)",shapes);
-				}
-			}
-		}
-		sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, shapes);
+		/* colour is always white */
+		BIF_ThemeColor(TH_TEXT_HI);
 	}
-	else sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
-
-	BIF_ThemeColor(TH_TEXT_HI);
+	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = 14 + (U.rvisize * 2);
 
@@ -3257,7 +3394,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 	ob= OBACT;
-	if(ob && (U.uiflag & USER_DRAWVIEWINFO)) 
+	if(U.uiflag & USER_DRAWVIEWINFO) 
 		draw_selected_name(ob);
 	
 	draw_area_emboss(sa);
