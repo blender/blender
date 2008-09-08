@@ -555,6 +555,7 @@ static int Material_setSssFront( BPy_Material * self, PyObject * value );
 static int Material_setSssBack( BPy_Material * self, PyObject * value );
 static int Material_setSssBack( BPy_Material * self, PyObject * value );
 static int Material_setTexChannel( BPy_Material * self, PyObject * value );
+static int Material_setTextures( BPy_Material * self, PyObject * value );
 
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
@@ -1168,6 +1169,10 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getColorband, (setter)Material_setColorband,
 	 "The specular colorband for this material",
 	 (void *) 1},
+	{"textures",
+	 (getter)Material_getTextures, (setter)Material_setTextures,
+	 "The Material's texture list as a tuple",
+	 NULL},
 	
 	/* SSS settings */
 	{"enableSSS",
@@ -1737,27 +1742,23 @@ static PyObject* Material_getSssBack( BPy_Material * self )
 static PyObject *Material_getTextures( BPy_Material * self )
 {
 	int i;
-	struct MTex *mtex;
-	PyObject *t[MAX_MTEX];
 	PyObject *tuple;
 
 	/* build a texture list */
-	for( i = 0; i < MAX_MTEX; ++i ) {
-		mtex = self->material->mtex[i];
-
-		if( mtex ) {
-			t[i] = MTex_CreatePyObject( mtex );
-		} else {
-			Py_INCREF( Py_None );
-			t[i] = Py_None;
-		}
-	}
-
-	/* turn the array into a tuple */
-	tuple = Py_BuildValue( "NNNNNNNNNNNNNNNNNN", t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15], t[16], t[17] );
+	tuple = PyTuple_New( MAX_MTEX );
 	if( !tuple )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "Material_getTextures: couldn't create PyTuple" );
+					      "couldn't create PyTuple" );
+
+	for( i = 0; i < MAX_MTEX; ++i ) {
+		struct MTex *mtex = self->material->mtex[i];
+		if( mtex ) {
+			PyTuple_SET_ITEM( tuple, i, MTex_CreatePyObject( mtex, ID_MA ) );
+		} else {
+			Py_INCREF( Py_None );
+			PyTuple_SET_ITEM( tuple, i, Py_None );
+		}
+	}
 
 	return tuple;
 }
@@ -2432,14 +2433,83 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static int Material_setTextures( BPy_Material * self, PyObject * value )
+{
+	int i;
+
+	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected tuple or list of integers" );
+
+	/* don't allow more than MAX_MTEX items */
+	if( PySequence_Size(value) > MAX_MTEX )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+						"size of sequence greater than number of allowed textures" );
+
+	/* get a fast sequence; in Python 2.5, this just return the original
+	 * list or tuple and INCREFs it, so we must DECREF */
+	value = PySequence_Fast( value, "" );
+
+	/* check the list for valid entries */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		if( item != Py_None && !BPy_MTex_Check( item ) ) {
+			Py_DECREF(value);
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected tuple or list containing MTex objects and NONE" );
+		}
+	}
+
+	/* for each MTex object, copy to this structure */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->material->mtex[i];
+		if( item != Py_None ) {
+			BPy_MTex *obj = (BPy_MTex *)item;
+
+			/* if MTex is already at this location, just skip it */
+			if( obj->mtex == mtex )	continue;
+
+			/* create a new entry if needed, otherwise update reference count
+			 * for texture that is being replaced */
+			if( !mtex )
+				mtex = self->material->mtex[i] = add_mtex(  );
+			else
+				mtex->tex->id.us--;
+
+			/* copy the data */
+			mtex->tex = obj->mtex->tex;
+			id_us_plus( &mtex->tex->id );
+			mtex->texco = obj->mtex->texco;
+			mtex->mapto = obj->mtex->mapto;
+		}
+	}
+
+	/* now go back and free any entries now marked as None */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->material->mtex[i];
+		if( item == Py_None && mtex ) {
+			mtex->tex->id.us--;
+			MEM_freeN( mtex );
+			self->material->mtex[i] = NULL;
+		} 
+	}
+
+	Py_DECREF(value);
+	return 0;
+}
+
 static PyObject *Material_clearTexture( BPy_Material * self, PyObject * value )
 {
 	int texnum = (int)PyInt_AsLong(value);
 	struct MTex *mtex;
 	/* non ints will be -1 */
-	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9]" );
+	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) ) {
+		char errstr[64];
+		sprintf( errstr, "expected int in [0,%d]", MAX_MTEX );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, errstr );
+	}
 
 	mtex = self->material->mtex[texnum];
 	if( mtex ) {
