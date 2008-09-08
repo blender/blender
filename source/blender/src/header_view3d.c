@@ -5387,7 +5387,11 @@ void do_view3d_buttons(short event)
 	case B_MAN_MODE:
 		allqueue(REDRAWVIEW3D, 1);
 		break;		
-
+	case B_VIEW_BUTSEDIT:
+		allqueue(REDRAWVIEW3D, 1);
+		allqueue(REDRAWBUTSEDIT, 1);
+		break;
+		
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -5680,7 +5684,7 @@ void view3d_buttons(void)
  		}
  	} else {
  		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
- 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_REDR, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
+ 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
