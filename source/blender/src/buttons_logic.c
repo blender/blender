@@ -683,6 +683,8 @@ static char *sensor_name(int type)
 		return "Property";
 	case SENS_ACTUATOR:
 		return "Actuator";
+	case SENS_DELAY:
+		return "Delay";
 	case SENS_MOUSE:
 		return "Mouse";
 	case SENS_COLLISION:
@@ -704,7 +706,7 @@ static char *sensor_name(int type)
 static char *sensor_pup(void)
 {
 	/* the number needs to match defines in game.h */
-	return "Sensors %t|Always %x0|Keyboard %x3|Mouse %x5|"
+	return "Sensors %t|Always %x0|Delay %x13|Keyboard %x3|Mouse %x5|"
 		"Touch %x1|Collision %x6|Near %x2|Radar %x7|"
 		"Property %x4|Random %x8|Ray %x9|Message %x10|Joystick %x11|Actuator %x12";
 }
@@ -1000,6 +1002,7 @@ static int get_col_sensor(int type)
 {
 	switch(type) {
 	case SENS_ALWAYS:		return TH_BUT_ACTION;
+	case SENS_DELAY:		return TH_BUT_ACTION;
 	case SENS_TOUCH:		return TH_BUT_NEUTRAL;
 	case SENS_COLLISION:	return TH_BUT_SETTING;
 	case SENS_NEAR:			return TH_BUT_SETTING1; 
@@ -1070,8 +1073,8 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 	bRaySensor       *raySens      = NULL;
 	bMessageSensor   *mes          = NULL;
 	bJoystickSensor	 *joy		   = NULL;
-	bActuatorSensor  *as          = NULL;
-
+	bActuatorSensor  *as           = NULL;
+	bDelaySensor     *ds		   = NULL;
 	short ysize;
 	char *str;
 	
@@ -1297,6 +1300,27 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			yco-= ysize;
 			break;
 		}
+	case SENS_DELAY:
+		{
+			ysize= 48;
+			
+			glRects(xco, yco-ysize, xco+width, yco);
+			uiEmboss((float)xco, (float)yco-ysize,
+				(float)xco+width, (float)yco, 1);
+			
+			draw_default_sensor_header(sens, block, xco, yco, width);
+			ds = sens->data;
+			
+			uiDefButS(block, NUM, 0, "Delay",(short)(10+xco),(short)(yco-44),(short)((width-22)*0.4+10), 19,
+				&ds->delay, 0.0, 5000.0, 0, 0, "Delay in number of frames before the positive trigger");
+			uiDefButS(block, NUM, 0, "Dur",(short)(10+xco+(width-22)*0.4+10),(short)(yco-44),(short)((width-22)*0.4-10), 19,
+				&ds->duration, 0.0, 5000.0, 0, 0, "If >0, delay in number of frames before the negative trigger following the positive trigger");
+			uiDefButBitS(block, TOG, SENS_DELAY_REPEAT, 0, "REP",(short)(xco + 10 + (width-22)*0.8),(short)(yco - 44),
+				(short)(0.20 * (width-22)), 19, &ds->flag, 0.0, 0.0, 0, 0,
+				"Toggle repeat option. If selected, the sensor restarts after Delay+Dur frames");
+			yco-= ysize;
+			break;
+		}
 	case SENS_MOUSE:
 		{
 			ms= sens->data;
@@ -1366,9 +1390,14 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					&raySens->propname, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
-			
+
+			/* X-Ray option */
+			uiDefButBitS(block, TOG, SENS_RAY_XRAY, 1, "X",
+				xco + 10,yco - 68, 0.10 * (width-20), 19,
+				&raySens->mode, 0.0, 0.0, 0, 0,
+				"Toggle X-Ray option (see through objects that don't have the property)");
 			/* 2. sensing range */
-			uiDefButF(block, NUM, 1, "Range", xco+10, yco-68, 0.6 * (width-20), 19,
+			uiDefButF(block, NUM, 1, "Range", xco+10 + 0.10 * (width-20), yco-68, 0.5 * (width-20), 19,
 				&raySens->range, 0.01, 10000.0, 100, 0,
 				"Sense objects no farther than this distance");
 			
@@ -1415,10 +1444,13 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			draw_default_sensor_header(sens, block, xco, yco, width);
 
 			joy= sens->data;
-			
+
+			uiDefButS(block, NUM, 1, "Index:", xco+10, yco-44, 0.6 * (width-120), 19,
+			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
+			"Spesify which joystick to use");			
 
 			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, 0.6 * (width-20), 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+87, yco-44, 0.6 * (width-150), 19,
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			
@@ -1654,53 +1686,66 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			wval = (width-100)/3;
 			if (oa->type == ACT_OBJECT_NORMAL)
 			{
-				ysize= 175;
-				
+				if ( ob->gameflag & OB_DYNAMIC )
+				{
+					ysize= 175;
+				}
+				else
+				{
+					ysize= 72;
+				}
+
 				glRects(xco, yco-ysize, xco+width, yco);
 				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 				
-				uiDefBut(block, LABEL, 0, "Force",	xco, yco-45, 55, 19, NULL, 0, 0, 0, 0, "Sets the force");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-45, wval, 19, oa->forceloc, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-45, wval, 19, oa->forceloc+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-45, wval, 19, oa->forceloc+2, -10000.0, 10000.0, 10, 0, "");
+				uiDefBut(block, LABEL, 0, "Loc",	xco, yco-45, 45, 19, NULL, 0, 0, 0, 0, "Sets the location");
+				uiDefButF(block, NUM, 0, "",		xco+45, yco-45, wval, 19, oa->dloc, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-45, wval, 19, oa->dloc+1, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-45, wval, 19, oa->dloc+2, -10000.0, 10000.0, 10, 0, "");
 				
-				uiDefBut(block, LABEL, 0, "Torque", xco, yco-64, 55, 19, NULL, 0, 0, 0, 0, "Sets the torque");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-64, wval, 19, oa->forcerot, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-64, wval, 19, oa->forcerot+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-64, wval, 19, oa->forcerot+2, -10000.0, 10000.0, 10, 0, "");
-				
-				uiDefBut(block, LABEL, 0, "dLoc",	xco, yco-87, 45, 19, NULL, 0, 0, 0, 0, "Sets the dLoc");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-87, wval, 19, oa->dloc, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-87, wval, 19, oa->dloc+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-87, wval, 19, oa->dloc+2, -10000.0, 10000.0, 10, 0, "");
-				
-				uiDefBut(block, LABEL, 0, "dRot",	xco, yco-106, 45, 19, NULL, 0, 0, 0, 0, "Sets the dRot");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-106, wval, 19, oa->drot, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-106, wval, 19, oa->drot+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-106, wval, 19, oa->drot+2, -10000.0, 10000.0, 10, 0, "");
-				
-				uiDefBut(block, LABEL, 0, "linV",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Sets the linear velocity");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-129, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-129, wval, 19, oa->linearvelocity+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-129, wval, 19, oa->linearvelocity+2, -10000.0, 10000.0, 10, 0, "");
-				
-				uiDefBut(block, LABEL, 0, "angV",	xco, yco-148, 45, 19, NULL, 0, 0, 0, 0, "Sets the angular velocity");
-				uiDefButF(block, NUM, 0, "",		xco+45, yco-148, wval, 19, oa->angularvelocity, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-148, wval, 19, oa->angularvelocity+1, -10000.0, 10000.0, 10, 0, "");
-				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-148, wval, 19, oa->angularvelocity+2, -10000.0, 10000.0, 10, 0, "");
-				
-				uiDefBut(block, LABEL, 0, "damp",	xco, yco-171, 45, 19, NULL, 0, 0, 0, 0, "Number of frames to reach the target velocity");
-				uiDefButS(block, NUM, 0, "",		xco+45, yco-171, wval, 19, &oa->damping, 0.0, 1000.0, 100, 0, "");
+				uiDefBut(block, LABEL, 0, "Rot",	xco, yco-64, 45, 19, NULL, 0, 0, 0, 0, "Sets the rotation");
+				uiDefButF(block, NUM, 0, "",		xco+45, yco-64, wval, 19, oa->drot, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-64, wval, 19, oa->drot+1, -10000.0, 10000.0, 10, 0, "");
+				uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-64, wval, 19, oa->drot+2, -10000.0, 10000.0, 10, 0, "");
 
-				uiDefButBitS(block, TOG, ACT_FORCE_LOCAL, 0, "L",		xco+45+3*wval, yco-45, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
-				uiDefButBitS(block, TOG, ACT_TORQUE_LOCAL, 0, "L",		xco+45+3*wval, yco-64, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
-				uiDefButBitS(block, TOG, ACT_DLOC_LOCAL, 0, "L",		xco+45+3*wval, yco-87, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
-				uiDefButBitS(block, TOG, ACT_DROT_LOCAL, 0, "L",		xco+45+3*wval, yco-106, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
-				uiDefButBitS(block, TOG, ACT_LIN_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-129, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
-				uiDefButBitS(block, TOG, ACT_ANG_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-148, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+				uiDefButBitS(block, TOG, ACT_DLOC_LOCAL, 0, "L",		xco+45+3*wval, yco-45, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+				uiDefButBitS(block, TOG, ACT_DROT_LOCAL, 0, "L",		xco+45+3*wval, yco-64, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+	
+				if ( ob->gameflag & OB_DYNAMIC )
+				{
+					uiDefBut(block, LABEL, 0, "Force",	xco, yco-87, 55, 19, NULL, 0, 0, 0, 0, "Sets the force");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-87, wval, 19, oa->forceloc, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-87, wval, 19, oa->forceloc+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-87, wval, 19, oa->forceloc+2, -10000.0, 10000.0, 10, 0, "");
 				
-				uiDefButBitS(block, TOG, ACT_ADD_LIN_VEL, 0, "add",xco+45+3*wval+15, yco-129, 35, 19, &oa->flag, 0.0, 0.0, 0, 0, "Toggles between ADD and SET linV");
+					uiDefBut(block, LABEL, 0, "Torque", xco, yco-106, 55, 19, NULL, 0, 0, 0, 0, "Sets the torque");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-106, wval, 19, oa->forcerot, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-106, wval, 19, oa->forcerot+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-106, wval, 19, oa->forcerot+2, -10000.0, 10000.0, 10, 0, "");				
+				}
 				
+				if ( ob->gameflag & OB_DYNAMIC )
+				{
+					uiDefBut(block, LABEL, 0, "LinV",	xco, yco-129, 45, 19, NULL, 0, 0, 0, 0, "Sets the linear velocity");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-129, wval, 19, oa->linearvelocity, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-129, wval, 19, oa->linearvelocity+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-129, wval, 19, oa->linearvelocity+2, -10000.0, 10000.0, 10, 0, "");
+				
+					uiDefBut(block, LABEL, 0, "AngV",	xco, yco-148, 45, 19, NULL, 0, 0, 0, 0, "Sets the angular velocity");
+					uiDefButF(block, NUM, 0, "",		xco+45, yco-148, wval, 19, oa->angularvelocity, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+wval, yco-148, wval, 19, oa->angularvelocity+1, -10000.0, 10000.0, 10, 0, "");
+					uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-148, wval, 19, oa->angularvelocity+2, -10000.0, 10000.0, 10, 0, "");
+				
+					uiDefBut(block, LABEL, 0, "Damp",	xco, yco-171, 45, 19, NULL, 0, 0, 0, 0, "Number of frames to reach the target velocity");
+					uiDefButS(block, NUM, 0, "",		xco+45, yco-171, wval, 19, &oa->damping, 0.0, 1000.0, 100, 0, "");
+
+					uiDefButBitS(block, TOG, ACT_FORCE_LOCAL, 0, "L",		xco+45+3*wval, yco-87, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+					uiDefButBitS(block, TOG, ACT_TORQUE_LOCAL, 0, "L",		xco+45+3*wval, yco-106, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+					uiDefButBitS(block, TOG, ACT_LIN_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-129, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+					uiDefButBitS(block, TOG, ACT_ANG_VEL_LOCAL, 0, "L",		xco+45+3*wval, yco-148, 15, 19, &oa->flag, 0.0, 0.0, 0, 0, "Local transformation");
+				
+					uiDefButBitS(block, TOG, ACT_ADD_LIN_VEL, 0, "add",xco+45+3*wval+15, yco-129, 35, 19, &oa->flag, 0.0, 0.0, 0, 0, "Toggles between ADD and SET linV");
+				}				
 			} else if (oa->type == ACT_OBJECT_SERVO)
 			{
 				ysize= 172;
@@ -1820,7 +1865,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			but = uiDefButBitS(block, TOG, ACT_IPOFORCE, ACT_IPOFORCE, 
 				"Force", xco+10+(width-20)/2, yco-24, (width-20)/4-10, 19, 
 				&ia->flag, 0, 0, 0, 0, 
-				"Convert Ipo to force. Force is applied in global or local coordinate according to Local flag"); 
+				"Apply Ipo as a global or local force depending on the local option (dynamic objects only)"); 
 			uiButSetFunc(but, change_ipo_actuator, but, ia);
 
 			but = uiDefButBitS(block, TOG, ACT_IPOADD, ACT_IPOADD, 
@@ -1985,7 +2030,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
 			int wval; /* just a temp width */
-			ysize = 72;
+			ysize = 92;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
@@ -2005,9 +2050,27 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-68, wval, 19,
 					 eoa->linVelocity+2, -100.0, 100.0, 10, 0,
 					 "Velocity upon creation, z component.");
-			uiDefButBitS(block, TOG, 2, 0, "L", xco+45+3*wval, yco-68, 15, 19,
+			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_LINV, 0, "L", xco+45+3*wval, yco-68, 15, 19,
 					 &eoa->localflag, 0.0, 0.0, 0, 0,
 					 "Apply the transformation locally");
+			
+			
+			uiDefBut(block, LABEL, 0, "AngV",	xco,           yco-90,   45, 19,
+					 NULL, 0, 0, 0, 0,
+					 "Angular velocity upon creation.");
+			uiDefButF(block, NUM, 0, "",		xco+45,        yco-90, wval, 19,
+					 eoa->angVelocity, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, x component.");
+			uiDefButF(block, NUM, 0, "",		xco+45+wval,   yco-90, wval, 19,
+					 eoa->angVelocity+1, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, y component.");
+			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-90, wval, 19,
+					 eoa->angVelocity+2, -10000.0, 10000.0, 10, 0,
+					 "Angular velocity upon creation, z component.");
+			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_ANGV, 0, "L", xco+45+3*wval, yco-90, 15, 19,
+					 &eoa->localflag, 0.0, 0.0, 0, 0,
+					 "Apply the rotation locally");
+					 
 
 		}
 		else if(eoa->type==ACT_EDOB_END_OBJECT) {
@@ -2088,8 +2151,8 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefBut(block, LABEL,			0, "Range",	xco+80, yco-45, (width-115)/2, 19, NULL, 0.0, 0.0, 0, 0, "Set the maximum length of ray");
 			uiDefButBitS(block, TOG, ACT_CONST_DISTANCE, B_REDR, "Dist",	xco+80+(width-115)/2, yco-45, (width-115)/2, 19, &coa->flag, 0.0, 0.0, 0, 0, "Force distance of object to point of impact of ray");
 
-			if(coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRMX)) fp= coa->minloc;
-			else if(coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRMY)) fp= coa->minloc+1;
+			if(coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= coa->minloc;
+			else if(coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= coa->minloc+1;
 			else fp= coa->minloc+2;
 
 			uiDefButF(block, NUM, 0, "",		xco+80, yco-65, (width-115)/2, 19, fp+3, 0.0, 2000.0, 10, 0, "Maximum length of ray");
@@ -2287,7 +2350,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		
 		visAct = act->data;
 
-		str= "Visibility %t|Visible %x0|Invisible %x1";
+		str= "Visibility %t|Visible %x0|Invisible %x1|Visible Recursive %x2|Invisible Recursive %x3";
 
 		uiDefButI(block, MENU, B_REDR, str,
 			  xco + 10, yco - 24, width - 20, 19, &visAct->flag,
@@ -3042,6 +3105,9 @@ void logic_buts(void)
 	int a, iact, stbit, offset;
 	short xco, yco, count, width, ycoo;
 	char *pupstr, name[32];
+	/* pin is a bool used for actuator and sensor drawing with states
+	 * pin so changing states dosnt hide the logic brick */
+	char pin;
 
 	wrld= G.scene->world;
 
@@ -3170,7 +3236,8 @@ void logic_buts(void)
 		while(cont) {
 			for (iact=0; iact<cont->totlinks; iact++) {
 				act = cont->links[iact];
-				act->flag |= ACT_LINKED;
+				if (act)
+					act->flag |= ACT_LINKED;
 			}
 			controller_state_mask |= cont->state_mask;
 			cont = cont->next;
@@ -3218,7 +3285,8 @@ void logic_buts(void)
 						/* this controller is visible, mark all its actuator */
 						for (iact=0; iact<cont->totlinks; iact++) {
 							act = cont->links[iact];
-							act->flag |= ACT_VISIBLE;
+							if (act)
+								act->flag |= ACT_VISIBLE;
 						}
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 						uiDefIconButBitS(block, TOG, CONT_DEL, B_DEL_CONT, ICON_X,	xco, yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Delete Controller");
@@ -3300,18 +3368,25 @@ void logic_buts(void)
 			sens= ob->sensors.first;
 			while(sens) {
 				if (!(G.buts->scaflag & BUTS_SENS_STATE) ||
-					sens->totlinks == 0 ||		/* always display sensor without links so that is can be edited */
-					is_sensor_linked(block, sens)) {
+					 (sens->totlinks == 0) ||		/* always display sensor without links so that is can be edited */
+					 (sens->flag & SENS_PIN && G.buts->scaflag & BUTS_SENS_STATE) || /* states can hide some sensors, pinned sensors ignore the visible state */
+					 (is_sensor_linked(block, sens))
+				) {
+					/* should we draw the pin? - for now always draw when there is a state */
+					pin = (G.buts->scaflag & BUTS_SENS_STATE && (sens->flag & SENS_SHOW || sens->flag & SENS_PIN)) ? 1:0 ;
+					
 					sens->flag |= SENS_VISIBLE;
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
+					if (pin)
+						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, (sens->flag & SENS_PIN) ? ICON_PIN_DEHLT:ICON_PIN_HLT, (short)(xco+width-44), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
 					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
 					if(sens->flag & SENS_SHOW)
 					{
-						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 100, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, sens->name, 0, 31, 0, 0, "Sensor name");
+						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -3321,9 +3396,9 @@ void logic_buts(void)
 					else {
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
-						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 100, 19, sens, 0, 0, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, 19, sens, 0, 0, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+122), yco, (short)(width-144), 19, sens, 0, 31, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens, 0, 31, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
 					}
 
@@ -3372,16 +3447,22 @@ void logic_buts(void)
 			while(act) {
 				if (!(G.buts->scaflag & BUTS_ACT_STATE) ||
 					!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
-					(act->flag & ACT_VISIBLE)) {		/* this actuator has visible connection, display it */
+					 (act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
+					 (act->flag & ACT_PIN && G.buts->scaflag & BUTS_ACT_STATE)) {
+					
+					pin = (G.buts->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1:0 ;
+					
 					act->flag |= ACT_VISIBLE;	/* mark the actuator as visible to help implementing the up/down action */
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, 19, &act->flag, 0, 0, 0, 0, "Delete Actuator");
-					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Actuator settings");
-
+					if (pin)
+						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, (act->flag & ACT_PIN) ? ICON_PIN_DEHLT:ICON_PIN_HLT, (short)(xco+width-44), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display the actuator");
+					
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
-						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 100, 19, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-144), 19, act->name, 0, 31, 0, 0, "Actuator name");
+						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, 19, &act->type, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act->name, 0, 31, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -3391,9 +3472,9 @@ void logic_buts(void)
 					else {
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
-						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 100, 19, act, 0, 0, 0, 0, "Actuator type");
+						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, 19, act, 0, 0, 0, 0, "Actuator type");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
-						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+122), yco, (short)(width-144), 19, act, 0, 0, 0, 0, "Actuator name");
+						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act, 0, 0, 0, 0, "Actuator name");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
 						ycoo= yco;
 					}

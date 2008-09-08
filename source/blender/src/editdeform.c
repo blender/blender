@@ -270,7 +270,7 @@ static void del_defgroup_update_users(Object *ob, int id)
 	int a;
 
 	/* these cases don't use names to refer to vertex groups, so when
-	 * they get deleted the numbers get out of synce, this corrects that */
+	 * they get deleted the numbers get out of sync, this corrects that */
 
 	if(ob->soft) {
 		if(ob->soft->vertgroup == id)

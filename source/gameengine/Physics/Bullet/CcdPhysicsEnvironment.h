@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "PHY_IPhysicsEnvironment.h"
 #include <vector>
+#include <set>
 class CcdPhysicsController;
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
@@ -156,8 +157,7 @@ protected:
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 
 
 		//Methods for gamelogic collision/physics callbacks
@@ -185,10 +185,7 @@ protected:
 
 		void	updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask);
 
-		void	disableCcdPhysicsController(CcdPhysicsController* ctrl)
-		{ 
-			removeCcdPhysicsController(ctrl); 
-		}
+		void	disableCcdPhysicsController(CcdPhysicsController* ctrl);
 
 		void	enableCcdPhysicsController(CcdPhysicsController* ctrl);
 
@@ -209,12 +206,6 @@ protected:
 		}
 
 	
-		int	GetNumControllers();
-
-		CcdPhysicsController* GetPhysicsController( int index);
-
-		
-
 		const btPersistentManifold*	GetManifold(int index) const;
 
 	
@@ -229,9 +220,9 @@ protected:
 		
 
 		
-		std::vector<CcdPhysicsController*> m_controllers;
+		std::set<CcdPhysicsController*> m_controllers;
 		
-		std::vector<CcdPhysicsController*> m_triggerControllers;
+		std::set<CcdPhysicsController*> m_triggerControllers;
 
 		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];
 		void*			m_triggerCallbacksUserPtrs[PHY_NUM_RESPONSE];

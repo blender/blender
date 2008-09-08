@@ -69,8 +69,7 @@ public:
 		return 0;
 	}
 
-	virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+	virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 
 
 	//gamelogic callbacks
@@ -80,6 +79,7 @@ public:
 		{
 		}
 		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl) {}
+		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl) {}
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
 

@@ -73,7 +73,6 @@ extern ListBase fillvertbase;
  * @attention Defined in scanfill.c
  */
 extern ListBase filledgebase;
-extern int totblock;
 
 extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
 

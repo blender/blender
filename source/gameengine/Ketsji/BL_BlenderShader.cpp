@@ -1,79 +1,72 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "BL_BlenderShader.h"
 #include "BL_Material.h"
 
-#ifdef BLENDER_GLSL
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-#endif
 
+#include "RAS_BucketManager.h"
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
-
-const bool BL_BlenderShader::Ok()const
-{
-#ifdef BLENDER_GLSL
-	return (mGPUMat != 0);
-#else
-	return 0;
-#endif
-}
-
-BL_BlenderShader::BL_BlenderShader(struct Material *ma, int lightlayer)
+ 
+BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lightlayer)
 :
-#ifdef BLENDER_GLSL
-	mGPUMat(0),
-#endif
-	mBound(false),
+	mScene(scene),
+	mMat(ma),
 	mLightLayer(lightlayer)
 {
-#ifdef BLENDER_GLSL
-	if(ma) {
-		GPU_material_from_blender(ma);
-		mGPUMat = ma->gpumaterial;
-	}
-#endif
+	mBlenderScene = scene->GetBlenderScene();
+	mBlendMode = GPU_BLEND_SOLID;
+
+	if(mMat)
+		GPU_material_from_blender(mBlenderScene, mMat);
 }
 
 BL_BlenderShader::~BL_BlenderShader()
 {
-#ifdef BLENDER_GLSL
-	if(mGPUMat) {
-		GPU_material_unbind(mGPUMat);
-		mGPUMat = 0;
-	}
-#endif
+	if(mMat && GPU_material_from_blender(mBlenderScene, mMat))
+		GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
 }
 
-void BL_BlenderShader::SetProg(bool enable)
+bool BL_BlenderShader::Ok()
 {
-#ifdef BLENDER_GLSL
-	if(mGPUMat) {
-		if(enable) {
-			GPU_material_bind(mGPUMat, mLightLayer);
-			mBound = true;
-		}
-		else {
-			GPU_material_unbind(mGPUMat);
-			mBound = false;
-		}
+	return VerifyShader();
+}
+
+bool BL_BlenderShader::VerifyShader()
+{
+	if(mMat)
+		return (GPU_material_from_blender(mBlenderScene, mMat) != 0);
+	else
+		return false;
+}
+
+void BL_BlenderShader::SetProg(bool enable, double time)
+{
+	if(VerifyShader()) {
+		if(enable)
+			GPU_material_bind(GPU_material_from_blender(mBlenderScene, mMat), mLightLayer, ~0, time);
+		else
+			GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
 	}
-#endif
 }
 
 int BL_BlenderShader::GetAttribNum()
 {
-#ifdef BLENDER_GLSL
 	GPUVertexAttribs attribs;
 	int i, enabled = 0;
 
-	if(!mGPUMat)
+	if(!VerifyShader())
 		return enabled;
 
-	GPU_material_vertex_attributes(mGPUMat, &attribs);
+	GPU_material_vertex_attributes(GPU_material_from_blender(mBlenderScene, mMat), &attribs);
 
     for(i = 0; i < attribs.totlayer; i++)
 		if(attribs.layer[i].glindex+1 > enabled)
@@ -83,24 +76,23 @@ int BL_BlenderShader::GetAttribNum()
 		enabled = BL_MAX_ATTRIB;
 
 	return enabled;
-#else
-	return 0;
-#endif
 }
 
 void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 {
-#ifdef BLENDER_GLSL
 	GPUVertexAttribs attribs;
+	GPUMaterial *gpumat;
 	int i, attrib_num;
 
 	ras->SetAttribNum(0);
 
-	if(!mGPUMat)
+	if(!VerifyShader())
 		return;
+	
+	gpumat = GPU_material_from_blender(mBlenderScene, mMat);
 
 	if(ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) {
-		GPU_material_vertex_attributes(mGPUMat, &attribs);
+		GPU_material_vertex_attributes(gpumat, &attribs);
 		attrib_num = GetAttribNum();
 
 		ras->SetTexCoordNum(0);
@@ -131,45 +123,48 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 			else
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_DISABLE, attribs.layer[i].glindex);
 		}
-
-		ras->EnableTextures(true);
 	}
-	else
-		ras->EnableTextures(false);
-#endif
 }
 
-void BL_BlenderShader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
+void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 {
-#ifdef BLENDER_GLSL
-	float obmat[4][4], viewmat[4][4], viewinvmat[4][4];
+	float obmat[4][4], viewmat[4][4], viewinvmat[4][4], obcol[4];
+	GPUMaterial *gpumat;
 
-	if(!mGPUMat || !mBound)
+	gpumat = GPU_material_from_blender(mBlenderScene, mMat);
+
+	if(!gpumat || !GPU_material_bound(gpumat))
 		return;
 
 	MT_Matrix4x4 model;
 	model.setValue(ms.m_OpenGLMatrix);
-	MT_Matrix4x4 view;
-	rasty->GetViewMatrix(view);
+	const MT_Matrix4x4& view = rasty->GetViewMatrix();
+	const MT_Matrix4x4& viewinv = rasty->GetViewInvMatrix();
 
+	// note: getValue gives back column major as needed by OpenGL
 	model.getValue((float*)obmat);
 	view.getValue((float*)viewmat);
+	viewinv.getValue((float*)viewinvmat);
 
-	view.invert();
-	view.getValue((float*)viewinvmat);
+	if(ms.m_bObjectColor)
+		ms.m_RGBAcolor.getValue((float*)obcol);
+	else
+		obcol[0]= obcol[1]= obcol[2]= obcol[3]= 1.0f;
 
-	GPU_material_bind_uniforms(mGPUMat, obmat, viewmat, viewinvmat);
-#endif
+	GPU_material_bind_uniforms(gpumat, obmat, viewmat, viewinvmat, obcol);
+
+	mBlendMode = GPU_material_blend_mode(gpumat, obcol);
+}
+
+int BL_BlenderShader::GetBlendMode()
+{
+	return mBlendMode;
 }
 
 bool BL_BlenderShader::Equals(BL_BlenderShader *blshader)
 {
-#ifdef BLENDER_GLSL
 	/* to avoid unneeded state switches */
-	return (blshader && mGPUMat == blshader->mGPUMat && mLightLayer == blshader->mLightLayer);
-#else
-	return true;
-#endif
+	return (blshader && mMat == blshader->mMat && mLightLayer == blshader->mLightLayer);
 }
 
 // eof

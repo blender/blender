@@ -204,6 +204,7 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_SB_INSPRING,
 	EXPP_OBJ_ATTR_SB_INFRICT,
 
+	EXPP_OBJ_ATTR_EMPTY_DRAWTYPE
 };
 
 #define EXPP_OBJECT_DRAWSIZEMIN         0.01f
@@ -2431,6 +2432,12 @@ static int Object_setDrawType( BPy_Object * self, PyObject * value )
 			OB_BOUNDBOX, OB_TEXTURE, 'b' );
 }
 
+static int Object_setEmptyShape( BPy_Object * self, PyObject * value )
+{
+	return EXPP_setIValueRange( value, &self->object->empty_drawtype,
+			OB_ARROWS, OB_EMPTY_CONE, 'b' );
+}
+
 static int Object_setEuler( BPy_Object * self, PyObject * args )
 {
 	float rot1, rot2, rot3;
@@ -3758,6 +3765,9 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_DRAWTYPE:
 		param = object->dt;
 		break;
+	case EXPP_OBJ_ATTR_EMPTY_DRAWTYPE:
+		param = object->empty_drawtype;
+		break;
 	case EXPP_OBJ_ATTR_PARENT_TYPE:
 		param = object->partype;
 		break;
@@ -4938,6 +4948,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)getIntAttr, (setter)Object_setDrawType,
 	 "The object's drawing type",
 	 (void *)EXPP_OBJ_ATTR_DRAWTYPE},
+	{"emptyShape",
+	 (getter)getIntAttr, (setter)Object_setEmptyShape,
+	 "The empty's drawing shape",
+	 (void *)EXPP_OBJ_ATTR_EMPTY_DRAWTYPE},
 	{"parentType",
 	 (getter)getIntAttr, (setter)NULL,
 	 "The object's parent type",
@@ -5538,6 +5552,24 @@ static PyObject *M_Object_IpoKeyTypesDict( void )
 	return M;
 }
 
+static PyObject *M_Object_EmptyShapesDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "ARROWS", PyInt_FromLong( OB_ARROWS ) );
+		PyConstant_Insert( d, "AXES", PyInt_FromLong( OB_PLAINAXES ) );
+		PyConstant_Insert( d, "CIRCLE", PyInt_FromLong( OB_CIRCLE ) );
+		PyConstant_Insert( d, "ARROW", PyInt_FromLong( OB_SINGLE_ARROW ) );
+		PyConstant_Insert( d, "CUBE", PyInt_FromLong( OB_CUBE ) );
+		PyConstant_Insert( d, "SPHERE", PyInt_FromLong( OB_EMPTY_SPHERE ) );
+		PyConstant_Insert( d, "CONE", PyInt_FromLong( OB_EMPTY_CONE ) );
+	}
+	return M;
+}
+
+
 /*****************************************************************************/
 /* Function:	 initObject						*/
 /*****************************************************************************/
@@ -5552,6 +5584,7 @@ PyObject *Object_Init( void )
 	PyObject *RBFlagsDict = M_Object_RBFlagsDict( );
 	PyObject *RBShapesDict = M_Object_RBShapeBoundDict( );
 	PyObject *IpoKeyTypesDict = M_Object_IpoKeyTypesDict( );
+	PyObject *EmptyShapesDict = M_Object_EmptyShapesDict( );
 
 	PyType_Ready( &Object_Type ) ;
 
@@ -5596,7 +5629,9 @@ PyObject *Object_Init( void )
 	if( RBShapesDict )
 		PyModule_AddObject( module, "RBShapes", RBShapesDict );
 	if( IpoKeyTypesDict )
-		PyModule_AddObject( module, "IpoKeyTypes", IpoKeyTypesDict );	
+		PyModule_AddObject( module, "IpoKeyTypes", IpoKeyTypesDict );
+	if( EmptyShapesDict )
+		PyModule_AddObject( module, "EmptyShapes", EmptyShapesDict );
 
 		/*Add SUBMODULES to the module*/
 	dict = PyModule_GetDict( module ); /*borrowed*/

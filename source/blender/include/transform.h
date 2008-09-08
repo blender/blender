@@ -466,7 +466,6 @@ int validSnappingNormal(TransInfo *t);
 /*********************** Generics ********************************/
 
 void initTrans(TransInfo *t);
-void initTransModeFlags(TransInfo *t, int mode);
 void postTrans (TransInfo *t);
 
 void drawLine(float *center, float *dir, char axis, short options);
@@ -498,6 +497,7 @@ TransInfo * BIF_GetTransInfo(void);
 
 /*********************** NumInput ********************************/
 
+void initNumInput(NumInput *n);
 void outputNumInput(NumInput *n, char *str);
 short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);

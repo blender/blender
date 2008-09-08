@@ -1,6 +1,8 @@
 
 
 #include <Python.h>
+#include "PyObjectPlus.h"
+
 #include "KX_VehicleWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IVehicle.h"
@@ -71,8 +73,7 @@ PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* self,
 	} else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -157,8 +158,7 @@ PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* self, 
@@ -175,8 +175,7 @@ PyObject* KX_VehicleWrapper::PySetTyreFriction(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* self, 
@@ -193,8 +192,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionStiffness(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* self, 
@@ -210,8 +208,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionDamping(PyObject* self,
 	} else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* self, 
@@ -227,8 +224,7 @@ PyObject* KX_VehicleWrapper::PySetSuspensionCompression(PyObject* self,
 	} else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* self, 
@@ -245,8 +241,7 @@ PyObject* KX_VehicleWrapper::PySetRollInfluence(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -264,8 +259,7 @@ PyObject* KX_VehicleWrapper::PyApplyBraking(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -285,8 +279,7 @@ PyObject* KX_VehicleWrapper::PySetSteeringValue(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 

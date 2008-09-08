@@ -2,15 +2,15 @@
 
 """
 Name: 'Autodesk DXF (.dxf)'
-Blender: 244
+Blender: 246
 Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.0.12 - 2008.06.05 by migius'
+__version__ = '1.12 - 2008.08.03 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
-__email__ = ["Kitsune_e(at)yahoo.com", "migius(at)4d-vectors.de"]
+__email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
 __bpydoc__ = """\
 This script imports objects from DXF (2d/3d) into Blender.
 
@@ -19,7 +19,7 @@ Supported DXF format versions: from (r2.5) r12 up to 2008.
 Enhanced features are:
 - configurable object filtering and geometry manipulation,
 - configurable material pre-processing,
-- DXF-data analyze and raporting.
+- DXF-code analyze and reporting.
 
 Supported DXF r12 objects:
 LINE,
@@ -41,10 +41,10 @@ XREF (External Reference).
 
 Supported DXF>r12 objects:
 ELLIPSE,
-LWPOLYLINE (LightWeight Polylines),
-(wip v1.0.12) SPLINE,
-(wip v1.0.13) MLINE,
-(wip v1.0.13) MTEXT
+LWPOLYLINE (LightWeight Polyline),
+SPLINE,
+(wip v1.13) MLINE,
+(wip v1.13) MTEXT
 
 Unsupported objects:
 DXF r12: DIMENSION.
@@ -60,7 +60,7 @@ Supported layout modes:
 Supported scene definition objescts produced with AVE_RENDER:
 scene: selection of lights assigned to the camera,
 lights: DIRECT, OVERHEAD, SH_SPOT,
-(wip v1.0.13 import of AVE_RENDER material definitions)
+(wip v1.13 import of AVE_RENDER material definitions)
 
 Hierarchy:
 Entire DXF BLOCK hierarchy is preserved after import into Blender
@@ -73,7 +73,7 @@ thickness,
 width,
 color,
 layer,
-(wip v1.0.12: XDATA, grouped status)
+(wip v1.13: XDATA, grouped status)
 It is recommended to use DXF-object properties for assign Blender materials.
 
 Notes:
@@ -88,7 +88,7 @@ in creating new objects in scene database - probably a database management probl
 
 """
 History:
- v1.0 - 2008.01. by migius
+ v1.0 - 2007/2008 by migius
  planned tasks:
  -- (to see more, search for "--todo--" in script code)
  -- command-line-mode/batch-mode
@@ -109,9 +109,22 @@ History:
  -- bug: Registry recall from hd_cache ?? only win32 bug??
  -- support DXF-definitions of scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
- -- add support for SPLINEs
 
- v1.0.12: 2008.06.05 by migius
+
+ v1.12 - 2008.08.03 by migius
+ c2 warningfix: relocating of globals: layersmap, oblist 
+ c2 modif UI: buttons newScene+targetLayer moved to start panel
+ v1.12 - 2008.07.04 by migius
+ c1 added control Curve's OrderU parameter
+ c1 modif UI: preset buttons X-2D-3D moved to start panel
+ b6 added handling exception of not registered LAYERs (Hammer-HL-editor DXF output)
+ b5 rebuild UI: global preset 2D for Curve-Import
+ b5 added UI-options: PL-MESH N+N plmesh_flip and normals_out 
+ b5 added support for SPLINEs, added control OrderU parameter
+ b5 rewrote draw module for NURBS_curve and Bezier_curve
+ v1.12 - 2008.06.22 by migius
+ b4 change versioning system 1.0.12 -> 1.12
+ b4 print at start version-info to console
  b3 bugfix: ob.name conflict with existing meshes (different ob.name/mesh.name)
  v1.0.12: 2008.05.24 by migius
  b2 added support for LWPOLYLINEs
@@ -310,15 +323,15 @@ except ImportError:
 	#print 'psyco not imported'
 	pass
 
-print '\n\n\n\n'
-print 'DXF-Importer  *** start ***'   #---------------------
+#try: Curve.orderU
+
+print '\n\n\n'
+print 'DXF-Importer v%s *** start ***' %(__version__)   #---------------------
 
 SCENE = None
 WORLDX = Mathutils.Vector((1,0,0))
 WORLDY = Mathutils.Vector((1,1,0))
 WORLDZ = Mathutils.Vector((0,0,1))
-
-oblist = [] #to be sure, it is an empty list
 
 G_SCALE = 1.0	   #(0.0001-1000) global scaling factor for all dxf data
 G_ORIGIN_X = 0.0   #global translation-vector (x,y,z) in DXF units
@@ -335,12 +348,15 @@ MIN_WIDTH = MIN_DIST * 10.0  #minimal width by forced width
 TRIM_LIMIT = 3.0	 #limit for triming of polylines-wide-segments (values:0.0 - 5.0)
 ELEVATION = 0.0 #standard elevation = coordinate Z
 
-TARGET_LAYER = 3	#target blender_layer
-GROUP_BYLAYER = 0   #(0/1) all entities from same layer import into one blender-group
-cur_COUNTER = 0  #counter for progress_bar
-M_OBJ = False
 BYBLOCK = 0
 BYLAYER = 256
+TARGET_LAYER = 3	#target blender_layer
+GROUP_BYLAYER = 0   #(0/1) all entities from same layer import into one blender-group
+LAYER_DEF_NAME = 'AAAA' #default layer name
+LAYER_DEF_COLOR = 4 #default layer color
+E_M = 0
+LAB = "*) parts under construction"
+M_OBJ = 0
 
 FILENAME_MAX = 180	#max length of path+file_name string  (FILE_MAXDIR + FILE_MAXFILE)
 MAX_NAMELENGTH = 17   #max_effective_obnamelength in blender =21=17+(.001)
@@ -366,27 +382,27 @@ class View:  #-----------------------------------------------------------------
 
 		self.type = obj.type
 		self.name = obj.get_type(2)[0]
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 
-		self.centerX = getit(obj.data, 10, 0.0) #view center pointX (in DCS)
-		self.centerY = getit(obj.data, 20, 0.0) #view center pointY (in DCS)
+		self.centerX = getit(obj, 10, 0.0) #view center pointX (in DCS)
+		self.centerY = getit(obj, 20, 0.0) #view center pointY (in DCS)
 		self.height = obj.get_type(40)[0] #view height (in DCS)
 		self.width = obj.get_type(41)[0] #view width (in DCS)
 
 		self.dir = [0,0,0]
-		self.dir[0] = getit(obj.data, 11, 0.0) #view directionX from target (in WCS)
-		self.dir[1] = getit(obj.data, 21, 0.0) #
-		self.dir[2] = getit(obj.data, 31, 0.0) #
+		self.dir[0] = getit(obj, 11, 0.0) #view directionX from target (in WCS)
+		self.dir[1] = getit(obj, 21, 0.0) #
+		self.dir[2] = getit(obj, 31, 0.0) #
 
 		self.target = [0,0,0]
-		self.target[0] = getit(obj.data, 12, 0.0) #target pointX(in WCS)
-		self.target[1] = getit(obj.data, 22, 0.0) #
-		self.target[2] = getit(obj.data, 32, 0.0) #
+		self.target[0] = getit(obj, 12, 0.0) #target pointX(in WCS)
+		self.target[1] = getit(obj, 22, 0.0) #
+		self.target[2] = getit(obj, 32, 0.0) #
 
 		self.length = obj.get_type(42)[0] #Lens length
-		self.clip_front = getit(obj.data, 43) #Front clipping plane (offset from target point)
-		self.clip_back = getit(obj.data, 44) #Back clipping plane (offset from target point)
+		self.clip_front = getit(obj, 43) #Front clipping plane (offset from target point)
+		self.clip_back = getit(obj, 44) #Back clipping plane (offset from target point)
 		self.twist  = obj.get_type(50)[0] #view twist angle in degrees
 
 		self.flags = getit(obj, 70, 0)
@@ -450,28 +466,28 @@ class Vport:  #-----------------------------------------------------------------
 
 		self.type = obj.type
 		self.name = obj.get_type(2)[0]
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 		#print 'deb:vport name, data:', self.name #-------
 		#print 'deb:vport data:', self.data #-------
 
 		self.height = obj.get_type(40)[0] #vport height (in DCS)
-		self.centerX = getit(obj.data, 12, 0.0) #vport center pointX (in DCS)
-		self.centerY = getit(obj.data, 22, 0.0) #vport center pointY (in DCS)
+		self.centerX = getit(obj, 12, 0.0) #vport center pointX (in DCS)
+		self.centerY = getit(obj, 22, 0.0) #vport center pointY (in DCS)
 		self.width = self.height * obj.get_type(41)[0] #vport aspect ratio - width (in DCS)
 
 		self.dir = [0,0,0]
-		self.dir[0] = getit(obj.data, 16, 0.0) #vport directionX from target (in WCS)
-		self.dir[1] = getit(obj.data, 26, 0.0) #
-		self.dir[2] = getit(obj.data, 36, 0.0) #
+		self.dir[0] = getit(obj, 16, 0.0) #vport directionX from target (in WCS)
+		self.dir[1] = getit(obj, 26, 0.0) #
+		self.dir[2] = getit(obj, 36, 0.0) #
 
 		self.target = [0,0,0]
-		self.target[0] = getit(obj.data, 17, 0.0) #target pointX(in WCS)
-		self.target[1] = getit(obj.data, 27, 0.0) #
-		self.target[2] = getit(obj.data, 37, 0.0) #
+		self.target[0] = getit(obj, 17, 0.0) #target pointX(in WCS)
+		self.target[1] = getit(obj, 27, 0.0) #
+		self.target[2] = getit(obj, 37, 0.0) #
 
 		self.length = obj.get_type(42)[0] #Lens length
-		self.clip_front = getit(obj.data, 43) #Front clipping plane (offset from target point)
-		self.clip_back = getit(obj.data, 44) #Back clipping plane (offset from target point)
+		self.clip_front = getit(obj, 43) #Front clipping plane (offset from target point)
+		self.clip_back = getit(obj, 44) #Back clipping plane (offset from target point)
 		self.twist  = obj.get_type(51)[0] #view twist angle
 
 		self.flags = getit(obj, 70, 0)
@@ -528,29 +544,36 @@ class Layer:  #-----------------------------------------------------------------
 	"""Class for objects representing dxf LAYERs.
 	"""
 	def __init__(self, obj, name=None, color=None, frozen=None):
-		"""Expects an object of type layer as input.
+		"""Expects an dxfobject of type layer as input.
+			if no dxfobject - creates surogate layer with default parameters
 		"""
-		self.type = obj.type
-		self.data = obj.data[:]
 
-		if name:
-			self.name = name
-			#self.bfname = name  #--todo---see layernamesmap in f_getLayersmap ---
-		else:
-			self.name = obj.get_type(2)[0] #layer name of object
+		if obj==None:
+			self.type = 'layer'
+			if name: self.name = name
+			else: self.name = LAYER_DEF_NAME
 
-		if color:
-			self.color = color
-		else:
-			self.color = obj.get_type(62)[0]  #color of object
+			if color: self.color = color
+			else: self.color = LAYER_DEF_COLOR
 
-		if frozen:
-			self.frozen = frozen
-		else:
-			self.flags = obj.get_type(70)[0]
-			self.frozen = self.flags & 1
-
-
+			if frozen!=None: self.frozen = frozen
+			else: self.frozen = 0
+		else:	
+			if obj.type=='layer':
+				self.type = obj.type
+				#self.data = obj.data[:]
+				if name: self.name = name
+					#self.bfname = name  #--todo---see layernamesmap in f_getLayersmap ---
+				else: self.name = obj.get_type(2)[0] #layer name of object
+		
+				if color: self.color = color
+				else: self.color = obj.get_type(62)[0]  #color of object
+		
+				if frozen!=None: self.frozen = frozen
+				else:
+					self.flags = obj.get_type(70)[0]
+					self.frozen = self.flags & 1
+	
 	def __repr__(self):
 		return "%s: name - %s, color - %s" %(self.__class__.__name__, self.name, self.color)
 
@@ -615,15 +638,15 @@ class Solid:  #-----------------------------------------------------------------
 			raise TypeError, "Wrong type \'%s\' for solid/trace object!" %obj.type
 
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		self.space = getit(obj, 67, 0)
 		self.thic =  getit(obj, 39, 0)
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.extrusion = get_extrusion(obj.data)
-		self.points = self.get_points(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.extrusion = get_extrusion(obj)
+		self.points = self.get_points(obj)
 
 
 
@@ -736,16 +759,16 @@ class Line:  #-----------------------------------------------------------------
 		if not obj.type == 'line':
 			raise TypeError, "Wrong type \'%s\' for line object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		self.space = getit(obj, 67, 0)
 		self.thic =  getit(obj, 39, 0)
 		#print 'deb:self.thic: ', self.thic #---------------------
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.extrusion = get_extrusion(obj.data)
-		self.points = self.get_points(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.extrusion = get_extrusion(obj)
+		self.points = self.get_points(obj)
 
 
 	def get_points(self, data):
@@ -883,16 +906,16 @@ class Point:  #-----------------------------------------------------------------
 		if not obj.type == 'point':
 			raise TypeError, "Wrong type %s for point object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		self.space = getit(obj, 67, 0)
 		self.thic =  getit(obj, 39, 0)
 		#print 'deb:self.thic: ', self.thic #---------------------
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.extrusion = get_extrusion(obj.data)
-		self.points = self.get_points(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.extrusion = get_extrusion(obj)
+		self.points = self.get_points(obj)
 
 
 	def get_points(self, data):
@@ -922,7 +945,7 @@ class Point:  #-----------------------------------------------------------------
 		thic = settings.var['thick_min']
 		if thic < settings.var['dist_min']: thic = settings.var['dist_min']
 
-		if True: #--todo--  points_as in [1,3,4,5]:
+		if points_as in [1,3,4,5]:
 			if True: # points_as in [1,5]: # as 'empty'
 				c = 'Empty'
 			elif points_as == 3: # as 'thin sphere'
@@ -969,11 +992,8 @@ class Polyline:  #--------------------------------------------------------------
 		if not obj.type == 'polyline':
 			raise TypeError, "Wrong type %s for polyline object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
-		#print 'deb:polyline.obj.data[:]:\n', obj.data[:] #------------------------
-		self.points = []
+#		self.data = obj.data[:]
 
-		# optional data (with defaults)
 		self.space = getit(obj, 67, 0)
 		self.elevation =  getit(obj, 30, 0)
 		#print 'deb:elevation: ', self.elevation #---------------
@@ -983,7 +1003,7 @@ class Polyline:  #--------------------------------------------------------------
 		self.flags = getit(obj, 70, 0)
 		self.closed = self.flags & 1   # closed in the M direction
 		self.curved = self.flags & 2   # Bezier-curve-fit vertices have been added
-		self.spline = self.flags & 4   # Bspline-fit vertices have been added
+		self.spline = self.flags & 4   # NURBS-curve-fit vertices have been added
 		self.poly3d = self.flags & 8   # 3D-polyline
 		self.plmesh = self.flags & 16  # 3D-polygon mesh
 		self.closeN = self.flags & 32  # closed in the N direction
@@ -1002,18 +1022,18 @@ class Polyline:  #--------------------------------------------------------------
 		self.vectorsN =  getit(obj, 72, None) # PolyMesh: expansion in M-direction / PolyFace: number of faces
 		#self.resolM =  getit(obj, 73, None) # resolution of surface in M direction
 		#self.resolN =  getit(obj, 74, None) # resolution of surface in N direction
-		self.curvetyp =  getit(obj, 75, 0) # type of curve/surface: 0=None/5=Quadric/6=Cubic/8=Bezier
-		self.curvNormal = False
-		self.curvQBspline = False
-		self.curvCBspline = False
+		self.curvNoFitted = False
+		self.curvQuadrati = False
+		self.curvCubicBsp = False
 		self.curvBezier = False
-		if   self.curvetyp == 0: self.curvNormal = True
-		elif self.curvetyp == 5: self.curvQBspline = True
-		elif self.curvetyp == 6: self.curvCBspline = True
-		elif self.curvetyp == 8: self.curvBezier = True
+		curvetype =  getit(obj, 75, 0) # type of curve/surface: 0=None/5=Quadric/6=Cubic/8=Bezier
+		if   curvetype == 0: self.curvNoFitted = True
+		elif curvetype == 5: self.curvQuadrati = True
+		elif curvetype == 6: self.curvCubicBsp = True
+		elif curvetype == 8: self.curvBezier = True
 
-		self.layer = getit(obj.data, 8, None)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.extrusion = get_extrusion(obj)
 
 		self.points = []  #list with vertices coordinats
 		self.faces  = []  #list with vertices assigment to faces
@@ -1026,9 +1046,65 @@ class Polyline:  #--------------------------------------------------------------
 
 
 
+	def doubles_out(self, settings, d_points):
+		"""routine to sort out of double.vertices-----------------------------
+		"""
+		minimal_dist =  settings.var['dist_min'] * 0.1
+		dv_count = 0
+		temp_points = []
+		for i in xrange(len(d_points)-1):
+			point = d_points[i]
+			point2 = d_points[i+1]
+			#print 'deb:double.vertex p1,p2', point, point2 #------------------------
+			delta = Mathutils.Vector(point2.loc) - Mathutils.Vector(point.loc)
+			if delta.length > minimal_dist:
+				 temp_points.append(point)
+			else:
+				dv_count+=1
+		#print 'deb:drawPoly2d double.vertex sort out! count=', dv_count #------------------------
+		temp_points.append(d_points[-1])  #------ incl. last vertex -------------
+		#if self.closed: temp_points.append(d_points[1])  #------ loop start vertex -------------
+		d_points = temp_points   #-----vertex.list without "double.vertices"
+		#print 'deb:drawPoly2d d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
+		return d_points
+
+
+	def tribles_out(self, settings, d_points):
+		"""routine to sort out of three_in_place.vertices-----------------------------
+		"""
+		minimal_dist = settings.var['dist_min'] * 0.1
+		dv_count = 0
+		temp_points = []
+		for i in xrange(len(d_points)-2):
+			point1 = d_points[i]
+			point2 = d_points[i+1]
+			point3 = d_points[i+2]
+			#print 'deb:double.vertex p1,p2', point, point2 #------------------------
+			delta12 = Mathutils.Vector(point2.loc) - Mathutils.Vector(point1.loc)
+			delta23 = Mathutils.Vector(point3.loc) - Mathutils.Vector(point2.loc)
+			if delta12.length < minimal_dist and delta23.length < minimal_dist:
+				dv_count+=1
+			else:
+				temp_points.append(point1)
+		#print 'deb:drawPoly2d double.vertex sort out! count=', dv_count #------------------------
+		point1 = d_points[-2]
+		point2 = d_points[-1]
+		delta12 = Mathutils.Vector(point2.loc) - Mathutils.Vector(point1.loc)
+		if delta12.length > minimal_dist:
+			temp_points.append(d_points[-2])  #------ incl. 2last vertex -------------
+		temp_points.append(d_points[-1])  #------ incl. 1last vertex -------------
+		#if self.closed: temp_points.append(d_points[1])  #------ loop start vertex -------------
+		d_points = temp_points   #-----vertex.list without "double.vertices"
+		#print 'deb:drawPoly2d d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
+		return d_points
+
+
 	def draw(self, settings):   #-------------%%%% DRAW POLYLINE %%%---------------
 		"""for POLYLINE: generate Blender_geometry.
 		"""
+		#print 'deb:drawPOLYLINE.START:----------------' #------------------------
+		#print 'deb:POLYLINEdraw self.pltype:', self.pltype #------------------------
+		#print 'deb:POLYLINEdraw self.points:\n', self.points #------------------------
 		ob = []
 		#---- 3dPolyFace - mesh with free topology
 		if self.pltype=='plface' and settings.drawTypes['plmesh']:
@@ -1036,20 +1112,28 @@ class Polyline:  #--------------------------------------------------------------
 		#---- 3dPolyMesh - mesh with ortogonal topology
 		elif self.pltype=='plmesh' and settings.drawTypes['plmesh']:
 			ob = self.drawPlMesh(settings)
+
 		#---- 2dPolyline - plane polyline with arc/wide/thic segments
 		elif self.pltype=='poly2d' and settings.drawTypes['polyline']:
-			if settings.var['plines_as'] == 5: # and self.spline:
+			if settings.var['plines_as'] in [5,6]: # and self.spline:
 				ob = self.drawPolyCurve(settings)
 			else:
 				ob = self.drawPoly2d(settings)
+
 		#---- 3dPolyline - non-plane polyline (thin segments = without arc/wide/thic)
 		elif self.pltype=='poly3d' and settings.drawTypes['pline3']:
-			if settings.var['plines3_as'] == 5: # and self.spline:
+			if settings.var['plines3_as'] in [5,6]: # and self.spline:
+				ob = self.drawPolyCurve(settings)
+			else:
+				ob = self.drawPoly2d(settings)
+
+		#---- Spline - curved polyline (thin segments = without arc/wide/thic)
+		elif self.pltype=='spline' and settings.drawTypes['spline']:
+			if settings.var['splines_as'] in [5,6]:
 				ob = self.drawPolyCurve(settings)
 			else:
 				ob = self.drawPoly2d(settings)
 		return ob
-
 
 
 	def drawPlFace(self, settings):  #---- 3dPolyFace - mesh with free topology
@@ -1065,6 +1149,10 @@ class Polyline:  #--------------------------------------------------------------
 			else:
 				points.append(point.loc)
 
+		if settings.var['plmesh_flip']:  # ----------------------
+			for face in faces:
+				face.reverse()
+				face = [face[-1]] + face[:-1]
 
 		#print 'deb:drawPlFace: len of points_list:\n', len(points)  #-----------------------
 		#print 'deb:drawPlFace: len of faces_list:\n', len(faces)  #-----------------------
@@ -1076,6 +1164,10 @@ class Polyline:  #--------------------------------------------------------------
 		ob = SCENE.objects.new(me) # create a new mesh_object
 		me.verts.extend(points) # add vertices to mesh
 		me.faces.extend(faces)   # add faces to the mesh
+		if settings.var['normals_out']:  # ----------------------
+			#me.flipNormals()
+			me.recalcNormals(0)
+			#me.update()
 		#print 'deb:drawPlFace: len of me.faces:\n', len(me.faces)  #-----------------------
 
 		if settings.var['meshSmooth_on']:  # ----------------------
@@ -1123,7 +1215,10 @@ class Polyline:  #--------------------------------------------------------------
 		ob = SCENE.objects.new(me) # create a new mesh_object
 		me.verts.extend([point.loc for point in self.points]) # add vertices to mesh
 		me.faces.extend(faces)   # add faces to the mesh
-
+		if settings.var['normals_out']:  # ----------------------
+			#me.flipNormals()
+			me.recalcNormals(0)
+			#me.update()
 		if settings.var['meshSmooth_on']:  # ----------------------
 			for i in xrange(len(faces)):
 				me.faces[i].smooth = True
@@ -1142,9 +1237,9 @@ class Polyline:  #--------------------------------------------------------------
 			#print 'deb:drawPoly2d exit, cause POLYLINE has less than 2 vertices' #---------
 			return
 
-		if self.spline: pline_typ = 'ps'	# Polyline-nurbSpline
-		elif self.curved: pline_typ = 'pc'  # Polyline-bezierCurve
-		else: pline_typ = 'pl'			  # Polyline
+		if self.spline: pline_typ = 'ps'	# Polyline-NURBSpline
+		elif self.curved: pline_typ = 'pc'	# Polyline-BezierCurve
+		else: pline_typ = 'pl'				# Polyline classic
 		obname = '%s_%s' %(pline_typ, self.layer)  # create object_name from layer name
 		obname = obname[:MAX_NAMELENGTH]
 		d_points = []
@@ -1160,6 +1255,10 @@ class Polyline:  #--------------------------------------------------------------
 					point.loc[2] = self.elevation
 				d_points.append(point)
 
+		#d_points = self.tribles_out(settings, d_points)
+		#d_points = self.doubles_out(settings, d_points)
+		#print 'deb:drawPolyCurve d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
+
 		thic = set_thick(self.thic, settings)
 		if thic != 0.0:   #hack: Blender<2.45 curve-extrusion
 			LocZ = d_points[0].loc[2]
@@ -1173,12 +1272,14 @@ class Polyline:  #--------------------------------------------------------------
 		pline = Curve.New(obname)   # create new curve data
 		#pline.setResolu(24) #--todo-----						
 
-		if self.spline:  # NURBSplines-----OK-----
+		if False: #old self.spline:  # NURBSplines-----OK-----
 			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
 			weight1 = 0.5
 			weight2 = 1.0
-			# generate middlepoints except start/end-segments ---
-			if self.curvQBspline:
+			if self.curvQuadrati:
+				# Bezier-curve form simulated in NURBS-curve
+				# generate middlepoints except start/end-segments ---
+				#print 'deb:polyline2dCurve.draw extraQBspline!' #---------------
 				temp_points = []
 				point = d_points[0].loc
 				point.append(weight1)
@@ -1231,7 +1332,27 @@ class Polyline:  #--------------------------------------------------------------
 			else:
 				curve.flagU = 0 # Set curve not cyclic=open
 
-		elif  self.curved:  #--Bezier-curves---OK-------
+		if self.spline:  # NURBSplines-----OK-----
+			#print 'deb:polyline2dCurve.draw self.spline!' #---------------
+			nurbs_points = []
+			for d in d_points:
+				pkt = d.loc
+				pkt.append(d.weight)
+				nurbs_points.append(pkt)
+			firstpoint = nurbs_points[0]
+			curve = pline.appendNurb(firstpoint)
+			curve.setType(4) # set curvetype NURBS
+			for point in nurbs_points[1:]:
+				curve.append(point)
+			if self.closed:
+				curve.flagU = 1+0 # Set curve cyclic=close and uni
+			else:
+				curve.flagU = 0+2 # Set curve not cyclic=open
+			try: curve.orderU = 5 # works only with >2.46svn080625
+			except AttributeError: pass
+			#print 'deb: dir(curve):', dir(curve) #----------------
+
+		elif  False: #orig self.curved:  #--Bezier-curves---OK-------
 			#print 'deb:polyline2dCurve.draw self.curved!' #---------------
 			curve = pline.appendNurb(BezTriple.New(d_points[0]))
 			for p in d_points[1:]:
@@ -1245,7 +1366,45 @@ class Polyline:  #--------------------------------------------------------------
 				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
 				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
 
-		else:	#--straight line- and arc-segments----OK------
+		elif  self.curved:  #--SPLINE as Bezier-curves---wip------
+			#print 'deb:polyline2dCurve.draw self.curved!' #---------------
+			begtangent, endtangent = None, None
+			if d_points[0].tangent:
+				begtangent = d_points[0]
+				d_points = d_points[1:]
+			if d_points[-1].tangent:
+				endtangent = d_points[-1]
+				d_points = d_points[:-1]
+			curve = pline.appendNurb(BezTriple.New(d_points[0]))
+			for p in d_points[1:]:
+				curve.append(BezTriple.New(p))
+			for point in curve:
+				point.handleTypes = [AUTO, AUTO]
+			#curve.setType(1) #Bezier curve
+			if self.closed:
+				curve.flagU = 5 #1 # Set curve cyclic=close
+			else:
+				curve.flagU = 4 #0 # Set curve not cyclic=open
+				if begtangent:
+					#print 'deb:polyline2dCurve.draw curve[0].vec:', curve[0].vec #-----
+					#print 'deb:polyline2dCurve.draw begtangent:', begtangent #-----
+					p0h1,p0,p0h2 = curve[0].vec 
+					p0h1 = [p0h1[i]+begtangent[i] for i in range(3)]
+					curve.__setitem__(0,BezTriple.New(p0h1+p0+p0h2))
+				curve[0].handleTypes = [FREE, ALIGN]   #remi--todo-----
+				if endtangent:
+					#print 'deb:polyline2dCurve.draw curve[-1].vec:', curve[-1].vec #-----
+					#print 'deb:polyline2dCurve.draw endtangent:', endtangent #-----
+					p0h1,p0,p0h2 = curve[-1].vec 
+					p0h2 = [p0h2[i]+endtangent[i] for i in range(3)]
+					#print 'deb:drawPlineCurve: p0h2:', p0h2 #----------
+					curve.__setitem__(-1,BezTriple.New(p0h1+p0+p0h2))
+					#print 'deb:polyline2dCurve.draw curve[-1].vec:', curve[-1].vec #-----
+				curve[-1].handleTypes = [ALIGN, FREE]   #remi--todo-----
+
+
+
+		else:	#-- only straight line- and arc-segments----OK------
 			#print 'deb:polyline2dCurve.draw curve:', curve #-----
 			points = []
 			arc_res = settings.var['curve_arc']
@@ -1403,8 +1562,10 @@ class Polyline:  #--------------------------------------------------------------
 		#print 'deb:drawPoly2d len of d_pointsList ====== ', len(d_points) #------------------------
 		#print 'deb:drawPoly2d d_pointsList ======:\n ', d_points #------------------------
 
+		d_points = self.doubles_out(settings, d_points)
+		#print 'deb:drawPolyCurve d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
 
-		# routine to sort out of "double.vertices" ------------------------------------
+		"""# routine to sort out of "double.vertices" ------------------------------------
 		minimal_dist =  settings.var['dist_min'] * 0.1
 		temp_points = []
 		for i in xrange(len(d_points)-1):
@@ -1419,6 +1580,7 @@ class Polyline:  #--------------------------------------------------------------
 		#if self.closed: temp_points.append(d_points[1])  #------ loop start vertex -------------
 		d_points = temp_points   #-----vertex.list without "double.vertices"
 		#print 'deb:drawPoly2d d_pointsList =after DV-outsorting=====:\n ', d_points #------------------------
+		"""
 
 		#print 'deb:drawPoly2d len of d_pointsList ====== ', len(d_points) #------------------------
 		if len(d_points) < 2:  #if too few vertex, then return
@@ -1836,12 +1998,16 @@ class Vertex(object):  #--------------------------------------------------------
 		self.swidth = None #0
 		self.ewidth = None #0
 		self.bulge = 0
+		self.tangent = False
+		self.weight =  1.0
 		if obj is not None:
 			if not obj.type == 'vertex':
 				raise TypeError, "Wrong type %s for vertex object!" %obj.type
 			self.type = obj.type
-			self.data = obj.data[:]
-			self.get_props(obj.data)
+#			self.data = obj.data[:]
+			self.get_props(obj)
+		else:
+			pass
 		#print 'deb:Vertex.init.END:----------------' #------------------------
 
 
@@ -1862,18 +2028,22 @@ class Vertex(object):  #--------------------------------------------------------
 
 		self.flags  = getit(data, 70, 0) # flags
 		self.curved = self.flags&1   # Bezier-curve-fit:additional-vertex
-		self.curv_t = self.flags&2   # Bezier-curve-fit:tangent exists
-		self.spline = self.flags&8   # Bspline-fit:additional-vertex
-		self.splin2 = self.flags&16  # Bspline-fit:control-vertex
+		self.curved_t = self.flags&2   # Bezier-curve-fit:tangent exists
+		self.spline = self.flags&8   # NURBSpline-fit:additional-vertex
+		self.spline_c = self.flags&16  # NURBSpline-fit:control-vertex
 		self.poly3d = self.flags&32  # polyline3d:control-vertex
 		self.plmesh = self.flags&64  # polymesh3d:control-vertex
 		self.plface = self.flags&128 # polyface
 
 		# if PolyFace.Vertex with Face_definition
-		if self.curv_t:
-			self.curv_tangent =  getit(data, 50, None) # curve_tangent
+		if self.curved_t:
+			self.curve_tangent =  getit(data, 50, None) # curve_tangent
+			if not self.curve_tangent==None:
+				self.tangent = True
+		#elif self.spline_c: # NURBSpline:control-vertex
+		#	self.weight =  getit(data, 41, 1.0) # weight od control point
 
-		if self.plface and not self.plmesh:
+		elif self.plface and not self.plmesh:
 			v1 = getit(data, 71, 0) # polyface:Face.vertex 1.
 			v2 = getit(data, 72, 0) # polyface:Face.vertex 2.
 			v3 = getit(data, 73, 0) # polyface:Face.vertex 3.
@@ -1938,8 +2108,7 @@ class Vertex(object):  #--------------------------------------------------------
 class Spline(Polyline):  #-----------------------------------------------------------------
 	"""Class for objects representing dxf SPLINEs.
 	"""
-	def __init__(self, obj):
-		"""Expects an entity object of type spline as input.
+	"""Expects an entity object of type spline as input.
 100 - Subclass marker (AcDbSpline)
 210,220, 230  - Normal vector (omitted if the spline is nonplanar) X,Y,Z values of normal vector
 70 - Spline flag (bit coded):
@@ -1963,12 +2132,13 @@ class Spline(Polyline):  #------------------------------------------------------
 DXF: X value; APP: 3D point, Y and Z values of control points (in WCS) (one entry per control point)
 11,21, 31 - Fit points (in WCS) one entry per fit point.
  X,Y,Z values of fit points (in WCS) (one entry per fit point)
-		"""
+	"""
+	def __init__(self, obj):
 		#print 'deb:Spline.START:----------------' #------------------------
 		if not obj.type == 'spline':
 			raise TypeError, "Wrong type %s for spline object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.num_points = obj.get_type(73)[0]
@@ -1992,30 +2162,42 @@ DXF: X value; APP: 3D point, Y and Z values of control points (in WCS) (one entr
 		self.planar = self.flags & 8   # Planar
 		self.linear = self.flags & 16  # Linear (and Planar)
 
-		self.degree = getit(obj, 71, 0) # Degree of the spline curve
-		self.curvNormal = False
-		self.curvQBspline = False
-		self.curvCBspline = False
+		self.curvNoFitted = False
+		self.curvQuadrati = False
+		self.curvCubicBsp = False
 		self.curvBezier = False
-		if   self.degree == 0: self.curvNormal = True
-		elif self.degree == 1: self.curvQBspline = True
-		elif self.degree == 2: self.curvCBspline = True
+		self.degree = getit(obj, 71, 0) # Degree of the spline curve
+		if   self.degree == 0: self.curvNoFitted = True
+		elif self.degree == 1: self.curvQuadrati = True
+		elif self.degree == 2: self.curvCubicBsp = True
 		#elif self.degree == 3: self.curvBezier = True
-		elif self.degree == 3: self.spline = True
+		#elif self.degree == 3: self.spline = True
 	
-		self.num_knots = getit(obj, 72, 0) # Number of knots
-		self.num_contr = getit(obj, 73, 0) # Number of control points
-		self.num_fitpk = getit(obj, 74, 0) # Number of fit points (if any)
+		self.knotpk_len = getit(obj, 72, 0) # Number of knots
+		self.ctrlpk_len = getit(obj, 73, 0) # Number of control points
+		self.fit_pk_len = getit(obj, 74, 0) # Number of fit points (if any)
 
-		self.layer = getit(obj.data, 8, None)
-		self.extrusion = get_extrusion(obj.data)
+		#print 'deb:Spline self.fit_pk_len=', self.fit_pk_len #------------------------
+		#self.fit_pk_len = 0 # temp for debug
+		if self.fit_pk_len and 'spline_as'==5:
+			self.spline = False
+			self.curved = True
+		else:
+			self.spline = True
+			self.curved = False
+
+		self.knotpk_tol = getit(obj, 42, 0.0000001) # Knot tolerance (default = 0.0000001)
+		self.ctrlpk_tol = getit(obj, 43, 0.0000001) # Control-point tolerance (default = 0.0000001)
+		self.fit_pk_tol = getit(obj, 44, 0.0000000001) # Fit tolerance (default = 0.0000000001)
+
+		self.layer = getit(obj, 8, None)
+		self.extrusion = get_extrusion(obj)
+
+		self.pltype = 'spline'   # spline is a 2D- or 3D-polyline
 
 		self.points = self.get_points(obj.data)
-
-		if self.planar: self.pltype = 'poly2d'
-		else: self.pltype = 'poly3d'
-		self.curved = False
-		#self.curved = False
+		#self.knots_val = self.get_knots_val(obj.data) # 40 - Knot value (one entry per knot)
+		#self.knots_wgh = self.get_knots_wgh(obj.data) # 41 - Weight (default 1)
 
 		#print 'deb:Spline obj.data:\n', obj.data #------------------------
 		#print 'deb:Spline self.points:\n', self.points #------------------------
@@ -2032,60 +2214,69 @@ DXF: X value; APP: 3D point, Y and Z values of control points (in WCS) (one entr
 		20:yvalue
 		for each vert
 		"""
-		num = self.num_contr
 		point = None
 		points = []
+		pointend = None
 		#point = Vertex()
-		for item in data:
-			#print 'deb:Spline item:', item #------------------------
-			if item[0] == 10:   # control point
-				if point: points.append(point)
-				point = Vertex()
-				point.curved = True
-				point.x = item[1]
-			elif item[0] == 20: # 20 = y
-				point.y = item[1]
-			elif item[0] == 30: # 30 = z
-				point.z = item[1]
+		if self.spline: # NURBSpline definition
+			for item in data:
+				#print 'deb:Spline.get_points spilne_item:', item #------------------------
+				if item[0] == 10:   # control point
+					if point: points.append(point)
+					point = Vertex()
+					point.curved = True
+					point.x = item[1]
+				elif item[0] == 20: # 20 = y
+					point.y = item[1]
+				elif item[0] == 30: # 30 = z
+					point.z = item[1]
+				elif item[0] == 41: # 41 = weight
+					point.weight = item[1]
+					#print 'deb:Spline.get_points control point:', point #------------------------
 
-			elif item[0] == 11:   # fit point
-				if point: points.append(point)
-				point = Vertex()
-				point.curved = True
-				point.x = item[1]
-			elif item[0] == 21: # 20 = y
-				point.y = item[1]
-			elif item[0] == 31: # 30 = z
-				point.z = item[1]
+		elif self.curved: # Bezier definition
+			for item in data:
+				#print 'deb:Spline.get_points curved_item:', item #------------------------
+				if item[0] == 11:   # fit point
+					if point: points.append(point)
+					point = Vertex()
+					point.tangent = False
+					point.x = item[1]
+				elif item[0] == 21: # 20 = y
+					point.y = item[1]
+				elif item[0] == 31: # 30 = z
+					point.z = item[1]
+					#print 'deb:Spline.get_points fit point:', point #------------------------
 
-			elif item[0] == 12:   # start tangent
-				if point: points.append(point)
-				point = Vertex()
-				point.curved = True
-				point.x = item[1]
-			elif item[0] == 22: # = y
-				point.y = item[1]
-			elif item[0] == 32: # = z
-				point.z = item[1]
+				elif item[0] == 12:   # start tangent
+					if point: points.append(point)
+					point = Vertex()
+					point.tangent = True
+					point.x = item[1]
+				elif item[0] == 22: # = y
+					point.y = item[1]
+				elif item[0] == 32: # = z
+					point.z = item[1]
+					#print 'deb:Spline.get_points fit begtangent:', point #------------------------
 
-			elif item[0] == 13:   # end tangent
-				if point: points.append(point)
-				point = Vertex()
-				point.curved = True
-				point.x = item[1]
-			elif item[0] == 23: # 20 = y
-				point.y = item[1]
-			elif item[0] == 33: # 30 = z
-				point.z = item[1]
+				elif item[0] == 13:   # end tangent
+					if point: points.append(point)
+					pointend = Vertex()
+					pointend.tangent = True
+					pointend.x = item[1]
+				elif item[0] == 23: # 20 = y
+					pointend.y = item[1]
+				elif item[0] == 33: # 30 = z
+					pointend.z = item[1]
+					#print 'deb:Spline.get_points fit endtangent:', pointend #------------------------
 		points.append(point)
+		if self.curved and pointend:
+			points.append(pointend)
 		#print 'deb:Spline points:\n', points #------------------------
 		return points
 
-
-
 	def __repr__(self):
 		return "%s: layer - %s, points - %s" %(self.__class__.__name__, self.layer, self.points)
-
 
 	
 
@@ -2099,7 +2290,7 @@ class LWpolyline(Polyline):  #--------------------------------------------------
 		if not obj.type == 'lwpolyline':
 			raise TypeError, "Wrong type %s for polyline object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.num_points = obj.get_type(90)[0]
@@ -2118,8 +2309,8 @@ class LWpolyline(Polyline):  #--------------------------------------------------
 		self.flags = getit(obj, 70, 0)
 		self.closed = self.flags&1 # byte coded, 1 = closed, 128 = plinegen
 
-		self.layer = getit(obj.data, 8, None)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.extrusion = get_extrusion(obj)
 
 		self.points = self.get_points(obj.data)
 
@@ -2167,70 +2358,8 @@ class LWpolyline(Polyline):  #--------------------------------------------------
 		return points
 
 
-
 	def __repr__(self):
 		return "%s: layer - %s, points - %s" %(self.__class__.__name__, self.layer, self.points)
-
-
-	def draw_old(self, settings):
-		"""for LWPOLYLINE: generate Blender_geometry.
-		"""
-		#print 'deb:LWpolyline.draw.START:----------------' #------------------------
-		points = []
-		obname = 'lw_%s' %self.layer  # create object name from layer name
-		obname = obname[:MAX_NAMELENGTH]
-		#settings.var['curves_on'] == True
-		#print 'deb:index_len: ', len(self.points) #------------------
-		for i, point in enumerate(self.points):
-			#print 'deb:index: ', i #------------------
-			if not point.bulge:
-				points.append(point.loc)
-			elif point.bulge and not self.closed and i == len(self.points)-1:
-				points.append(point.loc)
-			elif point.bulge:	 #
-				if i == len(self.points)-1:
-					point2 = self.points[0]
-				else:
-					point2 = self.points[i+1]
-				arc_res = settings.var['arc_res']/sqrt(settings.var['arc_rad'])
-				verts, center = calcBulge(point, point2, arc_res)
-#			   if i == len(self.points)-1:
-#				   if self.closed:
-#					   verts.pop() #remove last(=first) vertex
-#			   else:
-#				   verts.pop() #remove last vertex, because this point will be writen as the next vertex
-				points.extend(verts)
-
-		thic = self.thic
-		if settings.var['thick_force'] and thic == 0: thic = settings.var['thick_min']
-		if settings.var['thick_on'] and thic != 0:
-			len1 = len(points)
-			points.extend([[point[0], point[1], point[2]+thic] for point in points])
-			faces = []
-			#print 'deb:len1:', len1  #-----------------------
-			faces = [[num, num+1, num+len1+1, num+len1] for num in xrange(len1 - 1)]
-			if self.closed:
-				faces.append([len1-1, 0, len1, 2*len1-1])
-			#print 'deb:faces_list:\n', faces  #-----------------------
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
-			me.verts.extend(points) # add vertices to mesh
-			me.faces.extend(faces)   # add faces to the mesh
-		else:
-			edges = [[num, num+1] for num in xrange(len(points)-1)]
-			if self.closed:
-				edges.append([len(points)-1, 0])
-			#print 'deb:edges_list:\n', edges  #-----------------------
-			me = Mesh.New(obname)		  # create a new mesh
-			ob = SCENE.objects.new(me) # create a new mesh_object
-			me.verts.extend(points) # add vertices to mesh
-			me.edges.extend(edges)   # add edges to the mesh
-
-		ob.LocZ = self.elevation
-		transform(self.extrusion, 0, ob)
-
-		#print 'deb:LWpolyline.draw.END:----------------' #------------------------
-		return ob
 
 
 class Text:  #-----------------------------------------------------------------
@@ -2242,7 +2371,7 @@ class Text:  #-----------------------------------------------------------------
 		if not obj.type == 'text':
 			raise TypeError, "Wrong type %s for text object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.height = 1.7 * obj.get_type(40)[0]  #text.height
@@ -2274,14 +2403,13 @@ class Text:  #-----------------------------------------------------------------
 		#3=aligned, 4=middle, 5=fit
 		self.halignment = getit(obj, 72, 0)
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc1, self.loc2 = self.get_loc(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc1, self.loc2 = self.get_loc(obj)
 		if self.loc2[0] != None and self.halignment != 5: 
 			self.loc = self.loc2
 		else:
 			self.loc = self.loc1
-		self.extrusion = get_extrusion(obj.data)
-
+		self.extrusion = get_extrusion(obj)
 
 
 	def get_loc(self, data):
@@ -2390,13 +2518,13 @@ class Mtext:  #-----------------------------------------------------------------
 		if not obj.type == 'mtext':
 			raise TypeError, "Wrong type %s for mtext object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.height = obj.get_type(40)[0]
 		self.width = obj.get_type(41)[0]
 		self.alignment = obj.get_type(71)[0] # alignment 1=TL, 2=TC, 3=TR, 4=ML, 5=MC, 6=MR, 7=BL, 8=BC, 9=BR
-		self.value = self.get_text(obj.data) # The text string value
+		self.value = self.get_text(obj) # The text string value
 
 		# optional data (with defaults)
 		self.space = getit(obj, 67, 0)
@@ -2406,9 +2534,9 @@ class Mtext:  #-----------------------------------------------------------------
 		self.width_factor = getit(obj, 42, 1) # Scaling factor along local x axis
 		self.line_space = getit(obj, 44, 1) # percentage of default
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc = self.get_loc(obj.data)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc = self.get_loc(obj)
+		self.extrusion = get_extrusion(obj)
 
 
 	def get_text(self, data):
@@ -2487,7 +2615,7 @@ class Circle:  #----------------------------------------------------------------
 		if not obj.type == 'circle':
 			raise TypeError, "Wrong type %s for circle object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.radius = obj.get_type(40)[0]
@@ -2497,9 +2625,9 @@ class Circle:  #----------------------------------------------------------------
 		self.thic =  getit(obj, 39, 0)
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc = self.get_loc(obj.data)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc = self.get_loc(obj)
+		self.extrusion = get_extrusion(obj)
 
 
 
@@ -2700,7 +2828,7 @@ class Arc:  #-----------------------------------------------------------------
 		if not obj.type == 'arc':
 			raise TypeError, "Wrong type %s for arc object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.radius = obj.get_type(40)[0]
@@ -2712,9 +2840,9 @@ class Arc:  #-----------------------------------------------------------------
 		self.thic =  getit(obj, 39, 0)
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc = self.get_loc(obj.data)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc = self.get_loc(obj)
+		self.extrusion = get_extrusion(obj)
 		#print 'deb:Arc__init__: center, radius, start, end:\n', self.loc, self.radius, self.start_angle, self.end_angle  #---------
 
 
@@ -2898,7 +3026,7 @@ class BlockRecord:  #-----------------------------------------------------------
 		if not obj.type == 'block_record':
 			raise TypeError, "Wrong type %s for block_record object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.name =  getit(obj, 2, None)
@@ -2954,8 +3082,8 @@ class Block:  #-----------------------------------------------------------------
 		self.entities = dxfObject('block_contents') #creates empty entities_container for this block
 		self.entities.data = objectify([ent for ent in obj.data if type(ent) != list])
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc = self.get_loc(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc = self.get_loc(obj)
 
 		#print 'deb:Block %s data:\n%s' %(self.name, self.data) #------------
 		#print 'deb:Block %s self.entities.data:\n%s' %(self.name, self.entities.data) #------------
@@ -2999,11 +3127,11 @@ class Insert:  #----------------------------------------------------------------
 		self.space = getit(obj, 67, 0)
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc = self.get_loc(obj.data)
-		self.scale = self.get_scale(obj.data)
-		self.rows, self.columns = self.get_array(obj.data)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc = self.get_loc(obj)
+		self.scale = self.get_scale(obj)
+		self.rows, self.columns = self.get_array(obj)
+		self.extrusion = get_extrusion(obj)
 
 		#self.flags = getit(obj.data, 66, 0) #
 		#self.attrib = self.flags & 1
@@ -3205,7 +3333,7 @@ class Ellipse:  #---------------------------------------------------------------
 		if not obj.type == 'ellipse':
 			raise TypeError, "Wrong type %s for ellipse object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# required data
 		self.ratio = obj.get_type(40)[0] # Ratio of minor axis to major axis
@@ -3217,10 +3345,10 @@ class Ellipse:  #---------------------------------------------------------------
 		self.thic =  getit(obj, 39, 0.0)
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.loc = self.get_loc(obj.data)
-		self.major = self.get_major(obj.data)
-		self.extrusion = get_extrusion(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.loc = self.get_loc(obj)
+		self.major = self.get_major(obj)
+		self.extrusion = get_extrusion(obj)
 
 
 	def get_loc(self, data):
@@ -3468,14 +3596,14 @@ class Face:  #-----------------------------------------------------------------
 		if not obj.type == '3dface':
 			raise TypeError, "Wrong type %s for 3dface object!" %obj.type
 		self.type = obj.type
-		self.data = obj.data[:]
+#		self.data = obj.data[:]
 
 		# optional data (with defaults)
 		self.space = getit(obj, 67, 0)
 		self.color_index = getit(obj, 62, BYLAYER)
 
-		self.layer = getit(obj.data, 8, None)
-		self.points = self.get_points(obj.data)
+		self.layer = getit(obj, 8, None)
+		self.points = self.get_points(obj)
 
 
 	def get_points(self, data):
@@ -3582,11 +3710,11 @@ type_map = {
 	'point':Point,
 	'3dface':Face,
 	'line':Line,
-#   'mline':MLine,
+#	'mline':MLine,
 	'polyline':Polyline,
 	'lwpolyline':LWpolyline,
 	'spline':Spline,
-#   'region':Region,
+#	'region':Region,
 	'trace':Solid,
 	'solid':Solid,
 	'text':Text,
@@ -3623,12 +3751,12 @@ def objectify(data):  #---------------------------------------------------------
 				if item.type == 'vertex':
 					#print 'deb:objectify gosub Vertex--------' #-------------
 					v = Vertex(item)
-					if pline.spline: # if Bspline-curve
+					if pline.spline: # if NURBSpline-curve
 						# then for Blender-mesh  filter only additional_vertices
 						# OR
 						# then for Blender-curve filter only spline_control_vertices
-						if (v.spline and not curves_on) or (curves_on and v.splin2): #correct for real NURBS-import
-						#if (v.spline and not curves_on) or (curves_on and not v.splin2): #fake for Bezier-emulation of NURBS-import
+						if (v.spline and not curves_on) or (curves_on and v.spline_c): #correct for real NURBS-import
+						#if (v.spline and not curves_on) or (curves_on and not v.spline_c): #fake for Bezier-emulation of NURBS-import
 							pline.points.append(v)
 					elif pline.curved:  # if Bezier-curve
 						# then for Blender-mesh filter only curve_additional_vertices
@@ -3685,7 +3813,7 @@ class MatColors:  #-------------------------------------------------------------
 	the material.
 	"""
 
-	def __init__(self, layersmap):
+	def __init__(self):
 		"""Expects a map - a dictionary mapping layer names to layers.
 		"""
 		#self.layersmap = layersmap  # a dictionary of layername:layerobject
@@ -3709,8 +3837,9 @@ class MatColors:  #-------------------------------------------------------------
 				#layer = Layer(name=color, color=256, frozen=False)
 				#layersmap[color] = layer
 				#color = 0
-			if layersmap: color = layersmap[color].color
-		if color == 256:  # color 0 = BYLAYER
+			if color in layersmap.keys():
+				color = layersmap[color].color
+		if color == 256:  # color 256 = BYLAYER
 			#--todo-- should looking for color of LAYER
 			#if layersmap: color = layersmap[color].color
 			color = 3
@@ -3749,7 +3878,7 @@ class MatLayers:  #-------------------------------------------------------------
 	the material.
 	"""
 
-	def __init__(self, layersmap):
+	def __init__(self):
 		"""Expects a map - a dictionary mapping layer names to layers.
 		"""
 		#self.layersmap = layersmap  # a dictionary of layername:layer
@@ -3896,6 +4025,11 @@ class Settings:  #--------------------------------------------------------------
 						   '0'
 						  ]
 
+		self.var['groupFilter_on'] = False   #deb:remi------------
+		self.acceptedLayers = ['3',
+						   '0'
+						  ]
+
 		#self.var['blockFilter_on'] = 0   #deb:remi------------
 		self.acceptedBlocks = ['WALL_1871',
 						   'BOX02'
@@ -3953,8 +4087,8 @@ class Settings:  #--------------------------------------------------------------
 		if self.var['optimization'] == 0: self.var['one_mesh_on'] = 0
 		# The section:tables may be partialy or completely missing.
 		self.layersTable = False
-		self.colMaterials = MatColors({}) #A container for dxf-color based materials
-		self.layMaterials = MatLayers({}) #A container for dxf-layer based materials
+		self.colMaterials = MatColors() #A container for dxf-color based materials
+		self.layMaterials = MatLayers() #A container for dxf-layer based materials
 		#self.collayMaterials = MatColLayers({}) #A container for dxf-color+layer based materials
 		global layersmap, layernamesmap
 		layersmap, layernamesmap = {}, {}
@@ -3974,8 +4108,8 @@ class Settings:  #--------------------------------------------------------------
 			if layers: #----------------------------------
 				# Read the layers table and get the layer colors
 				layersmap, layernamesmap = getLayersmap(layers)
-				self.colMaterials = MatColors(layersmap)
-				self.layMaterials = MatLayers(layersmap)
+				#self.colMaterials = MatColors()
+				#self.layMaterials = MatLayers()
 			else:
 				self.write("File contains no table:layers!")
 
@@ -4441,19 +4575,20 @@ def rotXY_Vec(rotation, vec):  #------------------------------------------------
 
 
 
-def getLayersmap(layers):  #------------------------------------------------------
+def getLayersmap(dxflayers):  #------------------------------------------------------
 	"""Build two dictionaries: 1.layername:layer object, and 2.layername:layername_short
+	gets set of layers from TABLES SECTION LAYERS
 	"""
 	layersmap = {}
 	layernamesmap = {}
-	for item in layers.data:
+	for item in dxflayers.data:
 		if type(item) != list and item.type == 'layer':
 			layersmap[item.name] = item
 			layername_short = item.name[:MAX_NAMELENGTH-1]
 			i = 0  #sufix for layernames cause Blender-objectnames-limits
 			while layername_short in layernamesmap.keys():
 				i += 1
-				suffix = str(i)
+				suffix = str(i) #--todo--set zero-leading number format
 				layername_short = layername_short[:-2] + suffix
 			layernamesmap[item.name] = layername_short
 
@@ -4546,6 +4681,7 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 
 	If 'block_def': the entities are to be added to the Blender 'group'.
 	"""
+	global layersmap, layersmapshort
 	#print 'deb:drawer _type, entities:\n ', _type, entities  #-----------------------
 
 	if entities:
@@ -4578,6 +4714,21 @@ def drawer(_type, entities, settings, block_def):  #----------------------------
 		if settings.var['layerFilter_on']:
 			#entities = [entity for entity in entities if entity.layer[0] in ['M','3','0'] and not entity.layer.endswith('H')]
 			entities = [entity for entity in entities if entity.layer in settings.acceptedLayers]
+
+		# patch for incomplete layer table in HL2-DXF-files 
+		if layersmap:
+			for entity in entities:
+				oblayer = entity.layer
+				if oblayer not in layersmap.keys():
+					layer_obj = Layer(None, name=oblayer)
+					layersmap[oblayer] = layer_obj
+					layername_short = oblayer[:MAX_NAMELENGTH-1]
+					i = 0  #sufix for layernames cause Blender-objectnames-limits
+					while layername_short in layernamesmap.keys():
+						i += 1
+						suffix = str(i) #--todo--set zero-leading number format
+						layername_short = layername_short[:-2] + suffix
+					layernamesmap[oblayer] = layername_short
 
 		# filtering only objects on not-frozen layers
 		if layersmap and not settings.var['layFrozen_on']:
@@ -4785,7 +4936,7 @@ def setMaterial_from(entity, ob, settings, block_def):  #-----------------------
 			mat = settings.colMaterials(entity.color_index)
 
 	elif settings.var['material_from'] == 2: # 2= material from layer_name
-		mat = settings.layMaterials(layername = entity.layer)
+		mat = settings.layMaterials(layername=entity.layer)
 
 	elif settings.var['material_from'] == 3: # 3= material from layer+color
 		mat = settings.layMaterials(layername=entity.layer, color=entity.color_index)
@@ -5104,7 +5255,7 @@ EVENT_HELP = 9
 EVENT_PRESETCURV = 10
 EVENT_PRESETS = 11
 EVENT_DXF_DIR = 12
-EVENT_DXF_NAME = 13
+#         = 13
 EVENT_LIST = 14
 EVENT_ORIGIN = 15
 EVENT_SCALE = 16
@@ -5119,12 +5270,12 @@ GUI_B = {}  # GUI-buttons dictionary for drawingTypes
 # settings default, initialize ------------------------
 
 points_as_menu  = "convert to: %t|empty %x1|mesh.vertex %x2|thin sphere %x3|thin box %x4|*curve.vertex %x5"
-lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|curve %x5"
+lines_as_menu   = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
 mlines_as_menu  = "convert to: %t|*edge %x1|*mesh %x2|*thin cylinder %x3|*thin box %x|*curve %x5"
-plines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|curve %x5"
-splines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|curve %x5"
-plines3_as_menu = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|curve %x5"
-plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
+plines_as_menu  = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+splines_as_menu = "convert to: %t|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+plines3_as_menu = "convert to: %t|*edge %x1|mesh %x2|*thin cylinder %x3|*thin box %x4|Bezier-curve %x5|NURBS-curve %x6"
+plmesh_as_menu  = "convert to: %t|*edge %x1|mesh %x2|NURBS-surface %x6"
 solids_as_menu  = "convert to: %t|*edge %x1|mesh %x2"
 blocks_as_menu  = "convert to: %t|dupliGroup %x1|*real.Group %x2|*exploded %x3"
 texts_as_menu   = "convert to: %t|text %x1|*mesh %x2|*curve %x5"
@@ -5166,6 +5317,9 @@ keywords_org = {
 	'xref_on' : 1,
 	'block_nn': 0,
 	'blockFilter_on': 0,
+	'layerFilter_on': 0,
+	'colorFilter_on': 0,
+	'groupFilter_on': 0,
 	'newScene_on' : 1,
 	'target_layer' : TARGET_LAYER,
 	'group_bylayer_on' : GROUP_BYLAYER,
@@ -5187,7 +5341,6 @@ keywords_org = {
 	'dist_force': 0,
 	'material_on': 1,
 	'material_from': 2,
-	'pl_3d'  : 1,
 	'fill_on'	: 1,
 	'meshSmooth_on': 1,
 	'curve_res' : CURV_RESOLUTION,
@@ -5197,6 +5350,8 @@ keywords_org = {
 	'thin_res'  : THIN_RESOLUTION,
 	'pl_trim_max' : TRIM_LIMIT,
 	'pl_trim_on': 1,
+	'plmesh_flip': 0,
+	'normals_out': 0,
 	'paper_space_on': 0,
 	'layFrozen_on': 0,
 	'Z_force_on': 0,
@@ -5205,7 +5360,7 @@ keywords_org = {
 	'lines_as'  : 2,
 	'mlines_as' : 2,
 	'plines_as' : 2,
-	'splines_as' : 2,
+	'splines_as' : 5,
 	'plines3_as': 2,
 	'plmesh_as' : 2,
 	'solids_as' : 2,
@@ -5221,7 +5376,7 @@ drawTypes_org = {
 	'ellipse': 1,
 	'mline' : 0,
 	'polyline': 1,
-	'spline': 0,
+	'spline': 1,
 	'plmesh': 1,
 	'pline3': 1,
 	'lwpolyline': 1,
@@ -5244,6 +5399,9 @@ for k, v in drawTypes_org.iteritems():
 	GUI_B[k] = Draw.Create(v)
 #print 'deb:init GUI_A: ', GUI_A #---------------
 #print 'deb:init GUI_B: ', GUI_B #---------------
+
+model_space_on = Draw.Create(1)
+
 # initialize settings-object controls how dxf entities are drawn
 settings = Settings(keywords_org, drawTypes_org)
 
@@ -5397,12 +5555,13 @@ def resetDefaultConfig():  #-----------------------------------------------
 	updateConfig(keywords_org, drawTypes_org)
 
 
-def presetConfig_curv():  #-----------------------------------------------
+def presetConfig_curv(activate):  #-----------------------------------------------
 	"""Sets settings/config/materials for curve representation.
 
 	"""
 	global GUI_A
-	if GUI_A['curves_on'].val == 1:
+	if activate:
+		GUI_A['curves_on'].val = 1
 		GUI_A['points_as'].val = 5
 		GUI_A['lines_as'].val  = 5
 		GUI_A['mlines_as'].val = 5
@@ -5410,11 +5569,12 @@ def presetConfig_curv():  #-----------------------------------------------
 		GUI_A['splines_as'].val = 5
 		GUI_A['plines3_as'].val = 5
 	else:
+		GUI_A['curves_on'].val = 0
 		GUI_A['points_as'].val = 2
 		GUI_A['lines_as'].val  = 2
 		GUI_A['mlines_as'].val = 2
 		GUI_A['plines_as'].val = 2
-		GUI_A['splines_as'].val = 2
+		GUI_A['splines_as'].val = 6
 		GUI_A['plines3_as'].val = 2
 
 	
@@ -5422,7 +5582,7 @@ def resetDefaultConfig_2D():  #-----------------------------------------------
 	"""Sets settings/config/materials to defaults 2D.
 
 	"""
-#	presetConfig_curv()
+	presetConfig_curv(1)
 	keywords2d = {
 		'views_on' : 0,
 		'cams_on'  : 0,
@@ -5434,7 +5594,6 @@ def resetDefaultConfig_2D():  #-----------------------------------------------
 		'width_force': 0,
 		'dist_on'   : 1,
 		'dist_force': 0,
-		'pl_3d'  : 0,
 		'fill_on'	: 0,
 		'pl_trim_on': 1,
 		'Z_force_on': 0,
@@ -5452,9 +5611,9 @@ def resetDefaultConfig_2D():  #-----------------------------------------------
 		'ellipse': 1,
 		'mline' : 0,
 		'polyline': 1,
-		'spline': 0,
+		'spline': 1,
 		'plmesh': 0,
-		'pline3': 0,
+		'pline3': 1,
 		'lwpolyline': 1,
 		'text'  : 1,
 		'mtext' : 0,
@@ -5472,8 +5631,11 @@ def resetDefaultConfig_3D():  #-----------------------------------------------
 	"""Sets settings/config/materials to defaults 3D.
 
 	"""
-#	presetConfig_curv()
+	presetConfig_curv(0)
 	keywords3d = {
+#		'views_on' : 1,
+#		'cams_on'  : 1,
+#		'lights_on' : 1,
 		'vGroup_on' : 1,
 		'thick_on'  : 1,
 		'thick_force': 0,
@@ -5481,7 +5643,6 @@ def resetDefaultConfig_3D():  #-----------------------------------------------
 		'width_force': 0,
 		'dist_on'   : 1,
 		'dist_force': 0,
-		'pl_3d'  : 0,
 		'fill_on'	: 1,
 		'pl_trim_on': 1,
 		'Z_force_on': 0,
@@ -5499,11 +5660,11 @@ def resetDefaultConfig_3D():  #-----------------------------------------------
 		'ellipse': 1,
 		'mline' : 0,
 		'polyline': 1,
-		'spline': 0,
+		'spline': 1,
 		'plmesh': 1,
 		'pline3': 1,
 		'lwpolyline': 1,
-		'text'  : 1,
+		'text'  : 0,
 		'mtext' : 0,
 		'block' : 1,
 		'insert': 1,
@@ -5557,6 +5718,7 @@ def draw_UI():  #---------------------------------------------------------------
 	"""
 	global GUI_A, GUI_B #__version__
 	global user_preset, iniFileName, dxfFileName, config_UI, g_scale_as
+	global model_space_on
 
 	# This is for easy layout changes
 	but_0c = 70  #button 1.column width
@@ -5567,8 +5729,8 @@ def draw_UI():  #---------------------------------------------------------------
 	butt_margin = 10
 	menu_w = (3 * butt_margin) + but_0c + but_1c + but_2c + but_3c  #menu width
 
-	simple_menu_h = 80
-	extend_menu_h = 370
+	simple_menu_h = 100
+	extend_menu_h = 350
 	y = simple_menu_h		 # y is menu upper.y
 	if config_UI.val: y += extend_menu_h
 	x = 20 #menu left.x
@@ -5584,7 +5746,7 @@ def draw_UI():  #---------------------------------------------------------------
 
 	y += 30
 	colorbox(x, y+20, x+menu_w+menu_margin*2, menu_margin)
-	Draw.Label("DXF-Importer  ver." + __version__, but0c, y, menu_w, 20)
+	Draw.Label("DXF-Importer  v" + __version__, but0c, y, menu_w, 20)
 
 	if config_UI.val:
 		b0, b0_ = but0c, but_0c + butt_margin
@@ -5645,25 +5807,23 @@ def draw_UI():  #---------------------------------------------------------------
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['plmesh'] = Draw.Toggle('POLY-MESH/FACE', EVENT_NONE, b0, y, b0_+b1_, 20, GUI_B['plmesh'].val, "support dxf-POLYMESH/POLYFACE on/off")
+		GUI_B['plmesh'] = Draw.Toggle('PL-MESH/FACE', EVENT_NONE, b0, y, b0_+b1_-40, 20, GUI_B['plmesh'].val, "support dxf-POLYMESH/POLYFACE on/off")
 #		GUI_A['plmesh_as'] = Draw.Menu(plmesh_as_menu, EVENT_NONE, but1c, y, but_1c, 20, GUI_A['plmesh_as'].val, "select target Blender-object")
+		GUI_A['plmesh_flip'] = Draw.Toggle('N', EVENT_NONE, b1+b1_-40, y, 20, 20, GUI_A['plmesh_flip'].val, "flip DXF normals on/off")
+		GUI_A['normals_out'] = Draw.Toggle('N', EVENT_NONE, b1+b1_-20, y, 20, 20, GUI_A['normals_out'].val, "force Blender normals to outside on/off")
 		Draw.EndAlign()
 
 		y -= 20
-		Draw.BeginAlign()
 		GUI_B['solid'] = Draw.Toggle('SOLID', EVENT_NONE, b0, y, b0_, 20, GUI_B['solid'].val, "support dxf-SOLID and TRACE on/off")
 		GUI_B['face'] = Draw.Toggle('3DFACE', EVENT_NONE, b1, y, b1_, 20, GUI_B['face'].val, "support dxf-3DFACE on/off")
 #		GUI_A['solids_as'] = Draw.Menu(solids_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['solids_as'].val, "select target Blender-object")
-		Draw.EndAlign()
 		#print 'deb:support solid, trace', GUI_B['trace'].val, GUI_B['solid'].val # ------------
 
 
 		y -= 20
-		Draw.BeginAlign()
 		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, b0, y, b0_, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
 		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, b1, y, b1_, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
 #		GUI_A['texts_as'] = Draw.Menu(texts_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['texts_as'].val, "select target Blender-object")
-		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
@@ -5671,13 +5831,14 @@ def draw_UI():  #---------------------------------------------------------------
 		GUI_B['insert'].val = GUI_B['block'].val
 		if GUI_B['block'].val:
 			GUI_A['block_nn'] = Draw.Toggle('n', EVENT_NONE, b1-30, y, 15, 20, GUI_A['block_nn'].val, "support hatch/noname BLOCKs *X... on/off")
-			GUI_A['blockFilter_on'] = Draw.Toggle('F', EVENT_NONE, b1-15, y, 15, 20, GUI_A['blockFilter_on'].val, "(*wip) support name filtering of BLOCKs on/off")
-			GUI_A['xref_on'] = Draw.Toggle('Xref', EVENT_NONE, b1, y, 20, 20, GUI_A['xref_on'].val, "support place holder for XREF-BLOCKs on/off")
+			GUI_A['xref_on'] = Draw.Toggle('Xref', EVENT_NONE, b1-15, y, 35, 20, GUI_A['xref_on'].val, "support for XREF-BLOCKs (place holders) on/off")
 			GUI_A['blocks_as'] = Draw.Menu(blocks_as_menu, EVENT_NONE, b1+20, y, b1_-20, 20, GUI_A['blocks_as'].val, "select target representation for imported BLOCKs")
 		Draw.EndAlign()
 
 
 		y -= 20
+		y -= 20
+		
 		Draw.BeginAlign()
 		GUI_A['views_on'] = Draw.Toggle('views', EVENT_NONE, b0, y, b0_-25, 20, GUI_A['views_on'].val, "imports VIEWs and VIEWPORTs as cameras on/off")
 		GUI_A['cams_on'] = Draw.Toggle('*cams', EVENT_NONE, b1-25, y, b1_-25, 20, GUI_A['cams_on'].val, "(*wip) support ASHADE cameras on/off")
@@ -5688,19 +5849,28 @@ def draw_UI():  #---------------------------------------------------------------
 		if y < y_down: y_down = y
 		# -----end supported objects--------------------------------------
 
-		b0, b0_ = but0c, but_0c + butt_margin
-		b1, b1_ = but1c, but_1c
-
 		y_top = y_down
 		y = y_top
 		y -= 10
 		y -= 20
+		but_ = menu_w / 6
+		b0 = but0c + (menu_w - but_*6)/2
 		Draw.BeginAlign()
-		GUI_A['material_on'] = Draw.Toggle('material', EVENT_REDRAW, b0, y, b0_-20, 20, GUI_A['material_on'].val, "support for material assignment on/off")
-		if GUI_A['material_on'].val:
-			GUI_A['material_from'] = Draw.Menu(material_from_menu,   EVENT_NONE, b1-20, y, b1_+20, 20, GUI_A['material_from'].val, "material assignment from?")
+		GUI_A['paper_space_on'] = Draw.Toggle('paper', EVENT_NONE, b0+but_*0, y, but_, 20, GUI_A['paper_space_on'].val, "import only from Paper-Space on/off")
+		GUI_A['layFrozen_on'] = Draw.Toggle ('frozen', EVENT_NONE, b0+but_*1, y, but_, 20, GUI_A['layFrozen_on'].val, "import also from frozen LAYERs on/off")
+		GUI_A['layerFilter_on'] = Draw.Toggle('layer', EVENT_NONE, b0+but_*2, y, but_, 20, GUI_A['layerFilter_on'].val, "(*wip) LAYER filtering on/off")
+		GUI_A['colorFilter_on'] = Draw.Toggle('color', EVENT_NONE, b0+but_*3, y, but_, 20, GUI_A['colorFilter_on'].val, "(*wip) COLOR filtering on/off")
+		GUI_A['groupFilter_on'] = Draw.Toggle('group', EVENT_NONE, b0+but_*4, y, but_, 20, GUI_A['groupFilter_on'].val, "(*wip) GROUP filtering on/off")
+		GUI_A['blockFilter_on'] = Draw.Toggle('block', EVENT_NONE, b0+but_*5, y, but_, 20, GUI_A['blockFilter_on'].val, "(*wip) BLOCK filtering on/off")
+		#GUI_A['dummy_on'] = Draw.Toggle('-', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['dummy_on'].val, "dummy on/off")
 		Draw.EndAlign()
 
+		# -----end filters--------------------------------------
+
+		b0, b0_ = but0c, but_0c + butt_margin
+		b1, b1_ = but1c, but_1c
+
+		y -= 10
 		y -= 20
 		Draw.BeginAlign()
 		GUI_A['g_origin_on'] = Draw.Toggle('glob.reLoc', EVENT_REDRAW, b0, y, b0_, 20, GUI_A['g_origin_on'].val, "global relocate all DXF objects on/off")
@@ -5750,9 +5920,9 @@ def draw_UI():  #---------------------------------------------------------------
 		y -= 10
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['meshSmooth_on'] = Draw.Toggle('smooth', EVENT_NONE, b0, y, b0_-20, 20, GUI_A['meshSmooth_on'].val, "mesh smooth for circles/arcsegments on/off")
-		GUI_A['pl_trim_on'] = Draw.Toggle('trim', EVENT_NONE, b1-20, y, 32, 20, GUI_A['pl_trim_on'].val, "intersection of POLYLINE-wide-segments on/off")
-		GUI_A['pl_trim_max'] = Draw.Number('', EVENT_NONE, b1+12, y,  b1_-12, 20, GUI_A['pl_trim_max'].val, 0, 5, "limit for intersection of POLYLINE-wide-segments: 0.0-5.0")
+		GUI_A['meshSmooth_on'] = Draw.Toggle('smooth', EVENT_NONE, b0, y, b0_-20, 20, GUI_A['meshSmooth_on'].val, "mesh smooth for circles/arc-segments on/off")
+		GUI_A['pl_trim_on'] = Draw.Toggle('trim', EVENT_NONE, b1-20, y, 32, 20, GUI_A['pl_trim_on'].val, "clean intersection of POLYLINE-wide-segments on/off")
+		GUI_A['pl_trim_max'] = Draw.Number('', EVENT_NONE, b1+12, y,  b1_-12, 20, GUI_A['pl_trim_max'].val, 0, 5, "threshold intersection of POLYLINE-wide-segments: 0.0-5.0")
 		Draw.EndAlign()
 
 		y -= 20
@@ -5765,21 +5935,21 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['curves_on'] = Draw.Toggle('to Curves', EVENT_PRESETCURV, b0, y, b0_, 20, GUI_A['curves_on'].val, "import into curves instead into meshes on/off")
-		GUI_A['curve_arc'] = Draw.Number('', EVENT_NONE, b1, y, b1_/2, 20, GUI_A['curve_arc'].val, 3, 32, "Bezier circle: amount of segments: 3-32")
-		GUI_A['curve_res'] = Draw.Number('', EVENT_NONE, b1+b1_/2, y,  b1_/2, 20, GUI_A['curve_res'].val, 1, 128, "Set the Curve's U-resolution value: 1-128")
+		GUI_A['curve_arc'] = Draw.Number('', EVENT_NONE, b0, y, b0_/2, 20, GUI_A['curve_arc'].val, 3, 32, "Bezier circle: amount of segments: 3-32")
+		GUI_A['curve_res'] = Draw.Number('', EVENT_NONE, b0+b0_/2, y,  b0_/2, 20, GUI_A['curve_res'].val, 1, 128, "Set the Curve's U-resolution value: 1-128")
+		GUI_A['curves_on'] = Draw.Toggle('to Curves', EVENT_PRESETCURV, b1, y, b1_, 20, GUI_A['curves_on'].val, "set Curve as target object type on/off")
 		Draw.EndAlign()
 
 		y -= 20
-		GUI_A['group_bylayer_on'] = Draw.Toggle('Lay', EVENT_NONE, b0, y, 30, 20, GUI_A['group_bylayer_on'].val, "grouping entities from the same layer on/off")
-		GUI_A['vGroup_on'] = Draw.Toggle('vGroups', EVENT_NONE, b0+30, y, b1_-10, 20, GUI_A['vGroup_on'].val, "support Blender-VertexGroups on/off")
+		GUI_A['group_bylayer_on'] = Draw.Toggle('Layer', EVENT_NONE, b0, y, 30, 20, GUI_A['group_bylayer_on'].val, "DXF-entities group by layer on/off")
+		GUI_A['vGroup_on'] = Draw.Toggle('vGroups', EVENT_NONE, b0+30, y, b1_-10, 20, GUI_A['vGroup_on'].val, "sort faces into VertexGroups on/off")
 		GUI_A['one_mesh_on'] = Draw.Toggle('oneMesh', EVENT_NONE, b1+10, y, b1_-10, 20, GUI_A['one_mesh_on'].val, "draw DXF-entities into one mesh-object. Recommended for big DXF-files. on/off")
 
 		y -= 30
 		Draw.BeginAlign()
-		GUI_A['paper_space_on'] = Draw.Toggle('paper space', EVENT_NONE, b0, y, b0_+20, 20, GUI_A['paper_space_on'].val, "import only layout (paper space) on/off")
-		GUI_A['layFrozen_on'] = Draw.Toggle('frozen', EVENT_NONE, b1+20, y, b1_-20, 20, GUI_A['layFrozen_on'].val, "import also from frozen layers on/off")
-		#GUI_A['dummy_on'] = Draw.Toggle('-', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['dummy_on'].val, "dummy on/off")
+		GUI_A['material_on'] = Draw.Toggle('material', EVENT_REDRAW, b0, y, b0_-20, 20, GUI_A['material_on'].val, "support for material assignment on/off")
+		if GUI_A['material_on'].val:
+			GUI_A['material_from'] = Draw.Menu(material_from_menu,   EVENT_NONE, b1-20, y, b1_+20, 20, GUI_A['material_from'].val, "material assignment from?")
 		Draw.EndAlign()
 
 		y_down = y
@@ -5821,8 +5991,9 @@ def draw_UI():  #---------------------------------------------------------------
 		Draw.EndAlign()
 
 		y -= 30
-		GUI_A['newScene_on'] = Draw.Toggle('newScene', EVENT_NONE, b0, y, b0_, 20, GUI_A['newScene_on'].val, "creates new Blender-Scene for each import on/off")
-		GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, b1, y, b1_, 20, GUI_A['target_layer'].val, 1, 18, "imports into this Blender-layer (<19> reserved for block_definitions)")
+		but, but_ = but2c, 25
+		Draw.BeginAlign()
+		Draw.EndAlign()
 
 		if y < y_down: y_down = y
 		# -----end options --------------------------------------
@@ -5835,45 +6006,60 @@ def draw_UI():  #---------------------------------------------------------------
 		y -= 30
 		Draw.BeginAlign()
 		Draw.PushButton('INI file >', EVENT_CHOOSE_INI, but0c, y, but_0c, 20, 'Select INI-file from project directory')
-		iniFileName = Draw.String(' :', EVENT_NONE, but1c, y, menu_w-but_0c-butt_margin, 20, iniFileName.val, FILENAME_MAX, "write here the name of the INI-file")
+		iniFileName = Draw.String(' :', EVENT_NONE, but1c, y, menu_w-but_1c-60, 20, iniFileName.val, FILENAME_MAX, "write here the name of the INI-file")
+		but = but4c-60
+		Draw.PushButton('#', EVENT_PRESETS, but, y, 20, 20, "toggle Preset-INI-files")
+		Draw.PushButton('L', EVENT_LOAD_INI, but+20, y, 20, 20, 'Loads configuration from ini-file: %s' % iniFileName.val)
+		Draw.PushButton('S', EVENT_SAVE_INI, but+40, y, 20, 20, 'Saves configuration to ini-file: %s' % iniFileName.val)
 		Draw.EndAlign()
 
-		y -= 20
-		Draw.BeginAlign()
-		Draw.PushButton('#', EVENT_PRESETS, but0c, y, 20, 20, "tipist for Preset-INI-files")
-		Draw.PushButton('Load', EVENT_LOAD_INI, but0c+20, y, but_0c-20, 20, '.Loads configuration from ini-file: %s' % iniFileName.val)
-		Draw.PushButton('Save', EVENT_SAVE_INI, but1c, y, but_1c-20, 20, 'Saves configuration to ini-file: %s' % iniFileName.val)
-		Draw.EndAlign()
-		but_ = (but_2c+but_3c)/4
-		but = but2c
-		Draw.PushButton('reset', EVENT_RESET, but, y, but_, 20, "reset configuration to defaults")
-		Draw.PushButton('2D', EVENT_PRESET2D, but+but_, y, but_, 20, 'set configuration for 2D import')
-		Draw.PushButton('3D', EVENT_PRESET3D, but+but_*2, y, but_, 20, 'set configuration for 3D import')
-		GUI_A['optimization'] = Draw.Number('', EVENT_NONE, but4c-35, y, 35, 20, GUI_A['optimization'].val, 0, 3, "Optimization Level: 0=Debug/directDrawing, 1=Verbose, 2=ProgressBar, 3=silentMode/fastest")
 
+	b0, b0_ = but2c, but_2c + butt_margin
+	b1, b1_ = but3c, but_3c
 
 	y =	simple_menu_h
+	bm = butt_margin/2
+
+	#y -= 10
 	Draw.BeginAlign()
 	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but0c, y, but_0c, 20, 'Select DXF-file from project directory')
 	dxfFileName = Draw.String(' :', EVENT_NONE, but1c, y, but_1c+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF-file or type *.dxf for multi-import")
-	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'Set asterisk * as filter')
+	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'import all dxf files from this directory')
 	Draw.EndAlign()
 
-
-	y -= 50
+	y -= 30
+	config_UI = Draw.Toggle('CONFIG', EVENT_REDRAW, but0c, y, but_0c+bm, 20, config_UI.val, 'Advanced configuration on/off' )
 	Draw.BeginAlign()
-	Draw.PushButton('EXIT', EVENT_EXIT, but0c, y, but_0c, 40, '' )
-	Draw.PushButton('HELP', EVENT_HELP, but1c, y, but_1c-20, 20, 'calls BlenderWiki for Manual, Updates and Support.')
-	Draw.PushButton('?', EVENT_LIST, but1c+but_1c-20, y, 20, 20, 'DXF analyze tool: print listing of LAYERs and BLOCKs into the text file .INF')
-	Draw.PushButton('START IMPORT', EVENT_START, but2c, y, but_2c+but_3c+butt_margin, 40, 'Start the import procedure')
+	but, but_ = but1c, but_1c+bm
+	but_ /= 3
+	Draw.PushButton('X', EVENT_RESET, but, y, 15, 20, "reset configuration to defaults")
+	Draw.PushButton('2D', EVENT_PRESET2D, but+but_, y, but_, 20, 'set configuration for 2D import')
+	Draw.PushButton('3D', EVENT_PRESET3D, but+(but_*2), y, but_, 20, 'set configuration for 3D import')
 	Draw.EndAlign()
 
-	config_UI = Draw.Toggle('CONFIG', EVENT_REDRAW, but1c-butt_margin/2, y+20, but_1c+butt_margin, 20, config_UI.val, 'Advanced configuration on/off' )
+	Draw.BeginAlign()
+	GUI_A['newScene_on'] = Draw.Toggle('newScene', EVENT_NONE, but2c, y, but_2c, 20, GUI_A['newScene_on'].val, "create new Scene for each imported dxf file on/off")
+	GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['target_layer'].val, 1, 18, "target Blender-layer (<19> reserved for block_definitions)")
+	Draw.EndAlign()
+
+	y -= 40
+	Draw.PushButton('EXIT', EVENT_EXIT, but0c, y, but_0c+bm, 20, '' )
+	Draw.PushButton('HELP', EVENT_HELP, but1c, y, but_1c+bm, 20, 'calls DXF-Importer Manual Page on Wiki.Blender.org')
+	Draw.BeginAlign()
+	GUI_A['optimization'] = Draw.Number('', EVENT_NONE, but2c, y+20, 40, 20, GUI_A['optimization'].val, 0, 3, "Optimization Level: 0=Debug/directDrawing, 1=Verbose, 2=ProgressBar, 3=SilentMode")
+	Draw.EndAlign()
+	Draw.BeginAlign()
+	Draw.PushButton('TEST', EVENT_LIST, but2c, y, 40, 20, 'DXF-Analyze-Tool: reads data from selected dxf file and writes report in project_directory/dxf_blendname.INF')
+	Draw.PushButton('START IMPORT', EVENT_START, but2c+40, y, but_2c-40+but_3c+butt_margin, 40, 'Start the import process. For Cancel go to console and hit Ctrl-C')
+	Draw.EndAlign()
+
+
+
 
 	y -= 20
 	Draw.BeginAlign()
 	Draw.Label(' ', but0c-menu_margin, y, menu_margin, 20)
-	Draw.Label("*) parts under construction", but0c, y, menu_w, 20)
+	Draw.Label(LAB, but0c, y, menu_w, 20)
 	Draw.Label(' ', but0c+menu_w, y, menu_margin, 20)
 	Draw.EndAlign()
 
@@ -5930,7 +6116,7 @@ def bevent(evt):
 		resetDefaultConfig_3D()
 		Draw.Redraw()
 	elif (evt==EVENT_PRESETCURV):
-		presetConfig_curv()
+		presetConfig_curv(GUI_A['curves_on'].val)
 		Draw.Redraw()
 	elif (evt==EVENT_PRESETS):
 		user_preset += 1
@@ -5974,11 +6160,6 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 #		update_RegistryKey('dxfFileName', dxfFileName.val)
 		GUI_A['newScene_on'].val = 1
 		Draw.Redraw()
-#	elif (evt==EVENT_DXF_NAME):
-#		dirname == Blender.sys.dirname(Blender.Get('filename'))
-#		update_RegistryKey('DirName', dirname)
-#		#print 'deb:EVENT_DXF_NAME dxfFileName.val:', dxfFileName.val #--------------
-#		update_RegistryKey('dxfFileName', dxfFileName.val)
 	elif (evt==EVENT_CHOOSE_DXF):
 		filename = '' # '*.dxf'
 		if dxfFileName.val:	filename = dxfFileName.val
@@ -5986,6 +6167,7 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 	elif (evt==EVENT_START):
 		dxfFile = dxfFileName.val
 		#print 'deb: dxfFile file: ', dxfFile #----------------------
+		if E_M: dxfFileName.val, dxfFile = e_mode(dxfFile) #evaluation mode
 		update_RegistryKey('dxfFileName', dxfFileName.val)
 		if dxfFile.lower().endswith('*.dxf'):
 			if Draw.PupMenu('DXF importer:  OK?|will import all DXF-files from:|%s' % dxfFile) == 1:

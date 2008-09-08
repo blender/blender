@@ -40,7 +40,21 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
 
-bool KX_RayCast::RayTest(KX_IPhysicsController* ignore_controller, PHY_IPhysicsEnvironment* physics_environment, const MT_Point3& _frompoint, const MT_Point3& topoint, MT_Point3& result_point, MT_Vector3& result_normal, const KX_RayCast& callback)
+KX_RayCast::KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal)
+	:PHY_IRayCastFilterCallback(dynamic_cast<PHY_IPhysicsController*>(ignoreController), faceNormal) 
+{
+}
+
+void KX_RayCast::reportHit(PHY_RayCastResult* result)
+{
+	m_hitFound = true;
+	m_hitPoint.setValue((const float*)result->m_hitPoint);
+	m_hitNormal.setValue((const float*)result->m_hitNormal);
+	m_hitMesh = result->m_meshObject;
+	m_hitPolygon = result->m_polygon;
+}
+
+bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_Point3& _frompoint, const MT_Point3& topoint, KX_RayCast& callback)
 {
 	// Loops over all physics objects between frompoint and topoint,
 	// calling callback.RayHit for each one.
@@ -50,58 +64,51 @@ bool KX_RayCast::RayTest(KX_IPhysicsController* ignore_controller, PHY_IPhysicsE
 	// returns true if an object was found, false if not.
 	MT_Point3 frompoint(_frompoint);
 	const MT_Vector3 todir( (topoint - frompoint).safe_normalized() );
+	MT_Point3 prevpoint(_frompoint+todir*(-1.f));
 	
 	PHY_IPhysicsController* hit_controller;
-	PHY__Vector3 phy_pos;
-	PHY__Vector3 phy_normal;
 
-	while((hit_controller = physics_environment->rayTest(dynamic_cast<PHY_IPhysicsController*>(ignore_controller),
+	while((hit_controller = physics_environment->rayTest(callback,
 			frompoint.x(),frompoint.y(),frompoint.z(),
-			topoint.x(),topoint.y(),topoint.z(),
-			phy_pos[0],phy_pos[1],phy_pos[2],
-			phy_normal[0],phy_normal[1],phy_normal[2]))) 
+			topoint.x(),topoint.y(),topoint.z())) != NULL) 
 	{
-		result_point = MT_Point3(phy_pos);
-		result_normal = MT_Vector3(phy_normal);
 		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(hit_controller->getNewClientInfo());
 		
 		if (!info)
 		{
 			printf("no info!\n");
 			MT_assert(info && "Physics controller with no client object info");
-			return false;
+			break;
 		}
 		
-		if (callback.RayHit(info, result_point, result_normal))
-			return true;
-	
-		// There is a bug in the code below: the delta is computed with the wrong
-		// sign on the face opposite to the center, resulting in infinite looping.
-		// In Blender 2.45 this code was never executed because callback.RayHit() always 
-		// returned true, causing the ray sensor to stop on the first object.
-		// To avoid changing the behaviour will simply return false here.
-		// It should be discussed if we want the ray sensor to "see" through objects
-		// that don't have the required property/material (condition to get here)
-		return false;
-	
-		// skip past the object and keep tracing
-		/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
-		MT_Scalar marg = 0.01 + hit_controller->GetMargin();
-		marg += 2.f * hit_controller->GetMargin();
+		// The biggest danger to to endless loop, prevent this by checking that the
+		// hit point always progresses along the ray direction..
+		prevpoint -= callback.m_hitPoint;
+		if (prevpoint.length2() < MT_EPSILON)
+			break;
+
+		if (callback.RayHit(info))
+			// caller may decide to stop the loop and still cancel the hit
+			return callback.m_hitFound;
+
+		// Skip past the object and keep tracing.
+		// Note that retrieving in a single shot multiple hit points would be possible 
+		// but it would require some change in Bullet.
+		prevpoint = callback.m_hitPoint;
+		/* We add 0.001 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+		MT_Scalar marg = 0.001 + hit_controller->GetMargin();
+		marg *= 2.f;
 		/* Calculate the other side of this object */
-		PHY__Vector3 hitpos;
-		hit_controller->getPosition(hitpos);
-		MT_Point3 hitObjPos(hitpos);
-		
-		MT_Vector3 hitvector = hitObjPos - result_point;
-		if (hitvector.dot(hitvector) > MT_EPSILON)
-		{
-			hitvector.normalize();
-			marg *= 2.*todir.dot(hitvector);
-		}
-		frompoint = result_point + marg * todir;
+		MT_Scalar h = MT_abs(todir.dot(callback.m_hitNormal));
+		if (h <= 0.01)
+			// the normal is almost orthogonal to the ray direction, cannot compute the other side
+			break;
+		marg /= h; 
+		frompoint = callback.m_hitPoint + marg * todir;
+		// verify that we are not passed the to point
+		if ((topoint - frompoint).dot(todir) < 0.f)
+			break;
 	}
-	
-	return hit_controller;
+	return false;
 }
 

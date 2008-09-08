@@ -1565,7 +1565,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
-	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
+	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	int totface, *origindex = 0;
 	char **uv_name=0;
@@ -1573,6 +1573,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 1. check that everything is ok & updated */
 	if(psys==NULL)
 		return 0;
+	
+	totchild=psys->totchild;
 
 	part=psys->part;
 	pars=psys->particles;
@@ -1764,7 +1766,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		psys->lattice=psys_get_lattice(ob,psys);
 
 /* 3. start creating renderable things */
-	for(a=0,pa=pars; a<totpart+totchild; a++, pa++) {
+	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
 		random = rng_getFloat(rng);
 
 		if(a<totpart){
@@ -1865,9 +1867,17 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			num= cpa->num;
 
 			/* get orco */
-			psys_particle_on_emitter(ob, psmd,
-				(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
-				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
+			if(part->childtype == PART_CHILD_FACES) {
+				psys_particle_on_emitter(ob, psmd,
+					PART_FROM_FACE, cpa->num,DMCACHE_ISCHILD,
+					cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
+			}
+			else {
+				ParticleData *par = psys->particles + cpa->parent;
+				psys_particle_on_emitter(ob, psmd, part->from,
+					par->num,DMCACHE_ISCHILD,par->fuv,
+					par->foffset,co,nor,0,0,orco,0);
+			}
 
 			if(uvco){
 				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){

@@ -97,9 +97,12 @@
 #include "BKE_material.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 #include "BKE_bmesh.h"
+#include "BKE_deform.h"
+#include "BKE_shrinkwrap.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -1130,8 +1133,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
 				  mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-				  if(mface[numFaces].v4)
+				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
+
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 4);
+				  }
+				  else
+				  {
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 3);
+				  }
+
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
 				  numFaces++;
@@ -1221,8 +1234,17 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				  mface[numFaces].v1 = vert_map[mface[numFaces].v1];
 				  mface[numFaces].v2 = vert_map[mface[numFaces].v2];
 				  mface[numFaces].v3 = vert_map[mface[numFaces].v3];
-				  if(mface[numFaces].v4)
+				  if(mface[numFaces].v4) {
 					  mface[numFaces].v4 = vert_map[mface[numFaces].v4];
+
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 4);
+				  }
+				  else
+				  {
+					  test_index_face(&mface[numFaces], &result->faceData,
+					                  numFaces, 3);
+				  }
 				  origindex[numFaces] = ORIGINDEX_NONE;
 
 				  numFaces++;
@@ -2978,6 +3000,20 @@ CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
 	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
 
 	return dataMask;
+}
+
+static int displaceModifier_dependsOnTime(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+
+	if(dmd->texture)
+	{
+		return BKE_texture_dependsOnTime(dmd->texture);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static void displaceModifier_foreachObjectLink(ModifierData *md, Object *ob,
@@ -5459,7 +5495,7 @@ static void collisionModifier_deformVerts(
 		
 		numverts = dm->getNumVerts ( dm );
 		
-		if(current_time > collmd->time)
+		if((current_time > collmd->time)|| (BKE_ptcache_get_continue_physics()))
 		{	
 			// check if mesh has changed
 			if(collmd->x && (numverts != collmd->numverts))
@@ -6086,22 +6122,6 @@ CustomDataMask explodeModifier_requiredDataMask(ModifierData *md)
 	return dataMask;
 }
 
-/* this should really be put somewhere permanently */
-static float vert_weight(MDeformVert *dvert, int group)
-{
-	MDeformWeight *dw;
-	int i;
-	
-	if(dvert) {
-		dw= dvert->dw;
-		for(i= dvert->totweight; i>0; i--, dw++) {
-			if(dw->def_nr == group) return dw->weight;
-			if(i==1) break; /*otherwise dw will point to somewhere it shouldn't*/
-		}
-	}
-	return 0.0;
-}
-
 static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 					 ParticleSystemModifierData *psmd,
       Object *ob, DerivedMesh *dm)
@@ -6145,7 +6165,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 			for(i=0; i<totvert; i++){
 				val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
-				if(val < vert_weight(dvert+i,emd->vgroup-1))
+				if(val < deformvert_get_weight(dvert+i,emd->vgroup-1))
 					vertpa[i] = -1;
 			}
 		}
@@ -7202,6 +7222,126 @@ static void meshdeformModifier_deformVertsEM(
 		dm->release(dm);
 }
 
+
+/* Shrinkwrap */
+
+static void shrinkwrapModifier_initData(ModifierData *md)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+	smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
+	smd->shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
+	smd->keepDist	= 0.0f;
+
+	smd->target		= NULL;
+	smd->auxTarget	= NULL;
+}
+
+static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ShrinkwrapModifierData *smd  = (ShrinkwrapModifierData*)md;
+	ShrinkwrapModifierData *tsmd = (ShrinkwrapModifierData*)target;
+
+	tsmd->target	= smd->target;
+	tsmd->auxTarget = smd->auxTarget;
+
+	strcpy(tsmd->vgroup_name, smd->vgroup_name);
+
+	tsmd->keepDist	= smd->keepDist;
+	tsmd->shrinkType= smd->shrinkType;
+	tsmd->shrinkOpts= smd->shrinkOpts;
+}
+
+CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->vgroup_name[0])
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	if(smd->shrinkType == MOD_SHRINKWRAP_PROJECT
+	&& smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL)
+		dataMask |= (1 << CD_MVERT);
+		
+	return dataMask;
+}
+
+static int shrinkwrapModifier_isDisabled(ModifierData *md)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+	return !smd->target;
+}
+
+
+static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+	walk(userData, ob, &smd->target);
+	walk(userData, ob, &smd->auxTarget);
+}
+
+static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(shrinkwrapModifier_requiredDataMask(md))
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
+}
+
+static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
+
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
+}
+
+static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+	if (smd->target)
+		dag_add_relation(forest, dag_get_node(forest, smd->target),   obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
+
+	if (smd->auxTarget)
+		dag_add_relation(forest, dag_get_node(forest, smd->auxTarget), obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
+}
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -7335,6 +7475,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = displaceModifier_initData;
 		mti->copyData = displaceModifier_copyData;
 		mti->requiredDataMask = displaceModifier_requiredDataMask;
+		mti->dependsOnTime = displaceModifier_dependsOnTime;
 		mti->foreachObjectLink = displaceModifier_foreachObjectLink;
 		mti->foreachIDLink = displaceModifier_foreachIDLink;
 		mti->updateDepgraph = displaceModifier_updateDepgraph;
@@ -7521,6 +7662,21 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->dependsOnTime = explodeModifier_dependsOnTime;
 		mti->requiredDataMask = explodeModifier_requiredDataMask;
 		mti->applyModifier = explodeModifier_applyModifier;
+
+		mti = INIT_TYPE(Shrinkwrap);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs
+				| eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_EnableInEditmode;
+		mti->initData = shrinkwrapModifier_initData;
+		mti->copyData = shrinkwrapModifier_copyData;
+		mti->requiredDataMask = shrinkwrapModifier_requiredDataMask;
+		mti->isDisabled = shrinkwrapModifier_isDisabled;
+		mti->foreachObjectLink = shrinkwrapModifier_foreachObjectLink;
+		mti->deformVerts = shrinkwrapModifier_deformVerts;
+		mti->deformVertsEM = shrinkwrapModifier_deformVertsEM;
+		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

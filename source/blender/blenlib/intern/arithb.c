@@ -2113,6 +2113,14 @@ void VecLerpf(float *target, float *a, float *b, float t)
 	target[2]= s*a[2] + t*b[2];
 }
 
+void Vec2Lerpf(float *target, float *a, float *b, float t)
+{
+	float s = 1.0f-t;
+
+	target[0]= s*a[0] + t*b[0];
+	target[1]= s*a[1] + t*b[1];
+}
+
 void VecMidf(float *v, float *v1, float *v2)
 {
 	v[0]= 0.5f*(v1[0]+ v2[0]);
@@ -2535,11 +2543,6 @@ int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
 		return 0;
 }
 
-
-
-			/* copied from Geometry.c - todo - move to arithb.c or some other generic place we can reuse */
-#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
-#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
 
 /**
  * 

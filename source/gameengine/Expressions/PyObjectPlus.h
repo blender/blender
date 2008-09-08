@@ -43,23 +43,35 @@
  * Python defines
 ------------------------------*/
 
-								// some basic python macros
-#define Py_NEWARGS 1			
-#define Py_Return { Py_INCREF(Py_None); return Py_None;}
-static inline PyObject* Py_Success(bool truth)
-{
-	if (truth)
-	{
-		Py_INCREF(Py_True);
-		return Py_True;
-	}
-	Py_INCREF(Py_False);
-	return Py_False;
-}
+/*
+   Py_RETURN_NONE
+   Python 2.4 macro.
+   defined here until we switch to 2.4
+   also in api2_2x/gen_utils.h 
+*/
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE  return Py_BuildValue("O", Py_None)
+#endif
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE  return PyBool_FromLong(0)
+#endif
+#ifndef Py_RETURN_TRUE
+#define Py_RETURN_TRUE  return PyBool_FromLong(1)
+#endif
 
-#define Py_Error(E, M)   {PyErr_SetString(E, M); return NULL;}
-#define Py_Try(F) {if (!(F)) return NULL;}
-#define Py_Assert(A,E,M) {if (!(A)) {PyErr_SetString(E, M); return NULL;}}
+/*  for pre Py 2.5 */
+#if PY_VERSION_HEX < 0x02050000
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#else
+/* Py 2.5 and later */
+#define  intargfunc  ssizeargfunc
+#define intintargfunc  ssizessizeargfunc
+#endif
+
+								// some basic python macros
+#define Py_Return { Py_INCREF(Py_None); return Py_None;}
 
 static inline void Py_Fatal(char *M) {
 	//cout << M << endl; 
@@ -117,6 +129,12 @@ static inline void Py_Fatal(char *M) {
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
 
+#define KX_PYMETHOD_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
+	}; \
+
 #define KX_PYMETHOD_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self); \
 	static PyObject* sPy##method_name( PyObject* self) { \
@@ -133,6 +151,13 @@ static inline void Py_Fatal(char *M) {
 	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
+	}; \
+    static char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
 	}; \
     static char method_name##_doc[]; \
 
@@ -158,6 +183,9 @@ static inline void Py_Fatal(char *M) {
 #define KX_PYMETHODTABLE(class_name, method_name) \
 	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, class_name::method_name##_doc}
 
+#define KX_PYMETHODTABLE_NOARG(class_name, method_name) \
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, class_name::method_name##_doc}
+
 /**
  * Function implementation macro
  */
@@ -165,6 +193,9 @@ static inline void Py_Fatal(char *M) {
 char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 
+#define KX_PYMETHODDEF_DOC_NOARG(class_name, method_name, doc_string) \
+char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject*)
 
 /*------------------------------
  * PyObjectPlus

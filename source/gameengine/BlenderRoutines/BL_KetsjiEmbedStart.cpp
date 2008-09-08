@@ -79,6 +79,8 @@
 #include "DNA_scene_types.h"
 	/***/
 
+#include "GPU_extensions.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,33 +92,10 @@ void update_for_newframe();
 
 static BlendFileData *load_game_data(char *filename) {
 	BlendReadError error;
-	//this doesn't work anymore for relative paths, so use BLO_read_from_memory instead
-	//BlendFileData *bfd= BLO_read_from_file(filename, &error);
-	FILE* file = fopen(filename,"rb");
-	BlendFileData *bfd  = 0;
-	if (file)
-	{
-		fseek(file, 0L, SEEK_END);
-		int len= ftell(file);
-		fseek(file, 0L, SEEK_SET);	
-		char* filebuffer= new char[len];//MEM_mallocN(len, "text_buffer");
-		int sizeread = fread(filebuffer,len,1,file);
-		if (sizeread==1){
-			bfd = BLO_read_from_memory(filebuffer, len, &error);
-		} else {
-			error = BRE_UNABLE_TO_READ;
-		}
-		fclose(file);
-		// the memory is not released in BLO_read_from_memory, must do it here
-		delete filebuffer;
-	} else {
-		error = BRE_UNABLE_TO_OPEN;
-	}
-
+	BlendFileData *bfd= BLO_read_from_file(filename, &error);
 	if (!bfd) {
 		printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
 	}
-	
 	return bfd;
 }
 
@@ -139,7 +118,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
 	PyGILState_STATE gilstate = PyGILState_Ensure();
-
+	
+	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
+	
 	bgl::InitExtensions(true);
 
 	do
@@ -158,6 +139,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+
+		if(GPU_extensions_minimum_support())
+			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 0) != 0);
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -325,17 +309,19 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename);
+				startscenename,
+				blscene);
 			
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
+			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
 			initGameKeys();
 			initPythonConstraintBinding();
-
+			initMathutils();
 
 			if (sceneconverter)
 			{
@@ -407,6 +393,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				// which allows the scene to safely delete them :)
 				// see: (space.c)->start_game
 				PyDict_Clear(PyModule_GetDict(gameLogic));
+				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict);
 				
 				ketsjiengine->StopEngine();
 				exitGamePythonScripting();
@@ -545,8 +532,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		// create the ketsjiengine
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
 
-		int i;
-
 		Scene *blscene = NULL;
 		if (!bfd)
 		{
@@ -562,7 +547,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		} else {
 			blscene = bfd->curscene;
 		}
-        int cframe,startFrame;
+        int cframe = 1, startFrame;
 		if (blscene)
 		{
 			cframe=blscene->r.cfra;
@@ -593,15 +578,18 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename);
+				startscenename,
+				blscene);
+
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 			initGameKeys();
 			initPythonConstraintBinding();
+			initMathutils();
 
 			if (sceneconverter)
 			{

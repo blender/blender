@@ -42,7 +42,7 @@ struct RAS_CameraData
 	int m_viewporttop;
 	float m_focallength;
 
-	RAS_CameraData(float lens = 35., float clipstart = 0.1, float clipend = 100., bool perspective = true,
+	RAS_CameraData(float lens = 35.0, float clipstart = 0.1, float clipend = 5000.0, bool perspective = true,
 	float focallength = 0.0f, bool viewport = false, int viewportleft = 0, int viewportbottom = 0, 
 	int viewportright = 0, int viewporttop = 0) :
 		m_lens(lens),

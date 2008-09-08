@@ -109,16 +109,11 @@ KX_ConstraintActuator::~KX_ConstraintActuator()
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
-bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
 {
 
 	KX_GameObject* hitKXObj = client->m_gameobject;
 	
-	if (client->m_type > KX_ClientObjectInfo::ACTOR)
-	{
-		// false hit
-		return false;
-	}
 	bool bFound = false;
 
 	if (m_property[0] == 0)
@@ -139,8 +134,26 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_p
 			bFound = hitKXObj->GetProperty(m_property) != NULL;
 		}
 	}
+	// update the hit status
+	result->m_hitFound = bFound;
+	// stop looking
+	return true;
+}
 
-	return bFound;
+/* this function is used to pre-filter the object before casting the ray on them.
+   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ */
+bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo* client)
+{
+	if (client->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// Unknown type of object, skip it.
+		// Should not occur as the sensor objects are filtered in RayTest()
+		printf("Invalid client type %d found in ray casting\n", client->m_type);
+		return false;
+	}
+	// no X-Ray function yet
+	return true;
 }
 
 bool KX_ConstraintActuator::Update(double curtime, bool frame)
@@ -237,9 +250,9 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_DIRPX:
 		case KX_ACT_CONSTRAINT_DIRPY:
 		case KX_ACT_CONSTRAINT_DIRPZ:
-		case KX_ACT_CONSTRAINT_DIRMX:
-		case KX_ACT_CONSTRAINT_DIRMY:
-		case KX_ACT_CONSTRAINT_DIRMZ:
+		case KX_ACT_CONSTRAINT_DIRNX:
+		case KX_ACT_CONSTRAINT_DIRNY:
+		case KX_ACT_CONSTRAINT_DIRNZ:
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_DIRPX:
 				direction[0] = rotation[0][0];
@@ -262,21 +275,21 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				axis = 2;
 				sign = 1;
 				break;
-			case KX_ACT_CONSTRAINT_DIRMX:
+			case KX_ACT_CONSTRAINT_DIRNX:
 				direction[0] = -rotation[0][0];
 				direction[1] = -rotation[1][0];
 				direction[2] = -rotation[2][0];
 				axis = 0;
 				sign = 0;
 				break;
-			case KX_ACT_CONSTRAINT_DIRMY:
+			case KX_ACT_CONSTRAINT_DIRNY:
 				direction[0] = -rotation[0][1];
 				direction[1] = -rotation[1][1];
 				direction[2] = -rotation[2][1];
 				axis = 1;
 				sign = 0;
 				break;
-			case KX_ACT_CONSTRAINT_DIRMZ:
+			case KX_ACT_CONSTRAINT_DIRNZ:
 				direction[0] = -rotation[0][2];
 				direction[1] = -rotation[1][2];
 				direction[2] = -rotation[2][2];
@@ -287,8 +300,6 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			direction.normalize();
 			{
 				MT_Point3 topoint = position + (m_maximumBound) * direction;
-				MT_Point3 resultpoint;
-				MT_Vector3 resultnormal;
 				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
 				KX_IPhysicsController *spc = obj->GetPhysicsController();
 
@@ -304,9 +315,10 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						parent->Release();
 					}
 				}
-				result = KX_RayCast::RayTest(spc, pe, position, topoint, resultpoint, resultnormal, KX_RayCast::Callback<KX_ConstraintActuator>(this));
-
+				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,spc);
+				result = KX_RayCast::RayTest(pe, position, topoint, callback);
 				if (result)	{
+					MT_Vector3 newnormal = callback.m_hitNormal;
 					// compute new position & orientation
 					if ((m_option & (KX_ACT_CONSTRAINT_NORMAL|KX_ACT_CONSTRAINT_DISTANCE)) == 0) {
 						// if none option is set, the actuator does nothing but detect ray 
@@ -316,27 +328,27 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					if (m_option & KX_ACT_CONSTRAINT_NORMAL) {
 						// the new orientation must be so that the axis is parallel to normal
 						if (sign)
-							resultnormal = -resultnormal;
+							newnormal = -newnormal;
 						// apply damping on the direction
 						if (m_rotDampTime) {
 							MT_Scalar rotFilter = 1.0/(1.0+m_rotDampTime);
-							resultnormal = (-m_rotDampTime*rotFilter)*direction + rotFilter*resultnormal;
+							newnormal = (-m_rotDampTime*rotFilter)*direction + rotFilter*newnormal;
 						} else if (m_posDampTime) {
-							resultnormal = -filter*direction + (1.0-filter)*resultnormal;
+							newnormal = -filter*direction + (1.0-filter)*newnormal;
 						}
-						obj->AlignAxisToVect(resultnormal, axis);
-						direction = -resultnormal;
+						obj->AlignAxisToVect(newnormal, axis);
+						direction = -newnormal;
 					}
 					if (m_option & KX_ACT_CONSTRAINT_DISTANCE) {
 						if (m_posDampTime) {
-							newdistance = filter*(position-resultpoint).length()+(1.0-filter)*m_minimumBound;
+							newdistance = filter*(position-callback.m_hitPoint).length()+(1.0-filter)*m_minimumBound;
 						} else {
 							newdistance = m_minimumBound;
 						}
 					} else {
-						newdistance = (position-resultpoint).length();
+						newdistance = (position-callback.m_hitPoint).length();
 					}
-					newposition = resultpoint-newdistance*direction;
+					newposition = callback.m_hitPoint-newdistance*direction;
 				} else if (m_option & KX_ACT_CONSTRAINT_PERMANENT) {
 					// no contact but still keep running
 					result = true;
@@ -437,27 +449,27 @@ PyParentObject KX_ConstraintActuator::Parents[] = {
 
 PyMethodDef KX_ConstraintActuator::Methods[] = {
 	{"setDamp", (PyCFunction) KX_ConstraintActuator::sPySetDamp, METH_VARARGS, SetDamp_doc},
-	{"getDamp", (PyCFunction) KX_ConstraintActuator::sPyGetDamp, METH_VARARGS, GetDamp_doc},
+	{"getDamp", (PyCFunction) KX_ConstraintActuator::sPyGetDamp, METH_NOARGS, GetDamp_doc},
 	{"setRotDamp", (PyCFunction) KX_ConstraintActuator::sPySetRotDamp, METH_VARARGS, SetRotDamp_doc},
-	{"getRotDamp", (PyCFunction) KX_ConstraintActuator::sPyGetRotDamp, METH_VARARGS, GetRotDamp_doc},
+	{"getRotDamp", (PyCFunction) KX_ConstraintActuator::sPyGetRotDamp, METH_NOARGS, GetRotDamp_doc},
 	{"setDirection", (PyCFunction) KX_ConstraintActuator::sPySetDirection, METH_VARARGS, SetDirection_doc},
-	{"getDirection", (PyCFunction) KX_ConstraintActuator::sPyGetDirection, METH_VARARGS, GetDirection_doc},
+	{"getDirection", (PyCFunction) KX_ConstraintActuator::sPyGetDirection, METH_NOARGS, GetDirection_doc},
 	{"setOption", (PyCFunction) KX_ConstraintActuator::sPySetOption, METH_VARARGS, SetOption_doc},
-	{"getOption", (PyCFunction) KX_ConstraintActuator::sPyGetOption, METH_VARARGS, GetOption_doc},
+	{"getOption", (PyCFunction) KX_ConstraintActuator::sPyGetOption, METH_NOARGS, GetOption_doc},
 	{"setTime", (PyCFunction) KX_ConstraintActuator::sPySetTime, METH_VARARGS, SetTime_doc},
-	{"getTime", (PyCFunction) KX_ConstraintActuator::sPyGetTime, METH_VARARGS, GetTime_doc},
+	{"getTime", (PyCFunction) KX_ConstraintActuator::sPyGetTime, METH_NOARGS, GetTime_doc},
 	{"setProperty", (PyCFunction) KX_ConstraintActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getProperty", (PyCFunction) KX_ConstraintActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
+	{"getProperty", (PyCFunction) KX_ConstraintActuator::sPyGetProperty, METH_NOARGS, GetProperty_doc},
 	{"setMin", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, SetMin_doc},
-	{"getMin", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_VARARGS, GetMin_doc},
+	{"getMin", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, GetMin_doc},
 	{"setDistance", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, SetDistance_doc},
-	{"getDistance", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_VARARGS, GetDistance_doc},
+	{"getDistance", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, GetDistance_doc},
 	{"setMax", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, SetMax_doc},
-	{"getMax", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_VARARGS, GetMax_doc},
+	{"getMax", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, GetMax_doc},
 	{"setRayLength", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, SetRayLength_doc},
-	{"getRayLength", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_VARARGS, GetRayLength_doc},
+	{"getRayLength", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, GetRayLength_doc},
 	{"setLimit", (PyCFunction) KX_ConstraintActuator::sPySetLimit, METH_VARARGS, SetLimit_doc},
-	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_VARARGS, GetLimit_doc},
+	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_NOARGS, GetLimit_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -488,9 +500,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 char KX_ConstraintActuator::GetDamp_doc[] = 
 "getDamp()\n"
 "\tReturns the damping parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
 	return PyInt_FromLong(m_posDampTime);
 }
 
@@ -517,9 +527,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 char KX_ConstraintActuator::GetRotDamp_doc[] = 
 "getRotDamp()\n"
 "\tReturns the damping time for application of the constraint.\n";
-PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self, 
-										      PyObject* args, 
-										      PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
 	return PyInt_FromLong(m_rotDampTime);
 }
 
@@ -554,9 +562,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 char KX_ConstraintActuator::GetDirection_doc[] = 
 "getDirection()\n"
 "\tReturns the reference direction of the orientation constraint as a 3-tuple.\n";
-PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self, 
-										        PyObject* args, 
-										        PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
 	PyObject *retVal = PyList_New(3);
 
 	PyList_SetItem(retVal, 0, PyFloat_FromDouble(m_refDirection[0]));
@@ -591,9 +597,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 char KX_ConstraintActuator::GetOption_doc[] = 
 "getOption()\n"
 "\tReturns the option parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self, 
-										     PyObject* args, 
-										     PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
 	return PyInt_FromLong(m_option);
 }
 
@@ -622,9 +626,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 char KX_ConstraintActuator::GetTime_doc[] = 
 "getTime()\n"
 "\tReturns the time parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
 	return PyInt_FromLong(m_activeTime);
 }
 
@@ -654,9 +656,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 char KX_ConstraintActuator::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturns the property parameter.\n";
-PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self, 
-										       PyObject* args, 
-										       PyObject* kwds){
+PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
 	return PyString_FromString(m_property);
 }
 
@@ -701,9 +701,7 @@ char KX_ConstraintActuator::GetMin_doc[] =
 "getMin()\n"
 "\tReturns the lower value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self) {
 	return PyFloat_FromDouble(m_minimumBound);
 }
 
@@ -748,9 +746,7 @@ char KX_ConstraintActuator::GetMax_doc[] =
 "getMax()\n"
 "\tReturns the upper value of the interval to which the value\n"
 "\tis clipped.\n";
-PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self) {
 	return PyFloat_FromDouble(m_maximumBound);
 }
 
@@ -789,9 +785,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 char KX_ConstraintActuator::GetLimit_doc[] = 
 "getLimit()\n"
 "\tReturns the type of constraint.\n";
-PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self, 
-											PyObject* args, 
-											PyObject* kwds) {
+PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self) {
 	return PyInt_FromLong(m_locrot);
 }
 

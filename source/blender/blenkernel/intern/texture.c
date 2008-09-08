@@ -53,6 +53,8 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
+#include "DNA_color_types.h"
+#include "DNA_scene_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -389,6 +391,17 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 	return 1;	/* OK */
 }
 
+void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
+{
+	int a;
+	
+	*size = CM_TABLE+1;
+	*array = MEM_callocN(sizeof(float)*(*size)*4, "ColorBand");
+
+	for(a=0; a<*size; a++)
+		do_colorband(coba, (float)a/(float)CM_TABLE, &(*array)[a*4]);
+}
+
 /* ******************* TEX ************************ */
 
 void free_texture(Tex *tex)
@@ -543,6 +556,8 @@ Tex *copy_texture(Tex *tex)
 	texn= copy_libblock(tex);
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= 0;
+	
+	id_us_plus((ID *)texn->ipo);
 	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
@@ -731,7 +746,7 @@ Tex *give_current_texture(Object *ob, int act)
 	bNode *node;
 	
 	if(ob==0) return 0;
-	if(ob->totcol==0) return 0;
+	if(ob->totcol==0 && !(ob->type==OB_LAMP)) return 0;
 	
 	if(ob->type==OB_LAMP) {
 		la=(Lamp *)ob->data;
@@ -775,6 +790,18 @@ Tex *give_current_texture(Object *ob, int act)
 	return tex;
 }
 
+Tex *give_current_world_texture(void)
+{
+	MTex *mtex = 0;
+	Tex *tex = 0;
+	
+	if(!(G.scene->world)) return 0;
+	
+	mtex= G.scene->world->mtex[(int)(G.scene->world->texact)];
+	if(mtex) tex= mtex->tex;
+	
+	return tex;
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -829,6 +856,22 @@ void BKE_free_envmap(EnvMap *env)
 	BKE_free_envmapdata(env);
 	MEM_freeN(env);
 	
+}
+
+/* ------------------------------------------------------------------------- */
+int BKE_texture_dependsOnTime(const struct Tex *texture)
+{
+	if(texture->plugin) {
+		// assume all plugins depend on time
+		return 1;
+	} else if(	texture->ima && 
+			ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		return 1;
+	} else if(texture->ipo) {
+		// assume any ipo means the texture is animated
+		return 1;
+	}
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

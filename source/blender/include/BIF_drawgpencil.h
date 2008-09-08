@@ -28,15 +28,18 @@
 #ifndef BIF_DRAWGPENCIL_H
 #define BIF_DRAWGPENCIL_H
 
+
+struct bGPdata;
 struct ScrArea;
 struct View3D;
 struct SpaceNode;
 struct SpaceSeq;
-struct bGPdata;
 struct uiBlock;
+struct ImBuf;
 
 short draw_gpencil_panel(struct uiBlock *block, struct bGPdata *gpd, struct ScrArea *sa); 
 
+void draw_gpencil_2dimage(struct ScrArea *sa, struct ImBuf *ibuf);
 void draw_gpencil_2dview(struct ScrArea *sa, short onlyv2d);
 void draw_gpencil_3dview(struct ScrArea *sa, short only3d);
 void draw_gpencil_oglrender(struct View3D *v3d, int winx, int winy);

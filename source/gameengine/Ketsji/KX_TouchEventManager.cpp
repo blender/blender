@@ -100,16 +100,24 @@ bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data,
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	m_sensors.push_back(touchsensor);
+	if (m_sensors.insert(touchsensor).second)
+		// the sensor was effectively inserted, register it
+		touchsensor->RegisterSumo(this);
+}
 
-	touchsensor->RegisterSumo(this);
+void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
+{
+	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
+	if (m_sensors.erase(touchsensor))
+		// the sensor was effectively removed, unregister it
+		touchsensor->UnregisterSumo(this);
 }
 
 
 
 void KX_TouchEventManager::EndFrame()
 {
-	vector<SCA_ISensor*>::iterator it;
+	set<SCA_ISensor*>::iterator it;
 	for ( it = m_sensors.begin();
 	!(it==m_sensors.end());it++)
 	{
@@ -124,7 +132,7 @@ void KX_TouchEventManager::NextFrame()
 {
 	if (m_sensors.size() > 0)
 	{
-		vector<SCA_ISensor*>::iterator it;
+		set<SCA_ISensor*>::iterator it;
 		
 		for (it = m_sensors.begin();!(it==m_sensors.end());++it)
 			static_cast<KX_TouchSensor*>(*it)->SynchronizeTransform();
@@ -157,20 +165,3 @@ void KX_TouchEventManager::NextFrame()
 			(*it)->Activate(m_logicmgr,NULL);
 	}
 }
-
-
-
-void KX_TouchEventManager::RemoveSensor(class SCA_ISensor* sensor)
-{
-	std::vector<SCA_ISensor*>::iterator i =
-	std::find(m_sensors.begin(), m_sensors.end(), sensor);
-	if (!(i == m_sensors.end()))
-	{
-		std::swap(*i, m_sensors.back());
-		m_sensors.pop_back();
-	}
-	
-	// remove the sensor forever :)
-	SCA_EventManager::RemoveSensor(sensor);
-}
-

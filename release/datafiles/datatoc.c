@@ -35,7 +35,7 @@ int main(int argc, char**argv) {
 	FILE *fpin,  *fpout;
 	char cname[256];
 	char sizest[256];
-	long size;
+	size_t size;
 	int i;
 	
 	if (argc<1) {

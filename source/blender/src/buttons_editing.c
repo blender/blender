@@ -1573,6 +1573,18 @@ static void build_uvlayer_menu_vars(CustomData *data, char **menu_string,
 	}
 }
 
+void set_wave_uvlayer(void *arg1, void *arg2)
+{
+	WaveModifierData *wmd=arg1;
+	CustomDataLayer *layer = arg2;
+
+	/*check we have UV layers*/
+	if (wmd->uvlayer_tmp < 1) return;
+	layer = layer + (wmd->uvlayer_tmp-1);
+	
+	strcpy(wmd->uvlayer_name, layer->name);
+}
+
 void set_displace_uvlayer(void *arg1, void *arg2)
 {
 	DisplaceModifierData *dmd=arg1;
@@ -1826,6 +1838,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Explode) {
 			height = 94;
+		} else if (md->type==eModifierType_Shrinkwrap) {
+			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+			height = 86 + 3;
+			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
+			{
+				height += 19*5;
+				if(smd->projAxis == 0) height += 19;
+			}
+			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
+				height += 19;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -1833,6 +1855,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		y -= 18;
 
 		if (!isVirtual && (md->type!=eModifierType_Collision)) {
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
+
 			uiBlockBeginAlign(block);
 			if (md->type==eModifierType_ParticleSystem) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
@@ -1848,6 +1872,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
 			uiBlockEndAlign(block);
+			
+			uiSetButLock(ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 		}
 
 		lx = x + 10;
@@ -1929,7 +1955,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Width: ",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->value,
-					  0.0, 0.5, 5, 2,
+					  0.0, 0.5, 5, 4,
 					  "Bevel value/amount");
 			/*uiDefButI(block, NUM, B_MODIFIER_RECALC, "Recurs",
 					  lx, (cy -= 19), buttonWidth, 19, &bmd->res,
@@ -2183,7 +2209,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				      0.0, 1.0, 0, 0, "Set the UV layer to use");
 				MEM_freeN(strtmp);
 				i = CustomData_get_layer_index(fdata, CD_MTFACE);
-				uiButSetFunc(but, set_displace_uvlayer, wmd,
+				uiButSetFunc(but, set_wave_uvlayer, wmd,
 				             &fdata->layers[i]);
 			}
 			if(wmd->texmapping == MOD_DISP_MAP_OBJECT) {
@@ -2446,6 +2472,51 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
 			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
 			uiBlockEndAlign(block);
+		} else if (md->type==eModifierType_Shrinkwrap) {
+			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
+
+			char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|projection %x1|nearest vertex %x2";
+
+			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->target, "Target to shrink to");
+
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Offset:",	lx,(cy-=19),buttonWidth,19, &smd->keepDist, 0.0f, 100.0f, 1.0f, 0, "Specify distance to keep from the target");
+
+			cy -= 3;
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
+
+			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT){
+
+
+				/* UI for projection axis */
+				uiBlockBeginAlign(block);
+				uiDefButC(block, ROW, B_MODIFIER_RECALC, "Normal"    , lx,(cy-=19),buttonWidth,19, &smd->projAxis, 18.0, MOD_SHRINKWRAP_PROJECT_OVER_NORMAL, 0, 0, "Projection over X axis");
+				if(smd->projAxis == 0)
+				{
+					uiDefButC(block, NUM, B_MODIFIER_RECALC, "SS Levels:",		lx, (cy-=19), buttonWidth,19, &smd->subsurfLevels, 0, 6, 0, 0, "This indicates the number of CCSubdivisions that must be performed before extracting vertexs positions and normals");
+				}
+
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, B_MODIFIER_RECALC, "X",	lx+buttonWidth/3*0,(cy-=19),buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over X axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, B_MODIFIER_RECALC, "Y",	lx+buttonWidth/3*1,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Y axis");
+				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS, B_MODIFIER_RECALC, "Z",	lx+buttonWidth/3*2,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Z axis");
+
+
+				/* allowed directions of projection axis */
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR, B_MODIFIER_RECALC, "Negative",	lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows to move the vertex in the negative direction of axis");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, B_MODIFIER_RECALC, "Positive",	lx + buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Allows to move the vertex in the positive direction of axis");
+
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE, B_MODIFIER_RECALC, "Cull frontfaces",lx,(cy-=19),buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a front face on target");
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_CULL_TARGET_BACKFACE,  B_MODIFIER_RECALC, "Cull backfaces",	lx+buttonWidth/2,cy,buttonWidth/2,19, &smd->shrinkOpts, 0, 0, 0, 0, "Controls whether a vertex can be projected to a back face on target");
+				uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob2: ",	lx, (cy-=19), buttonWidth,19, &smd->auxTarget, "Aditional mesh to project over");
+			}
+			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE){
+				uiDefButBitS(block, TOG, MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE, B_MODIFIER_RECALC, "Above surface",	lx,(cy-=19),buttonWidth,19, &smd->shrinkOpts, 0, 0, 0, 0, "Vertices are kept on the front side of faces");
+			}
+
+			uiBlockEndAlign(block);
+
 		}
 
 		uiBlockEndAlign(block);
@@ -2485,7 +2556,7 @@ static void editing_panel_modifiers(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_modifiers", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Modifiers", "Editing", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock((ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	uiNewPanelHeight(block, 204);
 
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
@@ -4145,7 +4216,7 @@ static void validate_posebonebutton_cb(void *bonev, void *namev)
 static void armature_layer_cb(void *lay_v, void *value_v)
 {
 	short *layer= lay_v;
-	int value= (long)value_v;
+	int value= (intptr_t)value_v;
 	
 	if(*layer==0 || G.qual==0) *layer= value;
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -4371,11 +4442,12 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", 225, by-19,105, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
 			
 			/* bone types */
-			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
-			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
-			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
-			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,60,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		50,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
+			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	70, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 150,by-38,60,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	210,by-38,60,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_EDITMODE_LOCKED, REDRAWVIEW3D, "Lock",	270,by-38,60,18, &curBone->flag, 0, 0, 0, 0, "Prevents this bone from being transformed in Edit Mode");
 			
 			/* layers */
 			uiBlockBeginAlign(block);
@@ -5670,13 +5742,9 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 
 void do_fpaintbuts(unsigned short event)
 {
-	Mesh *me;
 	Object *ob;
 	bDeformGroup *defGroup;
-	MTFace *activetf, *tf;
-	MFace *mf;
-	MCol *activemcol;
-	int a;
+	MTFace *activetf;
 	SculptData *sd= &G.scene->sculptdata;
 	ID *id, *idtest;
 	extern VPaint Gwp;         /* from vpaint */
@@ -5694,45 +5762,19 @@ void do_fpaintbuts(unsigned short event)
 		vpaint_dogamma();
 		break;
 	case B_COPY_TF_MODE:
+		EM_mesh_copy_face(4); /* todo, get rid of magic numbers */
+		break;
+	case B_COPY_TF_TRANSP:
+		EM_mesh_copy_face(5);
+		break;
 	case B_COPY_TF_UV:
+		EM_mesh_copy_face(3);
+		break;
 	case B_COPY_TF_COL:
+		EM_mesh_copy_face(6);
+		break;
 	case B_COPY_TF_TEX:
-		me= get_mesh(OBACT);
-		activetf= get_active_mtface(NULL, &activemcol, 0);
-
-		if(me && activetf) {
-			for (a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
-				if(tf!=activetf && (mf->flag & ME_FACE_SEL)) {
-					if(event==B_COPY_TF_MODE) {
-						tf->mode= activetf->mode;
-						tf->transp= activetf->transp;
-					}
-					else if(event==B_COPY_TF_UV) {
-						memcpy(tf->uv, activetf->uv, sizeof(tf->uv));
-						tf->tpage= activetf->tpage;
-						tf->tile= activetf->tile;
-
-						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
-						else tf->mode &= ~TF_TILES;
-
-					}
-					else if(event==B_COPY_TF_TEX) {
-						tf->tpage= activetf->tpage;
-						tf->tile= activetf->tile;
-
-						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
-						else tf->mode &= ~TF_TILES;
-					}
-					else if(event==B_COPY_TF_COL && activemcol)
-						memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4);
-				}
-			}
-
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			do_shared_vertexcol(me);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWIMAGE, 0);
-		}
+		EM_mesh_copy_face(2);
 		break;
 	case B_SET_VCOL:
 		if(FACESEL_PAINT_TEST) 
@@ -6169,8 +6211,20 @@ static void editing_panel_mesh_texface(void)
 	if(uiNewPanel(curarea, block, "Texture Face", "Editing", 960, 0, 318, 204)==0) return;
 	
 	tf = get_active_mtface(NULL, NULL, 0);
+	
 	if(tf) {
+		uiDefBut(block, LABEL, B_NOP, "Active Face Mode",	600,185,300,19, NULL, 0.0, 0.0, 0, 0, "Face mode its used for TexFace display and the game engine ");
+		uiDefBut(block, BUT,B_COPY_TF_MODE, "Copy", 850,185,50,19, 0, 0, 0, 0, 0, "Copy active faces mode to other selected (View3D Ctrl+C)");
+		
+		/* Other copy buttons, layout isnt that nice */
 		uiBlockBeginAlign(block);
+		uiDefBut(block, BUT,B_COPY_TF_UV, "CopyUV", 600,15,100,19, 0, 0, 0, 0, 0, "Copy active faces UVs to other selected (View3D Ctrl+C)");
+		uiDefBut(block, BUT,B_COPY_TF_TEX, "CopyTex", 700,15,100,19, 0, 0, 0, 0, 0, "Copy active faces Texture to other selected (View3D Ctrl+C)");		
+		uiDefBut(block, BUT,B_COPY_TF_COL, "CopyColor", 800,15,100,19, 0, 0, 0, 0, 0, "Copy active faces Color to other selected (View3D Ctrl+C)");
+		uiBlockEndAlign(block);
+		
+		uiBlockBeginAlign(block);
+		
 		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &tf->mode, 0, 0, 0, 0, "Render face with texture");
 		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &tf->mode, 0, 0, 0, 0, "Use tilemode for face");
 		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &tf->mode, 0, 0, 0, 0, "Use light for face");
@@ -6181,23 +6235,30 @@ static void editing_panel_mesh_texface(void)
 		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &tf->mode, 0, 0, 0, 0, "Blend vertex colors across face when vertices are shared");
 		uiDefButBitS(block, TOG, TF_TWOSIDE, REDRAWVIEW3D, "Twoside",660,135,60,19, &tf->mode, 0, 0, 0, 0, "Render face twosided");
 		uiDefButBitS(block, TOG, TF_OBCOL, REDRAWVIEW3D, "ObColor",720,135,60,19, &tf->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colors");
-
-		uiBlockBeginAlign(block);
+		uiBlockEndAlign(block);
 		
+		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_BILLBOARD, B_TFACE_HALO, "Halo",	600,110,60,19, &tf->mode, 0, 0, 0, 0, "Screen aligned billboard");
 		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &tf->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
 		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &tf->mode, 0, 0, 0, 0, "Face is used for shadow");
 		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable bitmap text on face");
-
+		uiDefButBitS(block, TOG, TF_ALPHASORT, REDRAWVIEW3D, "Sort", 840,110,60,19, &tf->mode, 0, 0, 0, 0, "Enable sorting of faces for correct alpha drawing (slow, use Clip Alpha instead when possible)");
+		uiBlockEndAlign(block);
+		
+		uiDefBut(block, LABEL, B_NOP, "Active Face Alpha Blending (Transp)",	600,75,300,19, NULL, 0.0, 0.0, 0, 0, "Face mode its used for TexFace display and the game engine");
+		uiDefBut(block, BUT,B_COPY_TF_TRANSP, "Copy", 850,75,50,19, 0, 0, 0, 0, 0, "Copy active faces transp to other selected (View3D Ctrl+C)");
+		
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,80,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0, "Use the images alpha values clipped with no blending (binary alpha)");
-	}
-	else
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",		600,50,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",			660,50,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",		720,50,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Clip Alpha",	780,50,80,19, &tf->transp, 2.0, (float)TF_CLIP,0, 0,  "Use the images alpha values clipped with no blending (binary alpha)");
+		uiBlockEndAlign(block);
+		
+	} else {
 		uiDefBut(block,LABEL,B_NOP, "(No Active Face)", 10,200,150,19,0,0,0,0,0,"");
+	}
 
 }
 
@@ -6232,6 +6293,11 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row= 180;
 
 	uiDefButBitS(block, TOGN, UVCALC_NO_ASPECT_CORRECT, B_NOP, "Image Aspect",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Scale the UV Unwrapping to correct for the current images aspect ratio");
+
+	row-= butHB+butS;	
+		uiDefButBitS(block, TOG, UVCALC_TRANSFORM_CORRECT, B_NOP, "Transform Correction",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Correct for UV distortion while transforming, (only works with edge slide now)");
+
+	row= 180;
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Cube Size:",315,row,200,butH, &G.scene->toolsettings->uvcalc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size for cube mapping");

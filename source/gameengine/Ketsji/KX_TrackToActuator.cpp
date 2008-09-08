@@ -42,6 +42,8 @@
 #include <iostream>
 #include "KX_GameObject.h"
 
+#include "PyObjectPlus.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -146,19 +148,19 @@ void compatible_eulFast(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
 	
-	/* verschillen van ong 360 graden corrigeren */
+	/* angular difference of 360 degrees */
 
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
 	dz= eul[2] - oldrot[2];
 
-	if( fabs(dx) > 5.1) {
+	if( fabs(dx) > MT_PI) {
 		if(dx > 0.0) eul[0] -= MT_2_PI; else eul[0]+= MT_2_PI;
 	}
-	if( fabs(dy) > 5.1) {
+	if( fabs(dy) > MT_PI) {
 		if(dy > 0.0) eul[1] -= MT_2_PI; else eul[1]+= MT_2_PI;
 	}
-	if( fabs(dz) > 5.1 ) {
+	if( fabs(dz) > MT_PI ) {
 		if(dz > 0.0) eul[2] -= MT_2_PI; else eul[2]+= MT_2_PI;
 	}
 }
@@ -195,6 +197,8 @@ void KX_TrackToActuator::ProcessReplica()
 	// the replica is tracking the same object => register it
 	if (m_object)
 		m_object->RegisterActuator(this);
+	if (m_parentobj)
+		m_parentobj->AddRef();
 	SCA_IActuator::ProcessReplica();
 }
 
@@ -218,6 +222,14 @@ void KX_TrackToActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 			m_object->UnregisterActuator(this);
 		m_object = (SCA_IObject*)(*h_obj);
 		m_object->RegisterActuator(this);
+	}
+
+	void **h_parobj = (*obj_map)[m_parentobj];
+	if (h_parobj) {
+		if (m_parentobj)
+			m_parentobj->Release();
+		m_parentobj= (KX_GameObject*)(*h_parobj);
+		m_parentobj->AddRef();
 	}
 }
 
@@ -444,7 +456,7 @@ PyParentObject KX_TrackToActuator::Parents[] = {
 
 
 PyMethodDef KX_TrackToActuator::Methods[] = {
-	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_VARARGS, SetObject_doc},
+	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, SetObject_doc},
 	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, GetObject_doc},
 	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, SetTime_doc},
 	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_VARARGS, GetTime_doc},
@@ -465,47 +477,45 @@ PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
 /* 1. setObject */
 char KX_TrackToActuator::SetObject_doc[] = 
 "setObject(object)\n"
-"\t- object: string\n"
+"\t- object: KX_GameObject, string or None\n"
 "\tSet the object to track with the parent of this actuator.\n";
-PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* args, PyObject* kwds) {
-	PyObject* gameobj;
-	if (PyArg_ParseTuple(args, "O!", &KX_GameObject::Type, &gameobj))
-	{
-		if (m_object != NULL)
-			m_object->UnregisterActuator(this);
-		m_object = (SCA_IObject*)gameobj;
-		if (m_object)
-			m_object->RegisterActuator(this);
-		Py_Return;
-	}
-	PyErr_Clear();
+PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* value)
+{
+	KX_GameObject *gameobj;
 	
-	char* objectname;
-	if (PyArg_ParseTuple(args, "s", &objectname))
-	{
-		if (m_object != NULL)
-			m_object->UnregisterActuator(this);
-		m_object= static_cast<SCA_IObject*>(SCA_ILogicBrick::m_sCurrentLogicManager->GetGameObjectByName(STR_String(objectname)));
-		if (m_object)
-			m_object->RegisterActuator(this);
-		Py_Return;
-	}
+	if (!ConvertPythonToGameObject(value, &gameobj, true))
+		return NULL; // ConvertPythonToGameObject sets the error
 	
-	return NULL;
+	if (m_object != NULL)
+		m_object->UnregisterActuator(this);	
+
+	m_object = (SCA_IObject*)gameobj;
+	if (m_object)
+		m_object->RegisterActuator(this);
+	
+	Py_RETURN_NONE;
 }
 
 
 
 /* 2. getObject */
 char KX_TrackToActuator::GetObject_doc[] = 
-"getObject()\n"
-"\tReturns the object to track with the parent of this actuator.\n";
-PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args, PyObject* kwds)
+"getObject(name_only = 1)\n"
+"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
+"\tReturns the object to track with the parent of this actuator\n";
+PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
 {
+	int ret_name_only = 1;
+	if (!PyArg_ParseTuple(args, "|i", &ret_name_only))
+		return NULL;
+	
 	if (!m_object)
-		Py_Return;
-
-	return PyString_FromString(m_object->GetName());
+		Py_RETURN_NONE;
+	
+	if (ret_name_only)
+		return PyString_FromString(m_object->GetName());
+	else
+		return m_object->AddRef();
 }
 
 

@@ -46,6 +46,7 @@ struct ID;
 typedef union {
 	int i;
 	float f;
+	double d;
 	char *str;
 	struct ID *id;
 	struct {

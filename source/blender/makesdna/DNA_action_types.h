@@ -184,7 +184,6 @@ typedef struct SpaceAction {
 	View2D v2d;	
 	
 	bAction		*action;		/* the currently active action */
-	bGPdata 	*gpd;		/* the currently active gpencil block (for editing) */
 	
 	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
 	short flag, actnr; 			/* flag: bitmapped settings; */

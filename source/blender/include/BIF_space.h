@@ -65,6 +65,7 @@ struct SpaceOops;
 #define IMAGE_HANDLER_PREVIEW		33
 #define IMAGE_HANDLER_GAME_PROPERTIES	34
 #define IMAGE_HANDLER_VIEW_PROPERTIES	35
+#define IMAGE_HANDLER_GREASEPENCIL 	36
 /*#define IMAGE_HANDLER_TRANSFORM_PROPERTIES	36*/
 
 /* action handler codes */
@@ -82,6 +83,9 @@ struct SpaceOops;
 
 /* nodes handler codes */
 #define NODES_HANDLER_GREASEPENCIL		80
+
+/* text handler codes */
+#define TEXT_HANDLER_FIND	90
 
 /* theme codes */
 #define B_ADD_THEME 	3301

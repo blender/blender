@@ -98,7 +98,7 @@
 int no_rightbox=0, no_leftbox= 0;
 static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction);
 static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
-static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2);
+static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2, char *background_col);
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
 static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq, int outline_tint, float pixelx);
 
@@ -134,7 +134,7 @@ static void seq_panel_gpencil(short cntrl)	// SEQ_HANDLER_GREASEPENCIL
 		uiNewPanelHeight(block, 204);
 		
 		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View");
+		uiDefButBitI(block, TOG, SEQ_DRAW_GPENCIL, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sseq->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Sequencer View (draw using Shift-LMB)");
 		
 		/* extend the panel if the contents won't fit */
 		newheight= draw_gpencil_panel(block, gpd, curarea); 
@@ -604,7 +604,7 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq)
 }
 
 /* draw info text on a sequence strip */
-static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
+static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2, char *background_col)
 {
 	float v1[2], v2[2];
 	int len, size;
@@ -670,8 +670,13 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 	mval[1]= 1;
 	areamouseco_to_ipoco(G.v2d, mval, &x1, &x2);
 	
-	if(seq->flag & SELECT) cpack(0xFFFFFF);
-	else cpack(0);
+	if(seq->flag & SELECT){
+		cpack(0xFFFFFF);
+	}else if ((((int)background_col[0] + (int)background_col[1] + (int)background_col[2]) / 3) < 50){
+		cpack(0x505050); /* use lighter text colour for dark background */
+	}else{
+		cpack(0);
+	}
 	glRasterPos3f(x1,  y1+SEQ_STRIP_OFSBOTTOM, 0.0);
 	BMF_DrawString(G.font, strp);
 }
@@ -740,7 +745,7 @@ so wave file sample drawing precission is zoom adjusted
 static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outline_tint, float pixelx)
 {
 	float x1, x2, y1, y2;
-	char col[3], is_single_image;
+	char col[3], background_col[3], is_single_image;
 
 	/* we need to know if this is a single image/color or not for drawing */
 	is_single_image = (char)check_single_seq(seq);
@@ -755,13 +760,14 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 	
 	
 	/* get the correct color per strip type*/
-	get_seq_color3ubv(seq, col);
+	//get_seq_color3ubv(seq, col);
+	get_seq_color3ubv(seq, background_col);
 	
 	/* draw the main strip body */
 	if (is_single_image) /* single image */
-		draw_shadedstrip(seq, col, seq_tx_get_final_left(seq, 0), y1, seq_tx_get_final_right(seq, 0), y2);
+		draw_shadedstrip(seq, background_col, seq_tx_get_final_left(seq, 0), y1, seq_tx_get_final_right(seq, 0), y2);
 	else /* normal operation */
-		draw_shadedstrip(seq, col, x1, y1, x2, y2);
+		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
 	
 	/* draw additional info and controls */
 	if (seq->type == SEQ_RAM_SOUND)
@@ -814,7 +820,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outli
 
 	/* nice text here would require changing the view matrix for texture text */
 	if( (x2-x1) / pixelx > 32) {
-		draw_seq_text(seq, x1, x2, y1, y2);
+		draw_seq_text(seq, x1, x2, y1, y2, background_col);
 	}
 }
 
@@ -916,17 +922,11 @@ static void draw_image_seq(ScrArea *sa)
 
 	if(ibuf->rect_float && ibuf->rect==NULL)
 		IMB_rect_from_float(ibuf);
-
-	if (sseq->zoom > 0) {
-		zoom = sseq->zoom;
-	} else if (sseq->zoom == 0) {
-		zoom = 1.0;
-	} else {
-		zoom = -1.0/sseq->zoom;
-	}
-
+	
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
+	
+	zoom= SEQ_ZOOM_FAC(sseq->zoom);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 		zoomy = zoom;
@@ -970,7 +970,10 @@ static void draw_image_seq(ScrArea *sa)
 		setlinestyle(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-
+	
+	/* draw grease-pencil (image aligned) */
+	if (sseq->flag & SEQ_DRAW_GPENCIL)
+		draw_gpencil_2dimage(sa, ibuf);
 
 	if (free_ibuf) {
 		IMB_freeImBuf(ibuf);

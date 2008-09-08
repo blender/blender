@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <Python.h>
+#include "PyObjectPlus.h"
+
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
@@ -61,7 +63,7 @@ PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -78,7 +80,7 @@ PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self, 
@@ -94,7 +96,7 @@ PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self, 
@@ -109,7 +111,7 @@ PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self,
 	else {
 		return NULL;
 	}
-	Py_INCREF(Py_None); return Py_None;
+	Py_RETURN_NONE;
 }
 
 

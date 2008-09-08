@@ -94,6 +94,8 @@ output = Blender.Text.New(output_filename)
 
 output.write(header + "\n\n")
 
+output.write("%s\n\n" % Blender.Get('buildinfo'))
+
 output.write("Platform: %s\n========\n\n" % sys.platform)
 
 output.write("Python:\n======\n\n")

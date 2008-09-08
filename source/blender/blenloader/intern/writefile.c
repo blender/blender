@@ -533,7 +533,9 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 		if(part->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
+			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
 		}
 		part= part->id.next;
 	}
@@ -606,6 +608,9 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 			break;
 		case SENS_ACTUATOR:
 			writestruct(wd, DATA, "bActuatorSensor", 1, sens->data);
+			break;
+		case SENS_DELAY:
+			writestruct(wd, DATA, "bDelaySensor", 1, sens->data);
 			break;
 		case SENS_COLLISION:
 			writestruct(wd, DATA, "bCollisionSensor", 1, sens->data);
@@ -1693,7 +1698,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
 					if(sima->cumap)
-						write_curvemapping(wd, sima->cumap);					
+						write_curvemapping(wd, sima->cumap);
+					if(sima->gpd) 
+						write_gpencil(wd, sima->gpd);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
@@ -1844,6 +1851,7 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 {
 	Text *text;
 	TextLine *tmp;
+	TextMarker *mrk;
 
 	text= idbase->first;
 	while(text) {
@@ -1867,7 +1875,16 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 				writedata(wd, DATA, tmp->len+1, tmp->line);
 				tmp= tmp->next;
 			}
+
+			/* write markers */
+			mrk= text->markers.first;
+			while (mrk) {
+				writestruct(wd, DATA, "TextMarker", 1, mrk);
+				mrk= mrk->next;
+			}
 		}
+
+
 		text= text->id.next;
 	}
 
@@ -2274,7 +2291,7 @@ static int handle_append_runtime(int handle, char *exename, char **cause_r) {
 	unsigned char buf[1024];
 	int count, progfd= -1;
 
-	if (!runtime) {
+	if (!BLI_exists(runtime)) {
 		cause= "Unable to find runtime";
 		goto cleanup;
 	}

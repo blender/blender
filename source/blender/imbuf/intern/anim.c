@@ -612,6 +612,7 @@ static int startffmpeg(struct anim * anim) {
 		av_free(anim->pFrameRGB);
 		av_free(anim->pFrameDeinterlaced);
 		av_free(anim->pFrame);
+		anim->pCodecCtx = NULL;
 		return -1;
 	}
 
@@ -639,7 +640,19 @@ static int startffmpeg(struct anim * anim) {
 		PIX_FMT_BGR32,
 		SWS_FAST_BILINEAR | SWS_PRINT_INFO,
 		NULL, NULL, NULL);
-				
+		
+	if (!anim->img_convert_ctx) {
+		fprintf (stderr,
+			 "Can't transform color space??? Bailing out...\n");
+		avcodec_close(anim->pCodecCtx);
+		av_close_input_file(anim->pFormatCtx);
+		av_free(anim->pFrameRGB);
+		av_free(anim->pFrameDeinterlaced);
+		av_free(anim->pFrame);
+		anim->pCodecCtx = NULL;
+		return -1;
+	}
+		
 	return (0);
 }
 

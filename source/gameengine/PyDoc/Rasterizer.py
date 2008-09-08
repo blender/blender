@@ -84,7 +84,8 @@ def setMousePosition(x, y):
 	"""
 	Sets the mouse cursor position.
 	
-	@type x, y: integer
+	@type x: integer
+	@type y: integer
 	"""
 
 def setBackgroundColor(rgba):
@@ -145,3 +146,20 @@ def getFocalLength():
 	
 	@rtype: float
 	"""
+
+def setGLSLMaterialSetting(setting, enable):
+	"""
+	Enables or disables a GLSL material setting.
+	
+	@type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
+	@type enable: boolean
+	"""
+
+def getGLSLMaterialSetting(setting, enable):
+	"""
+	Get the state of a GLSL material setting.
+	
+	@type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
+	@rtype: boolean
+	"""
+

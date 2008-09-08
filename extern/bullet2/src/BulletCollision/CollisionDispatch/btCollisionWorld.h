@@ -125,8 +125,8 @@ public:
 	{
 		int	m_shapePart;
 		int	m_triangleIndex;
-		
-		//const btCollisionShape*	m_shapeTemp;
+		// needed in case of compound shape
+		const btCollisionShape*	m_triangleShape;
 		//const btTransform*	m_shapeLocalTransform;
 	};
 
@@ -165,6 +165,10 @@ public:
 		RayResultCallback()
 			:m_closestHitFraction(btScalar(1.))
 		{
+		}
+		virtual bool        NeedRayCast(btCollisionObject* object)
+		{
+			return true;
 		}
 		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult) = 0;
 	};
@@ -209,7 +213,7 @@ public:
 
 	/// rayTest performs a raycast on all objects in the btCollisionWorld, and calls the resultCallback
 	/// This allows for several queries: first hit, all hits, any hit, dependent on the value returned by the callback.
-	void	rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback, short int collisionFilterMask=-1);
+	void	rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback, short int collisionFilterMask=-1, bool faceNormal=false);
 
 	/// rayTestSingle performs a raycast call and calls the resultCallback. It is used internally by rayTest.
 	/// In a future implementation, we consider moving the ray test as a virtual method in btCollisionShape.
@@ -218,14 +222,18 @@ public:
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
-					  RayResultCallback& resultCallback, short int collisionFilterMask=-1);
+					  RayResultCallback& resultCallback, 
+					  short int collisionFilterMask=-1,
+					  bool faceNormal=false);
 
 	/// objectQuerySingle performs a collision detection query and calls the resultCallback. It is used internally by rayTest.
 	static void	objectQuerySingle(const btConvexShape* castShape, const btTransform& rayFromTrans,const btTransform& rayToTrans,
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
-					  RayResultCallback& resultCallback, short int collisionFilterMask=-1);
+					  RayResultCallback& resultCallback, 
+					  short int collisionFilterMask=-1,
+					  bool faceNormal=false);
 
 	void	addCollisionObject(btCollisionObject* collisionObject,short int collisionFilterGroup=1,short int collisionFilterMask=1);
 

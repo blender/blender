@@ -50,6 +50,7 @@
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -57,24 +58,12 @@
 
 BL_ActionActuator::~BL_ActionActuator()
 {
-
-	if (m_pose) {
-		free_pose_channels(m_pose);
-		MEM_freeN(m_pose);
-		m_pose = NULL;
-	};
-	
-	if (m_userpose){
-		free_pose_channels(m_userpose);
-		MEM_freeN(m_userpose);
-		m_userpose=NULL;
-	}
-	if (m_blendpose) {
-		free_pose_channels(m_blendpose);
-		MEM_freeN(m_blendpose);
-		m_blendpose = NULL;
-	};
-	
+	if (m_pose)
+		free_pose(m_pose);
+	if (m_userpose)
+		free_pose(m_userpose);
+	if (m_blendpose)
+		free_pose(m_blendpose);
 }
 
 void BL_ActionActuator::ProcessReplica(){
@@ -496,17 +485,10 @@ char BL_ActionActuator::GetAction_doc[] =
 PyObject* BL_ActionActuator::PyGetAction(PyObject* self, 
 										 PyObject* args, 
 										 PyObject* kwds) {
-	PyObject *result;
-	
 	if (m_action){
-		result = Py_BuildValue("s", m_action->id.name+2);
+		return PyString_FromString(m_action->id.name+2);
 	}
-	else{
-		Py_INCREF(Py_None);
-		result = Py_None;
-	}
-	
-	return result;
+	Py_RETURN_NONE;
 }
 
 /*     getProperty                                                             */
@@ -652,8 +634,7 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setStart                                                              */
@@ -674,8 +655,7 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setEnd                                                                */
@@ -696,8 +676,7 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendin                                                            */
@@ -719,8 +698,7 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendtime                                                          */
@@ -747,8 +725,7 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setPriority                                                           */
@@ -771,8 +748,7 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setFrame                                                              */
@@ -797,8 +773,7 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setProperty                                                           */
@@ -820,8 +795,7 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setFrameProperty                                                          */
@@ -842,8 +816,7 @@ PyObject* BL_ActionActuator::PySetFrameProperty(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*
@@ -860,8 +833,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 */
 
@@ -946,8 +918,7 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 		}
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* getType */

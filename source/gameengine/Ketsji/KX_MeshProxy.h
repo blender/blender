@@ -57,10 +57,12 @@ public:
 	KX_PYMETHOD(KX_MeshProxy,GetNumMaterials);
 	KX_PYMETHOD(KX_MeshProxy,GetMaterialName);
 	KX_PYMETHOD(KX_MeshProxy,GetTextureName);
+	KX_PYMETHOD_NOARGS(KX_MeshProxy,GetNumPolygons);
 	
 	// both take materialid (int)
 	KX_PYMETHOD(KX_MeshProxy,GetVertexArrayLength);
 	KX_PYMETHOD(KX_MeshProxy,GetVertex);
+	KX_PYMETHOD(KX_MeshProxy,GetPolygon);
 	KX_PYMETHOD_DOC(KX_MeshProxy, reinstancePhysicsMesh);
 };
 

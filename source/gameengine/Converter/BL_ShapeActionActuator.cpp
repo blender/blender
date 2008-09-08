@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,7 +135,6 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 {
 	vector<float>::const_iterator it;
 	float dstweight;
-	int i;
 	KeyBlock *kb;
 	
 	dstweight = 1.0F - srcweight;
@@ -442,15 +442,15 @@ PyMethodDef BL_ShapeActionActuator::Methods[] = {
 	{"setProperty", (PyCFunction) BL_ShapeActionActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
 	{"setBlendtime", (PyCFunction) BL_ShapeActionActuator::sPySetBlendtime, METH_VARARGS, SetBlendtime_doc},
 
-	{"getAction", (PyCFunction) BL_ShapeActionActuator::sPyGetAction, METH_VARARGS, GetAction_doc},
-	{"getStart", (PyCFunction) BL_ShapeActionActuator::sPyGetStart, METH_VARARGS, GetStart_doc},
-	{"getEnd", (PyCFunction) BL_ShapeActionActuator::sPyGetEnd, METH_VARARGS, GetEnd_doc},
-	{"getBlendin", (PyCFunction) BL_ShapeActionActuator::sPyGetBlendin, METH_VARARGS, GetBlendin_doc},
-	{"getPriority", (PyCFunction) BL_ShapeActionActuator::sPyGetPriority, METH_VARARGS, GetPriority_doc},
-	{"getFrame", (PyCFunction) BL_ShapeActionActuator::sPyGetFrame, METH_VARARGS, GetFrame_doc},
-	{"getProperty", (PyCFunction) BL_ShapeActionActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
-	{"getType", (PyCFunction) BL_ShapeActionActuator::sPyGetType, METH_VARARGS, GetType_doc},	
-	{"setType", (PyCFunction) BL_ShapeActionActuator::sPySetType, METH_VARARGS, SetType_doc},
+	{"getAction", (PyCFunction) BL_ShapeActionActuator::sPyGetAction, METH_NOARGS, GetAction_doc},
+	{"getStart", (PyCFunction) BL_ShapeActionActuator::sPyGetStart, METH_NOARGS, GetStart_doc},
+	{"getEnd", (PyCFunction) BL_ShapeActionActuator::sPyGetEnd, METH_NOARGS, GetEnd_doc},
+	{"getBlendin", (PyCFunction) BL_ShapeActionActuator::sPyGetBlendin, METH_NOARGS, GetBlendin_doc},
+	{"getPriority", (PyCFunction) BL_ShapeActionActuator::sPyGetPriority, METH_NOARGS, GetPriority_doc},
+	{"getFrame", (PyCFunction) BL_ShapeActionActuator::sPyGetFrame, METH_NOARGS, GetFrame_doc},
+	{"getProperty", (PyCFunction) BL_ShapeActionActuator::sPyGetProperty, METH_NOARGS, GetProperty_doc},
+	{"getType", (PyCFunction) BL_ShapeActionActuator::sPyGetType, METH_NOARGS, GetType_doc},	
+	{"setType", (PyCFunction) BL_ShapeActionActuator::sPySetType, METH_NOARGS, SetType_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -463,20 +463,11 @@ char BL_ShapeActionActuator::GetAction_doc[] =
 "getAction()\n"
 "\tReturns a string containing the name of the current action.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetAction(PyObject* self, 
-											  PyObject* args, 
-											  PyObject* kwds) {
-	PyObject *result;
-	
+PyObject* BL_ShapeActionActuator::PyGetAction(PyObject* self) {
 	if (m_action){
-		result = Py_BuildValue("s", m_action->id.name+2);
+		return PyString_FromString(m_action->id.name+2);
 	}
-	else{
-		Py_INCREF(Py_None);
-		result = Py_None;
-	}
-	
-	return result;
+	Py_RETURN_NONE;
 }
 
 /*     getProperty                                                             */
@@ -484,9 +475,7 @@ char BL_ShapeActionActuator::GetProperty_doc[] =
 "getProperty()\n"
 "\tReturns the name of the property to be used in FromProp mode.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetProperty(PyObject* self, 
-												PyObject* args, 
-												PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetProperty(PyObject* self) {
 	PyObject *result;
 	
 	result = Py_BuildValue("s", (const char *)m_propname);
@@ -499,9 +488,7 @@ char BL_ShapeActionActuator::GetFrame_doc[] =
 "getFrame()\n"
 "\tReturns the current frame number.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetFrame(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetFrame(PyObject* self) {
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_localtime);
@@ -514,9 +501,7 @@ char BL_ShapeActionActuator::GetEnd_doc[] =
 "getEnd()\n"
 "\tReturns the last frame of the action.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetEnd(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetEnd(PyObject* self) {
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_endframe);
@@ -529,9 +514,7 @@ char BL_ShapeActionActuator::GetStart_doc[] =
 "getStart()\n"
 "\tReturns the starting frame of the action.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetStart(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetStart(PyObject* self) {
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_startframe);
@@ -545,9 +528,7 @@ char BL_ShapeActionActuator::GetBlendin_doc[] =
 "\tReturns the number of interpolation animation frames to be\n"
 "\tgenerated when this actuator is triggered.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetBlendin(PyObject* self, 
-											   PyObject* args, 
-											   PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetBlendin(PyObject* self) {
 	PyObject *result;
 	
 	result = Py_BuildValue("f", m_blendin);
@@ -561,9 +542,7 @@ char BL_ShapeActionActuator::GetPriority_doc[] =
 "\tReturns the priority for this actuator.  Actuators with lower\n"
 "\tPriority numbers will override actuators with higher numbers.\n";
 
-PyObject* BL_ShapeActionActuator::PyGetPriority(PyObject* self, 
-											    PyObject* args, 
-												PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetPriority(PyObject* self) {
 	PyObject *result;
 	
 	result = Py_BuildValue("i", m_priority);
@@ -608,8 +587,7 @@ PyObject* BL_ShapeActionActuator::PySetAction(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setStart                                                              */
@@ -630,8 +608,7 @@ PyObject* BL_ShapeActionActuator::PySetStart(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setEnd                                                                */
@@ -652,8 +629,7 @@ PyObject* BL_ShapeActionActuator::PySetEnd(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendin                                                            */
@@ -675,8 +651,7 @@ PyObject* BL_ShapeActionActuator::PySetBlendin(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setBlendtime                                                          */
@@ -703,8 +678,7 @@ PyObject* BL_ShapeActionActuator::PySetBlendtime(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setPriority                                                           */
@@ -727,8 +701,7 @@ PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setFrame                                                              */
@@ -753,8 +726,7 @@ PyObject* BL_ShapeActionActuator::PySetFrame(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*     setProperty                                                           */
@@ -776,17 +748,14 @@ PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self,
 		return NULL;
 	}
 	
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* getType */
 char BL_ShapeActionActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
-PyObject* BL_ShapeActionActuator::PyGetType(PyObject* self,
-											PyObject* args, 
-											PyObject* kwds) {
+PyObject* BL_ShapeActionActuator::PyGetType(PyObject* self) {
     return Py_BuildValue("h", m_playtype);
 }
 

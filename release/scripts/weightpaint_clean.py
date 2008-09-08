@@ -25,7 +25,7 @@ It removes very low weighted verts from the current group with a weight option.
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-#
+#	
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -51,13 +51,14 @@ def weightClean(me, PREF_THRESH, PREF_KEEP_SINGLE, PREF_OTHER_GROUPS):
 		for wd in vWeightDict:
 			l = len(wd)
 			if not PREF_KEEP_SINGLE or l > 1:
+				# cant use iteritems because the dict is having items removed
 				for group in wd.keys():
 					w= wd[group]
 					if w <= PREF_THRESH:
 						# small weight, remove.
 						del wd[group]
 						rem_count +=1
-					l-=1
+						l-=1
 					
 					if PREF_KEEP_SINGLE and l == 1:
 						break

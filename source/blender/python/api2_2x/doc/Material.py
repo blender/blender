@@ -323,6 +323,21 @@ class Material:
 	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
 	The colorband can have between 1 and 31 colors.
 	@type colorbandSpecular:  list
+	@type enabledTextures: list of integers
+	@ivar enabledTextures: The texture channels enabled in this material.
+		The attribute returns is list of integers in the range [0, 9], each
+		number representing the respective enabled MTex entry (see
+		L{getTextures()<getTextures>}).  Enabling is done by assigning
+		a list of ints or an empty list.  Attempting to enable a channel
+		which does not have a texture assigned to it will result in a
+		ValueError exception.
+		Example::
+			mat.enabledTextures = []  # no texture channels are enabled
+			mat.enabledTextures = [0, 6] # texture channels 0 and 6 are enabled
+			ch = mat.enabledTextures
+			ch.append(4)
+			mat.enabledTextures = ch
+			print mat.enabledTextures # will print: [0, 4, 6]
 	
 	@ivar enableSSS:  If True, subsurface scattering will be rendered on this material.
 	@type enableSSS:  bool
@@ -1010,7 +1025,7 @@ class Material:
 
 	def setTexture(index, texture, texco, mapto):
 		"""
-		Assign a Blender Texture object to slot number 'number'.
+		Assign a Blender Texture object to channel number 'number'.
 		@type index: int
 		@param index: material's texture index in [0, 9].
 		@type texture: Blender Texture
@@ -1033,7 +1048,7 @@ class Material:
 		Get this Material's Texture list.
 		@rtype: list of MTex
 		@return: a list of Blender MTex objects.  None is returned for each empty
-				texture slot.
+				texture channel.
 		"""
 
 	def getScriptLinks (event):

@@ -6,7 +6,7 @@ sources = []
 defs = []
 incs = ''
 
-incs += '../blenkernel ../blenlib ../imbuf ../makesdna ../python '
+incs += '../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../python '
 incs += '../render/extern/include ../render/intern/include ../include ../src'
 incs += ' ' + env['BF_PYTHON_INC']	
 incs += ' ' + env['BF_PNG_INC']

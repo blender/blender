@@ -155,27 +155,27 @@ public:
 	
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	KX_PYMETHOD(KX_ObjectActuator,GetForce);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD(KX_ObjectActuator,SetForce);
-	KX_PYMETHOD(KX_ObjectActuator,GetTorque);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetTorque);
 	KX_PYMETHOD(KX_ObjectActuator,SetTorque);
-	KX_PYMETHOD(KX_ObjectActuator,GetDLoc);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDLoc);
 	KX_PYMETHOD(KX_ObjectActuator,SetDLoc);
-	KX_PYMETHOD(KX_ObjectActuator,GetDRot);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDRot);
 	KX_PYMETHOD(KX_ObjectActuator,SetDRot);
-	KX_PYMETHOD(KX_ObjectActuator,GetLinearVelocity);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetLinearVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetLinearVelocity);
-	KX_PYMETHOD(KX_ObjectActuator,GetAngularVelocity);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetAngularVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetAngularVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetDamping);
-	KX_PYMETHOD(KX_ObjectActuator,GetDamping);
-	KX_PYMETHOD(KX_ObjectActuator,GetForceLimitX);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDamping);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitX);
 	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitX);
-	KX_PYMETHOD(KX_ObjectActuator,GetForceLimitY);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitY);
 	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitY);
-	KX_PYMETHOD(KX_ObjectActuator,GetForceLimitZ);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitZ);
 	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitZ);
-	KX_PYMETHOD(KX_ObjectActuator,GetPID);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetPID);
 	KX_PYMETHOD(KX_ObjectActuator,SetPID);
 };
 

@@ -27,6 +27,7 @@
  */
 
 #include "SCA_ILogicBrick.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -271,8 +272,7 @@ PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
 	}
 
 	printf("ERROR: Python scriptblock without owner\n");
-	Py_INCREF(Py_None);
-	return Py_None;//Int_FromLong(IsPositiveTrigger());
+	Py_RETURN_NONE; //Int_FromLong(IsPositiveTrigger());
 }
 
 

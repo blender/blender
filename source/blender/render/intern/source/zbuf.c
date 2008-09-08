@@ -2278,7 +2278,7 @@ static int hashlist_projectvert(float *v1, float winmat[][4], float *hoco)
 		return 0;
 	}
 	
-	buck= &bucket[ (((long)v1)/16) & 255 ];
+	buck= &bucket[ (((intptr_t)v1)/16) & 255 ];
 	if(buck->vert==v1) {
 		QUATCOPY(hoco, buck->hoco);
 		return buck->clip;
@@ -2410,7 +2410,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 	float obwinmat[4][4], ho1[4], ho2[4], ho3[4], ho4[4];
 	int a, b, c, i, c1, c2, c3, c4, ok=1, lay= -1;
 
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 
 	/* 1.0f for clipping in clippyra()... bad stuff actually */
 	zbuf_alloc_span(&zspan, size, size, 1.0f);
@@ -3263,7 +3263,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 {
 	PixStr *ps;
 	int x, y, *rza, *rma;
-	long *rd;
+	intptr_t *rd;
 	
 	if(R.osa==0) {
 		memcpy(arectz, pa->rectz, sizeof(int)*pa->rectx*pa->recty);
@@ -3484,7 +3484,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 /* speed pointer NULL = sky, we clear */
 /* else if either alpha is full or no solid was filled in: copy speed */
 /* else fill in minimum speed */
-void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect)
+void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, intptr_t *rdrect)
 {
 	RenderPass *rpass;
 	
@@ -3958,7 +3958,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	ZTranspRow zrow[MAX_ZROW];
 	StrandShadeCache *sscache= NULL;
 	float sampalpha, alpha, *passrect= pass;
-	long *rdrect;
+	intptr_t *rdrect;
 	int x, y, crop=0, a, b, totface, totsample, doztra;
 	int addpassflag, offs= 0, od, addzbuf, osa = (R.osa? R.osa: 1);
 	unsigned short *ztramask= NULL, filled;

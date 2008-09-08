@@ -99,6 +99,7 @@ class SCA_LogicManager
 	
 	vector<class SCA_ISensor*>			m_activatedsensors;
 	set<class SmartActuatorPtr>			m_activeActuators;
+	set<class SmartControllerPtr>		m_triggeredControllerSet;
 
 	map<SCA_ISensor*,controllerlist >	m_sensorcontrollermapje;
 
@@ -109,7 +110,7 @@ class SCA_LogicManager
 	GEN_Map<STR_HashedString,void*>		m_mapStringToActions;
 
 	GEN_Map<STR_HashedString,void*>		m_map_gamemeshname_to_blendobj;
-	GEN_Map<CHashedPtr,void*>			m_map_gameobj_to_blendobj;
+	GEN_Map<CHashedPtr,void*>			m_map_blendobj_to_gameobj;
 
 	vector<SmartActuatorPtr>			m_removedActuators;
 public:
@@ -127,6 +128,7 @@ public:
 	void	EndFrame();
 	void	AddActivatedSensor(SCA_ISensor* sensor);
 	void	AddActiveActuator(SCA_IActuator* sensor,class CValue* event);
+	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
 	
 	void	RemoveGameObject(const STR_String& gameobjname);
@@ -152,8 +154,9 @@ public:
 	void	RegisterGameMeshName(const STR_String& gamemeshname, void* blendobj);
 	void*	FindBlendObjByGameMeshName(const STR_String& gamemeshname);
 
-	void	RegisterGameObj(CValue* gameobj, void* blendobj);
-	void*	FindBlendObjByGameObj(CValue* gameobj);
+	void	RegisterGameObj(void* blendobj, CValue* gameobj);
+	void	UnregisterGameObj(void* blendobj, CValue* gameobj);
+	CValue*	FindGameObjByBlendObj(void* blendobj);
 };
 
 #endif //__KX_LOGICMANAGER

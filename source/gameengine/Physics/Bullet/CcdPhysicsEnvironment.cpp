@@ -53,6 +53,7 @@ void DrawRasterizerLine(const float* from,const float* to,int color);
 
 
 #include <stdio.h>
+#include <string.h>		// for memset
 
 #ifdef NEW_BULLET_VEHICLE_SUPPORT
 class WrapperVehicle : public PHY_IVehicle
@@ -368,7 +369,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	body->setUserPointer(ctrl);
 
 	body->setGravity( m_gravity );
-	m_controllers.push_back(ctrl);
+	m_controllers.insert(ctrl);
 
 	//use explicit group/filter for finer control over collision in bullet => near/radar sensor
 	m_dynamicsWorld->addRigidBody(body, ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
@@ -434,36 +435,16 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
-
 	//also remove constraint
 
-	
-
 	m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
+	m_controllers.erase(ctrl);
 
-
-	{
-		std::vector<CcdPhysicsController*>::iterator i =
-			std::find(m_controllers.begin(), m_controllers.end(), ctrl);
-		if (!(i == m_controllers.end()))
-		{
-			std::swap(*i, m_controllers.back());
-			m_controllers.pop_back();
-		}
-	}
+	if (ctrl->m_registerCount != 0)
+		printf("Warning: removing controller with non-zero m_registerCount: %d\n", ctrl->m_registerCount);
 
 	//remove it from the triggers
-	{
-		std::vector<CcdPhysicsController*>::iterator i =
-			std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
-		if (!(i == m_triggerControllers.end()))
-		{
-			std::swap(*i, m_triggerControllers.back());
-			m_triggerControllers.pop_back();
-		}
-	}
-
-
+	m_triggerControllers.erase(ctrl);
 }
 
 void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask)
@@ -487,16 +468,22 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 
 void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctrl)
 {
-	std::vector<CcdPhysicsController*>::iterator i =
-		std::find(m_controllers.begin(), m_controllers.end(), ctrl);
-	if (i == m_controllers.end())
+	if (m_controllers.insert(ctrl).second)
 	{
 		btRigidBody* body = ctrl->GetRigidBody();
+		body->setUserPointer(ctrl);
 		m_dynamicsWorld->addCollisionObject(body, 
 			ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
 	}
 }
 
+void CcdPhysicsEnvironment::disableCcdPhysicsController(CcdPhysicsController* ctrl)
+{
+	if (m_controllers.erase(ctrl))
+	{
+		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
+	}
+}
 
 
 void	CcdPhysicsEnvironment::beginFrame()
@@ -507,12 +494,12 @@ void	CcdPhysicsEnvironment::beginFrame()
 
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
+	std::set<CcdPhysicsController*>::iterator it;
+	int i;
 
-	int i,numCtrl = GetNumControllers();
-	for (i=0;i<numCtrl;i++)
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
-		CcdPhysicsController* ctrl = GetPhysicsController(i);
-		ctrl->SynchronizeMotionStates(timeStep);
+		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
 	float subStep = timeStep / float(m_numTimeSubSteps);
@@ -521,11 +508,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		m_dynamicsWorld->stepSimulation(subStep,0);//perform always a full simulation step
 	}
 
-	numCtrl = GetNumControllers();
-	for (i=0;i<numCtrl;i++)
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
 	{
-		CcdPhysicsController* ctrl = GetPhysicsController(i);
-		ctrl->SynchronizeMotionStates(timeStep);
+		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
 	for (i=0;i<m_wrapperVehicles.size();i++)
@@ -725,35 +710,51 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 
 struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResultCallback
 {
-	PHY_IPhysicsController*	m_ignoreClient;
+	PHY_IRayCastFilterCallback&	m_phyRayFilter;
+	const btCollisionShape*		m_hitTriangleShape;
+	int							m_hitTriangleIndex;
 
-	FilterClosestRayResultCallback (PHY_IPhysicsController* ignoreClient,const btVector3& rayFrom,const btVector3& rayTo)
+	FilterClosestRayResultCallback (PHY_IRayCastFilterCallback& phyRayFilter,const btVector3& rayFrom,const btVector3& rayTo)
 		: btCollisionWorld::ClosestRayResultCallback(rayFrom,rayTo),
-		m_ignoreClient(ignoreClient)
+		m_phyRayFilter(phyRayFilter),
+		m_hitTriangleShape(NULL),
+		m_hitTriangleIndex(0)
 	{
-
 	}
 
 	virtual ~FilterClosestRayResultCallback()
 	{
 	}
 
+	virtual bool    NeedRayCast(btCollisionObject* object)
+	{
+		CcdPhysicsController* phyCtrl = static_cast<CcdPhysicsController*>(object->getUserPointer());
+		if (phyCtrl != m_phyRayFilter.m_ignoreController)
+		{
+			return m_phyRayFilter.needBroadphaseRayCast(phyCtrl);
+		}
+		return false;
+	}
+
 	virtual	float	AddSingleResult( btCollisionWorld::LocalRayResult& rayResult)
 	{
 		CcdPhysicsController* curHit = static_cast<CcdPhysicsController*>(rayResult.m_collisionObject->getUserPointer());
-		//ignore client...
-		if (curHit != m_ignoreClient)
-		{		
-			//if valid
-			return ClosestRayResultCallback::AddSingleResult(rayResult);
+		// save shape information as ClosestRayResultCallback::AddSingleResult() does not do it
+		if (rayResult.m_localShapeInfo)
+		{
+			m_hitTriangleShape = rayResult.m_localShapeInfo->m_triangleShape;
+			m_hitTriangleIndex = rayResult.m_localShapeInfo->m_triangleIndex;
+		} else 
+		{
+			m_hitTriangleShape = NULL;
+			m_hitTriangleIndex = 0;
 		}
-		return m_closestHitFraction;
+		return ClosestRayResultCallback::AddSingleResult(rayResult);
 	}
 
 };
 
-PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-													   float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 
 
@@ -767,18 +768,21 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 	//Either Ray Cast with or without filtering
 
 	//btCollisionWorld::ClosestRayResultCallback rayCallback(rayFrom,rayTo);
-	FilterClosestRayResultCallback	 rayCallback(ignoreClient,rayFrom,rayTo);
+	FilterClosestRayResultCallback	 rayCallback(filterCallback,rayFrom,rayTo);
 
 
-	PHY_IPhysicsController* nearestHit = 0;
+	PHY_RayCastResult result;
+	memset(&result, 0, sizeof(result));
+
 	// don't collision with sensor object
-	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter);
+	m_dynamicsWorld->rayTest(rayFrom,rayTo,rayCallback, CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::SensorFilter,filterCallback.m_faceNormal);
 	if (rayCallback.HasHit())
 	{
-		nearestHit = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
-		hitX = 	rayCallback.m_hitPointWorld.getX();
-		hitY = 	rayCallback.m_hitPointWorld.getY();
-		hitZ = 	rayCallback.m_hitPointWorld.getZ();
+		CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(rayCallback.m_collisionObject->getUserPointer());
+		result.m_controller = controller;
+		result.m_hitPoint[0] = rayCallback.m_hitPointWorld.getX();
+		result.m_hitPoint[1] = rayCallback.m_hitPointWorld.getY();
+		result.m_hitPoint[2] = rayCallback.m_hitPointWorld.getZ();
 
 		if (rayCallback.m_hitNormalWorld.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 		{
@@ -787,14 +791,42 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 		{
 			rayCallback.m_hitNormalWorld.setValue(1,0,0);
 		}
-		normalX = rayCallback.m_hitNormalWorld.getX();
-		normalY = rayCallback.m_hitNormalWorld.getY();
-		normalZ = rayCallback.m_hitNormalWorld.getZ();
-
+		result.m_hitNormal[0] = rayCallback.m_hitNormalWorld.getX();
+		result.m_hitNormal[1] = rayCallback.m_hitNormalWorld.getY();
+		result.m_hitNormal[2] = rayCallback.m_hitNormalWorld.getZ();
+		if (rayCallback.m_hitTriangleShape != NULL)
+		{
+			// identify the mesh polygon
+			CcdShapeConstructionInfo* shapeInfo = controller->m_shapeInfo;
+			if (shapeInfo)
+			{
+				btCollisionShape* shape = controller->GetRigidBody()->getCollisionShape();
+				if (shape->isCompound())
+				{
+					btCompoundShape* compoundShape = (btCompoundShape*)shape;
+					CcdShapeConstructionInfo* compoundShapeInfo = shapeInfo;
+					// need to search which sub-shape has been hit
+					for (int i=0; i<compoundShape->getNumChildShapes(); i++)
+					{
+						shapeInfo = compoundShapeInfo->GetChildShape(i);
+						shape=compoundShape->getChildShape(i);
+						if (shape == rayCallback.m_hitTriangleShape)
+							break;
+					}
+				}
+				if (shape == rayCallback.m_hitTriangleShape && 
+					rayCallback.m_hitTriangleIndex < shapeInfo->m_polygonIndexArray.size())
+				{
+					result.m_meshObject = shapeInfo->m_meshObject;
+					result.m_polygon = shapeInfo->m_polygonIndexArray.at(rayCallback.m_hitTriangleIndex);
+				}
+			}
+		}
+		filterCallback.reportHit(&result);
 	}	
 
 
-	return nearestHit;
+	return result.m_controller;
 }
 
 
@@ -852,20 +884,6 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 }
 
 
-int	CcdPhysicsEnvironment::GetNumControllers()
-{
-	return m_controllers.size();
-}
-
-
-CcdPhysicsController* CcdPhysicsEnvironment::GetPhysicsController( int index)
-{
-	return m_controllers[index];
-}
-
-
-
-
 void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float value0,float value1)
 {
 	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
@@ -905,12 +923,14 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 {
 
 	CcdPhysicsController* ctrl1 = (CcdPhysicsController* )ctrl;
-	std::vector<CcdPhysicsController*>::iterator i =
-		std::find(m_controllers.begin(), m_controllers.end(), ctrl);
-	if ((i == m_controllers.end()))
-	{
-		addCcdPhysicsController(ctrl1);
-	}
+	// addSensor() is a "light" function for bullet because it is used
+	// dynamically when the sensor is activated. Use enableCcdPhysicsController() instead 
+	//if (m_controllers.insert(ctrl1).second)
+	//{
+	//	addCcdPhysicsController(ctrl1);
+	//}
+	enableCcdPhysicsController(ctrl1);
+
 	//Collision filter/mask is now set at the time of the creation of the controller 
 	//force collision detection with everything, including static objects (might hurt performance!)
 	//ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::SensorTrigger;
@@ -923,21 +943,19 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 
 void CcdPhysicsEnvironment::removeCollisionCallback(PHY_IPhysicsController* ctrl)
 {
-	std::vector<CcdPhysicsController*>::iterator i =
-		std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl);
-	if (!(i == m_triggerControllers.end()))
-	{
-		std::swap(*i, m_triggerControllers.back());
-		m_triggerControllers.pop_back();
-	}
+	CcdPhysicsController* ccdCtrl = (CcdPhysicsController*)ctrl;
+	if (ccdCtrl->Unregister())
+		m_triggerControllers.erase(ccdCtrl);
 }
 
 
 void CcdPhysicsEnvironment::removeSensor(PHY_IPhysicsController* ctrl)
 {
 	removeCollisionCallback(ctrl);
-	//printf("removeSensor\n");
+
+	disableCcdPhysicsController((CcdPhysicsController*)ctrl);
 }
+
 void CcdPhysicsEnvironment::addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)
 {
 	/*	printf("addTouchCallback\n(response class = %i)\n",response_class);
@@ -974,10 +992,9 @@ void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctr
 {
 	CcdPhysicsController* ccdCtrl = static_cast<CcdPhysicsController*>(ctrl);
 
-	//printf("requestCollisionCallback\n");
-	m_triggerControllers.push_back(ccdCtrl);
+	if (ccdCtrl->Register())
+		m_triggerControllers.insert(ccdCtrl);
 }
-
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
 {
@@ -987,13 +1004,16 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE] || (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints)))
 	{
 		//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback
-		int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
+		btDispatcher* dispatcher = m_dynamicsWorld->getDispatcher();
+		int numManifolds = dispatcher->getNumManifolds();
 		for (int i=0;i<numManifolds;i++)
 		{
-			btPersistentManifold* manifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+			btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
 			int numContacts = manifold->getNumContacts();
 			if (numContacts)
 			{
+				btRigidBody* rb0 = static_cast<btRigidBody*>(manifold->getBody0());
+				btRigidBody* rb1 = static_cast<btRigidBody*>(manifold->getBody1());
 				if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints))
 				{
 					for (int j=0;j<numContacts;j++)
@@ -1004,24 +1024,32 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 							m_debugDrawer->drawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.getDistance(),cp.getLifeTime(),color);
 					}
 				}
-				btRigidBody* obj0 = static_cast<btRigidBody* >(manifold->getBody0());
-				btRigidBody* obj1 = static_cast<btRigidBody* >(manifold->getBody1());
+				btRigidBody* obj0 = rb0;
+				btRigidBody* obj1 = rb1;
 
 				//m_internalOwner is set in 'addPhysicsController'
 				CcdPhysicsController* ctrl0 = static_cast<CcdPhysicsController*>(obj0->getUserPointer());
 				CcdPhysicsController* ctrl1 = static_cast<CcdPhysicsController*>(obj1->getUserPointer());
 
-				std::vector<CcdPhysicsController*>::iterator i =
-					std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl0);
+				std::set<CcdPhysicsController*>::const_iterator i = m_triggerControllers.find(ctrl0);
 				if (i == m_triggerControllers.end())
 				{
-					i = std::find(m_triggerControllers.begin(), m_triggerControllers.end(), ctrl1);
+					i = m_triggerControllers.find(ctrl1);
 				}
 
 				if (!(i == m_triggerControllers.end()))
 				{
 					m_triggerCallbacks[PHY_OBJECT_RESPONSE](m_triggerCallbacksUserPtrs[PHY_OBJECT_RESPONSE],
 						ctrl0,ctrl1,0);
+				}
+				// Bullet does not refresh the manifold contact point for object without contact response
+				// may need to remove this when a newer Bullet version is integrated
+				if (!dispatcher->needsResponse(rb0, rb1))
+				{
+					// Refresh algorithm fails sometimes when there is penetration 
+					// (usuall the case with ghost and sensor objects)
+					// Let's just clear the manifold, in any case, it is recomputed on each frame.
+					manifold->clearManifold(); //refreshContactPoints(rb0->getCenterOfMassTransform(),rb1->getCenterOfMassTransform());
 				}
 			}
 		}
@@ -1125,7 +1153,6 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 
 	CcdPhysicsController* sphereController = new CcdPhysicsController(cinfo);
 	
-
 	return sphereController;
 }
 
@@ -1391,8 +1418,9 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float coneradius,float coneheight)
 {
 	CcdConstructionInfo	cinfo;
-	//This is a memory leak: Bullet does not delete the shape and it cannot be added to 
-	//the KX_Scene.m_shapes list -- too bad but that's not a lot of data
+
+	// we don't need a CcdShapeConstructionInfo for this shape:
+	// it is simple enough for the standard copy constructor (see CcdPhysicsController::GetReplica)
 	cinfo.m_collisionShape = new btConeShape(coneradius,coneheight);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;

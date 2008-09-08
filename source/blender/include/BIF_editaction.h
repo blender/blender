@@ -49,7 +49,9 @@ enum {
 	ACTTYPE_FILLCON,
 	ACTTYPE_IPO,
 	ACTTYPE_SHAPEKEY,
-	ACTTYPE_GPLAYER
+	ACTTYPE_GPDATABLOCK,
+	ACTTYPE_GPLAYER,
+	ACTTYPE_SPECIALDATA
 };
 
 /* Macros for easier/more consistant state testing */
@@ -69,6 +71,8 @@ enum {
 
 #define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
 #define SEL_ICU(icu) (icu->flag & IPO_SELECT)
+
+#define EXPANDED_GPD(gpd) (gpd->flag & GP_DATA_EXPAND) 
 
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED)==0)
 #define SEL_GPL(gpl) ((gpl->flag & GP_LAYER_ACTIVE) || (gpl->flag & GP_LAYER_SELECT))
@@ -185,7 +189,7 @@ void action_remove_localmarkers(struct bAction *act);
 /* Grease-Pencil Data */
 void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
 
-void deselect_gpencil_layers(struct bGPdata *gpd, short select_mode);
+void deselect_gpencil_layers(void *data, short select_mode);
 
 short is_gplayer_frame_selected(struct bGPDlayer *gpl);
 void set_gplayer_frame_selection(struct bGPDlayer *gpl, short mode);
@@ -204,7 +208,7 @@ void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
 
-void *get_nearest_act_channel(short mval[], short *ret_type);
+void *get_nearest_act_channel(short mval[], short *ret_type, void **owner);
 
 /* Action */
 struct bActionChannel *get_hilighted_action_channel(struct bAction* action);

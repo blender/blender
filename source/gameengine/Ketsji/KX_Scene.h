@@ -54,6 +54,7 @@
  */
 struct SM_MaterialProps;
 struct SM_ShapeProps;
+struct Scene;
 
 class GEN_HashedPtr;
 class CListValue;
@@ -121,11 +122,6 @@ protected:
 	 * The set of cameras for this scene
 	 */
 	list<class KX_Camera*>       m_cameras;
-	/**
-	 * The set of bullet shapes that must be deleted at the end of the scene
-	 * to avoid memory leak (not deleted by bullet because shape are shared between replicas)
-	 */
-	vector<class btCollisionShape*> m_shapes;
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -282,12 +278,15 @@ protected:
 	 */
 	PyObject* m_attrlist;
 
+	struct Scene* m_blenderScene;
+
 public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
 		class SND_IAudioDevice* adi,
-		const STR_String& scenename	);
+		const STR_String& scenename,
+		struct Scene* scene);
 
 	virtual	
 	~KX_Scene();
@@ -322,7 +321,6 @@ public:
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
-	void AddShape(class btCollisionShape* shape);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
@@ -588,6 +586,10 @@ public:
 	 * was running and not suspended) and the "curtime"
 	 */
 	double getSuspendedDelta();
+	/**
+	 * Returns the Blender scene this was made from
+	 */
+	struct Scene *GetBlenderScene() { return m_blenderScene; }
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

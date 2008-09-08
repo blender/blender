@@ -1138,6 +1138,8 @@ void blo_make_image_pointer_map(FileData *fd)
 		Link *ibuf= ima->ibufs.first;
 		for(; ibuf; ibuf= ibuf->next) 
 			oldnewmap_insert(fd->imamap, ibuf, ibuf, 0);
+		if(ima->gputexture)
+			oldnewmap_insert(fd->imamap, ima->gputexture, ima->gputexture, 0);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1172,8 +1174,11 @@ void blo_end_image_pointer_map(FileData *fd)
 			if(NULL==newimaadr(fd, ibuf)) {	/* so was restored */
 				BLI_remlink(&ima->ibufs, ibuf);
 				ima->bindcode= 0;
+				ima->gputexture= NULL;
 			}
 		}
+
+		ima->gputexture= newimaadr(fd, ima->gputexture);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1347,8 +1352,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		for (i=0; i<prop->len; i++) {
-			SWITCH_INT(((int*)prop->data.pointer)[i]);
+		if (prop->subtype != IDP_DOUBLE) {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_INT(((int*)prop->data.pointer)[i]);
+			}
+		} else {
+			for (i=0; i<prop->len; i++) {
+				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
+			}
 		}
 	}
 }
@@ -1384,6 +1395,24 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
 			break;
 		case IDP_ARRAY:
 			IDP_DirectLinkArray(prop, switch_endian, fd);
+			break;
+		case IDP_DOUBLE:
+			/*erg, stupid doubles.  since I'm storing them
+			 in the same field as int val; val2 in the
+			 IDPropertyData struct, they have to deal with
+			 endianness specifically
+			 
+			 in theory, val and val2 would've already been swapped
+			 if switch_endian is true, so we have to first unswap
+			 them then reswap them as a single 64-bit entity.
+			 */
+			
+			if (switch_endian) {
+				SWITCH_INT(prop->data.val);
+				SWITCH_INT(prop->data.val2);
+				SWITCH_LONGINT(prop->data.val);
+			}
+			
 			break;
 	}
 }
@@ -2249,6 +2278,7 @@ static void direct_link_text(FileData *fd, Text *text)
 */
 
 	link_list(fd, &text->lines);
+	link_list(fd, &text->markers);
 
 	text->curl= newdataadr(fd, text->curl);
 	text->sell= newdataadr(fd, text->sell);
@@ -2315,8 +2345,10 @@ static void direct_link_image(FileData *fd, Image *ima)
 		ima->ibufs.first= ima->ibufs.last= NULL;
 	
 	/* if not restored, we keep the binded opengl index */
-	if(ima->ibufs.first==NULL)
+	if(ima->ibufs.first==NULL) {
 		ima->bindcode= 0;
+		ima->gputexture= NULL;
+	}
 	
 	ima->anim= NULL;
 	ima->rr= NULL;
@@ -2527,6 +2559,7 @@ static void direct_link_material(FileData *fd, Material *ma)
 		direct_link_nodetree(fd, ma->nodetree);
 
 	ma->preview = direct_link_preview_image(fd, ma->preview);
+	ma->gpumaterial.first = ma->gpumaterial.last = NULL;
 }
 
 /* ************ READ PARTICLE SETTINGS ***************** */
@@ -2558,6 +2591,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
 	part->pd= newdataadr(fd, part->pd);
+	part->pd2= newdataadr(fd, part->pd2);
 }
 
 static void lib_link_particlesystems(FileData *fd, ID *id, ListBase *particles)
@@ -2918,11 +2952,9 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			sens= ob->sensors.first;
 			while(sens) {
-				if(ob->id.lib==NULL) {	// done in expand_main
-					for(a=0; a<sens->totlinks; a++) {
-						sens->links[a]= newglobadr(fd, sens->links[a]);
-					}
-				}
+				for(a=0; a<sens->totlinks; a++)
+					sens->links[a]= newglobadr(fd, sens->links[a]);
+
 				if(sens->type==SENS_TOUCH) {
 					bTouchSensor *ts= sens->data;
 					ts->ma= newlibadr(fd, ob->id.lib, ts->ma);
@@ -2937,11 +2969,9 @@ static void lib_link_object(FileData *fd, Main *main)
 
 			cont= ob->controllers.first;
 			while(cont) {
-				if(ob->id.lib==NULL) {	// done in expand_main
-					for(a=0; a<cont->totlinks; a++) {
-						cont->links[a]= newglobadr(fd, cont->links[a]);
-					}
-				}
+				for(a=0; a<cont->totlinks; a++)
+					cont->links[a]= newglobadr(fd, cont->links[a]);
+
 				if(cont->type==CONT_PYTHON) {
 					bPythonCont *pc= cont->data;
 					pc->text= newlibadr(fd, ob->id.lib, pc->text);
@@ -3368,6 +3398,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
+	ob->gpulamp.first= ob->gpulamp.last= NULL;
 }
 
 /* ************ READ SCENE ***************** */
@@ -3569,9 +3600,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		{
 			Sequence temp;
 			char *poin;
-			long offset;
+			intptr_t offset;
 			
-			offset= ((long)&(temp.seqbase)) - ((long)&temp);
+			offset= ((intptr_t)&(temp.seqbase)) - ((intptr_t)&temp);
 			
 			/* root pointer */
 			if(ed->seqbasep == old_seqbasep) {
@@ -4070,7 +4101,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	while(se) {
 		se->v1= newdataadr(fd, se->v1);
 		se->v2= newdataadr(fd, se->v2);
-		if( (long)se->v1 > (long)se->v2) {
+		if( (intptr_t)se->v1 > (intptr_t)se->v2) {
 			sv= se->v1;
 			se->v1= se->v2;
 			se->v2= sv;
@@ -4142,6 +4173,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sima->cumap= newdataadr(fd, sima->cumap);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				sima->gpd= newdataadr(fd, sima->gpd);
+				if (sima->gpd)
+					link_gpencil(fd, sima->gpd);
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
@@ -4160,15 +4194,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 					sseq->gpd= newdataadr(fd, sseq->gpd);
 					link_gpencil(fd, sseq->gpd);
 				}
-			}
-			else if(sl->spacetype==SPACE_ACTION) {
-				SpaceAction *sact= (SpaceAction *)sl;
-				
-				/* WARNING: action-editor doesn't have it's own gpencil data! 
-				 * so only adjust pointer, but DON'T LINK
-				 */
-				if (sact->gpd) 
-					sact->gpd= newdataadr(fd, sact->gpd);
 			}
 		}
 
@@ -4851,6 +4876,49 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	for (id=idlist.first; id; id=id->next) {
 		if (id->properties) {
 			idproperties_fix_groups_lengths_recurse(id->properties);
+		}
+	}
+}
+
+void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+{
+	Material *ma;
+	MFace *mf;
+	MTFace *tf;
+	int a, b, texalpha;
+
+	/* verify we have a tface layer */
+	for(b=0; b<me->fdata.totlayer; b++)
+		if(me->fdata.layers[b].type == CD_MTFACE)
+			break;
+	
+	if(b == me->fdata.totlayer)
+		return;
+
+	/* if we do, set alpha sort if the game engine did it before */
+	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+		if(mf->mat_nr < me->totcol) {
+			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
+			texalpha = 0;
+
+			for(b=0; ma && b<MAX_MTEX; b++)
+				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
+					texalpha = 1;
+		}
+		else {
+			ma= NULL;
+			texalpha = 0;
+		}
+
+		for(b=0; b<me->fdata.totlayer; b++) {
+			if(me->fdata.layers[b].type == CD_MTFACE) {
+				tf = ((MTFace*)me->fdata.layers[b].data) + a;
+
+				tf->mode &= ~TF_ALPHASORT;
+				if(ma && (ma->mode & MA_ZTRA))
+					if(ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
+						tf->mode |= TF_ALPHASORT;
+			}
 		}
 	}
 }
@@ -7672,35 +7740,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		idproperties_fix_group_lengths(main->brush);
 		idproperties_fix_group_lengths(main->particle);		
 	}
-	
-	/* only needed until old bad svn/RC1,2 files are saved with a > 17 version -dg */
-	if(main->versionfile == 245 && main->subversionfile < 17) {
-		ModifierData *md;
-		Object *ob;
-		
-		for(ob = main->object.first; ob; ob= ob->id.next) {
-			for(md=ob->modifiers.first; md; ) {
-				if(md->type==eModifierType_Cloth) {
-					ModifierData *next;
-					MEM_freeN(((ClothModifierData *)md)->sim_parms);
-					MEM_freeN(((ClothModifierData *)md)->coll_parms);
-					MEM_freeN(((ClothModifierData *)md)->point_cache);
-					((ClothModifierData *)md)->sim_parms = NULL;
-					((ClothModifierData *)md)->coll_parms = NULL;
-					((ClothModifierData *)md)->point_cache = NULL;
-					next=md->next;
-					BLI_remlink(&ob->modifiers, md);
-					md = next;
-				}
-				else
-					md = md->next;
-			}
-		}
-	}
 
 	/* sun/sky */
-	if ((main->versionfile < 246) ){
+	if(main->versionfile < 246) {
 		Lamp *la;
+
 		for(la=main->lamp.first; la; la= la->id.next) {
 			la->sun_effect_type = 0;
 			la->horizon_brightness = 1.0;
@@ -7713,6 +7757,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->atm_extinction_factor = 1.0;
 			la->atm_distance_factor = 1.0;
 			la->sun_intensity = 1.0;
+		}
+	}
+
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Mesh *me;
+
+		for(me=main->mesh.first; me; me= me->id.next)
+			alphasort_version_246(fd, lib, me);
+	}
+	
+	if(main->versionfile <= 246 && main->subversionfile < 1){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
+				ob->pd->f_noise = 0.0;
 		}
 	}
 
@@ -8432,9 +8491,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	sens= ob->sensors.first;
 	while(sens) {
-		for(a=0; a<sens->totlinks; a++) {
-			sens->links[a]= newglobadr(fd, sens->links[a]);
-		}
 		if(sens->type==SENS_TOUCH) {
 			bTouchSensor *ts= sens->data;
 			expand_doit(fd, mainvar, ts->ma);
@@ -8448,9 +8504,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	cont= ob->controllers.first;
 	while(cont) {
-		for(a=0; a<cont->totlinks; a++) {
-			cont->links[a]= newglobadr(fd, cont->links[a]);
-		}
 		if(cont->type==CONT_PYTHON) {
 			bPythonCont *pc= cont->data;
 			expand_doit(fd, mainvar, pc->text);

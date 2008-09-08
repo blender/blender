@@ -141,7 +141,7 @@ static void print_error(char *str) {printf("ERROR: %s\n", str);}
 
 static void stats_background(RenderStats *rs)
 {
-	extern unsigned long mem_in_use;
+	uintptr_t mem_in_use= MEM_get_memory_in_use();
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
 	
@@ -2388,6 +2388,12 @@ static int is_rendering_allowed(Render *re)
 		/* no osa + fullsample won't work... */
 		if(re->osa==0)
 			re->r.scemode &= ~R_FULL_SAMPLE;
+		
+		/* no fullsample and edge */
+		if((re->r.scemode & R_FULL_SAMPLE) && (re->r.mode & R_EDGE)) {
+			re->error("Full Sample doesn't support Edge Enhance");
+			return 0;
+		}
 		
 	}
 	else

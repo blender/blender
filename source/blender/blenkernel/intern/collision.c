@@ -31,10 +31,11 @@
 
 #include "BKE_cloth.h"
 
-#include "DNA_group_types.h"
-#include "DNA_object_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_group_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_DerivedMesh.h"
@@ -1291,116 +1292,6 @@ int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *col
 	return 1;
 }
 
-int cloth_do_selfcollisions(ClothModifierData * clmd)
-{	
-	int ret2 = 0, l;
-	Cloth *cloth = clmd->clothObject;
-	
-	if ( clmd->clothObject->bvhselftree )
-	{
-		for(l = 0; l < clmd->coll_parms->self_loop_count; l++)
-		{
-			BVHTreeOverlap *overlap = NULL;
-			ClothVertex *verts = clmd->clothObject->verts; // needed for openMP
-			int k;
-			int ret = 0, result = 0;
-			
-			// search for overlapping collision pairs 
-			overlap = BLI_bvhtree_overlap ( cloth->bvhselftree, cloth->bvhselftree, &result );
-	
-// #pragma omp parallel for private(k, i, j) schedule(static)
-			for ( k = 0; k < result; k++ )
-			{
-				float temp[3];
-				float length = 0;
-				float mindistance;
-				int i, j;
-	
-				i = overlap[k].indexA;
-				j = overlap[k].indexB;
-	
-				mindistance = clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len );
-	
-				if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
-				{
-					if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
-					&& ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
-					{
-						continue;
-					}
-				}
-	
-				VECSUB ( temp, verts[i].tx, verts[j].tx );
-	
-				if ( ( ABS ( temp[0] ) > mindistance ) || ( ABS ( temp[1] ) > mindistance ) || ( ABS ( temp[2] ) > mindistance ) ) continue;
-	
-				// check for adjacent points (i must be smaller j)
-				if ( BLI_edgehash_haskey ( cloth->edgehash, MIN2(i, j), MAX2(i, j) ) )
-				{
-					continue;
-				}
-	
-				length = Normalize ( temp );
-	
-				if ( length < mindistance )
-				{
-					float correction = mindistance - length;
-	
-					if ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
-					{
-						VecMulf ( temp, -correction );
-						VECADD ( verts[j].tx, verts[j].tx, temp );
-					}
-					else if ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED )
-					{
-						VecMulf ( temp, correction );
-						VECADD ( verts[i].tx, verts[i].tx, temp );
-					}
-					else
-					{
-						VecMulf ( temp, -correction*0.5 );
-						VECADD ( verts[j].tx, verts[j].tx, temp );
-	
-						VECSUB ( verts[i].tx, verts[i].tx, temp );
-					}
-					ret = 1;
-					ret2 += ret;
-				}
-				else
-				{
-					// check for approximated time collisions
-				}
-			}
-	
-			if ( overlap )
-				MEM_freeN ( overlap );
-		
-			if(!ret)
-				break;
-			
-		}
-		////////////////////////////////////////////////////////////
-	
-		////////////////////////////////////////////////////////////
-		// SELFCOLLISIONS: update velocities
-		////////////////////////////////////////////////////////////
-		if ( ret2 )
-		{
-			int i; 
-			ClothVertex *verts = clmd->clothObject->verts; // needed for openMP
-			
-			for ( i = 0; i < cloth->numverts; i++ )
-			{
-				if ( ! ( verts [i].flags & CLOTH_VERT_FLAG_PINNED ) )
-				{
-					VECSUB ( verts[i].tv, verts[i].tx, verts[i].txold );
-				}
-			}
-		}
-		////////////////////////////////////////////////////////////
-	}
-	return ret2;
-}
 
 // return all collision objects in scene
 // collision object will exclude self 
@@ -1417,9 +1308,34 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	for ( base = G.scene->base.first; base; base = base->next )
 	{
 		coll_ob = base->object;
-		collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
-	
-		if ( !collmd )
+		
+		if(coll_ob->pd && coll_ob->pd->deflect)
+		{
+			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
+		}
+		
+		if ( collmd )
+		{
+			if(coll_ob == self)
+				continue;
+			
+			if(numobj >= maxobj)
+			{
+				// realloc
+				int oldmax = maxobj;
+				CollisionModifierData **tmp;
+				maxobj *= 2;
+				tmp = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
+				memcpy(tmp, objs, sizeof(CollisionModifierData *)*oldmax);
+				MEM_freeN(objs);
+				objs = tmp;
+				
+			}
+			
+			objs[numobj] = collmd;
+			numobj++;
+		}
+		else
 		{
 			if ( coll_ob->dup_group )
 			{
@@ -1429,8 +1345,12 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 				for ( go= group->gobject.first; go; go= go->next )
 				{
 					coll_ob = go->ob;
-
-					collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
+					collmd = NULL;
+					
+					if(coll_ob->pd && coll_ob->pd->deflect)
+					{
+						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
+					}
 
 					if ( !collmd )
 						continue;
@@ -1457,27 +1377,6 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 					numobj++;
 				}
 			}
-		}
-		else
-		{
-			if(coll_ob == self)
-				continue;
-			
-			if(numobj >= maxobj)
-			{
-				// realloc
-				int oldmax = maxobj;
-				CollisionModifierData **tmp;
-				maxobj *= 2;
-				tmp = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
-				memcpy(tmp, objs, sizeof(CollisionModifierData *)*oldmax);
-				MEM_freeN(objs);
-				objs = tmp;
-				
-			}
-			
-			objs[numobj] = collmd;
-			numobj++;
 		}	
 	}
 	*numcollobj = numobj;
@@ -1547,7 +1446,7 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 {
 	Cloth *cloth=NULL;
 	BVHTree *cloth_bvh=NULL;
-	long i=0, numfaces = 0, numverts = 0;
+	int i=0, numfaces = 0, numverts = 0, k, l, j;
 	int rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
 	int ret = 0, ret2 = 0;
@@ -1593,6 +1492,9 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 			CollisionModifierData *collmd = collobjs[i];
 			BVHTreeOverlap *overlap = NULL;
 			int result = 0;
+			
+			if(!collmd->bvhtree)
+				continue;
 			
 			/* move object to position (step) in time */
 			collision_move_object ( collmd, step + dt, step );
@@ -1647,21 +1549,122 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 			VECADD ( verts[i].tx, verts[i].txold, verts[i].tv );
 		}
 		////////////////////////////////////////////////////////////
-
+		
 		
 		////////////////////////////////////////////////////////////
 		// Test on *simple* selfcollisions
 		////////////////////////////////////////////////////////////
 		if ( clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF )
 		{
-			ret2 += cloth_do_selfcollisions(clmd);
+			for(l = 0; l < clmd->coll_parms->self_loop_count; l++)
+			{
+				// TODO: add coll quality rounds again
+				BVHTreeOverlap *overlap = NULL;
+				int result = 0;
+	
+				// collisions = 1;
+				verts = cloth->verts; // needed for openMP
+	
+				numfaces = clmd->clothObject->numfaces;
+				numverts = clmd->clothObject->numverts;
+	
+				verts = cloth->verts;
+	
+				if ( cloth->bvhselftree )
+				{
+					// search for overlapping collision pairs 
+					overlap = BLI_bvhtree_overlap ( cloth->bvhselftree, cloth->bvhselftree, &result );
+	
+	// #pragma omp parallel for private(k, i, j) schedule(static)
+					for ( k = 0; k < result; k++ )
+					{
+						float temp[3];
+						float length = 0;
+						float mindistance;
+	
+						i = overlap[k].indexA;
+						j = overlap[k].indexB;
+	
+						mindistance = clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len );
+	
+						if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+						{
+							if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
+										&& ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
+							{
+								continue;
+							}
+						}
+	
+						VECSUB ( temp, verts[i].tx, verts[j].tx );
+	
+						if ( ( ABS ( temp[0] ) > mindistance ) || ( ABS ( temp[1] ) > mindistance ) || ( ABS ( temp[2] ) > mindistance ) ) continue;
+	
+						// check for adjacent points (i must be smaller j)
+						if ( BLI_edgehash_haskey ( cloth->edgehash, MIN2(i, j), MAX2(i, j) ) )
+						{
+							continue;
+						}
+	
+						length = Normalize ( temp );
+	
+						if ( length < mindistance )
+						{
+							float correction = mindistance - length;
+	
+							if ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED )
+							{
+								VecMulf ( temp, -correction );
+								VECADD ( verts[j].tx, verts[j].tx, temp );
+							}
+							else if ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED )
+							{
+								VecMulf ( temp, correction );
+								VECADD ( verts[i].tx, verts[i].tx, temp );
+							}
+							else
+							{
+								VecMulf ( temp, -correction*0.5 );
+								VECADD ( verts[j].tx, verts[j].tx, temp );
+	
+								VECSUB ( verts[i].tx, verts[i].tx, temp );
+							}
+							ret = 1;
+							ret2 += ret;
+						}
+						else
+						{
+							// check for approximated time collisions
+						}
+					}
+	
+					if ( overlap )
+						MEM_freeN ( overlap );
+	
+				}
+			}
+			////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////
+			// SELFCOLLISIONS: update velocities
+			////////////////////////////////////////////////////////////
+			if ( ret2 )
+			{
+				for ( i = 0; i < cloth->numverts; i++ )
+				{
+					if ( ! ( verts [i].flags & CLOTH_VERT_FLAG_PINNED ) )
+					{
+						VECSUB ( verts[i].tv, verts[i].tx, verts[i].txold );
+					}
+				}
+			}
+			////////////////////////////////////////////////////////////
 		}
-		////////////////////////////////////////////////////////////
 	}
 	while ( ret2 && ( clmd->coll_parms->loop_count>rounds ) );
 	
 	if(collobjs)
-		+		MEM_freeN(collobjs);
+		MEM_freeN(collobjs);
 
 	return MIN2 ( ret, 1 );
 }

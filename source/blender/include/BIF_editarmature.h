@@ -91,6 +91,7 @@ void	free_editArmature(void);
 
 int		join_armature(void);
 void 	separate_armature(void);
+void	apply_armature_pose2bones(void);
 void	load_editArmature(void);
 
 void	make_bone_parent(void);
@@ -99,20 +100,23 @@ struct Bone	*get_indexed_bone (struct Object *ob, int index);
 
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
+void	remake_editArmature(void);
+void	editbones_to_armature(struct ListBase *list, struct Object *ob);
 
 int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
 
 void generateSkeleton(void);
 
 void	mouse_armature(void);
-void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
-void	select_bone_parent(void);
+void	armature_select_hierarchy(short direction, short add_to_sel);
+
 void	setflag_armature(short mode);
 void    unique_editbone_name (struct ListBase *ebones, char *name);
 
 void	auto_align_armature(short mode);
+void	switch_direction_armature(void);
 
 void	create_vgroups_from_armature(struct Object *ob, struct Object *par);
 void 	add_verts_to_dgroups(struct Object *ob, struct Object *par, int heat, int mirror);
@@ -141,6 +145,14 @@ void	show_all_armature_bones(void);
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
+
+/* useful macros */
+#define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))
+#define EBONE_EDITABLE(ebone) ((ebone->flag & BONE_SELECTED) && !(ebone->flag & BONE_EDITMODE_LOCKED)) 
+
+/* used in bone_select_hierachy() */
+#define BONE_SELECT_PARENT	0
+#define BONE_SELECT_CHILD	1
 
 #endif
 

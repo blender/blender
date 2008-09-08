@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC gen_messaging gen_system ../../intern/string ../../intern/moto/include)
+SET(INC gen_messaging gen_system ../../intern/string ../../intern/moto/include ../../source/blender/blenloader )
 
 FILE(GLOB SRC   
   gen_messaging/intern/messaging.c

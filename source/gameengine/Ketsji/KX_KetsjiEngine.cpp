@@ -96,6 +96,7 @@ double KX_KetsjiEngine::m_ticrate = DEFAULT_LOGIC_TIC_RATE;
 double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
+double KX_KetsjiEngine::m_average_framerate = 0.0;
 
 
 /**
@@ -118,7 +119,6 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_bInitialized(false),
 	m_activecam(0),
 	m_bFixedTime(false),
-	m_game2ipo(false),
 	
 	m_firstframe(true),
 	
@@ -147,6 +147,8 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_showProperties(false),
 	m_showBackground(false),
 	m_show_debug_properties(false),
+
+	m_game2ipo(false),
 
 	// Default behavior is to hide the cursor every frame.
 	m_hideCursor(false),
@@ -309,6 +311,12 @@ void KX_KetsjiEngine::EndFrame()
 	{
 		RenderDebugProperties();
 	}
+
+	m_average_framerate = m_logger->GetAverage();
+	if (m_average_framerate < 1e-6)
+		m_average_framerate = 1e-6;
+	m_average_framerate = 1.0/m_average_framerate;
+
 	// Go to next profiling measurement, time spend after this call is shown in the next frame.
 	m_logger->NextMeasurement(m_kxsystem->GetTimeInSeconds());
 
@@ -320,8 +328,6 @@ void KX_KetsjiEngine::EndFrame()
 
 	
 	m_canvas->EndDraw();
-	
-
 }
 
 //#include "PIL_time.h"
@@ -896,11 +902,18 @@ void KX_KetsjiEngine::SetupRenderFrame(KX_Scene *scene, KX_Camera* cam)
 
 void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 {
-	CListValue *lightlist = scene->GetLightList();
+	CListValue *objectlist = scene->GetObjectList();
 	int i, drawmode;
 
-	for(i=0; i<lightlist->GetCount(); i++) {
-		KX_LightObject *light = (KX_LightObject*)lightlist->GetValue(i);
+	m_rendertools->SetAuxilaryClientInfo(scene);
+
+	for(i=0; i<objectlist->GetCount(); i++) {
+		KX_GameObject *gameobj = (KX_GameObject*)objectlist->GetValue(i);
+
+		if(!gameobj->IsLight())
+			continue;
+
+		KX_LightObject *light = (KX_LightObject*)gameobj;
 
 		light->Update();
 
@@ -1280,12 +1293,13 @@ void KX_KetsjiEngine::RemoveScheduledScenes()
 
 KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
 {
-
+	Scene *scene = m_sceneconverter->GetBlenderSceneForName(scenename);
 	KX_Scene* tmpscene = new KX_Scene(m_keyboarddevice,
 									  m_mousedevice,
 									  m_networkdevice,
 									  m_audiodevice,
-									  scenename);
+									  scenename,
+									  scene);
 
 	m_sceneconverter->ConvertScene(scenename,
 							  tmpscene,
@@ -1439,6 +1453,11 @@ double KX_KetsjiEngine::GetAnimFrameRate()
 void KX_KetsjiEngine::SetAnimFrameRate(double framerate)
 {
 	m_anim_framerate = framerate;
+}
+
+double KX_KetsjiEngine::GetAverageFrameRate()
+{
+	return m_average_framerate;
 }
 
 void KX_KetsjiEngine::SetTimingDisplay(bool frameRate, bool profile, bool properties)

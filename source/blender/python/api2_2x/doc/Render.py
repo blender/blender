@@ -170,17 +170,6 @@ def SetRenderWinPos(locationList):
   the location of the Render window on the screen.
   """
 
-def EnableEdgeShift():
-  """
-  Globally with the unified renderer enabled the outlines of the render
-  are shifted a bit.
-  """
-
-def EnableEdgeAll():
-  """
-  Globally consider transparent faces for edge-rendering with the unified renderer.
-  """
-
 class RenderData:
   """
   The RenderData object
@@ -772,7 +761,7 @@ class RenderData:
     """
     Get/set the starting frame for sequence rendering.
     @type frame: int (optional)
-    @param frame: must be between 1 - 18000
+    @param frame: must be a valid Blender frame number.
     @rtype: int (if prototype is empty)
     @return: Current starting frame for the scene.
     """
@@ -781,7 +770,7 @@ class RenderData:
     """
     Get/set the ending frame for sequence rendering.
     @type frame: int (optional)
-    @param frame: must be between 1 - 18000
+    @param frame: must be a valid Blender frame number.
     @rtype: int (if prototype is empty)
     @return: Current ending frame for the scene.
     """

@@ -246,7 +246,7 @@ void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short se
 /* De-selects or inverts the selection of Layers for a grease-pencil block
  *	mode: 0 = default behaviour (select all), 1 = test if (de)select all, 2 = invert all 
  */
-void deselect_gpencil_layers (bGPdata *gpd, short mode)
+void deselect_gpencil_layers (void *data, short mode)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
@@ -254,7 +254,7 @@ void deselect_gpencil_layers (bGPdata *gpd, short mode)
 	
 	/* filter data */
 	filter= ACTFILTER_VISIBLE;
-	actdata_filter(&act_data, filter, gpd, ACTCONT_GPENCIL);
+	actdata_filter(&act_data, filter, data, ACTCONT_GPENCIL);
 	
 	/* See if we should be selecting or deselecting */
 	if (mode == 1) {
@@ -294,7 +294,6 @@ void delete_gpencil_layers (void)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale, *next;
-	bGPdata *gpd;
 	void *data;
 	short datatype;
 	int filter;
@@ -303,7 +302,6 @@ void delete_gpencil_layers (void)
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
 	if (datatype != ACTCONT_GPENCIL) return;
-	gpd= (bGPdata *)data;
 	
 	/* filter data */
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_CHANNELS | ACTFILTER_SEL);
@@ -311,6 +309,7 @@ void delete_gpencil_layers (void)
 	
 	/* clean up grease-pencil layers */
 	for (ale= act_data.first; ale; ale= next) {
+		bGPdata *gpd= (bGPdata *)ale->owner;
 		bGPDlayer *gpl= (bGPDlayer *)ale->data;
 		next= ale->next;
 		

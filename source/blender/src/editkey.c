@@ -84,6 +84,8 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 extern ListBase editNurb; /* in editcurve.c */
 
 /* temporary storage for slider values */
@@ -162,7 +164,7 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 	IpoCurve  *icu=NULL;
 	BezTriple *bezt=NULL;
 	float cfra, rvkval;
-	int keynum = (long) voidkeynum;
+	int keynum = (intptr_t) voidkeynum;
 
 	cfra = frame_to_float(CFRA);
 
@@ -275,7 +277,7 @@ void make_rvk_slider(uiBlock *block, Object *ob, int keynum,
 				  x, y , w, h,
 				  meshslidervals+keynum, min, max, 10, 2, tip);
 	
-	uiButSetFunc(but, rvk_slider_func, ob, (void *)(long)keynum);
+	uiButSetFunc(but, rvk_slider_func, ob, (void *)(intptr_t)keynum);
 	// no hilite, the winmatrix is not correct later on...
 	uiButSetFlag(but, UI_NO_HILITE);
 

@@ -172,6 +172,7 @@
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
 #include "BDR_unwrapper.h"
+#include "BDR_gpencil.h"
 
 #include <time.h>
 #include "mydevice.h"
@@ -2760,7 +2761,7 @@ void special_editmenu(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 	else if(G.obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
+		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Switch Direction%x7|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
 		if(nr==1)
 			subdivide_armature(1);
 		if(nr==2) {
@@ -2773,6 +2774,8 @@ void special_editmenu(void)
 		else if(ELEM3(nr, 4, 5, 6)) {
 			armature_autoside_names(nr-4);
 		}
+		else if(nr == 7)
+			switch_direction_armature();
 	}
 	else if(G.obedit->type==OB_LATTICE) {
 		static float weight= 1.0f;
@@ -2825,7 +2828,7 @@ void convertmenu(void)
 	if(G.scene->id.lib) return;
 
 	obact= OBACT;
-	if(obact==0) return;
+	if (obact == NULL) return;
 	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	
@@ -3020,6 +3023,10 @@ void convertmenu(void)
 		basedel = NULL;				
 	}
 	
+	/* delete object should renew depsgraph */
+	if(nr==2)
+		DAG_scene_sort(G.scene);
+
 	/* texspace and normals */
 	if(!basen) BASACT= base;
 
@@ -3502,6 +3509,17 @@ void copy_attr(short event)
 					base->object->damping= ob->damping;
 					base->object->rdamping= ob->rdamping;
 				}
+				else if(event==11) {	/* all physical attributes */
+					base->object->gameflag = ob->gameflag;
+					base->object->inertia = ob->inertia;
+					base->object->formfactor = ob->formfactor;
+					base->object->damping= ob->damping;
+					base->object->rdamping= ob->rdamping;
+					base->object->mass= ob->mass;
+					if (ob->gameflag & OB_BOUNDS) {
+						base->object->boundtype = ob->boundtype;
+					}
+				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
 				}
@@ -3688,7 +3706,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
@@ -4117,15 +4135,26 @@ void apply_object( void )
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		
-	} else {
+	} 
+	else {
+		ob= OBACT;
 		
-		evt = pupmenu("Apply Object%t|Scale and Rotation to ObData|Visual Transform to Objects Loc/Scale/Rot");
+		if ((ob->pose) && (ob->flag & OB_POSEMODE))
+			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
+		else
+			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2");
 		if (evt==-1) return;
 		
-		if (evt==1) {
-			apply_objects_locrot();
-		} else if (evt==2) {
-			apply_objects_visual_tx();
+		switch (evt) {
+			case 1:
+				apply_objects_locrot();
+				break;
+			case 2:
+				apply_objects_visual_tx();
+				break;
+			case 3:
+				apply_armature_pose2bones();
+				break;
 		}
 	}
 }

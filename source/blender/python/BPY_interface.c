@@ -160,11 +160,10 @@ ScriptError g_script_error;
 * Function prototypes 
 ***************************************************************************/
 PyObject *RunPython( Text * text, PyObject * globaldict );
-char *GetName( Text * text );
 PyObject *CreateGlobalDictionary( void );
 void ReleaseGlobalDictionary( PyObject * dict );
 void DoAllScriptsFromList( ListBase * list, short event );
-PyObject *importText( char *name );
+static PyObject *importText( char *name );
 void init_ourImport( void );
 void init_ourReload( void );
 PyObject *blender_import( PyObject * self, PyObject * args );
@@ -293,7 +292,7 @@ void syspath_append( char *dirname )
 	short ok=1;
 	PyErr_Clear(  );
 
-	dir = Py_BuildValue( "s", dirname );
+	dir = PyString_FromString( dirname );
 
 	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
 	
@@ -309,32 +308,29 @@ void syspath_append( char *dirname )
 	}
 	
 	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
-		if (ok && PyList_Append( path, dir ) != 0)
+		if (ok && PyList_Append( path, dir ) != 0) /* decref below */
 			ok = 0; /* append failed */
 	
 		if( (ok==0) || PyErr_Occurred(  ) )
 			Py_FatalError( "could import or build sys.path, can't continue" );
 	}
+	Py_DECREF( dir );
 	Py_XDECREF( mod_sys );
 }
 
 void init_syspath( int first_time )
 {
-	PyObject *path;
 	PyObject *mod, *d;
 	char *progname;
 	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
-	
-	
-	path = Py_BuildValue( "s", bprogname );
 
 	mod = PyImport_ImportModule( "Blender.sys" );
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );
-		EXPP_dict_set_item_str( d, "progname", path );
+		EXPP_dict_set_item_str( d, "progname", PyString_FromString( bprogname ) );
 		Py_DECREF( mod );
 	} else
 		printf( "Warning: could not set Blender.sys.progname\n" );
@@ -410,12 +406,14 @@ void BPY_rebuild_syspath( void )
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
 		printf("error: could not import python sys module. some modules may not import.\n");
+		PyGILState_Release(gilstate);
 		return;
 	}
 	
 	if (!bpy_orig_syspath_List) { /* should never happen */
 		printf("error refershing python path\n");
 		Py_DECREF(mod);
+		PyGILState_Release(gilstate);
 		return;
 	}
 	
@@ -555,6 +553,7 @@ void BPY_Err_Handle( char *script_name )
 	if( exception
 	    && PyErr_GivenExceptionMatches( exception, PyExc_SyntaxError ) ) {
 		/* no traceback available when SyntaxError */
+		PyErr_NormalizeException( &exception, &err, &tb );
 		PyErr_Restore( exception, err, tb );	/* takes away reference! */
 		PyErr_Print(  );
 		v = PyObject_GetAttrString( err, "lineno" );
@@ -649,7 +648,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	}
 
 	/* Create a new script structure and initialize it: */
-	script = alloc_libblock( &G.main->script, ID_SCRIPT, GetName( text ) );
+	script = alloc_libblock( &G.main->script, ID_SCRIPT, text->id.name+2 );
 
 	if( !script ) {
 		printf( "couldn't allocate memory for Script struct!" );
@@ -660,8 +659,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	 * an error after it will call BPY_Err_Handle below, but the text struct
 	 * will have been deallocated already, so we need to copy its name here.
 	 */
-	BLI_strncpy( textname, GetName( text ),
-		     strlen( GetName( text ) ) + 1 );
+	BLI_strncpy( textname, text->id.name+2, 21 );
 
 	script->id.us = 1;
 	script->flags = SCRIPT_RUNNING;
@@ -965,16 +963,44 @@ int BPY_run_script(Script *script)
 *****************************************************************************/
 int BPY_menu_do_python( short menutype, int event )
 {
-	char *argstr = NULL;
 	BPyMenu *pym;
+	pym = BPyMenu_GetEntry( menutype, ( short ) event );
+	return BPY_menu_invoke( pym, menutype );
+}
+	
+/****************************************************************************
+* Description: This function executes the script by its shortcut.
+* Notes:	It is called by the ui code in src/???.c when a user presses an
+*		unassigned key combination. Scripts are searched in the BPyMenuTable,
+*		using the given menutype and event values to know which one to invoke.
+*****************************************************************************/
+int BPY_menu_do_shortcut( short menutype, unsigned short key, unsigned short qual )
+{
+	BPyMenu *pym;
+	pym = BPyMenu_GetEntry( menutype, 0 );
+
+	while ( pym ) {
+		if ( pym->key && pym->key == key && pym->qual == qual ) {
+			return BPY_menu_invoke( pym, menutype );
+		}
+		pym = pym->next;
+	}
+	
+	return 0;
+}
+
+/****************************************************************************
+* Description: This function executes the script described by a menu item.
+*****************************************************************************/
+int BPY_menu_invoke( BPyMenu *pym, short menutype )
+{
+	char *argstr = NULL;
 	BPySubMenu *pysm;
 	char scriptname[21];
 	Script *script = NULL;
 	int ret, len;
 	PyGILState_STATE gilstate;
 	char filestr[FILE_MAX];
-
-	pym = BPyMenu_GetEntry( menutype, ( short ) event );
 
 	if( !pym )
 		return 0;
@@ -1059,6 +1085,7 @@ int BPY_menu_do_python( short menutype, int event )
 	case PYMENU_RENDER:
 	case PYMENU_WIZARDS:
 	case PYMENU_SCRIPTTEMPLATE:
+	case PYMENU_TEXTPLUGIN:
 	case PYMENU_MESHFACEKEY:
 		break;
 
@@ -1104,12 +1131,10 @@ int BPY_menu_do_python( short menutype, int event )
 *****************************************************************************/
 void BPY_free_compiled_text( struct Text *text )
 {
-	if( !text->compiled )
-		return;
-	Py_DECREF( ( PyObject * ) text->compiled );
-	text->compiled = NULL;
-
-	return;
+	if( text->compiled ) {
+		Py_DECREF( ( PyObject * ) text->compiled );
+		text->compiled = NULL;
+	}
 }
 
 /*****************************************************************************
@@ -2722,8 +2747,7 @@ PyObject *RunPython( Text * text, PyObject * globaldict )
 		buf = txt_to_buf( text );
 
 		text->compiled =
-			Py_CompileString( buf, GetName( text ),
-					  Py_file_input );
+			Py_CompileString( buf, text->id.name+2, Py_file_input );
 
 		MEM_freeN( buf );
 
@@ -2735,15 +2759,6 @@ PyObject *RunPython( Text * text, PyObject * globaldict )
 	}
 
 	return PyEval_EvalCode( text->compiled, globaldict, globaldict );
-}
-
-/*****************************************************************************
-* Description: This function returns the value of the name field of the	
-*	given Text struct.
-*****************************************************************************/
-char *GetName( Text * text )
-{
-	return ( text->id.name + 2 );
 }
 
 /*****************************************************************************
@@ -2790,49 +2805,38 @@ void DoAllScriptsFromList( ListBase * list, short event )
 	return;
 }
 
-PyObject *importText( char *name )
+static PyObject *importText( char *name )
 {
 	Text *text;
-	char *txtname;
+	char txtname[22]; /* 21+NULL */
 	char *buf = NULL;
 	int namelen = strlen( name );
-
-	txtname = malloc( namelen + 3 + 1 );
-	if( !txtname )
-		return NULL;
-
+	
+	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
+	
 	memcpy( txtname, name, namelen );
 	memcpy( &txtname[namelen], ".py", 4 );
 
-	text = ( Text * ) & ( G.main->text.first );
-
-	while( text ) {
-		if( !strcmp( txtname, GetName( text ) ) )
+	for(text = G.main->text.first; text; text = text->id.next) {
+		if( !strcmp( txtname, text->id.name+2 ) )
 			break;
-		text = text->id.next;
 	}
 
-	if( !text ) {
-		free( txtname );
+	if( !text )
 		return NULL;
-	}
 
 	if( !text->compiled ) {
 		buf = txt_to_buf( text );
-		text->compiled =
-			Py_CompileString( buf, GetName( text ),
-					  Py_file_input );
+		text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
 		MEM_freeN( buf );
 
 		if( PyErr_Occurred(  ) ) {
 			PyErr_Print(  );
 			BPY_free_compiled_text( text );
-			free( txtname );
 			return NULL;
 		}
 	}
 
-	free( txtname );
 	return PyImport_ExecCodeModule( name, text->compiled );
 }
 
@@ -2903,7 +2907,7 @@ static PyObject *reimportText( PyObject *module )
 	/* look up the text object */
 	text = ( Text * ) & ( G.main->text.first );
 	while( text ) {
-		if( !strcmp( txtname, GetName( text ) ) )
+		if( !strcmp( txtname, text->id.name+2 ) )
 			break;
 		text = text->id.next;
 	}
@@ -2920,8 +2924,7 @@ static PyObject *reimportText( PyObject *module )
 
 	/* compile the buffer */
 	buf = txt_to_buf( text );
-	text->compiled = Py_CompileString( buf, GetName( text ),
-			Py_file_input );
+	text->compiled = Py_CompileString( buf, text->id.name+2, Py_file_input );
 	MEM_freeN( buf );
 
 	/* if compile failed.... return this error */

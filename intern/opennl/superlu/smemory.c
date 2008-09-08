@@ -8,6 +8,8 @@
  */
 #include "ssp_defs.h"
 
+#include "BLO_sys_types.h" // needed for intptr_t
+
 /* Constants */
 #define NO_MEMTYPE  4      /* 0: lusup;
 			      1: ucol;
@@ -49,8 +51,8 @@ static int no_expand;
 
 /* Macros to manipulate stack */
 #define StackFull(x)         ( x + stack.used >= stack.size )
-#define NotDoubleAlign(addr) ( (long int)addr & 7 )
-#define DoubleAlign(addr)    ( ((long int)addr + 7) & ~7L )
+#define NotDoubleAlign(addr) ( (intptr_t)addr & 7 )
+#define DoubleAlign(addr)    ( ((intptr_t)addr + 7) & ~7L )
 #define TempSpace(m, w)      ( (2*w + 4 + NO_MARKER) * m * sizeof(int) + \
 			      (w + 1) * m * sizeof(float) )
 #define Reduce(alpha)        ((alpha + 1) / 2)  /* i.e. (alpha-1)/2 + 1 */
@@ -611,8 +613,8 @@ sStackCompress(GlobalLU_t *Glu)
     
     last = (char*)usub + xusub[ndim] * iword;
     fragment = (char*) (((char*)stack.array + stack.top1) - last);
-    stack.used -= (long int) fragment;
-    stack.top1 -= (long int) fragment;
+    stack.used -= (intptr_t) fragment;
+    stack.top1 -= (intptr_t) fragment;
 
     Glu->ucol = ucol;
     Glu->lsub = lsub;

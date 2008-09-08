@@ -243,7 +243,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 	rcti disprect= pa->disprect, testrect= pa->disprect;
 	float dist, xsq, ysq, xn, yn;
 	float col[4];
-	long *rd= NULL;
+	intptr_t *rd= NULL;
 	int a, *rz, zz, y, sample, totsample, od;
 	short minx, maxx, miny, maxy, x;
 	unsigned int lay= rl->lay;
@@ -324,7 +324,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 	ShadeInput shi;
 	float *pass;
 	float fac, col[4];
-	long *rd= pa->rectdaps;
+	intptr_t *rd= pa->rectdaps;
 	int *rz= pa->rectz;
 	int x, y, sample, totsample, fullsample, od;
 	
@@ -767,7 +767,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;
-	long *rd, *rectdaps= pa->rectdaps;
+	intptr_t *rd, *rectdaps= pa->rectdaps;
 	int samp;
 	int x, y, seed, crop=0, offs=0, od;
 	
@@ -874,7 +874,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, int maskz, unsigned short mask)
+static void addps(ListBase *lb, intptr_t *rd, int obi, int facenr, int z, int maskz, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -901,7 +901,7 @@ static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, int maskz,
 	ps= psm->ps + psm->counter++;
 	
 	if(last) last->next= ps;
-	else *rd= (long)ps;
+	else *rd= (intptr_t)ps;
 	
 	ps->next= NULL;
 	ps->obi= obi;
@@ -931,17 +931,23 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 	}
 }
 
-
-static void convert_to_key_alpha(RenderPart *pa, float *rectf)
+static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 {
-	int y;
+	RenderLayer *rlpp[RE_MAX_OSA];
+	int y, sample, totsample;
 	
-	for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-		if(rectf[3] >= 1.0f);
-		else if(rectf[3] > 0.0f) {
-			rectf[0] /= rectf[3];
-			rectf[1] /= rectf[3];
-			rectf[2] /= rectf[3];
+	totsample= get_sample_layers(pa, rl, rlpp);
+	
+	for(sample= 0; sample<totsample; sample++) {
+		float *rectf= rlpp[sample]->rectf;
+		
+		for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+			if(rectf[3] >= 1.0f);
+			else if(rectf[3] > 0.0f) {
+				rectf[0] /= rectf[3];
+				rectf[1] /= rectf[3];
+				rectf[2] /= rectf[3];
+			}
 		}
 	}
 }
@@ -1027,7 +1033,7 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
- 	long *rd= pa->rectdaps;
+ 	intptr_t *rd= pa->rectdaps;
  	unsigned short *solidmask, *sp;
  	int x;
  	
@@ -1092,7 +1098,7 @@ void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
 	ZbufSolidData *sdata= (ZbufSolidData*)data;
 	ListBase *lb= sdata->psmlist;
-	long *rd= pa->rectdaps;
+	intptr_t *rd= pa->rectdaps;
 	int *ro= zspan->recto;
 	int *rp= zspan->rectp;
 	int *rz= zspan->rectz;
@@ -1133,7 +1139,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	
 		/* initialize pixelstructs and edge buffer */
 		addpsmain(&psmlist);
-		pa->rectdaps= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+		pa->rectdaps= MEM_callocN(sizeof(intptr_t)*pa->rectx*pa->recty+4, "zbufDArectd");
 		
 		if(rl->layflag & SCE_LAY_EDGE) 
 			if(R.r.mode & R_EDGE) 
@@ -1229,7 +1235,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl->rectf);
+			convert_to_key_alpha(pa, rl);
 		
 		/* free stuff within loop! */
 		MEM_freeN(pa->rectdaps); pa->rectdaps= NULL;
@@ -1393,7 +1399,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl->rectf);
+			convert_to_key_alpha(pa, rl);
 		
 		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
@@ -1433,7 +1439,7 @@ static void addps_sss(void *cb_handle, int obi, int facenr, int x, int y, int z)
 		return;
 	
 	if(pa->rectall) {
-		long *rs= pa->rectall + pa->rectx*y + x;
+		intptr_t *rs= pa->rectall + pa->rectx*y + x;
 
 		addps(&handle->psmlist, rs, obi, facenr, z, 0, 0);
 		handle->totps++;
@@ -1569,7 +1575,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 	int *ro, *rz, *rp, *rbo, *rbz, *rbp, lay;
 #if 0
 	PixStr *ps;
-	long *rs;
+	intptr_t *rs;
 	int z;
 #endif
 
@@ -1581,7 +1587,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 	handle.psmlist.first= handle.psmlist.last= NULL;
 	addpsmain(&handle.psmlist);
 
-	pa->rectall= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "rectall");
+	pa->rectall= MEM_callocN(sizeof(intptr_t)*pa->rectx*pa->recty+4, "rectall");
 #else
 	pa->recto= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "recto");
 	pa->rectp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");

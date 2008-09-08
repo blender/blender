@@ -54,7 +54,8 @@ static char idp_size_table[] = {
 	sizeof(float)*16, /*Matrix type, deprecated*/
 	0, /*arrays don't have a fixed size*/
 	sizeof(ListBase), /*Group type*/
-	sizeof(void*)
+	sizeof(void*),
+	sizeof(double)
 };
 
 
@@ -365,10 +366,14 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
 			*(float*)&prop->data.val = val.f;
 			break;
+		case IDP_DOUBLE:
+			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
+			*(double*)&prop->data.val = val.d;
+			break;		
 		case IDP_ARRAY:
 		{
-			/*for now, we only support float and int arrays*/
-			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT) {
+			/*for now, we only support float and int and double arrays*/
+			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT || val.array.type == IDP_DOUBLE) {
 				prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
 				prop->len = prop->totallen = val.array.len;
 				prop->subtype = val.array.type;
@@ -411,6 +416,10 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 
 	prop->type = type;
 	strncpy(prop->name, name, MAX_IDPROP_NAME);
+	
+	/*security null byte*/
+	prop->name[MAX_IDPROP_NAME-1] = 0;
+	
 	return prop;
 }
 

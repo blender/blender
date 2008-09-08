@@ -131,11 +131,11 @@
 #define EXPP_MAT_RAYMIRRGLOSS_MIN			 0.0
 #define EXPP_MAT_RAYMIRRGLOSS_MAX			 1.0
 #define EXPP_MAT_RAYMIRRGLOSSSAMPLES_MIN	 0
-#define EXPP_MAT_RAYMIRRGLOSSSAMPLES_MAX	 255
+#define EXPP_MAT_RAYMIRRGLOSSSAMPLES_MAX	 1024
 #define EXPP_MAT_RAYTRANSPGLOSS_MIN			 0.0
 #define EXPP_MAT_RAYTRANSPGLOSS_MAX			 1.0
 #define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MIN	 0
-#define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MAX	 255
+#define EXPP_MAT_RAYTRANSPGLOSSSAMPLES_MAX	 1024
 #define EXPP_MAT_FILTER_MIN			0.0
 #define EXPP_MAT_FILTER_MAX			1.0
 #define EXPP_MAT_TRANSLUCENCY_MIN			0.0
@@ -554,6 +554,7 @@ static int Material_setSssTexScatter( BPy_Material * self, PyObject * value );
 static int Material_setSssFront( BPy_Material * self, PyObject * value );
 static int Material_setSssBack( BPy_Material * self, PyObject * value );
 static int Material_setSssBack( BPy_Material * self, PyObject * value );
+static int Material_setTexChannel( BPy_Material * self, PyObject * value );
 
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
@@ -633,6 +634,7 @@ static PyObject *Material_getSssBack( BPy_Material * self );
 static PyObject *Material_getFilter( BPy_Material * self );
 static PyObject *Material_getTranslucency( BPy_Material * self );
 static PyObject *Material_getTextures( BPy_Material * self );
+static PyObject *Material_getTexChannel( BPy_Material * self );
 static PyObject *Material_clearIpo( BPy_Material * self );
 
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args );
@@ -738,8 +740,10 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return fresnel power for refractions factor"},
 	{"getRayTransGloss", ( PyCFunction ) Material_getGlossTrans, METH_NOARGS,
 	 "() - Return amount refraction glossiness"},
+	{"getRayTransGlossSamples", ( PyCFunction ) Material_getGlossTransSamples, METH_NOARGS,
+	 "() - Return number of sampels for transparent glossiness"},
 	{"getRayMirrGlossSamples", ( PyCFunction ) Material_getGlossMirrSamples, METH_NOARGS,
-	 "() - Return amount mirror glossiness"},
+	 "() - Return number of sampels for mirror glossiness"},
 	{"getFilter", ( PyCFunction ) Material_getFilter, METH_NOARGS,
 	 "() - Return the amount of filtering when transparent raytrace is enabled"},
 	{"getTranslucency", ( PyCFunction ) Material_getTranslucency, METH_NOARGS,
@@ -847,8 +851,10 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(f) - Set blend fac for mirror fresnel - [1.0, 5.0]"},
 	{"setRayTransGloss", ( PyCFunction ) Material_setGlossTrans, METH_VARARGS,
 	 "(f) - Set amount refraction glossiness - [0.0, 1.0]"},
+	{"setRayTransGlossSamples", ( PyCFunction ) Material_setGlossTransSamples, METH_VARARGS,
+	 "(i) - Set number transparent gloss samples - [1, 1024]"},
 	{"setRayMirrGlossSamples", ( PyCFunction ) Material_setGlossMirrSamples, METH_VARARGS,
-	 "(f) - Set amount mirror glossiness - [0.0, 1.0]"},
+	 "(i) - Set number mirror gloss samples - [1, 1024]"},
 	{"setFilter", ( PyCFunction ) Matr_oldsetFilter, METH_VARARGS,
 	 "(f) - Set the amount of filtering when transparent raytrace is enabled"},
 	{"setTranslucency", ( PyCFunction ) Matr_oldsetTranslucency, METH_VARARGS,
@@ -1136,7 +1142,11 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 NULL},
 	{"lightGroup",
 	 (getter)Material_getLightGroup, (setter)Material_setLightGroup,
-	 "Set the light group for this material",
+	 "The light group for this material",
+	 NULL},
+	{"enabledTextures",
+	 (getter)Material_getTexChannel, (setter)Material_setTexChannel,
+	 "Enabled texture channels for this material",
 	 NULL},
 	{"R",
 	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
@@ -1513,6 +1523,36 @@ static PyObject *Material_getLightGroup( BPy_Material * self )
 	return Group_CreatePyObject( self->material->group );
 }
 
+static PyObject *Material_getTexChannel( BPy_Material * self )
+{
+	int i;
+    short mask = 1;
+	PyObject *list = PyList_New(0);
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"PyList_New() failed" );
+
+	for( i = 0, mask = 1; i < MAX_MTEX ; ++i, mask <<= 1 ) {
+		if( self->material->mtex[i] && (mask & self->material->septex) == 0 ) {
+			PyObject * val = PyInt_FromLong(i);
+			if( !val ) {
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"PyInt_FromLong() failed" );
+			}
+			if( PyList_Append( list, val ) < 0 ) {
+				Py_DECREF( val );
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"PyList_Append() failed" );
+			}
+			Py_DECREF( val );
+		}
+	}
+
+	return list;
+}
+
 static PyObject *Material_getHaloSize( BPy_Material * self )
 {
 	return PyFloat_FromDouble( ( double ) self->material->hasize );
@@ -1714,8 +1754,7 @@ static PyObject *Material_getTextures( BPy_Material * self )
 	}
 
 	/* turn the array into a tuple */
-	tuple = Py_BuildValue( "NNNNNNNNNN", t[0], t[1], t[2], t[3],
-			       t[4], t[5], t[6], t[7], t[8], t[9] );
+	tuple = Py_BuildValue( "NNNNNNNNNNNNNNNNNN", t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15], t[16], t[17] );
 	if( !tuple )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "Material_getTextures: couldn't create PyTuple" );
@@ -1976,6 +2015,57 @@ static int Material_setZOffset( BPy_Material * self, PyObject * value )
 static int Material_setLightGroup( BPy_Material * self, PyObject * value )
 {
 	return GenericLib_assignData(value, (void **) &self->material->group, NULL, 1, ID_GR, 0);
+}
+
+static int Material_setTexChannel( BPy_Material * self, PyObject * value )
+{
+	int i, mask;
+	short septex = 0;
+	int result = 1;
+
+	/* fail if input is not a standard sequence */
+	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected tuple or list of integers" );
+
+	/* get a fast sequence; in Python 2.5, this just return the original
+	 * list or tuple and INCREFs it, so we must DECREF */
+	value = PySequence_Fast( value, "" );
+
+	/* set the disable bit for each existing texture */
+	for( i= 0, mask= 1; i < MAX_MTEX; ++i, mask <<= 1 )
+		if( self->material->mtex[i] != NULL )
+			septex |= mask;
+
+	/* check the list, and build new septex value */
+	for( i= PySequence_Size(value)-1; i >= 0; --i ) {
+		long ival;
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		if( !PyInt_Check( item ) ) {
+			PyErr_SetString ( PyExc_TypeError,
+					"expected tuple or list of integers" );
+			goto exit;
+		}
+		ival= PyInt_AsLong( item );
+		if(ival < 0 || ival > MAX_MTEX) {
+			PyErr_SetString( PyExc_ValueError,
+							"channel value out of range" );
+			goto exit;
+		}
+		ival&= (1<<MAX_MTEX)-1;
+		if( self->material->mtex[(int)ival] == NULL ) {
+			PyErr_SetString( PyExc_ValueError,
+							"channels must have a texture assigned" );
+			goto exit;
+		}
+		septex&= ~(1<<ival);
+	}
+	self->material->septex= septex;
+	result = 0;
+
+exit:
+	Py_DECREF(value);
+	return result;
 }
 
 static int Material_setAdd( BPy_Material * self, PyObject * value )
@@ -2308,9 +2398,6 @@ static int Material_setSssBack( BPy_Material * self, PyObject * value )
 								EXPP_MAT_SSS_BACK_MIN,
 								EXPP_MAT_SSS_BACK_MAX);
 }
-
-
-
 
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 {

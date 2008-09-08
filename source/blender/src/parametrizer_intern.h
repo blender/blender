@@ -30,7 +30,7 @@ typedef enum PBool {
 
 /* Special Purpose Hash */
 
-typedef long PHashKey;
+typedef intptr_t PHashKey;
 
 typedef struct PHashLink {
 	struct PHashLink *next;

@@ -355,22 +355,26 @@ void BL_ConvertActuators(char* maggiename,
 				
 				if (soundActuatorType != KX_SoundActuator::KX_SOUNDACT_NODEF) 
 				{
-					SND_SoundObject* sndobj = NULL;
+					SND_Scene* soundscene = scene->GetSoundScene();
+					STR_String samplename = "";
+					bool sampleisloaded = false;
 					
-					if (soundact->sound)
-					{
-						SND_Scene* soundscene = scene->GetSoundScene();
-						STR_String samplename = soundact->sound->name;
+					if (soundact->sound) {
+						/* Need to convert the samplename into absolute path
+						 * before checking if its loaded */
+						char fullpath[sizeof(soundact->sound->name)];
 						
-						bool sampleisloaded = false;
+						/* dont modify soundact->sound->name, only change a copy */
+						BLI_strncpy(fullpath, soundact->sound->name, sizeof(fullpath));
+						BLI_convertstringcode(fullpath, maggiename);
+						samplename = fullpath;
 						
 						/* let's see if the sample was already loaded */
 						if (soundscene->IsSampleLoaded(samplename))
 						{
 							sampleisloaded = true;
 						}
-						else
-						{
+						else {
 							/* if not, make it so */
 							PackedFile* pf = soundact->sound->newpackedfile;
 							
@@ -383,21 +387,33 @@ void BL_ConvertActuators(char* maggiename,
 							/* or else load it from disk */
 							else
 							{
-								/* but we need to convert the samplename into absolute pathname first */
-								BLI_convertstringcode(soundact->sound->name, maggiename);
-								samplename = soundact->sound->name;
-								
-								/* and now we can load it */
-								if (soundscene->LoadSample(samplename, NULL, 0) > -1)
+								if (soundscene->LoadSample(samplename, NULL, 0) > -1) {
 									sampleisloaded = true;
+								}
+								else {
+									std::cout <<	"WARNING: Sound actuator \"" << bact->name <<
+													"\" from object \"" <<  blenderobject->id.name+2 <<
+													"\" failed to load sample." << std::endl;
+								}
 							}
 						}
-						
-						if (sampleisloaded)
-						{
-							sndobj = new SND_SoundObject();
-							sndobj->SetSampleName(samplename.Ptr());
-							sndobj->SetObjectName(bact->name);
+					} else {
+						std::cout <<	"WARNING: Sound actuator \"" << bact->name <<
+										"\" from object \"" <<  blenderobject->id.name+2 <<
+										"\" has no sound datablock." << std::endl;
+					}
+					
+					/* Note, allowing actuators for sounds that are not there was added since 2.47
+					 * This is because python may expect the actuator and raise an exception if it dosnt find it
+					 * better just to add a dummy sound actuator. */
+					SND_SoundObject* sndobj = NULL;
+					if (sampleisloaded)
+					{
+						/* setup the SND_SoundObject */
+						sndobj = new SND_SoundObject();
+						sndobj->SetSampleName(samplename.Ptr());
+						sndobj->SetObjectName(bact->name);
+						if (soundact->sound) {
 							sndobj->SetRollOffFactor(soundact->sound->attenuation);
 							sndobj->SetGain(soundact->sound->volume);
 							sndobj->SetPitch(exp((soundact->sound->pitch / 12.0) * log(2.0)));
@@ -410,8 +426,9 @@ void BL_ConvertActuators(char* maggiename,
 								else
 									sndobj->SetLoopMode(SND_LOOP_NORMAL);
 							}
-							else
+							else {
 								sndobj->SetLoopMode(SND_LOOP_OFF);
+							}
 							
 							if (soundact->sound->flags & SOUND_FLAGS_PRIORITY)
 								sndobj->SetHighPriority(true);
@@ -422,22 +439,30 @@ void BL_ConvertActuators(char* maggiename,
 								sndobj->Set3D(true);
 							else
 								sndobj->Set3D(false);
-							
-							KX_SoundActuator* tmpsoundact = 
-								new KX_SoundActuator(gameobj, 
-								sndobj,
-								scene->GetSoundScene(), // needed for replication!
-								soundActuatorType,
-								startFrame,
-								stopFrame);
-							
-							tmpsoundact->SetName(bact->name);
-							baseact = tmpsoundact;
-							soundscene->AddObject(sndobj);
-						} else {
-							std::cout << "WARNING: Sound actuator " << bact->name << " failed to load sample." << std::endl;
+						}
+						else {
+							/* dummy values for a NULL sound
+							* see editsound.c - defaults are unlikely to change soon */
+							sndobj->SetRollOffFactor(1.0);
+							sndobj->SetGain(1.0);
+							sndobj->SetPitch(1.0);
+							sndobj->SetLoopMode(SND_LOOP_OFF);
+							sndobj->SetHighPriority(false);
+							sndobj->Set3D(false);
 						}
 					}
+					KX_SoundActuator* tmpsoundact = 
+						new KX_SoundActuator(gameobj, 
+						sndobj,
+						scene->GetSoundScene(), // needed for replication!
+						soundActuatorType,
+						startFrame,
+						stopFrame);
+					
+					tmpsoundact->SetName(bact->name);
+					baseact = tmpsoundact;
+					if (sndobj)
+						soundscene->AddObject(sndobj);
 				}
 				break;
 			}
@@ -540,13 +565,26 @@ void BL_ConvertActuators(char* maggiename,
 						// does the 'original' for replication exists, and 
 						// is it in a non-active layer ?
 						SCA_IObject* originalval = NULL;
-						if (editobact->ob && !(editobact->ob->lay & activeLayerBitInfo))
-							originalval = converter->FindGameObject(editobact->ob);
-						
-						MT_Vector3 linvelvec ( KX_BLENDERTRUNC(editobact->linVelocity[0]),
+						if (editobact->ob)
+						{
+							if (editobact->ob->lay & activeLayerBitInfo)
+							{
+								fprintf(stderr, "Warning, object \"%s\" from AddObject actuator \"%s\" is not in a hidden layer.\n", objectname.Ptr(), uniquename.Ptr());
+							}
+							else {
+								originalval = converter->FindGameObject(editobact->ob);
+							}
+						}
+						MT_Vector3 linvelvec (
+							KX_BLENDERTRUNC(editobact->linVelocity[0]),
 							KX_BLENDERTRUNC(editobact->linVelocity[1]),
 							KX_BLENDERTRUNC(editobact->linVelocity[2]));
-							
+						
+						MT_Vector3 angvelvec (
+							KX_BLENDERTRUNC(editobact->angVelocity[0]),
+							KX_BLENDERTRUNC(editobact->angVelocity[1]),
+							KX_BLENDERTRUNC(editobact->angVelocity[2]));
+						
 						KX_SCA_AddObjectActuator* tmpaddact = 
 							new KX_SCA_AddObjectActuator(
 								gameobj, 
@@ -554,7 +592,9 @@ void BL_ConvertActuators(char* maggiename,
 								editobact->time,
 								scene,
 								linvelvec.getValue(),
-								editobact->localflag!=0
+								(editobact->localflag & ACT_EDOB_LOCAL_LINV)!=0,
+								angvelvec.getValue(),
+								(editobact->localflag & ACT_EDOB_LOCAL_ANGV)!=0
 								);
 								
 								//editobact->ob to gameobj
@@ -658,18 +698,18 @@ void BL_ConvertActuators(char* maggiename,
 						min = conact->minloc[2];
 						max = conact->maxloc[2];
 						break;
-					case ACT_CONST_DIRMX:
-						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMX;
+					case ACT_CONST_DIRNX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNX;
 						min = conact->minloc[0];
 						max = conact->maxloc[0];
 						break;
-					case ACT_CONST_DIRMY:
-						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMY;
+					case ACT_CONST_DIRNY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNY;
 						min = conact->minloc[1];
 						max = conact->maxloc[1];
 						break;
-					case ACT_CONST_DIRMZ:
-						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRMZ;
+					case ACT_CONST_DIRNZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNZ;
 						min = conact->minloc[2];
 						max = conact->maxloc[2];
 						break;
@@ -922,10 +962,9 @@ void BL_ConvertActuators(char* maggiename,
 			bVisibilityActuator *vis_act = (bVisibilityActuator *) bact->data;
 			KX_VisibilityActuator * tmp_vis_act = NULL;
 			bool v = ((vis_act->flag & ACT_VISIBILITY_INVISIBLE) != 0);
+			bool recursive = ((vis_act->flag & ACT_VISIBILITY_RECURSIVE) != 0);
 
-			tmp_vis_act = 
-				new KX_VisibilityActuator(gameobj,
-							  !v);
+			tmp_vis_act = new KX_VisibilityActuator(gameobj, !v, recursive);
 			
 			baseact = tmp_vis_act;
 		}
@@ -1024,7 +1063,7 @@ void BL_ConvertActuators(char* maggiename,
 			{
 				bParentActuator *parAct = (bParentActuator *) bact->data;
 				int mode = KX_ParentActuator::KX_PARENT_NODEF;
-				KX_GameObject *tmpgob;
+				KX_GameObject *tmpgob = NULL;
 
 				switch(parAct->type)
 				{

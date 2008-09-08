@@ -144,6 +144,8 @@ extern ListBase editelems;
 
 #include "transform.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
 /* local function prototype - for finding number of keyframes that are selected for editing */
@@ -913,8 +915,8 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if (arm==NULL || ob->pose==NULL) return;
 	
 	if (arm->flag & ARM_RESTPOS) {
-		if(t->mode!=TFM_BONESIZE) {
-			notice ("Pose edit not possible while Rest Position is enabled");
+		if(ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
+			notice("Pose edit not possible while Rest Position is enabled");
 			return;
 		}
 	}
@@ -1089,6 +1091,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->tail;
 					td->flag= TD_SELECTED;
+					if (ebo->flag & BONE_EDITMODE_LOCKED)
+						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
@@ -1104,6 +1108,8 @@ static void createTransArmatureVerts(TransInfo *t)
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->head;
 					td->flag= TD_SELECTED;
+					if (ebo->flag & BONE_EDITMODE_LOCKED)
+						td->protectflag = OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE;
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
@@ -1909,7 +1915,7 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	EditVert *eve, *prev;
 	EditFace *efa;
 	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
-	long index= 0;
+	intptr_t index= 0;
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
@@ -1921,13 +1927,13 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		
 		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*(long)(efa->v1->prev);
-		v2= mappedcos + 3*(long)(efa->v2->prev);
-		v3= mappedcos + 3*(long)(efa->v3->prev);
+		v1= mappedcos + 3*(intptr_t)(efa->v1->prev);
+		v2= mappedcos + 3*(intptr_t)(efa->v2->prev);
+		v3= mappedcos + 3*(intptr_t)(efa->v3->prev);
 
-		co1= (origcos)? origcos + 3*(long)(efa->v1->prev): efa->v1->co;
-		co2= (origcos)? origcos + 3*(long)(efa->v2->prev): efa->v2->co;
-		co3= (origcos)? origcos + 3*(long)(efa->v3->prev): efa->v3->co;
+		co1= (origcos)? origcos + 3*(intptr_t)(efa->v1->prev): efa->v1->co;
+		co2= (origcos)? origcos + 3*(intptr_t)(efa->v2->prev): efa->v2->co;
+		co3= (origcos)? origcos + 3*(intptr_t)(efa->v3->prev): efa->v3->co;
 
 		if(efa->v2->tmp.p==NULL && efa->v2->f1) {
 			set_crazy_vertex_quat(quats, co2, co3, co1, v2, v3, v1);
@@ -1936,8 +1942,8 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 		}
 		
 		if(efa->v4) {
-			v4= mappedcos + 3*(long)(efa->v4->prev);
-			co4= (origcos)? origcos + 3*(long)(efa->v4->prev): efa->v4->co;
+			v4= mappedcos + 3*(intptr_t)(efa->v4->prev);
+			co4= (origcos)? origcos + 3*(intptr_t)(efa->v4->prev): efa->v4->co;
 
 			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, co1, co2, co4, v1, v2, v4);
@@ -3743,6 +3749,35 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
 						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
 						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+					}
+				}
+				else if (IS_AUTOKEY_FLAG(AUTOMATKEY)) {
+					int matok=0; 
+					
+					/* check one to make sure we're not trying to set visual loc keys on
+						bones inside of a chain, which only leads to tears. */
+					matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					
+					if (matok == 0) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					}
+					
+					/* check one to make sure we're not trying to set visual rot keys on
+						bones inside of a chain, which only leads to tears. */
+					matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+					
+					if (matok == 0) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */

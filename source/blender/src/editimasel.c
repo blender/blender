@@ -1076,6 +1076,12 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			toggle_blockhandler(sa, IMASEL_HANDLER_IMAGE, UI_PNL_UNSTOW);
 			scrarea_queue_winredraw(sa);
 			break;
+		case HKEY:
+			simasel->flag ^= FILE_HIDE_DOT;
+			BIF_filelist_free(simasel->files);
+			do_draw= 1;
+			do_headdraw= 1;
+			break;
 		case PKEY:
 			if(G.qual & LR_SHIFTKEY) {
 				extern char bprogname[];	/* usiblender.c */

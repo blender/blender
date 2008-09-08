@@ -2001,7 +2001,10 @@ void node_hide(SpaceNode *snode)
 void node_insert_key(SpaceNode *snode)
 {
 	bNode *node= editnode_get_active(snode->edittree);
-
+	
+	if(node == NULL)
+		return;
+	
 	if(node->type==CMP_NODE_TIME) {
 		if(node->custom1<node->custom2) {
 
@@ -2110,6 +2113,7 @@ static void node_border_link_delete(SpaceNode *snode)
 			mval[1]= rect.ymax;
 			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmax, &rectf.ymax);
 			
+			glLoadIdentity();
 			myortho2(rectf.xmin, rectf.xmax, rectf.ymin, rectf.ymax);
 			
 			glSelectBuffer(256, buffer); 
@@ -2400,7 +2404,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		switch(event) {
 		case LEFTMOUSE:
-			if(gpencil_do_paint(sa)) {
+			if(gpencil_do_paint(sa, L_MOUSE)) {
 				return;
 			}
 			else if(fromlib) {
@@ -2421,7 +2425,10 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case RIGHTMOUSE: 
-			if(find_indicated_socket(snode, &actnode, &actsock, SOCK_IN)) {
+			if(gpencil_do_paint(sa, R_MOUSE)) {
+				return;
+			}
+			else if(find_indicated_socket(snode, &actnode, &actsock, SOCK_IN)) {
 				if(actsock->flag & SOCK_SEL) {
 					snode->edittree->selin= NULL;
 					actsock->flag&= ~SOCK_SEL;
@@ -2568,8 +2575,13 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case DELKEY:
 		case XKEY:
-			if(fromlib) fromlib= -1;
-			else node_delete(snode);
+			if(G.qual==LR_ALTKEY) {
+				gpencil_delete_menu();
+			}
+			else {
+				if(fromlib) fromlib= -1;
+				else node_delete(snode);
+			}
 			break;
 		}
 	}

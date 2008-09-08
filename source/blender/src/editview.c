@@ -298,7 +298,7 @@ int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
-static int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1)
+int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1)
 {
 	short v1[2], v2[2];
 	int a;
@@ -371,7 +371,7 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 	}
 }
 
-static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
+void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
 {
 	short a;
 	
@@ -1631,7 +1631,7 @@ void mouse_select(void)
 
 /* ------------------------------------------------------------------------- */
 
-static int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
+int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
 {
 	int radsq= rad*rad;
 	float v1[2], v2[2], v3[2];
@@ -2247,7 +2247,7 @@ void view3d_border_zoom(void)
 	
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	draw_depth(curarea, (void *)v3d);
+	draw_depth(curarea, (void *)v3d, NULL);
 	
 	/* force updating */
 	if (v3d->depths) {

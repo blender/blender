@@ -123,10 +123,10 @@
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 {
-	if( isalpha(ch)==0 ) return;
-	
 	if( isupper(ch) ) {
 		*qual= LEFTSHIFTKEY;
 		ch= tolower(ch);
@@ -240,7 +240,7 @@ void error_libdata(void)
 
 int saveover(char *file)
 {
-	int len= strlen(file);
+	size_t len= strlen(file);
 	
 	if(len==0) 
 		return 0;
@@ -804,7 +804,10 @@ static void tb_do_hotkey(void *arg, int event)
 		case 'd': key= PAGEDOWNKEY; break;
 		}
 	}
-	else asciitoraw(event, &key, &qual[3]);
+	else if (isalpha(event))
+		asciitoraw(event, &key, &qual[3]);
+	else if (event == '~')
+		key = ACCENTGRAVEKEY;
 
 	for (i=0;i<4;i++)
 	{
@@ -1212,6 +1215,8 @@ static TBitem tb_view[]= {
 {	0, "SEPR", 						0, NULL},
 {	0, "Ortho/Perspective|NumPad 5", 	TB_PAD|'5', NULL},
 {	0, "Local/Global View|NumPad /", 	TB_PAD|'/', NULL},
+{	0, "SEPR", 						0, NULL},
+{	0, "Show All Layers|Shift ~",  TB_SHIFT|'~', NULL},
 {	0, "SEPR", 						0, NULL},
 {	0, "Align View", 			0, tb_view_alignview},
 {	0, "SEPR", 		0, NULL},
@@ -1753,8 +1758,8 @@ static uiBlock *tb_makemenu(void *arg)
 static int tb_mainx= 1234, tb_mainy= 0;
 static void store_main(void *arg1, void *arg2)
 {
-	tb_mainx= (long)arg1;
-	tb_mainy= (long)arg2;
+	tb_mainx= (intptr_t)arg1;
+	tb_mainy= (intptr_t)arg2;
 }
 
 static void do_group_addmenu(void *arg, int event)
@@ -2182,27 +2187,27 @@ void toolbox_n(void)
 	
 		but=uiDefBlockBut(block, tb_makemenu, menu1, str1,	mval[0]-(1.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_RIGHT);
-		uiButSetFunc(but, store_main, (void *)(long)dx, (void *)(long)-5);
+		uiButSetFunc(but, store_main, (void *)(intptr_t)dx, (void *)(intptr_t)-5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu2, str2,	mval[0]-(0.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP);
-		uiButSetFunc(but, store_main, (void *)(long)0, (void *)(long)-5);
+		uiButSetFunc(but, store_main, (void *)(intptr_t)0, (void *)(intptr_t)-5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu3, str3,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_LEFT);
-		uiButSetFunc(but, store_main, (void *)(long)-dx, (void *)(long)-5);
+		uiButSetFunc(but, store_main, (void *)(intptr_t)-dx, (void *)(intptr_t)-5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu4, str4,	mval[0]-(1.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_RIGHT);
-		uiButSetFunc(but, store_main, (void *)(long)dx, (void *)(long)5);
+		uiButSetFunc(but, store_main, (void *)(intptr_t)dx, (void *)(intptr_t)5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu5, str5,	mval[0]-(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN);
-		uiButSetFunc(but, store_main, (void *)(long)0, (void *)(long)5);
+		uiButSetFunc(but, store_main, (void *)(intptr_t)0, (void *)(intptr_t)5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_LEFT);
-		uiButSetFunc(but, store_main, (void *)(long)-dx, (void *)(long)5);
+		uiButSetFunc(but, store_main, (void *)(intptr_t)-dx, (void *)(intptr_t)5);
 	} else if (tot==5 || tot==7) {
                 /* check if it fits, dubious */
 		if(mval[0]-0.25*dx+tb_mainx < 6) mval[0]= 6 + 0.25*dx -tb_mainx;
@@ -2277,9 +2282,9 @@ void toolbox_generic( TBitem *generic_menu )
 	uiBlock *block;
 	uiBut *but;
 	TBitem *menu;
-	int dx=96;
+	int dx=96, first=1, len;
 	short event, mval[2];
-	long ypos = -5;
+	intptr_t ypos = -5;
 	
 	tb_mainx= -32;
 	tb_mainy= -5;
@@ -2298,11 +2303,17 @@ void toolbox_generic( TBitem *generic_menu )
 	
 	/* Add the menu */
 	for (menu = generic_menu; menu->icon != -1; menu++) {
-		if(strcmp(menu->name, "SEPR")==0) {
+		if (first && (len=strlen(menu->name)) > 2 && menu->name[len-2]=='%' && menu->name[len-1]=='t') {
+			menu->name[len-2] = '\0';
+			uiSetCurFont(block, UI_HELVB);
+			uiDefIconTextBut(block, LABEL, 0, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, 0, "");
+			uiSetCurFont(block, UI_HELV);
+			ypos-=20;
+		} else if(strcmp(menu->name, "SEPR")==0) {
 			uiDefBut(block, SEPR, 0, "", mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 6, NULL, 0.0, 0.0, 0, 0, "");
 			ypos-=6;
 		} else {
-			 if (menu->poin) {
+			if (menu->poin) {
 				but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
 				uiButSetFlag(but, UI_MAKE_RIGHT);
 			
@@ -2313,6 +2324,7 @@ void toolbox_generic( TBitem *generic_menu )
 			}
 			ypos-=20;
 		}
+		first= 0;
 	}
 	
 	uiBlockSetButmFunc(block, menu->poin, NULL);

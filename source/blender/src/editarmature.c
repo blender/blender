@@ -439,6 +439,109 @@ void docenter_armature (Object *ob, int centermode)
 	}
 }
 
+/* helper for apply_armature_pose2bones - fixes parenting of objects that are bone-parented to armature */
+static void applyarmature_fix_boneparents (Object *armob)
+{
+	Object *ob;
+	
+	/* go through all objects in database */
+	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* if parent is bone in this armature, apply corrections */
+		if ((ob->parent == armob) && (ob->partype == PARBONE)) {
+			/* apply current transform from parent (not yet destroyed), 
+			 * then calculate new parent inverse matrix
+			 */
+			apply_obmat(ob);
+			
+			what_does_parent(ob);
+			Mat4Invert(ob->parentinv, workob.obmat);
+		}
+	}
+}
+
+/* set the current pose as the restpose */
+void apply_armature_pose2bones(void)
+{
+	Object	*ob;
+	bArmature *arm;
+	bPose *pose;
+	bPoseChannel *pchan;
+	EditBone *curbone;
+	
+	/* don't check if editmode (should be done by caller) */
+	ob= OBACT;
+	if (ob->type!=OB_ARMATURE) return;
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
+		return;
+	}
+	arm= get_armature(ob); 
+	
+	/* helpful warnings... */
+	// TODO: add warnings to be careful about actions, applying deforms first, etc.
+	
+	/* Get editbones of active armature to alter */
+	if (G.edbo.first) BLI_freelistN(&G.edbo);
+	make_boneList(&G.edbo, &arm->bonebase, NULL);
+	
+	/* get pose of active object and move it out of posemode */
+	pose= ob->pose;
+	
+	for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+		curbone= editbone_name_exists(&G.edbo, pchan->name);
+		
+		/* simply copy the head/tail values from pchan over to curbone */
+		VECCOPY(curbone->head, pchan->pose_head);
+		VECCOPY(curbone->tail, pchan->pose_tail);
+		
+		/* fix roll:
+		 *	1. find auto-calculated roll value for this bone now
+		 *	2. remove this from the 'visual' y-rotation
+		 */
+		{
+			float premat[3][3], imat[3][3],pmat[3][3], tmat[3][3];
+			float delta[3], eul[3];
+			
+			/* obtain new auto y-rotation */
+			VecSubf(delta, curbone->tail, curbone->head);
+			vec_roll_to_mat3(delta, 0.0, premat);
+			Mat3Inv(imat, premat);
+			
+			/* get pchan 'visual' matrix */
+			Mat3CpyMat4(pmat, pchan->pose_mat);
+			
+			/* remove auto from visual and get euler rotation */
+			Mat3MulMat3(tmat, imat, pmat);
+			Mat3ToEul(tmat, eul);
+			
+			/* just use this euler-y as new roll value */
+			curbone->roll= eul[1];
+		}
+		
+		/* clear transform values for pchan */
+		pchan->loc[0]= pchan->loc[1]= pchan->loc[2]= 0;
+		pchan->quat[1]= pchan->quat[2]= pchan->quat[3]= 0;
+		pchan->quat[0]= pchan->size[0]= pchan->size[1]= pchan->size[2]= 1;
+		
+		/* set anim lock */
+		curbone->flag |= BONE_UNKEYED;
+	}
+	
+	/* convert editbones back to bones */
+	editbones_to_armature(&G.edbo, ob);
+	if (G.edbo.first) BLI_freelistN(&G.edbo);
+	
+	/* flush positions of posebones */
+	where_is_pose(ob);
+	
+	/* fix parenting of objects which are bone-parented */
+	applyarmature_fix_boneparents(ob);
+	
+	BIF_undo_push("Apply new restpose");
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
 /* Helper function for armature joining - link fixing */
 static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChannel *pchan, EditBone *curbone)
 {
@@ -854,6 +957,7 @@ static void separate_armature_bones (Object *ob, short sel)
 	BLI_freelistN(&edbo);
 }
 
+/* separate selected bones into their armature */
 void separate_armature (void)
 {
 	Object *oldob, *newob;
@@ -1033,87 +1137,6 @@ static void *get_nearest_bone (short findunsel)
 	return NULL;
 }
 
-/* used by posemode and editmode */
-void select_bone_parent (void)
-{
-	Object *ob;
-	bArmature *arm;	
-	
-	/* get data */
-	if (G.obedit)
-		ob= G.obedit;
-	else if (OBACT)
-		ob= OBACT;
-	else
-		return;
-	arm= (bArmature *)ob->data;
-	
-	/* determine which mode armature is in */
-	if ((!G.obedit) && (ob->flag & OB_POSEMODE)) {
-		/* deal with pose channels */
-		/* channels are sorted on dependency, so the loop below won't result in a flood-select */
-		bPoseChannel *pchan=NULL;
-		
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			/* check if bone in original selection */
-			if (pchan->bone->flag & BONE_SELECTED) {
-				bPoseChannel *chanpar= pchan->parent;
-				
-				/* check if any parent */
-				if ((chanpar) && ((chanpar->bone->flag & BONE_SELECTED)==0)) {
-					chanpar->bone->flag |= BONE_SELECTED;
-					select_actionchannel_by_name (ob->action, pchan->name, 1);
-				}
-			}
-		}
-	}
-	else if (G.obedit) {
-		/* deal with editbones */
-		EditBone *curbone, *parbone, *parpar;
-		
-		/* prevent floods */
-		for (curbone= G.edbo.first; curbone; curbone= curbone->next)
-			curbone->temp= NULL;
-		
-		for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
-			/* check if bone selected */
-			if ((curbone->flag & BONE_SELECTED) && curbone->temp==NULL) {
-				parbone= curbone->parent;
-				
-				/* check if any parent */
-				if ((parbone) && ((parbone->flag & BONE_SELECTED)==0)) {
-					/* select the parent bone */
-					parbone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-					
-					/* check if parent has parent */
-					parpar= parbone->parent;
-					
-					if ((parpar) && (parbone->flag & BONE_CONNECTED)) {
-						parpar->flag |= BONE_TIPSEL;
-					}
-					/* tag this bone to not flood selection */
-					parbone->temp= parbone;
-				}
-			}
-		}
-		
-		/* to be sure... */
-		for (curbone= G.edbo.first; curbone; curbone= curbone->next)
-			curbone->temp= NULL;
-		
-	}
-	
-	/* undo + redraw pushes */
-	countall(); // flushes selection!
-
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWOOPS, 0);
-	
-	BIF_undo_push("Select Parent");
-}
-
 /* helper for setflag_sel_bone() */
 static void bone_setflag (int *bone, int flag, short mode)
 {
@@ -1139,6 +1162,90 @@ static void bone_setflag (int *bone, int flag, short mode)
 	}
 }
 
+/* Get the first available child of an editbone */
+static EditBone *editbone_get_child(EditBone *pabone, short use_visibility)
+{
+	Object *ob;
+	bArmature *arm;
+	EditBone *curbone, *chbone=NULL;
+	
+	if (!G.obedit) return NULL;
+	else ob= G.obedit;
+	arm= (bArmature *)ob->data;
+
+	for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+		if (curbone->parent == pabone) {
+			if (use_visibility) {
+				if ((arm->layer & curbone->layer) && !(pabone->flag & BONE_HIDDEN_A))
+					chbone = curbone;
+			}
+			else
+				chbone = curbone;
+		}
+	}
+	
+	return chbone;
+}
+
+void armature_select_hierarchy(short direction, short add_to_sel)
+{
+	Object *ob;
+	bArmature *arm;
+	EditBone *curbone, *pabone, *chbone;
+
+	if (!G.obedit) return;
+	else ob= G.obedit;
+	arm= (bArmature *)ob->data;
+	
+	for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+		if (EBONE_VISIBLE(arm, curbone)) {
+			if (curbone->flag & (BONE_ACTIVE)) {
+				if (direction == BONE_SELECT_PARENT) {
+					if (curbone->parent == NULL) continue;
+					else pabone = curbone->parent;
+					
+					if (EBONE_VISIBLE(arm, pabone)) {
+						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+						if (pabone->parent)	pabone->parent->flag |= BONE_TIPSEL;
+						
+						if (!add_to_sel) curbone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+						curbone->flag &= ~BONE_ACTIVE;
+						break;
+					}
+					
+				} 
+				else { // BONE_SELECT_CHILD
+					chbone = editbone_get_child(curbone, 1);
+					if (chbone == NULL) continue;
+					
+					if (EBONE_VISIBLE(arm, chbone)) {
+						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+						
+						if (!add_to_sel) {
+							curbone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL);
+							if (curbone->parent) curbone->parent->flag &= ~BONE_TIPSEL;
+						}
+						curbone->flag &= ~BONE_ACTIVE;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	countall(); // flushes selection!
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSEDIT, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
+	
+	if (direction==BONE_SELECT_PARENT)
+		BIF_undo_push("Select edit bone parent");
+	if (direction==BONE_SELECT_CHILD)
+		BIF_undo_push("Select edit bone child");
+}
+
 /* used by posemode and editmode */
 void setflag_armature (short mode)
 {
@@ -1157,17 +1264,18 @@ void setflag_armature (short mode)
 	
 	/* get flag to set (sync these with the ones used in eBone_Flag */
 	if (mode == 2)
-		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
 	else if (mode == 1)
-		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
 	else
-		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5");
+		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
 	switch (flag) {
 		case 1: 	flag = BONE_DRAWWIRE; 	break;
 		case 2:		flag = BONE_NO_DEFORM; break;
 		case 3: 	flag = BONE_MULT_VG_ENV; break;
 		case 4:		flag = BONE_HINGE; break;
 		case 5:		flag = BONE_NO_SCALE; break;
+		case 6: 	flag = BONE_EDITMODE_LOCKED; break;
 		default:	return;
 	}
 	
@@ -1723,12 +1831,12 @@ void auto_align_armature(short mode)
 	float  	*cursor= give_cursor();
 		
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (arm->flag & ARM_MIRROR_EDIT)
 				flipbone = armature_bone_get_mirrored(ebone);
 			
 			if ((ebone->flag & BONE_SELECTED) || 
-				(flipbone && flipbone->flag & BONE_SELECTED)) 
+				(flipbone && (flipbone->flag & BONE_SELECTED))) 
 			{
 				/* specific method used to calculate roll depends on mode */
 				if (mode == 1) {
@@ -1973,7 +2081,7 @@ void addvert_armature(void)
 	
 	/* find the active or selected bone */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & (BONE_ACTIVE|BONE_TIPSEL)) 
 				break;
 		}
@@ -1981,7 +2089,7 @@ void addvert_armature(void)
 	
 	if (ebone==NULL) {
 		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-			if (arm->layer & ebone->layer) {
+			if (EBONE_VISIBLE(arm, ebone)) {
 				if (ebone->flag & (BONE_ACTIVE|BONE_ROOTSEL)) 
 					break;
 			}
@@ -2064,11 +2172,12 @@ static EditBone *get_named_editbone(char *name)
 {
 	EditBone  *eBone;
 
-	if (name)
+	if (name) {
 		for (eBone=G.edbo.first; eBone; eBone=eBone->next) {
 			if (!strcmp(name, eBone->name))
 				return eBone;
 		}
+	}
 
 	return NULL;
 }
@@ -2134,7 +2243,7 @@ void adduplicate_armature(void)
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
 		for (curBone=G.edbo.first; curBone; curBone=curBone->next) {
-			if (arm->layer & curBone->layer) {
+			if (EBONE_VISIBLE(arm, curBone)) {
 				if (curBone->flag & BONE_SELECTED) {
 					eBone = armature_bone_get_mirrored(curBone);
 					if (eBone)
@@ -2146,13 +2255,13 @@ void adduplicate_armature(void)
 	
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
-		if (arm->layer & curBone->layer) {
+		if (EBONE_VISIBLE(arm, curBone)) {
 			if (curBone->flag & BONE_SELECTED) {
 				eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
 				eBone->flag |= BONE_SELECTED;
 				
 				/*	Copy data from old bone to new bone */
-				memcpy (eBone, curBone, sizeof(EditBone));
+				memcpy(eBone, curBone, sizeof(EditBone));
 				
 				curBone->temp = eBone;
 				eBone->temp = curBone;
@@ -2202,7 +2311,7 @@ void adduplicate_armature(void)
 
 	/*	Run though the list and fix the pointers */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
-		if (arm->layer & curBone->layer) {
+		if (EBONE_VISIBLE(arm, curBone)) {
 			if (curBone->flag & BONE_SELECTED) {
 				eBone=(EditBone*) curBone->temp;
 				
@@ -2234,7 +2343,7 @@ void adduplicate_armature(void)
 	/*	Deselect the old bones and select the new ones */
 	
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
-		if (arm->layer & curBone->layer)
+		if (EBONE_VISIBLE(arm, curBone))
 			curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 	}
 	
@@ -2371,7 +2480,7 @@ void fill_bones_armature(void)
 	
 	/* loop over all bones, and only consider if visible */
 	for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
-		if ((arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A)) {
+		if (EBONE_VISIBLE(arm, ebo)) {
 			if (!(ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL))
 				fill_add_joint(ebo, 0, &points);
 			if (ebo->flag & BONE_TIPSEL) 
@@ -2606,7 +2715,7 @@ void merge_armature(void)
 			/* only consider bones that are visible and selected */
 			for (ebo=chain->data; ebo; child=ebo, ebo=ebo->parent) {
 				/* check if visible + selected */
-				if ( (arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A) &&
+				if ( EBONE_VISIBLE(arm, ebo) &&
 					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
 					 (ebo->flag & (BONE_SELECTED|BONE_ACTIVE)) )
 				{
@@ -2657,7 +2766,7 @@ void hide_selected_armature_bones(void)
 	EditBone *ebone;
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & (BONE_SELECTED)) {
 				ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 				ebone->flag |= BONE_HIDDEN_A;
@@ -2676,7 +2785,7 @@ void hide_unselected_armature_bones(void)
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		bArmature *arm= G.obedit->data;
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL));
 			else {
 				ebone->flag &= ~BONE_ACTIVE;
@@ -2775,7 +2884,7 @@ void make_bone_parent(void)
 	
 	/* find active bone to parent to */
 	for (actbone = G.edbo.first; actbone; actbone=actbone->next) {
-		if (arm->layer & actbone->layer) {
+		if (EBONE_VISIBLE(arm, actbone)) {
 			if (actbone->flag & BONE_ACTIVE)
 				break;
 		}
@@ -2787,7 +2896,7 @@ void make_bone_parent(void)
 
 	/* find selected bones */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
 				foundselbone++;
 				if (ebone->parent != actbone) allchildbones= 1; 
@@ -2823,7 +2932,7 @@ void make_bone_parent(void)
 	else {
 		/* loop through all editbones, parenting all selected bones to the active bone */
 		for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
-			if (arm->layer & selbone->layer) {
+			if (EBONE_VISIBLE(arm, selbone)) {
 				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
 					/* parent selbone to actbone */
 					bone_connect_to_new_parent(selbone, actbone, val);
@@ -2881,7 +2990,7 @@ void clear_bone_parent(void)
 	if (val<1) return;
 	
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & BONE_SELECTED) {
 				if (arm->flag & ARM_MIRROR_EDIT)
 					flipbone = armature_bone_get_mirrored(ebone);
@@ -2931,7 +3040,7 @@ void unique_editbone_name (ListBase *ebones, char *name)
 		}
 		
 		for (number = 1; number <=999; number++) {
-			sprintf (tempname, "%s.%03d", name, number);
+			sprintf(tempname, "%s.%03d", name, number);
 			if (!editbone_name_exists(ebones, tempname)) {
 				BLI_strncpy(name, tempname, 32);
 				return;
@@ -2952,7 +3061,7 @@ void extrude_armature(int forked)
 	
 	/* since we allow root extrude too, we have to make sure selection is OK */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			if (ebone->flag & BONE_ROOTSEL) {
 				if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 					if (ebone->parent->flag & BONE_TIPSEL)
@@ -2964,7 +3073,7 @@ void extrude_armature(int forked)
 	
 	/* Duplicate the necessary bones */
 	for (ebone = G.edbo.first; ((ebone) && (ebone!=first)); ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
+		if (EBONE_VISIBLE(arm, ebone)) {
 			/* we extrude per definition the tip */
 			do_extrude= 0;
 			if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED))
@@ -2978,7 +3087,7 @@ void extrude_armature(int forked)
 			if (do_extrude) {
 				/* we re-use code for mirror editing... */
 				flipbone= NULL;
-				if(arm->flag & ARM_MIRROR_EDIT) {
+				if (arm->flag & ARM_MIRROR_EDIT) {
 					flipbone= armature_bone_get_mirrored(ebone);
 					if (flipbone) {
 						forked= 0;	// we extrude 2 different bones
@@ -3008,7 +3117,7 @@ void extrude_armature(int forked)
 						newbone->parent = ebone;
 						
 						newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
-
+						
 						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
 					else {
@@ -3018,7 +3127,7 @@ void extrude_armature(int forked)
 						
 						newbone->flag= BONE_TIPSEL;
 						
-						if (newbone->parent && ebone->flag & BONE_CONNECTED) {
+						if (newbone->parent && (ebone->flag & BONE_CONNECTED)) {
 							newbone->flag |= BONE_CONNECTED;
 						}
 					}
@@ -3037,8 +3146,8 @@ void extrude_armature(int forked)
 					BLI_strncpy (newbone->name, ebone->name, 32);
 					
 					if (flipbone && forked) {	// only set if mirror edit
-						if(strlen(newbone->name)<30) {
-							if(a==0) strcat(newbone->name, "_L");
+						if (strlen(newbone->name)<30) {
+							if (a==0) strcat(newbone->name, "_L");
 							else strcat(newbone->name, "_R");
 						}
 					}
@@ -3083,7 +3192,7 @@ void subdivide_armature(int numcuts)
 	if (numcuts < 1) return;
 
 	for (mbone = G.edbo.last; mbone; mbone= mbone->prev) {
-		if (arm->layer & mbone->layer) {
+		if (EBONE_VISIBLE(arm, mbone)) {
 			if (mbone->flag & BONE_SELECTED) {
 				for (i=numcuts+1; i>1; i--) {
 					/* compute cut ratio first */
@@ -3146,6 +3255,59 @@ void subdivide_armature(int numcuts)
 	
 	if (numcuts==1) BIF_undo_push("Subdivide");
 	else BIF_undo_push("Subdivide multi");
+}
+
+/* switch direction of bone chains */
+void switch_direction_armature (void)
+{
+	bArmature *arm= (G.obedit) ? G.obedit->data : NULL;
+	ListBase chains = {NULL, NULL};
+	LinkData *chain;
+	
+	/* error checking paranoia */
+	if (arm == NULL)
+		return;
+	
+	/* get chains of bones (ends on chains) */
+	chains_find_tips(&chains);
+	if (chains.first == NULL) return;
+	
+	/* loop over chains, only considering selected and visible bones */
+	for (chain= chains.first; chain; chain= chain->next) {
+		EditBone *ebo, *child=NULL, *parent=NULL;
+		
+		/* loop over bones in chain */
+		for (ebo= chain->data; ebo; child= ebo, ebo=parent) {
+			parent= ebo->parent;
+			
+			/* only if selected and editable */
+			if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {				
+				/* swap head and tail coordinates */
+				SWAP(float, ebo->head[0], ebo->tail[0]);
+				SWAP(float, ebo->head[1], ebo->tail[1]);
+				SWAP(float, ebo->head[2], ebo->tail[2]);
+				
+				/* do parent swapping:
+				 *	- use 'child' as new parent
+				 *	- connected flag is only set if points are coincidental
+				 */
+				ebo->parent= child;
+				if ((child) && VecEqual(ebo->head, child->tail))
+					ebo->flag |= BONE_CONNECTED;
+				else	
+					ebo->flag &= ~BONE_CONNECTED;
+				
+				/* FIXME: other things that need fixing?
+				 *		i.e. roll?
+				 */
+			}
+		}
+	}
+	
+	/* free chains */
+	BLI_freelistN(&chains);
+	
+	BIF_undo_push("Switch Direction");
 }
 
 /* ***************** Pose tools ********************* */

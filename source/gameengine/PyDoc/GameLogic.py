@@ -14,8 +14,7 @@ Documentation for the GameLogic Module.
 	
 	Examples::
 		# To get a controller:
-		import GameLogic
-		co = GameLogic.getCurrentController()
+		co = GameLogic.getCurrentController() # GameLogic is automatically imported
 		
 		# To get the game object associated with this controller:
 		obj = co.getOwner()
@@ -42,6 +41,7 @@ Documentation for the GameLogic Module.
 		- L{SCA_MouseSensor}
 		- L{SCA_PropertySensor} 
 		- L{SCA_RandomSensor} 
+		- L{SCA_DelaySensor}
 	
 	You can also access actuators linked to the controller::
 		# To get an actuator attached to the controller:
@@ -220,6 +220,13 @@ def setPhysicsTicRate(ticrate):
 	@param ticrate: The new update frequency (in Hz).
 	@type ticrate: float
 	"""
+def getAverageFrameRate():
+	"""
+	Gets the estimated average framerate
+	
+	@return: The estimed average framerate in frames per second
+	@rtype: float
+	"""
 
 def expandPath(path):
 	"""
@@ -235,4 +242,14 @@ def expandPath(path):
 	@type path: string
 	@return: The converted string
 	@rtype: string
+	"""
+
+def getBlendFileList(path = "//"):
+	"""
+	Returns a list of blend files in the same directory as the open blend file, or from using the option argument.
+
+	@param path: Optional directory argument, will be expanded (like expandPath) into the full path.
+	@type path: string
+	@return: A list of filenames, with no directory prefix
+	@rtype: list
 	"""

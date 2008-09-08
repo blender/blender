@@ -33,12 +33,14 @@
 #include "DNA_scene_types.h" /* for Base */
 
 #include "BKE_mesh.h"
+#include "BKE_image.h" // RFS: openanim
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 
 #include "BIF_editseq.h" /* get_last_seq */
+#include "BIF_editsound.h" // RFS: sound_open_hdaudio
 #include "BLI_blenlib.h"
 #include "BSE_sequence.h"
 #include "Ipo.h"
@@ -47,6 +49,9 @@
 #include "Scene.h"
 #include "Sound.h"
 #include "gen_utils.h"
+
+#include "IMB_imbuf_types.h" // RFS: IB_rect
+#include "IMB_imbuf.h" // RFS: IMB_anim_get_duration
 
 enum seq_consts {
 	EXPP_SEQ_ATTR_TYPE = 0,
@@ -145,7 +150,6 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		
 		seq->len = PyList_Size( list );
 		
-		
 		/* strip and stripdata */
 		seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 		strip->len= seq->len;
@@ -185,11 +189,102 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		strip->us= 1;
 		strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 		
+	} else if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) == 4) {
+		// MOVIE or AUDIO_HD
+		char *filename;
+		char *dir;
+		char *fullpath;
+		char *type;
+		int totframe;
+
+		if (!PyArg_ParseTuple( py_data, "ssss", &filename, &dir, &fullpath, &type )) {
+			BLI_remlink(seqbase, seq);
+			MEM_freeN(seq);
+			
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"movie/audio hd data needs to be a tuple of a string and a list of images - (filename, dir, fullpath, type)" );
+		}
+
+		// RFS - Attempting to support Movie and Audio (HD) strips
+#define RFS
+#ifdef RFS
+		// Movie strips
+		if( strcmp( type, "movie" ) == 0 )
+		{
+			/* open it as an animation */
+			struct anim * an = openanim(fullpath, IB_rect);
+			if(an==0) {
+				BLI_remlink(seqbase, seq);
+				MEM_freeN(seq);
+				
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"invalid movie strip" );
+			}
+
+			/* get the length in frames */
+			totframe = IMB_anim_get_duration( an );
+
+			/* set up sequence */
+			seq->type= SEQ_MOVIE;
+			seq->len= totframe;
+			seq->anim= an;
+			seq->anim_preseek = IMB_anim_get_preseek(an);
+
+			calc_sequence(seq);
+
+			/* strip and stripdata */
+			seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+			strip->len= totframe;
+			strip->us= 1;
+			strncpy(strip->dir, dir, FILE_MAXDIR-1); // ????
+			strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
+
+			/* name movie in first strip */
+			strncpy(se->name, filename, FILE_MAXFILE-1); // ????
+		}
+
+		// Audio (HD) strips
+		if( strcmp( type, "audio_hd" ) == 0 )
+		{
+			struct hdaudio *hdaudio;
+
+			totframe= 0;
+
+			/* is it a sound file? */
+			hdaudio = sound_open_hdaudio( fullpath );
+			if(hdaudio==0) {
+				BLI_remlink(seqbase, seq);
+				MEM_freeN(seq);
+				
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+					fullpath );
+			}
+
+			totframe= sound_hdaudio_get_duration(hdaudio, FPS);
+
+			/* set up sequence */
+			seq->type= SEQ_HD_SOUND;
+			seq->len= totframe;
+			seq->hdaudio= hdaudio;
+
+			calc_sequence(seq);
+
+			/* strip and stripdata - same as for MOVIE */
+			seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+			strip->len= totframe;
+			strip->us= 1;
+			strncpy(strip->dir, dir, FILE_MAXDIR-1); // ????
+			strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
+
+			/* name movie in first strip */
+			strncpy(se->name, filename, FILE_MAXFILE-1); // ????
+		}
+#endif
+
 	} else if (BPy_Sound_Check(py_data)) {
-		/* sound */
+		/* RAM sound */
 		int totframe;
 		bSound *sound = (( BPy_Sound * )py_data)->sound;
-		
 		
 		seq->type= SEQ_RAM_SOUND;
 		seq->sound = sound;
@@ -197,7 +292,6 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		totframe= (int) ( ((float)(sound->streamlen-1)/( (float)sce->audio.mixrate*4.0 ))* (float)sce->r.frs_sec / sce->r.frs_sec_base);
 		
 		sound->flags |= SOUND_FLAGS_SEQUENCE;
-		
 		
 		/* strip and stripdata */
 		seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -225,18 +319,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		strip->len= seq->len;
 		strip->us= 1;
 	} else {
-		/* movie, pydata is a path to a movie file */
-		char *name = PyString_AsString ( py_data );
-		if (!name) {
-			/* only free these 2 because other stuff isnt set */
-			BLI_remlink(seqbase, seq);
-			MEM_freeN(seq);
-			
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expects a string for chan/bone name and an int for the frame where to put the new key" );
-		}
-		
-		seq->type= SEQ_MOVIE;
+		// RFS: REMOVED MOVIE FROM HERE
 	}
 	strncpy(seq->name+2, "Untitled", 21);
 	intern_pos_update(seq);

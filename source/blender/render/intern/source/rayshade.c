@@ -263,7 +263,12 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shade_input_set_shade_texco(shi);
 	
 	if(is->mode==RE_RAY_SHADOW_TRA) 
-		shade_color(shi, shr);
+		if(shi->mat->nodetree && shi->mat->use_nodes) {
+			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		}
+		else
+			shade_color(shi, shr);
 	else {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
@@ -2051,7 +2056,10 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
 	
-	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
+		isec.lay= lar->lay;
+	else
+		isec.lay= -1;
 
 	/* only when not mir tracing, first hit optimm */
 	if(shi->depth==0) {

@@ -182,7 +182,7 @@ int part_ar[PART_TOTIPO]= {
 	PART_EMIT_FREQ, PART_EMIT_LIFE, PART_EMIT_VEL, PART_EMIT_AVE, PART_EMIT_SIZE,
 	PART_AVE, PART_SIZE, PART_DRAG, PART_BROWN, PART_DAMP, PART_LENGTH, PART_CLUMP,
     PART_GRAV_X, PART_GRAV_Y, PART_GRAV_Z, PART_KINK_AMP, PART_KINK_FREQ, PART_KINK_SHAPE,
-	PART_BB_TILT
+	PART_BB_TILT, PART_PD_FSTR, PART_PD_FFALL, PART_PD_FMAXD, PART_PD2_FSTR, PART_PD2_FFALL, PART_PD2_FMAXD
 };
 
 
@@ -1390,6 +1390,14 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP8) mtex= ma->mtex[7];
 			else if(icu->adrcode & MA_MAP9) mtex= ma->mtex[8];
 			else if(icu->adrcode & MA_MAP10) mtex= ma->mtex[9];
+			else if(icu->adrcode & MA_MAP12) mtex= ma->mtex[11];
+			else if(icu->adrcode & MA_MAP11) mtex= ma->mtex[10];
+			else if(icu->adrcode & MA_MAP13) mtex= ma->mtex[12];
+			else if(icu->adrcode & MA_MAP14) mtex= ma->mtex[13];
+			else if(icu->adrcode & MA_MAP15) mtex= ma->mtex[14];
+			else if(icu->adrcode & MA_MAP16) mtex= ma->mtex[15];
+			else if(icu->adrcode & MA_MAP17) mtex= ma->mtex[16];
+			else if(icu->adrcode & MA_MAP18) mtex= ma->mtex[17];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
@@ -1479,7 +1487,14 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP8) mtex= wo->mtex[7];
 			else if(icu->adrcode & MA_MAP9) mtex= wo->mtex[8];
 			else if(icu->adrcode & MA_MAP10) mtex= wo->mtex[9];
-			
+			else if(icu->adrcode & MA_MAP11) mtex= wo->mtex[10];
+			else if(icu->adrcode & MA_MAP12) mtex= wo->mtex[11];
+			else if(icu->adrcode & MA_MAP13) mtex= wo->mtex[12];
+			else if(icu->adrcode & MA_MAP14) mtex= wo->mtex[13];
+			else if(icu->adrcode & MA_MAP15) mtex= wo->mtex[14];
+			else if(icu->adrcode & MA_MAP16) mtex= wo->mtex[15];
+			else if(icu->adrcode & MA_MAP17) mtex= wo->mtex[16];
+			else if(icu->adrcode & MA_MAP18) mtex= wo->mtex[17];
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
 			}
@@ -1524,6 +1539,14 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			else if(icu->adrcode & MA_MAP8) mtex= la->mtex[7];
 			else if(icu->adrcode & MA_MAP9) mtex= la->mtex[8];
 			else if(icu->adrcode & MA_MAP10) mtex= la->mtex[9];
+			else if(icu->adrcode & MA_MAP11) mtex= la->mtex[10];
+			else if(icu->adrcode & MA_MAP12) mtex= la->mtex[11];
+			else if(icu->adrcode & MA_MAP13) mtex= la->mtex[12];
+			else if(icu->adrcode & MA_MAP14) mtex= la->mtex[13];
+			else if(icu->adrcode & MA_MAP15) mtex= la->mtex[14];
+			else if(icu->adrcode & MA_MAP16) mtex= la->mtex[15];
+			else if(icu->adrcode & MA_MAP17) mtex= la->mtex[16];
+			else if(icu->adrcode & MA_MAP18) mtex= la->mtex[17];
 			
 			if(mtex) {
 				poin= give_mtex_poin(mtex, icu->adrcode & (MA_MAP1-1) );
@@ -1608,6 +1631,18 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(part->kink_shape); break;
 		case PART_BB_TILT:
 			poin= &(part->bb_tilt); break;
+		case PART_PD_FSTR:
+			poin= (part->pd?(&(part->pd->f_strength)):NULL); break;
+		case PART_PD_FFALL:
+			poin= (part->pd?(&(part->pd->f_power)):NULL); break;
+		case PART_PD_FMAXD:
+			poin= (part->pd?(&(part->pd->maxdist)):NULL); break;
+		case PART_PD2_FSTR:
+			poin= (part->pd2?(&(part->pd2->f_strength)):NULL); break;
+		case PART_PD2_FFALL:
+			poin= (part->pd2?(&(part->pd2->f_power)):NULL); break;
+		case PART_PD2_FMAXD:
+			poin= (part->pd2?(&(part->pd2->maxdist)):NULL); break;
 		}
 	}
 
@@ -1660,6 +1695,8 @@ void set_icu_vars(IpoCurve *icu)
 				icu->ymax= 5.0; break;
 			case MA_ADD:
 				icu->ymax= 1.0; break;
+			case MA_EMIT:
+				icu->ymax= 2.0; break;
 			default:
 				icu->ymax= 1.0; break;
 			}

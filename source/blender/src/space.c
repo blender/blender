@@ -182,6 +182,11 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
+#include "GPU_extensions.h"
+#include "GPU_draw.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
 extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);/*rcruiz*/
@@ -384,7 +389,7 @@ void space_set_commmandline_options(void) {
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
 		a= (U.gameflags & USER_DISABLE_MIPMAP);
-		set_mipmap(!a);
+		GPU_set_mipmap(!a);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", a);
 
 		/* File specific settings: */
@@ -413,7 +418,9 @@ void space_set_commmandline_options(void) {
 
 		a=(G.fileflags & G_FILE_GAME_MAT);
 		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
-		a=(G.fileflags & G_FILE_DIAPLAY_LISTS);
+		a=(G.fileflags & G_FILE_GAME_MAT_GLSL);
+		SYS_WriteCommandLineInt(syshandle, "blender_glsl_material", a);
+		a=(G.fileflags & G_FILE_DISPLAY_LISTS);
 		SYS_WriteCommandLineInt(syshandle, "displaylists", a);
 
 
@@ -430,11 +437,10 @@ static void SaveState(void)
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	init_realtime_GL();
-	init_gl_stuff();
+	GPU_state_init();
 
 	if(G.f & G_TEXTUREPAINT)
-		texpaint_enable_mipmap();
+		GPU_paint_set_mipmap(1);
 
 	waitcursor(1);
 }
@@ -442,7 +448,7 @@ static void SaveState(void)
 static void RestoreState(void)
 {
 	if(G.f & G_TEXTUREPAINT)
-		texpaint_disable_mipmap();
+		GPU_paint_set_mipmap(0);
 
 	curarea->win_swap = 0;
 	curarea->head_swap=0;
@@ -460,7 +466,7 @@ static LinkNode *save_and_reset_all_scene_cfra(void)
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		BLI_linklist_prepend(&storelist, (void*) (long) sc->r.cfra);
+		BLI_linklist_prepend(&storelist, (void*) (intptr_t) sc->r.cfra);
 
 		/* why is this reset to 1 ?*/
 		/* sc->r.cfra= 1;*/
@@ -478,7 +484,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		int stored_cfra= (long) sc_store->link;
+		int stored_cfra= (intptr_t) sc_store->link;
 		
 		sc->r.cfra= stored_cfra;
 		set_scene_bg(sc);
@@ -1022,9 +1028,9 @@ void BIF_undo(void)
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
-			imagepaint_undo();
+			undo_imagepaint_step(1);
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
-			imagepaint_undo();
+			undo_imagepaint_step(1);
 		else if(G.f & G_PARTICLEEDIT)
 			PE_undo();
 		else {
@@ -1046,9 +1052,9 @@ void BIF_redo(void)
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
-			imagepaint_undo();
+			undo_imagepaint_step(-1);
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
-			imagepaint_undo();
+			undo_imagepaint_step(-1);
 		else if(G.f & G_PARTICLEEDIT)
 			PE_redo();
 		else {
@@ -1205,8 +1211,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
 			
-			if(gpencil_do_paint(sa)) return;
+			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
+		}
+		else if(event==RIGHTMOUSE) {
+			if(gpencil_do_paint(sa, R_MOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */
@@ -1901,6 +1910,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						copy_attr_menu();
 				}
+				else if(G.qual==(LR_ALTKEY|LR_SHIFTKEY)) 
+					gpencil_convert_menu(); /* gpencil.c */
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
@@ -1959,7 +1970,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->drawtype= pupval;
 						doredraw= 1;
 					}
-                                }
+                }
 				
 				break;
 			case EKEY:
@@ -2051,6 +2062,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)){
 						G.f ^= G_FACESELECT;
 						allqueue(REDRAWVIEW3D, 1);
+						allqueue(REDRAWBUTSEDIT, 1);
 					}
 					else if(G.f & G_PARTICLEEDIT) {
 						PE_radialcontrol_start(RADIALCONTROL_SIZE);
@@ -2425,7 +2437,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
-						select_bone_parent();
+						armature_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
 					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
@@ -2455,7 +2467,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
                 	start_RBSimulation();
 				}
 				else if((G.qual==0) && (OBACT) && (OBACT->type==OB_ARMATURE) && (OBACT->flag & OB_POSEMODE))
-					select_bone_parent();
+					pose_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
 				else if((G.qual==0)) {
                 	start_game();
 				}
@@ -2636,10 +2648,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.f & G_VERTEXPAINT)
 						BIF_undo();
 					else if(G.f & G_TEXTUREPAINT)
-						imagepaint_undo();
-					else {
+						undo_imagepaint_step(1);
+					else
 						single_user();
-					}
 				}
 				
 				break;
@@ -2711,6 +2722,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DELKEY:
 				if(G.qual==0 || G.qual==LR_SHIFTKEY)
 					delete_context_selected();
+				if(G.qual==LR_ALTKEY)
+					gpencil_delete_menu();
 				break;
 			case YKEY:
 				if((G.qual==0) && (G.obedit)) {
@@ -2754,6 +2767,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
+				break;
+			
+			case LEFTBRACKETKEY:
+				if ((G.obedit) && (G.obedit->type == OB_ARMATURE))
+					armature_select_hierarchy(BONE_SELECT_PARENT, (G.qual == LR_SHIFTKEY));
+				else if ((ob) && (ob->flag & OB_POSEMODE))
+					pose_select_hierarchy(BONE_SELECT_PARENT, (G.qual == LR_SHIFTKEY));
+				break;
+			case RIGHTBRACKETKEY:
+				if ((G.obedit) && (G.obedit->type == OB_ARMATURE))
+					armature_select_hierarchy(BONE_SELECT_CHILD, (G.qual == LR_SHIFTKEY));
+				if ((ob) && (ob->flag & OB_POSEMODE))
+					pose_select_hierarchy(BONE_SELECT_CHILD, (G.qual == LR_SHIFTKEY));
 				break;
 			
 			case PADSLASHKEY:
@@ -3237,7 +3263,7 @@ void initipo(ScrArea *sa)
 /* ******************** SPACE: INFO ********************** */
 
 void space_mipmap_button_function(int event) {
-	set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3471,6 +3497,9 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3, sh
 			465,y2,200,20, &iconfileindex, 0, 0, 0, 0, "The icon PNG file to use, searching in .blender/icons");
 		uiButSetFunc(but, set_userdef_iconfile_cb, &iconfileindex, NULL);
 									
+	}
+	else if(th_curcol==TH_HANDLE_VERTEX_SIZE) {
+		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"Handle size ", 465,y3,200,20, col, 1.0, 10.0, 0, 0, "");
 	}
 	else {
 		uiBlockBeginAlign(block);
@@ -3710,6 +3739,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Snap objects and sub-objects to grid units when scaling");
 		uiBlockEndAlign(block);
 		
+		uiDefButBitI(block, TOG, USER_ORBIT_ZBUF, B_DRAWINFO, "Auto Depth",
+			(xpos+edgsp+mpref+spref+(2*midsp)),y2,spref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Use the depth under the mouse to improve view pan/rotate/zoom functionality");
+		
 		uiDefButBitI(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
 			(xpos+edgsp+mpref+spref+(2*midsp)),y1,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
@@ -3924,20 +3958,23 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Transform:",
-			(xpos+(2*edgsp)+mpref),y5label, mpref,buth,
+			(xpos+(2*edgsp)+mpref),y6label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiDefButBitI(block, TOG, USER_DRAGIMMEDIATE, B_DRAWINFO, "Drag Immediately",
-			(xpos+edgsp+mpref+midsp),y4,mpref,buth,
+			(xpos+edgsp+mpref+midsp),y5,mpref,buth,
 			&(U.flag), 0, 0, 0, 0, "Moving things with a mouse drag doesn't require a click to confirm (Best for tablet users)");
 		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Undo:",
-			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
+			(xpos+(2*edgsp)+mpref),y4label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps: ",
-			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
+			(xpos+edgsp+mpref+midsp),y3,mpref,buth,
 			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available (smaller values conserve memory)");
+		uiDefButS(block, NUM, B_DRAWINFO, "Memory Limit: ",
+			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
+			&(U.undomemory), 0, 32767, -1, 0, "Maximum memory usage in megabytes (0 means unlimited)");
 
 		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global Undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
@@ -4272,6 +4309,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButI(block, NUM, 0, "Collect Rate ",
 			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
+		uiBlockEndAlign(block);
 
 		/* *** */
 		uiDefBut(block, LABEL,0,"Color range for weight paint",
@@ -4508,7 +4546,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0)
 					U.light[0].flag= 1;
 				
-				default_gl_light();
+				GPU_default_lights();
 				addqueue(sa->win, REDRAW, 1);
 				allqueue(REDRAWVIEW3D, 0);
 			} 
@@ -4823,8 +4861,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* grease-pencil defaults to leftmouse */
-		if(event==LEFTMOUSE) {
-			if(gpencil_do_paint(sa)) return;
+		if (event == LEFTMOUSE) {
+			if(gpencil_do_paint(sa, L_MOUSE)) return;
+		}
+		else if (event == RIGHTMOUSE) {
+			if(gpencil_do_paint(sa, R_MOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */
@@ -5099,6 +5140,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if((G.qual==0))
 					del_seq();
 			}
+			else if(G.qual==LR_ALTKEY) {
+				if(sseq->mainb)
+					gpencil_delete_menu();
+			}
 			break;
 		case PAD1: case PAD2: case PAD4: case PAD8:
 			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
@@ -5107,7 +5152,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}	
 	}
 
-	if(doredraw) scrarea_queue_winredraw(curarea);
+	if(doredraw) {
+		scrarea_queue_winredraw(curarea);
+		scrarea_queue_headredraw(curarea);
+	}
 }
 
 
@@ -5138,8 +5186,8 @@ static void init_seqspace(ScrArea *sa)
 	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
-	sseq->v2d.minzoom= 0.1f;
-	sseq->v2d.maxzoom= 10.0;
+	sseq->v2d.minzoom= 0.01f;
+	sseq->v2d.maxzoom= 100.0;
 	
 	sseq->v2d.scroll= L_SCROLL+B_SCROLL;
 	sseq->v2d.keepaspect= 0;
@@ -5294,7 +5342,15 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val==0) return;
 
 	if(uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
-
+	
+	/* grease-pencil drawing before draw-tool */
+	if (event == LEFTMOUSE) {
+		if (gpencil_do_paint(sa, L_MOUSE)) return;
+	}
+	else if (event == RIGHTMOUSE) {
+		if (gpencil_do_paint(sa, R_MOUSE)) return;
+	}
+	
 	if (sima->image && (sima->flag & SI_DRAWTOOL)) {
 		switch(event) {
 			case CKEY:
@@ -5317,7 +5373,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				event = LEFTMOUSE;
 			}
 		}
-	
+		
 		/* Draw tool is inactive, editmode is enabled and the image is not a render or composite  */
 		if (EM_texFaceCheck() && (G.sima->image==0 || (G.sima->image->type != IMA_TYPE_R_RESULT && G.sima->image->type != IMA_TYPE_COMPOSITE))) {
 			switch(event) {
@@ -5954,7 +6010,7 @@ static void init_oopsspace(ScrArea *sa)
 	soops= MEM_callocN(sizeof(SpaceOops), "initoopsspace");
 	BLI_addhead(&sa->spacedata, soops);
 
-	soops->visiflag= OOPS_OB+OOPS_MA+OOPS_ME+OOPS_TE+OOPS_CU+OOPS_IP;
+	soops->visiflag= OOPS_OB|OOPS_MA|OOPS_ME|OOPS_TE|OOPS_CU|OOPS_IP;
 	/* new oops is default an outliner */
 	soops->type= SO_OUTLINER;
 		
@@ -6025,6 +6081,10 @@ static void init_textspace(ScrArea *sa)
 	st->lheight= 12;
 	st->showlinenrs= 0;
 	st->tabnumber = 4;
+	st->showsyntax= 0;
+	st->doplugins= 0;
+	st->overwrite= 0;
+	st->wordwrap= 0;
 	st->currtab_set = 0;
 	
 	st->top= 0;
@@ -6294,6 +6354,8 @@ void freespacelist(ScrArea *sa)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				curvemapping_free(sima->cumap);
+			if(sima->gpd)
+				free_gpencil_data(sima->gpd);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
@@ -6360,6 +6422,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		else if(sl->spacetype==SPACE_SEQ) {
 			SpaceSeq *sseq= (SpaceSeq *)sl;
 			sseq->gpd= gpencil_data_duplicate(sseq->gpd);
+		}
+		else if(sl->spacetype==SPACE_IMAGE) {
+			SpaceImage *sima= (SpaceImage *)sl;
+			sima->gpd= gpencil_data_duplicate(sima->gpd);
 		}
 		sl= sl->next;
 	}

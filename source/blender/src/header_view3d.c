@@ -166,9 +166,9 @@ void do_layer_buttons(short event)
 	if(event==-1 && (G.qual & LR_CTRLKEY)) {
 		G.vd->scenelock= !G.vd->scenelock;
 		do_view3d_buttons(B_SCENELOCK);
-	} else if (event==-1) {
+	} else if (event<0) {
 		if(G.vd->lay== (1<<20)-1) {
-			if(G.qual & LR_SHIFTKEY) G.vd->lay= oldlay;
+			if(event==-2 || G.qual & LR_SHIFTKEY) G.vd->lay= oldlay;
 		}
 		else {
 			oldlay= G.vd->lay;
@@ -605,6 +605,9 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 21: /* Grease Pencil */
 		add_blockhandler(curarea, VIEW3D_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
 		break;		
+	case 22: /* View all layers */
+		do_layer_buttons(-2);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
@@ -645,6 +648,11 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	if(G.vd->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(G.vd->lay== (1<<20)-1) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Previous Layers|Shift ~", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show All Layers| ~", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 22, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -725,6 +733,9 @@ void do_view3d_select_object_typemenu(void *arg, int event)
 		break;
 	case 10: /* Lamp */
 		selectall_type(OB_LAMP);
+		break;
+	case 20:
+		do_layer_buttons(-2);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1314,11 +1325,20 @@ static void do_view3d_select_armaturemenu(void *arg, int event)
 		case 2: /* Select/Deselect all */
 			deselectall_armature(1, 1);
 			break;
-		case 3: /* Select Parent(s) */	
-			select_bone_parent();
-			break;
-		case 4: /* Swap Select All */
+		case 3: /* Swap Select All */
 			deselectall_armature(3, 1);
+			break;
+		case 4: /* Select parent */
+			armature_select_hierarchy(BONE_SELECT_PARENT, 0);
+			break;
+		case 5: /* Select child */
+			armature_select_hierarchy(BONE_SELECT_CHILD, 0);
+			break;
+		case 6: /* Extend Select parent */
+			armature_select_hierarchy(BONE_SELECT_PARENT, 1);
+			break;
+		case 7: /* Extend Select child */
+			armature_select_hierarchy(BONE_SELECT_CHILD, 1);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1337,11 +1357,18 @@ static uiBlock *view3d_select_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Swap Select All|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent|[",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Child|]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Parent|Shift [",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Child|Shift ]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -1368,11 +1395,20 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 	case 3: /* Select Target(s) of Constraint(s) */
 		pose_select_constraint_target();
 		break;
-	case 4: /* Select Bone's Parent */
-		select_bone_parent();
-		break;
 	case 5: /* Swap Select All */
 		deselectall_posearmature(OBACT, 3, 1);
+		break;
+	case 6: /* Select parent */
+		pose_select_hierarchy(BONE_SELECT_PARENT, 0);
+		break;
+	case 7: /* Select child */
+		pose_select_hierarchy(BONE_SELECT_CHILD, 0);
+		break;
+	case 8: /* Extend Select parent */
+		pose_select_hierarchy(BONE_SELECT_PARENT, 1);
+		break;
+	case 9: /* Extend Select child */
+		pose_select_hierarchy(BONE_SELECT_CHILD, 1);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1393,8 +1429,17 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Swap Select All|Ctrl I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Constraint Target|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent|[",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Child|]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Parent|Shift [",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Select Child|Shift ]",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -2196,6 +2241,7 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mass|Ctrl C, 7",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Damping|Ctrl C, 8",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "All Physical Attributes|Ctrl C, 11",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Properties|Ctrl C, 9",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Logic Bricks|Ctrl C, 10",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Protected Transform |Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 29, "");
@@ -2466,8 +2512,11 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	case 15: /* Object Panel */
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 		break;
+	case 16: /* make proxy object*/
+		make_proxy();
+		break;
 #ifdef WITH_VERSE
-	case 16: /* Share Object at Verse server */
+	case 17: /* Share Object at Verse server */
 		if(session_list.first != session_list.last) session = session_menu();
 		else session = session_list.first;
 		if(session) b_verse_push_object(session, ob);
@@ -2492,7 +2541,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 		if (base) ob= base->object;
 
 		if(ob && (ob->type == OB_MESH) && (!ob->vnode)) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Share at Verse Server", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Share at Verse Server", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 			uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		}
 	}
@@ -2518,6 +2567,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Proxy|Ctrl Alt P",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelinksmenu, NULL, ICON_RIGHTARROW_THIN, "Make Links", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_singleusermenu, NULL, ICON_RIGHTARROW_THIN, "Make Single User", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelocalmenu, NULL, ICON_RIGHTARROW_THIN, "Make Local", 0, yco-=20, 120, 19, "");
@@ -4320,6 +4370,9 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	case 18:
 		pose_autoside_names(event-16);
 		break;
+	case 19: /* assign pose as restpose */
+		apply_armature_pose2bones();
+		break;
 	}
 		
 	allqueue(REDRAWVIEW3D, 0);
@@ -4345,6 +4398,7 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Relax Pose|W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Pose as Restpose|Ctrl A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -4458,7 +4512,7 @@ static void do_view3d_tpaintmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* undo image painting */
-		imagepaint_undo();
+		undo_imagepaint_step(1);
 		break;
 	}
 
@@ -5089,7 +5143,7 @@ static char *snapmode_pup(void)
 	static char string[512];
 	char *str = string;
 	
-	str += sprintf(str, "%s", "Snap Mode: %t"); 
+	str += sprintf(str, "%s", "Snap Element: %t"); 
 	str += sprintf(str, "%s", "|Vertex%x0");
 	str += sprintf(str, "%s", "|Edge%x1");
 	str += sprintf(str, "%s", "|Face%x2"); 
@@ -5333,7 +5387,11 @@ void do_view3d_buttons(short event)
 	case B_MAN_MODE:
 		allqueue(REDRAWVIEW3D, 1);
 		break;		
-
+	case B_VIEW_BUTSEDIT:
+		allqueue(REDRAWVIEW3D, 1);
+		allqueue(REDRAWBUTSEDIT, 1);
+		break;
+		
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -5513,6 +5571,16 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	*xcoord= xco;
 }
 
+static int view3d_layer_icon(int but_lay, int ob_lay, int used_lay)
+{
+	if (but_lay & ob_lay)
+		return ICON_LAYER_ACTIVE;
+	else if (but_lay & used_lay)
+		return ICON_LAYER_USED;
+	else
+		return ICON_BLANK1;
+}
+
 void view3d_buttons(void)
 {
 	uiBlock *block;
@@ -5616,7 +5684,7 @@ void view3d_buttons(void)
  		}
  	} else {
  		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
- 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_REDR, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
+ 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
@@ -5679,19 +5747,22 @@ void view3d_buttons(void)
  		
 		/* LAYERS */
 		if(G.obedit==NULL && G.vd->localview==0) {
+			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
-			for(a=0; a<5; a++)
-				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
-			for(a=0; a<5; a++)
-				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		
+			for(a=0; a<5; a++) {
+				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
+			for(a=0; a<5; a++) {
+				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
 			xco+= 5;
 			uiBlockBeginAlign(block);
-			for(a=5; a<10; a++)
-				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
-			for(a=5; a<10; a++)
-				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-
+			for(a=5; a<10; a++) {
+				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
+			for(a=5; a<10; a++) {
+				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), 0, XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+			}
 			uiBlockEndAlign(block);
 		
 			xco+= (a-2)*(XIC/2)+3;
@@ -5727,7 +5798,7 @@ void view3d_buttons(void)
 				xco+= XIC;
 				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_VERTEXSEL, snapmode_pup(), xco,0,XIC+10,YIC, &(G.scene->snap_mode), 0.0, 0.0, 0, 0, "Snapping mode");
 				xco+= XIC;
-				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				uiDefButS(block, MENU, B_NOP, "Snap Mode%t|Closest%x0|Center%x1|Median%x2|Active%x3",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;
 			} else {
 				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	

@@ -122,13 +122,28 @@ Sequence *get_last_seq()
 	if(!_last_seq_init) {
 		Editing *ed;
 		Sequence *seq;
+		Sequence *l_sel = NULL;
+		Sequence *l_act = NULL;
 
 		ed= G.scene->ed;
 		if(!ed) return NULL;
 
-		for(seq= ed->seqbasep->first; seq; seq=seq->next)
+		for(seq= ed->seqbasep->first; seq; seq=seq->next) {
+			if(seq->flag & SEQ_ACTIVE)
+				l_act = seq;
 			if(seq->flag & SELECT)
-				_last_seq= seq;
+				l_sel = seq;
+		}
+
+		if (l_act) {
+			_last_seq = l_act;
+		} else {
+			_last_seq = l_sel;
+		}
+
+		if (_last_seq) {
+			_last_seq->flag |= SEQ_ACTIVE;
+		}
 
 		_last_seq_init = 1;
 	}
@@ -138,12 +153,23 @@ Sequence *get_last_seq()
 
 void set_last_seq(Sequence *seq)
 {
+	if (_last_seq_init && _last_seq) {
+		_last_seq->flag &= ~SEQ_ACTIVE;
+	}
+
 	_last_seq = seq;
 	_last_seq_init = 1;
+
+	if (_last_seq) {
+		_last_seq->flag |= SEQ_ACTIVE;
+	}
 }
 
-void clear_last_seq(Sequence *seq)
+void clear_last_seq()
 {
+	if (_last_seq_init && _last_seq) {
+		_last_seq->flag &= ~SEQ_ACTIVE;
+	}
 	_last_seq = NULL;
 	_last_seq_init = 0;
 }
@@ -618,6 +644,7 @@ static int seq_is_parent(Sequence *par, Sequence *seq)
 
 static int seq_is_predecessor(Sequence *pred, Sequence *seq)
 {
+	if (!pred) return 0;
 	if(pred == seq) return 0;
 	else if(seq_is_parent(pred, seq)) return 1;
 	else if(pred->seq1 && seq_is_predecessor(pred->seq1, seq)) return 1;
@@ -2261,6 +2288,8 @@ static Sequence *dupli_seq(Sequence *seq)
 				"handled in duplicate!\nExpect a crash"
 						" now...\n");
 	}
+
+	seqn->flag &= ~SEQ_ACTIVE;
 	
 	return seqn;
 }

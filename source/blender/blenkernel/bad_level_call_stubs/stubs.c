@@ -1,4 +1,3 @@
-
 /**
  * $Id$
  *
@@ -118,10 +117,14 @@ float BPY_pydriver_eval(struct IpoDriver *driver)
 {
 	return 0;
 }
+
+/*
 int EXPP_dict_set_item_str(struct PyObject *dict, char *key, struct PyObject *value)
 {
 	return 0;
 }
+*/
+
 void Node_SetStack(struct BPy_Node *self, struct bNodeStack **stack, int type){}
 void InitNode(struct BPy_Node *self, struct bNode *node){}
 void Node_SetShi(struct BPy_Node *self, struct ShadeInput *shi){}
@@ -172,10 +175,6 @@ void make_editMesh(void){}
 void free_editMesh(struct EditMesh *em){}
 void docenter_new(void){}
 int saveover(char *str){ return 0;}
-
-/* image.c */
-#include "DNA_image_types.h"
-void free_realtime_image(Image *ima){} // has to become a callback, opengl stuff
 
 /* ipo.c */
 void copy_view3d_lock(short val){}	// was a hack, to make scene layer ipo's possible
@@ -355,7 +354,8 @@ TimeMarker *get_frame_marker(int frame){return 0;};
 
 /* editseq.c */
 Sequence *get_forground_frame_seq(int frame){return 0;};
-void set_last_seq(Sequence *seq){};
+void clear_last_seq(Sequence *seq){};
+    
 
 /* modifier.c stub */
 void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,

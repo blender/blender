@@ -42,6 +42,7 @@
 #endif
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
+#include "BIF_keyval.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
 #include "DNA_userdef_types.h"	/* for U.pythondir */
@@ -106,6 +107,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_ARMATURE;
 	else if( !strcmp( str, "ScriptTemplate" ) )
 		return PYMENU_SCRIPTTEMPLATE;
+	else if( !strcmp( str, "TextPlugin" ) )
+		return PYMENU_TEXTPLUGIN;
 	else if( !strcmp( str, "MeshFaceKey" ) )
 		return PYMENU_MESHFACEKEY;
 	else if( !strcmp( str, "AddMesh" ) )
@@ -183,6 +186,9 @@ char *BPyMenu_group_itoa( short menugroup )
 		break;
 	case PYMENU_SCRIPTTEMPLATE:
 		return "ScriptTemplate";
+		break;
+	case PYMENU_TEXTPLUGIN:
+		return "TextPlugin";
 		break;
 	case PYMENU_MESHFACEKEY:
 		return "MeshFaceKey";
@@ -324,6 +330,23 @@ static void bpymenu_set_tooltip( BPyMenu * pymenu, char *tip )
 	if( pymenu->tooltip )
 		MEM_freeN( pymenu->tooltip );
 	pymenu->tooltip = BLI_strdup( tip );
+
+	return;
+}
+
+static void bpymenu_set_shortcut( BPyMenu * pymenu, char *combi )
+{
+	unsigned short key, qual;
+
+	if( !pymenu )
+		return;
+
+	if (!decode_key_string(combi, &key, &qual)) {
+		return; /* TODO: Print some error */
+	}
+
+	pymenu->key = key;
+	pymenu->qual = qual;
 
 	return;
 }
@@ -688,6 +711,7 @@ void BPyMenu_PrintAllEntries( void )
  * # Blender: <code>short int</code> (minimal Blender version)
  * # Group: 'group name' (defines menu)
  * # Submenu: 'submenu name' related_1word_arg
+ * # Shortcut: Modifier+Key (optional shortcut combination for supported groups)
  * # Tooltip: 'tooltip for the menu'
  * # \"\"\"
  *
@@ -796,13 +820,19 @@ static int bpymenu_ParseFile(FILE *file, char *fname, int is_userdir)
 					if ((matches == 3) && (strstr(head, "Submenu:") != NULL)) {
 						bpymenu_AddSubEntry(scriptMenu, middle, tail);
 					} else {
-						/* Tooltip: 'tooltip for the menu */
+						/* Shortcut: 'key+combination' */
 						matches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
-						if ((matches == 3) && ((strstr(head, "Tooltip:") != NULL) ||
-							(strstr(head, "Tip:") != NULL))) {
-							bpymenu_set_tooltip(scriptMenu, middle);
+						if ((matches == 3) && (strstr(head, "Shortcut:") != NULL)) {
+							bpymenu_set_shortcut(scriptMenu, middle);
+						} else {
+							/* Tooltip: 'tooltip for the menu */
+							matches = sscanf(line, "%[^']'%[^']'%c", head, middle, tail);
+							if ((matches == 3) && ((strstr(head, "Tooltip:") != NULL) ||
+								(strstr(head, "Tip:") != NULL))) {
+								bpymenu_set_tooltip(scriptMenu, middle);
+							}
+							parser_state = 0;
 						}
-						parser_state = 0;
 					}
 					break;
 

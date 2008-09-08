@@ -82,7 +82,6 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 
-#include "BDR_drawobject.h"
 #include "BDR_sculptmode.h"
 
 #include "BSE_drawview.h"
@@ -97,6 +96,8 @@
 
 #include "RE_render_ext.h"
 #include "RE_shader_ext.h" /*for multitex_ext*/
+
+#include "GPU_draw.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -1514,7 +1515,7 @@ void sculptmode_draw_mesh(int only_damaged)
 	mymultmatrix(OBACT->obmat);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	init_gl_materials(OBACT, 0);
+	GPU_set_object_materials(G.scene, OBACT, 0, NULL);
 	glEnable(GL_CULL_FACE);
 
 	glShadeModel(GL_SMOOTH);
@@ -1532,7 +1533,7 @@ void sculptmode_draw_mesh(int only_damaged)
 		int new_matnr= f->mat_nr + 1;
 		
 		if(new_matnr != matnr)
-			drawCurrentMat= set_gl_material(matnr = new_matnr);
+			drawCurrentMat= GPU_enable_material(matnr = new_matnr, NULL);
 		
 		/* If only_damaged!=0, only draw faces that are partially
 		   inside the area(s) modified by the brush */

@@ -804,7 +804,7 @@ static PyObject *Part_GetLoc( BPy_PartSys * self, PyObject * args )
 {
 	ParticleSystem *psys = 0L;
 	Object *ob = 0L;
-	PyObject *partlist,*seglist;
+	PyObject *partlist,*seglist=0L;
 	ParticleCacheKey **cache,*path;
 	PyObject* loc = 0L;
 	ParticleKey state;
@@ -1107,7 +1107,7 @@ static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args )
 	ParticleSystem *psys = 0L;
 	ParticleData *data;
 	Object *ob = 0L;
-	PyObject *partlist,*tuple;
+	PyObject *partlist,*tuple=0L;
 	DerivedMesh* dm;
 	float vm[4][4],wm[4][4];
 	float size;
@@ -1217,7 +1217,7 @@ static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args )
 	ParticleSystem *psys = 0L;
 	ParticleData *data;
 	Object *ob = 0L;
-	PyObject *partlist,*tuple;
+	PyObject *partlist,*tuple=0L;
 	DerivedMesh* dm;
 	float vm[4][4],wm[4][4];
 	float life;

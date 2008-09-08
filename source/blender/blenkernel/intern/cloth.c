@@ -155,7 +155,7 @@ void cloth_init ( ClothModifierData *clmd )
 
 BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
-	int i;
+	unsigned int i;
 	BVHTree *bvhtree;
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts;
@@ -196,7 +196,7 @@ BVHTree *bvhselftree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 
 BVHTree *bvhtree_build_from_cloth (ClothModifierData *clmd, float epsilon)
 {
-	int i;
+	unsigned int i;
 	BVHTree *bvhtree;
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts;
@@ -782,11 +782,11 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *
 /* can be optimized to do all groups in one loop */
 static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 {
-	unsigned int i = 0;
-	unsigned int j = 0;
+	int i = 0;
+	int j = 0;
 	MDeformVert *dvert = NULL;
 	Cloth *clothObj = NULL;
-	unsigned int numverts = dm->getNumVerts ( dm );
+	int numverts = dm->getNumVerts ( dm );
 	float goalfac = 0;
 	ClothVertex *verts = NULL;
 
@@ -857,7 +857,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first)
 {
-	unsigned int i = 0;
+	int i = 0;
 	MVert *mvert = NULL;
 	ClothVertex *verts = NULL;
 	float tnull[3] = {0,0,0};
@@ -1082,13 +1082,13 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	unsigned int i = 0;
-	unsigned int numverts = dm->getNumVerts ( dm );
-	unsigned int numedges = dm->getNumEdges ( dm );
-	unsigned int numfaces = dm->getNumFaces ( dm );
+	int i = 0;
+	int numverts = dm->getNumVerts ( dm );
+	int numedges = dm->getNumEdges ( dm );
+	int numfaces = dm->getNumFaces ( dm );
 	MEdge *medge = CDDM_get_edges ( dm );
 	MFace *mface = CDDM_get_faces ( dm );
-	unsigned int index2 = 0; // our second vertex index
+	int index2 = 0; // our second vertex index
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;
 	LinkNode *search = NULL, *search2 = NULL;

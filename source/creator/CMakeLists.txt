@@ -37,8 +37,10 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/render/extern/include
   ../blender/python
   ../blender/makesdna
+  ../blender/gpu
   ../kernel/gen_messaging
   ../kernel/gen_system
+  ../../extern/glew/include
 )
 
 
@@ -210,6 +212,7 @@ IF(UNIX)
     blender_python 
     bf_blenkernel 
     bf_nodes
+	bf_gpu
     bf_blenloader 
     bf_blenpluginapi 
     bf_imbuf 

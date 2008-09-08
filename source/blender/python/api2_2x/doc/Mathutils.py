@@ -521,6 +521,15 @@ class Vector:
     @return: Return a quaternion rotation from the vector and the track and up axis.
     """
 
+  def reflect(mirror):
+    """
+    Return the reflection vector from the mirror vector argument.
+    @type mirror: Vector object
+    @param mirror: This vector could be a normal from the reflecting surface.
+    @rtype: Vector object matching the size of this vector.
+    @return: The reflected vector.
+    """
+
 class Euler:
   """
   The Euler object

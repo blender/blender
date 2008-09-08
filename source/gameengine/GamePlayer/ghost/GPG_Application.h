@@ -50,14 +50,15 @@ class GPG_Canvas;
 class GPG_KeyboardDevice;
 class GPG_System;
 struct Main;
+struct Scene;
 
 class GPG_Application : public GHOST_IEventConsumer
 {
 public:
-	GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName);
+	GPG_Application(GHOST_ISystem* system);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie,STR_String startSceneName);
+			bool SetGameEngineData(struct Main* maggie, struct Scene* scene);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
@@ -71,6 +72,29 @@ public:
 			const STR_String& getExitString(void);
 			bool StartGameEngine(int stereoMode);
 			void StopGameEngine();
+
+			char*
+		GetPyGlobalDictMarshal()
+		{ 
+			return m_pyGlobalDictString;
+		};
+		
+			void
+		SetPyGlobalDictMarshal( char* pyGlobalDictString, int length )
+		{
+			if (m_pyGlobalDictString && m_pyGlobalDictString != pyGlobalDictString)
+				free(m_pyGlobalDictString);
+			
+			m_pyGlobalDictString = pyGlobalDictString;
+			m_pyGlobalDictString_Length = length;
+		};
+		
+			int
+		GetPyGlobalDictMarshalLength()
+		{ 
+			return m_pyGlobalDictString_Length;
+		};
+
 
 protected:
 	bool	handleWheel(GHOST_IEvent* event);
@@ -100,6 +124,7 @@ protected:
 
 	/* The game data */
 	STR_String				m_startSceneName;
+	struct Scene*			m_startScene;
 	struct Main*			m_maggie;
 
 	/* Exit state. */
@@ -142,6 +167,12 @@ protected:
 
 	bool m_blendermat;
 	bool m_blenderglslmat;
-
+	
+	/*
+	 * GameLogic.globalDict as a string so that loading new blend files can use the same dict.
+	 * Do this because python starts/stops when loading blend files.
+	 */
+	char* m_pyGlobalDictString;
+	int m_pyGlobalDictString_Length;
 };
 
