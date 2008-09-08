@@ -98,6 +98,8 @@
 void gp_ui_activelayer_cb (void *gpd, void *gpl)
 {
 	gpencil_layer_setactive(gpd, gpl);
+	
+	scrarea_queue_winredraw(curarea);
 	allqueue(REDRAWACTION, 0);
 }
 
@@ -109,6 +111,8 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 	
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", offsetof(bGPDlayer, info[0]), 128);
 	gpencil_layer_setactive(gpd, gpl);
+	
+	scrarea_queue_winredraw(curarea);
 	allqueue(REDRAWACTION, 0);
 }
 
@@ -116,6 +120,8 @@ void gp_ui_renamelayer_cb (void *gpd_arg, void *gpl_arg)
 void gp_ui_addlayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_addnew(gpd);
+	
+	scrarea_queue_winredraw(curarea);
 	allqueue(REDRAWACTION, 0);
 }
 
@@ -123,6 +129,8 @@ void gp_ui_addlayer_cb (void *gpd, void *dummy)
 void gp_ui_dellayer_cb (void *gpd, void *dummy)
 {
 	gpencil_layer_delactive(gpd);
+	
+	scrarea_queue_winredraw(curarea);
 	allqueue(REDRAWACTION, 0);
 }
 
@@ -133,6 +141,8 @@ void gp_ui_delstroke_cb (void *gpd, void *gpl)
 	
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_frame_delete_laststroke(gpf);
+	
+	scrarea_queue_winredraw(curarea);
 }
 
 /* delete active frame of active layer */
@@ -143,6 +153,7 @@ void gp_ui_delframe_cb (void *gpd, void *gpl)
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_layer_delframe(gpl, gpf);
 	
+	scrarea_queue_winredraw(curarea);
 	allqueue(REDRAWACTION, 0);
 }
 
@@ -151,6 +162,8 @@ void gp_ui_convertlayer_cb (void *gpd, void *gpl)
 {
 	gpencil_layer_setactive(gpd, gpl);
 	gpencil_convert_menu();
+	
+	scrarea_queue_winredraw(curarea);
 }
 
 /* ------- Drawing Code ------- */
