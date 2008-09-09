@@ -700,6 +700,7 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	for(index = 0; index < totedge; index++) {
 		CCGEdge *e = edgeMap2[index];
 		unsigned int flags = 0;
+		char bweight = 0;
 		int edgeIdx = GET_INT_FROM_POINTER(ccgSubSurf_getEdgeEdgeHandle(ss, e));
 
 		if(!ccgSubSurf_getEdgeNumFaces(ss, e)) flags |= ME_LOOSEEDGE;
@@ -710,12 +711,14 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 			dm->getEdge(dm, edgeIdx, &origMed);
 
 			flags |= origMed.flag;
+			bweight = origMed.bweight;
 		}
 
 		for(x = 0; x < edgeSize - 1; x++) {
 			med->v1 = getEdgeIndex(ss, e, x, edgeSize);
 			med->v2 = getEdgeIndex(ss, e, x + 1, edgeSize);
 			med->flag = flags;
+			med->bweight = bweight;
 			*origIndex = ccgDM_getEdgeMapIndex(NULL, ss, e);
 			++med;
 			++origIndex;
