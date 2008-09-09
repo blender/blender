@@ -4578,17 +4578,19 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
 	ParticleSystem *psys;
-	Material ***material;
+	Material *ma;
 	short a, *totmaterial;
 
-	/* don't allow objects with halos */
+	/* don't allow objects with halos. we need to have
+	 * all halo's to sort them globally in advance */
 	totmaterial= give_totcolp(obd);
-	material= give_matarar(obd);
 
-	if(totmaterial && material) {
-		for(a= 0; a<*totmaterial; a++)
-			if((*material)[a] && (*material)[a]->mode & MA_HALO)
+	if(totmaterial) {
+		for(a= 0; a<*totmaterial; a++) {
+			ma= give_current_material(obd, a);
+			if(ma && (ma->mode & MA_HALO))
 				return 0;
+		}
 	}
 
 	for(psys=obd->particlesystem.first; psys; psys=psys->next)
