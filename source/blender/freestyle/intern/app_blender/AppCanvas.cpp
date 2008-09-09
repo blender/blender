@@ -38,7 +38,6 @@
 #include "AppCanvas.h"
 #include "../rendering/GLRenderer.h"
 #include "../rendering/GLStrokeRenderer.h"
-#include "../rendering/GLUtils.h"
 #include "AppConfig.h"
 
 #include "../system/StringUtils.h"
