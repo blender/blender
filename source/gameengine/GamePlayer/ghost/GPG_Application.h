@@ -62,6 +62,7 @@ public:
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
+			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode);
 #ifdef WIN32
 			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
 			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode);
@@ -143,6 +144,8 @@ protected:
 	bool m_engineInitialized;
 	/** Engine state. */
 	bool m_engineRunning;
+	/** Running on embedded window */
+	bool m_isEmbedded;
 
 	/** the gameengine itself */
 	KX_KetsjiEngine* m_ketsjiengine;

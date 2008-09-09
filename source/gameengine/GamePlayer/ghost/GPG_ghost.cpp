@@ -178,6 +178,9 @@ void usage(char* program)
 	printf("                   anaglyph         (Red-Blue glasses)\n");
 	printf("                   vinterlace       (Vertical interlace for autostereo display)\n");
 	printf("                             depending on the type of stereo you want\n");
+#ifndef _WIN32
+	printf("  -i: parent windows ID \n");
+#endif
 #ifdef _WIN32
 	printf("  -c: keep console window open\n");
 #endif
@@ -297,6 +300,9 @@ int main(int argc, char** argv)
 	int fullScreenFrequency = 60;
 	char* pyGlobalDictString = NULL; /* store python dict data between blend file loading */
 	int pyGlobalDictString_Length = 0;
+	GHOST_TEmbedderWindowID parentWindow = 0;
+
+
 	
 #ifdef __linux__
 #ifdef __alpha__
@@ -457,6 +463,16 @@ int main(int argc, char** argv)
 				usage(argv[0]);
 				return 0;
 				break;
+#ifndef _WIN32
+			case 'i':
+				i++;
+				if ( (i + 1) < argc )
+					parentWindow = atoi(argv[i++]); 					
+#ifndef NDEBUG
+				printf("XWindows ID = %d\n", parentWindow);
+#endif //NDEBUG
+
+#endif  // _WIN32			
 			case 'c':
 				i++;
 				closeConsole = false;
@@ -729,7 +745,10 @@ int main(int argc, char** argv)
 								else
 #endif
 								{
-									app.startWindow(title, windowLeft, windowTop, windowWidth, windowHeight,
+																										if (parentWindow != 0)
+										app.startEmbeddedWindow(title, parentWindow, stereoWindow, stereomode);
+									else
+										app.startWindow(title, windowLeft, windowTop, windowWidth, windowHeight,
 										stereoWindow, stereomode);
 								}
 							}
