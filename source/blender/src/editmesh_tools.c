@@ -2698,16 +2698,21 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	free_tagged_edges_faces(em->edges.first, em->faces.first); 
 	
 	if(seltype == SUBDIV_SELECT_ORIG  && G.qual  != LR_CTRLKEY) {
+		/* bugfix: vertex could get flagged as "not-selected"
+		// solution: clear flags before, not at the same time as setting SELECT flag -dg
+		*/
 		for(eed = em->edges.first;eed;eed = eed->next) {
-			if(eed->f2 & EDGENEW || eed->f2 & EDGEOLD) {
-				eed->f |= flag;
-				EM_select_edge(eed,1); 
-				
-			}else{
+			if(!(eed->f2 & EDGENEW || eed->f2 & EDGEOLD)) {
 				eed->f &= !flag;
 				EM_select_edge(eed,0); 
 			}
-		}   
+		}
+		for(eed = em->edges.first;eed;eed = eed->next) {
+			if(eed->f2 & EDGENEW || eed->f2 & EDGEOLD) {
+				eed->f |= flag;
+				EM_select_edge(eed,1);
+			}
+		}
 	} else if ((seltype == SUBDIV_SELECT_INNER || seltype == SUBDIV_SELECT_INNER_SEL)|| G.qual == LR_CTRLKEY) {
 		for(eed = em->edges.first;eed;eed = eed->next) {
 			if(eed->f2 & EDGEINNER) {

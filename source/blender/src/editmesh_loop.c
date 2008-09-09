@@ -745,9 +745,9 @@ void KnifeSubdivide(char mode)
 			eed= eed->next;
 		}
 		
-		if      (mode==KNIFE_EXACT)    esubdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MIDPOINT) esubdivideflag(1, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MULTICUT) esubdivideflag(1, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
+		if(mode==KNIFE_EXACT) esubdivideflag(SELECT, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MIDPOINT) esubdivideflag(SELECT, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MULTICUT) esubdivideflag(SELECT, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
 
 		eed=em->edges.first;
 		while(eed){
