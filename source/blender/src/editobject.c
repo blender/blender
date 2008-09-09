@@ -4138,6 +4138,7 @@ void apply_object( void )
 	} 
 	else {
 		ob= OBACT;
+		if(ob==0) return;
 		
 		if ((ob->pose) && (ob->flag & OB_POSEMODE))
 			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");

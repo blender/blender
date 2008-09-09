@@ -178,7 +178,6 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 		varea[i1] += (obtuse == 1)? area: area*0.5;
 		varea[i2] += (obtuse == 2)? area: area*0.5;
 		varea[i3] += (obtuse == 3)? area: area*0.5;
-		//printf("area %f\n", area);
 	}
 	else {
 		len1= VecLenf(v2, v3);
@@ -192,10 +191,7 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 		varea[i1] += (t2 + t3)*0.25f;
 		varea[i2] += (t1 + t3)*0.25f;
 		varea[i3] += (t1 + t2)*0.25f;
-		//printf("varea %f %f %f\n", t1, t2, t3);
 	}
-
-	//printf("triangle area %f %f %f\n", t1, t2, t3);
 }
 
 static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int i2, int i3)
@@ -298,7 +294,7 @@ void laplacian_system_construct_end(LaplacianSystem *sys)
 	for(a=0; a<totvert; a++) {
 		if(sys->areaweights) {
 			if(sys->varea[a] != 0.0f)
-				sys->varea[a]= 0.5f/sys->varea[a]; //MAX2(sys->varea[a], 0.001f);
+				sys->varea[a]= 0.5f/sys->varea[a];
 		}
 		else
 			sys->varea[a]= 1.0f;
