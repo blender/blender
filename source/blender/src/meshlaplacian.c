@@ -178,6 +178,7 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 		varea[i1] += (obtuse == 1)? area: area*0.5;
 		varea[i2] += (obtuse == 2)? area: area*0.5;
 		varea[i3] += (obtuse == 3)? area: area*0.5;
+		//printf("area %f\n", area);
 	}
 	else {
 		len1= VecLenf(v2, v3);
@@ -191,7 +192,10 @@ static void laplacian_triangle_area(LaplacianSystem *sys, int i1, int i2, int i3
 		varea[i1] += (t2 + t3)*0.25f;
 		varea[i2] += (t1 + t3)*0.25f;
 		varea[i3] += (t1 + t2)*0.25f;
+		//printf("varea %f %f %f\n", t1, t2, t3);
 	}
+
+	//printf("triangle area %f %f %f\n", t1, t2, t3);
 }
 
 static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int i2, int i3)
@@ -204,7 +208,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	v3= sys->verts[i3];
 
 	/* instead of *0.5 we divided by the number of faces of the edge, it still
-	   needs to be varified that this is indeed the correct thing to do! */
+	   needs to be verified that this is indeed the correct thing to do! */
 	t1= cotan_weight(v1, v2, v3)/laplacian_edge_count(sys->edgehash, i2, i3);
 	t2= cotan_weight(v2, v3, v1)/laplacian_edge_count(sys->edgehash, i3, i1);
 	t3= cotan_weight(v3, v1, v2)/laplacian_edge_count(sys->edgehash, i1, i2);
@@ -229,7 +233,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	}
 }
 
-LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface)
+LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface, int lsq)
 {
 	LaplacianSystem *sys;
 
@@ -248,6 +252,8 @@ LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface)
 	/* create opennl context */
 	nlNewContext();
 	nlSolverParameteri(NL_NB_VARIABLES, totvert);
+	if(lsq)
+		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
 
 	sys->context= nlGetCurrent();
 
@@ -292,7 +298,7 @@ void laplacian_system_construct_end(LaplacianSystem *sys)
 	for(a=0; a<totvert; a++) {
 		if(sys->areaweights) {
 			if(sys->varea[a] != 0.0f)
-				sys->varea[a]= 0.5f/sys->varea[a];
+				sys->varea[a]= 0.5f/sys->varea[a]; //MAX2(sys->varea[a], 0.001f);
 		}
 		else
 			sys->varea[a]= 1.0f;
@@ -631,7 +637,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 	}
 
 	/* create laplacian */
-	sys = laplacian_system_construct_begin(me->totvert, totface);
+	sys = laplacian_system_construct_begin(me->totvert, totface, 1);
 
 	sys->heat.mesh= me;
 	sys->heat.verts= verts;
@@ -933,7 +939,7 @@ void rigid_deform_begin(EditMesh *em)
 	}
 
 	/* create laplacian */
-	sys = laplacian_system_construct_begin(totvert, totface);
+	sys = laplacian_system_construct_begin(totvert, totface, 0);
 
 	sys->rigid.mesh= em;
 	sys->rigid.R = MEM_callocN(sizeof(float)*3*3*totvert, "RigidDeformR");
