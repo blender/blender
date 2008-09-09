@@ -19,6 +19,17 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+
+#ifdef WIN32
+# include <GL/glew.h>
+# include <windows.h>
+#endif
+#ifdef __MACH__
+# include <OpenGL/gl.h>
+#else
+# include <GL/gl.h>
+#endif
+
 #include "AppGLWidget.h"
 #include "../image/Image.h"
 #include "../system/TimeStamp.h"
@@ -31,16 +42,6 @@
 #include "AppConfig.h"
 
 #include "../system/StringUtils.h"
-
-#ifdef WIN32
-# include <windows.h>
-# include "GL/glew.h"
-#endif
-#ifdef __MACH__
-# include <OpenGL/gl.h>
-#else
-# include <GL/gl.h>
-#endif
 
 AppCanvas::AppCanvas()
 :Canvas()

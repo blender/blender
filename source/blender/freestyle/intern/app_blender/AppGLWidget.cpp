@@ -47,7 +47,11 @@ extern "C" {
 #ifdef __MACH__
 # include <GLUT/glut.h>
 #else
+# ifdef _WIN32
+# include <GL/glu.h>
+# else
 # include <GL/glut.h>
+# endif
 #endif
 
 GLuint texture = 0;

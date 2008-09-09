@@ -25,101 +25,72 @@
 
 using namespace std;
 
-namespace Config{
-  Path* Path::_pInstance = 0;
-  Path::Path(){
-    // get the home directory
-    _HomeDir = getEnvVar("HOME");
-    // get the root directory
+namespace Config {
+Path* Path::_pInstance = 0;
+Path::Path() {
+	// get the home directory
+	_HomeDir = getEnvVar("HOME");
+	// get the root directory
 	//soc
 	setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
 
-    _pInstance = this;
-  }
-  void Path::setRootDir(const string& iRootDir){
-    _ProjectDir = iRootDir;
-    _ModelsPath = "";
-    _PatternsPath = _ProjectDir +
-					     string(DIR_SEP.c_str()) +
-					     "data" +
-					     string(DIR_SEP.c_str()) +
-					     "textures" +
-					     string(DIR_SEP.c_str()) +
-					     "variation_patterns" +
-					     string(DIR_SEP.c_str());
-    _BrushesPath = _ProjectDir +
-					     string(DIR_SEP.c_str()) +
-					     "data" +
-					     string(DIR_SEP.c_str()) +
-					     "textures" +
-					     string(DIR_SEP.c_str()) +
-					     "brushes" +
-					     string(DIR_SEP.c_str());
-    _PythonPath = _ProjectDir + 
-              string(DIR_SEP.c_str()) + 
-              "python" + 
-              string(PATH_SEP.c_str()) +
-              _ProjectDir +
-				string(DIR_SEP.c_str()) +
-              "style_modules_blender" +
-              string(DIR_SEP.c_str()) ;
-    if (getenv("PYTHONPATH")) {
-      _PythonPath += string(PATH_SEP.c_str()) + string(getenv("PYTHONPATH"));
-    }
+	_pInstance = this;
+}
+void Path::setRootDir(const string& iRootDir) {
+	_ProjectDir = iRootDir;
+	_ModelsPath = "";
+	_PatternsPath = _ProjectDir + string(DIR_SEP.c_str()) + "data"
+			+ string(DIR_SEP.c_str()) + "textures" + string(DIR_SEP.c_str())
+			+ "variation_patterns" + string(DIR_SEP.c_str());
+	_BrushesPath = _ProjectDir + string(DIR_SEP.c_str()) + "data"
+			+ string(DIR_SEP.c_str()) + "textures" + string(DIR_SEP.c_str())
+			+ "brushes" + string(DIR_SEP.c_str());
+	_PythonPath = _ProjectDir + string(DIR_SEP.c_str()) + "python"
+			+ string(PATH_SEP.c_str()) + _ProjectDir + string(DIR_SEP.c_str())
+			+ "style_modules_blender" + string(DIR_SEP.c_str()) ;
+	if (getenv("PYTHONPATH")) {
+		_PythonPath += string(PATH_SEP.c_str()) + string(getenv("PYTHONPATH"));
+	}
 #ifdef WIN32
-    _BrowserCmd = "C:\\Program Files\\Internet Explorer\\iexplore.exe %s";
+	_BrowserCmd = "C:\\Program Files\\Internet Explorer\\iexplore.exe %s";
 #else
-    _BrowserCmd = "mozilla %s";
+	_BrowserCmd = "mozilla %s";
 #endif
-    _HelpIndexPath = _ProjectDir +
-					  string(DIR_SEP.c_str()) +
-					  "doc" +
-					  string(DIR_SEP.c_str()) +
-					  "html" +
-					  string(DIR_SEP.c_str()) +
-					  "index.html";
-    _PapersDir = _ProjectDir +
-					  string(DIR_SEP.c_str()) +
-					  "data" +
-					  string(DIR_SEP.c_str()) +
-					  "textures" +
-					  string(DIR_SEP.c_str()) +
-					  "papers" +
-					  string(DIR_SEP.c_str());
-    _EnvMapDir = _ProjectDir +
-				   string(DIR_SEP.c_str()) +
-				   "data" +
-				   string(DIR_SEP.c_str()) +
-				   "env_map" +
-				   string(DIR_SEP.c_str());
-    _MapsDir = _ProjectDir +
-				   string(DIR_SEP.c_str()) +
-				   "data" +
-           string(DIR_SEP.c_str()) +
-				   "maps" +
-				   string(DIR_SEP.c_str());
-  }
-  void Path::setHomeDir(const string& iHomeDir){
-    _HomeDir = iHomeDir;
-  }
-  Path::~Path(){
-    _pInstance = 0;
-  }
-  Path* Path::getInstance() {
-    return _pInstance;
-  }
-  string Path::getEnvVar(const string& iEnvVarName){
-    string value;
-	if (!getenv( StringUtils::toAscii(iEnvVarName).c_str() ) ) {
-      cerr << "Warning: You may want to set the $"<< StringUtils::toAscii(iEnvVarName)
-		  << " environment variable to use " << string(Config::APPLICATION_NAME) << "." << endl
-	    << "         Otherwise, the current directory will be used instead." << endl;
-      value = ".";
-    }else{
-      value = getenv( StringUtils::toAscii(iEnvVarName).c_str()  );
-    } 
-    return value;
-  }
+	_HelpIndexPath = _ProjectDir + string(DIR_SEP.c_str()) + "doc"
+			+ string(DIR_SEP.c_str()) + "html" + string(DIR_SEP.c_str())
+			+ "index.html";
+	_PapersDir = _ProjectDir + string(DIR_SEP.c_str()) + "data"
+			+ string(DIR_SEP.c_str()) + "textures" + string(DIR_SEP.c_str())
+			+ "papers" + string(DIR_SEP.c_str());
+	_EnvMapDir = _ProjectDir + string(DIR_SEP.c_str()) + "data"
+			+ string(DIR_SEP.c_str()) + "env_map" + string(DIR_SEP.c_str());
+	_MapsDir = _ProjectDir + string(DIR_SEP.c_str()) + "data"
+			+ string(DIR_SEP.c_str()) + "maps" + string(DIR_SEP.c_str());
+}
+void Path::setHomeDir(const string& iHomeDir) {
+	_HomeDir = iHomeDir;
+}
+Path::~Path() {
+	_pInstance = 0;
+}
+Path* Path::getInstance() {
+	return _pInstance;
+}
+string Path::getEnvVar(const string& iEnvVarName) {
+	string value;
+	if (!getenv(StringUtils::toAscii(iEnvVarName).c_str() ) ) {
+		cerr << "Warning: You may want to set the $"
+				<< StringUtils::toAscii(iEnvVarName)
+				<< " environment variable to use "
+				<< string(Config::APPLICATION_NAME) << "." << endl
+				<< "         Otherwise, the current directory will be used instead."
+				<< endl;
+		value = ".";
+	} else {
+		value = getenv(StringUtils::toAscii(iEnvVarName).c_str() );
+	}
+	return value;
+}
 
 } // End of namepace Config
 

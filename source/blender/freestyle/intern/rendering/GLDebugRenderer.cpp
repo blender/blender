@@ -31,7 +31,11 @@
 #ifdef __MACH__
 #include <GLUT/glut.h>
 #else
-#include <GL/glut.h>
+# ifdef WIN32
+# include <GL/glu.h>
+# else
+# include <GL/glut.h>
+# endif
 #endif
 
 void GLDebugRenderer::visitIndexedFaceSet(IndexedFaceSet& iFaceSet)  

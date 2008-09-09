@@ -18,6 +18,11 @@
 
 using namespace std;
 
+// Pi definition
+# ifndef M_PI
+#  define M_PI 3.14159265
+# endif // M_PI
+
 #include "AppGLWidget_point.h"
 
 # ifdef WIN32
@@ -32,7 +37,11 @@ using namespace std;
 #ifdef __APPLE_CC__
 	#include <GLUT/glut.h>
 #else
-	#include <GL/glut.h>
+# ifdef WIN32
+# include <GL/glu.h>
+# else
+# include <GL/glut.h>
+# endif
 #endif
 
 #ifndef Q_UNUSED

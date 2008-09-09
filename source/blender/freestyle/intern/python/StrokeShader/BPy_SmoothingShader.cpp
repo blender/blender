@@ -108,7 +108,7 @@ int SmoothingShader___init__( BPy_SmoothingShader* self, PyObject *args)
 		return -1;
 	}
 
-	self->py_ss.ss = new SmoothingShader::SmoothingShader(i1, d2, d3, d4, d5, d6, d7, d8);
+	self->py_ss.ss = new SmoothingShader(i1, d2, d3, d4, d5, d6, d7, d8);
 	return 0;
 
 }

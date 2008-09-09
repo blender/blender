@@ -35,14 +35,15 @@
 # include "../stroke/StrokeRep.h"
 
 
-# ifdef WIN32
-#  include <windows.h>
-# endif
-# ifdef __MACH__
-#  include <OpenGL/gl.h>
-# else
-#  include <GL/gl.h>
-# endif
+#ifdef WIN32
+# include <GL/glew.h>
+# include <windows.h>
+#endif
+#ifdef __MACH__
+# include <OpenGL/gl.h>
+#else
+# include <GL/gl.h>
+#endif
 
 /**********************************/
 /*                                */

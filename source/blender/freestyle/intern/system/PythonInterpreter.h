@@ -115,7 +115,7 @@ private:
 	for (vector<string>::const_iterator it = pathnames.begin(); it != pathnames.end();++it) {
 		if ( !it->empty() ) {
 			cout << "Adding Python path: " << *it << endl;
-			cmd = "sys.path.append(\"" + *it + "\")\n";
+			cmd = "sys.path.append(r\"" + *it + "\")\n";
 			txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
 		}
 	}
