@@ -793,12 +793,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if(cu) {
+			float tmp_mat[3][3];
+			float scale;
+			
+			object_to_mat3(amd->curve_ob, tmp_mat);
+			scale = Mat3ToScalef(tmp_mat);
+				
 			if(!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
 				makeDispListCurveTypes(amd->curve_ob, 0);
 			}
 			if(cu->path)
-				length = cu->path->totdist;
+				length = scale*cu->path->totdist;
 		}
 	}
 
