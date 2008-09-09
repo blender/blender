@@ -130,13 +130,16 @@ static void node_composit_exec_tonemap(void *data, bNode *node, bNodeStack **in,
 	if ((img==NULL) || (out[0]->hasoutput==0)) return;
 
 	if (img->type != CB_RGBA)
-		new = typecheck_compbuf(img, CB_RGBA);
-	else
-		new = dupalloc_compbuf(img);
+		img = typecheck_compbuf(img, CB_RGBA);
+	
+	new = dupalloc_compbuf(img);
 
 	tonemap(node->storage, new, img);
 
 	out[0]->data = new;
+	
+	if(img!=in[0]->data)
+		free_compbuf(img);
 }
 
 static void node_composit_init_tonemap(bNode* node)
