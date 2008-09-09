@@ -51,64 +51,6 @@ namespace Config {
   static const string PATH_SEP(":");
 # endif // WIN32
 
-  // DLL import/export macros for Win32
-
-# ifdef WIN32
-#  ifdef MAKE_LIB_SYSTEM_DLL
-#   define LIB_SYSTEM_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_SYSTEM_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_SYSTEM_DLL
-
-#  ifdef MAKE_LIB_IMAGE_DLL
-#   define LIB_IMAGE_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_IMAGE_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_IMAGE_DLL
-
-#  ifdef MAKE_LIB_GEOMETRY_DLL
-#   define LIB_GEOMETRY_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_GEOMETRY_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_GEOMETRY_DLL
-
-#  ifdef MAKE_LIB_SCENE_GRAPH_DLL
-#   define LIB_SCENE_GRAPH_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_SCENE_GRAPH_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_SCENE_GRAPH_DLL
-
-#  ifdef MAKE_LIB_WINGED_EDGE_DLL
-#   define LIB_WINGED_EDGE_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_WINGED_EDGE_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_WINGED_EDGE_DLL
-
-#  ifdef MAKE_LIB_VIEW_MAP_DLL
-#   define LIB_VIEW_MAP_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_VIEW_MAP_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_VIEW_MAP_DLL
-
-#  ifdef MAKE_LIB_STROKE_DLL
-#   define LIB_STROKE_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_STROKE_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_STROKE_DLL
-
-#  ifdef MAKE_LIB_RENDERING_DLL
-#   define LIB_RENDERING_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_RENDERING_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_RENDERING_DLL
-
-#  ifdef MAKE_LIB_WRAPPER_DLL
-#   define LIB_WRAPPER_EXPORT __declspec(dllexport)
-#  else
-#   define LIB_WRAPPER_EXPORT __declspec(dllimport)
-#  endif // MAKE_LIB_WRAPPER_DLL
-
-# else
 #  ifndef LIB_SYSTEM_EXPORT
 #   define LIB_SYSTEM_EXPORT
 #  endif // LIB_SYSTEM_EXPORT
@@ -144,8 +86,6 @@ namespace Config {
 #  ifndef LIB_WRAPPER_EXPORT
 #   define LIB_WRAPPER_EXPORT
 #  endif // LIB_WRAPPER_EXPORT
-
-# endif // WIN32
 
 } // end of namespace Config
 

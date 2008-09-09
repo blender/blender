@@ -8,6 +8,7 @@ incs = ''
 
 incs += '../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../python '
 incs += '../render/extern/include ../render/intern/include ../include ../src'
+incs += ' #/extern/glew/include'
 incs += ' ' + env['BF_PYTHON_INC']	
 incs += ' ' + env['BF_PNG_INC']
 

@@ -35,10 +35,6 @@ extern "C" {
 
 #include "../system/StringUtils.h"
 
-#ifdef WIN32
-# include "extgl.h"
-#endif // WIN32
-
 //#define glBlendEquation(x)
 
 GLStrokeRenderer::GLStrokeRenderer()

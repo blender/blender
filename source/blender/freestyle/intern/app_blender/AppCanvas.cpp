@@ -34,7 +34,7 @@
 
 #ifdef WIN32
 # include <windows.h>
-# include "../rendering/extgl.h"
+# include "GL/glew.h"
 #endif
 #ifdef __MACH__
 # include <OpenGL/gl.h>
@@ -108,19 +108,21 @@ void AppCanvas::init()
 {
 #ifdef WIN32
   static bool firsttime = true;
-  if (firsttime)
-    {
-      if (extgl_Initialize() != 0)
-	      cerr << "Error: problem occurred while initializing GL extensions" << endl;			
-      else
-	      cout << "GL extensions initialized" << endl;
+  if (firsttime) {
 
-      if(!glutils_extgl_GetProcAddress("glBlendEquation")){
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+		cerr << "Error: problem occurred while initializing GLEW" << endl;	
+	}
+	cout << "GLEW initialized" << endl;
+
+	if(!glBlendEquation) {
         _blendEquation = false;
         cout << "glBlendEquation unavailable on this hardware -> switching to strokes basic rendering mode" << endl;
-      }
-      firsttime=false;
-    }
+     }
+    firsttime=false;
+   }
 #endif
 
   _Renderer = new GLStrokeRenderer;

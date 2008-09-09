@@ -23,7 +23,7 @@
 
 #include "../system/FreestyleConfig.h"
 
-int LIB_RENDERING_EXPORT isExtensionSupported(const char *extension);
-void LIB_RENDERING_EXPORT *glutils_extgl_GetProcAddress(const char *name);
+// int LIB_RENDERING_EXPORT isExtensionSupported(const char *extension);
+// void LIB_RENDERING_EXPORT *glutils_extgl_GetProcAddress(const char *name);
 
 #endif
