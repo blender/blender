@@ -3578,7 +3578,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 							pd= epart->pd;
 							totepart= epsys->totpart;
 
-							if(pd->forcefield==PFIELD_FORCE && pd->f_strength<0.0){
+							if(pd->forcefield==PFIELD_FORCE && pd->f_strength<0.0 && ec->tree){
 								count=BLI_kdtree_find_n_nearest(ec->tree,epart->boidneighbours,pa->state.co,NULL,ptn2);
 								for(p=0; p<count; p++){
 									state.time=-1.0;
@@ -3725,7 +3725,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 							pd= epart->pd;
 							totepart= epsys->totpart;
 
-							if(pd->forcefield==PFIELD_FORCE && pd->f_strength>0.0){
+							if(pd->forcefield==PFIELD_FORCE && pd->f_strength>0.0 && ec->tree){
 								count=BLI_kdtree_find_n_nearest(ec->tree,epart->boidneighbours,pa->state.co,NULL,ptn2);
 								for(p=0; p<count; p++){
 									state.time=-1.0;
