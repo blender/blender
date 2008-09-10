@@ -2981,10 +2981,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 {
 	ZSpan zspan;
 	DrawBufPixel *rectdraw, *dr;
-	static float jit[16][2];
+	static float jit[256][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
-	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
-	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
+	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz;
+	float *minvecbufrect= NULL, *rectweight, *rw, *rectmax, *rm, *ro;
+	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed, totfac;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;
 	static int firsttime= 1;
@@ -3003,6 +3004,9 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	rectmove= MEM_mapallocN(xsize*ysize, "rectmove");
 	rectdraw= MEM_mapallocN(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
 	zspan.rectp= (int *)rectdraw;
+
+	rectweight= MEM_mapallocN(sizeof(float)*xsize*ysize, "rect weight");
+	rectmax= MEM_mapallocN(sizeof(float)*xsize*ysize, "rect max");
 	
 	/* debug... check if PASS_VECTOR_MAX still is in buffers */
 	dvec1= vecbufrect;
@@ -3142,7 +3146,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	dm= rectmove;
 	dvec1= vecbufrect;
 	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4) {
-		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f || dvec1[2]!=0.0f || dvec1[3]!=0.0f)
+		if((dvec1[0]!=0.0f || dvec1[1]!=0.0f || dvec1[2]!=0.0f || dvec1[3]!=0.0f))
 			*dm= 255;
 	}
 	
@@ -3151,9 +3155,12 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	/* has to become static, the init-jit calls a random-seed, screwing up texture noise node */
 	if(firsttime) {
 		firsttime= 0;
-		BLI_initjit(jit[0], 16);
+		BLI_initjit(jit[0], 256);
 	}
 	
+	memset(newrect, 0, sizeof(float)*xsize*ysize*4);
+	totfac= 0.0f;
+
 	/* accumulate */
 	samples/= 2;
 	for(step= 1; step<=samples; step++) {
@@ -3161,7 +3168,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 		int side;
 		
 		for(side=0; side<2; side++) {
-			float blendfac= 1.0f/((ABS(step)*2+side)+1), ipodata[4];
+			float blendfac, ipodata[4];
 			
 			/* clear zbuf, if we draw future we fill in not moving pixels */
 			if(0)
@@ -3193,30 +3200,32 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			
 			set_quad_bezier_ipo(0.5f + 0.5f*speedfac, ipodata);
 			
-			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
-				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=4, dz2+=4, dm++, dz++) {
+			for(fy= -0.5f+jit[step & 255][0], y=0; y<ysize; y++, fy+=1.0f) {
+				for(fx= -0.5f+jit[step & 255][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=4, dz2+=4, dm++, dz++) {
 					if(*dm>1) {
+						float jfx = fx + 0.5f;
+						float jfy = fy + 0.5f;
 						DrawBufPixel col;
 						
 						/* make vertices */
 						if(nbd->curved) {	/* curved */
 							quad_bezier_2d(v1, dz1, dz1+2, ipodata);
-							v1[0]+= fx; v1[1]+= fy; v1[2]= *dz;
+							v1[0]+= jfx; v1[1]+= jfy; v1[2]= *dz;
 
 							quad_bezier_2d(v2, dz1+4, dz1+4+2, ipodata);
-							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= *dz;
+							v2[0]+= jfx+1.0f; v2[1]+= jfy; v2[2]= *dz;
 
 							quad_bezier_2d(v3, dz2+4, dz2+4+2, ipodata);
-							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= *dz;
+							v3[0]+= jfx+1.0f; v3[1]+= jfy+1.0f; v3[2]= *dz;
 							
 							quad_bezier_2d(v4, dz2, dz2+2, ipodata);
-							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= *dz;
+							v4[0]+= jfx; v4[1]+= jfy+1.0f; v4[2]= *dz;
 						}
 						else {
-							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= *dz;
-							v2[0]= speedfac*dz1[4]+fx+1.0f;		v2[1]= speedfac*dz1[5]+fy;			v2[2]= *dz;
-							v3[0]= speedfac*dz2[4]+fx+1.0f;		v3[1]= speedfac*dz2[5]+fy+1.0f;		v3[2]= *dz;
-							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= *dz;
+							v1[0]= speedfac*dz1[0]+jfx;			v1[1]= speedfac*dz1[1]+jfy;			v1[2]= *dz;
+							v2[0]= speedfac*dz1[4]+jfx+1.0f;		v2[1]= speedfac*dz1[5]+jfy;			v2[2]= *dz;
+							v3[0]= speedfac*dz2[4]+jfx+1.0f;		v3[1]= speedfac*dz2[5]+jfy+1.0f;		v3[2]= *dz;
+							v4[0]= speedfac*dz2[0]+jfx;			v4[1]= speedfac*dz2[1]+jfy+1.0f;		v4[2]= *dz;
 						}
 						if(*dm==255) col.alpha= 1.0f;
 						else if(*dm<2) col.alpha= 0.0f;
@@ -3229,26 +3238,59 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 				dz1+=4;
 				dz2+=4;
 			}
-			
+
+			/* blend with a falloff. this fixes the ugly effect you get with
+			 * a fast moving object. then it looks like a solid object overlayed
+			 * over a very transparent moving version of itself. in reality, the
+			 * whole object should become transparent if it is moving fast, be
+			 * we don't know what is behind it so we don't do that. this hack
+			 * overestimates the contribution of foreground pixels but looks a
+			 * bit better without a sudden cutoff. */
+			blendfac= ((samples - step)/(float)samples);
+			/* smoothstep to make it look a bit nicer as well */
+			blendfac= 3.0f*pow(blendfac, 2.0f) - 2.0f*pow(blendfac, 3.0f);
+
 			/* accum */
-			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4) {
+			rw= rectweight;
+			rm= rectmax;
+			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4, rw++, rm++) {
 				if(dr->colpoin) {
-					float bfac= dr->alpha*blendfac*dr->colpoin[3];
-					float mf= 1.0f - bfac;
+					float bfac= dr->alpha*blendfac;
 					
-					dz2[0]= mf*dz2[0] + bfac*dr->colpoin[0];
-					dz2[1]= mf*dz2[1] + bfac*dr->colpoin[1];
-					dz2[2]= mf*dz2[2] + bfac*dr->colpoin[2];
-					dz2[3]= mf*dz2[3] + bfac*dr->colpoin[3];
+					dz2[0] += bfac*dr->colpoin[0];
+					dz2[1] += bfac*dr->colpoin[1];
+					dz2[2] += bfac*dr->colpoin[2];
+					dz2[3] += bfac*dr->colpoin[3];
+
+					*rw += bfac;
+					*rm= MAX2(*rm, bfac);
 				}
 			}
 		}
 	}
 	
+	/* blend between original images and accumulated image */
+	rw= rectweight;
+	rm= rectmax;
+	ro= imgrect;
+	dm= rectmove;
+	for(dz2=newrect, x= xsize*ysize-1; x>=0; x--, dz2+=4, ro+=4, rw++, rm++, dm++) {
+		float mfac = *rm;
+		float fac = (*rw == 0.0f)? 0.0f: mfac/(*rw);
+		float nfac = 1.0f - mfac;
+
+		dz2[0]= fac*dz2[0] + nfac*ro[0];
+		dz2[1]= fac*dz2[1] + nfac*ro[1];
+		dz2[2]= fac*dz2[2] + nfac*ro[2];
+		dz2[3]= fac*dz2[3] + nfac*ro[3];
+	}
+
 	MEM_freeN(rectz);
 	MEM_freeN(rectmove);
 	MEM_freeN(rectdraw);
 	MEM_freeN(rectvz);
+	MEM_freeN(rectweight);
+	MEM_freeN(rectmax);
 	if(minvecbufrect) MEM_freeN(vecbufrect);  /* rects were swapped! */
 	zbuf_free_span(&zspan);
 }

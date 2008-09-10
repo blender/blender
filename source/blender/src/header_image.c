@@ -477,6 +477,9 @@ static void do_image_viewmenu(void *arg, int event)
 		G.sima->flag ^= SI_LOCAL_UV;
 		allqueue(REDRAWIMAGE, 0);
 		break;
+	case 15: /* Grease Pencil... */
+		add_blockhandler(curarea, IMAGE_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -498,6 +501,8 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Composite Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Grease Pencil...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	if(G.sima->flag & SI_LOCAL_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Local View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Local View|NumPad /", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");

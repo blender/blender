@@ -367,19 +367,12 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			case CONSTRAINT_SPACE_WORLD: /* ---------- FROM WORLDSPACE ---------- */
 			{
 				/* world to pose */
-				if (to==CONSTRAINT_SPACE_POSE || to==CONSTRAINT_SPACE_LOCAL || to==CONSTRAINT_SPACE_PARLOCAL) {
-					Mat4Invert(imat, ob->obmat);
-					Mat4CpyMat4(tempmat, mat);
-					Mat4MulMat4(mat, tempmat, imat);
-				}
+				Mat4Invert(imat, ob->obmat);
+				Mat4CpyMat4(tempmat, mat);
+				Mat4MulMat4(mat, tempmat, imat);
 				
-				/* pose to local */
-				if (to == CONSTRAINT_SPACE_LOCAL) {
-					/* call self with slightly different values */
-					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
-				}
-				/* pose to local + parent */
-				else if (to == CONSTRAINT_SPACE_PARLOCAL) {
+				/* use pose-space as stepping stone for other spaces... */
+				if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}
@@ -445,69 +438,66 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				break;
 			case CONSTRAINT_SPACE_LOCAL: /* ------------ FROM LOCALSPACE --------- */
 			{
-				/* local to pose */
-				if (to==CONSTRAINT_SPACE_POSE || to==CONSTRAINT_SPACE_WORLD) {
-					/* do inverse procedure that was done for pose to local */
-					if (pchan->bone) {
-						/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
-						if (pchan->parent) {
-							float offs_bone[4][4];
+				/* local to pose - do inverse procedure that was done for pose to local */
+				if (pchan->bone) {
+					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
+					if (pchan->parent) {
+						float offs_bone[4][4];
+						
+						/* construct offs_bone the same way it is done in armature.c */
+						Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
+						VECCOPY(offs_bone[3], pchan->bone->head);
+						offs_bone[3][1]+= pchan->bone->parent->length;
+						
+						if (pchan->bone->flag & BONE_HINGE) {
+							/* pose_mat = par_pose-space_location * chan_mat */
+							float tmat[4][4];
 							
-							/* construct offs_bone the same way it is done in armature.c */
-							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
-							VECCOPY(offs_bone[3], pchan->bone->head);
-							offs_bone[3][1]+= pchan->bone->parent->length;
+							/* the rotation of the parent restposition */
+							Mat4CpyMat4(tmat, pchan->bone->parent->arm_mat);
 							
-							if (pchan->bone->flag & BONE_HINGE) {
-								/* pose_mat = par_pose-space_location * chan_mat */
-								float tmat[4][4];
-								
-								/* the rotation of the parent restposition */
-								Mat4CpyMat4(tmat, pchan->bone->parent->arm_mat);
-								
-								/* the location of actual parent transform */
-								VECCOPY(tmat[3], offs_bone[3]);
-								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
-								
-								Mat4MulMat4(diff_mat, offs_bone, tmat);
-								Mat4CpyMat4(tempmat, mat);
-								Mat4MulMat4(mat, tempmat, diff_mat);
-							}
-							else {
-								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
-								Mat4CpyMat4(tempmat, mat);
-								Mat4MulMat4(mat, tempmat, diff_mat);
-							}
+							/* the location of actual parent transform */
+							VECCOPY(tmat[3], offs_bone[3]);
+							offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
+							Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
+							
+							Mat4MulMat4(diff_mat, offs_bone, tmat);
+							Mat4CpyMat4(tempmat, mat);
+							Mat4MulMat4(mat, tempmat, diff_mat);
 						}
 						else {
-							Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
-							
+							/* pose_mat = par_pose_mat * bone_mat * chan_mat */
+							Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
 							Mat4CpyMat4(tempmat, mat);
 							Mat4MulMat4(mat, tempmat, diff_mat);
 						}
 					}
+					else {
+						Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
+						
+						Mat4CpyMat4(tempmat, mat);
+						Mat4MulMat4(mat, tempmat, diff_mat);
+					}
 				}
-				/* local to world */
-				if (to == CONSTRAINT_SPACE_WORLD) {
+				
+				/* use pose-space as stepping stone for other spaces */
+				if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
-				}
+				}				
 			}
 				break;
 			case CONSTRAINT_SPACE_PARLOCAL: /* -------------- FROM LOCAL WITH PARENT ---------- */
 			{
-				/* local to pose */
-				if (to==CONSTRAINT_SPACE_POSE || to==CONSTRAINT_SPACE_WORLD) {
-					if (pchan->bone) {					
-						Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
-						Mat4CpyMat4(tempmat, mat);
-						Mat4MulMat4(mat, diff_mat, tempmat);
-					}
+				/* local + parent to pose */
+				if (pchan->bone) {					
+					Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
+					Mat4CpyMat4(tempmat, mat);
+					Mat4MulMat4(mat, diff_mat, tempmat);
 				}
-				/* local to world */
-				if (to == CONSTRAINT_SPACE_WORLD) {
+				
+				/* use pose-space as stepping stone for other spaces */
+				if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}

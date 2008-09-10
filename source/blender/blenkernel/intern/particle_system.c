@@ -3875,7 +3875,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 		state->vel[2]=0.0;
 		state->co[2]=part->groundz;
 
-		if(psys->keyed_ob){
+		if(psys->keyed_ob && (psys->keyed_ob->type == OB_MESH)){
 			Object *zob=psys->keyed_ob;
 			int min_face;
 			float co1[3],co2[3],min_d=2.0,min_w[4],imat[4][4];

@@ -2346,6 +2346,12 @@ static int is_rendering_allowed(Render *re)
 		if(re->osa==0)
 			re->r.scemode &= ~R_FULL_SAMPLE;
 		
+		/* no fullsample and edge */
+		if((re->r.scemode & R_FULL_SAMPLE) && (re->r.mode & R_EDGE)) {
+			re->error("Full Sample doesn't support Edge Enhance");
+			return 0;
+		}
+		
 	}
 	else
 		re->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */

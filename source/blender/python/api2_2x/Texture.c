@@ -1195,6 +1195,7 @@ static PyObject *M_Texture_ExtendModesDict( void )
 		PyConstant_Insert(d, "CLIP", PyInt_FromLong(TEX_CLIP));
 		PyConstant_Insert(d, "CLIPCUBE", PyInt_FromLong(TEX_CLIPCUBE));
 		PyConstant_Insert(d, "REPEAT", PyInt_FromLong(TEX_REPEAT));
+		PyConstant_Insert(d, "CHECKER", PyInt_FromLong(TEX_CHECKER));
 	}
 	return ExtendModes;
 }

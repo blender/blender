@@ -1573,6 +1573,18 @@ static void build_uvlayer_menu_vars(CustomData *data, char **menu_string,
 	}
 }
 
+void set_wave_uvlayer(void *arg1, void *arg2)
+{
+	WaveModifierData *wmd=arg1;
+	CustomDataLayer *layer = arg2;
+
+	/*check we have UV layers*/
+	if (wmd->uvlayer_tmp < 1) return;
+	layer = layer + (wmd->uvlayer_tmp-1);
+	
+	strcpy(wmd->uvlayer_name, layer->name);
+}
+
 void set_displace_uvlayer(void *arg1, void *arg2)
 {
 	DisplaceModifierData *dmd=arg1;
@@ -1845,6 +1857,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		y -= 18;
 
 		if (!isVirtual && (md->type!=eModifierType_Collision)) {
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE); /* only here obdata, the rest of modifiers is ob level */
+
 			uiBlockBeginAlign(block);
 			if (md->type==eModifierType_ParticleSystem) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
@@ -1860,6 +1874,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
 			uiBlockEndAlign(block);
+			
+			uiSetButLock(ob && ob->id.lib, ERROR_LIBDATA_MESSAGE);
 		}
 
 		lx = x + 10;
@@ -2195,7 +2211,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				      0.0, 1.0, 0, 0, "Set the UV layer to use");
 				MEM_freeN(strtmp);
 				i = CustomData_get_layer_index(fdata, CD_MTFACE);
-				uiButSetFunc(but, set_displace_uvlayer, wmd,
+				uiButSetFunc(but, set_wave_uvlayer, wmd,
 				             &fdata->layers[i]);
 			}
 			if(wmd->texmapping == MOD_DISP_MAP_OBJECT) {
@@ -2544,7 +2560,7 @@ static void editing_panel_modifiers(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_modifiers", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Modifiers", "Editing", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock((ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	uiNewPanelHeight(block, 204);
 
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
@@ -6281,6 +6297,11 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row= 180;
 
 	uiDefButBitS(block, TOGN, UVCALC_NO_ASPECT_CORRECT, B_NOP, "Image Aspect",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Scale the UV Unwrapping to correct for the current images aspect ratio");
+
+	row-= butHB+butS;	
+		uiDefButBitS(block, TOG, UVCALC_TRANSFORM_CORRECT, B_NOP, "Transform Correction",100,row,200,butH,&G.scene->toolsettings->uvcalc_flag, 0, 0, 0, 0,  "Correct for UV distortion while transforming, (only works with edge slide now)");
+
+	row= 180;
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_UVAUTO_CUBESIZE ,"Cube Size:",315,row,200,butH, &G.scene->toolsettings->uvcalc_cubesize, 0.0001, 100.0, 10, 3, "Defines the cubemap size for cube mapping");

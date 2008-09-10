@@ -30,7 +30,10 @@
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
 
+#include "PyObjectPlus.h"
+
 #include <iostream>
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

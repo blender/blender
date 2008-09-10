@@ -1235,7 +1235,7 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 			}
 
 			gameobj->SetCulled(!visible);
-			gameobj->UpdateBuckets();
+			gameobj->UpdateBuckets(false);
 		}
 	}
 	if (node->Left())
@@ -1253,7 +1253,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	// Shadow lamp layers
 	if(layer && !(gameobj->GetLayer() & layer)) {
 		gameobj->SetCulled(true);
-		gameobj->UpdateBuckets();
+		gameobj->UpdateBuckets(false);
 		return;
 	}
 
@@ -1300,10 +1300,10 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
 		gameobj->SetCulled(false);
-		gameobj->UpdateBuckets();
+		gameobj->UpdateBuckets(false);
 	} else {
 		gameobj->SetCulled(true);
-		gameobj->UpdateBuckets();
+		gameobj->UpdateBuckets(false);
 	}
 }
 

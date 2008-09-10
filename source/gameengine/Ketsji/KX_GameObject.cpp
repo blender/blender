@@ -65,6 +65,8 @@ typedef unsigned long uint_ptr;
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 
+#include "PyObjectPlus.h" /* python stuff */
+
 // This file defines relationships between parents and children
 // in the game engine.
 
@@ -233,11 +235,12 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 			m_pPhysicsController1->SuspendDynamics(true);
 		}
 		// Set us to our new scale, position, and orientation
-		scale1[0] = scale1[0]/scale2[0];
-		scale1[1] = scale1[1]/scale2[1];
-		scale1[2] = scale1[2]/scale2[2];
+		scale2[0] = 1.0/scale2[0];
+		scale2[1] = 1.0/scale2[1];
+		scale2[2] = 1.0/scale2[2];
+		scale1 = scale1 * scale2;
 		MT_Matrix3x3 invori = obj->NodeGetWorldOrientation().inverse();
-		MT_Vector3 newpos = invori*(NodeGetWorldPosition()-obj->NodeGetWorldPosition())*scale1;
+		MT_Vector3 newpos = invori*(NodeGetWorldPosition()-obj->NodeGetWorldPosition())*scale2;
 
 		NodeSetLocalScale(scale1);
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
@@ -364,15 +367,36 @@ void KX_GameObject::AddMeshUser()
 	for (size_t i=0;i<m_meshes.size();i++)
 		m_meshes[i]->AddMeshUser(this);
 	
-	UpdateBuckets();
+	UpdateBuckets(false);
 }
 
-void KX_GameObject::UpdateBuckets()
+static void UpdateBuckets_recursive(SG_Node* node)
+{
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+		if (clientgameobj != NULL) // This is a GameObject
+			clientgameobj->UpdateBuckets(0);
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		UpdateBuckets_recursive(childnode);
+	}
+}
+
+void KX_GameObject::UpdateBuckets( bool recursive )
 {
 	double* fl = GetOpenGLMatrix();
 
 	for (size_t i=0;i<m_meshes.size();i++)
 		m_meshes[i]->UpdateBuckets(this, fl, m_bUseObjectColor, m_objectColor, m_bVisible, m_bCulled);
+	
+	if (recursive) {
+		UpdateBuckets_recursive(m_pSGNode);
+	}
 }
 
 void KX_GameObject::RemoveMeshes()
@@ -502,12 +526,33 @@ KX_GameObject::GetVisible(
 	return m_bVisible;
 }
 
+static void setVisible_recursive(SG_Node* node, bool v)
+{
+	NodeList& children = node->GetSGChildren();
+
+	for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+	{
+		SG_Node* childnode = (*childit);
+		KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
+		if (clientgameobj != NULL) // This is a GameObject
+			clientgameobj->SetVisible(v, 0);
+		
+		// if the childobj is NULL then this may be an inverse parent link
+		// so a non recursive search should still look down this node.
+		setVisible_recursive(childnode, v);
+	}
+}
+
+
 void
 KX_GameObject::SetVisible(
-	bool v
+	bool v,
+	bool recursive
 	)
 {
 	m_bVisible = v;
+	if (recursive)
+		setVisible_recursive(m_pSGNode, v);
 }
 
 bool
@@ -870,6 +915,7 @@ void KX_GameObject::Suspend()
 PyMethodDef KX_GameObject::Methods[] = {
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
+	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
 	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
 	{"setLinearVelocity", (PyCFunction) KX_GameObject::sPySetLinearVelocity, METH_VARARGS},
 	{"getAngularVelocity", (PyCFunction) KX_GameObject::sPyGetAngularVelocity, METH_VARARGS},
@@ -880,7 +926,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_NOARGS},
 	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_O},
 	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_NOARGS},
-	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_O},
+	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
 	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_NOARGS},
 	{"setState",(PyCFunction) KX_GameObject::sPySetState, METH_O},
 	{"alignAxisToVect",(PyCFunction) KX_GameObject::sPyAlignAxisToVect, METH_VARARGS},
@@ -1036,8 +1082,8 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 		int val = PyInt_AsLong(value);
 		if (attr == "visible")
 		{
-			SetVisible(val != 0);
-			UpdateBuckets();
+			SetVisible(val != 0, false);
+			UpdateBuckets(false);
 			return 0;
 		}
 	}
@@ -1198,17 +1244,14 @@ PyObject* KX_GameObject::PySetAngularVelocity(PyObject* self, PyObject* args)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* value)
+PyObject* KX_GameObject::PySetVisible(PyObject* self, PyObject* args)
 {
-	int visible = PyInt_AsLong(value);
-	
-	if (visible==-1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "expected 0 or 1");
+	int visible, recursive = 0;
+	if (!PyArg_ParseTuple(args,"i|i",&visible, &recursive))
 		return NULL;
-	}
 	
-	SetVisible(visible != 0);
-	UpdateBuckets();
+	SetVisible(visible ? true:false, recursive ? true:false);
+	UpdateBuckets(recursive ? true:false);
 	Py_RETURN_NONE;
 	
 }
@@ -1528,6 +1571,19 @@ PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
 	if (PyVecTo(value, pos))
 	{
 		NodeSetLocalPosition(pos);
+		NodeUpdateGS(0.f,true);
+		Py_RETURN_NONE;
+	}
+
+	return NULL;
+}
+
+PyObject* KX_GameObject::PySetWorldPosition(PyObject* self, PyObject* value)
+{
+	MT_Point3 pos;
+	if (PyVecTo(value, pos))
+	{
+		NodeSetWorldPosition(pos);
 		NodeUpdateGS(0.f,true);
 		Py_RETURN_NONE;
 	}

@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

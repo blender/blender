@@ -352,7 +352,7 @@ char * BIF_menustringTransformOrientation(char *title) {
 	char *str_menu, *p;
 	
 	
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 40 * BIF_countTransformOrientation(), "UserTransSpace from matrix");
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(), "UserTransSpace from matrix");
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);

@@ -566,6 +566,7 @@ public:
 	 */
 		void						
 	UpdateBuckets(
+		bool recursive
 	);
 
 	/**
@@ -640,7 +641,8 @@ public:
 	 */
 		void
 	SetVisible(
-		bool b
+		bool b,
+		bool recursive
 	);
 
 	/**
@@ -752,6 +754,7 @@ public:
 
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
+	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);
@@ -762,7 +765,7 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
 	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
-	KX_PYMETHOD_O(KX_GameObject,SetVisible);
+	KX_PYMETHOD_VARARGS(KX_GameObject,SetVisible);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetState);
 	KX_PYMETHOD_O(KX_GameObject,SetState);
 	KX_PYMETHOD_VARARGS(KX_GameObject,AlignAxisToVect);

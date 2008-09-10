@@ -38,22 +38,26 @@
 /* Python BPy_MTex structure definition                                      */
 /*****************************************************************************/
 
+#define	MATERIAL_MTEX_TYPE	1
+#define	WORLD_MTEX_TYPE	2
+#define	LAMP_MTEX_TYPE	3
+
 typedef struct {
 	PyObject_HEAD
 	MTex * mtex;
+	unsigned short type;
 } BPy_MTex;
 
 extern PyTypeObject MTex_Type;
 
 #define BPy_MTex_Check(v)  ((v)->ob_type == &MTex_Type)
 
-
 /*****************************************************************************/
 /* Module Blender.Texture.MTex - public functions                            */
 /*****************************************************************************/
 
 PyObject *MTex_Init( void );
-PyObject *MTex_CreatePyObject( struct MTex *obj );
+PyObject *MTex_CreatePyObject( struct MTex *obj, unsigned short type );
 MTex *MTex_FromPyObject( PyObject * py_obj );
 
 

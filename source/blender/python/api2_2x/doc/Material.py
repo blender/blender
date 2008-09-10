@@ -338,7 +338,9 @@ class Material:
 			ch.append(4)
 			mat.enabledTextures = ch
 			print mat.enabledTextures # will print: [0, 4, 6]
-	
+
+	@type textures: a tuple of Blender MTex objects.
+	@ivar textures: the Material's Texture list.  Empty texture channels contains None.
 	@ivar enableSSS:  If True, subsurface scattering will be rendered on this material.
 	@type enableSSS:  bool
 	@ivar sssScale:  If True, subsurface scattering will be rendered on this material.

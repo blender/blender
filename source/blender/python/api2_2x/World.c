@@ -52,6 +52,7 @@
 #include "BIF_space.h"
 #include "mydevice.h"
 #include "Ipo.h"
+#include "MTex.h"
 #include "gen_utils.h"
 #include "gen_library.h"
 
@@ -99,6 +100,7 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * value );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
 static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
+static PyObject *World_getTextures( BPy_World * self );
 static PyObject *World_copy( BPy_World * self );
 
 
@@ -250,6 +252,9 @@ static PyGetSetDef BPy_World_getseters[] = {
 	 "world mist settings", NULL},
 	{"ipo", (getter)World_getIpo, (setter)World_setIpo,
 	 "world ipo", NULL},
+    {"textures", (getter)World_getTextures, (setter)NULL,
+     "The World's texture list as a tuple",
+     NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1028,4 +1033,28 @@ static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 	EXPP_allqueue(REDRAWNLA, 0);
 
 	Py_RETURN_NONE;
+}
+
+static PyObject *World_getTextures( BPy_World * self )
+{
+	int i;
+	PyObject *tuple;
+
+	/* build a texture list */
+	tuple = PyTuple_New( MAX_MTEX );
+	if( !tuple )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create PyTuple" );
+
+	for( i = 0; i < MAX_MTEX; ++i ) {
+		struct MTex *mtex = self->world->mtex[i];
+		if( mtex ) {
+			PyTuple_SET_ITEM( tuple, i, MTex_CreatePyObject( mtex, ID_WO ) );
+		} else {
+			Py_INCREF( Py_None );
+			PyTuple_SET_ITEM( tuple, i, Py_None );
+		}
+	}
+
+	return tuple;
 }

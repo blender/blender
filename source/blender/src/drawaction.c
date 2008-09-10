@@ -682,6 +682,18 @@ static void draw_channel_names(void)
 							special= ICON_SEQUENCE;
 						}
 							break;
+						case SPACE_IMAGE:
+						{
+							SpaceImage *sima= sa->spacedata.first;
+							
+							if (sima->image)
+								sprintf(name, "Image: %s", sima->image->id.name+2);
+							else
+								sprintf(name, "Image: <None>");
+								
+							special= ICON_IMAGE_COL;
+						}
+							break;
 						
 						default:
 						{

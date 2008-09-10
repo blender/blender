@@ -3003,7 +3003,7 @@ void do_effects_panels(unsigned short event)
 		if(ob && (psys=psys_get_current(ob))){
 			if(psys->part) {
 				if(psys->part->id.us>1){
-					if(okee("Make local")){
+					if(okee("Make Single User")){
 						part=psys_copy_settings(psys->part);
 						part->id.us=1;
 						psys->part->id.us--;

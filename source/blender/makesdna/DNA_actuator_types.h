@@ -193,7 +193,8 @@ typedef struct bGameActuator {
 } bGameActuator;
 
 typedef struct bVisibilityActuator {
-	/** bit 0: Is this object visible? */
+	/** bit 0: Is this object visible? 
+	 ** bit 1: Apply recursively  */
 	int flag;
 } bVisibilityActuator;
 
@@ -448,6 +449,7 @@ typedef struct FreeCamera {
 /* visibilityact->flag */
 /* Set means the object will become invisible */
 #define ACT_VISIBILITY_INVISIBLE       (1 << 0)
+#define ACT_VISIBILITY_RECURSIVE       (1 << 1)
 
 /* twodfilter->type */
 #define ACT_2DFILTER_ENABLED			-2

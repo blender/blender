@@ -4177,6 +4177,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sima->cumap= newdataadr(fd, sima->cumap);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				sima->gpd= newdataadr(fd, sima->gpd);
+				if (sima->gpd)
+					link_gpencil(fd, sima->gpd);
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {

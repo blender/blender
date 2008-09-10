@@ -696,9 +696,11 @@ float dof_camera(Object *ob)
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
+		float mat[4][4], obmat[4][4];
 		
-		float mat[4][4];
-		Mat4Invert(ob->imat, ob->obmat);
+		Mat4CpyMat4(obmat, ob->obmat);
+		Mat4Ortho(obmat);
+		Mat4Invert(ob->imat, obmat);
 		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
 		return fabs(mat[3][2]);
 	}

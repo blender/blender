@@ -1702,7 +1702,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
 					if(sima->cumap)
-						write_curvemapping(wd, sima->cumap);					
+						write_curvemapping(wd, sima->cumap);
+					if(sima->gpd) 
+						write_gpencil(wd, sima->gpd);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);

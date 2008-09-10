@@ -131,19 +131,29 @@ void RAS_MeshSlot::begin(RAS_MeshSlot::iterator& it)
 	int startvertex, endvertex;
 	int startindex, endindex;
 
-	it.array = m_displayArrays[m_startarray];
+	it.array = (m_displayArrays.size() > 0)? m_displayArrays[m_startarray]: NULL;
 
-	startvertex = m_startvertex;
-	endvertex = (m_startarray == m_endarray)? m_endvertex: it.array->m_vertex.size();
-	startindex = m_startindex;
-	endindex = (m_startarray == m_endarray)? m_endindex: it.array->m_index.size();
+	if(it.array == NULL || it.array->m_index.size() == 0 || it.array->m_vertex.size() == 0) {
+		it.array = NULL;
+		it.vertex = NULL;
+		it.index = NULL;
+		it.startvertex = 0;
+		it.endvertex = 0;
+		it.totindex = 0;
+	}
+	else {
+		startvertex = m_startvertex;
+		endvertex = (m_startarray == m_endarray)? m_endvertex: it.array->m_vertex.size();
+		startindex = m_startindex;
+		endindex = (m_startarray == m_endarray)? m_endindex: it.array->m_index.size();
 
-	it.vertex = &it.array->m_vertex[0];
-	it.index = &it.array->m_index[startindex];
-	it.startvertex = startvertex;
-	it.endvertex = endvertex;
-	it.totindex = endindex-startindex;
-	it.arraynum = m_startarray;
+		it.vertex = &it.array->m_vertex[0];
+		it.index = &it.array->m_index[startindex];
+		it.startvertex = startvertex;
+		it.endvertex = endvertex;
+		it.totindex = endindex-startindex;
+		it.arraynum = m_startarray;
+	}
 }
 
 void RAS_MeshSlot::next(RAS_MeshSlot::iterator& it)

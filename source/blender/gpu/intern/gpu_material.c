@@ -56,7 +56,6 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
-#include "BLI_linklist.h"
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"
@@ -95,7 +94,7 @@ struct GPUMaterial {
 	int obmatloc, invobmatloc;
 	int obcolloc;
 
-	LinkNode *lamps;
+	ListBase lamps;
 };
 
 struct GPULamp {
@@ -132,7 +131,7 @@ struct GPULamp {
 	GPUFrameBuffer *fb;
 	GPUTexture *tex;
 
-	LinkNode *materials;
+	ListBase materials;
 };
 
 /* Functions */
@@ -221,6 +220,7 @@ static int GPU_material_construct_end(GPUMaterial *material)
 void GPU_material_free(Material *ma)
 {
 	LinkData *link;
+	LinkData *nlink, *mlink, *next;
 
 	for(link=ma->gpumaterial.first; link; link=link->next) {
 		GPUMaterial *material = link->data;
@@ -228,7 +228,17 @@ void GPU_material_free(Material *ma)
 		if(material->pass)
 			GPU_pass_free(material->pass);
 
-		BLI_linklist_free(material->lamps, NULL);
+		for(nlink=material->lamps.first; nlink; nlink=nlink->next) {
+			GPULamp *lamp = nlink->data;
+
+			for(mlink=lamp->materials.first; mlink; mlink=next) {
+				next = mlink->next;
+				if(mlink->data == ma)
+					BLI_freelinkN(&lamp->materials, mlink);
+			}
+		}
+
+		BLI_freelistN(&material->lamps);
 
 		MEM_freeN(material);
 	}
@@ -236,17 +246,17 @@ void GPU_material_free(Material *ma)
 	BLI_freelistN(&ma->gpumaterial);
 }
 
-void GPU_material_bind(GPUMaterial *material, int lay, double time)
+void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time)
 {
 	if(material->pass) {
-		LinkNode *nlink;
+		LinkData *nlink;
 		GPULamp *lamp;
 
 		/* handle layer lamps */
-		for(nlink=material->lamps; nlink; nlink=nlink->next) {
-			lamp= nlink->link;
+		for(nlink=material->lamps.first; nlink; nlink=nlink->next) {
+			lamp= nlink->data;
 
-			if(!(lamp->mode & LA_LAYER) || (lamp->lay & lay)) {
+			if((lamp->lay & viewlay) && (!(lamp->mode & LA_LAYER) || (lamp->lay & oblay))) {
 				lamp->dynenergy = lamp->energy;
 				VECCOPY(lamp->dyncol, lamp->col);
 			}
@@ -265,7 +275,7 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 {
 	if(material->pass) {
 		GPUShader *shader = GPU_pass_shader(material->pass);
-		LinkNode *nlink;
+		LinkData *nlink;
 		GPULamp *lamp;
 		float invmat[4][4], col[4];
 
@@ -290,8 +300,8 @@ void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float v
 		}
 
 		/* update lamps */
-		for(nlink=material->lamps; nlink; nlink=nlink->next) {
-			lamp= nlink->link;
+		for(nlink=material->lamps.first; nlink; nlink=nlink->next) {
+			lamp= nlink->data;
 
 			if(material->dynproperty & DYN_LAMP_VEC) {
 				VECCOPY(lamp->dynvec, lamp->vec);
@@ -587,6 +597,13 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 	}
 }
 
+void add_user_list(ListBase *list, void *data)
+{
+	LinkData *link = MEM_callocN(sizeof(LinkData), "GPULinkData");
+	link->data = data;
+	BLI_addtail(list, link);
+}
+
 static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *lamp)
 {
 	Material *ma= shi->mat;
@@ -665,11 +682,18 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			
 			if(lamp->mode & LA_ONLYSHADOW) {
 				GPU_link(mat, "shade_only_shadow", i, shadfac,
-					GPU_dynamic_uniform(&lamp->dynenergy), shi->rgb, shi->specrgb,
-					shr->diff, shr->spec, &shr->diff, &shr->spec);
+					GPU_dynamic_uniform(&lamp->dynenergy), &shadfac);
 				
-				BLI_linklist_append(&mat->lamps, lamp);
-				BLI_linklist_append(&lamp->materials, ma);
+				if(!(lamp->mode & LA_NO_DIFF))
+					GPU_link(mat, "shade_only_shadow_diffuse", shadfac, shi->rgb,
+						shr->diff, &shr->diff);
+
+				if(!(lamp->mode & LA_NO_SPEC))
+					GPU_link(mat, "shade_only_shadow_specular", shadfac, shi->specrgb,
+						shr->spec, &shr->spec);
+				
+				add_user_list(&mat->lamps, lamp);
+				add_user_list(&lamp->materials, ma);
 				return;
 			}
 			
@@ -677,8 +701,8 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 	else if((G.fileflags & G_FILE_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
-		BLI_linklist_append(&mat->lamps, lamp);
-		BLI_linklist_append(&lamp->materials, ma);
+		add_user_list(&mat->lamps, lamp);
+		add_user_list(&lamp->materials, ma);
 		return;
 	}
 	else
@@ -730,8 +754,8 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 
-	BLI_linklist_append(&mat->lamps, lamp);
-	BLI_linklist_append(&lamp->materials, ma);
+	add_user_list(&mat->lamps, lamp);
+	add_user_list(&lamp->materials, ma);
 }
 
 static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
@@ -934,10 +958,15 @@ static void do_material_tex(GPUShadeInput *shi)
 			if(ofs[0] != 0.0f || ofs[1] != 0.0f || ofs[2] != 0.0f)
 				GPU_link(mat, "mtex_mapping_ofs", texco, GPU_uniform(ofs), &texco);
 
+			talpha = 0;
+			rgbnor = 0;
+
 			if(tex && tex->type == TEX_IMAGE && tex->ima) {
 				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, NULL), &tin, &trgb, &tnor);
 				rgbnor= TEX_RGB;
-				talpha= 1;
+
+				if(tex->imaflag & TEX_USEALPHA)
+					talpha= 1;
 		    }
 			else continue;
 
@@ -977,8 +1006,10 @@ static void do_material_tex(GPUShadeInput *shi)
 
 					if(mtex->mapto & MAP_ALPHA)
 						GPU_link(mat, "set_value", stencil, &tin);
-					else
+					else if(talpha)
 						GPU_link(mat, "mtex_alpha_from_col", trgb, &tin);
+					else
+						GPU_link(mat, "set_value_one", &tin);
 				}
 				
 				if(mtex->mapto & MAP_COL)
@@ -1258,9 +1289,11 @@ void GPU_materials_free()
 
 /* Lamps and shadow buffers */
 
-void GPU_lamp_update(GPULamp *lamp, float obmat[][4])
+void GPU_lamp_update(GPULamp *lamp, int lay, float obmat[][4])
 {
 	float mat[4][4];
+
+	lamp->lay = lay;
 
 	Mat4CpyMat4(mat, obmat);
 	Mat4Ortho(mat);
@@ -1279,7 +1312,6 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->ob = ob;
 	lamp->par = par;
 	lamp->la = la;
-	lamp->lay = ob->lay;
 
 	/* add_render_lamp */
 	lamp->mode = la->mode;
@@ -1292,7 +1324,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	lamp->col[1]= la->g*lamp->energy;
 	lamp->col[2]= la->b*lamp->energy;
 
-	GPU_lamp_update(lamp, ob->obmat);
+	GPU_lamp_update(lamp, ob->lay, ob->obmat);
 
 	lamp->spotsi= la->spotsize;
 	if(lamp->mode & LA_HALO)
@@ -1340,10 +1372,12 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 	GPULamp *lamp;
 	LinkData *link;
 
-	for(link=ob->gpulamp.first; link; link=link->next)
-		if(((GPULamp*)link->data)->par == par &&
-		   ((GPULamp*)link->data)->scene == scene)
+	for(link=ob->gpulamp.first; link; link=link->next) {
+		lamp = (GPULamp*)link->data;
+
+		if(lamp->par == par && lamp->scene == scene)
 			return link->data;
+	}
 
 	lamp = MEM_callocN(sizeof(GPULamp), "GPULamp");
 
@@ -1383,18 +1417,20 @@ void GPU_lamp_free(Object *ob)
 {
 	GPULamp *lamp;
 	LinkData *link;
-	LinkNode *nlink;
+	LinkData *nlink;
 	Material *ma;
 
 	for(link=ob->gpulamp.first; link; link=link->next) {
 		lamp = link->data;
 
-		for(nlink=lamp->materials; nlink; nlink=nlink->next) {
-			ma= nlink->link;
+		while(lamp->materials.first) {
+			nlink = lamp->materials.first;
+			ma = nlink->data;
+			BLI_freelinkN(&lamp->materials, nlink);
+
 			if(ma->gpumaterial.first)
 				GPU_material_free(ma);
 		}
-		BLI_linklist_free(lamp->materials, NULL);
 
 		gpu_lamp_shadow_free(lamp);
 
