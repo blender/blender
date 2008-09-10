@@ -745,7 +745,8 @@ void GPG_Application::stopEngine()
 #endif
 				if (pyGlobalDictMarshal) {
 					m_pyGlobalDictString_Length = PyString_Size(pyGlobalDictMarshal);
-					PyObject_Print(pyGlobalDictMarshal, stderr, 0);
+					// for testing only
+					// PyObject_Print(pyGlobalDictMarshal, stderr, 0);
 					m_pyGlobalDictString = static_cast<char *> (malloc(m_pyGlobalDictString_Length));
 					memcpy(m_pyGlobalDictString, PyString_AsString(pyGlobalDictMarshal), m_pyGlobalDictString_Length);
 				} else {
