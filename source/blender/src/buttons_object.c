@@ -2943,7 +2943,8 @@ void do_effects_panels(unsigned short event)
 					psmd= (ParticleSystemModifierData*) md;
 					psmd->psys=psys;
 					BLI_addtail(&ob->modifiers, md);
-				}
+				} else
+					id->us--;
 
 				idtest->us++;
 				psys->part=(ParticleSettings*)idtest;
