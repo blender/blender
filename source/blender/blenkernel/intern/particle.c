@@ -3866,14 +3866,9 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 		Mat4MulMat4(mat, obrotmat, qmat);
 	}
 	else {
-		Crossf(side, nor, vec);
-		Normalize(side);
-		Crossf(nor, vec, side);
-
+		Normalize(nor);
 		Mat4One(mat);
-		VECCOPY(mat[0], vec);
-		VECCOPY(mat[1], side);
-		VECCOPY(mat[2], nor);
+		VECCOPY(mat[2], nor); // mat[2] is normal/direction
 	}
 
 	*scale= len;
