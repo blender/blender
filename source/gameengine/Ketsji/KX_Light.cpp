@@ -65,6 +65,13 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 
 KX_LightObject::~KX_LightObject()
 {
+	GPULamp *lamp;
+
+	if((lamp = GetGPULamp())) {
+		float obmat[4][4] = {{0}};
+		GPU_lamp_update(lamp, 0, obmat);
+	}
+
 	m_rendertools->RemoveLight(&m_lightobj);
 }
 
