@@ -129,7 +129,8 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	  m_blendermat(0),
 	  m_blenderglslmat(0),
 	  m_pyGlobalDictString(0),
-	  m_pyGlobalDictString_Length(0)
+	  m_pyGlobalDictString_Length(0),
+	  m_isEmbedded(false)
 {
 	fSystem = system;
 }
@@ -325,6 +326,26 @@ bool GPG_Application::startWindow(STR_String& title,
 	return success;
 }
 
+bool GPG_Application::startEmbeddedWindow(STR_String& title,
+	const GHOST_TEmbedderWindowID parentWindow, 
+	const bool stereoVisual, 
+	const int stereoMode) {
+
+	m_mainWindow = fSystem->createWindow(title, 0, 0, 0, 0, GHOST_kWindowStateNormal,
+		GHOST_kDrawingContextTypeOpenGL, stereoVisual, parentWindow);
+
+	if (!m_mainWindow) {
+		printf("error: could not create main window\n");
+		exit(-1);
+	}
+	m_isEmbedded = true;
+
+	bool success = initEngine(m_mainWindow, stereoMode);
+	if (success) {
+		success = startEngine();
+	}
+	return success;
+}
 
 
 bool GPG_Application::startFullScreen(
@@ -887,7 +908,7 @@ bool GPG_Application::handleKey(GHOST_IEvent* event, bool isDown)
 		GHOST_TEventKeyData* keyData = static_cast<GHOST_TEventKeyData*>(eventData);
 		//no need for this test
 		//if (fSystem->getFullScreen()) {
-			if (keyData->key == GHOST_kKeyEsc && !m_keyboard->m_hookesc) {
+			if (keyData->key == GHOST_kKeyEsc && !m_keyboard->m_hookesc && !m_isEmbedded) {
 				m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
 			}
 		//}

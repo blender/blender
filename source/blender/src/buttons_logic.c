@@ -3379,7 +3379,8 @@ void logic_buts(void)
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
 					if (pin)
-						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, (sens->flag & SENS_PIN) ? ICON_PIN_DEHLT:ICON_PIN_HLT, (short)(xco+width-44), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, ICON_PIN_DEHLT, (short)(xco+width-44), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+					
 					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
@@ -3456,7 +3457,7 @@ void logic_buts(void)
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, 19, &act->flag, 0, 0, 0, 0, "Delete Actuator");
 					if (pin)
-						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, (act->flag & ACT_PIN) ? ICON_PIN_DEHLT:ICON_PIN_HLT, (short)(xco+width-44), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
+						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, ICON_PIN_DEHLT, (short)(xco+width-44), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
 					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display the actuator");
 					
 					if(act->flag & ACT_SHOW) {

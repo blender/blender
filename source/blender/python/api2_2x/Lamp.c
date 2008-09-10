@@ -39,6 +39,7 @@
 #include "BSE_editipo.h"
 #include "mydevice.h"
 #include "Ipo.h"
+#include "MTex.h" 
 #include "constant.h"
 #include "gen_utils.h"
 #include "gen_library.h"
@@ -206,6 +207,7 @@ static PyObject *Lamp_getQuad2( BPy_Lamp * self );
 static PyObject *Lamp_getCol( BPy_Lamp * self );
 static PyObject *Lamp_getIpo( BPy_Lamp * self );
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure );
+static PyObject *Lamp_getTextures( BPy_Lamp * self );
 static PyObject *Lamp_clearIpo( BPy_Lamp * self );
 static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetIpo( BPy_Lamp * self, PyObject * args );
@@ -500,6 +502,10 @@ static PyGetSetDef BPy_Lamp_getseters[] = {
 	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
 	 "Lamp color blue component",
 	 (void *)EXPP_LAMP_COMP_B},
+	{"textures",
+	 (getter)Lamp_getTextures, (setter)NULL,
+     "The Lamp's texture list as a tuple",
+	 NULL},
 	{"Modes",
 	 (getter)Lamp_getModesConst, (setter)NULL,
 	 "Dictionary of values for 'mode' attribute",
@@ -1391,6 +1397,30 @@ static PyObject *Lamp_getTypesConst( void )
 				      "Hemi", EXPP_LAMP_TYPE_HEMI, 
 				      "Area", EXPP_LAMP_TYPE_AREA, 
 				      "Photon", EXPP_LAMP_TYPE_YF_PHOTON );
+}
+
+static PyObject *Lamp_getTextures( BPy_Lamp * self )
+{
+	int i;
+	PyObject *tuple;
+
+	/* build a texture list */
+	tuple = PyTuple_New( MAX_MTEX );
+	if( !tuple )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create PyTuple" );
+
+	for( i = 0; i < MAX_MTEX; ++i ) {
+		struct MTex *mtex = self->lamp->mtex[i];
+		if( mtex ) {
+			PyTuple_SET_ITEM( tuple, i, MTex_CreatePyObject( mtex, ID_LA ) );
+		} else {
+			Py_INCREF( Py_None );
+			PyTuple_SET_ITEM( tuple, i, Py_None );
+		}
+	}
+
+	return tuple;
 }
 
 /* #####DEPRECATED###### */

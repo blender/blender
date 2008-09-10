@@ -443,11 +443,12 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 	// this function is used when the collisionning group of a controller is changed
 	// remove and add the collistioning object
 	btRigidBody* body = ctrl->GetRigidBody();
-	btVector3 inertia;
+	btVector3 inertia(0.0,0.0,0.0);
 
 	m_dynamicsWorld->removeCollisionObject(body);
 	body->setCollisionFlags(newCollisionFlags);
-	body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
+	if (newMass)
+		body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
 	body->setMassProps(newMass, inertia);
 	m_dynamicsWorld->addCollisionObject(body, newCollisionGroup, newCollisionMask);
 	// to avoid nasty interaction, we must update the property of the controller as well

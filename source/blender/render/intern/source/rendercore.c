@@ -158,7 +158,7 @@ static int calchalo_z(HaloRen *har, int zz)
 {
 	
 	if(har->type & HA_ONLYSKY) {
-		if(zz!=0x7FFFFFFF) zz= - 0x7FFFFF;
+		if(zz < 0x7FFFFFF0) zz= - 0x7FFFFF;	/* edge render messes zvalues */
 	}
 	else {
 		zz= (zz>>8);

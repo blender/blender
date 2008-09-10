@@ -2062,6 +2062,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)){
 						G.f ^= G_FACESELECT;
 						allqueue(REDRAWVIEW3D, 1);
+						allqueue(REDRAWBUTSEDIT, 1);
 					}
 					else if(G.f & G_PARTICLEEDIT) {
 						PE_radialcontrol_start(RADIALCONTROL_SIZE);

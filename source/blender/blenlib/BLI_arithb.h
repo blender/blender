@@ -164,6 +164,7 @@ void Mat3Inv(float m1[][3], float m2[][3]);
 void Mat3CpyMat4(float m1[][3],float m2[][4]);
 void Mat4CpyMat3(float m1[][4], float m2[][3]); 
 
+void Mat3BlendMat3(float out[][3], float dst[][3], float src[][3], float srcweight);
 void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight);
 
 float Det2x2(float a,float b,float c, float d);

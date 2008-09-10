@@ -781,6 +781,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
 				}
 			}
+			// special case: Keyboard sensor with no link
+			// this combination is usually used for key logging. 
+			if (sens->type == SENS_KEYBOARD && sens->totlinks == 0) {
+				// Force the registration so that the sensor runs
+				gamesensor->IncLink();
+			}
+				
 			// done with gamesensor
 			gamesensor->Release();
 			

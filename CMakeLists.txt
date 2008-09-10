@@ -64,6 +64,7 @@ OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
+OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Mozilla-Unix only)"			OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -455,6 +456,13 @@ SUBDIRS(
 #-----------------------------------------------------------------------------
 # Blender Application
 SUBDIRS(source/creator)
+
+#-----------------------------------------------------------------------------
+# Blender WebPlugin
+IF(WITH_WEBPLUGIN) 
+  SET(MOZILLA_DIR "${CMAKE_SOURCE_DIR}/../gecko-sdk/" CACHE PATH "Gecko SDK path")
+  SET(WITH_PLAYER ON)
+ENDIF(WITH_WEBPLUGIN)
 
 #-----------------------------------------------------------------------------
 # Blender Player

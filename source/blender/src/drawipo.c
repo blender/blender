@@ -921,6 +921,13 @@ void drawscroll(int disptype)
 		
 		BIF_ThemeColor(TH_TEXT);
 		val= ipogrid_startx;
+		
+		if (ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME)) {	/* prevents printing twice same frame */
+			while(ipogrid_dx < 0.9999f) {
+				ipogrid_dx *= 2.0f;
+				dfac*= 2.0f;
+			}
+		}		
 		while(fac < hor.xmax) {
 			
 			if(curarea->spacetype==SPACE_OOPS) { 

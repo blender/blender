@@ -500,48 +500,84 @@ class MTex:
 	This object links a material to a texture. It allows the same texture to be
 	used in several different ways.
 
-	@ivar tex: The Texture this is linked to.
-	@type tex: Blender Texture
-	@ivar texco: Texture coordinates ("Map input"). See L{TexCo}
-	@ivar mapto: "Map to" field of texture. OR'd values of L{MapTo}
-	@ivar object: Object whose space to use when texco is Object
-	@type object: Blender Object
-	@ivar col: Color that the texture blends with
-	@ivar dvar: Value that the texture blends with when not blending colors
-	@ivar blendmode: Texture blending mode. L{BlendModes}
-	@ivar colfac: Factor by which texture affects color
-	@ivar norfac: Factor by which texture affects normal
-	@ivar varfac: Factor by which texture affects most variables
-	@ivar dispfac: Factor by which texture affects displacement
-	@ivar warpfac: Factor by which texture affects warp
-	@ivar ofs: Offset to adjust texture space
-	@ivar size: Size to scale texture space
-	@ivar mapping: Mapping of texture coordinates (flat, cube, etc.). L{Mappings}
-	@ivar stencil: Stencil mode
-	@ivar neg: Negate texture values mode
-	@ivar noRGB: Convert texture RGB values to intensity values
-	@ivar correctNor: Correct normal mapping for Texture space and Object space
-	@ivar fromDupli: Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent
-	@ivar fromOrig: Dupli's derive their object coordinates from the original objects transformation
-	@ivar xproj: Projection of X axis to Texture space. L{Proj}
-	@ivar yproj: Projection of Y axis to Texture space. L{Proj}
-	@ivar zproj: Projection of Z axis to Texture space. L{Proj}
-	@ivar mtCol: How texture maps to color
-	@ivar mtNor: How texture maps to normals
-	@ivar mtCsp: How texture maps to specularity color
-	@ivar mtCmir: How texture maps to mirror color
-	@ivar mtRef: How texture maps to reflectivity
-	@ivar mtSpec: How texture maps to specularity
-	@ivar mtEmit: How texture maps to emit value
-	@ivar mtAlpha: How texture maps to alpha value
-	@ivar mtHard: How texture maps to hardness
-	@ivar mtRayMir: How texture maps to RayMir value
-	@ivar mtTranslu: How texture maps to translucency
-	@ivar mtAmb: How texture maps to ambient value
-	@ivar mtDisp: How texture maps to displacement
-	@ivar mtWarp: How texture maps to warp
-	@ivar uvlayer: The name of the UV Layer this texture is mapped to (when left blank uses render layer)
-	@type uvlayer: string
+    @type blendmode: int
+    @ivar blendmode: Texture blending mode. See L{BlendModes}
+    @type col: tuple
+    @ivar col: Color that the texture blends with.  Range of.
+    @type colfac: float
+    @ivar colfac: Factor by which texture affects color.
+    @ivar correctNor: Correct normal mapping for Texture space and Object space.
+    @type correctNor: boolean
+    @type dispfac: float
+    @ivar dispfac: Factor by which texture affects displacement.
+    @type dvar: float
+    @ivar dvar: Value that the texture blends with when not blending colors.
+    @type fromDupli: boolean
+    @ivar fromDupli: Duplis instanced from verts, faces or particles, inherit texture coordinate from their parent.
+    @type fromOrig: boolean
+    @ivar fromOrig: Duplis derive their object coordinates from the original objects transformation.
+    @type mapping: int
+    @ivar mapping: Mapping of texture coordinates (flat, cube, etc.).  See L{Mappings}.
+    @type mapto: int
+    @ivar mapto: "Map to" field of texture. OR'd values of L{MapTo}.
+    @ivar mtAlpha: How texture maps to alpha value.
+    @type mtAlpha: int
+    @ivar mtAmb: How texture maps to ambient value.
+    @type mtAmb: int
+    @ivar mtCmir: How texture maps to mirror color.
+    @type mtCmir: int
+    @ivar mtCol: How texture maps to color.
+    @type mtCol: int
+    @ivar mtCsp: How texture maps to specularity color
+    @type mtCsp: int
+    @ivar mtDisp: How texture maps to displacement
+    @type mtDisp: int
+    @ivar mtEmit: How texture maps to emit value
+    @type mtEmit: int
+    @ivar mtHard: How texture maps to hardness
+    @type mtHard: int
+    @ivar mtNor: How texture maps to normals
+    @type mtNor: int
+    @ivar mtRayMir: How texture maps to RayMir value
+    @type mtRayMir: int
+    @ivar mtRef: How texture maps to reflectivity
+    @type mtRef: int
+    @ivar mtSpec: How texture maps to specularity
+    @type mtSpec: int
+    @ivar mtTranslu: How texture maps to translucency
+    @type mtTranslu: int
+    @ivar mtWarp: How texture maps to warp
+    @type mtWarp: int
+    @ivar neg: Negate texture values mode
+    @type neg: boolean
+    @ivar norfac: Factor by which texture affects normal
+    @type norfac: float
+    @ivar noRGB: Convert texture RGB values to intensity values
+    @type noRGB: boolean
+    @ivar object: Object whose space to use when texco is Object
+    @type object: Blender Object or None
+    @type ofs: tuple
+    @ivar ofs: Offset to adjust texture space
+    @type size: tuple
+    @ivar size: Size to scale texture space
+    @ivar stencil: Stencil mode
+    @type stencil: boolean
+    @ivar tex: The Texture this is linked to.
+    @type tex: Blender Texture
+    @ivar texco: Texture coordinates ("Map input"). See L{TexCo}
+    @type texco: int
+    @ivar uvlayer: The name of the UV Layer this texture is mapped to (when left blank uses render layer)
+    @type uvlayer: string
+    @type varfac: float
+    @ivar varfac: Factor by which texture affects most variables
+    @type warpfac: float
+    @ivar warpfac: Factor by which texture affects warp
+    @type xproj: int
+    @ivar xproj: Projection of X axis to Texture space. See L{Proj}
+    @type yproj: int
+    @ivar yproj: Projection of Y axis to Texture space. See L{Proj}
+    @type zproj: int
+    @ivar zproj: Projection of Z axis to Texture space. See L{Proj}
 	"""
 
 	def getIpo():

@@ -58,7 +58,16 @@ class KX_GameObject:
 		"""
 	def setPosition(pos):
 		"""
-		Sets the game object's position.
+		Sets the game object's position. 
+		Global coordinates for root object, local for child objects.
+		
+		
+		@type pos: [x, y, z]
+		@param pos: the new position, in local coordinates.
+		"""
+	def setWorldPosition(pos):
+		"""
+		Sets the game object's position in world coordinates regardless if the object is root or child.
 		
 		@type pos: [x, y, z]
 		@param pos: the new position, in world coordinates.

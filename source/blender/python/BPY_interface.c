@@ -778,9 +778,6 @@ int BPY_run_script(Script *script)
 	PyObject *py_dict, *py_res, *pyarg;
 	Text *text = NULL;
 	BPy_constant *info;
-	int len;
-	
-	FILE *fp = NULL;
 	
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	
@@ -825,12 +822,8 @@ int BPY_run_script(Script *script)
 		Py_INCREF( Py_None );
 		pyarg = Py_None;
 	} else {
-		if (BLI_exists(script->scriptname)) {
-			fp = fopen( script->scriptname, "rb" );
-		}
-		
-		if( !fp ) {
-			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
+		if (!BLI_exists(script->scriptname)) {
+			printf( "Script does not exit %s\n", script->scriptname );
 			free_libblock( &G.main->script, script );
 			PyGILState_Release(gilstate);
 			return 0;
@@ -875,51 +868,17 @@ int BPY_run_script(Script *script)
 	if (text) {
 		py_res = RunPython( text, py_dict );
 	} else {
+		char pystring[sizeof(script->scriptname) + 15];
+		sprintf(pystring, "execfile(r'%s')", script->scriptname);
+		py_res = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+	}
+
+	if( !py_res ) {		/* Failed execution of the script */
 		/* Previously we used PyRun_File to run directly the code on a FILE 
 		* object, but as written in the Python/C API Ref Manual, chapter 2,
 		* 'FILE structs for different C libraries can be different and 
 		* incompatible'.
 		* So now we load the script file data to a buffer */
-		char *buffer=NULL, *buffer_ofs=NULL, *b_to, *b_from;
-		
-		fseek( fp, 0L, SEEK_END );
-		len = ftell( fp );
-		fseek( fp, 0L, SEEK_SET );
-	
-		buffer = buffer_ofs = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
-		len = fread( buffer, 1, len, fp );
-	
-		buffer[len] = '\n';	/* fix syntax error in files w/o eol */
-		buffer[len + 1] = '\0';
-		
-		
-		/* fast clean-up of dos cr/lf line endings, remove convert '\r\n's to '\n' */
-		if (*buffer_ofs == '\r' && *(buffer_ofs+1) == '\n') {
-			buffer_ofs++;
-		}
-		b_from = b_to = buffer_ofs;
-		
-		while(*b_from != '\0') {
-			if (*b_from == '\r' && *( b_from+1 ) == '\n') {
-				b_from++;
-			}
-			if (b_from != b_to) {
-				*b_to = *b_from;
-			}
-			b_to++;
-			b_from++;
-		}
-		*b_to = '\0';
-		/* done cleaning the string */
-		
-		fclose( fp );
-		
-		py_res = PyRun_String( buffer_ofs, Py_file_input, py_dict, py_dict );
-		MEM_freeN( buffer );
-	}
-
-	if( !py_res ) {		/* Failed execution of the script */
-
 		BPY_Err_Handle( script->id.name + 2 );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;

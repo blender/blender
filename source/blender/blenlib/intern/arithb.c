@@ -759,6 +759,28 @@ void Mat4MulSerie(float answ[][4], float m1[][4],
 	}
 }
 
+void Mat3BlendMat3(float out[][3], float dst[][3], float src[][3], float srcweight)
+{
+	float squat[4], dquat[4], fquat[4];
+	float ssize[3], dsize[3], fsize[4];
+	float rmat[3][3], smat[3][3];
+	
+	Mat3ToQuat(dst, dquat);
+	Mat3ToSize(dst, dsize);
+
+	Mat3ToQuat(src, squat);
+	Mat3ToSize(src, ssize);
+	
+	/* do blending */
+	QuatInterpol(fquat, dquat, squat, srcweight);
+	VecLerpf(fsize, dsize, ssize, srcweight);
+
+	/* compose new matrix */
+	QuatToMat3(fquat, rmat);
+	SizeToMat3(fsize, smat);
+	Mat3MulMat3(out, rmat, smat);
+}
+
 void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight)
 {
 	float squat[4], dquat[4], fquat[4];
