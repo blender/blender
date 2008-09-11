@@ -613,7 +613,7 @@ int main(int argc, char** argv)
 					}
 					else
 					{
-						bfd = load_game_data(argv[0], filename);
+						bfd = load_game_data(bprogname, filename);
 					}
 					
 					//::printf("game data loaded from %s\n", filename);
