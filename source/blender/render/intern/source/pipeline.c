@@ -1889,6 +1889,7 @@ static void do_render_fields_blur_3d(Render *re)
 				re->result->tilerect= re->disprect;
 				
 				/* this copying sequence could become function? */
+				/* weak is: it chances disprect from border */
 				re->disprect.xmin= re->disprect.ymin= 0;
 				re->disprect.xmax= re->winx;
 				re->disprect.ymax= re->winy;
@@ -2413,7 +2414,7 @@ static int is_rendering_allowed(Render *re)
 }
 
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene)
+static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2440,6 +2441,12 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 	}
 	
 	re->scene= scene;
+	
+	/* not too nice, but it survives anim-border render */
+	if(anim) {
+		re->disprect= disprect;
+		return 1;
+	}
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
@@ -2472,7 +2479,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene)) {
+	if(render_initialize_from_scene(re, scene, 0)) {
 		do_render_all_options(re);
 	}
 	
@@ -2557,8 +2564,8 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
 	
-	/* do not call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene))
+	/* do not fully call for each frame, it initializes & pops output window */
+	if(!render_initialize_from_scene(re, scene, 0))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2586,6 +2593,10 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	} else {
 		for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
 			char name[FILE_MAX];
+			
+			/* only border now, todo: camera lens. (ton) */
+			render_initialize_from_scene(re, scene, 1);
+			
 			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
 				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 			}
