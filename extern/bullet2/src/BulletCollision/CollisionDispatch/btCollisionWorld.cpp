@@ -379,12 +379,16 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 					btTransform childTrans = compoundShape->getChildTransform(i);
 					const btCollisionShape* childCollisionShape = compoundShape->getChildShape(i);
 					btTransform childWorldTrans = colObjWorldTransform * childTrans;
+					// replace collision shape so that callback can determine the triangle
+					btCollisionShape* saveCollisionShape = collisionObject->getCollisionShape();
+					collisionObject->setCollisionShape((btCollisionShape*)childCollisionShape);
 					rayTestSingle(rayFromTrans,rayToTrans,
 						collisionObject,
 						childCollisionShape,
 						childWorldTrans,
 						resultCallback);
-
+					// restore
+					collisionObject->setCollisionShape(saveCollisionShape);
 				}
 			}
 		}
@@ -571,11 +575,16 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 					btTransform childTrans = compoundShape->getChildTransform(i);
 					const btCollisionShape* childCollisionShape = compoundShape->getChildShape(i);
 					btTransform childWorldTrans = colObjWorldTransform * childTrans;
+					// replace collision shape so that callback can determine the triangle
+					btCollisionShape* saveCollisionShape = collisionObject->getCollisionShape();
+					collisionObject->setCollisionShape((btCollisionShape*)childCollisionShape);
 					objectQuerySingle(castShape, convexFromTrans,convexToTrans,
 						collisionObject,
 						childCollisionShape,
 						childWorldTrans,
 						resultCallback, allowedPenetration);
+					// restore
+					collisionObject->setCollisionShape(saveCollisionShape);
 				}
 			}
 		}
