@@ -741,8 +741,8 @@ struct	FilterClosestRayResultCallback : public btCollisionWorld::ClosestRayResul
 		// save shape information as ClosestRayResultCallback::AddSingleResult() does not do it
 		if (rayResult.m_localShapeInfo)
 		{
-			m_hitTriangleShape = NULL;//rayResult.m_localShapeInfo->m_triangleShape;
-			m_hitTriangleIndex = 0;//rayResult.m_localShapeInfo->m_triangleIndex;
+			m_hitTriangleShape = rayResult.m_collisionObject->getCollisionShape();
+			m_hitTriangleIndex = rayResult.m_localShapeInfo->m_triangleIndex;
 		} else 
 		{
 			m_hitTriangleShape = NULL;
@@ -786,16 +786,6 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 		result.m_hitPoint[1] = rayCallback.m_hitPointWorld.getY();
 		result.m_hitPoint[2] = rayCallback.m_hitPointWorld.getZ();
 
-		if (rayCallback.m_hitNormalWorld.length2() > (SIMD_EPSILON*SIMD_EPSILON))
-		{
-			rayCallback.m_hitNormalWorld.normalize();
-		} else
-		{
-			rayCallback.m_hitNormalWorld.setValue(1,0,0);
-		}
-		result.m_hitNormal[0] = rayCallback.m_hitNormalWorld.getX();
-		result.m_hitNormal[1] = rayCallback.m_hitNormalWorld.getY();
-		result.m_hitNormal[2] = rayCallback.m_hitNormalWorld.getZ();
 		if (rayCallback.m_hitTriangleShape != NULL)
 		{
 			// identify the mesh polygon
@@ -821,9 +811,63 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 				{
 					result.m_meshObject = shapeInfo->m_meshObject;
 					result.m_polygon = shapeInfo->m_polygonIndexArray.at(rayCallback.m_hitTriangleIndex);
+
+					// Bullet returns the normal from "outside".
+					// If the user requests the real normal, compute it now
+                    if (filterCallback.m_faceNormal)
+					{
+						// this code is copied from Bullet 
+						btVector3 triangle[3];
+						const unsigned char *vertexbase;
+						int numverts;
+						PHY_ScalarType type;
+						int stride;
+						const unsigned char *indexbase;
+						int indexstride;
+						int numfaces;
+						PHY_ScalarType indicestype;
+						btTriangleMeshShape* triangleShape = (btTriangleMeshShape*)shape;
+						btStridingMeshInterface* meshInterface = triangleShape->getMeshInterface();
+
+						meshInterface->getLockedReadOnlyVertexIndexBase(
+							&vertexbase,
+							numverts,
+							type,
+							stride,
+							&indexbase,
+							indexstride,
+							numfaces,
+							indicestype,
+							0);
+
+						unsigned int* gfxbase = (unsigned int*)(indexbase+rayCallback.m_hitTriangleIndex*indexstride);
+						const btVector3& meshScaling = meshInterface->getScaling();
+						for (int j=2;j>=0;j--)
+						{
+							int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:gfxbase[j];
+
+							btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
+
+							triangle[j] = btVector3(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());		
+						}
+						meshInterface->unLockReadOnlyVertexBase(0);
+						btVector3 triangleNormal; 
+						triangleNormal = (triangle[1]-triangle[0]).cross(triangle[2]-triangle[0]);
+						rayCallback.m_hitNormalWorld = rayCallback.m_collisionObject->getWorldTransform().getBasis()*triangleNormal;
+					}
 				}
 			}
 		}
+		if (rayCallback.m_hitNormalWorld.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+		{
+			rayCallback.m_hitNormalWorld.normalize();
+		} else
+		{
+			rayCallback.m_hitNormalWorld.setValue(1,0,0);
+		}
+		result.m_hitNormal[0] = rayCallback.m_hitNormalWorld.getX();
+		result.m_hitNormal[1] = rayCallback.m_hitNormalWorld.getY();
+		result.m_hitNormal[2] = rayCallback.m_hitNormalWorld.getZ();
 		filterCallback.reportHit(&result);
 	}	
 
