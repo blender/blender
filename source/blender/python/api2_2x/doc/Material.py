@@ -1087,5 +1087,12 @@ class Material:
 		@return:  a copy of this material
 		"""
 
+	def freeNodes ():
+		"""
+		Removes the node tree from this material.
+		@rtype: bool
+		@return:  true if nodes were freed from this material.
+		"""
+
 import id_generics
 Material.__doc__ += id_generics.attributes

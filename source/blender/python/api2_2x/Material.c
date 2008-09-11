@@ -649,7 +649,7 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
 static PyObject *Material_getColorband( BPy_Material * self, void * type);
 int Material_setColorband( BPy_Material * self, PyObject * value, void * type);
 static PyObject *Material_copy( BPy_Material * self );
-
+static PyObject *Material_freeNodes( BPy_Material * self );
 
 /*****************************************************************************/
 /* Python BPy_Material methods table: */
@@ -887,6 +887,8 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return a copy of the material."},
 	{"copy", ( PyCFunction ) Material_copy, METH_NOARGS,
 	 "() - Return a copy of the material."},
+	{"freeNodes", ( PyCFunction ) Material_freeNodes, METH_NOARGS,
+	 "() - Free this materials nodes."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2586,6 +2588,22 @@ static PyObject *Material_copy( BPy_Material * self )
 						"couldn't create Material Data object" ) );
 
 	return ( PyObject * ) pymat;
+}
+
+/* mat.freeNodes() */
+static PyObject *Material_freeNodes( BPy_Material * self )
+{
+	if (self->material->nodetree) {
+		if(self->material->nodetree) {
+			ntreeFreeTree(self->material->nodetree);
+			MEM_freeN(self->material->nodetree);
+		}
+		self->material->nodetree = NULL;
+		self->material->use_nodes = 0;
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
 }
 
 /* mat_a==mat_b or mat_a!=mat_b*/

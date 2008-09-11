@@ -3298,8 +3298,8 @@ void logic_buts(void)
 				
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
-							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 100, 19, &cont->type, 0, 0, 0, 0, "Controller type");
-							but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-166), 19, cont->name, 0, 31, 0, 0, "Controller name");
+							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, 19, &cont->type, 0, 0, 0, 0, "Controller type");
+							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-136), 19, cont->name, 0, 31, 0, 0, "Controller name");
 							uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
 				
 							ycoo= yco;
@@ -3309,9 +3309,9 @@ void logic_buts(void)
 						else {
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
-							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 100, 19, cont, 0, 0, 0, 0, "Controller type");
+							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, 19, cont, 0, 0, 0, 0, "Controller type");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
-							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+122), yco,(short)(width-166), 19, cont, 0, 0, 0, 0, "Controller name");
+							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-136), 19, cont, 0, 0, 0, 0, "Controller name");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
 							ycoo= yco;
 						}
