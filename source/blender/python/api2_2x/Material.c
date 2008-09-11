@@ -37,6 +37,7 @@
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
+#include "BKE_node.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h" /* for CLAMP */
 #include "MEM_guardedalloc.h"

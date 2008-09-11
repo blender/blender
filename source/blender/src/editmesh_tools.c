@@ -4703,10 +4703,10 @@ int EdgeSlide(short immediate, float imperc)
 	int wasshift = 0;
 	
 	/* UV correction vars */
-	GHash **uvarray;
+	GHash **uvarray= NULL;
 	int  uvlay_tot= CustomData_number_of_layers(&G.editMesh->fdata, CD_MTFACE);
 	int uvlay_idx;
-	SlideUv *slideuvs, *suv, *suv_last;	
+	SlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;	
 	float uv_tmp[2];
 	LinkNode *fuv_link;
 	
