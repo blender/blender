@@ -2608,7 +2608,7 @@ static void markMultiResolutionArc(ReebArc *start_earc)
 		{
 			earc->flag = ARC_TAKEN;
 			
-			if (earc->tail != start_earc->tail)
+			if (earc->tail->index != start_earc->tail->index)
 			{
 				markMultiResolutionChildArc(earc->tail, earc->tail);
 			}
