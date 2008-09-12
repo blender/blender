@@ -22,6 +22,9 @@ subject to the following restrictions:
 #include "btQuaternion.h"
 
 
+
+///The btMatrix3x3 class implements a 3x3 rotation matrix, to perform linear algebra in combination with btQuaternion, btTransform and btVector3.
+///Make sure to only include a pure orthogonal matrix without scaling.
 class btMatrix3x3 {
 	public:
 		btMatrix3x3 () {}
@@ -356,7 +359,7 @@ class btMatrix3x3 {
 			m_el[0].y() * m[0].z() + m_el[1].y() * m[1].z() + m_el[2].y() * m[2].z(),
 			m_el[0].z() * m[0].x() + m_el[1].z() * m[1].x() + m_el[2].z() * m[2].x(),
 			m_el[0].z() * m[0].y() + m_el[1].z() * m[1].y() + m_el[2].z() * m[2].y(),
-			m_el[0].z() * m[0].z() + m_el[1].z() * m[1].z() + m_el[2].z() * m[2].x());
+			m_el[0].z() * m[0].z() + m_el[1].z() * m[1].z() + m_el[2].z() * m[2].z());
 	}
 	
 	SIMD_FORCE_INLINE btMatrix3x3 
@@ -406,5 +409,11 @@ class btMatrix3x3 {
 }
 */
 
+SIMD_FORCE_INLINE bool operator==(const btMatrix3x3& m1, const btMatrix3x3& m2)
+{
+   return ( m1[0][0] == m2[0][0] && m1[1][0] == m2[1][0] && m1[2][0] == m2[2][0] &&
+            m1[0][1] == m2[0][1] && m1[1][1] == m2[1][1] && m1[2][1] == m2[2][1] &&
+            m1[0][2] == m2[0][2] && m1[1][2] == m2[1][2] && m1[2][2] == m2[2][2] );
+}
 
 #endif

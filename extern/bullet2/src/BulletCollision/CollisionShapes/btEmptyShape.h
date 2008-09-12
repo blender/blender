@@ -18,16 +18,16 @@ subject to the following restrictions:
 
 #include "btConcaveShape.h"
 
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btTransform.h"
-#include "../../LinearMath/btMatrix3x3.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btMatrix3x3.h"
 #include "btCollisionMargin.h"
 
 
 
 
-/// btEmptyShape is a collision shape without actual collision detection. 
-///It can be replaced by another shape during runtime
+/// The btEmptyShape is a collision shape without actual collision detection shape, so most users should ignore this class.
+/// It can be replaced by another shape during runtime, but the inertia tensor should be recomputed.
 class btEmptyShape	: public btConcaveShape
 {
 public:
@@ -49,12 +49,12 @@ public:
 		return m_localScaling;
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 	
 	virtual int	getShapeType() const { return EMPTY_SHAPE_PROXYTYPE;}
 
 	
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "Empty";
 	}

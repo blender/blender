@@ -18,58 +18,95 @@ subject to the following restrictions:
 
 #include "btCollisionShape.h"
 
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btTransform.h"
-#include "../../LinearMath/btMatrix3x3.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btMatrix3x3.h"
 #include "btCollisionMargin.h"
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 class btOptimizedBvh;
 
-/// btCompoundShape allows to store multiple other btCollisionShapes
-/// This allows for concave collision objects. This is more general then the Static Concave btTriangleMeshShape.
-class btCompoundShape	: public btCollisionShape
+
+ATTRIBUTE_ALIGNED16(struct) btCompoundShapeChild
 {
-	btAlignedObjectArray<btTransform>		m_childTransforms;
-	btAlignedObjectArray<btCollisionShape*>	m_childShapes;
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
+	btTransform			m_transform;
+	btCollisionShape*	m_childShape;
+	int					m_childShapeType;
+	btScalar			m_childMargin;
+};
+
+SIMD_FORCE_INLINE bool operator==(const btCompoundShapeChild& c1, const btCompoundShapeChild& c2)
+{
+   return  ( c1.m_transform      == c2.m_transform &&
+             c1.m_childShape     == c2.m_childShape &&
+             c1.m_childShapeType == c2.m_childShapeType &&
+             c1.m_childMargin    == c2.m_childMargin );
+}
+
+/// btCompoundShape allows to store multiple other btCollisionShapes
+/// This allows for moving concave collision objects. This is more general then the static concave btBvhTriangleMeshShape.
+ATTRIBUTE_ALIGNED16(class) btCompoundShape	: public btCollisionShape
+{
+	//btAlignedObjectArray<btTransform>		m_childTransforms;
+	//btAlignedObjectArray<btCollisionShape*>	m_childShapes;
+	btAlignedObjectArray<btCompoundShapeChild> m_children;
 	btVector3						m_localAabbMin;
 	btVector3						m_localAabbMax;
 
 	btOptimizedBvh*					m_aabbTree;
 
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btCompoundShape();
 
 	virtual ~btCompoundShape();
 
 	void	addChildShape(const btTransform& localTransform,btCollisionShape* shape);
 
+   /** Remove all children shapes that contain the specified shape. */
+	virtual void removeChildShape(btCollisionShape* shape);
+
+	  
+	
+
 	int		getNumChildShapes() const
 	{
-		return int (m_childShapes.size());
+		return int (m_children.size());
 	}
 
 	btCollisionShape* getChildShape(int index)
 	{
-		return m_childShapes[index];
+		return m_children[index].m_childShape;
 	}
 	const btCollisionShape* getChildShape(int index) const
 	{
-		return m_childShapes[index];
+		return m_children[index].m_childShape;
 	}
 
-	btTransform&	getChildTransform(int index)
+	btTransform	getChildTransform(int index)
 	{
-		return m_childTransforms[index];
+		return m_children[index].m_transform;
 	}
-	const btTransform&	getChildTransform(int index) const
+	const btTransform	getChildTransform(int index) const
 	{
-		return m_childTransforms[index];
+		return m_children[index].m_transform;
+	}
+
+
+	btCompoundShapeChild* getChildList()
+	{
+		return &m_children[0];
 	}
 
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
-	void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
-
+	virtual	void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
+	
+   /** Re-calculate the local Aabb. Is called at the end of removeChildShapes. 
+       Use this yourself if you modify the children or their transforms. */
+	virtual void recalculateLocalAabb(); 
 
 	virtual void	setLocalScaling(const btVector3& scaling)
 	{
@@ -80,7 +117,7 @@ public:
 		return m_localScaling;
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 	
 	virtual int	getShapeType() const { return COMPOUND_SHAPE_PROXYTYPE;}
 
@@ -92,7 +129,7 @@ public:
 	{
 		return m_collisionMargin;
 	}
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "Compound";
 	}
