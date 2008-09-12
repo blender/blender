@@ -74,6 +74,8 @@ extern "C" {
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 }
 
+#include "marshal.h" /* python header for loading/saving dicts */
+
 #include "PHY_IPhysicsEnvironment.h"
 // FIXME: Enable for access to blender python modules.  This is disabled because
 // python has dependencies on a lot of other modules and is a pain to link.
@@ -1318,4 +1320,67 @@ void PHY_SetActiveScene(class KX_Scene* scene)
 class KX_Scene* PHY_GetActiveScene()
 {
 	return gp_KetsjiScene;
+}
+
+// utility function for loading and saving the globalDict
+int saveGamePythonConfig( char **marshal_buffer)
+{
+	int marshal_length = 0;
+	PyObject* gameLogic = PyImport_ImportModule("GameLogic");
+	if (gameLogic) {
+		PyObject* pyGlobalDict = PyDict_GetItemString(PyModule_GetDict(gameLogic), "globalDict"); // Same as importing the module
+		if (pyGlobalDict) {
+#ifdef Py_MARSHAL_VERSION	
+			PyObject* pyGlobalDictMarshal = PyMarshal_WriteObjectToString(	pyGlobalDict, 2); // Py_MARSHAL_VERSION == 2 as of Py2.5
+#else
+			PyObject* pyGlobalDictMarshal = PyMarshal_WriteObjectToString(	pyGlobalDict ); 
+#endif
+			if (pyGlobalDictMarshal) {
+				marshal_length= PyString_Size(pyGlobalDictMarshal);
+				// for testing only
+				// PyObject_Print(pyGlobalDictMarshal, stderr, 0);
+				*marshal_buffer = PyString_AsString(pyGlobalDictMarshal);
+			} else {
+				printf("Error, GameLogic.globalDict could not be marshal'd\n");
+			}
+			Py_DECREF(gameLogic);
+		} else {
+			printf("Error, GameLogic.globalDict was removed\n");
+		}
+	} else {
+		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+	}
+	return marshal_length;
+}
+
+int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
+{
+	PyObject* gameLogic = PyImport_ImportModule("GameLogic");
+	/* Restore the dict */
+	if (marshal_buffer) {
+		PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(marshal_buffer, marshal_length);
+		if (pyGlobalDict) {
+			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+			return 1;
+		} else {
+			PyErr_Clear();
+			printf("Error could not marshall string\n");
+		}
+	} else {
+		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+	}	
+	return 0;
+}
+
+void pathGamePythonConfig( char *path )
+{
+	int len = strlen(G.sce);
+	
+	strncpy(path, G.sce, sizeof(G.sce));
+	/* replace extension */
+	if (BLI_testextensie(path, ".blend")) {
+		strcpy(path+(len-6), ".bgeconf");
+	} else {
+		strcpy(path+len, ".bgeconf");
+	}
 }

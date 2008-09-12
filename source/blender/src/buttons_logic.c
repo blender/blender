@@ -2296,13 +2296,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		   		uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this file");
 				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, 63, 0, 0, "Use this loadinganimation");
 			}
-*/			else if (gma->type == ACT_GAME_RESTART)
-			{
-				ysize = 28; 
-				glRects(xco, yco-ysize, xco+width, yco); 
-				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
-			}
-			else if (gma->type == ACT_GAME_QUIT)
+*/			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG))
 			{
 				ysize = 28; 
 				glRects(xco, yco-ysize, xco+width, yco); 
@@ -2310,7 +2304,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			}
 
 			//str = "Scene %t|Load game%x0|Start loaded game%x1|Restart this game%x2|Quit this game %x3";
-			str = "Scene %t|Start new game%x0|Restart this game%x2|Quit this game %x3";
+			str = "Scene %t|Start new game%x0|Restart this game%x2|Quit this game %x3|Save GameLogic.globalDict %x4|Load GameLogic.globalDict %x5";
 			uiDefButS(block, MENU, B_REDR, str, xco+40, yco-24, (width-80), 19, &gma->type, 0.0, 0.0, 0, 0, ""); 
 			
 			yco -= ysize; 
