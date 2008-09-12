@@ -2456,10 +2456,13 @@ static int Material_setTextures( BPy_Material * self, PyObject * value )
 	/* check the list for valid entries */
 	for( i= 0; i < PySequence_Size(value) ; ++i ) {
 		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
-		if( item != Py_None && !BPy_MTex_Check( item ) ) {
+		if( item == Py_None || ( BPy_MTex_Check( item ) &&
+						((BPy_MTex *)item)->type == ID_MA ) ) {
+			continue;
+		} else {
 			Py_DECREF(value);
 			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected tuple or list containing MTex objects and NONE" );
+					"expected tuple or list containing material MTex objects and NONE" );
 		}
 	}
 

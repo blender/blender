@@ -42,6 +42,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
 #include "MTex.h"
 #include "Image.h"
@@ -1142,6 +1143,11 @@ static PyObject *M_Texture_TexCoDict( void )
 		PyConstant_Insert(d, "STICK", PyInt_FromLong(TEXCO_STICKY));
 		PyConstant_Insert(d, "STRESS", PyInt_FromLong(TEXCO_STRESS));
 		PyConstant_Insert(d, "TANGENT", PyInt_FromLong(TEXCO_TANGENT));
+
+	/* World TexCo Settings */
+		PyConstant_Insert(d, "ANGMAP", PyInt_FromLong(TEXCO_ANGMAP));
+		PyConstant_Insert(d, "HSPHERE", PyInt_FromLong(TEXCO_H_SPHEREMAP));
+		PyConstant_Insert(d, "HTUBE", PyInt_FromLong(TEXCO_H_TUBEMAP));
 	}
 	return TexCo;
 }
