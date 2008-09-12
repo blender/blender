@@ -2678,7 +2678,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 								state->vel,force_field,0, pd->rng, pd->f_noise,charge,pa->size);
 						}
 					}
-					else if(pd & pd->forcefield==PFIELD_HARMONIC && cfra-framestep <= epa->dietime && cfra>epa->dietime){
+					else if(pd && pd->forcefield==PFIELD_HARMONIC && cfra-framestep <= epa->dietime && cfra>epa->dietime){
 						/* first step after key release */
 						psys_get_particle_state(eob,epsys,p,&estate,1);
 						VECADD(vel,vel,estate.vel);
