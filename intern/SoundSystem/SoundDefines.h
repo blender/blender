@@ -44,7 +44,7 @@ enum
 
 /* general stuff */
 #define NUM_BUFFERS						128
-#define NUM_SOURCES						16
+#define NUM_SOURCES						32
 
 /* openal related stuff */
 #define AL_LOOPING						0x1007
