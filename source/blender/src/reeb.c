@@ -3622,7 +3622,6 @@ void REEB_draw()
 	}
 	
 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
-	glLineWidth(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	glDisable(GL_DEPTH_TEST);
 	for (arc = rg->arcs.first; arc; arc = arc->next, i++)
@@ -3633,6 +3632,25 @@ void REEB_draw()
 		char text[128];
 		char *s = text;
 		
+		glLineWidth(BIF_GetThemeValuef(TH_VERTEX_SIZE) + 2);
+		glColor3f(0, 0, 0);
+		glBegin(GL_LINE_STRIP);
+			glVertex3fv(arc->head->p);
+			
+			if (arc->bcount)
+			{
+				initArcIterator(&iter, arc, arc->head);
+				for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+				{
+					glVertex3fv(bucket->p);
+				}
+			}
+			
+			glVertex3fv(arc->tail->p);
+		glEnd();
+
+		glLineWidth(BIF_GetThemeValuef(TH_VERTEX_SIZE));
+
 		if (arc->symmetry_level == 1)
 		{
 			glColor3f(1, 0, 0);
