@@ -3841,7 +3841,7 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 
 void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
 {
-	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
+	float loc[3], nor[3], vec[3], len, obrotmat[4][4], qmat[4][4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 
 	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
@@ -3866,14 +3866,9 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 		Mat4MulMat4(mat, obrotmat, qmat);
 	}
 	else {
-		Crossf(side, nor, vec);
-		Normalize(side);
-		Crossf(nor, vec, side);
-
+		Normalize(nor);
 		Mat4One(mat);
-		VECCOPY(mat[0], vec);
-		VECCOPY(mat[1], side);
-		VECCOPY(mat[2], nor);
+		VECCOPY(mat[2], nor); // mat[2] is normal/direction
 	}
 
 	*scale= len;

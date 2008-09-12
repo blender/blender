@@ -3651,6 +3651,7 @@ void remove_doubles_ipo(void)
 
 	}
 	deselectall_editipo();
+	BIF_undo_push("Remove Doubles (IPO)");
 }
 
 

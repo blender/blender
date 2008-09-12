@@ -1924,8 +1924,10 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}
-	else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-	else if(ob->parent) {
+	
+	if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
+	
+	if(ob->parent) {
 		/* motion path or bone child */
 		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
 	}
@@ -1946,10 +1948,11 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}
-	else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
-	else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
-	else if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
-	else {
+	
+	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
+	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
+	
+	{
 		Mesh *me;
 		Curve *cu;
 		Lattice *lt;

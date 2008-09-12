@@ -2378,8 +2378,8 @@ static void gpu_from_node_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack
 			gs[i].type= GPU_NONE;
 
 		gs[i].name = "";
-		gs[i].hasinput= ns[i]->hasinput;
-		gs[i].hasoutput= ns[i]->hasinput;
+		gs[i].hasinput= ns[i]->hasinput && ns[i]->data;
+		gs[i].hasoutput= ns[i]->hasinput && ns[i]->data;
 		gs[i].sockettype= ns[i]->sockettype;
 	}
 
@@ -2393,7 +2393,7 @@ static void data_from_gpu_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack
 
 	for (sock=sockets->first, i=0; sock; sock=sock->next, i++) {
 		ns[i]->data= gs[i].link;
-		ns[i]->hasinput= gs[i].hasinput;
+		ns[i]->hasinput= gs[i].hasinput && gs[i].link;
 		ns[i]->hasoutput= gs[i].hasoutput;
 		ns[i]->sockettype= gs[i].sockettype;
 	}

@@ -20,7 +20,7 @@ from Blender.sys import time
 from tokenize import generate_tokens, TokenError, \
 		COMMENT, DEDENT, INDENT, NAME, NEWLINE, NL, STRING, NUMBER
 
-class Definition():
+class Definition:
 	"""Describes a definition or defined object through its name, line number
 	and docstring. This is the base class for definition based descriptors.
 	"""
@@ -30,7 +30,7 @@ class Definition():
 		self.lineno = lineno
 		self.doc = doc
 
-class ScriptDesc():
+class ScriptDesc:
 	"""Describes a script through lists of further descriptor objects (classes,
 	defs, vars) and dictionaries to built-in types (imports). If a script has
 	not been fully parsed, its incomplete flag will be set. The time of the last

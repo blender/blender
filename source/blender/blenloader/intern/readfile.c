@@ -970,8 +970,10 @@ FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 	} else {
 		FileData *fd = filedata_new();
 		fd->gzfiledes = gzfile;
-		BLI_strncpy(fd->filename, name, sizeof(fd->filename));	// now only in use by library append
 		fd->read = fd_read_gzip_from_file;
+
+		/* needed for library_append and read_libraries */
+		BLI_strncpy(fd->filename, name, sizeof(fd->filename));
 
 		return blo_decode_and_check(fd, error_r);
 	}
@@ -9125,13 +9127,16 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 /* reading runtime */
 
-BlendFileData *blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r) 
+BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, BlendReadError *error_r) 
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd = filedata_new();
 	fd->filedes = file;
 	fd->buffersize = actualsize;
 	fd->read = fd_read_from_file;
+
+	/* needed for library_append and read_libraries */
+	BLI_strncpy(fd->filename, name, sizeof(fd->filename));
 
 	fd = blo_decode_and_check(fd, error_r);
 	if (!fd)

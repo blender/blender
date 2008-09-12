@@ -3942,13 +3942,10 @@ void special_aftertrans_update(TransInfo *t)
 			if ( (G.sipo->flag & SIPO_NOTRANSKEYCULL)==0 && 
 				 (cancelled == 0) )
 			{
-				if (NLA_IPO_SCALED) {
-					actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 1); 
-					posttrans_ipo_clean(G.sipo->ipo);
-					actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 1);
-				}
-				else 
-					posttrans_ipo_clean(G.sipo->ipo);
+				/* NOTE: no need to do NLA scaling stuff here, as when there is NLA scaling,
+				 * the transformed handles will get moved wrong (seem to match wrong repeat cycle)
+				 */
+				posttrans_ipo_clean(G.sipo->ipo);
 			}
 		}
 		

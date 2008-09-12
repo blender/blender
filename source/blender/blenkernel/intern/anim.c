@@ -783,6 +783,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				hair= (totchild == 0 || psys->childcache) && psys->pathcache;
 			if(!hair)
 				return;
+			
+			/* we use cache, update totchild according to cached data */
+			totchild = psys->totchildcache;
+			totpart = psys->totcached;
 		}
 
 		psys->lattice = psys_get_lattice(par, psys);
@@ -865,6 +869,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					}
 
 					VECCOPY(pamat[3], cache->co);
+					pamat[3][3]= 1.0f;
+					
 				}
 				else if(step_nbr) {
 					/* other keys */

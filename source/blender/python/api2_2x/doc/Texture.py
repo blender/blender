@@ -195,20 +195,23 @@ Example::
 						- DN_CELLNOISE - Steven Worley's cellular basis algorithm (1996)
 
 @var TexCo: Flags for MTex.texco.
-		- ORCO - Use the original coordinates of the mesh
-		- REFL - Use reflection vector as texture coordinates
-		- NOR - Use normal vector as texture coordinates
+		- ORCO - Use the original coordinates of the mesh (material texture only)
+		- REFL - Use reflection vector as texture coordinates  (material texture only)
+		- NOR - Use normal vector as texture coordinates  (material texture only)
 		- GLOB - Use global coordinates for the texture coordinates
-		- UV - Use UV coordinates for texture coordinates
+		- UV - Use UV coordinates for texture coordinates  (material texture only)
 		- OBJECT - Use linked object's coordinates for texture coordinates
-		- WIN - Use screen coordinates as texture coordinates
-		- VIEW - Pass camera view vector on to the texture (World texture only!)
-		- STICK - Use mesh sticky coordinates for the texture coordinates
-		- STRESS - Use mesh stress coordinates for the texture coordinates
-		- TANGENT - Use mesh tangent coordinates for the texture coordinates
+		- WIN - Use screen coordinates as texture coordinates  (material texture only)
+		- VIEW - Use view coordinates for the texture (world and lamp texture only)
+		- STICK - Use mesh sticky coordinates for the texture coordinates (material texture only)
+		- STRESS - Use mesh stress coordinates for the texture coordinates (material texture only)
+		- TANGENT - Use mesh tangent coordinates for the texture coordinates (material texture only)
+		- ANGMAP - Uses 360 degree angular coordinates, e.g. for spherical light probes (world texture only)
+		- HSPHERE - For 360 degree panorama sky, spherical mapped, only top half (world texture only)
+		- HTUBE - For 360 degree panorama sky, cylindrical mapped, only top half (world texture only)
 @type TexCo: readonly dictionary
 
-@var MapTo: Flags for MTex.mapto.
+@var MapTo: Flags for MTex.mapto
 		- COL - Make the texture affect the basic color of the material
 		- NOR - Make the texture affect the rendered normal
 		- CSP - Make the texture affect the specularity color
@@ -500,84 +503,92 @@ class MTex:
 	This object links a material to a texture. It allows the same texture to be
 	used in several different ways.
 
-    @type blendmode: int
     @ivar blendmode: Texture blending mode. See L{BlendModes}
+    @type blendmode: int
+    @ivar col: Color that the texture blends with.
     @type col: tuple
-    @ivar col: Color that the texture blends with.  Range of.
-    @type colfac: float
     @ivar colfac: Factor by which texture affects color.
-    @ivar correctNor: Correct normal mapping for Texture space and Object space.
+    @type colfac: float
+    @ivar correctNor: Correct normal mapping for Texture space and Object space (material only).
     @type correctNor: boolean
+    @ivar dispfac: Factor by which texture affects displacement (material only).
     @type dispfac: float
-    @ivar dispfac: Factor by which texture affects displacement.
-    @type dvar: float
     @ivar dvar: Value that the texture blends with when not blending colors.
+    @type dvar: float
+    @ivar fromDupli: Duplis instanced from verts, faces or particles, inherit texture coordinate from their parent (material only).
     @type fromDupli: boolean
-    @ivar fromDupli: Duplis instanced from verts, faces or particles, inherit texture coordinate from their parent.
+    @ivar fromOrig: Duplis derive their object coordinates from the original objects transformation (material only).
     @type fromOrig: boolean
-    @ivar fromOrig: Duplis derive their object coordinates from the original objects transformation.
+    @ivar mapping: Mapping of texture coordinates (flat, cube, etc.) (material only).  See L{Mappings}.
     @type mapping: int
-    @ivar mapping: Mapping of texture coordinates (flat, cube, etc.).  See L{Mappings}.
+    @ivar mapto: "Map to" field of texture (material only). OR'd values of L{MapTo}.
     @type mapto: int
-    @ivar mapto: "Map to" field of texture. OR'd values of L{MapTo}.
-    @ivar mtAlpha: How texture maps to alpha value.
-    @type mtAlpha: int
-    @ivar mtAmb: How texture maps to ambient value.
-    @type mtAmb: int
-    @ivar mtCmir: How texture maps to mirror color.
-    @type mtCmir: int
-    @ivar mtCol: How texture maps to color.
+    @ivar mtCol: How texture maps to color (material and lamp only).
     @type mtCol: int
-    @ivar mtCsp: How texture maps to specularity color
+    @ivar mtAlpha: How texture maps to alpha value (material only).
+    @type mtAlpha: int
+    @ivar mtAmb: How texture maps to ambient value (material only).
+    @type mtAmb: int
+    @ivar mtCmir: How texture maps to mirror color (material only).
+    @type mtCmir: int
+    @ivar mtCsp: How texture maps to specularity color (material only).
     @type mtCsp: int
-    @ivar mtDisp: How texture maps to displacement
+    @ivar mtDisp: How texture maps to displacement (material only).
     @type mtDisp: int
-    @ivar mtEmit: How texture maps to emit value
+    @ivar mtEmit: How texture maps to emit value (material only).
     @type mtEmit: int
-    @ivar mtHard: How texture maps to hardness
+    @ivar mtHard: How texture maps to hardness (material only).
     @type mtHard: int
-    @ivar mtNor: How texture maps to normals
+    @ivar mtNor: How texture maps to normals (material only).
     @type mtNor: int
-    @ivar mtRayMir: How texture maps to RayMir value
+    @ivar mtRayMir: How texture maps to RayMir value (material only).
     @type mtRayMir: int
-    @ivar mtRef: How texture maps to reflectivity
+    @ivar mtRef: How texture maps to reflectivity (material only).
     @type mtRef: int
-    @ivar mtSpec: How texture maps to specularity
+    @ivar mtSpec: How texture maps to specularity (material only).
     @type mtSpec: int
-    @ivar mtTranslu: How texture maps to translucency
+    @ivar mtTranslu: How texture maps to translucency (material only).
     @type mtTranslu: int
-    @ivar mtWarp: How texture maps to warp
+    @ivar mtWarp: How texture maps to warp (material only).
     @type mtWarp: int
-    @ivar neg: Negate texture values mode
+    @ivar mtBlend: Texture affects color progression of background (world only).
+    @type mtBlend: int
+    @ivar mtHoriz: Texture affects color of the horizon (world only).
+    @type mtHoriz: int
+    @ivar mtZenUp: Texture affects color of the zenith above (world only).
+    @type mtZenUp: int
+    @ivar mtZenDown: Texture affects color of the zenith below (world only).
+    @type mtZenDown: int
+    @ivar neg: Negate texture values mode.
     @type neg: boolean
-    @ivar norfac: Factor by which texture affects normal
+    @ivar norfac: Factor by which texture affects normal (material and world only).
     @type norfac: float
-    @ivar noRGB: Convert texture RGB values to intensity values
+    @ivar noRGB: Convert texture RGB values to intensity values.
     @type noRGB: boolean
-    @ivar object: Object whose space to use when texco is Object
+    @ivar object: Object whose space to use when texco is Object.
     @type object: Blender Object or None
+    @ivar ofs: Offset to adjust texture space.
     @type ofs: tuple
-    @ivar ofs: Offset to adjust texture space
+    @ivar size: Size to scale texture space.
     @type size: tuple
-    @ivar size: Size to scale texture space
-    @ivar stencil: Stencil mode
+    @ivar stencil: Stencil mode.
     @type stencil: boolean
     @ivar tex: The Texture this is linked to.
     @type tex: Blender Texture
-    @ivar texco: Texture coordinates ("Map input"). See L{TexCo}
+    @ivar texco: Texture coordinates ("Map input"). See L{TexCo}.
     @type texco: int
-    @ivar uvlayer: The name of the UV Layer this texture is mapped to (when left blank uses render layer)
+    @ivar uvlayer: The name of the UV Layer this texture is mapped to (when left blank uses render layer) (material only).
     @type uvlayer: string
+    @ivar varfac: Factor by which texture affects most variables (material and world only).
     @type varfac: float
-    @ivar varfac: Factor by which texture affects most variables
+    @ivar warpfac: Factor by which texture affects warp (material only).
     @type warpfac: float
-    @ivar warpfac: Factor by which texture affects warp
+    @ivar xproj: Projection of X axis to Texture space (material only). See L{Proj}
     @type xproj: int
-    @ivar xproj: Projection of X axis to Texture space. See L{Proj}
+    @ivar yproj: Projection of Y axis to Texture space (material only). See L{Proj}
     @type yproj: int
-    @ivar yproj: Projection of Y axis to Texture space. See L{Proj}
+    @ivar zproj: Projection of Z axis to Texture space (material only). See L{Proj}
     @type zproj: int
-    @ivar zproj: Projection of Z axis to Texture space. See L{Proj}
 	"""
 
 	def getIpo():

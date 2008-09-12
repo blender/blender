@@ -980,7 +980,7 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 
 	memset(mv, 0, sizeof(*mv));
 
-	if(vertNum < ccgdm->edgeMap[0].startVert) {
+	if((vertNum < ccgdm->edgeMap[0].startVert) && (ccgSubSurf_getNumFaces(ss) > 0)) {
 		/* this vert comes from face data */
 		int lastface = ccgSubSurf_getNumFaces(ss) - 1;
 		CCGFace *f;
@@ -1021,7 +1021,7 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 			x = offset % gridSideVerts + 1;
 			VecCopyf(mv->co, ccgSubSurf_getFaceGridData(ss, f, grid, x, y));
 		}
-	} else if(vertNum < ccgdm->vertMap[0].startVert) {
+	} else if((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
 		/* this vert comes from edge data */
 		CCGEdge *e;
 		int lastedge = ccgSubSurf_getNumEdges(ss) - 1;

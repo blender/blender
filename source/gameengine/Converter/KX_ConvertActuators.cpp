@@ -876,6 +876,16 @@ void BL_ConvertActuators(char* maggiename,
 						mode = KX_GameActuator::KX_GAME_QUIT;
 						break;
 					}
+				case ACT_GAME_SAVECFG:
+					{
+						mode = KX_GameActuator::KX_GAME_SAVECFG;
+						break;
+					}
+				case ACT_GAME_LOADCFG:
+					{
+						mode = KX_GameActuator::KX_GAME_LOADCFG;
+						break;
+					}
 				default:
 					; /* flag error */
 				}

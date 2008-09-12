@@ -3103,6 +3103,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if (G.qual==LR_CTRLKEY) {
 				borderselect_markers();
 			}
+			else if (G.qual==LR_SHIFTKEY) {
+				do_ipo_buttons(B_IPOBORDER);
+			}
 			break;
 		case CKEY:
 			if (G.qual == LR_SHIFTKEY)
