@@ -2958,8 +2958,7 @@ void do_render_seq(RenderResult *rr, int cfra)
 			max = MEM_CacheLimiter_get_maximum();
 
 			if (max != 0 && mem_in_use + mmap_in_use > max) {
-				fprintf(stderr, "mem_in_use = %lu, max = %lu\n",
-					(long unsigned int)mem_in_use + mmap_in_use, (long unsigned int)max);
+				fprintf(stderr, "Memory in use > maximum memory\n");
 				fprintf(stderr, "Cleaning up, please wait...\n"
 					"If this happens very often,\n"
 					"consider "
