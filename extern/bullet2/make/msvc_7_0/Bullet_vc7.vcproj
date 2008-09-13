@@ -383,36 +383,6 @@ ECHO Done
 						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btJacobianEntry.h">
 					</File>
 					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeContactJoint.cpp">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeContactJoint.h">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeJoint.cpp">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeJoint.h">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeMacros.h">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeQuickstepConstraintSolver.cpp">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeQuickstepConstraintSolver.h">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeSolverBody.h">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeTypedJoint.cpp">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btOdeTypedJoint.h">
-					</File>
-					<File
 						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btPoint2PointConstraint.cpp">
 					</File>
 					<File
@@ -441,12 +411,6 @@ ECHO Done
 					</File>
 					<File
 						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSolverConstraint.h">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSorLcp.cpp">
-					</File>
-					<File
-						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btSorLcp.h">
 					</File>
 					<File
 						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btTypedConstraint.cpp">
@@ -1056,9 +1020,6 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\src\LinearMath\btScalar.h">
-				</File>
-				<File
-					RelativePath="..\..\src\LinearMath\btSimdMinMax.h">
 				</File>
 				<File
 					RelativePath="..\..\src\LinearMath\btStackAlloc.h">
