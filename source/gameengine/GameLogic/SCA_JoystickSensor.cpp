@@ -402,7 +402,8 @@ PyObject* SCA_JoystickSensor::PyGetRealAxis( PyObject* self) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	if(joy)
 		return Py_BuildValue("[iiii]", joy->GetAxis10(), joy->GetAxis11(), joy->GetAxis20(), joy->GetAxis21());
-	return NULL;
+	else
+		return Py_BuildValue("[iiii]", 0, 0, 0, 0);
 }
 
 
@@ -483,9 +484,8 @@ char SCA_JoystickSensor::NumberOfAxes_doc[] =
 "\tReturns the number of axes .\n";
 PyObject* SCA_JoystickSensor::PyNumberOfAxes( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	if(joy)
-		return PyInt_FromLong( joy->GetNumberOfAxes() );
-	return false;
+	// when the joystick is null their is 0 exis still. dumb but scripters should use isConnected()
+	return PyInt_FromLong( joy ? joy->GetNumberOfAxes() : 0 );
 }
 
 
@@ -494,9 +494,7 @@ char SCA_JoystickSensor::NumberOfButtons_doc[] =
 "\tReturns the number of buttons .\n";
 PyObject* SCA_JoystickSensor::PyNumberOfButtons( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	if(joy)
-		return PyInt_FromLong( joy->GetNumberOfButtons() );
-	return false;
+	return PyInt_FromLong( joy ? joy->GetNumberOfButtons() : 0 );
 }
 
 
@@ -505,9 +503,7 @@ char SCA_JoystickSensor::NumberOfHats_doc[] =
 "\tReturns the number of hats .\n";
 PyObject* SCA_JoystickSensor::PyNumberOfHats( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	if(joy)
-		return PyInt_FromLong( joy->GetNumberOfHats() );
-	return false;
+	return PyInt_FromLong( joy ? joy->GetNumberOfHats() : 0 );
 }
 
 char SCA_JoystickSensor::Connected_doc[] = 
@@ -515,7 +511,5 @@ char SCA_JoystickSensor::Connected_doc[] =
 "\tReturns True if a joystick is connected at this joysticks index.\n";
 PyObject* SCA_JoystickSensor::PyConnected( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	if(joy)
-		return PyBool_FromLong( joy->Connected() );
-	return false;
+	return PyBool_FromLong( joy ? joy->Connected() : 0 );
 }
