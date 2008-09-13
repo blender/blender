@@ -59,7 +59,7 @@ protected:
 
 	virtual void	predictUnconstraintMotion(btScalar timeStep);
 	
-	void	integrateTransforms(btScalar timeStep);
+	virtual void	integrateTransforms(btScalar timeStep);
 		
 	void	calculateSimulationIslands();
 

@@ -24,7 +24,7 @@ subject to the following restrictions:
 #include <cfloat>
 #include <float.h>
 
-#define BT_BULLET_VERSION 271
+#define BT_BULLET_VERSION 272
 
 inline int	btGetVersion()
 {
@@ -65,7 +65,11 @@ inline int	btGetVersion()
 		#endif //__MINGW32__
 
 		#include <assert.h>
+#if defined(DEBUG) || defined (_DEBUG)
 		#define btAssert assert
+#else
+		#define btAssert(x)
+#endif
 		//btFullAssert is optional, slows down a lot
 		#define btFullAssert(x)
 
@@ -116,7 +120,13 @@ inline int	btGetVersion()
 		#ifndef assert
 		#include <assert.h>
 		#endif
+
+#if defined(DEBUG) || defined (_DEBUG)
 		#define btAssert assert
+#else
+		#define btAssert(x)
+#endif
+
 		//btFullAssert is optional, slows down a lot
 		#define btFullAssert(x)
 		#define btLikely(_c)  _c
@@ -145,11 +155,16 @@ typedef float btScalar;
 #endif
 
 
+
 #define BT_DECLARE_ALIGNED_ALLOCATOR() \
-	SIMD_FORCE_INLINE void* operator new(size_t sizeInBytes)	{ return btAlignedAlloc(sizeInBytes,16); }	\
-	SIMD_FORCE_INLINE void  operator delete(void* ptr)			{ btAlignedFree(ptr); }	\
-	SIMD_FORCE_INLINE void* operator new(size_t, void* ptr)	{ return ptr; }	\
-	SIMD_FORCE_INLINE void  operator delete(void*, void*)		{ }	\
+   SIMD_FORCE_INLINE void* operator new(size_t sizeInBytes)   { return btAlignedAlloc(sizeInBytes,16); }   \
+   SIMD_FORCE_INLINE void  operator delete(void* ptr)         { btAlignedFree(ptr); }   \
+   SIMD_FORCE_INLINE void* operator new(size_t, void* ptr)   { return ptr; }   \
+   SIMD_FORCE_INLINE void  operator delete(void*, void*)      { }   \
+   SIMD_FORCE_INLINE void* operator new[](size_t sizeInBytes)   { return btAlignedAlloc(sizeInBytes,16); }   \
+   SIMD_FORCE_INLINE void  operator delete[](void* ptr)         { btAlignedFree(ptr); }   \
+   SIMD_FORCE_INLINE void* operator new[](size_t, void* ptr)   { return ptr; }   \
+   SIMD_FORCE_INLINE void  operator delete[](void*, void*)      { }   \
 
 
 

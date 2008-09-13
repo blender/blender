@@ -127,6 +127,11 @@ void	btCollisionWorld::updateAabbs()
 		{
 			btPoint3 minAabb,maxAabb;
 			colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb,maxAabb);
+			//need to increase the aabb for contact thresholds
+			btVector3 contactThreshold(gContactBreakingThreshold,gContactBreakingThreshold,gContactBreakingThreshold);
+			minAabb -= contactThreshold;
+			maxAabb += contactThreshold;
+
 			btBroadphaseInterface* bp = (btBroadphaseInterface*)m_broadphasePairCache;
 
 			//moving objects should be moderately sized, probably something wrong if not
@@ -381,14 +386,14 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 					btTransform childWorldTrans = colObjWorldTransform * childTrans;
 					// replace collision shape so that callback can determine the triangle
 					btCollisionShape* saveCollisionShape = collisionObject->getCollisionShape();
-					collisionObject->setCollisionShape((btCollisionShape*)childCollisionShape);
+					collisionObject->internalSetTemporaryCollisionShape((btCollisionShape*)childCollisionShape);
 					rayTestSingle(rayFromTrans,rayToTrans,
 						collisionObject,
 						childCollisionShape,
 						childWorldTrans,
 						resultCallback);
 					// restore
-					collisionObject->setCollisionShape(saveCollisionShape);
+					collisionObject->internalSetTemporaryCollisionShape(saveCollisionShape);
 				}
 			}
 		}
@@ -577,14 +582,14 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 					btTransform childWorldTrans = colObjWorldTransform * childTrans;
 					// replace collision shape so that callback can determine the triangle
 					btCollisionShape* saveCollisionShape = collisionObject->getCollisionShape();
-					collisionObject->setCollisionShape((btCollisionShape*)childCollisionShape);
+					collisionObject->internalSetTemporaryCollisionShape((btCollisionShape*)childCollisionShape);
 					objectQuerySingle(castShape, convexFromTrans,convexToTrans,
 						collisionObject,
 						childCollisionShape,
 						childWorldTrans,
 						resultCallback, allowedPenetration);
 					// restore
-					collisionObject->setCollisionShape(saveCollisionShape);
+					collisionObject->internalSetTemporaryCollisionShape(saveCollisionShape);
 				}
 			}
 		}

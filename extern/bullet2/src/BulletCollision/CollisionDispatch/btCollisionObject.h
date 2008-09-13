@@ -81,8 +81,8 @@ protected:
 	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
 	btScalar		m_ccdSweptSphereRadius;
 
-	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	btScalar		m_ccdSquareMotionThreshold;
+	/// Don't do continuous collision detection if the motion (in one step) is less then m_ccdMotionThreshold
+	btScalar		m_ccdMotionThreshold;
 	
 	/// If some object should have elaborate collision filtering by sub-classes
 	bool			m_checkCollideWith;
@@ -332,16 +332,22 @@ public:
 		m_ccdSweptSphereRadius = radius;
 	}
 
+	btScalar 	getCcdMotionThreshold() const
+	{
+		return m_ccdMotionThreshold;
+	}
+
 	btScalar 	getCcdSquareMotionThreshold() const
 	{
-		return m_ccdSquareMotionThreshold;
+		return m_ccdMotionThreshold*m_ccdMotionThreshold;
 	}
 
 
-	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	void	setCcdSquareMotionThreshold(btScalar ccdSquareMotionThreshold)
+
+	/// Don't do continuous collision detection if the motion (in one step) is less then m_ccdMotionThreshold
+	void	setCcdMotionThreshold(btScalar ccdMotionThreshold)
 	{
-		m_ccdSquareMotionThreshold = ccdSquareMotionThreshold;
+		m_ccdMotionThreshold = ccdMotionThreshold*ccdMotionThreshold;
 	}
 
 	///users can point to their objects, userPointer is not used by Bullet

@@ -103,6 +103,8 @@ protected:
 	btVector3 m_relPosA;
 	btVector3 m_relPosB;
 
+	btScalar m_linPos;
+
 	btScalar m_angDepth;
 	btScalar m_kAngle;
 
@@ -191,6 +193,7 @@ public:
 	btScalar getTargetAngMotorVelocity() { return m_targetAngMotorVelocity; }
 	void setMaxAngMotorForce(btScalar maxAngMotorForce) { m_maxAngMotorForce = maxAngMotorForce; }
 	btScalar getMaxAngMotorForce() { return m_maxAngMotorForce; }
+	btScalar getLinearPos() { return m_linPos; }
 
 	// access for ODE solver
 	bool getSolveLinLimit() { return m_solveLinLim; }

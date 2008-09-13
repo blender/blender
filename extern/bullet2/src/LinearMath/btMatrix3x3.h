@@ -284,6 +284,91 @@ class btMatrix3x3 {
 		}
 		
 
+		///diagonalizes this matrix by the Jacobi method. rot stores the rotation
+		///from the coordinate system in which the matrix is diagonal to the original
+		///coordinate system, i.e., old_this = rot * new_this * rot^T. The iteration
+		///stops when all off-diagonal elements are less than the threshold multiplied
+		///by the sum of the absolute values of the diagonal, or when maxSteps have
+		///been executed. Note that this matrix is assumed to be symmetric.
+		void diagonalize(btMatrix3x3& rot, btScalar threshold, int maxSteps)
+		{
+		 rot.setIdentity();
+		 for (int step = maxSteps; step > 0; step--)
+		 {
+			// find off-diagonal element [p][q] with largest magnitude
+			int p = 0;
+			int q = 1;
+			int r = 2;
+			btScalar max = btFabs(m_el[0][1]);
+			btScalar v = btFabs(m_el[0][2]);
+			if (v > max)
+			{
+			   q = 2;
+			   r = 1;
+			   max = v;
+			}
+			v = btFabs(m_el[1][2]);
+			if (v > max)
+			{
+			   p = 1;
+			   q = 2;
+			   r = 0;
+			   max = v;
+			}
+
+			btScalar t = threshold * (btFabs(m_el[0][0]) + btFabs(m_el[1][1]) + btFabs(m_el[2][2]));
+			if (max <= t)
+			{
+			   if (max <= SIMD_EPSILON * t)
+			   {
+				  return;
+			   }
+			   step = 1;
+			}
+
+			// compute Jacobi rotation J which leads to a zero for element [p][q] 
+			btScalar mpq = m_el[p][q];
+			btScalar theta = (m_el[q][q] - m_el[p][p]) / (2 * mpq);
+			btScalar theta2 = theta * theta;
+			btScalar cos;
+			btScalar sin;
+			if (theta2 * theta2 < btScalar(10 / SIMD_EPSILON))
+			{
+			   t = (theta >= 0) ? 1 / (theta + btSqrt(1 + theta2))
+										: 1 / (theta - btSqrt(1 + theta2));
+			   cos = 1 / btSqrt(1 + t * t);
+			   sin = cos * t;
+			}
+			else
+			{
+			   // approximation for large theta-value, i.e., a nearly diagonal matrix
+			   t = 1 / (theta * (2 + btScalar(0.5) / theta2));
+			   cos = 1 - btScalar(0.5) * t * t;
+			   sin = cos * t;
+			}
+
+			// apply rotation to matrix (this = J^T * this * J)
+			m_el[p][q] = m_el[q][p] = 0;
+			m_el[p][p] -= t * mpq;
+			m_el[q][q] += t * mpq;
+			btScalar mrp = m_el[r][p];
+			btScalar mrq = m_el[r][q];
+			m_el[r][p] = m_el[p][r] = cos * mrp - sin * mrq;
+			m_el[r][q] = m_el[q][r] = cos * mrq + sin * mrp;
+
+			// apply rotation to rot (rot = rot * J)
+			for (int i = 0; i < 3; i++)
+			{
+			   btVector3& row = rot[i];
+			   mrp = row[p];
+			   mrq = row[q];
+			   row[p] = cos * mrp - sin * mrq;
+			   row[q] = cos * mrq + sin * mrp;
+			}
+		 }
+		}
+
+
 		
 	protected:
 		btScalar cofac(int r1, int c1, int r2, int c2) const 

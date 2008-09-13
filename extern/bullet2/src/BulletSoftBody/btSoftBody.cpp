@@ -2002,7 +2002,7 @@ for(i=0;i<m_clusters.size();++i)
 				mi.setMin(c.m_nodes[j]->m_x);
 				mx.setMax(c.m_nodes[j]->m_x);
 				}			
-			const btDbvtVolume	bounds=btDbvtVolume::FromMM(mi,mx);
+			const ATTRIBUTE_ALIGNED16(btDbvtVolume)	bounds=btDbvtVolume::FromMM(mi,mx);
 			if(c.m_leaf)
 				m_cdbvt.update(c.m_leaf,bounds,c.m_lv*m_sst.sdt*3,m_sst.radmrg);
 				else
@@ -2532,7 +2532,7 @@ switch(m_cfg.collisions&fCollision::RVSmask)
 		const btScalar		basemargin=getCollisionShape()->getMargin();
 		btVector3			mins;
 		btVector3			maxs;
-		btDbvtVolume		volume;
+		ATTRIBUTE_ALIGNED16(btDbvtVolume)		volume;
 		pco->getCollisionShape()->getAabb(	pco->getInterpolationWorldTransform(),
 											mins,
 											maxs);

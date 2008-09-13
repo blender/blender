@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "LinearMath/btPoint3.h"
 #include "LinearMath/btMatrix3x3.h"
+#include "LinearMath/btAabbUtil2.h"
 #include "btConvexInternalShape.h"
 
 
@@ -46,28 +47,7 @@ public:
 
 		//lazy evaluation of local aabb
 		btAssert(m_isLocalAabbValid);
-
-		btAssert(m_localAabbMin.getX() <= m_localAabbMax.getX());
-		btAssert(m_localAabbMin.getY() <= m_localAabbMax.getY());
-		btAssert(m_localAabbMin.getZ() <= m_localAabbMax.getZ());
-
-
-		btVector3 localHalfExtents = btScalar(0.5)*(m_localAabbMax-m_localAabbMin);
-		btVector3 localCenter = btScalar(0.5)*(m_localAabbMax+m_localAabbMin);
-		
-		btMatrix3x3 abs_b = trans.getBasis().absolute();  
-
-		btPoint3 center = trans(localCenter);
-
-		btVector3 extent = btVector3(abs_b[0].dot(localHalfExtents),
-			   abs_b[1].dot(localHalfExtents),
-			  abs_b[2].dot(localHalfExtents));
-		extent += btVector3(margin,margin,margin);
-
-		aabbMin = center - extent;
-		aabbMax = center + extent;
-
-		
+		btTransformAabb(m_localAabbMin,m_localAabbMax,margin,trans,aabbMin,aabbMax);
 	}
 
 	

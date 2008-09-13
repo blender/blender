@@ -342,6 +342,7 @@ void btSliderConstraint::calculateTransforms(void){
 void btSliderConstraint::testLinLimits(void)
 {
 	m_solveLinLim = false;
+	m_linPos = m_depth[0];
 	if(m_lowerLinLimit <= m_upperLinLimit)
 	{
 		if(m_depth[0] > m_upperLinLimit)

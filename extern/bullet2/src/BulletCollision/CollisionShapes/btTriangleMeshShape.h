@@ -65,6 +65,16 @@ public:
 		return m_meshInterface;
 	}
 
+	const btVector3& getLocalAabbMin() const
+	{
+		return m_localAabbMin;
+	}
+	const btVector3& getLocalAabbMax() const
+	{
+		return m_localAabbMax;
+	}
+
+
 
 	//debugging
 	virtual const char*	getName()const {return "TRIANGLEMESH";}
