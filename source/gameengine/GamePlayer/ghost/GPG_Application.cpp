@@ -524,17 +524,14 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
 
-		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1) {
-			int gameflag =(G.fileflags & G_FILE_GAME_MAT);
-			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
-		}
+		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
+			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
 
-		if(GPU_extensions_minimum_support()) {
-			int gameflag = (G.fileflags & G_FILE_GAME_MAT_GLSL);
+		if(GPU_extensions_minimum_support())
+			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
+		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+			m_blendermat = false;
 
-			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", gameflag) != 0);
-		}
-	
 		// create the canvas, rasterizer and rendertools
 		m_canvas = new GPG_Canvas(window);
 		if (!m_canvas)
@@ -657,12 +654,12 @@ bool GPG_Application::startEngine(void)
 	{
 		STR_String startscenename = m_startSceneName.Ptr();
 		m_ketsjiengine->SetSceneConverter(m_sceneconverter);
-		
+
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		if(m_blendermat)
+		if(m_blendermat && (G.fileflags & G_FILE_GAME_MAT))
 			m_sceneconverter->SetMaterials(true);
-		if(m_blenderglslmat)
+		if(m_blenderglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,

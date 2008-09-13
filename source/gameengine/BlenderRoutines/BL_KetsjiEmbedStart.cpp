@@ -138,10 +138,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool usemat = false, useglslmat = false;
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
 
 		if(GPU_extensions_minimum_support())
-			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 0) != 0);
+			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
+		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+			usemat = false;
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -299,10 +301,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
-			
-			if(usemat)
+
+			if(usemat && (G.fileflags & G_FILE_GAME_MAT))
 				sceneconverter->SetMaterials(true);
-			if(useglslmat)
+			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,

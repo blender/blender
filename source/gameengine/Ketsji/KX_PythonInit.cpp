@@ -303,7 +303,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
     if((dp  = opendir(cpath)) == NULL) {
 		/* todo, show the errno, this shouldnt happen anyway if the blendfile is readable */
-		fprintf(stderr, "Could not read directoty () failed, code %d (%s)\n", cpath, errno, strerror(errno));
+		fprintf(stderr, "Could not read directoty (%s) failed, code %d (%s)\n", cpath, errno, strerror(errno));
 		return list;
     }
 	
@@ -696,7 +696,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 											PyObject*)
 {
 	char *setting;
-	int enable, flag;
+	int enable, flag, fileflags;
 
 	if (!PyArg_ParseTuple(args,"si",&setting,&enable))
 		return NULL;
@@ -707,6 +707,8 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 		PyErr_SetString(PyExc_ValueError, "glsl setting is not known");
 		return NULL;
 	}
+
+	fileflags = G.fileflags;
 	
 	if (enable)
 		G.fileflags &= ~flag;
@@ -714,16 +716,18 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 		G.fileflags |= flag;
 
 	/* display lists and GLSL materials need to be remade */
-	if(gp_KetsjiEngine) {
-		KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
-		KX_SceneList::iterator it;
+	if(G.fileflags != fileflags) {
+		if(gp_KetsjiEngine) {
+			KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
+			KX_SceneList::iterator it;
 
-		for(it=scenes->begin(); it!=scenes->end(); it++)
-			if((*it)->GetBucketManager())
-				(*it)->GetBucketManager()->ReleaseDisplayLists();
+			for(it=scenes->begin(); it!=scenes->end(); it++)
+				if((*it)->GetBucketManager())
+					(*it)->GetBucketManager()->ReleaseDisplayLists();
+		}
+
+		GPU_materials_free();
 	}
-
-	GPU_materials_free();
 
 	Py_RETURN_NONE;
 }
@@ -747,6 +751,50 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 
 	enabled = ((G.fileflags & flag) != 0);
 	return PyInt_FromLong(enabled);
+}
+
+#define KX_TEXFACE_MATERIAL				0
+#define KX_BLENDER_MULTITEX_MATERIAL	1
+#define KX_BLENDER_GLSL_MATERIAL		2
+
+static PyObject* gPySetMaterialType(PyObject*,
+									PyObject* args,
+									PyObject*)
+{
+	int flag, type;
+
+	if (!PyArg_ParseTuple(args,"i",&type))
+		return NULL;
+
+	if(type == KX_BLENDER_GLSL_MATERIAL)
+		flag = G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL;
+	else if(type == KX_BLENDER_MULTITEX_MATERIAL)
+		flag = G_FILE_GAME_MAT;
+	else if(type == KX_TEXFACE_MATERIAL)
+		flag = 0;
+	else {
+		PyErr_SetString(PyExc_ValueError, "material type is not known");
+		return NULL;
+	}
+
+	G.fileflags &= ~(G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL);
+	G.fileflags |= flag;
+
+	Py_RETURN_NONE;
+}
+
+static PyObject* gPyGetMaterialType(PyObject*)
+{
+	int flag;
+
+	if(G.fileflags & (G_FILE_GAME_MAT|G_FILE_GAME_MAT_GLSL))
+		flag = KX_BLENDER_GLSL_MATERIAL;
+	else if(G.fileflags & G_FILE_GAME_MAT)
+		flag = KX_BLENDER_MULTITEX_MATERIAL;
+	else
+		flag = KX_TEXFACE_MATERIAL;
+	
+	return PyInt_FromLong(flag);
 }
 
 STR_String	gPyGetWindowHeight__doc__="getWindowHeight doc";
@@ -782,6 +830,10 @@ static struct PyMethodDef rasterizer_methods[] = {
   {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_VARARGS, "get the eye separation for stereo mode"},
   {"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
   {"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
+  {"setMaterialMode",(PyCFunction) gPySetMaterialType,
+   METH_VARARGS, "set the material mode to use for OpenGL rendering"},
+  {"getMaterialMode",(PyCFunction) gPyGetMaterialType,
+   METH_NOARGS, "get the material mode being used for OpenGL rendering"},
   {"setGLSLMaterialSetting",(PyCFunction) gPySetGLSLMaterialSetting,
    METH_VARARGS, "set the state of a GLSL material setting"},
   {"getGLSLMaterialSetting",(PyCFunction) gPyGetGLSLMaterialSetting,
@@ -1110,6 +1162,11 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
   d = PyModule_GetDict(m);
   ErrorObject = PyString_FromString("Rasterizer.error");
   PyDict_SetItemString(d, "error", ErrorObject);
+
+  /* needed for get/setMaterialType */
+  KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
+  KX_MACRO_addTypesToDict(d, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL);
+  KX_MACRO_addTypesToDict(d, KX_BLENDER_GLSL_MATERIAL, KX_BLENDER_GLSL_MATERIAL);
 
   // XXXX Add constants here
 
