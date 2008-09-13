@@ -150,6 +150,14 @@ void psys_reset(ParticleSystem *psys, int mode)
 				BLI_freelistN(&psys->reactevents);
 		}
 	}
+	else if(mode == PSYS_RESET_CACHE_MISS) {
+		/* set all particles to be skipped */
+		ParticleData *pa = psys->particles;
+		int p=0;
+
+		for(; p<psys->totpart; p++, pa++)
+			pa->flag = PARS_NO_DISP;
+	}
 
 	/* reset children */
 	if(psys->child) {
@@ -4473,7 +4481,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	if(usecache) {
 		/* frame clamping */
 		if(framenr < startframe) {
-			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			psys_reset(psys, PSYS_RESET_CACHE_MISS);
 			psys->cfra = cfra;
 			psys->recalc = 0;
 			return;
@@ -4553,14 +4561,14 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			return;
 		}
 		else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
-			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			psys_reset(psys, PSYS_RESET_CACHE_MISS);
 			psys->cfra=cfra;
 			psys->recalc = 0;
 			return;
 		}
 
 		if(framenr != startframe && framedelta != 1) {
-			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			psys_reset(psys, PSYS_RESET_CACHE_MISS);
 			psys->cfra = cfra;
 			psys->recalc = 0;
 			return;
