@@ -924,6 +924,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				collisionShape = nextShapeInfo->CreateBulletShape();
 				if (collisionShape)
 				{
+					collisionShape->setLocalScaling(nextShapeInfo->m_childScale);
 					compoundShape->addChildShape(nextShapeInfo->m_childTrans, collisionShape);
 				}
 			}

@@ -801,11 +801,29 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			assert(colShape->isCompound());
 			btCompoundShape* compoundShape = (btCompoundShape*)colShape;
 
-			MT_Point3 childPos = gameobj->GetSGNode()->GetLocalPosition();
-			MT_Matrix3x3 childRot = gameobj->GetSGNode()->GetLocalOrientation();
-			MT_Vector3 childScale = gameobj->GetSGNode()->GetLocalScale();
+			// compute the local transform from parent, this may include a parent inverse node
+			SG_Node* gameNode = gameobj->GetSGNode();
+			SG_Node* parentInverseNode = gameNode->GetSGParent();
+			if (parentInverseNode && parentInverseNode->GetSGClientObject() != NULL)
+				// this is not a parent inverse node, cancel it
+				parentInverseNode = NULL;
+			// now combine the parent inverse node and the game node
+			MT_Point3 childPos = gameNode->GetLocalPosition();
+			MT_Matrix3x3 childRot = gameNode->GetLocalOrientation();
+			MT_Vector3 childScale = gameNode->GetLocalScale();
+			if (parentInverseNode)
+			{
+				const MT_Point3& parentInversePos = parentInverseNode->GetLocalPosition();
+				const MT_Matrix3x3& parentInverseRot = parentInverseNode->GetLocalOrientation();
+				const MT_Vector3& parentInverseScale = parentInverseNode->GetLocalScale();
+				childRot =  parentInverseRot * childRot;
+				childScale = parentInverseScale * childScale;
+				childPos = parentInversePos+parentInverseScale*(parentInverseRot*childPos);
+			}
 
-			bm->setLocalScaling(btVector3(childScale.x(),childScale.y(),childScale.z()));
+			shapeInfo->m_childScale.setValue(childScale.x(),childScale.y(),childScale.z());
+			bm->setLocalScaling(shapeInfo->m_childScale);
+			
 			shapeInfo->m_childTrans.setOrigin(btVector3(childPos.x(),childPos.y(),childPos.z()));
 			float rotval[12];
 			childRot.getValue(rotval);

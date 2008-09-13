@@ -47,6 +47,7 @@ public:
 		m_radius(1.0),
 		m_height(1.0),
 		m_halfExtend(0.f,0.f,0.f),
+		m_childScale(1.0f,1.0f,1.0f),
 		m_nextShape(NULL),
 		m_refCount(1)
 	{
@@ -96,6 +97,7 @@ public:
 	btScalar				m_height;
 	btVector3				m_halfExtend;
 	btTransform				m_childTrans;
+	btVector3				m_childScale;
 	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape.
 											// In this case a triangle is made of 3 consecutive points
