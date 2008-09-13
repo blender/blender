@@ -294,6 +294,10 @@ SND_OpenALDevice::SND_OpenALDevice()
 		// let openal generate its sources
 		if (alc_error == ALC_NO_ERROR)
 		{
+			int i;
+
+			for (i=0;i<NUM_SOURCES;i++)
+				m_sources[i] = 0;
 			alGenSources(NUM_SOURCES, m_sources);
 			m_sourcesinitialized = true;
 		}
