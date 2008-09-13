@@ -816,44 +816,48 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 					// If the user requests the real normal, compute it now
                     if (filterCallback.m_faceNormal)
 					{
-						// this code is copied from Bullet 
-						btVector3 triangle[3];
-						const unsigned char *vertexbase;
-						int numverts;
-						PHY_ScalarType type;
-						int stride;
-						const unsigned char *indexbase;
-						int indexstride;
-						int numfaces;
-						PHY_ScalarType indicestype;
-						btTriangleMeshShape* triangleShape = (btTriangleMeshShape*)shape;
-						btStridingMeshInterface* meshInterface = triangleShape->getMeshInterface();
-
-						meshInterface->getLockedReadOnlyVertexIndexBase(
-							&vertexbase,
-							numverts,
-							type,
-							stride,
-							&indexbase,
-							indexstride,
-							numfaces,
-							indicestype,
-							0);
-
-						unsigned int* gfxbase = (unsigned int*)(indexbase+rayCallback.m_hitTriangleIndex*indexstride);
-						const btVector3& meshScaling = meshInterface->getScaling();
-						for (int j=2;j>=0;j--)
+						// mesh shapes are shared and stored in the shapeInfo
+						btTriangleMeshShape* triangleShape = shapeInfo->GetMeshShape();
+						if (triangleShape)
 						{
-							int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:gfxbase[j];
+							// this code is copied from Bullet 
+							btVector3 triangle[3];
+							const unsigned char *vertexbase;
+							int numverts;
+							PHY_ScalarType type;
+							int stride;
+							const unsigned char *indexbase;
+							int indexstride;
+							int numfaces;
+							PHY_ScalarType indicestype;
+							btStridingMeshInterface* meshInterface = triangleShape->getMeshInterface();
 
-							btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
+							meshInterface->getLockedReadOnlyVertexIndexBase(
+								&vertexbase,
+								numverts,
+								type,
+								stride,
+								&indexbase,
+								indexstride,
+								numfaces,
+								indicestype,
+								0);
 
-							triangle[j] = btVector3(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());		
+							unsigned int* gfxbase = (unsigned int*)(indexbase+rayCallback.m_hitTriangleIndex*indexstride);
+							const btVector3& meshScaling = shape->getLocalScaling();
+							for (int j=2;j>=0;j--)
+							{
+								int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:gfxbase[j];
+
+								btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
+
+								triangle[j] = btVector3(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());		
+							}
+							meshInterface->unLockReadOnlyVertexBase(0);
+							btVector3 triangleNormal; 
+							triangleNormal = (triangle[1]-triangle[0]).cross(triangle[2]-triangle[0]);
+							rayCallback.m_hitNormalWorld = rayCallback.m_collisionObject->getWorldTransform().getBasis()*triangleNormal;
 						}
-						meshInterface->unLockReadOnlyVertexBase(0);
-						btVector3 triangleNormal; 
-						triangleNormal = (triangle[1]-triangle[0]).cross(triangle[2]-triangle[0]);
-						rayCallback.m_hitNormalWorld = rayCallback.m_collisionObject->getWorldTransform().getBasis()*triangleNormal;
 					}
 				}
 			}

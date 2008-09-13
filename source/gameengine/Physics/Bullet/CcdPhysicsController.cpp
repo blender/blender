@@ -15,7 +15,7 @@ subject to the following restrictions:
 
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
-
+#include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
@@ -904,15 +904,26 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		break;
 
 	case PHY_SHAPE_MESH:
-		collisionMeshData = new btTriangleMesh();
-		// m_vertexArray is necessarily a multiple of 3
-		for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+		// Let's use the latest btScaledBvhTriangleMeshShape: it allows true sharing of 
+		// triangle mesh information between duplicates => drastic performance increase when 
+		// duplicating complex mesh objects. 
+		// BUT it causes a small performance decrease when sharing is not required: 
+		// 9 multiplications/additions and one function call for each triangle that passes the mid phase filtering
+		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
+		// and btScaledBvhTriangleMeshShape otherwise.
+		if (!m_unscaledShape)
 		{
-            collisionMeshData->addTriangle(*it++,*it++,*it++);
+			collisionMeshData = new btTriangleMesh();
+			// m_vertexArray is necessarily a multiple of 3
+			for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+			{
+				collisionMeshData->addTriangle(*it++,*it++,*it++);
+			}
+			// this shape will be shared and not deleted until shapeInfo is deleted
+			m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );
+			m_unscaledShape->recalcLocalAabb();
 		}
-		concaveShape = new btBvhTriangleMeshShape( collisionMeshData, true );
-		concaveShape->recalcLocalAabb();
-		collisionShape = concaveShape;
+		collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
 		break;
 
 	case PHY_SHAPE_COMPOUND:
@@ -953,7 +964,10 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 		childShape->Release();
 		childShape = nextShape;
 	}
-	
+	if (m_unscaledShape)
+	{
+		DeleteBulletShape(m_unscaledShape);
+	}
 	m_vertexArray.clear();
 }
 

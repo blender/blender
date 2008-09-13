@@ -49,6 +49,7 @@ public:
 		m_halfExtend(0.f,0.f,0.f),
 		m_childScale(1.0f,1.0f,1.0f),
 		m_nextShape(NULL),
+		m_unscaledShape(NULL),
 		m_refCount(1)
 	{
 		m_childTrans.setIdentity();
@@ -72,6 +73,10 @@ public:
 
 	void AddShape(CcdShapeConstructionInfo* shapeInfo);
 
+	btTriangleMeshShape* GetMeshShape(void)
+	{
+		return m_unscaledShape;
+	}
 	CcdShapeConstructionInfo* GetNextShape()
 	{
 		return m_nextShape;
@@ -108,6 +113,8 @@ public:
 
 protected:
 	CcdShapeConstructionInfo* m_nextShape;	// for compound shape
+	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
+											// the actual shape is of type btScaledBvhTriangleMeshShape
 	int						m_refCount;		// this class is shared between replicas
 											// keep track of users so that we can release it 
 };
