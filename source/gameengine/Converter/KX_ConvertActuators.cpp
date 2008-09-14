@@ -74,6 +74,8 @@
 #include "BKE_text.h"
 #include "BLI_blenlib.h"
 
+#define FILE_MAX 240 // repeated here to avoid dependency from BKE_utildefines.h
+
 #include "KX_NetworkMessageActuator.h"
 
 #ifdef WIN32
@@ -362,7 +364,7 @@ void BL_ConvertActuators(char* maggiename,
 					if (soundact->sound) {
 						/* Need to convert the samplename into absolute path
 						 * before checking if its loaded */
-						char fullpath[sizeof(soundact->sound->name)];
+						char fullpath[FILE_MAX];
 						
 						/* dont modify soundact->sound->name, only change a copy */
 						BLI_strncpy(fullpath, soundact->sound->name, sizeof(fullpath));
