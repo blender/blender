@@ -927,7 +927,7 @@ bKeyingSet defks_v3d_object[] =
 	{NULL, "Rot", ID_OB, 0, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
 	{NULL, "Scale", ID_OB, 0, 3, {OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "LocRot", ID_OB, 0, 6, 
 		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
@@ -946,7 +946,7 @@ bKeyingSet defks_v3d_object[] =
 		{OB_ROT_X,OB_ROT_Y,OB_ROT_Z,
 		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "VisualLoc", ID_OB, INSERTKEY_MATRIX, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
 	{NULL, "VisualRot", ID_OB, INSERTKEY_MATRIX, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
@@ -955,13 +955,13 @@ bKeyingSet defks_v3d_object[] =
 		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
 		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "Layer", ID_OB, 0, 1, {OB_LAY}}, // icky option...
-	{NULL, "Available", ID_OB, -2, 0, {}},
+	{NULL, "Available", ID_OB, -2, 0, {0}},
 	
-	{incl_v3d_ob_shapekey, "%l%l", 0, -1, 0, {}}, // separator (linked to shapekey entry)
-	{incl_v3d_ob_shapekey, "<ShapeKey>", ID_OB, -3, 0, {}}
+	{incl_v3d_ob_shapekey, "%l%l", 0, -1, 0, {0}}, // separator (linked to shapekey entry)
+	{incl_v3d_ob_shapekey, "<ShapeKey>", ID_OB, -3, 0, {0}}
 };
 
 /* PoseChannel KeyingSets  ------ */
@@ -974,7 +974,7 @@ bKeyingSet defks_v3d_pchan[] =
 	{NULL, "Rot", ID_PO, 0, 4, {AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
 	{NULL, "Scale", ID_PO, 0, 3, {AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "LocRot", ID_PO, 0, 7, 
 		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,AC_QUAT_W,
@@ -992,7 +992,7 @@ bKeyingSet defks_v3d_pchan[] =
 		{AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z,
 		 AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "VisualLoc", ID_PO, INSERTKEY_MATRIX, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
 	{NULL, "VisualRot", ID_PO, INSERTKEY_MATRIX, 3, {AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
@@ -1001,9 +1001,9 @@ bKeyingSet defks_v3d_pchan[] =
 		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,AC_QUAT_W,
 		 AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_PO, -2, 0, {}}
+	{NULL, "Available", ID_PO, -2, 0, {0}}
 };
 
 /* Material KeyingSets  ------ */
@@ -1017,7 +1017,7 @@ bKeyingSet defks_buts_shading_mat[] =
 	{NULL, "Halo Size", ID_MA, 0, 1, {MA_HASIZE}},
 	{NULL, "Mode", ID_MA, 0, 1, {MA_MODE}}, // evil bitflags
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "All Color", ID_MA, 0, 18, 
 		{MA_COL_R,MA_COL_G,MA_COL_B,
@@ -1030,7 +1030,7 @@ bKeyingSet defks_buts_shading_mat[] =
 		{MA_RAYM,MA_FRESMIR,MA_FRESMIRI,
 		 MA_FRESTRA,MA_FRESTRAI}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "Ofs", ID_MA, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
 	{NULL, "Size", ID_MA, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
@@ -1041,9 +1041,9 @@ bKeyingSet defks_buts_shading_mat[] =
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
 		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_MA, -2, 0, {}}
+	{NULL, "Available", ID_MA, -2, 0, {0}}
 };
 
 /* World KeyingSets  ------ */
@@ -1055,13 +1055,13 @@ bKeyingSet defks_buts_shading_wo[] =
 	{NULL, "Zenith RGB", ID_WO, 0, 3, {WO_ZEN_R,WO_ZEN_G,WO_ZEN_B}},
 	{NULL, "Horizon RGB", ID_WO, 0, 3, {WO_HOR_R,WO_HOR_G,WO_HOR_B}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "Mist", ID_WO, 0, 4, {WO_MISI,WO_MISTDI,WO_MISTSTA,WO_MISTHI}},
 	{NULL, "Stars", ID_WO, 0, 5, {WO_STAR_R,WO_STAR_G,WO_STAR_B,WO_STARDIST,WO_STARSIZE}},
 	
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "Ofs", ID_WO, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
 	{NULL, "Size", ID_WO, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
@@ -1072,9 +1072,9 @@ bKeyingSet defks_buts_shading_wo[] =
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
 		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_WO, -2, 0, {}}
+	{NULL, "Available", ID_WO, -2, 0, {0}}
 };
 
 /* Lamp KeyingSets  ------ */
@@ -1087,7 +1087,7 @@ bKeyingSet defks_buts_shading_la[] =
 	{NULL, "Energy", ID_LA, 0, 1, {LA_ENERGY}},
 	{NULL, "Spot Size", ID_LA, 0, 1, {LA_SPOTSI}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "Ofs", ID_LA, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
 	{NULL, "Size", ID_LA, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
@@ -1098,9 +1098,9 @@ bKeyingSet defks_buts_shading_la[] =
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
 		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_LA, -2, 0, {}}
+	{NULL, "Available", ID_LA, -2, 0, {0}}
 };
 
 /* Texture KeyingSets  ------ */
@@ -1144,9 +1144,9 @@ bKeyingSet defks_buts_shading_tex[] =
 	{NULL, "Color Filter", ID_TE, 0, 5, 
 		{TE_COL_R,TE_COL_G,TE_COL_B,TE_BRIGHT,TE_CONTRA}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_TE, -2, 0, {}}
+	{NULL, "Available", ID_TE, -2, 0, {0}}
 };
 
 /* Object Buttons KeyingSets  ------ */
@@ -1167,14 +1167,14 @@ bKeyingSet defks_buts_object[] =
 	{incl_buts_ob, "Random Damping", ID_OB, 0, 1, {OB_PD_RDAMP}},
 	{incl_buts_ob, "Permeability", ID_OB, 0, 1, {OB_PD_PERM}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	{NULL, "Force Strength", ID_OB, 0, 1, {OB_PD_FSTR}},
 	{NULL, "Force Falloff", ID_OB, 0, 1, {OB_PD_FFALL}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_OB, -2, 0, {}}  // this will include ob-transforms too!
+	{NULL, "Available", ID_OB, -2, 0, {0}}  // this will include ob-transforms too!
 };
 
 /* Camera Buttons KeyingSets  ------ */
@@ -1201,15 +1201,15 @@ bKeyingSet defks_buts_cam[] =
 	{NULL, "Clipping", ID_CA, 0, 2, {CAM_STA,CAM_END}},
 	{NULL, "Focal Distance", ID_CA, 0, 1, {CAM_YF_FDIST}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
 	
 	{incl_buts_cam2, "Aperture", ID_CA, 0, 1, {CAM_YF_APERT}},
 	{incl_buts_cam1, "Viewplane Shift", ID_CA, 0, 2, {CAM_SHIFT_X,CAM_SHIFT_Y}},
 	
-	{NULL, "%l", 0, -1, 0, {}}, // separator
+	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Available", ID_CA, -2, 0, {}}
+	{NULL, "Available", ID_CA, -2, 0, {0}}
 };
 
 /* --- */

@@ -431,6 +431,9 @@
 				RelativePath="..\..\..\source\blender\src\interface_panel.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\keyframing.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\keyval.c">
 			</File>
 			<File
@@ -745,6 +748,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_interface_icons.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_keyframing.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_keyval.h">
