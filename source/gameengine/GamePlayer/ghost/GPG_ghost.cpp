@@ -54,6 +54,7 @@ extern "C"
 #endif  // __cplusplus
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
+#include "BKE_node.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "BLO_readfile.h"
@@ -376,6 +377,8 @@ int main(int argc, char** argv)
 		  ::DisposeNibReference(nibRef);
     */
 #endif // __APPLE__
+
+	init_nodesystem();
 	
 	GEN_init_messaging_system();
  
@@ -845,6 +848,8 @@ int main(int argc, char** argv)
 			printf("error: couldn't create a system.\n");
 		}
 	}
+
+	free_nodesystem();
 
 	if (pyGlobalDictString) {
 		free(pyGlobalDictString);
