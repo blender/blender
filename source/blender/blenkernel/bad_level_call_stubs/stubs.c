@@ -60,7 +60,7 @@ struct EditFace;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
-struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e);
+struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e, short f);
 void elbeemDebugOut(char *msg);
 void fluidsimSettingsFree(struct FluidsimSettings* sb);
 void fluidsimSettingsCopy(struct FluidsimSettings* sb);
@@ -88,7 +88,7 @@ void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast)
 }
 
 
-struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e)
+struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e, short f)
 {
 	return 0;
 }

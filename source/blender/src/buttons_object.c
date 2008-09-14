@@ -242,9 +242,9 @@ static void enable_constraint_ipo_func (void *ob_v, void *con_v)
 	
 	/* adds ipo & channels & curve if needed */
 	if(con->flag & CONSTRAINT_OWN_IPO)
-		verify_ipo((ID *)ob, ID_CO, NULL, con->name, actname);
+		verify_ipo((ID *)ob, ID_CO, NULL, con->name, actname, 1);
 	else
-		verify_ipo((ID *)ob, ID_CO, actname, con->name, NULL);
+		verify_ipo((ID *)ob, ID_CO, actname, con->name, NULL, 1);
 		
 	/* make sure ipowin shows it */
 	ob->ipowin= ID_CO;
@@ -269,9 +269,9 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 
 	/* adds ipo & channels & curve if needed */
 	if(con->flag & CONSTRAINT_OWN_IPO)
-		icu= verify_ipocurve((ID *)ob, ID_CO, NULL, con->name, actname, CO_ENFORCE);
+		icu= verify_ipocurve((ID *)ob, ID_CO, NULL, con->name, actname, CO_ENFORCE, 1);
 	else
-		icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE);
+		icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE, 1);
 		
 	if (!icu) {
 		error("Cannot get a curve from this IPO, may be dealing with linked data");

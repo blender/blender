@@ -723,7 +723,7 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	IpoCurve *icu;
 	
 	/* get ipo-curve */
-	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
+	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 1);
 	
 	/* only continue if we have an ipo-curve to add keyframe to */
 	if (icu) {
@@ -815,12 +815,58 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
  */
 short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrcode, short flag)
 {
+	Ipo *ipo;
 	IpoCurve *icu;
 	
-	// locate ipo-curve
-	icu= NULL; // fixme..
+	/* get ipo-curve 
+	 * Note: here is one of the places where we don't want new ipo + ipo-curve added!
+	 * 		so 'add' var must be 0
+	 */
+	ipo= verify_ipo(id, blocktype, actname, constname, NULL, 0);
+	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 0);
 	
-	// TODO: implement me!
+	/* only continue if we have an ipo-curve to remove keyframes from */
+	if (icu) {
+		BezTriple bezt;
+		float cfra = frame_to_float(CFRA);
+		short found = -1;
+		int i;
+		
+		/* apply special time tweaking */
+		if (GS(id->name) == ID_OB) {
+			Object *ob= (Object *)id;
+			
+			/* apply NLA-scaling (if applicable) */
+			if (actname && actname[0]) 
+				cfra= get_action_frame(ob, cfra);
+			
+			/* ancient time-offset cruft */
+			if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
+				/* actually frametofloat calc again! */
+				cfra-= give_timeoffset(ob)*G.scene->r.framelen;
+			}
+		}
+		
+		/* only need to set bezt->vec[1][0], as that's all binarysearch uses */
+		memset(&bezt, 0, sizeof(BezTriple));
+		bezt.vec[1][0]= cfra;
+		
+		/* try to find index of beztriple to get rid of */
+		i = binarysearch_bezt_index(icu->bezt, &bezt, icu->totvert, &found);
+		if (found) {			
+			/* delete the key at the index (will sanity check + do recalc afterwards ) */
+			delete_icu_key(icu, i, 1);
+			
+			/* Only delete curve too if there isn't an ipo-driver still hanging around on an empty curve */
+			if (icu->totvert==0 && icu->driver==NULL) {
+				BLI_remlink(&ipo->curve, icu);
+				free_ipo_curve(icu);
+			}
+			
+			/* return success */
+			return 1;
+		}
+	}
 	
 	/* return failure */
 	return 0;

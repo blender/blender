@@ -86,8 +86,8 @@ void do_ipo_selectbuttons(void);
 
 
 /* gets ipo curve, creates if needed */
-struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
-struct Ipo *verify_ipo(struct ID *, short, char *, char *, char *);
+struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int, short);
+struct Ipo *verify_ipo(struct ID *, short, char *, char *, char *, short);
 int texchannel_to_adrcode(int channel);
 
 
