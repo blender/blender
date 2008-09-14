@@ -7769,11 +7769,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			alphasort_version_246(fd, lib, me);
 	}
 	
-	if(main->versionfile <= 246 && main->subversionfile < 1){
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)){
 		Object *ob;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
 				ob->pd->f_noise = 0.0;
+		}
+	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 2)){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->gameflag |= OB_PHYSICS;
+			ob->margin = 0.06;
 		}
 	}
 

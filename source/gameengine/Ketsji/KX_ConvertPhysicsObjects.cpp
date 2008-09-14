@@ -699,6 +699,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_gravity = btVector3(0,0,0);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
+	ci.m_margin = objprop->m_margin;
 	shapeInfo->m_radius = objprop->m_radius;
 	isbulletdyna = objprop->m_dyna;
 	
@@ -786,7 +787,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		return;
 	}
 
-	bm->setMargin(0.06);
+	bm->setMargin(ci.m_margin);
 
 
 		if (objprop->m_isCompoundChild)

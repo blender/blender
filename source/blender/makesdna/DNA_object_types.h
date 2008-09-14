@@ -156,7 +156,9 @@ typedef struct Object {
 
 	float formfactor;
 	float rdamping, sizefac;
-	
+	float margin, pad3;
+
+
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;	/* currently selected material in the user interface */
@@ -426,6 +428,8 @@ extern Object workob;
 #define OB_SECTOR		8192
 #define OB_PROP			16384
 #define OB_MAINACTOR	32768
+
+#define OB_PHYSICS		65536
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1

@@ -145,6 +145,7 @@ struct CcdConstructionInfo
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
+		m_margin(0.06f),
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_collisionFilterGroup(DefaultFilter),
@@ -165,6 +166,7 @@ struct CcdConstructionInfo
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
 	btScalar	m_angularDamping;
+	btScalar	m_margin;
 	int			m_collisionFlags;
 	bool		m_bRigid;
 

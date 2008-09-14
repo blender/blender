@@ -277,7 +277,9 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		if (m_collisionShape)
 		{
 			// new shape has no scaling, apply initial scaling
+			m_collisionShape->setMargin(m_cci.m_margin);
 			m_collisionShape->setLocalScaling(m_cci.m_scaling);
+			
 			if (m_cci.m_mass)
 				m_collisionShape->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
 		}

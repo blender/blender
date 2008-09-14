@@ -1279,6 +1279,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
 
+	// object has physics representation?
+	if (!(blenderobject->gameflag & OB_PHYSICS))
+		return;
+
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;
 	while(parent && parent->parent) {
@@ -1310,6 +1314,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	objprop.m_isCompoundChild = isCompoundChild;
 	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
+	objprop.m_margin = blenderobject->margin;
 
 	if ((objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0))
 	{
