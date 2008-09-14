@@ -783,9 +783,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		MT_Point2 uv20(0.0,0.0),uv21(0.0,0.0),uv22(0.0,0.0),uv23(0.0,0.0);
 		unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
 
-		MT_Vector3 no0, no1, no2, no3;
 		MT_Point3 pt0, pt1, pt2, pt3;
-		MT_Vector4 tan0, tan1, tan2, tan3;
+		MT_Vector3 no0(0,0,0), no1(0,0,0), no2(0,0,0), no3(0,0,0);
+		MT_Vector4 tan0(0,0,0,0), tan1(0,0,0,0), tan2(0,0,0,0), tan3(0,0,0,0);
 
 		/* get coordinates, normals and tangents */
 		pt0 = MT_Point3(mvert[mface->v1].co);
@@ -807,8 +807,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				NormalShortToFloat(n3, mvert[mface->v4].no);
 				no3 = n3;
 			}
-			else
-				no3 = MT_Vector3(0.0, 0.0, 0.0);
 		}
 		else {
 			float fno[3];
@@ -2186,16 +2184,16 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for(oit=allblobj.begin(); oit!=allblobj.end(); oit++)
 	{
 		Object* blenderobj = *oit;
-		if (blenderobj->type==OB_MESH){
+		if (blenderobj->type==OB_MESH) {
 			Mesh *me = (Mesh*)blenderobj->data;
 	
 			if (me->dvert){
-				KX_GameObject *obj = converter->FindGameObject(blenderobj);
+				BL_DeformableGameObject *obj = (BL_DeformableGameObject*)converter->FindGameObject(blenderobj);
 	
 				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
-					if (par)
-						((BL_SkinDeformer*)(((BL_DeformableGameObject*)obj)->m_pDeformer))->SetArmature((BL_ArmatureObject*) par);
+					if (par && obj->m_pDeformer)
+						((BL_SkinDeformer*)obj->m_pDeformer)->SetArmature((BL_ArmatureObject*) par);
 				}
 			}
 		}
