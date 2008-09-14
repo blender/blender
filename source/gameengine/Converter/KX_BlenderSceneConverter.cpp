@@ -662,11 +662,11 @@ extern "C"
 	char *getIpoCurveName( IpoCurve * icu );
 	struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
 	void testhandles_ipocurve(struct IpoCurve *icu);
+	void insert_vert_icu(struct IpoCurve *, float, float, short);
 	void Mat3ToEul(float tmat[][3], float *eul);
-
 }
 
-IpoCurve* findIpoCurve(IpoCurve* first,char* searchName)
+IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
 {
 	IpoCurve* icu1;
 	for( icu1 = first; icu1; icu1 = icu1->next ) 
