@@ -627,7 +627,7 @@ BL_Material* ConvertMaterial(
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
-	if((material->transp == TF_ALPHA || texalpha) && (material->transp != TF_CLIP)) {
+	if((material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha) && (material->transp != TF_CLIP)) {
 		material->ras_mode |= ALPHA;
 		material->ras_mode |= (material->mode & TF_ALPHASORT)? ZSORT: 0;
 	}

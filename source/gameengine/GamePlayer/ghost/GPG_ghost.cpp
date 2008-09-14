@@ -629,7 +629,8 @@ int main(int argc, char** argv)
 				char pathname[160];
 
 				get_filename(argc, argv, filename);
-				make_absolute_filename(filename);
+				if(filename[0])
+					make_absolute_filename(filename);
 				
 				do
 				{

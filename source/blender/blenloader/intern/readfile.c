@@ -7762,7 +7762,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if(main->versionfile <= 246 && main->subversionfile < 1){
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {
 		Mesh *me;
 
 		for(me=main->mesh.first; me; me= me->id.next)
