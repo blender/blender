@@ -36,6 +36,7 @@
 #include "BKE_library.h"
 #include "BKE_texture.h"
 #include "BLI_blenlib.h"
+#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "mydevice.h"

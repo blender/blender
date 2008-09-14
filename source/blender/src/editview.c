@@ -89,6 +89,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_previewrender.h" /* use only so fly mode can preview when its done */
 #include "BIF_space.h"

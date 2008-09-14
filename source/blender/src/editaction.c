@@ -74,6 +74,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_screen.h"

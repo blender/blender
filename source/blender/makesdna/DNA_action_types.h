@@ -277,7 +277,9 @@ typedef enum POSE_FLAG {
 		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
 	POSE_DO_UNLOCK	= (1<<2),
 		/* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
-	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3)
+	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
+		/* recalculate bone paths */
+	POSE_RECALCPATHS = (1<<4),
 } POSE_FLAG;
 
 /* PoseChannel (transform) flags */

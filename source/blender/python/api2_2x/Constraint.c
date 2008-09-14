@@ -44,6 +44,7 @@
 #include "BKE_constraint.h"
 #include "BLI_blenlib.h"
 #include "BIF_editconstraint.h"
+#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"

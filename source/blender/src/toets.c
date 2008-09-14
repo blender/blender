@@ -75,6 +75,7 @@
 #include "BIF_imasel.h"
 #include "BIF_editparticle.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"

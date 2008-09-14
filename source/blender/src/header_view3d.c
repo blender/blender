@@ -106,6 +106,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mainqueue.h"
 #include "BIF_meshtools.h"
 #include "BIF_poselib.h"

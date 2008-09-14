@@ -81,6 +81,7 @@ struct rctf;
 #include "BIF_editarmature.h"
 #include "BIF_editaction.h"
 #include "BIF_editnla.h"
+#include "BIF_keyframing.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
