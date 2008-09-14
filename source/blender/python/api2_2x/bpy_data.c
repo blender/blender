@@ -334,14 +334,13 @@ static int LibBlockSeq_setActive(BPy_LibBlockSeq *self, PyObject *value)
 					"Must be a text" );
 		} else {
 			SpaceText *st= NULL;
+			Text *data = ((BPy_Text *)value)->text;
 			
 			if (curarea==NULL) {
 				return 0;
 			} else {
 				st= curarea->spacedata.first;
 			}
-			
-			Text *data = ((BPy_Text *)value)->text;
 			
 			if( !data )
 				return EXPP_ReturnIntError( PyExc_RuntimeError,
