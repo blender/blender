@@ -594,7 +594,7 @@ int main(int argc, char** argv)
 	{
 #ifdef __APPLE__
 		//SYS_WriteCommandLineInt(syshandle, "show_framerate", 1);
-		SYS_WriteCommandLineInt(syshandle, "nomipmap", 1);
+		//SYS_WriteCommandLineInt(syshandle, "nomipmap", 1);
 		//fullScreen = false;		// Can't use full screen
 #endif
 

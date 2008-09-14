@@ -377,6 +377,7 @@ BL_Material* ConvertMaterial(
 					material->texname[i] = material->img[i]->id.name;
 					material->flag[i] |= ( tface->transp  &TF_ALPHA	)?USEALPHA:0;
 					material->flag[i] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
+					material->flag[i] |= MIPMAP;
 
 					if(material->img[i]->flag & IMA_REFLECT)
 						material->mapping[i].mapping |= USEREFL;
