@@ -702,9 +702,11 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 	}
 	
 	/* as the function hasn't returned yet, try reading from poin */
-	get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
+	poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
 	if (poin)
 		return read_ipo_poin(poin, vartype);
+	else
+		return 0.0;
 }
 
 
