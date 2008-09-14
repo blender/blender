@@ -1284,7 +1284,6 @@ static void commonkey_context_getv3d (ListBase *sources, bKeyingContext **ksc)
 }
 
 /* helper for commonkey_context_get() -  get keyingsets for buttons window */
-// nb - for mtex entries... need to set map (= texchan_to_adrcode(id->texact)
 static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 {
 	bCommonKeySrc *cks;
@@ -1304,6 +1303,7 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 				
 				/* set data */
 				cks->id= (ID *)ma;
+				cks->ipo= ma->ipo;
 				cks->map= texchannel_to_adrcode(ma->texact);
 				
 				/* set keyingsets */
@@ -1321,6 +1321,7 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 				
 				/* set data */
 				cks->id= (ID *)wo;
+				cks->ipo= wo->ipo;
 				cks->map= texchannel_to_adrcode(wo->texact);
 				
 				/* set keyingsets */
@@ -1338,6 +1339,7 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 				
 				/* set data */
 				cks->id= (ID *)la;
+				cks->ipo= la->ipo;
 				cks->map= texchannel_to_adrcode(la->texact);
 				
 				/* set keyingsets */
@@ -1347,14 +1349,15 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 				break;
 			case TAB_SHADING_TEX: /* >------------- Texture Tab -------------< */
 			{
-				Tex *te= G.buts->lockpoin;
+				Tex *tex= G.buts->lockpoin;
 				
 				/* add new keyframing destination */
 				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
 				BLI_addtail(sources, cks); 
 				
 				/* set data */
-				cks->id= (ID *)te;
+				cks->id= (ID *)tex;
+				cks->ipo= tex->ipo;
 				
 				/* set keyingsets */
 				*ksc= &ks_contexts[KSC_BUTS_TEX];
@@ -1375,6 +1378,7 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 				
 				/* set id-block to key to */
 				cks->id= (ID *)ob;
+				cks->ipo= ob->ipo;
 				
 				/* set keyingsets */
 				*ksc= &ks_contexts[KSC_BUTS_OB];
@@ -1387,13 +1391,16 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 		{
 			Object *ob= OBACT;
 			
-			if ((ob) && (ob->type==OB_CAMERA)) { /* >---------------- camera buttons ---------------< */
+			if ((ob) && (ob->type==OB_CAMERA) && (G.buts->lockpoin)) { /* >---------------- camera buttons ---------------< */
+				Camera *ca= G.buts->lockpoin;
+				
 				/* add new keyframing destination */
 				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
 				BLI_addtail(sources, cks);
 				
 				/* set id-block to key to */
-				cks->id= (ID *)ob;
+				cks->id= (ID *)ca;
+				cks->ipo= ca->ipo;
 				
 				/* set keyingsets */
 				*ksc= &ks_contexts[KSC_BUTS_CAM];

@@ -1,5 +1,5 @@
 /**
- * $Id: BDR_gpencil.h 14444 2008*04*16 22:40:48Z aligorith $
+ * $Id: BIF_keyframing.h 14444 2008-04-16 22:40:48Z aligorith $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

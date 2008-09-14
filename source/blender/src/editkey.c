@@ -70,6 +70,7 @@
 
 #include "BIF_editkey.h"
 #include "BIF_editview.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
