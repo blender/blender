@@ -886,6 +886,19 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 
 /* --- */
 
+/* check if option not available for deleting keys */
+static short incl_non_del_keys (bKeyingSet *ks, const char mode[])
+{
+	/* as optimisation, assume that it is sufficient to check only first letter
+	 * of mode (int comparison should be faster than string!)
+	 */
+	//if (strcmp(mode, "Delete")==0)
+	if (mode && mode[0]=='D')
+		return 0;
+	
+	return 1;
+}
+
 /* Object KeyingSets  ------ */
 
 /* check if include shapekey entry  */
@@ -946,12 +959,12 @@ bKeyingSet defks_v3d_object[] =
 		{OB_ROT_X,OB_ROT_Y,OB_ROT_Z,
 		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
+	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "VisualLoc", ID_OB, INSERTKEY_MATRIX, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
-	{NULL, "VisualRot", ID_OB, INSERTKEY_MATRIX, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
+	{incl_non_del_keys, "VisualLoc", ID_OB, INSERTKEY_MATRIX, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
+	{incl_non_del_keys, "VisualRot", ID_OB, INSERTKEY_MATRIX, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
 	
-	{NULL, "VisualLocRot", ID_OB, INSERTKEY_MATRIX, 6, 
+	{incl_non_del_keys, "VisualLocRot", ID_OB, INSERTKEY_MATRIX, 6, 
 		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
 		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
 	
@@ -992,12 +1005,12 @@ bKeyingSet defks_v3d_pchan[] =
 		{AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z,
 		 AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
 	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
+	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "VisualLoc", ID_PO, INSERTKEY_MATRIX, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
-	{NULL, "VisualRot", ID_PO, INSERTKEY_MATRIX, 3, {AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
+	{incl_non_del_keys, "VisualLoc", ID_PO, INSERTKEY_MATRIX, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
+	{incl_non_del_keys, "VisualRot", ID_PO, INSERTKEY_MATRIX, 3, {AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
 	
-	{NULL, "VisualLocRot", ID_PO, INSERTKEY_MATRIX, 7, 
+	{incl_non_del_keys, "VisualLocRot", ID_PO, INSERTKEY_MATRIX, 7, 
 		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,AC_QUAT_W,
 		 AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
 	
@@ -1689,7 +1702,7 @@ void common_modifykey (short mode)
 		
 		/* special hacks for 'available' option */
 		if (ks->flag == -2) {
-			IpoCurve *icu= NULL;
+			IpoCurve *icu= NULL, *icn= NULL;
 			
 			/* get first IPO-curve */
 			if (cks->act && cks->actname) {
@@ -1703,8 +1716,11 @@ void common_modifykey (short mode)
 				icu= cks->ipo->curve.first;
 				
 			/* we get adrcodes directly from IPO curves (see method below...) */
-			for (; icu; icu= icu->next) {
+			for (; icu; icu= icn) {
 				short flag;
+				
+				/* get next ipo-curve in case current is deleted */
+				icn= icu->next;
 				
 				/* insert mode or delete mode */
 				if (mode == COMMONKEY_MODE_DELETE) {
