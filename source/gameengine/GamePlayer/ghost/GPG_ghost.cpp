@@ -52,6 +52,7 @@
 extern "C"
 {
 #endif  // __cplusplus
+#include "MEM_guardedalloc.h"
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
@@ -185,6 +186,7 @@ void usage(char* program)
 #ifdef _WIN32
 	printf("  -c: keep console window open\n");
 #endif
+	printf("  -d: turn debugging on\n");
 	printf("  -g: game engine options:\n");
 	printf("       Name            Default      Description\n");
 	printf("       ----------------------------------------\n");
@@ -413,6 +415,12 @@ int main(int argc, char** argv)
 						}
 					}
 				}
+				break;
+
+			case 'd':
+				i++;
+				G.f |= G_DEBUG;     /* std output printf's */
+				MEM_set_memory_debug();
 				break;
 				
 			case 'p':
