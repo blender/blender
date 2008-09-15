@@ -1647,6 +1647,16 @@ char *get_state_name(Object *ob, short bit)
 	return (char*)"";
 }
 
+static void check_state_mask(void *arg1_but, void *arg2_mask)
+{
+	unsigned int *cont_mask = arg2_mask;
+	uiBut *but = arg1_but;
+
+	if (*cont_mask == 0 || !(G.qual & LR_SHIFTKEY))
+		*cont_mask = (1<<but->retval);
+	but->retval = B_REDR;
+}
+
 static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, short xco, short yco, short width)
 {
 	bSoundActuator      *sa      = NULL;
@@ -1673,6 +1683,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 	char *str;
 	int myline, stbit;
 	uiBut *but;
+
 
 	/* yco is at the top of the rect, draw downwards */
 	uiBlockSetEmboss(block, UI_EMBOSSM);
@@ -2380,10 +2391,12 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		for (wval=0; wval<15; wval+=5) {
 			uiBlockBeginAlign(block);
 			for (stbit=0; stbit<5; stbit++) {
-				uiDefButBitI(block, TOG, (1<<(stbit+wval)), 0, "",	(short)(xco+85+12*stbit+13*wval), yco-17, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, get_state_name(ob, (short)(wval+stbit)));
+				but = uiDefButBitI(block,  TOG, 1<<(stbit+wval), stbit+wval, "",	(short)(xco+85+12*stbit+13*wval), yco-17, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+wval)));
+				uiButSetFunc(but, check_state_mask, but, &(staAct->mask));
 			}
 			for (stbit=0; stbit<5; stbit++) {
-				uiDefButBitI(block, TOG, (1<<(stbit+wval+15)), 0, "",	(short)(xco+85+12*stbit+13*wval), yco-29, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, get_state_name(ob, (short)(wval+stbit+15)));
+				but = uiDefButBitI(block, TOG, 1<<(stbit+wval+15), stbit+wval+15, "",	(short)(xco+85+12*stbit+13*wval), yco-29, 12, 12, (int *)&(staAct->mask), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+wval+15)));
+				uiButSetFunc(but, check_state_mask, but, &(staAct->mask));
 			}
 		}
 		uiBlockEndAlign(block);
@@ -2990,16 +3003,6 @@ void buttons_bullet(uiBlock *block, Object *ob)
 	}
 }
 
-static void check_object_state(void *arg1_but, void *arg2_mask)
-{
-	unsigned int *cont_mask = arg2_mask;
-	uiBut *but = arg1_but;
-
-	if (*cont_mask == 0 || !(G.qual & LR_SHIFTKEY))
-		*cont_mask = (1<<but->retval);
-	but->retval = B_REDR;
-}
-
 static void check_controller_state_mask(void *arg1_but, void *arg2_mask)
 {
 	unsigned int *cont_mask = arg2_mask;
@@ -3273,11 +3276,11 @@ void logic_buts(void)
 				uiBlockBeginAlign(block);
 				for (stbit=0; stbit<5; stbit++) {
 					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+35+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
-					uiButSetFunc(but, check_object_state, but, &(ob->state));
+					uiButSetFunc(but, check_state_mask, but, &(ob->state));
 				}
 				for (stbit=0; stbit<5; stbit++) {
 					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+35+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
-					uiButSetFunc(but, check_object_state, but, &(ob->state));
+					uiButSetFunc(but, check_state_mask, but, &(ob->state));
 				}
 			}
 			uiBlockBeginAlign(block);
