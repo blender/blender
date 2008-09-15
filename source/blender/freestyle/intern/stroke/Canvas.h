@@ -30,6 +30,7 @@
 #ifndef  CANVAS_H
 # define CANVAS_H
 
+# include <cstring>
 # include <deque>
 # include <vector>
 # include <map>

@@ -30,6 +30,8 @@
 #ifndef  GAUSSIANFILTER_H
 # define GAUSSIANFILTER_H
 
+#include <string.h> // for memcpy
+#include <cstdlib> // for abs
 #include "../system/FreestyleConfig.h"
 
 class LIB_IMAGE_EXPORT GaussianFilter{

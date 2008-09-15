@@ -1,3 +1,4 @@
+#include <string.h> // for memcpy
 #include "NodeCamera.h"
 #include <math.h>
 

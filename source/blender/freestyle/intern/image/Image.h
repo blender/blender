@@ -30,7 +30,7 @@
 #ifndef  IMAGE_H
 # define IMAGE_H
 
-# include <string> // for memcpy
+# include <string.h> // for memcpy
 
 //
 // Image base class, for all types of images

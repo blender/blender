@@ -28,8 +28,6 @@ using namespace std;
 namespace Config {
 Path* Path::_pInstance = 0;
 Path::Path() {
-	// get the home directory
-	_HomeDir = getEnvVar("HOME");
 	// get the root directory
 	//soc
 	setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
@@ -81,8 +79,7 @@ string Path::getEnvVar(const string& iEnvVarName) {
 	if (!getenv(StringUtils::toAscii(iEnvVarName).c_str() ) ) {
 		cerr << "Warning: You may want to set the $"
 				<< StringUtils::toAscii(iEnvVarName)
-				<< " environment variable to use "
-				<< string(Config::APPLICATION_NAME) << "." << endl
+				<< " environment variable to use Freestyle." << endl
 				<< "         Otherwise, the current directory will be used instead."
 				<< endl;
 		value = ".";

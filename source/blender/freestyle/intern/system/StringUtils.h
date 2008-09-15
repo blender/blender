@@ -28,6 +28,7 @@
 #ifndef  STRING_UTILS_H
 # define STRING_UTILS_H
 
+# include <cstring>
 # include <vector>
 # include <string>
 # include <sstream>

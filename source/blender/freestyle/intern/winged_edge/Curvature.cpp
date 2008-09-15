@@ -17,6 +17,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <cstdlib> // for malloc and free
 #include "Curvature.h"
 #include <math.h>
 #include "WEdge.h"

@@ -31,6 +31,7 @@
 #ifndef  GRID_H
 # define GRID_H
 
+# include <cstring> // for memset
 # include <float.h>
 # include <vector>
 # include "../system/FreestyleConfig.h"
@@ -325,7 +326,7 @@ public:
           for (OccludersSet::iterator it = occluders.begin();
               it != occluders.end();
               it++) {
-                  if ((unsigned)(*it)->userdata2 != _timestamp) {
+                  if ((unsigned long)(*it)->userdata2 != _timestamp) {
                       (*it)->userdata2 = (void*)_timestamp;
                       visitor.examineOccluder(*it);
                   }
