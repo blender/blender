@@ -2132,7 +2132,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 	/*  		str= "Limit %t|None %x0|Loc X %x1|Loc Y %x2|Loc Z %x4|Rot X %x8|Rot Y %x16|Rot Z %x32"; */
 	/*			coa->flag &= ~(63); */
 			str= "Limit %t|None %x0|Loc X %x1|Loc Y %x2|Loc Z %x4";
-			coa->flag &= ~(7);
+			coa->flag &= 7;
 			coa->time = 0;
 			uiDefButS(block, MENU, 1, str,		xco+10, yco-65, 70, 19, &coa->flag, 0.0, 0.0, 0, 0, "");
 		
