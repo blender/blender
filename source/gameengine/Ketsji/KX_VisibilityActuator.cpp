@@ -80,7 +80,7 @@ KX_VisibilityActuator::Update()
 	obj->SetVisible(m_visible, m_recursive);
 	obj->UpdateBuckets(m_recursive);
 
-	return true;
+	return false;
 }
 
 /* ------------------------------------------------------------------------- */
