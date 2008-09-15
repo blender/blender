@@ -949,7 +949,10 @@ void RAS_OpenGLRasterizer::SetPolygonOffset(float mult, float add)
 
 void RAS_OpenGLRasterizer::EnableMotionBlur(float motionblurvalue)
 {
-	m_motionblur = 1;
+	/* don't just set m_motionblur to 1, but check if it is 0 so
+	 * we don't reset a motion blur that is already enabled */
+	if(m_motionblur == 0)
+		m_motionblur = 1;
 	m_motionblurvalue = motionblurvalue;
 }
 
