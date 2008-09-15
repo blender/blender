@@ -1054,10 +1054,10 @@ static void draw_default_sensor_header(bSensor *sens,
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the level (output) of this sensor");
-	uiDefButS(block, TOG, 1, "Lvl",
-			 (short)(x + 10 + 0.70 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
+	uiDefButS(block, TOG, 1, "Level",
+			 (short)(x + 10 + 0.65 * (w-20)), (short)(y - 19), (short)(0.20 * (w-20)), 19,
 			 &sens->level, 0.0, 0.0, 0, 0,
-			 "Level detector versus edge detector (only applicable in case of logic state transition)");
+			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
 }
 
 static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
@@ -1270,15 +1270,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			if(ps->type == SENS_PROP_INTERVAL)
 			{
 				uiDefBut(block, TEX, 1, "Min: ",		xco,yco-92,width/2, 19,
-					ps->value, 0, 31, 0, 0, "test for min value");
+					ps->value, 0, 31, 0, 0, "check for min value");
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
-					ps->maxvalue, 0, 31, 0, 0, "test for max value");
+					ps->maxvalue, 0, 31, 0, 0, "check for max value");
 			}
 			else if(ps->type == SENS_PROP_CHANGED);
 			else
 			{
 				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-92,width-60, 19,
-					ps->value, 0, 31, 0, 0, "test for value");
+					ps->value, 0, 31, 0, 0, "check for value");
 			}
 			
 			yco-= ysize;
@@ -1447,7 +1447,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 
 			uiDefButS(block, NUM, 1, "Index:", xco+10, yco-44, 0.6 * (width-120), 19,
 			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
-			"Spesify which joystick to use");			
+			"Specify which joystick to use");			
 
 			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
 			uiDefButS(block, MENU, B_REDR, str, xco+87, yco-44, 0.6 * (width-150), 19,
@@ -1891,12 +1891,12 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			else {
 				uiDefButI(block, NUM, 0, 
 					"Sta",		xco+10, yco-44, (width-80)/2, 19, 
-					&ia->sta, 0.0, MAXFRAMEF, 0, 0, 
-					"Start frame, (subtract 1 to match blenders frame numbers)");
+					&ia->sta, 1.0, MAXFRAMEF, 0, 0, 
+					"Start frame");
 				uiDefButI(block, NUM, 0, 
 					"End",		xco+10+(width-80)/2, yco-44, (width-80)/2, 19, 
-					&ia->end, 0.0, MAXFRAMEF, 0, 0, 
-					"End frame, (subtract 1 to match blenders frame numbers)");
+					&ia->end, 1.0, MAXFRAMEF, 0, 0, 
+					"End frame");
 			}
 			uiDefButBitS(block, TOG, ACT_IPOCHILD,  B_REDR, 
 				"Child",	xco+10+(width-80), yco-44, 60, 19, 
@@ -1925,7 +1925,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				uiDefBut(block, TEX, 1, "Prop: ",		xco+10+(width-20)/2, yco-64, (width-20)/2, 19, pa->value, 0, 31, 0, 0, "Copy this property");
 			}
 			else {
-				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-64,width-60, 19, pa->value, 0, 31, 0, 0, "change with this value");
+				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-64,width-60, 19, pa->value, 0, 31, 0, 0, "change with this value, use \"\" around strings");
 			}
 			yco-= ysize;
 			
@@ -3168,7 +3168,7 @@ void logic_buts(void)
 		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(50-20*a), 40, 20, NULL, 0.0, 0.0, 1, (float)a, "");
 		uiButSetFunc(but, del_property, prop, NULL);
 		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(50-20*a), 60, 20, &prop->type, 0, 0, 0, 0, "");
-		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(50-20*a), 110, 20, prop->name, 0, 31, 0, 0, "");
+		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(50-20*a), 110, 20, prop->name, 0, 31, 0, 0, "Available as GameObject attributes in the game engines python api");
 		uiButSetFunc(but, make_unique_prop_names_cb, prop->name, (void*) 1);
 		
 		if(prop->type==PROP_BOOL) {
@@ -3311,7 +3311,7 @@ void logic_buts(void)
 						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
 						uiBlockSetEmboss(block, UI_EMBOSSP);
 						sprintf(name, "%d", first_bit(cont->state_mask)+1);
-						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state mask");
+						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state index (from 1 to 30)");
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 				
 						if(cont->flag & CONT_SHOW) {
