@@ -3283,6 +3283,9 @@ static void copymenu_logicbricks(Object *ob)
 				base->object->scavisflag= ob->scavisflag;
 				base->object->scaflag= ob->scaflag;
 				
+				/* set the initial state */
+				base->object->state= ob->state;
+				base->object->init_state= ob->init_state;
 			}
 		}
 		base= base->next;
@@ -3519,6 +3522,7 @@ void copy_attr(short event)
 					if (ob->gameflag & OB_BOUNDS) {
 						base->object->boundtype = ob->boundtype;
 					}
+					base->object->margin= ob->margin;
 				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
