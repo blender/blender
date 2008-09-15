@@ -199,51 +199,6 @@ void usage(char* program)
 	printf("example: %s -g show_framerate = 0 c:\\loadtest.blend\n", program);
 }
 
-static void make_absolute_filename(char *blendfilename)
-{
-	int abs = 0;
-	int filelen;
-	char cwd[FILE_MAXDIR + FILE_MAXFILE];
-	char filename[FILE_MAXDIR + FILE_MAXFILE];
-
-	cwd[0] = filename[0] = '\0';
-	
-	BLI_strncpy(filename, blendfilename, sizeof(filename));
-	filelen = strlen(filename);
-	
-	/* relative path checks, could do more tests here... */
-#ifdef WIN32
-	/* Account for X:/ and X:\ - should be enough */
-	if (filelen >= 3 && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
-		abs = 1;
-#else
-	if (filelen >= 2 && filename[0] == '/')
-		abs = 1	;
-#endif
-	if (!abs) {
-		BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
-		
-		if (cwd[0] == '\0') {
-			printf(
-			"Could not get the current working directory - $PWD for an unknown reason.\n\t"
-			"Relative linked files will not load if the entire blend path is not used.\n\t"
-			"The 'Play' button may also fail.\n"
-			);
-		} else {
-			/* uses the blend path relative to cwd important for loading relative linked files.
-			*
-			* cwd should contain c:\ etc on win32 so the relbase can be NULL
-			* relbase being NULL also prevents // being misunderstood as relative to the current
-			* blend file which isnt a feature we want to use in this case since were dealing
-			* with a path from the command line, rather then from inside Blender */
-			
-			BLI_make_file_string(NULL, filename, cwd, blendfilename);
-		}
-	}
-
-	BLI_strncpy(blendfilename, filename, sizeof(filename));
-}
-
 static void get_filename(int argc, char **argv, char *filename)
 {
 #ifdef __APPLE__
@@ -633,7 +588,7 @@ int main(int argc, char** argv)
 
 				get_filename(argc, argv, filename);
 				if(filename[0])
-					make_absolute_filename(filename);
+					BLI_convertstringcwd(filename);
 				
 				do
 				{
