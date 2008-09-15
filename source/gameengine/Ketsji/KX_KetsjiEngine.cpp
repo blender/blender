@@ -135,6 +135,8 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	
 	m_overrideCam(false),
 	m_overrideCamUseOrtho(false),
+	m_overrideCamNear(0.0),
+	m_overrideCamFar(0.0),
 
 	m_stereo(false),
 	m_curreye(0),
@@ -886,7 +888,12 @@ void KX_KetsjiEngine::SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat)
 	m_overrideCamViewMat = mat;
 }
 
-	
+void KX_KetsjiEngine::SetCameraOverrideClipping(float near, float far)
+{
+	m_overrideCamNear = near;
+	m_overrideCamFar = far;
+}
+
 void KX_KetsjiEngine::SetupViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport)
 {
 	// In this function we make sure the rasterizer settings are upto
@@ -985,6 +992,7 @@ void KX_KetsjiEngine::RenderShadowBuffers(KX_Scene *scene)
 // update graphics
 void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 {
+	bool override_camera;
 	RAS_Rect viewport, area;
 	float left, right, bottom, top, nearfrust, farfrust, focallength;
 	const float ortho = 100.0;
@@ -1006,7 +1014,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	//m_rasterizer->SetAmbient();
 	m_rasterizer->DisplayFog();
 
-	if (m_overrideCam && (scene->GetName() == m_overrideSceneName) && m_overrideCamUseOrtho) {
+	override_camera = m_overrideCam && (scene->GetName() == m_overrideSceneName);
+	override_camera = override_camera && (cam->GetName() == "__default__cam__");
+
+	if (override_camera && m_overrideCamUseOrtho) {
 		MT_CmMatrix4x4 projmat = m_overrideCamProjMat;
 		m_rasterizer->SetProjectionMatrix(projmat);
 	} else if (cam->hasValidProjectionMatrix() && !cam->GetViewport() )
@@ -1016,12 +1027,17 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	{
 		RAS_FrameFrustum frustum;
 		float lens = cam->GetLens();
+		bool orthographic = !cam->GetCameraData()->m_perspective;
 		nearfrust = cam->GetCameraNear();
 		farfrust = cam->GetCameraFar();
 		focallength = cam->GetFocalLength();
 
-		if (!cam->GetCameraData()->m_perspective)
-		{
+		if(override_camera) {
+			nearfrust = m_overrideCamNear;
+			farfrust = m_overrideCamFar;
+		}
+
+		if (orthographic) {
 			lens *= ortho;
 			nearfrust = (nearfrust + 1.0)*ortho;
 			farfrust *= ortho;

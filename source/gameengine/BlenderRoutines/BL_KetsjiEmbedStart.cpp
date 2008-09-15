@@ -198,6 +198,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
 		MT_CmMatrix4x4 viewmat;
+		float camzoom;
 		int i;
 		
 		for (i = 0; i < 16; i++)
@@ -211,8 +212,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		float camzoom = (1.41421 + (v3d->camzoom / 50.0));
-		camzoom *= camzoom;
+		if(v3d->persp==V3D_CAMOB) {
+			camzoom = (1.41421 + (v3d->camzoom / 50.0));
+			camzoom *= camzoom;
+		}
+		else
+			camzoom = 2.0;
+
 		camzoom = 4.0 / camzoom;
 		
 		ketsjiengine->SetDrawType(v3d->drawtype);
@@ -293,6 +299,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
+				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
 			}
 			
 			// create a scene converter, create and convert the startingscene
