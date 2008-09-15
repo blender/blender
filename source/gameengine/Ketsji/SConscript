@@ -32,15 +32,12 @@ incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common #sourc
 incs += ' #source/gameengine/Physics/BlOde #source/gameengine/Physics/Dummy'
 incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/include'
 incs += ' #source/gameengine/Physics/Sumo/Fuzzics/include #source/gameengine/Network/LoopBackNetwork'
-incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include'
+incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #source/blender/gpu'
 
 cflags = []
 if env['OURPLATFORM'] == 'win32-vc':
 	cflags.append('/GR')
 	cflags.append('/Ox')
-
-if env['WITH_BF_GLEXT'] == 1:
-        env['CPPFLAGS'].append('-DWITH_GLEXT')
 
 incs += ' ' + env['BF_SOLID_INC']
 incs += ' ' + env['BF_PYTHON_INC']

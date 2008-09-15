@@ -172,6 +172,7 @@
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
 #include "BDR_unwrapper.h"
+#include "BDR_gpencil.h"
 
 #include <time.h>
 #include "mydevice.h"
@@ -2827,7 +2828,7 @@ void convertmenu(void)
 	if(G.scene->id.lib) return;
 
 	obact= OBACT;
-	if(obact==0) return;
+	if (obact == NULL) return;
 	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	
@@ -3022,6 +3023,10 @@ void convertmenu(void)
 		basedel = NULL;				
 	}
 	
+	/* delete object should renew depsgraph */
+	if(nr==2)
+		DAG_scene_sort(G.scene);
+
 	/* texspace and normals */
 	if(!basen) BASACT= base;
 
@@ -3278,6 +3283,9 @@ static void copymenu_logicbricks(Object *ob)
 				base->object->scavisflag= ob->scavisflag;
 				base->object->scaflag= ob->scaflag;
 				
+				/* set the initial state */
+				base->object->state= ob->state;
+				base->object->init_state= ob->init_state;
 			}
 		}
 		base= base->next;
@@ -3514,6 +3522,7 @@ void copy_attr(short event)
 					if (ob->gameflag & OB_BOUNDS) {
 						base->object->boundtype = ob->boundtype;
 					}
+					base->object->margin= ob->margin;
 				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
@@ -4130,15 +4139,27 @@ void apply_object( void )
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		
-	} else {
+	} 
+	else {
+		ob= OBACT;
+		if(ob==0) return;
 		
-		evt = pupmenu("Apply Object%t|Scale and Rotation to ObData|Visual Transform to Objects Loc/Scale/Rot");
+		if ((ob->pose) && (ob->flag & OB_POSEMODE))
+			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
+		else
+			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2");
 		if (evt==-1) return;
 		
-		if (evt==1) {
-			apply_objects_locrot();
-		} else if (evt==2) {
-			apply_objects_visual_tx();
+		switch (evt) {
+			case 1:
+				apply_objects_locrot();
+				break;
+			case 2:
+				apply_objects_visual_tx();
+				break;
+			case 3:
+				apply_armature_pose2bones();
+				break;
 		}
 	}
 }

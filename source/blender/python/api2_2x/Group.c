@@ -46,6 +46,8 @@
 #include "gen_utils.h"
 #include "gen_library.h"
 
+#include "vector.h"
+
 /* checks for the group being removed */
 #define GROUP_DEL_CHECK_PY(bpy_group) if (!(bpy_group->group)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Group has been removed" ) )
 #define GROUP_DEL_CHECK_INT(bpy_group) if (!(bpy_group->group)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Group has been removed" ) )
@@ -200,6 +202,31 @@ static int Group_setObjects( BPy_Group * self, PyObject * args )
 	return 0;
 }
 
+static PyObject *Group_getDupliOfs( BPy_Group * self )
+{
+	GROUP_DEL_CHECK_PY(self);
+	return newVectorObject( self->group->dupli_ofs, 3, Py_WRAP );
+}
+
+static int Group_setDupliOfs( BPy_Group * self, PyObject * value )
+{	
+	VectorObject *bpy_vec;
+	GROUP_DEL_CHECK_INT(self);
+	if (!VectorObject_Check(value))
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a vector" ) );
+	
+	bpy_vec = (VectorObject *)value;
+	
+	if (bpy_vec->size != 3)
+		return ( EXPP_ReturnIntError( PyExc_ValueError,
+			"can only assign a 3D vector" ) );
+	
+	self->group->dupli_ofs[0] = bpy_vec->vec[0];
+	self->group->dupli_ofs[1] = bpy_vec->vec[1];
+	self->group->dupli_ofs[2] = bpy_vec->vec[2];
+	return 0;
+}
 
 
 /*****************************************************************************/
@@ -251,6 +278,10 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	 (getter)Group_getObjects, (setter)Group_setObjects,
 	 "objects in this group",
 	 NULL},
+	{"dupliOffset",
+	 (getter)Group_getDupliOfs, (setter)Group_setDupliOfs,
+	 "offset to use when instancing this group as a DupliGroup",
+	NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

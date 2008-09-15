@@ -131,7 +131,7 @@ void make_editLatt(void)
 		copy_dverts(editLatt->dvert, lt->dvert, tot);
 	}
 	
-	BIF_undo_push("original");
+	BIF_undo_push("Original");
 }
 
 

@@ -211,9 +211,15 @@ void do_soundbuts(unsigned short event)
 	case B_SOUND_MENU_SAMPLE:
 		if (G.buts->menunr > 0) {
 			sample = BLI_findlink(samples, G.buts->menunr - 1);
-			if (sample && sound) {
+			if (sample && sound && sound->sample != sample) {
+				int wasrelative = (strncmp(sound->name, "//", 2)==0);
+				
 				BLI_strncpy(sound->name, sample->name, sizeof(sound->name));
 				sound_set_sample(sound, sample);
+				
+				if (wasrelative)
+					BLI_makestringcode(G.sce, sound->name);
+					
 				do_soundbuts(B_SOUND_REDRAW);
 			}
 		}

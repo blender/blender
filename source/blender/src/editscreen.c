@@ -1023,8 +1023,11 @@ int blender_test_break(void)
 	return (G.afbreek==1);
 }
 
-void reset_autosave(void) {
-	window_set_timer(mainwin, U.savetime*60*1000, AUTOSAVE_FILE);
+void reset_autosave(void) 
+{
+	if(U.flag & USER_AUTOSAVE) {
+		window_set_timer(mainwin, U.savetime*60*1000, AUTOSAVE_FILE);
+	}
 }
 
 /* ************ handlers ************** */

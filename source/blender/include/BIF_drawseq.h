@@ -33,6 +33,8 @@
 struct ScrArea;
 struct Sequence;
 
+#define SEQ_ZOOM_FAC(szoom) (szoom > 0)? (szoom) : (szoom == 0)? (1.0) : (-1.0/szoom)
+
 void drawprefetchseqspace(struct ScrArea *sa, void *spacedata);
 void drawseqspace(struct ScrArea *sa, void *spacedata);
 void set_special_seq_update(int val);

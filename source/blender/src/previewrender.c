@@ -97,6 +97,8 @@
 #include "RE_pipeline.h"
 #include "BLO_readfile.h" 
 
+#include "GPU_material.h"
+
 #include "blendef.h"	/* CLAMP */
 #include "interface.h"	/* ui_graphics_to_window(),  SOLVE! (ton) */
 #include "mydevice.h"
@@ -218,6 +220,36 @@ void BIF_preview_changed(short id_code)
 			if (vd->ri) {
 				vd->ri->curtile= 0;
 				addafterqueue(sa->win, RENDERPREVIEW, 1);
+			}
+		}
+	}
+
+	if(ELEM4(id_code, ID_MA, ID_TE, ID_LA, ID_WO)) {
+		Object *ob;
+		Material *ma;
+
+		if(id_code == ID_WO) {
+			for(ma=G.main->mat.first; ma; ma=ma->id.next) {
+				if(ma->gpumaterial.first) {
+					GPU_material_free(ma);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+		}
+		else if(id_code == ID_LA) {
+			for(ob=G.main->object.first; ob; ob=ob->id.next) {
+				if(ob->gpulamp.first) {
+					GPU_lamp_free(ob);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+		} else if(OBACT) {
+			Object *ob = OBACT;
+
+			ma= give_current_material(ob, ob->actcol);
+			if(ma && ma->gpumaterial.first) {
+				GPU_material_free(ma);
+				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
 	}

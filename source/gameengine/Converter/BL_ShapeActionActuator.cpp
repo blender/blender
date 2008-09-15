@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,7 +135,6 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 {
 	vector<float>::const_iterator it;
 	float dstweight;
-	int i;
 	KeyBlock *kb;
 	
 	dstweight = 1.0F - srcweight;

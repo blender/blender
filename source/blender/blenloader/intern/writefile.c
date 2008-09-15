@@ -1698,7 +1698,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
 					if(sima->cumap)
-						write_curvemapping(wd, sima->cumap);					
+						write_curvemapping(wd, sima->cumap);
+					if(sima->gpd) 
+						write_gpencil(wd, sima->gpd);
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);
@@ -1849,6 +1851,7 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 {
 	Text *text;
 	TextLine *tmp;
+	TextMarker *mrk;
 
 	text= idbase->first;
 	while(text) {
@@ -1872,7 +1875,16 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 				writedata(wd, DATA, tmp->len+1, tmp->line);
 				tmp= tmp->next;
 			}
+
+			/* write markers */
+			mrk= text->markers.first;
+			while (mrk) {
+				writestruct(wd, DATA, "TextMarker", 1, mrk);
+				mrk= mrk->next;
+			}
 		}
+
+
 		text= text->id.next;
 	}
 

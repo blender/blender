@@ -68,6 +68,7 @@
 #include "SG_IObject.h"
 #include "SG_Tree.h"
 #include "DNA_group_types.h"
+#include "DNA_scene_types.h"
 #include "BKE_anim.h"
 
 #include "KX_SG_NodeRelationships.h"
@@ -116,7 +117,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   class SND_IAudioDevice* adi,
-				   const STR_String& sceneName): 
+				   const STR_String& sceneName,
+				   Scene *scene): 
 	PyObjectPlus(&KX_Scene::Type),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
@@ -126,7 +128,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0)
+	m_ueberExecutionPriority(0),
+	m_blenderScene(scene)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -453,7 +456,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 
 	// this is the list of object that are send to the graphics pipeline
 	m_objectlist->Add(newobj->AddRef());
-	newobj->Bucketize();
+	newobj->AddMeshUser();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.
 	m_logicHierarchicalGameObjects.push_back(newobj);
@@ -623,6 +626,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		if (blgroupobj == blenderobj)
 			// this check is also in group_duplilist()
 			continue;
+
 		gameobj = (KX_GameObject*)m_logicmgr->FindGameObjByBlendObj(blenderobj);
 		if (gameobj == NULL) 
 		{
@@ -630,6 +634,9 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 			// Should not happen as dupli group are created automatically 
 			continue;
 		}
+
+		gameobj->SetBlenderGroupObject(blgroupobj);
+
 		if ((blenderobj->lay & group->layer)==0)
 		{
 			// object is not visible in the 3D view, will not be instantiated
@@ -944,6 +951,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	
 	newobj->RemoveMeshes();
 	ret = 1;
+	if (m_lightlist->RemoveValue(newobj)) // TODO - use newobj->IsLight() test when its merged in from apricot. - Campbell
+		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
 		ret = newobj->Release();
 	if (m_tempObjectList->RemoveValue(newobj))
@@ -997,7 +1006,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 			newobj->m_pDeformer = NULL;
 		}
 
-		if (mesh->m_class == 1) 
+		if (mesh->IsDeformed())
 		{
 			// we must create a new deformer but which one?
 			KX_GameObject* parentobj = newobj->GetParent();
@@ -1071,7 +1080,8 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 				parentobj->Release();
 		}
 	}
-	gameobj->Bucketize();
+
+	gameobj->AddMeshUser();
 }
 
 
@@ -1223,7 +1233,9 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 				for (int m=0;m<nummeshes;m++)
 					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 			}
-			gameobj->MarkVisible(visible);
+
+			gameobj->SetCulled(!visible);
+			gameobj->UpdateBuckets(false);
 		}
 	}
 	if (node->Left())
@@ -1240,7 +1252,8 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	
 	// Shadow lamp layers
 	if(layer && !(gameobj->GetLayer() & layer)) {
-		gameobj->MarkVisible(false);
+		gameobj->SetCulled(true);
+		gameobj->UpdateBuckets(false);
 		return;
 	}
 
@@ -1286,9 +1299,11 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 		}
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
-		gameobj->MarkVisible();
+		gameobj->SetCulled(false);
+		gameobj->UpdateBuckets(false);
 	} else {
-		gameobj->MarkVisible(false);
+		gameobj->SetCulled(true);
+		gameobj->UpdateBuckets(false);
 	}
 }
 

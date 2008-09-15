@@ -45,6 +45,7 @@
    Py_RETURN_NONE
    Python 2.4 macro.  
    defined here until we switch to 2.4
+   also in PyObjectPlus.h for gameengine
 */
 #ifndef Py_RETURN_NONE
 #define Py_RETURN_NONE	return Py_BuildValue("O", Py_None)

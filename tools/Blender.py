@@ -129,6 +129,9 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
 
+    if lenv['WITH_BF_STATICPYTHON']:
+        statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
+
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross'):
         libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
 
@@ -141,10 +144,12 @@ def setup_syslibs(lenv):
         lenv['BF_PNG_LIB'],
         lenv['BF_ZLIB_LIB']
         ]
-    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
-        syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
-    else:
-        syslibs.append(lenv['BF_PYTHON_LIB'])
+
+    if not lenv['WITH_BF_STATICPYTHON']:
+        if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
+            syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
+        else:
+            syslibs.append(lenv['BF_PYTHON_LIB'])
     if lenv['WITH_BF_INTERNATIONAL']:
         syslibs += Split(lenv['BF_FREETYPE_LIB'])
         syslibs += Split(lenv['BF_GETTEXT_LIB'])

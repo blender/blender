@@ -34,7 +34,7 @@ struct ID; /*keep me up here */
 /* for open, close in Blender_Load */
 #include <fcntl.h>
 #include "BDR_editobject.h"	/* exit_editmode() */
-#include "BDR_drawmesh.h"	/* set_mipmap() */
+#include "GPU_draw.h"	/* GPU_set_mipmap() */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
 #include "BLI_bpath.h"
@@ -314,8 +314,8 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 		else
 			U.gameflags |= USER_DISABLE_MIPMAP;
 		
-		set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
-	}else
+		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	} else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"value given is not a blender setting" ) );
 	Py_RETURN_NONE;
@@ -543,7 +543,21 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	} /* End 'quick hack' part. */
 	else if(StringEqual( str, "version" ))
 		ret = PyInt_FromLong( G.version );
-		
+	else if(StringEqual( str, "buildinfo" )) {
+#ifdef NAN_BUILDINFO
+		char buffer[1024];
+		extern char * build_date;
+		extern char * build_time;
+		extern char * build_rev;
+		extern char * build_platform;
+		extern char * build_type;
+
+		sprintf(buffer, "Built on %s %s, Rev-%s    Version %s %s", build_date, build_time, build_rev, build_platform, build_type);
+		ret = PyString_FromString( buffer );
+#else
+		ret = PyString_FromString( "No Build Info" );
+#endif
+	}
 	else if(StringEqual( str, "compressfile" ))
 		ret = PyInt_FromLong( (U.flag & USER_FILECOMPRESS) >> 15  );
 	else if(StringEqual( str, "mipmap" ))

@@ -62,6 +62,19 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 	}	
 }
 
+static int gpu_shader_output(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	GPUNodeLink *outlink;
+
+	/*if(in[1].hasinput)
+		GPU_material_enable_alpha(mat);*/
+
+	GPU_stack_link(mat, "output_node", in, out, &outlink);
+	GPU_material_output_link(mat, outlink);
+
+	return 1;
+}
+
 bNodeType sh_node_output= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_OUTPUT,
@@ -76,7 +89,8 @@ bNodeType sh_node_output= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_output
 	
 };
 

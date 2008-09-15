@@ -15,7 +15,7 @@ subject to the following restrictions:
 
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
-
+#include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
@@ -126,13 +126,14 @@ void CcdPhysicsController::CreateRigidbody()
 
 	m_bulletMotionState = new BlenderBulletMotionState(m_MotionState);
 
-	m_body = new btRigidBody(m_cci.m_mass,
-		m_bulletMotionState,
-		m_collisionShape,
-		m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor,
-		m_cci.m_linearDamping,m_cci.m_angularDamping,
-		m_cci.m_friction,m_cci.m_restitution);
-
+	btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+	rbci.m_linearDamping = m_cci.m_linearDamping;
+	rbci.m_angularDamping = m_cci.m_angularDamping;
+	rbci.m_friction = m_cci.m_friction;
+	rbci.m_restitution = m_cci.m_restitution;
+	
+	m_body = new btRigidBody(rbci);
+	
 	//
 	// init the rigidbody properly
 	//
@@ -276,7 +277,9 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		if (m_collisionShape)
 		{
 			// new shape has no scaling, apply initial scaling
+			m_collisionShape->setMargin(m_cci.m_margin);
 			m_collisionShape->setLocalScaling(m_cci.m_scaling);
+			
 			if (m_cci.m_mass)
 				m_collisionShape->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
 		}
@@ -767,6 +770,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 	// assume no shape information
 	m_shapeType = PHY_SHAPE_NONE;
 	m_vertexArray.clear();
+	m_polygonIndexArray.clear();
+	m_meshObject = NULL;
 
 	if (!meshobj)
 		return false;
@@ -813,9 +818,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 			{
 				for (int i=0;i<poly->VertexCount();i++)
 				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[i],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					const float* vtx = poly->GetVertex(i)->getXYZ();
 					btPoint3 point(vtx[0],vtx[1],vtx[2]);
 					m_vertexArray.push_back(point);
 					numvalidpolys++;
@@ -823,40 +826,36 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 			} else
 			{
 				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					const float* vtx = poly->GetVertex(2)->getXYZ();
 					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[1],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(1)->getXYZ();
 					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(0)->getXYZ();
 					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
 					m_vertexArray.push_back(vertex2);
+					m_polygonIndexArray.push_back(p2);
 					numvalidpolys++;
 				}
 				if (poly->VertexCount() == 4)
 				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[3],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+					const float* vtx = poly->GetVertex(3)->getXYZ();
 					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(2)->getXYZ();
 					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
+
+					vtx = poly->GetVertex(0)->getXYZ();
 					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
+
 					m_vertexArray.push_back(vertex0);
 					m_vertexArray.push_back(vertex1);
 					m_vertexArray.push_back(vertex2);
+					m_polygonIndexArray.push_back(p2);
 					numvalidpolys++;
 				}
 			}		
@@ -869,6 +868,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 		m_shapeType = PHY_SHAPE_NONE;
 		return false;
 	}
+	m_meshObject = meshobj;
 	return true;
 }
 
@@ -906,15 +906,26 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		break;
 
 	case PHY_SHAPE_MESH:
-		collisionMeshData = new btTriangleMesh();
-		// m_vertexArray is necessarily a multiple of 3
-		for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+		// Let's use the latest btScaledBvhTriangleMeshShape: it allows true sharing of 
+		// triangle mesh information between duplicates => drastic performance increase when 
+		// duplicating complex mesh objects. 
+		// BUT it causes a small performance decrease when sharing is not required: 
+		// 9 multiplications/additions and one function call for each triangle that passes the mid phase filtering
+		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
+		// and btScaledBvhTriangleMeshShape otherwise.
+		if (!m_unscaledShape)
 		{
-            collisionMeshData->addTriangle(*it++,*it++,*it++);
+			collisionMeshData = new btTriangleMesh();
+			// m_vertexArray is necessarily a multiple of 3
+			for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+			{
+				collisionMeshData->addTriangle(*it++,*it++,*it++);
+			}
+			// this shape will be shared and not deleted until shapeInfo is deleted
+			m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );
+			m_unscaledShape->recalcLocalAabb();
 		}
-		concaveShape = new btBvhTriangleMeshShape( collisionMeshData, true );
-		concaveShape->recalcLocalAabb();
-		collisionShape = concaveShape;
+		collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
 		break;
 
 	case PHY_SHAPE_COMPOUND:
@@ -926,6 +937,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 				collisionShape = nextShapeInfo->CreateBulletShape();
 				if (collisionShape)
 				{
+					collisionShape->setLocalScaling(nextShapeInfo->m_childScale);
 					compoundShape->addChildShape(nextShapeInfo->m_childTrans, collisionShape);
 				}
 			}
@@ -954,7 +966,10 @@ CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 		childShape->Release();
 		childShape = nextShape;
 	}
-	
+	if (m_unscaledShape)
+	{
+		DeleteBulletShape(m_unscaledShape);
+	}
 	m_vertexArray.clear();
 }
 

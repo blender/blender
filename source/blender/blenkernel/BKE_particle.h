@@ -302,6 +302,7 @@ int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int 
 #define PSYS_RESET_ALL			1
 #define PSYS_RESET_DEPSGRAPH 	2
 #define PSYS_RESET_CHILDREN 	3
+#define PSYS_RESET_CACHE_MISS	4
 
 /* ParticleEffectorCache->type */
 #define PSYS_EC_EFFECTOR	1

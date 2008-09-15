@@ -76,6 +76,9 @@ void gpencil_delete_laststroke(struct bGPdata *gpd);
 void gpencil_delete_operation(short mode);
 void gpencil_delete_menu(void);
 
+void gpencil_convert_operation(short mode);
+void gpencil_convert_menu(void);
+
 //short gpencil_paint(short mousebutton);
 short gpencil_do_paint(struct ScrArea *sa, short mousebutton);
 

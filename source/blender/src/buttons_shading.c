@@ -113,6 +113,8 @@
 
 #include "RE_pipeline.h"
 
+#include "GPU_material.h"
+
 /* -----includes for this file specific----- */
 
 #include "butspace.h" // own module
@@ -209,6 +211,7 @@ static void load_image_cb(char *str, void *ima_pp_v, void *iuser_v)	/* called fr
 			if(GS(tex->id.name)==ID_TE) {
 				BIF_preview_changed(ID_TE);
 				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWOOPS, 0);
 			}
 		}
@@ -1542,10 +1545,35 @@ static void texture_panel_colors(Tex *tex)
 	uiDefButF(block, NUMSLI, B_TEXPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 5.0, 0, 0, "Changes the contrast of the color or intensity of a texture");
 }
 
-
-static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *la, bNode *node, Brush *br, SculptData *sd)
+static int texture_channels_num_display(MTex **mtex)
 {
-	MTex *mt=NULL;
+	int a, num_mtex;
+
+	if(!mtex)
+		return 0;
+
+	/* compute number of texture channels to draw, 1 more
+	 * than the last, used texture channel, and at least 10 */
+	num_mtex = 0;
+
+	for(a=MAX_MTEX-1; a>=0; a--) {
+		if (mtex[a]) {
+			num_mtex = a+1;
+			break;
+		}
+	}
+
+	if (num_mtex < 10)
+		return 10;
+	else if(num_mtex < MAX_MTEX)
+		return num_mtex + 1;
+	else
+		return MAX_MTEX;
+}
+
+static void texture_panel_texture(MTex *actmtex, Material *ma, World *wrld, Lamp *la, bNode *node, Brush *br, SculptData *sd)
+{
+	MTex **mtex, *mt;
 	uiBlock *block;
 	ID *id=NULL, *idfrom;
 	int a, yco, loos;
@@ -1556,17 +1584,35 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	if(uiNewPanel(curarea, block, "Texture", "Texture", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
-	if(mtex)
-		id= (ID *)mtex->tex;
+	if(actmtex)
+		id= (ID *)actmtex->tex;
 	else if(node)
 		id= node->id;
 	
-	if(ma) idfrom= &ma->id;
-	else if(wrld) idfrom= &wrld->id;
-	else if(la) idfrom= &la->id;
-	else if(br) idfrom= &br->id;
-	else if(sd) idfrom= NULL; /* Not sure what this does */
-	else idfrom= NULL;
+	if(ma) {
+		idfrom= &ma->id;
+		mtex= ma->mtex;
+	}
+	else if(wrld) {
+		idfrom= &wrld->id;
+		mtex= wrld->mtex;
+	}
+	else if(la) {
+		idfrom= &la->id;
+		mtex= la->mtex;
+	}
+	else if(br) {
+		idfrom= &br->id;
+		mtex= br->mtex;
+	}
+	else if(sd) {
+		idfrom= NULL; /* Not sure what this does */
+		mtex= sd->mtex;
+	}
+	else {
+		idfrom= NULL;
+		mtex= NULL;
+	}
 	
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	if(ma) {
@@ -1595,15 +1641,13 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	
 	/* CHANNELS */
 	if(node==NULL) {
+		int num_mtex;
 		uiBlockBeginAlign(block);
 		yco= 150;
-		for(a= 0; a<MAX_MTEX; a++) {
-			
-			if(ma) mt= ma->mtex[a];
-			else if(wrld) mt= wrld->mtex[a];
-			else if(la) mt= la->mtex[a];
-			else if(br) mt= br->mtex[a];
-			else if(sd) mt= sd->mtex[a];
+		
+		num_mtex= texture_channels_num_display(mtex);
+		for(a=0; a<num_mtex; a++) {
+			mt= mtex[a];
 			
 			if(mt && mt->tex) splitIDname(mt->tex->id.name+2, str, &loos);
 			else strcpy(str, "");
@@ -2030,7 +2074,7 @@ static void world_panel_texture(World *wrld)
 	uiBlock *block;
 	MTex *mtex;
 	ID *id;
-	int a, loos;
+	int a, loos, num_mtex;
 	char str[64], *strp;
 	
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2041,7 +2085,8 @@ static void world_panel_texture(World *wrld)
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiBlockBeginAlign(block);
-	for(a= 0; a<MAX_MTEX; a++) {
+	num_mtex= texture_channels_num_display(wrld->mtex);
+	for(a= 0; a<num_mtex; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
@@ -2506,7 +2551,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	uiBlock *block;
 	MTex *mtex;
 	ID *id;
-	int a, loos;
+	int a, loos, num_mtex;
 	char *strp, str[64];
 	
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2517,7 +2562,8 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiBlockBeginAlign(block);
-	for(a= 0; a<MAX_MTEX; a++) {
+	num_mtex= texture_channels_num_display(la->mtex);
+	for(a= 0; a<num_mtex; a++) {
 		mtex= la->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
@@ -2603,9 +2649,9 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, LA_SHAD_RAY, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
+	uiDefButBitI(block, TOG, LA_SHAD_RAY, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
 	if(la->type==LA_SPOT) {
-		uiDefButBitS(block, TOG, LA_SHAD_BUF, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
+		uiDefButBitI(block, TOG, LA_SHAD_BUF, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
 		if(la->mode & LA_SHAD_BUF) {
 			char *tip= "Regular buffer type";
 			if(la->buftype==LA_SHADBUF_IRREGULAR)
@@ -2618,12 +2664,15 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_LAMPPRV,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, LA_ONLYSHADOW, B_LAMPPRV,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
+	uiDefButBitI(block, TOG, LA_LAYER_SHADOW, B_LAMPPRV,"Layer",		10,90,80,19,&la->mode, 0, 0, 0, 0, "Causes only objects on the same layer to cast shadows");
+	uiBlockEndAlign(block);
 
 	if(la->type==LA_SPOT) {
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,60,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
-		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",		10,40,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
+		uiDefButBitI(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,60,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
+		uiDefButBitI(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",		10,40,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
@@ -2747,12 +2796,12 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 	/* in yafray arealights always cast shadows, so ray shadow flag not needed */
 	/* ray shadow also not used when halo for spot enabled */
 	if ((la->type!=LA_AREA) && (!((la->type==LA_SPOT) && (la->mode & LA_HALO))))
-		uiDefButBitS(block, TOG, LA_SHAD_RAY, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
+		uiDefButBitI(block, TOG, LA_SHAD_RAY, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
 	
 	/* in yafray the regular lamp can use shadowbuffers (softlight), used by spot with halo as well */
 	/* to prevent clash with blender shadowbuf flag, a special flag is used for yafray */
 	if (la->type==LA_LOCAL) {
-		uiDefButBitS(block, TOG, LA_YF_SOFT, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets light produce shadows using shadow buffer");
+		uiDefButBitI(block, TOG, LA_YF_SOFT, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets light produce shadows using shadow buffer");
 		uiDefButF(block, NUM, B_DIFF, "GloInt:", 100,155,200,19, &la->YF_glowint, 0.0, 1.0, 1, 0, "Sets light glow intensity, 0 is off");
 		uiDefButF(block, NUM, B_DIFF, "GloOfs:", 100,135,100,19, &la->YF_glowofs, 0.0, 2.0, 1, 0, "Sets light glow offset, the higher, the less 'peaked' the glow");
 		uiDefButS(block, NUM, B_DIFF, "GlowType:", 200,135,100,19, &la->YF_glowtype, 0, 1, 1, 0, "Sets light glow type");
@@ -2780,7 +2829,7 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 	
 	if (la->type==LA_SPOT) {
 
-		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
+		uiDefButBitI(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
@@ -2900,15 +2949,15 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButS(block, MENU, B_LAMPREDRAW,  "Falloff %t|Constant %x0|Inverse Linear %x1|Inverse Square %x2|Custom Curve %x3|Lin/Quad Weighted %x4|",
 			10,150,100,19, &la->falloff_type, 0,0,0,0, "Lamp falloff - intensity decay with distance");	
-		uiDefButBitS(block, TOG, LA_SPHERE, B_LAMPPRV,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
+		uiDefButBitI(block, TOG, LA_SPHERE, B_LAMPPRV,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
 	}
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, LA_LAYER, 0,"Layer",				10,70,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
-	uiDefButBitS(block, TOG, LA_NEG, B_LAMPPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
-	uiDefButBitS(block, TOG, LA_NO_DIFF, B_LAMPPRV,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
-	uiDefButBitS(block, TOG, LA_NO_SPEC, B_LAMPPRV,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
+	uiDefButBitI(block, TOG, LA_LAYER, 0,"Layer",				10,70,100,19,&la->mode, 0, 0, 0, 0, "Illuminates objects in the same layer as the lamp only");
+	uiDefButBitI(block, TOG, LA_NEG, B_LAMPPRV,"Negative",	10,50,100,19,&la->mode, 0, 0, 0, 0, "Sets lamp to cast negative light");
+	uiDefButBitI(block, TOG, LA_NO_DIFF, B_LAMPPRV,"No Diffuse",		10,30,100,19,&la->mode, 0, 0, 0, 0, "Disables diffuse shading of material illuminated by this lamp");
+	uiDefButBitI(block, TOG, LA_NO_SPEC, B_LAMPPRV,"No Specular",		10,10,100,19,&la->mode, 0, 0, 0, 0, "Disables specular shading of material illuminated by this lamp");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
@@ -3523,7 +3572,7 @@ static void material_panel_texture(Object *ob, Material *ma)
 	ID *id;
 	ParticleSystem *psys;
 	int loos, psys_mapto=0;
-	int a;
+	int a, num_mtex;
 	char str[64], *strp;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
@@ -3539,7 +3588,8 @@ static void material_panel_texture(Object *ob, Material *ma)
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	
 	uiBlockBeginAlign(block);
-	for(a= 0; a<MAX_MTEX; a++) {
+	num_mtex= texture_channels_num_display(ma->mtex);
+	for(a= 0; a<num_mtex; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 		else strcpy(str, "");
@@ -3553,10 +3603,10 @@ static void material_panel_texture(Object *ob, Material *ma)
 	/* SEPTEX */
 	uiBlockSetCol(block, TH_AUTO);
 	
-	for(a= 0; a<MAX_MTEX; a++) {
+	for(a= 0; a<num_mtex; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
-			but=uiDefIconButBitS(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+			but=uiDefIconButBitI(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
 
 			if(psys_mapto && ma->mtex[a]->mapto & MAP_PA_IVEL)
 				uiButSetFunc(but, particle_recalc_material, ma, NULL);
@@ -4091,13 +4141,14 @@ static void material_panel_material(Material *ma)
 			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_MAT_VCOL_LIGHT,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colors as extra light");
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colors with vertex colors");
-			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,64,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
-			if (ma->mode & MA_FACETEXTURE) uiDefButBitI(block, TOG, MA_FACETEXTURE_ALPHA, B_REDR, "A",		220,166,20,20, &(ma->mode), 0, 0, 0, 0, "Use alpha channel in 'TexFace' assigned images");
-			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	240,166,63,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
+			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_MATPRV, "TexFace",		156,166,60,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
+			uiDefButBitI(block, TOG, MA_FACETEXTURE_ALPHA, B_MATPRV, "A",		216,166,20,20, &(ma->mode), 0, 0, 0, 0, "Use alpha channel in 'TexFace' assigned images");
+			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	236,166,67,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
 			
-			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",		8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+			uiDefButBitI(block, TOG, MA_NOMIST, B_MATPRV,	"No Mist",		8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
 			uiDefButBitI(block, TOG, MA_ENV, B_MATPRV,	"Env",			82,146,74,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
-			uiDefButF(block, NUM, B_NOP, "Shad A ",					156,146,147,19, &ma->shad_alpha, 0.001, 1.0f, 100, 0, "Shadow casting alpha, only in use for Irregular Shadowbuffer");
+			uiDefButBitS(block, TOG, MA_OBCOLOR, B_MATPRV, "ObColor",		156,146,60,20, &(ma->shade_flag), 0, 0, 0, 0, "Modulate the result with a per object color");
+			uiDefButF(block, NUM, B_NOP, "Shad A ",					216,146,87,20, &ma->shad_alpha, 0.001, 1.0f, 10, 2, "Shadow casting alpha, only in use for Irregular Shadowbuffer");
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);

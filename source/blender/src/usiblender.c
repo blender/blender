@@ -34,8 +34,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "GL/glew.h"
-
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
 #ifndef _WIN32_IE
@@ -69,6 +67,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -81,6 +80,7 @@
 #include "BKE_mball.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
+#include "BKE_suggestions.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_pointcache.h"
@@ -146,6 +146,9 @@
 #include "SYS_System.h"
 
 #include "PIL_time.h"
+
+#include "GPU_extensions.h"
+#include "GPU_draw.h"
 
 /***/
 
@@ -480,9 +483,21 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile < 1)) {
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			SETCOL(btheme->tipo.handle_vertex, 0xff, 0x70, 0xff, 255);
-			SETCOL(btheme->tipo.handle_vertex_select, 0xff, 0xff, 0x70, 255);
-			btheme->tipo.handle_vertex_size= 3;
+			char *col;
+			
+			/* IPO Editor: Handles/Vertices */
+			col = btheme->tipo.vertex;
+			SETCOL(btheme->tipo.handle_vertex, col[0], col[1], col[2], 255);
+			col = btheme->tipo.vertex_select;
+			SETCOL(btheme->tipo.handle_vertex_select, col[0], col[1], col[2], 255);
+			btheme->tipo.handle_vertex_size= btheme->tipo.vertex_size;
+			
+			/* Sequence/Image Editor: colors for GPencil text */
+			col = btheme->tv3d.bone_pose;
+			SETCOL(btheme->tseq.bone_pose, col[0], col[1], col[2], 255);
+			SETCOL(btheme->tima.bone_pose, col[0], col[1], col[2], 255);
+			col = btheme->tv3d.vertex_select;
+			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
 		}
 	}
 
@@ -575,8 +590,9 @@ void BIF_read_file(char *name)
 		if (retval!=0) G.relbase_valid = 1;
 
 		undo_editmode_clear();
+		undo_imagepaint_clear();
 		BKE_reset_undo();
-		BKE_write_undo("original");	/* save current state */
+		BKE_write_undo("Original");	/* save current state */
 
 		refresh_interface_font();
 	}
@@ -648,8 +664,9 @@ int BIF_read_homefile(int from_memory)
 	init_userdef_file();
 
 	undo_editmode_clear();
+	undo_imagepaint_clear();
 	BKE_reset_undo();
-	BKE_write_undo("original");	/* save current state */
+	BKE_write_undo("Original");	/* save current state */
 	
 	/* if from memory, need to refresh python scripts */
 	if (from_memory) {
@@ -1047,8 +1064,9 @@ void BIF_init(void)
 	
 	BIF_filelist_init_icons();
 
-	init_gl_stuff();	/* drawview.c, after homefile */
-	glewInit();
+	GPU_state_init();
+	GPU_extensions_init();
+
 	readBlog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }
@@ -1061,6 +1079,7 @@ extern ListBase editelems;
 void exit_usiblender(void)
 {
 	struct TmpFont *tf;
+	int totblock;
 	
 	BIF_clear_tempfiles();
 	
@@ -1106,7 +1125,7 @@ void exit_usiblender(void)
 	free_ipocopybuf();
 	free_actcopybuf();
 	free_vertexpaint();
-	free_imagepaint();
+	free_texttools();
 	
 	/* editnurb can remain to exist outside editmode */
 	freeNurblist(&editNurb);
@@ -1124,6 +1143,7 @@ void exit_usiblender(void)
 	sound_exit_audio();
 	if(G.listener) MEM_freeN(G.listener);
 
+	GPU_extensions_exit();
 
 	libtiff_exit();
 
@@ -1133,6 +1153,7 @@ void exit_usiblender(void)
 
 	/* undo free stuff */
 	undo_editmode_clear();
+	undo_imagepaint_clear();
 	
 	BKE_undo_save_quit();	// saves quit.blend if global undo is on
 	BKE_reset_undo(); 
@@ -1158,6 +1179,7 @@ void exit_usiblender(void)
 	BLI_freelistN(&U.themes);
 	BIF_preview_free_dbase();
 	
+	totblock= MEM_get_memory_blocks_in_use();
 	if(totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();

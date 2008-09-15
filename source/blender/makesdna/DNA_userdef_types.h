@@ -188,6 +188,7 @@ typedef struct UserDef {
 	char fontname[256];		// FILE_MAXDIR+FILE length
 	struct ListBase themes;
 	short undosteps;
+	short undomemory, pad[3];
 	short curssize;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
@@ -267,6 +268,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_GLOBALUNDO     	(1 << 13)
 #define USER_ORBIT_SELECTION	(1 << 14)
 // old flag for #define USER_KEYINSERTAVAI		(1 << 15)
+#define USER_ORBIT_ZBUF			(1 << 15)
 #define USER_HIDE_DOT			(1 << 16)
 #define USER_SHOW_ROTVIEWICON	(1 << 17)
 #define USER_SHOW_VIEWPORTNAME	(1 << 18)

@@ -111,9 +111,7 @@ class KX_ObjectActuator(SCA_IActuator):
 		For the servo control actuator, this is the target speed.
 		
 		@rtype: list [vx, vy, vz, local]
-		@return: A four item list, containing the vector velocity, and whether
-		         the velocity is applied in local coordinates (True) or world
-			     coordinates (False)
+		@return: A four item list, containing the vector velocity, and whether the velocity is applied in local coordinates (True) or world coordinates (False)
 		"""
 	def setLinearVelocity(vx, vy, vz, local):
 		"""

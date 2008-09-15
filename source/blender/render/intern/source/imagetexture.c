@@ -577,10 +577,10 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	if(texres->talpha==0) texres->ta= 1.0;
 	
 	if(alphaclip!=1.0) {
-		/* this is for later investigation, premul or not? */
-		/* texres->tr*= alphaclip; */
-		/* texres->tg*= alphaclip; */
-		/* texres->tb*= alphaclip; */
+		/* premul it all */
+		texres->tr*= alphaclip;
+		texres->tg*= alphaclip;
+		texres->tb*= alphaclip;
 		texres->ta*= alphaclip;
 	}
 }	

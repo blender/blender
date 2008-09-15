@@ -105,6 +105,8 @@ class Group:
 		This object gives access to Groups in Blender.
 	@ivar layers: Layer bitmask for this group.
 	@type layers: int
+	@ivar dupliOffset: Object offset when instanced as a dupligroup
+	@type dupliOffset: vector
 	@ivar objects: Objects that this group uses.
 		This is a sequence with-list like access so use list(grp.objects) if you need to use a list (where grp is a group).
 		The groups objects can be set by assigning a list or iterator of objects to the groups objects.

@@ -109,16 +109,11 @@ KX_ConstraintActuator::~KX_ConstraintActuator()
 	// there's nothing to be done here, really....
 } /* end of destructor */
 
-bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
 {
 
 	KX_GameObject* hitKXObj = client->m_gameobject;
 	
-	if (client->m_type > KX_ClientObjectInfo::ACTOR)
-	{
-		// false hit
-		return false;
-	}
 	bool bFound = false;
 
 	if (m_property[0] == 0)
@@ -139,8 +134,26 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_p
 			bFound = hitKXObj->GetProperty(m_property) != NULL;
 		}
 	}
+	// update the hit status
+	result->m_hitFound = bFound;
+	// stop looking
+	return true;
+}
 
-	return bFound;
+/* this function is used to pre-filter the object before casting the ray on them.
+   This is useful for "X-Ray" option when we want to see "through" unwanted object.
+ */
+bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo* client)
+{
+	if (client->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// Unknown type of object, skip it.
+		// Should not occur as the sensor objects are filtered in RayTest()
+		printf("Invalid client type %d found in ray casting\n", client->m_type);
+		return false;
+	}
+	// no X-Ray function yet
+	return true;
 }
 
 bool KX_ConstraintActuator::Update(double curtime, bool frame)
@@ -287,8 +300,6 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			direction.normalize();
 			{
 				MT_Point3 topoint = position + (m_maximumBound) * direction;
-				MT_Point3 resultpoint;
-				MT_Vector3 resultnormal;
 				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
 				KX_IPhysicsController *spc = obj->GetPhysicsController();
 
@@ -304,9 +315,10 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						parent->Release();
 					}
 				}
-				result = KX_RayCast::RayTest(spc, pe, position, topoint, resultpoint, resultnormal, KX_RayCast::Callback<KX_ConstraintActuator>(this));
-
+				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,spc);
+				result = KX_RayCast::RayTest(pe, position, topoint, callback);
 				if (result)	{
+					MT_Vector3 newnormal = callback.m_hitNormal;
 					// compute new position & orientation
 					if ((m_option & (KX_ACT_CONSTRAINT_NORMAL|KX_ACT_CONSTRAINT_DISTANCE)) == 0) {
 						// if none option is set, the actuator does nothing but detect ray 
@@ -316,27 +328,27 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					if (m_option & KX_ACT_CONSTRAINT_NORMAL) {
 						// the new orientation must be so that the axis is parallel to normal
 						if (sign)
-							resultnormal = -resultnormal;
+							newnormal = -newnormal;
 						// apply damping on the direction
 						if (m_rotDampTime) {
 							MT_Scalar rotFilter = 1.0/(1.0+m_rotDampTime);
-							resultnormal = (-m_rotDampTime*rotFilter)*direction + rotFilter*resultnormal;
+							newnormal = (-m_rotDampTime*rotFilter)*direction + rotFilter*newnormal;
 						} else if (m_posDampTime) {
-							resultnormal = -filter*direction + (1.0-filter)*resultnormal;
+							newnormal = -filter*direction + (1.0-filter)*newnormal;
 						}
-						obj->AlignAxisToVect(resultnormal, axis);
-						direction = -resultnormal;
+						obj->AlignAxisToVect(newnormal, axis);
+						direction = -newnormal;
 					}
 					if (m_option & KX_ACT_CONSTRAINT_DISTANCE) {
 						if (m_posDampTime) {
-							newdistance = filter*(position-resultpoint).length()+(1.0-filter)*m_minimumBound;
+							newdistance = filter*(position-callback.m_hitPoint).length()+(1.0-filter)*m_minimumBound;
 						} else {
 							newdistance = m_minimumBound;
 						}
 					} else {
-						newdistance = (position-resultpoint).length();
+						newdistance = (position-callback.m_hitPoint).length();
 					}
-					newposition = resultpoint-newdistance*direction;
+					newposition = callback.m_hitPoint-newdistance*direction;
 				} else if (m_option & KX_ACT_CONSTRAINT_PERMANENT) {
 					// no contact but still keep running
 					result = true;

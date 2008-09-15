@@ -1565,7 +1565,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
-	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
+	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	int totface, *origindex = 0;
 	char **uv_name=0;
@@ -1573,6 +1573,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 1. check that everything is ok & updated */
 	if(psys==NULL)
 		return 0;
+	
+	totchild=psys->totchild;
 
 	part=psys->part;
 	pars=psys->particles;
@@ -1764,7 +1766,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		psys->lattice=psys_get_lattice(ob,psys);
 
 /* 3. start creating renderable things */
-	for(a=0,pa=pars; a<totpart+totchild; a++, pa++) {
+	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
 		random = rng_getFloat(rng);
 
 		if(a<totpart){
@@ -4576,17 +4578,19 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
 	ParticleSystem *psys;
-	Material ***material;
+	Material *ma;
 	short a, *totmaterial;
 
-	/* don't allow objects with halos */
+	/* don't allow objects with halos. we need to have
+	 * all halo's to sort them globally in advance */
 	totmaterial= give_totcolp(obd);
-	material= give_matarar(obd);
 
-	if(totmaterial && material) {
-		for(a= 0; a<*totmaterial; a++)
-			if((*material)[a] && (*material)[a]->mode & MA_HALO)
+	if(totmaterial) {
+		for(a= 0; a<*totmaterial; a++) {
+			ma= give_current_material(obd, a);
+			if(ma && (ma->mode & MA_HALO))
 				return 0;
+		}
 	}
 
 	for(psys=obd->particlesystem.first; psys; psys=psys->next)

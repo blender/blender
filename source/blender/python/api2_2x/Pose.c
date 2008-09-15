@@ -43,6 +43,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"	//1 - this order
 #include "BSE_editipo.h"			//2
+#include "BIF_keyframing.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "Mathutils.h"

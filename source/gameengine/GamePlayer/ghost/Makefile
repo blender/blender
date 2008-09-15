@@ -69,6 +69,7 @@ CPPFLAGS += -I../../../blender/blenloader
 CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
 CPPFLAGS += -I../../../blender/readblenfile
+CPPFLAGS += -I../../../blender/gpu
 
 CPPFLAGS += -I../../../gameengine/BlenderRoutines
 
@@ -79,8 +80,4 @@ CPPFLAGS += -I../../../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_GHOST)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-
-ifeq ($(WITH_BF_GLEXT),true)
-    CPPFLAGS += -DWITH_GLEXT
-endif
 

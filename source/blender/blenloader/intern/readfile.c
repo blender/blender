@@ -970,8 +970,10 @@ FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 	} else {
 		FileData *fd = filedata_new();
 		fd->gzfiledes = gzfile;
-		BLI_strncpy(fd->filename, name, sizeof(fd->filename));	// now only in use by library append
 		fd->read = fd_read_gzip_from_file;
+
+		/* needed for library_append and read_libraries */
+		BLI_strncpy(fd->filename, name, sizeof(fd->filename));
 
 		return blo_decode_and_check(fd, error_r);
 	}
@@ -1138,6 +1140,8 @@ void blo_make_image_pointer_map(FileData *fd)
 		Link *ibuf= ima->ibufs.first;
 		for(; ibuf; ibuf= ibuf->next) 
 			oldnewmap_insert(fd->imamap, ibuf, ibuf, 0);
+		if(ima->gputexture)
+			oldnewmap_insert(fd->imamap, ima->gputexture, ima->gputexture, 0);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1172,8 +1176,11 @@ void blo_end_image_pointer_map(FileData *fd)
 			if(NULL==newimaadr(fd, ibuf)) {	/* so was restored */
 				BLI_remlink(&ima->ibufs, ibuf);
 				ima->bindcode= 0;
+				ima->gputexture= NULL;
 			}
 		}
+
+		ima->gputexture= newimaadr(fd, ima->gputexture);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -2280,6 +2287,7 @@ static void direct_link_text(FileData *fd, Text *text)
 */
 
 	link_list(fd, &text->lines);
+	link_list(fd, &text->markers);
 
 	text->curl= newdataadr(fd, text->curl);
 	text->sell= newdataadr(fd, text->sell);
@@ -2346,8 +2354,10 @@ static void direct_link_image(FileData *fd, Image *ima)
 		ima->ibufs.first= ima->ibufs.last= NULL;
 	
 	/* if not restored, we keep the binded opengl index */
-	if(ima->ibufs.first==NULL)
+	if(ima->ibufs.first==NULL) {
 		ima->bindcode= 0;
+		ima->gputexture= NULL;
+	}
 	
 	ima->anim= NULL;
 	ima->rr= NULL;
@@ -2558,6 +2568,7 @@ static void direct_link_material(FileData *fd, Material *ma)
 		direct_link_nodetree(fd, ma->nodetree);
 
 	ma->preview = direct_link_preview_image(fd, ma->preview);
+	ma->gpumaterial.first = ma->gpumaterial.last = NULL;
 }
 
 /* ************ READ PARTICLE SETTINGS ***************** */
@@ -3396,6 +3407,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
+	ob->gpulamp.first= ob->gpulamp.last= NULL;
 }
 
 /* ************ READ SCENE ***************** */
@@ -4170,6 +4182,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sima->cumap= newdataadr(fd, sima->cumap);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
+				sima->gpd= newdataadr(fd, sima->gpd);
+				if (sima->gpd)
+					link_gpencil(fd, sima->gpd);
 				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
@@ -7754,18 +7769,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if(main->versionfile <= 246 && main->subversionfile < 1){
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {
 		Mesh *me;
 
 		for(me=main->mesh.first; me; me= me->id.next)
 			alphasort_version_246(fd, lib, me);
 	}
 	
-	if(main->versionfile <= 246 && main->subversionfile < 1){
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)){
 		Object *ob;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
 				ob->pd->f_noise = 0.0;
+		}
+	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 2)){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->gameflag |= OB_PHYSICS;
+			ob->margin = 0.06;
 		}
 	}
 
@@ -9124,13 +9147,16 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 /* reading runtime */
 
-BlendFileData *blo_read_blendafterruntime(int file, int actualsize, BlendReadError *error_r) 
+BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, BlendReadError *error_r) 
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd = filedata_new();
 	fd->filedes = file;
 	fd->buffersize = actualsize;
 	fd->read = fd_read_from_file;
+
+	/* needed for library_append and read_libraries */
+	BLI_strncpy(fd->filename, name, sizeof(fd->filename));
 
 	fd = blo_decode_and_check(fd, error_r);
 	if (!fd)

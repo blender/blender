@@ -53,6 +53,7 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
+#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 
 #include "IMB_imbuf_types.h"
@@ -388,6 +389,17 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 		}
 	}
 	return 1;	/* OK */
+}
+
+void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
+{
+	int a;
+	
+	*size = CM_TABLE+1;
+	*array = MEM_callocN(sizeof(float)*(*size)*4, "ColorBand");
+
+	for(a=0; a<*size; a++)
+		do_colorband(coba, (float)a/(float)CM_TABLE, &(*array)[a*4]);
 }
 
 /* ******************* TEX ************************ */

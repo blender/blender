@@ -80,6 +80,35 @@ Example::
 		- SPEC_BLINN         - Make Material use the Blinn specular shader.
 		- SPEC_TOON      - Make Material use the toon specular shader.
 		- SPEC_WARDISO      - Make Material use the Ward-iso specular shader.
+
+@type ColorbandMethod: readonly dictionary
+@var ColorbandMethod: The available Colorband mixing methods.
+		- ADD  - Make Material use the Add method.
+		- BLEND  - Make Material use the Blend/Mix method.
+		- BURN  - Make Material use the Burn method.
+		- COLOR  - Make Material use the Color method.
+		- DARK  - Make Material use the Darken method.
+		- DIFF  - Make Material use the Difference method.
+		- DIV  - Make Material use the Divide method.
+		- DODGE  - Make Material use the Dodge method.
+		- HUE  - Make Material use the Hue method.
+		- LIGHT  - Make Material use the Lighten method.
+		- MIX  - Make Material use the Blend/Mix method.
+		- MULT  - Make Material use the Multiply method.
+		- OVERLAY  - Make Material use the Overlay method.
+		- SAT  - Make Material use the Saturation method.
+		- SCREEN  - Make Material use the Screen method.
+		- SUB  - Make Material use the Substract method.
+		- VAL  - Make Material use the Value method.
+
+@type ColorbandInput: readonly dictionary
+@var ColorbandInput: The available Colorband Input sources.
+		- ENERGY  - Make Material use the Energy input.
+		- NORMAL  - Make Material use the Normal input.
+		- RESULT  - Make Material use the Result input.
+		- SHADER  - Make Material use the Shader input.
+
+
 """
 
 def New (name = 'Mat'):
@@ -323,6 +352,28 @@ class Material:
 	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
 	The colorband can have between 1 and 31 colors.
 	@type colorbandSpecular:  list
+	@ivar colorbandDiffuseInput: Material Diffuse colorband input.
+	The integer result must be compared with L{ColorbandInput}
+	dictionary.
+	@type colorbandDiffuseInput: int
+	@ivar colorbandDiffuseMethod: Material Diffuse colorband method.
+	The integer result must be compared with L{ColorbandMethod}
+	dictionary.
+	@type colorbandDiffuseMethod: int
+	@ivar colorbandDiffuseFactor: Material Diffuse colorband factor.
+	Value is clamped to the range [0.0,1.0].
+	@type colorbandDiffuseFactor: float
+	@ivar colorbandSpecularInput: Material Specular colorband input.
+	The integer result must be compared with L{ColorbandInput}
+	dictionary.
+	@type colorbandSpecularInput: int
+	@ivar colorbandSpecularMethod: Material Specular colorband method.
+	The integer result must be compared with L{ColorbandMethod}
+	dictionary.
+	@type colorbandSpecularMethod: int
+	@ivar colorbandSpecularFactor: Material Specular colorband factor.
+	Value is clamped to the range [0.0,1.0].
+	@type colorbandSpecularFactor: float
 	@type enabledTextures: list of integers
 	@ivar enabledTextures: The texture channels enabled in this material.
 		The attribute returns is list of integers in the range [0, 9], each
@@ -338,7 +389,9 @@ class Material:
 			ch.append(4)
 			mat.enabledTextures = ch
 			print mat.enabledTextures # will print: [0, 4, 6]
-	
+
+	@type textures: a tuple of Blender MTex objects.
+	@ivar textures: the Material's Texture list.  Empty texture channels contains None.
 	@ivar enableSSS:  If True, subsurface scattering will be rendered on this material.
 	@type enableSSS:  bool
 	@ivar sssScale:  If True, subsurface scattering will be rendered on this material.
@@ -1083,6 +1136,13 @@ class Material:
 		Make a copy of this material
 		@rtype: Material
 		@return:  a copy of this material
+		"""
+
+	def freeNodes ():
+		"""
+		Removes the node tree from this material.
+		@rtype: bool
+		@return:  true if nodes were freed from this material.
 		"""
 
 import id_generics

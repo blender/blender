@@ -33,10 +33,6 @@ class SCA_Joystick::PrivateData
 {
 public:
 	/*
-	 * SDL events structure 
-	 */
-	SDL_Event		m_event;
-	/*
 	 * The Joystick
 	 */
 	SDL_Joystick*	m_joystick;

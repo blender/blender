@@ -367,6 +367,7 @@ typedef struct TexMapping {
 #define MTEX_BLEND_SAT		11
 #define MTEX_BLEND_VAL		12
 #define MTEX_BLEND_COLOR	13
+#define MTEX_NUM_BLENDTYPES	14
 
 /* **************** EnvMap ********************* */
 

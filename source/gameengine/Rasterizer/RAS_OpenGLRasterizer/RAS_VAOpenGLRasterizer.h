@@ -50,22 +50,10 @@ public:
 
 	virtual void	SetDrawingMode(int drawingmode);
 
-	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
-		const vecIndexArrays & indexarrays,
-		DrawMode mode,
-		bool useObjectColor,
-		const MT_Vector4& rgbacolor,
-		class KX_ListSlot** slot);
+	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
-	virtual void IndexPrimitivesMulti( 
-		const vecVertexArray& vertexarrays,
-		const vecIndexArrays & indexarrays,
-		DrawMode mode,
-		bool useObjectColor,
-		const MT_Vector4& rgbacolor,
-		class KX_ListSlot** slot);
-
-
+private:
 	virtual void	EnableTextures(bool enable);
 	//virtual bool	QueryArrays(){return true;}
 	//virtual bool	QueryLists(){return m_Lock;}

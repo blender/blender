@@ -32,7 +32,7 @@ SET(INC
   ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
   ../../../intern/bmfont ../../../extern/bullet2/src
-  ../nodes
+  ../nodes ../../../extern/glew/include ../gpu
   ${SDL_INC}
   ${ZLIB_INC}
   ${PYTHON_INC}

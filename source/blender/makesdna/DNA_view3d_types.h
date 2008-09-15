@@ -86,7 +86,8 @@ typedef struct View3D {
 	float winmat1[4][4];  // persp(1) storage, for swap matrices
 	float viewmat1[4][4];
 	
-	float viewquat[4], dist, zfac, pad0;	/* zfac is initgrabz() result */
+	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
+	int lay_used; /* used while drawing */
 
 	short persp;
 	short view;

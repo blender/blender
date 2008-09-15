@@ -143,7 +143,7 @@ bool KX_IpoSGController::Update(double currentTime)
 		{
 			if (m_ipo_as_force == true) 
 			{
-				if (m_game_object && ob) 
+				if (m_game_object && ob && m_game_object->GetPhysicsController()) 
 				{
 					m_game_object->GetPhysicsController()->ApplyForce(m_ipo_local ?
 						ob->GetWorldOrientation() * m_ipo_xform.GetPosition() :

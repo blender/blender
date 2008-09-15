@@ -442,7 +442,7 @@ int in_ipo_buttons(void)
 	else return 1;
 }
 
-static View2D *spacelink_get_view2d(SpaceLink *sl)
+View2D *spacelink_get_view2d(SpaceLink *sl)
 {
 	if(sl->spacetype==SPACE_IPO) 
 		return &((SpaceIpo *)sl)->v2d;
@@ -921,6 +921,13 @@ void drawscroll(int disptype)
 		
 		BIF_ThemeColor(TH_TEXT);
 		val= ipogrid_startx;
+		
+		if (ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME)) {	/* prevents printing twice same frame */
+			while(ipogrid_dx < 0.9999f) {
+				ipogrid_dx *= 2.0f;
+				dfac*= 2.0f;
+			}
+		}		
 		while(fac < hor.xmax) {
 			
 			if(curarea->spacetype==SPACE_OOPS) { 
@@ -1945,7 +1952,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu==NULL) {
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode, 1);
 				if (!ei->icu) {
 					error("Could not add a driver to this curve, may be linked data!");
 					break;

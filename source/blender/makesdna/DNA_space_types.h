@@ -276,21 +276,22 @@ typedef struct SpaceText {
 	struct Text *text;	
 
 	int top, viewlines;
-	short flags, menunr;
-	
-	int font_id;	
+	short flags, menunr;	
+	int font_id;
+
 	int lheight;
 	int left;
 	int showlinenrs;
-	
 	int tabnumber;
+
 	int currtab_set; 
 	int showsyntax;
-	int unused_padd;
-	
+	int overwrite;
 	float pix_per_line;
 
 	struct rcti txtscroll, txtbar;
+
+	int wordwrap, doplugins;
 
 } SpaceText;
 
@@ -537,6 +538,7 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_TILE	1<<19 
 #define SI_SMOOTH_UV	1<<20
 #define SI_DRAW_STRETCH	1<<21
+#define SI_DISPGP		1<<22
 
 /* SpaceIpo->flag */
 #define SIPO_LOCK_VIEW			1<<0

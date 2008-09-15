@@ -241,6 +241,7 @@
 #define B_SEL_END		168
 #define B_MAN_MODE		169
 #define B_NDOF			170
+#define B_VIEW_BUTSEDIT	171
 
 /* IPO: 200 */
 #define B_IPOHOME		201
@@ -377,6 +378,13 @@
 #define B_TEXTLINENUM		507
 #define B_TAB_NUMBERS		508
 #define B_SYNTAX		509
+#define B_WORDWRAP		510
+#define B_TEXTPLUGINS	511
+#define B_PASTEFIND		512
+#define B_PASTEREPLACE	513
+#define B_TEXTREPLACE	514
+#define B_TEXTFIND		515
+#define B_TEXTMARKALL	516
 
 /* SCRIPT: 525 */
 #define B_SCRIPTBROWSE		526

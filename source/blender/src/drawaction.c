@@ -78,6 +78,7 @@
 #include "BIF_drawgpencil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_keyframing.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_mywindow.h"
@@ -680,6 +681,18 @@ static void draw_channel_names(void)
 							sprintf(name, "Sequencer: %s", imgpreview);
 							
 							special= ICON_SEQUENCE;
+						}
+							break;
+						case SPACE_IMAGE:
+						{
+							SpaceImage *sima= sa->spacedata.first;
+							
+							if (sima->image)
+								sprintf(name, "Image: %s", sima->image->id.name+2);
+							else
+								sprintf(name, "Image: <None>");
+								
+							special= ICON_IMAGE_COL;
 						}
 							break;
 						

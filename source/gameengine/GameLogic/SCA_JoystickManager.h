@@ -40,12 +40,12 @@ class SCA_JoystickManager : public SCA_EventManager
 	/**
 	 * SDL Joystick Class Instance
 	 */
-	SCA_Joystick *m_joystick;
+	SCA_Joystick *m_joystick[JOYINDEX_MAX];
 public:
 	SCA_JoystickManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_JoystickManager();
 	virtual void NextFrame(double curtime,double deltatime);
-	SCA_Joystick* GetJoystickDevice(void);
+	SCA_Joystick* GetJoystickDevice(short int joyindex);
 
 };
 
