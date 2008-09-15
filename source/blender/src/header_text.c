@@ -862,14 +862,14 @@ static uiBlock *text_filemenu(void *arg_unused)
 }
 
 /* header */
-#define PATH_MAX	260
+#define HEADER_PATH_MAX	260
 void text_buttons(void)
 {
 	uiBlock *block;
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	short xco, xmax;
-	char naam[256], fname[PATH_MAX], headtxt[PATH_MAX+17];
+	char naam[256], fname[HEADER_PATH_MAX], headtxt[HEADER_PATH_MAX+17];
 	int len;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
@@ -961,8 +961,8 @@ void text_buttons(void)
 	if (text) {
 		if (text->name) {
 			len = strlen(text->name);
-			if (len > PATH_MAX-1)
-				len = PATH_MAX-1;
+			if (len > HEADER_PATH_MAX-1)
+				len = HEADER_PATH_MAX-1;
 			strncpy(fname, text->name, len);
 			fname[len]='\0';
 			if (text->flags & TXT_ISDIRTY)

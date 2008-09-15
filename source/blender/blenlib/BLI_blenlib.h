@@ -151,6 +151,7 @@ void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds
 	 */
 int BLI_convertstringcode(char *path, const char *basepath);
 int BLI_convertstringframe(char *path, int frame);
+int BLI_convertstringcwd(char *path);
 
 void BLI_makestringcode(const char *relfile, char *file);
 
