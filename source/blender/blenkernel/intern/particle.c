@@ -46,6 +46,7 @@
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_ipo_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -3377,16 +3378,24 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, 
 	float size, time;
 	
 	if(part->childtype==PART_CHILD_FACES){
-		if(pa_time)
-			time=*pa_time;
-		else
-			time=psys_get_child_time(psys,cpa,cfra);
+		size=part->size;
 
 		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
+			IpoCurve *icu;
+
+			if(pa_time)
+				time=*pa_time;
+			else
+				time=psys_get_child_time(psys,cpa,cfra);
+
+			/* correction for lifetime */
 			calc_ipo(part->ipo, 100*time);
-			execute_ipo((ID *)part, part->ipo);
+
+			for(icu = part->ipo->curve.first; icu; icu=icu->next) {
+				if(icu->adrcode == PART_SIZE)
+					size = icu->curval;
+			}
 		}
-		size=part->size;
 	}
 	else
 		size=psys->particles[cpa->parent].size;
