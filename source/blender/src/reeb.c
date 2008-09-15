@@ -3413,9 +3413,6 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	ReebGraph *rg = NULL;
 	ReebGraph *rgi, *previous;
 	int i, nb_levels = REEB_MAX_MULTI_LEVEL;
-	double start_time, end_time;
-	
-	start_time = PIL_check_seconds_timer();
 
 	if (em == NULL)
 		return NULL;
@@ -3437,12 +3434,6 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	}
 	
 	freeEdgeIndex(&indexed_edges);
-
-	end_time = PIL_check_seconds_timer();
-
-	printf("-----------\n");
-	printf("runtime: %.3f\n", end_time - start_time);
-	printf("-----------\n");
 
 #ifdef DEBUG_REEB
 	weightToVCol(em, 0);

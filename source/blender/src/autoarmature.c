@@ -2827,11 +2827,15 @@ void BIF_retargetArmature()
 	Base *base;
 	ReebGraph *reebg;
 	double start_time, end_time;
+	double gstart_time, gend_time;
+	double reeb_time, rig_time, retarget_time;
 	
-	start_time = PIL_check_seconds_timer();
+	gstart_time = start_time = PIL_check_seconds_timer();
 	
 	reebg = BIF_ReebGraphMultiFromEditMesh();
 	
+	end_time = PIL_check_seconds_timer();
+	reeb_time = end_time - start_time;
 	
 	printf("Reeb Graph created\n");
 
@@ -2853,8 +2857,13 @@ void BIF_retargetArmature()
 				list.first= list.last = NULL;
 				make_boneList(&list, &arm->bonebase, NULL);
 			
+				start_time = PIL_check_seconds_timer();
+	
 				rigg = armatureToGraph(ob, &list);
 				
+				end_time = PIL_check_seconds_timer();
+				rig_time = end_time - start_time;
+
 				printf("Armature graph created\n");
 		
 				//RIG_printGraph(rigg);
@@ -2863,8 +2872,13 @@ void BIF_retargetArmature()
 				
 				printf("retargetting %s\n", ob->id.name);
 				
+				start_time = PIL_check_seconds_timer();
+
 				retargetGraphs(rigg);
 				
+				end_time = PIL_check_seconds_timer();
+				retarget_time = end_time - start_time;
+
 				/* Turn the list into an armature */
 				editbones_to_armature(&list, ob);
 				
@@ -2877,10 +2891,13 @@ void BIF_retargetArmature()
 
 	REEB_freeGraph(reebg);
 	
-	end_time = PIL_check_seconds_timer();
+	gend_time = PIL_check_seconds_timer();
 
 	printf("-----------\n");
-	printf("runtime: %.3f\n", end_time - start_time);
+	printf("runtime: \t%.3f\n", gend_time - gstart_time);
+	printf("reeb: \t%.3f\n", reeb_time);
+	printf("rig: \t%.3f\n", rig_time);
+	printf("retarget: \t%.3f\n", retarget_time);
 	printf("-----------\n");
 	
 	BIF_undo_push("Retarget Skeleton");

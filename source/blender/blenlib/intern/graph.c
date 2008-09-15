@@ -732,6 +732,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 
 			if (sub_total == 1)
 			{
+				group -= 1; /* not really a group so decrement */
 				/* NOTHING TO DO */
 			}
 			else if (sub_total == 2)
