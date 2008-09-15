@@ -695,9 +695,6 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 		return NULL;
 	}
 
-	if(lib && lib->lib)
-		glAttachObjectARB(shader->object, lib->lib);
-
 	if(vertexcode) {
 		glAttachObjectARB(shader->object, shader->vertex);
 		glShaderSourceARB(shader->vertex, 1, (const char**)&vertexcode, NULL);
@@ -729,6 +726,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 			return NULL;
 		}
 	}
+
+	if(lib && lib->lib)
+		glAttachObjectARB(shader->object, lib->lib);
 
 	glLinkProgramARB(shader->object);
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);
