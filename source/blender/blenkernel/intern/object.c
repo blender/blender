@@ -960,7 +960,7 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[0] = 1.0f;
 	ob->anisotropicFriction[1] = 1.0f;
 	ob->anisotropicFriction[2] = 1.0f;
-	ob->gameflag= OB_PROP|OB_PHYSICS;
+	ob->gameflag= OB_PROP|OB_COLLISION;
 	ob->margin = 0.0;
 
 	/* NT fluid sim defaults */

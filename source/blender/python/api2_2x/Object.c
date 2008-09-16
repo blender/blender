@@ -3519,8 +3519,8 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 
 /* this is too low level, possible to add helper methods */
 
-#define GAMEFLAG_MASK ( OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
-		OB_ROT_FH | OB_ANISOTROPIC_FRICTION | OB_GHOST | OB_RIGID_BODY | \
+#define GAMEFLAG_MASK ( OB_COLLISION | OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
+		OB_ROT_FH | OB_ANISOTROPIC_FRICTION | OB_GHOST | OB_RIGID_BODY | OB_SOFT_BODY | \
 		OB_BOUNDS | OB_COLLISION_RESPONSE | OB_SECTOR | OB_PROP | \
 		OB_MAINACTOR )
 
@@ -5497,6 +5497,7 @@ static PyObject *M_Object_RBFlagsDict( void )
 
 	if( M ) {
 		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "COLLISION", PyInt_FromLong( OB_COLLISION ) );
 		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( OB_DYNAMIC ) );
 		PyConstant_Insert( d, "CHILD", PyInt_FromLong( OB_CHILD ) );
 		PyConstant_Insert( d, "ACTOR", PyInt_FromLong( OB_ACTOR ) );
@@ -5506,6 +5507,7 @@ static PyObject *M_Object_RBFlagsDict( void )
 				PyInt_FromLong( OB_ANISOTROPIC_FRICTION ) );
 		PyConstant_Insert( d, "GHOST", PyInt_FromLong( OB_GHOST ) );
 		PyConstant_Insert( d, "RIGIDBODY", PyInt_FromLong( OB_RIGID_BODY ) );
+		PyConstant_Insert( d, "SOFTBODY", PyInt_FromLong( OB_SOFT_BODY ) );
 		PyConstant_Insert( d, "BOUNDS", PyInt_FromLong( OB_BOUNDS ) );
 		PyConstant_Insert( d, "COLLISION_RESPONSE",
 				PyInt_FromLong( OB_COLLISION_RESPONSE ) );

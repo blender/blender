@@ -7794,7 +7794,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 2)){
 		Object *ob;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
-			ob->gameflag |= OB_PHYSICS;
+			ob->gameflag |= OB_COLLISION;
 			ob->margin = 0.06;
 		}
 	}

@@ -1280,7 +1280,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	//bool bRigidBody = (userigidbody == 0);
 
 	// object has physics representation?
-	if (!(blenderobject->gameflag & OB_PHYSICS))
+	if (!(blenderobject->gameflag & OB_COLLISION))
 		return;
 
 	// get Root Parent of blenderobject

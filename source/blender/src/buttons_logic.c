@@ -2849,10 +2849,10 @@ void buttons_enji(uiBlock *block, Object *ob)
 
 void buttons_ketsji(uiBlock *block, Object *ob)
 {
-	uiDefButBitI(block, TOG, OB_PHYSICS, B_REDR, "Physics",
+	uiDefButBitI(block, TOG, OB_COLLISION, B_REDR, "Physics",
 			  10,205,70,19, &ob->gameflag, 0, 0, 0, 0,
 			  "Objects that have a physics representation");
-	if (ob->gameflag & OB_PHYSICS) {
+	if (ob->gameflag & OB_COLLISION) {
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
 				80,205,55,19, &ob->gameflag, 0, 0, 0, 0,
@@ -2933,46 +2933,90 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 	}
 }
 
+static void check_actor(void *arg1_but, void *arg2_object)
+{
+	int *gameflag = arg2_object;
+	/* force enabled ACTOR for body >= dynamic */
+	if (*gameflag & OB_DYNAMIC)
+		*gameflag |= OB_ACTOR;
+}
+
+static void check_body_type(void *arg1_but, void *arg2_object)
+{
+	Object *ob = arg2_object;
+
+	switch (ob->body_type) {
+	case OB_BODY_TYPE_NO_COLLISION:
+		ob->gameflag &= ~OB_COLLISION;
+		break;
+	case OB_BODY_TYPE_STATIC:
+		ob->gameflag |= OB_COLLISION;
+		ob->gameflag &= ~(OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY);
+		break;
+	case OB_BODY_TYPE_DYNAMIC:
+		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_ACTOR;
+		ob->gameflag &= ~(OB_RIGID_BODY|OB_SOFT_BODY);
+		break;
+	case OB_BODY_TYPE_RIGID:
+		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_RIGID_BODY|OB_ACTOR;
+		ob->gameflag &= ~(OB_SOFT_BODY);
+		break;
+	default:
+	case OB_BODY_TYPE_SOFT:
+		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
+		ob->gameflag &= ~(OB_RIGID_BODY);
+		break;
+	}
+}
+
 void buttons_bullet(uiBlock *block, Object *ob)
 {
-	uiDefButBitI(block, TOG, OB_PHYSICS, B_REDR, "Physics",
-			  10,205,70,19, &ob->gameflag, 0, 0, 0, 0,
-			  "Objects that have a physics representation");
-	if (ob->gameflag & OB_PHYSICS) {
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
-				80,205,55,19, &ob->gameflag, 0, 0, 0, 0,
+	uiBut *but;
+
+	/* determine the body_type setting based on flags */
+	if (!(ob->gameflag & OB_COLLISION))
+		ob->body_type = OB_BODY_TYPE_NO_COLLISION;
+	else if (!(ob->gameflag & OB_DYNAMIC) || !(ob->gameflag & OB_DYNAMIC))
+		ob->body_type = OB_BODY_TYPE_STATIC;
+	else if (!(ob->gameflag & (OB_RIGID_BODY|OB_SOFT_BODY)))
+		ob->body_type = OB_BODY_TYPE_DYNAMIC;
+	else if (ob->gameflag & OB_RIGID_BODY)
+		ob->body_type = OB_BODY_TYPE_RIGID;
+	else
+		ob->body_type = OB_BODY_TYPE_SOFT;
+
+	uiBlockBeginAlign(block);
+	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
+			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+			10, 205, 150, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation of the object");
+	uiButSetFunc(but, check_body_type, but, ob);
+
+	if (ob->gameflag & OB_COLLISION) {
+		but = uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
+				160,205,55,19, &ob->gameflag, 0, 0, 0, 0,
 				"Objects that are detected by the Near and Radar sensor");
-		if(ob->gameflag & OB_ACTOR) {	
-			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 135,205,55,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Objects that don't restitute collisions (like a ghost)");
-			uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 190,205,75,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Motion defined by laws of physics");
+		uiButSetFunc(but, check_actor, but, &ob->gameflag);
 		
-			if(ob->gameflag & OB_DYNAMIC) {
-				uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 265,205,85,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Enable rolling physics");
+		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 215,205,55,19, 
+				&ob->gameflag, 0, 0, 0, 0, 
+				"Objects that don't restitute collisions (like a ghost)");
+		if(ob->gameflag & OB_DYNAMIC) {
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,205,80,19, 
+					&ob->gameflag, 0, 0, 0, 0, 
+					"Disable auto (de)activation");
+			uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 170, 19, 
+					&ob->mass, 0.01, 10000.0, 10, 2, 
+					"The mass of the Object");
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 180, 185, 170, 19, 
+					&ob->inertia, 0.01, 10.0, 10, 2, 
+					"Bounding sphere radius, not used for other bounding shapes");
 
-				uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 130, 19, 
-						&ob->mass, 0.01, 10000.0, 10, 2, 
-						"The mass of the Object");
-				uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
-						&ob->inertia, 0.01, 10.0, 10, 2, 
-						"Bounding sphere radius, not used for other bounding shapes");
-				uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Disable auto (de)activation");
-
-				uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
-						&ob->damping, 0.0, 1.0, 10, 0, 
-						"General movement damping");
-				uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
-						&ob->rdamping, 0.0, 1.0, 10, 0, 
-						"General rotation damping");
-			}
+			uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
+					&ob->damping, 0.0, 1.0, 10, 0, 
+					"General movement damping");
+			uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
+					&ob->rdamping, 0.0, 1.0, 10, 0, 
+					"General rotation damping");
 		}
 		uiBlockEndAlign(block);
 
@@ -2999,8 +3043,8 @@ void buttons_bullet(uiBlock *block, Object *ob)
 					&ob->gameflag, 0, 0, 0, 0, 
 					"Add Children");
 		}
-		uiBlockEndAlign(block);
 	}
+	uiBlockEndAlign(block);
 }
 
 static void check_controller_state_mask(void *arg1_but, void *arg2_mask)

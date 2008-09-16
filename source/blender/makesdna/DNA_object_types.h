@@ -212,7 +212,8 @@ typedef struct Object {
 
 	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-	short recalco, pad4;		/* recalco for temp storage of ob->recalc, bad design warning */
+	short recalco;				/* recalco for temp storage of ob->recalc, bad design warning */
+	short body_type;			/* for now used to temporarily holds the type of collision object */
 	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
 
@@ -429,12 +430,20 @@ extern Object workob;
 #define OB_PROP			16384
 #define OB_MAINACTOR	32768
 
-#define OB_PHYSICS		65536
+#define OB_COLLISION	65536
+#define OB_SOFT_BODY	0x20000
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
 
 #define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD)
+
+/* ob->body_type */
+#define OB_BODY_TYPE_NO_COLLISION	0
+#define OB_BODY_TYPE_STATIC			1
+#define OB_BODY_TYPE_DYNAMIC		2
+#define OB_BODY_TYPE_RIGID			3
+#define OB_BODY_TYPE_SOFT			4
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1
