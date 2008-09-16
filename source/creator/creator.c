@@ -267,7 +267,7 @@ static void main_init_screen( void )
 
 int main(int argc, char **argv)
 {
-	int a, i, stax=0, stay=0, sizx, sizy, scr_init = 0;
+	int a, i, stax, stay, sizx, sizy, scr_init = 0;
 	SYS_SystemHandle syshandle;
 
 #if defined(WIN32) || defined (__linux__)
@@ -301,10 +301,10 @@ int main(int argc, char **argv)
 			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64, 0);
 
         } else {
-				winlay_get_screensize(&scr_x, &scr_y);
+			winlay_get_screensize(&scr_x, &scr_y);
 
-		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
-		setprefsize(120, 40, 850, 684, 0);
+			/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
+			setprefsize(120, 40, 850, 684, 0);
         }
     
 		winlay_process_events(0);
@@ -430,11 +430,11 @@ int main(int argc, char **argv)
 	
 	init_def_material();
 
-	winlay_get_screensize(&sizx, &sizy);
-	stax=0;
-	stay=0;
-
 	if(G.background==0) {
+		winlay_get_screensize(&sizx, &sizy);
+		stax=0;
+		stay=0;
+
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
 				switch(argv[a][1]) {
