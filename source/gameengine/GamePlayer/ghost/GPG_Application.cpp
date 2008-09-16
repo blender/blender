@@ -115,6 +115,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	  m_cursor(GHOST_kStandardCursorFirstCursor),
 	  m_engineInitialized(0), 
 	  m_engineRunning(0), 
+	  m_isEmbedded(false),
 	  m_ketsjiengine(0),
 	  m_kxsystem(0), 
 	  m_keyboard(0), 
@@ -128,8 +129,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 	  m_blendermat(0),
 	  m_blenderglslmat(0),
 	  m_pyGlobalDictString(0),
-	  m_pyGlobalDictString_Length(0),
-	  m_isEmbedded(false)
+	  m_pyGlobalDictString_Length(0)
 {
 	fSystem = system;
 }
@@ -138,6 +138,12 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 
 GPG_Application::~GPG_Application(void)
 {
+    if(m_pyGlobalDictString) {
+		delete m_pyGlobalDictString;
+		m_pyGlobalDictString = 0;
+		m_pyGlobalDictString_Length = 0;
+	}
+
 	exitEngine();
 	fSystem->disposeWindow(m_mainWindow);
 }
@@ -680,7 +686,8 @@ bool GPG_Application::startEngine(void)
 		initPythonConstraintBinding();
 		initMathutils();
 
-		/* Restore the dict */
+		// Set the GameLogic.globalDict from marshal'd data, so we can
+		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
 		
 		m_sceneconverter->ConvertScene(
@@ -718,13 +725,15 @@ bool GPG_Application::startEngine(void)
 
 void GPG_Application::stopEngine()
 {
-	// get the python dict and convert to a string for future use
-	char *marshal_buffer;
-	m_pyGlobalDictString_Length = saveGamePythonConfig(&marshal_buffer);
-	if (m_pyGlobalDictString_Length) {
-		m_pyGlobalDictString = static_cast<char *> (malloc(m_pyGlobalDictString_Length));
-		memcpy(m_pyGlobalDictString, marshal_buffer, m_pyGlobalDictString_Length);
-	} 
+	// GameLogic.globalDict gets converted into a buffer, and sorted in
+	// m_pyGlobalDictString so we can restore after python has stopped
+	// and started between .blend file loads.
+	if(m_pyGlobalDictString) {
+		delete m_pyGlobalDictString;
+		m_pyGlobalDictString = 0;
+	}
+
+	m_pyGlobalDictString_Length = saveGamePythonConfig(&m_pyGlobalDictString);
 	
 	// when exiting the mainloop
 	exitGamePythonScripting();

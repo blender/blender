@@ -1393,17 +1393,21 @@ int saveGamePythonConfig( char **marshal_buffer)
 			PyObject* pyGlobalDictMarshal = PyMarshal_WriteObjectToString(	pyGlobalDict ); 
 #endif
 			if (pyGlobalDictMarshal) {
-				marshal_length= PyString_Size(pyGlobalDictMarshal);
 				// for testing only
 				// PyObject_Print(pyGlobalDictMarshal, stderr, 0);
-				*marshal_buffer = PyString_AsString(pyGlobalDictMarshal);
+
+				marshal_length= PyString_Size(pyGlobalDictMarshal);
+				*marshal_buffer = new char[marshal_length + 1];
+				memcpy(*marshal_buffer, PyString_AsString(pyGlobalDictMarshal), marshal_length);
+
+				Py_DECREF(pyGlobalDictMarshal);
 			} else {
 				printf("Error, GameLogic.globalDict could not be marshal'd\n");
 			}
-			Py_DECREF(gameLogic);
 		} else {
 			printf("Error, GameLogic.globalDict was removed\n");
 		}
+		Py_DECREF(gameLogic);
 	} else {
 		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 	}
@@ -1412,20 +1416,26 @@ int saveGamePythonConfig( char **marshal_buffer)
 
 int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 {
-	PyObject* gameLogic = PyImport_ImportModule("GameLogic");
 	/* Restore the dict */
 	if (marshal_buffer) {
-		PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(marshal_buffer, marshal_length);
-		if (pyGlobalDict) {
-			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
-			return 1;
+		PyObject* gameLogic = PyImport_ImportModule("GameLogic");
+
+		if (gameLogic) {
+			PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(marshal_buffer, marshal_length);
+
+			if (pyGlobalDict) {
+				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				Py_DECREF(gameLogic);
+				return 1;
+			} else {
+				Py_DECREF(gameLogic);
+				PyErr_Clear();
+				printf("Error could not marshall string\n");
+			}
 		} else {
-			PyErr_Clear();
-			printf("Error could not marshall string\n");
-		}
-	} else {
-		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
-	}	
+			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
+		}	
+	}
 	return 0;
 }
 
