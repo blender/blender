@@ -1640,7 +1640,8 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 				if(chan->ipo) a++;
 			}
 			deselect_actionchannels(ob->action, 0);
-			select_channel(ob->action, chan, SELECT_ADD);
+			if (chan)
+				select_channel(ob->action, chan, SELECT_ADD);
 			allqueue(REDRAWACTION, ob->ipowin);
 			allqueue(REDRAWVIEW3D, ob->ipowin);
 		}
