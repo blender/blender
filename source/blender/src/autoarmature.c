@@ -2828,7 +2828,7 @@ void BIF_retargetArmature()
 	ReebGraph *reebg;
 	double start_time, end_time;
 	double gstart_time, gend_time;
-	double reeb_time, rig_time, retarget_time;
+	double reeb_time, rig_time, retarget_time, total_time;
 	
 	gstart_time = start_time = PIL_check_seconds_timer();
 	
@@ -2893,11 +2893,13 @@ void BIF_retargetArmature()
 	
 	gend_time = PIL_check_seconds_timer();
 
+	total_time = gend_time - gstart_time;
+
 	printf("-----------\n");
-	printf("runtime: \t%.3f\n", gend_time - gstart_time);
-	printf("reeb: \t%.3f\n", reeb_time);
-	printf("rig: \t%.3f\n", rig_time);
-	printf("retarget: \t%.3f\n", retarget_time);
+	printf("runtime: \t%.3f\n", total_time);
+	printf("reeb: \t\t%.3f (%.1f%%)\n", reeb_time, reeb_time / total_time * 100);
+	printf("rig: \t\t%.3f (%.1f%%)\n", rig_time, rig_time / total_time * 100);
+	printf("retarget: \t%.3f (%.1f%%)\n", retarget_time, retarget_time / total_time * 100);
 	printf("-----------\n");
 	
 	BIF_undo_push("Retarget Skeleton");
