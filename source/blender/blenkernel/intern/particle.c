@@ -296,7 +296,7 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 	ParticleSystemModifierData *psmd;
 	Mesh *me;
 
-	if(psys->flag & PSYS_DISABLED)
+	if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
 		return 0;
 
 	if(ob->type == OB_MESH) {
