@@ -35,6 +35,7 @@ FILE(GLOB SRC
   src/BulletDynamics/ConstraintSolver/*.cpp
   src/BulletDynamics/Vehicle/*.cpp
   src/BulletDynamics/Dynamics/*.cpp
+  src/BulletSoftBody/*.cpp
 )
 
 ADD_DEFINITIONS(-D_LIB)
