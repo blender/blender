@@ -31,6 +31,7 @@
 #define BKE_BVHUTILS_H
 
 #include "BLI_kdopbvh.h"
+#include "BLI_linklist.h"
 
 /*
  * This header encapsulates necessary code to buld a BVH
@@ -52,7 +53,7 @@ typedef struct BVHTreeFromMesh
 	BVHTree_RayCastCallback      raycast_callback;
 
 	/* Mesh represented on this BVHTree */
-	struct DerivedMesh *mesh; 
+	struct DerivedMesh *mesh;
 
 	/* Vertex array, so that callbacks have instante access to data */
 	struct MVert *vert;
@@ -60,6 +61,9 @@ typedef struct BVHTreeFromMesh
 
 	/* radius for raycast */
 	float sphere_radius;
+
+	/* Private data */
+	int cached;
 
 } BVHTreeFromMesh;
 
@@ -74,7 +78,7 @@ typedef struct BVHTreeFromMesh
  * 
  * free_bvhtree_from_mesh should be called when the tree is no longer needed.
  */
-void bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+BVHTree* bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
 
 /*
  * Builds a bvh tree where nodes are the faces of the given mesh.
@@ -84,15 +88,50 @@ void bvhtree_from_mesh_verts(struct BVHTreeFromMesh *data, struct DerivedMesh *m
  * so that the coordinates and rays are first translated on the mesh local coordinates.
  * Reason for this is that later bvh_from_mesh_* might use a cache system and so it becames possible to reuse
  * a BVHTree.
+ *
+ * The returned value is the same as in data->tree, its only returned to make it easier to test
+ * the success 
  * 
  * free_bvhtree_from_mesh should be called when the tree is no longer needed.
  */
-void bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
+BVHTree* bvhtree_from_mesh_faces(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, float epsilon, int tree_type, int axis);
 
 /*
  * Frees data allocated by a call to bvhtree_from_mesh_*.
  */
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data);
+
+
+/*
+ * BVHCache
+ */
+
+//Using local coordinates
+#define BVHTREE_FROM_FACES		0
+#define BVHTREE_FROM_VERTICES	1
+
+typedef LinkNode* BVHCache;
+
+
+/*
+ * Queries a bvhcache for the chache bvhtree of the request type
+ */
+BVHTree *bvhcache_find(BVHCache *cache, int type);
+
+/*
+ * Inserts a BVHTree of the given type under the cache
+ * After that the caller no longer needs to worry when to free the BVHTree
+ * as that will be done when the cache is freed.
+ *
+ * A call to this assumes that there was no previous cached tree of the given type
+ */
+void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type);
+
+/*
+ * inits and frees a bvhcache
+ */
+void bvhcache_init(BVHCache *cache);
+void bvhcache_free(BVHCache *cache);
 
 #endif
 

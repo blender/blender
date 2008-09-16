@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "BKE_bvhutils.h"
 
@@ -45,6 +46,8 @@
 #include "BKE_global.h"
 
 #include "BLI_arithb.h"
+#include "BLI_linklist.h"
+#include "MEM_guardedalloc.h"
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */
 
@@ -480,30 +483,47 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
  * BVH builders
  */
 // Builds a bvh tree.. where nodes are the vertexs of the given mesh
-void bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+BVHTree* bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
-	int i;
-	int numVerts= mesh->getNumVerts(mesh);
-	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
-	BVHTree *tree = NULL;
+	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_VERTICES);
 
-	memset(data, 0, sizeof(*data));
-
-	if(vert == NULL)
+	//Not in cache
+	if(tree == NULL)
 	{
-		printf("bvhtree cant be build: cant get a vertex array");
-		return;
+		int i;
+		int numVerts= mesh->getNumVerts(mesh);
+		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+
+		if(vert != NULL)
+		{
+			tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
+
+			if(tree != NULL)
+			{
+				for(i = 0; i < numVerts; i++)
+					BLI_bvhtree_insert(tree, i, vert[i].co, 1);
+
+				BLI_bvhtree_balance(tree);
+
+				//Save on cache for later use
+				printf("BVHTree built and saved on cache\n");
+				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_VERTICES);
+			}
+		}
+	}
+	else
+	{
+		printf("BVHTree is already build, using cached tree\n");
 	}
 
-	tree = BLI_bvhtree_new(numVerts, epsilon, tree_type, axis);
-	if(tree != NULL)
+
+	//Setup BVHTreeFromMesh
+	memset(data, 0, sizeof(*data));
+	data->tree = tree;
+
+	if(data->tree)
 	{
-		for(i = 0; i < numVerts; i++)
-			BLI_bvhtree_insert(tree, i, vert[i].co, 1);
-
-		BLI_bvhtree_balance(tree);
-
-		data->tree = tree;
+		data->cached = TRUE;
 
 		//a NULL nearest callback works fine
 		//remeber the min distance to point is the same as the min distance to BV of point
@@ -516,43 +536,62 @@ void bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float eps
 
 		data->sphere_radius = epsilon;
 	}
+
+	return data->tree;
 }
 
 // Builds a bvh tree.. where nodes are the faces of the given mesh.
-void bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
+BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
-	int i;
-	int numFaces= mesh->getNumFaces(mesh);
-	MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
-	MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
-	BVHTree *tree = NULL;
+	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_FACES);
 
-	memset(data, 0, sizeof(*data));
-
-	if(vert == NULL && face == NULL)
+	//Not in cache
+	if(tree == NULL)
 	{
-		printf("bvhtree cant be build: cant get a vertex/face array");
-		return;
+		int i;
+		int numFaces= mesh->getNumFaces(mesh);
+		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+		MFace *face = mesh->getFaceDataArray(mesh, CD_MFACE);
+
+		if(vert != NULL && face != NULL)
+		{
+			/* Create a bvh-tree of the given target */
+			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
+			if(tree != NULL)
+			{
+				for(i = 0; i < numFaces; i++)
+				{
+					float co[4][3];
+					VECCOPY(co[0], vert[ face[i].v1 ].co);
+					VECCOPY(co[1], vert[ face[i].v2 ].co);
+					VECCOPY(co[2], vert[ face[i].v3 ].co);
+					if(face[i].v4)
+						VECCOPY(co[3], vert[ face[i].v4 ].co);
+			
+					BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
+				}
+				BLI_bvhtree_balance(tree);
+
+				//Save on cache for later use
+				printf("BVHTree built and saved on cache\n");
+				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_FACES);
+			}
+		}
+	}
+	else
+	{
+		printf("BVHTree is already build, using cached tree\n");
 	}
 
-	/* Create a bvh-tree of the given target */
-	tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
-	if(tree != NULL)
-	{
-		for(i = 0; i < numFaces; i++)
-		{
-			float co[4][3];
-			VECCOPY(co[0], vert[ face[i].v1 ].co);
-			VECCOPY(co[1], vert[ face[i].v2 ].co);
-			VECCOPY(co[2], vert[ face[i].v3 ].co);
-			if(face[i].v4)
-				VECCOPY(co[3], vert[ face[i].v4 ].co);
-			
-			BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
-		}
-		BLI_bvhtree_balance(tree);
 
-		data->tree = tree;
+	//Setup BVHTreeFromMesh
+	memset(data, 0, sizeof(*data));
+	data->tree = tree;
+
+	if(data->tree)
+	{
+		data->cached = TRUE;
+
 		data->nearest_callback = mesh_faces_nearest_point;
 		data->raycast_callback = mesh_faces_spherecast;
 
@@ -562,6 +601,8 @@ void bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float eps
 
 		data->sphere_radius = epsilon;
 	}
+	return data->tree;
+
 }
 
 // Frees data allocated by a call to bvhtree_from_mesh_*.
@@ -569,9 +610,78 @@ void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
 	if(data->tree)
 	{
-		BLI_bvhtree_free(data->tree);
+		if(!data->cached)
+			BLI_bvhtree_free(data->tree);
+
 		memset( data, 0, sizeof(data) );
 	}
+}
+
+
+/* BVHCache */
+typedef struct BVHCacheItem
+{
+	int type;
+	BVHTree *tree;
+
+} BVHCacheItem;
+
+static void bvhcacheitem_set_if_match(void *_cached, void *_search)
+{
+	BVHCacheItem * cached = (BVHCacheItem *)_cached;
+	BVHCacheItem * search = (BVHCacheItem *)_search;
+
+	if(search->type == cached->type)
+	{
+		search->tree = cached->tree;		
+	}
+} 
+
+BVHTree *bvhcache_find(BVHCache *cache, int type)
+{
+	BVHCacheItem item;
+	item.type = type;
+	item.tree = NULL;
+
+	BLI_linklist_apply(*cache, bvhcacheitem_set_if_match, &item);
+	return item.tree;
+}
+
+void bvhcache_insert(BVHCache *cache, BVHTree *tree, int type)
+{
+	BVHCacheItem *item = NULL;
+
+	assert( tree != NULL );
+	assert( bvhcache_find(cache, type) == NULL );
+
+	item = MEM_mallocN(sizeof(BVHCacheItem), "BVHCacheItem");
+	assert( item != NULL );
+
+	item->type = type;
+	item->tree = tree;
+
+	BLI_linklist_prepend( cache, item );
+}
+
+
+void bvhcache_init(BVHCache *cache)
+{
+	*cache = NULL;
+}
+
+static void bvhcacheitem_free(void *_item)
+{
+	BVHCacheItem *item = (BVHCacheItem *)_item;
+
+	BLI_bvhtree_free(item->tree);
+	MEM_freeN(item);
+}
+
+
+void bvhcache_free(BVHCache *cache)
+{
+	BLI_linklist_free(*cache, (LinkNodeFreeFP)bvhcacheitem_free);
+	*cache = NULL;
 }
 
 

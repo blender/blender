@@ -95,6 +95,8 @@ void space_transform_invert_normal(const SpaceTransform *data, float *no);
 
 struct Object;
 struct DerivedMesh;
+struct MVert;
+struct MDeformVert;
 struct ShrinkwrapModifierData;
 struct BVHTree;
 
@@ -104,8 +106,10 @@ typedef struct ShrinkwrapCalcData
 	ShrinkwrapModifierData *smd;	//shrinkwrap modifier data
 
 	struct Object *ob;				//object we are applying shrinkwrap to
-	struct DerivedMesh *original;	//mesh before shrinkwrap
 
+	MVert *vert;					//Array of verts being projected (to fetch normals or other data) 
+	MDeformVert *dvert;				//Array to get vertexs weights
+	int vgroup;
 	float (*vertexCos)[3];			//vertexs being shrinkwraped
 	int numVerts;
 

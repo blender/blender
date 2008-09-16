@@ -1887,12 +1887,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 94;
 		} else if (md->type==eModifierType_Shrinkwrap) {
 			ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
-			height = 86 + 3;
+			height = 105 + 3;
+
 			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
-			{
 				height += 19*5;
-				if(smd->projAxis == 0) height += 19;
-			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
 				height += 19;
 
@@ -2542,16 +2540,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			cy -= 3;
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, shrinktypemenu, lx,(cy-=19),buttonWidth,19, &smd->shrinkType, 0, 0, 0, 0, "Selects type of shrinkwrap algorithm for target position.");
 
+			uiDefButC(block, NUM, B_MODIFIER_RECALC, "SS Levels:",		lx, (cy-=19), buttonWidth,19, &smd->subsurfLevels, 0, 6, 0, 0, "This indicates the number of CCSubdivisions that must be performed before extracting vertexs positions and normals");
+
 			if (smd->shrinkType == MOD_SHRINKWRAP_PROJECT){
 
 
 				/* UI for projection axis */
 				uiBlockBeginAlign(block);
 				uiDefButC(block, ROW, B_MODIFIER_RECALC, "Normal"    , lx,(cy-=19),buttonWidth,19, &smd->projAxis, 18.0, MOD_SHRINKWRAP_PROJECT_OVER_NORMAL, 0, 0, "Projection over X axis");
-				if(smd->projAxis == 0)
-				{
-					uiDefButC(block, NUM, B_MODIFIER_RECALC, "SS Levels:",		lx, (cy-=19), buttonWidth,19, &smd->subsurfLevels, 0, 6, 0, 0, "This indicates the number of CCSubdivisions that must be performed before extracting vertexs positions and normals");
-				}
 
 				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS, B_MODIFIER_RECALC, "X",	lx+buttonWidth/3*0,(cy-=19),buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over X axis");
 				uiDefButBitC(block, TOG, MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS, B_MODIFIER_RECALC, "Y",	lx+buttonWidth/3*1,cy,buttonWidth/3,19, &smd->projAxis, 0, 0, 0, 0, "Projection over Y axis");

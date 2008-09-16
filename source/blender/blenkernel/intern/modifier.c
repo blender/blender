@@ -7300,7 +7300,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
-	if(shrinkwrapModifier_requiredDataMask(md))
+	if(dataMask)
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
