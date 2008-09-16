@@ -1173,7 +1173,7 @@ int snapObjects(int *dist, float *loc, float *no, int mode) {
 	
 	base= FIRSTBASE;
 	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
-		if ( BASE_SELECTABLE(base) && ((mode == NOT_SELECTED && (base->flag & SELECT) == 0) || (mode == NOT_ACTIVE && base != BASACT)) ) {
+		if ( BASE_SELECTABLE(base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (mode == NOT_ACTIVE && base != BASACT)) ) {
 			Object *ob = base->object;
 			
 			if (ob->transflag & OB_DUPLI)
