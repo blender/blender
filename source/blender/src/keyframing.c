@@ -389,6 +389,7 @@ static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, char *co
 				/* init layer to be the object's layer var, then remove local view from it */
 				layer = ob->lay;
 				layer &= 0xFFFFFF;
+				*vartype= IPO_INT_BIT;
 				
 				/* return pointer to this static var 
 				 * 	- assumes that this pointer won't be stored for use later, so may not be threadsafe
