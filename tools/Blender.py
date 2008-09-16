@@ -117,15 +117,21 @@ def setup_staticlibs(lenv):
         lenv['BF_ZLIB_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ]
-    libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
+    
+    
     libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
-
+    
+    if lenv['WITH_BF_OPENEXR']:
+        libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
+        if lenv['WITH_BF_STATICOPENEXR']:
+            statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
     if lenv['WITH_BF_INTERNATIONAL']:
         libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
         libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
     if lenv['WITH_BF_OPENAL']:
         libincs += Split(lenv['BF_OPENAL_LIBPATH'])
-
+        if lenv['WITH_BF_STATICOPENAL']:
+            statlibs += Split(lenv['BF_OPENAL_LIB_STATIC'])
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
 
@@ -154,13 +160,15 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_FREETYPE_LIB'])
         syslibs += Split(lenv['BF_GETTEXT_LIB'])
     if lenv['WITH_BF_OPENAL']:
-       syslibs += Split(lenv['BF_OPENAL_LIB'])
+        if not lenv['WITH_BF_STATICOPENAL']:
+            syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
         syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
-        syslibs += Split(lenv['BF_OPENEXR_LIB'])
+        if not lenv['WITH_BF_STATICOPENEXR']:
+            syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
     syslibs += Split(lenv['BF_SDL_LIB'])

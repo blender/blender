@@ -14,12 +14,16 @@ BF_PYTHON_LINKFLAGS = ['-Xlinker', '-export-dynamic']
 BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION}.a'
 
 WITH_BF_OPENAL = 'true'
+WITH_BF_STATICOPENAL = 'false'
 BF_OPENAL = '/usr'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
+BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
+
 # some distros have a separate libalut
 # if you get linker complaints, you need to uncomment the line below
 # BF_OPENAL_LIB = 'openal alut'  
+# BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a ${BF_OPENAL}/lib/libalut.a'
 
 WITH_BF_SDL = 'true'
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
@@ -30,13 +34,16 @@ WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
+WITH_BF_STATICOPENEXR = 'false'
 BF_OPENEXR = '/usr'
 # when compiling with your own openexr lib you might need to set...
 # BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR ${BF_OPENEXR}/include'
 
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
+BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 # BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
+
 
 WITH_BF_DDS = 'true'
 

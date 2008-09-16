@@ -28,11 +28,11 @@ def print_arguments(args, bc):
 def validate_arguments(args, bc):
     opts_list = [
             'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
-            'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH',
+            'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_FMOD',
-            'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
+            'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
             'WITH_BF_DDS',
             'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
@@ -94,7 +94,7 @@ def print_targets(targs, bc):
 
 def validate_targets(targs, bc):
     valid_list = ['.', 'blender', 'blenderstatic', 'blenderplayer', 'webplugin',
-            'blendernogame', 'blenderstaticnogame', 'release',
+            'blendernogame', 'blenderstaticnogame', 'blenderlite', 'release',
             'everything', 'clean', 'install-bin', 'install', 'nsis']
     oklist = []
     for t in targs:
@@ -139,6 +139,7 @@ def read_opts(cfg, args):
         ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
         ('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
         ('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
+
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
         ('BF_PYTHON_INC', 'include path for Python headers', ''),
@@ -148,13 +149,17 @@ def read_opts(cfg, args):
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
         (BoolOption('WITH_BF_STATICPYTHON', 'Staticly link to python', 'false')),
+
         (BoolOption('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false')),
         (BoolOption('WITH_BF_YAFRAY', 'Enable Yafray', 'true')),
+
         (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', '')),
         ('BF_OPENAL', 'base path for OpenAL', ''),
         ('BF_OPENAL_INC', 'include path for python headers', ''),
         ('BF_OPENAL_LIB', 'Path to OpenAL library', ''),
+        ('BF_OPENAL_LIB_STATIC', 'Path to OpenAL static library', ''),
         ('BF_OPENAL_LIBPATH', 'Path to OpenAL library', ''),
+        (BoolOption('WITH_BF_STATICOPENAL', 'Staticly link to openal', 'false')),
 
         (BoolOption('WITH_BF_SDL', 'Use SDL if true', '')),
         ('BF_SDL', 'SDL base path', ''),
@@ -171,10 +176,12 @@ def read_opts(cfg, args):
         #  BF_FMOD = $(LCGDIR)/fmod
 
         (BoolOption('WITH_BF_OPENEXR', 'Use OPENEXR if true', 'true')),
+        (BoolOption('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', 'false')),
         ('BF_OPENEXR', 'OPENEXR base path', ''),
         ('BF_OPENEXR_INC', 'OPENEXR include path', ''),
         ('BF_OPENEXR_LIB', 'OPENEXR library', ''),
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
+        ('BF_OPENEXR_LIB_STATIC', 'OPENEXR static library', ''),
 
         (BoolOption('WITH_BF_DDS', 'Use DDS if true', 'true')),
 

@@ -87,10 +87,13 @@ if MAC_PROC == 'powerpc':
 	BF_OPENAL = '#../lib/darwin-8.0.0-powerpc/openal'
 else :
 	BF_OPENAL = LIBDIR + '/openal'
-	
+
+WITH_BF_STATICOPENAL = 'false'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 WITH_BF_SDL = 'true'
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
@@ -102,10 +105,13 @@ WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
+WITH_BF_STATICOPENEXR = 'false'
 BF_OPENEXR = '${LCGDIR}/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread'
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
 WITH_BF_DDS = 'true'
 
