@@ -2598,17 +2598,26 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 
 static void lib_link_particlesystems(FileData *fd, ID *id, ListBase *particles)
 {
-	ParticleSystem *psys;
+	ParticleSystem *psys, *psysnext;
 	int a;
 
-	for(psys=particles->first; psys; psys=psys->next){
+	for(psys=particles->first; psys; psys=psysnext){
 		ParticleData *pa;
+		
+		psysnext= psys->next;
+		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
-		psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
-		psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
+		if(psys->part) {
+			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
+			psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
 
-		for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
-			pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
+			for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
+				pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
+			}
+		}
+		else {
+			BLI_remlink(particles, psys);
+			MEM_freeN(psys);
 		}
 	}
 }
