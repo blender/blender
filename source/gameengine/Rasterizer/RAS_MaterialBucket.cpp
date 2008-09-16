@@ -107,8 +107,13 @@ RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot)
 	m_endindex = slot.m_endindex;
 
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
-		*it = new RAS_DisplayArray(**it);
-		(*it)->m_users = 1;
+		// don't copy display arrays for now because it breaks python 
+		// access to vertices, but we'll need a solution if we want to
+		// join display arrays for reducing draw calls.
+		//*it = new RAS_DisplayArray(**it);
+		//(*it)->m_users = 1;
+
+		(*it)->m_users++;
 	}
 }
 
