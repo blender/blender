@@ -152,6 +152,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	bool apply=true;
 	int	priority;
 	float newweight;
+
+	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
 	
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !
