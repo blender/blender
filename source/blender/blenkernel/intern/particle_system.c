@@ -1128,12 +1128,14 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		if(children){
 			if(G.f & G_DEBUG)
 				fprintf(stderr,"Particle child distribution error: Nothing to emit from!\n");
-			for(p=0,cpa=psys->child; p<totpart; p++,cpa++){
-				cpa->fuv[0]=cpa->fuv[1]=cpa->fuv[2]=cpa->fuv[3]= 0.0;
-				cpa->foffset= 0.0f;
-				cpa->parent=0;
-				cpa->pa[0]=cpa->pa[1]=cpa->pa[2]=cpa->pa[3]=0;
-				cpa->num= -1;
+			if(psys->child) {
+				for(p=0,cpa=psys->child; p<totpart; p++,cpa++){
+					cpa->fuv[0]=cpa->fuv[1]=cpa->fuv[2]=cpa->fuv[3]= 0.0;
+					cpa->foffset= 0.0f;
+					cpa->parent=0;
+					cpa->pa[0]=cpa->pa[1]=cpa->pa[2]=cpa->pa[3]=0;
+					cpa->num= -1;
+				}
 			}
 		}
 		else {
