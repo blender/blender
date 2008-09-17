@@ -97,8 +97,7 @@ btSoftBody::~btSoftBody()
 	delete m_collisionShape;	
 	int i;
 
-	for(i=0;i<m_clusters.size();++i)
-		btAlignedFree(m_clusters[i]);
+	releaseClusters();
 	for(i=0;i<m_materials.size();++i) 
 		btAlignedFree(m_materials[i]);
 	for(i=0;i<m_joints.size();++i) 
@@ -749,19 +748,27 @@ int i,ni;
 }
 
 //
+void			btSoftBody::releaseCluster(int index)
+{
+Cluster*	c=m_clusters[index];
+if(c->m_leaf) m_cdbvt.remove(c->m_leaf);
+c->~Cluster();
+btAlignedFree(c);
+m_clusters.remove(c);
+}
+
+//
+void			btSoftBody::releaseClusters()
+{
+while(m_clusters.size()>0) releaseCluster(0);
+}
+
+//
 int				btSoftBody::generateClusters(int k,int maxiterations)
 {
-	int i;
-
-for(i=0;i<m_clusters.size();++i)
-	{
-	if(m_clusters[i]->m_leaf) m_cdbvt.remove(m_clusters[i]->m_leaf);
-	btAlignedFree(m_clusters[i]);
-	}
+int i;
+releaseClusters();
 m_clusters.resize(btMin(k,m_nodes.size()));
-
-
-
 for(i=0;i<m_clusters.size();++i)
 	{
 	m_clusters[i]			=	new(btAlignedAlloc(sizeof(Cluster),16)) Cluster();
@@ -870,10 +877,7 @@ if(k>0)
 		{
 		if(m_clusters[i]->m_nodes.size()==0)
 			{
-			btAlignedFree(m_clusters[i]);
-			btSwap(m_clusters[i],m_clusters[m_clusters.size()-1]);
-			m_clusters.pop_back();
-			--i;
+			releaseCluster(i--);
 			}
 		}
 		

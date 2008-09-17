@@ -141,7 +141,7 @@ public:
 	}
 	void		Process(const btDbvtNode* leaf)
 	{
-		int index = int(long(leaf->data));
+		int index = leaf->dataAsInt;
 
 		btCompoundShape* compoundShape = static_cast<btCompoundShape*>(m_compoundColObj->getCollisionShape());
 		btCollisionShape* childShape = compoundShape->getChildShape(index);

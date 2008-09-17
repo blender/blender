@@ -188,6 +188,7 @@ struct	btDbvtNode
 	union	{
 			btDbvtNode*	childs[2];
 			void*	data;
+			int		dataAsInt;
 			};
 };
 
