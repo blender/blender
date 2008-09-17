@@ -2132,7 +2132,7 @@ static PyObject *Texture_getFlags( BPy_Texture *self )
 
 static PyObject *Texture_getHFracDim( BPy_Texture *self )
 {
-	return PyInt_FromLong( (long)self->texture->mg_H );
+	return PyFloat_FromDouble( self->texture->mg_H );
 }
 
 static PyObject *Texture_getImageFlags( BPy_Texture *self, void *type )

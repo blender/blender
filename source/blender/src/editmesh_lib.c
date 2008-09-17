@@ -1906,7 +1906,6 @@ void flip_editnormals(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	EditVert *eve;
 	
 	efa= em->faces.first;
 	while(efa) {
