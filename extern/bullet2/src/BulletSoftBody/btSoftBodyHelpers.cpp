@@ -278,7 +278,7 @@ void			btSoftBodyHelpers::Draw(	btSoftBody* psb,
 				HullResult		hres;
 				HullLibrary		hlib;
 				hdsc.mMaxVertices=vertices.size();
-				hlib.CreateConvexHull(hdsc,hres);
+				//hlib.CreateConvexHull(hdsc,hres);
 				const btVector3	center=average(hres.m_OutputVertices);
 				add(hres.m_OutputVertices,-center);
 				mul(hres.m_OutputVertices,(btScalar)1);
@@ -291,7 +291,7 @@ void			btSoftBodyHelpers::Draw(	btSoftBody* psb,
 										hres.m_OutputVertices[idx[2]],
 										color,1);
 					}
-				hlib.ReleaseResult(hres);
+				//hlib.ReleaseResult(hres);
 				}
 			/* Velocities	*/ 
 			#if 0
@@ -634,7 +634,7 @@ btSoftBody*		btSoftBodyHelpers::CreateFromConvexHull(btSoftBodyWorldInfo& worldI
 	HullResult		hres;
 	HullLibrary		hlib;/*??*/ 
 	hdsc.mMaxVertices=nvertices;
-	hlib.CreateConvexHull(hdsc,hres);
+	//hlib.CreateConvexHull(hdsc,hres);
 	btSoftBody*		psb=new btSoftBody(&worldInfo,(int)hres.mNumOutputVertices,
 		&hres.m_OutputVertices[0],0);
 	for(int i=0;i<(int)hres.mNumFaces;++i)
@@ -647,7 +647,7 @@ btSoftBody*		btSoftBodyHelpers::CreateFromConvexHull(btSoftBodyWorldInfo& worldI
 		if(idx[2]<idx[0]) psb->appendLink(	idx[2],idx[0]);
 		psb->appendFace(idx[0],idx[1],idx[2]);
 	}
-	hlib.ReleaseResult(hres);
+	//hlib.ReleaseResult(hres);
 	psb->randomizeConstraints();
 	return(psb);
 }
