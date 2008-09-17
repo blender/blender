@@ -793,7 +793,7 @@ int blenderqread(unsigned short event, short val)
 			ob= OBACT;
 
 			if(G.f & G_SCULPTMODE) return 1;
-			else if(G.qual==(LR_CTRLKEY|LR_ALTKEY)) {
+			else if(G.qual==LR_ALTKEY) {
 				common_deletekey();
 				return 0;
 			}

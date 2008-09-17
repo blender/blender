@@ -2218,7 +2218,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						selectswap();
 				}
-				else if(G.qual==LR_ALTKEY) {
+				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY)) {
 					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
 						pose_clear_IK();
 				}
