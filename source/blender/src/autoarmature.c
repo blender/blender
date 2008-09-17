@@ -308,6 +308,8 @@ void RIG_freeRigGraph(BGraph *rg)
 	BLI_ghash_free(((RigGraph*)rg)->bones_map, NULL, NULL);
 	BLI_ghash_free(((RigGraph*)rg)->controls_map, NULL, NULL);
 	
+	BLI_freelistN(((RigGraph*)rg)->editbones);
+	
 	MEM_freeN(rg);
 }
 
@@ -2816,6 +2818,9 @@ static void retargetGraphs(RigGraph *rigg)
 	
 	//generateMissingArcs(rigg);
 	
+	/* Turn the list into an armature */
+	editbones_to_armature(rigg->editbones, rigg->ob);
+	
 #ifdef USE_THREADS
 	BLI_destroy_worker(rigg->worker);
 #endif
@@ -2878,11 +2883,6 @@ void BIF_retargetArmature()
 				
 				end_time = PIL_check_seconds_timer();
 				retarget_time = end_time - start_time;
-
-				/* Turn the list into an armature */
-				editbones_to_armature(&list, ob);
-				
-				BLI_freelistN(&list);
 
 				RIG_freeRigGraph((BGraph*)rigg);
 			}
