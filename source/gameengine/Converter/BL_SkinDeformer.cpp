@@ -197,6 +197,8 @@ bool BL_SkinDeformer::Update(void)
 		/* Update the current frame */
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
 
+		m_armobj->RestorePose();
+
 		/* indicate that the m_transverts and normals are up to date */
 		return true;
 	}

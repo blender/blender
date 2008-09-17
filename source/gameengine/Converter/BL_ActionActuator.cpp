@@ -59,11 +59,11 @@
 BL_ActionActuator::~BL_ActionActuator()
 {
 	if (m_pose)
-		free_pose(m_pose);
+		game_free_pose(m_pose);
 	if (m_userpose)
-		free_pose(m_userpose);
+		game_free_pose(m_userpose);
 	if (m_blendpose)
-		free_pose(m_blendpose);
+		game_free_pose(m_blendpose);
 }
 
 void BL_ActionActuator::ProcessReplica(){

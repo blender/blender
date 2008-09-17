@@ -45,7 +45,6 @@
 #include <config.h>
 #endif
 
-
 BL_ArmatureObject::BL_ArmatureObject(
 				void* sgReplicationInfo, 
 				SG_Callbacks callbacks, 
@@ -65,7 +64,7 @@ BL_ArmatureObject::BL_ArmatureObject(
 	 * the original pose before calling into blender functions, to deal with
 	 * replica's or other objects using the same blender object */
 	m_pose = NULL;
-	copy_pose(&m_pose, m_objArma->pose, 1 /* copy_constraint_channels_hack */);
+	game_copy_pose(&m_pose, m_objArma->pose);
 }
 
 CValue* BL_ArmatureObject::GetReplica()
@@ -84,32 +83,30 @@ void BL_ArmatureObject::ProcessReplica(BL_ArmatureObject *replica)
 	KX_GameObject::ProcessReplica(replica);
 
 	replica->m_pose = NULL;
-	copy_pose(&replica->m_pose, m_pose, 1 /* copy_constraint_channels_hack */);
+	game_copy_pose(&replica->m_pose, m_pose);
 }
 
 BL_ArmatureObject::~BL_ArmatureObject()
 {
 	if (m_pose)
-		free_pose(m_pose);
-}
-
-bool BL_ArmatureObject::VerifyPose()
-{
-	if(m_lastapplyframe != m_lastframe) {
-		extract_pose_from_pose(m_objArma->pose, m_pose);
-		where_is_pose(m_objArma);
-		m_lastapplyframe = m_lastframe;
-		extract_pose_from_pose(m_pose, m_objArma->pose);
-		return false;
-	}
-	else
-		return true;
+		game_free_pose(m_pose);
 }
 
 void BL_ArmatureObject::ApplyPose()
 {
-	if(VerifyPose())
-		extract_pose_from_pose(m_objArma->pose, m_pose);
+	m_armpose = m_objArma->pose;
+	m_objArma->pose = m_pose;
+
+	if(m_lastapplyframe != m_lastframe) {
+		where_is_pose(m_objArma);
+		m_lastapplyframe = m_lastframe;
+	}
+}
+
+void BL_ArmatureObject::RestorePose()
+{
+	m_objArma->pose = m_armpose;
+	m_armpose = NULL;
 }
 
 void BL_ArmatureObject::SetPose(bPose *pose)
@@ -164,8 +161,7 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 			a crash and memory leakage when 
 			&BL_ActionActuator::m_pose is freed
 		*/
-		int copy_constraint_channels_hack = 1;
-		copy_pose(pose, m_pose, copy_constraint_channels_hack);
+		game_copy_pose(pose, m_pose);
 	}
 	else {
 		if (*pose == m_pose)
@@ -181,17 +177,10 @@ void BL_ArmatureObject::GetMRDPose(bPose **pose)
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
 
-	if (!*pose) {
-		// must duplicate the constraints too otherwise we have corruption in free_pose_channels()
-		// because it will free the blender constraints. 
-		// Ideally, blender should rememeber that the constraints were not copied so that
-		// free_pose_channels() would not free them.
-		copy_pose(pose, m_pose, 1);
-	}
-	else {
+	if (!*pose)
+		game_copy_pose(pose, m_pose);
+	else
 		extract_pose_from_pose(*pose, m_pose);
-	}
-
 }
 
 short BL_ArmatureObject::GetActivePriority()
@@ -210,13 +199,11 @@ bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix)
 
 	ApplyPose();
 	pchan = get_pose_channel(m_objArma->pose, bone->name);
-
-	if(pchan) {
+	if(pchan)
 		matrix.setValue(&pchan->pose_mat[0][0]);
-		return true;
-	}
+	RestorePose();
 
-	return false;
+	return (pchan != NULL);
 }
 
 float BL_ArmatureObject::GetBoneLength(Bone* bone) const
