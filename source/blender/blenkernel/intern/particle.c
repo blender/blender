@@ -1775,36 +1775,16 @@ static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleC
 static int check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *state, float max_length, float *cur_length, float length, float *dvec)
 {
 	if(*cur_length + length > max_length){
-		//if(p<totparent){
-		//	if(k<=(int)cache[totpart+p]->time){
-		//		/* parents need to be calculated fully first so that they don't mess up their children */
-		//		/* we'll make a note of where we got to though so that they're easy to finish later */
-		//		state->time=(max_length-*cur_length)/length;
-		//		cache[totpart+p]->time=(float)k;
-		//	}
-		//}
-		//else{
 		VecMulf(dvec, (max_length - *cur_length) / length);
 		VECADD(state->co, (state - 1)->co, dvec);
 		keys->steps = k;
 		/* something over the maximum step value */
 		return k=100000;
-		//}
 	}
 	else {
 		*cur_length+=length;
 		return k;
 	}
-}
-static void finalize_path_length(ParticleCacheKey *keys)
-{
-	ParticleCacheKey *state = keys;
-	float dvec[3];
-	state += state->steps;
-
-	VECSUB(dvec, state->co, (state - 1)->co);
-	VecMulf(dvec, state->steps);
-	VECADD(state->co, (state - 1)->co, dvec);
 }
 static void offset_child(ChildParticle *cpa, ParticleKey *par, ParticleKey *child, float flat, float radius)
 {
@@ -1986,7 +1966,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	ParticleCacheKey **cache= psys->childcache;
 	ParticleCacheKey **pcache= psys->pathcache;
 	ParticleCacheKey *state, *par = NULL, *key[4];
-	ParticleData *pa;
+	ParticleData *pa=NULL;
 	ParticleTexture ptex;
 	float *cpa_fuv=0;
 	float co[3], orco[3], ornor[3], t, rough_t, cpa_1st[3], dvec[3];
@@ -2287,10 +2267,6 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 			get_strand_normal(ctx->ma, ornor, cur_length, state->vel);
 		}
 	}
-
-	/* now let's finalise the interpolated parents that we might have left half done before */
-	if(i<ctx->totparent)
-		finalize_path_length(keys);
 }
 
 void *exec_child_path_cache(void *data)
@@ -2364,6 +2340,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	ParticleCacheKey *ca, **cache=psys->pathcache;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	ParticleEditSettings *pset = &G.scene->toolsettings->particle;
+	ParticleSettings *part = psys->part;
 	
 	ParticleData *pa;
 	ParticleKey keys[4], result, *kkey[2] = {NULL, NULL};
@@ -2389,6 +2366,8 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	float nosel_col[3];
 	float length, vec[3];
 	float *vg_effector= NULL, effector=0.0f;
+	float *vg_length= NULL, pa_length=1.0f, max_length=1.0f, cur_length=0.0f;
+	float len, dvec[3];
 
 	/* we don't have anything valid to create paths from so let's quit here */
 	if((psys->flag & PSYS_HAIR_DONE)==0 && (psys->flag & PSYS_KEYED)==0)
@@ -2440,6 +2419,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	if(psys->part->from!=PART_FROM_PARTICLE) {
 		if(!(psys->part->flag & PART_CHILD_EFFECT))
 			vg_effector = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_EFFECTOR);
+		
+		if(!edit && !psys->totchild)
+			vg_length = psys_cache_vgroup(psmd->dm, psys, PSYS_VG_LENGTH);
 	}
 
 	/*---first main loop: create all actual particles' paths---*/
@@ -2452,6 +2434,12 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 		if(editupdate && !(pa->flag & PARS_EDIT_RECALC)) continue;
 		else memset(cache[i], 0, sizeof(*cache[i])*(steps+1));
+
+		if(!edit && !psys->totchild) {
+			pa_length = part->length * (1.0f - part->randlength*pa->r_ave[0]);
+			if(vg_length)
+				pa_length *= psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_length);
+		}
 
 		cache[i]->steps = steps;
 
@@ -2678,6 +2666,27 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 			}
 
+			if(!edit && !psys->totchild) {
+				/* check if path needs to be cut before actual end of data points */
+				if(k){
+					VECSUB(dvec,ca->co,(ca-1)->co);
+					if(part->flag&PART_ABS_LENGTH)
+						len=VecLength(dvec);
+					else
+						len=1.0f/(float)steps;
+
+					k=check_path_length(k,cache[i],ca,max_length,&cur_length,len,dvec);
+				}
+				else{
+					/* initialize length calculation */
+					if(part->flag&PART_ABS_LENGTH)
+						max_length= part->abslength*pa_length;
+					else
+						max_length= pa_length;
+
+					cur_length= 0.0f;
+				}
+			}
 		}
 	}
 
@@ -2690,6 +2699,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 	if(vg_effector)
 		MEM_freeN(vg_effector);
+
+	if(vg_length)
+		MEM_freeN(vg_length);
 }
 /************************************************/
 /*			Particle Key handling				*/
