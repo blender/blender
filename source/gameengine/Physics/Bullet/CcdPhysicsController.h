@@ -190,12 +190,15 @@ struct CcdConstructionInfo
 
 
 class btRigidBody;
-
+class btCollisionObject;
+class btSoftBody;
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-	btRigidBody* m_body;
+
+	btCollisionObject* m_object;
+
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
 	class btCollisionShape*	m_collisionShape;
@@ -231,11 +234,14 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		virtual ~CcdPhysicsController();
 
 
-		btRigidBody* GetRigidBody() { return m_body;}
+		btRigidBody* GetRigidBody();
+		btCollisionObject*	GetCollisionObject();
+		btSoftBody* GetSoftBody();
+
 		CcdShapeConstructionInfo* GetShapeInfo() { return m_shapeInfo; }
 
 		btCollisionShape*	GetCollisionShape() { 
-			return m_body->getCollisionShape();
+			return m_object->getCollisionShape();
 		}
 		////////////////////////////////////
 		// PHY_IPhysicsController interface
@@ -309,6 +315,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		bool	wantsSleeping();
 
 		void	UpdateDeactivation(float timeStep);
+
+		void	SetCenterOfMassTransform(btTransform& xform);
 
 		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
 

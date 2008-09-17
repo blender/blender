@@ -268,6 +268,15 @@ public:
 		m_interpolationWorldTransform = trans;
 	}
 
+	void	setInterpolationLinearVelocity(const btVector3& linvel)
+	{
+		m_interpolationLinearVelocity = linvel;
+	}
+
+	void	setInterpolationAngularVelocity(const btVector3& angvel)
+	{
+		m_interpolationAngularVelocity = angvel;
+	}
 
 	const btVector3&	getInterpolationLinearVelocity() const
 	{

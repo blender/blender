@@ -23,6 +23,7 @@ subject to the following restrictions:
 #include "btBulletDynamicsCommon.h"
 #include "LinearMath/btIDebugDraw.h"
 #include "BulletCollision/CollisionDispatch/btSimulationIslandManager.h"
+#include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 
 //profiling/timings
 #include "LinearMath/btQuickprof.h"
@@ -344,7 +345,9 @@ m_filterCallback(NULL)
 	m_broadphase->getOverlappingPairCache()->setOverlapFilterCallback(m_filterCallback);
 
 	setSolverType(1);//issues with quickstep and memory allocations
-	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
+//	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
+	m_dynamicsWorld = new btSoftRigidDynamicsWorld(dispatcher,m_broadphase,m_solver,m_collisionConfiguration);
+
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
 	m_dynamicsWorld->setGravity(m_gravity);
@@ -355,24 +358,43 @@ m_filterCallback(NULL)
 void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	btRigidBody* body = ctrl->GetRigidBody();
+	btCollisionObject* obj = ctrl->GetCollisionObject();
 
 	//this m_userPointer is just used for triggers, see CallbackTriggers
-	body->setUserPointer(ctrl);
+	obj->setUserPointer(ctrl);
+	if (body)
+		body->setGravity( m_gravity );
 
-	body->setGravity( m_gravity );
 	m_controllers.insert(ctrl);
 
-	//use explicit group/filter for finer control over collision in bullet => near/radar sensor
-	m_dynamicsWorld->addRigidBody(body, ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
-	if (body->isStaticOrKinematicObject())
+	if (body)
 	{
-		body->setActivationState(ISLAND_SLEEPING);
+		//use explicit group/filter for finer control over collision in bullet => near/radar sensor
+		m_dynamicsWorld->addRigidBody(body, ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
+	} else
+	{
+		if (ctrl->GetSoftBody())
+		{
+			//not yet
+			btAssert(0);
+			//m_dynamicsWorld->addSo
+		} else
+		{
+			if (obj->getCollisionShape())
+			{
+				m_dynamicsWorld->addCollisionObject(obj,ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
+			}
+		}
+	}
+	if (obj->isStaticOrKinematicObject())
+	{
+		obj->setActivationState(ISLAND_SLEEPING);
 	}
 
 
 	//CollisionObject(body,ctrl->GetCollisionFilterGroup(),ctrl->GetCollisionFilterMask());
 
-	assert(body->getBroadphaseHandle());
+	assert(obj->getBroadphaseHandle());
 
 	btBroadphaseInterface* scene =  getBroadphase();
 
@@ -381,7 +403,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 	assert(shapeinterface);
 
-	const btTransform& t = ctrl->GetRigidBody()->getCenterOfMassTransform();
+	const btTransform& t = ctrl->GetCollisionObject()->getWorldTransform();
 	
 
 	btPoint3 minAabb,maxAabb;
@@ -393,32 +415,34 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 	//extent it with the motion
 
-	btVector3 linMotion = body->getLinearVelocity()*timeStep;
+	if (body)
+	{
+		btVector3 linMotion = body->getLinearVelocity()*timeStep;
 
-	float maxAabbx = maxAabb.getX();
-	float maxAabby = maxAabb.getY();
-	float maxAabbz = maxAabb.getZ();
-	float minAabbx = minAabb.getX();
-	float minAabby = minAabb.getY();
-	float minAabbz = minAabb.getZ();
+		float maxAabbx = maxAabb.getX();
+		float maxAabby = maxAabb.getY();
+		float maxAabbz = maxAabb.getZ();
+		float minAabbx = minAabb.getX();
+		float minAabby = minAabb.getY();
+		float minAabbz = minAabb.getZ();
 
-	if (linMotion.x() > 0.f)
-		maxAabbx += linMotion.x(); 
-	else
-		minAabbx += linMotion.x();
-	if (linMotion.y() > 0.f)
-		maxAabby += linMotion.y(); 
-	else
-		minAabby += linMotion.y();
-	if (linMotion.z() > 0.f)
-		maxAabbz += linMotion.z(); 
-	else
-		minAabbz += linMotion.z();
+		if (linMotion.x() > 0.f)
+			maxAabbx += linMotion.x(); 
+		else
+			minAabbx += linMotion.x();
+		if (linMotion.y() > 0.f)
+			maxAabby += linMotion.y(); 
+		else
+			minAabby += linMotion.y();
+		if (linMotion.z() > 0.f)
+			maxAabbz += linMotion.z(); 
+		else
+			minAabbz += linMotion.z();
 
 
-	minAabb = btVector3(minAabbx,minAabby,minAabbz);
-	maxAabb = btVector3(maxAabbx,maxAabby,maxAabbz);
-
+		minAabb = btVector3(minAabbx,minAabby,minAabbz);
+		maxAabb = btVector3(maxAabbx,maxAabby,maxAabbz);
+	}
 
 
 
@@ -427,8 +451,22 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	//also remove constraint
-
-	m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
+	btRigidBody* body = ctrl->GetRigidBody();
+	if (body)
+	{
+		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
+	} else
+	{
+		//if a softbody
+		if (ctrl->GetSoftBody())
+		{
+			//not yet
+			btAssert(0);
+		} else
+		{
+			m_dynamicsWorld->removeCollisionObject(ctrl->GetCollisionObject());
+		}
+	}
 	m_controllers.erase(ctrl);
 
 	if (ctrl->m_registerCount != 0)
@@ -443,14 +481,20 @@ void	CcdPhysicsEnvironment::updateCcdPhysicsController(CcdPhysicsController* ctr
 	// this function is used when the collisionning group of a controller is changed
 	// remove and add the collistioning object
 	btRigidBody* body = ctrl->GetRigidBody();
-	btVector3 inertia(0.0,0.0,0.0);
-
-	m_dynamicsWorld->removeCollisionObject(body);
-	body->setCollisionFlags(newCollisionFlags);
-	if (newMass)
-		body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
-	body->setMassProps(newMass, inertia);
-	m_dynamicsWorld->addCollisionObject(body, newCollisionGroup, newCollisionMask);
+	btCollisionObject* obj = ctrl->GetCollisionObject();
+	if (obj)
+	{
+		btVector3 inertia(0.0,0.0,0.0);
+		m_dynamicsWorld->removeCollisionObject(obj);
+		obj->setCollisionFlags(newCollisionFlags);
+		if (body)
+		{
+			if (newMass)
+				body->getCollisionShape()->calculateLocalInertia(newMass, inertia);
+			body->setMassProps(newMass, inertia);
+		}
+		m_dynamicsWorld->addCollisionObject(obj, newCollisionGroup, newCollisionMask);
+	}
 	// to avoid nasty interaction, we must update the property of the controller as well
 	ctrl->m_cci.m_mass = newMass;
 	ctrl->m_cci.m_collisionFilterGroup = newCollisionGroup;
@@ -462,9 +506,9 @@ void CcdPhysicsEnvironment::enableCcdPhysicsController(CcdPhysicsController* ctr
 {
 	if (m_controllers.insert(ctrl).second)
 	{
-		btRigidBody* body = ctrl->GetRigidBody();
-		body->setUserPointer(ctrl);
-		m_dynamicsWorld->addCollisionObject(body, 
+		btCollisionObject* obj = ctrl->GetCollisionObject();
+		obj->setUserPointer(ctrl);
+		m_dynamicsWorld->addCollisionObject(obj, 
 			ctrl->GetCollisionFilterGroup(), ctrl->GetCollisionFilterMask());
 	}
 }
@@ -473,7 +517,19 @@ void CcdPhysicsEnvironment::disableCcdPhysicsController(CcdPhysicsController* ct
 {
 	if (m_controllers.erase(ctrl))
 	{
-		m_dynamicsWorld->removeRigidBody(ctrl->GetRigidBody());
+		btRigidBody* body = ctrl->GetRigidBody();
+		if (body)
+		{
+			m_dynamicsWorld->removeRigidBody(body);
+		} else
+		{
+			if (ctrl->GetSoftBody())
+			{
+			} else
+			{
+				m_dynamicsWorld->removeCollisionObject(body);
+			}
+		}
 	}
 }
 
@@ -792,7 +848,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 			CcdShapeConstructionInfo* shapeInfo = controller->m_shapeInfo;
 			if (shapeInfo)
 			{
-				btCollisionShape* shape = controller->GetRigidBody()->getCollisionShape();
+				btCollisionShape* shape = controller->GetCollisionObject()->getCollisionShape();
 				if (shape->isCompound())
 				{
 					btCompoundShape* compoundShape = (btCompoundShape*)shape;

@@ -19,6 +19,7 @@ subject to the following restrictions:
 #include "PHY_IMotionState.h"
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 
 class BP_Proxy;
@@ -63,11 +64,11 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	CreateRigidbody();
 	
 
-	
-	#ifdef WIN32
-	if (m_body->getInvMass())
-		m_body->setLinearVelocity(startVel);
-	#endif
+///???
+#ifdef WIN32
+	if (GetRigidBody() && !GetRigidBody()->isStaticObject())
+		GetRigidBody()->setLinearVelocity(startVel);
+#endif
 
 }
 
@@ -119,20 +120,59 @@ public:
 };
 
 
+btRigidBody* CcdPhysicsController::GetRigidBody()
+{
+	return btRigidBody::upcast(m_object);
+}
+btCollisionObject*	CcdPhysicsController::GetCollisionObject()
+{
+	return m_object;
+}
+btSoftBody* CcdPhysicsController::GetSoftBody()
+{
+	return btSoftBody::upcast(m_object);
+}
+
+
 void CcdPhysicsController::CreateRigidbody()
 {
 
 	btTransform trans = GetTransformFromMotionState(m_MotionState);
-
 	m_bulletMotionState = new BlenderBulletMotionState(m_MotionState);
 
-	btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
-	rbci.m_linearDamping = m_cci.m_linearDamping;
-	rbci.m_angularDamping = m_cci.m_angularDamping;
-	rbci.m_friction = m_cci.m_friction;
-	rbci.m_restitution = m_cci.m_restitution;
-	
-	m_body = new btRigidBody(rbci);
+	///either create a btCollisionObject, btRigidBody or btSoftBody
+
+	//create a collision object
+	if (0)//m_cci.m_mass==0.f)
+	{
+		btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		rbci.m_linearDamping = m_cci.m_linearDamping;
+		rbci.m_angularDamping = m_cci.m_angularDamping;
+		rbci.m_friction = m_cci.m_friction;
+		rbci.m_restitution = m_cci.m_restitution;
+		m_object = new btCollisionObject();
+		m_object->setCollisionShape(rbci.m_collisionShape);
+		btTransform startTrans;
+
+		if (rbci.m_motionState)
+		{
+			rbci.m_motionState->getWorldTransform(startTrans);
+		} else
+		{
+			startTrans = rbci.m_startWorldTransform;
+		}
+		m_object->setWorldTransform(startTrans);
+		m_object->setInterpolationWorldTransform(startTrans);
+
+	} else
+	{
+		btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		rbci.m_linearDamping = m_cci.m_linearDamping;
+		rbci.m_angularDamping = m_cci.m_angularDamping;
+		rbci.m_friction = m_cci.m_friction;
+		rbci.m_restitution = m_cci.m_restitution;
+		m_object = new btRigidBody(rbci);
+	}
 	
 	//
 	// init the rigidbody properly
@@ -145,15 +185,20 @@ void CcdPhysicsController::CreateRigidbody()
 	if ((m_cci.m_collisionFilterGroup & CcdConstructionInfo::SensorFilter) != 0)
 	{
 		// reset the flags that have been set so far
-		m_body->setCollisionFlags(0);
+		GetCollisionObject()->setCollisionFlags(0);
 	}
-	m_body->setCollisionFlags(m_body->getCollisionFlags() | m_cci.m_collisionFlags);
-	m_body->setGravity( m_cci.m_gravity);
-	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
+	GetCollisionObject()->setCollisionFlags(m_object->getCollisionFlags() | m_cci.m_collisionFlags);
+	btRigidBody* body = GetRigidBody();
 
-	if (!m_cci.m_bRigid)
+	if (body)
 	{
-		m_body->setAngularFactor(0.f);
+		body->setGravity( m_cci.m_gravity);
+		body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
+
+		if (!m_cci.m_bRigid)
+		{
+			body->setAngularFactor(0.f);
+		}
 	}
 }
 
@@ -180,7 +225,7 @@ CcdPhysicsController::~CcdPhysicsController()
 		delete m_MotionState;
 	if (m_bulletMotionState)
 		delete m_bulletMotionState;
-	delete m_body;
+	delete m_object;
 
 	if (m_collisionShape)
 	{
@@ -212,12 +257,14 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
 	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
 
-	if (!m_body->isStaticObject())
+	btRigidBody* body = GetRigidBody();
+
+	if (body && !body->isStaticObject())
 	{
-		const btVector3& worldPos = m_body->getCenterOfMassPosition();
+		const btVector3& worldPos = body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		
-		const btQuaternion& worldquat = m_body->getOrientation();
+		const btQuaternion& worldquat = body->getOrientation();
 		m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 
 		m_MotionState->calculateWorldTransformations();
@@ -236,7 +283,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		btTransform oldTrans = m_body->getCenterOfMassTransform();
 		btTransform newTrans(worldquat,worldPos);
 				
-		m_body->setCenterOfMassTransform(newTrans);
+		SetCenterOfMassTransform(newTrans);
 		//need to keep track of previous position for friction effects...
 		
 		m_MotionState->calculateWorldTransformations();
@@ -285,15 +332,17 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 		}
 	}
 
-	m_body = 0;
+	m_object = 0;
 	CreateRigidbody();
 
-	if (m_body)
+	btRigidBody* body = GetRigidBody();
+
+	if (body)
 	{
 		if (m_cci.m_mass)
 		{
-			m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
-		} 
+			body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+		}
 	}			
 	m_cci.m_physicsEnv->addCcdPhysicsController(this);
 
@@ -330,40 +379,75 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 
 }
 
+
+void	CcdPhysicsController::SetCenterOfMassTransform(btTransform& xform)
+{
+	btRigidBody* body = GetRigidBody();
+	if (body)
+	{
+		body->setCenterOfMassTransform(xform);
+	} else
+	{
+		//either collision object or soft body?
+		if (GetSoftBody())
+		{
+			//not yet
+		} else
+		{
+
+			if (m_object->isStaticOrKinematicObject())
+			{
+				m_object->setInterpolationWorldTransform(m_object->getWorldTransform());
+			} else
+			{
+				m_object->setInterpolationWorldTransform(xform);
+			}
+			if (body)
+			{
+				body->setInterpolationLinearVelocity(body->getLinearVelocity());
+				body->setInterpolationAngularVelocity(body->getAngularVelocity());
+				body->updateInertiaTensor();
+			}
+			m_object->setWorldTransform(xform);
+		}
+	}
+}
+
 		// kinematic methods
 void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
 {
-	if (m_body)
+	if (m_object)
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 
+		btRigidBody* body = GetRigidBody();
 
 		btVector3 dloc(dlocX,dlocY,dlocZ);
-		btTransform xform = m_body->getCenterOfMassTransform();
-
+		btTransform xform = m_object->getWorldTransform();
+	
 		if (local)
 		{
 			dloc = xform.getBasis()*dloc;
 		}
 
 		xform.setOrigin(xform.getOrigin() + dloc);
-		m_body->setCenterOfMassTransform(xform);
+		SetCenterOfMassTransform(xform);
 	}
 
 }
 
 void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 {
-	if (m_body)
+	if (m_object)
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 
 		btMatrix3x3 drotmat(	rotval[0],rotval[4],rotval[8],
@@ -374,15 +458,15 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 		btMatrix3x3 currentOrn;
 		GetWorldOrientation(currentOrn);
 
-		btTransform xform = m_body->getCenterOfMassTransform();
-
+		btTransform xform = m_object->getWorldTransform();
+		
 		xform.setBasis(xform.getBasis()*(local ? 
 		drotmat : (currentOrn.inverse() * drotmat * currentOrn)));
 
-		m_body->setCenterOfMassTransform(xform);
+		SetCenterOfMassTransform(xform);
 	}
-
 }
+
 
 void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
@@ -394,7 +478,7 @@ void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
 {
-	btQuaternion q = m_body->getCenterOfMassTransform().getRotation();
+	btQuaternion q = m_object->getWorldTransform().getRotation();
 	quatImag0 = q[0];
 	quatImag1 = q[1];
 	quatImag2 = q[2];
@@ -402,18 +486,18 @@ void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,flo
 }
 void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
 {
-	if (m_body)
+	if (m_object)
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 		// not required
 		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
-		btTransform xform  = m_body->getCenterOfMassTransform();
+		btTransform xform  = m_object->getWorldTransform();
 		xform.setRotation(btQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
-		m_body->setCenterOfMassTransform(xform);
+		SetCenterOfMassTransform(xform);
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
 	}
@@ -422,18 +506,18 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 
 void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
 {
-	if (m_body)
+	if (m_object)
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 		// not required
 		//m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
-		btTransform xform  = m_body->getCenterOfMassTransform();
+		btTransform xform  = m_object->getWorldTransform();
 		xform.setBasis(orn);
-		m_body->setCenterOfMassTransform(xform);
+		SetCenterOfMassTransform(xform);
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
 	}
@@ -442,18 +526,18 @@ void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
 
 void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 {
-	if (m_body)
+	if (m_object)
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 		// not required, this function is only used to update the physic controller
 		//m_MotionState->setWorldPosition(posX,posY,posZ);
-		btTransform xform  = m_body->getCenterOfMassTransform();
+		btTransform xform  = m_object->getWorldTransform();
 		xform.setOrigin(btVector3(posX,posY,posZ));
-		m_body->setCenterOfMassTransform(xform);
+		SetCenterOfMassTransform(xform);
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
 	}
@@ -466,7 +550,7 @@ void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvel
 
 void 		CcdPhysicsController::getPosition(PHY__Vector3&	pos) const
 {
-	const btTransform& xform = m_body->getCenterOfMassTransform();
+	const btTransform& xform = m_object->getWorldTransform();
 	pos[0] = xform.getOrigin().x();
 	pos[1] = xform.getOrigin().y();
 	pos[2] = xform.getOrigin().z();
@@ -480,15 +564,16 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 	{
 		m_cci.m_scaling = btVector3(scaleX,scaleY,scaleZ);
 
-		if (m_body && m_body->getCollisionShape())
+		if (m_object && m_object->getCollisionShape())
 		{
-			m_body->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
+			m_object->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
 			
 			//printf("no inertia recalc for fixed objects with mass=0\n");
-			if (m_cci.m_mass)
+			btRigidBody* body = GetRigidBody();
+			if (body && m_cci.m_mass)
 			{
-				m_body->getCollisionShape()->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
-				m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+				body->getCollisionShape()->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
+				body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 			} 
 			
 		}
@@ -499,19 +584,23 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torqueZ,bool local)
 {
 	btVector3 torque(torqueX,torqueY,torqueZ);
-	btTransform xform = m_body->getCenterOfMassTransform();
-	if (m_body && torque.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	btTransform xform = m_object->getWorldTransform();
+	
+
+	if (m_object && torque.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate();
-		if (m_body->isStaticObject())
+		btRigidBody* body = GetRigidBody();
+		m_object->activate();
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 		if (local)
 		{
 			torque	= xform.getBasis()*torque;
 		}
-		m_body->applyTorque(torque);
+		if (body)
+			body->applyTorque(torque);
 	}
 }
 
@@ -519,41 +608,47 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 {
 	btVector3 force(forceX,forceY,forceZ);
 	
-	if (m_body && force.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+
+	if (m_object && force.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate();
-		if (m_body->isStaticObject())
+		m_object->activate();
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
+
+		btRigidBody* body = GetRigidBody();
+		if (body)
 		{
-			btTransform xform = m_body->getCenterOfMassTransform();
+			btTransform xform = body->getCenterOfMassTransform();
 			if (local)
 			{	
 				force	= xform.getBasis()*force;
 			}
+			body->applyCentralForce(force);
 		}
-		m_body->applyCentralForce(force);
 	}
 }
 void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)
 {
 	btVector3 angvel(ang_velX,ang_velY,ang_velZ);
-	if (m_body && angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	if (m_object && angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
+		btRigidBody* body = GetRigidBody();
+		if (body)
 		{
-			btTransform xform = m_body->getCenterOfMassTransform();
+			btTransform xform = body->getCenterOfMassTransform();
 			if (local)
 			{
 				angvel	= xform.getBasis()*angvel;
 			}
+			body->setAngularVelocity(angvel);
 		}
-		m_body->setAngularVelocity(angvel);
 	}
 
 }
@@ -561,39 +656,41 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 {
 
 	btVector3 linVel(lin_velX,lin_velY,lin_velZ);
-	if (m_body && linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	if (m_object && linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate(true);
-		if (m_body->isStaticObject())
+		m_object->activate(true);
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-
+		btRigidBody* body = GetRigidBody();
+		if (body)
 		{
-			btTransform xform = m_body->getCenterOfMassTransform();
+			btTransform xform = m_object->getWorldTransform();
 			if (local)
 			{
 				linVel	= xform.getBasis()*linVel;
 			}
+			body->setLinearVelocity(linVel);
 		}
-		m_body->setLinearVelocity(linVel);
 	}
 }
 void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
 {
 	btVector3 impulse(impulseX,impulseY,impulseZ);
 
-	if (m_body && impulse.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	if (m_object && impulse.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate();
-		if (m_body->isStaticObject())
+		m_object->activate();
+		if (m_object->isStaticObject())
 		{
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 		
 		btVector3 pos(attachX,attachY,attachZ);
-
-		m_body->applyImpulse(impulse,pos);
+		btRigidBody* body = GetRigidBody();
+		if (body)
+			body->applyImpulse(impulse,pos);
 	}
 
 }
@@ -603,29 +700,56 @@ void		CcdPhysicsController::SetActive(bool active)
 		// reading out information from physics
 void		CcdPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& linvZ)
 {
-	const btVector3& linvel = this->m_body->getLinearVelocity();
-	linvX = linvel.x();
-	linvY = linvel.y();
-	linvZ = linvel.z();
+	btRigidBody* body = GetRigidBody();
+	if (body)
+	{
+		const btVector3& linvel = body->getLinearVelocity();
+		linvX = linvel.x();
+		linvY = linvel.y();
+		linvZ = linvel.z();
+	} else
+	{
+		linvX = 0.f;
+		linvY = 0.f;
+		linvZ = 0.f;
+	}
 
 }
 
 void		CcdPhysicsController::GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ)
 {
-	const btVector3& angvel= m_body->getAngularVelocity();
-	angVelX = angvel.x();
-	angVelY = angvel.y();
-	angVelZ = angvel.z();
+	btRigidBody* body = GetRigidBody();
+	if (body)
+	{
+		const btVector3& angvel= body->getAngularVelocity();
+		angVelX = angvel.x();
+		angVelY = angvel.y();
+		angVelZ = angvel.z();
+	} else
+	{
+		angVelX = 0.f;
+		angVelY = 0.f;
+		angVelZ = 0.f;
+	}
 }
 
 void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ)
 {
 	btVector3 pos(posX,posY,posZ);
-	btVector3 rel_pos = pos-m_body->getCenterOfMassPosition();
-	btVector3 linvel = m_body->getVelocityInLocalPoint(rel_pos);
-	linvX = linvel.x();
-	linvY = linvel.y();
-	linvZ = linvel.z();
+	btRigidBody* body = GetRigidBody();
+	if (body)
+	{
+		btVector3 rel_pos = pos-body->getCenterOfMassPosition();
+		btVector3 linvel = body->getVelocityInLocalPoint(rel_pos);
+		linvX = linvel.x();
+		linvY = linvel.y();
+		linvZ = linvel.z();
+	} else
+	{
+		linvX = 0.f;
+		linvY = 0.f;
+		linvZ = 0.f;
+	}
 }
 void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& forceZ)
 {
@@ -636,11 +760,15 @@ void		CcdPhysicsController::setRigidBody(bool rigid)
 {
 	if (!rigid)
 	{
-		//fake it for now
-		btVector3 inertia = m_body->getInvInertiaDiagLocal();
-		inertia[1] = 0.f;
-		m_body->setInvInertiaDiagLocal(inertia);
-		m_body->updateInertiaTensor();
+		btRigidBody* body = GetRigidBody();
+		if (body)
+		{
+			//fake it for now
+			btVector3 inertia = body->getInvInertiaDiagLocal();
+			inertia[1] = 0.f;
+			body->setInvInertiaDiagLocal(inertia);
+			body->updateInertiaTensor();
+		}
 	}
 }
 
@@ -657,13 +785,22 @@ void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
 
 void	CcdPhysicsController::UpdateDeactivation(float timeStep)
 {
-	m_body->updateDeactivation( timeStep);
+	btRigidBody* body = GetRigidBody();
+	if (body)
+	{
+		body->updateDeactivation( timeStep);
+	}
 }
 
 bool CcdPhysicsController::wantsSleeping()
 {
-
-	return m_body->wantsSleeping();
+	btRigidBody* body = GetRigidBody();
+	if (body)
+	{
+		return body->wantsSleeping();
+	}
+	//check it out
+	return true;
 }
 
 PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
