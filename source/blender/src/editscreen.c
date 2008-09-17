@@ -1980,7 +1980,7 @@ static void testareas(void)
 	/* test for header, if removed, or moved */
 	/* test for window, if removed, or moved */
 	
-	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+	for(sa= G.curscreen->areabase.first; sa; sa= next) {
 		rcti oldhr= sa->headrct;
 		rcti oldwr= sa->winrct;
 		
