@@ -156,7 +156,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 		int p=0;
 
 		for(; p<psys->totpart; p++, pa++)
-			pa->flag = PARS_NO_DISP;
+			pa->flag |= PARS_NO_DISP;
 	}
 
 	/* reset children */
