@@ -61,7 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
-//#include "BIF_keyframing.h"
+#include "BIF_keyframing.h"
 #include "BSE_editipo.h"
 
 #include "BDR_drawaction.h"

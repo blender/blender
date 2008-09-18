@@ -61,7 +61,7 @@ public:
 	void SetPose (struct bPose *pose);
 
 	void ApplyPose();
-	bool VerifyPose();
+	void RestorePose();
 
 	bool SetActiveAction(class BL_ActionActuator *act, short priority, double curtime);
 	
@@ -82,6 +82,7 @@ protected:
 	Object				*m_objArma;
 	struct bArmature	*m_armature;
 	struct bPose		*m_pose;
+	struct bPose		*m_armpose;
 	struct bPose		*m_framePose;
 	double	m_lastframe;
 	class BL_ActionActuator *m_activeAct;

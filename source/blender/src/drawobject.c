@@ -2911,6 +2911,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	float timestep, pixsize=1.0, pa_size, pa_time, r_tilt;
 	float cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float *vdata=0, *vedata=0, *cdata=0, *ndata=0, *vd=0, *ved=0, *cd=0, *nd=0, xvec[3], yvec[3], zvec[3];
+	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
 	int a, k, k_max=0, totpart, totpoint=0, draw_as, path_nbr=0;
 	int path_possible=0, keys_possible=0, draw_keys=0, totchild=0;
 	int select=ob->flag&SELECT, create_cdata=0;
@@ -2963,6 +2964,12 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 	
 	ma= give_current_material(ob,part->omat);
 
+	if(ma) {
+		ma_r = ma->r;
+		ma_g = ma->g;
+		ma_b = ma->b;
+	}
+
 	if(G.vd->zbuf) glDepthMask(1);
 
 	if(select)
@@ -2988,11 +2995,6 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 
 	totpart=psys->totpart;
 	draw_as=part->draw_as;
-
-	if(part->flag&PART_ABS_TIME && part->ipo){
-		calc_ipo(part->ipo, cfra);
-		execute_ipo((ID *)part, part->ipo);
-	}
 
 	if(part->flag&PART_GLOB_TIME)
 		cfra=bsystem_time(0,(float)CFRA,0.0);
@@ -3120,21 +3122,36 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 				if(pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
 
 				pa_time=(cfra-pa->time)/pa->lifetime;
+				pa_size=pa->size;
 
 				if((part->flag&PART_ABS_TIME)==0){				
 					if(ma && ma->ipo){
+						IpoCurve *icu;
+
 						/* correction for lifetime */
 						calc_ipo(ma->ipo, 100.0f*pa_time);
-						execute_ipo((ID *)ma, ma->ipo);
+
+						for(icu = ma->ipo->curve.first; icu; icu=icu->next) {
+							if(icu->adrcode == MA_COL_R)
+								ma_r = icu->curval;
+							else if(icu->adrcode == MA_COL_G)
+								ma_g = icu->curval;
+							else if(icu->adrcode == MA_COL_B)
+								ma_b = icu->curval;
+						}
 					}
 					if(part->ipo) {
+						IpoCurve *icu;
+
 						/* correction for lifetime */
 						calc_ipo(part->ipo, 100*pa_time);
-						execute_ipo((ID *)part, part->ipo);
+
+						for(icu = part->ipo->curve.first; icu; icu=icu->next) {
+							if(icu->adrcode == PART_SIZE)
+								pa_size = icu->curval;
+						}
 					}
 				}
-
-				pa_size=pa->size;
 
 				r_tilt=1.0f+pa->r_ave[0];
 
@@ -3150,14 +3167,19 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 
 				if((part->flag&PART_ABS_TIME)==0) {
 					if(ma && ma->ipo){
+						IpoCurve *icu;
+
 						/* correction for lifetime */
 						calc_ipo(ma->ipo, 100.0f*pa_time);
-						execute_ipo((ID *)ma, ma->ipo);
-					}
-					if(part->ipo) {
-						/* correction for lifetime */
-						calc_ipo(part->ipo, 100*pa_time);
-						execute_ipo((ID *)part, part->ipo);
+
+						for(icu = ma->ipo->curve.first; icu; icu=icu->next) {
+							if(icu->adrcode == MA_COL_R)
+								ma_r = icu->curval;
+							else if(icu->adrcode == MA_COL_G)
+								ma_g = icu->curval;
+							else if(icu->adrcode == MA_COL_B)
+								ma_b = icu->curval;
+						}
 					}
 				}
 
@@ -3197,9 +3219,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 					switch(draw_as){
 						case PART_DRAW_DOT:
 							if(cd) {
-								cd[0]=ma->r;
-								cd[1]=ma->g;
-								cd[2]=ma->b;
+								cd[0]=ma_r;
+								cd[1]=ma_g;
+								cd[2]=ma_b;
 								cd+=3;
 							}
 							if(vd){
@@ -3224,9 +3246,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 							}
 							else {
 								if(cd) {
-									cd[0]=cd[3]=cd[6]=cd[9]=cd[12]=cd[15]=ma->r;
-									cd[1]=cd[4]=cd[7]=cd[10]=cd[13]=cd[16]=ma->g;
-									cd[2]=cd[5]=cd[8]=cd[11]=cd[14]=cd[17]=ma->b;
+									cd[0]=cd[3]=cd[6]=cd[9]=cd[12]=cd[15]=ma_r;
+									cd[1]=cd[4]=cd[7]=cd[10]=cd[13]=cd[16]=ma_g;
+									cd[2]=cd[5]=cd[8]=cd[11]=cd[14]=cd[17]=ma_b;
 									cd+=18;
 								}
 								VECSUB(vec2,state.co,vec);
@@ -3269,22 +3291,22 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 							VECADDFAC(vd,state.co,vec,-part->draw_line[0]); vd+=3;
 							VECADDFAC(vd,state.co,vec,part->draw_line[1]); vd+=3;
 							if(cd) {
-								cd[0]=cd[3]=ma->r;
-								cd[1]=cd[4]=ma->g;
-								cd[2]=cd[5]=ma->b;
+								cd[0]=cd[3]=ma_r;
+								cd[1]=cd[4]=ma_g;
+								cd[2]=cd[5]=ma_b;
 								cd+=3;
 							}
 							break;
 						case PART_DRAW_CIRC:
 							if(create_cdata)
-								glColor3f(ma->r,ma->g,ma->b);
+								glColor3f(ma_r,ma_g,ma_b);
 							drawcircball(GL_LINE_LOOP, state.co, pixsize, imat);
 							break;
 						case PART_DRAW_BB:
 							if(cd) {
-								cd[0]=cd[3]=cd[6]=cd[9]=ma->r;
-								cd[1]=cd[4]=cd[7]=cd[10]=ma->g;
-								cd[2]=cd[5]=cd[8]=cd[11]=ma->b;
+								cd[0]=cd[3]=cd[6]=cd[9]=ma_r;
+								cd[1]=cd[4]=cd[7]=cd[10]=ma_g;
+								cd[2]=cd[5]=cd[8]=cd[11]=ma_b;
 								cd+=12;
 							}
 							if(part->draw&PART_DRAW_BB_LOCK && part->bb_align==PART_BB_VIEW){

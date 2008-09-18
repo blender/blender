@@ -20,17 +20,18 @@ subject to the following restrictions:
 // Profiling
 //
 
-#if DBVT_BP_PROFILE
+#if DBVT_BP_PROFILE||DBVT_BP_ENABLE_BENCHMARK
 #include <stdio.h>
+#endif
+
+#if DBVT_BP_PROFILE
 struct	ProfileScope
 	{
-	ProfileScope(btClock& clock,unsigned long& value)
+	__forceinline ProfileScope(btClock& clock,unsigned long& value) :
+		m_clock(&clock),m_value(&value),m_base(clock.getTimeMicroseconds())
 		{
-		m_clock=&clock;
-		m_value=&value;
-		m_base=clock.getTimeMicroseconds();
 		}
-	~ProfileScope()
+	__forceinline ~ProfileScope()
 		{
 		(*m_value)+=m_clock->getTimeMicroseconds()-m_base;
 		}
@@ -90,18 +91,24 @@ value=zerodummy;
 struct	btDbvtTreeCollider : btDbvt::ICollide
 {
 btDbvtBroadphase*	pbp;
+btDbvtProxy*		proxy;
 		btDbvtTreeCollider(btDbvtBroadphase* p) : pbp(p) {}
 void	Process(const btDbvtNode* na,const btDbvtNode* nb)
 	{
-	btDbvtProxy*	pa=(btDbvtProxy*)na->data;
-	btDbvtProxy*	pb=(btDbvtProxy*)nb->data;
-	#if DBVT_BP_DISCRETPAIRS
-	if(Intersect(pa->aabb,pb->aabb))
-	#endif
+	if(na!=nb)
 		{
+		btDbvtProxy*	pa=(btDbvtProxy*)na->data;
+		btDbvtProxy*	pb=(btDbvtProxy*)nb->data;
+		#if DBVT_BP_SORTPAIRS
 		if(pa>pb) btSwap(pa,pb);
+		#endif
 		pbp->m_paircache->addOverlappingPair(pa,pb);
+		++pbp->m_newpairs;
 		}
+	}
+void	Process(const btDbvtNode* n)
+	{
+	Process(n,proxy->leaf);
 	}
 };
 
@@ -112,16 +119,25 @@ void	Process(const btDbvtNode* na,const btDbvtNode* nb)
 //
 btDbvtBroadphase::btDbvtBroadphase(btOverlappingPairCache* paircache)
 {
+m_deferedcollide	=	false;
+m_needcleanup		=	true;
 m_releasepaircache	=	(paircache!=0)?false:true;
-m_predictedframes	=	2;
+m_prediction		=	1/(btScalar)2;
 m_stageCurrent		=	0;
+m_fixedleft			=	0;
 m_fupdates			=	1;
-m_dupdates			=	1;
+m_dupdates			=	0;
+m_cupdates			=	10;
+m_newpairs			=	1;
+m_updates_call		=	0;
+m_updates_done		=	0;
+m_updates_ratio		=	0;
 m_paircache			=	paircache?
-							paircache	:
-							new(btAlignedAlloc(sizeof(btHashedOverlappingPairCache),16)) btHashedOverlappingPairCache();
+						paircache	:
+						new(btAlignedAlloc(sizeof(btHashedOverlappingPairCache),16)) btHashedOverlappingPairCache();
 m_gid				=	0;
 m_pid				=	0;
+m_cid				=	0;
 for(int i=0;i<=STAGECOUNT;++i)
 	{
 	m_stageRoots[i]=0;
@@ -148,17 +164,23 @@ btBroadphaseProxy*				btDbvtBroadphase::createProxy(	const btVector3& aabbMin,
 																void* userPtr,
 																short int collisionFilterGroup,
 																short int collisionFilterMask,
-																btDispatcher* /*dispatcher*/,
+																btDispatcher* dispatcher,
 																void* /*multiSapProxy*/)
 {
-btDbvtProxy*	proxy=new(btAlignedAlloc(sizeof(btDbvtProxy),16)) btDbvtProxy(	userPtr,
-																				collisionFilterGroup,
-																				collisionFilterMask);
+btDbvtProxy*		proxy=new(btAlignedAlloc(sizeof(btDbvtProxy),16)) btDbvtProxy(	userPtr,
+																					collisionFilterGroup,
+																					collisionFilterMask);
 proxy->aabb			=	btDbvtVolume::FromMM(aabbMin,aabbMax);
-proxy->leaf			=	m_sets[0].insert(proxy->aabb,proxy);
 proxy->stage		=	m_stageCurrent;
 proxy->m_uniqueId	=	++m_gid;
+proxy->leaf			=	m_sets[0].insert(proxy->aabb,proxy);
 listappend(proxy,m_stageRoots[m_stageCurrent]);
+if(!m_deferedcollide)
+	{
+	btDbvtTreeCollider	collider(this);
+	collider.proxy=proxy;
+	btDbvt::collideTV(m_sets[0].m_root,proxy->aabb,collider);
+	}
 return(proxy);
 }
 
@@ -174,6 +196,7 @@ if(proxy->stage==STAGECOUNT)
 listremove(proxy,m_stageRoots[proxy->stage]);
 m_paircache->removeOverlappingPairsContainingProxy(proxy,dispatcher);
 btAlignedFree(proxy);
+m_needcleanup=true;
 }
 
 //
@@ -182,35 +205,62 @@ void							btDbvtBroadphase::setAabb(		btBroadphaseProxy* absproxy,
 																const btVector3& aabbMax,
 																btDispatcher* /*dispatcher*/)
 {
-btDbvtProxy*	proxy=(btDbvtProxy*)absproxy;
-btDbvtVolume	aabb=btDbvtVolume::FromMM(aabbMin,aabbMax);
+btDbvtProxy*						proxy=(btDbvtProxy*)absproxy;
+ATTRIBUTE_ALIGNED16(btDbvtVolume)	aabb=btDbvtVolume::FromMM(aabbMin,aabbMax);
+#if DBVT_BP_PREVENTFALSEUPDATE
 if(NotEqual(aabb,proxy->leaf->volume))
+#endif
 	{
+	bool	docollide=false;
 	if(proxy->stage==STAGECOUNT)
 		{/* fixed -> dynamic set	*/ 
 		m_sets[1].remove(proxy->leaf);
 		proxy->leaf=m_sets[0].insert(aabb,proxy);
+		docollide=true;
 		}
 		else
 		{/* dynamic set				*/ 
+		++m_updates_call;
 		if(Intersect(proxy->leaf->volume,aabb))
 			{/* Moving				*/ 
-			const btVector3	delta=(aabbMin+aabbMax)/2-proxy->aabb.Center();
-			#ifdef DBVT_BP_MARGIN
-			m_sets[0].update(proxy->leaf,aabb,delta*m_predictedframes,DBVT_BP_MARGIN);
-			#else
-			m_sets[0].update(proxy->leaf,aabb,delta*m_predictedframes);
-			#endif
+			const btVector3	delta=aabbMin-proxy->aabb.Mins();
+			btVector3		velocity(aabb.Extents()*m_prediction);
+			if(delta[0]<0) velocity[0]=-velocity[0];
+			if(delta[1]<0) velocity[1]=-velocity[1];
+			if(delta[2]<0) velocity[2]=-velocity[2];
+			if	(
+				#ifdef DBVT_BP_MARGIN				
+				m_sets[0].update(proxy->leaf,aabb,velocity,DBVT_BP_MARGIN)
+				#else
+				m_sets[0].update(proxy->leaf,aabb,velocity)
+				#endif
+				)
+				{
+				++m_updates_done;
+				docollide=true;
+				}
 			}
 			else
 			{/* Teleporting			*/ 
-			m_sets[0].update(proxy->leaf,aabb);		
+			m_sets[0].update(proxy->leaf,aabb);
+			++m_updates_done;
+			docollide=true;
 			}	
 		}
 	listremove(proxy,m_stageRoots[proxy->stage]);
 	proxy->aabb		=	aabb;
 	proxy->stage	=	m_stageCurrent;
 	listappend(proxy,m_stageRoots[m_stageCurrent]);
+	if(docollide)
+		{
+		m_needcleanup=true;
+		if(!m_deferedcollide)
+			{
+			btDbvtTreeCollider	collider(this);
+			btDbvt::collideTT(m_sets[1].m_root,proxy->leaf,collider);
+			btDbvt::collideTT(m_sets[0].m_root,proxy->leaf,collider);
+			}
+		}	
 	}
 }
 
@@ -245,7 +295,12 @@ void							btDbvtBroadphase::collide(btDispatcher* dispatcher)
 SPC(m_profiling.m_total);
 /* optimize				*/ 
 m_sets[0].optimizeIncremental(1+(m_sets[0].m_leaves*m_dupdates)/100);
-m_sets[1].optimizeIncremental(1+(m_sets[1].m_leaves*m_fupdates)/100);
+if(m_fixedleft)
+	{
+	const int count=1+(m_sets[1].m_leaves*m_fupdates)/100;
+	m_sets[1].optimizeIncremental(1+(m_sets[1].m_leaves*m_fupdates)/100);
+	m_fixedleft=btMax<int>(0,m_fixedleft-count);
+	}
 /* dynamic -> fixed set	*/ 
 m_stageCurrent=(m_stageCurrent+1)%STAGECOUNT;
 btDbvtProxy*	current=m_stageRoots[m_stageCurrent];
@@ -256,46 +311,69 @@ if(current)
 		btDbvtProxy*	next=current->links[1];
 		listremove(current,m_stageRoots[current->stage]);
 		listappend(current,m_stageRoots[STAGECOUNT]);
-		btDbvt::collideTT(m_sets[1].m_root,current->leaf,collider);
+		#if DBVT_BP_ACCURATESLEEPING
+		m_paircache->removeOverlappingPairsContainingProxy(current,dispatcher);
+		collider.proxy=current;
+		btDbvt::collideTV(m_sets[0].m_root,current->aabb,collider);
+		btDbvt::collideTV(m_sets[1].m_root,current->aabb,collider);
+		#endif
 		m_sets[0].remove(current->leaf);
 		current->leaf	=	m_sets[1].insert(current->aabb,current);
 		current->stage	=	STAGECOUNT;	
 		current			=	next;
 		} while(current);
+	m_fixedleft=m_sets[1].m_leaves;
+	m_needcleanup=true;
 	}
 /* collide dynamics		*/ 
 	{
 	btDbvtTreeCollider	collider(this);
+	if(m_deferedcollide)
 		{
 		SPC(m_profiling.m_fdcollide);
 		btDbvt::collideTT(m_sets[0].m_root,m_sets[1].m_root,collider);
 		}
+	if(m_deferedcollide)
 		{
 		SPC(m_profiling.m_ddcollide);
 		btDbvt::collideTT(m_sets[0].m_root,m_sets[0].m_root,collider);
 		}
 	}
 /* clean up				*/ 
+if(m_needcleanup)
 	{
 	SPC(m_profiling.m_cleanup);
 	btBroadphasePairArray&	pairs=m_paircache->getOverlappingPairArray();
 	if(pairs.size()>0)
 		{
-		for(int i=0,ni=pairs.size();i<ni;++i)
+		const int	ci=pairs.size();
+		int			ni=btMin(ci,btMax<int>(m_newpairs,(ci*m_cupdates)/100));
+		for(int i=0;i<ni;++i)
 			{
-			btBroadphasePair&	p=pairs[i];
-			btDbvtProxy*	pa=(btDbvtProxy*)p.m_pProxy0;
-			btDbvtProxy*	pb=(btDbvtProxy*)p.m_pProxy1;
-			if(!Intersect(pa->aabb,pb->aabb))
+			btBroadphasePair&	p=pairs[(m_cid+i)%ci];
+			btDbvtProxy*		pa=(btDbvtProxy*)p.m_pProxy0;
+			btDbvtProxy*		pb=(btDbvtProxy*)p.m_pProxy1;
+			if(!Intersect(pa->leaf->volume,pb->leaf->volume))
 				{
+				#if DBVT_BP_SORTPAIRS
 				if(pa>pb) btSwap(pa,pb);
+				#endif
 				m_paircache->removeOverlappingPair(pa,pb,dispatcher);
 				--ni;--i;
 				}
 			}
+		if(pairs.size()>0) m_cid=(m_cid+ni)%pairs.size(); else m_cid=0;
 		}
 	}
 ++m_pid;
+m_newpairs=1;
+m_needcleanup=false;
+if(m_updates_call>0)
+	{ m_updates_ratio=m_updates_done/(btScalar)m_updates_call; }
+	else
+	{ m_updates_ratio=0; }
+m_updates_done/=2;
+m_updates_call/=2;
 }
 
 //
@@ -338,6 +416,131 @@ aabbMax=bounds.Maxs();
 //
 void							btDbvtBroadphase::printStats()
 {}
+
+//
+#if DBVT_BP_ENABLE_BENCHMARK
+
+struct	btBroadphaseBenchmark
+	{
+	struct	Experiment
+		{
+		const char*			name;
+		int					object_count;
+		int					update_count;
+		int					spawn_count;
+		int					iterations;
+		btScalar			speed;
+		btScalar			amplitude;
+		};
+	struct	Object
+		{
+		btVector3			center;
+		btVector3			extents;
+		btBroadphaseProxy*	proxy;
+		btScalar			time;
+		void				update(btScalar speed,btScalar amplitude,btBroadphaseInterface* pbi)
+			{
+			time		+=	speed;
+			center[0]	=	btCos(time*(btScalar)2.17)*amplitude+
+							btSin(time)*amplitude/2;
+			center[1]	=	btCos(time*(btScalar)1.38)*amplitude+
+							btSin(time)*amplitude;
+			center[2]	=	btSin(time*(btScalar)0.777)*amplitude;
+			pbi->setAabb(proxy,center-extents,center+extents,0);
+			}
+		};
+	static int		UnsignedRand(int range=RAND_MAX-1)	{ return(rand()%(range+1)); }
+	static btScalar	UnitRand()							{ return(UnsignedRand(16384)/(btScalar)16384); }
+	static void		OutputTime(const char* name,btClock& c,unsigned count=0)
+		{
+		const unsigned long	us=c.getTimeMicroseconds();
+		const unsigned long	ms=(us+500)/1000;
+		const btScalar		sec=us/(btScalar)(1000*1000);
+		if(count>0)
+			printf("%s : %u us (%u ms), %.2f/s\r\n",name,us,ms,count/sec);
+			else
+			printf("%s : %u us (%u ms)\r\n",name,us,ms);
+		}
+	};
+
+void							btDbvtBroadphase::benchmark(btBroadphaseInterface* pbi)
+{
+static const btBroadphaseBenchmark::Experiment		experiments[]=
+	{
+	{"1024o.10%",1024,10,0,8192,(btScalar)0.005,(btScalar)100},
+	/*{"4096o.10%",4096,10,0,8192,(btScalar)0.005,(btScalar)100},
+	{"8192o.10%",8192,10,0,8192,(btScalar)0.005,(btScalar)100},*/
+	};
+static const int										nexperiments=sizeof(experiments)/sizeof(experiments[0]);
+btAlignedObjectArray<btBroadphaseBenchmark::Object*>	objects;
+btClock													wallclock;
+/* Begin			*/ 
+for(int iexp=0;iexp<nexperiments;++iexp)
+	{
+	const btBroadphaseBenchmark::Experiment&	experiment=experiments[iexp];
+	const int									object_count=experiment.object_count;
+	const int									update_count=(object_count*experiment.update_count)/100;
+	const int									spawn_count=(object_count*experiment.spawn_count)/100;
+	const btScalar								speed=experiment.speed;	
+	const btScalar								amplitude=experiment.amplitude;
+	printf("Experiment #%u '%s':\r\n",iexp,experiment.name);
+	printf("\tObjects: %u\r\n",object_count);
+	printf("\tUpdate: %u\r\n",update_count);
+	printf("\tSpawn: %u\r\n",spawn_count);
+	printf("\tSpeed: %f\r\n",speed);
+	printf("\tAmplitude: %f\r\n",amplitude);
+	srand(180673);
+	/* Create objects	*/ 
+	wallclock.reset();
+	objects.reserve(object_count);
+	for(int i=0;i<object_count;++i)
+		{
+		btBroadphaseBenchmark::Object*	po=new btBroadphaseBenchmark::Object();
+		po->center[0]=btBroadphaseBenchmark::UnitRand()*50;
+		po->center[1]=btBroadphaseBenchmark::UnitRand()*50;
+		po->center[2]=btBroadphaseBenchmark::UnitRand()*50;
+		po->extents[0]=btBroadphaseBenchmark::UnitRand()*2+2;
+		po->extents[1]=btBroadphaseBenchmark::UnitRand()*2+2;
+		po->extents[2]=btBroadphaseBenchmark::UnitRand()*2+2;
+		po->time=btBroadphaseBenchmark::UnitRand()*2000;
+		po->proxy=pbi->createProxy(po->center-po->extents,po->center+po->extents,0,po,1,1,0,0);
+		objects.push_back(po);
+		}
+	btBroadphaseBenchmark::OutputTime("\tInitialization",wallclock);
+	/* First update		*/ 
+	wallclock.reset();
+	for(int i=0;i<objects.size();++i)
+		{
+		objects[i]->update(speed,amplitude,pbi);
+		}
+	btBroadphaseBenchmark::OutputTime("\tFirst update",wallclock);
+	/* Updates			*/ 
+	wallclock.reset();
+	for(int i=0;i<experiment.iterations;++i)
+		{
+		for(int j=0;j<update_count;++j)
+			{				
+			objects[j]->update(speed,amplitude,pbi);
+			}
+		pbi->calculateOverlappingPairs(0);
+		}
+	btBroadphaseBenchmark::OutputTime("\tUpdate",wallclock,experiment.iterations);
+	/* Clean up			*/ 
+	wallclock.reset();
+	for(int i=0;i<objects.size();++i)
+		{
+		pbi->destroyProxy(objects[i]->proxy,0);
+		delete objects[i];
+		}
+	objects.resize(0);
+	btBroadphaseBenchmark::OutputTime("\tRelease",wallclock);
+	}
+
+}
+#else
+void							btDbvtBroadphase::benchmark(btBroadphaseInterface*)
+{}
+#endif
 
 #if DBVT_BP_PROFILE
 #undef	SPC

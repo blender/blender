@@ -750,7 +750,8 @@ struct btSoftColliders
 		friction	=	btMin(psb->m_cfg.kDF,prb->getFriction());
 		btVector3			mins;
 		btVector3			maxs;
-		btDbvtVolume		volume;
+		
+		ATTRIBUTE_ALIGNED16(btDbvtVolume)		volume;
 		pr->getCollisionShape()->getAabb(pr->getInterpolationWorldTransform(),mins,maxs);
 		volume=btDbvtVolume::FromMM(mins,maxs);
 		volume.Expand(btVector3(1,1,1)*margin);

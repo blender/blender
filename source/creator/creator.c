@@ -267,7 +267,7 @@ static void main_init_screen( void )
 
 int main(int argc, char **argv)
 {
-	int a, i, stax=0, stay=0, sizx, sizy, scr_init = 0;
+	int a, i, stax, stay, sizx, sizy, scr_init = 0;
 	SYS_SystemHandle syshandle;
 
 #if defined(WIN32) || defined (__linux__)
@@ -301,10 +301,10 @@ int main(int argc, char **argv)
 			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64, 0);
 
         } else {
-				winlay_get_screensize(&scr_x, &scr_y);
+			winlay_get_screensize(&scr_x, &scr_y);
 
-		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
-		setprefsize(120, 40, 850, 684, 0);
+			/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
+			setprefsize(120, 40, 850, 684, 0);
         }
     
 		winlay_process_events(0);
@@ -430,11 +430,11 @@ int main(int argc, char **argv)
 	
 	init_def_material();
 
-	winlay_get_screensize(&sizx, &sizy);
-	stax=0;
-	stay=0;
-
 	if(G.background==0) {
+		winlay_get_screensize(&sizx, &sizy);
+		stax=0;
+		stay=0;
+
 		for(a=1; a<argc; a++) {
 			if(argv[a][0] == '-') {
 				switch(argv[a][1]) {
@@ -772,44 +772,10 @@ int main(int argc, char **argv)
 		else {
 			
 			/* Make the path absolute because its needed for relative linked blends to be found */
-			int abs = 0;
-			int filelen;
-			char cwd[FILE_MAXDIR + FILE_MAXFILE];
 			char filename[FILE_MAXDIR + FILE_MAXFILE];
-			cwd[0] = filename[0] = '\0';
 			
 			BLI_strncpy(filename, argv[a], sizeof(filename));
-			filelen = strlen(filename);
-			
-			/* relative path checks, could do more tests here... */
-#ifdef WIN32
-			/* Account for X:/ and X:\ - should be enough */
-			if (filelen >= 3 && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
-				abs = 1;
-#else
-			if (filelen >= 2 && filename[0] == '/')
-				abs = 1	;
-#endif
-			if (!abs) {
-				BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
-				
-				if (cwd[0] == '\0') {
-					printf(
-					"Could not get the current working directory - $PWD for an unknown reason.\n\t"
-					"Relative linked files will not load if the entire blend path is not used.\n\t"
-					"The 'Play' button may also fail.\n"
-					);
-				} else {
-					/* uses the blend path relative to cwd important for loading relative linked files.
-					*
-					* cwd should contain c:\ etc on win32 so the relbase can be NULL
-					* relbase being NULL also prevents // being misunderstood as relative to the current
-					* blend file which isnt a feature we want to use in this case since were dealing
-					* with a path from the command line, rather then from inside Blender */
-					
-					BLI_make_file_string(NULL, filename, cwd, argv[a]); 
-				}
-			}
+			BLI_convertstringcwd(filename);
 			
 			if (G.background) {
 				int retval = BKE_read_file(filename, NULL);

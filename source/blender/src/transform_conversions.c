@@ -108,6 +108,7 @@
 #include "BIF_editsima.h"
 #include "BIF_editparticle.h"
 #include "BIF_gl.h"
+#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
@@ -3562,22 +3563,25 @@ short autokeyframe_cfra_can_key(Object *ob)
  */
 void autokeyframe_ob_cb_func(Object *ob, int tmode)
 {
+	ID *id= (ID *)(ob);
 	IpoCurve *icu;
 	
 	if (autokeyframe_cfra_can_key(ob)) {
 		char *actname = NULL;
+		short flag = 0;
 		
 		if (ob->ipoflag & OB_ACTION_OB)
 			actname= "Object";
+			
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+			flag |= INSERTKEY_NEEDED;
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+			flag |= INSERTKEY_MATRIX;
 		
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+			/* only key on available channels */
 			if ((ob->ipo) || (ob->action)) {
-				ID *id= (ID *)(ob);
-				
-				if (ob->ipo) {
-					icu= ob->ipo->curve.first;
-				}
-				else {
+				if (ob->action && actname) {
 					bActionChannel *achan;
 					achan= get_action_channel(ob->action, actname);
 					
@@ -3586,19 +3590,16 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 					else
 						icu= NULL;
 				}
+				else 
+					icu= ob->ipo->curve.first;
 				
-				while (icu) {
+				for (; icu; icu= icu->next) {
 					icu->flag &= ~IPO_SELECT;
-					if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
-					else
-						insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
-					icu= icu->next;
+					insertkey(id, ID_OB, actname, NULL, icu->adrcode, flag);
 				}
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
-			ID *id= (ID *)(ob);
 			short doLoc=0, doRot=0, doScale=0;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -3629,35 +3630,33 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 			
 			if (doLoc) {
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Z);
+				insertkey(id, ID_OB, actname, NULL, OB_LOC_X, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, flag);
 			}
 			if (doRot) {
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_X);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Y);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Z);
+				insertkey(id, ID_OB, actname, NULL, OB_ROT_X, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, flag);
 			}
 			if (doScale) {
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Z);
+				insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, flag);
 			}
 		}
 		else {
-			ID *id= (ID *)(ob);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, flag);
 			
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, flag);
 			
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, 0);
-			
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, flag);
 		}
 		
 		remake_object_ipos(ob);
@@ -3683,8 +3682,15 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 	act= ob->action;
 	
 	if (autokeyframe_cfra_can_key(ob)) {
+		short flag= 0;
+		
 		if (act == NULL)
 			act= ob->action= add_empty_action("Action");
+			
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+			flag |= INSERTKEY_NEEDED;
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+			flag |= INSERTKEY_MATRIX;
 		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {
@@ -3695,17 +3701,10 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					bActionChannel *achan; 
 					
-					for (achan = act->chanbase.first; achan; achan=achan->next) {
-						if ((achan->ipo) && !strcmp(achan->name, pchan->name)) {
-							for (icu = achan->ipo->curve.first; icu; icu=icu->next) {
-								/* only insert keyframe if needed? */
-								if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
-								else
-									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode, 0);
-							}
-							break;
-						}
+					achan= get_action_channel(act, pchan->name);
+					if (achan && achan->ipo) {
+						for (icu= achan->ipo->curve.first; icu; icu= icu->next)
+							insertkey(id, ID_PO, pchan->name, NULL, icu->adrcode, flag);
 					}
 				}
 				/* only insert keyframe if needed? */
@@ -3735,65 +3734,36 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					}
 					
 					if (doLoc) {
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, flag);
 					}
 					if (doRot) {
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, flag);
 					}
 					if (doScale) {
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-					}
-				}
-				else if (IS_AUTOKEY_FLAG(AUTOMATKEY)) {
-					int matok=0; 
-					
-					/* check one to make sure we're not trying to set visual loc keys on
-						bones inside of a chain, which only leads to tears. */
-					matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-					
-					if (matok == 0) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
-					
-					/* check one to make sure we're not trying to set visual rot keys on
-						bones inside of a chain, which only leads to tears. */
-					matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-							insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-					
-					if (matok == 0) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, flag);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, flag);
 					
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, flag);
 					
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, flag);
 				}
 			}
 		}

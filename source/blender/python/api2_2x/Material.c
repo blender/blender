@@ -43,6 +43,7 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BSE_editipo.h"
+#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "mydevice.h"
 #include "constant.h"

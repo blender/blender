@@ -269,7 +269,7 @@ void	btDiscreteDynamicsWorld::synchronizeMotionStates()
 				{
 					btTransform interpolatedTransform;
 					btTransformUtil::integrateTransform(body->getInterpolationWorldTransform(),
-						body->getInterpolationLinearVelocity(),body->getInterpolationAngularVelocity(),m_localTime,interpolatedTransform);
+						body->getInterpolationLinearVelocity(),body->getInterpolationAngularVelocity(),m_localTime*body->getHitFraction(),interpolatedTransform);
 					body->getMotionState()->setWorldTransform(interpolatedTransform);
 				}
 			}
@@ -708,7 +708,78 @@ void	btDiscreteDynamicsWorld::calculateSimulationIslands()
 }
 
 
+#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 
+class btClosestNotMeConvexResultCallback : public btCollisionWorld::ClosestConvexResultCallback
+{
+	btCollisionObject* m_me;
+	btScalar m_allowedPenetration;
+	btOverlappingPairCache* m_pairCache;
+
+
+public:
+	btClosestNotMeConvexResultCallback (btCollisionObject* me,const btVector3& fromA,const btVector3& toA,btOverlappingPairCache* pairCache) : 
+	  btCollisionWorld::ClosestConvexResultCallback(fromA,toA),
+		m_allowedPenetration(0.0f),
+		m_me(me),
+		m_pairCache(pairCache)
+	{
+	}
+
+	virtual btScalar addSingleResult(btCollisionWorld::LocalConvexResult& convexResult,bool normalInWorldSpace)
+	{
+		if (convexResult.m_hitCollisionObject == m_me)
+			return 1.0;
+
+		btVector3 linVelA,linVelB;
+		linVelA = m_convexToWorld-m_convexFromWorld;
+		linVelB = btVector3(0,0,0);//toB.getOrigin()-fromB.getOrigin();
+
+		btVector3 relativeVelocity = (linVelA-linVelB);
+		//don't report time of impact for motion away from the contact normal (or causes minor penetration)
+		if (convexResult.m_hitNormalLocal.dot(relativeVelocity)>=-m_allowedPenetration)
+			return 1.f;
+
+		return ClosestConvexResultCallback::addSingleResult (convexResult, normalInWorldSpace);
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
+	{
+		//don't collide with itself
+		if (proxy0->m_clientObject == m_me)
+			return false;
+
+		///don't do CCD when the collision filters are not matching
+		if (!btCollisionWorld::ClosestConvexResultCallback::needsCollision(proxy0))
+			return false;
+
+		///don't do CCD when there are already contact points (touching contact/penetration)
+		btAlignedObjectArray<btPersistentManifold*> manifoldArray;
+		btBroadphasePair* collisionPair = m_pairCache->findPair(m_me->getBroadphaseHandle(),proxy0);
+		if (collisionPair)
+		{
+			if (collisionPair->m_algorithm)
+			{
+				manifoldArray.resize(0);
+				collisionPair->m_algorithm->getAllContactManifolds(manifoldArray);
+				for (int j=0;j<manifoldArray.size();j++)
+				{
+					btPersistentManifold* manifold = manifoldArray[j];
+					if (manifold->getNumContacts()>0)
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+
+
+};
+
+///internal debugging variable. this value shouldn't be too high
+int gNumClampedCcdMotions=0;
+
+//#include "stdio.h"
 void	btDiscreteDynamicsWorld::integrateTransforms(btScalar timeStep)
 {
 	BT_PROFILE("integrateTransforms");
@@ -719,9 +790,34 @@ void	btDiscreteDynamicsWorld::integrateTransforms(btScalar timeStep)
 		btRigidBody* body = btRigidBody::upcast(colObj);
 		if (body)
 		{
+			body->setHitFraction(1.f);
+
 			if (body->isActive() && (!body->isStaticOrKinematicObject()))
 			{
 				body->predictIntegratedTransform(timeStep, predictedTrans);
+				btScalar squareMotion = (predictedTrans.getOrigin()-body->getWorldTransform().getOrigin()).length2();
+
+				if (body->getCcdSquareMotionThreshold() && body->getCcdSquareMotionThreshold() < squareMotion)
+				{
+					BT_PROFILE("CCD motion clamping");
+					if (body->getCollisionShape()->isConvex())
+					{
+						gNumClampedCcdMotions++;
+						
+						btClosestNotMeConvexResultCallback sweepResults(body,body->getWorldTransform().getOrigin(),predictedTrans.getOrigin(),getBroadphase()->getOverlappingPairCache());
+						btConvexShape* convexShape = static_cast<btConvexShape*>(body->getCollisionShape());
+						btSphereShape tmpSphere(body->getCcdSweptSphereRadius());//btConvexShape* convexShape = static_cast<btConvexShape*>(body->getCollisionShape());
+						convexSweepTest(&tmpSphere,body->getWorldTransform(),predictedTrans,sweepResults);
+						if (sweepResults.hasHit() && (sweepResults.m_closestHitFraction < 1.f))
+						{
+							body->setHitFraction(sweepResults.m_closestHitFraction);
+							body->predictIntegratedTransform(timeStep*body->getHitFraction(), predictedTrans);
+							body->setHitFraction(0.f);
+//							printf("clamped integration to hit fraction = %f\n",fraction);
+						}
+					}
+				}
+				
 				body->proceedToTransform( predictedTrans);
 			}
 		}

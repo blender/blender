@@ -130,7 +130,6 @@ void KX_IpoActuator::SetStartTime(float curtime)
 {
 	float direction = m_startframe < m_endframe ? 1.0f : -1.0f;
 
-	curtime = curtime - KX_KetsjiEngine::GetSuspendedDelta();	
 	if (m_direction > 0)
 		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
 	else
@@ -139,7 +138,7 @@ void KX_IpoActuator::SetStartTime(float curtime)
 
 void KX_IpoActuator::SetLocalTime(float curtime)
 {
-	float delta_time = ((curtime - m_starttime) - KX_KetsjiEngine::GetSuspendedDelta())*KX_KetsjiEngine::GetAnimFrameRate();
+	float delta_time = (curtime - m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
 	
 	// negative delta_time is caused by floating point inaccuracy
 	// perhaps the inaccuracy could be reduced a bit
@@ -165,6 +164,8 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	int numevents = 0;
 	bool bIpoStart = false;
 
+	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
+
 	if (frame)
 	{
 		numevents = m_events.size();
@@ -180,7 +181,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		if (m_starttime < -2.0f*start_smaller_then_end*(m_endframe - m_startframe))
 		{
 			// start for all Ipo, initial start for LOOP_STOP
-			m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
+			m_starttime = curtime;
 			m_bIpoPlaying = true;
 			bIpoStart = true;
 		}

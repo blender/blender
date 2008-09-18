@@ -124,6 +124,8 @@ private:
 	bool			m_overrideCamUseOrtho;
 	MT_CmMatrix4x4	m_overrideCamProjMat;
 	MT_CmMatrix4x4	m_overrideCamViewMat;
+	float			m_overrideCamNear;
+	float			m_overrideCamFar;
 
 	bool m_stereo;
 	int m_curreye;
@@ -177,7 +179,6 @@ private:
 	/** Blue component of framing bar color. */
 	float					m_overrideFrameColorB;
 
-	void					SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
 	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
 	void					PostRenderFrame();
 	void					RenderDebugProperties();
@@ -228,6 +229,8 @@ public:
 	void			SuspendScene(const STR_String& scenename);
 	void			ResumeScene(const STR_String& scenename);
 
+	void			GetSceneViewport(KX_Scene* scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
+
 	void SetDrawType(int drawingtype);
 	void SetCameraZoom(float camzoom);
 	
@@ -236,6 +239,7 @@ public:
 	void SetCameraOverrideUseOrtho(bool useOrtho);
 	void SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
+	void SetCameraOverrideClipping(float near, float far);
 	
 	/**
 	 * Sets display of all frames.
@@ -355,6 +359,7 @@ protected:
 	KX_Scene*		CreateScene(const STR_String& scenename);
 	
 	bool			BeginFrame();
+	void			ClearFrame();
 	void			EndFrame();
 };
 

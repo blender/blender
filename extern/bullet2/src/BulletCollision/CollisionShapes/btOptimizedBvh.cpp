@@ -306,6 +306,8 @@ void	btOptimizedBvh::updateBvhNodes(btStridingMeshInterface* meshInterface,int f
 					if (curNodeSubPart >= 0)
 						meshInterface->unLockReadOnlyVertexBase(curNodeSubPart);
 					meshInterface->getLockedReadOnlyVertexIndexBase(&vertexbase,numverts,	type,stride,&indexbase,indexstride,numfaces,indicestype,nodeSubPart);
+
+					curNodeSubPart = nodeSubPart;
 					btAssert(indicestype==PHY_INTEGER||indicestype==PHY_SHORT);
 				}
 				//triangles->getLockedReadOnlyVertexIndexBase(vertexBase,numVerts,

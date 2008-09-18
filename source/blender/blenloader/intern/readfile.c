@@ -2596,19 +2596,33 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->pd2= newdataadr(fd, part->pd2);
 }
 
-static void lib_link_particlesystems(FileData *fd, ID *id, ListBase *particles)
+static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase *particles)
 {
-	ParticleSystem *psys;
+	ParticleSystem *psys, *psysnext;
 	int a;
 
-	for(psys=particles->first; psys; psys=psys->next){
+	for(psys=particles->first; psys; psys=psysnext){
 		ParticleData *pa;
+		
+		psysnext= psys->next;
+		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
-		psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
-		psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
+		if(psys->part) {
+			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
+			psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
 
-		for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
-			pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
+			for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
+				pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
+			}
+		}
+		else {
+			/* particle modifier must be removed before particle system */
+			ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
+			BLI_remlink(&ob->modifiers, psmd);
+			modifier_free((ModifierData *)psmd);
+
+			BLI_remlink(particles, psys);
+			MEM_freeN(psys);
 		}
 	}
 }
@@ -3060,7 +3074,7 @@ static void lib_link_object(FileData *fd, Main *main)
 					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
 
 			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
-			lib_link_particlesystems(fd, &ob->id, &ob->particlesystem);
+			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
 		}
 		ob= ob->id.next;
@@ -7762,18 +7776,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if(main->versionfile <= 246 && main->subversionfile < 1){
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {
 		Mesh *me;
 
 		for(me=main->mesh.first; me; me= me->id.next)
 			alphasort_version_246(fd, lib, me);
 	}
 	
-	if(main->versionfile <= 246 && main->subversionfile < 1){
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)){
 		Object *ob;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
 				ob->pd->f_noise = 0.0;
+		}
+	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 2)){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ob->gameflag |= OB_COLLISION;
+			ob->margin = 0.06;
 		}
 	}
 

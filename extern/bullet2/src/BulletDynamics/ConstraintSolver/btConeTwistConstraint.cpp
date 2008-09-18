@@ -114,17 +114,34 @@ void	btConeTwistConstraint::buildJacobian()
 
 	btScalar swing1=btScalar(0.),swing2 = btScalar(0.);
 
+	btScalar swx=btScalar(0.),swy = btScalar(0.);
+	btScalar thresh = btScalar(10.);
+	btScalar fact;
+
 	// Get Frame into world space
 	if (m_swingSpan1 >= btScalar(0.05f))
 	{
 		b1Axis2 = getRigidBodyA().getCenterOfMassTransform().getBasis() * this->m_rbAFrame.getBasis().getColumn(1);
-		swing1  = btAtan2Fast( b2Axis1.dot(b1Axis2),b2Axis1.dot(b1Axis1) );
+//		swing1  = btAtan2Fast( b2Axis1.dot(b1Axis2),b2Axis1.dot(b1Axis1) );
+		swx = b2Axis1.dot(b1Axis1);
+		swy = b2Axis1.dot(b1Axis2);
+		swing1  = btAtan2Fast(swy, swx);
+		fact = (swy*swy + swx*swx) * thresh * thresh;
+		fact = fact / (fact + btScalar(1.0));
+		swing1 *= fact; 
+
 	}
 
 	if (m_swingSpan2 >= btScalar(0.05f))
 	{
 		b1Axis3 = getRigidBodyA().getCenterOfMassTransform().getBasis() * this->m_rbAFrame.getBasis().getColumn(2);			
-		swing2 = btAtan2Fast( b2Axis1.dot(b1Axis3),b2Axis1.dot(b1Axis1) );
+//		swing2 = btAtan2Fast( b2Axis1.dot(b1Axis3),b2Axis1.dot(b1Axis1) );
+		swx = b2Axis1.dot(b1Axis1);
+		swy = b2Axis1.dot(b1Axis3);
+		swing2  = btAtan2Fast(swy, swx);
+		fact = (swy*swy + swx*swx) * thresh * thresh;
+		fact = fact / (fact + btScalar(1.0));
+		swing2 *= fact; 
 	}
 
 	btScalar RMaxAngle1Sq = 1.0f / (m_swingSpan1*m_swingSpan1);		

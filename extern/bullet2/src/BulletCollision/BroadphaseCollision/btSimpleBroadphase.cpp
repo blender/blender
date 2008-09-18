@@ -55,17 +55,15 @@ btSimpleBroadphase::btSimpleBroadphase(int maxProxies, btOverlappingPairCache* o
 	m_maxHandles = maxProxies;
 	m_numHandles = 0;
 	m_firstFreeHandle = 0;
-	m_firstAllocatedHandle = -1;
+	
 
 	{
 		for (int i = m_firstFreeHandle; i < maxProxies; i++)
 		{
 			m_pHandles[i].SetNextFree(i + 1);
 			m_pHandles[i].m_uniqueId = i+2;//any UID will do, we just avoid too trivial values (0,1) for debugging purposes
-			m_pHandles[i].SetNextAllocated(-1);
 		}
 		m_pHandles[maxProxies - 1].SetNextFree(0);
-		m_pHandles[maxProxies - 1].SetNextAllocated(-1);
 	
 	}
 
@@ -179,31 +177,29 @@ void	btSimpleBroadphase::calculateOverlappingPairs(btDispatcher* dispatcher)
 	//first check for new overlapping pairs
 	int i,j;
 
-	if (m_firstAllocatedHandle >= 0)
+	if (m_numHandles >= 0)
 	{
-
-		btSimpleBroadphaseProxy* proxy0 = &m_pHandles[m_firstAllocatedHandle];
 
 		for (i=0;i<m_numHandles;i++)
 		{
-			btSimpleBroadphaseProxy* proxy1 = &m_pHandles[m_firstAllocatedHandle];
+			btSimpleBroadphaseProxy* proxy0 = &m_pHandles[i];
 
-			for (j=0;j<m_numHandles;j++)
+			for (j=i+1;j<m_numHandles;j++)
 			{
-				
-				if (proxy0 != proxy1)
-				{
-					btSimpleBroadphaseProxy* p0 = getSimpleProxyFromProxy(proxy0);
-					btSimpleBroadphaseProxy* p1 = getSimpleProxyFromProxy(proxy1);
+				btSimpleBroadphaseProxy* proxy1 = &m_pHandles[j];
+				btAssert(proxy0 != proxy1);
 
-					if (aabbOverlap(p0,p1))
+				btSimpleBroadphaseProxy* p0 = getSimpleProxyFromProxy(proxy0);
+				btSimpleBroadphaseProxy* p1 = getSimpleProxyFromProxy(proxy1);
+
+				if (aabbOverlap(p0,p1))
+				{
+					if ( !m_pairCache->findPair(proxy0,proxy1))
 					{
-						if ( !m_pairCache->findPair(proxy0,proxy1))
-						{
-							m_pairCache->addOverlappingPair(proxy0,proxy1);
-						}
-					} else
-					{
+						m_pairCache->addOverlappingPair(proxy0,proxy1);
+					}
+				} else
+				{
 					if (!m_pairCache->hasDeferredRemoval())
 					{
 						if ( m_pairCache->findPair(proxy0,proxy1))
@@ -211,19 +207,13 @@ void	btSimpleBroadphase::calculateOverlappingPairs(btDispatcher* dispatcher)
 							m_pairCache->removeOverlappingPair(proxy0,proxy1,dispatcher);
 						}
 					}
-
-					}
 				}
-				proxy1 = &m_pHandles[proxy1->GetNextAllocated()];
-
 			}
-			proxy0 = &m_pHandles[proxy0->GetNextAllocated()];
-
 		}
 
 		if (m_ownsPairCache && m_pairCache->hasDeferredRemoval())
 		{
-			
+
 			btBroadphasePairArray&	overlappingPairArray = m_pairCache->getOverlappingPairArray();
 
 			//perform a sort, to find duplicates and to sort 'invalid' pairs to the end
@@ -237,11 +227,11 @@ void	btSimpleBroadphase::calculateOverlappingPairs(btDispatcher* dispatcher)
 			previousPair.m_pProxy0 = 0;
 			previousPair.m_pProxy1 = 0;
 			previousPair.m_algorithm = 0;
-			
-			
+
+
 			for (i=0;i<overlappingPairArray.size();i++)
 			{
-			
+
 				btBroadphasePair& pair = overlappingPairArray[i];
 
 				bool isDuplicate = (pair == previousPair);
@@ -268,31 +258,31 @@ void	btSimpleBroadphase::calculateOverlappingPairs(btDispatcher* dispatcher)
 					//should have no algorithm
 					btAssert(!pair.m_algorithm);
 				}
-				
+
 				if (needsRemoval)
 				{
 					m_pairCache->cleanOverlappingPair(pair,dispatcher);
 
-			//		m_overlappingPairArray.swap(i,m_overlappingPairArray.size()-1);
-			//		m_overlappingPairArray.pop_back();
+					//		m_overlappingPairArray.swap(i,m_overlappingPairArray.size()-1);
+					//		m_overlappingPairArray.pop_back();
 					pair.m_pProxy0 = 0;
 					pair.m_pProxy1 = 0;
 					m_invalidPair++;
 					gOverlappingPairs--;
 				} 
-				
+
 			}
 
-		///if you don't like to skip the invalid pairs in the array, execute following code:
-		#define CLEAN_INVALID_PAIRS 1
-		#ifdef CLEAN_INVALID_PAIRS
+			///if you don't like to skip the invalid pairs in the array, execute following code:
+#define CLEAN_INVALID_PAIRS 1
+#ifdef CLEAN_INVALID_PAIRS
 
 			//perform a sort, to sort 'invalid' pairs to the end
 			overlappingPairArray.quickSort(btBroadphasePairSortPredicate());
 
 			overlappingPairArray.resize(overlappingPairArray.size() - m_invalidPair);
 			m_invalidPair = 0;
-		#endif//CLEAN_INVALID_PAIRS
+#endif//CLEAN_INVALID_PAIRS
 
 		}
 	}

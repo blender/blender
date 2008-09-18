@@ -581,8 +581,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 
 		for(; psys; psys=psys->next) {
 			ParticleSettings *part= psys->part;
-			
+
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
+
+			if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+				continue;
 
 			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
 			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {

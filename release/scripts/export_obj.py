@@ -185,7 +185,7 @@ def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
 EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
 EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,\
-EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False):
+EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False):
 	'''
 	Basic write function. The context and options must be alredy set
 	This can be accessed externaly
@@ -322,7 +322,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			
 			# Sort by Material, then images
 			# so we dont over context switch in the obj file.
-			if EXPORT_MORPH_TARGET:
+			if EXPORT_KEEP_VERT_ORDER:
 				pass
 			elif faceuv:
 				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
@@ -550,7 +550,7 @@ def write_ui(filename):
 	EXPORT_BLEN_OBS = Draw.Create(1)
 	EXPORT_GROUP_BY_OB = Draw.Create(0)
 	EXPORT_GROUP_BY_MAT = Draw.Create(0)
-	EXPORT_MORPH_TARGET = Draw.Create(0)
+	EXPORT_KEEP_VERT_ORDER = Draw.Create(1)
 	
 	# removed too many options are bad!
 	
@@ -563,7 +563,7 @@ def write_ui(filename):
 	('Object Prefs...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\
 	('Rotate X90', EXPORT_ROTX90 , 'Rotate on export so Blenders UP is translated into OBJs UP'),\
-	('Morph Target', EXPORT_MORPH_TARGET, 'Keep vert and face order, disables some other options.'),\
+	('Keep Vert Order', EXPORT_KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
 	('Extra Data...'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
@@ -581,7 +581,7 @@ def write_ui(filename):
 	if not Draw.PupBlock('Export...', pup_block):
 		return
 	
-	if EXPORT_MORPH_TARGET.val:
+	if EXPORT_KEEP_VERT_ORDER.val:
 		EXPORT_BLEN_OBS.val = False
 		EXPORT_GROUP_BY_OB.val = False
 		EXPORT_GROUP_BY_MAT.val = False
@@ -606,7 +606,7 @@ def write_ui(filename):
 	EXPORT_BLEN_OBS = EXPORT_BLEN_OBS.val
 	EXPORT_GROUP_BY_OB = EXPORT_GROUP_BY_OB.val
 	EXPORT_GROUP_BY_MAT = EXPORT_GROUP_BY_MAT.val
-	EXPORT_MORPH_TARGET = EXPORT_MORPH_TARGET.val
+	EXPORT_KEEP_VERT_ORDER = EXPORT_KEEP_VERT_ORDER.val
 	
 	
 	
@@ -656,7 +656,7 @@ def write_ui(filename):
 			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
 			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
 			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
-			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_MORPH_TARGET)
+			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER)
 		
 		Blender.Set('curframe', orig_frame)
 	

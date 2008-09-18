@@ -25,7 +25,7 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 	btVector3	m_min;
 	btVector3	m_max;
 	int			m_nextFree;
-	int			m_nextAllocated;
+	
 //	int			m_handleId;
 
 	
@@ -42,8 +42,7 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 	SIMD_FORCE_INLINE void SetNextFree(int next) {m_nextFree = next;}
 	SIMD_FORCE_INLINE int GetNextFree() const {return m_nextFree;}
 
-	SIMD_FORCE_INLINE void SetNextAllocated(int next) {m_nextAllocated = next;}
-	SIMD_FORCE_INLINE int GetNextAllocated() const {return m_nextAllocated;}
+	
 
 
 };
@@ -57,22 +56,18 @@ protected:
 
 	int		m_numHandles;						// number of active handles
 	int		m_maxHandles;						// max number of handles
+	
 	btSimpleBroadphaseProxy* m_pHandles;						// handles pool
+
 	void* m_pHandlesRawPtr;
 	int		m_firstFreeHandle;		// free handles list
-	int		m_firstAllocatedHandle;
-
+	
 	int allocHandle()
 	{
-
+		btAssert(m_numHandles < m_maxHandles);
 		int freeHandle = m_firstFreeHandle;
 		m_firstFreeHandle = m_pHandles[freeHandle].GetNextFree();
-		
-		m_pHandles[freeHandle].SetNextAllocated(m_firstAllocatedHandle);
-		m_firstAllocatedHandle = freeHandle;
-		
 		m_numHandles++;
-
 		return freeHandle;
 	}
 
@@ -84,12 +79,8 @@ protected:
 		proxy->SetNextFree(m_firstFreeHandle);
 		m_firstFreeHandle = handle;
 
-		m_firstAllocatedHandle = proxy->GetNextAllocated();
-		proxy->SetNextAllocated(-1);
-
 		m_numHandles--;
 	}
-
 
 	btOverlappingPairCache*	m_pairCache;
 	bool	m_ownsPairCache;

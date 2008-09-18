@@ -1414,14 +1414,14 @@ static float ray_nearest_hit(BVHRayCastData *data, BVHNode *node)
 		if(data->ray_dot_axis[i] == 0.0f)
 		{
 			//axis aligned ray
-			if(data->ray.origin[i] < bv[0]
-			|| data->ray.origin[i] > bv[1])
+			if(data->ray.origin[i] < bv[0] - data->ray.radius
+			|| data->ray.origin[i] > bv[1] + data->ray.radius)
 				return FLT_MAX;
 		}
 		else
 		{
-			float ll = (bv[0] - data->ray.origin[i]) / data->ray_dot_axis[i];
-			float lu = (bv[1] - data->ray.origin[i]) / data->ray_dot_axis[i];
+			float ll = (bv[0] - data->ray.radius - data->ray.origin[i]) / data->ray_dot_axis[i];
+			float lu = (bv[1] + data->ray.radius - data->ray.origin[i]) / data->ray_dot_axis[i];
 
 			if(data->ray_dot_axis[i] > 0.0f)
 			{
@@ -1480,7 +1480,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	}
 }
 
-int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
 	int i;
 	BVHRayCastData data;
@@ -1493,6 +1493,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, BVHTr
 
 	VECCOPY(data.ray.origin,    co);
 	VECCOPY(data.ray.direction, dir);
+	data.ray.radius = radius;
 
 	Normalize(data.ray.direction);
 

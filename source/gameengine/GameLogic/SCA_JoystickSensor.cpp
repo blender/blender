@@ -108,6 +108,9 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 	bool result = false;
 	bool reset = m_reset && m_level;
 	
+	if(js==NULL)
+		return false;
+	
 	m_reset = false;
 	switch(m_joymode)
 	{
@@ -397,7 +400,10 @@ char SCA_JoystickSensor::GetRealAxis_doc[] =
 "\tReturns a list of the values for each axis .\n";
 PyObject* SCA_JoystickSensor::PyGetRealAxis( PyObject* self) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return Py_BuildValue("[iiii]", joy->GetAxis10(), joy->GetAxis11(), joy->GetAxis20(), joy->GetAxis21());
+	if(joy)
+		return Py_BuildValue("[iiii]", joy->GetAxis10(), joy->GetAxis11(), joy->GetAxis20(), joy->GetAxis21());
+	else
+		return Py_BuildValue("[iiii]", 0, 0, 0, 0);
 }
 
 
@@ -478,7 +484,8 @@ char SCA_JoystickSensor::NumberOfAxes_doc[] =
 "\tReturns the number of axes .\n";
 PyObject* SCA_JoystickSensor::PyNumberOfAxes( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return PyInt_FromLong( joy->GetNumberOfAxes() );
+	// when the joystick is null their is 0 exis still. dumb but scripters should use isConnected()
+	return PyInt_FromLong( joy ? joy->GetNumberOfAxes() : 0 );
 }
 
 
@@ -487,7 +494,7 @@ char SCA_JoystickSensor::NumberOfButtons_doc[] =
 "\tReturns the number of buttons .\n";
 PyObject* SCA_JoystickSensor::PyNumberOfButtons( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return PyInt_FromLong( joy->GetNumberOfButtons() );
+	return PyInt_FromLong( joy ? joy->GetNumberOfButtons() : 0 );
 }
 
 
@@ -496,7 +503,7 @@ char SCA_JoystickSensor::NumberOfHats_doc[] =
 "\tReturns the number of hats .\n";
 PyObject* SCA_JoystickSensor::PyNumberOfHats( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return PyInt_FromLong( joy->GetNumberOfHats() );
+	return PyInt_FromLong( joy ? joy->GetNumberOfHats() : 0 );
 }
 
 char SCA_JoystickSensor::Connected_doc[] = 
@@ -504,5 +511,5 @@ char SCA_JoystickSensor::Connected_doc[] =
 "\tReturns True if a joystick is connected at this joysticks index.\n";
 PyObject* SCA_JoystickSensor::PyConnected( PyObject* self ) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
-	return PyBool_FromLong( joy->Connected() );
+	return PyBool_FromLong( joy ? joy->Connected() : 0 );
 }

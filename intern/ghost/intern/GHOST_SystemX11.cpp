@@ -96,14 +96,25 @@ GHOST_SystemX11(
 	if (!m_display) return;
 	
 #ifdef __sgi
-	m_delete_window_atom 
-	  = XSGIFastInternAtom(m_display,
+	m_delete_window_atom = XSGIFastInternAtom(m_display,
 			       "WM_DELETE_WINDOW", 
 			       SGI_XA_WM_DELETE_WINDOW, False);
 #else
-	m_delete_window_atom 
-	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
+	m_delete_window_atom = XInternAtom(m_display, "WM_DELETE_WINDOW", False);
 #endif
+
+	m_wm_protocols= XInternAtom(m_display, "WM_PROTOCOLS", False);
+	m_wm_take_focus= XInternAtom(m_display, "WM_TAKE_FOCUS", False);
+	m_wm_state= XInternAtom(m_display, "WM_STATE", False);
+	m_wm_change_state= XInternAtom(m_display, "WM_CHANGE_STATE", False);
+	m_net_state= XInternAtom(m_display, "_NET_WM_STATE", False);
+	m_net_max_horz= XInternAtom(m_display,
+				"_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	m_net_max_vert= XInternAtom(m_display,
+				"_NET_WM_STATE_MAXIMIZED_VERT", False);
+	m_net_fullscreen= XInternAtom(m_display,
+				"_NET_WM_STATE_FULLSCREEN", False);
+	m_motif= XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
 
 	// compute the initial time
 	timeval tv;
@@ -477,7 +488,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XClientMessageEvent & xcme = xe->xclient;
 
 #ifndef __sgi			
-			if (xcme.data.l[0] == m_delete_window_atom) {
+			if (((Atom)xcme.data.l[0]) == m_delete_window_atom) {
 				g_event = new 
 				GHOST_Event(	
 					getMilliSeconds(),
@@ -511,6 +522,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                              GHOST_kEventNDOFButton,
 					                              window, data);
 				}
+			}
+			else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+				/* as ICCCM say, we need reply this event
+				 * with a SetInputFocus, the data[1] have
+				 * the valid timestamp (send by the window
+				 * manager).
+				 */
+				XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
 			} else {
 				/* Unknown client message, ignore */
 			}
@@ -528,6 +547,24 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			// XCrossingEvents pointer leave enter window.
 			break;
 		case MapNotify:
+			/*
+			 * From ICCCM:
+			 * [ Clients can select for StructureNotify on their
+			 *   top-level windows to track transition between
+			 *   Normal and Iconic states. Receipt of a MapNotify
+			 *   event will indicate a transition to the Normal
+			 *   state, and receipt of an UnmapNotify event will
+			 *   indicate a transition to the Iconic state. ]
+			 */
+			if (window->m_post_init == True) {
+				/*
+				 * Now we are sure that the window is
+				 * mapped, so only need change the state.
+				 */
+				window->setState(window->m_post_state);
+				window->m_post_init= False;
+			}
+			break;
 		case UnmapNotify:
 			break;
 		case MappingNotify:

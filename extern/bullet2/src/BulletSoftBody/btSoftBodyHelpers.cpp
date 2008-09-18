@@ -373,7 +373,6 @@ void			btSoftBodyHelpers::DrawInfos(		btSoftBody* psb,
 						  bool areas,
 						  bool /*stress*/)
 {
-	/*
 	for(int i=0;i<psb->m_nodes.size();++i)
 	{
 		const btSoftBody::Node&	n=psb->m_nodes[i];
@@ -391,8 +390,6 @@ void			btSoftBodyHelpers::DrawInfos(		btSoftBody* psb,
 		}
 		if(text[0]) idraw->draw3dText(n.m_x,text);
 	}
-	*/
-
 }
 
 //

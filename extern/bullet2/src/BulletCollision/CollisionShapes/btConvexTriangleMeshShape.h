@@ -46,6 +46,13 @@ public:
 	virtual void	setLocalScaling(const btVector3& scaling);
 	virtual const btVector3& getLocalScaling() const;
 
+	///computes the exact moment of inertia and the transform from the coordinate system defined by the principal axes of the moment of inertia
+	///and the center of mass to the current coordinate system. A mass of 1 is assumed, for other masses just multiply the computed "inertia"
+	///by the mass. The resulting transform "principal" has to be applied inversely to the mesh in order for the local coordinate system of the
+	///shape to be centered at the center of mass and to coincide with the principal axes. This also necessitates a correction of the world transform
+	///of the collision object by the principal transform. This method also computes the volume of the convex mesh.
+	void calculatePrincipalAxisTransform(btTransform& principal, btVector3& inertia, btScalar& volume) const;
+
 };
 
 

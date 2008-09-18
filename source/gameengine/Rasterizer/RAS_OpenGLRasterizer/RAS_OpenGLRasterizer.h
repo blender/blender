@@ -88,7 +88,6 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_focallength;
 	bool			m_setfocallength;
 	int				m_noOfScanlines;
-	bool			InterlacedStereo() const;
 
 	//motion blur
 	int	m_motionblur;
@@ -131,6 +130,7 @@ public:
 	virtual bool	Init();
 	virtual void	Exit();
 	virtual bool	BeginFrame(int drawingmode, double time);
+	virtual void	ClearColorBuffer();
 	virtual void	ClearDepthBuffer();
 	virtual void	ClearCachingInfo(void);
 	virtual void	EndFrame();
@@ -138,6 +138,7 @@ public:
 
 	virtual void	SetStereoMode(const StereoMode stereomode);
 	virtual bool	Stereo();
+	virtual bool	InterlacedStereo();
 	virtual void	SetEye(const StereoEye eye);
 	virtual StereoEye	GetEye();
 	virtual void	SetEyeSeparation(const float eyeseparation);

@@ -108,6 +108,13 @@ public :
 	) const {
 		return m_frame_type;
 	};
+
+		void
+	SetFrameType(
+		RAS_FrameType type
+	) {
+		m_frame_type = type;
+	};
 	
 		float
 	BarRed(
@@ -140,14 +147,6 @@ public :
 	};
 
 private :
-	
-	/**
-	 * private to force use of public constructor
-	 */
-
-	RAS_FrameSettings(
-		const RAS_FrameSettings &
-	);
 
 	RAS_FrameType m_frame_type;
 	float m_bar_r;

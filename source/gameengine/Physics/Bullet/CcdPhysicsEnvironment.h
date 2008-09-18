@@ -233,13 +233,13 @@ protected:
 		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		//use explicit btDiscreteDynamicsWorld* so that we have access to 
+		//use explicit btSoftRigidDynamicsWorld/btDiscreteDynamicsWorld* so that we have access to 
 		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group) 
 		//so that we can set the body collision filter/group at the time of creation 
 		//and not afterwards (breaks the collision system for radar/near sensor)
 		//Ideally we would like to have access to this function from the btDynamicsWorld interface
 		//class	btDynamicsWorld*	m_dynamicsWorld;
-		class	btDiscreteDynamicsWorld*	m_dynamicsWorld;
+		class	btSoftRigidDynamicsWorld*	m_dynamicsWorld;
 		
 		class btConstraintSolver*	m_solver;
 

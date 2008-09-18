@@ -717,6 +717,9 @@ public:
 													Material* mat=0);
 	/* Randomize constraints to reduce solver bias							*/ 
 	void				randomizeConstraints();
+	/* Release clusters														*/ 
+	void				releaseCluster(int index);
+	void				releaseClusters();
 	/* Generate clusters (K-mean)											*/ 
 	int					generateClusters(int k,int maxiterations=8192);
 	/* Refine																*/ 

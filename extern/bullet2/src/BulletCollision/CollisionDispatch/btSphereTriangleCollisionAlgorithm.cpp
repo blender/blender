@@ -63,7 +63,7 @@ void btSphereTriangleCollisionAlgorithm::processCollision (btCollisionObject* co
 	input.m_transformA = sphereObj->getWorldTransform();
 	input.m_transformB = triObj->getWorldTransform();
 
-	bool swapResults = m_swapped && !m_ownManifold;
+	bool swapResults = m_swapped;
 
 	detector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw,swapResults);
 

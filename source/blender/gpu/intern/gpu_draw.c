@@ -720,8 +720,9 @@ void GPU_free_images(void)
 {
 	Image* ima;
 
-	for(ima=G.main->image.first; ima; ima=ima->id.next)
-		GPU_free_image(ima);
+	if(G.main)
+		for(ima=G.main->image.first; ima; ima=ima->id.next)
+			GPU_free_image(ima);
 }
 
 /* OpenGL Materials */

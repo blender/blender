@@ -62,6 +62,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
 #include "nla.h"
 
@@ -336,6 +337,60 @@ void free_pose(bPose *pose)
 			BLI_freelistN(&pose->agroups);
 		
 		/* free pose */
+		MEM_freeN(pose);
+	}
+}
+
+void game_copy_pose(bPose **dst, bPose *src)
+{
+	bPose *out;
+	bPoseChannel *pchan, *outpchan;
+	GHash *ghash;
+	
+	/* the game engine copies the current armature pose and then swaps
+	 * the object pose pointer. this makes it possible to change poses
+	 * without affecting the original blender data. */
+
+	if (!src) {
+		*dst=NULL;
+		return;
+	}
+	else if (*dst==src) {
+		printf("copy_pose source and target are the same\n");
+		*dst=NULL;
+		return;
+	}
+	
+	out= MEM_dupallocN(src);
+	out->agroups.first= out->agroups.last= NULL;
+	duplicatelist(&out->chanbase, &src->chanbase);
+
+	/* remap pointers */
+	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
+	pchan= src->chanbase.first;
+	outpchan= out->chanbase.first;
+	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
+		BLI_ghash_insert(ghash, pchan, outpchan);
+
+	for (pchan=out->chanbase.first; pchan; pchan=pchan->next) {
+		pchan->parent= BLI_ghash_lookup(ghash, pchan->parent);
+		pchan->child= BLI_ghash_lookup(ghash, pchan->child);
+		pchan->path= NULL;
+	}
+
+	BLI_ghash_free(ghash, NULL, NULL);
+	
+	*dst=out;
+}
+
+void game_free_pose(bPose *pose)
+{
+	if (pose) {
+		/* we don't free constraints, those are owned by the original pose */
+		if(pose->chanbase.first)
+			BLI_freelistN(&pose->chanbase);
+		
 		MEM_freeN(pose);
 	}
 }

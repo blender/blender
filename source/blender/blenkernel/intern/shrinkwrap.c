@@ -301,7 +301,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 
 	hit_tmp.index = -1;
 
-	BLI_bvhtree_ray_cast(tree, co, no, &hit_tmp, callback, userdata);
+	BLI_bvhtree_ray_cast(tree, co, no, 0.0f, &hit_tmp, callback, userdata);
 
 	if(hit_tmp.index != -1)
 	{
