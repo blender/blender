@@ -27,6 +27,11 @@ BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
+# TODO - are these useful on win32?
+# BF_CXX = '/usr'
+# WITH_BF_STATICCXX = 'false'
+# BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
 WITH_BF_ICONV = 'true'
 BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'

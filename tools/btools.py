@@ -55,8 +55,9 @@ def validate_arguments(args, bc):
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
-            'BF_PROFILE_FLAGS', 'LCGDIR', 'WITH_BF_VERSE', 
-            'BF_VERSE_INCLUDE',
+            'BF_PROFILE_FLAGS', 'LCGDIR',
+            'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC'
+            'WITH_BF_VERSE', 'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
             'WITHOUT_BF_INSTALL',
@@ -256,6 +257,9 @@ def read_opts(cfg, args):
         ('BF_SOLID_INC', 'Solid include path', ''),
         ('BF_WINTAB', 'WinTab base dir', ''),
         ('BF_WINTAB_INC', 'WinTab include dir', ''),
+        ('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
+        ('WITH_BF_STATICCXX', 'static link to stdc++', 'false'),
+        ('BF_CXX_LIB_STATIC', 'static library path for stdc++', ''),
 ##
 ##WITH_BF_NSPR = 'true'
 ##BF_NSPR = $(LCGDIR)/nspr

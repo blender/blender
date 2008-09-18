@@ -17,6 +17,11 @@ BF_OPENAL_LIB = 'openal'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_CXX = '/usr'
+WITH_BF_STATICCXX = 'false'
+BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
 WITH_BF_SDL = 'true'
 BF_SDL = '/usr/local' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)

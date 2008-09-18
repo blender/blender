@@ -241,6 +241,13 @@ if len(B.quickdebug) > 0 and printdebug != 0:
     for l in B.quickdebug:
         print "\t" + l
 
+# remove stdc++ from LLIBS if we are building a statc linked CXXFLAGS
+if env['WITH_BF_STATICCXX']:
+    if 'stdc++' in env['LLIBS']:
+        env['LLIBS'] = env['LLIBS'].replace('stdc++', ' ')
+    else:
+        print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
+
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:
     env['WITH_BF_PLAYER'] = True

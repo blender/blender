@@ -25,6 +25,10 @@ BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 # BF_OPENAL_LIB = 'openal alut'  
 # BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a ${BF_OPENAL}/lib/libalut.a'
 
+BF_CXX = '/usr'
+WITH_BF_STATICCXX = 'false'
+BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
 WITH_BF_SDL = 'true'
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
