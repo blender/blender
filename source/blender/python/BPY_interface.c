@@ -2163,8 +2163,14 @@ void BPY_clear_bad_scriptlinks( struct Text *byebye )
 *	For the scene, only the current active scene the scripts are 
 *	executed (if any).
 *****************************************************************************/
-void BPY_do_all_scripts( short event )
+void BPY_do_all_scripts( short event, short anim )
 {
+	/* during stills rendering we disable FRAMECHANGED events */
+	static char disable_frame_changed = 0;
+
+	if ((event == SCRIPT_FRAMECHANGED) && disable_frame_changed)
+		return;
+
 	DoAllScriptsFromList( &( G.main->object ), event );
 	DoAllScriptsFromList( &( G.main->lamp ), event );
 	DoAllScriptsFromList( &( G.main->camera ), event );
@@ -2180,9 +2186,12 @@ void BPY_do_all_scripts( short event )
 	 * "import sys; sys.setcheckinterval(sys.maxint)" */
 	if (event == SCRIPT_RENDER) {
 		_Py_CheckInterval = PyInt_GetMax();
+		if (!anim)
+			disable_frame_changed = 1;
 	}
 	else if (event == SCRIPT_POSTRENDER) {
 		_Py_CheckInterval = 100; /* Python default */
+		disable_frame_changed = 0;
 	}
 
 	return;

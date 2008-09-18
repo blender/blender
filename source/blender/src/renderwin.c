@@ -1274,16 +1274,9 @@ void BIF_store_spare(void)
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
-	int slink_flag = 0;
+	if (G.f & G_DOSCRIPTLINKS)
+		BPY_do_all_scripts(SCRIPT_RENDER, anim);
 
-	if (G.f & G_DOSCRIPTLINKS) {
-		BPY_do_all_scripts(SCRIPT_RENDER);
-		if (!anim) { /* avoid FRAMECHANGED slink in render callback */
-			G.f &= ~G_DOSCRIPTLINKS;
-			slink_flag = 1;
-		}
-	}
-	
 	BIF_store_spare();
 
 	do_render(anim);
@@ -1294,8 +1287,8 @@ void BIF_do_render(int anim)
 	}
 	if(G.scene->r.dither_intensity != 0.0f)
 		BIF_redraw_render_rect();
-	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
+
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER, anim);
 }
 
 void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
