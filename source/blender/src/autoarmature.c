@@ -168,7 +168,7 @@ typedef struct RigControl {
 
 typedef struct MemoNode {
 	float	weight;
-	int		*positions;
+	int 	next;
 } MemoNode;
 
 typedef struct RetargetParam {
@@ -1931,17 +1931,26 @@ static int neighbour(int nb_joints, float *cost_cube, int *moving_joint, int *mo
 	return 1;
 }
 
-static void copyMemoNode(MemoNode *dst, MemoNode *src, int size)
+static int indexMemoNode(int nb_positions, int previous, int current, int joints_left)
 {
-	if (size > 0)
-	{
-		memcpy(dst->positions + 1, src->positions, size * sizeof(int));
-	}
+	return joints_left * nb_positions * nb_positions + current * nb_positions + previous;
 }
 
-static int indexMemoNode(int nb_positions, int previous, int current, int joints_done)
+static void copyMemoPositions(int *positions, MemoNode *table, int nb_positions, int joints_left)
 {
-	return joints_done * nb_positions * nb_positions + current * nb_positions + previous;
+	int previous = 0, current = 0;
+	int i = 0;
+	
+	for (i = 0; joints_left > 0; joints_left--, i++)
+	{
+		MemoNode *node;
+		node = table + indexMemoNode(nb_positions, previous, current, joints_left);
+		
+		positions[i] = node->next;
+		
+		previous = current;
+		current = node->next;
+	}
 }
 
 static MemoNode * solveJoints(MemoNode *table, ReebArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_left)
@@ -2001,15 +2010,12 @@ static MemoNode * solveJoints(MemoNode *table, ReebArcIterator *iter, float **ve
 		
 		if (min_node)
 		{
-			node->positions = MEM_callocN(sizeof(int) * joints_left, "Memoization indexes array");
 			node->weight = min_weight;
-			copyMemoNode(node, min_node, joints_left - 1);
-			node->positions[0] = min_next;
+			node->next = min_next;
 			return node;
 		}
 		else
 		{
-			node->positions = MEM_callocN(sizeof(int) * joints_left, "Memoization indexes array");
 			node->weight = MAX_COST;
 			return node;
 		}
@@ -2112,15 +2118,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		result = solveJoints(table, &iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, nb_joints);
 		
 		min_cost = result->weight;
-		memcpy(best_positions, result->positions, sizeof(int) * nb_joints);
-		
-		for ( i = 0; i < nb_memo_nodes; i++)
-		{
-			if (table[i].positions)
-			{
-				MEM_freeN(table[i].positions);
-			}
-		}
+		copyMemoPositions(best_positions, table, earc->bcount, nb_joints);
 		
 		MEM_freeN(table);
 		MEM_freeN(positions_cache);
