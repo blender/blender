@@ -2317,12 +2317,6 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 		else if(pd->forcefield)
 		{
 			type |= PSYS_EC_EFFECTOR;
-			
-			if(pd->forcefield == PFIELD_WIND)
-			{
-				pd->rng = rng_new(1);
-				rng_srandom(pd->rng, (unsigned int)(ceil(PIL_check_seconds_timer()))); // use better seed
-			}
 		}
 	}
 	
@@ -2335,6 +2329,9 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 		ec->type=type;
 		ec->distances=0;
 		ec->locations=0;
+		ec->rng = rng_new(1);
+		rng_srandom(ec->rng, (unsigned int)(ceil(PIL_check_seconds_timer()))); // use better seed
+		
 		BLI_addtail(lb, ec);
 	}
 
@@ -2353,7 +2350,9 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 
 				if((epsys->part->pd && epsys->part->pd->forcefield)
 					|| (epsys->part->pd2 && epsys->part->pd2->forcefield))
+				{
 					type=PSYS_EC_PARTICLE;
+				}
 
 				if(epart->type==PART_REACTOR) {
 					tob=epsys->target_ob;
@@ -2368,6 +2367,9 @@ static void add_to_effectors(ListBase *lb, Object *ob, Object *obsrc, ParticleSy
 					ec->ob= ob;
 					ec->type=type;
 					ec->psys_nbr=i;
+					ec->rng = rng_new(1);
+					rng_srandom(ec->rng, (unsigned int)(ceil(PIL_check_seconds_timer())));
+					
 					BLI_addtail(lb, ec);
 				}
 			}
@@ -2417,6 +2419,9 @@ void psys_init_effectors(Object *obsrc, Group *group, ParticleSystem *psys)
 
 void psys_end_effectors(ParticleSystem *psys)
 {
+	/* NOTE:
+	ec->ob is not valid in here anymore! - dg
+	*/
 	ListBase *lb=&psys->effectors;
 	if(lb->first) {
 		ParticleEffectorCache *ec;
@@ -2436,8 +2441,9 @@ void psys_end_effectors(ParticleSystem *psys)
 			if(ec->tree)
 				BLI_kdtree_free(ec->tree);
 			
-			if(ec->ob->pd && (ec->ob->pd->forcefield == PFIELD_WIND))
-				rng_free(ec->ob->pd->rng);
+			if(ec->rng)
+				rng_free(ec->rng);
+			
 		}
 
 		BLI_freelistN(lb);
@@ -2572,7 +2578,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				} else {
 					do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
 										falloff,0.0,pd->f_damp,eob->obmat[2],vec_to_part,
-										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR,pd->rng,pd->f_noise,charge,pa->size);
+										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR,ec->rng,pd->f_noise,charge,pa->size);
 				}
 			}
 			if(ec->type & PSYS_EC_PARTICLE){
@@ -2616,7 +2622,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 							else
 								do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
 								falloff,epart->size,pd->f_damp,estate.vel,vec_to_part,
-								state->vel,force_field,0, pd->rng, pd->f_noise,charge,pa->size);
+								state->vel,force_field,0, ec->rng, pd->f_noise,charge,pa->size);
 						}
 					}
 					else if(pd && pd->forcefield==PFIELD_HARMONIC && cfra-framestep <= epa->dietime && cfra>epa->dietime){

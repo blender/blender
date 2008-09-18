@@ -73,6 +73,7 @@ typedef struct ParticleEffectorCache {
 	short type, psys_nbr;
 	
 	struct Object obcopy;	/* for restoring transformation data */
+	struct RNG *rng; /* random noise generator for e.g. wind */
 } ParticleEffectorCache;
 
 typedef struct ParticleReactEvent {
