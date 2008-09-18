@@ -359,7 +359,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_LOCX:
 		case KX_ACT_CONSTRAINT_LOCY:
 		case KX_ACT_CONSTRAINT_LOCZ:
-			newposition = position;
+			newposition = position = obj->GetSGNode()->GetLocalPosition();
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_LOCX:
 				Clamp(newposition[0], m_minimumBound, m_maximumBound);
@@ -375,7 +375,8 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			if (m_posDampTime) {
 				newposition = filter*position + (1.0-filter)*newposition;
 			}
-			break;
+			obj->NodeSetLocalPosition(newposition);
+			goto CHECK_TIME;
 		}
 		if (result) {
 			// set the new position but take into account parent if any
