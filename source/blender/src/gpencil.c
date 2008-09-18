@@ -992,11 +992,12 @@ void gpencil_convert_menu (void)
 #define GP_STROKE_BUFFER_MAX	5000
 
 /* Hardcoded sensitivity thresholds... */
-// TODO: one day, these might be added to the UI if it is necessary
 	/* minimum number of pixels mouse should move before new point created */
-#define MIN_MANHATTEN_PX		3	
+//#define MIN_MANHATTEN_PX		3	
+#define MIN_MANHATTEN_PX	U.gp_manhattendist
 	/* minimum length of new segment before new point can be added */
-#define MIN_EUCLIDEAN_PX		20
+//#define MIN_EUCLIDEAN_PX		20
+#define MIN_EUCLIDEAN_PX	U.gp_euclideandist
 
 /* ------ */
 
