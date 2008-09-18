@@ -179,7 +179,6 @@ private:
 	/** Blue component of framing bar color. */
 	float					m_overrideFrameColorB;
 
-	void					SetupViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
 	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
 	void					PostRenderFrame();
 	void					RenderDebugProperties();
@@ -229,6 +228,8 @@ public:
 	void			ReplaceScene(const STR_String& oldscene,const STR_String& newscene);
 	void			SuspendScene(const STR_String& scenename);
 	void			ResumeScene(const STR_String& scenename);
+
+	void			GetSceneViewport(KX_Scene* scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
 
 	void SetDrawType(int drawingtype);
 	void SetCameraZoom(float camzoom);

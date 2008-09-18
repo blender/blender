@@ -299,7 +299,7 @@ void KX_KetsjiEngine::ClearFrame()
 		list<KX_Camera*>::iterator it;
 		for(it = cameras->begin(); it != cameras->end(); it++)
 		{
-			SetupViewport(scene, (*it), area, viewport);
+			GetSceneViewport(scene, (*it), area, viewport);
 
 			if(!doclear) {
 				clearvp = viewport;
@@ -894,7 +894,7 @@ void KX_KetsjiEngine::SetCameraOverrideClipping(float near, float far)
 	m_overrideCamFar = far;
 }
 
-void KX_KetsjiEngine::SetupViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport)
+void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport)
 {
 	// In this function we make sure the rasterizer settings are upto
 	// date. We compute the viewport so that logic
@@ -1001,7 +1001,7 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	if (!cam)
 		return;
 
-	SetupViewport(scene, cam, area, viewport);
+	GetSceneViewport(scene, cam, area, viewport);
 
 	// store the computed viewport in the scene
 	scene->SetSceneViewport(viewport);	

@@ -92,6 +92,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					   class KX_GameObject* gameobj,
 					   SCA_LogicManager* logicmgr,
 					   KX_Scene* kxscene,
+					   KX_KetsjiEngine* kxengine,
 					   SCA_IInputDevice* keydev,
 					   int & executePriority,
 					   int activeLayerBitInfo,
@@ -508,6 +509,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							trackfocus,
 							canvas,
 							kxscene,
+							kxengine,
 							gameobj); 
 					}
 				} else {

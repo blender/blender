@@ -2471,7 +2471,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
 		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
 	}
