@@ -377,6 +377,7 @@ BL_Material* ConvertMaterial(
 					material->texname[i] = material->img[i]->id.name;
 					material->flag[i] |= ( tface->transp  &TF_ALPHA	)?USEALPHA:0;
 					material->flag[i] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
+					material->flag[i] |= MIPMAP;
 
 					if(material->img[i]->flag & IMA_REFLECT)
 						material->mapping[i].mapping |= USEREFL;
@@ -627,7 +628,7 @@ BL_Material* ConvertMaterial(
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
-	if((material->transp == TF_ALPHA || texalpha) && (material->transp != TF_CLIP)) {
+	if((material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha) && (material->transp != TF_CLIP)) {
 		material->ras_mode |= ALPHA;
 		material->ras_mode |= (material->mode & TF_ALPHASORT)? ZSORT: 0;
 	}
@@ -782,9 +783,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		MT_Point2 uv20(0.0,0.0),uv21(0.0,0.0),uv22(0.0,0.0),uv23(0.0,0.0);
 		unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
 
-		MT_Vector3 no0, no1, no2, no3;
 		MT_Point3 pt0, pt1, pt2, pt3;
-		MT_Vector4 tan0, tan1, tan2, tan3;
+		MT_Vector3 no0(0,0,0), no1(0,0,0), no2(0,0,0), no3(0,0,0);
+		MT_Vector4 tan0(0,0,0,0), tan1(0,0,0,0), tan2(0,0,0,0), tan3(0,0,0,0);
 
 		/* get coordinates, normals and tangents */
 		pt0 = MT_Point3(mvert[mface->v1].co);
@@ -806,8 +807,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				NormalShortToFloat(n3, mvert[mface->v4].no);
 				no3 = n3;
 			}
-			else
-				no3 = MT_Vector3(0.0, 0.0, 0.0);
 		}
 		else {
 			float fno[3];
@@ -1280,6 +1279,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
 
+	// object has physics representation?
+	if (!(blenderobject->gameflag & OB_COLLISION))
+		return;
+
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;
 	while(parent && parent->parent) {
@@ -1311,6 +1314,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	objprop.m_isCompoundChild = isCompoundChild;
 	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
+	objprop.m_margin = blenderobject->margin;
 
 	if ((objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0))
 	{
@@ -2185,16 +2189,16 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for(oit=allblobj.begin(); oit!=allblobj.end(); oit++)
 	{
 		Object* blenderobj = *oit;
-		if (blenderobj->type==OB_MESH){
+		if (blenderobj->type==OB_MESH) {
 			Mesh *me = (Mesh*)blenderobj->data;
 	
 			if (me->dvert){
-				KX_GameObject *obj = converter->FindGameObject(blenderobj);
+				BL_DeformableGameObject *obj = (BL_DeformableGameObject*)converter->FindGameObject(blenderobj);
 	
 				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
-					if (par)
-						((BL_SkinDeformer*)(((BL_DeformableGameObject*)obj)->m_pDeformer))->SetArmature((BL_ArmatureObject*) par);
+					if (par && obj->m_pDeformer)
+						((BL_SkinDeformer*)obj->m_pDeformer)->SetArmature((BL_ArmatureObject*) par);
 				}
 			}
 		}
@@ -2467,7 +2471,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
 		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
 	}

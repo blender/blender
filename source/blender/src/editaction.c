@@ -74,6 +74,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_screen.h"
@@ -2153,7 +2154,7 @@ void paste_actdata ()
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, "", ico->adrcode);
+			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, "", ico->adrcode, 1);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */

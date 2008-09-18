@@ -1419,7 +1419,7 @@ void ipo_buttons(void)
 	uiClearButLock();
 
 	/* ZOOMBORDER */
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
+	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area (Shift B)");
 	
 	xco+=XIC/2;
 	

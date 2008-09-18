@@ -62,12 +62,14 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int focusmode,
 										 RAS_ICanvas* canvas,
 										 KX_Scene* kxscene,
+										 KX_KetsjiEngine *kxengine,
 										 SCA_IObject* gameobj, 
 										 PyTypeObject* T)
     : SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj, T),
 	  m_focusmode(focusmode),
 	  m_gp_canvas(canvas),
-	  m_kxscene(kxscene)
+	  m_kxscene(kxscene),
+	  m_kxengine(kxengine)
 {
 	Init();
 }
@@ -193,11 +195,14 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * calculations don't bomb. Maybe we should explicitly guard for
 	 * division by 0.0...*/
 
-	/**
-	 * Get the scenes current viewport.
-	 */
+	KX_Camera* cam = m_kxscene->GetActiveCamera();
 
-	const RAS_Rect & viewport = m_kxscene->GetSceneViewport();
+	/* get the scenes current viewport. we recompute it because there
+	 * may be multiple cameras and m_kxscene->GetSceneViewport() only
+	 * has the one that was last drawn */
+
+	RAS_Rect area, viewport;
+	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
 
 	float height = float(viewport.m_y2 - viewport.m_y1 + 1);
 	float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
@@ -205,9 +210,9 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	float x_lb = float(viewport.m_x1);
 	float y_lb = float(viewport.m_y1);
 
-	KX_Camera* cam = m_kxscene->GetActiveCamera();
 	/* There's some strangeness I don't fully get here... These values
 	 * _should_ be wrong! */
+	
 
 	/* old: */
 	float nearclip = 0.0;

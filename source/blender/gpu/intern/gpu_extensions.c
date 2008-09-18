@@ -695,9 +695,6 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 		return NULL;
 	}
 
-	if(lib && lib->lib)
-		glAttachObjectARB(shader->object, lib->lib);
-
 	if(vertexcode) {
 		glAttachObjectARB(shader->object, shader->vertex);
 		glShaderSourceARB(shader->vertex, 1, (const char**)&vertexcode, NULL);
@@ -706,7 +703,6 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 		glGetObjectParameterivARB(shader->vertex, GL_OBJECT_COMPILE_STATUS_ARB, &status);
 
 		if (!status) {
-			glValidateProgramARB(shader->vertex);
 			glGetInfoLogARB(shader->vertex, sizeof(log), &length, log);
 			shader_print_errors("compile", log, vertexcode);
 
@@ -723,7 +719,6 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 		glGetObjectParameterivARB(shader->fragment, GL_OBJECT_COMPILE_STATUS_ARB, &status);
 
 		if (!status) {
-			glValidateProgramARB(shader->fragment);
 			glGetInfoLogARB(shader->fragment, sizeof(log), &length, log);
 			shader_print_errors("compile", log, fragcode);
 
@@ -731,6 +726,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 			return NULL;
 		}
 	}
+
+	if(lib && lib->lib)
+		glAttachObjectARB(shader->object, lib->lib);
 
 	glLinkProgramARB(shader->object);
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);
@@ -771,7 +769,6 @@ GPUShader *GPU_shader_create_lib(const char *code)
 	glGetObjectParameterivARB(shader->lib, GL_OBJECT_COMPILE_STATUS_ARB, &status);
 
 	if (!status) {
-		glValidateProgramARB(shader->lib);
 		glGetInfoLogARB(shader->lib, sizeof(log), &length, log);
 		shader_print_errors("compile", log, code);
 

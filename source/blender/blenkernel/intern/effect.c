@@ -267,7 +267,7 @@ static float eff_calc_visibility(Object *ob, float *co, float *dir)
 			hit.dist = len + FLT_EPSILON;
 			
 			// check if the way is blocked
-			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, &hit, eff_tri_ray_hit, NULL)>=0)
+			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0)
 			{
 				// visibility is only between 0 and 1, calculated from 1-absorption
 				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorption)*0.01)));

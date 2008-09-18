@@ -445,6 +445,8 @@ typedef struct FreeCamera {
 #define ACT_GAME_START		1
 #define ACT_GAME_RESTART	2
 #define ACT_GAME_QUIT		3
+#define ACT_GAME_SAVECFG	4
+#define ACT_GAME_LOADCFG	5
 
 /* visibilityact->flag */
 /* Set means the object will become invisible */

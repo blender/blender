@@ -105,8 +105,12 @@ bool RAS_OpenGLRasterizer::Init()
 	m_ambg = 0.0f;
 	m_ambb = 0.0f;
 
-	SetBlendingMode(GPU_BLEND_SOLID);
-	SetFrontFace(true);
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
+	m_last_blendmode = GPU_BLEND_SOLID;
+
+	glFrontFace(GL_CCW);
+	m_last_frontface = true;
 
 	glClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -250,21 +254,10 @@ void RAS_OpenGLRasterizer::Exit()
 	EndFrame();
 }
 
-bool RAS_OpenGLRasterizer::InterlacedStereo() const
-{
-	return m_stereomode == RAS_STEREO_VINTERLACE || m_stereomode == RAS_STEREO_INTERLACED;
-}
-
 bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 {
 	m_time = time;
 	m_drawingmode = drawingmode;
-	
-	if (!InterlacedStereo() || m_curreye == RAS_STEREO_LEFTEYE)
-	{
-		m_2DCanvas->ClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
-		m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
-	}
 
 	// Blender camera routine destroys the settings
 	if (m_drawingmode < KX_SOLID)
@@ -278,8 +271,12 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 		glEnable (GL_CULL_FACE);
 	}
 
-	SetBlendingMode(GPU_BLEND_SOLID);
-	SetFrontFace(true);
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
+	m_last_blendmode = GPU_BLEND_SOLID;
+
+	glFrontFace(GL_CCW);
+	m_last_frontface = true;
 
 	glShadeModel(GL_SMOOTH);
 
@@ -309,6 +306,12 @@ void RAS_OpenGLRasterizer::SetDepthMask(DepthMask depthmask)
 	glDepthMask(depthmask == KX_DEPTHMASK_DISABLED ? GL_FALSE : GL_TRUE);
 }
 
+
+void RAS_OpenGLRasterizer::ClearColorBuffer()
+{
+	m_2DCanvas->ClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
+	m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
+}
 
 
 void RAS_OpenGLRasterizer::ClearDepthBuffer()
@@ -420,6 +423,10 @@ bool RAS_OpenGLRasterizer::Stereo()
 		return true;
 }
 
+bool RAS_OpenGLRasterizer::InterlacedStereo()
+{
+	return m_stereomode == RAS_STEREO_VINTERLACE || m_stereomode == RAS_STEREO_INTERLACED;
+}
 
 void RAS_OpenGLRasterizer::SetEye(const StereoEye eye)
 {
@@ -942,7 +949,10 @@ void RAS_OpenGLRasterizer::SetPolygonOffset(float mult, float add)
 
 void RAS_OpenGLRasterizer::EnableMotionBlur(float motionblurvalue)
 {
-	m_motionblur = 1;
+	/* don't just set m_motionblur to 1, but check if it is 0 so
+	 * we don't reset a motion blur that is already enabled */
+	if(m_motionblur == 0)
+		m_motionblur = 1;
 	m_motionblurvalue = motionblurvalue;
 }
 

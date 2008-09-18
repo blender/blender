@@ -188,7 +188,8 @@ typedef struct UserDef {
 	char fontname[256];		// FILE_MAXDIR+FILE length
 	struct ListBase themes;
 	short undosteps;
-	short undomemory, pad[3];
+	short undomemory;
+	short gp_manhattendist, gp_euclideandist, pad;
 	short curssize;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
@@ -292,7 +293,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 /* Auto-Keying macros */
 #define IS_AUTOKEY_ON			(U.autokey_mode & AUTOKEY_ON)
 #define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
-#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag == AUTOKEY_FLAG_##flag)
+#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)

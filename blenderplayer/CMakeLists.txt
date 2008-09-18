@@ -86,6 +86,7 @@ IF(UNIX)
     bf_oglrasterizer 
     bf_expressions 
     bf_scenegraph 
+	bf_IK
     bf_moto 
     bf_soundsystem 
     bf_kernel 

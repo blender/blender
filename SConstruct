@@ -241,12 +241,32 @@ if len(B.quickdebug) > 0 and printdebug != 0:
     for l in B.quickdebug:
         print "\t" + l
 
+# remove stdc++ from LLIBS if we are building a statc linked CXXFLAGS
+if env['WITH_BF_STATICCXX']:
+    if 'stdc++' in env['LLIBS']:
+        env['LLIBS'] = env['LLIBS'].replace('stdc++', ' ')
+    else:
+        print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
+
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:
     env['WITH_BF_PLAYER'] = True
 
 if 'blendernogame' in B.targets:
     env['WITH_BF_GAMEENGINE'] = False
+
+if 'blenderlite' in B.targets:
+    env['WITH_BF_GAMEENGINE'] = False
+    env['WITH_BF_OPENAL'] = False
+    env['WITH_BF_OPENEXR'] = False
+    env['WITH_BF_ICONV'] = False
+    env['WITH_BF_INTERNATIONAL'] = False
+    env['WITH_BF_OPENJPEG'] = False
+    env['WITH_BF_FFMPEG'] = False
+    env['WITH_BF_QUICKTIME'] = False
+    env['WITH_BF_YAFRAY'] = False
+    env['WITH_BF_REDCODE'] = False
+    env['WITH_BF_FTGL'] = False
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
@@ -487,6 +507,10 @@ if env['WITH_BF_PLAYER']:
 if not env['WITH_BF_GAMEENGINE']:
     blendernogame = env.Alias('blendernogame', B.program_list)
     Depends(blendernogame,installtarget)
+
+if 'blenderlite' in B.targets:
+	blenderlite = env.Alias('blenderlite', B.program_list)
+	Depends(blenderlite,installtarget)
 
 Depends(nsiscmd, allinstall)
 

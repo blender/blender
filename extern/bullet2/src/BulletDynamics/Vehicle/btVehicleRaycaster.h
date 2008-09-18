@@ -11,7 +11,7 @@
 #ifndef VEHICLE_RAYCASTER_H
 #define VEHICLE_RAYCASTER_H
 
-#include "../../LinearMath/btVector3.h"
+#include "LinearMath/btVector3.h"
 
 /// btVehicleRaycaster is provides interface for between vehicle simulation and raycasting
 struct btVehicleRaycaster

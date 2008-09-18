@@ -60,7 +60,7 @@
 MOVE /Y ..\..\bin\blender.lib ..\..\..\build\msvc_7\libs
 MOVE /Y ..\..\bin\blender.exp ..\..\..\build\msvc_7\libs
 ECHO Copying required 3rd party dlls...
-XCOPY /Y ..\..\..\lib\windows\python\lib\python25.dll ..\..\bin
+XCOPY /Y ..\..\..\lib\windows\python\lib\lib25_vs2003\python25.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin
@@ -129,7 +129,7 @@ ECHO Done
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\ffmpeg\lib;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib\lib25_vs2003;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\ffmpeg\lib;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
 				IgnoreDefaultLibraryNames="libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, odbc32.lib, odbccp32.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\debug\blender.pdb"
@@ -146,7 +146,7 @@ MOVE /Y ..\..\bin\debug\blender.ilk ..\..\..\build\msvc_7\libs\debug
 ECHO Copying required 3rd party dlls...
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin\debug
-XCOPY /Y ..\..\..\lib\windows\python\lib\python25_d.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\python\lib\lib25_vs2003\python25_d.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin\debug

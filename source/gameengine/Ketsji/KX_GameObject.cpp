@@ -590,8 +590,11 @@ KX_GameObject::GetLayer(
 
 void KX_GameObject::addLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
-	if (m_pPhysicsController1)
-		m_pPhysicsController1->SetLinearVelocity(lin_vel + m_pPhysicsController1->GetLinearVelocity(),local);
+	if (m_pPhysicsController1) 
+	{
+		MT_Vector3 lv = local ? NodeGetWorldOrientation() * lin_vel : lin_vel;
+		m_pPhysicsController1->SetLinearVelocity(lv + m_pPhysicsController1->GetLinearVelocity(), 0);
+	}
 }
 
 

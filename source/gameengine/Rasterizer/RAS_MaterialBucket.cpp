@@ -107,8 +107,13 @@ RAS_MeshSlot::RAS_MeshSlot(const RAS_MeshSlot& slot)
 	m_endindex = slot.m_endindex;
 
 	for(it=m_displayArrays.begin(); it!=m_displayArrays.end(); it++) {
-		*it = new RAS_DisplayArray(**it);
-		(*it)->m_users = 1;
+		// don't copy display arrays for now because it breaks python 
+		// access to vertices, but we'll need a solution if we want to
+		// join display arrays for reducing draw calls.
+		//*it = new RAS_DisplayArray(**it);
+		//(*it)->m_users = 1;
+
+		(*it)->m_users++;
 	}
 }
 
@@ -560,7 +565,7 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 	if (m_material->GetDrawingMode() & RAS_IRasterizer::RAS_RENDER_3DPOLYGON_TEXT)
 		rasty->IndexPrimitives_3DText(ms, m_material, rendertools);
 	// for multitexturing
-	else if((m_material->GetFlag() & RAS_MULTITEX))
+	else if((m_material->GetFlag() & (RAS_MULTITEX|RAS_BLENDERGLSL)))
 		rasty->IndexPrimitivesMulti(ms);
 	// use normal IndexPrimitives
 	else

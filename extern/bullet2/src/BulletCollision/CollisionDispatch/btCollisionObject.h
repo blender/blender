@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef COLLISION_OBJECT_H
 #define COLLISION_OBJECT_H
 
-#include "../../LinearMath/btTransform.h"
+#include "LinearMath/btTransform.h"
 
 //island management, m_activationState1
 #define ACTIVE_TAG 1
@@ -27,7 +27,8 @@ subject to the following restrictions:
 
 struct	btBroadphaseProxy;
 class	btCollisionShape;
-#include "../../LinearMath/btMotionState.h"
+#include "LinearMath/btMotionState.h"
+#include "LinearMath/btAlignedAllocator.h"
 
 
 
@@ -50,6 +51,11 @@ protected:
 	btVector3	m_interpolationAngularVelocity;
 	btBroadphaseProxy*		m_broadphaseHandle;
 	btCollisionShape*		m_collisionShape;
+	
+	///m_rootCollisionShape is temporarily used to store the original collision shape
+	///The m_collisionShape might be temporarily replaced by a child collision shape during collision detection purposes
+	///If it is NULL, the m_collisionShape is not temporarily replaced.
+	btCollisionShape*		m_rootCollisionShape;
 
 	int				m_collisionFlags;
 
@@ -65,8 +71,9 @@ protected:
 	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
 	void*			m_userObjectPointer;
 
-	///m_internalOwner is reserved to point to Bullet's btRigidBody. Don't use this, use m_userObjectPointer instead.
-	void*			m_internalOwner;
+	///m_internalType is reserved to distinguish Bullet's btCollisionObject, btRigidBody, btSoftBody etc.
+	///do not assign your own m_internalType unless you write a new dynamics object class.
+	int				m_internalType;
 
 	///time of impact calculation
 	btScalar		m_hitFraction; 
@@ -74,20 +81,22 @@ protected:
 	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
 	btScalar		m_ccdSweptSphereRadius;
 
-	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	btScalar		m_ccdSquareMotionThreshold;
+	/// Don't do continuous collision detection if the motion (in one step) is less then m_ccdMotionThreshold
+	btScalar		m_ccdMotionThreshold;
 	
 	/// If some object should have elaborate collision filtering by sub-classes
 	bool			m_checkCollideWith;
 
 	char	m_pad[7];
 
-	virtual bool	checkCollideWithOverride(btCollisionObject* co)
+	virtual bool	checkCollideWithOverride(btCollisionObject* /* co */)
 	{
 		return true;
 	}
 
 public:
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	enum CollisionFlags
 	{
@@ -97,29 +106,35 @@ public:
 		CF_CUSTOM_MATERIAL_CALLBACK = 8//this allows per-triangle material (friction/restitution)
 	};
 
+	enum	CollisionObjectTypes
+	{
+		CO_COLLISION_OBJECT =1,
+		CO_RIGID_BODY,
+		CO_SOFT_BODY
+	};
 
-	inline bool mergesSimulationIslands() const
+	SIMD_FORCE_INLINE bool mergesSimulationIslands() const
 	{
 		///static objects, kinematic and object without contact response don't merge islands
 		return  ((m_collisionFlags & (CF_STATIC_OBJECT | CF_KINEMATIC_OBJECT | CF_NO_CONTACT_RESPONSE) )==0);
 	}
 
 
-	inline bool		isStaticObject() const {
+	SIMD_FORCE_INLINE bool		isStaticObject() const {
 		return (m_collisionFlags & CF_STATIC_OBJECT) != 0;
 	}
 
-	inline bool		isKinematicObject() const
+	SIMD_FORCE_INLINE bool		isKinematicObject() const
 	{
 		return (m_collisionFlags & CF_KINEMATIC_OBJECT) != 0;
 	}
 
-	inline bool		isStaticOrKinematicObject() const
+	SIMD_FORCE_INLINE bool		isStaticOrKinematicObject() const
 	{
 		return (m_collisionFlags & (CF_KINEMATIC_OBJECT | CF_STATIC_OBJECT)) != 0 ;
 	}
 
-	inline bool		hasContactResponse() const {
+	SIMD_FORCE_INLINE bool		hasContactResponse() const {
 		return (m_collisionFlags & CF_NO_CONTACT_RESPONSE)==0;
 	}
 
@@ -131,20 +146,35 @@ public:
 	void	setCollisionShape(btCollisionShape* collisionShape)
 	{
 		m_collisionShape = collisionShape;
+		m_rootCollisionShape = collisionShape;
 	}
 
-	const btCollisionShape*	getCollisionShape() const
+	SIMD_FORCE_INLINE const btCollisionShape*	getCollisionShape() const
 	{
 		return m_collisionShape;
 	}
 
-	btCollisionShape*	getCollisionShape()
+	SIMD_FORCE_INLINE btCollisionShape*	getCollisionShape()
 	{
 		return m_collisionShape;
 	}
 
-	
+	SIMD_FORCE_INLINE const btCollisionShape*	getRootCollisionShape() const
+	{
+		return m_rootCollisionShape;
+	}
 
+	SIMD_FORCE_INLINE btCollisionShape*	getRootCollisionShape()
+	{
+		return m_rootCollisionShape;
+	}
+
+	///Avoid using this internal API call
+	///internalSetTemporaryCollisionShape is used to temporary replace the actual collision shape by a child collision shape.
+	void	internalSetTemporaryCollisionShape(btCollisionShape* collisionShape)
+	{
+		m_collisionShape = collisionShape;
+	}
 
 	int	getActivationState() const { return m_activationState1;}
 	
@@ -186,14 +216,9 @@ public:
 	}
 
 	///reserved for Bullet internal usage
-	void*	getInternalOwner()
+	int	getInternalType() const
 	{
-		return m_internalOwner;
-	}
-
-	const void*	getInternalOwner() const
-	{
-		return m_internalOwner;
+		return m_internalType;
 	}
 
 	btTransform&	getWorldTransform()
@@ -243,6 +268,15 @@ public:
 		m_interpolationWorldTransform = trans;
 	}
 
+	void	setInterpolationLinearVelocity(const btVector3& linvel)
+	{
+		m_interpolationLinearVelocity = linvel;
+	}
+
+	void	setInterpolationAngularVelocity(const btVector3& angvel)
+	{
+		m_interpolationAngularVelocity = angvel;
+	}
 
 	const btVector3&	getInterpolationLinearVelocity() const
 	{
@@ -307,16 +341,22 @@ public:
 		m_ccdSweptSphereRadius = radius;
 	}
 
+	btScalar 	getCcdMotionThreshold() const
+	{
+		return m_ccdMotionThreshold;
+	}
+
 	btScalar 	getCcdSquareMotionThreshold() const
 	{
-		return m_ccdSquareMotionThreshold;
+		return m_ccdMotionThreshold*m_ccdMotionThreshold;
 	}
 
 
-	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	void	setCcdSquareMotionThreshold(btScalar ccdSquareMotionThreshold)
+
+	/// Don't do continuous collision detection if the motion (in one step) is less then m_ccdMotionThreshold
+	void	setCcdMotionThreshold(btScalar ccdMotionThreshold)
 	{
-		m_ccdSquareMotionThreshold = ccdSquareMotionThreshold;
+		m_ccdMotionThreshold = ccdMotionThreshold*ccdMotionThreshold;
 	}
 
 	///users can point to their objects, userPointer is not used by Bullet
@@ -331,6 +371,7 @@ public:
 		m_userObjectPointer = userPointer;
 	}
 
+
 	inline bool checkCollideWith(btCollisionObject* co)
 	{
 		if (m_checkCollideWith)
@@ -338,9 +379,6 @@ public:
 
 		return true;
 	}
-
-
-}
-;
+};
 
 #endif //COLLISION_OBJECT_H

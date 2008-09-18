@@ -34,7 +34,9 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
+#include "BKE_texture.h"
 #include "BLI_blenlib.h"
+#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "mydevice.h"
@@ -44,6 +46,7 @@
 #include "gen_utils.h"
 #include "gen_library.h"
 #include "BKE_utildefines.h"
+#include "MEM_guardedalloc.h"
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */
@@ -255,6 +258,7 @@ static int Lamp_setHaloInt( BPy_Lamp * self, PyObject * args );
 static int Lamp_setQuad1( BPy_Lamp * self, PyObject * args );
 static int Lamp_setQuad2( BPy_Lamp * self, PyObject * args );
 static int Lamp_setCol( BPy_Lamp * self, PyObject * args );
+static int Lamp_setTextures( BPy_Lamp * self, PyObject * value );
 static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * value );
 static PyObject *Lamp_addScriptLink( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args );
@@ -503,7 +507,7 @@ static PyGetSetDef BPy_Lamp_getseters[] = {
 	 "Lamp color blue component",
 	 (void *)EXPP_LAMP_COMP_B},
 	{"textures",
-	 (getter)Lamp_getTextures, (setter)NULL,
+	 (getter)Lamp_getTextures, (setter)Lamp_setTextures,
      "The Lamp's texture list as a tuple",
 	 NULL},
 	{"Modes",
@@ -1421,6 +1425,76 @@ static PyObject *Lamp_getTextures( BPy_Lamp * self )
 	}
 
 	return tuple;
+}
+
+static int Lamp_setTextures( BPy_Lamp * self, PyObject * value )
+{
+	int i;
+
+	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected tuple or list of integers" );
+
+	/* don't allow more than MAX_MTEX items */
+	if( PySequence_Size(value) > MAX_MTEX )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+						"size of sequence greater than number of allowed textures" );
+
+	/* get a fast sequence; in Python 2.5, this just return the original
+	 * list or tuple and INCREFs it, so we must DECREF */
+	value = PySequence_Fast( value, "" );
+
+	/* check the list for valid entries */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		if( item == Py_None || ( BPy_MTex_Check( item ) &&
+						((BPy_MTex *)item)->type == ID_LA ) ) {
+			continue;
+		} else {
+			Py_DECREF(value);
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected tuple or list containing lamp MTex objects and NONE" );
+		}
+	}
+
+	/* for each MTex object, copy to this structure */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->lamp->mtex[i];
+		if( item != Py_None ) {
+			BPy_MTex *obj = (BPy_MTex *)item;
+
+			/* if MTex is already at this location, just skip it */
+			if( obj->mtex == mtex )	continue;
+
+			/* create a new entry if needed, otherwise update reference count
+			 * for texture that is being replaced */
+			if( !mtex )
+				mtex = self->lamp->mtex[i] = add_mtex(  );
+			else
+				mtex->tex->id.us--;
+
+			/* copy the data */
+			mtex->tex = obj->mtex->tex;
+			id_us_plus( &mtex->tex->id );
+			mtex->texco = obj->mtex->texco;
+			mtex->mapto = obj->mtex->mapto;
+		}
+	}
+
+	/* now go back and free any entries now marked as None */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->lamp->mtex[i];
+		if( item == Py_None && mtex ) {
+			mtex->tex->id.us--;
+			MEM_freeN( mtex );
+			self->lamp->mtex[i] = NULL;
+		} 
+	}
+
+	Py_DECREF(value);
+	return 0;
 }
 
 /* #####DEPRECATED###### */

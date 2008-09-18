@@ -5294,6 +5294,11 @@ static void softbodyModifier_deformVerts(
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
+static int softbodyModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
 
 /* Cloth */
 
@@ -7668,6 +7673,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 				| eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
+		mti->dependsOnTime = softbodyModifier_dependsOnTime;
 	
 		mti = INIT_TYPE(Cloth);
 		mti->type = eModifierTypeType_Nonconstructive;

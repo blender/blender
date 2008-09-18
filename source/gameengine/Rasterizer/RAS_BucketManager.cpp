@@ -130,9 +130,6 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 		sort(slots.begin(), slots.end(), fronttoback());
 }
 
-//static int TOTASLOT = 0;
-//static int TOTSLOT = 0;
-
 void RAS_BucketManager::RenderAlphaBuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
@@ -149,10 +146,8 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	for(sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
 
-		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools)) {
+		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
 			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
-			//TOTASLOT++;
-		}
 	}
 
 	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
@@ -173,13 +168,14 @@ void RAS_BucketManager::RenderSolidBuckets(
 
 			rendertools->SetClientObject(rasty, mit->m_clientObj);
 
-			while ((*bit)->ActivateMaterial(cameratrans, rasty, rendertools)) {
+			while ((*bit)->ActivateMaterial(cameratrans, rasty, rendertools))
 				(*bit)->RenderMeshSlot(cameratrans, rasty, rendertools, *mit);
-				//TOTSLOT++;
-			}
 		}
 	}
 	
+	/* this code draws meshes order front-to-back instead to reduce overdraw.
+	 * it turned out slower due to much material state switching, a more clever
+	 * algorithm might do better. */
 #if 0
 	vector<sortedmeshslot> slots;
 	vector<sortedmeshslot>::iterator sit;
@@ -198,16 +194,11 @@ void RAS_BucketManager::RenderSolidBuckets(
 void RAS_BucketManager::Renderbuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
-	// beginning each frame, clear (texture/material) caching information
+	/* beginning each frame, clear (texture/material) caching information */
 	rasty->ClearCachingInfo();
-
-	//TOTASLOT = 0;
-	//TOTSLOT = 0;
 
 	RenderSolidBuckets(cameratrans, rasty, rendertools);	
 	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
-
-	//printf("total slots = %d = %d + %d\n", TOTSLOT + TOTASLOT, TOTSLOT, TOTASLOT);
 
 	rendertools->SetClientObject(rasty, NULL);
 }

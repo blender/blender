@@ -25,7 +25,7 @@ subject to the following restrictions:
 
 #define btRecipSqrt(x) ((btScalar)(btScalar(1.0)/btSqrt(btScalar(x))))		/* reciprocal square root */
 
-inline btVector3 btAabbSupport(const btVector3& halfExtents,const btVector3& supportDir)
+SIMD_FORCE_INLINE btVector3 btAabbSupport(const btVector3& halfExtents,const btVector3& supportDir)
 {
 	return btVector3(supportDir.x() < btScalar(0.0) ? -halfExtents.x() : halfExtents.x(),
       supportDir.y() < btScalar(0.0) ? -halfExtents.y() : halfExtents.y(),
@@ -33,7 +33,7 @@ inline btVector3 btAabbSupport(const btVector3& halfExtents,const btVector3& sup
 }
 
 
-inline void btPlaneSpace1 (const btVector3& n, btVector3& p, btVector3& q)
+SIMD_FORCE_INLINE void btPlaneSpace1 (const btVector3& n, btVector3& p, btVector3& q)
 {
   if (btFabs(n.z()) > SIMDSQRT12) {
     // choose p in y-z plane
@@ -70,7 +70,9 @@ public:
 		predictedOrn += (angvel * predictedOrn) * (timeStep * btScalar(0.5));
 		predictedOrn.normalize();
 	#else
-		//exponential map
+		//Exponential map
+		//google for "Practical Parameterization of Rotations Using the Exponential Map", F. Sebastian Grassia
+
 		btVector3 axis;
 		btScalar	fAngle = angvel.length(); 
 		//limit the angular motion
@@ -121,6 +123,10 @@ public:
 		dmat.getRotation(dorn);
 #endif//USE_QUATERNION_DIFF
 	
+		///floating point inaccuracy can lead to w component > 1..., which breaks 
+
+		dorn.normalize();
+		
 		angle = dorn.getAngle();
 		axis = btVector3(dorn.x(),dorn.y(),dorn.z());
 		axis[3] = btScalar(0.);

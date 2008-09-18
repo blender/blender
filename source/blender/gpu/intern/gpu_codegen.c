@@ -331,7 +331,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 			else
 				BLI_dynstr_append(ds, GPU_DATATYPE_STR[function->paramtype[a]]);
 				
-			BLI_dynstr_printf(ds, " param%d", a);
+			//BLI_dynstr_printf(ds, " param%d", a);
 			
 			if(a != function->totparam-1)
 				BLI_dynstr_append(ds, ", ");

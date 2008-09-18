@@ -2218,7 +2218,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						selectswap();
 				}
-				else if(G.qual==LR_ALTKEY) {
+				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY)) {
 					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
 						pose_clear_IK();
 				}
@@ -3102,6 +3102,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				borderselect_ipo();
 			else if (G.qual==LR_CTRLKEY) {
 				borderselect_markers();
+			}
+			else if (G.qual==LR_SHIFTKEY) {
+				do_ipo_buttons(B_IPOBORDER);
 			}
 			break;
 		case CKEY:
@@ -4051,6 +4054,19 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOG, USER_DUP_IPO, 0, "Ipo",
 			(xpos+edgsp+(8*midsp)+(3*mpref)+(5*spref)),y1,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes ipo data to be duplicated with Shift+D");
+		uiBlockEndAlign(block);
+		
+		uiDefBut(block, LABEL,0,"Grease Pencil:",
+			(xpos+(2*edgsp)+(3*midsp)+(3*mpref)+spref),y6label,mpref,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, 0, "Manhatten Dist:",
+			(xpos+(4*midsp)+(3*mpref)+mpref),y5,mpref,buth,
+			&(U.gp_manhattendist), 0, 100, 0, 0, "Pixels moved by mouse per axis when drawing stroke");
+		uiDefButS(block, NUM, 0, "Euclidean Dist:",
+			(xpos+(5*midsp)+(3*mpref)+(2*mpref)),y5,mpref,buth,
+			&(U.gp_euclideandist), 0, 100, 0, 0, "Distance moved by mouse when drawing stroke (in pixels) to include");
 		uiBlockEndAlign(block);
 	
 	} else if(U.userpref == 2) { /* language & colors */

@@ -720,13 +720,23 @@ int BPY_txt_do_python_Text( struct Text *text )
 * automatically. The script can be a file or a Blender Text in the current 
 * .blend.
 ****************************************************************************/
-void BPY_run_python_script( char *fn )
+void BPY_run_python_script( const char *fn )
 {
+	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	Text *text = NULL;
 	int is_blender_text = 0;
-
-	if (!BLI_exists(fn)) {	/* if there's no such filename ... */
-		text = G.main->text.first;	/* try an already existing Blender Text */
+	
+	BLI_strncpy(filename, fn, FILE_MAXDIR + FILE_MAXFILE);
+	
+	if (!BLI_exists(filename))
+		BLI_convertstringcwd(filename);
+		
+	if (!BLI_exists(filename)) {	/* if there's no such filename ... */
+		/* try an already existing Blender Text.
+		 * use 'fn' rather then filename for this since were looking for
+		 * internal text
+		 */
+		text = G.main->text.first;
 
 		while (text) {
 			if (!strcmp(fn, text->id.name + 2)) break;
@@ -741,11 +751,14 @@ void BPY_run_python_script( char *fn )
 	}
 
 	else {
-		text = add_text(fn);
+		/* use filename here since we know it exists,
+		 * 'fn' may have been a relative path
+		 */
+		text = add_text(filename);
 
 		if (text == NULL) {
 			printf("\nError in BPY_run_python_script:\n"
-				"couldn't create Blender text from %s\n", fn);
+				"couldn't create Blender text from \"%s\"\n", filename);
 		/* Chris: On Windows if I continue I just get a segmentation
 		 * violation.  To get a baseline file I exit here. */
 		exit(2);
@@ -762,13 +775,8 @@ void BPY_run_python_script( char *fn )
 		/* We can't simply free the text, since the script might have called
 		 * Blender.Load() to load a new .blend, freeing previous data.
 		 * So we check if the pointer is still valid. */
-		Text *txtptr = G.main->text.first;
-		while (txtptr) {
-			if (txtptr == text) {
-				free_libblock(&G.main->text, text);
-				break;
-			}
-			txtptr = txtptr->id.next;
+		if (BLI_findindex(&G.main->text, text) != -1) {
+			free_libblock(&G.main->text, text);
 		}
 	}
 }

@@ -163,6 +163,10 @@ void extract_ipochannels_from_action(ListBase *lb, struct ID *id, struct bAction
 /* write values returned by extract_ipochannels_from_action, returns the number of value written */
 int execute_ipochannels(ListBase *lb);
 
+/* functions used by the game engine */
+void game_copy_pose(struct bPose **dst, struct bPose *src);
+void game_free_pose(struct bPose *pose);
+
 #ifdef __cplusplus
 };
 #endif

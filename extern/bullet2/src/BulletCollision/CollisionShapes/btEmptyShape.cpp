@@ -40,7 +40,7 @@ void btEmptyShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aa
 
 }
 
-void	btEmptyShape::calculateLocalInertia(btScalar ,btVector3& )
+void	btEmptyShape::calculateLocalInertia(btScalar ,btVector3& ) const
 {
 	btAssert(0);
 }

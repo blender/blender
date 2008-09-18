@@ -56,6 +56,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						int focusmode,
 						RAS_ICanvas* canvas,
 						KX_Scene* kxscene,
+						KX_KetsjiEngine* kxengine,
 						SCA_IObject* gameobj,
 						PyTypeObject* T=&Type );
 
@@ -143,12 +144,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 
 
 	/**
-	 * Ref to the engine, for retrieving a reference to the current
-	 * scene.  */
-	class KX_KetsjiEngine* m_engine;
-
-
-	/**
 	 * The active canvas. The size of this canvas determines a part of
 	 * the start position of the picking ray.  */
 	RAS_ICanvas* m_gp_canvas;
@@ -158,6 +153,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * determines a part of the start location of the picking ray.  */
 	KX_Scene* m_kxscene;
 
+	/**
+	 * The KX engine is needed for computing the viewport */
+	KX_KetsjiEngine* m_kxengine;
 };
 
 #endif //__KX_MOUSESENSOR

@@ -74,29 +74,6 @@ public:
 			bool StartGameEngine(int stereoMode);
 			void StopGameEngine();
 
-			char*
-		GetPyGlobalDictMarshal()
-		{ 
-			return m_pyGlobalDictString;
-		};
-		
-			void
-		SetPyGlobalDictMarshal( char* pyGlobalDictString, int length )
-		{
-			if (m_pyGlobalDictString && m_pyGlobalDictString != pyGlobalDictString)
-				free(m_pyGlobalDictString);
-			
-			m_pyGlobalDictString = pyGlobalDictString;
-			m_pyGlobalDictString_Length = length;
-		};
-		
-			int
-		GetPyGlobalDictMarshalLength()
-		{ 
-			return m_pyGlobalDictString_Length;
-		};
-
-
 protected:
 	bool	handleWheel(GHOST_IEvent* event);
 	bool	handleButton(GHOST_IEvent* event, bool isDown);

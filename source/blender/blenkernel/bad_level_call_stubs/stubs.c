@@ -60,7 +60,7 @@ struct EditFace;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
-struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e);
+struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e, short f);
 void elbeemDebugOut(char *msg);
 void fluidsimSettingsFree(struct FluidsimSettings* sb);
 void fluidsimSettingsCopy(struct FluidsimSettings* sb);
@@ -88,7 +88,7 @@ void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast)
 }
 
 
-struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e)
+struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e, short f)
 {
 	return 0;
 }
@@ -215,30 +215,6 @@ struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2)  { retur
 /*edit.c*/
 
 void countall(void) {}
-
-
-/* IKsolver stubs */
-#include "IK_solver.h"
-
-IK_Segment *IK_CreateSegment(int flag) { return 0; }
-void IK_FreeSegment(IK_Segment *seg) {}
-
-void IK_SetParent(IK_Segment *seg, IK_Segment *parent) {}
-void IK_SetTransform(IK_Segment *seg, float start[3], float rest_basis[][3], float basis[][3], float length) {}
-void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3]) {}
-void IK_GetTranslationChange(IK_Segment *seg, float *translation_change) {};
-void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lower, float upper) {};
-void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness) {};
-
-IK_Solver *IK_CreateSolver(IK_Segment *root) { return 0; }
-void IK_FreeSolver(IK_Solver *solver) {};
-
-void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight) {}
-void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight) {}
-void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle) {}
-float IK_SolverGetPoleAngle(IK_Solver *solver) { return 0.0f; }
-
-int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations) { return 0; }
 
 /* exotic.c */
 int BPY_call_importloader(char *name)

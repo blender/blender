@@ -83,7 +83,12 @@ enum mod_constants {
 	EXPP_MOD_UV,
 	
 	/*ARMATURE SPECIFIC*/
+	EXPP_MOD_VGROUPS,
 	EXPP_MOD_ENVELOPES,
+	EXPP_MOD_QUATERNION,
+	EXPP_MOD_B_BONE_REST,
+	EXPP_MOD_INVERT_VERTGROUP,
+	EXPP_MOD_MULTIMODIFIER,
 	
 	/*ARRAY SPECIFIC*/
 	EXPP_MOD_OBJECT_OFFSET,
@@ -376,12 +381,23 @@ static PyObject *armature_getter( BPy_Modifier * self, int type )
 	case EXPP_MOD_OBJECT:
 		return Object_CreatePyObject( md->object );
 	case EXPP_MOD_VERTGROUP:
-		return PyBool_FromLong( ( long )( md->deformflag & 1 ) ) ;
+		return PyString_FromString( md->defgrp_name ) ;
+	case EXPP_MOD_VGROUPS:
+		return EXPP_getBitfield( &md->deformflag, ARM_DEF_VGROUP, 'h' );
 	case EXPP_MOD_ENVELOPES:
-		return PyBool_FromLong( ( long )( md->deformflag & 2 ) ) ;
+		return EXPP_getBitfield( &md->deformflag, ARM_DEF_ENVELOPE, 'h' );
+	case EXPP_MOD_QUATERNION:
+		return EXPP_getBitfield( &md->deformflag, ARM_DEF_QUATERNION, 'h' );
+	case EXPP_MOD_B_BONE_REST:
+		return EXPP_getBitfield( &md->deformflag, ARM_DEF_B_BONE_REST, 'h' );
+	case EXPP_MOD_INVERT_VERTGROUP:
+		return EXPP_getBitfield( &md->deformflag, ARM_DEF_INVERT_VGROUP, 'h' );
+	case EXPP_MOD_MULTIMODIFIER:
+		return EXPP_getBitfield( &md->multi, 1, 'h' );
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
+	return 0;
 }
 
 static int armature_setter( BPy_Modifier *self, int type, PyObject *value )
@@ -391,13 +407,30 @@ static int armature_setter( BPy_Modifier *self, int type, PyObject *value )
 	switch( type ) {
 	case EXPP_MOD_OBJECT: 
 		return GenericLib_assignData(value, (void **) &md->object, 0, 0, ID_OB, OB_ARMATURE);
-	case EXPP_MOD_VERTGROUP:
-		return EXPP_setBitfield( value, &md->deformflag, 1, 'h' );
+	case EXPP_MOD_VERTGROUP: {
+		char *defgrp_name = PyString_AsString( value );
+		if( !defgrp_name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+		BLI_strncpy( md->defgrp_name, defgrp_name, sizeof( md->defgrp_name ) );
+		break;
+		}
+	case EXPP_MOD_VGROUPS:
+		return EXPP_setBitfield( value, &md->deformflag, ARM_DEF_VGROUP, 'h' );
 	case EXPP_MOD_ENVELOPES:
-		return EXPP_setBitfield( value, &md->deformflag, 2, 'h' );
+		return EXPP_setBitfield( value, &md->deformflag, ARM_DEF_ENVELOPE, 'h' );
+	case EXPP_MOD_QUATERNION:
+		return EXPP_setBitfield( value, &md->deformflag, ARM_DEF_QUATERNION, 'h' );
+	case EXPP_MOD_B_BONE_REST:
+		return EXPP_setBitfield( value, &md->deformflag, ARM_DEF_B_BONE_REST, 'h' );
+	case EXPP_MOD_INVERT_VERTGROUP:
+		return EXPP_setBitfield( value, &md->deformflag, ARM_DEF_INVERT_VGROUP, 'h' );
+	case EXPP_MOD_MULTIMODIFIER:
+		return EXPP_setBitfield( value, &md->multi, 1, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
+	return 0;
 }
 
 static PyObject *lattice_getter( BPy_Modifier * self, int type )
@@ -1595,8 +1628,18 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_OPTIMAL ) );
 			PyConstant_Insert( d, "UV", 
 				PyInt_FromLong( EXPP_MOD_UV ) );
+			PyConstant_Insert( d, "VGROUPS", 
+				PyInt_FromLong( EXPP_MOD_VGROUPS ) );
 			PyConstant_Insert( d, "ENVELOPES", 
 				PyInt_FromLong( EXPP_MOD_ENVELOPES ) );
+			PyConstant_Insert( d, "QUATERNION", 
+				PyInt_FromLong( EXPP_MOD_QUATERNION ) );
+			PyConstant_Insert( d, "B_BONE_REST", 
+				PyInt_FromLong( EXPP_MOD_B_BONE_REST ) );
+			PyConstant_Insert( d, "INVERT_VERTGROUP", 
+				PyInt_FromLong( EXPP_MOD_INVERT_VERTGROUP ) );
+			PyConstant_Insert( d, "MULTIMODIFIER", 
+				PyInt_FromLong( EXPP_MOD_MULTIMODIFIER ) );
 			PyConstant_Insert( d, "OBJECT_OFFSET", 
 				PyInt_FromLong( EXPP_MOD_OBJECT_OFFSET ) );
 			PyConstant_Insert( d, "OBJECT_CURVE", 

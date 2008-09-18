@@ -47,7 +47,9 @@ public:
 		m_radius(1.0),
 		m_height(1.0),
 		m_halfExtend(0.f,0.f,0.f),
+		m_childScale(1.0f,1.0f,1.0f),
 		m_nextShape(NULL),
+		m_unscaledShape(NULL),
 		m_refCount(1)
 	{
 		m_childTrans.setIdentity();
@@ -71,6 +73,10 @@ public:
 
 	void AddShape(CcdShapeConstructionInfo* shapeInfo);
 
+	btTriangleMeshShape* GetMeshShape(void)
+	{
+		return m_unscaledShape;
+	}
 	CcdShapeConstructionInfo* GetNextShape()
 	{
 		return m_nextShape;
@@ -96,6 +102,7 @@ public:
 	btScalar				m_height;
 	btVector3				m_halfExtend;
 	btTransform				m_childTrans;
+	btVector3				m_childScale;
 	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
 											// triangle array for concave mesh shape.
 											// In this case a triangle is made of 3 consecutive points
@@ -106,6 +113,8 @@ public:
 
 protected:
 	CcdShapeConstructionInfo* m_nextShape;	// for compound shape
+	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
+											// the actual shape is of type btScaledBvhTriangleMeshShape
 	int						m_refCount;		// this class is shared between replicas
 											// keep track of users so that we can release it 
 };
@@ -136,6 +145,7 @@ struct CcdConstructionInfo
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
+		m_margin(0.06f),
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_collisionFilterGroup(DefaultFilter),
@@ -156,6 +166,7 @@ struct CcdConstructionInfo
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
 	btScalar	m_angularDamping;
+	btScalar	m_margin;
 	int			m_collisionFlags;
 	bool		m_bRigid;
 
@@ -179,12 +190,15 @@ struct CcdConstructionInfo
 
 
 class btRigidBody;
-
+class btCollisionObject;
+class btSoftBody;
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-	btRigidBody* m_body;
+
+	btCollisionObject* m_object;
+
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
 	class btCollisionShape*	m_collisionShape;
@@ -220,11 +234,14 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		virtual ~CcdPhysicsController();
 
 
-		btRigidBody* GetRigidBody() { return m_body;}
+		btRigidBody* GetRigidBody();
+		btCollisionObject*	GetCollisionObject();
+		btSoftBody* GetSoftBody();
+
 		CcdShapeConstructionInfo* GetShapeInfo() { return m_shapeInfo; }
 
 		btCollisionShape*	GetCollisionShape() { 
-			return m_body->getCollisionShape();
+			return m_object->getCollisionShape();
 		}
 		////////////////////////////////////
 		// PHY_IPhysicsController interface
@@ -298,6 +315,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		bool	wantsSleeping();
 
 		void	UpdateDeactivation(float timeStep);
+
+		void	SetCenterOfMassTransform(btTransform& xform);
 
 		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
 

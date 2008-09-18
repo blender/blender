@@ -86,6 +86,7 @@ struct KX_ObjectProperties
 	bool	m_disableSleeping;
 	bool	m_hasCompoundChildren;
 	bool	m_isCompoundChild;
+	double  m_margin;
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;

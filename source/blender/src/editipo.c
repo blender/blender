@@ -99,6 +99,7 @@
 #include "BIF_editseq.h"
 #include "BIF_editview.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_screen.h"
@@ -1804,114 +1805,130 @@ void do_ipo_selectbuttons(void)
    - if bonename, the constname is the ipo to the constraint
 */
 
-/* note; check header_ipo.c, spaceipo_assign_ipo() too */
-Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char *bonename)
+/* note: check header_ipo.c, spaceipo_assign_ipo() too */
+Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char *bonename, short add)
 {
-
-	if(from==NULL || from->lib) return NULL;
+	/* lib-linked data is not appropriate here */
+	if ((from==NULL) || (from->lib))
+		return NULL;
 	
 	/* first check action ipos */
-	if(actname && actname[0]) {
+	if (actname && actname[0]) {
 		Object *ob= (Object *)from;
 		bActionChannel *achan;
 		
-		if(GS(from->name)!=ID_OB) {
+		if (GS(from->name)!=ID_OB) {
 			printf("called ipo system for action with wrong base pointer\n");
 			return NULL;
 		}
 		
-		if(ob->action==NULL)
+		if ((ob->action==NULL) && (add))
 			ob->action= add_empty_action("Action");
 		
-		achan= verify_action_channel(ob->action, actname);
+		if (add)
+			achan= verify_action_channel(ob->action, actname);
+		else	
+			achan= get_action_channel(ob->action, actname);
 		
-		if(achan) {
+		if (achan) {
 			/* automatically assign achan to act-group based on pchan's grouping */
-			if (blocktype == ID_PO)
+			if ((blocktype == ID_PO) && (add))
 				verify_pchan2achan_grouping(ob->action, ob->pose, actname);
 			
 			/* constraint exception */
-			if(blocktype==ID_CO) {
-				bConstraintChannel *conchan= verify_constraint_channel(&achan->constraintChannels, constname);
-				if(conchan->ipo==NULL) {
-					conchan->ipo= add_ipo("CoIpo", ID_CO);	
+			if (blocktype==ID_CO) {
+				bConstraintChannel *conchan;
+				
+				if (add)
+					conchan= verify_constraint_channel(&achan->constraintChannels, constname);
+				else
+					conchan= get_constraint_channel(&achan->constraintChannels, constname);
+					
+				if (conchan) {
+					if ((conchan->ipo==NULL) && (add))
+						conchan->ipo= add_ipo("CoIpo", ID_CO);	
+					return conchan->ipo;
 				}
-				return conchan->ipo;
 			}
 			else {
-				if(achan->ipo==NULL) {
+				if ((achan->ipo==NULL) && (add))
 					achan->ipo= add_ipo("ActIpo", blocktype);
-				}
-				
 				return achan->ipo;
 			}
 		}
 	}
 	else {
-		
-		switch(GS(from->name)) {
+		switch (GS(from->name)) {
 		case ID_OB:
 			{
 				Object *ob= (Object *)from;
 				
 				/* constraint exception */
-				if(blocktype==ID_CO) {
+				if (blocktype==ID_CO) {
 					/* check the local constraint ipo */
-					if(bonename && bonename[0] && ob->pose) {
+					if (bonename && bonename[0] && ob->pose) {
 						bPoseChannel *pchan= get_pose_channel(ob->pose, bonename);
 						bConstraint *con;
-						for(con= pchan->constraints.first; con; con= con->next)
-							if(strcmp(con->name, constname)==0)
+						
+						for (con= pchan->constraints.first; con; con= con->next) {
+							if (strcmp(con->name, constname)==0)
 								break;
-						if(con) {
-							if(con->ipo==NULL) {
+						}
+						
+						if (con) {
+							if ((con->ipo==NULL) && (add))
 								con->ipo= add_ipo("CoIpo", ID_CO);
-							}
 							return con->ipo;
 						}
 					}
 					else { /* the actionchannel */
-						bConstraintChannel *conchan= verify_constraint_channel(&ob->constraintChannels, constname);
-						if(conchan->ipo==NULL) {
-							conchan->ipo= add_ipo("CoIpo", ID_CO);	
+						bConstraintChannel *conchan;
+						
+						if (add)
+							conchan= verify_constraint_channel(&ob->constraintChannels, constname);
+						else
+							conchan= get_constraint_channel(&ob->constraintChannels, constname);
+							
+						if (conchan) {
+							if ((conchan->ipo==NULL) && (add))
+								conchan->ipo= add_ipo("CoIpo", ID_CO);	
+							return conchan->ipo;
 						}
-						return conchan->ipo;
 					}
 				}
-				else if(blocktype==ID_OB) {
-					if(ob->ipo==NULL) {
+				else if (blocktype==ID_OB) {
+					if ((ob->ipo==NULL) && (add))
 						ob->ipo= add_ipo("ObIpo", ID_OB);
-					}
 					return ob->ipo;
 				}
-				else if(blocktype==ID_KE) {
+				else if (blocktype==ID_KE) {
 					Key *key= ob_get_key((Object *)from);
 					
-					if(key) {
-						if(key->ipo==NULL) {
+					if (key) {
+						if ((key->ipo==NULL) && (add))
 							key->ipo= add_ipo("KeyIpo", ID_KE);
-						}
 						return key->ipo;
 					}
 					return NULL;
 				}
-				else if(blocktype== ID_FLUIDSIM) {
+				else if (blocktype== ID_FLUIDSIM) {
 					Object *ob= (Object *)from;
+
 					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 					if(fluidmd) {
 						FluidsimSettings *fss= fluidmd->fss;
-						if(fss->ipo==NULL) {
+						
+						if ((fss->ipo==NULL) && (add))
 							fss->ipo= add_ipo("FluidsimIpo", ID_FLUIDSIM);
-							//fprintf(stderr,"FSIPO NEW!\n");
-						}
 						return fss->ipo;
 					}
 				}
-				else if(blocktype== ID_PA){
+				else if(blocktype== ID_PA) {
 					Object *ob= (Object *)from;
 					ParticleSystem *psys= psys_get_current(ob);
-					if(psys){
-						if(psys->part->ipo==0)
+					
+					if (psys) {
+						if ((psys->part->ipo==NULL) && (add))
 							psys->part->ipo= add_ipo("ParticleIpo", ID_PA);
 						return psys->part->ipo;
 					}
@@ -1922,30 +1939,27 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 		case ID_MA:
 			{
 				Material *ma= (Material *)from;
-
-				if(ma->ipo==NULL) {
+				
+				if ((ma->ipo==NULL) && (add))
 					ma->ipo= add_ipo("MatIpo", ID_MA);
-				}
 				return ma->ipo;
 			}
 			break;
 		case ID_TE:
 			{
 				Tex *tex= (Tex *)from;
-
-				if(tex->ipo==NULL) {
+				
+				if ((tex->ipo==NULL) && (add))
 					tex->ipo= add_ipo("TexIpo", ID_TE);
-				}
 				return tex->ipo;
 			}
 			break;
 		case ID_SEQ:
 			{
 				Sequence *seq= (Sequence *)from;	/* note, sequence is mimicing Id */
-
-				if(seq->ipo==NULL) {
+				
+				if ((seq->ipo==NULL) && (add))
 					seq->ipo= add_ipo("SeqIpo", ID_SEQ);
-				}
 				update_seq_ipo_rect(seq);
 				return seq->ipo;
 			}
@@ -1954,19 +1968,17 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 			{
 				Curve *cu= (Curve *)from;
 				
-				if(cu->ipo==NULL) {
+				if ((cu->ipo==NULL) && (add))
 					cu->ipo= add_ipo("CuIpo", ID_CU);
-				}
 				return cu->ipo;
 			}
 			break;
 		case ID_WO:
 			{
 				World *wo= (World *)from;
-
-				if(wo->ipo==NULL) {
+				
+				if ((wo->ipo==NULL) && (add))
 					wo->ipo= add_ipo("WoIpo", ID_WO);
-				}
 				return wo->ipo;
 			}
 			break;
@@ -1974,29 +1986,26 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 			{
 				Lamp *la= (Lamp *)from;
 				
-				if(la->ipo==NULL) {
+				if ((la->ipo==NULL) && (add))
 					la->ipo= add_ipo("LaIpo", ID_LA);
-				}
 				return la->ipo;
 			}
 			break;
 		case ID_CA:
 			{
 				Camera *ca= (Camera *)from;
-
-				if(ca->ipo==NULL) {
+				
+				if ((ca->ipo==NULL) && (add))
 					ca->ipo= add_ipo("CaIpo", ID_CA);
-				}
 				return ca->ipo;
 			}
 			break;
 		case ID_SO:
 			{
 				bSound *snd= (bSound *)from;
-
-				if(snd->ipo==NULL) {
+				
+				if ((snd->ipo==NULL) && (add))
 					snd->ipo= add_ipo("SndIpo", ID_SO);
-				}
 				return snd->ipo;
 			}
 		}
@@ -2008,32 +2017,36 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 /* returns and creates
  * Make sure functions check for NULL or they will crash!
  *  */
-IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constname, char *bonename, int adrcode)
+IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constname, char *bonename, int adrcode, short add)
 {
 	Ipo *ipo;
 	IpoCurve *icu= NULL;
 	
 	/* return 0 if lib */
-	/* creates ipo too */
-	ipo= verify_ipo(from, blocktype, actname, constname, bonename);
+	/* creates ipo too (if add) */
+	ipo= verify_ipo(from, blocktype, actname, constname, bonename, add);
 	
-	if(ipo && ipo->id.lib==NULL && from->lib==NULL) {
-		
-		for(icu= ipo->curve.first; icu; icu= icu->next) {
-			if(icu->adrcode==adrcode) break;
+	if (ipo && ipo->id.lib==NULL && from->lib==NULL) {
+		/* try to find matching curve */
+		for (icu= ipo->curve.first; icu; icu= icu->next) {
+			if (icu->adrcode==adrcode) 
+				break;
 		}
-		if(icu==NULL) {
+		
+		/* make a new one if none found (and can add) */
+		if ((icu==NULL) && (add)) {
 			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
 			
-			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
-			if(ipo->curve.first==NULL) icu->flag |= IPO_ACTIVE;	/* first one added active */
+			icu->flag |= (IPO_VISIBLE|IPO_AUTO_HORIZ);
+			if (ipo->curve.first==NULL) 
+				icu->flag |= IPO_ACTIVE;	/* first one added active */
 			
 			icu->blocktype= blocktype;
 			icu->adrcode= adrcode;
 			
 			set_icu_vars(icu);
 			
-			BLI_addtail( &(ipo->curve), icu);
+			BLI_addtail(&ipo->curve, icu);
 			
 			switch (GS(from->name)) {
 				case ID_SEQ: {
@@ -2045,189 +2058,11 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 			}
 		}
 	}
-
+	
+	/* return ipo-curve */
 	return icu;
 }
 
-
-/* threshold for inserting keyframes - threshold here should be good enough for now, but should become userpref */
-#define BEZT_INSERT_THRESH 	0.00001
-
-/* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
- * Returns the index to insert at (data already at that index will be offset if replace is 0)
- */
-static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen, short *replace)
-{
-	int start=0, end=arraylen;
-	int loopbreaker= 0, maxloop= arraylen * 2;
-	const float frame= (item)? item->vec[1][0] : 0.0f;
-	
-	/* initialise replace-flag first */
-	*replace= 0;
-	
-	/* sneaky optimisations (don't go through searching process if...):
-	 *	- keyframe to be added is to be added out of current bounds
-	 *	- keyframe to be added would replace one of the existing ones on bounds
-	 */
-	if ((arraylen <= 0) || ELEM(NULL, array, item)) {
-		printf("Warning: binarysearch_bezt_index encountered invalid array \n");
-		return 0;
-	}
-	else {
-		/* check whether to add before/after/on */
-		float framenum;
-		
-		/* 'First' Keyframe (when only one keyframe, this case is used) */
-		framenum= array[0].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
-			*replace = 1;
-			return 0;
-		}
-		else if (frame < framenum)
-			return 0;
-			
-		/* 'Last' Keyframe */
-		framenum= array[(arraylen-1)].vec[1][0];
-		if (IS_EQT(frame, framenum, BEZT_INSERT_THRESH)) {
-			*replace= 1;
-			return (arraylen - 1);
-		}
-		else if (frame > framenum)
-			return arraylen;
-	}
-	
-	
-	/* most of the time, this loop is just to find where to put it
-	 * 'loopbreaker' is just here to prevent infinite loops 
-	 */
-	for (loopbreaker=0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
-		/* compute and get midpoint */
-		int mid = (start + end) / 2;
-		float midfra= array[mid].vec[1][0];
-		
-		/* check if exactly equal to midpoint */
-		if (IS_EQT(frame, midfra, BEZT_INSERT_THRESH)) {
-			*replace = 1;
-			return mid;
-		}
-		
-		/* repeat in upper/lower half */
-		if (frame > midfra)
-			start= mid + 1;
-		else if (frame < midfra)
-			end= mid - 1;
-	}
-	
-	/* print error if loop-limit exceeded */
-	if (loopbreaker == (maxloop-1)) {
-		printf("Error: binarysearch_bezt_index was taking too long \n");
-		
-		// include debug info 
-		printf("\tround = %d: start = %d, end = %d, arraylen = %d \n", loopbreaker, start, end, arraylen);
-	}
-	
-	/* not found, so return where to place it */
-	return start;
-}
-
-/* This function adds a given BezTriple to an IPO-Curve. It will allocate 
- * memory for the array if needed, and will insert the BezTriple into a
- * suitable place in chronological order.
- * 
- * NOTE: any recalculate of the IPO-Curve that needs to be done will need to 
- * 		be done by the caller.
- */
-int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
-{
-	BezTriple *newb;
-	int i= 0;
-	
-	if (icu->bezt == NULL) {
-		icu->bezt= MEM_callocN(sizeof(BezTriple), "beztriple");
-		*(icu->bezt)= *bezt;
-		icu->totvert= 1;
-	}
-	else {
-		short replace = -1;
-		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert, &replace);
-		
-		if (replace) {			
-			/* sanity check: 'i' may in rare cases exceed arraylen */
-			if ((i >= 0) && (i < icu->totvert))
-				*(icu->bezt + i) = *bezt;
-		}
-		else {
-			/* add new */
-			newb= MEM_callocN((icu->totvert+1)*sizeof(BezTriple), "beztriple");
-			
-			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
-			if (i > 0)
-				memcpy(newb, icu->bezt, i*sizeof(BezTriple));
-			
-			/* add beztriple to paste at index i */
-			*(newb + i)= *bezt;
-			
-			/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
-			if (i < icu->totvert) 
-				memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
-			
-			/* replace (+ free) old with new */
-			MEM_freeN(icu->bezt);
-			icu->bezt= newb;
-			
-			icu->totvert++;
-		}
-	}
-	
-	/* we need to return the index, so that some tools which do post-processing can 
-	 * detect where we added the BezTriple in the array
-	 */
-	return i;
-}
-
-/* This function is a wrapper for insert_bezt_icu, and should be used when
- * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere
- * else yet. 
- * 
- * 'fast' - is only for the python API where importing BVH's would take an extreamly long time.
- */
-void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
-{
-	BezTriple beztr;
-	int a, h1, h2;
-	
-	/* set all three points, for nicer start position */
-	memset(&beztr, 0, sizeof(BezTriple));
-	beztr.vec[0][0]= x; 
-	beztr.vec[0][1]= y;
-	beztr.vec[1][0]= x;
-	beztr.vec[1][1]= y;
-	beztr.vec[2][0]= x;
-	beztr.vec[2][1]= y;
-	beztr.hide= IPO_BEZ;
-	beztr.f1= beztr.f2= beztr.f3= SELECT;
-	beztr.h1= beztr.h2= HD_AUTO;
-	
-	/* add temp beztriple to keyframes */
-	a= insert_bezt_icu(icu, &beztr);
-	if (!fast) calchandles_ipocurve(icu);
-	
-	/* set handletype */
-	if (icu->totvert > 2) {
-		BezTriple *bezt;
-		
-		h1= h2= HD_AUTO;
-		bezt= (icu->bezt + a);
-		
-		if (a > 0) h1= (bezt-1)->h2;
-		if (a < icu->totvert-1) h2= (bezt+1)->h1;
-		
-		bezt->h1= h1;
-		bezt->h2= h2;
-		
-		if (!fast) calchandles_ipocurve(icu);
-	}
-}
 
 void add_vert_ipo(void)
 {
@@ -2262,7 +2097,7 @@ void add_vert_ipo(void)
 	
 	if(ei->icu==NULL) {
 		if(G.sipo->from) {
-			ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
+			ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode, 1);
 			if (ei->icu)
 				ei->flag |= ei->icu->flag & IPO_AUTO_HORIZ;	/* new curve could have been added, weak... */
 			else
@@ -2288,525 +2123,6 @@ void add_vert_ipo(void)
 	BIF_undo_push("Add Ipo vertex");
 }
 
-static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
-{
-	if (blocktype==ID_PO) {
-		if (GS(id->name)==ID_OB) {
-			Object *ob= (Object *)id;
-			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
-			
-			if (pchan) {
-				*vartype= IPO_FLOAT;
-				return get_pchan_ipo_poin(pchan, icu->adrcode);
-			}
-			else
-				return NULL;
-		}
-		return NULL;
-	}
-	else if (blocktype==ID_CO) {
-		if ((GS(id->name)==ID_OB) && (constname && constname[0])) {
-			Object *ob= (Object *)id;
-			bConstraint *con;
-			
-			/* assume that we only want the influence (as only used for Constraint Channels) */
-			if ((ob->ipoflag & OB_ACTION_OB) && !strcmp(actname, "Object")) {
-				for (con= ob->constraints.first; con; con= con->next) {
-					if (strcmp(constname, con->name)==0) {
-						*vartype= IPO_FLOAT;
-						return &con->enforce;
-					}
-				}
-			}
-			else if (ob->pose) {
-				bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
-				
-				if (pchan) {
-					for (con= pchan->constraints.first; con; con= con->next) {
-						if (strcmp(constname, con->name)==0) {
-							*vartype= IPO_FLOAT;
-							return &con->enforce;
-						}
-					}
-				}
-			}
-		}
-		return NULL;
-	}
-	else
-		return get_ipo_poin(id, icu, vartype);
-
-}
-
-#define KEYNEEDED_DONTADD	0
-#define	KEYNEEDED_JUSTADD	1
-#define KEYNEEDED_DELPREV	2
-#define KEYNEEDED_DELNEXT 	3
-
-static int new_key_needed(IpoCurve *icu, float cFrame, float nValue) 
-{
-	/* This function determines whether a new keyframe is needed */
-	/* Cases where keyframes should not be added:
-	 *	1. Keyframe to be added bewteen two keyframes with similar values
-	 *	2. Keyframe to be added on frame where two keyframes are already situated
-	 *	3. Keyframe lies at point that intersects the linear line between two keyframes
-	 */
-	
-	BezTriple *bezt=NULL, *prev=NULL;
-	int totCount, i;
-	float valA = 0.0f, valB = 0.0f;
-	
-	/* safety checking */
-	if (!icu) return KEYNEEDED_JUSTADD;
-	totCount= icu->totvert;
-	if (totCount==0) return KEYNEEDED_JUSTADD;
-	
-	/* loop through checking if any are the same */
-	bezt= icu->bezt;
-	for (i=0; i<totCount; i++) {
-		float prevPosi=0.0f, prevVal=0.0f;
-		float beztPosi=0.0f, beztVal=0.0f;
-			
-		/* get current time+value */	
-		beztPosi= bezt->vec[1][0];
-		beztVal= bezt->vec[1][1];
-			
-		if (prev) {
-			/* there is a keyframe before the one currently being examined */		
-			
-			/* get previous time+value */
-			prevPosi= prev->vec[1][0];
-			prevVal= prev->vec[1][1];
-			
-			/* keyframe to be added at point where there are already two similar points? */
-			if (IS_EQ(prevPosi, cFrame) && IS_EQ(beztPosi, cFrame) && IS_EQ(beztPosi, prevPosi)) {
-				return KEYNEEDED_DONTADD;
-			}
-			
-			/* keyframe between prev+current points ? */
-			if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
-				/* is the value of keyframe to be added the same as keyframes on either side ? */
-				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal)) {
-					return KEYNEEDED_DONTADD;
-				}
-				else {
-					float realVal;
-					
-					/* get real value of curve at that point */
-					realVal= eval_icu(icu, cFrame);
-				
-					/* compare whether it's the same as proposed */
-					if (IS_EQ(realVal, nValue)) 
-						return KEYNEEDED_DONTADD;
-					else 
-						return KEYNEEDED_JUSTADD;
-				}
-			}
-			
-			/* new keyframe before prev beztriple? */
-			if (cFrame < prevPosi) {
-				/* A new keyframe will be added. However, whether the previous beztriple
-				 * stays around or not depends on whether the values of previous/current
-				 * beztriples and new keyframe are the same.
-				 */
-				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal))
-					return KEYNEEDED_DELNEXT;
-				else 
-					return KEYNEEDED_JUSTADD;
-			}
-		}
-		else {
-			/* just add a keyframe if there's only one keyframe 
-			 * and the new one occurs before the exisiting one does.
-			 */
-			if ((cFrame < beztPosi) && (totCount==1))
-				return KEYNEEDED_JUSTADD;
-		}
-		
-		/* continue. frame to do not yet passed (or other conditions not met) */
-		if (i < (totCount-1)) {
-			prev= bezt;
-			bezt++;
-		}
-		else
-			break;
-	}
-	
-	/* Frame in which to add a new-keyframe occurs after all other keys
-	 * -> If there are at least two existing keyframes, then if the values of the
-	 *	 last two keyframes and the new-keyframe match, the last existing keyframe
-	 *	 gets deleted as it is no longer required.
-	 * -> Otherwise, a keyframe is just added. 1.0 is added so that fake-2nd-to-last
-	 *	 keyframe is not equal to last keyframe.
-	 */
-	bezt= (icu->bezt + (icu->totvert - 1));
-	valA= bezt->vec[1][1];
-	
-	if (prev)
-		valB= prev->vec[1][1];
-	else 
-		valB= bezt->vec[1][1] + 1.0f; 
-		
-	if (IS_EQ(valA, nValue) && IS_EQ(valA, valB)) 
-		return KEYNEEDED_DELPREV;
-	else 
-		return KEYNEEDED_JUSTADD;
-}
-
-/* a duplicate of insertkey that does not check for routing to insertmatrixkey 
-	to avoid recursion problems */
-static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *constname, int adrcode)
-{
-	IpoCurve *icu;
-	Object *ob;
-	void *poin= NULL;
-	float curval, cfra;
-	int vartype;
-	int matset=0;
-	
-	if (matset==0) {
-		icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
-		
-		if(icu) {
-			
-			poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-			
-			if(poin) {
-				curval= read_ipo_poin(poin, vartype);
-				
-				cfra= frame_to_float(CFRA);
-				
-				/* if action is mapped in NLA, it returns a correction */
-				if(actname && actname[0] && GS(id->name)==ID_OB)
-					cfra= get_action_frame((Object *)id, cfra);
-				
-				if( GS(id->name)==ID_OB ) {
-					ob= (Object *)id;
-					if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
-						/* actually frametofloat calc again! */
-						cfra-= give_timeoffset(ob)*G.scene->r.framelen;
-					}
-				}
-				
-				insert_vert_icu(icu, cfra, curval, 0);
-			}
-		}
-	}
-}
-
-int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode)
-{
-	int matindex=0;
-	/* branch on adrcode and blocktype, generating the proper matrix-based
-	values to send to insertfloatkey */
-	if (GS(id->name)==ID_OB) {
-		Object *ob= (Object *)id;
-
-		if ( blocktype==ID_OB ){ //working with an object
-			if ((ob)&&!(ob->parent)) {
-				if ((adrcode==OB_ROT_X)||(adrcode==OB_ROT_Y)||(adrcode==OB_ROT_Z)) { //get a rotation
-					float eul[3];
-					switch (adrcode) {
-						case OB_ROT_X:
-							matindex=0;
-							break;
-						case OB_ROT_Y:
-							matindex=1;
-							break;
-						case OB_ROT_Z:
-							matindex=2;
-							break;
-					}
-					Mat4ToEul(ob->obmat, eul);
-					insertfloatkey(id, ID_OB, actname, NULL, adrcode, eul[matindex]*(5.72958));
-					return 1;
-				} else if ((adrcode==OB_LOC_X)||(adrcode==OB_LOC_Y)||(adrcode==OB_LOC_Z)) {//get a translation
-					switch (adrcode) {
-						case OB_LOC_X:
-							matindex=0;
-							break;
-						case OB_LOC_Y:
-							matindex=1;
-							break;
-						case OB_LOC_Z:
-							matindex=2;
-							break;
-					}
-					insertfloatkey(id, ID_OB, actname, NULL, adrcode, ob->obmat[3][matindex]);
-					return 1;
-				}
-			}
-		} else if ( blocktype==ID_PO) { //working with a pose channel
-			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
-			if (pchan) {
-				if ((adrcode==AC_LOC_X)||(adrcode==AC_LOC_Y)||(adrcode==AC_LOC_Z)) {
-					switch (adrcode) {
-						case AC_LOC_X:
-							matindex=0;
-							break;
-						case AC_LOC_Y:
-							matindex=1;
-							break;
-						case AC_LOC_Z:
-							matindex=2;
-							break;
-					}
-					if (!(pchan->bone->parent)||((pchan->bone->parent)&&!(pchan->bone->flag&BONE_CONNECTED))) { /* don't use for non-connected child bones */
-						float delta_mat[4][4]; 
-						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
-						insertfloatkey(id, ID_PO, pchan->name, NULL, adrcode, delta_mat[3][matindex]);
-						return 1;
-					}
-				} else if ((adrcode==AC_QUAT_W)||(adrcode==AC_QUAT_X)||(adrcode==AC_QUAT_Y)||(adrcode==AC_QUAT_Z)) { 
-					float tmat[4][4], trimat[3][3], localQuat[4];
-					
-					switch (adrcode) {
-						case AC_QUAT_W:
-							matindex=0;
-							break;
-						case AC_QUAT_X:
-							matindex=1;
-							break;
-						case AC_QUAT_Y:
-							matindex=2;
-							break;
-						case AC_QUAT_Z:
-							matindex=3;
-							break;
-					}
-					
-					/* it should be reasonable to assume that we are keyframing on the active object, although it is not 
-					 * strictly required for this particular space conversion, arg1 must not be null for this to work
-					 */
-					Mat4CpyMat4(tmat, pchan->pose_mat);
-					constraint_mat_convertspace(OBACT, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
-					
-					Mat3CpyMat4(trimat, tmat);
-					Mat3ToQuat_is_ok(trimat, localQuat);
-					insertfloatkey(id, ID_PO, pchan->name, NULL, adrcode, localQuat[matindex]);
-					
-					return 1;
-				}
-			}
-		}
-	}
-	/* failed to set a matrix key -- use traditional, but the non-recursing version */
-	insertkey_nonrecurs(id,blocktype,actname,constname,adrcode);
-	return 0;
-}
-
-static int match_adr_constraint(ID * id, int blocktype, char *actname, int adrcode)
-{	/* This function matches constraint blocks with adrcodes to see if the
-		visual keying method should be used. For example, an object looking to key
-		location and having a CopyLoc constraint would return true. */
-		
-	Object *ob=NULL;
-	int foundmatch=0;
-	int searchtype=0;
-	bConstraint *conref=NULL, *con=NULL;
-	
-	/*Retrieve constraint list*/
-	if( GS(id->name)==ID_OB ) 
-		ob= (Object *)id;
-	if (ob) {
-		if (blocktype==ID_PO) {
-			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
-			conref=pchan->constraints.first;
-		} else if (blocktype==ID_OB) {
-			conref=ob->constraints.first;
-		}
-		
-		if (conref) {
-			/*Set search type: 1 is for translation contraints, 2 is for rotation*/
-			if ((adrcode==OB_LOC_X)||(adrcode==OB_LOC_Y)||(adrcode==OB_LOC_Z)||(adrcode==AC_LOC_X)||(adrcode==AC_LOC_Y)||(adrcode==AC_LOC_Z)) {
-				searchtype=1;
-			} else if ((adrcode==OB_ROT_X)||(adrcode==OB_ROT_Y)||(adrcode==OB_ROT_Z)||(adrcode==AC_QUAT_W)||(adrcode==AC_QUAT_X)||(adrcode==AC_QUAT_Y)||(adrcode==AC_QUAT_Z)) {
-				searchtype=2;
-			}
-			
-			if (searchtype>0) {
-				for (con=conref; (con)&&(foundmatch==0); con=con->next) {
-					switch (con->type) {
-					/* match constraint types to which kinds of keying they would affect */
-						case CONSTRAINT_TYPE_CHILDOF:
-							foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_TRACKTO:
-							if (searchtype==2) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_FOLLOWPATH:
-							foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_ROTLIMIT:
-							if (searchtype==2) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_LOCLIMIT:
-							if (searchtype==1) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_ROTLIKE:
-							if (searchtype==2) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_LOCLIKE:
-							if (searchtype==1) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_LOCKTRACK:
-							if (searchtype==2) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_DISTLIMIT:
-							if (searchtype==1) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_MINMAX:
-							if (searchtype==1) foundmatch=1;
-							break;
-						case CONSTRAINT_TYPE_TRANSFORM:
-							foundmatch=1;
-							break;
-						default:
-							break;
-					}
-				}
-			}
-		}
-	}
-	
-	return foundmatch;
-			
-}
-
-void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, short fast)
-{
-	IpoCurve *icu;
-	Object *ob;
-	void *poin= NULL;
-	float curval, cfra;
-	int vartype;
-	int matset=0;
-	
-	if ((IS_AUTOKEY_FLAG(AUTOMATKEY))&&(match_adr_constraint(id, blocktype, actname, adrcode))) {
-		matset=insertmatrixkey(id, blocktype, actname, constname, adrcode);
-	} 
-	if (matset==0) {
-		icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
-		
-		if(icu) {
-			
-			poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-			
-			if(poin) {
-				curval= read_ipo_poin(poin, vartype);
-				
-				cfra= frame_to_float(CFRA);
-				
-				/* if action is mapped in NLA, it returns a correction */
-				if(actname && actname[0] && GS(id->name)==ID_OB)
-					cfra= get_action_frame((Object *)id, cfra);
-				
-				if( GS(id->name)==ID_OB ) {
-					ob= (Object *)id;
-					if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
-						/* actually frametofloat calc again! */
-						cfra-= give_timeoffset(ob)*G.scene->r.framelen;
-					}
-				}
-				
-				insert_vert_icu(icu, cfra, curval, fast);
-			}
-		}
-	}
-}
-
-
-
-/* This function is a 'smarter' version of the insert key code.
- * It uses an auxilliary function to check whether a keyframe is really needed */
-void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, int adrcode)
-{
-	IpoCurve *icu;
-	Object *ob;
-	void *poin= NULL;
-	float curval, cfra;
-	int vartype;
-	int insert_mode;
-	
-	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
-	
-	if(icu) {
-		
-		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-		
-		if(poin) {
-			curval= read_ipo_poin(poin, vartype);
-			
-			cfra= frame_to_float(CFRA);
-			
-			/* if action is mapped in NLA, it returns a correction */
-			if(actname && actname[0] && GS(id->name)==ID_OB)
-				cfra= get_action_frame((Object *)id, cfra);
-			
-			if( GS(id->name)==ID_OB ) {
-				ob= (Object *)id;
-				if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
-					/* actually frametofloat calc again! */
-					cfra-= give_timeoffset(ob)*G.scene->r.framelen;
-				}
-			}
-			
-			/* check whether this curve really needs a new keyframe */
-			insert_mode= new_key_needed(icu, cfra, curval);
-			
-			/* insert new keyframe at current frame */
-			if (insert_mode) 
-				insert_vert_icu(icu, cfra, curval, 0);
-			
-			/* delete keyframe immediately before/after newly added */
-			switch (insert_mode) {
-				case KEYNEEDED_DELPREV:
-					delete_icu_key(icu, icu->totvert-2, 1);
-					break;
-				case KEYNEEDED_DELNEXT:
-					delete_icu_key(icu, 1, 1);
-					break;
-			}
-		}
-	}
-}
-
-/* For inserting keys based on an arbitrary float value */
-void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float floatkey)
-{
-	IpoCurve *icu;
-	Object *ob;
-	void *poin= NULL;
-	float cfra;
-	int vartype;
-	
-	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
-	
-	if(icu) {
-		
-		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-		
-		if(poin) {
-			
-			cfra= frame_to_float(CFRA);
-			
-			/* if action is mapped in NLA, it returns a correction */
-			if(actname && actname[0] && GS(id->name)==ID_OB)
-				cfra= get_action_frame((Object *)id, cfra);
- 			
- 			if( GS(id->name)==ID_OB ) {
- 				ob= (Object *)id;
- 				if((ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0) ) {
- 					/* actually frametofloat calc again! */
- 					cfra-= give_timeoffset(ob)*G.scene->r.framelen;
- 				}
- 			}
-			
-			/* insert new keyframe at current frame */
-			insert_vert_icu(icu, cfra, floatkey, 0);
- 		}
- 	}
-}
 
 void insertkey_editipo(void)
 {
@@ -2937,598 +2253,6 @@ void insertkey_editipo(void)
 	allspace(REMAKEIPO, 0);
 }
 
-
-void common_insertkey(void)
-{
-	Base *base;
-	Object *ob;
-	Material *ma;
-	ID *id;
-	IpoCurve *icu;
-	World *wo;
-	Lamp *la;
-	Tex *te;
-	int tlay, map, event;
-	char menustr[256];
-
-	if(curarea->spacetype==SPACE_IPO) {
-		insertkey_editipo();
-	}
-	else if(curarea->spacetype==SPACE_ACTION) {
-		insertkey_action();
-	}
-	else if(curarea->spacetype==SPACE_BUTS) {
-		if(G.buts->mainb==CONTEXT_SHADING) {
-			int tab= G.buts->tab[CONTEXT_SHADING];
-
-			if(tab==TAB_SHADING_MAT) {
-				ma = G.buts->lockpoin;
-				ma = editnode_get_active_material(ma);
-				id = (ID *)ma;
-				
-				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|All Mirror%x14|Ofs%x12|Size%x13|All Mapping%x11");
-					if(event== -1) return;
-
-					map= texchannel_to_adrcode(ma->texact);
-
-					if(event==0 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_COL_R, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_COL_G, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_COL_B, 0);
-					}
-					if(event==1 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_ALPHA, 0);
-					}
-					if(event==2 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_HASIZE, 0);
-					}
-					if(event==3 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_MODE, 0);
-					}
-					if(event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_R, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_G, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_B, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_REF, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_EMIT, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_AMB, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_HARD, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_MODE, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_TRANSLU, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_ADD, 0);
-					}
-					if(event==14) {
-						insertkey(id, ID_MA, NULL, NULL, MA_RAYM, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIR, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIRI, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRA, 0);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRAI, 0);
-					}
-					if(event==12 || event==11) {
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_X, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Y, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Z, 0);
-					}
-					if(event==13 || event==11) {
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_X, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Y, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Z, 0);
-					}
-					if(event==11) {
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_R, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_G, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_B, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_DVAR, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_COLF, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_NORF, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_VARF, 0);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_DISP, 0);
-					}
-				}
-			}
-			else if(tab==TAB_SHADING_WORLD) {
-				id= G.buts->lockpoin;
-				wo= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|Zenith RGB%x0|Horizon RGB%x1|Mist%x2|Stars %x3|Offset%x12|Size%x13");
-					if(event== -1) return;
-
-					map= texchannel_to_adrcode(wo->texact);
-
-					if(event==0) {
-						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_R, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_G, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_B, 0);
-					}
-					if(event==1) {
-						insertkey(id, ID_WO, NULL, NULL, WO_HOR_R, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_HOR_G, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_HOR_B, 0);
-					}
-					if(event==2) {
-						insertkey(id, ID_WO, NULL, NULL, WO_MISI, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_MISTDI, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_MISTSTA, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_MISTHI, 0);
-					}
-					if(event==3) {
-						insertkey(id, ID_WO, NULL, NULL, WO_STAR_R, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_STAR_G, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_STAR_B, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_STARDIST, 0);
-						insertkey(id, ID_WO, NULL, NULL, WO_STARSIZE, 0);
-					}
-					if(event==12) {
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_X, 0);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Y, 0);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Z, 0);
-					}
-					if(event==13) {
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_X, 0);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Y, 0);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Z, 0);
-					}
-				}
-			}
-			else if(tab==TAB_SHADING_LAMP) {
-				id= G.buts->lockpoin;
-				la= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spot Size%x2|Offset%x12|Size%x13");
-					if(event== -1) return;
-
-					map= texchannel_to_adrcode(la->texact);
-
-					if(event==0) {
-						insertkey(id, ID_LA, NULL, NULL, LA_COL_R, 0);
-						insertkey(id, ID_LA, NULL, NULL, LA_COL_G, 0);
-						insertkey(id, ID_LA, NULL, NULL, LA_COL_B, 0);
-					}
-					if(event==1) {
-						insertkey(id, ID_LA, NULL, NULL, LA_ENERGY, 0);
-					}
-					if(event==2) {
-						insertkey(id, ID_LA, NULL, NULL, LA_SPOTSI, 0);
-					}
-					if(event==12) {
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_X, 0);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Y, 0);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Z, 0);
-					}
-					if(event==13) {
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_X, 0);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Y, 0);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Z, 0);
-					}
-
-				}
-			}
-			else if(tab==TAB_SHADING_TEX) {
-				id= G.buts->lockpoin;
-				te= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|Clouds%x0|Marble%x1|Stucci%x2|Wood%x3|Magic%x4|Blend%x5|Musgrave%x6|Voronoi%x7|DistortedNoise%x8|ColorFilter%x9");
-					if(event== -1) return;
-
-					if(event==0) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
-					}
-					if(event==1) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2, 0);
-					}
-					if(event==2) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
-					}
-					if(event==3) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2, 0);
-					}
-					if(event==4) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
-					}
-					if(event==5) {
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
-					} 
-					if(event==6) {
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MGH, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_LAC, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN, 0);
-					}
-					if(event==7) {
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW1, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW2, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW3, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW4, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNMEXP, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_VN_DISTM, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_VN_COLT, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_ISCA, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
-					}
-					if(event==8) {
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_DISTA, 0);
-					}
-					if(event==9) {
-						insertkey(id, ID_TE, NULL, NULL, TE_COL_R, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_COL_G, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_COL_B, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_BRIGHT, 0);
-						insertkey(id, ID_TE, NULL, NULL, TE_CONTRA, 0);
-					}
-				}
-			}
-		}
-		else if(G.buts->mainb==CONTEXT_OBJECT) {
-			ob= OBACT;
-			if(ob) {
-				id= (ID *) (ob);
-				if(id) {
-					if(ob->type==OB_MESH) 
-						event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
-					else
-						event= pupmenu("Insert Key %t|Force Strength%x3|Force Falloff%x4");
-					if(event == -1) return;
-
-					if(event==0) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_SDAMP, 0);
-					}
-					if(event==1) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_RDAMP, 0);
-					}
-					if(event==2) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_PERM, 0);
-					}
-					if(event==3) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_FSTR, 0);
-					}
-					if(event==4) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_FFALL, 0);
-					}
-					if(event==5) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_FMAXD, 0);
-					}
-				}
-			}
-		}
-		else if(G.buts->mainb==CONTEXT_EDITING) {
-			ob= OBACT;
-			if(ob && ob->type==OB_CAMERA) {
-				id= G.buts->lockpoin;
-				if(id) {
-					/* yafray: insert key extended with aperture and focal distance */
-					/* qdn: FocalDistance now enabled for Blender as wel, for use with defocus node */
-					if (G.scene->r.renderer==R_INTERN)
-						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|FocalDistance%x3|Viewplane Shift%x4");
-					else
-						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|Aperture%x2|FocalDistance%x3");
-					if(event== -1) return;
-
-					if(event==0) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_LENS, 0);
-					}
-					else if(event==1) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_STA, 0);
-						insertkey(id, ID_CA, NULL, NULL, CAM_END, 0);
-					}
-					else if(event==2) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_YF_APERT, 0);
-					}
-					else if(event==3) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_YF_FDIST, 0);
-					}
-					else if(event==4) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_SHIFT_X, 0);
-						insertkey(id, ID_CA, NULL, NULL, CAM_SHIFT_Y, 0);
-					}
-				}
-			}
-		}
-		else if(FALSE /* && G.buts->mainb==BUTS_SOUND */) {
-			if(G.ssound) {
-				id= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|Volume%x0|Pitch%x1|Panning%x2|Attennuation%x3");
-					if(event== -1) return;
-
-					if(event==0) {
-						insertkey(id, ID_SO, NULL, NULL, SND_VOLUME, 0);
-					}
-					if(event==1) {
-						insertkey(id, ID_SO, NULL, NULL, SND_PITCH, 0);
-					}
-					if(event==2) {
-						insertkey(id, ID_SO, NULL, NULL, SND_PANNING, 0);
-					}
-					if(event==3) {
-						insertkey(id, ID_SO, NULL, NULL, SND_ATTEN, 0);
-					}
-				}
-			}
-		}
-
-		BIF_undo_push("Insert Key Buttons");
-
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWIPO, 0);
-		allspace(REMAKEIPO, 0);
-
-	}
-	else if(curarea->spacetype==SPACE_VIEW3D) {
-		ob= OBACT;
-
-		if (ob && (ob->flag & OB_POSEMODE)) {
-			bPoseChannel *pchan;
-			
-			set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
-			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next)
-				if (pchan->flag & POSE_KEY)
-					break;
-			if(pchan==NULL) return;
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Avail%x9|Needed%x15|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
-		}
-		else {
-			base= FIRSTBASE;
-			while(base) {
-				if (TESTBASELIB(base)) break;
-				base= base->next;
-			}
-			if(base==NULL) return;
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Layer%x5|Avail%x9|Needed%x15|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
-		}
-
-		if(ob) {
-			if(ob->type==OB_MESH) strcat(menustr, "| %x6|Mesh%x7");
-			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
-			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
-			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
-		}
-
-		event= pupmenu(menustr);
-		if(event== -1) return;
-
-		if(event==7) { // ob != NULL
-			insert_shapekey(ob);
-			return;
-		}
-
-		if (ob && (ob->flag & OB_POSEMODE)){
-			bPoseChannel *pchan;
-			short recalc_bonepaths= 0;
-			
-			if (ob->action && ob->action->id.lib) {
-				error ("Can't key libactions");
-				return;
-			}
-			
-			id= &ob->id;
-			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-				if (pchan->flag & POSE_KEY) {
-					/* insert relevant keyframes */
-					if(event==0 || event==3 ||event==4) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-					}
-					if(event==1 || event==3 || event==4) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					}
-					if(event==2 || event==4) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-					}
-					if (event==9 && ob->action) {
-						bActionChannel *achan;
-						
-						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
-							if (achan->ipo && !strcmp (achan->name, pchan->name)){
-								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-									insertkey(id, ID_PO, achan->name, NULL, icu->adrcode, 0);
-								}
-								break;
-							}
-						}
-					}
- 					if(event==11 || event==13) {
-						int matok=0; 
-						/* check one to make sure we're not trying to set visual loc keys on
-							bones inside of a chain, which only leads to tears. */
-						matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-						
-						if (matok == 0) {
-							insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
-						}
- 					}
- 					if(event==12 || event==13) {
-						int matok=0; 
-						/* check one to make sure we're not trying to set visual rot keys on
-							bones inside of a chain, which only leads to tears. */
-						matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						
-						if (matok == 0) {
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-						}
- 					}
-					if (event==15 && ob->action) {
-						bActionChannel *achan;
-						
-						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
-							if (achan->ipo && !strcmp (achan->name, pchan->name)){
-								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-									insertkey_smarter(id, ID_PO, achan->name, NULL, icu->adrcode);
-								}
-								break;
-							}
-						}
-					}
-					
-					/* clear unkeyed flag (it doesn't matter if it's set or not) */
-					if (pchan->bone)
-						pchan->bone->flag &= ~BONE_UNKEYED;
-						
-					/* check if bone has a path */
-					if (pchan->path)
-						recalc_bonepaths = 1;
-				}
-			}
-			
-			/* recalculate ipo handles, etc. */
-			if(ob->action)
-				remake_action_ipos(ob->action);
-				
-			/* recalculate bone-paths on adding new keyframe? */
-			// TODO: currently, there is no setting to turn this on/off globally
-			if (recalc_bonepaths)
-				pose_recalculate_paths(ob);
-			
-			
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-		}
-		else {
-			base= FIRSTBASE;
-			while(base) {
-				if (TESTBASELIB(base)) {
-					char *actname= NULL;
-
-					id= (ID *)(base->object);
-
-					if(base->object->ipoflag & OB_ACTION_OB)
-						actname= "Object";
-
-					/* all curves in ipo deselect */
-					if(base->object->ipo || base->object->action) {
-						if (base->object->ipo) {
-							icu= base->object->ipo->curve.first;
-						}
-						else {
-							bActionChannel *achan;
-							achan= get_action_channel(base->object->action, actname);
-							
-							if (achan && achan->ipo)
-								icu= achan->ipo->curve.first;
-							else
-								icu= NULL;
-						}
-						
-						while(icu) {
-							icu->flag &= ~IPO_SELECT;
-							
-							switch (event) {
-								case 9: 
-									insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
-									break;
-								case 15:
-									insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
-									break;
-							}
-							icu= icu->next;
-						}
-					}
-
-					if(event==0 || event==3 ||event==4) {
-						insertkey(id, ID_OB, actname, NULL, OB_LOC_X, 0);
-						insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-						insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, 0);
-					}
-					if(event==1 || event==3 ||event==4) {
-						insertkey(id, ID_OB, actname, NULL, OB_ROT_X, 0);
-						insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-						insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, 0);
-					}
-					if(event==2 || event==4) {
-						insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, 0);
-						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
-						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
-					}
-					if(event==5) {
-						/* remove localview  */
-						tlay= base->object->lay;
-						base->object->lay &= 0xFFFFFF;
-						insertkey(id, ID_OB, actname, NULL, OB_LAY, 0);
-						base->object->lay= tlay;
-					}
- 					if(event==11 || event==13) {
-						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_X);
-						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Y);
-						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Z);
- 					}
- 					if(event==12 || event==13) {
-						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_X);
-						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Y);
-						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Z);
- 					}
-					base->object->recalc |= OB_RECALC_OB;
-				}
-				base= base->next;
-			}
-		}
-
-		if(event==0) BIF_undo_push("Insert Loc Key");
-		else if(event==1) BIF_undo_push("Insert Rot Key");
-		else if(event==2) BIF_undo_push("Insert Scale Key");
-		else if(event==3) BIF_undo_push("Insert LocRot Key");
-		else if(event==4) BIF_undo_push("Insert LocRotScale Key");
-		else if(event==5) BIF_undo_push("Insert Layer Key");
-		else if(event==7) BIF_undo_push("Insert Vertex Key");
-		else if(event==9) BIF_undo_push("Insert Avail Key");
-		else if(event==11) BIF_undo_push("Insert VisualLoc Key");
-		else if(event==12) BIF_undo_push("Insert VisualRot Key");
-		else if(event==13) BIF_undo_push("Insert VisualLocRot Key");
-		else if(event==15) BIF_undo_push("Insert Needed Key");
-		
-		DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
-		
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-	}
-
-}
 
 /* ****************************************************************************** */
 
@@ -3680,6 +2404,7 @@ void remove_doubles_ipo(void)
 
 	}
 	deselectall_editipo();
+	BIF_undo_push("Remove Doubles (IPO)");
 }
 
 
@@ -4502,7 +3227,7 @@ void paste_editipo(void)
 				int i;
 				
 				/* make sure an ipo-curve exists (it may not, as this is an editipo) */
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode, 1);
 				if (ei->icu == NULL) return;
 				
 				/* Copy selected beztriples from source icu onto this edit-icu,
@@ -4543,7 +3268,7 @@ void paste_editipo(void)
 			else  {
 				
 				/* make sure an ipo-curve exists (it may not, as this is an editipo) */
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode, 1);
 				if (ei->icu==NULL) return;
 				
 				/* clear exisiting dynamic memory (keyframes, driver) */
@@ -5658,7 +4383,7 @@ void ipo_record(void)
 
 	/* make curves ready, start values */
 	if(ei1->icu==NULL) 
-		ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei1->adrcode);
+		ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei1->adrcode, 1);
 	if(ei1->icu==NULL) return;
 	
 	poin= get_ipo_poin(G.sipo->from, ei1->icu, &type);
@@ -5668,7 +4393,7 @@ void ipo_record(void)
 
 	if(ei2) {
 		if(ei2->icu==NULL)
-			ei2->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei2->adrcode);
+			ei2->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei2->adrcode, 1);
 		if(ei2->icu==NULL) return;
 		
 		poin= get_ipo_poin(G.sipo->from, ei2->icu, &type);
