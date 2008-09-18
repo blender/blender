@@ -35,4 +35,4 @@ incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
 env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[19, 169], compileflags=cflags )
 env.BlenderLib ( libname = 'extern_bullet2collision', sources=collision_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20,170], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[18,168], compileflags=cflags )
