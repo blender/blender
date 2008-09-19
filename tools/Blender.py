@@ -111,15 +111,16 @@ def setup_staticlibs(lenv):
         '/usr/lib',
         lenv['BF_PYTHON_LIBPATH'],
         lenv['BF_OPENGL_LIBPATH'],
-        lenv['BF_SDL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ]
-    
-    
-    libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
+
+    if lenv['WITH_BF_SDL']:
+        libincs += Split(lenv['BF_SDL_LIBPATH'])
+    if lenv['WITH_BF_FFMPEG']:
+        libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
     if lenv['WITH_BF_STATICCXX']:
         statlibs += Split(lenv['BF_CXX_LIB_STATIC'])
     if lenv['WITH_BF_OPENEXR']:
@@ -172,7 +173,8 @@ def setup_syslibs(lenv):
             syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
-    syslibs += Split(lenv['BF_SDL_LIB'])
+    if lenv['WITH_BF_SDL']:
+        syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
         syslibs += Split(lenv['BF_OPENGL_LIB'])
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):

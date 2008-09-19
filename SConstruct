@@ -267,6 +267,18 @@ if 'blenderlite' in B.targets:
     env['WITH_BF_YAFRAY'] = False
     env['WITH_BF_REDCODE'] = False
     env['WITH_BF_FTGL'] = False
+    env['WITH_BF_DDS'] = False
+    env['WITH_BF_ZLIB'] = False
+    env['WITH_BF_SDL'] = False
+    env['WITH_BF_JPEG'] = False
+    env['WITH_BF_PNG'] = False
+    env['WITH_BF_ODE'] = False
+    env['WITH_BF_BULLET'] = False
+    env['WITH_BF_BINRELOC'] = False
+    env['BF_BUILDINFO'] = False
+    env['BF_NO_ELBEEM'] = True
+    
+
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
