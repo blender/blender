@@ -202,6 +202,7 @@ static void print_help(void)
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
+	printf ("    -j <frame>\tSet frame step to <frame>\n");
 				
 	printf ("\nWindow options:\n");
 	printf ("  -w\t\tForce opening with borders (default)\n");
@@ -623,7 +624,7 @@ int main(int argc, char **argv)
 						if (G.f & G_DOSCRIPTLINKS)
 							BPY_do_all_scripts(SCRIPT_RENDER, 0);
 
-						RE_BlenderAnim(re, G.scene, frame, frame);
+						RE_BlenderAnim(re, G.scene, frame, frame, G.scene->frame_step);
 
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
 					}
@@ -638,7 +639,7 @@ int main(int argc, char **argv)
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_RENDER, 1);
 
-					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
@@ -667,6 +668,15 @@ int main(int argc, char **argv)
 					if (a < argc) (G.scene->r.efra) = frame;
 				} else {
 					printf("\nError: no blend loaded. cannot use '-e'.\n");
+				}
+				break;
+			case 'j':
+				a++;
+				if(G.scene) {
+					int fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+					if (a < argc) (G.scene->frame_step) = fstep;
+				} else {
+					printf("\nError: no blend loaded. cannot use '-j'.\n");
 				}
 				break;
 			case 'P':

@@ -2315,12 +2315,13 @@ static void render_panel_anim(void)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,40,94,33, 0, 0, 0, 0, 0, "Play rendered images/avi animation (Ctrl+F11), (Play Hotkeys: A-Noskip, P-PingPong)");
-	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
+	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,50,94,33, 0, 0, 0, 0, 0, "Play rendered images/avi animation (Ctrl+F11), (Play Hotkeys: A-Noskip, P-PingPong)");
+	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,50,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation (inclusive)");
-	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation  (inclusive)");
+	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,20,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation (inclusive)");
+	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,20,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation  (inclusive)");
+	uiDefButI(block, NUM,REDRAWSEQ,"Step:",692,0,192,18, &G.scene->frame_step, 1.0, MAXFRAMEF, 0, 0, "Frame Step");
 	uiBlockEndAlign(block);
 }
 

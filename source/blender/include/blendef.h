@@ -113,6 +113,7 @@
 #define	F_CFRA			((float)(G.scene->r.cfra))
 #define	SFRA			(G.scene->r.sfra)
 #define	EFRA			(G.scene->r.efra)
+#define STFRA			(G.scene->frame_step)
 #define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
 #define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
 #define FRA2TIME(a)           ((((double) G.scene->r.frs_sec_base) * (a)) / G.scene->r.frs_sec)

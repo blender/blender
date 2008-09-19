@@ -496,7 +496,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		tstate = PyEval_SaveThread();
 
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
 		BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
 
@@ -599,7 +599,7 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 			BPY_do_all_scripts(SCRIPT_RENDER, 1);
 
 		tstate = PyEval_SaveThread();
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
 		if (G.f & G_DOSCRIPTLINKS)
 			BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);

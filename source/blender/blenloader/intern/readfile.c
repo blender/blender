@@ -7808,6 +7808,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->gameflag &= ~(OB_GHOST|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION_RESPONSE);
 		}
 	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 4)){
+		Scene *sce= main->scene.first;
+		while(sce) {
+			if(sce->frame_step==0)
+				sce->frame_step= 1;
+			sce= sce->id.next;
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

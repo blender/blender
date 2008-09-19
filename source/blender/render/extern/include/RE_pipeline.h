@@ -185,7 +185,7 @@ void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
-void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
+void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra, int tfra);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);

@@ -553,6 +553,10 @@ typedef struct Scene {
 
 	/* Sculptmode data */
 	struct SculptData sculptdata;
+
+	/* frame step. */
+	int frame_step;
+	int pad;
 } Scene;
 
 

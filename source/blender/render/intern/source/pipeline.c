@@ -2559,10 +2559,12 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
+void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
+	unsigned int lay;
 	int cfrao= scene->r.cfra;
+	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
 	if(!render_initialize_from_scene(re, scene, 0))
@@ -2591,12 +2593,27 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 			}
 		}
 	} else {
-		for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
+		for(nfra= sfra, scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
 			render_initialize_from_scene(re, scene, 1);
-			
+
+			if(nfra!=scene->r.cfra) {
+				/*
+				 * Skip this frame, but update for physics and particles system.
+				 * From convertblender.c:
+				 * in localview, lamps are using normal layers, objects only local bits.
+				 */
+				if(scene->lay & 0xFF000000)
+					lay= scene->lay & 0xFF000000;
+				else
+					lay= scene->lay;
+
+				scene_update_for_newframe(scene, lay);
+				continue;
+			}
+
 			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
 				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 			}
@@ -2626,6 +2643,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				
 				break;
 			}
+			nfra+= tfra;
 		}
 	}
 	
