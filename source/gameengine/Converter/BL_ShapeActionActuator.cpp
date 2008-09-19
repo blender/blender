@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,7 +135,6 @@ void BL_ShapeActionActuator::BlendShape(Key* key, float srcweight)
 {
 	vector<float>::const_iterator it;
 	float dstweight;
-	int i;
 	KeyBlock *kb;
 	
 	dstweight = 1.0F - srcweight;
@@ -155,6 +155,8 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 	bool apply=true;
 	int	priority;
 	float newweight;
+
+	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
 	
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !

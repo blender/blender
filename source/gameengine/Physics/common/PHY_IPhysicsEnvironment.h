@@ -33,6 +33,50 @@
 #include <vector>
 #include "PHY_DynamicTypes.h"
 class PHY_IVehicle;
+class RAS_MeshObject;
+class PHY_IPhysicsController;
+
+/**
+ * pass back information from rayTest
+ */
+struct PHY_RayCastResult
+{
+	PHY_IPhysicsController* m_controller;	
+	PHY__Vector3			m_hitPoint;
+	PHY__Vector3			m_hitNormal;
+	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
+	int						m_polygon;		// index of the polygon hit by the ray,
+											// only if m_meshObject != NULL
+};
+
+/**
+ * This class replaces the ignoreController parameter of rayTest function. 
+ * It allows more sophisticated filtering on the physics controller before computing the ray intersection to save CPU. 
+ * It is only used to its full extend by the Ccd physics environement (Bullet).
+ */
+class PHY_IRayCastFilterCallback
+{
+public:
+	PHY_IPhysicsController* m_ignoreController;
+	bool					m_faceNormal;
+
+	virtual		~PHY_IRayCastFilterCallback()
+	{
+	}
+
+	virtual	bool needBroadphaseRayCast(PHY_IPhysicsController* controller)
+	{
+		return true;
+	}
+
+	virtual void reportHit(PHY_RayCastResult* result) = 0;
+
+	PHY_IRayCastFilterCallback(PHY_IPhysicsController* ignoreController, bool faceNormal=false) 
+		:m_ignoreController(ignoreController),
+		m_faceNormal(faceNormal)
+	{
+	}
+};
 
 /**
 *	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
@@ -94,8 +138,7 @@ class PHY_IPhysicsEnvironment
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId) =0;
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)=0;
+		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 
 
 		//Methods for gamelogic collision/physics callbacks

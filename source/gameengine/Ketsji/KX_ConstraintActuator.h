@@ -37,6 +37,8 @@
 #include "MT_Vector3.h"
 #include "KX_ClientObjectInfo.h"
 
+class KX_RayCast;
+
 class KX_ConstraintActuator : public SCA_IActuator
 {
 	Py_Header;
@@ -100,7 +102,8 @@ protected:
 		KX_ACT_CONSTRAINT_DISTANCE = 512
 	};
 	bool IsValidMode(KX_CONSTRAINTTYPE m); 
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo*);
 
 	KX_ConstraintActuator(SCA_IObject* gameobj,
 						  int posDamptime,

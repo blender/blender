@@ -37,11 +37,13 @@
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
+#include "BKE_node.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h" /* for CLAMP */
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BSE_editipo.h"
+#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "mydevice.h"
 #include "constant.h"
@@ -154,6 +156,8 @@
 #define EXPP_MAT_SPECTRANS_MAX				1.0
 #define EXPP_MAT_MIRRTRANSADD_MIN			0.0
 #define EXPP_MAT_MIRRTRANSADD_MAX			1.0
+#define EXPP_MAT_COLORBAND_FACTOR_MIN		0.0
+#define EXPP_MAT_COLORBAND_FACTOR_MAX		1.0
 
 /* closure values for getColorComponent()/setColorComponent() */
 
@@ -402,19 +406,62 @@ static PyObject *Material_ShadersDict( void )
 	return Shaders;
 }
 
+static PyObject *Material_ColorRampMethodsDict( void )
+{
+	PyObject *Methods = PyConstant_New(  );
+	if( Methods ) {
+		BPy_constant *c = (BPy_constant * ) Methods;
+
+		PyConstant_Insert(c, "BLEND", PyInt_FromLong(MA_RAMP_BLEND));
+		PyConstant_Insert(c, "MIX", PyInt_FromLong(MA_RAMP_BLEND)); /* This one is added to solve confusion between Blend-Mix name. */
+		PyConstant_Insert(c, "ADD", PyInt_FromLong(MA_RAMP_ADD));
+		PyConstant_Insert(c, "MULT", PyInt_FromLong(MA_RAMP_MULT));
+		PyConstant_Insert(c, "SUB", PyInt_FromLong(MA_RAMP_SUB));
+		PyConstant_Insert(c, "SCREEN", PyInt_FromLong(MA_RAMP_SCREEN));
+		PyConstant_Insert(c, "DIV", PyInt_FromLong(MA_RAMP_DIV));
+		PyConstant_Insert(c, "DIFF", PyInt_FromLong(MA_RAMP_DIFF));
+		PyConstant_Insert(c, "DARK", PyInt_FromLong(MA_RAMP_DARK));
+		PyConstant_Insert(c, "LIGHT", PyInt_FromLong(MA_RAMP_LIGHT));
+		PyConstant_Insert(c, "OVERLAY", PyInt_FromLong(MA_RAMP_OVERLAY));
+		PyConstant_Insert(c, "DODGE", PyInt_FromLong(MA_RAMP_DODGE));
+		PyConstant_Insert(c, "BURN", PyInt_FromLong(MA_RAMP_BURN));
+		PyConstant_Insert(c, "HUE", PyInt_FromLong(MA_RAMP_HUE));
+		PyConstant_Insert(c, "SAT", PyInt_FromLong(MA_RAMP_SAT));
+		PyConstant_Insert(c, "VAL", PyInt_FromLong(MA_RAMP_VAL));
+		PyConstant_Insert(c, "COLOR", PyInt_FromLong(MA_RAMP_COLOR));
+
+	}
+	return Methods;
+}
+
+static PyObject *Material_ColorRampInputDict( void )
+{
+	PyObject *Inputs = PyConstant_New(  );
+	if( Inputs ) {
+		BPy_constant *c = (BPy_constant * ) Inputs;
+
+		PyConstant_Insert(c, "SHADER", PyInt_FromLong(MA_RAMP_IN_SHADER));
+		PyConstant_Insert(c, "ENERGY", PyInt_FromLong(MA_RAMP_IN_ENERGY));
+		PyConstant_Insert(c, "NORMAL", PyInt_FromLong(MA_RAMP_IN_NOR));
+		PyConstant_Insert(c, "RESULT", PyInt_FromLong(MA_RAMP_IN_RESULT));
+	}
+	return Inputs;
+}
 
 /*****************************************************************************/
 /* Function:	Material_Init */
 /*****************************************************************************/
 PyObject *Material_Init( void )
 {
-	PyObject *submodule, *Modes, *Shaders;
+	PyObject *submodule, *Modes, *Shaders, *ColorbandInput, *ColorbandMethod;
 
 	if( PyType_Ready( &Material_Type ) < 0)
 		return NULL;
 
 	Modes = Material_ModesDict(  );
 	Shaders = Material_ShadersDict(  );
+	ColorbandMethod = Material_ColorRampMethodsDict(  );
+	ColorbandInput = Material_ColorRampInputDict(  );
 
 	submodule = Py_InitModule3( "Blender.Material",
 				    M_Material_methods, M_Material_doc );
@@ -423,6 +470,10 @@ PyObject *Material_Init( void )
 		PyModule_AddObject( submodule, "Modes", Modes );
 	if( Shaders )
 		PyModule_AddObject( submodule, "Shaders", Shaders );
+	if( ColorbandMethod )
+		PyModule_AddObject( submodule, "ColorbandMethod", ColorbandMethod );
+	if( ColorbandInput )
+		PyModule_AddObject( submodule, "ColorbandInput", ColorbandInput );
 	
 	PyModule_AddIntConstant( submodule, "RGB", IPOKEY_RGB );
 	PyModule_AddIntConstant( submodule, "ALPHA", IPOKEY_ALPHA );
@@ -555,6 +606,7 @@ static int Material_setSssFront( BPy_Material * self, PyObject * value );
 static int Material_setSssBack( BPy_Material * self, PyObject * value );
 static int Material_setSssBack( BPy_Material * self, PyObject * value );
 static int Material_setTexChannel( BPy_Material * self, PyObject * value );
+static int Material_setTextures( BPy_Material * self, PyObject * value );
 
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
@@ -648,6 +700,21 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
 static PyObject *Material_getColorband( BPy_Material * self, void * type);
 int Material_setColorband( BPy_Material * self, PyObject * value, void * type);
 static PyObject *Material_copy( BPy_Material * self );
+static PyObject *Material_freeNodes( BPy_Material * self );
+
+static PyObject *Material_getColorbandDiffuseFactor( BPy_Material * self );
+static PyObject *Material_getColorbandSpecularFactor( BPy_Material * self );
+static int Material_setColorbandDiffuseFactor ( BPy_Material * self, PyObject * value );
+static int Material_setColorbandSpecularFactor ( BPy_Material * self, PyObject * value );
+static PyObject *Material_getColorbandDiffuseMethod( BPy_Material * self );
+static PyObject *Material_getColorbandSpecularMethod ( BPy_Material * self );
+static int Material_setColorbandDiffuseMethod ( BPy_Material * self, PyObject * value);
+static int Material_setColorbandSpecularMethod ( BPy_Material * self, PyObject * value);
+static PyObject *Material_getColorbandDiffuseInput( BPy_Material * self );
+static PyObject *Material_getColorbandSpecularInput( BPy_Material * self );
+static int Material_setColorbandDiffuseInput ( BPy_Material * self, PyObject * value);
+static int Material_setColorbandSpecularInput ( BPy_Material * self, PyObject * value);
+
 
 
 /*****************************************************************************/
@@ -886,6 +953,8 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return a copy of the material."},
 	{"copy", ( PyCFunction ) Material_copy, METH_NOARGS,
 	 "() - Return a copy of the material."},
+	{"freeNodes", ( PyCFunction ) Material_freeNodes, METH_NOARGS,
+	 "() - Free this materials nodes."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1168,7 +1237,35 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getColorband, (setter)Material_setColorband,
 	 "The specular colorband for this material",
 	 (void *) 1},
-	
+	{"textures",
+	 (getter)Material_getTextures, (setter)Material_setTextures,
+	 "The Material's texture list as a tuple",
+	 NULL},
+	{"colorbandSpecularFactor",
+	 (getter)Material_getColorbandSpecularFactor, (setter)Material_setColorbandSpecularFactor,
+	 "The specular colorband factor for this material",
+	 NULL},
+	{"colorbandSpecularMethod",
+	 (getter)Material_getColorbandSpecularMethod, (setter)Material_setColorbandSpecularMethod,
+	 "The specular colorband method for this material",
+	 NULL},
+	{"colorbandSpecularInput",
+	 (getter)Material_getColorbandSpecularInput, (setter)Material_setColorbandSpecularInput,
+	 "The specular colorband input for this material",
+	 NULL},
+	{"colorbandDiffuseFactor",
+	 (getter)Material_getColorbandDiffuseFactor, (setter)Material_setColorbandDiffuseFactor,
+	 "The diffuse colorband factor for this material",
+	 NULL},
+	{"colorbandDiffuseMethod",
+	 (getter)Material_getColorbandDiffuseMethod, (setter)Material_setColorbandDiffuseMethod,
+	 "The diffuse colorband method for this material",
+	 NULL},
+	{"colorbandDiffuseInput",
+	 (getter)Material_getColorbandDiffuseInput, (setter)Material_setColorbandDiffuseInput,
+	 "The diffuse colorband input for this material",
+	 NULL},
+
 	/* SSS settings */
 	{"enableSSS",
 	 (getter)Material_getSssEnable, (setter)Material_setSssEnable,
@@ -1737,28 +1834,23 @@ static PyObject* Material_getSssBack( BPy_Material * self )
 static PyObject *Material_getTextures( BPy_Material * self )
 {
 	int i;
-	struct MTex *mtex;
-	PyObject *t[MAX_MTEX];
 	PyObject *tuple;
 
 	/* build a texture list */
-	for( i = 0; i < MAX_MTEX; ++i ) {
-		mtex = self->material->mtex[i];
-
-		if( mtex ) {
-			t[i] = MTex_CreatePyObject( mtex );
-		} else {
-			Py_INCREF( Py_None );
-			t[i] = Py_None;
-		}
-	}
-
-	/* turn the array into a tuple */
-	tuple = Py_BuildValue( "NNNNNNNNNN", t[0], t[1], t[2], t[3],
-			       t[4], t[5], t[6], t[7], t[8], t[9] );
+	tuple = PyTuple_New( MAX_MTEX );
 	if( !tuple )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "Material_getTextures: couldn't create PyTuple" );
+					      "couldn't create PyTuple" );
+
+	for( i = 0; i < MAX_MTEX; ++i ) {
+		struct MTex *mtex = self->material->mtex[i];
+		if( mtex ) {
+			PyTuple_SET_ITEM( tuple, i, MTex_CreatePyObject( mtex, ID_MA ) );
+		} else {
+			Py_INCREF( Py_None );
+			PyTuple_SET_ITEM( tuple, i, Py_None );
+		}
+	}
 
 	return tuple;
 }
@@ -2433,14 +2525,86 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static int Material_setTextures( BPy_Material * self, PyObject * value )
+{
+	int i;
+
+	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected tuple or list of integers" );
+
+	/* don't allow more than MAX_MTEX items */
+	if( PySequence_Size(value) > MAX_MTEX )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+						"size of sequence greater than number of allowed textures" );
+
+	/* get a fast sequence; in Python 2.5, this just return the original
+	 * list or tuple and INCREFs it, so we must DECREF */
+	value = PySequence_Fast( value, "" );
+
+	/* check the list for valid entries */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		if( item == Py_None || ( BPy_MTex_Check( item ) &&
+						((BPy_MTex *)item)->type == ID_MA ) ) {
+			continue;
+		} else {
+			Py_DECREF(value);
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected tuple or list containing material MTex objects and NONE" );
+		}
+	}
+
+	/* for each MTex object, copy to this structure */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->material->mtex[i];
+		if( item != Py_None ) {
+			BPy_MTex *obj = (BPy_MTex *)item;
+
+			/* if MTex is already at this location, just skip it */
+			if( obj->mtex == mtex )	continue;
+
+			/* create a new entry if needed, otherwise update reference count
+			 * for texture that is being replaced */
+			if( !mtex )
+				mtex = self->material->mtex[i] = add_mtex(  );
+			else
+				mtex->tex->id.us--;
+
+			/* copy the data */
+			mtex->tex = obj->mtex->tex;
+			id_us_plus( &mtex->tex->id );
+			mtex->texco = obj->mtex->texco;
+			mtex->mapto = obj->mtex->mapto;
+		}
+	}
+
+	/* now go back and free any entries now marked as None */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->material->mtex[i];
+		if( item == Py_None && mtex ) {
+			mtex->tex->id.us--;
+			MEM_freeN( mtex );
+			self->material->mtex[i] = NULL;
+		} 
+	}
+
+	Py_DECREF(value);
+	return 0;
+}
+
 static PyObject *Material_clearTexture( BPy_Material * self, PyObject * value )
 {
 	int texnum = (int)PyInt_AsLong(value);
 	struct MTex *mtex;
 	/* non ints will be -1 */
-	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9]" );
+	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) ) {
+		char errstr[64];
+		sprintf( errstr, "expected int in [0,%d]", MAX_MTEX );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, errstr );
+	}
 
 	mtex = self->material->mtex[texnum];
 	if( mtex ) {
@@ -2517,6 +2681,22 @@ static PyObject *Material_copy( BPy_Material * self )
 						"couldn't create Material Data object" ) );
 
 	return ( PyObject * ) pymat;
+}
+
+/* mat.freeNodes() */
+static PyObject *Material_freeNodes( BPy_Material * self )
+{
+	if (self->material->nodetree) {
+		if(self->material->nodetree) {
+			ntreeFreeTree(self->material->nodetree);
+			MEM_freeN(self->material->nodetree);
+		}
+		self->material->nodetree = NULL;
+		self->material->use_nodes = 0;
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
 }
 
 /* mat_a==mat_b or mat_a!=mat_b*/
@@ -3219,5 +3399,77 @@ static PyObject *Material_clearIpo( BPy_Material * self )
 		return EXPP_incr_ret_True();
 	}
 	return EXPP_incr_ret_False(); /* no ipo found */
+}
+
+/* RampCol Factor */
+
+static PyObject *Material_getColorbandDiffuseFactor( BPy_Material * self )
+{
+	return PyFloat_FromDouble( (double) self->material->rampfac_col);
+}
+
+static PyObject *Material_getColorbandSpecularFactor( BPy_Material * self )
+{
+	return PyFloat_FromDouble( (double) self->material->rampfac_spec);
+}
+
+static int Material_setColorbandDiffuseFactor ( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped(value, &self->material->rampfac_col,
+			EXPP_MAT_COLORBAND_FACTOR_MIN, EXPP_MAT_COLORBAND_FACTOR_MAX);
+}
+
+static int Material_setColorbandSpecularFactor ( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped(value, &self->material->rampfac_spec,
+			EXPP_MAT_COLORBAND_FACTOR_MIN, EXPP_MAT_COLORBAND_FACTOR_MAX);
+}
+
+/* RampCol Method */
+
+static PyObject *Material_getColorbandDiffuseMethod( BPy_Material * self )
+{
+	return PyInt_FromLong( (long) self->material->rampblend_col);
+}
+
+static PyObject *Material_getColorbandSpecularMethod ( BPy_Material * self )
+{
+	return PyInt_FromLong( (long) self->material->rampblend_spec);
+}
+
+static int Material_setColorbandDiffuseMethod ( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setIValueClamped(value, &self->material->rampblend_col,
+			MA_RAMP_BLEND, MA_RAMP_COLOR, 'b');
+}
+
+static int Material_setColorbandSpecularMethod ( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setIValueClamped(value, &self->material->rampblend_spec,
+			MA_RAMP_BLEND, MA_RAMP_COLOR, 'b');
+}
+
+/* RampCol Input */
+
+static PyObject *Material_getColorbandDiffuseInput( BPy_Material * self )
+{
+	return PyInt_FromLong( (long) self->material->rampin_col);
+}
+
+static PyObject *Material_getColorbandSpecularInput( BPy_Material * self )
+{
+	return PyInt_FromLong( (long) self->material->rampin_spec);
+}
+
+static int Material_setColorbandDiffuseInput ( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setIValueClamped(value, &self->material->rampin_col,
+			MA_RAMP_IN_SHADER, MA_RAMP_IN_RESULT, 'b');
+}
+
+static int Material_setColorbandSpecularInput ( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setIValueClamped(value, &self->material->rampin_spec,
+			MA_RAMP_IN_SHADER, MA_RAMP_IN_RESULT, 'b');
 }
 

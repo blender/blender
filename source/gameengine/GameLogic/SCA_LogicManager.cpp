@@ -33,6 +33,7 @@
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "SCA_EventManager.h"
+#include "SCA_PythonController.h"
 #include <set>
 
 #ifdef HAVE_CONFIG_H
@@ -232,8 +233,6 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 	// for this frame, look up for activated sensors, and build the collection of triggered controllers
 	// int numsensors = this->m_activatedsensors.size(); /*unused*/
 
-	set<SmartControllerPtr> triggeredControllerSet;
-
 	for (vector<SCA_ISensor*>::const_iterator is=m_activatedsensors.begin();
 	!(is==m_activatedsensors.end());is++)
 	{
@@ -244,19 +243,28 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 		{
 				SCA_IController* contr = *c;//controllerarray->at(c);
 				if (contr->IsActive())
-					triggeredControllerSet.insert(SmartControllerPtr(contr,0));
+				{
+					m_triggeredControllerSet.insert(SmartControllerPtr(contr,0));
+					// So that the controller knows which sensor has activited it.
+					// Only needed for the python controller though.
+					if (contr->GetType() == &SCA_PythonController::Type)
+					{
+						SCA_PythonController* pythonController = (SCA_PythonController*)contr;
+						pythonController->AddTriggeredSensor(sensor);
+					}
+				}
 		}
 		//sensor->SetActive(false);
 	}
 
 	
 	// int numtriggered = triggeredControllerSet.size(); /*unused*/
-	for (set<SmartControllerPtr>::iterator tit=triggeredControllerSet.begin();
-	!(tit==triggeredControllerSet.end());tit++)
+	for (set<SmartControllerPtr>::iterator tit=m_triggeredControllerSet.begin();
+	!(tit==m_triggeredControllerSet.end());tit++)
 	{
 		(*tit)->Trigger(this);
 	}
-	triggeredControllerSet.clear();
+	m_triggeredControllerSet.clear();
 }
 
 
@@ -382,6 +390,17 @@ void SCA_LogicManager::AddActivatedSensor(SCA_ISensor* sensor)
 	}
 }
 
+void SCA_LogicManager::AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor)
+{
+	m_triggeredControllerSet.insert(SmartControllerPtr(controller,0));
+	// so that the controller knows which sensor has activited it
+	// only needed for python controller
+	if (controller->GetType() == &SCA_PythonController::Type)
+	{
+		SCA_PythonController* pythonController = (SCA_PythonController*)controller;
+		pythonController->AddTriggeredSensor(sensor);
+	}
+}
 
 
 void SCA_LogicManager::AddActiveActuator(SCA_IActuator* actua,CValue* event)

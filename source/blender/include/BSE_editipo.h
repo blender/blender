@@ -86,13 +86,10 @@ void do_ipo_selectbuttons(void);
 
 
 /* gets ipo curve, creates if needed */
-struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
-struct Ipo *verify_ipo(struct ID *, short, char *, char *, char *);
+struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int, short);
+struct Ipo *verify_ipo(struct ID *, short, char *, char *, char *, short);
 int texchannel_to_adrcode(int channel);
 
-int insert_bezt_icu(struct IpoCurve *icu, struct BezTriple *bezt);
-void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
-void add_vert_ipo(void);
 
 void add_duplicate_editipo(void);
 void remove_doubles_ipo(void);
@@ -121,10 +118,8 @@ void paste_editipo(void);
 void set_exprap_ipo(int mode);
 
 void set_speed_editipo(float speed);
-void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, short fast);
-void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, int adrcode);
 void insertkey_editipo(void);
-void common_insertkey(void);
+void add_vert_ipo(void);
 void free_ipokey(struct ListBase *lb);
 void add_to_ipokey(struct ListBase *lb, struct BezTriple *bezt, int nr, int len);
 void make_ipokey(void);
@@ -163,8 +158,6 @@ void duplicate_ipo_keys(struct Ipo *ipo);
 void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, 
 						  int (*select_function)(struct BezTriple *));
-int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode);
-void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float floatkey);
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);
 void setexprap_ipoloop(struct Ipo *ipo, int code);

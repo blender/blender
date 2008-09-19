@@ -49,8 +49,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_sys_types.h" // needed for intptr_t
-
 /* --------------------------------------------------------------------- */
 /* Data definition                                                       */
 /* --------------------------------------------------------------------- */
@@ -113,8 +111,8 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 	
 
-volatile int totblock= 0;
-volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
+static volatile int totblock= 0;
+static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
@@ -696,6 +694,21 @@ static const char *check_memlist(MemHead *memh)
 	}
 
 	return(name);
+}
+
+uintptr_t MEM_get_memory_in_use(void)
+{
+	return mem_in_use;
+}
+
+uintptr_t MEM_get_mapped_memory_in_use(void)
+{
+	return mmap_in_use;
+}
+
+int MEM_get_memory_blocks_in_use(void)
+{
+	return totblock;
 }
 
 /* eof */

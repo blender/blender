@@ -753,6 +753,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Transition Strip %%x%d|", TH_SEQ_TRANSITION);
 			str += sprintf(str, "Meta Strip %%x%d|", TH_SEQ_META);
 			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
+			str += sprintf(str, "Keyframe %%x%d|", TH_VERTEX_SELECT);
+			str += sprintf(str, "Draw Action %%x%d|", TH_BONE_POSE);
 			break;
 		case SPACE_SOUND:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);

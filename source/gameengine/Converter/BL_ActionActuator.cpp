@@ -50,6 +50,7 @@
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,11 +59,11 @@
 BL_ActionActuator::~BL_ActionActuator()
 {
 	if (m_pose)
-		free_pose(m_pose);
+		game_free_pose(m_pose);
 	if (m_userpose)
-		free_pose(m_userpose);
+		game_free_pose(m_userpose);
 	if (m_blendpose)
-		free_pose(m_blendpose);
+		game_free_pose(m_blendpose);
 }
 
 void BL_ActionActuator::ProcessReplica(){
@@ -151,6 +152,8 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	bool apply=true;
 	int	priority;
 	float newweight;
+
+	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
 	
 	// result = true if animation has to be continued, false if animation stops
 	// maybe there are events for us in the queue !

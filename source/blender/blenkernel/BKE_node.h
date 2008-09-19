@@ -47,6 +47,9 @@ struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct GPUMaterial;
+struct GPUNode;
+struct GPUNodeStack;
 
 #define SOCK_IN		1
 #define SOCK_OUT	2
@@ -90,6 +93,9 @@ typedef struct bNodeType {
 	ID *id;
 	void *pynode; /* holds pointer to python script */
 	void *pydict; /* holds pointer to python script dictionary (scope)*/
+
+	/* gpu */
+	int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out);
 
 } bNodeType;
 
@@ -251,6 +257,8 @@ void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 				/* switch material render loop */
 extern void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
+
+void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 
 
 /* ************** COMPOSITE NODES *************** */

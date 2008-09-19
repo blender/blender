@@ -793,6 +793,82 @@ void viewmoveNDOFfly(int mode)
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 }
 
+int view_autodist( float mouse_worldloc[3] ) //, float *autodist )
+{
+	View3D *v3d = G.vd;
+	
+	/* Zooms in on a border drawn by the user */
+	short mval[2];
+	rcti rect;
+	
+	/* ZBuffer depth vars */
+	bglMats mats;
+	float depth, depth_close= MAXFLOAT;
+	int had_depth = 0;
+	double cent[2],  p[3];
+	int xs, ys;
+	
+	getmouseco_areawin(mval);
+	
+	persp(PERSP_VIEW);
+	
+	rect.xmax = mval[0] + 4;
+	rect.ymax = mval[1] + 4;
+	
+	rect.xmin = mval[0] - 4;
+	rect.ymin = mval[1] - 4;
+	
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	bgl_get_mats(&mats);
+	draw_depth(curarea, (void *)v3d, NULL);
+	
+	/* force updating */
+	if (v3d->depths) {
+		had_depth = 1;
+		v3d->depths->damaged = 1;
+	}
+	
+	view3d_update_depths(v3d);
+	
+	/* Constrain rect to depth bounds */
+	if (rect.xmin < 0) rect.xmin = 0;
+	if (rect.ymin < 0) rect.ymin = 0;
+	if (rect.xmax >= v3d->depths->w) rect.xmax = v3d->depths->w-1;
+	if (rect.ymax >= v3d->depths->h) rect.ymax = v3d->depths->h-1;		
+	
+	/* Find the closest Z pixel */
+	for (xs=rect.xmin; xs < rect.xmax; xs++) {
+		for (ys=rect.ymin; ys < rect.ymax; ys++) {
+			depth= v3d->depths->depths[ys*v3d->depths->w+xs];
+			if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
+				if (depth_close > depth) {
+					depth_close = depth;
+				}
+			}
+		}
+	}
+	
+	if (depth_close==MAXFLOAT)
+		return 0;
+		
+	if (had_depth==0) {
+		MEM_freeN(v3d->depths->depths);
+		v3d->depths->depths = NULL;
+	}
+	v3d->depths->damaged = 1;
+	
+	cent[0] = (double)mval[0];
+	cent[1] = (double)mval[1];
+	
+	if (!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, mats.viewport, &p[0], &p[1], &p[2]))
+		return 0;
+
+	mouse_worldloc[0] = (float)p[0];
+	mouse_worldloc[1] = (float)p[1];
+	mouse_worldloc[2] = (float)p[2];
+	return 1;
+}
+
 void viewmove(int mode)
 {
 	static float lastofs[3] = {0,0,0};
@@ -825,14 +901,10 @@ void viewmove(int mode)
 		Mat3MulVecfl(mat, upvec);
 		VecAddf(G.vd->ofs, G.vd->ofs, upvec);
 	}
-
-
 		
 	/* sometimes this routine is called from headerbuttons */
 
 	areawinset(curarea->win);
-	
-	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
 	
 	QUATCOPY(oldquat, G.vd->viewquat);
 	
@@ -867,9 +939,44 @@ void viewmove(int mode)
 		VECCOPY(obofs, lastofs);
 		VecMulf(obofs, -1.0f);
 	}
+	else if (U.uiflag & USER_ORBIT_ZBUF) {
+		if ((use_sel=view_autodist(obofs))) {
+			if (G.vd->persp==V3D_PERSP) {
+				float my_origin[3]; /* original G.vd->ofs */
+				float my_pivot[3]; /* view */
+				
+				VECCOPY(my_origin, G.vd->ofs);
+				VecMulf(my_origin, -1.0f);				/* ofs is flipped */
+				
+				/* Set the dist value to be the distance from this 3d point */
+				/* this means youll always be able to zoom into it and panning wont go bad when dist was zero */
+				
+				/* remove dist value */			
+				upvec[0] = upvec[1] = 0;
+				upvec[2] = G.vd->dist;
+				Mat3CpyMat4(mat, G.vd->viewinv);
+				Mat3MulVecfl(mat, upvec);
+				VecSubf(my_pivot, G.vd->ofs, upvec);
+				VecMulf(my_pivot, -1.0f);				/* ofs is flipped */
+				
+				/* find a new ofs value that is allong the view axis (rather then the mouse location) */
+				lambda_cp_line_ex(obofs, my_pivot, my_origin, dvec);
+				dist0 = G.vd->dist = VecLenf(my_pivot, dvec);
+				
+				VecMulf(dvec, -1.0f);
+				VECCOPY(G.vd->ofs, dvec);
+			}
+			VecMulf(obofs, -1.0f);
+			VECCOPY(ofs, G.vd->ofs);
+		} else {
+			ofs[0] = ofs[1] = ofs[2] = 0.0f;
+		}
+	}
 	else
 		ofs[0] = ofs[1] = ofs[2] = 0.0f;
-
+	
+	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
+	
 	reverse= 1.0f;
 	if (G.vd->persmat[2][1] < 0.0f)
 		reverse= -1.0f;
@@ -1046,9 +1153,20 @@ void viewmove(int mode)
 					zfac*G.vd->dist < 10.0*G.vd->far)
 					view_zoom_mouseloc(zfac, mval_area);
 				
-				/* these limits are in toets.c too */
-				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
-				if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
+				
+				if ((U.uiflag & USER_ORBIT_ZBUF) && (U.viewzoom==USER_ZOOM_CONT) && (G.vd->persp==V3D_PERSP)) {
+					/* Secret apricot feature, translate the view when in continues mode */
+					upvec[0] = upvec[1] = 0;
+					upvec[2] = (dist0 - G.vd->dist) * G.vd->grid;
+					G.vd->dist = dist0;
+					Mat3CpyMat4(mat, G.vd->viewinv);
+					Mat3MulVecfl(mat, upvec);
+					VecAddf(G.vd->ofs, G.vd->ofs, upvec);
+				} else {
+					/* these limits are in toets.c too */
+					if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
+					if(G.vd->dist>10.0*G.vd->far) G.vd->dist=10.0*G.vd->far;
+				}
 				
 				if(G.vd->persp==V3D_ORTHO || G.vd->persp==V3D_CAMOB) preview3d_event= 0;
 			}
@@ -2353,3 +2471,4 @@ void smooth_view_to_camera(View3D *v3d)
 		v3d->persp= V3D_CAMOB;
 	}
 }
+

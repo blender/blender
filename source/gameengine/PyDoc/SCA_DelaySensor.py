@@ -1,6 +1,6 @@
 # $Id$
 # Documentation for SCA_DelaySensor
-from SCA_IActuator import *
+from SCA_ISensor import *
 
 class SCA_DelaySensor(SCA_ISensor):
 	"""

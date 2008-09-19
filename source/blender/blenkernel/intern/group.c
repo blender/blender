@@ -91,6 +91,16 @@ void unlink_group(Group *group)
 			ma->group= NULL;
 	}
 	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		Base *base= sce->base.first;
+		
+		/* ensure objects are not in this group */
+		for(; base; base= base->next) {
+			if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
+				base->object->flag &= ~OB_FROMGROUP;
+				base->flag &= ~OB_FROMGROUP;
+			}
+		}			
+		
 		for(srl= sce->r.layers.first; srl; srl= srl->next) {
 			if (srl->light_override==group)
 				srl->light_override= NULL;
@@ -117,6 +127,9 @@ void unlink_group(Group *group)
 				psys->part->eff_group= NULL;
 		}
 	}
+	
+	/* group stays in library, but no members */
+	free_group(group);
 	group->id.us= 0;
 }
 

@@ -59,6 +59,7 @@ typedef struct BPyMenu {
 	char *name;
 	char *filename;
 	char *tooltip;
+	unsigned short key, qual;	/* Registered shortcut key */
 	short version;		/* Blender version */
 	int dir;		/* 0: default, 1: U.pythondir */
 	struct BPySubMenu *submenus;
@@ -99,6 +100,7 @@ typedef enum {
 	PYMENU_UVCALCULATION,
 	PYMENU_ARMATURE,
 	PYMENU_SCRIPTTEMPLATE,
+	PYMENU_TEXTPLUGIN,
 	PYMENU_HELP,/*Main Help menu items - prob best to leave for 'official' ones*/
 	PYMENU_HELPSYSTEM,/* Resources, troubleshooting, system tools */
 	PYMENU_HELPWEBSITES,/* Help -> Websites submenu */

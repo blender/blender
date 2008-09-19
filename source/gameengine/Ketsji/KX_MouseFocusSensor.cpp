@@ -62,12 +62,14 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int focusmode,
 										 RAS_ICanvas* canvas,
 										 KX_Scene* kxscene,
+										 KX_KetsjiEngine *kxengine,
 										 SCA_IObject* gameobj, 
 										 PyTypeObject* T)
     : SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj, T),
 	  m_focusmode(focusmode),
 	  m_gp_canvas(canvas),
-	  m_kxscene(kxscene)
+	  m_kxscene(kxscene),
+	  m_kxengine(kxengine)
 {
 	Init();
 }
@@ -122,15 +124,9 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
 	return result;
 }
 
-bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
+bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* result, void * const data)
 {
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
-	
-	if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
-	{
-		// false hit
-		return false;
-	}
 	
 	/* Is this me? In the ray test, there are a lot of extra checks
 	* for aliasing artefacts from self-hits. That doesn't happen
@@ -142,8 +138,8 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hi
 	if ((m_focusmode == 2) || hitKXObj == thisObj)
 	{
 		m_hitObject = hitKXObj;
-		m_hitPosition = hit_point;
-		m_hitNormal = hit_normal;
+		m_hitPosition = result->m_hitPoint;
+		m_hitNormal = result->m_hitNormal;
 		return true;
 	}
 	
@@ -158,8 +154,6 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	m_hitObject = 0;
 	m_hitPosition = MT_Vector3(0,0,0);
 	m_hitNormal =	MT_Vector3(1,0,0);
-	MT_Point3 resultpoint;
-	MT_Vector3 resultnormal;
 
 	/* All screen handling in the gameengine is done by GL,
 	 * specifically the model/view and projection parts. The viewport
@@ -201,11 +195,14 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * calculations don't bomb. Maybe we should explicitly guard for
 	 * division by 0.0...*/
 
-	/**
-	 * Get the scenes current viewport.
-	 */
+	KX_Camera* cam = m_kxscene->GetActiveCamera();
 
-	const RAS_Rect & viewport = m_kxscene->GetSceneViewport();
+	/* get the scenes current viewport. we recompute it because there
+	 * may be multiple cameras and m_kxscene->GetSceneViewport() only
+	 * has the one that was last drawn */
+
+	RAS_Rect area, viewport;
+	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
 
 	float height = float(viewport.m_y2 - viewport.m_y1 + 1);
 	float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
@@ -213,9 +210,9 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	float x_lb = float(viewport.m_x1);
 	float y_lb = float(viewport.m_y1);
 
-	KX_Camera* cam = m_kxscene->GetActiveCamera();
 	/* There's some strangeness I don't fully get here... These values
 	 * _should_ be wrong! */
+	
 
 	/* old: */
 	float nearclip = 0.0;
@@ -280,7 +277,8 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 
 	bool result = false;
 
-	result = KX_RayCast::RayTest(physics_controller, physics_environment, frompoint3, topoint3, resultpoint, resultnormal, KX_RayCast::Callback<KX_MouseFocusSensor>(this));
+	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
+	KX_RayCast::RayTest(physics_environment, frompoint3, topoint3, callback);
 	
 	result = (m_hitObject!=0);
 

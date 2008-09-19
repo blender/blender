@@ -763,7 +763,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	SPLIT_OBJECTS= Draw.Create(1)
 	SPLIT_GROUPS= Draw.Create(1)
 	SPLIT_MATERIALS= Draw.Create(1)
-	MORPH_TARGET= Draw.Create(0)
+	KEEP_VERT_ORDER= Draw.Create(1)
 	CLAMP_SIZE= Draw.Create(10.0)
 	IMAGE_SEARCH= Draw.Create(1)
 	
@@ -779,7 +779,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
 	('Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
 	'Options...',\
-	('Morph Target', MORPH_TARGET, 'Keep vert and face order, disables some other options.'),\
+	('Keep Vert Order', KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
 	('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
 	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
 	]
@@ -787,7 +787,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	if not Draw.PupBlock('Import OBJ...', pup_block):
 		return
 	
-	if MORPH_TARGET.val:
+	if KEEP_VERT_ORDER.val:
 		SPLIT_OBJECTS.val = False
 		SPLIT_GROUPS.val = False
 		SPLIT_MATERIALS.val = False

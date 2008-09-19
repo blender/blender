@@ -41,6 +41,20 @@
 
 /* ************************** NUMINPUT **************************** */
 
+void initNumInput(NumInput *n)
+{
+	n->flag		=
+	n->idx		=
+	n->idx_max	=
+	n->ctrl[0]	= 
+	n->ctrl[1]	= 
+	n->ctrl[2]	= 0;
+
+	n->val[0]		= 
+	n->val[1]	= 
+	n->val[2]	= 0.0f;
+}
+
 void outputNumInput(NumInput *n, char *str)
 {
 	char cur;

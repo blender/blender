@@ -52,14 +52,14 @@ GEN_INLINE void MT_Matrix4x4::invert()  {
 		}
 }
 
-/* We do things slightly different here, because the invert() modifies
- * the buffer itself. This makes it impossible to make this op right
- * away. Like other, still missing facilities, I will repair this
- * later. */
-/* GEN_INLINE T_Matrix4x4 MT_Matrix4x4::inverse() const */
-/*  { */
-/*  } */
+GEN_INLINE MT_Matrix4x4 MT_Matrix4x4::inverse() const
+{
+	MT_Matrix4x4 invmat = *this;
 
+	invmat.invert();
+
+	return invmat;
+}
 
 GEN_INLINE MT_Matrix4x4& MT_Matrix4x4::operator*=(const MT_Matrix4x4& m)
 {

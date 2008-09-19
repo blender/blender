@@ -26,10 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
 #include "MT_MinMax.h"
@@ -37,544 +33,7 @@
 
 #include <algorithm>
 
-
-STR_String RAS_MeshObject::s_emptyname = "";
-
-
-
-KX_ArrayOptimizer::~KX_ArrayOptimizer()
-{
-	for (vector<KX_VertexArray*>::iterator itv = m_VertexArrayCache1.begin();
-	!(itv == m_VertexArrayCache1.end());++itv)
-	{
-		delete (*itv);
-	}
-
-	for (vector<KX_IndexArray*>::iterator iti = m_IndexArrayCache1.begin();
-	!(iti == m_IndexArrayCache1.end());++iti)
-	{
-		delete (*iti);
-	}
-	
-	m_TriangleArrayCount.clear();
-	m_VertexArrayCache1.clear();
-	m_IndexArrayCache1.clear();
-
-
-}
-
-
-
-RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
-	: m_bModified(true),
-	m_lightlayer(lightlayer),
-	m_zsort(false),
-	m_MeshMod(true),
-	m_mesh(mesh),
-	m_class(0)
-{
-}
-
-
-bool RAS_MeshObject::MeshModified()
-{
-	return m_MeshMod;
-}
-
-	
-RAS_MeshObject::~RAS_MeshObject()
-{
-	for (vector<RAS_Polygon*>::iterator it=m_Polygons.begin();!(it==m_Polygons.end());it++)
-	{
-		delete (*it);
-	}
-
-	ClearArrayData();
-}
-
-
-
-unsigned int RAS_MeshObject::GetLightLayer()
-{
-	return m_lightlayer;
-}
-
-
-
-int RAS_MeshObject::NumMaterials()
-{
-	return m_materials.size();
-}
-
-const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
-{ 
-	RAS_MaterialBucket* bucket = GetMaterialBucket(matid);
-	
-	return bucket?bucket->GetPolyMaterial()->GetMaterialName():s_emptyname;
-}
-
-RAS_MaterialBucket* RAS_MeshObject::GetMaterialBucket(unsigned int matid)
-{
-	if (m_materials.size() > 0 && (matid < m_materials.size()))
-	{
-		RAS_MaterialBucket::Set::const_iterator it = m_materials.begin();
-		while (matid--) ++it;
-		return *it;
-	}
-
-	return NULL;
-}
-
-
-
-int RAS_MeshObject::NumPolygons()
-{
-	return m_Polygons.size();
-}
-
-
-
-RAS_Polygon* RAS_MeshObject::GetPolygon(int num)
-{
-	return m_Polygons[num];
-}
-
-	
-	
-RAS_MaterialBucket::Set::iterator RAS_MeshObject::GetFirstMaterial()
-{
-	return m_materials.begin();
-}
-
-
-
-RAS_MaterialBucket::Set::iterator RAS_MeshObject::GetLastMaterial()
-{
-	return m_materials.end();
-}
-
-
-
-void RAS_MeshObject::SetName(STR_String name)
-{
-	m_name = name;
-}
-
-
-
-const STR_String& RAS_MeshObject::GetName()
-{
-	return m_name;
-}
-
-
-
-const STR_String& RAS_MeshObject::GetTextureName(unsigned int matid)
-{ 
-	RAS_MaterialBucket* bucket = GetMaterialBucket(matid);
-	
-	return bucket?bucket->GetPolyMaterial()->GetTextureName():s_emptyname;
-}
-
-
-
-void RAS_MeshObject::AddPolygon(RAS_Polygon* poly)
-{
-	m_Polygons.push_back(poly);
-}
-
-
-
-void RAS_MeshObject::DebugColor(unsigned int abgr)
-{
-/*
-	int numpolys = NumPolygons();
-	for (int i=0;i<numpolys;i++)
-	{
-		RAS_Polygon* poly = m_polygons[i];
-		for (int v=0;v<poly->VertexCount();v++)
-		{
-		RAS_TexVert* vtx = poly->GetVertex(v);
-		vtx->setDebugRGBA(abgr);
-		}
-	}
-	*/
-
-	m_debugcolor = abgr;	
-}
-
-void RAS_MeshObject::SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba)
-{
-	const vecVertexArray & vertexvec = GetVertexCache(mat);
-			
-	for (vector<KX_VertexArray*>::const_iterator it = vertexvec.begin(); it != vertexvec.end(); ++it)
-	{
-		KX_VertexArray::iterator vit;
-		for (vit=(*it)->begin(); vit != (*it)->end(); vit++)
-		{
-			vit->SetRGBA(rgba);
-		}
-	}	
-}
-
-void RAS_MeshObject::SchedulePoly(const KX_VertexIndex& idx,
-								  int numverts,
-								  RAS_IPolyMaterial* mat)
-{
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
-
-	ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[0]);
-	ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[1]);
-	ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[2]);
-
-	if (!mat->UsesTriangles())
-		ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(idx.m_indexarray[3]);
-}
-
-
-void RAS_MeshObject::ScheduleWireframePoly(const KX_VertexIndex& idx,
-										   int numverts,
-										   int edgecode,
-										   RAS_IPolyMaterial* mat)
-{
-	//int indexpos = m_IndexArrayCount[idx.m_vtxarray];
-	int edgetrace = 1<<(numverts-1);
-	bool drawedge = (edgecode & edgetrace)!=0;
-	edgetrace = 1;
-	int prevvert = idx.m_indexarray[numverts-1];
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
-	
-	for (int v = 0; v < numverts; v++)
-	{
-		unsigned int curvert = idx.m_indexarray[v];
-		if (drawedge)
-		{
-			ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(prevvert);
-			ao->m_IndexArrayCache1[idx.m_vtxarray]->push_back(curvert);
-		}
-		prevvert = curvert;
-		drawedge = (edgecode & edgetrace)!=0;
-		edgetrace*=2;
-	}
-	//m_IndexArrayCount[idx.m_vtxarray] = indexpos;
-}
-
-int RAS_MeshObject::FindOrAddVertex(int vtxarray,
-									const MT_Point3& xyz,
-									const MT_Point2& uv,
-									const MT_Point2& uv2,
-									const MT_Vector4& tangent,
-									const unsigned int rgbacolor,
-									const MT_Vector3& normal,
-									bool flat,
-									RAS_IPolyMaterial* mat,
-									int origindex)
-{
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
-	
-	int numverts = ao->m_VertexArrayCache1[vtxarray]->size();//m_VertexArrayCount[vtxarray];
-	RAS_TexVert newvert(xyz,uv,uv2,tangent,rgbacolor,normal, flat? TV_CALCFACENORMAL: 0,origindex);
-
-#define KX_FIND_SHARED_VERTICES
-#ifdef KX_FIND_SHARED_VERTICES
-	if(!flat) {
-		for (std::vector<RAS_MatArrayIndex>::iterator it = m_xyz_index_to_vertex_index_mapping[origindex].begin();
-			 it != m_xyz_index_to_vertex_index_mapping[origindex].end();
-			 it++)
-		{
-			if ((*it).m_arrayindex1 == ao->m_index1 &&
-				(*it).m_array == vtxarray && 
-				*(*it).m_matid == *mat &&
-				(*ao->m_VertexArrayCache1[vtxarray])[(*it).m_index].closeTo(&newvert)
-				)
-			{
-				return (*it).m_index;
-			}
-		}
-	}
-#endif // KX_FIND_SHARED_VERTICES
-	
-	// no vertex found, add one
-	ao->m_VertexArrayCache1[vtxarray]->push_back(newvert);
-	//	printf("(%f,%f,%f) ",xyz[0],xyz[1],xyz[2]);
-	RAS_MatArrayIndex idx;
-	idx.m_arrayindex1 = ao->m_index1;
-	idx.m_array = vtxarray;
-	idx.m_index = numverts;
-	idx.m_matid = mat;
-	m_xyz_index_to_vertex_index_mapping[origindex].push_back(idx); 
-	
-	return numverts;
-}
-
-vecVertexArray& RAS_MeshObject::GetVertexCache (RAS_IPolyMaterial* mat)
-{
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
-
-	return ao->m_VertexArrayCache1;
-}
-
-int RAS_MeshObject::GetVertexArrayLength(RAS_IPolyMaterial* mat)
-{
-	int len = 0;
-
-	const vecVertexArray & vertexvec = GetVertexCache(mat);
-	vector<KX_VertexArray*>::const_iterator it = vertexvec.begin();
-	
-	for (; it != vertexvec.end(); ++it)
-	{
-		len += (*it)->size();
-	}
-
-	return len;
-}
-
-	
-
-RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
-									   unsigned int index)
-{
-	RAS_TexVert* vertex = NULL;
-	
-	RAS_MaterialBucket* bucket = GetMaterialBucket(matid);
-	if (bucket)
-	{
-		RAS_IPolyMaterial* mat = bucket->GetPolyMaterial();
-		if (mat)
-		{
-			const vecVertexArray & vertexvec = GetVertexCache(mat);
-			vector<KX_VertexArray*>::const_iterator it = vertexvec.begin();
-			
-			for (unsigned int len = 0; it != vertexvec.end(); ++it)
-			{
-				if (index < len + (*it)->size())
-				{
-					vertex = &(*(*it))[index-len];
-					break;
-				}
-				else
-				{
-					len += (*it)->size();
-				}
-			}
-		}
-	}
-	
-	return vertex;
-}
-
-
-
-const vecIndexArrays& RAS_MeshObject::GetIndexCache (RAS_IPolyMaterial* mat)
-{
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
-
-	return ao->m_IndexArrayCache1;
-}
-
-
-
-KX_ArrayOptimizer* RAS_MeshObject::GetArrayOptimizer(RAS_IPolyMaterial* polymat)
-{
-	KX_ArrayOptimizer** aop = m_matVertexArrayS[polymat];
-
-	if(aop)
-		return *aop;
-	
-	// didn't find array, but an array might already exist
-	// for a material equal to this one
-	for(int i=0;i<m_matVertexArrayS.size();i++) {
-		RAS_IPolyMaterial *mat = (RAS_IPolyMaterial*)(m_matVertexArrayS.getKey(i)->getValue());
-		if(*mat == *polymat) {
-			m_matVertexArrayS.insert(polymat, *m_matVertexArrayS.at(i));
-			return *m_matVertexArrayS.at(i);
-		}
-	}
-
-	// create new array
-	int numelements = m_matVertexArrayS.size();
-	m_sortedMaterials.push_back(polymat);
-
-	KX_ArrayOptimizer* ao = new KX_ArrayOptimizer(numelements);
-	m_matVertexArrayS.insert(polymat, ao);
-	
-	return ao;
-}
-
-
-
-void RAS_MeshObject::Bucketize(double* oglmatrix,
-							   void* clientobj,
-							   bool useObjectColor,
-							   const MT_Vector4& rgbavec)
-{
-	KX_MeshSlot ms;
-	ms.m_clientObj = clientobj;
-	ms.m_mesh = this;
-	ms.m_OpenGLMatrix = oglmatrix;
-	ms.m_bObjectColor = useObjectColor;
-	ms.m_RGBAcolor = rgbavec;
-	
-	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
-	{
-		RAS_MaterialBucket* bucket = *it;
-//		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
-		bucket->SetMeshSlot(ms);
-	}
-
-}
-
-
-
-void RAS_MeshObject::MarkVisible(double* oglmatrix,
-								 void* clientobj,
-								 bool visible,
-								 bool useObjectColor,
-								 const MT_Vector4& rgbavec)
-{
-	KX_MeshSlot ms;
-	ms.m_clientObj = clientobj;
-	ms.m_mesh = this;
-	ms.m_OpenGLMatrix = oglmatrix;
-	ms.m_RGBAcolor = rgbavec;
-	ms.m_bObjectColor= useObjectColor;
-
-	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
-	{
-		RAS_MaterialBucket* bucket = *it;
-//		KX_ArrayOptimizer* oa = GetArrayOptimizer(bucket->GetPolyMaterial());
-		bucket->MarkVisibleMeshSlot(ms,visible,useObjectColor,rgbavec);
-	}
-}
-
-
-void RAS_MeshObject::RemoveFromBuckets(double* oglmatrix,
-									   void* clientobj)
-{
-	KX_MeshSlot ms;
-	ms.m_clientObj = clientobj;
-	ms.m_mesh = this;
-	ms.m_OpenGLMatrix = oglmatrix;
-
-	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
-	{
-		RAS_MaterialBucket* bucket = *it;
-//		RAS_IPolyMaterial* polymat = bucket->GetPolyMaterial();
-		//KX_ArrayOptimizer* oa = GetArrayOptimizer(polymat);
-		bucket->RemoveMeshSlot(ms);
-	}
-
-}
-
-
-
-/*
- * RAS_MeshObject::GetVertex returns the vertex located somewhere in the vertexpool
- * it is the clients responsibility to make sure the array and index are valid
- */
-RAS_TexVert* RAS_MeshObject::GetVertex(short array,
-									   unsigned int index,
-									   RAS_IPolyMaterial* polymat)
-{
-	 KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);
-	return &((*(ao->m_VertexArrayCache1)[array])[index]);
-}
-
-
-
-void RAS_MeshObject::ClearArrayData()
-{
-	for (int i=0;i<m_matVertexArrayS.size();i++) {
-		KX_ArrayOptimizer** ao = m_matVertexArrayS.at(i);
-
-		// we have duplicate entries, only free once
-		for(int j=i+1;j<m_matVertexArrayS.size();j++) {
-			if(ao == m_matVertexArrayS.at(j)) {
-				ao = NULL;
-				break;
-			}
-		}
-
-		if (ao)
-			delete *ao;
-	}
-}
-
-
-
-/**
- * RAS_MeshObject::CreateNewVertices creates vertices within sorted pools of vertices that share same material
-*/
-int	RAS_MeshObject::FindVertexArray(int numverts,
-									RAS_IPolyMaterial* polymat)
-{
-//	bool found=false;
-	int array=-1;
-	
-	KX_ArrayOptimizer* ao = GetArrayOptimizer(polymat);
-
-	for (unsigned int i=0;i<ao->m_VertexArrayCache1.size();i++)
-	{
-		if ( (ao->m_TriangleArrayCount[i] + (numverts-2)) < BUCKET_MAX_TRIANGLES) 
-		{
-			if((ao->m_VertexArrayCache1[i]->size()+numverts < BUCKET_MAX_INDICES))
-			{
-				array = i;
-				ao->m_TriangleArrayCount[array]+=numverts-2;
-				break;
-			}
-		}
-	}
-
-	if (array == -1)
-	{
-		array = ao->m_VertexArrayCache1.size();
-		vector<RAS_TexVert>* va = new vector<RAS_TexVert>;
-		ao->m_VertexArrayCache1.push_back(va);
-		KX_IndexArray *ia = new KX_IndexArray();
-		ao->m_IndexArrayCache1.push_back(ia);
-		ao->m_TriangleArrayCount.push_back(numverts-2);
-	}
-
-	return array;
-}
-
-
-
-
-//void RAS_MeshObject::Transform(const MT_Transform& trans)
-//{
-	//m_trans.translate(MT_Vector3(0,0,1));//.operator *=(trans);
-	
-//	for (int i=0;i<m_Polygons.size();i++)
-//	{
-//		m_Polygons[i]->Transform(trans);
-//	}
-//}
-
-
-/*
-void RAS_MeshObject::RelativeTransform(const MT_Vector3& vec)
-{
-	for (int i=0;i<m_Polygons.size();i++)
-	{
-		m_Polygons[i]->RelativeTransform(vec);
-	}
-}
-*/
-
-
-
-void RAS_MeshObject::UpdateMaterialList()
-{
-	m_materials.clear();
-	unsigned int numpolys = m_Polygons.size();
-	// for all polygons, find out which material they use, and add it to the set of materials
-	for (unsigned int i=0;i<numpolys;i++)
-	{
-		m_materials.insert(m_Polygons[i]->GetMaterial());
-	}
-}
+/* polygon sorting */
 
 struct RAS_MeshObject::polygonSlot
 {
@@ -585,7 +44,7 @@ struct RAS_MeshObject::polygonSlot
 
 	/* pnorm is the normal from the plane equation that the distance from is
 	 * used to sort again. */
-	void get(const KX_VertexArray& vertexarray, const KX_IndexArray& indexarray,
+	void get(const RAS_TexVert *vertexarray, const unsigned short *indexarray,
 		int offset, int nvert, const MT_Vector3& pnorm)
 	{
 		MT_Vector3 center(0, 0, 0);
@@ -593,7 +52,7 @@ struct RAS_MeshObject::polygonSlot
 
 		for(i=0; i<nvert; i++) {
 			m_index[i] = indexarray[offset+i];
-			center += vertexarray[m_index[i]].getLocalXYZ();
+			center += vertexarray[m_index[i]].getXYZ();
 		}
 
 		/* note we don't divide center by the number of vertices, since all
@@ -602,7 +61,7 @@ struct RAS_MeshObject::polygonSlot
 		m_z = MT_dot(pnorm, center);
 	}
 
-	void set(KX_IndexArray& indexarray, int offset, int nvert)
+	void set(unsigned short *indexarray, int offset, int nvert)
 	{
 		int i;
 
@@ -627,7 +86,369 @@ struct RAS_MeshObject::fronttoback
 	}
 };
 
-void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
+/* mesh object */
+
+STR_String RAS_MeshObject::s_emptyname = "";
+
+RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
+	: m_lightlayer(lightlayer),
+	m_bModified(true),
+	m_bMeshModified(true),
+	m_mesh(mesh),
+	m_bDeformed(false)
+{
+}
+
+RAS_MeshObject::~RAS_MeshObject()
+{
+	vector<RAS_Polygon*>::iterator it;
+
+	for(it=m_Polygons.begin(); it!=m_Polygons.end(); it++)
+		delete (*it);
+}
+
+bool RAS_MeshObject::MeshModified()
+{
+	return m_bMeshModified;
+}
+
+unsigned int RAS_MeshObject::GetLightLayer()
+{
+	return m_lightlayer;
+}
+
+
+
+int RAS_MeshObject::NumMaterials()
+{
+	return m_materials.size();
+}
+
+const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
+{ 
+	RAS_MeshMaterial* mmat = GetMeshMaterial(matid);
+
+	if(mmat)
+		return mmat->m_bucket->GetPolyMaterial()->GetMaterialName();
+	
+	return s_emptyname;
+}
+
+RAS_MeshMaterial* RAS_MeshObject::GetMeshMaterial(unsigned int matid)
+{
+	if (m_materials.size() > 0 && (matid < m_materials.size()))
+	{
+		list<RAS_MeshMaterial>::iterator it = m_materials.begin();
+		while (matid--) ++it;
+		return &*it;
+	}
+
+	return NULL;
+}
+
+
+
+int RAS_MeshObject::NumPolygons()
+{
+	return m_Polygons.size();
+}
+
+
+
+RAS_Polygon* RAS_MeshObject::GetPolygon(int num) const
+{
+	return m_Polygons[num];
+}
+
+	
+	
+
+	list<RAS_MeshMaterial>::iterator GetFirstMaterial();
+	list<RAS_MeshMaterial>::iterator GetLastMaterial();
+list<RAS_MeshMaterial>::iterator RAS_MeshObject::GetFirstMaterial()
+{
+	return m_materials.begin();
+}
+
+
+
+list<RAS_MeshMaterial>::iterator RAS_MeshObject::GetLastMaterial()
+{
+	return m_materials.end();
+}
+
+
+
+void RAS_MeshObject::SetName(STR_String name)
+{
+	m_name = name;
+}
+
+
+
+const STR_String& RAS_MeshObject::GetName()
+{
+	return m_name;
+}
+
+
+
+const STR_String& RAS_MeshObject::GetTextureName(unsigned int matid)
+{ 
+	RAS_MeshMaterial* mmat = GetMeshMaterial(matid);
+	
+	if(mmat)
+		return mmat->m_bucket->GetPolyMaterial()->GetTextureName();
+
+	return s_emptyname;
+}
+
+RAS_MeshMaterial *RAS_MeshObject::GetMeshMaterial(RAS_IPolyMaterial *mat)
+{
+	list<RAS_MeshMaterial>::iterator mit;
+
+	/* find a mesh material */
+	for(mit = m_materials.begin(); mit != m_materials.end(); mit++)
+		if(mit->m_bucket->GetPolyMaterial() == mat)
+			return &*mit;
+
+	return NULL;
+}
+
+RAS_Polygon* RAS_MeshObject::AddPolygon(RAS_MaterialBucket *bucket, int numverts)
+{
+	RAS_MeshMaterial *mmat;
+	RAS_Polygon *poly;
+	RAS_MeshSlot *slot;
+
+	/* find a mesh material */
+	mmat = GetMeshMaterial(bucket->GetPolyMaterial());
+
+	/* none found, create a new one */
+	if(!mmat) {
+		RAS_MeshMaterial meshmat;
+		meshmat.m_bucket = bucket;
+		meshmat.m_baseslot = meshmat.m_bucket->AddMesh(numverts);
+		m_materials.push_back(meshmat);
+		mmat = &m_materials.back();
+	}
+
+	/* add it to the bucket, this also adds new display arrays */
+	slot = mmat->m_baseslot;
+	slot->AddPolygon(numverts);
+
+	/* create a new polygon */
+	RAS_DisplayArray *darray = slot->CurrentDisplayArray();
+	poly = new RAS_Polygon(bucket, darray, numverts);
+	m_Polygons.push_back(poly);
+
+	return poly;
+}
+
+void RAS_MeshObject::DebugColor(unsigned int abgr)
+{
+	/*int numpolys = NumPolygons();
+
+	for (int i=0;i<numpolys;i++) {
+		RAS_Polygon* poly = m_polygons[i];
+		for (int v=0;v<poly->VertexCount();v++)
+			RAS_TexVert* vtx = poly->GetVertex(v)->setDebugRGBA(abgr);
+	}
+	*/
+
+	/* m_debugcolor = abgr;	*/
+}
+
+void RAS_MeshObject::SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba)
+{
+	RAS_MeshMaterial *mmat = GetMeshMaterial(mat);
+	RAS_MeshSlot *slot = mmat->m_baseslot;
+	RAS_MeshSlot::iterator it;
+	size_t i;
+
+	for(slot->begin(it); !slot->end(it); slot->next(it))
+		for(i=it.startvertex; i<it.endvertex; i++)
+			it.vertex[i].SetRGBA(rgba);
+}
+
+void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
+								const MT_Point3& xyz,
+								const MT_Point2& uv,
+								const MT_Point2& uv2,
+								const MT_Vector4& tangent,
+								const unsigned int rgba,
+								const MT_Vector3& normal,
+								bool flat,
+								int origindex)
+{
+	RAS_TexVert texvert(xyz, uv, uv2, tangent, rgba, normal, flat, origindex);
+	RAS_MeshMaterial *mmat;
+	RAS_DisplayArray *darray;
+	RAS_MeshSlot *slot;
+	int offset;
+	
+	mmat = GetMeshMaterial(poly->GetMaterial()->GetPolyMaterial());
+	slot = mmat->m_baseslot;
+	darray = slot->CurrentDisplayArray();
+
+	if(!flat) {
+		/* find vertices shared between faces, with the restriction
+		 * that they exist in the same display array, and have the
+		 * same uv coordinate etc */
+		vector<SharedVertex>& sharedmap = m_sharedvertex_map[origindex];
+		vector<SharedVertex>::iterator it;
+
+		for(it = sharedmap.begin(); it != sharedmap.end(); it++)
+		{
+			if(it->m_darray != darray)
+				continue;
+			if(!it->m_darray->m_vertex[it->m_offset].closeTo(&texvert))
+				continue;
+
+			/* found one, add it and we're done */
+			if(poly->IsVisible())
+				slot->AddPolygonVertex(it->m_offset);
+			poly->SetVertexOffset(i, it->m_offset);
+			return;
+		}
+	}
+
+	/* no shared vertex found, add a new one */
+	offset = slot->AddVertex(texvert);
+	if(poly->IsVisible())
+		slot->AddPolygonVertex(offset);
+	poly->SetVertexOffset(i, offset);
+
+	if(!flat) {
+		SharedVertex shared;
+		shared.m_darray = darray;
+		shared.m_offset = offset;
+		m_sharedvertex_map[origindex].push_back(shared);
+	}
+}
+
+int RAS_MeshObject::NumVertices(RAS_IPolyMaterial* mat)
+{
+	RAS_MeshMaterial *mmat;
+	RAS_MeshSlot *slot;
+	RAS_MeshSlot::iterator it;
+	size_t len = 0;
+
+	mmat = GetMeshMaterial(mat);
+	slot = mmat->m_baseslot;
+	for(slot->begin(it); !slot->end(it); slot->next(it))
+		len += it.endvertex - it.startvertex;
+	
+	return len;
+}
+
+
+RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
+									   unsigned int index)
+{
+	RAS_MeshMaterial *mmat;
+	RAS_MeshSlot *slot;
+	RAS_MeshSlot::iterator it;
+	size_t len;
+
+	mmat = GetMeshMaterial(matid);
+
+	if(!mmat)
+		return NULL;
+	
+	slot = mmat->m_baseslot;
+	len = 0;
+	for(slot->begin(it); !slot->end(it); slot->next(it)) {
+		if(index >= len + it.endvertex - it.startvertex)
+			len += it.endvertex - it.startvertex;
+		else
+			return &it.vertex[index - len];
+	}
+	
+	return NULL;
+}
+
+void RAS_MeshObject::AddMeshUser(void *clientobj)
+{
+	list<RAS_MeshMaterial>::iterator it;
+
+	for(it = m_materials.begin();it!=m_materials.end();++it) {
+		/* always copy from the base slot, which is never removed 
+		 * since new objects can be created with the same mesh data */
+		RAS_MeshSlot *ms = it->m_bucket->CopyMesh(it->m_baseslot);
+		ms->m_clientObj = clientobj;
+		it->m_slots.insert(clientobj, ms);
+	}
+}
+
+void RAS_MeshObject::UpdateBuckets(void* clientobj,
+							   double* oglmatrix,
+							   bool useObjectColor,
+							   const MT_Vector4& rgbavec,
+							   bool visible,
+							   bool culled)
+{
+	list<RAS_MeshMaterial>::iterator it;
+
+	for(it = m_materials.begin();it!=m_materials.end();++it) {
+		RAS_MeshSlot **msp = it->m_slots[clientobj];
+
+		if(!msp)
+			continue;
+
+		RAS_MeshSlot *ms = *msp;
+
+		ms->m_mesh = this;
+		ms->m_OpenGLMatrix = oglmatrix;
+		ms->m_bObjectColor = useObjectColor;
+		ms->m_RGBAcolor = rgbavec;
+		ms->m_bVisible = visible;
+		ms->m_bCulled = culled || !visible;
+
+		/* split if necessary */
+		ms->Split();
+	}
+}
+
+void RAS_MeshObject::RemoveFromBuckets(void *clientobj)
+{
+	list<RAS_MeshMaterial>::iterator it;
+	
+	for(it = m_materials.begin();it!=m_materials.end();++it) {
+		RAS_MeshSlot **msp = it->m_slots[clientobj];
+
+		if(!msp)
+			continue;
+
+		RAS_MeshSlot *ms = *msp;
+
+		it->m_bucket->RemoveMesh(ms);
+		it->m_slots.remove(clientobj);
+	}
+}
+
+//void RAS_MeshObject::Transform(const MT_Transform& trans)
+//{
+	//m_trans.translate(MT_Vector3(0,0,1));//.operator *=(trans);
+	
+//	for (int i=0;i<m_Polygons.size();i++)
+//	{
+//		m_Polygons[i]->Transform(trans);
+//	}
+//}
+
+
+/*
+void RAS_MeshObject::RelativeTransform(const MT_Vector3& vec)
+{
+	for (int i=0;i<m_Polygons.size();i++)
+	{
+		m_Polygons[i]->RelativeTransform(vec);
+	}
+}
+*/
+
+void RAS_MeshObject::SortPolygons(RAS_MeshSlot& ms, const MT_Transform &transform)
 {
 	// Limitations: sorting is quite simple, and handles many
 	// cases wrong, partially due to polygons being sorted per
@@ -645,43 +466,34 @@ void RAS_MeshObject::SortPolygons(const MT_Transform &transform)
 	// to avoid excessive state changes while drawing. e) would
 	// require splitting polygons.
 
-	if (!m_zsort)
-		return;
+	RAS_MeshSlot::iterator it;
+	size_t j;
 
-	// Extract camera Z plane...
-	const MT_Vector3 pnorm(transform.getBasis()[2]);
-	// unneeded: const MT_Scalar pval = transform.getOrigin()[2];
+	for(ms.begin(it); !ms.end(it); ms.next(it)) {
+		unsigned int nvert = (int)it.array->m_type;
+		unsigned int totpoly = it.totindex/nvert;
 
-	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
-	{
-		if(!(*it)->IsZSort())
+		if(totpoly <= 1)
+			continue;
+		if(it.array->m_type == RAS_DisplayArray::LINE)
 			continue;
 
-		RAS_IPolyMaterial *mat = (*it)->GetPolyMaterial();
-		KX_ArrayOptimizer* ao = GetArrayOptimizer(mat);
+		// Extract camera Z plane...
+		const MT_Vector3 pnorm(transform.getBasis()[2]);
+		// unneeded: const MT_Scalar pval = transform.getOrigin()[2];
 
-		vecIndexArrays& indexarrays = ao->m_IndexArrayCache1;
-		vecVertexArray& vertexarrays = ao->m_VertexArrayCache1;
-		unsigned int i, j, nvert = (mat->UsesTriangles())? 3: 4;
+		vector<polygonSlot> slots(totpoly);
 
-		for(i=0; i<indexarrays.size(); i++) {
-			KX_IndexArray& indexarray = *indexarrays[i];
-			KX_VertexArray& vertexarray = *vertexarrays[i];
+		/* get indices and z into temporary array */
+		for(j=0; j<totpoly; j++)
+			slots[j].get(it.vertex, it.index, j*nvert, nvert, pnorm);
 
-			unsigned int totpoly = indexarray.size()/nvert;
-			vector<polygonSlot> slots(totpoly);
+		/* sort (stable_sort might be better, if flickering happens?) */
+		std::sort(slots.begin(), slots.end(), backtofront());
 
-			/* get indices and z into temporary array */
-			for(j=0; j<totpoly; j++)
-				slots[j].get(vertexarray, indexarray, j*nvert, nvert, pnorm);
-
-			/* sort (stable_sort might be better, if flickering happens?) */
-			std::sort(slots.begin(), slots.end(), backtofront());
-
-			/* get indices from temporary array again */
-			for(j=0; j<totpoly; j++)
-				slots[j].set(indexarray, j*nvert, nvert);
-		}
+		/* get indices from temporary array again */
+		for(j=0; j<totpoly; j++)
+			slots[j].set(it.index, j*nvert, nvert);
 	}
 }
 
@@ -690,37 +502,8 @@ void RAS_MeshObject::SchedulePolygons(int drawingmode)
 {
 	if (m_bModified)
 	{
-		int i, numpolys = m_Polygons.size();
-
-		for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();++it)
-			if ((*it)->IsZSort())
-				m_zsort = true;
-		
-		if (drawingmode == RAS_IRasterizer::KX_WIREFRAME)
-		{
-			for (i=0;i<numpolys;i++)
-			{
-				RAS_Polygon* poly = m_Polygons[i];
-				if (poly->IsVisible())
-					ScheduleWireframePoly(poly->GetVertexIndexBase(),poly->VertexCount(),poly->GetEdgeCode(),
-						poly->GetMaterial()->GetPolyMaterial());
-				
-			}
-			m_zsort = false;
-		}
-		else
-		{
-			for (i=0;i<numpolys;i++)
-			{
-				RAS_Polygon* poly = m_Polygons[i];
-				if (poly->IsVisible())
-					SchedulePoly(poly->GetVertexIndexBase(),poly->VertexCount(),
-						poly->GetMaterial()->GetPolyMaterial());
-			}
-		}
-
 		m_bModified = false;
-		m_MeshMod = true;
+		m_bMeshModified = true;
 	} 
 }
 

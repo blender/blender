@@ -52,20 +52,24 @@ void	txt_free_cut_buffer	(void);
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
 void	txt_order_cursors	(struct Text *text);
-int		txt_find_string		(struct Text *text, char *findstr);
+int		txt_find_string		(struct Text *text, char *findstr, int wrap);
 int		txt_has_sel			(struct Text *text);
 int		txt_get_span		(struct TextLine *from, struct TextLine *to);
 void	txt_move_up			(struct Text *text, short sel);
 void	txt_move_down		(struct Text *text, short sel);
 void	txt_move_left		(struct Text *text, short sel);
 void	txt_move_right		(struct Text *text, short sel);
+void	txt_jump_left		(struct Text *text, short sel);
+void	txt_jump_right		(struct Text *text, short sel);
 void	txt_move_bof		(struct Text *text, short sel);
 void	txt_move_eof		(struct Text *text, short sel);
 void	txt_move_bol		(struct Text *text, short sel);
 void	txt_move_eol		(struct Text *text, short sel);
 void	txt_move_toline		(struct Text *text, unsigned int line, short sel);
+void	txt_move_to			(struct Text *text, unsigned int line, unsigned int ch, short sel);
 void	txt_pop_sel			(struct Text *text);
 void	txt_delete_char		(struct Text *text);
+void	txt_delete_word		(struct Text *text);
 void	txt_copy_sel		(struct Text *text);
 void	txt_sel_all			(struct Text *text);
 void	txt_sel_line		(struct Text *text);
@@ -80,8 +84,10 @@ void	txt_do_undo			(struct Text *text);
 void	txt_do_redo			(struct Text *text);
 void	txt_split_curline	(struct Text *text);
 void	txt_backspace_char	(struct Text *text);
+void	txt_backspace_word	(struct Text *text);
 int		txt_add_char		(struct Text *text, char add);
-void	txt_find_panel		(struct SpaceText *st, int again);
+int		txt_replace_char	(struct Text *text, char add);
+void	find_and_replace	(struct SpaceText *st, short mode);
 void	run_python_script	(struct SpaceText *st);
 int	jumptoline_interactive	(struct SpaceText *st);
 void	txt_export_to_object	(struct Text *text);
@@ -94,6 +100,17 @@ int	setcurr_tab		(struct Text *text);
 void	convert_tabs		(struct SpaceText *st, int tab);
 void	txt_copy_clipboard	(struct Text *text);
 void	txt_paste_clipboard	(struct Text *text);
+
+void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, char color[4], int group, int flags);
+short	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
+short	txt_clear_markers					(struct Text *text, int group, int flags);
+struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, int curs, int group, int flags);
+struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
+struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marker);
+struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
+struct TextMarker	*txt_prev_marker_color	(struct Text *text, struct TextMarker *marker);
+struct TextMarker	*txt_next_marker_color	(struct Text *text, struct TextMarker *marker);
+
 /* Undo opcodes */
 
 /* Simple main cursor movement */
@@ -134,6 +151,14 @@ void	txt_paste_clipboard	(struct Text *text);
 #define UNDO_UNINDENT		033
 #define UNDO_COMMENT		034
 #define UNDO_UNCOMMENT		035
+
+/* Find and replace flags */
+#define TXT_FIND_WRAP		0x01
+#define TXT_FIND_ALLTEXTS	0x02
+
+/* Marker flags */
+#define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */
+#define TMARK_EDITALL	0x02	/* Edit all markers of the same group as one */
 
 #ifdef __cplusplus
 }

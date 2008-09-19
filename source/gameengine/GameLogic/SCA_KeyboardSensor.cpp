@@ -505,7 +505,7 @@ PyObject* SCA_KeyboardSensor::sPySetAllMode(PyObject* self,
 				       PyObject* kwds)
 {
 //	printf("sPyIsPositive\n");
-    return ((SCA_KeyboardSensor*) self)->PyIsPositive(self, args, kwds);
+    return ((SCA_KeyboardSensor*) self)->PyIsPositive(self);
 }
 
 

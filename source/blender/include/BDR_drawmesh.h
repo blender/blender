@@ -30,52 +30,11 @@
 #ifndef BDR_DRAWMESH_H
 #define BDR_DRAWMESH_H
 
-struct Image;
-struct MTFace;
 struct Object;
 struct DerivedMesh;
-struct Mesh;
-struct EdgeHash;
-
-/**
- * Enables or disable mipmapping for realtime images (textures).
- * Note that this will will destroy all texture bindings in OpenGL.
- * @see free_realtime_image()
- * @param mipmap Turn mipmapping on (mipmap!=0) or off (mipmap==0).
- */
-void set_mipmap(int mipmap);
-
-/**
- * Enables or disable linear mipmap setting for realtime images (textures).
- * Note that this will will destroy all texture bindings in OpenGL.
- * @see free_realtime_image()
- * @param mipmap Turn linear mipmapping on (linear!=0) or off (linear==0).
- */
-void set_linear_mipmap(int linear);
-
-/**
- * Returns the current setting for linear mipmapping.
- */
-int get_linear_mipmap(void);
-
-/**
- * Resets the realtime image cache variables.
- */
-void clear_realtime_image_cache(void);
-
-
-void update_realtime_image(struct Image *ima, int x, int y, int w, int h);
-void free_realtime_image(struct Image *ima);
-void free_all_realtime_images(void);
-void make_repbind(struct Image *ima);
-int set_tpage(struct MTFace *tface);
-
-void texpaint_enable_mipmap(void);
-void texpaint_disable_mipmap(void);
 
 void draw_mesh_textured(struct Object *ob, struct DerivedMesh *dm, int facesel);
-struct EdgeHash *get_tface_mesh_marked_edge_info(struct Mesh *me);
-void init_realtime_GL(void); 
+void draw_mesh_text(struct Object *ob, int glsl);
 
 #endif /* BDR_DRAWMESH_H */
 

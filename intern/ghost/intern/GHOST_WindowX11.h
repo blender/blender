@@ -64,6 +64,7 @@ public:
 	 * @param width		The width the window.
 	 * @param height	The height the window.
 	 * @param state		The state the window is initially opened with.
+	 * @param parentWindow 	Parent (embedder) window
 	 * @param type		The type of drawing context installed in this window.
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
@@ -76,6 +77,7 @@ public:
 		GHOST_TUns32 width,	
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
+		const GHOST_TEmbedderWindowID parentWindow,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 		const bool stereoVisual = false
 	);
@@ -210,6 +212,15 @@ public:
 
 	const GHOST_TabletData* GetTabletData()
 	{ return &m_xtablet.CommonData; }
+
+	/*
+	 * Need this in case that we want start the window
+	 * in FullScreen or Maximized state.
+	 * Check GHOST_WindowX11.cpp
+	 */
+	bool m_post_init;
+	GHOST_TWindowState m_post_state;
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -325,6 +336,18 @@ private :
 
 	/* Tablet devices */
 	XTablet m_xtablet;
+
+	void icccmSetState(int state);
+	int icccmGetState() const;
+
+	void netwmMaximized(bool set);
+	bool netwmIsMaximized() const;
+
+	void netwmFullScreen(bool set);
+	bool netwmIsFullScreen() const;
+
+	void motifFullScreen(bool set);
+	bool motifIsFullScreen() const;
 };
 
 

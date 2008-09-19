@@ -49,10 +49,6 @@ ifeq ($(OS),darwin)
 	CPPFLAGS += -fpascal-strings
 endif
 
-ifeq ($(WITH_BF_GLEXT),true)
-    CPPFLAGS += -DWITH_GLEXT
-endif
-
 ###############
 
 SOURCEDIR = source/gameengine/Rasterizer

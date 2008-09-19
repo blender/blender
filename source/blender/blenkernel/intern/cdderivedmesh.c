@@ -58,6 +58,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GPU_draw.h"
+#include "GPU_extensions.h"
+#include "GPU_material.h"
+
 #include <string.h>
 #include <limits.h>
 
@@ -243,7 +247,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	glEnd();
 }
 
-static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
+static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;
@@ -271,7 +275,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 		   || new_shademodel != shademodel) {
 			glEnd();
 
-			drawCurrentMat = setMaterial(matnr = new_matnr);
+			drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
 
 			glShadeModel(shademodel = new_shademodel);
 			glBegin(glmode = new_glmode);
@@ -556,6 +560,134 @@ static void cdDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void 
 	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
+static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	GPUVertexAttribs gattribs;
+	DMVertexAttribs attribs;
+	MVert *mvert = cddm->mvert;
+	MFace *mface = cddm->mface;
+	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
+	float (*nors)[3] = dm->getFaceDataArray(dm, CD_NORMAL);
+	int a, b, dodraw, smoothnormal, matnr, new_matnr;
+	int transp, new_transp, orig_transp;
+	int orig, *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+
+	matnr = -1;
+	smoothnormal = 0;
+	dodraw = 0;
+	transp = GPU_get_material_blend_mode();
+	orig_transp = transp;
+
+	memset(&attribs, 0, sizeof(attribs));
+
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_QUADS);
+
+	for(a = 0; a < dm->numFaceData; a++, mface++) {
+		new_matnr = mface->mat_nr + 1;
+
+		if(new_matnr != matnr) {
+			glEnd();
+
+			dodraw = setMaterial(matnr = new_matnr, &gattribs);
+			if(dodraw)
+				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+
+			glBegin(GL_QUADS);
+		}
+
+		if(!dodraw) {
+			continue;
+		}
+		else if(setDrawOptions) {
+			orig = index[a];
+
+			if(orig == ORIGINDEX_NONE)
+				continue;
+			else if(!setDrawOptions(userData, orig))
+				continue;
+		}
+
+		if(tf) {
+			new_transp = tf[a].transp;
+
+			if(new_transp != transp) {
+				glEnd();
+
+				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
+					GPU_set_material_blend_mode(orig_transp);
+				else
+					GPU_set_material_blend_mode(new_transp);
+				transp = new_transp;
+
+				glBegin(GL_QUADS);
+			}
+		}
+
+		smoothnormal = (mface->flag & ME_SMOOTH);
+
+		if(!smoothnormal) {
+			if(nors) {
+				glNormal3fv(nors[a]);
+			}
+			else {
+				/* TODO ideally a normal layer should always be available */
+				float nor[3];
+				if(mface->v4) {
+					CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
+								   mvert[mface->v3].co, mvert[mface->v4].co,
+								   nor);
+				} else {
+					CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
+								  mvert[mface->v3].co, nor);
+				}
+				glNormal3fv(nor);
+			}
+		}
+
+#define PASSVERT(index, vert) {													\
+	if(attribs.totorco)															\
+		glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);	\
+	for(b = 0; b < attribs.tottface; b++) {										\
+		MTFace *tf = &attribs.tface[b].array[a];								\
+		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
+	}																			\
+	for(b = 0; b < attribs.totmcol; b++) {										\
+		MCol *cp = &attribs.mcol[b].array[a*4 + vert];							\
+		GLubyte col[4];															\
+		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
+		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
+	}																			\
+	if(attribs.tottang) {														\
+		float *tang = attribs.tang.array[a*4 + vert];							\
+		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+	}																			\
+	if(smoothnormal)															\
+		glNormal3sv(mvert[index].no);											\
+	glVertex3fv(mvert[index].co);												\
+}
+
+		PASSVERT(mface->v1, 0);
+		PASSVERT(mface->v2, 1);
+		PASSVERT(mface->v3, 2);
+		if(mface->v4)
+			PASSVERT(mface->v4, 3)
+		else
+			PASSVERT(mface->v3, 2)
+
+#undef PASSVERT
+	}
+	glEnd();
+
+	glShadeModel(GL_FLAT);
+}
+
+static void cdDM_drawFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
+{
+	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
+}
+
 static void cdDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -713,8 +845,10 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->drawFacesSolid = cdDM_drawFacesSolid;
 	dm->drawFacesColored = cdDM_drawFacesColored;
 	dm->drawFacesTex = cdDM_drawFacesTex;
+	dm->drawFacesGLSL = cdDM_drawFacesGLSL;
 	dm->drawMappedFaces = cdDM_drawMappedFaces;
 	dm->drawMappedFacesTex = cdDM_drawMappedFacesTex;
+	dm->drawMappedFacesGLSL = cdDM_drawMappedFacesGLSL;
 
 	dm->foreachMappedVert = cdDM_foreachMappedVert;
 	dm->foreachMappedEdge = cdDM_foreachMappedEdge;

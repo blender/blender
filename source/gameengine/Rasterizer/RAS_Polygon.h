@@ -35,55 +35,47 @@
 #include <vector>
 using namespace std;
 
-
-//
-// Bitfield that stores the flags for each CValue derived class
-//
-struct PolygonFlags {
-	PolygonFlags() :
-		Visible(true),
-		Collider(true)
-	{
-	}
-	unsigned char Visible : 1;
-	unsigned char Collider : 1;
-	//int Visible : 1;
-	//int Collider : 1;
-};
+/* polygon flags */
 
 class RAS_Polygon
 {
+	/* location */
 	RAS_MaterialBucket*			m_bucket;
-	KX_VertexIndex				m_vertexindexbase;
-	int							m_numverts;
-	int							m_edgecode;
-	PolygonFlags				m_polyFlags;
-	
+	RAS_DisplayArray*			m_darray;
+	unsigned short				m_offset[4];
+	unsigned short				m_numvert;
+
+	/* flags */
+	unsigned char				m_edgecode;
+	unsigned char				m_polyflags;
 
 public:
-	RAS_Polygon(RAS_MaterialBucket* bucket,
-				bool visible,
-				int numverts,
-				int vtxarrayindex) ;
+	enum {
+		VISIBLE = 1,
+		COLLIDER = 2
+	};
+
+	RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray* darray, int numvert);
 	virtual ~RAS_Polygon() {};
 	
-//	RAS_TexVert* GetVertex(int index);
 	int					VertexCount();
-	void				SetVertex(int i, unsigned int vertexindex); //const MT_Point3& xyz,const MT_Point2& uv,const unsigned int rgbacolor,const MT_Vector3& normal)
-	
-	const KX_VertexIndex& GetIndexBase();
+	RAS_TexVert*		GetVertex(int i);
 
-	void				SetVisibleWireframeEdges(int edgecode);
+	void				SetVertexOffset(int i, unsigned short offset);
+	int					GetVertexOffset(int i);
+	
 	// each bit is for a visible edge, starting with bit 1 for the first edge, bit 2 for second etc.
 	int					GetEdgeCode();
+	void				SetEdgeCode(int edgecode);
 	
 	bool				IsVisible();
+	void				SetVisible(bool visible);
+
 	bool				IsCollider();
-	void				SetCollider(bool col);
+	void				SetCollider(bool collider);
 
-	KX_VertexIndex&		GetVertexIndexBase();
 	RAS_MaterialBucket*	GetMaterial();
-
+	RAS_DisplayArray*	GetDisplayArray();
 };
 
 #endif

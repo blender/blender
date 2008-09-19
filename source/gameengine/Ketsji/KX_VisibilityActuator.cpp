@@ -38,10 +38,12 @@
 KX_VisibilityActuator::KX_VisibilityActuator(
 	SCA_IObject* gameobj,
 	bool visible,
+	bool recursive,
 	PyTypeObject* T
 	) 
 	: SCA_IActuator(gameobj,T),
-	  m_visible(visible)
+	  m_visible(visible),
+	  m_recursive(recursive)
 {
 	// intentionally empty
 }
@@ -75,10 +77,10 @@ KX_VisibilityActuator::Update()
 
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	
-	obj->SetVisible(m_visible);
-	obj->MarkVisible();
+	obj->SetVisible(m_visible, m_recursive);
+	obj->UpdateBuckets(m_recursive);
 
-	return true;
+	return false;
 }
 
 /* ------------------------------------------------------------------------- */

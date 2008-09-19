@@ -44,6 +44,8 @@
 #include "BLI_winstuff.h"
 #endif
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 #include "PIL_time.h"
 
 #include "IMB_imbuf.h"
@@ -64,10 +66,12 @@
 #include "BKE_brush.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -78,9 +82,10 @@
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
 
-#include "BDR_drawmesh.h"
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
+
+#include "GPU_draw.h"
 
 #include "GHOST_Types.h"
 
@@ -103,6 +108,8 @@
 #define IMAPAINT_TILE_SIZE			(1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)	(((size)+IMAPAINT_TILE_SIZE-1) >> IMAPAINT_TILE_BITS)
 
+#define MAXUNDONAME	64
+
 typedef struct ImagePaintState {
 	Brush *brush;
 	short tool, blend;
@@ -120,47 +127,205 @@ typedef struct ImagePaintState {
 	float uv[2];
 } ImagePaintState;
 
-typedef struct ImagePaintUndo {
-	Image *image;
-	ImBuf *tilebuf;
-	void **tiles;
-	int xtiles, ytiles;
-} ImagePaintUndo;
+typedef struct UndoTile {
+	struct UndoTile *next, *prev;
+	ID id;
+	void *rect;
+	int x, y;
+} UndoTile;
+
+typedef struct UndoElem {
+	struct UndoElem *next, *prev;
+	char name[MAXUNDONAME];
+	unsigned long undosize;
+
+	ImBuf *ibuf;
+	ListBase tiles;
+} UndoElem;
 
 typedef struct ImagePaintPartialRedraw {
 	int x1, y1, x2, y2;
 	int enabled;
 } ImagePaintPartialRedraw;
 
-static ImagePaintUndo imapaintundo = {NULL, NULL, NULL, 0, 0};
+static ListBase undobase = {NULL, NULL};
+static UndoElem *curundo = NULL;
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
-static void init_imagapaint_undo(Image *ima, ImBuf *ibuf)
+/* UNDO */
+
+/* internal functions */
+
+static void undo_copy_tile(UndoTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int restore)
 {
-	int xt, yt;
+	/* copy or swap contents of tile->rect and region in ibuf->rect */
+	IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x*IMAPAINT_TILE_SIZE,
+		tile->y*IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
-	imapaintundo.image = ima;
-	imapaintundo.xtiles = xt = IMAPAINT_TILE_NUMBER(ibuf->x);
-	imapaintundo.ytiles = yt = IMAPAINT_TILE_NUMBER(ibuf->y);
-	imapaintundo.tiles = MEM_callocN(sizeof(void*)*xt*yt, "ImagePaintUndoTiles");
-	imapaintundo.tilebuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE,
-						ibuf->depth, (ibuf->rect_float)? IB_rectfloat: IB_rect, 0);
-}
-
-static void imapaint_copy_tile(ImBuf *ibuf, int tile, int x, int y, int swapundo)
-{
-	IMB_rectcpy(imapaintundo.tilebuf, ibuf, 0, 0, x*IMAPAINT_TILE_SIZE,
-		y*IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
-
-	if (imapaintundo.tilebuf->rect_float)
-		SWAP(void*, imapaintundo.tilebuf->rect_float, imapaintundo.tiles[tile])
-	else
-		SWAP(void*, imapaintundo.tilebuf->rect, imapaintundo.tiles[tile])
+	if(ibuf->rect_float) SWAP(void*, tmpibuf->rect_float, tile->rect)
+	else SWAP(void*, tmpibuf->rect, tile->rect)
 	
-	if (swapundo)
-		IMB_rectcpy(ibuf, imapaintundo.tilebuf, x*IMAPAINT_TILE_SIZE,
-			y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+	if(restore)
+		IMB_rectcpy(ibuf, tmpibuf, tile->x*IMAPAINT_TILE_SIZE,
+			tile->y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 }
+
+static void undo_restore(UndoElem *undo)
+{
+	Image *ima = NULL;
+	ImBuf *ibuf, *tmpibuf;
+	UndoTile *tile;
+
+	if(!undo)
+		return;
+
+	tmpibuf= IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
+	                        IB_rectfloat|IB_rect, 0);
+	
+	for(tile=undo->tiles.first; tile; tile=tile->next) {
+		/* find image based on name, pointer becomes invalid with global undo */
+		if(ima && strcmp(tile->id.name, ima->id.name)==0);
+		else {
+			for(ima=G.main->image.first; ima; ima=ima->id.next)
+				if(strcmp(tile->id.name, ima->id.name)==0)
+					break;
+		}
+
+		ibuf= BKE_image_get_ibuf(ima, NULL);
+
+		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
+			continue;
+
+		undo_copy_tile(tile, tmpibuf, ibuf, 1);
+
+		GPU_free_image(ima); /* force OpenGL reload */
+		if(ibuf->rect_float)
+			imb_freerectImBuf(ibuf); /* force recreate of char rect */
+	}
+
+	IMB_freeImBuf(tmpibuf);
+}
+
+static void undo_free(UndoElem *undo)
+{
+	UndoTile *tile;
+
+	for(tile=undo->tiles.first; tile; tile=tile->next)
+		MEM_freeN(tile->rect);
+	BLI_freelistN(&undo->tiles);
+}
+
+static void undo_imagepaint_push_begin(char *name)
+{
+	UndoElem *uel;
+	int nr;
+	
+	/* Undo push is split up in begin and end, the reason is that as painting
+	 * happens more tiles are added to the list, and at the very end we know
+	 * how much memory the undo used to remove old undo elements */
+
+	/* remove all undos after (also when curundo==NULL) */
+	while(undobase.last != curundo) {
+		uel= undobase.last;
+		undo_free(uel);
+		BLI_freelinkN(&undobase, uel);
+	}
+	
+	/* make new */
+	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
+	BLI_addtail(&undobase, uel);
+
+	/* name can be a dynamic string */
+	strncpy(uel->name, name, MAXUNDONAME-1);
+	
+	/* limit amount to the maximum amount*/
+	nr= 0;
+	uel= undobase.last;
+	while(uel) {
+		nr++;
+		if(nr==U.undosteps) break;
+		uel= uel->prev;
+	}
+	if(uel) {
+		while(undobase.first!=uel) {
+			UndoElem *first= undobase.first;
+			undo_free(first);
+			BLI_freelinkN(&undobase, first);
+		}
+	}
+}
+
+static void undo_imagepaint_push_end()
+{
+	UndoElem *uel;
+	unsigned long totmem, maxmem;
+
+	if(U.undomemory != 0) {
+		/* limit to maximum memory (afterwards, we can't know in advance) */
+		totmem= 0;
+		maxmem= ((unsigned long)U.undomemory)*1024*1024;
+
+		uel= undobase.last;
+		while(uel) {
+			totmem+= uel->undosize;
+			if(totmem>maxmem) break;
+			uel= uel->prev;
+		}
+
+		if(uel) {
+			while(undobase.first!=uel) {
+				UndoElem *first= undobase.first;
+				undo_free(first);
+				BLI_freelinkN(&undobase, first);
+			}
+		}
+	}
+}
+
+/* external functions */
+
+/* 1= an undo, -1 is a redo. */
+void undo_imagepaint_step(int step)
+{
+	UndoElem *undo;
+
+	if(step==1) {
+		if(curundo==NULL) error("No more steps to undo");
+		else {
+			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
+			undo_restore(curundo);
+			curundo= curundo->prev;
+		}
+	}
+	else if(step==-1) {
+		if((curundo!=NULL && curundo->next==NULL) || undobase.first==NULL) error("No more steps to redo");
+		else {
+			undo= (curundo && curundo->next)? curundo->next: undobase.first;
+			undo_restore(undo);
+			curundo= undo;
+			if(G.f & G_DEBUG) printf("redo %s\n", undo->name);
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+void undo_imagepaint_clear(void)
+{
+	UndoElem *uel;
+	
+	uel= undobase.first;
+	while(uel) {
+		undo_free(uel);
+		uel= uel->next;
+	}
+
+	BLI_freelistN(&undobase);
+	curundo= NULL;
+}
+
+/* Imagepaint Partial Redraw & Dirty Region */
 
 static void imapaint_clear_partial_redraw()
 {
@@ -169,7 +334,9 @@ static void imapaint_clear_partial_redraw()
 
 static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
-	int srcx= 0, srcy= 0, origx, tile, allocsize;
+	ImBuf *tmpibuf;
+	UndoTile *tile;
+	int srcx= 0, srcy= 0, origx, allocsize;
 
 	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
 
@@ -195,24 +362,36 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 	origx = (x >> IMAPAINT_TILE_BITS);
 	y = (y >> IMAPAINT_TILE_BITS);
 
+	tmpibuf= IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
+	                        IB_rectfloat|IB_rect, 0);
+	
 	for (; y <= h; y++) {
 		for (x=origx; x <= w; x++) {
-			if (ima != imapaintundo.image) {
-				free_imagepaint();
-				init_imagapaint_undo(ima, ibuf);
-			}
+			for(tile=curundo->tiles.first; tile; tile=tile->next)
+				if(tile->x == x && tile->y == y && strcmp(tile->id.name, ima->id.name)==0)
+					break;
 
-			tile = y*imapaintundo.xtiles + x;
-			if (!imapaintundo.tiles[tile]) {
-				allocsize= (ibuf->rect_float)? sizeof(float): sizeof(char);
-				imapaintundo.tiles[tile]= MEM_mapallocN(allocsize*4*
-					IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE, "ImagePaintUndoTile");
-				imapaint_copy_tile(ibuf, tile, x, y, 0);
+			if(!tile) {
+				tile= MEM_callocN(sizeof(UndoTile), "ImaUndoTile");
+				tile->id= ima->id;
+				tile->x= x;
+				tile->y= y;
+
+				allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
+				allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
+				tile->rect= MEM_mapallocN(allocsize, "ImaUndoRect");
+
+				undo_copy_tile(tile, tmpibuf, ibuf, 0);
+				curundo->undosize += allocsize;
+
+				BLI_addtail(&curundo->tiles, tile);
 			}
 		}
 	}
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
+
+	IMB_freeImBuf(tmpibuf);
 }
 
 static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint)
@@ -226,7 +405,7 @@ static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint)
 	if(texpaint || G.sima->lock) {
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
 		int h = imapaintpartial.y2 - imapaintpartial.y1;
-		update_realtime_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h);
+		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h);
 	}
 }
 
@@ -239,7 +418,7 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 			allqueue(REDRAWIMAGE, 0);
 		else if(!G.sima->lock) {
 			if(image)
-				free_realtime_image(image); /* force OpenGL reload */
+				GPU_free_image(image); /* force OpenGL reload */
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		allqueue(REDRAWHEADERS, 0);
@@ -267,46 +446,6 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 		force_draw_plus(SPACE_VIEW3D, 0);
 	else
 		force_draw(0);
-}
-
-void imagepaint_undo()
-{
-	Image *ima= imapaintundo.image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, G.sima?&G.sima->iuser:NULL);
-	int x, y, tile;
-
-	if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
-		return;
-
-	for (tile = 0, y = 0; y < imapaintundo.ytiles; y++)
-		for (x = 0; x < imapaintundo.xtiles; x++, tile++)
-			if (imapaintundo.tiles[tile])
-				imapaint_copy_tile(ibuf, tile, x, y, 1);
-
-	free_realtime_image(ima); /* force OpenGL reload */
-	if(ibuf->rect_float)
-		imb_freerectImBuf(ibuf); /* force recreate of char rect */
-
-	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-void free_imagepaint()
-{
-	/* todo: does this need to be in the same places as editmode_undo_clear,
-	   vertex paint isn't? */
-	int i, size = imapaintundo.xtiles*imapaintundo.ytiles;
-
-	if (imapaintundo.tiles) {
-		for (i = 0; i < size; i++)
-			if (imapaintundo.tiles[i])
-				MEM_freeN(imapaintundo.tiles[i]);
-		MEM_freeN(imapaintundo.tiles);
-	}
-	if (imapaintundo.tilebuf)
-		IMB_freeImBuf(imapaintundo.tilebuf);
-
-	memset(&imapaintundo, 0, sizeof(imapaintundo));
 }
 
 /* Image Paint Operations */
@@ -580,7 +719,6 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 	int breakstroke = 0, redraw = 0;
 
 	if (texpaint) {
-
 		/* pick new face and image */
 		if (facesel_face_pick(s->me, mval, &newfaceindex, 0)) {
 			ImBuf *ibuf;
@@ -692,7 +830,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	}
 
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	free_imagepaint();
+	undo_imagepaint_push_begin("Image Paint");
 
 	/* create painter and paint once */
 	painter= brush_painter_new(s.brush);
@@ -741,6 +879,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	brush_painter_free(painter);
 
 	imapaint_redraw(1, texpaint, s.image);
+	undo_imagepaint_push_end();
 	
 	if (texpaint) {
 		if (s.warnmultifile)

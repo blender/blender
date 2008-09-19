@@ -581,8 +581,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 
 		for(; psys; psys=psys->next) {
 			ParticleSettings *part= psys->part;
-			
+
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
+
+			if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+				continue;
 
 			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
 			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
@@ -1924,8 +1927,10 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}
-	else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-	else if(ob->parent) {
+	
+	if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
+	
+	if(ob->parent) {
 		/* motion path or bone child */
 		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
 	}
@@ -1946,10 +1951,11 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}
-	else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
-	else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
-	else if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
-	else {
+	
+	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
+	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
+	
+	{
 		Mesh *me;
 		Curve *cu;
 		Lattice *lt;

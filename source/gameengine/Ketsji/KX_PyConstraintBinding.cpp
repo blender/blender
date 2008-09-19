@@ -34,6 +34,8 @@
 #include "PHY_IPhysicsController.h"
 #include "PHY_IVehicle.h"
 
+#include "PyObjectPlus.h" 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

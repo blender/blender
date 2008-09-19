@@ -41,12 +41,14 @@ BL_DeformableGameObject::~BL_DeformableGameObject()
 		delete m_pDeformer;		//	__NLA : Temporary until we decide where to put this
 }
 
-void	BL_DeformableGameObject::ProcessReplica(KX_GameObject* replica)
+void BL_DeformableGameObject::ProcessReplica(KX_GameObject* replica)
 {
+	BL_MeshDeformer *deformer;
 	KX_GameObject::ProcessReplica(replica);
 
-	if (m_pDeformer){
-		((BL_DeformableGameObject*)replica)->m_pDeformer = m_pDeformer->GetReplica();
+	if (m_pDeformer) {
+		deformer = (BL_MeshDeformer*)m_pDeformer->GetReplica();
+		((BL_DeformableGameObject*)replica)->m_pDeformer = deformer;
 	}
 
 }

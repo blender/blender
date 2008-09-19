@@ -40,7 +40,8 @@ BulletCollision/NarrowPhaseCollision \
 BulletCollision//CollisionDispatch \
 BulletDynamics/ConstraintSolver \
 BulletDynamics/Vehicle \
-BulletDynamics/Dynamics
+BulletDynamics/Dynamics \
+BulletSoftBody
 
 include nan_subdirs.mk
 

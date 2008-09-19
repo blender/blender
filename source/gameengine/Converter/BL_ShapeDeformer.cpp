@@ -109,12 +109,10 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 		vector<IpoCurve*>::iterator it;
 		void *poin;
 		int type;
+
 		// the shape drivers use the bone matrix as input. Must 
 		// update the matrix now
-		Object* par_arma = m_armobj->GetArmatureObject();
 		m_armobj->ApplyPose();
-		where_is_pose( par_arma ); 
-		PoseApplied(true);
 
 		for (it=m_shapeDrivers.begin(); it!=m_shapeDrivers.end(); it++) {
 			// no need to set a specific time: this curve has a driver
@@ -124,7 +122,10 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 			if (poin) 
 				write_ipo_poin(poin, type, icu->curval);
 		}
+
 		ForceUpdate();
+		m_armobj->RestorePose();
+
 		return true;
 	}
 	return false;

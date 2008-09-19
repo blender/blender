@@ -75,6 +75,7 @@
 #include "BIF_imasel.h"
 #include "BIF_editparticle.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
@@ -103,6 +104,8 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "GPU_draw.h"
 
 #include "mydevice.h"
 
@@ -790,6 +793,10 @@ int blenderqread(unsigned short event, short val)
 			ob= OBACT;
 
 			if(G.f & G_SCULPTMODE) return 1;
+			else if(G.qual==LR_ALTKEY) {
+				common_deletekey();
+				return 0;
+			}
 			else if(G.qual==0) {
 				common_insertkey();
 				return 0;
@@ -964,7 +971,7 @@ int blenderqread(unsigned short event, short val)
 					/* Reset lights
 					 * This isn't done when reading userdef, do it now
 					 *  */
-					default_gl_light(); 
+					GPU_default_lights();
 				}
 				return 0;
 			}

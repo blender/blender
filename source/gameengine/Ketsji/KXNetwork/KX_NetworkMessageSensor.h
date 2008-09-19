@@ -74,11 +74,11 @@ public:
 
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, SetSubjectFilterText);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetFrameMessageCount);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetBodies);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetSubject);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetSubjects);
+	KX_PYMETHOD_DOC_O(KX_NetworkMessageSensor, SetSubjectFilterText);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetFrameMessageCount);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetBodies);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubject);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubjects);
 
 
 };

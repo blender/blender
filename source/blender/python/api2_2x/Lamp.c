@@ -34,15 +34,19 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_library.h"
+#include "BKE_texture.h"
 #include "BLI_blenlib.h"
+#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "mydevice.h"
 #include "Ipo.h"
+#include "MTex.h" 
 #include "constant.h"
 #include "gen_utils.h"
 #include "gen_library.h"
 #include "BKE_utildefines.h"
+#include "MEM_guardedalloc.h"
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */
@@ -84,6 +88,8 @@
 #define EXPP_LAMP_MODE_NODIFFUSE  2048
 #define EXPP_LAMP_MODE_NOSPECULAR 4096
 #define EXPP_LAMP_MODE_SHAD_RAY	  8192
+#define EXPP_LAMP_MODE_LAYER_SHADOW 32768
+
 /* Lamp MIN, MAX values */
 
 #define EXPP_LAMP_SAMPLES_MIN 1
@@ -204,6 +210,7 @@ static PyObject *Lamp_getQuad2( BPy_Lamp * self );
 static PyObject *Lamp_getCol( BPy_Lamp * self );
 static PyObject *Lamp_getIpo( BPy_Lamp * self );
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure );
+static PyObject *Lamp_getTextures( BPy_Lamp * self );
 static PyObject *Lamp_clearIpo( BPy_Lamp * self );
 static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetIpo( BPy_Lamp * self, PyObject * args );
@@ -251,6 +258,7 @@ static int Lamp_setHaloInt( BPy_Lamp * self, PyObject * args );
 static int Lamp_setQuad1( BPy_Lamp * self, PyObject * args );
 static int Lamp_setQuad2( BPy_Lamp * self, PyObject * args );
 static int Lamp_setCol( BPy_Lamp * self, PyObject * args );
+static int Lamp_setTextures( BPy_Lamp * self, PyObject * value );
 static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * value );
 static PyObject *Lamp_addScriptLink( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args );
@@ -498,6 +506,10 @@ static PyGetSetDef BPy_Lamp_getseters[] = {
 	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
 	 "Lamp color blue component",
 	 (void *)EXPP_LAMP_COMP_B},
+	{"textures",
+	 (getter)Lamp_getTextures, (setter)Lamp_setTextures,
+     "The Lamp's texture list as a tuple",
+	 NULL},
 	{"Modes",
 	 (getter)Lamp_getModesConst, (setter)NULL,
 	 "Dictionary of values for 'mode' attribute",
@@ -780,6 +792,8 @@ static PyObject *Lamp_ModesDict( void )
 				 PyInt_FromLong( EXPP_LAMP_MODE_NOSPECULAR ) );
 		PyConstant_Insert( c, "RayShadow",
 				 PyInt_FromLong( EXPP_LAMP_MODE_SHAD_RAY ) );
+		PyConstant_Insert( c, "LayerShadow",
+				 PyInt_FromLong( EXPP_LAMP_MODE_LAYER_SHADOW ) );
 	}
 
 	return Modes;
@@ -1011,8 +1025,8 @@ static int Lamp_setType( BPy_Lamp * self, PyObject * value )
 
 static int Lamp_setMode( BPy_Lamp * self, PyObject * value )
 {
-	short param;
-	static short bitmask = EXPP_LAMP_MODE_SHADOWS
+	int param;
+	static int bitmask = EXPP_LAMP_MODE_SHADOWS
 				| EXPP_LAMP_MODE_HALO
 				| EXPP_LAMP_MODE_LAYER
 				| EXPP_LAMP_MODE_QUAD
@@ -1022,14 +1036,15 @@ static int Lamp_setMode( BPy_Lamp * self, PyObject * value )
 				| EXPP_LAMP_MODE_SQUARE
 				| EXPP_LAMP_MODE_NODIFFUSE
 				| EXPP_LAMP_MODE_NOSPECULAR
-				| EXPP_LAMP_MODE_SHAD_RAY;
+				| EXPP_LAMP_MODE_SHAD_RAY
+				| EXPP_LAMP_MODE_LAYER_SHADOW;
 
 	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
-	param = (short)PyInt_AS_LONG ( value );
+	param = PyInt_AS_LONG ( value );
 
 	if ( ( param & bitmask ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -1373,7 +1388,8 @@ static PyObject *Lamp_getModesConst( void )
 			  EXPP_LAMP_MODE_SQUARE, "NoDiffuse",
 			  EXPP_LAMP_MODE_NODIFFUSE, "NoSpecular",
 			  EXPP_LAMP_MODE_NOSPECULAR, "RayShadow",
-			  EXPP_LAMP_MODE_SHAD_RAY);
+			  EXPP_LAMP_MODE_SHAD_RAY, "LayerShadow",
+			  EXPP_LAMP_MODE_LAYER_SHADOW);
 }
 
 static PyObject *Lamp_getTypesConst( void )
@@ -1385,6 +1401,100 @@ static PyObject *Lamp_getTypesConst( void )
 				      "Hemi", EXPP_LAMP_TYPE_HEMI, 
 				      "Area", EXPP_LAMP_TYPE_AREA, 
 				      "Photon", EXPP_LAMP_TYPE_YF_PHOTON );
+}
+
+static PyObject *Lamp_getTextures( BPy_Lamp * self )
+{
+	int i;
+	PyObject *tuple;
+
+	/* build a texture list */
+	tuple = PyTuple_New( MAX_MTEX );
+	if( !tuple )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create PyTuple" );
+
+	for( i = 0; i < MAX_MTEX; ++i ) {
+		struct MTex *mtex = self->lamp->mtex[i];
+		if( mtex ) {
+			PyTuple_SET_ITEM( tuple, i, MTex_CreatePyObject( mtex, ID_LA ) );
+		} else {
+			Py_INCREF( Py_None );
+			PyTuple_SET_ITEM( tuple, i, Py_None );
+		}
+	}
+
+	return tuple;
+}
+
+static int Lamp_setTextures( BPy_Lamp * self, PyObject * value )
+{
+	int i;
+
+	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected tuple or list of integers" );
+
+	/* don't allow more than MAX_MTEX items */
+	if( PySequence_Size(value) > MAX_MTEX )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+						"size of sequence greater than number of allowed textures" );
+
+	/* get a fast sequence; in Python 2.5, this just return the original
+	 * list or tuple and INCREFs it, so we must DECREF */
+	value = PySequence_Fast( value, "" );
+
+	/* check the list for valid entries */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		if( item == Py_None || ( BPy_MTex_Check( item ) &&
+						((BPy_MTex *)item)->type == ID_LA ) ) {
+			continue;
+		} else {
+			Py_DECREF(value);
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected tuple or list containing lamp MTex objects and NONE" );
+		}
+	}
+
+	/* for each MTex object, copy to this structure */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->lamp->mtex[i];
+		if( item != Py_None ) {
+			BPy_MTex *obj = (BPy_MTex *)item;
+
+			/* if MTex is already at this location, just skip it */
+			if( obj->mtex == mtex )	continue;
+
+			/* create a new entry if needed, otherwise update reference count
+			 * for texture that is being replaced */
+			if( !mtex )
+				mtex = self->lamp->mtex[i] = add_mtex(  );
+			else
+				mtex->tex->id.us--;
+
+			/* copy the data */
+			mtex->tex = obj->mtex->tex;
+			id_us_plus( &mtex->tex->id );
+			mtex->texco = obj->mtex->texco;
+			mtex->mapto = obj->mtex->mapto;
+		}
+	}
+
+	/* now go back and free any entries now marked as None */
+	for( i= 0; i < PySequence_Size(value) ; ++i ) {
+		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
+		struct MTex *mtex = self->lamp->mtex[i];
+		if( item == Py_None && mtex ) {
+			mtex->tex->id.us--;
+			MEM_freeN( mtex );
+			self->lamp->mtex[i] = NULL;
+		} 
+	}
+
+	Py_DECREF(value);
+	return 0;
 }
 
 /* #####DEPRECATED###### */
@@ -1597,6 +1707,8 @@ static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
 			flag |= ( short ) EXPP_LAMP_MODE_NOSPECULAR;
 		else if( !strcmp( name, "RayShadow" ) )
 			flag |= ( short ) EXPP_LAMP_MODE_SHAD_RAY;
+		else if( !strcmp( name, "LayerShadow" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_LAYER_SHADOW;
 		else
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 							"unknown lamp flag argument" );

@@ -42,6 +42,7 @@ struct ScrArea;
 struct EditIpo;
 struct View2D;
 struct rctf;
+struct SpaceLink;
 
 void calc_ipogrid(void);
 void draw_ipogrid(void);
@@ -49,6 +50,8 @@ void draw_ipogrid(void);
 void areamouseco_to_ipoco	(struct View2D *v2d, short *mval, float *x, float *y);
 void ipoco_to_areaco		(struct View2D *v2d, float *vec, short *mval);
 void ipoco_to_areaco_noclip	(struct View2D *v2d, float *vec, short *mval);
+
+struct View2D *spacelink_get_view2d(struct SpaceLink *sl);
 
 void view2d_do_locks		(struct ScrArea *cursa, int flag);
 void view2d_zoom			(struct View2D *v2d, float factor, int winx, int winy);

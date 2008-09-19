@@ -56,9 +56,6 @@ all debug::
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
 
-    export WITH_GLEXT?=true
-    export WITH_BF_GLEXT?=$(WITH_GLEXT)
-
     # Determines what targets are built
     export WITH_BF_DYNAMICOPENGL ?= true
     export WITH_BF_STATICOPENGL ?= false
@@ -287,7 +284,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 2.5
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr/local
@@ -302,9 +299,9 @@ endif
     export NAN_NSPR ?= /usr/local
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-    export NAN_SDL ?= $(shell sdl11-config --prefix)
-    export NAN_SDLLIBS ?= $(shell sdl11-config --libs)
-    export NAN_SDLCFLAGS ?= $(shell sdl11-config --cflags)
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
