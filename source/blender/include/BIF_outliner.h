@@ -41,7 +41,7 @@ typedef struct TreeElement {
 	short idcode;		// from TreeStore id
 	short xend;		// width of item display, for select
 	char *name;
-	void *directdata;	// Armature Bones, Base, ...
+	void *directdata;	// Armature Bones, Base, Sequence, Strip...
 }  TreeElement;
 
 /* TreeElement->flag */
@@ -77,6 +77,9 @@ typedef struct TreeElement {
 #define TSE_LINKED_LAMP		23
 #define TSE_POSEGRP_BASE	24
 #define TSE_POSEGRP			25
+#define TSE_SEQUENCE	26
+#define TSE_SEQ_STRIP	27
+#define TSE_SEQUENCE_DUP 28
 
 /* outliner search flags */
 #define OL_FIND					0

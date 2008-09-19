@@ -56,8 +56,11 @@
 #include "DNA_texture_types.h"
 #include "DNA_text_types.h"
 #include "DNA_world_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
+
+#include "IMB_imbuf_types.h"
 
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
@@ -100,6 +103,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_editseq.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -301,7 +305,7 @@ static ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode)
 	
 	while(te) {
 		tselem= TREESTORE(te);
-		if(te->idcode==idcode && tselem->type==0) return tselem->id;
+		if(tselem->type==0 && te->idcode==idcode) return tselem->id;
 		te= te->parent;
 	}
 	return NULL;
@@ -558,8 +562,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	
 	te->parent= parent;
 	te->index= index;	// for data arays
-	te->name= id->name+2; // default, can be overridden by Library or non-ID data
-	te->idcode= GS(id->name);
+	if((type!=TSE_SEQUENCE) && (type != TSE_SEQ_STRIP) && (type != TSE_SEQUENCE_DUP)) {
+		te->name= id->name+2; // default, can be overridden by Library or non-ID data
+		te->idcode= GS(id->name);
+	}
 	
 	if(type==0) {
 
@@ -898,6 +904,65 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			break;
 		}
 	}
+	else if(type==TSE_SEQUENCE) {
+		Sequence *seq= (Sequence*) idv;
+		Sequence *p;
+
+		/*
+		 * The idcode is a little hack, but the outliner
+		 * only check te->idcode if te->type is equal to zero,
+		 * so this is "safe".
+		 */
+		te->idcode= seq->type;
+		te->directdata= seq;
+
+		if(seq->type<7) {
+			/*
+			 * This work like the sequence.
+			 * If the sequence have a name (not default name)
+			 * show it, in other case put the filename.
+			 */
+			if(strcmp(seq->name, "SQ"))
+				te->name= seq->name;
+			else {
+				if((seq->strip) && (seq->strip->stripdata))
+					te->name= seq->strip->stripdata->name;
+				else if((seq->strip) && (seq->strip->tstripdata) && (seq->strip->tstripdata->ibuf))
+					te->name= seq->strip->tstripdata->ibuf->name;
+				else
+					te->name= "SQ None";
+			}
+
+			if(seq->type==SEQ_META) {
+				te->name= "Meta Strip";
+				p= seq->seqbase.first;
+				while(p) {
+					outliner_add_element(soops, &te->subtree, (void*)p, te, TSE_SEQUENCE, index);
+					p= p->next;
+				}
+			}
+			else
+				outliner_add_element(soops, &te->subtree, (void*)seq->strip, te, TSE_SEQ_STRIP, index);
+		}
+		else
+			te->name= "Effect";
+	}
+	else if(type==TSE_SEQ_STRIP) {
+		Strip *strip= (Strip *)idv;
+
+		if(strip->dir)
+			te->name= strip->dir;
+		else
+			te->name= "Strip None";
+		te->directdata= strip;
+	}
+	else if(type==TSE_SEQUENCE_DUP) {
+		Sequence *seq= (Sequence*)idv;
+
+		te->idcode= seq->type;
+		te->directdata= seq;
+		te->name= seq->strip->stripdata->name;
+	}
 #ifdef WITH_VERSE
 	else if(type==ID_VS) {
 		struct VerseSession *session = (VerseSession*)idv;
@@ -961,6 +1026,62 @@ static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
 			}
 		}
 		te= ten;
+	}
+}
+
+/* Helped function to put duplicate sequence in the same tree. */
+int need_add_seq_dup(Sequence *seq)
+{
+	Sequence *p;
+
+	if((!seq->strip) || (!seq->strip->stripdata) || (!seq->strip->stripdata->name))
+		return(1);
+
+	/*
+	 * First check backward, if we found a duplicate
+	 * sequence before this, don't need it, just return.
+	 */
+	p= seq->prev;
+	while(p) {
+		if((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {
+			p= p->prev;
+			continue;
+		}
+
+		if(!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+			return(2);
+		p= p->prev;
+	}
+
+	p= seq->next;
+	while(p) {
+		if((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {
+			p= p->next;
+			continue;
+		}
+
+		if(!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+			return(0);
+		p= p->next;
+	}
+	return(1);
+}
+
+void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
+{
+	TreeElement *ch;
+	Sequence *p;
+
+	p= seq;
+	while(p) {
+		if((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {
+			p= p->next;
+			continue;
+		}
+
+		if(!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+			ch= outliner_add_element(soops, &te->subtree, (void*)p, te, TSE_SEQUENCE, index);
+		p= p->next;
 	}
 }
 
@@ -1120,6 +1241,30 @@ static void outliner_build_tree(SpaceOops *soops)
 		}
 	}
 #endif
+	else if(soops->outlinevis==SO_SEQUENCE) {
+		Sequence *seq;
+		Editing *ed;
+		int op;
+
+		ed= G.scene->ed;
+		if(!ed)
+			return;
+
+		seq= ed->seqbasep->first;
+		if(!seq)
+			return;
+
+		while(seq) {
+			op= need_add_seq_dup(seq);
+			if(op==1)
+				ten= outliner_add_element(soops, &soops->tree, (void*)seq, NULL, TSE_SEQUENCE, 0);
+			else if(op==0) {
+				ten= outliner_add_element(soops, &soops->tree, (void*)seq, NULL, TSE_SEQUENCE_DUP, 0);
+				add_seq_dup(soops, seq, ten, 0);
+			}
+			seq= seq->next;
+		}
+	}
 	else {
 		ten= outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 		if(ten) ten->directdata= BASACT;
@@ -1884,6 +2029,50 @@ static int tree_element_active_pose(TreeElement *te, TreeStoreElem *tselem, int 
 	return 0;
 }
 
+static int tree_element_active_sequence(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Sequence *seq= (Sequence*) te->directdata;
+
+	if(set) {
+		select_single_seq(seq, 1);
+		allqueue(REDRAWSEQ, 0);
+	}
+	else {
+		if(seq->flag & SELECT)
+			return(1);
+	}
+	return(0);
+}
+
+static int tree_element_active_sequence_dup(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Sequence *seq, *p;
+	Editing *ed;
+
+	seq= (Sequence*)te->directdata;
+	if(set==0) {
+		if(seq->flag & SELECT)
+			return(1);
+		return(0);
+	}
+
+	select_single_seq(seq, 1);
+	ed= G.scene->ed;
+	p= ed->seqbasep->first;
+	while(p) {
+		if((!p->strip) || (!p->strip->stripdata) || (!p->strip->stripdata->name)) {
+			p= p->next;
+			continue;
+		}
+
+		if(!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
+			select_single_seq(p, 0);
+		p= p->next;
+	}
+	allqueue(REDRAWSEQ, 0);
+	return(0);
+}
+
 /* generic call for non-id data to make/check active in UI */
 static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
@@ -1914,6 +2103,12 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_renderlayer(te, tselem, set);
 		case TSE_POSEGRP:
 			return tree_element_active_posegroup(te, tselem, set);
+		case TSE_SEQUENCE:
+			return tree_element_active_sequence(te, tselem, set);
+			break;
+		case TSE_SEQUENCE_DUP:
+			return tree_element_active_sequence_dup(te, tselem, set);
+			break;
 	}
 	return 0;
 }
@@ -2035,6 +2230,8 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				if (G.qual == LR_CTRLKEY) {
 					if(ELEM9(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
+					else if(ELEM3(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP))
+						error("Cannot edit sequence name");
 					else if(tselem->id->lib) {
 						error_libdata();
 					} else if(te->idcode == ID_LI && te->parent) {
@@ -2044,7 +2241,8 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					}
 				} else {
 					/* always makes active object */
-					tree_element_active_object(soops, te);
+					if(tselem->type!=TSE_SEQUENCE && tselem->type!=TSE_SEQ_STRIP && tselem->type!=TSE_SEQUENCE_DUP)
+						tree_element_active_object(soops, te);
 					
 					if(tselem->type==0) { // the lib blocks
 						/* editmode? */
@@ -2070,7 +2268,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			}
 			else if(event==RIGHTMOUSE) {
 #ifdef WITH_VERSE
-				if(ELEM4(te->idcode, ID_VS, ID_VN, ID_MS, ID_SS))
+				if((tselem->type!=TSE_SEQUENCE && tselem->type!=TSE_SEQ_STRIP && tselem->type!=TSE_SEQUENCE_DUP) && ELEM4(te->idcode, ID_VS, ID_VN, ID_MS, ID_SS))
 					verse_operation_menu(te);
 				else
 #endif
@@ -2274,8 +2472,8 @@ static TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
 	/* check if 'tse' is in treestore */
 	tselem= ts->data;
 	for(a=0; a<ts->usedelem; a++, tselem++) {
-		if(tselem->id==tse->id) {
-			if((tse->type==0 && tselem->type==0) || (tselem->type==tse->type && tselem->nr==tse->nr)) {
+		if((tse->type==0 && tselem->type==0) || (tselem->type==tse->type && tselem->nr==tse->nr)) {
+			if(tselem->id==tse->id) {
 				break;
 			}
 		}
@@ -2488,12 +2686,18 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type) {
+				if(tselem->type==TSE_SEQUENCE)
+					*datalevel= TSE_SEQUENCE;
+				else if(tselem->type==TSE_SEQ_STRIP)
+					*datalevel= TSE_SEQ_STRIP;
+				else if(tselem->type==TSE_SEQUENCE_DUP)
+					*datalevel= TSE_SEQUENCE_DUP;
 #ifdef WITH_VERSE
-				if(te->idcode==ID_VS) *datalevel= TSE_VERSE_SESSION;
+				else if(te->idcode==ID_VS) *datalevel= TSE_VERSE_SESSION;
 				else if(te->idcode==ID_VN) *datalevel= TSE_VERSE_OBJ_NODE;
 				else if(*datalevel==0) *datalevel= tselem->type;
 #else
-				if(*datalevel==0) *datalevel= tselem->type;
+				else if(*datalevel==0) *datalevel= tselem->type;
 #endif
 				else if(*datalevel!=tselem->type) *datalevel= -1;
 			}
@@ -2783,6 +2987,15 @@ static void vsession_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 }
 #endif
 
+static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem)
+{
+	Sequence *seq= (Sequence*) te->directdata;
+	if(event==1) {
+		select_single_seq(seq, 1);
+		allqueue(REDRAWSEQ, 0);
+	}
+}
+
 static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb, 
 										 void (*operation_cb)(int, TreeElement *, TreeStoreElem *))
 {
@@ -2805,10 +3018,14 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 void outliner_del(ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
-	outliner_do_object_operation(soops, &soops->tree, object_delete_cb);
-	DAG_scene_sort(G.scene);
-	countall();	
-	BIF_undo_push("Delete Objects");
+	if(soops->outlinevis==SO_SEQUENCE)
+		del_seq();
+	else {
+		outliner_do_object_operation(soops, &soops->tree, object_delete_cb);
+		DAG_scene_sort(G.scene);
+		countall();	
+		BIF_undo_push("Delete Objects");
+	}
 	allqueue(REDRAWALL, 0);	
 }
 
@@ -2941,7 +3158,13 @@ void outliner_operation_menu(ScrArea *sa)
 				}
 			}
 #endif
-			
+			else if(datalevel==TSE_SEQUENCE) {
+				short event= pupmenu("Sequence Operations %t|Select %x1");
+				if(event>0) {
+					outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb);
+				}
+			}
+
 			allqueue(REDRAWOOPS, 0);
 			allqueue(REDRAWBUTSALL, 0);
 			allqueue(REDRAWVIEW3D, 0);
@@ -3021,7 +3244,26 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
 			case TSE_POSEGRP_BASE:
 				BIF_icon_draw(x, y, ICON_VERTEXSEL); break;
-				
+			case TSE_SEQUENCE:
+				if((te->idcode==SEQ_MOVIE) || (te->idcode==SEQ_MOVIE_AND_HD_SOUND))
+					BIF_icon_draw(x, y, ICON_SEQUENCE);
+				else if(te->idcode==SEQ_META)
+					BIF_icon_draw(x, y, ICON_DOT);
+				else if(te->idcode==SEQ_SCENE)
+					BIF_icon_draw(x, y, ICON_SCENE);
+				else if((te->idcode==SEQ_RAM_SOUND) || (te->idcode==SEQ_HD_SOUND))
+					BIF_icon_draw(x, y, ICON_SOUND);
+				else if(te->idcode==SEQ_IMAGE)
+					BIF_icon_draw(x, y, ICON_IMAGE_COL);
+				else
+					BIF_icon_draw(x, y, ICON_PARTICLES);
+				break;
+			case TSE_SEQ_STRIP:
+				BIF_icon_draw(x, y, ICON_LIBRARY_DEHLT);
+				break;
+			case TSE_SEQUENCE_DUP:
+				BIF_icon_draw(x, y, ICON_OBJECT);
+				break;			
 #ifdef WITH_VERSE
 			case ID_VS:
 			case ID_MS:
@@ -3234,7 +3476,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		}
 		
 		/* open/close icon, only when sublevels, except for scene */
-		if(te->subtree.first || (te->idcode==ID_SCE && tselem->type==0)) {
+		if(te->subtree.first || (tselem->type==0 && te->idcode==ID_SCE)) {
 			int icon_x;
 			if((tselem->type==0 && ELEM(te->idcode, ID_OB, ID_SCE)) || ELEM4(te->idcode,ID_VN,ID_VS, ID_MS, ID_SS))
 				icon_x = startx;
@@ -3255,7 +3497,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		tselem_draw_icon(startx+offsx, *starty+2, tselem, te);
 		offsx+= OL_X;
 		
-		if(tselem->id->lib && tselem->type==0) {
+		if(tselem->type==0 && tselem->id->lib) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5);
 			if(tselem->id->flag & LIB_INDIRECT)
 				BIF_icon_draw(startx+offsx, *starty+2, ICON_DATALIB);
@@ -3761,6 +4003,9 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 		if(te->ys >= soops->v2d.cur.ymin && te->ys <= soops->v2d.cur.ymax) {
 			
 			if(tselem->flag & TSE_TEXTBUT) {
+				/* If we add support to rename Sequence.
+				 * need change this.
+				 */
 				if(tselem->type == TSE_POSE_BASE) continue; // prevent crash when trying to rename 'pose' entry of armature
 				
 				if(tselem->type==TSE_EBONE) len = sizeof(((EditBone*) 0)->name);

@@ -687,6 +687,24 @@ static void recurs_sel_seq(Sequence *seqm)
 	}
 }
 
+void select_single_seq(Sequence *seq, int deselect_all)
+{
+	if(deselect_all)
+		deselect_all_seq();
+	set_last_seq(seq);
+
+	if((seq->type==SEQ_IMAGE) || (seq->type==SEQ_MOVIE)) {
+		if(seq->strip)
+			strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
+	}
+	else if((seq->type==SEQ_HD_SOUND) || (seq->type==SEQ_RAM_SOUND)) {
+		if(seq->strip)
+			strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
+	}
+	seq->flag|= SELECT;
+	recurs_sel_seq(seq);
+}
+
 void swap_select_seq(void)
 {
 	Sequence *seq;
@@ -932,7 +950,11 @@ void mouse_select_seq(void)
 		}
 		force_draw_plus(SPACE_BUTS, 0);
 
-		if(get_last_seq()) allqueue(REDRAWIPO, 0);
+		if(get_last_seq()) {
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWOOPS, 0);
+		}
+
 		BIF_undo_push("Select Strips, Sequencer");
 
 		std_rmouse_transform(transform_seq_nomarker);
@@ -2211,6 +2233,7 @@ void del_seq(void)
 
 	BIF_undo_push("Delete Strip(s), Sequencer");
 	allqueue(REDRAWSEQ, 0);
+	allqueue(REDRAWOOPS, 0);
 }
 
 static Sequence *dupli_seq(Sequence *seq) 
@@ -2897,7 +2920,7 @@ void un_meta(void)
 
 	BIF_undo_push("Un-Make Meta Strip, Sequencer");
 	allqueue(REDRAWSEQ, 0);
-
+	allqueue(REDRAWOOPS, 0);
 }
 
 void exit_meta(void)
@@ -2930,6 +2953,7 @@ void exit_meta(void)
 
 	MEM_freeN(ms);
 	allqueue(REDRAWSEQ, 0);
+	allqueue(REDRAWOOPS, 0);
 
 	BIF_undo_push("Exit Meta Strip, Sequence");
 }
@@ -2958,6 +2982,7 @@ void enter_meta(void)
 
 	set_last_seq(NULL);
 	allqueue(REDRAWSEQ, 0);
+	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Enter Meta Strip, Sequence");
 }
 
