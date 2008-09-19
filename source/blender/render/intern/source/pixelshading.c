@@ -141,7 +141,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 			
 			VECCOPY(shi.co, rco);
 			shi.osatex= 0;
-			do_lamp_tex(lar, lv, &shi, lacol);
+			do_lamp_tex(lar, lv, &shi, lacol, LA_TEXTURE);
 		}
 		
 		if(lar->type==LA_SPOT) {

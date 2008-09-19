@@ -3566,6 +3566,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->r= lar->energy*la->r;
 	lar->g= lar->energy*la->g;
 	lar->b= lar->energy*la->b;
+	lar->shdwr= la->shdwr;
+	lar->shdwg= la->shdwg;
+	lar->shdwb= la->shdwb;
 	lar->k= la->k;
 
 	// area
@@ -3718,7 +3721,10 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	for(c=0; c<MAX_MTEX; c++) {
 		if(la->mtex[c] && la->mtex[c]->tex) {
-			lar->mode |= LA_TEXTURE;
+			if (la->mtex[c]->mapto & LAMAP_COL) 
+				lar->mode |= LA_TEXTURE;
+			if (la->mtex[c]->mapto & LAMAP_SHAD)
+				lar->mode |= LA_SHAD_TEX;
 
 			if(G.rendering) {
 				if(re->osa) {

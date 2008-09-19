@@ -2535,7 +2535,10 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
-	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, LAMAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
+	uiDefButBitS(block, TOG, LAMAP_SHAD, B_LAMPPRV, "Shadow",		146,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the shadow color of the lamp");
+	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, MENU, B_LAMPPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
@@ -2668,6 +2671,12 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	uiDefButBitI(block, TOG, LA_ONLYSHADOW, B_LAMPPRV,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
 	uiDefButBitI(block, TOG, LA_LAYER_SHADOW, B_LAMPPRV,"Layer",		10,90,80,19,&la->mode, 0, 0, 0, 0, "Causes only objects on the same layer to cast shadows");
 	uiBlockEndAlign(block);
+
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && ((la->mode & LA_SHAD_RAY)||(la->mode & LA_SHAD_BUF))) {
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, 0, "Shadow ",				10,90,80,19,&la->shdwr, 0, 0, 0, B_COLLAMP, "Sets the shadow color; default is black (RGB 0,0,0)");
+		uiBlockEndAlign(block);
+	}
 
 	if(la->type==LA_SPOT) {
 		uiBlockBeginAlign(block);
