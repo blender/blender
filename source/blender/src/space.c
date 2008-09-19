@@ -1206,8 +1206,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 */
 		if(event==LEFTMOUSE) {
 			/* run any view3d event handler script links */
-			if (event && sa->scriptlink.totscript) {
-				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+			if (sa->scriptlink.totscript) {
+				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
 			
@@ -1268,7 +1268,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		/* run any view3d event handler script links */
 		if (event && sa->scriptlink.totscript)
-			if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 				return; /* return if event was processed (swallowed) by handler(s) */
 
 		/* TEXTEDITING?? */

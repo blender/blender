@@ -112,7 +112,7 @@ extern "C" {
 	int BPY_has_spacehandler(struct Text *text, struct ScrArea *sa);
 	void BPY_screen_free_spacehandlers(struct bScreen *sc);
 	int BPY_do_spacehandlers(struct ScrArea *sa, unsigned short event,
-		unsigned short space_event);
+		short eventValue, unsigned short space_event);
 
 	void BPY_pydriver_update(void);
 	float BPY_pydriver_eval(struct IpoDriver *driver);

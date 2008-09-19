@@ -2475,7 +2475,7 @@ int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
 }
 
 int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
-	unsigned short space_event )
+	short eventValue, unsigned short space_event )
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
@@ -2515,8 +2515,9 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
 		/* unlike normal scriptlinks, here Blender.link is int (space event type) */
 		EXPP_dict_set_item_str(g_blenderdict, "link", PyInt_FromLong(space_event));
-		/* note: DRAW space_events set event to 0 */
+		/* note: DRAW space_events set event and val to 0 */
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
+		EXPP_dict_set_item_str(g_blenderdict, "eventValue", PyInt_FromLong(eventValue));
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
 			
