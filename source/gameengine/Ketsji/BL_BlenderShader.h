@@ -2,7 +2,9 @@
 #ifndef __BL_GPUSHADER_H__
 #define __BL_GPUSHADER_H__
 
+#ifdef BLENDER_GLSL
 #include "GPU_material.h"
+#endif
 
 #include "MT_Matrix4x4.h"
 #include "MT_Matrix3x3.h"
@@ -27,9 +29,13 @@ class BL_Material;
 class BL_BlenderShader
 {
 private:
+#ifdef BLENDER_GLSL
 	KX_Scene		*mScene;
 	struct Scene	*mBlenderScene;
 	struct Material	*mMat;
+	GPUMaterial		*mGPUMat;
+#endif
+	bool			mBound;
 	int				mLightLayer;
 	int				mBlendMode;
 
@@ -40,11 +46,11 @@ public:
 	virtual ~BL_BlenderShader();
 
 	bool				Ok();
-	void				SetProg(bool enable, double time=0.0);
+	void				SetProg(bool enable);
 
 	int GetAttribNum();
 	void SetAttribs(class RAS_IRasterizer* ras, const BL_Material *mat);
-	void Update(const class RAS_MeshSlot & ms, class RAS_IRasterizer* rasty);
+	void Update(const class KX_MeshSlot & ms, class RAS_IRasterizer* rasty);
 	int GetBlendMode();
 
 	bool Equals(BL_BlenderShader *blshader);

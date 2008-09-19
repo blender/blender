@@ -391,23 +391,16 @@ float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 bool CValue::RemoveProperty(const STR_String & inName)
 {
 	// Check if there are properties at all which can be removed
-	if (m_pNamedPropertyArray) {	
-		CValue* val = GetProperty(inName);
-		if (NULL != val) 
-		{
-			val->Release();
-			m_pNamedPropertyArray->erase(inName);
-			return true;
-		}
-	} 
-	
-	char err[128];
-	if (m_pNamedPropertyArray)
-		sprintf(err, "attribute \"%s\" dosnt exist", inName.ReadPtr());
-	else
-		sprintf(err, "attribute \"%s\" dosnt exist (no property array)", inName.ReadPtr());
-	
-	PyErr_SetString(PyExc_AttributeError, err);
+	if (m_pNamedPropertyArray == NULL)
+		return false;
+
+	CValue* val = GetProperty(inName);
+	if (NULL != val) 
+	{
+		val->Release();
+		m_pNamedPropertyArray->erase(inName);
+		return true;
+	}
 	return false;
 }
 
@@ -762,8 +755,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 int	CValue::_delattr(const STR_String& attr)
 {
-	if (!RemoveProperty(attr)) /* sets error */
-		return 1;
+	RemoveProperty(attr);
 	return 0;
 }
 

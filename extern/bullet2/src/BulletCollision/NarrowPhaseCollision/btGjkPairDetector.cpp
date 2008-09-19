@@ -35,7 +35,7 @@ int gNumGjkChecks = 0;
 
 
 
-btGjkPairDetector::btGjkPairDetector(const btConvexShape* objectA,const btConvexShape* objectB,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver*	penetrationDepthSolver)
+btGjkPairDetector::btGjkPairDetector(btConvexShape* objectA,btConvexShape* objectB,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver*	penetrationDepthSolver)
 :m_cachedSeparatingAxis(btScalar(0.),btScalar(0.),btScalar(1.)),
 m_penetrationDepthSolver(penetrationDepthSolver),
 m_simplexSolver(simplexSolver),
@@ -47,7 +47,7 @@ m_catchDegeneracies(1)
 {
 }
 
-void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw,bool swapResults)
+void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw)
 {
 	btScalar distance=btScalar(0.);
 	btVector3	normalInB(btScalar(0.),btScalar(0.),btScalar(0.));
@@ -143,13 +143,6 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 				checkSimplex = true;
 				break;
 			}
-
-			if(m_cachedSeparatingAxis.length2()<REL_ERROR2)
-            {
-                m_degenerateSimplex = 6;
-                checkSimplex = true;
-                break;
-            }
 
 			btScalar previousSquaredDistance = squaredDistance;
 			squaredDistance = m_cachedSeparatingAxis.length2();

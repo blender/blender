@@ -100,7 +100,6 @@ typedef enum {
 	GHOST_kWindowStateMaximized,
 	GHOST_kWindowStateMinimized,
 	GHOST_kWindowStateFullScreen,
-	GHOST_kWindowStateEmbedded,
 	GHOST_kWindowState8Normal = 8,
 	GHOST_kWindowState8Maximized,
 	GHOST_kWindowState8Minimized,
@@ -392,15 +391,6 @@ typedef struct {
 	GHOST_TUns32	frequency;
 } GHOST_DisplaySetting;
 
-
-#ifdef _WIN32
-typedef long GHOST_TEmbedderWindowID;
-#endif // _WIN32
-
-#ifndef _WIN32
-// I can't use "Window" from "<X11/Xlib.h>" because it conflits with Window defined in winlay.h
-typedef int GHOST_TEmbedderWindowID;
-#endif // _WIN32
 
 /**
  * A timer task callback routine.

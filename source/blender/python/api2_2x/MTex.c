@@ -22,11 +22,10 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Alex Mole, Yehoshua Sapir, Ken Hughes
+ * Contributor(s): Alex Mole, Yehoshua Sapir
  *
  * ***** END GPL LICENSE BLOCK *****
 */
-
 #include "MTex.h" /*This must come first*/
 
 #include "BKE_utildefines.h"
@@ -36,8 +35,7 @@
 #include "gen_utils.h"
 #include "gen_library.h"
 
-#include "DNA_material_types.h"
-#include "DNA_world_types.h"
+#include <DNA_material_types.h>
 
 /*****************************************************************************/
 /* Python BPy_MTex methods declarations:                                     */
@@ -96,7 +94,6 @@ MTEXGETSET(ProjX)
 MTEXGETSET(ProjY)
 MTEXGETSET(ProjZ)
 MTEXGETSET(MapToFlag)
-MTEXGETSET(WorldMapToFlag)
 
 /*****************************************************************************/
 /* Python get/set methods table                                              */
@@ -157,14 +154,8 @@ static PyGetSetDef MTex_getseters[] = {
 		"Projection of Y axis to Texture space", NULL },
 	{ "zproj", (getter) MTex_getProjZ, (setter) MTex_setProjZ,
 		"Projection of Z axis to Texture space", NULL },
-
-	/* MapTo for Material and Lamp MTex */
-
 	{ "mtCol", (getter) MTex_getMapToFlag, (setter) MTex_setMapToFlag,
 		"How texture maps to color", (void*) MAP_COL },
-
-	/* MapTo for Material MTex */
-
 	{ "mtNor", (getter) MTex_getMapToFlag, (setter) MTex_setMapToFlag,
 		"How texture maps to normals", (void*) MAP_NORM },
 	{ "mtCsp", (getter) MTex_getMapToFlag, (setter) MTex_setMapToFlag,
@@ -191,18 +182,6 @@ static PyGetSetDef MTex_getseters[] = {
 		"How texture maps to displacement", (void*) MAP_DISPLACE },
 	{ "mtWarp", (getter) MTex_getMapToFlag, (setter) MTex_setMapToFlag,
 		"How texture maps to warp", (void*) MAP_WARP },
-
-	/* MapTo for World MTex */
-
-	{ "mtBlend", (getter) MTex_getWorldMapToFlag, (setter) MTex_setWorldMapToFlag,
-		"Texture affects color progression of background", (void*) WOMAP_BLEND },
-	{ "mtHoriz", (getter) MTex_getWorldMapToFlag, (setter) MTex_setWorldMapToFlag,
-		"Texture affects color of the horizon", (void*) WOMAP_HORIZ },
-	{ "mtZenUp", (getter) MTex_getWorldMapToFlag, (setter) MTex_setWorldMapToFlag,
-		"Texture affects color of the zenith above", (void*) WOMAP_ZENUP },
-	{ "mtZenDown", (getter) MTex_getWorldMapToFlag, (setter) MTex_setWorldMapToFlag,
-		"Texture affects color of the zenith below", (void*) WOMAP_ZENDOWN },
-
 	{ NULL, NULL, NULL, NULL, NULL }
 };
 
@@ -273,7 +252,7 @@ PyObject *MTex_Init( void )
 	return submodule;
 }
 
-PyObject *MTex_CreatePyObject( MTex * mtex, unsigned short type )
+PyObject *MTex_CreatePyObject( MTex * mtex )
 {
 	BPy_MTex *pymtex;
 
@@ -283,7 +262,6 @@ PyObject *MTex_CreatePyObject( MTex * mtex, unsigned short type )
 					      "couldn't create BPy_MTex PyObject" );
 
 	pymtex->mtex = mtex;
-	pymtex->type = type;
 	return ( PyObject * ) pymtex;
 }
 
@@ -308,12 +286,7 @@ static int MTex_compare( BPy_MTex * a, BPy_MTex * b )
 
 static PyObject *MTex_repr( BPy_MTex * self )
 {
-	if( self->type == ID_MA )
-		return PyString_FromFormat( "[MTex (Material)]" );
-	else if( self->type == ID_LA )
-		return PyString_FromFormat( "[MTex (Lamp)]" );
-	else
-		return PyString_FromFormat( "[MTex (World)]" );
+	return PyString_FromFormat( "[MTex]" );
 }
 
 
@@ -343,37 +316,19 @@ static int MTex_setTexCo( BPy_MTex *self, PyObject *value, void *closure)
 {
 	int texco;
 
-	if( !PyInt_Check( value ) )
+	if( !PyInt_Check( value ) ) {
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"Value must be a member of Texture.TexCo dictionary" );
+	}
 
 	texco = PyInt_AsLong( value ) ;
 
-	switch ( self->type ) {
-	case ID_MA :
-		if( texco != TEXCO_ORCO && texco != TEXCO_REFL && 
-				texco != TEXCO_NORM && texco != TEXCO_GLOB &&
-				texco != TEXCO_UV && texco != TEXCO_OBJECT &&
-				texco != TEXCO_STRESS && texco != TEXCO_TANGENT &&
-				texco != TEXCO_WINDOW && texco != TEXCO_VIEW &&
-				texco != TEXCO_STICKY )
-			return EXPP_ReturnIntError( PyExc_ValueError,
-					"Value must be a member of Texture.TexCo dictionary" );
-		break;
-	case ID_LA :
-		if( texco != TEXCO_VIEW && texco != TEXCO_GLOB &&
-				texco != TEXCO_OBJECT )
-			return EXPP_ReturnIntError( PyExc_ValueError,
-					"Value must be a member of Texture.TexCo dictionary" );
-		break;
-	default:	/* ID_WO */
-		if( texco != TEXCO_VIEW && texco != TEXCO_GLOB &&
-				texco != TEXCO_ANGMAP && texco != TEXCO_OBJECT &&
-				texco != TEXCO_H_SPHEREMAP && texco != TEXCO_H_TUBEMAP )
-			return EXPP_ReturnIntError( PyExc_ValueError,
-					"Value must be a member of Texture.TexCo dictionary" );
-		break;
-	}
+	if (texco != TEXCO_ORCO && texco != TEXCO_REFL && texco != TEXCO_NORM &&
+		texco != TEXCO_GLOB && texco != TEXCO_UV && texco != TEXCO_OBJECT &&
+		texco != TEXCO_STRESS && texco != TEXCO_TANGENT && texco != TEXCO_WINDOW &&
+		texco != TEXCO_VIEW && texco != TEXCO_STICKY )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"Value must be a member of Texture.TexCo dictionary" );
 
 	self->mtex->texco = (short)texco;
 
@@ -395,10 +350,6 @@ static int MTex_setObject( BPy_MTex *self, PyObject *value, void *closure)
 
 static PyObject *MTex_getUVLayer( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a Material MTex object" );
-
 	return PyString_FromString(self->mtex->uvname);
 }
 
@@ -413,10 +364,6 @@ static int MTex_setUVLayer( BPy_MTex *self, PyObject *value, void *closure)
 
 static PyObject *MTex_getMapTo( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a Material MTex object" );
-
 	return PyInt_FromLong( self->mtex->mapto );
 }
 
@@ -424,20 +371,18 @@ static int MTex_setMapTo( BPy_MTex *self, PyObject *value, void *closure)
 {
 	int mapto;
 
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
-
-	if( !PyInt_Check( value ) )
+	if( !PyInt_Check( value ) ) {
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an int" );
+			"expected an int" );
+	}
 
 	mapto = PyInt_AsLong( value );
 
 	/* This method is deprecated anyway. */
-	if ( mapto < 0 || mapto > 16383 )
+	if ( mapto < 0 || mapto > 16383 ) {
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"Value must be a sum of values from Texture.MapTo dictionary" );
+	}
 
 	self->mtex->mapto = (short)mapto;
 
@@ -455,9 +400,11 @@ static int MTex_setCol( BPy_MTex *self, PyObject *value, void *closure)
 	float rgb[3];
 	int i;
 
-	if( !PyArg_ParseTuple( value, "fff", &rgb[0], &rgb[1], &rgb[2] ) )
+	if( !PyArg_ParseTuple( value, "fff",
+		&rgb[0], &rgb[1], &rgb[2] ) )
+
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected tuple of 3 floats" );
+					      "expected tuple of 3 floats" );
 
 	for( i = 0; i < 3; ++i )
 		if( rgb[i] < 0 || rgb[i] > 1 )
@@ -506,13 +453,18 @@ static int MTex_setBlendMode( BPy_MTex *self, PyObject *value, void *closure)
 
 	if ( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"Value must be member of Texture.BlendModes dictionary" );
+					    "Value must be member of Texture.BlendModes dictionary" );
 
 	n = PyInt_AsLong(value);
 
+/*	if (n != MTEX_BLEND && n != MTEX_MUL && n != MTEX_ADD &&
+		n != MTEX_SUB && n != MTEX_DIV && n != MTEX_DARK &&
+		n != MTEX_DIFF && n != MTEX_LIGHT && n != MTEX_SCREEN)*/
 	if (n < 0 || n > 8)
+	{
 		return EXPP_ReturnIntError( PyExc_ValueError,
-				"Value must be member of Texture.BlendModes dictionary" );
+					    "Value must be member of Texture.BlendModes dictionary" );
+	}
 
 	self->mtex->blendtype = (short)n;
 
@@ -526,84 +478,117 @@ static PyObject *MTex_getColFac( BPy_MTex *self, void *closure )
 
 static int MTex_setColFac( BPy_MTex *self, PyObject *value, void *closure)
 {
-	return EXPP_setFloatRange( value, &self->mtex->colfac, 0.0f, 1.0f );
+	float f;
+
+	if ( !PyFloat_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected a float" );
+
+	f = (float)PyFloat_AsDouble(value);
+
+	if (f < 0 || f > 1)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "values must be in range [0,1]" );
+
+	self->mtex->colfac = f;
+
+	return 0;
 }
 
 static PyObject *MTex_getNorFac( BPy_MTex *self, void *closure )
 {
-	if( self->type == ID_LA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material or world MTex object" );
-
 	return PyFloat_FromDouble(self->mtex->norfac);
 }
 
 static int MTex_setNorFac( BPy_MTex *self, PyObject *value, void *closure)
 {
-	switch( self->type )
-	{
-	case ID_WO:
-		return EXPP_setFloatRange( value, &self->mtex->norfac, 0.0f, 1.0f );
-	case ID_MA:
-		return EXPP_setFloatRange( value, &self->mtex->norfac, 0.0f, 25.0f );
-	default:
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material or world MTex object" );
-	}
+	float f;
+
+	if ( !PyFloat_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected a float" );
+
+	f = (float)PyFloat_AsDouble(value);
+
+	if (f < 0 || f > 25)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "values must be in range [0,25]" );
+
+	self->mtex->norfac = f;
+
+	return 0;
 }
 
 static PyObject *MTex_getVarFac( BPy_MTex *self, void *closure )
 {
-	if( self->type == ID_LA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material or world MTex object" );
-
 	return PyFloat_FromDouble(self->mtex->varfac);
 }
 
 static int MTex_setVarFac( BPy_MTex *self, PyObject *value, void *closure)
 {
-	if( self->type == ID_LA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material or world MTex object" );
+	float f;
 
-	return EXPP_setFloatRange( value, &self->mtex->varfac, 0.0f, 1.0f );
+	if ( !PyFloat_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected a float" );
+
+	f = (float)PyFloat_AsDouble(value);
+
+	if (f < 0 || f > 1)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "values must be in range [0,1]" );
+
+	self->mtex->varfac = f;
+
+	return 0;
 }
 
 static PyObject *MTex_getDispFac( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 	return PyFloat_FromDouble(self->mtex->dispfac);
 }
 
 static int MTex_setDispFac( BPy_MTex *self, PyObject *value, void *closure)
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
+	float f;
 
-	return EXPP_setFloatRange( value, &self->mtex->dispfac, 0.0f, 1.0f );
+	if ( !PyFloat_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected a float" );
+
+	f = (float)PyFloat_AsDouble(value);
+
+	if (f < 0 || f > 1)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "values must be in range [0,1]" );
+
+	self->mtex->dispfac = f;
+
+	return 0;
 }
 
 static PyObject *MTex_getWarpFac( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 	return PyFloat_FromDouble(self->mtex->warpfac);
 }
 
 static int MTex_setWarpFac( BPy_MTex *self, PyObject *value, void *closure)
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
+	float f;
 
-	return EXPP_setFloatRange( value, &self->mtex->warpfac, 0.0f, 1.0f );
+	if ( !PyFloat_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected a float" );
+
+	f = (float)PyFloat_AsDouble(value);
+
+	if (f < 0 || f > 1)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "values must be in range [0,1]" );
+
+	self->mtex->warpfac = f;
+
+	return 0;
 }
 
 static PyObject *MTex_getOfs( BPy_MTex *self, void *closure )
@@ -616,24 +601,16 @@ static int MTex_setOfs( BPy_MTex *self, PyObject *value, void *closure)
 {
 	float f[3];
 	int i;
-	float max;
 
 	if( !PyArg_ParseTuple( value, "fff", &f[0], &f[1], &f[2] ) )
+
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected tuple of 3 floats" );
 
-	if( self->type == ID_MA )
-		max = 10.0f;
-	else
-		max = 20.0f;
-
 	for( i = 0; i < 3; ++i )
-		if( f[i] < -max || f[i] > max ) {
-			char errstr[64];
-			sprintf( errstr, "values must be in range [-%6.0f,%6.0f]",
-					max, max );
-			return EXPP_ReturnIntError( PyExc_ValueError, errstr );
-		}
+		if( f[i] < -10 || f[i] > 10 )
+			return EXPP_ReturnIntError( PyExc_ValueError,
+					      "values must be in range [-10,10]" );
 
 	self->mtex->ofs[0] = f[0];
 	self->mtex->ofs[1] = f[1];
@@ -672,21 +649,12 @@ static int MTex_setSize( BPy_MTex *self, PyObject *value, void *closure)
 
 static PyObject *MTex_getMapping( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 	return PyInt_FromLong( self->mtex->mapping );
 }
 
 static int MTex_setMapping( BPy_MTex *self, PyObject *value, void *closure)
 {
 	int n;
-
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 
 	if ( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -696,7 +664,8 @@ static int MTex_setMapping( BPy_MTex *self, PyObject *value, void *closure)
 
 /*	if (n != MTEX_FLAT && n != MTEX_TUBE && n != MTEX_CUBE &&
 		n != MTEX_SPHERE) */
-	if (n < 0 || n > 3) {
+	if (n < 0 || n > 3)
+	{
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			    "Value must be member of Texture.Mappings dictionary" );
 	}
@@ -708,53 +677,31 @@ static int MTex_setMapping( BPy_MTex *self, PyObject *value, void *closure)
 
 static PyObject *MTex_getFlag( BPy_MTex *self, void *closure )
 {
-	int flag = GET_INT_FROM_POINTER(closure);
-
-	if( self->type != ID_MA &&
-			flag & ( MTEX_VIEWSPACE | MTEX_DUPLI_MAPTO | MTEX_OB_DUPLI_ORIG ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"attribute only vaild for material MTex object" );
-
-	return PyBool_FromLong( self->mtex->texflag & flag );
+	return PyBool_FromLong( self->mtex->texflag & ((int) closure) );
 }
 
 static int MTex_setFlag( BPy_MTex *self, PyObject *value, void *closure)
 {
-	int flag = GET_INT_FROM_POINTER(closure);
-
-	if( self->type != ID_MA &&
-			flag & ( MTEX_VIEWSPACE | MTEX_DUPLI_MAPTO | MTEX_OB_DUPLI_ORIG ) )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"attribute only vaild for material MTex object" );
-
 	if ( !PyBool_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected a bool");
 
 	if ( value == Py_True )
-		self->mtex->texflag |= flag;
+		self->mtex->texflag |= (int)closure;
 	else
-		self->mtex->texflag &= ~flag;
+		self->mtex->texflag &= ~((int) closure);
 
 	return 0;
 }
 
 static PyObject *MTex_getProjX( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 	return PyInt_FromLong( self->mtex->projx );
 }
 
 static int MTex_setProjX( BPy_MTex *self, PyObject *value, void *closure)
 {
 	int proj;
-
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
 
 	if( !PyInt_Check( value ) ) {
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -775,20 +722,12 @@ static int MTex_setProjX( BPy_MTex *self, PyObject *value, void *closure)
 
 static PyObject *MTex_getProjY( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 	return PyInt_FromLong( self->mtex->projy );
 }
 
 static int MTex_setProjY( BPy_MTex *self, PyObject *value, void *closure )
 {
 	int proj;
-
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
 
 	if( !PyInt_Check( value ) ) {
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -809,20 +748,12 @@ static int MTex_setProjY( BPy_MTex *self, PyObject *value, void *closure )
 
 static PyObject *MTex_getProjZ( BPy_MTex *self, void *closure )
 {
-	if( self->type != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a material MTex object" );
-
 	return PyInt_FromLong( self->mtex->projz );
 }
 
 static int MTex_setProjZ( BPy_MTex *self, PyObject *value, void *closure)
 {
 	int proj;
-
-	if( self->type != ID_MA )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"not a material MTex object" );
 
 	if( !PyInt_Check( value ) ) {
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -843,45 +774,29 @@ static int MTex_setProjZ( BPy_MTex *self, PyObject *value, void *closure)
 
 static PyObject *MTex_getMapToFlag( BPy_MTex *self, void *closure )
 {
-	int flag = GET_INT_FROM_POINTER(closure);
-
-	if( self->type == ID_LA && flag != MAP_COL )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"attribute not available for a lamp MTex" );
+	int flag = (int) closure;
 
 	if ( self->mtex->mapto & flag )
+	{
 		return PyInt_FromLong( ( self->mtex->maptoneg & flag ) ? -1 : 1 );
-	else
+	} else {
 		return PyInt_FromLong( 0 );
-}
-
-static PyObject *MTex_getWorldMapToFlag( BPy_MTex *self, void *closure )
-{
-	int flag = GET_INT_FROM_POINTER(closure);
-
-	if( self->type != ID_WO )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"not a world MTex object" );
-
-	return PyInt_FromLong( (long)( (self->mtex->mapto & flag) != 0 ) );
+	}
 }
 
 static int MTex_setMapToFlag( BPy_MTex *self, PyObject *value, void *closure)
 {
-	int flag = GET_INT_FROM_POINTER(closure);
+	int flag = (int) closure;
 	int intVal;
-
-	if( self->type == ID_LA && flag != MAP_COL )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"attribute not available for a lamp MTex" );
 
 	if ( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected an int");
 
-	intVal = PyInt_AsLong( value ) ;
+	intVal = PyInt_AsLong( value );
 
-	if( flag & ( MAP_COL | MAP_COLSPEC | MAP_COLMIR | MAP_WARP ) ) {
+	if (flag == MAP_COL || flag == MAP_COLSPEC || flag == MAP_COLMIR ||
+		flag == MAP_WARP) {
 		if (intVal < 0 || intVal > 1) {
 			return EXPP_ReturnIntError( PyExc_ValueError,
 				"value for that mapping must be 0 or 1" );
@@ -913,31 +828,3 @@ static int MTex_setMapToFlag( BPy_MTex *self, PyObject *value, void *closure)
 
 	return 0;
 }
-
-static int MTex_setWorldMapToFlag( BPy_MTex *self, PyObject *value, void *closure)
-{
-	int flag = GET_INT_FROM_POINTER(closure);
-
-	if( self->type != ID_WO )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"attribute only available for a world MTex" );
-
-	if ( !PyInt_Check( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an int");
-
-	switch( PyInt_AsLong( value ) ) {
-	case 0:
-		self->mtex->mapto &= ~flag;
-		break;
-	case 1:
-		self->mtex->mapto |= flag;
-		break;
-	default:
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"value for mapping must be 0 or 1" );
-	}
-
-	return 0;
-}
-

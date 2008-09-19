@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "GL/glew.h"
 #include "KX_BlenderGL.h"
 
 #ifdef HAVE_CONFIG_H
@@ -91,6 +92,80 @@ void BL_SwapBuffers()
 {
 	myswapbuffers();
 }
+
+void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface,
+                   unsigned int *col,float v1[3],float v2[3],float v3[3],float v4[3])
+{
+	Image* ima;
+
+	if(mode & TF_BMFONT) {
+			//char string[MAX_PROPSTRING];
+			int characters, index, character;
+			float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
+			
+//			bProperty *prop;
+
+			// string = "Frank van Beek";
+
+			characters = textlen;
+
+			ima = (struct Image*) tface->tpage;
+			if (ima == NULL) {
+				characters = 0;
+			}
+
+			/* When OBCOL flag is on the color is set in IndexPrimitives_3DText */			
+			if (tface->mode & TF_OBCOL) { /* Color has been set */
+				col= NULL;
+			} else {
+				if(!col) glColor3f(1.0f, 1.0f, 1.0f);			
+			}
+
+			glPushMatrix();
+			for (index = 0; index < characters; index++) {
+				// lets calculate offset stuff
+				character = textstr[index];
+				
+				// space starts at offset 1
+				// character = character - ' ' + 1;
+				
+				matrixGlyph((ImBuf *)ima->ibufs.first, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+
+				glBegin(GL_POLYGON);
+				// printf(" %c %f %f %f %f\n", character, tface->uv[0][0], tface->uv[0][1], );
+				// glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
+				glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
+
+				if(col) spack(col[0]);
+				// glVertex3fv(v1);
+				glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
+				
+				glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
+				if(col) spack(col[1]);
+				// glVertex3fv(v2);
+				glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
+	
+				glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
+				if(col) spack(col[2]);
+				// glVertex3fv(v3);
+				glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
+	
+				if(v4) {
+					// glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, 1.0 - (1.0 - tface->uv[3][1]) * sizey - transy);
+					glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
+					if(col) spack(col[3]);
+					// glVertex3fv(v4);
+					glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
+				}
+				glEnd();
+
+				glTranslatef(advance, 0.0, 0.0);
+			}
+			glPopMatrix();
+
+		}
+}
+
 
 void DisableForText()
 {

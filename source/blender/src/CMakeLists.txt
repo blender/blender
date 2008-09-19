@@ -35,7 +35,7 @@ SET(INC
   ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern
-  ../nodes ../../../extern/glew/include ../gpu
+  ../nodes ../../../extern/glew/include
   ${PYTHON_INC}
   ${SDL_INC}
 )

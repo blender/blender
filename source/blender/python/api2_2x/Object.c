@@ -81,7 +81,6 @@ struct rctf;
 #include "BIF_editarmature.h"
 #include "BIF_editaction.h"
 #include "BIF_editnla.h"
-#include "BIF_keyframing.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -2735,7 +2734,7 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 				"expects bonename, constraintname, influenceval" );
 	
 	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName, NULL,
-			CO_ENFORCE, 1);
+			CO_ENFORCE);
 	
 	if (!icu)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,

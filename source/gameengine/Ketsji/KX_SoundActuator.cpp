@@ -69,11 +69,11 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 
 KX_SoundActuator::~KX_SoundActuator()
 {
-	if (m_soundObject)
-	{
-		m_soundScene->RemoveActiveObject(m_soundObject);
-		m_soundScene->DeleteObject(m_soundObject);
-	}
+	//m_soundScene->RemoveObject(this->m_soundObject);
+	//(this->m_soundObject)->DeleteWhenFinished();
+	m_soundScene->RemoveActiveObject(m_soundObject);
+//	m_soundScene->DeleteObjectWhenFinished(m_soundObject);
+	m_soundScene->DeleteObject(m_soundObject);
 }
 
 
@@ -82,12 +82,9 @@ CValue* KX_SoundActuator::GetReplica()
 {
 	KX_SoundActuator* replica = new KX_SoundActuator(*this);
 	replica->ProcessReplica();
-	if (m_soundObject)
-	{
-	    SND_SoundObject* soundobj = new SND_SoundObject(*m_soundObject);
-		replica->setSoundObject(soundobj);
-		m_soundScene->AddObject(soundobj);
-	}
+	SND_SoundObject* soundobj = new SND_SoundObject(*m_soundObject);
+	replica->setSoundObject(soundobj);
+	m_soundScene->AddObject(soundobj);
 	
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
@@ -106,9 +103,6 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	bool bNegativeEvent = IsNegativeEvent();
 
 	RemoveAllEvents();
-
-	if (!m_soundObject)
-		return false;
 
 	if (m_pino)
 	{
@@ -293,10 +287,6 @@ PyObject* KX_SoundActuator::PySetFilename(PyObject* self, PyObject* args, PyObje
 
 PyObject* KX_SoundActuator::PyGetFilename(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	if (!m_soundObject)
-	{
-		return PyString_FromString("");
-	}
 	STR_String objectname = m_soundObject->GetObjectName();
 	char* name = objectname.Ptr();
 	
@@ -311,8 +301,7 @@ PyObject* KX_SoundActuator::PyGetFilename(PyObject* self, PyObject* args, PyObje
 
 PyObject* KX_SoundActuator::PyStartSound(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	if (m_soundObject)
-		m_soundObject->StartSound();	
+	m_soundObject->StartSound();	
 	Py_Return;
 }         
 
@@ -320,8 +309,7 @@ PyObject* KX_SoundActuator::PyStartSound(PyObject* self, PyObject* args, PyObjec
 
 PyObject* KX_SoundActuator::PyPauseSound(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	if (m_soundObject)
-		m_soundObject->PauseSound();	
+	m_soundObject->PauseSound();	
 	Py_Return;
 } 
 
@@ -329,8 +317,7 @@ PyObject* KX_SoundActuator::PyPauseSound(PyObject* self, PyObject* args, PyObjec
 
 PyObject* KX_SoundActuator::PyStopSound(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	if (m_soundObject)
-		m_soundObject->StopSound();	
+	m_soundObject->StopSound();	
 	Py_Return;
 }
 
@@ -342,8 +329,7 @@ PyObject* KX_SoundActuator::PySetGain(PyObject* self, PyObject* args, PyObject* 
 	if (!PyArg_ParseTuple(args, "f", &gain))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetGain(gain);
+	m_soundObject->SetGain(gain);
 	
 	Py_Return;
 }         
@@ -352,7 +338,7 @@ PyObject* KX_SoundActuator::PySetGain(PyObject* self, PyObject* args, PyObject* 
 
 PyObject* KX_SoundActuator::PyGetGain(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	float gain = (m_soundObject) ? m_soundObject->GetGain() : 1.0f;
+	float gain = m_soundObject->GetGain();
 	PyObject* result = PyFloat_FromDouble(gain);
 	
 	return result;
@@ -366,8 +352,7 @@ PyObject* KX_SoundActuator::PySetPitch(PyObject* self, PyObject* args, PyObject*
 	if (!PyArg_ParseTuple(args, "f", &pitch))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetPitch(pitch);
+	m_soundObject->SetPitch(pitch);
 	
 	Py_Return;
 }         
@@ -376,7 +361,7 @@ PyObject* KX_SoundActuator::PySetPitch(PyObject* self, PyObject* args, PyObject*
 
 PyObject* KX_SoundActuator::PyGetPitch(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	float pitch = (m_soundObject) ? m_soundObject->GetPitch() : 1.0;
+	float pitch = m_soundObject->GetPitch();
 	PyObject* result = PyFloat_FromDouble(pitch);
 	
 	return result;
@@ -390,8 +375,7 @@ PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* self, PyObject* args, P
 	if (!PyArg_ParseTuple(args, "f", &rollofffactor))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetRollOffFactor(rollofffactor);
+	m_soundObject->SetRollOffFactor(rollofffactor);
 
 	Py_Return;
 }         
@@ -400,7 +384,7 @@ PyObject* KX_SoundActuator::PySetRollOffFactor(PyObject* self, PyObject* args, P
 
 PyObject* KX_SoundActuator::PyGetRollOffFactor(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	float rollofffactor = (m_soundObject) ? m_soundObject->GetRollOffFactor() : 1.0;
+	float rollofffactor = m_soundObject->GetRollOffFactor();
 	PyObject* result = PyFloat_FromDouble(rollofffactor);
 	
 	return result;
@@ -414,8 +398,7 @@ PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObjec
 	if (!PyArg_ParseTuple(args, "i", &looping))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetLoopMode(looping);
+	m_soundObject->SetLoopMode(looping);
 	
 	Py_Return;
 }         
@@ -424,7 +407,7 @@ PyObject* KX_SoundActuator::PySetLooping(PyObject* self, PyObject* args, PyObjec
 
 PyObject* KX_SoundActuator::PyGetLooping(PyObject* self, PyObject* args, PyObject* kwds)
 {
-	int looping = (m_soundObject) ? m_soundObject->GetLoopMode() : SND_LOOP_OFF;
+	int looping = m_soundObject->GetLoopMode();
 	PyObject* result = PyInt_FromLong(looping);
 	
 	return result;
@@ -442,8 +425,7 @@ PyObject* KX_SoundActuator::PySetPosition(PyObject* self, PyObject* args, PyObje
 	if (!PyArg_ParseTuple(args, "fff", &pos[0], &pos[1], &pos[2]))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetPosition(pos);
+	m_soundObject->SetPosition(pos);
 	
 	Py_Return;
 }         
@@ -460,8 +442,7 @@ PyObject* KX_SoundActuator::PySetVelocity(PyObject* self, PyObject* args, PyObje
 	if (!PyArg_ParseTuple(args, "fff", &vel[0], &vel[1], &vel[2]))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetVelocity(vel);
+	m_soundObject->SetVelocity(vel);
 	
 	Py_Return;
 }         
@@ -484,8 +465,7 @@ PyObject* KX_SoundActuator::PySetOrientation(PyObject* self, PyObject* args, PyO
 	if (!PyArg_ParseTuple(args, "fffffffff", &ori[0][0], &ori[0][1], &ori[0][2], &ori[1][0], &ori[1][1], &ori[1][2], &ori[2][0], &ori[2][1], &ori[2][2]))
 		return NULL;
 	
-	if (m_soundObject)
-		m_soundObject->SetOrientation(ori);
+	m_soundObject->SetOrientation(ori);
 	
 	Py_Return;
 }

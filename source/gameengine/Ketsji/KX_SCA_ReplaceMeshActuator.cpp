@@ -37,8 +37,6 @@
 
 #include "KX_SCA_ReplaceMeshActuator.h"
 
-#include "PyObjectPlus.h" 
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -82,7 +80,7 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, SetMesh_doc},
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_VARARGS, SetMesh_doc},
 	
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
    	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
@@ -101,29 +99,28 @@ PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const STR_String& attr)
 /* 1. setMesh */
 char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
 	"setMesh(name)\n"
-	"\t- name: string or None\n"
+	"\t- name: string\n"
 	"\tSet the mesh that will be substituted for the current one.\n";
 
-PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self, PyObject* value)
+PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self,
+									  PyObject* args, 
+									  PyObject* kwds)
 {
-	if (value == Py_None) {
-		m_mesh = NULL;
-	} else {
-		char* meshname = PyString_AsString(value);
-		if (!meshname) {
-			PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh or None");
-			return NULL;
-		}
-		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
-		
-		if (mesh==NULL) {
-			PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
-			return NULL;
-		}
+	char* meshname;
+	
+	if (!PyArg_ParseTuple(args, "s", &meshname))
+	{
+		return NULL;	
+	}
+
+	void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+	
+	if (mesh) {
 		m_mesh= (class RAS_MeshObject*)mesh;
+		Py_Return;
 	}
 	
-	Py_RETURN_NONE;
+	return NULL;
 }
 
 KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
@@ -132,7 +129,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 )
 {
 	if (!m_mesh)
-		Py_RETURN_NONE;
+		Py_Return;
 
 	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
 }
@@ -142,7 +139,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 "instantReplaceMesh() : immediately replace mesh without delay\n")
 {
 	InstantReplaceMesh();
-	Py_RETURN_NONE;
+	Py_Return;
 }
 
 /* ------------------------------------------------------------------------- */

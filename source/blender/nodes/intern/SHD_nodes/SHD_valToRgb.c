@@ -59,15 +59,6 @@ static void node_shader_init_valtorgb(bNode *node)
    node->storage= add_colorband(1);
 }
 
-static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	float *array;
-	int size;
-
-	colorband_table_RGBA(node->storage, &array, &size);
-	return GPU_stack_link(mat, "valtorgb", in, out, GPU_texture(size, array));
-}
-
 bNodeType sh_node_valtorgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_VALTORGB,
@@ -82,8 +73,7 @@ bNodeType sh_node_valtorgb= {
 	/* initfunc    */	node_shader_init_valtorgb,
 	/* freestoragefunc    */	node_free_standard_storage,
 	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_valtorgb
+	/* id          */	NULL
 	
 };
 
@@ -106,11 +96,6 @@ static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, b
    out[0]->vec[0]= in[0]->vec[0]*0.35f + in[0]->vec[1]*0.45f + in[0]->vec[2]*0.2f;
 }
 
-static int gpu_shader_rgbtobw(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	return GPU_stack_link(mat, "rgbtobw", in, out);
-}
-
 bNodeType sh_node_rgbtobw= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_RGBTOBW,
@@ -125,8 +110,7 @@ bNodeType sh_node_rgbtobw= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_rgbtobw
+	/* id          */	NULL
 
 };
 

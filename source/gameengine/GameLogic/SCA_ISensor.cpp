@@ -32,8 +32,6 @@
 #include "SCA_ISensor.h"
 #include "SCA_EventManager.h"
 #include "SCA_LogicManager.h"
-// needed for IsTriggered()
-#include "SCA_PythonController.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,8 +132,10 @@ void SCA_ISensor::DecLink() {
 	}
 	if (!m_links)
 	{
-		// sensor is detached from all controllers, remove it from manager
+		// sensor is detached from all controllers, initialize it so that it
+		// is fresh as at startup when it is reattached again.
 		UnregisterToManager();
+		Init();
 	}
 }
 
@@ -168,9 +168,7 @@ PyParentObject SCA_ISensor::Parents[] = {
 };
 PyMethodDef SCA_ISensor::Methods[] = {
 	{"isPositive", (PyCFunction) SCA_ISensor::sPyIsPositive, 
-	 METH_NOARGS, IsPositive_doc},
-	{"isTriggered", (PyCFunction) SCA_ISensor::sPyIsTriggered, 
-	 METH_VARARGS, IsTriggered_doc},
+	 METH_VARARGS, IsPositive_doc},
 	{"getUsePosPulseMode", (PyCFunction) SCA_ISensor::sPyGetUsePosPulseMode, 
 	 METH_NOARGS, GetUsePosPulseMode_doc},
 	{"setUsePosPulseMode", (PyCFunction) SCA_ISensor::sPySetUsePosPulseMode, 
@@ -206,9 +204,6 @@ SCA_ISensor::_getattr(const STR_String& attr)
 
 void SCA_ISensor::RegisterToManager()
 {
-	// sensor is just activated, initialize it
-	Init();
-	m_newControllers.erase(m_newControllers.begin(), m_newControllers.end());
 	m_eventmgr->RegisterSensor(this);
 }
 
@@ -226,9 +221,6 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 		bool result = this->Evaluate(event);
 		if (result) {
 			logicmgr->AddActivatedSensor(this);	
-			// reset these counters so that pulse are synchronized with transition
-			m_pos_ticks = 0;
-			m_neg_ticks = 0;
 		} else
 		{
 			/* First, the pulsing behaviour, if pulse mode is
@@ -257,44 +249,16 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr,	  CValue* event)
 				}
 			}
 		}
-		if (!m_newControllers.empty())
-		{
-			if (!IsActive() && m_level)
-			{
-				// This level sensor is connected to at least one controller that was just made 
-				// active but it did not generate an event yet, do it now to those controllers only 
-				for (std::vector<SCA_IController*>::iterator ci=m_newControllers.begin();
-					 ci != m_newControllers.end(); ci++)
-				{
-					logicmgr->AddTriggeredController(*ci, this);
-				}
-			}
-			// clear the list. Instead of using clear, which also release the memory,
-			// use erase, which keeps the memory available for next time.
-			m_newControllers.erase(m_newControllers.begin(), m_newControllers.end());
-		}
 	} 
 }
 
 /* Python functions: */
 char SCA_ISensor::IsPositive_doc[] = 
 "isPositive()\n"
-"\tReturns whether the sensor is in an active state.\n";
-PyObject* SCA_ISensor::PyIsPositive(PyObject* self)
+"\tReturns whether the sensor is registered a positive event.\n";
+PyObject* SCA_ISensor::PyIsPositive(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	int retval = IsPositiveTrigger();
-	return PyInt_FromLong(retval);
-}
-
-char SCA_ISensor::IsTriggered_doc[] = 
-"isTriggered()\n"
-"\tReturns whether the sensor has triggered the current controller.\n";
-PyObject* SCA_ISensor::PyIsTriggered(PyObject* self)
-{
-	// check with the current controller
-	int retval = 0;
-	if (SCA_PythonController::m_sCurrentController)
-		retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
 	return PyInt_FromLong(retval);
 }
 

@@ -44,7 +44,7 @@ enum
 
 /* general stuff */
 #define NUM_BUFFERS						128
-#define NUM_SOURCES						24 /* 24 is the limit for openal on windows, was 16 in 2.47 and previous */
+#define NUM_SOURCES						16
 
 /* openal related stuff */
 #define AL_LOOPING						0x1007

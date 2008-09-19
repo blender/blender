@@ -26,82 +26,99 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
+
 #pragma warning (disable:4786)
 #endif
 
 #include "RAS_Polygon.h"
 
-RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray *darray, int numvert)
+RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket,
+				bool visible,
+				int numverts,
+				int vtxarrayindex) 
+		:m_bucket(bucket),
+		m_vertexindexbase(numverts),
+		m_numverts(numverts),
+		m_edgecode(65535)
 {
-	m_bucket = bucket;
-	m_darray = darray;
-	m_offset[0]= m_offset[1]= m_offset[2]= m_offset[3]= 0;
-	m_numvert = numvert;
-
-	m_edgecode = 255;
-	m_polyflags = 0;
+	m_vertexindexbase.m_vtxarray = vtxarrayindex ;//m_bucket->FindVertexArray(numverts);
+	m_polyFlags.Visible = visible;
 }
+
+
 
 int RAS_Polygon::VertexCount()
 {
-	return m_numvert;
+	return m_numverts;
 }
 
-void RAS_Polygon::SetVertexOffset(int i, unsigned short offset)
+
+
+void RAS_Polygon::SetVertex(int i,
+						unsigned int vertexindex ) //const MT_Point3& xyz,const MT_Point2& uv,const unsigned int rgbacolor,const MT_Vector3& normal)
 {
-	m_offset[i] = offset;
+	m_vertexindexbase.SetIndex(i,vertexindex); //m_bucket->FindOrAddVertex(m_vertexindexbase.m_vtxarray,
+	//xyz,uv,rgbacolor,normal));
 }
 
-RAS_TexVert *RAS_Polygon::GetVertex(int i)
+
+
+const KX_VertexIndex& RAS_Polygon::GetIndexBase()
 {
-	return &m_darray->m_vertex[m_offset[i]];
+	return m_vertexindexbase;
 }
 
-int RAS_Polygon::GetVertexOffset(int i)
+
+
+void RAS_Polygon::SetVisibleWireframeEdges(int edgecode)
 {
-	return m_offset[i];
+	m_edgecode = edgecode;
 }
 
+
+
+// each bit is for a visible edge, starting with bit 1 for the first edge, bit 2 for second etc.
 int RAS_Polygon::GetEdgeCode()
 {
 	return m_edgecode;
 }
 
-void RAS_Polygon::SetEdgeCode(int edgecode)
-{
-	m_edgecode = edgecode;
-}
 
 	
 bool RAS_Polygon::IsVisible()
 {
-	return (m_polyflags & VISIBLE) != 0;
+	return m_polyFlags.Visible;
 }
 
-void RAS_Polygon::SetVisible(bool visible)
-{
-	if(visible) m_polyflags |= VISIBLE;
-	else m_polyflags &= ~VISIBLE;
-}
+
 
 bool RAS_Polygon::IsCollider()
 {
-	return (m_polyflags & COLLIDER) != 0;
+	return m_polyFlags.Collider;
 }
 
-void RAS_Polygon::SetCollider(bool visible)
+
+
+void RAS_Polygon::SetCollider(bool col)
 {
-	if(visible) m_polyflags |= COLLIDER;
-	else m_polyflags &= ~COLLIDER;
+	m_polyFlags.Collider = col;
 }
 
-RAS_MaterialBucket* RAS_Polygon::GetMaterial()
+
+
+KX_VertexIndex& RAS_Polygon::GetVertexIndexBase()
+{
+	return m_vertexindexbase;
+}
+
+
+
+RAS_MaterialBucket*	RAS_Polygon::GetMaterial()
 {
 	return m_bucket;
-}
-
-RAS_DisplayArray* RAS_Polygon::GetDisplayArray()
-{
-	return m_darray;
 }

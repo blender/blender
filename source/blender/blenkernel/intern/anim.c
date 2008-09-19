@@ -303,7 +303,7 @@ static void group_duplilist(ListBase *lb, Object *ob, int level, int animated)
 	DupliObject *dob;
 	Group *group;
 	GroupObject *go;
-	float mat[4][4], tmat[4][4];
+	float mat[4][4];
 	
 	if(ob->dup_group==NULL) return;
 	group= ob->dup_group;
@@ -320,15 +320,7 @@ static void group_duplilist(ListBase *lb, Object *ob, int level, int animated)
 		/* note, if you check on layer here, render goes wrong... it still deforms verts and uses parent imat */
 		if(go->ob!=ob) {
 			
-			/* Group Dupli Offset, should apply after everything else */
-			if (group->dupli_ofs[0] || group->dupli_ofs[1] || group->dupli_ofs[2]) {
-				Mat4CpyMat4(tmat, go->ob->obmat);
-				VecSubf(tmat[3], tmat[3], group->dupli_ofs);
-				Mat4MulMat4(mat, tmat, ob->obmat);
-			} else {
-				Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
-			}
-			
+			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
 			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0, OB_DUPLIGROUP, animated);
 			dob->no_draw= (dob->origlay & group->layer)==0;
 			
@@ -783,10 +775,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				hair= (totchild == 0 || psys->childcache) && psys->pathcache;
 			if(!hair)
 				return;
-			
-			/* we use cache, update totchild according to cached data */
-			totchild = psys->totchildcache;
-			totpart = psys->totcached;
 		}
 
 		psys->lattice = psys_get_lattice(par, psys);
@@ -869,8 +857,6 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					}
 
 					VECCOPY(pamat[3], cache->co);
-					pamat[3][3]= 1.0f;
-					
 				}
 				else if(step_nbr) {
 					/* other keys */
@@ -1073,8 +1059,7 @@ static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, 
 	}
 }
 
-/* Returns a list of DupliObject
- * note; group dupli's already set transform matrix. see note in group_duplilist() */
+/* note; group dupli's already set transform matrix. see note in group_duplilist() */
 ListBase *object_duplilist(Scene *sce, Object *ob)
 {
 	ListBase *duplilist= MEM_mallocN(sizeof(ListBase), "duplilist");

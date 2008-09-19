@@ -156,9 +156,7 @@ typedef struct Object {
 
 	float formfactor;
 	float rdamping, sizefac;
-	float margin, pad3;
-
-
+	
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;	/* currently selected material in the user interface */
@@ -225,8 +223,6 @@ typedef struct Object {
 /*#ifdef WITH_VERSE*/
 	void *vnode;			/* pointer at object VerseNode */
 /*#endif*/
-
-	ListBase gpulamp;		/* runtime, for lamps only */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -428,8 +424,6 @@ extern Object workob;
 #define OB_SECTOR		8192
 #define OB_PROP			16384
 #define OB_MAINACTOR	32768
-
-#define OB_PHYSICS		65536
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1

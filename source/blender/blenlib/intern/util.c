@@ -1211,49 +1211,6 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	return wasrelative;
 }
 
-
-/*
- * Should only be done with command line paths.
- * this is NOT somthing blenders internal paths support like the // prefix
- */
-int BLI_convertstringcwd(char *path)
-{
-	int wasrelative = 1;
-	int filelen = strlen(path);
-	
-#ifdef WIN32
-	if (filelen >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
-		wasrelative = 0;
-#else
-	if (filelen >= 2 && path[0] == '/')
-		wasrelative = 0;
-#endif
-	
-	if (wasrelative==1) {
-		char cwd[FILE_MAXDIR + FILE_MAXFILE];
-		BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
-		
-		if (cwd[0] == '\0') {
-			printf( "Could not get the current working directory - $PWD for an unknown reason.");
-		} else {
-			/* uses the blend path relative to cwd important for loading relative linked files.
-			*
-			* cwd should contain c:\ etc on win32 so the relbase can be NULL
-			* relbase being NULL also prevents // being misunderstood as relative to the current
-			* blend file which isnt a feature we want to use in this case since were dealing
-			* with a path from the command line, rather then from inside Blender */
-			
-			char origpath[FILE_MAXDIR + FILE_MAXFILE];
-			BLI_strncpy(origpath, path, FILE_MAXDIR + FILE_MAXFILE);
-			
-			BLI_make_file_string(NULL, path, cwd, origpath); 
-		}
-	}
-	
-	return wasrelative;
-}
-
-
 /* copy di to fi, filename only */
 void BLI_splitdirstring(char *di, char *fi)
 {

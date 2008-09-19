@@ -9,64 +9,108 @@
 #include "BL_BlenderShader.h"
 #include "BL_Material.h"
 
+#ifdef BLENDER_GLSL
 #include "GPU_extensions.h"
 #include "GPU_material.h"
+#endif
 
 #include "RAS_BucketManager.h"
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
  
-BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lightlayer)
-:
-	mScene(scene),
-	mMat(ma),
-	mLightLayer(lightlayer)
+ /* this is evil, but we need the scene to create materials with
+  * lights from the correct scene .. */
+static struct Scene *GetSceneForName(const STR_String& scenename)
 {
-	mBlenderScene = scene->GetBlenderScene();
-	mBlendMode = GPU_BLEND_SOLID;
+	Scene *sce;
 
-	if(mMat)
-		GPU_material_from_blender(mBlenderScene, mMat);
-}
+	for (sce= (Scene*)G.main->scene.first; sce; sce= (Scene*)sce->id.next)
+		if (scenename == (sce->id.name+2))
+			return sce;
 
-BL_BlenderShader::~BL_BlenderShader()
-{
-	if(mMat && GPU_material_from_blender(mBlenderScene, mMat))
-		GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
+	return (Scene*)G.main->scene.first;
 }
 
 bool BL_BlenderShader::Ok()
 {
-	return VerifyShader();
+#ifdef BLENDER_GLSL
+	VerifyShader();
+
+	return (mMat && mMat->gpumaterial);
+#else
+	return 0;
+#endif
+}
+
+BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lightlayer)
+:
+#ifdef BLENDER_GLSL
+	mScene(scene),
+	mMat(ma),
+	mGPUMat(NULL),
+#endif
+	mBound(false),
+	mLightLayer(lightlayer)
+{
+#ifdef BLENDER_GLSL
+	mBlenderScene = GetSceneForName(scene->GetName());
+	mBlendMode = GPU_BLEND_SOLID;
+
+	if(mMat) {
+		GPU_material_from_blender(mBlenderScene, mMat);
+		mGPUMat = mMat->gpumaterial;
+	}
+#endif
+}
+
+BL_BlenderShader::~BL_BlenderShader()
+{
+#ifdef BLENDER_GLSL
+	if(mMat && mMat->gpumaterial)
+		GPU_material_unbind(mMat->gpumaterial);
+#endif
 }
 
 bool BL_BlenderShader::VerifyShader()
 {
-	if(mMat)
-		return (GPU_material_from_blender(mBlenderScene, mMat) != 0);
-	else
-		return false;
+#ifdef BLENDER_GLSL
+	if(mMat && !mMat->gpumaterial)
+		GPU_material_from_blender(mBlenderScene, mMat);
+
+	mGPUMat = mMat->gpumaterial;
+	
+	return (mMat && mGPUMat);
+#else
+	return false;
+#endif
 }
 
-void BL_BlenderShader::SetProg(bool enable, double time)
+void BL_BlenderShader::SetProg(bool enable)
 {
+#ifdef BLENDER_GLSL
 	if(VerifyShader()) {
-		if(enable)
-			GPU_material_bind(GPU_material_from_blender(mBlenderScene, mMat), mLightLayer, ~0, time);
-		else
-			GPU_material_unbind(GPU_material_from_blender(mBlenderScene, mMat));
+		if(enable) {
+			GPU_material_bind(mGPUMat, mLightLayer);
+			mBound = true;
+		}
+		else {
+			GPU_material_unbind(mGPUMat);
+			mBound = false;
+		}
 	}
+#endif
 }
 
 int BL_BlenderShader::GetAttribNum()
 {
+#ifdef BLENDER_GLSL
 	GPUVertexAttribs attribs;
 	int i, enabled = 0;
 
 	if(!VerifyShader())
 		return enabled;
 
-	GPU_material_vertex_attributes(GPU_material_from_blender(mBlenderScene, mMat), &attribs);
+	GPU_material_vertex_attributes(mGPUMat, &attribs);
 
     for(i = 0; i < attribs.totlayer; i++)
 		if(attribs.layer[i].glindex+1 > enabled)
@@ -76,23 +120,24 @@ int BL_BlenderShader::GetAttribNum()
 		enabled = BL_MAX_ATTRIB;
 
 	return enabled;
+#else
+	return 0;
+#endif
 }
 
 void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 {
+#ifdef BLENDER_GLSL
 	GPUVertexAttribs attribs;
-	GPUMaterial *gpumat;
 	int i, attrib_num;
 
 	ras->SetAttribNum(0);
 
 	if(!VerifyShader())
 		return;
-	
-	gpumat = GPU_material_from_blender(mBlenderScene, mMat);
 
 	if(ras->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) {
-		GPU_material_vertex_attributes(gpumat, &attribs);
+		GPU_material_vertex_attributes(mGPUMat, &attribs);
 		attrib_num = GetAttribNum();
 
 		ras->SetTexCoordNum(0);
@@ -123,37 +168,44 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 			else
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_DISABLE, attribs.layer[i].glindex);
 		}
+
+		ras->EnableTextures(true);
 	}
+	else
+		ras->EnableTextures(false);
+#endif
 }
 
-void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
+void BL_BlenderShader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 {
+#ifdef BLENDER_GLSL
 	float obmat[4][4], viewmat[4][4], viewinvmat[4][4], obcol[4];
-	GPUMaterial *gpumat;
 
-	gpumat = GPU_material_from_blender(mBlenderScene, mMat);
+	VerifyShader();
 
-	if(!gpumat || !GPU_material_bound(gpumat))
+	if(!mGPUMat) // || !mBound)
 		return;
 
 	MT_Matrix4x4 model;
 	model.setValue(ms.m_OpenGLMatrix);
-	const MT_Matrix4x4& view = rasty->GetViewMatrix();
-	const MT_Matrix4x4& viewinv = rasty->GetViewInvMatrix();
+	MT_Matrix4x4 view;
+	rasty->GetViewMatrix(view);
 
-	// note: getValue gives back column major as needed by OpenGL
 	model.getValue((float*)obmat);
 	view.getValue((float*)viewmat);
-	viewinv.getValue((float*)viewinvmat);
+
+	view.invert();
+	view.getValue((float*)viewinvmat);
 
 	if(ms.m_bObjectColor)
 		ms.m_RGBAcolor.getValue((float*)obcol);
 	else
 		obcol[0]= obcol[1]= obcol[2]= obcol[3]= 1.0f;
 
-	GPU_material_bind_uniforms(gpumat, obmat, viewmat, viewinvmat, obcol);
+	GPU_material_bind_uniforms(mGPUMat, obmat, viewmat, viewinvmat, obcol);
 
-	mBlendMode = GPU_material_blend_mode(gpumat, obcol);
+	mBlendMode = GPU_material_blend_mode(mGPUMat, obcol);
+#endif
 }
 
 int BL_BlenderShader::GetBlendMode()
@@ -163,8 +215,12 @@ int BL_BlenderShader::GetBlendMode()
 
 bool BL_BlenderShader::Equals(BL_BlenderShader *blshader)
 {
+#ifdef BLENDER_GLSL
 	/* to avoid unneeded state switches */
-	return (blshader && mMat == blshader->mMat && mLightLayer == blshader->mLightLayer);
+	return (blshader && mGPUMat == blshader->mGPUMat && mLightLayer == blshader->mLightLayer);
+#else
+	return true;
+#endif
 }
 
 // eof

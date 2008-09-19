@@ -142,13 +142,9 @@ public:
 	uint width() const;
 	uint height() const;
 	uint depth() const;
-	bool isTexture1D() const;
 	bool isTexture2D() const;
 	bool isTexture3D() const;
 	bool isTextureCube() const;
-
-	void setNormalFlag(bool b);
-
 	bool hasAlpha() const; /* false for DXT1, true for all other DXTs */
 	
 	void mipmap(Image * img, uint f, uint m);

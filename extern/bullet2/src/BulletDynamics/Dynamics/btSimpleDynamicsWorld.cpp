@@ -27,19 +27,16 @@ subject to the following restrictions:
   can be used by probes that are checking whether the
   library is actually installed.
 */
-extern "C" 
-{
-	void btBulletDynamicsProbe ();
-	void btBulletDynamicsProbe () {}
-}
+extern "C" void btBulletDynamicsProbe () {}
 
 
 
 
-btSimpleDynamicsWorld::btSimpleDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration)
-:btDynamicsWorld(dispatcher,pairCache,collisionConfiguration),
+btSimpleDynamicsWorld::btSimpleDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver)
+:btDynamicsWorld(dispatcher,pairCache),
 m_constraintSolver(constraintSolver),
 m_ownsConstraintSolver(false),
+m_debugDrawer(0),
 m_gravity(0,0,-10)
 {
 
@@ -49,7 +46,7 @@ m_gravity(0,0,-10)
 btSimpleDynamicsWorld::~btSimpleDynamicsWorld()
 {
 	if (m_ownsConstraintSolver)
-		btAlignedFree( m_constraintSolver);
+		delete m_constraintSolver;
 }
 
 int		btSimpleDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, btScalar fixedTimeStep)
@@ -77,9 +74,8 @@ int		btSimpleDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, b
 		
 		btContactSolverInfo infoGlobal;
 		infoGlobal.m_timeStep = timeStep;
-		m_constraintSolver->prepareSolve(0,numManifolds);
-		m_constraintSolver->solveGroup(0,0,manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer, m_stackAlloc,m_dispatcher1);
-		m_constraintSolver->allSolved(infoGlobal,m_debugDrawer, m_stackAlloc);
+		
+		m_constraintSolver->solveGroup(0,0,manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer, m_stackAlloc);
 	}
 
 	///integrate transforms
@@ -89,26 +85,9 @@ int		btSimpleDynamicsWorld::stepSimulation( btScalar timeStep,int maxSubSteps, b
 
 	synchronizeMotionStates();
 
-	clearForces();
-
 	return 1;
 
 }
-
-void	btSimpleDynamicsWorld::clearForces()
-{
-	//todo: iterate over awake simulation islands!
-	for ( int i=0;i<m_collisionObjects.size();i++)
-	{
-		btCollisionObject* colObj = m_collisionObjects[i];
-		
-		btRigidBody* body = btRigidBody::upcast(colObj);
-		if (body)
-		{
-			body->clearForces();
-		}
-	}
-}	
 
 
 void	btSimpleDynamicsWorld::setGravity(const btVector3& gravity)
@@ -123,11 +102,6 @@ void	btSimpleDynamicsWorld::setGravity(const btVector3& gravity)
 			body->setGravity(gravity);
 		}
 	}
-}
-
-btVector3 btSimpleDynamicsWorld::getGravity () const
-{
-	return m_gravity;
 }
 
 void	btSimpleDynamicsWorld::removeRigidBody(btRigidBody* body)
@@ -159,7 +133,7 @@ void	btSimpleDynamicsWorld::updateAabbs()
 				btPoint3 minAabb,maxAabb;
 				colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb,maxAabb);
 				btBroadphaseInterface* bp = getBroadphase();
-				bp->setAabb(body->getBroadphaseHandle(),minAabb,maxAabb, m_dispatcher1);
+				bp->setAabb(body->getBroadphaseHandle(),minAabb,maxAabb);
 			}
 		}
 	}
@@ -197,9 +171,8 @@ void	btSimpleDynamicsWorld::predictUnconstraintMotion(btScalar timeStep)
 			{
 				if (body->isActive())
 				{
-					body->applyGravity();
+					body->applyForces( timeStep);
 					body->integrateVelocities( timeStep);
-					body->applyDamping(timeStep);
 					body->predictIntegratedTransform(timeStep,body->getInterpolationWorldTransform());
 				}
 			}
@@ -231,13 +204,8 @@ void	btSimpleDynamicsWorld::setConstraintSolver(btConstraintSolver* solver)
 {
 	if (m_ownsConstraintSolver)
 	{
-		btAlignedFree(m_constraintSolver);
+		delete m_constraintSolver;
 	}
 	m_ownsConstraintSolver = false;
 	m_constraintSolver = solver;
-}
-
-btConstraintSolver* btSimpleDynamicsWorld::getConstraintSolver()
-{
-	return m_constraintSolver;
 }

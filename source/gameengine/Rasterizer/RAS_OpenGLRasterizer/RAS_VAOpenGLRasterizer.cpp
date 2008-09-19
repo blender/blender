@@ -33,7 +33,6 @@
 #include <stdlib.h>
 
 #include "GL/glew.h"
-#include "GPU_extensions.h"
 
 #include "STR_String.h"
 #include "RAS_TexVert.h"
@@ -78,16 +77,16 @@ void RAS_VAOpenGLRasterizer::SetDrawingMode(int drawingmode)
 	{
 		case KX_BOUNDINGBOX:
 		case KX_WIREFRAME:
-			//glDisableClientState(GL_COLOR_ARRAY);
-			//glDisable(GL_CULL_FACE);
+			glDisableClientState(GL_COLOR_ARRAY);
+			glDisable(GL_CULL_FACE);
 			break;
 		case KX_SOLID:
-			//glDisableClientState(GL_COLOR_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
 			break;
 		case KX_TEXTURED:
 		case KX_SHADED:
 		case KX_SHADOW:
-			//glEnableClientState(GL_COLOR_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
 		default:
 			break;
 	}
@@ -99,121 +98,141 @@ void RAS_VAOpenGLRasterizer::Exit()
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
+	EnableTextures(false);
 
 	RAS_OpenGLRasterizer::Exit();
 }
 
-void RAS_VAOpenGLRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
+void RAS_VAOpenGLRasterizer::IndexPrimitives( const vecVertexArray& vertexarrays,
+							const vecIndexArrays & indexarrays,
+							DrawMode mode,
+							bool useObjectColor,
+							const MT_Vector4& rgbacolor,
+							class KX_ListSlot** slot)
 {
-	static const GLsizei stride = sizeof(RAS_TexVert);
-	bool wireframe = m_drawingmode <= KX_WIREFRAME;
-	RAS_MeshSlot::iterator it;
+	static const GLsizei vtxstride = sizeof(RAS_TexVert);
 	GLenum drawmode;
+	if(mode == KX_MODE_TRIANGLES)
+		drawmode = GL_TRIANGLES;
+	else if(mode == KX_MODE_QUADS)
+		drawmode = GL_QUADS;
+	else
+		drawmode = GL_LINES;
 
-	if(!wireframe)
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices, vt;
+
+	if (drawmode != GL_LINES)
+	{
+		if (useObjectColor)
+		{
+			glDisableClientState(GL_COLOR_ARRAY);
+			glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+		} else
+		{
+			glColor4d(0,0,0,1.0);
+			glEnableClientState(GL_COLOR_ARRAY);
+		}
+	}
+	else
+	{
+		glColor3d(0,0,0);
+	}
+
+	EnableTextures(false);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	// use glDrawElements to draw each vertexarray
-	for(ms.begin(it); !ms.end(it); ms.next(it)) {
-		if(it.totindex == 0)
+	for (vt=0;vt<vertexarrays.size();vt++)
+	{
+		vertexarray = &((*vertexarrays[vt]) [0]);
+		const KX_IndexArray & indexarray = (*indexarrays[vt]);
+		numindices = indexarray.size();
+
+		if (!numindices)
 			continue;
+		
+		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
+		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
+		glTexCoordPointer(2,GL_FLOAT,vtxstride,vertexarray->getUV1());
+		if(glIsEnabled(GL_COLOR_ARRAY))
+			glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
 
-		// drawing mode
-		if(it.array->m_type == RAS_DisplayArray::TRIANGLE)
-			drawmode = GL_TRIANGLES;
-		else if(it.array->m_type == RAS_DisplayArray::QUAD)
-			drawmode = GL_QUADS;
-		else
-			drawmode = GL_LINES;
-
-		// colors
-		if (drawmode != GL_LINES && !wireframe) {
-			if (ms.m_bObjectColor) {
-				const MT_Vector4& rgba = ms.m_RGBAcolor;
-
-				glDisableClientState(GL_COLOR_ARRAY);
-				glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
-			}
-			else {
-				glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-				glEnableClientState(GL_COLOR_ARRAY);
-			}
-		}
-		else
-			glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-
-		glVertexPointer(3, GL_FLOAT, stride, it.vertex->getXYZ());
-		glNormalPointer(GL_FLOAT, stride, it.vertex->getNormal());
-		if(!wireframe) {
-			glTexCoordPointer(2, GL_FLOAT, stride, it.vertex->getUV1());
-			if(glIsEnabled(GL_COLOR_ARRAY))
-				glColorPointer(4, GL_UNSIGNED_BYTE, stride, it.vertex->getRGBA());
-		}
+		//if(m_Lock)
+		//	local->Begin(vertexarrays[vt]->size());
 
 		// here the actual drawing takes places
-		glDrawElements(drawmode, it.totindex, GL_UNSIGNED_SHORT, it.index);
+		glDrawElements(drawmode,numindices,GL_UNSIGNED_SHORT,&(indexarray[0]));
+
+		//if(m_Lock)
+		//	local->End();
 	}
 
-	if(!wireframe) {
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-	}
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
+void RAS_VAOpenGLRasterizer::IndexPrimitivesMulti( const vecVertexArray& vertexarrays,
+							const vecIndexArrays & indexarrays,
+							DrawMode mode,
+							bool useObjectColor,
+							const MT_Vector4& rgbacolor,
+							class KX_ListSlot** slot)
 {
-	static const GLsizei stride = sizeof(RAS_TexVert);
-	bool wireframe = m_drawingmode <= KX_WIREFRAME;
-	RAS_MeshSlot::iterator it;
+	static const GLsizei vtxstride = sizeof(RAS_TexVert);
+
 	GLenum drawmode;
+	if(mode == KX_MODE_TRIANGLES)
+		drawmode = GL_TRIANGLES;
+	else if(mode == KX_MODE_QUADS)
+		drawmode = GL_QUADS;
+	else
+		drawmode = GL_LINES;
 
-	if(!wireframe)
-		EnableTextures(true);
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices, vt;
 
-	// use glDrawElements to draw each vertexarray
-	for(ms.begin(it); !ms.end(it); ms.next(it)) {
-		if(it.totindex == 0)
-			continue;
-
-		// drawing mode
-		if(it.array->m_type == RAS_DisplayArray::TRIANGLE)
-			drawmode = GL_TRIANGLES;
-		else if(it.array->m_type == RAS_DisplayArray::QUAD)
-			drawmode = GL_QUADS;
-		else
-			drawmode = GL_LINES;
-
-		// colors
-		if (drawmode != GL_LINES && !wireframe) {
-			if (ms.m_bObjectColor) {
-				const MT_Vector4& rgba = ms.m_RGBAcolor;
-
-				glDisableClientState(GL_COLOR_ARRAY);
-				glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
-			}
-			else {
-				glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-				glEnableClientState(GL_COLOR_ARRAY);
-			}
+	if (drawmode != GL_LINES)
+	{
+		if (useObjectColor)
+		{
+			glDisableClientState(GL_COLOR_ARRAY);
+			glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
 		}
 		else
-			glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-
-		glVertexPointer(3, GL_FLOAT, stride, it.vertex->getXYZ());
-		glNormalPointer(GL_FLOAT, stride, it.vertex->getNormal());
-		if(!wireframe) {
-			TexCoordPtr(it.vertex);
-			if(glIsEnabled(GL_COLOR_ARRAY))
-				glColorPointer(4, GL_UNSIGNED_BYTE, stride, it.vertex->getRGBA());
+		{
+			glColor4d(0,0,0,1.0);
+			glEnableClientState(GL_COLOR_ARRAY);
 		}
-
-		// here the actual drawing takes places
-		glDrawElements(drawmode, it.totindex, GL_UNSIGNED_SHORT, it.index);
+	}
+	else
+	{
+		glColor3d(0,0,0);
 	}
 
-	if(!wireframe) {
-		glDisableClientState(GL_COLOR_ARRAY);
-		EnableTextures(false);
+	// use glDrawElements to draw each vertexarray
+	for (vt=0;vt<vertexarrays.size();vt++)
+	{
+		vertexarray = &((*vertexarrays[vt]) [0]);
+		const KX_IndexArray & indexarray = (*indexarrays[vt]);
+		numindices = indexarray.size();
+
+		if (!numindices)
+			continue;
+
+		glVertexPointer(3,GL_FLOAT,vtxstride,vertexarray->getLocalXYZ());
+		glNormalPointer(GL_FLOAT,vtxstride,vertexarray->getNormal());
+		TexCoordPtr(vertexarray);
+		if(glIsEnabled(GL_COLOR_ARRAY))
+			glColorPointer(4,GL_UNSIGNED_BYTE,vtxstride,vertexarray->getRGBA());
+
+		//if(m_Lock)
+		//	local->Begin(vertexarrays[vt]->size());
+
+		// here the actual drawing takes places
+		glDrawElements(drawmode,numindices,GL_UNSIGNED_SHORT,&(indexarray[0]));
+		
+		//if(m_Lock)
+		//	local->End();
 	}
 }
 
@@ -229,7 +248,7 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv)
 		for(unit=0; unit<m_texco_num; unit++)
 		{
 			glClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
-			if(tv->getFlag() & RAS_TexVert::SECOND_UV && (int)tv->getUnit() == unit) {
+			if(tv->getFlag() & TV_2NDUV && (int)tv->getUnit() == unit) {
 				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
 				continue;
@@ -238,7 +257,7 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv)
 			{
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
-				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getXYZ());
+				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getLocalXYZ());
 				break;
 			case RAS_TEXCO_UV1:
 				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV1());
@@ -265,7 +284,7 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv)
 			switch(m_attrib[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
-				glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getXYZ());
+				glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getLocalXYZ());
 				break;
 			case RAS_TEXCO_UV1:
 				glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV1());
@@ -293,6 +312,11 @@ void RAS_VAOpenGLRasterizer::EnableTextures(bool enable)
 {
 	TexCoGen *texco, *attrib;
 	int unit, texco_num, attrib_num;
+
+	/* disable previously enabled texture coordinates and attributes. ideally
+	 * this shouldn't be necessary .. */
+	if(enable)
+		EnableTextures(false);
 
 	/* we cache last texcoords and attribs to ensure we disable the ones that
 	 * were actually last set */

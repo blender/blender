@@ -17,17 +17,18 @@ subject to the following restrictions:
 #define CONVEX_HULL_SHAPE_H
 
 #include "btPolyhedralConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
-#include "LinearMath/btAlignedObjectArray.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../../LinearMath/btAlignedObjectArray.h"
 
-///The btConvexHullShape implements an implicit convex hull of an array of vertices.
-///Bullet provides a general and fast collision detector for convex shapes based on GJK and EPA using localGetSupportingVertex.
+///ConvexHullShape implements an implicit (getSupportingVertex) Convex Hull of a Point Cloud (vertices)
+///No connectivity is needed. localGetSupportingVertex iterates linearly though all vertices.
+///on modern hardware, due to cache coherency this isn't that bad. Complex algorithms tend to trash the cash.
+///(memory is much slower then the cpu)
 ATTRIBUTE_ALIGNED16(class) btConvexHullShape : public btPolyhedralConvexShape
 {
 	btAlignedObjectArray<btPoint3>	m_points;
 
 public:
-	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	
 	///this constructor optionally takes in a pointer to points. Each point is assumed to be 3 consecutive btScalar (x,y,z), the striding defines the number of bytes between each point, in memory.
@@ -42,12 +43,7 @@ public:
 		return &m_points[0];
 	}
 
-	const btPoint3* getPoints() const
-	{
-		return &m_points[0];
-	}
-
-	int getNumPoints() const 
+	int getNumPoints()
 	{
 		return m_points.size();
 	}
@@ -60,7 +56,7 @@ public:
 	virtual int	getShapeType()const { return CONVEX_HULL_SHAPE_PROXYTYPE; }
 
 	//debugging
-	virtual const char*	getName()const {return "Convex";}
+	virtual char*	getName()const {return "Convex";}
 
 	
 	virtual int	getNumVertices() const;

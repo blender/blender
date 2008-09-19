@@ -26,6 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 // don't show these anoying STL warnings
 #pragma warning (disable:4786)
@@ -35,53 +39,13 @@
 #include "RAS_MaterialBucket.h"
 #include "STR_HashedString.h"
 #include "RAS_MeshObject.h"
+#define KX_NUM_MATERIALBUCKETS 100
 #include "RAS_IRasterizer.h"
 #include "RAS_IRenderTools.h"
 
 #include "RAS_BucketManager.h"
 
-#include <algorithm>
 #include <set>
-
-/* sorting */
-
-struct RAS_BucketManager::sortedmeshslot
-{
-public:
-	MT_Scalar m_z;					/* depth */
-	RAS_MeshSlot *m_ms;				/* mesh slot */
-	RAS_MaterialBucket *m_bucket;	/* buck mesh slot came from */
-
-	sortedmeshslot() {}
-
-	void set(RAS_MeshSlot *ms, RAS_MaterialBucket *bucket, const MT_Vector3& pnorm)
-	{
-		// would be good to use the actual bounding box center instead
-		MT_Point3 pos(ms->m_OpenGLMatrix[12], ms->m_OpenGLMatrix[13], ms->m_OpenGLMatrix[14]);
-
-		m_z = MT_dot(pnorm, pos);
-		m_ms = ms;
-		m_bucket = bucket;
-	}
-};
-
-struct RAS_BucketManager::backtofront
-{
-	bool operator()(const sortedmeshslot &a, const sortedmeshslot &b)
-	{
-		return (a.m_z < b.m_z) || (a.m_z == b.m_z && a.m_ms < b.m_ms);
-	}
-};
-
-struct RAS_BucketManager::fronttoback
-{
-	bool operator()(const sortedmeshslot &a, const sortedmeshslot &b)
-	{
-		return (a.m_z > b.m_z) || (a.m_z == b.m_z && a.m_ms > b.m_ms);
-	}
-};
-
-/* bucket manager */
 
 RAS_BucketManager::RAS_BucketManager()
 {
@@ -90,179 +54,153 @@ RAS_BucketManager::RAS_BucketManager()
 
 RAS_BucketManager::~RAS_BucketManager()
 {
-	BucketList::iterator it;
-
-	for (it = m_SolidBuckets.begin(); it != m_SolidBuckets.end(); it++)
-		delete (*it);
-
-	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
-		delete(*it);
-	
-	m_SolidBuckets.clear();
-	m_AlphaBuckets.clear();
+		RAS_BucketManagerClearAll();
 }
 
-void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList& buckets, vector<sortedmeshslot>& slots, bool alpha)
+/**
+ * struct alphamesh holds a mesh, (m_ms) it's depth, (m_z) and the bucket it came from (m_bucket.)
+ */
+struct RAS_BucketManager::alphamesh
 {
-	BucketList::iterator bit;
-	list<RAS_MeshSlot>::iterator mit;
-	size_t size = 0, i = 0;
+public:
+	MT_Scalar m_z;
+	RAS_MaterialBucket::T_MeshSlotList::iterator m_ms;
+	RAS_MaterialBucket *m_bucket;
+	alphamesh(MT_Scalar z, RAS_MaterialBucket::T_MeshSlotList::iterator &ms, RAS_MaterialBucket *bucket) :
+		m_z(z),
+		m_ms(ms),
+		m_bucket(bucket)
+	{}
+};
 
-	/* Camera's near plane equation: pnorm.dot(point) + pval,
-	 * but we leave out pval since it's constant anyway */
-	const MT_Vector3 pnorm(cameratrans.getBasis()[2]);
-
-	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
-			if (!mit->IsCulled())
-				size++;
-
-	slots.resize(size);
-
-	for (bit = buckets.begin(); bit != buckets.end(); ++bit)
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
-			if (!mit->IsCulled())
-				slots[i++].set(&*mit, *bit, pnorm);
-		
-	if(alpha)
-		sort(slots.begin(), slots.end(), backtofront());
-	else
-		sort(slots.begin(), slots.end(), fronttoback());
-}
+struct RAS_BucketManager::backtofront
+{
+	bool operator()(const alphamesh &a, const alphamesh &b)
+	{
+		return a.m_z < b.m_z;
+	}
+};
+	
 
 void RAS_BucketManager::RenderAlphaBuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
-	vector<sortedmeshslot> slots;
-	vector<sortedmeshslot>::iterator sit;
-
-	// Having depth masks disabled/enabled gives different artifacts in
-	// case no sorting is done or is done inexact. For compatibility, we
-	// disable it.
-	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
-
-	OrderBuckets(cameratrans, m_AlphaBuckets, slots, true);
-	
-	for(sit=slots.begin(); sit!=slots.end(); ++sit) {
-		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
-
-		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
-			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
-	}
-
-	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
-}
-
-void RAS_BucketManager::RenderSolidBuckets(
-	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
-{
 	BucketList::iterator bit;
-	list<RAS_MeshSlot>::iterator mit;
-
-	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
-
-	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
-		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-			if (mit->IsCulled())
-				continue;
-
-			rendertools->SetClientObject(rasty, mit->m_clientObj);
-
-			while ((*bit)->ActivateMaterial(cameratrans, rasty, rendertools))
-				(*bit)->RenderMeshSlot(cameratrans, rasty, rendertools, *mit);
+	std::multiset<alphamesh, backtofront> alphameshset;
+	RAS_MaterialBucket::T_MeshSlotList::iterator mit;
+	
+	/* Camera's near plane equation: cam_norm.dot(point) + cam_origin */
+	const MT_Vector3 cam_norm(cameratrans.getBasis()[2]);
+	const MT_Scalar cam_origin = cameratrans.getOrigin()[2];
+	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit)
+	{
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit)
+		{
+			if ((*mit).m_bVisible)
+			{
+				MT_Point3 pos((*mit).m_OpenGLMatrix[12], (*mit).m_OpenGLMatrix[13], (*mit).m_OpenGLMatrix[14]);
+				alphameshset.insert(alphamesh(MT_dot(cam_norm, pos) + cam_origin, mit, *bit));
+			}
 		}
 	}
 	
-	/* this code draws meshes order front-to-back instead to reduce overdraw.
-	 * it turned out slower due to much material state switching, a more clever
-	 * algorithm might do better. */
-#if 0
-	vector<sortedmeshslot> slots;
-	vector<sortedmeshslot>::iterator sit;
+	// It shouldn't be strictly necessary to disable depth writes; but
+	// it is needed for compatibility.
+	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
 
-	OrderBuckets(cameratrans, m_SolidBuckets, slots, false);
-
-	for(sit=slots.begin(); sit!=slots.end(); ++sit) {
-		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
-
-		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
-			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
+	RAS_IRasterizer::DrawMode drawingmode;
+	std::multiset< alphamesh, backtofront>::iterator msit = alphameshset.begin();
+	for (; msit != alphameshset.end(); ++msit)
+	{
+		rendertools->SetClientObject((*(*msit).m_ms).m_clientObj);
+		while ((*msit).m_bucket->ActivateMaterial(cameratrans, rasty, rendertools, drawingmode))
+			(*msit).m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(*msit).m_ms, drawingmode);
 	}
-#endif
+	
+	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
 }
 
 void RAS_BucketManager::Renderbuckets(
 	const MT_Transform& cameratrans, RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools)
 {
-	/* beginning each frame, clear (texture/material) caching information */
+	BucketList::iterator bucket;
+	
+	rasty->EnableTextures(false);
+	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_ENABLED);
+	
+	// beginning each frame, clear (texture/material) caching information
 	rasty->ClearCachingInfo();
 
-	RenderSolidBuckets(cameratrans, rasty, rendertools);	
-	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
+	RAS_MaterialBucket::StartFrame();
+	
+	for (bucket = m_MaterialBuckets.begin(); bucket != m_MaterialBuckets.end(); ++bucket)
+		(*bucket)->Render(cameratrans,rasty,rendertools);
 
-	rendertools->SetClientObject(rasty, NULL);
+	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
+	RAS_MaterialBucket::EndFrame();
 }
 
 RAS_MaterialBucket* RAS_BucketManager::FindBucket(RAS_IPolyMaterial * material, bool &bucketCreated)
 {
-	BucketList::iterator it;
-
 	bucketCreated = false;
-
-	for (it = m_SolidBuckets.begin(); it != m_SolidBuckets.end(); it++)
+	BucketList::iterator it;
+	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
+	{
 		if (*(*it)->GetPolyMaterial() == *material)
 			return *it;
+	}
 	
 	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
+	{
 		if (*(*it)->GetPolyMaterial() == *material)
 			return *it;
+	}
 	
 	RAS_MaterialBucket *bucket = new RAS_MaterialBucket(material);
 	bucketCreated = true;
-
 	if (bucket->IsAlpha())
 		m_AlphaBuckets.push_back(bucket);
 	else
-		m_SolidBuckets.push_back(bucket);
+		m_MaterialBuckets.push_back(bucket);
 	
 	return bucket;
 }
 
-void RAS_BucketManager::OptimizeBuckets(MT_Scalar distance)
+void RAS_BucketManager::RAS_BucketManagerClearAll()
 {
-	BucketList::iterator bit;
+	BucketList::iterator it;
+	for (it = m_MaterialBuckets.begin(); it != m_MaterialBuckets.end(); it++)
+	{
+		delete (*it);
+	}
+	for (it = m_AlphaBuckets.begin(); it != m_AlphaBuckets.end(); it++)
+	{
+		delete(*it);
+	}
 	
-	distance = 10.0;
-
-	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit)
-		(*bit)->Optimize(distance);
-	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit)
-		(*bit)->Optimize(distance);
+	m_MaterialBuckets.clear();
+	m_AlphaBuckets.clear();
 }
 
-void RAS_BucketManager::ReleaseDisplayLists(RAS_IPolyMaterial *mat)
+void RAS_BucketManager::ReleaseDisplayLists()
 {
 	BucketList::iterator bit;
-	list<RAS_MeshSlot>::iterator mit;
+	RAS_MaterialBucket::T_MeshSlotList::iterator mit;
 
-	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
-		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
-			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-				if(mit->m_DisplayList) {
-					mit->m_DisplayList->Release();
-					mit->m_DisplayList = NULL;
-				}
+	for (bit = m_MaterialBuckets.begin(); bit != m_MaterialBuckets.end(); ++bit) {
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+			if(mit->m_DisplayList) {
+				mit->m_DisplayList->Release();
+				mit->m_DisplayList = NULL;
 			}
 		}
 	}
 	
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
-		if (mat == NULL || (mat == (*bit)->GetPolyMaterial())) {
-			for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
-				if(mit->m_DisplayList) {
-					mit->m_DisplayList->Release();
-					mit->m_DisplayList = NULL;
-				}
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+			if(mit->m_DisplayList) {
+				mit->m_DisplayList->Release();
+				mit->m_DisplayList = NULL;
 			}
 		}
 	}

@@ -99,7 +99,6 @@ class SCA_LogicManager
 	
 	vector<class SCA_ISensor*>			m_activatedsensors;
 	set<class SmartActuatorPtr>			m_activeActuators;
-	set<class SmartControllerPtr>		m_triggeredControllerSet;
 
 	map<SCA_ISensor*,controllerlist >	m_sensorcontrollermapje;
 
@@ -128,7 +127,6 @@ public:
 	void	EndFrame();
 	void	AddActivatedSensor(SCA_ISensor* sensor);
 	void	AddActiveActuator(SCA_IActuator* sensor,class CValue* event);
-	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
 	
 	void	RemoveGameObject(const STR_String& gameobjname);

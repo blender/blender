@@ -34,7 +34,6 @@
 //#include <iostream>
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
-#include "KX_PythonInit.h" /* for config load/saving */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -123,71 +122,6 @@ bool KX_GameActuator::Update()
 				STR_String exitstring = "quiting game";
 				m_ketsjiengine->RequestExit(KX_EXIT_REQUEST_QUIT_GAME);
 				m_scene->AddDebugProperty((this)->GetParent(), exitstring);
-			}
-			break;
-		}
-	case KX_GAME_SAVECFG:
-		{
-			if (m_ketsjiengine)
-			{
-				char mashal_path[512];
-				char *marshal_buffer = NULL;
-				int marshal_length;
-				FILE *fp = NULL;
-				
-				pathGamePythonConfig(mashal_path);
-				marshal_length = saveGamePythonConfig(&marshal_buffer);
-				
-				if (marshal_length && marshal_buffer) {
-					fp = fopen(mashal_path, "wb");
-					if (fp) {
-						if (fwrite(marshal_buffer, 1, marshal_length, fp) != marshal_length) {
-							printf("Warning: could not write marshal data\n");
-						}
-						fclose(fp);
-					} else {
-						printf("Warning: could not open marshal file\n");
-					}
-				} else {
-					printf("Warning: could not create marshal buffer\n");
-				}
-			}
-			break;
-		}
-	case KX_GAME_LOADCFG:
-		{
-			if (m_ketsjiengine)
-			{
-				char mashal_path[512];
-				char *marshal_buffer;
-				int marshal_length;
-				FILE *fp = NULL;
-				int result;
-				
-				pathGamePythonConfig(mashal_path);
-				
-				fp = fopen(mashal_path, "rb");
-				if (fp) {
-					// obtain file size:
-					fseek (fp , 0 , SEEK_END);
-					marshal_length = ftell(fp);
-					rewind(fp);
-					
-					marshal_buffer = (char*) malloc (sizeof(char)*marshal_length);
-					
-					result = fread (marshal_buffer, 1, marshal_length, fp);
-					
-					if (result == marshal_length) {
-						loadGamePythonConfig(marshal_buffer, marshal_length);
-					} else {
-						printf("warning: could not read all of '%s'\n", mashal_path);
-					}
-					
-					free(marshal_buffer);
-					fclose(fp);
-				} else {
-					printf("warning: could not open '%s'\n", mashal_path);
-				}
 			}
 			break;
 		}

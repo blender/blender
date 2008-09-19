@@ -220,13 +220,6 @@ def setPhysicsTicRate(ticrate):
 	@param ticrate: The new update frequency (in Hz).
 	@type ticrate: float
 	"""
-def getAverageFrameRate():
-	"""
-	Gets the estimated average framerate
-	
-	@return: The estimed average framerate in frames per second
-	@rtype: float
-	"""
 
 def expandPath(path):
 	"""

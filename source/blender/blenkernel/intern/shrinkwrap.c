@@ -113,23 +113,23 @@ void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float
 
 void space_transform_apply(const SpaceTransform *data, float *co)
 {
-	VecMat4MulVecfl(co, ((SpaceTransform*)data)->local2target, co);
+	VecMat4MulVecfl(co, data->local2target, co);
 }
 
 void space_transform_invert(const SpaceTransform *data, float *co)
 {
-	VecMat4MulVecfl(co, ((SpaceTransform*)data)->target2local, co);
+	VecMat4MulVecfl(co, data->target2local, co);
 }
 
 void space_transform_apply_normal(const SpaceTransform *data, float *no)
 {
-	Mat4Mul3Vecfl( ((SpaceTransform*)data)->local2target, no);
+	Mat4Mul3Vecfl(data->local2target, no);
 	Normalize(no); // TODO: could we just determine de scale value from the matrix?
 }
 
 void space_transform_invert_normal(const SpaceTransform *data, float *no)
 {
-	Mat4Mul3Vecfl(((SpaceTransform*)data)->target2local, no);
+	Mat4Mul3Vecfl(data->target2local, no);
 	Normalize(no); // TODO: could we just determine de scale value from the matrix?
 }
 
@@ -335,7 +335,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 		space_transform_apply_normal( transf, tmp_no );
 		no = tmp_no;
 
-		hit_tmp.dist *= Mat4ToScalef( ((SpaceTransform*)transf)->local2target );
+		hit_tmp.dist *= Mat4ToScalef( transf->local2target );
 	}
 	else
 	{
@@ -345,7 +345,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 
 	hit_tmp.index = -1;
 
-	BLI_bvhtree_ray_cast(tree, co, no, 0.0f, &hit_tmp, callback, userdata);
+	BLI_bvhtree_ray_cast(tree, co, no, &hit_tmp, callback, userdata);
 
 	if(hit_tmp.index != -1)
 	{
@@ -362,7 +362,7 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 			space_transform_invert( transf, hit_tmp.co );
 			space_transform_invert_normal( transf, hit_tmp.no );
 
-			hit_tmp.dist = VecLenf( (float*)vert, hit_tmp.co );
+			hit_tmp.dist = VecLenf( vert, hit_tmp.co );
 		}
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp) );

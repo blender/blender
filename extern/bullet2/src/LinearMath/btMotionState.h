@@ -18,7 +18,7 @@ subject to the following restrictions:
 
 #include "btTransform.h"
 
-///The btMotionState interface class allows the dynamics world to synchronize and interpolate the updated world transforms with graphics
+///btMotionState allows the dynamics world to synchronize the updated world transforms with graphics
 ///For optimizations, potentially only moving objects get synchronized (using setWorldPosition/setWorldOrientation)
 class	btMotionState
 {

@@ -16,25 +16,22 @@ subject to the following restrictions:
 #ifndef COMPOUND_COLLISION_ALGORITHM_H
 #define COMPOUND_COLLISION_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
-#include "BulletCollision/BroadphaseCollision/btDispatcher.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
+#include "../BroadphaseCollision/btCollisionAlgorithm.h"
+#include "../BroadphaseCollision/btDispatcher.h"
+#include "../BroadphaseCollision/btBroadphaseInterface.h"
 
-#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+#include "../NarrowPhaseCollision/btPersistentManifold.h"
 class btDispatcher;
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
 #include "btCollisionCreateFunc.h"
-#include "LinearMath/btAlignedObjectArray.h"
-class btDispatcher;
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 /// btCompoundCollisionAlgorithm  supports collision between CompoundCollisionShapes and other collision shapes
+/// Place holder, not fully implemented yet
 class btCompoundCollisionAlgorithm  : public btCollisionAlgorithm
 {
 	btAlignedObjectArray<btCollisionAlgorithm*> m_childCollisionAlgorithms;
 	bool m_isSwapped;
-
-	class btPersistentManifold*	m_sharedManifold;
-	bool					m_ownsManifold;
 	
 public:
 
@@ -46,22 +43,11 @@ public:
 
 	btScalar	calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual	void	getAllContactManifolds(btManifoldArray&	manifoldArray)
-	{
-		int i;
-		for (i=0;i<m_childCollisionAlgorithms.size();i++)
-		{
-			if (m_childCollisionAlgorithms[i])
-				m_childCollisionAlgorithms[i]->getAllContactManifolds(manifoldArray);
-		}
-	}
-
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCompoundCollisionAlgorithm));
-			return new(mem) btCompoundCollisionAlgorithm(ci,body0,body1,false);
+			return new btCompoundCollisionAlgorithm(ci,body0,body1,false);
 		}
 	};
 
@@ -69,8 +55,7 @@ public:
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btCompoundCollisionAlgorithm));
-			return new(mem) btCompoundCollisionAlgorithm(ci,body0,body1,true);
+			return new btCompoundCollisionAlgorithm(ci,body0,body1,true);
 		}
 	};
 

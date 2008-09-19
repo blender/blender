@@ -47,17 +47,13 @@
 #include "BKE_world.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
-#include "BKE_texture.h"
 #include "BLI_blenlib.h"
 #include "BSE_editipo.h"
-#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "mydevice.h"
 #include "Ipo.h"
-#include "MTex.h"
 #include "gen_utils.h"
 #include "gen_library.h"
-#include "MEM_guardedalloc.h"
 
 #define IPOKEY_ZENITH   0
 #define IPOKEY_HORIZON  1
@@ -103,8 +99,6 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * value );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
 static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
-static PyObject *World_getTextures( BPy_World * self );
-static int 		 World_setTextures( BPy_World * self, PyObject * value );
 static PyObject *World_copy( BPy_World * self );
 
 
@@ -256,9 +250,6 @@ static PyGetSetDef BPy_World_getseters[] = {
 	 "world mist settings", NULL},
 	{"ipo", (getter)World_getIpo, (setter)World_setIpo,
 	 "world ipo", NULL},
-    {"textures", (getter)World_getTextures, (setter)World_setTextures,
-     "The World's texture list as a tuple",
-     NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1037,98 +1028,4 @@ static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 	EXPP_allqueue(REDRAWNLA, 0);
 
 	Py_RETURN_NONE;
-}
-
-static PyObject *World_getTextures( BPy_World * self )
-{
-	int i;
-	PyObject *tuple;
-
-	/* build a texture list */
-	tuple = PyTuple_New( MAX_MTEX );
-	if( !tuple )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create PyTuple" );
-
-	for( i = 0; i < MAX_MTEX; ++i ) {
-		struct MTex *mtex = self->world->mtex[i];
-		if( mtex ) {
-			PyTuple_SET_ITEM( tuple, i, MTex_CreatePyObject( mtex, ID_WO ) );
-		} else {
-			Py_INCREF( Py_None );
-			PyTuple_SET_ITEM( tuple, i, Py_None );
-		}
-	}
-
-	return tuple;
-}
-
-static int World_setTextures( BPy_World * self, PyObject * value )
-{
-	int i;
-
-	if( !PyList_Check( value ) && !PyTuple_Check( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-						"expected tuple or list of integers" );
-
-	/* don't allow more than MAX_MTEX items */
-	if( PySequence_Size(value) > MAX_MTEX )
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-						"size of sequence greater than number of allowed textures" );
-
-	/* get a fast sequence; in Python 2.5, this just return the original
-	 * list or tuple and INCREFs it, so we must DECREF */
-	value = PySequence_Fast( value, "" );
-
-	/* check the list for valid entries */
-	for( i= 0; i < PySequence_Size(value) ; ++i ) {
-		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
-		if( item == Py_None || ( BPy_MTex_Check( item ) &&
-						((BPy_MTex *)item)->type == ID_WO ) ) {
-			continue;
-		} else {
-			Py_DECREF(value);
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected tuple or list containing world MTex objects and NONE" );
-		}
-	}
-
-	/* for each MTex object, copy to this structure */
-	for( i= 0; i < PySequence_Size(value) ; ++i ) {
-		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
-		struct MTex *mtex = self->world->mtex[i];
-		if( item != Py_None ) {
-			BPy_MTex *obj = (BPy_MTex *)item;
-
-			/* if MTex is already at this location, just skip it */
-			if( obj->mtex == mtex )	continue;
-
-			/* create a new entry if needed, otherwise update reference count
-			 * for texture that is being replaced */
-			if( !mtex )
-				mtex = self->world->mtex[i] = add_mtex(  );
-			else
-				mtex->tex->id.us--;
-
-			/* copy the data */
-			mtex->tex = obj->mtex->tex;
-			id_us_plus( &mtex->tex->id );
-			mtex->texco = obj->mtex->texco;
-			mtex->mapto = obj->mtex->mapto;
-		}
-	}
-
-	/* now go back and free any entries now marked as None */
-	for( i= 0; i < PySequence_Size(value) ; ++i ) {
-		PyObject *item = PySequence_Fast_GET_ITEM( value, i );
-		struct MTex *mtex = self->world->mtex[i];
-		if( item == Py_None && mtex ) {
-			mtex->tex->id.us--;
-			MEM_freeN( mtex );
-			self->world->mtex[i] = NULL;
-		} 
-	}
-
-	Py_DECREF(value);
-	return 0;
 }

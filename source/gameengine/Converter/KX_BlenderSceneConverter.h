@@ -45,7 +45,6 @@ class BL_Material;
 struct IpoCurve;
 struct Main;
 struct SpaceIpo;
-struct Scene;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
 {
@@ -152,7 +151,6 @@ public:
 	virtual void SetGLSLMaterials(bool val);
 	virtual bool GetGLSLMaterials();
 
-	struct Scene* GetBlenderSceneForName(const STR_String& name);
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

@@ -212,7 +212,6 @@ public:
 	MT_Matrix4x4 transposed() const; 
 	void         transpose();
 
-	MT_Matrix4x4 inverse() const;
 	void         invert();
   
 protected:

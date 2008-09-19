@@ -15,7 +15,7 @@ subject to the following restrictions:
 
 #include "btConvexConvexAlgorithm.h"
 
-//#include <stdio.h>
+#include <stdio.h>
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
@@ -33,6 +33,7 @@ subject to the following restrictions:
 
 
 
+#include "BulletCollision/CollisionShapes/btMinkowskiSumShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 
@@ -47,16 +48,26 @@ subject to the following restrictions:
 
 
 
-
+btConvexConvexAlgorithm::CreateFunc::CreateFunc()
+{
+	m_ownsSolvers = true;
+	m_simplexSolver = new btVoronoiSimplexSolver();
+	m_pdSolver = new btGjkEpaPenetrationDepthSolver;
+}
 
 btConvexConvexAlgorithm::CreateFunc::CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
 {
+	m_ownsSolvers = false;
 	m_simplexSolver = simplexSolver;
 	m_pdSolver = pdSolver;
 }
 
 btConvexConvexAlgorithm::CreateFunc::~CreateFunc() 
 { 
+   if (m_ownsSolvers){ 
+      delete m_simplexSolver; 
+      delete m_pdSolver; 
+   } 
 }
 
 btConvexConvexAlgorithm::btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
@@ -140,11 +151,6 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	
 	m_gjkPairDetector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 #endif
-
-	if (m_ownManifold)
-	{
-		resultOut->refreshContactPoints();
-	}
 
 }
 

@@ -58,11 +58,8 @@
 ** version 1.2.1 Specification.
 */
 
-#define BLENDER_CHANGES
-
-#ifdef BLENDER_CHANGES
+/* added this here for blender, should be moved elsewhere */
 #define GLEW_STATIC
-#endif
 
 #ifndef __glew_h__
 #define __glew_h__
@@ -1808,7 +1805,6 @@ typedef void (GLAPIENTRY * PFNGLVERTEXATTRIB4UIVPROC) (GLuint index, const GLuin
 typedef void (GLAPIENTRY * PFNGLVERTEXATTRIB4USVPROC) (GLuint index, const GLushort* v);
 typedef void (GLAPIENTRY * PFNGLVERTEXATTRIBPOINTERPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
 
-#ifndef BLENDER_CHANGES
 #define glAttachShader GLEW_GET_FUN(__glewAttachShader)
 #define glBindAttribLocation GLEW_GET_FUN(__glewBindAttribLocation)
 #define glBlendEquationSeparate GLEW_GET_FUN(__glewBlendEquationSeparate)
@@ -1902,7 +1898,6 @@ typedef void (GLAPIENTRY * PFNGLVERTEXATTRIBPOINTERPROC) (GLuint index, GLint si
 #define glVertexAttrib4uiv GLEW_GET_FUN(__glewVertexAttrib4uiv)
 #define glVertexAttrib4usv GLEW_GET_FUN(__glewVertexAttrib4usv)
 #define glVertexAttribPointer GLEW_GET_FUN(__glewVertexAttribPointer)
-#endif
 
 #define GLEW_VERSION_2_0 GLEW_GET_VAR(__GLEW_VERSION_2_0)
 

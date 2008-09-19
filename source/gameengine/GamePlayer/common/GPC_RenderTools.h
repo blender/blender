@@ -31,67 +31,114 @@
 #define __GPC_RENDERTOOLS_H
 
 #ifdef WIN32
-// don't show stl-warnings
-#pragma warning (disable:4786)
-#include <windows.h>
+	#include <windows.h>
 #endif // WIN32
+
+#include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"
 
 #include "BMF_Api.h"
 
 struct KX_ClientObjectInfo;
-class KX_RayCast;
 
-/* BlenderRenderTools are a set of tools to apply 2D/3D graphics effects, which
- * are not part of the (polygon) Rasterizer. Effects like 2D text, 3D (polygon)
- * text, lighting.
- *
- * Most of this code is duplicated in KX_BlenderRenderTools, so this should be
- * moved to some common location to avoid duplication. */
 
 class GPC_RenderTools : public RAS_IRenderTools
 {
-	int		m_lastlightlayer;
-	bool	m_lastlighting;
-	static unsigned int m_numgllights;
-
-	BMF_Font* m_font;
-
 public:
-						GPC_RenderTools();
-	virtual				~GPC_RenderTools();
+	GPC_RenderTools();
+	virtual ~GPC_RenderTools();
 
-	void				EndFrame(RAS_IRasterizer* rasty);
-	void				BeginFrame(RAS_IRasterizer* rasty);
+	virtual void EndFrame(RAS_IRasterizer* rasty);
+	virtual void BeginFrame(RAS_IRasterizer* rasty);
 
-	void				EnableOpenGLLights();
-	void				DisableOpenGLLights();
-	void				ProcessLighting(int layer, const MT_Transform& viewmat);
+	void DisableOpenGLLights()
+	{
+		glDisable(GL_LIGHTING);
+		glDisable(GL_COLOR_MATERIAL);
+	}
 
-	/* @attention mode is ignored here */
-	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
-									 const char* text,
-									 int xco,
-									 int yco,
-									 int width,
-									 int height);
-	void				RenderText(int mode,
-								   class RAS_IPolyMaterial* polymat,
-								   float v1[3],
-								   float v2[3],
-								   float v3[3],
-								   float v4[3],
-								   int glattrib);
+	void EnableOpenGLLights();
 
-	void				applyTransform(RAS_IRasterizer* rasty, double* oglmatrix, int objectdrawmode);
-	int					applyLights(int objectlayer, const MT_Transform& viewmat);
+	int ProcessLighting(int layer);
 
-	void				PushMatrix();
-	void				PopMatrix();
+	void Perspective(int a, int width, int height, float mat[4][4], float viewmat[4][4])
+	{
+		if(a== 0)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+		}
+		else
+		{
+			if(a== 1)
+			{
+				glMatrixMode(GL_PROJECTION);
+				glMatrixMode(GL_MODELVIEW);
+			}
+		}
+	}
 
-	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
-	bool NeedRayCast(KX_ClientObjectInfo* client) { return true; }
+	/**
+	 * @attention mode is ignored here
+	 */
+	virtual void RenderText2D(
+					RAS_TEXT_RENDER_MODE mode,
+					const char* text,
+					int xco,
+					int yco,
+					int width,
+					int height);
+
+	/**
+	 * Renders text into a (series of) polygon(s), using a texture font,
+	 * Each character consists of one polygon (one quad or two triangles)
+	 */
+	virtual void RenderText(
+					int mode,
+					RAS_IPolyMaterial* polymat,
+					float v1[3],
+					float v2[3],
+					float v3[3],
+					float v4[3]);
+
+	void Render(RAS_IRasterizer* rasty,double* oglmatrix,int objectdrawmode)
+	{
+		glPopMatrix();
+		glPushMatrix();
+		glMultMatrixd(oglmatrix);
+	}
+
+	void applyTransform(RAS_IRasterizer* rasty, double* oglmatrix, int objectdrawmode);
+
+	virtual void PushMatrix()
+	{
+		glPushMatrix();
+	}
+
+	virtual void PopMatrix()
+	{
+		glPopMatrix();
+	}
+
+	virtual class RAS_IPolyMaterial* CreateBlenderPolyMaterial(
+			const STR_String &texname,
+			bool ba,
+			const STR_String& matname,
+			int tile,
+			int tilexrep,int tileyrep,
+			int mode,
+			bool transparant,
+			bool zsort,
+			int lightlayer,
+			bool bIsTriangle,
+			void* clientobject,
+			void* tface);
+
+	int applyLights(int objectlayer);
+
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
 
 	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
 
@@ -99,7 +146,28 @@ public:
 
 	virtual	void Render2DFilters(RAS_ICanvas* canvas);
 
-	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
+	virtual void SetClientObject(void* obj);
+
+protected:
+	/** 
+	 * Copied from KX_BlenderGL.cpp in KX_blenderhook
+	 */
+	void BL_RenderText(
+		int mode,
+		const char* textstr,
+		int textlen,
+		struct MTFace* tface,
+		unsigned int* col,
+		float v1[3],float v2[3],float v3[3],float v4[3]);
+	void BL_spack(unsigned int ucol)
+	{
+		char *cp = (char *)&ucol;		
+		glColor3ub(cp[3], cp[2], cp[1]);
+	}
+
+
+	BMF_Font* m_font;
+	static unsigned int m_numgllights;
 };
 
 #endif  // __GPC_RENDERTOOLS_H

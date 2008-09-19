@@ -61,10 +61,6 @@
 
 #include "BIF_gl.h"
 
-#include "GPU_draw.h"
-#include "GPU_extensions.h"
-#include "GPU_material.h"
-
 #include "CCGSubSurf.h"
 
 typedef struct _VertData {
@@ -700,7 +696,6 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	for(index = 0; index < totedge; index++) {
 		CCGEdge *e = edgeMap2[index];
 		unsigned int flags = 0;
-		char bweight = 0;
 		int edgeIdx = GET_INT_FROM_POINTER(ccgSubSurf_getEdgeEdgeHandle(ss, e));
 
 		if(!ccgSubSurf_getEdgeNumFaces(ss, e)) flags |= ME_LOOSEEDGE;
@@ -711,14 +706,12 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 			dm->getEdge(dm, edgeIdx, &origMed);
 
 			flags |= origMed.flag;
-			bweight = origMed.bweight;
 		}
 
 		for(x = 0; x < edgeSize - 1; x++) {
 			med->v1 = getEdgeIndex(ss, e, x, edgeSize);
 			med->v2 = getEdgeIndex(ss, e, x + 1, edgeSize);
 			med->flag = flags;
-			med->bweight = bweight;
 			*origIndex = ccgDM_getEdgeMapIndex(NULL, ss, e);
 			++med;
 			++origIndex;
@@ -980,7 +973,7 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 
 	memset(mv, 0, sizeof(*mv));
 
-	if((vertNum < ccgdm->edgeMap[0].startVert) && (ccgSubSurf_getNumFaces(ss) > 0)) {
+	if(vertNum < ccgdm->edgeMap[0].startVert) {
 		/* this vert comes from face data */
 		int lastface = ccgSubSurf_getNumFaces(ss) - 1;
 		CCGFace *f;
@@ -1021,7 +1014,7 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 			x = offset % gridSideVerts + 1;
 			VecCopyf(mv->co, ccgSubSurf_getFaceGridData(ss, f, grid, x, y));
 		}
-	} else if((vertNum < ccgdm->vertMap[0].startVert) && (ccgSubSurf_getNumEdges(ss) > 0)) {
+	} else if(vertNum < ccgdm->vertMap[0].startVert) {
 		/* this vert comes from edge data */
 		CCGEdge *e;
 		int lastedge = ccgSubSurf_getNumEdges(ss) - 1;
@@ -1606,7 +1599,7 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 }
 
 	/* Only used by non-editmesh types */
-static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *attribs)) {
+static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int)) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
@@ -1628,7 +1621,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *
 			mat_nr= 0;
 		}
 		
-		if (!setMaterial(mat_nr+1, NULL))
+		if (!setMaterial(mat_nr+1))
 			continue;
 
 		glShadeModel(drawSmooth? GL_SMOOTH: GL_FLAT);
@@ -1673,168 +1666,6 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *
 
 	ccgFaceIterator_free(fi);
 }
-
-	/* Only used by non-editmesh types */
-static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-	CCGSubSurf *ss = ccgdm->ss;
-	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
-	GPUVertexAttribs gattribs;
-	DMVertexAttribs attribs;
-	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
-	int gridSize = ccgSubSurf_getGridSize(ss);
-	int gridFaces = gridSize - 1;
-	int edgeSize = ccgSubSurf_getEdgeSize(ss);
-	int transp, orig_transp, new_transp;
-	char *faceFlags = DM_get_face_data_layer(dm, CD_FLAGS);
-	int a, b, i, doDraw, numVerts, matnr, new_matnr, totface;
-
-	doDraw = 0;
-	numVerts = 0;
-	matnr = -1;
-	transp = GPU_get_material_blend_mode();
-	orig_transp = transp;
-
-	memset(&attribs, 0, sizeof(attribs));
-
-#define PASSATTRIB(dx, dy, vert) {												\
-	if(attribs.totorco) {														\
-		index = getFaceIndex(ss, f, S, x+dx, y+dy, edgeSize, gridSize); 		\
-		glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);	\
-	}																			\
-	for(b = 0; b < attribs.tottface; b++) {										\
-		MTFace *tf = &attribs.tface[b].array[a];								\
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
-	}																			\
-	for(b = 0; b < attribs.totmcol; b++) {										\
-		MCol *cp = &attribs.mcol[b].array[a*4 + vert];							\
-		GLubyte col[4];															\
-		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
-	}																			\
-	if(attribs.tottang) {														\
-		float *tang = attribs.tang.array[a*4 + vert];							\
-		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
-	}																			\
-}
-
-	totface = ccgSubSurf_getNumFaces(ss);
-	for(a = 0, i = 0; i < totface; i++) {
-		CCGFace *f = ccgdm->faceMap[i].face;
-		int S, x, y, drawSmooth;
-		int index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(ss, f));
-		int origIndex = ccgDM_getFaceMapIndex(ccgdm, ss, f);
-		
-		numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
-
-		if(faceFlags) {
-			drawSmooth = (faceFlags[index*4] & ME_SMOOTH);
-			new_matnr= faceFlags[index*4 + 1] + 1;
-		}
-		else {
-			drawSmooth = 1;
-			new_matnr= 1;
-		}
-
-		if(new_matnr != matnr) {
-			doDraw = setMaterial(matnr = new_matnr, &gattribs);
-			if(doDraw)
-				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
-		}
-
-		if(!doDraw || (setDrawOptions && !setDrawOptions(userData, origIndex))) {
-			a += gridFaces*gridFaces*numVerts;
-			continue;
-		}
-
-		if(tf) {
-			new_transp = tf[i].transp;
-
-			if(new_transp != transp) {
-				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-					GPU_set_material_blend_mode(orig_transp);
-				else
-					GPU_set_material_blend_mode(new_transp);
-				transp = new_transp;
-			}
-		}
-
-		glShadeModel(drawSmooth? GL_SMOOTH: GL_FLAT);
-		for (S=0; S<numVerts; S++) {
-			VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
-			VertData *vda, *vdb;
-
-			if (drawSmooth) {
-				for (y=0; y<gridFaces; y++) {
-					glBegin(GL_QUAD_STRIP);
-					for (x=0; x<gridFaces; x++) {
-						vda = &faceGridData[(y+0)*gridSize + x];
-						vdb = &faceGridData[(y+1)*gridSize + x];
-						
-						PASSATTRIB(0, 0, 0);
-						glNormal3fv(vda->no);
-						glVertex3fv(vda->co);
-
-						PASSATTRIB(0, 1, 1);
-						glNormal3fv(vdb->no);
-						glVertex3fv(vdb->co);
-
-						if(x != gridFaces-1)
-							a++;
-					}
-
-					vda = &faceGridData[(y+0)*gridSize + x];
-					vdb = &faceGridData[(y+1)*gridSize + x];
-
-					PASSATTRIB(0, 0, 3);
-					glNormal3fv(vda->no);
-					glVertex3fv(vda->co);
-
-					PASSATTRIB(0, 1, 2);
-					glNormal3fv(vdb->no);
-					glVertex3fv(vdb->co);
-
-					glEnd();
-
-					a++;
-				}
-			} else {
-				glBegin(GL_QUADS);
-				for (y=0; y<gridFaces; y++) {
-					for (x=0; x<gridFaces; x++) {
-						float *aco = faceGridData[(y+0)*gridSize + x].co;
-						float *bco = faceGridData[(y+0)*gridSize + x + 1].co;
-						float *cco = faceGridData[(y+1)*gridSize + x + 1].co;
-						float *dco = faceGridData[(y+1)*gridSize + x].co;
-
-						ccgDM_glNormalFast(aco, bco, cco, dco);
-
-						PASSATTRIB(0, 1, 1);
-						glVertex3fv(dco);
-						PASSATTRIB(1, 1, 2);
-						glVertex3fv(cco);
-						PASSATTRIB(1, 0, 3);
-						glVertex3fv(bco);
-						PASSATTRIB(0, 0, 0);
-						glVertex3fv(aco);
-						
-						a++;
-					}
-				}
-				glEnd();
-			}
-		}
-	}
-
-#undef PASSATTRIB
-
-	ccgFaceIterator_free(fi);
-}
-
-static void ccgDM_drawFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs)) {
-	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
-}
-
 static void ccgDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -2312,10 +2143,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.drawFacesSolid = ccgDM_drawFacesSolid;
 	ccgdm->dm.drawFacesColored = ccgDM_drawFacesColored;
 	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;
-	ccgdm->dm.drawFacesGLSL = ccgDM_drawFacesGLSL;
 	ccgdm->dm.drawMappedFaces = ccgDM_drawMappedFaces;
 	ccgdm->dm.drawMappedFacesTex = ccgDM_drawMappedFacesTex;
-	ccgdm->dm.drawMappedFacesGLSL = ccgDM_drawMappedFacesGLSL;
 	ccgdm->dm.drawUVEdges = ccgDM_drawUVEdges;
 
 	ccgdm->dm.drawMappedEdgesInterp = ccgDM_drawMappedEdgesInterp;

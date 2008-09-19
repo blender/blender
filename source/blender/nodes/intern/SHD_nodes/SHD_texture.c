@@ -27,8 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_texture_types.h"
-
 #include "../SHD_util.h"
 
 /* **************** TEXTURE ******************** */
@@ -112,18 +110,6 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 	}
 }
 
-static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	Tex *tex = (Tex*)node->id;
-
-	if(tex && tex->type == TEX_IMAGE && tex->ima) {
-		GPUNodeLink *texlink = GPU_image(tex->ima, NULL);
-		return GPU_stack_link(mat, "texture_image", in, out, texlink);
-	}
-	else
-		return 0;
-}
-
 bNodeType sh_node_texture= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_TEXTURE,
@@ -138,8 +124,7 @@ bNodeType sh_node_texture= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_texture
+	/* id          */	NULL
 	
 };
 

@@ -54,7 +54,6 @@ extern "C" {
 /* The __intXX are built-in types of the visual complier! So we don't
  * need to include anything else here. */
 
-
 typedef signed __int8  int8_t;
 typedef signed __int16 int16_t;
 typedef signed __int32 int32_t;
@@ -102,7 +101,6 @@ typedef unsigned long uintptr_t;
 #include <sys/types.h>
 
 #endif /* ifdef platform for types */
-
 
 #ifdef _WIN32
 #ifndef htonl

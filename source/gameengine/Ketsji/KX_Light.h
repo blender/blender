@@ -33,7 +33,6 @@
 #include "KX_GameObject.h"
 
 struct GPULamp;
-struct Scene;
 class KX_Camera;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
@@ -45,18 +44,16 @@ class KX_LightObject : public KX_GameObject
 protected:
 	RAS_LightObject		m_lightobj;
 	class RAS_IRenderTools*	m_rendertools;	//needed for registering and replication of lightobj
-	bool				m_glsl;
-	Scene*				m_blenderscene;
-	static char			doc[];
+	struct GPULamp		*m_gpulamp;
+	static char		doc[];
 
 public:
-	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl, PyTypeObject *T = &Type);
+	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, struct GPULamp *gpulamp, PyTypeObject *T = &Type);
 	virtual ~KX_LightObject();
 	virtual CValue*		GetReplica();
 	RAS_LightObject*	GetLightData() { return &m_lightobj;}
 
 	/* GLSL shadow */
-	struct GPULamp *GetGPULamp();
 	bool HasShadowBuffer();
 	int GetShadowLayer();
 	void BindShadowBuffer(class RAS_IRasterizer *ras, class KX_Camera *cam, class MT_Transform& camtrans);
@@ -65,8 +62,6 @@ public:
 	
 	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
 	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);
-
-	virtual bool IsLight(void) { return true; }
 };
 
 #endif //__KX_LIGHT

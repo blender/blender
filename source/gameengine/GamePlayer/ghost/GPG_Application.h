@@ -50,19 +50,17 @@ class GPG_Canvas;
 class GPG_KeyboardDevice;
 class GPG_System;
 struct Main;
-struct Scene;
 
 class GPG_Application : public GHOST_IEventConsumer
 {
 public:
-	GPG_Application(GHOST_ISystem* system);
+	GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie, struct Scene* scene);
+			bool SetGameEngineData(struct Main* maggie,STR_String startSceneName);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
-			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode);
 #ifdef WIN32
 			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
 			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode);
@@ -125,7 +123,6 @@ protected:
 
 	/* The game data */
 	STR_String				m_startSceneName;
-	struct Scene*			m_startScene;
 	struct Main*			m_maggie;
 
 	/* Exit state. */
@@ -144,8 +141,6 @@ protected:
 	bool m_engineInitialized;
 	/** Engine state. */
 	bool m_engineRunning;
-	/** Running on embedded window */
-	bool m_isEmbedded;
 
 	/** the gameengine itself */
 	KX_KetsjiEngine* m_ketsjiengine;

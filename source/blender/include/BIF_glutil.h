@@ -204,7 +204,6 @@ void bglVertex2fv(float *vec);
 /* intel gfx cards frontbuffer problem */
 void bglFlush(void);
 int is_a_really_crappy_intel_card(void);
-int is_a_really_crappy_nvidia_card(void);
 void set_inverted_drawing(int enable);
 
 

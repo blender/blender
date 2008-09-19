@@ -275,12 +275,6 @@ void sound_initialize_sounds(void)
 	bSound *sound;
 
 	if(ghSoundScene) {
-		for(sound=G.main->sound.first; sound; sound=sound->id.next) {
-			if(sound->snd_sound) {
-				SND_RemoveSound(ghSoundScene, sound->snd_sound);
-				sound->snd_sound = NULL;
-			}
-		}
 
 		/* clear the soundscene */
 		SND_RemoveAllSounds(ghSoundScene);
@@ -914,16 +908,7 @@ void sound_stop_all_sounds(void)
 void sound_end_all_sounds(void)
 {
 #if GAMEBLENDER == 1
-	bSound *sound;
-
 	if(ghSoundScene) {
-		for(sound=G.main->sound.first; sound; sound=sound->id.next) {
-			if(sound->snd_sound) {
-				SND_RemoveSound(ghSoundScene, sound->snd_sound);
-				sound->snd_sound = NULL;
-			}
-		}
-
 		sound_stop_all_sounds();
 		SND_RemoveAllSounds(ghSoundScene);
 	}

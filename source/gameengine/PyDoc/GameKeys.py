@@ -164,12 +164,3 @@ Example::
 				# Activate Right!
 		
 """
-
-def EventToString(event):
-	"""
-	Return the string name of a key event. Will raise a ValueError error if its invalid.
-	
-	@type event: int
-	@param event: key event from GameKeys or the keyboard sensor.
-	@rtype: string
-	"""

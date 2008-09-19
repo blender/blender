@@ -35,8 +35,6 @@
 #include <math.h>
 #include "KX_GameObject.h"
 
-#include "PyObjectPlus.h" 
-
 STR_String KX_CameraActuator::X_AXIS_STRING = "x";
 STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
 

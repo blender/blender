@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef POINT2POINTCONSTRAINT_H
 #define POINT2POINTCONSTRAINT_H
 
-#include "LinearMath/btVector3.h"
+#include "../../LinearMath/btVector3.h"
 #include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
@@ -26,21 +26,16 @@ struct	btConstraintSetting
 {
 	btConstraintSetting()	:
 		m_tau(btScalar(0.3)),
-		m_damping(btScalar(1.)),
-		m_impulseClamp(btScalar(0.))
+		m_damping(btScalar(1.))
 	{
 	}
 	btScalar		m_tau;
 	btScalar		m_damping;
-	btScalar		m_impulseClamp;
 };
 
 /// point to point constraint between two rigidbodies each with a pivotpoint that descibes the 'ballsocket' location in local space
 class btPoint2PointConstraint : public btTypedConstraint
 {
-#ifdef IN_PARALLELL_SOLVER
-public:
-#endif
 	btJacobianEntry	m_jac[3]; //3 orthogonal linear constraints
 	
 	btVector3	m_pivotInA;
@@ -75,15 +70,6 @@ public:
 		m_pivotInB = pivotB;
 	}
 
-	const btVector3& getPivotInA() const
-	{
-		return m_pivotInA;
-	}
-
-	const btVector3& getPivotInB() const
-	{
-		return m_pivotInB;
-	}
 
 
 };

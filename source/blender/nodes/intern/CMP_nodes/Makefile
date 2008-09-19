@@ -42,5 +42,4 @@ CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../include
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../render/extern/include
-CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)

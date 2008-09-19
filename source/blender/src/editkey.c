@@ -70,7 +70,6 @@
 
 #include "BIF_editkey.h"
 #include "BIF_editview.h"
-#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -171,9 +170,9 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 
 	/* ipo on action or ob? */
 	if(ob->ipoflag & OB_ACTION_KEY)
-		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, NULL, keynum, 1);
+		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, NULL, keynum);
 	else 
-		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, NULL, keynum, 1);
+		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, NULL, keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier

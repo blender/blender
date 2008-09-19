@@ -525,7 +525,6 @@ typedef struct UndoElem {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	char name[MAXUNDONAME];
 	MemFile memfile;
-	uintptr_t undosize;
 } UndoElem;
 
 static ListBase undobase={NULL, NULL};
@@ -556,7 +555,6 @@ static int read_undosave(UndoElem *uel)
 /* name can be a dynamic string */
 void BKE_write_undo(char *name)
 {
-	uintptr_t maxmem, totmem, memused;
 	int nr, success;
 	UndoElem *uel;
 	
@@ -618,36 +616,8 @@ void BKE_write_undo(char *name)
 		
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
-		memused= MEM_get_memory_in_use();
 		success= BLO_write_file_mem(prevfile, &curundo->memfile, G.fileflags, &err);
-		curundo->undosize= MEM_get_memory_in_use() - memused;
-	}
-
-	if(U.undomemory != 0) {
-		/* limit to maximum memory (afterwards, we can't know in advance) */
-		totmem= 0;
-		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
-
-		/* keep at least two (original + other) */
-		uel= undobase.last;
-		while(uel && uel->prev) {
-			totmem+= uel->undosize;
-			if(totmem>maxmem) break;
-			uel= uel->prev;
-		}
-
-		if(uel) {
-			if(uel->prev && uel->prev->prev)
-				uel= uel->prev;
-
-			while(undobase.first!=uel) {
-				UndoElem *first= undobase.first;
-				BLI_remlink(&undobase, first);
-				/* the merge is because of compression */
-				BLO_merge_memfile(&first->memfile, &first->next->memfile);
-				MEM_freeN(first);
-			}
-		}
+		
 	}
 }
 
@@ -713,14 +683,14 @@ char *BKE_undo_menu_string(void)
 	UndoElem *uel;
 	DynStr *ds= BLI_dynstr_new();
 	char *menu;
-
+	
 	BLI_dynstr_append(ds, "Global Undo History %t");
 	
 	for(uel= undobase.first; uel; uel= uel->next) {
 		BLI_dynstr_append(ds, "|");
 		BLI_dynstr_append(ds, uel->name);
 	}
-
+	
 	menu= BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 

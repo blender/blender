@@ -392,15 +392,7 @@ int texchannel_to_adrcode(int channel)
 		case 6: return MA_MAP7; 
 		case 7: return MA_MAP8; 
 		case 8: return MA_MAP9; 
-		case 9: return MA_MAP10;
-		case 10: return MA_MAP11;
-		case 11: return MA_MAP12;
-		case 12: return MA_MAP13;
-		case 13: return MA_MAP14;
-		case 14: return MA_MAP15;
-		case 15: return MA_MAP16;
-		case 16: return MA_MAP17;
-		case 17: return MA_MAP18;
+		case 9: return MA_MAP10; 
 		default: return 0;
 	}
 }

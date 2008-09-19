@@ -19,11 +19,10 @@ subject to the following restrictions:
 
 
 btStaticPlaneShape::btStaticPlaneShape(const btVector3& planeNormal,btScalar planeConstant)
-:m_planeNormal(planeNormal.normalized()),
+:m_planeNormal(planeNormal),
 m_planeConstant(planeConstant),
 m_localScaling(btScalar(0.),btScalar(0.),btScalar(0.))
 {
-	//	btAssert( btFuzzyZero(m_planeNormal.length() - btScalar(1.)) );
 }
 
 
@@ -87,7 +86,7 @@ void	btStaticPlaneShape::processAllTriangles(btTriangleCallback* callback,const 
 
 }
 
-void	btStaticPlaneShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
+void	btStaticPlaneShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
 	(void)mass;
 

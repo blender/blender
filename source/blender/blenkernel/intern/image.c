@@ -53,7 +53,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
@@ -78,14 +77,14 @@
 
 #include "RE_pipeline.h"
 
+/* bad level; call to free_realtime_image */
+#include "BKE_bad_level_calls.h"	
+
 /* for stamp drawing to an image */
 #include "BMF_Api.h"
 
 #include "blendef.h"
 #include "BSE_time.h"
-
-#include "GPU_extensions.h"
-#include "GPU_draw.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -241,7 +240,7 @@ static void image_free_buffers(Image *ima)
 		ima->rr= NULL;
 	}	
 	
-	GPU_free_image(ima);
+	free_realtime_image(ima);
 	
 	ima->ok= IMA_OK;
 }
@@ -621,7 +620,7 @@ void free_old_images()
 			   This gives textures a "second chance" to be used before dying.
 			*/
 			if(ima->bindcode || ima->repbind) {
-				GPU_free_image(ima);
+				free_realtime_image(ima);
 				ima->lastused = ctime;
 			}
 			/* Otherwise, just kill the buffers */

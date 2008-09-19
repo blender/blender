@@ -33,7 +33,7 @@
 #include "DNA_ID.h"
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	18
+#define MAX_MTEX	10
 #endif
 
 struct MTex;
@@ -58,7 +58,7 @@ typedef struct Brush {
 	float alpha;				/* opacity */
 
 	short texact, pad;
-	struct MTex *mtex[18];		/* MAX_MTEX */
+	struct MTex *mtex[10];
 
 	struct BrushClone clone;
 } Brush;

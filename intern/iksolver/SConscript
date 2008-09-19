@@ -5,5 +5,4 @@ sources = env.Glob('intern/*.cpp')
 
 incs = 'intern ../moto/include ../memutil'
 
-env.BlenderLib ('bf_IK', sources, Split(incs), [], libtype=['intern','player'], priority=[20,100] )
-
+env.BlenderLib ('blender_IK', sources, Split(incs), [], libtype='blender', priority=10 )

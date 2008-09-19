@@ -27,6 +27,7 @@ public:
 
 	btVector3	m_vertices1[3];
 
+
 	virtual int getNumVertices() const
 	{
 		return 3;
@@ -83,13 +84,14 @@ public:
 
 
 
-    btTriangleShape(const btVector3& p0,const btVector3& p1,const btVector3& p2)
-    {
-        m_vertices1[0] = p0;
-        m_vertices1[1] = p1;
-        m_vertices1[2] = p2;
-    }
+	btTriangleShape(const btVector3& p0,const btVector3& p1,const btVector3& p2)
+	{
+		m_vertices1[0] = p0;
+		m_vertices1[1] = p1;
+		m_vertices1[2] = p2;
+	}
 
+	
 
 	virtual void getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i) const
 	{
@@ -114,7 +116,7 @@ public:
 		planeSupport = m_vertices1[0];
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
 	{
 		(void)mass;
 		btAssert(0);
@@ -153,7 +155,7 @@ public:
 		return false;
 	}
 		//debugging
-		virtual const char*	getName()const
+		virtual char*	getName()const
 		{
 			return "Triangle";
 		}

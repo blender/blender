@@ -17,10 +17,10 @@ subject to the following restrictions:
 #define CYLINDER_MINKOWSKI_H
 
 #include "btBoxShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
-#include "LinearMath/btVector3.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../../LinearMath/btVector3.h"
 
-/// The btCylinderShape class implements a cylinder shape primitive, centered around the origin. Its central axis aligned with the Y axis. btCylinderShapeX is aligned with the X axis and btCylinderShapeZ around the Z axis.
+/// implements cylinder shape interface
 class btCylinderShape : public btBoxShape
 
 {
@@ -60,7 +60,7 @@ public:
 
 
 	//use box inertia
-	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
+	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 	virtual int	getShapeType() const
 	{
@@ -74,11 +74,11 @@ public:
 
 	virtual btScalar getRadius() const
 	{
-		return getHalfExtentsWithMargin().getX();
+		return getHalfExtents().getX();
 	}
 
 	//debugging
-	virtual const char*	getName()const
+	virtual char*	getName()const
 	{
 		return "CylinderY";
 	}
@@ -96,14 +96,14 @@ public:
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
 		//debugging
-	virtual const char*	getName()const
+	virtual char*	getName()const
 	{
 		return "CylinderX";
 	}
 
 	virtual btScalar getRadius() const
 	{
-		return getHalfExtentsWithMargin().getY();
+		return getHalfExtents().getY();
 	}
 
 };
@@ -121,14 +121,14 @@ public:
 		return 2;
 	}
 		//debugging
-	virtual const char*	getName()const
+	virtual char*	getName()const
 	{
 		return "CylinderZ";
 	}
 
 	virtual btScalar getRadius() const
 	{
-		return getHalfExtentsWithMargin().getX();
+		return getHalfExtents().getX();
 	}
 
 };

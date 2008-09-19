@@ -124,8 +124,6 @@ private:
 	bool			m_overrideCamUseOrtho;
 	MT_CmMatrix4x4	m_overrideCamProjMat;
 	MT_CmMatrix4x4	m_overrideCamViewMat;
-	float			m_overrideCamNear;
-	float			m_overrideCamFar;
 
 	bool m_stereo;
 	int m_curreye;
@@ -151,8 +149,6 @@ private:
 	
 	/** Labels for profiling display. */
 	static const char		m_profileLabels[tc_numCategories][15];
-	/** Last estimated framerate */
-	static double			m_average_framerate;
 	/** Show the framerate on the game display? */
 	bool					m_show_framerate;
 	/** Show profiling info on the game display? */
@@ -179,7 +175,7 @@ private:
 	/** Blue component of framing bar color. */
 	float					m_overrideFrameColorB;
 
-	void					SetupViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport);
+	void					SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
 	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
 	void					PostRenderFrame();
 	void					RenderDebugProperties();
@@ -238,7 +234,6 @@ public:
 	void SetCameraOverrideUseOrtho(bool useOrtho);
 	void SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat);
 	void SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat);
-	void SetCameraOverrideClipping(float near, float far);
 	
 	/**
 	 * Sets display of all frames.
@@ -275,11 +270,6 @@ public:
 	 * Sets the framerate for playing animations. (actions and ipos)
 	 */
 	static void SetAnimFrameRate(double framerate);
-
-	/**
-	 * Gets the last estimated average framerate
-	 */
-	static double GetAverageFrameRate();
 
 	/**
 	 * Activates or deactivates timing information display.
@@ -358,7 +348,6 @@ protected:
 	KX_Scene*		CreateScene(const STR_String& scenename);
 	
 	bool			BeginFrame();
-	void			ClearFrame();
 	void			EndFrame();
 };
 

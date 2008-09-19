@@ -50,6 +50,8 @@
 
 #endif
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #include <limits.h>
 
 #include "BLI_blenlib.h"
@@ -99,8 +101,6 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-
-#include "GPU_draw.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -676,7 +676,7 @@ static void open_renderwin(int winpos[2], int winsize[2], int imagesize[2])
 	/* mywindow has to know about it too */
 	mywindow_build_and_set_renderwin(winpos[0], winpos[1], winsize[0], winsize[1]+RW_HEADERY);
 	/* and we should be able to draw 3d in it */
-	GPU_state_init();
+	init_gl_stuff();
 	
 	renderwin_draw(render_win, 1);
 	renderwin_draw(render_win, 1);
@@ -903,13 +903,10 @@ static void renderwin_progress_display_cb(RenderResult *rr, volatile rcti *rect)
 void make_renderinfo_string(RenderStats *rs, char *str)
 {
 	extern char info_time_str[32];	// header_info.c
-	uintptr_t mem_in_use, mmap_in_use;
+	extern uintptr_t mem_in_use, mmap_in_use;
 	float megs_used_memory, mmap_used_memory;
 	char *spos= str;
 	
-	mem_in_use= MEM_get_memory_in_use();
-	mmap_in_use= MEM_get_mapped_memory_in_use();
-
 	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
 	
@@ -1307,10 +1304,10 @@ void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
 	if(v3d->persp==V3D_CAMOB && v3d->camera) {
 		/* in camera view, use actual render winmat */
 		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
-		drawview3d_render(v3d, NULL, winx, winy, winmat, 0);
+		drawview3d_render(v3d, winx, winy, winmat);
 	}
 	else
-		drawview3d_render(v3d, NULL, winx, winy, NULL, 0);
+		drawview3d_render(v3d, winx, winy, NULL);
 }
 
 /* set up display, render the current area view in an image */
@@ -1339,7 +1336,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	if(render_win)
 		render_win->flags &= ~RW_FLAGS_ESCAPE;
 
-	GPU_state_init();
+	init_gl_stuff();
 	
 	waitcursor(1);
 

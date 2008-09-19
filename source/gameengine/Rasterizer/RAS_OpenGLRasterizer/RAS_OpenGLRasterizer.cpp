@@ -38,9 +38,6 @@
 #include "MT_CmMatrix4x4.h"
 #include "RAS_IRenderTools.h" // rendering text
 
-#include "GPU_draw.h"
-#include "GPU_material.h"
-
 /**
  *  32x32 bit masks for vinterlace stereo mode
  */
@@ -70,12 +67,10 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_motionblurvalue(-1.0),
 	m_texco_num(0),
 	m_attrib_num(0),
-	m_last_blendmode(GPU_BLEND_SOLID),
-	m_last_frontface(true),
+	m_last_blendmode(0),
 	m_materialCachingInfo(0)
 {
-	m_viewmatrix.setIdentity();
-	m_viewinvmatrix.setIdentity();
+	m_viewmatrix.Identity();
 	
 	for (int i = 0; i < 32; i++)
 	{
@@ -92,9 +87,81 @@ RAS_OpenGLRasterizer::~RAS_OpenGLRasterizer()
 {
 }
 
+
+
+static void Myinit_gl_stuff(void)	
+{
+	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
+	float mat_shininess[] = { 35.0 };
+/*  	float one= 1.0; */
+	int a, x, y;
+	GLubyte pat[32*32];
+	const GLubyte *patc= pat;
+		
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+
+
+#if defined(__FreeBSD) || defined(__linux__)
+	glDisable(GL_DITHER);	/* op sgi/sun hardware && 12 bits */
+#endif
+	
+	/* no local viewer, looks ugly in ortho mode */
+	/* glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, &one); */
+	
+	glDepthFunc(GL_LEQUAL);
+	/* scaling matrices */
+	glEnable(GL_NORMALIZE);
+
+	glShadeModel(GL_FLAT);
+
+	glDisable(GL_ALPHA_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_FOG);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_LOGIC_OP);
+	glDisable(GL_STENCIL_TEST);
+	glDisable(GL_TEXTURE_1D);
+	glDisable(GL_TEXTURE_2D);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+
+	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+	glPixelTransferi(GL_RED_SCALE, 1);
+	glPixelTransferi(GL_RED_BIAS, 0);
+	glPixelTransferi(GL_GREEN_SCALE, 1);
+	glPixelTransferi(GL_GREEN_BIAS, 0);
+	glPixelTransferi(GL_BLUE_SCALE, 1);
+	glPixelTransferi(GL_BLUE_BIAS, 0);
+	glPixelTransferi(GL_ALPHA_SCALE, 1);
+	glPixelTransferi(GL_ALPHA_BIAS, 0);
+
+	a = 0;
+	for(x=0; x<32; x++)
+	{
+		for(y=0; y<4; y++)
+		{
+			if( (x) & 1) pat[a++]= 0x88;
+			else pat[a++]= 0x22;
+		}
+	}
+	
+	glPolygonStipple(patc);
+	
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+}
+
+
+
 bool RAS_OpenGLRasterizer::Init()
 {
-	GPU_state_init();
+
+	Myinit_gl_stuff();
 
 	m_redback = 0.4375;
 	m_greenback = 0.4375;
@@ -105,12 +172,7 @@ bool RAS_OpenGLRasterizer::Init()
 	m_ambg = 0.0f;
 	m_ambb = 0.0f;
 
-	glDisable(GL_BLEND);
-	glDisable(GL_ALPHA_TEST);
-	m_last_blendmode = GPU_BLEND_SOLID;
-
-	glFrontFace(GL_CCW);
-	m_last_frontface = true;
+	SetBlendingMode(0);
 
 	glClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -254,10 +316,21 @@ void RAS_OpenGLRasterizer::Exit()
 	EndFrame();
 }
 
+bool RAS_OpenGLRasterizer::InterlacedStereo() const
+{
+	return m_stereomode == RAS_STEREO_VINTERLACE || m_stereomode == RAS_STEREO_INTERLACED;
+}
+
 bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 {
 	m_time = time;
 	m_drawingmode = drawingmode;
+	
+	if (!InterlacedStereo() || m_curreye == RAS_STEREO_LEFTEYE)
+	{
+		m_2DCanvas->ClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
+		m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
+	}
 
 	// Blender camera routine destroys the settings
 	if (m_drawingmode < KX_SOLID)
@@ -271,12 +344,7 @@ bool RAS_OpenGLRasterizer::BeginFrame(int drawingmode, double time)
 		glEnable (GL_CULL_FACE);
 	}
 
-	glDisable(GL_BLEND);
-	glDisable(GL_ALPHA_TEST);
-	m_last_blendmode = GPU_BLEND_SOLID;
-
-	glFrontFace(GL_CCW);
-	m_last_frontface = true;
+	SetBlendingMode(0);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -291,9 +359,20 @@ void RAS_OpenGLRasterizer::SetDrawingMode(int drawingmode)
 {
 	m_drawingmode = drawingmode;
 
-	if(m_drawingmode == KX_WIREFRAME)
-		glDisable(GL_CULL_FACE);
+	switch (m_drawingmode)
+	{
+	case KX_WIREFRAME:
+		{
+			glDisable (GL_CULL_FACE);
+			break;
+		}
+	default:
+		{
+		}
+	}
 }
+
+
 
 int RAS_OpenGLRasterizer::GetDrawingMode()
 {
@@ -301,17 +380,12 @@ int RAS_OpenGLRasterizer::GetDrawingMode()
 }
 
 
+
 void RAS_OpenGLRasterizer::SetDepthMask(DepthMask depthmask)
 {
 	glDepthMask(depthmask == KX_DEPTHMASK_DISABLED ? GL_FALSE : GL_TRUE);
 }
 
-
-void RAS_OpenGLRasterizer::ClearColorBuffer()
-{
-	m_2DCanvas->ClearColor(m_redback,m_greenback,m_blueback,m_alphaback);
-	m_2DCanvas->ClearBuffer(RAS_ICanvas::COLOR_BUFFER);
-}
 
 
 void RAS_OpenGLRasterizer::ClearDepthBuffer()
@@ -423,10 +497,6 @@ bool RAS_OpenGLRasterizer::Stereo()
 		return true;
 }
 
-bool RAS_OpenGLRasterizer::InterlacedStereo()
-{
-	return m_stereomode == RAS_STEREO_VINTERLACE || m_stereomode == RAS_STEREO_INTERLACED;
-}
 
 void RAS_OpenGLRasterizer::SetEye(const StereoEye eye)
 {
@@ -503,84 +573,294 @@ void RAS_OpenGLRasterizer::SwapBuffers()
 
 
 
-const MT_Matrix4x4& RAS_OpenGLRasterizer::GetViewMatrix() const
+void RAS_OpenGLRasterizer::GetViewMatrix(MT_Matrix4x4 &mat) const
 {
-	return m_viewmatrix;
+	float viewmat[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, viewmat);
+	mat.setValue(viewmat);
 }
 
-const MT_Matrix4x4& RAS_OpenGLRasterizer::GetViewInvMatrix() const
-{
-	return m_viewinvmatrix;
-}
 
-void RAS_OpenGLRasterizer::IndexPrimitives_3DText(RAS_MeshSlot& ms,
-									class RAS_IPolyMaterial* polymat,
-									class RAS_IRenderTools* rendertools)
+
+void RAS_OpenGLRasterizer::IndexPrimitives(const vecVertexArray & vertexarrays,
+									const vecIndexArrays & indexarrays,
+									DrawMode mode,
+									bool useObjectColor,
+									const MT_Vector4& rgbacolor,
+									class KX_ListSlot** slot
+									)
 { 
-	bool obcolor = ms.m_bObjectColor;
-	MT_Vector4& rgba = ms.m_RGBAcolor;
-	RAS_MeshSlot::iterator it;
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices, vt;
 
-	// handle object color
-	if (obcolor) {
+	for (vt=0;vt<vertexarrays.size();vt++)
+	{
+		vertexarray = &((*vertexarrays[vt]) [0]);
+		const KX_IndexArray & indexarray = (*indexarrays[vt]);
+		numindices = indexarray.size();
+		
+		if (!numindices)
+			break;
+		
+		int vindex=0;
+		switch (mode)
+		{
+		case KX_MODE_LINES:
+			{
+				glBegin(GL_LINES);
+				vindex=0;
+				for (unsigned int i=0;i<numindices;i+=2)
+				{
+					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+				}
+				glEnd();
+			}
+			break;
+		case KX_MODE_QUADS:
+			{
+				glBegin(GL_QUADS);
+				vindex=0;
+				if (useObjectColor)
+				{
+					for (unsigned int i=0;i<numindices;i+=4)
+					{
+
+						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				else
+				{
+					for (unsigned int i=0;i<numindices;i+=4)
+					{
+						// This looks curiously endian unsafe to me.
+						// However it depends on the way the colors are packed into 
+						// the m_rgba field of RAS_TexVert
+
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				glEnd();	
+				break;
+			}
+		case KX_MODE_TRIANGLES:
+			{
+				glBegin(GL_TRIANGLES);
+				vindex=0;
+				if (useObjectColor)
+				{
+					for (unsigned int i=0;i<numindices;i+=3)
+					{
+
+						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				else 
+				{
+					for (unsigned int i=0;i<numindices;i+=3)
+					{
+
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+						
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						glTexCoord2fv(vertexarray[(indexarray[vindex])].getUV1());
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				glEnd();	
+				break;
+			}
+		default:
+			{
+			}
+			
+		} // switch
+	} // for each vertexarray
+
+}
+
+void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexarrays,
+									const vecIndexArrays & indexarrays,
+									DrawMode mode,
+									class RAS_IPolyMaterial* polymat,
+									class RAS_IRenderTools* rendertools,
+									bool useObjectColor,
+									const MT_Vector4& rgbacolor
+									)
+{ 
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices, vt;
+	
+	if (useObjectColor)
+	{
 		glDisableClientState(GL_COLOR_ARRAY);
-		glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
+		glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
 	}
 	else
+	{
 		glEnableClientState(GL_COLOR_ARRAY);
-
-	for(ms.begin(it); !ms.end(it); ms.next(it)) {
-		RAS_TexVert *vertex;
-		size_t i, j, numvert;
-		
-		numvert = it.array->m_type;
-
-		if(it.array->m_type == RAS_DisplayArray::LINE) {
-			// line drawing, no text
-			glBegin(GL_LINES);
-
-			for(i=0; i<it.totindex; i+=2)
-			{
-				vertex = &it.vertex[it.index[i]];
-				glVertex3fv(vertex->getXYZ());
-
-				vertex = &it.vertex[it.index[i+1]];
-				glVertex3fv(vertex->getXYZ());
-			}
-
-			glEnd();
-		}
-		else {
-			// triangle and quad text drawing
-			for(i=0; i<it.totindex; i+=numvert)
-			{
-				float v[4][3];
-				int glattrib, unit;
-
-				for(j=0; j<numvert; j++) {
-					vertex = &it.vertex[it.index[i+j]];
-
-					v[j][0] = vertex->getXYZ()[0];
-					v[j][1] = vertex->getXYZ()[1];
-					v[j][2] = vertex->getXYZ()[2];
-				}
-
-				// find the right opengl attribute
-				glattrib = -1;
-				if(GLEW_ARB_vertex_program)
-					for(unit=0; unit<m_attrib_num; unit++)
-						if(m_attrib[unit] == RAS_TEXCO_UV1)
-							glattrib = unit;
-				
-				rendertools->RenderText(polymat->GetDrawingMode(), polymat,
-					v[0], v[1], v[2], (numvert == 4)? v[3]: NULL, glattrib);
-
-				ClearCachingInfo();
-			}
-		}
 	}
-
-	glDisableClientState(GL_COLOR_ARRAY);
+	
+	for (vt=0;vt<vertexarrays.size();vt++)
+	{
+		vertexarray = &((*vertexarrays[vt]) [0]);
+		const KX_IndexArray & indexarray = (*indexarrays[vt]);
+		numindices = indexarray.size();
+		
+		if (!numindices)
+			break;
+		
+		int vindex=0;
+		switch (mode)
+		{
+		case KX_MODE_LINES:
+			{
+				glBegin(GL_LINES);
+				vindex=0;
+				for (unsigned int i=0;i<numindices;i+=2)
+				{
+					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+				}
+				glEnd();
+			}
+			break;
+		case KX_MODE_QUADS:
+			{
+				vindex=0;
+				for (unsigned int i=0;i<numindices;i+=4)
+				{
+					float v1[3],v2[3],v3[3],v4[3];
+					
+					v1[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v1[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v1[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					vindex++;
+					
+					v2[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v2[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v2[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					vindex++;
+					
+					v3[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v3[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v3[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					vindex++;
+					
+					v4[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v4[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v4[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					
+					vindex++;
+					
+					rendertools->RenderText(polymat->GetDrawingMode(),polymat,v1,v2,v3,v4);
+					ClearCachingInfo();
+				}
+				break;
+			}
+		case KX_MODE_TRIANGLES:
+			{
+				glBegin(GL_TRIANGLES);
+				vindex=0;
+				for (unsigned int i=0;i<numindices;i+=3)
+				{
+					float v1[3],v2[3],v3[3];
+					
+					v1[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v1[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v1[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					vindex++;
+					
+					v2[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v2[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v2[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					vindex++;
+					
+					v3[0] = vertexarray[(indexarray[vindex])].getLocalXYZ()[0];
+					v3[1] = vertexarray[(indexarray[vindex])].getLocalXYZ()[1];
+					v3[2] = vertexarray[(indexarray[vindex])].getLocalXYZ()[2];
+					vindex++;
+					
+					rendertools->RenderText(polymat->GetDrawingMode(),polymat,v1,v2,v3,NULL);		
+					ClearCachingInfo();
+				}
+				glEnd();	
+				break;
+			}
+		default:
+			{
+			}
+		}	//switch
+	}	//for each vertexarray
 }
 
 void RAS_OpenGLRasterizer::SetTexCoordNum(int num)
@@ -617,14 +897,14 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv)
 
 	if(GLEW_ARB_multitexture) {
 		for(unit=0; unit<m_texco_num; unit++) {
-			if(tv.getFlag() & RAS_TexVert::SECOND_UV && (int)tv.getUnit() == unit) {
+			if(tv.getFlag() & TV_2NDUV && (int)tv.getUnit() == unit) {
 				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
 				continue;
 			}
 			switch(m_texco[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
-				glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getXYZ());
+				glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getLocalXYZ());
 				break;
 			case RAS_TEXCO_UV1:
 				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
@@ -649,7 +929,7 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv)
 			switch(m_attrib[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
-				glVertexAttrib3fvARB(unit, tv.getXYZ());
+				glVertexAttrib3fvARB(unit, tv.getLocalXYZ());
 				break;
 			case RAS_TEXCO_UV1:
 				glVertexAttrib2fvARB(unit, tv.getUV1());
@@ -673,80 +953,211 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv)
 	}
 
 }
-
-void RAS_OpenGLRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
+void RAS_OpenGLRasterizer::Tangent(	const RAS_TexVert& v1,
+									const RAS_TexVert& v2,
+									const RAS_TexVert& v3,
+									const MT_Vector3 &no)
 {
-	IndexPrimitivesInternal(ms, false);
+	// TODO: set for deformer... 
+	MT_Vector3 x1(v1.getLocalXYZ()), x2(v2.getLocalXYZ()), x3(v3.getLocalXYZ());
+	MT_Vector2 uv1(v1.getUV1()), uv2(v2.getUV1()), uv3(v3.getUV1());
+	MT_Vector3 dx1(x2 - x1), dx2(x3 - x1);
+	MT_Vector2 duv1(uv2 - uv1), duv2(uv3 - uv1);
+
+	MT_Scalar r = 1.0 / (duv1.x() * duv2.y() - duv2.x() * duv1.y());
+	duv1 *= r;
+	duv2 *= r;
+	MT_Vector3 sdir(duv2.y() * dx1 - duv1.y() * dx2);
+	MT_Vector3 tdir(duv1.x() * dx2 - duv2.x() * dx1);
+
+	// Gram-Schmidt orthogonalize
+	MT_Vector3 t(sdir - no.cross(no.cross(sdir)));
+	if (!MT_fuzzyZero(t)) t /= t.length();
+
+	float tangent[4];
+	t.getValue(tangent);
+	// Calculate handedness
+	tangent[3] = no.dot(sdir.cross(tdir)) < 0.0 ? -1.0 : 1.0;
 }
 
-void RAS_OpenGLRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
-{
-	IndexPrimitivesInternal(ms, true);
-}
 
-void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
+void RAS_OpenGLRasterizer::IndexPrimitivesMulti(
+		const vecVertexArray& vertexarrays,
+		const vecIndexArrays & indexarrays,
+		DrawMode mode,
+		bool useObjectColor,
+		const MT_Vector4& rgbacolor,
+		class KX_ListSlot** slot
+		)
 { 
-	bool obcolor = ms.m_bObjectColor;
-	bool wireframe = m_drawingmode <= KX_WIREFRAME;
-	MT_Vector4& rgba = ms.m_RGBAcolor;
-	RAS_MeshSlot::iterator it;
 
-	// iterate over display arrays, each containing an index + vertex array
-	for(ms.begin(it); !ms.end(it); ms.next(it)) {
-		RAS_TexVert *vertex;
-		size_t i, j, numvert;
-		
-		numvert = it.array->m_type;
+	const RAS_TexVert* vertexarray;
+	unsigned int numindices,vt;
 
-		if(it.array->m_type == RAS_DisplayArray::LINE) {
-			// line drawing
-			glBegin(GL_LINES);
+	for (vt=0;vt<vertexarrays.size();vt++)
+	{
+		vertexarray = &((*vertexarrays[vt]) [0]);
+		const KX_IndexArray & indexarray = (*indexarrays[vt]);
+		numindices = indexarray.size();
 
-			for(i=0; i<it.totindex; i+=2)
+		if (!numindices)
+			break;
+
+		int vindex=0;
+		switch (mode)
+		{
+		case KX_MODE_LINES:
 			{
-				vertex = &it.vertex[it.index[i]];
-				glVertex3fv(vertex->getXYZ());
-
-				vertex = &it.vertex[it.index[i+1]];
-				glVertex3fv(vertex->getXYZ());
-			}
-
-			glEnd();
-		}
-		else {
-			// triangle and quad drawing
-			if(it.array->m_type == RAS_DisplayArray::TRIANGLE)
-				glBegin(GL_TRIANGLES);
-			else
-				glBegin(GL_QUADS);
-
-			for(i=0; i<it.totindex; i+=numvert)
-			{
-				if(obcolor)
-					glColor4d(rgba[0], rgba[1], rgba[2], rgba[3]);
-
-				for(j=0; j<numvert; j++) {
-					vertex = &it.vertex[it.index[i+j]];
-
-					if(!wireframe) {
-						if(!obcolor)
-							glColor4ubv((const GLubyte *)(vertex->getRGBA()));
-
-						glNormal3fv(vertex->getNormal());
-
-						if(multi)
-							TexCoord(*vertex);
-						else
-							glTexCoord2fv(vertex->getUV1());
-					}
-
-					glVertex3fv(vertex->getXYZ());
+				glBegin(GL_LINES);
+				vindex=0;
+				for (unsigned int i=0;i<numindices;i+=2)
+				{
+					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
+					glVertex3fv(vertexarray[(indexarray[vindex++])].getLocalXYZ());
 				}
+				glEnd();
 			}
+			break;
+		case KX_MODE_QUADS:
+			{
+				glBegin(GL_QUADS);
+				vindex=0;
+				if (useObjectColor)
+				{
+					for (unsigned int i=0;i<numindices;i+=4)
+					{
 
-			glEnd();
-		}
-	}
+						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				else
+				{
+					for (unsigned int i=0;i<numindices;i+=4)
+					{
+						// This looks curiously endian unsafe to me.
+						// However it depends on the way the colors are packed into 
+						// the m_rgba field of RAS_TexVert
+				
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+				
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				glEnd();	
+				break;
+			}
+		case KX_MODE_TRIANGLES:
+			{
+				glBegin(GL_TRIANGLES);
+				vindex=0;
+				if (useObjectColor)
+				{
+					for (unsigned int i=0;i<numindices;i+=3)
+					{
+
+						glColor4d(rgbacolor[0], rgbacolor[1], rgbacolor[2], rgbacolor[3]);
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				else 
+				{
+					for (unsigned int i=0;i<numindices;i+=3)
+					{
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+				
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+
+						//
+						glColor4ubv((const GLubyte *)(vertexarray[(indexarray[vindex])].getRGBA()));
+						glNormal3fv(vertexarray[(indexarray[vindex])].getNormal());
+						TexCoord(vertexarray[(indexarray[vindex])]);
+						glVertex3fv(vertexarray[(indexarray[vindex])].getLocalXYZ());
+						vindex++;
+					}
+				}
+				glEnd();	
+				break;
+			}
+		default:
+			{
+			}
+		} // switch
+	} // for each vertexarray
 }
 
 void RAS_OpenGLRasterizer::SetProjectionMatrix(MT_CmMatrix4x4 &mat)
@@ -821,7 +1232,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vector3& campos,
 		const MT_Point3 &, const MT_Quaternion &camOrientQuat)
 {
-	m_viewmatrix = mat;
+	MT_Matrix4x4 viewMat = mat;
 
 	// correction for stereo
 	if(m_stereomode != RAS_STEREO_NOSTEREO)
@@ -848,7 +1259,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vecto
 				MT_Transform transform;
 				transform.setIdentity();
 				transform.translate(-(eyeline * m_eyeseparation / 2.0));
-				m_viewmatrix *= transform;
+				viewMat *= transform;
 				}
 				break;
 			case RAS_STEREO_RIGHTEYE:
@@ -857,21 +1268,20 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat, const MT_Vecto
 				MT_Transform transform;
 				transform.setIdentity();
 				transform.translate(eyeline * m_eyeseparation / 2.0);
-				m_viewmatrix *= transform;
+				viewMat *= transform;
 				}
 				break;
 		}
 	}
 
-	m_viewinvmatrix = m_viewmatrix;
-	m_viewinvmatrix.invert();
-
-	// note: getValue gives back column major as needed by OpenGL
-	MT_Scalar glviewmat[16];
-	m_viewmatrix.getValue(glviewmat);
+	// convert row major matrix 'viewMat' to column major for OpenGL
+	MT_Scalar cammat[16];
+	viewMat.getValue(cammat);
+	MT_CmMatrix4x4 viewCmmat = cammat;
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixd(glviewmat);
+	m_viewmatrix = viewCmmat;
+	glLoadMatrixd(&m_viewmatrix(0,0));
 	m_campos = campos;
 }
 
@@ -880,6 +1290,20 @@ const MT_Point3& RAS_OpenGLRasterizer::GetCameraPosition()
 {
 	return m_campos;
 }
+
+
+
+void RAS_OpenGLRasterizer::LoadViewMatrix()
+{
+	glLoadMatrixd(&m_viewmatrix(0,0));
+}
+
+
+
+void RAS_OpenGLRasterizer::EnableTextures(bool enable)
+{
+}
+
 
 
 void RAS_OpenGLRasterizer::SetCullFace(bool enable)
@@ -949,10 +1373,7 @@ void RAS_OpenGLRasterizer::SetPolygonOffset(float mult, float add)
 
 void RAS_OpenGLRasterizer::EnableMotionBlur(float motionblurvalue)
 {
-	/* don't just set m_motionblur to 1, but check if it is 0 so
-	 * we don't reset a motion blur that is already enabled */
-	if(m_motionblur == 0)
-		m_motionblur = 1;
+	m_motionblur = 1;
 	m_motionblurvalue = motionblurvalue;
 }
 
@@ -967,41 +1388,28 @@ void RAS_OpenGLRasterizer::SetBlendingMode(int blendmode)
 	if(blendmode == m_last_blendmode)
 		return;
 
-	if(blendmode == GPU_BLEND_SOLID) {
+	if(blendmode == 0) {
 		glDisable(GL_BLEND);
 		glDisable(GL_ALPHA_TEST);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-	else if(blendmode == GPU_BLEND_ADD) {
+	else if(blendmode == 1) {
 		glBlendFunc(GL_ONE, GL_ONE);
 		glEnable(GL_BLEND);
 		glDisable(GL_ALPHA_TEST);
 	}
-	else if(blendmode == GPU_BLEND_ALPHA) {
+	else if(blendmode == 2) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, 0.0f);
 	}
-	else if(blendmode == GPU_BLEND_CLIP) {
+	else if(blendmode == 4) {
 		glDisable(GL_BLEND); 
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, 0.5f);
 	}
 
 	m_last_blendmode = blendmode;
-}
-
-void RAS_OpenGLRasterizer::SetFrontFace(bool ccw)
-{
-	if(m_last_frontface == ccw)
-		return;
-
-	if(ccw)
-		glFrontFace(GL_CCW);
-	else
-		glFrontFace(GL_CW);
-	
-	m_last_frontface = ccw;
 }
 

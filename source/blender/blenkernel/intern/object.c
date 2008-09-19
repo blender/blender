@@ -112,8 +112,6 @@
 
 #include "BPY_extern.h"
 
-#include "GPU_material.h"
-
 #include "blendef.h"
 
 /* Local function protos */
@@ -270,7 +268,6 @@ void free_object(Object *ob)
 	}
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
-	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -697,11 +694,9 @@ float dof_camera(Object *ob)
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
-		float mat[4][4], obmat[4][4];
 		
-		Mat4CpyMat4(obmat, ob->obmat);
-		Mat4Ortho(obmat);
-		Mat4Invert(ob->imat, obmat);
+		float mat[4][4];
+		Mat4Invert(ob->imat, ob->obmat);
 		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
 		return fabs(mat[3][2]);
 	}
@@ -923,7 +918,7 @@ Object *add_only_object(int type, char *name)
 	QuatOne(ob->dquat);
 #endif 
 
-	ob->col[0]= ob->col[1]= ob->col[2]= 1.0;
+	ob->col[0]= ob->col[1]= ob->col[2]= 0.0;
 	ob->col[3]= 1.0;
 
 	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0;
@@ -960,8 +955,7 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[0] = 1.0f;
 	ob->anisotropicFriction[1] = 1.0f;
 	ob->anisotropicFriction[2] = 1.0f;
-	ob->gameflag= OB_PROP|OB_PHYSICS;
-	ob->margin = 0.0;
+	ob->gameflag= OB_PROP;
 
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
@@ -1232,7 +1226,6 @@ Object *copy_object(Object *ob)
 	obn->vnode = NULL;
 #endif
 
-	obn->gpulamp.first = obn->gpulamp.last = NULL;
 
 	return obn;
 }

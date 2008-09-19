@@ -93,7 +93,6 @@
 #include "BIF_graphics.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
-#include "BIF_keyframing.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
 #include "BIF_renderwin.h"
@@ -2283,7 +2282,7 @@ void toolbox_generic( TBitem *generic_menu )
 	uiBlock *block;
 	uiBut *but;
 	TBitem *menu;
-	int dx=96, first=1, len;
+	int dx=96;
 	short event, mval[2];
 	intptr_t ypos = -5;
 	
@@ -2304,17 +2303,11 @@ void toolbox_generic( TBitem *generic_menu )
 	
 	/* Add the menu */
 	for (menu = generic_menu; menu->icon != -1; menu++) {
-		if (first && (len=strlen(menu->name)) > 2 && menu->name[len-2]=='%' && menu->name[len-1]=='t') {
-			menu->name[len-2] = '\0';
-			uiSetCurFont(block, UI_HELVB);
-			uiDefIconTextBut(block, LABEL, 0, ICON_BLANK1, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, NULL, 0.0, 0.0, 0, 0, "");
-			uiSetCurFont(block, UI_HELV);
-			ypos-=20;
-		} else if(strcmp(menu->name, "SEPR")==0) {
+		if(strcmp(menu->name, "SEPR")==0) {
 			uiDefBut(block, SEPR, 0, "", mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 6, NULL, 0.0, 0.0, 0, 0, "");
 			ypos-=6;
 		} else {
-			if (menu->poin) {
+			 if (menu->poin) {
 				but=uiDefIconTextBlockBut(block, tb_makemenu, menu->poin, ICON_RIGHTARROW_THIN, menu->name, mval[0]+tb_mainx,mval[1]+tb_mainy+ypos+5, dx, 19, "");
 				uiButSetFlag(but, UI_MAKE_RIGHT);
 			
@@ -2325,7 +2318,6 @@ void toolbox_generic( TBitem *generic_menu )
 			}
 			ypos-=20;
 		}
-		first= 0;
 	}
 	
 	uiBlockSetButmFunc(block, menu->poin, NULL);

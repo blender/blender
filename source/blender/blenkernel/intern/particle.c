@@ -379,11 +379,8 @@ void psys_free_children(ParticleSystem *psys)
 }
 /* free everything */
 void psys_free(Object *ob, ParticleSystem * psys)
-{	
+{
 	if(psys){
-		int nr = 0;
-		ParticleSystem * tpsys;
-		
 		if(ob->particlesystem.first == NULL && G.f & G_PARTICLEEDIT)
 			G.f &= ~G_PARTICLEEDIT;
 
@@ -409,21 +406,6 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		if(psys->effectors.first)
 			psys_end_effectors(psys);
-		
-		// check if we are last non-visible particle system
-		for(tpsys=ob->particlesystem.first; tpsys; tpsys=tpsys->next){
-			if(tpsys->part)
-			{
-				if(ELEM(tpsys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
-				{
-					nr++;
-					break;
-				}
-			}
-		}
-		// clear do-not-draw-flag
-		if(!nr)
-			ob->transflag &= ~OB_DUPLIPARTS;
 
 		if(psys->part){
 			psys->part->id.us--;		
@@ -435,7 +417,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		if(psys->pointcache)
 			BKE_ptcache_free(psys->pointcache);
-		
+
 		MEM_freeN(psys);
 	}
 }
@@ -3841,7 +3823,7 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 
 void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
 {
-	float loc[3], nor[3], vec[3], len, obrotmat[4][4], qmat[4][4];
+	float loc[3], nor[3], vec[3], side[3], len, obrotmat[4][4], qmat[4][4];
 	float xvec[3] = {-1.0, 0.0, 0.0}, q[4];
 
 	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
@@ -3866,9 +3848,14 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 		Mat4MulMat4(mat, obrotmat, qmat);
 	}
 	else {
-		Normalize(nor);
+		Crossf(side, nor, vec);
+		Normalize(side);
+		Crossf(nor, vec, side);
+
 		Mat4One(mat);
-		VECCOPY(mat[2], nor); // mat[2] is normal/direction
+		VECCOPY(mat[0], vec);
+		VECCOPY(mat[1], side);
+		VECCOPY(mat[2], nor);
 	}
 
 	*scale= len;

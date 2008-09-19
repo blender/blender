@@ -56,10 +56,6 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
-	
-	class btDefaultCollisionConfiguration* m_collisionConfiguration;
-	class btBroadphaseInterface*			m_broadphase;
-
 	//solver iterations
 	int	m_numIterations;
 	
@@ -161,7 +157,8 @@ protected:
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
+		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
+										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
 
 
 		//Methods for gamelogic collision/physics callbacks

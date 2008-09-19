@@ -68,6 +68,8 @@ public:
 		bool alpha,
 		bool zsort,
 		int lightlayer,
+		bool bIsTriangle,
+		void* clientobject,
 		struct MTFace* tface,
 		unsigned int* mcol,
 		PyTypeObject *T = &Type);

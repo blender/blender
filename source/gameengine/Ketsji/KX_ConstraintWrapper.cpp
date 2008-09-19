@@ -27,7 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <Python.h>
-#include "PyObjectPlus.h"
 #include "KX_ConstraintWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
 

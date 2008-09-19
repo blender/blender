@@ -39,33 +39,32 @@
 
 class RAS_BucketManager
 {
+	//GEN_Map<class RAS_IPolyMaterial,class RAS_MaterialBucket*> m_MaterialBuckets;
+	
 	typedef std::vector<class RAS_MaterialBucket*> BucketList;
-	BucketList m_SolidBuckets;
+	BucketList m_MaterialBuckets;
 	BucketList m_AlphaBuckets;
 	
-	struct sortedmeshslot;
+	struct alphamesh;
 	struct backtofront;
-	struct fronttoback;
 
 public:
 	RAS_BucketManager();
 	virtual ~RAS_BucketManager();
 
-	void Renderbuckets(const MT_Transform & cameratrans,
-		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
-
-	RAS_MaterialBucket* FindBucket(RAS_IPolyMaterial * material, bool &bucketCreated);
-	void OptimizeBuckets(MT_Scalar distance);
-	
-	void ReleaseDisplayLists(RAS_IPolyMaterial * material = NULL);
-
-private:
-	void OrderBuckets(const MT_Transform& cameratrans, BucketList& buckets, vector<sortedmeshslot>& slots, bool alpha);
-
-	void RenderSolidBuckets(const MT_Transform& cameratrans, 
-		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 	void RenderAlphaBuckets(const MT_Transform& cameratrans, 
 		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
+	void Renderbuckets(const MT_Transform & cameratrans,
+							RAS_IRasterizer* rasty,
+							class RAS_IRenderTools* rendertools);
+
+	RAS_MaterialBucket* FindBucket(RAS_IPolyMaterial * material, bool &bucketCreated);
+	
+	void ReleaseDisplayLists();
+
+private:
+	void RAS_BucketManagerClearAll();
+
 };
 
 #endif //__RAS_BUCKETMANAGER

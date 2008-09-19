@@ -263,12 +263,9 @@ PyObject *LibBlockSeq_getActive(BPy_LibBlockSeq *self)
 		}
 		break;
 	case ID_TXT: {
-			SpaceText *st = NULL;
+			SpaceText *st= curarea->spacedata.first;
 			
-			if (curarea)
-				st = curarea->spacedata.first;
-			
-			if (st==NULL || st->spacetype!=SPACE_TEXT || st->text==NULL) {
+			if (st->spacetype!=SPACE_TEXT || st->text==NULL) {
 				Py_RETURN_NONE;
 			} else {
 				return Text_CreatePyObject( st->text );
@@ -333,14 +330,8 @@ static int LibBlockSeq_setActive(BPy_LibBlockSeq *self, PyObject *value)
 			return EXPP_ReturnIntError(PyExc_TypeError,
 					"Must be a text" );
 		} else {
-			SpaceText *st= NULL;
+			SpaceText *st= curarea->spacedata.first;	
 			Text *data = ((BPy_Text *)value)->text;
-			
-			if (curarea==NULL) {
-				return 0;
-			} else {
-				st= curarea->spacedata.first;
-			}
 			
 			if( !data )
 				return EXPP_ReturnIntError( PyExc_RuntimeError,

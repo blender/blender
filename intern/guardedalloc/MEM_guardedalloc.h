@@ -58,8 +58,8 @@
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
-#include "stdio.h" /* needed for FILE* */
-#include "BLO_sys_types.h" /* needed for uintptr_t */
+/* Needed for FILE* */
+#include "stdio.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -123,12 +123,6 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
-	/* Memory usage stats
-	 * - MEM_get_memory_in_use is all memory
-	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
-	uintptr_t MEM_get_memory_in_use(void);
-	uintptr_t MEM_get_mapped_memory_in_use(void);
-	int MEM_get_memory_blocks_in_use(void);
 
 #ifdef __cplusplus
 }

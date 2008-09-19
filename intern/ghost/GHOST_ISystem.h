@@ -224,15 +224,13 @@ public:
 	 * @param	state		The state of the window when opened.
 	 * @param	type		The type of drawing context installed in this window.
 	 * @param	stereoVisual	Create a stereo visual for quad buffered stereo.
-	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow* createWindow(
 		const STR_String& title,
 		GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 		GHOST_TWindowState state, GHOST_TDrawingContextType type,
-		const bool stereoVisual,
-		const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
+		const bool stereoVisual) = 0;
 
 	/**
 	 * Dispose a window.

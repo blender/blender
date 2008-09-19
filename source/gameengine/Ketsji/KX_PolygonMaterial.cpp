@@ -35,14 +35,16 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 
+extern "C" {
+#include "BDR_drawmesh.h"
+}
+
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "IMB_imbuf_types.h"
-
-#include "GPU_draw.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,6 +63,8 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 											   bool alpha,
 											   bool zsort,
 											   int lightlayer,
+											   bool bIsTriangle,
+											   void* clientobject,
 											   struct MTFace* tface,
 											   unsigned int* mcol,
 											   PyTypeObject *T)
@@ -74,7 +78,9 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 							transp,
 							alpha,
 							zsort,
-							lightlayer),
+							lightlayer,
+							bIsTriangle,
+							clientobject),
 		m_tface(tface),
 		m_mcol(mcol),
 		m_material(material),
@@ -134,29 +140,38 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 	if (GetCachingInfo() != cachingInfo)
 	{
 		if (!cachingInfo)
-			GPU_set_tpage(NULL);
-
+		{
+			set_tpage(NULL);
+		}
 		cachingInfo = GetCachingInfo();
 
 		if ((m_drawingmode & 4)&& (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED))
 		{
-			Image *ima = (Image*)m_tface->tpage;
-			GPU_update_image_time(ima, rasty->GetTime());
-			GPU_set_tpage(m_tface);
+			update_realtime_texture((struct MTFace*) m_tface, rasty->GetTime());
+			set_tpage(m_tface);
+			rasty->EnableTextures(true);
 		}
 		else
-			GPU_set_tpage(NULL);
+		{
+			set_tpage(NULL);
+			rasty->EnableTextures(false);
+		}
 		
 		if(m_drawingmode & RAS_IRasterizer::KX_TWOSIDE)
+		{
 			rasty->SetCullFace(false);
+		}
 		else
+		{
 			rasty->SetCullFace(true);
+		}
 
-		if ((m_drawingmode & RAS_IRasterizer::KX_LINES) ||
-		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
+		if (m_drawingmode & RAS_IRasterizer::KX_LINES) {
 			rasty->SetLines(true);
-		else
+		}
+		else {
 			rasty->SetLines(false);
+		}
 	}
 
 	rasty->SetSpecularity(m_specular[0],m_specular[1],m_specular[2],m_specularity);
@@ -238,8 +253,7 @@ PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
 	if (attr == "lightlayer")
 		return PyInt_FromLong(m_lightlayer);
 	if (attr == "triangle")
-		// deprecated, triangle/quads shouldn't have been a material property
-		return 0;
+		return PyInt_FromLong(m_bIsTriangle);
 		
 	if (attr == "diffuse")
 		return PyObjectFrom(m_diffuse);
@@ -319,7 +333,7 @@ int KX_PolygonMaterial::_setattr(const STR_String &attr, PyObject *pyvalue)
 		// This probably won't work...
 		if (attr == "triangle")
 		{
-			// deprecated, triangle/quads shouldn't have been a material property
+			m_bIsTriangle = value;
 			return 0;
 		}
 	}
@@ -372,9 +386,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rast
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
 		RAS_IRasterizer *rasty = (RAS_IRasterizer*) PyCObject_AsVoidPtr(pyrasty);
-		Image *ima = (Image*)tface->tpage;
-		GPU_update_image_time(ima, rasty->GetTime());
-
+		update_realtime_texture(tface, rasty->GetTime());
 		Py_Return;
 	}
 	
@@ -387,7 +399,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 	if (PyArg_ParseTuple(args, "O!", &PyCObject_Type, &pytface))
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
-		GPU_set_tpage(tface);
+		set_tpage(tface);
 		Py_Return;
 	}
 	

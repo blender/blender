@@ -82,7 +82,6 @@ typedef struct MLoopUV{
 
 typedef struct MLoopCol{
 	char a, r, g, b;
-	int pad;  /*waste!*/
 }MLoopCol;
 
 typedef struct MSticky {

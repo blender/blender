@@ -16,8 +16,8 @@ subject to the following restrictions:
 #ifndef MANIFOLD_CONTACT_POINT_H
 #define MANIFOLD_CONTACT_POINT_H
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btTransformUtil.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btTransformUtil.h"
 
 
 
@@ -30,8 +30,6 @@ class btManifoldPoint
 		public:
 			btManifoldPoint()
 				:m_userPersistentData(0),
-				m_appliedImpulse(0.f),
-				m_lateralFrictionInitialized(false),
 				m_lifeTime(0)
 			{
 			}
@@ -45,11 +43,7 @@ class btManifoldPoint
 					m_distance1( distance ),
 					m_combinedFriction(btScalar(0.)),
 					m_combinedRestitution(btScalar(0.)),
-					m_userPersistentData(0),
-					m_appliedImpulse(0.f),
-					m_lateralFrictionInitialized(false),
-					m_appliedImpulseLateral1(0.f),
-					m_appliedImpulseLateral2(0.f),
+					m_userPersistentData(0),					
 					m_lifeTime(0)
 			{
 				
@@ -69,23 +63,11 @@ class btManifoldPoint
 			btScalar	m_combinedFriction;
 			btScalar	m_combinedRestitution;
 
-         //BP mod, store contact triangles.
-         int	   m_partId0;
-         int      m_partId1;
-         int      m_index0;
-         int      m_index1;
 				
 			mutable void*	m_userPersistentData;
-			btScalar		m_appliedImpulse;
 
-			bool			m_lateralFrictionInitialized;
-			btScalar		m_appliedImpulseLateral1;
-			btScalar		m_appliedImpulseLateral2;
-			int				m_lifeTime;//lifetime of the contactpoint in frames
+			int		m_lifeTime;//lifetime of the contactpoint in frames
 			
-			btVector3		m_lateralFrictionDir1;
-			btVector3		m_lateralFrictionDir2;
-
 			btScalar getDistance() const
 			{
 				return m_distance1;

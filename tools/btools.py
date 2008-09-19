@@ -27,7 +27,7 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
     opts_list = [
-            'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
+            'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS',
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
@@ -51,6 +51,7 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_PLAYER',
+	    'WITH_BF_GLEXT',
             'WITH_BF_BINRELOC',	
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
@@ -144,10 +145,8 @@ def read_opts(cfg, args):
         ('BF_PYTHON_INC', 'include path for Python headers', ''),
         ('BF_PYTHON_BINARY', 'Path to the Python interpreter', ''),
         ('BF_PYTHON_LIB', 'Python library', ''),
-        ('BF_PYTHON_LIB_STATIC', 'Python static libraries', ''),
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
-        (BoolOption('WITH_BF_STATICPYTHON', 'Staticly link to python', 'false')),
         (BoolOption('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false')),
         (BoolOption('WITH_BF_YAFRAY', 'Enable Yafray', 'true')),
         (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', '')),
@@ -293,6 +292,7 @@ def read_opts(cfg, args):
         ('BF_FTGL_INC', 'FTGL include path', ''),
         ('BF_FTGL_LIB', 'FTGL libraries', ''),
 
+        (BoolOption('WITH_BF_GLEXT', 'Enable GL Extensions', 'true')),
         (BoolOption('WITH_BF_PLAYER', 'Build blenderplayer if true', 'false')),
 
         ('CFLAGS', 'C-compiler flags', ''),

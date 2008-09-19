@@ -2056,10 +2056,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
 	
-	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
-		isec.lay= lar->lay;
-	else
-		isec.lay= -1;
+	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 
 	/* only when not mir tracing, first hit optimm */
 	if(shi->depth==0) {

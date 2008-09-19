@@ -37,10 +37,6 @@ Example Uses an L{SCA_MouseSensor}, and two L{KX_ObjectActuator}s to implement M
 	# Centre the mouse
 	Rasterizer.setMousePosition(Rasterizer.getWindowWidth()/2, Rasterizer.getWindowHeight()/2)
 
-@group Material Types: KX_TEXFACE_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_GLSL_MATERIAL
-@var KX_TEXFACE_MATERIAL: Materials as defined by the texture face settings.
-@var KX_BLENDER_MULTITEX_MATERIAL: Materials approximating blender materials with multitexturing.
-@var KX_BLENDER_BLENDER_MATERIAL: Materials approximating blender materials with GLSL.
 	
 """
 
@@ -88,8 +84,7 @@ def setMousePosition(x, y):
 	"""
 	Sets the mouse cursor position.
 	
-	@type x: integer
-	@type y: integer
+	@type x, y: integer
 	"""
 
 def setBackgroundColor(rgba):
@@ -150,35 +145,3 @@ def getFocalLength():
 	
 	@rtype: float
 	"""
-
-def setMaterialMode(mode):
-	"""
-	Set the material mode to use for OpenGL rendering.
-	
-	@type mode: KX_TEXFACE_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_GLSL_MATERIAL
-	@note: Changes will only affect newly created scenes.
-	"""
-
-def getMaterialMode(mode):
-	"""
-	Get the material mode to use for OpenGL rendering.
-	
-	@rtype: KX_TEXFACE_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_GLSL_MATERIAL
-	"""
-
-def setGLSLMaterialSetting(setting, enable):
-	"""
-	Enables or disables a GLSL material setting.
-	
-	@type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
-	@type enable: boolean
-	"""
-
-def getGLSLMaterialSetting(setting, enable):
-	"""
-	Get the state of a GLSL material setting.
-	
-	@type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
-	@rtype: boolean
-	"""
-

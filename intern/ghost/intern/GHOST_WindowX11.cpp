@@ -138,7 +138,6 @@ GHOST_WindowX11(
 	GHOST_TUns32 width,	
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
-	const GHOST_TEmbedderWindowID parentWindow,
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual
 ) :
@@ -206,57 +205,21 @@ GHOST_WindowX11(
 
 	// create the window!
 
-	;
-	if (parentWindow == 0) {
-		m_window = 
-			XCreateWindow(
-				m_display, 
-				RootWindow(m_display, m_visual->screen), 
-				left,
-				top,
-				width,
-				height,
-				0, // no border.
-				m_visual->depth,
-				InputOutput, 
-				m_visual->visual,
-				CWBorderPixel|CWColormap|CWEventMask, 
-				&xattributes
-			);
-	} else {
-
-		Window root_return;
-		int x_return,y_return;
-		unsigned int w_return,h_return,border_w_return,depth_return;
-		GHOST_TInt32 screen_x, screen_y;
-		
-		XGetGeometry(m_display, parentWindow, &root_return, &x_return, &y_return,
-			&w_return, &h_return, &border_w_return, &depth_return );
-
-		left = 0;
-		top = 0;
-		width = w_return;
-		height = h_return;
-
-
-		m_window = XCreateWindow(
-				m_display, 
-				parentWindow,  // reparent against embedder 
-				left,
-				top,
-				width,
-				height,
-				0, // no border.
-				m_visual->depth,
-				InputOutput, 
-				m_visual->visual,
-				CWBorderPixel|CWColormap|CWEventMask, 
-				&xattributes
-			);
-
-		XSelectInput(m_display , parentWindow, SubstructureNotifyMask);
-		
-	}	
+	m_window = 
+		XCreateWindow(
+			m_display, 
+			RootWindow(m_display, m_visual->screen), 
+			left,
+			top,
+			width,
+			height,
+			0, // no border.
+			m_visual->depth,
+			InputOutput, 
+			m_visual->visual,
+			CWBorderPixel|CWColormap|CWEventMask, 
+			&xattributes
+		);
 	
 	
 	// Are we in fullscreen mode - then include

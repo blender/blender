@@ -28,5 +28,5 @@ SET(INC intern ../moto/include ../memutil)
 
 FILE(GLOB SRC intern/*.cpp)
 
-BLENDERLIB(bf_IK "${SRC}" "${INC}")
+BLENDERLIB_NOLIST(blender_IK "${SRC}" "${INC}")
 #, libtype=['blender'], priority = [10] )

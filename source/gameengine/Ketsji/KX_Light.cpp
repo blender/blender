@@ -42,13 +42,14 @@
 
 #include "KX_PyMath.h"
 
-#include "DNA_object_types.h"
+#ifdef BLENDER_GLSL
 #include "GPU_material.h"
+#endif
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 							   class RAS_IRenderTools* rendertools,
 							   const RAS_LightObject&	lightobj,
-							   bool glsl,
+							   struct GPULamp *gpulamp,
 							   PyTypeObject* T
 							   )
  :
@@ -58,20 +59,12 @@ KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 	m_lightobj = lightobj;
 	m_lightobj.m_worldmatrix = GetOpenGLMatrixPtr();
 	m_rendertools->AddLight(&m_lightobj);
-	m_glsl = glsl;
-	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
+	m_gpulamp = gpulamp;
 };
 
 
 KX_LightObject::~KX_LightObject()
 {
-	GPULamp *lamp;
-
-	if((lamp = GetGPULamp())) {
-		float obmat[4][4] = {{0}};
-		GPU_lamp_update(lamp, 0, obmat);
-	}
-
 	m_rendertools->RemoveLight(&m_lightobj);
 }
 
@@ -80,7 +73,7 @@ CValue*		KX_LightObject::GetReplica()
 {
 
 	KX_LightObject* replica = new KX_LightObject(*this);
-
+	
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
@@ -88,23 +81,13 @@ CValue*		KX_LightObject::GetReplica()
 	
 	replica->m_lightobj.m_worldmatrix = replica->GetOpenGLMatrixPtr();
 	m_rendertools->AddLight(&replica->m_lightobj);
-
 	return replica;
-}
-
-GPULamp *KX_LightObject::GetGPULamp()
-{
-	if(m_glsl)
-		return GPU_lamp_from_blender(m_blenderscene, GetBlenderObject(), GetBlenderGroupObject());
-	else
-		return false;
 }
 
 void KX_LightObject::Update()
 {
-	GPULamp *lamp;
-
-	if((lamp = GetGPULamp())) {
+#ifdef BLENDER_GLSL
+	if(m_gpulamp) {
 		float obmat[4][4];
 		double *dobmat = GetOpenGLMatrixPtr()->getPointer();
 
@@ -112,39 +95,38 @@ void KX_LightObject::Update()
 			for(int j=0; j<4; j++, dobmat++)
 				obmat[i][j] = (float)*dobmat;
 
-		GPU_lamp_update(lamp, m_lightobj.m_layer, obmat);
+		GPU_lamp_update(m_gpulamp, obmat);
 	}
+#endif
 }
 
 bool KX_LightObject::HasShadowBuffer()
 {
-	GPULamp *lamp;
-
-	if((lamp = GetGPULamp()))
-		return GPU_lamp_has_shadow_buffer(lamp);
-	else
-		return false;
+#ifdef BLENDER_GLSL
+	return (m_gpulamp && GPU_lamp_has_shadow_buffer(m_gpulamp));
+#else
+	return false;
+#endif
 }
 
 int KX_LightObject::GetShadowLayer()
 {
-	GPULamp *lamp;
-
-	if((lamp = GetGPULamp()))
-		return GPU_lamp_shadow_layer(lamp);
+#ifdef BLENDER_GLSL
+	if(m_gpulamp)
+		return GPU_lamp_shadow_layer(m_gpulamp);
 	else
+#endif
 		return 0;
 }
 
 void KX_LightObject::BindShadowBuffer(RAS_IRasterizer *ras, KX_Camera *cam, MT_Transform& camtrans)
 {
-	GPULamp *lamp;
+#ifdef BLENDER_GLSL
 	float viewmat[4][4], winmat[4][4];
 	int winsize;
 
 	/* bind framebuffer */
-	lamp = GetGPULamp();
-	GPU_lamp_shadow_buffer_bind(lamp, viewmat, &winsize, winmat);
+	GPU_lamp_shadow_buffer_bind(m_gpulamp, viewmat, &winsize, winmat);
 
 	/* setup camera transformation */
 	MT_Matrix4x4 modelviewmat((float*)viewmat);
@@ -164,12 +146,14 @@ void KX_LightObject::BindShadowBuffer(RAS_IRasterizer *ras, KX_Camera *cam, MT_T
 	ras->SetProjectionMatrix(projectionmat);
 	ras->SetViewMatrix(modelviewmat, cam->NodeGetWorldPosition(),
 		cam->GetCameraLocation(), cam->GetCameraOrientation());
+#endif
 }
 
 void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 {
-	GPULamp *lamp = GetGPULamp();
-	GPU_lamp_shadow_buffer_unbind(lamp);
+#ifdef BLENDER_GLSL
+	GPU_lamp_shadow_buffer_unbind(m_gpulamp);
+#endif
 }
 
 PyObject* KX_LightObject::_getattr(const STR_String& attr)

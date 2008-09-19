@@ -36,7 +36,6 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-CPPFLAGS += -I../../blender/makesdna
 
 CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include

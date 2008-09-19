@@ -68,9 +68,6 @@
 
 #include "SHD_node.h"
 
-#include "GPU_extensions.h"
-#include "GPU_material.h"
-
 static ListBase empty_list = {NULL, NULL};
 ListBase node_all_composit = {NULL, NULL};
 ListBase node_all_shaders = {NULL, NULL};
@@ -2355,117 +2352,6 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	ntreeEndExecTree(ntree);
 }
 
-/* GPU material from shader nodes */
-
-static void gpu_from_node_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
-{
-	bNodeSocket *sock;
-	int i;
-
-	for (sock=sockets->first, i=0; sock; sock=sock->next, i++) {
-		memset(&gs[i], 0, sizeof(gs[i]));
-
-    	QUATCOPY(gs[i].vec, ns[i]->vec);
-		gs[i].link= ns[i]->data;
-
-		if (sock->type == SOCK_VALUE)
-			gs[i].type= GPU_FLOAT;
-		else if (sock->type == SOCK_VECTOR)
-			gs[i].type= GPU_VEC3;
-		else if (sock->type == SOCK_RGBA)
-			gs[i].type= GPU_VEC4;
-		else
-			gs[i].type= GPU_NONE;
-
-		gs[i].name = "";
-		gs[i].hasinput= ns[i]->hasinput && ns[i]->data;
-		gs[i].hasoutput= ns[i]->hasinput && ns[i]->data;
-		gs[i].sockettype= ns[i]->sockettype;
-	}
-
-	gs[i].type= GPU_NONE;
-}
-
-static void data_from_gpu_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)
-{
-	bNodeSocket *sock;
-	int i;
-
-	for (sock=sockets->first, i=0; sock; sock=sock->next, i++) {
-		ns[i]->data= gs[i].link;
-		ns[i]->hasinput= gs[i].hasinput && gs[i].link;
-		ns[i]->hasoutput= gs[i].hasoutput;
-		ns[i]->sockettype= gs[i].sockettype;
-	}
-}
-
-static void gpu_node_group_execute(bNodeStack *stack, GPUMaterial *mat, bNode *gnode, bNodeStack **in, bNodeStack **out)
-{
-	bNode *node;
-	bNodeTree *ntree= (bNodeTree *)gnode->id;
-	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	GPUNodeStack gpuin[MAX_SOCKET+1], gpuout[MAX_SOCKET+1];
-	int doit = 0;
-	
-	if(ntree==NULL) return;
-	
-	stack+= gnode->stack_index;
-		
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->gpufunc) {
-			group_node_get_stack(node, stack, nsin, nsout, in, out);
-
-			doit = 0;
-			
-			/* for groups, only execute outputs for edited group */
-			if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
-				if(gnode->flag & NODE_GROUP_EDIT)
-					if(node->flag & NODE_DO_OUTPUT)
-						doit = 1;
-			}
-			else
-				doit = 1;
-
-			if(doit)  {
-				gpu_from_node_stack(&node->inputs, nsin, gpuin);
-				gpu_from_node_stack(&node->outputs, nsout, gpuout);
-				if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
-					data_from_gpu_stack(&node->outputs, nsout, gpuout);
-			}
-		}
-	}
-}
-
-void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
-{
-	bNode *node;
-	bNodeStack *stack;
-	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	GPUNodeStack gpuin[MAX_SOCKET+1], gpuout[MAX_SOCKET+1];
-
-	if((ntree->init & NTREE_EXEC_INIT)==0)
-		ntreeBeginExecTree(ntree);
-
-	stack= ntree->stack;
-
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if(node->typeinfo->gpufunc) {
-			node_get_stack(node, stack, nsin, nsout);
-			gpu_from_node_stack(&node->inputs, nsin, gpuin);
-			gpu_from_node_stack(&node->outputs, nsout, gpuout);
-			if(node->typeinfo->gpufunc(mat, node, gpuin, gpuout))
-				data_from_gpu_stack(&node->outputs, nsout, gpuout);
-		}
-        else if(node->type==NODE_GROUP && node->id) {
-			node_get_stack(node, stack, nsin, nsout);
-			gpu_node_group_execute(stack, mat, node, nsin, nsout);
-		}
-	}
-
-	ntreeEndExecTree(ntree);
-}
 
 /* **************** call to switch lamploop for material node ************ */
 

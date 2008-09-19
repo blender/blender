@@ -64,7 +64,6 @@ public:
 	 * @param width		The width the window.
 	 * @param height	The height the window.
 	 * @param state		The state the window is initially opened with.
-	 * @param parentWindow 	Parent (embedder) window
 	 * @param type		The type of drawing context installed in this window.
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
@@ -77,7 +76,6 @@ public:
 		GHOST_TUns32 width,	
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
-		const GHOST_TEmbedderWindowID parentWindow,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 		const bool stereoVisual = false
 	);

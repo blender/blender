@@ -30,6 +30,7 @@ SET(SRC
   GPC_Engine.cpp
   GPC_KeyboardDevice.cpp
   GPC_MouseDevice.cpp
+  GPC_PolygonMaterial.cpp
   GPC_RawImage.cpp
   GPC_RawLoadDotBlendArray.cpp
   GPC_RawLogoArrays.cpp
@@ -68,7 +69,6 @@ SET(INC
   ../../../../source/gameengine/GamePlayer/ghost
   ../../../../source/blender/misc
   ../../../../source/blender/blenloader
-  ../../../../source/blender/gpu
   ../../../../extern/glew/include
   ${PYTHON_INC}
   ${SOLID_INC}

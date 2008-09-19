@@ -34,8 +34,6 @@
 
 #include "SCA_ILogicBrick.h"
 
-#include <vector>
-
 /**
  * Interface Class for all logic Sensors. Implements
  * pulsemode,pulsefrequency */
@@ -75,9 +73,9 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** number of connections to controller */
 	int m_links;
 
-	/** list of controllers that have just activated this sensor because of a state change */
-	std::vector<class SCA_IController*> m_newControllers;
-
+	/** Pass the activation on to the logic manager.*/
+	void SignalActivation(class SCA_LogicManager* logicmgr);
+	
 public:
 	SCA_ISensor(SCA_IObject* gameobj,
 				class SCA_EventManager* eventmgr,
@@ -130,8 +128,6 @@ public:
 	/** Resume sensing. */
 	void Resume();
 
-	void AddNewController(class SCA_IController* controller)
-		{ m_newControllers.push_back(controller); }
 	void ClrLink()
 		{ m_links = 0; }
 	void IncLink()
@@ -141,8 +137,7 @@ public:
 		{ return !m_links; }
 
 	/* Python functions: */
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);
-	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsTriggered);
+	KX_PYMETHOD_DOC(SCA_ISensor,IsPositive);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUsePosPulseMode);
 	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetFrequency);

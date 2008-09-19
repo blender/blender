@@ -33,11 +33,8 @@
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
-#include "PyObjectPlus.h"
 #include "compile.h"
 #include "eval.h"
-#include <algorithm>
-
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -140,14 +137,6 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 		Py_DECREF(m_pythondictionary);
 	}
 	m_pythondictionary = PyDict_Copy(pythondictionary); /* new reference */
-}
-
-int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
-{
-	if (std::find(m_triggeredSensors.begin(), m_triggeredSensors.end(), sensor) != 
-		m_triggeredSensors.end())
-		return 1;
-	return 0;
 }
 
 #if 0
@@ -305,7 +294,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	// something in this dictionary and crash?
 	PyDict_Clear(excdict);
 	Py_DECREF(excdict);
-	m_triggeredSensors.erase(m_triggeredSensors.begin(), m_triggeredSensors.end());
+
 	m_sCurrentController = NULL;
 }
 

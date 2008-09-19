@@ -37,10 +37,8 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/render/extern/include
   ../blender/python
   ../blender/makesdna
-  ../blender/gpu
   ../kernel/gen_messaging
   ../kernel/gen_system
-  ../../extern/glew/include
 )
 
 
@@ -191,7 +189,7 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity bf_elbeem)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
   SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
@@ -212,7 +210,6 @@ IF(UNIX)
     blender_python 
     bf_blenkernel 
     bf_nodes
-	bf_gpu
     bf_blenloader 
     bf_blenpluginapi 
     bf_imbuf 
@@ -226,7 +223,7 @@ IF(UNIX)
     bf_decimation 
     bf_elbeem 
     bf_yafray 
-    bf_IK 
+    blender_IK 
     bf_memutil 
     bf_guardedalloc 
     blender_CTR 

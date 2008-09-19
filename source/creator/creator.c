@@ -70,13 +70,13 @@
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 
+#include "BDR_drawmesh.h"
+
 #include "IMB_imbuf.h"	// for quicktime_init
 
 #include "BPY_extern.h"
 
 #include "RE_pipeline.h"
-
-#include "GPU_draw.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -600,12 +600,12 @@ int main(int argc, char **argv)
 							/* doMipMap */
 							if (!strcmp(argv[a],"nomipmap"))
 							{
-								GPU_set_mipmap(0); //doMipMap = 0;
+								set_mipmap(0); //doMipMap = 0;
 							}
 							/* linearMipMap */
 							if (!strcmp(argv[a],"linearmipmap"))
 							{
-								GPU_set_linear_mipmap(1); //linearMipMap = 1;
+								set_linear_mipmap(1); //linearMipMap = 1;
 							}
 
 
@@ -772,10 +772,44 @@ int main(int argc, char **argv)
 		else {
 			
 			/* Make the path absolute because its needed for relative linked blends to be found */
+			int abs = 0;
+			int filelen;
+			char cwd[FILE_MAXDIR + FILE_MAXFILE];
 			char filename[FILE_MAXDIR + FILE_MAXFILE];
+			cwd[0] = filename[0] = '\0';
 			
 			BLI_strncpy(filename, argv[a], sizeof(filename));
-			BLI_convertstringcwd(filename);
+			filelen = strlen(filename);
+			
+			/* relative path checks, could do more tests here... */
+#ifdef WIN32
+			/* Account for X:/ and X:\ - should be enough */
+			if (filelen >= 3 && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
+				abs = 1;
+#else
+			if (filelen >= 2 && filename[0] == '/')
+				abs = 1	;
+#endif
+			if (!abs) {
+				BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
+				
+				if (cwd[0] == '\0') {
+					printf(
+					"Could not get the current working directory - $PWD for an unknown reason.\n\t"
+					"Relative linked files will not load if the entire blend path is not used.\n\t"
+					"The 'Play' button may also fail.\n"
+					);
+				} else {
+					/* uses the blend path relative to cwd important for loading relative linked files.
+					*
+					* cwd should contain c:\ etc on win32 so the relbase can be NULL
+					* relbase being NULL also prevents // being misunderstood as relative to the current
+					* blend file which isnt a feature we want to use in this case since were dealing
+					* with a path from the command line, rather then from inside Blender */
+					
+					BLI_make_file_string(NULL, filename, cwd, argv[a]); 
+				}
+			}
 			
 			if (G.background) {
 				int retval = BKE_read_file(filename, NULL);

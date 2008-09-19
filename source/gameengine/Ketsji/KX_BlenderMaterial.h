@@ -28,6 +28,7 @@ public:
 		BL_Material*	mat,
 		bool			skin,
 		int				lightlayer,
+		void*			clientobject,
 		PyTypeObject*	T=&Type
 	);
 
@@ -46,7 +47,7 @@ public:
 	
 	virtual 
 	void ActivateMeshSlot(
-		const RAS_MeshSlot & ms, 
+		const KX_MeshSlot & ms, 
 		RAS_IRasterizer* rasty 
 	) const;
 	

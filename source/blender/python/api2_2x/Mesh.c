@@ -4163,7 +4163,6 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 {
 	int param;
 	static short bitmask = TF_DYNAMIC
-				| TF_ALPHASORT
 				| TF_TEX
 				| TF_SHAREDVERT
 				| TF_LIGHT
@@ -8697,11 +8696,11 @@ static PyObject *M_Mesh_FaceModesDict( void )
 	if( FM ) {
 		BPy_constant *d = ( BPy_constant * ) FM;
 
-		PyConstant_Insert( d, "BILLBOARD", PyInt_FromLong( TF_BILLBOARD2 ) );
+		PyConstant_Insert( d, "BILLBOARD",
+				 PyInt_FromLong( TF_BILLBOARD2 ) );
 		PyConstant_Insert( d, "ALL", PyInt_FromLong( 0xffff ) );
 		PyConstant_Insert( d, "HALO", PyInt_FromLong( TF_BILLBOARD ) );
 		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( TF_DYNAMIC ) );
-		PyConstant_Insert( d, "ALPHASORT", PyInt_FromLong( TF_ALPHASORT ) );
 		PyConstant_Insert( d, "INVISIBLE", PyInt_FromLong( TF_INVISIBLE ) );
 		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( TF_LIGHT ) );
 		PyConstant_Insert( d, "OBCOL", PyInt_FromLong( TF_OBCOL ) );

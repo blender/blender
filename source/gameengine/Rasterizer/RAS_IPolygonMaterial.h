@@ -71,6 +71,7 @@ protected:
 	bool					m_alpha;
 	bool					m_zsort;
 	int						m_lightlayer;
+	bool					m_bIsTriangle;
 	
 	unsigned int			m_polymatid;
 	static unsigned int		m_newpolymatid;
@@ -105,7 +106,9 @@ public:
 					  int transp,
 					  bool alpha,
 					  bool zsort,
-					  int lightlayer);
+					  int lightlayer,
+					  bool bIsTriangle,
+					  void* clientobject);
 	virtual ~RAS_IPolyMaterial() {};
  
 	/**
@@ -126,13 +129,14 @@ public:
 	{ 
 		return false; 
 	}
-	virtual void ActivateMeshSlot(const class RAS_MeshSlot & ms, RAS_IRasterizer* rasty) const {}
+	virtual void ActivateMeshSlot(const class KX_MeshSlot & ms, RAS_IRasterizer* rasty) const {}
 
 	virtual bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
 	int					GetLightLayer() const;
 	bool				IsAlpha() const;
 	bool				IsZSort() const;
+	bool				UsesTriangles() const;
 	unsigned int		hash() const;
 	int					GetDrawingMode() const;
 	const STR_String&	GetMaterialName() const;
@@ -141,7 +145,6 @@ public:
 	const unsigned int	GetFlag() const;
 
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
-	virtual bool		UsesObjectColor() const;
 	
 	/*
 	 * PreCalculate texture gen

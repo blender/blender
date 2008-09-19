@@ -18,55 +18,45 @@ subject to the following restrictions:
 
 #include "btTriangleMeshShape.h"
 #include "btOptimizedBvh.h"
-#include "LinearMath/btAlignedAllocator.h"
 
-
-///The btBvhTriangleMeshShape is a static-triangle mesh shape with several optimizations, such as bounding volume hierarchy and cache friendly traversal for PlayStation 3 Cell SPU. It is recommended to enable useQuantizedAabbCompression for better memory usage.
-///It takes a triangle mesh as input, for example a btTriangleMesh or btTriangleIndexVertexArray. The btBvhTriangleMeshShape class allows for triangle mesh deformations by a refit or partialRefit method.
-///Instead of building the bounding volume hierarchy acceleration structure, it is also possible to serialize (save) and deserialize (load) the structure from disk.
-///See Demos\ConcaveDemo\ConcavePhysicsDemo.cpp for an example.
+///Bvh Concave triangle mesh is a static-triangle mesh shape with Bounding Volume Hierarchy optimization.
+///Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
 ATTRIBUTE_ALIGNED16(class) btBvhTriangleMeshShape : public btTriangleMeshShape
 {
 
 	btOptimizedBvh*	m_bvh;
 	bool m_useQuantizedAabbCompression;
-	bool m_ownsBvh;
-	bool m_pad[11];////need padding due to alignment
+	bool m_pad[12];////need padding due to alignment
 
 public:
 
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-
-	btBvhTriangleMeshShape() :btTriangleMeshShape(0),m_bvh(0),m_ownsBvh(false) {};
-	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression, bool buildBvh = true);
+	btBvhTriangleMeshShape() :btTriangleMeshShape(0) {};
+	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression);
 
 	///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
-	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax, bool buildBvh = true);
+	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax);
 	
 	virtual ~btBvhTriangleMeshShape();
 
-	bool getOwnsBvh () const
-	{
-		return m_ownsBvh;
-	}
-
+	
+	/*
 	virtual int	getShapeType() const
 	{
 		return TRIANGLE_MESH_SHAPE_PROXYTYPE;
 	}
-	
-	void performRaycast (btTriangleCallback* callback, const btVector3& raySource, const btVector3& rayTarget);
-	void performConvexcast (btTriangleCallback* callback, const btVector3& boxSource, const btVector3& boxTarget, const btVector3& boxMin, const btVector3& boxMax);
+	*/
+
+
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
-	void	refitTree(const btVector3& aabbMin,const btVector3& aabbMax);
+	void	refitTree();
 
 	///for a fast incremental refit of parts of the tree. Note: the entire AABB of the tree will become more conservative, it never shrinks
 	void	partialRefitTree(const btVector3& aabbMin,const btVector3& aabbMax);
 
 	//debugging
-	virtual const char*	getName()const {return "BVHTRIANGLEMESH";}
+	virtual char*	getName()const {return "BVHTRIANGLEMESH";}
 
 
 	virtual void	setLocalScaling(const btVector3& scaling);
@@ -75,10 +65,6 @@ public:
 	{
 		return m_bvh;
 	}
-
-
-	void	setOptimizedBvh(btOptimizedBvh* bvh, const btVector3& localScaling=btVector3(1,1,1));
-
 	bool	usesQuantizedAabbCompression() const
 	{
 		return	m_useQuantizedAabbCompression;

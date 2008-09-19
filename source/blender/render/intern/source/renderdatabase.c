@@ -483,16 +483,16 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 	   DerivedMesh which stores the layers is freed */
 	
 	CustomDataLayer *layer;
-	int numtf = 0, numcol = 0, i, mtfn, mcn;
+	int numlayers, i, mtfn, mcn;
 
 	if (CustomData_has_layer(data, CD_MTFACE)) {
-		numtf= CustomData_number_of_layers(data, CD_MTFACE);
-		obr->mtface= MEM_callocN(sizeof(*obr->mtface)*numtf, "mtfacenames");
+		numlayers= CustomData_number_of_layers(data, CD_MTFACE);
+		obr->mtface= MEM_callocN(sizeof(*obr->mtface)*numlayers, "mtfacenames");
 	}
 
 	if (CustomData_has_layer(data, CD_MCOL)) {
-		numcol= CustomData_number_of_layers(data, CD_MCOL);
-		obr->mcol= MEM_callocN(sizeof(*obr->mcol)*numcol, "mcolnames");
+		numlayers= CustomData_number_of_layers(data, CD_MCOL);
+		obr->mcol= MEM_callocN(sizeof(*obr->mcol)*numlayers, "mcolnames");
 	}
 
 	for (i=0, mtfn=0, mcn=0; i < data->totlayer; i++) {
@@ -500,12 +500,12 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 
 		if (layer->type == CD_MTFACE) {
 			strcpy(obr->mtface[mtfn++], layer->name);
-			obr->actmtface= CLAMPIS(layer->active_rnd, 0, numtf);
+			obr->actmtface= layer->active_rnd;
 			obr->bakemtface= layer->active;
 		}
 		else if (layer->type == CD_MCOL) {
 			strcpy(obr->mcol[mcn++], layer->name);
-			obr->actmcol= CLAMPIS(layer->active_rnd, 0, numcol);
+			obr->actmcol= layer->active_rnd;
 		}
 	}
 }

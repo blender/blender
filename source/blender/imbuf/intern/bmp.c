@@ -164,9 +164,9 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 			}
 		} else if (depth == 32) {
 			for (i = x * y; i > 0; i--) {
-				rect[0] = bmp[2];
+				rect[0] = bmp[0];
 				rect[1] = bmp[1];
-				rect[2] = bmp[0];
+				rect[2] = bmp[2];
 				rect[3] = bmp[3];
 				rect += 4; bmp += 4;
 			}

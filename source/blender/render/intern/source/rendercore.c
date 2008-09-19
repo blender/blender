@@ -158,7 +158,7 @@ static int calchalo_z(HaloRen *har, int zz)
 {
 	
 	if(har->type & HA_ONLYSKY) {
-		if(zz < 0x7FFFFFF0) zz= - 0x7FFFFF;	/* edge render messes zvalues */
+		if(zz!=0x7FFFFFFF) zz= - 0x7FFFFF;
 	}
 	else {
 		zz= (zz>>8);
@@ -931,23 +931,17 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 	}
 }
 
-static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
+
+static void convert_to_key_alpha(RenderPart *pa, float *rectf)
 {
-	RenderLayer *rlpp[RE_MAX_OSA];
-	int y, sample, totsample;
+	int y;
 	
-	totsample= get_sample_layers(pa, rl, rlpp);
-	
-	for(sample= 0; sample<totsample; sample++) {
-		float *rectf= rlpp[sample]->rectf;
-		
-		for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-			if(rectf[3] >= 1.0f);
-			else if(rectf[3] > 0.0f) {
-				rectf[0] /= rectf[3];
-				rectf[1] /= rectf[3];
-				rectf[2] /= rectf[3];
-			}
+	for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+		if(rectf[3] >= 1.0f);
+		else if(rectf[3] > 0.0f) {
+			rectf[0] /= rectf[3];
+			rectf[1] /= rectf[3];
+			rectf[2] /= rectf[3];
 		}
 	}
 }
@@ -1235,7 +1229,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl);
+			convert_to_key_alpha(pa, rl->rectf);
 		
 		/* free stuff within loop! */
 		MEM_freeN(pa->rectdaps); pa->rectdaps= NULL;
@@ -1399,7 +1393,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl);
+			convert_to_key_alpha(pa, rl->rectf);
 		
 		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;

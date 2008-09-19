@@ -40,48 +40,35 @@ SCA_JoystickManager::SCA_JoystickManager(class SCA_LogicManager* logicmgr)
 	: SCA_EventManager(JOY_EVENTMGR),
 	m_logicmgr(logicmgr)
 {
-	int i;
-	for (i=0; i<JOYINDEX_MAX; i++) {
-		m_joystick[i] = SCA_Joystick::GetInstance( i );
-	}
+	m_joystick = SCA_Joystick::GetInstance();
 }
 
 
 SCA_JoystickManager::~SCA_JoystickManager()
 {
-	int i;
-	for (i=0; i<JOYINDEX_MAX; i++) {
-		m_joystick[i]->ReleaseInstance();
-	}
+	m_joystick->ReleaseInstance();
 }
 
 
 void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 {
-	if (m_sensors.size()==0) {
-		return;
-	}
-	else {
-		set<SCA_ISensor*>::iterator it;
-	
-		SCA_Joystick::HandleEvents(); /* Handle all SDL Joystick events */
-	
-		for (it = m_sensors.begin(); it != m_sensors.end(); it++)
+	set<SCA_ISensor*>::iterator it;
+	for (it = m_sensors.begin(); it != m_sensors.end(); it++)
+	{
+		SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*)(*it);
+		if(!joysensor->IsSuspended())
 		{
-			SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*)(*it);
-			if(!joysensor->IsSuspended())
-			{
-				joysensor->Activate(m_logicmgr, NULL);
-			}
+			m_joystick->HandleEvents();
+			joysensor->Activate(m_logicmgr, NULL);
 		}
 	}
 }
 
 
-SCA_Joystick *SCA_JoystickManager::GetJoystickDevice( short int joyindex)
+SCA_Joystick *SCA_JoystickManager::GetJoystickDevice()
 {
 	/* 
 	 *Return the instance of SCA_Joystick for use 
  	 */
-	return m_joystick[joyindex];
+	return m_joystick;
 }

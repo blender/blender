@@ -2632,17 +2632,17 @@ static void write_videoscape_mesh(Object *ob, char *str)
 
 			if(evl->v4==0) {
 				fprintf(fp, "3 %ld %ld %ld 0x%x\n", 
-						(long int) evl->v1->tmp.l,
-						(long int) evl->v2->tmp.l,
-						(long int) evl->v3->tmp.l, 
+						evl->v1->tmp.l,
+						evl->v2->tmp.l,
+						evl->v3->tmp.l, 
 						kleur[evl->mat_nr]);
 			}
 			else {
 				fprintf(fp, "4 %ld %ld %ld %ld 0x%x\n", 
-						(long int) evl->v1->tmp.l, 
-						(long int) evl->v2->tmp.l, 
-						(long int) evl->v3->tmp.l, 
-						(long int) evl->v4->tmp.l, 
+						evl->v1->tmp.l, 
+						evl->v2->tmp.l, 
+						evl->v3->tmp.l, 
+						evl->v4->tmp.l, 
 						kleur[evl->mat_nr]);
 			}
 			evl= evl->next;

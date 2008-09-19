@@ -21,7 +21,7 @@ class KX_TrackToActuator(SCA_IActuator):
 		@type object: L{KX_GameObject}, string or None
 		@param object: Either a reference to a game object or the name of the object to track.
 		"""
-	def getObject(name_only):
+	def getObject():
 		"""
 		Returns the name of the object to track.
 		

@@ -161,8 +161,6 @@ class Lamp:
 	@type type:  int
 	@ivar falloffType:  Lamp falloff type.  See L{Falloffs} for values.
 	@type falloffType:  int
-	@type textures: a tuple of Blender MTex objects.
-	@ivar textures: The Lamp's texture list.  Empty texture channels contains None.
 
 	@warning: Most member variables assume values in some [Min, Max] interval.
 		When trying to set them, the given parameter will be clamped to lie in

@@ -2698,21 +2698,16 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	free_tagged_edges_faces(em->edges.first, em->faces.first); 
 	
 	if(seltype == SUBDIV_SELECT_ORIG  && G.qual  != LR_CTRLKEY) {
-		/* bugfix: vertex could get flagged as "not-selected"
-		// solution: clear flags before, not at the same time as setting SELECT flag -dg
-		*/
-		for(eed = em->edges.first;eed;eed = eed->next) {
-			if(!(eed->f2 & EDGENEW || eed->f2 & EDGEOLD)) {
-				eed->f &= !flag;
-				EM_select_edge(eed,0); 
-			}
-		}
 		for(eed = em->edges.first;eed;eed = eed->next) {
 			if(eed->f2 & EDGENEW || eed->f2 & EDGEOLD) {
 				eed->f |= flag;
-				EM_select_edge(eed,1);
+				EM_select_edge(eed,1); 
+				
+			}else{
+				eed->f &= !flag;
+				EM_select_edge(eed,0); 
 			}
-		}
+		}   
 	} else if ((seltype == SUBDIV_SELECT_INNER || seltype == SUBDIV_SELECT_INNER_SEL)|| G.qual == LR_CTRLKEY) {
 		for(eed = em->edges.first;eed;eed = eed->next) {
 			if(eed->f2 & EDGEINNER) {
@@ -4653,12 +4648,6 @@ void bevel_menu_old()
 }
 
 /* *********** END BEVEL *********/
-typedef struct SlideUv {
-	float origuv[2];
-	float *uv_up, *uv_down;
-	//float *fuv[4];
-	LinkNode *fuv_list;
-} SlideUv;
 
 typedef struct SlideVert {
 	EditEdge *up,*down;
@@ -4666,19 +4655,9 @@ typedef struct SlideVert {
 } SlideVert;
 
 int EdgeLoopDelete(void) {
-	
-	/* temporal flag setting so we keep UVs when deleting edge loops,
-	 * this is a bit of a hack but it works how you would want in almost all cases */
-	short uvcalc_flag_orig = G.scene->toolsettings->uvcalc_flag; 
-	G.scene->toolsettings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
-	
 	if(!EdgeSlide(1, 1)) {
 		return 0;
 	}
-	
-	/* restore uvcalc flag */
-	G.scene->toolsettings->uvcalc_flag = uvcalc_flag_orig;
-	
 	EM_select_more();
 	removedoublesflag(1,0, 0.001);
 	EM_select_flush();
@@ -4688,35 +4667,22 @@ int EdgeLoopDelete(void) {
 
 int EdgeSlide(short immediate, float imperc)
 {
-	NumInput num;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
 	EditVert *ev, *nearest;
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
-
 	SlideVert *tempsv;
 	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4];
 	float shiftlabda= 0.0f,len = 0.0f;
 	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
 	int wasshift = 0;
-	
-	/* UV correction vars */
-	GHash **uvarray= NULL;
-	int  uvlay_tot= CustomData_number_of_layers(&G.editMesh->fdata, CD_MTFACE);
-	int uvlay_idx;
-	SlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;	
-	float uv_tmp[2];
-	LinkNode *fuv_link;
-	
 	short event, draw=1;
 	short mval[2], mvalo[2];
 	char str[128]; 
 	float labda = 0.0f;
 	
-	initNumInput(&num);
-		
 	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
 	
 	mvalo[0] = -1; mvalo[1] = -1; 
@@ -5016,99 +4982,6 @@ int EdgeSlide(short immediate, float imperc)
 		
 		look = look->next;   
 	}	   
-	
-	
-	if (uvlay_tot && (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
-		int maxnum = 0;
-		uvarray = MEM_callocN( uvlay_tot * sizeof(GHash *), "SlideUVs Array");
-		suv_last = slideuvs = MEM_callocN( uvlay_tot * (numadded+1) * sizeof(SlideUv), "SlideUVs"); /* uvLayers * verts */
-		suv = NULL;
-		
-		for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-			
-			uvarray[uvlay_idx] = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
-			
-			for(ev=em->verts.first;ev;ev=ev->next) {
-				ev->tmp.l = 0;
-			}
-			look = vertlist;
-			while(look) {
-				float *uv_new;
-				tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-				
-				ev = look->link;
-				suv = NULL;
-				for(efa = em->faces.first;efa;efa=efa->next) {
-					if (ev->tmp.l != -1) { /* test for self, in this case its invalid */
-						int k=-1; /* face corner */
-					
-						/* Is this vert in the faces corner? */
-						if		(efa->v1==ev)				k=0;
-						else if	(efa->v2==ev)				k=1;
-						else if	(efa->v3==ev)				k=2;
-						else if	(efa->v4 && efa->v4==ev)	k=3;
-						
-						if (k != -1) {
-							MTFace *tf = CustomData_em_get_n(&em->fdata, efa->data, CD_MTFACE, uvlay_idx);
-							EditVert *ev_up, *ev_down;
-							
-							uv_new = tf->uv[k];
-				
-							if (ev->tmp.l) {
-								if (fabs(suv->origuv[0]-uv_new[0]) > 0.0001 || fabs(suv->origuv[1]-uv_new[1])) {
-									ev->tmp.l = -1; /* Tag as invalid */
-									BLI_linklist_free(suv->fuv_list,NULL);
-									suv->fuv_list = NULL;
-									BLI_ghash_remove(uvarray[uvlay_idx],ev, NULL, NULL);
-									suv = NULL;
-									break;
-								}
-							} else {
-								ev->tmp.l = 1;
-								suv = suv_last;
-
-								suv->fuv_list = NULL;
-								suv->uv_up = suv->uv_down = NULL;
-								suv->origuv[0] = uv_new[0];
-								suv->origuv[1] = uv_new[1];
-								
-								BLI_linklist_prepend(&suv->fuv_list, uv_new);
-								BLI_ghash_insert(uvarray[uvlay_idx],ev,suv);
-								
-								suv_last++; /* advance to next slide UV */
-								maxnum++;
-							}
-				
-							/* Now get the uvs along the up or down edge if we can */
-							if (suv) {
-								if (!suv->uv_up) {
-									ev_up = editedge_getOtherVert(tempsv->up,ev);
-									if		(efa->v1==ev_up)				suv->uv_up = tf->uv[0];
-									else if	(efa->v2==ev_up)				suv->uv_up = tf->uv[1];
-									else if	(efa->v3==ev_up)				suv->uv_up = tf->uv[2];
-									else if	(efa->v4 && efa->v4==ev_up)		suv->uv_up = tf->uv[3];
-								}
-								if (!suv->uv_down) { /* if the first face was apart of the up edge, it cant be apart of the down edge */
-									ev_down = editedge_getOtherVert(tempsv->down,ev);
-									if		(efa->v1==ev_down)				suv->uv_down = tf->uv[0];
-									else if	(efa->v2==ev_down)				suv->uv_down = tf->uv[1];
-									else if	(efa->v3==ev_down)				suv->uv_down = tf->uv[2];
-									else if	(efa->v4 && efa->v4==ev_down)	suv->uv_down = tf->uv[3];
-								}
-					
-								/* Copy the pointers to the face UV's */
-								BLI_linklist_prepend(&suv->fuv_list, uv_new);
-							}
-						}
-					}
-				}
-				look = look->next;
-			}
-		} /* end uv layer loop */
-	} /* end uvlay_tot */
-	
-	
-	
 	// we should have enough info now to slide
 
 	len = 0.0f; 
@@ -5121,22 +4994,88 @@ int EdgeSlide(short immediate, float imperc)
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
 		
+		
+
 		getmouseco_areawin(mval);  
 		
 		if (!immediate && (mval[0] == mvalo[0] && mval[1] ==  mvalo[1])) {
 			PIL_sleep_ms(10);
 		} else {
-			char *p = str;;
 
 			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
 			
+			//Adjust Edgeloop
+			if(immediate) {
+				perc = imperc;   
+			}
+			percp = perc;
+			if(prop) {
+				look = vertlist;	  
+				while(look) { 
+					EditVert *tempev;
+					ev = look->link;
+					tempsv = BLI_ghash_lookup(vertgh,ev);
+					
+					tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
+					VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
+									
+					look = look->next;	 
+				}
+			}
+			else {
+				//Non prop code  
+				look = vertlist;	  
+				while(look) { 
+					float newlen;
+					ev = look->link;
+					tempsv = BLI_ghash_lookup(vertgh,ev);
+					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+					if(newlen > 1.0) {newlen = 1.0;}
+					if(newlen < 0.0) {newlen = 0.0;}
+					if(flip == 0) {
+						VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
+					} else{
+						VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
+					}
+					look = look->next;	 
+				}
 
+			}
+			
 			tempsv = BLI_ghash_lookup(vertgh,nearest);
 
 			centerVert = editedge_getSharedVert(tempsv->up, tempsv->down);
 			upVert = editedge_getOtherVert(tempsv->up, centerVert);
 			downVert = editedge_getOtherVert(tempsv->down, centerVert);
+			 // Highlight the Control Edges
+	
+			scrarea_do_windraw(curarea);   
+			persp(PERSP_VIEW);   
+			glPushMatrix();   
+			mymultmatrix(G.obedit->obmat);
+
+			glColor3ub(0, 255, 0);   
+			glBegin(GL_LINES);
+			glVertex3fv(upVert->co);
+			glVertex3fv(downVert->co);
+			glEnd(); 
+			
+			if(prop == 0) {
+				// draw start edge for non-prop
+				glPointSize(5);
+				glBegin(GL_POINTS);
+				glColor3ub(255,0,255);
+				if(flip) {
+					glVertex3fv(upVert->co);
+				} else {
+					glVertex3fv(downVert->co);					
+				}
+				glEnd();	
+			}
+			
+			
+			glPopMatrix();		 
 
 			view3d_project_float(curarea, upVert->co, v2, projectMat);
 			view3d_project_float(curarea, downVert->co, v3, projectMat);
@@ -5175,169 +5114,18 @@ int EdgeSlide(short immediate, float imperc)
 				perc = floor(perc);
 				perc /= 10;				   
 			}			
-			
-			if(prop == 0) {
+			if(prop) {
+				sprintf(str, "(P)ercentage: %f", perc);
+			} else {
 				len = VecLenf(upVert->co,downVert->co)*((perc+1)/2);
 				if(flip == 1) {
 					len = VecLenf(upVert->co,downVert->co) - len;
 				} 
-			}
-			
-			if (hasNumInput(&num))
-			{
-				applyNumInput(&num, &perc);
-				
-				if (prop)
-				{
-					perc = MIN2(perc, 1);
-					perc = MAX2(perc, -1);
-				}
-				else
-				{
-					len = MIN2(perc, VecLenf(upVert->co,downVert->co));
-					len = MAX2(len, 0);
-				}
+				sprintf(str, "Non (P)rop Length: %f, Press (F) to flip control side", len);
 			}
 
-			//Adjust Edgeloop
-			if(immediate) {
-				perc = imperc;   
-			}
-			percp = perc;
-			if(prop) {
-				look = vertlist;	  
-				while(look) { 
-					EditVert *tempev;
-					ev = look->link;
-					tempsv = BLI_ghash_lookup(vertgh,ev);
-					
-					tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
-					VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
-					
-					if (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
-						for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-							suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
-							if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-								Vec2Lerpf(uv_tmp, suv->origuv,  (perc>=0)?suv->uv_up:suv->uv_down, fabs(perc));
-								fuv_link = suv->fuv_list;
-								while (fuv_link) {
-									VECCOPY2D(((float *)fuv_link->link), uv_tmp);
-									fuv_link = fuv_link->next;
-								}
-							}
-						}
-					}
-					
-					look = look->next;	 
-				}
-			}
-			else {
-				//Non prop code  
-				look = vertlist;	  
-				while(look) { 
-					float newlen;
-					ev = look->link;
-					tempsv = BLI_ghash_lookup(vertgh,ev);
-					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
-					if(newlen > 1.0) {newlen = 1.0;}
-					if(newlen < 0.0) {newlen = 0.0;}
-					if(flip == 0) {
-						VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
-						if (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
-							/* dont do anything if no UVs */
-							for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-								suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
-								if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-									Vec2Lerpf(uv_tmp, suv->uv_down, suv->uv_up, fabs(newlen));
-									fuv_link = suv->fuv_list;
-									while (fuv_link) {
-										VECCOPY2D(((float *)fuv_link->link), uv_tmp);
-										fuv_link = fuv_link->next;
-									}
-								}
-							}
-						}
-					} else{
-						VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
-						
-						if (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
-							/* dont do anything if no UVs */
-							for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-								suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
-								if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
-									Vec2Lerpf(uv_tmp, suv->uv_up, suv->uv_down, fabs(newlen));
-									fuv_link = suv->fuv_list;
-									while (fuv_link) {
-										VECCOPY2D(((float *)fuv_link->link), uv_tmp);
-										fuv_link = fuv_link->next;
-									}
-								}
-							}
-						}
-					}
-					look = look->next;	 
-				}
-
-			}
-			
-			 // Highlight the Control Edges
-			scrarea_do_windraw(curarea);   
-			persp(PERSP_VIEW);   
-			glPushMatrix();   
-			mymultmatrix(G.obedit->obmat);
-
-			glColor3ub(0, 255, 0);   
-			glBegin(GL_LINES);
-			glVertex3fv(upVert->co);
-			glVertex3fv(downVert->co);
-			glEnd(); 
-			
-			if(prop == 0) {
-				// draw start edge for non-prop
-				glPointSize(5);
-				glBegin(GL_POINTS);
-				glColor3ub(255,0,255);
-				if(flip) {
-					glVertex3fv(upVert->co);
-				} else {
-					glVertex3fv(downVert->co);					
-				}
-				glEnd();	
-			}
 			
 			
-			glPopMatrix();		 
-
-			if(prop) {
-				p += sprintf(str, "(P)ercentage: ");
-			} else {
-				p += sprintf(str, "Non (P)rop Length: ");
-			}
-			
-			if (hasNumInput(&num))
-			{
-				char num_str[20];
-				
-				outputNumInput(&num, num_str);
-				p += sprintf(p, "%s", num_str);
-			}
-			else
-			{
-				if (prop)
-				{
-					p += sprintf(p, "%f", perc);
-				}
-				else
-				{
-					p += sprintf(p, "%f", len);
-				}
-			}
-			
-			
-			if (prop == 0) {
-				p += sprintf(p, ", Press (F) to flip control side");
-			}
-
 			headerprint(str);
 			screen_swapbuffers();			
 		}
@@ -5360,14 +5148,7 @@ int EdgeSlide(short immediate, float imperc)
 							perc = 0;  
 							immediate = 1;
 					} else if(event==PKEY) {
-							initNumInput(&num); /* reset num input */
-							if (prop) {
-								prop = 0;
-								num.flag |= NUM_NO_NEGATIVE;
-							}
-							else {
-								prop = 1;
-							}
+							(prop == 1) ? (prop = 0):(prop = 1);
 							mvalo[0] = -1;  
 					} else if(event==FKEY) {
 							(flip == 1) ? (flip = 0):(flip = 1); 
@@ -5405,13 +5186,7 @@ int EdgeSlide(short immediate, float imperc)
 							look = look->next;   
 						}	  
 					}
-					
-					if (handleNumInput(&num, event))
-					{
-						mvalo[0] = -1; /* NEED A BETTER WAY TO TRIGGER REDRAW */
-					}
 				}
-				
 			} 
 		} else {
 			draw = 0;
@@ -5443,24 +5218,6 @@ int EdgeSlide(short immediate, float imperc)
 	BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
 	BLI_linklist_free(vertlist,NULL); 
 	BLI_linklist_free(edgelist,NULL); 
-	
-	if (uvlay_tot && (G.scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
-		for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
-			BLI_ghash_free(uvarray[uvlay_idx], NULL, NULL);
-		}
-		MEM_freeN(uvarray);
-		MEM_freeN(slideuvs);
-		
-		suv = suv_last-1;
-		while (suv >= slideuvs) {
-			if (suv->fuv_list) {
-				BLI_linklist_free(suv->fuv_list,NULL);
-			}
-			suv--;
-		}
-		
-		allqueue(REDRAWIMAGE, 0);
-	}
 
 	if(cancel == 1) {
 		return -1;

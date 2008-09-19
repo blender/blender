@@ -32,7 +32,6 @@ SET(INC
   ../../../../intern/moto/include
   ../../../../source/gameengine/Rasterizer
   ../../../../extern/glew/include
-  ../../../../source/blender/gpu
 )
 
 BLENDERLIB(bf_oglrasterizer "${SRC}" "${INC}")

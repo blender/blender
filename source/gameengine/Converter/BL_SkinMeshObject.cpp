@@ -28,69 +28,42 @@
  * Deformer that supports armature skinning
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef WIN32
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-
-#include "RAS_BucketManager.h"
 #include "RAS_IPolygonMaterial.h"
-
-#include "KX_GameObject.h"
-
 #include "BL_SkinMeshObject.h"
 #include "BL_DeformableGameObject.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "KX_GameObject.h"
+#include "RAS_BucketManager.h"
 
-BL_SkinMeshObject::BL_SkinMeshObject(Mesh* mesh, int lightlayer)
- : RAS_MeshObject (mesh, lightlayer)
-{ 
-	m_bDeformed = true;
-
-	if (m_mesh && m_mesh->key)
-	{
-		KeyBlock *kb;
-		int count=0;
-		// initialize weight cache for shape objects
-		// count how many keys in this mesh
-		for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next)
-			count++;
-		m_cacheWeightIndex.resize(count,-1);
-	}
-}
-
-BL_SkinMeshObject::~BL_SkinMeshObject()
+//void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec,RAS_BucketManager* bucketmgr)
+void BL_SkinMeshObject::Bucketize(double* oglmatrix,void* clientobj,bool useObjectColor,const MT_Vector4& rgbavec)
 {
-	if (m_mesh && m_mesh->key) 
+
+	KX_MeshSlot ms;
+	ms.m_clientObj = clientobj;
+	ms.m_mesh = this;
+	ms.m_OpenGLMatrix = oglmatrix;
+	ms.m_bObjectColor = useObjectColor;
+	ms.m_RGBAcolor = rgbavec;
+	ms.m_pDeformer = ((BL_DeformableGameObject*)clientobj)->m_pDeformer;
+	
+	for (RAS_MaterialBucket::Set::iterator it = m_materials.begin();it!=m_materials.end();it++)
 	{
-		KeyBlock *kb;
-		// remove the weight cache to avoid memory leak 
-		for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next) {
-			if(kb->weights) 
-				MEM_freeN(kb->weights);
-			kb->weights= NULL;
-		}
-	}
-}
 
-void BL_SkinMeshObject::UpdateBuckets(void* clientobj,double* oglmatrix,bool useObjectColor,const MT_Vector4& rgbavec, bool visible, bool culled)
-{
-	list<RAS_MeshMaterial>::iterator it;
-	list<RAS_MeshSlot*>::iterator sit;
+		RAS_MaterialBucket* materialbucket = (*it);
 
-	for(it = m_materials.begin();it!=m_materials.end();++it) {
-		if(!it->m_slots[clientobj])
-			continue;
-
-		RAS_MeshSlot *slot = *it->m_slots[clientobj];
-		slot->m_pDeformer = ((BL_DeformableGameObject*)clientobj)->m_pDeformer;
+//		KX_ArrayOptimizer* oa = GetArrayOptimizer(materialbucket->GetPolyMaterial());
+		materialbucket->SetMeshSlot(ms);
 	}
 
-	RAS_MeshObject::UpdateBuckets(clientobj, oglmatrix, useObjectColor, rgbavec, visible, culled);
 }
 
 static int get_def_index(Object* ob, const char* vgroup)
@@ -101,7 +74,6 @@ static int get_def_index(Object* ob, const char* vgroup)
 	for (curdef = (bDeformGroup*)ob->defbase.first; curdef; curdef=(bDeformGroup*)curdef->next, index++)
 		if (!strcmp(curdef->name, vgroup))
 			return index;
-
 	return -1;
 }
 

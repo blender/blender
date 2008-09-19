@@ -16,13 +16,11 @@ subject to the following restrictions:
 #ifndef SPHERE_BOX_COLLISION_ALGORITHM_H
 #define SPHERE_BOX_COLLISION_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
+#include "../BroadphaseCollision/btCollisionAlgorithm.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
+#include "../CollisionDispatch/btCollisionCreateFunc.h"
 class btPersistentManifold;
-#include "btCollisionDispatcher.h"
-
-#include "LinearMath/btVector3.h"
+#include "../../LinearMath/btVector3.h"
 
 /// btSphereBoxCollisionAlgorithm  provides sphere-box collision detection.
 /// Other features are frame-coherency (persistent data) and collision response.
@@ -42,14 +40,6 @@ public:
 
 	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual	void	getAllContactManifolds(btManifoldArray&	manifoldArray)
-	{
-		if (m_manifoldPtr && m_ownManifold)
-		{
-			manifoldArray.push_back(m_manifoldPtr);
-		}
-	}
-
 	btScalar getSphereDistance( btCollisionObject* boxObj,btVector3& v3PointOnBox, btVector3& v3PointOnSphere, const btVector3& v3SphereCenter, btScalar fRadius );
 
 	btScalar getSpherePenetration( btCollisionObject* boxObj, btVector3& v3PointOnBox, btVector3& v3PointOnSphere, const btVector3& v3SphereCenter, btScalar fRadius, const btVector3& aabbMin, const btVector3& aabbMax);
@@ -58,13 +48,12 @@ public:
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereBoxCollisionAlgorithm));
 			if (!m_swapped)
 			{
-				return new(mem) btSphereBoxCollisionAlgorithm(0,ci,body0,body1,false);
+				return new btSphereBoxCollisionAlgorithm(0,ci,body0,body1,false);
 			} else
 			{
-				return new(mem) btSphereBoxCollisionAlgorithm(0,ci,body0,body1,true);
+				return new btSphereBoxCollisionAlgorithm(0,ci,body0,body1,true);
 			}
 		}
 	};

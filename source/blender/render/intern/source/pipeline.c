@@ -138,7 +138,7 @@ static void print_error(char *str) {printf("ERROR: %s\n", str);}
 
 static void stats_background(RenderStats *rs)
 {
-	uintptr_t mem_in_use= MEM_get_memory_in_use();
+	extern uintptr_t mem_in_use;
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
 	
@@ -1889,7 +1889,6 @@ static void do_render_fields_blur_3d(Render *re)
 				re->result->tilerect= re->disprect;
 				
 				/* this copying sequence could become function? */
-				/* weak is: it chances disprect from border */
 				re->disprect.xmin= re->disprect.ymin= 0;
 				re->disprect.xmax= re->winx;
 				re->disprect.ymax= re->winy;
@@ -2347,12 +2346,6 @@ static int is_rendering_allowed(Render *re)
 		if(re->osa==0)
 			re->r.scemode &= ~R_FULL_SAMPLE;
 		
-		/* no fullsample and edge */
-		if((re->r.scemode & R_FULL_SAMPLE) && (re->r.mode & R_EDGE)) {
-			re->error("Full Sample doesn't support Edge Enhance");
-			return 0;
-		}
-		
 	}
 	else
 		re->r.scemode &= ~R_FULL_SAMPLE;	/* clear to be sure */
@@ -2414,7 +2407,7 @@ static int is_rendering_allowed(Render *re)
 }
 
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
+static int render_initialize_from_scene(Render *re, Scene *scene)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2441,12 +2434,6 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 	}
 	
 	re->scene= scene;
-	
-	/* not too nice, but it survives anim-border render */
-	if(anim) {
-		re->disprect= disprect;
-		return 1;
-	}
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
@@ -2479,7 +2466,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene, 0)) {
+	if(render_initialize_from_scene(re, scene)) {
 		do_render_all_options(re);
 	}
 	
@@ -2564,8 +2551,8 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	int cfrao= scene->r.cfra;
 	
-	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene, 0))
+	/* do not call for each frame, it initializes & pops output window */
+	if(!render_initialize_from_scene(re, scene))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2593,10 +2580,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 	} else {
 		for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
 			char name[FILE_MAX];
-			
-			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_scene(re, scene, 1);
-			
 			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
 				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 			}

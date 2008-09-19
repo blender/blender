@@ -99,34 +99,6 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 	
 }
 
-static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	static char *names[] = {"vec_math_add", "vec_math_subtract",
-		"vec_math_average", "vec_math_dot", "vec_math_cross",
-		"vec_math_normalize"};
-
-	switch (node->custom1) {
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-			GPU_stack_link(mat, names[node->custom1], NULL, out,
-				GPU_socket(&in[0]), GPU_socket(&in[1]));
-			break;
-		case 5:
-			if(in[0].hasinput || !in[1].hasinput)
-				GPU_stack_link(mat, names[node->custom1], NULL, out, GPU_socket(&in[0]));
-			else
-				GPU_stack_link(mat, names[node->custom1], NULL, out, GPU_socket(&in[1]));
-			break;
-		default:
-			return 0;
-	}
-	
-	return 1;
-}
-
 bNodeType sh_node_vect_math= { 
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */ SH_NODE_VECT_MATH, 
@@ -141,7 +113,6 @@ bNodeType sh_node_vect_math= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_vect_math
+	/* id          */	NULL
 };
 

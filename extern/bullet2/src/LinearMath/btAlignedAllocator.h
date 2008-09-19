@@ -21,39 +21,15 @@ subject to the following restrictions:
 ///that is better portable and more predictable
 
 #include "btScalar.h"
-//#define BT_DEBUG_MEMORY_ALLOCATIONS 1
-#ifdef BT_DEBUG_MEMORY_ALLOCATIONS
 
-#define btAlignedAlloc(a,b) \
-		btAlignedAllocInternal(a,b,__LINE__,__FILE__)
+void*	btAlignedAlloc	(int size, int alignment);
 
-#define btAlignedFree(ptr) \
-		btAlignedFreeInternal(ptr,__LINE__,__FILE__)
+void	btAlignedFree	(void* ptr);
 
-void*	btAlignedAllocInternal	(size_t size, int alignment,int line,char* filename);
 
-void	btAlignedFreeInternal	(void* ptr,int line,char* filename);
-
-#else
-	void*	btAlignedAllocInternal	(size_t size, int alignment);
-	void	btAlignedFreeInternal	(void* ptr);
-
-	#define btAlignedAlloc(a,b) btAlignedAllocInternal(a,b)
-	#define btAlignedFree(ptr) btAlignedFreeInternal(ptr)
-
-#endif
 typedef int	size_type;
 
-typedef void *(btAlignedAllocFunc)(size_t size, int alignment);
-typedef void (btAlignedFreeFunc)(void *memblock);
-typedef void *(btAllocFunc)(size_t size);
-typedef void (btFreeFunc)(void *memblock);
 
-void btAlignedAllocSetCustomAligned(btAlignedAllocFunc *allocFunc, btAlignedFreeFunc *freeFunc);
-void btAlignedAllocSetCustom(btAllocFunc *allocFunc, btFreeFunc *freeFunc);
-
-///The btAlignedAllocator is a portable class for aligned memory allocations.
-///Default implementations for unaligned and aligned allocations can be overridden by a custom allocator using btAlignedAllocSetCustom and btAlignedAllocSetCustomAligned.
 template < typename T , unsigned Alignment >
 class btAlignedAllocator {
 	

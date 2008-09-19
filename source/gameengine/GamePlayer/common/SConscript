@@ -8,6 +8,7 @@ source_files = ['bmfont.cpp',
                 'GPC_Engine.cpp',
                 'GPC_KeyboardDevice.cpp',
                 'GPC_MouseDevice.cpp',
+                'GPC_PolygonMaterial.cpp',
                 'GPC_RawImage.cpp',
                 'GPC_RawLoadDotBlendArray.cpp',
                 'GPC_RawLogoArrays.cpp',
@@ -45,7 +46,6 @@ incs = ['.',
         '#source/gameengine/GamePlayer/ghost',
         '#source/blender/misc',
         '#source/blender/blenloader',
-        '#source/blender/gpu',
 		'#extern/glew/include']
                                 
 #This is all plugin stuff!

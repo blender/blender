@@ -44,9 +44,12 @@ class RAS_IRenderTools
 {
 
 protected:
+	float	m_viewmat[16];
 	void*	m_clientobject;
 	void*	m_auxilaryClientInfo;
 
+	bool	m_modified;
+	
 	std::vector<struct	RAS_LightObject*> m_lights;
 	
 	RAS_2DFilterManager m_filtermanager;
@@ -65,7 +68,8 @@ public:
 
 	RAS_IRenderTools(
 	) :
-		m_clientobject(NULL)
+		m_clientobject(NULL),
+		m_modified(true)
 	{
 	};
 
@@ -127,21 +131,24 @@ public:
 		float v1[3],
 		float v2[3],
 		float v3[3],
-		float v4[3],
-		int glattrib
+		float v4[3]
 	)=0;
 
 	virtual 
-		void		
-	ProcessLighting(
-		int layer,
+		void	
+	SetViewMat(
 		const MT_Transform& trans
+	);
+
+	virtual 
+		int		
+	ProcessLighting(
+		int layer
 	)=0;
 
 	virtual
 		void	
 	SetClientObject(
-		RAS_IRasterizer* rasty,
 		void* obj
 	);
 
@@ -183,6 +190,24 @@ public:
 	virtual
 		void
 		Render2DFilters(RAS_ICanvas* canvas)=0;
+
+	virtual 
+		class RAS_IPolyMaterial*	
+	CreateBlenderPolyMaterial(
+		const STR_String &texname,
+		bool ba,
+		const STR_String& matname,
+		int tile,
+		int tilexrep,
+		int tileyrep,
+		int mode,
+		bool transparant,
+		bool zsort,
+		int lightlayer,
+		bool bIsTriangle,
+		void* clientobject,
+		void* tface
+	)=0;
 };
 
 #endif //__RAS_IRENDERTOOLS

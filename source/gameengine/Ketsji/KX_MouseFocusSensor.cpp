@@ -122,9 +122,15 @@ bool KX_MouseFocusSensor::Evaluate(CValue* event)
 	return result;
 }
 
-bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* result, void * const data)
+bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
 {
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
+	
+	if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
+	{
+		// false hit
+		return false;
+	}
 	
 	/* Is this me? In the ray test, there are a lot of extra checks
 	* for aliasing artefacts from self-hits. That doesn't happen
@@ -136,8 +142,8 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 	if ((m_focusmode == 2) || hitKXObj == thisObj)
 	{
 		m_hitObject = hitKXObj;
-		m_hitPosition = result->m_hitPoint;
-		m_hitNormal = result->m_hitNormal;
+		m_hitPosition = hit_point;
+		m_hitNormal = hit_normal;
 		return true;
 	}
 	
@@ -152,6 +158,8 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	m_hitObject = 0;
 	m_hitPosition = MT_Vector3(0,0,0);
 	m_hitNormal =	MT_Vector3(1,0,0);
+	MT_Point3 resultpoint;
+	MT_Vector3 resultnormal;
 
 	/* All screen handling in the gameengine is done by GL,
 	 * specifically the model/view and projection parts. The viewport
@@ -272,8 +280,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 
 	bool result = false;
 
-	KX_RayCast::Callback<KX_MouseFocusSensor> callback(this,physics_controller);
-	KX_RayCast::RayTest(physics_environment, frompoint3, topoint3, callback);
+	result = KX_RayCast::RayTest(physics_controller, physics_environment, frompoint3, topoint3, resultpoint, resultnormal, KX_RayCast::Callback<KX_MouseFocusSensor>(this));
 	
 	result = (m_hitObject!=0);
 

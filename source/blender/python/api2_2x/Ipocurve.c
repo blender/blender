@@ -35,7 +35,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
 #include "BKE_utildefines.h"
-#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"

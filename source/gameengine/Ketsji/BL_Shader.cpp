@@ -433,7 +433,7 @@ void BL_Shader::SetProg(bool enable)
 	}
 }
 
-void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
+void BL_Shader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 {
 	if(!Ok() || !mPreDef.size()) 
 		return;
@@ -445,7 +445,8 @@ void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 	{
 		MT_Matrix4x4 model;
 		model.setValue(ms.m_OpenGLMatrix);
-		const MT_Matrix4x4& view = rasty->GetViewMatrix();
+		MT_Matrix4x4 view;
+		rasty->GetViewMatrix(view);
 
 		if(mAttr==SHD_TANGENT)
 			 ms.m_mesh->SetMeshModified(true);
@@ -524,15 +525,13 @@ void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 					}
 				case VIEWMATRIX_INVERSE:
 					{
-						MT_Matrix4x4 viewinv = view;
-						viewinv.invert();
+						view.invert();
 						SetUniform(uni->mLoc, view);
 						break;
 					}
 				case VIEWMATRIX_INVERSETRANSPOSE:
 					{
-						MT_Matrix4x4 viewinv = view;
-						viewinv.invert();
+						view.invert();
 						SetUniform(uni->mLoc, view, true);
 						break;
 					}
@@ -671,7 +670,6 @@ void BL_Shader::SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose)
 		)
 	{
 		float value[16];
-		// note: getValue gives back column major as needed by OpenGL
 		vec.getValue(value);
 		glUniformMatrix4fvARB(uniform, 1, transpose?GL_TRUE:GL_FALSE, value);
 	}

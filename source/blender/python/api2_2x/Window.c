@@ -1249,10 +1249,9 @@ static PyObject *M_Window_TestBreak( PyObject * self )
 		
 static PyObject *M_Window_GetMouseCoords( PyObject * self )
 {
-	short mval[2] = {0, 0};
+	short mval[2];
 
-	if (!G.background)
-		getmouse( mval );
+	getmouse( mval );
 
 	return Py_BuildValue( "hh", mval[0], mval[1] );
 }
@@ -1284,12 +1283,16 @@ static PyObject *M_Window_SetMouseCoords( PyObject * self, PyObject * args )
 
 static PyObject *M_Window_GetMouseButtons( PyObject * self )
 {
-	return PyInt_FromLong(G.background ? 0 : (int)get_mbut() );
+	short mbut = get_mbut(  );
+
+	return Py_BuildValue( "h", mbut );
 }
 
 static PyObject *M_Window_GetKeyQualifiers( PyObject * self )
 {
-	return PyInt_FromLong( (int)get_qual() );
+	short qual = get_qual(  );
+
+	return Py_BuildValue( "h", qual );
 }
 
 static PyObject *M_Window_SetKeyQualifiers( PyObject * self, PyObject * args )

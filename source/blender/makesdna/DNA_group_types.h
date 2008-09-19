@@ -54,7 +54,7 @@ typedef struct Group {
 	 * the objects that show in the group can change depending
 	 * on the last used scene */
 	unsigned int layer;
-	float dupli_ofs[3];
+	int pad;
 } Group;
 
 

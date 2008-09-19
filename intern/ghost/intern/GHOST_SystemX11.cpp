@@ -191,7 +191,6 @@ getMainDisplayDimensions(
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
-	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	GHOST_IWindow* 
@@ -204,18 +203,14 @@ createWindow(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	bool stereoVisual,
-	const GHOST_TEmbedderWindowID parentWindow
+	bool stereoVisual
 ){
 	GHOST_WindowX11 * window = 0;
 	
 	if (!m_display) return 0;
 	
-
-	
-
 	window = new GHOST_WindowX11 (
-		this,m_display,title, left, top, width, height, state, parentWindow, type, stereoVisual
+		this,m_display,title, left, top, width, height, state, type, stereoVisual
 	);
 
 	if (window) {
@@ -516,9 +511,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			}
 			break;
 		}
-		
-		case DestroyNotify:
-			::exit(-1);	
+			
 		// We're not interested in the following things.(yet...)
 		case NoExpose : 
 		case GraphicsExpose :

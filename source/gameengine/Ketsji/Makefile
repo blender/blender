@@ -35,13 +35,10 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += $(NAN_SDLCFLAGS)
 CPPFLAGS += $(OGL_CPPFLAGS)
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
-CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) 
-CPPFLAGS += -I../../blender/python
-CPPFLAGS += -I../../blender/python/api2_2x
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) -I../../blender/python
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include    
 CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO) -I$(NAN_MOTO)/include
@@ -64,8 +61,12 @@ CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/include
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/imbuf
-CPPFLAGS += -I../../blender/gpu
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+
+ifeq ($(WITH_BF_GLEXT),true)
+    CPPFLAGS += -DWITH_GLEXT
+endif
+
 
 ###########################
 

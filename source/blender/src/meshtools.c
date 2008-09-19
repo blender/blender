@@ -84,6 +84,7 @@ void sort_faces(void);
 #include "BIF_toolbox.h"
 #include "BIF_editconstraint.h"
 
+#include "BDR_drawmesh.h" 
 #include "BDR_editobject.h" 
 #include "BDR_editface.h" 
 #include "BDR_sculptmode.h"
@@ -105,8 +106,6 @@ void sort_faces(void);
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
-#include "GPU_draw.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -1131,7 +1130,7 @@ void objects_bake_render(short event, char **error_msg)
 				if(ima->ok==IMA_OK_LOADED) {
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
-						GPU_free_image(ima); 
+						free_realtime_image(ima); 
 						imb_freemipmapImBuf(ibuf);
 					}
 				}

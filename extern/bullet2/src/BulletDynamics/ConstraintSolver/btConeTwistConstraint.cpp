@@ -19,20 +19,24 @@ Written by: Marcus Hennix
 #include "btConeTwistConstraint.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "LinearMath/btTransformUtil.h"
-#include "LinearMath/btMinMax.h"
+#include "LinearMath/btSimdMinMax.h"
 #include <new>
 
 btConeTwistConstraint::btConeTwistConstraint()
-:btTypedConstraint(CONETWIST_CONSTRAINT_TYPE)
 {
 }
 
 
 btConeTwistConstraint::btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB, 
 											 const btTransform& rbAFrame,const btTransform& rbBFrame)
-											 :btTypedConstraint(CONETWIST_CONSTRAINT_TYPE, rbA,rbB),m_rbAFrame(rbAFrame),m_rbBFrame(rbBFrame),
+											 :btTypedConstraint(rbA,rbB),m_rbAFrame(rbAFrame),m_rbBFrame(rbBFrame),
 											 m_angularOnly(false)
 {
+	// flip axis for correct angles
+	m_rbBFrame.getBasis()[1][0] *= btScalar(-1.);
+	m_rbBFrame.getBasis()[1][1] *= btScalar(-1.);
+	m_rbBFrame.getBasis()[1][2] *= btScalar(-1.);
+
 	m_swingSpan1 = btScalar(1e30);
 	m_swingSpan2 = btScalar(1e30);
 	m_twistSpan  = btScalar(1e30);
@@ -45,10 +49,19 @@ btConeTwistConstraint::btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB,
 }
 
 btConeTwistConstraint::btConeTwistConstraint(btRigidBody& rbA,const btTransform& rbAFrame)
-											:btTypedConstraint(CONETWIST_CONSTRAINT_TYPE,rbA),m_rbAFrame(rbAFrame),
+											:btTypedConstraint(rbA),m_rbAFrame(rbAFrame),
 											 m_angularOnly(false)
 {
 	m_rbBFrame = m_rbAFrame;
+	
+	// flip axis for correct angles
+	m_rbBFrame.getBasis()[1][0] *= btScalar(-1.);
+	m_rbBFrame.getBasis()[1][1] *= btScalar(-1.);
+	m_rbBFrame.getBasis()[1][2] *= btScalar(-1.);
+
+	m_rbBFrame.getBasis()[2][0] *= btScalar(-1.);
+	m_rbBFrame.getBasis()[2][1] *= btScalar(-1.);
+	m_rbBFrame.getBasis()[2][2] *= btScalar(-1.);
 	
 	m_swingSpan1 = btScalar(1e30);
 	m_swingSpan2 = btScalar(1e30);
@@ -114,39 +127,22 @@ void	btConeTwistConstraint::buildJacobian()
 
 	btScalar swing1=btScalar(0.),swing2 = btScalar(0.);
 
-	btScalar swx=btScalar(0.),swy = btScalar(0.);
-	btScalar thresh = btScalar(10.);
-	btScalar fact;
-
 	// Get Frame into world space
 	if (m_swingSpan1 >= btScalar(0.05f))
 	{
 		b1Axis2 = getRigidBodyA().getCenterOfMassTransform().getBasis() * this->m_rbAFrame.getBasis().getColumn(1);
-//		swing1  = btAtan2Fast( b2Axis1.dot(b1Axis2),b2Axis1.dot(b1Axis1) );
-		swx = b2Axis1.dot(b1Axis1);
-		swy = b2Axis1.dot(b1Axis2);
-		swing1  = btAtan2Fast(swy, swx);
-		fact = (swy*swy + swx*swx) * thresh * thresh;
-		fact = fact / (fact + btScalar(1.0));
-		swing1 *= fact; 
-
+		swing1  = btAtan2Fast( b2Axis1.dot(b1Axis2),b2Axis1.dot(b1Axis1) );
 	}
 
 	if (m_swingSpan2 >= btScalar(0.05f))
 	{
 		b1Axis3 = getRigidBodyA().getCenterOfMassTransform().getBasis() * this->m_rbAFrame.getBasis().getColumn(2);			
-//		swing2 = btAtan2Fast( b2Axis1.dot(b1Axis3),b2Axis1.dot(b1Axis1) );
-		swx = b2Axis1.dot(b1Axis1);
-		swy = b2Axis1.dot(b1Axis3);
-		swing2  = btAtan2Fast(swy, swx);
-		fact = (swy*swy + swx*swx) * thresh * thresh;
-		fact = fact / (fact + btScalar(1.0));
-		swing2 *= fact; 
+		swing2 = btAtan2Fast( b2Axis1.dot(b1Axis3),b2Axis1.dot(b1Axis1) );
 	}
 
 	btScalar RMaxAngle1Sq = 1.0f / (m_swingSpan1*m_swingSpan1);		
 	btScalar RMaxAngle2Sq = 1.0f / (m_swingSpan2*m_swingSpan2);	
-	btScalar EllipseAngle = btFabs(swing1*swing1)* RMaxAngle1Sq + btFabs(swing2*swing2) * RMaxAngle2Sq;
+	btScalar EllipseAngle = btFabs(swing1)* RMaxAngle1Sq + btFabs(swing2) * RMaxAngle2Sq;
 
 	if (EllipseAngle > 1.0f)
 	{
@@ -250,7 +246,7 @@ void	btConeTwistConstraint::solveConstraint(btScalar	timeStep)
 
 			// Clamp the accumulated impulse
 			btScalar temp = m_accSwingLimitImpulse;
-			m_accSwingLimitImpulse = btMax(m_accSwingLimitImpulse + impulseMag, btScalar(0.0) );
+			m_accSwingLimitImpulse = btMax(m_accSwingLimitImpulse + impulseMag, 0.0f );
 			impulseMag = m_accSwingLimitImpulse - temp;
 
 			btVector3 impulse = m_swingAxis * impulseMag;
@@ -268,7 +264,7 @@ void	btConeTwistConstraint::solveConstraint(btScalar	timeStep)
 
 			// Clamp the accumulated impulse
 			btScalar temp = m_accTwistLimitImpulse;
-			m_accTwistLimitImpulse = btMax(m_accTwistLimitImpulse + impulseMag, btScalar(0.0) );
+			m_accTwistLimitImpulse = btMax(m_accTwistLimitImpulse + impulseMag, 0.0f );
 			impulseMag = m_accTwistLimitImpulse - temp;
 
 			btVector3 impulse = m_twistAxis * impulseMag;

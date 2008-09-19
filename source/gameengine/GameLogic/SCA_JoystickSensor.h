@@ -69,19 +69,9 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	bool	m_istrig;
 	/**
-	 * Last trigger state for this sensors joystick,
-	 * Otherwise it will trigger all the time
-	 * this is used to see if the trigger state changes.
-	 */
-	bool	m_istrig_lastjs;
-	/**
 	 * The mode to determine axis,button or hat
 	 */
 	short int m_joymode;
-	/**
-	 * Select which joystick to use
-	 */
-	short int m_joyindex;
 
 	enum KX_JOYSENSORMODE {
 		KX_JOYSENSORMODE_NODEF = 0,
@@ -95,7 +85,6 @@ class SCA_JoystickSensor :public SCA_ISensor
 public:
 	SCA_JoystickSensor(class SCA_JoystickManager* eventmgr,
 					   SCA_IObject* gameobj,
-					   short int joyindex,
 					   short int joymode,
 					   int axis, int axisf,int prec,
 					   int button, int buttonf,
@@ -108,36 +97,28 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 	
-	short int GetJoyIndex(void){
-		return m_joyindex;
-	}
-
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	/* Joystick Index */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetIndex);
-	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetIndex);
 	/* Axes*/
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxis);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetAxis);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetRealAxis);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetThreshold);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetThreshold);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,GetAxis);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,SetAxis);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,GetRealAxis);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,GetThreshold);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,SetThreshold);
 	/* Buttons */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButton);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetButton);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,GetButton);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,SetButton);
 	/* Hats */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetHat);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetHat);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,GetHat);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,SetHat);
 	/* number of */
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfAxes);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfButtons);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,NumberOfAxes);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,NumberOfButtons);
+	KX_PYMETHOD_DOC(SCA_JoystickSensor,NumberOfHats);
 	
 };
 

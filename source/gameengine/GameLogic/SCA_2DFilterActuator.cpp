@@ -23,8 +23,8 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
     : SCA_IActuator(gameobj, T),
      m_type(type),
 	 m_flag(flag),
-	 m_float_arg(float_arg),
 	 m_int_arg(int_arg),
+	 m_float_arg(float_arg),
 	 m_rasterizer(rasterizer),
 	 m_rendertools(rendertools)
 {
@@ -64,11 +64,13 @@ bool SCA_2DFilterActuator::Update()
 	if( m_type == RAS_2DFilterManager::RAS_2DFILTER_MOTIONBLUR )
 	{
 		if(!m_flag)
+		{
 			m_rasterizer->EnableMotionBlur(m_float_arg);
+		}
 		else
+		{
 			m_rasterizer->DisableMotionBlur();
-
-		return false;
+		}
 	}
 	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{

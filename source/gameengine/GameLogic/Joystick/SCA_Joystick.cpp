@@ -29,9 +29,9 @@
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
-SCA_Joystick::SCA_Joystick(short int index)
+
+SCA_Joystick::SCA_Joystick()
 	:
-	m_joyindex(index),
 	m_axis10(0),
 	m_axis11(0),
 	m_axis20(0),
@@ -52,52 +52,81 @@ SCA_Joystick::~SCA_Joystick()
 	delete m_private;
 }
 
-SCA_Joystick *SCA_Joystick::m_instance[JOYINDEX_MAX];
+SCA_Joystick *SCA_Joystick::m_instance = NULL;
 int SCA_Joystick::m_refCount = 0;
 
-SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
+SCA_Joystick *SCA_Joystick::GetInstance()
 {
-	if (joyindex < 0 || joyindex >= JOYINDEX_MAX) {
-		echo("Error-invalid joystick index: " << joyindex);
-		return NULL;
-	}
-
-	if (m_refCount == 0) 
+	if (m_instance == 0) 
 	{
-		int i;
-		// do this once only
-		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO ) == -1 ){
-			echo("Error-Initializing-SDL: " << SDL_GetError());
-			return NULL;
-		}
-		for (i=0; i<JOYINDEX_MAX; i++) {
-			m_instance[i] = new SCA_Joystick(i);
-			m_instance[i]->CreateJoystickDevice();
-		}
+		m_instance = new SCA_Joystick();
+		m_instance->CreateJoystickDevice();
 		m_refCount = 1;
 	}
 	else
 	{
 		m_refCount++;
 	}
-	return m_instance[joyindex];
+	return m_instance;
 }
 
 void SCA_Joystick::ReleaseInstance()
 {
 	if (--m_refCount == 0)
 	{
-		int i;
-		for (i=0; i<JOYINDEX_MAX; i++) {
-			if (m_instance[i]) {
-				m_instance[i]->DestroyJoystickDevice();
-				delete m_instance[i];
-			}
-			m_instance[i]= NULL;
-		}
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO );
+		DestroyJoystickDevice();
+		delete m_instance;
+		m_instance = NULL;
 	}
 }
+
+
+bool SCA_Joystick::CreateJoystickDevice()
+{
+	bool init = false;
+	init = pCreateJoystickDevice();
+	return init;
+}
+
+
+void SCA_Joystick::DestroyJoystickDevice()
+{
+	if(m_isinit)
+		pDestroyJoystickDevice();
+}
+
+
+void SCA_Joystick::HandleEvents()
+{
+	if(m_isinit)
+	{
+		if(SDL_PollEvent(&m_private->m_event))
+		{
+			switch(m_private->m_event.type)
+			{
+			case SDL_JOYAXISMOTION:
+				HANDLE_AXISMOTION(OnAxisMotion);
+				break;
+			case SDL_JOYHATMOTION:
+				HANDLE_HATMOTION(OnHatMotion);
+				break;
+			case SDL_JOYBUTTONUP:
+				HANDLE_BUTTONUP(OnButtonUp);
+				break;
+			case SDL_JOYBUTTONDOWN:
+				HANDLE_BUTTONDOWN(OnButtonDown);
+				break;
+			case SDL_JOYBALLMOTION: 
+				HANDLE_BALLMOTION(OnBallMotion);
+				break;
+			default:
+				HANDLE_NOEVENT(OnNothing);
+				break;
+			}
+		}
+	}
+}
+
 
 void SCA_Joystick::cSetPrecision(int val)
 {
@@ -197,6 +226,76 @@ int SCA_Joystick::pGetHat(int direction)
 	return 0;
 }
 
+
+bool SCA_Joystick::GetJoyAxisMotion()
+{
+	bool result = false;
+	if(m_isinit){
+		if(SDL_PollEvent(&m_private->m_event)){
+			switch(m_private->m_event.type)
+			{
+			case SDL_JOYAXISMOTION:
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+
+bool SCA_Joystick::GetJoyButtonPress()
+{
+	bool result = false;
+	if(m_isinit){
+		if(SDL_PollEvent(&m_private->m_event)){
+			switch(m_private->m_event.type)
+			{
+			case SDL_JOYBUTTONDOWN:
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+
+bool SCA_Joystick::GetJoyButtonRelease()
+{
+	bool result = false;
+	if(m_isinit)
+	{
+		if(SDL_PollEvent(&m_private->m_event)){
+			switch(m_private->m_event.type)
+			{
+			case SDL_JOYBUTTONUP:
+				result = true;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+
+bool SCA_Joystick::GetJoyHatMotion()
+{
+	bool result = false;
+	if(m_isinit){
+		if(SDL_PollEvent(&m_private->m_event)){
+			switch(m_private->m_event.type)
+			{
+			case SDL_JOYHATMOTION:
+				result = true;
+				break;
+			}
+		}
+	}
+	return 0;
+}
+
+
 int SCA_Joystick::GetNumberOfAxes()
 {
 	int number;
@@ -235,46 +334,42 @@ int SCA_Joystick::GetNumberOfHats()
 	return -1;
 }
 
-bool SCA_Joystick::CreateJoystickDevice(void)
+bool SCA_Joystick::pCreateJoystickDevice()
 {
 	if(m_isinit == false){
-		if (m_joyindex>=SDL_NumJoysticks()) {
-			// don't print a message, because this is done anyway
-			//echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
+		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO ) == -1 ){
+			echo("Error-Initializing-SDL: " << SDL_GetError());
 			return false;
 		}
-
-		m_private->m_joystick = SDL_JoystickOpen(m_joyindex);
-		SDL_JoystickEventState(SDL_ENABLE);
-	
-		echo("Joystick " << m_joyindex << " initialized");
-		m_isinit = true;
+		if(SDL_NumJoysticks() > 0){
+			for(int i=0; i<SDL_NumJoysticks();i++){
+				m_private->m_joystick = SDL_JoystickOpen(i);
+				SDL_JoystickEventState(SDL_ENABLE);
+				m_numjoys = i;
+			}
+			echo("Joystick-initialized");
+			m_isinit = true;
+			return true;
+		}else{
+			echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
+			return false;
+		}
 	}
-	return true;
+	return false;
 }
 
 
-void SCA_Joystick::DestroyJoystickDevice(void)
+void SCA_Joystick::pDestroyJoystickDevice()
 {
-	if (m_isinit){
-		if(SDL_JoystickOpened(m_joyindex)){
-			echo("Closing-joystick " << m_joyindex);
+	echo("Closing-");
+	for(int i=0; i<SDL_NumJoysticks(); i++){
+		if(SDL_JoystickOpened(i)){
 			SDL_JoystickClose(m_private->m_joystick);
 		}
-		m_isinit = false;
 	}
+	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO );
 }
 
-int SCA_Joystick::Connected(void)
-{
-	if (m_isinit){
-		if(SDL_JoystickOpened(m_joyindex)){
-			return 1;
-		}
-	}
-	
-	return 0;
-}
 
 void SCA_Joystick::pFillAxes()
 {

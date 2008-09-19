@@ -37,10 +37,6 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-ifdef NAN_BUILDINFO
-    CPPFLAGS += -DNAN_BUILDINFO
-endif
-
 ifeq ($(WITH_FFMPEG), true)
    CPPFLAGS += -DWITH_FFMPEG
 endif
@@ -49,7 +45,6 @@ ifeq ($(WITH_OPENEXR),true)
 	CPPFLAGS += -DWITH_OPENEXR
 endif
 
-CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../makesdna
@@ -57,7 +52,6 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../include
-CPPFLAGS += -I../../gpu
 CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../radiosity/extern/include
 CPPFLAGS += -I$(NAN_BMFONT)/include

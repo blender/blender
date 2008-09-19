@@ -51,7 +51,6 @@ CPPFLAGS += -I../../blender/include
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel
 CPPFLAGS += -I../../blender/render/extern/include
-CPPFLAGS += -I../../blender/gpu
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../Expressions -I../Rasterizer -I../GameLogic
 CPPFLAGS += -I../Ketsji -I../BlenderRoutines -I../SceneGraph

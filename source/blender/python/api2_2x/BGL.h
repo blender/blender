@@ -323,13 +323,8 @@ typedef struct _Buffer {
 
 #define ret_def_GLstring  const unsigned char *ret_str;
 #define ret_set_GLstring  ret_str=
+#define ret_ret_GLstring  return PyString_FromString(ret_str);
 
-#define ret_ret_GLstring \
-	if (ret_str) {\
-		return PyString_FromString(ret_str);\
-	} else {\
-		PyErr_SetString(PyExc_AttributeError, "could not get opengl string");\
-		return NULL;\
-	}
+
 
 #endif  /*  EXPP_BGL_H */

@@ -53,14 +53,6 @@ ColorBlock::ColorBlock()
 {
 }
 
-/// Init the color block from an array of colors.
-ColorBlock::ColorBlock(const uint * linearImage)
-{
-	for(uint i = 0; i < 16; i++) {
-		color(i) = Color32(linearImage[i]);
-	}
-}
-
 /// Init the color block with the contents of the given block.
 ColorBlock::ColorBlock(const ColorBlock & block)
 {
@@ -133,36 +125,9 @@ void ColorBlock::splatY()
 /// Returns true if the block has a single color.
 bool ColorBlock::isSingleColor() const
 {
-	Color32 mask(0xFF, 0xFF, 0xFF, 0x00);
-	uint u = m_color[0].u & mask.u;
-	
 	for(int i = 1; i < 16; i++)
 	{
-		if (u != (m_color[i].u & mask.u))
-		{
-			return false;
-		}
-	}
-	
-	return true;
-}
-
-/// Returns true if the block has a single color, ignoring transparent pixels.
-bool ColorBlock::isSingleColorNoAlpha() const
-{
-	Color32 c;
-	int i;
-	for(i = 0; i < 16; i++)
-	{
-		if (m_color[i].a != 0) c = m_color[i];
-	}
-
-	Color32 mask(0xFF, 0xFF, 0xFF, 0x00);
-	uint u = c.u & mask.u;
-
-	for(; i < 16; i++)
-	{
-		if (u != (m_color[i].u & mask.u))
+		if (m_color[0] != m_color[i])
 		{
 			return false;
 		}

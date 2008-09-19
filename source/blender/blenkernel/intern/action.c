@@ -347,8 +347,6 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	VECCOPY(pchan->loc, chan->loc);
 	VECCOPY(pchan->size, chan->size);
 	QUATCOPY(pchan->quat, chan->quat);
-	Mat4CpyMat4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
-	Mat4CpyMat4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
@@ -862,7 +860,7 @@ typedef struct NlaIpoChannel {
 	int type;
 } NlaIpoChannel;
 
-void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, const char *name, float ctime)
+void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
 {
 	bActionChannel *achan= get_action_channel(act, name);
 	IpoCurve *icu;

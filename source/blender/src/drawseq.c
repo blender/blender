@@ -922,11 +922,17 @@ static void draw_image_seq(ScrArea *sa)
 
 	if(ibuf->rect_float && ibuf->rect==NULL)
 		IMB_rect_from_float(ibuf);
-	
+
+	if (sseq->zoom > 0) {
+		zoom = sseq->zoom;
+	} else if (sseq->zoom == 0) {
+		zoom = 1.0;
+	} else {
+		zoom = -1.0/sseq->zoom;
+	}
+
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
-	
-	zoom= SEQ_ZOOM_FAC(sseq->zoom);
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 		zoomy = zoom;
@@ -970,10 +976,7 @@ static void draw_image_seq(ScrArea *sa)
 		setlinestyle(0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	
-	/* draw grease-pencil (image aligned) */
-	if (sseq->flag & SEQ_DRAW_GPENCIL)
-		draw_gpencil_2dimage(sa, ibuf);
+
 
 	if (free_ibuf) {
 		IMB_freeImBuf(ibuf);

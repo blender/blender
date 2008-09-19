@@ -19,78 +19,38 @@ subject to the following restrictions:
 class	btRigidBody;
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btMatrix3x3.h"
-#include "BulletDynamics/Dynamics/btRigidBody.h"
-#include "LinearMath/btAlignedAllocator.h"
-#include "LinearMath/btTransformUtil.h"
 
 
-///btSolverBody is an internal datastructure for the constraint solver. Only necessary data is packed to increase cache coherence/performance.
+
+
 ATTRIBUTE_ALIGNED16 (struct)	btSolverBody
 {
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-	
+	btVector3		m_centerOfMassPosition;
+	btVector3		m_linearVelocity;
 	btVector3		m_angularVelocity;
-	float			m_angularFactor;
+	btRigidBody*	m_originalBody;
 	float			m_invMass;
 	float			m_friction;
-	btRigidBody*	m_originalBody;
-	btVector3		m_linearVelocity;
-	btVector3		m_centerOfMassPosition;
-	
-	btVector3		m_pushVelocity;
-	btVector3		m_turnVelocity;
-	
-	
-	SIMD_FORCE_INLINE void	getVelocityInLocalPoint(const btVector3& rel_pos, btVector3& velocity ) const
+	float			m_angularFactor;
+
+	inline void	getVelocityInLocalPoint(const btVector3& rel_pos, btVector3& velocity ) const
 	{
 		velocity = m_linearVelocity + m_angularVelocity.cross(rel_pos);
 	}
 
 	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
-	SIMD_FORCE_INLINE void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
+	inline void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
 	{
-		if (m_invMass)
-		{
-			m_linearVelocity += linearComponent*impulseMagnitude;
-			m_angularVelocity += angularComponent*(impulseMagnitude*m_angularFactor);
-		}
-	}
-	
-	SIMD_FORCE_INLINE void internalApplyPushImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
-	{
-		if (m_invMass)
-		{
-			m_pushVelocity += linearComponent*impulseMagnitude;
-			m_turnVelocity += angularComponent*(impulseMagnitude*m_angularFactor);
-		}
+		m_linearVelocity += linearComponent*impulseMagnitude;
+		m_angularVelocity += angularComponent*impulseMagnitude*m_angularFactor;
 	}
 
-	
 	void	writebackVelocity()
 	{
 		if (m_invMass)
 		{
 			m_originalBody->setLinearVelocity(m_linearVelocity);
 			m_originalBody->setAngularVelocity(m_angularVelocity);
-			
-			//m_originalBody->setCompanionId(-1);
-		}
-	}
-	
-
-	void	writebackVelocity(btScalar timeStep)
-	{
-		if (m_invMass)
-		{
-			m_originalBody->setLinearVelocity(m_linearVelocity);
-			m_originalBody->setAngularVelocity(m_angularVelocity);
-			
-			//correct the position/orientation based on push/turn recovery
-			btTransform newTransform;
-			btTransformUtil::integrateTransform(m_originalBody->getWorldTransform(),m_pushVelocity,m_turnVelocity,timeStep,newTransform);
-			m_originalBody->setWorldTransform(newTransform);
-			
-			//m_originalBody->setCompanionId(-1);
 		}
 	}
 
@@ -109,5 +69,3 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverBody
 };
 
 #endif //BT_SOLVER_BODY_H
-
-

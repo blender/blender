@@ -69,7 +69,6 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
-#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -407,7 +406,6 @@ void pose_recalculate_paths(Object *ob)
 	waitcursor(0);
 	
 	CFRA= cfra;
-	ob->pose->flag &= ~POSE_RECALCPATHS;
 	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
 	allqueue(REDRAWBUTSEDIT, 0);
 }

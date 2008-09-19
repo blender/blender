@@ -184,21 +184,20 @@ bool KX_BlenderSceneConverter::TryAndLoadNewFile()
 	return result;
 }
 
-Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
-{
-	Scene *sce;
+
 
 	/**
 	 * Find the specified scene by name, or the first
 	 * scene if nothing matches (shouldn't happen).
 	 */
+static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& scenename) {
+	Scene *sce;
 
-	for (sce= (Scene*) m_maggie->scene.first; sce; sce= (Scene*) sce->id.next)
-		if (name == (sce->id.name+2))
+	for (sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
+		if (scenename == (sce->id.name+2))
 			return sce;
 
-	return (Scene*)m_maggie->scene.first;
-
+	return (Scene*) maggie->scene.first;
 }
 #include "KX_PythonInit.h"
 
@@ -246,11 +245,6 @@ struct	BlenderDebugDraw : public btIDebugDraw
 	{
 		return m_debugMode;
 	}
-	///todo: find out if Blender can do this
-	virtual void	draw3dText(const btVector3& location,const char* textString)
-	{
-
-	}
 		
 };
 
@@ -264,7 +258,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 											class RAS_ICanvas* canvas)
 {
 	//find out which physics engine
-	Scene *blenderscene = GetBlenderSceneForName(scenename);
+	Scene *blenderscene = GetSceneForName2(m_maggie, scenename);
 
 	e_PhysicsEngine physics_engine = UseBullet;
 	// hook for registration function during conversion.
@@ -501,17 +495,7 @@ void KX_BlenderSceneConverter::RegisterGameObject(
 void KX_BlenderSceneConverter::UnregisterGameObject(
 									KX_GameObject *gameobject) 
 {
-	CHashedPtr gptr(gameobject);
-	struct Object **bobp= m_map_gameobject_to_blender[gptr];
-	if (bobp) {
-		CHashedPtr bptr(*bobp);
-		KX_GameObject **gobp= m_map_blender_to_gameobject[bptr];
-		if (gobp && *gobp == gameobject)
-			// also maintain m_map_blender_to_gameobject if the gameobject
-			// being removed is matching the blender object
-			m_map_blender_to_gameobject.remove(bptr);
-		m_map_gameobject_to_blender.remove(gptr);
-	}
+	m_map_gameobject_to_blender.remove(CHashedPtr(gameobject));
 }
 
 
@@ -660,13 +644,13 @@ extern "C"
 {
 	Ipo *add_ipo( char *name, int idcode );
 	char *getIpoCurveName( IpoCurve * icu );
-	struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int, short);
+	struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
 	void testhandles_ipocurve(struct IpoCurve *icu);
-	void insert_vert_icu(struct IpoCurve *, float, float, short);
 	void Mat3ToEul(float tmat[][3], float *eul);
+
 }
 
-IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
+IpoCurve* findIpoCurve(IpoCurve* first,char* searchName)
 {
 	IpoCurve* icu1;
 	for( icu1 = first; icu1; icu1 = icu1->next ) 
@@ -834,7 +818,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsDynamic())
 			{
-				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
+				KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = FindBlenderObject(gameObj);
 				if (blenderObject)
@@ -862,7 +846,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 
 
-					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					
 					Ipo* ipo = blenderObject->ipo;
@@ -873,27 +857,27 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z);
 
 
 
@@ -990,7 +974,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
 			if (gameObj->IsDynamic())
 			{
-				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
+				KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = FindBlenderObject(gameObj);
 				if (blenderObject)
@@ -1018,8 +1002,8 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 
 
 
-					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
-					//const MT_Point3& position = gameObj->NodeGetWorldPosition();
+					const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					
 					Ipo* ipo = blenderObject->ipo;
 					if (ipo)
@@ -1029,27 +1013,27 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 
 					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
 					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z, 1);
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z);
 
 
 

@@ -16,11 +16,11 @@ subject to the following restrictions:
 #ifndef CONE_MINKOWSKI_H
 #define CONE_MINKOWSKI_H
 
-#include "btConvexInternalShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "btConvexShape.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-///The btConeShape implements a cone shape primitive, centered around the origin and aligned with the Y axis. The btConeShapeX is aligned around the X axis and btConeShapeZ around the Z axis.
-class btConeShape : public btConvexInternalShape
+///btConeShape implements a Cone shape, around the Y axis
+class btConeShape : public btConvexShape
 
 {
 
@@ -42,7 +42,7 @@ public:
 	btScalar getHeight() const { return m_height;}
 
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
 	{
 		btTransform identity;
 		identity.setIdentity();
@@ -72,7 +72,7 @@ public:
 
 		virtual int	getShapeType() const { return CONE_SHAPE_PROXYTYPE; }
 
-		virtual const char*	getName()const 
+		virtual char*	getName()const 
 		{
 			return "Cone";
 		}

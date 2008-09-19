@@ -36,14 +36,12 @@
 #include "MT_Point3.h"
 
 struct KX_ClientObjectInfo;
-class KX_RayCast;
 
 class KX_RaySensor : public SCA_ISensor
 {
 	Py_Header;
 	STR_String		m_propertyname;
 	bool			m_bFindMaterial;
-	bool			m_bXRay;
 	double			m_distance;
 	class KX_Scene* m_scene;
 	bool			m_bTriggered;
@@ -58,8 +56,7 @@ public:
 	KX_RaySensor(class SCA_EventManager* eventmgr,
 					SCA_IObject* gameobj,
 					const STR_String& propname,
-					bool bFindMaterial,
-					bool bXRay,
+					bool fFindMaterial,
 					double distance,
 					int axis,
 					class KX_Scene* ketsjiScene,
@@ -71,8 +68,7 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 
-	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
-	bool NeedRayCast(KX_ClientObjectInfo* client);
+	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
 	
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitObject);
 	KX_PYMETHOD_DOC(KX_RaySensor,GetHitPosition);

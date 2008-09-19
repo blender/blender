@@ -41,8 +41,6 @@ extern PyTypeObject Text_Type;
 typedef struct {
 	PyObject_HEAD
 	Text * text; /* libdata must be second */
-	TextLine * iol; /* current line being read or NULL if reset */
-	int ioc; /* character offset in line being read */
 } BPy_Text;
 
 PyObject *Text_Init( void );

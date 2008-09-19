@@ -21,12 +21,7 @@ subject to the following restrictions:
   can be used by probes that are checking whether the
   library is actually installed.
 */
-extern "C" 
-{
-void btBulletCollisionProbe ();
-
-void btBulletCollisionProbe () {}
-}
+extern "C" void btBulletCollisionProbe () {}
 
 
 
@@ -51,7 +46,7 @@ btScalar	btCollisionShape::getAngularMotionDisc() const
 	return disc;
 }
 
-void btCollisionShape::calculateTemporalAabb(const btTransform& curTrans,const btVector3& linvel,const btVector3& angvel,btScalar timeStep, btVector3& temporalAabbMin,btVector3& temporalAabbMax) const
+void btCollisionShape::calculateTemporalAabb(const btTransform& curTrans,const btVector3& linvel,const btVector3& angvel,btScalar timeStep, btVector3& temporalAabbMin,btVector3& temporalAabbMax)
 {
 	//start with static aabb
 	getAabb(curTrans,temporalAabbMin,temporalAabbMax);

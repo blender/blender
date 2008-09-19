@@ -79,8 +79,6 @@
 #include "DNA_scene_types.h"
 	/***/
 
-#include "GPU_extensions.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -138,12 +136,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool usemat = false, useglslmat = false;
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
-
-		if(GPU_extensions_minimum_support())
-			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
-			usemat = false;
+			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -198,7 +191,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
 		MT_CmMatrix4x4 viewmat;
-		float camzoom;
 		int i;
 		
 		for (i = 0; i < 16; i++)
@@ -212,13 +204,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		if(v3d->persp==V3D_CAMOB) {
-			camzoom = (1.41421 + (v3d->camzoom / 50.0));
-			camzoom *= camzoom;
-		}
-		else
-			camzoom = 2.0;
-
+		float camzoom = (1.41421 + (v3d->camzoom / 50.0));
+		camzoom *= camzoom;
 		camzoom = 4.0 / camzoom;
 		
 		ketsjiengine->SetDrawType(v3d->drawtype);
@@ -299,7 +286,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
-				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
 			}
 			
 			// create a scene converter, create and convert the startingscene
@@ -308,24 +294,23 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
-
-			if(usemat && (G.fileflags & G_FILE_GAME_MAT))
+			
+			if(usemat)
 				sceneconverter->SetMaterials(true);
-			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
+			if(useglslmat)
 				sceneconverter->SetGLSLMaterials(true);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename,
-				blscene);
+				startscenename);
 			
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
+			PyObject *gameLogic = initGameLogic(startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
 			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
 			initGameKeys();
@@ -541,6 +526,8 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		// create the ketsjiengine
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
 
+		int i;
+
 		Scene *blscene = NULL;
 		if (!bfd)
 		{
@@ -556,7 +543,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		} else {
 			blscene = bfd->curscene;
 		}
-        int cframe = 1, startFrame;
+        int cframe,startFrame;
 		if (blscene)
 		{
 			cframe=blscene->r.cfra;
@@ -587,14 +574,12 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename,
-				blscene);
-
+				startscenename);
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
+			PyObject *gameLogic = initGameLogic(startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 			initGameKeys();
 			initPythonConstraintBinding();

@@ -106,7 +106,6 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
-#include "BIF_keyframing.h"
 #include "BIF_mainqueue.h"
 #include "BIF_meshtools.h"
 #include "BIF_poselib.h"
@@ -4371,9 +4370,6 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	case 18:
 		pose_autoside_names(event-16);
 		break;
-	case 19: /* assign pose as restpose */
-		apply_armature_pose2bones();
-		break;
 	}
 		
 	allqueue(REDRAWVIEW3D, 0);
@@ -4399,7 +4395,6 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Relax Pose|W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Pose as Restpose|Ctrl A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -4513,7 +4508,7 @@ static void do_view3d_tpaintmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* undo image painting */
-		undo_imagepaint_step(1);
+		imagepaint_undo();
 		break;
 	}
 
@@ -5388,11 +5383,7 @@ void do_view3d_buttons(short event)
 	case B_MAN_MODE:
 		allqueue(REDRAWVIEW3D, 1);
 		break;		
-	case B_VIEW_BUTSEDIT:
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWBUTSEDIT, 1);
-		break;
-		
+
 	default:
 
 		if(event>=B_LAY && event<B_LAY+31) {
@@ -5572,16 +5563,6 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	*xcoord= xco;
 }
 
-static int view3d_layer_icon(int but_lay, int ob_lay, int used_lay)
-{
-	if (but_lay & ob_lay)
-		return ICON_LAYER_ACTIVE;
-	else if (but_lay & used_lay)
-		return ICON_LAYER_USED;
-	else
-		return ICON_BLANK1;
-}
-
 void view3d_buttons(void)
 {
 	uiBlock *block;
@@ -5685,7 +5666,7 @@ void view3d_buttons(void)
  		}
  	} else {
  		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
- 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
+ 			uiDefIconButBitI(block, TOG, G_FACESELECT, B_REDR, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
@@ -5748,22 +5729,19 @@ void view3d_buttons(void)
  		
 		/* LAYERS */
 		if(G.obedit==NULL && G.vd->localview==0) {
-			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
-			for(a=0; a<5; a++) {
-				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
-			for(a=0; a<5; a++) {
-				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
+			for(a=0; a<5; a++)
+				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
+			for(a=0; a<5; a++)
+				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		
 			xco+= 5;
 			uiBlockBeginAlign(block);
-			for(a=5; a<10; a++) {
-				uiDefIconButBitI(block, TOG, 1<<a, B_LAY+a, view3d_layer_icon(1<<a, ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
-			for(a=5; a<10; a++) {
-				uiDefIconButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, view3d_layer_icon(1<<(a+10), ob_lay, G.vd->lay_used), (short)(xco+a*(XIC/2)), 0, XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-			}
+			for(a=5; a<10; a++)
+				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
+			for(a=5; a<10; a++)
+				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+
 			uiBlockEndAlign(block);
 		
 			xco+= (a-2)*(XIC/2)+3;

@@ -42,7 +42,6 @@ CPPFLAGS += -I../Expressions
 CPPFLAGS += -I../Rasterizer
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
-CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += $(NAN_SDLCFLAGS)
 

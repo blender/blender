@@ -66,7 +66,6 @@
 #include "BIF_glutil.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
-#include "BIF_keyframing.h"
 #include "BIF_keyval.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
@@ -242,9 +241,9 @@ static void enable_constraint_ipo_func (void *ob_v, void *con_v)
 	
 	/* adds ipo & channels & curve if needed */
 	if(con->flag & CONSTRAINT_OWN_IPO)
-		verify_ipo((ID *)ob, ID_CO, NULL, con->name, actname, 1);
+		verify_ipo((ID *)ob, ID_CO, NULL, con->name, actname);
 	else
-		verify_ipo((ID *)ob, ID_CO, actname, con->name, NULL, 1);
+		verify_ipo((ID *)ob, ID_CO, actname, con->name, NULL);
 		
 	/* make sure ipowin shows it */
 	ob->ipowin= ID_CO;
@@ -269,9 +268,9 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 
 	/* adds ipo & channels & curve if needed */
 	if(con->flag & CONSTRAINT_OWN_IPO)
-		icu= verify_ipocurve((ID *)ob, ID_CO, NULL, con->name, actname, CO_ENFORCE, 1);
+		icu= verify_ipocurve((ID *)ob, ID_CO, NULL, con->name, actname, CO_ENFORCE);
 	else
-		icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE, 1);
+		icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE);
 		
 	if (!icu) {
 		error("Cannot get a curve from this IPO, may be dealing with linked data");
@@ -2632,32 +2631,19 @@ static void object_panel_object(Object *ob)
 	/* all groups */
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(object_in_group(ob, group)) {
-			xco= 130;
+			xco= 160;
 			
-			if(group->id.lib) {
-				uiBlockBeginAlign(block);
-				uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
-				uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 100, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
-				uiClearButLock();
-				
-				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 110, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
-				uiButSetFunc(but, group_local, group, NULL);
-				uiBlockEndAlign(block);
-			} else {
-				but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 120, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
-				uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
-			}
-			
-			uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE);
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, REDRAWALL, "X:",			xco+5, 120-yco, 50, 20, &group->dupli_ofs[0], -100000, 100000, 100, 0, "Offset to use when instacing the group");
-			uiDefButF(block, NUM, REDRAWALL, "Y:",			xco+55, 120-yco, 50, 20, &group->dupli_ofs[1], -100000, 100000, 100, 0, "Offset to use when instacing the group");
-			uiDefButF(block, NUM, REDRAWALL, "Z:",			xco+105, 120-yco, 50, 20, &group->dupli_ofs[2], -100000, 100000, 100, 0, "Offset to use when instacing the group");
-			uiBlockEndAlign(block);
+			uiSetButLock(GET_INT_FROM_POINTER(group->id.lib), ERROR_LIBDATA_MESSAGE); /* We cant actually use this button */
+			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 150, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
+			uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
 			uiClearButLock();
 			
-			xco = 290;
-			if(group->id.lib==0) { /* cant remove objects from linked groups */
+			if(group->id.lib) {
+				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 160, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+				uiButSetFunc(but, group_local, group, NULL);
+				xco= 180;
+			} else { /* cant remove objects from linked groups */
 				but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
 				uiButSetFunc(but, group_ob_rem, group, ob);
 			}
@@ -2985,8 +2971,7 @@ void do_effects_panels(unsigned short event)
 					psmd= (ParticleSystemModifierData*) md;
 					psmd->psys=psys;
 					BLI_addtail(&ob->modifiers, md);
-				} else
-					id->us--;
+				}
 
 				idtest->us++;
 				psys->part=(ParticleSettings*)idtest;
@@ -3044,7 +3029,7 @@ void do_effects_panels(unsigned short event)
 		if(ob && (psys=psys_get_current(ob))){
 			if(psys->part) {
 				if(psys->part->id.us>1){
-					if(okee("Make Single User")){
+					if(okee("Make local")){
 						part=psys_copy_settings(psys->part);
 						part->id.us=1;
 						psys->part->id.us--;

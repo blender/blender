@@ -107,7 +107,6 @@ typedef struct UndoElem {
 	Object *ob;		// pointer to edited object
 	int type;		// type of edited object
 	void *undodata;
-	uintptr_t undosize;
 	char name[MAXUNDONAME];
 	void (*freedata)(void *);
 	void (*to_editmode)(void *);
@@ -139,7 +138,6 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 {
 	UndoElem *uel;
 	int nr;
-	uintptr_t memused, totmem, maxmem;
 
 	/* at first here was code to prevent an "original" key to be insterted twice
 	   this was giving conflicts for example when mesh changed due to keys or apply */
@@ -147,8 +145,9 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	/* remove all undos after (also when curundo==NULL) */
 	while(undobase.last != curundo) {
 		uel= undobase.last;
+		BLI_remlink(&undobase, uel);
 		uel->freedata(uel->undodata);
-		BLI_freelinkN(&undobase, uel);
+		MEM_freeN(uel);
 	}
 	
 	/* make new */
@@ -161,7 +160,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	uel->from_editmode= from_editmode;
 	uel->validate_undo= validate_undo;
 	
-	/* limit amount to the maximum amount*/
+	/* and limit amount to the maximum */
 	nr= 0;
 	uel= undobase.last;
 	while(uel) {
@@ -172,43 +171,19 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	if(uel) {
 		while(undobase.first!=uel) {
 			UndoElem *first= undobase.first;
+			BLI_remlink(&undobase, first);
 			first->freedata(first->undodata);
-			BLI_freelinkN(&undobase, first);
+			MEM_freeN(first);
 		}
 	}
 
 	/* copy  */
-	memused= MEM_get_memory_in_use();
 	curundo->undodata= curundo->from_editmode();
-	curundo->undosize= MEM_get_memory_in_use() - memused;
 	curundo->ob= G.obedit;
 	curundo->id= G.obedit->id;
 	curundo->type= G.obedit->type;
-
-	if(U.undomemory != 0) {
-		/* limit to maximum memory (afterwards, we can't know in advance) */
-		totmem= 0;
-		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
-
-		uel= undobase.last;
-		while(uel && uel->prev) {
-			totmem+= uel->undosize;
-			if(totmem>maxmem) break;
-			uel= uel->prev;
-		}
-
-		if(uel) {
-			if(uel->prev && uel->prev->prev)
-				uel= uel->prev;
-
-			while(undobase.first!=uel) {
-				UndoElem *first= undobase.first;
-				first->freedata(first->undodata);
-				BLI_freelinkN(&undobase, first);
-			}
-		}
-	}
 }
+
 
 /* helper to remove clean other objects from undo stack */
 static void undo_clean_stack(void)
@@ -230,8 +205,9 @@ static void undo_clean_stack(void)
 		}
 		else {
 			mixed= 1;
+			BLI_remlink(&undobase, uel);
 			uel->freedata(uel->undodata);
-			BLI_freelinkN(&undobase, uel);
+			MEM_freeN(uel);
 		}
 
 		uel= next;

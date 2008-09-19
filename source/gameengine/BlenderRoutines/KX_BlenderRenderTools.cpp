@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "KX_BlenderRenderTools.h"
+
 #include "GL/glew.h"
 
 #include "RAS_IRenderTools.h"
@@ -34,22 +36,23 @@
 #include "RAS_ICanvas.h"
 #include "RAS_GLExtensionManager.h"
 
+// next two includes/dependencies come from the shadow feature
+// it needs the gameobject and the sumo physics scene for a raycast
 #include "KX_GameObject.h"
+
 #include "KX_PolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
-#include "KX_RayCast.h"
-#include "KX_IPhysicsController.h"
 
-#include "PHY_IPhysicsEnvironment.h"
-
-#include "STR_String.h"
-
-#include "GPU_draw.h"
+#include "Value.h"
 
 #include "KX_BlenderGL.h" // for text printing
-#include "KX_BlenderRenderTools.h"
+#include "STR_String.h"
+#include "RAS_BucketManager.h" // for polymaterial (needed for textprinting)
 
-unsigned int KX_BlenderRenderTools::m_numgllights;
+#include "KX_RayCast.h"
+#include "KX_IPhysicsController.h"
+#include "PHY_IPhysicsEnvironment.h"
+#include "KX_Scene.h"
 
 KX_BlenderRenderTools::KX_BlenderRenderTools()
 {
@@ -58,98 +61,81 @@ KX_BlenderRenderTools::KX_BlenderRenderTools()
 		m_numgllights = 8;
 }
 
-KX_BlenderRenderTools::~KX_BlenderRenderTools()
+/**
+ProcessLighting performs lighting on objects. the layer is a bitfield that contains layer information.
+There are 20 'official' layers in blender.
+A light is applied on an object only when they are in the same layer.
+OpenGL has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in a scene.
+*/
+
+int	KX_BlenderRenderTools::ProcessLighting(int layer) 
 {
-}
+	
+	int result = false;
 
-void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
-{
-	m_clientobject = NULL;
-	m_lastlightlayer = -1;
-	m_lastlighting = false;
-	DisableOpenGLLights();
-}
-
-void KX_BlenderRenderTools::EndFrame(RAS_IRasterizer* rasty)
-{
-}
-
-/* ProcessLighting performs lighting on objects. the layer is a bitfield that
- * contains layer information. There are 20 'official' layers in blender. A
- * light is applied on an object only when they are in the same layer. OpenGL
- * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
- * a scene. */
-
-void KX_BlenderRenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
-{
-	if(m_lastlightlayer == layer)
-		return;
-
-	m_lastlightlayer = layer;
-
-	bool enable = false;
-
-	if (layer >= 0)
+	if (layer < 0)
+	{
+		DisableOpenGLLights();
+		result = false;
+	} else
 	{
 		if (m_clientobject)
 		{
 			if (layer == RAS_LIGHT_OBJECT_LAYER)
+			{
 				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
-
-			enable = applyLights(layer, viewmat);
+			}
+			if (applyLights(layer))
+			{
+				EnableOpenGLLights();
+				result = true;
+			} else
+			{
+				DisableOpenGLLights();
+				result = false;
+			}			
 		}
 	}
-
-	if(enable)
-		EnableOpenGLLights();
-	else
-		DisableOpenGLLights();
-}
-
-void KX_BlenderRenderTools::EnableOpenGLLights()
-{
-	if(m_lastlighting == true)
-		return;
-
-	glEnable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
-
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
-	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
-		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+	return result;
 	
-	m_lastlighting = true;
+	
 }
 
-void KX_BlenderRenderTools::DisableOpenGLLights()
+
+void KX_BlenderRenderTools::BeginFrame(RAS_IRasterizer* rasty)
 {
-	if(m_lastlighting == false)
-		return;
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-
+	m_clientobject = NULL;
+	m_lastblenderobject = NULL;
+	m_lastblenderlights = false;
+	m_lastlayer = -1;
 	m_lastlighting = false;
+	m_modified = true;
+	DisableOpenGLLights();
+
+
 }
 
-
-void KX_BlenderRenderTools::SetClientObject(RAS_IRasterizer *rasty, void* obj)
+void KX_BlenderRenderTools::SetClientObject(void* obj)
 {
 	if (m_clientobject != obj)
 	{
-		bool ccw = (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling());
-		rasty->SetFrontFace(ccw);
-
+		if (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling())
+		{
+			glFrontFace(GL_CCW);
+		} else 
+		{
+			glFrontFace(GL_CW);
+		}
 		m_clientobject = obj;
+		m_modified = true;
 	}
 }
 
-bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
+bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
 {
 	double* const oglmatrix = (double* const) data;
-	MT_Point3 resultpoint(result->m_hitPoint);
-	MT_Vector3 resultnormal(result->m_hitNormal);
+	MT_Point3 resultpoint(hit_point);
+	MT_Vector3 resultnormal(hit_normal);
 	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
 	MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
 	left = (dir.cross(resultnormal)).safe_normalized();
@@ -196,7 +182,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		MT_Vector3 dir = (campos - objpos).safe_normalized();
 		MT_Vector3 up(0,0,1.0);
 
-		KX_GameObject* gameobj = (KX_GameObject*)m_clientobject;
+		KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
 		// get scaling of halo object
 		MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
 		
@@ -232,7 +218,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		{
 			// shadow must be cast to the ground, physics system needed here!
 			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
-			KX_GameObject *gameobj = (KX_GameObject*)m_clientobject;
+			KX_GameObject *gameobj = (KX_GameObject*) this->m_clientobject;
 			MT_Vector3 direction = MT_Vector3(0,0,-1);
 
 			direction.normalize();
@@ -250,8 +236,9 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 			if (parent)
 				parent->Release();
 				
-			KX_RayCast::Callback<KX_BlenderRenderTools> callback(this, physics_controller, oglmatrix);
-			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))
+			MT_Point3 resultpoint;
+			MT_Vector3 resultnormal;
+			if (!KX_RayCast::RayTest(physics_controller, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<KX_BlenderRenderTools>(this, oglmatrix)))
 			{
 				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);
@@ -266,29 +253,13 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 }
 
 
-void KX_BlenderRenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
-										 const char* text,
-										 int xco,
-										 int yco,									 
-										 int width,
-										 int height)
+/**
+Render Text renders text into a (series of) polygon, using a texture font,
+Each character consists of one polygon (one quad or two triangles)
+*/
+void	KX_BlenderRenderTools::RenderText(int mode,RAS_IPolyMaterial* polymat,float v1[3],float v2[3],float v3[3],float v4[3])
 {
-	STR_String tmpstr(text);
-
-	if(mode == RAS_IRenderTools::RAS_TEXT_PADDED)
-		BL_print_gamedebug_line_padded(tmpstr.Ptr(), xco, yco, width, height);
-	else
-		BL_print_gamedebug_line(tmpstr.Ptr(), xco, yco, width, height);
-}
-
-/* Render Text renders text into a (series of) polygon, using a texture font,
- * Each character consists of one polygon (one quad or two triangles) */
-
-void KX_BlenderRenderTools::RenderText(
-	int mode,
-	RAS_IPolyMaterial* polymat,
-	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
-{
+		
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
@@ -305,9 +276,67 @@ void KX_BlenderRenderTools::RenderText(
 		col = blenderpoly->GetMCol();
 	}
 	
-	GPU_render_text(tface, mode, mytext, mytext.Length(), col, v1, v2, v3, v4, glattrib);
+	BL_RenderText( mode,mytext,mytext.Length(),tface,col,v1,v2,v3,v4);
+	
 }
 
+
+
+KX_BlenderRenderTools::~KX_BlenderRenderTools()
+{
+};
+	
+	
+void	KX_BlenderRenderTools::EndFrame(RAS_IRasterizer* rasty)
+{
+}
+	
+
+	
+void KX_BlenderRenderTools::DisableOpenGLLights()
+{
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+}
+
+	
+void KX_BlenderRenderTools::EnableOpenGLLights()
+{
+	glEnable(GL_LIGHTING);
+	
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
+	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
+		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+
+}
+	
+
+/**
+ * Rendering text using 2D bitmap functionality.  
+ */
+void KX_BlenderRenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
+										 const char* text,
+										 int xco,
+										 int yco,									 
+										 int width,
+										 int height)
+{
+	switch (mode) {
+	case RAS_IRenderTools::RAS_TEXT_PADDED: {
+		STR_String tmpstr(text);
+		BL_print_gamedebug_line_padded(tmpstr.Ptr(),xco,yco,width,height);
+		break;
+	}
+	default: {
+		STR_String tmpstr(text);
+		BL_print_gamedebug_line(tmpstr.Ptr(),xco,yco,width,height);
+	}
+	}
+}
+
+	
 
 void KX_BlenderRenderTools::PushMatrix()
 {
@@ -320,13 +349,14 @@ void KX_BlenderRenderTools::PopMatrix()
 }
 
 
-int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
+
+int	KX_BlenderRenderTools::applyLights(int objectlayer)
 {
-	// taken from blender source, incompatibility between Blender Object / GameObject	
-	float glviewmat[16];
+// taken from blender source, incompatibility between Blender Object / GameObject	
+	
 	unsigned int count;
 	float vec[4];
-
+		
 	vec[3]= 1.0;
 	
 	for(count=0; count<m_numgllights; count++)
@@ -334,11 +364,9 @@ int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& view
 	
 	//std::vector<struct	RAS_LightObject*> m_lights;
 	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
-
-	viewmat.getValue(glviewmat);
 	
 	glPushMatrix();
-	glLoadMatrixf(glviewmat);
+	glLoadMatrixf(m_viewmat);
 	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
@@ -406,12 +434,29 @@ int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& view
 			glEnable((GLenum)(GL_LIGHT0+count));
 
 			count++;
+			
 		}
 	}
 	glPopMatrix();
 
 	return count;
 
+}
+
+
+
+RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
+		const STR_String &texname,
+		bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,bool transparant,bool zsort, int lightlayer
+		,bool bIsTriangle,void* clientobject,void* tface)
+{
+	assert(!"Deprecated");
+/*	return new KX_BlenderPolyMaterial(
+
+		texname,
+		ba,matname,tile,tilexrep,tileyrep,mode,transparant,zsort, lightlayer
+		,bIsTriangle,clientobject,(struct MTFace*)tface);*/
+	return NULL;
 }
 
 void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
@@ -447,3 +492,4 @@ void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)
 	m_filtermanager.RenderFilters(canvas);
 }
 
+unsigned int KX_BlenderRenderTools::m_numgllights;

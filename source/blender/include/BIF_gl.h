@@ -49,7 +49,20 @@
 #endif
 #endif
 
-#include "GL/glew.h"
+#ifdef __APPLE__
+ #include <OpenGL/gl.h>
+ #include <OpenGL/glu.h>
+#else
+/*  #if defined (__sun) || defined (__sun__)
+  #include <GL/gl.h>
+  #include <mesa/glu.h>
+ #else
+*/
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+/* #endif */
+#endif
+
 
 	/*
 	 * these should be phased out. cpack should be replaced in

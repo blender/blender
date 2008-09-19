@@ -9,7 +9,6 @@
 
 #include "GL/glew.h"
 
-#include "RAS_MaterialBucket.h"
 #include "RAS_TexVert.h"
 #include "MT_assert.h"
 
@@ -126,20 +125,20 @@ void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 	}
 }
 
-RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(RAS_MeshSlot& ms)
+RAS_ListSlot* RAS_ListRasterizer::FindOrAdd(const vecVertexArray& vertexarrays, KX_ListSlot** slot)
 {
 	/*
 	 Keep a copy of constant lists submitted for rendering,
 		this guards against (replicated)new...delete every frame,
 		and we can reuse lists!
-		:: sorted by mesh slot
+		:: sorted by vertex array
 	*/
-	RAS_ListSlot* localSlot = (RAS_ListSlot*)ms.m_DisplayList;
+	RAS_ListSlot* localSlot = (RAS_ListSlot*)*slot;
 	if(!localSlot) {
-		RAS_Lists::iterator it = mLists.find(&ms);
+		RAS_Lists::iterator it = mLists.find(vertexarrays);
 		if(it == mLists.end()) {
 			localSlot = new RAS_ListSlot(this);
-			mLists.insert(std::pair<RAS_MeshSlot*, RAS_ListSlot*>(&ms, localSlot));
+			mLists.insert(std::pair<vecVertexArray, RAS_ListSlot*>(vertexarrays, localSlot));
 		} else {
 			localSlot = static_cast<RAS_ListSlot*>(it->second->AddRef());
 		}
@@ -158,45 +157,69 @@ void RAS_ListRasterizer::ReleaseAlloc()
 	mLists.clear();
 }
 
-void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
+
+void RAS_ListRasterizer::IndexPrimitives(
+	const vecVertexArray & vertexarrays,
+	const vecIndexArrays & indexarrays,
+	DrawMode mode,
+	bool useObjectColor,
+	const MT_Vector4& rgbacolor,
+	class KX_ListSlot** slot)
 {
 	RAS_ListSlot* localSlot =0;
 
-	if(ms.m_bDisplayList) {
-		localSlot = FindOrAdd(ms);
+	// useObjectColor(are we updating every frame?)
+	if(!useObjectColor && slot) {
+		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 		if(localSlot->End()) {
 			// save slot here too, needed for replicas and object using same mesh
 			// => they have the same vertexarray but different mesh slot
-			ms.m_DisplayList = localSlot;
+			*slot = localSlot;
 			return;
 		}
 	}
 	
-	if (mUseVertexArrays)
-		RAS_VAOpenGLRasterizer::IndexPrimitives(ms);
-	else
-		RAS_OpenGLRasterizer::IndexPrimitives(ms);
+	if (mUseVertexArrays) {
+		RAS_VAOpenGLRasterizer::IndexPrimitives(
+				vertexarrays, indexarrays,
+				mode, useObjectColor,
+				rgbacolor,slot
+		);
+	} else {
+		RAS_OpenGLRasterizer::IndexPrimitives(
+				vertexarrays, indexarrays,
+				mode, useObjectColor,
+				rgbacolor,slot
+		);
+	}
 
-	if(ms.m_bDisplayList) {
+	if(!useObjectColor && slot) {
 		localSlot->EndList();
-		ms.m_DisplayList = localSlot;
+		*slot = localSlot;
 	}
 }
 
 
-void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
+void RAS_ListRasterizer::IndexPrimitivesMulti(
+		const vecVertexArray& vertexarrays,
+		const vecIndexArrays & indexarrays,
+		DrawMode mode,
+		bool useObjectColor,
+		const MT_Vector4& rgbacolor,
+		class KX_ListSlot** slot)
 {
 	RAS_ListSlot* localSlot =0;
 
-	if(ms.m_bDisplayList) {
-		localSlot = FindOrAdd(ms);
+	// useObjectColor(are we updating every frame?)
+	if(!useObjectColor && slot) {
+		localSlot = FindOrAdd(vertexarrays, slot);
 		localSlot->DrawList();
 
 		if(localSlot->End()) {
 			// save slot here too, needed for replicas and object using same mesh
 			// => they have the same vertexarray but different mesh slot
-			ms.m_DisplayList = localSlot;
+			*slot = localSlot;
 			return;
 		}
 	}
@@ -204,14 +227,23 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 	// workaround: note how we do not use vertex arrays for making display
 	// lists, since glVertexAttribPointerARB doesn't seem to work correct
 	// in display lists on ATI? either a bug in the driver or in Blender ..
-	if (mUseVertexArrays && !localSlot)
-		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(ms);
-	else
-		RAS_OpenGLRasterizer::IndexPrimitivesMulti(ms);
+	if (mUseVertexArrays && !localSlot) {
+		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(
+				vertexarrays, indexarrays,
+				mode, useObjectColor,
+				rgbacolor,slot
+		);
+	} else {
+		RAS_OpenGLRasterizer::IndexPrimitivesMulti(
+				vertexarrays, indexarrays,
+				mode, useObjectColor,
+				rgbacolor,slot
+		);
+	}
 
-	if(ms.m_bDisplayList) {
+	if(!useObjectColor && slot) {
 		localSlot->EndList();
-		ms.m_DisplayList = localSlot;
+		*slot = localSlot;
 	}
 }
 

@@ -182,9 +182,6 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
-#include "GPU_extensions.h"
-#include "GPU_draw.h"
-
 #include "BLO_sys_types.h" // for intptr_t support
 
 /* maybe we need this defined somewhere else */
@@ -389,7 +386,7 @@ void space_set_commmandline_options(void) {
 		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
 
 		a= (U.gameflags & USER_DISABLE_MIPMAP);
-		GPU_set_mipmap(!a);
+		set_mipmap(!a);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", a);
 
 		/* File specific settings: */
@@ -418,9 +415,7 @@ void space_set_commmandline_options(void) {
 
 		a=(G.fileflags & G_FILE_GAME_MAT);
 		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
-		a=(G.fileflags & G_FILE_GAME_MAT_GLSL);
-		SYS_WriteCommandLineInt(syshandle, "blender_glsl_material", a);
-		a=(G.fileflags & G_FILE_DISPLAY_LISTS);
+		a=(G.fileflags & G_FILE_DIAPLAY_LISTS);
 		SYS_WriteCommandLineInt(syshandle, "displaylists", a);
 
 
@@ -437,10 +432,11 @@ static void SaveState(void)
 {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	GPU_state_init();
+	init_realtime_GL();
+	init_gl_stuff();
 
 	if(G.f & G_TEXTUREPAINT)
-		GPU_paint_set_mipmap(1);
+		texpaint_enable_mipmap();
 
 	waitcursor(1);
 }
@@ -448,7 +444,7 @@ static void SaveState(void)
 static void RestoreState(void)
 {
 	if(G.f & G_TEXTUREPAINT)
-		GPU_paint_set_mipmap(0);
+		texpaint_disable_mipmap();
 
 	curarea->win_swap = 0;
 	curarea->head_swap=0;
@@ -1028,9 +1024,9 @@ void BIF_undo(void)
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
-			undo_imagepaint_step(1);
+			imagepaint_undo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
-			undo_imagepaint_step(1);
+			imagepaint_undo();
 		else if(G.f & G_PARTICLEEDIT)
 			PE_undo();
 		else {
@@ -1052,9 +1048,9 @@ void BIF_redo(void)
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
-			undo_imagepaint_step(-1);
+			imagepaint_undo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
-			undo_imagepaint_step(-1);
+			imagepaint_undo();
 		else if(G.f & G_PARTICLEEDIT)
 			PE_redo();
 		else {
@@ -1910,8 +1906,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						copy_attr_menu();
 				}
-				else if(G.qual==(LR_ALTKEY|LR_SHIFTKEY)) 
-					gpencil_convert_menu(); /* gpencil.c */
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
@@ -1970,7 +1964,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->drawtype= pupval;
 						doredraw= 1;
 					}
-                }
+                                }
 				
 				break;
 			case EKEY:
@@ -2062,7 +2056,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)){
 						G.f ^= G_FACESELECT;
 						allqueue(REDRAWVIEW3D, 1);
-						allqueue(REDRAWBUTSEDIT, 1);
 					}
 					else if(G.f & G_PARTICLEEDIT) {
 						PE_radialcontrol_start(RADIALCONTROL_SIZE);
@@ -2648,9 +2641,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.f & G_VERTEXPAINT)
 						BIF_undo();
 					else if(G.f & G_TEXTUREPAINT)
-						undo_imagepaint_step(1);
-					else
+						imagepaint_undo();
+					else {
 						single_user();
+					}
 				}
 				
 				break;
@@ -3103,9 +3097,6 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if (G.qual==LR_CTRLKEY) {
 				borderselect_markers();
 			}
-			else if (G.qual==LR_SHIFTKEY) {
-				do_ipo_buttons(B_IPOBORDER);
-			}
 			break;
 		case CKEY:
 			if (G.qual == LR_SHIFTKEY)
@@ -3266,7 +3257,7 @@ void initipo(ScrArea *sa)
 /* ******************** SPACE: INFO ********************** */
 
 void space_mipmap_button_function(int event) {
-	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3742,11 +3733,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Snap objects and sub-objects to grid units when scaling");
 		uiBlockEndAlign(block);
 		
-		uiDefButBitI(block, TOG, USER_ORBIT_ZBUF, B_DRAWINFO, "Auto Depth",
-			(xpos+edgsp+mpref+spref+(2*midsp)),y2,spref,buth,
-			&(U.uiflag), 0, 0, 0, 0,
-			"Use the depth under the mouse to improve view pan/rotate/zoom functionality");
-		
 		uiDefButBitI(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
 			(xpos+edgsp+mpref+spref+(2*midsp)),y1,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
@@ -3961,23 +3947,20 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Transform:",
-			(xpos+(2*edgsp)+mpref),y6label, mpref,buth,
+			(xpos+(2*edgsp)+mpref),y5label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiDefButBitI(block, TOG, USER_DRAGIMMEDIATE, B_DRAWINFO, "Drag Immediately",
-			(xpos+edgsp+mpref+midsp),y5,mpref,buth,
+			(xpos+edgsp+mpref+midsp),y4,mpref,buth,
 			&(U.flag), 0, 0, 0, 0, "Moving things with a mouse drag doesn't require a click to confirm (Best for tablet users)");
 		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Undo:",
-			(xpos+(2*edgsp)+mpref),y4label, mpref,buth,
+			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps: ",
-			(xpos+edgsp+mpref+midsp),y3,mpref,buth,
-			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available (smaller values conserve memory)");
-		uiDefButS(block, NUM, B_DRAWINFO, "Memory Limit: ",
 			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
-			&(U.undomemory), 0, 32767, -1, 0, "Maximum memory usage in megabytes (0 means unlimited)");
+			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available (smaller values conserve memory)");
 
 		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global Undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
@@ -4312,7 +4295,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButI(block, NUM, 0, "Collect Rate ",
 			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
-		uiBlockEndAlign(block);
 
 		/* *** */
 		uiDefBut(block, LABEL,0,"Color range for weight paint",
@@ -4549,7 +4531,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0)
 					U.light[0].flag= 1;
 				
-				GPU_default_lights();
+				default_gl_light();
 				addqueue(sa->win, REDRAW, 1);
 				allqueue(REDRAWVIEW3D, 0);
 			} 
@@ -5189,8 +5171,8 @@ static void init_seqspace(ScrArea *sa)
 	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
-	sseq->v2d.minzoom= 0.01f;
-	sseq->v2d.maxzoom= 100.0;
+	sseq->v2d.minzoom= 0.1f;
+	sseq->v2d.maxzoom= 10.0;
 	
 	sseq->v2d.scroll= L_SCROLL+B_SCROLL;
 	sseq->v2d.keepaspect= 0;
@@ -5345,15 +5327,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val==0) return;
 
 	if(uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
-	
-	/* grease-pencil drawing before draw-tool */
-	if (event == LEFTMOUSE) {
-		if (gpencil_do_paint(sa, L_MOUSE)) return;
-	}
-	else if (event == RIGHTMOUSE) {
-		if (gpencil_do_paint(sa, R_MOUSE)) return;
-	}
-	
+
 	if (sima->image && (sima->flag & SI_DRAWTOOL)) {
 		switch(event) {
 			case CKEY:
@@ -5376,7 +5350,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				event = LEFTMOUSE;
 			}
 		}
-		
+	
 		/* Draw tool is inactive, editmode is enabled and the image is not a render or composite  */
 		if (EM_texFaceCheck() && (G.sima->image==0 || (G.sima->image->type != IMA_TYPE_R_RESULT && G.sima->image->type != IMA_TYPE_COMPOSITE))) {
 			switch(event) {
@@ -6013,7 +5987,7 @@ static void init_oopsspace(ScrArea *sa)
 	soops= MEM_callocN(sizeof(SpaceOops), "initoopsspace");
 	BLI_addhead(&sa->spacedata, soops);
 
-	soops->visiflag= OOPS_OB|OOPS_MA|OOPS_ME|OOPS_TE|OOPS_CU|OOPS_IP;
+	soops->visiflag= OOPS_OB+OOPS_MA+OOPS_ME+OOPS_TE+OOPS_CU+OOPS_IP;
 	/* new oops is default an outliner */
 	soops->type= SO_OUTLINER;
 		
@@ -6084,10 +6058,6 @@ static void init_textspace(ScrArea *sa)
 	st->lheight= 12;
 	st->showlinenrs= 0;
 	st->tabnumber = 4;
-	st->showsyntax= 0;
-	st->doplugins= 0;
-	st->overwrite= 0;
-	st->wordwrap= 0;
 	st->currtab_set = 0;
 	
 	st->top= 0;
@@ -6357,8 +6327,6 @@ void freespacelist(ScrArea *sa)
 			SpaceImage *sima= (SpaceImage *)sl;
 			if(sima->cumap)
 				curvemapping_free(sima->cumap);
-			if(sima->gpd)
-				free_gpencil_data(sima->gpd);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
@@ -6425,10 +6393,6 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		else if(sl->spacetype==SPACE_SEQ) {
 			SpaceSeq *sseq= (SpaceSeq *)sl;
 			sseq->gpd= gpencil_data_duplicate(sseq->gpd);
-		}
-		else if(sl->spacetype==SPACE_IMAGE) {
-			SpaceImage *sima= (SpaceImage *)sl;
-			sima->gpd= gpencil_data_duplicate(sima->gpd);
 		}
 		sl= sl->next;
 	}

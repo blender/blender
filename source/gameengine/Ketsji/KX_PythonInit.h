@@ -40,7 +40,7 @@ typedef enum {
 extern bool gUseVisibilityTemp;
 
 
-PyObject*	initGameLogic(class KX_KetsjiEngine *engine, class KX_Scene* ketsjiscene);
+PyObject*	initGameLogic(class KX_Scene* ketsjiscene);
 PyObject*	initGameKeys();
 PyObject*	initRasterizer(class RAS_IRasterizer* rasty,class RAS_ICanvas* canvas);
 PyObject*	initGamePlayerPythonScripting(const STR_String& progname, TPythonSecurityLevel level);
@@ -48,10 +48,6 @@ PyObject*	initMathutils();
 void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
 void		exitGamePythonScripting();
-
-void		pathGamePythonConfig( char *path );
-int			saveGamePythonConfig( char **marshal_buffer);
-int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);
 
 void PHY_SetActiveScene(class KX_Scene* scene);
 class KX_Scene* PHY_GetActiveScene();

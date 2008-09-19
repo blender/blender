@@ -60,7 +60,7 @@ MOVE /Y ..\..\..\..\bin\debug\blenderplayer.lib ..\..\..\..\..\build\msvc_7\libs
 MOVE /Y ..\..\..\..\bin\debug\blenderplayer.exp ..\..\..\..\..\build\msvc_7\libs\debug
 MOVE /Y ..\..\..\..\bin\debug\blenderplayer.ilk ..\..\..\..\..\build\msvc_7\libs\debug
 ECHO Copying required 3rd party dlls...
-XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\lib25_vs2003\python25_d.dll ..\..\..\..\bin\debug
+XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python25_d.dll ..\..\..\..\bin\debug
 XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin\debug
 XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin\debug
 XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin\debug
@@ -134,7 +134,7 @@ ECHO Done
 MOVE /Y ..\..\..\..\bin\blenderplayer.lib ..\..\..\..\..\build\msvc_7\libs
 MOVE /Y ..\..\..\..\bin\blenderplayer.exp ..\..\..\..\..\build\msvc_7\libs
 ECHO Copying required 3rd party dlls...
-XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\lib25_vs2003\python25.dll ..\..\..\..\bin
+XCOPY /Y ..\..\..\..\..\lib\windows\python\lib\python25.dll ..\..\..\..\bin
 XCOPY /Y ..\..\..\..\..\lib\windows\sdl\lib\SDL.dll ..\..\..\..\bin
 XCOPY /Y ..\..\..\..\..\lib\windows\png\lib\libpng.dll ..\..\..\..\bin
 XCOPY /Y ..\..\..\..\..\lib\windows\zlib\lib\zlib.dll ..\..\..\..\bin

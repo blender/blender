@@ -1054,10 +1054,10 @@ static void draw_default_sensor_header(bSensor *sens,
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the level (output) of this sensor");
-	uiDefButS(block, TOG, 1, "Level",
-			 (short)(x + 10 + 0.65 * (w-20)), (short)(y - 19), (short)(0.20 * (w-20)), 19,
+	uiDefButS(block, TOG, 1, "Lvl",
+			 (short)(x + 10 + 0.70 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->level, 0.0, 0.0, 0, 0,
-			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
+			 "Level detector versus edge detector (only applicable in case of logic state transition)");
 }
 
 static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
@@ -1270,15 +1270,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			if(ps->type == SENS_PROP_INTERVAL)
 			{
 				uiDefBut(block, TEX, 1, "Min: ",		xco,yco-92,width/2, 19,
-					ps->value, 0, 31, 0, 0, "check for min value");
+					ps->value, 0, 31, 0, 0, "test for min value");
 				uiDefBut(block, TEX, 1, "Max: ",		xco+width/2,yco-92,width/2, 19,
-					ps->maxvalue, 0, 31, 0, 0, "check for max value");
+					ps->maxvalue, 0, 31, 0, 0, "test for max value");
 			}
 			else if(ps->type == SENS_PROP_CHANGED);
 			else
 			{
 				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-92,width-60, 19,
-					ps->value, 0, 31, 0, 0, "check for value");
+					ps->value, 0, 31, 0, 0, "test for value");
 			}
 			
 			yco-= ysize;
@@ -1390,14 +1390,9 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					&raySens->propname, 0, 31, 0, 0,
 					"Only look for Objects with this property");
 			}
-
-			/* X-Ray option */
-			uiDefButBitS(block, TOG, SENS_RAY_XRAY, 1, "X",
-				xco + 10,yco - 68, 0.10 * (width-20), 19,
-				&raySens->mode, 0.0, 0.0, 0, 0,
-				"Toggle X-Ray option (see through objects that don't have the property)");
+			
 			/* 2. sensing range */
-			uiDefButF(block, NUM, 1, "Range", xco+10 + 0.10 * (width-20), yco-68, 0.5 * (width-20), 19,
+			uiDefButF(block, NUM, 1, "Range", xco+10, yco-68, 0.6 * (width-20), 19,
 				&raySens->range, 0.01, 10000.0, 100, 0,
 				"Sense objects no farther than this distance");
 			
@@ -1444,13 +1439,10 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			draw_default_sensor_header(sens, block, xco, yco, width);
 
 			joy= sens->data;
-
-			uiDefButS(block, NUM, 1, "Index:", xco+10, yco-44, 0.6 * (width-120), 19,
-			&joy->joyindex, 0, SENS_JOY_MAXINDEX-1, 100, 0,
-			"Specify which joystick to use");			
+			
 
 			str= "Type %t|Button %x0|Axis %x1|Hat%x2"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+87, yco-44, 0.6 * (width-150), 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, 0.6 * (width-20), 19,
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			
@@ -1865,7 +1857,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			but = uiDefButBitS(block, TOG, ACT_IPOFORCE, ACT_IPOFORCE, 
 				"Force", xco+10+(width-20)/2, yco-24, (width-20)/4-10, 19, 
 				&ia->flag, 0, 0, 0, 0, 
-				"Apply Ipo as a global or local force depending on the local option (dynamic objects only)"); 
+				"Convert Ipo to force. Force is applied in global or local coordinate according to Local flag"); 
 			uiButSetFunc(but, change_ipo_actuator, but, ia);
 
 			but = uiDefButBitS(block, TOG, ACT_IPOADD, ACT_IPOADD, 
@@ -1891,12 +1883,12 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			else {
 				uiDefButI(block, NUM, 0, 
 					"Sta",		xco+10, yco-44, (width-80)/2, 19, 
-					&ia->sta, 1.0, MAXFRAMEF, 0, 0, 
-					"Start frame");
+					&ia->sta, 0.0, MAXFRAMEF, 0, 0, 
+					"Start frame, (subtract 1 to match blenders frame numbers)");
 				uiDefButI(block, NUM, 0, 
 					"End",		xco+10+(width-80)/2, yco-44, (width-80)/2, 19, 
-					&ia->end, 1.0, MAXFRAMEF, 0, 0, 
-					"End frame");
+					&ia->end, 0.0, MAXFRAMEF, 0, 0, 
+					"End frame, (subtract 1 to match blenders frame numbers)");
 			}
 			uiDefButBitS(block, TOG, ACT_IPOCHILD,  B_REDR, 
 				"Child",	xco+10+(width-80), yco-44, 60, 19, 
@@ -1925,7 +1917,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				uiDefBut(block, TEX, 1, "Prop: ",		xco+10+(width-20)/2, yco-64, (width-20)/2, 19, pa->value, 0, 31, 0, 0, "Copy this property");
 			}
 			else {
-				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-64,width-60, 19, pa->value, 0, 31, 0, 0, "change with this value, use \"\" around strings");
+				uiDefBut(block, TEX, 1, "Value: ",		xco+30,yco-64,width-60, 19, pa->value, 0, 31, 0, 0, "change with this value");
 			}
 			yco-= ysize;
 			
@@ -2030,7 +2022,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 		if(eoa->type==ACT_EDOB_ADD_OBJECT) {
 			int wval; /* just a temp width */
-			ysize = 92;
+			ysize = 72;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
@@ -2050,27 +2042,9 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-68, wval, 19,
 					 eoa->linVelocity+2, -100.0, 100.0, 10, 0,
 					 "Velocity upon creation, z component.");
-			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_LINV, 0, "L", xco+45+3*wval, yco-68, 15, 19,
+			uiDefButBitS(block, TOG, 2, 0, "L", xco+45+3*wval, yco-68, 15, 19,
 					 &eoa->localflag, 0.0, 0.0, 0, 0,
 					 "Apply the transformation locally");
-			
-			
-			uiDefBut(block, LABEL, 0, "AngV",	xco,           yco-90,   45, 19,
-					 NULL, 0, 0, 0, 0,
-					 "Angular velocity upon creation.");
-			uiDefButF(block, NUM, 0, "",		xco+45,        yco-90, wval, 19,
-					 eoa->angVelocity, -10000.0, 10000.0, 10, 0,
-					 "Angular velocity upon creation, x component.");
-			uiDefButF(block, NUM, 0, "",		xco+45+wval,   yco-90, wval, 19,
-					 eoa->angVelocity+1, -10000.0, 10000.0, 10, 0,
-					 "Angular velocity upon creation, y component.");
-			uiDefButF(block, NUM, 0, "",		xco+45+2*wval, yco-90, wval, 19,
-					 eoa->angVelocity+2, -10000.0, 10000.0, 10, 0,
-					 "Angular velocity upon creation, z component.");
-			uiDefButBitS(block, TOG, ACT_EDOB_LOCAL_ANGV, 0, "L", xco+45+3*wval, yco-90, 15, 19,
-					 &eoa->localflag, 0.0, 0.0, 0, 0,
-					 "Apply the rotation locally");
-					 
 
 		}
 		else if(eoa->type==ACT_EDOB_END_OBJECT) {
@@ -2296,7 +2270,13 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		   		uiDefBut(block, TEX, 1, "File: ", xco+10, yco-44,width-20,19, &(gma->filename), 0, 63, 0, 0, "Load this file");
 				uiDefBut(block, TEX, 1, "Anim: ", xco+10, yco-64,width-20,19, &(gma->loadaniname), 0, 63, 0, 0, "Use this loadinganimation");
 			}
-*/			else if (ELEM4(gma->type, ACT_GAME_RESTART, ACT_GAME_QUIT, ACT_GAME_SAVECFG, ACT_GAME_LOADCFG))
+*/			else if (gma->type == ACT_GAME_RESTART)
+			{
+				ysize = 28; 
+				glRects(xco, yco-ysize, xco+width, yco); 
+				uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
+			}
+			else if (gma->type == ACT_GAME_QUIT)
 			{
 				ysize = 28; 
 				glRects(xco, yco-ysize, xco+width, yco); 
@@ -2304,7 +2284,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			}
 
 			//str = "Scene %t|Load game%x0|Start loaded game%x1|Restart this game%x2|Quit this game %x3";
-			str = "Scene %t|Start new game%x0|Restart this game%x2|Quit this game %x3|Save GameLogic.globalDict %x4|Load GameLogic.globalDict %x5";
+			str = "Scene %t|Start new game%x0|Restart this game%x2|Quit this game %x3";
 			uiDefButS(block, MENU, B_REDR, str, xco+40, yco-24, (width-80), 19, &gma->type, 0.0, 0.0, 0, 0, ""); 
 			
 			yco -= ysize; 
@@ -2344,7 +2324,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		
 		visAct = act->data;
 
-		str= "Visibility %t|Visible %x0|Invisible %x1|Visible Recursive %x2|Invisible Recursive %x3";
+		str= "Visibility %t|Visible %x0|Invisible %x1";
 
 		uiDefButI(block, MENU, B_REDR, str,
 			  xco + 10, yco - 24, width - 20, 19, &visAct->flag,
@@ -2836,158 +2816,134 @@ void buttons_enji(uiBlock *block, Object *ob)
 
 void buttons_ketsji(uiBlock *block, Object *ob)
 {
-	uiDefButBitI(block, TOG, OB_PHYSICS, B_REDR, "Physics",
-			  10,205,70,19, &ob->gameflag, 0, 0, 0, 0,
-			  "Objects that have a physics representation");
-	if (ob->gameflag & OB_PHYSICS) {
+	uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
+			  10,205,55,19, &ob->gameflag, 0, 0, 0, 0,
+			  "Objects that are evaluated by the engine ");
+	if(ob->gameflag & OB_ACTOR) {	
+		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 65,205,55,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Objects that don't restitute collisions (like a ghost)");
+		uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 120,205,70,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Motion defined by laws of physics");
+	
+		if(ob->gameflag & OB_DYNAMIC) {
+			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 190,205,80,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Enable rolling physics");
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,205,80,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Disable auto (de)activation");
+
+			uiDefButBitI(block, TOG, OB_DO_FH, B_DIFF, "Do Fh", 10,185,50,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Use Fh settings in Materials");
+			uiDefButBitI(block, TOG, OB_ROT_FH, B_DIFF, "Rot Fh", 60,185,50,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Use face normal to rotate Object");
+			uiDefButF(block, NUM, B_DIFF, "Mass:", 110, 185, 80, 19, 
+					  &ob->mass, 0.01, 10000.0, 10, 0, 
+					  "The mass of the Object");
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 190, 185, 80, 19, 
+					  &ob->inertia, 0.01, 10.0, 10, 0, 
+					  "Bounding sphere radius");
+			uiDefButF(block, NUM, B_DIFF, "Form:", 270, 185, 80, 19, 
+					  &ob->formfactor, 0.01, 100.0, 10, 0, 
+					  "Form factor");
+
+			uiDefButF(block, NUM, B_DIFF, "Damp:", 10, 165, 100, 19, 
+					  &ob->damping, 0.0, 1.0, 10, 0, 
+					  "General movement damping");
+			uiDefButF(block, NUM, B_DIFF, "RotDamp:", 110, 165, 120, 19, 
+					  &ob->rdamping, 0.0, 1.0, 10, 0, 
+					  "General rotation damping");
+			uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
+					  230, 165, 120, 19,
+					  &ob->gameflag, 0.0, 1.0, 10, 0,
+					  "Enable anisotropic friction");			
+		}
+
+		if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
+			uiDefButF(block, NUM, B_DIFF, "x friction:", 10, 145, 114, 19,
+					  &ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
+					  "Relative friction coefficient in the x-direction.");
+			uiDefButF(block, NUM, B_DIFF, "y friction:", 124, 145, 113, 19,
+					  &ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
+					  "Relative friction coefficient in the y-direction.");
+			uiDefButF(block, NUM, B_DIFF, "z friction:", 237, 145, 113, 19,
+					  &ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
+					  "Relative friction coefficient in the z-direction.");
+		}
+	}
+
+	if (!(ob->gameflag & OB_GHOST)) {
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
-				80,205,55,19, &ob->gameflag, 0, 0, 0, 0,
-				"Objects that are evaluated by the engine ");
-		if(ob->gameflag & OB_ACTOR) {	
-			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 135,205,55,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Objects that don't restitute collisions (like a ghost)");
-			uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 190,205,75,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Motion defined by laws of physics");
-		
-			if(ob->gameflag & OB_DYNAMIC) {
-				uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 265,205,85,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Enable rolling physics");
-
-				uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 130, 19, 
-						&ob->mass, 0.01, 10000.0, 10, 2, 
-						"The mass of the Object");
-				uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
-						&ob->inertia, 0.01, 10.0, 10, 2, 
-						"Bounding sphere radius");
-				uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Disable auto (de)activation");
-
-				uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
-						&ob->damping, 0.0, 1.0, 10, 0, 
-						"General movement damping");
-				uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
-						&ob->rdamping, 0.0, 1.0, 10, 0, 
-						"General rotation damping");
-
-				uiDefButBitI(block, TOG, OB_DO_FH, B_DIFF, "Do Fh", 10,145,50,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Use Fh settings in Materials");
-				uiDefButBitI(block, TOG, OB_ROT_FH, B_DIFF, "Rot Fh", 60,145,50,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Use face normal to rotate Object");
-				uiDefButF(block, NUM, B_DIFF, "Form:", 110, 145, 120, 19, 
-						&ob->formfactor, 0.01, 100.0, 10, 0, 
-						"Form factor");
-
-				uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
-						230, 145, 120, 19,
-						&ob->gameflag, 0.0, 1.0, 10, 0,
-						"Enable anisotropic friction");			
-			}
-
-			if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
-				uiDefButF(block, NUM, B_DIFF, "x friction:", 10, 125, 114, 19,
-						&ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
-						"Relative friction coefficient in the x-direction.");
-				uiDefButF(block, NUM, B_DIFF, "y friction:", 124, 125, 113, 19,
-						&ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
-						"Relative friction coefficient in the y-direction.");
-				uiDefButF(block, NUM, B_DIFF, "z friction:", 237, 125, 113, 19,
-						&ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
-						"Relative friction coefficient in the z-direction.");
-			}
+		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 125, 75, 19,
+				&ob->gameflag, 0, 0,0, 0,
+				"Specify a bounds object for physics");
+		if (ob->gameflag & OB_BOUNDS) {
+			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4",
+				85, 125, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
+			uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,125,100,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Add Children");
 		}
-
-		if (!(ob->gameflag & OB_GHOST)) {
-			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 105, 75, 19,
-					&ob->gameflag, 0, 0,0, 0,
-					"Specify a bounds object for physics");
-			if (ob->gameflag & OB_BOUNDS) {
-				uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Static TriangleMesh %x4",
-					85, 105, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
-				uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,105,100,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Add Children");
-			}
-			uiBlockEndAlign(block);
-		}
+		uiBlockEndAlign(block);
 	}
 }
 
 void buttons_bullet(uiBlock *block, Object *ob)
 {
-	uiDefButBitI(block, TOG, OB_PHYSICS, B_REDR, "Physics",
-			  10,205,70,19, &ob->gameflag, 0, 0, 0, 0,
-			  "Objects that have a physics representation");
-	if (ob->gameflag & OB_PHYSICS) {
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
-				80,205,55,19, &ob->gameflag, 0, 0, 0, 0,
-				"Objects that are detected by the Near and Radar sensor");
-		if(ob->gameflag & OB_ACTOR) {	
-			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 135,205,55,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Objects that don't restitute collisions (like a ghost)");
-			uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 190,205,75,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Motion defined by laws of physics");
-		
-			if(ob->gameflag & OB_DYNAMIC) {
-				uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 265,205,85,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Enable rolling physics");
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
+			  10,205,55,19, &ob->gameflag, 0, 0, 0, 0,
+			  "Objects that are evaluated by the engine ");
+	if(ob->gameflag & OB_ACTOR) {	
+		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 65,205,55,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Objects that don't restitute collisions (like a ghost)");
+		uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 120,205,70,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Motion defined by laws of physics");
+	
+		if(ob->gameflag & OB_DYNAMIC) {
+			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 190,205,80,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Enable rolling physics");
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,205,80,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Disable auto (de)activation");
 
-				uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 130, 19, 
-						&ob->mass, 0.01, 10000.0, 10, 2, 
-						"The mass of the Object");
-				uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
-						&ob->inertia, 0.01, 10.0, 10, 2, 
-						"Bounding sphere radius, not used for other bounding shapes");
-				uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
-						&ob->gameflag, 0, 0, 0, 0, 
-						"Disable auto (de)activation");
+			uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 170, 19, 
+					  &ob->mass, 0.01, 10000.0, 10, 2, 
+					  "The mass of the Object");
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 180, 185, 170, 19, 
+					  &ob->inertia, 0.01, 10.0, 10, 2, 
+					  "Bounding sphere radius");
 
-				uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
-						&ob->damping, 0.0, 1.0, 10, 0, 
-						"General movement damping");
-				uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
-						&ob->rdamping, 0.0, 1.0, 10, 0, 
-						"General rotation damping");
-			}
+			uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
+					  &ob->damping, 0.0, 1.0, 10, 0, 
+					  "General movement damping");
+			uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
+					  &ob->rdamping, 0.0, 1.0, 10, 0, 
+					  "General rotation damping");
 		}
-		uiBlockEndAlign(block);
-
-		uiBlockBeginAlign(block);
-		if ((ob->gameflag & (OB_ACTOR|OB_DYNAMIC)) == (OB_ACTOR|OB_DYNAMIC)) {
-			if (ob->margin < 0.001f)
-				ob->margin = 0.06f;
-			uiDefButF(block, NUM, B_DIFF, "Margin", 10, 105, 105, 19, 
-					&ob->margin, 0.001, 1.0, 1, 0, 
-					"Collision margin");
-		} else {
-			uiDefButF(block, NUM, B_DIFF, "Margin", 10, 105, 105, 19, 
-					&ob->margin, 0.0, 1.0, 1, 0, 
-					"Collision margin");
-		}
-		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 115, 105, 55, 19,
-				&ob->gameflag, 0, 0,0, 0,
-				"Specify a bounds object for physics");
-		if (ob->gameflag & OB_BOUNDS) {
-			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Static Mesh%x4",
-			//almost ready to enable this one:			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|Dynamic Mesh %x5|",
-				170, 105, 105, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
-			uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 275,105,75,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Add Children");
-		}
-		uiBlockEndAlign(block);
 	}
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 125, 75, 19,
+		     &ob->gameflag, 0, 0,0, 0,
+		     "Specify a bounds object for physics");
+	if (ob->gameflag & OB_BOUNDS) {
+		uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4",
+		  //almost ready to enable this one:			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|Dynamic Mesh %x5|",
+			  85, 125, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
+		uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,125,100,19, 
+			     &ob->gameflag, 0, 0, 0, 0, 
+			     "Add Children");
+	}
+	uiBlockEndAlign(block);
 }
 
 static void check_object_state(void *arg1_but, void *arg2_mask)
@@ -3123,9 +3079,6 @@ void logic_buts(void)
 	int a, iact, stbit, offset;
 	short xco, yco, count, width, ycoo;
 	char *pupstr, name[32];
-	/* pin is a bool used for actuator and sensor drawing with states
-	 * pin so changing states dosnt hide the logic brick */
-	char pin;
 
 	wrld= G.scene->world;
 
@@ -3156,7 +3109,7 @@ void logic_buts(void)
 	
 	uiBlockSetCol(block, TH_AUTO);
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_ADD_PROP, "Add Property",		10, 70, 340, 24,
+	uiDefBut(block, BUT, B_ADD_PROP, "Add Property",		10, 90, 340, 24,
 			 NULL, 0.0, 100.0, 100, 0,
 			 "");
 	
@@ -3165,26 +3118,26 @@ void logic_buts(void)
 	a= 0;
 	prop= ob->prop.first;
 	while(prop) {
-		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(50-20*a), 40, 20, NULL, 0.0, 0.0, 1, (float)a, "");
+		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 20, NULL, 0.0, 0.0, 1, (float)a, "");
 		uiButSetFunc(but, del_property, prop, NULL);
-		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(50-20*a), 60, 20, &prop->type, 0, 0, 0, 0, "");
-		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(50-20*a), 110, 20, prop->name, 0, 31, 0, 0, "Available as GameObject attributes in the game engines python api");
+		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(70-20*a), 60, 20, &prop->type, 0, 0, 0, 0, "");
+		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(70-20*a), 110, 20, prop->name, 0, 31, 0, 0, "");
 		uiButSetFunc(but, make_unique_prop_names_cb, prop->name, (void*) 1);
 		
 		if(prop->type==PROP_BOOL) {
-			uiDefButBitI(block, TOG, 1, B_REDR, "True",		220, (short)(50-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
-			uiDefButBitI(block, TOGN, 1, B_REDR, "False",	270, (short)(50-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
+			uiDefButBitI(block, TOG, 1, B_REDR, "True",		220, (short)(70-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
+			uiDefButBitI(block, TOGN, 1, B_REDR, "False",	270, (short)(70-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
 		}
 		else if(prop->type==PROP_INT) 
-			uiDefButI(block, NUM, B_REDR, "",			220, (short)(50-20*a), 110, 20, &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButI(block, NUM, B_REDR, "",			220, (short)(70-20*a), 110, 20, &prop->data, -10000, 10000, 0, 0, "");
 		else if(prop->type==PROP_FLOAT) 
-			uiDefButF(block, NUM, B_REDR, "",			220, (short)(50-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
+			uiDefButF(block, NUM, B_REDR, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
 		else if(prop->type==PROP_STRING) 
-			uiDefBut(block, TEX, B_REDR, "",				220, (short)(50-20*a), 110, 20, prop->poin, 0, 127, 0, 0, "");
+			uiDefBut(block, TEX, B_REDR, "",				220, (short)(70-20*a), 110, 20, prop->poin, 0, 127, 0, 0, "");
 		else if(prop->type==PROP_TIME) 
-			uiDefButF(block, NUM, B_REDR, "",			220, (short)(50-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
+			uiDefButF(block, NUM, B_REDR, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
 		
-		uiDefButBitS(block, TOG, PROP_DEBUG, B_REDR, "D",		330, (short)(50-20*a), 20, 20, &prop->flag, 0, 0, 0, 0, "Print Debug info");
+		uiDefButBitS(block, TOG, PROP_DEBUG, B_REDR, "D",		330, (short)(70-20*a), 20, 20, &prop->flag, 0, 0, 0, 0, "Print Debug info");
 		
 		a++;
 		prop= prop->next;
@@ -3311,13 +3264,13 @@ void logic_buts(void)
 						uiDefIconButBitS(block, ICONTOG, CONT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &cont->flag, 0, 0, 0, 0, "Controller settings");
 						uiBlockSetEmboss(block, UI_EMBOSSP);
 						sprintf(name, "%d", first_bit(cont->state_mask)+1);
-						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state index (from 1 to 30)");
+						uiDefBlockBut(block, controller_state_mask_menu, cont, name, (short)(xco+width-44), yco, 22, 19, "Set controller state mask");
 						uiBlockSetEmboss(block, UI_EMBOSSM);
 				
 						if(cont->flag & CONT_SHOW) {
 							cont->otype= cont->type;
-							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 70, 19, &cont->type, 0, 0, 0, 0, "Controller type");
-							but= uiDefBut(block, TEX, 1, "", (short)(xco+92), yco, (short)(width-136), 19, cont->name, 0, 31, 0, 0, "Controller name");
+							uiDefButS(block, MENU, B_CHANGE_CONT, controller_pup(),(short)(xco+22), yco, 100, 19, &cont->type, 0, 0, 0, 0, "Controller type");
+							but= uiDefBut(block, TEX, 1, "", (short)(xco+122), yco, (short)(width-166), 19, cont->name, 0, 31, 0, 0, "Controller name");
 							uiButSetFunc(but, make_unique_prop_names_cb, cont->name, (void*) 0);
 				
 							ycoo= yco;
@@ -3327,9 +3280,9 @@ void logic_buts(void)
 						else {
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
-							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, 19, cont, 0, 0, 0, 0, "Controller type");
+							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 100, 19, cont, 0, 0, 0, 0, "Controller type");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
-							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-136), 19, cont, 0, 0, 0, 0, "Controller name");
+							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+122), yco,(short)(width-166), 19, cont, 0, 0, 0, 0, "Controller name");
 							uiButSetFunc(but, sca_move_controller, cont, NULL);
 							ycoo= yco;
 						}
@@ -3386,26 +3339,18 @@ void logic_buts(void)
 			sens= ob->sensors.first;
 			while(sens) {
 				if (!(G.buts->scaflag & BUTS_SENS_STATE) ||
-					 (sens->totlinks == 0) ||		/* always display sensor without links so that is can be edited */
-					 (sens->flag & SENS_PIN && G.buts->scaflag & BUTS_SENS_STATE) || /* states can hide some sensors, pinned sensors ignore the visible state */
-					 (is_sensor_linked(block, sens))
-				) {
-					/* should we draw the pin? - for now always draw when there is a state */
-					pin = (G.buts->scaflag & BUTS_SENS_STATE && (sens->flag & SENS_SHOW || sens->flag & SENS_PIN)) ? 1:0 ;
-					
+					sens->totlinks == 0 ||		/* always display sensor without links so that is can be edited */
+					is_sensor_linked(block, sens)) {
 					sens->flag |= SENS_VISIBLE;
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, SENS_DEL, B_DEL_SENS, ICON_X,	xco, yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Delete Sensor");
-					if (pin)
-						uiDefIconButBitS(block, ICONTOG, SENS_PIN, B_REDR, ICON_PIN_DEHLT, (short)(xco+width-44), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
-					
 					uiDefIconButBitS(block, ICONTOG, SENS_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &sens->flag, 0, 0, 0, 0, "Sensor settings");
 
 					ycoo= yco;
 					if(sens->flag & SENS_SHOW)
 					{
 						uiDefButS(block, MENU, B_CHANGE_SENS, sensor_pup(),	(short)(xco+22), yco, 80, 19, &sens->type, 0, 0, 0, 0, "Sensor type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens->name, 0, 31, 0, 0, "Sensor name");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+102), yco, (short)(width-124), 19, sens->name, 0, 31, 0, 0, "Sensor name");
 						uiButSetFunc(but, make_unique_prop_names_cb, sens->name, (void*) 0);
 
 						sens->otype= sens->type;
@@ -3417,7 +3362,7 @@ void logic_buts(void)
 						glRecti(xco+22, yco, xco+width-22,yco+19);
 						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, 19, sens, 0, 0, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
-						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), 19, sens, 0, 31, 0, 0, "");
+						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-124), 19, sens, 0, 31, 0, 0, "");
 						uiButSetFunc(but, sca_move_sensor, sens, NULL);
 					}
 
@@ -3466,22 +3411,16 @@ void logic_buts(void)
 			while(act) {
 				if (!(G.buts->scaflag & BUTS_ACT_STATE) ||
 					!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
-					 (act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
-					 (act->flag & ACT_PIN && G.buts->scaflag & BUTS_ACT_STATE)) {
-					
-					pin = (G.buts->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1:0 ;
-					
+					(act->flag & ACT_VISIBLE)) {		/* this actuator has visible connection, display it */
 					act->flag |= ACT_VISIBLE;	/* mark the actuator as visible to help implementing the up/down action */
 					uiBlockSetEmboss(block, UI_EMBOSSM);
 					uiDefIconButBitS(block, TOG, ACT_DEL, B_DEL_ACT, ICON_X,	xco, yco, 22, 19, &act->flag, 0, 0, 0, 0, "Delete Actuator");
-					if (pin)
-						uiDefIconButBitS(block, ICONTOG, ACT_PIN, B_REDR, ICON_PIN_DEHLT, (short)(xco+width-44), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display when not linked to a visible states controller");
-					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Display the actuator");
-					
+					uiDefIconButBitS(block, ICONTOG, ACT_SHOW, B_REDR, ICON_RIGHTARROW, (short)(xco+width-22), yco, 22, 19, &act->flag, 0, 0, 0, 0, "Actuator settings");
+
 					if(act->flag & ACT_SHOW) {
 						act->otype= act->type;
 						uiDefButS(block, MENU, B_CHANGE_ACT, actuator_pup(ob),	(short)(xco+22), yco, 90, 19, &act->type, 0, 0, 0, 0, "Actuator type");
-						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act->name, 0, 31, 0, 0, "Actuator name");
+						but= uiDefBut(block, TEX, 1, "", (short)(xco+112), yco, (short)(width-134), 19, act->name, 0, 31, 0, 0, "Actuator name");
 						uiButSetFunc(but, make_unique_prop_names_cb, act->name, (void*) 0);
 
 						ycoo= yco;
@@ -3493,7 +3432,7 @@ void logic_buts(void)
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
 						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, 19, act, 0, 0, 0, 0, "Actuator type");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
-						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), 19, act, 0, 0, 0, 0, "Actuator name");
+						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-134), 19, act, 0, 0, 0, 0, "Actuator name");
 						uiButSetFunc(but, sca_move_actuator, act, NULL);
 						ycoo= yco;
 					}

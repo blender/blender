@@ -17,62 +17,48 @@ subject to the following restrictions:
 #define BT_TRIANGLE_INDEX_VERTEX_ARRAY_H
 
 #include "btStridingMeshInterface.h"
-#include "LinearMath/btAlignedObjectArray.h"
-#include "LinearMath/btScalar.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
-
-///The btIndexedMesh indexes a single vertex and index array. Multiple btIndexedMesh objects can be passed into a btTriangleIndexVertexArray using addIndexedMesh.
-///Instead of the number of indices, we pass the number of triangles.
+///IndexedMesh indexes into existing vertex and index arrays, in a similar way OpenGL glDrawElements
+///instead of the number of indices, we pass the number of triangles
+///todo: explain with pictures
 ATTRIBUTE_ALIGNED16( struct)	btIndexedMesh
 {
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-
 	int			m_numTriangles;
 	const unsigned char *		m_triangleIndexBase;
 	int			m_triangleIndexStride;
 	int			m_numVertices;
 	const unsigned char *		m_vertexBase;
 	int			m_vertexStride;
-	// The index type is set when adding an indexed mesh to the
-	// btTriangleIndexVertexArray, do not set it manually
-	PHY_ScalarType		m_indexType;
-	int			pad;
+	int			pad[2];
 }
 ;
 
 
 typedef btAlignedObjectArray<btIndexedMesh>	IndexedMeshArray;
 
-///The btTriangleIndexVertexArray allows to access multiple triangle meshes, by indexing into existing triangle/index arrays.
+///TriangleIndexVertexArray allows to use multiple meshes, by indexing into existing triangle/index arrays.
 ///Additional meshes can be added using addIndexedMesh
 ///No duplcate is made of the vertex/index data, it only indexes into external vertex/index arrays.
 ///So keep those arrays around during the lifetime of this btTriangleIndexVertexArray.
 ATTRIBUTE_ALIGNED16( class) btTriangleIndexVertexArray : public btStridingMeshInterface
 {
-protected:
 	IndexedMeshArray	m_indexedMeshes;
-	int m_pad[2];
-	int m_hasAabb; // using int instead of bool to maintain alignment
-	btVector3 m_aabbMin;
-	btVector3 m_aabbMax;
+	int m_pad[3];
 
+		
 public:
 
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-
-	btTriangleIndexVertexArray() : m_hasAabb(0)
+	btTriangleIndexVertexArray()
 	{
 	}
 
-	virtual ~btTriangleIndexVertexArray();
-
 	//just to be backwards compatible
-	btTriangleIndexVertexArray(int numTriangles,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride);
+	btTriangleIndexVertexArray(int numTriangleIndices,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride);
 	
-	void	addIndexedMesh(const btIndexedMesh& mesh, PHY_ScalarType indexType = PHY_INTEGER)
+	void	addIndexedMesh(const btIndexedMesh& mesh)
 	{
 		m_indexedMeshes.push_back(mesh);
-		m_indexedMeshes[m_indexedMeshes.size()-1].m_indexType = indexType;
 	}
 	
 	
@@ -104,10 +90,6 @@ public:
 
 	virtual void	preallocateVertices(int numverts){(void) numverts;}
 	virtual void	preallocateIndices(int numindices){(void) numindices;}
-
-	virtual bool	hasPremadeAabb() const;
-	virtual void	setPremadeAabb(const btVector3& aabbMin, const btVector3& aabbMax );
-	virtual void	getPremadeAabb(btVector3* aabbMin, btVector3* aabbMax ) const;
 
 }
 ;

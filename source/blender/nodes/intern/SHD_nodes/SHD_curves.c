@@ -56,15 +56,6 @@ static void node_shader_init_curve_vec(bNode* node)
    node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 }
 
-static int gpu_shader_curve_vec(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	float *array;
-	int size;
-
-	curvemapping_table_RGBA(node->storage, &array, &size);
-	return GPU_stack_link(mat, "curves_vec", in, out, GPU_texture(size, array));
-}
-
 bNodeType sh_node_curve_vec= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_CURVE_VEC,
@@ -79,8 +70,7 @@ bNodeType sh_node_curve_vec= {
 	/* initfunc    */	node_shader_init_curve_vec,
 	/* freestoragefunc    */	node_free_curves,
 	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_curve_vec
+	/* id          */	NULL
 	
 };
 
@@ -110,15 +100,6 @@ static void node_shader_init_curve_rgb(bNode *node)
    node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	float *array;
-	int size;
-
-	curvemapping_table_RGBA(node->storage, &array, &size);
-	return GPU_stack_link(mat, "curves_rgb", in, out, GPU_texture(size, array));
-}
-
 bNodeType sh_node_curve_rgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_CURVE_RGB,
@@ -133,7 +114,6 @@ bNodeType sh_node_curve_rgb= {
 	/* initfunc    */   node_shader_init_curve_rgb,
 	/* freestoragefunc    */	node_free_curves,
 	/* copystoragefunc    */	node_copy_curves,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_curve_rgb
+	/* id          */	NULL
 };
 

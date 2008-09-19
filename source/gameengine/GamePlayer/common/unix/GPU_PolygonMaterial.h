@@ -37,9 +37,9 @@ class GPU_PolygonMaterial : public BP_PolygonMaterial
 public:
 	GPUPolygonMaterial(const STR_String& texname, bool ba,const STR_String& matname,
 			int tile, int tileXrep, int tileYrep, int mode, int transparant,
-			int lightlayer,,void* tpage) :
+			int lightlayer,bool bIsTriangle,void* clientobject,void* tpage) :
 			BP_PolygonMaterial(texname, ba,matname, tile, tileXrep, tileYrep,
-					mode, transparant, lightlayer),
+					mode, transparant, lightlayer, bIsTriangle, clientobject),
 			m_tface(tpage)
 	{
 	}

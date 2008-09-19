@@ -45,6 +45,15 @@
 #endif   
 #include "MEM_guardedalloc.h"
 
+#ifdef WITH_QUICKTIME
+#ifdef _WIN32
+#include <QTML.h>
+#include <Movies.h>
+#elif defined(__APPLE__)
+#include <QuickTime/Movies.h>
+#endif /* __APPLE__ */
+#endif /* WITH_QUICKTIME */
+
 #include "PIL_time.h"
 
 #include <math.h>
@@ -67,15 +76,6 @@
 #include "BIF_mywindow.h"
 
 #include "BMF_Api.h"
-
-#ifdef WITH_QUICKTIME
-#ifdef _WIN32
-#include <QTML.h>
-#include <Movies.h>
-#elif defined(__APPLE__)
-#include <QuickTime/Movies.h>
-#endif /* __APPLE__ */
-#endif /* WITH_QUICKTIME */
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -346,7 +346,6 @@ void playanim(int argc, char **argv)
  	int start_x= 0, start_y= 0;
 	int sfra= -1;
 	int efra= -1;
-	int totblock;
 	
 	while (argc > 1) {
 		if (argv[1][0] == '-'){
@@ -824,7 +823,6 @@ void playanim(int argc, char **argv)
 	free_blender();
 	window_destroy(g_window);
 
-	totblock= MEM_get_memory_blocks_in_use();
 	if(totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();

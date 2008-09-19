@@ -237,6 +237,7 @@ void deselectall_editipo(void)
 		}
 	}
 	
+	BIF_undo_push("(De)select all Ipo");
 	scrarea_queue_winredraw(curarea);
 }
 

@@ -2062,20 +2062,18 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case XKEY:
-			if(sfile->type==FILE_BLENDER) {
-				test = get_hilited_entry(sfile);
+			test = get_hilited_entry(sfile);
 
-				if (test != -1 && !(S_ISDIR(sfile->filelist[test].type))){
-					BLI_make_file_string(G.sce, str, sfile->dir, sfile->filelist[test].relname);
+			if (test != -1 && !(S_ISDIR(sfile->filelist[test].type))){
+				BLI_make_file_string(G.sce, str, sfile->dir, sfile->filelist[test].relname);
 
-					if( okee("Remove %s", str) ) {
-						ret = BLI_delete(str, 0, 0);
-						if (ret) {
-							error("Command failed, see console");
-						} else {
-							freefilelist(sfile);
-							do_draw= 1;
-						}
+				if( okee("Remove %s", str) ) {
+					ret = BLI_delete(str, 0, 0);
+					if (ret) {
+						error("Command failed, see console");
+					} else {
+						freefilelist(sfile);
+						do_draw= 1;
 					}
 				}
 			}

@@ -1,3 +1,5 @@
+
+
 /*
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
@@ -25,34 +27,24 @@ class	btRigidBody;
 ///1D constraint along a normal axis between bodyA and bodyB. It can be combined to solve contact and friction constraints.
 ATTRIBUTE_ALIGNED16 (struct)	btSolverConstraint
 {
-	BT_DECLARE_ALIGNED_ALLOCATOR();
-
 	btVector3	m_relpos1CrossNormal;
-	btVector3	m_contactNormal;
-
 	btVector3	m_relpos2CrossNormal;
+	btVector3	m_contactNormal;
 	btVector3	m_angularComponentA;
-
 	btVector3	m_angularComponentB;
 
-	mutable btScalar	m_appliedPushImpulse;
-	
-	mutable btScalar	m_appliedImpulse;
+	btScalar	m_appliedVelocityImpulse;
 	int			m_solverBodyIdA;
 	int			m_solverBodyIdB;
-	
 	btScalar	m_friction;
 	btScalar	m_restitution;
 	btScalar	m_jacDiagABInv;
 	btScalar	m_penetration;
-	
+	btScalar	m_appliedImpulse;
 
-	
 	int			m_constraintType;
 	int			m_frictionIndex;
-	void*		m_originalContactPoint;
-	int			m_unusedPadding[1];
-
+	int			m_unusedPadding[2];
 
 	enum		btSolverConstraintType
 	{
@@ -67,6 +59,5 @@ ATTRIBUTE_ALIGNED16 (struct)	btSolverConstraint
 
 
 #endif //BT_SOLVER_CONSTRAINT_H
-
 
 

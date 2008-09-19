@@ -42,14 +42,6 @@ static void node_shader_exec_rgb(void *data, bNode *node, bNodeStack **in, bNode
 	VECCOPY(out[0]->vec, sock->ns.vec);
 }
 
-static int gpu_shader_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	GPUNodeLink *vec = GPU_uniform(sock->ns.vec);
-
-	return GPU_stack_link(mat, "set_rgba", in, out, vec);
-}
-
 bNodeType sh_node_rgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_RGB,
@@ -64,7 +56,6 @@ bNodeType sh_node_rgb= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL, NULL, NULL,
-	/* gpufunc     */	gpu_shader_rgb
+	/* id          */	NULL
 	
 };

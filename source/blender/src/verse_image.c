@@ -43,8 +43,6 @@
 #include "BIF_verse.h"
 #include "BIF_space.h"
 
-#include "GPU_draw.h"
-
 /*
  * unsubscribe from verse bitmap
  */
@@ -329,7 +327,7 @@ void post_bitmap_tile_set(VBitmapLayer *vblayer, unsigned int xs, unsigned int y
 				rect[channel] = (char)vuint8[i];
 	}
 
-	GPU_free_image(image);
+	free_realtime_image(image);
 
 	/* redraw preview of image ... uncommented, because rendering
 	 * was computed too often */

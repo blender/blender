@@ -267,7 +267,7 @@ static float eff_calc_visibility(Object *ob, float *co, float *dir)
 			hit.dist = len + FLT_EPSILON;
 			
 			// check if the way is blocked
-			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, 0.0f, &hit, eff_tri_ray_hit, NULL)>=0)
+			if(BLI_bvhtree_ray_cast(collmd->bvhtree, co, norm, &hit, eff_tri_ray_hit, NULL)>=0)
 			{
 				// visibility is only between 0 and 1, calculated from 1-absorption
 				visibility *= MAX2(0.0, MIN2(1.0, (1.0-((float)collmd->absorption)*0.01)));
@@ -406,15 +406,12 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 			else
 				VecCopyf(mag_vec,vec_to_part);
 
-			Normalize(mag_vec);
-
 			VecMulf(mag_vec,force_val*falloff);
 			VecAddf(field,field,mag_vec);
 			break;
 
 		case PFIELD_VORTEX:
 			Crossf(mag_vec,eff_vel,vec_to_part);
-
 			Normalize(mag_vec);
 
 			VecMulf(mag_vec,force_val*distance*falloff);
@@ -428,8 +425,6 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 				/* magnetic field of a moving charge */
 				Crossf(temp,eff_vel,vec_to_part);
 
-			Normalize(temp);
-
 			Crossf(temp2,velocity,temp);
 			VecAddf(mag_vec,mag_vec,temp2);
 
@@ -441,8 +436,6 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 				Projf(mag_vec,vec_to_part,eff_vel);
 			else
 				VecCopyf(mag_vec,vec_to_part);
-
-			Normalize(mag_vec);
 
 			VecMulf(mag_vec,force_val*falloff);
 			VecSubf(field,field,mag_vec);
@@ -457,8 +450,6 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 				Projf(mag_vec,vec_to_part,eff_vel);
 			else
 				VecCopyf(mag_vec,vec_to_part);
-
-			Normalize(mag_vec);
 
 			VecMulf(mag_vec,charge*force_val*falloff);
 			VecAddf(field,field,mag_vec);
@@ -544,6 +535,10 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 		where_is_object_time(ob,cur_time);
 			
 		/* use center of object for distance calculus */
+		obloc= ob->obmat[3];
+		VECSUB(vect_to_vert, obloc, opco);
+		distance = VecLength(vect_to_vert);
+		
 		VecSubf(vec_to_part, opco, ob->obmat[3]);
 		distance = VecLength(vec_to_part);
 

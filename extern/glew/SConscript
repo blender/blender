@@ -9,4 +9,4 @@ sources = ['src/glew.c']
 defs = ''
 incs = 'include'
 
-env.BlenderLib ( 'extern_glew', sources, Split(incs), Split(defs), libtype=['blender', 'player'], priority=[50, 50])
+env.BlenderLib ( 'extern_glew', sources, Split(incs), Split(defs), libtype=['intern', 'player'], priority=[25, 50])

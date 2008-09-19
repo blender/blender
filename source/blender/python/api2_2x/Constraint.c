@@ -44,7 +44,6 @@
 #include "BKE_constraint.h"
 #include "BLI_blenlib.h"
 #include "BIF_editconstraint.h"
-#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"
@@ -442,7 +441,7 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"constraint doesn't belong to anything" );
 	}
-	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE, 1);
+	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE);
 	
 	if (!icu)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,

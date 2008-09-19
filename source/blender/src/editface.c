@@ -82,13 +82,12 @@
 #include "BIF_space.h"	/* for allqueue */
 #include "BIF_drawimage.h"	/* for allqueue */
 
+#include "BDR_drawmesh.h"
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
 
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
-
-#include "GPU_draw.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1316,7 +1315,7 @@ void set_texturepaint() /* toggle */
 
 	if(G.f & G_TEXTUREPAINT) {
 		G.f &= ~G_TEXTUREPAINT;
-		GPU_paint_set_mipmap(1);
+		texpaint_enable_mipmap();
 	}
 	else if (me) {
 		G.f |= G_TEXTUREPAINT;
@@ -1325,7 +1324,7 @@ void set_texturepaint() /* toggle */
 			make_tfaces(me);
 
 		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
-		GPU_paint_set_mipmap(0);
+		texpaint_disable_mipmap();
 	}
 
 	allqueue(REDRAWVIEW3D, 0);

@@ -82,8 +82,6 @@ class World:
 	@ivar mist: the mist parameters  of a world object. See getMist for the semantics of these parameters. 
 	@type ipo: Blender Ipo
 	@ivar ipo: The world type ipo linked to this world object.
-	@type textures: a tuple of Blender MTex objects.
-	@ivar textures: The World's texture list.  Empty texture channels contains None.
 	"""
 
 	def getRange():

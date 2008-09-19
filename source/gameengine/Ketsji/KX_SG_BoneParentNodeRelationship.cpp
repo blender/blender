@@ -78,7 +78,7 @@ UpdateChildCoordinates(
 	
 	if (parent)
 	{
-		BL_ArmatureObject *armature = (BL_ArmatureObject*)(parent->GetSGClientObject());
+		const BL_ArmatureObject *armature = (const BL_ArmatureObject*)(parent->GetSGClientObject());
 		if (armature)
 		{
 			MT_Matrix4x4 parent_matrix;

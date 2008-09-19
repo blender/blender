@@ -2505,9 +2505,6 @@ int draw_armature(Base *base, int dt, int flag)
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	int retval= 0;
-
-	if(G.f & G_SIMULATION)
-		return 1;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		/* we use color for solid lighting */

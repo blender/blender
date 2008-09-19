@@ -402,8 +402,7 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	bool stereoVisual,
-	const GHOST_TEmbedderWindowID parentWindow
+	bool stereoVisual
 )
 {
     GHOST_IWindow* window = 0;

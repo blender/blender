@@ -1683,10 +1683,6 @@ void separate_mesh(void)
 	efa= em->faces.first;
 	while(efa) {
 		vl1= efa->next;
-		if (efa == G.editMesh->act_face && (efa->f & SELECT)) {
-			EM_set_actFace(NULL);
-		}
-
 		if((efa->f & SELECT)==0) {
 			BLI_remlink(&em->faces, efa);
 			BLI_addtail(&edvl, efa);

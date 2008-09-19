@@ -10,7 +10,6 @@ incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
 incs += ' #/extern/bullet2/src'
 incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern'
-incs += ' ../gpu #/extern/glew/include'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_OPENGL_INC']
