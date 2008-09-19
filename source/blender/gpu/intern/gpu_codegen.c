@@ -188,8 +188,8 @@ static void BLI_dynstr_printf(DynStr *dynstr, const char *format, ...)
  * These are stored in a hash for lookup when creating a material. */
 
 static GHash *FUNCTION_HASH= NULL;
-static char *FUNCTION_PROTOTYPES= NULL;
-static GPUShader *FUNCTION_LIB= NULL;
+/*static char *FUNCTION_PROTOTYPES= NULL;
+static GPUShader *FUNCTION_LIB= NULL;*/
 
 static int gpu_str_prefix(char *str, char *prefix)
 {
@@ -299,6 +299,7 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 	}
 }
 
+#if 0
 static char *gpu_generate_function_prototyps(GHash *hash)
 {
 	DynStr *ds = BLI_dynstr_new();
@@ -346,14 +347,15 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 
 	return prototypes;
 }
+#endif
 
 GPUFunction *GPU_lookup_function(char *name)
 {
 	if(!FUNCTION_HASH) {
 		FUNCTION_HASH = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
 		gpu_parse_functions_string(FUNCTION_HASH, datatoc_gpu_shader_material_glsl);
-		FUNCTION_PROTOTYPES = gpu_generate_function_prototyps(FUNCTION_HASH);
-		FUNCTION_LIB = GPU_shader_create_lib(datatoc_gpu_shader_material_glsl);
+		/*FUNCTION_PROTOTYPES = gpu_generate_function_prototyps(FUNCTION_HASH);
+		FUNCTION_LIB = GPU_shader_create_lib(datatoc_gpu_shader_material_glsl);*/
 	}
 
 	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, name);
@@ -370,14 +372,14 @@ void GPU_extensions_exit(void)
 		BLI_ghash_free(FUNCTION_HASH, NULL, (GHashValFreeFP)MEM_freeN);
 		FUNCTION_HASH = NULL;
 	}
-	if(FUNCTION_PROTOTYPES) {
+	/*if(FUNCTION_PROTOTYPES) {
 		MEM_freeN(FUNCTION_PROTOTYPES);
 		FUNCTION_PROTOTYPES = NULL;
-	}
-	if(FUNCTION_LIB) {
+	}*/
+	/*if(FUNCTION_LIB) {
 		GPU_shader_free(FUNCTION_LIB);
 		FUNCTION_LIB = NULL;
-	}
+	}*/
 }
 
 /* GLSL code generation */
@@ -688,7 +690,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
 
-	BLI_dynstr_append(ds, FUNCTION_PROTOTYPES);
+	/*BLI_dynstr_append(ds, FUNCTION_PROTOTYPES);*/
 
 	codegen_set_unique_ids(nodes);
 	codegen_print_uniforms_functions(ds, nodes);
@@ -1393,10 +1395,10 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttri
 	GPUPass *pass;
 	char *vertexcode, *fragmentcode;
 
-	if(!FUNCTION_LIB) {
+	/*if(!FUNCTION_LIB) {
 		GPU_nodes_free(nodes);
 		return NULL;
-	}
+	}*/
 
 	/* prune unused nodes */
 	gpu_nodes_prune(nodes, outlink);
@@ -1407,7 +1409,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttri
 	/* generate code and compile with opengl */
 	fragmentcode = code_generate_fragment(nodes, outlink->output, name);
 	vertexcode = code_generate_vertex(nodes);
-	shader = GPU_shader_create(vertexcode, fragmentcode, FUNCTION_LIB);
+	shader = GPU_shader_create(vertexcode, fragmentcode, datatoc_gpu_shader_material_glsl); /*FUNCTION_LIB);*/
 	MEM_freeN(fragmentcode);
 	MEM_freeN(vertexcode);
 
