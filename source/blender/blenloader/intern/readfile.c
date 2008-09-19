@@ -7799,6 +7799,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 3)){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			// Starting from subversion 3, ACTOR is a separate feature.
+			// Before it was conditioning all the other dynamic flags
+			if (!(ob->gameflag & OB_ACTOR))
+				ob->gameflag &= ~(OB_GHOST|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION_RESPONSE);
+		}
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
