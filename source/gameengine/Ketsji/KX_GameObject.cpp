@@ -823,7 +823,17 @@ void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 {
 	if (GetSGNode())
+	{
 		GetSGNode()->RelativeScale(scale);
+		if (m_pPhysicsController1 && (!GetSGNode()->GetSGParent()))
+		{
+			// see note above
+			// we can use the local scale: it's the same thing for a root object 
+			// and the world scale is not yet updated
+			MT_Vector3 newscale = GetSGNode()->GetLocalScale();
+			m_pPhysicsController1->setScaling(newscale);
+		}
+	}
 }
 
 void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
