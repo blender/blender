@@ -2301,7 +2301,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 /* ------------------------------------------------------------------------- */
 /* colf supposed to be initialized with la->r,g,b */
 
-void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, short effect)
+void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int effect)
 {
 	Object *ob;
 	MTex *mtex;
