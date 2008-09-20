@@ -480,7 +480,7 @@ PyObject* BL_ActionActuator::_getattr(const STR_String& attr) {
 }
 
 /*     setStart                                                              */
-char BL_ActionActuator::GetAction_doc[] = 
+const char BL_ActionActuator::GetAction_doc[] = 
 "getAction()\n"
 "\tReturns a string containing the name of the current action.\n";
 
@@ -494,7 +494,7 @@ PyObject* BL_ActionActuator::PyGetAction(PyObject* self,
 }
 
 /*     getProperty                                                             */
-char BL_ActionActuator::GetProperty_doc[] = 
+const char BL_ActionActuator::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturns the name of the property to be used in FromProp mode.\n";
 
@@ -509,7 +509,7 @@ PyObject* BL_ActionActuator::PyGetProperty(PyObject* self,
 }
 
 /*     getProperty                                                             */
-char BL_ActionActuator::GetFrameProperty_doc[] = 
+const char BL_ActionActuator::GetFrameProperty_doc[] = 
 "getFrameProperty()\n"
 "\tReturns the name of the property, that is set to the current frame number.\n";
 
@@ -524,7 +524,7 @@ PyObject* BL_ActionActuator::PyGetFrameProperty(PyObject* self,
 }
 
 /*     getFrame                                                              */
-char BL_ActionActuator::GetFrame_doc[] = 
+const char BL_ActionActuator::GetFrame_doc[] = 
 "getFrame()\n"
 "\tReturns the current frame number.\n";
 
@@ -539,7 +539,7 @@ PyObject* BL_ActionActuator::PyGetFrame(PyObject* self,
 }
 
 /*     getEnd                                                                */
-char BL_ActionActuator::GetEnd_doc[] = 
+const char BL_ActionActuator::GetEnd_doc[] = 
 "getEnd()\n"
 "\tReturns the last frame of the action.\n";
 
@@ -554,7 +554,7 @@ PyObject* BL_ActionActuator::PyGetEnd(PyObject* self,
 }
 
 /*     getStart                                                              */
-char BL_ActionActuator::GetStart_doc[] = 
+const char BL_ActionActuator::GetStart_doc[] = 
 "getStart()\n"
 "\tReturns the starting frame of the action.\n";
 
@@ -569,7 +569,7 @@ PyObject* BL_ActionActuator::PyGetStart(PyObject* self,
 }
 
 /*     getBlendin                                                            */
-char BL_ActionActuator::GetBlendin_doc[] = 
+const char BL_ActionActuator::GetBlendin_doc[] = 
 "getBlendin()\n"
 "\tReturns the number of interpolation animation frames to be\n"
 "\tgenerated when this actuator is triggered.\n";
@@ -585,7 +585,7 @@ PyObject* BL_ActionActuator::PyGetBlendin(PyObject* self,
 }
 
 /*     getPriority                                                           */
-char BL_ActionActuator::GetPriority_doc[] = 
+const char BL_ActionActuator::GetPriority_doc[] = 
 "getPriority()\n"
 "\tReturns the priority for this actuator.  Actuators with lower\n"
 "\tPriority numbers will override actuators with higher numbers.\n";
@@ -601,7 +601,7 @@ PyObject* BL_ActionActuator::PyGetPriority(PyObject* self,
 }
 
 /*     setAction                                                             */
-char BL_ActionActuator::SetAction_doc[] = 
+const char BL_ActionActuator::SetAction_doc[] = 
 "setAction(action, (reset))\n"
 "\t - action    : The name of the action to set as the current action.\n"
 "\t - reset     : Optional parameter indicating whether to reset the\n"
@@ -640,7 +640,7 @@ PyObject* BL_ActionActuator::PySetAction(PyObject* self,
 }
 
 /*     setStart                                                              */
-char BL_ActionActuator::SetStart_doc[] = 
+const char BL_ActionActuator::SetStart_doc[] = 
 "setStart(start)\n"
 "\t - start     : Specifies the starting frame of the animation.\n";
 
@@ -661,7 +661,7 @@ PyObject* BL_ActionActuator::PySetStart(PyObject* self,
 }
 
 /*     setEnd                                                                */
-char BL_ActionActuator::SetEnd_doc[] = 
+const char BL_ActionActuator::SetEnd_doc[] = 
 "setEnd(end)\n"
 "\t - end       : Specifies the ending frame of the animation.\n";
 
@@ -682,7 +682,7 @@ PyObject* BL_ActionActuator::PySetEnd(PyObject* self,
 }
 
 /*     setBlendin                                                            */
-char BL_ActionActuator::SetBlendin_doc[] = 
+const char BL_ActionActuator::SetBlendin_doc[] = 
 "setBlendin(blendin)\n"
 "\t - blendin   : Specifies the number of frames of animation to generate\n"
 "\t               when making transitions between actions.\n";
@@ -704,7 +704,7 @@ PyObject* BL_ActionActuator::PySetBlendin(PyObject* self,
 }
 
 /*     setBlendtime                                                          */
-char BL_ActionActuator::SetBlendtime_doc[] = 
+const char BL_ActionActuator::SetBlendtime_doc[] = 
 "setBlendtime(blendtime)\n"
 "\t - blendtime : Allows the script to directly modify the internal timer\n"
 "\t               used when generating transitions between actions.  This\n"
@@ -731,7 +731,7 @@ PyObject* BL_ActionActuator::PySetBlendtime(PyObject* self,
 }
 
 /*     setPriority                                                           */
-char BL_ActionActuator::SetPriority_doc[] = 
+const char BL_ActionActuator::SetPriority_doc[] = 
 "setPriority(priority)\n"
 "\t - priority  : Specifies the new priority.  Actuators will lower\n"
 "\t               priority numbers will override actuators with higher\n"
@@ -754,7 +754,7 @@ PyObject* BL_ActionActuator::PySetPriority(PyObject* self,
 }
 
 /*     setFrame                                                              */
-char BL_ActionActuator::SetFrame_doc[] = 
+const char BL_ActionActuator::SetFrame_doc[] = 
 "setFrame(frame)\n"
 "\t - frame     : Specifies the new current frame for the animation\n";
 
@@ -779,7 +779,7 @@ PyObject* BL_ActionActuator::PySetFrame(PyObject* self,
 }
 
 /*     setProperty                                                           */
-char BL_ActionActuator::SetProperty_doc[] = 
+const char BL_ActionActuator::SetProperty_doc[] = 
 "setProperty(prop)\n"
 "\t - prop      : A string specifying the property name to be used in\n"
 "\t               FromProp playback mode.\n";
@@ -801,7 +801,7 @@ PyObject* BL_ActionActuator::PySetProperty(PyObject* self,
 }
 
 /*     setFrameProperty                                                          */
-char BL_ActionActuator::SetFrameProperty_doc[] = 
+const char BL_ActionActuator::SetFrameProperty_doc[] = 
 "setFrameProperty(prop)\n"
 "\t - prop      : A string specifying the property of the frame set up update.\n";
 
@@ -840,7 +840,7 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* self,
 */
 
 /*     setChannel                                                            */
-char BL_ActionActuator::SetChannel_doc[] = 
+const char BL_ActionActuator::SetChannel_doc[] = 
 "setChannel(channel, matrix)\n"
 "\t - channel   : A string specifying the name of the bone channel.\n"
 "\t - matrix    : A 4x4 matrix specifying the overriding transformation\n"
@@ -924,7 +924,7 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 }
 
 /* getType */
-char BL_ActionActuator::GetType_doc[] =
+const char BL_ActionActuator::GetType_doc[] =
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
 PyObject* BL_ActionActuator::PyGetType(PyObject* self,
@@ -934,7 +934,7 @@ PyObject* BL_ActionActuator::PyGetType(PyObject* self,
 }
 
 /* setType */
-char BL_ActionActuator::SetType_doc[] =
+const char BL_ActionActuator::SetType_doc[] =
 "setType(mode)\n"
 "\t - mode: Play (0), Flipper (2), LoopStop (3), LoopEnd (4) or Property (6)\n"
 "\tSet the operation mode of the actuator.\n";

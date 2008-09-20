@@ -102,8 +102,8 @@ private:
 	bool			mUse;				// ...
 //BL_Sampler		mSampler[MAXTEX];	// Number of samplers
 	int				mAttr;				// Tangent attribute
-	char*			vertProg;			// Vertex program string
-	char*			fragProg;			// Fragment program string
+	const char*		vertProg;			// Vertex program string
+	const char*		fragProg;			// Fragment program string
 	bool			mError;				// ...
 	bool			mDirty;				// 
 

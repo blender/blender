@@ -1955,7 +1955,7 @@ int BLI_strncasecmp(const char *s1, const char *s2, int n) {
 #include "iconv.h"
 #include "localcharset.h"
 
-void BLI_string_to_utf8(char *original, char *utf_8, char *code)
+void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 {
 	size_t inbytesleft=strlen(original);
 	size_t outbytesleft=512;

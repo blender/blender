@@ -308,7 +308,7 @@ static void GetRGB(short type,
 typedef struct MTF_localLayer
 {
 	MTFace *face;
-	char *name;
+	const char *name;
 }MTF_localLayer;
 
 // ------------------------------------

@@ -278,7 +278,7 @@ PyObject* KX_SceneActuator::_getattr(const STR_String& attr)
 
 
 /* 2. setUseRestart--------------------------------------------------------- */
-char KX_SceneActuator::SetUseRestart_doc[] = 
+const char KX_SceneActuator::SetUseRestart_doc[] = 
 "setUseRestart(flag)\n"
 "\t- flag: 0 or 1.\n"
 "\tSet flag to 1 to restart the scene.\n" ;
@@ -301,7 +301,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 
 
 /* 3. getUseRestart:                                                         */
-char KX_SceneActuator::GetUseRestart_doc[] = 
+const char KX_SceneActuator::GetUseRestart_doc[] = 
 "getUseRestart()\n"
 "\tReturn whether the scene will be restarted.\n" ;
 PyObject* KX_SceneActuator::PyGetUseRestart(PyObject* self, 
@@ -314,7 +314,7 @@ PyObject* KX_SceneActuator::PyGetUseRestart(PyObject* self,
 
 
 /* 4. set scene------------------------------------------------------------- */
-char KX_SceneActuator::SetScene_doc[] = 
+const char KX_SceneActuator::SetScene_doc[] = 
 "setScene(scene)\n"
 "\t- scene: string\n"
 "\tSet the name of scene the actuator will switch to.\n" ;
@@ -339,7 +339,7 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 
 
 /* 5. getScene:                                                              */
-char KX_SceneActuator::GetScene_doc[] = 
+const char KX_SceneActuator::GetScene_doc[] = 
 "getScene()\n"
 "\tReturn the name of the scene the actuator wants to switch to.\n" ;
 PyObject* KX_SceneActuator::PyGetScene(PyObject* self, 
@@ -352,7 +352,7 @@ PyObject* KX_SceneActuator::PyGetScene(PyObject* self,
 
 
 /* 6. set camera------------------------------------------------------------ */
-char KX_SceneActuator::SetCamera_doc[] = 
+const char KX_SceneActuator::SetCamera_doc[] = 
 "setCamera(camera)\n"
 "\t- camera: string\n"
 "\tSet the camera to switch to.\n" ;
@@ -394,7 +394,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 
 
 /* 7. getCamera:                                                             */
-char KX_SceneActuator::GetCamera_doc[] = 
+const char KX_SceneActuator::GetCamera_doc[] = 
 "getCamera()\n"
 "\tReturn the name of the camera to switch to.\n" ;
 PyObject* KX_SceneActuator::PyGetCamera(PyObject* self, 

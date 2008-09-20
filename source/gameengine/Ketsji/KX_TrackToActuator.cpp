@@ -475,7 +475,7 @@ PyObject* KX_TrackToActuator::_getattr(const STR_String& attr)
 
 
 /* 1. setObject */
-char KX_TrackToActuator::SetObject_doc[] = 
+const char KX_TrackToActuator::SetObject_doc[] = 
 "setObject(object)\n"
 "\t- object: KX_GameObject, string or None\n"
 "\tSet the object to track with the parent of this actuator.\n";
@@ -499,7 +499,7 @@ PyObject* KX_TrackToActuator::PySetObject(PyObject* self, PyObject* value)
 
 
 /* 2. getObject */
-char KX_TrackToActuator::GetObject_doc[] = 
+const char KX_TrackToActuator::GetObject_doc[] = 
 "getObject(name_only = 1)\n"
 "name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object to track with the parent of this actuator\n";
@@ -521,7 +521,7 @@ PyObject* KX_TrackToActuator::PyGetObject(PyObject* self, PyObject* args)
 
 
 /* 3. setTime */
-char KX_TrackToActuator::SetTime_doc[] = 
+const char KX_TrackToActuator::SetTime_doc[] = 
 "setTime(time)\n"
 "\t- time: integer\n"
 "\tSet the time in frames with which to delay the tracking motion.\n";
@@ -542,7 +542,7 @@ PyObject* KX_TrackToActuator::PySetTime(PyObject* self, PyObject* args, PyObject
 
 
 /* 4.getTime */
-char KX_TrackToActuator::GetTime_doc[] = 
+const char KX_TrackToActuator::GetTime_doc[] = 
 "getTime()\n"
 "\t- time: integer\n"
 "\tReturn the time in frames with which the tracking motion is delayed.\n";
@@ -554,7 +554,7 @@ PyObject* KX_TrackToActuator::PyGetTime(PyObject* self, PyObject* args, PyObject
 
 
 /* 5. getUse3D */
-char KX_TrackToActuator::GetUse3D_doc[] = 
+const char KX_TrackToActuator::GetUse3D_doc[] = 
 "getUse3D()\n"
 "\tReturns 1 if the motion is allowed to extend in the z-direction.\n";
 PyObject* KX_TrackToActuator::PyGetUse3D(PyObject* self, PyObject* args, PyObject* kwds)
@@ -565,7 +565,7 @@ PyObject* KX_TrackToActuator::PyGetUse3D(PyObject* self, PyObject* args, PyObjec
 
 
 /* 6. setUse3D */
-char KX_TrackToActuator::SetUse3D_doc[] = 
+const char KX_TrackToActuator::SetUse3D_doc[] = 
 "setUse3D(value)\n"
 "\t- value: 0 or 1\n"
 "\tSet to 1 to allow the tracking motion to extend in the z-direction,\n"

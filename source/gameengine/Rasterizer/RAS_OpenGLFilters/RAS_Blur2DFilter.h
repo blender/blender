@@ -28,7 +28,7 @@
 #ifndef __RAS_BLUR2DFILTER
 #define __RAS_BLUR2DFILTER
 
-char * BlurFragmentShader=STRINGIFY(
+const char * BlurFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

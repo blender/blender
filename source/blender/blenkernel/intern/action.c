@@ -1048,7 +1048,7 @@ static float nla_time(float cfra, float unit)
 static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
 	bAction *act= strip->act;
-	char *name= strip->stridechannel;
+	const char *name= strip->stridechannel;
 	bActionChannel *achan= get_action_channel(act, name);
 	int stride_axis= strip->stride_axis;
 

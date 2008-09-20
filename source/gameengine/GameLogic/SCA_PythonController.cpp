@@ -151,7 +151,7 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 }
 
 #if 0
-static char* sPyGetCurrentController__doc__;
+static const char* sPyGetCurrentController__doc__;
 #endif
 
 
@@ -162,7 +162,7 @@ PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self)
 }
 
 #if 0
-static char* sPyAddActiveActuator__doc__;
+static const char* sPyAddActiveActuator__doc__;
 #endif
 
 PyObject* SCA_PythonController::sPyAddActiveActuator(
@@ -199,9 +199,9 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(
 }
 
 
-char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
-char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
-char SCA_PythonController::GetActuators_doc[] = "getActuator";
+const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
+const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
+const char SCA_PythonController::GetActuators_doc[] = "getActuator";
 
 PyTypeObject SCA_PythonController::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -329,7 +329,7 @@ PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
 	return resultlist;
 }
 
-char SCA_PythonController::GetSensor_doc[] = 
+const char SCA_PythonController::GetSensor_doc[] = 
 "GetSensor (char sensorname) return linked sensor that is named [sensorname]\n";
 PyObject*
 SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
@@ -359,7 +359,7 @@ SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 
 
 
-char SCA_PythonController::GetActuator_doc[] = 
+const char SCA_PythonController::GetActuator_doc[] = 
 "GetActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
 PyObject*
 SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
@@ -388,7 +388,7 @@ SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 }
 
 
-char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
+const char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
 PyObject*
 SCA_PythonController::PyGetSensors(PyObject* self)
 {

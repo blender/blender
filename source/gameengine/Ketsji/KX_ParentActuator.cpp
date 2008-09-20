@@ -176,7 +176,7 @@ PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {
 }
 
 /* 1. setObject                                                            */
-char KX_ParentActuator::SetObject_doc[] = 
+const char KX_ParentActuator::SetObject_doc[] = 
 "setObject(object)\n"
 "\t- object: KX_GameObject, string or None\n"
 "\tSet the object to set as parent.\n";
@@ -199,7 +199,7 @@ PyObject* KX_ParentActuator::PySetObject(PyObject* self, PyObject* value) {
 /* 2. getObject                                                            */
 
 /* get obj  ---------------------------------------------------------- */
-char KX_ParentActuator::GetObject_doc[] = 
+const char KX_ParentActuator::GetObject_doc[] = 
 "getObject(name_only = 1)\n"
 "name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object that is set to.\n";
