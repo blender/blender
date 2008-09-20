@@ -3339,7 +3339,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time) 
 {
 	char debugStrBuffer[256];
-	int wri,i,j,totvert,totface;
+	int wri=0,i,j,totvert,totface;
 	float wrf;
 	gzFile gzf;
 	DerivedMesh *dm;
