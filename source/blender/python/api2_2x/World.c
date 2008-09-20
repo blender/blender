@@ -43,6 +43,7 @@
 #include "World.h"  /*This must come first*/
 
 #include "DNA_scene_types.h"  /* for G.scene */
+#include "DNA_userdef_types.h"
 #include "BKE_global.h"
 #include "BKE_world.h"
 #include "BKE_main.h"
@@ -988,7 +989,7 @@ World *World_FromPyObject( PyObject * py_obj )
 
 static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 {
-	int key = 0, map;
+	int key = 0, flag = 0, map;
 
 	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -996,38 +997,41 @@ static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 
 	map = texchannel_to_adrcode(self->world->texact);
 
+	/* flag should be initialised with the 'autokeying' flags like for normal keying */
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
+	
 	if(key == IPOKEY_ZENITH) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_R, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_G, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_B, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_R, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_G, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_B, flag);
 	}
 	if(key == IPOKEY_HORIZON) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_R, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_G, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_B, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_R, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_G, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_B, flag);
 	}
 	if(key == IPOKEY_MIST) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISI, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTDI, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTSTA, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTHI, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISI, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTDI, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTSTA, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTHI, flag);
 	}
 	if(key == IPOKEY_STARS) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_R, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_G, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_B, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARDIST, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARSIZE, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_R, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_G, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_B, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARDIST, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARSIZE, flag);
 	}
 	if(key == IPOKEY_OFFSET) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_X, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Y, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Z, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_X, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Y, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Z, flag);
 	}
 	if(key == IPOKEY_SIZE) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_X, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Y, 0);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Z, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_X, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Y, flag);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Z, flag);
 	}
 
 	allspace(REMAKEIPO, 0);
