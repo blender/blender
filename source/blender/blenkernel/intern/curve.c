@@ -1519,7 +1519,7 @@ void makeBevelList(Object *ob)
 					bevp->y= bp->vec[1];
 					bevp->z= bp->vec[2];
 					bevp->alfa= bp->alfa;
-					bevp->f1= 1;
+					bevp->f1= SELECT;
 					bevp++;
 					bp++;
 				}
@@ -1579,11 +1579,11 @@ void makeBevelList(Object *ob)
 						
 						/* indicate with handlecodes double points */
 						if(prevbezt->h1==prevbezt->h2) {
-							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= 1;
+							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= SELECT;
 						}
 						else {
-							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= 1;
-							else if(prevbezt->h2==0 || prevbezt->h2==HD_VECT) bevp->f1= 1;
+							if(prevbezt->h1==0 || prevbezt->h1==HD_VECT) bevp->f1= SELECT;
+							else if(prevbezt->h2==0 || prevbezt->h2==HD_VECT) bevp->f1= SELECT;
 						}
 						
 						v1= data;
@@ -2385,9 +2385,9 @@ void sethandlesNurb(short code)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(bezt->f1 || bezt->f3) {
-						if(bezt->f1) bezt->h1= code;
-						if(bezt->f3) bezt->h2= code;
+					if((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
+						if(bezt->f1 & SELECT) bezt->h1= code;
+						if(bezt->f3 & SELECT) bezt->h2= code;
 						if(bezt->h1!=bezt->h2) {
 							if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
 							if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
@@ -2415,8 +2415,8 @@ void sethandlesNurb(short code)
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-						if(bezt->f1 && bezt->h1) ok= 1;
-						if(bezt->f3 && bezt->h2) ok= 1;
+						if((bezt->f1 & SELECT) && bezt->h1) ok= 1;
+						if((bezt->f3 & SELECT) && bezt->h2) ok= 1;
 						if(ok) break;
 						bezt++;
 					}
@@ -2432,8 +2432,8 @@ void sethandlesNurb(short code)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(bezt->f1) bezt->h1= ok;
-					if(bezt->f3 ) bezt->h2= ok;
+					if(bezt->f1 & SELECT) bezt->h1= ok;
+					if(bezt->f3 & SELECT) bezt->h2= ok;
 	
 					bezt++;
 				}

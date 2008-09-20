@@ -128,6 +128,10 @@
 /* for curve objects in editmode that can have hidden handles - may use for IPO's later */
 #define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
+#define BEZ_SEL(bezt)		{ (bezt)->f1 |=  SELECT; (bezt)->f2 |=  SELECT; (bezt)->f3 |=  SELECT; }
+#define BEZ_DESEL(bezt)		{ (bezt)->f1 &= ~SELECT; (bezt)->f2 &= ~SELECT; (bezt)->f3 &= ~SELECT; }
+#define BEZ_INVSEL(bezt)	{ (bezt)->f1 ^=  SELECT; (bezt)->f2 ^=  SELECT; (bezt)->f3 ^=  SELECT; }
+
 /* psfont */
 #define FNT_PDRAW 1
 #define FNT_HAEBERLI 2
