@@ -635,29 +635,24 @@ static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 /*-----------------------Scene.Get()------------------------------------*/
 static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 {
-	char *tname = NULL, name[22];
+	char *name = NULL;
 	Scene *scene_iter;
 
-	if( !PyArg_ParseTuple( args, "|s", &tname ) )
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument (or nothing)" ) );
-
-	strncpy(name, tname, 21);
-	if( strlen(tname) >= 21 ) name[21]= 0;
 	
 	scene_iter = G.main->scene.first;
 
-	if( tname ) {		/* (name) - Search scene by name */
+	if( name ) {		/* (name) - Search scene by name */
 
 		PyObject *wanted_scene = NULL;
 
-		while( ( scene_iter ) && ( wanted_scene == NULL ) ) {
-
-			if( strcmp( name, scene_iter->id.name + 2 ) == 0 )
-				wanted_scene =
-					Scene_CreatePyObject( scene_iter );
-
-			scene_iter = scene_iter->id.next;
+		for(;scene_iter; scene_iter = scene_iter->id.next) {
+			if( strcmp( name, scene_iter->id.name + 2 ) == 0 ) {
+				wanted_scene = Scene_CreatePyObject( scene_iter );
+				break;
+			}
 		}
 
 		if( wanted_scene == NULL ) {	/* Requested scene doesn't exist */
@@ -681,19 +676,14 @@ static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 							"couldn't create PyList" ) );
 
-		while( scene_iter ) {
+		for(; scene_iter; scene_iter = scene_iter->id.next, index++) {
 			pyobj = Scene_CreatePyObject( scene_iter );
 
 			if( !pyobj ) {
 				Py_DECREF(sce_pylist);
-				return ( EXPP_ReturnPyObjError
-					 ( PyExc_MemoryError,
-					   "couldn't create PyString" ) );
+				return NULL; /* Scene_CreatePyObject sets an error */
 			}
 			PyList_SET_ITEM( sce_pylist, index, pyobj );
-
-			scene_iter = scene_iter->id.next;
-			index++;
 		}
 
 		return sce_pylist;
