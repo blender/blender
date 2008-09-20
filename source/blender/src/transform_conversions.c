@@ -4033,7 +4033,7 @@ static void createTransObject(TransInfo *t)
 			ob= base->object;
 			
 			/* store ipo keys? */
-			if (ob->id.lib == 0 && ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+			if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 				elems.first= elems.last= NULL;
 				make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
 				
@@ -4041,7 +4041,7 @@ static void createTransObject(TransInfo *t)
 				
 				for(ik= elems.first; ik; ik= ik->next)
 					t->total++;
-
+				
 				if(elems.first==NULL)
 					t->total++;
 			}
@@ -4074,7 +4074,7 @@ static void createTransObject(TransInfo *t)
 			}
 
 			/* store ipo keys? */
-			if(ob->id.lib == 0 && ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+			if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 				
 				popfirst(&elems);	// bring back pushed listbase
 				

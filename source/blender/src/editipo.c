@@ -3589,15 +3589,11 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 		icu= icu->next;
 	}
 	
-	
-	ik= lb->first;
-	while(ik) {
-		/* map ipo-keys for drawing/editing if scaled ipo */
-		if (NLA_IPO_SCALED) {
+	if (NLA_IPO_SCALED) {
+		for (ik= lb->first; ik; ik= ik->next) {
+			/* map ipo-keys for drawing/editing if scaled ipo */
 			ik->val= get_action_frame_inv(OBACT, ik->val);
 		}
-		
-		ik= ik->next;
 	}
 }
 
