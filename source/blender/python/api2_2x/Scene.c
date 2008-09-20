@@ -635,16 +635,19 @@ static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 /*-----------------------Scene.Get()------------------------------------*/
 static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 {
-	char *name = NULL;
+	char *tname = NULL, name[22];
 	Scene *scene_iter;
 
-	if( !PyArg_ParseTuple( args, "|s", &name ) )
+	if( !PyArg_ParseTuple( args, "|s", &tname ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument (or nothing)" ) );
 
+	strncpy(name, tname, 21);
+	if( strlen(tname) >= 21 ) name[21]= 0;
+	
 	scene_iter = G.main->scene.first;
 
-	if( name ) {		/* (name) - Search scene by name */
+	if( tname ) {		/* (name) - Search scene by name */
 
 		PyObject *wanted_scene = NULL;
 
