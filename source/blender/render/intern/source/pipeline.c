@@ -38,6 +38,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -961,7 +962,6 @@ void RE_GetResultImage(Render *re, RenderResult *rr)
 	}
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 /* caller is responsible for allocating rect in correct size! */
 void RE_ResultGet32(Render *re, unsigned int *rect)
 {

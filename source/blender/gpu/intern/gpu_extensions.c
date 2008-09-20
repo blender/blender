@@ -40,6 +40,7 @@
 
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -154,7 +155,6 @@ struct GPUTexture {
 	int depth;				/* is a depth texture? */
 };
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 static unsigned char *GPU_texture_convert_pixels(int length, float *fpixels)
 {
 	unsigned char *pixels, *p;

@@ -1971,7 +1971,6 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 
 /* ************************* bake ************************ */
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
 typedef struct BakeShade {
 	ShadeSample ssamp;

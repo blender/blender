@@ -426,7 +426,6 @@ static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
 	renderwin_queue_redraw(rw);
 }
 
-#define FTOCHAR(val) val<=0.0f? 0 : (val>=(1.0f-0.5f/255.0f)? 255 :(char)((255.0f*val)+0.5f))
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
