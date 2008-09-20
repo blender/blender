@@ -91,6 +91,7 @@ float saasin(float fac);
 float sasqrt(float fac);
 
 int FloatCompare(float *v1, float *v2, float limit);
+int FloatCompare4(float *v1, float *v2, float limit);
 float FloatLerpf(float target, float origin, float fac);
 
 float CalcNormFloat(float *v1, float *v2, float *v3, float *n);

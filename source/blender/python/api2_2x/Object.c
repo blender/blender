@@ -3305,6 +3305,33 @@ static PyObject *Object_insertShapeKey(BPy_Object * self)
 	Py_RETURN_NONE;
 }
 
+static PyObject *Object_getColor( BPy_Object *self, void *type )
+{
+	return Py_BuildValue( "(ffff)", self->object->col[0], self->object->col[1], self->object->col[2], self->object->col[3] );
+}
+
+static int Object_setColor( BPy_Object *self, PyObject *value )
+{
+	int i;
+	float color[4];
+	struct Object *object = self->object;
+
+	value = PySequence_Tuple( value );
+
+	if( !value || !PyArg_ParseTuple( value, "ffff", &color[0], &color[1], &color[2], &color[3] ) ) {
+		Py_XDECREF( value );
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected a list or tuple of 3 floats" );
+	}
+
+	Py_DECREF( value );
+	
+	for( i = 0; i < 4; ++i ) {
+		object->col[i] = MAX2(MIN2(color[i], 1.0), 0);
+	}
+	return 0;
+}
+
 /* __copy__() */
 static  PyObject *Object_copy(BPy_Object * self)
 {
@@ -5189,7 +5216,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getDrawModeBits, (setter)Object_setDrawModeBits,
 	 "Transparent materials for the active object (mesh only) enabled",
 	 (void *)OB_DRAWTRANSP},
-
+	{"color",
+	 (getter)Object_getColor, (setter)Object_setColor,
+	 "Object color used by the game engine and optionally for materials",
+	 NULL},
 	{"enableNLAOverride",
 	 (getter)Object_getNLAflagBits, (setter)Object_setNLAflagBits,
 	 "Toggles Action-NLA based animation",

@@ -1026,6 +1026,19 @@ int FloatCompare( float *v1,  float *v2, float limit)
 	return 0;
 }
 
+int FloatCompare4( float *v1,  float *v2, float limit)
+{
+
+	if( fabs(v1[0]-v2[0])<limit ) {
+		if( fabs(v1[1]-v2[1])<limit ) {
+			if( fabs(v1[2]-v2[2])<limit ) {
+				if( fabs(v1[3]-v2[3])<limit ) return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 float FloatLerpf( float target, float origin, float fac)
 {
 	return (fac*target) + (1.0f-fac)*origin;

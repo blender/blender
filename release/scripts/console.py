@@ -417,8 +417,8 @@ def handle_event(evt, val):
 			histIndex = -1
 			
 			# When wrapping allow 1 plank lines
-			if cmdBuffer[-1].cmd != '':
-				cmdBuffer[-1].cmd = ''
+			if cmdBuffer[-1].cmd != ' ':
+				cmdBuffer[-1].cmd = ' '
 				return
 		
 		histIndex_orig = histIndex
@@ -437,8 +437,8 @@ def handle_event(evt, val):
 			histIndex = -len(cmdBuffer)
 			
 			# When wrapping allow 1 plank lines
-			if cmdBuffer[-1].cmd != '':
-				cmdBuffer[-1].cmd = ''
+			if cmdBuffer[-1].cmd != ' ':
+				cmdBuffer[-1].cmd = ' '
 				return
 			
 		histIndex_orig = histIndex
