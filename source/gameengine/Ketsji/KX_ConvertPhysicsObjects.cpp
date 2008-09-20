@@ -767,7 +767,17 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		{
 			if (!ci.m_mass)
 			{				
-				shapeInfo->SetMesh(meshobj, false);
+				// mesh shapes can be shared, check first if we already have a shape on that mesh
+				class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, false);
+				if (sharedShapeInfo != NULL) 
+				{
+					delete shapeInfo;
+					shapeInfo = sharedShapeInfo;
+					shapeInfo->AddRef();
+				} else
+				{
+					shapeInfo->SetMesh(meshobj, false);
+				}
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia
 				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);

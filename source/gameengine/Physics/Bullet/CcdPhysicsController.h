@@ -18,6 +18,7 @@ subject to the following restrictions:
 #define BULLET2_PHYSICSCONTROLLER_H
 
 #include <vector>
+#include <map>
 
 #include "PHY_IPhysicsController.h"
 
@@ -42,15 +43,17 @@ class btCollisionShape;
 class CcdShapeConstructionInfo
 {
 public:
+	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
+
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
 		m_radius(1.0),
 		m_height(1.0),
 		m_halfExtend(0.f,0.f,0.f),
 		m_childScale(1.0f,1.0f,1.0f),
-		m_nextShape(NULL),
-		m_unscaledShape(NULL),
-		m_refCount(1)
+		m_refCount(1),
+		m_meshObject(NULL),
+		m_unscaledShape(NULL)
 	{
 		m_childTrans.setIdentity();
 	}
@@ -77,22 +80,19 @@ public:
 	{
 		return m_unscaledShape;
 	}
-	CcdShapeConstructionInfo* GetNextShape()
-	{
-		return m_nextShape;
-	}
 	CcdShapeConstructionInfo* GetChildShape(int i)
 	{
-		CcdShapeConstructionInfo* shape = m_nextShape;
-		while (i > 0 && shape != NULL)
-		{
-			shape = shape->m_nextShape;
-			i--;
-		}
-		return shape;
+		if (i < 0 || i >= m_shapeArray.size())
+			return NULL;
+
+		return m_shapeArray.at(i);
 	}
 
 	bool SetMesh(RAS_MeshObject* mesh, bool polytope);
+	RAS_MeshObject* GetMesh(void)
+	{
+		return m_meshObject;
+	}
 
 	btCollisionShape* CreateBulletShape();
 
@@ -109,14 +109,15 @@ public:
 	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
-	const RAS_MeshObject*	m_meshObject;	// Keep a pointer to the original mesh 
 
 protected:
-	CcdShapeConstructionInfo* m_nextShape;	// for compound shape
-	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
-											// the actual shape is of type btScaledBvhTriangleMeshShape
+	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
 	int						m_refCount;		// this class is shared between replicas
 											// keep track of users so that we can release it 
+	RAS_MeshObject*	m_meshObject;			// Keep a pointer to the original mesh 
+	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
+											// the actual shape is of type btScaledBvhTriangleMeshShape
+	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 };
 
 struct CcdConstructionInfo
