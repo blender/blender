@@ -481,7 +481,6 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 		set_scene( oldsce );
 	}
 	else { /* background mode (blender -b file.blend -P script) */
-		int slink_flag = 0;
 		Render *re= RE_NewRender(G.scene->id.name);
 
 		int end_frame = G.scene->r.efra;
@@ -492,20 +491,14 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		G.scene->r.efra = G.scene->r.sfra;
 
-		if (G.f & G_DOSCRIPTLINKS) {
-			BPY_do_all_scripts(SCRIPT_RENDER);
-			G.f &= ~G_DOSCRIPTLINKS; /* avoid FRAMECHANGED events*/
-			slink_flag = 1;
-		}
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_do_all_scripts(SCRIPT_RENDER, 0);
 
 		tstate = PyEval_SaveThread();
 
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
-		if (slink_flag) {
-			G.f |= G_DOSCRIPTLINKS;
-			BPY_do_all_scripts(SCRIPT_POSTRENDER);
-		}
+		BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
 
 		G.scene->r.efra = end_frame;
 	}
@@ -603,13 +596,13 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 				"start frame must be less or equal to end frame");
 
 		if (G.f & G_DOSCRIPTLINKS)
-			BPY_do_all_scripts(SCRIPT_RENDER);
+			BPY_do_all_scripts(SCRIPT_RENDER, 1);
 
 		tstate = PyEval_SaveThread();
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
 		if (G.f & G_DOSCRIPTLINKS)
-			BPY_do_all_scripts(SCRIPT_POSTRENDER);
+			BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
 	}
 
 	PyEval_RestoreThread(tstate);

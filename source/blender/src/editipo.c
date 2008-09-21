@@ -1346,14 +1346,10 @@ void update_editipo_flags(void)
 			for(a=0; a<G.sipo->totipo; a++) {
 				if(ik->data[a]) {
 					if(ik->flag & 1) {
-						ik->data[a]->f1 |= SELECT;
-						ik->data[a]->f2 |= SELECT;
-						ik->data[a]->f3 |= SELECT;
+						BEZ_SEL(ik->data[a]);
 					}
 					else {
-						ik->data[a]->f1 &= ~SELECT;
-						ik->data[a]->f2 &= ~SELECT;
-						ik->data[a]->f3 &= ~SELECT;
+						BEZ_DESEL(ik->data[a]);
 					}
 				}
 			}
@@ -1451,7 +1447,7 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 					if(ei->disptype!=IPO_DISPBITS && ei->icu->ipo==IPO_BEZ) {
 						/* middle points get an advantage */
 						temp= -3+abs(mval[0]- sco[0][0])+ abs(mval[1]- sco[0][1]);
-						if( bezt1->f1 & 1) temp+=5;
+						if( bezt1->f1 & SELECT) temp+=5;
 						if(temp<dist) { 
 							hpoint= 0; 
 							*bezt= bezt1; 
@@ -1542,18 +1538,18 @@ void mouse_select_ipo(void)
 			if(bezt) {
 				if(hand==1) {
 					if(BEZSELECTED(bezt)) {
-						bezt->f1= bezt->f2= bezt->f3= 0;
+						BEZ_DESEL(bezt);
 					}
 					else {
-						bezt->f1= bezt->f2= bezt->f3= SELECT;
+						BEZ_SEL(bezt);
 					}
 				}
 				else if(hand==0) {
-					if(bezt->f1 & SELECT) bezt->f1= 0;
+					if(bezt->f1 & SELECT) bezt->f1 &= ~SELECT;
 					else bezt->f1= SELECT;
 				}
 				else {
-					if(bezt->f3 & SELECT) bezt->f3= 0;
+					if(bezt->f3 & SELECT) bezt->f3 &= ~SELECT;
 					else bezt->f3= SELECT;
 				}
 			}				
@@ -1563,7 +1559,7 @@ void mouse_select_ipo(void)
 			
 			if(bezt) {
 				if(hand==1) {
-					bezt->f1|= SELECT; bezt->f2|= SELECT; bezt->f3|= SELECT;
+					BEZ_SEL(bezt);
 				}
 				else if(hand==0) bezt->f1 |= SELECT;
 				else bezt->f3 |= SELECT;
@@ -2290,7 +2286,7 @@ void add_duplicate_editipo(void)
 					while(b--) {
 						*beztn= *bezt;
 						if(bezt->f2 & SELECT) {
-							beztn->f1= beztn->f2= beztn->f3= 0;
+							BEZ_DESEL(beztn);
 							beztn++;
 							*beztn= *bezt;
 						}
@@ -3503,14 +3499,10 @@ void make_ipokey(void)
 			if(ik->data[a]) {
 				bezt= ik->data[a];
 				if(sel) {
-					bezt->f1 |= SELECT;
-					bezt->f2 |= SELECT;
-					bezt->f3 |= SELECT;
+					BEZ_SEL(bezt);
 				}
 				else {
-					bezt->f1 &= ~SELECT;
-					bezt->f2 &= ~SELECT;
-					bezt->f3 &= ~SELECT;
+					BEZ_DESEL(bezt);
 				}
 			}
 		}
@@ -3618,15 +3610,11 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 		icu= icu->next;
 	}
 	
-	
-	ik= lb->first;
-	while(ik) {
-		/* map ipo-keys for drawing/editing if scaled ipo */
-		if (NLA_IPO_SCALED) {
+	if (NLA_IPO_SCALED) {
+		for (ik= lb->first; ik; ik= ik->next) {
+			/* map ipo-keys for drawing/editing if scaled ipo */
 			ik->val= get_action_frame_inv(OBACT, ik->val);
 		}
-		
-		ik= ik->next;
 	}
 }
 
@@ -4678,7 +4666,7 @@ void duplicate_ipo_keys(Ipo *ipo)
 	for (icu=ipo->curve.first; icu; icu=icu->next){
 		for (i=0; i<icu->totvert; i++){
 			/* If a key is selected */
-			if (icu->bezt[i].f2 & 1){
+			if (icu->bezt[i].f2 & SELECT){
 				/* Expand the list */
 				newbezt = MEM_callocN(sizeof(BezTriple) * (icu->totvert+1), "beztriple");
 				memcpy (newbezt, icu->bezt, sizeof(BezTriple) * (i+1));
@@ -4688,15 +4676,10 @@ void duplicate_ipo_keys(Ipo *ipo)
 				MEM_freeN (icu->bezt);
 				icu->bezt=newbezt;
 				/* Unselect the current key*/
-				icu->bezt[i].f1 &= ~ 1;
-				icu->bezt[i].f2 &= ~ 1;
-				icu->bezt[i].f3 &= ~ 1;
+				BEZ_DESEL(&icu->bezt[i]);
 				i++;
 				/* Select the copied key */
-				icu->bezt[i].f1 |= 1;
-				icu->bezt[i].f2 |= 1;
-				icu->bezt[i].f3 |= 1;
-				
+				BEZ_SEL(&icu->bezt[i]);
 			}
 		}
 	}

@@ -28,7 +28,7 @@
 #ifndef __RAS_SHARPEN2DFILTER
 #define __RAS_SHARPEN2DFILTER
 
-char * SharpenFragmentShader=STRINGIFY(
+const char * SharpenFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

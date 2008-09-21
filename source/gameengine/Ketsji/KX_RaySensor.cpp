@@ -342,7 +342,7 @@ PyMethodDef KX_RaySensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-char KX_RaySensor::GetHitObject_doc[] = 
+const char KX_RaySensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
 PyObject* KX_RaySensor::PyGetHitObject(PyObject* self, 
@@ -357,7 +357,7 @@ PyObject* KX_RaySensor::PyGetHitObject(PyObject* self,
 }
 
 
-char KX_RaySensor::GetHitPosition_doc[] = 
+const char KX_RaySensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
 PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self, 
@@ -377,7 +377,7 @@ PyObject* KX_RaySensor::PyGetHitPosition(PyObject* self,
 
 }
 
-char KX_RaySensor::GetRayDirection_doc[] = 
+const char KX_RaySensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
 PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self, 
@@ -397,7 +397,7 @@ PyObject* KX_RaySensor::PyGetRayDirection(PyObject* self,
 
 }
 
-char KX_RaySensor::GetHitNormal_doc[] = 
+const char KX_RaySensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
 PyObject* KX_RaySensor::PyGetHitNormal(PyObject* self, 

@@ -209,7 +209,7 @@ PyObject* KX_SCA_AddObjectActuator::_getattr(const STR_String& attr)
 }
 
 /* 1. setObject */
-char KX_SCA_AddObjectActuator::SetObject_doc[] = 
+const char KX_SCA_AddObjectActuator::SetObject_doc[] = 
 "setObject(object)\n"
 "\t- object: KX_GameObject, string or None\n"
 "\tSets the object that will be added. There has to be an object\n"
@@ -234,7 +234,7 @@ PyObject* KX_SCA_AddObjectActuator::PySetObject(PyObject* self, PyObject* value)
 
 
 /* 2. setTime */
-char KX_SCA_AddObjectActuator::SetTime_doc[] = 
+const char KX_SCA_AddObjectActuator::SetTime_doc[] = 
 "setTime(duration)\n"
 "\t- duration: integer\n"
 "\tSets the lifetime of the object that will be added, in frames. \n"
@@ -258,7 +258,7 @@ PyObject* KX_SCA_AddObjectActuator::PySetTime(PyObject* self, PyObject* value)
 
 
 /* 3. getTime */
-char KX_SCA_AddObjectActuator::GetTime_doc[] = 
+const char KX_SCA_AddObjectActuator::GetTime_doc[] = 
 "GetTime()\n"
 "\tReturns the lifetime of the object that will be added.\n";
 
@@ -270,7 +270,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetTime(PyObject* self)
 
 
 /* 4. getObject */
-char KX_SCA_AddObjectActuator::GetObject_doc[] = 
+const char KX_SCA_AddObjectActuator::GetObject_doc[] = 
 "getObject(name_only = 1)\n"
 "name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the name of the object that will be added.\n";
@@ -292,7 +292,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetObject(PyObject* self, PyObject* args)
 
 
 /* 5. getLinearVelocity */
-char KX_SCA_AddObjectActuator::GetLinearVelocity_doc[] = 
+const char KX_SCA_AddObjectActuator::GetLinearVelocity_doc[] = 
 "GetLinearVelocity()\n"
 "\tReturns the linear velocity that will be assigned to \n"
 "\tthe created object.\n";
@@ -311,7 +311,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetLinearVelocity(PyObject* self)
 
 
 /* 6. setLinearVelocity                                                 */
-char KX_SCA_AddObjectActuator::SetLinearVelocity_doc[] = 
+const char KX_SCA_AddObjectActuator::SetLinearVelocity_doc[] = 
 "setLinearVelocity(vx, vy, vz)\n"
 "\t- vx: float\n"
 "\t- vy: float\n"
@@ -331,7 +331,7 @@ PyObject* KX_SCA_AddObjectActuator::PySetLinearVelocity(PyObject* self, PyObject
 }
 
 /* 7. getAngularVelocity */
-char KX_SCA_AddObjectActuator::GetAngularVelocity_doc[] = 
+const char KX_SCA_AddObjectActuator::GetAngularVelocity_doc[] = 
 "GetAngularVelocity()\n"
 "\tReturns the angular velocity that will be assigned to \n"
 "\tthe created object.\n";
@@ -350,7 +350,7 @@ PyObject* KX_SCA_AddObjectActuator::PyGetAngularVelocity(PyObject* self)
 
 
 /* 8. setAngularVelocity                                                 */
-char KX_SCA_AddObjectActuator::SetAngularVelocity_doc[] = 
+const char KX_SCA_AddObjectActuator::SetAngularVelocity_doc[] = 
 "setAngularVelocity(vx, vy, vz)\n"
 "\t- vx: float\n"
 "\t- vy: float\n"
@@ -406,7 +406,7 @@ PyObject* KX_SCA_AddObjectActuator::PyInstantAddObject(PyObject* self)
 
 
 /* 7. GetLastCreatedObject                                                */
-char KX_SCA_AddObjectActuator::GetLastCreatedObject_doc[] = 
+const char KX_SCA_AddObjectActuator::GetLastCreatedObject_doc[] = 
 "getLastCreatedObject()\n"
 "\tReturn the last created object. \n";
 

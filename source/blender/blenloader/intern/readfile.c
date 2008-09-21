@@ -139,7 +139,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for get_property
+#include "BKE_property.h" // for get_ob_property
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
@@ -5329,7 +5329,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			while (act) {
 				if(act->type==ACT_IPO) {
 					ia= act->data;
-					prop= get_property(ob, ia->name);
+					prop= get_ob_property(ob, ia->name);
 					if(prop) {
 						ia->type= ACT_IPO_FROM_PROP;
 					}
@@ -7827,6 +7827,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ob->gameflag |= OB_COLLISION;
 			ob->margin = 0.06;
+		}
+	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 3)){
+		Object *ob;
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			// Starting from subversion 3, ACTOR is a separate feature.
+			// Before it was conditioning all the other dynamic flags
+			if (!(ob->gameflag & OB_ACTOR))
+				ob->gameflag &= ~(OB_GHOST|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION_RESPONSE);
+		}
+	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 4)){
+		Scene *sce= main->scene.first;
+		while(sce) {
+			if(sce->frame_step==0)
+				sce->frame_step= 1;
+			sce= sce->id.next;
 		}
 	}
 

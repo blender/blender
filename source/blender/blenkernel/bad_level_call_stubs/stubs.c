@@ -201,7 +201,7 @@ short pupmenu(char *instr){ return 0;}  // will be general callback
 /* scene.c */
 #include "DNA_sequence_types.h"
 void free_editing(struct Editing *ed){}	// scenes and sequences problem...
-void BPY_do_all_scripts (short int event){}
+void BPY_do_all_scripts (short int event, short int anim){}
 
 /*editmesh_lib.c*/
 void EM_select_face(struct EditFace *efa, int sel) {}

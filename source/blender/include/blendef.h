@@ -113,6 +113,7 @@
 #define	F_CFRA			((float)(G.scene->r.cfra))
 #define	SFRA			(G.scene->r.sfra)
 #define	EFRA			(G.scene->r.efra)
+#define STFRA			(G.scene->frame_step)
 #define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
 #define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
 #define FRA2TIME(a)           ((((double) G.scene->r.frs_sec_base) * (a)) / G.scene->r.frs_sec)
@@ -126,6 +127,10 @@
 #define BEZSELECTED(bezt)   (((bezt)->f1 & SELECT) || ((bezt)->f2 & SELECT) || ((bezt)->f3 & SELECT))
 /* for curve objects in editmode that can have hidden handles - may use for IPO's later */
 #define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
+
+#define BEZ_SEL(bezt)		{ (bezt)->f1 |=  SELECT; (bezt)->f2 |=  SELECT; (bezt)->f3 |=  SELECT; }
+#define BEZ_DESEL(bezt)		{ (bezt)->f1 &= ~SELECT; (bezt)->f2 &= ~SELECT; (bezt)->f3 &= ~SELECT; }
+#define BEZ_INVSEL(bezt)	{ (bezt)->f1 ^=  SELECT; (bezt)->f2 ^=  SELECT; (bezt)->f3 ^=  SELECT; }
 
 /* psfont */
 #define FNT_PDRAW 1

@@ -308,7 +308,7 @@ static void GetRGB(short type,
 typedef struct MTF_localLayer
 {
 	MTFace *face;
-	char *name;
+	const char *name;
 }MTF_localLayer;
 
 // ------------------------------------
@@ -1315,19 +1315,12 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_isCompoundChild = isCompoundChild;
 	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
 	objprop.m_margin = blenderobject->margin;
-
-	if ((objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0))
-	{
-		objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
-		objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
-		objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
-		objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag
-	} else {
-		objprop.m_dyna = false;
-		objprop.m_angular_rigidbody = false;
-		objprop.m_ghost = false;
-		objprop.m_disableSleeping = false;
-	}
+	// ACTOR is now a separate feature
+	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
+	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
+	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
+	objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag
 	//mmm, for now, taks this for the size of the dynamicobject
 	// Blender uses inertia for radius of dynamic object
 	objprop.m_radius = blenderobject->inertia;
@@ -1608,6 +1601,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
+		/* set the visibility state based on the objects render option in the outliner */
+		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}
 	return gameobj;
 }

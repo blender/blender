@@ -467,7 +467,7 @@ void draw_mesh_text(Object *ob, int glsl)
 	MFace *mf, *mface= me->mface;
 	MTFace *tface= me->mtface;
 	MCol *mcol= me->mcol;	/* why does mcol exist? */
-	bProperty *prop = get_property(ob, "Text");
+	bProperty *prop = get_ob_property(ob, "Text");
 	GPUVertexAttribs gattribs;
 	int a, totface= me->totface;
 
@@ -568,7 +568,7 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 		dm->drawFacesTex(dm, draw_tface__set_draw);
 
 	/* draw game engine text hack */
-	if(get_property(ob, "Text")) 
+	if(get_ob_property(ob, "Text")) 
 		draw_mesh_text(ob, 0);
 
 	draw_textured_end();

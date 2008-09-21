@@ -421,6 +421,7 @@ typedef struct LampRen {
 	short type;
 	int mode;
 	float r, g, b, k;
+	float shdwr, shdwg, shdwb;
 	float energy, haint;
 	int lay;
 	float spotsi,spotbl;

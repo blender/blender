@@ -650,7 +650,6 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
 void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 {

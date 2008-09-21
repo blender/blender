@@ -99,7 +99,7 @@ PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const STR_String& attr)
 
 
 /* 1. setMesh */
-char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
+const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
 	"setMesh(name)\n"
 	"\t- name: string or None\n"
 	"\tSet the mesh that will be substituted for the current one.\n";

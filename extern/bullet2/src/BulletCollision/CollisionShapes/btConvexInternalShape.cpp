@@ -26,7 +26,7 @@ m_collisionMargin(CONVEX_DISTANCE_MARGIN)
 
 void	btConvexInternalShape::setLocalScaling(const btVector3& scaling)
 {
-	m_localScaling = scaling;
+	m_localScaling = scaling.absolute();
 }
 
 

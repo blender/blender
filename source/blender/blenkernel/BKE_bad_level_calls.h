@@ -141,7 +141,7 @@ short pupmenu(char *instr);  // will be general callback
 /* scene.c */
 #include "DNA_sequence_types.h"
 void free_editing(struct Editing *ed);	// scenes and sequences problem...
-void BPY_do_all_scripts (short int event);
+void BPY_do_all_scripts (short int event, short int anim);
 int BPY_call_importloader(char *name);
 
 

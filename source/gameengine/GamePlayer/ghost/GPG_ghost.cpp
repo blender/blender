@@ -150,9 +150,9 @@ static BOOL scr_saver_init(int argc, char **argv)
 
 #endif /* WIN32 */
 
-void usage(char* program)
+void usage(const char* program)
 {
-	char * consoleoption;
+	const char * consoleoption;
 #ifdef _WIN32
 	consoleoption = "-c ";
 #else

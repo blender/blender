@@ -902,9 +902,25 @@ void	DefaultMotionState::calculateWorldTransformations()
 }
 
 // Shape constructor
+std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> CcdShapeConstructionInfo::m_meshShapeMap;
+
+CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, bool polytope)
+{
+	if (polytope)
+		// not yet supported
+		return NULL;
+
+	std::map<RAS_MeshObject*,CcdShapeConstructionInfo*>::const_iterator mit = m_meshShapeMap.find(mesh);
+	if (mit != m_meshShapeMap.end())
+		return mit->second;
+	return NULL;
+}
+
 bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 {
 	// assume no shape information
+	// no support for dynamic change of shape yet
+	assert(m_meshObject == NULL);
 	m_shapeType = PHY_SHAPE_NONE;
 	m_vertexArray.clear();
 	m_polygonIndexArray.clear();
@@ -1006,6 +1022,11 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 		return false;
 	}
 	m_meshObject = meshobj;
+	if (!polytope)
+	{
+		// triangle shape can be shared, store the mesh object in the map
+		m_meshShapeMap.insert(std::pair<RAS_MeshObject*,CcdShapeConstructionInfo*>(meshobj,this));
+	}
 	return true;
 }
 
@@ -1066,16 +1087,18 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		break;
 
 	case PHY_SHAPE_COMPOUND:
-		if (m_nextShape)
+		if (m_shapeArray.size() > 0)
 		{
 			compoundShape = new btCompoundShape();
-			for (nextShapeInfo=m_nextShape; nextShapeInfo; nextShapeInfo = nextShapeInfo->m_nextShape)
+			for (std::vector<CcdShapeConstructionInfo*>::iterator sit = m_shapeArray.begin();
+				 sit != m_shapeArray.end();
+				 sit++)
 			{
-				collisionShape = nextShapeInfo->CreateBulletShape();
+				collisionShape = (*sit)->CreateBulletShape();
 				if (collisionShape)
 				{
-					collisionShape->setLocalScaling(nextShapeInfo->m_childScale);
-					compoundShape->addChildShape(nextShapeInfo->m_childTrans, collisionShape);
+					collisionShape->setLocalScaling((*sit)->m_childScale);
+					compoundShape->addChildShape((*sit)->m_childTrans, collisionShape);
 				}
 			}
 			collisionShape = compoundShape;
@@ -1086,28 +1109,31 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 
 void CcdShapeConstructionInfo::AddShape(CcdShapeConstructionInfo* shapeInfo)
 {
-	CcdShapeConstructionInfo* nextShape = this;
-	while (nextShape->m_nextShape != NULL)
-		nextShape = nextShape->m_nextShape;
-	nextShape->m_nextShape = shapeInfo;
+	m_shapeArray.push_back(shapeInfo);
 }
 
 CcdShapeConstructionInfo::~CcdShapeConstructionInfo()
 {
-	CcdShapeConstructionInfo* childShape = m_nextShape;
-
-	while (childShape)
+	for (std::vector<CcdShapeConstructionInfo*>::iterator sit = m_shapeArray.begin();
+		 sit != m_shapeArray.end();
+		 sit++)
 	{
-		CcdShapeConstructionInfo* nextShape = childShape->m_nextShape;
-		childShape->m_nextShape = NULL;
-		childShape->Release();
-		childShape = nextShape;
+		(*sit)->Release();
 	}
+	m_shapeArray.clear();
 	if (m_unscaledShape)
 	{
 		DeleteBulletShape(m_unscaledShape);
 	}
 	m_vertexArray.clear();
+	if (m_shapeType == PHY_SHAPE_MESH && m_meshObject != NULL) 
+	{
+		std::map<RAS_MeshObject*,CcdShapeConstructionInfo*>::iterator mit = m_meshShapeMap.find(m_meshObject);
+		if (mit != m_meshShapeMap.end() && mit->second == this)
+		{
+			m_meshShapeMap.erase(mit);
+		}
+	}
 }
 
 

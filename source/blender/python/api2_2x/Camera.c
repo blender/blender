@@ -36,6 +36,7 @@
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h" /* for M_PI */
+#include "DNA_userdef_types.h"
 #include "BSE_editipo.h"
 #include "BIF_keyframing.h"
 #include "BIF_space.h"
@@ -1032,18 +1033,21 @@ static PyObject *Camera_repr( BPy_Camera * self )
 
 static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args )
 {
-	int key = 0;
+	int key = 0, flag = 0;
 
 	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 										"expected int argument" ) );
-
+	
+	/* flag should be initialised with the 'autokeying' flags like for normal keying */
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
+	
 	if (key == IPOKEY_LENS){
-		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_LENS, 0);     
+		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_LENS, flag);     
 	}
 	else if (key == IPOKEY_CLIPPING){
-		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_STA, 0);
-		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_END, 0);   
+		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_STA, flag);
+		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_END, flag);   
 	}
 
 	allspace(REMAKEIPO, 0);

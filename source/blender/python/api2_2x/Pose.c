@@ -414,16 +414,17 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 {
 	PyObject *parent_object = NULL;
 	PyObject *constants = NULL, *item = NULL;
-	int frame = 1, oldframe, length, x, numeric_value = 0, oldflag, no_ipo_update = 0;
+	int frame = 1, oldframe, length, x, numeric_value = 0, oldflag, no_ipo_update = 0, flag = 0;
 	bPoseChannel *pchan = NULL;
 	
 
 	if (!PyArg_ParseTuple(args, "O!i|Oi", &Object_Type, &parent_object, &frame, &constants, &no_ipo_update ))
 		goto AttributeError;
 	
-	/* incase we ever have a value other then 1 for fast */
-	if (no_ipo_update)
-		no_ipo_update = 1;
+	/* flag should be initialised with the 'autokeying' flags like for normal keying */
+	if (no_ipo_update) flag |= INSERTKEY_FAST;
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
 	
 	//verify that this pchannel is part of the object->pose
 	for (pchan = ((BPy_Object*)parent_object)->object->pose->chanbase.first; 
@@ -493,29 +494,29 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 	//insert the pose keys
 	if (self->posechannel->flag & POSE_ROT){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_X, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_X, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_Y, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_Y, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_Z, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_Z, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_W, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_W, flag);
 	}
 	if (self->posechannel->flag & POSE_LOC){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_X, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_X, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_Y, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_Y, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_Z, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_Z, flag);
 	}
 	if (self->posechannel->flag & POSE_SIZE){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_X, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_X, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_Y, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_Y, flag);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_Z, no_ipo_update);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_Z, flag);
 	}
 
 	//flip the frame back

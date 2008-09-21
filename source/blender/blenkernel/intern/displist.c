@@ -757,7 +757,10 @@ void reshadeall_displist(void)
 	
 	for(base= G.scene->base.first; base; base= base->next) {
 		ob= base->object;
-		freedisplist(&ob->disp);
+
+		if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+			freedisplist(&ob->disp);
+
 		if(base->lay & G.scene->lay) {
 			/* Metaballs have standard displist at the Object */
 			if(ob->type==OB_MBALL) shadeDispList(base);

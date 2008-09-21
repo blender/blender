@@ -64,6 +64,7 @@
 #include "DNA_modifier_types.h" /* used for select grouped hooks */
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -93,7 +94,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
 #include "BKE_particle.h"
-
 #include "BIF_spacetypes.h"  /* first, nasty dependency with typedef */
 
 #include "BIF_butspace.h"
@@ -710,7 +710,7 @@ static short select_parent(void)	/* Makes parent active and de-selected OBACT */
 	short changed = 0;
 	Base *base, *startbase, *basact=NULL, *oldbasact;
 	
-	if (!(OBACT) || !(OBACT->parent)) return 0;
+	if (!(OBACT->parent)) return 0; /* we know OBACT is valid */
 	BASACT->flag &= (~SELECT);
 	BASACT->object->flag &= (~SELECT);
 	startbase=  FIRSTBASE;
@@ -746,9 +746,6 @@ static short select_same_group(Object *ob)	/* Select objects in the same group a
 	char str[10 + (24*GROUP_MENU_MAX)];
 	char *p = str;
 	int group_count=0, menu, i;
-
-	if (!ob)
-		return 0;
 	
 	for (	group=G.main->group.first;
 			group && group_count < GROUP_MENU_MAX;
@@ -804,9 +801,6 @@ static short select_object_hooks(Object *ob)
 	ModifierData *md;
 	HookModifierData *hmd;
 	
-	if (!ob)
-		return 0;
-	
 	for (md = ob->modifiers.first; md; md=md->next) {
 		if (md->type==eModifierType_Hook) {
 			hmd= (HookModifierData*) md;
@@ -829,8 +823,6 @@ static short select_same_parent(Object *ob)
 {
 	short changed = 0;
 	Base *base;
-	if (!ob)
-		return 0;
 	
 	for (base= FIRSTBASE; base; base= base->next) {
 		if (BASE_SELECTABLE(base) && (base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
@@ -846,8 +838,6 @@ static short select_same_type(Object *ob)
 {
 	short changed = 0;
 	Base *base;
-	if (!ob)
-		return 0;
 	
 	for (base= FIRSTBASE; base; base= base->next) {
 		if (BASE_SELECTABLE(base) && (base->object->type == ob->type) && !(base->flag & SELECT)) {
@@ -863,9 +853,6 @@ static short select_same_layer(Object *ob)
 {
 	char changed = 0;
 	Base *base = FIRSTBASE;
-	
-	if (!ob)
-		return 0;
 	
 	while(base) {
 		if (BASE_SELECTABLE(base) && (base->lay & ob->lay) && !(base->flag & SELECT)) {
@@ -883,9 +870,6 @@ static short select_same_index_object(Object *ob)
 	char changed = 0;
 	Base *base = FIRSTBASE;
 	
-	if (!ob)
-		return 0;
-	
 	while(base) {
 		if (BASE_SELECTABLE(base) && (base->object->index == ob->index) && !(base->flag & SELECT)) {
 			base->flag |= SELECT;
@@ -897,18 +881,68 @@ static short select_same_index_object(Object *ob)
 	return changed;
 }
 
+static short select_same_color(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005))) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
+}
+
+static short objects_share_gameprop(Object *a, Object *b)
+{
+	bProperty *prop;
+	/*make a copy of all its properties*/
+	
+	for( prop= a->prop.first; prop; prop = prop->next ) {
+		if ( get_ob_property(b, prop->name) )
+			return 1;
+	}
+	return 0;
+}
+
+static short select_same_gameprops(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
+}
+
 void select_object_grouped(short nr)
 {
+	Object *ob = OBACT;
 	short changed = 0;
-	if(nr==1)		changed = select_children(OBACT, 1);
-	else if(nr==2)	changed = select_children(OBACT, 0);
+	
+	if (ob==NULL) return;
+	
+	if(nr==1)		changed = select_children(ob, 1);
+	else if(nr==2)	changed = select_children(ob, 0);
 	else if(nr==3)	changed = select_parent();
-	else if(nr==4)	changed = select_same_parent(OBACT);	
-	else if(nr==5)	changed = select_same_type(OBACT);
-	else if(nr==6)	changed = select_same_layer(OBACT);	
-	else if(nr==7)	changed = select_same_group(OBACT);
-	else if(nr==8)	changed = select_object_hooks(OBACT);
-	else if(nr==9)	changed = select_same_index_object(OBACT);
+	else if(nr==4)	changed = select_same_parent(ob);	
+	else if(nr==5)	changed = select_same_type(ob);
+	else if(nr==6)	changed = select_same_layer(ob);	
+	else if(nr==7)	changed = select_same_group(ob);
+	else if(nr==8)	changed = select_object_hooks(ob);
+	else if(nr==9)	changed = select_same_index_object(ob);
+	else if(nr==10)	changed = select_same_color(ob);
+	else if(nr==11)	changed = select_same_gameprops(ob);
 	
 	if (changed) {
 		countall();
@@ -934,7 +968,10 @@ static void select_object_grouped_menu(void)
 	            "Objects of Same Type%x5|"
 				"Objects on Shared Layers%x6|"
                 "Objects in Same Group%x7|"
-                "Object Hooks%x8|Object PassIndex%x9");
+                "Object Hooks%x8|"
+				"Object PassIndex%x9|"
+				"Object Color%x10|"
+				"Game Properties%x11");
 
 	/* here we go */
 	
@@ -1206,8 +1243,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 */
 		if(event==LEFTMOUSE) {
 			/* run any view3d event handler script links */
-			if (event && sa->scriptlink.totscript) {
-				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+			if (sa->scriptlink.totscript) {
+				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
 			
@@ -1268,7 +1305,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		/* run any view3d event handler script links */
 		if (event && sa->scriptlink.totscript)
-			if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 				return; /* return if event was processed (swallowed) by handler(s) */
 
 		/* TEXTEDITING?? */

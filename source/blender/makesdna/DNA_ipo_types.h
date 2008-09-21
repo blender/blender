@@ -24,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -32,9 +32,53 @@
 #define DNA_IPO_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_curve_types.h"
 #include "DNA_vec_types.h"
 
 #include "DNA_ID.h"
+
+/* -------------------------- Type Defines --------------------------- */
+
+/* sometimes used - mainly for GE/Ketsji */
+typedef short IPO_Channel;  
+
+
+/* --- IPO Curve Driver --- */
+
+/* IPO Curve Driver */
+typedef struct IpoDriver {
+	struct Object *ob;			/* target/driver ob */
+	short blocktype, adrcode;	/* sub-channel to use */
+	
+	short type, flag;			/* driver settings */
+	char name[128];	 			/* bone, or python expression here */
+} IpoDriver;
+
+/* --- IPO Curve --- */
+
+/* IPO Curve */
+typedef struct IpoCurve {
+	struct IpoCurve *next,  *prev;
+	
+	struct BPoint *bp;					/* array of BPoints (sizeof(BPoint)*totvert) - i.e. baked/imported data */
+	struct BezTriple *bezt;				/* array of BezTriples (sizeof(BezTriple)*totvert)  - i.e. user-editable keyframes  */
+
+	rctf maxrct, totrct;				/* bounding boxes */
+
+	short blocktype, adrcode, vartype;	/* blocktype= ipo-blocktype; adrcode= type of ipo-curve; vartype= 'format' of data */
+	short totvert;						/* total number of BezTriples (i.e. keyframes) on curve */
+	short ipo, extrap;					/* interpolation and extrapolation modes  */
+	short flag, rt;						/* flag= settings; rt= ??? */
+	float ymin, ymax;					/* minimum/maximum y-extents for curve */
+	unsigned int bitmask;				/* ??? */
+	
+	float slide_min, slide_max;			/* minimum/maximum values for sliders (in action editor) */
+	float curval;						/* value of ipo-curve for current frame */
+	
+	IpoDriver *driver;					/* pointer to ipo-driver for this curve */
+} IpoCurve;
+
+/* --- ID-Datablock --- */
 
 /* IPO Data-Block */
 typedef struct Ipo {
@@ -47,13 +91,9 @@ typedef struct Ipo {
 	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */	
 } Ipo;
 
-/* NOTE: IpoCurve struct is defined in DNA_curve_types.h, not in here... */
-
-/* sometimes used */
-typedef short IPO_Channel;  
+/* ----------- adrcodes (for matching ipo-curves to data) ------------- */
 
 /* defines: are these duped or new? */
-
 #define IPOBUTY	17
 
 #define TOB_IPO	1
@@ -64,7 +104,7 @@ typedef short IPO_Channel;
 #define IPO_DISPBITS	2
 #define IPO_DISPTIME	3
 
-/* ******************** */
+/* ********** Object (ID_OB) ********** */
 
 #define OB_TOTIPO	30
 #define OB_TOTNAM	30
@@ -110,7 +150,7 @@ typedef short IPO_Channel;
 #define OB_ROT_DIFF	100
 
 
-/* ******************** */
+/* ********** Material (ID_MA) ********** */
 
 #define MA_TOTIPO	40
 #define MA_TOTNAM	26
@@ -179,7 +219,7 @@ typedef short IPO_Channel;
 #define MAP_VARF	13
 #define MAP_DISP	14
 
-/* ******************** */
+/* ********** Texture (ID_TE) ********** */
 
 #define TE_TOTIPO	26
 #define TE_TOTNAM	26
@@ -216,21 +256,21 @@ typedef short IPO_Channel;
 #define TE_BRIGHT	25
 #define TE_CONTRA	26
 
-/* ******************** */
+/* ******** Sequence (ID_SEQ) ********** */
 
 #define SEQ_TOTIPO	1
 #define SEQ_TOTNAM	1
 
 #define SEQ_FAC1	1
 
-/* ******************** */
+/* ********* Curve (ID_CU) *********** */
 
 #define CU_TOTIPO	1
 #define CU_TOTNAM	1
 
 #define CU_SPEED	1
 
-/* ******************** */
+/* ********* ShapeKey (ID_KE) *********** */
 
 #define KEY_TOTIPO	64
 #define KEY_TOTNAM	64
@@ -238,7 +278,7 @@ typedef short IPO_Channel;
 #define KEY_SPEED	0
 #define KEY_NR		1
 
-/* ******************** */
+/* ********* World (ID_WO) *********** */
 
 #define WO_TOTIPO	29
 #define WO_TOTNAM	16
@@ -263,7 +303,7 @@ typedef short IPO_Channel;
 #define WO_STARDIST	15
 #define WO_STARSIZE	16
 
-/* ******************** */
+/* ********** Lamp (ID_LA) ********** */
 
 #define LA_TOTIPO	21
 #define LA_TOTNAM	10
@@ -279,9 +319,8 @@ typedef short IPO_Channel;
 #define LA_QUAD2	9
 #define LA_HALOINT	10
 
-/* ******************** */
+/* ********* Camera (ID_CA) ************ */
 
-/* yafray: totipo & totnam +2 because of added curves */
 #define CAM_TOTIPO	7
 #define CAM_TOTNAM	7
 
@@ -296,7 +335,7 @@ typedef short IPO_Channel;
 #define CAM_SHIFT_X		6
 #define CAM_SHIFT_Y		7
 
-/* ******************** */
+/* ********* Sound (ID_SO) *********** */
 
 #define SND_TOTIPO	4
 #define SND_TOTNAM	4
@@ -306,9 +345,9 @@ typedef short IPO_Channel;
 #define SND_PANNING	3
 #define SND_ATTEN	4
 
-/* ******************** */
+/* ******* PoseChannel (ID_PO) ********* */
 
-#define AC_TOTIPO	10	/* __NLA */
+#define AC_TOTIPO	10
 #define AC_TOTNAM	10
 
 #define AC_LOC_X	1
@@ -324,25 +363,15 @@ typedef short IPO_Channel;
 #define AC_QUAT_Y	27
 #define AC_QUAT_Z	28
 
-/* ******************** */
-#define CO_TOTIPO	2	/* Constraint Ipos */
+/* ******** Constraint (ID_CO) ********** */
+
+#define CO_TOTIPO	2
 #define CO_TOTNAM	2
 
 #define CO_ENFORCE	1
 #define CO_HEADTAIL	2
-/*
-#define	CO_TIME		2
-#define CO_OFFSET_X	3
-#define CO_OFFSET_Y	4
-#define CO_OFFSET_Z	5
-#define CO_ORIENT_X	6
-#define CO_ORIENT_Y	7
-#define CO_ORIENT_Z	8
-#define CO_ROLL		9
-*/
 
-/* ******************** */
-/* fluidsim ipos NT */
+/* ****** FluidSim (ID_FLUIDSIM) ****** */
 
 #define FLUIDSIM_TOTIPO	13
 #define FLUIDSIM_TOTNAM	13
@@ -367,6 +396,8 @@ typedef short IPO_Channel;
 
 /* ******************** */
 /* particle ipos */
+
+/* ******* Particle (ID_PA) ******** */
 #define PART_TOTIPO		25
 #define PART_TOTNAM		25
 
@@ -403,8 +434,9 @@ typedef short IPO_Channel;
 #define PART_PD2_FMAXD	25
 
 
-/* these are IpoCurve specific */
-/* **************** IPO ********************* */
+/* -------------------- Defines: Flags and Types ------------------ */
+
+/* ----- IPO Curve Defines ------- */
 
 /* icu->vartype */
 #define IPO_CHAR		0
@@ -414,6 +446,7 @@ typedef short IPO_Channel;
 #define IPO_FLOAT		4
 #define IPO_DOUBLE		5
 #define IPO_FLOAT_DEGR	6
+
 	/* very special case, in keys */
 #define IPO_BEZTRIPLE	100
 #define IPO_BPOINT		101
@@ -428,7 +461,8 @@ typedef short IPO_Channel;
 #define IPO_CONST		0
 #define IPO_LIN			1
 #define IPO_BEZ			2
-#define IPO_MIXED		3 /* not used yet */
+	/* not used yet */
+#define IPO_MIXED		3 
 
 /* icu->extrap */
 #define IPO_HORIZ		0
@@ -445,6 +479,19 @@ typedef short IPO_Channel;
 #define IPO_ACTIVE		32
 #define IPO_PROTECT		64
 #define IPO_MUTE		128
+
+/* ---------- IPO Drivers ----------- */
+
+/* offset in driver->name for finding second posechannel for rot-diff  */
+#define DRIVER_NAME_OFFS	32 
+
+/* driver->type */
+#define	IPO_DRIVER_TYPE_NORMAL 		0
+#define	IPO_DRIVER_TYPE_PYTHON 		1
+
+/* driver->flag */
+	/* invalid flag: currently only used for buggy pydriver expressions */
+#define IPO_DRIVER_FLAG_INVALID 	(1<<0)
 
 #endif
 

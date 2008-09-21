@@ -865,7 +865,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 				if (shape == rayCallback.m_hitTriangleShape && 
 					rayCallback.m_hitTriangleIndex < shapeInfo->m_polygonIndexArray.size())
 				{
-					result.m_meshObject = shapeInfo->m_meshObject;
+					result.m_meshObject = shapeInfo->GetMesh();
 					result.m_polygon = shapeInfo->m_polygonIndexArray.at(rayCallback.m_hitTriangleIndex);
 
 					// Bullet returns the normal from "outside".

@@ -1872,7 +1872,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 {
 	bPythonConstraint *data= con->data;
 	
-	if ((G.f & G_DOSCRIPTLINKS) && VALID_CONS_TARGET(ct)) {
+	if (VALID_CONS_TARGET(ct)) {
 		/* special exception for curves - depsgraph issues */
 		if (ct->tar->type == OB_CURVE) {
 			Curve *cu= ct->tar->data;
@@ -1886,7 +1886,10 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		 * this matrix if it needs to do so
 		 */
 		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
-		BPY_pyconstraint_target(data, ct);
+		
+		/* only execute target calculation if allowed */
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_pyconstraint_target(data, ct);
 	}
 	else if (ct)
 		Mat4One(ct->matrix);
@@ -1896,6 +1899,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 {
 	bPythonConstraint *data= con->data;
 	
+	/* only evaluate in python if we're allowed to do so */
 	if ((G.f & G_DOSCRIPTLINKS)==0)  return;
 	
 /* currently removed, until I this can be re-implemented for multiple targets */

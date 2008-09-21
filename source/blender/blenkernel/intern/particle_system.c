@@ -156,7 +156,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 		int p=0;
 
 		for(; p<psys->totpart; p++, pa++)
-			pa->flag = PARS_NO_DISP;
+			pa->flag |= PARS_NO_DISP;
 	}
 
 	/* reset children */
@@ -2110,22 +2110,18 @@ static void react_to_events(ParticleSystem *psys, int pa_num)
 	for(re=psys->reactevents.first; re; re=re->next){
 		birth=0;
 		if(part->from==PART_FROM_PARTICLE){
-			if(pa->num==re->pa_num){
+			if(pa->num==re->pa_num && pa->alive==PARS_UNBORN){
 				if(re->event==PART_EVENT_NEAR){
 					ParticleData *tpa = re->psys->particles+re->pa_num;
 					float pa_time=tpa->time + pa->foffset*tpa->lifetime;
-					if(re->time > pa_time){
-						pa->alive=PARS_ALIVE;
+					if(re->time >= pa_time){
 						pa->time=pa_time;
 						pa->dietime=pa->time+pa->lifetime;
 					}
 				}
 				else{
-					if(pa->alive==PARS_UNBORN){
-						pa->alive=PARS_ALIVE;
-						pa->time=re->time;
-						pa->dietime=pa->time+pa->lifetime;
-					}
+					pa->time=re->time;
+					pa->dietime=pa->time+pa->lifetime;
 				}
 			}
 		}
@@ -2133,7 +2129,6 @@ static void react_to_events(ParticleSystem *psys, int pa_num)
 			dist=VecLenf(pa->state.co, re->state.co);
 			if(dist <= re->size){
 				if(pa->alive==PARS_UNBORN){
-					pa->alive=PARS_ALIVE;
 					pa->time=re->time;
 					pa->dietime=pa->time+pa->lifetime;
 					birth=1;
@@ -3127,6 +3122,10 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
 				pa->alive = PARS_DYING;
 				pa->dietime = pa->state.time + (cfra - pa->state.time) * dt;
+				
+				/* we have to add this for dying particles too so that reactors work correctly */
+				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
+
 				VECCOPY(state->co, co);
 				VecLerpf(state->vel, pa->state.vel, state->vel, dt);
 				QuatInterpol(state->rot, pa->state.rot, state->rot, dt);
@@ -4061,9 +4060,11 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 				pa_dfra = dfra;
 				pa_dtime = dtime;
 
+				/* we need to calculate this once again because reactions might have changed pa->time */
+				birthtime = pa->time + pa->loop * pa->lifetime;
 				dietime = birthtime + pa->lifetime;
 
-				if(birthtime < cfra && birthtime >= psys->cfra){
+				if(birthtime <= cfra && birthtime >= psys->cfra){
 					/* particle is born some time between this and last step*/
 					pa->alive = PARS_ALIVE;
 					pa_dfra = cfra - birthtime;
@@ -4103,8 +4104,6 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 						}
 					}
 
-					push_reaction(ob,psys,p,PART_EVENT_NEAR,key);
-
 					if(pa->alive == PARS_DYING){
 						push_reaction(ob,psys,p,PART_EVENT_DEATH,key);
 
@@ -4124,6 +4123,8 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 					}
 					else
 						key->time=cfra;
+
+					push_reaction(ob,psys,p,PART_EVENT_NEAR,key);
 				}
 			}
 		}

@@ -71,7 +71,8 @@ public:
 	virtual void getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i ) const;
 	virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const;
 
-
+	///in case we receive negative scaling
+	virtual void	setLocalScaling(const btVector3& scaling);
 
 };
 

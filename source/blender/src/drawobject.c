@@ -2281,7 +2281,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 			dm->drawFacesGLSL(dm, GPU_enable_material);
-			if(get_property(ob, "Text"))
+			if(get_ob_property(ob, "Text"))
 				draw_mesh_text(ob, 1);
 			GPU_disable_material();
 
@@ -5187,7 +5187,7 @@ void draw_object(Base *base, int flag)
 	}
 
 	if(dt<OB_SHADED) {
-		if((ob->gameflag & OB_ACTOR) && (ob->gameflag & OB_DYNAMIC)) {
+		if(/*(ob->gameflag & OB_ACTOR) &&*/ (ob->gameflag & OB_DYNAMIC)) {
 			float tmat[4][4], imat[4][4], vec[3];
 
 			vec[0]= vec[1]= vec[2]= 0.0;

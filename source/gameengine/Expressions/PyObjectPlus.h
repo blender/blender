@@ -73,7 +73,7 @@ typedef int Py_ssize_t;
 								// some basic python macros
 #define Py_Return { Py_INCREF(Py_None); return Py_None;}
 
-static inline void Py_Fatal(char *M) {
+static inline void Py_Fatal(const char *M) {
 	//cout << M << endl; 
 	exit(-1);
 };
@@ -152,28 +152,28 @@ static inline void Py_Fatal(char *M) {
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
-    static char method_name##_doc[]; \
+    static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
 		return ((class_name*) self)->Py##method_name(self, args);		\
 	}; \
-    static char method_name##_doc[]; \
+    static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_O(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* value); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
 		return ((class_name*) self)->Py##method_name(self, value);		\
 	}; \
-    static char method_name##_doc[]; \
+    static const char method_name##_doc[]; \
 
 #define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self); \
 	static PyObject* sPy##method_name( PyObject* self) { \
 		return ((class_name*) self)->Py##method_name(self);		\
 	}; \
-    static char method_name##_doc[]; \
+    static const char method_name##_doc[]; \
 
 
 /* The line above should remain empty */
@@ -190,11 +190,11 @@ static inline void Py_Fatal(char *M) {
  * Function implementation macro
  */
 #define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
-char class_name::method_name##_doc[] = doc_string; \
+const char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 
 #define KX_PYMETHODDEF_DOC_NOARG(class_name, method_name, doc_string) \
-char class_name::method_name##_doc[] = doc_string; \
+const char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*)
 
 /*------------------------------

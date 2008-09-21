@@ -198,7 +198,7 @@ int			ODEPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 }
 
-void		ODEPhysicsEnvironment::removeConstraint(int constraintid)
+void		ODEPhysicsEnvironment::removeConstraint(void *constraintid)
 {
 	if (constraintid)
 	{

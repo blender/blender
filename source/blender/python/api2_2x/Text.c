@@ -47,6 +47,10 @@
 
 #define EXPP_TEXT_MODE_FOLLOW TXT_FOLLOW
 
+/* checks for the group being removed */
+#define TEXT_DEL_CHECK_PY(bpy_text) if (!(bpy_text->text)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Text has been removed" ) )
+#define TEXT_DEL_CHECK_INT(bpy_text) if (!(bpy_text->text)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Text has been removed" ) )
+
 /*****************************************************************************/
 /* Python API function prototypes for the Text module.                       */
 /*****************************************************************************/
@@ -108,6 +112,8 @@ static PyObject *Text_setSelectPos( BPy_Text * self, PyObject * args );
 static PyObject *Text_markSelection( BPy_Text * self, PyObject * args );
 static PyObject *Text_suggest( BPy_Text * self, PyObject * args );
 static PyObject *Text_showDocs( BPy_Text * self, PyObject * args );
+
+static void text_reset_internal( BPy_Text * self ); /* internal func */
 
 /*****************************************************************************/
 /* Python BPy_Text methods table:                                            */
@@ -377,8 +383,7 @@ PyObject *Text_CreatePyObject( Text * txt )
 					      "couldn't create BPy_Text PyObject" );
 
 	pytxt->text = txt;
-	pytxt->iol = NULL;
-	pytxt->ioc = -1;
+	text_reset_internal(pytxt);
 
 	return ( PyObject * ) pytxt;
 }
@@ -388,6 +393,7 @@ PyObject *Text_CreatePyObject( Text * txt )
 /*****************************************************************************/
 static PyObject *Text_getFilename( BPy_Text * self )
 {
+	TEXT_DEL_CHECK_PY(self);
 	if( self->text->name )
 		return PyString_FromString( self->text->name );
 	
@@ -398,7 +404,9 @@ static PyObject *Text_getNLines( BPy_Text * self )
 {				/* text->nlines isn't updated in Blender (?) */
 	int nlines = 0;
 	TextLine *line;
-
+	
+	TEXT_DEL_CHECK_PY(self);
+	
 	line = self->text->lines.first;
 
 	while( line ) {		/* so we have to count them ourselves */
@@ -415,9 +423,7 @@ static PyObject *Text_clear( BPy_Text * self)
 {
 	int oldstate;
 
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
+	TEXT_DEL_CHECK_PY(self);
 
 	oldstate = txt_get_undostate(  );
 	txt_set_undostate( 1 );
@@ -428,11 +434,15 @@ static PyObject *Text_clear( BPy_Text * self)
 	Py_RETURN_NONE;
 }
 
-static PyObject *Text_reset( BPy_Text * self )
+static void text_reset_internal( BPy_Text * self )
 {
 	self->iol = NULL;
 	self->ioc = -1;
+}
 
+static PyObject *Text_reset( BPy_Text * self )
+{
+	text_reset_internal(self);
 	Py_RETURN_NONE;
 }
 
@@ -440,9 +450,7 @@ static PyObject *Text_readline( BPy_Text * self )
 {
 	PyObject *tmpstr;
 	
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
+	TEXT_DEL_CHECK_PY(self);
 
 	/* Reset */
 	if (!self->iol && self->ioc == -1) {
@@ -476,20 +484,18 @@ static PyObject *Text_write( BPy_Text * self, PyObject * value )
 	char *str = PyString_AsString(value);
 	int oldstate;
 
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
-
 	if( !str )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
+	TEXT_DEL_CHECK_PY(self);
+	
 	oldstate = txt_get_undostate(  );
 	txt_insert_buf( self->text, str );
 	txt_move_eof( self->text, 0 );
 	txt_set_undostate( oldstate );
 
-	Text_reset( self );
+	text_reset_internal( self );
 
 	Py_RETURN_NONE;
 }
@@ -499,19 +505,17 @@ static PyObject *Text_insert( BPy_Text * self, PyObject * value )
 	char *str = PyString_AsString(value);
 	int oldstate;
 
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
-
 	if( !str )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
+	
+	TEXT_DEL_CHECK_PY(self);
 
 	oldstate = txt_get_undostate(  );
 	txt_insert_buf( self->text, str );
 	txt_set_undostate( oldstate );
 
-	Text_reset( self );
+	text_reset_internal( self );
 
 	Py_RETURN_NONE;
 }
@@ -521,11 +525,10 @@ static PyObject *Text_delete( BPy_Text * self, PyObject * value )
 	int num = PyInt_AsLong(value);
 	int oldstate;
 
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
-
-	if( !num )
+	TEXT_DEL_CHECK_PY(self);
+	
+	/* zero num is invalid and -1 is an error value */
+	if( !num || (num==-1 && PyErr_Occurred()))
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected non-zero int argument" );
 
@@ -540,7 +543,7 @@ static PyObject *Text_delete( BPy_Text * self, PyObject * value )
 	}
 	txt_set_undostate( oldstate );
 	
-	Text_reset( self );
+	text_reset_internal( self );
 
 	Py_RETURN_NONE;
 }
@@ -550,6 +553,8 @@ static PyObject *Text_set( BPy_Text * self, PyObject * args )
 	int ival;
 	char *attr;
 
+	TEXT_DEL_CHECK_PY(self);
+	
 	if( !PyArg_ParseTuple( args, "si", &attr, &ival ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string and an int as arguments" );
@@ -570,9 +575,7 @@ static PyObject *Text_asLines( BPy_Text * self, PyObject * args )
 	PyObject *list, *tmpstr;
 	int start=0, end=-1, i;
 
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
+	TEXT_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "|ii", &start, &end ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -608,10 +611,9 @@ static PyObject *Text_getCursorPos( BPy_Text * self )
 	TextLine *linep;
 	int row, col;
 
+	TEXT_DEL_CHECK_PY(self);
+	
 	text = self->text;
-	if( !text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
 
 	for (row=0,linep=text->lines.first; linep!=text->curl; linep=linep->next)
 		row++;
@@ -625,9 +627,7 @@ static PyObject *Text_setCursorPos( BPy_Text * self, PyObject * args )
 	int row, col;
 	SpaceText *st;
 
-	if (!self->text)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object");
+	TEXT_DEL_CHECK_PY(self);
 
 	if (!PyArg_ParseTuple(args, "ii", &row, &col))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
@@ -649,10 +649,9 @@ static PyObject *Text_getSelectPos( BPy_Text * self )
 	TextLine *linep;
 	int row, col;
 
+	TEXT_DEL_CHECK_PY(self);
+	
 	text = self->text;
-	if( !text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
 
 	for (row=0,linep=text->lines.first; linep!=text->sell; linep=linep->next)
 		row++;
@@ -666,9 +665,7 @@ static PyObject *Text_setSelectPos( BPy_Text * self, PyObject * args )
 	int row, col;
 	SpaceText *st;
 
-	if (!self->text)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object");
+	TEXT_DEL_CHECK_PY(self);
 
 	if (!PyArg_ParseTuple(args, "ii", &row, &col))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
@@ -690,10 +687,9 @@ static PyObject *Text_markSelection( BPy_Text * self, PyObject * args )
 	Text *text;
 	char color[4];
 
+	TEXT_DEL_CHECK_PY(self);
+	
 	text = self->text;
-	if (!text)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object");
 
 	if (!PyArg_ParseTuple(args, "i(iii)i", &group, &r, &g, &b, &flags))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
@@ -723,9 +719,7 @@ static PyObject *Text_suggest( BPy_Text * self, PyObject * args )
 	char *prefix = NULL, *name, type;
 	SpaceText *st;
 
-	if (!self->text)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-				"This object isn't linked to a Blender Text Object");
+	TEXT_DEL_CHECK_PY(self);
 
 	/* Parse args for a list of strings/tuples */
 	if (!PyArg_ParseTuple(args, "O!|s", &PyList_Type, &list, &prefix))
@@ -782,10 +776,8 @@ static PyObject *Text_showDocs( BPy_Text * self, PyObject * args )
 {
 	char *docs;
 	SpaceText *st;
-
-	if (!self->text)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-				"This object isn't linked to a Blender Text Object");
+	
+	TEXT_DEL_CHECK_PY(self);
 
 	if (!PyArg_ParseTuple(args, "s", &docs))
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -839,6 +831,7 @@ static PyObject *Text_repr( BPy_Text * self )
 /*****************************************************************************/
 static PyObject *Text_getMode(BPy_Text * self)
 {
+	TEXT_DEL_CHECK_PY(self);
 	return PyInt_FromLong( self->text->flags );
 }
 

@@ -2163,8 +2163,14 @@ void BPY_clear_bad_scriptlinks( struct Text *byebye )
 *	For the scene, only the current active scene the scripts are 
 *	executed (if any).
 *****************************************************************************/
-void BPY_do_all_scripts( short event )
+void BPY_do_all_scripts( short event, short anim )
 {
+	/* during stills rendering we disable FRAMECHANGED events */
+	static char disable_frame_changed = 0;
+
+	if ((event == SCRIPT_FRAMECHANGED) && disable_frame_changed)
+		return;
+
 	DoAllScriptsFromList( &( G.main->object ), event );
 	DoAllScriptsFromList( &( G.main->lamp ), event );
 	DoAllScriptsFromList( &( G.main->camera ), event );
@@ -2180,9 +2186,12 @@ void BPY_do_all_scripts( short event )
 	 * "import sys; sys.setcheckinterval(sys.maxint)" */
 	if (event == SCRIPT_RENDER) {
 		_Py_CheckInterval = PyInt_GetMax();
+		if (!anim)
+			disable_frame_changed = 1;
 	}
 	else if (event == SCRIPT_POSTRENDER) {
 		_Py_CheckInterval = 100; /* Python default */
+		disable_frame_changed = 0;
 	}
 
 	return;
@@ -2466,7 +2475,7 @@ int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
 }
 
 int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
-	unsigned short space_event )
+	short eventValue, unsigned short space_event )
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
@@ -2506,8 +2515,9 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
 		/* unlike normal scriptlinks, here Blender.link is int (space event type) */
 		EXPP_dict_set_item_str(g_blenderdict, "link", PyInt_FromLong(space_event));
-		/* note: DRAW space_events set event to 0 */
+		/* note: DRAW space_events set event and val to 0 */
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
+		EXPP_dict_set_item_str(g_blenderdict, "eventValue", PyInt_FromLong(eventValue));
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
 			

@@ -262,7 +262,7 @@ static void printweightsNurb__doPrint(void *userData, Nurb *nurb, BPoint *bp, Be
 {
 	char str[30];
 
-	if (bp && (bp->f1&1)) {
+	if (bp && (bp->f1 & SELECT)) {
 		sprintf(str,"%2.2f", bp->vec[3]);
 
 		cpack(0x737373);
@@ -2916,12 +2916,12 @@ void addvert_Nurb(int mode)
 	if((nu->type & 7)==CU_BEZIER) {
 		/* which bezpoint? */
 		if(bezt== nu->bezt) {   /* first */
-			bezt->f1= bezt->f2= bezt->f3= 0;
+			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
 			memcpy(newbezt+1, bezt, nu->pntsu*sizeof(BezTriple));
 			*newbezt= *bezt;
-			newbezt->f1= newbezt->f2= newbezt->f3= SELECT;
+			BEZ_SEL(newbezt);
 			if(newbezt->h1 >= 0) newbezt->h2= newbezt->h1;
 			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			VECCOPY(temp, bezt->vec[1]);
@@ -2930,7 +2930,7 @@ void addvert_Nurb(int mode)
 			bezt= newbezt+1;
 		}
 		else if(bezt== (nu->bezt+nu->pntsu-1)) {  /* last */
-			bezt->f1= bezt->f2= bezt->f3= 0;
+			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
 			memcpy(newbezt, nu->bezt, nu->pntsu*sizeof(BezTriple));
@@ -2939,7 +2939,7 @@ void addvert_Nurb(int mode)
 			MEM_freeN(nu->bezt);
 			nu->bezt= newbezt;
 			newbezt+= nu->pntsu;
-			newbezt->f1= newbezt->f2= newbezt->f3= SELECT;
+			BEZ_SEL(newbezt);
 			if(newbezt->h1 >= 0) newbezt->h2= newbezt->h1;
 			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			bezt= nu->bezt+nu->pntsu-1;

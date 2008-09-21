@@ -56,8 +56,18 @@ void	btScaledBvhTriangleMeshShape::processAllTriangles(btTriangleCallback* callb
 	btScaledTriangleCallback scaledCallback(callback,m_localScaling);
 	
 	btVector3 invLocalScaling(1.f/m_localScaling.getX(),1.f/m_localScaling.getY(),1.f/m_localScaling.getZ());
-	btVector3 scaledAabbMin = aabbMin * invLocalScaling;
-	btVector3 scaledAabbMax = aabbMax * invLocalScaling;
+	btVector3 scaledAabbMin,scaledAabbMax;
+
+	///support negative scaling
+	scaledAabbMin[0] = m_localScaling.getX() >= 0. ? aabbMin[0] * invLocalScaling[0] : aabbMax[0] * invLocalScaling[0];
+	scaledAabbMin[1] = m_localScaling.getY() >= 0. ? aabbMin[1] * invLocalScaling[1] : aabbMax[1] * invLocalScaling[1];
+	scaledAabbMin[2] = m_localScaling.getZ() >= 0. ? aabbMin[2] * invLocalScaling[2] : aabbMax[2] * invLocalScaling[2];
+	
+	scaledAabbMax[0] = m_localScaling.getX() <= 0. ? aabbMin[0] * invLocalScaling[0] : aabbMax[0] * invLocalScaling[0];
+	scaledAabbMax[1] = m_localScaling.getY() <= 0. ? aabbMin[1] * invLocalScaling[1] : aabbMax[1] * invLocalScaling[1];
+	scaledAabbMax[2] = m_localScaling.getZ() <= 0. ? aabbMin[2] * invLocalScaling[2] : aabbMax[2] * invLocalScaling[2];
+	
+	
 	m_bvhTriMeshShape->processAllTriangles(&scaledCallback,scaledAabbMin,scaledAabbMax);
 }
 
@@ -66,8 +76,16 @@ void	btScaledBvhTriangleMeshShape::getAabb(const btTransform& trans,btVector3& a
 {
 	btVector3 localAabbMin = m_bvhTriMeshShape->getLocalAabbMin();
 	btVector3 localAabbMax = m_bvhTriMeshShape->getLocalAabbMax();
-	localAabbMin *= m_localScaling;
-	localAabbMax *= m_localScaling;
+
+	btVector3 tmpLocalAabbMin = localAabbMin * m_localScaling;
+	btVector3 tmpLocalAabbMax = localAabbMax * m_localScaling;
+
+	localAabbMin[0] = (m_localScaling.getX() >= 0.) ? tmpLocalAabbMin[0] : tmpLocalAabbMax[0];
+	localAabbMin[1] = (m_localScaling.getY() >= 0.) ? tmpLocalAabbMin[1] : tmpLocalAabbMax[1];
+	localAabbMin[2] = (m_localScaling.getZ() >= 0.) ? tmpLocalAabbMin[2] : tmpLocalAabbMax[2];
+	localAabbMax[0] = (m_localScaling.getX() <= 0.) ? tmpLocalAabbMin[0] : tmpLocalAabbMax[0];
+	localAabbMax[1] = (m_localScaling.getY() <= 0.) ? tmpLocalAabbMin[1] : tmpLocalAabbMax[1];
+	localAabbMax[2] = (m_localScaling.getZ() <= 0.) ? tmpLocalAabbMin[2] : tmpLocalAabbMax[2];
 
 	btVector3 localHalfExtents = btScalar(0.5)*(localAabbMax-localAabbMin);
 	btScalar margin = m_bvhTriMeshShape->getMargin();

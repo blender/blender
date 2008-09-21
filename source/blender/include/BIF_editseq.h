@@ -52,6 +52,7 @@ struct Sequence*	find_next_prev_sequence(struct Sequence *test, int lr, int sel)
 struct Sequence*	find_nearest_seq(int *hand);
 int					insert_gap(int gap, int cfra);
 void				make_meta(void);
+void				select_single_seq(struct Sequence *seq, int deselect_all);
 void				select_channel_direction(struct Sequence *test,int lr);
 void				select_more_seq(void);
 void				select_less_seq(void);

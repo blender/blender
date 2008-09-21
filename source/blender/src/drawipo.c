@@ -1315,7 +1315,7 @@ static void draw_ipohandles(int sel)
 						glVertex2fv(fp+3); glVertex2fv(fp+6); 
 						glEnd();
 					}
-					else if( (bezt->f1 & 1)==sel) {
+					else if( (bezt->f1 & SELECT)==sel) {
 						fp= bezt->vec[0];
 						cpack(col[bezt->h1]);
 						

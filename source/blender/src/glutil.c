@@ -290,7 +290,6 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 	return texid;
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
 {
 	float *f_rect;

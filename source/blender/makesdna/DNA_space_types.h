@@ -589,6 +589,7 @@ typedef struct SpaceImaSel {
 #define SO_LIBRARIES	7
 #define SO_VERSE_SESSION	8
 #define SO_VERSE_MS		9
+#define SO_SEQUENCE		10
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

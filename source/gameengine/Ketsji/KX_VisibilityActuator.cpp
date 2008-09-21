@@ -137,7 +137,7 @@ KX_VisibilityActuator::_getattr(
 
 
 /* set visibility ---------------------------------------------------------- */
-char 
+const char 
 KX_VisibilityActuator::SetVisible_doc[] = 
 "setVisible(visible?)\n"
 "\t - visible? : Make the object visible? (KX_TRUE, KX_FALSE)"

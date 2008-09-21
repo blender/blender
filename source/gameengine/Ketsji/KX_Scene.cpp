@@ -694,17 +694,6 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
 		replica->NodeSetLocalPosition(newpos);
 
-		if (replica->GetPhysicsController())
-		{
-			// not required, already done in NodeSetLocalOrientation..
-			//replica->GetPhysicsController()->setPosition(newpos);
-			//replica->GetPhysicsController()->setOrientation(newori.getRotation());
-			// Scaling has been set relatively hereabove, this does not 
-			// set the scaling of the controller. I don't know why it's just the
-			// relative scale and not the full scale that has to be put here...
-			replica->GetPhysicsController()->setScaling(newscale);
-		}
-
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
 		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
@@ -828,18 +817,6 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	// set the replica's relative scale with the rootnode's scale
 	replica->NodeSetRelativeScale(newscale);
-
-	if (replica->GetPhysicsController())
-	{
-		// not needed, already done in NodeSetLocalPosition()
-		//replica->GetPhysicsController()->setPosition(newpos);
-		//replica->GetPhysicsController()->setOrientation(newori.getRotation());
-		replica->GetPhysicsController()->setScaling(newscale);
-	}
-
-	// here we want to set the relative scale: the rootnode's scale will override all other
-	// scalings, so lets better prepare for it
-
 
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());

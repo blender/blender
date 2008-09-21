@@ -338,7 +338,7 @@ PyObject* KX_MouseFocusSensor::_getattr(const STR_String& attr) {
 }
 
 
-char KX_MouseFocusSensor::GetHitObject_doc[] = 
+const char KX_MouseFocusSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self, 
@@ -353,7 +353,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self,
 }
 
 
-char KX_MouseFocusSensor::GetHitPosition_doc[] = 
+const char KX_MouseFocusSensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self, 
@@ -373,7 +373,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self,
 
 }
 
-char KX_MouseFocusSensor::GetRayDirection_doc[] = 
+const char KX_MouseFocusSensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
 PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self, 
@@ -394,7 +394,7 @@ PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self,
 
 }
 
-char KX_MouseFocusSensor::GetHitNormal_doc[] = 
+const char KX_MouseFocusSensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self, 
@@ -415,7 +415,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self,
 
 
 /*  getRayTarget                                                */
-char KX_MouseFocusSensor::GetRayTarget_doc[] = 
+const char KX_MouseFocusSensor::GetRayTarget_doc[] = 
 "getRayTarget()\n"
 "\tReturns the target of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
@@ -432,7 +432,7 @@ PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self,
 }
 
 /*  getRayTarget                                                */
-char KX_MouseFocusSensor::GetRaySource_doc[] = 
+const char KX_MouseFocusSensor::GetRaySource_doc[] = 
 "getRaySource()\n"
 "\tReturns the source of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
