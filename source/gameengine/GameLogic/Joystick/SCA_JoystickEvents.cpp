@@ -29,7 +29,7 @@
 #include "SCA_JoystickPrivate.h"
 
 
-
+#ifndef DISABLE_SDL
 void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 {
 	pFillAxes();
@@ -102,3 +102,4 @@ void SCA_Joystick::HandleEvents(void)
 		}
 	}
 }
+#endif
