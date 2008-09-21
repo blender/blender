@@ -33,8 +33,6 @@
 #include <config.h>
 #endif
 
-#include <zlib.h>
-
 #include "PIL_time.h"
 
 #include "MEM_guardedalloc.h"
@@ -67,6 +65,7 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
+#include "BKE_fluidsim.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
@@ -91,11 +90,6 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
-
-// headers for fluidsim bobj meshes
-#include <stdlib.h>
-#include "LBM_fluidsim.h"
-#include "elbeem.h"
 
 ///////////////////////////////////
 ///////////////////////////////////
@@ -420,34 +414,14 @@ void DM_swap_face_data(DerivedMesh *dm, int index, int *corner_indices)
 static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *dm = CDDM_from_mesh(me, ob);
-	int i, dofluidsim;
-
-	dofluidsim = ((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
-	              (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
-	              (ob->fluidsimSettings->meshSurface) &&
-	              (me->totvert == ((Mesh *)(ob->fluidsimSettings->meshSurface))->totvert));
-
-	if (vertCos && !dofluidsim)
+	
+	if(!dm)
+		return NULL;
+	
+	if (vertCos)
 		CDDM_apply_vert_coords(dm, vertCos);
 
 	CDDM_calc_normals(dm);
-
-	/* apply fluidsim normals */ 	
-	if (dofluidsim) {
-		// use normals from readBobjgz
-		// TODO? check for modifiers!?
-		MVert *fsvert = ob->fluidsimSettings->meshSurfNormals;
-		short (*normals)[3] = MEM_mallocN(sizeof(short)*3*me->totvert, "fluidsim nor");
-
-		for (i=0; i<me->totvert; i++) {
-			VECCOPY(normals[i], fsvert[i].no);
-			//mv->no[0]= 30000; mv->no[1]= mv->no[2]= 0; // DEBUG fixed test normals
-		}
-
-		CDDM_apply_vert_normals(dm, normals);
-
-		MEM_freeN(normals);
-	}
 
 	return dm;
 }
@@ -2123,7 +2097,7 @@ static void add_orco_dm(Object *ob, EditMesh *em, DerivedMesh *dm, DerivedMesh *
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
                                 DerivedMesh **deform_r, DerivedMesh **final_r,
                                 int useRenderParams, int useDeform,
-                                int needMapping, CustomDataMask dataMask)
+                                int needMapping, CustomDataMask dataMask, int index)
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
@@ -2132,7 +2106,6 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm, *orcodm, *finaldm;
 	int numVerts = me->totvert;
-	int fluidsimMeshUsed = 0;
 	int required_mode;
 
 	md = firstmd = modifiers_getVirtualModifierList(ob);
@@ -2148,21 +2121,6 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	if(deform_r) *deform_r = NULL;
 	*final_r = NULL;
 
-	/* replace original mesh by fluidsim surface mesh for fluidsim
-	 * domain objects
-	 */
-	if((G.obedit!=ob) && !needMapping) {
-		if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
-			if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-				loadFluidsimMesh(ob,useRenderParams);
-				fluidsimMeshUsed = 1;
-				/* might have changed... */
-				me = ob->data;
-				numVerts = me->totvert;
-			}
-		}
-	}
-
 	if(useRenderParams) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
@@ -2171,7 +2129,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			deformedVerts = mesh_getVertexCos(me, &numVerts);
 		
 		/* Apply all leading deforming modifiers */
-		for(; md; md = md->next, curr = curr->next) {
+		for(;md; md = md->next, curr = curr->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			if((md->mode & required_mode) != required_mode) continue;
@@ -2185,6 +2143,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			} else {
 				break;
 			}
+			
+			/* grab modifiers until index i */
+			if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+				break;
 		}
 
 		/* Result of all leading deforming modifiers is cached for
@@ -2210,18 +2172,11 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 #endif
 		}
 	} else {
-		if(!fluidsimMeshUsed) {
-			/* default behaviour for meshes */
-			if(inputVertexCos)
-				deformedVerts = inputVertexCos;
-			else
-				deformedVerts = mesh_getRefKeyCos(me, &numVerts);
-		} else {
-			/* the fluid sim mesh might have more vertices than the original 
-			 * one, so inputVertexCos shouldnt be used
-			 */
-			deformedVerts = mesh_getVertexCos(me, &numVerts);
-		}
+		/* default behaviour for meshes */
+		if(inputVertexCos)
+			deformedVerts = inputVertexCos;
+		else
+			deformedVerts = mesh_getRefKeyCos(me, &numVerts);
 	}
 
 
@@ -2238,7 +2193,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	if(me->vnode) dm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 #endif
 
-	for(; md; md = md->next, curr = curr->next) {
+	for(;md; md = md->next, curr = curr->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if((md->mode & required_mode) != required_mode) continue;
@@ -2344,6 +2299,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 				}
 			} 
 		}
+		
+		/* grab modifiers until index i */
+		if((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+			break;
 	}
 
 	for(md=firstmd; md; md=md->next)
@@ -2399,9 +2358,6 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		MEM_freeN(deformedVerts);
 
 	BLI_linklist_free(datamasks, NULL);
-
-	/* restore mesh in any case */
-	if(fluidsimMeshUsed) ob->data = ob->fluidsimSettings->orgMesh;
 }
 
 static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
@@ -2753,13 +2709,13 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, 0, 1,
-			                    needMapping, dataMask);
+			                    needMapping, dataMask, -1);
 
 			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, G.rendering, 1,
-			                    needMapping, dataMask);
+			                    needMapping, dataMask, -1);
 		}
 
 		INIT_MINMAX(min, max);
@@ -2930,7 +2886,21 @@ DerivedMesh *mesh_create_derived_render(Object *ob, CustomDataMask dataMask)
 	int orig_lvl= 0;
 	
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
-	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1);
+	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
+
+	return final;
+}
+
+DerivedMesh *mesh_create_derived_index_render(Object *ob, CustomDataMask dataMask, int index)
+{
+	DerivedMesh *final;
+	Mesh *me= get_mesh(ob);
+	float *vert_copy= NULL;
+	int orig_lvl= 0;
+	
+	vert_copy= multires_render_pin(ob, me, &orig_lvl);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask, index);
 	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
@@ -2940,7 +2910,7 @@ DerivedMesh *mesh_create_derived_view(Object *ob, CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(ob, NULL, NULL, &final, 0, 1, 0, dataMask);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1);
 
 	return final;
 }
@@ -2950,7 +2920,7 @@ DerivedMesh *mesh_create_derived_no_deform(Object *ob, float (*vertCos)[3],
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0, 0, dataMask);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1);
 
 	return final;
 }
@@ -2965,7 +2935,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob,
 	int orig_lvl= 0;
 
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
-	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0, dataMask);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1);
 	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
@@ -3324,583 +3294,4 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 		}
 	}
 }
-
-/* ************************* fluidsim bobj file handling **************************** */
-
-#ifndef DISABLE_ELBEEM
-
-#ifdef WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
-
-/* write .bobj.gz file for a mesh object */
-void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time) 
-{
-	char debugStrBuffer[256];
-	int wri=0,i,j,totvert,totface;
-	float wrf;
-	gzFile gzf;
-	DerivedMesh *dm;
-	float vec[3];
-	float rotmat[3][3];
-	MVert *mvert;
-	MFace *mface;
-	//if(append)return; // DEBUG
-
-	if(!ob->data || (ob->type!=OB_MESH)) {
-		snprintf(debugStrBuffer,256,"Writing GZ_BOBJ Invalid object %s ...\n", ob->id.name); 
-		elbeemDebugOut(debugStrBuffer);
-		return;
-	}
-	if((ob->size[0]<0.0) || (ob->size[0]<0.0) || (ob->size[0]<0.0) ) {
-		snprintf(debugStrBuffer,256,"\nfluidSim::writeBobjgz:: Warning object %s has negative scaling - check triangle ordering...?\n\n", ob->id.name); 
-		elbeemDebugOut(debugStrBuffer);
-	}
-
-	snprintf(debugStrBuffer,256,"Writing GZ_BOBJ '%s' ... ",filename); elbeemDebugOut(debugStrBuffer); 
-	if(append) gzf = gzopen(filename, "a+b9");
-	else       gzf = gzopen(filename, "wb9");
-	if (!gzf) {
-		snprintf(debugStrBuffer,256,"writeBobjgz::error - Unable to open file for writing '%s'\n", filename);
-		elbeemDebugOut(debugStrBuffer);
-		return;
-	}
-
-	dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH);
-	//dm = mesh_create_derived_no_deform(ob,NULL);
-
-	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
-	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
-
-	// write time value for appended anim mesh
-	if(append) {
-		gzwrite(gzf, &time, sizeof(time));
-	}
-
-	// continue with verts/norms
-	if(sizeof(wri)!=4) { snprintf(debugStrBuffer,256,"Writing GZ_BOBJ, Invalid int size %d...\n", wri); elbeemDebugOut(debugStrBuffer); return; } // paranoia check
-	wri = dm->getNumVerts(dm);
-	mvert = dm->getVertArray(dm);
-	gzwrite(gzf, &wri, sizeof(wri));
-	for(i=0; i<wri;i++) {
-		VECCOPY(vec, mvert[i].co);
-		if(useGlobalCoords) { Mat4MulVecfl(ob->obmat, vec); }
-		for(j=0; j<3; j++) {
-			wrf = vec[j]; 
-			gzwrite(gzf, &wrf, sizeof( wrf )); 
-		}
-	}
-
-	// should be the same as Vertices.size
-	wri = totvert;
-	gzwrite(gzf, &wri, sizeof(wri));
-	EulToMat3(ob->rot, rotmat);
-	for(i=0; i<wri;i++) {
-		VECCOPY(vec, mvert[i].no);
-		Normalize(vec);
-		if(useGlobalCoords) { Mat3MulVecfl(rotmat, vec); }
-		for(j=0; j<3; j++) {
-			wrf = vec[j];
-			gzwrite(gzf, &wrf, sizeof( wrf )); 
-		}
-	}
-
-	// append only writes verts&norms 
-	if(!append) {
-		//float side1[3],side2[3],norm1[3],norm2[3];
-		//float inpf;
-	
-		// compute no. of triangles 
-		wri = 0;
-		for(i=0; i<totface; i++) {
-			wri++;
-			if(mface[i].v4) { wri++; }
-		}
-		gzwrite(gzf, &wri, sizeof(wri));
-		for(i=0; i<totface; i++) {
-
-			int face[4];
-			face[0] = mface[i].v1;
-			face[1] = mface[i].v2;
-			face[2] = mface[i].v3;
-			face[3] = mface[i].v4;
-			//snprintf(debugStrBuffer,256,"F %s %d = %d,%d,%d,%d \n",ob->id.name, i, face[0],face[1],face[2],face[3] ); elbeemDebugOut(debugStrBuffer);
-			//VecSubf(side1, mvert[face[1]].co,mvert[face[0]].co);
-			//VecSubf(side2, mvert[face[2]].co,mvert[face[0]].co);
-			//Crossf(norm1,side1,side2);
-			gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
-			gzwrite(gzf, &(face[1]), sizeof( face[1] )); 
-			gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-			if(face[3]) { 
-				//VecSubf(side1, mvert[face[2]].co,mvert[face[0]].co);
-				//VecSubf(side2, mvert[face[3]].co,mvert[face[0]].co);
-				//Crossf(norm2,side1,side2);
-				//inpf = Inpf(norm1,norm2);
-				//if(inpf>0.) {
-				gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
-				gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-				gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
-				//} else {
-					//gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
-					//gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
-					//gzwrite(gzf, &(face[2]), sizeof( face[2] )); 
-				//}
-			} // quad
-		}
-	}
-
-	snprintf(debugStrBuffer,256,"Done. #Vertices: %d, #Triangles: %d\n", totvert, totface ); 
-	elbeemDebugOut(debugStrBuffer);
-	
-	gzclose( gzf );
-	dm->release(dm);
-}
-
-void initElbeemMesh(struct Object *ob, 
-		int *numVertices, float **vertices, 
-		int *numTriangles, int **triangles,
-		int useGlobalCoords) 
-{
-	DerivedMesh *dm = NULL;
-	MVert *mvert;
-	MFace *mface;
-	int countTris=0, i, totvert, totface;
-	float *verts;
-	int *tris;
-
-	dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH);
-	//dm = mesh_create_derived_no_deform(ob,NULL);
-
-	mvert = dm->getVertArray(dm);
-	mface = dm->getFaceArray(dm);
-	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumFaces(dm);
-
-	*numVertices = totvert;
-	verts = MEM_callocN( totvert*3*sizeof(float), "elbeemmesh_vertices");
-	for(i=0; i<totvert; i++) {
-		VECCOPY( &verts[i*3], mvert[i].co);
-		if(useGlobalCoords) { Mat4MulVecfl(ob->obmat, &verts[i*3]); }
-	}
-	*vertices = verts;
-
-	for(i=0; i<totface; i++) {
-		countTris++;
-		if(mface[i].v4) { countTris++; }
-	}
-	*numTriangles = countTris;
-	tris = MEM_callocN( countTris*3*sizeof(int), "elbeemmesh_triangles");
-	countTris = 0;
-	for(i=0; i<totface; i++) {
-		int face[4];
-		face[0] = mface[i].v1;
-		face[1] = mface[i].v2;
-		face[2] = mface[i].v3;
-		face[3] = mface[i].v4;
-
-		tris[countTris*3+0] = face[0]; 
-		tris[countTris*3+1] = face[1]; 
-		tris[countTris*3+2] = face[2]; 
-		countTris++;
-		if(face[3]) { 
-			tris[countTris*3+0] = face[0]; 
-			tris[countTris*3+1] = face[2]; 
-			tris[countTris*3+2] = face[3]; 
-			countTris++;
-		}
-	}
-	*triangles = tris;
-
-	dm->release(dm);
-}
-
-/* read .bobj.gz file into a fluidsimDerivedMesh struct */
-Mesh* readBobjgz(char *filename, Mesh *orgmesh, float* bbstart, float *bbsize) //, fluidsimDerivedMesh *fsdm)
-{
-	int wri,i,j;
-	char debugStrBuffer[256];
-	float wrf;
-	Mesh *newmesh; 
-	const int debugBobjRead = 1;
-	// init data from old mesh (materials,flags)
-	MFace *origMFace = &((MFace*) orgmesh->mface)[0];
-	int mat_nr = -1;
-	int flag = -1;
-	MFace *fsface = NULL;
-	int gotBytes;
-	gzFile gzf;
-
-	if(!orgmesh) return NULL;
-	if(!origMFace) return NULL;
-	mat_nr = origMFace->mat_nr;
-	flag = origMFace->flag;
-
-	// similar to copy_mesh
-	newmesh = MEM_dupallocN(orgmesh);
-	newmesh->mat= orgmesh->mat;
-
-	newmesh->mvert= NULL;
-	newmesh->medge= NULL;
-	newmesh->mface= NULL;
-	newmesh->mtface= NULL;
-
-	newmesh->dvert = NULL;
-
-	newmesh->mcol= NULL;
-	newmesh->msticky= NULL;
-	newmesh->texcomesh= NULL;
-	memset(&newmesh->vdata, 0, sizeof(newmesh->vdata));
-	memset(&newmesh->edata, 0, sizeof(newmesh->edata));
-	memset(&newmesh->fdata, 0, sizeof(newmesh->fdata));
-
-	newmesh->key= NULL;
-	newmesh->totface = 0;
-	newmesh->totvert = 0;
-	newmesh->totedge = 0;
-	newmesh->medge = NULL;
-
-
-	snprintf(debugStrBuffer,256,"Reading '%s' GZ_BOBJ... ",filename); elbeemDebugOut(debugStrBuffer); 
-	gzf = gzopen(filename, "rb");
-	// gzf = fopen(filename, "rb");
-	// debug: fread(b,c,1,a) = gzread(a,b,c)
-	if (!gzf) {
-		//snprintf(debugStrBuffer,256,"readBobjgz::error - Unable to open file for reading '%s'\n", filename); // DEBUG
-		MEM_freeN(newmesh);
-		return NULL;
-	}
-
-	//if(sizeof(wri)!=4) { snprintf(debugStrBuffer,256,"Reading GZ_BOBJ, Invalid int size %d...\n", wri); return NULL; } // paranoia check
-	gotBytes = gzread(gzf, &wri, sizeof(wri));
-	newmesh->totvert = wri;
-	newmesh->mvert = CustomData_add_layer(&newmesh->vdata, CD_MVERT, CD_CALLOC, NULL, newmesh->totvert);
-	if(debugBobjRead){ snprintf(debugStrBuffer,256,"#vertices %d ", newmesh->totvert); elbeemDebugOut(debugStrBuffer); } //DEBUG
-	for(i=0; i<newmesh->totvert;i++) {
-		//if(debugBobjRead) snprintf(debugStrBuffer,256,"V %d = ",i);
-		for(j=0; j<3; j++) {
-			gotBytes = gzread(gzf, &wrf, sizeof( wrf )); 
-			newmesh->mvert[i].co[j] = wrf;
-			//if(debugBobjRead) snprintf(debugStrBuffer,256,"%25.20f ", wrf);
-		}
-		//if(debugBobjRead) snprintf(debugStrBuffer,256,"\n");
-	}
-
-	// should be the same as Vertices.size
-	gotBytes = gzread(gzf, &wri, sizeof(wri));
-	if(wri != newmesh->totvert) {
-		// complain #vertices has to be equal to #normals, reset&abort
-		CustomData_free_layer_active(&newmesh->vdata, CD_MVERT, newmesh->totvert);
-		MEM_freeN(newmesh);
-		snprintf(debugStrBuffer,256,"Reading GZ_BOBJ, #normals=%d, #vertices=%d, aborting...\n", wri,newmesh->totvert );
-		return NULL;
-	}
-	for(i=0; i<newmesh->totvert;i++) {
-		for(j=0; j<3; j++) {
-			gotBytes = gzread(gzf, &wrf, sizeof( wrf )); 
-			newmesh->mvert[i].no[j] = (short)(wrf*32767.0f);
-			//newmesh->mvert[i].no[j] = 0.5; // DEBUG tst
-		}
-	//fprintf(stderr,"  DEBDPCN nm%d, %d = %d,%d,%d \n",
-			//(int)(newmesh->mvert), i, newmesh->mvert[i].no[0], newmesh->mvert[i].no[1], newmesh->mvert[i].no[2]);
-	}
-	//fprintf(stderr,"  DPCN 0 = %d,%d,%d \n", newmesh->mvert[0].no[0], newmesh->mvert[0].no[1], newmesh->mvert[0].no[2]);
-
-	
-	/* compute no. of triangles */
-	gotBytes = gzread(gzf, &wri, sizeof(wri));
-	newmesh->totface = wri;
-	newmesh->mface = CustomData_add_layer(&newmesh->fdata, CD_MFACE, CD_CALLOC, NULL, newmesh->totface);
-	if(debugBobjRead){ snprintf(debugStrBuffer,256,"#faces %d ", newmesh->totface); elbeemDebugOut(debugStrBuffer); } //DEBUG
-	fsface = newmesh->mface;
-	for(i=0; i<newmesh->totface; i++) {
-		int face[4];
-
-		gotBytes = gzread(gzf, &(face[0]), sizeof( face[0] )); 
-		gotBytes = gzread(gzf, &(face[1]), sizeof( face[1] )); 
-		gotBytes = gzread(gzf, &(face[2]), sizeof( face[2] )); 
-		face[3] = 0;
-
-		fsface[i].v1 = face[0];
-		fsface[i].v2 = face[1];
-		fsface[i].v3 = face[2];
-		fsface[i].v4 = face[3];
-	}
-
-	// correct triangles with v3==0 for blender, cycle verts
-	for(i=0; i<newmesh->totface; i++) {
-		if(!fsface[i].v3) {
-			int temp = fsface[i].v1;
-			fsface[i].v1 = fsface[i].v2;
-			fsface[i].v2 = fsface[i].v3;
-			fsface[i].v3 = temp;
-		}
-	}
-	
-	gzclose( gzf );
-	for(i=0;i<newmesh->totface;i++) { 
-		fsface[i].mat_nr = mat_nr;
-		fsface[i].flag = flag;
-		fsface[i].edcode = ME_V1V2 | ME_V2V3 | ME_V3V1;
-		//snprintf(debugStrBuffer,256,"%d : %d,%d,%d\n", i,fsface[i].mat_nr, fsface[i].flag, fsface[i].edcode );
-	}
-
-	snprintf(debugStrBuffer,256," (%d,%d) done\n", newmesh->totvert,newmesh->totface); elbeemDebugOut(debugStrBuffer); //DEBUG
-	return newmesh;
-}
-
-/* read zipped fluidsim velocities into the co's of the fluidsimsettings normals struct */
-void readVelgz(char *filename, Object *srcob)
-{
-	char debugStrBuffer[256];
-	int wri, i, j;
-	float wrf;
-	gzFile gzf;
-	MVert *vverts = srcob->fluidsimSettings->meshSurfNormals;
-	int len = strlen(filename);
-	Mesh *mesh = srcob->data;
-	// mesh and vverts have to be valid from loading...
-
-	// clean up in any case
-	for(i=0; i<mesh->totvert;i++) { 
-		for(j=0; j<3; j++) {
-		 	vverts[i].co[j] = 0.; 
-		} 
-	} 
-	if(srcob->fluidsimSettings->domainNovecgen>0) return;
-
-	if(len<7) { 
-		//printf("readVelgz Eror: invalid filename '%s'\n",filename); // DEBUG
-		return; 
-	}
-
-	// .bobj.gz , correct filename
-	// 87654321
-	filename[len-6] = 'v';
-	filename[len-5] = 'e';
-	filename[len-4] = 'l';
-
-	snprintf(debugStrBuffer,256,"Reading '%s' GZ_VEL... ",filename); elbeemDebugOut(debugStrBuffer); 
-	gzf = gzopen(filename, "rb");
-	if (!gzf) { 
-		//printf("readVelgz Eror: unable to open file '%s'\n",filename); // DEBUG
-		return; 
-	}
-
-	gzread(gzf, &wri, sizeof( wri ));
-	if(wri != mesh->totvert) {
-		//printf("readVelgz Eror: invalid no. of velocities %d vs. %d aborting.\n" ,wri ,mesh->totvert ); // DEBUG
-		return; 
-	}
-
-	for(i=0; i<mesh->totvert;i++) {
-		for(j=0; j<3; j++) {
-			gzread(gzf, &wrf, sizeof( wrf )); 
-			vverts[i].co[j] = wrf;
-		}
-		//if(i<20) fprintf(stderr, "GZ_VELload %d = %f,%f,%f  \n",i,vverts[i].co[0],vverts[i].co[1],vverts[i].co[2]); // DEBUG
-	}
-
-	gzclose(gzf);
-}
-
-
-/* ***************************** fluidsim derived mesh ***************************** */
-
-/* check which file to load, and replace old mesh of the object with it */
-/* this replacement is undone at the end of mesh_calc_modifiers */
-void loadFluidsimMesh(Object *srcob, int useRenderParams)
-{
-	Mesh *mesh = NULL;
-	float *bbStart = NULL, *bbSize = NULL;
-	float lastBB[3];
-	int displaymode = 0;
-	int curFrame = G.scene->r.cfra - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
-	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
-	char debugStrBuffer[256];
-	//snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
-
-	if((!srcob)||(!srcob->fluidsimSettings)) {
-		snprintf(debugStrBuffer,256,"DEBUG - Invalid loadFluidsimMesh call, rp %d, dm %d)\n", useRenderParams, displaymode); // debug
-		elbeemDebugOut(debugStrBuffer); // debug
-		return;
-	}
-	// make sure the original mesh data pointer is stored
-	if(!srcob->fluidsimSettings->orgMesh) {
-		srcob->fluidsimSettings->orgMesh = srcob->data;
-	}
-
-	// free old mesh, if there is one (todo, check if it's still valid?)
-	if(srcob->fluidsimSettings->meshSurface) {
-		Mesh *freeFsMesh = srcob->fluidsimSettings->meshSurface;
-
-		// similar to free_mesh(...) , but no things like unlink...
-		CustomData_free(&freeFsMesh->vdata, freeFsMesh->totvert);
-		CustomData_free(&freeFsMesh->edata, freeFsMesh->totedge);
-		CustomData_free(&freeFsMesh->fdata, freeFsMesh->totface);
-		MEM_freeN(freeFsMesh);
-		
-		if(srcob->data == srcob->fluidsimSettings->meshSurface)
-		 srcob->data = srcob->fluidsimSettings->orgMesh;
-		srcob->fluidsimSettings->meshSurface = NULL;
-
-		if(srcob->fluidsimSettings->meshSurfNormals) MEM_freeN(srcob->fluidsimSettings->meshSurfNormals);
-		srcob->fluidsimSettings->meshSurfNormals = NULL;
-	} 
-
-	// init bounding box
-	bbStart = srcob->fluidsimSettings->bbStart; 
-	bbSize = srcob->fluidsimSettings->bbSize;
-	lastBB[0] = bbSize[0];  // TEST
-	lastBB[1] = bbSize[1]; 
-	lastBB[2] = bbSize[2];
-	fluidsimGetAxisAlignedBB(srcob->fluidsimSettings->orgMesh, srcob->obmat, bbStart, bbSize, &srcob->fluidsimSettings->meshBB);
-	// check free fsmesh... TODO
-	
-	if(!useRenderParams) {
-		displaymode = srcob->fluidsimSettings->guiDisplayMode;
-	} else {
-		displaymode = srcob->fluidsimSettings->renderDisplayMode;
-	}
-	
-	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d), curFra=%d, sFra=%d #=%d \n", 
-			srcob->id.name, useRenderParams, displaymode, G.scene->r.cfra, G.scene->r.sfra, curFrame ); // debug
-	elbeemDebugOut(debugStrBuffer); // debug
-
- 	strncpy(targetDir, srcob->fluidsimSettings->surfdataPath, FILE_MAXDIR);
-	// use preview or final mesh?
-	if(displaymode==1) {
-		// just display original object
-		srcob->data = srcob->fluidsimSettings->orgMesh;
-		return;
-	} else if(displaymode==2) {
-		strcat(targetDir,"fluidsurface_preview_####");
-	} else { // 3
-		strcat(targetDir,"fluidsurface_final_####");
-	}
-	BLI_convertstringcode(targetDir, G.sce);
-	BLI_convertstringframe(targetDir, curFrame); // fixed #frame-no 
-	
-	strcpy(targetFile,targetDir);
-	strcat(targetFile, ".bobj.gz");
-
-	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d) '%s' \n", srcob->id.name, useRenderParams, displaymode, targetFile);  // debug
-	elbeemDebugOut(debugStrBuffer); // debug
-
-	if(displaymode!=2) { // dont add bounding box for final
-		mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh ,NULL,NULL);
-	} else {
-		mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh, bbSize,bbSize );
-	}
-	if(!mesh) {
-		// switch, abort background rendering when fluidsim mesh is missing
-		const char *strEnvName2 = "BLENDER_ELBEEMBOBJABORT"; // from blendercall.cpp
-		if(G.background==1) {
-			if(getenv(strEnvName2)) {
-				int elevel = atoi(getenv(strEnvName2));
-				if(elevel>0) {
-					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n",strEnvName2, targetFile);
-					exit(1);
-				}
-			}
-		}
-		
-		// display org. object upon failure
-		srcob->data = srcob->fluidsimSettings->orgMesh;
-		return;
-	}
-
-	if((mesh)&&(mesh->totvert>0)) {
-		make_edges(mesh, 0);	// 0 = make all edges draw
-	}
-	srcob->fluidsimSettings->meshSurface = mesh;
-	srcob->data = mesh;
-	srcob->fluidsimSettings->meshSurfNormals = MEM_dupallocN(mesh->mvert);
-
-	// load vertex velocities, if they exist...
-	// TODO? use generate flag as loading flag as well?
-	// warning, needs original .bobj.gz mesh loading filename
-	if(displaymode==3) {
-		readVelgz(targetFile, srcob);
-	} else {
-		// no data for preview, only clear...
-		int i,j;
-		for(i=0; i<mesh->totvert;i++) { for(j=0; j<3; j++) { srcob->fluidsimSettings->meshSurfNormals[i].co[j] = 0.; }} 
-	}
-
-	//fprintf(stderr,"LOADFLM DEBXHCH fs=%d 3:%d,%d,%d \n", (int)mesh, ((Mesh *)(srcob->fluidsimSettings->meshSurface))->mvert[3].no[0], ((Mesh *)(srcob->fluidsimSettings->meshSurface))->mvert[3].no[1], ((Mesh *)(srcob->fluidsimSettings->meshSurface))->mvert[3].no[2]);
-	return;
-}
-
-/* helper function */
-/* init axis aligned BB for mesh object */
-void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3], /*RET*/ struct Mesh **bbmesh )
-{
-	float bbsx=0.0, bbsy=0.0, bbsz=0.0;
-	float bbex=1.0, bbey=1.0, bbez=1.0;
-	int i;
-	float vec[3];
-
-	VECCOPY(vec, mesh->mvert[0].co); 
-	Mat4MulVecfl(obmat, vec);
-	bbsx = vec[0]; bbsy = vec[1]; bbsz = vec[2];
-	bbex = vec[0]; bbey = vec[1]; bbez = vec[2];
-
-	for(i=1; i<mesh->totvert;i++) {
-		VECCOPY(vec, mesh->mvert[i].co);
-		Mat4MulVecfl(obmat, vec);
-
-		if(vec[0] < bbsx){ bbsx= vec[0]; }
-		if(vec[1] < bbsy){ bbsy= vec[1]; }
-		if(vec[2] < bbsz){ bbsz= vec[2]; }
-		if(vec[0] > bbex){ bbex= vec[0]; }
-		if(vec[1] > bbey){ bbey= vec[1]; }
-		if(vec[2] > bbez){ bbez= vec[2]; }
-	}
-
-	// return values...
-	if(start) {
-		start[0] = bbsx;
-		start[1] = bbsy;
-		start[2] = bbsz;
-	} 
-	if(size) {
-		size[0] = bbex-bbsx;
-		size[1] = bbey-bbsy;
-		size[2] = bbez-bbsz;
-	}
-
-	// init bounding box mesh?
-	if(bbmesh) {
-		int i,j;
-		Mesh *newmesh = NULL;
-		if(!(*bbmesh)) { newmesh = MEM_callocN(sizeof(Mesh), "fluidsimGetAxisAlignedBB_meshbb"); }
-		else {           newmesh = *bbmesh; }
-
-		newmesh->totvert = 8;
-		if(!newmesh->mvert)
-			newmesh->mvert = CustomData_add_layer(&newmesh->vdata, CD_MVERT, CD_CALLOC, NULL, newmesh->totvert);
-		for(i=0; i<8; i++) {
-			for(j=0; j<3; j++) newmesh->mvert[i].co[j] = start[j]; 
-		}
-
-		newmesh->totface = 6;
-		if(!newmesh->mface)
-			newmesh->mface = CustomData_add_layer(&newmesh->fdata, CD_MFACE, CD_CALLOC, NULL, newmesh->totface);
-
-		*bbmesh = newmesh;
-	}
-}
-
-#else // DISABLE_ELBEEM
-
-/* dummy for mesh_calc_modifiers */
-void loadFluidsimMesh(Object *srcob, int useRenderParams) {
-}
-
-#endif // DISABLE_ELBEEM
 

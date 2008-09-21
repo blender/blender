@@ -41,7 +41,9 @@ ntlGeometryObject::ntlGeometryObject() :
 	mCachedMovPoints(), mCachedMovNormals(),
 	mTriangleDivs1(), mTriangleDivs2(), mTriangleDivs3(),
 	mMovPntsInited(-100.0), mMaxMovPnt(-1),
-	mcGeoActive(1.)
+	mcGeoActive(1.),
+	mCpsTimeStart(0.), mCpsTimeEnd(1.0), mCpsQuality(10.),
+	mcAttrFStr(0.),mcAttrFRad(0.), mcVelFStr(0.), mcVelFRad(0.)
 { 
 };
 
@@ -82,20 +84,21 @@ bool ntlGeometryObject::checkIsAnimated() {
 /*****************************************************************************/
 /* Init attributes etc. of this object */
 /*****************************************************************************/
-#define GEOINIT_STRINGS  9
+#define GEOINIT_STRINGS  10
 static const char *initStringStrs[GEOINIT_STRINGS] = {
 	"fluid",
 	"bnd_no","bnd_noslip",
 	"bnd_free","bnd_freeslip",
 	"bnd_part","bnd_partslip",
-	"inflow", "outflow"
+	"inflow", "outflow", "control",
 };
 static int initStringTypes[GEOINIT_STRINGS] = {
 	FGI_FLUID,
 	FGI_BNDNO, FGI_BNDNO,
 	FGI_BNDFREE, FGI_BNDFREE,
 	FGI_BNDPART, FGI_BNDPART,
-	FGI_MBNDINFLOW, FGI_MBNDOUTFLOW
+	FGI_MBNDINFLOW, FGI_MBNDOUTFLOW, 
+	FGI_CONTROL
 };
 void ntlGeometryObject::initialize(ntlRenderGlobals *glob) 
 {
@@ -330,7 +333,11 @@ void ntlGeometryObject::sceneAddTriangleNoVert(int *trips,
 
 void ntlGeometryObject::initChannels(
 		int nTrans, float *trans, int nRot, float *rot, int nScale, float *scale,
-		int nAct, float *act, int nIvel, float *ivel
+		int nAct, float *act, int nIvel, float *ivel,
+		int nAttrFStr, float *attrFStr,
+		int nAttrFRad, float *attrFRad,
+		int nVelFStr, float *velFStr,
+		int nVelFRad, float *velFRad
 		) {
 	const bool debugInitc=true;
 	if(debugInitc) { debMsgStd("ntlGeometryObject::initChannels",DM_MSG,"nt:"<<nTrans<<" nr:"<<nRot<<" ns:"<<nScale, 10); 
@@ -343,8 +350,15 @@ void ntlGeometryObject::initChannels(
 	if((scale)&&(nScale>0)) {  ADD_CHANNEL_VEC(mcScale, nScale, scale); }
 	if((act)&&(nAct>0)) {      ADD_CHANNEL_FLOAT(mcGeoActive, nAct, act); }
 	if((ivel)&&(nIvel>0)) {    ADD_CHANNEL_VEC(mcInitialVelocity, nIvel, ivel); }
+	
+	/* fluid control channels */
+	if((attrFStr)&&(nAttrFStr>0)) { ADD_CHANNEL_FLOAT(mcAttrFStr, nAttrFStr, attrFStr); }
+	if((attrFRad)&&(nAttrFRad>0)) { ADD_CHANNEL_FLOAT(mcAttrFRad, nAttrFRad, attrFRad); }
+	if((velFStr)&&(nVelFStr>0)) {   ADD_CHANNEL_FLOAT(mcVelFStr, nAct, velFStr); }
+	if((velFRad)&&(nVelFRad>0)) {   ADD_CHANNEL_FLOAT(mcVelFRad, nVelFRad, velFRad); }
 
 	checkIsAnimated();
+	
 	if(debugInitc) { 
 		debMsgStd("ntlGeometryObject::initChannels",DM_MSG,getName()<<
 				" nt:"<<mcTrans.accessValues().size()<<" nr:"<<mcRot.accessValues().size()<<
@@ -565,7 +579,7 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 		}
 	}
 
-	if(    (this-getMeshAnimated())
+	if(    (this->getMeshAnimated())
       || (mcTrans.accessValues().size()>1)  // VALIDATE
 	    || (mcRot.accessValues().size()>1) 
 	    || (mcScale.accessValues().size()>1) 

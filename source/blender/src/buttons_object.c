@@ -45,6 +45,7 @@
 
 #include "BKE_action.h"
 #include "BKE_cloth.h"
+#include "BKE_fluidsim.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -2242,6 +2243,7 @@ void fluidsimFilesel(char *selection)
 	char prefix[FILE_MAXFILE];
 	char *srch, *srchSub, *srchExt, *lastFound;
 	int isElbeemSurf = 0;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 
 	// make prefix
 	strcpy(srcDir, selection);
@@ -2276,10 +2278,10 @@ void fluidsimFilesel(char *selection)
 		} 
 	}
 
-	if(ob->fluidsimSettings) {
-		strcpy(ob->fluidsimSettings->surfdataPath, srcDir);
+	if(fluidmd && fluidmd->fss) {
+		strcpy(fluidmd->fss->surfdataPath, srcDir);
 		//not necessary? strcat(ob->fluidsimSettings->surfdataPath, "/");
-		strcat(ob->fluidsimSettings->surfdataPath, prefix);
+		strcat(fluidmd->fss->surfdataPath, prefix);
 
 		// redraw view & buttons...
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -2383,13 +2385,14 @@ void do_object_panels(unsigned short event)
 			ParticleSystem *psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
 			ModifierData *md;
 			ParticleSystemModifierData *psmd;
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 
 			part->type = PART_FLUID;
 			psys->part = part;
 			psys->pointcache = BKE_ptcache_add();
 			psys->flag |= PSYS_ENABLED;
 
-			ob->fluidsimSettings->type = OB_FLUIDSIM_PARTICLE;
+			fluidmd->fss->type = OB_FLUIDSIM_PARTICLE;
 
 			BLI_addtail(&ob->particlesystem,psys);
 
@@ -2403,7 +2406,10 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_FLUIDSIM_CHANGETYPE:
-		if(ob && ob->particlesystem.first && ob->fluidsimSettings->type!=OB_FLUIDSIM_PARTICLE){
+	{
+		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+		fluidmd->fss->flag &= ~OB_FLUIDSIM_REVERSE; // clear flag
+		if(ob && ob->particlesystem.first && fluidmd->fss->type!=OB_FLUIDSIM_PARTICLE){
 			ParticleSystem *psys;
 			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 				if(psys->part->type==PART_FLUID) {
@@ -2428,19 +2434,15 @@ void do_object_panels(unsigned short event)
 		}
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
+	}
 	case B_FLUIDSIM_SELDIR: 
 		{
 			ScrArea *sa = closest_bigger_area();
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 			/* choose dir for surface files */
 			areawinset(sa->win);
-			activate_fileselect(FILE_SPECIAL, "Select Directory", ob->fluidsimSettings->surfdataPath, fluidsimFilesel);
+			activate_fileselect(FILE_SPECIAL, "Select Directory", fluidmd->fss->surfdataPath, fluidsimFilesel);
 		}
-		break;
-	case B_FLUIDSIM_FORCEREDRAW:
-		/* force redraw */
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 	case B_GROUP_RELINK:
 		group_relink_nla_objects(ob);
@@ -4958,6 +4960,53 @@ static void object_panel_particle_system(Object *ob)
 }
 
 /* NT - Panel for fluidsim settings */
+
+static int _can_fluidsim_at_all(Object *ob)
+{
+	// list of Yes
+	if ((ob->type==OB_MESH)) return 1;
+	// else deny
+	return 0;
+}
+
+/* Panel for fluidsim */
+static void object_fluidsim__enabletoggle(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Fluidsim);
+
+	if (!md) {
+		md = modifier_new(eModifierType_Fluidsim);
+		BLI_addhead(&ob->modifiers, md);
+		
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}
+	else {
+		Object *ob = ob_v;
+		ModifierData *md = modifiers_findByType(ob, eModifierType_Fluidsim);
+	
+		if (!md)
+			return;
+
+		BLI_remlink(&ob->modifiers, md);
+
+		modifier_free(md);
+
+		BIF_undo_push("Del modifier");
+		
+		//ob->softflag |= OB_SB_RESET;
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWOOPS, 0);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
+		object_handle_update(ob);
+		countall();
+	}
+}
+
 static void object_panel_fluidsim(Object *ob)
 {
 #ifndef DISABLE_ELBEEM
@@ -4966,314 +5015,387 @@ static void object_panel_fluidsim(Object *ob)
 	const int lineHeight = 20;
 	const int separateHeight = 3;
 	const int objHeight = 20;
-	char *msg = NULL;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+	int libdata = 0, val = 0;
+	uiBut *but=NULL;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fluid", "Physics", 1060, 0, 318, 204)==0) return;
 
-	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	libdata= object_is_libdata(ob);
+	uiSetButLock(libdata, ERROR_LIBDATA_MESSAGE);
 	
-	if(ob->type==OB_MESH) {
-		if(((Mesh *)ob->data)->totvert == 0) {
-			msg = "Mesh has no vertices.";
-			goto errMessage;
-		}
-		uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
-				&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
+	val = (fluidmd ? 1:0);
+	
+	if(!_can_fluidsim_at_all(ob))
+	{
+		uiDefBut(block, LABEL, 0, "Fluidsim can be activated on mesh only.",  10,200,300,20, NULL, 0.0, 0, 0, 0, "");
+	}
+	else	
+	{	
+		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Fluidsim",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
+		uiButSetFunc(but, object_fluidsim__enabletoggle, ob, NULL);
 
-		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
-			FluidsimSettings *fss= ob->fluidsimSettings;
-	
-			if(fss==NULL) {
-				fss = ob->fluidsimSettings = fluidsimSettingsNew(ob);
-			}
-			
+		/*
+		// no pointcache used in fluidsim *YET*
+		md = (ModifierData*)clmd;
+		if(md) {
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
-			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");
-			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle.");
-			yline -= lineHeight;
-
-			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Inflow",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation.");
-			uiDefButS(block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Outflow",   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation.");
-			uiDefButS(block, ROW, B_FLUIDSIM_MAKEPART ,"Particle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_PARTICLE,20.0, 3.0, "Object is made a particle system to display particles generated by a fluidsim domain object.");
+			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_BAKE_CACHE_CHANGE, ICON_SCENE, 145, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable fluidsim during rendering");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_BAKE_CACHE_CHANGE, VICON_VIEW3D, 165, 200, 20, 20,&md->mode, 0, 0, 1, 0, "Enable fluidsim during interactive display");
 			uiBlockEndAlign(block);
+		}
+		*/
+	}
+
+	if(fluidmd)
+	{
+		FluidsimSettings *fss = fluidmd->fss;
+		
+		if(!fss)
+			return;
+		
+		/* GENERAL STUFF */
+		/*
+		if(!libdata) {
+			uiClearButLock();
+			if(cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+				uiSetButLock(1, "Please leave editmode.");
+			else if(cache->flag & PTCACHE_BAKED)
+				uiSetButLock(1, "Simulation frames are baked");
+		}
+		*/
+		
+		uiBlockBeginAlign ( block );
+		uiDefButS ( block, ROW, B_FLUIDSIM_CHANGETYPE ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation." );
+		uiDefButS ( block, ROW, B_FLUIDSIM_CHANGETYPE ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation." );
+		uiDefButS ( block, ROW, B_FLUIDSIM_CHANGETYPE ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle." );
+		yline -= lineHeight;
+		
+		uiDefButS ( block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Inflow",	    90, yline, 52,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation." );
+		uiDefButS ( block, ROW, B_FLUIDSIM_CHANGETYPE    ,"Outflow",   142, yline, 52,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation." );
+		uiDefButS ( block, ROW, B_FLUIDSIM_MAKEPART ,"Particle",	 194, yline, 52,objHeight, &fss->type, 15.0, OB_FLUIDSIM_PARTICLE,20.0, 3.0, "Object is made a particle system to display particles generated by a fluidsim domain object." );
+		
+		uiDefButS ( block, ROW, B_FLUIDSIM_CHANGETYPE ,"Control",	 246, yline, 54,objHeight, &fss->type, 15.0, OB_FLUIDSIM_CONTROL,20.0, 3.0, "Object is made a fluid control mesh, which influences the fluid." );
+		uiBlockEndAlign ( block );
+		yline -= lineHeight;
+		yline -= 2*separateHeight;
+		
+		/* display specific settings for each type */
+		if ( fss->type == OB_FLUIDSIM_DOMAIN )
+		{
+			const int maxRes = 512;
+			char memString[32];
+			Mesh *mesh = ob->data;
+		
+			// use mesh bounding box and object scaling
+			// TODO fix redraw issue
+			fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);
+			elbeemEstimateMemreq ( fss->resolutionxyz,
+					       fss->bbSize[0],fss->bbSize[1],fss->bbSize[2], fss->maxRefine, memString );
+		
+			uiBlockBeginAlign ( block );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Std",	 0,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 0, 20.0, 0, "Show standard domain options." );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Adv",	25,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 1, 20.0, 1, "Show advanced domain options." );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT, "Bnd",	50,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 2, 20.0, 2, "Show domain boundary options." );
+			
+			uiBlockEndAlign ( block );
+		
+			uiDefBut ( block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame." );
+			
 			yline -= lineHeight;
 			yline -= 2*separateHeight;
-
-			/* display specific settings for each type */
-			if(fss->type == OB_FLUIDSIM_DOMAIN) {
-				const int maxRes = 512;
-				char memString[32];
-
-				// use mesh bounding box and object scaling
-				// TODO fix redraw issue
-				elbeemEstimateMemreq(fss->resolutionxyz, 
-						ob->fluidsimSettings->bbSize[0],ob->fluidsimSettings->bbSize[1],ob->fluidsimSettings->bbSize[2], fss->maxRefine, memString);
-				
-				uiBlockBeginAlign(block);
-				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Std",	 0,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 0, 20.0, 0, "Show standard domain options.");
-				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Adv",	25,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 1, 20.0, 1, "Show advanced domain options.");
-				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Bnd",	50,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 2, 20.0, 2, "Show domain boundary options.");
-				uiBlockEndAlign(block);
-				
-				uiDefBut(block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
+		
+			if ( fss->show_advancedoptions == 1 )
+			{
+				// advanced options
+				uiDefBut ( block, LABEL, 0, "Gravity:",		0, yline,  90,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiBlockBeginAlign ( block );
+				uiDefButF ( block, NUM, B_DIFF, "X:",    90, yline,  70,objHeight, &fss->gravx, -1000.1, 1000.1, 10, 0, "Gravity in X direction" );
+				uiDefButF ( block, NUM, B_DIFF, "Y:",   160, yline,  70,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction" );
+				uiDefButF ( block, NUM, B_DIFF, "Z:",   230, yline,  70,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction" );
+				uiBlockEndAlign ( block );
+				yline -= lineHeight;
+				yline -= 1*separateHeight;
+		
+				/* viscosity */
+				if ( fss->viscosityMode==1 ) /*manual*/
+					uiBlockBeginAlign ( block );
+				uiDefButS ( block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",
+						0,yline, 90,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input." );
+				if ( fss->viscosityMode==1 )
+				{
+					uiDefButF ( block, NUM, B_DIFF, "Value:",     90, yline, 105,objHeight, &fss->viscosityValue,       0.0, 10.0, 10, 0, "Viscosity setting: value that is multiplied by 10 to the power of (exponent*-1)." );
+					uiDefButS ( block, NUM, B_DIFF, "Neg-Exp.:", 195, yline, 105,objHeight, &fss->viscosityExponent, 0,   10,  10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6." );
+					uiBlockEndAlign ( block );
+				}
+				else
+				{
+					// display preset values
+					uiDefBut ( block, LABEL,   0, fluidsimViscosityPresetString[fss->viscosityMode],  90,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				}
+				yline -= lineHeight;
+				yline -= 1*separateHeight;
+		
+				uiDefBut ( block, LABEL, 0, "Realworld-size:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButF ( block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->realsize, 0.001, 10.0, 10, 0, "Size of the simulation domain in meters." );
 				yline -= lineHeight;
 				yline -= 2*separateHeight;
-
-				if(fss->show_advancedoptions == 0) {
-					uiDefBut(block, LABEL,   0, "Req. BAKE Memory:",  0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefBut(block, LABEL,   0, memString,  200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
-					yline -= lineHeight;
-
-					uiBlockBeginAlign(block);
-					uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X, Y and Z direction");
-					uiDefButS(block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X, Y and Z direction");
-					uiBlockEndAlign(block);
-					yline -= lineHeight;
-					yline -= 1*separateHeight;
-
-					uiBlockBeginAlign(block);
-					uiDefButF(block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame.");
-					uiDefButF(block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame.");
-					uiBlockEndAlign(block);
-					yline -= lineHeight;
-					yline -= 2*separateHeight;
-
-					if((fss->guiDisplayMode<1) || (fss->guiDisplayMode>3)){ fss->guiDisplayMode=2; } // can be changed by particle setting
-					uiDefBut(block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiBlockBeginAlign(block);
-					uiDefButS(block, MENU, B_FLUIDSIM_FORCEREDRAW, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
-							 90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the Blender GUI.");
-					uiDefButS(block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
-							195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
-					uiBlockEndAlign(block);
-					yline -= lineHeight;
-					yline -= 1*separateHeight;
-
-					uiBlockBeginAlign(block);
-					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in");
-					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in");
-					uiBlockEndAlign(block);
-					// FIXME what is the 79.0 above?
-				} else if(fss->show_advancedoptions == 1) {
-					// advanced options
-					uiDefBut(block, LABEL, 0, "Gravity:",		0, yline,  90,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiBlockBeginAlign(block);
-					uiDefButF(block, NUM, B_DIFF, "X:",    90, yline,  70,objHeight, &fss->gravx, -1000.1, 1000.1, 10, 0, "Gravity in X direction");
-					uiDefButF(block, NUM, B_DIFF, "Y:",   160, yline,  70,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction");
-					uiDefButF(block, NUM, B_DIFF, "Z:",   230, yline,  70,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction");
-					uiBlockEndAlign(block);
-					yline -= lineHeight;
-					yline -= 1*separateHeight;
-
-					/* viscosity */
-					if (fss->viscosityMode==1) /*manual*/
-						uiBlockBeginAlign(block);
-					uiDefButS(block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",	
-							0,yline, 90,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input.");
-					if(fss->viscosityMode==1) {
-						uiDefButF(block, NUM, B_DIFF, "Value:",     90, yline, 105,objHeight, &fss->viscosityValue,       0.0, 10.0, 10, 0, "Viscosity setting: value that is multiplied by 10 to the power of (exponent*-1).");
-						uiDefButS(block, NUM, B_DIFF, "Neg-Exp.:", 195, yline, 105,objHeight, &fss->viscosityExponent, 0,   10,  10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6.");
-						uiBlockEndAlign(block);
-					} else {
-						// display preset values
-						uiDefBut(block, LABEL,   0, fluidsimViscosityPresetString[fss->viscosityMode],  90,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-					}
-					yline -= lineHeight;
-					yline -= 1*separateHeight;
-
-					uiDefBut(block, LABEL, 0, "Realworld-size:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->realsize, 0.001, 10.0, 10, 0, "Size of the simulation domain in meters.");
-					yline -= lineHeight;
-					yline -= 2*separateHeight;
-
-					uiDefBut(block, LABEL, 0, "Gridlevels:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButI(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->maxRefine, -1, 4, 10, 0, "Number of coarsened Grids to use (set to -1 for automatic selection).");
-					yline -= lineHeight;
-
-					uiDefBut(block, LABEL, 0, "Compressibility:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->gstar, 0.001, 0.10, 10,0, "Allowed compressibility due to gravitational force for standing fluid (directly affects simulation step size).");
-					yline -= lineHeight;
-
-				} else if(fss->show_advancedoptions == 2) {
-					// copied from obstacle...
-					//yline -= lineHeight + 5;
-					//uiDefBut(block, LABEL, 0, "Domain boundary type settings:",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
-					//yline -= lineHeight;
-
-					uiBlockBeginAlign(block); // domain
-					uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Noslip",    0, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects.");
-					uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!");
-					uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!");
-					uiBlockEndAlign(block);
-					yline -= lineHeight;
-
-					if(fss->typeFlags&OB_FSBND_PARTSLIP) {
-						uiDefBut(block, LABEL, 0, "PartSlipValue:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-						uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, ".");
-						yline -= lineHeight;
-					} else { 
-						//uiDefBut(block, LABEL, 0, "-",	200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, ""); 
-					}
-					// copied from obstacle...
-
-					uiDefBut(block, LABEL, 0, "Tracer Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButI(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateTracers, 0.0, 10000.0, 10,0, "Number of tracer particles to generate.");
-					yline -= lineHeight;
-					uiDefBut(block, LABEL, 0, "Generate Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateParticles, 0.0, 10.0, 10,0, "Amount of particles to generate (0=off, 1=normal, >1=more).");
-					yline -= lineHeight;
-					uiDefBut(block, LABEL, 0, "Surface Subdiv:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButI(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSubdivs, 0.0, 5.0, 10,0, "Number of isosurface subdivisions. This is necessary for the inclusion of particles into the surface generation. Warning - can lead to longer computation times!");
-					yline -= lineHeight;
-
-					uiDefBut(block, LABEL, 0, "Surface Smoothing:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, 0.0, 5.0, 10,0, "Amount of surface smoothing (0=off, 1=normal, >1=stronger smoothing).");
-					yline -= lineHeight;
-
-					// use new variable...
-					uiDefBut(block, LABEL, 0, "Generate&Use SpeedVecs:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Disable",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Default is to generate and use fluidsim vertex speed vectors, this option switches calculation off during bake, and disables loading.");
-					yline -= lineHeight;
-				} // domain 3
+		
+				uiDefBut ( block, LABEL, 0, "Gridlevels:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButI ( block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->maxRefine, -1, 4, 10, 0, "Number of coarsened Grids to use (set to -1 for automatic selection)." );
+				yline -= lineHeight;
+		
+				uiDefBut ( block, LABEL, 0, "Compressibility:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButF ( block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->gstar, 0.001, 0.10, 10,0, "Allowed compressibility due to gravitational force for standing fluid (directly affects simulation step size)." );
+				yline -= lineHeight;
+		
 			}
-			else if(
-					(fss->type == OB_FLUIDSIM_FLUID) 
-					|| (fss->type == OB_FLUIDSIM_INFLOW) 
-					) {
-				uiBlockBeginAlign(block); // fluid
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defined by the faces of the mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell.");
-				uiBlockEndAlign(block);
+			else if ( fss->show_advancedoptions == 2 )
+			{
+				// copied from obstacle...
+				//yline -= lineHeight + 5;
+				//uiDefBut(block, LABEL, 0, "Domain boundary type settings:",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+				//yline -= lineHeight;
+		
+				uiBlockBeginAlign ( block ); // domain
+				uiDefButS ( block, ROW, REDRAWBUTSOBJECT ,"Noslip",    0, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects." );
+				uiDefButS ( block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!" );
+				uiDefButS ( block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!" );
+				uiBlockEndAlign ( block );
 				yline -= lineHeight;
-
-				yline -= lineHeight + 5; // fluid + inflow
-				if(fss->type == OB_FLUIDSIM_FLUID)  uiDefBut(block, LABEL, 0, "Initial velocity:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				if(fss->type == OB_FLUIDSIM_INFLOW) uiDefBut(block, LABEL, 0, "Inflow velocity:",		  0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				yline -= lineHeight;
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_DIFF, "X:",   0, yline, 100,objHeight, &fss->iniVelx, -1000.1, 1000.1, 10, 0, "Fluid velocity in X direction");
-				uiDefButF(block, NUM, B_DIFF, "Y:", 100, yline, 100,objHeight, &fss->iniVely, -1000.1, 1000.1, 10, 0, "Fluid velocity in Y direction");
-				uiDefButF(block, NUM, B_DIFF, "Z:", 200, yline, 100,objHeight, &fss->iniVelz, -1000.1, 1000.1, 10, 0, "Fluid velocity in Z direction");
-				uiBlockEndAlign(block);
-				yline -= lineHeight;
-
-				if(fss->type == OB_FLUIDSIM_INFLOW) { // inflow
-					uiDefBut(block, LABEL, 0, "Local Inflow Coords",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				  uiDefButBitS(block, TOG, OB_FSINFLOW_LOCALCOORD, REDRAWBUTSOBJECT, "Enable",     200, yline,100,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Use local coordinates for inflow (e.g. for rotating objects).");
-				  yline -= lineHeight;
-				} else {
+		
+				if ( fss->typeFlags&OB_FSBND_PARTSLIP )
+				{
+					uiDefBut ( block, LABEL, 0, "PartSlipValue:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+					uiDefButF ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, "Amount of mixing between no- and free-slip, 0=stickier, 1=same as free slip." );
+					yline -= lineHeight;
 				}
-
-				// domainNovecgen "misused" here
-				uiDefBut(block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-			  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it.");
+				else
+				{
+					//uiDefBut(block, LABEL, 0, "-",	200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
+				}
+				// copied from obstacle...
+		
+				uiDefBut ( block, LABEL, 0, "Tracer Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButI ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateTracers, 0.0, 10000.0, 10,0, "Number of tracer particles to generate." );
 				yline -= lineHeight;
-
-			} // fluid inflow
-			else if( (fss->type == OB_FLUIDSIM_OUTFLOW) )	{
-				yline -= lineHeight + 5;
-
-				uiBlockBeginAlign(block); // outflow
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defined by the faces of the mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell.");
-				uiBlockEndAlign(block);
+				uiDefBut ( block, LABEL, 0, "Generate Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButF ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateParticles, 0.0, 10.0, 10,0, "Amount of particles to generate (0=off, 1=normal, >1=more)." );
 				yline -= lineHeight;
-
-				// domainNovecgen "misused" here
-				uiDefBut(block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-			  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it.");
+				uiDefBut ( block, LABEL, 0, "Surface Subdiv:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButI ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSubdivs, 0.0, 5.0, 10,0, "Number of isosurface subdivisions. This is necessary for the inclusion of particles into the surface generation. Warning - can lead to longer computation times!" );
 				yline -= lineHeight;
-
-				//uiDefBut(block, LABEL, 0, "No additional settings as of now...",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+		
+				uiDefBut ( block, LABEL, 0, "Surface Smoothing:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButF ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, 0.0, 5.0, 10,0, "Amount of surface smoothing (0=off, 1=normal, >1=stronger smoothing)." );
+				yline -= lineHeight;
+		
+				// use new variable...
+				uiDefBut ( block, LABEL, 0, "Generate&Use SpeedVecs:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButBitC ( block, TOG, 1, REDRAWBUTSOBJECT, "Disable",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Default is to generate and use fluidsim vertex speed vectors, this option switches calculation off during bake, and disables loading." );
+				yline -= lineHeight;
 			}
-			else if( (fss->type == OB_FLUIDSIM_OBSTACLE) )	{
-				yline -= lineHeight + 5; // obstacle
-
-				uiBlockBeginAlign(block); // obstacle
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defined by the faces of the mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell.");
-				uiBlockEndAlign(block);
+			else
+			{
+				uiDefBut ( block, LABEL,   0, "Req. BAKE Memory:",  0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefBut ( block, LABEL,   0, memString,  200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "" );
 				yline -= lineHeight;
-
-				uiBlockBeginAlign(block); // obstacle
-				uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Noslip",    0, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects.");
-				uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!");
-				uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!");
-				uiBlockEndAlign(block);
+		
+				uiBlockBeginAlign ( block );
+				uiDefButS ( block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X, Y and Z direction" );
+				uiDefButS ( block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X, Y and Z direction" );
+				uiBlockEndAlign ( block );
 				yline -= lineHeight;
-
-				// domainNovecgen "misused" here
-				uiDefBut(block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-			  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated loc/rot/scale IPOs do not require it.");
-				yline -= lineHeight;
-
-				uiDefBut(block, LABEL, 0, "PartSlip Amount:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				if(fss->typeFlags&OB_FSBND_PARTSLIP) {
-					uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, "Amount of mixing between no- and free-slip, 0=stickier, 1=same as free slip.");
-				} else { uiDefBut(block, LABEL, 0, "-",	200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, ""); }
-				yline -= lineHeight;
-
-				// generateParticles "misused" here
-				uiDefBut(block, LABEL, 0, "Impact Factor:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, -2.0, 10.0, 10,0, "This is an unphysical value for moving objects - it controls the impact an obstacle has on the fluid, =0 behaves a bit like outflow (deleting fluid), =1 is default, while >1 results in high forces. Can be used to tweak total mass.");
-				yline -= lineHeight;
-
-				yline -= lineHeight; // obstacle
-			}
-			else if(fss->type == OB_FLUIDSIM_PARTICLE) {
-				
-				//fss->type == 0; // off, broken...
-				if(1) {
-				// limited selection, old fixed:	fss->typeFlags = (1<<5)|(1<<1); 
-#				define PARTBUT_WIDTH (300/3)
-				uiDefButBitS(block, TOG, (1<<2) , REDRAWBUTSOBJECT, "Drops",     0*PARTBUT_WIDTH, yline, PARTBUT_WIDTH,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Show drop particles.");
-				uiDefButBitS(block, TOG, (1<<4) , REDRAWBUTSOBJECT, "Floats",    1*PARTBUT_WIDTH, yline, PARTBUT_WIDTH,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Show floating foam particles.");
-				uiDefButBitS(block, TOG, (1<<5) , REDRAWBUTSOBJECT, "Tracer",    2*PARTBUT_WIDTH, yline, PARTBUT_WIDTH,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Show tracer particles.");
-				yline -= lineHeight;
-#				undef PARTBUT_WIDTH
-
-
-				uiDefBut(block, LABEL, 0, "Size Influence:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->particleInfSize, 0.0, 2.0,   10,0, "Amount of particle size scaling: 0=off (all same size), 1=full (range 0.2-2.0), >1=stronger.");
-				yline -= lineHeight;
-				uiDefBut(block, LABEL, 0, "Alpha Influence:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->particleInfAlpha, 0.0, 2.0,   10,0, "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full (large particles get lower alphas, smaller ones higher values).");
-				yline -= lineHeight;
-
 				yline -= 1*separateHeight;
-
+		
+				uiBlockBeginAlign ( block );
+				uiDefButF ( block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame." );
+				uiDefButF ( block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame." );
+				uiBlockEndAlign ( block );
+				yline -= lineHeight;
+				yline -= 2*separateHeight;
+		
+				if ( ( fss->guiDisplayMode<1 ) || ( fss->guiDisplayMode>3 ) ) { fss->guiDisplayMode=2; } // can be changed by particle setting
+				uiDefBut ( block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiBlockBeginAlign ( block );
+				uiDefButS ( block, MENU, B_BAKE_CACHE_CHANGE, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",
+					    90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the Blender GUI." );
+				uiDefButS ( block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",
+					    195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering." );
+				uiBlockEndAlign ( block );
+				yline -= lineHeight;
+				yline -= 1*separateHeight;
+		
+				uiBlockBeginAlign ( block );
+				uiDefButBitI ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     0, yline,50,objHeight, &fss->flag, 0, 0, 0, 0, "Reverse fluidsim frames" );
+				uiDefBut ( block, LABEL,   0, "",  50,yline,25,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  75, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in" );
+				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      95, yline, 205, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in" );
+				
+				uiBlockEndAlign ( block );
+				// FIXME what is the 79.0 above?
+			}
+		}
+		else if (
+			( fss->type == OB_FLUIDSIM_FLUID )
+			|| ( fss->type == OB_FLUIDSIM_INFLOW )
+		)
+		{
+			uiBlockBeginAlign ( block ); // fluid
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh." );
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defined by the faces of the mesh." );
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell." );
+			uiBlockEndAlign ( block );
+			yline -= lineHeight;
+		
+			yline -= lineHeight + 5; // fluid + inflow
+			if ( fss->type == OB_FLUIDSIM_FLUID )  uiDefBut ( block, LABEL, 0, "Initial velocity:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			if ( fss->type == OB_FLUIDSIM_INFLOW ) uiDefBut ( block, LABEL, 0, "Inflow velocity:",		  0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			yline -= lineHeight;
+			uiBlockBeginAlign ( block );
+			uiDefButF ( block, NUM, B_DIFF, "X:",   0, yline, 100,objHeight, &fss->iniVelx, -1000.1, 1000.1, 10, 0, "Fluid velocity in X direction" );
+			uiDefButF ( block, NUM, B_DIFF, "Y:", 100, yline, 100,objHeight, &fss->iniVely, -1000.1, 1000.1, 10, 0, "Fluid velocity in Y direction" );
+			uiDefButF ( block, NUM, B_DIFF, "Z:", 200, yline, 100,objHeight, &fss->iniVelz, -1000.1, 1000.1, 10, 0, "Fluid velocity in Z direction" );
+			uiBlockEndAlign ( block );
+			yline -= lineHeight;
+		
+			if ( fss->type == OB_FLUIDSIM_INFLOW )   // inflow
+			{
+				uiDefBut ( block, LABEL, 0, "Local Inflow Coords",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButBitS ( block, TOG, OB_FSINFLOW_LOCALCOORD, REDRAWBUTSOBJECT, "Enable",     200, yline,100,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Use local coordinates for inflow (e.g. for rotating objects)." );
+				yline -= lineHeight;
+			}
+			else
+			{
+			}
+		
+			// domainNovecgen "misused" here
+			uiDefBut ( block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			uiDefButBitC ( block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it." );
+			yline -= lineHeight;
+		
+		} // fluid inflow
+		else if ( ( fss->type == OB_FLUIDSIM_OUTFLOW ) )
+		{
+			yline -= lineHeight + 5;
+		
+			uiBlockBeginAlign ( block ); // outflow
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh." );
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defined by the faces of the mesh." );
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell." );
+			uiBlockEndAlign ( block );
+			yline -= lineHeight;
+		
+			// domainNovecgen "misused" here
+			uiDefBut ( block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			uiDefButBitC ( block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it." );
+			yline -= lineHeight;
+		
+			//uiDefBut(block, LABEL, 0, "No additional settings as of now...",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+		}
+		else if ( ( fss->type == OB_FLUIDSIM_OBSTACLE ) )
+		{
+			yline -= lineHeight + 5; // obstacle
+		
+			uiBlockBeginAlign ( block ); // obstacle
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh." );
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defined by the faces of the mesh." );
+			uiDefButC ( block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell." );
+			uiBlockEndAlign ( block );
+			yline -= lineHeight;
+		
+			uiBlockBeginAlign ( block ); // obstacle
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT ,"Noslip",    0, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_NOSLIP,   20.0, 1.0, "Obstacle causes zero normal and tangential velocity (=sticky). Default for all. Only option for moving objects." );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT ,"Part",	   100, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_PARTSLIP, 20.0, 2.0, "Mix between no-slip and free-slip. Non moving objects only!" );
+			uiDefButS ( block, ROW, REDRAWBUTSOBJECT ,"Free",  	 200, yline,100,objHeight, &fss->typeFlags, 15.0, OB_FSBND_FREESLIP, 20.0, 3.0, "Obstacle only causes zero normal velocity (=not sticky). Non moving objects only!" );
+			uiBlockEndAlign ( block );
+			yline -= lineHeight;
+		
+			// domainNovecgen "misused" here
+			uiDefBut ( block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			uiDefButBitC ( block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated loc/rot/scale IPOs do not require it." );
+			yline -= lineHeight;
+		
+			uiDefBut ( block, LABEL, 0, "PartSlip Amount:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			if ( fss->typeFlags&OB_FSBND_PARTSLIP )
+			{
+				uiDefButF ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->partSlipValue, 0.0, 1.0, 10,0, "Amount of mixing between no- and free-slip, 0=stickier, 1=same as free slip." );
+			}
+			else { uiDefBut ( block, LABEL, 0, "-",	200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "" ); }
+			yline -= lineHeight;
+		
+			// generateParticles "misused" here
+			uiDefBut ( block, LABEL, 0, "Impact Factor:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			uiDefButF ( block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, -2.0, 10.0, 10,0, "This is an unphysical value for moving objects - it controls the impact an obstacle has on the fluid, =0 behaves a bit like outflow (deleting fluid), =1 is default, while >1 results in high forces. Can be used to tweak total mass." );
+			yline -= lineHeight;
+		
+			yline -= lineHeight; // obstacle
+		}
+		else if ( fss->type == OB_FLUIDSIM_PARTICLE )
+		{
+		
+			//fss->type == 0; // off, broken...
+			if ( 1 )
+			{
+				// limited selection, old fixed:	fss->typeFlags = (1<<5)|(1<<1);
+		#				define PARTBUT_WIDTH (300/3)
+				uiDefButBitS ( block, TOG, ( 1<<2 ) , REDRAWBUTSOBJECT, "Drops",     0*PARTBUT_WIDTH, yline, PARTBUT_WIDTH,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Show drop particles." );
+				uiDefButBitS ( block, TOG, ( 1<<4 ) , REDRAWBUTSOBJECT, "Floats",    1*PARTBUT_WIDTH, yline, PARTBUT_WIDTH,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Show floating foam particles." );
+				uiDefButBitS ( block, TOG, ( 1<<5 ) , REDRAWBUTSOBJECT, "Tracer",    2*PARTBUT_WIDTH, yline, PARTBUT_WIDTH,objHeight, &fss->typeFlags, 0, 0, 0, 0, "Show tracer particles." );
+				yline -= lineHeight;
+		#				undef PARTBUT_WIDTH
+		
+		
+				uiDefBut ( block, LABEL, 0, "Size Influence:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButF ( block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->particleInfSize, 0.0, 2.0,   10,0, "Amount of particle size scaling: 0=off (all same size), 1=full (range 0.2-2.0), >1=stronger." );
+				yline -= lineHeight;
+				uiDefBut ( block, LABEL, 0, "Alpha Influence:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "" );
+				uiDefButF ( block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->particleInfAlpha, 0.0, 2.0,   10,0, "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full (large particles get lower alphas, smaller ones higher values)." );
+				yline -= lineHeight;
+		
+				yline -= 1*separateHeight;
+		
 				// FSPARTICLE also select input files
-				uiBlockBeginAlign(block);
-				uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select fluid simulation bake directory/prefix to load particles from, same as for domain object.");
-				uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter fluid simulation bake directory/prefix to load particles from, same as for domain object.");
-				uiBlockEndAlign(block);
+				uiBlockBeginAlign ( block );
+				uiDefIconBut ( block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select fluid simulation bake directory/prefix to load particles from, same as for domain object." );
+				uiDefBut ( block, TEX,     B_BAKE_CACHE_CHANGE,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter fluid simulation bake directory/prefix to load particles from, same as for domain object." );
+				uiBlockEndAlign ( block );
 				yline -= lineHeight;
 			} // disabled for now...
-
-			}
-			else {
-				yline -= lineHeight + 5;
-				/* not yet set */
-				uiDefBut(block, LABEL, 0, "Select object type for simulation",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
-				yline -= lineHeight;
-			}
-			return;
-
-		} else {
-			msg = "Object not enabled for fluid simulation.";
+		
 		}
-	} else {
-		msg = "Only mesh objects can do fluid simulation.";
-	}
-errMessage:
-	yline -= lineHeight + 5;
-	uiDefBut(block, LABEL, 0, msg, 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
-	yline -= lineHeight;
+		else if ( fss->type == OB_FLUIDSIM_CONTROL )
+		{
+		
+			uiDefButF ( block, NUM, B_DIFF, "Time Sta:", 0, yline,150,20, &fss->cpsTimeStart, 0.0, 100.0,   10,0, "Specifies time when the control particles are activated." );
+			uiDefButF ( block, NUM, B_DIFF, "Time End:", 150, yline,150,20, &fss->cpsTimeEnd, 0.0, 100.0,   10,0, "Specifies time when the control particles are deactivated." );
+		
+			yline -= lineHeight;
+		
+			uiDefBut ( block, LABEL, 0, "Attraction force:", 0,yline,300,20, NULL, 0.0, 0, 0, 0, "" );
+			yline -= lineHeight;
+			uiDefButF ( block, NUM, B_DIFF, "Strength:", 0, yline,150,20, &fss->attractforceStrength, -10.0, 10.0,   10,0, "" );
+			uiDefButF ( block, NUM, B_DIFF, "Radius:", 150, yline,150,20, &fss->attractforceRadius, 0.0, 10.0,   10,0, "" );
+			yline -= lineHeight;
+			uiDefBut ( block, LABEL, 0, "Velocity force:", 0,yline,300,20, NULL, 0.0, 0, 0, 0, "" );
+			yline -= lineHeight;
+			uiDefButF ( block, NUM, B_DIFF, "Strength:", 0, yline,150,20, &fss->velocityforceStrength, 0.0, 10.0,   10,0, "" );
+			uiDefButF ( block, NUM, B_DIFF, "Radius:", 150, yline,150,20, &fss->velocityforceRadius, 0.0, 10.0,   10,0, "" );
+		
+			yline -= lineHeight;
+			uiDefButF ( block, NUM, B_DIFF, "Quality:", 0, yline,150,20, &fss->cpsQuality, 5.0, 100.0,   10,0, "Specifies the quality which is used for object sampling (higher = better but slower)." );
+			uiDefButBitI ( block, TOG, OB_FLUIDSIM_REVERSE, REDRAWBUTSOBJECT, "Reverse",     150, yline,150,20, &fss->flag, 0, 0, 0, 0, "Reverse control object movement." );
+		}
+		else
+		{
+			yline -= lineHeight + 5;
+			/* not yet set */
+			uiDefBut ( block, LABEL, 0, "Select object type for simulation",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "" );
+			yline -= lineHeight;
+		}
+		return;
+	} 
 
 #endif // DISABLE_ELBEEM
 }

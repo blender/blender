@@ -1601,15 +1601,6 @@ void separate_mesh(void)
 		return;
 	}
 	
-	/* blender crashes in derivedmesh drawing if I don't do this... but why? 
-		Anyhoo, this function is horrible anyway (ton) 
-		the fluidsimFlag also has to be reset btw. (n_t) */
-	if(G.obedit->fluidsimSettings) {
-		fluidsimSettingsFree(G.obedit->fluidsimSettings);
-		G.obedit->fluidsimSettings = NULL;
-		G.obedit->fluidsimFlag = 0;
-	}
-	
 	if(em->selected.first) BLI_freelistN(&(em->selected)); /* clear the selection order */
 		
 	EM_selectmode_set();	// enforce full consistant selection flags 
@@ -1785,13 +1776,6 @@ void separate_mesh_loose(void)
 	if(me->key) {
 		error("Can't separate a mesh with vertex keys");
 		return;
-	}
-	
-	/* same problem as in separate_mesh above (n_t) */
-	if(G.obedit->fluidsimSettings) {
-		fluidsimSettingsFree(G.obedit->fluidsimSettings);
-		G.obedit->fluidsimSettings = NULL;
-		G.obedit->fluidsimFlag = 0;
 	}
 
 	TEST_EDITMESH

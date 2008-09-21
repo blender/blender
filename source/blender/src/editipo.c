@@ -60,6 +60,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_particle_types.h"
@@ -84,6 +85,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -474,19 +476,41 @@ static void make_part_editipo(SpaceIpo *si)
 }
 
 // copied from make_seq_editipo
-static void make_fluidsim_editipo(SpaceIpo *si) // NT
+static void make_fluidsim_editipo(SpaceIpo *si, Object *ob) // NT
 {
 	EditIpo *ei;
 	int a;
 	char *name;
-	ei= si->editipo= MEM_callocN(FLUIDSIM_TOTIPO*sizeof(EditIpo), "fluidsim_editipo");
-	si->totipo = FLUIDSIM_TOTIPO;
-	for(a=0; a<FLUIDSIM_TOTIPO; a++) {
+	int numipos = FLUIDSIM_TOTIPO;
+	int ipo_start_index = 0;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+	FluidsimSettings *fss= fluidmd->fss;
+	
+	// we don't need all fluid ipos for all types! - dg
+	if(fss->type == OB_FLUIDSIM_CONTROL)
+	{
+		numipos = 4; // there are 4 fluid control ipos
+		ipo_start_index = 9;
+		
+	}
+	else if(fss->type == OB_FLUIDSIM_DOMAIN)
+	{
+		numipos = 5; // there are 5 ipos for fluid domains
+	}
+	else
+	{
+		numipos = 4; // there are 4 for the rest
+		ipo_start_index = 5;
+	}
+		
+	ei= si->editipo= MEM_callocN(numipos*sizeof(EditIpo), "fluidsim_editipo");
+	si->totipo = numipos;
+	for(a=ipo_start_index; a<ipo_start_index+numipos; a++) {
 		//fprintf(stderr,"FSINAME %d %d \n",a,fluidsim_ar[a], (int)(getname_fluidsim_ei(fluidsim_ar[a]))  );
 		name = getname_fluidsim_ei(fluidsim_ar[a]);
 		strcpy(ei->name, name);
 		ei->adrcode= fluidsim_ar[a];
-		ei->col= ipo_rainbow(a, FLUIDSIM_TOTIPO);
+		ei->col= ipo_rainbow(a, numipos);
 		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
 		if(ei->icu) {
 			ei->flag = ei->icu->flag;
@@ -950,7 +974,7 @@ static void make_editipo(void)
 	else if(G.sipo->blocktype==ID_FLUIDSIM) {
 		if (ob) { // NT
 			ob->ipowin= ID_FLUIDSIM;
-			make_fluidsim_editipo(G.sipo);
+			make_fluidsim_editipo(G.sipo, ob);
 		}
 	}
 	else if(G.sipo->blocktype==ID_PA) {
@@ -1170,10 +1194,14 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 		//		}
 	}
 	else if(blocktype==ID_FLUIDSIM) {
-		if(ob && ( ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
-			FluidsimSettings *fss= ob->fluidsimSettings;
-			*from= (ID *)ob;
-			if(fss) *ipo= fss->ipo;
+		if(ob)
+		{
+			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+			if(fluidmd) {
+				FluidsimSettings *fss= fluidmd->fss;
+				*from= (ID *)ob;
+				if(fss) *ipo= fss->ipo;
+			}
 		}
 	}
 	else if(blocktype==ID_PA) {
@@ -1881,9 +1909,10 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 				}
 				else if (blocktype== ID_FLUIDSIM) {
 					Object *ob= (Object *)from;
-					
-					if (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
-						FluidsimSettings *fss= ob->fluidsimSettings;
+
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+					if(fluidmd) {
+						FluidsimSettings *fss= fluidmd->fss;
 						
 						if ((fss->ipo==NULL) && (add))
 							fss->ipo= add_ipo("FluidsimIpo", ID_FLUIDSIM);

@@ -898,10 +898,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 	dm->deformedOnly = 1;
 
-	if(ob && ob->fluidsimSettings && ob->fluidsimSettings->meshSurface)
-		alloctype= CD_DUPLICATE;
-	else
-		alloctype= CD_REFERENCE;
+	alloctype= CD_REFERENCE;
 
 	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, alloctype,
 	                 mesh->totvert);

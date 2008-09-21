@@ -100,7 +100,7 @@ char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
 char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
 	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
-char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
+char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active", "AttrForceStr", "AttrForceRad", "VelForceStr", "VelForceRad" };
 char *part_ic_names[PART_TOTNAM] = { "E_Freq", "E_Life", "E_Speed", "E_Angular", "E_Size",
 "Angular", "Size", "Drag", "Brown", "Damp", "Length", "Clump",
 "GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt",

@@ -37,6 +37,9 @@
 #ifdef WIN32
 #include "winsock2.h"
 #include "BLI_winstuff.h"
+#ifndef INT_MAX
+#include "limits.h"
+#endif
 #endif
 
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
@@ -3063,9 +3066,12 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 				act= act->next;
 			}
-
-			if(ob->fluidsimSettings) {
-				ob->fluidsimSettings->ipo = newlibadr_us(fd, ob->id.lib, ob->fluidsimSettings->ipo);
+			
+			{
+				FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+				
+				if(fluidmd && fluidmd->fss) 
+					fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, fluidmd->fss->ipo);
 			}
 			
 			/* texture field */
@@ -3139,6 +3145,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					clmd->sim_parms->presets = 0;
 			}
 			
+		}
+		else if (md->type==eModifierType_Fluidsim) {
+			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
+			
+			fluidmd->fss= newdataadr(fd, fluidmd->fss);
 		}
 		else if (md->type==eModifierType_Collision) {
 			
@@ -3326,13 +3337,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 			direct_link_pointcache(fd, sb->pointcache);
 	}
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
-	if(ob->fluidsimSettings) {
-		// reinit mesh pointers
-		ob->fluidsimSettings->orgMesh = NULL; //ob->data;
-		ob->fluidsimSettings->meshSurface = NULL;
-		ob->fluidsimSettings->meshBB = NULL;
-		ob->fluidsimSettings->meshSurfNormals = NULL;
-	}
 
 	link_list(fd, &ob->particlesystem);
 	direct_link_particlesystems(fd,&ob->particlesystem);
@@ -7629,8 +7633,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
-				if(ob->fluidsimSettings && ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)
-					part->type = PART_FLUID;
+				
+				{
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+					if(fluidmd && fluidmd->fss && fluidmd->fss->type == OB_FLUIDSIM_PARTICLE)
+						part->type = PART_FLUID;
+				}
 
 				free_effects(&ob->effect);
 
@@ -7775,6 +7783,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->sun_intensity = 1.0;
 		}
 	}
+	
+	// convert fluids to modifier
+	if(main->versionfile <= 246 && main->subversionfile < 1)
+	{
+		Object *ob;
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->fluidsimSettings)
+			{
+				FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifier_new(eModifierType_Fluidsim);
+				BLI_addhead(&ob->modifiers, (ModifierData *)fluidmd);
+				
+				MEM_freeN(fluidmd->fss);
+				fluidmd->fss = MEM_dupallocN(ob->fluidsimSettings);
+				fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, ob->fluidsimSettings->ipo);
+				MEM_freeN(ob->fluidsimSettings);
+				
+				fluidmd->fss->lastgoodframe = INT_MAX;
+				fluidmd->fss->flag = 0;
+			}
+		}
+	}
+	
 
 	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {
 		Mesh *me;

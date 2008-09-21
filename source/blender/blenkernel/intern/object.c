@@ -269,7 +269,6 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
-	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
@@ -1216,15 +1215,6 @@ Object *copy_object(Object *ob)
 			id_us_plus(&(obn->pd->tex->id));
 	}
 	obn->soft= copy_softbody(ob->soft);
-
-	/* NT copy fluid sim setting memory */
-	if(obn->fluidsimSettings) {
-		obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
-		/* copying might fail... */
-		if(obn->fluidsimSettings) {
-			obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
-		}
-	}
 
 	copy_object_particlesystems(obn, ob);
 	

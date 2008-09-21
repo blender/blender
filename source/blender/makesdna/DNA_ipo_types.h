@@ -373,8 +373,8 @@ typedef struct Ipo {
 
 /* ****** FluidSim (ID_FLUIDSIM) ****** */
 
-#define FLUIDSIM_TOTIPO	9
-#define FLUIDSIM_TOTNAM	9
+#define FLUIDSIM_TOTIPO	13
+#define FLUIDSIM_TOTNAM	13
 
 #define FLUIDSIM_VISC   1
 #define FLUIDSIM_TIME   2
@@ -389,8 +389,15 @@ typedef struct Ipo {
 
 #define FLUIDSIM_ACTIVE 9
 
-/* ******* Particle (ID_PA) ******** */
+#define FLUIDSIM_ATTR_FORCE_STR 	10
+#define FLUIDSIM_ATTR_FORCE_RADIUS 	11
+#define FLUIDSIM_VEL_FORCE_STR 		12
+#define FLUIDSIM_VEL_FORCE_RADIUS 	13
 
+/* ******************** */
+/* particle ipos */
+
+/* ******* Particle (ID_PA) ******** */
 #define PART_TOTIPO		25
 #define PART_TOTNAM		25
 
