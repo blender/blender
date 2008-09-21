@@ -3306,6 +3306,9 @@ static void copymenu_modifiers(Object *ob)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
+		
+		if(i == eModifierType_Collision)
+			continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -3329,11 +3332,14 @@ static void copymenu_modifiers(Object *ob)
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
-							if (md->type!=eModifierType_Hook) {
-								ModifierData *nmd = modifier_new(md->type);
-								modifier_copyData(md, nmd);
-								BLI_addtail(&base->object->modifiers, nmd);
-							}
+							if(ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
+		
+							if(md->type == eModifierType_Collision)
+								continue;
+							
+							ModifierData *nmd = modifier_new(md->type);
+							modifier_copyData(md, nmd);
+							BLI_addtail(&base->object->modifiers, nmd);
 						}
 
 						copy_object_particlesystems(base->object, ob);
