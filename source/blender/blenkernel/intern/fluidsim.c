@@ -59,8 +59,6 @@
 
 /* ************************* fluidsim bobj file handling **************************** */
 
-#ifndef DISABLE_ELBEEM
-
 // -----------------------------------------
 // forward decleration
 // -----------------------------------------
@@ -69,6 +67,7 @@
 
 void fluidsim_init(FluidsimModifierData *fluidmd)
 {
+#ifndef DISABLE_ELBEEM
 	if(fluidmd)
 	{
 		FluidsimSettings *fss = MEM_callocN(sizeof(FluidsimSettings), "fluidsimsettings");
@@ -145,22 +144,24 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->flag = 0;
 
 	}
-	
+#endif
 	return;
 }
 
 void fluidsim_free(FluidsimModifierData *fluidmd)
 {
+#ifndef DISABLE_ELBEEM
 	if(fluidmd)
 	{
 		MEM_freeN(fluidmd->fss);
 	}
-	
+#endif
 	return;
 }
 
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
+#ifndef DISABLE_ELBEEM
 	DerivedMesh *result = NULL;
 	int framenr;
 	FluidsimSettings *fss = NULL;
@@ -223,8 +224,12 @@ DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, Deri
 	}
 	
 	return dm;
+#else
+	return NULL;
+#endif
 }
 
+#ifndef DISABLE_ELBEEM
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
 static DerivedMesh *fluidsim_read_obj(char *filename)
 {
