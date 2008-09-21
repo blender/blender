@@ -2667,6 +2667,8 @@ static short do_modification_check(SpaceText *st) {
 			} else {
 				switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1|Ignore %x2")) {
 				case 0:
+					if (text->compiled) BPY_free_compiled_text(text);
+						text->compiled = NULL;
 					reopen_text(text);
 					if (st->showsyntax) txt_format_text(st);
 					return 1;
