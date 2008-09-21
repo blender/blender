@@ -83,8 +83,7 @@ bProperty *copy_property(bProperty *prop)
 void copy_properties(ListBase *lbn, ListBase *lbo)
 {
 	bProperty *prop, *propn;
-	
-	lbn->first= lbn->last= 0;
+	free_properties( lbn ); /* incase we are copying to an object with props */
 	prop= lbo->first;
 	while(prop) {
 		propn= copy_property(prop);
@@ -139,7 +138,7 @@ bProperty *new_property(int type)
 	return prop;
 }
 
-bProperty *get_property(Object *ob, char *name)
+bProperty *get_ob_property(Object *ob, char *name)
 {
 	bProperty *prop;
 	
@@ -149,6 +148,17 @@ bProperty *get_property(Object *ob, char *name)
 		prop= prop->next;
 	}
 	return NULL;
+}
+
+void set_ob_property(Object *ob, bProperty *propc)
+{
+	bProperty *prop;
+	prop= get_ob_property(ob, propc->name);
+	if(prop) {
+		free_property(prop);
+		BLI_remlink(&ob->prop, prop);
+	}
+	BLI_addtail(&ob->prop, copy_property(propc));
 }
 
 /* negative: prop is smaller

@@ -3192,7 +3192,7 @@ void flip_subdivison(int level)
  
 static void copymenu_properties(Object *ob)
 {	
-	bProperty *prop, *propn, *propc;
+	bProperty *prop;
 	Base *base;
 	int nr, tot=0;
 	char *str;
@@ -3208,45 +3208,43 @@ static void copymenu_properties(Object *ob)
 		return;
 	}
 	
-	str= MEM_callocN(24+32*tot, "copymenu prop");
+	str= MEM_callocN(50 + 33*tot, "copymenu prop");
 	
-	strcpy(str, "Copy Property %t");
+	strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
 	
 	tot= 0;	
 	prop= ob->prop.first;
 	while(prop) {
 		tot++;
-		strcat(str, " |");
+		strcat(str, "|");
 		strcat(str, prop->name);
 		prop= prop->next;
 	}
 
 	nr= pupmenu(str);
-	if(nr>0) {
-		tot= 0;
-		prop= ob->prop.first;
-		while(prop) {
-			tot++;
-			if(tot==nr) break;
-			prop= prop->next;
-		}
-		if(prop) {
-			propc= prop;
-			
-			base= FIRSTBASE;
-			while(base) {
-				if(base != BASACT) {
-					if(TESTBASELIB(base)) {
-						prop= get_property(base->object, propc->name);
-						if(prop) {
-							free_property(prop);
-							BLI_remlink(&base->object->prop, prop);
-						}
-						propn= copy_property(propc);
-						BLI_addtail(&base->object->prop, propn);
+	
+	if ( nr==1 || nr==2 ) {
+		base= FIRSTBASE;
+		while(base) {
+			if((base != BASACT) && TESTBASELIB(base)) {
+				if (nr==1) { /* replace */
+					copy_properties( &base->object->prop, &ob->prop );
+				} else {
+					for(prop = ob->prop.first; prop; prop= prop->next ) {
+						set_ob_property(base->object, prop);
 					}
 				}
-				base= base->next;
+			}
+			base= base->next;
+		}
+	} else if(nr>0) {
+		prop = BLI_findlink(&ob->prop, nr-4); /* account for first 3 menu items & menu index starting at 1*/
+		
+		if(prop) {
+			for(base= FIRSTBASE; base; base= base->next) {
+				if((base != BASACT) && TESTBASELIB(base)) {
+					set_ob_property(base->object, prop);
+				}
 			}
 		}
 	}

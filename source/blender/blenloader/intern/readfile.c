@@ -136,7 +136,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for get_property
+#include "BKE_property.h" // for get_ob_property
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
@@ -5325,7 +5325,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			while (act) {
 				if(act->type==ACT_IPO) {
 					ia= act->data;
-					prop= get_property(ob, ia->name);
+					prop= get_ob_property(ob, ia->name);
 					if(prop) {
 						ia->type= ACT_IPO_FROM_PROP;
 					}

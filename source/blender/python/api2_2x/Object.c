@@ -3002,7 +3002,7 @@ static PyObject *Object_getProperty( BPy_Object * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a string" );
 
-	prop = get_property( self->object, prop_name );
+	prop = get_ob_property( self->object, prop_name );
 	if( prop )
 		return Property_CreatePyObject( prop );
 
@@ -3018,7 +3018,7 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 	char *prop_type = NULL;
 	short type = -1;
 	BPy_Property *py_prop = NULL;
-	int argslen = PyObject_Length( args );
+	int argslen = PyTuple_Size( args );
 
 	if( argslen == 3 || argslen == 2 ) {
 		if( !PyArg_ParseTuple( args, "sO|s", &prop_name, &prop_data,
@@ -3129,7 +3129,7 @@ static PyObject *Object_removeProperty( BPy_Object * self, PyObject * args )
 			py_prop->property = NULL;
 		}
 	} else {
-		prop = get_property( self->object, prop_name );
+		prop = get_ob_property( self->object, prop_name );
 		if( prop ) {
 			BLI_remlink( &self->object->prop, prop );
 			free_property( prop );
@@ -3148,18 +3148,23 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 					     PyObject * args )
 {
 	PyObject *dest;
+	Object *dest_ob;
 	bProperty *prop = NULL;
 	bProperty *propn = NULL;
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &dest ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an Object" );
-
+	
+	if (dest == (PyObject *)self) {
+		Py_RETURN_NONE;
+	}
+	dest_ob = ( ( BPy_Object * ) dest )->object;
+	
 	/*make a copy of all its properties*/
 	prop = self->object->prop.first;
 	while( prop ) {
-		propn = copy_property( prop );
-		BLI_addtail( &( ( BPy_Object * ) dest )->object->prop, propn );
+		set_ob_property( dest_ob, prop );
 		prop = prop->next;
 	}
 

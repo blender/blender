@@ -897,6 +897,8 @@ static TBitem tb_object_select_grouped[]= {
 {	0, "Objects in Same Group|Shift G, 7", 	7, NULL},
 {	0, "Object Hooks|Shift G, 8", 	8, NULL},
 {	0, "Object PassIndex|Shift G, 9", 	9, NULL},
+{	0, "Object Color|Shift G, 0", 	9, NULL},
+{	0, "Game Properties|Shift G, Alt+1", 	9, NULL},
 {  -1, "", 			0, do_view3d_select_object_groupedmenu}};
 
 static TBitem tb_object_select[]= {
