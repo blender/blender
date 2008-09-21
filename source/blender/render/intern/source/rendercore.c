@@ -672,22 +672,10 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	GroupObject *go;
 	LampRen *lar;
 	RenderLayer *rlpp[RE_MAX_OSA];
-
-	int totsample, fullsample, sample;
-	int x, y,od;
-	short first_lamp;
-	float *zrect;
-	float *rgbrect;
-	float rgb[3]={0};
-	float tmp_rgb[3];
-	float fac;
-	float facm;
+	int totsample;
+	int x, y, od= 0;
 	
-	fac = 0.5;
-	facm = 1.0 - fac;
-
 	totsample= get_sample_layers(pa, rl, rlpp);
-	fullsample= (totsample > 1);
 
 	/* check that z pass is enabled */
 	if(pa->rectz==NULL) return;
@@ -698,65 +686,59 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	if(zpass==NULL) return;
 
 	/* check for at least one sun lamp that its atmosphere flag is is enabled */
-	first_lamp = 1;
 	for(go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
-		if(lar->type==LA_SUN && lar->sunsky && 
-				(lar->sunsky->effect_type & LA_SUN_EFFECT_AP)){
-			first_lamp = 0;
+		if(lar->type==LA_SUN && lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_AP))
 			break;
-		}
 	}
 	/* do nothign and return if there is no sun lamp */
-	if(first_lamp)
+	if(go==NULL)
 		return;
 	
-	zrect = zpass->rect;
-	rgbrect = rl->rectf;
-	od=0;
-	/* for each x,y and sun lamp*/
+	/* for each x,y and each sample, and each sun lamp*/
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, zrect++, od++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, od++) {
+			int sample;
 			
-			first_lamp = 1;
-			for(go=R.lights.first; go; go= go->next) {
-				lar= go->lampren;
-				if(lar->type==LA_SUN &&	lar->sunsky)
+			for(sample=0; sample<totsample; sample++) {
+				float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
+				float *rgbrect = rlpp[sample]->rectf + 4*od;
+				float rgb[3];
+				int done= 0;
+				
+				for(go=R.lights.first; go; go= go->next) {
+				
 					
-				{
-					/* if it's sky continue and don't apply atmosphere effect on it */
-					if(*zrect >= 9.9e10){
-						continue;
-					}
-
-					if(lar->sunsky->effect_type & LA_SUN_EFFECT_AP){	
-						VECCOPY(tmp_rgb, (float*)(rgbrect+4*od));
-
-						shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
+					lar= go->lampren;
+					if(lar->type==LA_SUN &&	lar->sunsky) {
 						
-						if(first_lamp){
-							VECCOPY(rgb, tmp_rgb);
-							first_lamp = 0;						
+						/* if it's sky continue and don't apply atmosphere effect on it */
+						if(*zrect >= 9.9e10) {
+							continue;
 						}
-						else{
-							rgb[0] = facm*rgb[0] + fac*tmp_rgb[0];
-							rgb[1] = facm*rgb[1] + fac*tmp_rgb[1];
-							rgb[2] = facm*rgb[2] + fac*tmp_rgb[2];
+						
+						if((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
+							float tmp_rgb[3];
+							
+							VECCOPY(tmp_rgb, rgbrect);
+							shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
+							
+							if(done==0) {
+								VECCOPY(rgb, tmp_rgb);
+								done = 1;						
+							}
+							else{
+								rgb[0] = 0.5f*rgb[0] + 0.5f*tmp_rgb[0];
+								rgb[1] = 0.5f*rgb[1] + 0.5f*tmp_rgb[1];
+								rgb[2] = 0.5f*rgb[2] + 0.5f*tmp_rgb[2];
+							}
 						}
 					}
 				}
-			}
 
-			/* if at least for one sun lamp aerial perspective was applied*/
-			if(first_lamp==0)
-			{
-				if(fullsample) {
-					for(sample=0; sample<totsample; sample++) {
-						VECCOPY((float*)(rlpp[sample]->rectf + od*4), rgb);
-					}
-				}
-				else {
-					VECCOPY((float*)(rgbrect+4*od), rgb);
+				/* if at least for one sun lamp aerial perspective was applied*/
+				if(done) {
+					VECCOPY(rgbrect, rgb);
 				}
 			}
 		}
