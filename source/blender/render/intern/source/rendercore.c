@@ -713,7 +713,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 					if(lar->type==LA_SUN &&	lar->sunsky) {
 						
 						/* if it's sky continue and don't apply atmosphere effect on it */
-						if(*zrect >= 9.9e10) {
+						if(*zrect >= 9.9e10 || rgbrect[3]==0.0f) {
 							continue;
 						}
 						
@@ -721,7 +721,14 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 							float tmp_rgb[3];
 							
 							VECCOPY(tmp_rgb, rgbrect);
+							if(rgbrect[3]!=1.0f) {	/* de-premul */
+								float div= 1.0f/rgbrect[3];
+								VECMUL(tmp_rgb, div);
+							}
 							shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
+							if(rgbrect[3]!=1.0f) {	/* premul */
+								VECMUL(tmp_rgb, rgbrect[3]);
+							}
 							
 							if(done==0) {
 								VECCOPY(rgb, tmp_rgb);
@@ -1199,6 +1206,10 @@ void zbufshadeDA_tile(RenderPart *pa)
 			}
 		}
 
+		/* sun/sky */
+		if(rl->layflag & SCE_LAY_SKY)
+			atm_tile(pa, rl);
+		
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl);
@@ -1208,10 +1219,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 			if(R.r.mode & R_EDGE) 
 				edge_enhance_add(pa, rl->rectf, edgerect);
 		
-		/* sun/sky */
-		if(rl->layflag & SCE_LAY_SKY)
-			atm_tile(pa, rl);
-
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		
@@ -1362,6 +1369,10 @@ void zbufshade_tile(RenderPart *pa)
 			}
 		}
 		
+		/* sun/sky */
+		if(rl->layflag & SCE_LAY_SKY)
+			atm_tile(pa, rl);
+		
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl);
@@ -1372,10 +1383,6 @@ void zbufshade_tile(RenderPart *pa)
 					edge_enhance_add(pa, rl->rectf, edgerect);
 		}
 		
-		/* sun/sky */
-		if(rl->layflag & SCE_LAY_SKY)
-			atm_tile(pa, rl);
-			
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		
