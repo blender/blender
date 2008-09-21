@@ -411,6 +411,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\exotic.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\fluidsim.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\font.c">
 			</File>
 			<File
@@ -629,6 +632,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_exotic.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_fluidsim.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_font.h">
