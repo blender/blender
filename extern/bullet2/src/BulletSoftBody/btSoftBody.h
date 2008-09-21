@@ -606,6 +606,13 @@ public:
 	/* dtor																	*/ 
 	virtual ~btSoftBody();
 	/* Check for existing link												*/ 
+
+
+	virtual void	setCollisionShape(btCollisionShape* collisionShape)
+	{
+		//don't do anything, due to the internal shape hack: todo: fix this
+	}
+
 	bool				checkLink(	int node0,
 		int node1) const;
 	bool				checkLink(	const Node* node0,

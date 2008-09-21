@@ -1318,6 +1318,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	// ACTOR is now a separate feature
 	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
 	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
+	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
 	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
 	objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag

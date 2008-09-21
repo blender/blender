@@ -119,7 +119,7 @@ void	Process(const btDbvtNode* n)
 //
 btDbvtBroadphase::btDbvtBroadphase(btOverlappingPairCache* paircache)
 {
-m_deferedcollide	=	true;//false;
+m_deferedcollide	=	false;
 m_needcleanup		=	true;
 m_releasepaircache	=	(paircache!=0)?false:true;
 m_prediction		=	1/(btScalar)2;
@@ -164,7 +164,7 @@ btBroadphaseProxy*				btDbvtBroadphase::createProxy(	const btVector3& aabbMin,
 																void* userPtr,
 																short int collisionFilterGroup,
 																short int collisionFilterMask,
-																btDispatcher* dispatcher,
+																btDispatcher* /*dispatcher*/,
 																void* /*multiSapProxy*/)
 {
 btDbvtProxy*		proxy=new(btAlignedAlloc(sizeof(btDbvtProxy),16)) btDbvtProxy(	userPtr,
@@ -180,6 +180,7 @@ if(!m_deferedcollide)
 	btDbvtTreeCollider	collider(this);
 	collider.proxy=proxy;
 	btDbvt::collideTV(m_sets[0].m_root,proxy->aabb,collider);
+	btDbvt::collideTV(m_sets[1].m_root,proxy->aabb,collider);
 	}
 return(proxy);
 }

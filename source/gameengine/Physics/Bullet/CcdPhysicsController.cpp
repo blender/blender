@@ -133,6 +133,13 @@ btSoftBody* CcdPhysicsController::GetSoftBody()
 	return btSoftBody::upcast(m_object);
 }
 
+#include "BulletSoftBody/btSoftBodyHelpers.h"
+
+btVector3 pts[3] = {btVector3(0,0,0),
+btVector3(0,1,0),
+btVector3(1,1,0)};
+int triangles[3] = {0,1,2};
+btSoftBodyWorldInfo sbi;
 
 void CcdPhysicsController::CreateRigidbody()
 {
@@ -143,14 +150,64 @@ void CcdPhysicsController::CreateRigidbody()
 	///either create a btCollisionObject, btRigidBody or btSoftBody
 
 	//create a collision object
-	if (0)//m_cci.m_mass==0.f)
+
+	//disable soft body until first sneak preview is ready
+	if (0)//m_cci.m_bSoft)
 	{
 		btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 		rbci.m_linearDamping = m_cci.m_linearDamping;
 		rbci.m_angularDamping = m_cci.m_angularDamping;
 		rbci.m_friction = m_cci.m_friction;
 		rbci.m_restitution = m_cci.m_restitution;
-		m_object = new btCollisionObject();
+
+		
+		sbi.m_broadphase = this->m_cci.m_physicsEnv->getBroadphase();
+		sbi.m_dispatcher = (btCollisionDispatcher*) m_cci.m_physicsEnv->getDispatcher();
+		
+		int nodecount = 0;
+		
+		
+		int numtriangles = 1;
+		
+		btVector3 p = trans.getOrigin();
+		btScalar h = 1.f;
+		
+		PHY__Vector3	grav;
+		m_cci.m_physicsEnv->getGravity(grav);
+		sbi.m_gravity.setValue(grav[0],grav[1],grav[2]);
+
+		const btVector3	c[]={	p+h*btVector3(-1,-1,-1),
+		p+h*btVector3(+1,-1,-1),
+		p+h*btVector3(-1,+1,-1),
+		p+h*btVector3(+1,+1,-1),
+		p+h*btVector3(-1,-1,+1),
+		p+h*btVector3(+1,-1,+1),
+		p+h*btVector3(-1,+1,+1),
+		p+h*btVector3(+1,+1,+1)};
+
+		int i=0;
+		const int n=15;
+		//btSoftBody*	psb=btSoftBodyHelpers::CreateRope(sbi,	btVector3(-10,0,i*0.25),btVector3(10,0,i*0.25),	16,1+2);
+		btSoftBody* psb = btSoftBodyHelpers::CreateFromConvexHull(sbi,c,8);
+
+		m_object = psb;//btSoftBodyHelpers::CreateFromTriMesh(sbi,&pts[0].getX(),triangles,numtriangles);
+
+		psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS;//btSoftBody::fCollision::CL_SS+	btSoftBody::fCollision::CL_RS;
+
+		sbi.m_sparsesdf.Reset();
+		sbi.m_sparsesdf.Initialize();
+
+		psb->generateBendingConstraints(2);
+
+		psb->m_cfg.kDF=1;
+		psb->activate();
+		psb->setActivationState(1);
+		psb->setDeactivationTime(1.f);
+		psb->m_cfg.piterations		=	4;
+		//psb->m_materials[0]->m_kLST	=	0.1+(i/(btScalar)(n-1))*0.9;
+		psb->setTotalMass(20);
+		psb->setCollisionFlags(0);
+
 		m_object->setCollisionShape(rbci.m_collisionShape);
 		btTransform startTrans;
 

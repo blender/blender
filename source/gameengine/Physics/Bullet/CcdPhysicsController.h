@@ -149,6 +149,7 @@ struct CcdConstructionInfo
 		m_margin(0.06f),
 		m_collisionFlags(0),
 		m_bRigid(false),
+		m_bSoft(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
@@ -170,6 +171,7 @@ struct CcdConstructionInfo
 	btScalar	m_margin;
 	int			m_collisionFlags;
 	bool		m_bRigid;
+	bool		m_bSoft;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
