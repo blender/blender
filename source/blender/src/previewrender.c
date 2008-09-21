@@ -282,6 +282,15 @@ void BIF_preview_free_dbase(void)
 		free_main(pr_main);
 }
 
+static Object *find_object(ListBase *lb, const char *name)
+{
+	Object *ob;
+	for(ob= lb->first; ob; ob= ob->id.next)
+		if(strcmp(ob->id.name+2, name)==0)
+			break;
+	return ob;
+}
+
 /* call this with an ID pointer to initialize preview scene */
 /* call this with ID NULL to restore assigned ID pointers in preview scene */
 static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_method)
@@ -384,7 +393,16 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		else if(id_type==ID_LA) {
 			Lamp *la= (Lamp *)id;
 			
-			sce->lay= 1<<MA_LAMP;
+			if(la && la->type==LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
+				sce->lay= 1<<MA_ATMOS;
+				sce->world= G.scene->world;
+				sce->camera= (Object *)find_object(&pr_main->object, "CameraAtmo");
+			}
+			else {
+				sce->lay= 1<<MA_LAMP;
+				sce->world= NULL;
+				sce->camera= (Object *)find_object(&pr_main->object, "Camera");
+			}
 			sce->r.mode &= ~R_SHADOW;
 			
 			for(base= sce->base.first; base; base= base->next) {

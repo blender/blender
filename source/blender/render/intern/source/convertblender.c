@@ -3638,7 +3638,8 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		    Normalize(vec);
 		    
 			InitSunSky(lar->sunsky, la->atm_turbidity, vec, la->horizon_brightness, 
-					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light);
+					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light,
+					   la->skyblendfac, la->skyblendtype);
 			
 			InitAtmosphere(lar->sunsky, la->sun_intensity, 1.0, 1.0, la->atm_inscattering_factor, la->atm_extinction_factor,
 					la->atm_distance_factor);

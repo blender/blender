@@ -748,6 +748,9 @@ void *add_lamp(char *name)
 	la->atm_extinction_factor = 1.0;
 	la->atm_distance_factor = 1.0;
 	la->sun_intensity = 1.0;
+	la->skyblendtype= MA_RAMP_ADD;
+	la->skyblendfac= 1.0f;
+
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }

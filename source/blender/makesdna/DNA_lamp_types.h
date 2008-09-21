@@ -79,7 +79,7 @@ typedef struct Lamp {
 	
 	/* sun/sky */
 	short sun_effect_type;
-	short atm_pad[3];
+	short skyblendtype;
     float horizon_brightness;
     float spread;
     float sun_brightness;
@@ -90,7 +90,7 @@ typedef struct Lamp {
     float atm_inscattering_factor;
     float atm_extinction_factor;
     float atm_distance_factor;
-
+	float skyblendfac;
 
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;

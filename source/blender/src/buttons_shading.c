@@ -2871,7 +2871,7 @@ static void lamp_panel_atmosphere(Object *ob, Lamp *la)
 
 	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
-	uiDefButBitS(block, TOG, LA_SUN_EFFECT_SKY, REDRAWVIEW3D, "Sky", 10,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on sky.");
+	uiDefButBitS(block, TOG, LA_SUN_EFFECT_SKY, B_LAMPPRV, "Sky", 10,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on sky.");
 	uiDefButBitS(block, TOG, LA_SUN_EFFECT_AP, REDRAWVIEW3D, "Atmosphere", 20+BUTW2,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on atmosphere.");
 
 	if(la->sun_effect_type & (LA_SUN_EFFECT_SKY|LA_SUN_EFFECT_AP)){
@@ -2881,11 +2881,19 @@ static void lamp_panel_atmosphere(Object *ob, Lamp *la)
 	y = 180;
 	if(la->sun_effect_type & LA_SUN_EFFECT_SKY)
 	{
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_LAMPPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
+					 10,y-25,BUTW2/2,19, 
+					 &la->skyblendtype, 0.0f, 0.0f, 0, 0, "Blend type for how it gets combined with sky");
+		uiDefButF(block, NUM, B_LAMPPRV, "",10+BUTW2/2,y-25,BUTW2/2,19, &(la->skyblendfac), 0.0f, 1.0f, 10, 0, "Sets blending factor with sky color");
+		uiBlockEndAlign(block);
+		
+		y -= 25;
+		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
 	}
 
 	if(la->sun_effect_type & LA_SUN_EFFECT_AP)
