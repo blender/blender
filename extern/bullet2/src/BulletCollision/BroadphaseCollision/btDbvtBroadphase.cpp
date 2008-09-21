@@ -119,7 +119,7 @@ void	Process(const btDbvtNode* n)
 //
 btDbvtBroadphase::btDbvtBroadphase(btOverlappingPairCache* paircache)
 {
-m_deferedcollide	=	false;
+m_deferedcollide	=	true;//false;
 m_needcleanup		=	true;
 m_releasepaircache	=	(paircache!=0)?false:true;
 m_prediction		=	1/(btScalar)2;
