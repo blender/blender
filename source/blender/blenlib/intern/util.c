@@ -1058,6 +1058,21 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
+int BLI_parent_dir(char *path)
+{
+	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
+	BLI_strncpy(tmp, path, sizeof(tmp));
+	BLI_add_slash(tmp);
+	strcat(tmp, "../");
+	BLI_cleanup_dir(NULL, tmp);
+ 	
+	if (!BLI_testextensie(tmp, "../")) {
+		BLI_strncpy(path, tmp, sizeof(tmp));	
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 int BLI_convertstringframe(char *path, int frame)
 {
