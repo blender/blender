@@ -2766,6 +2766,17 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
 
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && ((la->mode & LA_SHAD_RAY)||(la->mode & LA_SHAD_BUF))) {
+		short yval= 10;
+		if(la->type == LA_SPOT && (la->mode & LA_SHAD_BUF)) 
+			yval= -15;
+		if(la->type != LA_SPOT)
+			uiDefBut(block, LABEL, 0, "Shadow",	10,30,90,19,NULL, 0, 0, 0, 0, "");
+			
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, 0, "",			10,yval,90,19,&la->shdwr, 0, 0, 0, B_COLLAMP, "Sets the shadow color; default is black (RGB 0,0,0)");
+	}
+
 }
 
 /* yafray: adaptation of lamp_panel_spot above with yafray specific parameters */
@@ -2981,25 +2992,18 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiBlockEndAlign(block);
 	
 	uiDefButF(block, COL, B_LAMPPRV, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
+	uiBlockEndAlign(block);
 	
-	uiBlockBeginAlign(block);
 	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuation for a Lin/Quad Weighted lamp");
 		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuation for a Lin/Quad Weighted lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
-		uiDefButF(block, NUM,B_LAMPPRV, "Gam. ",	10,95,100,19, &la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Gamma ",	120,10,180,19,&la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
 	}
-	uiBlockEndAlign(block);
 	
-	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && ((la->mode & LA_SHAD_RAY)||(la->mode & LA_SHAD_BUF))) {
-		
-		uiDefBut(block, LABEL, 0, "Shadow Color",			120, 32, 180, 20, 0, 0.0, 0.0, 0, 0, "");
-		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, 0, "Shadow ",				120,10,180,22,&la->shdwr, 0, 0, 0, B_COLLAMP, "Sets the shadow color; default is black (RGB 0,0,0)");
-		
-	}
 }
 
 
