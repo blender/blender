@@ -975,6 +975,38 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, CAM_POS, BL_Shader::CAM_POS);
 	KX_MACRO_addTypesToDict(d, CONSTANT_TIMER, BL_Shader::CONSTANT_TIMER);
 
+	/* 10 state actuator */
+	KX_MACRO_addTypesToDict(d, KX_STATE1, (1<<0));
+	KX_MACRO_addTypesToDict(d, KX_STATE2, (1<<1));
+	KX_MACRO_addTypesToDict(d, KX_STATE3, (1<<2));
+	KX_MACRO_addTypesToDict(d, KX_STATE4, (1<<3));
+	KX_MACRO_addTypesToDict(d, KX_STATE5, (1<<4));
+	KX_MACRO_addTypesToDict(d, KX_STATE6, (1<<5));
+	KX_MACRO_addTypesToDict(d, KX_STATE7, (1<<6));
+	KX_MACRO_addTypesToDict(d, KX_STATE8, (1<<7));
+	KX_MACRO_addTypesToDict(d, KX_STATE9, (1<<8));
+	KX_MACRO_addTypesToDict(d, KX_STATE10, (1<<9));
+	KX_MACRO_addTypesToDict(d, KX_STATE11, (1<<10));
+	KX_MACRO_addTypesToDict(d, KX_STATE12, (1<<11));
+	KX_MACRO_addTypesToDict(d, KX_STATE13, (1<<12));
+	KX_MACRO_addTypesToDict(d, KX_STATE14, (1<<13));
+	KX_MACRO_addTypesToDict(d, KX_STATE15, (1<<14));
+	KX_MACRO_addTypesToDict(d, KX_STATE16, (1<<15));
+	KX_MACRO_addTypesToDict(d, KX_STATE17, (1<<16));
+	KX_MACRO_addTypesToDict(d, KX_STATE18, (1<<17));
+	KX_MACRO_addTypesToDict(d, KX_STATE19, (1<<18));
+	KX_MACRO_addTypesToDict(d, KX_STATE20, (1<<19));
+	KX_MACRO_addTypesToDict(d, KX_STATE21, (1<<20));
+	KX_MACRO_addTypesToDict(d, KX_STATE22, (1<<21));
+	KX_MACRO_addTypesToDict(d, KX_STATE23, (1<<22));
+	KX_MACRO_addTypesToDict(d, KX_STATE24, (1<<23));
+	KX_MACRO_addTypesToDict(d, KX_STATE25, (1<<24));
+	KX_MACRO_addTypesToDict(d, KX_STATE26, (1<<25));
+	KX_MACRO_addTypesToDict(d, KX_STATE27, (1<<26));
+	KX_MACRO_addTypesToDict(d, KX_STATE28, (1<<27));
+	KX_MACRO_addTypesToDict(d, KX_STATE29, (1<<28));
+	KX_MACRO_addTypesToDict(d, KX_STATE30, (1<<29));
+
 	// Check for errors
 	if (PyErr_Occurred())
     {
