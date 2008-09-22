@@ -58,7 +58,7 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static ListBase *get_lights(ShadeInput *shi)
+ListBase *get_lights(ShadeInput *shi)
 {
 	
 	if(shi->light_override)

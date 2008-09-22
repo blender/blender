@@ -7681,6 +7681,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 11)) {
 		Object *ob;
 		bActionStrip *strip;
+
 		
 		/* nla-strips - scale */		
 		for (ob= main->object.first; ob; ob= ob->id.next) {
@@ -7704,12 +7705,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->soft->shearstiff = 1.0f; 
 			}
 		}
+		
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 14)) {
 		Scene *sce= main->scene.first;
 		Sequence *seq;
 		Editing *ed;
+		Material *ma;
 		
 		while(sce) {
 			ed= sce->ed;
@@ -7723,6 +7726,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			
 			sce= sce->id.next;
+		}
+		
+		for(ma=main->mat.first; ma; ma= ma->id.next) {
+			if (ma->vol_shade_stepsize < 0.001f) ma->vol_shade_stepsize = 0.2f;
+			if (ma->vol_stepsize < 0.001f) ma->vol_stepsize = 0.2f;
+			if (ma->vol_absorption < 0.001f) ma->vol_absorption = 1.0f;
+			if (ma->vol_scattering < 0.001f) ma->vol_scattering = 1.0f;
 		}
 	}
 	

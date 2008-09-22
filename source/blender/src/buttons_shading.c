@@ -3383,6 +3383,10 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		uiDefButBitS(block, TOG, 1, B_MATPRV, "PAttr",		250,160,60,19, &pattr, 0, 0, 0, 0, "Display settings for particle attributes");
 		uiBlockSetCol(block, TH_AUTO);
 	}
+	else if (ma->material_type == MA_VOLUME) {
+		uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Density",		10,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+		uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		70,180,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+	}
 	else {
 		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
 		uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
@@ -3499,37 +3503,43 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	
 	/* TEXCO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	if(mtex->texco == TEXCO_UV && !(mtex->texflag & MTEX_DUPLI_MAPTO)) {
-		if(!verify_valid_uv_name(mtex->uvname))
-            uiBlockSetCol(block, TH_REDALERT);
-		but=uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
-		uiButSetCompleteFunc(but, autocomplete_uv, NULL);
-		uiBlockSetCol(block, TH_AUTO);
-	}
-	else
+	
+	if (ma->material_type == MA_VOLUME) {
+		uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "Ob:",750,180,158,18, &(mtex->object), "");
-	
-	uiDefButS(block, ROW, B_MATPRV, "UV",			630,160,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Orco",			670,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
-	if( ob->particlesystem.first )
-		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
-	else
-		uiDefButS(block, ROW, B_MATPRV, "Stick",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Win",			775,160,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Uses screen coordinates as texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Nor",			820,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Uses normal vector as texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Uses reflection vector as texture coordinates");
-	
-	uiDefButS(block, ROW, B_MATPRV, "Stress",		630,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
-	uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses the optional tangent vector as texture coordinates");
-	uiBlockEndAlign(block);
+	} else {
+		uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+		if(mtex->texco == TEXCO_UV && !(mtex->texflag & MTEX_DUPLI_MAPTO)) {
+			if(!verify_valid_uv_name(mtex->uvname))
+				uiBlockSetCol(block, TH_REDALERT);
+			but=uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+			uiButSetCompleteFunc(but, autocomplete_uv, NULL);
+			uiBlockSetCol(block, TH_AUTO);
+		}
+		else
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "Ob:",750,180,158,18, &(mtex->object), "");
+		
+		uiDefButS(block, ROW, B_MATPRV, "UV",			630,160,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Orco",			670,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
+		if( ob->particlesystem.first )
+			uiDefButS(block, ROW, B_MATPRV, "Strand",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
+		else
+			uiDefButS(block, ROW, B_MATPRV, "Stick",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Win",			775,160,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Uses screen coordinates as texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Nor",			820,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Uses normal vector as texture coordinates");
+		uiDefButS(block, ROW, B_MATPRV, "Refl",			864,160,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Uses reflection vector as texture coordinates");
+		
+		uiDefButS(block, ROW, B_MATPRV, "Stress",		630,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
+		uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses the optional tangent vector as texture coordinates");
+		uiBlockEndAlign(block);
 
-	if(ELEM(mtex->texco, TEXCO_UV, TEXCO_ORCO))
-		uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent");
-	else if(mtex->texco == TEXCO_OBJECT)
-		uiDefButBitS(block, TOG, MTEX_OB_DUPLI_ORIG, B_MATPRV, "From Original",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "Dupli's derive their object coordinates from the original objects transformation");
-
+		if(ELEM(mtex->texco, TEXCO_UV, TEXCO_ORCO))
+			uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent");
+		else if(mtex->texco == TEXCO_OBJECT)
+			uiDefButBitS(block, TOG, MTEX_OB_DUPLI_ORIG, B_MATPRV, "From Original",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "Dupli's derive their object coordinates from the original objects transformation");
+	}
 
 	/* COORDS */
 	uiBlockBeginAlign(block);
@@ -4111,7 +4121,7 @@ static uiBlock *strand_menu(void *mat_v)
 }
 
 
-static void material_panel_material(Material *ma)
+static void material_panel_material_solid(Material *ma)
 {
 	uiBlock *block;
 	float *colpoin = NULL;
@@ -4199,6 +4209,43 @@ static void material_panel_material(Material *ma)
 
 }
 
+static void material_panel_material_volume(Material *ma)
+{
+	uiBlock *block;
+	short yco=PANEL_YMAX;
+ 	
+ 	block= uiNewBlock(&curarea->uiblocks, "material_panel_material_volume", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Volume", "Material", PANELX, PANELY, PANELW, PANELH)==0) return;
+	
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base opacity value");
+	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 5.0, 0, 0, "Multiplier for absorption");
+	uiBlockEndAlign(block);
+	
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUMSLI, B_MATPRV, "Emit: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->emit), 0.0, 2.0, 0, 0, "Emission component");
+	
+	yco -= YSPACE;
+		
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Shading",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
+	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, B_DIFF, "",
+		X2CLM2, yco, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+}
+
 static void material_panel_nodes(Material *ma)
 {
 	bNode *node;
@@ -4237,7 +4284,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
 	/* 310 makes sorting code to put it right after preview panel */
-	if(uiNewPanel(curarea, block, "Links and Pipeline", "Material", 310, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Links and Pipeline", "Material", 310, 0, 338, 204)==0) return;
 
 	/* Links from object to material/nodes */
 	uiDefBut(block, ROUNDBOX, 0, "",					5, 90, 310, 110, NULL, 7.0, 0.0, 15 , 20, ""); 
@@ -4330,7 +4377,10 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiDefButBitI(block, TOG, MA_ONLYCAST, B_MATPRV,"OnlyCast",		85,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes faces cast shadows only, not rendered");
 	uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",	160,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material detectable by ray tracing");
 	uiDefButBitI(block, TOG, MA_SHADBUF, B_MATPRV,	"Shadbuf",		235,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material cast shadows from shadow buffer lamps");
-				  
+	uiBlockEndAlign(block);
+	
+	uiDefButS(block, MENU, B_MATPRV, "Material Type %t|Solid %x0|Halo %x1|Volume %x2",
+		10, -15, 300, 20, &(ma->material_type), 0.0, 0.0, 0, 0, "");
 	
 }
 
@@ -4388,21 +4438,26 @@ void material_panels()
 		
 		ma= editnode_get_active_material(ma);
 		if(ma) {
-			material_panel_material(ma);
-			material_panel_ramps(ma);
-			material_panel_shading(ma);
-			
-			if (G.scene->r.renderer==R_INTERN)
-				material_panel_tramir(ma);
-			else {
-				if(ma->YF_ar==0.f) {
-					ma->YF_ar = ma->YF_ag = ma->YF_ab = 1;
-					ma->YF_dscale = 1;
+			if (ma->material_type == MA_SOLID) {
+				material_panel_material_solid(ma);
+				material_panel_ramps(ma);
+				material_panel_shading(ma);
+				
+				if (G.scene->r.renderer==R_INTERN)
+					material_panel_tramir(ma);
+				else {
+					if(ma->YF_ar==0.f) {
+						ma->YF_ar = ma->YF_ag = ma->YF_ab = 1;
+						ma->YF_dscale = 1;
+					}
+					material_panel_tramir_yafray(ma);
 				}
-				material_panel_tramir_yafray(ma);
-			}
 
-			material_panel_sss(ma);
+				material_panel_sss(ma);
+				
+			} else if (ma->material_type == MA_VOLUME) {
+				material_panel_material_volume(ma);
+			}
 			material_panel_texture(ob, ma);
 			
 			mtex= ma->mtex[ ma->texact ];

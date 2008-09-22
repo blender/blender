@@ -135,6 +135,12 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	}	
 }
 
+/* delivers a fully filled in ShadeResult, for all passes */
+void shade_volume_loop(ShadeInput *shi, ShadeResult *shr)
+{
+	if(R.r.mode & R_RAYTRACE) volume_trace(shi, shr);
+}
+
 
 /* do a shade, finish up some passes, apply mist */
 void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
@@ -151,7 +157,8 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
 		shi->har= shi->mat->har;
 		
-		shade_material_loop(shi, shr);
+		if (shi->mat->material_type == MA_SOLID) shade_material_loop(shi, shr);
+		else if (shi->mat->material_type == MA_VOLUME) shade_volume_loop(shi, shr);
 	}
 	
 	/* copy additional passes */

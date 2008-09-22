@@ -62,6 +62,16 @@ typedef struct Material {
 	float translucency;
 	/* end synced with render_types.h */
 	
+	short material_type; /* solid, halo, volumetric */
+	short pad5[3];
+	
+	/* volumetrics */
+	float vol_alphathresh;
+	float vol_stepsize, vol_shade_stepsize;
+	float vol_absorption, vol_scattering;
+	short vol_shadeflag;
+	short vpad;
+	
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
 	float filter;		/* filter added, for raytrace transparency and transmissivity */
@@ -153,6 +163,12 @@ typedef struct Material {
 /* flag */
 		/* for render */
 #define MA_IS_USED		1
+
+/* material_type */
+#define MA_SOLID		0
+#define MA_PTHALO		1
+#define MA_VOLUME		2
+#define MA_VOLUMESOLID	3
 
 /* mode (is int) */
 #define MA_TRACEBLE		1
@@ -326,6 +342,11 @@ typedef struct Material {
 
 /* sss_flag */
 #define MA_DIFF_SSS		1
+
+/* vol_shadeflag */
+#define MA_VOL_SHADED		1
+#define MA_VOL_ATTENUATED	2
+#define MA_VOL_SHADOWED		4
 
 #endif
 

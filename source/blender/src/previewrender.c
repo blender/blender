@@ -315,6 +315,8 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 				/* turn on raytracing if needed */
 				if(mat->mode_l & (MA_RAYTRANSP|MA_RAYMIRROR))
 					sce->r.mode |= R_RAYTRACE;
+				if(mat->material_type == MA_VOLUME)
+					sce->r.mode |= R_RAYTRACE;
 				if(mat->sss_flag & MA_DIFF_SSS)
 					sce->r.mode |= R_SSS;
 				

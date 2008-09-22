@@ -2126,6 +2126,13 @@ void VecSubf(float *v, float *v1, float *v2)
 	v[2]= v1[2]- v2[2];
 }
 
+void VecMulVecf(float *v, float *v1, float *v2)
+{
+	v[0] = v1[0] * v2[0];
+	v[1] = v1[1] * v2[1];
+	v[2] = v1[2] * v2[2];
+}
+
 void VecLerpf(float *target, float *a, float *b, float t)
 {
 	float s = 1.0f-t;
@@ -3267,6 +3274,12 @@ float Normalize2(float *n)
 		d= 0.0;
 	}
 	return d;
+}
+
+float rgb_to_luminance(float r, float g, float b)
+{
+	/* Rec. 709 HDTV */
+	return (0.2126*r + 0.7152*g + 0.0722*b);
 }
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
