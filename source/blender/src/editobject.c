@@ -4381,18 +4381,17 @@ void single_object_users(int flag)
 	
 	clear_sca_new_poins();	/* sensor/contr/act */
 
-	/* duplicate */
+	/* duplicate (must set newid) */
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
 		
-		if( (base->flag & flag)==flag) {
-
+		if( (base->flag & flag)==flag ) {
 			if(ob->id.lib==NULL && ob->id.us>1) {
-			
+				/* base gets copy of object */
 				obn= copy_object(ob);
-				ob->id.us--;
 				base->object= obn;
+				ob->id.us--;
 			}
 		}
 		base= base->next;
@@ -4406,20 +4405,17 @@ void single_object_users(int flag)
 	while(base) {
 		ob= base->object;
 		if(ob->id.lib==NULL) {
-			if( (base->flag & flag)==flag) {
-				
-				relink_constraints(&base->object->constraints);
-				if (base->object->pose){
-					bPoseChannel *chan;
-					for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
-						relink_constraints(&chan->constraints);
-					}
+			relink_constraints(&base->object->constraints);
+			if (base->object->pose){
+				bPoseChannel *chan;
+				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
 				}
-				modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
-				
-				ID_NEW(ob->parent);
-				ID_NEW(ob->track);
 			}
+			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
+			
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
 		}
 		base= base->next;
 	}
