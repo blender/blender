@@ -1060,13 +1060,18 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 int BLI_parent_dir(char *path)
 {
+#ifdef WIN32
+	static char *parent_dir="..\\";
+#else
+	static char *parent_dir="../";
+#endif
 	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
 	BLI_strncpy(tmp, path, sizeof(tmp));
 	BLI_add_slash(tmp);
-	strcat(tmp, "../");
+	strcat(tmp, parent_dir);
 	BLI_cleanup_dir(NULL, tmp);
  	
-	if (!BLI_testextensie(tmp, "../")) {
+	if (!BLI_testextensie(tmp, parent_dir)) {
 		BLI_strncpy(path, tmp, sizeof(tmp));	
 		return 1;
 	} else {
