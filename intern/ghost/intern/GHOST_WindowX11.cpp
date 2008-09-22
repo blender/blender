@@ -55,16 +55,6 @@ typedef struct {
 #define MWM_HINTS_DECORATIONS         (1L << 1)
 
 /*
- * A client can't change the window property, that is the
- * work of the window manager. We send a ClientMessage
- * event to the Root window with the property
- * and the Action (WM-spec define this):
- */
-#define _NET_WM_STATE_REMOVE 0
-#define _NET_WM_STATE_ADD 1
-#define _NET_WM_STATE_TOGGLE 2
-
-/*
 import bpy
 I = bpy.data.images['blender.png'] # the 48x48 icon
 
@@ -164,10 +154,10 @@ GHOST_WindowX11(
 	
 	// Set up the minimum atrributes that we require and see if
 	// X can find us a visual matching those requirements.
-	Atom atoms[2];
-	int natom;
+
 	int attributes[40], i = 0;
-	
+	Atom atoms[2];
+	int natom;	
 	
 	if(m_stereoVisual)
 		attributes[i++] = GLX_STEREO;
@@ -272,26 +262,46 @@ GHOST_WindowX11(
 	// Are we in fullscreen mode - then include
 	// some obscure blut code to remove decorations.
 
-	/*
-	 * One of the problem with WM_spec is that can't set a property
-	 * to a window that isn't mapped. That is why we can't "just
-	 * call setState" here.
-	 *
-	 * To fix this, we first need know that the window is really
-	 * mapped waiting for the MapNotify event.
-	 *
-	 * So, m_post_init indicate that we need wait for the MapNotify
-	 * event and then set the window state to the m_post_state.
-	 */
-	if ((state != GHOST_kWindowStateNormal) && (state != GHOST_kWindowStateMinimized)) {
-		m_post_init = True;
-		m_post_state = state;
-	}
-	else {
-		m_post_init = False;
-		m_post_state = GHOST_kWindowStateNormal;
-	}
+	if (state == GHOST_kWindowStateFullScreen) {
 
+		MotifWmHints hints;
+		Atom atom;
+					
+		atom = XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
+		
+		if (atom == None) {
+			GHOST_PRINT("Could not intern X atom for _MOTIF_WM_HINTS.\n");
+		} else {
+			hints.flags = MWM_HINTS_DECORATIONS;
+			hints.decorations = 0;  /* Absolutely no decorations. */
+			// other hints.decorations make no sense
+			// you can't select individual decorations
+
+			XChangeProperty(m_display, m_window,
+				atom, atom, 32,
+				PropModeReplace, (unsigned char *) &hints, 4);
+		}
+	} else if (state == GHOST_kWindowStateMaximized) {
+		// With this, xprop should report the following just after launch
+		// _NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_VERT, _NET_WM_STATE_MAXIMIZED_HORZ
+		// After demaximization the right side is empty, though (maybe not the most correct then?)
+		Atom state, atomh, atomv;
+
+		state = XInternAtom(m_display, "_NET_WM_STATE", False);
+		atomh = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+		atomv = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+		if (state == None ) {
+			GHOST_PRINT("Atom _NET_WM_STATE requested but not avaliable nor created.\n");
+		} else {
+			XChangeProperty(m_display, m_window,
+				state, XA_ATOM, 32,
+				PropModeAppend, (unsigned char *) &atomh, 1);
+			XChangeProperty(m_display, m_window,
+				state, XA_ATOM, 32,
+				PropModeAppend, (unsigned char *) &atomv, 1);
+		}
+ 	}
+	
 	// Create some hints for the window manager on how
 	// we want this window treated.	
 
@@ -654,298 +664,28 @@ clientToScreen(
 	outY = ay;
 }
 
-void GHOST_WindowX11::icccmSetState(int state)
-{
-	XEvent xev;
 
-	if (state != IconicState)
-		return;
-
-	xev.xclient.type = ClientMessage;
-	xev.xclient.serial = 0;
-	xev.xclient.send_event = True;
-	xev.xclient.display = m_display;
-	xev.xclient.window = m_window;
-	xev.xclient.format = 32;
-	xev.xclient.message_type = m_system->m_wm_change_state;
-	xev.xclient.data.l[0] = state;
-	XSendEvent (m_display, RootWindow(m_display, DefaultScreen(m_display)),
-		False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
+	GHOST_TWindowState 
+GHOST_WindowX11::
+getState(
+) const {
+	//FIXME 
+	return GHOST_kWindowStateNormal;
 }
 
-int GHOST_WindowX11::icccmGetState(void) const
-{
-	unsigned char *prop_ret;
-	unsigned long bytes_after, num_ret;
-	Atom type_ret;
-	int format_ret, st;
+	GHOST_TSuccess 
+GHOST_WindowX11::
+setState(
+	GHOST_TWindowState state
+){
+	//TODO
 
-	prop_ret = NULL;
-	st = XGetWindowProperty(m_display, m_window, m_system->m_wm_state, 0,
-			0x7fffffff, False, m_system->m_wm_state, &type_ret,
-			&format_ret, &num_ret, &bytes_after, &prop_ret);
-
-	if ((st == Success) && (prop_ret) && (num_ret == 2))
-		st = prop_ret[0];
-	else
-		st = NormalState;
-
-	if (prop_ret)
-		XFree(prop_ret);
-	return (st);
-}
-
-void GHOST_WindowX11::netwmMaximized(bool set)
-{
-	XEvent xev;
-
-	xev.xclient.type= ClientMessage;
-	xev.xclient.serial = 0;
-	xev.xclient.send_event = True;
-	xev.xclient.window = m_window;
-	xev.xclient.message_type = m_system->m_net_state;
-	xev.xclient.format = 32;
-
-	if (set == True)
-		xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
-	else
-		xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
-
-	xev.xclient.data.l[1] = m_system->m_net_max_horz;
-	xev.xclient.data.l[2] = m_system->m_net_max_vert;
-	xev.xclient.data.l[3] = 0;
-	xev.xclient.data.l[4] = 0;
-	XSendEvent (m_display, RootWindow(m_display, DefaultScreen(m_display)),
-		False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-}
-
-bool GHOST_WindowX11::netwmIsMaximized(void) const
-{
-	unsigned char *prop_ret;
-	unsigned long bytes_after, num_ret, i;
-	Atom type_ret;
-	bool st;
-	int format_ret, count;
-
-	prop_ret = NULL;
-	st = False;
-	i = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
-			0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
-			&num_ret, &bytes_after, &prop_ret);
-	if ((i == Success) && (prop_ret) && (format_ret == 32)) {
-		count = 0;
-		for (i = 0; i < num_ret; i++) {
-			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_horz)
-				count++;
-			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_vert)
-				count++;
-			if (count == 2) {
-				st = True;
-				break;
-			}
-		}
-	}
-
-	if (prop_ret)
-		XFree(prop_ret);
-	return (st);
-}
-
-void GHOST_WindowX11::netwmFullScreen(bool set)
-{
-	XEvent xev;
-
-	xev.xclient.type = ClientMessage;
-	xev.xclient.serial = 0;
-	xev.xclient.send_event = True;
-	xev.xclient.window = m_window;
-	xev.xclient.message_type = m_system->m_net_state;
-	xev.xclient.format = 32;
-
-	if (set == True)
-		xev.xclient.data.l[0] = _NET_WM_STATE_ADD;
-	else
-		xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
-
-	xev.xclient.data.l[1] = m_system->m_net_fullscreen;
-	xev.xclient.data.l[2] = 0;
-	xev.xclient.data.l[3] = 0;
-	xev.xclient.data.l[4] = 0;
-	XSendEvent (m_display, RootWindow(m_display, DefaultScreen(m_display)),
-		False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
-}
-
-bool GHOST_WindowX11::netwmIsFullScreen(void) const
-{
-	unsigned char *prop_ret;
-	unsigned long bytes_after, num_ret, i;
-	Atom type_ret;
-	bool st;
-	int format_ret;
-
-	prop_ret = NULL;
-	st = False;
-	i = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
-			0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
-			&num_ret, &bytes_after, &prop_ret);
-	if ((i == Success) && (prop_ret) && (format_ret == 32)) {
-		for (i = 0; i < num_ret; i++) {
-			if (((unsigned long *)prop_ret)[i] == m_system->m_net_fullscreen) {
-				st = True;
-				break;
-			}
-		}
-	}
-
-	if (prop_ret)
-		XFree(prop_ret);
-	return (st);
-}
-
-void GHOST_WindowX11::motifFullScreen(bool set)
-{
-	MotifWmHints hints;
-
-	hints.flags = MWM_HINTS_DECORATIONS;
-	if (set == True)
-		hints.decorations = 0;
-	else
-		hints.decorations = 1;
-
-	XChangeProperty(m_display, m_window, m_system->m_motif,
-		m_system->m_motif, 32, PropModeReplace,
-		(unsigned char *)&hints, 4);
-}
-
-bool GHOST_WindowX11::motifIsFullScreen(void) const
-{
-	unsigned char *prop_ret;
-	unsigned long bytes_after, num_ret;
-	MotifWmHints *hints;
-	Atom type_ret;
-	bool state;
-	int format_ret, st;
-
-	prop_ret = NULL;
-	state = False;
-	st = XGetWindowProperty(m_display, m_window, m_system->m_motif, 0,
-			0x7fffffff, False, m_system->m_motif,
-			&type_ret, &format_ret, &num_ret,
-			&bytes_after, &prop_ret);
-	if ((st == Success) && (prop_ret)) {
-		hints = (MotifWmHints *)prop_ret;
-		if (hints->flags & MWM_HINTS_DECORATIONS) {
-			if (!hints->decorations)
-				state = True;
-		}
-	}
-
-	if (prop_ret)
-		XFree(prop_ret);
-	return (state);
-}
-
-GHOST_TWindowState GHOST_WindowX11::getState() const
-{
-	GHOST_TWindowState state_ret;
-	int state;
-
-	state_ret = GHOST_kWindowStateNormal;
-	state = icccmGetState();
-	/*
-	 * In the Iconic and Withdrawn state, the window is
-	 * unmaped, so only need return a Minimized state.
-	 */
-	if ((state == IconicState) || (state == WithdrawnState))
-		state_ret = GHOST_kWindowStateMinimized;
-	else if (netwmIsMaximized() == True)
-		state_ret = GHOST_kWindowStateMaximized;
-	else if (netwmIsFullScreen() == True)
-		state_ret = GHOST_kWindowStateFullScreen;
-	else if (motifIsFullScreen() == True)
-		state_ret = GHOST_kWindowStateFullScreen;
-	return (state_ret);
-}
-
-GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
-{
-	GHOST_TWindowState cur_state;
-	bool is_max, is_full, is_motif_full;
-
-	cur_state = getState();
-	if (state == (int)cur_state)
+        if (state == (int)getState()) {
 		return GHOST_kSuccess;
-
-	if (cur_state != GHOST_kWindowStateMinimized) {
-		/*
-		 * The window don't have this property's
-		 * if it's not mapped.
-		 */
-		is_max = netwmIsMaximized();
-		is_full = netwmIsFullScreen();
-	}
-	else {
-		is_max = False;
-		is_full = False;
+	} else {
+		return GHOST_kFailure;
 	}
 
-	is_motif_full = motifIsFullScreen();
-
-	if (state == GHOST_kWindowStateNormal) {
-		if (is_max == True)
-			netwmMaximized(False);
-		if (is_full == True)
-			netwmFullScreen(False);
-		if (is_motif_full == True)
-			motifFullScreen(False);
-		icccmSetState(NormalState);
-		return (GHOST_kSuccess);
-	}
-
-	if (state == GHOST_kWindowStateFullScreen) {
-		/*
-		 * We can't change to full screen if the window
-		 * isn't mapped.
-		 */
-		if (cur_state == GHOST_kWindowStateMinimized)
-			return (GHOST_kFailure);
-
-		if (is_max == True)
-			netwmMaximized(False);
-		if (is_full == False)
-			netwmFullScreen(True);
-		if (is_motif_full == False)
-			motifFullScreen(True);
-		return (GHOST_kSuccess);
-	}
-
-	if (state == GHOST_kWindowStateMaximized) {
-		/*
-		 * We can't change to Maximized if the window
-		 * isn't mapped.
-		 */
-		if (cur_state == GHOST_kWindowStateMinimized)
-			return (GHOST_kFailure);
-
-		if (is_full == True)
-			netwmFullScreen(False);
-		if (is_motif_full == True)
-			motifFullScreen(False);
-		if (is_max == False)
-			netwmMaximized(True);
-		return (GHOST_kSuccess);
-	}
-
-	if (state == GHOST_kWindowStateMinimized) {
-		/*
-		 * The window manager need save the current state of
-		 * the window (maximized, full screen, etc).
-		 */
-		icccmSetState(IconicState);
-		return (GHOST_kSuccess);
-	}
-
-	return (GHOST_kFailure);
 }
 
 #include <iostream>
