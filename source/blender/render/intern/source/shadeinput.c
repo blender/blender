@@ -343,10 +343,19 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 	VECCOPY(shi->orignor, shi->facenor);
 
 	/* shade_input_set_normals equivalent */
-	if(shi->mat->mode & MA_TANGENT_STR)
+	if(shi->mat->mode & MA_TANGENT_STR) {
 		VECCOPY(shi->vn, spoint->tan)
-	else
-		VECCOPY(shi->vn, spoint->nor)
+	}
+	else {
+		float cross[3];
+
+		Crossf(cross, spoint->co, spoint->tan);
+		Crossf(shi->vn, cross, spoint->tan);
+		Normalize(shi->vn);
+
+		if(INPR(shi->vn, shi->view) < 0.0f)
+			VecMulf(shi->vn, -1.0f);
+	}
 
 	VECCOPY(shi->vno, shi->vn);
 }
