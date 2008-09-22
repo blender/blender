@@ -2672,12 +2672,6 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	uiDefButBitI(block, TOG, LA_LAYER_SHADOW, B_LAMPPRV,"Layer",		10,90,80,19,&la->mode, 0, 0, 0, 0, "Causes only objects on the same layer to cast shadows");
 	uiBlockEndAlign(block);
 
-	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && ((la->mode & LA_SHAD_RAY)||(la->mode & LA_SHAD_BUF))) {
-		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, 0, "Shadow ",				10,90,80,19,&la->shdwr, 0, 0, 0, B_COLLAMP, "Sets the shadow color; default is black (RGB 0,0,0)");
-		uiBlockEndAlign(block);
-	}
-
 	if(la->type==LA_SPOT) {
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,60,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
@@ -2995,7 +2989,16 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
-		uiDefButF(block, NUMSLI,0,"Gamma ",	120,10,180,19,&la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
+		uiDefButF(block, NUM,B_LAMPPRV, "Gam. ",	10,95,100,19, &la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
+	}
+	uiBlockEndAlign(block);
+	
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && ((la->mode & LA_SHAD_RAY)||(la->mode & LA_SHAD_BUF))) {
+		
+		uiDefBut(block, LABEL, 0, "Shadow Color",			120, 32, 180, 20, 0, 0.0, 0.0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, 0, "Shadow ",				120,10,180,22,&la->shdwr, 0, 0, 0, B_COLLAMP, "Sets the shadow color; default is black (RGB 0,0,0)");
+		
 	}
 }
 
