@@ -1036,26 +1036,26 @@ static void draw_default_sensor_header(bSensor *sens,
 {
 	/* Pulsing and frequency */
 	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
-			 (short)(x + 10 + 0. * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate TRUE level triggering (pulse mode)");
 
 	uiDefIconButBitS(block, TOG, SENS_NEG_PULSE_MODE, 1, ICON_DOTSDOWN,
-			 (short)(x + 10 + 0.15 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0.15 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
 			 "Activate FALSE level triggering (pulse mode)");
 	uiDefButS(block, NUM, 1, "f:",
-			 (short)(x + 10 + 0.3 * (w-20)), (short)(y - 19), (short)(0.275 * (w-20)), 19,
+			 (short)(x + 10 + 0.3 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
 			 &sens->freq, 0.0, 10000.0, 0, 0,
 			 "Delay between repeated pulses (in logic tics, 0 = no delay)");
 	
 	/* value or shift? */
 	uiDefButS(block, TOG, 1, "Inv",
-			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
+			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
 			 "Invert the level (output) of this sensor");
 	uiDefButS(block, TOG, 1, "Level",
-			 (short)(x + 10 + 0.65 * (w-20)), (short)(y - 19), (short)(0.20 * (w-20)), 19,
+			 (short)(x + 10 + 0.65 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
 			 &sens->level, 0.0, 0.0, 0, 0,
 			 "Level detector, trigger controllers of new states (only applicable upon logic state transition)");
 }
@@ -2355,19 +2355,25 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		
 		visAct = act->data;
 
-		str= "Visibility %t|Visible %x0|Invisible %x1|Visible Recursive %x2|Invisible Recursive %x3";
-
-		uiDefButI(block, MENU, B_REDR, str,
-			  xco + 10, yco - 24, width - 20, 19, &visAct->flag,
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOGN, ACT_VISIBILITY_INVISIBLE, B_REDR,
+			  "Visible",
+			  xco + 10, yco - 20, (width - 20)/3, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
-			  "Make the object invisible or visible.");
-/*
-		uiDefButBitI(block, TOG, ACT_VISIBILITY_INVISIBLE, 0,
+			  "Set the objects visible. Initialized from the objects render restriction toggle (access in the outliner)");
+		uiDefButBitI(block, TOG, ACT_VISIBILITY_INVISIBLE, B_REDR,
 			  "Invisible",
-			  xco + 10, yco - 24, width - 20, 19, &visAct->flag,
+			  xco + 10 + ((width - 20)/3), yco - 20, (width - 20)/3, 19, &visAct->flag,
 			  0.0, 0.0, 0, 0,
-			  "Make the object invisible or visible.");
-*/
+			  "Set the object invisible. Initialized from the objects render restriction toggle (access in the outliner)");
+		uiBlockEndAlign(block);
+		
+		uiDefButBitI(block, TOG, ACT_VISIBILITY_RECURSIVE, B_NOP,
+			  "Children",
+			  xco + 10 + (((width - 20)/3)*2)+10, yco - 20, ((width - 20)/3)-10, 19, &visAct->flag,
+			  0.0, 0.0, 0, 0,
+			  "Sets all the children of this object to the same visibility recursively");
+
 		yco-= ysize;
 
 		break;

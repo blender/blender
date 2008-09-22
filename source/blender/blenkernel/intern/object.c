@@ -1182,7 +1182,9 @@ Object *copy_object(Object *ob)
 	
 	BPY_copy_scriptlink(&ob->scriptlink);
 	
+	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
+	
 	copy_sensors(&obn->sensors, &ob->sensors);
 	copy_controllers(&obn->controllers, &ob->controllers);
 	copy_actuators(&obn->actuators, &ob->actuators);
