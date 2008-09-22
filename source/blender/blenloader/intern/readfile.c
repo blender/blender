@@ -7766,6 +7766,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* sun/sky */
 	if(main->versionfile < 246) {
 		Lamp *la;
+		Object *ob;
+		bActuator *act;
 
 		for(la=main->lamp.first; la; la= la->id.next) {
 			la->sun_effect_type = 0;
@@ -7780,10 +7782,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->atm_distance_factor = 1.0;
 			la->sun_intensity = 1.0;
 		}
+		/* dRot actuator change direction in 2.46 */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_OBJECT) {
+					bObjectActuator *ba= act->data;
+
+					ba->drot[0] = -ba->drot[0];
+					ba->drot[1] = -ba->drot[1];
+					ba->drot[2] = -ba->drot[2];
+				}
+			}
+		}
 	}
 	
 	// convert fluids to modifier
-	if(main->versionfile <= 246 && main->subversionfile < 1)
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1))
 	{
 		Object *ob;
 		
