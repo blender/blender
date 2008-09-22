@@ -322,6 +322,10 @@ void i_window(
 	float mat[][4]
 );
 
+#define BLI_CS_SMPTE	0
+#define BLI_CS_REC709	1
+#define BLI_CS_CIE		2
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
@@ -329,7 +333,7 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb);
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
-void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b);
+void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b, int colorspace);
 int constrain_rgb(float *r, float *g, float *b);
 void gamma_correct_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);

@@ -594,7 +594,7 @@ void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, f
 	colorxyz[1] /= scale;
 	colorxyz[2] /= scale;
 	
-	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2]);
+	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2], BLI_CS_SMPTE);
 
 	ClipColor(colf);
 }
