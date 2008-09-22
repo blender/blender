@@ -3263,9 +3263,6 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 {
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
 	
-	if (ct)
-		Mat4CpyMat4(ct->matrix, cob->startmat);
-
 	if( VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH) )
 	{
 		int fail = FALSE;
@@ -3274,13 +3271,10 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		float dist;
 
 		SpaceTransform transform;
-		DerivedMesh *target = CDDM_copy( object_get_derived_final(ct->tar, CD_MASK_BAREMESH) );
+		DerivedMesh *target = object_get_derived_final(ct->tar, CD_MASK_BAREMESH);
 		BVHTreeRayHit hit;
 		BVHTreeNearest nearest;
 
-		//TODO
-		//Its stupid to create a bvhtree.. if we are only going to project one vertex
-		//But lets do it this way.. (so that in future maybe bvhtree gets a cache system and then the tree would already be build)
 		BVHTreeFromMesh treeData;
 		memset( &treeData, 0, sizeof(treeData) );
 
@@ -3290,15 +3284,22 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		hit.index = -1;
 		hit.dist = 100000.0f;  //TODO should use FLT_MAX.. but normal projection doenst yet supports it
 
+		Mat4One(ct->matrix);
+
 		if(target != NULL)
 		{
-
-			space_transform_from_matrixs(&transform, cob->startmat, ct->tar->obmat);
+			space_transform_from_matrixs(&transform, cob->matrix, ct->tar->obmat);
 
 			switch(scon->shrinkType)
 			{
 				case MOD_SHRINKWRAP_NEAREST_SURFACE:
-					bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
+				case MOD_SHRINKWRAP_NEAREST_VERTEX:
+
+					if(scon->shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX)
+						bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
+					else
+						bvhtree_from_mesh_faces(&treeData, target, 0.0, 2, 6);
+
 					if(treeData.tree == NULL)
 					{
 						fail = TRUE;
@@ -3309,23 +3310,6 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 
 					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
 					
-					dist = VecLenf(co, nearest.co);
-					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
-					space_transform_invert(&transform, co);
-				break;
-
-				case MOD_SHRINKWRAP_NEAREST_VERTEX:
-					bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
-					if(treeData.tree == NULL)
-					{
-						fail = TRUE;
-						break;
-					}
-
-					space_transform_apply_normal(&transform, no);
-
-					BLI_bvhtree_find_nearest(treeData.tree, co, &nearest, treeData.nearest_callback, &treeData);
-
 					dist = VecLenf(co, nearest.co);
 					VecLerpf(co, co, nearest.co, (dist - scon->dist)/dist);	//linear interpolation
 					space_transform_invert(&transform, co);
@@ -3365,8 +3349,15 @@ static void shrinkwrap_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 
 			target->release(target);
 
-			if(fail == FALSE)
-				VECADD(ct->matrix[3], ct->matrix[3], co);
+			if(fail == TRUE)
+			{
+				//Don't move the point
+				co[0] = co[1] = co[2] = 0.0f;
+			}
+
+			//co is in local object coordinates, change it to global and update target position
+			VecMat4MulVecfl(co, cob->matrix, co);
+			VECCOPY(ct->matrix[3], co);
 		}
 	}
 }
