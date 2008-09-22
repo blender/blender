@@ -5221,16 +5221,6 @@ void do_view3d_buttons(short event)
 		}
 		break;
 		
-	case B_LOCALVIEW:
-		if(G.vd->localview) initlocalview();
-		else {
-			endlocalview(curarea);
-			/* new layers might need unflushed events events */
-			DAG_scene_update_flags(G.scene, G.vd->lay);	/* tags all that moves and flushes*/
-		}
-		scrarea_queue_headredraw(curarea);
-		break;
-		
 	case B_VIEWBUT:
 	
 		if(G.vd->viewbut==1) persptoetsen(PAD7);
@@ -5247,9 +5237,6 @@ void do_view3d_buttons(short event)
 			persptoetsen(PAD5);
 		}
 		
-		break;
-	case B_PROPTOOL:
-		allqueue(REDRAWHEADERS, 0);
 		break;
 	case B_VIEWRENDER:
 		if (curarea->spacetype==SPACE_VIEW3D) {

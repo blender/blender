@@ -228,7 +228,7 @@ void deselectall_editipo(void)
 					bezt= ei->icu->bezt;
 					b= ei->icu->totvert;
 					while(b--) {
-						BEZ_SEL(bezt);
+						BEZ_DESEL(bezt);
 						bezt++;
 					}
 				}
