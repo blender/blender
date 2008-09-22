@@ -27,6 +27,10 @@
 #endif
 #endif
 
+#ifdef sun
+#include "ieeefp.h"
+#endif
+
 // weight and triangle index
 class mvmIndexWeight {
 	public:

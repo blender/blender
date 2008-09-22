@@ -100,6 +100,7 @@
 
 // sirdude fix for solaris
 #if !defined(linux) && defined(sun)
+#include "ieeefp.h"
 #ifndef expf
 #define expf(x) exp((double)(x))
 #endif
