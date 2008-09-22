@@ -328,9 +328,7 @@ LbmFsgrSolver::LbmFsgrSolver() :
 	mInit2dYZ(false),
 	mForceTadapRefine(-1), mCutoff(-1)
 {
-#if LBM_INCLUDE_CONTROL==1
 	mpControl = new LbmControlData();
-#endif
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mpTest = new LbmTestdata();
@@ -442,9 +440,7 @@ LbmFsgrSolver::~LbmFsgrSolver()
 	if(mpPreviewSurface) delete mpPreviewSurface;
 	// cleanup done during scene deletion...
 	
-#if LBM_INCLUDE_CONTROL==1
 	if(mpControl) delete mpControl;
-#endif
 
 	// always output performance estimate
 	debMsgStd("LbmFsgrSolver::~LbmFsgrSolver",DM_MSG," Avg. MLSUPS:"<<(mAvgMLSUPS/mAvgMLSUPSCnt), 5);
@@ -495,9 +491,7 @@ void LbmFsgrSolver::parseAttrList()
 	mSimulationTime += starttimeskip;
 	if(starttimeskip>0.) debMsgStd("LbmFsgrSolver::parseStdAttrList",DM_NOTIFY,"Used starttimeskip="<<starttimeskip<<", t="<<mSimulationTime, 1);
 
-#if LBM_INCLUDE_CONTROL==1
 	mpControl->parseControldataAttrList(mpSifAttrs);
-#endif
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mUseTestdata = 0;
@@ -1275,9 +1269,8 @@ bool LbmFsgrSolver::initializeSolverPostinit() {
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init done ... ",10);
 	mInitDone = 1;
 
-#if LBM_INCLUDE_CONTROL==1
+	// init fluid control
 	initCpdata();
-#endif // LBM_INCLUDE_CONTROL==1
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	initTestdata();
