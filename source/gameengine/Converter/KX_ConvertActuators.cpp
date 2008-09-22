@@ -210,10 +210,12 @@ void BL_ConvertActuators(char* maggiename,
 				if (blenderobject->type==OB_MESH){
 					bActionActuator* actact = (bActionActuator*) bact->data;
 					STR_String propname = (actact->name ? actact->name : "");
+					STR_String propframe = (actact->frameProp ? actact->frameProp : "");
 					
 					BL_ShapeActionActuator* tmpbaseact = new BL_ShapeActionActuator(
 						gameobj,
 						propname,
+						propframe,
 						actact->sta,
 						actact->end,
 						actact->act,

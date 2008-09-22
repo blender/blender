@@ -49,6 +49,7 @@
 #include "BLI_arithb.h"
 #include "MT_Matrix4x4.h"
 #include "BKE_utildefines.h"
+#include "FloatValue.h"
 #include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
@@ -342,6 +343,18 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 		break;
 	}
 	
+	/* Set the property if its defined */
+	if (m_framepropname[0] != '\0') {
+		CValue* propowner = GetParent();
+		CValue* oldprop = propowner->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(m_localtime);
+		if (oldprop) {
+			oldprop->SetValue(newval);
+		} else {
+			propowner->SetProperty(m_framepropname, newval);
+		}
+		newval->Release();
+	}
 	
 	if (bNegativeEvent)
 		m_blendframe=0.0f;
@@ -442,6 +455,7 @@ PyMethodDef BL_ShapeActionActuator::Methods[] = {
 	{"setPriority", (PyCFunction) BL_ShapeActionActuator::sPySetPriority, METH_VARARGS, SetPriority_doc},
 	{"setFrame", (PyCFunction) BL_ShapeActionActuator::sPySetFrame, METH_VARARGS, SetFrame_doc},
 	{"setProperty", (PyCFunction) BL_ShapeActionActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
+	{"setFrameProperty", (PyCFunction) BL_ShapeActionActuator::sPySetFrameProperty, METH_VARARGS, SetFrameProperty_doc},
 	{"setBlendtime", (PyCFunction) BL_ShapeActionActuator::sPySetBlendtime, METH_VARARGS, SetBlendtime_doc},
 
 	{"getAction", (PyCFunction) BL_ShapeActionActuator::sPyGetAction, METH_NOARGS, GetAction_doc},
@@ -451,6 +465,7 @@ PyMethodDef BL_ShapeActionActuator::Methods[] = {
 	{"getPriority", (PyCFunction) BL_ShapeActionActuator::sPyGetPriority, METH_NOARGS, GetPriority_doc},
 	{"getFrame", (PyCFunction) BL_ShapeActionActuator::sPyGetFrame, METH_NOARGS, GetFrame_doc},
 	{"getProperty", (PyCFunction) BL_ShapeActionActuator::sPyGetProperty, METH_NOARGS, GetProperty_doc},
+	{"getFrameProperty", (PyCFunction) BL_ShapeActionActuator::sPyGetFrameProperty, METH_NOARGS, GetFrameProperty_doc},
 	{"getType", (PyCFunction) BL_ShapeActionActuator::sPyGetType, METH_NOARGS, GetType_doc},	
 	{"setType", (PyCFunction) BL_ShapeActionActuator::sPySetType, METH_NOARGS, SetType_doc},
 	{NULL,NULL} //Sentinel
@@ -706,6 +721,20 @@ PyObject* BL_ShapeActionActuator::PySetPriority(PyObject* self,
 	Py_RETURN_NONE;
 }
 
+/*     getProperty                                                             */
+const char BL_ShapeActionActuator::GetFrameProperty_doc[] = 
+"getFrameProperty()\n"
+"\tReturns the name of the property, that is set to the current frame number.\n";
+
+PyObject* BL_ShapeActionActuator::PyGetFrameProperty(PyObject* self) {
+	PyObject *result;
+	
+	result = Py_BuildValue("s", (const char *)m_framepropname);
+	
+	return result;
+}
+
+
 /*     setFrame                                                              */
 const char BL_ShapeActionActuator::SetFrame_doc[] = 
 "setFrame(frame)\n"
@@ -745,6 +774,27 @@ PyObject* BL_ShapeActionActuator::PySetProperty(PyObject* self,
 	if (PyArg_ParseTuple(args,"s",&string))
 	{
 		m_propname = string;
+	}
+	else {
+		return NULL;
+	}
+	
+	Py_RETURN_NONE;
+}
+
+/*     setFrameProperty                                                          */
+const char BL_ShapeActionActuator::SetFrameProperty_doc[] = 
+"setFrameProperty(prop)\n"
+"\t - prop      : A string specifying the property of the frame set up update.\n";
+
+PyObject* BL_ShapeActionActuator::PySetFrameProperty(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds) {
+	char *string;
+	
+	if (PyArg_ParseTuple(args,"s",&string))
+	{
+		m_framepropname = string;
 	}
 	else {
 		return NULL;
