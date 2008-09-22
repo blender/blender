@@ -993,10 +993,8 @@ void gpencil_convert_menu (void)
 
 /* Hardcoded sensitivity thresholds... */
 	/* minimum number of pixels mouse should move before new point created */
-//#define MIN_MANHATTEN_PX		3	
 #define MIN_MANHATTEN_PX	U.gp_manhattendist
 	/* minimum length of new segment before new point can be added */
-//#define MIN_EUCLIDEAN_PX		20
 #define MIN_EUCLIDEAN_PX	U.gp_euclideandist
 
 /* ------ */
