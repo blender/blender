@@ -267,6 +267,18 @@ if 'blenderlite' in B.targets:
     env['WITH_BF_YAFRAY'] = False
     env['WITH_BF_REDCODE'] = False
     env['WITH_BF_FTGL'] = False
+    env['WITH_BF_DDS'] = False
+    env['WITH_BF_ZLIB'] = False
+    env['WITH_BF_SDL'] = False
+    env['WITH_BF_JPEG'] = False
+    env['WITH_BF_PNG'] = False
+    env['WITH_BF_ODE'] = False
+    env['WITH_BF_BULLET'] = False
+    env['WITH_BF_BINRELOC'] = False
+    env['BF_BUILDINFO'] = False
+    env['BF_NO_ELBEEM'] = True
+    
+
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
@@ -410,6 +422,26 @@ if  env['OURPLATFORM']!='darwin':
             source=[dp+os.sep+f for f in df]
             scriptinstall.append(env.Install(dir=dir,source=source))
 
+#-- icons
+if env['OURPLATFORM']=='linux2':
+	iconlist = []
+	icontargetlist = []
+
+	for tp, tn, tf in os.walk('release/freedesktop/icons'):
+		if 'CVS' in tn:
+			tn.remove('CVS')
+		if '.svn' in tn:
+			tn.remove('.svn')
+		for f in tf:
+			print ">>>", env['BF_INSTALLDIR'], tp, f
+			iconlist.append(tp+os.sep+f)
+			icontargetlist.append(env['BF_INSTALLDIR']+tp[19:]+os.sep+f)
+
+	iconinstall = []
+	for targetdir,srcfile in zip(icontargetlist, iconlist):
+		td, tf = os.path.split(targetdir)
+		iconinstall.append(env.Install(dir=td, source=srcfile))
+
 #-- plugins
 pluglist = []
 plugtargetlist = []
@@ -458,6 +490,8 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
         allinstall = [blenderinstall, plugininstall, textinstall]
+elif env['OURPLATFORM']=='linux2':
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall, iconinstall]
 else:
         allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 

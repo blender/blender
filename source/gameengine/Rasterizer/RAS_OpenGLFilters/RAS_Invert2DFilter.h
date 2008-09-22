@@ -28,7 +28,7 @@
 #ifndef __RAS_INVERT2DFILTER
 #define __RAS_INVERT2DFILTER
 
-char * InvertFragmentShader=STRINGIFY(
+const char * InvertFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 
 void main(void)

@@ -404,8 +404,6 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 			break;
 		lcode = charcode;
 	}
-	
-	err = FT_Select_Charmap( face, FT_ENCODING_UNICODE );
 
 	return vfd;	
 }

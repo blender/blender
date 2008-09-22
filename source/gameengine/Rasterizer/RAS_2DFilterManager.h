@@ -33,7 +33,7 @@
 class RAS_2DFilterManager
 {
 private:
-	unsigned int	CreateShaderProgram(char* shadersource);
+	unsigned int	CreateShaderProgram(const char* shadersource);
 	unsigned int	CreateShaderProgram(int filtermode);
 	void		AnalyseShader(int passindex, vector<STR_String>& propNames);
 	void			StartShaderProgram(int passindex);

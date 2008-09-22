@@ -865,28 +865,6 @@ DagNode * dag_get_sub_node (DagForest *forest,void * fob)
 	return node;
 }
 
-void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name) 
-{
-	DagAdjList *itA = fob1->child;
-	
-	while (itA) { /* search if relation exist already */
-		if (itA->node == fob2) {
-			itA->type |= rel;
-			itA->count += 1;
-			return;
-		}
-		itA = itA->next;
-	}
-	/* create new relation and insert at head. MALLOC alert! */
-	itA = MEM_mallocN(sizeof(DagAdjList),"DAG adj list");
-	itA->node = fob2;
-	itA->type = rel;
-	itA->count = 1;
-	itA->next = fob1->child;
-	itA->name = name;
-	fob1->child = itA;
-}
-
 static void dag_add_parent_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name) 
 {
 	DagAdjList *itA = fob2->parent;
@@ -907,6 +885,31 @@ static void dag_add_parent_relation(DagForest *forest, DagNode *fob1, DagNode *f
 	itA->next = fob2->parent;
 	itA->name = name;
 	fob2->parent = itA;
+}
+
+void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, char *name) 
+{
+	DagAdjList *itA = fob1->child;
+	
+	/* parent relation is for cycle checking */
+	dag_add_parent_relation(forest, fob1, fob2, rel, name);
+
+	while (itA) { /* search if relation exist already */
+		if (itA->node == fob2) {
+			itA->type |= rel;
+			itA->count += 1;
+			return;
+		}
+		itA = itA->next;
+	}
+	/* create new relation and insert at head. MALLOC alert! */
+	itA = MEM_mallocN(sizeof(DagAdjList),"DAG adj list");
+	itA->node = fob2;
+	itA->type = rel;
+	itA->count = 1;
+	itA->next = fob1->child;
+	itA->name = name;
+	fob1->child = itA;
 }
 
 static char *dag_node_name(DagNode *node)
@@ -964,6 +967,63 @@ static void dag_node_print_dependency_cycle(DagForest *dag, DagNode *startnode, 
 	printf("  %s depends on %s through %s.\n", dag_node_name(endnode), dag_node_name(startnode), name);
 	dag_node_print_dependency_recurs(startnode, endnode);
 	printf("\n");
+}
+
+static int dag_node_recurs_level(DagNode *node, int level)
+{
+	DagAdjList *itA;
+	int newlevel;
+
+	node->color= DAG_BLACK;	/* done */
+	newlevel= ++level;
+	
+	for(itA= node->parent; itA; itA= itA->next) {
+		if(itA->node->color==DAG_WHITE) {
+			itA->node->ancestor_count= dag_node_recurs_level(itA->node, level);
+			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
+		}
+		else
+			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
+	}
+	
+	return newlevel;
+}
+
+static void dag_check_cycle(DagForest *dag)
+{
+	DagNode *node;
+	DagAdjList *itA;
+
+	/* tag nodes unchecked */
+	for(node = dag->DagNode.first; node; node= node->next)
+		node->color= DAG_WHITE;
+	
+	for(node = dag->DagNode.first; node; node= node->next) {
+		if(node->color==DAG_WHITE) {
+			node->ancestor_count= dag_node_recurs_level(node, 0);
+		}
+	}
+	
+	/* check relations, and print errors */
+	for(node = dag->DagNode.first; node; node= node->next) {
+		for(itA= node->parent; itA; itA= itA->next) {
+			if(itA->node->ancestor_count > node->ancestor_count) {
+				if(node->ob && itA->node->ob) {
+					printf("Dependency cycle detected:\n");
+					dag_node_print_dependency_cycle(dag, itA->node, node, itA->name);
+				}
+			}
+		}
+	}
+
+	/* parent relations are only needed for cycle checking, so free now */
+	for(node = dag->DagNode.first; node; node= node->next) {
+		while (node->parent) {
+			itA = node->parent->next;
+			MEM_freeN(node->parent);			
+			node->parent = itA;
+		}
+	}
 }
 
 /*
@@ -1603,6 +1663,8 @@ void DAG_scene_sort(struct Scene *sce)
 	
 	build_dag(sce, DAG_RL_ALL_BUT_DATA);
 	
+	dag_check_cycle(sce->theDag);
+
 	nqueue = queue_create(DAGQUEUEALLOC);
 	
 	for(node = sce->theDag->DagNode.first; node; node= node->next) {
@@ -1969,12 +2031,6 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 					}
 				}
-				if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
-					// fluidsimSettings might not be initialized during load...
-					if(ob->fluidsimSettings->type & (OB_FLUIDSIM_DOMAIN|OB_FLUIDSIM_PARTICLE)) {
-						ob->recalc |= OB_RECALC_DATA; // NT FSPARTICLE
-					}
-				}
 				if(ob->particlesystem.first)
 					ob->recalc |= OB_RECALC_DATA;
 				break;
@@ -2212,57 +2268,6 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 
 /* ******************* DAG FOR ARMATURE POSE ***************** */
 
-static int node_recurs_level(DagNode *node, int level)
-{
-	DagAdjList *itA;
-	int newlevel;
-
-	node->color= DAG_BLACK;	/* done */
-	newlevel= ++level;
-	
-	for(itA= node->parent; itA; itA= itA->next) {
-		if(itA->node->color==DAG_WHITE) {
-			itA->node->ancestor_count= node_recurs_level(itA->node, level);
-			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
-		}
-		else
-			newlevel= MAX2(newlevel, level+itA->node->ancestor_count);
-	}
-	
-	return newlevel;
-}
-
-static void pose_check_cycle(DagForest *dag)
-{
-	DagNode *node;
-	DagAdjList *itA;
-
-	/* tag nodes unchecked */
-	for(node = dag->DagNode.first; node; node= node->next)
-		node->color= DAG_WHITE;
-	
-	for(node = dag->DagNode.first; node; node= node->next) {
-		if(node->color==DAG_WHITE) {
-			node->ancestor_count= node_recurs_level(node, 0);
-		}
-	}
-	
-	/* check relations, and print errors */
-	for(node = dag->DagNode.first; node; node= node->next) {
-		for(itA= node->parent; itA; itA= itA->next) {
-			if(itA->node->ancestor_count > node->ancestor_count) {
-				bPoseChannel *pchan= (bPoseChannel *)node->ob;
-				bPoseChannel *parchan= (bPoseChannel *)itA->node->ob;
-				
-				if(pchan && parchan)  {
-					printf("Cycle detected:\n");
-					dag_node_print_dependency_cycle(dag, itA->node, node, itA->name);
-				}
-			}
-		}
-	}
-}
-
 /* we assume its an armature with pose */
 void DAG_pose_sort(Object *ob)
 {
@@ -2292,7 +2297,6 @@ void DAG_pose_sort(Object *ob)
 		if(pchan->parent) {
 			node2 = dag_get_node(dag, pchan->parent);
 			dag_add_relation(dag, node2, node, 0, "Parent Relation");
-			dag_add_parent_relation(dag, node2, node, 0, "Parent Relation");
 			addtoroot = 0;
 		}
 		for (con = pchan->constraints.first; con; con=con->next) {
@@ -2311,7 +2315,6 @@ void DAG_pose_sort(Object *ob)
 						if(target) {
 							node2 = dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0, "Ipo Driver");
-							dag_add_parent_relation(dag, node2, node, 0, "Ipo Driver");
 
 							/* uncommented this line, results in dependencies
 							 * not being added properly for this constraint,
@@ -2331,7 +2334,6 @@ void DAG_pose_sort(Object *ob)
 						if (target) {
 							node2= dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0, "IK Constraint");
-							dag_add_parent_relation(dag, node2, node, 0, "IK Constraint");
 
 							if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 								bKinematicConstraint *data = (bKinematicConstraint *)con->data;
@@ -2348,7 +2350,6 @@ void DAG_pose_sort(Object *ob)
 								while (parchan) {
 									node3= dag_get_node(dag, parchan);
 									dag_add_relation(dag, node2, node3, 0, "IK Constraint");
-									dag_add_parent_relation(dag, node2, node3, 0, "IK Constraint");
 									
 									segcount++;
 									if (segcount==data->rootbone || segcount>255) break; // 255 is weak
@@ -2365,11 +2366,10 @@ void DAG_pose_sort(Object *ob)
 		}
 		if (addtoroot == 1 ) {
 			dag_add_relation(dag, rootnode, node, 0, "Root Bone Relation");
-			dag_add_parent_relation(dag, rootnode, node, 0, "Root Bone Relation");
 		}
 	}
 
-	pose_check_cycle(dag);
+	dag_check_cycle(dag);
 	
 	/* now we try to sort... */
 	tempbase.first= tempbase.last= NULL;

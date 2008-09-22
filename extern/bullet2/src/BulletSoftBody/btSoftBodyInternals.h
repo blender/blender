@@ -94,7 +94,6 @@ public:
 	virtual void	setLocalScaling(const btVector3& /*scaling*/)
 	{		
 		///na
-		btAssert(0);
 	}
 	virtual const btVector3& getLocalScaling() const
 	{

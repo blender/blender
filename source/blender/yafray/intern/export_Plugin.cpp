@@ -98,7 +98,7 @@ static string YafrayPath()
 	string path=find_path();
 	return path;
 #else
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/lib/",
 #ifdef __x86_64__
@@ -124,7 +124,7 @@ static string YafrayPluginPath()
 #ifdef WIN32
 	return find_path()+"\\plugins";
 #else
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/lib/yafray",
 #ifdef __x86_64__

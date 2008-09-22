@@ -359,7 +359,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_LOCX:
 		case KX_ACT_CONSTRAINT_LOCY:
 		case KX_ACT_CONSTRAINT_LOCZ:
-			newposition = position;
+			newposition = position = obj->GetSGNode()->GetLocalPosition();
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_LOCX:
 				Clamp(newposition[0], m_minimumBound, m_maximumBound);
@@ -375,7 +375,8 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			if (m_posDampTime) {
 				newposition = filter*position + (1.0-filter)*newposition;
 			}
-			break;
+			obj->NodeSetLocalPosition(newposition);
+			goto CHECK_TIME;
 		}
 		if (result) {
 			// set the new position but take into account parent if any
@@ -478,7 +479,7 @@ PyObject* KX_ConstraintActuator::_getattr(const STR_String& attr) {
 }
 
 /* 2. setDamp                                                                */
-char KX_ConstraintActuator::SetDamp_doc[] = 
+const char KX_ConstraintActuator::SetDamp_doc[] = 
 "setDamp(duration)\n"
 "\t- duration: integer\n"
 "\tSets the time constant of the orientation and distance constraint.\n"
@@ -497,7 +498,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 	Py_Return;
 }
 /* 3. getDamp                                                                */
-char KX_ConstraintActuator::GetDamp_doc[] = 
+const char KX_ConstraintActuator::GetDamp_doc[] = 
 "getDamp()\n"
 "\tReturns the damping parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
@@ -505,7 +506,7 @@ PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
 }
 
 /* 2. setRotDamp                                                                */
-char KX_ConstraintActuator::SetRotDamp_doc[] = 
+const char KX_ConstraintActuator::SetRotDamp_doc[] = 
 "setRotDamp(duration)\n"
 "\t- duration: integer\n"
 "\tSets the time constant of the orientation constraint.\n"
@@ -524,7 +525,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 	Py_Return;
 }
 /* 3. getRotDamp                                                                */
-char KX_ConstraintActuator::GetRotDamp_doc[] = 
+const char KX_ConstraintActuator::GetRotDamp_doc[] = 
 "getRotDamp()\n"
 "\tReturns the damping time for application of the constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
@@ -532,7 +533,7 @@ PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
 }
 
 /* 2. setDirection                                                                */
-char KX_ConstraintActuator::SetDirection_doc[] = 
+const char KX_ConstraintActuator::SetDirection_doc[] = 
 "setDirection(vector)\n"
 "\t- vector: 3-tuple\n"
 "\tSets the reference direction in world coordinate for the orientation constraint.\n";
@@ -559,7 +560,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 	Py_Return;
 }
 /* 3. getDirection                                                                */
-char KX_ConstraintActuator::GetDirection_doc[] = 
+const char KX_ConstraintActuator::GetDirection_doc[] = 
 "getDirection()\n"
 "\tReturns the reference direction of the orientation constraint as a 3-tuple.\n";
 PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
@@ -572,7 +573,7 @@ PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
 }
 
 /* 2. setOption                                                                */
-char KX_ConstraintActuator::SetOption_doc[] = 
+const char KX_ConstraintActuator::SetOption_doc[] = 
 "setOption(option)\n"
 "\t- option: integer\n"
 "\tSets several options of the distance  constraint.\n"
@@ -594,7 +595,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 	Py_Return;
 }
 /* 3. getOption                                                              */
-char KX_ConstraintActuator::GetOption_doc[] = 
+const char KX_ConstraintActuator::GetOption_doc[] = 
 "getOption()\n"
 "\tReturns the option parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
@@ -602,7 +603,7 @@ PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
 }
 
 /* 2. setTime                                                                */
-char KX_ConstraintActuator::SetTime_doc[] = 
+const char KX_ConstraintActuator::SetTime_doc[] = 
 "setTime(duration)\n"
 "\t- duration: integer\n"
 "\tSets the activation time of the actuator.\n"
@@ -623,7 +624,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 	Py_Return;
 }
 /* 3. getTime                                                                */
-char KX_ConstraintActuator::GetTime_doc[] = 
+const char KX_ConstraintActuator::GetTime_doc[] = 
 "getTime()\n"
 "\tReturns the time parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
@@ -631,7 +632,7 @@ PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
 }
 
 /* 2. setProperty                                                                */
-char KX_ConstraintActuator::SetProperty_doc[] = 
+const char KX_ConstraintActuator::SetProperty_doc[] = 
 "setProperty(property)\n"
 "\t- property: string\n"
 "\tSets the name of the property or material for the ray detection of the distance constraint.\n"
@@ -653,7 +654,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 	Py_Return;
 }
 /* 3. getProperty                                                                */
-char KX_ConstraintActuator::GetProperty_doc[] = 
+const char KX_ConstraintActuator::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturns the property parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
@@ -661,12 +662,12 @@ PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
 }
 
 /* 4. setDistance                                                                 */
-char KX_ConstraintActuator::SetDistance_doc[] = 
+const char KX_ConstraintActuator::SetDistance_doc[] = 
 "setDistance(distance)\n"
 "\t- distance: float\n"
 "\tSets the target distance in distance constraint\n";
 /* 4. setMin                                                                 */
-char KX_ConstraintActuator::SetMin_doc[] = 
+const char KX_ConstraintActuator::SetMin_doc[] = 
 "setMin(lower_bound)\n"
 "\t- lower_bound: float\n"
 "\tSets the lower value of the interval to which the value\n"
@@ -693,11 +694,11 @@ PyObject* KX_ConstraintActuator::PySetMin(PyObject* self,
 	Py_Return;
 }
 /* 5. getDistance                                                                 */
-char KX_ConstraintActuator::GetDistance_doc[] = 
+const char KX_ConstraintActuator::GetDistance_doc[] = 
 "getDistance()\n"
 "\tReturns the distance parameter \n";
 /* 5. getMin                                                                 */
-char KX_ConstraintActuator::GetMin_doc[] = 
+const char KX_ConstraintActuator::GetMin_doc[] = 
 "getMin()\n"
 "\tReturns the lower value of the interval to which the value\n"
 "\tis clipped.\n";
@@ -706,12 +707,12 @@ PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self) {
 }
 
 /* 6. setRayLength                                                                 */
-char KX_ConstraintActuator::SetRayLength_doc[] = 
+const char KX_ConstraintActuator::SetRayLength_doc[] = 
 "setRayLength(length)\n"
 "\t- length: float\n"
 "\tSets the maximum ray length of the distance constraint\n";
 /* 6. setMax                                                                 */
-char KX_ConstraintActuator::SetMax_doc[] = 
+const char KX_ConstraintActuator::SetMax_doc[] = 
 "setMax(upper_bound)\n"
 "\t- upper_bound: float\n"
 "\tSets the upper value of the interval to which the value\n"
@@ -738,11 +739,11 @@ PyObject* KX_ConstraintActuator::PySetMax(PyObject* self,
 	Py_Return;
 }
 /* 7. getRayLength                                                                 */
-char KX_ConstraintActuator::GetRayLength_doc[] = 
+const char KX_ConstraintActuator::GetRayLength_doc[] = 
 "getRayLength()\n"
 "\tReturns the length of the ray\n";
 /* 7. getMax                                                                 */
-char KX_ConstraintActuator::GetMax_doc[] = 
+const char KX_ConstraintActuator::GetMax_doc[] = 
 "getMax()\n"
 "\tReturns the upper value of the interval to which the value\n"
 "\tis clipped.\n";
@@ -753,7 +754,7 @@ PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self) {
 
 /* This setter/getter probably for the constraint type                       */
 /* 8. setLimit                                                               */
-char KX_ConstraintActuator::SetLimit_doc[] = 
+const char KX_ConstraintActuator::SetLimit_doc[] = 
 "setLimit(type)\n"
 "\t- type: integer\n"
 "\t  1  : LocX\n"
@@ -782,7 +783,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 	Py_Return;
 }
 /* 9. getLimit                                                               */
-char KX_ConstraintActuator::GetLimit_doc[] = 
+const char KX_ConstraintActuator::GetLimit_doc[] = 
 "getLimit()\n"
 "\tReturns the type of constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self) {

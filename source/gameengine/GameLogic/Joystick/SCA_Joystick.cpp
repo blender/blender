@@ -42,14 +42,18 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_isinit(0),
 	m_istrig(0)
 {
+#ifndef DISABLE_SDL
 	m_private = new PrivateData();
+#endif
 }
 
 
 SCA_Joystick::~SCA_Joystick()
 
 {
+#ifndef DISABLE_SDL
 	delete m_private;
+#endif
 }
 
 SCA_Joystick *SCA_Joystick::m_instance[JOYINDEX_MAX];
@@ -57,6 +61,9 @@ int SCA_Joystick::m_refCount = 0;
 
 SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 {
+#ifdef DISABLE_SDL
+	return NULL;
+#else
 	if (joyindex < 0 || joyindex >= JOYINDEX_MAX) {
 		echo("Error-invalid joystick index: " << joyindex);
 		return NULL;
@@ -81,12 +88,14 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 		m_refCount++;
 	}
 	return m_instance[joyindex];
+#endif
 }
 
 void SCA_Joystick::ReleaseInstance()
 {
 	if (--m_refCount == 0)
 	{
+#ifndef DISABLE_SDL
 		int i;
 		for (i=0; i<JOYINDEX_MAX; i++) {
 			if (m_instance[i]) {
@@ -95,7 +104,9 @@ void SCA_Joystick::ReleaseInstance()
 			}
 			m_instance[i]= NULL;
 		}
+
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO );
+#endif
 	}
 }
 
@@ -147,19 +158,27 @@ bool SCA_Joystick::aDownAxisIsPositive(int axis)
 
 bool SCA_Joystick::aButtonPressIsPositive(int button)
 {
+#ifdef DISABLE_SDL
+	return false;
+#else
 	bool result;
 	SDL_JoystickGetButton(m_private->m_joystick, button)? result = true:result = false;
 	m_istrig = result;
 	return result;
+#endif
 }
 
 
 bool SCA_Joystick::aButtonReleaseIsPositive(int button)
 {
+#ifdef DISABLE_SDL
+	return false;
+#else
 	bool result;
 	SDL_JoystickGetButton(m_private->m_joystick, button)? result = false : result = true;
 	m_istrig = result;
 	return result;
+#endif
 }
 
 
@@ -199,6 +218,9 @@ int SCA_Joystick::pGetHat(int direction)
 
 int SCA_Joystick::GetNumberOfAxes()
 {
+#ifdef DISABLE_SDL
+	return -1;
+#else
 	int number;
 	if(m_isinit){
 		if(m_private->m_joystick){
@@ -207,11 +229,15 @@ int SCA_Joystick::GetNumberOfAxes()
 		}
 	}
 	return -1;
+#endif
 }
 
 
 int SCA_Joystick::GetNumberOfButtons()
 {
+#ifdef DISABLE_SDL
+	return -1;
+#else
 	int number;
 	if(m_isinit){
 		if(m_private->m_joystick){
@@ -220,11 +246,15 @@ int SCA_Joystick::GetNumberOfButtons()
 		}
 	}
 	return -1;
+#endif
 }
 
 
 int SCA_Joystick::GetNumberOfHats()
 {
+#ifdef DISABLE_SDL
+	return -1;
+#else
 	int number;
 	if(m_isinit){
 		if(m_private->m_joystick){
@@ -233,10 +263,14 @@ int SCA_Joystick::GetNumberOfHats()
 		}
 	}
 	return -1;
+#endif
 }
 
 bool SCA_Joystick::CreateJoystickDevice(void)
 {
+#ifdef DISABLE_SDL
+	return false;
+#else
 	if(m_isinit == false){
 		if (m_joyindex>=SDL_NumJoysticks()) {
 			// don't print a message, because this is done anyway
@@ -251,11 +285,13 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		m_isinit = true;
 	}
 	return true;
+#endif
 }
 
 
 void SCA_Joystick::DestroyJoystickDevice(void)
 {
+#ifndef DISABLE_SDL
 	if (m_isinit){
 		if(SDL_JoystickOpened(m_joyindex)){
 			echo("Closing-joystick " << m_joyindex);
@@ -263,21 +299,21 @@ void SCA_Joystick::DestroyJoystickDevice(void)
 		}
 		m_isinit = false;
 	}
+#endif
 }
 
 int SCA_Joystick::Connected(void)
 {
-	if (m_isinit){
-		if(SDL_JoystickOpened(m_joyindex)){
-			return 1;
-		}
-	}
-	
+#ifndef DISABLE_SDL
+	if (m_isinit && SDL_JoystickOpened(m_joyindex))
+		return 1;
+#endif
 	return 0;
 }
 
 void SCA_Joystick::pFillAxes()
 {
+#ifndef DISABLE_SDL
 	if(GetNumberOfAxes() == 1){
 		m_axis10 = SDL_JoystickGetAxis(m_private->m_joystick, 0);
 		m_axis11 = SDL_JoystickGetAxis(m_private->m_joystick, 1);
@@ -287,18 +323,20 @@ void SCA_Joystick::pFillAxes()
 		m_axis20 = SDL_JoystickGetAxis(m_private->m_joystick, 2);
 		m_axis21 = SDL_JoystickGetAxis(m_private->m_joystick, 3);
 	}else{
-		m_axis10 = 0;m_axis11 = 0;
-		m_axis20 = 0;m_axis21 = 0;
+		m_axis10 = m_axis11 = m_axis20 = m_axis21 = 0;
 	}
+#endif
 }
 
 
 int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 {
+#ifndef DISABLE_SDL
 	if(axisnum == 1 && udlr == 1)return m_axis10; //u/d
 	if(axisnum == 1 && udlr == 0)return m_axis11; //l/r
 	if(axisnum == 2 && udlr == 0)return m_axis20; //...
 	if(axisnum == 2 && udlr == 1)return m_axis21;
+#endif
 	return 0;
 }
 

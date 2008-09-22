@@ -2436,7 +2436,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 /* ------------------------------------------------------------------------- */
 /* colf supposed to be initialized with la->r,g,b */
 
-void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf)
+void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int effect)
 {
 	Object *ob;
 	MTex *mtex;
@@ -2575,7 +2575,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf)
 			}
 			
 			/* mapping */
-			if(mtex->mapto & LAMAP_COL) {
+			if(((mtex->mapto & LAMAP_COL) && (effect & LA_TEXTURE))||((mtex->mapto & LAMAP_SHAD) && (effect & LA_SHAD_TEX))) {
 				float col[3];
 				
 				if(rgb==0) {

@@ -269,7 +269,6 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
-	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
@@ -748,6 +747,9 @@ void *add_lamp(char *name)
 	la->atm_extinction_factor = 1.0;
 	la->atm_distance_factor = 1.0;
 	la->sun_intensity = 1.0;
+	la->skyblendtype= MA_RAMP_ADD;
+	la->skyblendfac= 1.0f;
+
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }
@@ -1180,7 +1182,9 @@ Object *copy_object(Object *ob)
 	
 	BPY_copy_scriptlink(&ob->scriptlink);
 	
+	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
+	
 	copy_sensors(&obn->sensors, &ob->sensors);
 	copy_controllers(&obn->controllers, &ob->controllers);
 	copy_actuators(&obn->actuators, &ob->actuators);
@@ -1213,15 +1217,6 @@ Object *copy_object(Object *ob)
 			id_us_plus(&(obn->pd->tex->id));
 	}
 	obn->soft= copy_softbody(ob->soft);
-
-	/* NT copy fluid sim setting memory */
-	if(obn->fluidsimSettings) {
-		obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
-		/* copying might fail... */
-		if(obn->fluidsimSettings) {
-			obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
-		}
-	}
 
 	copy_object_particlesystems(obn, ob);
 	

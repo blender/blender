@@ -767,7 +767,17 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		{
 			if (!ci.m_mass)
 			{				
-				shapeInfo->SetMesh(meshobj, false);
+				// mesh shapes can be shared, check first if we already have a shape on that mesh
+				class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, false);
+				if (sharedShapeInfo != NULL) 
+				{
+					delete shapeInfo;
+					shapeInfo = sharedShapeInfo;
+					shapeInfo->AddRef();
+				} else
+				{
+					shapeInfo->SetMesh(meshobj, false);
+				}
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia
 				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
@@ -907,6 +917,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_collisionFilterGroup = (isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) : short(CcdConstructionInfo::StaticFilter);
 	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
 	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
+	ci.m_bSoft = objprop->m_softbody;
 	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();
 	ci.m_scaling.setValue(scaling[0], scaling[1], scaling[2]);
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
@@ -923,10 +934,12 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
-	btRigidBody* rbody = physicscontroller->GetRigidBody();
+	{
+		btRigidBody* rbody = physicscontroller->GetRigidBody();
 
-	if (objprop->m_disableSleeping)
-		rbody->setActivationState(DISABLE_DEACTIVATION);
+		if (rbody && objprop->m_disableSleeping)
+			rbody->setActivationState(DISABLE_DEACTIVATION);
+	}
 	
 	//Now done directly in ci.m_collisionFlags so that it propagates to replica
 	//if (objprop->m_ghost)

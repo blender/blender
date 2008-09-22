@@ -55,6 +55,10 @@ SND_SDLCDDevice::SND_SDLCDDevice() :
 
 void SND_SDLCDDevice::init()
 {
+#ifdef DISABLE_SDL
+	fprintf(stderr, "Blender compiled without SDL, no CDROM support\n");
+	return;
+#else
 	if (SDL_InitSubSystem(SDL_INIT_CDROM))
 	{
 		fprintf(stderr, "Error initializing CDROM\n");
@@ -75,19 +79,23 @@ void SND_SDLCDDevice::init()
 	/* Did if open? Check if cdrom is NULL */
 	if(!m_cdrom)
 	{
-		fprintf(stderr, "Couldn't open drive: %s", SDL_GetError());
+		fprintf(stderr, "Couldn't open drive: %s\n", SDL_GetError());
 		return;
 	}
+#endif
 }
 
 SND_SDLCDDevice::~SND_SDLCDDevice()
 {
+#ifndef DISABLE_SDL
 	StopCD();
 	SDL_CDClose(m_cdrom);
+#endif
 }
 
 void SND_SDLCDDevice::NextFrame()
 {
+#ifndef DISABLE_SDL
 	m_frame++;
 	m_frame &= 127;
 	
@@ -111,20 +119,24 @@ void SND_SDLCDDevice::NextFrame()
 		}
 	
 	}
+#endif
 }
 	
 void SND_SDLCDDevice::PlayCD(int track)
 {
+#ifndef DISABLE_SDL
 	if ( m_cdrom && CD_INDRIVE(SDL_CDStatus(m_cdrom)) ) {
 		SDL_CDPlayTracks(m_cdrom, track-1, 0, track, 0);
 		m_cdplaying = true;
 		m_cdtrack = track;
 	}
+#endif
 }
 
 
 void SND_SDLCDDevice::PauseCD(bool pause)
 {
+#ifndef DISABLE_SDL
 	if (!m_cdrom)
 		return;
 		
@@ -132,13 +144,16 @@ void SND_SDLCDDevice::PauseCD(bool pause)
 		SDL_CDPause(m_cdrom);
 	else
 		SDL_CDResume(m_cdrom);
+#endif
 }
 
 void SND_SDLCDDevice::StopCD()
 {
+#ifndef DISABLE_SDL
 	if (m_cdrom)
 		SDL_CDStop(m_cdrom);
 	m_cdplaying = false;
+#endif
 }
 
 void SND_SDLCDDevice::SetCDPlaymode(int playmode)

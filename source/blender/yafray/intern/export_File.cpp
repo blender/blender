@@ -96,7 +96,7 @@ static void addDrive(string &path)
 
 static string unixYafrayPath()
 {
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/bin/",
 		"/usr/bin/",

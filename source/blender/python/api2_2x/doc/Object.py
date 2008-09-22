@@ -552,6 +552,8 @@ class Object:
 	@ivar transp: Enable transparent materials for the active object
 		(mesh only).  Also see B{TRANSP} bit in L{drawMode} attribute.
 	@type transp: boolean
+	@ivar color: Object color used by the game engine and optionally for materials, 4 floats for RGBA object color.
+	@type color: tuple of 4 floats between 0 and 1
 	@ivar drawMode: The object's drawing mode bitfield.
 		See L{DrawModes} constant dict for values.
 	@type drawMode: int

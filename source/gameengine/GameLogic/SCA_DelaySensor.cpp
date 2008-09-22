@@ -173,7 +173,7 @@ PyObject* SCA_DelaySensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_ISensor);
 }
 
-char SCA_DelaySensor::SetDelay_doc[] = 
+const char SCA_DelaySensor::SetDelay_doc[] = 
 "setDelay(delay)\n"
 "\t- delay: length of the initial OFF period as number of frame\n"
 "\t         0 for immediate trigger\n"
@@ -193,7 +193,7 @@ PyObject* SCA_DelaySensor::PySetDelay(PyObject* self, PyObject* args, PyObject* 
 	Py_Return;
 }
 
-char SCA_DelaySensor::SetDuration_doc[] = 
+const char SCA_DelaySensor::SetDuration_doc[] = 
 "setDuration(duration)\n"
 "\t- duration: length of the ON period in number of frame after the initial off period\n"
 "\t            0 for no ON period\n"
@@ -214,7 +214,7 @@ PyObject* SCA_DelaySensor::PySetDuration(PyObject* self, PyObject* args, PyObjec
 	Py_Return;
 }
 
-char SCA_DelaySensor::SetRepeat_doc[] = 
+const char SCA_DelaySensor::SetRepeat_doc[] = 
 "setRepeat(repeat)\n"
 "\t- repeat: 1 if the initial OFF-ON cycle should be repeated indefinately\n"
 "\t          0 if the initial OFF-ON cycle should run only once\n"
@@ -230,7 +230,7 @@ PyObject* SCA_DelaySensor::PySetRepeat(PyObject* self, PyObject* args, PyObject*
 	Py_Return;
 }
 
-char SCA_DelaySensor::GetDelay_doc[] = 
+const char SCA_DelaySensor::GetDelay_doc[] = 
 "getDelay()\n"
 "\tReturn the delay parameter value\n";
 PyObject* SCA_DelaySensor::PyGetDelay(PyObject* self)
@@ -238,7 +238,7 @@ PyObject* SCA_DelaySensor::PyGetDelay(PyObject* self)
 	return PyInt_FromLong(m_delay);
 }
 
-char SCA_DelaySensor::GetDuration_doc[] = 
+const char SCA_DelaySensor::GetDuration_doc[] = 
 "getDuration()\n"
 "\tReturn the duration parameter value\n";
 PyObject* SCA_DelaySensor::PyGetDuration(PyObject* self)
@@ -246,7 +246,7 @@ PyObject* SCA_DelaySensor::PyGetDuration(PyObject* self)
 	return PyInt_FromLong(m_duration);
 }
 
-char SCA_DelaySensor::GetRepeat_doc[] = 
+const char SCA_DelaySensor::GetRepeat_doc[] = 
 "getRepeat()\n"
 "\tReturn the repeat parameter value\n";
 PyObject* SCA_DelaySensor::PyGetRepeat(PyObject* self)

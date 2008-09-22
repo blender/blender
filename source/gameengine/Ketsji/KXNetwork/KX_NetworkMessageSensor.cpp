@@ -218,7 +218,7 @@ PyObject* KX_NetworkMessageSensor::_getattr(const STR_String& attr) {
 }
 
 // 1. Set the message subject that this sensor listens for
-char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] = 
+const char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] = 
 "\tsetSubjectFilterText(value)\n"
 "\tChange the message subject text that this sensor is listening to.\n";
 
@@ -235,7 +235,7 @@ PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText( PyObject* self, PyObj
 }
 
 // 2. Get the number of messages received since the last frame
-char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
+const char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
 "\tgetFrameMessageCount()\n"
 "\tGet the number of messages received since the last frame.\n";
 
@@ -245,7 +245,7 @@ PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount( PyObject* )
 }
 
 // 3. Get the message bodies
-char KX_NetworkMessageSensor::GetBodies_doc[] =
+const char KX_NetworkMessageSensor::GetBodies_doc[] =
 "\tgetBodies()\n"
 "\tGet the list of message bodies.\n";
 
@@ -259,7 +259,7 @@ PyObject* KX_NetworkMessageSensor::PyGetBodies( PyObject* )
 }
 
 // 4. Get the message subject: field of the message sensor
-char KX_NetworkMessageSensor::GetSubject_doc[] =
+const char KX_NetworkMessageSensor::GetSubject_doc[] =
 "\tgetSubject()\n"
 "\tGet the subject: field of the message sensor.\n";
 
@@ -269,7 +269,7 @@ PyObject* KX_NetworkMessageSensor::PyGetSubject( PyObject* )
 }
 
 // 5. Get the message subjects
-char KX_NetworkMessageSensor::GetSubjects_doc[] =
+const char KX_NetworkMessageSensor::GetSubjects_doc[] =
 "\tgetSubjects()\n"
 "\tGet list of message subjects.\n";
 

@@ -38,6 +38,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 #include "IMB_divers.h"
+#include "BKE_utildefines.h"
 
 void imb_checkncols(struct ImBuf *ibuf)
 {
@@ -171,7 +172,6 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 	}
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.99f*val))
 
 void IMB_rect_from_float(struct ImBuf *ibuf)
 {

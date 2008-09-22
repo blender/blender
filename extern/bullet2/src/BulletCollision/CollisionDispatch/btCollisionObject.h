@@ -143,7 +143,7 @@ public:
 
 	virtual ~btCollisionObject();
 
-	void	setCollisionShape(btCollisionShape* collisionShape)
+	virtual void	setCollisionShape(btCollisionShape* collisionShape)
 	{
 		m_collisionShape = collisionShape;
 		m_rootCollisionShape = collisionShape;

@@ -37,6 +37,7 @@ class ntlGeometryClass
 		//! Default destructor
 		virtual ~ntlGeometryClass() {
 			delete mpAttrs; 
+			delete mpSwsAttrs;
 		};
 
 		//! Return type id

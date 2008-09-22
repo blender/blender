@@ -159,7 +159,7 @@ PyObject* SCA_ActuatorSensor::_getattr(const STR_String& attr) {
 }
 
 /* 3. getActuator */
-char SCA_ActuatorSensor::GetActuator_doc[] = 
+const char SCA_ActuatorSensor::GetActuator_doc[] = 
 "getActuator()\n"
 "\tReturn the Actuator with which the sensor operates.\n";
 PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self) 
@@ -168,7 +168,7 @@ PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self)
 }
 
 /* 4. setActuator */
-char SCA_ActuatorSensor::SetActuator_doc[] = 
+const char SCA_ActuatorSensor::SetActuator_doc[] = 
 "setActuator(name)\n"
 "\t- name: string\n"
 "\tSets the Actuator with which to operate. If there is no Actuator\n"

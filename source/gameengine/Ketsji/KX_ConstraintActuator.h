@@ -147,12 +147,12 @@ protected:
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMin);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
-	static char SetDistance_doc[];
-	static char GetDistance_doc[];
+	static const char SetDistance_doc[];
+	static const char GetDistance_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMax);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
-	static char SetRayLength_doc[];
-	static char GetRayLength_doc[];
+	static const char SetRayLength_doc[];
+	static const char GetRayLength_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetLimit);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };

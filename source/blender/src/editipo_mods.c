@@ -136,10 +136,10 @@ void swap_selectall_editipo(void)
 					b= ei->icu->totvert;
 					while(b--) {
 						if(totipo_vertsel) {
-							bezt->f1= bezt->f2= bezt->f3= 0;
+							BEZ_DESEL(bezt);
 						}
 						else {
-							bezt->f1= bezt->f2= bezt->f3= SELECT;
+							BEZ_SEL(bezt);
 						}
 						bezt++;
 					}
@@ -228,7 +228,7 @@ void deselectall_editipo(void)
 					bezt= ei->icu->bezt;
 					b= ei->icu->totvert;
 					while(b--) {
-						bezt->f1= bezt->f2= bezt->f3= 0;
+						BEZ_DESEL(bezt);
 						bezt++;
 					}
 				}
@@ -374,18 +374,14 @@ static int selected_bezier_loop(int (*looptest)(EditIpo *),
 int select_bezier_add(BezTriple *bezt) 
 {
 	/* Select the bezier triple */
-	bezt->f1 |= SELECT;
-	bezt->f2 |= SELECT;
-	bezt->f3 |= SELECT;
+	BEZ_SEL(bezt);
 	return 0;
 }
 
 int select_bezier_subtract(BezTriple *bezt) 
 {
 	/* Deselect the bezier triple */
-	bezt->f1 &= ~SELECT;
-	bezt->f2 &= ~SELECT;
-	bezt->f3 &= ~SELECT;
+	BEZ_DESEL(bezt);
 	return 0;
 }
 
@@ -412,9 +408,9 @@ static int set_bezier_auto(BezTriple *bezt)
 	/* is a handle selected? If so
 	 * set it to type auto
 	 */
-	if(bezt->f1 || bezt->f3) {
-		if(bezt->f1) bezt->h1= 1; /* the secret code for auto */
-		if(bezt->f3) bezt->h2= 1;
+	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
+		if(bezt->f1 & SELECT) bezt->h1= 1; /* the secret code for auto */
+		if(bezt->f3 & SELECT) bezt->h2= 1;
 
 		/* if the handles are not of the same type, set them
 		 * to type free
@@ -435,9 +431,9 @@ static int set_bezier_vector(BezTriple *bezt)
 	/* is a handle selected? If so
 	 * set it to type vector
 	 */
-	if(bezt->f1 || bezt->f3) {
-		if(bezt->f1) bezt->h1= 2; /* the code for vector */
-		if(bezt->f3) bezt->h2= 2;
+	if((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
+		if(bezt->f1 & SELECT) bezt->h1= 2; /* the code for vector */
+		if(bezt->f3 & SELECT) bezt->h2= 2;
     
 		/* if the handles are not of the same type, set them
 		 * to type free
@@ -455,8 +451,8 @@ static int bezier_isfree(BezTriple *bezt)
 	/* queries whether the handle should be set
 	 * to type 'free' (I think)
 	 */
-	if(bezt->f1 && bezt->h1) return 1;
-	if(bezt->f3 && bezt->h2) return 1;
+	if((bezt->f1 & SELECT) && bezt->h1) return 1;
+	if((bezt->f3 & SELECT) && bezt->h2) return 1;
 	return 0;
 }
 
@@ -464,8 +460,8 @@ static int set_bezier_free(BezTriple *bezt)
 {
 	/* Sets selected bezier handles to type 'free' 
 	 */
-	if(bezt->f1) bezt->h1= HD_FREE;
-	if(bezt->f3) bezt->h2= HD_FREE;
+	if(bezt->f1 & SELECT) bezt->h1= HD_FREE;
+	if(bezt->f3 & SELECT) bezt->h2= HD_FREE;
 	return 0;
 }
 
@@ -473,8 +469,8 @@ static int set_bezier_align(BezTriple *bezt)
 {
 	/* Sets selected bezier handles to type 'align' 
 	 */
-	if(bezt->f1) bezt->h1= HD_ALIGN;
-	if(bezt->f3) bezt->h2= HD_ALIGN;
+	if(bezt->f1 & SELECT) bezt->h1= HD_ALIGN;
+	if(bezt->f3 & SELECT) bezt->h2= HD_ALIGN;
 	return 0;
 }
 
@@ -1032,6 +1028,7 @@ void borderselect_ipo(void)
 				select_proj_ipo(&rectf, val);
 		}
 		else {
+			int selflag= (val==LEFTMOUSE) ? SELECT : 0;
 			
 			ei= G.sipo->editipo;
 			for(a=0; a<G.sipo->totipo; a++, ei++) {
@@ -1040,14 +1037,12 @@ void borderselect_ipo(void)
 						b= ei->icu->totvert;
 						bezt= ei->icu->bezt;
 						while(b--) {
-							int bit= (val==LEFTMOUSE);
-							
 							if(BLI_in_rctf(&rectf, bezt->vec[0][0], bezt->vec[0][1]))
-								bezt->f1 = (bezt->f1&~SELECT) | bit;
+								bezt->f1 = selflag ? (bezt->f1 | SELECT) : (bezt->f1 & ~SELECT);
 							if(BLI_in_rctf(&rectf, bezt->vec[1][0], bezt->vec[1][1]))
-								bezt->f2 = (bezt->f2&~SELECT) | bit;
+								bezt->f2 = selflag ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
 							if(BLI_in_rctf(&rectf, bezt->vec[2][0], bezt->vec[2][1]))
-								bezt->f3 = (bezt->f3&~SELECT) | bit;
+								bezt->f3 = selflag ? (bezt->f3 | SELECT) : (bezt->f3 & ~SELECT);
 
 							bezt++;
 						}
@@ -1211,19 +1206,13 @@ void set_ipo_key_selection(Ipo *ipo, int sel)
 	for (icu=ipo->curve.first; icu; icu=icu->next){
 		for (i=0; i<icu->totvert; i++){
 			if (sel == 2) {
-				icu->bezt[i].f1^=1;
-				icu->bezt[i].f2^=1;
-				icu->bezt[i].f3^=1;
+				BEZ_INVSEL(&icu->bezt[i]);
 			}
 			else if (sel == 1){
-				icu->bezt[i].f1|=1;
-				icu->bezt[i].f2|=1;
-				icu->bezt[i].f3|=1;
+				BEZ_SEL(&icu->bezt[i]);
 			}
 			else{
-				icu->bezt[i].f1&=~1;
-				icu->bezt[i].f2&=~1;
-				icu->bezt[i].f3&=~1;
+				BEZ_DESEL(&icu->bezt[i]);
 			}
 		}
 	}
@@ -1240,10 +1229,10 @@ int fullselect_ipo_keys(Ipo *ipo)
 	
 	for (icu=ipo->curve.first; icu; icu=icu->next) {
 		for (i=0; i<icu->totvert; i++){
-			if (icu->bezt[i].f2 & 1){
+			if (icu->bezt[i].f2 & SELECT){
 				tvtot+=3;
-				icu->bezt[i].f1 |= 1;
-				icu->bezt[i].f3 |= 1;
+				icu->bezt[i].f1 |= SELECT;
+				icu->bezt[i].f3 |= SELECT;
 			}
 		}
 	}

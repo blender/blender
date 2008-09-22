@@ -63,9 +63,9 @@ void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 	}
 	else {
 		set<SCA_ISensor*>::iterator it;
-	
+#ifndef	DISABLE_SDL
 		SCA_Joystick::HandleEvents(); /* Handle all SDL Joystick events */
-	
+#endif
 		for (it = m_sensors.begin(); it != m_sensors.end(); it++)
 		{
 			SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*)(*it);

@@ -258,7 +258,7 @@ def read_opts(cfg, args):
         ('BF_WINTAB', 'WinTab base dir', ''),
         ('BF_WINTAB_INC', 'WinTab include dir', ''),
         ('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
-        ('WITH_BF_STATICCXX', 'static link to stdc++', 'false'),
+        (BoolOption('WITH_BF_STATICCXX', 'static link to stdc++', 'false')),
         ('BF_CXX_LIB_STATIC', 'static library path for stdc++', ''),
 ##
 ##WITH_BF_NSPR = 'true'

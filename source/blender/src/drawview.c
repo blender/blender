@@ -3422,7 +3422,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	/* run any view3d draw handler script links */
 	if (sa->scriptlink.totscript)
-		BPY_do_spacehandlers(sa, 0, SPACEHANDLER_VIEW3D_DRAW);
+		BPY_do_spacehandlers(sa, 0, 0, SPACEHANDLER_VIEW3D_DRAW);
 
 	/* run scene redraw script links */
 	if((G.f & G_DOSCRIPTLINKS) && G.scene->scriptlink.totscript &&

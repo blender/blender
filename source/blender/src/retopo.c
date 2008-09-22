@@ -826,11 +826,11 @@ void retopo_do_all()
 				}
 				else if(nu->type & CU_BEZIER) {
 					for(i=0; i<nu->pntsu; ++i) {
-						if(nu->bezt[i].f1 & 1)
+						if(nu->bezt[i].f1 & SELECT)
 							retopo_do_vert(G.vd, nu->bezt[i].vec[0]);
-						if(nu->bezt[i].f2 & 1)
+						if(nu->bezt[i].f2 & SELECT)
 							retopo_do_vert(G.vd, nu->bezt[i].vec[1]);
-						if(nu->bezt[i].f3 & 1)
+						if(nu->bezt[i].f3 & SELECT)
 							retopo_do_vert(G.vd, nu->bezt[i].vec[2]);
 					}
 				}

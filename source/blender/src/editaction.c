@@ -2102,7 +2102,7 @@ void paste_actdata ()
 	
 	/* from selected channels */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		Ipo *ipo_src=NULL, *ipo_dst=ale->key_data;
+		Ipo *ipo_src=NULL;
 		bActionChannel *achan;
 		IpoCurve *ico, *icu;
 		BezTriple *bezt;
@@ -2149,12 +2149,12 @@ void paste_actdata ()
 		}
 		
 		/* this shouldn't happen, but it might */
-		if (ELEM(NULL, ipo_src, ipo_dst))
+		if (ipo_src == NULL)
 			continue;
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, "", ico->adrcode, 1);
+			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */

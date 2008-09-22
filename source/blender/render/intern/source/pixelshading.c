@@ -45,6 +45,7 @@
 
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -141,7 +142,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 			
 			VECCOPY(shi.co, rco);
 			shi.osatex= 0;
-			do_lamp_tex(lar, lv, &shi, lacol);
+			do_lamp_tex(lar, lv, &shi, lacol, LA_TEXTURE);
 		}
 		
 		if(lar->type==LA_SPOT) {
@@ -593,7 +594,7 @@ void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, f
 	colorxyz[1] /= scale;
 	colorxyz[2] /= scale;
 	
-	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2]);
+	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2], BLI_CS_SMPTE);
 
 	ClipColor(colf);
 }
@@ -604,12 +605,9 @@ void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, f
  */
 void shadeSkyPixel(float *collector, float fx, float fy) 
 {
-	float view[3], dxyview[2];
-	float sun_collector[3];
-	float suns_color[3];
-	short num_sun_lamp;
 	GroupObject *go;
 	LampRen *lar;
+	float view[3], dxyview[2];
 
 	/*
 	  The rules for sky:
@@ -657,32 +655,17 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 		collector[3] = 0.0f;
 	}
 		
-	suns_color[0] = suns_color[1] = suns_color[2] = 0;
-	num_sun_lamp = 0;
 	for(go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
 		if(lar->type==LA_SUN &&	lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_SKY)){
-
-			num_sun_lamp ++;
+			float sun_collector[3];
+			
 			calc_view_vector(view, fx, fy);
 			Normalize(view);
 
 			shadeSunView(lar->sunsky, sun_collector, NULL, view, NULL);
-			suns_color[0] += sun_collector[0];
-			suns_color[1] += sun_collector[1];
-			suns_color[2] += sun_collector[2];
-
+			ramp_blend(lar->sunsky->skyblendtype, collector, collector+1, collector+2, lar->sunsky->skyblendfac, sun_collector);
 		}
-	}
-	if( num_sun_lamp > 0 ){
-		suns_color[0] /= num_sun_lamp;
-		suns_color[1] /= num_sun_lamp;
-		suns_color[2] /= num_sun_lamp;
-
-		collector[0] += suns_color[0];
-		collector[1] += suns_color[1];
-		collector[2] += suns_color[2];
-		ClipColor(collector);
 	}
 }
 

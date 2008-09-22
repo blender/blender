@@ -426,7 +426,6 @@ static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
 	renderwin_queue_redraw(rw);
 }
 
-#define FTOCHAR(val) val<=0.0f? 0 : (val>=(1.0f-0.5f/255.0f)? 255 :(char)((255.0f*val)+0.5f))
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
@@ -1132,7 +1131,7 @@ static void do_render(int anim)
 	}
 	
 	if(anim)
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 	else
 		RE_BlenderFrame(re, G.scene, G.scene->r.cfra);
 
@@ -1274,16 +1273,9 @@ void BIF_store_spare(void)
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
-	int slink_flag = 0;
+	if (G.f & G_DOSCRIPTLINKS)
+		BPY_do_all_scripts(SCRIPT_RENDER, anim);
 
-	if (G.f & G_DOSCRIPTLINKS) {
-		BPY_do_all_scripts(SCRIPT_RENDER);
-		if (!anim) { /* avoid FRAMECHANGED slink in render callback */
-			G.f &= ~G_DOSCRIPTLINKS;
-			slink_flag = 1;
-		}
-	}
-	
 	BIF_store_spare();
 
 	do_render(anim);
@@ -1294,8 +1286,8 @@ void BIF_do_render(int anim)
 	}
 	if(G.scene->r.dither_intensity != 0.0f)
 		BIF_redraw_render_rect();
-	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
+
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER, anim);
 }
 
 void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
@@ -1345,15 +1337,27 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 
 	if(anim) {
 		bMovieHandle *mh= BKE_get_movie_handle(G.scene->r.imtype);
+		unsigned int lay;
 		int cfrao= CFRA;
+		int nfra;
 		
 		if(BKE_imtype_is_movie(G.scene->r.imtype))
 			mh->start_movie(&G.scene->r, winx, winy);
 		
-		for(CFRA= SFRA; CFRA<=EFRA; CFRA++) {
+		for(nfra= SFRA, CFRA= SFRA; CFRA<=EFRA; CFRA++) {
 			/* user event can close window */
 			if(render_win==NULL)
 				break;
+
+			if(nfra!=CFRA) {
+				if(G.scene->lay & 0xFF000000)
+					lay= G.scene->lay & 0xFF000000;
+				else
+					lay= G.scene->lay;
+
+				scene_update_for_newframe(G.scene, lay);
+				continue;
+			}
 
 			do_ogl_view3d_render(re, v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
@@ -1389,6 +1393,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			printf("\n");
 			
 			if(test_break()) break;
+			nfra+= STFRA;
 		}
 		
 		if(BKE_imtype_is_movie(G.scene->r.imtype))

@@ -247,7 +247,7 @@ PyMethodDef KX_GameActuator::Methods[] =
 };
 
 /* getFile */
-char KX_GameActuator::GetFile_doc[] = 
+const char KX_GameActuator::GetFile_doc[] = 
 "getFile()\n"
 "get the name of the file to start.\n";
 PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* kwds)
@@ -256,7 +256,7 @@ PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* k
 }
 
 /* setFile */
-char KX_GameActuator::SetFile_doc[] =
+const char KX_GameActuator::SetFile_doc[] =
 "setFile(name)\n"
 "set the name of the file to start.\n";
 PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* kwds)

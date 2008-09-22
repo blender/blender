@@ -156,7 +156,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 		int p=0;
 
 		for(; p<psys->totpart; p++, pa++)
-			pa->flag = PARS_NO_DISP;
+			pa->flag |= PARS_NO_DISP;
 	}
 
 	/* reset children */
@@ -2110,22 +2110,18 @@ static void react_to_events(ParticleSystem *psys, int pa_num)
 	for(re=psys->reactevents.first; re; re=re->next){
 		birth=0;
 		if(part->from==PART_FROM_PARTICLE){
-			if(pa->num==re->pa_num){
+			if(pa->num==re->pa_num && pa->alive==PARS_UNBORN){
 				if(re->event==PART_EVENT_NEAR){
 					ParticleData *tpa = re->psys->particles+re->pa_num;
 					float pa_time=tpa->time + pa->foffset*tpa->lifetime;
-					if(re->time > pa_time){
-						pa->alive=PARS_ALIVE;
+					if(re->time >= pa_time){
 						pa->time=pa_time;
 						pa->dietime=pa->time+pa->lifetime;
 					}
 				}
 				else{
-					if(pa->alive==PARS_UNBORN){
-						pa->alive=PARS_ALIVE;
-						pa->time=re->time;
-						pa->dietime=pa->time+pa->lifetime;
-					}
+					pa->time=re->time;
+					pa->dietime=pa->time+pa->lifetime;
 				}
 			}
 		}
@@ -2133,7 +2129,6 @@ static void react_to_events(ParticleSystem *psys, int pa_num)
 			dist=VecLenf(pa->state.co, re->state.co);
 			if(dist <= re->size){
 				if(pa->alive==PARS_UNBORN){
-					pa->alive=PARS_ALIVE;
 					pa->time=re->time;
 					pa->dietime=pa->time+pa->lifetime;
 					birth=1;
@@ -3127,6 +3122,10 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 			if(through == 0 && (part->flag & PART_DIE_ON_COL || pd->flag & PDEFLE_KILL_PART)) {
 				pa->alive = PARS_DYING;
 				pa->dietime = pa->state.time + (cfra - pa->state.time) * dt;
+				
+				/* we have to add this for dying particles too so that reactors work correctly */
+				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
+
 				VECCOPY(state->co, co);
 				VecLerpf(state->vel, pa->state.vel, state->vel, dt);
 				QuatInterpol(state->rot, pa->state.rot, state->rot, dt);
@@ -4061,9 +4060,11 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 				pa_dfra = dfra;
 				pa_dtime = dtime;
 
+				/* we need to calculate this once again because reactions might have changed pa->time */
+				birthtime = pa->time + pa->loop * pa->lifetime;
 				dietime = birthtime + pa->lifetime;
 
-				if(birthtime < cfra && birthtime >= psys->cfra){
+				if(birthtime <= cfra && birthtime >= psys->cfra){
 					/* particle is born some time between this and last step*/
 					pa->alive = PARS_ALIVE;
 					pa_dfra = cfra - birthtime;
@@ -4103,8 +4104,6 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 						}
 					}
 
-					push_reaction(ob,psys,p,PART_EVENT_NEAR,key);
-
 					if(pa->alive == PARS_DYING){
 						push_reaction(ob,psys,p,PART_EVENT_DEATH,key);
 
@@ -4124,6 +4123,8 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 					}
 					else
 						key->time=cfra;
+
+					push_reaction(ob,psys,p,PART_EVENT_NEAR,key);
 				}
 			}
 		}
@@ -4333,7 +4334,7 @@ void psys_changed_type(ParticleSystem *psys)
 }
 
 static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
-{
+{	
 	if(psys->particles){
 		MEM_freeN(psys->particles);
 		psys->particles = 0;
@@ -4342,94 +4343,98 @@ static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
 
 	/* fluid sim particle import handling, actual loading of particles from file */
 	#ifndef DISABLE_ELBEEM
-	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // broken, disabled for now!
-		(ob->fluidsimSettings)) { 
-		ParticleSettings *part = psys->part;
-		ParticleData *pa=0;
-		char *suffix  = "fluidsurface_particles_####";
-		char *suffix2 = ".gz";
-		char filename[256];
-		char debugStrBuffer[256];
-		int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
-		int  p, j, numFileParts, totpart;
-		int readMask, activeParts = 0, fileParts = 0;
-		gzFile gzf;
-
-		if(ob==G.obedit) // off...
-			return;
-
-		// ok, start loading
-		strcpy(filename, ob->fluidsimSettings->surfdataPath);
-		strcat(filename, suffix);
-		BLI_convertstringcode(filename, G.sce);
-		BLI_convertstringframe(filename, curFrame); // fixed #frame-no 
-		strcat(filename, suffix2);
-
-		gzf = gzopen(filename, "rb");
-		if (!gzf) {
-			snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
-			//elbeemDebugOut(debugStrBuffer);
-			return;
-		}
-
-		gzread(gzf, &totpart, sizeof(totpart));
-		numFileParts = totpart;
-		totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+	{
+		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 		
-		part->totpart= totpart;
-		part->sta=part->end = 1.0f;
-		part->lifetime = G.scene->r.efra + 1;
-
-		/* initialize particles */
-		realloc_particles(ob, psys, part->totpart);
-		initialize_all_particles(ob, psys, 0);
-
-		// set up reading mask
-		readMask = ob->fluidsimSettings->typeFlags;
-		
-		for(p=0, pa=psys->particles; p<totpart; p++, pa++) {
-			int ptype=0;
-
-			gzread(gzf, &ptype, sizeof( ptype )); 
-			if(ptype&readMask) {
-				activeParts++;
-
-				gzread(gzf, &(pa->size), sizeof( float )); 
-
-				pa->size /= 10.0f;
-
-				for(j=0; j<3; j++) {
-					float wrf;
-					gzread(gzf, &wrf, sizeof( wrf )); 
-					pa->state.co[j] = wrf;
-					//fprintf(stderr,"Rj%d ",j);
-				}
-				for(j=0; j<3; j++) {
-					float wrf;
-					gzread(gzf, &wrf, sizeof( wrf )); 
-					pa->state.vel[j] = wrf;
-				}
-
-				pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
-				pa->state.rot[0] = 1.0;
-				pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
-
-				pa->alive = PARS_ALIVE;
-				//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
-			} else {
-				// skip...
-				for(j=0; j<2*3+1; j++) {
-					float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
-				}
+		if( fluidmd && fluidmd->fss) { 
+			FluidsimSettings *fss= fluidmd->fss;
+			ParticleSettings *part = psys->part;
+			ParticleData *pa=0;
+			char *suffix  = "fluidsurface_particles_####";
+			char *suffix2 = ".gz";
+			char filename[256];
+			char debugStrBuffer[256];
+			int  curFrame = G.scene->r.cfra -1; // warning - sync with derived mesh fsmesh loading
+			int  p, j, numFileParts, totpart;
+			int readMask, activeParts = 0, fileParts = 0;
+			gzFile gzf;
+	
+			if(ob==G.obedit) // off...
+				return;
+	
+			// ok, start loading
+			strcpy(filename, fss->surfdataPath);
+			strcat(filename, suffix);
+			BLI_convertstringcode(filename, G.sce);
+			BLI_convertstringframe(filename, curFrame); // fixed #frame-no 
+			strcat(filename, suffix2);
+	
+			gzf = gzopen(filename, "rb");
+			if (!gzf) {
+				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+				//elbeemDebugOut(debugStrBuffer);
+				return;
 			}
-			fileParts++;
-		}
-		gzclose( gzf );
-
-		totpart = psys->totpart = activeParts;
-		snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
-		elbeemDebugOut(debugStrBuffer);
-	} // fluid sim particles done
+	
+			gzread(gzf, &totpart, sizeof(totpart));
+			numFileParts = totpart;
+			totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+			
+			part->totpart= totpart;
+			part->sta=part->end = 1.0f;
+			part->lifetime = G.scene->r.efra + 1;
+	
+			/* initialize particles */
+			realloc_particles(ob, psys, part->totpart);
+			initialize_all_particles(ob, psys, 0);
+	
+			// set up reading mask
+			readMask = fss->typeFlags;
+			
+			for(p=0, pa=psys->particles; p<totpart; p++, pa++) {
+				int ptype=0;
+	
+				gzread(gzf, &ptype, sizeof( ptype )); 
+				if(ptype&readMask) {
+					activeParts++;
+	
+					gzread(gzf, &(pa->size), sizeof( float )); 
+	
+					pa->size /= 10.0f;
+	
+					for(j=0; j<3; j++) {
+						float wrf;
+						gzread(gzf, &wrf, sizeof( wrf )); 
+						pa->state.co[j] = wrf;
+						//fprintf(stderr,"Rj%d ",j);
+					}
+					for(j=0; j<3; j++) {
+						float wrf;
+						gzread(gzf, &wrf, sizeof( wrf )); 
+						pa->state.vel[j] = wrf;
+					}
+	
+					pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
+					pa->state.rot[0] = 1.0;
+					pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
+	
+					pa->alive = PARS_ALIVE;
+					//if(a<25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f \n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+				} else {
+					// skip...
+					for(j=0; j<2*3+1; j++) {
+						float wrf; gzread(gzf, &wrf, sizeof( wrf )); 
+					}
+				}
+				fileParts++;
+			}
+			gzclose( gzf );
+	
+			totpart = psys->totpart = activeParts;
+			snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
+			elbeemDebugOut(debugStrBuffer);
+		} // fluid sim particles done
+	}
 	#endif // DISABLE_ELBEEM
 }
 

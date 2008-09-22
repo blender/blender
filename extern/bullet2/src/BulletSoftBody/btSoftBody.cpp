@@ -69,7 +69,7 @@ btSoftBody::btSoftBody(btSoftBodyWorldInfo*	worldInfo,int node_count,  const btV
 	pm->m_flags	=	fMaterial::Default;
 	/* Collision shape	*/ 
 	///for now, create a collision shape internally
-	setCollisionShape(new btSoftBodyCollisionShape(this));	
+	m_collisionShape = new btSoftBodyCollisionShape(this);
 	m_collisionShape->setMargin(0.25);
 	/* Nodes			*/ 
 	const btScalar		margin=getCollisionShape()->getMargin();

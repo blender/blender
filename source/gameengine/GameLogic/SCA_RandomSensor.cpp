@@ -165,7 +165,7 @@ PyObject* SCA_RandomSensor::_getattr(const STR_String& attr) {
 }
 
 /* 1. setSeed                                                            */
-char SCA_RandomSensor::SetSeed_doc[] = 
+const char SCA_RandomSensor::SetSeed_doc[] = 
 "setSeed(seed)\n"
 "\t- seed: integer\n"
 "\tSet the initial seed of the generator. Equal seeds produce\n"
@@ -183,7 +183,7 @@ PyObject* SCA_RandomSensor::PySetSeed(PyObject* self, PyObject* args, PyObject* 
 }
 
 /* 2. getSeed                                                            */
-char SCA_RandomSensor::GetSeed_doc[] = 
+const char SCA_RandomSensor::GetSeed_doc[] = 
 "getSeed()\n"
 "\tReturns the initial seed of the generator. Equal seeds produce\n"
 "\tequal series.\n";
@@ -192,7 +192,7 @@ PyObject* SCA_RandomSensor::PyGetSeed(PyObject* self, PyObject* args, PyObject* 
 }
 
 /* 3. getLastDraw                                                            */
-char SCA_RandomSensor::GetLastDraw_doc[] = 
+const char SCA_RandomSensor::GetLastDraw_doc[] = 
 "getLastDraw()\n"
 "\tReturn the last value that was drawn.\n";
 PyObject* SCA_RandomSensor::PyGetLastDraw(PyObject* self, PyObject* args, PyObject* kwds) {

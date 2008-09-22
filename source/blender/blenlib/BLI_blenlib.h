@@ -224,7 +224,7 @@ int BLI_strcaseeq(char *a, char *b);
 
 /* in util.c */
 #ifdef WITH_ICONV
-void BLI_string_to_utf8(char *original, char *utf_8, char *code);
+void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
 #endif
 
 	/**

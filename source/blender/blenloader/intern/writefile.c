@@ -852,6 +852,11 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
 			writestruct(wd, DATA, "PointCache", 1, clmd->point_cache);
 		} 
+		else if(md->type==eModifierType_Fluidsim) {
+			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
+			
+			writestruct(wd, DATA, "FluidsimSettings", 1, fluidmd->fss);
+		} 
 		else if (md->type==eModifierType_Collision) {
 			
 			/*
@@ -917,7 +922,6 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
 			if(ob->soft) writestruct(wd, DATA, "PointCache", 1, ob->soft->pointcache);
-			writestruct(wd, DATA, "FluidsimSettings", 1, ob->fluidsimSettings); // NT
 			
 			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);

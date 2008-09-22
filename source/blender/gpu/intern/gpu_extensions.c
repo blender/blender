@@ -40,6 +40,7 @@
 
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -154,7 +155,6 @@ struct GPUTexture {
 	int depth;				/* is a depth texture? */
 };
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 static unsigned char *GPU_texture_convert_pixels(int length, float *fpixels)
 {
 	unsigned char *pixels, *p;
@@ -669,11 +669,13 @@ static void shader_print_errors(char *task, char *log, const char *code)
 	fprintf(stderr, "%s\n", log);
 }
 
-GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUShader *lib)
+GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPUShader *lib,*/ const char *libcode)
 {
 	GLint status;
 	GLcharARB log[5000];
+	const char *fragsource[2];
 	GLsizei length = 0;
+	GLint count;
 	GPUShader *shader;
 
 	if (!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader)
@@ -712,8 +714,12 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 	}
 
 	if(fragcode) {
+		count = 0;
+		if(libcode) fragsource[count++] = libcode;
+		if(fragcode) fragsource[count++] = fragcode;
+
 		glAttachObjectARB(shader->object, shader->fragment);
-		glShaderSourceARB(shader->fragment, 1, (const char**)&fragcode, NULL);
+		glShaderSourceARB(shader->fragment, count, fragsource, NULL);
 
 		glCompileShaderARB(shader->fragment);
 		glGetObjectParameterivARB(shader->fragment, GL_OBJECT_COMPILE_STATUS_ARB, &status);
@@ -727,8 +733,8 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 		}
 	}
 
-	if(lib && lib->lib)
-		glAttachObjectARB(shader->object, lib->lib);
+	/*if(lib && lib->lib)
+		glAttachObjectARB(shader->object, lib->lib);*/
 
 	glLinkProgramARB(shader->object);
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);
@@ -743,6 +749,7 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, GPUSh
 	return shader;
 }
 
+#if 0
 GPUShader *GPU_shader_create_lib(const char *code)
 {
 	GLint status;
@@ -778,6 +785,7 @@ GPUShader *GPU_shader_create_lib(const char *code)
 
 	return shader;
 }
+#endif
 
 void GPU_shader_bind(GPUShader *shader)
 {

@@ -211,10 +211,6 @@ void do_buts_buttons(short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
-	case B_MESHTYPE:
-		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
 	}
 }
 

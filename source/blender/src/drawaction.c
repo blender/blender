@@ -1455,8 +1455,11 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	if (IS_EQ(beztn->vec[1][1], beztn->vec[0][1])==0) return;
 	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
-	/* try to find a keyblock that starts on the previous beztriple */
-	for (ab= blocks->last; ab; ab= ab->prev) {
+	/* try to find a keyblock that starts on the previous beztriple 
+	 * Note: we can't search from end to try to optimise this as it causes errors there's
+	 * 		an A ___ B |---| B situation
+	 */
+	for (ab= blocks->first; ab; ab= ab->next) {
 		/* check if alter existing block or add new block */
 		if (ab->start == prev->vec[1][0]) {			
 			/* set selection status and 'touched' status */
@@ -1470,7 +1473,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	
 	/* add new block */
 	abn= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
-	if (ab) BLI_insertlinkafter(blocks, ab, abn);
+	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
 	else BLI_addtail(blocks, abn);
 	
 	abn->start= prev->vec[1][0];
@@ -1768,13 +1771,14 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 					ak->modified = 0;
 					ak->totcurve += 1;
 				}
+				
+				if (ak == ak2)
+					break;
+				
 				if (ak2->modified) {
 					ak2->modified = 0;
 					ak2->totcurve += 1;
 				}
-				
-				if (ak == ak2)
-					break;
 			}
 		}
 		if (blocks) {
@@ -1783,13 +1787,14 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 					ab->modified = 0;
 					ab->totcurve += 1;
 				}
+				
+				if (ab == ab2)
+					break;
+				
 				if (ab2->modified) {
 					ab2->modified = 0;
 					ab2->totcurve += 1;
 				}
-				
-				if (ab == ab2)
-					break;
 			}
 		}
 	}

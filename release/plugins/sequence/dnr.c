@@ -110,9 +110,9 @@ static void doit(unsigned char * src_, unsigned char * dst_,
 	unsigned char * dst = dst_;
 
 	while (count--) {
-		*dst++ = table[(*src++ << 8) | *dst];
-		*dst++ = table[(*src++ << 8) | *dst];
-		*dst++ = table[(*src++ << 8) | *dst];
+		*dst = table[(*src++ << 8) | *dst]; dst++;
+		*dst = table[(*src++ << 8) | *dst]; dst++;
+		*dst = table[(*src++ << 8) | *dst]; dst++;
 		*dst++ = *src++;
 	}
 

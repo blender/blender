@@ -97,11 +97,37 @@ class ntlGeometryObject : public ntlGeometryClass
 		/*! Set/get the local inivel coords flag */
 		inline bool getLocalCoordInivel() const { return mLocalCoordInivel; }
 		inline void setLocalCoordInivel(bool set) { mLocalCoordInivel=set; }
-
+		
+		/****************************************/
+		/* fluid control features */
+		/****************************************/
+		/*! Set/get the particle control set attract force strength */
+		inline float getCpsTimeStart() const { return mCpsTimeStart; }
+		inline void setCpsTimeStart(float set) { mCpsTimeStart=set; }
+		
+		/*! Set/get the particle control set attract force strength */
+		inline float getCpsTimeEnd() const { return mCpsTimeEnd; }
+		inline void setCpsTimeEnd(float set) { mCpsTimeEnd=set; }
+		
+		/*! Set/get the particle control set quality */
+		inline float getCpsQuality() const { return mCpsQuality; }
+		inline void setCpsQuality(float set) { mCpsQuality=set; }
+		
+		inline AnimChannel<float> getCpsAttrFStr() const { return mcAttrFStr; }
+		inline AnimChannel<float> getCpsAttrFRad() const { return mcAttrFRad; }
+		inline AnimChannel<float> getCpsVelFStr() const { return mcVelFStr; }
+		inline AnimChannel<float> getCpsVelFRad() const { return mcVelFRad; }
+		
+		/****************************************/
+		
 		/*! Init channels from float arrays (for elbeem API) */
 		void initChannels(
 				int nTrans, float *trans, int nRot, float *rot, int nScale, float *scale,
-			  int nAct, float *act, int nIvel, float *ivel
+				int nAct, float *act, int nIvel, float *ivel,
+				int nAttrFStr, float *attrFStr,
+				int nAttrFRad, float *attrFRad,
+				int nVelFStr, float *velFStr,
+				int nVelFRad, float *velFRad
 				);
 
 		/*! is the object animated? */
@@ -202,6 +228,12 @@ class ntlGeometryObject : public ntlGeometryClass
 
 		/*! animated channels for in/outflow on/off */
 		AnimChannel<float> mcGeoActive;
+		
+		/* fluid control settings */
+		float mCpsTimeStart;
+		float mCpsTimeEnd;
+		float mCpsQuality;
+		AnimChannel<float> mcAttrFStr, mcAttrFRad, mcVelFStr, mcVelFRad;
 
 	public:
 

@@ -61,7 +61,9 @@
 #include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
+#include "BKE_fluidsim.h"
 #include "BKE_global.h"
+#include "BKE_modifier.h"
 #include "BKE_main.h"
 #include "BKE_key.h"
 #include "BKE_scene.h"
@@ -102,9 +104,6 @@
 #undef main
 #endif
 
-// from DerivedMesh.c
-void initElbeemMesh(struct Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords);
-
 /* from header info.c */
 extern int start_progress_bar(void);
 extern void end_progress_bar(void);
@@ -128,150 +127,11 @@ char* fluidsimViscosityPresetString[6] = {
 	"INVALID"	/* end */
 };
 
-typedef struct {
-	DerivedMesh dm;
-
-	// similar to MeshDerivedMesh
-	struct Object *ob;	// pointer to parent object
-	float *extverts, *nors; // face normals, colors?
-	Mesh *fsmesh;	// mesh struct to display (either surface, or original one)
-	char meshFree;	// free the mesh afterwards? (boolean)
-} fluidsimDerivedMesh;
-
-
-
 /* enable/disable overall compilation */
 #ifndef DISABLE_ELBEEM
 
 
 /* ********************** fluid sim settings struct functions ********************** */
-
-/* allocates and initializes general main data */
-
-FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
-{
-	//char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
-	FluidsimSettings *fss;
-	
-	/* this call uses derivedMesh methods... */
-	if(srcob->type!=OB_MESH) return NULL;
-	
-	fss= MEM_callocN( sizeof(FluidsimSettings), "fluidsimsettings memory");
-	
-	fss->type = 0;
-	fss->show_advancedoptions = 0;
-
-	fss->resolutionxyz = 50;
-	fss->previewresxyz = 25;
-	fss->realsize = 0.03;
-	fss->guiDisplayMode = 2; // preview
-	fss->renderDisplayMode = 3; // render
-
-	fss->viscosityMode = 2; // default to water
-	fss->viscosityValue = 1.0;
-	fss->viscosityExponent = 6;
-	fss->gravx = 0.0;
-	fss->gravy = 0.0;
-	fss->gravz = -9.81;
-	fss->animStart = 0.0; 
-	fss->animEnd = 0.30;
-	fss->gstar = 0.005; // used as normgstar
-	fss->maxRefine = -1;
-	// maxRefine is set according to resolutionxyz during bake
-
-	// fluid/inflow settings
-	fss->iniVelx = 
-	fss->iniVely = 
-	fss->iniVelz = 0.0;
-
-	/*  elubie: changed this to default to the same dir as the render output
-		to prevent saving to C:\ on Windows */
-	BLI_strncpy(fss->surfdataPath, btempdir, FILE_MAX); 
-	fss->orgMesh = (Mesh *)srcob->data;
-	fss->meshSurface = NULL;
-	fss->meshBB = NULL;
-	fss->meshSurfNormals = NULL;
-
-	// first init of bounding box
-	fss->bbStart[0] = 0.0;
-	fss->bbStart[1] = 0.0;
-	fss->bbStart[2] = 0.0;
-	fss->bbSize[0] = 1.0;
-	fss->bbSize[1] = 1.0;
-	fss->bbSize[2] = 1.0;
-	fluidsimGetAxisAlignedBB(srcob->data, srcob->obmat, fss->bbStart, fss->bbSize, &fss->meshBB);
-	
-	// todo - reuse default init from elbeem!
-	fss->typeFlags = 0;
-	fss->domainNovecgen = 0;
-	fss->volumeInitType = 1; // volume
-	fss->partSlipValue = 0.0;
-
-	fss->generateTracers = 0;
-	fss->generateParticles = 0.0;
-	fss->surfaceSmoothing = 1.0;
-	fss->surfaceSubdivs = 1.0;
-	fss->particleInfSize = 0.0;
-	fss->particleInfAlpha = 0.0;
-
-	return fss;
-}
-
-/* duplicate struct, analogous to free */
-static Mesh *fluidsimCopyMesh(Mesh *me)
-{
-	Mesh *dup = MEM_dupallocN(me);
-
-	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
-	CustomData_copy(&me->edata, &dup->edata, CD_MASK_MESH, CD_DUPLICATE, me->totedge);
-	CustomData_copy(&me->fdata, &dup->fdata, CD_MASK_MESH, CD_DUPLICATE, me->totface);
-
-	return dup;
-}
-
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss)
-{
-	FluidsimSettings *dupfss;
-
-	if(!fss) return NULL;
-	dupfss = MEM_dupallocN(fss);
-
-	if(fss->meshSurface)
-		dupfss->meshSurface = fluidsimCopyMesh(fss->meshSurface);
-	if(fss->meshBB)
-		dupfss->meshBB = fluidsimCopyMesh(fss->meshBB);
-
-	if(fss->meshSurfNormals) dupfss->meshSurfNormals = MEM_dupallocN(fss->meshSurfNormals);
-
-	return dupfss;
-}
-
-/* free struct */
-static void fluidsimFreeMesh(Mesh *me)
-{
-	CustomData_free(&me->vdata, me->totvert);
-	CustomData_free(&me->edata, me->totedge);
-	CustomData_free(&me->fdata, me->totface);
-
-	MEM_freeN(me);
-}
-
-void fluidsimSettingsFree(FluidsimSettings *fss)
-{
-	if(fss->meshSurface) {
-		fluidsimFreeMesh(fss->meshSurface);
-		fss->meshSurface = NULL;
-	}
-	if(fss->meshBB) {
-		fluidsimFreeMesh(fss->meshBB);
-		fss->meshBB = NULL;
-	}
-
-	if(fss->meshSurfNormals){ MEM_freeN(fss->meshSurfNormals); fss->meshSurfNormals=NULL; } 
-
-	MEM_freeN(fss);
-}
-
 
 /* helper function */
 void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *srcname) {
@@ -306,6 +166,10 @@ void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *sr
 		FS_FREE_ONECHANNEL(channelObjMove[i][2],"channelObjMove2"); \
 		FS_FREE_ONECHANNEL(channelObjInivel[i],"channelObjInivel"); \
 		FS_FREE_ONECHANNEL(channelObjActive[i],"channelObjActive"); \
+		FS_FREE_ONECHANNEL(channelAttractforceStrength[i],"channelAttractforceStrength"); \
+		FS_FREE_ONECHANNEL(channelAttractforceRadius[i],"channelAttractforceRadius"); \
+		FS_FREE_ONECHANNEL(channelVelocityforceStrength[i],"channelVelocityforceStrength"); \
+		FS_FREE_ONECHANNEL(channelVelocityforceRadius[i],"channelVelocityforceRadius"); \
 	}  \
 } // end FS FREE CHANNELS
 
@@ -387,7 +251,7 @@ static void fluidsimInitChannel(float **setchannel, int size, float *time,
 	*setchannel = channel;
 }
 
-static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, int vertices, float *time) {
+static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, int vertices, float *time, int modifierIndex) {
 	float *channel = NULL;
 	int mallsize = size* (3*vertices+1);
 	int frame,i;
@@ -403,7 +267,7 @@ static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, i
 		G.scene->r.cfra = frame;
 		scene_update_for_newframe(G.scene, G.scene->lay);
 
-		initElbeemMesh(obm, &numVerts, &verts, &numTris, &tris, 1);
+		initElbeemMesh(obm, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
 		//fprintf(stderr,"\nfluidsimInitMeshChannel frame%d verts%d/%d \n\n",frame,vertices,numVerts);
 		for(i=0; i<3*vertices;i++) {
 			channel[(frame-1)*setsize + i] = verts[i];
@@ -524,6 +388,14 @@ void fluidsimBake(struct Object *ob)
 	float *channelObjInivel[256];    // initial velocities
 	float *channelObjActive[256];    // obj active channel
 	
+	/* fluid control channels */
+	float *channelAttractforceStrength[256];
+	float *channelAttractforceRadius[256];
+	float *channelVelocityforceStrength[256];
+	float *channelVelocityforceRadius[256];
+	FluidsimModifierData *fluidmd = NULL;
+	Mesh *mesh = NULL;
+	
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
@@ -547,12 +419,16 @@ void fluidsimBake(struct Object *ob)
 	/* no object pointer, find in selected ones.. */
 	if(!ob) {
 		for(base=G.scene->base.first; base; base= base->next) {
-			if ( ((base)->flag & SELECT) 
-					// ignore layer setting for now? && ((base)->lay & G.vd->lay) 
-				 ) {
-				if((!ob)&&(base->object->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(base->object->type==OB_MESH)) {
-					if(base->object->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
+			if ((base)->flag & SELECT) 
+			{
+				FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(base->object, eModifierType_Fluidsim);
+				
+				if(fluidmdtmp && (base->object->type==OB_MESH)) 
+				{
+					if(fluidmdtmp->fss->type == OB_FLUIDSIM_DOMAIN) 
+					{
 						ob = base->object;
+						break;
 					}
 				}
 			}
@@ -560,15 +436,17 @@ void fluidsimBake(struct Object *ob)
 		// no domains found?
 		if(!ob) return;
 	}
-
+	
 	channelObjCount = 0;
-	for(base=G.scene->base.first; base; base= base->next) {
+	for(base=G.scene->base.first; base; base= base->next) 
+	{
+		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(base->object, eModifierType_Fluidsim);
 		obit = base->object;
-		//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
-		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
-				(obit->type==OB_MESH) &&
-				(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&  // if has to match 3 places! // CHECKMATCH
-				(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE) ) {
+		if( fluidmdtmp && 
+			(obit->type==OB_MESH) &&
+			(fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN) &&  // if has to match 3 places! // CHECKMATCH
+			(fluidmdtmp->fss->type != OB_FLUIDSIM_PARTICLE) ) 
+		{
 			channelObjCount++;
 		}
 	}
@@ -579,23 +457,57 @@ void fluidsimBake(struct Object *ob)
 	}
 
 	/* check if there's another domain... */
-	for(base=G.scene->base.first; base; base= base->next) {
+	for(base=G.scene->base.first; base; base= base->next) 
+	{
+		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(base->object, eModifierType_Fluidsim);
 		obit = base->object;
-		if((obit->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(obit->type==OB_MESH)) {
-			if(obit->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
-				if(obit != ob) {
-					//snprintf(debugStrBuffer,256,"fluidsimBake::warning - More than one domain!\n"); elbeemDebugOut(debugStrBuffer);
+		if( fluidmdtmp &&(obit->type==OB_MESH)) 
+		{
+			if(fluidmdtmp->fss->type == OB_FLUIDSIM_DOMAIN) 
+			{
+				if(obit != ob) 
+				{
 					pupmenu("Fluidsim Bake Error%t|There should be only one domain object! Aborted%x0");
 					return;
 				}
 			}
 		}
 	}
+	
+	// check if theres any fluid
+	// abort baking if not...
+	for(base=G.scene->base.first; base; base= base->next) 
+	{
+		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(base->object, eModifierType_Fluidsim);
+		obit = base->object;
+		if( fluidmdtmp && 
+			(obit->type==OB_MESH) && 
+			((fluidmdtmp->fss->type == OB_FLUIDSIM_FLUID) ||
+			(fluidmdtmp->fss->type == OB_FLUIDSIM_INFLOW) ))
+		{
+			haveSomeFluid = 1;
+			break;
+		}
+	}
+	if(!haveSomeFluid) {
+		pupmenu("Fluidsim Bake Error%t|No fluid objects in scene... Aborted%x0");
+		return;
+	}
+	
 	/* these both have to be valid, otherwise we wouldnt be here */
 	/* dont use ob here after...*/
 	fsDomain = ob;
-	domainSettings = ob->fluidsimSettings;
+	fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+	domainSettings = fluidmd->fss;
 	ob = NULL;
+	mesh = fsDomain->data;
+	
+	// calculate bounding box
+	fluid_get_bb(mesh->mvert, mesh->totvert, fsDomain->obmat, domainSettings->bbStart, domainSettings->bbSize);
+	
+	// reset last valid frame
+	domainSettings->lastgoodframe = -1;
+	
 	/* rough check of settings... */
 	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 
@@ -620,23 +532,6 @@ void fluidsimBake(struct Object *ob)
 	}
 	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
 	elbeemDebugOut(debugStrBuffer);
-	
-	// check if theres any fluid
-	// abort baking if not...
-	for(base=G.scene->base.first; base; base= base->next) {
-		obit = base->object;
-		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
-				(obit->type==OB_MESH) && (
-			  (obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) ||
-			  (obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) )
-				) {
-			haveSomeFluid = 1;
-		}
-	}
-	if(!haveSomeFluid) {
-		pupmenu("Fluidsim Bake Error%t|No fluid objects in scene... Aborted%x0");
-		return;
-	}
 
 	// prepare names...
 	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
@@ -700,14 +595,18 @@ void fluidsimBake(struct Object *ob)
 	// dump data for start frame 
 	// CHECK more reasonable to number frames according to blender?
 	// dump data for frame 0
-  G.scene->r.cfra = startFrame;
-  scene_update_for_newframe(G.scene, G.scene->lay);
+	G.scene->r.cfra = startFrame;
+	scene_update_for_newframe(G.scene, G.scene->lay);
 	
 	// init common export vars for both file export and run
 	for(i=0; i<256; i++) {
 		channelObjMove[i][0] = channelObjMove[i][1] = channelObjMove[i][2] = NULL;
 		channelObjInivel[i] = NULL;
 		channelObjActive[i] = NULL;
+		channelAttractforceStrength[i] = NULL;
+		channelAttractforceRadius[i] = NULL;
+		channelVelocityforceStrength[i] = NULL;
+		channelVelocityforceRadius[i] = NULL;
 	}
 	allchannelSize = G.scene->r.efra; // always use till last frame
 	aniFrameTime = (domainSettings->animEnd - domainSettings->animStart)/(double)noFrames;
@@ -720,9 +619,8 @@ void fluidsimBake(struct Object *ob)
 		calcViscosity = fluidsimViscosityPreset[ domainSettings->viscosityMode ];
 	}
 
-	bbStart = fsDomain->fluidsimSettings->bbStart; 
-	bbSize = fsDomain->fluidsimSettings->bbSize;
-	fluidsimGetAxisAlignedBB(fsDomain->data, fsDomain->obmat, bbStart, bbSize, &domainSettings->meshBB);
+	bbStart = domainSettings->bbStart;
+	bbSize = domainSettings->bbSize;
 
 	// always init
 	{ int timeIcu[1] = { FLUIDSIM_TIME };
@@ -768,13 +666,15 @@ void fluidsimBake(struct Object *ob)
 	
 	// init obj movement channels
 	channelObjCount=0;
-	for(base=G.scene->base.first; base; base= base->next) {
+	for(base=G.scene->base.first; base; base= base->next) 
+	{
+		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(base->object, eModifierType_Fluidsim);
 		obit = base->object;
-		//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
-		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
-				(obit->type==OB_MESH) &&
-				(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&  // if has to match 3 places! // CHECKMATCH
-				(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE) ) {
+		
+		if( fluidmdtmp && 
+			(obit->type==OB_MESH) &&
+			(fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN) &&  // if has to match 3 places! // CHECKMATCH
+			(fluidmdtmp->fss->type != OB_FLUIDSIM_PARTICLE) ) {
 
 			//  cant use fluidsimInitChannel for obj channels right now, due
 			//  to the special DXXX channels, and the rotation specialities
@@ -801,9 +701,9 @@ void fluidsimBake(struct Object *ob)
 			int   activeIcu[1] =  { FLUIDSIM_ACTIVE };
 			float activeDefs[1] = { 1 }; // default to on
 
-			inivelDefs[0] = obit->fluidsimSettings->iniVelx;
-			inivelDefs[1] = obit->fluidsimSettings->iniVely;
-			inivelDefs[2] = obit->fluidsimSettings->iniVelz;
+			inivelDefs[0] = fluidmdtmp->fss->iniVelx;
+			inivelDefs[1] = fluidmdtmp->fss->iniVely;
+			inivelDefs[2] = fluidmdtmp->fss->iniVelz;
 
 			// check & init loc,rot,size
 			for(j=0; j<3; j++) {
@@ -872,9 +772,32 @@ void fluidsimBake(struct Object *ob)
 					channelObjMove[o][j][(i-1)*4 + 3] = timeAtFrame[i];
 				}
 			}
+			
+			{
+				int   attrFSIcu[1] =  { FLUIDSIM_ATTR_FORCE_STR };
+				int   attrFRIcu[1] =  { FLUIDSIM_ATTR_FORCE_RADIUS };
+				int   velFSIcu[1] =  { FLUIDSIM_VEL_FORCE_STR };
+				int   velFRIcu[1] =  { FLUIDSIM_VEL_FORCE_RADIUS };
 
-			fluidsimInitChannel( &channelObjInivel[o], allchannelSize, timeAtFrame, inivelIcu,inivelDefs, obit->fluidsimSettings->ipo, CHANNEL_VEC );
-			fluidsimInitChannel( &channelObjActive[o], allchannelSize, timeAtFrame, activeIcu,activeDefs, obit->fluidsimSettings->ipo, CHANNEL_FLOAT );
+				float attrFSDefs[1];
+				float attrFRDefs[1];
+				float velFSDefs[1];
+				float velFRDefs[1];
+				
+				attrFSDefs[0] = fluidmdtmp->fss->attractforceStrength;
+				attrFRDefs[0] = fluidmdtmp->fss->attractforceRadius;
+				velFSDefs[0] = fluidmdtmp->fss->velocityforceStrength;
+				velFRDefs[0] = fluidmdtmp->fss->velocityforceRadius;
+				
+				fluidsimInitChannel( &channelAttractforceStrength[o], allchannelSize, timeAtFrame, attrFSIcu,attrFSDefs, fluidmdtmp->fss->ipo, CHANNEL_FLOAT );
+				fluidsimInitChannel( &channelAttractforceRadius[o], allchannelSize, timeAtFrame, attrFRIcu,attrFRDefs, fluidmdtmp->fss->ipo, CHANNEL_FLOAT );
+				fluidsimInitChannel( &channelVelocityforceStrength[o], allchannelSize, timeAtFrame, velFSIcu,velFSDefs, fluidmdtmp->fss->ipo, CHANNEL_FLOAT );
+				fluidsimInitChannel( &channelVelocityforceRadius[o], allchannelSize, timeAtFrame, velFRIcu,velFRDefs, fluidmdtmp->fss->ipo, CHANNEL_FLOAT );
+			}
+			
+			fluidsimInitChannel( &channelObjInivel[o], allchannelSize, timeAtFrame, inivelIcu,inivelDefs, fluidmdtmp->fss->ipo, CHANNEL_VEC );
+			fluidsimInitChannel( &channelObjActive[o], allchannelSize, timeAtFrame, activeIcu,activeDefs, fluidmdtmp->fss->ipo, CHANNEL_FLOAT );
+		
 
 			channelObjCount++;
 
@@ -913,6 +836,7 @@ void fluidsimBake(struct Object *ob)
 		// setup global settings
 		for(i=0 ; i<3; i++) fsset.geoStart[i] = bbStart[i];
 		for(i=0 ; i<3; i++) fsset.geoSize[i] = bbSize[i];
+		
 		// simulate with 50^3
 		fsset.resolutionxyz = (int)domainSettings->resolutionxyz;
 		fsset.previewresxyz = (int)domainSettings->previewresxyz;
@@ -973,26 +897,29 @@ void fluidsimBake(struct Object *ob)
 		// init objects
 		channelObjCount = 0;
 		for(base=G.scene->base.first; base; base= base->next) {
+			FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(base->object, eModifierType_Fluidsim);
 			obit = base->object;
 			//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
-			if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // if has to match 3 places! // CHECKMATCH
-					(obit->type==OB_MESH) &&
-					(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&
-					(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE)
-				) {
+			if( fluidmdtmp &&  // if has to match 3 places! // CHECKMATCH
+				(obit->type==OB_MESH) &&
+				(fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN) &&
+				(fluidmdtmp->fss->type != OB_FLUIDSIM_PARTICLE)) 
+			{
 				float *verts=NULL;
 				int *tris=NULL;
 				int numVerts=0, numTris=0;
 				int o = channelObjCount;
-				int	deform = (obit->fluidsimSettings->domainNovecgen); // misused value
+				int	deform = (fluidmdtmp->fss->domainNovecgen); // misused value
 				// todo - use blenderInitElbeemMesh
+				int modifierIndex = modifiers_indexInObject(obit, (ModifierData *)fluidmdtmp);
+				
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
-				fsmesh.type = obit->fluidsimSettings->type;;
+				fsmesh.type = fluidmdtmp->fss->type;
 				// get name of object for debugging solver
 				fsmesh.name = obit->id.name; 
 
-				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris, 0);
+				initElbeemMesh(obit, &numVerts, &verts, &numTris, &tris, 0, modifierIndex);
 				fsmesh.numVertices   = numVerts;
 				fsmesh.numTriangles  = numTris;
 				fsmesh.vertices      = verts;
@@ -1009,22 +936,51 @@ void fluidsimBake(struct Object *ob)
 				fsmesh.channelScale            = channelObjMove[o][2];
 				fsmesh.channelActive           = channelObjActive[o];
 				if( (fsmesh.type == OB_FLUIDSIM_FLUID) ||
-						(fsmesh.type == OB_FLUIDSIM_INFLOW) ) {
+				(fsmesh.type == OB_FLUIDSIM_INFLOW)) {
 					fsmesh.channelInitialVel       = channelObjInivel[o];
-				  fsmesh.localInivelCoords = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
+					fsmesh.localInivelCoords = ((fluidmdtmp->fss->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
 				} 
 
-				if(     (obit->fluidsimSettings->typeFlags&OB_FSBND_NOSLIP))   fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
-				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_PARTSLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
-				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
-				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
-				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
-				fsmesh.obstacleImpactFactor = obit->fluidsimSettings->surfaceSmoothing; // misused value
+				if(     (fluidmdtmp->fss->typeFlags&OB_FSBND_NOSLIP))   fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
+				else if((fluidmdtmp->fss->typeFlags&OB_FSBND_PARTSLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
+				else if((fluidmdtmp->fss->typeFlags&OB_FSBND_FREESLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
+				fsmesh.obstaclePartslip = fluidmdtmp->fss->partSlipValue;
+				fsmesh.volumeInitType = fluidmdtmp->fss->volumeInitType;
+				fsmesh.obstacleImpactFactor = fluidmdtmp->fss->surfaceSmoothing; // misused value
+				
+				if(fsmesh.type == OB_FLUIDSIM_CONTROL)
+				{
+					// control fluids will get exported as whole
+					deform = 1;
+					
+					fsmesh.cpsTimeStart = fluidmdtmp->fss->cpsTimeStart;
+					fsmesh.cpsTimeEnd = fluidmdtmp->fss->cpsTimeEnd;
+					fsmesh.cpsQuality = fluidmdtmp->fss->cpsQuality;
+					fsmesh.obstacleType = (fluidmdtmp->fss->flag & OB_FLUIDSIM_REVERSE);
+					
+					fsmesh.channelSizeAttractforceRadius = 
+					fsmesh.channelSizeVelocityforceStrength = 
+					fsmesh.channelSizeVelocityforceRadius = 
+					fsmesh.channelSizeAttractforceStrength = allchannelSize;
+					
+					fsmesh.channelAttractforceStrength = channelAttractforceStrength[o];
+					fsmesh.channelAttractforceRadius = channelAttractforceRadius[o];
+					fsmesh.channelVelocityforceStrength = channelVelocityforceStrength[o];
+					fsmesh.channelVelocityforceRadius = channelVelocityforceRadius[o];
+				}
+				else 
+				{
+					// set channels to 0
+					fsmesh.channelAttractforceStrength =
+					fsmesh.channelAttractforceRadius = 
+					fsmesh.channelVelocityforceStrength = 
+					fsmesh.channelVelocityforceRadius = NULL; 
+				}
 
 				// animated meshes
 				if(deform) {
 					fsmesh.channelSizeVertices = allchannelSize;
-					fluidsimInitMeshChannel( &fsmesh.channelVertices, allchannelSize, obit, numVerts, timeAtFrame);
+					fluidsimInitMeshChannel( &fsmesh.channelVertices, allchannelSize, obit, numVerts, timeAtFrame, modifierIndex);
 					G.scene->r.cfra = startFrame;
 					scene_update_for_newframe(G.scene, G.scene->lay);
 					// remove channels
@@ -1085,6 +1041,10 @@ void fluidsimBake(struct Object *ob)
 					if(event == ESCKEY) {
 						// abort...
 						SDL_mutexP(globalBakeLock);
+						
+						if(domainSettings)
+							domainSettings->lastgoodframe = startFrame+globalBakeFrame;
+						
 						done = -1;
 						globalBakeFrame = 0;
 						globalBakeState = -1;
@@ -1125,6 +1085,13 @@ void fluidsimBake(struct Object *ob)
 
 	// go back to "current" blender time
 	waitcursor(0);
+	
+	if(globalBakeState >= 0)
+	{
+		if(domainSettings)
+			domainSettings->lastgoodframe = startFrame+globalBakeFrame;
+	}
+	
   G.scene->r.cfra = origFrame;
   scene_update_for_newframe(G.scene, G.scene->lay);
 	allqueue(REDRAWVIEW3D, 0);
@@ -1145,6 +1112,8 @@ void fluidsimBake(struct Object *ob)
 			pupmenu(fsmessage);
 		} // init error
 	}
+	
+	// elbeemFree();
 }
 
 void fluidsimFreeBake(struct Object *ob)

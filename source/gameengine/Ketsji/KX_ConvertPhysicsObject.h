@@ -75,6 +75,7 @@ struct KX_CBounds
 struct KX_ObjectProperties
 {
 	bool	m_dyna;
+	bool	m_softbody;
 	double m_radius;
 	bool	m_angular_rigidbody;
 	bool	m_in_active_layer;

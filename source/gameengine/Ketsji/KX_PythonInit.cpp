@@ -1047,6 +1047,21 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 
 }
 
+/* override python file type functions */
+#if 0
+static int
+file_init(PyObject *self, PyObject *args, PyObject *kwds)
+{
+	KXpy_file(NULL, NULL);
+	return -1;
+}
+
+static PyObject *
+file_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	return KXpy_file(NULL, NULL);
+}
+#endif
 
 static PyMethodDef meth_open[] = {{ "open", KXpy_open, METH_VARARGS, "(disabled)"}};
 static PyMethodDef meth_reload[] = {{ "reload", KXpy_reload, METH_VARARGS, "(disabled)"}};
@@ -1059,7 +1074,6 @@ static PyMethodDef meth_import[] = {{ "import", KXpy_import, METH_VARARGS, "our 
 //static PyObject *g_oldopen = 0;
 //static PyObject *g_oldimport = 0;
 //static int g_security = 0;
-
 
 void setSandbox(TPythonSecurityLevel level)
 {
@@ -1081,6 +1095,19 @@ void setSandbox(TPythonSecurityLevel level)
 			// our own import
 			PyDict_SetItemString(d, "__import__", PyCFunction_New(meth_import, NULL));
 			//g_security = level;
+			
+			// Overiding file dosnt stop it being accessed if your sneaky
+			//    f =  [ t for t in (1).__class__.__mro__[-1].__subclasses__() if t.__name__ == 'file'][0]('/some_file.txt', 'w')
+			//    f.write('...')
+			// so overwrite the file types functions. be very careful here still, since python uses python.
+			// ps - python devs frown deeply upon this.
+	
+			/* this could mess up pythons internals, if we are serious about sandboxing
+			 * issues like the one above need to be solved, possibly modify __subclasses__ is safer? */
+#if 0
+			PyFile_Type.tp_init = file_init;
+			PyFile_Type.tp_new = file_new;
+#endif
 		//}
 		break;
 	/*

@@ -61,6 +61,14 @@ The Blender Python API Reference
 		- L{World}
 		- L{sys<Sys>}
 
+	Additional information:
+	-----------------------
+		- L{API_related}:
+			- Calling scripts from command line
+			- Script links and space handlers
+			- How to register scripts in menus
+			- Recommended ways to document and support configuration options
+
 Introduction:
 =============
 

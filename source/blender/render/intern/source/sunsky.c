@@ -135,7 +135,8 @@ float PerezFunction(struct SunSky *sunsky, const float *lam, float theta, float 
  * back_scatter, controls back scatter light
  * */
 void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
-				float spread,float sun_brightness, float sun_size, float back_scatter)
+				float spread,float sun_brightness, float sun_size, float back_scatter,
+				float skyblendfac, short skyblendtype)
 {
     
    	float theta2;
@@ -151,6 +152,8 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 	sunsky->sun_brightness = sun_brightness;
 	sunsky->sun_size = sun_size;
 	sunsky->backscattered_light = back_scatter;
+	sunsky->skyblendfac= skyblendfac;
+	sunsky->skyblendtype= skyblendtype;
 	
 	sunsky->toSun[0] = toSun[0];
     sunsky->toSun[1] = toSun[1];

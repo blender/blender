@@ -38,6 +38,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -961,7 +962,6 @@ void RE_GetResultImage(Render *re, RenderResult *rr)
 	}
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 /* caller is responsible for allocating rect in correct size! */
 void RE_ResultGet32(Render *re, unsigned int *rect)
 {
@@ -2559,10 +2559,12 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
+void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
+	unsigned int lay;
 	int cfrao= scene->r.cfra;
+	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
 	if(!render_initialize_from_scene(re, scene, 0))
@@ -2591,12 +2593,27 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 			}
 		}
 	} else {
-		for(scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
+		for(nfra= sfra, scene->r.cfra= sfra; scene->r.cfra<=efra; scene->r.cfra++) {
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
 			render_initialize_from_scene(re, scene, 1);
-			
+
+			if(nfra!=scene->r.cfra) {
+				/*
+				 * Skip this frame, but update for physics and particles system.
+				 * From convertblender.c:
+				 * in localview, lamps are using normal layers, objects only local bits.
+				 */
+				if(scene->lay & 0xFF000000)
+					lay= scene->lay & 0xFF000000;
+				else
+					lay= scene->lay;
+
+				scene_update_for_newframe(scene, lay);
+				continue;
+			}
+
 			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
 				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 			}
@@ -2626,6 +2643,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 				
 				break;
 			}
+			nfra+= tfra;
 		}
 	}
 	
