@@ -3332,12 +3332,14 @@ static void copymenu_modifiers(Object *ob)
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
+							ModifierData *nmd = NULL;
+							
 							if(ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
 		
 							if(md->type == eModifierType_Collision)
 								continue;
 							
-							ModifierData *nmd = modifier_new(md->type);
+							nmd = modifier_new(md->type);
 							modifier_copyData(md, nmd);
 							BLI_addtail(&base->object->modifiers, nmd);
 						}
