@@ -1485,8 +1485,20 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *alpha, float 
 					MTC_Mat4MulVecfl(ob->imat, co);
 				}
 			}
+			/* not really orco, but 'local' */
+			else if(mtex->texco==TEXCO_ORCO) {
+				
+				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
+					VECCOPY(co, shi->duplilo);
+				}
+				else {
+					Object *ob= shi->obi->ob;
+					VECCOPY(co, xyz);
+					MTC_Mat4MulVecfl(ob->imat, co);
+				}
+			}
 			else if(mtex->texco==TEXCO_GLOB) {							
-			   VECCOPY(co, xyz);		
+			   VECCOPY(co, xyz);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 
@@ -1508,7 +1520,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *alpha, float 
 			}
 			
 
-			rgbnor= multitex(tex, co, NULL, NULL, 0, &texres);	/* NULL = dxt/dyt, 0 = shi->osatex - not supported */
+			rgbnor= multitex(tex, texvec, NULL, NULL, 0, &texres);	/* NULL = dxt/dyt, 0 = shi->osatex - not supported */
 			
 			/* texture output */
 

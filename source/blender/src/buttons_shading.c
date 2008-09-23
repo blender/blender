@@ -3402,7 +3402,8 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 	}
 	else if (ma->material_type == MA_VOLUME) {
 		uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Density",		10,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
-		uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		70,180,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+		uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		70,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Emit Col",		120,180,80,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
 	}
 	else {
 		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
@@ -3525,6 +3526,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 		uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 		uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "Ob:",750,180,158,18, &(mtex->object), "");
+		uiDefButS(block, ROW, B_MATPRV, "Local",		630,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
 	} else {
 		uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 		uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
@@ -4241,14 +4243,26 @@ static void material_panel_material_volume(Material *ma)
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base opacity value");
-	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 5.0, 0, 0, "Multiplier for absorption");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
 	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 5.0, 0, 0, "Multiplier for absorption");
+	/* uiDefButF(block, COL, B_MATPRV, "",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption_col), 0, 0, 0, B_MATCOL, "");
+		*/
+	uiBlockEndAlign(block);
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Emit: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->emit), 0.0, 2.0, 0, 0, "Emission component");
+	uiDefButF(block, COL, B_MATPRV, "",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->r), 0, 0, 0, B_MATCOL, "");
+	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
 		

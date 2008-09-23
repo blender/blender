@@ -69,6 +69,8 @@ typedef struct Material {
 	float vol_alphathresh;
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_absorption, vol_scattering;
+	float vol_absorption_col[3];
+	float vpad2;
 	short vol_shadeflag;
 	short vpad;
 	
@@ -163,6 +165,7 @@ typedef struct Material {
 /* flag */
 		/* for render */
 #define MA_IS_USED		1
+#define MA_IS_TEXTURED	2
 
 /* material_type */
 #define MA_SOLID		0

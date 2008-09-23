@@ -42,8 +42,11 @@
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 
+#include "BKE_global.h"
+
 #include "render_types.h"
 #include "shading.h"
+#include "texture.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
@@ -51,6 +54,7 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+#if 0
 static int vol_backface_intersect_check(Isect *is, int ob, RayFace *face)
 {
 	VlakRen *vlr = (VlakRen *)face;
@@ -59,11 +63,16 @@ static int vol_backface_intersect_check(Isect *is, int ob, RayFace *face)
 	 * of foward facing geometry don't cause the ray to stop */
 	return (INPR(is->vec, vlr->n) < 0.0f);
 }
+#endif
 
 #define VOL_IS_SAMEOBJECT		1
 #define VOL_IS_SAMEMATERIAL		2
 
-int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco)
+
+#define VOL_BOUNDS_DEPTH	0
+#define VOL_BOUNDS_SS		1
+
+int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, int intersect_type)
 {
 	/* TODO: Box or sphere intersection types could speed things up */
 
@@ -77,8 +86,10 @@ int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco)
 	isect.end[1] = co[1] + vec[1] * maxsize;
 	isect.end[2] = co[2] + vec[2] * maxsize;
 	
+	if (intersect_type == VOL_BOUNDS_DEPTH) isect.faceorig= (RayFace*)shi->vlr;
+	else if (intersect_type == VOL_BOUNDS_SS) isect.faceorig= NULL;
+	
 	isect.mode= RE_RAY_MIRROR;
-	isect.faceorig= (RayFace*)shi->vlr;
 	isect.oborig= RAY_OBJECT_SET(&R, shi->obi);
 	isect.face_last= NULL;
 	isect.ob_last= 0;
@@ -106,8 +117,8 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 	float col[3] = {0.0, 0.0, 0.0};
 	
 	/* do any density gain stuff here */
-	
-	do_volume_tex(shi, co, col, &density, &emit_fac);
+	if (shi->mat->flag & MA_IS_TEXTURED)
+		do_volume_tex(shi, co, col, &density, &emit_fac);
 	
 	return density;
 }
@@ -115,15 +126,18 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 
 /* compute emission component, amount of radiance to add per segment
  * can be textured with 'emit' */
-void vol_get_emission(ShadeInput *shi, float *em, float *co, float *endco, float density)
+void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
 {
 	float emission = shi->mat->emit;
-	float col[3] = {0.0, 0.0, 0.0};
+	float col[3];
 	float dens_dummy = 1.0f;
+	
+	VECCOPY(col, &shi->mat->r);
 	
 	do_volume_tex(shi, co, col, &dens_dummy, &emission);
 	
 	em[0] = em[1] = em[2] = emission;
+	VecMulVecf(em, em, col);
 }
 
 
@@ -133,7 +147,6 @@ void vol_get_emission(ShadeInput *shi, float *em, float *co, float *endco, float
 void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, float density, float stepsize)
 {
 	/* input density = density at co */
-
 	float dist;
 	float absorption = shi->mat->vol_absorption;
 	int s, nsteps;
@@ -194,28 +207,28 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	
 	if(lar->mode & LA_TEXTURE) {
 		shi->osatex= 0;
-		do_lamp_tex(lar, lv, shi, lacol);
+		do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
 	}
 	
 	VecMulf(lacol, visifac*lar->energy);
 
+
 	if (shi->mat->vol_shadeflag & MA_VOL_ATTENUATED) {
-		/* find minimum of volume bounds, or lamp coord */
 		
 		if (ELEM(lar->type, LA_SUN, LA_HEMI))
 			VECCOPY(lv, lar->vec);
-		
 		VecMulf(lv, -1.0f);
 		
-		if (vol_get_bounds(shi, co, lv, hitco)) {
+		/* find minimum of volume bounds, or lamp coord */
+		if (vol_get_bounds(shi, co, lv, hitco, VOL_BOUNDS_SS)) {
+			float dist = VecLenf(co, hitco);
+			
 			if (ELEM(lar->type, LA_SUN, LA_HEMI))
 				atten_co = hitco;
-			else if ( lampdist < VecLenf(co, hitco) )
+			else if ( lampdist < dist ) {
 				atten_co = lar->co;
-			else
+			} else
 				atten_co = hitco;
-
-			atten_co = lar->co;
 
 			vol_get_attenuation(shi, tau, co, atten_co, density, shi->mat->vol_shade_stepsize);
 			tr[0] = exp(-tau[0]);
@@ -232,7 +245,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	}
 	
 	VecAddf(col, col, lacol);
-}		
+}
 
 /* shadows -> trace a ray to find blocker geometry
    - if blocker is outside the volume, use standard shadow functions
@@ -242,7 +255,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 */
 
 /* single scattering only for now */
-void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float *endco, float stepsize, float density)
+void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsize, float density)
 {
 	GroupObject *go;
 	ListBase *lights;
@@ -267,8 +280,6 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float *endco
 		VecAddf(col, col, lacol);
 	}
 	
-	
-		
 	VECCOPY(scatter, col);
 }
 
@@ -276,8 +287,6 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float *endco
 
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {
-	float total_tau;
-	float total_tr[3];
 	float tr[3] = {1.f, 1.f, 1.f};			/* total transmittance */
 	float radiance[3] = {0.f, 0.f, 0.f}, d_radiance[3] = {0.f, 0.f, 0.f};
 	float stepsize = shi->mat->vol_stepsize;
@@ -285,8 +294,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	float vec[3], stepvec[3] = {0.0, 0.0, 0.0};
 	float step_tau[3], step_emit[3], step_scatter[3] = {0.0, 0.0, 0.0};
 	int s;
-	float step_sta[3], step_end[3], step_offs[3] = {0.0, 0.0, 0.0};
-	float alpha_fac, emit_fac=0.0f, tex_col[3];
+	float step_sta[3], step_end[3];
 	
 	/* multiply col_behind with beam transmittance over entire distance */
 /*
@@ -314,7 +322,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	/* get radiance from all points along the ray due to participating media */
 	for (s = 0; s < nsteps; s++) {
 		float density = vol_get_density(shi, step_sta);
-		
+	
 		/* *** transmittance and emission *** */
 		
 		/* transmittance component (alpha) */
@@ -327,8 +335,8 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 		//if (rgb_to_luminance(tr[0], tr[1], tr[2]) < 1e-3) break;
 		
 		/* incoming light via emission or scattering (additive) */
-		vol_get_emission(shi, step_emit, step_sta, step_end, density);
-		vol_get_scattering(shi, step_scatter, step_end, step_end, stepsize, density);
+		vol_get_emission(shi, step_emit, step_sta, density);
+		vol_get_scattering(shi, step_scatter, step_end, stepsize, density);
 		
 		VecAddf(d_radiance, step_emit, step_scatter);
 		
@@ -336,10 +344,8 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 		VecMulVecf(d_radiance, tr, d_radiance);
 		VecAddf(radiance, radiance, d_radiance);	
 
-		if (s < nsteps-1) {
-			VECCOPY(step_sta, step_end);
-			VecAddf(step_end, step_end, stepvec);
-		}
+		VECCOPY(step_sta, step_end);
+		VecAddf(step_end, step_end, stepvec);
 	}
 	
 	VecMulf(radiance, stepsize);
@@ -373,12 +379,11 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 
 void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 {
-	Isect isect;
 	float hitco[3], col[3];
 
 	memset(shr, 0, sizeof(ShadeResult));
 
-	if (vol_get_bounds(shi, shi->co, shi->view, hitco)) {
+	if (vol_get_bounds(shi, shi->co, shi->view, hitco, VOL_BOUNDS_DEPTH)) {
 		
 		volumeintegrate(shi, col, shi->co, hitco);
 		

@@ -921,6 +921,28 @@ static void flag_render_node_material(Render *re, bNodeTree *ntree)
 	}
 }
 
+static void check_material_is_textured(Material *ma)
+{
+	MTex *mtex;
+	Tex *tex;
+	int tex_nr;
+	
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
+		if(ma->septex & (1<<tex_nr))
+			continue;
+		
+		if(ma->mtex[tex_nr]) {
+			mtex= ma->mtex[tex_nr];
+			tex= mtex->tex;
+			if(tex==NULL)
+				continue;
+			else
+				ma->flag |= MA_IS_TEXTURED;
+				return;
+		}
+	}
+}
+
 static Material *give_render_material(Render *re, Object *ob, int nr)
 {
 	extern Material defmaterial;	/* material.c */
@@ -942,6 +964,8 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 		flag_render_node_material(re, ma->nodetree);
 	
 	if (ma->material_type == MA_VOLUME) re->r.mode |= R_RAYTRACE;
+	
+	check_material_is_textured(ma);
 	
 	return ma;
 }
