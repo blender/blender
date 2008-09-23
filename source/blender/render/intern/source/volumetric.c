@@ -115,10 +115,11 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 	float density = shi->mat->alpha;
 	float emit_fac=0.0f;
 	float col[3] = {0.0, 0.0, 0.0};
+	float absorb_col[3] = {0.0, 0.0, 0.0};
 	
 	/* do any density gain stuff here */
 	if (shi->mat->flag & MA_IS_TEXTURED)
-		do_volume_tex(shi, co, col, &density, &emit_fac);
+		do_volume_tex(shi, co, col, absorb_col, &density, &emit_fac);
 	
 	return density;
 }
@@ -131,15 +132,32 @@ void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
 	float emission = shi->mat->emit;
 	float col[3];
 	float dens_dummy = 1.0f;
+	float absorb_col[3] = {0.0, 0.0, 0.0};
 	
 	VECCOPY(col, &shi->mat->r);
 	
-	do_volume_tex(shi, co, col, &dens_dummy, &emission);
+	do_volume_tex(shi, co, col, absorb_col, &dens_dummy, &emission);
 	
 	em[0] = em[1] = em[2] = emission;
 	VecMulVecf(em, em, col);
 }
 
+void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
+{
+	float col[3];
+	float dummy = 1.0f;
+	float vec_one[3] = {1.0f, 1.0f, 1.0f};
+	float absorption = shi->mat->vol_absorption;
+	
+	VECCOPY(absorb_col, shi->mat->vol_absorption_col);
+	
+	if (shi->mat->flag & MA_IS_TEXTURED)
+		do_volume_tex(shi, co, col, absorb_col, &dummy, &dummy);
+	
+	absorb_col[0] = (1.0f - absorb_col[0]) * absorption;
+	absorb_col[1] = (1.0f - absorb_col[1]) * absorption;
+	absorb_col[2] = (1.0f - absorb_col[2]) * absorption;
+}
 
 /* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
  * Used in the relationship Transmittance = e^(-attenuation)
@@ -148,18 +166,20 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 {
 	/* input density = density at co */
 	float dist;
-	float absorption = shi->mat->vol_absorption;
+	float absorb_col[3];
 	int s, nsteps;
 	float step_vec[3], step_sta[3], step_end[3];
 
-	dist = VecLenf(co, endco);
+	vol_get_absorption(shi, absorb_col, co);
 
+	dist = VecLenf(co, endco);
 	nsteps = (int)ceil(dist / stepsize);
 	
 	if (nsteps == 1) {
 		/* homogenous volume within the sampled distance */
 		tau[0] = tau[1] = tau[2] = dist * density;
-		VecMulf(tau, absorption);
+		
+		VecMulVecf(tau, tau, absorb_col);
 		return;
 	} else {
 		tau[0] = tau[1] = tau[2] = 0.0;
@@ -173,7 +193,8 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 	
 	for (s = 0;  s < nsteps; s++) {
 		
-		if (s > 0) density = vol_get_density(shi, step_sta);
+		if (s > 0)
+			density = vol_get_density(shi, step_sta);
 		
 		tau[0] += stepsize * density;
 		tau[1] += stepsize * density;
@@ -184,7 +205,7 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 			VecAddf(step_end, step_end, step_vec);
 		}
 	}
-	VecMulf(tau, absorption);	
+	VecMulVecf(tau, tau, absorb_col);
 }
 
 void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *col, float stepsize, float density)

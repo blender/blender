@@ -56,7 +56,7 @@ void do_halo_tex(struct HaloRen *har, float xn, float yn, float *colf);
 void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag);
 void do_material_tex(struct ShadeInput *shi);
 void do_lamp_tex(LampRen *la, float *lavec, struct ShadeInput *shi, float *colf, int effect);
-void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *alpha, float *emit);
+void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, float *alpha, float *emit);
 
 void init_render_textures(Render *re);
 

@@ -7737,10 +7737,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
-			if (ma->vol_shade_stepsize < 0.001f) ma->vol_shade_stepsize = 0.2f;
-			if (ma->vol_stepsize < 0.001f) ma->vol_stepsize = 0.2f;
-			if (ma->vol_absorption < 0.001f) ma->vol_absorption = 1.0f;
-			if (ma->vol_scattering < 0.001f) ma->vol_scattering = 1.0f;
+			/* trigger for non-volumetric file */
+			if (ma->vol_shade_stepsize < 0.0001f) {
+				ma->vol_shade_stepsize = 0.2f;
+				ma->vol_stepsize = 0.2f;
+				ma->vol_absorption = 1.0f;
+				ma->vol_scattering = 1.0f;
+				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;
+			}
 		}
 	}
 	

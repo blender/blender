@@ -3404,6 +3404,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Density",		10,180,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 		uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		70,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
 		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Emit Col",		120,180,80,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
+		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Absorb Col",		200,180,80,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
 	}
 	else {
 		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
@@ -4250,9 +4251,9 @@ static void material_panel_material_volume(Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 5.0, 0, 0, "Multiplier for absorption");
-	/* uiDefButF(block, COL, B_MATPRV, "",
+	uiDefButF(block, COL, B_MATPRV, "",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption_col), 0, 0, 0, B_MATCOL, "");
-		*/
+	
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;

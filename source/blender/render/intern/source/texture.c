@@ -1451,7 +1451,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 	return in;
 }
 
-void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *alpha, float *emit)
+void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, float *alpha, float *emit)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -1550,7 +1550,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *alpha, float 
 			}
 			
 			
-			if(mtex->mapto & (MAP_COL)) {
+			if(mtex->mapto & (MAP_COL+MAP_COLMIR)) {
 				float tcol[3], colfac;
 				
 				/* stencil maps on the texture control slider, not texture intensity value */
@@ -1570,6 +1570,11 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *alpha, float 
 				
 				if(mtex->mapto & MAP_COL) {
 					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
+				}
+				
+				/* MAP_COLMIR is abused for absorption colour at the moment */
+				if(mtex->mapto & MAP_COLMIR) {
+					texture_rgb_blend(absorb_col, tcol, absorb_col, texres.tin, colfac, mtex->blendtype);
 				}
 			}
 			

@@ -302,7 +302,7 @@ typedef struct Material {
 #define MAP_AMB			2048
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
-#define MAP_LAYER		16384
+#define MAP_LAYER		16384	
 
 /* mapto for halo */
 //#define MAP_HA_COL		1
