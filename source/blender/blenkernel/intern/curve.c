@@ -825,8 +825,8 @@ void makeNurbcurve(Nurb *nu, float *data, int resolu, int dim)
 	len= nu->pntsu;
 	if(len==0) return;
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbcurve1");
-
-	resolu*= nu->pntsu;
+	
+	resolu= (resolu*SEGMENTSU(nu))+1;
 	if(resolu==0) {
 		MEM_freeN(sum);
 		return;
@@ -836,7 +836,7 @@ void makeNurbcurve(Nurb *nu, float *data, int resolu, int dim)
 	ustart= fp[nu->orderu-1];
 	if(nu->flagu & CU_CYCLIC) uend= fp[nu->pntsu+nu->orderu-1];
 	else uend= fp[nu->pntsu];
-	ustep= (uend-ustart)/(resolu-1+(nu->flagu & CU_CYCLIC));
+	ustep= (uend-ustart)/(resolu-1);
 	basisu= (float *)MEM_mallocN(sizeof(float)*KNOTSU(nu), "makeNurbcurve3");
 
 	if(nu->flagu & CU_CYCLIC) cycl= nu->orderu-1; 
@@ -1620,7 +1620,7 @@ void makeBevelList(Object *ob)
 			}
 			else if((nu->type & 7)==CU_NURBS) {
 				if(nu->pntsv==1) {
-					len= resolu*nu->pntsu;
+					len= (resolu*SEGMENTSU(nu))+1;
 					bl= MEM_mallocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList3");
 					BLI_addtail(&(cu->bev), bl);
 					bl->nr= len;
