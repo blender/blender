@@ -222,7 +222,10 @@ static int gpu_get_mipmap(void)
 
 static GLenum gpu_get_mipmap_filter()
 {
-	return GTS.linearmipmap? GL_LINEAR_MIPMAP_LINEAR: GL_LINEAR_MIPMAP_NEAREST;
+	/* linearmipmap is off by default
+	 * when mipmapping is off, use unfiltered display */
+	return GTS.linearmipmap? GL_LINEAR_MIPMAP_LINEAR :
+				(GTS.domipmap ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST);
 }
 
 /* Set OpenGL state for an MTFace */
@@ -474,12 +477,12 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	if (!gpu_get_mipmap()) {
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
 	}
 	else {
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
 
 		ima->tpageflag |= IMA_MIPMAP_COMPLETE;
 	}
@@ -572,7 +575,7 @@ void GPU_paint_set_mipmap(int mipmap)
 				if(ima->tpageflag & IMA_MIPMAP_COMPLETE) {
 					glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter());
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
 				}
 				else
 					GPU_free_image(ima);
@@ -585,7 +588,7 @@ void GPU_paint_set_mipmap(int mipmap)
 			if(ima->bindcode) {
 				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
 			}
 		}
 	}
