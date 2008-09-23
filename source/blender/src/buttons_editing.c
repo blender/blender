@@ -960,39 +960,6 @@ static void modifiers_add(void *ob_v, int type)
 	BIF_undo_push("Add modifier");
 }
 
-static void do_modifiers_select_simpledeform_typemenu(void *ob_v, int event)
-{
-	static const char *default_name[] = { "", "Twist", "Bend", "Taper", "Strech" };
-	SimpleDeformModifierData *smd = (SimpleDeformModifierData*)modifier_new(eModifierType_SimpleDeform);
-	smd->mode = event;
-
-	if(smd->mode >= 0 && smd->mode < sizeof(default_name)/sizeof(*default_name))
-		strncpy( smd->modifier.name, default_name[ smd->mode ], sizeof(smd->modifier.name));
-
-	object_add_modifier((Object*) ob_v, (ModifierData*)smd);
-	BIF_undo_push("Add modifier");
-	do_modifier_panels(B_MODIFIER_RECALC);
-}
-
-static uiBlock *modifiers_select_simpledeform_typemenu(void *ob_v)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiNewBlock(&curarea->uiblocks, "modifiers_select_simpledeform_typemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_modifiers_select_simpledeform_typemenu, ob_v);
-
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Twist",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TWIST, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Bend",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_BEND, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Taper",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_TAPER, "");
-	uiDefBut(block, BUTM, B_MODIFIER_RECALC, "Stretch",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, MOD_SIMPLEDEFORM_MODE_STRETCH, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-
-
 typedef struct MenuEntry {
 	char *name;
 	int ID;
@@ -1037,16 +1004,8 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 
 	for(i = 0; i < numEntries; ++i)
 	{
-		if(entries[i].ID == eModifierType_SimpleDeform)
-		{
-			//TODO: this menu has a left space.. which loooks ugly :S
-			uiDefIconTextBlockBut(block, modifiers_select_simpledeform_typemenu, ob_v, ICON_RIGHTARROW_THIN, entries[i].name, 0, yco-=20, 160, 19, "");
-		}
-		else
-		{
-			uiDefBut(block, BUTM, B_MODIFIER_RECALC, entries[i].name,
-			         0, yco -= 20, 160, 19, NULL, 0, 0, 1, entries[i].ID, "");
-		}
+		uiDefBut(block, BUTM, B_MODIFIER_RECALC, entries[i].name,
+		        0, yco -= 20, 160, 19, NULL, 0, 0, 1, entries[i].ID, "");
 	}
 
 	uiTextBoundsBlock(block, 50);
@@ -1896,7 +1855,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		} else if (md->type==eModifierType_SimpleDeform) {
 			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
-			height += 19*4;
+			height += 19*5;
 			if(smd->origin != NULL) height += 19;
 			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
 			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
@@ -2570,7 +2529,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		} else if (md->type==eModifierType_SimpleDeform) {
 			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			char simpledeform_modemenu[] = "Deform type%t|Twist %x1|Bend %x2|Taper %x3|Strech %x4";
 
+			uiDefButC(block, MENU, B_MODIFIER_RECALC, simpledeform_modemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform to apply to object.");
+			
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 
