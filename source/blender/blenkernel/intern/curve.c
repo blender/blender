@@ -1515,7 +1515,7 @@ void makeBevelList(Object *ob)
 	cu= ob->data;
 
 	/* do we need to calculate the radius for each point? */
-	do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 : 1;
+	/* do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 : 1; */
 	
 	/* STEP 1: MAKE POLYS  */
 
@@ -1527,6 +1527,7 @@ void makeBevelList(Object *ob)
 		
 		/* check if we will calculate tilt data */
 		do_tilt = ((nu->type & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1;
+		do_radius = do_tilt; /* normal display uses the radius, better just to calculate them */
 		
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
@@ -1674,7 +1675,7 @@ void makeBevelList(Object *ob)
 			else if((nu->type & 7)==CU_NURBS) {
 				if(nu->pntsv==1) {
 					len= (resolu*SEGMENTSU(nu))+1;
-					bl= MEM_mallocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList3");
+					bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList3");
 					BLI_addtail(&(cu->bev), bl);
 					bl->nr= len;
 					bl->flag= 0;
