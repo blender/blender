@@ -554,9 +554,7 @@ static void split_sfile(SpaceFile *sfile, char *s1)
 
 
 void parent(SpaceFile *sfile)
-{
-	char path[sizeof(sfile->dir)+4];
-	
+{	
 	/* if databrowse: no parent */
 	if(sfile->type==FILE_MAIN && filesel_has_func(sfile)) return;
 	
