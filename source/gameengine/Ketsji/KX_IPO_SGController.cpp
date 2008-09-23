@@ -59,7 +59,9 @@ KX_IpoSGController::KX_IpoSGController()
   m_ipo_local(false),
   m_modified(true),
   m_ipo_start_initialized(false),
-  m_ipotime(1.0)
+  m_ipotime(1.0),
+  m_ipo_start_euler(0.0,0.0,0.0),
+  m_ipo_euler_initialized(false)
 {
 	m_game_object = NULL;
 	for (int i=0; i < KX_MAX_IPO_CHANNELS; i++)
@@ -136,6 +138,11 @@ bool KX_IpoSGController::Update(double currentTime)
 			m_ipo_start_orient = ob->GetLocalOrientation();
 			m_ipo_start_scale = ob->GetLocalScale();
 			m_ipo_start_initialized = true;
+			if (!m_ipo_euler_initialized) {
+				// do it only once to avoid angle discontinuities
+				m_ipo_start_orient.getEuler(m_ipo_start_euler[0], m_ipo_start_euler[1], m_ipo_start_euler[2]);
+				m_ipo_euler_initialized = true;
+			}
 		}
 
 		//modifies position?
@@ -199,51 +206,87 @@ bool KX_IpoSGController::Update(double currentTime)
 						ob->GetWorldOrientation() * m_ipo_xform.GetEulerAngles() :
 						m_ipo_xform.GetEulerAngles(), false);
 				}
-			} else {
-				double yaw=0, pitch=0,  roll=0;	//final Euler angles
-				double tempYaw=0, tempPitch=0, tempRoll=0;	//temp holders
-				if (!m_ipo_add)
-					ob->GetLocalOrientation().getEuler(yaw, pitch, roll);
+			} else if (m_ipo_add) {
+				if (m_ipo_start_initialized) {
+					double yaw=0, pitch=0,  roll=0;	//delta Euler angles
 
-				//RotX and dRotX
-				if (m_ipo_channels_active[OB_ROT_X]) {
-					yaw = (m_ipo_channels_active[OB_DROT_X] ? (m_ipo_xform.GetEulerAngles()[0] + m_ipo_xform.GetDeltaEulerAngles()[0]) : m_ipo_xform.GetEulerAngles()[0] );
-				}
-				else if (m_ipo_channels_active[OB_DROT_X] && m_ipo_start_initialized) {
-					if (!m_ipo_add)
-						m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
-					yaw = tempYaw + m_ipo_xform.GetDeltaEulerAngles()[0];
-				}
+					//RotX and dRotX
+					if (m_ipo_channels_active[OB_ROT_X])
+						yaw += m_ipo_xform.GetEulerAngles()[0];
+					if (m_ipo_channels_active[OB_DROT_X])
+						yaw += m_ipo_xform.GetDeltaEulerAngles()[0];
 
-				//RotY dRotY
-				if (m_ipo_channels_active[OB_ROT_Y]) {
-					pitch = (m_ipo_channels_active[OB_DROT_Y] ? (m_ipo_xform.GetEulerAngles()[1] + m_ipo_xform.GetDeltaEulerAngles()[1]) : m_ipo_xform.GetEulerAngles()[1] );
-				}
-				else if (m_ipo_channels_active[OB_DROT_Y] && m_ipo_start_initialized) {
-					if (!m_ipo_add)
-						m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
-					pitch = tempPitch + m_ipo_xform.GetDeltaEulerAngles()[1];
-				}
-				
-				//RotZ and dRotZ
-				if (m_ipo_channels_active[OB_ROT_Z]) {
-					roll = (m_ipo_channels_active[OB_DROT_Z] ? (m_ipo_xform.GetEulerAngles()[2] + m_ipo_xform.GetDeltaEulerAngles()[2]) : m_ipo_xform.GetEulerAngles()[2] );
-				}
-				else if (m_ipo_channels_active[OB_DROT_Z] && m_ipo_start_initialized) {
-					if (!m_ipo_add)
-						m_ipo_start_orient.getEuler(tempYaw, tempPitch, tempRoll);
-					roll = tempRoll + m_ipo_xform.GetDeltaEulerAngles()[2];
-				}
-				if (m_ipo_add) {
+					//RotY dRotY
+					if (m_ipo_channels_active[OB_ROT_Y])
+						pitch += m_ipo_xform.GetEulerAngles()[1];
+					if (m_ipo_channels_active[OB_DROT_Y])
+						pitch += m_ipo_xform.GetDeltaEulerAngles()[1];
+					
+					//RotZ and dRotZ
+					if (m_ipo_channels_active[OB_ROT_Z])
+						roll += m_ipo_xform.GetEulerAngles()[2];
+					if (m_ipo_channels_active[OB_DROT_Z])
+						roll += m_ipo_xform.GetDeltaEulerAngles()[2];
+
 					MT_Matrix3x3 rotation(MT_Vector3(yaw, pitch, roll));
 					if (m_ipo_local)
 						rotation = m_ipo_start_orient * rotation;
 					else
 						rotation = rotation * m_ipo_start_orient;
 					ob->SetLocalOrientation(rotation);
-				} else {
+				}
+			} else if (m_ipo_channels_active[OB_ROT_X] || m_ipo_channels_active[OB_ROT_Y] || m_ipo_channels_active[OB_ROT_Z]) {
+				if (m_ipo_euler_initialized) {
+					// assume all channel absolute
+					// All 3 channels should be specified but if they are not, we will take 
+					// the value at the start of the game to avoid angle sign reversal 
+					double yaw=m_ipo_start_euler[0], pitch=m_ipo_start_euler[1], roll=m_ipo_start_euler[2];
+
+					//RotX and dRotX
+					if (m_ipo_channels_active[OB_ROT_X]) {
+						yaw = (m_ipo_channels_active[OB_DROT_X] ? (m_ipo_xform.GetEulerAngles()[0] + m_ipo_xform.GetDeltaEulerAngles()[0]) : m_ipo_xform.GetEulerAngles()[0] );
+					}
+					else if (m_ipo_channels_active[OB_DROT_X]) {
+						yaw += m_ipo_xform.GetDeltaEulerAngles()[0];
+					}
+
+					//RotY dRotY
+					if (m_ipo_channels_active[OB_ROT_Y]) {
+						pitch = (m_ipo_channels_active[OB_DROT_Y] ? (m_ipo_xform.GetEulerAngles()[1] + m_ipo_xform.GetDeltaEulerAngles()[1]) : m_ipo_xform.GetEulerAngles()[1] );
+					}
+					else if (m_ipo_channels_active[OB_DROT_Y]) {
+						pitch += m_ipo_xform.GetDeltaEulerAngles()[1];
+					}
+					
+					//RotZ and dRotZ
+					if (m_ipo_channels_active[OB_ROT_Z]) {
+						roll = (m_ipo_channels_active[OB_DROT_Z] ? (m_ipo_xform.GetEulerAngles()[2] + m_ipo_xform.GetDeltaEulerAngles()[2]) : m_ipo_xform.GetEulerAngles()[2] );
+					}
+					else if (m_ipo_channels_active[OB_DROT_Z]) {
+						roll += m_ipo_xform.GetDeltaEulerAngles()[2];
+					}
 					ob->SetLocalOrientation(MT_Vector3(yaw, pitch, roll));
 				}
+			} else if (m_ipo_start_initialized) {
+				// only DROT, treat as Add
+				double yaw=0, pitch=0,  roll=0;	//delta Euler angles
+
+				//dRotX
+				if (m_ipo_channels_active[OB_DROT_X])
+					yaw = m_ipo_xform.GetDeltaEulerAngles()[0];
+
+				//dRotY
+				if (m_ipo_channels_active[OB_DROT_Y])
+					pitch = m_ipo_xform.GetDeltaEulerAngles()[1];
+				
+				//dRotZ
+				if (m_ipo_channels_active[OB_DROT_Z])
+					roll = m_ipo_xform.GetDeltaEulerAngles()[2];
+
+				// dRot are always local
+				MT_Matrix3x3 rotation(MT_Vector3(yaw, pitch, roll));
+				rotation = m_ipo_start_orient * rotation;
+				ob->SetLocalOrientation(rotation);
 			}
 		}
 		//modifies scale?
