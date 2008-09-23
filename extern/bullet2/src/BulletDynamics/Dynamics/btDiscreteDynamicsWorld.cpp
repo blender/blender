@@ -688,8 +688,8 @@ void	btDiscreteDynamicsWorld::calculateSimulationIslands()
 			const btRigidBody* colObj0 = &constraint->getRigidBodyA();
 			const btRigidBody* colObj1 = &constraint->getRigidBodyB();
 
-			if (((colObj0) && ((colObj0)->mergesSimulationIslands())) &&
-				((colObj1) && ((colObj1)->mergesSimulationIslands())))
+			if (((colObj0) && (!(colObj0)->isStaticOrKinematicObject())) &&
+				((colObj1) && (!(colObj1)->isStaticOrKinematicObject())))
 			{
 				if (colObj0->isActive() || colObj1->isActive())
 				{

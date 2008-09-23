@@ -105,7 +105,7 @@ void	btSimulationIslandManager::storeIslandActivationState(btCollisionWorld* col
 		for (i=0;i<colWorld->getCollisionObjectArray().size();i++)
 		{
 			btCollisionObject* collisionObject= colWorld->getCollisionObjectArray()[i];
-			if (collisionObject->mergesSimulationIslands())
+			if (!collisionObject->isStaticOrKinematicObject())
 			{
 				collisionObject->setIslandTag( m_unionFind.find(index) );
 				collisionObject->setCompanionId(-1);
