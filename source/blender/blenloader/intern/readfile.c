@@ -7720,7 +7720,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce= main->scene.first;
 		Sequence *seq;
 		Editing *ed;
-		Material *ma;
 		
 		while(sce) {
 			ed= sce->ed;
@@ -7734,17 +7733,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			
 			sce= sce->id.next;
-		}
-		
-		for(ma=main->mat.first; ma; ma= ma->id.next) {
-			/* trigger for non-volumetric file */
-			if (ma->vol_shade_stepsize < 0.0001f) {
-				ma->vol_shade_stepsize = 0.2f;
-				ma->vol_stepsize = 0.2f;
-				ma->vol_absorption = 1.0f;
-				ma->vol_scattering = 1.0f;
-				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;
-			}
 		}
 	}
 	
@@ -7868,6 +7856,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(; la; la= la->id.next) {
 			la->skyblendtype= MA_RAMP_ADD;
 			la->skyblendfac= 1.0f;
+		}
+		
+	}
+	
+	if (main->versionfile <= 247) {
+		Material *ma;
+		
+		for(ma=main->mat.first; ma; ma= ma->id.next) {
+			/* trigger for non-volumetric file */
+			if (ma->vol_shade_stepsize < 0.0001f) {
+				ma->vol_shade_stepsize = 0.2f;
+				ma->vol_stepsize = 0.2f;
+				ma->vol_absorption = 1.0f;
+				ma->vol_scattering = 1.0f;
+				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;
+			}
 		}
 	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
