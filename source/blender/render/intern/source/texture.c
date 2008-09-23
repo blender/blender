@@ -1451,7 +1451,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 	return in;
 }
 
-void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, float *alpha, float *emit)
+void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -1471,6 +1471,10 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, f
 			mtex= shi->mat->mtex[tex_nr];
 			tex= mtex->tex;
 			if(tex==0) continue;
+			
+			/* only process if this texture is mapped 
+			 * to one that we're interested in */
+			if (!(mtex->mapto & mapto_flag)) continue;
 			
 			/* which coords */
 			if(mtex->texco==TEXCO_OBJECT) { 
@@ -1550,7 +1554,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, f
 			}
 			
 			
-			if(mtex->mapto & (MAP_COL+MAP_COLMIR)) {
+			if((mapto_flag & (MAP_COL+MAP_COLMIR)) && (mtex->mapto & (MAP_COL+MAP_COLMIR))) {
 				float tcol[3], colfac;
 				
 				/* stencil maps on the texture control slider, not texture intensity value */
@@ -1568,17 +1572,17 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, f
 				}
 				else texres.tin= texres.ta;
 				
-				if(mtex->mapto & MAP_COL) {
+				if((mapto_flag & MAP_COL) && (mtex->mapto & MAP_COL)) {
 					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
 				}
 				
 				/* MAP_COLMIR is abused for absorption colour at the moment */
-				if(mtex->mapto & MAP_COLMIR) {
-					texture_rgb_blend(absorb_col, tcol, absorb_col, texres.tin, colfac, mtex->blendtype);
+				if((mapto_flag & MAP_COLMIR) && (mtex->mapto & MAP_COLMIR)) {
+					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
 				}
 			}
 			
-			if(mtex->mapto & MAP_VARS) {
+			if((mapto_flag & MAP_VARS) && (mtex->mapto & MAP_VARS)) {
 				/* stencil maps on the texture control slider, not texture intensity value */
 				float varfac= mtex->varfac*stencilTin;
 				
@@ -1587,17 +1591,17 @@ void do_volume_tex(ShadeInput *shi, float *xyz, float *col, float *absorb_col, f
 					else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
 				}
 				
-				if(mtex->mapto & MAP_EMIT) {
+				if((mapto_flag & MAP_EMIT) && (mtex->mapto & MAP_EMIT)) {
 					int flip= mtex->maptoneg & MAP_EMIT;
 
-					*emit = texture_value_blend(mtex->def_var, *emit, texres.tin, varfac, mtex->blendtype, flip);
-					if(*emit<0.0) *emit= 0.0;
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					if(*val<0.0) *val= 0.0;
 				}
-				if(mtex->mapto & MAP_ALPHA) {
+				if((mapto_flag & MAP_ALPHA) && (mtex->mapto & MAP_ALPHA)) {
 					int flip= mtex->maptoneg & MAP_ALPHA;
 
-					*alpha = texture_value_blend(mtex->def_var, *alpha, texres.tin, varfac, mtex->blendtype, flip);
-					CLAMP(*alpha, 0.0, 1.0);
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
 				}
 			}
 		}

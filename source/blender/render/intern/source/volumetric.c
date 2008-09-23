@@ -113,13 +113,11 @@ int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, int int
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
 	float density = shi->mat->alpha;
-	float emit_fac=0.0f;
 	float col[3] = {0.0, 0.0, 0.0};
-	float absorb_col[3] = {0.0, 0.0, 0.0};
-	
+		
 	/* do any density gain stuff here */
 	if (shi->mat->flag & MA_IS_TEXTURED)
-		do_volume_tex(shi, co, col, absorb_col, &density, &emit_fac);
+		do_volume_tex(shi, co, MAP_ALPHA, col, &density);
 	
 	return density;
 }
@@ -130,13 +128,11 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
 {
 	float emission = shi->mat->emit;
-	float col[3];
-	float dens_dummy = 1.0f;
-	float absorb_col[3] = {0.0, 0.0, 0.0};
+	float col[3] = {0.0, 0.0, 0.0};
 	
 	VECCOPY(col, &shi->mat->r);
 	
-	do_volume_tex(shi, co, col, absorb_col, &dens_dummy, &emission);
+	do_volume_tex(shi, co, MAP_EMIT+MAP_COL, col, &emission);
 	
 	em[0] = em[1] = em[2] = emission;
 	VecMulVecf(em, em, col);
@@ -144,15 +140,13 @@ void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
 
 void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 {
-	float col[3];
 	float dummy = 1.0f;
-	float vec_one[3] = {1.0f, 1.0f, 1.0f};
 	float absorption = shi->mat->vol_absorption;
 	
 	VECCOPY(absorb_col, shi->mat->vol_absorption_col);
 	
 	if (shi->mat->flag & MA_IS_TEXTURED)
-		do_volume_tex(shi, co, col, absorb_col, &dummy, &dummy);
+		do_volume_tex(shi, co, MAP_COLMIR, absorb_col, &dummy);
 	
 	absorb_col[0] = (1.0f - absorb_col[0]) * absorption;
 	absorb_col[1] = (1.0f - absorb_col[1]) * absorption;
