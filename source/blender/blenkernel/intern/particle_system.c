@@ -1714,10 +1714,8 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 			tob=ob;
 
 		tpsys=BLI_findlink(&tob->particlesystem,psys->target_psys-1);
-		
-		/*TODO: get precise location of particle at birth*/
 
-		state.time=cfra;
+		state.time = pa->time;
 		if(pa->num == -1)
 			memset(&state, 0, sizeof(state));
 		else
@@ -1809,6 +1807,12 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	}
 	/* conversion done so now we apply new:	*/
 	/* -velocity from:						*/
+
+	/*		*reactions						*/
+	if(dtime>0.0f){
+		VECSUB(vel,pa->state.vel,pa->prev_state.vel);
+	}
+
 	/*		*emitter velocity				*/
 	if(dtime!=0.0 && part->obfac!=0.0){
 		VECSUB(vel,loc,pa->state.co);
@@ -2204,6 +2208,8 @@ static int get_particles_from_cache(Object *ob, ParticleSystem *psys, int cfra)
 
 	/* assuming struct consists of tightly packed floats */
 	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+		if(cfra!=pa->state.time)
+			copy_particle_key(&pa->prev_state,&pa->state,1);
 		if(!BKE_ptcache_file_read_floats(pf, (float*)&pa->state, sizeof(ParticleKey)/sizeof(float))) {
 			BKE_ptcache_file_close(pf);
 			return 0;
@@ -2489,14 +2495,12 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 			Object *eob = ec->ob;
 			ParticleSystem *epsys = BLI_findlink(&eob->particlesystem,ec->psys_nbr);
 			ParticleSettings *epart = epsys->part;
-			ParticleData *epa = epsys->particles;
-			int totepart = epsys->totpart;
+			ParticleData *epa;
+			int p, totepart = epsys->totpart;
 
 			if(psys->part->phystype==PART_PHYS_BOIDS){
-				ParticleData *epa;
 				ParticleKey state;
 				PartDeflect *pd;
-				int p;
 				
 				pd= epart->pd;
 				if(pd->forcefield==PFIELD_FORCE && totepart){
@@ -2512,6 +2516,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 					BLI_kdtree_balance(tree);
 				}
 			}
+
 		}
 		else if(ec->type==PSYS_EC_DEFLECT) {
 			CollisionModifierData *collmd = ( CollisionModifierData * ) ( modifiers_findByType ( ec->ob, eModifierType_Collision ) );
@@ -2573,7 +2578,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				} else {
 					do_physical_effector(eob, state->co, pd->forcefield,pd->f_strength,distance,
 										falloff,0.0,pd->f_damp,eob->obmat[2],vec_to_part,
-										pa->state.vel,force_field,pd->flag&PFIELD_PLANAR,ec->rng,pd->f_noise,charge,pa->size);
+										state->vel,force_field,pd->flag&PFIELD_PLANAR,ec->rng,pd->f_noise,charge,pa->size);
 				}
 			}
 			if(ec->type & PSYS_EC_PARTICLE){
@@ -2602,7 +2607,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 					if(epsys==psys && p == pa_no) continue;
 
 					epa = epsys->particles + p;
-					estate.time=-1.0;
+					estate.time=cfra;
 					if(psys_get_particle_state(eob,epsys,p,&estate,0)){
 						VECSUB(vec_to_part, state->co, estate.co);
 						distance = VecLength(vec_to_part);
@@ -2641,7 +2646,7 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 /*			Newtonian physics					*/
 /************************************************/
 /* gathers all forces that effect particles and calculates a new state for the particle */
-static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, ParticleSystem *psys, ParticleSettings *part, float timestep, float dfra, float cfra, ParticleKey *state)
+static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, ParticleSystem *psys, ParticleSettings *part, float timestep, float dfra, float cfra)
 {
 	ParticleKey states[5], tkey;
 	float force[3],tvel[3],dx[4][3],dv[4][3];
@@ -2649,7 +2654,7 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 	int i, steps=1;
 	
 	/* maintain angular velocity */
-	VECCOPY(state->ave,pa->state.ave);
+	VECCOPY(pa->state.ave,pa->prev_state.ave);
 
 	if(part->flag & PART_SIZEMASS)
 		pa_mass*=pa->size;
@@ -2699,8 +2704,8 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 
 		switch(part->integrator){
 			case PART_INT_EULER:
-				VECADDFAC(state->co,states->co,states->vel,dtime);
-				VECADDFAC(state->vel,states->vel,force,dtime);
+				VECADDFAC(pa->state.co,states->co,states->vel,dtime);
+				VECADDFAC(pa->state.vel,states->vel,force,dtime);
 				break;
 			case PART_INT_MIDPOINT:
 				if(i==0){
@@ -2709,8 +2714,8 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 					fra=psys->cfra+0.5f*dfra;
 				}
 				else{
-					VECADDFAC(state->co,states->co,states[1].vel,dtime);
-					VECADDFAC(state->vel,states->vel,force,dtime);
+					VECADDFAC(pa->state.co,states->co,states[1].vel,dtime);
+					VECADDFAC(pa->state.vel,states->vel,force,dtime);
 				}
 				break;
 			case PART_INT_RK4:
@@ -2750,15 +2755,15 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 						VECCOPY(dv[3],force);
 						VecMulf(dv[3],dtime);
 
-						VECADDFAC(state->co,states->co,dx[0],1.0f/6.0f);
-						VECADDFAC(state->co,state->co,dx[1],1.0f/3.0f);
-						VECADDFAC(state->co,state->co,dx[2],1.0f/3.0f);
-						VECADDFAC(state->co,state->co,dx[3],1.0f/6.0f);
+						VECADDFAC(pa->state.co,states->co,dx[0],1.0f/6.0f);
+						VECADDFAC(pa->state.co,pa->state.co,dx[1],1.0f/3.0f);
+						VECADDFAC(pa->state.co,pa->state.co,dx[2],1.0f/3.0f);
+						VECADDFAC(pa->state.co,pa->state.co,dx[3],1.0f/6.0f);
 
-						VECADDFAC(state->vel,states->vel,dv[0],1.0f/6.0f);
-						VECADDFAC(state->vel,state->vel,dv[1],1.0f/3.0f);
-						VECADDFAC(state->vel,state->vel,dv[2],1.0f/3.0f);
-						VECADDFAC(state->vel,state->vel,dv[3],1.0f/6.0f);
+						VECADDFAC(pa->state.vel,states->vel,dv[0],1.0f/6.0f);
+						VECADDFAC(pa->state.vel,pa->state.vel,dv[1],1.0f/3.0f);
+						VECADDFAC(pa->state.vel,pa->state.vel,dv[2],1.0f/3.0f);
+						VECADDFAC(pa->state.vel,pa->state.vel,dv[3],1.0f/6.0f);
 				}
 				break;
 		}
@@ -2766,62 +2771,62 @@ static void apply_particle_forces(int pa_no, ParticleData *pa, Object *ob, Parti
 
 	/* damp affects final velocity */
 	if(part->dampfac!=0.0)
-		VecMulf(state->vel,1.0f-part->dampfac);
+		VecMulf(pa->state.vel,1.0f-part->dampfac);
 
 	/* finally we do guides */
 	time=(cfra-pa->time)/pa->lifetime;
 	CLAMP(time,0.0,1.0);
 
-	VECCOPY(tkey.co,state->co);
-	VECCOPY(tkey.vel,state->vel);
-	tkey.time=state->time;
+	VECCOPY(tkey.co,pa->state.co);
+	VECCOPY(tkey.vel,pa->state.vel);
+	tkey.time=pa->state.time;
 
 	if(part->type != PART_HAIR) {
 		if(do_guide(&tkey,pa_no,time,&psys->effectors)) {
-			VECCOPY(state->co,tkey.co);
+			VECCOPY(pa->state.co,tkey.co);
 			/* guides don't produce valid velocity */
-			VECSUB(state->vel,tkey.co,pa->state.co);
-			VecMulf(state->vel,1.0f/dtime);
-			state->time=tkey.time;
+			VECSUB(pa->state.vel,tkey.co,pa->prev_state.co);
+			VecMulf(pa->state.vel,1.0f/dtime);
+			pa->state.time=tkey.time;
 		}
 	}
 }
-static void rotate_particle(ParticleSettings *part, ParticleData *pa, float dfra, float timestep, ParticleKey *state)
+static void rotate_particle(ParticleSettings *part, ParticleData *pa, float dfra, float timestep)
 {
 	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep;
 
 	if((part->flag & PART_ROT_DYN)==0){
 		if(part->avemode==PART_AVE_SPIN){
 			float angle;
-			float len1 = VecLength(pa->state.vel);
-			float len2 = VecLength(state->vel);
+			float len1 = VecLength(pa->prev_state.vel);
+			float len2 = VecLength(pa->state.vel);
 
 			if(len1==0.0f || len2==0.0f)
-				state->ave[0]=state->ave[1]=state->ave[2]=0.0f;
+				pa->state.ave[0]=pa->state.ave[1]=pa->state.ave[2]=0.0f;
 			else{
-				Crossf(state->ave,pa->state.vel,state->vel);
-				Normalize(state->ave);
-				angle=Inpf(pa->state.vel,state->vel)/(len1*len2);
-				VecMulf(state->ave,saacos(angle)/dtime);
+				Crossf(pa->state.ave,pa->prev_state.vel,pa->state.vel);
+				Normalize(pa->state.ave);
+				angle=Inpf(pa->prev_state.vel,pa->state.vel)/(len1*len2);
+				VecMulf(pa->state.ave,saacos(angle)/dtime);
 			}
 
-			VecRotToQuat(state->vel,dtime*part->avefac,rot2);
+			VecRotToQuat(pa->state.vel,dtime*part->avefac,rot2);
 		}
 	}
 
-	rotfac=VecLength(state->ave);
+	rotfac=VecLength(pa->state.ave);
 	if(rotfac==0.0){ /* QuatOne (in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
 		rot1[0]=1.0;
 		rot1[1]=rot1[2]=rot1[3]=0;
 	}
 	else{
-		VecRotToQuat(state->ave,rotfac*dtime,rot1);
+		VecRotToQuat(pa->state.ave,rotfac*dtime,rot1);
 	}
-	QuatMul(state->rot,rot1,pa->state.rot);
-	QuatMul(state->rot,rot2,state->rot);
+	QuatMul(pa->state.rot,rot1,pa->prev_state.rot);
+	QuatMul(pa->state.rot,rot2,pa->state.rot);
 
 	/* keep rotation quat in good health */
-	NormalQuat(state->rot);
+	NormalQuat(pa->state.rot);
 }
 
 /* convert from triangle barycentric weights to quad mean value weights */
@@ -3055,7 +3060,7 @@ static void particle_intersect_face(void *userdata, int index, const BVHTreeRay 
 /* angular momentum <-> linear momentum and swept sphere - mesh collisions */
 /* 1. check for all possible deflectors for closest intersection on particle path */
 /* 2. if deflection was found kill the particle or calculate new coordinates */
-static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, ParticleSystem *psys, ParticleSettings *part, ParticleData *pa, int p, float timestep, float dfra, float cfra, ParticleKey *state){
+static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, ParticleSystem *psys, ParticleSettings *part, ParticleData *pa, int p, float timestep, float dfra, float cfra){
 	Object *ob;
 	ListBase *lb=&psys->effectors;
 	ParticleEffectorCache *ec;
@@ -3067,8 +3072,8 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 	float radius = ((part->flag & PART_SIZE_DEFL)?pa->size:0.0f);
 	int deflections=0, max_deflections=10;
 
-	VECCOPY(col.co1, pa->state.co);
-	VECCOPY(col.co2, state->co);
+	VECCOPY(col.co1, pa->prev_state.co);
+	VECCOPY(col.co2, pa->state.co);
 	col.t = 0.0f;
 
 	/* 10 iterations to catch multiple deflections */
@@ -3126,16 +3131,16 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 				/* we have to add this for dying particles too so that reactors work correctly */
 				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
 
-				VECCOPY(state->co, co);
-				VecLerpf(state->vel, pa->state.vel, state->vel, dt);
-				QuatInterpol(state->rot, pa->state.rot, state->rot, dt);
-				VecLerpf(state->ave, pa->state.ave, state->ave, dt);
+				VECCOPY(pa->state.co, co);
+				VecLerpf(pa->state.vel, pa->prev_state.vel, pa->state.vel, dt);
+				QuatInterpol(pa->state.rot, pa->prev_state.rot, pa->state.rot, dt);
+				VecLerpf(pa->state.ave, pa->prev_state.ave, pa->state.ave, dt);
 
 				/* particle is dead so we don't need to calculate further */
 				deflections=max_deflections;
 
 				/* store for reactors */
-				copy_particle_key(&reaction_state,state,0);
+				copy_particle_key(&reaction_state,&pa->state,0);
 
 				if(part->flag & PART_STICKY){
 					pa->stick_ob=ob;
@@ -3183,7 +3188,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 					VECSUB(surface_vel, tan_vec, tan_vel);
 
 					/* direction of rolling friction */
-					Crossf(rot_vel, state->ave, col.nor);
+					Crossf(rot_vel, pa->state.ave, col.nor);
 					/* convert to current dt */
 					VecMulf(rot_vel, (timestep*dfra) * (1.0f - col.t));
 					VecMulf(rot_vel, pa->size);
@@ -3213,8 +3218,8 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 					/* convert back to normal time */
 					VecMulf(dave, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
 
-					VecMulf(state->ave, 1.0 - frict*0.01);
-					VECADD(state->ave, state->ave, dave);
+					VecMulf(pa->state.ave, 1.0 - frict*0.01);
+					VECADD(pa->state.ave, pa->state.ave, dave);
 				}
 
 				/* combine components together again */
@@ -3229,8 +3234,8 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 
 				/* store state for reactors */
 				VECCOPY(reaction_state.co, co);
-				VecLerpf(reaction_state.vel, pa->state.vel, state->vel, dt);
-				QuatInterpol(reaction_state.rot, pa->state.rot, state->rot, dt);
+				VecLerpf(reaction_state.vel, pa->prev_state.vel, pa->state.vel, dt);
+				QuatInterpol(reaction_state.rot, pa->prev_state.rot, pa->state.rot, dt);
 
 				/* set coordinates for next iteration */
 				VECCOPY(col.co1, co);
@@ -3239,15 +3244,15 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 
 				if(VecLength(vec) < 0.001 && VecLength(pa->state.vel) < 0.001) {
 					/* kill speed to stop slipping */
-					VECCOPY(state->vel,zerovec);
-					VECCOPY(state->co, co);
+					VECCOPY(pa->state.vel,zerovec);
+					VECCOPY(pa->state.co, co);
 					if(part->flag & PART_ROT_DYN) {
-						VECCOPY(state->ave,zerovec);
+						VECCOPY(pa->state.ave,zerovec);
 					}
 				}
 				else {
-					VECCOPY(state->co, col.co2);
-					VECCOPY(state->vel, vel);
+					VECCOPY(pa->state.co, col.co2);
+					VECCOPY(pa->state.vel, vel);
 				}
 			}
 			deflections++;
@@ -3448,18 +3453,18 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 		switch(part->boidrule[i]){
 			case BOID_COLLIDE:
 				/* collision avoidance */
-				bvf->Copyf(dvec,pa->state.vel);
+				bvf->Copyf(dvec,pa->prev_state.vel);
 				bvf->Mulf(dvec,5.0f);
-				bvf->Addf(dvec,dvec,pa->state.co);
-				if(boid_see_mesh(&psys->effectors,ob,psys,pa->state.co,dvec,ob_co,ob_nor,cfra)){
+				bvf->Addf(dvec,dvec,pa->prev_state.co);
+				if(boid_see_mesh(&psys->effectors,ob,psys,pa->prev_state.co,dvec,ob_co,ob_nor,cfra)){
 					float probelen = bvf->Length(dvec);
 					float proj;
 					float oblen;
 
 					Normalize(ob_nor);
-					proj = bvf->Inpf(ob_nor,pa->state.vel);
+					proj = bvf->Inpf(ob_nor,pa->prev_state.vel);
 
-					bvf->Subf(dvec,pa->state.co,ob_co);
+					bvf->Subf(dvec,pa->prev_state.co,ob_co);
 					oblen=bvf->Length(dvec);
 
 					bvf->Copyf(dvec,ob_nor);
@@ -3479,7 +3484,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 
 							if(pd->forcefield==PFIELD_FORCE && pd->f_strength<0.0){
 								float distance;
-								VECSUB(dvec,eob->obmat[3],pa->state.co);
+								VECSUB(dvec,eob->obmat[3],pa->prev_state.co);
 								
 								distance=Normalize(dvec);
 
@@ -3514,11 +3519,11 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 							totepart= epsys->totpart;
 
 							if(pd->forcefield==PFIELD_FORCE && pd->f_strength<0.0 && ec->tree){
-								count=BLI_kdtree_find_n_nearest(ec->tree,epart->boidneighbours,pa->state.co,NULL,ptn2);
+								count=BLI_kdtree_find_n_nearest(ec->tree,epart->boidneighbours,pa->prev_state.co,NULL,ptn2);
 								for(p=0; p<count; p++){
 									state.time=-1.0;
 									if(psys_get_particle_state(eob,epsys,ptn2[p].index,&state,0)){
-										VECSUB(dvec, state.co, pa->state.co);
+										VECSUB(dvec, state.co, pa->prev_state.co);
 
 										distance = Normalize(dvec);
 
@@ -3549,7 +3554,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 				for(n=1; n<neighbours; n++){
 					if(ptn[n].dist<2.0f*pa->size){
 						if(ptn[n].dist!=0.0f) {
-							bvf->Subf(dvec,pa->state.co,pars[ptn[n].index].state.co);
+							bvf->Subf(dvec,pa->prev_state.co,pars[ptn[n].index].state.co);
 							bvf->Mulf(dvec,(2.0f*pa->size-ptn[n].dist)/ptn[n].dist);
 							bvf->Addf(avoid,avoid,dvec);
 							near++;
@@ -3572,7 +3577,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 					}
 					bvf->Mulf(center,1.0f/((float)neighbours-1.0f));
 
-					bvf->Subf(dvec,center,pa->state.co);
+					bvf->Subf(dvec,center,pa->prev_state.co);
 
 					bvf->Mulf(dvec,part->boidfac[BOID_CENTER]*2.0f);
 
@@ -3581,9 +3586,9 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 				break;
 			case BOID_AV_VEL:
 				/* average velocity */
-				cur_vel=bvf->Length(pa->state.vel);
+				cur_vel=bvf->Length(pa->prev_state.vel);
 				if(cur_vel>0.0){
-					bvf->Copyf(dvec,pa->state.vel);
+					bvf->Copyf(dvec,pa->prev_state.vel);
 					bvf->Mulf(dvec,part->boidfac[BOID_AV_VEL]*(avg_vel-cur_vel)/cur_vel);
 					not_finished=add_boid_acc(bvf,max_lat_acc,max_tan_acc,&lat_accu,&tan_accu,acc,dvec,0);
 				}
@@ -3598,7 +3603,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 					}
 					bvf->Mulf(velocity,1.0f/((float)neighbours-1.0f));
 
-					bvf->Subf(dvec,velocity,pa->state.vel);
+					bvf->Subf(dvec,velocity,pa->prev_state.vel);
 
 					bvf->Mulf(dvec,part->boidfac[BOID_VEL_MATCH]);
 
@@ -3616,7 +3621,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 
 							if(pd->forcefield==PFIELD_FORCE && pd->f_strength>0.0){
 								float distance;
-								VECSUB(dvec,eob->obmat[3],pa->state.co);
+								VECSUB(dvec,eob->obmat[3],pa->prev_state.co);
 								
 								distance=Normalize(dvec);
 
@@ -3633,7 +3638,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 
 								where_on_path(eob, (cfra-pa->time)/pa->lifetime, temp, dvec);
 
-								VECSUB(dvec,temp,pa->state.co);
+								VECSUB(dvec,temp,pa->prev_state.co);
 
 								distance=Normalize(dvec);
 
@@ -3661,11 +3666,11 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 							totepart= epsys->totpart;
 
 							if(pd->forcefield==PFIELD_FORCE && pd->f_strength>0.0 && ec->tree){
-								count=BLI_kdtree_find_n_nearest(ec->tree,epart->boidneighbours,pa->state.co,NULL,ptn2);
+								count=BLI_kdtree_find_n_nearest(ec->tree,epart->boidneighbours,pa->prev_state.co,NULL,ptn2);
 								for(p=0; p<count; p++){
 									state.time=-1.0;
 									if(psys_get_particle_state(eob,epsys,ptn2[p].index,&state,0)){
-										VECSUB(dvec, state.co, pa->state.co);
+										VECSUB(dvec, state.co, pa->prev_state.co);
 
 										distance = Normalize(dvec);
 										
@@ -3687,7 +3692,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 				/* level flight */
 				if((part->flag & PART_BOIDS_2D)==0){
 					dvec[0]=dvec[1]=0.0;
-					dvec[2]=-pa->state.vel[2];
+					dvec[2]=-pa->prev_state.vel[2];
 
 					VecMulf(dvec,part->boidfac[BOID_LEVEL]);
 					not_finished=add_boid_acc(bvf,max_lat_acc,max_tan_acc,&lat_accu,&tan_accu,acc,dvec,0);
@@ -3697,7 +3702,7 @@ static void boid_brain(BoidVecFunc *bvf, ParticleData *pa, Object *ob, ParticleS
 	}
 }
 /* tries to realize the wanted acceleration */
-static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, ParticleSettings *part, float timestep, float *acc, ParticleKey *state)
+static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, ParticleSettings *part, float timestep, float *acc)
 {
 	float dvec[3], bvec[3], length, max_vel=part->max_vel;
 	float q2[4], q[4];
@@ -3705,7 +3710,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 	float yvec[3]={0.0,1.0,0.0}, zvec[3]={0.0,0.0,-1.0}, bank;
 
 	/* apply new velocity, location & rotation */
-	copy_particle_key(state,&pa->state,0);
+	copy_particle_key(&pa->state,&pa->prev_state,0);
 
 	if(part->flag & PART_SIZEMASS)
 		pa_mass*=pa->size;
@@ -3717,10 +3722,10 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 	bvf->Copyf(dvec,acc);
 	bvf->Mulf(dvec,timestep*timestep*0.5f);
 
-	bvf->Copyf(bvec,state->vel);
+	bvf->Copyf(bvec,pa->state.vel);
 	bvf->Mulf(bvec,timestep);
 	bvf->Addf(dvec,dvec,bvec);
-	bvf->Addf(state->co,state->co,dvec);
+	bvf->Addf(pa->state.co,pa->state.co,dvec);
 	
 	/* air speed from wind and vortex effectors */
 	if(psys->effectors.first) {
@@ -3734,7 +3739,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 
 				if(pd->f_strength != 0.0f) {
 					VecCopyf(direction, eob->obmat[2]);
-					VecSubf(vec_to_part, state->co, eob->obmat[3]);
+					VecSubf(vec_to_part, pa->state.co, eob->obmat[3]);
 
 					falloff=effector_falloff(pd, direction, vec_to_part);
 
@@ -3745,7 +3750,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 							else {
 								Normalize(direction);
 								VecMulf(direction, pd->f_strength * falloff);
-								bvf->Addf(state->co, state->co, direction);
+								bvf->Addf(pa->state.co, pa->state.co, direction);
 							}
 							break;
 						case PFIELD_VORTEX:
@@ -3757,7 +3762,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 							distance = VecLength(vec_to_part);
 
 							VecMulf(mag_vec, pd->f_strength * distance * falloff);
-							bvf->Addf(state->co, state->co, mag_vec);
+							bvf->Addf(pa->state.co, pa->state.co, mag_vec);
 							break;
 						}
 					}
@@ -3767,8 +3772,8 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 	}
 
 
-	if((part->flag & PART_BOIDS_2D)==0 && pa->state.vel[0]!=0.0 && pa->state.vel[0]!=0.0 && pa->state.vel[0]!=0.0){
-		Crossf(yvec,state->vel,zvec);
+	if((part->flag & PART_BOIDS_2D)==0 && pa->prev_state.vel[0]!=0.0 && pa->prev_state.vel[0]!=0.0 && pa->prev_state.vel[0]!=0.0){
+		Crossf(yvec,pa->state.vel,zvec);
 
 		Normalize(yvec);
 
@@ -3795,27 +3800,27 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 	}
 
 
-	VecRotToQuat(state->vel,bank,q);
+	VecRotToQuat(pa->state.vel,bank,q);
 
-	VECCOPY(dvec,state->vel);
+	VECCOPY(dvec,pa->state.vel);
 	VecMulf(dvec,-1.0f);
 	vectoquat(dvec, OB_POSX, OB_POSZ, q2);
 
-	QuatMul(state->rot,q,q2);
+	QuatMul(pa->state.rot,q,q2);
 
 	bvf->Mulf(acc,timestep);
-	bvf->Addf(state->vel,state->vel,acc);
+	bvf->Addf(pa->state.vel,pa->state.vel,acc);
 
 	if(part->flag & PART_BOIDS_2D){
-		state->vel[2]=0.0;
-		state->co[2]=part->groundz;
+		pa->state.vel[2]=0.0;
+		pa->state.co[2]=part->groundz;
 
 		if(psys->keyed_ob && (psys->keyed_ob->type == OB_MESH)){
 			Object *zob=psys->keyed_ob;
 			int min_face;
 			float co1[3],co2[3],min_d=2.0,min_w[4],imat[4][4];
-			VECCOPY(co1,state->co);
-			VECCOPY(co2,state->co);
+			VECCOPY(co1,pa->state.co);
+			VECCOPY(co2,pa->state.co);
 
 			co1[2]=1000.0f;
 			co2[2]=-1000.0f;
@@ -3846,7 +3851,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 
 				Normalize(nor);
 
-				VECCOPY(state->co,loc);
+				VECCOPY(pa->state.co,loc);
 
 				zvec[2]=1.0;
 
@@ -3858,17 +3863,17 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 
 					VecRotToQuat(loc,bank,q);
 
-					QUATCOPY(q1,state->rot);
+					QUATCOPY(q1,pa->state.rot);
 
-					QuatMul(state->rot,q,q1);
+					QuatMul(pa->state.rot,q,q1);
 				}
 			}
 		}
 	}
 
-	length=bvf->Length(state->vel);
+	length=bvf->Length(pa->state.vel);
 	if(length > max_vel)
-		bvf->Mulf(state->vel,max_vel/length);
+		bvf->Mulf(pa->state.vel,max_vel/length);
 }
 /************************************************/
 /*			Hair								*/
@@ -3925,7 +3930,6 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 						  float *vg_vel, float *vg_tan, float *vg_rot, float *vg_size)
 {
 	ParticleData *pa;
-	ParticleKey *outstate, *key;
 	ParticleSettings *part=psys->part;
 	KDTree *tree=0;
 	BoidVecFunc bvf;
@@ -3995,15 +3999,9 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 		if(vg_size)
 			MEM_freeN(vg_size);
-
-		//if(part->phystype==PART_PHYS_SOLID)
-		//	reset_to_first_fragment(psys);
 	}
 	else{
 		BLI_srandom(31415926 + (int)cfra + psys->seed);
-
-		/* outstate is used so that particles are updated in parallel */
-		outstate=MEM_callocN(totpart*sizeof(ParticleKey),"Particle Outstates");
 		
 		/* update effectors */
 		if(psys->effectors.first)
@@ -4028,10 +4026,10 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 		}
 
 		/* main loop: calculate physics for all particles */
-		for(p=0, pa=psys->particles, key=outstate; p<totpart; p++,pa++,key++){
+		for(p=0, pa=psys->particles; p<totpart; p++,pa++){
 			if(pa->flag & PARS_UNEXIST) continue;
 
-			copy_particle_key(key,&pa->state,1);
+			copy_particle_key(&pa->prev_state,&pa->state,1);
 			
 			/* set correct ipo timing */
 			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
@@ -4041,7 +4039,12 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 			}
 			pa->size=psys_get_size(ob,ma,psmd,icu_esize,psys,part,pa,vg_size);
 
+			/* reactions can change birth time so they need to be checked first */
+			if(psys->reactevents.first && ELEM(pa->alive,PARS_DEAD,PARS_KILLED)==0)
+				react_to_events(psys,p);
+
 			birthtime = pa->time + pa->loop * pa->lifetime;
+			dietime = birthtime + pa->lifetime;
 
 			/* allways reset particles to emitter before birth */
 			if(pa->alive==PARS_UNBORN
@@ -4049,91 +4052,72 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 				|| ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED)
 				|| birthtime >= cfra){
 				reset_particle(pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
-				copy_particle_key(key,&pa->state,1);
 			}
 
-			if(1) {
-				
-				if(psys->reactevents.first && ELEM(pa->alive,PARS_DEAD,PARS_KILLED)==0)
-					react_to_events(psys,p);
+			pa_dfra = dfra;
+			pa_dtime = dtime;
 
-				pa_dfra = dfra;
-				pa_dtime = dtime;
+			if(birthtime <= cfra && birthtime >= psys->cfra){
+				/* particle is born some time between this and last step*/
+				pa->alive = PARS_ALIVE;
+				pa_dfra = cfra - birthtime;
+				pa_dtime = pa_dfra*timestep;
+			}
+			else if(dietime <= cfra && psys->cfra < dietime){
+				/* particle dies some time between this and last step */
+				pa_dfra = dietime - psys->cfra;
+				pa_dtime = pa_dfra * timestep;
+				pa->alive = PARS_DYING;
+			}
+			else if(dietime < cfra){
+				/* nothing to be done when particle is dead */
+			}
 
-				/* we need to calculate this once again because reactions might have changed pa->time */
-				birthtime = pa->time + pa->loop * pa->lifetime;
-				dietime = birthtime + pa->lifetime;
 
-				if(birthtime <= cfra && birthtime >= psys->cfra){
-					/* particle is born some time between this and last step*/
-					pa->alive = PARS_ALIVE;
-					pa_dfra = cfra - birthtime;
-					pa_dtime = pa_dfra*timestep;
-				}
-				else if(dietime <= cfra && psys->cfra < dietime){
-					/* particle dies some time between this and last step */
-					pa_dfra = dietime - psys->cfra;
-					pa_dtime = pa_dfra * timestep;
-					pa->alive = PARS_DYING;
-				}
-				else if(dietime < cfra){
-					/* nothing to be done when particle is dead */
-				}
+			if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
+				switch(part->phystype){
+					case PART_PHYS_NEWTON:
+						/* do global forces & effectors */
+						apply_particle_forces(p,pa,ob,psys,part,timestep,pa_dfra,cfra);
+			
+						/* deflection */
+						deflect_particle(ob,psmd,psys,part,pa,p,timestep,pa_dfra,cfra);
 
-				copy_particle_key(key,&pa->state,1);
-
-				if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
-					switch(part->phystype){
-						case PART_PHYS_NEWTON:
-							/* do global forces & effectors */
-							apply_particle_forces(p,pa,ob,psys,part,timestep,pa_dfra,cfra,key);
-				
-							/* deflection */
-							deflect_particle(ob,psmd,psys,part,pa,p,timestep,pa_dfra,cfra,key);
-
-							/* rotations */
-							rotate_particle(part,pa,pa_dfra,timestep,key);
-							break;
-						case PART_PHYS_BOIDS:
-						{
-							float acc[3];
-							boid_brain(&bvf,pa,ob,psys,part,tree,timestep,cfra,acc);
-							if(pa->alive != PARS_DYING)
-								boid_body(&bvf,pa,psys,part,timestep,acc,key);
-							break;
-						}
+						/* rotations */
+						rotate_particle(part,pa,pa_dfra,timestep);
+						break;
+					case PART_PHYS_BOIDS:
+					{
+						float acc[3];
+						boid_brain(&bvf,pa,ob,psys,part,tree,timestep,cfra,acc);
+						if(pa->alive != PARS_DYING)
+							boid_body(&bvf,pa,psys,part,timestep,acc);
+						break;
 					}
-
-					if(pa->alive == PARS_DYING){
-						push_reaction(ob,psys,p,PART_EVENT_DEATH,key);
-
-						if(part->flag & PART_LOOP && part->type!=PART_HAIR){
-							pa->loop++;
-							reset_particle(pa,psys,psmd,ob,0.0,cfra,vg_vel,vg_tan,vg_rot);
-							copy_particle_key(key,&pa->state,1);
-							pa->alive=PARS_ALIVE;
-						}
-						else{
-							pa->alive=PARS_DEAD;
-							key->time=pa->dietime;
-
-							if(pa->flag&PARS_STICKY)
-								psys_key_to_object(pa->stick_ob,key,0);
-						}
-					}
-					else
-						key->time=cfra;
-
-					push_reaction(ob,psys,p,PART_EVENT_NEAR,key);
 				}
+
+				if(pa->alive == PARS_DYING){
+					push_reaction(ob,psys,p,PART_EVENT_DEATH,&pa->state);
+
+					if(part->flag & PART_LOOP && part->type!=PART_HAIR){
+						pa->loop++;
+						reset_particle(pa,psys,psmd,ob,0.0,cfra,vg_vel,vg_tan,vg_rot);
+						pa->alive=PARS_ALIVE;
+					}
+					else{
+						pa->alive=PARS_DEAD;
+						pa->state.time=pa->dietime;
+
+						if(pa->flag&PARS_STICKY)
+							psys_key_to_object(pa->stick_ob,&pa->state,0);
+					}
+				}
+				else
+					pa->state.time=cfra;
+
+				push_reaction(ob,psys,p,PART_EVENT_NEAR,&pa->state);
 			}
 		}
-
-		/* apply outstates to particles */
-		for(p=0, pa=psys->particles, key=outstate; p<totpart; p++,pa++,key++)
-			copy_particle_key(&pa->state,key,1);
-
-		MEM_freeN(outstate);
 	}
 	if(psys->reactevents.first)
 		BLI_freelistN(&psys->reactevents);
