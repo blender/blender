@@ -7868,6 +7868,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->skyblendfac= 1.0f;
 		}
 	}
+	
+	/* set the curve radius interpolation to 2.47 default - easy */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 6)) {
+		Curve *cu;
+		Nurb *nu;
+		
+		for(cu= main->curve.first; cu; cu= cu->id.next) {
+			for(nu= cu->nurb.first; nu; nu= nu->next) {
+				if (nu) {
+					nu->radius_interp = 3;
+				}
+			}
+		}
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

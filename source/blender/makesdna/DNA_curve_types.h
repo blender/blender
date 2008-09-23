@@ -68,7 +68,7 @@ typedef struct BevList {
 #
 #
 typedef struct BevPoint {
-	float x, y, z, alfa, sina, cosa, mat[3][3];
+	float x, y, z, alfa, radius, sina, cosa, mat[3][3];
 	short f1, f2;
 } BevPoint;
 
@@ -115,7 +115,7 @@ typedef struct Nurb {
 	BezTriple *bezt;
 
 	short tilt_interp;	/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
-	short pad;
+	short radius_interp;
 	
 	int charidx;
 } Nurb;

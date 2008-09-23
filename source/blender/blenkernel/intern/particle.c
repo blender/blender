@@ -1674,7 +1674,6 @@ int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
 					/* TODO */
 					//else{
 					///* curve size*/
-					//	calc_curve_subdiv_radius(cu,cu->nurb.first,((Nurb*)cu->nurb.first)->
 					//}
 					par.co[0]=par.co[1]=par.co[2]=0.0f;
 					VECCOPY(key.co,pa_loc);

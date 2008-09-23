@@ -3361,9 +3361,9 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	if(ob->type==OB_CURVE) {
 		uiDefBut(block, LABEL, 0, "Convert",	463,173,72, 18, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT,B_CONVERTPOLY,"Poly",		467,152,72, 18, 0, 0, 0, 0, 0, "Converts selected into regular Polygon vertices");
-		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",		467,132,72, 18, 0, 0, 0, 0, 0, "Converts selected to Bezier triples");
-		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		467,112,72, 18, 0, 0, 0, 0, 0, "Converts selected to Nurbs Points");
+		uiDefBut(block, BUT,B_CONVERTPOLY,"Poly",		450,152,110, 18, 0, 0, 0, 0, 0, "Converts selected into regular Polygon vertices");
+		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",		450,132,110, 18, 0, 0, 0, 0, 0, "Converts selected to Bezier triples");
+		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		450,112,110, 18, 0, 0, 0, 0, 0, "Converts selected to Nurbs Points");
 	}
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_UNIFU,"Uniform U",	565,152,102, 18, 0, 0, 0, 0, 0, "Nurbs only; interpolated result doesn't go to end points in U");
@@ -3374,7 +3374,7 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiDefBut(block, BUT,B_BEZV,"V",				670,112,50, 18, 0, 0, 0, 0, 0, "Nurbs only; make knots array mimic a Bezier in V");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT,B_SETWEIGHT,"Set Weight",	465,11,95,49, 0, 0, 0, 0, 0, "Nurbs only; set weight for select points");
+	uiDefBut(block, BUT,B_SETWEIGHT,"Set Weight",	450,11,110,49, 0, 0, 0, 0, 0, "Nurbs only; set weight for select points");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,0,"Weight:",		565,36,102,22, &editbutweight, 0.01, 100.0, 10, 0, "The weight you can assign");
@@ -3393,10 +3393,15 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",
-					467,87,72, 18, 0, 0, 0, 0, 0, "");
+					450,90,72, 18, 0, 0, 0, 0, 0, "");
 				/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
-				uiDefButS(block, MENU, B_TILTINTERP, "Tilt Interpolation %t|Linear %x0|Cardinal %x1|BSpline %x2",
-					467,67,72, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tilt interpolation");
+				uiDefButS(block, MENU, B_TILTINTERP, "Tilt Interpolation %t|Linear%x0|Cardinal%x1|BSpline %x2|Ease%x3",
+					495,90,66, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tadius interpolation for 3D curves");
+
+				uiDefBut(block, LABEL, 0, "Radius",
+					450,70,72, 18, 0, 0, 0, 0, 0, "");
+				uiDefButS(block, MENU, B_TILTINTERP, "Radius Interpolation %t|Linear%x0|Cardinal%x1|BSpline %x2|Ease%x3",
+					495,70,66, 18, &(nu->radius_interp), 0, 0, 0, 0, "Radius interpolation");
 			}
 						
 			uiBlockBeginAlign(block);

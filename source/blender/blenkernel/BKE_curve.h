@@ -65,15 +65,14 @@ void minmaxNurb( struct Nurb *nu, float *min, float *max);
 
 void makeknots( struct Nurb *nu, short uv, short type);
 
-void makeNurbfaces( struct Nurb *nu, float *data, int rowstride);
-void makeNurbcurve( struct Nurb *nu, float *data, int resolu, int dim);
+void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
+void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 float *make_orco_curve( struct Object *ob);
 float *make_orco_surf( struct Object *ob);
 void makebevelcurve( struct Object *ob,  struct ListBase *disp);
 
 void makeBevelList( struct Object *ob);
-float calc_curve_subdiv_radius( struct Curve *cu, struct Nurb *nu, int cursubdiv);
 
 void calchandleNurb( struct BezTriple *bezt, struct BezTriple *prev,  struct BezTriple *next, int mode);
 void calchandlesNurb( struct Nurb *nu);
