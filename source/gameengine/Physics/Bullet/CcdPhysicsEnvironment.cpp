@@ -452,6 +452,8 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 
 }
 
+		
+
 void	CcdPhysicsEnvironment::removeCcdPhysicsController(CcdPhysicsController* ctrl)
 {
 	//also remove constraint

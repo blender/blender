@@ -743,7 +743,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key) {
+	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0)) 
+	{
 		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
 		skinMesh = true;
 	}
@@ -1554,20 +1555,20 @@ static KX_GameObject *gameobject_from_blenderobject(
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer((BL_DeformableGameObject*)gameobj,
 															ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		} else if (bHasDvert) {
 			// this case correspond to a mesh that can potentially deform but not with the
 			// object to which it is attached for the moment. A skin mesh was created in
 			// BL_ConvertMesh() so must create a deformer too!
 			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
 														  ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		}
 		
 		MT_Point3 min = MT_Point3(center) - MT_Vector3(extents);
@@ -2193,8 +2194,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
-					if (par && obj->m_pDeformer)
-						((BL_SkinDeformer*)obj->m_pDeformer)->SetArmature((BL_ArmatureObject*) par);
+					if (par && obj->GetDeformer())
+						((BL_SkinDeformer*)obj->GetDeformer())->SetArmature((BL_ArmatureObject*) par);
 				}
 			}
 		}

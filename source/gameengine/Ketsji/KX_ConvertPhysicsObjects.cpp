@@ -38,6 +38,8 @@
 #include "RAS_MeshObject.h"
 #include "KX_Scene.h"
 #include "SYS_System.h"
+#include "BL_SkinMeshObject.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 #include "PHY_Pro.h" //todo cleanup
 #include "KX_ClientObjectInfo.h"
@@ -765,7 +767,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		}
 	case KX_BOUNDMESH:
 		{
-			if (!ci.m_mass)
+			if (!ci.m_mass ||objprop->m_softbody)
 			{				
 				// mesh shapes can be shared, check first if we already have a shape on that mesh
 				class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, false);
@@ -987,6 +989,112 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		materialname = meshobj->GetMaterialName(0);
 
 	physicscontroller->SetObject(gameobj->GetSGNode());
+
+	class KX_SoftBodyDeformer : public RAS_Deformer
+	{
+		btSoftBody*	m_softBody;
+		class BL_SkinMeshObject*	m_pMeshObject;
+		class BL_DeformableGameObject*	m_gameobj;
+
+
+	public:
+		KX_SoftBodyDeformer(btSoftBody* softBody,BL_SkinMeshObject*	pMeshObject,BL_DeformableGameObject*	gameobj)
+			: m_softBody(softBody),
+			m_pMeshObject(pMeshObject),
+			m_gameobj(gameobj)
+		{
+			//printf("KX_SoftBodyDeformer\n");
+		};
+
+		virtual ~KX_SoftBodyDeformer()
+		{
+			//printf("~KX_SoftBodyDeformer\n");
+		};
+		virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+		{
+			//printf("relink\n");
+		}
+		virtual bool Apply(class RAS_IPolyMaterial *polymat)
+		{
+			//printf("apply\n");
+			RAS_MeshSlot::iterator it;
+			RAS_MeshMaterial *mmat;
+			RAS_MeshSlot *slot;
+			size_t i;
+
+			// update the vertex in m_transverts
+			Update();
+
+			// The vertex cache can only be updated for this deformer:
+			// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+			// share the same mesh (=the same cache). As the rendering is done per polymaterial
+			// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+			mmat = m_pMeshObject->GetMeshMaterial(polymat);
+			if(!mmat->m_slots[(void*)m_gameobj])
+				return true;
+
+			slot = *mmat->m_slots[(void*)m_gameobj];
+
+			// for each array
+			for(slot->begin(it); !slot->end(it); slot->next(it)) 
+			{
+				// for each vertex
+				// copy the untransformed data from the original mvert
+				int count = 0;
+				{
+
+					for(i=it.startvertex; i<it.endvertex; i++,count++)
+					{
+					}
+				}
+				btSoftBody::tNodeArray&   nodes(m_softBody->m_nodes);
+
+				if (count == m_softBody->m_userIndexMapping.size())
+				{
+					int index = 0;
+					for(i=it.startvertex; i<it.endvertex; i++,index++) {
+						RAS_TexVert& v = it.vertex[i];
+
+						MT_Point3 pt (
+							nodes[m_softBody->m_userIndexMapping[index]].m_x.getX(),
+							nodes[m_softBody->m_userIndexMapping[index]].m_x.getY(),
+							nodes[m_softBody->m_userIndexMapping[index]].m_x.getZ());
+						v.SetXYZ(pt);
+
+						//(m_transverts[v.getOrigIndex()]);
+					}
+				}
+
+			}
+
+			return true;
+		}
+		virtual bool Update(void)
+		{
+			//printf("update\n");
+			return true;//??
+		}
+		virtual RAS_Deformer *GetReplica()
+		{
+			//printf("getReplica\n");
+			return 0;
+		}
+	protected:
+		//class RAS_MeshObject	*m_pMesh;
+	};
+
+	///test for soft bodies
+	if (objprop->m_softbody && physicscontroller)
+	{
+		btSoftBody* softBody = physicscontroller->GetSoftBody();
+		if (softBody && gameobj->GetMesh(0))
+		{
+			//should be a mesh then, so add a soft body deformer
+			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer(softBody, (BL_SkinMeshObject*)gameobj->GetMesh(0),(BL_DeformableGameObject*)gameobj);
+			gameobj->SetDeformer(softbodyDeformer);
+			
+		}
+	}
 
 }
 

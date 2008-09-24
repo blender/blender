@@ -977,10 +977,10 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 	{
 		BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
 		
-		if (newobj->m_pDeformer)
+		if (newobj->GetDeformer())
 		{
-			delete newobj->m_pDeformer;
-			newobj->m_pDeformer = NULL;
+			delete newobj->GetDeformer();
+			newobj->SetDeformer(NULL);
 		}
 
 		if (mesh->IsDeformed())
@@ -1030,7 +1030,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						NULL
 					);
 				}
-				newobj->m_pDeformer = shapeDeformer;
+				newobj->SetDeformer( shapeDeformer);
 			}
 			else if (bHasArmature) 
 			{
@@ -1042,14 +1042,14 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);
 				releaseParent= false;
-				newobj->m_pDeformer = skinDeformer;
+				newobj->SetDeformer(skinDeformer);
 			}
 			else if (bHasDvert)
 			{
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
 					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
 				);
-				newobj->m_pDeformer = meshdeformer;
+				newobj->SetDeformer(meshdeformer);
 			}
 
 			// release parent reference if its not being used 

@@ -216,7 +216,10 @@ protected:
 	
 		void	SyncMotionStates(float timeStep);
 
-		
+		class	btSoftRigidDynamicsWorld*	getDynamicsWorld()
+		{
+			return m_dynamicsWorld;
+		}
 	
 		class btConstraintSolver*	GetConstraintSolver();
 

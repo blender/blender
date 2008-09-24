@@ -869,6 +869,8 @@ bool  HullLibrary::CleanupVertices(unsigned int svcount,
 {
 	if ( svcount == 0 ) return false;
 
+	m_vertexIndexMapping.resize(0);
+
 
 #define EPSILON btScalar(0.000001) /* close enough to consider two btScalaring point numbers to be 'the same'. */
 
@@ -1027,6 +1029,7 @@ bool  HullLibrary::CleanupVertices(unsigned int svcount,
 						v[0] = px;
 						v[1] = py;
 						v[2] = pz;
+						
 					}
 
 					break;
@@ -1041,6 +1044,7 @@ bool  HullLibrary::CleanupVertices(unsigned int svcount,
 				dest[2] = pz;
 				vcount++;
 			}
+			m_vertexIndexMapping.push_back(j);
 		}
 	}
 
@@ -1116,13 +1120,22 @@ bool  HullLibrary::CleanupVertices(unsigned int svcount,
 
 void HullLibrary::BringOutYourDead(const btVector3* verts,unsigned int vcount, btVector3* overts,unsigned int &ocount,unsigned int *indices,unsigned indexcount)
 {
+	btAlignedObjectArray<int>tmpIndices;
+	tmpIndices.resize(m_vertexIndexMapping.size());
+	int i;
+
+	for (i=0;i<m_vertexIndexMapping.size();i++)
+	{
+		tmpIndices[i] = m_vertexIndexMapping[i];
+	}
+
 	TUIntArray usedIndices;
 	usedIndices.resize(static_cast<int>(vcount));
 	memset(&usedIndices[0],0,sizeof(unsigned int)*vcount);
 
 	ocount = 0;
 
-	for (unsigned int i=0; i<indexcount; i++)
+	for (i=0; i<indexcount; i++)
 	{
 		unsigned int v = indices[i]; // original array index
 
@@ -1141,11 +1154,19 @@ void HullLibrary::BringOutYourDead(const btVector3* verts,unsigned int vcount, b
 			overts[ocount][1] = verts[v][1];
 			overts[ocount][2] = verts[v][2];
 
+			for (int k=0;k<m_vertexIndexMapping.size();k++)
+			{
+				if (tmpIndices[k]==v)
+					m_vertexIndexMapping[k]=ocount;
+			}
+
 			ocount++; // increment output vert count
 
 			btAssert( ocount >=0 && ocount <= vcount );
 
 			usedIndices[static_cast<int>(v)] = ocount; // assign new index remapping
+
+		
 		}
 	}
 

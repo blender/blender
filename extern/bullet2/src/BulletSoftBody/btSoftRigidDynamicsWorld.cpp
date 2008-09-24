@@ -21,6 +21,10 @@ subject to the following restrictions:
 #include "btSoftBody.h"
 #include "btSoftBodyHelpers.h"
 
+
+
+
+
 btSoftRigidDynamicsWorld::btSoftRigidDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration)
 :btDiscreteDynamicsWorld(dispatcher,pairCache,constraintSolver,collisionConfiguration)
 {
@@ -28,6 +32,11 @@ m_drawFlags			=	fDrawFlags::Std;
 m_drawNodeTree		=	true;
 m_drawFaceTree		=	false;
 m_drawClusterTree	=	false;
+m_sbi.m_broadphase = pairCache;
+m_sbi.m_dispatcher = dispatcher;
+m_sbi.m_sparsesdf.Initialize();
+m_sbi.m_sparsesdf.Reset();
+
 }
 		
 btSoftRigidDynamicsWorld::~btSoftRigidDynamicsWorld()
