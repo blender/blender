@@ -401,7 +401,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	float vec[3], stepvec[3] = {0.0, 0.0, 0.0};
 	float tau[3], step_emit[3], step_scatter[3] = {0.0, 0.0, 0.0};
 	int s;
-	float step_sta[3], step_end[3];
+	float step_sta[3], step_end[3], step_mid[3];
 	float col_behind[3];
 	float total_density = 0.f;
 	
@@ -433,6 +433,9 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 		/* there's only any point shading here
 		 * if there's actually some density to shade! */
 		if (density > 0.01f) {
+			step_mid[0] = step_sta[0] + (stepvec[0] * 0.5);
+			step_mid[1] = step_sta[1] + (stepvec[1] * 0.5);
+			step_mid[2] = step_sta[2] + (stepvec[2] * 0.5);
 		
 			/* transmittance component (alpha) */
 			vol_get_attenuation(shi, tau, step_sta, step_end, density, stepsize);
@@ -444,8 +447,8 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			//if (rgb_to_luminance(tr[0], tr[1], tr[2]) < 1e-3) break;
 			
 			/* incoming light via emission or scattering (additive) */
-			vol_get_emission(shi, step_emit, step_sta, density);
-			vol_get_scattering(shi, step_scatter, step_end, stepsize, density);
+			vol_get_emission(shi, step_emit, step_mid, density);
+			vol_get_scattering(shi, step_scatter, step_mid, stepsize, density);
 			
 			VecAddf(d_radiance, step_emit, step_scatter);
 			
