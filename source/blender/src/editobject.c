@@ -3624,10 +3624,6 @@ void copy_attr(short event)
 					}
 				}
 				else if(event==22) {
-					/* Clear the constraints on the target */
-					free_constraints(&base->object->constraints);
-					free_constraint_channels(&base->object->constraintChannels);
-
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints);
 					if (U.dupflag& USER_DUP_IPO)

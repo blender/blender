@@ -37,6 +37,7 @@ typedef enum ModifierType {
 	eModifierType_Bevel,
 	eModifierType_Shrinkwrap,
 	eModifierType_Fluidsim,
+	eModifierType_Mask,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -104,6 +105,24 @@ typedef struct BuildModifierData {
 	float start, length;
 	int randomize, seed;
 } BuildModifierData;
+
+/* Mask Modifier */
+typedef struct MaskModifierData {
+	ModifierData modifier;
+	
+	struct Object *ob_arm;	/* armature to use to in place of hardcoded vgroup */
+	char vgroup[32];		/* name of vertex group to use to mask */
+	
+	int mode;				/* using armature or hardcoded vgroup */
+	int flag;				/* flags for various things */
+} MaskModifierData;
+
+/* Mask Modifier -> mode */
+#define MOD_MASK_MODE_VGROUP		0
+#define MOD_MASK_MODE_ARM			1
+
+/* Mask Modifier -> flag */
+#define MOD_MASK_INV			(1<<0)
 
 typedef struct ArrayModifierData {
 	ModifierData modifier;

@@ -1850,6 +1850,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
 				height += 19;
+		} else if (md->type == eModifierType_Mask) {
+			height = 66;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2128,6 +2130,30 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Ratio:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 10, 0, "Defines the percentage of triangles to reduce to");
 			sprintf(str, "Face Count: %d", dmd->faceCount);
 			uiDefBut(block, LABEL, 1, str,	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Displays the current number of faces in the decimated mesh");
+		} else if (md->type==eModifierType_Mask) {
+			MaskModifierData *mmd = (MaskModifierData *)md;
+			
+			sprintf(str, "Mask Mode%%t|Vertex Group%%x%d|Selected Bones%%x%d|",
+			        MOD_MASK_MODE_VGROUP,MOD_MASK_MODE_ARM);
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
+			        lx, (cy -= 19), buttonWidth, 19, &mmd->mode,
+			        0.0, 1.0, 0, 0, "How masking region is defined");
+					  
+			if (mmd->mode == MOD_MASK_MODE_ARM) {
+				uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP,
+				    "Ob: ", lx, (cy -= 19), buttonWidth, 19, &mmd->ob_arm,
+				    "Armature to use as source of bones to mask");
+			}
+			else {
+				but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	
+					lx, (cy-=19), buttonWidth, 19, &mmd->vgroup, 
+					0.0, 31.0, 0, 0, "Vertex Group name");
+				uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			}
+			
+			uiDefButBitI(block, TOG, MOD_MASK_INV, B_MODIFIER_RECALC, "Inverse",		
+				lx, (cy-=19), buttonWidth, 19, &mmd->flag, 
+				0, 0, 0, 0, "Use vertices that are not part of region defined");
 		} else if (md->type==eModifierType_Smooth) {
 			SmoothModifierData *smd = (SmoothModifierData*) md;
 
@@ -2266,6 +2292,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefBut(block, LABEL, 1, "See Soft Body panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Cloth) {
 			uiDefBut(block, LABEL, 1, "See Cloth panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+
 		} else if (md->type==eModifierType_Collision) {
 			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Fluidsim) {
