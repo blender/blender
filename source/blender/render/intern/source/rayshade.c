@@ -205,7 +205,7 @@ void makeraytree(Render *re)
 	re->stats_draw(&re->i);
 }
 
-static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
+void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= (VlakRen*)is->face;
 	ObjectInstanceRen *obi= RAY_OBJECT_GET(&R, is->ob);
