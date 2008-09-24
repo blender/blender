@@ -2979,11 +2979,11 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 {
 	uiBlock *block;
 	Object *ob = arg_ob;
-	short yco = 65, xco = 0;
+	short yco = 105, xco = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", -5, -10, 255, 100, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "", -5, -10, 255, 140, NULL, 0, 0, 0, 0, "");
 
 	uiDefButBitI(block, TOG, OB_ACTOR, 0, "Sensor actor",
 				xco, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0,
@@ -3008,6 +3008,25 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				xco, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 				"Collision margin");
 	}
+	if (ob->gameflag & OB_SOFT_BODY) {
+		uiDefButBitI(block, TOG, OB_SOFT_SHAPE_MATCHING, 0, "Shape matching", 
+					xco+=120, yco, 118, 19, &ob->gamesoftFlag, 0, 0, 0, 0, 
+					"Enable soft body shape matching");
+		yco -= 25;
+		xco = 0;
+		uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 238, 19, 
+				&ob->linearStiffness, 0.0, 1.0, 1, 0, 
+				"Linear stiffness of the soft body vertex spring");
+		yco -= 25;
+		uiDefButF(block, NUMSLI, 0, "AngStiff ", xco, yco, 238, 19, 
+				&ob->angularStiffness, 0.0, 1.0, 1, 0, 
+				"Angular stiffness of the soft body vertex spring");
+		yco -= 25;
+		uiDefButF(block, NUMSLI, 0, "Volume ", xco, yco, 238, 19, 
+				&ob->volumePreservation, 0.0, 1.0, 1, 0, 
+				"Factor of soft body volume preservation");
+	}
+
 			
 	uiBlockSetDirection(block, UI_TOP);
 

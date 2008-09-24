@@ -797,6 +797,36 @@ static PyObject* gPyGetMaterialType(PyObject*)
 	return PyInt_FromLong(flag);
 }
 
+static PyObject* gPyDrawLine(PyObject*, PyObject* args)
+{
+	PyObject* ob_from;
+	PyObject* ob_to;
+	PyObject* ob_color;
+
+	if (!gp_Rasterizer) {
+		PyErr_SetString(PyExc_RuntimeError, "Rasterizer not available");
+		return NULL;
+	}
+
+	if (!PyArg_ParseTuple(args,"OOO",&ob_from,&ob_to,&ob_color))
+		return NULL;
+
+	MT_Vector3 from(0., 0., 0.);
+	MT_Vector3 to(0., 0., 0.);
+	MT_Vector3 color(0., 0., 0.);
+	if (!PyVecTo(ob_from, from))
+		return NULL;
+	if (!PyVecTo(ob_to, to))
+		return NULL;
+	if (!PyVecTo(ob_color, color))
+		return NULL;
+
+	gp_Rasterizer->DrawDebugLine(from,to,color);
+	
+	Py_RETURN_NONE;
+}
+
+
 STR_String	gPyGetWindowHeight__doc__="getWindowHeight doc";
 STR_String	gPyGetWindowWidth__doc__="getWindowWidth doc";
 STR_String	gPyEnableVisibility__doc__="enableVisibility doc";
@@ -838,6 +868,8 @@ static struct PyMethodDef rasterizer_methods[] = {
    METH_VARARGS, "set the state of a GLSL material setting"},
   {"getGLSLMaterialSetting",(PyCFunction) gPyGetGLSLMaterialSetting,
    METH_VARARGS, "get the state of a GLSL material setting"},
+  {"drawLine", (PyCFunction) gPyDrawLine,
+   METH_VARARGS, "draw a line on the screen"},
   { NULL, (PyCFunction) NULL, 0, NULL }
 };
 

@@ -156,7 +156,14 @@ typedef struct Object {
 
 	float formfactor;
 	float rdamping, sizefac;
-	float margin, pad3;
+	float margin;
+	/* for game engine soft body */
+	float linearStiffness;
+	float angularStiffness;
+	float volumePreservation;
+	int   gamesoftFlag;
+	int   pad3;
+
 
 
 	char dt, dtx;
@@ -410,6 +417,9 @@ extern Object workob;
 		/* time flag is set when time changes need recalc, so baked systems can ignore it */
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
+
+/* ob->gamesoftFlag */
+#define OB_SOFT_SHAPE_MATCHING	1
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1
