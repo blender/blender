@@ -5417,16 +5417,16 @@ static void object_panel_fluidsim(Object *ob)
 
 			uiDefBut ( block, LABEL, 0, "Attraction force:", 0,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "" );
 			uiBlockBeginAlign ( block );
-			uiDefButF ( block, NUM, B_DIFF, "Strength:",   120, yline,90,objHeight, &fss->attractforceStrength, -10.0, 10.0, 10, 0, "Specifies time when the control particles are activated." );
-			uiDefButF ( block, NUM, B_DIFF, "Radius:",     210, yline,90,objHeight, &fss->attractforceRadius, 0.0, 10.0, 10, 0, "Specifies time when the control particles are deactivated." );
+			uiDefButF ( block, NUM, B_DIFF, "Strength:",   120, yline,90,objHeight, &fss->attractforceStrength, -10.0, 10.0, 10, 0, "Force strength for directional attraction towards the control object." );
+			uiDefButF ( block, NUM, B_DIFF, "Radius:",     210, yline,90,objHeight, &fss->attractforceRadius, 0.0, 10.0, 10, 0, "Specifies the force field radius around the control object." );
 			uiBlockEndAlign ( block );
 			yline -= lineHeight;
 			yline -= separateHeight;
 
 			uiDefBut ( block, LABEL, 0, "Velocity force:", 0,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "" );
 			uiBlockBeginAlign ( block );
-			uiDefButF ( block, NUM, B_DIFF, "Strength:",   120, yline,90,objHeight, &fss->velocityforceStrength, 0.0, 10.0, 10, 0, "Specifies time when the control particles are activated." );
-			uiDefButF ( block, NUM, B_DIFF, "Radius:",     210, yline,90,objHeight, &fss->velocityforceRadius, 0.0, 10.0, 10, 0, "Specifies time when the control particles are deactivated." );
+			uiDefButF ( block, NUM, B_DIFF, "Strength:",   120, yline,90,objHeight, &fss->velocityforceStrength, 0.0, 10.0, 10, 0, "Force strength of how much of the control object's velocity is influencing the fluid velocity." );
+			uiDefButF ( block, NUM, B_DIFF, "Radius:",     210, yline,90,objHeight, &fss->velocityforceRadius, 0.0, 10.0, 10, 0, "Specifies the force field radius around the control object." );
 			uiBlockEndAlign ( block );
 			yline -= lineHeight;
 			yline -= separateHeight;
