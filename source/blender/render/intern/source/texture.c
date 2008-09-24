@@ -1503,6 +1503,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			}
 			else if(mtex->texco==TEXCO_GLOB) {							
 			   VECCOPY(co, xyz);
+			   MTC_Mat4MulVecfl(R.viewinv, co);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 

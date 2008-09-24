@@ -4250,7 +4250,7 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 5.0, 0, 0, "Multiplier for absorption");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 10.0, 10, 0, "Multiplier for absorption");
 	uiDefButF(block, COL, B_MATPRV, "",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption_col), 0, 0, 0, B_MATCOL, "");
 	
@@ -4264,6 +4264,11 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButF(block, COL, B_MATPRV, "",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->r), 0, 0, 0, B_MATCOL, "");
 	uiBlockEndAlign(block);
+	
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 10.0, 10, 0, "Multiplier for scattering");
 	
 	yco -= YSPACE;
 		

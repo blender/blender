@@ -274,9 +274,10 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
-		else
-			shade_material_loop(shi, shr);
-		
+		else {
+			if (shi->mat->material_type == MA_SOLID) shade_material_loop(shi, shr);
+			else if (shi->mat->material_type == MA_VOLUME) shade_volume_loop(shi, shr);
+		}
 		/* raytrace likes to separate the spec color */
 		VECSUB(shr->diff, shr->combined, shr->spec);
 	}	
