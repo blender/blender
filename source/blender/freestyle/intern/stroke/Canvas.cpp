@@ -59,6 +59,7 @@ Canvas::Canvas()
   _Renderer = 0;
   _current_sm = NULL;
   _steerableViewMap = new SteerableViewMap(NB_STEERABLE_VIEWMAP-1);
+  _basic = false;
 }
 
 Canvas::Canvas(const Canvas& iBrother)
@@ -69,7 +70,7 @@ Canvas::Canvas(const Canvas& iBrother)
   _Renderer = iBrother._Renderer;
   _current_sm = iBrother._current_sm;
   _steerableViewMap = new SteerableViewMap(*(iBrother._steerableViewMap));
-  
+  _basic = iBrother._basic;
 }
 
 Canvas::~Canvas()
@@ -109,17 +110,28 @@ void Canvas::Draw()
     _current_sm = _StyleModules[i];
     if (!_StyleModules[i]->getModified())
     {
-      if (_StyleModules[i]->getDrawable() && _Layers[i])
-	_Layers[i]->Render(_Renderer);
-      continue;
+
+	if (_StyleModules[i]->getDrawable() && _Layers[i]) {
+		if (_basic)
+			_Layers[i]->RenderBasic(_Renderer);
+		else
+			_Layers[i]->Render(_Renderer);
+	}
+	continue;
+
+
     }
     if (i < _Layers.size() && _Layers[i])
       delete _Layers[i];
 
     _Layers[i] = _StyleModules[i]->execute();
 
-    if (_StyleModules[i]->getDrawable() && _Layers[i])
-      _Layers[i]->Render(_Renderer);
+	if (_StyleModules[i]->getDrawable() && _Layers[i]) {
+		if (_basic)
+			_Layers[i]->RenderBasic(_Renderer);
+		else
+			_Layers[i]->Render(_Renderer);
+	}
 
     timestamp->increment();
   }

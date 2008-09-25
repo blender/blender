@@ -82,7 +82,8 @@ protected:
   mapsMap _maps;
   static const char * _MapsPath;
   SteerableViewMap *_steerableViewMap;
-  
+  bool _basic;
+
 public:
   /* Builds the Canvas */
   Canvas();
@@ -184,7 +185,7 @@ public:
   void ReplaceStyleModule(unsigned index, StyleModule *iStyleModule);
   void setVisible(unsigned index, bool iVisible) ;
   //inline void setDensityMap(InformationMap<RGBImage>* iMap) {_DensityMap = iMap;}
-  inline void AddLayer(StrokeLayer *iLayer) {_Layers.push_back(iLayer);}
+  inline void AddLayer(StrokeLayer *iLayer) {_Layers.push_back(iLayer);}	
   void resetModified(bool iMod=false);
   void causalStyleModules(std::vector<unsigned>& vec, unsigned index = 0);
   void setModified(unsigned index, bool b);

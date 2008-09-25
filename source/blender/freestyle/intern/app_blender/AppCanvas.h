@@ -8,7 +8,6 @@ class AppCanvas : public Canvas
 {
 private:
   mutable AppGLWidget *_pViewer;
-  bool _blendEquation;
 public:
   AppCanvas();
   AppCanvas(AppGLWidget *iViewer);

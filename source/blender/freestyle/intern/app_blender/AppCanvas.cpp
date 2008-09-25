@@ -46,7 +46,6 @@ AppCanvas::AppCanvas()
 :Canvas()
 {
   _pViewer = 0;
-  _blendEquation = true;
 	_MapsPath = StringUtils::toAscii( Config::Path::getInstance()->getMapsDir() ).c_str();
 }
 
@@ -54,14 +53,12 @@ AppCanvas::AppCanvas(AppGLWidget* iViewer)
 :Canvas()
 {
   _pViewer = iViewer;
-  _blendEquation = true;
 }
 
 AppCanvas::AppCanvas(const AppCanvas& iBrother)
 :Canvas(iBrother)
 {
   _pViewer = iBrother._pViewer;
-  _blendEquation = iBrother._blendEquation;
 }
 
 AppCanvas::~AppCanvas()
@@ -118,7 +115,7 @@ void AppCanvas::init()
 	cout << "GLEW initialized" << endl;
 
 	if(!glBlendEquation) {
-        _blendEquation = false;
+        _basic = true;
         cout << "glBlendEquation unavailable on this hardware -> switching to strokes basic rendering mode" << endl;
      }
     firsttime=false;
@@ -227,7 +224,7 @@ void AppCanvas::update()
 
 void AppCanvas::Render(const StrokeRenderer *iRenderer)
 {
-  if(!_blendEquation){
+  if(_basic){
     RenderBasic(iRenderer);
     return;
   }
@@ -359,9 +356,13 @@ void AppCanvas::RenderBasic(const StrokeRenderer *iRenderer)
 
 
 void AppCanvas::RenderStroke(Stroke *iStroke) {
-  iStroke->Render(_Renderer);
+
+	if(_basic)
+		iStroke->RenderBasic(_Renderer);
+	else
+		iStroke->Render(_Renderer);
+
   if(_pViewer->getRecordFlag()){
-    //Sleep(1000);
      _pViewer->saveSnapshot(true);
   }
 }
