@@ -147,6 +147,10 @@ struct CcdConstructionInfo
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
 		m_margin(0.06f),
+		m_linearStiffness(1.f),
+		m_angularStiffness(1.f),
+		m_volumePreservation(1.f),
+		m_gamesoftFlag(0),
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_bSoft(false),
@@ -169,6 +173,12 @@ struct CcdConstructionInfo
 	btScalar	m_linearDamping;
 	btScalar	m_angularDamping;
 	btScalar	m_margin;
+
+	btScalar	m_linearStiffness;
+	btScalar	m_angularStiffness;
+	btScalar	m_volumePreservation;
+	int			m_gamesoftFlag;
+
 	int			m_collisionFlags;
 	bool		m_bRigid;
 	bool		m_bSoft;

@@ -7853,6 +7853,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->linearStiffness = 1.0f;
 			ob->angularStiffness = 1.0f;
 			ob->volumePreservation = 1.0f;
+			ob->softflag = OB_SOFT_SHAPE_MATCHING;
 		}
 	}
 

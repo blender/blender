@@ -967,7 +967,7 @@ Object *add_only_object(int type, char *name)
 	ob->linearStiffness = 1.0f;
 	ob->angularStiffness = 1.0f;
 	ob->volumePreservation = 1.0f;
-	ob->gamesoftFlag = 0;
+	ob->gamesoftFlag = OB_SOFT_SHAPE_MATCHING;
 
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
