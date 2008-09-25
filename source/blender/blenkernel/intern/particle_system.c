@@ -2861,7 +2861,7 @@ int psys_intersect_dm(Object *ob, DerivedMesh *dm, float *vert_cos, float *co1, 
 
 		dm=mesh_get_derived_final(ob,0);
 		if(dm==0)
-			mesh_get_derived_deform(ob,0);
+			dm=mesh_get_derived_deform(ob,0);
 
 		psys_enable_all(ob);
 
@@ -3319,7 +3319,9 @@ static int boid_see_mesh(ListBase *lb, Object *pob, ParticleSystem *psys, float 
 			else{
 				psys_disable_all(ob);
 
-				dm=mesh_get_derived_deform(ob,0);
+				dm=mesh_get_derived_final(ob,0);
+				if(dm==0)
+					dm=mesh_get_derived_deform(ob,0);
 
 				psys_enable_all(ob);
 			}
