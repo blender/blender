@@ -359,6 +359,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetAnimFrameRate( (((double) blscene->r.frs_sec) / blscene->r.frs_sec_base) );
 				
 				// the mainloop
+				printf("\nBlender Game Engine Started\n\n");
 				while (!exitrequested)
 				{
 					// first check if we want to exit
@@ -394,6 +395,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 						mousedevice->ConvertBlenderEvent(event,val);
 					}
 				}
+				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
 				
 				// when exiting the mainloop
