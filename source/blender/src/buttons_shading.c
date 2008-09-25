@@ -3528,6 +3528,8 @@ static void material_panel_map_input(Object *ob, Material *ma)
 		uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "Ob:",750,180,158,18, &(mtex->object), "");
 		uiDefButS(block, ROW, B_MATPRV, "Local",		630,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
+	
+
 	} else {
 		uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 		uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
@@ -4244,43 +4246,41 @@ static void material_panel_material_volume(Material *ma)
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base opacity value");
+	uiDefButS(block, NUM, B_MATPRV, "Layer Depth: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_raydepth), 0.0, 512.0, 10, 2, "Number of layered volume ray intersections allowed per pixel");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
-	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 10.0, 10, 0, "Multiplier for absorption");
-	uiDefButF(block, COL, B_MATPRV, "",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption_col), 0, 0, 0, B_MATCOL, "");
-	
-	uiBlockEndAlign(block);
-	
-	yco -= YSPACE;
-	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Emit: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->emit), 0.0, 2.0, 0, 0, "Emission component");
-	uiDefButF(block, COL, B_MATPRV, "",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->r), 0, 0, 0, B_MATCOL, "");
-	uiBlockEndAlign(block);
-	
-	yco -= YSPACE;
-	
-	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 10.0, 10, 0, "Multiplier for scattering");
-	
-	yco -= YSPACE;
-		
+			
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Shading",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
 	uiBlockEndAlign(block);
+	
+	yco = PANEL_YMAX;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 10.0, 10, 0, "Multiplier for absorption");
+	uiDefButF(block, COL, B_MATPRV, "",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption_col), 0, 0, 0, B_MATCOL, "");
+	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, B_DIFF, "",
-		X2CLM2, yco, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Emit: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->emit), 0.0, 2.0, 0, 0, "Emission component");
+	uiDefButF(block, COL, B_MATPRV, "",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->r), 0, 0, 0, B_MATCOL, "");
+	uiBlockEndAlign(block);
+	
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 10.0, 10, 0, "Multiplier for scattering");
 }
 
 static void material_panel_nodes(Material *ma)

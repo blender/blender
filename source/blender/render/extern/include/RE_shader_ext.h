@@ -113,7 +113,7 @@ typedef struct ShadeInput
 	
 	/* internal face coordinates */
 	float u, v, dx_u, dx_v, dy_u, dy_v;
-	float co[3], view[3];
+	float co[3], view[3], camera_co[3];
 	
 	/* copy from material, keep synced so we can do memcopy */
 	/* current size: 23*4 */

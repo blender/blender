@@ -671,6 +671,10 @@ void shade_input_set_viewco(ShadeInput *shi, float x, float y, float z)
 		}
 	}
 	
+	/* set camera coords - for scanline, it's always 0.0,0.0,0.0 (render is in camera space)
+	 * however for raytrace it can be different - the position of the last intersection */
+	shi->camera_co[0] = shi->camera_co[1] = shi->camera_co[2] = 0.0f;
+	
 	/* cannot normalize earlier, code above needs it at viewplane level */
 	Normalize(shi->view);
 }
