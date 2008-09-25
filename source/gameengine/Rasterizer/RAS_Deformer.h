@@ -45,6 +45,10 @@ public:
 	virtual bool Apply(class RAS_IPolyMaterial *polymat)=0;
 	virtual bool Update(void)=0;
 	virtual RAS_Deformer *GetReplica()=0;
+	virtual bool SkipVertexTransform()
+	{
+		return false;
+	}
 protected:
 	class RAS_MeshObject	*m_pMesh;
 };

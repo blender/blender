@@ -401,12 +401,16 @@ void CcdPhysicsController::CreateRigidbody()
 		{
 			startTrans = rbci.m_startWorldTransform;
 		}
-		startTrans.setIdentity();
+		//startTrans.setIdentity();
 
-		m_object->setWorldTransform(startTrans);
-		m_object->setInterpolationWorldTransform(startTrans);
-		m_MotionState->setWorldPosition(0,0,0);
+		//m_object->setWorldTransform(startTrans);
+		//m_object->setInterpolationWorldTransform(startTrans);
+		m_MotionState->setWorldPosition(startTrans.getOrigin().getX(),startTrans.getOrigin().getY(),startTrans.getOrigin().getZ());
 		m_MotionState->setWorldOrientation(0,0,0,1);
+
+//		btVector3 wp = m_softBody->getWorldTransform().getOrigin();
+//		MT_Point3 center(wp.getX(),wp.getY(),wp.getZ());
+//		m_gameobj->NodeSetWorldPosition(center);
 
 
 	} else
@@ -502,10 +506,22 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
 	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
 
+	btSoftBody* sb = GetSoftBody();
+	if (sb)
+	{
+		btVector3 aabbMin,aabbMax;
+		sb->getAabb(aabbMin,aabbMax);
+		btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
+		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		m_MotionState->calculateWorldTransformations();
+		return true;
+	}
+
 	btRigidBody* body = GetRigidBody();
 
 	if (body && !body->isStaticObject())
 	{
+
 		const btVector3& worldPos = body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		

@@ -672,11 +672,11 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 	{
 		btSoftBody*	m_softBody;
 		class RAS_MeshObject*	m_pMeshObject;
-		class BL_DeformableGameObject*	m_gameobj;
+		class KX_GameObject*	m_gameobj;
 
 
 	public:
-		KX_SoftBodyDeformer(btSoftBody* softBody,RAS_MeshObject*	pMeshObject,BL_DeformableGameObject*	gameobj)
+		KX_SoftBodyDeformer(btSoftBody* softBody,RAS_MeshObject*	pMeshObject,KX_GameObject*	gameobj)
 			: m_softBody(softBody),
 			m_pMeshObject(pMeshObject),
 			m_gameobj(gameobj)
@@ -702,6 +702,8 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 
 			// update the vertex in m_transverts
 			Update();
+
+
 
 			// The vertex cache can only be updated for this deformer:
 			// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
@@ -748,6 +750,12 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 			//printf("getReplica\n");
 			return 0;
 		}
+
+		virtual bool SkipVertexTransform()
+		{
+			return true;
+		}
+
 	protected:
 		//class RAS_MeshObject	*m_pMesh;
 	};
@@ -1089,7 +1097,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		if (softBody && gameobj->GetMesh(0))//only the first mesh, if any
 		{
 			//should be a mesh then, so add a soft body deformer
-			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer(softBody, gameobj->GetMesh(0),(BL_DeformableGameObject*)gameobj);
+			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer(softBody, gameobj->GetMesh(0),gameobj);
 			gameobj->SetDeformer(softbodyDeformer);
 			
 		}
