@@ -3366,24 +3366,25 @@ void logic_buts(void)
 
 			/* first show the state */
 			uiBlockSetEmboss(block, UI_EMBOSSP);
-			uiDefBlockBut(block, object_state_mask_menu, ob, "State", (short)(xco-10), (short)(yco-10), 40, 19, "Object state menu: store and retrieve initial state");
+			uiDefBlockBut(block, object_state_mask_menu, ob, "State", (short)(xco-10), (short)(yco-10), 36, 19, "Object state menu: store and retrieve initial state");
 			uiBlockSetEmboss(block, UI_EMBOSS);
 			if (!ob->state)
 				ob->state = 1;
 			for (offset=0; offset<15; offset+=5) {
 				uiBlockBeginAlign(block);
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+35+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
+					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset), stbit+offset, "",	(short)(xco+31+12*stbit+13*offset), yco, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset)));
 					uiButSetFunc(but, check_state_mask, but, &(ob->state));
 				}
 				for (stbit=0; stbit<5; stbit++) {
-					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+35+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
+					but = uiDefButBitI(block, controller_state_mask&(1<<(stbit+offset+15)) ? BUT_TOGDUAL:TOG, 1<<(stbit+offset+15), stbit+offset+15, "",	(short)(xco+31+12*stbit+13*offset), yco-12, 12, 12, (int *)&(ob->state), 0, 0, 0, 0, get_state_name(ob, (short)(stbit+offset+15)));
 					uiButSetFunc(but, check_state_mask, but, &(ob->state));
 				}
 			}
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All",(short)(xco+235), yco-10, 25, 19, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
-			uiDefButBitS(block, TOG, OB_INITSTBIT, B_INIT_STATE_BIT, "Ini",(short)(xco+260), yco-10, 25, 19, &ob->scaflag, 0, 0, 0, 0, "Set the initial state");
+			uiDefButBitS(block, TOG, OB_SETSTBIT, B_SET_STATE_BIT, "All",(short)(xco+226), yco-10, 22, 19, &ob->scaflag, 0, 0, 0, 0, "Set all state bits");
+			uiDefButBitS(block, TOG, OB_INITSTBIT, B_INIT_STATE_BIT, "Ini",(short)(xco+248), yco-10, 22, 19, &ob->scaflag, 0, 0, 0, 0, "Set the initial state");
+			uiDefButBitS(block, TOG, OB_DEBUGSTATE, 0, "D",(short)(xco+270), yco-10, 15, 19, &ob->scaflag, 0, 0, 0, 0, "Print state debug info");
 			uiBlockEndAlign(block);
 
 			yco-=35;
