@@ -76,8 +76,7 @@ protected:
   std::deque<StrokeLayer*> _Layers;
   std::deque<StyleModule*> _StyleModules;
   FEdge *_SelectedFEdge;
-  int _paperTextureIndex;
-  bool _drawPaper;
+
   StrokeRenderer *_Renderer;
   StyleModule* _current_sm;
   mapsMap _maps;
@@ -171,7 +170,6 @@ public:
   inline FEdge * selectedFEdge() {return _SelectedFEdge;}
   virtual int width() const = 0;
   virtual int height() const = 0;
-  inline int currentPaperTextureIndex() const {return _paperTextureIndex;}
   virtual BBox<Vec3r> scene3DBBox() const = 0;
   inline const StrokeRenderer * renderer() const {return _Renderer;}
   inline StyleModule* getCurrentStyleModule() { return _current_sm; }
@@ -187,10 +185,6 @@ public:
   void setVisible(unsigned index, bool iVisible) ;
   //inline void setDensityMap(InformationMap<RGBImage>* iMap) {_DensityMap = iMap;}
   inline void AddLayer(StrokeLayer *iLayer) {_Layers.push_back(iLayer);}
-  inline void setCurrentPaperTextureIndex(int i) {_paperTextureIndex = i;}
-  void changePaperTexture(bool increment=true) ;
-  /*! enables/disables paper texture */
-  inline void togglePaperTexture() {_drawPaper = !_drawPaper;}
   void resetModified(bool iMod=false);
   void causalStyleModules(std::vector<unsigned>& vec, unsigned index = 0);
   void setModified(unsigned index, bool b);

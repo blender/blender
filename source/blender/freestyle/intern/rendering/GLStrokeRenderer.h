@@ -64,12 +64,10 @@ protected:
   virtual unsigned loadBrush(string fileName, Stroke::MediumType = Stroke::OPAQUE_MEDIUM);
   
  protected:
-  virtual void loadPapers();
   virtual void loadStandardBrushes();
   bool prepareTextureAlpha (string name, GLuint itexname);
   bool prepareTextureLuminance (string name, GLuint itexname);
   bool prepareTextureLuminanceAndAlpha (string name, GLuint itexname);
-  bool preparePaper (const char *name, GLuint itexname);
 };
 
 

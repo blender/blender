@@ -59,16 +59,12 @@ public:
   static TextureManager * getInstance() {return _pInstance;}
   void load () ;
   unsigned getBrushTextureIndex(string name, Stroke::MediumType iType = Stroke::OPAQUE_MEDIUM) ;
-  unsigned getPaperTextureIndex(unsigned i) { return _papertexname[i]; }
 
-  static unsigned getPaperTexturesNumber();
   inline bool hasLoaded() const {return _hasLoadedTextures;}
   inline unsigned int getDefaultTextureId() const {return _defaultTextureId;}
 
   struct LIB_STROKE_EXPORT Options
   {
-    static void setPaperTextures(const vector<string>& sl);
-    static vector<string>& getPaperTextures();
 
     static void setPatternsPath(const string& path);
     static string getPatternsPath();
@@ -78,7 +74,6 @@ public:
   };
 
  protected:
-  virtual void loadPapers() = 0;
   virtual void loadStandardBrushes() = 0;
   virtual unsigned loadBrush(string fileName, Stroke::MediumType = Stroke::OPAQUE_MEDIUM) = 0;
   
@@ -97,10 +92,8 @@ public:
   static TextureManager * _pInstance;
   bool                  _hasLoadedTextures;
   brushesMap            _brushesMap;
-  unsigned*		_papertexname;
   static string		_patterns_path;
   static string		_brushes_path;
-  static vector<string>	_papertextures;
   unsigned int _defaultTextureId;
 };
 
@@ -132,7 +125,6 @@ class LIB_STROKE_EXPORT StrokeRenderer
   static bool loadTextures() ;
   
   //static unsigned int getTextureIndex(unsigned int index)  ;
-  //static unsigned int getPaperTextureIndex(unsigned int index)  ;
   static TextureManager *_textureManager;
 };
 

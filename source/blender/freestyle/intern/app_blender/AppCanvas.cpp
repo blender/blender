@@ -265,27 +265,6 @@ void AppCanvas::Render(const StrokeRenderer *iRenderer)
   
   glBlendFunc(GL_DST_COLOR, GL_ZERO);
   
-  if(_drawPaper)
-  {
-    glEnable(GL_BLEND);
-    glEnable(GL_TEXTURE_2D);
-    float zfar = _pViewer->zfar();
-    zfar = zfar+0.1*zfar;
-    //draw background paper // FIXME
-    //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glBindTexture(GL_TEXTURE_2D, StrokeRenderer::_textureManager->getPaperTextureIndex(_paperTextureIndex)); 
-    glColor4f(1,1,1,0.0);
-    glBegin(GL_TRIANGLE_STRIP);
-    { 
-      glTexCoord2f(0,0); glVertex3f(0, 0, -1);
-      glTexCoord2f(4,0); glVertex3f(2048, 0, -1);
-      glTexCoord2f(0,4); glVertex3f(0, 2048, -1);
-      glTexCoord2f(4,4); glVertex3f(2048, 2048, -1);
-    } 
-    glEnd();
-  }
-  
   glPushAttrib(GL_COLOR_BUFFER_BIT);
   glBlendEquation(GL_FUNC_SUBTRACT);
   glBlendFunc(GL_ONE, GL_ONE);
@@ -362,26 +341,6 @@ void AppCanvas::RenderBasic(const StrokeRenderer *iRenderer)
   }
 
   glBlendFunc(GL_DST_COLOR, GL_ZERO);
-  if(_drawPaper)
-  {
-    glEnable(GL_BLEND);
-    glEnable(GL_TEXTURE_2D);
-    float zfar = _pViewer->zfar();
-    zfar = zfar+0.1*zfar;
-    //draw background paper // FIXME
-    //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glBindTexture(GL_TEXTURE_2D, StrokeRenderer::_textureManager->getPaperTextureIndex(_paperTextureIndex)); 
-    glColor4f(1,1,1,0.0);
-    glBegin(GL_TRIANGLE_STRIP);
-    { 
-      glTexCoord2f(0,0); glVertex3f(0, 0, -1);
-      glTexCoord2f(4,0); glVertex3f(2048, 0, -1);
-      glTexCoord2f(0,4); glVertex3f(0, 2048, -1);
-      glTexCoord2f(4,4); glVertex3f(2048, 2048, -1);
-    } 
-    glEnd();
-  }
 
   glDisable(GL_DEPTH_TEST);
   glPushAttrib(GL_COLOR_BUFFER_BIT);

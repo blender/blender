@@ -57,9 +57,6 @@ void Path::setRootDir(const string& iRootDir) {
 	_HelpIndexPath = _ProjectDir + string(DIR_SEP.c_str()) + "doc"
 			+ string(DIR_SEP.c_str()) + "html" + string(DIR_SEP.c_str())
 			+ "index.html";
-	_PapersDir = _ProjectDir + string(DIR_SEP.c_str()) + "data"
-			+ string(DIR_SEP.c_str()) + "textures" + string(DIR_SEP.c_str())
-			+ "papers" + string(DIR_SEP.c_str());
 	_EnvMapDir = _ProjectDir + string(DIR_SEP.c_str()) + "data"
 			+ string(DIR_SEP.c_str()) + "env_map" + string(DIR_SEP.c_str());
 	_MapsDir = _ProjectDir + string(DIR_SEP.c_str()) + "data"

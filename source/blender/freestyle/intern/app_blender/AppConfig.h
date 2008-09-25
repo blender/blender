@@ -46,7 +46,6 @@ namespace Config {
     string _PythonPath;
     string _BrowserCmd;
     string _HelpIndexPath;
-    string _PapersDir;
     string _EnvMapDir;
     string _MapsDir;
     string _HomeDir;
@@ -65,7 +64,6 @@ namespace Config {
     const string& getPythonPath() const {return _PythonPath;}
     const string& getBrowserCmd() const {return _BrowserCmd;}
     const string& getHelpIndexpath() const {return _HelpIndexPath;}
-    const string& getPapersDir() const {return _PapersDir;}
     const string& getEnvMapDir() const {return _EnvMapDir;}
     const string& getMapsDir() const {return _MapsDir;}
     const string& getHomeDir() const {return _HomeDir;}
@@ -101,10 +99,6 @@ namespace Config {
   // Default options
   static const real DEFAULT_SPHERE_RADIUS = 1.0;
   static const real DEFAULT_DKR_EPSILON = 0.0;
-
-  // Papers
-  static const string DEFAULT_PAPER_TEXTURE("whitepaper.jpg");
-
 
 } // End of namepace Config
 

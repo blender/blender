@@ -48,11 +48,6 @@ bool StrokeRenderer::loadTextures()
   return true;
 }
 
-// unsigned int StrokeRenderer::getPaperTextureIndex(unsigned int index)
-// {
-  // return _textureManager->getPaperTextureIndex(index);
-// }
-
 
 /**********************************/
 /*                                */
@@ -67,9 +62,6 @@ LIB_STROKE_EXPORT
 TextureManager* TextureManager::_pInstance = 0;
 
 LIB_STROKE_EXPORT
-vector<string> TextureManager::_papertextures;
-
-LIB_STROKE_EXPORT
 string TextureManager::_patterns_path;
 
 LIB_STROKE_EXPORT
@@ -77,7 +69,6 @@ string TextureManager::_brushes_path;
 
 TextureManager::TextureManager ()
 {
-  _papertexname = NULL;
   _hasLoadedTextures=false;
   _pInstance = this;
   _defaultTextureId = 0;
@@ -85,8 +76,6 @@ TextureManager::TextureManager ()
 
 TextureManager::~TextureManager ()
 {
-  if (_papertexname)
-    delete _papertexname;
   if(!_brushesMap.empty())
     _brushesMap.clear();
   _pInstance = 0;
@@ -95,8 +84,7 @@ TextureManager::~TextureManager ()
 void TextureManager::load()
 {
   if(_hasLoadedTextures)
-    return ;
-  loadPapers();
+    return;
   loadStandardBrushes();
   _hasLoadedTextures = true;
 }
@@ -116,14 +104,6 @@ unsigned TextureManager::getBrushTextureIndex(string name, Stroke::MediumType lo
   }
 }
 
-vector<string>& TextureManager::Options::getPaperTextures() {
-  return _papertextures;
-}
-
-void TextureManager::Options::setPaperTextures(const vector<string>& sl) {
-  _papertextures = sl;
-}
-
 void TextureManager::Options::setPatternsPath(const string& path) {
   _patterns_path = path;
 }
@@ -139,8 +119,3 @@ void TextureManager::Options::setBrushesPath(const string& path) {
 string TextureManager::Options::getBrushesPath() {
   return _brushes_path;
 }
-
-unsigned TextureManager::getPaperTexturesNumber() {
-  return _papertextures.size();
-}
-

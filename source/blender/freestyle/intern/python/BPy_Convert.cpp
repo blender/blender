@@ -5,7 +5,7 @@
 #include "BPy_Id.h"
 #include "BPy_IntegrationType.h"
 #include "BPy_Interface0D.h"
-#include "Interface0D/BPy_CurvePoint.cpp"
+#include "Interface0D/BPy_CurvePoint.h"
 #include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface0D/BPy_ViewVertex.h"

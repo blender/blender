@@ -31,6 +31,7 @@ extern "C" {
 #include "BLI_blenlib.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "MEM_guardedalloc.h"
 }
 
 #include "../system/StringUtils.h"
@@ -112,7 +113,6 @@ void GLStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 
   //first texture, basically the only one for lighter strokes
   glBindTexture(GL_TEXTURE_2D, iStrokeRep->getTextureId()); 
-  //glBindTexture(GL_TEXTURE_2D, _textureManager.getPaperTextureIndex()); 
   
   vector<Strip*>& strips = iStrokeRep->getStrips();
   for(vector<Strip*>::iterator s=strips.begin(), send=strips.end();
@@ -173,7 +173,6 @@ void GLStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
   //first texture, basically the only one for lighter strokes
   glBindTexture(GL_TEXTURE_2D, iStrokeRep->getTextureId()); 
-  //glBindTexture(GL_TEXTURE_2D, _textureManager.getPaperTextureIndex()); 
   
   vector<Strip*>& strips = iStrokeRep->getStrips();
   for(vector<Strip*>::iterator s=strips.begin(), send=strips.end();
@@ -272,29 +271,6 @@ GLTextureManager::~GLTextureManager ()
 {
 }
 
-void
-GLTextureManager::loadPapers ()
-{
-  unsigned size = _papertextures.size();
-  _papertexname = new unsigned[size];
-  GLuint *tmp = new GLuint[size];
-  glGenTextures(size, tmp);
-  for(unsigned i=0;i<size;++i){
-    _papertexname[i] = tmp[i];
-  }
-  delete [] tmp;
-
-  // Papers textures
-  cout << "Loading papers textures..." << endl;
-
-  for (unsigned i = 0; i < size; i++){
-	cout << i << ": " << _papertextures[i] << endl;
-	preparePaper(_papertextures[i].c_str(), _papertexname[i]);
-  }
-
-  cout << "Done." << endl << endl;
-}
-
 void GLTextureManager::loadStandardBrushes()
 {
   //  getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::HUMID_MEDIUM);
@@ -356,12 +332,11 @@ GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
 	char * name = (char *) sname.c_str();
 	
   //soc 
-  // QImage qim(name);
-  // QFileInfo fi(name);
-  // QString filename = fi.fileName();
 	ImBuf *qim = IMB_loadiffname(name, 0);
 	char filename[FILE_MAXFILE];
-	BLI_splitdirstring(name, filename);
+	char *p = BLI_strdup(name);
+	BLI_splitdirstring(p, filename);
+	MEM_freeN(p);
 
 //soc  if (qim.isNull()) 
   if (!qim) //soc 
@@ -394,7 +369,7 @@ GLTextureManager::prepareTextureAlpha (string sname, GLuint itexname)
 	       GL_ALPHA, GL_UNSIGNED_BYTE, qim->rect);	//soc
 
   //soc cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
+	cout << "  \"" << filename << "\" loaded with 32 bits per pixel" << endl;
 	
   return true;
 
@@ -407,12 +382,11 @@ GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
 	char * name = (char *) sname.c_str();
 	
   //soc
-  // QImage qim(name);
-  // QFileInfo fi(name);
-  // QString filename = fi.fileName();
 	ImBuf *qim = IMB_loadiffname(name, 0);
 	char filename[FILE_MAXFILE];
-	BLI_splitdirstring(name, filename);
+	char *p = BLI_strdup(name);
+	BLI_splitdirstring(p, filename);
+	MEM_freeN(p);
 	
   if (!qim) //soc 
     {
@@ -442,7 +416,7 @@ GLTextureManager::prepareTextureLuminance (string sname, GLuint itexname)
 	       GL_LUMINANCE, GL_UNSIGNED_BYTE, qim->rect);	//soc
 
   //soc cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
+	cout << "  \"" << filename << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
 	
   return true;
 
@@ -455,12 +429,11 @@ GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname
 	char * name = (char *) sname.c_str();
 	
   //soc
-  // QImage qim(name);
-  // QFileInfo fi(name);
-  // QString filename = fi.fileName();
 	ImBuf *qim = IMB_loadiffname(name, 0);
 	char filename[FILE_MAXFILE];
-	BLI_splitdirstring(name, filename);
+	char *p = BLI_strdup(name);
+	BLI_splitdirstring(p, filename);
+	MEM_freeN(p);
 
   if (!qim) //soc 
     {
@@ -493,54 +466,10 @@ GLTextureManager::prepareTextureLuminanceAndAlpha (string sname, GLuint itexname
 	       GL_ALPHA, GL_UNSIGNED_BYTE, qim->rect);	//soc
 							 
   //soc cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;						   
-	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
+	cout << "  \"" << filename << "\" loaded with "<< qim->depth << " bits per pixel" << endl;
 
   return true;
 							     
 }
 
-bool 
-GLTextureManager::preparePaper (const char *name, GLuint itexname)
-{
-  //soc
-  // QImage qim(name);
-  // QFileInfo fi(name);
-  // QString filename = fi.fileName();
-	ImBuf *qim = IMB_loadiffname(name, 0);
-	char filename[FILE_MAXFILE];
-	BLI_splitdirstring((char *)name, filename);
-
-  if (!qim) //soc 
-    {
-      cerr << "  Error: unable to read \"" << filename << "\"" << endl;
-	IMB_freeImBuf(qim);
-      return false;
-    }
-
-	//soc: no test because IMB_loadiffname creates 32 bit image directly
-	//
-	//   if (qim->depth != 32) 
-	//     {
-	//       cerr<<"  Error: \""<<filename<<"\" has "<< qim->depth <<" bits/pixel"<<endl; //soc
-	// IMB_freeImBuf(qim);
-	//       return false;
-	//     }
-	// QImage qim2=QGLWidget::convertToGLFormat( qim );
-
-  glBindTexture(GL_TEXTURE_2D, itexname);
-	
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-		  GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-		  GL_LINEAR);     
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, qim->x, qim->y, 0, 
-	       GL_RGBA, GL_UNSIGNED_BYTE, qim->rect); // soc: was qim2
-
-  //cout << "  \"" << filename.toAscii().data() << "\" loaded with "<< qim.depth() << " bits per pixel" << endl;
-	cout << "  \"" << StringUtils::toAscii(filename) << "\" loaded with 32 bits per pixel" << endl;
-  return true;
-}
 

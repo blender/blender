@@ -56,9 +56,7 @@ Canvas::Canvas()
   _SelectedFEdge = 0;
   _pInstance = this;
   PseudoNoise::init(42);
-  _paperTextureIndex = 0;
   _Renderer = 0;
-  _drawPaper = true;
   _current_sm = NULL;
   _steerableViewMap = new SteerableViewMap(NB_STEERABLE_VIEWMAP-1);
 }
@@ -68,9 +66,7 @@ Canvas::Canvas(const Canvas& iBrother)
   _SelectedFEdge = iBrother._SelectedFEdge;
   _pInstance = this;
   PseudoNoise::init(42);
-  _paperTextureIndex = iBrother._paperTextureIndex;
   _Renderer = iBrother._Renderer;
-  _drawPaper = iBrother._drawPaper;
   _current_sm = iBrother._current_sm;
   _steerableViewMap = new SteerableViewMap(*(iBrother._steerableViewMap));
   
@@ -280,18 +276,6 @@ void Canvas::causalStyleModules(vector<unsigned>& vec, unsigned index) {
   for(unsigned i = index; i < size; ++i)
     if (_StyleModules[i]->getCausal())
       vec.push_back(i);
-}
-
-void Canvas::changePaperTexture(bool increment)
-{
-  if(increment)
-    _paperTextureIndex = (_paperTextureIndex+1) % TextureManager::getPaperTexturesNumber();
-  else
-  {
-    _paperTextureIndex--;
-    if(_paperTextureIndex < 0)
-      _paperTextureIndex = TextureManager::getPaperTexturesNumber() - 1;
-  }
 }
 
 void Canvas::Render(const StrokeRenderer *iRenderer)

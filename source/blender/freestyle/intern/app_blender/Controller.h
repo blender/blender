@@ -132,8 +132,6 @@ public:
   string	getModelsDir() const;
   void		setModulesDir(const string& dir);
   string	getModulesDir() const;
-  void		setPapersDir(const string& dir);
-  string	getPapersDir() const;
   void		setHelpIndex(const string& dir);
   string	getHelpIndex() const;
   void		setBrowserCmd(const string& cmd);

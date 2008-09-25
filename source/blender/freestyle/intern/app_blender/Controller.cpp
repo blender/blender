@@ -988,16 +988,6 @@ string		Controller::getModulesDir() const {
   return dir;
 }
 
-void		Controller::setPapersDir(const string& dir) {
-  //_current_dirs->setValue("papers/dir", dir);
-}
-
-string		Controller::getPapersDir() const {
-  string dir = Config::Path::getInstance()->getPapersDir();
-  //_current_dirs->getValue("papers/dir", dir);
-  return dir;
-}
-
 void		Controller::setHelpIndex(const string& index) {
   _help_index = index;
 }
@@ -1076,11 +1066,6 @@ void Controller::init_options(){
 
 	// Visibility
 	setQuantitativeInvisibility(true);
-
-	 // Papers Textures
-	vector<string> sl;
-	sl.push_back( StringUtils::toAscii( cpath->getPapersDir() + Config::DEFAULT_PAPER_TEXTURE ) );
-	TextureManager::Options::setPaperTextures( sl );
 
 	// Drawing Buffers
 	setFrontBufferFlag(false);
