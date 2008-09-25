@@ -216,6 +216,20 @@ void BLI_remove_thread_index(ListBase *threadbase, int index)
 	}
 }
 
+void BLI_remove_threads(ListBase *threadbase)
+{
+	ThreadSlot *tslot;
+	
+	for(tslot = threadbase->first; tslot; tslot = tslot->next) {
+		if (tslot->avail == 0) {
+			tslot->callerdata = NULL;
+			pthread_join(tslot->pthread, NULL);
+			tslot->avail = 1;
+			break;
+		}
+	}
+}
+
 void BLI_end_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
@@ -336,7 +350,7 @@ ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep
 
 void BLI_end_worker(ThreadedWorker *worker)
 {
-	BLI_end_threads(&worker->threadbase);
+	BLI_remove_threads(&worker->threadbase);
 }
 
 void BLI_destroy_worker(ThreadedWorker *worker)

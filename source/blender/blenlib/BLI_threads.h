@@ -45,6 +45,7 @@ int		BLI_available_thread_index(struct ListBase *threadbase);
 void	BLI_insert_thread	(struct ListBase *threadbase, void *callerdata);
 void	BLI_remove_thread	(struct ListBase *threadbase, void *callerdata);
 void	BLI_remove_thread_index(struct ListBase *threadbase, int index);
+void	BLI_remove_threads(struct ListBase *threadbase);
 void	BLI_end_threads		(struct ListBase *threadbase);
 
 void	BLI_lock_thread		(int type);

@@ -148,6 +148,9 @@ void	show_all_armature_bones(void);
 
 /* from autoarmature */
 void BIF_retargetArmature();
+void BIF_adjustRetarget();
+void BIF_freeRetarget();
+
 struct ReebArc;
 float calcVariance(struct ReebArc *arc, int start, int end, float v0[3], float n[3]);
 float calcDistance(struct ReebArc *arc, int start, int end, float head[3], float tail[3]);

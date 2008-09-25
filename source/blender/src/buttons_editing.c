@@ -5010,6 +5010,16 @@ static void skgen_graphfree(void *arg1, void *arg2)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+static void skgen_rigadjust(void *arg1, void *arg2)
+{
+	BIF_adjustRetarget();
+}
+
+static void skgen_rigfree(void *arg1, void *arg2)
+{
+	BIF_freeRetarget();
+}
+
 static void skgen_graph_block(uiBlock *block)
 {
 	uiBlockBeginAlign(block);
@@ -5062,12 +5072,17 @@ static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
 static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 {
 	uiBlock *block;
+	uiBut *but;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen_retarget", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Mesh Tools More", "Skgen");
 	if(uiNewPanel(curarea, block, "Retarget", "Editing", 960, 0, 318, 204)==0) return;
 	
-	uiDefBut(block, BUT, B_RETARGET_SKELETON, "Retarget Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Retarget Selected Armature to this Mesh");
+	uiDefBut(block, BUT, B_RETARGET_SKELETON, "Retarget Skeleton",	1025,170,100,19, 0, 0, 0, 0, 0, "Retarget Selected Armature to this Mesh");
+	but = uiDefBut(block, BUT, B_DIFF, "Adjust",					1125,170,100,19, 0, 0, 0, 0, 0, "Adjust Retarget using new weights");
+	uiButSetFunc(but, skgen_rigadjust, NULL, NULL);
+	but = uiDefBut(block, BUT, B_DIFF, "Free",						1225,170,50,19, 0, 0, 0, 0, 0, "Free Retarget structure");
+	uiButSetFunc(but, skgen_rigfree, NULL, NULL);
 
 	skgen_graph_block(block);
 
