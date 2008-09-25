@@ -346,7 +346,6 @@ void CcdPhysicsController::CreateRigidbody()
 		
 
 		
-
 		//pm->m_kAST = 0.01f;
 		//pm->m_kVST = 0.001f;
 		psb->generateBendingConstraints(2,pm);
@@ -354,7 +353,7 @@ void CcdPhysicsController::CreateRigidbody()
 		//psb->m_cfg.viterations		=	4;
 		//psb->m_cfg.diterations = 4;
 		//psb->m_cfg.citerations = 4;
-		if (m_cci.m_gamesoftFlag & 1)///OB_SOFT_SHAPE_MATCHING)
+		if (m_cci.m_gamesoftFlag & 2)//OB_SB_GOAL)
 		{
 			psb->setPose(false,true);//
 		} else
@@ -390,7 +389,7 @@ void CcdPhysicsController::CreateRigidbody()
 		
 		//psb->m_materials[0]->m_kLST	=	0.1+(i/(btScalar)(n-1))*0.9;
 		psb->setTotalMass(m_cci.m_mass);
-		//psb->generateClusters(8);//(64);		
+		psb->generateClusters(8);//(64);		
 		psb->setCollisionFlags(0);
 //		m_object->setCollisionShape(rbci.m_collisionShape);
 		btTransform startTrans;

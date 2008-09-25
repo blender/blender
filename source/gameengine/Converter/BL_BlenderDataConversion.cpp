@@ -129,6 +129,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_key_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -1323,10 +1324,20 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
 	
 	///for game soft bodies
-	objprop.m_linearStiffness = blenderobject->linearStiffness;
-	objprop.m_angularStiffness = blenderobject->angularStiffness;
-	objprop.m_volumePreservation = blenderobject->volumePreservation;
-	objprop.m_gamesoftFlag = blenderobject->gamesoftFlag;
+	if (blenderobject->soft)
+	{
+		objprop.m_linearStiffness = blenderobject->soft->inspring;
+		objprop.m_angularStiffness = 1.f;//blenderobject->angularStiffness;
+		objprop.m_volumePreservation = 1.f;//blenderobject->volumePreservation;
+		objprop.m_gamesoftFlag = blenderobject->softflag;//blenderobject->gamesoftFlag;
+		
+	} else
+	{
+		objprop.m_linearStiffness = 0.5;//blenderobject->linearStiffness;
+		objprop.m_angularStiffness = 1.f;//blenderobject->angularStiffness;
+		objprop.m_volumePreservation = 1.f;//blenderobject->volumePreservation;
+		objprop.m_gamesoftFlag = 1;//blenderobject->gamesoftFlag;
+	}
 
 	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
 	objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag

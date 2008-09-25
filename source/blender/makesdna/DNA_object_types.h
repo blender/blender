@@ -157,14 +157,7 @@ typedef struct Object {
 	float formfactor;
 	float rdamping, sizefac;
 	float margin;
-	/* for game engine soft body */
-	float linearStiffness;
-	float angularStiffness;
-	float volumePreservation;
-	int   gamesoftFlag;
 	int   pad3;
-
-
 
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
@@ -418,8 +411,6 @@ extern Object workob;
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
 
-/* ob->gamesoftFlag */
-#define OB_SOFT_SHAPE_MATCHING	1
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

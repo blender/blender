@@ -7850,10 +7850,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (!(ob->gameflag & OB_ACTOR))
 				ob->gameflag &= ~(OB_GHOST|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION_RESPONSE);
 			/* suitable default for older files */
-			ob->linearStiffness = 1.0f;
-			ob->angularStiffness = 1.0f;
-			ob->volumePreservation = 1.0f;
-			ob->softflag = OB_SOFT_SHAPE_MATCHING;
 		}
 	}
 

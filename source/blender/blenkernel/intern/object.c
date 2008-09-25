@@ -964,11 +964,7 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[2] = 1.0f;
 	ob->gameflag= OB_PROP|OB_COLLISION;
 	ob->margin = 0.0;
-	ob->linearStiffness = 1.0f;
-	ob->angularStiffness = 1.0f;
-	ob->volumePreservation = 1.0f;
-	ob->gamesoftFlag = OB_SOFT_SHAPE_MATCHING;
-
+	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;

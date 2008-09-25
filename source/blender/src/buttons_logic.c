@@ -49,6 +49,7 @@
 #include "DNA_controller_types.h"
 #include "DNA_property_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -2926,9 +2927,9 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 105, 75, 19,
 					&ob->gameflag, 0, 0,0, 0,
-					"Specify a bounds object for physics");
+					"Specify a collision shape bounds type");
 			if (ob->gameflag & OB_BOUNDS) {
-				uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Static TriangleMesh %x4",
+				uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Type%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Concave TriangleMesh %x4",
 					85, 105, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 				uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,105,100,19, 
 						&ob->gameflag, 0, 0, 0, 0, 
@@ -3009,22 +3010,30 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				"Collision margin");
 	}
 	if (ob->gameflag & OB_SOFT_BODY) {
-		uiDefButBitI(block, TOG, OB_SOFT_SHAPE_MATCHING, 0, "Shape matching", 
-					xco+=120, yco, 118, 19, &ob->gamesoftFlag, 0, 0, 0, 0, 
-					"Enable soft body shape matching");
-		yco -= 25;
-		xco = 0;
-		uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 238, 19, 
-				&ob->linearStiffness, 0.0, 1.0, 1, 0, 
-				"Linear stiffness of the soft body vertex spring");
-		yco -= 25;
-		uiDefButF(block, NUMSLI, 0, "AngStiff ", xco, yco, 238, 19, 
-				&ob->angularStiffness, 0.0, 1.0, 1, 0, 
-				"Angular stiffness of the soft body vertex spring");
-		yco -= 25;
-		uiDefButF(block, NUMSLI, 0, "Volume ", xco, yco, 238, 19, 
-				&ob->volumePreservation, 0.0, 1.0, 1, 0, 
-				"Factor of soft body volume preservation");
+		if (ob->soft)
+		{
+			
+			uiDefButBitI(block, TOG, OB_SB_GOAL, 0, "Shape matching", 
+						xco+=120, yco, 118, 19, &ob->softflag, 0, 0, 0, 0, 
+						"Enable soft body shape matching goal");
+			yco -= 25;
+			xco = 0;
+			uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 238, 19, 
+					&ob->soft->inspring, 0.0, 1.0, 1, 0,
+					"Linear stiffness of the soft body vertex spring");
+			/*
+			yco -= 25;
+			uiDefButF(block, NUMSLI, 0, "AngStiff ", xco, yco, 238, 19, 
+					&ob->angularStiffness, 0.0, 1.0, 1, 0, 
+					"Angular stiffness of the soft body vertex spring");
+			yco -= 25;
+			uiDefButF(block, NUMSLI, 0, "Volume ", xco, yco, 238, 19, 
+					&ob->volumePreservation, 0.0, 1.0, 1, 0, 
+					"Factor of soft body volume preservation");
+					*/
+
+		}
+
 	}
 
 			
@@ -3049,10 +3058,21 @@ void buttons_bullet(uiBlock *block, Object *ob)
 	else
 		ob->body_type = OB_BODY_TYPE_SOFT;
 
-	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
-			10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
-	uiButSetFunc(but, check_body_type, but, ob);
+	//only enable game soft body if Blender Soft Body exists
+	if (ob->soft)
+	{
+		but = uiDefButS(block, MENU, REDRAWVIEW3D, 
+				"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+				10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
+		uiButSetFunc(but, check_body_type, but, ob);
+	} else
+	{
+		but = uiDefButS(block, MENU, REDRAWVIEW3D, 
+				"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3", 
+				10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
+		uiButSetFunc(but, check_body_type, but, ob);
+	}
+	
 
 	if (ob->gameflag & OB_COLLISION) {
 
@@ -3088,9 +3108,9 @@ void buttons_bullet(uiBlock *block, Object *ob)
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 105, 80, 19,
 				&ob->gameflag, 0, 0, 0, 0,
-				"Specify a bounds object for physics");
+				"Specify a collision bounds type");
 		if (ob->gameflag & OB_BOUNDS) {
-			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Static Mesh%x4",
+			uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Bounds%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Triangle Mesh%x4",
 			//almost ready to enable this one:			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|Dynamic Mesh %x5|",
 				90, 105, 150, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 			uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
