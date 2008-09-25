@@ -727,6 +727,13 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 						nodes[v.getSoftBodyIndex()].m_x.getY(),
 						nodes[v.getSoftBodyIndex()].m_x.getZ());
 					v.SetXYZ(pt);
+
+					MT_Vector3 normal (
+						nodes[v.getSoftBodyIndex()].m_n.getX(),
+						nodes[v.getSoftBodyIndex()].m_n.getY(),
+						nodes[v.getSoftBodyIndex()].m_n.getZ());
+					v.SetNormal(normal);
+
 				}
 			}
 			return true;

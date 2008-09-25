@@ -862,15 +862,20 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 
-		btRigidBody* body = GetRigidBody();
-		if (body)
 		{
-			btTransform xform = body->getCenterOfMassTransform();
+			btTransform xform = m_object->getWorldTransform();
+			
 			if (local)
 			{	
 				force	= xform.getBasis()*force;
 			}
-			body->applyCentralForce(force);
+			btRigidBody* body = GetRigidBody();
+			if (body)
+				body->applyCentralForce(force);
+			btSoftBody* soft = GetSoftBody();
+			if (soft)
+				soft->addForce(force);
+
 		}
 	}
 }
@@ -884,15 +889,16 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-		btRigidBody* body = GetRigidBody();
-		if (body)
 		{
-			btTransform xform = body->getCenterOfMassTransform();
+			btTransform xform = m_object->getWorldTransform();
 			if (local)
 			{
 				angvel	= xform.getBasis()*angvel;
 			}
-			body->setAngularVelocity(angvel);
+			btRigidBody* body = GetRigidBody();
+			if (body)
+				body->setAngularVelocity(angvel);
+
 		}
 	}
 
@@ -908,15 +914,17 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-		btRigidBody* body = GetRigidBody();
-		if (body)
+		
 		{
 			btTransform xform = m_object->getWorldTransform();
 			if (local)
 			{
 				linVel	= xform.getBasis()*linVel;
 			}
-			body->setLinearVelocity(linVel);
+			btRigidBody* body = GetRigidBody();
+			if (body)
+				body->setLinearVelocity(linVel);
+
 		}
 	}
 }
@@ -936,6 +944,7 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 		btRigidBody* body = GetRigidBody();
 		if (body)
 			body->applyImpulse(impulse,pos);
+			
 	}
 
 }
