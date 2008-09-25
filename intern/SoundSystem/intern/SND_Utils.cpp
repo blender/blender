@@ -34,11 +34,6 @@
 #include "SND_Utils.h"
 #include "SoundDefines.h"
 #include "SND_DependKludge.h"
-/*
-extern "C" { 
-#include "license_key.h"
-}
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
