@@ -144,7 +144,8 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	static const float lock_axis[2] = {0.0f, 0.0f};
 
 	int i;
-	int limit_axis = 0;
+	int limit_axis = 0;			
+	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
 	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;	//Mode callback
 	int vgroup = get_named_vertexgroup_num(ob, smd->vgroup_name);
@@ -152,6 +153,10 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 
 	//Safe-check
 	if(smd->origin == ob) smd->origin = NULL;					//No self references
+
+	if(smd->limit[0] < 0.0) smd->limit[0] = 0.0f;
+	if(smd->limit[0] > 1.0) smd->limit[0] = 1.0f;
+
 	smd->limit[0] = MIN2(smd->limit[0], smd->limit[1]);			//Upper limit >= than lower limit
 
 	//Calculate matrixs do convert between coordinate spaces
@@ -174,8 +179,6 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	limit_axis  = (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) ? 0 : 2; //Bend limits on X.. all other modes limit on Z
 
 	//Update limits if needed
-	if(smd->limit[1] == -FLT_MAX
-	|| smd->limit[0] ==  FLT_MAX)
 	{
 		float lower =  FLT_MAX;
 		float upper = -FLT_MAX;
@@ -183,16 +186,20 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 		for(i=0; i<numVerts; i++)
 		{
 			float tmp[3];
-			if(transf) space_transform_apply(transf, tmp);
-
 			VECCOPY(tmp, vertexCos[i]);
+
+			if(transf) space_transform_apply(transf, tmp);
 
 			lower = MIN2(lower, tmp[limit_axis]);
 			upper = MAX2(upper, tmp[limit_axis]);
 		}
 
-		smd->limit[1] = upper;
-		smd->limit[0] = lower;
+
+		//SMD values are normalized to the BV, calculate the absolut values
+		smd_limit[1] = lower + (upper-lower)*smd->limit[1];
+		smd_limit[0] = lower + (upper-lower)*smd->limit[0];
+
+		smd_factor   = smd->factor / MAX2(FLT_EPSILON, smd_limit[1]-smd_limit[0]);
 	}
 
 
@@ -228,9 +235,9 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 				if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) axis_limit(0, lock_axis, co, dcut);
 				if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) axis_limit(1, lock_axis, co, dcut);
 			}
-			axis_limit(limit_axis, smd->limit, co, dcut);
+			axis_limit(limit_axis, smd_limit, co, dcut);
 
-			simpleDeform_callback(smd->factor, dcut, co);		//Apply deform
+			simpleDeform_callback(smd_factor, dcut, co);		//Apply deform
 			VecLerpf(vertexCos[i], vertexCos[i], co, weight);	//Use vertex weight has coef of linear interpolation
 	
 			if(transf) space_transform_invert(transf, vertexCos[i]);

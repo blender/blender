@@ -7360,12 +7360,12 @@ static void simpledeformModifier_initData(ModifierData *md)
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
 
 	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
-	smd->axis	  =  0;
+	smd->axis = 0;
 
 	smd->origin   =  NULL;
-	smd->factor   =  0.35;
-	smd->limit[0] =  FLT_MAX;
-	smd->limit[1] = -FLT_MAX;
+	smd->factor   =  0.35f;
+	smd->limit[0] =  0.0f;
+	smd->limit[1] =  1.0f;
 }
 
 static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)

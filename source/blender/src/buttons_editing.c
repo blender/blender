@@ -2542,8 +2542,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor, -10.0f, 10.0f, 0.5f, 0, "Deform Factor");
 
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[1], -1000.0f, 1000.0f, 5.0f, 0, "Upper Limit Bend on X");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[0], -1000.0f, 1000.0f, 5.0f, 0, "Lower Limit Bend on X");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[1], 0.0f, 1.0f, 5.0f, 0, "Upper Limit for deform");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[0], 0.0f, 1.0f, 5.0f, 0, "Lower Limit for deform");
 
 			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
 			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
