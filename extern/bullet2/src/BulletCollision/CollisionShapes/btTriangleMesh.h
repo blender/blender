@@ -25,6 +25,7 @@ subject to the following restrictions:
 ///It allows either 32bit or 16bit indices, and 4 (x-y-z-w) or 3 (x-y-z) component vertices.
 ///If you want to share triangle/index data between graphics mesh and collision mesh (btBvhTriangleMeshShape), you can directly use btTriangleIndexVertexArray or derive your own class from btStridingMeshInterface.
 ///Performance of btTriangleMesh and btTriangleIndexVertexArray used in a btBvhTriangleMeshShape is the same.
+///It has a brute-force option to weld together closeby vertices.
 class btTriangleMesh : public btTriangleIndexVertexArray
 {
 	btAlignedObjectArray<btVector3>	m_4componentVertices;
@@ -34,10 +35,15 @@ class btTriangleMesh : public btTriangleIndexVertexArray
 	btAlignedObjectArray<unsigned short int>		m_16bitIndices;
 	bool	m_use32bitIndices;
 	bool	m_use4componentVertices;
-
+	
 
 	public:
+		btScalar	m_weldingThreshold;
+
 		btTriangleMesh (bool use32bitIndices=true,bool use4componentVertices=true);
+
+		int		findOrAddVertex(const btVector3& vertex);
+		void	addIndex(int index);
 
 		bool	getUse32bitIndices() const
 		{

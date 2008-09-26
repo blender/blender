@@ -160,9 +160,9 @@ void CcdPhysicsController::CreateRigidbody()
 
 	//disable soft body until first sneak preview is ready
 	if (m_cci.m_bSoft && m_cci.m_collisionShape && 
-		(shapeType == CONVEX_HULL_SHAPE_PROXYTYPE))
-		//(shapeType == TRIANGLE_MESH_SHAPE_PROXYTYPE) |
-		//(shapeType == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)))
+		(shapeType == CONVEX_HULL_SHAPE_PROXYTYPE)|
+		(shapeType == TRIANGLE_MESH_SHAPE_PROXYTYPE) |
+		(shapeType == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE))
 	{
 		btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 		rbci.m_linearDamping = m_cci.m_linearDamping;
@@ -221,57 +221,7 @@ void CcdPhysicsController::CreateRigidbody()
 					psb->appendFace(idx[0],idx[1],idx[2]);
 				}
 				
-				///create a mapping between graphics mesh vertices and soft body vertices
-				{
-					RAS_MeshObject* rasMesh= GetShapeInfo()->GetMesh();
-
-					if (rasMesh && !m_softbodyMappingDone)
-					{
-						
-						//printf("apply\n");
-						RAS_MeshSlot::iterator it;
-						RAS_MeshMaterial *mmat;
-						RAS_MeshSlot *slot;
-						size_t i;
-
-						//for each material
-						for (int m=0;m<rasMesh->NumMaterials();m++)
-						{
-							// The vertex cache can only be updated for this deformer:
-							// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
-							// share the same mesh (=the same cache). As the rendering is done per polymaterial
-							// cycling through the objects, the entire mesh cache cannot be updated in one shot.
-							mmat = rasMesh->GetMeshMaterial(m);
-
-							slot = mmat->m_baseslot;
-							for(slot->begin(it); !slot->end(it); slot->next(it))
-							{
-								int index = 0;
-								for(i=it.startvertex; i<it.endvertex; i++,index++) 
-								{
-									RAS_TexVert* vertex = &it.vertex[i];
-									
-
-									//search closest index, and store it in vertex
-									vertex->setSoftBodyIndex(0);
-									btScalar maxDistSqr = 1e30;
-									btSoftBody::tNodeArray&   nodes(psb->m_nodes);
-									btVector3 xyz = btVector3(vertex->getXYZ()[0],vertex->getXYZ()[1],vertex->getXYZ()[2]);
-									for (int n=0;n<nodes.size();n++)
-									{
-										btScalar distSqr = (nodes[n].m_x - xyz).length2();
-										if (distSqr<maxDistSqr)
-										{
-											maxDistSqr = distSqr;
-											
-											vertex->setSoftBodyIndex(n);
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				
 
 				hlib.ReleaseResult(hres);
 
@@ -285,7 +235,9 @@ void CcdPhysicsController::CreateRigidbody()
 
 		} else
 		{
-			/*
+			
+			btSoftBodyWorldInfo& sbi= softDynaWorld->getWorldInfo();
+
 			if (m_cci.m_collisionShape->getShapeType() ==SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)
 			{
 				btScaledBvhTriangleMeshShape* scaledtrimeshshape = (btScaledBvhTriangleMeshShape*) m_cci.m_collisionShape;
@@ -328,16 +280,15 @@ void CcdPhysicsController::CreateRigidbody()
 
 				//psb = btSoftBodyHelpers::CreateFromTriMesh(sbi,&pts[0].getX(),triangles,numtriangles);
 			}
-			*/
 
 		}
-		
-		m_softbodyMappingDone = true;
+
+	
 		
 		m_object = psb;
 
 		//psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS;//btSoftBody::fCollision::CL_SS+	btSoftBody::fCollision::CL_RS;
-		psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS + btSoftBody::fCollision::CL_SS;
+		psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS + btSoftBody::fCollision::VF_SS;//CL_SS;
 		//psb->m_cfg.collisions	=	btSoftBody::fCollision::CL_SS + btSoftBody::fCollision::CL_RS;
 		
 		//btSoftBody::Material*	pm=psb->appendMaterial();
@@ -352,10 +303,10 @@ void CcdPhysicsController::CreateRigidbody()
 		//pm->m_kAST = 0.01f;
 		//pm->m_kVST = 0.001f;
 		psb->generateBendingConstraints(2,pm);
-		//psb->m_cfg.piterations		=	4;
-		//psb->m_cfg.viterations		=	4;
-		//psb->m_cfg.diterations = 4;
-		//psb->m_cfg.citerations = 4;
+		psb->m_cfg.piterations = 4;
+		psb->m_cfg.viterations = 4;
+		psb->m_cfg.diterations = 4;
+		psb->m_cfg.citerations = 4;
 		if (m_cci.m_gamesoftFlag & 2)//OB_SB_GOAL)
 		{
 			psb->setPose(false,true);//
@@ -365,7 +316,7 @@ void CcdPhysicsController::CreateRigidbody()
 		}
 
 		psb->m_cfg.kDF				=	0.5;
-		psb->m_cfg.kMT				=	0.05;
+		//psb->m_cfg.kMT				=	0.05;
 		psb->m_cfg.piterations		=	5;
 		
 		psb->m_cfg.piterations		=	5;
@@ -392,8 +343,72 @@ void CcdPhysicsController::CreateRigidbody()
 		
 		//psb->m_materials[0]->m_kLST	=	0.1+(i/(btScalar)(n-1))*0.9;
 		psb->setTotalMass(m_cci.m_mass);
-		psb->generateClusters(8);//(64);		
+		psb->generateClusters(64);		
 		psb->setCollisionFlags(0);
+
+
+
+
+
+			///create a mapping between graphics mesh vertices and soft body vertices
+		{
+			RAS_MeshObject* rasMesh= GetShapeInfo()->GetMesh();
+
+			if (rasMesh && !m_softbodyMappingDone)
+			{
+				
+				//printf("apply\n");
+				RAS_MeshSlot::iterator it;
+				RAS_MeshMaterial *mmat;
+				RAS_MeshSlot *slot;
+				size_t i;
+
+				//for each material
+				for (int m=0;m<rasMesh->NumMaterials();m++)
+				{
+					// The vertex cache can only be updated for this deformer:
+					// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+					// share the same mesh (=the same cache). As the rendering is done per polymaterial
+					// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+					mmat = rasMesh->GetMeshMaterial(m);
+
+					slot = mmat->m_baseslot;
+					for(slot->begin(it); !slot->end(it); slot->next(it))
+					{
+						int index = 0;
+						for(i=it.startvertex; i<it.endvertex; i++,index++) 
+						{
+							RAS_TexVert* vertex = &it.vertex[i];
+							
+
+							//search closest index, and store it in vertex
+							vertex->setSoftBodyIndex(0);
+							btScalar maxDistSqr = 1e30;
+							btSoftBody::tNodeArray&   nodes(psb->m_nodes);
+							btVector3 xyz = btVector3(vertex->getXYZ()[0],vertex->getXYZ()[1],vertex->getXYZ()[2]);
+							for (int n=0;n<nodes.size();n++)
+							{
+								btScalar distSqr = (nodes[n].m_x - xyz).length2();
+								if (distSqr<maxDistSqr)
+								{
+									maxDistSqr = distSqr;
+									
+									vertex->setSoftBodyIndex(n);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		m_softbodyMappingDone = true;
+
+
+
+
+
+
 //		m_object->setCollisionShape(rbci.m_collisionShape);
 		btTransform startTrans;
 
@@ -1391,6 +1406,8 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		if (m_useGimpact)
 		{
 				collisionMeshData = new btTriangleMesh();
+				
+
 				// m_vertexArray is necessarily a multiple of 3
 				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
 				{
@@ -1405,7 +1422,9 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		{
 			if (!m_unscaledShape)
 			{
-				collisionMeshData = new btTriangleMesh();
+				collisionMeshData = new btTriangleMesh(true,false);
+				collisionMeshData->m_weldingThreshold = m_weldingThreshold;
+
 				// m_vertexArray is necessarily a multiple of 3
 				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
 				{

@@ -43,6 +43,8 @@ class btCollisionShape;
 class CcdShapeConstructionInfo
 {
 public:
+	
+
 	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
 
 	CcdShapeConstructionInfo() :
@@ -54,7 +56,8 @@ public:
 		m_refCount(1),
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
-		m_useGimpact(false)
+		m_useGimpact(false),
+		m_weldingThreshold(0.f)
 	{
 		m_childTrans.setIdentity();
 	}
@@ -111,6 +114,14 @@ public:
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
 
+	void	setVertexWeldingThreshold(float threshold)
+	{
+		m_weldingThreshold  = threshold;
+	}
+	float	getVertexWeldingThreshold() const
+	{
+		return m_weldingThreshold;
+	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
 	int						m_refCount;		// this class is shared between replicas
@@ -119,7 +130,9 @@ protected:
 	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
-	bool	m_useGimpact;
+	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
+	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
+
 };
 
 struct CcdConstructionInfo

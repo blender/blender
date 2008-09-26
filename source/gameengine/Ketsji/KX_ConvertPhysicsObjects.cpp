@@ -881,6 +881,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				{
 					shapeInfo->SetMesh(meshobj, false,false);
 				}
+				if (objprop->m_softbody)
+					shapeInfo->setVertexWeldingThreshold(0.01f); //todo: expose this to the UI
+
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia
 				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
