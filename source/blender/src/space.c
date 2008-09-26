@@ -1864,8 +1864,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case AKEY:
-				if (G.obedit == 0 && G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
-					alignmenu();
+				if(G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
+					if(G.obedit == 0)
+						alignmenu();
+					else if(G.obedit->type==OB_ARMATURE)
+						align_selected_bones();
 				}
 				else if(G.qual & LR_CTRLKEY) { /* also with shift! */
 					apply_object();	
