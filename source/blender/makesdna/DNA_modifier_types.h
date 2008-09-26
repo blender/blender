@@ -38,6 +38,7 @@ typedef enum ModifierType {
 	eModifierType_Shrinkwrap,
 	eModifierType_Fluidsim,
 	eModifierType_Mask,
+	eModifierType_SimpleDeform,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -559,5 +560,33 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS		(1<<1)
 #define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
 #define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
+
+
+typedef struct SimpleDeformModifierData {
+	ModifierData modifier;
+
+	struct Object *origin;	/* object to control the origin of modifier space coordinates */
+	char vgroup_name[32];	/* optional vertexgroup name */
+	float factor;			/* factors to control simple deforms */
+	float limit[2];			/* lower and upper limit */		
+
+	char mode;				/* deform function */
+	char axis;				/* lock axis (for taper and strech) */
+	char originOpts;		/* originOptions */
+	char pad;
+
+} SimpleDeformModifierData;
+
+#define MOD_SIMPLEDEFORM_MODE_TWIST		1
+#define MOD_SIMPLEDEFORM_MODE_BEND		2
+#define MOD_SIMPLEDEFORM_MODE_TAPER		3
+#define MOD_SIMPLEDEFORM_MODE_STRETCH	4
+
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_X			(1<<0)
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
+
+/* indicates whether simple deform should use the local
+   coordinates or global coordinates of origin */
+#define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #endif

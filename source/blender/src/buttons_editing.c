@@ -1852,6 +1852,13 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				height += 19;
 		} else if (md->type == eModifierType_Mask) {
 			height = 66;
+		} else if (md->type==eModifierType_SimpleDeform) {
+			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			height += 19*5;
+			if(smd->origin != NULL) height += 19;
+			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
+			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
+				height += 19;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -2548,6 +2555,30 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiBlockEndAlign(block);
 
+		} else if (md->type==eModifierType_SimpleDeform) {
+			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			char simpledeform_modemenu[] = "Deform type%t|Twist %x1|Bend %x2|Taper %x3|Strech %x4";
+
+			uiDefButC(block, MENU, B_MODIFIER_RECALC, simpledeform_modemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform to apply to object.");
+			
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->origin, "Origin of modifier space coordinates");
+			if(smd->origin != NULL)
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_ORIGIN_LOCAL, B_MODIFIER_RECALC, "Relative",lx,(cy-=19),buttonWidth,19, &smd->originOpts, 0, 0, 0, 0, "Sets the origin of deform space to be relative to the object");
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor, -10.0f, 10.0f, 0.5f, 0, "Deform Factor");
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[1], 0.0f, 1.0f, 5.0f, 0, "Upper Limit for deform");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[0], 0.0f, 1.0f, 5.0f, 0, "Lower Limit for deform");
+
+			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
+			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
+			{
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_LOCK_AXIS_X, B_MODIFIER_RECALC, "Loc X", lx,             (cy-=19),buttonWidth/2,19, &smd->axis, 0, 0, 0, 0, "Disallow changes on the X coordinate");
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_LOCK_AXIS_Y, B_MODIFIER_RECALC, "Loc Y", lx+(buttonWidth/2), (cy),buttonWidth/2,19, &smd->axis, 0, 0, 0, 0, "Disallow changes on the Y coordinate");
+			}
 		}
 
 		uiBlockEndAlign(block);
