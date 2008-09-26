@@ -41,6 +41,7 @@
 #include "BLI_rand.h"
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
+#include "BLI_kdtree.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -1475,8 +1476,9 @@ static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mat
 			static_particle_strand(re, obr, ma, orco, surfnor, uvco, totuv, mcol, totcol, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
 	}
 	else{
-		har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
-		if(har) har->lay= obr->ob->lay;
+		//har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
+		//if(har) har->lay= obr->ob->lay;
+		RE_cache_particle(re, loc, 0, loc1);
 	}
 }
 static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
@@ -1702,6 +1704,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	if(path_nbr==0)
 		psys->lattice=psys_get_lattice(ob,psys);
+
+	re->particles_tree = BLI_kdtree_new(totpart+totchild);
 
 /* 3. start creating renderable things */
 	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
@@ -2049,6 +2053,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
+	if (re->particles_tree)
+		BLI_kdtree_balance(re->particles_tree);
+
 	if(ma) do_mat_ipo(ma);
 
 	if(orco1)
@@ -4410,6 +4417,8 @@ void RE_Database_Free(Render *re)
 	
 	BLI_freelistN(&re->lampren);
 	BLI_freelistN(&re->lights);
+		
+	BLI_kdtree_free(re->particles_tree);
 
 	free_renderdata_tables(re);
 	

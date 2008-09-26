@@ -34,6 +34,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_kdtree.h"
 
 #include "RE_shader_ext.h"
 #include "RE_raytrace.h"
@@ -127,14 +128,41 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	}
 }
 
+/* need to figure out a good default here */ 
+#define MAX_PARTICLES_NEAREST	10
+float get_particle_density(float *co, float radius)
+{
+	KDTreeNearest nearest[MAX_PARTICLES_NEAREST];
+	float density=0.0f;
+	int n, neighbours=0;
+	
+	/* no particles in preview for now - 
+	 * can check for existence of particle kdtree better later on */
+	if(R.r.scemode & R_PREVIEWBUTS)	return;
+	
+	neighbours = BLI_kdtree_find_n_nearest(R.particles_tree, MAX_PARTICLES_NEAREST, co, NULL, nearest);
+	
+	for(n=1; n<neighbours; n++) {
+		if ( nearest[n].dist < radius) {
+			/* TODO: proper falloff/filter */
+			density += 3.0f * (radius - nearest[n].dist);
+		}
+	}
+
+	return density;
+}
+
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
 	float density = shi->mat->alpha;
 	float col[3] = {0.0, 0.0, 0.0};
-		
-	/* do any density gain stuff here */
-	if (shi->mat->flag & MA_IS_TEXTURED)
+	
+	if (shi->mat->vol_shadeflag & MA_VOL_PARTICLES) {
+		density += get_particle_density(co, shi->mat->vol_part_searchradius);
+	}
+	else if (shi->mat->flag & MA_IS_TEXTURED) {
 		do_volume_tex(shi, co, MAP_ALPHA, col, &density);
+	}
 	
 	return density;
 }
@@ -339,7 +367,6 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	float tau[3], step_emit[3], step_scatter[3] = {0.0, 0.0, 0.0};
 	int s;
 	float step_sta[3], step_end[3], step_mid[3];
-	float col_behind[3];
 	float alpha;
 	float density = vol_get_density(shi, co);
 	

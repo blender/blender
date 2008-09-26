@@ -1041,6 +1041,21 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 	return har;
 }
 
+ParticleRen *RE_cache_particle(Render *re, float *co, int index, float *vec)
+{
+	/*
+	ParticleRen *pr;
+	
+	pr= (LampRen *)MEM_callocN(sizeof(ParticleRen),"particleren");
+	VECCOPY(pr->co, co);
+	BLI_addtail(&re->vol_particles, pr);
+	*/
+	
+	BLI_kdtree_insert(re->particles_tree, index, co, vec);
+	
+	
+}
+
 HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma,   float *vec,   float *vec1, 
 				  float *orco, float *uvco, float hasize, float vectsize, int seed)
 {

@@ -98,6 +98,8 @@ struct HaloRen *RE_inithalo(struct Render *re, struct ObjectRen *obr, struct Mat
 struct HaloRen *RE_inithalo_particle(struct Render *re, struct ObjectRen *obr, struct DerivedMesh *dm, struct Material *ma,   float *vec,   float *vec1, float *orco, float *uvco, float hasize, float vectsize, int seed);
 struct StrandBuffer *RE_addStrandBuffer(struct ObjectRen *obr, int totvert);
 
+struct ParticleRen *RE_cache_particle(Render *re, float *co, int index, float *vec);
+
 struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex, int lay);
 struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4], int lay);
 void RE_makeRenderInstances(struct Render *re);

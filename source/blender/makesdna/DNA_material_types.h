@@ -70,7 +70,7 @@ typedef struct Material {
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];
-	float vpad2;
+	float vol_part_searchradius;
 	short vol_raydepth;
 	short vol_shadeflag;
 	
@@ -351,6 +351,7 @@ typedef struct Material {
 #define MA_VOL_SHADED		1
 #define MA_VOL_ATTENUATED	2
 #define MA_VOL_SHADOWED		4
+#define MA_VOL_PARTICLES	8
 
 #endif
 

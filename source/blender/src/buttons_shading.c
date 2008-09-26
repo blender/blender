@@ -4281,6 +4281,15 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 10.0, 10, 0, "Multiplier for scattering");
+		
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, MA_VOL_PARTICLES, B_MATPRV, "Particles",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Render global particle cache");
+	uiDefButF(block, NUM, B_MATPRV, "Search Radius: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_part_searchradius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
+	uiBlockEndAlign(block);
 }
 
 static void material_panel_nodes(Material *ma)
