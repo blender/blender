@@ -1747,7 +1747,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bShrinkwrapConstraint *data = con->data;
 				char shrinktypemenu[]="Shrinkwrap type%t|nearest surface point %x0|projection %x1|nearest vertex %x2";
 
-				height = 60;
+				height = 78;
 				if(data->shrinkType == MOD_SHRINKWRAP_PROJECT)
 					height += 18;
 

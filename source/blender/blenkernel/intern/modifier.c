@@ -7380,16 +7380,6 @@ static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
 }
 
-static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
-{
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, derivedData, vertexCos, numVerts);
-}
-
-static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
-{
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, derivedData, vertexCos, numVerts);
-}
-
 static CustomDataMask simpledeformModifier_requiredDataMask(ModifierData *md)
 {
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
@@ -7414,6 +7404,57 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 
 	if (smd->origin)
 		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
+}
+
+static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
+
+}
+
+static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
 }
 
 /***/
