@@ -74,35 +74,23 @@ btSoftBodyTriangleCallback::~btSoftBodyTriangleCallback()
 
 void	btSoftBodyTriangleCallback::clearCache()
 {
-	//m_dispatcher->clearManifold(m_manifoldPtr);
+	for (int i=0;i<m_shapeCache.size();i++)
+	{
+		btTriIndex* tmp = m_shapeCache.getAtIndex(i);
+		btAssert(tmp);
+		btAssert(tmp->m_childShape);
+		m_softBody->getWorldInfo()->m_sparsesdf.RemoveReferences(tmp->m_childShape);//necessary?
+		delete tmp->m_childShape;
+	}
+	m_shapeCache.clear();
 };
-
-
-static const int maxParts = 1;
-static const int maxTriangleIndex = 100*100;
-
-btCollisionShape* shapeCache[maxParts][maxTriangleIndex];
 
 
 void btSoftBodyTriangleCallback::processTriangle(btVector3* triangle,int partId, int triangleIndex)
 {
-	static bool hackedFirst = true;
-	if (hackedFirst)
-	{
-		hackedFirst = false;
-		int i,j;
-		for (i=0;i<maxParts;i++)
-		{
-			for (j=0;j<maxTriangleIndex;j++)
-			{
-				shapeCache[i][j]=0;
-			}
-		}
-	}
- 
-	//just for debugging purposes
+ 	//just for debugging purposes
 	//printf("triangle %d",m_triangleCount++);
-btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
+	btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 	btCollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher1 = m_dispatcher;
 
@@ -114,18 +102,17 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 		m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[0]),tr(triangle[1]),color);
 		m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[1]),tr(triangle[2]),color);
 		m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[2]),tr(triangle[0]),color);
-
-		//btVector3 center = triangle[0] + triangle[1]+triangle[2];
-		//center *= btScalar(0.333333);
-		//m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[0]),tr(center),color);
-		//m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[1]),tr(center),color);
-		//m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[2]),tr(center),color);
-
 	}
 
-	if (shapeCache[partId][triangleIndex])
+	btTriIndex	triIndex(partId,triangleIndex,0);
+	btHashKey<btTriIndex> triKey(triIndex.getUid());
+
+	
+	btTriIndex* shapeIndex = m_shapeCache[triKey];
+	if (shapeIndex)
 	{
-		btCollisionShape* tm = shapeCache[partId][triangleIndex];
+		btCollisionShape* tm = shapeIndex->m_childShape;
+		btAssert(tm);
 
 		//copy over user pointers to temporary shape
 		tm->setUserPointer(ob->getRootCollisionShape()->getUserPointer());
@@ -144,13 +131,6 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 	}
 
 	//aabb filter is already applied!	
-
-
-	
-
-	
-
-
 
 	//btCollisionObject* colObj = static_cast<btCollisionObject*>(m_convexProxy->m_clientObject);
 	
@@ -194,10 +174,11 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 		colAlgo->processCollision(m_softBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
 		colAlgo->~btCollisionAlgorithm();
 		ci.m_dispatcher1->freeCollisionAlgorithm(colAlgo);
+		
+		
 		ob->internalSetTemporaryCollisionShape( tmpShape );
-//		delete tm;
-
-		shapeCache[partId][triangleIndex] = tm;
+		triIndex.m_childShape = tm;
+		m_shapeCache.insert(triKey,triIndex);
 
 	}
 

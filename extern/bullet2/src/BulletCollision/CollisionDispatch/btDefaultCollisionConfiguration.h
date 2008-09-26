@@ -48,6 +48,8 @@ struct	btDefaultCollisionConstructionInfo
 class	btDefaultCollisionConfiguration : public btCollisionConfiguration
 {
 
+protected:
+
 	int	m_persistentManifoldPoolSize;
 	
 	btStackAlloc*	m_stackAlloc;
@@ -55,6 +57,7 @@ class	btDefaultCollisionConfiguration : public btCollisionConfiguration
 
 	btPoolAllocator*	m_persistentManifoldPool;
 	bool	m_ownsPersistentManifoldPool;
+
 
 	btPoolAllocator*	m_collisionAlgorithmPool;
 	bool	m_ownsCollisionAlgorithmPool;

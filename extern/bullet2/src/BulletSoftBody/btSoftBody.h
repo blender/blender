@@ -609,6 +609,11 @@ public:
 
 	btAlignedObjectArray<int>	m_userIndexMapping;
 
+	btSoftBodyWorldInfo*	getWorldInfo()
+	{
+		return m_worldInfo;
+	}
+
 	virtual void	setCollisionShape(btCollisionShape* collisionShape)
 	{
 		//don't do anything, due to the internal shape hack: todo: fix this
