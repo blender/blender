@@ -284,6 +284,13 @@ m_faces.push_back(f);
 //
 void			btSoftBody::appendFace(int node0,int node1,int node2,Material* mat)
 {
+	if (node0==node1)
+		return;
+	if (node1==node2)
+		return;
+	if (node2==node0)
+		return;
+
 	appendFace(-1,mat);
 	Face&	f=m_faces[m_faces.size()-1];
 	btAssert(node0!=node1);
