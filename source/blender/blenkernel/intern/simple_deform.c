@@ -35,6 +35,7 @@
 #include "BKE_deform.h"
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
+#include "BKE_shrinkwrap.h"
 
 #include <string.h>
 #include <math.h>
@@ -140,89 +141,100 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 /* simple deform modifier */
 void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
-	int i;
-	float (*ob2mod)[4] = NULL, (*mod2ob)[4] = NULL;
-	float tmp_matrix[2][4][4];
 	static const float lock_axis[2] = {0.0f, 0.0f};
 
+	int i;
+	int limit_axis = 0;
+	SpaceTransform *transf = NULL, tmp_transf;
+	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;	//Mode callback
 	int vgroup = get_named_vertexgroup_num(ob, smd->vgroup_name);
-
 	MDeformVert *dvert = NULL;
+
+	//Safe-check
+	if(smd->origin == ob) smd->origin = NULL;					//No self references
+	smd->limit[0] = MIN2(smd->limit[0], smd->limit[1]);			//Upper limit >= than lower limit
 
 	//Calculate matrixs do convert between coordinate spaces
 	if(smd->origin)
 	{
-		//inverse is outdated
-
+		transf = &tmp_transf;
+		
 		if(smd->originOpts & MOD_SIMPLEDEFORM_ORIGIN_LOCAL)
 		{
-			Mat4Invert(smd->origin->imat, smd->origin->obmat);
-			Mat4Invert(ob->imat, ob->obmat);
-			
-			ob2mod = tmp_matrix[0];
-			mod2ob = tmp_matrix[1];
-			Mat4MulSerie(ob2mod, smd->origin->imat, ob->obmat, 0, 0, 0, 0, 0, 0);
-			Mat4Invert(mod2ob, ob2mod);
+			space_transform_from_matrixs(transf, ob->obmat, smd->origin->obmat);
 		}
 		else
 		{
-			Mat4Invert(smd->origin->imat, smd->origin->obmat);
-			ob2mod = smd->origin->obmat;
-			mod2ob = smd->origin->imat;
+			Mat4CpyMat4(transf->local2target, smd->origin->obmat);
+			Mat4Invert(transf->target2local, transf->local2target);
+		}
+	}
+
+	//Setup vars
+	limit_axis  = (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) ? 0 : 2; //Bend limits on X.. all other modes limit on Z
+
+	//Update limits if needed
+	if(smd->limit[1] == -FLT_MAX
+	|| smd->limit[0] ==  FLT_MAX)
+	{
+		float lower =  FLT_MAX;
+		float upper = -FLT_MAX;
+
+		for(i=0; i<numVerts; i++)
+		{
+			float tmp[3];
+			if(transf) space_transform_apply(transf, tmp);
+
+			VECCOPY(tmp, vertexCos[i]);
+
+			lower = MIN2(lower, tmp[limit_axis]);
+			upper = MAX2(upper, tmp[limit_axis]);
 		}
 
+		smd->limit[1] = upper;
+		smd->limit[0] = lower;
 	}
 
 
 	if(dm)
 		dvert	= dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
+
+	switch(smd->mode)
+	{
+		case MOD_SIMPLEDEFORM_MODE_TWIST: 	simpleDeform_callback = simpleDeform_twist;		break;
+		case MOD_SIMPLEDEFORM_MODE_BEND:	simpleDeform_callback = simpleDeform_bend;		break;
+		case MOD_SIMPLEDEFORM_MODE_TAPER:	simpleDeform_callback = simpleDeform_taper;		break;
+		case MOD_SIMPLEDEFORM_MODE_STRETCH:	simpleDeform_callback = simpleDeform_stretch;	break;
+		default:
+			return;	//No simpledeform mode?
+	}
+
 	for(i=0; i<numVerts; i++)
 	{
-		float co[3], dcut[3];
 		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
-		float factor = smd->factor;
 
-		if(weight == 0) continue;
-
-		if(ob2mod)
-			Mat4MulVecfl(ob2mod, vertexCos[i]);
-
-		VECCOPY(co, vertexCos[i]);
-
-		dcut[0] = dcut[1] = dcut[2] = 0.0f;
-		if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) axis_limit(0, lock_axis, co, dcut);
-		if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) axis_limit(1, lock_axis, co, dcut);
-
-		switch(smd->mode)
+		if(weight != 0.0f)
 		{
-			case MOD_SIMPLEDEFORM_MODE_TWIST:
-				axis_limit(2, smd->limit, co, dcut);
-				simpleDeform_twist(factor, dcut, co);
-			break;
+			float co[3], dcut[3] = {0.0f, 0.0f, 0.0f};
 
-			case MOD_SIMPLEDEFORM_MODE_BEND:
-				axis_limit(0, smd->limit, co, dcut);
-				simpleDeform_bend(factor, dcut, co);
-			break;
+			if(transf) space_transform_apply(transf, vertexCos[i]);
 
-			case MOD_SIMPLEDEFORM_MODE_TAPER:
-				axis_limit(2, smd->limit, co, dcut);
-				simpleDeform_taper(factor, dcut, co);
-			break;
+			VECCOPY(co, vertexCos[i]);
 
+			//Apply axis limits
+			if(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) //Bend mode shoulnt have any lock axis
+			{
+				if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_X) axis_limit(0, lock_axis, co, dcut);
+				if(smd->axis & MOD_SIMPLEDEFORM_LOCK_AXIS_Y) axis_limit(1, lock_axis, co, dcut);
+			}
+			axis_limit(limit_axis, smd->limit, co, dcut);
 
-			case MOD_SIMPLEDEFORM_MODE_STRETCH:
-				axis_limit(2, smd->limit, co, dcut);
-				simpleDeform_stretch(factor, dcut, co);
-			break;
+			simpleDeform_callback(smd->factor, dcut, co);		//Apply deform
+			VecLerpf(vertexCos[i], vertexCos[i], co, weight);	//Use vertex weight has coef of linear interpolation
+	
+			if(transf) space_transform_invert(transf, vertexCos[i]);
 		}
-
-		//linear interpolation
-		VecLerpf(vertexCos[i], vertexCos[i], co, weight);
-
-		if(mod2ob)
-			Mat4MulVecfl(mod2ob, vertexCos[i]);
 	}
 }
 

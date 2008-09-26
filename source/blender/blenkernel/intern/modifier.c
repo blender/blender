@@ -7364,8 +7364,8 @@ static void simpledeformModifier_initData(ModifierData *md)
 
 	smd->origin   =  NULL;
 	smd->factor   =  0.35;
-	smd->limit[0] = -1000.0f;
-	smd->limit[1] =  1000.0f;
+	smd->limit[0] =  FLT_MAX;
+	smd->limit[1] = -FLT_MAX;
 }
 
 static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)
