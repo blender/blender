@@ -326,8 +326,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
 			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
-			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
 			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+			PyObject *gameLogic_keys = PyDict_Keys(PyModule_GetDict(gameLogic));
+			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
+			
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
@@ -357,6 +359,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetAnimFrameRate( (((double) blscene->r.frs_sec) / blscene->r.frs_sec_base) );
 				
 				// the mainloop
+				printf("\nBlender Game Engine Started\n\n");
 				while (!exitrequested)
 				{
 					// first check if we want to exit
@@ -392,6 +395,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 						mousedevice->ConvertBlenderEvent(event,val);
 					}
 				}
+				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
 				
 				// when exiting the mainloop
@@ -401,8 +405,20 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				// inside the GameLogic dictionary when the python interpreter is finalized.
 				// which allows the scene to safely delete them :)
 				// see: (space.c)->start_game
-				PyDict_Clear(PyModule_GetDict(gameLogic));
-				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict);
+				
+				//PyDict_Clear(PyModule_GetDict(gameLogic));
+				
+				// Keep original items, means python plugins will autocomplete members
+				int listIndex;
+				PyObject *gameLogic_keys_new = PyDict_Keys(PyModule_GetDict(gameLogic));
+				for (listIndex=0; listIndex < PyList_Size(gameLogic_keys_new); listIndex++)  {
+					PyObject* item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
+					if (!PySequence_Contains(gameLogic_keys, item)) {
+						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
+					}
+				}
+				Py_DECREF(gameLogic_keys_new);
+				gameLogic_keys_new = NULL;
 				
 				ketsjiengine->StopEngine();
 				exitGamePythonScripting();
@@ -413,6 +429,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				delete sceneconverter;
 				sceneconverter = NULL;
 			}
+			
+			Py_DECREF(gameLogic_keys);
+			gameLogic_keys = NULL;
 		}
 		// set the cursor back to normal
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);

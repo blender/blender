@@ -1459,6 +1459,10 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	 * Note: we can't search from end to try to optimise this as it causes errors there's
 	 * 		an A ___ B |---| B situation
 	 */
+	// FIXME: here there is a bug where we are trying to get the summary for the following channels
+	//		A|--------------|A ______________ B|--------------|B
+	//		A|------------------------------------------------|A
+	//		A|----|A|---|A|-----------------------------------|A
 	for (ab= blocks->first; ab; ab= ab->next) {
 		/* check if alter existing block or add new block */
 		if (ab->start == prev->vec[1][0]) {			

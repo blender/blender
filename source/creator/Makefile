@@ -60,11 +60,7 @@ ifeq ($(WITH_QUICKTIME), true)
 endif
 
 ifeq ($(WITH_BINRELOC), true)
-	CPPFLAGS += -I$(OCGDIR)/extern/binreloc/include -DWITH_BINRELOC
-endif
-
-ifeq ($(NAN_YESIAMSTUPID), true)
-	CPPFLAGS += -DYESIAMSTUPID
+	CPPFLAGS += -I$(NANBLENDERHOME)/extern/binreloc/include -DWITH_BINRELOC
 endif
 
 CPPFLAGS += -I$(OPENGL_HEADERS)

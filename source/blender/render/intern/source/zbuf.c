@@ -377,6 +377,8 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		if(sn1<0) sn1= 0;
 		
 		if(sn2>=sn1) {
+			int intzverg;
+			
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rm= rectmaskofs+sn1;
@@ -386,22 +388,21 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 			zverg-= zspan->polygon_offset;
 			
 			while(x>=0) {
-				if( (int)zverg < *rz) {
-					if(!zspan->rectmask || (int)zverg > *rm) {
-	//					int i= zvlnr & 3;
+				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+
+				if( intzverg < *rz) {
+					if(!zspan->rectmask || intzverg > *rm) {
 						
 						apn= ap;
 						while(apn) {
-							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
+							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= intzverg; apn->mask[0]= mask; break; }
 							if(apn->p[0]==zvlnr && apn->obi[0]==obi) {apn->mask[0]|= mask; break; }
-							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
+							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= intzverg; apn->mask[1]= mask; break; }
 							if(apn->p[1]==zvlnr && apn->obi[1]==obi) {apn->mask[1]|= mask; break; }
-							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
+							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= intzverg; apn->mask[2]= mask; break; }
 							if(apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
-							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
+							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= intzverg; apn->mask[3]= mask; break; }
 							if(apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
-	//						if(apn->p[i]==0) {apn->obi[i]= obi; apn->p[i]= zvlnr; apn->z[i]= zverg; apn->mask[i]= mask; break; }
-	//						if(apn->p[i]==zvlnr && apn->obi[i]==obi) {apn->mask[i]|= mask; break; }
 							if(apn->next==NULL) apn->next= addpsA(zspan);
 							apn= apn->next;
 						}				
@@ -1115,6 +1116,8 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 		if(sn1<0) sn1= 0;
 		
 		if(sn2>=sn1) {
+			int intzverg;
+			
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
@@ -1123,10 +1126,12 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				if( (int)zverg > *rz || *rz==0x7FFFFFFF) {
-					if(!zspan->rectmask || (int)zverg > *rm) {
+				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+
+				if( intzverg > *rz || *rz==0x7FFFFFFF) {
+					if(!zspan->rectmask || intzverg > *rm) {
 						*ro= obi;
-						*rz= (int)zverg;
+						*rz= intzverg;
 						*rp= zvlnr;
 					}
 				}
@@ -1231,6 +1236,8 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		if(sn1<0) sn1= 0;
 		
 		if(sn2>=sn1) {
+			int intzverg;
+			
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
@@ -1239,9 +1246,11 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				if((int)zverg < *rz) {
-					if(!zspan->rectmask || (int)zverg > *rm) {
-						*rz= (int)zverg;
+				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+				
+				if(intzverg < *rz) {
+					if(!zspan->rectmask || intzverg > *rm) {
+						*rz= intzverg;
 						*rp= zvlnr;
 						*ro= obi;
 					}
@@ -1359,7 +1368,8 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *v1, float 
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				int zvergi= (int)zverg;
+				int zvergi= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+
 				/* option: maintain two depth values, closest and 2nd closest */
 				if(zvergi < *rz) {
 					if(rectzofs1) *rz1= *rz;

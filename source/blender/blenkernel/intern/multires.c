@@ -208,7 +208,7 @@ static void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *f
 	}
 }
 
-static void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
+static void multires_get_face(MultiresFace *f, CustomData *fdata, int findex, EditFace *efa, MFace *m)
 {
 	if(efa) {
 		MFace tmp;
@@ -218,7 +218,7 @@ static void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 		tmp.v3= efa->v3->tmp.l;
 		tmp.v4= 0;
 		if(efa->v4) tmp.v4= efa->v4->tmp.l;
-		test_index_face(&tmp, NULL, 0, efa->v4?4:3);
+		test_index_face(&tmp, fdata, findex, efa->v4?4:3);
 		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
 
 		/* Flags */
@@ -388,7 +388,7 @@ void multires_create(Object *ob, Mesh *me)
 	                           &me->mr->fdata, CD_MTFACE);
 	if(em) efa= em->faces.first;
 	for(i=0; i<lvl->totface; ++i) {
-		multires_get_face(&lvl->faces[i], efa, &me->mface[i]);
+		multires_get_face(&lvl->faces[i], &me->mr->fdata, i, efa, &me->mface[i]);
 		if(em) efa= efa->next;
 	}
 
@@ -765,7 +765,7 @@ static void multires_update_faces(Mesh *me, EditMesh *em)
 	if(em) efa= em->faces.first;
 	for(i=0; i<cr_lvl->totface; ++i) {
 		MultiresFace mftmp;
-		multires_get_face(&mftmp, efa, &me->mface[i]);
+		multires_get_face(&mftmp, &me->mr->fdata, i, efa, &me->mface[i]);
 		if(cr_lvl->faces[i].flag != mftmp.flag)
 			cr_flag_damaged[i]= 1;
 		if(cr_lvl->faces[i].mat_nr != mftmp.mat_nr)

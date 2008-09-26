@@ -1727,7 +1727,7 @@ void subdivideNurb()
          */
 			/* count */
 			if(nu->flagu & CU_CYCLIC) {
-				a= nu->pntsu*nu->pntsv;
+				a= nu->pntsu;
 				bp= nu->bp;
 				prevbp= bp+(a-1);
 			}
@@ -2145,7 +2145,7 @@ int convertspline(short type, Nurb *nu)
 			nu->type |= 1;
 			calchandlesNurb(nu);
 		}
-		else if(type==4) {		    /* to Nurb */
+		else if(type==CU_NURBS) {
 			nu->type &= ~7;
 			nu->type+= 4;
 			nu->orderu= 4;

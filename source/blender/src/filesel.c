@@ -554,55 +554,17 @@ static void split_sfile(SpaceFile *sfile, char *s1)
 
 
 void parent(SpaceFile *sfile)
-{
-	short a;
-	char *dir;
-	
+{	
 	/* if databrowse: no parent */
 	if(sfile->type==FILE_MAIN && filesel_has_func(sfile)) return;
-
-	dir= sfile->dir;
 	
+	BLI_parent_dir(sfile->dir);
+	
+	if (sfile->type!=FILE_MAIN && (sfile->dir[0]=='\0'))
 #ifdef WIN32
-	if( (a = strlen(dir)) ) {				/* remove all '/' at the end */
-		while(dir[a-1] == '\\') {
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
-	if( (a = strlen(dir)) ) {				/* then remove all until '/' */
-		while(dir[a-1] != '\\') {
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
-	if( (a = strlen(dir)) ) {
-		if (dir[a-1] != '\\') strcat(dir,"\\");
-	}
-	else if(sfile->type!=FILE_MAIN) { 
-		get_default_root(dir);
-	}
+		get_default_root(sfile->dir);
 #else
-	if( (a = strlen(dir)) ) {				/* remove all '/' at the end */
-		while(dir[a-1] == '/') {
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
-	if( (a = strlen(dir)) ) {				/* then remove until '/' */
-		while(dir[a-1] != '/') {
-			a--;
-			dir[a] = 0;
-			if (a<=0) break;
-		}
-	}
-	if ( (a = strlen(dir)) ) {
-		if (dir[a-1] != '/') strcat(dir,"/");
-	}
-	else if(sfile->type!=FILE_MAIN) strcpy(dir,"/");
+		strcpy(sfile->dir,"/");
 #endif
 	
 	/* to be sure */
@@ -1914,9 +1876,14 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						{
 							error("Path too long, cannot enter this directory");
 						} else {
-							strcat(sfile->dir, sfile->filelist[act].relname);
-							strcat(sfile->dir,"/");
-							BLI_cleanup_dir(G.sce, sfile->dir);
+							if (strcmp(sfile->filelist[act].relname, "..")==0) {
+								/* avoids /../../ */
+								BLI_parent_dir(sfile->dir);
+							} else {
+								strcat(sfile->dir, sfile->filelist[act].relname);
+								strcat(sfile->dir,"/");
+								BLI_cleanup_dir(G.sce, sfile->dir);
+							}
 							freefilelist(sfile);						
 							sfile->ofs= 0;
 							do_draw= 1;

@@ -5,7 +5,7 @@ Import('env')
 
 sources = env.Glob('intern/*.cpp')
 
-defs = 'NOGUI ELBEEM_BLENDER=1 LBM_INCLUDE_CONTROL=1'
+defs = 'NOGUI ELBEEM_BLENDER=1'
 
 if env['WITH_BF_OPENMP'] == 1:
     defs += ' PARALLEL'

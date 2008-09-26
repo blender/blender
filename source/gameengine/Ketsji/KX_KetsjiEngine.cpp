@@ -1243,18 +1243,48 @@ void KX_KetsjiEngine::RenderDebugProperties()
 				CValue* propobj = (*it)->m_obj;
 				STR_String objname = propobj->GetName();
 				STR_String propname = (*it)->m_name;
-				CValue* propval = propobj->GetProperty(propname);
-				if (propval)
+				if (propname == "__state__")
 				{
-					STR_String text = propval->GetText();
-					debugtxt = objname + "." + propname + " = " + text;
+					// reserve name for object state
+					KX_GameObject* gameobj = static_cast<KX_GameObject*>(propobj);
+					unsigned int state = gameobj->GetState();
+					debugtxt = objname + "." + propname + " = ";
+					bool first = true;
+					for (int statenum=1;state;state >>= 1, statenum++)
+					{
+						if (state & 1)
+						{
+							if (!first)
+							{
+								debugtxt += ",";
+							}
+							debugtxt += STR_String(statenum);
+							first = false;
+						}
+					}
 					m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-												debugtxt.Ptr(),
-												xcoord,
-												ycoord,
-												m_canvas->GetWidth(),
-												m_canvas->GetHeight());
+													debugtxt.Ptr(),
+													xcoord,
+													ycoord,
+													m_canvas->GetWidth(),
+													m_canvas->GetHeight());
 					ycoord += 14;
+				}
+				else
+				{
+					CValue* propval = propobj->GetProperty(propname);
+					if (propval)
+					{
+						STR_String text = propval->GetText();
+						debugtxt = objname + "." + propname + " = " + text;
+						m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
+													debugtxt.Ptr(),
+													xcoord,
+													ycoord,
+													m_canvas->GetWidth(),
+													m_canvas->GetHeight());
+						ycoord += 14;
+					}
 				}
 			}
 		}

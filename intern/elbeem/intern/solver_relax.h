@@ -14,21 +14,6 @@
 #else // FSGR_STRICT_DEBUG==1
 #define CAUSE_PANIC { this->mPanic=1; } /*set flag*/
 #endif // FSGR_STRICT_DEBUG==1
-
-// #if LBM_INCLUDE_TESTSOLVERS!=1
-#if LBM_INCLUDE_CONTROL!=1
-
-#define PRECOLLIDE_MODS(rho,ux,uy,uz, grav) \
-	ux += (grav)[0]; \
-	uy += (grav)[1]; \
-	uz += (grav)[2]; 
-
-#define TEST_IF_CHECK 
-
-#else // LBM_INCLUDE_CONTROL!=1
-// defined in solver_control.h 
-#endif // LBM_INCLUDE_CONTROL!=1
-
 	
 /******************************************************************************
  * normal relaxation

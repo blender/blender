@@ -29,7 +29,7 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btDbvt.h"
 
 class btBroadphaseInterface;
-class btCollisionDispatcher;
+class btDispatcher;
 
 /* btSoftBodyWorldInfo	*/ 
 struct	btSoftBodyWorldInfo
@@ -39,7 +39,7 @@ struct	btSoftBodyWorldInfo
 	btScalar				water_offset;
 	btVector3				water_normal;
 	btBroadphaseInterface*	m_broadphase;
-	btCollisionDispatcher*	m_dispatcher;
+	btDispatcher*	m_dispatcher;
 	btVector3				m_gravity;
 	btSparseSdf<3>			m_sparsesdf;
 };	
@@ -607,6 +607,7 @@ public:
 	virtual ~btSoftBody();
 	/* Check for existing link												*/ 
 
+	btAlignedObjectArray<int>	m_userIndexMapping;
 
 	virtual void	setCollisionShape(btCollisionShape* collisionShape)
 	{
@@ -676,6 +677,10 @@ public:
 										int node);
 	/* Add velocity to the entire body										*/ 
 	void				addVelocity(	const btVector3& velocity);
+
+	/* Set velocity for the entire body										*/ 
+	void				setVelocity(	const btVector3& velocity);
+
 	/* Add velocity to a node of the body									*/ 
 	void				addVelocity(	const btVector3& velocity,
 										int node);

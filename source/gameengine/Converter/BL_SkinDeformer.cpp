@@ -146,7 +146,7 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	return true;
 }
 
-RAS_Deformer *BL_SkinDeformer::GetReplica()
+RAS_Deformer *BL_SkinDeformer::GetReplica(class KX_GameObject* replica)
 {
 	BL_SkinDeformer *result;
 

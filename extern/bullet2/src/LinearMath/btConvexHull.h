@@ -192,6 +192,9 @@ class HullLibrary
 
 public:
 
+	btAlignedObjectArray<int> m_vertexIndexMapping;
+
+
 	HullError CreateConvexHull(const HullDesc& desc, // describes the input request
 				   HullResult&     result);        // contains the resulst
 	HullError ReleaseResult(HullResult &result); // release memory allocated for this result, we are done with it.

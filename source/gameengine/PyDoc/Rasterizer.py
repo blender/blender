@@ -181,4 +181,15 @@ def getGLSLMaterialSetting(setting, enable):
 	@type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
 	@rtype: boolean
 	"""
+def drawLine(from,to,color):
+	"""
+	Draw a line in the 3D scene.
+	
+	@param from: the origin of the line
+	@type from: list [x, y, z]
+	@param to: the end of the line
+	@type to: list [x, y, z]
+	@param color: the color of the line
+	@type color: list [r, g, b]
+	"""
 

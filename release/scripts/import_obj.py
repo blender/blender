@@ -182,7 +182,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		else:
 			#print '\t\tloading mtl: "%s"' % mtlpath
 			context_material= None
-			mtl= open(mtlpath)
+			mtl= open(mtlpath, 'rU')
 			for line in mtl: #.xreadlines():
 				if line.startswith('newmtl'):
 					context_material_name= line_value(line.split())
@@ -194,7 +194,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 				elif context_material:
 					# we need to make a material to assign properties to it.
 					line_split= line.split()
-					line_lower= line.lower()
+					line_lower= line.lower().lstrip()
 					if line_lower.startswith('ka'):
 						context_material.setMirCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
 					elif line_lower.startswith('kd'):
@@ -588,7 +588,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	print '\tpassing obj file "%s"...' % filepath,
 	time_sub= sys.time()
-	file= open(filepath, 'r')
+	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
 		
 		if line.startswith('v '):
@@ -859,7 +859,7 @@ else:
 	os.system('find /fe/obj -iname "*.obj" > /tmp/temp3ds_list')
 	
 	print '...Done'
-	file= open('/tmp/temp3ds_list', 'r')
+	file= open('/tmp/temp3ds_list', 'rU')
 	lines= file.readlines()
 	file.close()
 

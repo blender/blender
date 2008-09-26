@@ -43,6 +43,8 @@ class btCollisionShape;
 class CcdShapeConstructionInfo
 {
 public:
+	
+
 	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
 
 	CcdShapeConstructionInfo() :
@@ -53,7 +55,9 @@ public:
 		m_childScale(1.0f,1.0f,1.0f),
 		m_refCount(1),
 		m_meshObject(NULL),
-		m_unscaledShape(NULL)
+		m_unscaledShape(NULL),
+		m_useGimpact(false),
+		m_weldingThreshold(0.f)
 	{
 		m_childTrans.setIdentity();
 	}
@@ -88,7 +92,7 @@ public:
 		return m_shapeArray.at(i);
 	}
 
-	bool SetMesh(RAS_MeshObject* mesh, bool polytope);
+	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
@@ -110,6 +114,14 @@ public:
 													// original mesh that correspond to shape triangles.
 													// only set for concave mesh shape.
 
+	void	setVertexWeldingThreshold(float threshold)
+	{
+		m_weldingThreshold  = threshold;
+	}
+	float	getVertexWeldingThreshold() const
+	{
+		return m_weldingThreshold;
+	}
 protected:
 	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
 	int						m_refCount;		// this class is shared between replicas
@@ -118,6 +130,9 @@ protected:
 	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
+	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
+	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
+
 };
 
 struct CcdConstructionInfo
@@ -147,6 +162,10 @@ struct CcdConstructionInfo
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
 		m_margin(0.06f),
+		m_linearStiffness(1.f),
+		m_angularStiffness(1.f),
+		m_volumePreservation(1.f),
+		m_gamesoftFlag(0),
 		m_collisionFlags(0),
 		m_bRigid(false),
 		m_bSoft(false),
@@ -169,6 +188,12 @@ struct CcdConstructionInfo
 	btScalar	m_linearDamping;
 	btScalar	m_angularDamping;
 	btScalar	m_margin;
+
+	btScalar	m_linearStiffness;
+	btScalar	m_angularStiffness;
+	btScalar	m_volumePreservation;
+	int			m_gamesoftFlag;
+
 	int			m_collisionFlags;
 	bool		m_bRigid;
 	bool		m_bSoft;
@@ -201,6 +226,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 {
 
 	btCollisionObject* m_object;
+	
 
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
@@ -208,6 +234,12 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	class CcdShapeConstructionInfo* m_shapeInfo;
 
 	friend class CcdPhysicsEnvironment;	// needed when updating the controller
+
+	//some book keeping for replication
+	bool	m_softbodyMappingDone;
+	bool	m_softBodyTransformInitialized;
+	bool	m_prototypeTransformInitialized;
+	btTransform	m_softbodyStartTrans;
 
 
 	void*		m_newClientInfo;

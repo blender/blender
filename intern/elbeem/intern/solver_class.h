@@ -100,14 +100,13 @@
 
 // sirdude fix for solaris
 #if !defined(linux) && defined(sun)
+#include "ieeefp.h"
 #ifndef expf
 #define expf(x) exp((double)(x))
 #endif
 #endif
 
-#if LBM_INCLUDE_CONTROL==1
 #include "solver_control.h"
-#endif 
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 #include "solver_test.h"
@@ -501,13 +500,11 @@ class LbmFsgrSolver :
 		LbmFloat& debRAC(LbmFloat* s,int l);
 #		endif // FSGR_STRICT_DEBUG==1
 
-#		if LBM_INCLUDE_CONTROL==1
 		LbmControlData *mpControl;
 
 		void initCpdata();
 		void handleCpdata();
 		void cpDebugDisplay(int dispset); 
-#		endif // LBM_INCLUDE_CONTROL==1
 
 		bool mUseTestdata;
 #		if LBM_INCLUDE_TESTSOLVERS==1

@@ -20,7 +20,13 @@ subject to the following restrictions:
 #include "CcdPhysicsEnvironment.h"
 #include "RAS_MeshObject.h"
 #include "BulletSoftBody/btSoftBody.h"
+#include "BulletSoftBody//btSoftBodyInternals.h"
+#include "BulletSoftBody/btSoftBodyHelpers.h"
+#include "LinearMath/btConvexHull.h"
+#include "BulletCollision/Gimpact/btGImpactShape.h"
 
+
+#include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 
 class BP_Proxy;
 
@@ -42,10 +48,13 @@ btVector3 startVel(0,0,0);//-10000);
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 :m_cci(ci)
 {
+	m_prototypeTransformInitialized = false;
+	m_softbodyMappingDone = false;
 	m_collisionDelay = 0;
 	m_newClientInfo = 0;
 	m_registerCount = 0;
-		
+	m_softBodyTransformInitialized = false;
+
 	// copy pointers locally to allow smart release
 	m_MotionState = ci.m_MotionState;
 	m_collisionShape = ci.m_collisionShape;
@@ -135,24 +144,25 @@ btSoftBody* CcdPhysicsController::GetSoftBody()
 
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 
-btVector3 pts[3] = {btVector3(0,0,0),
-btVector3(0,1,0),
-btVector3(1,1,0)};
-int triangles[3] = {0,1,2};
-btSoftBodyWorldInfo sbi;
+
 
 void CcdPhysicsController::CreateRigidbody()
 {
 
-	btTransform trans = GetTransformFromMotionState(m_MotionState);
+	//btTransform trans = GetTransformFromMotionState(m_MotionState);
 	m_bulletMotionState = new BlenderBulletMotionState(m_MotionState);
 
 	///either create a btCollisionObject, btRigidBody or btSoftBody
 
 	//create a collision object
 
+	int shapeType = m_cci.m_collisionShape ? m_cci.m_collisionShape->getShapeType() : 0;
+
 	//disable soft body until first sneak preview is ready
-	if (0)//m_cci.m_bSoft)
+	if (m_cci.m_bSoft && m_cci.m_collisionShape && 
+		(shapeType == CONVEX_HULL_SHAPE_PROXYTYPE)|
+		(shapeType == TRIANGLE_MESH_SHAPE_PROXYTYPE) |
+		(shapeType == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE))
 	{
 		btRigidBody::btRigidBodyConstructionInfo rbci(m_cci.m_mass,m_bulletMotionState,m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 		rbci.m_linearDamping = m_cci.m_linearDamping;
@@ -161,54 +171,245 @@ void CcdPhysicsController::CreateRigidbody()
 		rbci.m_restitution = m_cci.m_restitution;
 
 		
-		sbi.m_broadphase = this->m_cci.m_physicsEnv->getBroadphase();
-		sbi.m_dispatcher = (btCollisionDispatcher*) m_cci.m_physicsEnv->getDispatcher();
-		
 		int nodecount = 0;
-		
 		
 		int numtriangles = 1;
 		
-		btVector3 p = trans.getOrigin();
+		btVector3 p(0,0,0);// = getOrigin();
 		btScalar h = 1.f;
 		
+		btSoftRigidDynamicsWorld* softDynaWorld = (btSoftRigidDynamicsWorld*)m_cci.m_physicsEnv->getDynamicsWorld();
+
 		PHY__Vector3	grav;
-		m_cci.m_physicsEnv->getGravity(grav);
-		sbi.m_gravity.setValue(grav[0],grav[1],grav[2]);
+		grav[0] = softDynaWorld->getGravity().getX();
+		grav[1] = softDynaWorld->getGravity().getY();
+		grav[2] = softDynaWorld->getGravity().getZ();
+		softDynaWorld->getWorldInfo().m_gravity.setValue(grav[0],grav[1],grav[2]); //??
 
-		const btVector3	c[]={	p+h*btVector3(-1,-1,-1),
-		p+h*btVector3(+1,-1,-1),
-		p+h*btVector3(-1,+1,-1),
-		p+h*btVector3(+1,+1,-1),
-		p+h*btVector3(-1,-1,+1),
-		p+h*btVector3(+1,-1,+1),
-		p+h*btVector3(-1,+1,+1),
-		p+h*btVector3(+1,+1,+1)};
-
-		int i=0;
-		const int n=15;
+	
 		//btSoftBody*	psb=btSoftBodyHelpers::CreateRope(sbi,	btVector3(-10,0,i*0.25),btVector3(10,0,i*0.25),	16,1+2);
-		btSoftBody* psb = btSoftBodyHelpers::CreateFromConvexHull(sbi,c,8);
 
-		m_object = psb;//btSoftBodyHelpers::CreateFromTriMesh(sbi,&pts[0].getX(),triangles,numtriangles);
+		btSoftBody* psb  = 0;
 
-		psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS;//btSoftBody::fCollision::CL_SS+	btSoftBody::fCollision::CL_RS;
+		if (m_cci.m_collisionShape->getShapeType() == CONVEX_HULL_SHAPE_PROXYTYPE)
+		{
+			btConvexHullShape* convexHull = (btConvexHullShape* )m_cci.m_collisionShape;
 
-		sbi.m_sparsesdf.Reset();
-		sbi.m_sparsesdf.Initialize();
+			//psb = btSoftBodyHelpers::CreateFromConvexHull(sbi,&transformedVertices[0],convexHull->getNumPoints());
 
-		psb->generateBendingConstraints(2);
+			{
+				int nvertices = convexHull->getNumPoints();
+				const btVector3* vertices = convexHull->getPoints();
+				btSoftBodyWorldInfo& worldInfo = softDynaWorld->getWorldInfo();
 
-		psb->m_cfg.kDF=1;
-		psb->activate();
-		psb->setActivationState(1);
-		psb->setDeactivationTime(1.f);
-		psb->m_cfg.piterations		=	4;
+				HullDesc		hdsc(QF_TRIANGLES,nvertices,vertices);
+				HullResult		hres;
+				HullLibrary		hlib;/*??*/ 
+				hdsc.mMaxVertices=nvertices;
+				hlib.CreateConvexHull(hdsc,hres);
+				
+				psb=new btSoftBody(&worldInfo,(int)hres.mNumOutputVertices,
+					&hres.m_OutputVertices[0],0);
+				for(int i=0;i<(int)hres.mNumFaces;++i)
+				{
+					const int idx[]={	hres.m_Indices[i*3+0],
+						hres.m_Indices[i*3+1],
+						hres.m_Indices[i*3+2]};
+					if(idx[0]<idx[1]) psb->appendLink(	idx[0],idx[1]);
+					if(idx[1]<idx[2]) psb->appendLink(	idx[1],idx[2]);
+					if(idx[2]<idx[0]) psb->appendLink(	idx[2],idx[0]);
+					psb->appendFace(idx[0],idx[1],idx[2]);
+				}
+				
+				
+
+				hlib.ReleaseResult(hres);
+
+				
+			}
+
+
+
+
+
+
+		} else
+		{
+			
+			btSoftBodyWorldInfo& sbi= softDynaWorld->getWorldInfo();
+
+			if (m_cci.m_collisionShape->getShapeType() ==SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)
+			{
+				btScaledBvhTriangleMeshShape* scaledtrimeshshape = (btScaledBvhTriangleMeshShape*) m_cci.m_collisionShape;
+				btBvhTriangleMeshShape* trimeshshape = scaledtrimeshshape->getChildShape();
+
+				///only deal with meshes that have 1 sub part/component, for now
+				if (trimeshshape->getMeshInterface()->getNumSubParts()==1)
+				{
+					unsigned char* vertexBase;
+					PHY_ScalarType vertexType;
+					int numverts;
+					int vertexstride;
+					unsigned char* indexbase;
+					int indexstride;
+					int numtris;
+					PHY_ScalarType indexType;
+					trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
+					
+					psb = btSoftBodyHelpers::CreateFromTriMesh(sbi,(const btScalar*)vertexBase,(const int*)indexbase,numtris);
+				}
+			} else
+			{
+				btBvhTriangleMeshShape* trimeshshape = (btBvhTriangleMeshShape*) m_cci.m_collisionShape;
+				///only deal with meshes that have 1 sub part/component, for now
+				if (trimeshshape->getMeshInterface()->getNumSubParts()==1)
+				{
+					unsigned char* vertexBase;
+					PHY_ScalarType vertexType;
+					int numverts;
+					int vertexstride;
+					unsigned char* indexbase;
+					int indexstride;
+					int numtris;
+					PHY_ScalarType indexType;
+					trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
+					
+					psb = btSoftBodyHelpers::CreateFromTriMesh(sbi,(const btScalar*)vertexBase,(const int*)indexbase,numtris);
+				}
+			
+
+				//psb = btSoftBodyHelpers::CreateFromTriMesh(sbi,&pts[0].getX(),triangles,numtriangles);
+			}
+
+		}
+
+	
+		
+		m_object = psb;
+
+		//psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS;//btSoftBody::fCollision::CL_SS+	btSoftBody::fCollision::CL_RS;
+		psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS + btSoftBody::fCollision::VF_SS;//CL_SS;
+		//psb->m_cfg.collisions	=	btSoftBody::fCollision::CL_SS + btSoftBody::fCollision::CL_RS;
+		
+		//btSoftBody::Material*	pm=psb->appendMaterial();
+		btSoftBody::Material*	pm=psb->m_materials[0];
+		
+		pm->m_kLST				=	m_cci.m_linearStiffness;
+		pm->m_kAST				=	m_cci.m_angularStiffness;
+		pm->m_kVST				=	m_cci.m_volumePreservation;
+		
+
+		
+		//pm->m_kAST = 0.01f;
+		//pm->m_kVST = 0.001f;
+		psb->generateBendingConstraints(2,pm);
+		psb->m_cfg.piterations = 4;
+		psb->m_cfg.viterations = 4;
+		psb->m_cfg.diterations = 4;
+		psb->m_cfg.citerations = 4;
+		if (m_cci.m_gamesoftFlag & 2)//OB_SB_GOAL)
+		{
+			psb->setPose(false,true);//
+		} else
+		{
+			psb->setPose(true,false);
+		}
+
+		psb->m_cfg.kDF				=	0.5;
+		//psb->m_cfg.kMT				=	0.05;
+		psb->m_cfg.piterations		=	5;
+		
+		psb->m_cfg.piterations		=	5;
+		//psb->m_cfg.kVC				=	20;
+
+		psb->randomizeConstraints();
+
+/*
+		psb->m_cfg.kDF = 0.1f;//1.f;
+		psb->m_cfg.kDP		=	0.0001;
+		//psb->m_cfg.kDP		=	0.005;
+		psb->m_cfg.kCHR		=	0.1;
+		//psb->m_cfg.kVCF = 0.1f;
+		psb->m_cfg.kVCF = 0.0001f;
+		//psb->m_cfg.kAHR = 0.1f;
+		psb->m_cfg.kAHR = 0.0001f;
+		psb->m_cfg.kMT = 0.1f;
+		//psb->m_cfg.kDF=1;
+		*/
+
+//		psb->activate();
+//		psb->setActivationState(1);
+//		psb->setDeactivationTime(1.f);
+		
 		//psb->m_materials[0]->m_kLST	=	0.1+(i/(btScalar)(n-1))*0.9;
-		psb->setTotalMass(20);
+		psb->setTotalMass(m_cci.m_mass);
+		psb->generateClusters(64);		
 		psb->setCollisionFlags(0);
 
-		m_object->setCollisionShape(rbci.m_collisionShape);
+
+
+
+
+			///create a mapping between graphics mesh vertices and soft body vertices
+		{
+			RAS_MeshObject* rasMesh= GetShapeInfo()->GetMesh();
+
+			if (rasMesh && !m_softbodyMappingDone)
+			{
+				
+				//printf("apply\n");
+				RAS_MeshSlot::iterator it;
+				RAS_MeshMaterial *mmat;
+				RAS_MeshSlot *slot;
+				size_t i;
+
+				//for each material
+				for (int m=0;m<rasMesh->NumMaterials();m++)
+				{
+					// The vertex cache can only be updated for this deformer:
+					// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+					// share the same mesh (=the same cache). As the rendering is done per polymaterial
+					// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+					mmat = rasMesh->GetMeshMaterial(m);
+
+					slot = mmat->m_baseslot;
+					for(slot->begin(it); !slot->end(it); slot->next(it))
+					{
+						int index = 0;
+						for(i=it.startvertex; i<it.endvertex; i++,index++) 
+						{
+							RAS_TexVert* vertex = &it.vertex[i];
+							
+
+							//search closest index, and store it in vertex
+							vertex->setSoftBodyIndex(0);
+							btScalar maxDistSqr = 1e30;
+							btSoftBody::tNodeArray&   nodes(psb->m_nodes);
+							btVector3 xyz = btVector3(vertex->getXYZ()[0],vertex->getXYZ()[1],vertex->getXYZ()[2]);
+							for (int n=0;n<nodes.size();n++)
+							{
+								btScalar distSqr = (nodes[n].m_x - xyz).length2();
+								if (distSqr<maxDistSqr)
+								{
+									maxDistSqr = distSqr;
+									
+									vertex->setSoftBodyIndex(n);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		m_softbodyMappingDone = true;
+
+
+
+
+
+
+//		m_object->setCollisionShape(rbci.m_collisionShape);
 		btTransform startTrans;
 
 		if (rbci.m_motionState)
@@ -218,8 +419,24 @@ void CcdPhysicsController::CreateRigidbody()
 		{
 			startTrans = rbci.m_startWorldTransform;
 		}
-		m_object->setWorldTransform(startTrans);
-		m_object->setInterpolationWorldTransform(startTrans);
+		//startTrans.setIdentity();
+
+		//m_object->setWorldTransform(startTrans);
+		//m_object->setInterpolationWorldTransform(startTrans);
+		m_MotionState->setWorldPosition(startTrans.getOrigin().getX(),startTrans.getOrigin().getY(),startTrans.getOrigin().getZ());
+		m_MotionState->setWorldOrientation(0,0,0,1);
+
+		if (!m_prototypeTransformInitialized)
+		{
+			m_prototypeTransformInitialized = true;
+			m_softBodyTransformInitialized = true;
+			GetSoftBody()->transform(startTrans);
+		}
+
+//		btVector3 wp = m_softBody->getWorldTransform().getOrigin();
+//		MT_Point3 center(wp.getX(),wp.getY(),wp.getZ());
+//		m_gameobj->NodeSetWorldPosition(center);
+
 
 	} else
 	{
@@ -314,10 +531,22 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
 	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
 
+	btSoftBody* sb = GetSoftBody();
+	if (sb)
+	{
+		btVector3 aabbMin,aabbMax;
+		sb->getAabb(aabbMin,aabbMax);
+		btVector3 worldPos  = (aabbMax+aabbMin)*0.5f;
+		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+		m_MotionState->calculateWorldTransformations();
+		return true;
+	}
+
 	btRigidBody* body = GetRigidBody();
 
 	if (body && !body->isStaticObject())
 	{
+
 		const btVector3& worldPos = body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		
@@ -368,6 +597,7 @@ void		CcdPhysicsController::WriteDynamicsToMotionState()
 		// controller replication
 void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
+	m_softBodyTransformInitialized=false;
 	m_MotionState = motionstate;
 	m_registerCount = 0;
 	m_collisionShape = NULL;
@@ -448,7 +678,7 @@ void	CcdPhysicsController::SetCenterOfMassTransform(btTransform& xform)
 		//either collision object or soft body?
 		if (GetSoftBody())
 		{
-			//not yet
+
 		} else
 		{
 
@@ -557,6 +787,9 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 		SetCenterOfMassTransform(xform);
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
+		
+		
+
 	}
 
 }
@@ -577,6 +810,15 @@ void CcdPhysicsController::setWorldOrientation(const btMatrix3x3& orn)
 		SetCenterOfMassTransform(xform);
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
+		//only once!
+		if (!m_softBodyTransformInitialized && GetSoftBody())
+		{
+			m_softbodyStartTrans.setBasis(orn);
+			xform.setOrigin(m_softbodyStartTrans.getOrigin());
+			GetSoftBody()->transform(xform);
+			m_softBodyTransformInitialized = true;
+		}
+
 	}
 
 }
@@ -595,6 +837,8 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 		btTransform xform  = m_object->getWorldTransform();
 		xform.setOrigin(btVector3(posX,posY,posZ));
 		SetCenterOfMassTransform(xform);
+		if (!m_softBodyTransformInitialized)
+			m_softbodyStartTrans.setOrigin(xform.getOrigin());
 		// not required
 		//m_bulletMotionState->setWorldTransform(xform);
 	}
@@ -674,15 +918,20 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
 
-		btRigidBody* body = GetRigidBody();
-		if (body)
 		{
-			btTransform xform = body->getCenterOfMassTransform();
+			btTransform xform = m_object->getWorldTransform();
+			
 			if (local)
 			{	
 				force	= xform.getBasis()*force;
 			}
-			body->applyCentralForce(force);
+			btRigidBody* body = GetRigidBody();
+			if (body)
+				body->applyCentralForce(force);
+			btSoftBody* soft = GetSoftBody();
+			if (soft)
+				soft->addForce(force);
+
 		}
 	}
 }
@@ -696,15 +945,16 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-		btRigidBody* body = GetRigidBody();
-		if (body)
 		{
-			btTransform xform = body->getCenterOfMassTransform();
+			btTransform xform = m_object->getWorldTransform();
 			if (local)
 			{
 				angvel	= xform.getBasis()*angvel;
 			}
-			body->setAngularVelocity(angvel);
+			btRigidBody* body = GetRigidBody();
+			if (body)
+				body->setAngularVelocity(angvel);
+
 		}
 	}
 
@@ -720,15 +970,25 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 		}
-		btRigidBody* body = GetRigidBody();
-		if (body)
+		
+		btSoftBody* soft = GetSoftBody();
+		if (soft)
+		{
+			if (local)
+			{
+				linVel	= m_softbodyStartTrans.getBasis()*linVel;
+			}
+			soft->setVelocity(linVel);
+		} else
 		{
 			btTransform xform = m_object->getWorldTransform();
 			if (local)
 			{
 				linVel	= xform.getBasis()*linVel;
 			}
-			body->setLinearVelocity(linVel);
+			btRigidBody* body = GetRigidBody();
+			if (body)
+				body->setLinearVelocity(linVel);
 		}
 	}
 }
@@ -748,6 +1008,7 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 		btRigidBody* body = GetRigidBody();
 		if (body)
 			body->applyImpulse(impulse,pos);
+			
 	}
 
 }
@@ -973,8 +1234,10 @@ CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mes
 	return NULL;
 }
 
-bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
+bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope,bool useGimpact)
 {
+	m_useGimpact = useGimpact;
+
 	// assume no shape information
 	// no support for dynamic change of shape yet
 	assert(m_meshObject == NULL);
@@ -1030,7 +1293,19 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, bool polytope)
 				{
 					const float* vtx = poly->GetVertex(i)->getXYZ();
 					btPoint3 point(vtx[0],vtx[1],vtx[2]);
-					m_vertexArray.push_back(point);
+					//avoid duplicates (could better directly use vertex offsets, rather than a vertex compare)
+					bool found = false;
+					for (int j=0;j<m_vertexArray.size();j++)
+					{
+						if (m_vertexArray[j]==point)
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+						m_vertexArray.push_back(point);
+
 					numvalidpolys++;
 				}
 			} else
@@ -1128,19 +1403,39 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape()
 		// 9 multiplications/additions and one function call for each triangle that passes the mid phase filtering
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
-		if (!m_unscaledShape)
+		if (m_useGimpact)
 		{
-			collisionMeshData = new btTriangleMesh();
-			// m_vertexArray is necessarily a multiple of 3
-			for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				collisionMeshData = new btTriangleMesh();
+				
+
+				// m_vertexArray is necessarily a multiple of 3
+				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				{
+					collisionMeshData->addTriangle(*it++,*it++,*it++);
+				}
+				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(collisionMeshData);
+
+				collisionShape = gimpactShape;
+				gimpactShape->updateBound();
+
+		} else
+		{
+			if (!m_unscaledShape)
 			{
-				collisionMeshData->addTriangle(*it++,*it++,*it++);
+				collisionMeshData = new btTriangleMesh(true,false);
+				collisionMeshData->m_weldingThreshold = m_weldingThreshold;
+
+				// m_vertexArray is necessarily a multiple of 3
+				for (std::vector<btPoint3>::iterator it=m_vertexArray.begin(); it != m_vertexArray.end(); )
+				{
+					collisionMeshData->addTriangle(*it++,*it++,*it++);
+				}
+				// this shape will be shared and not deleted until shapeInfo is deleted
+				m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );
+				m_unscaledShape->recalcLocalAabb();
 			}
-			// this shape will be shared and not deleted until shapeInfo is deleted
-			m_unscaledShape = new btBvhTriangleMeshShape( collisionMeshData, true );
-			m_unscaledShape->recalcLocalAabb();
+			collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
 		}
-		collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
 		break;
 
 	case PHY_SHAPE_COMPOUND:

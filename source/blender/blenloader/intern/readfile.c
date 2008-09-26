@@ -37,11 +37,9 @@
 #ifdef WIN32
 #include "winsock2.h"
 #include "BLI_winstuff.h"
-#ifndef INT_MAX
-#include "limits.h"
-#endif
 #endif
 
+#include <limits.h>
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
 #include <fcntl.h> // for open
@@ -7770,6 +7768,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* sun/sky */
 	if(main->versionfile < 246) {
 		Lamp *la;
+		Object *ob;
+		bActuator *act;
 
 		for(la=main->lamp.first; la; la= la->id.next) {
 			la->sun_effect_type = 0;
@@ -7784,10 +7784,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->atm_distance_factor = 1.0;
 			la->sun_intensity = 1.0;
 		}
+		/* dRot actuator change direction in 2.46 */
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_OBJECT) {
+					bObjectActuator *ba= act->data;
+
+					ba->drot[0] = -ba->drot[0];
+					ba->drot[1] = -ba->drot[1];
+					ba->drot[2] = -ba->drot[2];
+				}
+			}
+		}
 	}
 	
 	// convert fluids to modifier
-	if(main->versionfile <= 246 && main->subversionfile < 1)
+	if(main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1))
 	{
 		Object *ob;
 		
@@ -7839,6 +7851,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			// Before it was conditioning all the other dynamic flags
 			if (!(ob->gameflag & OB_ACTOR))
 				ob->gameflag &= ~(OB_GHOST|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_COLLISION_RESPONSE);
+			/* suitable default for older files */
 		}
 	}
 
@@ -7877,6 +7890,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	/* set the curve radius interpolation to 2.47 default - easy */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 6)) {
+		Curve *cu;
+		Nurb *nu;
+		
+		for(cu= main->curve.first; cu; cu= cu->id.next) {
+			for(nu= cu->nurb.first; nu; nu= nu->next) {
+				if (nu) {
+					nu->radius_interp = 3;
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

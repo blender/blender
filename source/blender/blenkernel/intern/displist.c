@@ -858,7 +858,8 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				}
 			}
 			else if((nu->type & 7)==CU_NURBS) {
-				len= nu->pntsu*resolu;
+				len= (resolu*SEGMENTSU(nu))+1;
+				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
@@ -870,7 +871,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				data= dl->verts;
 				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
-				makeNurbcurve(nu, data, resolu, 3);
+				makeNurbcurve(nu, data, NULL, NULL, resolu);
 			}
 			else if((nu->type & 7)==CU_POLY) {
 				len= nu->pntsu;
@@ -1322,7 +1323,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
 			if(nu->pntsv==1) {
-				len= nu->pntsu*nu->resolu;
+				len= nu->resolu*SEGMENTSU(nu)+1;
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -1338,7 +1339,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
-				makeNurbcurve(nu, data, nu->resolu, 3);
+				makeNurbcurve(nu, data, NULL, NULL, nu->resolu);
 			}
 			else {
 				len= nu->resolu*nu->resolv;
@@ -1485,7 +1486,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 								float fac=1.0;
 								if (cu->taperobj==NULL) {
 									if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
-									fac = calc_curve_subdiv_radius(cu, nu, a);
+										fac = bevp->radius;
 								} else {
 									fac = calc_taper(cu->taperobj, a, bl->nr);
 								}

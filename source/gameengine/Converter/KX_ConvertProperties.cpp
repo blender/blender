@@ -132,6 +132,10 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 
 		prop = prop->next;
 	}
-
-	
+	// check if state needs to be debugged
+	if (object->scaflag & OB_DEBUGSTATE)
+	{
+		//  reserve name for object state
+		scene->AddDebugProperty(gameobj,STR_String("__state__"));
+	}
 }

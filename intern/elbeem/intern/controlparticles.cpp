@@ -109,8 +109,7 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	ntlVec3Gfx org = start+ntlVec3Gfx(width*0.5);
 	gfxReal distance = -1.;
 	vector<ntlVec3Gfx> inspos;
-	int approxmax = (int)( ((end[0]-start[0])/width)*((end[1]-start[1])/width)*((end[2]-start[2])/width) );
-
+	
 	// printf("distance: %f, width: %f\n", distance, width);
 	
 	while(org[2]<end[2]) {
@@ -146,7 +145,6 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 		ControlParticle p; p.reset();
 		p.pos = vec2L(inspos[i]);
 		
-		double cpdist = norm(inspos[i]-ninspos[i]);
 		bool usecpv = true;
 
 		mPartSets[mPartSets.size()-1].particles.push_back(p);
@@ -157,7 +155,7 @@ int ControlParticles::initFromObject(ntlGeometryObjModel *model) {
 	double tsampling = mCPSTimestep;
 	// printf("tsampling: %f, ninspos.size(): %d, mCPSTimeEnd: %f\n", tsampling, ninspos.size(), mCPSTimeEnd);
 	
-	int totcnt = (int)( (mCPSTimeEnd-mCPSTimeStart)/tsampling ), tcnt=0;
+	int tcnt=0;
 	for(double t=mCPSTimeStart+tsampling; ((t<mCPSTimeEnd) && (ninspos.size()>0.)); t+=tsampling) {
 		ControlParticleSet nextcps; //T
 		mPartSets.push_back(nextcps);
@@ -299,6 +297,7 @@ int ControlParticles::getTotalSize()
 #define LINE_LEN 100
 int ControlParticles::initFromTextFile(string filename)
 {
+	/*
 	const bool debugRead = false;
 	char line[LINE_LEN];
 	line[LINE_LEN-1] = '\0';
@@ -341,7 +340,7 @@ int ControlParticles::initFromTextFile(string filename)
 
 		//if(debugRead) printf("\nDEBUG%d r '%s'\n",lineCnt, line);
 		if(!line) continue;
-		int len = (int)strlen(line);
+		size_t len = strlen(line);
 
 		// skip empty lines and comments (#,//)
 		if(len<1) continue;
@@ -503,12 +502,14 @@ int ControlParticles::initFromTextFile(string filename)
 	// done...
 	fclose(infile);
 	applyTrafos();
+	*/
 	return 1;
 }
 
 
 int ControlParticles::initFromTextFileOld(string filename)
 {
+	/*
 	const bool debugRead = false;
 	char line[LINE_LEN];
 	line[LINE_LEN-1] = '\0';
@@ -540,7 +541,7 @@ int ControlParticles::initFromTextFileOld(string filename)
 		if(debugRead) printf("\nDEBUG%d r '%s'\n",lineCnt, line);
 
 		if(!line) continue;
-		int len = (int)strlen(line);
+		size_t len = strlen(line);
 
 		// skip empty lines and comments (#,//)
 		if(len<1) continue;
@@ -622,6 +623,7 @@ int ControlParticles::initFromTextFileOld(string filename)
 	// done...
 	fclose(infile);
 	applyTrafos();
+	*/
 	return 1;
 }
 

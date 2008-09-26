@@ -129,6 +129,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_key_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -743,7 +744,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key) {
+	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0)) 
+	{
 		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
 		skinMesh = true;
 	}
@@ -1320,6 +1322,23 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
 	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	
+	///for game soft bodies
+	if (blenderobject->soft)
+	{
+		objprop.m_linearStiffness = blenderobject->soft->inspring;
+		objprop.m_angularStiffness = 1.f;//blenderobject->angularStiffness;
+		objprop.m_volumePreservation = 1.f;//blenderobject->volumePreservation;
+		objprop.m_gamesoftFlag = blenderobject->softflag;//blenderobject->gamesoftFlag;
+		
+	} else
+	{
+		objprop.m_linearStiffness = 0.5;//blenderobject->linearStiffness;
+		objprop.m_angularStiffness = 1.f;//blenderobject->angularStiffness;
+		objprop.m_volumePreservation = 1.f;//blenderobject->volumePreservation;
+		objprop.m_gamesoftFlag = 1;//blenderobject->gamesoftFlag;
+	}
+
 	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
 	objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag
 	//mmm, for now, taks this for the size of the dynamicobject
@@ -1554,20 +1573,20 @@ static KX_GameObject *gameobject_from_blenderobject(
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer((BL_DeformableGameObject*)gameobj,
 															ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		} else if (bHasDvert) {
 			// this case correspond to a mesh that can potentially deform but not with the
 			// object to which it is attached for the moment. A skin mesh was created in
 			// BL_ConvertMesh() so must create a deformer too!
 			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
 														  ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		}
 		
 		MT_Point3 min = MT_Point3(center) - MT_Vector3(extents);
@@ -2193,8 +2212,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	
 				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
-					if (par && obj->m_pDeformer)
-						((BL_SkinDeformer*)obj->m_pDeformer)->SetArmature((BL_ArmatureObject*) par);
+					if (par && obj->GetDeformer())
+						((BL_SkinDeformer*)obj->GetDeformer())->SetArmature((BL_ArmatureObject*) par);
 				}
 			}
 		}

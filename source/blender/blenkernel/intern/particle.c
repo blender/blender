@@ -1674,7 +1674,6 @@ int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
 					/* TODO */
 					//else{
 					///* curve size*/
-					//	calc_curve_subdiv_radius(cu,cu->nurb.first,((Nurb*)cu->nurb.first)->
 					//}
 					par.co[0]=par.co[1]=par.co[2]=0.0f;
 					VECCOPY(key.co,pa_loc);
@@ -3721,6 +3720,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 	float cfra;
 	int totpart=psys->totpart, between=0;
 
+	/* negative time means "use current time" */
 	if(state->time>0)
 		cfra=state->time;
 	else
@@ -3796,7 +3796,45 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 		}
 		else{
 			if (pa) { /* TODO PARTICLE - should this ever be NULL? - Campbell */
-				copy_particle_key(state,&pa->state,0);
+				if(pa->state.time==state->time)
+					copy_particle_key(state, &pa->state, 1);
+				else if(pa->prev_state.time==state->time)
+					copy_particle_key(state, &pa->prev_state, 1);
+				else {
+					/* let's interpolate to try to be as accurate as possible */
+					if(pa->state.time + 1.0f > state->time && pa->prev_state.time - 1.0f < state->time) {
+						ParticleKey keys[4];
+						float dfra, keytime, frs_sec = G.scene->r.frs_sec;
+
+						if(pa->prev_state.time >= pa->state.time) {
+							/* prev_state is wrong so let's not use it, this can happen at frame 1 or particle birth */
+							copy_particle_key(state, &pa->state, 1);
+
+							VECADDFAC(state->co, state->co, state->vel, (state->time-pa->state.time)/frs_sec);
+						}
+						else {
+							copy_particle_key(keys+1, &pa->prev_state, 1);
+							copy_particle_key(keys+2, &pa->state, 1);
+
+							dfra = keys[2].time - keys[1].time;
+
+							keytime = (state->time - keys[1].time) / dfra;
+
+							/* convert velocity to timestep size */
+							VecMulf(keys[1].vel, dfra / frs_sec);
+							VecMulf(keys[2].vel, dfra / frs_sec);
+							
+							interpolate_particle(-1, keys, keytime, state, 1);
+							
+							/* convert back to real velocity */
+							VecMulf(state->vel, frs_sec / dfra);
+						}
+					}
+					else {
+						/* extrapolating over big ranges is not accurate so let's just give something close to reasonable back */
+						copy_particle_key(state, &pa->state, 0);
+					}
+				}
 
 				if(pa->alive==PARS_DEAD && part->flag&PART_STICKY && pa->flag&PARS_STICKY && pa->stick_ob){
 					key_from_object(pa->stick_ob,state);

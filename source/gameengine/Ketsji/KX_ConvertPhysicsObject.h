@@ -87,6 +87,12 @@ struct KX_ObjectProperties
 	bool	m_disableSleeping;
 	bool	m_hasCompoundChildren;
 	bool	m_isCompoundChild;
+
+	float	m_linearStiffness;
+	float m_angularStiffness;
+	float	m_volumePreservation;
+	int		m_gamesoftFlag;
+	
 	double  m_margin;
 	KX_BoundBoxClass	m_boundclass;
 	union {

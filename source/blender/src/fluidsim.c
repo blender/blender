@@ -55,6 +55,7 @@
 #include "DNA_key_types.h" 
 
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 #include "BLI_arithb.h"
 #include "MTC_matrixops.h"
 
@@ -86,9 +87,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-#include "SDL.h"
-#include "SDL_thread.h"
-#include "SDL_mutex.h"
 #include <sys/stat.h>
 
 #ifdef WIN32	/* Windos */
@@ -96,12 +94,6 @@
 #ifndef snprintf
 #define snprintf _snprintf
 #endif
-#endif
-// SDL redefines main for SDL_main, not needed here...
-#undef main
-
-#ifdef __APPLE__	/* MacOS X */
-#undef main
 #endif
 
 /* from header info.c */
@@ -287,9 +279,9 @@ static void fluidsimInitMeshChannel(float **setchannel, int size, Object *obm, i
 /* ********************** simulation thread             ************************* */
 /* ******************************************************************************** */
 
-SDL_mutex	*globalBakeLock=NULL;
-int			globalBakeState = 0; // 0 everything ok, -1 abort simulation, -2 sim error, 1 sim done
-int			globalBakeFrame = 0;
+static volatile int	globalBakeState = 0; // 0 everything ok, -1 abort simulation, -2 sim error, 1 sim done
+static volatile int	globalBakeFrame = 0;
+static volatile int g_break= 0;
 
 // run simulation in seperate thread
 static int fluidsimSimulateThread(void *unused) { // *ptr) {
@@ -297,7 +289,7 @@ static int fluidsimSimulateThread(void *unused) { // *ptr) {
 	int ret=0;
 	
 	ret = elbeemSimulate();
-	SDL_mutexP(globalBakeLock);
+	BLI_lock_thread(LOCK_CUSTOM1);
 	if(globalBakeState==0) {
 		if(ret==0) {
 			// if no error, set to normal exit
@@ -307,29 +299,31 @@ static int fluidsimSimulateThread(void *unused) { // *ptr) {
 			globalBakeState = -2;
 		}
 	}
-	SDL_mutexV(globalBakeLock);
-	return ret;
+	BLI_unlock_thread(LOCK_CUSTOM1);
+	return NULL;
 }
 
 
 int runSimulationCallback(void *data, int status, int frame) {
 	//elbeemSimulationSettings *settings = (elbeemSimulationSettings*)data;
 	//printf("elbeem blender cb s%d, f%d, domainid:%d \n", status,frame, settings->domainId ); // DEBUG
-	
-	if(!globalBakeLock) return FLUIDSIM_CBRET_ABORT;
+	int state = 0;
 	if(status==FLUIDSIM_CBSTATUS_NEWFRAME) {
-		SDL_mutexP(globalBakeLock);
+		BLI_lock_thread(LOCK_CUSTOM1);
 		globalBakeFrame = frame-1;
-		SDL_mutexV(globalBakeLock);
+		BLI_unlock_thread(LOCK_CUSTOM1);
 	}
 	
 	//if((frameCounter==3) && (!frameStop)) { frameStop=1; return 1; }
 		
-	SDL_mutexP(globalBakeLock);
-	if(globalBakeState!=0) {
+	BLI_lock_thread(LOCK_CUSTOM1);
+	state = globalBakeState;
+	BLI_unlock_thread(LOCK_CUSTOM1);
+	
+	if(state!=0) {
 		return FLUIDSIM_CBRET_ABORT;
 	}
-	SDL_mutexV(globalBakeLock);
+	
 	return FLUIDSIM_CBRET_CONTINUE;
 }
 
@@ -826,9 +820,9 @@ void fluidsimBake(struct Object *ob)
 	}
 
 	if(!doExportOnly) {
-		SDL_Thread *simthr = NULL;
+		ListBase threads;
 
-		// perform simulation with El'Beem api and SDL threads
+		// perform simulation with El'Beem api and threads
 		elbeemSimulationSettings fsset;
 		elbeemResetSettings(&fsset);
 		fsset.version = 1;
@@ -850,7 +844,7 @@ void fluidsimBake(struct Object *ob)
 		// simulate 5 frames, each 0.03 seconds, output to ./apitest_XXX.bobj.gz
 		fsset.animStart = domainSettings->animStart;
 		fsset.aniFrameTime = aniFrameTime;
-		fsset.noOfFrames = noFrames - 1; // is otherwise subtracted in parser
+		fsset.noOfFrames = noFrames; // is otherwise subtracted in parser
 		strcpy(targetFile, targetDir);
 		strcat(targetFile, suffixSurface);
 		// defaults for compressibility and adaptive grids
@@ -1000,18 +994,13 @@ void fluidsimBake(struct Object *ob)
 		//domainSettings->type = OB_FLUIDSIM_DOMAIN; // enable for bake display again
 		//fsDomain->fluidsimFlag = OB_FLUIDSIM_ENABLE; // disable during bake
 		
-		globalBakeLock = SDL_CreateMutex();
 		// set to neutral, -1 means user abort, -2 means init error
 		globalBakeState = 0;
 		globalBakeFrame = 0;
-		simthr = SDL_CreateThread(fluidsimSimulateThread, targetFile);
-
-		if(!simthr) {
-			snprintf(debugStrBuffer,256,"fluidsimBake::error: Unable to create thread... running without one.\n"); 
-			elbeemDebugOut(debugStrBuffer);
-			set_timecursor(0);
-			elbeemSimulate();
-		} else {
+		BLI_init_threads(&threads, fluidsimSimulateThread, 1);
+		BLI_insert_thread(&threads, targetFile);
+		
+		{
 			int done = 0;
 			unsigned short event=0;
 			short val;
@@ -1019,9 +1008,12 @@ void fluidsimBake(struct Object *ob)
 			float percentdone = 0.0;
 			int lastRedraw = -1;
 			
+			g_break= 0;
+			G.afbreek= 0;	/* blender_test_break uses this global */
+			
 			start_progress_bar();
 
-			while(done==0) { 	    
+			while(done==0) {
 				char busy_mess[80];
 				
 				waitcursor(1);
@@ -1031,16 +1023,20 @@ void fluidsimBake(struct Object *ob)
 				sprintf(busy_mess, "baking fluids %d / %d       |||", globalBakeFrame, (int) noFramesf);
 				progress_bar(percentdone, busy_mess );
 				
-				SDL_Delay(2000); // longer delay to prevent frequent redrawing
-				SDL_mutexP(globalBakeLock);
+				// longer delay to prevent frequent redrawing
+				PIL_sleep_ms(2000);
+				
+				BLI_lock_thread(LOCK_CUSTOM1);
 				if(globalBakeState != 0) done = 1; // 1=ok, <0=error/abort
-				SDL_mutexV(globalBakeLock);
+				BLI_unlock_thread(LOCK_CUSTOM1);
 
-				while(qtest()) {
-					event = extern_qread(&val);
-					if(event == ESCKEY) {
+				if (!G.background) {
+					g_break= blender_test_break();
+					
+					if(g_break)
+					{
 						// abort...
-						SDL_mutexP(globalBakeLock);
+						BLI_lock_thread(LOCK_CUSTOM1);
 						
 						if(domainSettings)
 							domainSettings->lastgoodframe = startFrame+globalBakeFrame;
@@ -1049,7 +1045,7 @@ void fluidsimBake(struct Object *ob)
 						globalBakeFrame = 0;
 						globalBakeState = -1;
 						simAborted = 1;
-						SDL_mutexV(globalBakeLock);
+						BLI_unlock_thread(LOCK_CUSTOM1);
 						break;
 					}
 				} 
@@ -1068,11 +1064,9 @@ void fluidsimBake(struct Object *ob)
 					screen_swapbuffers();
 				} // redraw
 			}
-			SDL_WaitThread(simthr,NULL);
 			end_progress_bar();
 		}
-		SDL_DestroyMutex(globalBakeLock);
-		globalBakeLock = NULL;
+		BLI_end_threads(&threads);
 	} // El'Beem API init, thread creation 
 	// --------------------------------------------------------------------------------------------
 	else

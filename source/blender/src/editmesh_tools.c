@@ -5483,7 +5483,11 @@ void mesh_set_face_flags(short mode)
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	MTFace *tface;
-	short m_tex=0, m_tiles=0, m_shared=0, m_light=0, m_invis=0, m_collision=0, m_twoside=0, m_obcolor=0; 
+	short	m_tex=0, m_tiles=0, m_shared=0,
+			m_light=0, m_invis=0, m_collision=0,
+			m_twoside=0, m_obcolor=0, m_halo=0,
+			m_billboard=0, m_shadow=0, m_text=0,
+			m_sort=0;
 	short flag = 0, change = 0;
 	
 	if (!EM_texFaceCheck()) {
@@ -5493,15 +5497,25 @@ void mesh_set_face_flags(short mode)
 	
 	add_numbut(0, TOG|SHO, "Texture", 0, 0, &m_tex, NULL);
 	add_numbut(1, TOG|SHO, "Tiles", 0, 0, &m_tiles, NULL);
-	add_numbut(2, TOG|SHO, "Shared", 0, 0, &m_shared, NULL);
-	add_numbut(3, TOG|SHO, "Light", 0, 0, &m_light, NULL);
-	add_numbut(4, TOG|SHO, "Invisible", 0, 0, &m_invis, NULL);
-	add_numbut(5, TOG|SHO, "Collision", 0, 0, &m_collision, NULL);
+	add_numbut(2, TOG|SHO, "Light", 0, 0, &m_light, NULL);
+	add_numbut(3, TOG|SHO, "Invisible", 0, 0, &m_invis, NULL);
+	add_numbut(4, TOG|SHO, "Collision", 0, 0, &m_collision, NULL);
+	add_numbut(5, TOG|SHO, "Shared", 0, 0, &m_shared, NULL);
 	add_numbut(6, TOG|SHO, "Twoside", 0, 0, &m_twoside, NULL);
 	add_numbut(7, TOG|SHO, "ObColor", 0, 0, &m_obcolor, NULL);
+	add_numbut(8, TOG|SHO, "Halo", 0, 0, &m_halo, NULL);
+	add_numbut(9, TOG|SHO, "Billboard", 0, 0, &m_billboard, NULL);
+	add_numbut(10, TOG|SHO, "Shadow", 0, 0, &m_shadow, NULL);
+	add_numbut(11, TOG|SHO, "Text", 0, 0, &m_text, NULL);
+	add_numbut(12, TOG|SHO, "Sort", 0, 0, &m_sort, NULL);
 	
-	if (!do_clever_numbuts((mode ? "Set Flags" : "Clear Flags"), 8, REDRAW))
+	if (!do_clever_numbuts((mode ? "Set Flags" : "Clear Flags"), 13, REDRAW))
  		return;
+	
+	/* these 2 cant both be on */
+	if (mode) /* are we seeting*/
+		if (m_halo)
+			m_billboard = 0;
 	
 	if (m_tex)			flag |= TF_TEX;
 	if (m_tiles)		flag |= TF_TILES;
@@ -5511,6 +5525,14 @@ void mesh_set_face_flags(short mode)
 	if (m_collision)	flag |= TF_DYNAMIC;
 	if (m_twoside)		flag |= TF_TWOSIDE;
 	if (m_obcolor)		flag |= TF_OBCOL;
+	if (m_halo)			flag |= TF_BILLBOARD;
+	if (m_billboard)	flag |= TF_BILLBOARD2;
+	if (m_shadow)		flag |= TF_SHADOW;
+	if (m_text)			flag |= TF_BMFONT;
+	if (m_sort)			flag |= TF_ALPHASORT;
+	
+	if (flag==0)
+		return;
 	
 	efa= em->faces.first;
 	while(efa) {
@@ -5518,6 +5540,7 @@ void mesh_set_face_flags(short mode)
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if (mode)	tface->mode |= flag;
 			else		tface->mode &= ~flag;
+			change = 1;
 		}
 		efa= efa->next;
 	}

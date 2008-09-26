@@ -29,11 +29,6 @@ class ControlForces;
 #define FARF_SEPSWE  2
 
 // relaxation macros for solver_relax.h
-#if LBM_INCLUDE_CONTROL!=1
-
-// defined in relax.h
-
-#else // LBM_INCLUDE_TESTSOLVERS!=1
 
 // WARNING has to match controlparts.h
 #define CPF_ENTRIES     12
@@ -118,8 +113,6 @@ class ControlForces;
 			iffilled = true; \
 			if(mass<rho*1.0) mass = rho*1.0; myfrac = 1.0; \
 		}
-
-#endif // LBM_INCLUDE_TESTSOLVERS!=1
 
 
 // a single set of control particles and params

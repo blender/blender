@@ -539,7 +539,10 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 		ms.m_mesh->SortPolygons(ms, cameratrans*MT_Transform(ms.m_OpenGLMatrix));
 
 	rendertools->PushMatrix();
-	rendertools->applyTransform(rasty,ms.m_OpenGLMatrix,m_material->GetDrawingMode());
+	if (!ms.m_pDeformer || !ms.m_pDeformer->SkipVertexTransform())
+	{
+		rendertools->applyTransform(rasty,ms.m_OpenGLMatrix,m_material->GetDrawingMode());
+	}
 
 	if(rasty->QueryLists())
 		if(ms.m_DisplayList)

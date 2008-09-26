@@ -13,6 +13,10 @@
 #include <algorithm>
 #include <stdio.h>
 
+#ifdef sun
+#include "ieeefp.h"
+#endif
+
 // just use default rounding for platforms where its not available
 #ifndef round
 #define round(x) (x)

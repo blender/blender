@@ -39,7 +39,7 @@ public:
 	virtual int	getShapeType() const
 	{
 		//use un-used 'FAST_CONCAVE_MESH_PROXYTYPE' for now, later add SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE to btBroadphaseProxy.h
-		return FAST_CONCAVE_MESH_PROXYTYPE;
+		return SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE;
 	}
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
@@ -48,6 +48,16 @@ public:
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
+
+	btBvhTriangleMeshShape*	getChildShape()
+	{
+		return m_bvhTriMeshShape;
+	}
+
+	const btBvhTriangleMeshShape*	getChildShape() const
+	{
+		return m_bvhTriMeshShape;
+	}
 
 	//debugging
 	virtual const char*	getName()const {return "SCALEDBVHTRIANGLEMESH";}

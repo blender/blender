@@ -164,5 +164,14 @@ class BL_ActionActuator(SCA_IActuator):
 		@param mode: True for armature/world space, False for bone space
 		@type mode: boolean
 		"""
-
-
+	def setFrameProperty(prop):
+		"""
+		@param prop: A string specifying the property of the object that will be updated with the action frame number.
+		@type prop: string
+		"""
+	def getFrameProperty():
+		"""
+		Returns the name of the property that is set to the current frame number.
+		
+		@rtype: string
+		"""

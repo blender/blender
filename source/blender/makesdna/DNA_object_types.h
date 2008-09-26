@@ -156,8 +156,8 @@ typedef struct Object {
 
 	float formfactor;
 	float rdamping, sizefac;
-	float margin, pad3;
-
+	float margin;
+	int   pad3;
 
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
@@ -411,6 +411,7 @@ extern Object workob;
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
 
+
 /* ob->gameflag */
 #define OB_DYNAMIC		1
 #define OB_CHILD		2
@@ -459,6 +460,7 @@ extern Object workob;
 #define OB_SHOWCONT		2048
 #define OB_SETSTBIT		4096
 #define OB_INITSTBIT	8192
+#define OB_DEBUGSTATE	16384
 
 /* ob->restrictflag */
 #define OB_RESTRICT_VIEW	1

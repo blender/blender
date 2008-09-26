@@ -2654,14 +2654,8 @@ void image_changed(SpaceImage *sima, Image *image)
 	MTFace *tface;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	ImBuf *ibuf = NULL;
+	/*ImBuf *ibuf = NULL;*/
 	short change = 0;
-	
-	if(image==NULL) {
-		sima->flag &= ~SI_DRAWTOOL;
-	} else {
-		ibuf = BKE_image_get_ibuf(image, NULL);
-	}
 	
 	if(sima->mode!=SI_TEXTURE)
 		return;
@@ -2675,6 +2669,9 @@ void image_changed(SpaceImage *sima, Image *image)
 			(G.editMesh->faces.first)
 		) {
 		
+		if(!is_uv_tface_editing_allowed())
+			return;
+		
 		/* Add a UV layer if there is none, editmode only */
 		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
 			EM_add_data_layer(&em->fdata, CD_MTFACE);
@@ -2685,6 +2682,11 @@ void image_changed(SpaceImage *sima, Image *image)
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
+
+#if 0
+		if(image)
+			ibuf = BKE_image_get_ibuf(image, NULL);
+#endif
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2714,9 +2716,13 @@ void image_changed(SpaceImage *sima, Image *image)
 			}
 		}
 	}
+
 	/* change the space image after because simaFaceDraw_Check uses the space image
 	 * to check if the face is displayed in UV-localview */
 	sima->image = image;
+
+	if(sima->image==NULL)
+		sima->flag &= ~SI_DRAWTOOL;
 	
 	if (change)
 		object_uvs_changed(OBACT);

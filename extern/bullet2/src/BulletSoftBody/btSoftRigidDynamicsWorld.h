@@ -13,12 +13,12 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
-
 #ifndef BT_SOFT_RIGID_DYNAMICS_WORLD_H
 #define BT_SOFT_RIGID_DYNAMICS_WORLD_H
 
-class btSoftBody;
+#include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
+#include "btSoftBody.h"
+
 typedef	btAlignedObjectArray<btSoftBody*> btSoftBodyArray;
 
 class btSoftRigidDynamicsWorld : public btDiscreteDynamicsWorld
@@ -29,7 +29,8 @@ class btSoftRigidDynamicsWorld : public btDiscreteDynamicsWorld
 	bool			m_drawNodeTree;
 	bool			m_drawFaceTree;
 	bool			m_drawClusterTree;
-		
+	btSoftBodyWorldInfo m_sbi;
+
 protected:
 	
 	virtual void	predictUnconstraintMotion(btScalar timeStep);
@@ -40,7 +41,6 @@ protected:
 
 	void	solveSoftBodiesConstraints();
 
-	
 
 public:
 	
@@ -56,6 +56,15 @@ public:
 	
 	int		getDrawFlags() const { return(m_drawFlags); }
 	void	setDrawFlags(int f)	{ m_drawFlags=f; }
+
+	btSoftBodyWorldInfo&	getWorldInfo()
+	{
+		return m_sbi;
+	}
+	const btSoftBodyWorldInfo&	getWorldInfo() const
+	{
+		return m_sbi;
+	}
 
 			
 	btSoftBodyArray& getSoftBodyArray()

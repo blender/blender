@@ -66,6 +66,8 @@ typedef struct ParticleData {
 	ParticleKey state;		/* normally current global coordinates or	*/
 							/* in sticky object space if dead & sticky	*/
 
+	ParticleKey prev_state; /* previous state */
+
 	HairKey *hair;			/* hair vertices */
 
 	ParticleKey *keys;		/* keyed states */

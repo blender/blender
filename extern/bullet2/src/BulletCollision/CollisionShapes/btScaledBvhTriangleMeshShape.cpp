@@ -117,5 +117,5 @@ const btVector3& btScaledBvhTriangleMeshShape::getLocalScaling() const
 void	btScaledBvhTriangleMeshShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	///don't make this a movable object!
-	btAssert(0);
+//	btAssert(0);
 }

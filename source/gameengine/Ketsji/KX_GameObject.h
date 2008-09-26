@@ -332,6 +332,14 @@ public:
 		m_pPhysicsController1 = physicscontroller;
 	}
 
+	virtual class RAS_Deformer* GetDeformer()
+	{
+		return 0;
+	}
+	virtual void	SetDeformer(class RAS_Deformer* deformer)
+	{
+
+	}
 
 	/**
 	 * @section Coordinate system manipulation functions

@@ -154,5 +154,14 @@ class BL_ShapeActionActuator(SCA_IActuator):
 		
 		@rtype: string
 		"""
-
-
+	def setFrameProperty(prop):
+		"""
+		@param prop: A string specifying the property of the object that will be updated with the action frame number.
+		@type prop: string
+		"""
+	def getFrameProperty():
+		"""
+		Returns the name of the property that is set to the current frame number.
+		
+		@rtype: string
+		"""

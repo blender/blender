@@ -46,6 +46,7 @@ IMPLICIT_CONVEX_SHAPES_START_HERE,
 CONCAVE_SHAPES_START_HERE,
 	//keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
 	TRIANGLE_MESH_SHAPE_PROXYTYPE,
+	SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE,
 	///used for demo integration FAST/Swift collision library and Bullet
 	FAST_CONCAVE_MESH_PROXYTYPE,
 	//terrain

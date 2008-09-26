@@ -53,9 +53,9 @@ void LbmFsgrSolver::stepMain() {
 
 	// init moving bc's, can change mMaxVlen
 	initMovingObstacles(false);
-#if LBM_INCLUDE_CONTROL==1
+	
+	// handle fluid control 
 	handleCpdata();
-#endif
 
 	// important - keep for tadap
 	LbmFloat lastMass = mCurrentMass;

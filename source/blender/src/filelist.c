@@ -629,35 +629,7 @@ int BIF_filelist_empty(struct FileList* filelist)
 
 void BIF_filelist_parent(struct FileList* filelist)
 {
-#ifdef WIN32
-	char c = '\\';
-#else
-	char c = '/';
-#endif
-	char *dir = filelist->dir;
-	size_t len = strlen(dir);
-	
-	while( (len > 0) && (dir[len-1] == c)  )
-	{
-		--len;
-		dir[len] = '\0';
-	}
-	while ( (len > 0) && (dir[len-1] != c) )
-	{
-		--len;
-		dir[len] = '\0';
-	}
-	if (len == 0)
-	{
-		dir[0] = c; dir[1] = '\0';
-	}
-#ifdef WIN32
-	strcat(filelist->dir, "\\");
-#else
-	strcat(filelist->dir, "/");
-#endif
-	
-	BLI_cleanup_dir(G.sce, filelist->dir);
+	BLI_parent_dir(filelist->dir);
 	BLI_make_exist(filelist->dir);
 	BIF_filelist_readdir(filelist);
 }
