@@ -53,21 +53,21 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
-IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 
 XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
 XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
-XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
@@ -135,6 +135,7 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
@@ -148,6 +149,7 @@ XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
@@ -213,6 +215,7 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
@@ -226,6 +229,7 @@ XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
@@ -293,6 +297,7 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionDispatch MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletCollision\Gimpact MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\ConstraintSolver MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
@@ -306,6 +311,7 @@ XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
 XCOPY /Y ..\..\src\BulletCollision\CollisionDispatch\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionDispatch
 XCOPY /Y ..\..\src\BulletCollision\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\CollisionShapes
+XCOPY /Y ..\..\src\BulletCollision\Gimpact\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\Gimpact
 XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\ConstraintSolver
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
@@ -960,6 +966,124 @@ ECHO Done
 					</File>
 					<File
 						RelativePath="..\..\src\BulletCollision\CollisionShapes\btUniformScalingShape.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="Gimpact"
+					Filter="">
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btBoxCollision.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btClipPolygon.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btContactProcessing.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btContactProcessing.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGenericPoolAllocator.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGenericPoolAllocator.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGeometryOperations.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactBvh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactBvh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactCollisionAlgorithm.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactMassUtil.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactQuantizedBvh.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btGImpactShape.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btQuantization.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btTriangleShapeEx.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\btTriangleShapeEx.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_array.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_basic_geometry_operations.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_bitset.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_box_collision.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_box_set.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_box_set.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_clip_polygon.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_contact.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_contact.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_geom_types.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_geometry.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_hash_table.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_linear_math.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_math.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_memory.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_memory.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_radixsort.h">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_tri_collision.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\Gimpact\gim_tri_collision.h">
 					</File>
 				</Filter>
 			</Filter>
