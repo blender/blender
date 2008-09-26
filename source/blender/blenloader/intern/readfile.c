@@ -7879,6 +7879,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(nu= cu->nurb.first; nu; nu= nu->next) {
 				if (nu) {
 					nu->radius_interp = 3;
+					
+					/* resolu and resolv are now used differently for surfaces
+					 * rather then using the resolution to define the entire number of divisions,
+					 * use it for the number of divisions per segment
+					 */
+					if (nu->pntsv > 1) {
+						nu->resolu = MAX2( 1, (int)(((float)nu->resolu / (float)nu->pntsu)+0.5f) );
+						nu->resolv = MAX2( 1, (int)(((float)nu->resolv / (float)nu->pntsv)+0.5f) );
+					}
 				}
 			}
 		}

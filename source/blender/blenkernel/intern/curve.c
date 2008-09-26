@@ -658,23 +658,23 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	float u, v, ustart, uend, ustep, vstart, vend, vstep, sumdiv;
 	int i, j, iofs, jofs, cycl, len, resolu, resolv;
 	int istart, iend, jsta, jen, *jstart, *jend, ratcomp;
-
+	
+	int totu = nu->pntsu*nu->resolu, totv = nu->pntsv*nu->resolv;
+	
 	if(nu->knotsu==NULL || nu->knotsv==NULL) return;
 	if(nu->orderu>nu->pntsu) return;
 	if(nu->orderv>nu->pntsv) return;
 	if(coord_array==NULL) return;
-
+	
 	/* allocate and initialize */
-	len= nu->pntsu*nu->pntsv;
+	len = totu * totv;
 	if(len==0) return;
 	
 
 	
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbfaces1");
-
-	resolu= nu->resolu;
-	resolv= nu->resolv;
-	len= resolu*resolv;
+	
+	len= totu*totv;
 	if(len==0) {
 		MEM_freeN(sum);
 		return;
@@ -690,12 +690,13 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 		}
 		bp++;
 	}
-
+	
 	fp= nu->knotsu;
 	ustart= fp[nu->orderu-1];
 	if(nu->flagu & CU_CYCLIC) uend= fp[nu->pntsu+nu->orderu-1];
 	else uend= fp[nu->pntsu];
-	ustep= (uend-ustart)/(resolu-1+(nu->flagu & CU_CYCLIC));
+	ustep= (uend-ustart)/((nu->flagu & CU_CYCLIC) ? totu : totu - 1);
+	
 	basisu= (float *)MEM_mallocN(sizeof(float)*KNOTSU(nu), "makeNurbfaces3");
 
 	fp= nu->knotsv;
@@ -703,17 +704,19 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	
 	if(nu->flagv & CU_CYCLIC) vend= fp[nu->pntsv+nu->orderv-1];
 	else vend= fp[nu->pntsv];
-	vstep= (vend-vstart)/(resolv-1+(nu->flagv & CU_CYCLIC));
+	vstep= (vend-vstart)/((nu->flagv & CU_CYCLIC) ? totv : totv - 1);
+	
 	len= KNOTSV(nu);
-	basisv= (float *)MEM_mallocN(sizeof(float)*len*resolv, "makeNurbfaces3");
-	jstart= (int *)MEM_mallocN(sizeof(float)*resolv, "makeNurbfaces4");
-	jend= (int *)MEM_mallocN(sizeof(float)*resolv, "makeNurbfaces5");
+	basisv= (float *)MEM_mallocN(sizeof(float)*len*totv, "makeNurbfaces3");
+	jstart= (int *)MEM_mallocN(sizeof(float)*totv, "makeNurbfaces4");
+	jend= (int *)MEM_mallocN(sizeof(float)*totv, "makeNurbfaces5");
 
 	/* precalculation of basisv and jstart,jend */
 	if(nu->flagv & CU_CYCLIC) cycl= nu->orderv-1; 
 	else cycl= 0;
 	v= vstart;
 	basis= basisv;
+	resolv= totv;
 	while(resolv--) {
 		basisNurb(v, nu->orderv, (short)(nu->pntsv+cycl), nu->knotsv, basis, jstart+resolv, jend+resolv);
 		basis+= KNOTSV(nu);
@@ -724,12 +727,13 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 	else cycl= 0;
 	in= coord_array;
 	u= ustart;
+	resolu= totu;
 	while(resolu--) {
 
 		basisNurb(u, nu->orderu, (short)(nu->pntsu+cycl), nu->knotsu, basisu, &istart, &iend);
 
 		basis= basisv;
-		resolv= nu->resolv;
+		resolv= totv;
 		while(resolv--) {
 
 			jsta= jstart[resolv];
@@ -798,7 +802,7 @@ void makeNurbfaces(Nurb *nu, float *coord_array, int rowstride)
 			basis+= KNOTSV(nu);
 		}
 		u+= ustep;
-		if (rowstride!=0) in = (float*) (((unsigned char*) in) + (rowstride - 3*nu->resolv*sizeof(*in)));
+		if (rowstride!=0) in = (float*) (((unsigned char*) in) + (rowstride - 3*totv*sizeof(*in)));
 	}
 
 	/* free */
@@ -954,8 +958,8 @@ float *make_orco_surf(Object *ob)
 		See also convertblender.c: init_render_surf()
 		*/
 		
-		sizeu = nu->resolu; 
-		sizev = nu->resolv;
+		sizeu = nu->pntsu*nu->resolu; 
+		sizev = nu->pntsv*nu->resolv;
 		if (nu->flagu & CU_CYCLIC) sizeu++;
 		if (nu->flagv & CU_CYCLIC) sizev++;
  		if(nu->pntsv>1) tot+= sizeu * sizev;
@@ -968,8 +972,8 @@ float *make_orco_surf(Object *ob)
 	nu= cu->nurb.first;
 	while(nu) {
 		if(nu->pntsv>1) {
-			sizeu = nu->resolu;
-			sizev = nu->resolv;
+			sizeu = nu->pntsu*nu->resolu; 
+			sizev = nu->pntsv*nu->resolv;
 			if (nu->flagu & CU_CYCLIC) sizeu++;
 			if (nu->flagv & CU_CYCLIC) sizev++;
 			
@@ -990,7 +994,7 @@ float *make_orco_surf(Object *ob)
 				}
 			}
 			else {
-				float *_tdata= MEM_callocN(nu->resolu*nu->resolv*3*sizeof(float), "temp data");
+				float *_tdata= MEM_callocN((nu->pntsu*nu->resolu) * (nu->pntsv*nu->resolv) *3*sizeof(float), "temp data");
 				float *tdata= _tdata;
 				
 				makeNurbfaces(nu, tdata, 0);
@@ -1005,7 +1009,7 @@ float *make_orco_surf(Object *ob)
 						if (a==sizev-1 && (nu->flagv & CU_CYCLIC))
 							use_a= 0;
 						
-						tdata = _tdata + 3 * (use_b * nu->resolv + use_a);
+						tdata = _tdata + 3 * (use_b * (nu->pntsv*nu->resolv) + use_a);
 						
 						fp[0]= (tdata[0]-cu->loc[0])/cu->size[0];
 						fp[1]= (tdata[1]-cu->loc[1])/cu->size[1];
