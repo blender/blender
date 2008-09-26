@@ -32,7 +32,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h"
 #include "BulletSoftBody/btSoftBody.h"
 
-#define BT_SOFTBODY_TRIANGLE_EXTRUSION btScalar(0.3)
+#define BT_SOFTBODY_TRIANGLE_EXTRUSION btScalar(0.06)//make this configurable
 
 btSoftBodyConcaveCollisionAlgorithm::btSoftBodyConcaveCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1,bool isSwapped)
 : btCollisionAlgorithm(ci),
@@ -210,44 +210,22 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 void	btSoftBodyTriangleCallback::setTimeStepAndCounters(btScalar collisionMarginTriangle,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	m_dispatchInfoPtr = &dispatchInfo;
-	m_collisionMarginTriangle = collisionMarginTriangle;
+	m_collisionMarginTriangle = collisionMarginTriangle+btScalar(BT_SOFTBODY_TRIANGLE_EXTRUSION);
 	m_resultOut = resultOut;
 
-	//recalc aabbs
-//	btTransform softbodyInTriangleSpace;
-//	softbodyInTriangleSpace = m_triBody->getWorldTransform().inverse() * m_softBody->getWorldTransform();
-//	btCollisionShape* convexShape = static_cast<btCollisionShape*>(m_convexBody->getCollisionShape());
-	//CollisionShape* triangleShape = static_cast<btCollisionShape*>(triBody->m_collisionShape);
+	
 	btVector3	aabbWorldSpaceMin,aabbWorldSpaceMax;
 	m_softBody->getAabb(aabbWorldSpaceMin,aabbWorldSpaceMax);
-
 	btVector3 halfExtents = (aabbWorldSpaceMax-aabbWorldSpaceMin)*btScalar(0.5);
 	btVector3 softBodyCenter = (aabbWorldSpaceMax+aabbWorldSpaceMin)*btScalar(0.5);
 
-	btTransform	triInverse = m_triBody->getWorldTransform().inverse();
+	btTransform softTransform;
+	softTransform.setIdentity();
+	softTransform.setOrigin(softBodyCenter);
 
-	btMatrix3x3 abs_b = triInverse.getBasis().absolute();  
-	btPoint3 center = softBodyCenter + triInverse.getOrigin();
-
-	btVector3 extent = btVector3(abs_b[0].dot(halfExtents),
-		   abs_b[1].dot(halfExtents),
-		  abs_b[2].dot(halfExtents));
-//	extent += btVector3(getMargin(),getMargin(),getMargin());
-
-	m_aabbMin = center - extent;
-	m_aabbMax = center + extent;
-
-	btScalar extraMargin = collisionMarginTriangle+btScalar(BT_SOFTBODY_TRIANGLE_EXTRUSION);
-	btVector3 extra(extraMargin,extraMargin,extraMargin);
-
-	m_aabbMax += extra;
-	m_aabbMin -= extra;
-
-/*	btVector3 extra(2,2,2);
-	m_aabbMin = aabbWorldSpaceMin-extra;
-	m_aabbMax = aabbWorldSpaceMax+extra;
-*/
-
+	btTransform convexInTriangleSpace;
+	convexInTriangleSpace = m_triBody->getWorldTransform().inverse() * softTransform;
+	btTransformAabb(halfExtents,m_collisionMarginTriangle,convexInTriangleSpace,m_aabbMin,m_aabbMax);
 }
 
 void btSoftBodyConcaveCollisionAlgorithm::clearCache()
