@@ -1051,7 +1051,7 @@ ParticleRen *RE_cache_particle(Render *re, float *co, int index, float *vec)
 	BLI_addtail(&re->vol_particles, pr);
 	*/
 	
-	BLI_kdtree_insert(re->particles_tree, index, co, vec);
+	BLI_kdtree_insert(re->particles_tree, index, co, NULL);
 	
 	
 }

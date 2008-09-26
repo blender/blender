@@ -4287,8 +4287,10 @@ static void material_panel_material_volume(Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, MA_VOL_PARTICLES, B_MATPRV, "Particles",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Render global particle cache");
-	uiDefButF(block, NUM, B_MATPRV, "Search Radius: ",
+	uiDefButF(block, NUM, B_MATPRV, "Radius: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_part_searchradius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
+	uiDefButS(block, NUM, B_MATPRV, "Nearby: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_part_maxnearest), 2.0, 30.0, 10, 2, "The number of nearby particles to check for density");
 	uiBlockEndAlign(block);
 }
 

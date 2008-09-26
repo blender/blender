@@ -72,7 +72,10 @@ typedef struct Material {
 	float vol_absorption_col[3];
 	float vol_part_searchradius;
 	short vol_raydepth;
+	short vol_part_maxnearest;
 	short vol_shadeflag;
+	short vol_pad[3];
+	
 	
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;

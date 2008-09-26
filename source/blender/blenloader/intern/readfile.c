@@ -7872,6 +7872,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol_scattering = 1.0f;
 				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;
 				if (ma->vol_raydepth == 0) ma->vol_raydepth = 15;
+				if (ma->vol_part_maxnearest == 0) ma->vol_part_maxnearest = 5;
+				if (ma->vol_part_searchradius < 0.001f) ma->vol_part_searchradius = 0.20;
 			}
 		}
 	}
