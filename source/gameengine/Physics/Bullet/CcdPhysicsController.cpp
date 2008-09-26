@@ -963,7 +963,7 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 {
 
 	btVector3 linVel(lin_velX,lin_velY,lin_velZ);
-	if (m_object && linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	if (m_object/* && linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON)*/)
 	{
 		m_object->activate(true);
 		if (m_object->isStaticObject())
