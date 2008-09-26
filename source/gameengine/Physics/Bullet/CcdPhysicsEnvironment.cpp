@@ -25,6 +25,7 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btSimulationIslandManager.h"
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 #include "BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h"
+#include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
 
 //profiling/timings
 #include "LinearMath/btQuickprof.h"
@@ -338,7 +339,9 @@ m_filterCallback(NULL)
 
 	if (!dispatcher)
 	{
-		dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
+		btCollisionDispatcher* disp = new btCollisionDispatcher(m_collisionConfiguration);
+		dispatcher = disp;
+		btGImpactCollisionAlgorithm::registerAlgorithm(disp);
 		m_ownDispatcher = dispatcher;
 	}
 

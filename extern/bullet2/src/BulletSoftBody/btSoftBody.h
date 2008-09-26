@@ -677,6 +677,10 @@ public:
 										int node);
 	/* Add velocity to the entire body										*/ 
 	void				addVelocity(	const btVector3& velocity);
+
+	/* Set velocity for the entire body										*/ 
+	void				setVelocity(	const btVector3& velocity);
+
 	/* Add velocity to a node of the body									*/ 
 	void				addVelocity(	const btVector3& velocity,
 										int node);

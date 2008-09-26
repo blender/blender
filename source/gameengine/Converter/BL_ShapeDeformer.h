@@ -66,7 +66,7 @@ public:
 	};
 
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica();
+	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);

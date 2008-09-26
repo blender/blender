@@ -37,6 +37,7 @@ LinearMath \
 BulletCollision/BroadphaseCollision \
 BulletCollision/CollisionShapes \
 BulletCollision/NarrowPhaseCollision \
+BulletCollision/Gimpact \
 BulletCollision//CollisionDispatch \
 BulletDynamics/ConstraintSolver \
 BulletDynamics/Vehicle \

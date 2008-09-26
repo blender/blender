@@ -47,6 +47,7 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 	m_flag = (flat)? FLAT: 0;
 	m_origindex = origindex;
 	m_unit = 2;
+	m_softBodyIndex = -1;
 }
 
 const MT_Point3& RAS_TexVert::xyz()

@@ -670,15 +670,12 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 							
 	class KX_SoftBodyDeformer : public RAS_Deformer
 	{
-		btSoftBody*	m_softBody;
 		class RAS_MeshObject*	m_pMeshObject;
 		class KX_GameObject*	m_gameobj;
 
-
 	public:
-		KX_SoftBodyDeformer(btSoftBody* softBody,RAS_MeshObject*	pMeshObject,KX_GameObject*	gameobj)
-			: m_softBody(softBody),
-			m_pMeshObject(pMeshObject),
+		KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,KX_GameObject*	gameobj)
+			:m_pMeshObject(pMeshObject),
 			m_gameobj(gameobj)
 		{
 			//printf("KX_SoftBodyDeformer\n");
@@ -694,6 +691,14 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 		}
 		virtual bool Apply(class RAS_IPolyMaterial *polymat)
 		{
+			KX_BulletPhysicsController* ctrl = (KX_BulletPhysicsController*) m_gameobj->GetPhysicsController();
+			if (!ctrl)
+				return false;
+
+			btSoftBody* softBody= ctrl->GetSoftBody();
+			if (!softBody)
+				return false;
+
 			//printf("apply\n");
 			RAS_MeshSlot::iterator it;
 			RAS_MeshMaterial *mmat;
@@ -718,11 +723,12 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 			// for each array
 			for(slot->begin(it); !slot->end(it); slot->next(it)) 
 			{
-				btSoftBody::tNodeArray&   nodes(m_softBody->m_nodes);
+				btSoftBody::tNodeArray&   nodes(softBody->m_nodes);
 
 				int index = 0;
 				for(i=it.startvertex; i<it.endvertex; i++,index++) {
 					RAS_TexVert& v = it.vertex[i];
+					btAssert(v.getSoftBodyIndex() >= 0);
 
 					MT_Point3 pt (
 						nodes[v.getSoftBodyIndex()].m_x.getX(),
@@ -745,10 +751,10 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 			//printf("update\n");
 			return true;//??
 		}
-		virtual RAS_Deformer *GetReplica()
+		virtual RAS_Deformer *GetReplica(class KX_GameObject* replica)
 		{
-			//printf("getReplica\n");
-			return 0;
+			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(replica->GetMesh(0),replica);
+			return deformer;
 		}
 
 		virtual bool SkipVertexTransform()
@@ -855,12 +861,13 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		}
 	case KX_BOUNDPOLYTOPE:
 		{
-			shapeInfo->SetMesh(meshobj, true);
+			shapeInfo->SetMesh(meshobj, true,false);
 			bm = shapeInfo->CreateBulletShape();
 			break;
 		}
 	case KX_BOUNDMESH:
 		{
+			
 			if (!ci.m_mass ||objprop->m_softbody)
 			{				
 				// mesh shapes can be shared, check first if we already have a shape on that mesh
@@ -872,11 +879,15 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 					shapeInfo->AddRef();
 				} else
 				{
-					shapeInfo->SetMesh(meshobj, false);
+					shapeInfo->SetMesh(meshobj, false,false);
 				}
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia
 				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			} else
+			{
+				shapeInfo->SetMesh(meshobj, false,true);
+				bm = shapeInfo->CreateBulletShape();
 			}
 
 			break;
@@ -1097,7 +1108,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		if (softBody && gameobj->GetMesh(0))//only the first mesh, if any
 		{
 			//should be a mesh then, so add a soft body deformer
-			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer(softBody, gameobj->GetMesh(0),gameobj);
+			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer( gameobj->GetMesh(0),gameobj);
 			gameobj->SetDeformer(softbodyDeformer);
 			
 		}

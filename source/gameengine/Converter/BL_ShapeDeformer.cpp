@@ -68,7 +68,7 @@ BL_ShapeDeformer::~BL_ShapeDeformer()
 {
 };
 
-RAS_Deformer *BL_ShapeDeformer::GetReplica()
+RAS_Deformer *BL_ShapeDeformer::GetReplica(class KX_GameObject* replica)
 {
 	BL_ShapeDeformer *result;
 

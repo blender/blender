@@ -25,7 +25,7 @@ linearmath_src = env.Glob("LinearMath/*.cpp")
 
 bulletdyn_src = env.Glob("BulletDynamics/Vehicle/*.cpp") + env.Glob("BulletDynamics/ConstraintSolver/*.cpp") + env.Glob("BulletDynamics/Dynamics/*.cpp")
 
-collision_src = env.Glob("BulletCollision/BroadphaseCollision/*.cpp") + env.Glob("BulletCollision/CollisionDispatch/*.cpp")
+collision_src = env.Glob("BulletCollision/BroadphaseCollision/*.cpp") + env.Glob("BulletCollision/CollisionDispatch/*.cpp") + env.Glob("BulletCollision/Gimpact/*.cpp")
 collision_src +=  env.Glob("BulletCollision/CollisionShapes/*.cpp") + env.Glob("BulletCollision/NarrowPhaseCollision/*.cpp")
 
 softbody_src = env.Glob("BulletSoftBody/*.cpp")

@@ -53,7 +53,8 @@ public:
 		m_childScale(1.0f,1.0f,1.0f),
 		m_refCount(1),
 		m_meshObject(NULL),
-		m_unscaledShape(NULL)
+		m_unscaledShape(NULL),
+		m_useGimpact(false)
 	{
 		m_childTrans.setIdentity();
 	}
@@ -88,7 +89,7 @@ public:
 		return m_shapeArray.at(i);
 	}
 
-	bool SetMesh(RAS_MeshObject* mesh, bool polytope);
+	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
@@ -118,6 +119,7 @@ protected:
 	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
+	bool	m_useGimpact;
 };
 
 struct CcdConstructionInfo
@@ -211,6 +213,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 {
 
 	btCollisionObject* m_object;
+	
 
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
@@ -218,6 +221,12 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	class CcdShapeConstructionInfo* m_shapeInfo;
 
 	friend class CcdPhysicsEnvironment;	// needed when updating the controller
+
+	//some book keeping for replication
+	bool	m_softbodyMappingDone;
+	bool	m_softBodyTransformInitialized;
+	bool	m_prototypeTransformInitialized;
+	btTransform	m_softbodyStartTrans;
 
 
 	void*		m_newClientInfo;
