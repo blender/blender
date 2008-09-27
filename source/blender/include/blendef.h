@@ -406,6 +406,8 @@
 #define B_TL_NEXTKEY		755
 #define B_TL_STOP		756
 #define B_TL_PREVIEWON		757
+#define B_TL_INSERTKEY	758
+#define B_TL_DELETEKEY	759
 
 /* NLA: 801-850 */
 #define B_NLAHOME		801

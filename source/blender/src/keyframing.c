@@ -644,7 +644,7 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 		/* parented objects are not supported, as the effects of the parent
 		 * are included in the matrix, which kindof beats the point
 		 */
-		if ((ob) && (ob->parent==NULL)) {
+		if (ob->parent == NULL) {
 			/* only Location or Rotation keyframes are supported now */
 			if (ELEM3(adrcode, OB_LOC_X, OB_LOC_Y, OB_LOC_Z)) {
 				/* assumes that OB_LOC_Z > OB_LOC_Y > OB_LOC_X */
@@ -690,7 +690,7 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 				return tmat[3][index];
 		}
 		else if (ELEM4(adrcode, AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z)) {
-			float tmat[4][4], trimat[3][3], quat[4];
+			float trimat[3][3], quat[4];
 			
 			/* assumes that AC_QUAT_Z > AC_QUAT_Y > AC_QUAT_X > AC_QUAT_W */
 			index= adrcode - AC_QUAT_W;
@@ -1478,18 +1478,46 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 
 
 /* get keyingsets for appropriate context */
-static void commonkey_context_get (ListBase *sources, bKeyingContext **ksc)
+static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContext **ksc)
 {
 	/* check view type */
-	switch (curarea->spacetype) {
+	switch (sa->spacetype) {
 		/* 3d view - first one tested as most often used */
 		case SPACE_VIEW3D:
+		{
 			commonkey_context_getv3d(sources, ksc);
+		}
 			break;
 			
 		/* buttons view */
 		case SPACE_BUTS:
+		{
 			commonkey_context_getsbuts(sources, ksc);
+		}
+			break;
+			
+		/* timeline view - keyframe buttons */
+		case SPACE_TIME:
+		{
+			ScrArea *sab;
+			
+			/* try to find largest 3d-view available 
+			 * (mostly of the time, this is what when user will want this,
+			 *  as it's a standard feature in all other apps) 
+			 */
+			sab= find_biggest_area_of_type(SPACE_VIEW3D);
+			if (sab) {
+				commonkey_context_getv3d(sources, ksc);
+				return;
+			}
+			
+			/* otherwise, try to find the biggest area
+			 * WARNING: must check if that area is another timeline, as that would cause infinite loop
+			 */
+			sab= closest_bigger_area();
+			if ((sab) && (sab->spacetype != SPACE_TIME)) 
+				commonkey_context_get(sab, sources, ksc);
+		}
 			break;
 	}
 }
@@ -1656,7 +1684,7 @@ void common_modifykey (short mode)
 			/* default - check per view */
 		default:
 			/* get the keyingsets and the data to add keyframes to */
-			commonkey_context_get(&dsources, &ksc);
+			commonkey_context_get(curarea, &dsources, &ksc);
 			break;
 	}	
 	
