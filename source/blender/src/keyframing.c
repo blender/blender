@@ -602,6 +602,9 @@ static short visualkey_can_use (ID *id, int blocktype, char *actname, char *cons
 				case CONSTRAINT_TYPE_ROTLIKE:
 					if (searchtype==VISUALKEY_ROT) return 1;
 					break;
+				case CONSTRAINT_TYPE_DISTLIMIT:
+					if (searchtype==VISUALKEY_LOC) return 1;
+					break;
 				case CONSTRAINT_TYPE_LOCLIKE:
 					if (searchtype==VISUALKEY_LOC) return 1;
 					break;
@@ -1009,7 +1012,7 @@ bKeyingSet defks_v3d_pchan[] =
 	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
 	
 	{incl_non_del_keys, "VisualLoc", ID_PO, INSERTKEY_MATRIX, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
-	{incl_non_del_keys, "VisualRot", ID_PO, INSERTKEY_MATRIX, 3, {AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
+	{incl_non_del_keys, "VisualRot", ID_PO, INSERTKEY_MATRIX, 4, {AC_QUAT_W,AC_QUAT_X,AC_QUAT_Y,AC_QUAT_Z}},
 	
 	{incl_non_del_keys, "VisualLocRot", ID_PO, INSERTKEY_MATRIX, 7, 
 		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,AC_QUAT_W,
