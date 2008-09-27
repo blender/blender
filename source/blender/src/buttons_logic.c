@@ -2974,6 +2974,9 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	case OB_BODY_TYPE_SOFT:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
 		ob->gameflag &= ~(OB_RIGID_BODY);
+		ob->gameflag |= OB_BOUNDS;
+		if (ob->boundtype<OB_BOUND_POLYH)
+			ob->boundtype=OB_BOUND_POLYH;
 		break;
 	}
 }
@@ -3112,9 +3115,16 @@ void buttons_bullet(uiBlock *block, Object *ob)
 				&ob->gameflag, 0, 0, 0, 0,
 				"Specify a collision bounds type");
 		if (ob->gameflag & OB_BOUNDS) {
-			uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Bounds%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Triangle Mesh%x4",
-			//almost ready to enable this one:			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|Dynamic Mesh %x5|",
-				90, 105, 150, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
+			//only allow convex hull/triangle mesh for soft bodies
+			if (ob->body_type==OB_BODY_TYPE_SOFT)
+			{
+				uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Bounds%t|Convex Hull%x5|Triangle Mesh%x4",
+					90, 105, 150, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
+			} else
+			{
+				uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Bounds%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Triangle Mesh%x4",
+					90, 105, 150, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
+			}
 			uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
 					&ob->gameflag, 0, 0, 0, 0, 
 					"Add Children");
