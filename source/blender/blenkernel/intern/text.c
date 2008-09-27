@@ -2244,7 +2244,6 @@ void txt_delete_char (Text *text)
 				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
 					txt_clear_markers(text, mrk->group, TMARK_TEMP);
 				} else {
-					//TextMarker *nxt= mrk->next;
 					BLI_freelinkN(&text->markers, mrk);
 				}
 				return;
@@ -2309,7 +2308,6 @@ void txt_backspace_char (Text *text)
 				if ((mrk->flags & TMARK_TEMP) && !(mrk->flags & TMARK_EDITALL)) {
 					txt_clear_markers(text, mrk->group, TMARK_TEMP);
 				} else {
-					//TextMarker *nxt= mrk->next;
 					BLI_freelinkN(&text->markers, mrk);
 				}
 				return;
@@ -2681,13 +2679,6 @@ int setcurr_tab (Text *text)
 /*********************************/
 /* Text marker utility functions */
 /*********************************/
-
-static int color_match(TextMarker *a, TextMarker *b) {
-	return (a->color[0]==b->color[0] &&
-			a->color[1]==b->color[1] &&
-			a->color[2]==b->color[2] &&
-			a->color[3]==b->color[3]);
-}
 
 /* Creates and adds a marker to the list maintaining sorted order */
 void txt_add_marker(Text *text, TextLine *line, int start, int end, char color[4], int group, int flags) {
