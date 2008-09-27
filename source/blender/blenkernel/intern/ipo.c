@@ -474,9 +474,9 @@ void calchandles_ipocurve(IpoCurve *icu)
 	int a;
 
 	a= icu->totvert;
-	
+
 	/* IPO_CONST doesn't have handles */
-	if(a<2 || icu->ipo==IPO_CONST) return;
+	if(a<2 || icu->ipo==IPO_CONST || icu->ipo==IPO_LIN) return;
 	
 	bezt= icu->bezt;
 	prev= 0;
@@ -940,13 +940,29 @@ float eval_icu(IpoCurve *icu, float ipotime)
 	
 		if(prevbezt->vec[1][0]>=ipotime) {
 			if( (icu->extrap & IPO_DIR) && icu->ipo!=IPO_CONST) {
-				dx= prevbezt->vec[1][0]-ipotime;
-				fac= prevbezt->vec[1][0]-prevbezt->vec[0][0];
-				if(fac!=0.0) {
-					fac= (prevbezt->vec[1][1]-prevbezt->vec[0][1])/fac;
-					cvalue= prevbezt->vec[1][1]-fac*dx;
+				if (icu->ipo==IPO_LIN) {
+					if (icu->totvert==1) cvalue= prevbezt->vec[1][1];
+					else {
+						/* use the next center point instead of our own handle for
+						 * linear interpolated extrapolate */
+						bezt = prevbezt+1;
+						dx= prevbezt->vec[1][0]-ipotime;
+						fac= bezt->vec[1][0]-prevbezt->vec[1][0];
+						if(fac!=0.0) {
+							fac= (bezt->vec[1][1]-prevbezt->vec[1][1])/fac;
+							cvalue= prevbezt->vec[1][1]-fac*dx;
+						}
+						else cvalue= prevbezt->vec[1][1];
+					}
+				} else {
+					dx= prevbezt->vec[1][0]-ipotime;
+					fac= prevbezt->vec[1][0]-prevbezt->vec[0][0];
+					if(fac!=0.0) {
+						fac= (prevbezt->vec[1][1]-prevbezt->vec[0][1])/fac;
+						cvalue= prevbezt->vec[1][1]-fac*dx;
+					}
+					else cvalue= prevbezt->vec[1][1];
 				}
-				else cvalue= prevbezt->vec[1][1];
 			}
 			else cvalue= prevbezt->vec[1][1];
 			
@@ -955,14 +971,32 @@ float eval_icu(IpoCurve *icu, float ipotime)
 		else if( (prevbezt+a)->vec[1][0]<=ipotime) {
 			if( (icu->extrap & IPO_DIR) && icu->ipo!=IPO_CONST) {
 				prevbezt+= a;
-				dx= ipotime-prevbezt->vec[1][0];
-				fac= prevbezt->vec[2][0]-prevbezt->vec[1][0];
+				
+				if (icu->ipo==IPO_LIN) {
+					if (icu->totvert==1) cvalue= prevbezt->vec[1][1];
+					else {
+						/* use the previous center point instead of our own handle for
+						 * linear interpolated extrapolate */
+						bezt = prevbezt-1;
+						dx= ipotime-prevbezt->vec[1][0];
+						fac= prevbezt->vec[1][0]-bezt->vec[1][0];
 
-				if(fac!=0) {
-					fac= (prevbezt->vec[2][1]-prevbezt->vec[1][1])/fac;
-					cvalue= prevbezt->vec[1][1]+fac*dx;
+						if(fac!=0) {
+							fac= (prevbezt->vec[1][1]-bezt->vec[1][1])/fac;
+							cvalue= prevbezt->vec[1][1]+fac*dx;
+						}
+						else cvalue= prevbezt->vec[1][1];
+					}
+				} else {
+					dx= ipotime-prevbezt->vec[1][0];
+					fac= prevbezt->vec[2][0]-prevbezt->vec[1][0];
+
+					if(fac!=0) {
+						fac= (prevbezt->vec[2][1]-prevbezt->vec[1][1])/fac;
+						cvalue= prevbezt->vec[1][1]+fac*dx;
+					}
+					else cvalue= prevbezt->vec[1][1];
 				}
-				else cvalue= prevbezt->vec[1][1];
 			}
 			else cvalue= (prevbezt+a)->vec[1][1];
 			
