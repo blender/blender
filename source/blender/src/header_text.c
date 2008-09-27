@@ -83,6 +83,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+// INT is defined in BIF_interface.h as constant but is also a typedef in Windows
+// This annoying problem should be fixed by using a less conflicting name in Blender.
+#undef INT
+
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -1049,9 +1053,10 @@ void text_buttons(void)
 	
 	/* Warning button if text is out of date*/
 	if (text && txt_file_modified(text)) {
+		uiBut *bt;
 		xco+= XIC;
 		uiBlockSetCol(block, TH_REDALERT);
-		uiBut *bt= uiDefIconBut(block, BUT, B_NOP, ICON_HELP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "External text is out of sync, click for options to resolve the conflict");
+		bt= uiDefIconBut(block, BUT, B_NOP, ICON_HELP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "External text is out of sync, click for options to resolve the conflict");
 		uiButSetFunc(bt, do_modification_func, (void *)st, NULL);
 		uiBlockSetCol(block, TH_AUTO);
 	}
