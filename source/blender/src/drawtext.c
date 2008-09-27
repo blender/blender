@@ -1649,7 +1649,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	else st->viewlines= 0;
 	
 	if(st->showlinenrs) {
-		cpack(0x8c787c);
+		BIF_ThemeColor(TH_GRID);
 		glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
 	}
 
