@@ -84,6 +84,16 @@ typedef struct SBVertex {
 	float vec[4];
 } SBVertex;
 
+typedef struct BulletSoftBody {
+	int flag;		/* various boolean options */
+	float linStiff;	/* linear stiffness 0..1 */
+	float angStiff;	/* angular stiffness 0..1 */
+	float volume;	/* volume preservation 0..1 */
+} BulletSoftBody;
+
+/* BulletSoftBody.flag */
+#define OB_BSB_SHAPE_MATCHING	2
+
 typedef struct SoftBody {
 	struct ParticleSystem *particles;	/* particlesystem softbody */
 

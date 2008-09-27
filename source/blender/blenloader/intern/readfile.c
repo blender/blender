@@ -141,6 +141,7 @@
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
+#include "BKE_bullet.h"		// bsbNew()
 #include "BKE_sculpt.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
@@ -3334,6 +3335,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		if(sb->pointcache)
 			direct_link_pointcache(fd, sb->pointcache);
 	}
+	ob->bsoft= newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 
 	link_list(fd, &ob->particlesystem);

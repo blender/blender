@@ -1324,19 +1324,19 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
 	
 	///for game soft bodies
-	if (blenderobject->soft)
+	if (blenderobject->bsoft)
 	{
-		objprop.m_linearStiffness = blenderobject->soft->inspring;
-		objprop.m_angularStiffness = 1.f;//blenderobject->angularStiffness;
-		objprop.m_volumePreservation = 1.f;//blenderobject->volumePreservation;
-		objprop.m_gamesoftFlag = blenderobject->softflag;//blenderobject->gamesoftFlag;
+		objprop.m_linearStiffness = blenderobject->bsoft->linStiff;
+		objprop.m_angularStiffness = blenderobject->bsoft->angStiff;
+		objprop.m_volumePreservation = blenderobject->bsoft->volume;
+		objprop.m_gamesoftFlag = blenderobject->bsoft->flag;
 		
 	} else
 	{
-		objprop.m_linearStiffness = 0.5;//blenderobject->linearStiffness;
-		objprop.m_angularStiffness = 1.f;//blenderobject->angularStiffness;
-		objprop.m_volumePreservation = 1.f;//blenderobject->volumePreservation;
-		objprop.m_gamesoftFlag = 1;//blenderobject->gamesoftFlag;
+		objprop.m_linearStiffness = 0.5;//blenderobject->bsoft->linStiff;
+		objprop.m_angularStiffness = 1.f;//blenderobject->bsoft->angStiff;
+		objprop.m_volumePreservation = 1.f;//blenderobject->bsoft->volume;
+		objprop.m_gamesoftFlag = 1;//blenderobject->bsoft->flag;
 	}
 
 	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;

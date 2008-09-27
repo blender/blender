@@ -67,6 +67,7 @@
 #include "BKE_property.h"
 #include "BKE_property.h"
 #include "BKE_utildefines.h"
+#include "BKE_bullet.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -3007,28 +3008,27 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				"Collision margin");
 	}
 	if (ob->gameflag & OB_SOFT_BODY) {
-		if (ob->soft)
+		/* create a BulletSoftBody structure if not already existing */
+		if (!ob->bsoft)
+			ob->bsoft = bsbNew();
+		if (ob->bsoft)
 		{
-			
-			uiDefButBitS(block, TOG, OB_SB_GOAL, 0, "Shape matching", 
-						xco+=120, yco, 118, 19, &ob->softflag, 0, 0, 0, 0, 
+			uiDefButBitI(block, TOG, OB_BSB_SHAPE_MATCHING, 0, "Shape matching", 
+						xco+=120, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
 						"Enable soft body shape matching goal");
 			yco -= 25;
 			xco = 0;
 			uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 238, 19, 
-					&ob->soft->inspring, 0.0, 1.0, 1, 0,
+					&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
 					"Linear stiffness of the soft body vertex spring");
-			/*
 			yco -= 25;
 			uiDefButF(block, NUMSLI, 0, "AngStiff ", xco, yco, 238, 19, 
-					&ob->angularStiffness, 0.0, 1.0, 1, 0, 
+					&ob->bsoft->angStiff, 0.0, 1.0, 1, 0, 
 					"Angular stiffness of the soft body vertex spring");
 			yco -= 25;
 			uiDefButF(block, NUMSLI, 0, "Volume ", xco, yco, 238, 19, 
-					&ob->volumePreservation, 0.0, 1.0, 1, 0, 
+					&ob->bsoft->volume, 0.0, 1.0, 1, 0, 
 					"Factor of soft body volume preservation");
-					*/
-
 		}
 
 	}
@@ -3056,20 +3056,10 @@ void buttons_bullet(uiBlock *block, Object *ob)
 		ob->body_type = OB_BODY_TYPE_SOFT;
 
 	//only enable game soft body if Blender Soft Body exists
-	if (ob->soft)
-	{
-		but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-				"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
-				10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
-		uiButSetFunc(but, check_body_type, but, ob);
-	} else
-	{
-		but = uiDefButS(block, MENU, REDRAWVIEW3D, 
-				"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3", 
-				10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
-		uiButSetFunc(but, check_body_type, but, ob);
-	}
-	
+	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
+			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
+			10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
+	uiButSetFunc(but, check_body_type, but, ob);
 
 	if (ob->gameflag & OB_COLLISION) {
 

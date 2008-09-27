@@ -922,6 +922,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
 			if(ob->soft) writestruct(wd, DATA, "PointCache", 1, ob->soft->pointcache);
+			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
 			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);

@@ -3529,10 +3529,8 @@ void copy_attr(short event)
 						base->object->boundtype = ob->boundtype;
 					}
 					base->object->margin= ob->margin;
-					//base->object->linearStiffness= ob->linearStiffness;
-					//base->object->angularStiffness= ob->angularStiffness;
-					//base->object->volumePreservation= ob->volumePreservation;
-					//base->object->gamesoftFlag= ob->gamesoftFlag;
+					base->object->bsoft= copy_bulletsoftbody(ob->bsoft);
+
 				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);

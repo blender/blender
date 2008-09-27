@@ -179,6 +179,14 @@ void object_free_softbody(Object *ob)
 	}
 }
 
+void object_free_bulletsoftbody(Object *ob)
+{
+	if(ob->bsoft) {
+		sbFree(ob->bsoft);
+		ob->bsoft= NULL;
+	}
+}
+
 void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -269,6 +277,7 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
+	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
@@ -1047,6 +1056,17 @@ SoftBody *copy_softbody(SoftBody *sb)
 	return sbn;
 }
 
+BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
+{
+	BulletSoftBody *bsbn;
+
+	if (bsb == NULL)
+		return NULL;
+	bsbn = MEM_dupallocN(bsb);
+	/* no pointer in this structure yet */
+	return bsbn;
+}
+
 ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
@@ -1217,6 +1237,7 @@ Object *copy_object(Object *ob)
 			id_us_plus(&(obn->pd->tex->id));
 	}
 	obn->soft= copy_softbody(ob->soft);
+	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
 
 	copy_object_particlesystems(obn, ob);
 	
