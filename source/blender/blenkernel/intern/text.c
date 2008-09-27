@@ -577,13 +577,14 @@ static void txt_make_dirty (Text *text)
 /* 0:whitespace, 1:punct, 2:alphanumeric */
 static short txt_char_type (char ch)
 {
-	if (ch <= ' ') return 0;
-	if (ch <= '/') return 1;
-	if (ch <= '9') return 2;
-	if (ch <= '@') return 1;
-	if (ch <= 'Z') return 2;
-	if (ch <= '`') return 1;
-	if (ch <= 'z') return 2;
+	if (ch <= ' ') return 0; /* 32 */
+	if (ch <= '/') return 1; /* 47 */
+	if (ch <= '9') return 2; /* 57 */
+	if (ch <= '@') return 1; /* 64 */
+	if (ch <= 'Z') return 2; /* 90 */
+	if (ch == '_') return 2; /* 95, dont delimit '_' */
+	if (ch <= '`') return 1; /* 96 */
+	if (ch <= 'z') return 2; /* 122 */
 	return 1;
 }
 
