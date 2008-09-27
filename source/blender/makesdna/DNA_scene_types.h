@@ -520,7 +520,9 @@ typedef struct Scene {
 	float editbutsize;                      /* size of normals */
 	short selectmode;						/* for mesh only! */
 	short proportional, prop_mode;
-	short automerge, pad5, pad6, pad7;
+	short automerge, pad5, pad6;
+	
+	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h */
 	
 	short use_nodes;
 	

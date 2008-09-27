@@ -7908,6 +7908,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	/* autokey mode settings now used from scene, but need to be initialised off userprefs */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 8)) {
+		Scene *sce;
+		
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->autokey_mode == 0)
+				sce->autokey_mode= U.autokey_mode;
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

@@ -188,6 +188,7 @@ Scene *add_scene(char *name)
 	sce->lay= 1;
 	sce->selectmode= SCE_SELECT_VERTEX;
 	sce->editbutsize= 0.1;
+	sce->autokey_mode= U.autokey_mode;
 	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;

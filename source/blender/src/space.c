@@ -122,6 +122,7 @@
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_keyframing.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
@@ -4034,7 +4035,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(2*mpref)+(2*midsp)),y5,mpref, buth,
 				&(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 			
-			if (IS_AUTOKEY_ON) {
+			if (U.autokey_mode & AUTOKEY_ON) {
 				uiDefButS(block, MENU, REDRAWTIME, 
 						"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
 						(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 

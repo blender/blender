@@ -554,12 +554,12 @@ void time_buttons(ScrArea *sa)
 	xco+= XIC+8;
 	
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
-			xco, 0, XIC, YIC, &(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+			xco, 0, XIC, YIC, &(G.scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 	xco+= XIC;
 	if (IS_AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 					"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-					xco, 0, 3*XIC, YIC, &(U.autokey_mode), 0, 1, 0, 0, 
+					xco, 0, 3*XIC, YIC, &(G.scene->autokey_mode), 0, 1, 0, 0, 
 					"Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}

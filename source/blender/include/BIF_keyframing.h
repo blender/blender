@@ -80,6 +80,24 @@ short deletekey(struct ID *id, int blocktype, char *actname, char *constname, in
 void common_insertkey(void);
 void common_deletekey(void);
 
+/* ************ Auto-Keyframing ********************** */
+/* Notes:
+ * - All the defines for this (User-Pref settings and Per-Scene settings)
+ * 	are defined in DNA_userdef_types.h
+ * - Scene settings take presidence over those for userprefs, with old files
+ * 	inheriting userpref settings for the scene settings
+ * - "On/Off + Mode" are stored per Scene, but "settings" are currently stored
+ * 	as userprefs
+ */
+
+/* Auto-Keying macros for use by various tools */
+	/* check if auto-keyframing is enabled (per scene takes presidence) */
+#define IS_AUTOKEY_ON			((G.scene) ? (G.scene->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
+	/* check the mode for auto-keyframing (per scene takes presidence)  */
+#define IS_AUTOKEY_MODE(mode) 	((G.scene) ? (G.scene->autokey_mode == AUTOKEY_MODE_##mode) : (U.autokey_mode == AUTOKEY_MODE_##mode))
+	/* check if a flag is set for auto-keyframing (as userprefs only!) */
+#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
+
 /* ************ Keyframe Checking ******************** */
 
 /* Checks whether a keyframe exists for the given ID-block one the given frame */
