@@ -3150,7 +3150,6 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 	PyObject *dest;
 	Object *dest_ob;
 	bProperty *prop = NULL;
-	bProperty *propn = NULL;
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &dest ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,

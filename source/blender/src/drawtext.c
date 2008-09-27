@@ -142,7 +142,7 @@ static int check_identifier(char ch);
 static int check_whitespace(char ch);
 
 static int get_wrap_width(SpaceText *st);
-static int get_wrap_points(SpaceText *st, char *line);
+//static int get_wrap_points(SpaceText *st, char *line);
 static void get_suggest_prefix(Text *text, int offset);
 static void confirm_suggestion(Text *text, int skipleft);
 
@@ -278,6 +278,7 @@ static int find_specialvar(char *string)
 	return i;
 }
 
+#if 0 // not used 
 static void print_format(SpaceText *st, TextLine *line) {
 	int i, a;
 	char *s, *f;
@@ -292,6 +293,7 @@ static void print_format(SpaceText *st, TextLine *line) {
 	}
 	printf("\n%s [%#x]\n", line->format, (int) (f[strlen(f)+1]));
 }
+#endif // not used
 
 /* Ensures the format string for the given line is long enough, reallocating as needed */
 static int check_format_len(TextLine *line, unsigned int len) {
@@ -684,6 +686,7 @@ static int get_wrap_width(SpaceText *st) {
 	return max>8 ? max : 8;
 }
 
+#if 0 // not used 
 /* Returns the number of wrap points (or additional lines) in the given string */
 static int get_wrap_points(SpaceText *st, char *line) {
 	int start, end, taboffs, i, max, count;
@@ -707,6 +710,7 @@ static int get_wrap_points(SpaceText *st, char *line) {
 	}
 	return count;
 }
+#endif // not used
 
 /* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
 static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) {

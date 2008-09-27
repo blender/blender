@@ -526,8 +526,6 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 	Object *ob;
 	pEffectorCache *ec;
 	PartDeflect *pd;
-	float vect_to_vert[3];
-	float *obloc;
 	
 	float distance, vec_to_part[3];
 	float falloff;

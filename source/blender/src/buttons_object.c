@@ -4960,7 +4960,7 @@ static void object_panel_particle_system(Object *ob)
 }
 
 /* NT - Panel for fluidsim settings */
-
+#ifndef DISABLE_ELBEEM
 static int _can_fluidsim_at_all(Object *ob)
 {
 	// list of Yes
@@ -5006,6 +5006,7 @@ static void object_fluidsim__enabletoggle(void *ob_v, void *arg2)
 		countall();
 	}
 }
+#endif
 
 static void object_panel_fluidsim(Object *ob)
 {

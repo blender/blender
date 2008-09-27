@@ -88,6 +88,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
+#include "BKE_property.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
 #include "BKE_texture.h"

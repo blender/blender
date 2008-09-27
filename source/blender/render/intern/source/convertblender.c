@@ -3013,7 +3013,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0;
 	int a, a1, ok, vertofs;
 	int end, do_autosmooth=0, totvert = 0;
-	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
 	int use_original_normals= 0;
 
 	me= ob->data;

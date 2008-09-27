@@ -2458,7 +2458,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 	ParticleSettings *part=psys->part;
 	ParticleData *pa;
 	float vec2[3],loc[3],*co=0;
-	int p,totpart,totvert;
+	int p,totpart;
 	
 	for(ec= lb->first; ec; ec= ec->next) {
 		PartDeflect *pd= ec->ob->pd;
@@ -2991,8 +2991,7 @@ static void particle_intersect_face(void *userdata, int index, const BVHTreeRay 
 	MFace *face = col->md->mfaces + index;
 	MVert *x = col->md->x;
 	MVert *v = col->md->current_v;
-	float dir[3], vel[3], co1[3], co2[3], uv[2], ipoint[3], temp[3], dist, t, threshold;
-	int ret=0;
+	float vel[3], co1[3], co2[3], uv[2], ipoint[3], temp[3], t;
 
 	float *t0, *t1, *t2, *t3;
 	t0 = x[ face->v1 ].co;
@@ -3061,12 +3060,11 @@ static void particle_intersect_face(void *userdata, int index, const BVHTreeRay 
 /* 1. check for all possible deflectors for closest intersection on particle path */
 /* 2. if deflection was found kill the particle or calculate new coordinates */
 static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, ParticleSystem *psys, ParticleSettings *part, ParticleData *pa, int p, float timestep, float dfra, float cfra){
-	Object *ob;
+	Object *ob = NULL;
 	ListBase *lb=&psys->effectors;
 	ParticleEffectorCache *ec;
 	ParticleKey reaction_state;
 	ParticleCollision col;
-	CollisionModifierData *collmd;
 	BVHTreeRayHit hit;
 	float ray_dir[3], zerovec[3]={0.0,0.0,0.0};
 	float radius = ((part->flag & PART_SIZE_DEFL)?pa->size:0.0f);
@@ -3114,7 +3112,6 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 			int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0;
 			float co[3]; /* point of collision */
 			float vec[3]; /* movement through collision */
-			float vel[3]; /* velocity after collision */
 			float t = hit.dist/col.ray_len; /* time of collision between this iteration */
 			float dt = col.t + t * (1.0f - col.t); /* time of collision between frame change*/
 

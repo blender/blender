@@ -2942,14 +2942,6 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 	}
 }
 
-static void check_actor(void *arg1_but, void *arg2_object)
-{
-	int *gameflag = arg2_object;
-	/* force enabled ACTOR for body >= dynamic */
-	if (*gameflag & OB_DYNAMIC)
-		*gameflag |= OB_ACTOR;
-}
-
 static void check_body_type(void *arg1_but, void *arg2_object)
 {
 	Object *ob = arg2_object;
@@ -3018,7 +3010,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 		if (ob->soft)
 		{
 			
-			uiDefButBitI(block, TOG, OB_SB_GOAL, 0, "Shape matching", 
+			uiDefButBitS(block, TOG, OB_SB_GOAL, 0, "Shape matching", 
 						xco+=120, yco, 118, 19, &ob->softflag, 0, 0, 0, 0, 
 						"Enable soft body shape matching goal");
 			yco -= 25;
