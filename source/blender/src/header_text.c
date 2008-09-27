@@ -36,6 +36,18 @@
 #include <string.h>
 #include <stdio.h>
 
+/* file time checking */
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <io.h>
+#include "BLI_winstuff.h"
+#endif
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -70,29 +82,13 @@
 
 #include "BSE_filesel.h"
 
+#include "BLI_blenlib.h"
+
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
 #include "blendef.h"
 #include "mydevice.h"
-
-#include "PIL_time.h"
-
-/* file time checking */
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-// INT is defined in BIF_interface.h as constant but is also a typedef in Windows
-// This annoying problem should be fixed by using a less conflicting name in Blender.
-#undef INT
-
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#include "BLI_winstuff.h"
-#endif
 
 extern void redraw_alltext(void); /* defined in drawtext.c */
 
@@ -303,7 +299,6 @@ static void do_text_filemenu(void *arg, int event)
 {
 	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text;
-	ScrArea *sa;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -391,7 +386,6 @@ static void do_text_editmenu(void *arg, int event)
 {
 	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text;
-	ScrArea *sa;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -452,7 +446,6 @@ static void do_text_editmenu_viewmenu(void *arg, int event)
 {
 	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text;
-	ScrArea *sa;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -479,7 +472,6 @@ static void do_text_editmenu_selectmenu(void *arg, int event)
 {
 	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text;
-	ScrArea *sa;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -505,7 +497,6 @@ static void do_text_editmenu_markermenu(void *arg, int event)
 	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text;
 	TextMarker *mrk;
-	ScrArea *sa;
 	int lineno;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
@@ -550,7 +541,6 @@ static void do_text_formatmenu(void *arg, int event)
 {
 	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text;
-	ScrArea *sa;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -909,66 +899,61 @@ static void txt_ignore_modified(Text *text) {
 	text->mtime= st.st_mtime;
 }
 
-static double last_check_time= 0;
-
 static short do_modification_check(SpaceText *st_v) {
 	SpaceText *st = (SpaceText *)st_v;
 	Text *text= st->text;
 
-	if (last_check_time < PIL_check_seconds_timer() - 2.0) {
-		switch (txt_file_modified(text)) {
-		case 1:
-			/* Modified locally and externally, ahhh. Offer more possibilites. */
-			if (text->flags & TXT_ISDIRTY) {
-				switch (pupmenu("File Modified Outside and Inside Blender %t|Load outside changes (ignore local changes) %x0|Save local changes (ignore outside changes) %x1|Make text internal (separate copy) %x2")) {
-				case 0:
-					reopen_text(text);
-					if (st->showsyntax) txt_format_text(st);
-					return 1;
-				case 1:
-					txt_write_file(text);
-					return 1;
-				case 2:
-					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-					MEM_freeN(text->name);
-					text->name= NULL;
-					return 1;
-				}
-			} else {
-				switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1|Ignore %x2")) {
-				case 0:
-					if (text->compiled) BPY_free_compiled_text(text);
-						text->compiled = NULL;
-					reopen_text(text);
-					if (st->showsyntax) txt_format_text(st);
-					return 1;
-				case 1:
-					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-					MEM_freeN(text->name);
-					text->name= NULL;
-					return 1;
-				case 2:
-					txt_ignore_modified(text);
-					return 1;
-				}
-			}
-			break;
-		case 2:
-			switch (pupmenu("File Deleted Outside Blender %t|Make text internal %x0|Recreate file %x1")) {
+	switch (txt_file_modified(text)) {
+	case 1:
+		/* Modified locally and externally, ahhh. Offer more possibilites. */
+		if (text->flags & TXT_ISDIRTY) {
+			switch (pupmenu("File Modified Outside and Inside Blender %t|Load outside changes (ignore local changes) %x0|Save local changes (ignore outside changes) %x1|Make text internal (separate copy) %x2")) {
 			case 0:
-				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-				MEM_freeN(text->name);
-				text->name= NULL;
+				reopen_text(text);
+				if (st->showsyntax) txt_format_text(st);
 				return 1;
 			case 1:
 				txt_write_file(text);
 				return 1;
+			case 2:
+				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+				MEM_freeN(text->name);
+				text->name= NULL;
+				return 1;
 			}
-			break;
-		default:
-			break;
+		} else {
+			switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1|Ignore %x2")) {
+			case 0:
+				if (text->compiled) BPY_free_compiled_text(text);
+					text->compiled = NULL;
+				reopen_text(text);
+				if (st->showsyntax) txt_format_text(st);
+				return 1;
+			case 1:
+				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+				MEM_freeN(text->name);
+				text->name= NULL;
+				return 1;
+			case 2:
+				txt_ignore_modified(text);
+				return 1;
+			}
 		}
-		last_check_time = PIL_check_seconds_timer();
+		break;
+	case 2:
+		switch (pupmenu("File Deleted Outside Blender %t|Make text internal %x0|Recreate file %x1")) {
+		case 0:
+			text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
+			MEM_freeN(text->name);
+			text->name= NULL;
+			return 1;
+		case 1:
+			txt_write_file(text);
+			return 1;
+		}
+		break;
+	default:
+		break;
 	}
 	return 0;
 }
