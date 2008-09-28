@@ -4154,7 +4154,7 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 	}
 
 	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED) && (psys_in_edit_mode(psys)
-		|| (part->type==PART_HAIR || part->draw_as==PART_DRAW_PATH) || part->draw&PART_DRAW_KEYS)){
+		|| (part->type==PART_HAIR || part->draw_as==PART_DRAW_PATH))){
 		psys_cache_paths(ob, psys, cfra, 0);
 
 		/* for render, child particle paths are computed on the fly */
@@ -4464,10 +4464,8 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 		return;
 	}
 
-	/* cache shouldn't be used for hair or "none" or "first keyed" physics */
-	if(part->type == PART_HAIR || part->phystype == PART_PHYS_NO)
-		usecache= 0;
-	else if(part->type == PART_PHYS_KEYED && (psys->flag & PSYS_FIRST_KEYED))
+	/* cache shouldn't be used for hair or "none" or "keyed" physics */
+	if(part->type == PART_HAIR || ELEM(part->phystype, PART_PHYS_NO, PART_PHYS_KEYED))
 		usecache= 0;
 	else if(BKE_ptcache_get_continue_physics())
 		usecache= 0;

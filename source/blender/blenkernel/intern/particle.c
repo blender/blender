@@ -3796,7 +3796,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 		}
 		else{
 			if (pa) { /* TODO PARTICLE - should this ever be NULL? - Campbell */
-				if(pa->state.time==state->time)
+				if(pa->state.time==state->time || ELEM(part->phystype,PART_PHYS_NO,PART_PHYS_KEYED))
 					copy_particle_key(state, &pa->state, 1);
 				else if(pa->prev_state.time==state->time)
 					copy_particle_key(state, &pa->prev_state, 1);
@@ -3828,6 +3828,9 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 							
 							/* convert back to real velocity */
 							VecMulf(state->vel, frs_sec / dfra);
+
+							VecLerpf(state->ave, keys[1].ave, keys[2].ave, keytime);
+							QuatInterpol(state->rot, keys[1].rot, keys[2].rot, keytime);
 						}
 					}
 					else {
