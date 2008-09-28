@@ -13,11 +13,6 @@
 #include "loop_tools.h"
 #include <stdlib.h>
 
-#if (defined (__sun__) || defined (__sun)) || (!defined(linux) && (defined (__sparc) || defined (__sparc__)))
-#include <ieeefp.h>
-#endif
-
-
 /*****************************************************************************/
 /*! perform a single LBM step */
 /*****************************************************************************/
@@ -58,9 +53,9 @@ void LbmFsgrSolver::stepMain() {
 
 	// init moving bc's, can change mMaxVlen
 	initMovingObstacles(false);
-#if LBM_INCLUDE_TESTSOLVERS==1
+	
+	// handle fluid control 
 	handleCpdata();
-#endif
 
 	// important - keep for tadap
 	LbmFloat lastMass = mCurrentMass;

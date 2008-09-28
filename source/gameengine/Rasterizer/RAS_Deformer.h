@@ -44,7 +44,11 @@ public:
 	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)=0;
 	virtual bool Apply(class RAS_IPolyMaterial *polymat)=0;
 	virtual bool Update(void)=0;
-	virtual RAS_Deformer *GetReplica()=0;
+	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica)=0;
+	virtual bool SkipVertexTransform()
+	{
+		return false;
+	}
 protected:
 	class RAS_MeshObject	*m_pMesh;
 };

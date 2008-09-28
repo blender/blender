@@ -52,6 +52,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim.h"
+#include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -118,7 +119,7 @@ void calc_curvepath(Object *ob)
 	
 	path->len= tot+1;
 	/* exception: vector handle paths and polygon paths should be subdivided at least a factor resolu */
-	if(path->len<nu->resolu*nu->pntsu) path->len= nu->resolu*nu->pntsu;
+	if(path->len<nu->resolu*SEGMENTSU(nu)) path->len= nu->resolu*SEGMENTSU(nu);
 	
 	dist= (float *)MEM_mallocN((tot+1)*4, "calcpathdist");
 
@@ -783,6 +784,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				hair= (totchild == 0 || psys->childcache) && psys->pathcache;
 			if(!hair)
 				return;
+			
+			/* we use cache, update totchild according to cached data */
+			totchild = psys->totchildcache;
+			totpart = psys->totcached;
 		}
 
 		psys->lattice = psys_get_lattice(par, psys);
@@ -865,6 +870,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					}
 
 					VECCOPY(pamat[3], cache->co);
+					pamat[3][3]= 1.0f;
+					
 				}
 				else if(step_nbr) {
 					/* other keys */

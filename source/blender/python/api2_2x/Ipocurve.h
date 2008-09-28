@@ -31,7 +31,7 @@
 #define EXPP_IPOCURVE_H
 
 #include <Python.h>
-#include "DNA_curve_types.h"	/* declaration of IpoCurve */
+#include "DNA_ipo_types.h"	/* declaration of IpoCurve */
 
 /*****************************************************************************/
 /* Python C_IpoCurve structure definition:                                   */

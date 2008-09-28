@@ -81,6 +81,7 @@ struct rctf;
 #include "BIF_editarmature.h"
 #include "BIF_editaction.h"
 #include "BIF_editnla.h"
+#include "BIF_keyframing.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -2567,7 +2568,7 @@ static int Object_setMatrix( BPy_Object * self, MatrixObject * mat )
 static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 {
 	Object *ob= self->object;
-	int key = 0;
+	int key = 0, flag = 0;
 	char *actname= NULL;
 
 	if( !PyArg_ParseTuple( args, "i", &key ) )
@@ -2577,35 +2578,39 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 	if(ob->ipoflag & OB_ACTION_OB)
 		actname= "Object";
 	
+	/* flag should be initialised with the 'autokeying' flags like for normal keying */
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
+	
 	if (key == IPOKEY_LOC || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X, 0);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y, 0);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z, 0);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X, flag);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y, flag);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z, flag);      
 	}
 	if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X, 0);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y, 0);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z, 0);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X, flag);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y, flag);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z, flag);      
 	}
 	if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X, 0);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y, 0);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z, 0);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X, flag);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y, flag);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z, flag);      
 	}
 	if (key == IPOKEY_LAYER ){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LAY, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LAY, flag);
 	}
 
 	if (key == IPOKEY_PI_STRENGTH ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR, 0);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR, flag);   
 	} else if (key == IPOKEY_PI_FALLOFF ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL, 0);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL, flag);   
 	} else if (key == IPOKEY_PI_SURFACEDAMP ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP, 0);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP, flag);   
 	} else if (key == IPOKEY_PI_RANDOMDAMP ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP, 0);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP, flag);   
 	} else if (key == IPOKEY_PI_PERM ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM, 0);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM, flag);   
 	}
 
 	allspace(REMAKEIPO, 0);
@@ -2629,6 +2634,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	BPy_Action *sourceact;
 	char *chanName;
 	int actframe;
+	int flag=0;
 
 
 	/* for doing the time trick, similar to editaction bake_action_with_client() */
@@ -2647,17 +2653,21 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 
 	/* XXX: must check chanName actually exists, otherwise segfaults! */
 	//achan = get_action_channel(sourceact->action, chanName);
+	
+	/* flag should be initialised with the 'autokeying' flags like for normal keying */
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
 
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, flag);
 	
 	G.scene->r.cfra = oldframe;
 
@@ -2679,6 +2689,7 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args )
 {
 	Object *ob= self->object;
+	int flag = 0;
 	char *chanName;
 
 	/* for doing the time trick, similar to editaction bake_action_with_client() */
@@ -2694,16 +2705,20 @@ static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args
 
 	/* XXX: must check chanName actually exists, otherwise segfaults! */
 
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, 0);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, 0);
+	/* flag should be initialised with the 'autokeying' flags like for normal keying */
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
+	
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, flag);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, flag);
 
 	G.scene->r.cfra = oldframe;
 
@@ -2734,7 +2749,7 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 				"expects bonename, constraintname, influenceval" );
 	
 	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName, NULL,
-			CO_ENFORCE);
+			CO_ENFORCE, 1);
 	
 	if (!icu)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -2987,7 +3002,7 @@ static PyObject *Object_getProperty( BPy_Object * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a string" );
 
-	prop = get_property( self->object, prop_name );
+	prop = get_ob_property( self->object, prop_name );
 	if( prop )
 		return Property_CreatePyObject( prop );
 
@@ -3003,7 +3018,7 @@ static PyObject *Object_addProperty( BPy_Object * self, PyObject * args )
 	char *prop_type = NULL;
 	short type = -1;
 	BPy_Property *py_prop = NULL;
-	int argslen = PyObject_Length( args );
+	int argslen = PyTuple_Size( args );
 
 	if( argslen == 3 || argslen == 2 ) {
 		if( !PyArg_ParseTuple( args, "sO|s", &prop_name, &prop_data,
@@ -3114,7 +3129,7 @@ static PyObject *Object_removeProperty( BPy_Object * self, PyObject * args )
 			py_prop->property = NULL;
 		}
 	} else {
-		prop = get_property( self->object, prop_name );
+		prop = get_ob_property( self->object, prop_name );
 		if( prop ) {
 			BLI_remlink( &self->object->prop, prop );
 			free_property( prop );
@@ -3133,18 +3148,22 @@ static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 					     PyObject * args )
 {
 	PyObject *dest;
+	Object *dest_ob;
 	bProperty *prop = NULL;
-	bProperty *propn = NULL;
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &dest ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an Object" );
-
+	
+	if (dest == (PyObject *)self) {
+		Py_RETURN_NONE;
+	}
+	dest_ob = ( ( BPy_Object * ) dest )->object;
+	
 	/*make a copy of all its properties*/
 	prop = self->object->prop.first;
 	while( prop ) {
-		propn = copy_property( prop );
-		BLI_addtail( &( ( BPy_Object * ) dest )->object->prop, propn );
+		set_ob_property( dest_ob, prop );
 		prop = prop->next;
 	}
 
@@ -3302,6 +3321,33 @@ static PyObject *Object_insertShapeKey(BPy_Object * self)
 {
 	insert_shapekey(self->object);
 	Py_RETURN_NONE;
+}
+
+static PyObject *Object_getColor( BPy_Object *self, void *type )
+{
+	return Py_BuildValue( "(ffff)", self->object->col[0], self->object->col[1], self->object->col[2], self->object->col[3] );
+}
+
+static int Object_setColor( BPy_Object *self, PyObject *value )
+{
+	int i;
+	float color[4];
+	struct Object *object = self->object;
+
+	value = PySequence_Tuple( value );
+
+	if( !value || !PyArg_ParseTuple( value, "ffff", &color[0], &color[1], &color[2], &color[3] ) ) {
+		Py_XDECREF( value );
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected a list or tuple of 3 floats" );
+	}
+
+	Py_DECREF( value );
+	
+	for( i = 0; i < 4; ++i ) {
+		object->col[i] = MAX2(MIN2(color[i], 1.0), 0);
+	}
+	return 0;
 }
 
 /* __copy__() */
@@ -3518,8 +3564,8 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 
 /* this is too low level, possible to add helper methods */
 
-#define GAMEFLAG_MASK ( OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
-		OB_ROT_FH | OB_ANISOTROPIC_FRICTION | OB_GHOST | OB_RIGID_BODY | \
+#define GAMEFLAG_MASK ( OB_COLLISION | OB_DYNAMIC | OB_CHILD | OB_ACTOR | OB_DO_FH | \
+		OB_ROT_FH | OB_ANISOTROPIC_FRICTION | OB_GHOST | OB_RIGID_BODY | OB_SOFT_BODY | \
 		OB_BOUNDS | OB_COLLISION_RESPONSE | OB_SECTOR | OB_PROP | \
 		OB_MAINACTOR )
 
@@ -5188,7 +5234,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getDrawModeBits, (setter)Object_setDrawModeBits,
 	 "Transparent materials for the active object (mesh only) enabled",
 	 (void *)OB_DRAWTRANSP},
-
+	{"color",
+	 (getter)Object_getColor, (setter)Object_setColor,
+	 "Object color used by the game engine and optionally for materials",
+	 NULL},
 	{"enableNLAOverride",
 	 (getter)Object_getNLAflagBits, (setter)Object_setNLAflagBits,
 	 "Toggles Action-NLA based animation",
@@ -5496,6 +5545,7 @@ static PyObject *M_Object_RBFlagsDict( void )
 
 	if( M ) {
 		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "COLLISION", PyInt_FromLong( OB_COLLISION ) );
 		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( OB_DYNAMIC ) );
 		PyConstant_Insert( d, "CHILD", PyInt_FromLong( OB_CHILD ) );
 		PyConstant_Insert( d, "ACTOR", PyInt_FromLong( OB_ACTOR ) );
@@ -5505,6 +5555,7 @@ static PyObject *M_Object_RBFlagsDict( void )
 				PyInt_FromLong( OB_ANISOTROPIC_FRICTION ) );
 		PyConstant_Insert( d, "GHOST", PyInt_FromLong( OB_GHOST ) );
 		PyConstant_Insert( d, "RIGIDBODY", PyInt_FromLong( OB_RIGID_BODY ) );
+		PyConstant_Insert( d, "SOFTBODY", PyInt_FromLong( OB_SOFT_BODY ) );
 		PyConstant_Insert( d, "BOUNDS", PyInt_FromLong( OB_BOUNDS ) );
 		PyConstant_Insert( d, "COLLISION_RESPONSE",
 				PyInt_FromLong( OB_COLLISION_RESPONSE ) );

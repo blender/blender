@@ -1058,6 +1058,26 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
+int BLI_parent_dir(char *path)
+{
+#ifdef WIN32
+	static char *parent_dir="..\\";
+#else
+	static char *parent_dir="../";
+#endif
+	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
+	BLI_strncpy(tmp, path, sizeof(tmp));
+	BLI_add_slash(tmp);
+	strcat(tmp, parent_dir);
+	BLI_cleanup_dir(NULL, tmp);
+ 	
+	if (!BLI_testextensie(tmp, parent_dir)) {
+		BLI_strncpy(path, tmp, sizeof(tmp));	
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 int BLI_convertstringframe(char *path, int frame)
 {
@@ -1210,6 +1230,49 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	
 	return wasrelative;
 }
+
+
+/*
+ * Should only be done with command line paths.
+ * this is NOT somthing blenders internal paths support like the // prefix
+ */
+int BLI_convertstringcwd(char *path)
+{
+	int wasrelative = 1;
+	int filelen = strlen(path);
+	
+#ifdef WIN32
+	if (filelen >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+		wasrelative = 0;
+#else
+	if (filelen >= 2 && path[0] == '/')
+		wasrelative = 0;
+#endif
+	
+	if (wasrelative==1) {
+		char cwd[FILE_MAXDIR + FILE_MAXFILE];
+		BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
+		
+		if (cwd[0] == '\0') {
+			printf( "Could not get the current working directory - $PWD for an unknown reason.");
+		} else {
+			/* uses the blend path relative to cwd important for loading relative linked files.
+			*
+			* cwd should contain c:\ etc on win32 so the relbase can be NULL
+			* relbase being NULL also prevents // being misunderstood as relative to the current
+			* blend file which isnt a feature we want to use in this case since were dealing
+			* with a path from the command line, rather then from inside Blender */
+			
+			char origpath[FILE_MAXDIR + FILE_MAXFILE];
+			BLI_strncpy(origpath, path, FILE_MAXDIR + FILE_MAXFILE);
+			
+			BLI_make_file_string(NULL, path, cwd, origpath); 
+		}
+	}
+	
+	return wasrelative;
+}
+
 
 /* copy di to fi, filename only */
 void BLI_splitdirstring(char *di, char *fi)
@@ -1912,7 +1975,7 @@ int BLI_strncasecmp(const char *s1, const char *s2, int n) {
 #include "iconv.h"
 #include "localcharset.h"
 
-void BLI_string_to_utf8(char *original, char *utf_8, char *code)
+void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 {
 	size_t inbytesleft=strlen(original);
 	size_t outbytesleft=512;

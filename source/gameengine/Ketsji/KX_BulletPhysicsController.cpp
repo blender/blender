@@ -14,6 +14,7 @@
 
 #include "PHY_IPhysicsEnvironment.h"
 #include "CcdPhysicsEnvironment.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 
 KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna)
@@ -148,8 +149,12 @@ void KX_BulletPhysicsController::setScaling(const MT_Vector3& scaling)
 }
 MT_Scalar	KX_BulletPhysicsController::GetMass()
 {
-
-	MT_Scalar invmass = GetRigidBody()->getInvMass();
+	if (GetSoftBody())
+		return GetSoftBody()->getTotalMass();
+	
+	MT_Scalar invmass = 0.f;
+	if (GetRigidBody())
+		invmass = GetRigidBody()->getInvMass();
 	if (invmass)
 		return 1.f/invmass;
 	return 0.f;
@@ -167,7 +172,7 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
 	btRigidBody *body = GetRigidBody();
-	if (body->getActivationState() != DISABLE_SIMULATION)
+	if (body && body->getActivationState() != DISABLE_SIMULATION)
 	{
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		m_savedCollisionFlags = body->getCollisionFlags();
@@ -186,7 +191,7 @@ void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
 	btRigidBody *body = GetRigidBody();
-	if (body->getActivationState() == DISABLE_SIMULATION)
+	if (body && body->getActivationState() == DISABLE_SIMULATION)
 	{
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			m_savedMass,
@@ -241,18 +246,22 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 
 void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 {
-	GetRigidBody()->activate(true);
+	if (GetRigidBody())
+		GetRigidBody()->activate(true);
 
 	if (!m_bDyna)
 	{
-		GetRigidBody()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		GetCollisionObject()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	} else
 	{
 		if (!nondynaonly)
 		{
 			btTransform worldTrans;
-			GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
-			GetRigidBody()->setCenterOfMassTransform(worldTrans);
+			if (GetRigidBody())
+			{
+				GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
+				GetRigidBody()->setCenterOfMassTransform(worldTrans);
+			}
 			
 			/*
 			scaling?

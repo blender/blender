@@ -68,18 +68,25 @@ void btSphereBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,b
 	
 	btScalar dist = getSphereDistance(boxObj,pOnBox,pOnSphere,sphereCenter,radius);
 
+	resultOut->setPersistentManifold(m_manifoldPtr);
+
 	if (dist < SIMD_EPSILON)
 	{
 		btVector3 normalOnSurfaceB = (pOnBox- pOnSphere).normalize();
 
 		/// report a contact. internally this will be kept persistent, and contact reduction is done
 
-		resultOut->setPersistentManifold(m_manifoldPtr);
 		resultOut->addContactPoint(normalOnSurfaceB,pOnBox,dist);
 		
 	}
 
-	
+	if (m_ownManifold)
+	{
+		if (m_manifoldPtr->getNumContacts())
+		{
+			resultOut->refreshContactPoints();
+		}
+	}
 
 }
 
@@ -102,8 +109,8 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 	btVector3 bounds[2];
 	btBoxShape* boxShape= (btBoxShape*)boxObj->getCollisionShape();
 	
-	bounds[0] = -boxShape->getHalfExtents();
-	bounds[1] = boxShape->getHalfExtents();
+	bounds[0] = -boxShape->getHalfExtentsWithoutMargin();
+	bounds[1] = boxShape->getHalfExtentsWithoutMargin();
 
 	margins = boxShape->getMargin();//also add sphereShape margin?
 
@@ -208,6 +215,10 @@ btScalar btSphereBoxCollisionAlgorithm::getSpherePenetration( btCollisionObject*
 
 	btVector3	p0, tmp, prel, n[6], normal;
 	btScalar   fSep = btScalar(-10000000.0), fSepThis;
+
+	// set p0 and normal to a default value to shup up GCC
+	p0.setValue(btScalar(0.), btScalar(0.), btScalar(0.));
+	normal.setValue(btScalar(0.), btScalar(0.), btScalar(0.));
 
 	n[0].setValue( btScalar(-1.0),  btScalar(0.0),  btScalar(0.0) );
 	n[1].setValue(  btScalar(0.0), btScalar(-1.0),  btScalar(0.0) );

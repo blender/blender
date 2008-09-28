@@ -105,6 +105,9 @@ GHOST_SystemX11(
 	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
 #endif
 
+	m_wm_protocols= XInternAtom(m_display, "WM_PROTOCOLS", False);
+	m_wm_take_focus= XInternAtom(m_display, "WM_TAKE_FOCUS", False);
+
 	// compute the initial time
 	timeval tv;
 	if (gettimeofday(&tv,NULL) == -1) {
@@ -191,6 +194,7 @@ getMainDisplayDimensions(
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
+	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	GHOST_IWindow* 
@@ -203,14 +207,18 @@ createWindow(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	bool stereoVisual
+	bool stereoVisual,
+	const GHOST_TEmbedderWindowID parentWindow
 ){
 	GHOST_WindowX11 * window = 0;
 	
 	if (!m_display) return 0;
 	
+
+	
+
 	window = new GHOST_WindowX11 (
-		this,m_display,title, left, top, width, height, state, type, stereoVisual
+		this,m_display,title, left, top, width, height, state, parentWindow, type, stereoVisual
 	);
 
 	if (window) {
@@ -472,7 +480,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XClientMessageEvent & xcme = xe->xclient;
 
 #ifndef __sgi			
-			if (xcme.data.l[0] == m_delete_window_atom) {
+			if (((Atom)xcme.data.l[0]) == m_delete_window_atom) {
 				g_event = new 
 				GHOST_Event(	
 					getMilliSeconds(),
@@ -506,12 +514,20 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					                              GHOST_kEventNDOFButton,
 					                              window, data);
 				}
+			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+				/* as ICCCM say, we need reply this event
+				 * with a SetInputFocus, the data[1] have
+				 * the valid timestamp (send by the wm).
+				 */
+				XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
 			} else {
 				/* Unknown client message, ignore */
 			}
 			break;
 		}
-			
+		
+		case DestroyNotify:
+			::exit(-1);	
 		// We're not interested in the following things.(yet...)
 		case NoExpose : 
 		case GraphicsExpose :

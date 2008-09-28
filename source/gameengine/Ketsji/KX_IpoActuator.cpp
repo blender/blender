@@ -130,7 +130,6 @@ void KX_IpoActuator::SetStartTime(float curtime)
 {
 	float direction = m_startframe < m_endframe ? 1.0f : -1.0f;
 
-	curtime = curtime - KX_KetsjiEngine::GetSuspendedDelta();	
 	if (m_direction > 0)
 		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
 	else
@@ -139,7 +138,7 @@ void KX_IpoActuator::SetStartTime(float curtime)
 
 void KX_IpoActuator::SetLocalTime(float curtime)
 {
-	float delta_time = ((curtime - m_starttime) - KX_KetsjiEngine::GetSuspendedDelta())*KX_KetsjiEngine::GetAnimFrameRate();
+	float delta_time = (curtime - m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
 	
 	// negative delta_time is caused by floating point inaccuracy
 	// perhaps the inaccuracy could be reduced a bit
@@ -165,6 +164,8 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	int numevents = 0;
 	bool bIpoStart = false;
 
+	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
+
 	if (frame)
 	{
 		numevents = m_events.size();
@@ -180,7 +181,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		if (m_starttime < -2.0f*start_smaller_then_end*(m_endframe - m_startframe))
 		{
 			// start for all Ipo, initial start for LOOP_STOP
-			m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
+			m_starttime = curtime;
 			m_bIpoPlaying = true;
 			bIpoStart = true;
 		}
@@ -461,7 +462,7 @@ PyObject* KX_IpoActuator::_getattr(const STR_String& attr) {
 
 
 /* set --------------------------------------------------------------------- */
-char KX_IpoActuator::Set_doc[] = 
+const char KX_IpoActuator::Set_doc[] = 
 "set(type, startframe, endframe, mode?)\n"
 "\t - type:       Play, PingPong, Flipper, LoopStop, LoopEnd or FromProp (string)\n"
 "\t - startframe: first frame to use (int)\n"
@@ -504,7 +505,7 @@ PyObject* KX_IpoActuator::PySet(PyObject* self,
 }
 
 /* set property  ----------------------------------------------------------- */
-char KX_IpoActuator::SetProperty_doc[] = 
+const char KX_IpoActuator::SetProperty_doc[] = 
 "setProperty(propname)\n"
 "\t - propname: name of the property (string)\n"
 "\tSet the property to be used in FromProp mode.\n";
@@ -524,7 +525,7 @@ PyObject* KX_IpoActuator::PySetProperty(PyObject* self,
 }
 
 /* 4. setStart:                                                              */
-char KX_IpoActuator::SetStart_doc[] = 
+const char KX_IpoActuator::SetStart_doc[] = 
 "setStart(frame)\n"
 "\t - frame: first frame to use (int)\n"
 "\tSet the frame from which the ipo starts playing.\n";
@@ -541,7 +542,7 @@ PyObject* KX_IpoActuator::PySetStart(PyObject* self,
 	Py_Return;
 }
 /* 5. getStart:                                                              */
-char KX_IpoActuator::GetStart_doc[] = 
+const char KX_IpoActuator::GetStart_doc[] = 
 "getStart()\n"
 "\tReturns the frame from which the ipo starts playing.\n";
 PyObject* KX_IpoActuator::PyGetStart(PyObject* self) {
@@ -549,7 +550,7 @@ PyObject* KX_IpoActuator::PyGetStart(PyObject* self) {
 }
 
 /* 6. setEnd:                                                                */
-char KX_IpoActuator::SetEnd_doc[] = 
+const char KX_IpoActuator::SetEnd_doc[] = 
 "setEnd(frame)\n"
 "\t - frame: last frame to use (int)\n"
 "\tSet the frame at which the ipo stops playing.\n";
@@ -566,7 +567,7 @@ PyObject* KX_IpoActuator::PySetEnd(PyObject* self,
 	Py_Return;
 }
 /* 7. getEnd:                                                                */
-char KX_IpoActuator::GetEnd_doc[] = 
+const char KX_IpoActuator::GetEnd_doc[] = 
 "getEnd()\n"
 "\tReturns the frame at which the ipo stops playing.\n";
 PyObject* KX_IpoActuator::PyGetEnd(PyObject* self) {
@@ -574,7 +575,7 @@ PyObject* KX_IpoActuator::PyGetEnd(PyObject* self) {
 }
 
 /* 6. setIpoAsForce:                                                           */
-char KX_IpoActuator::SetIpoAsForce_doc[] = 
+const char KX_IpoActuator::SetIpoAsForce_doc[] = 
 "setIpoAsForce(force?)\n"
 "\t - force?    : interpret this ipo as a force? (KX_TRUE, KX_FALSE)\n"
 "\tSet whether to interpret the ipo as a force rather than a displacement.\n";
@@ -594,7 +595,7 @@ PyObject* KX_IpoActuator::PySetIpoAsForce(PyObject* self,
 	Py_Return;	
 }
 /* 7. getIpoAsForce:                                                         */
-char KX_IpoActuator::GetIpoAsForce_doc[] = 
+const char KX_IpoActuator::GetIpoAsForce_doc[] = 
 "getIpoAsForce()\n"
 "\tReturns whether to interpret the ipo as a force rather than a displacement.\n";
 PyObject* KX_IpoActuator::PyGetIpoAsForce(PyObject* self) {
@@ -602,7 +603,7 @@ PyObject* KX_IpoActuator::PyGetIpoAsForce(PyObject* self) {
 }
 
 /* 6. setIpoAsForce:                                                           */
-char KX_IpoActuator::SetIpoAdd_doc[] = 
+const char KX_IpoActuator::SetIpoAdd_doc[] = 
 "setIpoAdd(add?)\n"
 "\t - add?    : add flag (KX_TRUE, KX_FALSE)\n"
 "\tSet whether to interpret the ipo as additive rather than absolute.\n";
@@ -622,7 +623,7 @@ PyObject* KX_IpoActuator::PySetIpoAdd(PyObject* self,
 	Py_Return;	
 }
 /* 7. getIpoAsForce:                                                         */
-char KX_IpoActuator::GetIpoAdd_doc[] = 
+const char KX_IpoActuator::GetIpoAdd_doc[] = 
 "getIpoAsAdd()\n"
 "\tReturns whether to interpret the ipo as additive rather than absolute.\n";
 PyObject* KX_IpoActuator::PyGetIpoAdd(PyObject* self) {
@@ -630,7 +631,7 @@ PyObject* KX_IpoActuator::PyGetIpoAdd(PyObject* self) {
 }
 
 /* 8. setType:                                                               */
-char KX_IpoActuator::SetType_doc[] = 
+const char KX_IpoActuator::SetType_doc[] = 
 "setType(mode)\n"
 "\t - mode: Play, PingPong, Flipper, LoopStop, LoopEnd or FromProp (string)\n"
 "\tSet the operation mode of the actuator.\n";
@@ -651,7 +652,7 @@ PyObject* KX_IpoActuator::PySetType(PyObject* self,
 	Py_Return;
 }
 /* 9. getType:                                                               */
-char KX_IpoActuator::GetType_doc[] = 
+const char KX_IpoActuator::GetType_doc[] = 
 "getType()\n"
 "\tReturns the operation mode of the actuator.\n";
 PyObject* KX_IpoActuator::PyGetType(PyObject* self) {
@@ -659,7 +660,7 @@ PyObject* KX_IpoActuator::PyGetType(PyObject* self) {
 }
 
 /* 10. setForceIpoActsLocal:                                                 */
-char KX_IpoActuator::SetForceIpoActsLocal_doc[] = 
+const char KX_IpoActuator::SetForceIpoActsLocal_doc[] = 
 "setForceIpoActsLocal(local?)\n"
 "\t - local?    : Apply the ipo-as-force in the object's local\n"
 "\t               coordinates? (KX_TRUE, KX_FALSE)\n"
@@ -679,7 +680,7 @@ PyObject* KX_IpoActuator::PySetForceIpoActsLocal(PyObject* self,
 	Py_Return;	
 }
 /* 11. getForceIpoActsLocal:                                                */
-char KX_IpoActuator::GetForceIpoActsLocal_doc[] = 
+const char KX_IpoActuator::GetForceIpoActsLocal_doc[] = 
 "getForceIpoActsLocal()\n"
 "\tReturn whether to apply the force in the object's local\n"
 "\tcoordinates rather than the world global coordinates.\n";

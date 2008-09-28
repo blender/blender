@@ -5,13 +5,14 @@ Import('env')
 
 sources = env.Glob('intern/*.cpp')
 
-defs = ' NOGUI ELBEEM_BLENDER=1'
+defs = 'NOGUI ELBEEM_BLENDER=1'
 
 if env['WITH_BF_OPENMP'] == 1:
     defs += ' PARALLEL'
 
 if env['OURPLATFORM']=='win32-vc':
     defs += ' USE_MSVC6FIXES'
-incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] + ' ' +env['BF_SDL_INC']
+incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] + ' ' +env['BF_SDL_INC'] 
+incs += ' extern '
 
 env.BlenderLib ('bf_elbeem', sources, Split(incs), Split(defs), libtype='blender', priority=0 )

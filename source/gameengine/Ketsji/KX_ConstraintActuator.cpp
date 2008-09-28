@@ -172,13 +172,15 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		KX_GameObject  *obj = (KX_GameObject*) GetParent();
 		MT_Point3    position = obj->NodeGetWorldPosition();
 		MT_Point3    newposition;
-		MT_Vector3   direction, refDirection;
+		MT_Vector3   normal, direction, refDirection;
 		MT_Matrix3x3 rotation = obj->NodeGetWorldOrientation();
 		MT_Scalar    filter, newdistance, cosangle;
 		int axis, sign;
 
 		if (m_posDampTime) {
 			filter = m_posDampTime/(1.0+m_posDampTime);
+		} else {
+			filter = 0.0;
 		}
 		switch (m_locrot) {
 		case KX_ACT_CONSTRAINT_ORIX:
@@ -238,12 +240,8 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			} else {
 				refDirection = m_refDirection;
 			}
-			if (m_posDampTime) {
-				// apply damping on the direction
-				direction = filter*direction + (1.0-filter)*refDirection;
-			} else {
-				direction = refDirection;
-			}
+			// apply damping on the direction
+			direction = filter*direction + (1.0-filter)*refDirection;
 			obj->AlignAxisToVect(direction, axis);
 			result = true;
 			goto CHECK_TIME;
@@ -255,49 +253,74 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_DIRNZ:
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_DIRPX:
-				direction[0] = rotation[0][0];
-				direction[1] = rotation[1][0];
-				direction[2] = rotation[2][0];
+				normal[0] = rotation[0][0];
+				normal[1] = rotation[1][0];
+				normal[2] = rotation[2][0];
 				axis = 0;		// axis according to KX_GameObject::AlignAxisToVect()
-				sign = 1;		// X axis will be anti parrallel to normal
+				sign = 0;		// X axis will be parrallel to direction of ray
 				break;
 			case KX_ACT_CONSTRAINT_DIRPY:
-				direction[0] = rotation[0][1];
-				direction[1] = rotation[1][1];
-				direction[2] = rotation[2][1];
+				normal[0] = rotation[0][1];
+				normal[1] = rotation[1][1];
+				normal[2] = rotation[2][1];
 				axis = 1;
-				sign = 1;
+				sign = 0;
 				break;
 			case KX_ACT_CONSTRAINT_DIRPZ:
-				direction[0] = rotation[0][2];
-				direction[1] = rotation[1][2];
-				direction[2] = rotation[2][2];
+				normal[0] = rotation[0][2];
+				normal[1] = rotation[1][2];
+				normal[2] = rotation[2][2];
+				axis = 2;
+				sign = 0;
+				break;
+			case KX_ACT_CONSTRAINT_DIRNX:
+				normal[0] = -rotation[0][0];
+				normal[1] = -rotation[1][0];
+				normal[2] = -rotation[2][0];
+				axis = 0;
+				sign = 1;
+				break;
+			case KX_ACT_CONSTRAINT_DIRNY:
+				normal[0] = -rotation[0][1];
+				normal[1] = -rotation[1][1];
+				normal[2] = -rotation[2][1];
+				axis = 1;
+				sign = 1;
+				break;
+			case KX_ACT_CONSTRAINT_DIRNZ:
+				normal[0] = -rotation[0][2];
+				normal[1] = -rotation[1][2];
+				normal[2] = -rotation[2][2];
 				axis = 2;
 				sign = 1;
 				break;
-			case KX_ACT_CONSTRAINT_DIRNX:
-				direction[0] = -rotation[0][0];
-				direction[1] = -rotation[1][0];
-				direction[2] = -rotation[2][0];
-				axis = 0;
-				sign = 0;
-				break;
-			case KX_ACT_CONSTRAINT_DIRNY:
-				direction[0] = -rotation[0][1];
-				direction[1] = -rotation[1][1];
-				direction[2] = -rotation[2][1];
-				axis = 1;
-				sign = 0;
-				break;
-			case KX_ACT_CONSTRAINT_DIRNZ:
-				direction[0] = -rotation[0][2];
-				direction[1] = -rotation[1][2];
-				direction[2] = -rotation[2][2];
-				axis = 2;
-				sign = 0;
-				break;
 			}
-			direction.normalize();
+			normal.normalize();
+			if (m_option & KX_ACT_CONSTRAINT_LOCAL) {
+				// direction of the ray is along the local axis
+				direction = normal;
+			} else {
+				switch (m_locrot) {
+				case KX_ACT_CONSTRAINT_DIRPX:
+					direction = MT_Vector3(1.0,0.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRPY:
+					direction = MT_Vector3(0.0,1.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRPZ:
+					direction = MT_Vector3(0.0,0.0,1.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRNX:
+					direction = MT_Vector3(-1.0,0.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRNY:
+					direction = MT_Vector3(0.0,-1.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRNZ:
+					direction = MT_Vector3(0.0,0.0,-1.0);
+					break;
+				}
+			}
 			{
 				MT_Point3 topoint = position + (m_maximumBound) * direction;
 				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
@@ -326,24 +349,35 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						goto CHECK_TIME;
 					}
 					if (m_option & KX_ACT_CONSTRAINT_NORMAL) {
-						// the new orientation must be so that the axis is parallel to normal
-						if (sign)
-							newnormal = -newnormal;
+						MT_Scalar rotFilter;
 						// apply damping on the direction
 						if (m_rotDampTime) {
-							MT_Scalar rotFilter = 1.0/(1.0+m_rotDampTime);
-							newnormal = (-m_rotDampTime*rotFilter)*direction + rotFilter*newnormal;
-						} else if (m_posDampTime) {
-							newnormal = -filter*direction + (1.0-filter)*newnormal;
+							rotFilter = m_rotDampTime/(1.0+m_rotDampTime);
+						} else {
+							rotFilter = filter;
 						}
-						obj->AlignAxisToVect(newnormal, axis);
-						direction = -newnormal;
+						newnormal = rotFilter*normal - (1.0-rotFilter)*newnormal;
+						obj->AlignAxisToVect((sign)?-newnormal:newnormal, axis);
+						if (m_option & KX_ACT_CONSTRAINT_LOCAL) {
+							direction = newnormal;
+							direction.normalize();
+						}
 					}
 					if (m_option & KX_ACT_CONSTRAINT_DISTANCE) {
 						if (m_posDampTime) {
 							newdistance = filter*(position-callback.m_hitPoint).length()+(1.0-filter)*m_minimumBound;
 						} else {
 							newdistance = m_minimumBound;
+						}
+						// logically we should cancel the speed along the ray direction as we set the
+						// position along that axis
+						spc = obj->GetPhysicsController();
+						if (spc) {
+							MT_Vector3 linV = spc->GetLinearVelocity();
+							// cancel the projection along the ray direction
+							MT_Scalar fallspeed = linV.dot(direction);
+							if (!MT_fuzzyZero(fallspeed))
+								spc->SetLinearVelocity(linV-fallspeed*direction,false);
 						}
 					} else {
 						newdistance = (position-callback.m_hitPoint).length();
@@ -359,7 +393,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_LOCX:
 		case KX_ACT_CONSTRAINT_LOCY:
 		case KX_ACT_CONSTRAINT_LOCZ:
-			newposition = position;
+			newposition = position = obj->GetSGNode()->GetLocalPosition();
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_LOCX:
 				Clamp(newposition[0], m_minimumBound, m_maximumBound);
@@ -375,7 +409,8 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			if (m_posDampTime) {
 				newposition = filter*position + (1.0-filter)*newposition;
 			}
-			break;
+			obj->NodeSetLocalPosition(newposition);
+			goto CHECK_TIME;
 		}
 		if (result) {
 			// set the new position but take into account parent if any
@@ -478,7 +513,7 @@ PyObject* KX_ConstraintActuator::_getattr(const STR_String& attr) {
 }
 
 /* 2. setDamp                                                                */
-char KX_ConstraintActuator::SetDamp_doc[] = 
+const char KX_ConstraintActuator::SetDamp_doc[] = 
 "setDamp(duration)\n"
 "\t- duration: integer\n"
 "\tSets the time constant of the orientation and distance constraint.\n"
@@ -497,7 +532,7 @@ PyObject* KX_ConstraintActuator::PySetDamp(PyObject* self,
 	Py_Return;
 }
 /* 3. getDamp                                                                */
-char KX_ConstraintActuator::GetDamp_doc[] = 
+const char KX_ConstraintActuator::GetDamp_doc[] = 
 "getDamp()\n"
 "\tReturns the damping parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
@@ -505,7 +540,7 @@ PyObject* KX_ConstraintActuator::PyGetDamp(PyObject* self){
 }
 
 /* 2. setRotDamp                                                                */
-char KX_ConstraintActuator::SetRotDamp_doc[] = 
+const char KX_ConstraintActuator::SetRotDamp_doc[] = 
 "setRotDamp(duration)\n"
 "\t- duration: integer\n"
 "\tSets the time constant of the orientation constraint.\n"
@@ -524,7 +559,7 @@ PyObject* KX_ConstraintActuator::PySetRotDamp(PyObject* self,
 	Py_Return;
 }
 /* 3. getRotDamp                                                                */
-char KX_ConstraintActuator::GetRotDamp_doc[] = 
+const char KX_ConstraintActuator::GetRotDamp_doc[] = 
 "getRotDamp()\n"
 "\tReturns the damping time for application of the constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
@@ -532,7 +567,7 @@ PyObject* KX_ConstraintActuator::PyGetRotDamp(PyObject* self){
 }
 
 /* 2. setDirection                                                                */
-char KX_ConstraintActuator::SetDirection_doc[] = 
+const char KX_ConstraintActuator::SetDirection_doc[] = 
 "setDirection(vector)\n"
 "\t- vector: 3-tuple\n"
 "\tSets the reference direction in world coordinate for the orientation constraint.\n";
@@ -559,7 +594,7 @@ PyObject* KX_ConstraintActuator::PySetDirection(PyObject* self,
 	Py_Return;
 }
 /* 3. getDirection                                                                */
-char KX_ConstraintActuator::GetDirection_doc[] = 
+const char KX_ConstraintActuator::GetDirection_doc[] = 
 "getDirection()\n"
 "\tReturns the reference direction of the orientation constraint as a 3-tuple.\n";
 PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
@@ -572,7 +607,7 @@ PyObject* KX_ConstraintActuator::PyGetDirection(PyObject* self){
 }
 
 /* 2. setOption                                                                */
-char KX_ConstraintActuator::SetOption_doc[] = 
+const char KX_ConstraintActuator::SetOption_doc[] = 
 "setOption(option)\n"
 "\t- option: integer\n"
 "\tSets several options of the distance  constraint.\n"
@@ -594,7 +629,7 @@ PyObject* KX_ConstraintActuator::PySetOption(PyObject* self,
 	Py_Return;
 }
 /* 3. getOption                                                              */
-char KX_ConstraintActuator::GetOption_doc[] = 
+const char KX_ConstraintActuator::GetOption_doc[] = 
 "getOption()\n"
 "\tReturns the option parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
@@ -602,7 +637,7 @@ PyObject* KX_ConstraintActuator::PyGetOption(PyObject* self){
 }
 
 /* 2. setTime                                                                */
-char KX_ConstraintActuator::SetTime_doc[] = 
+const char KX_ConstraintActuator::SetTime_doc[] = 
 "setTime(duration)\n"
 "\t- duration: integer\n"
 "\tSets the activation time of the actuator.\n"
@@ -623,7 +658,7 @@ PyObject* KX_ConstraintActuator::PySetTime(PyObject* self,
 	Py_Return;
 }
 /* 3. getTime                                                                */
-char KX_ConstraintActuator::GetTime_doc[] = 
+const char KX_ConstraintActuator::GetTime_doc[] = 
 "getTime()\n"
 "\tReturns the time parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
@@ -631,7 +666,7 @@ PyObject* KX_ConstraintActuator::PyGetTime(PyObject* self){
 }
 
 /* 2. setProperty                                                                */
-char KX_ConstraintActuator::SetProperty_doc[] = 
+const char KX_ConstraintActuator::SetProperty_doc[] = 
 "setProperty(property)\n"
 "\t- property: string\n"
 "\tSets the name of the property or material for the ray detection of the distance constraint.\n"
@@ -653,7 +688,7 @@ PyObject* KX_ConstraintActuator::PySetProperty(PyObject* self,
 	Py_Return;
 }
 /* 3. getProperty                                                                */
-char KX_ConstraintActuator::GetProperty_doc[] = 
+const char KX_ConstraintActuator::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturns the property parameter.\n";
 PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
@@ -661,12 +696,12 @@ PyObject* KX_ConstraintActuator::PyGetProperty(PyObject* self){
 }
 
 /* 4. setDistance                                                                 */
-char KX_ConstraintActuator::SetDistance_doc[] = 
+const char KX_ConstraintActuator::SetDistance_doc[] = 
 "setDistance(distance)\n"
 "\t- distance: float\n"
 "\tSets the target distance in distance constraint\n";
 /* 4. setMin                                                                 */
-char KX_ConstraintActuator::SetMin_doc[] = 
+const char KX_ConstraintActuator::SetMin_doc[] = 
 "setMin(lower_bound)\n"
 "\t- lower_bound: float\n"
 "\tSets the lower value of the interval to which the value\n"
@@ -693,11 +728,11 @@ PyObject* KX_ConstraintActuator::PySetMin(PyObject* self,
 	Py_Return;
 }
 /* 5. getDistance                                                                 */
-char KX_ConstraintActuator::GetDistance_doc[] = 
+const char KX_ConstraintActuator::GetDistance_doc[] = 
 "getDistance()\n"
 "\tReturns the distance parameter \n";
 /* 5. getMin                                                                 */
-char KX_ConstraintActuator::GetMin_doc[] = 
+const char KX_ConstraintActuator::GetMin_doc[] = 
 "getMin()\n"
 "\tReturns the lower value of the interval to which the value\n"
 "\tis clipped.\n";
@@ -706,12 +741,12 @@ PyObject* KX_ConstraintActuator::PyGetMin(PyObject* self) {
 }
 
 /* 6. setRayLength                                                                 */
-char KX_ConstraintActuator::SetRayLength_doc[] = 
+const char KX_ConstraintActuator::SetRayLength_doc[] = 
 "setRayLength(length)\n"
 "\t- length: float\n"
 "\tSets the maximum ray length of the distance constraint\n";
 /* 6. setMax                                                                 */
-char KX_ConstraintActuator::SetMax_doc[] = 
+const char KX_ConstraintActuator::SetMax_doc[] = 
 "setMax(upper_bound)\n"
 "\t- upper_bound: float\n"
 "\tSets the upper value of the interval to which the value\n"
@@ -738,11 +773,11 @@ PyObject* KX_ConstraintActuator::PySetMax(PyObject* self,
 	Py_Return;
 }
 /* 7. getRayLength                                                                 */
-char KX_ConstraintActuator::GetRayLength_doc[] = 
+const char KX_ConstraintActuator::GetRayLength_doc[] = 
 "getRayLength()\n"
 "\tReturns the length of the ray\n";
 /* 7. getMax                                                                 */
-char KX_ConstraintActuator::GetMax_doc[] = 
+const char KX_ConstraintActuator::GetMax_doc[] = 
 "getMax()\n"
 "\tReturns the upper value of the interval to which the value\n"
 "\tis clipped.\n";
@@ -753,7 +788,7 @@ PyObject* KX_ConstraintActuator::PyGetMax(PyObject* self) {
 
 /* This setter/getter probably for the constraint type                       */
 /* 8. setLimit                                                               */
-char KX_ConstraintActuator::SetLimit_doc[] = 
+const char KX_ConstraintActuator::SetLimit_doc[] = 
 "setLimit(type)\n"
 "\t- type: integer\n"
 "\t  1  : LocX\n"
@@ -782,7 +817,7 @@ PyObject* KX_ConstraintActuator::PySetLimit(PyObject* self,
 	Py_Return;
 }
 /* 9. getLimit                                                               */
-char KX_ConstraintActuator::GetLimit_doc[] = 
+const char KX_ConstraintActuator::GetLimit_doc[] = 
 "getLimit()\n"
 "\tReturns the type of constraint.\n";
 PyObject* KX_ConstraintActuator::PyGetLimit(PyObject* self) {

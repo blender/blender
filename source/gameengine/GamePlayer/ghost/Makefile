@@ -41,6 +41,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 CPPFLAGS += -I../../GamePlayer/common
 

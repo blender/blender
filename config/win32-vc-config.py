@@ -19,10 +19,18 @@ BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = 'true'
+WITH_BF_STATICOPENAL = 'false'
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
 BF_OPENAL_LIB = 'dxguid openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
+
+# TODO - are these useful on win32?
+# BF_CXX = '/usr'
+# WITH_BF_STATICCXX = 'false'
+# BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 WITH_BF_ICONV = 'true'
 BF_ICONV = LIBDIR + '/iconv'
@@ -45,10 +53,13 @@ WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
+WITH_BF_STATICOPENEXR = 'false'
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib_msvc'
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
 WITH_BF_DDS = 'true'
 

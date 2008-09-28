@@ -293,7 +293,7 @@ PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) {
 }
 
 /* get x position ---------------------------------------------------------- */
-char SCA_MouseSensor::GetXPosition_doc[] = 
+const char SCA_MouseSensor::GetXPosition_doc[] = 
 "getXPosition\n"
 "\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"
@@ -305,7 +305,7 @@ PyObject* SCA_MouseSensor::PyGetXPosition(PyObject* self,
 }
 
 /* get y position ---------------------------------------------------------- */
-char SCA_MouseSensor::GetYPosition_doc[] = 
+const char SCA_MouseSensor::GetYPosition_doc[] = 
 "getYPosition\n"
 "\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"

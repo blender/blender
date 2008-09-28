@@ -77,8 +77,12 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	unsigned int hash;
 	Entry *e= malloc(sizeof(*e));
 
-	if (v1<v0) v0 ^= v1 ^= v0 ^= v1;
-	hash = EDGEHASH(v0,v1)%eh->nbuckets;
+	if (v1<v0) {
+		v0 ^= v1;
+		v1 ^= v0;
+		v0 ^= v1;
+	}
+ 	hash = EDGEHASH(v0,v1)%eh->nbuckets;
 
 	e->v0 = v0;
 	e->v1 = v1;
@@ -114,7 +118,11 @@ void** BLI_edgehash_lookup_p(EdgeHash *eh, int v0, int v1) {
 	unsigned int hash;
 	Entry *e;
 
-	if (v1<v0) v0 ^= v1 ^= v0 ^= v1;
+	if (v1<v0) {
+		v0 ^= v1;
+		v1 ^= v0;
+		v0 ^= v1;
+	}
 	hash = EDGEHASH(v0,v1)%eh->nbuckets;
 	for (e= eh->buckets[hash]; e; e= e->next)
 		if (v0==e->v0 && v1==e->v1)

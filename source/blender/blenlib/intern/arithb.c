@@ -759,6 +759,28 @@ void Mat4MulSerie(float answ[][4], float m1[][4],
 	}
 }
 
+void Mat3BlendMat3(float out[][3], float dst[][3], float src[][3], float srcweight)
+{
+	float squat[4], dquat[4], fquat[4];
+	float ssize[3], dsize[3], fsize[4];
+	float rmat[3][3], smat[3][3];
+	
+	Mat3ToQuat(dst, dquat);
+	Mat3ToSize(dst, dsize);
+
+	Mat3ToQuat(src, squat);
+	Mat3ToSize(src, ssize);
+	
+	/* do blending */
+	QuatInterpol(fquat, dquat, squat, srcweight);
+	VecLerpf(fsize, dsize, ssize, srcweight);
+
+	/* compose new matrix */
+	QuatToMat3(fquat, rmat);
+	SizeToMat3(fsize, smat);
+	Mat3MulMat3(out, rmat, smat);
+}
+
 void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight)
 {
 	float squat[4], dquat[4], fquat[4];
@@ -999,6 +1021,19 @@ int FloatCompare( float *v1,  float *v2, float limit)
 	if( fabs(v1[0]-v2[0])<limit ) {
 		if( fabs(v1[1]-v2[1])<limit ) {
 			if( fabs(v1[2]-v2[2])<limit ) return 1;
+		}
+	}
+	return 0;
+}
+
+int FloatCompare4( float *v1,  float *v2, float limit)
+{
+
+	if( fabs(v1[0]-v2[0])<limit ) {
+		if( fabs(v1[1]-v2[1])<limit ) {
+			if( fabs(v1[2]-v2[2])<limit ) {
+				if( fabs(v1[3]-v2[3])<limit ) return 1;
+			}
 		}
 	}
 	return 0;
@@ -3418,13 +3453,27 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lv = v;
 }
 
-/*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
- * SMPTE-C XYZ to RGB matrix*/
-void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b)
+/*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html */
+
+void xyz_to_rgb(float xc, float yc, float zc, float *r, float *g, float *b, int colorspace)
 {
-	*r = (3.50570	* xc) + (-1.73964	* yc) + (-0.544011	* zc);
-	*g = (-1.06906	* xc) + (1.97781	* yc) + (0.0351720	* zc);
-	*b = (0.0563117	* xc) + (-0.196994	* yc) + (1.05005	* zc);
+	switch (colorspace) { 
+	case BLI_CS_SMPTE:
+		*r = (3.50570	* xc) + (-1.73964	* yc) + (-0.544011	* zc);
+		*g = (-1.06906	* xc) + (1.97781	* yc) + (0.0351720	* zc);
+		*b = (0.0563117	* xc) + (-0.196994	* yc) + (1.05005	* zc);
+		break;
+	case BLI_CS_REC709:
+		*r = (3.240476	* xc) + (-1.537150	* yc) + (-0.498535	* zc);
+		*g = (-0.969256 * xc) + (1.875992 * yc) + (0.041556 * zc);
+		*b = (0.055648	* xc) + (-0.204043	* yc) + (1.057311	* zc);
+		break;
+	case BLI_CS_CIE:
+		*r = (2.28783848734076f	* xc) + (-0.833367677835217f	* yc) + (-0.454470795871421f	* zc);
+		*g = (-0.511651380743862f * xc) + (1.42275837632178f * yc) + (0.0888930017552939f * zc);
+		*b = (0.00572040983140966f	* xc) + (-0.0159068485104036f	* yc) + (1.0101864083734f	* zc);
+		break;
+	}
 }
 
 /*If the requested RGB shade contains a negative weight for

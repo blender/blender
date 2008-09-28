@@ -94,13 +94,13 @@ extern "C" {
 	int BPY_menu_do_python( short menutype, int event );
 	int BPY_menu_do_shortcut( short menutype, unsigned short key, unsigned short modifiers );
 	int BPY_menu_invoke( struct BPyMenu *pym, short menutype );
-	void BPY_run_python_script( char *filename );
+	void BPY_run_python_script( const char *filename );
 	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 
 	void BPY_clear_bad_scriptlinks( struct Text *byebye );
 	int BPY_has_onload_script( void );
-	void BPY_do_all_scripts( short event );
+	void BPY_do_all_scripts( short event, short anim );
 	int BPY_check_all_scriptlinks( struct Text *text );
 	void BPY_do_pyscript( struct ID *id, short event );
 	void BPY_free_scriptlink( struct ScriptLink *slink );
@@ -112,7 +112,7 @@ extern "C" {
 	int BPY_has_spacehandler(struct Text *text, struct ScrArea *sa);
 	void BPY_screen_free_spacehandlers(struct bScreen *sc);
 	int BPY_do_spacehandlers(struct ScrArea *sa, unsigned short event,
-		unsigned short space_event);
+		short eventValue, unsigned short space_event);
 
 	void BPY_pydriver_update(void);
 	float BPY_pydriver_eval(struct IpoDriver *driver);

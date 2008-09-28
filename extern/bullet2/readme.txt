@@ -1,3 +1,8 @@
+***
+Apply bullet_compound_raycast.patch if not already applied in Bullet source
+This patch is needed to return correct raycast results on compound shape.
+/ben
+
 
 *** These files in extern/bullet2 are NOT part of the Blender build yet ***
 

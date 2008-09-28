@@ -3310,6 +3310,143 @@ void switch_direction_armature (void)
 	BIF_undo_push("Switch Direction");
 }
 
+/* editbone alignment */
+
+/* helper to fix a ebone position if its parent has moved due to alignment*/
+static void fix_connected_bone(EditBone *ebone)
+{
+	float diff[3];
+	
+	if (!(ebone->parent) || !(ebone->flag & BONE_CONNECTED) || VecEqual(ebone->parent->tail, ebone->head))
+		return;
+	
+	/* if the parent has moved we translate child's head and tail accordingly*/
+	VecSubf(diff, ebone->parent->tail, ebone->head);
+	VecAddf(ebone->head, ebone->head, diff);
+	VecAddf(ebone->tail, ebone->tail, diff);
+	return;
+}
+
+/* helper to recursively find chains of connected bones starting at ebone and fix their position */
+static void fix_editbone_connected_children(EditBone *ebone)
+{
+	EditBone *selbone;
+	
+	for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
+		if ((selbone->parent) && (selbone->parent == ebone) && (selbone->flag & BONE_CONNECTED)) {
+			fix_connected_bone(selbone);
+			fix_editbone_connected_children(selbone);
+		}
+	}
+	return;
+}			
+
+static void bone_align_to_bone(EditBone *selbone, EditBone *actbone)
+{
+	float selboneaxis[3], actboneaxis[3], length;
+
+	VecSubf(actboneaxis, actbone->tail, actbone->head);
+	Normalize(actboneaxis);
+
+	VecSubf(selboneaxis, selbone->tail, selbone->head);
+	length =  VecLength(selboneaxis);
+
+	VecMulf(actboneaxis, length);
+	VecAddf(selbone->tail, selbone->head, actboneaxis);
+	selbone->roll = actbone->roll;
+	
+	/* if the bone being aligned has connected descendants they must be moved
+	according to their parent new position, otherwise they would be left
+	in an unconsistent state: connected but away from the parent*/
+	fix_editbone_connected_children(selbone);
+	return;
+}
+
+void align_selected_bones(void)
+{
+	bArmature *arm= G.obedit->data;
+	EditBone *actbone, *ebone, *selbone;
+	EditBone *flipbone, *flippar;
+	short allchildbones= 0, foundselbone= 0;
+	
+	/* find active bone to align to */
+	for (actbone = G.edbo.first; actbone; actbone=actbone->next) {
+		if (arm->layer & actbone->layer) {
+			if (actbone->flag & BONE_ACTIVE)
+				break;
+		}
+	}
+	if (actbone == NULL) {
+		error("Needs an active bone");
+		return; 
+	}
+
+	/* find selected bones */
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
+				foundselbone++;
+				if (ebone->parent != actbone) allchildbones= 1; 
+			}	
+		}
+	}
+	/* abort if no selected bones, and active bone doesn't have a parent to work with instead */
+	if (foundselbone==0 && actbone->parent==NULL) {
+		error("Need selected bone(s)");
+		return;
+	}
+	
+	if (foundselbone==0 && actbone->parent) {
+		/* When only the active bone is selected, and it has a parent,
+		 * align it to the parent, as that is the only possible outcome. 
+		 */
+		bone_align_to_bone(actbone, actbone->parent);
+		
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			flipbone = armature_bone_get_mirrored(actbone);
+			if (flipbone)
+				bone_align_to_bone(flipbone, flipbone->parent);
+		}
+	}
+	else {
+		/* loop through all editbones, aligning all selected bones to the active bone */
+		for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
+			if (arm->layer & selbone->layer) {
+				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
+					/* align selbone to actbone */
+					bone_align_to_bone(selbone, actbone);
+					
+					if (arm->flag & ARM_MIRROR_EDIT) {
+						/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+						 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+						 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+						 *	then just use actbone. Useful when doing upper arm to spine.
+						 */
+						flipbone = armature_bone_get_mirrored(selbone);
+						flippar = armature_bone_get_mirrored(actbone);
+						
+						if (flipbone) {
+							if (flippar)
+								bone_align_to_bone(flipbone, flippar);
+							else
+								bone_align_to_bone(flipbone, actbone);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	countall(); /* checks selection */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Align bones");
+
+	return;
+}
+
 /* ***************** Pose tools ********************* */
 
 void clear_armature(Object *ob, char mode)

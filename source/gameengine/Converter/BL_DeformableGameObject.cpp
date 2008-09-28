@@ -47,7 +47,7 @@ void BL_DeformableGameObject::ProcessReplica(KX_GameObject* replica)
 	KX_GameObject::ProcessReplica(replica);
 
 	if (m_pDeformer) {
-		deformer = (BL_MeshDeformer*)m_pDeformer->GetReplica();
+		deformer = (BL_MeshDeformer*)m_pDeformer->GetReplica(replica);
 		((BL_DeformableGameObject*)replica)->m_pDeformer = deformer;
 	}
 

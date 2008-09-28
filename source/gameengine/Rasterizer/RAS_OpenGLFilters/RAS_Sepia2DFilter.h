@@ -28,7 +28,7 @@
 #ifndef __RAS_SEPIA2DFILTER
 #define __RAS_SEPIA2DFILTER
 
-char * SepiaFragmentShader=STRINGIFY(
+const char * SepiaFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 
 void main(void)

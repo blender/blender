@@ -1179,7 +1179,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 {
 	Material *ma= shi->mat;
 	VlakRen *vlr= shi->vlr;
-	float lv[3], lampdist, lacol[3], shadfac[4];
+	float lv[3], lampdist, lacol[3], shadfac[4], lashdw[3];
 	float i, is, i_noshad, inp, *vn, *view, vnor[3], phongcorr=1.0f;
 	float visifac;
 	
@@ -1219,7 +1219,12 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	lacol[1]= lar->g;
 	lacol[2]= lar->b;
 	
-	if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv, shi, lacol);
+	lashdw[0]= lar->shdwr;
+	lashdw[1]= lar->shdwg;
+	lashdw[2]= lar->shdwb;
+	
+	if(lar->mode & LA_TEXTURE)	do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
+	if(lar->mode & LA_SHAD_TEX)	do_lamp_tex(lar, lv, shi, lashdw, LA_SHAD_TEX);
 
 		/* tangent case; calculate fake face normal, aligned with lampvector */	
 		/* note, vnor==vn is used as tangent trigger for buffer shadow */
@@ -1342,13 +1347,13 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					if((lar->mode & LA_ONLYSHADOW) && i>0.0) {
 						
 						shadfac[3]= i*lar->energy*(1.0f-shadfac[3]);
-						shr->shad[0] -= shadfac[3]*shi->r;
-						shr->shad[1] -= shadfac[3]*shi->g;
-						shr->shad[2] -= shadfac[3]*shi->b;
+						shr->shad[0] -= shadfac[3]*shi->r*(1.0f-lashdw[0]);
+						shr->shad[1] -= shadfac[3]*shi->g*(1.0f-lashdw[1]);
+						shr->shad[2] -= shadfac[3]*shi->b*(1.0f-lashdw[2]);
 						
-						shr->spec[0] -= shadfac[3]*shi->specr;
-						shr->spec[1] -= shadfac[3]*shi->specg;
-						shr->spec[2] -= shadfac[3]*shi->specb;
+						shr->spec[0] -= shadfac[3]*shi->specr*(1.0f-lashdw[0]);
+						shr->spec[1] -= shadfac[3]*shi->specg*(1.0f-lashdw[1]);
+						shr->spec[2] -= shadfac[3]*shi->specb*(1.0f-lashdw[2]);
 						
 						return;
 					}
@@ -1365,6 +1370,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					add_to_diffuse(shr->shad, shi, is, i*shadfac[0]*lacol[0], i*shadfac[1]*lacol[1], i*shadfac[2]*lacol[2]);
 				else
 					add_to_diffuse(shr->shad, shi, is, i*lacol[0], i*lacol[1], i*lacol[2]);
+			}
+			/* add light for colored shadow */
+			if (i_noshad>i && !(lashdw[0]==0 && lashdw[1]==0 && lashdw[2]==0)) {
+				add_to_diffuse(shr->shad, shi, is, lashdw[0]*(i_noshad-i)*lacol[0], lashdw[1]*(i_noshad-i)*lacol[1], lashdw[2]*(i_noshad-i)*lacol[2]);
 			}
 			if(i_noshad>0.0f) {
 				if(passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW)) {

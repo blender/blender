@@ -138,6 +138,7 @@ GHOST_WindowX11(
 	GHOST_TUns32 width,	
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
+	const GHOST_TEmbedderWindowID parentWindow,
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual
 ) :
@@ -155,7 +156,8 @@ GHOST_WindowX11(
 	// X can find us a visual matching those requirements.
 
 	int attributes[40], i = 0;
-	
+	Atom atoms[2];
+	int natom;	
 	
 	if(m_stereoVisual)
 		attributes[i++] = GLX_STEREO;
@@ -205,21 +207,56 @@ GHOST_WindowX11(
 
 	// create the window!
 
-	m_window = 
-		XCreateWindow(
-			m_display, 
-			RootWindow(m_display, m_visual->screen), 
-			left,
-			top,
-			width,
-			height,
-			0, // no border.
-			m_visual->depth,
-			InputOutput, 
-			m_visual->visual,
-			CWBorderPixel|CWColormap|CWEventMask, 
-			&xattributes
-		);
+	;
+	if (parentWindow == 0) {
+		m_window = 
+			XCreateWindow(
+				m_display, 
+				RootWindow(m_display, m_visual->screen), 
+				left,
+				top,
+				width,
+				height,
+				0, // no border.
+				m_visual->depth,
+				InputOutput, 
+				m_visual->visual,
+				CWBorderPixel|CWColormap|CWEventMask, 
+				&xattributes
+			);
+	} else {
+
+		Window root_return;
+		int x_return,y_return;
+		unsigned int w_return,h_return,border_w_return,depth_return;
+		
+		XGetGeometry(m_display, parentWindow, &root_return, &x_return, &y_return,
+			&w_return, &h_return, &border_w_return, &depth_return );
+
+		left = 0;
+		top = 0;
+		width = w_return;
+		height = h_return;
+
+
+		m_window = XCreateWindow(
+				m_display, 
+				parentWindow,  // reparent against embedder 
+				left,
+				top,
+				width,
+				height,
+				0, // no border.
+				m_visual->depth,
+				InputOutput, 
+				m_visual->visual,
+				CWBorderPixel|CWColormap|CWEventMask, 
+				&xattributes
+			);
+
+		XSelectInput(m_display , parentWindow, SubstructureNotifyMask);
+		
+	}	
 	
 	
 	// Are we in fullscreen mode - then include
@@ -287,6 +324,25 @@ GHOST_WindowX11(
 	free(wmclass);
 	XFree(xclasshint);
 
+	/* The basic for a good ICCCM "work" */
+	if (m_system->m_wm_protocols) {
+		natom= 0;
+
+		if (m_system->m_delete_window_atom) {
+			atoms[natom]= m_system->m_delete_window_atom;
+			natom++;
+		}
+
+		if (m_system->m_wm_take_focus) {
+			atoms[natom]= m_system->m_wm_take_focus;
+			natom++;
+		}
+
+		if (natom) {
+			/* printf("Register atoms: %d\n", natom); */
+			XSetWMProtocols(m_display, m_window, atoms, natom);
+		}
+	}
 
 	// Set the window icon
 	XWMHints *xwmhints = XAllocWMHints();
@@ -664,9 +720,9 @@ setOrder(
 			xev.xclient.message_type = atom;
 
 			xev.xclient.format = 32;
-			xev.xclient.data.l[0] = 0;
-			xev.xclient.data.l[1] = 0;
-			xev.xclient.data.l[2] = 0;
+			xev.xclient.data.l[0] = 1;
+			xev.xclient.data.l[1] = CurrentTime;
+			xev.xclient.data.l[2] = m_window;
 			xev.xclient.data.l[3] = 0;
 			xev.xclient.data.l[4] = 0;
 

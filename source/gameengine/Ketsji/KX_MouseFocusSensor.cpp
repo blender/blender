@@ -62,12 +62,14 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int focusmode,
 										 RAS_ICanvas* canvas,
 										 KX_Scene* kxscene,
+										 KX_KetsjiEngine *kxengine,
 										 SCA_IObject* gameobj, 
 										 PyTypeObject* T)
     : SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj, T),
 	  m_focusmode(focusmode),
 	  m_gp_canvas(canvas),
-	  m_kxscene(kxscene)
+	  m_kxscene(kxscene),
+	  m_kxengine(kxengine)
 {
 	Init();
 }
@@ -193,11 +195,14 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * calculations don't bomb. Maybe we should explicitly guard for
 	 * division by 0.0...*/
 
-	/**
-	 * Get the scenes current viewport.
-	 */
+	KX_Camera* cam = m_kxscene->GetActiveCamera();
 
-	const RAS_Rect & viewport = m_kxscene->GetSceneViewport();
+	/* get the scenes current viewport. we recompute it because there
+	 * may be multiple cameras and m_kxscene->GetSceneViewport() only
+	 * has the one that was last drawn */
+
+	RAS_Rect area, viewport;
+	m_kxengine->GetSceneViewport(m_kxscene, cam, area, viewport);
 
 	float height = float(viewport.m_y2 - viewport.m_y1 + 1);
 	float width  = float(viewport.m_x2 - viewport.m_x1 + 1);
@@ -205,9 +210,9 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	float x_lb = float(viewport.m_x1);
 	float y_lb = float(viewport.m_y1);
 
-	KX_Camera* cam = m_kxscene->GetActiveCamera();
 	/* There's some strangeness I don't fully get here... These values
 	 * _should_ be wrong! */
+	
 
 	/* old: */
 	float nearclip = 0.0;
@@ -333,7 +338,7 @@ PyObject* KX_MouseFocusSensor::_getattr(const STR_String& attr) {
 }
 
 
-char KX_MouseFocusSensor::GetHitObject_doc[] = 
+const char KX_MouseFocusSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 "\tReturns the name of the object that was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self, 
@@ -348,7 +353,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self,
 }
 
 
-char KX_MouseFocusSensor::GetHitPosition_doc[] = 
+const char KX_MouseFocusSensor::GetHitPosition_doc[] = 
 "getHitPosition()\n"
 "\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self, 
@@ -368,7 +373,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self,
 
 }
 
-char KX_MouseFocusSensor::GetRayDirection_doc[] = 
+const char KX_MouseFocusSensor::GetRayDirection_doc[] = 
 "getRayDirection()\n"
 "\tReturns the direction from the ray (in worldcoordinates) .\n";
 PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self, 
@@ -389,7 +394,7 @@ PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self,
 
 }
 
-char KX_MouseFocusSensor::GetHitNormal_doc[] = 
+const char KX_MouseFocusSensor::GetHitNormal_doc[] = 
 "getHitNormal()\n"
 "\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
 PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self, 
@@ -410,7 +415,7 @@ PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self,
 
 
 /*  getRayTarget                                                */
-char KX_MouseFocusSensor::GetRayTarget_doc[] = 
+const char KX_MouseFocusSensor::GetRayTarget_doc[] = 
 "getRayTarget()\n"
 "\tReturns the target of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";
@@ -427,7 +432,7 @@ PyObject* KX_MouseFocusSensor::PyGetRayTarget(PyObject* self,
 }
 
 /*  getRayTarget                                                */
-char KX_MouseFocusSensor::GetRaySource_doc[] = 
+const char KX_MouseFocusSensor::GetRaySource_doc[] = 
 "getRaySource()\n"
 "\tReturns the source of the ray that seeks the focus object,\n"
 "\tin worldcoordinates.";

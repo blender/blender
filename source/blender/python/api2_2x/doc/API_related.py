@@ -226,6 +226,7 @@ Introduction:
   import Blender
   from Blender import Draw
   evt = Blender.event
+  val = Blender.eventValue
   return_it = False
 
   if evt == Draw.LEFTMOUSE:
@@ -233,7 +234,7 @@ Introduction:
   elif evt == Draw.AKEY:
     print "Swallowing an 'a' character"
   else:
-    print "Let the 3D View itself process this event:", evt
+    print "Let the 3D View itself process this event: %d with value %d" % (evt, val)
     return_it = True
 
   # if Blender should not process itself the passed event:
@@ -249,8 +250,14 @@ Introduction:
     tells what space this handler belongs to and the handler's type
     (EVENT, DRAW);
   - B{event}:
-     - EVENT handlers: an input event (check keys and mouse events in L{Draw})
-       to be processed or ignored.
+     - EVENT handlers: an input event (check keys and mouse events in
+       L{Draw}) to be processed or ignored;
+     - DRAW handlers: 0 always;
+  - B{eventValue}:
+     - EVENT handlers: the event value, it indicates mouse button or key
+       presses (since we don't pass releases) as 1 and mouse movements
+       (Draw.MOUSE.X and Draw.MOUSE.Y) as the current x or y coordinate,
+       for example;
      - DRAW handlers: 0 always.
 
  B{Guidelines (important)}:

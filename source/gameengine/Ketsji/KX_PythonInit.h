@@ -49,6 +49,10 @@ void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
 void		exitGamePythonScripting();
 
+void		pathGamePythonConfig( char *path );
+int			saveGamePythonConfig( char **marshal_buffer);
+int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);
+
 void PHY_SetActiveScene(class KX_Scene* scene);
 class KX_Scene* PHY_GetActiveScene();
 #include "MT_Vector3.h"

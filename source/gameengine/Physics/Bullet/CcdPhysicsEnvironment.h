@@ -56,6 +56,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
+	
+	class btDefaultCollisionConfiguration* m_collisionConfiguration;
+	class btBroadphaseInterface*			m_broadphase;
+
 	//solver iterations
 	int	m_numIterations;
 	
@@ -115,6 +119,8 @@ protected:
 		virtual void		setDebugMode(int debugMode);
 
 		virtual	void		setGravity(float x,float y,float z);
+		virtual	void		getGravity(PHY__Vector3& grav);
+
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
@@ -191,8 +197,7 @@ protected:
 
 		btBroadphaseInterface*	getBroadphase();
 
-		
-		
+		btDispatcher*	getDispatcher();
 		
 
 		bool	IsSatCollisionDetectionEnabled() const
@@ -211,7 +216,10 @@ protected:
 	
 		void	SyncMotionStates(float timeStep);
 
-		
+		class	btSoftRigidDynamicsWorld*	getDynamicsWorld()
+		{
+			return m_dynamicsWorld;
+		}
 	
 		class btConstraintSolver*	GetConstraintSolver();
 
@@ -229,13 +237,13 @@ protected:
 		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		//use explicit btDiscreteDynamicsWorld* so that we have access to 
+		//use explicit btSoftRigidDynamicsWorld/btDiscreteDynamicsWorld* so that we have access to 
 		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group) 
 		//so that we can set the body collision filter/group at the time of creation 
 		//and not afterwards (breaks the collision system for radar/near sensor)
 		//Ideally we would like to have access to this function from the btDynamicsWorld interface
 		//class	btDynamicsWorld*	m_dynamicsWorld;
-		class	btDiscreteDynamicsWorld*	m_dynamicsWorld;
+		class	btSoftRigidDynamicsWorld*	m_dynamicsWorld;
 		
 		class btConstraintSolver*	m_solver;
 

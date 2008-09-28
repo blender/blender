@@ -257,7 +257,7 @@ PyObject* KX_TouchSensor::_getattr(const STR_String& attr) {
 /* Python API */
 
 /* 1. setProperty */
-char KX_TouchSensor::SetProperty_doc[] = 
+const char KX_TouchSensor::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSet the property or material to collide with. Use\n"
@@ -283,7 +283,7 @@ PyObject* KX_TouchSensor::PySetProperty(PyObject* self,
 	Py_Return;
 }
 /* 2. getProperty */
-char KX_TouchSensor::GetProperty_doc[] = 
+const char KX_TouchSensor::GetProperty_doc[] = 
 "getProperty(name)\n"
 "\tReturns the property or material to collide with. Use\n"
 "\tgetTouchMaterial() to find out whether this sensor\n"
@@ -294,7 +294,7 @@ PyObject*  KX_TouchSensor::PyGetProperty(PyObject* self,
 	return PyString_FromString(m_touchedpropname);
 }
 
-char KX_TouchSensor::GetHitObject_doc[] = 
+const char KX_TouchSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 ;
 PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self, 
@@ -310,7 +310,7 @@ PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self,
 	Py_Return;
 }
 
-char KX_TouchSensor::GetHitObjectList_doc[] = 
+const char KX_TouchSensor::GetHitObjectList_doc[] = 
 "getHitObjectList()\n"
 "\tReturn a list of the objects this object collided with,\n"
 "\tbut only those matching the property/material condition.\n";
@@ -364,7 +364,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 }
 
 /* 5. getTouchMaterial */
-char KX_TouchSensor::GetTouchMaterial_doc[] = 
+const char KX_TouchSensor::GetTouchMaterial_doc[] = 
 "getTouchMaterial()\n"
 "\tReturns KX_TRUE if this sensor looks for a specific material,\n"
 "\tKX_FALSE if it looks for a specific property.\n" ;
@@ -376,7 +376,7 @@ PyObject* KX_TouchSensor::PyGetTouchMaterial(PyObject* self,
 }
 
 /* 6. setTouchMaterial */
-char KX_TouchSensor::SetTouchMaterial_doc[] = 
+const char KX_TouchSensor::SetTouchMaterial_doc[] = 
 "setTouchMaterial(flag)\n"
 "\t- flag: KX_TRUE or KX_FALSE.\n"
 "\tSet flag to KX_TRUE to switch on positive pulse mode,\n"

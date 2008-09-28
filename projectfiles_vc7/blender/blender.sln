@@ -34,7 +34,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blender", "blender.vcproj",
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43} = {32CC75E2-EE85-45E6-8E3D-513F58464F43}
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8} = {9A307EE5-CD77-47BC-BD87-62508C7E19D8}
 		{AB590CED-F71F-4A17-A89B-18583ECD633D} = {AB590CED-F71F-4A17-A89B-18583ECD633D}
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6} = {64019BFA-8C14-4FA6-B275-D7598D821FF6}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BKE_blenkernel", "blenkernel\BKE_blenkernel.vcproj", "{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}"
@@ -62,10 +61,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BL_imbuf", "imbuf\BL_imbuf.
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BL_src", "src\BL_src.vcproj", "{FB88301F-F725-401B-ACD7-D2ABBF333B71}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BL_src_cre", "src\BL_src_cre.vcproj", "{64019BFA-8C14-4FA6-B275-D7598D821FF6}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -378,18 +373,6 @@ Global
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Debug.Build.0 = Blender Debug|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Release.ActiveCfg = Blender Release|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Release.Build.0 = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.3D Plugin Release.ActiveCfg = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Blender Debug.ActiveCfg = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Blender Debug.Build.0 = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Blender Release.ActiveCfg = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Blender Release.Build.0 = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Debug.ActiveCfg = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Debug.Build.0 = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Release.ActiveCfg = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Release.Build.0 = Blender Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Blender Debug.ActiveCfg = Blender Debug|Win32

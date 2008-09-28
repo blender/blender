@@ -43,7 +43,8 @@ if env['WITH_BF_QUICKTIME'] == 1:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']
 
-defs += ' WITH_CCGSUBSURF'
+if env['BF_NO_ELBEEM'] == 1:
+    defs += ' DISABLE_ELBEEM'
 
 if env['WITH_BF_PLAYER']:
     SConscript(['bad_level_call_stubs/SConscript'])

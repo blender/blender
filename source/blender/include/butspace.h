@@ -281,9 +281,6 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SOFTBODY_BAKE			1422
 #define B_SOFTBODY_BAKE_FREE	1423
 
-/* this has MAX_EFFECT settings! Next free define is 1450... */
-#define B_SELEFFECT	1430
-
 /* Fluidsim button defines */
 #define B_FLUIDSIM_BAKE	        1450
 #define B_FLUIDSIM_SELDIR	      1451

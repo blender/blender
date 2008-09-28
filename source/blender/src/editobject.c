@@ -3192,7 +3192,7 @@ void flip_subdivison(int level)
  
 static void copymenu_properties(Object *ob)
 {	
-	bProperty *prop, *propn, *propc;
+	bProperty *prop;
 	Base *base;
 	int nr, tot=0;
 	char *str;
@@ -3208,45 +3208,43 @@ static void copymenu_properties(Object *ob)
 		return;
 	}
 	
-	str= MEM_callocN(24+32*tot, "copymenu prop");
+	str= MEM_callocN(50 + 33*tot, "copymenu prop");
 	
-	strcpy(str, "Copy Property %t");
+	strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
 	
 	tot= 0;	
 	prop= ob->prop.first;
 	while(prop) {
 		tot++;
-		strcat(str, " |");
+		strcat(str, "|");
 		strcat(str, prop->name);
 		prop= prop->next;
 	}
 
 	nr= pupmenu(str);
-	if(nr>0) {
-		tot= 0;
-		prop= ob->prop.first;
-		while(prop) {
-			tot++;
-			if(tot==nr) break;
-			prop= prop->next;
-		}
-		if(prop) {
-			propc= prop;
-			
-			base= FIRSTBASE;
-			while(base) {
-				if(base != BASACT) {
-					if(TESTBASELIB(base)) {
-						prop= get_property(base->object, propc->name);
-						if(prop) {
-							free_property(prop);
-							BLI_remlink(&base->object->prop, prop);
-						}
-						propn= copy_property(propc);
-						BLI_addtail(&base->object->prop, propn);
+	
+	if ( nr==1 || nr==2 ) {
+		base= FIRSTBASE;
+		while(base) {
+			if((base != BASACT) && TESTBASELIB(base)) {
+				if (nr==1) { /* replace */
+					copy_properties( &base->object->prop, &ob->prop );
+				} else {
+					for(prop = ob->prop.first; prop; prop= prop->next ) {
+						set_ob_property(base->object, prop);
 					}
 				}
-				base= base->next;
+			}
+			base= base->next;
+		}
+	} else if(nr>0) {
+		prop = BLI_findlink(&ob->prop, nr-4); /* account for first 3 menu items & menu index starting at 1*/
+		
+		if(prop) {
+			for(base= FIRSTBASE; base; base= base->next) {
+				if((base != BASACT) && TESTBASELIB(base)) {
+					set_ob_property(base->object, prop);
+				}
 			}
 		}
 	}
@@ -3283,6 +3281,9 @@ static void copymenu_logicbricks(Object *ob)
 				base->object->scavisflag= ob->scavisflag;
 				base->object->scaflag= ob->scaflag;
 				
+				/* set the initial state */
+				base->object->state= ob->state;
+				base->object->init_state= ob->init_state;
 			}
 		}
 		base= base->next;
@@ -3305,6 +3306,9 @@ static void copymenu_modifiers(Object *ob)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
+		
+		if(i == eModifierType_Collision)
+			continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -3328,11 +3332,16 @@ static void copymenu_modifiers(Object *ob)
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
-							if (md->type!=eModifierType_Hook) {
-								ModifierData *nmd = modifier_new(md->type);
-								modifier_copyData(md, nmd);
-								BLI_addtail(&base->object->modifiers, nmd);
-							}
+							ModifierData *nmd = NULL;
+							
+							if(ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
+		
+							if(md->type == eModifierType_Collision)
+								continue;
+							
+							nmd = modifier_new(md->type);
+							modifier_copyData(md, nmd);
+							BLI_addtail(&base->object->modifiers, nmd);
 						}
 
 						copy_object_particlesystems(base->object, ob);
@@ -3519,6 +3528,9 @@ void copy_attr(short event)
 					if (ob->gameflag & OB_BOUNDS) {
 						base->object->boundtype = ob->boundtype;
 					}
+					base->object->margin= ob->margin;
+					base->object->bsoft= copy_bulletsoftbody(ob->bsoft);
+
 				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
@@ -3614,10 +3626,6 @@ void copy_attr(short event)
 					}
 				}
 				else if(event==22) {
-					/* Clear the constraints on the target */
-					free_constraints(&base->object->constraints);
-					free_constraint_channels(&base->object->constraintChannels);
-
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints);
 					if (U.dupflag& USER_DUP_IPO)
@@ -3668,6 +3676,9 @@ void copy_attr(short event)
 				else if(event==30) { /* index object */
 					base->object->index= ob->index;
 				}
+				else if(event==31) { /* object color */
+					QUATCOPY(base->object->col, ob->col);
+				}
 			}
 		}
 		base= base->next;
@@ -3706,7 +3717,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|Object Color%x31|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
@@ -4138,6 +4149,7 @@ void apply_object( void )
 	} 
 	else {
 		ob= OBACT;
+		if(ob==0) return;
 		
 		if ((ob->pose) && (ob->flag & OB_POSEMODE))
 			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
@@ -4367,18 +4379,17 @@ void single_object_users(int flag)
 	
 	clear_sca_new_poins();	/* sensor/contr/act */
 
-	/* duplicate */
+	/* duplicate (must set newid) */
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
 		
-		if( (base->flag & flag)==flag) {
-
+		if( (base->flag & flag)==flag ) {
 			if(ob->id.lib==NULL && ob->id.us>1) {
-			
+				/* base gets copy of object */
 				obn= copy_object(ob);
-				ob->id.us--;
 				base->object= obn;
+				ob->id.us--;
 			}
 		}
 		base= base->next;
@@ -4392,20 +4403,17 @@ void single_object_users(int flag)
 	while(base) {
 		ob= base->object;
 		if(ob->id.lib==NULL) {
-			if( (base->flag & flag)==flag) {
-				
-				relink_constraints(&base->object->constraints);
-				if (base->object->pose){
-					bPoseChannel *chan;
-					for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
-						relink_constraints(&chan->constraints);
-					}
+			relink_constraints(&base->object->constraints);
+			if (base->object->pose){
+				bPoseChannel *chan;
+				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
 				}
-				modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
-				
-				ID_NEW(ob->parent);
-				ID_NEW(ob->track);
 			}
+			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
+			
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
 		}
 		base= base->next;
 	}

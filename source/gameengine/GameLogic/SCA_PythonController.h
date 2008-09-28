@@ -71,9 +71,9 @@ class SCA_PythonController : public SCA_IController
 		{ m_triggeredSensors.push_back(sensor); }
 	int		IsTriggered(class SCA_ISensor* sensor);
 
-	static char* sPyGetCurrentController__doc__;
+	static const char* sPyGetCurrentController__doc__;
 	static PyObject* sPyGetCurrentController(PyObject* self);
-	static char* sPyAddActiveActuator__doc__;
+	static const char* sPyAddActiveActuator__doc__;
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
 										  PyObject* args);
 	virtual PyObject* _getattr(const STR_String& attr);

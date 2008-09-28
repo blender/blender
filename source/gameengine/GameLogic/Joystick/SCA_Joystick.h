@@ -45,9 +45,9 @@ class SCA_Joystick
 	static int m_refCount;
 
 	class PrivateData;
-
+#ifndef DISABLE_SDL
 	PrivateData		*m_private;
-
+#endif
 	int				m_joyindex;
 
 	/* 
@@ -104,6 +104,7 @@ class SCA_Joystick
 	/* is triggered */
 	bool			m_istrig;
 
+#ifndef DISABLE_SDL
 	/*
 	 * event callbacks
 	 */
@@ -113,7 +114,7 @@ class SCA_Joystick
 	void OnButtonDown(SDL_Event *sdl_event);
 	void OnNothing(SDL_Event *sdl_event);
 	void OnBallMotion(SDL_Event *sdl_event){}
-
+#endif
 	/*
 	 * Open the joystick
 	 */
@@ -226,8 +227,9 @@ public:
 	 */
 	int Connected(void);
 };
-
+#ifndef	DISABLE_SDL
 void Joystick_HandleEvents( void );
+#endif
 
 #endif
 

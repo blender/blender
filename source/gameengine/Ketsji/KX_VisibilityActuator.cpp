@@ -80,7 +80,7 @@ KX_VisibilityActuator::Update()
 	obj->SetVisible(m_visible, m_recursive);
 	obj->UpdateBuckets(m_recursive);
 
-	return true;
+	return false;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -137,7 +137,7 @@ KX_VisibilityActuator::_getattr(
 
 
 /* set visibility ---------------------------------------------------------- */
-char 
+const char 
 KX_VisibilityActuator::SetVisible_doc[] = 
 "setVisible(visible?)\n"
 "\t - visible? : Make the object visible? (KX_TRUE, KX_FALSE)"

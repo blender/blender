@@ -928,6 +928,11 @@ static PyObject *Method_Register( PyObject * self, PyObject * args )
 	Script *script;
 	int startspace = 0;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Register() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple
 	    ( args, "O|OO", &newdrawc, &neweventc, &newbuttonc ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1008,6 +1013,10 @@ static PyObject *Method_Redraw( PyObject * self, PyObject * args )
 {
 	int after = 0;
 
+	if (G.background) {
+		Py_RETURN_NONE;
+	}
+	
 	if( !PyArg_ParseTuple( args, "|i", &after ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int argument (or nothing)" );
@@ -1022,6 +1031,10 @@ static PyObject *Method_Redraw( PyObject * self, PyObject * args )
 
 static PyObject *Method_Draw( PyObject * self )
 {
+	if (G.background) {
+		Py_RETURN_NONE;
+	}
+	
 	/*@ If forced drawing is disable queue a redraw event instead */
 	if( EXPP_disable_force_draw ) {
 		scrarea_queue_winredraw( curarea );
@@ -1089,6 +1102,11 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	PyObject *result = NULL;
 	ListBase listb= {NULL, NULL};
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.UIBlock() in background mode." );
+	}
+	
 	if ( !PyArg_ParseTuple( args, "O", &val ) || !PyCallable_Check( val ) ) 
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected 1 python function and 2 ints" );
@@ -1201,6 +1219,11 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 	int x, y, w, h;
 	PyObject *callback=NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Button() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "siiiii|sO", &name, &event,
 			       &x, &y, &w, &h, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1225,6 +1248,11 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 	Button *but;
 	PyObject *callback=NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Menu() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "siiiiii|sO", &name, &event,
 			       &x, &y, &w, &h, &def, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1255,6 +1283,11 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 	Button *but;
 	PyObject *callback=NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Toggle() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "siiiiii|sO", &name, &event,
 			       &x, &y, &w, &h, &def, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1322,6 +1355,11 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 	PyObject *mino, *maxo, *inio;
 	PyObject *callback=NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Sider() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "siiiiiOOO|isO", &name, &event,
 			       &x, &y, &w, &h, &inio, &mino, &maxo, &realtime,
 			       &tip, &callback ) )
@@ -1395,6 +1433,11 @@ static PyObject *Method_Scrollbar( PyObject * self, PyObject * args )
 	float ini, min, max;
 	uiBut *ubut;
 	
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Scrollbar() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "iiiiiOOO|isO", &event, &x, &y, &w, &h,
 			       &inio, &mino, &maxo, &realtime, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1454,6 +1497,11 @@ static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
 	short x, y, w, h;
 	PyObject *callback=NULL;
 	
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.ColorPicker() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "ihhhhO!|sO", &event,
 			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip, &callback ) )
  		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1504,6 +1552,11 @@ static PyObject *Method_Normal( PyObject * self, PyObject * args )
 	short x, y, w, h;
 	PyObject *callback=NULL;
 	
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Normal() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "ihhhhO!|sO", &event,
 			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip, &callback ) )
  		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1545,6 +1598,11 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 	PyObject *mino, *maxo, *inio;
 	PyObject *callback=NULL;
 	uiBut *ubut= NULL;
+	
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Number() in background mode." );
+	}
 	
 	if( !PyArg_ParseTuple( args, "siiiiiOOO|sO", &name, &event,
 			       &x, &y, &w, &h, &inio, &mino, &maxo, &tip, &callback ) )
@@ -1617,6 +1675,11 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	Button *but;
 	PyObject *callback=NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.String() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "siiiiisi|sO", &info_arg, &event,
 			&x, &y, &w, &h, &newstr, &len, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1693,6 +1756,11 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 	char *font_str = NULL;
 	struct BMF_Font *font;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Text() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "s|s", &text, &font_str ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected one or two string arguments" );
@@ -1724,6 +1792,11 @@ static PyObject *Method_Label( PyObject * self, PyObject * args )
 	char *text;
 	int x, y, w, h;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Label() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "siiii", &text, &x, &y, &w, &h ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a string and four ints" );
@@ -1740,7 +1813,12 @@ static PyObject *Method_PupMenu( PyObject * self, PyObject * args )
 	char *text;
 	int maxrow = -1;
 	PyObject *ret;
-
+	
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.PupMenu() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "s|i", &text, &maxrow ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string and optionally an int as arguments" );
@@ -1827,6 +1905,11 @@ static PyObject *Method_PupTreeMenu( PyObject * self, PyObject * args )
 	ListBase storage = {NULL, NULL};
 	TBitem *tb;
 	
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.PupMenuTree() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &current_menu ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"Expected a list" );
@@ -1857,6 +1940,11 @@ static PyObject *Method_PupIntInput( PyObject * self, PyObject * args )
 	short var = 0;
 	PyObject *ret = NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.PupIntInput() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "s|hii", &text, &var, &min, &max ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 1 string and 3 int arguments" );
@@ -1879,6 +1967,11 @@ static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args )
 	float min = 0, max = 1, var = 0, a1 = 10, a2 = 2;
 	PyObject *ret = NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.PupFloatInput() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple
 	    ( args, "s|fffff", &text, &var, &min, &max, &a1, &a2 ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1903,6 +1996,11 @@ static PyObject *Method_PupStrInput( PyObject * self, PyObject * args )
 	char max = 20;
 	PyObject *ret = NULL;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.PupStrInput() in background mode." );
+	}
+	
 	if( !PyArg_ParseTuple( args, "ss|b", &textMsg, &text, &max ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 strings and 1 int" );
@@ -1937,6 +2035,11 @@ static PyObject *Method_PupBlock( PyObject * self, PyObject * args )
 	int len, i;
 	char *title;
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.PupBlock() in background mode." );
+	}
+	
 	if (!PyArg_ParseTuple( args, "sO", &title, &pyList ) || !PySequence_Check( pyList ))
 		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a string and a sequence" );
 
@@ -2070,6 +2173,11 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	int clipX = 0, clipY = 0, clipW = -1, clipH = -1;
 	/*GLfloat scissorBox[4];*/
 
+	if (G.background) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Can't run Draw.Image() in background mode." );
+	}
+	
 	/* parse the arguments passed-in from Python */
 	if( !PyArg_ParseTuple( args, "O!ff|ffiiii", &Image_Type, &pyObjImage, 
 		&originX, &originY, &zoomX, &zoomY, 

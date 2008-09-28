@@ -985,7 +985,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		/* Only allow adding through appropriate other interfaces */
 		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
 		
-		if(ELEM(i, eModifierType_Cloth, eModifierType_Collision)) continue;
+		if(ELEM3(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Fluidsim)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1754,7 +1754,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		
 		// deletion over the deflection panel
 		// fluid particle modifier can't be deleted here
-		if(md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
+		if(md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Collision && !modifier_is_fluid_particles(md))
 		{
 			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
 			uiButSetFunc(but, modifiers_del, ob, md);
@@ -1825,6 +1825,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 31;
 		} else if (md->type==eModifierType_Collision) {
 			height = 31;
+		} else if (md->type==eModifierType_Fluidsim) {
+			height = 31;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
@@ -1848,6 +1850,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			}
 			else if (smd->shrinkType == MOD_SHRINKWRAP_NEAREST_SURFACE)
 				height += 19;
+		} else if (md->type == eModifierType_Mask) {
+			height = 66;
+		} else if (md->type==eModifierType_SimpleDeform) {
+			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			height += 19*5;
+			if(smd->origin != NULL) height += 19;
+			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
+			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
+				height += 19;
 		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
@@ -1867,7 +1878,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiButSetFunc(but, modifiers_applyModifier, ob, md);
 			}
 			
-			if (md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
+			if (md->type!=eModifierType_Fluidsim && md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
@@ -2126,6 +2137,30 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Ratio:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 10, 0, "Defines the percentage of triangles to reduce to");
 			sprintf(str, "Face Count: %d", dmd->faceCount);
 			uiDefBut(block, LABEL, 1, str,	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Displays the current number of faces in the decimated mesh");
+		} else if (md->type==eModifierType_Mask) {
+			MaskModifierData *mmd = (MaskModifierData *)md;
+			
+			sprintf(str, "Mask Mode%%t|Vertex Group%%x%d|Selected Bones%%x%d|",
+			        MOD_MASK_MODE_VGROUP,MOD_MASK_MODE_ARM);
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
+			        lx, (cy -= 19), buttonWidth, 19, &mmd->mode,
+			        0.0, 1.0, 0, 0, "How masking region is defined");
+					  
+			if (mmd->mode == MOD_MASK_MODE_ARM) {
+				uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP,
+				    "Ob: ", lx, (cy -= 19), buttonWidth, 19, &mmd->ob_arm,
+				    "Armature to use as source of bones to mask");
+			}
+			else {
+				but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	
+					lx, (cy-=19), buttonWidth, 19, &mmd->vgroup, 
+					0.0, 31.0, 0, 0, "Vertex Group name");
+				uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			}
+			
+			uiDefButBitI(block, TOG, MOD_MASK_INV, B_MODIFIER_RECALC, "Inverse",		
+				lx, (cy-=19), buttonWidth, 19, &mmd->flag, 
+				0, 0, 0, 0, "Use vertices that are not part of region defined");
 		} else if (md->type==eModifierType_Smooth) {
 			SmoothModifierData *smd = (SmoothModifierData*) md;
 
@@ -2264,8 +2299,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefBut(block, LABEL, 1, "See Soft Body panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Cloth) {
 			uiDefBut(block, LABEL, 1, "See Cloth panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+
 		} else if (md->type==eModifierType_Collision) {
 			uiDefBut(block, LABEL, 1, "See Collision panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Fluidsim) {
+			uiDefBut(block, LABEL, 1, "See Fluidsim panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		} else if (md->type==eModifierType_Boolean) {
 			BooleanModifierData *bmd = (BooleanModifierData*) md;
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");
@@ -2517,6 +2555,30 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiBlockEndAlign(block);
 
+		} else if (md->type==eModifierType_SimpleDeform) {
+			SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+			char simpledeform_modemenu[] = "Deform type%t|Twist %x1|Bend %x2|Taper %x3|Strech %x4";
+
+			uiDefButC(block, MENU, B_MODIFIER_RECALC, simpledeform_modemenu, lx,(cy-=19),buttonWidth,19, &smd->mode, 0, 0, 0, 0, "Selects type of deform to apply to object.");
+			
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &smd->vgroup_name, 0, 31, 0, 0, "Vertex Group name");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &smd->origin, "Origin of modifier space coordinates");
+			if(smd->origin != NULL)
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_ORIGIN_LOCAL, B_MODIFIER_RECALC, "Relative",lx,(cy-=19),buttonWidth,19, &smd->originOpts, 0, 0, 0, 0, "Sets the origin of deform space to be relative to the object");
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth,19, &smd->factor, -10.0f, 10.0f, 0.5f, 0, "Deform Factor");
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Upper Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[1], 0.0f, 1.0f, 5.0f, 0, "Upper Limit for deform");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lower Limit:",	lx,(cy-=19),buttonWidth,19, &smd->limit[0], 0.0f, 1.0f, 5.0f, 0, "Lower Limit for deform");
+
+			if(smd->mode == MOD_SIMPLEDEFORM_MODE_STRETCH
+			|| smd->mode == MOD_SIMPLEDEFORM_MODE_TAPER  )
+			{
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_LOCK_AXIS_X, B_MODIFIER_RECALC, "Loc X", lx,             (cy-=19),buttonWidth/2,19, &smd->axis, 0, 0, 0, 0, "Disallow changes on the X coordinate");
+				uiDefButBitC(block, TOG, MOD_SIMPLEDEFORM_LOCK_AXIS_Y, B_MODIFIER_RECALC, "Loc Y", lx+(buttonWidth/2), (cy),buttonWidth/2,19, &smd->axis, 0, 0, 0, 0, "Disallow changes on the Y coordinate");
+			}
 		}
 
 		uiBlockEndAlign(block);
@@ -3357,9 +3419,9 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	if(ob->type==OB_CURVE) {
 		uiDefBut(block, LABEL, 0, "Convert",	463,173,72, 18, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT,B_CONVERTPOLY,"Poly",		467,152,72, 18, 0, 0, 0, 0, 0, "Converts selected into regular Polygon vertices");
-		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",		467,132,72, 18, 0, 0, 0, 0, 0, "Converts selected to Bezier triples");
-		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		467,112,72, 18, 0, 0, 0, 0, 0, "Converts selected to Nurbs Points");
+		uiDefBut(block, BUT,B_CONVERTPOLY,"Poly",		450,152,110, 18, 0, 0, 0, 0, 0, "Converts selected into regular Polygon vertices");
+		uiDefBut(block, BUT,B_CONVERTBEZ,"Bezier",		450,132,110, 18, 0, 0, 0, 0, 0, "Converts selected to Bezier triples");
+		uiDefBut(block, BUT,B_CONVERTNURB,"Nurb",		450,112,110, 18, 0, 0, 0, 0, 0, "Converts selected to Nurbs Points");
 	}
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_UNIFU,"Uniform U",	565,152,102, 18, 0, 0, 0, 0, 0, "Nurbs only; interpolated result doesn't go to end points in U");
@@ -3370,7 +3432,7 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 	uiDefBut(block, BUT,B_BEZV,"V",				670,112,50, 18, 0, 0, 0, 0, 0, "Nurbs only; make knots array mimic a Bezier in V");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT,B_SETWEIGHT,"Set Weight",	465,11,95,49, 0, 0, 0, 0, 0, "Nurbs only; set weight for select points");
+	uiDefBut(block, BUT,B_SETWEIGHT,"Set Weight",	450,11,110,49, 0, 0, 0, 0, 0, "Nurbs only; set weight for select points");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,0,"Weight:",		565,36,102,22, &editbutweight, 0.01, 100.0, 10, 0, "The weight you can assign");
@@ -3389,10 +3451,15 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 		if(nu) {
 			if (ob->type==OB_CURVE) {
 				uiDefBut(block, LABEL, 0, "Tilt",
-					467,87,72, 18, 0, 0, 0, 0, 0, "");
+					450,90,72, 18, 0, 0, 0, 0, 0, "");
 				/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
-				uiDefButS(block, MENU, B_TILTINTERP, "Tilt Interpolation %t|Linear %x0|Cardinal %x1|BSpline %x2",
-					467,67,72, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tilt interpolation");
+				uiDefButS(block, MENU, B_TILTINTERP, "Tilt Interpolation %t|Linear%x0|Cardinal%x1|BSpline %x2|Ease%x3",
+					495,90,66, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tadius interpolation for 3D curves");
+
+				uiDefBut(block, LABEL, 0, "Radius",
+					450,70,72, 18, 0, 0, 0, 0, 0, "");
+				uiDefButS(block, MENU, B_TILTINTERP, "Radius Interpolation %t|Linear%x0|Cardinal%x1|BSpline %x2|Ease%x3",
+					495,70,66, 18, &(nu->radius_interp), 0, 0, 0, 0, "Radius interpolation");
 			}
 						
 			uiBlockBeginAlign(block);

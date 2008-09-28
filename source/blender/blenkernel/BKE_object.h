@@ -41,6 +41,7 @@ struct Camera;
 struct BoundBox;
 struct View3D;
 struct SoftBody;
+struct BulletSoftBody;
 struct Group;
 struct bAction;
 
@@ -48,10 +49,12 @@ void clear_workob(void);
 void copy_baseflags(void);
 void copy_objectflags(void);
 struct SoftBody *copy_softbody(struct SoftBody *sb);
+struct BulletSoftBody *copy_bulletsoftbody(struct BulletSoftBody *sb);
 void copy_object_particlesystems(struct Object *obn, struct Object *ob);
 void copy_object_softbody(struct Object *obn, struct Object *ob);
 void object_free_particlesystems(struct Object *ob);
 void object_free_softbody(struct Object *ob);
+void object_free_bulletsoftbody(struct Object *ob);
 void update_base_layer(struct Object *ob);
 
 void free_object(struct Object *ob);

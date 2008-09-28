@@ -108,7 +108,7 @@ typedef struct FluidsimSettings {
 	float surfaceSmoothing;
 	/* number of surface subdivisions*/
 	int surfaceSubdivs;
-	int unusedDNADummy;
+	int flag; /* GUI flags */
 
 	/* particle display - size scaling, and alpha influence */
 	float particleInfSize, particleInfAlpha;
@@ -117,6 +117,18 @@ typedef struct FluidsimSettings {
 
 	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
 	struct MVert *meshSurfNormals;
+	
+	/* Fluid control settings */
+	float cpsTimeStart;
+	float cpsTimeEnd;
+	float cpsQuality;
+	
+	float attractforceStrength;
+	float attractforceRadius;
+	float velocityforceStrength;
+	float velocityforceRadius;
+
+	int lastgoodframe;
 
 } FluidsimSettings;
 
@@ -128,6 +140,7 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
 #define OB_FLUIDSIM_PARTICLE    64
+#define OB_FLUIDSIM_CONTROL 	128
 
 #define OB_TYPEFLAG_START       0
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))
@@ -144,6 +157,9 @@ typedef struct FluidsimSettings {
 #define OB_FSPART_DROP    (1<<2)
 #define OB_FSPART_NEWPART (1<<3)
 #define OB_FSPART_FLOAT   (1<<4)
+
+// new fluid bit flags for fss->flags - dg
+#define OB_FLUIDSIM_REVERSE (1 << 0)
 
 #ifdef __cplusplus
 }

@@ -129,6 +129,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_key_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_force.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -308,7 +309,7 @@ static void GetRGB(short type,
 typedef struct MTF_localLayer
 {
 	MTFace *face;
-	char *name;
+	const char *name;
 }MTF_localLayer;
 
 // ------------------------------------
@@ -377,6 +378,7 @@ BL_Material* ConvertMaterial(
 					material->texname[i] = material->img[i]->id.name;
 					material->flag[i] |= ( tface->transp  &TF_ALPHA	)?USEALPHA:0;
 					material->flag[i] |= ( tface->transp  &TF_ADD	)?CALCALPHA:0;
+					material->flag[i] |= MIPMAP;
 
 					if(material->img[i]->flag & IMA_REFLECT)
 						material->mapping[i].mapping |= USEREFL;
@@ -627,7 +629,7 @@ BL_Material* ConvertMaterial(
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
-	if((material->transp == TF_ALPHA || texalpha) && (material->transp != TF_CLIP)) {
+	if((material->transp == TF_ALPHA || material->transp == TF_ADD || texalpha) && (material->transp != TF_CLIP)) {
 		material->ras_mode |= ALPHA;
 		material->ras_mode |= (material->mode & TF_ALPHASORT)? ZSORT: 0;
 	}
@@ -742,7 +744,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 
 	// Determine if we need to make a skinned mesh
-	if (mesh->dvert || mesh->key) {
+	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0)) 
+	{
 		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
 		skinMesh = true;
 	}
@@ -782,9 +785,9 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		MT_Point2 uv20(0.0,0.0),uv21(0.0,0.0),uv22(0.0,0.0),uv23(0.0,0.0);
 		unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
 
-		MT_Vector3 no0, no1, no2, no3;
 		MT_Point3 pt0, pt1, pt2, pt3;
-		MT_Vector4 tan0, tan1, tan2, tan3;
+		MT_Vector3 no0(0,0,0), no1(0,0,0), no2(0,0,0), no3(0,0,0);
+		MT_Vector4 tan0(0,0,0,0), tan1(0,0,0,0), tan2(0,0,0,0), tan3(0,0,0,0);
 
 		/* get coordinates, normals and tangents */
 		pt0 = MT_Point3(mvert[mface->v1].co);
@@ -806,8 +809,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				NormalShortToFloat(n3, mvert[mface->v4].no);
 				no3 = n3;
 			}
-			else
-				no3 = MT_Vector3(0.0, 0.0, 0.0);
 		}
 		else {
 			float fno[3];
@@ -1280,6 +1281,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
 
+	// object has physics representation?
+	if (!(blenderobject->gameflag & OB_COLLISION))
+		return;
+
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;
 	while(parent && parent->parent) {
@@ -1311,19 +1316,97 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	objprop.m_isCompoundChild = isCompoundChild;
 	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
-
-	if ((objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0))
+	objprop.m_margin = blenderobject->margin;
+	// ACTOR is now a separate feature
+	objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0;
+	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
+	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
+	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	
+	if (objprop.m_softbody)
 	{
-		objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
-		objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
-		objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
-		objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag
-	} else {
-		objprop.m_dyna = false;
-		objprop.m_angular_rigidbody = false;
-		objprop.m_ghost = false;
-		objprop.m_disableSleeping = false;
+		///for game soft bodies
+		if (blenderobject->bsoft)
+		{
+			objprop.m_gamesoftFlag = blenderobject->bsoft->flag;
+					///////////////////
+			objprop.m_soft_linStiff = blenderobject->bsoft->linStiff;
+			objprop.m_soft_angStiff = blenderobject->bsoft->angStiff;		/* angular stiffness 0..1 */
+			objprop.m_soft_volume= blenderobject->bsoft->volume;			/* volume preservation 0..1 */
+
+			objprop.m_soft_viterations= blenderobject->bsoft->viterations;		/* Velocities solver iterations */
+			objprop.m_soft_piterations= blenderobject->bsoft->piterations;		/* Positions solver iterations */
+			objprop.m_soft_diterations= blenderobject->bsoft->diterations;		/* Drift solver iterations */
+			objprop.m_soft_citerations= blenderobject->bsoft->citerations;		/* Cluster solver iterations */
+
+			objprop.m_soft_kSRHR_CL= blenderobject->bsoft->kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+			objprop.m_soft_kSKHR_CL= blenderobject->bsoft->kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+			objprop.m_soft_kSSHR_CL= blenderobject->bsoft->kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+			objprop.m_soft_kSR_SPLT_CL= blenderobject->bsoft->kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+			objprop.m_soft_kSK_SPLT_CL= blenderobject->bsoft->kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+			objprop.m_soft_kSS_SPLT_CL= blenderobject->bsoft->kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+			objprop.m_soft_kVCF= blenderobject->bsoft->kVCF;			/* Velocities correction factor (Baumgarte) */
+			objprop.m_soft_kDP= blenderobject->bsoft->kDP;			/* Damping coefficient [0,1] */
+
+			objprop.m_soft_kDG= blenderobject->bsoft->kDG;			/* Drag coefficient [0,+inf] */
+			objprop.m_soft_kLF= blenderobject->bsoft->kLF;			/* Lift coefficient [0,+inf] */
+			objprop.m_soft_kPR= blenderobject->bsoft->kPR;			/* Pressure coefficient [-inf,+inf] */
+			objprop.m_soft_kVC= blenderobject->bsoft->kVC;			/* Volume conversation coefficient [0,+inf] */
+
+			objprop.m_soft_kDF= blenderobject->bsoft->kDF;			/* Dynamic friction coefficient [0,1] */
+			objprop.m_soft_kMT= blenderobject->bsoft->kMT;			/* Pose matching coefficient [0,1] */
+			objprop.m_soft_kCHR= blenderobject->bsoft->kCHR;			/* Rigid contacts hardness [0,1] */
+			objprop.m_soft_kKHR= blenderobject->bsoft->kKHR;			/* Kinetic contacts hardness [0,1] */
+
+			objprop.m_soft_kSHR= blenderobject->bsoft->kSHR;			/* Soft contacts hardness [0,1] */
+			objprop.m_soft_kAHR= blenderobject->bsoft->kAHR;			/* Anchors hardness [0,1] */
+			objprop.m_soft_collisionflags= blenderobject->bsoft->collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
+		
+		} else
+		{
+			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
+			
+			objprop.m_soft_linStiff = 0.5;;
+			objprop.m_soft_angStiff = 1.f;		/* angular stiffness 0..1 */
+			objprop.m_soft_volume= 1.f;			/* volume preservation 0..1 */
+
+
+			objprop.m_soft_viterations= 0;
+			objprop.m_soft_piterations= 1;
+			objprop.m_soft_diterations= 0;
+			objprop.m_soft_citerations= 4;
+
+			objprop.m_soft_kSRHR_CL= 0.1f;
+			objprop.m_soft_kSKHR_CL= 1.f;
+			objprop.m_soft_kSSHR_CL= 0.5;
+			objprop.m_soft_kSR_SPLT_CL= 0.5f;
+
+			objprop.m_soft_kSK_SPLT_CL= 0.5f;
+			objprop.m_soft_kSS_SPLT_CL= 0.5f;
+			objprop.m_soft_kVCF=  1;
+			objprop.m_soft_kDP= 0;
+
+			objprop.m_soft_kDG= 0;
+			objprop.m_soft_kLF= 0;
+			objprop.m_soft_kPR= 0;
+			objprop.m_soft_kVC= 0;
+
+			objprop.m_soft_kDF= 0.2f;
+			objprop.m_soft_kMT= 0.05f;
+			objprop.m_soft_kCHR= 1.0f;
+			objprop.m_soft_kKHR= 0.1f;
+
+			objprop.m_soft_kSHR= 1.f;
+			objprop.m_soft_kAHR= 0.7f;
+			objprop.m_soft_collisionflags= OB_BSB_COL_SDF_RS + OB_BSB_COL_VF_SS;
+			objprop.m_soft_numclusteriterations= 16;
+		}
 	}
+
+	objprop.m_ghost = (blenderobject->gameflag & OB_GHOST) != 0;
+	objprop.m_disableSleeping = (blenderobject->gameflag & OB_COLLISION_RESPONSE) != 0;//abuse the OB_COLLISION_RESPONSE flag
 	//mmm, for now, taks this for the size of the dynamicobject
 	// Blender uses inertia for radius of dynamic object
 	objprop.m_radius = blenderobject->inertia;
@@ -1556,20 +1639,20 @@ static KX_GameObject *gameobject_from_blenderobject(
 			// not that we can have shape keys without dvert! 
 			BL_ShapeDeformer *dcont = new BL_ShapeDeformer((BL_DeformableGameObject*)gameobj, 
 															ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 			if (bHasArmature)
 				dcont->LoadShapeDrivers(ob->parent);
 		} else if (bHasArmature) {
 			BL_SkinDeformer *dcont = new BL_SkinDeformer((BL_DeformableGameObject*)gameobj,
 															ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		} else if (bHasDvert) {
 			// this case correspond to a mesh that can potentially deform but not with the
 			// object to which it is attached for the moment. A skin mesh was created in
 			// BL_ConvertMesh() so must create a deformer too!
 			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
 														  ob, (BL_SkinMeshObject*)meshobj);
-			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
+			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
 		}
 		
 		MT_Point3 min = MT_Point3(center) - MT_Vector3(extents);
@@ -1604,6 +1687,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
+		/* set the visibility state based on the objects render option in the outliner */
+		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}
 	return gameobj;
 }
@@ -2185,16 +2270,16 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	for(oit=allblobj.begin(); oit!=allblobj.end(); oit++)
 	{
 		Object* blenderobj = *oit;
-		if (blenderobj->type==OB_MESH){
+		if (blenderobj->type==OB_MESH) {
 			Mesh *me = (Mesh*)blenderobj->data;
 	
 			if (me->dvert){
-				KX_GameObject *obj = converter->FindGameObject(blenderobj);
+				BL_DeformableGameObject *obj = (BL_DeformableGameObject*)converter->FindGameObject(blenderobj);
 	
 				if (obj && blenderobj->parent && blenderobj->parent->type==OB_ARMATURE && blenderobj->partype==PARSKEL){
 					KX_GameObject *par = converter->FindGameObject(blenderobj->parent);
-					if (par)
-						((BL_SkinDeformer*)(((BL_DeformableGameObject*)obj)->m_pDeformer))->SetArmature((BL_ArmatureObject*) par);
+					if (par && obj->GetDeformer())
+						((BL_SkinDeformer*)obj->GetDeformer())->SetArmature((BL_ArmatureObject*) par);
 				}
 			}
 		}
@@ -2467,7 +2552,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobj = converter->FindBlenderObject(gameobj);
 		int layerMask = (groupobj.find(blenderobj) == groupobj.end()) ? activeLayerBitInfo : 0;
 		bool isInActiveLayer = (blenderobj->lay & layerMask)!=0;
-		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
+		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,ketsjiEngine,keydev,executePriority,layerMask,isInActiveLayer,canvas,converter);
 		// set the init state to all objects
 		gameobj->SetInitState((blenderobj->init_state)?blenderobj->init_state:blenderobj->state);
 	}

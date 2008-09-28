@@ -921,6 +921,13 @@ void drawscroll(int disptype)
 		
 		BIF_ThemeColor(TH_TEXT);
 		val= ipogrid_startx;
+		
+		if (ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME)) {	/* prevents printing twice same frame */
+			while(ipogrid_dx < 0.9999f) {
+				ipogrid_dx *= 2.0f;
+				dfac*= 2.0f;
+			}
+		}		
 		while(fac < hor.xmax) {
 			
 			if(curarea->spacetype==SPACE_OOPS) { 
@@ -1308,7 +1315,7 @@ static void draw_ipohandles(int sel)
 						glVertex2fv(fp+3); glVertex2fv(fp+6); 
 						glEnd();
 					}
-					else if( (bezt->f1 & 1)==sel) {
+					else if( (bezt->f1 & SELECT)==sel) {
 						fp= bezt->vec[0];
 						cpack(col[bezt->h1]);
 						
@@ -1444,8 +1451,14 @@ static void draw_ipocurves(int sel)
 						if( (icu->extrap & IPO_CYCL)==0) {
 							if(prevbezt->vec[1][0] > G.v2d->cur.xmin) {
 								v1[0]= G.v2d->cur.xmin;
-								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST) v1[1]= prevbezt->vec[1][1];
-								else {
+								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST || icu->totvert==1) {
+									v1[1]= prevbezt->vec[1][1];
+								} else if (icu->ipo==IPO_LIN) {
+									/* extrapolate linear dosnt use the handle, use the next points center instead */
+									fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+									if(fac!=0.0) fac= 1.0/fac;
+									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
+								} else {
 									fac= (prevbezt->vec[0][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
 									if(fac!=0.0) fac= 1.0/fac;
 									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[0][1]-prevbezt->vec[1][1]);
@@ -1524,8 +1537,15 @@ static void draw_ipocurves(int sel)
 						if( (icu->extrap & IPO_CYCL)==0) {
 							if(prevbezt->vec[1][0] < G.v2d->cur.xmax) {
 								v1[0]= G.v2d->cur.xmax;
-								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST) v1[1]= prevbezt->vec[1][1];
-								else {
+								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST ||icu->totvert==1) {
+									v1[1]= prevbezt->vec[1][1];
+								} else if (icu->ipo==IPO_LIN) {
+									/* extrapolate linear dosnt use the handle, use the previous points center instead */
+									bezt = prevbezt-1;
+									fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+									if(fac!=0.0) fac= 1.0/fac;
+									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
+								} else {
 									fac= (prevbezt->vec[2][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
 									if(fac!=0.0) fac= 1.0/fac;
 									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[2][1]-prevbezt->vec[1][1]);
@@ -1945,7 +1965,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu==NULL) {
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode, 1);
 				if (!ei->icu) {
 					error("Could not add a driver to this curve, may be linked data!");
 					break;

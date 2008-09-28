@@ -106,6 +106,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mainqueue.h"
 #include "BIF_meshtools.h"
 #include "BIF_poselib.h"
@@ -884,6 +885,8 @@ void do_view3d_select_object_groupedmenu(void *arg, int event)
 	case 7: /* Objects in Same Group */
 	case 8: /* Object Hooks*/
 	case 9: /* Object PassIndex*/
+	case 10: /* Object Color*/
+	case 11: /* Game Properties*/
 		select_object_grouped((short)event);
 		break;
 	}
@@ -906,7 +909,9 @@ static uiBlock *view3d_select_object_groupedmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Objects on Shared Layers|Shift G, 6",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Objects in Same Group|Shift G, 7",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Hooks|Shift G, 8",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object PassIndex|Shift G, 9",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object PassIndex|Shift G, 9",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Color|Shift G, 0",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Game Properties|Shift G, Alt+1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");	
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -2522,6 +2527,9 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, ob);
 		break;
 #endif
+	case 18: /* delete keyframe */
+		common_deletekey();
+		break; 
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2558,6 +2566,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");	
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3150,6 +3159,9 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 	case 15:
 		uv_autocalc_tface();
 		break;
+	case 16: /* delete keyframe */
+		common_deletekey();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3185,6 +3197,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3416,6 +3429,9 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 	case 15:
 		uv_autocalc_tface();
 		break;
+	case 16: /* delete keyframe */
+		common_deletekey();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3440,6 +3456,7 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3760,6 +3777,9 @@ static void do_view3d_edit_latticemenu(void *arg, int event)
 	case 6:
 		uv_autocalc_tface();
 		break;
+	case 7: /* delete keyframe */
+		common_deletekey();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3783,6 +3803,7 @@ static uiBlock *view3d_edit_latticemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -4170,7 +4191,7 @@ static uiBlock *view3d_pose_armature_ikmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_ikmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Shift I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear IK...|Alt I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear IK...|Ctrl Alt I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -4373,6 +4394,9 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	case 19: /* assign pose as restpose */
 		apply_armature_pose2bones();
 		break;
+	case 20: /* delete keyframe */
+		common_deletekey();
+		break;
 	}
 		
 	allqueue(REDRAWVIEW3D, 0);
@@ -4394,6 +4418,7 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -5196,16 +5221,6 @@ void do_view3d_buttons(short event)
 		}
 		break;
 		
-	case B_LOCALVIEW:
-		if(G.vd->localview) initlocalview();
-		else {
-			endlocalview(curarea);
-			/* new layers might need unflushed events events */
-			DAG_scene_update_flags(G.scene, G.vd->lay);	/* tags all that moves and flushes*/
-		}
-		scrarea_queue_headredraw(curarea);
-		break;
-		
 	case B_VIEWBUT:
 	
 		if(G.vd->viewbut==1) persptoetsen(PAD7);
@@ -5222,9 +5237,6 @@ void do_view3d_buttons(short event)
 			persptoetsen(PAD5);
 		}
 		
-		break;
-	case B_PROPTOOL:
-		allqueue(REDRAWHEADERS, 0);
 		break;
 	case B_VIEWRENDER:
 		if (curarea->spacetype==SPACE_VIEW3D) {

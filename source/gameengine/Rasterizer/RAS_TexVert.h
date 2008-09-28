@@ -44,15 +44,16 @@ class RAS_TexVert
 	float			m_uv1[2];		// 2*4 =  8
 	float			m_uv2[2];		// 2*4 =  8
 	unsigned int	m_rgba;			//        4
-	float			m_tangent[4];   // 4*2 =  8
-	float			m_normal[3];	// 3*2 =  6 
+	float			m_tangent[4];   // 4*4 =  16
+	float			m_normal[3];	// 3*4 =  12
 	short			m_flag;			//        2
+	short			m_softBodyIndex;		//2
 	unsigned int	m_unit;			//		  4
-	unsigned int	m_origindex;		//        4
+	unsigned int	m_origindex;		//    4
 									//---------
-									//       56
+									//       56+6+8+2=72
 	// 32 bytes total size, fits nice = 56 = not fit nice.
-	// We'll go for 64 bytes total size - 24 bytes left.
+
 public:
 	enum {
 		FLAT = 1,
@@ -91,6 +92,16 @@ public:
 		return m_normal;
 	}
 	
+	short int getSoftBodyIndex() const
+	{
+		return m_softBodyIndex;
+	}
+	
+	void	setSoftBodyIndex(short int sbIndex)
+	{
+		m_softBodyIndex = sbIndex;
+	}
+
 	const float* getTangent() const {
 		return m_tangent;
 	}

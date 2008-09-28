@@ -9,10 +9,12 @@ BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}/config'
 
 WITH_BF_OPENAL = 'false'
+# WITH_BF_STATICOPENAL = 'false'
 #BF_OPENAL = LIBDIR + '/openal'
 #BF_OPENAL_INC = '${BF_OPENAL}/include'
 #BF_OPENAL_LIB = 'openal'
 #BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
+#BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 WITH_BF_SDL = 'true'
 BF_SDL = '/usr/local' #$(shell sdl-config --prefix)
@@ -24,9 +26,12 @@ WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'false'
+WITH_BF_STATICOPENEXR = 'false'
 BF_OPENEXR = '/usr/local'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
 WITH_BF_DDS = 'true'
 

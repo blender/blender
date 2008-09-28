@@ -332,6 +332,14 @@ public:
 		m_pPhysicsController1 = physicscontroller;
 	}
 
+	virtual class RAS_Deformer* GetDeformer()
+	{
+		return 0;
+	}
+	virtual void	SetDeformer(class RAS_Deformer* deformer)
+	{
+
+	}
 
 	/**
 	 * @section Coordinate system manipulation functions
@@ -754,6 +762,7 @@ public:
 
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
+	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);

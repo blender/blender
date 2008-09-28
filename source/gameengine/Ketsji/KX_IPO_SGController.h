@@ -72,6 +72,12 @@ class KX_IpoSGController : public SG_Controller
 	/** if IPO initial position has been set for local normal IPO */
 	bool				m_ipo_start_initialized;
 
+	/** Euler angles at the start of the game, needed for incomplete ROT Ipo curves */
+	class MT_Vector3	m_ipo_start_euler;
+
+	/** true is m_ipo_start_euler has been initialized */
+	bool				m_ipo_euler_initialized;
+
 	/** A reference to the original game object. */
 	class KX_GameObject* m_game_object;
 

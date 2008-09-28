@@ -264,6 +264,7 @@ hotkeys={
 ['Alt-A', 'Play animation in current window'],
 ['Ctrl-A', 'Apply objects size/rotation to object data'],
 ['Ctrl-A', 'Text Editor: Select all'],
+['Ctrl-ALT-A', '3D-View: Armature Edit mode, align selected bones to active bone'],
 ['Shift-A', 'Sequencer: Add menu'],
 ['Shift-A', '3D-View: Add menu'],
 ['Shift-ALT-A', 'Play animation in all windows'],

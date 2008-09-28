@@ -80,7 +80,6 @@ void BIF_save_envmap(EnvMap *env, char *str)
 }
 
 
-#define FTOCHAR(val) val<=0.0f?255: 255-(val>=255.0f?255: (char)(val))
 
 /* callback for fileselect to save rendered image, renderresult was checked to exist */
 static void save_rendered_image_cb_real(char *name, int confirm)

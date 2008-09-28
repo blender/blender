@@ -29,6 +29,7 @@
 #define __SCA_JOYSTICKPRIVATE_H__
 #include "SCA_Joystick.h"
 
+#ifndef DISABLE_SDL
 class SCA_Joystick::PrivateData
 {
 public:
@@ -42,4 +43,6 @@ public:
 	{
 	}
 };
+#endif
+
 #endif

@@ -235,11 +235,12 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 			m_pPhysicsController1->SuspendDynamics(true);
 		}
 		// Set us to our new scale, position, and orientation
-		scale1[0] = scale1[0]/scale2[0];
-		scale1[1] = scale1[1]/scale2[1];
-		scale1[2] = scale1[2]/scale2[2];
+		scale2[0] = 1.0/scale2[0];
+		scale2[1] = 1.0/scale2[1];
+		scale2[2] = 1.0/scale2[2];
+		scale1 = scale1 * scale2;
 		MT_Matrix3x3 invori = obj->NodeGetWorldOrientation().inverse();
-		MT_Vector3 newpos = invori*(NodeGetWorldPosition()-obj->NodeGetWorldPosition())*scale1;
+		MT_Vector3 newpos = invori*(NodeGetWorldPosition()-obj->NodeGetWorldPosition())*scale2;
 
 		NodeSetLocalScale(scale1);
 		NodeSetLocalPosition(MT_Point3(newpos[0],newpos[1],newpos[2]));
@@ -589,8 +590,11 @@ KX_GameObject::GetLayer(
 
 void KX_GameObject::addLinearVelocity(const MT_Vector3& lin_vel,bool local)
 {
-	if (m_pPhysicsController1)
-		m_pPhysicsController1->SetLinearVelocity(lin_vel + m_pPhysicsController1->GetLinearVelocity(),local);
+	if (m_pPhysicsController1) 
+	{
+		MT_Vector3 lv = local ? NodeGetWorldOrientation() * lin_vel : lin_vel;
+		m_pPhysicsController1->SetLinearVelocity(lv + m_pPhysicsController1->GetLinearVelocity(), 0);
+	}
 }
 
 
@@ -819,7 +823,17 @@ void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 {
 	if (GetSGNode())
+	{
 		GetSGNode()->RelativeScale(scale);
+		if (m_pPhysicsController1 && (!GetSGNode()->GetSGParent()))
+		{
+			// see note above
+			// we can use the local scale: it's the same thing for a root object 
+			// and the world scale is not yet updated
+			MT_Vector3 newscale = GetSGNode()->GetLocalScale();
+			m_pPhysicsController1->setScaling(newscale);
+		}
+	}
 }
 
 void KX_GameObject::NodeSetWorldPosition(const MT_Point3& trans)
@@ -914,6 +928,7 @@ void KX_GameObject::Suspend()
 PyMethodDef KX_GameObject::Methods[] = {
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
+	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
 	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
 	{"setLinearVelocity", (PyCFunction) KX_GameObject::sPySetLinearVelocity, METH_VARARGS},
 	{"getAngularVelocity", (PyCFunction) KX_GameObject::sPyGetAngularVelocity, METH_VARARGS},
@@ -1569,6 +1584,19 @@ PyObject* KX_GameObject::PySetPosition(PyObject* self, PyObject* value)
 	if (PyVecTo(value, pos))
 	{
 		NodeSetLocalPosition(pos);
+		NodeUpdateGS(0.f,true);
+		Py_RETURN_NONE;
+	}
+
+	return NULL;
+}
+
+PyObject* KX_GameObject::PySetWorldPosition(PyObject* self, PyObject* value)
+{
+	MT_Point3 pos;
+	if (PyVecTo(value, pos))
+	{
+		NodeSetWorldPosition(pos);
 		NodeUpdateGS(0.f,true);
 		Py_RETURN_NONE;
 	}

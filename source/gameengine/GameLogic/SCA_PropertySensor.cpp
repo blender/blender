@@ -347,7 +347,7 @@ PyObject* SCA_PropertySensor::_getattr(const STR_String& attr) {
 }
 
 /* 1. getType */
-char SCA_PropertySensor::GetType_doc[] = 
+const char SCA_PropertySensor::GetType_doc[] = 
 "getType()\n"
 "\tReturns the type of check this sensor performs.\n";
 PyObject* SCA_PropertySensor::PyGetType(PyObject* self, PyObject* args, PyObject* kwds)
@@ -356,7 +356,7 @@ PyObject* SCA_PropertySensor::PyGetType(PyObject* self, PyObject* args, PyObject
 }
 
 /* 2. setType */
-char SCA_PropertySensor::SetType_doc[] = 
+const char SCA_PropertySensor::SetType_doc[] = 
 "setType(type)\n"
 "\t- type: KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL,\n"
 "\t        KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,\n"
@@ -379,7 +379,7 @@ PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject
 }
 
 /* 3. getProperty */
-char SCA_PropertySensor::GetProperty_doc[] = 
+const char SCA_PropertySensor::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturn the property with which the sensor operates.\n";
 PyObject* SCA_PropertySensor::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds) 
@@ -388,7 +388,7 @@ PyObject* SCA_PropertySensor::PyGetProperty(PyObject* self, PyObject* args, PyOb
 }
 
 /* 4. setProperty */
-char SCA_PropertySensor::SetProperty_doc[] = 
+const char SCA_PropertySensor::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSets the property with which to operate. If there is no property\n"
@@ -414,7 +414,7 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 }
 
 /* 5. getValue */
-char SCA_PropertySensor::GetValue_doc[] = 
+const char SCA_PropertySensor::GetValue_doc[] = 
 "getValue()\n"
 "\tReturns the value with which the sensor operates.\n";
 PyObject* SCA_PropertySensor::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds) 
@@ -423,7 +423,7 @@ PyObject* SCA_PropertySensor::PyGetValue(PyObject* self, PyObject* args, PyObjec
 }
 
 /* 6. setValue */
-char SCA_PropertySensor::SetValue_doc[] = 
+const char SCA_PropertySensor::SetValue_doc[] = 
 "setValue(value)\n"
 "\t- value: string\n"
 "\tSet the value with which the sensor operates. If the value\n"

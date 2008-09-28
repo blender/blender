@@ -2535,7 +2535,10 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
-	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, LAMAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
+	uiDefButBitS(block, TOG, LAMAP_SHAD, B_LAMPPRV, "Shadow",		146,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the shadow color of the lamp");
+	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, MENU, B_LAMPPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
@@ -2763,6 +2766,17 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
 
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && ((la->mode & LA_SHAD_RAY)||(la->mode & LA_SHAD_BUF))) {
+		short yval= 10;
+		if(la->type == LA_SPOT && (la->mode & LA_SHAD_BUF)) 
+			yval= -15;
+		if(la->type != LA_SPOT)
+			uiDefBut(block, LABEL, 0, "Shadow",	10,30,90,19,NULL, 0, 0, 0, 0, "");
+			
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, 0, "",			10,yval,90,19,&la->shdwr, 0, 0, 0, B_COLLAMP, "Sets the shadow color; default is black (RGB 0,0,0)");
+	}
+
 }
 
 /* yafray: adaptation of lamp_panel_spot above with yafray specific parameters */
@@ -2862,7 +2876,7 @@ static void lamp_panel_atmosphere(Object *ob, Lamp *la)
 
 	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
-	uiDefButBitS(block, TOG, LA_SUN_EFFECT_SKY, REDRAWVIEW3D, "Sky", 10,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on sky.");
+	uiDefButBitS(block, TOG, LA_SUN_EFFECT_SKY, B_LAMPPRV, "Sky", 10,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on sky.");
 	uiDefButBitS(block, TOG, LA_SUN_EFFECT_AP, REDRAWVIEW3D, "Atmosphere", 20+BUTW2,205,BUTW2,20,&(la->sun_effect_type), 0, 0, 0, 0, "Apply sun light effect on atmosphere.");
 
 	if(la->sun_effect_type & (LA_SUN_EFFECT_SKY|LA_SUN_EFFECT_AP)){
@@ -2872,11 +2886,19 @@ static void lamp_panel_atmosphere(Object *ob, Lamp *la)
 	y = 180;
 	if(la->sun_effect_type & LA_SUN_EFFECT_SKY)
 	{
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_LAMPPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
+					 10,y-25,BUTW2/2,19, 
+					 &la->skyblendtype, 0.0f, 0.0f, 0, 0, "Blend type for how it gets combined with sky");
+		uiDefButF(block, NUM, B_LAMPPRV, "",10+BUTW2/2,y-25,BUTW2/2,19, &(la->skyblendfac), 0.0f, 1.0f, 10, 0, "Sets blending factor with sky color");
+		uiBlockEndAlign(block);
+		
+		y -= 25;
+		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
 	}
 
 	if(la->sun_effect_type & LA_SUN_EFFECT_AP)
@@ -2970,16 +2992,18 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiBlockEndAlign(block);
 	
 	uiDefButF(block, COL, B_LAMPPRV, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
+	uiBlockEndAlign(block);
 	
-	uiBlockBeginAlign(block);
 	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuation for a Lin/Quad Weighted lamp");
 		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuation for a Lin/Quad Weighted lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
-		uiDefButF(block, NUMSLI,0,"Gamma ",	120,10,180,19,&la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Gamma ",	120,10,180,19,&la->k, 0.001, 2.0, 100, 0, "Set the light gamma correction value");
 	}
+	
 }
 
 

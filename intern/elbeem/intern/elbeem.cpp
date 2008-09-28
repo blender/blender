@@ -30,6 +30,7 @@ int guiRoiMaxLev=6, guiRoiMinLev=0;
 ntlWorld *gpWorld = NULL;
 
 
+
 // API
 
 // reset elbeemSimulationSettings struct with defaults
@@ -92,6 +93,13 @@ int elbeemInit() {
 	// create world object with initial settings
 	ntlBlenderDumper *elbeem = new ntlBlenderDumper(); 
 	gpWorld = elbeem;
+	return 0;
+}
+
+// fluidsim end
+extern "C" 
+int elbeemFree() {
+	
 	return 0;
 }
 
@@ -158,13 +166,27 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 
 	/* name of the mesh, mostly for debugging */
 	mesh->name = "[unnamed]";
+	
+	/* fluid control settings */
+	mesh->cpsTimeStart = 0;
+	mesh->cpsTimeEnd = 0;
+	mesh->cpsQuality = 0;
+	
+	mesh->channelSizeAttractforceStrength = 0;
+	mesh->channelAttractforceStrength = NULL;
+	mesh->channelSizeAttractforceRadius = 0;
+	mesh->channelAttractforceRadius = NULL;
+	mesh->channelSizeVelocityforceStrength = 0;
+	mesh->channelVelocityforceStrength = NULL;
+	mesh->channelSizeVelocityforceRadius = 0;
+	mesh->channelVelocityforceRadius = NULL;
 }
 
 int globalMeshCounter = 1;
 // add mesh as fluidsim object
 extern "C" 
 int elbeemAddMesh(elbeemMesh *mesh) {
-	int initType = -1;
+	int initType;
 	if(getElbeemState() != SIMWORLD_INITIALIZING) { errFatal("elbeemAddMesh","World and domain not initialized, call elbeemInit and elbeemAddDomain before...", SIMWORLD_INITERROR); }
 
 	switch(mesh->type) {
@@ -176,9 +198,9 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 		case OB_FLUIDSIM_FLUID: initType = FGI_FLUID; break;
 		case OB_FLUIDSIM_INFLOW: initType = FGI_MBNDINFLOW; break;
 		case OB_FLUIDSIM_OUTFLOW: initType = FGI_MBNDOUTFLOW; break;
+		case OB_FLUIDSIM_CONTROL: initType = FGI_CONTROL; break;
+		default: return 1; // invalid type
 	}
-	// invalid type?
-	if(initType<0) return 1;
 	
 	ntlGeometryObjModel *obj = new ntlGeometryObjModel( );
 	gpWorld->getRenderGlobals()->getSimScene()->addGeoClass( obj );
@@ -195,17 +217,34 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	obj->setGeoInitId( mesh->parentDomainId+1 );
 	obj->setGeoInitIntersect(true);
 	obj->setGeoInitType(initType);
-	obj->setGeoPartSlipValue(mesh->obstaclePartslip);
+	
+	// abuse partslip value for control fluid: reverse control keys or not
+	if(initType == FGI_CONTROL)
+		obj->setGeoPartSlipValue(mesh->obstacleType);
+	else
+		obj->setGeoPartSlipValue(mesh->obstaclePartslip);
+	
 	obj->setGeoImpactFactor(mesh->obstacleImpactFactor);
+	
+	/* fluid control features */
+	obj->setCpsTimeStart(mesh->cpsTimeStart);
+	obj->setCpsTimeEnd(mesh->cpsTimeEnd);
+	obj->setCpsQuality(mesh->cpsQuality);
+	
 	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
 	obj->setVolumeInit(mesh->volumeInitType);
 	// use channel instead, obj->setInitialVelocity( ntlVec3Gfx(mesh->iniVelocity[0], mesh->iniVelocity[1], mesh->iniVelocity[2]) );
+	
 	obj->initChannels(
 			mesh->channelSizeTranslation, mesh->channelTranslation, 
 			mesh->channelSizeRotation,    mesh->channelRotation, 
 			mesh->channelSizeScale,       mesh->channelScale,
 			mesh->channelSizeActive,      mesh->channelActive,
-			mesh->channelSizeInitialVel,  mesh->channelInitialVel
+			mesh->channelSizeInitialVel,  mesh->channelInitialVel,
+			mesh->channelSizeAttractforceStrength,  mesh->channelAttractforceStrength,
+			mesh->channelSizeAttractforceRadius,  mesh->channelAttractforceRadius,
+			mesh->channelSizeVelocityforceStrength,  mesh->channelVelocityforceStrength,
+			mesh->channelSizeVelocityforceRadius,  mesh->channelVelocityforceRadius
 		);
 	obj->setLocalCoordInivel( mesh->localInivelCoords );
 
@@ -227,6 +266,7 @@ int elbeemSimulate(void) {
 		if(getElbeemState() != SIMWORLD_STOP) {
 			// ok, we're done...
 			delete gpWorld;
+			
 			gpWorld = NULL;
 			debMsgStd("elbeemSimulate",DM_NOTIFY, "El'Beem simulation done, time: "<<getTimeString(timeend-timestart)<<".\n", 2 ); 
 		} else {

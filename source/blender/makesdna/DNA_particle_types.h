@@ -66,6 +66,8 @@ typedef struct ParticleData {
 	ParticleKey state;		/* normally current global coordinates or	*/
 							/* in sticky object space if dead & sticky	*/
 
+	ParticleKey prev_state; /* previous state */
+
 	HairKey *hair;			/* hair vertices */
 
 	ParticleKey *keys;		/* keyed states */
@@ -416,6 +418,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PARS_DEAD			1
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3
+#define PARS_DYING			4
 
 /* psys->vg */
 #define PSYS_TOT_VG			12

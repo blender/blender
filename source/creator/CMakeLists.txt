@@ -54,10 +54,6 @@ IF(LINUX)
   INCLUDE_DIRECTORIES(${BINRELOC_INC})
 endif(LINUX)
 
-IF(YESIAMSTUPID)
-  ADD_DEFINITIONS(-DYESIAMSTUPID)
-ENDIF(YESIAMSTUPID)
-
 MESSAGE(STATUS "Configuring blender")
 
 ADD_CUSTOM_COMMAND(
@@ -191,7 +187,7 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity bf_elbeem)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
   SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
@@ -226,7 +222,7 @@ IF(UNIX)
     bf_decimation 
     bf_elbeem 
     bf_yafray 
-    blender_IK 
+    bf_IK 
     bf_memutil 
     bf_guardedalloc 
     blender_CTR 

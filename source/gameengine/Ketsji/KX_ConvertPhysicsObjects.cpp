@@ -38,6 +38,8 @@
 #include "RAS_MeshObject.h"
 #include "KX_Scene.h"
 #include "SYS_System.h"
+#include "BL_SkinMeshObject.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 #include "PHY_Pro.h" //todo cleanup
 #include "KX_ClientObjectInfo.h"
@@ -665,6 +667,106 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 #endif //WIN32
 
 
+							
+	class KX_SoftBodyDeformer : public RAS_Deformer
+	{
+		class RAS_MeshObject*	m_pMeshObject;
+		class KX_GameObject*	m_gameobj;
+
+	public:
+		KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,KX_GameObject*	gameobj)
+			:m_pMeshObject(pMeshObject),
+			m_gameobj(gameobj)
+		{
+			//printf("KX_SoftBodyDeformer\n");
+		};
+
+		virtual ~KX_SoftBodyDeformer()
+		{
+			//printf("~KX_SoftBodyDeformer\n");
+		};
+		virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+		{
+			//printf("relink\n");
+		}
+		virtual bool Apply(class RAS_IPolyMaterial *polymat)
+		{
+			KX_BulletPhysicsController* ctrl = (KX_BulletPhysicsController*) m_gameobj->GetPhysicsController();
+			if (!ctrl)
+				return false;
+
+			btSoftBody* softBody= ctrl->GetSoftBody();
+			if (!softBody)
+				return false;
+
+			//printf("apply\n");
+			RAS_MeshSlot::iterator it;
+			RAS_MeshMaterial *mmat;
+			RAS_MeshSlot *slot;
+			size_t i;
+
+			// update the vertex in m_transverts
+			Update();
+
+
+
+			// The vertex cache can only be updated for this deformer:
+			// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+			// share the same mesh (=the same cache). As the rendering is done per polymaterial
+			// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+			mmat = m_pMeshObject->GetMeshMaterial(polymat);
+			if(!mmat->m_slots[(void*)m_gameobj])
+				return true;
+
+			slot = *mmat->m_slots[(void*)m_gameobj];
+
+			// for each array
+			for(slot->begin(it); !slot->end(it); slot->next(it)) 
+			{
+				btSoftBody::tNodeArray&   nodes(softBody->m_nodes);
+
+				int index = 0;
+				for(i=it.startvertex; i<it.endvertex; i++,index++) {
+					RAS_TexVert& v = it.vertex[i];
+					btAssert(v.getSoftBodyIndex() >= 0);
+
+					MT_Point3 pt (
+						nodes[v.getSoftBodyIndex()].m_x.getX(),
+						nodes[v.getSoftBodyIndex()].m_x.getY(),
+						nodes[v.getSoftBodyIndex()].m_x.getZ());
+					v.SetXYZ(pt);
+
+					MT_Vector3 normal (
+						nodes[v.getSoftBodyIndex()].m_n.getX(),
+						nodes[v.getSoftBodyIndex()].m_n.getY(),
+						nodes[v.getSoftBodyIndex()].m_n.getZ());
+					v.SetNormal(normal);
+
+				}
+			}
+			return true;
+		}
+		virtual bool Update(void)
+		{
+			//printf("update\n");
+			return true;//??
+		}
+		virtual RAS_Deformer *GetReplica(class KX_GameObject* replica)
+		{
+			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(replica->GetMesh(0),replica);
+			return deformer;
+		}
+
+		virtual bool SkipVertexTransform()
+		{
+			return true;
+		}
+
+	protected:
+		//class RAS_MeshObject	*m_pMesh;
+	};
+
+
 // forward declarations
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
@@ -699,6 +801,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_gravity = btVector3(0,0,0);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
+	ci.m_margin = objprop->m_margin;
 	shapeInfo->m_radius = objprop->m_radius;
 	isbulletdyna = objprop->m_dyna;
 	
@@ -758,18 +861,36 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		}
 	case KX_BOUNDPOLYTOPE:
 		{
-			shapeInfo->SetMesh(meshobj, true);
+			shapeInfo->SetMesh(meshobj, true,false);
 			bm = shapeInfo->CreateBulletShape();
 			break;
 		}
 	case KX_BOUNDMESH:
 		{
-			if (!ci.m_mass)
+			
+			if (!ci.m_mass ||objprop->m_softbody)
 			{				
-				shapeInfo->SetMesh(meshobj, false);
+				// mesh shapes can be shared, check first if we already have a shape on that mesh
+				class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, false);
+				if (sharedShapeInfo != NULL) 
+				{
+					delete shapeInfo;
+					shapeInfo = sharedShapeInfo;
+					shapeInfo->AddRef();
+				} else
+				{
+					shapeInfo->SetMesh(meshobj, false,false);
+				}
+				if (objprop->m_softbody)
+					shapeInfo->setVertexWeldingThreshold(0.01f); //todo: expose this to the UI
+
 				bm = shapeInfo->CreateBulletShape();
 				//no moving concave meshes, so don't bother calculating inertia
 				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			} else
+			{
+				shapeInfo->SetMesh(meshobj, false,true);
+				bm = shapeInfo->CreateBulletShape();
 			}
 
 			break;
@@ -786,7 +907,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		return;
 	}
 
-	bm->setMargin(0.06);
+	bm->setMargin(ci.m_margin);
 
 
 		if (objprop->m_isCompoundChild)
@@ -801,11 +922,29 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			assert(colShape->isCompound());
 			btCompoundShape* compoundShape = (btCompoundShape*)colShape;
 
-			MT_Point3 childPos = gameobj->GetSGNode()->GetLocalPosition();
-			MT_Matrix3x3 childRot = gameobj->GetSGNode()->GetLocalOrientation();
-			MT_Vector3 childScale = gameobj->GetSGNode()->GetLocalScale();
+			// compute the local transform from parent, this may include a parent inverse node
+			SG_Node* gameNode = gameobj->GetSGNode();
+			SG_Node* parentInverseNode = gameNode->GetSGParent();
+			if (parentInverseNode && parentInverseNode->GetSGClientObject() != NULL)
+				// this is not a parent inverse node, cancel it
+				parentInverseNode = NULL;
+			// now combine the parent inverse node and the game node
+			MT_Point3 childPos = gameNode->GetLocalPosition();
+			MT_Matrix3x3 childRot = gameNode->GetLocalOrientation();
+			MT_Vector3 childScale = gameNode->GetLocalScale();
+			if (parentInverseNode)
+			{
+				const MT_Point3& parentInversePos = parentInverseNode->GetLocalPosition();
+				const MT_Matrix3x3& parentInverseRot = parentInverseNode->GetLocalOrientation();
+				const MT_Vector3& parentInverseScale = parentInverseNode->GetLocalScale();
+				childRot =  parentInverseRot * childRot;
+				childScale = parentInverseScale * childScale;
+				childPos = parentInversePos+parentInverseScale*(parentInverseRot*childPos);
+			}
 
-			bm->setLocalScaling(btVector3(childScale.x(),childScale.y(),childScale.z()));
+			shapeInfo->m_childScale.setValue(childScale.x(),childScale.y(),childScale.z());
+			bm->setLocalScaling(shapeInfo->m_childScale);
+			
 			shapeInfo->m_childTrans.setOrigin(btVector3(childPos.x(),childPos.y(),childPos.z()));
 			float rotval[12];
 			childRot.getValue(rotval);
@@ -885,9 +1024,50 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_angularDamping = 1.f - shapeprops->m_ang_drag;
 	//need a bit of damping, else system doesn't behave well
 	ci.m_inertiaFactor = shapeprops->m_inertia/0.4f;//defaults to 0.4, don't want to change behaviour
+	
+	
+	///////////////////
+	ci.m_gamesoftFlag = objprop->m_gamesoftFlag;
+	ci.m_soft_linStiff = objprop->m_soft_linStiff;
+	ci.m_soft_angStiff = objprop->m_soft_angStiff;		/* angular stiffness 0..1 */
+	ci.m_soft_volume= objprop->m_soft_volume;			/* volume preservation 0..1 */
+
+	ci.m_soft_viterations= objprop->m_soft_viterations;		/* Velocities solver iterations */
+	ci.m_soft_piterations= objprop->m_soft_piterations;		/* Positions solver iterations */
+	ci.m_soft_diterations= objprop->m_soft_diterations;		/* Drift solver iterations */
+	ci.m_soft_citerations= objprop->m_soft_citerations;		/* Cluster solver iterations */
+
+	ci.m_soft_kSRHR_CL= objprop->m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	ci.m_soft_kSKHR_CL= objprop->m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	ci.m_soft_kSSHR_CL= objprop->m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	ci.m_soft_kSR_SPLT_CL= objprop->m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	ci.m_soft_kSK_SPLT_CL= objprop->m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	ci.m_soft_kSS_SPLT_CL= objprop->m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	ci.m_soft_kVCF= objprop->m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
+	ci.m_soft_kDP= objprop->m_soft_kDP;			/* Damping coefficient [0,1] */
+
+	ci.m_soft_kDG= objprop->m_soft_kDG;			/* Drag coefficient [0,+inf] */
+	ci.m_soft_kLF= objprop->m_soft_kLF;			/* Lift coefficient [0,+inf] */
+	ci.m_soft_kPR= objprop->m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
+	ci.m_soft_kVC= objprop->m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	ci.m_soft_kDF= objprop->m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
+	ci.m_soft_kMT= objprop->m_soft_kMT;			/* Pose matching coefficient [0,1] */
+	ci.m_soft_kCHR= objprop->m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
+	ci.m_soft_kKHR= objprop->m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	ci.m_soft_kSHR= objprop->m_soft_kSHR;			/* Soft contacts hardness [0,1] */
+	ci.m_soft_kAHR= objprop->m_soft_kAHR;			/* Anchors hardness [0,1] */
+	ci.m_soft_collisionflags= objprop->m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	ci.m_soft_numclusteriterations= objprop->m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+
+	////////////////////
+
 	ci.m_collisionFilterGroup = (isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) : short(CcdConstructionInfo::StaticFilter);
 	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
 	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
+	ci.m_bSoft = objprop->m_softbody;
 	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();
 	ci.m_scaling.setValue(scaling[0], scaling[1], scaling[2]);
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
@@ -904,10 +1084,12 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
-	btRigidBody* rbody = physicscontroller->GetRigidBody();
+	{
+		btRigidBody* rbody = physicscontroller->GetRigidBody();
 
-	if (objprop->m_disableSleeping)
-		rbody->setActivationState(DISABLE_DEACTIVATION);
+		if (rbody && objprop->m_disableSleeping)
+			rbody->setActivationState(DISABLE_DEACTIVATION);
+	}
 	
 	//Now done directly in ci.m_collisionFlags so that it propagates to replica
 	//if (objprop->m_ghost)
@@ -955,6 +1137,20 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		materialname = meshobj->GetMaterialName(0);
 
 	physicscontroller->SetObject(gameobj->GetSGNode());
+
+
+	///test for soft bodies
+	if (objprop->m_softbody && physicscontroller)
+	{
+		btSoftBody* softBody = physicscontroller->GetSoftBody();
+		if (softBody && gameobj->GetMesh(0))//only the first mesh, if any
+		{
+			//should be a mesh then, so add a soft body deformer
+			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer( gameobj->GetMesh(0),gameobj);
+			gameobj->SetDeformer(softbodyDeformer);
+			
+		}
+	}
 
 }
 

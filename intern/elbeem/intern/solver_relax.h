@@ -14,53 +14,6 @@
 #else // FSGR_STRICT_DEBUG==1
 #define CAUSE_PANIC { this->mPanic=1; } /*set flag*/
 #endif // FSGR_STRICT_DEBUG==1
-
-#if LBM_INCLUDE_TESTSOLVERS!=1
-
-#define PRECOLLIDE_MODS(rho,ux,uy,uz, grav) \
-	ux += (grav)[0]; \
-	uy += (grav)[1]; \
-	uz += (grav)[2]; 
-
-#define TEST_IF_CHECK 
-
-#else // LBM_INCLUDE_TESTSOLVERS!=1
-// defined in test.h
-
-#define NEWDIRVELMOTEST 0
-#if NEWDIRVELMOTEST==1
-// off for non testing
-#undef PRECOLLIDE_MODS
-#define PRECOLLIDE_MODS(rho,ux,uy,uz, grav) \
-	ux += (grav)[0]; \
-	uy += (grav)[1]; \
-	uz += (grav)[2];  \
-  { \
-		int lev = mMaxRefine, nomb=0; \
-		LbmFloat bcnt = 0.,nux=0.,nuy=0.,nuz=0.; \
-		for(int l=1; l<this->cDfNum; l++) {  \
-			if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBnd) { \
-				if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBndMoving) { \
-					nux += QCELL_NB(lev, i,j,k,SRCS(lev),l, dMass); \
-					nuy += QCELL_NB(lev, i,j,k,SRCS(lev),l, dFfrac); \
-					bcnt += 1.; \
-				}	else { \
-					nomb++; \
-				} \
-			}  \
-		} \
-		if((bcnt>0.)&&(nomb==0)) { \
-			ux = nux/bcnt; \
-			uy = nuy/bcnt; \
-			uz = nuz/bcnt;  \
-		} \
-	} 
-#else // NEWDIRVELMOTEST==1
-// off for non testing
-#endif // NEWDIRVELMOTEST==1
-
-#endif // LBM_INCLUDE_TESTSOLVERS!=1
-
 	
 /******************************************************************************
  * normal relaxation

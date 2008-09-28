@@ -480,9 +480,11 @@ static void init_userdef_file(void)
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 16)) {
 		U.flag |= USER_ADD_VIEWALIGNED|USER_ADD_EDITMODE;
 	}
-	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile < 1)) {
+	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile <= 2)) {
 		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+		
+		/* adjust themes */
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
 			char *col;
 			
 			/* IPO Editor: Handles/Vertices */
@@ -499,6 +501,10 @@ static void init_userdef_file(void)
 			col = btheme->tv3d.vertex_select;
 			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
 		}
+		
+		/* define grease-pencil distances */
+		U.gp_manhattendist= 3;
+		U.gp_euclideandist= 20;
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */

@@ -64,6 +64,7 @@
 #include "DNA_modifier_types.h" /* used for select grouped hooks */
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -87,13 +88,13 @@
 #include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
+#include "BKE_property.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
 #include "BKE_particle.h"
-
 #include "BIF_spacetypes.h"  /* first, nasty dependency with typedef */
 
 #include "BIF_butspace.h"
@@ -122,6 +123,7 @@
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_keyframing.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
@@ -386,7 +388,11 @@ void space_set_commmandline_options(void) {
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
 		a= (U.gameflags & USER_DISABLE_SOUND);
-		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
+		/* if user already disabled audio at the command-line, don't re-enable it */
+		if (a)
+		{
+			SYS_WriteCommandLineInt(syshandle, "noaudio", a);
+		}
 
 		a= (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!a);
@@ -710,7 +716,7 @@ static short select_parent(void)	/* Makes parent active and de-selected OBACT */
 	short changed = 0;
 	Base *base, *startbase, *basact=NULL, *oldbasact;
 	
-	if (!(OBACT) || !(OBACT->parent)) return 0;
+	if (!(OBACT->parent)) return 0; /* we know OBACT is valid */
 	BASACT->flag &= (~SELECT);
 	BASACT->object->flag &= (~SELECT);
 	startbase=  FIRSTBASE;
@@ -746,9 +752,6 @@ static short select_same_group(Object *ob)	/* Select objects in the same group a
 	char str[10 + (24*GROUP_MENU_MAX)];
 	char *p = str;
 	int group_count=0, menu, i;
-
-	if (!ob)
-		return 0;
 	
 	for (	group=G.main->group.first;
 			group && group_count < GROUP_MENU_MAX;
@@ -804,9 +807,6 @@ static short select_object_hooks(Object *ob)
 	ModifierData *md;
 	HookModifierData *hmd;
 	
-	if (!ob)
-		return 0;
-	
 	for (md = ob->modifiers.first; md; md=md->next) {
 		if (md->type==eModifierType_Hook) {
 			hmd= (HookModifierData*) md;
@@ -829,8 +829,6 @@ static short select_same_parent(Object *ob)
 {
 	short changed = 0;
 	Base *base;
-	if (!ob)
-		return 0;
 	
 	for (base= FIRSTBASE; base; base= base->next) {
 		if (BASE_SELECTABLE(base) && (base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
@@ -846,8 +844,6 @@ static short select_same_type(Object *ob)
 {
 	short changed = 0;
 	Base *base;
-	if (!ob)
-		return 0;
 	
 	for (base= FIRSTBASE; base; base= base->next) {
 		if (BASE_SELECTABLE(base) && (base->object->type == ob->type) && !(base->flag & SELECT)) {
@@ -863,9 +859,6 @@ static short select_same_layer(Object *ob)
 {
 	char changed = 0;
 	Base *base = FIRSTBASE;
-	
-	if (!ob)
-		return 0;
 	
 	while(base) {
 		if (BASE_SELECTABLE(base) && (base->lay & ob->lay) && !(base->flag & SELECT)) {
@@ -883,9 +876,6 @@ static short select_same_index_object(Object *ob)
 	char changed = 0;
 	Base *base = FIRSTBASE;
 	
-	if (!ob)
-		return 0;
-	
 	while(base) {
 		if (BASE_SELECTABLE(base) && (base->object->index == ob->index) && !(base->flag & SELECT)) {
 			base->flag |= SELECT;
@@ -897,18 +887,68 @@ static short select_same_index_object(Object *ob)
 	return changed;
 }
 
+static short select_same_color(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005))) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
+}
+
+static short objects_share_gameprop(Object *a, Object *b)
+{
+	bProperty *prop;
+	/*make a copy of all its properties*/
+	
+	for( prop= a->prop.first; prop; prop = prop->next ) {
+		if ( get_ob_property(b, prop->name) )
+			return 1;
+	}
+	return 0;
+}
+
+static short select_same_gameprops(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
+}
+
 void select_object_grouped(short nr)
 {
+	Object *ob = OBACT;
 	short changed = 0;
-	if(nr==1)		changed = select_children(OBACT, 1);
-	else if(nr==2)	changed = select_children(OBACT, 0);
+	
+	if (ob==NULL) return;
+	
+	if(nr==1)		changed = select_children(ob, 1);
+	else if(nr==2)	changed = select_children(ob, 0);
 	else if(nr==3)	changed = select_parent();
-	else if(nr==4)	changed = select_same_parent(OBACT);	
-	else if(nr==5)	changed = select_same_type(OBACT);
-	else if(nr==6)	changed = select_same_layer(OBACT);	
-	else if(nr==7)	changed = select_same_group(OBACT);
-	else if(nr==8)	changed = select_object_hooks(OBACT);
-	else if(nr==9)	changed = select_same_index_object(OBACT);
+	else if(nr==4)	changed = select_same_parent(ob);	
+	else if(nr==5)	changed = select_same_type(ob);
+	else if(nr==6)	changed = select_same_layer(ob);	
+	else if(nr==7)	changed = select_same_group(ob);
+	else if(nr==8)	changed = select_object_hooks(ob);
+	else if(nr==9)	changed = select_same_index_object(ob);
+	else if(nr==10)	changed = select_same_color(ob);
+	else if(nr==11)	changed = select_same_gameprops(ob);
 	
 	if (changed) {
 		countall();
@@ -934,7 +974,10 @@ static void select_object_grouped_menu(void)
 	            "Objects of Same Type%x5|"
 				"Objects on Shared Layers%x6|"
                 "Objects in Same Group%x7|"
-                "Object Hooks%x8|Object PassIndex%x9");
+                "Object Hooks%x8|"
+				"Object PassIndex%x9|"
+				"Object Color%x10|"
+				"Game Properties%x11");
 
 	/* here we go */
 	
@@ -1206,8 +1249,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 */
 		if(event==LEFTMOUSE) {
 			/* run any view3d event handler script links */
-			if (event && sa->scriptlink.totscript) {
-				if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+			if (sa->scriptlink.totscript) {
+				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
 			
@@ -1268,7 +1311,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		/* run any view3d event handler script links */
 		if (event && sa->scriptlink.totscript)
-			if (BPY_do_spacehandlers(sa, event, SPACEHANDLER_VIEW3D_EVENT))
+			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 				return; /* return if event was processed (swallowed) by handler(s) */
 
 		/* TEXTEDITING?? */
@@ -1827,8 +1870,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case AKEY:
-				if (G.obedit == 0 && G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
-					alignmenu();
+				if(G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
+					if(G.obedit == 0)
+						alignmenu();
+					else if(G.obedit->type==OB_ARMATURE)
+						align_selected_bones();
 				}
 				else if(G.qual & LR_CTRLKEY) { /* also with shift! */
 					apply_object();	
@@ -2218,7 +2264,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						selectswap();
 				}
-				else if(G.qual==LR_ALTKEY) {
+				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY)) {
 					if(ob && (ob->flag & OB_POSEMODE) && ob->type==OB_ARMATURE)
 						pose_clear_IK();
 				}
@@ -3102,6 +3148,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				borderselect_ipo();
 			else if (G.qual==LR_CTRLKEY) {
 				borderselect_markers();
+			}
+			else if (G.qual==LR_SHIFTKEY) {
+				do_ipo_buttons(B_IPOBORDER);
 			}
 			break;
 		case CKEY:
@@ -3991,7 +4040,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(2*mpref)+(2*midsp)),y5,mpref, buth,
 				&(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 			
-			if (IS_AUTOKEY_ON) {
+			if (U.autokey_mode & AUTOKEY_ON) {
 				uiDefButS(block, MENU, REDRAWTIME, 
 						"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
 						(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 
@@ -4051,6 +4100,19 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOG, USER_DUP_IPO, 0, "Ipo",
 			(xpos+edgsp+(8*midsp)+(3*mpref)+(5*spref)),y1,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes ipo data to be duplicated with Shift+D");
+		uiBlockEndAlign(block);
+		
+		uiDefBut(block, LABEL,0,"Grease Pencil:",
+			(xpos+(2*edgsp)+(3*midsp)+(3*mpref)+spref),y6label,mpref,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, 0, "Manhatten Dist:",
+			(xpos+(4*midsp)+(3*mpref)+mpref),y5,mpref,buth,
+			&(U.gp_manhattendist), 0, 100, 0, 0, "Pixels moved by mouse per axis when drawing stroke");
+		uiDefButS(block, NUM, 0, "Euclidean Dist:",
+			(xpos+(5*midsp)+(3*mpref)+(2*mpref)),y5,mpref,buth,
+			&(U.gp_euclideandist), 0, 100, 0, 0, "Distance moved by mouse when drawing stroke (in pixels) to include");
 		uiBlockEndAlign(block);
 	
 	} else if(U.userpref == 2) { /* language & colors */

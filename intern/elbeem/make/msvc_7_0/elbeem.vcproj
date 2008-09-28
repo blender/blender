@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
+				AdditionalIncludeDirectories="..\..\intern;..\..\extern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1;LBM_INCLUDE_CONTROL=1"
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -72,8 +72,8 @@ ECHO Done
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
+				AdditionalIncludeDirectories="..\..\intern;..\..\extern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1;LBM_INCLUDE_CONTROL=1"
 				StringPooling="TRUE"
 				MinimalRebuild="FALSE"
 				RuntimeLibrary="0"
@@ -126,7 +126,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				AdditionalIncludeDirectories="..\..\intern;..\..\extern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
@@ -179,7 +179,7 @@ ECHO Done
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				AdditionalIncludeDirectories="..\..\intern;..\..\extern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
 				StringPooling="TRUE"
 				MinimalRebuild="FALSE"
@@ -236,10 +236,19 @@ ECHO Done
 				RelativePath="..\..\intern\attributes.cpp">
 			</File>
 			<File
+				RelativePath="..\..\intern\controlparticles.cpp">
+			</File>
+			<File
 				RelativePath="..\..\intern\elbeem.cpp">
 			</File>
 			<File
+				RelativePath="..\..\intern\elbeem_control.cpp">
+			</File>
+			<File
 				RelativePath="..\..\intern\isosurface.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\mvmcoords.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_blenderdumper.cpp">
@@ -275,6 +284,9 @@ ECHO Done
 				RelativePath="..\..\intern\solver_adap.cpp">
 			</File>
 			<File
+				RelativePath="..\..\intern\solver_control.cpp">
+			</File>
+			<File
 				RelativePath="..\..\intern\solver_init.cpp">
 			</File>
 			<File
@@ -298,13 +310,22 @@ ECHO Done
 				RelativePath="..\..\intern\attributes.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\elbeem.h">
+				RelativePath="..\..\intern\controlparticles.h">
+			</File>
+			<File
+				RelativePath="..\..\extern\elbeem.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\elbeem_control.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\isosurface.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\mcubes_tables.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\mvmcoords.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_blenderdumper.h">
@@ -350,6 +371,9 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\solver_class.h">
+			</File>
+			<File
+				RelativePath="..\..\intern\solver_control.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\solver_interface.h">

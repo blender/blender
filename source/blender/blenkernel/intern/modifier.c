@@ -54,8 +54,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -66,8 +69,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_camera_types.h"
 
 #include "BLI_editVert.h"
 
@@ -77,32 +78,34 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_bmesh.h"
+#include "BKE_booleanops.h"
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
-#include "BKE_global.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_booleanops.h"
 #include "BKE_displist.h"
-#include "BKE_modifier.h"
+#include "BKE_fluidsim.h"
+#include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
-#include "BKE_subsurf.h"
-#include "BKE_object.h"
-#include "BKE_mesh.h"
-#include "BKE_softbody.h"
-#include "BKE_cloth.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_softbody.h"
+#include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
 #include "depsgraph_private.h"
-#include "BKE_bmesh.h"
 #include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
+#include "BKE_simple_deform.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -586,6 +589,361 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 		   return result;
 }
 
+/* Mask */
+
+static void maskModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	MaskModifierData *mmd = (MaskModifierData*) md;
+	MaskModifierData *tmmd = (MaskModifierData*) target;
+	
+	strcpy(tmmd->vgroup, mmd->vgroup);
+}
+
+static CustomDataMask maskModifier_requiredDataMask(ModifierData *md)
+{
+	return (1 << CD_MDEFORMVERT);
+}
+
+static void maskModifier_foreachObjectLink(
+					      ModifierData *md, Object *ob,
+	   void (*walk)(void *userData, Object *ob, Object **obpoin),
+		  void *userData)
+{
+	MaskModifierData *mmd = (MaskModifierData *)md;
+	walk(userData, ob, &mmd->ob_arm);
+}
+
+static void maskModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+					   Object *ob, DagNode *obNode)
+{
+	MaskModifierData *mmd = (MaskModifierData *)md;
+
+	if (mmd->ob_arm) 
+	{
+		DagNode *armNode = dag_get_node(forest, mmd->ob_arm);
+		
+		dag_add_relation(forest, armNode, obNode,
+				DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mask Modifier");
+	}
+}
+
+static DerivedMesh *maskModifier_applyModifier(ModifierData *md, Object *ob,
+		DerivedMesh *derivedData,
+  int useRenderParams, int isFinalCalc)
+{
+	MaskModifierData *mmd= (MaskModifierData *)md;
+	DerivedMesh *dm= derivedData, *result= NULL;
+	GHash *vertHash=NULL, *edgeHash, *faceHash;
+	GHashIterator *hashIter;
+	MDeformVert *dvert= NULL;
+	int numFaces=0, numEdges=0, numVerts=0;
+	int maxVerts, maxEdges, maxFaces;
+	int i;
+	
+	/* Overview of Method:
+	 *	1. Get the vertices that are in the vertexgroup of interest 
+	 *	2. Filter out unwanted geometry (i.e. not in vertexgroup), by populating mappings with new vs old indices
+	 *	3. Make a new mesh containing only the mapping data
+	 */
+	
+	/* get original number of verts, edges, and faces */
+	maxVerts= dm->getNumVerts(dm);
+	maxEdges= dm->getNumEdges(dm);
+	maxFaces= dm->getNumFaces(dm);
+	
+	/* check if we can just return the original mesh 
+	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
+	 */
+	if ( !(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) ||
+		 (maxVerts == 0) || (ob->defbase.first == NULL) )
+	{
+		return derivedData;
+	}
+	
+	/* if mode is to use selected armature bones, aggregate the bone groups */
+	if (mmd->mode == MOD_MASK_MODE_ARM) /* --- using selected bones --- */
+	{
+		GHash *vgroupHash, *boneHash;
+		Object *oba= mmd->ob_arm;
+		bPoseChannel *pchan;
+		bDeformGroup *def;
+		
+		/* check that there is armature object with bones to use, otherwise return original mesh */
+		if (ELEM(NULL, mmd->ob_arm, mmd->ob_arm->pose))
+			return derivedData;		
+		
+		/* hashes for finding mapping of:
+		 * 	- vgroups to indicies -> vgroupHash  (string, int)
+		 *	- bones to vgroup indices -> boneHash (index of vgroup, dummy)
+		 */
+		vgroupHash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+		boneHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		
+		/* build mapping of names of vertex groups to indices */
+		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
+			BLI_ghash_insert(vgroupHash, def->name, SET_INT_IN_POINTER(i));
+		
+		/* get selected-posechannel <-> vertexgroup index mapping */
+		for (pchan= oba->pose->chanbase.first; pchan; pchan= pchan->next) 
+		{
+			/* check if bone is selected */
+			// TODO: include checks for visibility too?
+			// FIXME: the depsgraph needs extensions to make this work in realtime...
+			if ( (pchan->bone) && (pchan->bone->flag & BONE_SELECTED) ) 
+			{
+				/* check if hash has group for this bone */
+				if (BLI_ghash_haskey(vgroupHash, pchan->name)) 
+				{
+					int defgrp_index= GET_INT_FROM_POINTER(BLI_ghash_lookup(vgroupHash, pchan->name));
+					
+					/* add index to hash (store under key only) */
+					BLI_ghash_insert(boneHash, SET_INT_IN_POINTER(defgrp_index), pchan);
+				}
+			}
+		}
+		
+		/* if no bones selected, free hashes and return original mesh */
+		if (BLI_ghash_size(boneHash) == 0)
+		{
+			BLI_ghash_free(vgroupHash, NULL, NULL);
+			BLI_ghash_free(boneHash, NULL, NULL);
+			
+			return derivedData;
+		}
+		
+		/* repeat the previous check, but for dverts */
+		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		if (dvert == NULL)
+		{
+			BLI_ghash_free(vgroupHash, NULL, NULL);
+			BLI_ghash_free(boneHash, NULL, NULL);
+			
+			return derivedData;
+		}
+		
+		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
+		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		
+		/* add vertices which exist in vertexgroups into vertHash for filtering */
+		for (i = 0; i < maxVerts; i++) 
+		{
+			MDeformWeight *def_weight = NULL;
+			int j;
+			
+			for (j= 0; j < dvert[i].totweight; j++) 
+			{
+				if (BLI_ghash_haskey(boneHash, SET_INT_IN_POINTER(dvert[i].dw[j].def_nr))) 
+				{
+					def_weight = &dvert[i].dw[j];
+					break;
+				}
+			}
+			
+			/* check if include vert in vertHash */
+			if (mmd->flag & MOD_MASK_INV) {
+				/* if this vert is in the vgroup, don't include it in vertHash */
+				if (def_weight) continue;
+			}
+			else {
+				/* if this vert isn't in the vgroup, don't include it in vertHash */
+				if (!def_weight) continue;
+			}
+			
+			/* add to ghash for verts (numVerts acts as counter for mapping) */
+			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numVerts));
+			numVerts++;
+		}
+		
+		/* free temp hashes */
+		BLI_ghash_free(vgroupHash, NULL, NULL);
+		BLI_ghash_free(boneHash, NULL, NULL);
+	}
+	else		/* --- Using Nominated VertexGroup only --- */ 
+	{
+		int defgrp_index = -1;
+		
+		/* get index of vertex group */
+		if (mmd->vgroup[0]) 
+		{
+			bDeformGroup *def;
+			
+			/* find index by comparing names - SLOW... */
+			for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
+			{
+				if (!strcmp(def->name, mmd->vgroup)) 
+				{
+					defgrp_index = i;
+					break;
+				}
+			}
+		}
+		
+		/* get dverts */
+		if (defgrp_index >= 0)
+			dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+			
+		/* if no vgroup (i.e. dverts) found, return the initial mesh */
+		if ((defgrp_index < 0) || (dvert == NULL))
+			return dm;
+			
+		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
+		vertHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+		
+		/* add vertices which exist in vertexgroup into ghash for filtering */
+		for (i = 0; i < maxVerts; i++) 
+		{
+			MDeformWeight *def_weight = NULL;
+			int j;
+			
+			for (j= 0; j < dvert[i].totweight; j++) 
+			{
+				if (dvert[i].dw[j].def_nr == defgrp_index) 
+				{
+					def_weight = &dvert[i].dw[j];
+					break;
+				}
+			}
+			
+			/* check if include vert in vertHash */
+			if (mmd->flag & MOD_MASK_INV) {
+				/* if this vert is in the vgroup, don't include it in vertHash */
+				if (def_weight) continue;
+			}
+			else {
+				/* if this vert isn't in the vgroup, don't include it in vertHash */
+				if (!def_weight) continue;
+			}
+			
+			/* add to ghash for verts (numVerts acts as counter for mapping) */
+			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numVerts));
+			numVerts++;
+		}
+	}
+	
+	/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
+	edgeHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	faceHash= BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	
+	/* loop over edges and faces, and do the same thing to 
+	 * ensure that they only reference existing verts 
+	 */
+	for (i = 0; i < maxEdges; i++) 
+	{
+		MEdge me;
+		dm->getEdge(dm, i, &me);
+		
+		/* only add if both verts will be in new mesh */
+		if ( BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v1)) &&
+			 BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me.v2)) )
+		{
+			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numEdges));
+			numEdges++;
+		}
+	}
+	for (i = 0; i < maxFaces; i++) 
+	{
+		MFace mf;
+		dm->getFace(dm, i, &mf);
+		
+		/* all verts must be available */
+		if ( BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v1)) &&
+			 BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v2)) &&
+			 BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v3)) &&
+			(mf.v4==0 || BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(mf.v4))) )
+		{
+			BLI_ghash_insert(faceHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numFaces));
+			numFaces++;
+		}
+	}
+	
+	
+	/* now we know the number of verts, edges and faces, 
+	 * we can create the new (reduced) mesh
+	 */
+	result = CDDM_from_template(dm, numVerts, numEdges, numFaces);
+	
+	
+	/* using ghash-iterators, map data into new mesh */
+		/* vertices */
+	for ( hashIter = BLI_ghashIterator_new(vertHash);
+		  !BLI_ghashIterator_isDone(hashIter);
+		  BLI_ghashIterator_step(hashIter) ) 
+	{
+		MVert source;
+		MVert *dest;
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+		
+		dm->getVert(dm, oldIndex, &source);
+		dest = CDDM_get_vert(result, newIndex);
+		
+		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
+		*dest = source;
+	}
+	BLI_ghashIterator_free(hashIter);
+		
+		/* edges */
+	for ( hashIter = BLI_ghashIterator_new(edgeHash);
+		  !BLI_ghashIterator_isDone(hashIter);
+		  BLI_ghashIterator_step(hashIter) ) 
+	{
+		MEdge source;
+		MEdge *dest;
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+		
+		dm->getEdge(dm, oldIndex, &source);
+		dest = CDDM_get_edge(result, newIndex);
+		
+		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
+		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		
+		DM_copy_edge_data(dm, result, oldIndex, newIndex, 1);
+		*dest = source;
+	}
+	BLI_ghashIterator_free(hashIter);
+	
+		/* faces */
+	for ( hashIter = BLI_ghashIterator_new(faceHash);
+		  !BLI_ghashIterator_isDone(hashIter);
+		  BLI_ghashIterator_step(hashIter) ) 
+	{
+		MFace source;
+		MFace *dest;
+		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
+		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
+		int orig_v4;
+		
+		dm->getFace(dm, oldIndex, &source);
+		dest = CDDM_get_face(result, newIndex);
+		
+		orig_v4 = source.v4;
+		
+		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
+		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		source.v3 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v3)));
+		if (source.v4)
+		   source.v4 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v4)));
+		
+		DM_copy_face_data(dm, result, oldIndex, newIndex, 1);
+		*dest = source;
+		
+		test_index_face(dest, &result->faceData, newIndex, (orig_v4 ? 4 : 3));
+	}
+	BLI_ghashIterator_free(hashIter);
+	
+	/* recalculate normals */
+	CDDM_calc_normals(result);
+	
+	/* free hashes */
+	BLI_ghash_free(vertHash, NULL, NULL);
+	BLI_ghash_free(edgeHash, NULL, NULL);
+	BLI_ghash_free(faceHash, NULL, NULL);
+	
+	/* return the new mesh */
+	return result;
+}
+
 /* Array */
 /* Array modifier: duplicates the object multiple times along an axis
 */
@@ -793,12 +1151,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if(cu) {
+			float tmp_mat[3][3];
+			float scale;
+			
+			object_to_mat3(amd->curve_ob, tmp_mat);
+			scale = Mat3ToScalef(tmp_mat);
+				
 			if(!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
 				makeDispListCurveTypes(amd->curve_ob, 0);
 			}
 			if(cu->path)
-				length = cu->path->totdist;
+				length = scale*cu->path->totdist;
 		}
 	}
 
@@ -5287,6 +5651,11 @@ static void softbodyModifier_deformVerts(
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
+static int softbodyModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
 
 /* Cloth */
 
@@ -6910,6 +7279,93 @@ static DerivedMesh * explodeModifier_applyModifier(
 	}
 	return derivedData;
 }
+
+/* Fluidsim */
+static void fluidsimModifier_initData(ModifierData *md)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	
+	fluidsim_init(fluidmd);
+}
+static void fluidsimModifier_freeData(ModifierData *md)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	
+	fluidsim_free(fluidmd);
+}
+
+static void fluidsimModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	FluidsimModifierData *tfluidmd= (FluidsimModifierData*) target;
+	
+	if(tfluidmd->fss)
+		MEM_freeN(tfluidmd->fss);
+	
+	tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
+}
+
+static DerivedMesh * fluidsimModifier_applyModifier(
+		ModifierData *md, Object *ob, DerivedMesh *derivedData,
+  int useRenderParams, int isFinalCalc)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	DerivedMesh *result = NULL;
+	
+	/* check for alloc failing */
+	if(!fluidmd->fss)
+	{
+		fluidsimModifier_initData(md);
+		
+		if(!fluidmd->fss)
+			return derivedData;
+	}
+
+	result = fluidsimModifier_do(fluidmd, ob, derivedData, useRenderParams, isFinalCalc);
+
+	if(result) 
+	{ 
+		return result; 
+	}
+	
+	return derivedData;
+}
+
+static void fluidsimModifier_updateDepgraph(
+		ModifierData *md, DagForest *forest,
+      Object *ob, DagNode *obNode)
+{
+	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	Base *base;
+
+	if(fluidmd && fluidmd->fss)
+	{
+		if(fluidmd->fss->type == OB_FLUIDSIM_DOMAIN)
+		{
+			for(base = G.scene->base.first; base; base= base->next) 
+			{
+				Object *ob1= base->object;
+				if(ob1 != ob)
+				{
+					FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
+					
+					// only put dependancies from NON-DOMAIN fluids in here
+					if(fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type!=OB_FLUIDSIM_DOMAIN))
+					{
+						DagNode *curNode = dag_get_node(forest, ob1);
+						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Fluidsim Object");
+					}
+				}
+			}
+		}
+	}
+}
+
+static int fluidsimModifier_dependsOnTime(ModifierData *md) 
+{
+	return 1;
+}
+
 /* MeshDeform */
 
 static void meshdeformModifier_initData(ModifierData *md)
@@ -7288,7 +7744,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
-	if(shrinkwrapModifier_requiredDataMask(md))
+	if(dataMask)
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
@@ -7340,6 +7796,109 @@ static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *fores
 
 	if (smd->auxTarget)
 		dag_add_relation(forest, dag_get_node(forest, smd->auxTarget), obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
+}
+
+/* SimpleDeform */
+static void simpledeformModifier_initData(ModifierData *md)
+{
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+
+	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
+	smd->axis = 0;
+
+	smd->origin   =  NULL;
+	smd->factor   =  0.35f;
+	smd->limit[0] =  0.0f;
+	smd->limit[1] =  1.0f;
+}
+
+static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData*)target;
+
+	tsmd->mode	= smd->mode;
+	tsmd->axis  = smd->axis;
+	tsmd->origin= smd->origin;
+	tsmd->factor= smd->factor;
+	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
+}
+
+static CustomDataMask simpledeformModifier_requiredDataMask(ModifierData *md)
+{
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->vgroup_name[0])
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static void simpledeformModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	walk(userData, ob, &smd->origin);
+}
+
+static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+
+	if (smd->origin)
+		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
+}
+
+static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
+
+}
+
+static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
 }
 
 /***/
@@ -7420,6 +7979,15 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->copyData = buildModifier_copyData;
 		mti->dependsOnTime = buildModifier_dependsOnTime;
 		mti->applyModifier = buildModifier_applyModifier;
+		
+		mti = INIT_TYPE(Mask);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->copyData = maskModifier_copyData;
+		mti->requiredDataMask= maskModifier_requiredDataMask;
+		mti->foreachObjectLink = maskModifier_foreachObjectLink;
+		mti->updateDepgraph = maskModifier_updateDepgraph;
+		mti->applyModifier = maskModifier_applyModifier;
 
 		mti = INIT_TYPE(Array);
 		mti->type = eModifierTypeType_Constructive;
@@ -7574,6 +8142,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 				| eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
+		mti->dependsOnTime = softbodyModifier_dependsOnTime;
 	
 		mti = INIT_TYPE(Cloth);
 		mti->type = eModifierTypeType_Nonconstructive;
@@ -7662,6 +8231,17 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->dependsOnTime = explodeModifier_dependsOnTime;
 		mti->requiredDataMask = explodeModifier_requiredDataMask;
 		mti->applyModifier = explodeModifier_applyModifier;
+		
+		mti = INIT_TYPE(Fluidsim);
+		mti->type = eModifierTypeType_Nonconstructive
+				| eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->initData = fluidsimModifier_initData;
+		mti->freeData = fluidsimModifier_freeData;
+		mti->copyData = fluidsimModifier_copyData;
+		mti->dependsOnTime = fluidsimModifier_dependsOnTime;
+		mti->applyModifier = fluidsimModifier_applyModifier;
+		mti->updateDepgraph = fluidsimModifier_updateDepgraph;
 
 		mti = INIT_TYPE(Shrinkwrap);
 		mti->type = eModifierTypeType_OnlyDeform;
@@ -7677,6 +8257,20 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVerts = shrinkwrapModifier_deformVerts;
 		mti->deformVertsEM = shrinkwrapModifier_deformVertsEM;
 		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
+
+		mti = INIT_TYPE(SimpleDeform);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs				
+				| eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_EnableInEditmode;
+		mti->initData = simpledeformModifier_initData;
+		mti->copyData = simpledeformModifier_copyData;
+		mti->requiredDataMask = simpledeformModifier_requiredDataMask;
+		mti->deformVerts = simpledeformModifier_deformVerts;
+		mti->deformVertsEM = simpledeformModifier_deformVertsEM;
+		mti->foreachObjectLink = simpledeformModifier_foreachObjectLink;
+		mti->updateDepgraph = simpledeformModifier_updateDepgraph;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
@@ -8098,5 +8692,6 @@ void modifier_freeTemporaryData(ModifierData *md)
 			MEM_freeN(amd->prevCos);
 	}
 }
+
 
 

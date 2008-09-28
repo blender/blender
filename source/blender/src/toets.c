@@ -75,6 +75,7 @@
 #include "BIF_imasel.h"
 #include "BIF_editparticle.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
@@ -792,6 +793,10 @@ int blenderqread(unsigned short event, short val)
 			ob= OBACT;
 
 			if(G.f & G_SCULPTMODE) return 1;
+			else if(G.qual==LR_ALTKEY) {
+				common_deletekey();
+				return 0;
+			}
 			else if(G.qual==0) {
 				common_insertkey();
 				return 0;

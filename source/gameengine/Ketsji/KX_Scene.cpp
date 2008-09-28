@@ -159,7 +159,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	KX_NetworkEventManager* netmgr = new KX_NetworkEventManager(m_logicmgr, ndi);
 	
-	SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+	
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
@@ -170,7 +170,15 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_logicmgr->RegisterEventManager(rndmgr);
 	m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
-	m_logicmgr->RegisterEventManager(joymgr);
+
+
+	SYS_SystemHandle hSystem = SYS_GetSystem();
+	bool nojoystick= SYS_GetCommandLineInt(hSystem,"nojoystick",0);
+	if (!nojoystick)
+	{
+		SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+		m_logicmgr->RegisterEventManager(joymgr);
+	}
 
 	m_soundScene = new SND_Scene(adi);
 	MT_assert (m_networkDeviceInterface != NULL);
@@ -694,17 +702,6 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
 		replica->NodeSetLocalPosition(newpos);
 
-		if (replica->GetPhysicsController())
-		{
-			// not required, already done in NodeSetLocalOrientation..
-			//replica->GetPhysicsController()->setPosition(newpos);
-			//replica->GetPhysicsController()->setOrientation(newori.getRotation());
-			// Scaling has been set relatively hereabove, this does not 
-			// set the scaling of the controller. I don't know why it's just the
-			// relative scale and not the full scale that has to be put here...
-			replica->GetPhysicsController()->setScaling(newscale);
-		}
-
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
 		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
@@ -828,18 +825,6 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	// set the replica's relative scale with the rootnode's scale
 	replica->NodeSetRelativeScale(newscale);
-
-	if (replica->GetPhysicsController())
-	{
-		// not needed, already done in NodeSetLocalPosition()
-		//replica->GetPhysicsController()->setPosition(newpos);
-		//replica->GetPhysicsController()->setOrientation(newori.getRotation());
-		replica->GetPhysicsController()->setScaling(newscale);
-	}
-
-	// here we want to set the relative scale: the rootnode's scale will override all other
-	// scalings, so lets better prepare for it
-
 
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
@@ -1000,10 +985,10 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 	{
 		BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
 		
-		if (newobj->m_pDeformer)
+		if (newobj->GetDeformer())
 		{
-			delete newobj->m_pDeformer;
-			newobj->m_pDeformer = NULL;
+			delete newobj->GetDeformer();
+			newobj->SetDeformer(NULL);
 		}
 
 		if (mesh->IsDeformed())
@@ -1053,7 +1038,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						NULL
 					);
 				}
-				newobj->m_pDeformer = shapeDeformer;
+				newobj->SetDeformer( shapeDeformer);
 			}
 			else if (bHasArmature) 
 			{
@@ -1065,14 +1050,14 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);
 				releaseParent= false;
-				newobj->m_pDeformer = skinDeformer;
+				newobj->SetDeformer(skinDeformer);
 			}
 			else if (bHasDvert)
 			{
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
 					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
 				);
-				newobj->m_pDeformer = meshdeformer;
+				newobj->SetDeformer(meshdeformer);
 			}
 
 			// release parent reference if its not being used 

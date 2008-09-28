@@ -99,7 +99,8 @@ protected:
 		KX_ACT_CONSTRAINT_NORMAL = 64,
 		KX_ACT_CONSTRAINT_MATERIAL = 128,
 		KX_ACT_CONSTRAINT_PERMANENT = 256,
-		KX_ACT_CONSTRAINT_DISTANCE = 512
+		KX_ACT_CONSTRAINT_DISTANCE = 512,
+		KX_ACT_CONSTRAINT_LOCAL = 1024
 	};
 	bool IsValidMode(KX_CONSTRAINTTYPE m); 
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
@@ -147,12 +148,12 @@ protected:
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMin);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
-	static char SetDistance_doc[];
-	static char GetDistance_doc[];
+	static const char SetDistance_doc[];
+	static const char GetDistance_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMax);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
-	static char SetRayLength_doc[];
-	static char GetRayLength_doc[];
+	static const char SetRayLength_doc[];
+	static const char GetRayLength_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetLimit);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };

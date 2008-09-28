@@ -169,6 +169,10 @@ public:
 	 */
 	virtual bool	BeginFrame(int drawingmode, double time)=0;
 	/**
+	 * ClearColorBuffer clears the color buffer.
+	 */
+	virtual void	ClearColorBuffer()=0;
+	/**
 	 * ClearDepthBuffer clears the depth buffer.
 	 */
 	virtual void	ClearDepthBuffer()=0;
@@ -181,7 +185,8 @@ public:
 	 */
 	virtual void	EndFrame()=0;
 	/**
-	 * SetRenderArea sets the render area from the 2d canvas
+	 * SetRenderArea sets the render area from the 2d canvas.
+	 * Returns true if only of subset of the canvas is used.
 	 */
 	virtual void	SetRenderArea()=0;
 
@@ -195,6 +200,7 @@ public:
 	 * @return true if stereo mode is enabled.
 	 */
 	virtual bool	Stereo()=0;
+	virtual bool	InterlacedStereo()=0;
 	/**
 	 * Sets which eye buffer subsequent primitives will be rendered to.
 	 */

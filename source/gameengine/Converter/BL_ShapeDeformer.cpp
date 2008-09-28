@@ -68,7 +68,7 @@ BL_ShapeDeformer::~BL_ShapeDeformer()
 {
 };
 
-RAS_Deformer *BL_ShapeDeformer::GetReplica()
+RAS_Deformer *BL_ShapeDeformer::GetReplica(class KX_GameObject* replica)
 {
 	BL_ShapeDeformer *result;
 
@@ -109,6 +109,7 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 		vector<IpoCurve*>::iterator it;
 		void *poin;
 		int type;
+
 		// the shape drivers use the bone matrix as input. Must 
 		// update the matrix now
 		m_armobj->ApplyPose();
@@ -121,7 +122,10 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 			if (poin) 
 				write_ipo_poin(poin, type, icu->curval);
 		}
+
 		ForceUpdate();
+		m_armobj->RestorePose();
+
 		return true;
 	}
 	return false;

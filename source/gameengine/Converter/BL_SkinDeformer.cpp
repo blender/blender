@@ -146,7 +146,7 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 	return true;
 }
 
-RAS_Deformer *BL_SkinDeformer::GetReplica()
+RAS_Deformer *BL_SkinDeformer::GetReplica(class KX_GameObject* replica)
 {
 	BL_SkinDeformer *result;
 
@@ -196,6 +196,8 @@ bool BL_SkinDeformer::Update(void)
 
 		/* Update the current frame */
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
+
+		m_armobj->RestorePose();
 
 		/* indicate that the m_transverts and normals are up to date */
 		return true;

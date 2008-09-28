@@ -368,6 +368,8 @@ typedef struct FreeCamera {
 #define ACT_CONST_MATERIAL	128
 #define ACT_CONST_PERMANENT 256
 #define ACT_CONST_DISTANCE	512
+#define ACT_CONST_LOCAL     1024
+
 /* constraint mode */
 #define ACT_CONST_DIRPX		1
 #define ACT_CONST_DIRPY		2
@@ -445,6 +447,8 @@ typedef struct FreeCamera {
 #define ACT_GAME_START		1
 #define ACT_GAME_RESTART	2
 #define ACT_GAME_QUIT		3
+#define ACT_GAME_SAVECFG	4
+#define ACT_GAME_LOADCFG	5
 
 /* visibilityact->flag */
 /* Set means the object will become invisible */

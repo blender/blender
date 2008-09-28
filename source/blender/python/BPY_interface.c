@@ -720,13 +720,23 @@ int BPY_txt_do_python_Text( struct Text *text )
 * automatically. The script can be a file or a Blender Text in the current 
 * .blend.
 ****************************************************************************/
-void BPY_run_python_script( char *fn )
+void BPY_run_python_script( const char *fn )
 {
+	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	Text *text = NULL;
 	int is_blender_text = 0;
-
-	if (!BLI_exists(fn)) {	/* if there's no such filename ... */
-		text = G.main->text.first;	/* try an already existing Blender Text */
+	
+	BLI_strncpy(filename, fn, FILE_MAXDIR + FILE_MAXFILE);
+	
+	if (!BLI_exists(filename))
+		BLI_convertstringcwd(filename);
+		
+	if (!BLI_exists(filename)) {	/* if there's no such filename ... */
+		/* try an already existing Blender Text.
+		 * use 'fn' rather then filename for this since were looking for
+		 * internal text
+		 */
+		text = G.main->text.first;
 
 		while (text) {
 			if (!strcmp(fn, text->id.name + 2)) break;
@@ -741,11 +751,14 @@ void BPY_run_python_script( char *fn )
 	}
 
 	else {
-		text = add_text(fn);
+		/* use filename here since we know it exists,
+		 * 'fn' may have been a relative path
+		 */
+		text = add_text(filename);
 
 		if (text == NULL) {
 			printf("\nError in BPY_run_python_script:\n"
-				"couldn't create Blender text from %s\n", fn);
+				"couldn't create Blender text from \"%s\"\n", filename);
 		/* Chris: On Windows if I continue I just get a segmentation
 		 * violation.  To get a baseline file I exit here. */
 		exit(2);
@@ -762,13 +775,8 @@ void BPY_run_python_script( char *fn )
 		/* We can't simply free the text, since the script might have called
 		 * Blender.Load() to load a new .blend, freeing previous data.
 		 * So we check if the pointer is still valid. */
-		Text *txtptr = G.main->text.first;
-		while (txtptr) {
-			if (txtptr == text) {
-				free_libblock(&G.main->text, text);
-				break;
-			}
-			txtptr = txtptr->id.next;
+		if (BLI_findindex(&G.main->text, text) != -1) {
+			free_libblock(&G.main->text, text);
 		}
 	}
 }
@@ -778,9 +786,6 @@ int BPY_run_script(Script *script)
 	PyObject *py_dict, *py_res, *pyarg;
 	Text *text = NULL;
 	BPy_constant *info;
-	int len;
-	
-	FILE *fp = NULL;
 	
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	
@@ -825,12 +830,8 @@ int BPY_run_script(Script *script)
 		Py_INCREF( Py_None );
 		pyarg = Py_None;
 	} else {
-		if (BLI_exists(script->scriptname)) {
-			fp = fopen( script->scriptname, "rb" );
-		}
-		
-		if( !fp ) {
-			printf( "Error loading script: couldn't open file %s\n", script->scriptname );
+		if (!BLI_exists(script->scriptname)) {
+			printf( "Script does not exit %s\n", script->scriptname );
 			free_libblock( &G.main->script, script );
 			PyGILState_Release(gilstate);
 			return 0;
@@ -875,51 +876,17 @@ int BPY_run_script(Script *script)
 	if (text) {
 		py_res = RunPython( text, py_dict );
 	} else {
+		char pystring[sizeof(script->scriptname) + 15];
+		sprintf(pystring, "execfile(r'%s')", script->scriptname);
+		py_res = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+	}
+
+	if( !py_res ) {		/* Failed execution of the script */
 		/* Previously we used PyRun_File to run directly the code on a FILE 
 		* object, but as written in the Python/C API Ref Manual, chapter 2,
 		* 'FILE structs for different C libraries can be different and 
 		* incompatible'.
 		* So now we load the script file data to a buffer */
-		char *buffer=NULL, *buffer_ofs=NULL, *b_to, *b_from;
-		
-		fseek( fp, 0L, SEEK_END );
-		len = ftell( fp );
-		fseek( fp, 0L, SEEK_SET );
-	
-		buffer = buffer_ofs = MEM_mallocN( len + 2, "pyfilebuf" );	/* len+2 to add '\n\0' */
-		len = fread( buffer, 1, len, fp );
-	
-		buffer[len] = '\n';	/* fix syntax error in files w/o eol */
-		buffer[len + 1] = '\0';
-		
-		
-		/* fast clean-up of dos cr/lf line endings, remove convert '\r\n's to '\n' */
-		if (*buffer_ofs == '\r' && *(buffer_ofs+1) == '\n') {
-			buffer_ofs++;
-		}
-		b_from = b_to = buffer_ofs;
-		
-		while(*b_from != '\0') {
-			if (*b_from == '\r' && *( b_from+1 ) == '\n') {
-				b_from++;
-			}
-			if (b_from != b_to) {
-				*b_to = *b_from;
-			}
-			b_to++;
-			b_from++;
-		}
-		*b_to = '\0';
-		/* done cleaning the string */
-		
-		fclose( fp );
-		
-		py_res = PyRun_String( buffer_ofs, Py_file_input, py_dict, py_dict );
-		MEM_freeN( buffer );
-	}
-
-	if( !py_res ) {		/* Failed execution of the script */
-
 		BPY_Err_Handle( script->id.name + 2 );
 		ReleaseGlobalDictionary( py_dict );
 		script->py_globaldict = NULL;
@@ -2196,8 +2163,14 @@ void BPY_clear_bad_scriptlinks( struct Text *byebye )
 *	For the scene, only the current active scene the scripts are 
 *	executed (if any).
 *****************************************************************************/
-void BPY_do_all_scripts( short event )
+void BPY_do_all_scripts( short event, short anim )
 {
+	/* during stills rendering we disable FRAMECHANGED events */
+	static char disable_frame_changed = 0;
+
+	if ((event == SCRIPT_FRAMECHANGED) && disable_frame_changed)
+		return;
+
 	DoAllScriptsFromList( &( G.main->object ), event );
 	DoAllScriptsFromList( &( G.main->lamp ), event );
 	DoAllScriptsFromList( &( G.main->camera ), event );
@@ -2213,9 +2186,12 @@ void BPY_do_all_scripts( short event )
 	 * "import sys; sys.setcheckinterval(sys.maxint)" */
 	if (event == SCRIPT_RENDER) {
 		_Py_CheckInterval = PyInt_GetMax();
+		if (!anim)
+			disable_frame_changed = 1;
 	}
 	else if (event == SCRIPT_POSTRENDER) {
 		_Py_CheckInterval = 100; /* Python default */
+		disable_frame_changed = 0;
 	}
 
 	return;
@@ -2499,7 +2475,7 @@ int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
 }
 
 int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
-	unsigned short space_event )
+	short eventValue, unsigned short space_event )
 {
 	ScriptLink *scriptlink;
 	int retval = 0;
@@ -2539,8 +2515,9 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
 		/* unlike normal scriptlinks, here Blender.link is int (space event type) */
 		EXPP_dict_set_item_str(g_blenderdict, "link", PyInt_FromLong(space_event));
-		/* note: DRAW space_events set event to 0 */
+		/* note: DRAW space_events set event and val to 0 */
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
+		EXPP_dict_set_item_str(g_blenderdict, "eventValue", PyInt_FromLong(eventValue));
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
 			

@@ -257,7 +257,7 @@ PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
 }
 
 /* 1. setProperty                                                        */
-char SCA_PropertyActuator::SetProperty_doc[] = 
+const char SCA_PropertyActuator::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSet the property on which to operate. If there is no property\n"
@@ -283,7 +283,7 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 }
 
 /* 2. getProperty                                                        */
-char SCA_PropertyActuator::GetProperty_doc[] = 
+const char SCA_PropertyActuator::GetProperty_doc[] = 
 "getProperty(name)\n"
 "\tReturn the property on which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds)
@@ -292,7 +292,7 @@ PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, Py
 }
 
 /* 3. setValue                                                        */
-char SCA_PropertyActuator::SetValue_doc[] = 
+const char SCA_PropertyActuator::SetValue_doc[] = 
 "setValue(value)\n"
 "\t- value: string\n"
 "\tSet the value with which the actuator operates. If the value\n"
@@ -311,7 +311,7 @@ PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObj
 }
 
 /* 4. getValue                                                        */
-char SCA_PropertyActuator::GetValue_doc[] = 
+const char SCA_PropertyActuator::GetValue_doc[] = 
 "getValue()\n"
 "\tReturns the value with which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds)

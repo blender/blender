@@ -50,6 +50,7 @@ typedef struct Lamp {
 	
 	short colormodel, totex;
 	float r, g, b, k;
+	float shdwr, shdwg, shdwb, shdwpad;
 	
 	float energy, dist, spotsize, spotblend;
 	float haint;
@@ -78,7 +79,7 @@ typedef struct Lamp {
 	
 	/* sun/sky */
 	short sun_effect_type;
-	short atm_pad[3];
+	short skyblendtype;
     float horizon_brightness;
     float spread;
     float sun_brightness;
@@ -89,7 +90,7 @@ typedef struct Lamp {
     float atm_inscattering_factor;
     float atm_extinction_factor;
     float atm_distance_factor;
-
+	float skyblendfac;
 
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
@@ -138,6 +139,7 @@ typedef struct Lamp {
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
 #define LA_LAYER_SHADOW	32768
+#define LA_SHAD_TEX     (1<<16)
 
 /* layer_shadow */
 #define LA_LAYER_SHADOW_BOTH	0
@@ -190,6 +192,7 @@ typedef struct Lamp {
 
 /* mapto */
 #define LAMAP_COL		1
+#define LAMAP_SHAD		2
 
 
 #endif /* DNA_LAMP_TYPES_H */

@@ -16,8 +16,8 @@ subject to the following restrictions:
 #ifndef SPHERE_TRIANGLE_DETECTOR_H
 #define SPHERE_TRIANGLE_DETECTOR_H
 
-#include "../NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
-#include "../../LinearMath/btPoint3.h"
+#include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
+#include "LinearMath/btPoint3.h"
 
 
 class btSphereShape;
@@ -28,7 +28,7 @@ class btTriangleShape;
 /// sphere-triangle to match the btDiscreteCollisionDetectorInterface
 struct SphereTriangleDetector : public btDiscreteCollisionDetectorInterface
 {
-	virtual void	getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw);
+	virtual void	getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw,bool swapResults=false);
 
 	SphereTriangleDetector(btSphereShape* sphere,btTriangleShape* triangle);
 

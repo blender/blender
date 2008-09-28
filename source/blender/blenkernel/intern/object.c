@@ -179,6 +179,14 @@ void object_free_softbody(Object *ob)
 	}
 }
 
+void object_free_bulletsoftbody(Object *ob)
+{
+	if(ob->bsoft) {
+		sbFree(ob->bsoft);
+		ob->bsoft= NULL;
+	}
+}
+
 void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -269,7 +277,7 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
-	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
+	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
@@ -748,6 +756,9 @@ void *add_lamp(char *name)
 	la->atm_extinction_factor = 1.0;
 	la->atm_distance_factor = 1.0;
 	la->sun_intensity = 1.0;
+	la->skyblendtype= MA_RAMP_ADD;
+	la->skyblendfac= 1.0f;
+
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }
@@ -960,8 +971,9 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[0] = 1.0f;
 	ob->anisotropicFriction[1] = 1.0f;
 	ob->anisotropicFriction[2] = 1.0f;
-	ob->gameflag= OB_PROP;
-
+	ob->gameflag= OB_PROP|OB_COLLISION;
+	ob->margin = 0.0;
+	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
@@ -1042,6 +1054,17 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
 
 	return sbn;
+}
+
+BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
+{
+	BulletSoftBody *bsbn;
+
+	if (bsb == NULL)
+		return NULL;
+	bsbn = MEM_dupallocN(bsb);
+	/* no pointer in this structure yet */
+	return bsbn;
 }
 
 ParticleSystem *copy_particlesystem(ParticleSystem *psys)
@@ -1179,7 +1202,9 @@ Object *copy_object(Object *ob)
 	
 	BPY_copy_scriptlink(&ob->scriptlink);
 	
+	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
+	
 	copy_sensors(&obn->sensors, &ob->sensors);
 	copy_controllers(&obn->controllers, &ob->controllers);
 	copy_actuators(&obn->actuators, &ob->actuators);
@@ -1212,15 +1237,7 @@ Object *copy_object(Object *ob)
 			id_us_plus(&(obn->pd->tex->id));
 	}
 	obn->soft= copy_softbody(ob->soft);
-
-	/* NT copy fluid sim setting memory */
-	if(obn->fluidsimSettings) {
-		obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
-		/* copying might fail... */
-		if(obn->fluidsimSettings) {
-			obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
-		}
-	}
+	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
 
 	copy_object_particlesystems(obn, ob);
 	
