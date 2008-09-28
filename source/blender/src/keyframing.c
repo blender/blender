@@ -1744,7 +1744,7 @@ void common_modifykey (short mode)
 				if (achan && achan->ipo)
 					icu= achan->ipo->curve.first; 
 			}
-			else
+			else if(cks->ipo)
 				icu= cks->ipo->curve.first;
 				
 			/* we get adrcodes directly from IPO curves (see method below...) */
