@@ -201,6 +201,8 @@ typedef struct Ipo {
 #define MA_MAP17	(1<<21)
 #define MA_MAP18	(1<<22)
 
+/* ********** Texture Slots (MTex) ********** */
+
 #define TEX_TOTNAM	14
 
 #define MAP_OFS_X	1
