@@ -2983,6 +2983,10 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 	Object *ob = arg_ob;
 	short yco = 105, xco = 0;
 
+	/* create a BulletSoftBody structure if not already existing */
+	if ((ob->body_type & OB_BODY_TYPE_SOFT) && !ob->bsoft)
+		ob->bsoft = bsbNew();
+
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "", -5, -10, 255, 140, NULL, 0, 0, 0, 0, "");

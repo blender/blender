@@ -1394,7 +1394,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_kVC= 0;
 
 			objprop.m_soft_kDF= 0.2f;
-			objprop.m_soft_kMT= 0.f;
+			objprop.m_soft_kMT= 0.05f;
 			objprop.m_soft_kCHR= 1.0f;
 			objprop.m_soft_kKHR= 0.1f;
 
