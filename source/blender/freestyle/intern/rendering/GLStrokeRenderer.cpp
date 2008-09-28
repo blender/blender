@@ -36,8 +36,6 @@ extern "C" {
 
 #include "../system/StringUtils.h"
 
-//#define glBlendEquation(x)
-
 GLStrokeRenderer::GLStrokeRenderer()
 :StrokeRenderer()
 {
@@ -95,16 +93,16 @@ void GLStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
 
   if(strokeType==Stroke::DRY_MEDIUM)
     {
-      glBlendEquation(GL_MAX);
+      FRS_glBlendEquation(GL_MAX);
     }
   else if(strokeType==Stroke::OPAQUE_MEDIUM)
     {
-      glBlendEquation(GL_ADD);
+      FRS_glBlendEquation(GL_ADD);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
   else
     {
-      glBlendEquation(GL_ADD);
+      FRS_glBlendEquation(GL_ADD);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     }
   glEnable(GL_TEXTURE_2D);

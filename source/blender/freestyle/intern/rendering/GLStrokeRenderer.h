@@ -34,16 +34,7 @@
 # include "../stroke/StrokeRenderer.h"
 # include "../stroke/StrokeRep.h"
 
-
-#ifdef WIN32
-# include <GL/glew.h>
-# include <windows.h>
-#endif
-#ifdef __MACH__
-# include <OpenGL/gl.h>
-#else
-# include <GL/gl.h>
-#endif
+#include "GLBlendEquation.h"
 
 /**********************************/
 /*                                */

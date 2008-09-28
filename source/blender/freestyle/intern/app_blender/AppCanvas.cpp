@@ -19,16 +19,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-
-#ifdef WIN32
-# include <GL/glew.h>
-# include <windows.h>
-#endif
-#ifdef __MACH__
-# include <OpenGL/gl.h>
-#else
-# include <GL/gl.h>
-#endif
+#include "../rendering/GLBlendEquation.h"
 
 #include "AppGLWidget.h"
 #include "../image/Image.h"
@@ -103,7 +94,7 @@ void AppCanvas::preDraw()
 
 void AppCanvas::init() 
 {
-#ifdef WIN32
+
   static bool firsttime = true;
   if (firsttime) {
 
@@ -112,15 +103,18 @@ void AppCanvas::init()
 	{
 		cerr << "Error: problem occurred while initializing GLEW" << endl;	
 	}
-	cout << "GLEW initialized" << endl;
+	cout << "GLEW initialized: ";
 
-	if(!glBlendEquation) {
+	if(glBlendEquation) {
+		cout << "using glBlendEquation" << endl;
+	} else if(glBlendEquationEXT) {
+		cout << "using glBlendEquationEXT" << endl;
+	} else {
         _basic = true;
-        cout << "glBlendEquation unavailable on this hardware -> switching to strokes basic rendering mode" << endl;
+        cout << "glBlendEquation or glBlendEquationEXT unavailable on this hardware -> switching to strokes basic rendering mode" << endl;
      }
     firsttime=false;
    }
-#endif
 
   _Renderer = new GLStrokeRenderer;
   if(!StrokeRenderer::loadTextures())
@@ -258,12 +252,12 @@ void AppCanvas::Render(const StrokeRenderer *iRenderer)
   
   
   glDisable(GL_DEPTH_TEST);
-  glBlendEquation(GL_ADD);
+  FRS_glBlendEquation(GL_ADD);
   
   glBlendFunc(GL_DST_COLOR, GL_ZERO);
   
   glPushAttrib(GL_COLOR_BUFFER_BIT);
-  glBlendEquation(GL_FUNC_SUBTRACT);
+  FRS_glBlendEquation(GL_FUNC_SUBTRACT);
   glBlendFunc(GL_ONE, GL_ONE);
   
   glDisable(GL_TEXTURE_2D);
@@ -280,7 +274,7 @@ void AppCanvas::Render(const StrokeRenderer *iRenderer)
   glPopAttrib();
   
   glDisable(GL_DEPTH_TEST);
-  glBlendEquation(GL_ADD);
+  FRS_glBlendEquation(GL_ADD);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   
   glEnable(GL_TEXTURE_2D);
@@ -288,7 +282,7 @@ void AppCanvas::Render(const StrokeRenderer *iRenderer)
   Canvas::Render(iRenderer);
   //  
   glPushAttrib(GL_COLOR_BUFFER_BIT);
-  glBlendEquation(GL_FUNC_SUBTRACT);
+  FRS_glBlendEquation(GL_FUNC_SUBTRACT);
   glBlendFunc(GL_ONE, GL_ONE);
   
   glDisable(GL_TEXTURE_2D);
