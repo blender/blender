@@ -409,6 +409,7 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
+	if(tex->pd) BKE_free_pointdensity(tex->pd);
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
@@ -468,6 +469,11 @@ void default_tex(Tex *tex)
 		tex->env->clipend=100;
 		tex->env->cuberes=100;
 		tex->env->depth=0;
+	}
+
+	if (tex->pd) {
+		tex->pd->radius = 0.3f;
+		tex->pd->nearest = 5;
 	}
 
 	pit = tex->plugin;
@@ -566,6 +572,7 @@ Tex *copy_texture(Tex *tex)
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
+	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
 	
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
@@ -856,6 +863,46 @@ void BKE_free_envmap(EnvMap *env)
 	BKE_free_envmapdata(env);
 	MEM_freeN(env);
 	
+}
+
+/* ------------------------------------------------------------------------- */
+
+PointDensity *BKE_add_pointdensity(void)
+{
+	PointDensity *pd;
+	
+	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
+	pd->radius = 0.3f;
+	pd->nearest = 5;
+	pd->type = TEX_PD_PSYS;
+	pd->point_tree = NULL;
+	
+	return pd;
+} 
+
+PointDensity *BKE_copy_pointdensity(PointDensity *pd)
+{
+	PointDensity *pdn;
+	int a;
+	
+	pdn= MEM_dupallocN(pd);
+	pdn->point_tree = NULL;
+	
+	return pd;
+}
+
+void BKE_free_pointdensitydata(PointDensity *pd)
+{
+	if (pd->point_tree) {
+		BLI_kdtree_free(pd->point_tree);
+		pd->point_tree = NULL;
+	}
+}
+
+void BKE_free_pointdensity(PointDensity *pd)
+{
+	BKE_free_pointdensitydata(pd);
+	MEM_freeN(pd);
 }
 
 /* ------------------------------------------------------------------------- */

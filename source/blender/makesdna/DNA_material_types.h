@@ -70,13 +70,10 @@ typedef struct Material {
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];
-	float vol_part_searchradius;
 	short vol_raydepth;
-	short vol_part_maxnearest;
 	short vol_shadeflag;
-	short vol_pad[3];
-	
-	
+	int volpad;
+		
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
 	float filter;		/* filter added, for raytrace transparency and transmissivity */
@@ -354,7 +351,6 @@ typedef struct Material {
 #define MA_VOL_SHADED		1
 #define MA_VOL_ATTENUATED	2
 #define MA_VOL_SHADOWED		4
-#define MA_VOL_PARTICLES	8
 
 #endif
 

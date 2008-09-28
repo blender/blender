@@ -127,6 +127,22 @@ typedef struct EnvMap {
 	short recalc, lastsize;
 } EnvMap;
 
+typedef struct PointDensity {
+	short flag;
+
+	short nearest;
+	float radius;
+
+	short type;
+	short pdpad[3];
+
+	struct Object *object;	/* for 'Particle system' type - source object */
+	short psysindex;		/* and object's psys number */
+	short pdpad2[3];
+	
+	void *point_tree;		/* the kd-tree containing points */
+} PointDensity;
+
 typedef struct Tex {
 	ID id;
 	
@@ -172,6 +188,7 @@ typedef struct Tex {
 	struct ColorBand *coba;
 	struct EnvMap *env;
 	struct PreviewImage * preview;
+	struct PointDensity *pd;
 	
 } Tex;
 
@@ -208,6 +225,8 @@ typedef struct TexMapping {
 #define TEX_MUSGRAVE	11
 #define TEX_VORONOI		12
 #define TEX_DISTNOISE	13
+/* predicting ocean texture for 14 */
+#define TEX_POINTDENSITY	15
 
 /* musgrave stype */
 #define TEX_MFRACTAL		0
@@ -384,6 +403,17 @@ typedef struct TexMapping {
 /* ok */
 #define ENV_NORMAL	1
 #define ENV_OSA		2
+
+/* **************** PointDensity ********************* */
+
+/* type */
+#define TEX_PD_PSYS			0
+#define TEX_PD_OBJECT		1
+#define TEX_PD_FILE			2
+
+/* psys_space */
+#define TEX_PD_PSYS_WORLDSPACE	0
+#define TEX_PD_PSYS_OBJECTSPACE	1
 
 #endif
 

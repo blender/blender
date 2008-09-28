@@ -198,8 +198,6 @@ struct Render
 	ListBase *sss_points;
 	struct Material *sss_mat;
 
-	struct KDTree *particles_tree;
-
 	ListBase customdata_names;
 
 	struct Object *excludeob;
@@ -347,15 +345,6 @@ typedef struct HaloRen
     struct Material *mat;
 } HaloRen;
 
-/* ------------------------------------------------------------------------- */
-
-typedef struct ParticleRen
-{
-	struct ParticleRen *next, *prev;
-	float co[3];	// location
-	// float col[3]; // colour
-	// float vec[3]; // direction
-} ParticleRen;
 
 /* ------------------------------------------------------------------------- */
 

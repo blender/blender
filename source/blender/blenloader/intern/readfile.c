@@ -2475,6 +2475,7 @@ static void lib_link_texture(FileData *fd, Main *main)
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
 			if(tex->env) tex->env->object= newlibadr(fd, tex->id.lib, tex->env->object);
+			if(tex->pd) tex->pd->object= newlibadr(fd, tex->id.lib, tex->pd->object);
 
 			tex->id.flag -= LIB_NEEDLINK;
 		}
@@ -2500,6 +2501,10 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 		tex->env->ima= NULL;
 		memset(tex->env->cube, 0, 6*sizeof(void *));
 		tex->env->ok= 0;
+	}
+	tex->pd= newdataadr(fd, tex->pd);
+	if(tex->pd) {
+		tex->pd->point_tree = NULL;
 	}
 	tex->preview = direct_link_preview_image(fd, tex->preview);
 
@@ -7885,8 +7890,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol_scattering = 1.0f;
 				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;
 				if (ma->vol_raydepth == 0) ma->vol_raydepth = 15;
-				if (ma->vol_part_maxnearest == 0) ma->vol_part_maxnearest = 5;
-				if (ma->vol_part_searchradius < 0.001f) ma->vol_part_searchradius = 0.20;
 			}
 		}
 	}

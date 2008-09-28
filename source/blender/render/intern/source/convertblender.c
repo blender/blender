@@ -103,6 +103,7 @@
 #include "envmap.h"
 #include "multires.h"
 #include "occlusion.h"
+#include "pointdensity.h"
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
@@ -1476,9 +1477,8 @@ static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mat
 			static_particle_strand(re, obr, ma, orco, surfnor, uvco, totuv, mcol, totcol, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
 	}
 	else{
-		//har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
-		//if(har) har->lay= obr->ob->lay;
-		RE_cache_particle(re, loc, 0, loc1);
+		har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
+		if(har) har->lay= obr->ob->lay;
 	}
 }
 static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
@@ -1704,8 +1704,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	if(path_nbr==0)
 		psys->lattice=psys_get_lattice(ob,psys);
-
-	re->particles_tree = BLI_kdtree_new(totpart+totchild);
 
 /* 3. start creating renderable things */
 	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
@@ -2053,8 +2051,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
-	if (re->particles_tree)
-		BLI_kdtree_balance(re->particles_tree);
 
 	if(ma) do_mat_ipo(ma);
 
@@ -4417,8 +4413,6 @@ void RE_Database_Free(Render *re)
 	
 	BLI_freelistN(&re->lampren);
 	BLI_freelistN(&re->lights);
-		
-	BLI_kdtree_free(re->particles_tree);
 
 	free_renderdata_tables(re);
 	
@@ -4440,6 +4434,8 @@ void RE_Database_Free(Render *re)
 
 	end_radio_render();
 	end_render_materials();
+	
+	free_pointdensities(re);
 	
 	if(re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
@@ -4890,6 +4886,10 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			/* ENVIRONMENT MAPS */
 			if(!re->test_break())
 				make_envmaps(re);
+				
+			/* point density texture */
+			if(!re->test_break())
+				make_pointdensities(re);
 		}
 		
 		if(!re->test_break())

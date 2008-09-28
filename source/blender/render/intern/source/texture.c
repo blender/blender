@@ -62,6 +62,7 @@
 #include "BKE_ipo.h"
 
 #include "envmap.h"
+#include "pointdensity.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "rendercore.h"
@@ -1215,6 +1216,9 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		VecMulf(tmpvec, 1.0/tex->noisesize);
 		
 		retval= mg_distNoiseTex(tex, tmpvec, texres);
+		break;
+	case TEX_POINTDENSITY:
+		retval= pointdensitytex(tex, texvec, texres);
 		break;
 	}
 

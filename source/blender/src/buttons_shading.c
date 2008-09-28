@@ -731,6 +731,49 @@ static void texture_panel_voronoi(Tex *tex)
 	uiDefButF(block, NUMSLI, B_TEXPRV, "W4: ", 10, 10, 150, 19, &tex->vn_w4, -2.0, 2.0, 10, 0, "Sets feature weight 4");
 }
 
+static void texture_panel_pointdensity(Tex *tex)
+{
+	uiBlock *block;
+	PointDensity *pd;
+	short yco=PANEL_YMAX;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_pointdensity", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Point Density", "Texture", PANELX, PANELY, PANELW, PANELH)==0) return;
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	if(tex->pd==NULL) {
+		tex->pd= BKE_add_pointdensity();
+		tex->pd->object= OBACT;
+	}
+	if(tex->pd) {
+		pd= tex->pd;
+
+		uiBlockBeginAlign(block);
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object that has the particle system");
+			
+		if (pd->object->particlesystem.first) {
+			uiDefButS(block, NUM, B_REDR, "PSys:", 
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->psysindex), 1, 10, 10, 3, "Particle system number in the object");
+		}
+		uiBlockEndAlign(block);
+		
+		yco -= YSPACE;
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_REDR, "Radius: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
+		uiDefButS(block, NUM, B_REDR, "Nearby: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->nearest), 2.0, 30.0, 10, 2, "The number of nearby particles to check for density");
+		uiBlockEndAlign(block);
+		
+		uiDefBut(block, LABEL, B_NOP, " ",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	}
+	
+	
+}
+
 
 static char *layer_menu(RenderResult *rr, short *curlay)
 {
@@ -1688,7 +1731,7 @@ static void texture_panel_texture(MTex *actmtex, Material *ma, World *wrld, Lamp
 		/* newnoise: all texture types as menu, not enough room for more buttons.
 		 * Can widen panel, but looks ugly when other panels overlap it */
 		
-		sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE);
+		sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d|Point Density %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE, TEX_POINTDENSITY);
 		uiDefBut(block, LABEL, 0, "Texture Type",		160, 150, 140, 20, 0, 0.0, 0.0, 0, 0, "");
 		uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 125, 140, 25, &tex->type, 0,0,0,0, "Select texture type");
 
@@ -4272,7 +4315,7 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 10.0, 10, 0, "Multiplier for absorption");
 	uiDefButF(block, COL, B_MATPRV, "",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption_col), 0, 0, 0, B_MATCOL, "");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, ma->vol_absorption_col, 0, 0, 0, B_MATCOL, "");
 	uiBlockEndAlign(block);
 
 	yco -= YSPACE;
@@ -4288,17 +4331,6 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 10.0, 10, 0, "Multiplier for scattering");
-		
-	yco -= YSPACE;
-	
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MA_VOL_PARTICLES, B_MATPRV, "Particles",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Render global particle cache");
-	uiDefButF(block, NUM, B_MATPRV, "Radius: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_part_searchradius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
-	uiDefButS(block, NUM, B_MATPRV, "Nearby: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_part_maxnearest), 2.0, 30.0, 10, 2, "The number of nearby particles to check for density");
-	uiBlockEndAlign(block);
 }
 
 static void material_panel_nodes(Material *ma)
@@ -4682,6 +4714,9 @@ void texture_panels()
 				/* newnoise: voronoi */
 			case TEX_VORONOI:
 				texture_panel_voronoi(tex);
+				break;
+			case TEX_POINTDENSITY:
+				texture_panel_pointdensity(tex);
 				break;
 			}
 		}

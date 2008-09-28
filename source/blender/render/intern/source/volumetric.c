@@ -128,45 +128,12 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	}
 }
 
-/* need to figure out a good default here */ 
-#define MAX_PARTICLES_NEAREST	50
-float get_particle_density(float *co, float radius, int max_nearest)
-{
-	KDTreeNearest nearest[MAX_PARTICLES_NEAREST];
-	float density=0.0f;
-	int n, neighbours=0;
-	
-	/* no particles in preview for now - 
-	 * can check for existence of particle kdtree better later on */
-	if(R.r.scemode & R_PREVIEWBUTS)	return;
-	
-	neighbours = BLI_kdtree_find_n_nearest(R.particles_tree, max_nearest, co, NULL, nearest);
-	
-	for(n=1; n<neighbours; n++) {
-		if ( nearest[n].dist < radius) {
-			float dist = 1.0 - (nearest[n].dist / radius);
-			
-			density += 3.0f*dist*dist - 2.0f*dist*dist*dist;
-
-			
-		}
-	}
-	
-	density /= neighbours;
-	density *= 1.0 / radius;
-
-	return density;
-}
-
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
 	float density = shi->mat->alpha;
 	float col[3] = {0.0, 0.0, 0.0};
 	
-	if (shi->mat->vol_shadeflag & MA_VOL_PARTICLES) {
-		density += get_particle_density(co, shi->mat->vol_part_searchradius, shi->mat->vol_part_maxnearest);
-	}
-	else if (shi->mat->flag & MA_IS_TEXTURED) {
+	if (shi->mat->flag & MA_IS_TEXTURED) {
 		do_volume_tex(shi, co, MAP_ALPHA, col, &density);
 	}
 	

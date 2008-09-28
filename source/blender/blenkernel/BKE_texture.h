@@ -39,6 +39,7 @@ struct ColorBand;
 struct HaloRen;
 struct TexMapping;
 struct EnvMap;
+struct PointDensity;
 
 /*  in ColorBand struct */
 #define MAXCOLORBAND 32
@@ -73,6 +74,11 @@ void    BKE_free_envmapdata(struct EnvMap *env);
 void    BKE_free_envmap(struct EnvMap *env);
 struct EnvMap *BKE_add_envmap(void);
 struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
+
+void    BKE_free_pointdensitydata(struct PointDensity *pd);
+void    BKE_free_pointdensity(struct PointDensity *pd);
+struct PointDensity *BKE_add_pointdensity(void);
+struct PointDensity *BKE_copy_pointdensity(struct PointDensity *pd);
 
 int     BKE_texture_dependsOnTime(const struct Tex *texture);
 
