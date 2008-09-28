@@ -54,70 +54,40 @@ struct bPoseChannel;
 struct bActionChannel;
 struct rctf;
 
-/* ------------ Time Management ------------ */
-
 float frame_to_float(int cfra);
-
-/* ------------ IPO Management ---------- */
 
 void free_ipo_curve(struct IpoCurve *icu);
 void free_ipo(struct Ipo *ipo);
-
 void ipo_default_v2d_cur(int blocktype, struct rctf *cur);
-
 struct Ipo *add_ipo(char *name, int idcode);
 struct Ipo *copy_ipo(struct Ipo *ipo);
-
 void ipo_idnew(struct Ipo *ipo);
-
-struct IpoCurve *find_ipocurve(struct Ipo *ipo, int adrcode);
-short has_ipo_code(struct Ipo *ipo, int code);
-
-/* -------------- Make Local -------------- */
-
 void make_local_obipo(struct Ipo *ipo);
 void make_local_matipo(struct Ipo *ipo);
 void make_local_keyipo(struct Ipo *ipo);
 void make_local_ipo(struct Ipo *ipo);
-
-/* ------------ IPO-Curve Sanity ---------------- */
+struct IpoCurve *find_ipocurve(struct Ipo *ipo, int adrcode);
 
 void calchandles_ipocurve(struct IpoCurve *icu);
 void testhandles_ipocurve(struct IpoCurve *icu);
 void sort_time_ipocurve(struct IpoCurve *icu);
 int test_time_ipocurve(struct IpoCurve *icu);
-
-/* -------- IPO-Curve (Bezier) Calculations ---------- */
-
 void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
 int findzero(float x, float q0, float q1, float q2, float q3, float *o);
 void berekeny(float f1, float f2, float f3, float f4, float *o, int b);
 void berekenx(float *f, float *o, int b);
-
-/* -------- IPO Curve Calculation and Evaluation --------- */
-
 float eval_icu(struct IpoCurve *icu, float ipotime);
 void calc_icu(struct IpoCurve *icu, float ctime);
 float calc_ipo_time(struct Ipo *ipo, float ctime);
 void calc_ipo(struct Ipo *ipo, float ctime);
-
-/* ------------ Keyframe Column Tools -------------- */
-
-void add_to_cfra_elem(struct ListBase *lb, struct BezTriple *bezt);
-void make_cfra_list(struct Ipo *ipo, struct ListBase *elems);
-
-/* ---------------- IPO DataAPI ----------------- */
-
 void write_ipo_poin(void *poin, int type, float val);
 float read_ipo_poin(void *poin, int type);
-
 void *give_mtex_poin(struct MTex *mtex, int adrcode );
-void *get_pchan_ipo_poin(struct bPoseChannel *pchan, int adrcode);
+
 void *get_ipo_poin(struct ID *id, struct IpoCurve *icu, int *type);
+void *get_pchan_ipo_poin(struct bPoseChannel *pchan, int adrcode);
 
 void set_icu_vars(struct IpoCurve *icu);
-
-/* ---------------- IPO Execution --------------- */
 
 void execute_ipo(struct ID *id, struct Ipo *ipo);
 void execute_action_ipo(struct bActionChannel *achan, struct bPoseChannel *pchan);
@@ -129,16 +99,21 @@ void do_ob_ipo(struct Object *ob);
 void do_seq_ipo(struct Sequence *seq, int cfra);
 void do_ob_ipodrivers(struct Object *ob, struct Ipo *ipo, float ctime);
 
+int has_ipo_code(struct Ipo *ipo, int code);
 void do_all_data_ipos(void);
-short calc_ipo_spec(struct Ipo *ipo, int adrcode, float *ctime);
+int calc_ipo_spec(struct Ipo *ipo, int adrcode, float *ctime);
 void clear_delta_obipo(struct Ipo *ipo);
+void add_to_cfra_elem(struct ListBase *lb, struct BezTriple *bezt);
+void make_cfra_list(struct Ipo *ipo, struct ListBase *elems);
 
-/* ----------- IPO <-> GameEngine API ---------------- */
+/* the sort is an IPO_Channel... */
+int IPO_GetChannels(struct Ipo *ipo, short *channels);
 
-/* the short is an IPO_Channel... */
-
-short IPO_GetChannels(struct Ipo *ipo, short *channels);
-float IPO_GetFloatValue(struct Ipo *ipo, short c, float ctime);
+float IPO_GetFloatValue(struct Ipo *ipo,
+/*  						struct IPO_Channel channel, */
+						/* channels are shorts... bit ugly for now*/
+						short c,
+						float ctime);
 
 #ifdef __cplusplus
 };

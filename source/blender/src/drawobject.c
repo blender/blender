@@ -4816,8 +4816,7 @@ void draw_object(Base *base, int flag)
 				warning_recursive= 1;
 
 				elems.first= elems.last= 0;
-				// warning: no longer checks for certain ob-keys only... (so does this need to use the proper ipokeys then?)
-				make_cfra_list(ob->ipo, &elems); 
+				make_cfra_list(ob->ipo, &elems);
 
 				cfraont= (G.scene->r.cfra);
 				drawtype= G.vd->drawtype;

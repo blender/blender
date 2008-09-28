@@ -77,8 +77,6 @@
 
 #define SMALL -1.0e-10
 
-#if 0 // IPO_OLD_TEMP
-
 /* This array concept was meant to make sure that defines such as OB_LOC_X
    don't have to be enumerated, also for backward compatibility, future changes,
    and to enable it all can be accessed with a for-next loop.
@@ -971,7 +969,7 @@ float eval_icu(IpoCurve *icu, float ipotime)
 			cvalue+= cycyofs;
 		}
 		else if( (prevbezt+a)->vec[1][0]<=ipotime) {
-			if( (icu->extrap & IPO_DIR) && (icu->ipo!=IPO_CONST)) {
+			if( (icu->extrap & IPO_DIR) && icu->ipo!=IPO_CONST) {
 				prevbezt+= a;
 				
 				if (icu->ipo==IPO_LIN) {
@@ -2582,5 +2580,3 @@ float IPO_GetFloatValue(Ipo *ipo, IPO_Channel channel, float ctime)
 
 	return ctime;
 }
-
-#endif // IPO_OLD_TEMP
