@@ -31,3 +31,5 @@ if env['WITH_BF_REDCODE'] and env['BF_REDCODE_LIB'] == '':
 
 if env['OURPLATFORM'] == 'linux2':
     SConscript(['binreloc/SConscript']);
+
+SConscript(['fftw/SConscript'])
