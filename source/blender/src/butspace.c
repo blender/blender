@@ -92,7 +92,7 @@ MTex mtexcopybuf;
 
 char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 					 "Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
-					 "Voronoi", "DistNoise", "", "", "", "", "", ""};
+					 "Voronoi", "DistNoise", "", "PointDensity", "", "", "", ""};
 /*  ---------------------------------------------------------------------- */
 
 void test_idbutton_cb(void *namev, void *arg2)
