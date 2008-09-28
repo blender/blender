@@ -2970,6 +2970,9 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 		ob->gameflag |= OB_BOUNDS;
 		if (ob->boundtype<OB_BOUND_POLYH)
 			ob->boundtype=OB_BOUND_POLYH;
+		/* create a BulletSoftBody structure if not already existing */
+		if (!ob->bsoft)
+			ob->bsoft = bsbNew();
 		break;
 	}
 }
@@ -2984,55 +2987,88 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "", -5, -10, 255, 140, NULL, 0, 0, 0, 0, "");
 
-	uiDefButBitI(block, TOG, OB_ACTOR, 0, "Sensor actor",
-				xco, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0,
-				"Objects that are detected by the Near and Radar sensor");
+		if (ob->gameflag & OB_SOFT_BODY) {
 
-	if (ob->gameflag & OB_DYNAMIC) {
-		uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, 0, "No sleeping", 
-					xco+=120, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0, 
-					"Disable auto (de)activation");
-	}
-
-	yco -= 25;
-	xco = 0;
-	if (ob->gameflag & OB_DYNAMIC) {
-		if (ob->margin < 0.001f)
-			ob->margin = 0.06f;
-		uiDefButF(block, NUM, 0, "Margin", 
-				xco, yco, 118, 19, &ob->margin, 0.001, 1.0, 1, 0, 
-				"Collision margin");
-	} else {
-		uiDefButF(block, NUM, 0, "Margin", 
-				xco, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
-				"Collision margin");
-	}
-	if (ob->gameflag & OB_SOFT_BODY) {
-		/* create a BulletSoftBody structure if not already existing */
-		if (!ob->bsoft)
-			ob->bsoft = bsbNew();
 		if (ob->bsoft)
 		{
-			uiDefButBitI(block, TOG, OB_BSB_SHAPE_MATCHING, 0, "Shape matching", 
-						xco+=120, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
-						"Enable soft body shape matching goal");
-			yco -= 25;
 			xco = 0;
 			uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 238, 19, 
-					&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
-					"Linear stiffness of the soft body vertex spring");
+				&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
+				"Linear stiffness of the soft body vertex spring");
 			yco -= 25;
+			xco = 0;
+
+			uiDefButBitI(block, TOG, OB_BSB_SHAPE_MATCHING, 0, "Shape matching", 
+				xco, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
+				"Enable soft body shape matching goal");
+			
+			uiDefButBitI(block, TOG, OB_BSB_BENDING_CONSTRAINTS, 0, "Bending Constraints", 
+				xco+=120, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
+				"Enable bending constraints");
+
+			yco -= 25;
+			xco = 0;
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Col. RS", 
+				xco, yco, 118, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+				"Enable cluster collision between soft and rigid body");
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_SS, 0, "Cluster Col. SS", 
+				xco+=120, yco, 118, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+				"Enable cluster collision between soft and soft body");
+			yco -= 25;
+
+			xco = 0;
+/*
+			uiDefButBitI(block, TOG, OB_BSB_AERO_VTWOSIDE, 0, "Aero model",
+				xco, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0,
+				"Enable aero model, vertex normals are flipped to match velocity");
+		
+			yco -= 25;
+*/
+
+
+			
+			/*
 			uiDefButF(block, NUMSLI, 0, "AngStiff ", xco, yco, 238, 19, 
-					&ob->bsoft->angStiff, 0.0, 1.0, 1, 0, 
-					"Angular stiffness of the soft body vertex spring");
+			&ob->bsoft->angStiff, 0.0, 1.0, 1, 0, 
+			"Angular stiffness of the soft body vertex spring");
 			yco -= 25;
 			uiDefButF(block, NUMSLI, 0, "Volume ", xco, yco, 238, 19, 
-					&ob->bsoft->volume, 0.0, 1.0, 1, 0, 
-					"Factor of soft body volume preservation");
+			&ob->bsoft->volume, 0.0, 1.0, 1, 0, 
+			"Factor of soft body volume preservation");
+			*/
+
 		}
 
-	}
+	} else
+	{
 
+		
+		xco = 0;
+
+		uiDefButBitI(block, TOG, OB_ACTOR, 0, "Sensor actor",
+					xco, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0,
+					"Objects that are detected by the Near and Radar sensor");
+
+		if (ob->gameflag & OB_DYNAMIC) {
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, 0, "No sleeping", 
+						xco+=120, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0, 
+						"Disable auto (de)activation");
+		}
+
+		yco -= 25;
+		xco = 0;
+		if (ob->gameflag & OB_DYNAMIC) {
+			if (ob->margin < 0.001f)
+				ob->margin = 0.06f;
+			uiDefButF(block, NUM, 0, "Margin", 
+					xco, yco, 118, 19, &ob->margin, 0.001, 1.0, 1, 0, 
+					"Collision margin");
+		} else {
+			uiDefButF(block, NUM, 0, "Margin", 
+					xco, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
+					"Collision margin");
+		}
+	}
 			
 	uiBlockSetDirection(block, UI_TOP);
 

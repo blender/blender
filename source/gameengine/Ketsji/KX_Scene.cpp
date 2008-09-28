@@ -159,7 +159,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	KX_NetworkEventManager* netmgr = new KX_NetworkEventManager(m_logicmgr, ndi);
 	
-	SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+	
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
@@ -170,7 +170,15 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_logicmgr->RegisterEventManager(rndmgr);
 	m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
-	m_logicmgr->RegisterEventManager(joymgr);
+
+
+	SYS_SystemHandle hSystem = SYS_GetSystem();
+	bool nojoystick= SYS_GetCommandLineInt(hSystem,"nojoystick",0);
+	if (!nojoystick)
+	{
+		SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+		m_logicmgr->RegisterEventManager(joymgr);
+	}
 
 	m_soundScene = new SND_Scene(adi);
 	MT_assert (m_networkDeviceInterface != NULL);

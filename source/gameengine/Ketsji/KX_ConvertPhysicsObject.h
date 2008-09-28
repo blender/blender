@@ -88,10 +88,44 @@ struct KX_ObjectProperties
 	bool	m_hasCompoundChildren;
 	bool	m_isCompoundChild;
 
-	float	m_linearStiffness;
-	float m_angularStiffness;
-	float	m_volumePreservation;
+	/////////////////////////
+
 	int		m_gamesoftFlag;
+	float	m_soft_linStiff;			/* linear stiffness 0..1 */
+	float	m_soft_angStiff;		/* angular stiffness 0..1 */
+	float	m_soft_volume;			/* volume preservation 0..1 */
+
+	int		m_soft_viterations;		/* Velocities solver iterations */
+	int		m_soft_piterations;		/* Positions solver iterations */
+	int		m_soft_diterations;		/* Drift solver iterations */
+	int		m_soft_citerations;		/* Cluster solver iterations */
+
+	float	m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	float	m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	float	m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	float	m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	float	m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
+	float	m_soft_kDP;			/* Damping coefficient [0,1] */
+
+	float	m_soft_kDG;			/* Drag coefficient [0,+inf] */
+	float	m_soft_kLF;			/* Lift coefficient [0,+inf] */
+	float	m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
+	float	m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	float	m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
+	float	m_soft_kMT;			/* Pose matching coefficient [0,1] */
+	float	m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
+	float	m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	float	m_soft_kSHR;			/* Soft contacts hardness [0,1] */
+	float	m_soft_kAHR;			/* Anchors hardness [0,1] */
+	int		m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	int		m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+
+	/////////////////////////
 	
 	double  m_margin;
 	KX_BoundBoxClass	m_boundclass;

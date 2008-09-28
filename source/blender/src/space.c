@@ -388,7 +388,11 @@ void space_set_commmandline_options(void) {
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
 		a= (U.gameflags & USER_DISABLE_SOUND);
-		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
+		/* if user already disabled audio at the command-line, don't re-enable it */
+		if (a)
+		{
+			SYS_WriteCommandLineInt(syshandle, "noaudio", a);
+		}
 
 		a= (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!a);

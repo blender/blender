@@ -219,6 +219,7 @@ static void print_help(void)
 	printf ("\nMisc options:\n");
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
+	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
@@ -492,6 +493,14 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"noaudio",1);
 						audio = 0;
 						if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
+					}
+					if (BLI_strcasecmp(argv[a], "-nojoystick") == 0) {
+						/**
+						 	don't initialize joysticks if user doesn't want to use joysticks
+							failed joystick initialization delays over 5 seconds, before game engine start
+						*/
+						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
+						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 					}
 					break;
 				}

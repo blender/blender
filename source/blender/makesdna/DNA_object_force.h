@@ -85,14 +85,56 @@ typedef struct SBVertex {
 } SBVertex;
 
 typedef struct BulletSoftBody {
-	int flag;		/* various boolean options */
-	float linStiff;	/* linear stiffness 0..1 */
-	float angStiff;	/* angular stiffness 0..1 */
-	float volume;	/* volume preservation 0..1 */
+	int flag;				/* various boolean options */
+	float linStiff;			/* linear stiffness 0..1 */
+	float	angStiff;		/* angular stiffness 0..1 */
+	float	volume;			/* volume preservation 0..1 */
+
+	int	viterations;		/* Velocities solver iterations */
+	int	piterations;		/* Positions solver iterations */
+	int	diterations;		/* Drift solver iterations */
+	int	citerations;		/* Cluster solver iterations */
+
+	float	kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	float	kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	float	kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	float	kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	float	kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	kVCF;			/* Velocities correction factor (Baumgarte) */
+	float	kDP;			/* Damping coefficient [0,1] */
+
+	float	kDG;			/* Drag coefficient [0,+inf] */
+	float	kLF;			/* Lift coefficient [0,+inf] */
+	float	kPR;			/* Pressure coefficient [-inf,+inf] */
+	float	kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	float	kDF;			/* Dynamic friction coefficient [0,1] */
+	float	kMT;			/* Pose matching coefficient [0,1] */
+	float	kCHR;			/* Rigid contacts hardness [0,1] */
+	float	kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	float	kSHR;			/* Soft contacts hardness [0,1] */
+	float	kAHR;			/* Anchors hardness [0,1] */
+	int		collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	int		numclusteriterations;	/* number of iterations to refine collision clusters*/
+
 } BulletSoftBody;
 
 /* BulletSoftBody.flag */
 #define OB_BSB_SHAPE_MATCHING	2
+#define OB_BSB_UNUSED 4
+#define OB_BSB_BENDING_CONSTRAINTS 8
+#define OB_BSB_AERO_VPOINT 16 /* aero model, Vertex normals are oriented toward velocity*/
+#define OB_BSB_AERO_VTWOSIDE 32 /* aero model, Vertex normals are flipped to match velocity */
+
+/* BulletSoftBody.collisionflags */
+#define OB_BSB_COL_SDF_RS	2 /* SDF based rigid vs soft */
+#define OB_BSB_COL_CL_RS	4 /* Cluster based rigid vs soft */
+#define OB_BSB_COL_CL_SS	8 /* Cluster based soft vs soft */
+#define OB_BSB_COL_VF_SS	16 /* Vertex/Face based soft vs soft */
+
 
 typedef struct SoftBody {
 	struct ParticleSystem *particles;	/* particlesystem softbody */

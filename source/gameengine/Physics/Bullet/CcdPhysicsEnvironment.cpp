@@ -576,7 +576,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		veh->SyncWheels();
 	}
 
-	m_dynamicsWorld->debugDrawWorld();
+	if (m_dynamicsWorld->getDebugDrawer() &&  m_dynamicsWorld->getDebugDrawer()->getDebugMode() >0)
+		m_dynamicsWorld->debugDrawWorld();
 
 
 	CallbackTriggers();

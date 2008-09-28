@@ -288,26 +288,69 @@ void CcdPhysicsController::CreateRigidbody()
 		m_object = psb;
 
 		//psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS;//btSoftBody::fCollision::CL_SS+	btSoftBody::fCollision::CL_RS;
-		psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS + btSoftBody::fCollision::VF_SS;//CL_SS;
-		//psb->m_cfg.collisions	=	btSoftBody::fCollision::CL_SS + btSoftBody::fCollision::CL_RS;
+		
+		//psb->m_cfg.collisions	=	btSoftBody::fCollision::SDF_RS + btSoftBody::fCollision::VF_SS;//CL_SS;
+		
 		
 		//btSoftBody::Material*	pm=psb->appendMaterial();
 		btSoftBody::Material*	pm=psb->m_materials[0];
-		
-		pm->m_kLST				=	m_cci.m_linearStiffness;
-		pm->m_kAST				=	m_cci.m_angularStiffness;
-		pm->m_kVST				=	m_cci.m_volumePreservation;
-		
+		pm->m_kLST				=	m_cci.m_soft_linStiff;
+		pm->m_kAST				=	m_cci.m_soft_angStiff;
+		pm->m_kVST				=	m_cci.m_soft_volume;
+		psb->m_cfg.collisions = 0;
 
-		
-		//pm->m_kAST = 0.01f;
-		//pm->m_kVST = 0.001f;
-		psb->generateBendingConstraints(2,pm);
-		psb->m_cfg.piterations = 4;
-		psb->m_cfg.viterations = 4;
-		psb->m_cfg.diterations = 4;
-		psb->m_cfg.citerations = 4;
-		if (m_cci.m_gamesoftFlag & 2)//OB_SB_GOAL)
+		if (m_cci.m_soft_collisionflags & CCD_BSB_COL_CL_RS)
+		{
+			psb->m_cfg.collisions	+=	btSoftBody::fCollision::CL_RS;
+		} else
+		{
+			psb->m_cfg.collisions	+=	btSoftBody::fCollision::SDF_RS;
+		}
+		if (m_cci.m_soft_collisionflags & CCD_BSB_COL_CL_SS)
+		{
+			psb->m_cfg.collisions += btSoftBody::fCollision::CL_SS;
+		} else
+		{
+			psb->m_cfg.collisions += btSoftBody::fCollision::VF_SS;
+		}
+
+
+		psb->m_cfg.kSRHR_CL = m_cci.m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+		psb->m_cfg.kSKHR_CL = m_cci.m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+		psb->m_cfg.kSSHR_CL = m_cci.m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+		psb->m_cfg.kSR_SPLT_CL = m_cci.m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+		psb->m_cfg.kSK_SPLT_CL = m_cci.m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+		psb->m_cfg.kSS_SPLT_CL = m_cci.m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+		psb->m_cfg.kVCF = m_cci.m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
+		psb->m_cfg.kDP = m_cci.m_soft_kDP;			/* Damping coefficient [0,1] */
+
+		psb->m_cfg.kDG = m_cci.m_soft_kDG;			/* Drag coefficient [0,+inf] */
+		psb->m_cfg.kLF = m_cci.m_soft_kLF;			/* Lift coefficient [0,+inf] */
+		psb->m_cfg.kPR = m_cci.m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
+		psb->m_cfg.kVC = m_cci.m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
+
+		psb->m_cfg.kDF = m_cci.m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
+		psb->m_cfg.kMT = m_cci.m_soft_kMT;			/* Pose matching coefficient [0,1] */
+		psb->m_cfg.kCHR = m_cci.m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
+		psb->m_cfg.kKHR = m_cci.m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
+
+		psb->m_cfg.kSHR = m_cci.m_soft_kSHR;			/* Soft contacts hardness [0,1] */
+		psb->m_cfg.kAHR = m_cci.m_soft_kAHR;			/* Anchors hardness [0,1] */
+
+
+
+		if (m_cci.m_gamesoftFlag & CCD_BSB_BENDING_CONSTRAINTS)//OB_SB_GOAL)
+		{
+			psb->generateBendingConstraints(2,pm);
+		}
+
+		psb->m_cfg.piterations = m_cci.m_soft_piterations;
+		psb->m_cfg.viterations = m_cci.m_soft_viterations;
+		psb->m_cfg.diterations = m_cci.m_soft_diterations;
+		psb->m_cfg.citerations = m_cci.m_soft_citerations;
+
+		if (m_cci.m_gamesoftFlag & CCD_BSB_SHAPE_MATCHING)//OB_SB_GOAL)
 		{
 			psb->setPose(false,true);//
 		} else
@@ -315,27 +358,14 @@ void CcdPhysicsController::CreateRigidbody()
 			psb->setPose(true,false);
 		}
 
-		psb->m_cfg.kDF				=	0.5;
-		//psb->m_cfg.kMT				=	0.05;
-		psb->m_cfg.piterations		=	5;
-		
-		psb->m_cfg.piterations		=	5;
-		//psb->m_cfg.kVC				=	20;
 
+		
 		psb->randomizeConstraints();
 
-/*
-		psb->m_cfg.kDF = 0.1f;//1.f;
-		psb->m_cfg.kDP		=	0.0001;
-		//psb->m_cfg.kDP		=	0.005;
-		psb->m_cfg.kCHR		=	0.1;
-		//psb->m_cfg.kVCF = 0.1f;
-		psb->m_cfg.kVCF = 0.0001f;
-		//psb->m_cfg.kAHR = 0.1f;
-		psb->m_cfg.kAHR = 0.0001f;
-		psb->m_cfg.kMT = 0.1f;
-		//psb->m_cfg.kDF=1;
-		*/
+		if (m_cci.m_soft_collisionflags & (CCD_BSB_COL_CL_RS+CCD_BSB_COL_CL_SS))
+		{
+			psb->generateClusters(m_cci.m_soft_numclusteriterations);
+		}
 
 //		psb->activate();
 //		psb->setActivationState(1);
@@ -343,14 +373,10 @@ void CcdPhysicsController::CreateRigidbody()
 		
 		//psb->m_materials[0]->m_kLST	=	0.1+(i/(btScalar)(n-1))*0.9;
 		psb->setTotalMass(m_cci.m_mass);
-		psb->generateClusters(64);		
+		
 		psb->setCollisionFlags(0);
 
-
-
-
-
-			///create a mapping between graphics mesh vertices and soft body vertices
+		///create a mapping between graphics mesh vertices and soft body vertices
 		{
 			RAS_MeshObject* rasMesh= GetShapeInfo()->GetMesh();
 
