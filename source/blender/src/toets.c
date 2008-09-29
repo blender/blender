@@ -299,7 +299,7 @@ void persptoetsen(unsigned short event)
 				G.vd->lpersp= G.vd->persp;
 				G.vd->lastview_set= 1;
 			}
-			else if(G.vd->lastview_set) {
+			else {
 				/* return to settings of last view */
 				axis_set_view(G.vd->lviewquat[0], G.vd->lviewquat[1], G.vd->lviewquat[2], G.vd->lviewquat[3], G.vd->lview, G.vd->lpersp);
 				G.vd->lastview_set= 0;
