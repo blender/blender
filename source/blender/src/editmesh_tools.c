@@ -4486,7 +4486,7 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 	}
 }
 
-void bevel_menu() {
+void bevel_menu(void) {
 	BME_Mesh *bm;
 	BME_TransData_Head *td;
 	TransInfo *t;

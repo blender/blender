@@ -1698,11 +1698,9 @@ static PyObject *Object_getBoundBox( BPy_Object * self, PyObject *args )
 				"This object isn't linked to any object data (mesh, curve, etc) yet" );
 
 	if( !self->object->bb ) {	/* if no ob bbox, we look in obdata */
-		Mesh *me;
 		Curve *curve;
 		switch ( self->object->type ) {
 		case OB_MESH:
-			me = self->object->data;
 			vec = (float*) mesh_get_bb(self->object)->vec;
 			break;
 		case OB_CURVE:

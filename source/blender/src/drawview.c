@@ -181,7 +181,7 @@
 #include "radio.h"
 
 /* locals */
-void drawname(Object *ob);
+static void drawname(Object *ob);
 
 static void star_stuff_init_func(void)
 {
@@ -1199,7 +1199,7 @@ exit:
 	return index;
 }
 
-void drawname(Object *ob)
+static void drawname(Object *ob)
 {
 	cpack(0x404040);
 	glRasterPos3f(0.0,  0.0,  0.0);

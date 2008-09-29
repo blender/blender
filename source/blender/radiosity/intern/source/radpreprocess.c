@@ -289,7 +289,7 @@ void setedgepointers()
 	MEM_freeN(esblock);
 }
 
-int materialIndex(Material *ma)
+static int materialIndex(Material *ma)
 {
 	int i = 0;
 	for(i=0;i< RG.totmat; i++)

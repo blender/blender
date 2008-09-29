@@ -771,15 +771,15 @@ intptr_t mesh_octree_table(Object *ob, float *co, char mode)
 		}
 		else {		
 			MVert *mvert;
-			float *co;
+			float *vco;
 			int a, totvert;
 			
 			MeshOctree.orco= mesh_getRefKeyCos(me, &totvert);
 			mesh_get_texspace(me, MeshOctree.orcoloc, NULL, NULL);
 			
 			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
-				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
-				DO_MINMAX(co, min, max);
+				vco= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
+				DO_MINMAX(vco, min, max);
 			}
 		}
 		
@@ -813,12 +813,12 @@ intptr_t mesh_octree_table(Object *ob, float *co, char mode)
 		}
 		else {		
 			MVert *mvert;
-			float *co;
+			float *vco;
 			int a;
 			
 			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
-				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
-				mesh_octree_add_nodes(MeshOctree.table, co, MeshOctree.offs, MeshOctree.div, a+1);
+				vco= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
+				mesh_octree_add_nodes(MeshOctree.table, vco, MeshOctree.offs, MeshOctree.div, a+1);
 			}
 		}
 	}

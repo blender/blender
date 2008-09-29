@@ -86,7 +86,7 @@
 #include "blendef.h"
 
 
-void audio_fill(void *mixdown, Uint8 *sstream, int len);
+static void audio_fill(void *mixdown, Uint8 *sstream, int len);
 /* ************ GLOBALS ************* */
 
 static int audio_pos;
@@ -419,7 +419,7 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 #endif
 
 #ifndef DISABLE_SDL
-void audio_fill(void *mixdown, Uint8 *sstream, int len)
+static void audio_fill(void *mixdown, Uint8 *sstream, int len)
 {    
 	Editing *ed;
 	Sequence *seq;

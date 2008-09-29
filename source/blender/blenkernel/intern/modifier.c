@@ -7063,7 +7063,6 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 {
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf=0;
-	MVert *dupvert=0;
 	ParticleSettings *part=psmd->psys->part;
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
@@ -7118,7 +7117,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	/* the final duplicated vertices */
 	explode= CDDM_from_template(dm, totdup, 0,totface);
-	dupvert= CDDM_get_verts(explode);
+	/*dupvert= CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
 	Mat4Invert(imat,ob->obmat);

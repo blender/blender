@@ -136,10 +136,10 @@ extern void obedit_selectionCB(short selecting, Object *editobj,
 extern void uvedit_selectionCB(short selecting, Object *editobj, 
                                short *mval, float rad);
 
-void circle_selectCB(select_CBfunc func);
+static void circle_selectCB(select_CBfunc func);
 
 /* local protos ---------------*/
-void snap_curs_to_firstsel(void);
+static void snap_curs_to_firstsel(void);
 
 /* flag==2 only border, flag==3 cross+border
    flag==5 cross + border + start&end frame
@@ -478,7 +478,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
   * it (hopefully) reusable for other windows than the 3D view.
   */
 
-void circle_selectCB(select_CBfunc callback)
+static void circle_selectCB(select_CBfunc callback)
 {
 	static float rad= 40.0;
 	float rado= rad;
@@ -1548,7 +1548,7 @@ void snap_curs_to_active()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void snap_curs_to_firstsel()
+static void snap_curs_to_firstsel()
 {
 	TransVert *tv;
 	Base *base;

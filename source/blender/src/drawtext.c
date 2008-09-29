@@ -123,10 +123,10 @@ def wrap(line, view_width, wrap_chars):
 
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-void txt_copy_selectbuffer (Text *text);
-void draw_brackets(SpaceText *st);
 void redraw_alltext(void);
 
+static void txt_copy_selectbuffer(Text *text);
+static void draw_brackets(SpaceText *st);
 static void get_selection_buffer(Text *text);
 static int check_bracket(char ch);
 static int check_delim(char ch);
@@ -1551,7 +1551,6 @@ void find_and_replace(SpaceText *st, short mode) {
 static void do_find_buttons(val) {
 	Text *text;
 	SpaceText *st;
-	int do_draw= 0;
 	char *tmp;
 
 	st= curarea->spacedata.first;
@@ -1565,26 +1564,21 @@ static void do_find_buttons(val) {
 			tmp= txt_sel_to_buf(text);
 			strncpy(g_find_str, tmp, TXT_MAXFINDSTR);
 			MEM_freeN(tmp);
-			do_draw= 1;
 			break;
 		case B_PASTEREPLACE:
 			if (!g_replace_str) break;
 			tmp= txt_sel_to_buf(text);
 			strncpy(g_replace_str, tmp, TXT_MAXFINDSTR);
 			MEM_freeN(tmp);
-			do_draw= 1;
 			break;
 		case B_TEXTFIND:
 			find_and_replace(st, 0);
-			do_draw= 1;
 			break;
 		case B_TEXTREPLACE:
 			find_and_replace(st, 1);
-			do_draw= 1;
 			break;
 		case B_TEXTMARKALL:
 			find_and_replace(st, 2);
-			do_draw= 1;
 			break;
 	}
 }
@@ -1882,7 +1876,7 @@ int jumptoline_interactive(SpaceText *st) {
 int bufferlength;
 static char *copybuffer = NULL;
 
-void txt_copy_selectbuffer (Text *text)
+static void txt_copy_selectbuffer (Text *text)
 {
 	int length=0;
 	TextLine *tmp, *linef, *linel;
@@ -3180,7 +3174,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		redraw_alltext();
 }
 
-void draw_brackets(SpaceText *st)
+static void draw_brackets(SpaceText *st)
 {
 	char ch;
 	int b, c, startc, endc, find, stack;

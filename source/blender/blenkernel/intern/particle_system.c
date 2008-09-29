@@ -864,7 +864,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 	}
 }
 
-void *exec_distribution(void *data)
+static void *exec_distribution(void *data)
 {
 	ParticleThread *thread= (ParticleThread*)data;
 	ParticleSystem *psys= thread->ctx->psys;
@@ -3877,7 +3877,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 /************************************************/
 /*			Hair								*/
 /************************************************/
-void save_hair(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, float cfra){
+static void save_hair(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, float cfra){
 	ParticleData *pa;
 	HairKey *key;
 	int totpart;
@@ -4643,7 +4643,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	}
 }
 
-void psys_to_softbody(Object *ob, ParticleSystem *psys)
+static void psys_to_softbody(Object *ob, ParticleSystem *psys)
 {
 	SoftBody *sb;
 	short softflag; 

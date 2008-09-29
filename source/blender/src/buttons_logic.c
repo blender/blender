@@ -93,9 +93,9 @@
 #include "interface.h"
 
 /* internals */
-void buttons_enji(uiBlock *, Object *);
-void buttons_ketsji(uiBlock *, Object *);
-void buttons_bullet(uiBlock *, Object *);
+static void buttons_enji(uiBlock *, Object *);
+static void buttons_ketsji(uiBlock *, Object *);
+static void buttons_bullet(uiBlock *, Object *);
 
 /****/
 
@@ -2812,7 +2812,7 @@ static uiBlock *actuator_menu(void *arg_unused)
 }
 
 
-void buttons_enji(uiBlock *block, Object *ob)
+static void buttons_enji(uiBlock *block, Object *ob)
 {
 	uiDefButBitI(block, TOG, OB_SECTOR, B_SETSECTOR, "Sector",
 			 10,205,65,19, &ob->gameflag, 0, 0, 0, 0, 
@@ -2857,7 +2857,7 @@ void buttons_enji(uiBlock *block, Object *ob)
 
 }
 
-void buttons_ketsji(uiBlock *block, Object *ob)
+static void buttons_ketsji(uiBlock *block, Object *ob)
 {
 	uiDefButBitI(block, TOG, OB_COLLISION, B_REDR, "Physics",
 			  10,205,70,19, &ob->gameflag, 0, 0, 0, 0,
@@ -3083,7 +3083,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 	return block;
 }
 
-void buttons_bullet(uiBlock *block, Object *ob)
+static void buttons_bullet(uiBlock *block, Object *ob)
 {
 	uiBut *but;
 

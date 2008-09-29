@@ -1347,7 +1347,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 
-void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 {
 	int i;
 
@@ -1368,14 +1368,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	}
 }
 
-void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
 {
 	/*since we didn't save the extra string buffer, set totallen to len.*/
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 }
 
-void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
 {
 	ListBase *lb = &prop->data.group;
 	IDProperty *loop;
@@ -4874,7 +4874,7 @@ static void ntree_version_245(FileData *fd, Library *lib, bNodeTree *ntree)
 	}
 }
 
-void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
+static void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
 {
 	IDProperty *loop;
 	int i;
@@ -4889,7 +4889,7 @@ void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
 	}
 }
 
-void idproperties_fix_group_lengths(ListBase idlist)
+static void idproperties_fix_group_lengths(ListBase idlist)
 {
 	ID *id;
 	
@@ -4900,7 +4900,7 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	}
 }
 
-void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 {
 	Material *ma;
 	MFace *mf;

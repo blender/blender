@@ -2442,7 +2442,8 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	VertRen *v1, *v2, *v3, *v4, *ver;
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
 	Curve *cu= ob->data;
-	float *data, n1[3], flen;
+	float *data, n1[3];
+	/*float flen; - as yet unused */
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
 	int sizeu, nsizeu, sizev, nsizev;
@@ -2514,7 +2515,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 			
-			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			/* flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1); - as yet unused */
 			VECCOPY(vlr->n, n1);
 			
 			vlr->mat= matar[ dl->col];

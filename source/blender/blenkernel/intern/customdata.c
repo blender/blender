@@ -265,9 +265,9 @@ static void layerSwap_tface(void *data, int *corner_indices)
 {
 	MTFace *tf = data;
 	float uv[4][2];
-	const static short pin_flags[4] =
+	static const short pin_flags[4] =
 	    { TF_PIN1, TF_PIN2, TF_PIN3, TF_PIN4 };
-	const static char sel_flags[4] =
+	static const char sel_flags[4] =
 	    { TF_SEL1, TF_SEL2, TF_SEL3, TF_SEL4 };
 	short unwrap = tf->unwrap & ~(TF_PIN1 | TF_PIN2 | TF_PIN3 | TF_PIN4);
 	char flag = tf->flag & ~(TF_SEL1 | TF_SEL2 | TF_SEL3 | TF_SEL4);
@@ -926,11 +926,8 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
 int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 {
 	int i;
-	CustomDataLayer *layer;
 	
 	if (index < 0) return 0;
-
-	layer = &data->layers[index];
 
 	customData_free_layer__internal(&data->layers[index], totelem);
 

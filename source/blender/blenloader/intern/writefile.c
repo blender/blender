@@ -399,7 +399,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
 void IDP_WriteProperty(IDProperty *prop, void *wd);
 
-void IDP_WriteArray(IDProperty *prop, void *wd)
+static void IDP_WriteArray(IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
@@ -407,13 +407,13 @@ void IDP_WriteArray(IDProperty *prop, void *wd)
 	}
 }
 
-void IDP_WriteString(IDProperty *prop, void *wd)
+static void IDP_WriteString(IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	writedata(wd, DATA, prop->len+1, prop->data.pointer);
 }
 
-void IDP_WriteGroup(IDProperty *prop, void *wd)
+static void IDP_WriteGroup(IDProperty *prop, void *wd)
 {
 	IDProperty *loop;
 
@@ -1066,7 +1066,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 	}
 }
 
-int amount_of_chars(char *str)
+static int amount_of_chars(char *str)
 {
 	// Since the data is saved as UTF-8 to the cu->str
 	// The cu->len is not same as the strlen(cu->str)

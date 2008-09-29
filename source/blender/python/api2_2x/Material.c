@@ -699,7 +699,7 @@ static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
 static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
 static PyObject *Material_getColorband( BPy_Material * self, void * type);
-int Material_setColorband( BPy_Material * self, PyObject * value, void * type);
+static int Material_setColorband( BPy_Material * self, PyObject * value, void * type);
 static PyObject *Material_copy( BPy_Material * self );
 static PyObject *Material_freeNodes( BPy_Material * self );
 
@@ -2782,10 +2782,10 @@ int EXPP_Colorband_fromPyList( ColorBand **coba, PyObject * value )
 		for (i=0; i<5; i++) {
 			pyflt = PySequence_GetItem( colseq, i );
 			if (!PyNumber_Check(pyflt)) {
-				return ( EXPP_ReturnIntError( PyExc_ValueError,
-					"Colorband colors must be sequences of 5 floats" ) );
 				Py_DECREF ( pyflt );
 				Py_DECREF ( colseq );
+				return ( EXPP_ReturnIntError( PyExc_ValueError,
+					"Colorband colors must be sequences of 5 floats" ) );
 			}
 			Py_DECREF ( pyflt );
 		}
@@ -3038,7 +3038,7 @@ static PyObject *Material_getColorband( BPy_Material * self, void * type)
 	Py_RETURN_NONE;
 }
 
-int Material_setColorband( BPy_Material * self, PyObject * value, void * type)
+static int Material_setColorband( BPy_Material * self, PyObject * value, void * type)
 {
 	switch( (long)type ) {
     case 0:	/* these are backwards, but that how it works */

@@ -110,7 +110,7 @@
 #include "editmesh.h"
 
 /* local prototypes */
-void sel_uvco_inside_radius(short , EditFace *efa, MTFace *, int , float *, float *, short);
+static void sel_uvco_inside_radius(short , EditFace *efa, MTFace *, int , float *, float *, short);
 void uvedit_selectionCB(short , Object *, short *, float ); /* used in edit.c*/ 
 
 void object_uvs_changed(Object *ob)
@@ -1264,7 +1264,7 @@ void snap_menu_sima(void)
   * Just for readability...
   */
 
-void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, short select_index)
+static void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, short select_index)
 {
 	// normalized ellipse: ell[0] = scaleX,
 	//                        [1] = scaleY
@@ -1730,7 +1730,7 @@ void uvface_setsel__internal(short select)
 	} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
 		EditFace *efa_vlist;
 		MTFace *tf_vlist;
-		UvMapVert *vlist, *start_vlist=NULL, *vlist_iter;
+		UvMapVert *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
 		int efa_index;
@@ -1760,7 +1760,7 @@ void uvface_setsel__internal(short select)
 						simaUVSel_UnSet(efa, tf, i);
 					}
 					
-					vlist= vlist_iter= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
+					vlist_iter= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
 					
 					while (vlist_iter) {
 						if (vlist_iter->separate)

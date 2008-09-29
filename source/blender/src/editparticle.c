@@ -2022,7 +2022,7 @@ static void PE_radialcontrol_callback(const int mode, const int val)
 	(*PE_radialcontrol()) = NULL;
 }
 
-RadialControl **PE_radialcontrol()
+RadialControl **PE_radialcontrol(void)
 {
 	static RadialControl *rc = NULL;
 	return &rc;

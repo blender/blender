@@ -1712,18 +1712,18 @@ void do_material_tex(ShadeInput *shi)
 						texres.nor[2]= texres.tb;
 					}
 					else {
-						float co= 0.5*cos(texres.tin-0.5);
+						float co_nor= 0.5*cos(texres.tin-0.5);
 						float si= 0.5*sin(texres.tin-0.5);
 						float f1, f2;
 
 						f1= shi->vn[0];
 						f2= shi->vn[1];
-						texres.nor[0]= f1*co+f2*si;
-						texres.nor[1]= f2*co-f1*si;
+						texres.nor[0]= f1*co_nor+f2*si;
+						texres.nor[1]= f2*co_nor-f1*si;
 						f1= shi->vn[1];
 						f2= shi->vn[2];
-						texres.nor[1]= f1*co+f2*si;
-						texres.nor[2]= f2*co-f1*si;
+						texres.nor[1]= f1*co_nor+f2*si;
+						texres.nor[2]= f2*co_nor-f1*si;
 					}
 				}
 				// warping, local space

@@ -94,7 +94,7 @@
 ///////////////////////////////////
 ///////////////////////////////////
 
-MVert *dm_getVertArray(DerivedMesh *dm)
+static MVert *dm_getVertArray(DerivedMesh *dm)
 {
 	MVert *mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 
@@ -108,7 +108,7 @@ MVert *dm_getVertArray(DerivedMesh *dm)
 	return mvert;
 }
 
-MEdge *dm_getEdgeArray(DerivedMesh *dm)
+static MEdge *dm_getEdgeArray(DerivedMesh *dm)
 {
 	MEdge *medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 
@@ -122,7 +122,7 @@ MEdge *dm_getEdgeArray(DerivedMesh *dm)
 	return medge;
 }
 
-MFace *dm_getFaceArray(DerivedMesh *dm)
+static MFace *dm_getFaceArray(DerivedMesh *dm)
 {
 	MFace *mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
@@ -136,7 +136,7 @@ MFace *dm_getFaceArray(DerivedMesh *dm)
 	return mface;
 }
 
-MVert *dm_dupVertArray(DerivedMesh *dm)
+static MVert *dm_dupVertArray(DerivedMesh *dm)
 {
 	MVert *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumVerts(dm),
 	                         "dm_dupVertArray tmp");
@@ -146,7 +146,7 @@ MVert *dm_dupVertArray(DerivedMesh *dm)
 	return tmp;
 }
 
-MEdge *dm_dupEdgeArray(DerivedMesh *dm)
+static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 {
 	MEdge *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumEdges(dm),
 	                         "dm_dupEdgeArray tmp");
@@ -156,7 +156,7 @@ MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 	return tmp;
 }
 
-MFace *dm_dupFaceArray(DerivedMesh *dm)
+static MFace *dm_dupFaceArray(DerivedMesh *dm)
 {
 	MFace *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumFaces(dm),
 	                         "dm_dupFaceArray tmp");
@@ -912,8 +912,8 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		glVertexAttrib3fvARB(attribs.orco.glIndex, orco);						\
 	}																			\
 	for(b = 0; b < attribs.tottface; b++) {										\
-		MTFace *tf = (MTFace*)((char*)efa->data + attribs.tface[b].emOffset);	\
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
+		MTFace *_tf = (MTFace*)((char*)efa->data + attribs.tface[b].emOffset);	\
+		glVertexAttrib2fvARB(attribs.tface[b].glIndex, _tf->uv[vert]);			\
 	}																			\
 	for(b = 0; b < attribs.totmcol; b++) {										\
 		MCol *cp = (MCol*)((char*)efa->data + attribs.mcol[b].emOffset);		\
@@ -1069,7 +1069,7 @@ static int emDM_getNumFaces(DerivedMesh *dm)
 	return BLI_countlist(&emdm->em->faces);
 }
 
-void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
+static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 {
 	EditVert *ev = ((EditMeshDerivedMesh *)dm)->em->verts.first;
 	int i;
@@ -1087,7 +1087,7 @@ void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	vert_r->bweight = (unsigned char) (ev->bweight*255.0f);
 }
 
-void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
+static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditEdge *ee = em->edges.first;
@@ -1122,7 +1122,7 @@ void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	}
 }
 
-void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
+static void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditFace *ef = em->faces.first;
@@ -1164,7 +1164,7 @@ void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 	test_index_face(face_r, NULL, 0, ef->v4?4:3);
 }
 
-void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
+static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 {
 	EditVert *ev = ((EditMeshDerivedMesh *)dm)->em->verts.first;
 
@@ -1182,7 +1182,7 @@ void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 	}
 }
 
-void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
+static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditEdge *ee = em->edges.first;
@@ -1210,7 +1210,7 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	}
 }
 
-void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
+static void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditFace *ef = em->faces.first;

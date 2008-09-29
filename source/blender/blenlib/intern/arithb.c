@@ -2503,7 +2503,7 @@ short IsectLL2Df(float *v1, float *v2, float *v3, float *v4)
  1: intersection
 
 */
-short IsectLLPt2Df(float x0,float y0,float x1,float y1,
+static short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 					 float x2,float y2,float x3,float y3, float *xi,float *yi)
 
 {
@@ -3526,7 +3526,7 @@ int constrain_rgb(float *r, float *g, float *b)
   Parameter Values for the HDTV Standard for the Studio and
   for International Programme Exchange'', formerly CCIR Rec.
   709.*/
-void gamma_correct(float *c)
+static void gamma_correct(float *c)
 {
 	/* Rec. 709 gamma correction. */
 	float cc = 0.018;
@@ -3632,6 +3632,8 @@ void spheremap(float x, float y, float z, float *u, float *v)
 
 /* ------------------------------------------------------------------------- */
 
+/* proposed api by ton and zr, not used yet */
+#if 0
 /* *****************  m1 = m2 *****************  */
 void cpy_m3_m3(float m1[][3], float m2[][3]) 
 {	
@@ -3654,7 +3656,6 @@ void ident_m4(float m[][4])
 	m[2][0]= m[2][1]= m[2][3]= 0.0;
 	m[3][0]= m[3][1]= m[3][2]= 0.0;
 }
-
 
 /* *****************  m1 = m2 (pre) * m3 (post) ***************** */
 void mul_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
@@ -3792,6 +3793,8 @@ void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 	v1[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*v2[2] + mat[3][2];
 	
 }
+
+#endif
 
 /* moved from effect.c
    test if the line starting at p1 ending at p2 intersects the triangle v0..v2
@@ -4240,7 +4243,7 @@ float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 }
 
 /* little sister we only need to know lambda */
-float lambda_cp_line(float p[3], float l1[3], float l2[3])
+static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 {
 	float h[3],u[3];
 	VecSubf(u, l2, l1);
@@ -4399,7 +4402,7 @@ void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, floa
 	v[2]= 3*a[2]*t2 + 2*b[2]*t + v1[2];
 }
 
-int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])
+static int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])
 {
 /* 
 what is a slice ?
@@ -4426,7 +4429,7 @@ but see a 'spat' which is a deformed cube with paired parallel planes needs only
 
 /*adult sister defining the slice planes by the origin and the normal  
 NOTE |normal| may not be 1 but defining the thickness of the slice*/
-int point_in_slice_as(float p[3],float origin[3],float normal[3])
+static int point_in_slice_as(float p[3],float origin[3],float normal[3])
 {
 	float h,rp[3];
 	VecSubf(rp,p,origin);
@@ -4436,7 +4439,7 @@ int point_in_slice_as(float p[3],float origin[3],float normal[3])
 }
 
 /*mama (knowing the squared lenght of the normal)*/
-int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns)
+static int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns)
 {
 	float h,rp[3];
 	VecSubf(rp,p,origin);

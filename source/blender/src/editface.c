@@ -312,7 +312,7 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 	}
 }
 
-void correct_uv_aspect( void )
+static void correct_uv_aspect( void )
 {
 	float aspx=1, aspy=1;
 	EditMesh *em = G.editMesh;
@@ -1050,7 +1050,7 @@ int edgetag_shortest_path(EditEdge *source, EditEdge *target)
 	return 1;
 }
 
-void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
+static void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
 {
 	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
 	BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);

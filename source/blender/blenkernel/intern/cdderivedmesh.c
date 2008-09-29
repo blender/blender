@@ -121,7 +121,7 @@ static void cdDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	memcpy(edge_r, cddm->medge, sizeof(*edge_r) * dm->numEdgeData);
 }
 
-void cdDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
+static void cdDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	memcpy(face_r, cddm->mface, sizeof(*face_r) * dm->numFaceData);

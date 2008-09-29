@@ -192,9 +192,9 @@ SculptData *sculpt_data(void)
 	return &G.scene->sculptdata;
 }
 
-void sculpt_init_session(void);
-void init_brushaction(BrushAction *a, short *, short *);
-void sculpt_undo_push(const short);
+static void sculpt_init_session(void);
+static void init_brushaction(BrushAction *a, short *, short *);
+static void sculpt_undo_push(const short);
 
 SculptSession *sculpt_session(void)
 {
@@ -208,7 +208,7 @@ SculptSession *sculpt_session(void)
  * Allocate/initialize/free data
  */
 
-void sculpt_init_session(void)
+static void sculpt_init_session(void)
 {
 	if(sculpt_data()->session)
 		sculptsession_free(G.scene);
@@ -217,7 +217,7 @@ void sculpt_init_session(void)
 
 /* vertex_users is an array of Lists that store all the faces that use a
    particular vertex. vertex_users is in the same order as mesh.mvert */
-void calc_vertex_users()
+static void calc_vertex_users()
 {
 	SculptSession *ss= sculpt_session();
 	int i,j;
@@ -865,14 +865,14 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 			float fy= point_2d[1];
 			
 			float angle= atan2(fy, fx) - rot;
-			float len= sqrtf(fx*fx + fy*fy);
+			float flen= sqrtf(fx*fx + fy*fy);
 			
 			if(rot<0.001 && rot>-0.001) {
 				px= point_2d[0];
 				py= point_2d[1];
 			} else {
-				px= len * cos(angle) + 2000;
-				py= len * sin(angle) + 2000;
+				px= flen * cos(angle) + 2000;
+				py= flen * sin(angle) + 2000;
 			}
 			if(sx != 1)
 				px %= sx-1;
@@ -884,10 +884,10 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 			float fy= (point_2d[1] - a->mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
-			float len= sqrtf(fx*fx + fy*fy);
+			float flen= sqrtf(fx*fx + fy*fy);
 			
-			fx = len * cos(angle) + 0.5;
-			fy = len * sin(angle) + 0.5;
+			fx = flen * cos(angle) + 0.5;
+			fy = flen * sin(angle) + 0.5;
 
 			avg= get_texcache_pixel_bilinear(ss, fx * TC_SIZE, fy * TC_SIZE);
 		}
@@ -1223,7 +1223,7 @@ void sculptmode_update_tex()
 }
 
 /* pr_mouse is only used for the grab brush, can be NULL otherwise */
-void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
+static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 {
 	SculptData *sd = sculpt_data();
 	const float mouse_depth = get_depth(mouse[0], mouse[1]);
@@ -1809,7 +1809,7 @@ void sculpt(void)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void sculpt_undo_push(const short brush_type)
+static void sculpt_undo_push(const short brush_type)
 {
 	switch(brush_type) {
 	case DRAW_BRUSH:

@@ -197,9 +197,9 @@ extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, stru
  * When the mipmap setting changes, we want to redraw the view right
  * away to reflect this setting.
  */
-void space_mipmap_button_function(int event);
+static void space_mipmap_button_function(int event);
 
-void free_soundspace(SpaceSound *ssound);
+static void free_soundspace(SpaceSound *ssound);
 
 /* *************************************** */
 
@@ -3311,7 +3311,7 @@ void initipo(ScrArea *sa)
 
 /* ******************** SPACE: INFO ********************** */
 
-void space_mipmap_button_function(int event) {
+static void space_mipmap_button_function(int event) {
 	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -5381,7 +5381,7 @@ static void init_soundspace(ScrArea *sa)
 	
 }
 
-void free_soundspace(SpaceSound *ssound)
+static void free_soundspace(SpaceSound *ssound)
 {
 	/* don't free ssound itself */
 	

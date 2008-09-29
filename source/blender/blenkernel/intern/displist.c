@@ -1234,7 +1234,7 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	*numVerts_r = numVerts;
 }
 
-void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
+static void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
 {
 	int editmode = (!forRender && ob==G.obedit);
 	ModifierData *md = modifiers_getVirtualModifierList(ob);

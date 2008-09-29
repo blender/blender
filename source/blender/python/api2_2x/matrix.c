@@ -774,7 +774,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Matrix multiplication: arguments not acceptable for this operation\n");
 }
-PyObject* Matrix_inv(MatrixObject *self)
+static PyObject* Matrix_inv(MatrixObject *self)
 {
 	return Matrix_Invert(self);
 }

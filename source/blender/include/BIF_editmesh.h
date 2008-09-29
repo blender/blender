@@ -73,7 +73,7 @@ extern void add_primitiveMesh(int type);
 extern void adduplicate_mesh(void);
 extern void add_click_mesh(void);
 extern void addedgeface_mesh(void);
-void addfaces_from_edgenet();
+void addfaces_from_edgenet(void);
 
 /* ******************* editmesh_lib.c */
 
@@ -221,7 +221,7 @@ extern void beauty_fill(void);
 extern void join_triangles(void);
 extern void edge_flip(void);
 extern void fill_mesh(void);
-extern void bevel_menu();
+extern void bevel_menu(void);
 void mesh_set_face_flags(short mode);
 extern void mesh_set_smooth_faces(short event);
 extern void mesh_rotate_uvs(void);

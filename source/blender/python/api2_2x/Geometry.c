@@ -349,7 +349,7 @@ static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
 	return PyInt_FromLong(IsectPQ2Df(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
 
-int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
+static int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 {
 	int len, i;
 	PyObject *list_item, *item_1, *item_2;
@@ -393,7 +393,7 @@ int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
 	return 0;
 }
 
-void boxPack_ToPyObject(PyObject * value, boxPack **boxarray)
+static void boxPack_ToPyObject(PyObject * value, boxPack **boxarray)
 {
 	int len, i;
 	PyObject *list_item;

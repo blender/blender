@@ -736,7 +736,7 @@ static void hammersley_create(double *out, int n)
 	}
 }
 
-struct QMCSampler *QMC_initSampler(int type, int tot)
+static struct QMCSampler *QMC_initSampler(int type, int tot)
 {	
 	QMCSampler *qsa = MEM_callocN(sizeof(QMCSampler), "qmc sampler");
 	qsa->samp2d = MEM_callocN(2*sizeof(double)*tot, "qmc sample table");
@@ -885,7 +885,7 @@ void init_render_qmcsampler(Render *re)
 	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*BLENDER_MAX_THREADS, "QMCListBase");
 }
 
-QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
+static QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 {
 	QMCSampler *qsa;
 
@@ -906,7 +906,7 @@ QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 	return qsa;
 }
 
-void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
+static void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
 {
 	qsa->used= 0;
 }
@@ -1176,7 +1176,6 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 /* extern call from render loop */
 void ray_trace(ShadeInput *shi, ShadeResult *shr)
 {
-	VlakRen *vlr;
 	float i, f, f1, fr, fg, fb;
 	float mircol[4], tracol[4];
 	float diff[3];
@@ -1184,7 +1183,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
-	vlr= shi->vlr;
+
 	
 	/* raytrace mirror amd refract like to separate the spec color */
 	if(shi->combinedflag & SCE_PASS_SPEC)
@@ -1527,7 +1526,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	}
 }
 
-void ray_ao_qmc(ShadeInput *shi, float *shadfac)
+static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	QMCSampler *qsa=NULL;
@@ -1538,7 +1537,6 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	float fac=0.0f, prev=0.0f;
 	float adapt_thresh = G.scene->world->ao_adapt_thresh;
 	float adapt_speed_fac = G.scene->world->ao_adapt_speed_fac;
-	float bias = G.scene->world->aobias;
 	
 	int samples=0;
 	int max_samples = R.wrld.aosamp*R.wrld.aosamp;
@@ -1566,13 +1564,10 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		dxyview[2]= 0.0f;
 	}
 	
-	/* bias prevents smoothed faces to appear flat */
 	if(shi->vlr->flag & R_SMOOTH) {
-		bias= G.scene->world->aobias;
 		VECCOPY(nrm, shi->vn);
 	}
 	else {
-		bias= 0.0f;
 		VECCOPY(nrm, shi->facenor);
 	}
 	
@@ -1667,7 +1662,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 }
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
-void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
+static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0.0f;
@@ -2123,7 +2118,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 }
 
 /* only when face points away from lamp, in direction of lamp, trace ray and find first exit point */
-void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
+static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
 {
 	Isect isec;
 	float lampco[3], maxsize;

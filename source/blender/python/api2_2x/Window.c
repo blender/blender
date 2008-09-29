@@ -1209,7 +1209,7 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 
 	if( sa ) {
 		BWinEvent evt;
-		short do_redraw = 0, do_change = 0;
+		short do_redraw = 0;
 
 		if( sa != curarea || sa->win != mywinget(  ) ) {
 			oldsa = curarea;
@@ -1221,7 +1221,6 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 				do_redraw = 1;
 			} else if( evt.event == CHANGED ) {
 				sa->win_swap = 0;
-				do_change = 1;
 				do_redraw = 1;
 			} else {
 				scrarea_do_winhandle( sa, &evt );

@@ -3753,11 +3753,9 @@ static void editing_panel_camera_yafraydof(Object *ob, Camera *cam)
 void do_cambuts(unsigned short event)
 {
 	Object *ob;
-	Camera *cam;
 	
 	ob= OBACT;
 	if (ob==0) return;
-	cam= ob->data;
 
 	switch(event) {
 	case 0:

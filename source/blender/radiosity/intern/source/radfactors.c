@@ -53,9 +53,9 @@
 #include "RE_render_ext.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
 
 /* locals */
-void rad_setmatrices(RadView *vw);
-void clearsubflagelem(RNode *rn);
-void setsubflagelem(RNode *rn);
+static void rad_setmatrices(RadView *vw);
+static void clearsubflagelem(RNode *rn);
+static void setsubflagelem(RNode *rn);
 
 RadView hemitop, hemiside;
 
@@ -254,7 +254,7 @@ void rad_make_hocos(RadView *vw)
 	/* } */
 }
 
-void rad_setmatrices(RadView *vw)	    /* for hemi's */
+static void rad_setmatrices(RadView *vw)	    /* for hemi's */
 {
 	float up1[3], len, twist;
 
@@ -628,7 +628,7 @@ void minmaxradelemfilt(RNode *rn, float *min, float *max, float *errmin, float *
 	}
 }
 
-void setsubflagelem(RNode *rn)
+static void setsubflagelem(RNode *rn)
 {
 	
 	if(rn->down1) {
@@ -640,7 +640,7 @@ void setsubflagelem(RNode *rn)
 	}
 }
 
-void clearsubflagelem(RNode *rn)
+static void clearsubflagelem(RNode *rn)
 {
 	
 	if(rn->down1) {

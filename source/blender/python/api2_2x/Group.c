@@ -56,8 +56,8 @@
 /* Python API function prototypes for the Blender module.		 */
 /*****************************************************************************/
 static PyObject *M_Group_New( PyObject * self, PyObject * args );
-PyObject *M_Group_Get( PyObject * self, PyObject * args );
-PyObject *M_Group_Unlink( PyObject * self, BPy_Group * pygrp );
+static PyObject *M_Group_Get( PyObject * self, PyObject * args );
+static PyObject *M_Group_Unlink( PyObject * self, BPy_Group * pygrp );
 
 /* internal */
 static PyObject *GroupObSeq_CreatePyObject( BPy_Group *self, GroupObject *iter );
@@ -405,7 +405,7 @@ PyObject *M_Group_New( PyObject * self, PyObject * args )
 /* Function:	  M_Group_Get						*/
 /* Python equivalent:	  Blender.Group.Get				*/
 /*****************************************************************************/
-PyObject *M_Group_Get( PyObject * self, PyObject * args )
+static PyObject *M_Group_Get( PyObject * self, PyObject * args )
 {
 	char *name = NULL;
 	Group *group_iter;
@@ -475,7 +475,7 @@ PyObject *M_Group_Get( PyObject * self, PyObject * args )
 /* Function:	  M_Group_Unlink						*/
 /* Python equivalent:	  Blender.Group.Unlink				*/
 /*****************************************************************************/
-PyObject *M_Group_Unlink( PyObject * self, BPy_Group * pygrp )
+static PyObject *M_Group_Unlink( PyObject * self, BPy_Group * pygrp )
 {
 	Group *group;
 	if( !BPy_Group_Check(pygrp) )

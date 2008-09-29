@@ -107,8 +107,8 @@ extern char * build_type;
 #endif
 
 /*	Local Function prototypes */
-static void print_help();
-static void print_version();
+static void print_help(void);
+static void print_version(void);
 
 
 /* defined in ghostwinlay and winlay, we can't include carbon here, conflict with DNA */
@@ -128,7 +128,7 @@ char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
 /* Initialise callbacks for the modules that need them */
-void setCallbacks(void); 
+static void setCallbacks(void); 
 
 #if defined(__sgi) || defined(__alpha__)
 static void fpe_handler(int sig)
@@ -831,7 +831,7 @@ static void mem_error_cb(char *errorStr)
 	fflush(stderr);
 }
 
-void setCallbacks(void)
+static void setCallbacks(void)
 {
 	/* Error output from the alloc routines: */
 	MEM_set_error_callback(mem_error_cb);

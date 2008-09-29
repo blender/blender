@@ -1368,7 +1368,7 @@ ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
 /*			Particles on a shape				*/
 /************************************************/
 /* ready for future use */
-void psys_particle_on_shape(int distr, int index, float *fuv, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+static void psys_particle_on_shape(int distr, int index, float *fuv, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
 {
 	/* TODO */
 	float zerovec[3]={0.0f,0.0f,0.0f};
@@ -2268,7 +2268,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	}
 }
 
-void *exec_child_path_cache(void *data)
+static void *exec_child_path_cache(void *data)
 {
 	ParticleThread *thread= (ParticleThread*)data;
 	ParticleThreadContext *ctx= thread->ctx;
