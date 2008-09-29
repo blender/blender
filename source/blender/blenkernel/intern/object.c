@@ -1479,22 +1479,42 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	return cfra;
 }
 
-void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+void object_scale_to_mat3(Object *ob, float mat[][3])
 {
-	float smat[3][3], vec[3];
-	float rmat[3][3];
-	/*float q1[4];*/
-	
-	/* size */
+	float vec[3];
 	if(ob->ipo) {
 		vec[0]= ob->size[0]+ob->dsize[0];
 		vec[1]= ob->size[1]+ob->dsize[1];
 		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, smat);
+		SizeToMat3(vec, mat);
 	}
 	else {
-		SizeToMat3(ob->size, smat);
+		SizeToMat3(ob->size, mat);
 	}
+}
+
+void object_rot_to_mat3(Object *ob, float mat[][3])
+{
+	float vec[3];
+	if(ob->ipo) {
+		vec[0]= ob->rot[0]+ob->drot[0];
+		vec[1]= ob->rot[1]+ob->drot[1];
+		vec[2]= ob->rot[2]+ob->drot[2];
+		EulToMat3(vec, mat);
+	}
+	else {
+		EulToMat3(ob->rot, mat);
+	}
+}
+
+void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+{
+	float smat[3][3];
+	float rmat[3][3];
+	/*float q1[4];*/
+	
+	/* size */
+	object_scale_to_mat3(ob, smat);
 
 	/* rot */
 	/* Quats arnt used yet */
@@ -1508,15 +1528,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 		}
 	}
 	else {*/
-		if(ob->ipo) {
-			vec[0]= ob->rot[0]+ob->drot[0];
-			vec[1]= ob->rot[1]+ob->drot[1];
-			vec[2]= ob->rot[2]+ob->drot[2];
-			EulToMat3(vec, rmat);
-		}
-		else {
-			EulToMat3(ob->rot, rmat);
-		}
+		object_rot_to_mat3(ob, rmat);
 	/*}*/
 	Mat3MulMat3(mat, rmat, smat);
 }

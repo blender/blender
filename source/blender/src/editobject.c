@@ -3938,7 +3938,7 @@ void make_links(short event)
 	BIF_undo_push("Create links");
 }
 
-void apply_objects_locrot( void )
+static void apply_objects_internal( int apply_scale, int apply_rot )
 {
 	Base *base, *basact;
 	Object *ob;
@@ -3952,7 +3952,11 @@ void apply_objects_locrot( void )
 	float mat[3][3];
 	int a, change = 0;
 	
-	
+	if (!apply_scale && !apply_rot) {
+		/* do nothing? */
+		error("Nothing to do!");
+		return;
+	}
 	/* first check if we can execute */
 	for (base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
@@ -4000,7 +4004,13 @@ void apply_objects_locrot( void )
 			ob= base->object;
 			
 			if(ob->type==OB_MESH) {
-				object_to_mat3(ob, mat);
+				if (apply_scale && apply_rot)
+					object_to_mat3(ob, mat);
+				else if (apply_scale)
+					object_scale_to_mat3(ob, mat);
+				else
+					object_rot_to_mat3(ob, mat);
+
 				me= ob->data;
 				
 				/* see checks above */
@@ -4009,8 +4019,10 @@ void apply_objects_locrot( void )
 				for(a=0; a<me->totvert; a++, mvert++) {
 					Mat3MulVecfl(mat, mvert->co);
 				}
-				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+				if (apply_scale)
+					ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+				if (apply_rot)
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat);*/ /* Quats arnt used yet */
 				
 				where_is_object(ob);
@@ -4025,15 +4037,22 @@ void apply_objects_locrot( void )
 				change = 1;
 			}
 			else if (ob->type==OB_ARMATURE) {
-				object_to_mat3(ob, mat);
+				if (apply_scale && apply_rot)
+					object_to_mat3(ob, mat);
+				else if (apply_scale)
+					object_scale_to_mat3(ob, mat);
+				else
+					object_rot_to_mat3(ob, mat);
 				arm= ob->data;
 				
 				/* see checks above */
 				apply_rot_armature(ob, mat);
 				
 				/* Reset the object's transforms */
-				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+				if (apply_scale)
+					ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+				if (apply_rot)
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat); (not used anymore)*/
 				
 				where_is_object(ob);
@@ -4042,7 +4061,12 @@ void apply_objects_locrot( void )
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 				float scale;
-				object_to_mat3(ob, mat);
+				if (apply_scale && apply_rot)
+					object_to_mat3(ob, mat);
+				else if (apply_scale)
+					object_scale_to_mat3(ob, mat);
+				else
+					object_rot_to_mat3(ob, mat);
 				scale = Mat3ToScalef(mat);
 				cu= ob->data;
 				
@@ -4071,9 +4095,10 @@ void apply_objects_locrot( void )
 					}
 					nu= nu->next;
 				}
-			
-				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+				if (apply_scale)
+					ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+				if (apply_rot)
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat); (quats arnt used anymore)*/
 				
 				where_is_object(ob);
@@ -4095,8 +4120,28 @@ void apply_objects_locrot( void )
 	}
 	if (change) {
 		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Apply Objects Scale & Rotation");
+		if (apply_scale && apply_rot)
+			BIF_undo_push("Apply Objects Scale & Rotation");
+		else if (apply_scale)
+			BIF_undo_push("Apply Objects Scale");
+		else
+			BIF_undo_push("Apply Objects Rotation");
 	}
+}
+
+void apply_objects_locrot(void)
+{
+	apply_objects_internal(1, 1);
+}
+
+void apply_objects_scale(void)
+{
+	apply_objects_internal(1, 0);
+}
+
+void apply_objects_rot(void)
+{
+	apply_objects_internal(0, 1);
 }
 
 void apply_objects_visual_tx( void )
@@ -4154,7 +4199,7 @@ void apply_object( void )
 		if ((ob->pose) && (ob->flag & OB_POSEMODE))
 			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
 		else
-			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2");
+			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2|Scale to ObData%x4|Rotation to ObData%x5");
 		if (evt==-1) return;
 		
 		switch (evt) {
@@ -4166,6 +4211,12 @@ void apply_object( void )
 				break;
 			case 3:
 				apply_armature_pose2bones();
+				break;
+			case 4:
+				apply_objects_scale();
+				break;
+			case 5:
+				apply_objects_rot();
 				break;
 		}
 	}
