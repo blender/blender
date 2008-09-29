@@ -3132,16 +3132,11 @@ void buttons_bullet(uiBlock *block, Object *ob)
 				if (!(ob->gameflag & OB_SOFT_BODY))
 				{
 
-					if (!(ob->gameflag & OB_BOUNDS) || (ob->boundtype==OB_BOUND_SPHERE))
-					{
-						uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
+					
+					uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
 								&ob->inertia, 0.01, 10.0, 10, 2, 
-								"Bounding sphere radius");
-					} else
-					{
-						uiBlockEndAlign(block);
-						uiBlockBeginAlign(block);
-					}
+								"Radius for Bounding sphere and Fh/Fh Rot");
+					
 					uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
 							&ob->gameflag, 0, 0, 0, 0, 
 							"Disable auto (de)activation");
