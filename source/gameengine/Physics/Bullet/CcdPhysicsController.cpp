@@ -962,8 +962,12 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 				body->applyCentralForce(force);
 			btSoftBody* soft = GetSoftBody();
 			if (soft)
+			{
+				// the force is applied on each node, must reduce it in the same extend
+				if (soft->m_nodes.size() > 0)
+					force /= soft->m_nodes.size();
 				soft->addForce(force);
-
+			}
 		}
 	}
 }
