@@ -211,6 +211,9 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 	//parentcontroller is here be able to avoid collisions between parent/child
 
 	PHY_IPhysicsController* parentctrl = NULL;
+	KX_BulletPhysicsController* parentKxCtrl = NULL;
+	CcdPhysicsController* ccdParent = NULL;
+
 	
 	if (destnode != destnode->GetRootSGParent())
 	{
@@ -230,12 +233,15 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 				KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
 				if (clientgameobj)
 				{
-					parentctrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentctrl = parentKxCtrl;
+					ccdParent = parentKxCtrl;
 				}
 			}
 		}
 	}
 
+	physicsreplica->setParentCtrl(ccdParent);
 	physicsreplica->PostProcessReplica(motionstate,parentctrl);
 	physicsreplica->m_userdata = (PHY_IPhysicsController*)physicsreplica;
 	return physicsreplica;

@@ -74,6 +74,7 @@ protected:
 
 	btContactSolverInfo	m_solverInfo;
 	
+	void	processFhSprings(double curTime,float timeStep);
 
 	public:
 		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);

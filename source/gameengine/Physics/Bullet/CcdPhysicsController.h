@@ -264,6 +264,14 @@ struct CcdConstructionInfo
 	bool	m_do_anisotropic;
 	btVector3 m_anisotropicFriction;
 
+	bool		m_do_fh;                 ///< Should the object have a linear Fh spring?
+	bool		m_do_rot_fh;             ///< Should the object have an angular Fh spring?
+	btScalar	m_fh_spring;             ///< Spring constant (both linear and angular)
+	btScalar	m_fh_damping;            ///< Damping factor (linear and angular) in range [0, 1]
+	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
+	bool		m_fh_normal;             ///< Should the object slide off slopes?
+	float		m_radius;//for fh backwards compatibility
+
 };
 
 
@@ -295,6 +303,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	void*		m_newClientInfo;
 	int			m_registerCount;	// needed when multiple sensors use the same controller
 	CcdConstructionInfo	m_cci;//needed for replication
+
+	CcdPhysicsController* m_parentCtrl;
+
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
@@ -317,6 +328,15 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		CcdPhysicsController (const CcdConstructionInfo& ci);
 
 		virtual ~CcdPhysicsController();
+
+		CcdConstructionInfo& getConstructionInfo()
+		{
+			return m_cci;
+		}
+		const CcdConstructionInfo& getConstructionInfo() const
+		{
+			return m_cci;
+		}
 
 
 		btRigidBody* GetRigidBody();
@@ -422,6 +442,23 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		{
 			return m_cci.m_physicsEnv;
 		}
+
+		void	setParentCtrl(CcdPhysicsController* parentCtrl)
+		{
+			m_parentCtrl = parentCtrl;
+		}
+
+		CcdPhysicsController*	getParentCtrl()
+		{
+			return m_parentCtrl;
+		}
+
+		const CcdPhysicsController*	getParentCtrl() const
+		{
+			return m_parentCtrl;
+		}
+
+
 		
 };
 

@@ -558,11 +558,18 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
+	processFhSprings(curTime,timeStep);
+
 	float subStep = timeStep / float(m_numTimeSubSteps);
 	for (i=0;i<m_numTimeSubSteps;i++)
 	{
 //			m_dynamicsWorld->stepSimulation(subStep,20,1./240.);//perform always a full simulation step
 			m_dynamicsWorld->stepSimulation(subStep,0);//perform always a full simulation step
+	}
+
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
+	{
+		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
 	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
@@ -585,6 +592,170 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	return true;
 }
 
+class ClosestRayResultCallbackNotMe : public btCollisionWorld::ClosestRayResultCallback
+{
+	btCollisionObject* m_owner;
+	btCollisionObject* m_parent;
+
+public:
+	ClosestRayResultCallbackNotMe(const btVector3& rayFromWorld,const btVector3& rayToWorld,btCollisionObject* owner,btCollisionObject* parent)
+		:btCollisionWorld::ClosestRayResultCallback(rayFromWorld,rayToWorld),
+		m_owner(owner)
+	{
+
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
+	{
+		//don't collide with self
+		if (proxy0->m_clientObject == m_owner)
+			return false;
+
+		if (proxy0->m_clientObject == m_parent)
+			return false;
+
+		return btCollisionWorld::ClosestRayResultCallback::needsCollision(proxy0);
+	}
+
+};
+
+void	CcdPhysicsEnvironment::processFhSprings(double curTime,float timeStep)
+{
+	std::set<CcdPhysicsController*>::iterator it;
+	
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
+	{
+		CcdPhysicsController* ctrl = (*it);
+		if (ctrl->GetRigidBody() && ctrl->getConstructionInfo().m_do_fh || ctrl->getConstructionInfo().m_do_rot_fh)
+		{
+			//printf("has Fh or RotFh\n");
+			//re-implement SM_FhObject.cpp using btCollisionWorld::rayTest and info from ctrl->getConstructionInfo()
+			//send a ray from {0.0, 0.0, 0.0} towards {0.0, 0.0, -10.0}, in local coordinates
+
+			btRigidBody* body = ctrl->GetRigidBody();
+			CcdPhysicsController* parentCtrl = ctrl->getParentCtrl();
+			btRigidBody* parentBody = parentCtrl?parentCtrl->GetRigidBody() : 0;
+			btRigidBody* cl_object = parentBody ? parentBody : body;
+
+			if (body->isStaticOrKinematicObject())
+				continue;
+
+			btVector3 rayDirLocal(0,0,-10);
+
+			//m_dynamicsWorld
+			//ctrl->GetRigidBody();
+			btVector3 rayFromWorld = body->getCenterOfMassPosition();
+			//btVector3	rayToWorld = rayFromWorld + body->getCenterOfMassTransform().getBasis() * rayDirLocal;
+			//ray always points down the z axis in world space...
+			btVector3	rayToWorld = rayFromWorld + rayDirLocal;
+
+			ClosestRayResultCallbackNotMe	resultCallback(rayFromWorld,rayToWorld,body,parentBody);
+
+			m_dynamicsWorld->rayTest(rayFromWorld,rayToWorld,resultCallback);
+			if (resultCallback.hasHit())
+			{
+				//we hit this one: resultCallback.m_collisionObject;
+				CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(resultCallback.m_collisionObject->getUserPointer());
+
+				if (controller)
+				{
+					if (controller->getConstructionInfo().m_fh_distance < SIMD_EPSILON)
+						continue;
+
+					btRigidBody* hit_object = controller->GetRigidBody();
+					if (!hit_object)
+						continue;
+
+					CcdConstructionInfo& hitObjShapeProps = controller->getConstructionInfo();
+
+					float distance = resultCallback.m_closestHitFraction*rayDirLocal.length()-ctrl->getConstructionInfo().m_radius;
+					if (distance >= hitObjShapeProps.m_fh_distance)
+						continue;
+					
+					
+
+					//btVector3 ray_dir = cl_object->getCenterOfMassTransform().getBasis()* rayDirLocal.normalized();
+					btVector3 ray_dir = rayDirLocal.normalized();
+					btVector3 normal = resultCallback.m_hitNormalWorld;
+					normal.normalize();
+
+					
+					if (ctrl->getConstructionInfo().m_do_fh) 
+					{
+						btVector3 lspot = cl_object->getCenterOfMassPosition()
+							+ rayDirLocal * resultCallback.m_closestHitFraction;
+
+
+							
+
+						lspot -= hit_object->getCenterOfMassPosition();
+						btVector3 rel_vel = cl_object->getLinearVelocity() - hit_object->getVelocityInLocalPoint(lspot);
+						btScalar rel_vel_ray = ray_dir.dot(rel_vel);
+						btScalar spring_extent = 1.0 - distance / hitObjShapeProps.m_fh_distance; 
+						
+						btScalar i_spring = spring_extent * hitObjShapeProps.m_fh_spring;
+						btScalar i_damp =   rel_vel_ray * hitObjShapeProps.m_fh_damping;
+						
+						cl_object->setLinearVelocity(cl_object->getLinearVelocity() + (-(i_spring + i_damp) * ray_dir)); 
+						if (hitObjShapeProps.m_fh_normal) 
+						{
+							cl_object->setLinearVelocity(cl_object->getLinearVelocity()+(i_spring + i_damp) *(normal - normal.dot(ray_dir) * ray_dir));
+						}
+						
+						btVector3 lateral = rel_vel - rel_vel_ray * ray_dir;
+						
+						
+						if (ctrl->getConstructionInfo().m_do_anisotropic) {
+							//Bullet basis contains no scaling/shear etc.
+							const btMatrix3x3& lcs = cl_object->getCenterOfMassTransform().getBasis();
+							btVector3 loc_lateral = lateral * lcs;
+							const btVector3& friction_scaling = cl_object->getAnisotropicFriction();
+							loc_lateral *= friction_scaling;
+							lateral = lcs * loc_lateral;
+						}
+
+						btScalar rel_vel_lateral = lateral.length();
+						
+						if (rel_vel_lateral > SIMD_EPSILON) {
+							btScalar friction_factor = hit_object->getFriction();//cl_object->getFriction();
+
+							btScalar max_friction = friction_factor * btMax(btScalar(0.0), i_spring);
+							
+							btScalar rel_mom_lateral = rel_vel_lateral / cl_object->getInvMass();
+							
+							btVector3 friction = (rel_mom_lateral > max_friction) ?
+								-lateral * (max_friction / rel_vel_lateral) :
+								-lateral;
+							
+								cl_object->applyCentralImpulse(friction);
+						}
+					}
+
+					
+					if (ctrl->getConstructionInfo().m_do_rot_fh) {
+						btVector3 up2 = cl_object->getWorldTransform().getBasis().getColumn(2);
+
+						btVector3 t_spring = up2.cross(normal) * hitObjShapeProps.m_fh_spring;
+						btVector3 ang_vel = cl_object->getAngularVelocity();
+						
+						// only rotations that tilt relative to the normal are damped
+						ang_vel -= ang_vel.dot(normal) * normal;
+						
+						btVector3 t_damp = ang_vel * hitObjShapeProps.m_fh_damping;  
+						
+						cl_object->setAngularVelocity(cl_object->getAngularVelocity() + (t_spring - t_damp));
+					}
+
+				}
+
+
+			}
+
+
+		}
+	}
+	
+}
 
 void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
 {
