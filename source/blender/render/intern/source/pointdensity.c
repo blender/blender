@@ -26,11 +26,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_arithb.h"
 #include "BLI_kdtree.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_particle.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_particle_types.h"
@@ -45,9 +48,14 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	ParticleKey state;
 	float cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
 	int i, childexists;
-			
+	float partco[3];
+	float obview[4][4];
+	
 	/* init crap */
 	if (!psys || !ob || !pd) return;
+	
+	//Mat4CpyMat4(obview, ob->obmat);
+	Mat4MulMat4(obview, re->viewinv, ob->obmat);
 	
 	/* Just to create a valid rendering context */
 	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);
@@ -60,6 +68,9 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 		return;
 	}
 	
+	/* in case ob->imat isn't up-to-date */
+	Mat4Invert(ob->imat, ob->obmat);
+	
 	/* finally do something */
 	pd->point_tree = BLI_kdtree_new(psys->totpart+psys->totchild);
 	
@@ -70,7 +81,20 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 
 		state.time = cfra;
 		if(psys_get_particle_state(ob, psys, i, &state, 0)) {
-			BLI_kdtree_insert(pd->point_tree, 0, state.co, NULL);
+			
+			VECCOPY(partco, state.co);
+			
+			if (pd->psys_cache_space == TEX_PD_PSYS_OBJECTSPACE)
+				Mat4MulVecfl(ob->imat, partco);
+			else if (pd->psys_cache_space == TEX_PD_PSYS_OBJECTLOC) {
+				float obloc[3];
+				VECCOPY(obloc, ob->loc);
+				VecSubf(partco, partco, obloc);
+			} else {
+				/* TEX_PD_PSYS_WORLDSPACE */
+			}
+			
+			BLI_kdtree_insert(pd->point_tree, 0, partco, NULL);
 		}
 	}
 	
@@ -88,7 +112,7 @@ static void cache_pointdensity(Render *re, Tex *tex)
 		pd->point_tree = NULL;
 	}
 	
-	if (pd->type == TEX_PD_PSYS) {
+	if (pd->source == TEX_PD_PSYS) {
 		ParticleSystem *psys;
 		Object *ob = pd->object;
 		int i;

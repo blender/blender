@@ -43,6 +43,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_kdtree.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_key_types.h"
@@ -874,7 +875,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
 	pd->radius = 0.3f;
 	pd->nearest = 5;
-	pd->type = TEX_PD_PSYS;
+	pd->source = TEX_PD_PSYS;
 	pd->point_tree = NULL;
 	
 	return pd;
@@ -883,8 +884,7 @@ PointDensity *BKE_add_pointdensity(void)
 PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 {
 	PointDensity *pdn;
-	int a;
-	
+
 	pdn= MEM_dupallocN(pd);
 	pdn->point_tree = NULL;
 	

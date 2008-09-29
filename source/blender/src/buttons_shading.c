@@ -748,18 +748,9 @@ static void texture_panel_pointdensity(Tex *tex)
 	if(tex->pd) {
 		pd= tex->pd;
 
-		uiBlockBeginAlign(block);
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object that has the particle system");
-			
-		if (pd->object->particlesystem.first) {
-			uiDefButS(block, NUM, B_REDR, "PSys:", 
-				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->psysindex), 1, 10, 10, 3, "Particle system number in the object");
-		}
-		uiBlockEndAlign(block);
-		
-		yco -= YSPACE;
-		
+		uiDefBut(block, LABEL, B_NOP, "Density estimation:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_REDR, "Radius: ",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
@@ -767,11 +758,36 @@ static void texture_panel_pointdensity(Tex *tex)
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->nearest), 2.0, 30.0, 10, 2, "The number of nearby particles to check for density");
 		uiBlockEndAlign(block);
 		
-		uiDefBut(block, LABEL, B_NOP, " ",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		yco = PANEL_YMAX;
+		
+		uiDefBut(block, LABEL, B_NOP, "Point data source:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		
+		uiDefButS(block, MENU, B_TEXREDR_PRV, "Particle System %x0",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->source, 0.0, 0.0, 0, 0, "Source");
+		
+		yco -= YSPACE;
+		
+		if (pd->source == TEX_PD_PSYS) {
+			uiBlockBeginAlign(block);
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object that has the particle system");
+				
+			if (pd->object->particlesystem.first) {
+				uiDefButS(block, NUM, B_REDR, "PSys:", 
+					X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->psysindex), 1, 10, 10, 3, "Particle system number in the object");
+			}
+			uiBlockEndAlign(block);
+			
+			yco -= YSPACE;
+			
+			uiDefBut(block, LABEL, B_NOP, "Cache particles in:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			uiDefButS(block, MENU, B_TEXREDR_PRV, "Emit Object Location %x0|Emit Object Space %x1|Global Space %x2",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->psys_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache particles in");
+		}
 	}
-	
-	
+
 }
 
 
