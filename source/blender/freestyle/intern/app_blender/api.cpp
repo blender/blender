@@ -48,7 +48,7 @@ extern "C" {
 		controller->Clear();
 		
 		if( strlen(style_module) == 0 ){
-			string path( pathconfig->getProjectDir() +  Config::DIR_SEP + "style_modules_blender" + Config::DIR_SEP + "contour.py" );
+			string path( pathconfig->getProjectDir() +  Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py" );
 			strcpy( style_module, path.c_str() );
 		}
 		

@@ -22,20 +22,23 @@
 #include <iostream>
 
 #include "../system/StringUtils.h"
-
 using namespace std;
+
+extern "C" {
+	#include "api2_2x/EXPP_interface.h"
+}
 
 namespace Config {
 Path* Path::_pInstance = 0;
 Path::Path() {
 	// get the root directory
 	//soc
-	setRootDir(getEnvVar("FREESTYLE_BLENDER_DIR"));
+	setRootDir( bpy_gethome(1) );
 
 	_pInstance = this;
 }
 void Path::setRootDir(const string& iRootDir) {
-	_ProjectDir = iRootDir;
+	_ProjectDir = iRootDir + string(DIR_SEP.c_str()) + "freestyle";
 	_ModelsPath = "";
 	_PatternsPath = _ProjectDir + string(DIR_SEP.c_str()) + "data"
 			+ string(DIR_SEP.c_str()) + "textures" + string(DIR_SEP.c_str())
@@ -43,9 +46,8 @@ void Path::setRootDir(const string& iRootDir) {
 	_BrushesPath = _ProjectDir + string(DIR_SEP.c_str()) + "data"
 			+ string(DIR_SEP.c_str()) + "textures" + string(DIR_SEP.c_str())
 			+ "brushes" + string(DIR_SEP.c_str());
-	_PythonPath = _ProjectDir + string(DIR_SEP.c_str()) + "python"
-			+ string(PATH_SEP.c_str()) + _ProjectDir + string(DIR_SEP.c_str())
-			+ "style_modules_blender" + string(DIR_SEP.c_str()) ;
+	_PythonPath = _ProjectDir + string(DIR_SEP.c_str())
++ "style_modules" + string(DIR_SEP.c_str()) ;
 	if (getenv("PYTHONPATH")) {
 		_PythonPath += string(PATH_SEP.c_str()) + string(getenv("PYTHONPATH"));
 	}
