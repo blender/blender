@@ -1414,6 +1414,12 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_dynamic_parent=NULL;
 	objprop.m_isdeformable = ((blenderobject->gameflag2 & 2)) != 0;
 	objprop.m_boundclass = objprop.m_dyna?KX_BOUNDSPHERE:KX_BOUNDMESH;
+	
+	if ((blenderobject->gameflag & OB_SOFT_BODY) && !(blenderobject->gameflag & OB_BOUNDS))
+	{
+		objprop.m_boundclass = KX_BOUNDMESH;
+	}
+
 	KX_BoxBounds bb;
 	my_get_local_bounds(blenderobject,objprop.m_boundobject.box.m_center,bb.m_extends);
 	if (blenderobject->gameflag & OB_BOUNDS)

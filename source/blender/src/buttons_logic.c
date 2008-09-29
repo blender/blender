@@ -2932,6 +2932,10 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 					&ob->gameflag, 0, 0,0, 0,
 					"Specify a collision shape bounds type");
 			if (ob->gameflag & OB_BOUNDS) {
+				/* assume triangle mesh, if no bounds chosen for soft body */
+				
+				
+
 				uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Type%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Concave TriangleMesh %x4",
 					85, 105, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 				uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,105,100,19, 
@@ -2940,6 +2944,7 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 			}
 			uiBlockEndAlign(block);
 		}
+		uiBlockEndAlign(block);
 	}
 }
 
@@ -2967,9 +2972,12 @@ static void check_body_type(void *arg1_but, void *arg2_object)
 	case OB_BODY_TYPE_SOFT:
 		ob->gameflag |= OB_COLLISION|OB_DYNAMIC|OB_SOFT_BODY|OB_ACTOR;
 		ob->gameflag &= ~(OB_RIGID_BODY);
-		ob->gameflag |= OB_BOUNDS;
-		if (ob->boundtype<OB_BOUND_POLYH)
+		
+		/* assume triangle mesh, if no bounds chosen for soft body */
+		if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
+		{
 			ob->boundtype=OB_BOUND_POLYH;
+		}
 		/* create a BulletSoftBody structure if not already existing */
 		if (!ob->bsoft)
 			ob->bsoft = bsbNew();
@@ -3054,43 +3062,20 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 					"Objects that are detected by the Near and Radar sensor");
 
 		if (ob->gameflag & OB_DYNAMIC) {
-			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, 0, "No sleeping", 
-						xco+=120, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0, 
-						"Disable auto (de)activation");
-		}
-
-		yco -= 25;
-		xco = 0;
-		if (ob->gameflag & OB_DYNAMIC) {
 			if (ob->margin < 0.001f)
 				ob->margin = 0.06f;
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco, yco, 118, 19, &ob->margin, 0.001, 1.0, 1, 0, 
+					xco+120, yco, 118, 19, &ob->margin, 0.001, 1.0, 1, 0, 
 					"Collision margin");
 		} else {
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
+					xco+120, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 		}
-		uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
-						xco+120, yco, 120, 19,
-						&ob->gameflag, 0.0, 1.0, 10, 0,
-						"Enable anisotropic friction");			
-
-		yco-=25;
-
-		if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
-			uiDefButF(block, NUM, 0, "X:", 
-				xco, yco, 80, 19,&ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
-					"Relative friction coefficient in the x-direction.");
-			uiDefButF(block, NUM, 0, "Y:", 
-				xco+80, yco, 80, 19,&ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
-					"Relative friction coefficient in the y-direction.");
-			uiDefButF(block, NUM, 0, "Z:", 
-				xco+160, yco, 80, 19,&ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
-					"Relative friction coefficient in the z-direction.");
-		}
-
+		yco -= 25;
+		xco = 0;
+		
+	
 	}
 			
 	uiBlockSetDirection(block, UI_TOP);
@@ -3114,6 +3099,8 @@ void buttons_bullet(uiBlock *block, Object *ob)
 	else
 		ob->body_type = OB_BODY_TYPE_SOFT;
 
+	uiBlockBeginAlign(block);
+
 	//only enable game soft body if Blender Soft Body exists
 	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
 			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
@@ -3122,44 +3109,104 @@ void buttons_bullet(uiBlock *block, Object *ob)
 
 	if (ob->gameflag & OB_COLLISION) {
 
-		uiBlockSetCol(block, TH_BUT_SETTING1);
+			
+
+			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
+				135,205,55,19, 
+					&ob->gameflag, 0, 0, 0, 0, 
+					"Objects that don't restitute collisions (like a ghost)");
+
+		//uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefBlockBut(block, advanced_bullet_menu, ob, 
 					  "Advanced Settings", 
-					  200, 205, 150, 20, "Display collision advanced settings");
-		uiBlockSetCol(block, TH_BUT_SETTING2);
+					  200, 205, 150, 19, "Display collision advanced settings");
+		//uiBlockSetCol(block, TH_BUT_SETTING2);
 
-		uiBlockBeginAlign(block);
-		
-		
 
-		uiDefButBitI(block, TOG, OB_GHOST, 0, "Ghost", 10, 182, 60, 19, 
-				&ob->gameflag, 0, 0, 0, 0, 
-				"Objects that don't restitute collisions (like a ghost)");
-		if ((ob->gameflag & OB_DYNAMIC) || ((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
-			uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 70, 182, 140, 19, 
-					&ob->inertia, 0.01, 10.0, 10, 2, 
-					"Bounding sphere radius, not used for other bounding shapes");
-		}
 		if(ob->gameflag & OB_DYNAMIC) {
-			uiDefButF(block, NUM, B_DIFF, "Mass:", 210, 182, 140, 19, 
-					&ob->mass, 0.01, 10000.0, 10, 2, 
-					"The mass of the Object");
 
-			uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 162, 150, 19, 
-					&ob->damping, 0.0, 1.0, 10, 0, 
-					"General movement damping");
-			uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 162, 190, 19, 
-					&ob->rdamping, 0.0, 1.0, 10, 0, 
-					"General rotation damping");
-		}
+				uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 130, 19, 
+						&ob->mass, 0.01, 10000.0, 10, 2, 
+						"The mass of the Object");
+
+				if (!(ob->gameflag & OB_SOFT_BODY))
+				{
+
+					if (!(ob->gameflag & OB_BOUNDS) || (ob->boundtype==OB_BOUND_SPHERE))
+					{
+						uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
+								&ob->inertia, 0.01, 10.0, 10, 2, 
+								"Bounding sphere radius");
+					} else
+					{
+						uiBlockEndAlign(block);
+						uiBlockBeginAlign(block);
+					}
+					uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
+							&ob->gameflag, 0, 0, 0, 0, 
+							"Disable auto (de)activation");
+
+					uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
+							&ob->damping, 0.0, 1.0, 10, 0, 
+							"General movement damping");
+					uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
+							&ob->rdamping, 0.0, 1.0, 10, 0, 
+							"General rotation damping");
+
+					uiDefButBitI(block, TOG, OB_DO_FH, B_DIFF, "Do Fh", 10,145,50,19, 
+							&ob->gameflag, 0, 0, 0, 0, 
+							"Use Fh settings in Materials");
+					uiDefButBitI(block, TOG, OB_ROT_FH, B_DIFF, "Rot Fh", 60,145,50,19, 
+							&ob->gameflag, 0, 0, 0, 0, 
+							"Use face normal to rotate Object");
+					/* Form factor is hooked up in Bullet, to scale inertia tensor */
+
+					uiDefButF(block, NUM, B_DIFF, "Form:", 110, 145, 120, 19, 
+							&ob->formfactor, 0.01, 100.0, 10, 0, 
+							"Form factor scales the inertia tensor");
+				}
+
+				
+			}
+
 		uiBlockEndAlign(block);
 
+		/* In Bullet, anisotripic friction can be applied to static objects as well, just not soft bodies */
+
+		if (!(ob->gameflag & OB_SOFT_BODY))
+		{
+			uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
+				230, 145, 120, 19,
+				&ob->gameflag, 0.0, 1.0, 10, 0,
+				"Enable anisotropic friction");			
+
+			if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
+				uiDefButF(block, NUM, B_DIFF, "x friction:", 10, 125, 114, 19,
+						&ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
+						"Relative friction coefficient in the x-direction.");
+				uiDefButF(block, NUM, B_DIFF, "y friction:", 124, 125, 113, 19,
+						&ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
+						"Relative friction coefficient in the y-direction.");
+				uiDefButF(block, NUM, B_DIFF, "z friction:", 237, 125, 113, 19,
+						&ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
+						"Relative friction coefficient in the z-direction.");
+			}
+
+
+		}
+		
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 105, 80, 19,
 				&ob->gameflag, 0, 0, 0, 0,
 				"Specify a collision bounds type");
 		if (ob->gameflag & OB_BOUNDS) {
 			//only allow convex hull/triangle mesh for soft bodies
+
+			if ((ob->body_type==OB_BODY_TYPE_SOFT) && (ob->gameflag & OB_BOUNDS) && (ob->boundtype<OB_BOUND_POLYH))
+			{
+				ob->boundtype=OB_BOUND_POLYH;
+			}
+
 			if (ob->body_type==OB_BODY_TYPE_SOFT)
 			{
 				uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Bounds%t|Convex Hull%x5|Triangle Mesh%x4",
@@ -3169,12 +3216,19 @@ void buttons_bullet(uiBlock *block, Object *ob)
 				uiDefButS(block, MENU, REDRAWVIEW3D, "Collision Bounds%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull%x5|Triangle Mesh%x4",
 					90, 105, 150, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 			}
-			uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
-					&ob->gameflag, 0, 0, 0, 0, 
-					"Add Children");
+			if (ob->body_type!=OB_BODY_TYPE_SOFT)
+			{
+				uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
+						&ob->gameflag, 0, 0, 0, 0, 
+						"Add Children");
+			}
 		}
+		uiBlockEndAlign(block);
 	}
+
 	uiBlockEndAlign(block);
+
+	
 }
 
 static void check_controller_state_mask(void *arg1_but, void *arg2_mask)
