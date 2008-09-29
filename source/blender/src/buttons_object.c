@@ -5017,7 +5017,8 @@ static void object_panel_fluidsim(Object *ob)
 	const int separateHeight = 2;
 	const int objHeight = 20;
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-	int libdata = 0, val = 0;
+	int libdata = 0;
+	static int val = 0;
 	uiBut *but=NULL;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
