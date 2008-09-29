@@ -289,9 +289,22 @@ void persptoetsen(unsigned short event)
 				if(G.vd->persp==V3D_PERSP) G.vd->persp=V3D_ORTHO;
 				else G.vd->persp=V3D_PERSP;
 			}
-			G.vd->lpersp = G.vd->persp; 
 		}
 		else if(event==PAD0) {
+			/* lastview -  */
+			if(G.vd->lastview_set==0) {
+				/* store settings of current view before allowing overwriting with camera view */
+				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
+				G.vd->lview= G.vd->view;
+				G.vd->lpersp= G.vd->persp;
+				G.vd->lastview_set= 1;
+			}
+			else if(G.vd->lastview_set) {
+				/* return to settings of last view */
+				axis_set_view(G.vd->lviewquat[0], G.vd->lviewquat[1], G.vd->lviewquat[2], G.vd->lviewquat[3], G.vd->lview, G.vd->lpersp);
+				G.vd->lastview_set= 0;
+			}
+			
 			if(G.qual==LR_ALTKEY) {
 				if(oldcamera && is_an_active_object(oldcamera)) {
 					G.vd->camera= oldcamera;
@@ -314,18 +327,12 @@ void persptoetsen(unsigned short event)
 					handle_view3d_lock();
 				}
 			}
+			
 			if(G.vd->camera==0) {
 				G.vd->camera= scene_find_camera(G.scene);
 				handle_view3d_lock();
 			}
-			if(!G.vd->view) {
-				QUATCOPY(G.vd->viewquat, G.vd->lviewquat);
-				G.vd->persp = G.vd->lpersp;
-			}
-			else {
-				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
-				G.vd->lpersp = G.vd->persp;
-			}	
+			
 			if(G.vd->camera && (G.vd->camera != act_cam_orig)) {
 				G.vd->persp= V3D_CAMOB;
 				G.vd->view= 0;
@@ -350,8 +357,6 @@ void persptoetsen(unsigned short event)
 					VECCOPY(G.vd->ofs, orig_ofs);
 					G.vd->lens = orig_lens;
 				}
-				
-			
 			}
 		}
 		else if(event==PAD9) {
@@ -370,11 +375,6 @@ void persptoetsen(unsigned short event)
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
 				QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-
-				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
-				G.vd->lpersp = G.vd->persp;
-
-				G.vd->view= 0;
 			}
 			if(event==PAD2 || event==PAD8) {
 				/* horizontal axis */
@@ -389,11 +389,6 @@ void persptoetsen(unsigned short event)
 				q1[2]*= si;
 				q1[3]*= si;
 				QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-
-				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
-				G.vd->lpersp = G.vd->persp;
-
-				G.vd->view= 0;
 			}
 		}
 
