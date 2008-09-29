@@ -1573,20 +1573,15 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 	
 	/* find IK constraint, and validate it */
 	for(con= pchan_tip->constraints.first; con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			data=(bKinematicConstraint*)con->data;
+			if (data->flag & CONSTRAINT_IK_AUTO) break;
+			if (data->tar==NULL) continue;
+			if (data->tar->type==OB_ARMATURE && data->subtarget[0]==0) continue;
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) break;
+		}
 	}
 	if(con==NULL) return;
-	
-	data=(bKinematicConstraint*)con->data;
-	
-	/* two types of targets */
-	if(data->flag & CONSTRAINT_IK_AUTO);
-	else {
-		if(con->flag & CONSTRAINT_DISABLE) return;	/* checked in editconstraint.c */
-		if(con->enforce == 0.0f) return;
-		if(data->tar==NULL) return;
-		if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
-	}
 	
 	/* exclude tip from chain? */
 	if(!(data->flag & CONSTRAINT_IK_TIP))
