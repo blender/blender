@@ -1289,11 +1289,8 @@ float eval_icu(IpoCurve *icu, float evaltime)
 				if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
 					/* value depends on interpolation mode */
 					if (icu->ipo == IPO_CONST) {
-						/* constant (evaltime not relevant, as no interpolation needed) */
+						/* constant (evaltime not relevant, so no interpolation needed) */
 						cvalue= prevbezt->vec[1][1];
-						
-						/* value found already, so no need to keep looping */
-						break;
 					}
 					else if (icu->ipo == IPO_LIN) {
 						/* linear - interpolate between values of the two keyframes */
@@ -1301,14 +1298,11 @@ float eval_icu(IpoCurve *icu, float evaltime)
 						
 						/* prevent division by zero */
 						if (fac) {
-							fac= (evaltime - prevbezt->vec[1][0])/fac;
+							fac= (evaltime - prevbezt->vec[1][0]) / fac;
 							cvalue= prevbezt->vec[1][1] + (fac * (bezt->vec[1][1] - prevbezt->vec[1][1]));
 						}
 						else
 							cvalue= prevbezt->vec[1][1];
-							
-						/* value found already, so no need to keep looping */
-						break;
 					}
 					else {
 						/* bezier interpolation */
@@ -1677,19 +1671,23 @@ void do_all_data_ipos ()
 	
 	/* this exception cannot be depgraphed yet... what todo with objects in other layers?... */
 	for (base= G.scene->base.first; base; base= base->next) {
+		Object *ob= base->object;
+		
 		/* only update layer when an ipo */
-		if (has_ipo_code(base->object->ipo, OB_LAY)) {
-			do_ob_ipo(base->object);
-			base->lay= base->object->lay;
+		if (has_ipo_code(ob->ipo, OB_LAY)) {
+			do_ob_ipo(ob);
+			base->lay= ob->lay;
 		}
 	}
 	
 	/* layers for the set...*/
 	if (G.scene->set) {
 		for (base= G.scene->set->base.first; base; base= base->next) {
-			if (has_ipo_code(base->object->ipo, OB_LAY)) {
-				do_ob_ipo(base->object);
-				base->lay= base->object->lay;
+			Object *ob= base->object;
+			
+			if (has_ipo_code(ob->ipo, OB_LAY)) {
+				do_ob_ipo(ob);
+				base->lay= ob->lay;
 			}
 		}
 	}
