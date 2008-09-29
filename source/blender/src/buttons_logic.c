@@ -3072,6 +3072,25 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 					xco, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 		}
+		uiDefButBitI(block, TOG, OB_ANISOTROPIC_FRICTION, B_REDR, "Anisotropic", 
+						xco+120, yco, 120, 19,
+						&ob->gameflag, 0.0, 1.0, 10, 0,
+						"Enable anisotropic friction");			
+
+		yco-=25;
+
+		if (ob->gameflag & OB_ANISOTROPIC_FRICTION) {
+			uiDefButF(block, NUM, 0, "X:", 
+				xco, yco, 80, 19,&ob->anisotropicFriction[0], 0.0, 1.0, 10, 0,
+					"Relative friction coefficient in the x-direction.");
+			uiDefButF(block, NUM, 0, "Y:", 
+				xco+80, yco, 80, 19,&ob->anisotropicFriction[1], 0.0, 1.0, 10, 0,
+					"Relative friction coefficient in the y-direction.");
+			uiDefButF(block, NUM, 0, "Z:", 
+				xco+160, yco, 80, 19,&ob->anisotropicFriction[2], 0.0, 1.0, 10, 0,
+					"Relative friction coefficient in the z-direction.");
+		}
+
 	}
 			
 	uiBlockSetDirection(block, UI_TOP);
@@ -3110,6 +3129,9 @@ void buttons_bullet(uiBlock *block, Object *ob)
 		uiBlockSetCol(block, TH_BUT_SETTING2);
 
 		uiBlockBeginAlign(block);
+		
+		
+
 		uiDefButBitI(block, TOG, OB_GHOST, 0, "Ghost", 10, 182, 60, 19, 
 				&ob->gameflag, 0, 0, 0, 0, 
 				"Objects that don't restitute collisions (like a ghost)");

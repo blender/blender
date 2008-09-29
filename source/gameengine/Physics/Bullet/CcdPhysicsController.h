@@ -186,7 +186,9 @@ struct CcdConstructionInfo
 		m_MotionState(0),
 		m_shapeInfo(0),
 		m_physicsEnv(0),
-		m_inertiaFactor(1.f)
+		m_inertiaFactor(1.f),
+		m_do_anisotropic(false),
+		m_anisotropicFriction(1.f,1.f,1.f)
 	{
 	}
 
@@ -259,6 +261,9 @@ struct CcdConstructionInfo
 	
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
+	bool	m_do_anisotropic;
+	btVector3 m_anisotropicFriction;
+
 };
 
 

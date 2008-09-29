@@ -1025,6 +1025,14 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	//need a bit of damping, else system doesn't behave well
 	ci.m_inertiaFactor = shapeprops->m_inertia/0.4f;//defaults to 0.4, don't want to change behaviour
 	
+	ci.m_do_anisotropic = shapeprops->m_do_anisotropic;
+	ci.m_anisotropicFriction.setValue(shapeprops->m_friction_scaling[0],shapeprops->m_friction_scaling[1],shapeprops->m_friction_scaling[2]);
+
+	//smprop->m_do_fh = kxshapeprops->m_do_fh;
+	//smprop->m_do_rot_fh = kxshapeprops->m_do_rot_fh ;
+
+	
+	
 	
 	///////////////////
 	ci.m_gamesoftFlag = objprop->m_gamesoftFlag;

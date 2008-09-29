@@ -500,6 +500,11 @@ void CcdPhysicsController::CreateRigidbody()
 			body->setAngularFactor(0.f);
 		}
 	}
+	if (m_object && m_cci.m_do_anisotropic)
+	{
+		m_object->setAnisotropicFriction(m_cci.m_anisotropicFriction);
+	}
+		
 }
 
 static void DeleteBulletShape(btCollisionShape* shape)
