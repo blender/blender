@@ -763,7 +763,7 @@ static void texture_panel_pointdensity(Tex *tex)
 		uiDefBut(block, LABEL, B_NOP, "Point data source:",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 		
-		uiDefButS(block, MENU, B_TEXREDR_PRV, "Particle System %x0",
+		uiDefButS(block, MENU, B_TEXREDR_PRV, "Particle System %x0|Object Vertices %x1",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->source, 0.0, 0.0, 0, 0, "Source");
 		
 		yco -= YSPACE;
@@ -785,6 +785,17 @@ static void texture_panel_pointdensity(Tex *tex)
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 			uiDefButS(block, MENU, B_TEXREDR_PRV, "Emit Object Location %x0|Emit Object Space %x1|Global Space %x2",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->psys_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache particles in");
+		}
+		else if (pd->source == TEX_PD_OBJECT) {
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object to render as points");
+			
+			yco -= YSPACE;
+			
+			uiDefBut(block, LABEL, B_NOP, "Cache vertices in:",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			uiDefButS(block, MENU, B_TEXREDR_PRV, "Object Space %x1|Global Space %x2",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->ob_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache vertices in");
 		}
 	}
 
@@ -4310,8 +4321,6 @@ static void material_panel_material_volume(Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base opacity value");
 	uiDefButS(block, NUM, B_MATPRV, "Layer Depth: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_raydepth), 0.0, 512.0, 10, 2, "Number of layered volume ray intersections allowed per pixel");
 	uiBlockEndAlign(block);
@@ -4326,6 +4335,11 @@ static void material_panel_material_volume(Material *ma)
 	uiBlockEndAlign(block);
 	
 	yco = PANEL_YMAX;
+	
+	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base opacity value");
+	
+	yco -= YSPACE;
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",

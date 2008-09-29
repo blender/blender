@@ -39,6 +39,7 @@
 #include "DNA_particle_types.h"
 
 #include "render_types.h"
+#include "renderdatabase.h"
 #include "texture.h"
 
 
@@ -54,7 +55,6 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	/* init crap */
 	if (!psys || !ob || !pd) return;
 	
-	//Mat4CpyMat4(obview, ob->obmat);
 	Mat4MulMat4(obview, re->viewinv, ob->obmat);
 	
 	/* Just to create a valid rendering context */
@@ -71,7 +71,6 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	/* in case ob->imat isn't up-to-date */
 	Mat4Invert(ob->imat, ob->obmat);
 	
-	/* finally do something */
 	pd->point_tree = BLI_kdtree_new(psys->totpart+psys->totchild);
 	
 	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
@@ -84,17 +83,17 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 			
 			VECCOPY(partco, state.co);
 			
-			if (pd->psys_cache_space == TEX_PD_PSYS_OBJECTSPACE)
+			if (pd->psys_cache_space == TEX_PD_OBJECTSPACE)
 				Mat4MulVecfl(ob->imat, partco);
-			else if (pd->psys_cache_space == TEX_PD_PSYS_OBJECTLOC) {
+			else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
 				float obloc[3];
 				VECCOPY(obloc, ob->loc);
 				VecSubf(partco, partco, obloc);
 			} else {
-				/* TEX_PD_PSYS_WORLDSPACE */
+				/* TEX_PD_WORLDSPACE */
 			}
 			
-			BLI_kdtree_insert(pd->point_tree, 0, partco, NULL);
+			BLI_kdtree_insert(pd->point_tree, i, partco, NULL);
 		}
 	}
 	
@@ -103,6 +102,38 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 }
 
 
+static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *obr)
+{
+	int i;
+	
+	if (!obr || !pd) return;
+	if(!obr->vertnodes) return;
+	
+	/* in case ob->imat isn't up-to-date */
+	Mat4Invert(obr->ob->imat, obr->ob->obmat);
+	
+	pd->point_tree = BLI_kdtree_new(obr->totvert);
+	
+	for(i=0; i<obr->totvert; i++) {
+		float ver_co[3];
+		VertRen *ver= RE_findOrAddVert(obr, i);
+		
+		VECCOPY(ver_co, ver->co);
+		
+		if (pd->ob_cache_space == TEX_PD_OBJECTSPACE) {
+			Mat4MulVecfl(re->viewinv, ver_co);
+			Mat4MulVecfl(obr->ob->imat, ver_co);
+		} else {
+			/* TEX_PD_WORLDSPACE */
+			Mat4MulVecfl(re->viewinv, ver_co);
+		}
+		
+		BLI_kdtree_insert(pd->point_tree, i, ver_co, NULL);
+	}
+	
+	BLI_kdtree_balance(pd->point_tree);
+
+}
 static void cache_pointdensity(Render *re, Tex *tex)
 {
 	PointDensity *pd = tex->pd;
@@ -123,6 +154,22 @@ static void cache_pointdensity(Render *re, Tex *tex)
 		if (!ob || !psys) return;
 		
 		pointdensity_cache_psys(re, pd, ob, psys);
+	}
+	else if (pd->source == TEX_PD_OBJECT) {
+		Object *ob = pd->object;
+		ObjectRen *obr;
+		int found=0;
+
+		/* find the obren that corresponds to the object */
+		for (obr=re->objecttable.first; obr; obr=obr->next) {
+			if (obr->ob == ob) {
+				found=1;
+				break;
+			}
+		}
+		if (!found) return;
+		
+		pointdensity_cache_object(re, pd, obr);
 	}
 }
 

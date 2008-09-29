@@ -136,11 +136,13 @@ typedef struct PointDensity {
 	short source;
 	short pdpad[3];
 
-	struct Object *object;	/* for 'Particle system' type - source object */
-	short psysindex;		/* and object's psys number */
-	short psys_cache_space;	/* cache particles in worldspace, object space, ... ? */
+	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
+	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
+	short psysindex;		/* for 'Particle system' type - object's psys number */
 	
-	short pdpad2[2];
+	short ob_cache_space;		/* cache points in worldspace, object space, ... ? */
+	
+	short pdpad2;
 	
 	void *point_tree;		/* the kd-tree containing points */
 } PointDensity;
@@ -414,9 +416,9 @@ typedef struct TexMapping {
 #define TEX_PD_FILE			2
 
 /* psys_cache_space */
-#define TEX_PD_PSYS_OBJECTLOC	0
-#define TEX_PD_PSYS_OBJECTSPACE	1
-#define TEX_PD_PSYS_WORLDSPACE	2
+#define TEX_PD_OBJECTLOC	0
+#define TEX_PD_OBJECTSPACE	1
+#define TEX_PD_WORLDSPACE	2
 
 #endif
 
