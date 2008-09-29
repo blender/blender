@@ -144,6 +144,11 @@ typedef struct View3D {
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
+
+	/* last view */
+	float lviewquat[4];
+	short lpersp, pad4;
+	int pad5;
 } View3D;
 
 

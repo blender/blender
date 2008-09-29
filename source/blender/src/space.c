@@ -1709,6 +1709,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case MIDDLEMOUSE:
 				handle_view_middlemouse();
+				G.vd->view = -1; 
 				break;
 			case RIGHTMOUSE:
 				if((G.obedit) && (G.qual & LR_CTRLKEY)==0) {

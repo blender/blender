@@ -289,6 +289,7 @@ void persptoetsen(unsigned short event)
 				if(G.vd->persp==V3D_PERSP) G.vd->persp=V3D_ORTHO;
 				else G.vd->persp=V3D_PERSP;
 			}
+			G.vd->lpersp = G.vd->persp; 
 		}
 		else if(event==PAD0) {
 			if(G.qual==LR_ALTKEY) {
@@ -317,7 +318,14 @@ void persptoetsen(unsigned short event)
 				G.vd->camera= scene_find_camera(G.scene);
 				handle_view3d_lock();
 			}
-			
+			if(!G.vd->view) {
+				QUATCOPY(G.vd->viewquat, G.vd->lviewquat);
+				G.vd->persp = G.vd->lpersp;
+			}
+			else {
+				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
+				G.vd->lpersp = G.vd->persp;
+			}	
 			if(G.vd->camera && (G.vd->camera != act_cam_orig)) {
 				G.vd->persp= V3D_CAMOB;
 				G.vd->view= 0;
@@ -362,7 +370,7 @@ void persptoetsen(unsigned short event)
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
 				QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-				G.vd->view= 0;
+				G.vd->view= -1;
 			}
 			if(event==PAD2 || event==PAD8) {
 				/* horizontal axis */
@@ -377,7 +385,7 @@ void persptoetsen(unsigned short event)
 				q1[2]*= si;
 				q1[3]*= si;
 				QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-				G.vd->view= 0;
+				G.vd->view= -1;
 			}
 		}
 
