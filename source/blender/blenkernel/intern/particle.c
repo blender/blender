@@ -3191,6 +3191,47 @@ LinkNode *psys_using_settings(ParticleSettings *part, int flush_update)
 /************************************************/
 /*			Textures							*/
 /************************************************/
+
+static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, float *fuv, char *name, float *texco)
+{
+	MFace *mf;
+	MTFace *tf;
+	int i;
+	
+	tf= CustomData_get_layer_named(&dm->faceData, CD_MTFACE, name);
+
+	if(tf == NULL)
+		tf= CustomData_get_layer(&dm->faceData, CD_MTFACE);
+
+	if(tf == NULL)
+		return 0;
+
+	if(pa) {
+		i= (pa->num_dmcache==DMCACHE_NOTFOUND)? pa->num: pa->num_dmcache;
+		if(i >= dm->getNumFaces(dm))
+			i = -1;
+	}
+	else
+		i= face_index;
+
+	if (i==-1) {
+		texco[0]= 0.0f;
+		texco[1]= 0.0f;
+		texco[2]= 0.0f;
+	}
+	else {
+		mf= dm->getFaceData(dm, i, CD_MFACE);
+
+		psys_interpolate_uvs(&tf[i], mf->v4, fuv, texco);
+
+		texco[0]= texco[0]*2.0f - 1.0f;
+		texco[1]= texco[1]*2.0f - 1.0f;
+		texco[2]= 0.0f;
+	}
+
+	return 1;
+}
+
 static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float *fw, float *orco, ParticleTexture *ptex, int event)
 {
 	MTex *mtex;
@@ -3205,27 +3246,13 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 			short blend=mtex->blendtype;
 			short neg=mtex->pmaptoneg;
 
-			if(mtex->texco & TEXCO_UV && fw){
-				int uv_index=CustomData_get_named_layer_index(&dm->faceData,CD_MTFACE,mtex->uvname);
-				if(uv_index<0){
-					uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
-				}
-				if(uv_index>=0){
-					CustomDataLayer *layer=&dm->faceData.layers[uv_index];
-					MTFace *mtface= &((MTFace*)layer->data)[face_index];
-					MFace *mf=dm->getFaceData(dm,face_index,CD_MFACE);
-					psys_interpolate_uvs(mtface,mf->v4,fw,texco);
-					texco[0]*=2.0;
-					texco[1]*=2.0;
-					texco[0]-=1.0;
-					texco[1]-=1.0;
-				}
-				else
+			if((mtex->texco & TEXCO_UV) && fw) {
+				if(!get_particle_uv(dm, NULL, face_index, fw, mtex->uvname, texco))
 					VECCOPY(texco,orco);
 			}
-			else{
+			else
 				VECCOPY(texco,orco);
-			}
+
 			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
 			if((event & mtex->pmapto) & MAP_PA_TIME){
 				if((setvars&MAP_PA_TIME)==0){
@@ -3265,33 +3292,16 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 			short blend=mtex->blendtype;
 			short neg=mtex->pmaptoneg;
 
-			if(mtex->texco & TEXCO_UV){
-				int uv_index=CustomData_get_named_layer_index(&psmd->dm->faceData,CD_MTFACE,mtex->uvname);
-				if(uv_index<0){
-					uv_index=CustomData_get_active_layer_index(&psmd->dm->faceData,CD_MTFACE);
-				}
-				if(uv_index>=0){
-					CustomDataLayer *layer=&psmd->dm->faceData.layers[uv_index];
-					MTFace *mtface= &((MTFace*)layer->data)[pa->num];
-					MFace *mf=psmd->dm->getFaceData(psmd->dm,pa->num,CD_MFACE);
-					psys_interpolate_uvs(mtface,mf->v4,pa->fuv,texco);
-					texco[0]*=2.0;
-					texco[1]*=2.0;
-					texco[0]-=1.0;
-					texco[1]-=1.0;
-				}
-				else
-					//psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->fuv,pa->foffset,texco,0,0,0);
-					/* <jahka> anyways I think it will be too small a difference to notice, so psys_get_texture should only know about the original mesh structure.. no dm needed anywhere */
-					/* <brecht> the code only does dm based lookup now, so passing num_dmcache anyway to avoid^
-					 * massive slowdown here */
+			if((mtex->texco & TEXCO_UV) && ELEM(psys->part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+				if(!get_particle_uv(psmd->dm, pa, 0, pa->fuv, mtex->uvname, texco)) {
+					/* failed to get uv's, let's try orco's */
 					psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
+				}
 			}
-			else{
-				//psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->fuv,pa->offset,texco,0,0,0);
-				/* ditto above */
+			else {
 				psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
 			}
+
 			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
 
 			if((event & mtex->pmapto) & MAP_PA_TIME){
