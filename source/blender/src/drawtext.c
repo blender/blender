@@ -77,7 +77,8 @@
 #include "mydevice.h"
 #include "blendef.h" 
 #include "winlay.h"
-
+#include "PIL_time.h"
+#include <ctype.h> /* ispunct */
 #include <sys/stat.h>
 
 /***********************/ /*

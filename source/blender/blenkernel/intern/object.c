@@ -70,6 +70,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_bullet.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
@@ -182,7 +183,7 @@ void object_free_softbody(Object *ob)
 void object_free_bulletsoftbody(Object *ob)
 {
 	if(ob->bsoft) {
-		sbFree(ob->bsoft);
+		bsbFree(ob->bsoft);
 		ob->bsoft= NULL;
 	}
 }

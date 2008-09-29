@@ -413,7 +413,7 @@ static void boxPack_ToPyObject(PyObject * value, boxPack **boxarray)
 
 static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * boxlist )
 {
-	boxPack *boxarray;
+	boxPack *boxarray = NULL;
 	float tot_width, tot_height;
 	int len;
 	int error;
