@@ -159,6 +159,7 @@ typedef struct RigEdge {
 
 typedef struct RigControl {
 	struct RigControl *next, *prev;
+	float head[3], tail[3];
 	EditBone *bone;
 	EditBone *link;
 	float	up_axis[3];
@@ -471,6 +472,8 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 {
 	RigControl *ctrl = newRigControl(rg);
 	ctrl->bone = bone;
+	VECCOPY(ctrl->head, bone->head);
+	VECCOPY(ctrl->tail, bone->tail);
 	getEditBoneRollUpAxis(bone, bone->roll, ctrl->up_axis);
 	
 	BLI_ghash_insert(rg->controls_map, bone->name, ctrl);
@@ -1473,7 +1476,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 	RigControl *ctrl_child;
 	float parent_offset[3], tail_offset[3];
 	
-	VecSubf(tail_offset, ctrl->bone->tail, ctrl->bone->head);
+	VecSubf(tail_offset, ctrl->tail, ctrl->head);
 	VecMulf(tail_offset, resize);
 	
 	VECCOPY(parent_offset, ctrl->offset);
@@ -1509,7 +1512,7 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 	
 	bone = edge->bone;
 	
-	VecSubf(v1, bone->tail, bone->head);
+	VecSubf(v1, edge->tail, edge->head);
 	VecSubf(v2, vec1, vec0);
 	
 	l1 = Normalize(v1);
