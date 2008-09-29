@@ -4789,6 +4789,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		Mat4Ortho(re->scene->camera->obmat);
 		Mat4Invert(mat, re->scene->camera->obmat);
 		RE_SetView(re, mat);
+		re->scene->camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
