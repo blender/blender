@@ -1307,6 +1307,10 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	// check all collision objects
 	for ( base = G.scene->base.first; base; base = base->next )
 	{
+		/*Only proceed for mesh object in same layer */
+		if(!(base->object->type==OB_MESH && (base->lay & self->lay))) 
+			continue;
+		
 		coll_ob = base->object;
 		
 		if(coll_ob->pd && coll_ob->pd->deflect)
