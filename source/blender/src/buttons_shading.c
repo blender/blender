@@ -2722,47 +2722,49 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			
 		}
 	}
-	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY)) {
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL)) {
 		
-		if (ELEM3(la->type, LA_SPOT, LA_SUN, LA_LOCAL)) {
-			if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
-		
-			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2",
-				100,110,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower");
-		
-			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
+		if(la->mode & LA_SHAD_RAY) {
+			if (ELEM3(la->type, LA_SPOT, LA_SUN, LA_LOCAL)) {
+				if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
 			
-			uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-			if (la->ray_samp_method == LA_SAMP_HALTON)
-				uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+				uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2",
+					100,110,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower");
+			
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
+				
+				uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+				if (la->ray_samp_method == LA_SAMP_HALTON)
+					uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+			}
+			else if (la->type == LA_AREA) {
+				uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
+					100,180,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest");
+			
+				if (la->ray_samp_method == LA_SAMP_CONSTANT) {
+					uiBlockBeginAlign(block);
+					uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,90,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
+					uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
+					uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
+				} else if (la->ray_samp_method == LA_SAMP_HALTON) {
+					uiDefButF(block, NUM,0,"Threshold:",	100,90,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+				}
+			}
 		}
-		else if (la->type == LA_AREA) {
-			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
-				100,180,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest");
-		
+		/* also for non-shadow case, it's using light samples */
+		if(la->type == LA_AREA) {
 			if(la->area_shape==LA_AREA_SQUARE) 
 				uiDefButS(block, NUM,0,"Samples:",	100,150,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
 			else if(la->area_shape==LA_AREA_CUBE) 
 				uiDefButS(block, NUM,0,"Samples:",	100,130,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
-
+			
 			if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)) {
 				uiDefButS(block, NUM,0,"SamplesX:",	100,150,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
 				uiDefButS(block, NUM,0,"SamplesY:",	100,130,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
 				if(la->area_shape==LA_AREA_BOX)
 					uiDefButS(block, NUM,0,"SamplesZ:",	100,110,200,19,	&la->ray_sampz, 1.0, 8.0, 100, 0, "Sets the amount of Z samples taken extra");
 			}
-			
-			if (la->ray_samp_method == LA_SAMP_CONSTANT) {
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,90,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
-				uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
-				uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
-			} else if (la->ray_samp_method == LA_SAMP_HALTON) {
-				uiDefButF(block, NUM,0,"Threshold:",	100,90,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
-			}
-		}
-		
-		
+		}			
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
 

@@ -633,24 +633,27 @@ void init_jitter_plane(LampRen *lar)
 	/* at least 4, or max threads+1 tables */
 	if(BLENDER_MAX_THREADS < 4) x= 4;
 	else x= BLENDER_MAX_THREADS+1;
-	fp= lar->jitter= MEM_mallocN(x*tot*2*sizeof(float), "lamp jitter tab");
+	fp= lar->jitter= MEM_callocN(x*tot*2*sizeof(float), "lamp jitter tab");
 	
-	/* set per-lamp fixed seed */
-	BLI_srandom(tot);
-	
-	/* fill table with random locations, area_size large */
-	for(x=0; x<tot; x++, fp+=2) {
-		fp[0]= (BLI_frand()-0.5)*lar->area_size;
-		fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
-	}
-	
-	while(iter--) {
-		fp= lar->jitter;
-		for(x=tot; x>0; x--, fp+=2) {
-			DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+	/* if 1 sample, we leave table to be zero's */
+	if(tot>1) {
+		
+		/* set per-lamp fixed seed */
+		BLI_srandom(tot);
+		
+		/* fill table with random locations, area_size large */
+		for(x=0; x<tot; x++, fp+=2) {
+			fp[0]= (BLI_frand()-0.5)*lar->area_size;
+			fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
 		}
-	}
-	
+		
+		while(iter--) {
+			fp= lar->jitter;
+			for(x=tot; x>0; x--, fp+=2) {
+				DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+			}
+		}
+	}	
 	/* create the dithered tables (could just check lamp type!) */
 	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.0f);
 	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.5f);
