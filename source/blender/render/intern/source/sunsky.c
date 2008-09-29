@@ -22,7 +22,7 @@
 #include "sunsky.h"
 #include "math.h"
 #include "BLI_arithb.h"
-
+#include "BKE_global.h"
 
 /**
  * These macros are defined for vector operations
@@ -111,15 +111,14 @@ static void DirectionToThetaPhi(float *toSun, float *theta, float *phi)
 float PerezFunction(struct SunSky *sunsky, const float *lam, float theta, float gamma, float lvz)
 {
     float den, num;
-
+	
     den = ((1 + lam[0] * exp(lam[1])) *
-                   (1 + lam[2] * exp(lam[3] * sunsky->theta) + lam[4] * cos(sunsky->theta) * cos(sunsky->theta)));
-
+		   (1 + lam[2] * exp(lam[3] * sunsky->theta) + lam[4] * cos(sunsky->theta) * cos(sunsky->theta)));
+	
     num = ((1 + lam[0] * exp(lam[1] / cos(theta))) *
-                   (1 + lam[2] * exp(lam[3] * gamma) + lam[4] * cos(gamma) * cos(gamma)));
-
-    return(lvz * num / den);
-}
+		   (1 + lam[2] * exp(lam[3] * gamma) + lam[4] * cos(gamma) * cos(gamma)));
+	
+    return(lvz * num / den);}
 
 /**
  * InitSunSky:
@@ -136,7 +135,7 @@ float PerezFunction(struct SunSky *sunsky, const float *lam, float theta, float 
  * */
 void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
 				float spread,float sun_brightness, float sun_size, float back_scatter,
-				float skyblendfac, short skyblendtype)
+				float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace)
 {
     
    	float theta2;
@@ -154,6 +153,8 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 	sunsky->backscattered_light = back_scatter;
 	sunsky->skyblendfac= skyblendfac;
 	sunsky->skyblendtype= skyblendtype;
+	sunsky->sky_exposure= -sky_exposure;
+	sunsky->sky_colorspace= sky_colorspace;
 	
 	sunsky->toSun[0] = toSun[0];
     sunsky->toSun[1] = toSun[1];
@@ -262,8 +263,11 @@ void GetSkyXYZRadiance(struct SunSky* sunsky, float theta, float phi, float colo
     // Compute xyY values
     x = PerezFunction(sunsky, sunsky->perez_x, theta, gamma, sunsky->zenith_x);
     y = PerezFunction(sunsky, sunsky->perez_y, theta, gamma, sunsky->zenith_y);
-    Y = nfade * hfade * PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
+    Y = 6.666666667e-5 * nfade * hfade * PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
 
+	if(sunsky->sky_exposure!=0.0f)
+		Y = 1.0 - exp(Y*sunsky->sky_exposure);
+	
     X = (x / y) * Y;
     Z = ((1 - x - y) / y) * Y;
 

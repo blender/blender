@@ -758,7 +758,9 @@ void *add_lamp(char *name)
 	la->sun_intensity = 1.0;
 	la->skyblendtype= MA_RAMP_ADD;
 	la->skyblendfac= 1.0f;
-
+	la->sky_colorspace= BLI_CS_CIE;
+	la->sky_exposure= 1.0f;
+	
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }

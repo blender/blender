@@ -33,7 +33,7 @@
 
 typedef struct SunSky
 {
-    short effect_type, skyblendtype;
+    short effect_type, skyblendtype, sky_colorspace;
     float turbidity;
     float theta, phi;
     
@@ -54,6 +54,7 @@ typedef struct SunSky
     float sun_size;
     float backscattered_light;
     float skyblendfac;
+	float sky_exposure;
 	
     float atm_HGg;
 
@@ -86,7 +87,7 @@ typedef struct SunSky
  * */
 void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
 				float spread,float sun_brightness, float sun_size, float back_scatter,
-				float skyblendfac, short skyblendtype);
+				float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace);
 
 /**
  * GetSkyXYZRadiance:

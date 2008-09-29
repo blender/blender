@@ -573,7 +573,6 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
 void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, float *dxyview)
 {
 	float colorxyz[3];
-	float scale;
 			
 	/**
 	sunAngle = sqrt(sunsky->sunSolidAngle / M_PI);
@@ -588,15 +587,10 @@ void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, f
 	if (view[2] < 0.0)
 		view[2] = 0.0;
 	Normalize(view);
-	GetSkyXYZRadiancef(sunsky, view, colorxyz);
-	scale = MAX3(colorxyz[0], colorxyz[1], colorxyz[2]);
-	colorxyz[0] /= scale;
-	colorxyz[1] /= scale;
-	colorxyz[2] /= scale;
 	
-	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2], BLI_CS_SMPTE);
-
-	ClipColor(colf);
+	GetSkyXYZRadiancef(sunsky, view, colorxyz);
+	
+	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2], sunsky->sky_colorspace);
 }
 
 

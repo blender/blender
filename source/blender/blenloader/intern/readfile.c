@@ -7920,6 +7920,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 9)) {
+		Lamp *la= main->lamp.first;
+		for(; la; la= la->id.next) {
+			la->sky_exposure= 1.0f;
+		}
+	}
+		
+		
+		
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

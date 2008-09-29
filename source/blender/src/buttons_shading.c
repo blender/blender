@@ -2892,23 +2892,29 @@ static void lamp_panel_atmosphere(Object *ob, Lamp *la)
 		uiDefButS(block, MENU, B_LAMPPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
 					 10,y-25,BUTW2/2,19, 
 					 &la->skyblendtype, 0.0f, 0.0f, 0, 0, "Blend type for how it gets combined with sky");
-		uiDefButF(block, NUM, B_LAMPPRV, "",10+BUTW2/2,y-25,BUTW2/2,19, &(la->skyblendfac), 0.0f, 1.0f, 10, 0, "Sets blending factor with sky color");
-		uiBlockEndAlign(block);
+		uiDefButF(block, NUM, B_LAMPPRV, "",10+BUTW2/2,y-25,BUTW2/2,19, &(la->skyblendfac), 0.0f, 2.0f, 10, 0, "Sets blending factor with sky color");
 		
-		y -= 25;
-		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Bright:",10,y-25,BUTW2,19, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
-		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Spread:",10,y-50,BUTW2,19, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
-		uiDefButF(block, NUM, B_LAMPPRV, "Sun Bright:",10,y-75,BUTW2,19, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
-		uiDefButF(block, NUM, B_LAMPPRV, "Sun Size:",10,y-100,BUTW2,19, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
-		uiDefButF(block, NUM, B_LAMPPRV, "Back Light:",10,y-125,BUTW2,19, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_LAMPPRV, "SMPTE %x0|REC709 %x1|CIE %x2",
+				  10,126,60,22,  &la->sky_colorspace, 0.0f, 0.0f, 0, 0, "Color space");
+		
+		uiDefButF(block, NUM, B_LAMPPRV, "Exp:",70,126,BUTW2-60,22, &(la->sky_exposure), 0.00f, 20.00f, 10, 0, "Exposure correction, zero is no correction.");
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Bright:",10,98,BUTW2,22, &(la->horizon_brightness), 0.00f, 20.00f, 10, 0, "Sets horizon brightness.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Hor.Spread:",10,76,BUTW2,22, &(la->spread), 0.00f, 10.00f, 10, 0, "Sets horizon spread.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Sun Bright:",10,54,BUTW2,22, &(la->sun_brightness), 0.00f, 10.0f, 10, 0, "Sets sun brightness.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Sun Size:",10,32,BUTW2,22, &(la->sun_size), 0.00f, 10.00f, 10, 0, "Sets sun size.");
+		uiDefButF(block, NUM, B_LAMPPRV, "Back Light:",10,10,BUTW2,22, &(la->backscattered_light), -1.00f, 1.00f, 10, 0, "Sets backscatter light.");
 	}
 
 	if(la->sun_effect_type & LA_SUN_EFFECT_AP)
 	{
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Intens.:",20+BUTW2,y-25,BUTW2,19, &(la->sun_intensity), 0.00f, 10.00f, 10, 0, "Sets sun intensity.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Inscattering:",20+BUTW2,y-50,BUTW2,19, &(la->atm_inscattering_factor), 0.00f, 1.00f, 10, 0, "In Scattering Contribution Factor.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Extinction:",20+BUTW2,y-75,BUTW2,19, &(la->atm_extinction_factor), 0.00f, 1.00f, 10, 0, "Extinction Scattering Contribution Factor.");
-		uiDefButF(block, NUM, B_LAMPREDRAW, "Distance:",20+BUTW2,y-100,BUTW2,19, &(la->atm_distance_factor), 0.000f, 500.0f, 10, 0, "Scale blender distance to real distance.");
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Sun Intens.:",20+BUTW2,76,BUTW2,22, &(la->sun_intensity), 0.00f, 10.00f, 10, 0, "Sets sun intensity.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Inscattering:",20+BUTW2,54,BUTW2,22, &(la->atm_inscattering_factor), 0.00f, 1.00f, 10, 0, "In Scattering Contribution Factor.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Extinction:",20+BUTW2,32,BUTW2,22, &(la->atm_extinction_factor), 0.00f, 1.00f, 10, 0, "Extinction Scattering Contribution Factor.");
+		uiDefButF(block, NUM, B_LAMPREDRAW, "Distance:",20+BUTW2,10,BUTW2,22, &(la->atm_distance_factor), 0.000f, 500.0f, 10, 0, "Scale blender distance to real distance.");
 	}
 }
 
