@@ -2553,29 +2553,47 @@ short IsectLLPt2Df(float x0,float y0,float x1,float y1,
 } // end Intersect_Lines
 
 #define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
-#define ISECT_EPSILON 1e-6
-
 /* point in tri */
 int IsectPT2Df(float pt[2], float v1[2], float v2[2], float v3[2])
 {
-	if ((SIDE_OF_LINE(v1,v2,pt)>=-ISECT_EPSILON) &&
-		(SIDE_OF_LINE(v2,v3,pt)>=-ISECT_EPSILON) &&
-		(SIDE_OF_LINE(v3,v1,pt)>=-ISECT_EPSILON))
-		return 1;
-	else {
-		return 0;
+	if (SIDE_OF_LINE(v1,v2,pt)>=0.0) {
+		if (SIDE_OF_LINE(v2,v3,pt)>=0.0) {
+			if (SIDE_OF_LINE(v3,v1,pt)>=0.0) {
+				return 1;
+			}
+		}
+	} else {
+		if (! (SIDE_OF_LINE(v2,v3,pt)>=0.0) ) {
+			if (! (SIDE_OF_LINE(v3,v1,pt)>=0.0)) {
+				return -1;
+			}
+		}
 	}
+	
+	return 0;
 }
 /* point in quad - only convex quads */
 int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
 {
-	if ((SIDE_OF_LINE(v1,v2,pt)>=-ISECT_EPSILON) &&
-		(SIDE_OF_LINE(v2,v3,pt)>=-ISECT_EPSILON) &&
-		(SIDE_OF_LINE(v3,v4,pt)>=-ISECT_EPSILON) &&
-		(SIDE_OF_LINE(v4,v1,pt)>=-ISECT_EPSILON))
-		return 1;
-	else
-		return 0;
+	if (SIDE_OF_LINE(v1,v2,pt)>=0.0) {
+		if (SIDE_OF_LINE(v2,v3,pt)>=0.0) {
+			if (SIDE_OF_LINE(v3,v4,pt)>=0.0) {
+				if (SIDE_OF_LINE(v4,v1,pt)>=0.0) {
+					return 1;
+				}
+			}
+		}
+	} else {
+		if (! (SIDE_OF_LINE(v2,v3,pt)>=0.0) ) {
+			if (! (SIDE_OF_LINE(v3,v4,pt)>=0.0)) {
+				if (! (SIDE_OF_LINE(v4,v1,pt)>=0.0)) {
+					return -1;
+				}
+			}
+		}
+	}
+	
+	return 0;
 }
 
 

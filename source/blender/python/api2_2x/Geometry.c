@@ -54,6 +54,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq );
 static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args );
+static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args );
 
 
@@ -62,7 +63,8 @@ static char M_Geometry_doc[] = "The Blender Geometry module\n\n";
 static char M_Geometry_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
 static char M_Geometry_LineIntersect2D_doc[] = "(lineA_p1, lineA_p2, lineB_p1, lineB_p2) - takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None";
 static char M_Geometry_ClosestPointOnLine_doc[] = "(pt, line_p1, line_p2) - takes a point and a line and returns a (Vector, Bool) for the point on the line, and the bool so you can know if the point was between the 2 points";
-static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) - takes 4 vectors, one is the point and the next 3 define the triabgle, only the x and y are used from the vectors";
+static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) - takes 4 vectors, one is the point and the next 3 define the triangle, only the x and y are used from the vectors";
+static char M_Geometry_PointInQuad2D_doc[] = "(pt, quad_p1, quad_p2, quad_p3, quad_p4) - takes 5 vectors, one is the point and the next 4 define the quad, only the x and y are used from the vectors";
 static char M_Geometry_BoxPack2D_doc[] = "";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef M_Geometry_methods[] = {
@@ -70,6 +72,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 	{"LineIntersect2D", ( PyCFunction ) M_Geometry_LineIntersect2D, METH_VARARGS, M_Geometry_LineIntersect2D_doc},
 	{"ClosestPointOnLine", ( PyCFunction ) M_Geometry_ClosestPointOnLine, METH_VARARGS, M_Geometry_ClosestPointOnLine_doc},
 	{"PointInTriangle2D", ( PyCFunction ) M_Geometry_PointInTriangle2D, METH_VARARGS, M_Geometry_PointInTriangle2D_doc},
+	{"PointInQuad2D", ( PyCFunction ) M_Geometry_PointInQuad2D, METH_VARARGS, M_Geometry_PointInQuad2D_doc},
 	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -313,9 +316,6 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	return ret;
 }
 
-#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
-#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
-
 static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args )
 {
 	VectorObject *pt_vec, *tri_p1, *tri_p2, *tri_p3;
@@ -329,10 +329,24 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected 4 vector types\n" ) );
 	
-	if POINT_IN_TRI(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
+	return PyInt_FromLong(IsectPT2Df(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec));
+}
+
+static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args )
+{
+	VectorObject *pt_vec, *quad_p1, *quad_p2, *quad_p3, *quad_p4;
+	
+	if( !PyArg_ParseTuple ( args, "O!O!O!O!O!",
+	  &vector_Type, &pt_vec,
+	  &vector_Type, &quad_p1,
+	  &vector_Type, &quad_p2,
+	  &vector_Type, &quad_p3,
+	  &vector_Type, &quad_p4)
+	)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 5 vector types\n" ) );
+	
+	return PyInt_FromLong(IsectPQ2Df(pt_vec->vec, quad_p1->vec, quad_p2->vec, quad_p3->vec, quad_p4->vec));
 }
 
 int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )
