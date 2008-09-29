@@ -370,7 +370,11 @@ void persptoetsen(unsigned short event)
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
 				QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-				G.vd->view= -1;
+
+				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
+				G.vd->lpersp = G.vd->persp;
+
+				G.vd->view= 0;
 			}
 			if(event==PAD2 || event==PAD8) {
 				/* horizontal axis */
@@ -385,7 +389,11 @@ void persptoetsen(unsigned short event)
 				q1[2]*= si;
 				q1[3]*= si;
 				QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
-				G.vd->view= -1;
+
+				QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
+				G.vd->lpersp = G.vd->persp;
+
+				G.vd->view= 0;
 			}
 		}
 
