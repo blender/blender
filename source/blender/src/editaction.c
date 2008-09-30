@@ -436,7 +436,7 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 			 */
 			if ( (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
 				 ( ((filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) && 
-				  !(filter_mode & ACTFILTER_SEL) ) ) 
+				   (!(filter_mode & ACTFILTER_SEL) || (SEL_AGRP(agrp))) ) ) 
 			{
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
@@ -2116,7 +2116,7 @@ void paste_actdata ()
 				
 				/* check if we have a corresponding action channel */
 				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
-					actname= achan->name;
+					actname= achant->name;
 					
 					/* check if this is a constraint channel */
 					if (ale->type == ACTTYPE_CONCHAN) {
@@ -2125,7 +2125,7 @@ void paste_actdata ()
 						
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 							if (strcmp(conchan->name, conchant->name)==0) {
-								conname= conchan->name;
+								conname= conchant->name;
 								ipo_src= conchan->ipo;
 								break;
 							}
@@ -2141,7 +2141,7 @@ void paste_actdata ()
 			else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
 				/* check if this action channel is "#ACP_ShapeKey" */
 				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
-					actname= achan->name;
+					actname= NULL;
 					ipo_src= achan->ipo;
 					break;
 				}

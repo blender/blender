@@ -647,7 +647,7 @@ static void draw_channel_names(void)
 						case SPACE_VIEW3D:
 						{
 							/* this shouldn't cause any overflow... */
-							sprintf(name, "3DView: %s", view3d_get_name(sa->spacedata.first));
+							sprintf(name, "3DView[%02d]:%s", sa->win, view3d_get_name(sa->spacedata.first));
 							special= ICON_VIEW3D;
 						}
 							break;
@@ -660,7 +660,7 @@ static void draw_channel_names(void)
 								sprintf(treetype, "Composite");
 							else
 								sprintf(treetype, "Material");
-							sprintf(name, "Nodes: %s", treetype);
+							sprintf(name, "Nodes[%02d]:%s", sa->win, treetype);
 							
 							special= ICON_NODE;
 						}
@@ -678,7 +678,7 @@ static void draw_channel_names(void)
 								
 								default:	sprintf(imgpreview, "Sequence");	break;
 							}
-							sprintf(name, "Sequencer: %s", imgpreview);
+							sprintf(name, "Sequencer[%02d]:%s", sa->win, imgpreview);
 							
 							special= ICON_SEQUENCE;
 						}
@@ -688,9 +688,9 @@ static void draw_channel_names(void)
 							SpaceImage *sima= sa->spacedata.first;
 							
 							if (sima->image)
-								sprintf(name, "Image: %s", sima->image->id.name+2);
+								sprintf(name, "Image[%02d]:%s", sa->win, sima->image->id.name+2);
 							else
-								sprintf(name, "Image: <None>");
+								sprintf(name, "Image[%02d]:<None>", sa->win);
 								
 							special= ICON_IMAGE_COL;
 						}
@@ -698,7 +698,7 @@ static void draw_channel_names(void)
 						
 						default:
 						{
-							sprintf(name, "<Unknown GP-Data Source>");
+							sprintf(name, "[%02d]<Unknown GP-Data Source>", sa->win);
 							special= -1;
 						}
 							break;
