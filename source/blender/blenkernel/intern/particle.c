@@ -1117,8 +1117,8 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, float *w, float
 	}
 }
 
-/* find the derived mesh face for a particle, set the mf passed.
-This is slow, can be optimized but only for many lookups, return the face lookup index*/
+/* find the derived mesh face for a particle, set the mf passed. this is slow
+ * and can be optimized but only for many lookups. returns the face index. */
 int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *fw, struct LinkNode *node)
 {
 	Mesh *me= (Mesh*)ob->data;
@@ -1186,168 +1186,142 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 	return DMCACHE_NOTFOUND;
 }
 
-/* interprets particle data to get a point on a mesh in object space */
-#define PARTICLE_ON_DM_ERROR \
-	{ if(vec) { vec[0]=vec[1]=vec[2]=0.0; } \
-	  if(nor) { nor[0]=nor[1]=0.0; nor[2]=1.0; } \
-	  if(orco) { orco[0]=orco[1]=orco[2]=0.0; } \
-	  if(ornor) { ornor[0]=ornor[1]=0.0; ornor[2]=1.0; } \
-	  if(utan) { utan[0]=utan[1]=utan[2]=0.0; } \
-	  if(vtan) { vtan[0]=vtan[1]=vtan[2]=0.0; } }
-
-void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, int *mapindex, float *mapfw)
 {
-	float temp1[3];
-	float (*orcodata)[3];
-
-	if(index < 0) { /* 'no dm' error has happened! */
-		PARTICLE_ON_DM_ERROR;
-		return;
-	}
-	orcodata= dm->getVertDataArray(dm, CD_ORCO);
+	if(index < 0)
+		return 0;
 
 	if (dm->deformedOnly || index_dmcache == DMCACHE_ISCHILD) {
-		/* this works for meshes with deform verts only - constructive modifiers wont work properly*/
+		/* for meshes that are either only defined or for child particles, the
+		 * index and fw do not require any mapping, so we can directly use it */
 		if(from == PART_FROM_VERT) {
-			if(index >= dm->getNumVerts(dm)) {
-				PARTICLE_ON_DM_ERROR;
-				return;
-			}
-	
-			dm->getVertCo(dm,index,vec);
-			if(nor){
-				dm->getVertNo(dm,index,nor);
-				Normalize(nor);
-			}
-			if(orco)
-				VECCOPY(orco, orcodata[index])
-			if(ornor) {
-				dm->getVertNo(dm,index,nor);
-				Normalize(nor);
-			}
+			if(index >= dm->getNumVerts(dm))
+				return 0;
+
+			*mapindex = index;
 		}
-		else { /* PART_FROM_FACE / PART_FROM_VOLUME */
-			MFace *mface;
-			MTFace *mtface=0;
-			MVert *mvert;
-			int uv_index;
+		else  { /* FROM_FACE/FROM_VOLUME */
+			if(index >= dm->getNumFaces(dm))
+				return 0;
 
-			if(index >= dm->getNumFaces(dm)) {
-				PARTICLE_ON_DM_ERROR;
-				return;
-			}
-			
-			mface=dm->getFaceData(dm,index,CD_MFACE);
-			mvert=dm->getVertDataArray(dm,CD_MVERT);
-			uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
-
-			if(uv_index>=0){
-				CustomDataLayer *layer=&dm->faceData.layers[uv_index];
-				mtface= &((MTFace*)layer->data)[index];
-			}
-
-			if(from==PART_FROM_VOLUME){
-				psys_interpolate_face(mvert,mface,mtface,orcodata,fw,vec,temp1,utan,vtan,orco,ornor);
-				if(nor)
-					VECCOPY(nor,temp1);
-				Normalize(temp1);
-				VecMulf(temp1,-foffset);
-				VECADD(vec,vec,temp1);
-			}
-			else
-				psys_interpolate_face(mvert,mface,mtface,orcodata,fw,vec,nor,utan,vtan,orco,ornor);
+			*mapindex = index;
+			QUATCOPY(mapfw, fw);
 		}
 	} else {
-		/* Need to support constructive modifiers, this is a bit more tricky
-			we need a customdata layer like UV's so we can position the particle */
-		
-		/* Only face supported at the moment */
-		if(ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+		/* for other meshes that have been modified, we try to map the particle
+		 * to their new location, which means a different index, and for faces
+		 * also a new face interpolation weights */
+		if(from == PART_FROM_VERT) {
+			if (index_dmcache == DMCACHE_NOTFOUND || index_dmcache > dm->getNumVerts(dm))
+				return 0;
+
+			*mapindex = index_dmcache;
+		}
+		else  { /* FROM_FACE/FROM_VOLUME */
 			/* find a face on the derived mesh that uses this face */
-			Mesh *me= (Mesh*)ob->data;
-			MVert *mvert;
 			MFace *mface;
-			MTFace *mtface;
 			OrigSpaceFace *osface;
-			int *origindex;
-			float fw_mod[4];
-			int i, totface;
-			
-			mvert= dm->getVertDataArray(dm,CD_MVERT);
+			int i;
 
+			i = index_dmcache;
+
+			if(i== DMCACHE_NOTFOUND || i >= dm->getNumFaces(dm))
+				return 0;
+
+			*mapindex = i;
+
+			/* modify the original weights to become
+			 * weights for the derived mesh face */
 			osface= dm->getFaceDataArray(dm, CD_ORIGSPACE);
-			origindex= dm->getFaceDataArray(dm, CD_ORIGINDEX);
-
-			/* For this to work we need origindex and OrigSpace coords */
-			if(origindex==NULL || osface==NULL || index>=me->totface) {
-				PARTICLE_ON_DM_ERROR;
-				return;
-			}
-			
-			if (index_dmcache == DMCACHE_NOTFOUND)
-				i = psys_particle_dm_face_lookup(ob, dm, index, fw, (LinkNode*)NULL);
-			else
-				i = index_dmcache;
-
-			totface = dm->getNumFaces(dm);
-
-			/* Any time this happens, and the face has not been removed,
-			* its a BUG watch out for this error! */
-			if (i==-1) {
-				printf("Cannot find original face %i\n", index);
-				PARTICLE_ON_DM_ERROR;
-				return;
-			}
-			else if(i >= totface)
-				return;
-
 			mface= dm->getFaceData(dm, i, CD_MFACE);
-			mtface= dm->getFaceData(dm, i, CD_MTFACE); 
-			osface += i;
 
-			/* we need to modify the original weights to become weights for
-			 * the derived mesh face */
-			psys_origspace_to_w(osface, mface->v4, fw, fw_mod);
-
-			if(from==PART_FROM_VOLUME){
-				psys_interpolate_face(mvert,mface,mtface,orcodata,fw_mod,vec,temp1,utan,vtan,orco,ornor);
-				if(nor)
-					VECCOPY(nor,temp1);
-				Normalize(temp1);
-				VecMulf(temp1,-foffset);
-				VECADD(vec,vec,temp1);
-			}
+			if(osface == NULL)
+				mapfw[0]= mapfw[1]= mapfw[2]= mapfw[3]= 0.0f;
 			else
-				psys_interpolate_face(mvert,mface,mtface,orcodata,fw_mod,vec,nor,utan,vtan,orco,ornor);
-		}
-		else if(from == PART_FROM_VERT) {
-			if (index_dmcache == DMCACHE_NOTFOUND || index_dmcache > dm->getNumVerts(dm)) {
-				PARTICLE_ON_DM_ERROR;
-				return;
-			}
-
-			dm->getVertCo(dm,index_dmcache,vec);
-			if(nor) {
-				dm->getVertNo(dm,index_dmcache,nor);
-				Normalize(nor);
-			}
-			if(orco)
-				VECCOPY(orco, orcodata[index])
-			if(ornor) {
-				dm->getVertNo(dm,index_dmcache,nor);
-				Normalize(nor);
-			}
-			if(utan && vtan) {
-				utan[0]= utan[1]= utan[2]= 0.0f;
-				vtan[0]= vtan[1]= vtan[2]= 0.0f;
-			}
-		}
-		else {
-			PARTICLE_ON_DM_ERROR;
+				psys_origspace_to_w(&osface[i], mface->v4, fw, mapfw);
 		}
 	}
+
+	return 1;
 }
-#undef PARTICLE_ON_DM_ERROR
+
+/* interprets particle data to get a point on a mesh in object space */
+void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+{
+	float tmpnor[3], mapfw[4];
+	float (*orcodata)[3];
+	int mapindex;
+
+	if(!psys_map_index_on_dm(dm, from, index, index_dmcache, fw, foffset, &mapindex, mapfw)) {
+		if(vec) { vec[0]=vec[1]=vec[2]=0.0; }
+		if(nor) { nor[0]=nor[1]=0.0; nor[2]=1.0; }
+		if(orco) { orco[0]=orco[1]=orco[2]=0.0; }
+		if(ornor) { ornor[0]=ornor[1]=0.0; ornor[2]=1.0; }
+		if(utan) { utan[0]=utan[1]=utan[2]=0.0; }
+		if(vtan) { vtan[0]=vtan[1]=vtan[2]=0.0; }
+
+		return;
+	}
+
+	orcodata= dm->getVertDataArray(dm, CD_ORCO);
+
+	if(from == PART_FROM_VERT) {
+		dm->getVertCo(dm,mapindex,vec);
+
+		if(nor) {
+			dm->getVertNo(dm,mapindex,nor);
+			Normalize(nor);
+		}
+
+		if(orco)
+			VECCOPY(orco, orcodata[mapindex])
+
+		if(ornor) {
+			dm->getVertNo(dm,mapindex,nor);
+			Normalize(nor);
+		}
+
+		if(utan && vtan) {
+			utan[0]= utan[1]= utan[2]= 0.0f;
+			vtan[0]= vtan[1]= vtan[2]= 0.0f;
+		}
+	}
+	else { /* PART_FROM_FACE / PART_FROM_VOLUME */
+		MFace *mface;
+		MTFace *mtface;
+		MVert *mvert;
+
+		mface=dm->getFaceData(dm,mapindex,CD_MFACE);
+		mvert=dm->getVertDataArray(dm,CD_MVERT);
+		mtface=CustomData_get_layer(&dm->faceData,CD_MTFACE);
+
+		if(mtface)
+			mtface += mapindex;
+
+		if(from==PART_FROM_VOLUME) {
+			psys_interpolate_face(mvert,mface,mtface,orcodata,mapfw,vec,tmpnor,utan,vtan,orco,ornor);
+			if(nor)
+				VECCOPY(nor,tmpnor);
+
+			Normalize(tmpnor);
+			VecMulf(tmpnor,-foffset);
+			VECADD(vec,vec,tmpnor);
+		}
+		else
+			psys_interpolate_face(mvert,mface,mtface,orcodata,mapfw,vec,nor,utan,vtan,orco,ornor);
+	}
+}
+
+float psys_particle_value_from_verts(DerivedMesh *dm, short from, ParticleData *pa, float *values)
+{
+	float mapfw[4];
+	int mapindex;
+
+	if(!psys_map_index_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, &mapindex, mapfw))
+		return 0.0f;
+	
+	return psys_interpolate_value_from_verts(dm, from, mapindex, mapfw, values);
+}
 
 ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
 {
@@ -1394,7 +1368,7 @@ static void psys_particle_on_shape(int distr, int index, float *fuv, float *vec,
 /************************************************/
 /*			Particles on emitter				*/
 /************************************************/
-void psys_particle_on_emitter(Object *ob, ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor){
+void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor){
 	if(psmd){
 		if(psmd->psys->part->distr==PART_DISTR_GRID && psmd->psys->part->from != PART_FROM_VERT){
 			if(vec){
@@ -1403,7 +1377,7 @@ void psys_particle_on_emitter(Object *ob, ParticleSystemModifierData *psmd, int 
 			return;
 		}
 		/* we cant use the num_dmcache */
-		psys_particle_on_dm(ob, psmd->dm,from,index,index_dmcache,fuv,foffset,vec,nor,utan,vtan,orco,ornor);
+		psys_particle_on_dm(psmd->dm,from,index,index_dmcache,fuv,foffset,vec,nor,utan,vtan,orco,ornor);
 	}
 	else
 		psys_particle_on_shape(from,index,fuv,vec,nor,utan,vtan,orco,ornor);
@@ -1834,14 +1808,14 @@ void psys_find_parents(Object *ob, ParticleSystemModifierData *psmd, ParticleSys
 	tree=BLI_kdtree_new(totparent);
 
 	for(p=0,cpa=psys->child; p<totparent; p++,cpa++){
-		psys_particle_on_emitter(ob,psmd,from,cpa->num,-1,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
+		psys_particle_on_emitter(psmd,from,cpa->num,-1,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
 		BLI_kdtree_insert(tree, p, orco, NULL);
 	}
 
 	BLI_kdtree_balance(tree);
 
 	for(; p<totchild; p++,cpa++){
-		psys_particle_on_emitter(ob,psmd,from,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
+		psys_particle_on_emitter(psmd,from,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
 		cpa->parent=BLI_kdtree_find_nearest(tree, orco, NULL, NULL);
 	}
 
@@ -2033,7 +2007,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		cpa_fuv = cpa->fuv;
 		cpa_from = PART_FROM_FACE;
 
-		psys_particle_on_emitter(ob,ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,ornor,0,0,orco,0);
+		psys_particle_on_emitter(ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,ornor,0,0,orco,0);
 
 		/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
 		VECCOPY(cpa_1st,co);
@@ -2059,7 +2033,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		cpa_num=pa->num;
 		cpa_fuv=pa->fuv;
 
-		psys_particle_on_emitter(ob,ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,ornor,0,0,orco,0);
+		psys_particle_on_emitter(ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,ornor,0,0,orco,0);
 	}
 
 	keys->steps = ctx->steps;
@@ -2437,7 +2411,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		if(!edit && !psys->totchild) {
 			pa_length = part->length * (1.0f - part->randlength*pa->r_ave[0]);
 			if(vg_length)
-				pa_length *= psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_length);
+				pa_length *= psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_length);
 		}
 
 		cache[i]->steps = steps;
@@ -2598,7 +2572,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 		effector= 1.0f;
 		if(vg_effector)
-			effector*= psys_interpolate_value_from_verts(psmd->dm,psys->part->from,pa->num,pa->fuv,vg_effector);
+			effector*= psys_particle_value_from_verts(psmd->dm,psys->part->from,pa,vg_effector);
 
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++) {
 			/* apply effectors */
@@ -2839,7 +2813,7 @@ void psys_mat_hair_to_object(Object *ob, DerivedMesh *dm, short from, ParticleDa
 	float vec[3];
 
 	psys_face_mat(0, dm, pa, hairmat, 0);
-	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
+	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
 	VECCOPY(hairmat[3],vec);
 }
 
@@ -2848,62 +2822,14 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 	float vec[3], orco[3];
 
 	psys_face_mat(ob, dm, pa, hairmat, 1);
-	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco, 0);
+	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco, 0);
 
 	/* see psys_face_mat for why this function is called */
 	transform_mesh_orco_verts(ob->data, &orco, 1, 1);
 	VECCOPY(hairmat[3],orco);
 }
 
-/*
-void psys_key_to_geometry(DerivedMesh *dm, ParticleData *pa, ParticleKey *key)
-{
-	float q[4], v1[3], v2[3], v3[3];
-
-	dm->getVertCo(dm,pa->verts[0],v1);
-	dm->getVertCo(dm,pa->verts[1],v2);
-	dm->getVertCo(dm,pa->verts[2],v3);
-
-	triatoquat(v1, v2, v3, q);
-
-	QuatInv(q);
-
-	VECSUB(key->co,key->co,v1);
-
-	VECADD(key->vel,key->vel,key->co);
-
-	QuatMulVecf(q, key->co);
-	QuatMulVecf(q, key->vel);
-	
-	VECSUB(key->vel,key->vel,key->co);
-
-	QuatMul(key->rot,q,key->rot);
-}
-
-void psys_key_from_geometry(DerivedMesh *dm, ParticleData *pa, ParticleKey *key)
-{
-	float q[4], v1[3], v2[3], v3[3];
-
-	dm->getVertCo(dm,pa->verts[0],v1);
-	dm->getVertCo(dm,pa->verts[1],v2);
-	dm->getVertCo(dm,pa->verts[2],v3);
-
-	triatoquat(v1, v2, v3, q);
-
-	VECADD(key->vel,key->vel,key->co);
-
-	QuatMulVecf(q, key->co);
-	QuatMulVecf(q, key->vel);
-	
-	VECSUB(key->vel,key->vel,key->co);
-
-	VECADD(key->co,key->co,v1);
-
-	QuatMul(key->rot,q,key->rot);
-}
-*/
-
-void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float *vec)//to_geometry(DerivedMesh *dm, ParticleData *pa, float *vec)
+void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float *vec)
 {
 	float mat[4][4];
 
@@ -2911,36 +2837,6 @@ void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float *vec)//to_geo
 	Mat4Transp(mat); /* cheap inverse for rotation matrix */
 	Mat4Mul3Vecfl(mat, vec);
 }
-
-/* unused */
-#if 0
-static void psys_vec_rot_from_face(DerivedMesh *dm, ParticleData *pa, float *vec)//from_geometry(DerivedMesh *dm, ParticleData *pa, float *vec)
-{
-	float q[4], v1[3], v2[3], v3[3];
-	/*
-	dm->getVertCo(dm,pa->verts[0],v1);
-	dm->getVertCo(dm,pa->verts[1],v2);
-	dm->getVertCo(dm,pa->verts[2],v3);
-	*/
-	/* replace with this */
-	MFace *mface;
-	int i; // = psys_particle_dm_face_lookup(dm, pa->num, pa->fuv, pa->foffset, (LinkNode*)NULL);
-	i = pa->num_dmcache==DMCACHE_NOTFOUND ? pa->num : pa->num_dmcache;
-	if (i==-1 || i >= dm->getNumFaces(dm)) { vec[0] = vec[1] = 0; vec[2] = 1; return; }
-	mface=dm->getFaceData(dm,i,CD_MFACE);
-	
-	dm->getVertCo(dm,mface->v1,v1);
-	dm->getVertCo(dm,mface->v2,v2);
-	dm->getVertCo(dm,mface->v3,v3);
-	/* done */
-	
-	triatoquat(v1, v2, v3, q);
-
-	QuatMulVecf(q, vec);
-
-	//VECADD(vec,vec,v1);
-}
-#endif
 
 void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[][4])
 {
@@ -3295,11 +3191,11 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 			if((mtex->texco & TEXCO_UV) && ELEM(psys->part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if(!get_particle_uv(psmd->dm, pa, 0, pa->fuv, mtex->uvname, texco)) {
 					/* failed to get uv's, let's try orco's */
-					psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
+					psys_particle_on_emitter(psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
 				}
 			}
 			else {
-				psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
+				psys_particle_on_emitter(psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
 			}
 
 			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
@@ -3366,7 +3262,7 @@ float psys_get_size(Object *ob, Material *ma, ParticleSystemModifierData *psmd, 
 	}
 
 	if(vg_size)
-		size*=psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_size);
+		size*=psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_size);
 
 	if(part->randsize!=0.0)
 		size*= 1.0f - part->randsize*pa->sizemul;
@@ -3613,7 +3509,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			cpa_fuv = cpa->fuv;
 			cpa_from = PART_FROM_FACE;
 
-			psys_particle_on_emitter(ob,psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,0,0,0,orco,0);
+			psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,0,0,0,orco,0);
 
 			/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
 			//VECCOPY(cpa_1st,co);
@@ -3635,7 +3531,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			cpa_num=pa->num;
 			cpa_fuv=pa->fuv;
 
-			psys_particle_on_emitter(ob,psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
+			psys_particle_on_emitter(psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
 		}
 
 		/* correct child ipo timing */
@@ -3883,7 +3779,7 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 		else
 			uv[0]= uv[1]= 0.0f;
 
-		psys_particle_on_emitter(ob, psmd,
+		psys_particle_on_emitter(psmd,
 			(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
 			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,0,0,0,orco,0);
 	}
@@ -3907,7 +3803,7 @@ void psys_get_dupli_texture(Object *ob, ParticleSettings *part, ParticleSystemMo
 		else
 			uv[0]= uv[1]= 0.0f;
 
-		psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,orco,0);
+		psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,orco,0);
 	}
 }
 
@@ -3920,9 +3816,9 @@ void psys_get_dupli_path_transform(Object *ob, ParticleSystem *psys, ParticleSys
 	len= Normalize(vec);
 
 	if(pa)
-		psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
+		psys_particle_on_emitter(psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
 	else
-		psys_particle_on_emitter(ob, psmd,
+		psys_particle_on_emitter(psmd,
 			(psys->part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
 			cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,loc,nor,0,0,0,0);
 	

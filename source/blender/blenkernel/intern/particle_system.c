@@ -622,7 +622,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			KDTreeNearest ptn[3];
 			int w, maxw;
 
-			psys_particle_on_dm(ctx->ob,ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
+			psys_particle_on_dm(ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
 			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,3,orco1,NULL,ptn);
 
@@ -766,7 +766,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 
 			do_seams= (part->flag&PART_CHILD_SEAMS && ctx->seams);
 
-			psys_particle_on_dm(ob,dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
+			psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
 			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,orco1,ornor1,ptn);
 
@@ -980,7 +980,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			tree=BLI_kdtree_new(totpart);
 
 			for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-				psys_particle_on_dm(ob,dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,ornor);
+				psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,ornor);
 				transform_mesh_orco_verts((Mesh*)ob->data, &orco, 1, 1);
 				BLI_kdtree_insert(tree, p, orco, ornor);
 			}
@@ -1741,7 +1741,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 			where_is_object_time(ob,pa->time);
 
 		/* get birth location from object		*/
-		psys_particle_on_emitter(ob,psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
+		psys_particle_on_emitter(psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
 		
 		/* save local coordinates for later		*/
 		VECCOPY(tloc,loc);
@@ -1750,7 +1750,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		psys_get_texture(ob,give_current_material(ob,part->omat),psmd,psys,pa,&ptex,MAP_PA_IVEL);
 
 		if(vg_vel && pa->num != -1)
-			ptex.ivel*=psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_vel);
+			ptex.ivel*=psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_vel);
 
 		/* particles live in global space so	*/
 		/* let's convert:						*/
@@ -1765,7 +1765,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 
 		/* -tangent								*/
 		if(part->tanfac!=0.0){
-			float phase=vg_rot?2.0f*(psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_rot)-0.5f):0.0f;
+			float phase=vg_rot?2.0f*(psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_rot)-0.5f):0.0f;
 			VecMulf(vtan,-(float)cos(M_PI*(part->tanphase+phase)));
 			fac=-(float)sin(M_PI*(part->tanphase+phase));
 			VECADDFAC(vtan,vtan,utan,fac);
@@ -1825,7 +1825,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	
 	/*		*emitter tangent				*/
 	if(part->tanfac!=0.0)
-		VECADDFAC(vel,vel,vtan,part->tanfac*(vg_tan?psys_interpolate_value_from_verts(psmd->dm,part->from,pa->num,pa->fuv,vg_tan):1.0f));
+		VECADDFAC(vel,vel,vtan,part->tanfac*(vg_tan?psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_tan):1.0f));
 
 	/*		*texture						*/
 	/* TODO	*/
@@ -2483,7 +2483,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 				ec->locations=MEM_callocN(totpart*3*sizeof(float),"particle locations");
 
 				for(p=0,pa=psys->particles; p<totpart; p++, pa++){
-					psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,0,0);
+					psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,0,0);
 					Mat4MulVecfl(ob->obmat,loc);
 					ec->distances[p]=VecLenf(loc,vec);
 					VECSUB(loc,loc,vec);

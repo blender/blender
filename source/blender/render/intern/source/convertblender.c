@@ -1703,10 +1703,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
 			}
 			else
-				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
 			num= pa->num_dmcache;
 
@@ -1780,13 +1780,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			/* get orco */
 			if(part->childtype == PART_CHILD_FACES) {
-				psys_particle_on_emitter(ob, psmd,
+				psys_particle_on_emitter(psmd,
 					PART_FROM_FACE, cpa->num,DMCACHE_ISCHILD,
 					cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
 			}
 			else {
 				ParticleData *par = psys->particles + cpa->parent;
-				psys_particle_on_emitter(ob, psmd, part->from,
+				psys_particle_on_emitter(psmd, part->from,
 					par->num,DMCACHE_ISCHILD,par->fuv,
 					par->foffset,co,nor,0,0,orco,0);
 			}
