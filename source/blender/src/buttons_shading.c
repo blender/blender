@@ -755,7 +755,7 @@ static void texture_panel_pointdensity(Tex *tex)
 		uiDefButF(block, NUM, B_REDR, "Radius: ",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
 		uiDefButS(block, NUM, B_REDR, "Nearby: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->nearest), 2.0, 30.0, 10, 2, "The number of nearby particles to check for density");
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->nearest), 2.0, 25.0, 10, 2, "The number of nearby particles to check for density (higher is more accurate, but slower)");
 		uiBlockEndAlign(block);
 		
 		yco = PANEL_YMAX;
@@ -4321,8 +4321,6 @@ static void material_panel_material_volume(Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
-	uiDefButS(block, NUM, B_MATPRV, "Layer Depth: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_raydepth), 0.0, 512.0, 10, 2, "Number of layered volume ray intersections allowed per pixel");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
