@@ -70,9 +70,8 @@ typedef struct Material {
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];
-	short vol_raydepth;
 	short vol_shadeflag;
-	int volpad;
+	short volpad[3];
 		
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;

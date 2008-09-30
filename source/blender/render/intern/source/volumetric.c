@@ -436,7 +436,6 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	
 	shi_new.mask= shi->mask;
 	shi_new.osatex= shi->osatex;
-	shi_new.depth= shi->depth + 1;
 	shi_new.thread= shi->thread;
 	shi_new.xs= shi->xs;
 	shi_new.ys= shi->ys;
@@ -450,8 +449,7 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	
 	memset(&shr_new, 0, sizeof(ShadeResult));
 	
-	if (shi->depth < shi->mat->vol_raydepth) 
-		shade_ray(is, &shi_new, &shr_new);
+	shade_ray(is, &shi_new, &shr_new);
 	
 	col[0] = shr_new.combined[0];
 	col[1] = shr_new.combined[1];
