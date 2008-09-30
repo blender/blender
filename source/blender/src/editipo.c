@@ -2022,12 +2022,9 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 	/* creates ipo too (if add) */
 	ipo= verify_ipo(from, blocktype, actname, constname, bonename, add);
 	
-	if (ipo && ipo->id.lib==NULL && from->lib==NULL) {
+	if ((ipo) && (ipo->id.lib==NULL) && (from->lib==NULL)) {
 		/* try to find matching curve */
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			if (icu->adrcode==adrcode) 
-				break;
-		}
+		icu= find_ipocurve(ipo, adrcode);
 		
 		/* make a new one if none found (and can add) */
 		if ((icu==NULL) && (add)) {

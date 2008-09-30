@@ -1903,7 +1903,7 @@ static void *give_tex_poin (Tex *tex, int adrcode, int *type )
 }
 
 /* get texture-slot/mapping channel */
-void *give_mtex_poin (MTex *mtex, int adrcode )
+void *give_mtex_poin (MTex *mtex, int adrcode)
 {
 	void *poin= NULL;
 	

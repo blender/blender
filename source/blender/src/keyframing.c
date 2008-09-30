@@ -334,7 +334,7 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 
 /* Get pointer to use to get values from */
 // FIXME: this should not be possible with Data-API
-static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
+static void *get_context_ipo_poin (ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
 {
 	switch (blocktype) {
 		case ID_PO:  /* posechannel */
@@ -755,7 +755,10 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 		
 		/* get pointer to data to read from */
 		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-		if (poin == NULL) return 0;
+		if (poin == NULL) {
+			printf("Insert Key: No pointer to variable obtained \n");
+			return 0;
+		}
 		
 		/* obtain value to give keyframe */
 		if ( (flag & INSERTKEY_MATRIX) && 
@@ -1049,10 +1052,10 @@ bKeyingSet defks_buts_shading_mat[] =
 	
 	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Ofs", ID_MA, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_MA, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
+	{NULL, "Ofs", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
+	{NULL, "Size", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
 	
-	{NULL, "All Mapping", ID_MA, 0, 14, 
+	{NULL, "All Mapping", ID_MA, COMMONKEY_ADDMAP, 14, 
 		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
 		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
@@ -1080,10 +1083,10 @@ bKeyingSet defks_buts_shading_wo[] =
 	
 	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Ofs", ID_WO, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_WO, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
+	{NULL, "Ofs", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
+	{NULL, "Size", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
 	
-	{NULL, "All Mapping", ID_WO, 0, 14, 
+	{NULL, "All Mapping", ID_WO, COMMONKEY_ADDMAP, 14, 
 		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
 		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
@@ -1106,10 +1109,10 @@ bKeyingSet defks_buts_shading_la[] =
 	
 	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Ofs", ID_LA, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_LA, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
+	{NULL, "Ofs", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
+	{NULL, "Size", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
 	
-	{NULL, "All Mapping", ID_LA, 0, 14, 
+	{NULL, "All Mapping", ID_LA, COMMONKEY_ADDMAP, 14, 
 		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
 		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
@@ -1362,71 +1365,79 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 			{
 				Material *ma= editnode_get_active_material(G.buts->lockpoin);
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)ma;
-				cks->ipo= ma->ipo;
-				cks->map= texchannel_to_adrcode(ma->texact);
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_MAT];
-				return;
+				if (ma) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)ma;
+					cks->ipo= ma->ipo;
+					cks->map= texchannel_to_adrcode(ma->texact);
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_MAT];
+					return;
+				}
 			}
 				break;
 			case TAB_SHADING_WORLD: /* >------------- World Tab -------------< */
 			{
 				World *wo= G.buts->lockpoin;
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)wo;
-				cks->ipo= wo->ipo;
-				cks->map= texchannel_to_adrcode(wo->texact);
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_WO];
-				return;
+				if (wo) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)wo;
+					cks->ipo= wo->ipo;
+					cks->map= texchannel_to_adrcode(wo->texact);
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_WO];
+					return;
+				}
 			}
 				break;
 			case TAB_SHADING_LAMP: /* >------------- Lamp Tab -------------< */
 			{
 				Lamp *la= G.buts->lockpoin;
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)la;
-				cks->ipo= la->ipo;
-				cks->map= texchannel_to_adrcode(la->texact);
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_LA];
-				return;
+				if (la) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)la;
+					cks->ipo= la->ipo;
+					cks->map= texchannel_to_adrcode(la->texact);
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_LA];
+					return;
+				}
 			}
 				break;
 			case TAB_SHADING_TEX: /* >------------- Texture Tab -------------< */
 			{
 				Tex *tex= G.buts->lockpoin;
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)tex;
-				cks->ipo= tex->ipo;
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_TEX];
-				return;
+				if (tex) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)tex;
+					cks->ipo= tex->ipo;
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_TEX];
+					return;
+				}
 			}
 				break;
 		}
@@ -1785,7 +1796,7 @@ void common_modifykey (short mode)
 				 *	- certain adrcodes (for MTEX channels need special offsets) 	// BAD CRUFT!!!
 				 */
 				adrcode= ks->adrcodes[i];
-				if (ELEM3(ks->blocktype, ID_MA, ID_LA, ID_WO)) {
+				if (ELEM3(ks->blocktype, ID_MA, ID_LA, ID_WO) && (ks->flag & COMMONKEY_ADDMAP)) {
 					switch (adrcode) {
 						case MAP_OFS_X: case MAP_OFS_Y: case MAP_OFS_Z:
 						case MAP_SIZE_X: case MAP_SIZE_Y: case MAP_SIZE_Z:
@@ -1800,6 +1811,7 @@ void common_modifykey (short mode)
 				if (mode == COMMONKEY_MODE_DELETE) {
 					/* local flags only add on to global flags */
 					flag = 0;
+					//flag &= ~COMMONKEY_ADDMAP;
 					
 					/* delete keyframe */
 					success += deletekey(cks->id, ks->blocktype, cks->actname, cks->constname, adrcode, flag);
@@ -1810,6 +1822,7 @@ void common_modifykey (short mode)
 					if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
 					if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
 					// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+					flag &= ~COMMONKEY_ADDMAP;
 					
 					/* insert keyframe */
 					success += insertkey(cks->id, ks->blocktype, cks->actname, cks->constname, adrcode, flag);
