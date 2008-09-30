@@ -594,7 +594,8 @@ public:
 	btDbvt					m_fdbvt;		// Faces tree
 	btDbvt					m_cdbvt;		// Clusters tree
 	tClusterArray			m_clusters;		// Clusters
-		
+	
+	btTransform				m_initialWorldTransform; //used to attach constraints etc.
 	//
 	// Api
 	//

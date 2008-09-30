@@ -87,7 +87,7 @@ btSoftBody::btSoftBody(btSoftBodyWorldInfo*	worldInfo,int node_count,  const btV
 	}
 	updateBounds();	
 
-
+	m_initialWorldTransform.setIdentity();
 }
 
 //
@@ -497,6 +497,7 @@ void			btSoftBody::transform(const btTransform& trs)
 	updateNormals();
 	updateBounds();
 	updateConstants();
+	m_initialWorldTransform = trs;
 }
 
 //

@@ -1464,6 +1464,26 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 	return sphereController;
 }
 
+int findClosestNode(btSoftBody* sb,const btVector3& worldPoint);
+int findClosestNode(btSoftBody* sb,const btVector3& worldPoint)
+{
+	int node = -1;
+
+	btSoftBody::tNodeArray&   nodes(sb->m_nodes);
+	float maxDistSqr = 1e30f;
+
+	for (int n=0;n<nodes.size();n++)
+	{
+		btScalar distSqr = (nodes[n].m_x - worldPoint).length2();
+		if (distSqr<maxDistSqr)
+		{
+			maxDistSqr = distSqr;
+			node = n;
+		}
+	}
+	return node;
+}
+
 int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
 													float pivotX,float pivotY,float pivotZ,
 													float axisX,float axisY,float axisZ,
@@ -1479,14 +1499,78 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	btRigidBody* rb0 = c0 ? c0->GetRigidBody() : 0;
 	btRigidBody* rb1 = c1 ? c1->GetRigidBody() : 0;
 
-	bool rb0static = rb0 ? rb0->isStaticOrKinematicObject() : true;
-	bool rb1static = rb1 ? rb1->isStaticOrKinematicObject() : true;
 	
 
-	if (rb0static && rb1static)
+
+	bool rb0static = rb0 ? rb0->isStaticOrKinematicObject() : true;
+	bool rb1static = rb1 ? rb1->isStaticOrKinematicObject() : true;
+
+	btCollisionObject* colObj0 = c0->GetCollisionObject();
+	if (!colObj0)
+	{
 		return 0;
+	}
 
 	btVector3 pivotInA(pivotX,pivotY,pivotZ);
+
+	
+
+	//it might be a soft body, let's try
+	btSoftBody* sb0 = c0 ? c0->GetSoftBody() : 0;
+	btSoftBody* sb1 = c1 ? c1->GetSoftBody() : 0;
+	if (sb0 && sb1)
+	{
+		//not between two soft bodies?
+		return 0;
+	}
+
+	if (sb0)
+	{
+		//either cluster or node attach, let's find closest node first
+		//the soft body doesn't have a 'real' world transform, so get its initial world transform for now
+		btVector3 pivotPointSoftWorld = sb0->m_initialWorldTransform(pivotInA);
+		int node=findClosestNode(sb0,pivotPointSoftWorld);
+		if (node >=0)
+		{
+			if (rb1)
+			{
+				sb0->appendAnchor(node,rb1);
+			} else
+			{
+				sb0->setMass(node,0.f);
+			}
+		}
+		return 0;//can't remove soft body anchors yet
+	}
+
+	if (sb1)
+	{
+		btVector3 pivotPointAWorld = colObj0->getWorldTransform()(pivotInA);
+		int node=findClosestNode(sb1,pivotPointAWorld);
+		if (node >=0)
+		{
+			if (rb0)
+			{
+				sb1->appendAnchor(node,rb0);
+			} else
+			{
+				sb1->setMass(node,0.f);
+			}
+		}
+		return 0;//can't remove soft body anchors yet
+	}
+
+	if (rb0static && rb1static)
+	{
+		
+		return 0;
+	}
+	
+
+	if (!rb0)
+		return 0;
+
+	
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
 		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
