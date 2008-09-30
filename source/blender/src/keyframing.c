@@ -735,8 +735,6 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	if (icu) {
 		float cfra = frame_to_float(CFRA);
 		float curval= 0.0f;
-		void *poin = NULL;
-		int vartype;
 		
 		/* apply special time tweaking */
 		if (GS(id->name) == ID_OB) {
@@ -753,13 +751,6 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			}
 		}
 		
-		/* get pointer to data to read from */
-		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-		if (poin == NULL) {
-			printf("Insert Key: No pointer to variable obtained \n");
-			return 0;
-		}
-		
 		/* obtain value to give keyframe */
 		if ( (flag & INSERTKEY_MATRIX) && 
 			 (visualkey_can_use(id, blocktype, actname, constname, adrcode)) ) 
@@ -771,6 +762,16 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			curval= visualkey_get_value(id, blocktype, actname, constname, adrcode, icu);
 		}
 		else {
+			void *poin;
+			int vartype;
+			
+			/* get pointer to data to read from */
+			poin = get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
+			if (poin == NULL) {
+				printf("Insert Key: No pointer to variable obtained \n");
+				return 0;
+			}
+			
 			/* use kt's read_poin function to extract value (kt->read_poin should 
 			 * exist in all cases, but it never hurts to check)
 			 */
@@ -1584,6 +1585,15 @@ static void commonkey_context_refresh (void)
 			/* do refreshes */
 			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 			
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWMARKER, 0);
+		}
+			break;
+			
+		/* buttons window */
+		case SPACE_BUTS:
+		{
 			allspace(REMAKEIPO, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWMARKER, 0);
