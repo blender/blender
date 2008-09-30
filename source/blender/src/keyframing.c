@@ -786,7 +786,7 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			insert_mode= new_key_needed(icu, cfra, curval);
 			
 			/* insert new keyframe at current frame */
-			if (insert_mode) 
+			if (insert_mode)
 				insert_vert_icu(icu, cfra, curval, (flag & INSERTKEY_FAST));
 			
 			/* delete keyframe immediately before/after newly added */
@@ -798,14 +798,18 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 					delete_icu_key(icu, 1, 1);
 					break;
 			}
+			
+			/* only return success if keyframe added */
+			if (insert_mode)
+				return 1;
 		}
 		else {
 			/* just insert keyframe */
 			insert_vert_icu(icu, cfra, curval, (flag & INSERTKEY_FAST));
+			
+			/* return success */
+			return 1;
 		}
-		
-		/* return success */
-		return 1;
 	}
 	
 	/* return failure */
@@ -885,6 +889,11 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 /* ************************************************** */
 /* COMMON KEYFRAME MANAGEMENT (common_insertkey/deletekey) */
 
+/* mode for common_modifykey */
+enum {
+	COMMONKEY_MODE_INSERT = 0,
+	COMMONKEY_MODE_DELETE,
+} eCommonModifyKey_Modes;
 
 /* ------------- KeyingSet Defines ------------ */
 /* Note: these must all be named with the defks_* prefix, otherwise the template macro will not work! */
@@ -1493,7 +1502,7 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 
 
 /* get keyingsets for appropriate context */
-static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContext **ksc)
+static void commonkey_context_get (ScrArea *sa, short mode, ListBase *sources, bKeyingContext **ksc)
 {
 	/* check view type */
 	switch (sa->spacetype) {
@@ -1511,10 +1520,21 @@ static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContex
 		}
 			break;
 			
+		/* spaces with their own methods */
+		case SPACE_IPO:
+			if (mode == COMMONKEY_MODE_INSERT)
+				insertkey_editipo();
+			return;
+		case SPACE_ACTION:
+			if (mode == COMMONKEY_MODE_INSERT)
+				insertkey_action();
+			return;
+			
 		/* timeline view - keyframe buttons */
 		case SPACE_TIME:
 		{
 			ScrArea *sab;
+			int bigarea= 0;
 			
 			/* try to find largest 3d-view available 
 			 * (mostly of the time, this is what when user will want this,
@@ -1526,12 +1546,21 @@ static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContex
 				return;
 			}
 			
-			/* otherwise, try to find the biggest area
-			 * WARNING: must check if that area is another timeline, as that would cause infinite loop
-			 */
-			sab= closest_bigger_area();
-			if ((sab) && (sab->spacetype != SPACE_TIME)) 
-				commonkey_context_get(sab, sources, ksc);
+			/* if not found, sab is now NULL, so perform own biggest area test */
+			for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+				int area= sa->winx * sa->winy;
+				
+				if (sa->spacetype != SPACE_TIME) {
+					if ( (!sab) || (area > bigarea) ) {
+						sab= sa;
+						bigarea= area;
+					}
+				}
+			}
+			
+			/* use whichever largest area was found (it shouldn't be a time window) */
+			if (sab)
+				commonkey_context_get(sab, mode, sources, ksc);
 		}
 			break;
 	}
@@ -1670,12 +1699,6 @@ static bKeyingSet *get_keyingset_fromcontext (bKeyingContext *ksc, short index)
 
 /* ---------------- Keyframe Management API -------------------- */
 
-/* mode for common_modifykey */
-enum {
-	COMMONKEY_MODE_INSERT = 0,
-	COMMONKEY_MODE_DELETE,
-} eCommonModifyKey_Modes;
-
 /* Display a menu for handling the insertion of keyframes based on the active view */
 // TODO: add back an option for repeating last keytype
 void common_modifykey (short mode)
@@ -1691,26 +1714,10 @@ void common_modifykey (short mode)
 	if (ELEM(mode, COMMONKEY_MODE_INSERT, COMMONKEY_MODE_DELETE)==0)
 		return;
 	
-	/* delegate to other functions or get keyingsets to use */
-	switch (curarea->spacetype) {
-			/* spaces with their own methods */
-		case SPACE_IPO:
-			if (mode == COMMONKEY_MODE_INSERT)
-				insertkey_editipo();
-			return;
-		case SPACE_ACTION:
-			if (mode == COMMONKEY_MODE_INSERT)
-				insertkey_action();
-			return;
-			
-			/* TODO: based on UI elements? will that even be handled here??? */
-			
-			/* default - check per view */
-		default:
-			/* get the keyingsets and the data to add keyframes to */
-			commonkey_context_get(curarea, &dsources, &ksc);
-			break;
-	}	
+	/* delegate to other functions or get keyingsets to use 
+	 *	- if the current area doesn't have its own handling, there will be data returned...
+	 */
+	commonkey_context_get(curarea, mode, &dsources, &ksc);
 	
 	/* check that there is data to operate on */
 	if (ELEM(NULL, dsources.first, ksc)) {
