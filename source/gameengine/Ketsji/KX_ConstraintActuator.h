@@ -38,6 +38,7 @@
 #include "KX_ClientObjectInfo.h"
 
 class KX_RayCast;
+class KX_GameObject;
 
 class KX_ConstraintActuator : public SCA_IActuator
 {
@@ -65,6 +66,8 @@ protected:
 	int m_option;
 	// property to check
 	char m_property[32];
+	// hit object
+	KX_GameObject* m_hitObject;
 
 	/**
 	 * Clamp <var> to <min>, <max>. Borders are included (in as far as
@@ -92,6 +95,12 @@ protected:
 		KX_ACT_CONSTRAINT_ORIX,
 		KX_ACT_CONSTRAINT_ORIY,
 		KX_ACT_CONSTRAINT_ORIZ,
+		KX_ACT_CONSTRAINT_FHPX,
+		KX_ACT_CONSTRAINT_FHPY,
+		KX_ACT_CONSTRAINT_FHPZ,
+		KX_ACT_CONSTRAINT_FHNX,
+		KX_ACT_CONSTRAINT_FHNY,
+		KX_ACT_CONSTRAINT_FHNZ,
 		KX_ACT_CONSTRAINT_MAX
 	};
 	// match ACT_CONST_... values from BIF_interface.h
@@ -100,7 +109,8 @@ protected:
 		KX_ACT_CONSTRAINT_MATERIAL = 128,
 		KX_ACT_CONSTRAINT_PERMANENT = 256,
 		KX_ACT_CONSTRAINT_DISTANCE = 512,
-		KX_ACT_CONSTRAINT_LOCAL = 1024
+		KX_ACT_CONSTRAINT_LOCAL = 1024,
+		KX_ACT_CONSTRAINT_DOROTFH = 2048
 	};
 	bool IsValidMode(KX_CONSTRAINTTYPE m); 
 	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);

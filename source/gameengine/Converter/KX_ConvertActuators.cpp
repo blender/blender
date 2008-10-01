@@ -719,6 +719,40 @@ void BL_ConvertActuators(char* maggiename,
 						break;
 					}
 					prop = conact->matprop;
+				} else if (conact->type == ACT_CONST_TYPE_FH) {
+					switch (conact->mode) {
+					case ACT_CONST_DIRPX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPX;
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_DIRPY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPY;
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_DIRPZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					case ACT_CONST_DIRNX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNX;
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_DIRNY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNY;
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_DIRNZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					}
+					prop = conact->matprop;
 				} else {
 					switch (conact->flag) {
 					case ACT_CONST_LOCX:

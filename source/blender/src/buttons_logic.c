@@ -2214,8 +2214,46 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			uiDefButS(block, NUM, 0, "time", xco+10, yco-84, 70, 19, &(coa->time), 0.0, 1000.0, 0, 0, "Maximum activation time in frame, 0 for unlimited");
 			uiDefButF(block, NUM, 0, "min", xco+80, yco-84, (width-115)/2, 19, &(coa->minloc[0]), 0.0, 180.0, 10, 1, "Minimum angle (in degree) to maintain with target direction. No correction is done if angle with target direction is between min and max");
 			uiDefButF(block, NUM, 0, "max", xco+80+(width-115)/2, yco-84, (width-115)/2, 19, &(coa->maxloc[0]), 0.0, 180.0, 10, 1, "Maximum angle (in degree) allowed with target direction. No correction is done if angle with target direction is between min and max");
+		} else if (coa->type == ACT_CONST_TYPE_FH) {
+			ysize= 106;
+
+			glRects(xco, yco-ysize, xco+width, yco);
+			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
+			
+			str= "Direction %t|None %x0|X axis %x1|Y axis %x2|Z axis %x4|-X axis %x8|-Y axis %x16|-Z axis %x32";
+			uiDefButS(block, MENU, B_REDR, str,		xco+10, yco-65, 70, 19, &coa->mode, 0.0, 0.0, 0, 0, "Set the direction of the ray (in world coordinate)");
+
+			if(coa->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp= coa->minloc;
+			else if(coa->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp= coa->minloc+1;
+			else fp= coa->minloc+2;
+
+			uiDefButF(block, NUM,		0, "damp",	xco+10, yco-45, (width-70)/2, 19, &coa->maxrot[0], 0.0, 1.0, 1, 0, "Damping factor of the Fh spring force");
+			uiDefButF(block, NUM,		0, "dist",	xco+10+(width-70)/2, yco-45, (width-70)/2, 19, fp, 0.010, 2000.0, 10, 0, "Height of the Fh area");
+			uiDefButBitS(block, TOG, ACT_CONST_DOROTFH, 0, "Rot Fh",	xco+10+(width-70), yco-45, 50, 19, &coa->flag, 0.0, 0.0, 0, 0, "Keep object axis parallel to normal");
+
+			uiDefButF(block, NUMSLI, 0, "Fh ",		xco+80, yco-65, (width-115), 19, fp+3, 0.0, 1.0, 0, 0, "Spring force within the Fh area");
+			uiDefButBitS(block, TOG, ACT_CONST_NORMAL, 0, "N", xco+80+(width-115), yco-65, 25, 19,
+					 &coa->flag, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
+			uiDefButBitS(block, TOG, ACT_CONST_MATERIAL, B_REDR, "M/P", xco+10, yco-84, 40, 19,
+					 &coa->flag, 0.0, 0.0, 0, 0, "Detect material instead of property");
+			if (coa->flag & ACT_CONST_MATERIAL)
+			{
+				uiDefBut(block, TEX, 1, "Material:", xco + 50, yco-84, (width-60), 19,
+					coa->matprop, 0, 31, 0, 0,
+					"Ray detects only Objects with this material");
+			}
+			else
+			{
+				uiDefBut(block, TEX, 1, "Property:", xco + 50, yco-84, (width-60), 19,
+					coa->matprop, 0, 31, 0, 0,
+					"Ray detect only Objects with this property");
+			}
+			uiDefButBitS(block, TOG, ACT_CONST_PERMANENT, 0, "PER", xco+10, yco-103, 40, 19,
+				&coa->flag, 0.0, 0.0, 0, 0, "Persistent actuator: stays active even if ray does not reach target");
+			uiDefButS(block, NUM, 0, "time", xco+50, yco-103, 90, 19, &(coa->time), 0.0, 1000.0, 0, 0, "Maximum activation time in frame, 0 for unlimited");
+			uiDefButF(block, NUM, 0, "rotDamp", xco+140, yco-103, (width-150), 19, &coa->maxrot[1], 0.0, 1.0, 1, 0, "Use a different damping for rotation");
 		}
-		str= "Constraint Type %t|Location %x0|Distance %x1|Orientation %x2";
+		str= "Constraint Type %t|Location %x0|Distance %x1|Orientation %x2|Force field %x3";
 		but = uiDefButS(block, MENU, B_REDR, str,		xco+40, yco-23, (width-80), 19, &coa->type, 0.0, 0.0, 0, 0, "");
  		yco-= ysize;
         break;

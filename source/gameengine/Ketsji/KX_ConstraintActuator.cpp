@@ -112,7 +112,7 @@ KX_ConstraintActuator::~KX_ConstraintActuator()
 bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
 {
 
-	KX_GameObject* hitKXObj = client->m_gameobject;
+	m_hitObject = client->m_gameobject;
 	
 	bool bFound = false;
 
@@ -131,7 +131,7 @@ bool KX_ConstraintActuator::RayHit(KX_ClientObjectInfo* client, KX_RayCast* resu
 		}
 		else
 		{
-			bFound = hitKXObj->GetProperty(m_property) != NULL;
+			bFound = m_hitObject->GetProperty(m_property) != NULL;
 		}
 	}
 	// update the hit status
@@ -372,7 +372,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						// logically we should cancel the speed along the ray direction as we set the
 						// position along that axis
 						spc = obj->GetPhysicsController();
-						if (spc) {
+						if (spc && spc->IsDyna()) {
 							MT_Vector3 linV = spc->GetLinearVelocity();
 							// cancel the projection along the ray direction
 							MT_Scalar fallspeed = linV.dot(direction);
@@ -388,6 +388,110 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 					result = true;
 					goto CHECK_TIME;
 				}
+			}
+			break; 
+		case KX_ACT_CONSTRAINT_FHPX:
+		case KX_ACT_CONSTRAINT_FHPY:
+		case KX_ACT_CONSTRAINT_FHPZ:
+		case KX_ACT_CONSTRAINT_FHNX:
+		case KX_ACT_CONSTRAINT_FHNY:
+		case KX_ACT_CONSTRAINT_FHNZ:
+			switch (m_locrot) {
+			case KX_ACT_CONSTRAINT_FHPX:
+				normal[0] = -rotation[0][0];
+				normal[1] = -rotation[1][0];
+				normal[2] = -rotation[2][0];
+				direction = MT_Vector3(1.0,0.0,0.0);
+				break;
+			case KX_ACT_CONSTRAINT_FHPY:
+				normal[0] = -rotation[0][1];
+				normal[1] = -rotation[1][1];
+				normal[2] = -rotation[2][1];
+				direction = MT_Vector3(0.0,1.0,0.0);
+				break;
+			case KX_ACT_CONSTRAINT_FHPZ:
+				normal[0] = -rotation[0][2];
+				normal[1] = -rotation[1][2];
+				normal[2] = -rotation[2][2];
+				direction = MT_Vector3(0.0,0.0,1.0);
+				break;
+			case KX_ACT_CONSTRAINT_FHNX:
+				normal[0] = rotation[0][0];
+				normal[1] = rotation[1][0];
+				normal[2] = rotation[2][0];
+				direction = MT_Vector3(-1.0,0.0,0.0);
+				break;
+			case KX_ACT_CONSTRAINT_FHNY:
+				normal[0] = rotation[0][1];
+				normal[1] = rotation[1][1];
+				normal[2] = rotation[2][1];
+				direction = MT_Vector3(0.0,-1.0,0.0);
+				break;
+			case KX_ACT_CONSTRAINT_FHNZ:
+				normal[0] = rotation[0][2];
+				normal[1] = rotation[1][2];
+				normal[2] = rotation[2][2];
+				direction = MT_Vector3(0.0,0.0,-1.0);
+				break;
+			}
+			normal.normalize();
+			{
+				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
+				KX_IPhysicsController *spc = obj->GetPhysicsController();
+
+				if (!pe) {
+					std::cout << "WARNING: Constraint actuator " << GetName() << ":  There is no physics environment!" << std::endl;
+					goto CHECK_TIME;
+				}	 
+				if (!spc || !spc->IsDyna()) {
+					// the object is not dynamic, it won't support setting speed
+					goto CHECK_TIME;
+				}
+				m_hitObject = NULL;
+				// distance of Fh area is stored in m_minimum
+				MT_Point3 topoint = position + (m_minimumBound+spc->GetRadius()) * direction;
+				KX_RayCast::Callback<KX_ConstraintActuator> callback(this,spc);
+				result = KX_RayCast::RayTest(pe, position, topoint, callback);
+				// we expect a hit object
+				if (!m_hitObject)
+					result = false;
+				if (result)	
+				{
+					MT_Vector3 newnormal = callback.m_hitNormal;
+					// compute new position & orientation
+					MT_Scalar distance = (callback.m_hitPoint-position).length()-spc->GetRadius(); 
+					// estimate the velocity of the hit point
+					MT_Point3 relativeHitPoint;
+					relativeHitPoint = (callback.m_hitPoint-m_hitObject->NodeGetWorldPosition());
+					MT_Vector3 velocityHitPoint = m_hitObject->GetVelocity(relativeHitPoint);
+					MT_Vector3 relativeVelocity = spc->GetLinearVelocity() - velocityHitPoint;
+					MT_Scalar relativeVelocityRay = direction.dot(relativeVelocity);
+					MT_Scalar springExtent = 1.0 - distance/m_minimumBound;
+					// Fh force is stored in m_maximum
+					MT_Scalar springForce = springExtent * m_maximumBound;
+					// damping is stored in m_refDirection [0] = damping, [1] = rot damping
+					MT_Scalar springDamp = relativeVelocityRay * m_refDirection[0];
+					MT_Vector3 newVelocity = spc->GetLinearVelocity()-(springForce+springDamp)*direction;
+					if (m_option & KX_ACT_CONSTRAINT_NORMAL)
+					{
+						newVelocity+=(springForce+springDamp)*(newnormal-newnormal.dot(direction)*direction);
+					}
+					spc->SetLinearVelocity(newVelocity, false);
+					if (m_option & KX_ACT_CONSTRAINT_DOROTFH)
+					{
+						MT_Vector3 angSpring = (normal.cross(newnormal))*m_maximumBound;
+						MT_Vector3 angVelocity = spc->GetAngularVelocity();
+						// remove component that is parallel to normal
+						angVelocity -= angVelocity.dot(newnormal)*newnormal;
+						MT_Vector3 angDamp = angVelocity * ((m_refDirection[1]>MT_EPSILON)?m_refDirection[1]:m_refDirection[0]);
+						spc->SetAngularVelocity(spc->GetAngularVelocity()+(angSpring-angDamp), false);
+					}
+				} else if (m_option & KX_ACT_CONSTRAINT_PERMANENT) {
+					// no contact but still keep running
+					result = true;
+				}
+				// don't set the position with this constraint
+				goto CHECK_TIME;
 			}
 			break; 
 		case KX_ACT_CONSTRAINT_LOCX:

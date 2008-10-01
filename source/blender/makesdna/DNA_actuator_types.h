@@ -369,6 +369,7 @@ typedef struct FreeCamera {
 #define ACT_CONST_PERMANENT 256
 #define ACT_CONST_DISTANCE	512
 #define ACT_CONST_LOCAL     1024
+#define ACT_CONST_DOROTFH	2048
 
 /* constraint mode */
 #define ACT_CONST_DIRPX		1
@@ -382,6 +383,7 @@ typedef struct FreeCamera {
 #define ACT_CONST_TYPE_LOC	0
 #define ACT_CONST_TYPE_DIST	1
 #define ACT_CONST_TYPE_ORI	2
+#define ACT_CONST_TYPE_FH   3
 
 /* editObjectActuator->type */
 #define ACT_EDOB_ADD_OBJECT		0
