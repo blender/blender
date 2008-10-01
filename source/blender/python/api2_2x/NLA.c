@@ -1438,7 +1438,11 @@ static PyObject *ActionStrips_append( BPy_ActionStrips *self, PyObject * args )
     strip->flag = ACTSTRIP_LOCK_ACTION;
     find_stridechannel(ob, strip);
 
+	if(ob->nlastrips.first == NULL)
+		ob->nlaflag |= OB_NLA_OVERRIDE;
+	
     strip->repeat = 1.0;
+	strip->scale = 1.0;
     act->id.us++;
 
     BLI_addtail(&ob->nlastrips, strip);
