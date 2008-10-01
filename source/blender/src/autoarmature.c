@@ -78,7 +78,6 @@ struct RigNode;
 struct RigArc;
 struct RigEdge;
 
-#define NB_THREADS 4
 #define USE_THREADS
 
 typedef struct RigGraph {
@@ -328,6 +327,8 @@ void RIG_freeRigGraph(BGraph *rg)
 static RigGraph *newRigGraph()
 {
 	RigGraph *rg;
+	int totthread;
+	
 	rg = MEM_callocN(sizeof(RigGraph), "rig graph");
 	
 	rg->head = NULL;
@@ -339,7 +340,16 @@ static RigGraph *newRigGraph()
 	rg->free_node = NULL;
 	
 #ifdef USE_THREADS
-	rg->worker = BLI_create_worker(exec_retargetArctoArc, NB_THREADS, 20); /* fix number of threads */
+	if(G.scene->r.mode & R_FIXED_THREADS)
+	{
+		totthread = G.scene->r.threads;
+	}
+	else
+	{
+		totthread = BLI_system_thread_count();
+	}
+	
+	rg->worker = BLI_create_worker(exec_retargetArctoArc, totthread, 20); /* fix number of threads */
 #endif
 	
 	return rg;

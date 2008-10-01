@@ -225,7 +225,6 @@ void BLI_remove_threads(ListBase *threadbase)
 			tslot->callerdata = NULL;
 			pthread_join(tslot->pthread, NULL);
 			tslot->avail = 1;
-			break;
 		}
 	}
 }
