@@ -72,6 +72,9 @@ protected:
 	/** Name of the property (only used in from_prop mode). */
 	STR_String	m_propname;
 
+	/** Name of the property where we write the current frame number */
+	STR_String	m_framepropname;
+
 	/** Interpret the ipo as a force? */
 	bool    m_ipo_as_force;
 	
@@ -111,6 +114,7 @@ public:
 
 	KX_IpoActuator(SCA_IObject* gameobj,
 				   const STR_String& propname,
+				   const STR_String& framePropname,
 				   float starttime,
 				   float endtime,
 				   bool recurse,

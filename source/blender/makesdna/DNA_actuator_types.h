@@ -113,6 +113,7 @@ typedef struct bIpoActuator {
 	short flag, type;
 	int sta, end;
 	char name[32];
+	char frameProp[32];	/* Set this property to the actions current frame */
 	
 	short pad1, cur, butsta, butend;
 	

@@ -37,6 +37,7 @@
  
 #include "KX_IpoActuator.h"
 #include "KX_GameObject.h"
+#include "FloatValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -62,6 +63,7 @@ STR_String KX_IpoActuator::S_KX_ACT_IPO_FROM_PROP_STRING = "FromProp";
 
 KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   const STR_String& propname,
+							   const STR_String& framePropname,
 							   float starttime,
 							   float endtime,
 							   bool recurse,
@@ -78,6 +80,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_localtime(starttime),
 	m_direction(1),
 	m_propname(propname),
+	m_framepropname(framePropname),
 	m_ipo_as_force(ipo_as_force),
 	m_ipo_add(ipo_add),
 	m_ipo_local(ipo_local),
@@ -356,7 +359,20 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	default:
 		result = false;
 	}
-	
+
+	/* Set the property if its defined */
+	if (m_framepropname[0] != '\0') {
+		CValue* propowner = GetParent();
+		CValue* oldprop = propowner->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(m_localtime);
+		if (oldprop) {
+			oldprop->SetValue(newval);
+		} else {
+			propowner->SetProperty(m_framepropname, newval);
+		}
+		newval->Release();
+	}
+
 	if (!result)
 	{
 		if (m_type != KX_ACT_IPO_LOOPSTOP)

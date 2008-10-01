@@ -235,7 +235,8 @@ void BL_ConvertActuators(char* maggiename,
 			{
 				bIpoActuator* ipoact = (bIpoActuator*) bact->data;
 				bool ipochild = (ipoact->flag & ACT_IPOCHILD) !=0;
-				STR_String propname = ( ipoact->name ? ipoact->name : "");
+				STR_String propname = ipoact->name;
+				STR_String frameProp = ipoact->frameProp;
 				// first bit?
 				bool ipo_as_force = (ipoact->flag & ACT_IPOFORCE);
 				bool local = (ipoact->flag & ACT_IPOLOCAL);
@@ -244,6 +245,7 @@ void BL_ConvertActuators(char* maggiename,
 				KX_IpoActuator* tmpbaseact = new KX_IpoActuator(
 					gameobj,
 					propname ,
+					frameProp,
 					ipoact->sta,
 					ipoact->end,
 					ipochild,

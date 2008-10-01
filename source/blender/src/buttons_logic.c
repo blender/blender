@@ -1866,7 +1866,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		{
 			ia= act->data;
 			
-			ysize= 52;
+			ysize= 72;
 			
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -1915,6 +1915,10 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				"Child",	xco+10+(width-80), yco-44, 60, 19, 
 				&ia->flag, 0, 0, 0, 0, 
 				"Update IPO on all children Objects as well");
+			uiDefBut(block, TEX, 0, 
+				"FrameProp: ",		xco+10, yco-64, width-20, 19, 
+				ia->frameProp, 0.0, 31.0, 0, 0, 
+				"Assign this property this action current frame number");
 
 			yco-= ysize;
 			break;
