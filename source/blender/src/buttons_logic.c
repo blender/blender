@@ -3004,9 +3004,9 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 		if (ob->bsoft)
 		{
 			xco = 0;
-			uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 238, 19, 
+			uiDefButF(block, NUMSLI, 0, "LinStiff", xco, yco, 238, 19, 
 				&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
-				"Linear stiffness of the soft body vertex spring");
+				"Linear stiffness of the soft body links");
 			yco -= 25;
 			xco = 0;
 
@@ -3027,27 +3027,41 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 				xco+=120, yco, 118, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
 				"Enable cluster collision between soft and soft body");
 			yco -= 25;
+			xco = 0;
+			uiDefButI(block, NUM, REDRAWVIEW3D, "Clus.It.",		
+				xco, yco, 118, 19, &ob->bsoft->numclusteriterations, 1.0, 128., 
+				0, 0, "Specify the number of cluster iterations");
+
+			uiDefButI(block, NUM, REDRAWVIEW3D, "piterations",		
+				xco+=120, yco, 118, 19, &ob->bsoft->piterations, 0, 10, 
+				0, 0, "Position solver iterations");
+
+			yco -= 25;
+			xco = 0;
+			uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Friction",		
+				xco, yco, 118, 19, &ob->bsoft->kDF, 0.0, 1., 
+				0, 0, "Dynamic Friction");
+
+			uiDefButF(block, NUMSLI, REDRAWVIEW3D, "kMT",		
+				xco+=120, yco, 118, 19, &ob->bsoft->kMT, 0, 1,
+				0, 0, "Pose matching coefficient");
+
+			/*
+			//too complex tweaking, disable for now
+			uiDefButF(block, NUMSLI, REDRAWVIEW3D, "kVC",		
+				xco+=80, yco, 80, 19, &ob->bsoft->kVC, 0, 100,
+				0, 0, "Volume coefficient");
+			*/
 
 			xco = 0;
 /*
+//would be a cool option, like leaves in the wind, need complex tweaking
 			uiDefButBitI(block, TOG, OB_BSB_AERO_VTWOSIDE, 0, "Aero model",
 				xco, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0,
 				"Enable aero model, vertex normals are flipped to match velocity");
 		
 			yco -= 25;
 */
-
-
-			
-			/*
-			uiDefButF(block, NUMSLI, 0, "AngStiff ", xco, yco, 238, 19, 
-			&ob->bsoft->angStiff, 0.0, 1.0, 1, 0, 
-			"Angular stiffness of the soft body vertex spring");
-			yco -= 25;
-			uiDefButF(block, NUMSLI, 0, "Volume ", xco, yco, 238, 19, 
-			&ob->bsoft->volume, 0.0, 1.0, 1, 0, 
-			"Factor of soft body volume preservation");
-			*/
 
 		}
 

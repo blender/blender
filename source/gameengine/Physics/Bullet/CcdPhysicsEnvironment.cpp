@@ -1532,13 +1532,56 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		int node=findClosestNode(sb0,pivotPointSoftWorld);
 		if (node >=0)
 		{
-			if (rb1)
+			bool clusterconstaint = false;
+/*
+			switch (type)
 			{
-				sb0->appendAnchor(node,rb1);
-			} else
+			case PHY_LINEHINGE_CONSTRAINT:
+				{
+					if (sb0->clusterCount() && rb1)
+					{
+						btSoftBody::LJoint::Specs	ls;
+						ls.erp=0.5f;
+						ls.position=sb0->clusterCom(0);
+						sb0->appendLinearJoint(ls,rb1);
+						clusterconstaint = true;
+						break;
+					}
+				}
+			case PHY_GENERIC_6DOF_CONSTRAINT:
+				{
+					if (sb0->clusterCount() && rb1)
+					{
+						btSoftBody::AJoint::Specs as;
+						as.erp = 1;
+						as.cfm = 1;
+						as.axis.setValue(axisX,axisY,axisZ);
+						sb0->appendAngularJoint(as,rb1);
+						clusterconstaint = true;
+						break;
+					}
+
+					break;
+				}
+			default:
+				{
+				
+				}
+			};
+			*/
+
+			if (!clusterconstaint)
 			{
-				sb0->setMass(node,0.f);
+				if (rb1)
+				{
+					sb0->appendAnchor(node,rb1);
+				} else
+				{
+					sb0->setMass(node,0.f);
+				}
 			}
+
+			
 		}
 		return 0;//can't remove soft body anchors yet
 	}
@@ -1549,13 +1592,58 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		int node=findClosestNode(sb1,pivotPointAWorld);
 		if (node >=0)
 		{
-			if (rb0)
+			bool clusterconstaint = false;
+
+			/*
+			switch (type)
 			{
-				sb1->appendAnchor(node,rb0);
-			} else
+			case PHY_LINEHINGE_CONSTRAINT:
+				{
+					if (sb1->clusterCount() && rb0)
+					{
+						btSoftBody::LJoint::Specs	ls;
+						ls.erp=0.5f;
+						ls.position=sb1->clusterCom(0);
+						sb1->appendLinearJoint(ls,rb0);
+						clusterconstaint = true;
+						break;
+					}
+				}
+			case PHY_GENERIC_6DOF_CONSTRAINT:
+				{
+					if (sb1->clusterCount() && rb0)
+					{
+						btSoftBody::AJoint::Specs as;
+						as.erp = 1;
+						as.cfm = 1;
+						as.axis.setValue(axisX,axisY,axisZ);
+						sb1->appendAngularJoint(as,rb0);
+						clusterconstaint = true;
+						break;
+					}
+
+					break;
+				}
+			default:
+				{
+					
+
+				}
+			};*/
+
+
+			if (!clusterconstaint)
 			{
-				sb1->setMass(node,0.f);
+				if (rb0)
+				{
+					sb1->appendAnchor(node,rb0);
+				} else
+				{
+					sb1->setMass(node,0.f);
+				}
 			}
+			
+
 		}
 		return 0;//can't remove soft body anchors yet
 	}
