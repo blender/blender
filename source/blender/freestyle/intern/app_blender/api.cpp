@@ -41,11 +41,10 @@ extern "C" {
 		if( controller == NULL )
 			controller = new Controller;
 		
-		if( view == NULL )
+		if( view == NULL ) {
 			view = new AppGLWidget;
-		
-		controller->setView(view);
-		controller->Clear();
+			controller->setView(view);
+		}
 		
 		if( strlen(style_module) == 0 ){
 			string path( pathconfig->getProjectDir() +  Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py" );
@@ -82,23 +81,18 @@ extern "C" {
 		view->_camera->setUpVector(camUp);	
 		view->_camera->setViewDirection(camDirection);
 	}
-		
-	void FRS_load_mesh( Render *re ){
-		controller->LoadMesh(re);
-	}
+
 	
 	void FRS_prepare(Render* re) {
-		FRS_initialize();
 		
+		// init
+		FRS_initialize();
 		FRS_init_view(re);
 		FRS_init_camera(re);
+		controller->Clear();
 
-		FRS_load_mesh(re);
-	}
-
-	void FRS_render(Render* re, int render_in_layer) {
-		
-		view->workingBuffer = GL_BACK;
+		// load mesh
+		controller->LoadMesh(re);
 		
 		// add style module
 		cout << "Module: " << style_module << endl;
@@ -110,76 +104,23 @@ extern "C" {
 		
 		// build strokes
 		controller->DrawStrokes(); 
-		
-		// render final result
-		view->draw(); 
 	}
 
-	void FRS_execute(Render* re, int render_in_layer) {
+	void FRS_render_GL(Render* re) {
 		
-		if(render_in_layer) {
-
-		// 	GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-		// 	switch(status){
-		// 		case GL_FRAMEBUFFER_COMPLETE_EXT:
-		// 		cout << "CORRECT: GL_FRAMEBUFFER_COMPLETE" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT" << endl;
-		// 		break;
-		// 		case GL_FRAMEBUFFER_UNSUPPORTED_EXT: 
-		// 		cout << "ERROR: GL_FRAMEBUFFER_UNSUPPORTED" << endl;
-		// 		break;
-		// }
+		cout << "Rendering Freestyle with OpenGL" << endl;
 		
-			RenderLayer *rl;
+		// render strokes
+		view->workingBuffer = GL_BACK;
+		view->draw();
 		
-			for(rl = (RenderLayer *)re->result->layers.first; rl; rl= rl->next)
-				if(rl->layflag & SCE_LAY_FRS)
-					break;
-			
-			int p;
-			for(int j = 0; j < re->winy; j++) {
-				for(int i = 0; i < re->winx; i++){
-					p = 4*(j*re->winx + i);
-					rl->rectf[p]      *= 0.6;
-					rl->rectf[p + 1]  = 0.6 * rl->rectf[p + 1];
-					rl->rectf[p + 2] *= 0.6;
-					rl->rectf[p + 3]  = 1.0;
-				}
-			}
-			
-		} else {
-			// used to reobtain ogl context after RE_Database_FromScene call
-			re->display_clear(re->result);
-			
-			// render strokes
-			FRS_render(re, render_in_layer);		
-			
-			// display result
-			RenderResult rres;
-			RE_GetResultImage(re, &rres);
-			view->readPixels(0, 0, re->winx, re->winy, AppGLWidget::RGBA, rres.rectf );		
-			re->result->renlay = render_get_active_layer(re, re->result);
-			re->display_draw(re->result, NULL);
-		}
-
-		
+		// display result
+		RenderResult rres;
+		RE_GetResultImage(re, &rres);
+		view->readPixels(0, 0, re->winx, re->winy, AppGLWidget::RGBA, rres.rectf );		
+		re->result->renlay = render_get_active_layer(re, re->result);
+		re->display_draw(re->result, NULL);
+	
 		controller->CloseFile();
 	}
 	

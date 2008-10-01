@@ -9,7 +9,7 @@ extern "C" {
 	
 	void FRS_initialize();
 	void FRS_prepare(Render* re);
-	void FRS_execute(Render* re, int render_in_layer);
+	void FRS_render_GL(Render* re);
 
 #ifdef __cplusplus
 }

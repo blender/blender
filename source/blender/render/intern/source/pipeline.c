@@ -1630,13 +1630,12 @@ static void do_render_3d(Render *re)
 	else
 	   RE_Database_FromScene(re, re->scene, 1);
 	
-	threaded_tile_processor(re);
-	
 	/* Freestyle */
 	if( re->r.mode & R_EDGE_FRS ) {
 		FRS_prepare(re);
-		FRS_execute(re,1);
 	}
+	
+	threaded_tile_processor(re);
 	
 	/* do left-over 3d post effects (flares) */
 	if(re->flag & R_HALO)
@@ -2201,8 +2200,6 @@ static void do_render_composite_fields_blur_3d(Render *re)
 
 static void freestyleRender(Render *re)
 {
-	float mat[4][4];
-	
 	// init render result
 	RE_FreeRenderResult(re->result);
 	re->result = new_render_result(re, &re->disprect, 0, RR_USEMEM);
@@ -2215,13 +2212,16 @@ static void freestyleRender(Render *re)
 		RE_Database_FromScene_Vectors(re, re->scene);
 	else
 	   RE_Database_FromScene(re, re->scene, 1);
-		
+	
+	// used to reobtain ogl context after RE_Database_FromScene call
+	re->display_clear(re->result);
+	
 	// Freestyle initialization
 	FRS_prepare(re);
 	
 	// run Freestyle
 	re->i.starttime = PIL_check_seconds_timer();
-	FRS_execute(re, 0);
+	FRS_render_GL(re);
 	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
 	

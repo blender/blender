@@ -35,6 +35,7 @@ SET(INC
   ../render/extern/include ../radiosity/extern/include
   ../makesdna ../../../intern/guardedalloc ../../../intern/bmfont ../imbuf ../include
   ${PYTHON_INC} ../../../extern/glew/include ../gpu
+  ../freestyle ../freestyle/intern/python
 )
 
 IF(WITH_QUICKTIME)
