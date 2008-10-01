@@ -797,7 +797,7 @@ static void texture_panel_pointdensity(Tex *tex)
 			
 			uiDefBut(block, LABEL, B_NOP, "Cache vertices in:",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-			uiDefButS(block, MENU, B_TEXREDR_PRV, "Object Space %x1|Global Space %x2",
+			uiDefButS(block, MENU, B_TEXREDR_PRV, "Object Location %x0|Object Space %x1|Global Space %x2",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->ob_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache vertices in");
 		}
 	}

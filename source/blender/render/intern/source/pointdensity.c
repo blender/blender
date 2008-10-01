@@ -120,13 +120,15 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *o
 		VertRen *ver= RE_findOrAddVert(obr, i);
 		
 		VECCOPY(ver_co, ver->co);
+		Mat4MulVecfl(re->viewinv, ver_co);
 		
 		if (pd->ob_cache_space == TEX_PD_OBJECTSPACE) {
-			Mat4MulVecfl(re->viewinv, ver_co);
 			Mat4MulVecfl(obr->ob->imat, ver_co);
+		} else if (pd->psys_cache_space == TEX_PD_OBJECTLOC) {
+			VecSubf(ver_co, ver_co, obr->ob->loc);
 		} else {
 			/* TEX_PD_WORLDSPACE */
-			Mat4MulVecfl(re->viewinv, ver_co);
+
 		}
 		
 		BLI_bvhtree_insert(pd->point_tree, i, ver_co, 1);
