@@ -758,7 +758,7 @@ static void texture_panel_pointdensity(Tex *tex)
 		
 		uiDefBut(block, LABEL, B_NOP, "Falloff:",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
-		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Sharp %x2",
+		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Sharp %x2|Constant %x3|Root %x4",
 				X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
 		
 		yco = PANEL_YMAX;
@@ -4334,7 +4334,7 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
 	uiBlockEndAlign(block);
-	
+		
 	yco = PANEL_YMAX;
 	
 	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",

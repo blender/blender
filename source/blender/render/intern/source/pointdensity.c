@@ -224,7 +224,6 @@ void free_pointdensities(Render *re)
 	}
 }
 
-
 void accum_density_std(void *userdata, int index, float squared_dist, float squared_radius)
 {
 	float *density = userdata;
@@ -249,6 +248,22 @@ void accum_density_sharp(void *userdata, int index, float squared_dist, float sq
 	*density+= dist*dist;
 }
 
+void accum_density_constant(void *userdata, int index, float squared_dist, float squared_radius)
+{
+	float *density = userdata;
+		
+	*density+= squared_radius;
+}
+
+void accum_density_root(void *userdata, int index, float squared_dist, float squared_radius)
+{
+	float *density = userdata;
+	const float dist = squared_radius - squared_dist;
+		
+	*density+= sqrt(dist);
+}
+
+
 #define MAX_POINTS_NEAREST	25
 int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 {
@@ -267,7 +282,11 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_smooth, &density);
 	else if (pd->falloff_type == TEX_PD_FALLOFF_SHARP)
 		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_sharp, &density);
-
+	else if (pd->falloff_type == TEX_PD_FALLOFF_CONSTANT)
+		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_constant, &density);
+	else if (pd->falloff_type == TEX_PD_FALLOFF_ROOT)
+		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_root, &density);
+	
 	texres->tin = density;
 
 	/*

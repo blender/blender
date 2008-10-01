@@ -132,7 +132,6 @@ typedef struct PointDensity {
 
 	short falloff_type;
 	float radius;
-
 	short source;
 	short pdpad[3];
 
@@ -422,6 +421,8 @@ typedef struct TexMapping {
 #define TEX_PD_FALLOFF_STD		0
 #define TEX_PD_FALLOFF_SMOOTH	1
 #define TEX_PD_FALLOFF_SHARP	2
+#define TEX_PD_FALLOFF_CONSTANT	3
+#define TEX_PD_FALLOFF_ROOT		4
 
 /* psys_cache_space */
 #define TEX_PD_OBJECTLOC	0
