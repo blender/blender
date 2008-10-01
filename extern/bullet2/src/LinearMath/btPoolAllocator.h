@@ -91,6 +91,11 @@ public:
         }
 	}
 
+	int	getElementSize() const
+	{
+		return m_elemSize;
+	}
+
 
 };
 

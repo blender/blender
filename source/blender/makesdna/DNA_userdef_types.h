@@ -290,10 +290,6 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 
-/* Auto-Keying macros */
-#define IS_AUTOKEY_ON			(U.autokey_mode & AUTOKEY_ON)
-#define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
-#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)

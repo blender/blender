@@ -397,7 +397,7 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 	bConstraint *con= pchan->constraints.first;
 	
 	for(;con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
 			
 			if(data->tar==NULL) 
@@ -505,12 +505,17 @@ static short apply_targetless_ik(Object *ob)
 					Mat3ToQuat(rmat3, parchan->quat);
 					
 					/* for size, remove rotation */
-					QuatToMat3(parchan->quat, qmat);
-					Mat3Inv(imat, qmat);
-					Mat3MulMat3(smat, rmat3, imat);
-					Mat3ToSize(smat, parchan->size);
+					/* causes problems with some constraints (so apply only if needed) */
+					if (data->flag & CONSTRAINT_IK_STRETCH) {
+						QuatToMat3(parchan->quat, qmat);
+						Mat3Inv(imat, qmat);
+						Mat3MulMat3(smat, rmat3, imat);
+						Mat3ToSize(smat, parchan->size);
+					}
 					
-					VECCOPY(parchan->loc, rmat[3]);
+					/* causes problems with some constraints (e.g. childof), so disable this */
+					/* as it is IK shouldn't affect location directly */
+					/* VECCOPY(parchan->loc, rmat[3]); */
 				}
 				
 			}
@@ -711,7 +716,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 	
 	/* check if pchan has ik-constraint */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
 			
 			/* only accept if a temporary one (for auto-ik) */
@@ -763,6 +768,7 @@ static void pose_grab_with_ik_clear(Object *ob)
 		/* clear all temporary lock flags */
 		pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP|BONE_IK_NO_YDOF_TEMP|BONE_IK_NO_ZDOF_TEMP);
 		
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 		/* remove all temporary IK-constraints added */
 		for (con= pchan->constraints.first; con; con= con->next) {
 			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
@@ -771,9 +777,11 @@ static void pose_grab_with_ik_clear(Object *ob)
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
-					pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
-					break;
+					continue;
 				}
+				pchan->constflag |= PCHAN_HAS_IK;
+				if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
+					pchan->constflag |= PCHAN_HAS_TARGET;
 			}
 		}
 	}
@@ -784,6 +792,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 {
 	bKinematicConstraint *data;
 	bConstraint *con;
+	bConstraint *targetless = 0;
 	
 	/* Sanity check */
 	if (pchan == NULL) 
@@ -791,23 +800,31 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	
 	/* Rule: not if there's already an IK on this channel */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type==CONSTRAINT_TYPE_KINEMATIC)
-			break;
-	}
-	
-	if (con) {
-		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
-		data= has_targetless_ik(pchan);
-		if (data)
-			data->flag |= CONSTRAINT_IK_AUTO;
-		return 0;
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data= con->data;
+			if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0)) {
+				targetless = con;
+				/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
+				if (con->enforce!=0.0) {
+					targetless->flag |= CONSTRAINT_IK_AUTO;
+					return 0;
+				}
+			}
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0))
+				return 0;
+		}
 	}
 	
 	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 	BLI_addtail(&pchan->constraints, con);
 	pchan->constflag |= (PCHAN_HAS_IK|PCHAN_HAS_TARGET);	/* for draw, but also for detecting while pose solving */
 	data= con->data;
-	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
+	if (targetless) { /* if exists use values from last targetless IK-constraint as base */
+		*data = *((bKinematicConstraint*)targetless->data);
+	}
+	else
+		data->flag= CONSTRAINT_IK_TIP;
+	data->flag |= CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
 	VECCOPY(data->grabtarget, pchan->pose_tail);
 	data->rootbone= 1;
 	
@@ -4276,6 +4293,7 @@ void createTransData(TransInfo *t)
 	/* temporal...? */
 	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
+
 
 
 

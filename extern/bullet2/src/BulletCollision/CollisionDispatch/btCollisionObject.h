@@ -49,6 +49,9 @@ protected:
 	//without destroying the continuous interpolated motion (which uses this interpolation velocities)
 	btVector3	m_interpolationLinearVelocity;
 	btVector3	m_interpolationAngularVelocity;
+	btVector3		m_anisotropicFriction;
+	bool	m_hasAnisotropicFriction;
+
 	btBroadphaseProxy*		m_broadphaseHandle;
 	btCollisionShape*		m_collisionShape;
 	
@@ -117,6 +120,20 @@ public:
 	{
 		///static objects, kinematic and object without contact response don't merge islands
 		return  ((m_collisionFlags & (CF_STATIC_OBJECT | CF_KINEMATIC_OBJECT | CF_NO_CONTACT_RESPONSE) )==0);
+	}
+
+	const btVector3& getAnisotropicFriction() const
+	{
+		return m_anisotropicFriction;
+	}
+	void	setAnisotropicFriction(const btVector3& anisotropicFriction)
+	{
+		m_anisotropicFriction = anisotropicFriction;
+		m_hasAnisotropicFriction = (anisotropicFriction[0]!=1.f) || (anisotropicFriction[1]!=1.f) || (anisotropicFriction[2]!=1.f);
+	}
+	bool	hasAnisotropicFriction() const
+	{
+		return m_hasAnisotropicFriction;
 	}
 
 

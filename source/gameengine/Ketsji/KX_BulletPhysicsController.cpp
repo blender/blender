@@ -115,7 +115,7 @@ MT_Vector3 KX_BulletPhysicsController::GetAngularVelocity()
 MT_Vector3 KX_BulletPhysicsController::GetVelocity(const MT_Point3& pos)
 {
 	float linVel[3];
-	CcdPhysicsController::GetLinearVelocity(linVel[0],linVel[1],linVel[2]);
+	CcdPhysicsController::GetVelocity(pos[0], pos[1], pos[2], linVel[0],linVel[1],linVel[2]);
 	return MT_Vector3(linVel[0],linVel[1],linVel[2]);
 }
 
@@ -160,6 +160,12 @@ MT_Scalar	KX_BulletPhysicsController::GetMass()
 	return 0.f;
 
 }
+
+MT_Scalar KX_BulletPhysicsController::GetRadius()
+{
+	return MT_Scalar(CcdPhysicsController::GetRadius());
+}
+
 MT_Vector3	KX_BulletPhysicsController::getReactionForce()
 {
 	assert(0);
@@ -211,6 +217,9 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 	//parentcontroller is here be able to avoid collisions between parent/child
 
 	PHY_IPhysicsController* parentctrl = NULL;
+	KX_BulletPhysicsController* parentKxCtrl = NULL;
+	CcdPhysicsController* ccdParent = NULL;
+
 	
 	if (destnode != destnode->GetRootSGParent())
 	{
@@ -230,12 +239,15 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 				KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
 				if (clientgameobj)
 				{
-					parentctrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentctrl = parentKxCtrl;
+					ccdParent = parentKxCtrl;
 				}
 			}
 		}
 	}
 
+	physicsreplica->setParentCtrl(ccdParent);
 	physicsreplica->PostProcessReplica(motionstate,parentctrl);
 	physicsreplica->m_userdata = (PHY_IPhysicsController*)physicsreplica;
 	return physicsreplica;

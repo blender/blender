@@ -88,7 +88,11 @@ public:
 		m_bDyna = isDynamic;
 	}
 
+	bool	IsDyna(void) {
+		return m_bDyna;
+	}
 
+	virtual MT_Scalar GetRadius()=0;
 	virtual void	SetSumoTransform(bool nondynaonly)=0;
 	// todo: remove next line !
 	virtual void	SetSimulatedTime(double time)=0;

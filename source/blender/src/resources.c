@@ -774,6 +774,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			break;
 		case SPACE_TEXT:
 			str += sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Line Numbers Background %%x%d|", TH_GRID);
 			str += sprintf(str, "Selected Text %%x%d|", TH_SHADE2);
 			str += sprintf(str, "Cursor %%x%d|", TH_HILITE);
 			str += sprintf(str, "%%l|");

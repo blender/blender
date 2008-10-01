@@ -36,6 +36,7 @@ BulletCollision/BroadphaseCollision \
 BulletCollision/CollisionShapes \
 BulletCollision/NarrowPhaseCollision \
 BulletCollision/CollisionDispatch \
+BulletCollision/Gimpact \
 BulletDynamics/ConstraintSolver \
 BulletDynamics/Vehicle \
 BulletDynamics/Dynamics \
@@ -47,6 +48,7 @@ BulletCollision/BroadphaseCollision/*.cpp \
 BulletCollision/CollisionShapes/*.cpp \
 BulletCollision/NarrowPhaseCollision/*.cpp \
 BulletCollision/CollisionDispatch/*.cpp \
+BulletCollision/Gimpact/*.cpp \
 BulletDynamics/ConstraintSolver/*.cpp \
 BulletDynamics/Vehicle/*.cpp \
 BulletDynamics/Dynamics/*.cpp \

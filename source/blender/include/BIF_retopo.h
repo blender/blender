@@ -79,27 +79,27 @@ typedef struct RetopoPaintData {
 	struct View3D *paint_v3d;
 } RetopoPaintData;
 
-RetopoPaintData *get_retopo_paint_data();
+RetopoPaintData *get_retopo_paint_data(void);
 
-char retopo_mesh_check();
-char retopo_curve_check();
+char retopo_mesh_check(void);
+char retopo_curve_check(void);
 
-void retopo_end_okee();
+void retopo_end_okee(void);
 
 void retopo_free_paint_data(RetopoPaintData *rpd);
-void retopo_free_paint();
+void retopo_free_paint(void);
 
-char retopo_mesh_paint_check();
+char retopo_mesh_paint_check(void);
 void retopo_paint_view_update(struct View3D *v3d);
-void retopo_force_update();
+void retopo_force_update(void);
 void retopo_paint_toggle(void*,void*);
 char retopo_paint(const unsigned short event);
-void retopo_draw_paint_lines();
+void retopo_draw_paint_lines(void);
 RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd);
 
 void retopo_toggle(void*,void*);
 void retopo_do_vert(struct View3D *v3d, float *v);
-void retopo_do_all();
+void retopo_do_all(void);
 void retopo_do_all_cb(void *, void *);
 void retopo_queue_updates(struct View3D *v3d);
 

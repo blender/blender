@@ -88,6 +88,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
+#include "BKE_property.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
 #include "BKE_texture.h"
@@ -122,6 +123,7 @@
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_keyframing.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
@@ -195,9 +197,9 @@ extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, stru
  * When the mipmap setting changes, we want to redraw the view right
  * away to reflect this setting.
  */
-void space_mipmap_button_function(int event);
+static void space_mipmap_button_function(int event);
 
-void free_soundspace(SpaceSound *ssound);
+static void free_soundspace(SpaceSound *ssound);
 
 /* *************************************** */
 
@@ -386,7 +388,11 @@ void space_set_commmandline_options(void) {
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
 		a= (U.gameflags & USER_DISABLE_SOUND);
-		SYS_WriteCommandLineInt(syshandle, "noaudio", a);
+		/* if user already disabled audio at the command-line, don't re-enable it */
+		if (a)
+		{
+			SYS_WriteCommandLineInt(syshandle, "noaudio", a);
+		}
 
 		a= (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!a);
@@ -1864,8 +1870,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case AKEY:
-				if (G.obedit == 0 && G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
-					alignmenu();
+				if(G.qual == (LR_CTRLKEY|LR_ALTKEY)) {
+					if(G.obedit == 0)
+						alignmenu();
+					else if(G.obedit->type==OB_ARMATURE)
+						align_selected_bones();
 				}
 				else if(G.qual & LR_CTRLKEY) { /* also with shift! */
 					apply_object();	
@@ -3246,16 +3255,21 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case XKEY:
 		case DELKEY:
-			if (okee("Erase selected")) {
-				remove_marker();
-				del_ipo(0);
-				
-				/* note: don't update the other spaces (in particular ipo)
-				 *		 or else curves disappear.
-				 */
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWSOUND, 0);
+			/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+			if (G.qual == LR_SHIFTKEY) {
+				if (okee("Erase selected marker(s)?"))
+					remove_marker();
 			}
+			else {
+				if (okee("Erase selected?"))
+					del_ipo(0);
+			}
+			
+			/* note: don't update the other spaces (in particular ipo)
+			 *		 or else curves disappear.
+			 */
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		case ACCENTGRAVEKEY:
 			if((G.qual==0)) {
@@ -3302,7 +3316,7 @@ void initipo(ScrArea *sa)
 
 /* ******************** SPACE: INFO ********************** */
 
-void space_mipmap_button_function(int event) {
+static void space_mipmap_button_function(int event) {
 	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -4031,7 +4045,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(2*mpref)+(2*midsp)),y5,mpref, buth,
 				&(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 			
-			if (IS_AUTOKEY_ON) {
+			if (U.autokey_mode & AUTOKEY_ON) {
 				uiDefButS(block, MENU, REDRAWTIME, 
 						"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
 						(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 
@@ -5197,6 +5211,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(sseq->mainb)
 					gpencil_delete_menu();
 			}
+			else if(G.qual==LR_SHIFTKEY) {
+				/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+				remove_marker();
+			}
 			break;
 		case PAD1: case PAD2: case PAD4: case PAD8:
 			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
@@ -5372,7 +5390,7 @@ static void init_soundspace(ScrArea *sa)
 	
 }
 
-void free_soundspace(SpaceSound *ssound)
+static void free_soundspace(SpaceSound *ssound)
 {
 	/* don't free ssound itself */
 	

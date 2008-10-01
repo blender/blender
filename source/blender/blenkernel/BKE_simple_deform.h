@@ -1,4 +1,6 @@
 /**
+ * BKE_shrinkwrap.h
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -15,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -24,24 +26,14 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef BKE_SIMPLE_DEFORM_H
+#define BKE_SIMPLE_DEFORM_H
 
-#ifndef BKE_WRITEFRAMESERVER_H
-#define BKE_WRITEFRAMESERVER_H
+struct Object;
+struct DerivedMesh;
+struct SimpleDeformModifierData;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct RenderData;	
-
-extern void start_frameserver(struct RenderData *rd, int rectx, int recty);
-extern void end_frameserver(void);
-extern void append_frameserver(int frame, int *pixels, int rectx, int recty);
-extern int frameserver_loop(void);
-
-#ifdef __cplusplus
-}
-#endif
+void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
 #endif
 

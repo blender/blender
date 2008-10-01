@@ -105,6 +105,7 @@
 #include "depsgraph_private.h"
 #include "BKE_deform.h"
 #include "BKE_shrinkwrap.h"
+#include "BKE_simple_deform.h"
 
 #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
@@ -2138,6 +2139,8 @@ typedef struct SmoothMesh {
 	DerivedMesh *dm;
 	float threshold; /* the cosine of the smoothing angle */
 	int flags;
+	MemArena *arena;
+	ListBase propagatestack, reusestack;
 } SmoothMesh;
 
 static SmoothVert *smoothvert_copy(SmoothVert *vert, SmoothMesh *mesh)
@@ -2220,6 +2223,9 @@ static void smoothmesh_free(SmoothMesh *mesh)
 
 	for(i = 0; i < mesh->num_edges; ++i)
 		BLI_linklist_free(mesh->edges[i].faces, NULL);
+	
+	if(mesh->arena)
+		BLI_memarena_free(mesh->arena);
 
 	MEM_freeN(mesh->verts);
 	MEM_freeN(mesh->edges);
@@ -2871,6 +2877,49 @@ static void split_single_vert(SmoothVert *vert, SmoothFace *face,
 	face_replace_vert(face, &repdata);
 }
 
+typedef struct PropagateEdge {
+	struct PropagateEdge *next, *prev;
+	SmoothEdge *edge;
+	SmoothVert *vert;
+} PropagateEdge;
+
+static void push_propagate_stack(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
+{
+	PropagateEdge *pedge = mesh->reusestack.first;
+
+	if(pedge) {
+		BLI_remlink(&mesh->reusestack, pedge);
+	}
+	else {
+		if(!mesh->arena) {
+			mesh->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+			BLI_memarena_use_calloc(mesh->arena);
+		}
+
+		pedge = BLI_memarena_alloc(mesh->arena, sizeof(PropagateEdge));
+	}
+
+	pedge->edge = edge;
+	pedge->vert = vert;
+	BLI_addhead(&mesh->propagatestack, pedge);
+}
+
+static void pop_propagate_stack(SmoothEdge **edge, SmoothVert **vert, SmoothMesh *mesh)
+{
+	PropagateEdge *pedge = mesh->propagatestack.first;
+
+	if(pedge) {
+		*edge = pedge->edge;
+		*vert = pedge->vert;
+		BLI_remlink(&mesh->propagatestack, pedge);
+		BLI_addhead(&mesh->reusestack, pedge);
+	}
+	else {
+		*edge = NULL;
+		*vert = NULL;
+	}
+}
+
 static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh);
 
 static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
@@ -2948,7 +2997,7 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 	if(!edge2) {
 		/* didn't find a sharp or loose edge, so try the other vert */
 		vert2 = other_vert(edge, vert);
-		propagate_split(edge, vert2, mesh);
+		push_propagate_stack(edge, vert2, mesh);
 	} else if(!edge_is_loose(edge2)) {
 		/* edge2 is not loose, so it must be sharp */
 		SmoothEdge *copy_edge = smoothedge_copy(edge, mesh);
@@ -2977,11 +3026,11 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 		/* all copying and replacing is done; the mesh should be consistent.
 		* now propagate the split to the vertices at either end
 		*/
-		propagate_split(copy_edge, other_vert(copy_edge, vert2), mesh);
-		propagate_split(copy_edge2, other_vert(copy_edge2, vert2), mesh);
+		push_propagate_stack(copy_edge, other_vert(copy_edge, vert2), mesh);
+		push_propagate_stack(copy_edge2, other_vert(copy_edge2, vert2), mesh);
 
 		if(smoothedge_has_vert(edge, vert))
-			propagate_split(edge, vert, mesh);
+			push_propagate_stack(edge, vert, mesh);
 	} else {
 		/* edge2 is loose */
 		SmoothEdge *copy_edge = smoothedge_copy(edge, mesh);
@@ -3004,10 +3053,10 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 		/* copying and replacing is done; the mesh should be consistent.
 		* now propagate the split to the vertex at the other end
 		*/
-		propagate_split(copy_edge, other_vert(copy_edge, vert2), mesh);
+		push_propagate_stack(copy_edge, other_vert(copy_edge, vert2), mesh);
 
 		if(smoothedge_has_vert(edge, vert))
-			propagate_split(edge, vert, mesh);
+			push_propagate_stack(edge, vert, mesh);
 	}
 
 	BLI_linklist_free(visited_faces, NULL);
@@ -3079,6 +3128,7 @@ static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
 
 static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 {
+	SmoothVert *vert;
 	int i;
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
@@ -3091,10 +3141,16 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 	for(i = 0; i < mesh->num_edges; i++) {
 		SmoothEdge *edge = &mesh->edges[i];
 
-		if(edge_is_sharp(edge, flags, mesh->threshold))
+		if(edge_is_sharp(edge, flags, mesh->threshold)) {
 			split_edge(edge, edge->verts[0], mesh);
-	}
 
+			do {
+				pop_propagate_stack(&edge, &vert, mesh);
+				if(edge && smoothedge_has_vert(edge, vert))
+					propagate_split(edge, vert, mesh);
+			} while(edge);
+		}
+	}
 }
 
 static int count_bridge_verts(SmoothMesh *mesh)
@@ -6542,7 +6598,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	/* make tree of emitter locations */
 	tree=BLI_kdtree_new(totpart);
 	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
+		psys_particle_on_dm(psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
 		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 	BLI_kdtree_balance(tree);
@@ -7062,7 +7118,6 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 {
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf=0;
-	MVert *dupvert=0;
 	ParticleSettings *part=psmd->psys->part;
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
@@ -7117,7 +7172,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	/* the final duplicated vertices */
 	explode= CDDM_from_template(dm, totdup, 0,totface);
-	dupvert= CDDM_get_verts(explode);
+	/*dupvert= CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
 	Mat4Invert(imat,ob->obmat);
@@ -7146,7 +7201,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			pa= pars+i;
 
 			/* get particle state */
-			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
+			psys_particle_on_emitter(psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
@@ -7743,7 +7798,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(md);
 
 	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
-	if(shrinkwrapModifier_requiredDataMask(md))
+	if(dataMask)
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
@@ -7795,6 +7850,109 @@ static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *fores
 
 	if (smd->auxTarget)
 		dag_add_relation(forest, dag_get_node(forest, smd->auxTarget), obNode, DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
+}
+
+/* SimpleDeform */
+static void simpledeformModifier_initData(ModifierData *md)
+{
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+
+	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
+	smd->axis = 0;
+
+	smd->origin   =  NULL;
+	smd->factor   =  0.35f;
+	smd->limit[0] =  0.0f;
+	smd->limit[1] =  1.0f;
+}
+
+static void simpledeformModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData*)target;
+
+	tsmd->mode	= smd->mode;
+	tsmd->axis  = smd->axis;
+	tsmd->origin= smd->origin;
+	tsmd->factor= smd->factor;
+	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
+}
+
+static CustomDataMask simpledeformModifier_requiredDataMask(ModifierData *md)
+{
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(smd->vgroup_name[0])
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static void simpledeformModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	walk(userData, ob, &smd->origin);
+}
+
+static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+
+	if (smd->origin)
+		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
+}
+
+static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
+
+}
+
+static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(md);
+
+	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	if(dataMask)
+	{
+		if(derivedData) dm = CDDM_copy(derivedData);
+		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else return;
+
+		if(dataMask & CD_MVERT)
+		{
+			CDDM_apply_vert_coords(dm, vertexCos);
+			CDDM_calc_normals(dm);
+		}
+	}
+
+	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+
+	if(dm)
+		dm->release(dm);
 }
 
 /***/
@@ -8153,6 +8311,20 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVerts = shrinkwrapModifier_deformVerts;
 		mti->deformVertsEM = shrinkwrapModifier_deformVertsEM;
 		mti->updateDepgraph = shrinkwrapModifier_updateDepgraph;
+
+		mti = INIT_TYPE(SimpleDeform);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs				
+				| eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_EnableInEditmode;
+		mti->initData = simpledeformModifier_initData;
+		mti->copyData = simpledeformModifier_copyData;
+		mti->requiredDataMask = simpledeformModifier_requiredDataMask;
+		mti->deformVerts = simpledeformModifier_deformVerts;
+		mti->deformVertsEM = simpledeformModifier_deformVertsEM;
+		mti->foreachObjectLink = simpledeformModifier_foreachObjectLink;
+		mti->updateDepgraph = simpledeformModifier_updateDepgraph;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

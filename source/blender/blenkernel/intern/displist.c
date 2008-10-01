@@ -1234,7 +1234,7 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	*numVerts_r = numVerts;
 }
 
-void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
+static void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
 {
 	int editmode = (!forRender && ob==G.obedit);
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
@@ -1342,7 +1342,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				makeNurbcurve(nu, data, NULL, NULL, nu->resolu);
 			}
 			else {
-				len= nu->resolu*nu->resolv;
+				len= (nu->pntsu*nu->resolu) * (nu->pntsv*nu->resolv);
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -1354,9 +1354,9 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				
 				data= dl->verts;
 				dl->type= DL_SURF;
-
-				dl->parts= nu->resolu;	/* in reverse, because makeNurbfaces works that way */
-				dl->nr= nu->resolv;
+				
+				dl->parts= (nu->pntsu*nu->resolu);	/* in reverse, because makeNurbfaces works that way */
+				dl->nr= (nu->pntsv*nu->resolv);
 				if(nu->flagv & CU_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
 				if(nu->flagu & CU_CYCLIC) dl->flag|= DL_CYCL_V;
 

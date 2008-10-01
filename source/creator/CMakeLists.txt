@@ -187,7 +187,11 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity bf_elbeem)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity)
+
+IF(WITH_ELBEEM)
+  SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
+ENDIF(WITH_ELBEEM)
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
   SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)

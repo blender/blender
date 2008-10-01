@@ -141,6 +141,7 @@
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
+#include "BKE_bullet.h"		// bsbNew()
 #include "BKE_sculpt.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
@@ -1346,7 +1347,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 
-void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 {
 	int i;
 
@@ -1367,14 +1368,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	}
 }
 
-void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
 {
 	/*since we didn't save the extra string buffer, set totallen to len.*/
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 }
 
-void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
 {
 	ListBase *lb = &prop->data.group;
 	IDProperty *loop;
@@ -3339,6 +3340,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		if(sb->pointcache)
 			direct_link_pointcache(fd, sb->pointcache);
 	}
+	ob->bsoft= newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 
 	link_list(fd, &ob->particlesystem);
@@ -4877,7 +4879,7 @@ static void ntree_version_245(FileData *fd, Library *lib, bNodeTree *ntree)
 	}
 }
 
-void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
+static void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
 {
 	IDProperty *loop;
 	int i;
@@ -4892,7 +4894,7 @@ void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
 	}
 }
 
-void idproperties_fix_group_lengths(ListBase idlist)
+static void idproperties_fix_group_lengths(ListBase idlist)
 {
 	ID *id;
 	
@@ -4903,7 +4905,7 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	}
 }
 
-void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 {
 	Material *ma;
 	MFace *mf;
@@ -7902,11 +7904,55 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(nu= cu->nurb.first; nu; nu= nu->next) {
 				if (nu) {
 					nu->radius_interp = 3;
+					
+					/* resolu and resolv are now used differently for surfaces
+					 * rather then using the resolution to define the entire number of divisions,
+					 * use it for the number of divisions per segment
+					 */
+					if (nu->pntsv > 1) {
+						nu->resolu = MAX2( 1, (int)(((float)nu->resolu / (float)nu->pntsu)+0.5f) );
+						nu->resolv = MAX2( 1, (int)(((float)nu->resolv / (float)nu->pntsv)+0.5f) );
+					}
 				}
 			}
 		}
 	}
 
+	/* direction constraint actuators were always local in previous version */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 7)) {
+		bActuator *act;
+		Object *ob;
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_CONSTRAINT) {
+					bConstraintActuator *coa = act->data;
+					if (coa->type == ACT_CONST_TYPE_DIST) {
+						coa->flag |= ACT_CONST_LOCAL;
+					}
+				}
+			}
+		}
+	}
+	/* autokey mode settings now used from scene, but need to be initialised off userprefs */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 8)) {
+		Scene *sce;
+		
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->autokey_mode == 0)
+				sce->autokey_mode= U.autokey_mode;
+		}
+	}
+
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 9)) {
+		Lamp *la= main->lamp.first;
+		for(; la; la= la->id.next) {
+			la->sky_exposure= 1.0f;
+		}
+	}
+		
+		
+		
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

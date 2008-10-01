@@ -193,7 +193,9 @@ typedef struct Object {
 	 * bit 15: Always ignore activity culling 
 	 */
 	int gameflag2;
-	short softflag;			/* softboday settings */
+	struct BulletSoftBody *bsoft;	/* settings for game engine bullet soft body */
+
+	short softflag;			/* softbody settings */
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 

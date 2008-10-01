@@ -2455,12 +2455,12 @@ static void image_zoom_set_factor(float zoomfac)
 
 void image_viewmove(int mode)
 {
-	short mval[2], mvalo[2], zoom0;
+	short mval[2], mvalo[2];
 	int oldcursor;
 	Window *win;
 	
 	getmouseco_sc(mvalo);
-	zoom0= G.sima->zoom;
+
 	
 	oldcursor=get_cursor();
 	win=winlay_get_active_window();

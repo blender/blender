@@ -1451,8 +1451,14 @@ static void draw_ipocurves(int sel)
 						if( (icu->extrap & IPO_CYCL)==0) {
 							if(prevbezt->vec[1][0] > G.v2d->cur.xmin) {
 								v1[0]= G.v2d->cur.xmin;
-								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST) v1[1]= prevbezt->vec[1][1];
-								else {
+								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST || icu->totvert==1) {
+									v1[1]= prevbezt->vec[1][1];
+								} else if (icu->ipo==IPO_LIN) {
+									/* extrapolate linear dosnt use the handle, use the next points center instead */
+									fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+									if(fac!=0.0) fac= 1.0/fac;
+									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
+								} else {
 									fac= (prevbezt->vec[0][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
 									if(fac!=0.0) fac= 1.0/fac;
 									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[0][1]-prevbezt->vec[1][1]);
@@ -1531,8 +1537,15 @@ static void draw_ipocurves(int sel)
 						if( (icu->extrap & IPO_CYCL)==0) {
 							if(prevbezt->vec[1][0] < G.v2d->cur.xmax) {
 								v1[0]= G.v2d->cur.xmax;
-								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST) v1[1]= prevbezt->vec[1][1];
-								else {
+								if(icu->extrap==IPO_HORIZ || icu->ipo==IPO_CONST ||icu->totvert==1) {
+									v1[1]= prevbezt->vec[1][1];
+								} else if (icu->ipo==IPO_LIN) {
+									/* extrapolate linear dosnt use the handle, use the previous points center instead */
+									bezt = prevbezt-1;
+									fac= (prevbezt->vec[1][0]-bezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
+									if(fac!=0.0) fac= 1.0/fac;
+									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[1][1]-bezt->vec[1][1]);
+								} else {
 									fac= (prevbezt->vec[2][0]-prevbezt->vec[1][0])/(prevbezt->vec[1][0]-v1[0]);
 									if(fac!=0.0) fac= 1.0/fac;
 									v1[1]= prevbezt->vec[1][1]-fac*(prevbezt->vec[2][1]-prevbezt->vec[1][1]);

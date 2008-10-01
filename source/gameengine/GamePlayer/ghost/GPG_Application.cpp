@@ -57,6 +57,7 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "IMB_imbuf.h"
 #include "DNA_scene_types.h"
 #ifdef __cplusplus
 }
@@ -754,8 +755,6 @@ void GPG_Application::stopEngine()
 
 void GPG_Application::exitEngine()
 {
-	GPU_extensions_exit();
-
 	if (m_ketsjiengine)
 	{
 		stopEngine();
@@ -802,6 +801,12 @@ void GPG_Application::exitEngine()
 		delete m_canvas;
 		m_canvas = 0;
 	}
+
+	libtiff_exit();
+#ifdef WITH_QUICKTIME
+	quicktime_exit();
+#endif
+	GPU_extensions_exit();
 
 	m_exitRequested = 0;
 	m_engineInitialized = false;

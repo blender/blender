@@ -139,6 +139,8 @@ void	hide_selected_armature_bones(void);
 void	hide_unselected_armature_bones(void);
 void	show_all_armature_bones(void);
 
+void	align_selected_bones(void);
+
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000
 #define	BONESEL_BONE	0x40000000
@@ -155,5 +157,6 @@ void	show_all_armature_bones(void);
 #define BONE_SELECT_CHILD	1
 
 #endif
+
 
 

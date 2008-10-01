@@ -305,16 +305,16 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		
 	} else if (BPy_Scene_Check(py_data)) {
 		/* scene */
-		Scene *sce = ((BPy_Scene *)py_data)->scene;
+		Scene *sceseq = ((BPy_Scene *)py_data)->scene;
 		
 		seq->type= SEQ_SCENE;
-		seq->scene= sce;
+		seq->scene= sceseq;
 		
 		/*seq->sfra= sce->r.sfra;*/
-		seq->len= sce->r.efra - sce->r.sfra + 1;
+		seq->len= sceseq->r.efra - sceseq->r.sfra + 1;
 
 		seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-		strncpy(seq->name + 2, sce->id.name + 2, 
+		strncpy(seq->name + 2, sceseq->id.name + 2, 
 			sizeof(seq->name) - 2);
 		strip->len= seq->len;
 		strip->us= 1;

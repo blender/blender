@@ -70,6 +70,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_bullet.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
@@ -179,6 +180,14 @@ void object_free_softbody(Object *ob)
 	}
 }
 
+void object_free_bulletsoftbody(Object *ob)
+{
+	if(ob->bsoft) {
+		bsbFree(ob->bsoft);
+		ob->bsoft= NULL;
+	}
+}
+
 void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -269,6 +278,7 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
+	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
@@ -749,7 +759,9 @@ void *add_lamp(char *name)
 	la->sun_intensity = 1.0;
 	la->skyblendtype= MA_RAMP_ADD;
 	la->skyblendfac= 1.0f;
-
+	la->sky_colorspace= BLI_CS_CIE;
+	la->sky_exposure= 1.0f;
+	
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }
@@ -1047,6 +1059,17 @@ SoftBody *copy_softbody(SoftBody *sb)
 	return sbn;
 }
 
+BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
+{
+	BulletSoftBody *bsbn;
+
+	if (bsb == NULL)
+		return NULL;
+	bsbn = MEM_dupallocN(bsb);
+	/* no pointer in this structure yet */
+	return bsbn;
+}
+
 ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
@@ -1217,6 +1240,7 @@ Object *copy_object(Object *ob)
 			id_us_plus(&(obn->pd->tex->id));
 	}
 	obn->soft= copy_softbody(ob->soft);
+	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
 
 	copy_object_particlesystems(obn, ob);
 	
@@ -1456,22 +1480,42 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	return cfra;
 }
 
-void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+void object_scale_to_mat3(Object *ob, float mat[][3])
 {
-	float smat[3][3], vec[3];
-	float rmat[3][3];
-	/*float q1[4];*/
-	
-	/* size */
+	float vec[3];
 	if(ob->ipo) {
 		vec[0]= ob->size[0]+ob->dsize[0];
 		vec[1]= ob->size[1]+ob->dsize[1];
 		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, smat);
+		SizeToMat3(vec, mat);
 	}
 	else {
-		SizeToMat3(ob->size, smat);
+		SizeToMat3(ob->size, mat);
 	}
+}
+
+void object_rot_to_mat3(Object *ob, float mat[][3])
+{
+	float vec[3];
+	if(ob->ipo) {
+		vec[0]= ob->rot[0]+ob->drot[0];
+		vec[1]= ob->rot[1]+ob->drot[1];
+		vec[2]= ob->rot[2]+ob->drot[2];
+		EulToMat3(vec, mat);
+	}
+	else {
+		EulToMat3(ob->rot, mat);
+	}
+}
+
+void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+{
+	float smat[3][3];
+	float rmat[3][3];
+	/*float q1[4];*/
+	
+	/* size */
+	object_scale_to_mat3(ob, smat);
 
 	/* rot */
 	/* Quats arnt used yet */
@@ -1485,15 +1529,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 		}
 	}
 	else {*/
-		if(ob->ipo) {
-			vec[0]= ob->rot[0]+ob->drot[0];
-			vec[1]= ob->rot[1]+ob->drot[1];
-			vec[2]= ob->rot[2]+ob->drot[2];
-			EulToMat3(vec, rmat);
-		}
-		else {
-			EulToMat3(ob->rot, rmat);
-		}
+		object_rot_to_mat3(ob, rmat);
 	/*}*/
 	Mat3MulMat3(mat, rmat, smat);
 }

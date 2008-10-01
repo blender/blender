@@ -1342,7 +1342,7 @@ void load_editMesh(void)
 	{
 		Object *ob;
 		ModifierData *md;
-		EditVert *eve, **vertMap = NULL;
+		EditVert **vertMap = NULL;
 		int i,j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {

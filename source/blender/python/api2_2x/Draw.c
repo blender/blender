@@ -1156,10 +1156,12 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-void Set_uiBlock(uiBlock *block)
+#if 0 /* not used yet */
+static void Set_uiBlock(uiBlock *block)
 {
 	uiblock = block;
 }
+#endif
 
 static uiBlock *Get_uiBlock( void )
 {

@@ -585,7 +585,7 @@ void tag_image_time(Image *ima)
 		ima->lastused = (int)PIL_check_seconds_timer();
 }
 
-void tag_all_images_time() 
+static void tag_all_images_time() 
 {
 	Image *ima;
 	int ctime = (int)PIL_check_seconds_timer();

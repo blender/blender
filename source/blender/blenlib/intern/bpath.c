@@ -254,7 +254,7 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 	return NULL;
 }
 
-void seq_getpath(struct BPathIterator *bpi, char *path) {
+static void seq_getpath(struct BPathIterator *bpi, char *path) {
 	Sequence *seq = (Sequence *)bpi->data;
 
 	
@@ -275,7 +275,7 @@ void seq_getpath(struct BPathIterator *bpi, char *path) {
 	}
 }
 
-void seq_setpath(struct BPathIterator *bpi, char *path) {
+static void seq_setpath(struct BPathIterator *bpi, char *path) {
 	Sequence *seq = (Sequence *)bpi->data;
 	if (seq==NULL) return; 
 	
@@ -456,7 +456,6 @@ void checkMissingFiles( char *txtname ) {
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
-	int files_missing = 0;
 	
 	BLI_bpathIterator_init(&bpi);
 	while (!BLI_bpathIterator_isDone(&bpi)) {
@@ -470,7 +469,6 @@ void checkMissingFiles( char *txtname ) {
 				}
 			}
 			bpathToText(btxt, &bpi);
-			files_missing = 1;
 		}
 		BLI_bpathIterator_step(&bpi);
 	}

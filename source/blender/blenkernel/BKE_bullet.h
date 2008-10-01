@@ -1,4 +1,7 @@
 /**
+ *	
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -15,7 +18,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
@@ -24,24 +27,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef BKE_BULLET_H
+#define BKE_BULLET_H
 
-#ifndef BKE_WRITEFRAMESERVER_H
-#define BKE_WRITEFRAMESERVER_H
+struct BulletSoftBody;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-struct RenderData;	
+/* allocates and initializes general main data */
+extern struct BulletSoftBody *bsbNew(void);
 
-extern void start_frameserver(struct RenderData *rd, int rectx, int recty);
-extern void end_frameserver(void);
-extern void append_frameserver(int frame, int *pixels, int rectx, int recty);
-extern int frameserver_loop(void);
-
-#ifdef __cplusplus
-}
-#endif
+/* frees internal data and softbody itself */
+extern void	bsbFree(struct BulletSoftBody *sb);
 
 #endif
 

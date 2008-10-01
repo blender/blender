@@ -45,6 +45,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -129,6 +130,17 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 		}
 		BIF_undo_push("Set anim-preview range");
 		allqueue(REDRAWALL, 0);
+		break;
+		
+	case B_TL_INSERTKEY:
+		/* insert keyframe */
+		common_insertkey();
+		allqueue(REDRAWTIME, 1);
+		break;
+	case B_TL_DELETEKEY:
+		/* delete keyframe */
+		common_deletekey();
+		allqueue(REDRAWTIME, 1);
 		break;
 	}
 }
@@ -542,20 +554,30 @@ void time_buttons(ScrArea *sa)
 	xco+= XIC+8;
 	
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
-			xco, 0, XIC, YIC, &(U.autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+			xco, 0, XIC, YIC, &(G.scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 	xco+= XIC;
 	if (IS_AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 					"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-					xco, 0, 3*XIC, YIC, &(U.autokey_mode), 0, 1, 0, 0, 
+					xco, 0, 3.5*XIC, YIC, &(G.scene->autokey_mode), 0, 1, 0, 0, 
 					"Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}
 	
 	xco+= 16;
-
+	
+	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
+			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
+	xco+= XIC+4;
+	uiDefIconBut(block, BUT, B_TL_DELETEKEY, ICON_KEY_DEHLT,
+			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Delete Keyframe for the context of the largest area (ALTKEY-IKEY)");
+	xco+= XIC+4;
+	
+	xco+= 16;
+	
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
+	
 	
 	/* always as last  */
 	sa->headbutlen= xco+XIC+80; // +80 because the last button is not an icon

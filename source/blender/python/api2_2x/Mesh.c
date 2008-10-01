@@ -160,7 +160,7 @@ typedef struct FaceEdges {
  * compare edges by vertex indices
  */
 
-int medge_comp( const void *va, const void *vb )
+static int medge_comp( const void *va, const void *vb )
 {
 	const unsigned int *a = ((SrchEdges *)va)->v;
 	const unsigned int *b = ((SrchEdges *)vb)->v;
@@ -180,7 +180,7 @@ int medge_comp( const void *va, const void *vb )
  * compare edges by insert list indices
  */
 
-int medge_index_comp( const void *va, const void *vb )
+static int medge_index_comp( const void *va, const void *vb )
 {
 	const SrchEdges *a = (SrchEdges *)va;
 	const SrchEdges *b = (SrchEdges *)vb;
@@ -196,7 +196,7 @@ int medge_index_comp( const void *va, const void *vb )
  * compare faces by vertex indices
  */
 
-int mface_comp( const void *va, const void *vb )
+static int mface_comp( const void *va, const void *vb )
 {
 	const SrchFaces *a = va;
 	const SrchFaces *b = vb;
@@ -231,7 +231,7 @@ int mface_comp( const void *va, const void *vb )
  * compare faces by insert list indices
  */
 
-int mface_index_comp( const void *va, const void *vb )
+static int mface_index_comp( const void *va, const void *vb )
 {
 	const SrchFaces *a = va;
 	const SrchFaces *b = vb;
@@ -248,7 +248,7 @@ int mface_index_comp( const void *va, const void *vb )
  * compare edges by vertex indices
  */
 
-int faceedge_comp( const void *va, const void *vb )
+static int faceedge_comp( const void *va, const void *vb )
 {
 	const unsigned int *a = ((FaceEdges *)va)->v;
 	const unsigned int *b = ((FaceEdges *)vb)->v;

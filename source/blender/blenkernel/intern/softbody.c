@@ -236,7 +236,7 @@ typedef struct ccd_Mesh {
 
 
 
-ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
+static ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 {
     ccd_Mesh *pccd_M = NULL;
 	ccdf_minmax *mima =NULL;
@@ -333,7 +333,7 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 	}
 	return pccd_M;
 }
-void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
+static void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
 {
  	ccdf_minmax *mima =NULL;
 	MFace *mface=NULL;
@@ -472,7 +472,7 @@ void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
 	return ;
 }
 
-void ccd_mesh_free(ccd_Mesh *ccdm)
+static void ccd_mesh_free(ccd_Mesh *ccdm)
 {
 	if(ccdm && (ccdm->savety == CCD_SAVETY )){ /*make sure we're not nuking objects we don't know*/
 		MEM_freeN(ccdm->mface);
@@ -484,7 +484,7 @@ void ccd_mesh_free(ccd_Mesh *ccdm)
 	}
 }
 
-void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
+static void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 {
 	Base *base;
 	Object *ob;
@@ -536,7 +536,7 @@ void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 	} /* while (base) */
 }
 
-void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
+static void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
 {
 	Base *base;
 	Object *ob;
@@ -991,7 +991,7 @@ static int query_external_colliders(Object *me)
 
 
 /* +++ the aabb "force" section*/
-int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
+static int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
 {
 	Object *ob;
 	SoftBody *sb=vertexowner->soft;
@@ -1055,7 +1055,7 @@ int sb_detect_aabb_collisionCached(	float force[3], unsigned int par_layer,struc
 
 
 /* +++ the face external section*/
-int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
+static int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
 								   {
 	Object *ob;
@@ -1153,7 +1153,7 @@ int sb_detect_face_pointCached(float face_v1[3],float face_v2[3],float face_v3[3
 }
 
 
-int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
+static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_v3[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
 {
 	Object *ob;
@@ -1291,7 +1291,7 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 
 
 
-void scan_for_ext_face_forces(Object *ob,float timenow)
+static void scan_for_ext_face_forces(Object *ob,float timenow)
 {
 	SoftBody *sb = ob->soft;
 	BodyFace *bf;
@@ -1379,7 +1379,7 @@ void scan_for_ext_face_forces(Object *ob,float timenow)
 
 /* +++ the spring external section*/
 
-int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp,						
+static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner,float time)
 {
 	Object *ob;
@@ -1530,7 +1530,7 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 
 
 
-void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int ilast, struct ListBase *do_effector)
+static void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int ilast, struct ListBase *do_effector)
 {
 	SoftBody *sb = ob->soft;
 	int a;
@@ -1601,7 +1601,7 @@ void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int ilast, 
 }
 
 
-void scan_for_ext_spring_forces(Object *ob,float timenow)
+static void scan_for_ext_spring_forces(Object *ob,float timenow)
 {
   SoftBody *sb = ob->soft;
   ListBase *do_effector= NULL; 
@@ -1613,14 +1613,14 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
   pdEndEffectors(do_effector);
 }
 
-void *exec_scan_for_ext_spring_forces(void *data)
+static void *exec_scan_for_ext_spring_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
 	_scan_for_ext_spring_forces(pctx->ob,pctx->timenow,pctx->ifirst,pctx->ilast,pctx->do_effector);
 	return 0;
 } 
 
-void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
+static void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
 {
 	ListBase *do_effector = NULL; 
 	ListBase threads;
@@ -1682,7 +1682,7 @@ void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings,int *p
 
 /* --- the spring external section*/
 
-int choose_winner(float*w, float* pos,float*a,float*b,float*c,float*ca,float*cb,float*cc)
+static int choose_winner(float*w, float* pos,float*a,float*b,float*c,float*ca,float*cb,float*cc)
 {
 	float mindist,cp;
 	int winner =1;
@@ -1709,7 +1709,7 @@ int choose_winner(float*w, float* pos,float*a,float*b,float*c,float*ca,float*cb,
 
 
 
-int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *damp,
+static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *damp,
 									 float force[3], unsigned int par_layer,struct Object *vertexowner,
 									 float time,float vel[3], float *intrusion)
 {
@@ -2119,7 +2119,7 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 /* since this is definitely the most CPU consuming task here .. try to spread it */
 /* core function _softbody_calc_forces_slice_in_a_thread */
 /* result is int to be able to flag user break */
-int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *ptr_to_break_func(),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *ptr_to_break_func(),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	float iks;
 	int bb,do_selfcollision,do_springcollision,do_aero;
@@ -2319,14 +2319,14 @@ int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, float t
 return 0; /*done fine*/
 }
 
-void *exec_softbody_calc_forces(void *data)
+static void *exec_softbody_calc_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
     _softbody_calc_forces_slice_in_a_thread(pctx->ob,pctx->forcetime,pctx->timenow,pctx->ifirst,pctx->ilast,NULL,pctx->do_effector,pctx->do_deflector,pctx->fieldfactor,pctx->windfactor);
 	return 0;
 } 
 
-void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,int totpoint,int *ptr_to_break_func(),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,int totpoint,int *ptr_to_break_func(),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	ListBase threads;
 	SB_thread_context *sb_threads;
@@ -3067,7 +3067,7 @@ static void softbody_apply_goalsnap(Object *ob)
 }
 
 
-void apply_spring_memory(Object *ob)
+static void apply_spring_memory(Object *ob)
 {
 	SoftBody *sb = ob->soft;
 	BodySpring *bs;
@@ -3293,7 +3293,7 @@ static void mesh_faces_to_scratch(Object *ob)
 helper function to get proper spring length 
 when object is rescaled
 */
-float globallen(float *v1,float *v2,Object *ob)
+static float globallen(float *v1,float *v2,Object *ob)
 {
 	float p1[3],p2[3];
 	VECCOPY(p1,v1);
@@ -3711,7 +3711,7 @@ static int softbody_read_cache(Object *ob, float framenr)
 }
 
 /* +++ ************ maintaining scratch *************** */
-void sb_new_scratch(SoftBody *sb)
+static void sb_new_scratch(SoftBody *sb)
 {
 	if (!sb) return;
 	sb->scratch = MEM_callocN(sizeof(SBScratch), "SBScratch");

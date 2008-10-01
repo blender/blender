@@ -598,7 +598,7 @@ static void fix_new_face(EditFace *eface)
 	}
 }
 
-void addfaces_from_edgenet()
+void addfaces_from_edgenet(void)
 {
 	EditVert *eve1, *eve2, *eve3, *eve4;
 	EditMesh *em= G.editMesh;
@@ -1172,7 +1172,6 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 			//extern signed char monkeyf[][4];
 			//extern signed char monkeyv[][3];
 			EditVert **tv= MEM_mallocN(sizeof(*tv)*monkeynv*2, "tv");
-			EditFace *efa;
 			int i;
 
 			for (i=0; i<monkeynv; i++) {
@@ -1184,8 +1183,8 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 				tv[monkeynv+i]->f |= SELECT;
 			}
 			for (i=0; i<monkeynf; i++) {
-				efa= addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
-				efa= addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+				addfacelist(tv[monkeyf[i][0]+i-monkeyo], tv[monkeyf[i][1]+i-monkeyo], tv[monkeyf[i][2]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
+				addfacelist(tv[monkeynv+monkeyf[i][2]+i-monkeyo], tv[monkeynv+monkeyf[i][1]+i-monkeyo], tv[monkeynv+monkeyf[i][0]+i-monkeyo], (monkeyf[i][3]!=monkeyf[i][2])?tv[monkeynv+monkeyf[i][3]+i-monkeyo]:NULL, NULL, NULL);
 			}
 
 			MEM_freeN(tv);

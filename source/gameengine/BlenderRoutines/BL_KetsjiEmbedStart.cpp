@@ -170,6 +170,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
 		
+		//
+		SYS_SystemHandle hSystem = SYS_GetSystem();
+		bool noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
+
+		if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
+			SND_DeviceManager::SetDeviceType(snd_e_dummydevice);
+
 		// get an audiodevice
 		SND_DeviceManager::Subscribe();
 		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();

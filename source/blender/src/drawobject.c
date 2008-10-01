@@ -3999,7 +3999,6 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			BevPoint *bevp= (BevPoint *)(bl+1);		
 			int nr= bl->nr;
 			int skip= nu->resolu/16;
-			float fac;
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
 				float ox,oy,oz; // Offset perpendicular to the curve
@@ -4817,7 +4816,8 @@ void draw_object(Base *base, int flag)
 				warning_recursive= 1;
 
 				elems.first= elems.last= 0;
-				make_cfra_list(ob->ipo, &elems);
+				// warning: no longer checks for certain ob-keys only... (so does this need to use the proper ipokeys then?)
+				make_cfra_list(ob->ipo, &elems); 
 
 				cfraont= (G.scene->r.cfra);
 				drawtype= G.vd->drawtype;

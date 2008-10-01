@@ -169,6 +169,11 @@ MT_Scalar	KX_OdePhysicsController::GetMass()
 	return ODEPhysicsController::getMass();
 }
 
+MT_Scalar	KX_OdePhysicsController::GetRadius()
+{
+	return MT_Scalar(0.f);
+}
+
 MT_Vector3	KX_OdePhysicsController::getReactionForce()
 {
 	return MT_Vector3(0,0,0);

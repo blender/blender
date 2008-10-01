@@ -30,22 +30,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#include "BLI_winstuff.h"
-#endif   
 #include "MEM_guardedalloc.h"
-#include "PIL_time.h"
 
 #include "BMF_Api.h"
 
@@ -87,6 +77,9 @@
 #include "mydevice.h"
 #include "blendef.h" 
 #include "winlay.h"
+#include "PIL_time.h"
+#include <ctype.h> /* ispunct */
+#include <sys/stat.h>
 
 /***********************/ /*
 
@@ -131,9 +124,10 @@ def wrap(line, view_width, wrap_chars):
 
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-void txt_copy_selectbuffer (Text *text);
-void draw_brackets(SpaceText *st);
+void redraw_alltext(void);
 
+static void txt_copy_selectbuffer(Text *text);
+static void draw_brackets(SpaceText *st);
 static void get_selection_buffer(Text *text);
 static int check_bracket(char ch);
 static int check_delim(char ch);
@@ -142,7 +136,7 @@ static int check_identifier(char ch);
 static int check_whitespace(char ch);
 
 static int get_wrap_width(SpaceText *st);
-static int get_wrap_points(SpaceText *st, char *line);
+//static int get_wrap_points(SpaceText *st, char *line);
 static void get_suggest_prefix(Text *text, int offset);
 static void confirm_suggestion(Text *text, int skipleft);
 
@@ -152,7 +146,6 @@ static char *g_find_str= NULL;
 static char *g_replace_str= NULL;
 
 static int doc_scroll= 0;
-static double last_check_time= 0;
 static int jump_to= 0;
 static double last_jump= 0;
 
@@ -278,6 +271,7 @@ static int find_specialvar(char *string)
 	return i;
 }
 
+#if 0 // not used 
 static void print_format(SpaceText *st, TextLine *line) {
 	int i, a;
 	char *s, *f;
@@ -292,6 +286,7 @@ static void print_format(SpaceText *st, TextLine *line) {
 	}
 	printf("\n%s [%#x]\n", line->format, (int) (f[strlen(f)+1]));
 }
+#endif // not used
 
 /* Ensures the format string for the given line is long enough, reallocating as needed */
 static int check_format_len(TextLine *line, unsigned int len) {
@@ -684,6 +679,7 @@ static int get_wrap_width(SpaceText *st) {
 	return max>8 ? max : 8;
 }
 
+#if 0 // not used 
 /* Returns the number of wrap points (or additional lines) in the given string */
 static int get_wrap_points(SpaceText *st, char *line) {
 	int start, end, taboffs, i, max, count;
@@ -707,6 +703,7 @@ static int get_wrap_points(SpaceText *st, char *line) {
 	}
 	return count;
 }
+#endif // not used
 
 /* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
 static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) {
@@ -1555,7 +1552,6 @@ void find_and_replace(SpaceText *st, short mode) {
 static void do_find_buttons(val) {
 	Text *text;
 	SpaceText *st;
-	int do_draw= 0;
 	char *tmp;
 
 	st= curarea->spacedata.first;
@@ -1569,26 +1565,21 @@ static void do_find_buttons(val) {
 			tmp= txt_sel_to_buf(text);
 			strncpy(g_find_str, tmp, TXT_MAXFINDSTR);
 			MEM_freeN(tmp);
-			do_draw= 1;
 			break;
 		case B_PASTEREPLACE:
 			if (!g_replace_str) break;
 			tmp= txt_sel_to_buf(text);
 			strncpy(g_replace_str, tmp, TXT_MAXFINDSTR);
 			MEM_freeN(tmp);
-			do_draw= 1;
 			break;
 		case B_TEXTFIND:
 			find_and_replace(st, 0);
-			do_draw= 1;
 			break;
 		case B_TEXTREPLACE:
 			find_and_replace(st, 1);
-			do_draw= 1;
 			break;
 		case B_TEXTMARKALL:
 			find_and_replace(st, 2);
-			do_draw= 1;
 			break;
 	}
 }
@@ -1645,7 +1636,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	else st->viewlines= 0;
 	
 	if(st->showlinenrs) {
-		cpack(0x8c787c);
+		BIF_ThemeColor(TH_GRID);
 		glRecti(23,  0, (st->lheight==15)?63:59,  curarea->winy - 2);
 	}
 
@@ -1757,60 +1748,6 @@ void free_textspace(SpaceText *st)
 	if (!st) return;
 
 	st->text= NULL;
-}
-
-/* returns 0 if file on disk is the same or Text is in memory only
-   returns 1 if file has been modified on disk since last local edit
-   returns 2 if file on disk has been deleted
-   -1 is returned if an error occurs
-*/
-int txt_file_modified(Text *text)
-{
-	struct stat st;
-	int result;
-	char file[FILE_MAXDIR+FILE_MAXFILE];
-
-	if (!text || !text->name)
-		return 0;
-
-	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
-
-	if (!BLI_exists(file))
-		return 2;
-
-	result = stat(file, &st);
-	
-	if(result == -1)
-		return -1;
-
-	if((st.st_mode & S_IFMT) != S_IFREG)
-		return -1;
-
-	if (st.st_mtime > text->mtime)
-		return 1;
-
-	return 0;
-}
-
-void txt_ignore_modified(Text *text) {
-	struct stat st;
-	int result;
-	char file[FILE_MAXDIR+FILE_MAXFILE];
-
-	if (!text || !text->name) return;
-
-	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
-
-	if (!BLI_exists(file)) return;
-
-	result = stat(file, &st);
-	
-	if(result == -1 || (st.st_mode & S_IFMT) != S_IFREG)
-		return;
-
-	text->mtime= st.st_mtime;
 }
 
 static void save_mem_text(char *str)
@@ -1940,7 +1877,7 @@ int jumptoline_interactive(SpaceText *st) {
 int bufferlength;
 static char *copybuffer = NULL;
 
-void txt_copy_selectbuffer (Text *text)
+static void txt_copy_selectbuffer (Text *text)
 {
 	int length=0;
 	TextLine *tmp, *linef, *linel;
@@ -2455,18 +2392,9 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 		}
 	}
 
-	if (draw) {
-		ScrArea *sa;
-		
-		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-			SpaceText *st= sa->spacedata.first;
-			
-			if (st && st->spacetype==SPACE_TEXT) {
-				scrarea_queue_redraw(sa);
-			}
-		}
-	}
-
+	if (draw)
+		redraw_alltext();
+	
 	return swallow;
 }
 
@@ -2628,80 +2556,12 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 		}
 	}
 	
-	if (draw) {
-		ScrArea *sa;
-		
-		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-			SpaceText *st= sa->spacedata.first;
-			
-			if (st && st->spacetype==SPACE_TEXT) {
-				scrarea_queue_redraw(sa);
-			}
-		}
-	}
+	if (draw)
+		redraw_alltext();
+	
 	return swallow;
 }
 
-static short do_modification_check(SpaceText *st) {
-	Text *text= st->text;
-
-	if (last_check_time < PIL_check_seconds_timer() - 2.0) {
-		switch (txt_file_modified(text)) {
-		case 1:
-			/* Modified locally and externally, ahhh. Offer more possibilites. */
-			if (text->flags & TXT_ISDIRTY) {
-				switch (pupmenu("File Modified Outside and Inside Blender %t|Load outside changes (ignore local changes) %x0|Save local changes (ignore outside changes) %x1|Make text internal (separate copy) %x2")) {
-				case 0:
-					reopen_text(text);
-					if (st->showsyntax) txt_format_text(st);
-					return 1;
-				case 1:
-					txt_write_file(text);
-					return 1;
-				case 2:
-					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-					MEM_freeN(text->name);
-					text->name= NULL;
-					return 1;
-				}
-			} else {
-				switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1|Ignore %x2")) {
-				case 0:
-					if (text->compiled) BPY_free_compiled_text(text);
-						text->compiled = NULL;
-					reopen_text(text);
-					if (st->showsyntax) txt_format_text(st);
-					return 1;
-				case 1:
-					text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-					MEM_freeN(text->name);
-					text->name= NULL;
-					return 1;
-				case 2:
-					txt_ignore_modified(text);
-					return 1;
-				}
-			}
-			break;
-		case 2:
-			switch (pupmenu("File Deleted Outside Blender %t|Make text internal %x0|Recreate file %x1")) {
-			case 0:
-				text->flags |= TXT_ISMEM | TXT_ISDIRTY | TXT_ISTMP;
-				MEM_freeN(text->name);
-				text->name= NULL;
-				return 1;
-			case 1:
-				txt_write_file(text);
-				return 1;
-			}
-			break;
-		default:
-			break;
-		}
-		last_check_time = PIL_check_seconds_timer();
-	}
-	return 0;
-}
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
@@ -3311,22 +3171,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if (do_modification_check(st)) do_draw= 1;
-
-	if (do_draw) {
-		ScrArea *sa;
-		
-		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-			SpaceText *st= sa->spacedata.first;
-			
-			if (st && st->spacetype==SPACE_TEXT) {
-				scrarea_queue_redraw(sa);
-			}
-		}
-	}
+	if (do_draw)
+		redraw_alltext();
 }
 
-void draw_brackets(SpaceText *st)
+static void draw_brackets(SpaceText *st)
 {
 	char ch;
 	int b, c, startc, endc, find, stack;
@@ -3577,4 +3426,20 @@ void convert_tabs (struct SpaceText *st, int tab)
 	}
 
 	if (st->showsyntax) txt_format_text(st);
+}
+
+void redraw_alltext(void)
+{
+	ScrArea *sa;
+	
+	if(!G.curscreen)
+		return;
+	
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		SpaceText *st= sa->spacedata.first;
+		
+		if (st && st->spacetype==SPACE_TEXT) {
+			scrarea_queue_redraw(sa);
+		}
+	}
 }

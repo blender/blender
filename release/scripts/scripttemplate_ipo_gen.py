@@ -1,9 +1,9 @@
 #!BPY
 """
-Name: 'Camera/Object Example'
+Name: 'IPO Example'
 Blender: 245
 Group: 'ScriptTemplate'
-Tooltip: 'Script template for setting the camera direction'
+Tooltip: 'Script template for setting the IPO'
 """
 
 from Blender import Window

@@ -100,7 +100,7 @@ PyObject *bpy_orig_syspath_List = NULL;
  *    creates list in __main__ module dict 
  */
   
-int setup_armature_weakrefs()
+static int setup_armature_weakrefs()
 {
 	PyObject *maindict;
 	PyObject *main_module;
@@ -159,19 +159,18 @@ ScriptError g_script_error;
 /***************************************************************************
 * Function prototypes 
 ***************************************************************************/
-PyObject *RunPython( Text * text, PyObject * globaldict );
-PyObject *CreateGlobalDictionary( void );
-void ReleaseGlobalDictionary( PyObject * dict );
-void DoAllScriptsFromList( ListBase * list, short event );
+static PyObject *RunPython( Text * text, PyObject * globaldict );
+static PyObject *CreateGlobalDictionary( void );
+static void ReleaseGlobalDictionary( PyObject * dict );
+static void DoAllScriptsFromList( ListBase * list, short event );
 static PyObject *importText( char *name );
-void init_ourImport( void );
-void init_ourReload( void );
-PyObject *blender_import( PyObject * self, PyObject * args );
-PyObject *RunPython2( Text * text, PyObject * globaldict, PyObject *localdict );
+static void init_ourImport( void );
+static void init_ourReload( void );
+static PyObject *blender_import( PyObject * self, PyObject * args );
 
 
-void BPY_Err_Handle( char *script_name );
-PyObject *traceback_getFilename( PyObject * tb );
+static void BPY_Err_Handle( char *script_name );
+static PyObject *traceback_getFilename( PyObject * tb );
 
 /****************************************************************************
 * Description: This function will start the interpreter and load all modules
@@ -507,7 +506,7 @@ const char *BPY_Err_getFilename( void )
 /*****************************************************************************/
 /* Description: Return PyString filename from a traceback object	    */
 /*****************************************************************************/
-PyObject *traceback_getFilename( PyObject * tb )
+static PyObject *traceback_getFilename( PyObject * tb )
 {
 	PyObject *v = NULL;
 
@@ -531,7 +530,7 @@ PyObject *traceback_getFilename( PyObject * tb )
 * Description: Blender Python error handler. This catches the error and	
 * stores filename and line number in a global  
 *****************************************************************************/
-void BPY_Err_Handle( char *script_name )
+static void BPY_Err_Handle( char *script_name )
 {
 	PyObject *exception, *err, *tb, *v;
 
@@ -2713,7 +2712,7 @@ int BPY_call_importloader( char *name )
 *		The Python dictionary containing global variables needs to
 *		be passed in globaldict.
 *****************************************************************************/
-PyObject *RunPython( Text * text, PyObject * globaldict )
+static PyObject *RunPython( Text * text, PyObject * globaldict )
 {
 	char *buf = NULL;
 
@@ -2741,7 +2740,7 @@ PyObject *RunPython( Text * text, PyObject * globaldict )
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
 *****************************************************************************/
-PyObject *CreateGlobalDictionary( void )
+static PyObject *CreateGlobalDictionary( void )
 {
 	PyObject *dict = PyDict_New(  );
 
@@ -2755,7 +2754,7 @@ PyObject *CreateGlobalDictionary( void )
 /*****************************************************************************
 * Description: This function deletes a given Python dictionary object.
 *****************************************************************************/
-void ReleaseGlobalDictionary( PyObject * dict )
+static void ReleaseGlobalDictionary( PyObject * dict )
 {
 	PyDict_Clear( dict );
 	Py_DECREF( dict );	/* Release dictionary. */
@@ -2768,7 +2767,7 @@ void ReleaseGlobalDictionary( PyObject * dict )
 *		list argument. The event by which the function has been	
 *		called, is passed in the event argument.
 *****************************************************************************/
-void DoAllScriptsFromList( ListBase * list, short event )
+static void DoAllScriptsFromList( ListBase * list, short event )
 {
 	ID *id;
 
@@ -2821,7 +2820,7 @@ static PyMethodDef bimport[] = {
 	{"blimport", blender_import, METH_VARARGS, "our own import"}
 };
 
-PyObject *blender_import( PyObject * self, PyObject * args )
+static PyObject *blender_import( PyObject * self, PyObject * args )
 {
 	PyObject *exception, *err, *tb;
 	char *name;
@@ -2852,7 +2851,7 @@ PyObject *blender_import( PyObject * self, PyObject * args )
 	return m;
 }
 
-void init_ourImport( void )
+static void init_ourImport( void )
 {
 	PyObject *m, *d;
 	PyObject *import = PyCFunction_New( bimport, NULL );
@@ -2953,7 +2952,7 @@ static PyMethodDef breload[] = {
 	{"blreload", blender_reload, METH_VARARGS, "our own reload"}
 };
 
-void init_ourReload( void )
+static void init_ourReload( void )
 {
 	PyObject *m, *d;
 	PyObject *reload = PyCFunction_New( breload, NULL );

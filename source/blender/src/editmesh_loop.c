@@ -538,7 +538,6 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 			bglFlush();
 			glDrawBuffer(GL_BACK);
 			return(NULL);
-			break;
 		}	
 		
 		if (rubberband)  { /* rubberband mode, undraw last rubberband */

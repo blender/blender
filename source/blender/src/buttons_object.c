@@ -4960,7 +4960,7 @@ static void object_panel_particle_system(Object *ob)
 }
 
 /* NT - Panel for fluidsim settings */
-
+#ifndef DISABLE_ELBEEM
 static int _can_fluidsim_at_all(Object *ob)
 {
 	// list of Yes
@@ -5006,6 +5006,7 @@ static void object_fluidsim__enabletoggle(void *ob_v, void *arg2)
 		countall();
 	}
 }
+#endif
 
 static void object_panel_fluidsim(Object *ob)
 {
@@ -5016,7 +5017,8 @@ static void object_panel_fluidsim(Object *ob)
 	const int separateHeight = 2;
 	const int objHeight = 20;
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-	int libdata = 0, val = 0;
+	int libdata = 0;
+	static int val = 0;
 	uiBut *but=NULL;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);

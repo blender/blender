@@ -149,6 +149,7 @@ void	initSolverBody(btSolverBody* solverBody, btCollisionObject* collisionObject
 		solverBody->m_originalBody = 0;
 		solverBody->m_angularFactor = 1.f;
 	}
+	
 	solverBody->m_pushVelocity.setValue(0.f,0.f,0.f);
 	solverBody->m_turnVelocity.setValue(0.f,0.f,0.f);
 }
@@ -292,7 +293,7 @@ btScalar resolveSingleCollisionCombinedCacheFriendly(
 	return normalImpulse;
 }
 
-
+//#define NO_FRICTION_TANGENTIALS 1
 #ifndef NO_FRICTION_TANGENTIALS
 
 btScalar resolveSingleFrictionCacheFriendly(
@@ -396,7 +397,7 @@ btScalar resolveSingleFrictionCacheFriendly(
 			return 0.f;
 
 
-		body1.getVelocityInLocalPoint(contactConstraint.m_rel_posA,vel1);
+		body1.getVelocityInLocalPoint(contactConstraint.m_relpos1CrossNormal,vel1);
 		body2.getVelocityInLocalPoint(contactConstraint.m_rel_posB,vel2);
 		btVector3 vel = vel1 - vel2;
 		btScalar rel_vel;
@@ -421,9 +422,9 @@ btScalar resolveSingleFrictionCacheFriendly(
 				(body1.m_invMass + body2.m_invMass + lat_vel.dot(temp1.cross(rel_pos1) + temp2.cross(rel_pos2)));
 			btScalar normal_impulse = contactConstraint.m_appliedImpulse * combinedFriction;
 
-			GEN_set_min(friction_impulse, normal_impulse);
-			GEN_set_max(friction_impulse, -normal_impulse);
-			body1.applyImpulse(lat_vel * -friction_impulse, rel_pos1);
+			btSetMin(friction_impulse, normal_impulse);
+			btSetMin(friction_impulse, -normal_impulse);
+			body1.internalApplyImpulse(lat_vel * -friction_impulse, rel_pos1);
 			body2.applyImpulse(lat_vel * friction_impulse, rel_pos2);
 		}
 	}
@@ -493,6 +494,23 @@ void	btSequentialImpulseConstraintSolver::addFrictionConstraint(const btVector3&
 
 
 }
+
+
+void	applyAnisotropicFriction(btCollisionObject* colObj,btVector3& frictionDirection);
+void	applyAnisotropicFriction(btCollisionObject* colObj,btVector3& frictionDirection)
+{
+	if (colObj && colObj->hasAnisotropicFriction())
+	{
+		// transform to local coordinates
+		btVector3 loc_lateral = frictionDirection * colObj->getWorldTransform().getBasis();
+		const btVector3& friction_scaling = colObj->getAnisotropicFriction();
+		//apply anisotropic friction
+		loc_lateral *= friction_scaling;
+		// ... and transform it back to global coordinates
+		frictionDirection = colObj->getWorldTransform().getBasis() * loc_lateral;
+	}
+}
+
 
 
 
@@ -755,19 +773,31 @@ btScalar btSequentialImpulseConstraintSolver::solveGroupCacheFriendlySetup(btCol
 							if (!cp.m_lateralFrictionInitialized)
 							{
 								cp.m_lateralFrictionDir1 = vel - cp.m_normalWorldOnB * rel_vel;
+								
+								//scale anisotropic friction
+								
+								applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir1);
+								applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir1);
+
 								btScalar lat_rel_vel = cp.m_lateralFrictionDir1.length2();
+
+
 								if (lat_rel_vel > SIMD_EPSILON)//0.0f)
 								{
 									cp.m_lateralFrictionDir1 /= btSqrt(lat_rel_vel);
 									addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 									cp.m_lateralFrictionDir2 = cp.m_lateralFrictionDir1.cross(cp.m_normalWorldOnB);
-									cp.m_lateralFrictionDir2.normalize();//??
+									cp.m_lateralFrictionDir2.normalize();
+									applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir2);
+									applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir2);
+
 									addFrictionConstraint(cp.m_lateralFrictionDir2,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 								} else
 								{
 									//re-calculate friction direction every frame, todo: check if this is really needed
-									
 									btPlaneSpace1(cp.m_normalWorldOnB,cp.m_lateralFrictionDir1,cp.m_lateralFrictionDir2);
+									applyAnisotropicFriction(colObj0,cp.m_lateralFrictionDir2);
+									applyAnisotropicFriction(colObj1,cp.m_lateralFrictionDir2);
 									addFrictionConstraint(cp.m_lateralFrictionDir1,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 									addFrictionConstraint(cp.m_lateralFrictionDir2,solverBodyIdA,solverBodyIdB,frictionIndex,cp,rel_pos1,rel_pos2,colObj0,colObj1, relaxation);
 								}

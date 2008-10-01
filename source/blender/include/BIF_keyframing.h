@@ -49,13 +49,17 @@ int insert_bezt_icu(struct IpoCurve *icu, struct BezTriple *bezt);
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short flag);
 
 
-/* flags for use in insert_key(), and insert_vert_icu() */
+/* flags for use by keyframe creation/deletion calls */
 enum {
+		/* used by isnertkey() and insert_vert_icu() */
 	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
 	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+	
+		/* used by common_*key() functions */
+	COMMONKEY_ADDMAP	= (1<<10),	/* common key: add texture-slot offset bitflag to adrcode before use */
 } eInsertKeyFlags;
 
 /* -------- */
@@ -79,6 +83,24 @@ short deletekey(struct ID *id, int blocktype, char *actname, char *constname, in
  */
 void common_insertkey(void);
 void common_deletekey(void);
+
+/* ************ Auto-Keyframing ********************** */
+/* Notes:
+ * - All the defines for this (User-Pref settings and Per-Scene settings)
+ * 	are defined in DNA_userdef_types.h
+ * - Scene settings take presidence over those for userprefs, with old files
+ * 	inheriting userpref settings for the scene settings
+ * - "On/Off + Mode" are stored per Scene, but "settings" are currently stored
+ * 	as userprefs
+ */
+
+/* Auto-Keying macros for use by various tools */
+	/* check if auto-keyframing is enabled (per scene takes presidence) */
+#define IS_AUTOKEY_ON			((G.scene) ? (G.scene->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
+	/* check the mode for auto-keyframing (per scene takes presidence)  */
+#define IS_AUTOKEY_MODE(mode) 	((G.scene) ? (G.scene->autokey_mode == AUTOKEY_MODE_##mode) : (U.autokey_mode == AUTOKEY_MODE_##mode))
+	/* check if a flag is set for auto-keyframing (as userprefs only!) */
+#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
 
 /* ************ Keyframe Checking ******************** */
 

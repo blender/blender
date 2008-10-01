@@ -131,9 +131,6 @@ static void *UIafterfunc_arg1, *UIafterfunc_arg2;
 static uiFont UIfont[UI_ARRAY];  // no init needed
 uiBut *UIbuttip;
 
-static char but_copypaste_str[256]="";
-static double but_copypaste_val=0.0;
-static float but_copypaste_rgb[3];
 static ColorBand but_copypaste_coba;
 
 /* ************* PROTOTYPES ***************** */
@@ -470,64 +467,92 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 static int ui_but_copy_paste(uiBut *but, char mode)
 {
 	void *poin;
+	char buf[UI_MAX_DRAW_STR+1];
+	double val;
+	float f[3];
 	
 	if(mode=='v' && but->lock) return 0;
 	poin= but->poin;
-		
+
+	if(mode=='v') {
+		/* extract first line from clipboard in case of multi-line copies */
+		char *p = getClipboard(0);
+		int i = 0;
+		while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
+			buf[i++]=*p;
+			p++;
+		}
+		buf[i]= 0;
+	}
+	
+	/* numeric value */
 	if ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI) {
 		
 		if(poin==NULL);
 		else if(mode=='c') {
-			but_copypaste_val= ui_get_but_val(but);
+			sprintf(buf, "%f", ui_get_but_val(but));
+			putClipboard(buf, 0);
 		}
 		else {
-			ui_set_but_val(but, but_copypaste_val);
-			uibut_do_func(but);
-			ui_check_but(but);
-			return 1;
+			if (sscanf(buf, " %lf ", &val) == 1) {
+				ui_set_but_val(but, val);
+				uibut_do_func(but);
+				ui_check_but(but);
+				return 1;
+			}
 		}
 	}
+
+	/* RGB triple */
 	else if(but->type==COL) {
 		
 		if(poin==NULL);
 		else if(mode=='c') {
 			if(but->pointype==FLO) {
 				float *fp= (float *) poin;
-				but_copypaste_rgb[0]= fp[0];
-				but_copypaste_rgb[1]= fp[1];
-				but_copypaste_rgb[2]= fp[2];	
+				sprintf(buf, "[%f, %f, %f]", fp[0], fp[1], fp[2]);
+				putClipboard(buf, 0);
 			}	
 			else if (but->pointype==CHA) {
 				char *cp= (char *) poin;
-				but_copypaste_rgb[0]= (float)(cp[0]/255.0);
-				but_copypaste_rgb[1]= (float)(cp[1]/255.0);
-				but_copypaste_rgb[2]= (float)(cp[2]/255.0);
+				f[0]= (float)(cp[0]/255.0);
+				f[1]= (float)(cp[1]/255.0);
+				f[2]= (float)(cp[2]/255.0);
+				sprintf(buf, "[%f, %f, %f]", f[0], f[1], f[2]);
+				putClipboard(buf, 0);
 			}
 			
 		}
 		else {
 			if(but->pointype==FLO) {
 				float *fp= (float *) poin;
-				fp[0] = but_copypaste_rgb[0];
-				fp[1] = but_copypaste_rgb[1];
-				fp[2] = but_copypaste_rgb[2];
-				return 1;
+				if (sscanf(buf, "[%f, %f, %f]", &f[0], &f[1], &f[2]) == 3) {
+					fp[0]= f[0];
+					fp[1]= f[1];
+					fp[2]= f[2];
+					return 1;
+				}
 			}
 			else if (but->pointype==CHA) {
 				char *cp= (char *) poin;
-				cp[0] = (char)(but_copypaste_rgb[0]*255.0);
-				cp[1] = (char)(but_copypaste_rgb[1]*255.0);
-				cp[2] = (char)(but_copypaste_rgb[2]*255.0);
-				
-				return 1;
+				if (sscanf(buf, "[%f, %f, %f]", &f[0], &f[1], &f[2]) == 3) {
+					cp[0]= (char)(f[0]*255.0);
+					cp[1]= (char)(f[1]*255.0);
+					cp[2]= (char)(f[2]*255.0);
+					return 1;
+				}
 			}
 			
 		}
 	}
+
+	/* text/string data */
 	else if(but->type==TEX) {
 		if(poin==NULL);
 		else if(mode=='c') {
-			strncpy(but_copypaste_str, but->poin, but->max);
+			strncpy(buf, but->poin, but->max);
+			buf[(int)but->max]= 0;
+			putClipboard(buf, 0);
 		}
 		else {
 			char backstr[UI_MAX_DRAW_STR];
@@ -537,23 +562,31 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 				strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 				but->func_arg2= backstr;
 			}
-			strncpy(but->poin, but_copypaste_str, but->max);
+			strncpy(but->poin, buf, but->max);
 			uibut_do_func(but);
 			ui_check_but(but);
 			return 1;
 		}
 	}
+
+	/* ID name string (eg. OB:Object = "Object") */
 	else if(but->type==IDPOIN) {
 		if(mode=='c') {
 			ID *id= *but->idpoin_idpp;
-			if(id) strncpy(but_copypaste_str, id->name+2, 22);
+			if(id) {
+				strncpy(buf, id->name+2, 22);
+				buf[22]= 0;
+				putClipboard(buf, 0);
+			}
 		}
 		else {
-			but->idpoin_func(but_copypaste_str, but->idpoin_idpp);
+			but->idpoin_func(buf, but->idpoin_idpp);
 			ui_check_but(but);
 			return 1;
 		}
 	}
+
+	/* colorband (not supported by system clipboard) */
 	else if(but->type==BUT_COLORBAND) {
 		if(mode=='c') {
 			if (!but->poin) {
@@ -1771,36 +1804,47 @@ static int ui_do_but_TEX(uiBut *but)
 			 ((G.qual & LR_COMMANDKEY) || (G.qual & LR_CTRLKEY)) && 
 			 ((dev==XKEY) || (dev==CKEY) || (dev==VKEY)) ) {
 				 
+			char buf[UI_MAX_DRAW_STR];
 			
 			/* paste */
 			if (dev==VKEY) {
+
+				/* extract the first line from the clipboard */
+				char *p = getClipboard(0);
+				int i = 0;
+				while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
+					buf[i++]=*p;
+					p++;
+				}
+				buf[i]= 0;
+
 				/* paste over the current selection */
 				if ((but->selend - but->selsta) > 0) {	
 					len -= ui_delete_selection_edittext(but);
 				}
 				
-				for (y=0; y<strlen(but_copypaste_str); y++)
+				for (y=0; y<strlen(buf); y++)
 				{
 					/* add contents of buffer */
 					if(len < but->max) {
 						for(x= but->max; x>but->pos; x--)
 							str[x]= str[x-1];
-						str[but->pos]= but_copypaste_str[y];
+						str[but->pos]= buf[y];
 						but->pos++; 
 						len++;
 						str[len]= '\0';
 					}
 				}
-				if (strlen(but_copypaste_str) > 0) dodraw= 1;
+				if (strlen(buf) > 0) dodraw= 1;
 			}
 			/* cut & copy */
 			else if ( (dev==XKEY) || (dev==CKEY) ) {
 				/* copy the contents to the copypaste buffer */
 				for(x= but->selsta; x <= but->selend; x++) {
 					if (x==but->selend)
-						but_copypaste_str[x] = '\0';
+						buf[x] = '\0';
 					else
-						but_copypaste_str[(x - but->selsta)] = str[x];
+						buf[(x - but->selsta)] = str[x];
 				}
 				
 				/* for cut only, delete the selection afterwards */

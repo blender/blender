@@ -172,13 +172,15 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		KX_GameObject  *obj = (KX_GameObject*) GetParent();
 		MT_Point3    position = obj->NodeGetWorldPosition();
 		MT_Point3    newposition;
-		MT_Vector3   direction, refDirection;
+		MT_Vector3   normal, direction, refDirection;
 		MT_Matrix3x3 rotation = obj->NodeGetWorldOrientation();
 		MT_Scalar    filter, newdistance, cosangle;
 		int axis, sign;
 
 		if (m_posDampTime) {
 			filter = m_posDampTime/(1.0+m_posDampTime);
+		} else {
+			filter = 0.0;
 		}
 		switch (m_locrot) {
 		case KX_ACT_CONSTRAINT_ORIX:
@@ -238,12 +240,8 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			} else {
 				refDirection = m_refDirection;
 			}
-			if (m_posDampTime) {
-				// apply damping on the direction
-				direction = filter*direction + (1.0-filter)*refDirection;
-			} else {
-				direction = refDirection;
-			}
+			// apply damping on the direction
+			direction = filter*direction + (1.0-filter)*refDirection;
 			obj->AlignAxisToVect(direction, axis);
 			result = true;
 			goto CHECK_TIME;
@@ -255,49 +253,74 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 		case KX_ACT_CONSTRAINT_DIRNZ:
 			switch (m_locrot) {
 			case KX_ACT_CONSTRAINT_DIRPX:
-				direction[0] = rotation[0][0];
-				direction[1] = rotation[1][0];
-				direction[2] = rotation[2][0];
+				normal[0] = rotation[0][0];
+				normal[1] = rotation[1][0];
+				normal[2] = rotation[2][0];
 				axis = 0;		// axis according to KX_GameObject::AlignAxisToVect()
-				sign = 1;		// X axis will be anti parrallel to normal
+				sign = 0;		// X axis will be parrallel to direction of ray
 				break;
 			case KX_ACT_CONSTRAINT_DIRPY:
-				direction[0] = rotation[0][1];
-				direction[1] = rotation[1][1];
-				direction[2] = rotation[2][1];
+				normal[0] = rotation[0][1];
+				normal[1] = rotation[1][1];
+				normal[2] = rotation[2][1];
 				axis = 1;
-				sign = 1;
+				sign = 0;
 				break;
 			case KX_ACT_CONSTRAINT_DIRPZ:
-				direction[0] = rotation[0][2];
-				direction[1] = rotation[1][2];
-				direction[2] = rotation[2][2];
+				normal[0] = rotation[0][2];
+				normal[1] = rotation[1][2];
+				normal[2] = rotation[2][2];
+				axis = 2;
+				sign = 0;
+				break;
+			case KX_ACT_CONSTRAINT_DIRNX:
+				normal[0] = -rotation[0][0];
+				normal[1] = -rotation[1][0];
+				normal[2] = -rotation[2][0];
+				axis = 0;
+				sign = 1;
+				break;
+			case KX_ACT_CONSTRAINT_DIRNY:
+				normal[0] = -rotation[0][1];
+				normal[1] = -rotation[1][1];
+				normal[2] = -rotation[2][1];
+				axis = 1;
+				sign = 1;
+				break;
+			case KX_ACT_CONSTRAINT_DIRNZ:
+				normal[0] = -rotation[0][2];
+				normal[1] = -rotation[1][2];
+				normal[2] = -rotation[2][2];
 				axis = 2;
 				sign = 1;
 				break;
-			case KX_ACT_CONSTRAINT_DIRNX:
-				direction[0] = -rotation[0][0];
-				direction[1] = -rotation[1][0];
-				direction[2] = -rotation[2][0];
-				axis = 0;
-				sign = 0;
-				break;
-			case KX_ACT_CONSTRAINT_DIRNY:
-				direction[0] = -rotation[0][1];
-				direction[1] = -rotation[1][1];
-				direction[2] = -rotation[2][1];
-				axis = 1;
-				sign = 0;
-				break;
-			case KX_ACT_CONSTRAINT_DIRNZ:
-				direction[0] = -rotation[0][2];
-				direction[1] = -rotation[1][2];
-				direction[2] = -rotation[2][2];
-				axis = 2;
-				sign = 0;
-				break;
 			}
-			direction.normalize();
+			normal.normalize();
+			if (m_option & KX_ACT_CONSTRAINT_LOCAL) {
+				// direction of the ray is along the local axis
+				direction = normal;
+			} else {
+				switch (m_locrot) {
+				case KX_ACT_CONSTRAINT_DIRPX:
+					direction = MT_Vector3(1.0,0.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRPY:
+					direction = MT_Vector3(0.0,1.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRPZ:
+					direction = MT_Vector3(0.0,0.0,1.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRNX:
+					direction = MT_Vector3(-1.0,0.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRNY:
+					direction = MT_Vector3(0.0,-1.0,0.0);
+					break;
+				case KX_ACT_CONSTRAINT_DIRNZ:
+					direction = MT_Vector3(0.0,0.0,-1.0);
+					break;
+				}
+			}
 			{
 				MT_Point3 topoint = position + (m_maximumBound) * direction;
 				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
@@ -326,24 +349,35 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 						goto CHECK_TIME;
 					}
 					if (m_option & KX_ACT_CONSTRAINT_NORMAL) {
-						// the new orientation must be so that the axis is parallel to normal
-						if (sign)
-							newnormal = -newnormal;
+						MT_Scalar rotFilter;
 						// apply damping on the direction
 						if (m_rotDampTime) {
-							MT_Scalar rotFilter = 1.0/(1.0+m_rotDampTime);
-							newnormal = (-m_rotDampTime*rotFilter)*direction + rotFilter*newnormal;
-						} else if (m_posDampTime) {
-							newnormal = -filter*direction + (1.0-filter)*newnormal;
+							rotFilter = m_rotDampTime/(1.0+m_rotDampTime);
+						} else {
+							rotFilter = filter;
 						}
-						obj->AlignAxisToVect(newnormal, axis);
-						direction = -newnormal;
+						newnormal = rotFilter*normal - (1.0-rotFilter)*newnormal;
+						obj->AlignAxisToVect((sign)?-newnormal:newnormal, axis);
+						if (m_option & KX_ACT_CONSTRAINT_LOCAL) {
+							direction = newnormal;
+							direction.normalize();
+						}
 					}
 					if (m_option & KX_ACT_CONSTRAINT_DISTANCE) {
 						if (m_posDampTime) {
 							newdistance = filter*(position-callback.m_hitPoint).length()+(1.0-filter)*m_minimumBound;
 						} else {
 							newdistance = m_minimumBound;
+						}
+						// logically we should cancel the speed along the ray direction as we set the
+						// position along that axis
+						spc = obj->GetPhysicsController();
+						if (spc) {
+							MT_Vector3 linV = spc->GetLinearVelocity();
+							// cancel the projection along the ray direction
+							MT_Scalar fallspeed = linV.dot(direction);
+							if (!MT_fuzzyZero(fallspeed))
+								spc->SetLinearVelocity(linV-fallspeed*direction,false);
 						}
 					} else {
 						newdistance = (position-callback.m_hitPoint).length();

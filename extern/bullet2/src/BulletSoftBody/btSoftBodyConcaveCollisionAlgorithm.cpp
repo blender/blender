@@ -32,7 +32,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h"
 #include "BulletSoftBody/btSoftBody.h"
 
-#define BT_SOFTBODY_TRIANGLE_EXTRUSION btScalar(0.3)
+#define BT_SOFTBODY_TRIANGLE_EXTRUSION btScalar(0.3)//make this configurable
 
 btSoftBodyConcaveCollisionAlgorithm::btSoftBodyConcaveCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1,bool isSwapped)
 : btCollisionAlgorithm(ci),
@@ -74,35 +74,23 @@ btSoftBodyTriangleCallback::~btSoftBodyTriangleCallback()
 
 void	btSoftBodyTriangleCallback::clearCache()
 {
-	//m_dispatcher->clearManifold(m_manifoldPtr);
+	for (int i=0;i<m_shapeCache.size();i++)
+	{
+		btTriIndex* tmp = m_shapeCache.getAtIndex(i);
+		btAssert(tmp);
+		btAssert(tmp->m_childShape);
+		m_softBody->getWorldInfo()->m_sparsesdf.RemoveReferences(tmp->m_childShape);//necessary?
+		delete tmp->m_childShape;
+	}
+	m_shapeCache.clear();
 };
-
-
-static const int maxParts = 1;
-static const int maxTriangleIndex = 100*100;
-
-btCollisionShape* shapeCache[maxParts][maxTriangleIndex];
 
 
 void btSoftBodyTriangleCallback::processTriangle(btVector3* triangle,int partId, int triangleIndex)
 {
-	static bool hackedFirst = true;
-	if (hackedFirst)
-	{
-		hackedFirst = false;
-		int i,j;
-		for (i=0;i<maxParts;i++)
-		{
-			for (j=0;j<maxTriangleIndex;j++)
-			{
-				shapeCache[i][j]=0;
-			}
-		}
-	}
- 
-	//just for debugging purposes
+ 	//just for debugging purposes
 	//printf("triangle %d",m_triangleCount++);
-btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
+	btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 	btCollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher1 = m_dispatcher;
 
@@ -114,18 +102,17 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 		m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[0]),tr(triangle[1]),color);
 		m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[1]),tr(triangle[2]),color);
 		m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[2]),tr(triangle[0]),color);
-
-		//btVector3 center = triangle[0] + triangle[1]+triangle[2];
-		//center *= btScalar(0.333333);
-		//m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[0]),tr(center),color);
-		//m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[1]),tr(center),color);
-		//m_dispatchInfoPtr->m_debugDraw->drawLine(tr(triangle[2]),tr(center),color);
-
 	}
 
-	if (shapeCache[partId][triangleIndex])
+	btTriIndex	triIndex(partId,triangleIndex,0);
+	btHashKey<btTriIndex> triKey(triIndex.getUid());
+
+	
+	btTriIndex* shapeIndex = m_shapeCache[triKey];
+	if (shapeIndex)
 	{
-		btCollisionShape* tm = shapeCache[partId][triangleIndex];
+		btCollisionShape* tm = shapeIndex->m_childShape;
+		btAssert(tm);
 
 		//copy over user pointers to temporary shape
 		tm->setUserPointer(ob->getRootCollisionShape()->getUserPointer());
@@ -145,13 +132,6 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 
 	//aabb filter is already applied!	
 
-
-	
-
-	
-
-
-
 	//btCollisionObject* colObj = static_cast<btCollisionObject*>(m_convexProxy->m_clientObject);
 	
 //	if (m_softBody->getCollisionShape()->getShapeType()==
@@ -162,9 +142,9 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 		normal*= BT_SOFTBODY_TRIANGLE_EXTRUSION;
 //		other=(triangle[0]+triangle[1]+triangle[2])*0.333333f;
 //		other+=normal*22.f;
-		btVector3	pts[6] = {triangle[0]+normal,
-			triangle[1]+normal,
-		triangle[2]+normal,
+		btVector3	pts[6] = {triangle[0],
+			triangle[1],
+		triangle[2],
 		triangle[0]-normal,
 		triangle[1]-normal,
 		triangle[2]-normal};
@@ -194,10 +174,11 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 		colAlgo->processCollision(m_softBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
 		colAlgo->~btCollisionAlgorithm();
 		ci.m_dispatcher1->freeCollisionAlgorithm(colAlgo);
+		
+		
 		ob->internalSetTemporaryCollisionShape( tmpShape );
-//		delete tm;
-
-		shapeCache[partId][triangleIndex] = tm;
+		triIndex.m_childShape = tm;
+		m_shapeCache.insert(triKey,triIndex);
 
 	}
 
@@ -210,44 +191,22 @@ btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 void	btSoftBodyTriangleCallback::setTimeStepAndCounters(btScalar collisionMarginTriangle,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	m_dispatchInfoPtr = &dispatchInfo;
-	m_collisionMarginTriangle = collisionMarginTriangle;
+	m_collisionMarginTriangle = collisionMarginTriangle+btScalar(BT_SOFTBODY_TRIANGLE_EXTRUSION);
 	m_resultOut = resultOut;
 
-	//recalc aabbs
-//	btTransform softbodyInTriangleSpace;
-//	softbodyInTriangleSpace = m_triBody->getWorldTransform().inverse() * m_softBody->getWorldTransform();
-//	btCollisionShape* convexShape = static_cast<btCollisionShape*>(m_convexBody->getCollisionShape());
-	//CollisionShape* triangleShape = static_cast<btCollisionShape*>(triBody->m_collisionShape);
+	
 	btVector3	aabbWorldSpaceMin,aabbWorldSpaceMax;
 	m_softBody->getAabb(aabbWorldSpaceMin,aabbWorldSpaceMax);
-
 	btVector3 halfExtents = (aabbWorldSpaceMax-aabbWorldSpaceMin)*btScalar(0.5);
 	btVector3 softBodyCenter = (aabbWorldSpaceMax+aabbWorldSpaceMin)*btScalar(0.5);
 
-	btTransform	triInverse = m_triBody->getWorldTransform().inverse();
+	btTransform softTransform;
+	softTransform.setIdentity();
+	softTransform.setOrigin(softBodyCenter);
 
-	btMatrix3x3 abs_b = triInverse.getBasis().absolute();  
-	btPoint3 center = softBodyCenter + triInverse.getOrigin();
-
-	btVector3 extent = btVector3(abs_b[0].dot(halfExtents),
-		   abs_b[1].dot(halfExtents),
-		  abs_b[2].dot(halfExtents));
-//	extent += btVector3(getMargin(),getMargin(),getMargin());
-
-	m_aabbMin = center - extent;
-	m_aabbMax = center + extent;
-
-	btScalar extraMargin = collisionMarginTriangle+btScalar(BT_SOFTBODY_TRIANGLE_EXTRUSION);
-	btVector3 extra(extraMargin,extraMargin,extraMargin);
-
-	m_aabbMax += extra;
-	m_aabbMin -= extra;
-
-/*	btVector3 extra(2,2,2);
-	m_aabbMin = aabbWorldSpaceMin-extra;
-	m_aabbMax = aabbWorldSpaceMax+extra;
-*/
-
+	btTransform convexInTriangleSpace;
+	convexInTriangleSpace = m_triBody->getWorldTransform().inverse() * softTransform;
+	btTransformAabb(halfExtents,m_collisionMarginTriangle,convexInTriangleSpace,m_aabbMin,m_aabbMax);
 }
 
 void btSoftBodyConcaveCollisionAlgorithm::clearCache()

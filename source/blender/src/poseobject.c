@@ -213,6 +213,8 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 	bConstraint *con;
 	Bone *bone;
 	
+	/* No need to check if constraint is active (has influence),
+	 * since all constraints with CONSTRAINT_IK_AUTO are active */
 	for(con= pchan->constraints.first; con; con= con->next) {
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
 			bKinematicConstraint *data= con->data;
@@ -1732,4 +1734,5 @@ void pose_flipquats(void)
 	/* do autokey */
 	autokeyframe_pose_cb_func(ob, TFM_ROTATION, 0);
 }
+
 

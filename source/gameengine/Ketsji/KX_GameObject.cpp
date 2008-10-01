@@ -772,7 +772,14 @@ MT_Vector3 KX_GameObject::GetAngularVelocity(bool local)
 	return velocity;	
 }
 
-
+MT_Vector3 KX_GameObject::GetVelocity(const MT_Point3& point)
+{
+	if (m_pPhysicsController1)
+	{
+		return m_pPhysicsController1->GetVelocity(point);
+	}
+	return MT_Vector3(0.0,0.0,0.0);
+}
 
 // scenegraph node stuff
 

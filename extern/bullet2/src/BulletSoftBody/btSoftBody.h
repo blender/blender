@@ -594,7 +594,8 @@ public:
 	btDbvt					m_fdbvt;		// Faces tree
 	btDbvt					m_cdbvt;		// Clusters tree
 	tClusterArray			m_clusters;		// Clusters
-		
+	
+	btTransform				m_initialWorldTransform; //used to attach constraints etc.
 	//
 	// Api
 	//
@@ -608,6 +609,11 @@ public:
 	/* Check for existing link												*/ 
 
 	btAlignedObjectArray<int>	m_userIndexMapping;
+
+	btSoftBodyWorldInfo*	getWorldInfo()
+	{
+		return m_worldInfo;
+	}
 
 	virtual void	setCollisionShape(btCollisionShape* collisionShape)
 	{

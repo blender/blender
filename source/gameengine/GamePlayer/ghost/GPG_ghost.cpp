@@ -53,6 +53,7 @@ extern "C"
 {
 #endif  // __cplusplus
 #include "MEM_guardedalloc.h"
+#include "BKE_blender.h"	
 #include "BKE_global.h"	
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
@@ -60,6 +61,7 @@ extern "C"
 #include "DNA_scene_types.h"
 #include "BLO_readfile.h"
 #include "BLO_readblenfile.h"
+#include "IMB_imbuf.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -335,7 +337,15 @@ int main(int argc, char** argv)
 
 	init_nodesystem();
 	
+	initglobals();
+
 	GEN_init_messaging_system();
+
+#ifdef WITH_QUICKTIME
+	quicktime_init();
+#endif
+
+	libtiff_init();
  
 	// Parse command line options
 #ifndef NDEBUG
