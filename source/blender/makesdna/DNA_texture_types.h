@@ -130,7 +130,7 @@ typedef struct EnvMap {
 typedef struct PointDensity {
 	short flag;
 
-	short nearest;
+	short falloff_type;
 	float radius;
 
 	short source;
@@ -144,7 +144,10 @@ typedef struct PointDensity {
 	
 	short pdpad2;
 	
-	void *point_tree;		/* the kd-tree containing points */
+	void *point_tree;		/* the acceleration tree containing points */
+	//void *point_data;		/* dynamically allocated extra for extra information, like particle age */
+	//int pdpad3;
+	
 } PointDensity;
 
 typedef struct Tex {
@@ -415,10 +418,16 @@ typedef struct TexMapping {
 #define TEX_PD_OBJECT		1
 #define TEX_PD_FILE			2
 
+/* falloff_type */
+#define TEX_PD_FALLOFF_STD		0
+#define TEX_PD_FALLOFF_SMOOTH	1
+#define TEX_PD_FALLOFF_SHARP	2
+
 /* psys_cache_space */
 #define TEX_PD_OBJECTLOC	0
 #define TEX_PD_OBJECTSPACE	1
 #define TEX_PD_WORLDSPACE	2
+
 
 #endif
 

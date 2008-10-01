@@ -43,7 +43,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
-#include "BLI_kdtree.h"
+#include "BLI_kdopbvh.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_key_types.h"
@@ -474,7 +474,7 @@ void default_tex(Tex *tex)
 
 	if (tex->pd) {
 		tex->pd->radius = 0.3f;
-		tex->pd->nearest = 5;
+		tex->pd->falloff_type = TEX_PD_FALLOFF_STD;
 	}
 
 	pit = tex->plugin;
@@ -874,9 +874,10 @@ PointDensity *BKE_add_pointdensity(void)
 	
 	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
 	pd->radius = 0.3f;
-	pd->nearest = 5;
+	pd->falloff_type = TEX_PD_FALLOFF_STD;
 	pd->source = TEX_PD_PSYS;
 	pd->point_tree = NULL;
+	//pd->point_data = NULL;
 	
 	return pd;
 } 
@@ -887,6 +888,7 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 
 	pdn= MEM_dupallocN(pd);
 	pdn->point_tree = NULL;
+	//pdn->point_data = NULL;
 	
 	return pd;
 }
@@ -894,9 +896,15 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 void BKE_free_pointdensitydata(PointDensity *pd)
 {
 	if (pd->point_tree) {
-		BLI_kdtree_free(pd->point_tree);
+		BLI_bvhtree_free(pd->point_tree);
 		pd->point_tree = NULL;
 	}
+	/*
+	if (pd->point_data) {
+		MEM_freeN(pd->point_data);
+		pd->point_data = NULL;
+	}
+	*/
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

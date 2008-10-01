@@ -751,12 +751,15 @@ static void texture_panel_pointdensity(Tex *tex)
 		uiDefBut(block, LABEL, B_NOP, "Density estimation:",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 
-		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_REDR, "Radius: ",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
-		uiDefButS(block, NUM, B_REDR, "Nearby: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->nearest), 2.0, 25.0, 10, 2, "The number of nearby particles to check for density (higher is more accurate, but slower)");
-		uiBlockEndAlign(block);
+		
+		yco -= YSPACE;
+		
+		uiDefBut(block, LABEL, B_NOP, "Falloff:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
+		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Sharp %x2",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
 		
 		yco = PANEL_YMAX;
 		

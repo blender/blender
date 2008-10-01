@@ -71,6 +71,9 @@ typedef void (*BVHTree_NearestPointCallback) (void *userdata, int index, const f
 /* callback must update hit in case it finds a nearest successful hit */
 typedef void (*BVHTree_RayCastCallback) (void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
+/* callback to range search query */
+typedef void (*BVHTree_RangeQuery) (void *userdata, int index, float squared_dist, float radius);
+
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);
@@ -92,6 +95,10 @@ float BLI_bvhtree_getepsilon(BVHTree *tree);
 int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata);
 
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
+
+/* range query */
+int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTree_RangeQuery callback, void *userdata);
+
 
 #endif // BLI_KDOPBVH_H
 

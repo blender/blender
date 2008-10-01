@@ -27,7 +27,7 @@
 #include <stdio.h>
 
 #include "BLI_arithb.h"
-#include "BLI_kdtree.h"
+#include "BLI_kdopbvh.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -71,7 +71,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	/* in case ob->imat isn't up-to-date */
 	Mat4Invert(ob->imat, ob->obmat);
 	
-	pd->point_tree = BLI_kdtree_new(psys->totpart+psys->totchild);
+	pd->point_tree = BLI_bvhtree_new(psys->totpart+psys->totchild, 0.0, 2, 6);
 	
 	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
 		childexists = 1;
@@ -93,11 +93,12 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				/* TEX_PD_WORLDSPACE */
 			}
 			
-			BLI_kdtree_insert(pd->point_tree, i, partco, NULL);
+			BLI_bvhtree_insert(pd->point_tree, i, partco, 1);
 		}
 	}
 	
-	BLI_kdtree_balance(pd->point_tree);
+	BLI_bvhtree_balance(pd->point_tree);
+	
 	psys_render_restore(ob, psys);
 }
 
@@ -112,7 +113,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *o
 	/* in case ob->imat isn't up-to-date */
 	Mat4Invert(obr->ob->imat, obr->ob->obmat);
 	
-	pd->point_tree = BLI_kdtree_new(obr->totvert);
+	pd->point_tree = BLI_bvhtree_new(obr->totvert, 0.0, 2, 6);
 	
 	for(i=0; i<obr->totvert; i++) {
 		float ver_co[3];
@@ -128,10 +129,10 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *o
 			Mat4MulVecfl(re->viewinv, ver_co);
 		}
 		
-		BLI_kdtree_insert(pd->point_tree, i, ver_co, NULL);
+		BLI_bvhtree_insert(pd->point_tree, i, ver_co, 1);
 	}
 	
-	BLI_kdtree_balance(pd->point_tree);
+	BLI_bvhtree_balance(pd->point_tree);
 
 }
 static void cache_pointdensity(Render *re, Tex *tex)
@@ -139,7 +140,7 @@ static void cache_pointdensity(Render *re, Tex *tex)
 	PointDensity *pd = tex->pd;
 
 	if (pd->point_tree) {
-		BLI_kdtree_free(pd->point_tree);
+		BLI_bvhtree_free(pd->point_tree);
 		pd->point_tree = NULL;
 	}
 	
@@ -178,9 +179,16 @@ static void free_pointdensity(Render *re, Tex *tex)
 	PointDensity *pd = tex->pd;
 
 	if (pd->point_tree) {
-		BLI_kdtree_free(pd->point_tree);
+		BLI_bvhtree_free(pd->point_tree);
 		pd->point_tree = NULL;
 	}
+
+	/*
+	if (pd->point_data) {
+		MEM_freeN(pd->point_data);
+		pd->point_data = NULL;
+	}
+	*/
 }
 
 
@@ -216,33 +224,49 @@ void free_pointdensities(Render *re)
 	}
 }
 
+
+void accum_density_std(void *userdata, int index, float squared_dist, float squared_radius)
+{
+	float *density = userdata;
+	const float dist = squared_radius - squared_dist;
+	
+	*density+= dist;
+}
+
+void accum_density_smooth(void *userdata, int index, float squared_dist, float squared_radius)
+{
+	float *density = userdata;
+	const float dist = squared_radius - squared_dist;
+	
+	*density+= 3.0f*dist*dist - 2.0f*dist*dist*dist;
+}
+
+void accum_density_sharp(void *userdata, int index, float squared_dist, float squared_radius)
+{
+	float *density = userdata;
+	const float dist = squared_radius - squared_dist;
+	
+	*density+= dist*dist;
+}
+
 #define MAX_POINTS_NEAREST	25
 int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 {
 	int rv = TEX_INT;
-	
 	PointDensity *pd = tex->pd;
-	KDTreeNearest nearest[MAX_POINTS_NEAREST];
 	float density=0.0f;
-	int n, neighbours=0;
 	
 	if ((!pd) || (!pd->point_tree)) {
 		texres->tin = 0.0f;
 		return 0;
 	}
 	
-	neighbours = BLI_kdtree_find_n_nearest(pd->point_tree, pd->nearest, texvec, NULL, nearest);
-	
-	for(n=1; n<neighbours; n++) {
-		if ( nearest[n].dist < pd->radius) {
-			float dist = 1.0 - (nearest[n].dist / pd->radius);
-			
-			density += 3.0f*dist*dist - 2.0f*dist*dist*dist;
-		}
-	}
-	
-	density /= neighbours;
-	density *= 1.0 / pd->radius;
+	if (pd->falloff_type == TEX_PD_FALLOFF_STD)
+		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_std, &density);
+	else if (pd->falloff_type == TEX_PD_FALLOFF_SMOOTH)
+		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_smooth, &density);
+	else if (pd->falloff_type == TEX_PD_FALLOFF_SHARP)
+		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_sharp, &density);
 
 	texres->tin = density;
 
