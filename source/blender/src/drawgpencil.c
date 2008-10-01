@@ -80,7 +80,7 @@
 #include "blendef.h"
 #include "butspace.h"
 
-#include "PIL_time.h"			/* sleep				*/
+#include "PIL_time.h"
 #include "mydevice.h"
 
 /* ************************************************** */
@@ -447,7 +447,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 			
 			/* need to translate drawing position, but must reset after too! */
 			glTranslatef(co[0],  co[1], 0.); 
-			gluDisk( qobj, 0.0,  thickness, 32, 1); 
+			gluDisk(qobj, 0.0,  thickness, 32, 1); 
 			glTranslatef(-co[0],  -co[1], 0.);
 			
 			gluDeleteQuadric(qobj);
@@ -524,7 +524,9 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 		glEnd();
 	}
 	
-	/* tesselation code: currently only enabled with rt != 0 */
+	/* tesselation code - draw stroke as series of connected quads with connection
+	 * edges rotated to minimise shrinking artifacts, and rounded endcaps
+	 */
 	else 
 	{ 
 		bGPDspoint *pt1, *pt2;
@@ -723,7 +725,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 	glColor4f(color[0], color[1], color[2], color[3]);
 	
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
-		/* check if stroke can be drawn */
+		/* check if stroke can be drawn - checks here generally fall into pairs */
 		if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE))
 			continue;
 		if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE))
@@ -876,13 +878,13 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 				BIF_ThemeColor(TH_TEXT_HI);
 			
 			if (actlay->actframe) {
-				sprintf(printable, "GPencil: Layer ('%s'), Frame (%d) %s", 
+				sprintf(printable, "GPencil: Layer ('%s'), Frame (%d)%s", 
 					actlay->info, actlay->actframe->framenum,
-					((gpd->flag & GP_DATA_EDITPAINT)?", Draw Mode On":"") );
+					((gpd->flag & GP_DATA_EDITPAINT)?" , Draw Mode On":"") );
 			}
 			else {
-				sprintf(printable, "GPencil: Layer ('%s'), Frame <None> %s", 
-					actlay->info, ((gpd->flag & GP_DATA_EDITPAINT)?", Draw Mode On":"") );
+				sprintf(printable, "GPencil: Layer ('%s'), Frame <None>%s", 
+					actlay->info, ((gpd->flag & GP_DATA_EDITPAINT)?" , Draw Mode On":"") );
 			}
 		}
 		else {

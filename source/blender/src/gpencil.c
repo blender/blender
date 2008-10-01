@@ -614,7 +614,6 @@ void gpencil_layer_delactive (bGPdata *gpd)
 	/* free layer */	
 	free_gpencil_frames(gpl);
 	BLI_freelinkN(&gpd->layers, gpl);
-
 }
 
 /* ************************************************** */
@@ -1058,145 +1057,6 @@ static void gp_session_validatebuffer (tGPsdata *p)
 	gpd->sbuffer_sflag= 0;
 }
 
-/* init new painting session */
-static void gp_session_initpaint (tGPsdata *p)
-{
-	/* clear previous data (note: is on stack) */
-	memset(p, 0, sizeof(tGPsdata));
-	
-	/* make sure the active view (at the starting time) is a 3d-view */
-	if (curarea == NULL) {
-		p->status= GP_STATUS_ERROR;
-		if (G.f & G_DEBUG) 
-			printf("Error: No active view for painting \n");
-		return;
-	}
-	switch (curarea->spacetype) {
-		/* supported views first */
-		case SPACE_VIEW3D:
-		{
-			View3D *v3d= curarea->spacedata.first;
-			
-			/* set current area */
-			p->sa= curarea;
-			
-			/* check that gpencil data is allowed to be drawn */
-			if ((v3d->flag2 & V3D_DISPGP)==0) {
-				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
-				return;
-			}
-		}
-			break;
-		case SPACE_NODE:
-		{
-			SpaceNode *snode= curarea->spacedata.first;
-			
-			/* set current area */
-			p->sa= curarea;
-			p->v2d= &snode->v2d;
-			
-			/* check that gpencil data is allowed to be drawn */
-			if ((snode->flag & SNODE_DISPGP)==0) {
-				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
-				return;
-			}
-		}
-			break;
-		case SPACE_SEQ:
-		{
-			SpaceSeq *sseq= curarea->spacedata.first;
-			
-			/* set current area */
-			p->sa= curarea;
-			p->v2d= &sseq->v2d;
-			
-			/* check that gpencil data is allowed to be drawn */
-			if (sseq->mainb == 0) {
-				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil \n");
-				return;
-			}
-			if ((sseq->flag & SEQ_DRAW_GPENCIL)==0) {
-				p->status= GP_STATUS_ERROR;
-				if (G.f & G_DEBUG) 
-					printf("Error: In active view, Grease Pencil not shown \n");
-				return;
-			}
-		}
-			break;	
-		case SPACE_IMAGE:
-		{
-			SpaceImage *sima= curarea->spacedata.first;
-			
-			/* set the current area */
-			p->sa= curarea;
-			p->v2d= &sima->v2d;
-			p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-		}
-			break;
-		/* unsupported views */
-		default:
-		{
-			p->status= GP_STATUS_ERROR;
-			if (G.f & G_DEBUG) 
-				printf("Error: Active view not appropriate for Grease Pencil drawing \n");
-			return;
-		}
-			break;
-	}
-	
-	/* get gp-data */
-	p->gpd= gpencil_data_getactive(p->sa);
-	if (p->gpd == NULL) {
-		short ok;
-		
-		p->gpd= gpencil_data_addnew();
-		ok= gpencil_data_setactive(p->sa, p->gpd);
-		
-		/* most of the time, the following check isn't needed */
-		if (ok == 0) {
-			/* free gpencil data as it can't be used */
-			free_gpencil_data(p->gpd);
-			p->gpd= NULL;
-			p->status= GP_STATUS_ERROR;
-			if (G.f & G_DEBUG) 
-				printf("Error: Could not assign newly created Grease Pencil data to active area \n");
-			return;
-		}
-	}
-	
-	/* set edit flags */
-	G.f |= G_GREASEPENCIL;
-	
-	/* clear out buffer (stored in gp-data) in case something contaminated it */
-	gp_session_validatebuffer(p);
-}
-
-/* cleanup after a painting session */
-static void gp_session_cleanup (tGPsdata *p)
-{
-	bGPdata *gpd= p->gpd;
-	
-	/* error checking */
-	if (gpd == NULL)
-		return;
-	
-	/* free stroke buffer */
-	if (gpd->sbuffer) {
-		MEM_freeN(gpd->sbuffer);
-		gpd->sbuffer= NULL;
-	}
-	
-	/* clear flags */
-	gpd->sbuffer_size= 0;
-	gpd->sbuffer_sflag= 0;
-}
-
 /* check if the current mouse position is suitable for adding a new point */
 static short gp_stroke_filtermval (tGPsdata *p, short mval[2], short pmval[2])
 {
@@ -1614,6 +1474,145 @@ static void gp_stroke_doeraser (tGPsdata *p)
 }
 
 /* ---------- 'Paint' Tool ------------ */
+
+/* init new painting session */
+static void gp_session_initpaint (tGPsdata *p)
+{
+	/* clear previous data (note: is on stack) */
+	memset(p, 0, sizeof(tGPsdata));
+	
+	/* make sure the active view (at the starting time) is a 3d-view */
+	if (curarea == NULL) {
+		p->status= GP_STATUS_ERROR;
+		if (G.f & G_DEBUG) 
+			printf("Error: No active view for painting \n");
+		return;
+	}
+	switch (curarea->spacetype) {
+		/* supported views first */
+		case SPACE_VIEW3D:
+		{
+			View3D *v3d= curarea->spacedata.first;
+			
+			/* set current area */
+			p->sa= curarea;
+			
+			/* check that gpencil data is allowed to be drawn */
+			if ((v3d->flag2 & V3D_DISPGP)==0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG) 
+					printf("Error: In active view, Grease Pencil not shown \n");
+				return;
+			}
+		}
+			break;
+		case SPACE_NODE:
+		{
+			SpaceNode *snode= curarea->spacedata.first;
+			
+			/* set current area */
+			p->sa= curarea;
+			p->v2d= &snode->v2d;
+			
+			/* check that gpencil data is allowed to be drawn */
+			if ((snode->flag & SNODE_DISPGP)==0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG) 
+					printf("Error: In active view, Grease Pencil not shown \n");
+				return;
+			}
+		}
+			break;
+		case SPACE_SEQ:
+		{
+			SpaceSeq *sseq= curarea->spacedata.first;
+			
+			/* set current area */
+			p->sa= curarea;
+			p->v2d= &sseq->v2d;
+			
+			/* check that gpencil data is allowed to be drawn */
+			if (sseq->mainb == 0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG) 
+					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil \n");
+				return;
+			}
+			if ((sseq->flag & SEQ_DRAW_GPENCIL)==0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG) 
+					printf("Error: In active view, Grease Pencil not shown \n");
+				return;
+			}
+		}
+			break;	
+		case SPACE_IMAGE:
+		{
+			SpaceImage *sima= curarea->spacedata.first;
+			
+			/* set the current area */
+			p->sa= curarea;
+			p->v2d= &sima->v2d;
+			p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		}
+			break;
+		/* unsupported views */
+		default:
+		{
+			p->status= GP_STATUS_ERROR;
+			if (G.f & G_DEBUG) 
+				printf("Error: Active view not appropriate for Grease Pencil drawing \n");
+			return;
+		}
+			break;
+	}
+	
+	/* get gp-data */
+	p->gpd= gpencil_data_getactive(p->sa);
+	if (p->gpd == NULL) {
+		short ok;
+		
+		p->gpd= gpencil_data_addnew();
+		ok= gpencil_data_setactive(p->sa, p->gpd);
+		
+		/* most of the time, the following check isn't needed */
+		if (ok == 0) {
+			/* free gpencil data as it can't be used */
+			free_gpencil_data(p->gpd);
+			p->gpd= NULL;
+			p->status= GP_STATUS_ERROR;
+			if (G.f & G_DEBUG) 
+				printf("Error: Could not assign newly created Grease Pencil data to active area \n");
+			return;
+		}
+	}
+	
+	/* set edit flags */
+	G.f |= G_GREASEPENCIL;
+	
+	/* clear out buffer (stored in gp-data) in case something contaminated it */
+	gp_session_validatebuffer(p);
+}
+
+/* cleanup after a painting session */
+static void gp_session_cleanup (tGPsdata *p)
+{
+	bGPdata *gpd= p->gpd;
+	
+	/* error checking */
+	if (gpd == NULL)
+		return;
+	
+	/* free stroke buffer */
+	if (gpd->sbuffer) {
+		MEM_freeN(gpd->sbuffer);
+		gpd->sbuffer= NULL;
+	}
+	
+	/* clear flags */
+	gpd->sbuffer_size= 0;
+	gpd->sbuffer_sflag= 0;
+}
 
 /* init new stroke */
 static void gp_paint_initstroke (tGPsdata *p, short paintmode)
