@@ -3255,16 +3255,21 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case XKEY:
 		case DELKEY:
-			if (okee("Erase selected")) {
-				remove_marker();
-				del_ipo(0);
-				
-				/* note: don't update the other spaces (in particular ipo)
-				 *		 or else curves disappear.
-				 */
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWSOUND, 0);
+			/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+			if (G.qual == LR_SHIFTKEY) {
+				if (okee("Erase selected marker(s)?"))
+					remove_marker();
 			}
+			else {
+				if (okee("Erase selected?"))
+					del_ipo(0);
+			}
+			
+			/* note: don't update the other spaces (in particular ipo)
+			 *		 or else curves disappear.
+			 */
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		case ACCENTGRAVEKEY:
 			if((G.qual==0)) {
@@ -5205,6 +5210,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if(G.qual==LR_ALTKEY) {
 				if(sseq->mainb)
 					gpencil_delete_menu();
+			}
+			else if(G.qual==LR_SHIFTKEY) {
+				/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+				remove_marker();
 			}
 			break;
 		case PAD1: case PAD2: case PAD4: case PAD8:

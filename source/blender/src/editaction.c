@@ -5155,21 +5155,28 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case DELKEY:
 		case XKEY:
-			if (okee("Erase selected")) {
-				if (mval[0] < NAMEWIDTH) {
-					if (datatype == ACTCONT_ACTION)
-						delete_action_channels();
-					else if (datatype == ACTCONT_GPENCIL)
-						delete_gpencil_layers();
+			/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+			if (G.qual == LR_SHIFTKEY) {
+				if (okee("Erase selected marker(s)?")) {
+					if (mval[0] >= NAMEWIDTH)
+						remove_marker();
 				}
-				else
-					delete_action_keys();
-				
-				if (mval[0] >= NAMEWIDTH)
-					remove_marker();
-				
-				allqueue(REDRAWMARKER, 0);
 			}
+			else {
+				if (okee("Erase selected?")) {
+					if (mval[0] < NAMEWIDTH) {
+						if (datatype == ACTCONT_ACTION)
+							delete_action_channels();
+						else if (datatype == ACTCONT_GPENCIL)
+							delete_gpencil_layers();
+					}
+					else
+						delete_action_keys();
+				}
+			}
+			
+			allqueue(REDRAWMARKER, 0);
+			
 			break;
 		
 		case ACCENTGRAVEKEY:
