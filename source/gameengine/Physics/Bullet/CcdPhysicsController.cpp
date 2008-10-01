@@ -980,7 +980,7 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 		if (m_object->isStaticObject())
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-		}
+		} else
 		{
 			btTransform xform = m_object->getWorldTransform();
 			if (local)
@@ -1005,6 +1005,7 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		if (m_object->isStaticObject())
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
 		
 		btSoftBody* soft = GetSoftBody();
@@ -1093,8 +1094,7 @@ void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const 
 	btRigidBody* body = GetRigidBody();
 	if (body)
 	{
-		btVector3 rel_pos = pos-body->getCenterOfMassPosition();
-		btVector3 linvel = body->getVelocityInLocalPoint(rel_pos);
+		btVector3 linvel = body->getVelocityInLocalPoint(pos);
 		linvX = linvel.x();
 		linvY = linvel.y();
 		linvZ = linvel.z();

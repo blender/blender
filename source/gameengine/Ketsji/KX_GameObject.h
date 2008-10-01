@@ -264,6 +264,15 @@ public:
 		bool local=false
 	);
 
+	/** 
+	 * Return the linear velocity of a given point in world coordinate
+	 * but relative to center of object ([0,0,0]=center of object)
+	 */
+		MT_Vector3 
+	GetVelocity(
+		const MT_Point3& position
+	);
+
 	/**
 	 * Return the mass of the object
 	 */

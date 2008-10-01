@@ -90,7 +90,8 @@ class PHY_IPhysicsController
 		virtual void	calcXform() =0;
 		virtual void SetMargin(float margin) =0;
 		virtual float GetMargin() const=0;
-		virtual float GetRadius() const { return 0.f;}
+		virtual float GetRadius() const=0;
+		virtual void  SetRadius(float margin) = 0;
 		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
 
 };

@@ -120,6 +120,7 @@ public:
 	virtual void SetMargin(float margin) ;
 	virtual float GetMargin() const;
 	virtual float GetRadius() const ;
+	virtual void  SetRadius(float margin) { SetMargin(margin); }
 
 
 	// clientinfo for raycasts for example

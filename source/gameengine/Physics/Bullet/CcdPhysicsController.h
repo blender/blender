@@ -413,8 +413,29 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		}
 
 		virtual void	calcXform() {} ;
-		virtual void SetMargin(float margin) {};
-		virtual float GetMargin() const {return 0.f;};
+		virtual void SetMargin(float margin) 
+		{
+			if (m_collisionShape)
+				m_collisionShape->setMargin(btScalar(margin));
+		}
+		virtual float GetMargin() const 
+		{
+			return (m_collisionShape) ? m_collisionShape->getMargin() : 0.f;
+		}
+		virtual float GetRadius() const 
+		{ 
+			// this is not the actual shape radius, it's only used for Fh support
+			return m_cci.m_radius;
+		}
+		virtual void  SetRadius(float margin) 
+		{
+			if (m_collisionShape && m_collisionShape->getShapeType() == SPHERE_SHAPE_PROXYTYPE)
+			{
+				btSphereShape* sphereShape = static_cast<btSphereShape*>(m_collisionShape);
+				sphereShape->setUnscaledRadius(margin);
+			}
+			m_cci.m_radius = margin;
+		}
 
 
 		bool	wantsSleeping();

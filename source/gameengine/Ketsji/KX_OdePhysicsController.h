@@ -76,7 +76,7 @@ public:
 
 	virtual void	SuspendDynamics(bool);
 	virtual void	RestoreDynamics();
-	
+	virtual MT_Scalar GetRadius();
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 

@@ -190,13 +190,13 @@ bool KX_NearSensor::Evaluate(CValue* event)
 		{
 			if (m_physCtrl)
 			{
-				m_physCtrl->SetMargin(m_ResetMargin);
+				m_physCtrl->SetRadius(m_ResetMargin);
 			}
 		} else
 		{
 			if (m_physCtrl)
 			{
-				m_physCtrl->SetMargin(m_Margin);
+				m_physCtrl->SetRadius(m_Margin);
 			}
 
 		}
