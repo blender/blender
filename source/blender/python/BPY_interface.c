@@ -314,7 +314,7 @@ void syspath_append( char *dirname )
 	if( (ok==0) || PyErr_Occurred(  ) )
 		fprintf(stderr, "could import or build sys.path\n" );
 	
-	PyErr_Clear()
+	PyErr_Clear();
 	Py_DECREF( dir );
 	Py_XDECREF( mod_sys );
 }
