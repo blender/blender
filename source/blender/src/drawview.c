@@ -122,6 +122,7 @@
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
@@ -181,7 +182,7 @@
 #include "radio.h"
 
 /* locals */
-static void drawname(Object *ob);
+//static void drawname(Object *ob);
 
 static void star_stuff_init_func(void)
 {
@@ -1199,6 +1200,7 @@ exit:
 	return index;
 }
 
+#if 0
 static void drawname(Object *ob)
 {
 	cpack(0x404040);
@@ -1207,6 +1209,7 @@ static void drawname(Object *ob)
 	BMF_DrawString(G.font, " ");
 	BMF_DrawString(G.font, ob->id.name+2);
 }
+#endif
 
 static char *get_cfra_marker_name()
 {
@@ -1217,93 +1220,15 @@ static char *get_cfra_marker_name()
 	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
 		if (m1->frame==CFRA)
 			return m1->name;
-		if (m2->frame==CFRA)
-			return m2->name;
 		
 		if (m1 == m2)
-			break;
+			break;		
+		
+		if (m2->frame==CFRA)
+			return m2->name;
 	}
 	
 	return NULL;
-}
-
-// TODO: move this func into some keyframing API
-short ob_cfra_has_keyframe (Object *ob)
-{
-	// fixme... this is slow!
-	if (ob) {
-		ListBase keys = {NULL, NULL};
-		ActKeyColumn *ak, *akn;
-		Key *key= ob_get_key(ob);
-		int cfra, found= 0;
-		
-		/* check active action */
-		if (ob->action) {
-			/* get keyframes of action */
-			action_to_keylist(ob->action, &keys, NULL, NULL);
-			
-			cfra= frame_to_float(CFRA);
-			cfra= get_action_frame(ob, cfra);
-			
-			/* check if a keyframe occurs on current frame */
-			for (ak=keys.first, akn=keys.last; ak && akn; ak=ak->next, akn=akn->prev) {
-				if (cfra == ak->cfra) {
-					found= 1;
-					break;
-				}
-				else if (cfra == akn->cfra) {
-					found= 1;
-					break;
-				}
-				
-				if (ak == akn)
-					break;
-			}
-			
-			/* free temp list */
-			BLI_freelistN(&keys);
-			keys.first= keys.last= NULL;
-			
-			/* return if found */
-			if (found) return 1;
-		}
-		
-		/* accumulate keyframes for available ipo's */
-		if (ob->ipo)
-			ipo_to_keylist(ob->ipo, &keys, NULL, NULL);
-		if (key)
-			ipo_to_keylist(key->ipo, &keys, NULL, NULL);
-		
-		if (keys.first) {
-			cfra= frame_to_float(CFRA);
-			found= 0;
-				
-			/* check if a keyframe occurs on current frame */
-			for (ak=keys.first, akn=keys.last; ak && akn; ak=ak->next, akn=akn->prev) {
-				if (IS_EQ(cfra, ak->cfra)) {
-					found= 1;
-					break;
-				}
-				else if (IS_EQ(cfra, akn->cfra)) {
-					found= 1;
-					break;
-				}
-				
-				if (ak == akn)
-					break;
-			}
-			
-			/* free temp list */
-			BLI_freelistN(&keys);
-			keys.first= keys.last= NULL;
-			
-			/* return if found */
-			if (found) return 1;
-		}
-	}
-	
-	/* couldn't find a keyframe */
-	return 0;
 }
 
 /* draw info beside axes in bottom left-corner: 
@@ -1382,7 +1307,7 @@ static void draw_selected_name(Object *ob)
 		}
 			
 		/* colour depends on whether there is a keyframe */
-		if (ob_cfra_has_keyframe(ob))
+		if (id_frame_has_keyframe((ID *)ob, frame_to_float(CFRA), G.vd->keyflags))
 			BIF_ThemeColor(TH_VERTEX_SELECT);
 		else
 			BIF_ThemeColor(TH_TEXT_HI);
@@ -2609,7 +2534,6 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "Display:",				10, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
-	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 30, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
 	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 10, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
@@ -2617,11 +2541,21 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefButBitS(block, TOG, V3D_SOLID_TEX, REDRAWVIEW3D, "Solid Tex", 10, -30, 140, 19, &vd->flag2, 0, 0, 0, 0, "Display textures in Solid draw type (Shift T)");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 1, "View Locking:",				160, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 1, "View Locking:",				160, 60, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to center to this Object"); 
-	uiDefBut(block, TEX, REDRAWVIEW3D, "Bone:",						160, 10, 140, 19, vd->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 40, 140, 19, &vd->ob_centre, "Lock view to center to this Object"); 
+	uiDefBut(block, TEX, REDRAWVIEW3D, "Bone:",						160, 20, 140, 19, vd->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
 
+	uiDefBut(block, LABEL, 1, "Keyframe Display:",				160, -2, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, ANIMFILTER_ACTIVE, REDRAWVIEW3D, "Active",160, -22, 50, 19, &vd->keyflags, 0, 0, 0, 0, "Show keyframes for active element only (i.e. active bone or active material)");
+	uiDefButBitS(block, TOG, ANIMFILTER_MUTED, REDRAWVIEW3D, "Muted",210, -22, 50, 19, &vd->keyflags, 0, 0, 0, 0, "Show keyframes in muted channels");
+	uiDefButBitS(block, TOG, ANIMFILTER_LOCAL, REDRAWVIEW3D, "Local",260, -22, 50, 19, &vd->keyflags, 0, 0, 0, 0, "Show keyframes directly connected to datablock");
+	if ((vd->keyflags & ANIMFILTER_LOCAL)==0) {
+		uiDefButBitS(block, TOGN, ANIMFILTER_NOMAT, REDRAWVIEW3D, "Material",160, -42, 75, 19, &vd->keyflags, 0, 0, 0, 0, "Show keyframes for any available Materials");
+		uiDefButBitS(block, TOGN, ANIMFILTER_NOSKEY, REDRAWVIEW3D, "ShapeKey",235, -42, 75, 19, &vd->keyflags, 0, 0, 0, 0, "Show keyframes for any available Shape Keys");
+	}
+	uiBlockEndAlign(block);		
 }
 
 static void view3d_panel_preview(ScrArea *sa, short cntrl)	// VIEW3D_HANDLER_PREVIEW

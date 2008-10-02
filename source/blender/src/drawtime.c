@@ -437,19 +437,25 @@ static void draw_ob_keys()
 		}
 		
 		/* Materials (only relevant for geometry objects) - some filtering might occur */
+		// err... is this ok?
 		filter= (stime->flag & TIME_ONLYACTSEL);
-		for (a=0; a<ob->totcol; a++) {
-			Material *ma= give_current_material(ob, a+1);
+		if (filter) {
+			Material *ma= give_current_material(ob, (ob->actcol + 1));
 			
-			/* the only filter we apply right now is only showing the active material */
-			if (filter) {
-				ok= (ob->actcol==a)? 1 : 0;
-			}
-			else ok= 1;
-			
-			if (ma && ma->ipo && ok) {
+			/* we only retrieve the active material... */
+			if (ma && ma->ipo) {
 				col[0] = 0xDD; col[1] = 0xA7; col[2] = 0x00;
 				draw_ipo_keys(ma->ipo, col);
+			}
+		}
+		else {
+			for (a=0; a<ob->totcol; a++) {
+				Material *ma= give_current_material(ob, a+1);
+				
+				if (ma && ma->ipo) {
+					col[0] = 0xDD; col[1] = 0xA7; col[2] = 0x00;
+					draw_ipo_keys(ma->ipo, col);
+				}
 			}
 		}
 	}

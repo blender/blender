@@ -49,6 +49,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -71,7 +72,9 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_object.h"
+#include "BKE_material.h"
 
 #include "BIF_keyframing.h"
 #include "BIF_butspace.h"
@@ -157,11 +160,10 @@ typedef struct bCommonKeySrc {
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen, short *replace)
+static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short *replace)
 {
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
-	const float frame= (item)? item->vec[1][0] : 0.0f;
 	
 	/* initialise replace-flag first */
 	*replace= 0;
@@ -170,7 +172,7 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 	 *	- keyframe to be added is to be added out of current bounds
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
-	if ((arraylen <= 0) || ELEM(NULL, array, item)) {
+	if ((arraylen <= 0) || (array == NULL)) {
 		printf("Warning: binarysearch_bezt_index encountered invalid array \n");
 		return 0;
 	}
@@ -250,7 +252,7 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 	}
 	else {
 		short replace = -1;
-		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert, &replace);
+		i = binarysearch_bezt_index(icu->bezt, bezt->vec[1][0], icu->totvert, &replace);
 		
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
@@ -841,7 +843,6 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
 	if (icu) {
-		BezTriple bezt;
 		float cfra = frame_to_float(CFRA);
 		short found = -1;
 		int i;
@@ -861,12 +862,8 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			}
 		}
 		
-		/* only need to set bezt->vec[1][0], as that's all binarysearch uses */
-		memset(&bezt, 0, sizeof(BezTriple));
-		bezt.vec[1][0]= cfra;
-		
 		/* try to find index of beztriple to get rid of */
-		i = binarysearch_bezt_index(icu->bezt, &bezt, icu->totvert, &found);
+		i = binarysearch_bezt_index(icu->bezt, cfra, icu->totvert, &found);
 		if (found) {			
 			/* delete the key at the index (will sanity check + do recalc afterwards ) */
 			delete_icu_key(icu, i, 1);
@@ -1895,6 +1892,201 @@ void common_insertkey (void)
 void common_deletekey (void)
 {
 	common_modifykey(COMMONKEY_MODE_DELETE);
+}
+
+/* ************************************************** */
+/* KEYFRAME DETECTION */
+
+/* --------------- API/Per-Datablock Handling ------------------- */
+
+/* Checks whether an IPO-block has a keyframe for a given frame 
+ * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
+ */
+short ipo_frame_has_keyframe (Ipo *ipo, float frame, short filter)
+{
+	IpoCurve *icu;
+	
+	/* can only find if there is data */
+	if (ipo == NULL)
+		return 0;
+		
+	/* if only check non-muted, check if muted */
+	if ((filter & ANIMFILTER_MUTED) || (ipo->muteipo))
+		return 0;
+	
+	/* loop over IPO-curves, using binary-search to try to find matches 
+	 *	- this assumes that keyframes are only beztriples
+	 */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		/* we either include all regardless of muting, or only non-muted  */
+		if ((filter & ANIMFILTER_MUTED) || (icu->flag & IPO_MUTE)==0) {
+			short replace = -1;
+			int i = binarysearch_bezt_index(icu->bezt, frame, icu->totvert, &replace);
+			
+			/* binarysearch_bezt_index will set replace to be 0 or 1
+			 * 	- obviously, 1 represents a match
+			 */
+			if (replace) {			
+				/* sanity check: 'i' may in rare cases exceed arraylen */
+				if ((i >= 0) && (i < icu->totvert))
+					return 1;
+			}
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
+
+/* Checks whether an action-block has a keyframe for a given frame 
+ * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
+ */
+short action_frame_has_keyframe (bAction *act, float frame, short filter)
+{
+	bActionChannel *achan;
+	
+	/* error checking */
+	if (act == NULL)
+		return 0;
+		
+	/* check thorugh action-channels for match */
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		/* we either include all regardless of muting, or only non-muted 
+		 *	- here we include 'hidden' channels in the muted definition
+		 */
+		if ((filter & ANIMFILTER_MUTED) || (achan->flag & ACHAN_HIDDEN)==0) {
+			if (ipo_frame_has_keyframe(achan->ipo, frame, filter))
+				return 1;
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
+
+/* Checks whether an Object has a keyframe for a given frame */
+short object_frame_has_keyframe (Object *ob, float frame, short filter)
+{
+	/* error checking */
+	if (ob == NULL)
+		return 0;
+	
+	/* check for an action - actions take priority over normal IPO's */
+	if (ob->action) {
+		float aframe;
+		
+		/* apply nla-action scaling if needed */
+		if ((ob->nlaflag & OB_NLA_OVERRIDE) && (ob->nlastrips.first))
+			aframe= get_action_frame(ob, frame);
+		else
+			aframe= frame;
+		
+		/* priority check here goes to pose-channel checks (for armatures) */
+		if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
+			/* only relevant check here is to only show active... */
+			if (filter & ANIMFILTER_ACTIVE) {
+				bPoseChannel *pchan= get_active_posechannel(ob);
+				bActionChannel *achan= (pchan) ? get_action_channel(ob->action, pchan->name) : NULL;
+				
+				/* since we're only interested in whether the selected one has any keyframes... */
+				return (achan && ipo_frame_has_keyframe(achan->ipo, aframe, filter));
+			}
+		}
+		
+		/* for everything else, just use the standard test (only return if success) */
+		if (action_frame_has_keyframe(ob->action, aframe, filter))
+			return 1;
+	}
+	else if (ob->ipo) {
+		/* only return if success */
+		if (ipo_frame_has_keyframe(ob->ipo, frame, filter))
+			return 1;
+	}
+	
+	/* try shapekey keyframes (if available, and allowed by filter) */
+	if ( !(filter & ANIMFILTER_LOCAL) && !(filter & ANIMFILTER_NOSKEY) ) {
+		Key *key= ob_get_key(ob);
+		
+		/* shapekeys can have keyframes ('Relative Shape Keys') 
+		 * or depend on time (old 'Absolute Shape Keys') 
+		 */
+		 
+			/* 1. test for relative (with keyframes) */
+		if (id_frame_has_keyframe((ID *)key, frame, filter))
+			return 1;
+			
+			/* 2. test for time */
+		// TODO... yet to be implemented (this feature may evolve before then anyway)
+	}
+	
+	/* try materials */
+	if ( !(filter & ANIMFILTER_LOCAL) && !(filter & ANIMFILTER_NOMAT) ) {
+		/* if only active, then we can skip a lot of looping */
+		if (filter & ANIMFILTER_ACTIVE) {
+			Material *ma= give_current_material(ob, (ob->actcol + 1));
+			
+			/* we only retrieve the active material... */
+			if (id_frame_has_keyframe((ID *)ma, frame, filter))
+				return 1;
+		}
+		else {
+			int a;
+			
+			/* loop over materials */
+			for (a=0; a<ob->totcol; a++) {
+				Material *ma= give_current_material(ob, a+1);
+				
+				if (id_frame_has_keyframe((ID *)ma, frame, filter))
+					return 1;
+			}
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
+
+/* --------------- API ------------------- */
+
+/* Checks whether a keyframe exists for the given ID-block one the given frame */
+short id_frame_has_keyframe (ID *id, float frame, short filter)
+{
+	/* error checking */
+	if (id == NULL)
+		return 0;
+	
+	/* check for a valid id-type */
+	switch (GS(id->name)) {
+			/* animation data-types */
+		case ID_IP:	/* ipo */
+			return ipo_frame_has_keyframe((Ipo *)id, frame, filter);
+		case ID_AC: /* action */
+			return action_frame_has_keyframe((bAction *)id, frame, filter);
+			
+		case ID_OB: /* object */
+			return object_frame_has_keyframe((Object *)id, frame, filter);
+			
+		case ID_MA: /* material */
+		{
+			Material *ma= (Material *)id;
+			
+			/* currently, material's only have an ipo-block */
+			return ipo_frame_has_keyframe(ma->ipo, frame, filter);
+		}
+			break;
+			
+		case ID_KE: /* shapekey */
+		{
+			Key *key= (Key *)id;
+			
+			/* currently, shapekey's only have an ipo-block */
+			return ipo_frame_has_keyframe(key->ipo, frame, filter);
+		}
+			break;
+	}
+	
+	/* no keyframe found */
+	return 0;
 }
 
 /* ************************************************** */

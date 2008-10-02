@@ -65,7 +65,7 @@ enum {
 /* -------- */
 
 /* Main Keyframing API calls: 
- *	Use this to create any necessary animation data,, and then insert a keyframe
+ *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
 	// TODO: adapt this for new data-api -> this blocktype, etc. stuff is evil!
@@ -104,18 +104,28 @@ void common_deletekey(void);
 
 /* ************ Keyframe Checking ******************** */
 
-/* Checks whether a keyframe exists for the given ID-block one the given frame */
-short id_cfra_has_keyframe(struct ID *id, short filter);
+/* Main Keyframe Checking API call:
+ * Checks whether a keyframe exists for the given ID-block one the given frame.
+ *  - It is recommended to call this method over the other keyframe-checkers directly,
+ * 	  in case some detail of the implementation changes...
+ *	- frame: the value of this is quite often result of frame_to_float(CFRA)
+ */
+short id_frame_has_keyframe(struct ID *id, float frame, short filter);
 
-/* filter flags fr id_cfra_has_keyframe */
+/* filter flags for id_cfra_has_keyframe 
+ *
+ * WARNING: do not alter order of these, as also stored in files
+ *	(for v3d->keyflags)
+ */
 enum {
 		/* general */
-	ANIMFILTER_ALL		= 0,			/* include all available animation data */
 	ANIMFILTER_LOCAL	= (1<<0),		/* only include locally available anim data */
+	ANIMFILTER_MUTED	= (1<<1),		/* include muted elements */
+	ANIMFILTER_ACTIVE	= (1<<2),		/* only include active-subelements */
 	
 		/* object specific */
-	ANIMFILTER_MAT		= (1<<1),		/* include material keyframes too */
-	ANIMFILTER_SKEY		= (1<<2),		/* shape keys (for geometry) */
+	ANIMFILTER_NOMAT		= (1<<9),		/* don't include material keyframes */
+	ANIMFILTER_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
 } eAnimFilterFlags;
 
 #endif /*  BIF_KEYFRAMING_H */
