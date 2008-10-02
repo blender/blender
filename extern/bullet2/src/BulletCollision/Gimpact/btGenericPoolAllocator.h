@@ -1,5 +1,5 @@
 /*! \file btGenericPoolAllocator.h
-\author Francisco León Nájera. email projectileman@yahoo.com
+\author Francisco Len Nßjera. email projectileman@yahoo.com
 
 General purpose allocator class
 */

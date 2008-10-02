@@ -194,7 +194,7 @@ SIMD_FORCE_INLINE btScalar btSqrt(btScalar y)
 	tempf = y;
 	*tfptr = (0xbfcdd90a - *tfptr)>>1; /* estimate of 1/sqrt(y) */
 	x =  tempf;
-	z =  y*btScalar(0.5);                        /* hoist out the “/2”    */
+	z =  y*btScalar(0.5);                        /* hoist out the ô/2ö    */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);         /* iteration formula     */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);

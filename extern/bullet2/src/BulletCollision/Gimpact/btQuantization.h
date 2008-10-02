@@ -2,7 +2,7 @@
 #define BT_QUANTIZATION_H_INCLUDED
 
 /*! \file btQuantization.h
-*\author Francisco León Nájera
+*\author Francisco Len Nßjera
 
 */
 /*

@@ -2,7 +2,7 @@
 #define GIM_QUANTIZED_SET_H_INCLUDED
 
 /*! \file btGImpactQuantizedBvh.h
-\author Francisco León Nájera
+\author Francisco Len Nßjera
 */
 /*
 This source file is part of GIMPACT Library.

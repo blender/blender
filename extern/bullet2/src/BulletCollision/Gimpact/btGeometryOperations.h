@@ -2,7 +2,7 @@
 #define BT_BASIC_GEOMETRY_OPERATIONS_H_INCLUDED
 
 /*! \file btGeometryOperations.h
-*\author Francisco León Nájera
+*\author Francisco Len Nßjera
 
 */
 /*
