@@ -23,8 +23,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
 #include "BLI_kdopbvh.h"
@@ -185,12 +188,10 @@ static void free_pointdensity(Render *re, Tex *tex)
 		pd->point_tree = NULL;
 	}
 
-	/*
 	if (pd->point_data) {
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
-	*/
 }
 
 
@@ -226,51 +227,37 @@ void free_pointdensities(Render *re)
 	}
 }
 
-void accum_density_std(void *userdata, int index, float squared_dist, float squared_radius)
+typedef struct PointDensityRangeData
 {
-	float *density = userdata;
-	const float dist = squared_radius - squared_dist;
+    float *density;
+    float squared_radius;
+    float *point_data;
+    short falloff_type;   
+} PointDensityRangeData;
+
+void accum_density(void *userdata, int index, float squared_dist)
+{
+	PointDensityRangeData *pdr = (PointDensityRangeData *)userdata;
+	const float dist = pdr->squared_radius - squared_dist;
 	
-	*density+= dist;
+	if (pdr->falloff_type == TEX_PD_FALLOFF_STD)
+		*pdr->density += dist;
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_SMOOTH)
+		*pdr->density+= 3.0f*dist*dist - 2.0f*dist*dist*dist;
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_SHARP)
+		*pdr->density+= dist*dist;
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_CONSTANT)
+		*pdr->density+= pdr->squared_radius;
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_ROOT)
+		*pdr->density+= sqrt(dist);
 }
-
-void accum_density_smooth(void *userdata, int index, float squared_dist, float squared_radius)
-{
-	float *density = userdata;
-	const float dist = squared_radius - squared_dist;
-	
-	*density+= 3.0f*dist*dist - 2.0f*dist*dist*dist;
-}
-
-void accum_density_sharp(void *userdata, int index, float squared_dist, float squared_radius)
-{
-	float *density = userdata;
-	const float dist = squared_radius - squared_dist;
-	
-	*density+= dist*dist;
-}
-
-void accum_density_constant(void *userdata, int index, float squared_dist, float squared_radius)
-{
-	float *density = userdata;
-		
-	*density+= squared_radius;
-}
-
-void accum_density_root(void *userdata, int index, float squared_dist, float squared_radius)
-{
-	float *density = userdata;
-	const float dist = squared_radius - squared_dist;
-		
-	*density+= sqrt(dist);
-}
-
 
 #define MAX_POINTS_NEAREST	25
 int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 {
 	int rv = TEX_INT;
 	PointDensity *pd = tex->pd;
+	PointDensityRangeData pdr;
 	float density=0.0f;
 	
 	if ((!pd) || (!pd->point_tree)) {
@@ -278,16 +265,12 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		return 0;
 	}
 	
-	if (pd->falloff_type == TEX_PD_FALLOFF_STD)
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_std, &density);
-	else if (pd->falloff_type == TEX_PD_FALLOFF_SMOOTH)
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_smooth, &density);
-	else if (pd->falloff_type == TEX_PD_FALLOFF_SHARP)
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_sharp, &density);
-	else if (pd->falloff_type == TEX_PD_FALLOFF_CONSTANT)
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_constant, &density);
-	else if (pd->falloff_type == TEX_PD_FALLOFF_ROOT)
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density_root, &density);
+	pdr.squared_radius = pd->radius*pd->radius;
+	pdr.density = &density;
+	pdr.point_data = pd->point_data;
+	pdr.falloff_type = pd->falloff_type;
+	
+	BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density, &pdr);
 	
 	texres->tin = density;
 

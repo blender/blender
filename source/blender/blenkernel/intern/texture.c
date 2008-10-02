@@ -877,7 +877,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->falloff_type = TEX_PD_FALLOFF_STD;
 	pd->source = TEX_PD_PSYS;
 	pd->point_tree = NULL;
-	//pd->point_data = NULL;
+	pd->point_data = NULL;
 	
 	return pd;
 } 
@@ -888,7 +888,7 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 
 	pdn= MEM_dupallocN(pd);
 	pdn->point_tree = NULL;
-	//pdn->point_data = NULL;
+	pdn->point_data = NULL;
 	
 	return pd;
 }
@@ -899,12 +899,10 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		BLI_bvhtree_free(pd->point_tree);
 		pd->point_tree = NULL;
 	}
-	/*
 	if (pd->point_data) {
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
-	*/
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

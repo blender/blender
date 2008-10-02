@@ -144,8 +144,8 @@ typedef struct PointDensity {
 	short pdpad2;
 	
 	void *point_tree;		/* the acceleration tree containing points */
-	//void *point_data;		/* dynamically allocated extra for extra information, like particle age */
-	//int pdpad3;
+	void *point_data;		/* dynamically allocated extra for extra information, like particle age */
+	int pdpad3[2];
 	
 } PointDensity;
 

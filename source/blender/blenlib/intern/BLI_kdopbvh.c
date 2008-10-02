@@ -1570,7 +1570,7 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 				if(node->children[i]->totnode == 0)
 				{
 					data->hits++;
-					data->callback( data->userdata, node->children[i]->index, dist, data->radius );
+					data->callback( data->userdata, node->children[i]->index, dist );
 				}
 				else
 					dfs_range_query( data, node->children[i] );
@@ -1602,7 +1602,7 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTre
 			if(root->totnode == 0)
 			{
 				data.hits++;
-				data.callback( data.userdata, root->index, dist, data.radius );
+				data.callback( data.userdata, root->index, dist );
 			}
 			else
 				dfs_range_query( &data, root );

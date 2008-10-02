@@ -72,7 +72,7 @@ typedef void (*BVHTree_NearestPointCallback) (void *userdata, int index, const f
 typedef void (*BVHTree_RayCastCallback) (void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
 /* callback to range search query */
-typedef void (*BVHTree_RangeQuery) (void *userdata, int index, float squared_dist, float radius);
+typedef void (*BVHTree_RangeQuery) (void *userdata, int index, float squared_dist);
 
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
