@@ -190,13 +190,13 @@ bool KX_NearSensor::Evaluate(CValue* event)
 		{
 			if (m_physCtrl)
 			{
-				m_physCtrl->SetMargin(m_ResetMargin);
+				m_physCtrl->SetRadius(m_ResetMargin);
 			}
 		} else
 		{
 			if (m_physCtrl)
 			{
-				m_physCtrl->SetMargin(m_Margin);
+				m_physCtrl->SetRadius(m_Margin);
 			}
 
 		}
@@ -309,14 +309,10 @@ PyParentObject KX_NearSensor::Parents[] = {
 
 
 PyMethodDef KX_NearSensor::Methods[] = {
-	{"setProperty", 
-	 (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, SetProperty_doc},
-	{"getProperty", 
-	 (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, GetProperty_doc},
-	{"getHitObject", 
-	 (PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, GetHitObject_doc},
-	{"getHitObjectList", 
-	 (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, GetHitObjectList_doc},
+	{"setProperty", (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getProperty", (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"getHitObject",(PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
+	{"getHitObjectList", (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
 	{NULL,NULL} //Sentinel
 };
 

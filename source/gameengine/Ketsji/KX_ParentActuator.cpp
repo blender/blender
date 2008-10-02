@@ -36,6 +36,8 @@
 #include "KX_GameObject.h"
 #include "KX_PythonInit.h"
 
+#include "PyObjectPlus.h" 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -164,8 +166,8 @@ PyParentObject KX_ParentActuator::Parents[] = {
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, SetObject_doc},
-	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, GetObject_doc},
+	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -174,7 +176,7 @@ PyObject* KX_ParentActuator::_getattr(const STR_String& attr) {
 }
 
 /* 1. setObject                                                            */
-char KX_ParentActuator::SetObject_doc[] = 
+const char KX_ParentActuator::SetObject_doc[] = 
 "setObject(object)\n"
 "\t- object: KX_GameObject, string or None\n"
 "\tSet the object to set as parent.\n";
@@ -197,7 +199,7 @@ PyObject* KX_ParentActuator::PySetObject(PyObject* self, PyObject* value) {
 /* 2. getObject                                                            */
 
 /* get obj  ---------------------------------------------------------- */
-char KX_ParentActuator::GetObject_doc[] = 
+const char KX_ParentActuator::GetObject_doc[] = 
 "getObject(name_only = 1)\n"
 "name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
 "\tReturns the object that is set to.\n";

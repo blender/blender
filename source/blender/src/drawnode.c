@@ -2468,7 +2468,16 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 		}
 	}
 	
-	glPixelZoom(xscale, yscale);
+#ifdef __APPLE__
+	if(is_a_really_crappy_nvidia_card()) {
+		float zoomx= curarea->winx/(float)(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		float zoomy= curarea->winy/(float)(G.v2d->cur.ymax-G.v2d->cur.ymin);
+		glPixelZoom(zoomx*xscale, zoomy*yscale);
+	}
+	else
+#endif
+		glPixelZoom(xscale, yscale);
+
 	glEnable(GL_BLEND);
 	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
 	

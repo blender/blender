@@ -97,6 +97,8 @@
 #include "RE_pipeline.h"
 #include "BLO_readfile.h" 
 
+#include "GPU_material.h"
+
 #include "blendef.h"	/* CLAMP */
 #include "interface.h"	/* ui_graphics_to_window(),  SOLVE! (ton) */
 #include "mydevice.h"
@@ -221,6 +223,36 @@ void BIF_preview_changed(short id_code)
 			}
 		}
 	}
+
+	if(ELEM4(id_code, ID_MA, ID_TE, ID_LA, ID_WO)) {
+		Object *ob;
+		Material *ma;
+
+		if(id_code == ID_WO) {
+			for(ma=G.main->mat.first; ma; ma=ma->id.next) {
+				if(ma->gpumaterial.first) {
+					GPU_material_free(ma);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+		}
+		else if(id_code == ID_LA) {
+			for(ob=G.main->object.first; ob; ob=ob->id.next) {
+				if(ob->gpulamp.first) {
+					GPU_lamp_free(ob);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+		} else if(OBACT) {
+			Object *ob = OBACT;
+
+			ma= give_current_material(ob, ob->actcol);
+			if(ma && ma->gpumaterial.first) {
+				GPU_material_free(ma);
+				allqueue(REDRAWVIEW3D, 0);
+			}
+		}
+	}
 }
 
 /* *************************** Preview for buttons *********************** */
@@ -248,6 +280,15 @@ void BIF_preview_free_dbase(void)
 {
 	if(pr_main)
 		free_main(pr_main);
+}
+
+static Object *find_object(ListBase *lb, const char *name)
+{
+	Object *ob;
+	for(ob= lb->first; ob; ob= ob->id.next)
+		if(strcmp(ob->id.name+2, name)==0)
+			break;
+	return ob;
 }
 
 /* call this with an ID pointer to initialize preview scene */
@@ -352,7 +393,16 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		else if(id_type==ID_LA) {
 			Lamp *la= (Lamp *)id;
 			
-			sce->lay= 1<<MA_LAMP;
+			if(la && la->type==LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
+				sce->lay= 1<<MA_ATMOS;
+				sce->world= G.scene->world;
+				sce->camera= (Object *)find_object(&pr_main->object, "CameraAtmo");
+			}
+			else {
+				sce->lay= 1<<MA_LAMP;
+				sce->world= NULL;
+				sce->camera= (Object *)find_object(&pr_main->object, "Camera");
+			}
 			sce->r.mode &= ~R_SHADOW;
 			
 			for(base= sce->base.first; base; base= base->next) {

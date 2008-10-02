@@ -591,7 +591,7 @@ PyObject *Scene_CreatePyObject( Scene * scene )
 }
 
 /*-----------------------FromPyObject-----------------------------------*/
-Scene *Scene_FromPyObject( PyObject * pyobj )
+static Scene *Scene_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Scene * ) pyobj )->scene;
 }
@@ -641,20 +641,18 @@ static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument (or nothing)" ) );
-
+	
 	scene_iter = G.main->scene.first;
 
 	if( name ) {		/* (name) - Search scene by name */
 
 		PyObject *wanted_scene = NULL;
 
-		while( ( scene_iter ) && ( wanted_scene == NULL ) ) {
-
-			if( strcmp( name, scene_iter->id.name + 2 ) == 0 )
-				wanted_scene =
-					Scene_CreatePyObject( scene_iter );
-
-			scene_iter = scene_iter->id.next;
+		for(;scene_iter; scene_iter = scene_iter->id.next) {
+			if( strcmp( name, scene_iter->id.name + 2 ) == 0 ) {
+				wanted_scene = Scene_CreatePyObject( scene_iter );
+				break;
+			}
 		}
 
 		if( wanted_scene == NULL ) {	/* Requested scene doesn't exist */
@@ -678,19 +676,14 @@ static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 							"couldn't create PyList" ) );
 
-		while( scene_iter ) {
+		for(; scene_iter; scene_iter = scene_iter->id.next, index++) {
 			pyobj = Scene_CreatePyObject( scene_iter );
 
 			if( !pyobj ) {
 				Py_DECREF(sce_pylist);
-				return ( EXPP_ReturnPyObjError
-					 ( PyExc_MemoryError,
-					   "couldn't create PyString" ) );
+				return NULL; /* Scene_CreatePyObject sets an error */
 			}
 			PyList_SET_ITEM( sce_pylist, index, pyobj );
-
-			scene_iter = scene_iter->id.next;
-			index++;
 		}
 
 		return sce_pylist;
@@ -1228,7 +1221,7 @@ static PyObject *SceneObSeq_getObjects( BPy_SceneObSeq *self, void *mode)
 	return SceneObSeq_CreatePyObject(self->bpyscene, NULL, (int)((long)mode));
 }
 
-int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_) 
+static int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_) 
 {
 	/*
 	ONLY SUPPORTS scn.objects.selected and scn.objects.context 
@@ -1649,7 +1642,7 @@ static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 	Py_RETURN_FALSE;
 }
 
-PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
+static PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
 {
 	Base *base;
 	SCENE_DEL_CHECK_PY(self->bpyscene);
@@ -1694,7 +1687,7 @@ static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
 	return 0;
 }
 
-PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
+static PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
 {
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	

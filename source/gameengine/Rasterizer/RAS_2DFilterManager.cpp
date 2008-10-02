@@ -85,7 +85,7 @@ RAS_2DFilterManager::~RAS_2DFilterManager()
 	FreeTextures();
 }
 
-unsigned int RAS_2DFilterManager::CreateShaderProgram(char* shadersource)
+unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 {
 		GLuint program = 0;	
 		GLuint fShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);

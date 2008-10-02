@@ -28,7 +28,7 @@
 #ifndef __RAS_DILATION2DFILTER
 #define __RAS_DILATION2DFILTER
 
-char * DilationFragmentShader=STRINGIFY(
+const char * DilationFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

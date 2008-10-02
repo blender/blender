@@ -674,94 +674,6 @@ static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int d
 		MEM_freeN(vtangents);
 }
 
-// NT same as calc_vertexnormals, but dont modify the existing vertex normals
-// only recalculate other render data. If this is at some point used for other things than fluidsim,
-// this could be made on option for the normal calc_vertexnormals
-static void calc_fluidsimnormals(Render *re, ObjectRen *obr, int do_nmap_tangent)
-{
-	int a;
-
-	/* dont clear vertex normals here */
-	// OFF for(a=0; a<obr->totvert; a++) { VertRen *ver= RE_findOrAddVert(obr, a); ver->n[0]=ver->n[1]=ver->n[2]= 0.0; }
-	/* calculate cos of angles and point-masses, use as weight factor to add face normal to vertex */
-	for(a=0; a<obr->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(obr, a);
-		if(vlr->flag & ME_SMOOTH) {
-			VertRen *v1= vlr->v1;
-			VertRen *v2= vlr->v2;
-			VertRen *v3= vlr->v3;
-			VertRen *v4= vlr->v4;
-			float n1[3], n2[3], n3[3], n4[3];
-			float fac1, fac2, fac3, fac4=0.0f;
-
-			if(re->flag & R_GLOB_NOPUNOFLIP)
-				vlr->flag |= R_NOPUNOFLIP;
-			
-			VecSubf(n1, v2->co, v1->co);
-			Normalize(n1);
-			VecSubf(n2, v3->co, v2->co);
-			Normalize(n2);
-			if(v4==NULL) {
-				VecSubf(n3, v1->co, v3->co);
-				Normalize(n3);
-				fac1= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
-				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-			}
-			else {
-				VecSubf(n3, v4->co, v3->co);
-				Normalize(n3);
-				VecSubf(n4, v1->co, v4->co);
-				Normalize(n4);
-
-				fac1= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
-				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
-
-				if(!(vlr->flag & R_NOPUNOFLIP)) {
-					if( check_vnormal(vlr->n, v4->n) ) fac4= -fac4;
-				}
-			}
-
-			//if(do_nmap_tangent)
-			//	calc_tangent_vector(obr, vlr, fac1, fac2, fac3, fac4);
-		}
-		if(do_nmap_tangent) {
-			/* tangents still need to be calculated for flat faces too */
-			/* weighting removed, they are not vertexnormals */
-			//calc_tangent_vector(obr, vlr);
-		}
-	}
-
-	/* do solid faces */
-	for(a=0; a<obr->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(obr, a);
-		if((vlr->flag & ME_SMOOTH)==0) {
-			float *f1= vlr->v1->n;
-			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
-			f1= vlr->v2->n;
-			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
-			f1= vlr->v3->n;
-			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
-			if(vlr->v4) {
-				f1= vlr->v4->n;
-				if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
-			}			
-		}
-	}
-	
-	/* normalize vertex normals */
-	for(a=0; a<obr->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(obr, a);
-		Normalize(ver->n);
-		if(do_nmap_tangent) {
-			float *tav= RE_vertren_get_tangent(obr, ver, 0);
-			if(tav) Normalize(tav);
-		}
-	}
-}
-
 /* ------------------------------------------------------------------------- */
 /* Autosmoothing:                                                            */
 /* ------------------------------------------------------------------------- */
@@ -1565,7 +1477,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
-	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
+	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0}, num;
 	int totface, *origindex = 0;
 	char **uv_name=0;
@@ -1573,6 +1485,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* 1. check that everything is ok & updated */
 	if(psys==NULL)
 		return 0;
+	
+	totchild=psys->totchild;
 
 	part=psys->part;
 	pars=psys->particles;
@@ -1764,7 +1678,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		psys->lattice=psys_get_lattice(ob,psys);
 
 /* 3. start creating renderable things */
-	for(a=0,pa=pars; a<totpart+totchild; a++, pa++) {
+	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
 		random = rng_getFloat(rng);
 
 		if(a<totpart){
@@ -1789,10 +1703,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
 			}
 			else
-				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
 			num= pa->num_dmcache;
 
@@ -1866,13 +1780,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			/* get orco */
 			if(part->childtype == PART_CHILD_FACES) {
-				psys_particle_on_emitter(ob, psmd,
+				psys_particle_on_emitter(psmd,
 					PART_FROM_FACE, cpa->num,DMCACHE_ISCHILD,
 					cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
 			}
 			else {
 				ParticleData *par = psys->particles + cpa->parent;
-				psys_particle_on_emitter(ob, psmd, part->from,
+				psys_particle_on_emitter(psmd, part->from,
 					par->num,DMCACHE_ISCHILD,par->fuv,
 					par->foffset,co,nor,0,0,orco,0);
 			}
@@ -2528,7 +2442,8 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	VertRen *v1, *v2, *v3, *v4, *ver;
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
 	Curve *cu= ob->data;
-	float *data, n1[3], flen;
+	float *data, n1[3];
+	/*float flen; - as yet unused */
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
 	int sizeu, nsizeu, sizev, nsizev;
@@ -2600,7 +2515,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 			
-			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			/* flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1); - as yet unused */
 			VECCOPY(vlr->n, n1);
 			
 			vlr->mat= matar[ dl->col];
@@ -3099,7 +3014,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0;
 	int a, a1, ok, vertofs;
 	int end, do_autosmooth=0, totvert = 0;
-	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
 	int use_original_normals= 0;
 
 	me= ob->data;
@@ -3179,12 +3093,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		}
 	}
 
-	if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
-		 (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
-	   (ob->fluidsimSettings->meshSurface) ) {
-		useFluidmeshNormals = 1;
-	}
-
 	mvert= dm->getVertArray(dm);
 	totvert= dm->getNumVerts(dm);
 
@@ -3207,17 +3115,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			if(do_autosmooth==0)	/* autosmooth on original unrotated data to prevent differences between frames */
 				MTC_Mat4MulVecfl(mat, ver->co);
   
-			if(useFluidmeshNormals) {
-				/* normals are inverted in render */
-				xn = -mvert->no[0]/ 32767.0;
-				yn = -mvert->no[1]/ 32767.0;
-				zn = -mvert->no[2]/ 32767.0;
-				/* transfor to cam  space */
-				ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-			} // useFluidmeshNormals
-
 			if(orco) {
 				ver->orco= orco;
 				orco+=3;
@@ -3397,12 +3294,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			autosmooth(re, obr, mat, me->smoothresh);
 		}
 
-		if(useFluidmeshNormals) {
-			// do not recalculate, only init render data
-			calc_fluidsimnormals(re, obr, need_tangent||need_nmap_tangent);
-		} else {
-			calc_vertexnormals(re, obr, need_tangent, need_nmap_tangent);
-		}
+		calc_vertexnormals(re, obr, need_tangent, need_nmap_tangent);
 
 		if(need_stress)
 			calc_edge_stress(re, obr, me);
@@ -3564,6 +3456,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->r= lar->energy*la->r;
 	lar->g= lar->energy*la->g;
 	lar->b= lar->energy*la->b;
+	lar->shdwr= la->shdwr;
+	lar->shdwg= la->shdwg;
+	lar->shdwb= la->shdwb;
 	lar->k= la->k;
 
 	// area
@@ -3633,7 +3528,8 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		    Normalize(vec);
 		    
 			InitSunSky(lar->sunsky, la->atm_turbidity, vec, la->horizon_brightness, 
-					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light);
+					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light,
+					   la->skyblendfac, la->skyblendtype, la->sky_exposure, la->sky_colorspace);
 			
 			InitAtmosphere(lar->sunsky, la->sun_intensity, 1.0, 1.0, la->atm_inscattering_factor, la->atm_extinction_factor,
 					la->atm_distance_factor);
@@ -3716,7 +3612,10 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	for(c=0; c<MAX_MTEX; c++) {
 		if(la->mtex[c] && la->mtex[c]->tex) {
-			lar->mode |= LA_TEXTURE;
+			if (la->mtex[c]->mapto & LAMAP_COL) 
+				lar->mode |= LA_TEXTURE;
+			if (la->mtex[c]->mapto & LAMAP_SHAD)
+				lar->mode |= LA_SHAD_TEX;
 
 			if(G.rendering) {
 				if(re->osa) {
@@ -4576,17 +4475,19 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
 	ParticleSystem *psys;
-	Material ***material;
+	Material *ma;
 	short a, *totmaterial;
 
-	/* don't allow objects with halos */
+	/* don't allow objects with halos. we need to have
+	 * all halo's to sort them globally in advance */
 	totmaterial= give_totcolp(obd);
-	material= give_matarar(obd);
 
-	if(totmaterial && material) {
-		for(a= 0; a<*totmaterial; a++)
-			if((*material)[a] && (*material)[a]->mode & MA_HALO)
+	if(totmaterial) {
+		for(a= 0; a<*totmaterial; a++) {
+			ma= give_current_material(obd, a);
+			if(ma && (ma->mode & MA_HALO))
 				return 0;
+		}
 	}
 
 	for(psys=obd->particlesystem.first; psys; psys=psys->next)
@@ -4889,6 +4790,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		Mat4Ortho(re->scene->camera->obmat);
 		Mat4Invert(mat, re->scene->camera->obmat);
 		RE_SetView(re, mat);
+		re->scene->camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
@@ -5281,7 +5183,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
 		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
 		
-		/* (bad) HACK insert average velocity if none is there (see previous comment */
+		/* (bad) HACK insert average velocity if none is there (see previous comment) */
 		if((fsvec[0] == 0.0) && (fsvec[1] == 0.0) && (fsvec[2] == 0.0))
 		{
 			fsvec[0] = avgvel[0];
@@ -5425,6 +5327,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 			oldobi= table->first;
 			for(obi= re->instancetable.first; obi && oldobi; obi= obi->next) {
 				int ok= 1;
+				FluidsimModifierData *fluidmd;
 
 				if(!(obi->obr->flag & R_NEED_VECTORS))
 					continue;
@@ -5448,7 +5351,8 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 				}
 
 				// NT check for fluidsim special treatment
-				if((obi->ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (obi->ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)) {
+				fluidmd = (FluidsimModifierData *)modifiers_findByType(obi->ob, eModifierType_Fluidsim);
+				if(fluidmd && fluidmd->fss && (fluidmd->fss->type & OB_FLUIDSIM_DOMAIN)) {
 					// use preloaded per vertex simulation data , only does calculation for step=1
 					// NOTE/FIXME - velocities and meshes loaded unnecessarily often during the database_fromscene_vectors calls...
 					load_fluidsimspeedvectors(re, obi, oldobi->vectors, step);

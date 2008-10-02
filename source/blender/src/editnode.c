@@ -2001,7 +2001,10 @@ void node_hide(SpaceNode *snode)
 void node_insert_key(SpaceNode *snode)
 {
 	bNode *node= editnode_get_active(snode->edittree);
-
+	
+	if(node == NULL)
+		return;
+	
 	if(node->type==CMP_NODE_TIME) {
 		if(node->custom1<node->custom2) {
 
@@ -2110,6 +2113,7 @@ static void node_border_link_delete(SpaceNode *snode)
 			mval[1]= rect.ymax;
 			areamouseco_to_ipoco(&snode->v2d, mval, &rectf.xmax, &rectf.ymax);
 			
+			glLoadIdentity();
 			myortho2(rectf.xmin, rectf.xmax, rectf.ymin, rectf.ymax);
 			
 			glSelectBuffer(256, buffer); 

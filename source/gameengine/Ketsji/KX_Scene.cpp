@@ -68,6 +68,7 @@
 #include "SG_IObject.h"
 #include "SG_Tree.h"
 #include "DNA_group_types.h"
+#include "DNA_scene_types.h"
 #include "BKE_anim.h"
 
 #include "KX_SG_NodeRelationships.h"
@@ -116,7 +117,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   class SND_IAudioDevice* adi,
-				   const STR_String& sceneName): 
+				   const STR_String& sceneName,
+				   Scene *scene): 
 	PyObjectPlus(&KX_Scene::Type),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
@@ -126,7 +128,8 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0)
+	m_ueberExecutionPriority(0),
+	m_blenderScene(scene)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -156,7 +159,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 	KX_NetworkEventManager* netmgr = new KX_NetworkEventManager(m_logicmgr, ndi);
 	
-	SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+	
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
@@ -167,7 +170,15 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_logicmgr->RegisterEventManager(rndmgr);
 	m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
-	m_logicmgr->RegisterEventManager(joymgr);
+
+
+	SYS_SystemHandle hSystem = SYS_GetSystem();
+	bool nojoystick= SYS_GetCommandLineInt(hSystem,"nojoystick",0);
+	if (!nojoystick)
+	{
+		SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+		m_logicmgr->RegisterEventManager(joymgr);
+	}
 
 	m_soundScene = new SND_Scene(adi);
 	MT_assert (m_networkDeviceInterface != NULL);
@@ -234,39 +245,8 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-#ifdef USE_BULLET
-	// This is a fix for memory leaks in bullet: the collision shapes is not destroyed 
-	// when the physical controllers are destroyed. The reason is that shapes are shared
-	// between replicas of an object. There is no reference count in Bullet so the
-	// only workaround that does not involve changes in Bullet is to save in this array
-	// the list of shapes that are created when the scene is created (see KX_ConvertPhysicsObjects.cpp)
-	class btCollisionShape* shape;
-	class btTriangleMeshShape* meshShape;
-	vector<class btCollisionShape*>::iterator it = m_shapes.begin();
-	while (it != m_shapes.end()) {
-		shape = *it;
-		if (shape->getShapeType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
-		{
-			meshShape = static_cast<btTriangleMeshShape*>(shape);
-			// shapes based on meshes use an interface that contains the vertices.
-			// Again the idea is to be able to share the interface between shapes but
-			// this is not used in Blender: each base object will have its own interface 
-			btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
-			if (meshInterface)
-				delete meshInterface;
-		}
-		delete shape;
-		it++;
-	}
-#endif
 	//Py_DECREF(m_attrlist);
 }
-
-void KX_Scene::AddShape(class btCollisionShape*shape)
-{
-	m_shapes.push_back(shape);
-}
-
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
 {
@@ -484,7 +464,7 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 
 	// this is the list of object that are send to the graphics pipeline
 	m_objectlist->Add(newobj->AddRef());
-	newobj->Bucketize();
+	newobj->AddMeshUser();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.
 	m_logicHierarchicalGameObjects.push_back(newobj);
@@ -654,6 +634,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		if (blgroupobj == blenderobj)
 			// this check is also in group_duplilist()
 			continue;
+
 		gameobj = (KX_GameObject*)m_logicmgr->FindGameObjByBlendObj(blenderobj);
 		if (gameobj == NULL) 
 		{
@@ -661,6 +642,9 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 			// Should not happen as dupli group are created automatically 
 			continue;
 		}
+
+		gameobj->SetBlenderGroupObject(blgroupobj);
+
 		if ((blenderobj->lay & group->layer)==0)
 		{
 			// object is not visible in the 3D view, will not be instantiated
@@ -717,17 +701,6 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
 			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
 		replica->NodeSetLocalPosition(newpos);
-
-		if (replica->GetPhysicsController())
-		{
-			// not required, already done in NodeSetLocalOrientation..
-			//replica->GetPhysicsController()->setPosition(newpos);
-			//replica->GetPhysicsController()->setOrientation(newori.getRotation());
-			// Scaling has been set relatively hereabove, this does not 
-			// set the scaling of the controller. I don't know why it's just the
-			// relative scale and not the full scale that has to be put here...
-			replica->GetPhysicsController()->setScaling(newscale);
-		}
 
 		replica->GetSGNode()->UpdateWorldData(0);
 		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
@@ -853,18 +826,6 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	// set the replica's relative scale with the rootnode's scale
 	replica->NodeSetRelativeScale(newscale);
 
-	if (replica->GetPhysicsController())
-	{
-		// not needed, already done in NodeSetLocalPosition()
-		//replica->GetPhysicsController()->setPosition(newpos);
-		//replica->GetPhysicsController()->setOrientation(newori.getRotation());
-		replica->GetPhysicsController()->setScaling(newscale);
-	}
-
-	// here we want to set the relative scale: the rootnode's scale will override all other
-	// scalings, so lets better prepare for it
-
-
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
@@ -975,6 +936,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	
 	newobj->RemoveMeshes();
 	ret = 1;
+	if (m_lightlist->RemoveValue(newobj)) // TODO - use newobj->IsLight() test when its merged in from apricot. - Campbell
+		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
 		ret = newobj->Release();
 	if (m_tempObjectList->RemoveValue(newobj))
@@ -1022,13 +985,13 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 	{
 		BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
 		
-		if (newobj->m_pDeformer)
+		if (newobj->GetDeformer())
 		{
-			delete newobj->m_pDeformer;
-			newobj->m_pDeformer = NULL;
+			delete newobj->GetDeformer();
+			newobj->SetDeformer(NULL);
 		}
 
-		if (mesh->m_class == 1) 
+		if (mesh->IsDeformed())
 		{
 			// we must create a new deformer but which one?
 			KX_GameObject* parentobj = newobj->GetParent();
@@ -1075,7 +1038,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 						NULL
 					);
 				}
-				newobj->m_pDeformer = shapeDeformer;
+				newobj->SetDeformer( shapeDeformer);
 			}
 			else if (bHasArmature) 
 			{
@@ -1087,14 +1050,14 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);
 				releaseParent= false;
-				newobj->m_pDeformer = skinDeformer;
+				newobj->SetDeformer(skinDeformer);
 			}
 			else if (bHasDvert)
 			{
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
 					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
 				);
-				newobj->m_pDeformer = meshdeformer;
+				newobj->SetDeformer(meshdeformer);
 			}
 
 			// release parent reference if its not being used 
@@ -1102,7 +1065,8 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 				parentobj->Release();
 		}
 	}
-	gameobj->Bucketize();
+
+	gameobj->AddMeshUser();
 }
 
 
@@ -1254,7 +1218,9 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 				for (int m=0;m<nummeshes;m++)
 					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 			}
-			gameobj->MarkVisible(visible);
+
+			gameobj->SetCulled(!visible);
+			gameobj->UpdateBuckets(false);
 		}
 	}
 	if (node->Left())
@@ -1271,7 +1237,8 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	
 	// Shadow lamp layers
 	if(layer && !(gameobj->GetLayer() & layer)) {
-		gameobj->MarkVisible(false);
+		gameobj->SetCulled(true);
+		gameobj->UpdateBuckets(false);
 		return;
 	}
 
@@ -1317,9 +1284,11 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 		}
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
-		gameobj->MarkVisible();
+		gameobj->SetCulled(false);
+		gameobj->UpdateBuckets(false);
 	} else {
-		gameobj->MarkVisible(false);
+		gameobj->SetCulled(true);
+		gameobj->UpdateBuckets(false);
 	}
 }
 

@@ -239,8 +239,10 @@ void do_image_buttons(unsigned short event)
 				if(ima->twsta>=nr) ima->twsta= 1;
 				if(ima->twend>=nr) ima->twend= nr-1;
 				if(ima->twsta>ima->twend) ima->twsta= 1;
-				allqueue(REDRAWIMAGE, 0);
 			}
+
+			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	}	
@@ -475,6 +477,9 @@ static void do_image_viewmenu(void *arg, int event)
 		G.sima->flag ^= SI_LOCAL_UV;
 		allqueue(REDRAWIMAGE, 0);
 		break;
+	case 15: /* Grease Pencil... */
+		add_blockhandler(curarea, IMAGE_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -496,6 +501,8 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Composite Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Grease Pencil...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	if(G.sima->flag & SI_LOCAL_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Local View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Local View|NumPad /", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
@@ -1293,7 +1300,7 @@ void image_buttons(void)
 			uiBlockEndAlign(block);
 			xco+= 166;
 		}
-		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
+		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enable image painting");
 		
 		xco+= XIC+8;
 

@@ -58,7 +58,8 @@ SimulationObject::~SimulationObject()
 	if(mpGiTree)         delete mpGiTree;
 	if(mpElbeemSettings) delete mpElbeemSettings;
 	if(mpLbm)            delete mpLbm;
-  if(mpParam)          delete mpParam;
+  	if(mpParam)          delete mpParam;
+	if(mpParts)          delete mpParts;
 	debMsgStd("SimulationObject",DM_MSG,"El'Beem Done!\n",10);
 }
 

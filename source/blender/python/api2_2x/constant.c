@@ -37,19 +37,19 @@ PyTypeObject constant_Type;
 //------------------METHOD IMPLEMENTATIONS-----------------------------
 //------------------------constant.items()
 //Returns a list of key:value pairs like dict.items()
-PyObject* constant_items(BPy_constant *self)
+static PyObject* constant_items(BPy_constant *self)
 {
 	return PyDict_Items(self->dict);
 }
 //------------------------constant.keys()
 //Returns a list of keys like dict.keys()
-PyObject* constant_keys(BPy_constant *self)
+static PyObject* constant_keys(BPy_constant *self)
 {
 	return PyDict_Keys(self->dict);
 }
 //------------------------constant.values()
 //Returns a list of values like dict.values()
-PyObject* constant_values(BPy_constant *self)
+static PyObject* constant_values(BPy_constant *self)
 {
 	return PyDict_Values(self->dict);
 }

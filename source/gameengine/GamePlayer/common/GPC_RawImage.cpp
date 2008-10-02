@@ -45,7 +45,7 @@ GPC_RawImage::GPC_RawImage()
 
 
 bool GPC_RawImage::Load(
-		char *srcName,
+		const char *srcName,
 		int destWidth, int destHeight,
 		TImageAlignment alignment, int offsetX, int offsetY)
 {

@@ -88,9 +88,6 @@ extern void countall(void);
 #define NMESH_SUBDIV_MIN			0
 #define NMESH_SUBDIV_MAX			6
 
-/* Globals */
-static PyObject *g_nmeshmodule = NULL;
-
 static int unlink_existingMeshData( Mesh * mesh );
 static int convert_NMeshToMesh( Mesh *mesh, BPy_NMesh *nmesh );
 static void check_dverts(Mesh *me, int old_totverts);
@@ -3321,7 +3318,6 @@ PyObject *NMesh_Init( void )
   if( EdgeFlags )
     PyModule_AddObject( submodule, "EdgeFlags", EdgeFlags );
 
-	g_nmeshmodule = submodule;
 	return submodule;
 }
 

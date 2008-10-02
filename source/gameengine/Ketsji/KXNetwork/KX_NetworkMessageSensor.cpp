@@ -196,20 +196,20 @@ PyParentObject KX_NetworkMessageSensor::Parents[] = {
 
 PyMethodDef KX_NetworkMessageSensor::Methods[] = {
 	{"setSubjectFilterText", (PyCFunction)
-		KX_NetworkMessageSensor::sPySetSubjectFilterText, METH_VARARGS,
-		SetSubjectFilterText_doc},
+		KX_NetworkMessageSensor::sPySetSubjectFilterText, METH_O,
+		(PY_METHODCHAR)SetSubjectFilterText_doc},
 	{"getFrameMessageCount", (PyCFunction)
-		KX_NetworkMessageSensor::sPyGetFrameMessageCount, METH_VARARGS,
-		GetFrameMessageCount_doc},
+		KX_NetworkMessageSensor::sPyGetFrameMessageCount, METH_NOARGS,
+		(PY_METHODCHAR)GetFrameMessageCount_doc},
 	{"getBodies", (PyCFunction)
-		KX_NetworkMessageSensor::sPyGetBodies, METH_VARARGS,
-		GetBodies_doc},
+		KX_NetworkMessageSensor::sPyGetBodies, METH_NOARGS,
+		(PY_METHODCHAR)GetBodies_doc},
 	{"getSubject", (PyCFunction)
-		KX_NetworkMessageSensor::sPyGetSubject, METH_VARARGS,
-		GetSubject_doc},
+		KX_NetworkMessageSensor::sPyGetSubject, METH_NOARGS,
+		(PY_METHODCHAR)GetSubject_doc},
 	{"getSubjects", (PyCFunction)
-		KX_NetworkMessageSensor::sPyGetSubjects, METH_VARARGS,
-		GetSubjects_doc},
+		KX_NetworkMessageSensor::sPyGetSubjects, METH_NOARGS,
+		(PY_METHODCHAR)GetSubjects_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -218,88 +218,66 @@ PyObject* KX_NetworkMessageSensor::_getattr(const STR_String& attr) {
 }
 
 // 1. Set the message subject that this sensor listens for
-char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] = 
+const char KX_NetworkMessageSensor::SetSubjectFilterText_doc[] = 
 "\tsetSubjectFilterText(value)\n"
 "\tChange the message subject text that this sensor is listening to.\n";
 
-PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
+PyObject* KX_NetworkMessageSensor::PySetSubjectFilterText( PyObject* self, PyObject* value)
 {
-	char* Subject;
-
-	if (PyArg_ParseTuple(args, "s", &Subject))
-	{
-	     m_subject = Subject;
-	}
-	else {
+	char* Subject = PyString_AsString(value);
+	if (Subject==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string message");
 		return NULL;
 	}
-
-	Py_Return;
+	
+	m_subject = Subject;
+	Py_RETURN_NONE;
 }
 
 // 2. Get the number of messages received since the last frame
-char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
+const char KX_NetworkMessageSensor::GetFrameMessageCount_doc[] =
 "\tgetFrameMessageCount()\n"
 "\tGet the number of messages received since the last frame.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
+PyObject* KX_NetworkMessageSensor::PyGetFrameMessageCount( PyObject* )
 {
 	return PyInt_FromLong(long(m_frame_message_count));
 }
 
 // 3. Get the message bodies
-char KX_NetworkMessageSensor::GetBodies_doc[] =
+const char KX_NetworkMessageSensor::GetBodies_doc[] =
 "\tgetBodies()\n"
 "\tGet the list of message bodies.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetBodies(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
+PyObject* KX_NetworkMessageSensor::PyGetBodies( PyObject* )
 {
 	if (m_BodyList) {
 		return ((PyObject*) m_BodyList->AddRef());
+	} else {
+		return ((PyObject*) new CListValue());
 	}
-
-	Py_Return;
 }
 
 // 4. Get the message subject: field of the message sensor
-char KX_NetworkMessageSensor::GetSubject_doc[] =
+const char KX_NetworkMessageSensor::GetSubject_doc[] =
 "\tgetSubject()\n"
 "\tGet the subject: field of the message sensor.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetSubject(
-	PyObject* self,
-	PyObject* args,
-	PyObject* kwds)
+PyObject* KX_NetworkMessageSensor::PyGetSubject( PyObject* )
 {
-	if (m_subject) {
-		return PyString_FromString(m_subject);
-	}
-
-	Py_Return;
+	return PyString_FromString(m_subject ? m_subject : "");
 }
 
 // 5. Get the message subjects
-char KX_NetworkMessageSensor::GetSubjects_doc[] =
+const char KX_NetworkMessageSensor::GetSubjects_doc[] =
 "\tgetSubjects()\n"
 "\tGet list of message subjects.\n";
 
-PyObject* KX_NetworkMessageSensor::PyGetSubjects(
-	   PyObject* self,
-	   PyObject* args,
-	   PyObject* kwds)
+PyObject* KX_NetworkMessageSensor::PyGetSubjects( PyObject* )
 {
 	if (m_SubjectList) {
-	  return ((PyObject*) m_SubjectList->AddRef());
-	  }
-
-	Py_Return;
+		return ((PyObject*) m_SubjectList->AddRef());
+	} else {
+		return ((PyObject*) new CListValue());
+	}
 }

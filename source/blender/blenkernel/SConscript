@@ -10,6 +10,7 @@ incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
 incs += ' #/extern/bullet2/src'
 incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern'
+incs += ' ../gpu #/extern/glew/include'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_OPENGL_INC']
@@ -42,7 +43,8 @@ if env['WITH_BF_QUICKTIME'] == 1:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']
 
-defs += ' WITH_CCGSUBSURF'
+if env['BF_NO_ELBEEM'] == 1:
+    defs += ' DISABLE_ELBEEM'
 
 if env['WITH_BF_PLAYER']:
     SConscript(['bad_level_call_stubs/SConscript'])

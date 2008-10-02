@@ -30,6 +30,9 @@ class btRigidBody;
 ///btConeTwistConstraint can be used to simulate ragdoll joints (upper arm, leg etc)
 class btConeTwistConstraint : public btTypedConstraint
 {
+#ifdef IN_PARALLELL_SOLVER
+public:
+#endif
 	btJacobianEntry	m_jac[3]; //3 orthogonal linear constraints
 
 	btTransform m_rbAFrame; 

@@ -111,6 +111,8 @@ public:
 	virtual void	calcXform(){}
 	virtual void SetMargin(float margin) {}
 	virtual float GetMargin() const {return 0.f;}
+	virtual float GetRadius() const {return 0.f;}
+	virtual void  SetRadius(float margin) {}
 
 		// clientinfo for raycasts for example
 	virtual	void*				getNewClientInfo() { return m_clientInfo;}

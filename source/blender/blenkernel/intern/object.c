@@ -70,6 +70,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_bullet.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
@@ -111,6 +112,8 @@
 #include "LBM_fluidsim.h"
 
 #include "BPY_extern.h"
+
+#include "GPU_material.h"
 
 #include "blendef.h"
 
@@ -174,6 +177,14 @@ void object_free_softbody(Object *ob)
 	if(ob->soft) {
 		sbFree(ob->soft);
 		ob->soft= NULL;
+	}
+}
+
+void object_free_bulletsoftbody(Object *ob)
+{
+	if(ob->bsoft) {
+		bsbFree(ob->bsoft);
+		ob->bsoft= NULL;
 	}
 }
 
@@ -267,7 +278,8 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pd);
 	}
 	if(ob->soft) sbFree(ob->soft);
-	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
+	if(ob->bsoft) bsbFree(ob->bsoft);
+	if(ob->gpulamp.first) GPU_lamp_free(ob);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -694,9 +706,11 @@ float dof_camera(Object *ob)
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
+		float mat[4][4], obmat[4][4];
 		
-		float mat[4][4];
-		Mat4Invert(ob->imat, ob->obmat);
+		Mat4CpyMat4(obmat, ob->obmat);
+		Mat4Ortho(obmat);
+		Mat4Invert(ob->imat, obmat);
 		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
 		return fabs(mat[3][2]);
 	}
@@ -743,6 +757,11 @@ void *add_lamp(char *name)
 	la->atm_extinction_factor = 1.0;
 	la->atm_distance_factor = 1.0;
 	la->sun_intensity = 1.0;
+	la->skyblendtype= MA_RAMP_ADD;
+	la->skyblendfac= 1.0f;
+	la->sky_colorspace= BLI_CS_CIE;
+	la->sky_exposure= 1.0f;
+	
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }
@@ -918,7 +937,7 @@ Object *add_only_object(int type, char *name)
 	QuatOne(ob->dquat);
 #endif 
 
-	ob->col[0]= ob->col[1]= ob->col[2]= 0.0;
+	ob->col[0]= ob->col[1]= ob->col[2]= 1.0;
 	ob->col[3]= 1.0;
 
 	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0;
@@ -955,8 +974,9 @@ Object *add_only_object(int type, char *name)
 	ob->anisotropicFriction[0] = 1.0f;
 	ob->anisotropicFriction[1] = 1.0f;
 	ob->anisotropicFriction[2] = 1.0f;
-	ob->gameflag= OB_PROP;
-
+	ob->gameflag= OB_PROP|OB_COLLISION;
+	ob->margin = 0.0;
+	
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
@@ -1037,6 +1057,17 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
 
 	return sbn;
+}
+
+BulletSoftBody *copy_bulletsoftbody(BulletSoftBody *bsb)
+{
+	BulletSoftBody *bsbn;
+
+	if (bsb == NULL)
+		return NULL;
+	bsbn = MEM_dupallocN(bsb);
+	/* no pointer in this structure yet */
+	return bsbn;
 }
 
 ParticleSystem *copy_particlesystem(ParticleSystem *psys)
@@ -1174,7 +1205,9 @@ Object *copy_object(Object *ob)
 	
 	BPY_copy_scriptlink(&ob->scriptlink);
 	
+	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
+	
 	copy_sensors(&obn->sensors, &ob->sensors);
 	copy_controllers(&obn->controllers, &ob->controllers);
 	copy_actuators(&obn->actuators, &ob->actuators);
@@ -1207,15 +1240,7 @@ Object *copy_object(Object *ob)
 			id_us_plus(&(obn->pd->tex->id));
 	}
 	obn->soft= copy_softbody(ob->soft);
-
-	/* NT copy fluid sim setting memory */
-	if(obn->fluidsimSettings) {
-		obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
-		/* copying might fail... */
-		if(obn->fluidsimSettings) {
-			obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
-		}
-	}
+	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
 
 	copy_object_particlesystems(obn, ob);
 	
@@ -1226,6 +1251,7 @@ Object *copy_object(Object *ob)
 	obn->vnode = NULL;
 #endif
 
+	obn->gpulamp.first = obn->gpulamp.last = NULL;
 
 	return obn;
 }
@@ -1454,22 +1480,42 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	return cfra;
 }
 
-void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+void object_scale_to_mat3(Object *ob, float mat[][3])
 {
-	float smat[3][3], vec[3];
-	float rmat[3][3];
-	/*float q1[4];*/
-	
-	/* size */
+	float vec[3];
 	if(ob->ipo) {
 		vec[0]= ob->size[0]+ob->dsize[0];
 		vec[1]= ob->size[1]+ob->dsize[1];
 		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, smat);
+		SizeToMat3(vec, mat);
 	}
 	else {
-		SizeToMat3(ob->size, smat);
+		SizeToMat3(ob->size, mat);
 	}
+}
+
+void object_rot_to_mat3(Object *ob, float mat[][3])
+{
+	float vec[3];
+	if(ob->ipo) {
+		vec[0]= ob->rot[0]+ob->drot[0];
+		vec[1]= ob->rot[1]+ob->drot[1];
+		vec[2]= ob->rot[2]+ob->drot[2];
+		EulToMat3(vec, mat);
+	}
+	else {
+		EulToMat3(ob->rot, mat);
+	}
+}
+
+void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+{
+	float smat[3][3];
+	float rmat[3][3];
+	/*float q1[4];*/
+	
+	/* size */
+	object_scale_to_mat3(ob, smat);
 
 	/* rot */
 	/* Quats arnt used yet */
@@ -1483,15 +1529,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 		}
 	}
 	else {*/
-		if(ob->ipo) {
-			vec[0]= ob->rot[0]+ob->drot[0];
-			vec[1]= ob->rot[1]+ob->drot[1];
-			vec[2]= ob->rot[2]+ob->drot[2];
-			EulToMat3(vec, rmat);
-		}
-		else {
-			EulToMat3(ob->rot, rmat);
-		}
+		object_rot_to_mat3(ob, rmat);
 	/*}*/
 	Mat3MulMat3(mat, rmat, smat);
 }

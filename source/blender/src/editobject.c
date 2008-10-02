@@ -172,6 +172,7 @@
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
 #include "BDR_unwrapper.h"
+#include "BDR_gpencil.h"
 
 #include <time.h>
 #include "mydevice.h"
@@ -2827,7 +2828,7 @@ void convertmenu(void)
 	if(G.scene->id.lib) return;
 
 	obact= OBACT;
-	if(obact==0) return;
+	if (obact == NULL) return;
 	if(!obact->flag & SELECT) return;
 	if(G.obedit) return;
 	
@@ -3022,6 +3023,10 @@ void convertmenu(void)
 		basedel = NULL;				
 	}
 	
+	/* delete object should renew depsgraph */
+	if(nr==2)
+		DAG_scene_sort(G.scene);
+
 	/* texspace and normals */
 	if(!basen) BASACT= base;
 
@@ -3187,7 +3192,7 @@ void flip_subdivison(int level)
  
 static void copymenu_properties(Object *ob)
 {	
-	bProperty *prop, *propn, *propc;
+	bProperty *prop;
 	Base *base;
 	int nr, tot=0;
 	char *str;
@@ -3203,45 +3208,43 @@ static void copymenu_properties(Object *ob)
 		return;
 	}
 	
-	str= MEM_callocN(24+32*tot, "copymenu prop");
+	str= MEM_callocN(50 + 33*tot, "copymenu prop");
 	
-	strcpy(str, "Copy Property %t");
+	strcpy(str, "Copy Property %t|Replace All|Merge All|%l");
 	
 	tot= 0;	
 	prop= ob->prop.first;
 	while(prop) {
 		tot++;
-		strcat(str, " |");
+		strcat(str, "|");
 		strcat(str, prop->name);
 		prop= prop->next;
 	}
 
 	nr= pupmenu(str);
-	if(nr>0) {
-		tot= 0;
-		prop= ob->prop.first;
-		while(prop) {
-			tot++;
-			if(tot==nr) break;
-			prop= prop->next;
-		}
-		if(prop) {
-			propc= prop;
-			
-			base= FIRSTBASE;
-			while(base) {
-				if(base != BASACT) {
-					if(TESTBASELIB(base)) {
-						prop= get_property(base->object, propc->name);
-						if(prop) {
-							free_property(prop);
-							BLI_remlink(&base->object->prop, prop);
-						}
-						propn= copy_property(propc);
-						BLI_addtail(&base->object->prop, propn);
+	
+	if ( nr==1 || nr==2 ) {
+		base= FIRSTBASE;
+		while(base) {
+			if((base != BASACT) && TESTBASELIB(base)) {
+				if (nr==1) { /* replace */
+					copy_properties( &base->object->prop, &ob->prop );
+				} else {
+					for(prop = ob->prop.first; prop; prop= prop->next ) {
+						set_ob_property(base->object, prop);
 					}
 				}
-				base= base->next;
+			}
+			base= base->next;
+		}
+	} else if(nr>0) {
+		prop = BLI_findlink(&ob->prop, nr-4); /* account for first 3 menu items & menu index starting at 1*/
+		
+		if(prop) {
+			for(base= FIRSTBASE; base; base= base->next) {
+				if((base != BASACT) && TESTBASELIB(base)) {
+					set_ob_property(base->object, prop);
+				}
 			}
 		}
 	}
@@ -3278,6 +3281,9 @@ static void copymenu_logicbricks(Object *ob)
 				base->object->scavisflag= ob->scavisflag;
 				base->object->scaflag= ob->scaflag;
 				
+				/* set the initial state */
+				base->object->state= ob->state;
+				base->object->init_state= ob->init_state;
 			}
 		}
 		base= base->next;
@@ -3300,6 +3306,9 @@ static void copymenu_modifiers(Object *ob)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
+		
+		if(i == eModifierType_Collision)
+			continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -3323,11 +3332,16 @@ static void copymenu_modifiers(Object *ob)
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
-							if (md->type!=eModifierType_Hook) {
-								ModifierData *nmd = modifier_new(md->type);
-								modifier_copyData(md, nmd);
-								BLI_addtail(&base->object->modifiers, nmd);
-							}
+							ModifierData *nmd = NULL;
+							
+							if(ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
+		
+							if(md->type == eModifierType_Collision)
+								continue;
+							
+							nmd = modifier_new(md->type);
+							modifier_copyData(md, nmd);
+							BLI_addtail(&base->object->modifiers, nmd);
 						}
 
 						copy_object_particlesystems(base->object, ob);
@@ -3514,6 +3528,9 @@ void copy_attr(short event)
 					if (ob->gameflag & OB_BOUNDS) {
 						base->object->boundtype = ob->boundtype;
 					}
+					base->object->margin= ob->margin;
+					base->object->bsoft= copy_bulletsoftbody(ob->bsoft);
+
 				}
 				else if(event==17) {	/* tex space */
 					copy_texture_space(base->object, ob);
@@ -3609,10 +3626,6 @@ void copy_attr(short event)
 					}
 				}
 				else if(event==22) {
-					/* Clear the constraints on the target */
-					free_constraints(&base->object->constraints);
-					free_constraint_channels(&base->object->constraintChannels);
-
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints);
 					if (U.dupflag& USER_DUP_IPO)
@@ -3663,6 +3676,9 @@ void copy_attr(short event)
 				else if(event==30) { /* index object */
 					base->object->index= ob->index;
 				}
+				else if(event==31) { /* object color */
+					QUATCOPY(base->object->col, ob->col);
+				}
 			}
 		}
 		base= base->next;
@@ -3701,7 +3717,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|Object Color%x31|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
@@ -3922,7 +3938,7 @@ void make_links(short event)
 	BIF_undo_push("Create links");
 }
 
-void apply_objects_locrot( void )
+static void apply_objects_internal( int apply_scale, int apply_rot )
 {
 	Base *base, *basact;
 	Object *ob;
@@ -3936,7 +3952,11 @@ void apply_objects_locrot( void )
 	float mat[3][3];
 	int a, change = 0;
 	
-	
+	if (!apply_scale && !apply_rot) {
+		/* do nothing? */
+		error("Nothing to do!");
+		return;
+	}
 	/* first check if we can execute */
 	for (base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
@@ -3984,7 +4004,13 @@ void apply_objects_locrot( void )
 			ob= base->object;
 			
 			if(ob->type==OB_MESH) {
-				object_to_mat3(ob, mat);
+				if (apply_scale && apply_rot)
+					object_to_mat3(ob, mat);
+				else if (apply_scale)
+					object_scale_to_mat3(ob, mat);
+				else
+					object_rot_to_mat3(ob, mat);
+
 				me= ob->data;
 				
 				/* see checks above */
@@ -3993,8 +4019,10 @@ void apply_objects_locrot( void )
 				for(a=0; a<me->totvert; a++, mvert++) {
 					Mat3MulVecfl(mat, mvert->co);
 				}
-				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+				if (apply_scale)
+					ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+				if (apply_rot)
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat);*/ /* Quats arnt used yet */
 				
 				where_is_object(ob);
@@ -4009,15 +4037,22 @@ void apply_objects_locrot( void )
 				change = 1;
 			}
 			else if (ob->type==OB_ARMATURE) {
-				object_to_mat3(ob, mat);
+				if (apply_scale && apply_rot)
+					object_to_mat3(ob, mat);
+				else if (apply_scale)
+					object_scale_to_mat3(ob, mat);
+				else
+					object_rot_to_mat3(ob, mat);
 				arm= ob->data;
 				
 				/* see checks above */
 				apply_rot_armature(ob, mat);
 				
 				/* Reset the object's transforms */
-				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+				if (apply_scale)
+					ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+				if (apply_rot)
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat); (not used anymore)*/
 				
 				where_is_object(ob);
@@ -4026,7 +4061,12 @@ void apply_objects_locrot( void )
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 				float scale;
-				object_to_mat3(ob, mat);
+				if (apply_scale && apply_rot)
+					object_to_mat3(ob, mat);
+				else if (apply_scale)
+					object_scale_to_mat3(ob, mat);
+				else
+					object_rot_to_mat3(ob, mat);
 				scale = Mat3ToScalef(mat);
 				cu= ob->data;
 				
@@ -4055,9 +4095,10 @@ void apply_objects_locrot( void )
 					}
 					nu= nu->next;
 				}
-			
-				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
-				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+				if (apply_scale)
+					ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+				if (apply_rot)
+					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat); (quats arnt used anymore)*/
 				
 				where_is_object(ob);
@@ -4079,8 +4120,28 @@ void apply_objects_locrot( void )
 	}
 	if (change) {
 		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Apply Objects Scale & Rotation");
+		if (apply_scale && apply_rot)
+			BIF_undo_push("Apply Objects Scale & Rotation");
+		else if (apply_scale)
+			BIF_undo_push("Apply Objects Scale");
+		else
+			BIF_undo_push("Apply Objects Rotation");
 	}
+}
+
+void apply_objects_locrot(void)
+{
+	apply_objects_internal(1, 1);
+}
+
+void apply_objects_scale(void)
+{
+	apply_objects_internal(1, 0);
+}
+
+void apply_objects_rot(void)
+{
+	apply_objects_internal(0, 1);
 }
 
 void apply_objects_visual_tx( void )
@@ -4130,15 +4191,33 @@ void apply_object( void )
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		
-	} else {
+	} 
+	else {
+		ob= OBACT;
+		if(ob==0) return;
 		
-		evt = pupmenu("Apply Object%t|Scale and Rotation to ObData|Visual Transform to Objects Loc/Scale/Rot");
+		if ((ob->pose) && (ob->flag & OB_POSEMODE))
+			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
+		else
+			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2|Scale to ObData%x4|Rotation to ObData%x5");
 		if (evt==-1) return;
 		
-		if (evt==1) {
-			apply_objects_locrot();
-		} else if (evt==2) {
-			apply_objects_visual_tx();
+		switch (evt) {
+			case 1:
+				apply_objects_locrot();
+				break;
+			case 2:
+				apply_objects_visual_tx();
+				break;
+			case 3:
+				apply_armature_pose2bones();
+				break;
+			case 4:
+				apply_objects_scale();
+				break;
+			case 5:
+				apply_objects_rot();
+				break;
 		}
 	}
 }
@@ -4351,18 +4430,17 @@ void single_object_users(int flag)
 	
 	clear_sca_new_poins();	/* sensor/contr/act */
 
-	/* duplicate */
+	/* duplicate (must set newid) */
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
 		
-		if( (base->flag & flag)==flag) {
-
+		if( (base->flag & flag)==flag ) {
 			if(ob->id.lib==NULL && ob->id.us>1) {
-			
+				/* base gets copy of object */
 				obn= copy_object(ob);
-				ob->id.us--;
 				base->object= obn;
+				ob->id.us--;
 			}
 		}
 		base= base->next;
@@ -4376,20 +4454,17 @@ void single_object_users(int flag)
 	while(base) {
 		ob= base->object;
 		if(ob->id.lib==NULL) {
-			if( (base->flag & flag)==flag) {
-				
-				relink_constraints(&base->object->constraints);
-				if (base->object->pose){
-					bPoseChannel *chan;
-					for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
-						relink_constraints(&chan->constraints);
-					}
+			relink_constraints(&base->object->constraints);
+			if (base->object->pose){
+				bPoseChannel *chan;
+				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
 				}
-				modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
-				
-				ID_NEW(ob->parent);
-				ID_NEW(ob->track);
 			}
+			modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
+			
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
 		}
 		base= base->next;
 	}

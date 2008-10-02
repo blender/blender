@@ -56,6 +56,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
+	
+	class btDefaultCollisionConfiguration* m_collisionConfiguration;
+	class btBroadphaseInterface*			m_broadphase;
+
 	//solver iterations
 	int	m_numIterations;
 	
@@ -70,6 +74,7 @@ protected:
 
 	btContactSolverInfo	m_solverInfo;
 	
+	void	processFhSprings(double curTime,float timeStep);
 
 	public:
 		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
@@ -115,6 +120,8 @@ protected:
 		virtual void		setDebugMode(int debugMode);
 
 		virtual	void		setGravity(float x,float y,float z);
+		virtual	void		getGravity(PHY__Vector3& grav);
+
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
@@ -157,8 +164,7 @@ protected:
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 
 
 		//Methods for gamelogic collision/physics callbacks
@@ -192,8 +198,7 @@ protected:
 
 		btBroadphaseInterface*	getBroadphase();
 
-		
-		
+		btDispatcher*	getDispatcher();
 		
 
 		bool	IsSatCollisionDetectionEnabled() const
@@ -212,7 +217,10 @@ protected:
 	
 		void	SyncMotionStates(float timeStep);
 
-		
+		class	btSoftRigidDynamicsWorld*	getDynamicsWorld()
+		{
+			return m_dynamicsWorld;
+		}
 	
 		class btConstraintSolver*	GetConstraintSolver();
 
@@ -230,13 +238,13 @@ protected:
 		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		//use explicit btDiscreteDynamicsWorld* so that we have access to 
+		//use explicit btSoftRigidDynamicsWorld/btDiscreteDynamicsWorld* so that we have access to 
 		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group) 
 		//so that we can set the body collision filter/group at the time of creation 
 		//and not afterwards (breaks the collision system for radar/near sensor)
 		//Ideally we would like to have access to this function from the btDynamicsWorld interface
 		//class	btDynamicsWorld*	m_dynamicsWorld;
-		class	btDiscreteDynamicsWorld*	m_dynamicsWorld;
+		class	btSoftRigidDynamicsWorld*	m_dynamicsWorld;
 		
 		class btConstraintSolver*	m_solver;
 

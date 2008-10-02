@@ -34,7 +34,9 @@
 extern "C" {
 #endif
 
-
+#include "BLO_sys_types.h" // for intptr_t support
+#undef ntohl
+#undef htonl
 typedef int (GetRowFn)(LogImageFile* logImage, unsigned short* row, int lineNum);
 typedef int (SetRowFn)(LogImageFile* logImage, const unsigned short* row, int lineNum);
 typedef void (CloseFn)(LogImageFile* logImage);
@@ -80,7 +82,7 @@ struct _Log_Image_File_t_
 	CloseFn* close;
 	
 	unsigned char *membuffer;
-	unsigned long membuffersize;
+	uintptr_t membuffersize;
 	unsigned char *memcursor;
 };
 

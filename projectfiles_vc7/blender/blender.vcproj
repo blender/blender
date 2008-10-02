@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
+				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging;..\..\..\build\msvc_7\extern\glew\include;..\..\source\blender\gpu"
 				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC;WITH_VERSE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -60,7 +60,7 @@
 MOVE /Y ..\..\bin\blender.lib ..\..\..\build\msvc_7\libs
 MOVE /Y ..\..\bin\blender.exp ..\..\..\build\msvc_7\libs
 ECHO Copying required 3rd party dlls...
-XCOPY /Y ..\..\..\lib\windows\python\lib\python25.dll ..\..\bin
+XCOPY /Y ..\..\..\lib\windows\python\lib\lib25_vs2003\python25.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin
@@ -105,7 +105,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
+				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging;..\..\..\build\msvc_7\extern\glew\include;..\..\source\blender\gpu"
 				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;WITH_VERSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -129,7 +129,7 @@ ECHO Done
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\ffmpeg\lib;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib\lib25_vs2003;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\ffmpeg\lib;..\..\..\build\msvc_7\libs\intern\debug;..\..\..\build\msvc_7\libs\extern\debug"
 				IgnoreDefaultLibraryNames="libc.lib, libcmt.lib, msvcrt.lib, libcd.lib, odbc32.lib, odbccp32.lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\debug\blender.pdb"
@@ -146,7 +146,7 @@ MOVE /Y ..\..\bin\debug\blender.ilk ..\..\..\build\msvc_7\libs\debug
 ECHO Copying required 3rd party dlls...
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin\debug
-XCOPY /Y ..\..\..\lib\windows\python\lib\python25_d.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\python\lib\lib25_vs2003\python25_d.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin\debug

@@ -100,6 +100,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "GPU_draw.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "winlay.h"
@@ -424,7 +426,6 @@ static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
 	renderwin_queue_redraw(rw);
 }
 
-#define FTOCHAR(val) val<=0.0f? 0 : (val>=(1.0f-0.5f/255.0f)? 255 :(char)((255.0f*val)+0.5f))
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
@@ -674,7 +675,7 @@ static void open_renderwin(int winpos[2], int winsize[2], int imagesize[2])
 	/* mywindow has to know about it too */
 	mywindow_build_and_set_renderwin(winpos[0], winpos[1], winsize[0], winsize[1]+RW_HEADERY);
 	/* and we should be able to draw 3d in it */
-	init_gl_stuff();
+	GPU_state_init();
 	
 	renderwin_draw(render_win, 1);
 	renderwin_draw(render_win, 1);
@@ -901,10 +902,13 @@ static void renderwin_progress_display_cb(RenderResult *rr, volatile rcti *rect)
 void make_renderinfo_string(RenderStats *rs, char *str)
 {
 	extern char info_time_str[32];	// header_info.c
-	extern unsigned long mem_in_use, mmap_in_use;
+	uintptr_t mem_in_use, mmap_in_use;
 	float megs_used_memory, mmap_used_memory;
 	char *spos= str;
 	
+	mem_in_use= MEM_get_memory_in_use();
+	mmap_in_use= MEM_get_mapped_memory_in_use();
+
 	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
 	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
 	
@@ -1127,7 +1131,7 @@ static void do_render(int anim)
 	}
 	
 	if(anim)
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 	else
 		RE_BlenderFrame(re, G.scene, G.scene->r.cfra);
 
@@ -1269,16 +1273,9 @@ void BIF_store_spare(void)
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
-	int slink_flag = 0;
+	if (G.f & G_DOSCRIPTLINKS)
+		BPY_do_all_scripts(SCRIPT_RENDER, anim);
 
-	if (G.f & G_DOSCRIPTLINKS) {
-		BPY_do_all_scripts(SCRIPT_RENDER);
-		if (!anim) { /* avoid FRAMECHANGED slink in render callback */
-			G.f &= ~G_DOSCRIPTLINKS;
-			slink_flag = 1;
-		}
-	}
-	
 	BIF_store_spare();
 
 	do_render(anim);
@@ -1289,8 +1286,8 @@ void BIF_do_render(int anim)
 	}
 	if(G.scene->r.dither_intensity != 0.0f)
 		BIF_redraw_render_rect();
-	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
+
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER, anim);
 }
 
 void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
@@ -1302,10 +1299,10 @@ void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
 	if(v3d->persp==V3D_CAMOB && v3d->camera) {
 		/* in camera view, use actual render winmat */
 		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
-		drawview3d_render(v3d, winx, winy, winmat);
+		drawview3d_render(v3d, NULL, winx, winy, winmat, 0);
 	}
 	else
-		drawview3d_render(v3d, winx, winy, NULL);
+		drawview3d_render(v3d, NULL, winx, winy, NULL, 0);
 }
 
 /* set up display, render the current area view in an image */
@@ -1334,21 +1331,33 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	if(render_win)
 		render_win->flags &= ~RW_FLAGS_ESCAPE;
 
-	init_gl_stuff();
+	GPU_state_init();
 	
 	waitcursor(1);
 
 	if(anim) {
 		bMovieHandle *mh= BKE_get_movie_handle(G.scene->r.imtype);
+		unsigned int lay;
 		int cfrao= CFRA;
+		int nfra;
 		
 		if(BKE_imtype_is_movie(G.scene->r.imtype))
 			mh->start_movie(&G.scene->r, winx, winy);
 		
-		for(CFRA= SFRA; CFRA<=EFRA; CFRA++) {
+		for(nfra= SFRA, CFRA= SFRA; CFRA<=EFRA; CFRA++) {
 			/* user event can close window */
 			if(render_win==NULL)
 				break;
+
+			if(nfra!=CFRA) {
+				if(G.scene->lay & 0xFF000000)
+					lay= G.scene->lay & 0xFF000000;
+				else
+					lay= G.scene->lay;
+
+				scene_update_for_newframe(G.scene, lay);
+				continue;
+			}
 
 			do_ogl_view3d_render(re, v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
@@ -1384,6 +1393,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			printf("\n");
 			
 			if(test_break()) break;
+			nfra+= STFRA;
 		}
 		
 		if(BKE_imtype_is_movie(G.scene->r.imtype))

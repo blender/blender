@@ -93,6 +93,7 @@ void	free_editArmature(void);
 
 int		join_armature(void);
 void 	separate_armature(void);
+void	apply_armature_pose2bones(void);
 void	load_editArmature(void);
 
 void	make_bone_parent(void);
@@ -101,13 +102,14 @@ struct Bone	*get_indexed_bone (struct Object *ob, int index);
 
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
+void	remake_editArmature(void);
+void	editbones_to_armature(struct ListBase *list, struct Object *ob);
 
 int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
 
 void generateSkeleton(void);
 
 void	mouse_armature(void);
-void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	armature_select_hierarchy(short direction, short add_to_sel);
@@ -139,6 +141,8 @@ void	hide_selected_armature_bones(void);
 void	hide_unselected_armature_bones(void);
 void	show_all_armature_bones(void);
 
+void	align_selected_bones(void);
+
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000
 #define	BONESEL_BONE	0x40000000
@@ -164,5 +168,6 @@ float calcDistance(struct ReebArc *arc, int start, int end, float head[3], float
 #define BONE_SELECT_CHILD	1
 
 #endif
+
 
 

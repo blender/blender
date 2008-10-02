@@ -470,7 +470,7 @@ typedef struct SculptData
 	struct SculptSession *session;
 
 	/* Pointers to all of sculptmodes's textures */
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];
 
 	/* Editable brush shape */
 	struct CurveMapping *cumap;
@@ -526,7 +526,9 @@ typedef struct Scene {
 	float editbutsize;                      /* size of normals */
 	short selectmode;						/* for mesh only! */
 	short proportional, prop_mode;
-	short automerge, pad5, pad6, pad7;
+	short automerge, pad5, pad6;
+	
+	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h */
 	
 	short use_nodes;
 	
@@ -559,6 +561,10 @@ typedef struct Scene {
 
 	/* Sculptmode data */
 	struct SculptData sculptdata;
+
+	/* frame step. */
+	int frame_step;
+	int pad;
 } Scene;
 
 
@@ -796,6 +802,7 @@ typedef struct Scene {
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+#define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
 
 /* toolsettings->edge_mode */
 #define EDGE_MODE_SELECT				0

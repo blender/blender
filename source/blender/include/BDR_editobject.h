@@ -77,6 +77,8 @@ void make_links_menu(void);
 void make_links(short event);
 void make_duplilist_real(void);
 void apply_objects_locrot(void);
+void apply_objects_scale(void);
+void apply_objects_rot(void);
 void apply_objects_visual_tx(void);
 void apply_object(void);
 

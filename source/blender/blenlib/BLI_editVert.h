@@ -38,6 +38,8 @@
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 struct DerivedMesh;
 struct RetopoPaintData;
 
@@ -53,7 +55,7 @@ typedef struct EditVert
 		struct EditEdge *e;
 		struct EditFace *f;
 		void            *p;
-		long             l;
+		intptr_t         l;
 		float            fp;
 	} tmp;
 	float no[3]; /*vertex normal */
@@ -95,7 +97,7 @@ typedef struct EditEdge
 		struct EditEdge *e;
 		struct EditFace *f;
 		void            *p;
-		long             l;
+		intptr_t         l;
 		float			fp;
 	} tmp;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
@@ -122,7 +124,7 @@ typedef struct EditFace
 		struct EditEdge *e;
 		struct EditFace *f;
 		void            *p;
-		long             l;
+		intptr_t         l;
 		float			fp;
 	} tmp;
 	float n[3], cent[3];

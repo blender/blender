@@ -2548,9 +2548,9 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 					float rot[3];
 					
 					/* current IPO value for compatible euler */
-					current_rot[0] = tdi->rotx[0];
-					current_rot[1] = tdi->roty[0];
-					current_rot[2] = tdi->rotz[0];
+					current_rot[0] = (tdi->rotx) ? tdi->rotx[0] : 0.0f;
+					current_rot[1] = (tdi->roty) ? tdi->roty[0] : 0.0f;
+					current_rot[2] = (tdi->rotz) ? tdi->rotz[0] : 0.0f;
 					VecMulf(current_rot, (float)(M_PI_2 / 9.0));
 					
 					/* calculate the total rotatation in eulers */

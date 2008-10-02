@@ -74,6 +74,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_poseobject.h"
 #include "BIF_screen.h"
@@ -435,7 +436,7 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 			 */
 			if ( (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
 				 ( ((filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) && 
-				  !(filter_mode & ACTFILTER_SEL) ) ) 
+				   (!(filter_mode & ACTFILTER_SEL) || (SEL_AGRP(agrp))) ) ) 
 			{
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
@@ -2101,7 +2102,7 @@ void paste_actdata ()
 	
 	/* from selected channels */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		Ipo *ipo_src=NULL, *ipo_dst=ale->key_data;
+		Ipo *ipo_src=NULL;
 		bActionChannel *achan;
 		IpoCurve *ico, *icu;
 		BezTriple *bezt;
@@ -2115,7 +2116,7 @@ void paste_actdata ()
 				
 				/* check if we have a corresponding action channel */
 				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
-					actname= achan->name;
+					actname= achant->name;
 					
 					/* check if this is a constraint channel */
 					if (ale->type == ACTTYPE_CONCHAN) {
@@ -2124,7 +2125,7 @@ void paste_actdata ()
 						
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 							if (strcmp(conchan->name, conchant->name)==0) {
-								conname= conchan->name;
+								conname= conchant->name;
 								ipo_src= conchan->ipo;
 								break;
 							}
@@ -2140,7 +2141,7 @@ void paste_actdata ()
 			else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
 				/* check if this action channel is "#ACP_ShapeKey" */
 				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
-					actname= achan->name;
+					actname= NULL;
 					ipo_src= achan->ipo;
 					break;
 				}
@@ -2148,12 +2149,12 @@ void paste_actdata ()
 		}
 		
 		/* this shouldn't happen, but it might */
-		if (ELEM(NULL, ipo_src, ipo_dst))
+		if (ipo_src == NULL)
 			continue;
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, "", ico->adrcode);
+			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
@@ -5154,21 +5155,28 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case DELKEY:
 		case XKEY:
-			if (okee("Erase selected")) {
-				if (mval[0] < NAMEWIDTH) {
-					if (datatype == ACTCONT_ACTION)
-						delete_action_channels();
-					else if (datatype == ACTCONT_GPENCIL)
-						delete_gpencil_layers();
+			/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+			if (G.qual == LR_SHIFTKEY) {
+				if (okee("Erase selected marker(s)?")) {
+					if (mval[0] >= NAMEWIDTH)
+						remove_marker();
 				}
-				else
-					delete_action_keys();
-				
-				if (mval[0] >= NAMEWIDTH)
-					remove_marker();
-				
-				allqueue(REDRAWMARKER, 0);
 			}
+			else {
+				if (okee("Erase selected?")) {
+					if (mval[0] < NAMEWIDTH) {
+						if (datatype == ACTCONT_ACTION)
+							delete_action_channels();
+						else if (datatype == ACTCONT_GPENCIL)
+							delete_gpencil_layers();
+					}
+					else
+						delete_action_keys();
+				}
+			}
+			
+			allqueue(REDRAWMARKER, 0);
+			
 			break;
 		
 		case ACCENTGRAVEKEY:

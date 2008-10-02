@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #if defined(_WIN32)
 #define M_PI 3.14159265358979323846
 #endif
@@ -38,7 +40,7 @@ static int PHashSizes[] = {
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 268435459
 };
 
-#define PHASH_hash(ph, item) (((unsigned long) (item))%((unsigned int) (ph)->cursize))
+#define PHASH_hash(ph, item) (((uintptr_t) (item))%((unsigned int) (ph)->cursize))
 #define PHASH_edge(v1, v2)	 ((v1)^(v2))
 
 static PHash *phash_new(PHashLink **list, int sizehint)
@@ -996,7 +998,7 @@ static float p_edge_boundary_angle(PEdge *e)
 static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 {
 	PEdge *e, *e1, *e2;
-	PHashKey vkeys[3];
+
 	PFace *f;
 	struct Heap *heap = BLI_heap_new();
 	float angle;
@@ -1034,9 +1036,9 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 			e->flag |= PEDGE_FILLED;
 			e1->flag |= PEDGE_FILLED;
 
-			vkeys[0] = e->vert->u.key;
-			vkeys[1] = e1->vert->u.key;
-			vkeys[2] = e2->vert->u.key;
+
+
+
 
 			f = p_face_add_fill(chart, e->vert, e1->vert, e2->vert);
 			f->flag |= PFACE_FILLED;
@@ -1076,11 +1078,11 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 
 static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
 {
-	PEdge *e, *enext, *be;
+	PEdge *e, *be; /* *enext - as yet unused */
 	int nedges;
 
 	for (e=chart->edges; e; e=e->nextlink) {
-		enext = e->nextlink;
+		/* enext = e->nextlink; - as yet unused */
 
         if (e->pair || (e->flag & PEDGE_FILLED))
             continue;
@@ -3197,7 +3199,7 @@ static PBool p_chart_convex_hull(PChart *chart, PVert ***verts, int *nverts, int
 	return P_TRUE;
 }
 
-float p_rectangle_area(float *p1, float *dir, float *p2, float *p3, float *p4)
+static float p_rectangle_area(float *p1, float *dir, float *p2, float *p3, float *p4)
 {
 	/* given 4 points on the rectangle edges and the direction of on edge,
 	   compute the area of the rectangle */
@@ -3340,7 +3342,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 	return minangle;
 }
 
-void p_chart_rotate_minimum_area(PChart *chart)
+static void p_chart_rotate_minimum_area(PChart *chart)
 {
 	float angle = p_chart_minimum_area_angle(chart);
 	float sine = sin(angle);
@@ -3539,7 +3541,7 @@ static float p_smooth_distortion(PEdge *e, float avg2d, float avg3d)
 	return (len3d == 0.0f)? 0.0f: len2d/len3d;
 }
 
-void p_smooth(PChart *chart)
+static void p_smooth(PChart *chart)
 {
 	PEdge *e;
 	PVert *v;
@@ -3962,7 +3964,7 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 
 	for (i = j = 0; i < phandle->ncharts; i++) {
 		PVert *v;
-		PChart *chart = phandle->charts[i];
+		chart = phandle->charts[i];
 
 		p_chart_boundaries(chart, &nboundaries, &outer);
 

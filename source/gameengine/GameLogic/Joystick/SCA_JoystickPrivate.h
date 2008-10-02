@@ -29,13 +29,10 @@
 #define __SCA_JOYSTICKPRIVATE_H__
 #include "SCA_Joystick.h"
 
+#ifndef DISABLE_SDL
 class SCA_Joystick::PrivateData
 {
 public:
-	/*
-	 * SDL events structure 
-	 */
-	SDL_Event		m_event;
 	/*
 	 * The Joystick
 	 */
@@ -46,4 +43,6 @@ public:
 	{
 	}
 };
+#endif
+
 #endif

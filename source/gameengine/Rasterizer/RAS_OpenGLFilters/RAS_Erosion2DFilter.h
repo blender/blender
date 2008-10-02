@@ -28,7 +28,7 @@
 #ifndef __RAS_EROSION2DFILTER
 #define __RAS_EROSION2DFILTER
 
-char * ErosionFragmentShader=STRINGIFY(
+const char * ErosionFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

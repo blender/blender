@@ -156,7 +156,9 @@ typedef struct Object {
 
 	float formfactor;
 	float rdamping, sizefac;
-	
+	float margin;
+	int   pad3;
+
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;	/* currently selected material in the user interface */
@@ -191,7 +193,9 @@ typedef struct Object {
 	 * bit 15: Always ignore activity culling 
 	 */
 	int gameflag2;
-	short softflag;			/* softboday settings */
+	struct BulletSoftBody *bsoft;	/* settings for game engine bullet soft body */
+
+	short softflag;			/* softbody settings */
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
@@ -210,7 +214,8 @@ typedef struct Object {
 
 	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-	short recalco, pad4;		/* recalco for temp storage of ob->recalc, bad design warning */
+	short recalco;				/* recalco for temp storage of ob->recalc, bad design warning */
+	short body_type;			/* for now used to temporarily holds the type of collision object */
 	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
 
@@ -223,6 +228,8 @@ typedef struct Object {
 /*#ifdef WITH_VERSE*/
 	void *vnode;			/* pointer at object VerseNode */
 /*#endif*/
+
+	ListBase gpulamp;		/* runtime, for lamps only */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -406,6 +413,7 @@ extern Object workob;
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
 
+
 /* ob->gameflag */
 #define OB_DYNAMIC		1
 #define OB_CHILD		2
@@ -425,10 +433,20 @@ extern Object workob;
 #define OB_PROP			16384
 #define OB_MAINACTOR	32768
 
+#define OB_COLLISION	65536
+#define OB_SOFT_BODY	0x20000
+
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
 
 #define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD)
+
+/* ob->body_type */
+#define OB_BODY_TYPE_NO_COLLISION	0
+#define OB_BODY_TYPE_STATIC			1
+#define OB_BODY_TYPE_DYNAMIC		2
+#define OB_BODY_TYPE_RIGID			3
+#define OB_BODY_TYPE_SOFT			4
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1
@@ -444,6 +462,7 @@ extern Object workob;
 #define OB_SHOWCONT		2048
 #define OB_SETSTBIT		4096
 #define OB_INITSTBIT	8192
+#define OB_DEBUGSTATE	16384
 
 /* ob->restrictflag */
 #define OB_RESTRICT_VIEW	1

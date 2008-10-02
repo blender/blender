@@ -30,6 +30,10 @@ SET(INC
   .
   ../common
   ../../../../extern/bullet2/src
+  ../../../../intern/moto/include
+  ../../../kernel/gen_system
+  ../../../../intern/string
+  ../../Rasterizer
 )
 
 BLENDERLIB(bf_bullet "${SRC}" "${INC}")

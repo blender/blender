@@ -160,7 +160,7 @@ typedef struct FaceEdges {
  * compare edges by vertex indices
  */
 
-int medge_comp( const void *va, const void *vb )
+static int medge_comp( const void *va, const void *vb )
 {
 	const unsigned int *a = ((SrchEdges *)va)->v;
 	const unsigned int *b = ((SrchEdges *)vb)->v;
@@ -180,7 +180,7 @@ int medge_comp( const void *va, const void *vb )
  * compare edges by insert list indices
  */
 
-int medge_index_comp( const void *va, const void *vb )
+static int medge_index_comp( const void *va, const void *vb )
 {
 	const SrchEdges *a = (SrchEdges *)va;
 	const SrchEdges *b = (SrchEdges *)vb;
@@ -196,7 +196,7 @@ int medge_index_comp( const void *va, const void *vb )
  * compare faces by vertex indices
  */
 
-int mface_comp( const void *va, const void *vb )
+static int mface_comp( const void *va, const void *vb )
 {
 	const SrchFaces *a = va;
 	const SrchFaces *b = vb;
@@ -231,7 +231,7 @@ int mface_comp( const void *va, const void *vb )
  * compare faces by insert list indices
  */
 
-int mface_index_comp( const void *va, const void *vb )
+static int mface_index_comp( const void *va, const void *vb )
 {
 	const SrchFaces *a = va;
 	const SrchFaces *b = vb;
@@ -248,7 +248,7 @@ int mface_index_comp( const void *va, const void *vb )
  * compare edges by vertex indices
  */
 
-int faceedge_comp( const void *va, const void *vb )
+static int faceedge_comp( const void *va, const void *vb )
 {
 	const unsigned int *a = ((FaceEdges *)va)->v;
 	const unsigned int *b = ((FaceEdges *)vb)->v;
@@ -4163,6 +4163,7 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 {
 	int param;
 	static short bitmask = TF_DYNAMIC
+				| TF_ALPHASORT
 				| TF_TEX
 				| TF_SHAREDVERT
 				| TF_LIGHT
@@ -5381,11 +5382,11 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 	if( PySequence_Size( args ) != 2 ||
 			!PyArg_ParseTuple( args, "iO", &edge_also, &args ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected and int and a sequence of ints or MFaces" );
+				"expected an int and a sequence of ints or MFaces" );
 
 	if( !PyList_Check( args ) && !PyTuple_Check( args ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected and int and a sequence of ints or MFaces" );
+				"expected an int and a sequence of ints or MFaces" );
 
 	/* see how many args we need to parse */
 	len = PySequence_Size( args );
@@ -8696,11 +8697,11 @@ static PyObject *M_Mesh_FaceModesDict( void )
 	if( FM ) {
 		BPy_constant *d = ( BPy_constant * ) FM;
 
-		PyConstant_Insert( d, "BILLBOARD",
-				 PyInt_FromLong( TF_BILLBOARD2 ) );
+		PyConstant_Insert( d, "BILLBOARD", PyInt_FromLong( TF_BILLBOARD2 ) );
 		PyConstant_Insert( d, "ALL", PyInt_FromLong( 0xffff ) );
 		PyConstant_Insert( d, "HALO", PyInt_FromLong( TF_BILLBOARD ) );
 		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( TF_DYNAMIC ) );
+		PyConstant_Insert( d, "ALPHASORT", PyInt_FromLong( TF_ALPHASORT ) );
 		PyConstant_Insert( d, "INVISIBLE", PyInt_FromLong( TF_INVISIBLE ) );
 		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( TF_LIGHT ) );
 		PyConstant_Insert( d, "OBCOL", PyInt_FromLong( TF_OBCOL ) );

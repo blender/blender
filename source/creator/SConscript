@@ -7,7 +7,7 @@ incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
 incs += ' ../blender/include ../blender/blenloader ../blender/imbuf'
 incs += ' ../blender/renderconverter ../blender/render/extern/include'
 incs += ' ../blender/python ../blender/makesdna ../kernel/gen_messaging'
-incs += ' ../kernel/gen_system'
+incs += ' ../kernel/gen_system #/extern/glew/include ../blender/gpu'
 incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []

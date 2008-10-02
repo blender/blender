@@ -10,4 +10,9 @@ incs += ' #/source/gameengine/Rasterizer'
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_SDL_INC']
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), [], libtype=['game','player'], priority=[30, 110] )
+defs = ''
+
+if not env['WITH_BF_SDL']:
+	defs += ' DISABLE_SDL'
+
+env.BlenderLib ( 'bf_logic', sources, Split(incs), Split(defs), libtype=['game','player'], priority=[30, 110] )

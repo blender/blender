@@ -132,8 +132,11 @@ static PyObject *Text3d_getAlignment( BPy_Text3d * self );
 static PyObject *Text3d_setAlignment( BPy_Text3d * self, PyObject * args );
 static PyObject *Text3d_getFont( BPy_Text3d * self );
 static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args );
+static PyObject *Text3d_getMaterial( BPy_Text3d * self, PyObject * value );
+static PyObject *Text3d_setMaterial( BPy_Text3d * self, PyObject * args );
 static PyObject *Text3d_addFrame( BPy_Text3d * self );
 static PyObject *Text3d_removeFrame( BPy_Text3d * self, PyObject * args );
+
 
 /*****************************************************************************/
 /* Python BPy_Text3d methods table:                                            */
@@ -210,6 +213,10 @@ static PyMethodDef BPy_Text3d_methods[] = {
 	METH_NOARGS, "() - Gets font list for Text3d"},
  	{"setFont", ( PyCFunction ) Text3d_setFont,
  	METH_VARARGS, "() - Sets font for Text3d"},
+ 	{"getMaterial", ( PyCFunction ) Text3d_getMaterial,
+	METH_O, "() - Gets font list for Text3d"},
+ 	{"setMaterial", ( PyCFunction ) Text3d_setMaterial,
+ 	METH_VARARGS, "() - Sets font for Text3d"},	
  	{"addFrame", ( PyCFunction ) Text3d_addFrame,
  	METH_NOARGS, "() - adds a new text frame"},
  	{"removeFrame", ( PyCFunction ) Text3d_removeFrame,
@@ -1129,6 +1136,45 @@ static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
 			self->curve->vfont= vf;
 		}	
 	}
+	Py_RETURN_NONE;
+}
+
+/* todo, add style access, will be almost exact copy of these 2  */
+static PyObject *Text3d_getMaterial( BPy_Text3d * self, PyObject * value )
+{
+	int index = PyInt_AsLong( value );
+	if (index == -1 && PyErr_Occurred())
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a character index" );
+
+	if (index < 0)
+		index = self->curve->len + index;
+	
+	if ( index < 0 || index >= self->curve->len )
+		return EXPP_ReturnPyObjError( PyExc_IndexError, "character index out of range" );
+	
+	return PyInt_FromLong( self->curve->strinfo[index].mat_nr );
+}
+
+static PyObject *Text3d_setMaterial( BPy_Text3d * self, PyObject * args )
+{
+	int index, mat_nr;
+	if( !PyArg_ParseTuple( args, "ii",&index, &mat_nr) )
+		return NULL; /* Python error is ok */
+	
+	if (index < 0)
+		index = self->curve->len + index;
+	
+	if ( index < 0 || index >= self->curve->len )
+		return EXPP_ReturnPyObjError( PyExc_IndexError, "character index out of range" );
+
+	if (mat_nr < 0)
+		mat_nr = self->curve->totcol + mat_nr;
+	
+	if ( mat_nr < 0 || mat_nr >= self->curve->totcol )
+		return EXPP_ReturnPyObjError( PyExc_IndexError, "material index out of range" );
+	
+	self->curve->strinfo[index].mat_nr = mat_nr;
+	
 	Py_RETURN_NONE;
 }
 

@@ -433,7 +433,7 @@ void BL_Shader::SetProg(bool enable)
 	}
 }
 
-void BL_Shader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
+void BL_Shader::Update( const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 {
 	if(!Ok() || !mPreDef.size()) 
 		return;
@@ -445,8 +445,7 @@ void BL_Shader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 	{
 		MT_Matrix4x4 model;
 		model.setValue(ms.m_OpenGLMatrix);
-		MT_Matrix4x4 view;
-		rasty->GetViewMatrix(view);
+		const MT_Matrix4x4& view = rasty->GetViewMatrix();
 
 		if(mAttr==SHD_TANGENT)
 			 ms.m_mesh->SetMeshModified(true);
@@ -525,13 +524,15 @@ void BL_Shader::Update( const KX_MeshSlot & ms, RAS_IRasterizer* rasty )
 					}
 				case VIEWMATRIX_INVERSE:
 					{
-						view.invert();
+						MT_Matrix4x4 viewinv = view;
+						viewinv.invert();
 						SetUniform(uni->mLoc, view);
 						break;
 					}
 				case VIEWMATRIX_INVERSETRANSPOSE:
 					{
-						view.invert();
+						MT_Matrix4x4 viewinv = view;
+						viewinv.invert();
 						SetUniform(uni->mLoc, view, true);
 						break;
 					}
@@ -670,6 +671,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Matrix4x4& vec, bool transpose)
 		)
 	{
 		float value[16];
+		// note: getValue gives back column major as needed by OpenGL
 		vec.getValue(value);
 		glUniformMatrix4fvARB(uniform, 1, transpose?GL_TRUE:GL_FALSE, value);
 	}
@@ -879,7 +881,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setSampler, "setSampler(name, index)" )
 		Py_RETURN_NONE;
 	}
 
-	char *uniform="";
+	const char *uniform="";
 	int index=-1;
 	if(PyArg_ParseTuple(args, "si", &uniform, &index)) 
 	{
@@ -920,7 +922,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 		Py_RETURN_NONE;
 	}
 
-	char *uniform="";
+	const char *uniform="";
 	float value=0;
 	if(PyArg_ParseTuple(args, "sf", &uniform, &value ))
 	{
@@ -944,7 +946,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f , "setUniform2f(name, fx, fy)")
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char *uniform="";
+	const char *uniform="";
 	float array[2]={ 0,0 };
 	if(PyArg_ParseTuple(args, "sff", &uniform, &array[0],&array[1] ))
 	{
@@ -968,7 +970,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3f, "setUniform3f(name, fx,fy,fz) ")
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char *uniform="";
+	const char *uniform="";
 	float array[3]={0,0,0};
 	if(PyArg_ParseTuple(args, "sfff", &uniform, &array[0],&array[1],&array[2]))
 	{
@@ -993,7 +995,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4f, "setUniform4f(name, fx,fy,fz, fw) "
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char *uniform="";
+	const char *uniform="";
 	float array[4]={0,0,0,0};
 	if(PyArg_ParseTuple(args, "sffff", &uniform, &array[0],&array[1],&array[2], &array[3]))
 	{
@@ -1017,7 +1019,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1i, "setUniform1i(name, ix)" )
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char *uniform="";
+	const char *uniform="";
 	int value=0;
 	if(PyArg_ParseTuple(args, "si", &uniform, &value ))
 	{
@@ -1041,7 +1043,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i , "setUniform2i(name, ix, iy)")
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char *uniform="";
+	const char *uniform="";
 	int array[2]={ 0,0 };
 	if(PyArg_ParseTuple(args, "sii", &uniform, &array[0],&array[1] ))
 	{
@@ -1066,7 +1068,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3i, "setUniform3i(name, ix,iy,iz) ")
 		Py_RETURN_NONE;
 	}
 
-	char *uniform="";
+	const char *uniform="";
 	int array[3]={0,0,0};
 	if(PyArg_ParseTuple(args, "siii", &uniform, &array[0],&array[1],&array[2]))
 	{
@@ -1089,7 +1091,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) "
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char *uniform="";
+	const char *uniform="";
 	int array[4]={0,0,0, 0};
 	if(PyArg_ParseTuple(args, "siiii", &uniform, &array[0],&array[1],&array[2], &array[3] ))
 	{
@@ -1112,7 +1114,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char*uniform = "";
+	const char *uniform = "";
 	PyObject *listPtr =0;
 	float array_data[4] = {0.f,0.f,0.f,0.f};
 
@@ -1181,7 +1183,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 	if(mError) {
 		Py_RETURN_NONE;
 	}
-	char*uniform = "";
+	const char *uniform = "";
 	PyObject *listPtr =0;
 	int array_data[4] = {0,0,0,0};
 
@@ -1261,7 +1263,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix4,
 		0,0,0,1
 	};
 
-	char *uniform="";
+	const char *uniform="";
 	PyObject *matrix=0;
 	int transp=1; // MT_ is row major so transpose by default....
 	if(PyArg_ParseTuple(args, "sO|i",&uniform, &matrix,&transp))
@@ -1302,7 +1304,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformMatrix3,
 		0,0,1,
 	};
 
-	char *uniform="";
+	const char *uniform="";
 	PyObject *matrix=0;
 	int transp=1; // MT_ is row major so transpose by default....
 	if(PyArg_ParseTuple(args, "sO|i",&uniform, &matrix,&transp))
@@ -1356,7 +1358,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformDef, "setUniformDef(name, enum)" )
 		Py_RETURN_NONE;
 	}
 
-	char *uniform="";
+	const char *uniform="";
 	int nloc=0;
 	if(PyArg_ParseTuple(args, "si",&uniform, &nloc))
 	{

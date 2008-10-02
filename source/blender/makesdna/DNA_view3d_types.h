@@ -86,7 +86,8 @@ typedef struct View3D {
 	float winmat1[4][4];  // persp(1) storage, for swap matrices
 	float viewmat1[4][4];
 	
-	float viewquat[4], dist, zfac, pad0;	/* zfac is initgrabz() result */
+	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
+	int lay_used; /* used while drawing */
 
 	short persp;
 	short view;
@@ -136,13 +137,19 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short pad3;
+	short keyflags;		/* flags for display of keyframes */
 	
 	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
 	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
+
+	/* last view */
+	float lviewquat[4];
+	short lpersp, lview;
+	short lastview_set;
+	short pad5;
 } View3D;
 
 

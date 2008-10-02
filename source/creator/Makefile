@@ -49,20 +49,18 @@ CPPFLAGS += -I../blender/renderconverter
 CPPFLAGS += -I../blender/blenkernel
 CPPFLAGS += -I../blender/python
 CPPFLAGS += -I../blender/blenloader
+CPPFLAGS += -I../blender/gpu
 CPPFLAGS += -I../kernel/gen_system
 CPPFLAGS += -I../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_GLEW)/include
 
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
 endif
 
 ifeq ($(WITH_BINRELOC), true)
-	CPPFLAGS += -I$(OCGDIR)/extern/binreloc/include -DWITH_BINRELOC
-endif
-
-ifeq ($(NAN_YESIAMSTUPID), true)
-	CPPFLAGS += -DYESIAMSTUPID
+	CPPFLAGS += -I$(NANBLENDERHOME)/extern/binreloc/include -DWITH_BINRELOC
 endif
 
 CPPFLAGS += -I$(OPENGL_HEADERS)

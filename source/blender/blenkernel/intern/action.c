@@ -62,6 +62,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
 #include "nla.h"
 
@@ -340,6 +341,60 @@ void free_pose(bPose *pose)
 	}
 }
 
+void game_copy_pose(bPose **dst, bPose *src)
+{
+	bPose *out;
+	bPoseChannel *pchan, *outpchan;
+	GHash *ghash;
+	
+	/* the game engine copies the current armature pose and then swaps
+	 * the object pose pointer. this makes it possible to change poses
+	 * without affecting the original blender data. */
+
+	if (!src) {
+		*dst=NULL;
+		return;
+	}
+	else if (*dst==src) {
+		printf("copy_pose source and target are the same\n");
+		*dst=NULL;
+		return;
+	}
+	
+	out= MEM_dupallocN(src);
+	out->agroups.first= out->agroups.last= NULL;
+	duplicatelist(&out->chanbase, &src->chanbase);
+
+	/* remap pointers */
+	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
+	pchan= src->chanbase.first;
+	outpchan= out->chanbase.first;
+	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
+		BLI_ghash_insert(ghash, pchan, outpchan);
+
+	for (pchan=out->chanbase.first; pchan; pchan=pchan->next) {
+		pchan->parent= BLI_ghash_lookup(ghash, pchan->parent);
+		pchan->child= BLI_ghash_lookup(ghash, pchan->child);
+		pchan->path= NULL;
+	}
+
+	BLI_ghash_free(ghash, NULL, NULL);
+	
+	*dst=out;
+}
+
+void game_free_pose(bPose *pose)
+{
+	if (pose) {
+		/* we don't free constraints, those are owned by the original pose */
+		if(pose->chanbase.first)
+			BLI_freelistN(&pose->chanbase);
+		
+		MEM_freeN(pose);
+	}
+}
+
 static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan)
 {
 	bConstraint *pcon, *con;
@@ -347,6 +402,8 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	VECCOPY(pchan->loc, chan->loc);
 	VECCOPY(pchan->size, chan->size);
 	QUATCOPY(pchan->quat, chan->quat);
+	Mat4CpyMat4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
+	Mat4CpyMat4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
@@ -860,7 +917,7 @@ typedef struct NlaIpoChannel {
 	int type;
 } NlaIpoChannel;
 
-void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
+void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, const char *name, float ctime)
 {
 	bActionChannel *achan= get_action_channel(act, name);
 	IpoCurve *icu;
@@ -991,7 +1048,7 @@ static float nla_time(float cfra, float unit)
 static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
 	bAction *act= strip->act;
-	char *name= strip->stridechannel;
+	const char *name= strip->stridechannel;
 	bActionChannel *achan= get_action_channel(act, name);
 	int stride_axis= strip->stride_axis;
 

@@ -53,6 +53,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
@@ -77,14 +78,16 @@
 
 #include "RE_pipeline.h"
 
-/* bad level; call to free_realtime_image */
-#include "BKE_bad_level_calls.h"	
-
 /* for stamp drawing to an image */
 #include "BMF_Api.h"
 
 #include "blendef.h"
 #include "BSE_time.h"
+
+#include "GPU_extensions.h"
+#include "GPU_draw.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
 
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX	0x7FEFEFEF
@@ -238,7 +241,7 @@ static void image_free_buffers(Image *ima)
 		ima->rr= NULL;
 	}	
 	
-	free_realtime_image(ima);
+	GPU_free_image(ima);
 	
 	ima->ok= IMA_OK;
 }
@@ -582,7 +585,7 @@ void tag_image_time(Image *ima)
 		ima->lastused = (int)PIL_check_seconds_timer();
 }
 
-void tag_all_images_time() 
+static void tag_all_images_time() 
 {
 	Image *ima;
 	int ctime = (int)PIL_check_seconds_timer();
@@ -618,7 +621,7 @@ void free_old_images()
 			   This gives textures a "second chance" to be used before dying.
 			*/
 			if(ima->bindcode || ima->repbind) {
-				free_realtime_image(ima);
+				GPU_free_image(ima);
 				ima->lastused = ctime;
 			}
 			/* Otherwise, just kill the buffers */
@@ -630,11 +633,11 @@ void free_old_images()
 	}
 }
 
-static unsigned long image_mem_size(Image *ima)
+static uintptr_t image_mem_size(Image *ima)
 {
 	ImBuf *ibuf, *ibufm;
 	int level;
-	unsigned long size = 0;
+	uintptr_t size = 0;
 
 	size= 0;
 	for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next) {
@@ -656,7 +659,7 @@ static unsigned long image_mem_size(Image *ima)
 void BKE_image_print_memlist(void)
 {
 	Image *ima;
-	unsigned long size, totsize= 0;
+	uintptr_t size, totsize= 0;
 
 	for(ima= G.main->image.first; ima; ima= ima->id.next)
 		totsize += image_mem_size(ima);

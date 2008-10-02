@@ -139,6 +139,10 @@ hotkeys={
 ['LMB', 'Confirm transformation'],
 ['MMB', 'Toggle optional transform feature'],
 ['RMB', 'Abort transformation'],
+['LMB', 'Grease Pencil: when "Draw Mode On", draw new stroke'],
+['RMB', 'Grease Pencil: when "Draw Mode On", eraser tool for stroke segments'],
+['Shift-LMB', 'Grease Pencil: draw new stroke'],
+['Alt-RMB', 'Grease Pencil: eraser tool for stroke segments'],
 ['.', '...']
 ],
 
@@ -264,6 +268,7 @@ hotkeys={
 ['Alt-A', 'Play animation in current window'],
 ['Ctrl-A', 'Apply objects size/rotation to object data'],
 ['Ctrl-A', 'Text Editor: Select all'],
+['Ctrl-ALT-A', '3D-View: Armature Edit mode, align selected bones to active bone'],
 ['Shift-A', 'Sequencer: Add menu'],
 ['Shift-A', '3D-View: Add menu'],
 ['Shift-ALT-A', 'Play animation in all windows'],
@@ -393,9 +398,11 @@ hotkeys={
 ],
 
 "I":[ 
-['I', 'Keyframe menu'],
-['Alt-I','ARMATURE : posemode, remove IK constraints.'],
-['Ctrl-I','ARMATURE : add IK constraint'],
+['I', 'Insert Keyframe menu'],
+['Alt-I','Delete Keyframe menu'],
+['Ctrl-I','Select Inverse'],
+['Shift-I','ARMATURE : add IK constraint'],
+['Ctrl-Alt-I','ARMATURE : posemode, remove IK constraints.'],
 ['.', '...']
 ],
 
@@ -433,6 +440,10 @@ hotkeys={
 ['Ctrl-L', 'Make links menu (for instance : to scene...)'],
 ['Shift-L', 'Select links menu'],
 ['Shift-L', 'NODE window: Select linked to '], #243
+['Ctrl-L', 'POSELIB: browse poses'],
+['Shift-L', 'POSELIB: add/replace pose'],
+['Ctrl-Shift-L', 'POSELIB: rename pose'],
+['Alt-L', 'POSELIB: remove pose'],
 ['.', '...']
 ],
 
@@ -493,6 +504,7 @@ hotkeys={
 ['Ctrl-Shift-P', 'Make active object parent of selected object without inverse'],
 ['Ctrl-P', 'Edit mode: Make active vertex parent of selected object'],
 ['Ctrl-P', 'ARMATURE : editmode, make bone parent.'],
+['Ctrl-Alt-P', 'ARMATURE: edimode, separate bones to new object'],
 ['.', '...']
 ],
 
@@ -635,6 +647,7 @@ hotkeys={
 ['X', 'IPO : Remove marker'],	
 ['X', 'NODE window : delete'], #243		
 ['Alt-X', 'Text Editor : Cut '],
+['Alt-X', 'Grease Pencil: Delete menu'],
 ['Ctrl-X', 'Restore default state (Erase all)'],
 ['.', '...']
  ],

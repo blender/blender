@@ -68,7 +68,6 @@ void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 void nurbs_to_mesh(struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
-int update_realtime_texture(struct MTFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 

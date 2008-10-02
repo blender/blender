@@ -17,11 +17,15 @@ subject to the following restrictions:
 #ifndef BULLET2_PHYSICSCONTROLLER_H
 #define BULLET2_PHYSICSCONTROLLER_H
 
+#include <vector>
+#include <map>
+
 #include "PHY_IPhysicsController.h"
 
 ///	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 ///	It contains the IMotionState and IDeformableMesh Interfaces.
 #include "btBulletDynamicsCommon.h"
+#include "LinearMath/btTransform.h"
 
 #include "PHY_IMotionState.h"
 
@@ -31,8 +35,119 @@ extern float gAngularSleepingTreshold;
 extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
 class btMotionState;
+class RAS_MeshObject;
+class btCollisionShape;
 
 
+#define CCD_BSB_SHAPE_MATCHING	2
+#define CCD_BSB_BENDING_CONSTRAINTS 8
+#define CCD_BSB_AERO_VPOINT 16 /* aero model, Vertex normals are oriented toward velocity*/
+#define CCD_BSB_AERO_VTWOSIDE 32 /* aero model, Vertex normals are flipped to match velocity */
+
+/* BulletSoftBody.collisionflags */
+#define CCD_BSB_COL_SDF_RS	2 /* SDF based rigid vs soft */
+#define CCD_BSB_COL_CL_RS	4 /* Cluster based rigid vs soft */
+#define CCD_BSB_COL_CL_SS	8 /* Cluster based soft vs soft */
+#define CCD_BSB_COL_VF_SS	16 /* Vertex/Face based soft vs soft */
+
+
+
+// Shape contructor
+// It contains all the information needed to create a simple bullet shape at runtime
+class CcdShapeConstructionInfo
+{
+public:
+	
+
+	static CcdShapeConstructionInfo* FindMesh(RAS_MeshObject* mesh, bool polytope);
+
+	CcdShapeConstructionInfo() :
+		m_shapeType(PHY_SHAPE_NONE),
+		m_radius(1.0),
+		m_height(1.0),
+		m_halfExtend(0.f,0.f,0.f),
+		m_childScale(1.0f,1.0f,1.0f),
+		m_refCount(1),
+		m_meshObject(NULL),
+		m_unscaledShape(NULL),
+		m_useGimpact(false),
+		m_weldingThreshold(0.f)
+	{
+		m_childTrans.setIdentity();
+	}
+
+	~CcdShapeConstructionInfo();
+
+	CcdShapeConstructionInfo* AddRef()
+	{ 
+		m_refCount++;
+		return this;
+	}
+
+	int Release()
+	{
+		if (--m_refCount > 0)
+			return m_refCount;
+		delete this;
+		return 0;
+	}
+
+	void AddShape(CcdShapeConstructionInfo* shapeInfo);
+
+	btTriangleMeshShape* GetMeshShape(void)
+	{
+		return m_unscaledShape;
+	}
+	CcdShapeConstructionInfo* GetChildShape(int i)
+	{
+		if (i < 0 || i >= m_shapeArray.size())
+			return NULL;
+
+		return m_shapeArray.at(i);
+	}
+
+	bool SetMesh(RAS_MeshObject* mesh, bool polytope,bool useGimpact);
+	RAS_MeshObject* GetMesh(void)
+	{
+		return m_meshObject;
+	}
+
+	btCollisionShape* CreateBulletShape();
+
+	// member variables
+	PHY_ShapeType			m_shapeType;
+	btScalar				m_radius;
+	btScalar				m_height;
+	btVector3				m_halfExtend;
+	btTransform				m_childTrans;
+	btVector3				m_childScale;
+	std::vector<btPoint3>	m_vertexArray;	// Contains both vertex array for polytope shape and
+											// triangle array for concave mesh shape.
+											// In this case a triangle is made of 3 consecutive points
+	std::vector<int>		m_polygonIndexArray;	// Contains the array of polygon index in the 
+													// original mesh that correspond to shape triangles.
+													// only set for concave mesh shape.
+
+	void	setVertexWeldingThreshold(float threshold)
+	{
+		m_weldingThreshold  = threshold;
+	}
+	float	getVertexWeldingThreshold() const
+	{
+		return m_weldingThreshold;
+	}
+protected:
+	static std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> m_meshShapeMap;
+	int						m_refCount;		// this class is shared between replicas
+											// keep track of users so that we can release it 
+	RAS_MeshObject*	m_meshObject;			// Keep a pointer to the original mesh 
+	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
+											// the actual shape is of type btScaledBvhTriangleMeshShape
+	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
+	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
+	float	m_weldingThreshold;	//welding closeby vertices together can improve softbody stability etc.
+
+};
 
 struct CcdConstructionInfo
 {
@@ -52,21 +167,28 @@ struct CcdConstructionInfo
 
 
 	CcdConstructionInfo()
-		: m_gravity(0,0,0),
+		: m_localInertiaTensor(1.f, 1.f, 1.f),
+		m_gravity(0,0,0),
 		m_scaling(1.f,1.f,1.f),
 		m_mass(0.f),
 		m_restitution(0.1f),
 		m_friction(0.5f),
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
+		m_margin(0.06f),
+		m_gamesoftFlag(0),
 		m_collisionFlags(0),
 		m_bRigid(false),
+		m_bSoft(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
 		m_MotionState(0),
+		m_shapeInfo(0),
 		m_physicsEnv(0),
-		m_inertiaFactor(1.f)
+		m_inertiaFactor(1.f),
+		m_do_anisotropic(false),
+		m_anisotropicFriction(1.f,1.f,1.f)
 	{
 	}
 
@@ -78,8 +200,50 @@ struct CcdConstructionInfo
 	btScalar	m_friction;
 	btScalar	m_linearDamping;
 	btScalar	m_angularDamping;
+	btScalar	m_margin;
+
+	////////////////////
+	int		m_gamesoftFlag;
+	float	m_soft_linStiff;			/* linear stiffness 0..1 */
+	float	m_soft_angStiff;		/* angular stiffness 0..1 */
+	float	m_soft_volume;			/* volume preservation 0..1 */
+
+	int		m_soft_viterations;		/* Velocities solver iterations */
+	int		m_soft_piterations;		/* Positions solver iterations */
+	int		m_soft_diterations;		/* Drift solver iterations */
+	int		m_soft_citerations;		/* Cluster solver iterations */
+
+	float	m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	float	m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	float	m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	float	m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	float	m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
+	float	m_soft_kDP;			/* Damping coefficient [0,1] */
+
+	float	m_soft_kDG;			/* Drag coefficient [0,+inf] */
+	float	m_soft_kLF;			/* Lift coefficient [0,+inf] */
+	float	m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
+	float	m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	float	m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
+	float	m_soft_kMT;			/* Pose matching coefficient [0,1] */
+	float	m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
+	float	m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	float	m_soft_kSHR;			/* Soft contacts hardness [0,1] */
+	float	m_soft_kAHR;			/* Anchors hardness [0,1] */
+	int		m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	int		m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+///////////////////
+
+
+
 	int			m_collisionFlags;
 	bool		m_bRigid;
+	bool		m_bSoft;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
@@ -89,29 +253,59 @@ struct CcdConstructionInfo
 	short int	m_collisionFilterGroup;
 	short int	m_collisionFilterMask;
 
+	///these pointers are used as argument passing for the CcdPhysicsController constructor
+	///and not anymore after that
 	class btCollisionShape*	m_collisionShape;
 	class PHY_IMotionState*	m_MotionState;
+	class CcdShapeConstructionInfo* m_shapeInfo;
 	
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
+	bool	m_do_anisotropic;
+	btVector3 m_anisotropicFriction;
+
+	bool		m_do_fh;                 ///< Should the object have a linear Fh spring?
+	bool		m_do_rot_fh;             ///< Should the object have an angular Fh spring?
+	btScalar	m_fh_spring;             ///< Spring constant (both linear and angular)
+	btScalar	m_fh_damping;            ///< Damping factor (linear and angular) in range [0, 1]
+	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
+	bool		m_fh_normal;             ///< Should the object slide off slopes?
+	float		m_radius;//for fh backwards compatibility
+
 };
 
 
 class btRigidBody;
-
+class btCollisionObject;
+class btSoftBody;
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-	btRigidBody* m_body;
+
+	btCollisionObject* m_object;
+	
+
 	class PHY_IMotionState*		m_MotionState;
 	btMotionState* 	m_bulletMotionState;
+	class btCollisionShape*	m_collisionShape;
+	class CcdShapeConstructionInfo* m_shapeInfo;
+
 	friend class CcdPhysicsEnvironment;	// needed when updating the controller
+
+	//some book keeping for replication
+	bool	m_softbodyMappingDone;
+	bool	m_softBodyTransformInitialized;
+	bool	m_prototypeTransformInitialized;
+	btTransform	m_softbodyStartTrans;
 
 
 	void*		m_newClientInfo;
 	int			m_registerCount;	// needed when multiple sensors use the same controller
 	CcdConstructionInfo	m_cci;//needed for replication
+
+	CcdPhysicsController* m_parentCtrl;
+
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
@@ -135,11 +329,24 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		virtual ~CcdPhysicsController();
 
+		CcdConstructionInfo& getConstructionInfo()
+		{
+			return m_cci;
+		}
+		const CcdConstructionInfo& getConstructionInfo() const
+		{
+			return m_cci;
+		}
 
-		btRigidBody* GetRigidBody() { return m_body;}
+
+		btRigidBody* GetRigidBody();
+		btCollisionObject*	GetCollisionObject();
+		btSoftBody* GetSoftBody();
+
+		CcdShapeConstructionInfo* GetShapeInfo() { return m_shapeInfo; }
 
 		btCollisionShape*	GetCollisionShape() { 
-			return m_body->getCollisionShape();
+			return m_object->getCollisionShape();
 		}
 		////////////////////////////////////
 		// PHY_IPhysicsController interface
@@ -206,13 +413,36 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		}
 
 		virtual void	calcXform() {} ;
-		virtual void SetMargin(float margin) {};
-		virtual float GetMargin() const {return 0.f;};
+		virtual void SetMargin(float margin) 
+		{
+			if (m_collisionShape)
+				m_collisionShape->setMargin(btScalar(margin));
+		}
+		virtual float GetMargin() const 
+		{
+			return (m_collisionShape) ? m_collisionShape->getMargin() : 0.f;
+		}
+		virtual float GetRadius() const 
+		{ 
+			// this is not the actual shape radius, it's only used for Fh support
+			return m_cci.m_radius;
+		}
+		virtual void  SetRadius(float margin) 
+		{
+			if (m_collisionShape && m_collisionShape->getShapeType() == SPHERE_SHAPE_PROXYTYPE)
+			{
+				btSphereShape* sphereShape = static_cast<btSphereShape*>(m_collisionShape);
+				sphereShape->setUnscaledRadius(margin);
+			}
+			m_cci.m_radius = margin;
+		}
 
 
 		bool	wantsSleeping();
 
 		void	UpdateDeactivation(float timeStep);
+
+		void	SetCenterOfMassTransform(btTransform& xform);
 
 		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
 
@@ -233,6 +463,23 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		{
 			return m_cci.m_physicsEnv;
 		}
+
+		void	setParentCtrl(CcdPhysicsController* parentCtrl)
+		{
+			m_parentCtrl = parentCtrl;
+		}
+
+		CcdPhysicsController*	getParentCtrl()
+		{
+			return m_parentCtrl;
+		}
+
+		const CcdPhysicsController*	getParentCtrl() const
+		{
+			return m_parentCtrl;
+		}
+
+
 		
 };
 

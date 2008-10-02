@@ -38,8 +38,8 @@
 
 #include "transform.h"
 
-int updateNDofMotion(NDofInput *n); // return 0 when motion is null
-void resetNDofInput(NDofInput *n);
+static int updateNDofMotion(NDofInput *n); // return 0 when motion is null
+static void resetNDofInput(NDofInput *n);
 
 void initNDofInput(NDofInput *n)
 {
@@ -56,7 +56,7 @@ void initNDofInput(NDofInput *n)
 	}
 }
 
-void resetNDofInput(NDofInput *n)
+static void resetNDofInput(NDofInput *n)
 {	
 	int i;
 	for(i = 0; i < 6; i++)
@@ -122,7 +122,7 @@ void applyNDofInput(NDofInput *n, float *vec)
 }
 
 
-int updateNDofMotion(NDofInput *n)
+static int updateNDofMotion(NDofInput *n)
 {
     float fval[7];
     int i;

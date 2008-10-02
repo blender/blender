@@ -101,6 +101,11 @@ typedef struct ThemeSpace {
 	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
 	char editmesh_active[4]; 
+
+	char handle_vertex[4];
+	char handle_vertex_select[4];
+	char handle_vertex_size;
+	char hpad[7];
 } ThemeSpace;
 
 
@@ -183,6 +188,8 @@ typedef struct UserDef {
 	char fontname[256];		// FILE_MAXDIR+FILE length
 	struct ListBase themes;
 	short undosteps;
+	short undomemory;
+	short gp_manhattendist, gp_euclideandist, pad;
 	short curssize;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
@@ -262,6 +269,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_GLOBALUNDO     	(1 << 13)
 #define USER_ORBIT_SELECTION	(1 << 14)
 // old flag for #define USER_KEYINSERTAVAI		(1 << 15)
+#define USER_ORBIT_ZBUF			(1 << 15)
 #define USER_HIDE_DOT			(1 << 16)
 #define USER_SHOW_ROTVIEWICON	(1 << 17)
 #define USER_SHOW_VIEWPORTNAME	(1 << 18)
@@ -282,10 +290,6 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 
-/* Auto-Keying macros */
-#define IS_AUTOKEY_ON			(U.autokey_mode & AUTOKEY_ON)
-#define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
-#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag == AUTOKEY_FLAG_##flag)
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)

@@ -43,6 +43,8 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -54,7 +56,7 @@ typedef struct chardesc {
     short llx, lly;		/* bounding box */
     short urx, ury;
     short *data;		/* char data */
-    long datalen;		
+    intptr_t datalen;		
 } chardesc;
 
 typedef struct objfnt {
@@ -975,7 +977,7 @@ static void applymat(float mat[][2], float *x, float *y)
 
 static void setcharlist(void)
 {
-	char *name, found;
+	char *name; /*found;*/
 	int i, j;
 
 	for(i=0; i<NASCII; i++) ISOcharlist[i].prog = -1;
@@ -983,11 +985,11 @@ static void setcharlist(void)
 	for(j=0; j<my_nchars; j++) {
 		name = my_charname[j];
 		if(name) {
-			found = 0;
+			/*found = 0;*/
 			for(i=0; i<NASCII; i++) {
 				if(ISOcharlist[i].name && (strcmp(name,ISOcharlist[i].name) == 0)){
 					ISOcharlist[i].prog = j;
-					found = 1;
+					/*found = 1;*/
 				}
 			}
 			/*if (found == 0) printf("no match found for: %s\n", name);*/
@@ -1256,10 +1258,10 @@ static void subr0(void)
 	int x1, y1;
 	int x2, y2;
 	int x3, y3;
-	int xpos, ypos, noise;
+	int noise;
 
-	ypos = pop();
-	xpos = pop();
+	pop(); /* xpos, unused */
+	pop(); /* ypos, unused */
 	noise = pop();
 	if(coordpos!=7) {
 		fprintf(stderr,"subr0: bad poop\n");

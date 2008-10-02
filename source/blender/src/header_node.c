@@ -112,7 +112,7 @@ static void do_node_viewmenu(void *arg, int event)
 			break;
 		case 4: /* Grease Pencil */
 			add_blockhandler(curarea, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
-		break;
+			break;
 	}
 	allqueue(REDRAWNODE, 0);
 }
@@ -602,11 +602,11 @@ static uiBlock *node_nodemenu(void *arg_unused)
 	if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Execute Composite|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Render Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Full Sample Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Full Sample Results|Shift R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connect Node to Viewer|Ctrl LMB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connect Node to Viewer|Ctrl RMB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}

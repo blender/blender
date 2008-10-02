@@ -38,7 +38,7 @@
 #include "euler.h"
 #include "point.h"
 
-PyObject *Mathutils_Init( char * from );
+PyObject *Mathutils_Init( const char * from );
 PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
 PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
 PyObject *row_point_multiplication(PointObject* pt, MatrixObject * mat);

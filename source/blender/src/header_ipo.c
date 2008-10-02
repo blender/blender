@@ -49,6 +49,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_particle_types.h"
@@ -68,6 +69,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -162,12 +164,13 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 					}
 				}
 				else if(si->blocktype==ID_FLUIDSIM) { // NT
-					if( (ob->fluidsimSettings) && 
-					    (ob->fluidsimSettings->ipo) ) {
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+					if( fluidmd && fluidmd->fss && 
+						(fluidmd->fss->ipo) ) {
 						// decrement users counter
-						ob->fluidsimSettings->ipo->id.us--; 
+						fluidmd->fss->ipo->id.us--; 
 					}
-					ob->fluidsimSettings->ipo = ipo;
+					fluidmd->fss->ipo = ipo;
 				} 
 				else if(si->blocktype==ID_PA) {
 					ParticleSystem *psys=psys_get_current(ob);
@@ -920,7 +923,7 @@ static uiBlock *ipo_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Ctrl Shift D", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|Shift X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 					 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -974,6 +977,8 @@ static char *ipo_modeselect_pup(void)
 		str += sprintf(str,formatstring, "Texture",ID_TE, ICON_TEXTURE);
 
 	if(ob){
+		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+		
 		if ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE)
 			str += sprintf(str,formatstring, "Shape",ID_KE, ICON_EDIT);
 		if (ob->type==OB_ARMATURE)
@@ -981,7 +986,7 @@ static char *ipo_modeselect_pup(void)
 #ifdef __CON_IPO
 		str += sprintf(str,formatstring, "Constraint",ID_CO, ICON_CONSTRAINT);
 #endif
-		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
+		if(fluidmd) {
 			str += sprintf(str,formatstring,"Fluidsim",ID_FLUIDSIM, ICON_WORLD);
 		}
 
@@ -1414,7 +1419,7 @@ void ipo_buttons(void)
 	uiClearButLock();
 
 	/* ZOOMBORDER */
-	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area");
+	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to area (Shift B)");
 	
 	xco+=XIC/2;
 	

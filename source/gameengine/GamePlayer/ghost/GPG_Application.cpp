@@ -38,6 +38,7 @@
 #endif
 
 #include "GL/glew.h"
+#include "GPU_extensions.h"
 
 #include "GPG_Application.h"
 
@@ -56,6 +57,7 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "IMB_imbuf.h"
 #include "DNA_scene_types.h"
 #ifdef __cplusplus
 }
@@ -98,15 +100,15 @@ extern "C"
 #include "GHOST_IWindow.h"
 #include "GHOST_Rect.h"
 
-
 static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);
 
 static GHOST_ISystem* fSystem = 0;
 static const int kTimerFreq = 10;
 
-GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName)
-	: m_startSceneName(startSceneName), 
-	  m_maggie(maggie),
+GPG_Application::GPG_Application(GHOST_ISystem* system)
+	: m_startSceneName(""), 
+	  m_startScene(0),
+	  m_maggie(0),
 	  m_exitRequested(0),
 	  m_system(system), 
 	  m_mainWindow(0), 
@@ -114,6 +116,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR
 	  m_cursor(GHOST_kStandardCursorFirstCursor),
 	  m_engineInitialized(0), 
 	  m_engineRunning(0), 
+	  m_isEmbedded(false),
 	  m_ketsjiengine(0),
 	  m_kxsystem(0), 
 	  m_keyboard(0), 
@@ -125,7 +128,9 @@ GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR
 	  m_networkdevice(0), 
 	  m_audiodevice(0),
 	  m_blendermat(0),
-	  m_blenderglslmat(0)
+	  m_blenderglslmat(0),
+	  m_pyGlobalDictString(0),
+	  m_pyGlobalDictString_Length(0)
 {
 	fSystem = system;
 }
@@ -134,21 +139,28 @@ GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR
 
 GPG_Application::~GPG_Application(void)
 {
+    if(m_pyGlobalDictString) {
+		delete [] m_pyGlobalDictString;
+		m_pyGlobalDictString = 0;
+		m_pyGlobalDictString_Length = 0;
+	}
+
 	exitEngine();
 	fSystem->disposeWindow(m_mainWindow);
 }
 
 
 
-bool GPG_Application::SetGameEngineData(struct Main* maggie, STR_String startSceneName)
+bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
 {
 	bool result = false;
 
-	if (maggie != NULL && startSceneName != "")
+	if (maggie != NULL && scene != NULL)
 	{
-		G.scene = (Scene*)maggie->scene.first;
+		G.scene = scene;
 		m_maggie = maggie;
-		m_startSceneName = startSceneName;
+		m_startSceneName = scene->id.name+2;
+		m_startScene = scene;
 		result = true;
 	}
 
@@ -320,6 +332,26 @@ bool GPG_Application::startWindow(STR_String& title,
 	return success;
 }
 
+bool GPG_Application::startEmbeddedWindow(STR_String& title,
+	const GHOST_TEmbedderWindowID parentWindow, 
+	const bool stereoVisual, 
+	const int stereoMode) {
+
+	m_mainWindow = fSystem->createWindow(title, 0, 0, 0, 0, GHOST_kWindowStateNormal,
+		GHOST_kDrawingContextTypeOpenGL, stereoVisual, parentWindow);
+
+	if (!m_mainWindow) {
+		printf("error: could not create main window\n");
+		exit(-1);
+	}
+	m_isEmbedded = true;
+
+	bool success = initEngine(m_mainWindow, stereoMode);
+	if (success) {
+		success = startEngine();
+	}
+	return success;
+}
 
 
 bool GPG_Application::startFullScreen(
@@ -478,7 +510,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 {
 	if (!m_engineInitialized)
 	{
-		glewInit();
+		GPU_extensions_init();
 		bgl::InitExtensions(true);
 
 		// get and set the preferences
@@ -497,13 +529,16 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DIAPLAY_LISTS) != 0);
+		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
 
-		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1) {
-			int gameflag =(G.fileflags & G_FILE_GAME_MAT);
-			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", gameflag) != 0);
-		}
-	
+		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
+			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
+
+		if(GPU_extensions_minimum_support())
+			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
+		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+			m_blendermat = false;
+
 		// create the canvas, rasterizer and rendertools
 		m_canvas = new GPG_Canvas(window);
 		if (!m_canvas)
@@ -626,33 +661,36 @@ bool GPG_Application::startEngine(void)
 	{
 		STR_String startscenename = m_startSceneName.Ptr();
 		m_ketsjiengine->SetSceneConverter(m_sceneconverter);
-		
+
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		if(m_blendermat)
+		if(m_blendermat && (G.fileflags & G_FILE_GAME_MAT))
 			m_sceneconverter->SetMaterials(true);
-		if(m_blenderglslmat)
+		if(m_blenderglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,
 			m_mouse,
 			m_networkdevice,
 			m_audiodevice,
-			startscenename);
+			startscenename,
+			m_startScene);
 		
 		
 		// some python things
 		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest);
 		m_ketsjiengine->SetPythonDictionary(dictionaryobject);
 		initRasterizer(m_rasterizer, m_canvas);
-		PyDict_SetItemString(dictionaryobject, "GameLogic", initGameLogic(startscene)); // Same as importing the module
+		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);
+		PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
 
-
-
-
+		// Set the GameLogic.globalDict from marshal'd data, so we can
+		// load new blend files and keep data in GameLogic.globalDict
+		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
+		
 		m_sceneconverter->ConvertScene(
 			startscenename,
 			startscene,
@@ -688,6 +726,16 @@ bool GPG_Application::startEngine(void)
 
 void GPG_Application::stopEngine()
 {
+	// GameLogic.globalDict gets converted into a buffer, and sorted in
+	// m_pyGlobalDictString so we can restore after python has stopped
+	// and started between .blend file loads.
+	if(m_pyGlobalDictString) {
+		delete [] m_pyGlobalDictString;
+		m_pyGlobalDictString = 0;
+	}
+
+	m_pyGlobalDictString_Length = saveGamePythonConfig(&m_pyGlobalDictString);
+	
 	// when exiting the mainloop
 	exitGamePythonScripting();
 	m_ketsjiengine->StopEngine();
@@ -753,6 +801,12 @@ void GPG_Application::exitEngine()
 		delete m_canvas;
 		m_canvas = 0;
 	}
+
+	libtiff_exit();
+#ifdef WITH_QUICKTIME
+	quicktime_exit();
+#endif
+	GPU_extensions_exit();
 
 	m_exitRequested = 0;
 	m_engineInitialized = false;
@@ -833,7 +887,7 @@ bool GPG_Application::handleKey(GHOST_IEvent* event, bool isDown)
 		GHOST_TEventKeyData* keyData = static_cast<GHOST_TEventKeyData*>(eventData);
 		//no need for this test
 		//if (fSystem->getFullScreen()) {
-			if (keyData->key == GHOST_kKeyEsc && !m_keyboard->m_hookesc) {
+			if (keyData->key == GHOST_kKeyEsc && !m_keyboard->m_hookesc && !m_isEmbedded) {
 				m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
 			}
 		//}

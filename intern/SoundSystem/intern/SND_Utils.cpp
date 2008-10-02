@@ -34,11 +34,6 @@
 #include "SND_Utils.h"
 #include "SoundDefines.h"
 #include "SND_DependKludge.h"
-/*
-extern "C" { 
-#include "license_key.h"
-}
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -204,7 +199,7 @@ bool SND_IsSampleValid(const STR_String& name, void* memlocation)
 
 
 /* checks if the passed pointer is a valid sample */
-bool CheckSample(void* sample)
+static bool CheckSample(void* sample)
 {
 	bool valid = false;
 	char buffer[32];

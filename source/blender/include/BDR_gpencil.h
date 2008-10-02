@@ -43,7 +43,6 @@ struct bGPDframe;
 /* Temporary 'Stroke Point' data */
 typedef struct tGPspoint {
 	short x, y;				/* x and y coordinates of cursor (in relative to area) */
-	float xf, yf;			/* same as x and y, but as floats */
 	float pressure;			/* pressure of tablet at this point */
 } tGPspoint;
 
@@ -76,6 +75,9 @@ void gpencil_delete_laststroke(struct bGPdata *gpd);
 
 void gpencil_delete_operation(short mode);
 void gpencil_delete_menu(void);
+
+void gpencil_convert_operation(short mode);
+void gpencil_convert_menu(void);
 
 //short gpencil_paint(short mousebutton);
 short gpencil_do_paint(struct ScrArea *sa, short mousebutton);

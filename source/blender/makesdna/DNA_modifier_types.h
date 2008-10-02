@@ -35,6 +35,10 @@ typedef enum ModifierType {
 	eModifierType_Cloth,
 	eModifierType_Collision,
 	eModifierType_Bevel,
+	eModifierType_Shrinkwrap,
+	eModifierType_Fluidsim,
+	eModifierType_Mask,
+	eModifierType_SimpleDeform,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -102,6 +106,24 @@ typedef struct BuildModifierData {
 	float start, length;
 	int randomize, seed;
 } BuildModifierData;
+
+/* Mask Modifier */
+typedef struct MaskModifierData {
+	ModifierData modifier;
+	
+	struct Object *ob_arm;	/* armature to use to in place of hardcoded vgroup */
+	char vgroup[32];		/* name of vertex group to use to mask */
+	
+	int mode;				/* using armature or hardcoded vgroup */
+	int flag;				/* flags for various things */
+} MaskModifierData;
+
+/* Mask Modifier -> mode */
+#define MOD_MASK_MODE_VGROUP		0
+#define MOD_MASK_MODE_ARM			1
+
+/* Mask Modifier -> flag */
+#define MOD_MASK_INV			(1<<0)
 
 typedef struct ArrayModifierData {
 	ModifierData modifier;
@@ -390,7 +412,8 @@ typedef struct CollisionModifierData {
 	
 	unsigned int numverts;
 	unsigned int numfaces;
-	int pad;
+	short absorption; /* used for forces, in % */
+	short pad;
 	float time;		/* cfra time of modifier */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 } CollisionModifierData;
@@ -489,5 +512,81 @@ typedef struct ExplodeModifierData {
 	short flag, vgroup;
 	float protect;
 } ExplodeModifierData;
+
+typedef struct FluidsimModifierData {
+	ModifierData modifier;
+	
+	struct FluidsimSettings *fss; /* definition is is DNA_object_fluidsim.h */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+} FluidsimModifierData;
+
+typedef struct ShrinkwrapModifierData {
+	ModifierData modifier;
+
+	struct Object *target;	/* shrink target */
+	struct Object *auxTarget; /* additional shrink target */
+	char vgroup_name[32];	/* optional vertexgroup name */
+	float keepDist;			/* distance offset to keep from mesh/projection point */
+	short shrinkType;		/* shrink type projection */
+	short shrinkOpts;		/* shrink options */
+	char projAxis;			/* axis to project over */
+
+	/*
+	 * if using projection over vertex normal this controls the
+	 * the level of subsurface that must be done before getting the
+	 * vertex coordinates and normal
+	 */
+	char subsurfLevels;
+
+	char pad[6];
+
+} ShrinkwrapModifierData;
+
+/* Shrinkwrap->shrinkType */
+#define MOD_SHRINKWRAP_NEAREST_SURFACE	0
+#define MOD_SHRINKWRAP_PROJECT			1
+#define MOD_SHRINKWRAP_NEAREST_VERTEX	2
+
+/* Shrinkwrap->shrinkOpts */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR	(1<<0)	/* allow shrinkwrap to move the vertex in the positive direction of axis */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR	(1<<1)	/* allow shrinkwrap to move the vertex in the negative direction of axis */
+
+#define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)	/* ignore vertex moves if a vertex ends projected on a front face of the target */
+#define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)	/* ignore vertex moves if a vertex ends projected on a back face of the target */
+
+#define MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE		(1<<5)	/* distance is measure to the front face of the target */
+
+#define MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS		(1<<0)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS		(1<<1)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
+#define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
+
+
+typedef struct SimpleDeformModifierData {
+	ModifierData modifier;
+
+	struct Object *origin;	/* object to control the origin of modifier space coordinates */
+	char vgroup_name[32];	/* optional vertexgroup name */
+	float factor;			/* factors to control simple deforms */
+	float limit[2];			/* lower and upper limit */		
+
+	char mode;				/* deform function */
+	char axis;				/* lock axis (for taper and strech) */
+	char originOpts;		/* originOptions */
+	char pad;
+
+} SimpleDeformModifierData;
+
+#define MOD_SIMPLEDEFORM_MODE_TWIST		1
+#define MOD_SIMPLEDEFORM_MODE_BEND		2
+#define MOD_SIMPLEDEFORM_MODE_TAPER		3
+#define MOD_SIMPLEDEFORM_MODE_STRETCH	4
+
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_X			(1<<0)
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
+
+/* indicates whether simple deform should use the local
+   coordinates or global coordinates of origin */
+#define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #endif

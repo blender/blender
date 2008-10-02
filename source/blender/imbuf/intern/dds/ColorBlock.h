@@ -41,6 +41,7 @@
 struct ColorBlock
 {
 	ColorBlock();
+	ColorBlock(const uint * linearImage);
 	ColorBlock(const ColorBlock & block);
 	ColorBlock(const Image * img, uint x, uint y);
 	
@@ -51,6 +52,7 @@ struct ColorBlock
 	void splatY();
 	
 	bool isSingleColor() const;
+	bool isSingleColorNoAlpha() const;
 	uint countUniqueColors() const;
 	Color32 averageColor() const;
 	bool hasAlpha() const;

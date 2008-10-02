@@ -27,18 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <assert.h>
-
-#ifdef WIN32
-#pragma warning (disable : 4786)
-#include <windows.h>
-#endif 
-
 #include "GL/glew.h"
-
-#include <iostream>
-
-#include "GPC_RenderTools.h"
 
 #include "RAS_IRenderTools.h"
 #include "RAS_IRasterizer.h"
@@ -46,122 +35,248 @@
 #include "RAS_ICanvas.h"
 #include "RAS_GLExtensionManager.h"
 
-// next two includes/dependencies come from the shadow feature
-// it needs the gameobject and the sumo physics scene for a raycast
 #include "KX_GameObject.h"
-
-#include "GPC_PolygonMaterial.h"
 #include "KX_PolygonMaterial.h"
-#include "Value.h"
-
-//#include "KX_BlenderGL.h" // for text printing
-//#include "KX_BlenderClientObject.h"
-#include "STR_String.h"
-#include "RAS_BucketManager.h" // for polymaterial (needed for textprinting)
-
-
-// Blender includes
-/* This list includes only data type definitions */
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
-#include "DNA_image_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_group_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_property_types.h"
-#include "DNA_text_types.h"
-#include "DNA_sensor_types.h"
-#include "DNA_controller_types.h"
-#include "DNA_actuator_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
-
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_bmfont.h"
-#include "BKE_bmfont_types.h"
-#include "BKE_main.h"
-
-#include "IMB_imbuf_types.h"
-// End of Blender includes
-
-#include "KX_Scene.h"
+#include "KX_BlenderMaterial.h"
 #include "KX_RayCast.h"
 #include "KX_IPhysicsController.h"
+
 #include "PHY_IPhysicsEnvironment.h"
-#include "KX_BlenderMaterial.h"
+
+#include "STR_String.h"
+
+#include "GPU_draw.h"
+
+#include "BKE_bmfont.h" // for text printing
+#include "BKE_bmfont_types.h"
+
+#include "GPC_RenderTools.h"
+
+unsigned int GPC_RenderTools::m_numgllights;
 
 GPC_RenderTools::GPC_RenderTools()
 {
 	m_font = BMF_GetFont(BMF_kHelvetica10);
+
 	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
 	if (m_numgllights < 8)
 		m_numgllights = 8;
 }
 
-
 GPC_RenderTools::~GPC_RenderTools()
 {
 }
 
+void GPC_RenderTools::BeginFrame(RAS_IRasterizer* rasty)
+{
+	m_clientobject = NULL;
+	m_lastlightlayer = -1;
+	m_lastlighting = false;
+	DisableOpenGLLights();
+}
 
 void GPC_RenderTools::EndFrame(RAS_IRasterizer* rasty)
 {
 }
 
+/* ProcessLighting performs lighting on objects. the layer is a bitfield that
+ * contains layer information. There are 20 'official' layers in blender. A
+ * light is applied on an object only when they are in the same layer. OpenGL
+ * has a maximum of 8 lights (simultaneous), so 20 * 8 lights are possible in
+ * a scene. */
 
-void GPC_RenderTools::BeginFrame(RAS_IRasterizer* rasty)
+void GPC_RenderTools::ProcessLighting(int layer, const MT_Transform& viewmat)
 {
-	m_clientobject=NULL;
-	m_modified=true;
-	DisableOpenGLLights();
+	if(m_lastlightlayer == layer)
+		return;
 
-}
+	m_lastlightlayer = layer;
 
-int GPC_RenderTools::ProcessLighting(int layer)
-{
-	int result = false;
+	bool enable = false;
 
-	if (layer < 0)
-	{
-		DisableOpenGLLights();
-		result = false;
-	} else
+	if (layer >= 0)
 	{
 		if (m_clientobject)
-		{	
-			if (applyLights(layer))
-			{
-				EnableOpenGLLights();
-				result = true;
-			} else
-			{
-				DisableOpenGLLights();
-				result = false;
-			}
+		{
+			if (layer == RAS_LIGHT_OBJECT_LAYER)
+				layer = static_cast<KX_GameObject*>(m_clientobject)->GetLayer();
+
+			enable = applyLights(layer, viewmat);
 		}
 	}
-	return result;
+
+	if(enable)
+		EnableOpenGLLights();
+	else
+		DisableOpenGLLights();
 }
 
 void GPC_RenderTools::EnableOpenGLLights()
 {
+	if(m_lastlighting == true)
+		return;
+
 	glEnable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
+
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, true);
 	if (GLEW_EXT_separate_specular_color || GLEW_VERSION_1_2)
 		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+	
+	m_lastlighting = true;
 }
 
-void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode, 
-								   const char* text, 
-								   int xco, 
-								   int yco, 
-								   int width, 
-								   int height)
+void GPC_RenderTools::DisableOpenGLLights()
+{
+	if(m_lastlighting == false)
+		return;
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+
+	m_lastlighting = false;
+}
+
+
+void GPC_RenderTools::SetClientObject(RAS_IRasterizer *rasty, void* obj)
+{
+	if (m_clientobject != obj)
+	{
+		bool ccw = (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling());
+		rasty->SetFrontFace(ccw);
+
+		m_clientobject = obj;
+	}
+}
+
+bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data)
+{
+	double* const oglmatrix = (double* const) data;
+	MT_Point3 resultpoint(result->m_hitPoint);
+	MT_Vector3 resultnormal(result->m_hitNormal);
+	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
+	MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
+	left = (dir.cross(resultnormal)).safe_normalized();
+	// for the up vector, we take the 'resultnormal' returned by the physics
+	
+	double maat[16]={
+			left[0],        left[1],        left[2], 0,
+				dir[0],         dir[1],         dir[2], 0,
+		resultnormal[0],resultnormal[1],resultnormal[2], 0,
+				0,              0,              0, 1};
+	glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
+	//glMultMatrixd(oglmatrix);
+	glMultMatrixd(maat);
+	return true;
+}
+
+void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,int objectdrawmode )
+{
+	/* FIXME:
+	blender: intern/moto/include/MT_Vector3.inl:42: MT_Vector3 operator/(const
+	MT_Vector3&, double): Assertion `!MT_fuzzyZero(s)' failed. 
+	
+	Program received signal SIGABRT, Aborted. 
+	[Switching to Thread 16384 (LWP 1519)] 
+	0x40477571 in kill () from /lib/libc.so.6 
+	(gdb) bt 
+	#7  0x08334368 in MT_Vector3::normalized() const () 
+	#8  0x0833e6ec in GPC_RenderTools::applyTransform(RAS_IRasterizer*, double*, int) () 
+	*/
+
+	if (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED ||
+		objectdrawmode & RAS_IPolyMaterial::BILLBOARD_AXISALIGNED)
+	{
+		// rotate the billboard/halo
+		//page 360/361 3D Game Engine Design, David Eberly for a discussion
+		// on screen aligned and axis aligned billboards
+		// assumed is that the preprocessor transformed all billboard polygons
+		// so that their normal points into the positive x direction (1.0 , 0.0 , 0.0)
+		// when new parenting for objects is done, this rotation
+		// will be moved into the object
+		
+		MT_Point3 objpos (oglmatrix[12],oglmatrix[13],oglmatrix[14]);
+		MT_Point3 campos = rasty->GetCameraPosition();
+		MT_Vector3 dir = (campos - objpos).safe_normalized();
+		MT_Vector3 up(0,0,1.0);
+
+		KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
+		// get scaling of halo object
+		MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
+		
+		bool screenaligned = (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED)!=0;//false; //either screen or axisaligned
+		if (screenaligned)
+		{
+			up = (up - up.dot(dir) * dir).safe_normalized();
+		} else
+		{
+			dir = (dir - up.dot(dir)*up).safe_normalized();
+		}
+
+		MT_Vector3 left = dir.normalized();
+		dir = (left.cross(up)).normalized();
+
+		// we have calculated the row vectors, now we keep
+		// local scaling into account:
+
+		left *= size[0];
+		dir  *= size[1];
+		up   *= size[2];
+		double maat[16]={
+			left[0], left[1],left[2], 0,
+				dir[0], dir[1],dir[2],0,
+				up[0],up[1],up[2],0,
+				0,0,0,1};
+			glTranslated(objpos[0],objpos[1],objpos[2]);
+			glMultMatrixd(maat);
+			
+	} else
+	{
+		if (objectdrawmode & RAS_IPolyMaterial::SHADOW)
+		{
+			// shadow must be cast to the ground, physics system needed here!
+			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
+			KX_GameObject *gameobj = (KX_GameObject*) this->m_clientobject;
+			MT_Vector3 direction = MT_Vector3(0,0,-1);
+
+			direction.normalize();
+			direction *= 100000;
+
+			MT_Point3 topoint = frompoint + direction;
+
+			KX_Scene* kxscene = (KX_Scene*) m_auxilaryClientInfo;
+			PHY_IPhysicsEnvironment* physics_environment = kxscene->GetPhysicsEnvironment();
+			KX_IPhysicsController* physics_controller = gameobj->GetPhysicsController();
+			
+			KX_GameObject *parent = gameobj->GetParent();
+			if (!physics_controller && parent)
+				physics_controller = parent->GetPhysicsController();
+			if (parent)
+				parent->Release();
+				
+			KX_RayCast::Callback<GPC_RenderTools> callback(this, physics_controller, oglmatrix);
+			if (!KX_RayCast::RayTest(physics_environment, frompoint, topoint, callback))
+			{
+				// couldn't find something to cast the shadow on...
+				glMultMatrixd(oglmatrix);
+			}
+		} else
+		{
+
+			// 'normal' object
+			glMultMatrixd(oglmatrix);
+		}
+	}
+}
+
+
+void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
+										 const char* text,
+										 int xco,
+										 int yco,									 
+										 int width,
+										 int height)
 {
 	STR_String tmpstr(text);
 	int lines;
@@ -234,21 +349,19 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 		glDisable(GL_LIGHTING);
 }
 
-/**
- * Copied from KX_BlenderRenderTools.cpp in KX_blenderhook
- * Renders text into a (series of) polygon(s), using a texture font,
- * Each character consists of one polygon (one quad or two triangles)
- */
+/* Render Text renders text into a (series of) polygon, using a texture font,
+ * Each character consists of one polygon (one quad or two triangles) */
+
 void GPC_RenderTools::RenderText(
 	int mode,
 	RAS_IPolyMaterial* polymat,
-	float v1[3], float v2[3], float v3[3], float v4[3])
+	float v1[3], float v2[3], float v3[3], float v4[3], int glattrib)
 {
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
 	struct MTFace* tface = 0;
-	unsigned int* col = 0;
+	unsigned int *col = 0;
 
 	if(flag & RAS_BLENDERMAT) {
 		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
@@ -259,110 +372,29 @@ void GPC_RenderTools::RenderText(
 		tface = blenderpoly->GetMTFace();
 		col = blenderpoly->GetMCol();
 	}
-		
-	BL_RenderText(mode, mytext, mytext.Length(), tface, col, v1, v2, v3, v4);
-}
-
-
-
-/**
- * Copied from KX_BlenderGL.cpp in KX_blenderhook
- */
-void GPC_RenderTools::BL_RenderText(
-	int mode,
-	const char* textstr,
-	int textlen,
-	struct MTFace* tface,
-	unsigned int* col,
-	float v1[3],float v2[3],float v3[3],float v4[3])
-{
-	struct Image* ima;
-
-	if (mode & TF_BMFONT) {
-			//char string[MAX_PROPSTRING];
-//			float tmat[4][4];
-			int characters, index, character;
-			float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-			
-//			bProperty *prop;
-
-			// string = "Frank van Beek";
-
-			characters = textlen;
-
-			ima = (struct Image*) tface->tpage;
-			if (ima == NULL) {
-				characters = 0;
-			}
-
-			if(!col) glColor3f(1.0f, 1.0f, 1.0f);
-
-			glPushMatrix();
-			for (index = 0; index < characters; index++) {
-				// lets calculate offset stuff
-				character = textstr[index];
-				
-				// space starts at offset 1
-				// character = character - ' ' + 1;
-				
-				matrixGlyph((ImBuf *)ima->ibufs.first, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-				
-				glBegin(GL_POLYGON);
-				// printf(" %c %f %f %f %f\n", character, tface->uv[0][0], tface->uv[0][1], );
-				// glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
-				glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
-
-				if(col) BL_spack(col[0]);
-				// glVertex3fv(v1);
-				glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
-				
-				glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
-				if(col) BL_spack(col[1]);
-				// glVertex3fv(v2);
-				glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
 	
-				glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
-				if(col) BL_spack(col[2]);
-				// glVertex3fv(v3);
-				glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
-	
-				if(v4) {
-					// glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, 1.0 - (1.0 - tface->uv[3][1]) * sizey - transy);
-					glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
-					if(col) BL_spack(col[3]);
-					// glVertex3fv(v4);
-					glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
-				}
-				glEnd();
-
-				glTranslatef(advance, 0.0, 0.0);
-			}
-			glPopMatrix();
-
-		}
+	GPU_render_text(tface, mode, mytext, mytext.Length(), col, v1, v2, v3, v4, glattrib);
 }
 
 
-RAS_IPolyMaterial* GPC_RenderTools::CreateBlenderPolyMaterial(
-			const STR_String &texname,
-			bool ba,const STR_String& matname,int tile,int tilexrep,int tileyrep,int mode,bool transparant, bool zsort,
-			int lightlayer,bool bIsTriangle,void* clientobject,void* tface)
+void GPC_RenderTools::PushMatrix()
 {
-	assert(!"Deprecated");
-/*	return new GPC_PolygonMaterial(texname, ba,matname,tile,tilexrep,tileyrep,
-			mode,transparant,zsort,lightlayer,bIsTriangle,clientobject,tface);
-			*/
-	return NULL;
+	glPushMatrix();
+}
+
+void GPC_RenderTools::PopMatrix()
+{
+	glPopMatrix();
 }
 
 
-int GPC_RenderTools::applyLights(int objectlayer)
+int GPC_RenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
 {
-// taken from blender source, incompatibility between Blender Object / GameObject	
-
-	int count;
+	// taken from blender source, incompatibility between Blender Object / GameObject	
+	float glviewmat[16];
+	unsigned int count;
 	float vec[4];
-	
+
 	vec[3]= 1.0;
 	
 	for(count=0; count<m_numgllights; count++)
@@ -371,22 +403,19 @@ int GPC_RenderTools::applyLights(int objectlayer)
 	//std::vector<struct	RAS_LightObject*> m_lights;
 	std::vector<struct	RAS_LightObject*>::iterator lit = m_lights.begin();
 
+	viewmat.getValue(glviewmat);
 	
+	glPushMatrix();
+	glLoadMatrixf(glviewmat);
 	for (lit = m_lights.begin(), count = 0; !(lit==m_lights.end()) && count < m_numgllights; ++lit)
 	{
 		RAS_LightObject* lightdata = (*lit);
 		if (lightdata->m_layer & objectlayer)
 		{
-
-			glPushMatrix();
-			glLoadMatrixf(m_viewmat);
-			
-			
 			vec[0] = (*(lightdata->m_worldmatrix))(0,3);
 			vec[1] = (*(lightdata->m_worldmatrix))(1,3);
 			vec[2] = (*(lightdata->m_worldmatrix))(2,3);
 			vec[3] = 1;
-
 
 			if(lightdata->m_type==RAS_LightObject::LIGHT_SUN) {
 				
@@ -443,140 +472,14 @@ int GPC_RenderTools::applyLights(int objectlayer)
 			}
 			glLightfv((GLenum)(GL_LIGHT0+count), GL_SPECULAR, vec);
 			glEnable((GLenum)(GL_LIGHT0+count));
-			
-			count++;
 
-			glPopMatrix();
+			count++;
 		}
 	}
+	glPopMatrix();
 
 	return count;
 
-}
-
-void GPC_RenderTools::SetClientObject(void* obj)
-{
-	if (m_clientobject != obj)
-	{
-		if (obj == NULL || !((KX_GameObject*)obj)->IsNegativeScaling())
-		{
-			glFrontFace(GL_CCW);
-		} else 
-		{
-			glFrontFace(GL_CW);
-		}
-		m_clientobject = obj;
-		m_modified = true;
-	}
-}
-
-bool GPC_RenderTools::RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data)
-{
-	double* const oglmatrix = (double* const) data;
-	MT_Point3 resultpoint(hit_point);
-	MT_Vector3 resultnormal(hit_normal);
-	MT_Vector3 left(oglmatrix[0],oglmatrix[1],oglmatrix[2]);
-	MT_Vector3 dir = -(left.cross(resultnormal)).safe_normalized();
-	left = (dir.cross(resultnormal)).safe_normalized();
-	// for the up vector, we take the 'resultnormal' returned by the physics
-	
-	double maat[16]={
-			left[0],        left[1],        left[2], 0,
-				dir[0],         dir[1],         dir[2], 0,
-		resultnormal[0],resultnormal[1],resultnormal[2], 0,
-				0,              0,              0, 1};
-	glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
-	//glMultMatrixd(oglmatrix);
-	glMultMatrixd(maat);
-	return true;
-}
-
-void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,int objectdrawmode )
-{
-	if (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED ||
-		objectdrawmode & RAS_IPolyMaterial::BILLBOARD_AXISALIGNED)
-	{
-		// rotate the billboard/halo
-		//page 360/361 3D Game Engine Design, David Eberly for a discussion
-		// on screen aligned and axis aligned billboards
-		// assumed is that the preprocessor transformed all billboard polygons
-		// so that their normal points into the positive x direction (1.0 , 0.0 , 0.0)
-		// when new parenting for objects is done, this rotation
-		// will be moved into the object
-		
-		MT_Point3 objpos (oglmatrix[12],oglmatrix[13],oglmatrix[14]);
-		MT_Point3 campos = rasty->GetCameraPosition();
-		MT_Vector3 dir = (campos - objpos).safe_normalized();
-		MT_Vector3 up(0,0,1.0);
-
-		KX_GameObject* gameobj = (KX_GameObject*) this->m_clientobject;
-		// get scaling of halo object
-		MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
-		
-		bool screenaligned = (objectdrawmode & RAS_IPolyMaterial::BILLBOARD_SCREENALIGNED)!=0;//false; //either screen or axisaligned
-		if (screenaligned)
-		{
-			up = (up - up.dot(dir) * dir).safe_normalized();
-		} else
-		{
-			dir = (dir - up.dot(dir)*up).safe_normalized();
-		}
-		
-		MT_Vector3 left  = dir.normalized();
-		dir = (left.cross(up)).normalized();
-
-		// we have calculated the row vectors, now we keep
-		// local scaling into account:
-
-		left *= size[0];
-		dir  *= size[1];
-		up   *= size[2];
-		double maat[16]={
-			left[0], left[1],left[2], 0,
-				dir[0], dir[1],dir[2],0,
-				up[0],up[1],up[2],0,
-				0,0,0,1};
-			glTranslated(objpos[0],objpos[1],objpos[2]);
-			glMultMatrixd(maat);
-			
-	} else
-	{
-		if (objectdrawmode & RAS_IPolyMaterial::SHADOW)
-		{
-			// shadow must be cast to the ground, physics system needed here!
-			MT_Point3 frompoint(oglmatrix[12],oglmatrix[13],oglmatrix[14]);
-			KX_GameObject *gameobj = (KX_GameObject*) this->m_clientobject;
-			MT_Vector3 direction = MT_Vector3(0,0,-1);
-
-			direction.normalize();
-			direction *= 100000;
-
-			MT_Point3 topoint = frompoint + direction;
-
-			KX_Scene* kxscene = (KX_Scene*) m_auxilaryClientInfo;
-			PHY_IPhysicsEnvironment* physics_environment = kxscene->GetPhysicsEnvironment();
-			KX_IPhysicsController* physics_controller = gameobj->GetPhysicsController();
-			
-			KX_GameObject *parent = gameobj->GetParent();
-			if (!physics_controller && parent)
-				physics_controller = parent->GetPhysicsController();
-			if (parent)
-				parent->Release();
-				
-			MT_Point3 resultpoint;
-			MT_Vector3 resultnormal;
-			if (!KX_RayCast::RayTest(physics_controller, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<GPC_RenderTools>(this, oglmatrix)))
-			{
-				// couldn't find something to cast the shadow on...
-				glMultMatrixd(oglmatrix);
-			}
-		} else
-		{
-
-			// 'normal' object
-			glMultMatrixd(oglmatrix);
-		}
-	}
 }
 
 void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
@@ -609,7 +512,6 @@ void GPC_RenderTools::Update2DFilter(vector<STR_String>& propNames, void* gameOb
 
 void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)
 {
-	m_filtermanager.RenderFilters( canvas);
+	m_filtermanager.RenderFilters(canvas);
 }
 
-unsigned int GPC_RenderTools::m_numgllights;

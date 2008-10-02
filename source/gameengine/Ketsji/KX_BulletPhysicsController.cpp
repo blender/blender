@@ -14,6 +14,7 @@
 
 #include "PHY_IPhysicsEnvironment.h"
 #include "CcdPhysicsEnvironment.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 
 KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna)
@@ -114,7 +115,7 @@ MT_Vector3 KX_BulletPhysicsController::GetAngularVelocity()
 MT_Vector3 KX_BulletPhysicsController::GetVelocity(const MT_Point3& pos)
 {
 	float linVel[3];
-	CcdPhysicsController::GetLinearVelocity(linVel[0],linVel[1],linVel[2]);
+	CcdPhysicsController::GetVelocity(pos[0], pos[1], pos[2], linVel[0],linVel[1],linVel[2]);
 	return MT_Vector3(linVel[0],linVel[1],linVel[2]);
 }
 
@@ -148,13 +149,23 @@ void KX_BulletPhysicsController::setScaling(const MT_Vector3& scaling)
 }
 MT_Scalar	KX_BulletPhysicsController::GetMass()
 {
-
-	MT_Scalar invmass = GetRigidBody()->getInvMass();
+	if (GetSoftBody())
+		return GetSoftBody()->getTotalMass();
+	
+	MT_Scalar invmass = 0.f;
+	if (GetRigidBody())
+		invmass = GetRigidBody()->getInvMass();
 	if (invmass)
 		return 1.f/invmass;
 	return 0.f;
 
 }
+
+MT_Scalar KX_BulletPhysicsController::GetRadius()
+{
+	return MT_Scalar(CcdPhysicsController::GetRadius());
+}
+
 MT_Vector3	KX_BulletPhysicsController::getReactionForce()
 {
 	assert(0);
@@ -167,7 +178,7 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
 	btRigidBody *body = GetRigidBody();
-	if (body->getActivationState() != DISABLE_SIMULATION)
+	if (body && body->getActivationState() != DISABLE_SIMULATION)
 	{
 		btBroadphaseProxy* handle = body->getBroadphaseHandle();
 		m_savedCollisionFlags = body->getCollisionFlags();
@@ -186,7 +197,7 @@ void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
 	btRigidBody *body = GetRigidBody();
-	if (body->getActivationState() == DISABLE_SIMULATION)
+	if (body && body->getActivationState() == DISABLE_SIMULATION)
 	{
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			m_savedMass,
@@ -206,6 +217,9 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 	//parentcontroller is here be able to avoid collisions between parent/child
 
 	PHY_IPhysicsController* parentctrl = NULL;
+	KX_BulletPhysicsController* parentKxCtrl = NULL;
+	CcdPhysicsController* ccdParent = NULL;
+
 	
 	if (destnode != destnode->GetRootSGParent())
 	{
@@ -225,12 +239,15 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 				KX_GameObject *clientgameobj = static_cast<KX_GameObject*>( (*childit)->GetSGClientObject());
 				if (clientgameobj)
 				{
-					parentctrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentKxCtrl = (KX_BulletPhysicsController*)clientgameobj->GetPhysicsController();
+					parentctrl = parentKxCtrl;
+					ccdParent = parentKxCtrl;
 				}
 			}
 		}
 	}
 
+	physicsreplica->setParentCtrl(ccdParent);
 	physicsreplica->PostProcessReplica(motionstate,parentctrl);
 	physicsreplica->m_userdata = (PHY_IPhysicsController*)physicsreplica;
 	return physicsreplica;
@@ -241,18 +258,22 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 
 void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 {
-	GetRigidBody()->activate(true);
+	if (GetRigidBody())
+		GetRigidBody()->activate(true);
 
 	if (!m_bDyna)
 	{
-		GetRigidBody()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		GetCollisionObject()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	} else
 	{
 		if (!nondynaonly)
 		{
 			btTransform worldTrans;
-			GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
-			GetRigidBody()->setCenterOfMassTransform(worldTrans);
+			if (GetRigidBody())
+			{
+				GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
+				GetRigidBody()->setCenterOfMassTransform(worldTrans);
+			}
 			
 			/*
 			scaling?

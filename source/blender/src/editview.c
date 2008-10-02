@@ -89,6 +89,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_previewrender.h" /* use only so fly mode can preview when its done */
 #include "BIF_space.h"
@@ -1631,7 +1632,7 @@ void mouse_select(void)
 
 /* ------------------------------------------------------------------------- */
 
-static int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
+int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2)
 {
 	int radsq= rad*rad;
 	float v1[2], v2[2], v3[2];
@@ -2247,7 +2248,7 @@ void view3d_border_zoom(void)
 	
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	draw_depth(curarea, (void *)v3d);
+	draw_depth(curarea, (void *)v3d, NULL);
 	
 	/* force updating */
 	if (v3d->depths) {

@@ -241,12 +241,44 @@ if len(B.quickdebug) > 0 and printdebug != 0:
     for l in B.quickdebug:
         print "\t" + l
 
+# remove stdc++ from LLIBS if we are building a statc linked CXXFLAGS
+if env['WITH_BF_STATICCXX']:
+    if 'stdc++' in env['LLIBS']:
+        env['LLIBS'] = env['LLIBS'].replace('stdc++', ' ')
+    else:
+        print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
+
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:
     env['WITH_BF_PLAYER'] = True
 
 if 'blendernogame' in B.targets:
     env['WITH_BF_GAMEENGINE'] = False
+
+if 'blenderlite' in B.targets:
+    env['WITH_BF_GAMEENGINE'] = False
+    env['WITH_BF_OPENAL'] = False
+    env['WITH_BF_OPENEXR'] = False
+    env['WITH_BF_ICONV'] = False
+    env['WITH_BF_INTERNATIONAL'] = False
+    env['WITH_BF_OPENJPEG'] = False
+    env['WITH_BF_FFMPEG'] = False
+    env['WITH_BF_QUICKTIME'] = False
+    env['WITH_BF_YAFRAY'] = False
+    env['WITH_BF_REDCODE'] = False
+    env['WITH_BF_FTGL'] = False
+    env['WITH_BF_DDS'] = False
+    env['WITH_BF_ZLIB'] = False
+    env['WITH_BF_SDL'] = False
+    env['WITH_BF_JPEG'] = False
+    env['WITH_BF_PNG'] = False
+    env['WITH_BF_ODE'] = False
+    env['WITH_BF_BULLET'] = False
+    env['WITH_BF_BINRELOC'] = False
+    env['BF_BUILDINFO'] = False
+    env['BF_NO_ELBEEM'] = True
+    
+
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
@@ -390,6 +422,26 @@ if  env['OURPLATFORM']!='darwin':
             source=[dp+os.sep+f for f in df]
             scriptinstall.append(env.Install(dir=dir,source=source))
 
+#-- icons
+if env['OURPLATFORM']=='linux2':
+	iconlist = []
+	icontargetlist = []
+
+	for tp, tn, tf in os.walk('release/freedesktop/icons'):
+		if 'CVS' in tn:
+			tn.remove('CVS')
+		if '.svn' in tn:
+			tn.remove('.svn')
+		for f in tf:
+			print ">>>", env['BF_INSTALLDIR'], tp, f
+			iconlist.append(tp+os.sep+f)
+			icontargetlist.append(env['BF_INSTALLDIR']+tp[19:]+os.sep+f)
+
+	iconinstall = []
+	for targetdir,srcfile in zip(icontargetlist, iconlist):
+		td, tf = os.path.split(targetdir)
+		iconinstall.append(env.Install(dir=td, source=srcfile))
+
 #-- plugins
 pluglist = []
 plugtargetlist = []
@@ -438,6 +490,8 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
         allinstall = [blenderinstall, plugininstall, textinstall]
+elif env['OURPLATFORM']=='linux2':
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall, iconinstall]
 else:
         allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
@@ -487,6 +541,10 @@ if env['WITH_BF_PLAYER']:
 if not env['WITH_BF_GAMEENGINE']:
     blendernogame = env.Alias('blendernogame', B.program_list)
     Depends(blendernogame,installtarget)
+
+if 'blenderlite' in B.targets:
+	blenderlite = env.Alias('blenderlite', B.program_list)
+	Depends(blenderlite,installtarget)
 
 Depends(nsiscmd, allinstall)
 

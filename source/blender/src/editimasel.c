@@ -959,10 +959,15 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						{
 							error("Path too long, cannot enter this directory");
 						} else {
-							strcat(simasel->dir, file->relname);
-							strcat(simasel->dir,"/");
-							simasel->file[0] = '\0';
-							BLI_cleanup_dir(G.sce, simasel->dir);
+							if (strcmp(file->relname, "..")==0) {
+								/* avoids /../../ */
+								BLI_parent_dir(simasel->dir);
+							} else {
+								strcat(simasel->dir, file->relname);
+								strcat(simasel->dir,"/");
+								simasel->file[0] = '\0';
+								BLI_cleanup_dir(G.sce, simasel->dir);
+							}
 							BIF_filelist_setdir(simasel->files, simasel->dir);
 							BIF_filelist_free(simasel->files);
 							simasel->active_file = -1;

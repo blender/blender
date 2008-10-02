@@ -38,6 +38,8 @@
 #include "RAS_MeshObject.h"
 #include "KX_Scene.h"
 #include "SYS_System.h"
+#include "BL_SkinMeshObject.h"
+#include "BulletSoftBody/btSoftBody.h"
 
 #include "PHY_Pro.h" //todo cleanup
 #include "KX_ClientObjectInfo.h"
@@ -76,16 +78,16 @@
 struct KX_PhysicsInstance
 {
 	DT_VertexBaseHandle	m_vertexbase;
-	int			m_vtxarray;
+	RAS_DisplayArray*	m_darray;
 	RAS_IPolyMaterial*	m_material;
-	
-	KX_PhysicsInstance(DT_VertexBaseHandle vertex_base, int vtxarray, RAS_IPolyMaterial* mat)
+
+	KX_PhysicsInstance(DT_VertexBaseHandle vertex_base, RAS_DisplayArray *darray, RAS_IPolyMaterial* mat)
 		: m_vertexbase(vertex_base),
-		  m_vtxarray(vtxarray),
-		  m_material(mat)
+		m_darray(darray),
+		m_material(mat)
 	{
 	}
-	
+
 	~KX_PhysicsInstance()
 	{
 		DT_DeleteVertexBase(m_vertexbase);
@@ -100,11 +102,11 @@ static void	BL_RegisterSumoObject(KX_GameObject* gameobj,class SM_Scene* sumoSce
 static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope);
 
 void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
-				RAS_MeshObject* meshobj,
-				KX_Scene* kxscene,
-				PHY_ShapeProps* kxshapeprops,
-				PHY_MaterialProps*	kxmaterial,
-				struct	KX_ObjectProperties*	objprop)
+		RAS_MeshObject* meshobj,
+		KX_Scene* kxscene,
+		PHY_ShapeProps* kxshapeprops,
+		PHY_MaterialProps*	kxmaterial,
+		struct	KX_ObjectProperties*	objprop)
 
 
 {
@@ -150,23 +152,23 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 						objprop->m_boundobject.box.m_extends[1], 
 						objprop->m_boundobject.box.m_extends[2]);
 				smprop->m_inertia.scale(objprop->m_boundobject.box.m_extends[0]*objprop->m_boundobject.box.m_extends[0],
-					objprop->m_boundobject.box.m_extends[1]*objprop->m_boundobject.box.m_extends[1],
-					objprop->m_boundobject.box.m_extends[2]*objprop->m_boundobject.box.m_extends[2]);
+						objprop->m_boundobject.box.m_extends[1]*objprop->m_boundobject.box.m_extends[1],
+						objprop->m_boundobject.box.m_extends[2]*objprop->m_boundobject.box.m_extends[2]);
 				smprop->m_inertia *= smprop->m_mass/MT_Vector3(objprop->m_boundobject.box.m_extends).length();
 				break;
 			case KX_BOUNDCYLINDER:
 				shape = DT_NewCylinder(smprop->m_radius, objprop->m_boundobject.c.m_height);
 				smprop->m_inertia.scale(smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
+						smprop->m_mass*smprop->m_radius*smprop->m_radius,
+						smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
 			case KX_BOUNDCONE:
 				shape = DT_NewCone(objprop->m_radius, objprop->m_boundobject.c.m_height);
 				smprop->m_inertia.scale(smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*smprop->m_radius*smprop->m_radius,
-					smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
+						smprop->m_mass*smprop->m_radius*smprop->m_radius,
+						smprop->m_mass*objprop->m_boundobject.c.m_height*objprop->m_boundobject.c.m_height);
 				break;
-			/* Dynamic mesh objects.  WARNING! slow. */
+				/* Dynamic mesh objects.  WARNING! slow. */
 			case KX_BOUNDPOLYTOPE:
 				polytope = true;
 				// fall through
@@ -186,15 +188,15 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 				shape = DT_NewSphere(objprop->m_radius);
 				smprop->m_inertia *= smprop->m_mass*smprop->m_radius*smprop->m_radius;
 				break;
-				
+
 		}
-		
+
 		sumoObj = new SM_Object(shape, !objprop->m_ghost?smmaterial:NULL,smprop,NULL);
-		
+
 		sumoObj->setRigidBody(objprop->m_angular_rigidbody?true:false);
-		
+
 		BL_RegisterSumoObject(gameobj,sceneptr,sumoObj,"",true, true);
-		
+
 	} 
 	else {
 		// non physics object
@@ -320,12 +322,11 @@ static void	BL_RegisterSumoObject(
 		physicscontroller->SetObject(gameobj->GetSGNode());
 }
 
-static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, RAS_DisplayArray *darray, RAS_IPolyMaterial *mat)
 {
 	// instance a mesh from a single vertex array & material
-	const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
-	//const KX_IndexArray &index_array = *meshobj->GetIndexCache(mat)[vtxarray];
-	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getLocalXYZ(), sizeof(RAS_TexVert));
+	const RAS_TexVert *vertex_array = &darray->m_vertex[0];
+	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getXYZ(), sizeof(RAS_TexVert));
 	
 	DT_ShapeHandle shape = DT_NewComplexShape(vertex_base);
 	
@@ -337,15 +338,19 @@ static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarr
 		// only add polygons that have the collisionflag set
 		if (poly->IsCollider())
 		{
-			DT_VertexIndices(3, poly->GetVertexIndexBase().m_indexarray);
+			DT_Begin();
+			  DT_VertexIndex(poly->GetVertexOffset(0));
+			  DT_VertexIndex(poly->GetVertexOffset(1));
+			  DT_VertexIndex(poly->GetVertexOffset(2));
+			DT_End();
 			
 			// tesselate
 			if (poly->VertexCount() == 4)
 			{
 				DT_Begin();
-				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[0]);
-				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[2]);
-				  DT_VertexIndex(poly->GetVertexIndexBase().m_indexarray[3]);
+				  DT_VertexIndex(poly->GetVertexOffset(0));
+				  DT_VertexIndex(poly->GetVertexOffset(2));
+				  DT_VertexIndex(poly->GetVertexOffset(3));
 				DT_End();
 			}
 		}
@@ -354,16 +359,15 @@ static DT_ShapeHandle InstancePhysicsComplex(RAS_MeshObject* meshobj, int vtxarr
 	//DT_VertexIndices(indices.size(), &indices[0]);
 	DT_EndComplexShape();
 	
-	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, vtxarray, mat));
+	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, darray, mat));
 	return shape;
 }
 
-static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxarray, RAS_IPolyMaterial *mat)
+static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, RAS_DisplayArray *darray, RAS_IPolyMaterial *mat)
 {
 	// instance a mesh from a single vertex array & material
-	const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(mat)[vtxarray])[0]);
-	//const KX_IndexArray &index_array = *meshobj->GetIndexCache(mat)[vtxarray];
-	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getLocalXYZ(), sizeof(RAS_TexVert));
+	const RAS_TexVert *vertex_array = &darray->m_vertex[0];
+	DT_VertexBaseHandle vertex_base = DT_NewVertexBase(vertex_array[0].getXYZ(), sizeof(RAS_TexVert));
 	
 	std::vector<DT_Index> indices;
 	for (int p = 0; p < meshobj->NumPolygons(); p++)
@@ -373,12 +377,12 @@ static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxar
 		// only add polygons that have the collisionflag set
 		if (poly->IsCollider())
 		{
-			indices.push_back(poly->GetVertexIndexBase().m_indexarray[0]);
-			indices.push_back(poly->GetVertexIndexBase().m_indexarray[1]);
-			indices.push_back(poly->GetVertexIndexBase().m_indexarray[2]);
+			indices.push_back(poly->GetVertexOffset(0));
+			indices.push_back(poly->GetVertexOffset(1));
+			indices.push_back(poly->GetVertexOffset(2));
 			
 			if (poly->VertexCount() == 4)
-				indices.push_back(poly->GetVertexIndexBase().m_indexarray[3]);
+				indices.push_back(poly->GetVertexOffset(3));
 		}
 	}
 
@@ -386,7 +390,7 @@ static DT_ShapeHandle InstancePhysicsPolytope(RAS_MeshObject* meshobj, int vtxar
 	DT_VertexIndices(indices.size(), &indices[0]);
 	DT_EndPolytope();
 	
-	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, vtxarray, mat));
+	map_gamemesh_to_instance.insert(GEN_HashedPtr(meshobj), new KX_PhysicsInstance(vertex_base, darray, mat));
 	return shape;
 }
 
@@ -398,8 +402,8 @@ bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj)
 	KX_PhysicsInstance *instance = *map_gamemesh_to_instance[GEN_HashedPtr(meshobj)];
 	if (instance)
 	{
-		const RAS_TexVert *vertex_array = &((*meshobj->GetVertexCache(instance->m_material)[instance->m_vtxarray])[0]);
-		DT_ChangeVertexBase(instance->m_vertexbase, vertex_array[0].getLocalXYZ());
+		const RAS_TexVert *vertex_array = &instance->m_darray->m_vertex[0];
+		DT_ChangeVertexBase(instance->m_vertexbase, vertex_array[0].getXYZ());
 		return true;
 	}
 	return false;
@@ -425,7 +429,7 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 	// Count the number of collision polygons and check they all come from the same 
 	// vertex array
 	int numvalidpolys = 0;
-	int vtxarray = -1;
+	RAS_DisplayArray *darray = NULL;
 	RAS_IPolyMaterial *poly_material = NULL;
 	bool reinstance = true;
 
@@ -437,14 +441,14 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 		if (poly->IsCollider())
 		{
 			// check polygon is from the same vertex array
-			if (poly->GetVertexIndexBase().m_vtxarray != vtxarray)
+			if (poly->GetDisplayArray() != darray)
 			{
-				if (vtxarray < 0)
-					vtxarray = poly->GetVertexIndexBase().m_vtxarray;
+				if (darray == NULL)
+					darray = poly->GetDisplayArray();
 				else
 				{
 					reinstance = false;
-					vtxarray = -1;
+					darray = NULL;
 				}
 			}
 			
@@ -478,9 +482,9 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 	if (reinstance)
 	{
 		if (polytope)
-			shape = InstancePhysicsPolytope(meshobj, vtxarray, poly_material);
+			shape = InstancePhysicsPolytope(meshobj, darray, poly_material);
 		else
-			shape = InstancePhysicsComplex(meshobj, vtxarray, poly_material);
+			shape = InstancePhysicsComplex(meshobj, darray, poly_material);
 	}
 	else
 	{
@@ -489,7 +493,7 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 			std::cout << "CreateShapeFromMesh: " << meshobj->GetName() << " is not suitable for polytope." << std::endl;
 			if (!poly_material)
 				std::cout << "                     Check mesh materials." << std::endl;
-			if (vtxarray < 0)
+			if (darray == NULL)
 				std::cout << "                     Check number of vertices." << std::endl;
 		}
 		
@@ -505,18 +509,10 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 			if (poly->IsCollider())
 			{   /* We have to tesselate here because SOLID can only raycast triangles */
 			   DT_Begin();
-				/* V1 */
-				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[2],
-					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-				/* V2 */
-				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[1],
-					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-				/* V3 */
-				DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-					poly->GetVertexIndexBase().m_indexarray[0],
-					poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+				/* V1, V2, V3 */
+				DT_Vertex(poly->GetVertex(2)->getXYZ());
+				DT_Vertex(poly->GetVertex(1)->getXYZ());
+				DT_Vertex(poly->GetVertex(0)->getXYZ());
 				
 				numvalidpolys++;
 			   DT_End();
@@ -524,18 +520,10 @@ static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj, bool polytope
 				if (poly->VertexCount() == 4)
 				{
 				   DT_Begin();
-					/* V1 */
-					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[3],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-					/* V3 */
-					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
-					/* V4 */
-					DT_Vertex(meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ());
+					/* V1, V3, V4 */
+					DT_Vertex(poly->GetVertex(3)->getXYZ());
+					DT_Vertex(poly->GetVertex(2)->getXYZ());
+					DT_Vertex(poly->GetVertex(0)->getXYZ());
 				
 					numvalidpolys++;
 				   DT_End();
@@ -679,189 +667,107 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 #endif //WIN32
 
 
+							
+	class KX_SoftBodyDeformer : public RAS_Deformer
+	{
+		class RAS_MeshObject*	m_pMeshObject;
+		class KX_GameObject*	m_gameobj;
+
+	public:
+		KX_SoftBodyDeformer(RAS_MeshObject*	pMeshObject,KX_GameObject*	gameobj)
+			:m_pMeshObject(pMeshObject),
+			m_gameobj(gameobj)
+		{
+			//printf("KX_SoftBodyDeformer\n");
+		};
+
+		virtual ~KX_SoftBodyDeformer()
+		{
+			//printf("~KX_SoftBodyDeformer\n");
+		};
+		virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+		{
+			//printf("relink\n");
+		}
+		virtual bool Apply(class RAS_IPolyMaterial *polymat)
+		{
+			KX_BulletPhysicsController* ctrl = (KX_BulletPhysicsController*) m_gameobj->GetPhysicsController();
+			if (!ctrl)
+				return false;
+
+			btSoftBody* softBody= ctrl->GetSoftBody();
+			if (!softBody)
+				return false;
+
+			//printf("apply\n");
+			RAS_MeshSlot::iterator it;
+			RAS_MeshMaterial *mmat;
+			RAS_MeshSlot *slot;
+			size_t i;
+
+			// update the vertex in m_transverts
+			Update();
+
+
+
+			// The vertex cache can only be updated for this deformer:
+			// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+			// share the same mesh (=the same cache). As the rendering is done per polymaterial
+			// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+			mmat = m_pMeshObject->GetMeshMaterial(polymat);
+			if(!mmat->m_slots[(void*)m_gameobj])
+				return true;
+
+			slot = *mmat->m_slots[(void*)m_gameobj];
+
+			// for each array
+			for(slot->begin(it); !slot->end(it); slot->next(it)) 
+			{
+				btSoftBody::tNodeArray&   nodes(softBody->m_nodes);
+
+				int index = 0;
+				for(i=it.startvertex; i<it.endvertex; i++,index++) {
+					RAS_TexVert& v = it.vertex[i];
+					btAssert(v.getSoftBodyIndex() >= 0);
+
+					MT_Point3 pt (
+						nodes[v.getSoftBodyIndex()].m_x.getX(),
+						nodes[v.getSoftBodyIndex()].m_x.getY(),
+						nodes[v.getSoftBodyIndex()].m_x.getZ());
+					v.SetXYZ(pt);
+
+					MT_Vector3 normal (
+						nodes[v.getSoftBodyIndex()].m_n.getX(),
+						nodes[v.getSoftBodyIndex()].m_n.getY(),
+						nodes[v.getSoftBodyIndex()].m_n.getZ());
+					v.SetNormal(normal);
+
+				}
+			}
+			return true;
+		}
+		virtual bool Update(void)
+		{
+			//printf("update\n");
+			return true;//??
+		}
+		virtual RAS_Deformer *GetReplica(class KX_GameObject* replica)
+		{
+			KX_SoftBodyDeformer* deformer = new KX_SoftBodyDeformer(replica->GetMesh(0),replica);
+			return deformer;
+		}
+
+		virtual bool SkipVertexTransform()
+		{
+			return true;
+		}
+
+	protected:
+		//class RAS_MeshObject	*m_pMesh;
+	};
+
+
 // forward declarations
-static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool polytope)
-{
-	if (!meshobj)
-		return 0;
-
-	btCollisionShape* collisionMeshShape = 0;
-	btConvexHullShape* convexHullShape = 0;
-	btTriangleMeshShape* concaveShape = 0;
-
-	btTriangleMesh* collisionMeshData = 0;
-
-	//see if there is any polygons, if not, bail out.
-
-	int numPoints = 0;
-	btVector3* points = 0;
-
-	// Mesh has no polygons!
-	int numpolys = meshobj->NumPolygons();
-	if (!numpolys)
-	{
-		return NULL;
-	}
-
-	// Count the number of collision polygons and check they all come from the same 
-	// vertex array
-	int numvalidpolys = 0;
-	int vtxarray = -1;
-	RAS_IPolyMaterial *poly_material = NULL;
-	bool reinstance = true;
-
-	for (int p=0; p<numpolys; p++)
-	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p);
-
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{
-			// check polygon is from the same vertex array
-			if (poly->GetVertexIndexBase().m_vtxarray != vtxarray)
-			{
-				if (vtxarray < 0)
-					vtxarray = poly->GetVertexIndexBase().m_vtxarray;
-				else
-				{
-					reinstance = false;
-					vtxarray = -1;
-				}
-			}
-
-			// check poly is from the same material
-			if (poly->GetMaterial()->GetPolyMaterial() != poly_material)
-			{
-				if (poly_material)
-				{
-					reinstance = false;
-					poly_material = NULL;
-				}
-				else
-					poly_material = poly->GetMaterial()->GetPolyMaterial();
-			}
-
-			// count the number of collision polys
-			numvalidpolys++;
-
-			// We have one collision poly, and we can't reinstance, so we
-			// might as well break here.
-			if (!reinstance)
-				break;
-		}
-	}
-
-	// No collision polygons
-	if (numvalidpolys < 1)
-		return NULL;
-
-
-	if (polytope)
-	{
-		convexHullShape = new btConvexHullShape(&points[0].getX(),numPoints);
-		collisionMeshShape = convexHullShape;
-	} else
-	{
-		collisionMeshData = new btTriangleMesh();
-//		concaveShape = new btTriangleMeshShape(collisionMeshData);
-		//collisionMeshShape = concaveShape;
-
-	}
-
-
-	numvalidpolys = 0;
-
-	for (int p2=0; p2<numpolys; p2++)
-	{
-		RAS_Polygon* poly = meshobj->GetPolygon(p2);
-
-		// only add polygons that have the collisionflag set
-		if (poly->IsCollider())
-		{   
-			//Bullet can raycast any shape, so
-			if (polytope)
-			{
-				for (int i=0;i<poly->VertexCount();i++)
-				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[i],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 point(vtx[0],vtx[1],vtx[2]);
-					convexHullShape->addPoint(point);
-				}
-				if (poly->VertexCount())
-					numvalidpolys++;
-
-			} else
-			{
-				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[1],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
-					collisionMeshData->addTriangle(vertex0,vertex1,vertex2);
-					numvalidpolys++;
-				}
-				if (poly->VertexCount() == 4)
-				{
-					const float* vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[3],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 vertex0(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[2],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 vertex1(vtx[0],vtx[1],vtx[2]);
-					vtx = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
-						poly->GetVertexIndexBase().m_indexarray[0],
-						poly->GetMaterial()->GetPolyMaterial())->getLocalXYZ();
-					btPoint3 vertex2(vtx[0],vtx[1],vtx[2]);
-					collisionMeshData->addTriangle(vertex0,vertex1,vertex2);
-					numvalidpolys++;
-				}
-
-			}		
-		}
-	}
-
-
-
-	if (numvalidpolys > 0)
-	{
-		
-		if (!polytope)
-		{
-			bool useQuantization = true;
-			concaveShape = new btBvhTriangleMeshShape( collisionMeshData, useQuantization );
-			//concaveShape = new btTriangleMeshShape( collisionMeshData );
-
-			concaveShape->recalcLocalAabb();
-			if (collisionMeshShape)
-				delete collisionMeshShape;
-			collisionMeshShape = concaveShape;
-
-		} 
-		
-		
-
-		return collisionMeshShape;
-	}
-	if (collisionMeshShape)
-		delete collisionMeshShape;
-	if (collisionMeshData)
-		delete collisionMeshData;
-	return NULL;
-
-}
-
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
@@ -878,6 +784,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	bool isbulletdyna = false;
 	CcdConstructionInfo ci;
 	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
+	class CcdShapeConstructionInfo *shapeInfo = new CcdShapeConstructionInfo();
 
 	
 
@@ -894,12 +801,11 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_gravity = btVector3(0,0,0);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
+	ci.m_margin = objprop->m_margin;
+	shapeInfo->m_radius = objprop->m_radius;
 	isbulletdyna = objprop->m_dyna;
 	
 	ci.m_localInertiaTensor = btVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
-	
-	btTransform trans;
-	trans.setIdentity();
 	
 	btCollisionShape* bm = 0;
 
@@ -907,107 +813,87 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	{
 	case KX_BOUNDSPHERE:
 		{
-			float radius = objprop->m_radius;
-			btVector3 inertiaHalfExtents (
-				radius,
-				radius,
-				radius);
+			//float radius = objprop->m_radius;
+			//btVector3 inertiaHalfExtents (
+			//	radius,
+			//	radius,
+			//	radius);
 			
 			//blender doesn't support multisphere, but for testing:
 
 			//bm = new MultiSphereShape(inertiaHalfExtents,,&trans.getOrigin(),&radius,1);
-			bm = new btSphereShape(objprop->m_radius);
-			bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			shapeInfo->m_shapeType = PHY_SHAPE_SPHERE;
+			bm = shapeInfo->CreateBulletShape();
 			break;
 		};
 	case KX_BOUNDBOX:
 		{
-			MT_Vector3 halfExtents (
+			shapeInfo->m_halfExtend.setValue(
 				objprop->m_boundobject.box.m_extends[0],
-			objprop->m_boundobject.box.m_extends[1],
-			objprop->m_boundobject.box.m_extends[2]);
+				objprop->m_boundobject.box.m_extends[1],
+				objprop->m_boundobject.box.m_extends[2]);
 
-			halfExtents /= 2.f;
-
-			//btVector3 he (halfExtents[0]-CONVEX_DISTANCE_MARGIN ,halfExtents[1]-CONVEX_DISTANCE_MARGIN ,halfExtents[2]-CONVEX_DISTANCE_MARGIN );
-			//he = he.absolute();
-
-			btVector3 he (halfExtents[0],halfExtents[1],halfExtents[2]);
-			he = he.absolute();
-
-
-			bm = new btBoxShape(he);
-			bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			shapeInfo->m_halfExtend /= 2.0;
+			shapeInfo->m_halfExtend = shapeInfo->m_halfExtend.absolute();
+			shapeInfo->m_shapeType = PHY_SHAPE_BOX;
+			bm = shapeInfo->CreateBulletShape();
 			break;
 		};
 	case KX_BOUNDCYLINDER:
 		{
-			btVector3 halfExtents (
+			shapeInfo->m_halfExtend.setValue(
 				objprop->m_boundobject.c.m_radius,
 				objprop->m_boundobject.c.m_radius,
 				objprop->m_boundobject.c.m_height * 0.5f
 			);
-			bm = new btCylinderShapeZ(halfExtents);
-			bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-
+			shapeInfo->m_shapeType = PHY_SHAPE_CYLINDER;
+			bm = shapeInfo->CreateBulletShape();
 			break;
 		}
 
-		case KX_BOUNDCONE:
+	case KX_BOUNDCONE:
 		{
-				btVector3 halfExtents (objprop->m_boundobject.box.m_extends[0],
-				objprop->m_boundobject.box.m_extends[1],
-				objprop->m_boundobject.box.m_extends[2]);
-
-
-				halfExtents /= 2.f;
-
-				bm = new btConeShapeZ(objprop->m_boundobject.c.m_radius,objprop->m_boundobject.c.m_height);
-				bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-
+			shapeInfo->m_radius = objprop->m_boundobject.c.m_radius;
+			shapeInfo->m_height = objprop->m_boundobject.c.m_height;
+			shapeInfo->m_shapeType = PHY_SHAPE_CONE;
+			bm = shapeInfo->CreateBulletShape();
 			break;
 		}
-		case KX_BOUNDPOLYTOPE:
-			{
-				bm = CreateBulletShapeFromMesh(meshobj,true);
-				if (bm)
+	case KX_BOUNDPOLYTOPE:
+		{
+			shapeInfo->SetMesh(meshobj, true,false);
+			bm = shapeInfo->CreateBulletShape();
+			break;
+		}
+	case KX_BOUNDMESH:
+		{
+			
+			if (!ci.m_mass ||objprop->m_softbody)
+			{				
+				// mesh shapes can be shared, check first if we already have a shape on that mesh
+				class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, false);
+				if (sharedShapeInfo != NULL) 
 				{
-					bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+					delete shapeInfo;
+					shapeInfo = sharedShapeInfo;
+					shapeInfo->AddRef();
+				} else
+				{
+					shapeInfo->SetMesh(meshobj, false,false);
 				}
-				break;
-			}
-		case KX_BOUNDMESH:
+				if (objprop->m_softbody)
+					shapeInfo->setVertexWeldingThreshold(0.01f); //todo: expose this to the UI
+
+				bm = shapeInfo->CreateBulletShape();
+				//no moving concave meshes, so don't bother calculating inertia
+				//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			} else
 			{
-				if (!ci.m_mass)
-				{				
-					bm = CreateBulletShapeFromMesh(meshobj,false);
-					ci.m_localInertiaTensor.setValue(0.f,0.f,0.f);
-					//no moving concave meshes, so don't bother calculating inertia
-					//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-				}
-
-				break;
+				shapeInfo->SetMesh(meshobj, false,true);
+				bm = shapeInfo->CreateBulletShape();
 			}
 
-	default:
-		//interpret the shape as a concave triangle-mesh
-		{
-			if (meshobj)
-			{
-				bm = CreateBulletShapeFromMesh(meshobj,false);
-				ci.m_localInertiaTensor.setValue(0.f,0.f,0.f);
-
-			//	assert(0);
-
-					/*
-				meshobj->ScheduleCollisionPolygons();
-
-				KX_DeformableMesh* gfxmesh = new KX_DeformableMesh(meshobj);
-				gfxmesh->sendFixedMapping();
-				//trianglemesh
-				bm = new TriangleMeshInterface(gfxmesh,trans);
-				*/
-			}
+			break;
 		}
 	}
 
@@ -1017,11 +903,11 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (!bm)
 	{
 		delete motionstate;
+		delete shapeInfo;
 		return;
 	}
 
-	bm->setMargin(0.06);
-
+	bm->setMargin(ci.m_margin);
 
 
 		if (objprop->m_isCompoundChild)
@@ -1030,31 +916,46 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			//take relative transform into account!
 			KX_BulletPhysicsController* parentCtrl = (KX_BulletPhysicsController*)objprop->m_dynamic_parent->GetPhysicsController();
 			assert(parentCtrl);
+			CcdShapeConstructionInfo* parentShapeInfo = parentCtrl->GetShapeInfo();
 			btRigidBody* rigidbody = parentCtrl->GetRigidBody();
 			btCollisionShape* colShape = rigidbody->getCollisionShape();
 			assert(colShape->isCompound());
 			btCompoundShape* compoundShape = (btCompoundShape*)colShape;
-			btTransform childTrans;
-			childTrans.setIdentity();
-			NodeList& children = objprop->m_dynamic_parent->GetSGNode()->GetSGChildren();
 
-			MT_Point3 childPos = gameobj->GetSGNode()->GetLocalPosition();
-			MT_Matrix3x3 childRot = gameobj->GetSGNode()->GetLocalOrientation();
-			MT_Vector3 childScale = gameobj->GetSGNode()->GetLocalScale();
+			// compute the local transform from parent, this may include a parent inverse node
+			SG_Node* gameNode = gameobj->GetSGNode();
+			SG_Node* parentInverseNode = gameNode->GetSGParent();
+			if (parentInverseNode && parentInverseNode->GetSGClientObject() != NULL)
+				// this is not a parent inverse node, cancel it
+				parentInverseNode = NULL;
+			// now combine the parent inverse node and the game node
+			MT_Point3 childPos = gameNode->GetLocalPosition();
+			MT_Matrix3x3 childRot = gameNode->GetLocalOrientation();
+			MT_Vector3 childScale = gameNode->GetLocalScale();
+			if (parentInverseNode)
+			{
+				const MT_Point3& parentInversePos = parentInverseNode->GetLocalPosition();
+				const MT_Matrix3x3& parentInverseRot = parentInverseNode->GetLocalOrientation();
+				const MT_Vector3& parentInverseScale = parentInverseNode->GetLocalScale();
+				childRot =  parentInverseRot * childRot;
+				childScale = parentInverseScale * childScale;
+				childPos = parentInversePos+parentInverseScale*(parentInverseRot*childPos);
+			}
 
-			bm->setLocalScaling(btVector3(childScale.x(),childScale.y(),childScale.z()));
-			childTrans.setOrigin(btVector3(childPos.x(),childPos.y(),childPos.z()));
+			shapeInfo->m_childScale.setValue(childScale.x(),childScale.y(),childScale.z());
+			bm->setLocalScaling(shapeInfo->m_childScale);
+			
+			shapeInfo->m_childTrans.setOrigin(btVector3(childPos.x(),childPos.y(),childPos.z()));
 			float rotval[12];
 			childRot.getValue(rotval);
 			btMatrix3x3 newRot;
 			newRot.setValue(rotval[0],rotval[1],rotval[2],rotval[4],rotval[5],rotval[6],rotval[8],rotval[9],rotval[10]);
 			newRot = newRot.transpose();
 
-			childTrans.setBasis(newRot);
-				
-
-			compoundShape->addChildShape(childTrans,bm);
-			kxscene->AddShape(bm);
+			shapeInfo->m_childTrans.setBasis(newRot);
+			parentShapeInfo->AddShape(shapeInfo);	
+			
+			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
 			//do some recalc?
 			//recalc inertia for rigidbody
 			if (!rigidbody->isStaticOrKinematicObject())
@@ -1069,15 +970,16 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 		if (objprop->m_hasCompoundChildren)
 		{
-			//replace shape by compoundShape
+			// create a compound shape info
+			CcdShapeConstructionInfo *compoundShapeInfo = new CcdShapeConstructionInfo();
+			compoundShapeInfo->m_shapeType = PHY_SHAPE_COMPOUND;
+			compoundShapeInfo->AddShape(shapeInfo);
+			// create the compound shape manually as we already have the child shape
 			btCompoundShape* compoundShape = new btCompoundShape();
-			btTransform identTrans;
-			identTrans.setIdentity();
-			compoundShape->addChildShape(identTrans,bm);
-			//note abount compoundShape: Bullet does not delete the child shapes when 
-			//the compound shape is deleted, so insert also the child shapes 
-			kxscene->AddShape(bm);
+			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
+			// now replace the shape
 			bm = compoundShape;
+			shapeInfo = compoundShapeInfo;
 		}
 
 
@@ -1113,6 +1015,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 
 	ci.m_collisionShape = bm;
+	ci.m_shapeInfo = shapeInfo;
 	ci.m_friction = smmaterial->m_friction;//tweak the friction a bit, so the default 0.5 works nice
 	ci.m_restitution = smmaterial->m_restitution;
 	ci.m_physicsEnv = env;
@@ -1121,12 +1024,70 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_angularDamping = 1.f - shapeprops->m_ang_drag;
 	//need a bit of damping, else system doesn't behave well
 	ci.m_inertiaFactor = shapeprops->m_inertia/0.4f;//defaults to 0.4, don't want to change behaviour
+	
+	ci.m_do_anisotropic = shapeprops->m_do_anisotropic;
+	ci.m_anisotropicFriction.setValue(shapeprops->m_friction_scaling[0],shapeprops->m_friction_scaling[1],shapeprops->m_friction_scaling[2]);
+
+
+//////////
+	//do Fh, do Rot Fh
+	ci.m_do_fh = shapeprops->m_do_fh;
+	ci.m_do_rot_fh = shapeprops->m_do_rot_fh ;
+	ci.m_fh_damping = smmaterial->m_fh_damping;
+	ci.m_fh_distance = smmaterial->m_fh_distance;
+	ci.m_fh_normal = smmaterial->m_fh_normal;
+	ci.m_fh_spring = smmaterial->m_fh_spring;
+	ci.m_radius = objprop->m_radius;
+	
+	
+	///////////////////
+	ci.m_gamesoftFlag = objprop->m_gamesoftFlag;
+	ci.m_soft_linStiff = objprop->m_soft_linStiff;
+	ci.m_soft_angStiff = objprop->m_soft_angStiff;		/* angular stiffness 0..1 */
+	ci.m_soft_volume= objprop->m_soft_volume;			/* volume preservation 0..1 */
+
+	ci.m_soft_viterations= objprop->m_soft_viterations;		/* Velocities solver iterations */
+	ci.m_soft_piterations= objprop->m_soft_piterations;		/* Positions solver iterations */
+	ci.m_soft_diterations= objprop->m_soft_diterations;		/* Drift solver iterations */
+	ci.m_soft_citerations= objprop->m_soft_citerations;		/* Cluster solver iterations */
+
+	ci.m_soft_kSRHR_CL= objprop->m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	ci.m_soft_kSKHR_CL= objprop->m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	ci.m_soft_kSSHR_CL= objprop->m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	ci.m_soft_kSR_SPLT_CL= objprop->m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	ci.m_soft_kSK_SPLT_CL= objprop->m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	ci.m_soft_kSS_SPLT_CL= objprop->m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	ci.m_soft_kVCF= objprop->m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
+	ci.m_soft_kDP= objprop->m_soft_kDP;			/* Damping coefficient [0,1] */
+
+	ci.m_soft_kDG= objprop->m_soft_kDG;			/* Drag coefficient [0,+inf] */
+	ci.m_soft_kLF= objprop->m_soft_kLF;			/* Lift coefficient [0,+inf] */
+	ci.m_soft_kPR= objprop->m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
+	ci.m_soft_kVC= objprop->m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	ci.m_soft_kDF= objprop->m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
+	ci.m_soft_kMT= objprop->m_soft_kMT;			/* Pose matching coefficient [0,1] */
+	ci.m_soft_kCHR= objprop->m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
+	ci.m_soft_kKHR= objprop->m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	ci.m_soft_kSHR= objprop->m_soft_kSHR;			/* Soft contacts hardness [0,1] */
+	ci.m_soft_kAHR= objprop->m_soft_kAHR;			/* Anchors hardness [0,1] */
+	ci.m_soft_collisionflags= objprop->m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	ci.m_soft_numclusteriterations= objprop->m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+
+	////////////////////
+
 	ci.m_collisionFilterGroup = (isbulletdyna) ? short(CcdConstructionInfo::DefaultFilter) : short(CcdConstructionInfo::StaticFilter);
 	ci.m_collisionFilterMask = (isbulletdyna) ? short(CcdConstructionInfo::AllFilter) : short(CcdConstructionInfo::AllFilter ^ CcdConstructionInfo::StaticFilter);
 	ci.m_bRigid = objprop->m_dyna && objprop->m_angular_rigidbody;
+	ci.m_bSoft = objprop->m_softbody;
+	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();
+	ci.m_scaling.setValue(scaling[0], scaling[1], scaling[2]);
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
-	//remember that we created a shape so that we can delete it when the scene is removed (bullet will not delete it) 
-	kxscene->AddShape(bm);
+	// shapeInfo is reference counted, decrement now as we don't use it anymore
+	if (shapeInfo)
+		shapeInfo->Release();
 
 	if (objprop->m_in_active_layer)
 	{
@@ -1137,10 +1098,16 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
-	btRigidBody* rbody = physicscontroller->GetRigidBody();
+	{
+		btRigidBody* rbody = physicscontroller->GetRigidBody();
 
-	if (objprop->m_disableSleeping)
-		rbody->setActivationState(DISABLE_DEACTIVATION);
+		if (rbody && objprop->m_disableSleeping)
+			rbody->setActivationState(DISABLE_DEACTIVATION);
+	}
+
+	CcdPhysicsController* parentCtrl = objprop->m_dynamic_parent ? (KX_BulletPhysicsController*)objprop->m_dynamic_parent->GetPhysicsController() : 0;
+	physicscontroller->setParentCtrl(parentCtrl);
+
 	
 	//Now done directly in ci.m_collisionFlags so that it propagates to replica
 	//if (objprop->m_ghost)
@@ -1188,6 +1155,20 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		materialname = meshobj->GetMaterialName(0);
 
 	physicscontroller->SetObject(gameobj->GetSGNode());
+
+
+	///test for soft bodies
+	if (objprop->m_softbody && physicscontroller)
+	{
+		btSoftBody* softBody = physicscontroller->GetSoftBody();
+		if (softBody && gameobj->GetMesh(0))//only the first mesh, if any
+		{
+			//should be a mesh then, so add a soft body deformer
+			KX_SoftBodyDeformer* softbodyDeformer = new KX_SoftBodyDeformer( gameobj->GetMesh(0),gameobj);
+			gameobj->SetDeformer(softbodyDeformer);
+			
+		}
+	}
 
 }
 

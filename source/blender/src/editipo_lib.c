@@ -100,10 +100,11 @@ char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
 char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
 	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
-char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
+char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active", "AttrForceStr", "AttrForceRad", "VelForceStr", "VelForceRad" };
 char *part_ic_names[PART_TOTNAM] = { "E_Freq", "E_Life", "E_Speed", "E_Angular", "E_Size",
 "Angular", "Size", "Drag", "Brown", "Damp", "Length", "Clump",
-"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt"};
+"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt",
+"FStreng", "FFall", "FMaxD", "F2Streng", "F2Fall", "F2MaxD"};
 
 /* gets the appropriate icon for the given blocktype */
 int geticon_ipo_blocktype(short blocktype)
@@ -391,7 +392,15 @@ int texchannel_to_adrcode(int channel)
 		case 6: return MA_MAP7; 
 		case 7: return MA_MAP8; 
 		case 8: return MA_MAP9; 
-		case 9: return MA_MAP10; 
+		case 9: return MA_MAP10;
+		case 10: return MA_MAP11;
+		case 11: return MA_MAP12;
+		case 12: return MA_MAP13;
+		case 13: return MA_MAP14;
+		case 14: return MA_MAP15;
+		case 15: return MA_MAP16;
+		case 16: return MA_MAP17;
+		case 17: return MA_MAP18;
 		default: return 0;
 	}
 }

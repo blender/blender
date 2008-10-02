@@ -359,7 +359,6 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 		rgba[0]= rgba[1]= rgba[2]= rgba[3]= 1.0f;
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
 void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **outbuf)
 {

@@ -188,6 +188,7 @@ Scene *add_scene(char *name)
 	sce->lay= 1;
 	sce->selectmode= SCE_SELECT_VERTEX;
 	sce->editbutsize= 0.1;
+	sce->autokey_mode= U.autokey_mode;
 	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;
@@ -365,7 +366,7 @@ void set_scene_bg(Scene *sce)
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 	
 	/* do we need FRAMECHANGED in set_scene? */
-//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 }
 
 /* called from creator.c */
@@ -585,8 +586,8 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
 	
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
+
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);

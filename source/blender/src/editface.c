@@ -82,12 +82,13 @@
 #include "BIF_space.h"	/* for allqueue */
 #include "BIF_drawimage.h"	/* for allqueue */
 
-#include "BDR_drawmesh.h"
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
 
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
+
+#include "GPU_draw.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -311,7 +312,7 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 	}
 }
 
-void correct_uv_aspect( void )
+static void correct_uv_aspect( void )
 {
 	float aspx=1, aspy=1;
 	EditMesh *em = G.editMesh;
@@ -1049,7 +1050,7 @@ int edgetag_shortest_path(EditEdge *source, EditEdge *target)
 	return 1;
 }
 
-void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
+static void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
 {
 	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
 	BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
@@ -1315,7 +1316,7 @@ void set_texturepaint() /* toggle */
 
 	if(G.f & G_TEXTUREPAINT) {
 		G.f &= ~G_TEXTUREPAINT;
-		texpaint_enable_mipmap();
+		GPU_paint_set_mipmap(1);
 	}
 	else if (me) {
 		G.f |= G_TEXTUREPAINT;
@@ -1324,7 +1325,7 @@ void set_texturepaint() /* toggle */
 			make_tfaces(me);
 
 		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
-		texpaint_disable_mipmap();
+		GPU_paint_set_mipmap(0);
 	}
 
 	allqueue(REDRAWVIEW3D, 0);

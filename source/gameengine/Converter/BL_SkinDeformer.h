@@ -50,17 +50,7 @@ class BL_SkinDeformer : public BL_MeshDeformer
 {
 public:
 //	void SetArmatureController (BL_ArmatureController *cont);
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
-	{
-		if (m_armobj){
-			void **h_obj = (*map)[m_armobj];
-			if (h_obj){
-				SetArmature( (BL_ArmatureObject*)(*h_obj) );
-			}
-			else
-				m_armobj=NULL;
-		}
-	}
+	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
 	void SetArmature (class BL_ArmatureObject *armobj);
 
 	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
@@ -77,14 +67,10 @@ public:
 					BL_ArmatureObject* arma = NULL);
 
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica();
+	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
 	virtual ~BL_SkinDeformer();
 	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
-	bool PoseApplied()
-		{ return m_poseApplied; }
-	void PoseApplied(bool applied)
-		{ m_poseApplied = applied; }
 	bool PoseUpdated(void)
 		{ 
 			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {

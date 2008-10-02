@@ -1301,7 +1301,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	bPoseChannel *parchan;
 	
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 			int segcount= 0;
 			
@@ -2505,6 +2505,9 @@ int draw_armature(Base *base, int dt, int flag)
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	int retval= 0;
+
+	if(G.f & G_SIMULATION)
+		return 1;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		/* we use color for solid lighting */
@@ -2569,4 +2572,5 @@ int draw_armature(Base *base, int dt, int flag)
 }
 
 /* *************** END Armature drawing ******************* */
+
 

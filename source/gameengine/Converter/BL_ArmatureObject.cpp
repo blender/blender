@@ -45,7 +45,6 @@
 #include <config.h>
 #endif
 
-
 BL_ArmatureObject::BL_ArmatureObject(
 				void* sgReplicationInfo, 
 				SG_Callbacks callbacks, 
@@ -53,15 +52,20 @@ BL_ArmatureObject::BL_ArmatureObject(
 
 :	KX_GameObject(sgReplicationInfo,callbacks),
 	m_objArma(armature),
-	m_mrdPose(NULL),
-	m_lastframe(0.),
+	m_framePose(NULL),
+	m_lastframe(0.0),
 	m_activeAct(NULL),
-	m_activePriority(999)
+	m_activePriority(999),
+	m_lastapplyframe(0.0)
 {
 	m_armature = get_armature(m_objArma);
-	m_pose = m_objArma->pose;
-}
 
+	/* we make a copy of blender object's pose, and then always swap it with
+	 * the original pose before calling into blender functions, to deal with
+	 * replica's or other objects using the same blender object */
+	m_pose = NULL;
+	game_copy_pose(&m_pose, m_objArma->pose);
+}
 
 CValue* BL_ArmatureObject::GetReplica()
 {
@@ -78,34 +82,37 @@ void BL_ArmatureObject::ProcessReplica(BL_ArmatureObject *replica)
 {
 	KX_GameObject::ProcessReplica(replica);
 
+	replica->m_pose = NULL;
+	game_copy_pose(&replica->m_pose, m_pose);
 }
 
 BL_ArmatureObject::~BL_ArmatureObject()
 {
-	if (m_mrdPose)
-		free_pose(m_mrdPose);
+	if (m_pose)
+		game_free_pose(m_pose);
 }
 
-/* note, you can only call this for exisiting Armature objects, and not mix it with other Armatures */
-/* there is only 1 unique Pose per Armature */
 void BL_ArmatureObject::ApplyPose()
 {
-	if (m_pose) {
-		// copy to armature object
-		if (m_objArma->pose != m_pose)/* This should never happen but it does - Campbell */
-			extract_pose_from_pose(m_objArma->pose, m_pose);
-		
-		// is this needed anymore?
-		//if (!m_mrdPose)
-		//	copy_pose (&m_mrdPose, m_pose, 0);
-		//else
-		//	extract_pose_from_pose(m_mrdPose, m_pose);
+	m_armpose = m_objArma->pose;
+	m_objArma->pose = m_pose;
+
+	if(m_lastapplyframe != m_lastframe) {
+		where_is_pose(m_objArma);
+		m_lastapplyframe = m_lastframe;
 	}
+}
+
+void BL_ArmatureObject::RestorePose()
+{
+	m_objArma->pose = m_armpose;
+	m_armpose = NULL;
 }
 
 void BL_ArmatureObject::SetPose(bPose *pose)
 {
-	m_pose = pose;
+	extract_pose_from_pose(m_pose, pose);
+	m_lastapplyframe = -1.0;
 }
 
 bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, double curtime)
@@ -114,10 +121,15 @@ bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, 
 		m_activePriority = 9999;
 		m_lastframe= curtime;
 		m_activeAct = NULL;
+		// remember the pose at the start of the frame
+		m_framePose = m_pose;
 	}
 
 	if (priority<=m_activePriority)
 	{
+		if (priority<m_activePriority)
+			// this action overwrites the previous ones, start from initial pose to cancel their effects
+			m_pose = m_framePose;
 		if (m_activeAct && (m_activeAct!=act))
 			m_activeAct->SetBlendTime(0.0);	/* Reset the blend timer */
 		m_activeAct = act;
@@ -149,13 +161,13 @@ void BL_ArmatureObject::GetPose(bPose **pose)
 			a crash and memory leakage when 
 			&BL_ActionActuator::m_pose is freed
 		*/
-		int copy_constraint_channels_hack = 1;
-		copy_pose(pose, m_pose, copy_constraint_channels_hack);
+		game_copy_pose(pose, m_pose);
 	}
 	else {
 		if (*pose == m_pose)
 			// no need to copy if the pointers are the same
 			return;
+
 		extract_pose_from_pose(*pose, m_pose);
 	}
 }
@@ -165,21 +177,10 @@ void BL_ArmatureObject::GetMRDPose(bPose **pose)
 	/* If the caller supplies a null pose, create a new one. */
 	/* Otherwise, copy the armature's pose channels into the caller-supplied pose */
 
-	// is this needed anymore?
-	//if (!m_mrdPose){
-	//	copy_pose (&m_mrdPose, m_pose, 0);
-	//}
-
-	if (!*pose) {
-		// must duplicate the constraints too otherwise we have corruption in free_pose_channels()
-		// because it will free the blender constraints. 
-		// Ideally, blender should rememeber that the constraints were not copied so that
-		// free_pose_channels() would not free them.
-		copy_pose(pose, m_objArma->pose, 1);
-	}
+	if (!*pose)
+		game_copy_pose(pose, m_pose);
 	else
-		extract_pose_from_pose(*pose, m_objArma->pose);
-
+		extract_pose_from_pose(*pose, m_pose);
 }
 
 short BL_ArmatureObject::GetActivePriority()
@@ -192,17 +193,17 @@ double BL_ArmatureObject::GetLastFrame()
 	return m_lastframe;
 }
 
-bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const
+bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix)
 {
-	Object* par_arma = m_objArma;
-	where_is_pose(par_arma);
-	bPoseChannel *pchan= get_pose_channel(par_arma->pose, bone->name);
+	bPoseChannel *pchan;
 
-	if(pchan) {
+	ApplyPose();
+	pchan = get_pose_channel(m_objArma->pose, bone->name);
+	if(pchan)
 		matrix.setValue(&pchan->pose_mat[0][0]);
-		return true;
-	}
-	return false;
+	RestorePose();
+
+	return (pchan != NULL);
 }
 
 float BL_ArmatureObject::GetBoneLength(Bone* bone) const

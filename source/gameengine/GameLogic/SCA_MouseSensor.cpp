@@ -283,8 +283,8 @@ PyParentObject SCA_MouseSensor::Parents[] = {
 };
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
-	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, GetXPosition_doc},
-	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, GetYPosition_doc},
+	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (PY_METHODCHAR)GetXPosition_doc},
+	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (PY_METHODCHAR)GetYPosition_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -293,7 +293,7 @@ PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) {
 }
 
 /* get x position ---------------------------------------------------------- */
-char SCA_MouseSensor::GetXPosition_doc[] = 
+const char SCA_MouseSensor::GetXPosition_doc[] = 
 "getXPosition\n"
 "\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"
@@ -305,7 +305,7 @@ PyObject* SCA_MouseSensor::PyGetXPosition(PyObject* self,
 }
 
 /* get y position ---------------------------------------------------------- */
-char SCA_MouseSensor::GetYPosition_doc[] = 
+const char SCA_MouseSensor::GetYPosition_doc[] = 
 "getYPosition\n"
 "\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
 "\tThe lower-left corner is the origin. The coordinate is given in\n"

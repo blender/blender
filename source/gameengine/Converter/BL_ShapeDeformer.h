@@ -43,17 +43,6 @@ struct IpoCurve;
 class BL_ShapeDeformer : public BL_SkinDeformer  
 {
 public:
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
-	{
-		void **h_obj = (*map)[m_gameobj];
-		if (h_obj){
-			m_gameobj = (BL_DeformableGameObject*)(*h_obj);
-		}
-		else
-			m_gameobj=NULL;
-		// relink the underlying skin deformer
-		BL_SkinDeformer::Relink(map);
-	};
 	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
                      Object *bmeshobj,
                      BL_SkinMeshObject *mesh)
@@ -77,7 +66,7 @@ public:
 	};
 
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica();
+	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
 	virtual ~BL_ShapeDeformer();
 
 	bool Update (void);

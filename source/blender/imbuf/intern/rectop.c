@@ -37,6 +37,7 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
+#include "BKE_utildefines.h"
 
 /* blend modes */
 
@@ -514,10 +515,6 @@ void IMB_rectfill(struct ImBuf *drect, float col[4])
 	}	
 }
 
-/* maybe we should use BKE_utildefines.h */
-#define FTOCHAR(val) (val<=0.0f ? 0: (val>=1.0f ? 255: (char)(255.99f*val)))
-#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
-#define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
 
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2)
 {

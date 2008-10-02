@@ -402,7 +402,7 @@ static int occ_find_bbox_axis(OcclusionTree *tree, int begin, int end, float *mi
 	return axis;
 }
 
-void occ_node_from_face(OccFace *face, OccNode *node)
+static void occ_node_from_face(OccFace *face, OccNode *node)
 {
 	float n[3];
 
@@ -1143,7 +1143,7 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 	return result;
 }
 
-float occ_form_factor(OccFace *face, float *p, float *n)
+static float occ_form_factor(OccFace *face, float *p, float *n)
 {
 	ObjectInstanceRen *obi;
 	VlakRen *vlr;
@@ -1670,7 +1670,7 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 	OcclusionCacheSample *sample;
 	OccFace exclude;
 	ShadeInput *shi;
-	long *rd=NULL;
+	intptr_t *rd=NULL;
 	int *ro=NULL, *rp=NULL, *rz=NULL, onlyshadow;
 	int x, y, step = CACHE_STEP;
 

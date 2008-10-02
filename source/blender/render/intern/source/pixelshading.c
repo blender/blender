@@ -45,6 +45,7 @@
 
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -141,7 +142,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 			
 			VECCOPY(shi.co, rco);
 			shi.osatex= 0;
-			do_lamp_tex(lar, lv, &shi, lacol);
+			do_lamp_tex(lar, lv, &shi, lacol, LA_TEXTURE);
 		}
 		
 		if(lar->type==LA_SPOT) {
@@ -569,33 +570,37 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
 }
 
 /* shade sky according to sun lamps, all parameters are like shadeSkyView except sunsky*/
-void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, float *dxyview)
+void shadeSunView(float *colf, float *view)
 {
-	float colorxyz[3];
-	float scale;
-			
-	/**
-	sunAngle = sqrt(sunsky->sunSolidAngle / M_PI);
-
-	sunDir[0] = sunsky->toSun[0];
-	sunDir[1] = sunsky->toSun[1];
-	sunDir[2] = sunsky->toSun[2];
-	*/
-			
-	Normalize(view);
-	MTC_Mat3MulVecfl(R.imat, view);
-	if (view[2] < 0.0)
-		view[2] = 0.0;
-	Normalize(view);
-	GetSkyXYZRadiancef(sunsky, view, colorxyz);
-	scale = MAX3(colorxyz[0], colorxyz[1], colorxyz[2]);
-	colorxyz[0] /= scale;
-	colorxyz[1] /= scale;
-	colorxyz[2] /= scale;
+	GroupObject *go;
+	LampRen *lar;
+	float sview[3];
+	int do_init= 1;
 	
-	xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &colf[0], &colf[1], &colf[2]);
-
-	ClipColor(colf);
+	for(go=R.lights.first; go; go= go->next) {
+		lar= go->lampren;
+		if(lar->type==LA_SUN &&	lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_SKY)){
+			float sun_collector[3];
+			float colorxyz[3];
+			
+			if(do_init) {
+				
+				VECCOPY(sview, view);
+				Normalize(sview);
+				MTC_Mat3MulVecfl(R.imat, sview);
+				if (sview[2] < 0.0)
+					sview[2] = 0.0;
+				Normalize(sview);
+				do_init= 0;
+			}
+			
+			GetSkyXYZRadiancef(lar->sunsky, sview, colorxyz);
+			xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &sun_collector[0], &sun_collector[1], &sun_collector[2], 
+					   lar->sunsky->sky_colorspace);
+			
+			ramp_blend(lar->sunsky->skyblendtype, colf, colf+1, colf+2, lar->sunsky->skyblendfac, sun_collector);
+		}
+	}
 }
 
 
@@ -605,11 +610,6 @@ void shadeSunView(struct SunSky *sunsky, float *colf, float *rco, float *view, f
 void shadeSkyPixel(float *collector, float fx, float fy) 
 {
 	float view[3], dxyview[2];
-	float sun_collector[3];
-	float suns_color[3];
-	short num_sun_lamp;
-	GroupObject *go;
-	LampRen *lar;
 
 	/*
 	  The rules for sky:
@@ -656,34 +656,9 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 		shadeSkyView(collector, NULL, view, dxyview);
 		collector[3] = 0.0f;
 	}
-		
-	suns_color[0] = suns_color[1] = suns_color[2] = 0;
-	num_sun_lamp = 0;
-	for(go=R.lights.first; go; go= go->next) {
-		lar= go->lampren;
-		if(lar->type==LA_SUN &&	lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_SKY)){
-
-			num_sun_lamp ++;
-			calc_view_vector(view, fx, fy);
-			Normalize(view);
-
-			shadeSunView(lar->sunsky, sun_collector, NULL, view, NULL);
-			suns_color[0] += sun_collector[0];
-			suns_color[1] += sun_collector[1];
-			suns_color[2] += sun_collector[2];
-
-		}
-	}
-	if( num_sun_lamp > 0 ){
-		suns_color[0] /= num_sun_lamp;
-		suns_color[1] /= num_sun_lamp;
-		suns_color[2] /= num_sun_lamp;
-
-		collector[0] += suns_color[0];
-		collector[1] += suns_color[1];
-		collector[2] += suns_color[2];
-		ClipColor(collector);
-	}
+	
+	calc_view_vector(view, fx, fy);
+	shadeSunView(collector, view);
 }
 
 /* aerial perspective */

@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 
 
+
 btUnionFind::~btUnionFind()
 {
 	Free();
@@ -76,8 +77,7 @@ void	btUnionFind::sortIslands()
 	
 	 // Sort the vector using predicate and std::sort
 	  //std::sort(m_elements.begin(), m_elements.end(), btUnionFindElementSortPredicate);
-	//perhaps use radix sort?
-	  m_elements.heapSort(btUnionFindElementSortPredicate());
+	  m_elements.quickSort(btUnionFindElementSortPredicate());
 
 }
 

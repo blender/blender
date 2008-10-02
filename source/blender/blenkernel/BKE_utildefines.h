@@ -55,6 +55,8 @@
 #define ELEM7(a, b, c, d, e, f, g, h)   ( ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
 #define ELEM8(a, b, c, d, e, f, g, h, i)        ( ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
 #define ELEM9(a, b, c, d, e, f, g, h, i, j)        ( ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
+#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        ( ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
+#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        ( ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
 
 /* shift around elements */
 #define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
@@ -99,6 +101,8 @@
 #define ABS(a)					( (a)<0 ? (-(a)) : (a) )
 
 #define AVG2(x, y)		( 0.5 * ((x) + (y)) )
+
+#define FTOCHAR(val) (val<=0.0f)? 0 : ((val>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*val)+0.5f))
 
 #define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
 #define VECCOPY2D(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1);}
@@ -197,8 +201,8 @@
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
-#define SET_INT_IN_POINTER(i) ((void*)(long)(i))
-#define GET_INT_FROM_POINTER(i) ((int)(long)(i))
+#define SET_INT_IN_POINTER(i) ((void*)(intptr_t)(i))
+#define GET_INT_FROM_POINTER(i) ((int)(intptr_t)(i))
 
 #endif
 

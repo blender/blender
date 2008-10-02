@@ -32,6 +32,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -581,39 +583,6 @@ void recalcData(TransInfo *t)
 		reshadeall_displist();
 }
 
-void initTransModeFlags(TransInfo *t, int mode) 
-{
-	t->mode = mode;
-	t->num.flag = 0;
-
-	/* REMOVING RESTRICTIONS FLAGS */
-	t->flag &= ~T_ALL_RESTRICTIONS;
-	
-	switch (mode) {
-	case TFM_RESIZE:
-		t->flag |= T_NULL_ONE;
-		t->num.flag |= NUM_NULL_ONE;
-		t->num.flag |= NUM_AFFECT_ALL;
-		if (!G.obedit) {
-			t->flag |= T_NO_ZERO;
-			t->num.flag |= NUM_NO_ZERO;
-		}
-		break;
-	case TFM_TOSPHERE:
-		t->num.flag |= NUM_NULL_ONE;
-		t->num.flag |= NUM_NO_NEGATIVE;
-		t->flag |= T_NO_CONSTRAINT;
-		break;
-	case TFM_SHEAR:
-	case TFM_CREASE:
-	case TFM_BONE_ENVELOPE:
-	case TFM_CURVE_SHRINKFATTEN:
-	case TFM_BONE_ROLL:
-		t->flag |= T_NO_CONSTRAINT;
-		break;
-	}
-}
-
 void drawLine(float *center, float *dir, char axis, short options)
 {
 	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
@@ -672,18 +641,9 @@ void initTrans (TransInfo *t)
 	t->transform		= NULL;
 	t->handleEvent		= NULL;
 
-	t->total			=
-		t->num.idx		=
-		t->num.idx_max	=
-		t->num.ctrl[0]	= 
-		t->num.ctrl[1]	= 
-		t->num.ctrl[2]	= 0;
+	t->total			= 0;
 
 	t->val = 0.0f;
-
-	t->num.val[0]		= 
-		t->num.val[1]	= 
-		t->num.val[2]	= 0.0f;
 
 	t->vec[0]			=
 		t->vec[1]		=
@@ -706,7 +666,8 @@ void initTrans (TransInfo *t)
 		t->around = V3D_CENTER;
 
 	setTransformViewMatrices(t);
-	initNDofInput(&(t->ndof));
+	initNumInput(&t->num);
+	initNDofInput(&t->ndof);
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */

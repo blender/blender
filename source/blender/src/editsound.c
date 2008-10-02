@@ -91,15 +91,12 @@
 
 
 /* this might move to the external header */
-void* sound_get_libraryinterface(void);
-
 static SND_SceneHandle ghSoundScene=NULL;
 static SND_AudioDeviceInterfaceHandle ghAudioDeviceInterface=NULL;
 
 /* que? why only here? because of the type define? */
-bSound *sound_find_sound(char *id_name);
-void sound_read_wav_data(bSound * sound, PackedFile * pf);
-void sound_stop_sound(void *object, bSound *sound);
+static bSound *sound_find_sound(char *id_name);
+static void sound_read_wav_data(bSound * sound, PackedFile * pf);
 void winqreadsoundspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 /*  void sound_stop_all_sounds(void); already in BIF_editsound.h */
 
@@ -275,6 +272,12 @@ void sound_initialize_sounds(void)
 	bSound *sound;
 
 	if(ghSoundScene) {
+		for(sound=G.main->sound.first; sound; sound=sound->id.next) {
+			if(sound->snd_sound) {
+				SND_RemoveSound(ghSoundScene, sound->snd_sound);
+				sound->snd_sound = NULL;
+			}
+		}
 
 		/* clear the soundscene */
 		SND_RemoveAllSounds(ghSoundScene);
@@ -352,7 +355,7 @@ void sound_initialize_sample(bSound *sound)
 }
 
 
-void sound_read_wav_data(bSound *sound, PackedFile *pf)
+static void sound_read_wav_data(bSound *sound, PackedFile *pf)
 {
 	int i, temp;
 	short shortbuf, *temps;
@@ -908,7 +911,16 @@ void sound_stop_all_sounds(void)
 void sound_end_all_sounds(void)
 {
 #if GAMEBLENDER == 1
+	bSound *sound;
+
 	if(ghSoundScene) {
+		for(sound=G.main->sound.first; sound; sound=sound->id.next) {
+			if(sound->snd_sound) {
+				SND_RemoveSound(ghSoundScene, sound->snd_sound);
+				sound->snd_sound = NULL;
+			}
+		}
+
 		sound_stop_all_sounds();
 		SND_RemoveAllSounds(ghSoundScene);
 	}
@@ -1011,7 +1023,7 @@ void sound_play_sound(bSound *sound)
 
 
 
-bSound *sound_find_sound(char *id_name)
+static bSound *sound_find_sound(char *id_name)
 {
 	bSound *sound;
 	

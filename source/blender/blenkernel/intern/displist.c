@@ -88,6 +88,8 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 
 static void boundbox_displist(Object *ob);
 
@@ -755,7 +757,10 @@ void reshadeall_displist(void)
 	
 	for(base= G.scene->base.first; base; base= base->next) {
 		ob= base->object;
-		freedisplist(&ob->disp);
+
+		if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+			freedisplist(&ob->disp);
+
 		if(base->lay & G.scene->lay) {
 			/* Metaballs have standard displist at the Object */
 			if(ob->type==OB_MBALL) shadeDispList(base);
@@ -853,7 +858,8 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				}
 			}
 			else if((nu->type & 7)==CU_NURBS) {
-				len= nu->pntsu*resolu;
+				len= (resolu*SEGMENTSU(nu))+1;
+				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
@@ -865,7 +871,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				data= dl->verts;
 				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
-				makeNurbcurve(nu, data, resolu, 3);
+				makeNurbcurve(nu, data, NULL, NULL, resolu);
 			}
 			else if((nu->type & 7)==CU_POLY) {
 				len= nu->pntsu;
@@ -986,9 +992,9 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 				efa= fillfacebase.first;
 				index= dlnew->index;
 				while(efa) {
-					index[0]= (long)efa->v1->tmp.l;
-					index[1]= (long)efa->v2->tmp.l;
-					index[2]= (long)efa->v3->tmp.l;
+					index[0]= (intptr_t)efa->v1->tmp.l;
+					index[1]= (intptr_t)efa->v2->tmp.l;
+					index[2]= (intptr_t)efa->v3->tmp.l;
 					
 					index+= 3;
 					efa= efa->next;
@@ -1228,7 +1234,7 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	*numVerts_r = numVerts;
 }
 
-void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
+static void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
 {
 	int editmode = (!forRender && ob==G.obedit);
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
@@ -1317,7 +1323,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
 			if(nu->pntsv==1) {
-				len= nu->pntsu*nu->resolu;
+				len= nu->resolu*SEGMENTSU(nu)+1;
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -1333,10 +1339,10 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
-				makeNurbcurve(nu, data, nu->resolu, 3);
+				makeNurbcurve(nu, data, NULL, NULL, nu->resolu);
 			}
 			else {
-				len= nu->resolu*nu->resolv;
+				len= (nu->pntsu*nu->resolu) * (nu->pntsv*nu->resolv);
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -1348,9 +1354,9 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				
 				data= dl->verts;
 				dl->type= DL_SURF;
-
-				dl->parts= nu->resolu;	/* in reverse, because makeNurbfaces works that way */
-				dl->nr= nu->resolv;
+				
+				dl->parts= (nu->pntsu*nu->resolu);	/* in reverse, because makeNurbfaces works that way */
+				dl->nr= (nu->pntsv*nu->resolv);
 				if(nu->flagv & CU_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
 				if(nu->flagu & CU_CYCLIC) dl->flag|= DL_CYCL_V;
 
@@ -1480,7 +1486,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 								float fac=1.0;
 								if (cu->taperobj==NULL) {
 									if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
-									fac = calc_curve_subdiv_radius(cu, nu, a);
+										fac = bevp->radius;
 								} else {
 									fac = calc_taper(cu->taperobj, a, bl->nr);
 								}

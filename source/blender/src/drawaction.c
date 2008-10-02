@@ -78,6 +78,7 @@
 #include "BIF_drawgpencil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_keyframing.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_mywindow.h"
@@ -646,7 +647,7 @@ static void draw_channel_names(void)
 						case SPACE_VIEW3D:
 						{
 							/* this shouldn't cause any overflow... */
-							sprintf(name, "3DView: %s", view3d_get_name(sa->spacedata.first));
+							sprintf(name, "3DView[%02d]:%s", sa->win, view3d_get_name(sa->spacedata.first));
 							special= ICON_VIEW3D;
 						}
 							break;
@@ -659,7 +660,7 @@ static void draw_channel_names(void)
 								sprintf(treetype, "Composite");
 							else
 								sprintf(treetype, "Material");
-							sprintf(name, "Nodes: %s", treetype);
+							sprintf(name, "Nodes[%02d]:%s", sa->win, treetype);
 							
 							special= ICON_NODE;
 						}
@@ -677,15 +678,27 @@ static void draw_channel_names(void)
 								
 								default:	sprintf(imgpreview, "Sequence");	break;
 							}
-							sprintf(name, "Sequencer: %s", imgpreview);
+							sprintf(name, "Sequencer[%02d]:%s", sa->win, imgpreview);
 							
 							special= ICON_SEQUENCE;
+						}
+							break;
+						case SPACE_IMAGE:
+						{
+							SpaceImage *sima= sa->spacedata.first;
+							
+							if (sima->image)
+								sprintf(name, "Image[%02d]:%s", sa->win, sima->image->id.name+2);
+							else
+								sprintf(name, "Image[%02d]:<None>", sa->win);
+								
+							special= ICON_IMAGE_COL;
 						}
 							break;
 						
 						default:
 						{
-							sprintf(name, "<Unknown GP-Data Source>");
+							sprintf(name, "[%02d]<Unknown GP-Data Source>", sa->win);
 							special= -1;
 						}
 							break;
@@ -1442,8 +1455,15 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	if (IS_EQ(beztn->vec[1][1], beztn->vec[0][1])==0) return;
 	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
-	/* try to find a keyblock that starts on the previous beztriple */
-	for (ab= blocks->last; ab; ab= ab->prev) {
+	/* try to find a keyblock that starts on the previous beztriple 
+	 * Note: we can't search from end to try to optimise this as it causes errors there's
+	 * 		an A ___ B |---| B situation
+	 */
+	// FIXME: here there is a bug where we are trying to get the summary for the following channels
+	//		A|--------------|A ______________ B|--------------|B
+	//		A|------------------------------------------------|A
+	//		A|----|A|---|A|-----------------------------------|A
+	for (ab= blocks->first; ab; ab= ab->next) {
 		/* check if alter existing block or add new block */
 		if (ab->start == prev->vec[1][0]) {			
 			/* set selection status and 'touched' status */
@@ -1457,7 +1477,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	
 	/* add new block */
 	abn= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
-	if (ab) BLI_insertlinkafter(blocks, ab, abn);
+	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
 	else BLI_addtail(blocks, abn);
 	
 	abn->start= prev->vec[1][0];
@@ -1755,13 +1775,14 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 					ak->modified = 0;
 					ak->totcurve += 1;
 				}
+				
+				if (ak == ak2)
+					break;
+				
 				if (ak2->modified) {
 					ak2->modified = 0;
 					ak2->totcurve += 1;
 				}
-				
-				if (ak == ak2)
-					break;
 			}
 		}
 		if (blocks) {
@@ -1770,13 +1791,14 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 					ab->modified = 0;
 					ab->totcurve += 1;
 				}
+				
+				if (ab == ab2)
+					break;
+				
 				if (ab2->modified) {
 					ab2->modified = 0;
 					ab2->totcurve += 1;
 				}
-				
-				if (ab == ab2)
-					break;
 			}
 		}
 	}

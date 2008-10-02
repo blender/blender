@@ -169,7 +169,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	const STR_String& title, 
 	GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state, GHOST_TDrawingContextType type,
-	bool stereoVisual)
+	bool stereoVisual, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
 	window = new GHOST_WindowWin32 (title, left, top, width, height, state, type, stereoVisual);
@@ -917,8 +917,12 @@ GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const
 	char *buffer;
 	char *temp_buff;
 	
-	if ( OpenClipboard(NULL) ) {
+	if ( IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL) ) {
 		HANDLE hData = GetClipboardData( CF_TEXT );
+		if (hData == NULL) {
+			CloseClipboard();
+			return NULL;
+		}
 		buffer = (char*)GlobalLock( hData );
 		
 		temp_buff = (char*) malloc(strlen(buffer)+1);

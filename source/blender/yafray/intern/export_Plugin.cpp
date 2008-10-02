@@ -74,7 +74,7 @@ extern "C" { extern char bprogname[]; }
 // add drive character if not in path string, using blender executable location as reference
 static void addDrive(string &path)
 {
-	int sp = path.find_first_of(":");
+	size_t sp = path.find_first_of(":");
 	if (sp==-1) {
 		string blpath = bprogname;
 		sp = blpath.find_first_of(":");
@@ -98,7 +98,7 @@ static string YafrayPath()
 	string path=find_path();
 	return path;
 #else
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/lib/",
 #ifdef __x86_64__
@@ -124,7 +124,7 @@ static string YafrayPluginPath()
 #ifdef WIN32
 	return find_path()+"\\plugins";
 #else
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/lib/yafray",
 #ifdef __x86_64__
@@ -782,7 +782,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 				mparams["input"] = yafray::parameter_t(shader_name + temp);
 
 			// blendtype, would have been nice if the order would have been the same as for ramps...
-			const string blendtype[9] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen"};
+			const string blendtype[MTEX_NUM_BLENDTYPES] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen", "hue", "sat", "val", "color"};
 			mparams["mode"] = yafray::parameter_t(blendtype[(int)mtex->blendtype]);
 
 			// texture color (for use with MUL and/or no_rgb etc..)

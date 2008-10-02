@@ -42,6 +42,7 @@ public:
 	Py_Header;
 	BL_ShapeActionActuator(SCA_IObject* gameobj,
 						const STR_String& propname,
+						const STR_String& framepropname,
 						float starttime,
 						float endtime,
 						struct bAction *action,
@@ -66,6 +67,7 @@ public:
 		m_playtype(playtype),
 		m_priority(priority),
 		m_action(action),
+		m_framepropname(framepropname),	
 		m_propname(propname)
 	{
 	};
@@ -84,6 +86,7 @@ public:
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetEnd);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrame);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetProperty);
+	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetFrameProperty);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetBlendtime);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetChannel);
 
@@ -94,6 +97,7 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetEnd);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrame);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetProperty);
+	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetFrameProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC_NOARGS(BL_ShapeActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ShapeActionActuator,SetType);
@@ -126,6 +130,7 @@ protected:
 	short	m_priority;
 	struct bAction *m_action;
 	STR_String	m_propname;
+	STR_String	m_framepropname;
 	vector<float> m_blendshape;
 };
 

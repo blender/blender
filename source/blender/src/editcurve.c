@@ -262,7 +262,7 @@ static void printweightsNurb__doPrint(void *userData, Nurb *nurb, BPoint *bp, Be
 {
 	char str[30];
 
-	if (bp && (bp->f1&1)) {
+	if (bp && (bp->f1 & SELECT)) {
 		sprintf(str,"%2.2f", bp->vec[3]);
 
 		cpack(0x737373);
@@ -828,7 +828,6 @@ short extrudeflagNurb(int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsv++;
-					if(nu->resolv<3) nu->resolv++;
 					makeknots(nu, 2, nu->flagv>>1);
 				}
 				else if(v==0 || v== nu->pntsu-1) {	    /* collumn in v-direction selected */
@@ -856,7 +855,6 @@ short extrudeflagNurb(int flag)
 					MEM_freeN(nu->bp);
 					nu->bp= newbp;
 					nu->pntsu++;
-					if(nu->resolu<3) nu->resolu++;
 					makeknots(nu, 1, nu->flagu>>1);
 				}
 			}
@@ -1727,7 +1725,7 @@ void subdivideNurb()
          */
 			/* count */
 			if(nu->flagu & CU_CYCLIC) {
-				a= nu->pntsu*nu->pntsv;
+				a= nu->pntsu;
 				bp= nu->bp;
 				prevbp= bp+(a-1);
 			}
@@ -2145,7 +2143,7 @@ int convertspline(short type, Nurb *nu)
 			nu->type |= 1;
 			calchandlesNurb(nu);
 		}
-		else if(type==4) {		    /* to Nurb */
+		else if(type==CU_NURBS) {
 			nu->type &= ~7;
 			nu->type+= 4;
 			nu->orderu= 4;
@@ -2470,8 +2468,6 @@ void merge_2_nurb(Nurb *nu1, Nurb *nu2)
 	/* merge */
 	origu= nu1->pntsu;
 	nu1->pntsu+= nu2->pntsu;
-	nu1->resolu+= nu2->pntsu;
-	if(nu1->resolv < nu2->resolv) nu1->resolv= nu2->resolv;
 	if(nu1->orderu<3) nu1->orderu++;
 	if(nu1->orderv<3) nu1->orderv++;
 	temp= nu1->bp;
@@ -2916,12 +2912,12 @@ void addvert_Nurb(int mode)
 	if((nu->type & 7)==CU_BEZIER) {
 		/* which bezpoint? */
 		if(bezt== nu->bezt) {   /* first */
-			bezt->f1= bezt->f2= bezt->f3= 0;
+			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
 			memcpy(newbezt+1, bezt, nu->pntsu*sizeof(BezTriple));
 			*newbezt= *bezt;
-			newbezt->f1= newbezt->f2= newbezt->f3= SELECT;
+			BEZ_SEL(newbezt);
 			if(newbezt->h1 >= 0) newbezt->h2= newbezt->h1;
 			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			VECCOPY(temp, bezt->vec[1]);
@@ -2930,7 +2926,7 @@ void addvert_Nurb(int mode)
 			bezt= newbezt+1;
 		}
 		else if(bezt== (nu->bezt+nu->pntsu-1)) {  /* last */
-			bezt->f1= bezt->f2= bezt->f3= 0;
+			BEZ_DESEL(bezt);
 			newbezt =
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
 			memcpy(newbezt, nu->bezt, nu->pntsu*sizeof(BezTriple));
@@ -2939,7 +2935,7 @@ void addvert_Nurb(int mode)
 			MEM_freeN(nu->bezt);
 			nu->bezt= newbezt;
 			newbezt+= nu->pntsu;
-			newbezt->f1= newbezt->f2= newbezt->f3= SELECT;
+			BEZ_SEL(newbezt);
 			if(newbezt->h1 >= 0) newbezt->h2= newbezt->h1;
 			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			bezt= nu->bezt+nu->pntsu-1;
@@ -2997,7 +2993,6 @@ void addvert_Nurb(int mode)
 		if(bp) {
 			nu->pntsu++;
 			
-			if(nu->resolu<3) nu->resolu++;
 			makeknots(nu, 1, nu->flagu>>1);
 			
 			if(mode=='e') {
@@ -4116,16 +4111,17 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		Mat3One(imat);
 		cent[0]= cent[1]= cent[2]= 0.0;
 	}
-
+	
 	if ELEM5(stype, 0, 1, 2, 4, 6) {
 		nu = (Nurb*)MEM_callocN(sizeof(Nurb), "addNurbprim");
 		nu->type= type;
-		nu->resolu= 12;
-		nu->resolv= 12;
+		nu->resolu= 4;
+		nu->resolv= 4;
 	}
 
 	switch(stype) {
 	case 0:	/* curve */
+		nu->resolu= 12; /* set as 4 above */
 		if(newname) {
 			rename_id((ID *)G.obedit, "Curve");
 			rename_id((ID *)G.obedit->data, "Curve");
@@ -4203,7 +4199,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		nu->pntsv= 1;
 		nu->orderu= 5;
 		nu->flagu= 2;	/* endpoint */
-		nu->resolu= 32;
+		nu->resolu= 8;
 		nu->bp= callocstructN(BPoint, 5, "addNurbprim3");
 
 		bp= nu->bp;
@@ -4233,6 +4229,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 		break;
 	case 1:	/* circle */
+		nu->resolu= 12; /* set as 4 above */
 		if(newname) {
 			rename_id((ID *)G.obedit, "CurveCircle");
 			rename_id((ID *)G.obedit->data, "CurveCircle");
@@ -4361,7 +4358,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 
 			nu= addNurbprim(4, 1, newname);  /* circle */
-			nu->resolu= 32;
+			nu->resolu= 4;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
@@ -4394,8 +4391,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->pntsu= 5;
 			nu->pntsv= 1;
 			nu->orderu= 3;
-			nu->resolu= 24;
-			nu->resolv= 32;
+			nu->resolu= 4;
+			nu->resolv= 4;
 			nu->flag= CU_SMOOTH;
 			nu->bp= callocstructN(BPoint, 5, "addNurbprim6");
 			nu->flagu= 0;
@@ -4441,8 +4438,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			xzproj= 1;
 			nu= addNurbprim(4, 1, newname);  /* circle */
 			xzproj= 0;
-			nu->resolu= 24;
-			nu->resolv= 32;
+			nu->resolu= 4;
+			nu->resolv= 4;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			if(newname && (U.flag & USER_ADD_VIEWALIGNED) == 0)

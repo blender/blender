@@ -1940,15 +1940,20 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case DELKEY:
 			case XKEY:
-				if (mval[0]>=NLAWIDTH) {
-					if (okee("Erase selected?")) {
-						delete_nlachannel_keys();
-						update_for_newframe_muted();
-						
-						remove_marker();
-						
-						allqueue(REDRAWMARKER, 0);
+				if (mval[0] >= NLAWIDTH) {
+					/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+					if (G.qual == LR_SHIFTKEY) {
+						if (okee("Erase selected marker(s)?"))
+							remove_marker();
 					}
+					else {
+						if (okee("Erase selected?")) {
+							delete_nlachannel_keys();
+							update_for_newframe_muted();
+						}
+					}
+					
+					allqueue(REDRAWMARKER, 0);
 				}
 				break;
 				

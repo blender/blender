@@ -11,6 +11,7 @@ incs += ' ../python ../render/extern/include '
 incs += ' ../imbuf ../avi '
 incs += ' ../blenloader ../quicktime'
 incs += ' ../blenkernel ../renderconverter '
+incs += ' ../gpu #/extern/glew/include '
 
 
 incs += ' ' + env['BF_PYTHON_INC']

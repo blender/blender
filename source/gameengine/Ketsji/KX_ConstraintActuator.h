@@ -37,6 +37,9 @@
 #include "MT_Vector3.h"
 #include "KX_ClientObjectInfo.h"
 
+class KX_RayCast;
+class KX_GameObject;
+
 class KX_ConstraintActuator : public SCA_IActuator
 {
 	Py_Header;
@@ -63,6 +66,8 @@ protected:
 	int m_option;
 	// property to check
 	char m_property[32];
+	// hit object
+	KX_GameObject* m_hitObject;
 
 	/**
 	 * Clamp <var> to <min>, <max>. Borders are included (in as far as
@@ -90,6 +95,12 @@ protected:
 		KX_ACT_CONSTRAINT_ORIX,
 		KX_ACT_CONSTRAINT_ORIY,
 		KX_ACT_CONSTRAINT_ORIZ,
+		KX_ACT_CONSTRAINT_FHPX,
+		KX_ACT_CONSTRAINT_FHPY,
+		KX_ACT_CONSTRAINT_FHPZ,
+		KX_ACT_CONSTRAINT_FHNX,
+		KX_ACT_CONSTRAINT_FHNY,
+		KX_ACT_CONSTRAINT_FHNZ,
 		KX_ACT_CONSTRAINT_MAX
 	};
 	// match ACT_CONST_... values from BIF_interface.h
@@ -97,10 +108,13 @@ protected:
 		KX_ACT_CONSTRAINT_NORMAL = 64,
 		KX_ACT_CONSTRAINT_MATERIAL = 128,
 		KX_ACT_CONSTRAINT_PERMANENT = 256,
-		KX_ACT_CONSTRAINT_DISTANCE = 512
+		KX_ACT_CONSTRAINT_DISTANCE = 512,
+		KX_ACT_CONSTRAINT_LOCAL = 1024,
+		KX_ACT_CONSTRAINT_DOROTFH = 2048
 	};
 	bool IsValidMode(KX_CONSTRAINTTYPE m); 
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo*);
 
 	KX_ConstraintActuator(SCA_IObject* gameobj,
 						  int posDamptime,
@@ -144,12 +158,12 @@ protected:
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMin);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
-	static char SetDistance_doc[];
-	static char GetDistance_doc[];
+	static const char SetDistance_doc[];
+	static const char GetDistance_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMax);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
-	static char SetRayLength_doc[];
-	static char GetRayLength_doc[];
+	static const char SetRayLength_doc[];
+	static const char GetRayLength_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetLimit);
 	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };

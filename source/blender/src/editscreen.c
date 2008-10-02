@@ -1023,8 +1023,11 @@ int blender_test_break(void)
 	return (G.afbreek==1);
 }
 
-void reset_autosave(void) {
-	window_set_timer(mainwin, U.savetime*60*1000, AUTOSAVE_FILE);
+void reset_autosave(void) 
+{
+	if(U.flag & USER_AUTOSAVE) {
+		window_set_timer(mainwin, U.savetime*60*1000, AUTOSAVE_FILE);
+	}
 }
 
 /* ************ handlers ************** */
@@ -1977,7 +1980,7 @@ static void testareas(void)
 	/* test for header, if removed, or moved */
 	/* test for window, if removed, or moved */
 	
-	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+	for(sa= G.curscreen->areabase.first; sa; sa= next) {
 		rcti oldhr= sa->headrct;
 		rcti oldwr= sa->winrct;
 		

@@ -247,6 +247,7 @@ typedef struct SpaceImage {
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
 	
+	struct bGPdata *gpd;			/* grease pencil data */
 } SpaceImage;
 
 typedef struct SpaceNla {
@@ -275,21 +276,22 @@ typedef struct SpaceText {
 	struct Text *text;	
 
 	int top, viewlines;
-	short flags, menunr;
-	
-	int font_id;	
+	short flags, menunr;	
+	int font_id;
+
 	int lheight;
 	int left;
 	int showlinenrs;
-	
 	int tabnumber;
+
 	int currtab_set; 
 	int showsyntax;
-	int unused_padd;
-	
+	int overwrite;
 	float pix_per_line;
 
 	struct rcti txtscroll, txtbar;
+
+	int wordwrap, doplugins;
 
 } SpaceText;
 
@@ -536,6 +538,7 @@ typedef struct SpaceImaSel {
 #define SI_DRAW_TILE	1<<19 
 #define SI_SMOOTH_UV	1<<20
 #define SI_DRAW_STRETCH	1<<21
+#define SI_DISPGP		1<<22
 
 /* SpaceIpo->flag */
 #define SIPO_LOCK_VIEW			1<<0
@@ -586,6 +589,7 @@ typedef struct SpaceImaSel {
 #define SO_LIBRARIES	7
 #define SO_VERSE_SESSION	8
 #define SO_VERSE_MS		9
+#define SO_SEQUENCE		10
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

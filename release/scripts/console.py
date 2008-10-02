@@ -67,6 +67,8 @@ __FONT_SIZE__ = 2 # index for the list above, normal default.
 global __CONSOLE_LINE_OFFSET__
 __CONSOLE_LINE_OFFSET__ = 0
 
+cmdBuffer = [] # dosnt need to be global
+
 '''
 # Generic Blender functions
 def getActScriptWinRect():
@@ -159,19 +161,13 @@ def include(filename):
 	return compile(filedata, filename, 'exec')
 
 # Writes command line data to a blender text file.
-def writeCmdData(cmdLineList, type):
-	if type == 3:
-		typeList = [0,1,2, 3, None] # all
-	else:
-		typeList = [type] # so we can use athe lists 'in' methiod
-	
+def writeCmdData(type):
 	newText = Text.New('command_output.py', 1)
-	for myCmd in cmdLineList:
-		if myCmd.type in typeList: # user input
-			newText.write('%s\n' % myCmd.cmd)
+	if type == 3:	newText.write('\n'.join( [ myCmd.cmd for myCmd in cmdBuffer ] ))
+	else:			newText.write('\n'.join( [ myCmd.cmd for myCmd in cmdBuffer if myCmd.type is type] ))
 	Draw.PupMenu('%s written' % newText.name)
 
-def insertCmdData(cmdBuffer):
+def insertCmdData():
 	texts = list(bpy.data.texts)
 	textNames = [tex.name for tex in texts]
 	if textNames:
@@ -337,7 +333,6 @@ def handle_event(evt, val):
 	
 	# Insert Char into the cammand line
 	def insCh(ch): # Instert a char
-		global cmdBuffer
 		global cursor
 		# Later account for a cursor variable
 		cmdBuffer[-1].cmd = ('%s%s%s' % ( cmdBuffer[-1].cmd[:cursor], ch, cmdBuffer[-1].cmd[cursor:]))
@@ -346,7 +341,7 @@ def handle_event(evt, val):
 	#                        Define Complex Key Actions                            #
 	#------------------------------------------------------------------------------#
 	def actionEnterKey():
-		global histIndex, cursor, cmdBuffer
+		global histIndex, cursor
 		
 		def getIndent(string):
 			# Gather white space to add in the previous line
@@ -412,14 +407,20 @@ def handle_event(evt, val):
 			
 			# Clear the output based on __LINE_HISTORY__
 			if len(cmdBuffer) > __LINE_HISTORY__:
-				cmdBuffer = cmdBuffer[-__LINE_HISTORY__:]
+				cmdBuffer[:__LINE_HISTORY__] = []
 		
 		histIndex = cursor = -1 # Reset cursor and history
 	
 	def actionUpKey():
-		global histIndex, cmdBuffer
+		global histIndex
 		if abs(histIndex)+1 >= len(cmdBuffer):
 			histIndex = -1
+			
+			# When wrapping allow 1 plank lines
+			if cmdBuffer[-1].cmd != ' ':
+				cmdBuffer[-1].cmd = ' '
+				return
+		
 		histIndex_orig = histIndex
 		histIndex -= 1
 		
@@ -431,9 +432,15 @@ def handle_event(evt, val):
 			cmdBuffer[-1].cmd = cmdBuffer[histIndex].cmd			
 	
 	def actionDownKey():
-		global histIndex, cmdBuffer
+		global histIndex
 		if histIndex >= -2:
 			histIndex = -len(cmdBuffer)
+			
+			# When wrapping allow 1 plank lines
+			if cmdBuffer[-1].cmd != ' ':
+				cmdBuffer[-1].cmd = ' '
+				return
+			
 		histIndex_orig = histIndex
 		histIndex += 1
 		while	(cmdBuffer[histIndex].type != 0 and histIndex != -2) or \
@@ -446,18 +453,18 @@ def handle_event(evt, val):
 	
 	def actionRightMouse():
 		global __FONT_SIZE__
-		choice = Draw.PupMenu('Console Menu%t|Write Input Data (white)|Write Output Data (blue)|Write Error Data (red)|Write All Text|%l|Insert Blender text|%l|Font Size|%l|Quit')
+		choice = Draw.PupMenu('Console Menu%t|Write Input Data (white)|Write Output Data (blue)|Write Error Data (red)|Write All Text|%l|Insert Blender text|%l|Font Size|%l|Clear Output|Quit')
 		
 		if choice == 1:
-			writeCmdData(cmdBuffer, 0) # type 0 user
+			writeCmdData(0) # type 0 user
 		elif choice == 2:
-			writeCmdData(cmdBuffer, 1) # type 1 user output
+			writeCmdData(1) # type 1 user output
 		elif choice == 3:
-			writeCmdData(cmdBuffer, 2) # type 2 errors
+			writeCmdData(2) # type 2 errors
 		elif choice == 4:
-			writeCmdData(cmdBuffer, 3) # All
+			writeCmdData(3) # All
 		elif choice == 6:
-			insertCmdData(cmdBuffer) # Insert text from Blender and run it.
+			insertCmdData() # Insert text from Blender and run it.
 		elif choice == 8:
 			# Fontsize.
 			font_choice = Draw.PupMenu('Font Size%t|Large|Normal|Small|Tiny')
@@ -471,8 +478,10 @@ def handle_event(evt, val):
 				elif font_choice == 4:
 					__FONT_SIZE__ = 0
 				Draw.Redraw()
-				
-		elif choice == 10: # Exit
+		elif choice == 10: # Clear all output
+			cmdBuffer[:] = [cmd for cmd in cmdBuffer if cmd.type == 0] # keep user input
+			Draw.Redraw()
+		elif choice == 11: # Exit
 			Draw.Exit()
 	
 	
@@ -783,7 +792,6 @@ __CONSOLE_VAR_DICT__ = {} # Initialize var dict
 
 
 # Print Startup lines, add __bpydoc__ to the console startup.
-cmdBuffer = []
 for l in __bpydoc__.split('<br>'):
 	cmdBuffer.append( cmdLine(l, 1, None) )
 	
@@ -827,12 +835,19 @@ def include_console(includeFile):
 
 def standard_imports():
 	# Write local to global __CONSOLE_VAR_DICT__ for reuse,
+	
+	exec('%s%s' % ('__CONSOLE_VAR_DICT__["bpy"]=', 'bpy'))
+	exec('%s%s' % ('__CONSOLE_VAR_DICT__["Blender"]=', 'Blender'))
+	
 	for ls in (dir(), dir(Blender)):
 		for __TMP_VAR_NAME__ in ls:
 			# Execute the local > global coversion.
 			exec('%s%s' % ('__CONSOLE_VAR_DICT__[__TMP_VAR_NAME__]=', __TMP_VAR_NAME__))
 	
-	exec('%s%s' % ('__CONSOLE_VAR_DICT__["bpy"]=', 'bpy'))
+	# Add dummy imports to input so output scripts to a text file work as expected
+	cmdBuffer.append(cmdLine('import bpy', 0, 1))
+	cmdBuffer.append(cmdLine('import Blender', 0, 1)) # pretend we have been executed, as we kindof have.
+	cmdBuffer.append(cmdLine('from Blender import *', 0, 1))
 
 if scriptDir and console_autoexec:
 	include_console(console_autoexec) # pass the blender module

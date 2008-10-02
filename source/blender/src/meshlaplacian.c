@@ -63,6 +63,8 @@
 
 #include "ONL_opennl.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /************************** Laplacian System *****************************/
 
 struct LaplacianSystem {
@@ -126,14 +128,14 @@ static void laplacian_increase_edge_count(EdgeHash *edgehash, int v1, int v2)
 	void **p = BLI_edgehash_lookup_p(edgehash, v1, v2);
 
 	if(p)
-		*p = (void*)((long)*p + (long)1);
+		*p = (void*)((intptr_t)*p + (intptr_t)1);
 	else
-		BLI_edgehash_insert(edgehash, v1, v2, (void*)(long)1);
+		BLI_edgehash_insert(edgehash, v1, v2, (void*)(intptr_t)1);
 }
 
 static int laplacian_edge_count(EdgeHash *edgehash, int v1, int v2)
 {
-	return (int)(long)BLI_edgehash_lookup(edgehash, v1, v2);
+	return (int)(intptr_t)BLI_edgehash_lookup(edgehash, v1, v2);
 }
 
 static float cotan_weight(float *v1, float *v2, float *v3)
@@ -202,7 +204,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	v3= sys->verts[i3];
 
 	/* instead of *0.5 we divided by the number of faces of the edge, it still
-	   needs to be varified that this is indeed the correct thing to do! */
+	   needs to be verified that this is indeed the correct thing to do! */
 	t1= cotan_weight(v1, v2, v3)/laplacian_edge_count(sys->edgehash, i2, i3);
 	t2= cotan_weight(v2, v3, v1)/laplacian_edge_count(sys->edgehash, i3, i1);
 	t3= cotan_weight(v3, v1, v2)/laplacian_edge_count(sys->edgehash, i1, i2);
@@ -227,7 +229,7 @@ static void laplacian_triangle_weights(LaplacianSystem *sys, int f, int i1, int 
 	}
 }
 
-LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface)
+LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface, int lsq)
 {
 	LaplacianSystem *sys;
 
@@ -246,6 +248,8 @@ LaplacianSystem *laplacian_system_construct_begin(int totvert, int totface)
 	/* create opennl context */
 	nlNewContext();
 	nlSolverParameteri(NL_NB_VARIABLES, totvert);
+	if(lsq)
+		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
 
 	sys->context= nlGetCurrent();
 
@@ -629,7 +633,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 	}
 
 	/* create laplacian */
-	sys = laplacian_system_construct_begin(me->totvert, totface);
+	sys = laplacian_system_construct_begin(me->totvert, totface, 1);
 
 	sys->heat.mesh= me;
 	sys->heat.verts= verts;
@@ -931,7 +935,7 @@ void rigid_deform_begin(EditMesh *em)
 	}
 
 	/* create laplacian */
-	sys = laplacian_system_construct_begin(totvert, totface);
+	sys = laplacian_system_construct_begin(totvert, totface, 0);
 
 	sys->rigid.mesh= em;
 	sys->rigid.R = MEM_callocN(sizeof(float)*3*3*totvert, "RigidDeformR");

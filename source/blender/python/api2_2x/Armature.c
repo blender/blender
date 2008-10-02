@@ -57,9 +57,9 @@ static const char sArmatureBadArgs[] = "ArmatureType - Bad Arguments: ";
 static const char sModuleError[] = "Blender.Armature - Error: ";
 static const char sModuleBadArgs[] = "Blender.Armature - Bad Arguments: ";
 
-PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref);
+static PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref);
 /* python callable */
-PyObject * arm_weakref_callback_weakref_dealloc__pyfunc;
+static PyObject * arm_weakref_callback_weakref_dealloc__pyfunc;
 
 //################## BonesDict_Type (internal) ########################
 /*This is an internal psuedo-dictionary type that allows for manipulation
@@ -1323,7 +1323,7 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
 }
 
 /* internal func to remove weakref from weakref list */
-PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref)
+static PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref)
 {
 	char *list_name = ARM_WEAKREF_LIST_NAME;
 	PyObject *maindict = NULL, *armlist = NULL;

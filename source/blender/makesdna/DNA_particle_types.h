@@ -66,6 +66,8 @@ typedef struct ParticleData {
 	ParticleKey state;		/* normally current global coordinates or	*/
 							/* in sticky object space if dead & sticky	*/
 
+	ParticleKey prev_state; /* previous state */
+
 	HairKey *hair;			/* hair vertices */
 
 	ParticleKey *keys;		/* keyed states */
@@ -166,6 +168,7 @@ typedef struct ParticleSettings {
 	struct Object *bb_ob;
 	struct Ipo *ipo;
 	struct PartDeflect *pd;
+	struct PartDeflect *pd2;
 } ParticleSettings;
 
 typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in copy_particlesystem */
@@ -263,6 +266,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_CHILD_SEAMS	(1<<28)
 #define PART_CHILD_RENDER	(1<<29)
 #define PART_CHILD_GUIDE	(1<<30)
+
+#define PART_SELF_EFFECT	(1<<22)
 
 /* part->rotfrom */
 #define PART_ROT_KEYS		0	/* interpolate directly from keys */
@@ -413,6 +418,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PARS_DEAD			1
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3
+#define PARS_DYING			4
 
 /* psys->vg */
 #define PSYS_TOT_VG			12

@@ -1573,20 +1573,15 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 	
 	/* find IK constraint, and validate it */
 	for(con= pchan_tip->constraints.first; con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			data=(bKinematicConstraint*)con->data;
+			if (data->flag & CONSTRAINT_IK_AUTO) break;
+			if (data->tar==NULL) continue;
+			if (data->tar->type==OB_ARMATURE && data->subtarget[0]==0) continue;
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) break;
+		}
 	}
 	if(con==NULL) return;
-	
-	data=(bKinematicConstraint*)con->data;
-	
-	/* two types of targets */
-	if(data->flag & CONSTRAINT_IK_AUTO);
-	else {
-		if(con->flag & CONSTRAINT_DISABLE) return;	/* checked in editconstraint.c */
-		if(con->enforce == 0.0f) return;
-		if(data->tar==NULL) return;
-		if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
-	}
 	
 	/* exclude tip from chain? */
 	if(!(data->flag & CONSTRAINT_IK_TIP))
@@ -1690,7 +1685,7 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 were executed & assigned. Now as last we do an IK pass */
 static void execute_posetree(Object *ob, PoseTree *tree)
 {
-	float R_parmat[3][3];
+	float R_parmat[3][3], identity[3][3];
 	float iR_parmat[3][3];
 	float R_bonemat[3][3];
 	float goalrot[3][3], goalpos[3];
@@ -1699,7 +1694,8 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	float irest_basis[3][3], full_basis[3][3];
 	float end_pose[4][4], world_pose[4][4];
 	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch=NULL;
-	int a, flag, hasstretch=0;
+	float resultinf=0.0f;
+	int a, flag, hasstretch=0, resultblend=0;
 	bPoseChannel *pchan;
 	IK_Segment *seg, *parent, **iktree, *iktarget;
 	IK_Solver *solver;
@@ -1844,6 +1840,12 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 				Mat4MulMat4(goal, rootmat, goalinv);
 				VECCOPY(polepos, goal[3]);
 				poleconstrain= 1;
+
+				/* for pole targets, we blend the result of the ik solver
+				 * instead of the target position, otherwise we can't get
+				 * a smooth transition */
+				resultblend= 1;
+				resultinf= target->con->enforce;
 				
 				if(data->flag & CONSTRAINT_IK_GETANGLE) {
 					poleangledata= data;
@@ -1853,7 +1855,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		}
 
 		/* do we need blending? */
-		if (target->con->enforce!=1.0) {
+		if (!resultblend && target->con->enforce!=1.0) {
 			float q1[4], q2[4], q[4];
 			float fac= target->con->enforce;
 			float mfac= 1.0-fac;
@@ -1903,7 +1905,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	tree->basis_change= MEM_mallocN(sizeof(float[3][3])*tree->totchannel, "ik basis change");
 	if(hasstretch)
 		ikstretch= MEM_mallocN(sizeof(float)*tree->totchannel, "ik stretch");
-		
+	
 	for(a=0; a<tree->totchannel; a++) {
 		IK_GetBasisChange(iktree[a], tree->basis_change[a]);
 		
@@ -1930,6 +1932,12 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 			VecMulf(tree->basis_change[a][0], stretch);
 			VecMulf(tree->basis_change[a][1], stretch);
 			VecMulf(tree->basis_change[a][2], stretch);
+		}
+
+		if(resultblend && resultinf!=1.0f) {
+			Mat3One(identity);
+			Mat3BlendMat3(tree->basis_change[a], identity,
+				tree->basis_change[a], resultinf);
 		}
 		
 		IK_FreeSegment(iktree[a]);

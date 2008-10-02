@@ -110,7 +110,7 @@
 #include "editmesh.h"
 
 /* local prototypes */
-void sel_uvco_inside_radius(short , EditFace *efa, MTFace *, int , float *, float *, short);
+static void sel_uvco_inside_radius(short , EditFace *efa, MTFace *, int , float *, float *, short);
 void uvedit_selectionCB(short , Object *, short *, float ); /* used in edit.c*/ 
 
 void object_uvs_changed(Object *ob)
@@ -1264,7 +1264,7 @@ void snap_menu_sima(void)
   * Just for readability...
   */
 
-void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, short select_index)
+static void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, short select_index)
 {
 	// normalized ellipse: ell[0] = scaleX,
 	//                        [1] = scaleY
@@ -1730,7 +1730,7 @@ void uvface_setsel__internal(short select)
 	} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
 		EditFace *efa_vlist;
 		MTFace *tf_vlist;
-		UvMapVert *vlist, *start_vlist=NULL, *vlist_iter;
+		UvMapVert *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
 		int efa_index;
@@ -1760,7 +1760,7 @@ void uvface_setsel__internal(short select)
 						simaUVSel_UnSet(efa, tf, i);
 					}
 					
-					vlist= vlist_iter= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
+					vlist_iter= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
 					
 					while (vlist_iter) {
 						if (vlist_iter->separate)
@@ -2654,14 +2654,8 @@ void image_changed(SpaceImage *sima, Image *image)
 	MTFace *tface;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	ImBuf *ibuf = NULL;
+	/*ImBuf *ibuf = NULL;*/
 	short change = 0;
-	
-	if(image==NULL) {
-		sima->flag &= ~SI_DRAWTOOL;
-	} else {
-		ibuf = BKE_image_get_ibuf(image, NULL);
-	}
 	
 	if(sima->mode!=SI_TEXTURE)
 		return;
@@ -2675,6 +2669,9 @@ void image_changed(SpaceImage *sima, Image *image)
 			(G.editMesh->faces.first)
 		) {
 		
+		if(!is_uv_tface_editing_allowed())
+			return;
+		
 		/* Add a UV layer if there is none, editmode only */
 		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
 			EM_add_data_layer(&em->fdata, CD_MTFACE);
@@ -2685,6 +2682,11 @@ void image_changed(SpaceImage *sima, Image *image)
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
+
+#if 0
+		if(image)
+			ibuf = BKE_image_get_ibuf(image, NULL);
+#endif
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2714,9 +2716,13 @@ void image_changed(SpaceImage *sima, Image *image)
 			}
 		}
 	}
+
 	/* change the space image after because simaFaceDraw_Check uses the space image
 	 * to check if the face is displayed in UV-localview */
 	sima->image = image;
+
+	if(sima->image==NULL)
+		sima->flag &= ~SI_DRAWTOOL;
 	
 	if (change)
 		object_uvs_changed(OBACT);

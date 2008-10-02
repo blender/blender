@@ -63,12 +63,14 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* ********************** SCRIPT ****************************** */
 
 /* action executed after clicking in Scripts menu */
 static void do_scripts_submenus(void *int_arg, int event)
 {
-	int menutype = (long)int_arg;
+	int menutype = (intptr_t)int_arg;
 
 	BPY_menu_do_python (menutype, event);
 
@@ -80,7 +82,7 @@ static uiBlock *script_scripts_submenus(void *int_menutype)
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 	BPyMenu *pym;
-	int i = 0, menutype = (long)int_menutype;
+	int i = 0, menutype = (intptr_t)int_menutype;
 
 	if ((menutype < 0) || (menutype > PYMENU_SCRIPTS_MENU_TOTAL))
 		return NULL;
@@ -132,7 +134,7 @@ static uiBlock *script_scriptsmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_script_scriptsmenu, NULL);
 
 	for (i = 0; i < PYMENU_SCRIPTS_MENU_TOTAL; i++) {
-		uiDefIconTextBlockBut(block, script_scripts_submenus, (void *)(long)i, ICON_RIGHTARROW_THIN, BPyMenu_group_itoa(i), 0, yco-=20, menuwidth, 19, "");
+		uiDefIconTextBlockBut(block, script_scripts_submenus, (void *)(intptr_t)i, ICON_RIGHTARROW_THIN, BPyMenu_group_itoa(i), 0, yco-=20, menuwidth, 19, "");
 	}
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

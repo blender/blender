@@ -397,13 +397,13 @@ static PyObject *M_Render_getInt( BPy_RenderData *self, int var )
 /* Render Module Function Definitions                                      */
 /***************************************************************************/
 
-PyObject *M_Render_CloseRenderWindow( PyObject * self )
+static PyObject *M_Render_CloseRenderWindow( PyObject * self )
 {
 	BIF_close_render_display(  );
 	Py_RETURN_NONE;
 }
 
-PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
+static PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 {
 	PyObject *list = NULL;
 	char *loc = NULL;
@@ -446,7 +446,7 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-PyObject *M_Render_EnableDispView( PyObject * self )
+static PyObject *M_Render_EnableDispView( PyObject * self )
 {
 	G.displaymode = R_DISPLAYIMAGE;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -454,7 +454,7 @@ PyObject *M_Render_EnableDispView( PyObject * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *M_Render_EnableDispWin( PyObject * self )
+static PyObject *M_Render_EnableDispWin( PyObject * self )
 {
 	G.displaymode = R_DISPLAYWIN;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -467,7 +467,7 @@ PyObject *M_Render_EnableDispWin( PyObject * self )
 /* BPy_RenderData Function Definitions                                     */
 /***************************************************************************/
 
-PyObject *RenderData_Render( BPy_RenderData * self )
+static PyObject *RenderData_Render( BPy_RenderData * self )
 {
 	Scene *oldsce;
 	/* unlock to prevent a deadlock when there are pynodes: */
@@ -481,7 +481,6 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 		set_scene( oldsce );
 	}
 	else { /* background mode (blender -b file.blend -P script) */
-		int slink_flag = 0;
 		Render *re= RE_NewRender(G.scene->id.name);
 
 		int end_frame = G.scene->r.efra;
@@ -492,20 +491,14 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		G.scene->r.efra = G.scene->r.sfra;
 
-		if (G.f & G_DOSCRIPTLINKS) {
-			BPY_do_all_scripts(SCRIPT_RENDER);
-			G.f &= ~G_DOSCRIPTLINKS; /* avoid FRAMECHANGED events*/
-			slink_flag = 1;
-		}
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_do_all_scripts(SCRIPT_RENDER, 0);
 
 		tstate = PyEval_SaveThread();
 
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
-		if (slink_flag) {
-			G.f |= G_DOSCRIPTLINKS;
-			BPY_do_all_scripts(SCRIPT_POSTRENDER);
-		}
+		BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
 
 		G.scene->r.efra = end_frame;
 	}
@@ -518,7 +511,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 /* BPy_Bake Function Definitions                                           */
 /***************************************************************************/
 
-PyObject *RenderData_Bake( BPy_RenderData * self )
+static PyObject *RenderData_Bake( BPy_RenderData * self )
 {
 	char *error_msg = NULL;
 	Scene *oldsce;
@@ -539,7 +532,7 @@ PyObject *RenderData_Bake( BPy_RenderData * self )
 /* 
  * This will save the rendered image to an output file path already defined.
  */
-PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
+static PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 {
 	char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
 	char *name_str, filepath[FILE_MAXDIR+FILE_MAXFILE];
@@ -578,7 +571,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_RenderAnim( BPy_RenderData * self )
+static PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 {
 	Scene *oldsce;
 	/* unlock to prevent a deadlock when there are pynodes: */
@@ -603,20 +596,20 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 				"start frame must be less or equal to end frame");
 
 		if (G.f & G_DOSCRIPTLINKS)
-			BPY_do_all_scripts(SCRIPT_RENDER);
+			BPY_do_all_scripts(SCRIPT_RENDER, 1);
 
 		tstate = PyEval_SaveThread();
-		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
 
 		if (G.f & G_DOSCRIPTLINKS)
-			BPY_do_all_scripts(SCRIPT_POSTRENDER);
+			BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
 	}
 
 	PyEval_RestoreThread(tstate);
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_Play( BPy_RenderData * self )
+static PyObject *RenderData_Play( BPy_RenderData * self )
 {
 	char file[FILE_MAXDIR + FILE_MAXFILE];
 	extern char bprogname[];
@@ -675,46 +668,46 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleShort( args, 1,
 					&self->renderContext->bufflag );
 }
 
-PyObject *RenderData_EnableExtensions( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnableExtensions( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_EXTENSION,
 					&self->renderContext->scemode );
 }
 
-PyObject *RenderData_EnableSequencer( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnableSequencer( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_DOSEQ,
 					&self->renderContext->scemode );
 }
 
-PyObject *RenderData_EnableRenderDaemon( BPy_RenderData * self,
+static PyObject *RenderData_EnableRenderDaemon( BPy_RenderData * self,
 					 PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_BG_RENDER,
 					&self->renderContext->scemode );
 }
 
-PyObject *RenderData_EnableToonShading( BPy_RenderData * self,
+static PyObject *RenderData_EnableToonShading( BPy_RenderData * self,
 					PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_EDGE,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EdgeIntensity( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EdgeIntensity( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->edgeint, 0,
 					      255 );
 }
 
-PyObject *RenderData_SetEdgeColor( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_SetEdgeColor( BPy_RenderData * self, PyObject * args )
 {
 	float red, green, blue;
 
@@ -739,7 +732,7 @@ PyObject *RenderData_SetEdgeColor( BPy_RenderData * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_GetEdgeColor( BPy_RenderData * self )
+static PyObject *RenderData_GetEdgeColor( BPy_RenderData * self )
 {
 	char rgb[24];
 
@@ -748,7 +741,7 @@ PyObject *RenderData_GetEdgeColor( BPy_RenderData * self )
 	return PyString_FromString( rgb );
 }
 
-PyObject *RenderData_EnableOversampling( BPy_RenderData * self,
+static PyObject *RenderData_EnableOversampling( BPy_RenderData * self,
 					 PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_OSA,
@@ -775,34 +768,34 @@ static int RenderData_setOSALevel( BPy_RenderData * self,
 	return 0;
 }
 
-PyObject *RenderData_EnableMotionBlur( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnableMotionBlur( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_MBLUR,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_MotionBlurLevel( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_MotionBlurLevel( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
 					      &self->renderContext->blurfac,
 					      0.01f, 5.0f );
 }
 
-PyObject *RenderData_PartsX( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_PartsX( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->xparts, 1,
 					      512 );
 }
 
-PyObject *RenderData_PartsY( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_PartsY( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->yparts, 1,
 					      64 );
 }
 
-PyObject *RenderData_EnableSky( BPy_RenderData * self )
+static PyObject *RenderData_EnableSky( BPy_RenderData * self )
 {
 	self->renderContext->alphamode = R_ADDSKY;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -810,7 +803,7 @@ PyObject *RenderData_EnableSky( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
+static PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
 {
 	self->renderContext->alphamode = R_ALPHAPREMUL;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -818,7 +811,7 @@ PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableKey( BPy_RenderData * self )
+static PyObject *RenderData_EnableKey( BPy_RenderData * self )
 {
 	self->renderContext->alphamode = R_ALPHAKEY;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -826,59 +819,59 @@ PyObject *RenderData_EnableKey( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableShadow( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnableShadow( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_SHADOW,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnableEnvironmentMap( BPy_RenderData * self,
+static PyObject *RenderData_EnableEnvironmentMap( BPy_RenderData * self,
 					   PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_ENVMAP,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnablePanorama( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnablePanorama( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_PANORAMA,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnableRayTracing( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EnableRayTracing( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_RAYTRACE,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnableRadiosityRender( BPy_RenderData * self,
+static PyObject *RenderData_EnableRadiosityRender( BPy_RenderData * self,
 					    PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_RADIO,
 				      &self->renderContext->mode );
 }
-PyObject *RenderData_EnableFieldRendering( BPy_RenderData * self,
+static PyObject *RenderData_EnableFieldRendering( BPy_RenderData * self,
 					   PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_FIELDS,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnableOddFieldFirst( BPy_RenderData * self,
+static PyObject *RenderData_EnableOddFieldFirst( BPy_RenderData * self,
 					  PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_ODDFIELD,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnableFieldTimeDisable( BPy_RenderData * self,
+static PyObject *RenderData_EnableFieldTimeDisable( BPy_RenderData * self,
 					     PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_FIELDSTILL,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_EnableGaussFilter( BPy_RenderData * self,
+static PyObject *RenderData_EnableGaussFilter( BPy_RenderData * self,
 					PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_GAUSS,
@@ -889,7 +882,7 @@ PyObject *RenderData_EnableGaussFilter( BPy_RenderData * self,
 	/* choices are listed in DNA_scene_types.h (search filtertype) */
 }
 
-PyObject *RenderData_EnableBorderRender( BPy_RenderData * self,
+static PyObject *RenderData_EnableBorderRender( BPy_RenderData * self,
 					 PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_BORDER,
@@ -931,57 +924,57 @@ static PyObject *RenderData_getBorder( BPy_RenderData * self )
 			self->renderContext->border.ymax );
 }
 
-PyObject *RenderData_EnableGammaCorrection( BPy_RenderData * self,
+static PyObject *RenderData_EnableGammaCorrection( BPy_RenderData * self,
 					    PyObject * args )
 {
 	return M_Render_BitToggleInt( args, R_GAMMA,
 				      &self->renderContext->mode );
 }
 
-PyObject *RenderData_GaussFilterSize( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_GaussFilterSize( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
 					      &self->renderContext->gauss,
 					      0.5f, 1.5f );
 }
 
-PyObject *RenderData_AspectRatioX( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_AspectRatioX( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args, &self->renderContext->xasp,
 					      1.0f, 200.0f );
 }
 
-PyObject *RenderData_AspectRatioY( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_AspectRatioY( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args, &self->renderContext->yasp,
 					      1.0f, 200.0f );
 }
 
-PyObject *RenderData_StartFrame( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_StartFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeInt( args, &self->renderContext->sfra,
 					    1, MAXFRAME );
 }
 
-PyObject *RenderData_CurrentFrame( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_CurrentFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeInt( args, &self->renderContext->cfra,
 					    1, MAXFRAME );
 }
 
-PyObject *RenderData_EndFrame( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_EndFrame( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeInt( args, &self->renderContext->efra,
 					    1, MAXFRAME );
 }
 
-PyObject *RenderData_ImageSizeX( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_ImageSizeX( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->xsch,
 					      4, 10000 );
 }
 
-PyObject *RenderData_ImageSizeY( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_ImageSizeY( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args, &self->renderContext->ysch,
 					      4, 10000 );
@@ -1008,7 +1001,7 @@ static int RenderData_setRenderer( BPy_RenderData * self, PyObject * value )
 	return 0;
 }
 
-PyObject *RenderData_EnableCropping( void )
+static PyObject *RenderData_EnableCropping( void )
 {
 /*	return M_Render_BitToggleInt( args, R_MOVIECROP,
 				      &self->renderContext->mode );
@@ -1074,21 +1067,21 @@ static int RenderData_setImageType( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
-PyObject *RenderData_Quality( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_Quality( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->quality,
 					      10, 100 );
 }
 
-PyObject *RenderData_FramesPerSec( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_FramesPerSec( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->frs_sec, 1,
 					      120 );
 }
 
-PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
+static PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANESBW;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -1096,7 +1089,7 @@ PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
+static PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANES24;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -1104,7 +1097,7 @@ PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableRGBAColor( BPy_RenderData * self )
+static PyObject *RenderData_EnableRGBAColor( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANES32;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
@@ -1112,7 +1105,7 @@ PyObject *RenderData_EnableRGBAColor( BPy_RenderData * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 {
 	int type;
 
@@ -1496,7 +1489,7 @@ static PyObject *RenderData_getYafrayGITunePhotons( BPy_RenderData * self )
 
 /* (die) end */
 
-PyObject *RenderData_YafrayGIPower( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayGIPower( BPy_RenderData * self, PyObject * args )
 {
 	if( self->renderContext->GImethod > 0 ) {
 		return M_Render_GetSetAttributeFloat( args,
@@ -1508,7 +1501,7 @@ PyObject *RenderData_YafrayGIPower( BPy_RenderData * self, PyObject * args )
 						"YafrayGIMethod must be set to 'SKYDOME' or 'FULL'" ) );
 }
 
-PyObject *RenderData_YafrayGIIndirPower( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayGIIndirPower( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
 						  &self->renderContext->
@@ -1516,7 +1509,7 @@ PyObject *RenderData_YafrayGIIndirPower( BPy_RenderData * self, PyObject * args 
 						  100.00f );
 }
 
-PyObject *RenderData_YafrayGIDepth( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayGIDepth( BPy_RenderData * self, PyObject * args )
 {
 	if( self->renderContext->GImethod == 2 ) {
 		return M_Render_GetSetAttributeInt( args,
@@ -1527,7 +1520,7 @@ PyObject *RenderData_YafrayGIDepth( BPy_RenderData * self, PyObject * args )
 						"YafrayGIMethod must be set to 'FULL'" ) );
 }
 
-PyObject *RenderData_YafrayGICDepth( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayGICDepth( BPy_RenderData * self, PyObject * args )
 {
 	if( self->renderContext->GImethod == 2 ) {
 		return M_Render_GetSetAttributeInt( args,
@@ -1538,7 +1531,7 @@ PyObject *RenderData_YafrayGICDepth( BPy_RenderData * self, PyObject * args )
 						"YafrayGIMethod must be set to 'FULL'" ) );
 }
 
-PyObject *RenderData_EnableYafrayGICache( BPy_RenderData * self,
+static PyObject *RenderData_EnableYafrayGICache( BPy_RenderData * self,
 					  PyObject * args )
 {
 	if( self->renderContext->GImethod == 2 ) {
@@ -1550,7 +1543,7 @@ PyObject *RenderData_EnableYafrayGICache( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL'" ) );
 }
 
-PyObject *RenderData_EnableYafrayGIPhotons( BPy_RenderData * self,
+static PyObject *RenderData_EnableYafrayGIPhotons( BPy_RenderData * self,
 					    PyObject * args )
 {
 	if( self->renderContext->GImethod == 2 ) {
@@ -1562,7 +1555,7 @@ PyObject *RenderData_EnableYafrayGIPhotons( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL'" ) );
 }
 
-PyObject *RenderData_YafrayGIPhotonCount( BPy_RenderData * self,
+static PyObject *RenderData_YafrayGIPhotonCount( BPy_RenderData * self,
 					  PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1576,7 +1569,7 @@ PyObject *RenderData_YafrayGIPhotonCount( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GIPhotons must be enabled" ) );
 }
 
-PyObject *RenderData_YafrayGIPhotonRadius( BPy_RenderData * self,
+static PyObject *RenderData_YafrayGIPhotonRadius( BPy_RenderData * self,
 					   PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1590,7 +1583,7 @@ PyObject *RenderData_YafrayGIPhotonRadius( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GIPhotons must be enabled" ) );
 }
 
-PyObject *RenderData_YafrayGIPhotonMixCount( BPy_RenderData * self,
+static PyObject *RenderData_YafrayGIPhotonMixCount( BPy_RenderData * self,
 					     PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1603,7 +1596,7 @@ PyObject *RenderData_YafrayGIPhotonMixCount( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GIPhotons must be enabled" ) );
 }
 
-PyObject *RenderData_EnableYafrayGITunePhotons( BPy_RenderData * self,
+static PyObject *RenderData_EnableYafrayGITunePhotons( BPy_RenderData * self,
 						PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1616,7 +1609,7 @@ PyObject *RenderData_EnableYafrayGITunePhotons( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GIPhotons must be enabled" ) );
 }
 
-PyObject *RenderData_YafrayGIShadowQuality( BPy_RenderData * self,
+static PyObject *RenderData_YafrayGIShadowQuality( BPy_RenderData * self,
 					    PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1630,7 +1623,7 @@ PyObject *RenderData_YafrayGIShadowQuality( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GICache must be enabled" ) );
 }
 
-PyObject *RenderData_YafrayGIPixelsPerSample( BPy_RenderData * self,
+static PyObject *RenderData_YafrayGIPixelsPerSample( BPy_RenderData * self,
 					      PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1643,7 +1636,7 @@ PyObject *RenderData_YafrayGIPixelsPerSample( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GICache must be enabled" ) );
 }
 
-PyObject *RenderData_YafrayGIRefinement( BPy_RenderData * self,
+static PyObject *RenderData_YafrayGIRefinement( BPy_RenderData * self,
 					 PyObject * args )
 {
 	if( self->renderContext->GImethod == 2
@@ -1657,53 +1650,53 @@ PyObject *RenderData_YafrayGIRefinement( BPy_RenderData * self,
 						"YafrayGIMethod must be set to 'FULL' and GICache must be enabled" ) );
 }
 
-PyObject *RenderData_YafrayRayBias( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayRayBias( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
 					      &self->renderContext->YF_raybias,
 					      0.0f, 10.0f );
 }
 
-PyObject *RenderData_YafrayRayDepth( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayRayDepth( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeInt( args,
 					    &self->renderContext->YF_raydepth,
 					    1, 80 );
 }
 
-PyObject *RenderData_YafrayGamma( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayGamma( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
 					      &self->renderContext->YF_gamma,
 					      0.001f, 5.0f );
 }
 
-PyObject *RenderData_YafrayExposure( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_YafrayExposure( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeFloat( args,
 					      &self->renderContext->
 					      YF_exposure, 0.0f, 10.0f );
 }
 
-PyObject *RenderData_EnableGameFrameStretch( BPy_RenderData * self )
+static PyObject *RenderData_EnableGameFrameStretch( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_SCALE;
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableGameFrameExpose( BPy_RenderData * self )
+static PyObject *RenderData_EnableGameFrameExpose( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_EXTEND;
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_EnableGameFrameBars( BPy_RenderData * self )
+static PyObject *RenderData_EnableGameFrameBars( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_BARS;
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_SetGameFrameColor( BPy_RenderData * self,
+static PyObject *RenderData_SetGameFrameColor( BPy_RenderData * self,
 					PyObject * args )
 {
 	float red = 0.0f;
@@ -1731,7 +1724,7 @@ PyObject *RenderData_SetGameFrameColor( BPy_RenderData * self,
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_GetGameFrameColor( BPy_RenderData * self )
+static PyObject *RenderData_GetGameFrameColor( BPy_RenderData * self )
 {
 	char rgb[24];
 
@@ -1741,33 +1734,33 @@ PyObject *RenderData_GetGameFrameColor( BPy_RenderData * self )
 }
 
 #ifdef __sgi
-PyObject *RenderData_SGIMaxsize( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_SGIMaxsize( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_GetSetAttributeShort( args,
 					      &self->renderContext->maximsize,
 					      0, 500 );
 }
 
-PyObject *RenderData_EnableSGICosmo( BPy_RenderData *self, PyObject *args )
+static PyObject *RenderData_EnableSGICosmo( BPy_RenderData *self, PyObject *args )
 {
 	return M_Render_BitToggleInt( args, R_COSMO,
 				      &self->renderContext->mode );
 }
 #else
-PyObject *RenderData_SGIMaxsize( void )
+static PyObject *RenderData_SGIMaxsize( void )
 {
 	return EXPP_ReturnPyObjError( PyExc_StandardError,
 			"SGI is not defined on this machine" );
 }
 
-PyObject *RenderData_EnableSGICosmo( void )
+static PyObject *RenderData_EnableSGICosmo( void )
 {
 	return EXPP_ReturnPyObjError( PyExc_StandardError,
 			"SGI is not defined on this machine" );
 }
 #endif
 
-PyObject *RenderData_OldMapValue( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_OldMapValue( BPy_RenderData * self, PyObject * args )
 {
 	PyObject *tmp = M_Render_GetSetAttributeInt(args,
 		&self->renderContext->framapto, 1, 900);
@@ -1776,7 +1769,7 @@ PyObject *RenderData_OldMapValue( BPy_RenderData * self, PyObject * args )
 	return tmp;
 }
 
-PyObject *RenderData_NewMapValue( BPy_RenderData * self, PyObject * args )
+static PyObject *RenderData_NewMapValue( BPy_RenderData * self, PyObject * args )
 {
 	PyObject *tmp = M_Render_GetSetAttributeInt(args,
 			&self->renderContext->images, 1, 900);
@@ -1808,7 +1801,7 @@ static PyObject *RenderData_getTimeCode( BPy_RenderData * self) {
 /***************************************************************************/
 /* Render layer functions                                                  */
 /***************************************************************************/
-PyObject *RenderData_getRenderLayers(BPy_RenderData * self)
+static PyObject *RenderData_getRenderLayers(BPy_RenderData * self)
 {
 	PyObject *list, *layer;
 	SceneRenderLayer *srl;
@@ -1823,7 +1816,7 @@ PyObject *RenderData_getRenderLayers(BPy_RenderData * self)
 	return list;
 }
 
-PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *value)
+static PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *value)
 {
 	int index;
 	if (!BPy_RenderLayer_Check(value))
@@ -1860,7 +1853,7 @@ PyObject *RenderData_removeRenderLayer(BPy_RenderData * self, BPy_RenderLayer *v
 	Py_RETURN_NONE;
 }
 
-PyObject *RenderData_addRenderLayer(BPy_RenderData * self ) {
+static PyObject *RenderData_addRenderLayer(BPy_RenderData * self ) {
 	scene_add_render_layer(self->scene);
 	return RenderLayer_CreatePyObject( self->scene, self->renderContext->layers.last );
 	

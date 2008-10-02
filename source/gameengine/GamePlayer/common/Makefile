@@ -43,6 +43,7 @@ CPPFLAGS += -I../../../blender/blenloader
 CPPFLAGS += -I../../../blender/blenlib
 CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
+CPPFLAGS += -I../../../blender/gpu
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
@@ -71,10 +72,6 @@ CPPFLAGS += -I../../../gameengine/SceneGraph
 CPPFLAGS += -I../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../../gameengine/Physics/Sumo
 CPPFLAGS += -I../../../gameengine/Physics/common
-
-ifeq ($(WITH_BF_GLEXT),true)
-    CPPFLAGS += -DWITH_GLEXT
-endif
 
 ###############################
 

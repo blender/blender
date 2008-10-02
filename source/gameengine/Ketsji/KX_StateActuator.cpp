@@ -140,9 +140,9 @@ KX_StateActuator::Parents[] = {
 PyMethodDef 
 KX_StateActuator::Methods[] = {
 	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
-	 METH_VARARGS, SetOperation_doc},
+	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
 	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
-	 METH_VARARGS, SetMask_doc},
+	 METH_VARARGS, (PY_METHODCHAR)SetMask_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -157,7 +157,7 @@ KX_StateActuator::_getattr(
 
 
 /* set operation ---------------------------------------------------------- */
-char 
+const char 
 KX_StateActuator::SetOperation_doc[] = 
 "setOperation(op)\n"
 "\t - op : bit operation (0=Copy, 1=Set, 2=Clear, 3=Negate)"
@@ -180,7 +180,7 @@ KX_StateActuator::PySetOperation(PyObject* self,
 }
 
 /* set mask ---------------------------------------------------------- */
-char 
+const char 
 KX_StateActuator::SetMask_doc[] = 
 "setMask(mask)\n"
 "\t - mask : bits that will be modified"

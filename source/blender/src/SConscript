@@ -26,7 +26,8 @@ incs += ' #/intern/bsp/extern ../radiosity/extern/include'
 incs += ' #/intern/decimation/extern ../blenloader ../python'
 incs += ' ../../kernel/gen_system #/intern/SoundSystem ../readstreamglue ../nodes'
 incs += ' ../quicktime #/intern/elbeem/extern'
-incs += ' #/intern/ghost #/intern/opennl/extern #/extern/glew/include'
+incs += ' #/intern/ghost #/intern/opennl/extern'
+incs += ' ../gpu #extern/glew/include'
 
 
 incs += ' ' + env['BF_PYTHON_INC']
@@ -74,7 +75,13 @@ if env['WITH_BF_VERSE']:
 # TODO buildinfo
 if env['BF_BUILDINFO'] == 1:
     defs.append('NAN_BUILDINFO')
-	
+
+if env['BF_NO_ELBEEM'] == 1:
+    defs.append('DISABLE_ELBEEM')
+
+if env['WITH_BF_SDL'] == 0:
+    defs.append('DISABLE_SDL')
+
 if (env['BF_SPLIT_SRC'] == 1) and (env['OURPLATFORM'] == 'win32-mingw'): 	 
 	for i in range(numlibs): 	 
 		env.BlenderLib ( libname = 'src%d' % (i), sources = subsources[i], includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] ) 	 

@@ -50,15 +50,17 @@
 
 #include "radio.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 /* locals */
-void *malloc_fast(int size);
-void *calloc_fast(int size);
-void free_fast(void *poin, int siz);
-void deleteTriNodes(RNode *node);
+static void *malloc_fast(int size);
+static void *calloc_fast(int size);
+static void free_fast(void *poin, int siz);
+static void deleteTriNodes(RNode *node);
 /* lower because of local type define */
 /*  void check_mallocgroup(MallocGroup *mg); */
 
@@ -120,7 +122,7 @@ void check_mallocgroup(MallocGroup *mg)
 	printf("fastmalloc: shouldnt be here\n");
 }
 
-void *malloc_fast(int size)
+static void *malloc_fast(int size)
 {
 	MallocGroup *mg;
 	void *retval;
@@ -154,7 +156,7 @@ void *malloc_fast(int size)
 	return mg->data;
 }
 
-void *calloc_fast(int size)
+static void *calloc_fast(int size)
 {
 	void *poin;
 	
@@ -164,17 +166,17 @@ void *calloc_fast(int size)
 	return poin;
 }
 
-void free_fast(void *poin, int size)
+static void free_fast(void *poin, int size)
 {
 	MallocGroup *mg;
-	long val;
+	intptr_t val;
 
 	mg= MallocBase.last;
 	while(mg) {
 		if(mg->size==size) {
-			if( ((long)poin) >= ((long)mg->data) ) {
-				if( ((long)poin) < ((long)(mg->data+MAL_GROUPSIZE*size)) ) {
-					val= ((long)poin) - ((long)mg->data);
+			if( ((intptr_t)poin) >= ((intptr_t)mg->data) ) {
+				if( ((intptr_t)poin) < ((intptr_t)(mg->data+MAL_GROUPSIZE*size)) ) {
+					val= ((intptr_t)poin) - ((intptr_t)mg->data);
 					val/= size;
 					mg->curfree= val;
 					mg->flags[val]= 0;
@@ -956,7 +958,7 @@ int comparelevel(RNode *node, RNode *nb, int level)
 	return 1;
 }
 
-void deleteTriNodes(RNode *node) 	/* both children of node */
+static void deleteTriNodes(RNode *node) 	/* both children of node */
 {
 	RNode *n1, *n2;
 	

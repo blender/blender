@@ -2949,13 +2949,16 @@ void do_render_seq(RenderResult *rr, int cfra)
 		   (schlaile)
 		*/
 		{
-			extern int mem_in_use;
-			extern int mmap_in_use;
+			uintptr_t mem_in_use;
+			uintptr_t mmap_in_use;
+			uintptr_t max;
 
-			int max = MEM_CacheLimiter_get_maximum();
+			mem_in_use= MEM_get_memory_in_use();
+			mmap_in_use= MEM_get_mapped_memory_in_use();
+			max = MEM_CacheLimiter_get_maximum();
+
 			if (max != 0 && mem_in_use + mmap_in_use > max) {
-				fprintf(stderr, "mem_in_use = %d, max = %d\n",
-					mem_in_use + mmap_in_use, max);
+				fprintf(stderr, "Memory in use > maximum memory\n");
 				fprintf(stderr, "Cleaning up, please wait...\n"
 					"If this happens very often,\n"
 					"consider "

@@ -47,7 +47,7 @@ class BL_MeshDeformer : public RAS_Deformer
 public:
 	void VerifyStorage();
 	void RecalcNormals();
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map){};
+	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
 	BL_MeshDeformer(BL_DeformableGameObject *gameobj,
 					struct Object* obj,
 					class BL_SkinMeshObject *meshobj ):
@@ -64,9 +64,10 @@ public:
 	virtual void SetSimulatedTime(double time){};
 	virtual bool Apply(class RAS_IPolyMaterial *mat);
 	virtual bool Update(void){ return false; };
-	virtual	RAS_Deformer*	GetReplica(){return NULL;};
+	virtual	RAS_Deformer*	GetReplica(class KX_GameObject* replica){return NULL;};
 	struct Mesh* GetMesh() { return m_bmesh; };
 	//	virtual void InitDeform(double time){};
+
 protected:
 	class BL_SkinMeshObject*	m_pMeshObject;
 	struct Mesh*				m_bmesh;

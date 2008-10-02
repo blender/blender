@@ -602,7 +602,7 @@ def bakeObject(ob): #bakes the core object locrot and assigns the Ipo to a Clone
 	if ob != None:  
 		# Clone the object - duplicate it, clean the clone, and create an ipo curve for the clone
 		myob = duplicateLinked(ob)  #clone it
-		myob.name= usrObjectNamePrefix + ob.getName()
+		myob.setName(usrObjectNamePrefix + ob.getName())
 		removeConstraintsOb(myob)   #my object is a free man
 		deLinkOb('Ipo',myob)        #kids, it's not nice to share. you've been lied to
 		if ob.getType() != ARMATURE: # baking armatures is based on bones, not object

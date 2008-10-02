@@ -243,7 +243,7 @@ static PyObject *LibBlockSeq_nextIter( BPy_LibBlockSeq * self )
 	return object;
 }
 
-PyObject *LibBlockSeq_getActive(BPy_LibBlockSeq *self)
+static PyObject *LibBlockSeq_getActive(BPy_LibBlockSeq *self)
 {
 	switch (self->type) {
 	case ID_SCE:
@@ -263,9 +263,12 @@ PyObject *LibBlockSeq_getActive(BPy_LibBlockSeq *self)
 		}
 		break;
 	case ID_TXT: {
-			SpaceText *st= curarea->spacedata.first;
+			SpaceText *st = NULL;
 			
-			if (st->spacetype!=SPACE_TEXT || st->text==NULL) {
+			if (curarea)
+				st = curarea->spacedata.first;
+			
+			if (st==NULL || st->spacetype!=SPACE_TEXT || st->text==NULL) {
 				Py_RETURN_NONE;
 			} else {
 				return Text_CreatePyObject( st->text );
@@ -330,8 +333,14 @@ static int LibBlockSeq_setActive(BPy_LibBlockSeq *self, PyObject *value)
 			return EXPP_ReturnIntError(PyExc_TypeError,
 					"Must be a text" );
 		} else {
-			SpaceText *st= curarea->spacedata.first;	
+			SpaceText *st= NULL;
 			Text *data = ((BPy_Text *)value)->text;
+			
+			if (curarea==NULL) {
+				return 0;
+			} else {
+				st= curarea->spacedata.first;
+			}
 			
 			if( !data )
 				return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -373,7 +382,7 @@ static int LibBlockSeq_setTag(BPy_LibBlockSeq *self, PyObject *value)
 
 
 /* New Data, internal functions */
-Mesh *add_mesh__internal(char *name)
+static Mesh *add_mesh__internal(char *name)
 {
 	Mesh *mesh = add_mesh(name); /* doesn't return NULL now, but might someday */
 	
@@ -444,8 +453,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 					return EXPP_ReturnPyObjError( PyExc_IOError,
 						      "couldn't create pyobject on load, unknown error" );
 			if (name) {
-				ID *id = ((BPy_GenericLib *)ret)->id;
-				rename_id( id, name );
+				rename_id( ((BPy_GenericLib *)ret)->id, name );
 			}
 			return ret;
 		}
@@ -590,7 +598,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 }
 
 
-PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
+static PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
 {
 	switch (self->type) {
 	case ID_SCE:
@@ -781,15 +789,12 @@ PyTypeObject LibBlockSeq_Type = {
 PyObject * Data_Init( void )
 {
 	PyObject *module;
-	PyObject *dict;
-	
 	
 	PyType_Ready( &LibBlockSeq_Type );
 	PyType_Ready( &Config_Type );
 	
 	/*submodule = Py_InitModule3( "Blender.Main", NULL, M_Main_doc );*/
 	module = Py_InitModule3( "bpy.data", NULL, "The bpy.data submodule" );
-	dict = PyModule_GetDict( module );
 	
 	/* Python Data Types */
 	PyModule_AddObject( module, "scenes", 	LibBlockSeq_CreatePyObject(NULL, ID_SCE) );

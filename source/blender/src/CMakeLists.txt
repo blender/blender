@@ -35,7 +35,7 @@ SET(INC
   ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern
-  ../nodes ../../../extern/glew/include
+  ../nodes ../../../extern/glew/include ../gpu
   ${PYTHON_INC}
   ${SDL_INC}
 )
@@ -80,3 +80,6 @@ IF(WITH_VERSE)
   ADD_DEPENDENCIES(src mkprot verse)
 ENDIF(WITH_VERSE)
 
+IF(NOT WITH_ELBEEM)
+  ADD_DEFINITIONS(-DDISABLE_ELBEEM)
+ENDIF(NOT WITH_ELBEEM)

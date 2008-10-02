@@ -33,6 +33,7 @@
 struct ScrArea;
 struct SpaceText;
 struct Text;
+struct TextLine;
 
 void unlink_text(struct Text *text);
 
@@ -44,8 +45,8 @@ void add_text_fs(char *file);
 void free_txt_data(void);
 void pop_space_text(struct SpaceText *st);
 
-void get_format_string(struct SpaceText *st);
-void do_brackets(void);
+void txt_format_text(struct SpaceText *st);
+void txt_format_line(struct SpaceText *st, struct TextLine *line, int do_next);
 
 #endif
 

@@ -7,6 +7,8 @@
 
 #include "CCGSubSurf.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /***/
 
 typedef unsigned char	byte;
@@ -35,7 +37,7 @@ typedef struct _EHash {
 #define EHASH_alloc(eh, nb)			((eh)->allocatorIFC.alloc((eh)->allocator, nb))
 #define EHASH_free(eh, ptr)			((eh)->allocatorIFC.free((eh)->allocator, ptr))
 
-#define EHASH_hash(eh, item)	(((unsigned long) (item))%((unsigned int) (eh)->curSize))
+#define EHASH_hash(eh, item)	(((uintptr_t) (item))%((unsigned int) (eh)->curSize))
 
 static EHash *_ehash_new(int estimatedNumEntries, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator) {
 	EHash *eh = allocatorIFC->alloc(allocator, sizeof(*eh));
@@ -199,21 +201,21 @@ static CCGAllocatorIFC *_getStandardAllocatorIFC(void) {
 static int VertDataEqual(float *a, float *b) {
 	return a[0]==b[0] && a[1]==b[1] && a[2]==b[2];
 }
-#define VertDataZero(av)				{ float *a = (float*) av; a[0] = a[1] = a[2] = 0.0f; }
-#define VertDataCopy(av, bv)			{ float *a = (float*) av, *b = (float*) bv; a[0] =b[0]; a[1] =b[1]; a[2] =b[2]; }
-#define VertDataAdd(av, bv)				{ float *a = (float*) av, *b = (float*) bv; a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; }
-#define VertDataSub(av, bv)				{ float *a = (float*) av, *b = (float*) bv; a[0]-=b[0]; a[1]-=b[1]; a[2]-=b[2]; }
-#define VertDataMulN(av, n)				{ float *a = (float*) av; a[0]*=n; a[1]*=n; a[2]*=n; }
+#define VertDataZero(av)				{ float *_a = (float*) av; _a[0] = _a[1] = _a[2] = 0.0f; }
+#define VertDataCopy(av, bv)			{ float *_a = (float*) av, *_b = (float*) bv; _a[0] =_b[0]; _a[1] =_b[1]; _a[2] =_b[2]; }
+#define VertDataAdd(av, bv)				{ float *_a = (float*) av, *_b = (float*) bv; _a[0]+=_b[0]; _a[1]+=_b[1]; _a[2]+=_b[2]; }
+#define VertDataSub(av, bv)				{ float *_a = (float*) av, *_b = (float*) bv; _a[0]-=_b[0]; _a[1]-=_b[1]; _a[2]-=_b[2]; }
+#define VertDataMulN(av, n)				{ float *_a = (float*) av; _a[0]*=n; _a[1]*=n; _a[2]*=n; }
 #define VertDataAvg4(tv, av, bv, cv, dv) \
 	{ \
-		float *t = (float*) tv, *a = (float*) av, *b = (float*) bv, *c = (float*) cv, *d = (float*) dv; \
-		t[0] = (a[0]+b[0]+c[0]+d[0])*.25; \
-		t[1] = (a[1]+b[1]+c[1]+d[1])*.25; \
-		t[2] = (a[2]+b[2]+c[2]+d[2])*.25; \
+		float *_t = (float*) tv, *_a = (float*) av, *_b = (float*) bv, *_c = (float*) cv, *_d = (float*) dv; \
+		_t[0] = (_a[0]+_b[0]+_c[0]+_d[0])*.25; \
+		_t[1] = (_a[1]+_b[1]+_c[1]+_d[1])*.25; \
+		_t[2] = (_a[2]+_b[2]+_c[2]+_d[2])*.25; \
 	}
-#define NormZero(av)					{ float *a = (float*) av; a[0] = a[1] = a[2] = 0.0f; }
-#define NormCopy(av, bv)				{ float *a = (float*) av, *b = (float*) bv; a[0] =b[0]; a[1] =b[1]; a[2] =b[2]; }
-#define NormAdd(av, bv)					{ float *a = (float*) av, *b = (float*) bv; a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; }
+#define NormZero(av)					{ float *_a = (float*) av; _a[0] = _a[1] = _a[2] = 0.0f; }
+#define NormCopy(av, bv)				{ float *_a = (float*) av, *_b = (float*) bv; _a[0] =_b[0]; _a[1] =_b[1]; _a[2] =_b[2]; }
+#define NormAdd(av, bv)					{ float *_a = (float*) av, *_b = (float*) bv; _a[0]+=_b[0]; _a[1]+=_b[1]; _a[2]+=_b[2]; }
 
 
 static int _edge_isBoundary(CCGEdge *e);
@@ -328,7 +330,7 @@ struct _CCGSubSurf {
 
 /***/
 
-static CCGVert *_vert_new(CCGVertHDL vHDL, int levels, int dataSize, CCGSubSurf *ss) {
+static CCGVert *_vert_new(CCGVertHDL vHDL, CCGSubSurf *ss) {
 	CCGVert *v = CCGSUBSURF_alloc(ss, sizeof(CCGVert) + ss->meshIFC.vertDataSize * (ss->subdivLevels+1) + ss->meshIFC.vertUserSize);
 	byte *userData;
 
@@ -344,7 +346,7 @@ static CCGVert *_vert_new(CCGVertHDL vHDL, int levels, int dataSize, CCGSubSurf 
 
 	return v;
 }
-static void _vert_remEdge(CCGVert *v, CCGEdge *e, CCGSubSurf *ss) {
+static void _vert_remEdge(CCGVert *v, CCGEdge *e) {
 	int i;
 	for (i=0; i<v->numEdges; i++) {
 		if (v->edges[i]==e) {
@@ -353,7 +355,7 @@ static void _vert_remEdge(CCGVert *v, CCGEdge *e, CCGSubSurf *ss) {
 		}
 	}
 }
-static void _vert_remFace(CCGVert *v, CCGFace *f, CCGSubSurf *ss) {
+static void _vert_remFace(CCGVert *v, CCGFace *f) {
 	int i;
 	for (i=0; i<v->numFaces; i++) {
 		if (v->faces[i]==f) {
@@ -401,13 +403,13 @@ static void _vert_free(CCGVert *v, CCGSubSurf *ss) {
 	CCGSUBSURF_free(ss, v);
 }
 
-static int VERT_seam(CCGVert *v, CCGSubSurf *ss) {
+static int VERT_seam(CCGVert *v) {
 	return ((v->flags & Vert_eSeam) != 0);
 }
 
 /***/
 
-static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, float crease, int levels, int dataSize, CCGSubSurf *ss) {
+static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, float crease, CCGSubSurf *ss) {
 	CCGEdge *e = CCGSUBSURF_alloc(ss, sizeof(CCGEdge) + ss->meshIFC.vertDataSize *((ss->subdivLevels+1) + (1<<(ss->subdivLevels+1))-1) + ss->meshIFC.edgeUserSize);
 	byte *userData;
 
@@ -427,7 +429,7 @@ static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, float creas
 
 	return e;
 }
-static void _edge_remFace(CCGEdge *e, CCGFace *f, CCGSubSurf *ss) {
+static void _edge_remFace(CCGEdge *e, CCGFace *f) {
 	int i;
 	for (i=0; i<e->numFaces; i++) {
 		if (e->faces[i]==f) {
@@ -476,8 +478,8 @@ static void _edge_free(CCGEdge *e, CCGSubSurf *ss) {
 	CCGSUBSURF_free(ss, e);
 }
 static void _edge_unlinkMarkAndFree(CCGEdge *e, CCGSubSurf *ss) {
-	_vert_remEdge(e->v0, e, ss);
-	_vert_remEdge(e->v1, e, ss);
+	_vert_remEdge(e->v0, e);
+	_vert_remEdge(e->v1, e);
 	e->v0->flags |= Vert_eEffected;
 	e->v1->flags |= Vert_eEffected;
 	_edge_free(e, ss);
@@ -494,7 +496,7 @@ static float EDGE_getSharpness(CCGEdge *e, int lvl) {
 		return e->crease - lvl;
 }
 
-static CCGFace *_face_new(CCGFaceHDL fHDL, CCGVert **verts, CCGEdge **edges, int numVerts, int levels, int dataSize, CCGSubSurf *ss) {
+static CCGFace *_face_new(CCGFaceHDL fHDL, CCGVert **verts, CCGEdge **edges, int numVerts, CCGSubSurf *ss) {
 	int maxGridSize = 1 + (1<<(ss->subdivLevels-1));
 	CCGFace *f = CCGSUBSURF_alloc(ss, sizeof(CCGFace) + sizeof(CCGVert*)*numVerts + sizeof(CCGEdge*)*numVerts + ss->meshIFC.vertDataSize *(1 + numVerts*maxGridSize + numVerts*maxGridSize*maxGridSize) + ss->meshIFC.faceUserSize);
 	byte *userData;
@@ -608,8 +610,8 @@ static void _face_free(CCGFace *f, CCGSubSurf *ss) {
 static void _face_unlinkMarkAndFree(CCGFace *f, CCGSubSurf *ss) {
 	int j;
 	for (j=0; j<f->numVerts; j++) {
-		_vert_remFace(FACE_getVerts(f)[j], f, ss);
-		_edge_remFace(FACE_getEdges(f)[j], f, ss);
+		_vert_remFace(FACE_getVerts(f)[j], f);
+		_edge_remFace(FACE_getEdges(f)[j], f);
 		FACE_getVerts(f)[j]->flags |= Vert_eEffected;
 	}
 	_face_free(f, ss);
@@ -882,7 +884,7 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, in
 	if (ss->syncState==eSyncState_Partial) {
 		v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
 		if (!v) {
-			v = _vert_new(vHDL, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+			v = _vert_new(vHDL, ss);
 			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			_ehash_insert(ss->vMap, (EHEntry*) v);
 			v->flags = Vert_eEffected|seamflag;
@@ -911,7 +913,7 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, in
 
 		v = _ehash_lookupWithPrev(ss->oldVMap, vHDL, &prevp);
 		if (!v) {
-			v = _vert_new(vHDL, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+			v = _vert_new(vHDL, ss);
 			VertDataCopy(_vert_getCo(v,0,ss->meshIFC.vertDataSize), vertData);
 			_ehash_insert(ss->vMap, (EHEntry*) v);
 			v->flags = Vert_eEffected|seamflag;
@@ -941,7 +943,7 @@ CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0
 			CCGVert *v0 = _ehash_lookup(ss->vMap, e_vHDL0);
 			CCGVert *v1 = _ehash_lookup(ss->vMap, e_vHDL1);
 
-			eNew = _edge_new(eHDL, v0, v1, crease, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+			eNew = _edge_new(eHDL, v0, v1, crease, ss);
 
 			if (e) {
 				*prevp = eNew;
@@ -966,7 +968,7 @@ CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0
 		if (!e || e->v0->vHDL!=e_vHDL0 || e->v1->vHDL!=e_vHDL1|| e->crease!=crease) {
 			CCGVert *v0 = _ehash_lookup(ss->vMap, e_vHDL0);
 			CCGVert *v1 = _ehash_lookup(ss->vMap, e_vHDL1);
-			e = _edge_new(eHDL, v0, v1, crease, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+			e = _edge_new(eHDL, v0, v1, crease, ss);
 			_ehash_insert(ss->eMap, (EHEntry*) e);
 			e->v0->flags |= Vert_eEffected;
 			e->v1->flags |= Vert_eEffected;
@@ -1015,7 +1017,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 		}
 
 		if (!f || topologyChanged) {
-			fNew = _face_new(fHDL, ss->tempVerts, ss->tempEdges, numVerts, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+			fNew = _face_new(fHDL, ss->tempVerts, ss->tempEdges, numVerts, ss);
 
 			if (f) {
 				ss->numGrids += numVerts - f->numVerts;
@@ -1052,7 +1054,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 
 			if (!ss->tempEdges[k]) {
 				if (ss->allowEdgeCreation) {
-					CCGEdge *e = ss->tempEdges[k] = _edge_new((CCGEdgeHDL) -1, ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts], ss->defaultCreaseValue, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+					CCGEdge *e = ss->tempEdges[k] = _edge_new((CCGEdgeHDL) -1, ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts], ss->defaultCreaseValue, ss);
 					_ehash_insert(ss->eMap, (EHEntry*) e);
 					e->v0->flags |= Vert_eEffected;
 					e->v1->flags |= Vert_eEffected;
@@ -1073,7 +1075,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 		}
 
 		if (!f || topologyChanged) {
-			f = _face_new(fHDL, ss->tempVerts, ss->tempEdges, numVerts, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+			f = _face_new(fHDL, ss->tempVerts, ss->tempEdges, numVerts, ss);
 			_ehash_insert(ss->fMap, (EHEntry*) f);
 			ss->numGrids += numVerts;
 
@@ -1226,7 +1228,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		void *nCo = VERT_getCo(v, nextLvl);
 		int sharpCount = 0, allSharp = 1;
 		float avgSharpness = 0.0;
-		int seam = VERT_seam(v, ss), seamEdges = 0;
+		int seam = VERT_seam(v), seamEdges = 0;
 
 		for (i=0; i<v->numEdges; i++) {
 			CCGEdge *e = v->edges[i];
@@ -1524,7 +1526,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			void *nCo = VERT_getCo(v, nextLvl);
 			int sharpCount = 0, allSharp = 1;
 			float avgSharpness = 0.0;
-			int seam = VERT_seam(v, ss), seamEdges = 0;
+			int seam = VERT_seam(v), seamEdges = 0;
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
@@ -2069,7 +2071,7 @@ int ccgSubSurf_getGridLevelSize(CCGSubSurf *ss, int level) {
 
 /* Vert accessors */
 
-CCGVertHDL ccgSubSurf_getVertVertHandle(CCGSubSurf *ss, CCGVert *v) {
+CCGVertHDL ccgSubSurf_getVertVertHandle(CCGVert *v) {
 	return v->vHDL;
 }
 int ccgSubSurf_getVertAge(CCGSubSurf *ss, CCGVert *v) {
@@ -2083,20 +2085,20 @@ int ccgSubSurf_getVertAge(CCGSubSurf *ss, CCGVert *v) {
 void *ccgSubSurf_getVertUserData(CCGSubSurf *ss, CCGVert *v) {
 	return VERT_getLevelData(v) + ss->meshIFC.vertDataSize*(ss->subdivLevels+1);
 }
-int ccgSubSurf_getVertNumFaces(CCGSubSurf *ss, CCGVert *v) {
+int ccgSubSurf_getVertNumFaces(CCGVert *v) {
 	return v->numFaces;
 }
-CCGFace *ccgSubSurf_getVertFace(CCGSubSurf *ss, CCGVert *v, int index) {
+CCGFace *ccgSubSurf_getVertFace(CCGVert *v, int index) {
 	if (index<0 || index>=v->numFaces) {
 		return NULL;
 	} else {
 		return v->faces[index];
 	}
 }
-int ccgSubSurf_getVertNumEdges(CCGSubSurf *ss, CCGVert *v) {
+int ccgSubSurf_getVertNumEdges(CCGVert *v) {
 	return v->numEdges;
 }
-CCGEdge *ccgSubSurf_getVertEdge(CCGSubSurf *ss, CCGVert *v, int index) {
+CCGEdge *ccgSubSurf_getVertEdge(CCGVert *v, int index) {
 	if (index<0 || index>=v->numEdges) {
 		return NULL;
 	} else {
@@ -2116,7 +2118,7 @@ void *ccgSubSurf_getVertLevelData(CCGSubSurf *ss, CCGVert *v, int level) {
 
 /* Edge accessors */
 
-CCGEdgeHDL ccgSubSurf_getEdgeEdgeHandle(CCGSubSurf *ss, CCGEdge *e) {
+CCGEdgeHDL ccgSubSurf_getEdgeEdgeHandle(CCGEdge *e) {
 	return e->eHDL;
 }
 int ccgSubSurf_getEdgeAge(CCGSubSurf *ss, CCGEdge *e) {
@@ -2130,20 +2132,20 @@ int ccgSubSurf_getEdgeAge(CCGSubSurf *ss, CCGEdge *e) {
 void *ccgSubSurf_getEdgeUserData(CCGSubSurf *ss, CCGEdge *e) {
 	return EDGE_getLevelData(e) + ss->meshIFC.vertDataSize *((ss->subdivLevels+1) + (1<<(ss->subdivLevels+1))-1);
 }
-int ccgSubSurf_getEdgeNumFaces(CCGSubSurf *ss, CCGEdge *e) {
+int ccgSubSurf_getEdgeNumFaces(CCGEdge *e) {
 	return e->numFaces;
 }
-CCGFace *ccgSubSurf_getEdgeFace(CCGSubSurf *ss, CCGEdge *e, int index) {
+CCGFace *ccgSubSurf_getEdgeFace(CCGEdge *e, int index) {
 	if (index<0 || index>=e->numFaces) {
 		return NULL;
 	} else {
 		return e->faces[index];
 	}
 }
-CCGVert *ccgSubSurf_getEdgeVert0(CCGSubSurf *ss, CCGEdge *e) {
+CCGVert *ccgSubSurf_getEdgeVert0(CCGEdge *e) {
 	return e->v0;
 }
-CCGVert *ccgSubSurf_getEdgeVert1(CCGSubSurf *ss, CCGEdge *e) {
+CCGVert *ccgSubSurf_getEdgeVert1(CCGEdge *e) {
 	return e->v1;
 }
 void *ccgSubSurf_getEdgeDataArray(CCGSubSurf *ss, CCGEdge *e) {
@@ -2159,7 +2161,7 @@ void *ccgSubSurf_getEdgeLevelData(CCGSubSurf *ss, CCGEdge *e, int x, int level) 
 		return _edge_getCo(e, level, x, ss->meshIFC.vertDataSize);
 	}
 }
-float ccgSubSurf_getEdgeCrease(CCGSubSurf *ss, CCGEdge *e) {
+float ccgSubSurf_getEdgeCrease(CCGEdge *e) {
 	return e->crease;
 }
 
@@ -2180,7 +2182,7 @@ void *ccgSubSurf_getFaceUserData(CCGSubSurf *ss, CCGFace *f) {
 	int maxGridSize = 1 + (1<<(ss->subdivLevels-1));
 	return FACE_getCenterData(f) + ss->meshIFC.vertDataSize *(1 + f->numVerts*maxGridSize + f->numVerts*maxGridSize*maxGridSize);
 }
-int ccgSubSurf_getFaceNumVerts(CCGSubSurf *ss, CCGFace *f) {
+int ccgSubSurf_getFaceNumVerts(CCGFace *f) {
 	return f->numVerts;
 }
 CCGVert *ccgSubSurf_getFaceVert(CCGSubSurf *ss, CCGFace *f, int index) {
@@ -2197,7 +2199,7 @@ CCGEdge *ccgSubSurf_getFaceEdge(CCGSubSurf *ss, CCGFace *f, int index) {
 		return FACE_getEdges(f)[index];
 	}
 }
-int ccgSubSurf_getFaceEdgeIndex(CCGSubSurf *ss, CCGFace *f, CCGEdge *e) {
+int ccgSubSurf_getFaceEdgeIndex(CCGFace *f, CCGEdge *e) {
 	int i;
 
 	for (i=0; i<f->numVerts; i++)
@@ -2206,7 +2208,7 @@ int ccgSubSurf_getFaceEdgeIndex(CCGSubSurf *ss, CCGFace *f, CCGEdge *e) {
 
 	return -1;
 }
-void *ccgSubSurf_getFaceCenterData(CCGSubSurf *ss, CCGFace *f) {
+void *ccgSubSurf_getFaceCenterData(CCGFace *f) {
 	return FACE_getCenterData(f);
 }
 void *ccgSubSurf_getFaceGridEdgeDataArray(CCGSubSurf *ss, CCGFace *f, int gridIndex) {

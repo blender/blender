@@ -317,7 +317,7 @@ void IDP_FreeIterBeforeEnd(void *vself)
   This is because all ID Property freeing functions free only direct data (not the ID Property
   struct itself), but for Groups the child properties *are* considered
   direct data.*/
-void IDP_FreeGroup(IDProperty *prop)
+static void IDP_FreeGroup(IDProperty *prop)
 {
 	IDProperty *loop, *next;
 	for (loop=prop->data.group.first; loop; loop=next)

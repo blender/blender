@@ -36,6 +36,7 @@
 #include "BKE_object.h"
 #include "BKE_ipo.h"
 #include "BLI_blenlib.h"
+#include "BIF_keyframing.h"
 #include "BIF_space.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"
@@ -1026,7 +1027,6 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 {
 	namefunc lookup_name;
 	int size;
-	PyObject *dict;
 	int *vals = NULL;
 	char name[32];
 	PyObject *attr = Py_None;
@@ -1130,7 +1130,6 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 	 * with string as key and adrcode as value
 	 */
 
-	dict = PyModule_GetDict( submodule );
 	attr = PyConstant_New();
 
 	while( size-- ) {
@@ -1147,7 +1146,7 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 	return attr;
 }
 
-void generate_curveconsts( PyObject* module )
+static void generate_curveconsts( PyObject* module )
 {
 	namefunc lookup_name = NULL;
 	int size = 0;

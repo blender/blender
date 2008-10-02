@@ -36,7 +36,7 @@
 #include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	10
+#define MAX_MTEX	18
 #endif
 
 struct MTex;
@@ -88,11 +88,11 @@ typedef struct Material {
 	float sbias;			/* shadow bias to prevent terminator prob */
 	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
 	float shad_alpha;		/* in use for irregular shadowbuffer */
-	float padf;				/* free padding, take me! */
+	int	septex;
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, septex, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
@@ -110,7 +110,7 @@ typedef struct Material {
 	short ramp_show, pad3;
 	float rampfac_col, rampfac_spec;
 
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
 	struct Group *group;	/* light group */
@@ -133,6 +133,8 @@ typedef struct Material {
 	int YF_dsmp, YF_preset, YF_djit;
 	
 	ScriptLink scriptlink;
+
+	ListBase gpumaterial;		/* runtime */
 } Material;
 
 /* **************** MATERIAL ********************* */
@@ -203,6 +205,7 @@ typedef struct Material {
 
 /* shade_flag */
 #define MA_CUBIC			1
+#define MA_OBCOLOR			2
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
@@ -317,6 +320,7 @@ typedef struct Material {
 #define MA_LAMP			6
 #define MA_SKY			7
 #define MA_HAIR			10
+#define MA_ATMOS		11
 
 /* pr_back */
 #define MA_DARK			1

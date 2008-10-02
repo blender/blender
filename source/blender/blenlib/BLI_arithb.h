@@ -91,6 +91,7 @@ float saasin(float fac);
 float sasqrt(float fac);
 
 int FloatCompare(float *v1, float *v2, float limit);
+int FloatCompare4(float *v1, float *v2, float limit);
 float FloatLerpf(float target, float origin, float fac);
 
 float CalcNormFloat(float *v1, float *v2, float *v3, float *n);
@@ -164,6 +165,7 @@ void Mat3Inv(float m1[][3], float m2[][3]);
 void Mat3CpyMat4(float m1[][3],float m2[][4]);
 void Mat4CpyMat3(float m1[][4], float m2[][3]); 
 
+void Mat3BlendMat3(float out[][3], float dst[][3], float src[][3], float srcweight);
 void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight);
 
 float Det2x2(float a,float b,float c, float d);
@@ -261,6 +263,7 @@ void Vec2Mulf(float *v1, float f);
 void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
+void Vec2Lerpf(float *target, float *a, float *b, float t);
 
 void AxisAngleToQuat(float *q, float *axis, float angle);
 void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
@@ -321,6 +324,10 @@ void i_window(
 	float mat[][4]
 );
 
+#define BLI_CS_SMPTE	0
+#define BLI_CS_REC709	1
+#define BLI_CS_CIE		2
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
@@ -328,7 +335,7 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb);
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
-void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b);
+void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b, int colorspace);
 int constrain_rgb(float *r, float *g, float *b);
 void gamma_correct_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);

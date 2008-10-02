@@ -84,6 +84,7 @@ public:
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
+	virtual	MT_Scalar	GetRadius();
 	virtual	MT_Vector3	getReactionForce();
 	virtual	void	setRigidBody(bool rigid);
 	

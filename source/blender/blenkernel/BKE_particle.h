@@ -73,6 +73,7 @@ typedef struct ParticleEffectorCache {
 	short type, psys_nbr;
 	
 	struct Object obcopy;	/* for restoring transformation data */
+	struct RNG *rng; /* random noise generator for e.g. wind */
 } ParticleEffectorCache;
 
 typedef struct ParticleReactEvent {
@@ -225,7 +226,7 @@ void psys_interpolate_mcol(struct MCol *mcol, int quad, float *uv, struct MCol *
 
 void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int time);
 
-void psys_particle_on_emitter(struct Object *ob, struct ParticleSystemModifierData *psmd, int distr, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
+void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct ParticleSystem *psys);
 
 struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
@@ -283,11 +284,12 @@ void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from
 float *psys_cache_vgroup(struct DerivedMesh *dm, struct ParticleSystem *psys, int vgroup);
 void psys_get_texture(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct ParticleSystem *psys, struct ParticleData *pa, struct ParticleTexture *ptex, int event);
 void psys_interpolate_face(struct MVert *mvert, struct MFace *mface, struct MTFace *tface, float (*orcodata)[3], float *uv, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
+float psys_particle_value_from_verts(struct DerivedMesh *dm, short from, struct ParticleData *pa, float *values);
 float psys_interpolate_value_from_verts(struct DerivedMesh *dm, short from, int index, float *fw, float *values);
 void psys_get_from_key(struct ParticleKey *key, float *loc, float *vel, float *rot, float *time);
 
 int psys_intersect_dm(struct Object *ob, struct DerivedMesh *dm, float *vert_cos, float *co1, float* co2, float *min_d, int *min_face, float *min_uv, float *face_minmax, float *pa_minmax, float radius, float *ipoint);
-void psys_particle_on_dm(struct Object *ob, struct DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
+void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 
 /* particle_system.c */
 void initialize_particle(struct ParticleData *pa, int p, struct Object *ob, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd);
@@ -302,6 +304,7 @@ int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int 
 #define PSYS_RESET_ALL			1
 #define PSYS_RESET_DEPSGRAPH 	2
 #define PSYS_RESET_CHILDREN 	3
+#define PSYS_RESET_CACHE_MISS	4
 
 /* ParticleEffectorCache->type */
 #define PSYS_EC_EFFECTOR	1

@@ -58,6 +58,8 @@
 
 #include "genfile.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* gcc 4.1 on mingw was complaining that __int64 was alredy defined
 actually is saw the line below as typedef long long long long... 
 Anyhow, since its alredy defined, its safe to do an ifndef here- Cambpell*/
@@ -315,7 +317,7 @@ static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
 /* in sdna->data the data, now we convert that to something understandable */
 {
 	int *data, *verg;
-	long nr;
+	intptr_t nr;
 	short *sp;
 	char str[8], *cp;
 	
@@ -351,7 +353,7 @@ static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
 			cp++;
 			nr++;
 		}
-		nr= (long)cp;		/* prevent BUS error */
+		nr= (intptr_t)cp;		/* prevent BUS error */
 		nr= (nr+3) & ~3;
 		cp= (char *)nr;
 		
@@ -389,7 +391,7 @@ static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
 			cp++;
 			nr++;
 		}
-		nr= (long)cp;		/* prevent BUS error */
+		nr= (intptr_t)cp;		/* prevent BUS error */
 		nr= (nr+3) & ~3;
 		cp= (char *)nr;
 		
@@ -1098,7 +1100,7 @@ int dna_elem_offset(struct SDNA *sdna, char *stype, char *vartype, char *name)
 	int SDNAnr= dna_findstruct_nr(sdna, stype);
 	short *spo= sdna->structs[SDNAnr];
 	char *cp= find_elem(sdna, vartype, name, spo, NULL, NULL);
-	return (int)((long)cp);
+	return (int)((intptr_t)cp);
 }
 
 

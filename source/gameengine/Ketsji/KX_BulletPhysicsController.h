@@ -49,9 +49,7 @@ public:
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 
-	void	SetDyna(bool isDynamic) {
-		m_bDyna = isDynamic;
-	}
+	virtual MT_Scalar GetRadius();
 
 
 	virtual void	SetSumoTransform(bool nondynaonly);

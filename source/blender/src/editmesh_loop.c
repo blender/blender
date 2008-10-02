@@ -519,6 +519,7 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		glDrawBuffer(GL_FRONT);
 		headerprint("(LMB) draw, (MMB) constrain to x/y screen axis, (Enter) cut (with Ctrl to select cut line), (Esc) cancel");
 	}
+	bglFlush();
 	
 	persp(PERSP_WIN);
 	
@@ -537,7 +538,6 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 			bglFlush();
 			glDrawBuffer(GL_BACK);
 			return(NULL);
-			break;
 		}	
 		
 		if (rubberband)  { /* rubberband mode, undraw last rubberband */
@@ -620,14 +620,14 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		
 		if ((i>1)&&(i!=lasti)) {  /*Draw recorded part of curve */
 			sdrawline((int)curve[i-2].x, (int)curve[i-2].y, (int)curve[i-1].x, (int)curve[i-1].y);
-			glFlush();
+			bglFlush();
 		}
 		
 		if ((i==lasti)&&(i>0)) { /*Draw rubberband */
 			glLineWidth(2.0);
 			sdrawXORline((int)curve[i-1].x, (int)curve[i-1].y,(int)mval[0], (int)mval[1]);
 			glLineWidth(1.0);
-			glFlush();
+			bglFlush();
 			rubberband=1;
 		}
 		lasti=i;
@@ -745,9 +745,9 @@ void KnifeSubdivide(char mode)
 			eed= eed->next;
 		}
 		
-		if      (mode==KNIFE_EXACT)    esubdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MIDPOINT) esubdivideflag(1, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MULTICUT) esubdivideflag(1, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
+		if(mode==KNIFE_EXACT) esubdivideflag(SELECT, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MIDPOINT) esubdivideflag(SELECT, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MULTICUT) esubdivideflag(SELECT, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
 
 		eed=em->edges.first;
 		while(eed){

@@ -328,7 +328,8 @@ LbmFsgrSolver::LbmFsgrSolver() :
 	mInit2dYZ(false),
 	mForceTadapRefine(-1), mCutoff(-1)
 {
-  // not much to do here... 
+	mpControl = new LbmControlData();
+
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mpTest = new LbmTestdata();
 	mMpNum = mMpIndex = 0;
@@ -438,6 +439,8 @@ LbmFsgrSolver::~LbmFsgrSolver()
 	delete mpIso;
 	if(mpPreviewSurface) delete mpPreviewSurface;
 	// cleanup done during scene deletion...
+	
+	if(mpControl) delete mpControl;
 
 	// always output performance estimate
 	debMsgStd("LbmFsgrSolver::~LbmFsgrSolver",DM_MSG," Avg. MLSUPS:"<<(mAvgMLSUPS/mAvgMLSUPSCnt), 5);
@@ -487,6 +490,8 @@ void LbmFsgrSolver::parseAttrList()
 	starttimeskip = mpSifAttrs->readFloat("forcestarttimeskip", starttimeskip, "LbmFsgrSolver","starttimeskip", false );
 	mSimulationTime += starttimeskip;
 	if(starttimeskip>0.) debMsgStd("LbmFsgrSolver::parseStdAttrList",DM_NOTIFY,"Used starttimeskip="<<starttimeskip<<", t="<<mSimulationTime, 1);
+
+	mpControl->parseControldataAttrList(mpSifAttrs);
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	mUseTestdata = 0;
@@ -689,21 +694,21 @@ bool LbmFsgrSolver::initializeSolverMemory()
 
 		// restrict max. chunk of 1 mem block to 1GB for windos
 		bool memBlockAllocProblem = false;
-		double maxWinMemChunk = 1100.*1024.*1024.;
-		double maxMacMemChunk = 1200.*1024.*1024.;
 		double maxDefaultMemChunk = 2.*1024.*1024.*1024.;
 		//std::cerr<<" memEstFine "<< memEstFine <<" maxWin:" <<maxWinMemChunk <<" maxMac:" <<maxMacMemChunk ; // DEBUG
 #ifdef WIN32
+		double maxWinMemChunk = 1100.*1024.*1024.;
 		if(sizeof(void *)==4 && memEstFine>maxWinMemChunk) {
 			memBlockAllocProblem = true;
 		}
 #endif // WIN32
 #ifdef __APPLE__
+		double maxMacMemChunk = 1200.*1024.*1024.;
 		if(memEstFine> maxMacMemChunk) {
 			memBlockAllocProblem = true;
 		}
 #endif // Mac
-		if(sizeof(void *)==4 && memEstFine>maxDefaultMemChunk) {
+		if(sizeof(void*)==4 && memEstFine>maxDefaultMemChunk) {
 			// max memory chunk for 32bit systems 2gig
 			memBlockAllocProblem = true;
 		}
@@ -1264,8 +1269,10 @@ bool LbmFsgrSolver::initializeSolverPostinit() {
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init done ... ",10);
 	mInitDone = 1;
 
-#if LBM_INCLUDE_TESTSOLVERS==1
+	// init fluid control
 	initCpdata();
+
+#if LBM_INCLUDE_TESTSOLVERS==1
 	initTestdata();
 #endif // ELBEEM_PLUGIN!=1
 	// not inited? dont use...

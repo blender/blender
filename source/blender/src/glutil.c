@@ -292,15 +292,63 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 
 void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *rect)
 {
-	unsigned char *uc_rect= (unsigned char*) rect;
-	float *f_rect= (float *)rect;
-	float xzoom= glaGetOneFloat(GL_ZOOM_X), yzoom= glaGetOneFloat(GL_ZOOM_Y);
-	int ltexid= glaGetOneInteger(GL_TEXTURE_2D);
-	int lrowlength= glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
-	int subpart_x, subpart_y, tex_w, tex_h;
-	int texid= get_cached_work_texture(&tex_w, &tex_h);
-	int nsubparts_x= (img_w+(tex_w-1))/tex_w;
-	int nsubparts_y= (img_h+(tex_h-1))/tex_h;
+	float *f_rect;
+	float xzoom, yzoom;
+	unsigned char *uc_rect;
+	int ltexid, lrowlength, texid, tex_w, tex_h;
+	int subpart_x, subpart_y, nsubparts_x, nsubparts_y;
+
+	uc_rect= (unsigned char*) rect;
+	f_rect= (float *)rect;
+
+#ifdef __APPLE__
+	/* On Nvidia, Mac OS X 10.5 this function doesn't work correct and
+	 * can crash even, use glDrawPixels instead of textures then */
+	if(is_a_really_crappy_nvidia_card()) {
+		float col[4], modcol[4];
+		unsigned char *srect = rect;
+		int a;
+
+		/* modulate with current color */
+		glGetFloatv(GL_CURRENT_COLOR, col);
+		if(col[0]!=1.0f || col[1]!=1.0f ||col[2]!=1.0f ||col[3]!=1.0f) {
+			srect = MEM_callocN(4*img_w*img_h, "glDrawPixelsTexSafe");
+			for(a=0; a<img_w*img_h*4; a+=4) {
+				if(format == GL_FLOAT) {
+					modcol[0]= col[0]*f_rect[a];
+					modcol[1]= col[1]*f_rect[a+1];
+					modcol[2]= col[2]*f_rect[a+2];
+					modcol[3]= col[3]*f_rect[a+3];
+				}
+				else {
+					modcol[0]= col[0]*uc_rect[a]*(1.0f/255.0f);
+					modcol[1]= col[1]*uc_rect[a+1]*(1.0f/255.0f);
+					modcol[2]= col[2]*uc_rect[a+2]*(1.0f/255.0f);
+					modcol[3]= col[3]*uc_rect[a+3]*(1.0f/255.0f);
+				}
+
+				srect[a]= FTOCHAR(modcol[0]);
+				srect[a+1]= FTOCHAR(modcol[1]);
+				srect[a+2]= FTOCHAR(modcol[2]);
+				srect[a+3]= FTOCHAR(modcol[3]);
+			}
+		}
+
+		glaDrawPixelsSafe(x, y, img_w, img_h, img_w, GL_RGBA, format, srect);
+
+		if(srect != rect)
+			MEM_freeN(srect);
+
+		return;
+	}
+#endif
+
+	xzoom= glaGetOneFloat(GL_ZOOM_X), yzoom= glaGetOneFloat(GL_ZOOM_Y);
+	ltexid= glaGetOneInteger(GL_TEXTURE_2D);
+	lrowlength= glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
+	texid= get_cached_work_texture(&tex_w, &tex_h);
+	nsubparts_x= (img_w+(tex_w-1))/tex_w;
+	nsubparts_y= (img_h+(tex_h-1))/tex_h;
 
 	/* Specify the color outside this function, and tex will modulate it.
 	 * This is useful for changing alpha without using glPixelTransferf()
@@ -348,7 +396,6 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf)
 {
 	float *rf;
@@ -713,6 +760,17 @@ int is_a_really_crappy_intel_card(void)
 		/* Do you understand the implication? Do you? */
 	if (well_is_it==-1)
 		well_is_it= (strcmp((char*) glGetString(GL_VENDOR), "Intel Inc.") == 0);
+
+	return well_is_it;
+}
+
+int is_a_really_crappy_nvidia_card(void)
+{
+	static int well_is_it= -1;
+
+	/* Do you understand the implication? Do you? */
+	if (well_is_it==-1)
+		well_is_it= (strcmp((char*) glGetString(GL_VENDOR), "NVIDIA Corporation") == 0);
 
 	return well_is_it;
 }

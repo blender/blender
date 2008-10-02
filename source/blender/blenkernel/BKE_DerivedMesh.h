@@ -55,6 +55,7 @@ struct EditMesh;
 struct ModifierData;
 struct MCol;
 struct ColorBand;
+struct GPUVertexAttribs;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
@@ -198,7 +199,8 @@ struct DerivedMesh {
 	 *
 	 * Also called for *final* editmode DerivedMeshes
 	 */
-	void (*drawFacesSolid)(DerivedMesh *dm, int (*setMaterial)(int));
+	void (*drawFacesSolid)(DerivedMesh *dm,
+	                       int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces
 	 *  o If useTwoSided, draw front and back using col arrays
@@ -214,6 +216,13 @@ struct DerivedMesh {
 	void (*drawFacesTex)(DerivedMesh *dm,
 	                     int (*setDrawOptions)(struct MTFace *tface,
 	                     struct MCol *mcol, int matnr));
+
+	/* Draw all faces with GLSL materials
+	 *  o setMaterial is called for every different material nr
+	 *  o Only if setMaterial returns true
+	 */
+	void (*drawFacesGLSL)(DerivedMesh *dm,
+		int (*setMaterial)(int, void *attribs));
 
 	/* Draw mapped faces (no color, or texture)
 	 *  o Only if !setDrawOptions or
@@ -240,6 +249,15 @@ struct DerivedMesh {
 	                           int (*setDrawOptions)(void *userData,
 	                                                 int index),
 	                           void *userData);
+
+	/* Draw mapped faces with GLSL materials
+	 *  o setMaterial is called for every different material nr
+	 *  o setDrawOptions is called for every face
+	 *  o Only if setMaterial and setDrawOptions return true
+	 */
+	void (*drawMappedFacesGLSL)(DerivedMesh *dm,
+		int (*setMaterial)(int, void *attribs),
+		int (*setDrawOptions)(void *userData, int index), void *userData);
 
 	/* Draw mapped edges as lines
 	 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge)
@@ -412,7 +430,10 @@ DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct Modifier
 
 DerivedMesh *mesh_create_derived_render(struct Object *ob,
                                         CustomDataMask dataMask);
-/* same as above but wont use render settings */
+
+DerivedMesh *mesh_create_derived_index_render(struct Object *ob, CustomDataMask dataMask, int index);
+
+		/* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived_view(struct Object *ob,
                                       CustomDataMask dataMask);
 DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,
@@ -436,6 +457,35 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 
 /* determines required DerivedMesh data according to view and edit modes */
 CustomDataMask get_viewedit_datamask();
+
+/* convert layers requested by a GLSL material to actually available layers in
+ * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
+typedef struct DMVertexAttribs {
+	struct {
+		struct MTFace *array;
+		int emOffset, glIndex;
+	} tface[MAX_MTFACE];
+
+	struct {
+		struct MCol *array;
+		int emOffset, glIndex;
+	} mcol[MAX_MCOL];
+
+	struct {
+		float (*array)[3];
+		int emOffset, glIndex;
+	} tang;
+
+	struct {
+		float (*array)[3];
+		int emOffset, glIndex;
+	} orco;
+
+	int tottface, totmcol, tottang, totorco;
+} DMVertexAttribs;
+
+void DM_vertex_attributes_from_gpu(DerivedMesh *dm,
+	struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
 
 void DM_add_tangent_layer(DerivedMesh *dm);
 

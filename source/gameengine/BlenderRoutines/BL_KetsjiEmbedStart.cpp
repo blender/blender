@@ -79,6 +79,8 @@
 #include "DNA_scene_types.h"
 	/***/
 
+#include "GPU_extensions.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,33 +92,10 @@ void update_for_newframe();
 
 static BlendFileData *load_game_data(char *filename) {
 	BlendReadError error;
-	//this doesn't work anymore for relative paths, so use BLO_read_from_memory instead
-	//BlendFileData *bfd= BLO_read_from_file(filename, &error);
-	FILE* file = fopen(filename,"rb");
-	BlendFileData *bfd  = 0;
-	if (file)
-	{
-		fseek(file, 0L, SEEK_END);
-		int len= ftell(file);
-		fseek(file, 0L, SEEK_SET);	
-		char* filebuffer= new char[len];//MEM_mallocN(len, "text_buffer");
-		int sizeread = fread(filebuffer,len,1,file);
-		if (sizeread==1){
-			bfd = BLO_read_from_memory(filebuffer, len, &error);
-		} else {
-			error = BRE_UNABLE_TO_READ;
-		}
-		fclose(file);
-		// the memory is not released in BLO_read_from_memory, must do it here
-		delete filebuffer;
-	} else {
-		error = BRE_UNABLE_TO_OPEN;
-	}
-
+	BlendFileData *bfd= BLO_read_from_file(filename, &error);
 	if (!bfd) {
 		printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
 	}
-	
 	return bfd;
 }
 
@@ -139,7 +118,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
 	PyGILState_STATE gilstate = PyGILState_Ensure();
-
+	
+	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
+	
 	bgl::InitExtensions(true);
 
 	do
@@ -157,7 +138,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool usemat = false, useglslmat = false;
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
+
+		if(GPU_extensions_minimum_support())
+			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
+		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+			usemat = false;
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -184,6 +170,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
 		
+		//
+		SYS_SystemHandle hSystem = SYS_GetSystem();
+		bool noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
+
+		if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
+			SND_DeviceManager::SetDeviceType(snd_e_dummydevice);
+
 		// get an audiodevice
 		SND_DeviceManager::Subscribe();
 		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
@@ -212,6 +205,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
 		MT_CmMatrix4x4 viewmat;
+		float camzoom;
 		int i;
 		
 		for (i = 0; i < 16; i++)
@@ -225,8 +219,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			projmat.setElem(i, projmat_linear[i]);
 		}
 		
-		float camzoom = (1.41421 + (v3d->camzoom / 50.0));
-		camzoom *= camzoom;
+		if(v3d->persp==V3D_CAMOB) {
+			camzoom = (1.41421 + (v3d->camzoom / 50.0));
+			camzoom *= camzoom;
+		}
+		else
+			camzoom = 2.0;
+
 		camzoom = 4.0 / camzoom;
 		
 		ketsjiengine->SetDrawType(v3d->drawtype);
@@ -307,6 +306,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == V3D_ORTHO));
 				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
 				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
+				ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
 			}
 			
 			// create a scene converter, create and convert the startingscene
@@ -315,24 +315,28 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
-			
-			if(usemat)
+
+			if(usemat && (G.fileflags & G_FILE_GAME_MAT))
 				sceneconverter->SetMaterials(true);
-			if(useglslmat)
+			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename);
+				startscenename,
+				blscene);
 			
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
+			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+			PyObject *gameLogic_keys = PyDict_Keys(PyModule_GetDict(gameLogic));
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
+			
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
@@ -362,6 +366,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				ketsjiengine->SetAnimFrameRate( (((double) blscene->r.frs_sec) / blscene->r.frs_sec_base) );
 				
 				// the mainloop
+				printf("\nBlender Game Engine Started\n\n");
 				while (!exitrequested)
 				{
 					// first check if we want to exit
@@ -397,6 +402,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 						mousedevice->ConvertBlenderEvent(event,val);
 					}
 				}
+				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
 				
 				// when exiting the mainloop
@@ -406,7 +412,20 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				// inside the GameLogic dictionary when the python interpreter is finalized.
 				// which allows the scene to safely delete them :)
 				// see: (space.c)->start_game
-				PyDict_Clear(PyModule_GetDict(gameLogic));
+				
+				//PyDict_Clear(PyModule_GetDict(gameLogic));
+				
+				// Keep original items, means python plugins will autocomplete members
+				int listIndex;
+				PyObject *gameLogic_keys_new = PyDict_Keys(PyModule_GetDict(gameLogic));
+				for (listIndex=0; listIndex < PyList_Size(gameLogic_keys_new); listIndex++)  {
+					PyObject* item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
+					if (!PySequence_Contains(gameLogic_keys, item)) {
+						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
+					}
+				}
+				Py_DECREF(gameLogic_keys_new);
+				gameLogic_keys_new = NULL;
 				
 				ketsjiengine->StopEngine();
 				exitGamePythonScripting();
@@ -417,6 +436,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				delete sceneconverter;
 				sceneconverter = NULL;
 			}
+			
+			Py_DECREF(gameLogic_keys);
+			gameLogic_keys = NULL;
 		}
 		// set the cursor back to normal
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
@@ -545,8 +567,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		// create the ketsjiengine
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
 
-		int i;
-
 		Scene *blscene = NULL;
 		if (!bfd)
 		{
@@ -562,7 +582,7 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		} else {
 			blscene = bfd->curscene;
 		}
-        int cframe,startFrame;
+        int cframe = 1, startFrame;
 		if (blscene)
 		{
 			cframe=blscene->r.cfra;
@@ -593,12 +613,14 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				mousedevice,
 				networkdevice,
 				audiodevice,
-				startscenename);
+				startscenename,
+				blscene);
+
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
 			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(startscene);
+			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
 			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
 			initGameKeys();
 			initPythonConstraintBinding();

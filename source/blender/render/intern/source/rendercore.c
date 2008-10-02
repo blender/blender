@@ -158,7 +158,7 @@ static int calchalo_z(HaloRen *har, int zz)
 {
 	
 	if(har->type & HA_ONLYSKY) {
-		if(zz!=0x7FFFFFFF) zz= - 0x7FFFFF;
+		if(zz < 0x7FFFFFF0) zz= - 0x7FFFFF;	/* edge render messes zvalues */
 	}
 	else {
 		zz= (zz>>8);
@@ -243,7 +243,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 	rcti disprect= pa->disprect, testrect= pa->disprect;
 	float dist, xsq, ysq, xn, yn;
 	float col[4];
-	long *rd= NULL;
+	intptr_t *rd= NULL;
 	int a, *rz, zz, y, sample, totsample, od;
 	short minx, maxx, miny, maxy, x;
 	unsigned int lay= rl->lay;
@@ -324,7 +324,7 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 	ShadeInput shi;
 	float *pass;
 	float fac, col[4];
-	long *rd= pa->rectdaps;
+	intptr_t *rd= pa->rectdaps;
 	int *rz= pa->rectz;
 	int x, y, sample, totsample, fullsample, od;
 	
@@ -672,22 +672,10 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	GroupObject *go;
 	LampRen *lar;
 	RenderLayer *rlpp[RE_MAX_OSA];
-
-	int totsample, fullsample, sample;
-	int x, y,od;
-	short first_lamp;
-	float *zrect;
-	float *rgbrect;
-	float rgb[3]={0};
-	float tmp_rgb[3];
-	float fac;
-	float facm;
+	int totsample;
+	int x, y, od= 0;
 	
-	fac = 0.5;
-	facm = 1.0 - fac;
-
 	totsample= get_sample_layers(pa, rl, rlpp);
-	fullsample= (totsample > 1);
 
 	/* check that z pass is enabled */
 	if(pa->rectz==NULL) return;
@@ -698,65 +686,66 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	if(zpass==NULL) return;
 
 	/* check for at least one sun lamp that its atmosphere flag is is enabled */
-	first_lamp = 1;
 	for(go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
-		if(lar->type==LA_SUN && lar->sunsky && 
-				(lar->sunsky->effect_type & LA_SUN_EFFECT_AP)){
-			first_lamp = 0;
+		if(lar->type==LA_SUN && lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_AP))
 			break;
-		}
 	}
 	/* do nothign and return if there is no sun lamp */
-	if(first_lamp)
+	if(go==NULL)
 		return;
 	
-	zrect = zpass->rect;
-	rgbrect = rl->rectf;
-	od=0;
-	/* for each x,y and sun lamp*/
+	/* for each x,y and each sample, and each sun lamp*/
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
-		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, zrect++, od++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, od++) {
+			int sample;
 			
-			first_lamp = 1;
-			for(go=R.lights.first; go; go= go->next) {
-				lar= go->lampren;
-				if(lar->type==LA_SUN &&	lar->sunsky)
+			for(sample=0; sample<totsample; sample++) {
+				float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
+				float *rgbrect = rlpp[sample]->rectf + 4*od;
+				float rgb[3];
+				int done= 0;
+				
+				for(go=R.lights.first; go; go= go->next) {
+				
 					
-				{
-					/* if it's sky continue and don't apply atmosphere effect on it */
-					if(*zrect >= 9.9e10){
-						continue;
-					}
-
-					if(lar->sunsky->effect_type & LA_SUN_EFFECT_AP){	
-						VECCOPY(tmp_rgb, (float*)(rgbrect+4*od));
-
-						shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
+					lar= go->lampren;
+					if(lar->type==LA_SUN &&	lar->sunsky) {
 						
-						if(first_lamp){
-							VECCOPY(rgb, tmp_rgb);
-							first_lamp = 0;						
+						/* if it's sky continue and don't apply atmosphere effect on it */
+						if(*zrect >= 9.9e10 || rgbrect[3]==0.0f) {
+							continue;
 						}
-						else{
-							rgb[0] = facm*rgb[0] + fac*tmp_rgb[0];
-							rgb[1] = facm*rgb[1] + fac*tmp_rgb[1];
-							rgb[2] = facm*rgb[2] + fac*tmp_rgb[2];
+						
+						if((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
+							float tmp_rgb[3];
+							
+							VECCOPY(tmp_rgb, rgbrect);
+							if(rgbrect[3]!=1.0f) {	/* de-premul */
+								float div= 1.0f/rgbrect[3];
+								VECMUL(tmp_rgb, div);
+							}
+							shadeAtmPixel(lar->sunsky, tmp_rgb, x, y, *zrect);
+							if(rgbrect[3]!=1.0f) {	/* premul */
+								VECMUL(tmp_rgb, rgbrect[3]);
+							}
+							
+							if(done==0) {
+								VECCOPY(rgb, tmp_rgb);
+								done = 1;						
+							}
+							else{
+								rgb[0] = 0.5f*rgb[0] + 0.5f*tmp_rgb[0];
+								rgb[1] = 0.5f*rgb[1] + 0.5f*tmp_rgb[1];
+								rgb[2] = 0.5f*rgb[2] + 0.5f*tmp_rgb[2];
+							}
 						}
 					}
 				}
-			}
 
-			/* if at least for one sun lamp aerial perspective was applied*/
-			if(first_lamp==0)
-			{
-				if(fullsample) {
-					for(sample=0; sample<totsample; sample++) {
-						VECCOPY((float*)(rlpp[sample]->rectf + od*4), rgb);
-					}
-				}
-				else {
-					VECCOPY((float*)(rgbrect+4*od), rgb);
+				/* if at least for one sun lamp aerial perspective was applied*/
+				if(done) {
+					VECCOPY(rgbrect, rgb);
 				}
 			}
 		}
@@ -767,7 +756,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;
-	long *rd, *rectdaps= pa->rectdaps;
+	intptr_t *rd, *rectdaps= pa->rectdaps;
 	int samp;
 	int x, y, seed, crop=0, offs=0, od;
 	
@@ -874,7 +863,7 @@ static void freeps(ListBase *lb)
 	lb->first= lb->last= NULL;
 }
 
-static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, int maskz, unsigned short mask)
+static void addps(ListBase *lb, intptr_t *rd, int obi, int facenr, int z, int maskz, unsigned short mask)
 {
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
@@ -901,7 +890,7 @@ static void addps(ListBase *lb, long *rd, int obi, int facenr, int z, int maskz,
 	ps= psm->ps + psm->counter++;
 	
 	if(last) last->next= ps;
-	else *rd= (long)ps;
+	else *rd= (intptr_t)ps;
 	
 	ps->next= NULL;
 	ps->obi= obi;
@@ -931,17 +920,23 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 	}
 }
 
-
-static void convert_to_key_alpha(RenderPart *pa, float *rectf)
+static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 {
-	int y;
+	RenderLayer *rlpp[RE_MAX_OSA];
+	int y, sample, totsample;
 	
-	for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-		if(rectf[3] >= 1.0f);
-		else if(rectf[3] > 0.0f) {
-			rectf[0] /= rectf[3];
-			rectf[1] /= rectf[3];
-			rectf[2] /= rectf[3];
+	totsample= get_sample_layers(pa, rl, rlpp);
+	
+	for(sample= 0; sample<totsample; sample++) {
+		float *rectf= rlpp[sample]->rectf;
+		
+		for(y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+			if(rectf[3] >= 1.0f);
+			else if(rectf[3] > 0.0f) {
+				rectf[0] /= rectf[3];
+				rectf[1] /= rectf[3];
+				rectf[2] /= rectf[3];
+			}
 		}
 	}
 }
@@ -1027,7 +1022,7 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
- 	long *rd= pa->rectdaps;
+ 	intptr_t *rd= pa->rectdaps;
  	unsigned short *solidmask, *sp;
  	int x;
  	
@@ -1092,7 +1087,7 @@ void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
 	ZbufSolidData *sdata= (ZbufSolidData*)data;
 	ListBase *lb= sdata->psmlist;
-	long *rd= pa->rectdaps;
+	intptr_t *rd= pa->rectdaps;
 	int *ro= zspan->recto;
 	int *rp= zspan->rectp;
 	int *rz= zspan->rectz;
@@ -1133,7 +1128,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	
 		/* initialize pixelstructs and edge buffer */
 		addpsmain(&psmlist);
-		pa->rectdaps= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+		pa->rectdaps= MEM_callocN(sizeof(intptr_t)*pa->rectx*pa->recty+4, "zbufDArectd");
 		
 		if(rl->layflag & SCE_LAY_EDGE) 
 			if(R.r.mode & R_EDGE) 
@@ -1211,6 +1206,10 @@ void zbufshadeDA_tile(RenderPart *pa)
 			}
 		}
 
+		/* sun/sky */
+		if(rl->layflag & SCE_LAY_SKY)
+			atm_tile(pa, rl);
+		
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl);
@@ -1220,16 +1219,12 @@ void zbufshadeDA_tile(RenderPart *pa)
 			if(R.r.mode & R_EDGE) 
 				edge_enhance_add(pa, rl->rectf, edgerect);
 		
-		/* sun/sky */
-		if(rl->layflag & SCE_LAY_SKY)
-			atm_tile(pa, rl);
-
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl->rectf);
+			convert_to_key_alpha(pa, rl);
 		
 		/* free stuff within loop! */
 		MEM_freeN(pa->rectdaps); pa->rectdaps= NULL;
@@ -1374,6 +1369,10 @@ void zbufshade_tile(RenderPart *pa)
 			}
 		}
 		
+		/* sun/sky */
+		if(rl->layflag & SCE_LAY_SKY)
+			atm_tile(pa, rl);
+		
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl);
@@ -1384,16 +1383,12 @@ void zbufshade_tile(RenderPart *pa)
 					edge_enhance_add(pa, rl->rectf, edgerect);
 		}
 		
-		/* sun/sky */
-		if(rl->layflag & SCE_LAY_SKY)
-			atm_tile(pa, rl);
-			
 		if(rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl->rectf);
+			convert_to_key_alpha(pa, rl);
 		
 		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
@@ -1433,7 +1428,7 @@ static void addps_sss(void *cb_handle, int obi, int facenr, int x, int y, int z)
 		return;
 	
 	if(pa->rectall) {
-		long *rs= pa->rectall + pa->rectx*y + x;
+		intptr_t *rs= pa->rectall + pa->rectx*y + x;
 
 		addps(&handle->psmlist, rs, obi, facenr, z, 0, 0);
 		handle->totps++;
@@ -1569,7 +1564,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 	int *ro, *rz, *rp, *rbo, *rbz, *rbp, lay;
 #if 0
 	PixStr *ps;
-	long *rs;
+	intptr_t *rs;
 	int z;
 #endif
 
@@ -1581,7 +1576,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 	handle.psmlist.first= handle.psmlist.last= NULL;
 	addpsmain(&handle.psmlist);
 
-	pa->rectall= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "rectall");
+	pa->rectall= MEM_callocN(sizeof(intptr_t)*pa->rectx*pa->recty+4, "rectall");
 #else
 	pa->recto= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "recto");
 	pa->rectp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
@@ -1965,7 +1960,6 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 
 /* ************************* bake ************************ */
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
 typedef struct BakeShade {
 	ShadeSample ssamp;

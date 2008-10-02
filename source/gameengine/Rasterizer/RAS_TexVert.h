@@ -37,11 +37,6 @@
 static MT_Point3 g_pt3;
 static MT_Point2 g_pt2;
 
-#define TV_CALCFACENORMAL	0x0001
-#define TV_2NDUV			0x0002
-
-#define TV_MAX				3//match Def in BL_Material.h
-
 class RAS_TexVert
 {
 	
@@ -49,16 +44,23 @@ class RAS_TexVert
 	float			m_uv1[2];		// 2*4 =  8
 	float			m_uv2[2];		// 2*4 =  8
 	unsigned int	m_rgba;			//        4
-	float			m_tangent[4];   // 4*2 =  8
-	float			m_normal[3];	// 3*2 =  6 
+	float			m_tangent[4];   // 4*4 =  16
+	float			m_normal[3];	// 3*4 =  12
 	short			m_flag;			//        2
+	short			m_softBodyIndex;		//2
 	unsigned int	m_unit;			//		  4
-	unsigned int	m_origindex;		//        4
+	unsigned int	m_origindex;		//    4
 									//---------
-									//       56
+									//       56+6+8+2=72
 	// 32 bytes total size, fits nice = 56 = not fit nice.
-	// We'll go for 64 bytes total size - 24 bytes left.
+
 public:
+	enum {
+		FLAT = 1,
+		SECOND_UV = 2,
+		MAX_UNIT = 8
+	};
+
 	short getFlag() const;
 	unsigned int getUnit() const;
 	
@@ -70,7 +72,7 @@ public:
 				const MT_Vector4& tangent,
 				const unsigned int rgba,
 				const MT_Vector3& normal,
-				const short flag,
+				const bool flat,
 				const unsigned int origindex);
 	~RAS_TexVert() {};
 
@@ -82,7 +84,7 @@ public:
 		return m_uv2;
 	};
 
-	const float* getLocalXYZ() const { 
+	const float* getXYZ() const { 
 		return m_localxyz;
 	};
 	
@@ -90,6 +92,16 @@ public:
 		return m_normal;
 	}
 	
+	short int getSoftBodyIndex() const
+	{
+		return m_softBodyIndex;
+	}
+	
+	void	setSoftBodyIndex(short int sbIndex)
+	{
+		m_softBodyIndex = sbIndex;
+	}
+
 	const float* getTangent() const {
 		return m_tangent;
 	}
@@ -108,20 +120,19 @@ public:
 
 	void				SetRGBA(const unsigned int rgba);
 	void				SetNormal(const MT_Vector3& normal);
+	void				SetTangent(const MT_Vector3& tangent);
 	void				SetFlag(const short flag);
 	void				SetUnit(const unsigned u);
 	
 	void				SetRGBA(const MT_Vector4& rgba);
 	const MT_Point3&	xyz();
 
-	// compare two vertices, and return TRUE if both are almost identical (they can be shared)
-	bool				closeTo(const RAS_TexVert* other);
+	void				Transform(const class MT_Matrix4x4& mat,
+	                              const class MT_Matrix4x4& nmat);
 
-	bool				closeTo(const MT_Point3& otherxyz,
-								const MT_Point2& otheruv,
-								const unsigned int otherrgba,
-								short othernormal[3]) const;
-	void getOffsets(void*&xyz, void *&uv1, void *&rgba, void *&normal) const;
+	// compare two vertices, to test if they can be shared, used for
+	// splitting up based on uv's, colors, etc
+	bool				closeTo(const RAS_TexVert* other);
 };
 
 #endif //__RAS_TEXVERT

@@ -339,23 +339,23 @@ PyParentObject SCA_RandomActuator::Parents[] = {
 };
 
 PyMethodDef SCA_RandomActuator::Methods[] = {
-	{"setSeed",         (PyCFunction) SCA_RandomActuator::sPySetSeed, METH_VARARGS, SetSeed_doc},
-	{"getSeed",         (PyCFunction) SCA_RandomActuator::sPyGetSeed, METH_VARARGS, GetSeed_doc},
-	{"getPara1",        (PyCFunction) SCA_RandomActuator::sPyGetPara1, METH_VARARGS, GetPara1_doc},
-	{"getPara2",        (PyCFunction) SCA_RandomActuator::sPyGetPara2, METH_VARARGS, GetPara2_doc},
-	{"getDistribution", (PyCFunction) SCA_RandomActuator::sPyGetDistribution, METH_VARARGS, GetDistribution_doc},
-	{"setProperty",     (PyCFunction) SCA_RandomActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getProperty",     (PyCFunction) SCA_RandomActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
-	{"setBoolConst",    (PyCFunction) SCA_RandomActuator::sPySetBoolConst, METH_VARARGS, SetBoolConst_doc},
-	{"setBoolUniform",  (PyCFunction) SCA_RandomActuator::sPySetBoolUniform, METH_VARARGS, SetBoolUniform_doc},
-	{"setBoolBernouilli",(PyCFunction) SCA_RandomActuator::sPySetBoolBernouilli, METH_VARARGS, SetBoolBernouilli_doc},
-	{"setIntConst",     (PyCFunction) SCA_RandomActuator::sPySetIntConst, METH_VARARGS, SetIntConst_doc},
-	{"setIntUniform",   (PyCFunction) SCA_RandomActuator::sPySetIntUniform, METH_VARARGS, SetIntUniform_doc},
-	{"setIntPoisson",   (PyCFunction) SCA_RandomActuator::sPySetIntPoisson, METH_VARARGS, SetIntPoisson_doc},
-	{"setFloatConst",   (PyCFunction) SCA_RandomActuator::sPySetFloatConst, METH_VARARGS, SetFloatConst_doc},
-	{"setFloatUniform", (PyCFunction) SCA_RandomActuator::sPySetFloatUniform, METH_VARARGS, SetFloatUniform_doc},
-	{"setFloatNormal",  (PyCFunction) SCA_RandomActuator::sPySetFloatNormal, METH_VARARGS, SetFloatNormal_doc},
-	{"setFloatNegativeExponential", (PyCFunction) SCA_RandomActuator::sPySetFloatNegativeExponential, METH_VARARGS, SetFloatNegativeExponential_doc},
+	{"setSeed",         (PyCFunction) SCA_RandomActuator::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
+	{"getSeed",         (PyCFunction) SCA_RandomActuator::sPyGetSeed, METH_VARARGS, (PY_METHODCHAR)GetSeed_doc},
+	{"getPara1",        (PyCFunction) SCA_RandomActuator::sPyGetPara1, METH_VARARGS, (PY_METHODCHAR)GetPara1_doc},
+	{"getPara2",        (PyCFunction) SCA_RandomActuator::sPyGetPara2, METH_VARARGS, (PY_METHODCHAR)GetPara2_doc},
+	{"getDistribution", (PyCFunction) SCA_RandomActuator::sPyGetDistribution, METH_VARARGS, (PY_METHODCHAR)GetDistribution_doc},
+	{"setProperty",     (PyCFunction) SCA_RandomActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getProperty",     (PyCFunction) SCA_RandomActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"setBoolConst",    (PyCFunction) SCA_RandomActuator::sPySetBoolConst, METH_VARARGS, (PY_METHODCHAR)SetBoolConst_doc},
+	{"setBoolUniform",  (PyCFunction) SCA_RandomActuator::sPySetBoolUniform, METH_VARARGS, (PY_METHODCHAR)SetBoolUniform_doc},
+	{"setBoolBernouilli",(PyCFunction) SCA_RandomActuator::sPySetBoolBernouilli, METH_VARARGS, (PY_METHODCHAR)SetBoolBernouilli_doc},
+	{"setIntConst",     (PyCFunction) SCA_RandomActuator::sPySetIntConst, METH_VARARGS, (PY_METHODCHAR)SetIntConst_doc},
+	{"setIntUniform",   (PyCFunction) SCA_RandomActuator::sPySetIntUniform, METH_VARARGS, (PY_METHODCHAR)SetIntUniform_doc},
+	{"setIntPoisson",   (PyCFunction) SCA_RandomActuator::sPySetIntPoisson, METH_VARARGS, (PY_METHODCHAR)SetIntPoisson_doc},
+	{"setFloatConst",   (PyCFunction) SCA_RandomActuator::sPySetFloatConst, METH_VARARGS, (PY_METHODCHAR)SetFloatConst_doc},
+	{"setFloatUniform", (PyCFunction) SCA_RandomActuator::sPySetFloatUniform, METH_VARARGS, (PY_METHODCHAR)SetFloatUniform_doc},
+	{"setFloatNormal",  (PyCFunction) SCA_RandomActuator::sPySetFloatNormal, METH_VARARGS, (PY_METHODCHAR)SetFloatNormal_doc},
+	{"setFloatNegativeExponential", (PyCFunction) SCA_RandomActuator::sPySetFloatNegativeExponential, METH_VARARGS, (PY_METHODCHAR)SetFloatNegativeExponential_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -364,7 +364,7 @@ PyObject* SCA_RandomActuator::_getattr(const STR_String& attr) {
 }
 
 /* 1. setSeed                                                            */
-char SCA_RandomActuator::SetSeed_doc[] = 
+const char SCA_RandomActuator::SetSeed_doc[] = 
 "setSeed(seed)\n"
 "\t- seed: integer\n"
 "\tSet the initial seed of the generator. Equal seeds produce\n"
@@ -381,7 +381,7 @@ PyObject* SCA_RandomActuator::PySetSeed(PyObject* self, PyObject* args, PyObject
 	Py_Return;
 }
 /* 2. getSeed                                                            */
-char SCA_RandomActuator::GetSeed_doc[] = 
+const char SCA_RandomActuator::GetSeed_doc[] = 
 "getSeed()\n"
 "\tReturns the initial seed of the generator. Equal seeds produce\n"
 "\tequal series.\n";
@@ -390,7 +390,7 @@ PyObject* SCA_RandomActuator::PyGetSeed(PyObject* self, PyObject* args, PyObject
 }
 
 /* 4. getPara1                                                           */
-char SCA_RandomActuator::GetPara1_doc[] = 
+const char SCA_RandomActuator::GetPara1_doc[] = 
 "getPara1()\n"
 "\tReturns the first parameter of the active distribution. Refer\n"
 "\tto the documentation of the generator types for the meaning\n"
@@ -400,7 +400,7 @@ PyObject* SCA_RandomActuator::PyGetPara1(PyObject* self, PyObject* args, PyObjec
 }
 
 /* 6. getPara2                                                           */
-char SCA_RandomActuator::GetPara2_doc[] = 
+const char SCA_RandomActuator::GetPara2_doc[] = 
 "getPara2()\n"
 "\tReturns the first parameter of the active distribution. Refer\n"
 "\tto the documentation of the generator types for the meaning\n"
@@ -410,7 +410,7 @@ PyObject* SCA_RandomActuator::PyGetPara2(PyObject* self, PyObject* args, PyObjec
 }
 
 /* 8. getDistribution                                                    */
-char SCA_RandomActuator::GetDistribution_doc[] = 
+const char SCA_RandomActuator::GetDistribution_doc[] = 
 "getDistribution()\n"
 "\tReturns the type of the active distribution.\n";
 PyObject* SCA_RandomActuator::PyGetDistribution(PyObject* self, PyObject* args, PyObject* kwds) {
@@ -418,7 +418,7 @@ PyObject* SCA_RandomActuator::PyGetDistribution(PyObject* self, PyObject* args, 
 }
 
 /* 9. setProperty                                                        */
-char SCA_RandomActuator::SetProperty_doc[] = 
+const char SCA_RandomActuator::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSet the property to which the random value is assigned. If the \n"
@@ -441,7 +441,7 @@ PyObject* SCA_RandomActuator::PySetProperty(PyObject* self, PyObject* args, PyOb
 	Py_Return;
 }
 /* 10. getProperty                                                       */
-char SCA_RandomActuator::GetProperty_doc[] = 
+const char SCA_RandomActuator::GetProperty_doc[] = 
 "getProperty(name)\n"
 "\tReturn the property to which the random value is assigned. If the \n"
 "\tgenerator and property types do not match, the assignment is ignored.\n";
@@ -450,7 +450,7 @@ PyObject* SCA_RandomActuator::PyGetProperty(PyObject* self, PyObject* args, PyOb
 }
 
 /* 11. setBoolConst */
-char SCA_RandomActuator::SetBoolConst_doc[] = 
+const char SCA_RandomActuator::SetBoolConst_doc[] = 
 "setBoolConst(value)\n"
 "\t- value: 0 or 1\n"
 "\tSet this generator to produce a constant boolean value.\n";
@@ -470,7 +470,7 @@ PyObject* SCA_RandomActuator::PySetBoolConst(PyObject* self,
 	Py_Return;
 }
 /* 12. setBoolUniform, */
-char SCA_RandomActuator::SetBoolUniform_doc[] = 
+const char SCA_RandomActuator::SetBoolUniform_doc[] = 
 "setBoolUniform()\n"
 "\tSet this generator to produce true and false, each with 50%% chance of occuring\n";
 PyObject* SCA_RandomActuator::PySetBoolUniform(PyObject* self, 
@@ -482,7 +482,7 @@ PyObject* SCA_RandomActuator::PySetBoolUniform(PyObject* self,
 	Py_Return;
 }
 /* 13. setBoolBernouilli,  */
-char SCA_RandomActuator::SetBoolBernouilli_doc[] = 
+const char SCA_RandomActuator::SetBoolBernouilli_doc[] = 
 "setBoolBernouilli(value)\n"
 "\t- value: a float between 0 and 1\n"
 "\tReturn false value * 100%% of the time.\n";
@@ -500,7 +500,7 @@ PyObject* SCA_RandomActuator::PySetBoolBernouilli(PyObject* self,
 	Py_Return;
 }
 /* 14. setIntConst,*/
-char SCA_RandomActuator::SetIntConst_doc[] = 
+const char SCA_RandomActuator::SetIntConst_doc[] = 
 "setIntConst(value)\n"
 "\t- value: integer\n"
 "\tAlways return value\n";
@@ -518,7 +518,7 @@ PyObject* SCA_RandomActuator::PySetIntConst(PyObject* self,
 	Py_Return;
 }
 /* 15. setIntUniform,*/
-char SCA_RandomActuator::SetIntUniform_doc[] = 
+const char SCA_RandomActuator::SetIntUniform_doc[] = 
 "setIntUniform(lower_bound, upper_bound)\n"
 "\t- lower_bound: integer\n"
 "\t- upper_bound: integer\n"
@@ -539,7 +539,7 @@ PyObject* SCA_RandomActuator::PySetIntUniform(PyObject* self,
 	Py_Return;
 }
 /* 16. setIntPoisson,		*/
-char SCA_RandomActuator::SetIntPoisson_doc[] = 
+const char SCA_RandomActuator::SetIntPoisson_doc[] = 
 "setIntPoisson(value)\n"
 "\t- value: float\n"
 "\tReturn a Poisson-distributed number. This performs a series\n"
@@ -559,7 +559,7 @@ PyObject* SCA_RandomActuator::PySetIntPoisson(PyObject* self,
 	Py_Return;
 }
 /* 17. setFloatConst,*/
-char SCA_RandomActuator::SetFloatConst_doc[] = 
+const char SCA_RandomActuator::SetFloatConst_doc[] = 
 "setFloatConst(value)\n"
 "\t- value: float\n"
 "\tAlways return value\n";
@@ -577,7 +577,7 @@ PyObject* SCA_RandomActuator::PySetFloatConst(PyObject* self,
 	Py_Return;
 }
 /* 18. setFloatUniform, */
-char SCA_RandomActuator::SetFloatUniform_doc[] = 
+const char SCA_RandomActuator::SetFloatUniform_doc[] = 
 "setFloatUniform(lower_bound, upper_bound)\n"
 "\t- lower_bound: float\n"
 "\t- upper_bound: float\n"
@@ -598,7 +598,7 @@ PyObject* SCA_RandomActuator::PySetFloatUniform(PyObject* self,
 	Py_Return;
 }
 /* 19. setFloatNormal, */
-char SCA_RandomActuator::SetFloatNormal_doc[] = 
+const char SCA_RandomActuator::SetFloatNormal_doc[] = 
 "setFloatNormal(mean, standard_deviation)\n"
 "\t- mean: float\n"
 "\t- standard_deviation: float\n"
@@ -619,7 +619,7 @@ PyObject* SCA_RandomActuator::PySetFloatNormal(PyObject* self,
 	Py_Return;
 }
 /* 20. setFloatNegativeExponential, */
-char SCA_RandomActuator::SetFloatNegativeExponential_doc[] = 
+const char SCA_RandomActuator::SetFloatNegativeExponential_doc[] = 
 "setFloatNegativeExponential(half_life)\n"
 "\t- half_life: float\n"
 "\tReturn negative-exponentially distributed numbers. The half-life 'time'\n"

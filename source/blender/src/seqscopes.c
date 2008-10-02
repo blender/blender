@@ -384,7 +384,6 @@ static void draw_zebra_byte(struct ImBuf * src,struct ImBuf * ibuf, float perc)
 	}
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.99f*val))
 
 static void draw_zebra_float(struct ImBuf * src,struct ImBuf * ibuf,float perc)
 {

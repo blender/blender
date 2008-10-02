@@ -28,7 +28,7 @@
 #ifndef __RAS_SOBEL2DFILTER
 #define __RAS_SOBEL2DFILTER
 
-char * SobelFragmentShader=STRINGIFY(
+const char * SobelFragmentShader=STRINGIFY(
 uniform sampler2D bgl_RenderedTexture;
 uniform vec2 bgl_TextureCoordinateOffset[9];
 

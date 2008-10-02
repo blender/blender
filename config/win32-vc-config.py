@@ -5,7 +5,7 @@ WITH_BF_VERSE = 'false'
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
@@ -19,10 +19,18 @@ BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = 'true'
+WITH_BF_STATICOPENAL = 'false'
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
 BF_OPENAL_LIB = 'dxguid openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
+
+# TODO - are these useful on win32?
+# BF_CXX = '/usr'
+# WITH_BF_STATICCXX = 'false'
+# BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
 WITH_BF_ICONV = 'true'
 BF_ICONV = LIBDIR + '/iconv'
@@ -45,10 +53,13 @@ WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
+WITH_BF_STATICOPENEXR = 'false'
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
-BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib_msvc'
+BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib_vs2008'
+# Warning, this static lib configuration is untested! users of this OS please confirm.
+BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
 WITH_BF_DDS = 'true'
 
@@ -85,7 +96,8 @@ BF_FTGL = LIBDIR + '/ftgl'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE = 'false'
+WITH_BF_GAMEENGINE = 'true'
+WITH_BF_PLAYER = 'true'
 
 WITH_BF_ODE = 'true'
 BF_ODE = LIBDIR + '/ode'
@@ -147,7 +159,7 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'cl.exe'
 CXX = 'cl.exe'
 
-CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '/Gd', '/MT']
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
 
 BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
@@ -160,17 +172,18 @@ CC_WARN = []
 LLIBS = 'ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid'
 
 PLATFORM_LINKFLAGS = '''
-                        /SUBSYSTEM:CONSOLE 
-                        /MACHINE:IX86 
-                        /ENTRY:mainCRTStartup 
-                        /INCREMENTAL:NO 
-                        /NODEFAULTLIB:"msvcprt.lib" 
-                        /NODEFAULTLIB:"glut32.lib" 
-                        /NODEFAULTLIB:"libc.lib"
-                        /NODEFAULTLIB:"libcd.lib"
-                        /NODEFAULTLIB:"libcpd.lib" 
-                        /NODEFAULTLIB:"libcp.lib" 
-                    '''
-                        
+                       /SUBSYSTEM:CONSOLE
+                       /MACHINE:IX86
+                       /ENTRY:mainCRTStartup
+                       /INCREMENTAL:NO
+                       /NODEFAULTLIB:"msvcprt.lib"
+                       /NODEFAULTLIB:"glut32.lib"
+                       /NODEFAULTLIB:"libc.lib"
+                       /NODEFAULTLIB:"libcd.lib"
+                       /NODEFAULTLIB:"libcpd.lib"
+                       /NODEFAULTLIB:"libcp.lib"
+                       /LARGEADDRESSAWARE
+                   '''
+
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'

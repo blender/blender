@@ -377,6 +377,8 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		if(sn1<0) sn1= 0;
 		
 		if(sn2>=sn1) {
+			int intzverg;
+			
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rm= rectmaskofs+sn1;
@@ -386,22 +388,21 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 			zverg-= zspan->polygon_offset;
 			
 			while(x>=0) {
-				if( (int)zverg < *rz) {
-					if(!zspan->rectmask || (int)zverg > *rm) {
-	//					int i= zvlnr & 3;
+				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+
+				if( intzverg < *rz) {
+					if(!zspan->rectmask || intzverg > *rm) {
 						
 						apn= ap;
 						while(apn) {
-							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= zverg; apn->mask[0]= mask; break; }
+							if(apn->p[0]==0) {apn->obi[0]= obi; apn->p[0]= zvlnr; apn->z[0]= intzverg; apn->mask[0]= mask; break; }
 							if(apn->p[0]==zvlnr && apn->obi[0]==obi) {apn->mask[0]|= mask; break; }
-							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= zverg; apn->mask[1]= mask; break; }
+							if(apn->p[1]==0) {apn->obi[1]= obi; apn->p[1]= zvlnr; apn->z[1]= intzverg; apn->mask[1]= mask; break; }
 							if(apn->p[1]==zvlnr && apn->obi[1]==obi) {apn->mask[1]|= mask; break; }
-							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= zverg; apn->mask[2]= mask; break; }
+							if(apn->p[2]==0) {apn->obi[2]= obi; apn->p[2]= zvlnr; apn->z[2]= intzverg; apn->mask[2]= mask; break; }
 							if(apn->p[2]==zvlnr && apn->obi[2]==obi) {apn->mask[2]|= mask; break; }
-							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= zverg; apn->mask[3]= mask; break; }
+							if(apn->p[3]==0) {apn->obi[3]= obi; apn->p[3]= zvlnr; apn->z[3]= intzverg; apn->mask[3]= mask; break; }
 							if(apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
-	//						if(apn->p[i]==0) {apn->obi[i]= obi; apn->p[i]= zvlnr; apn->z[i]= zverg; apn->mask[i]= mask; break; }
-	//						if(apn->p[i]==zvlnr && apn->obi[i]==obi) {apn->mask[i]|= mask; break; }
 							if(apn->next==NULL) apn->next= addpsA(zspan);
 							apn= apn->next;
 						}				
@@ -1115,6 +1116,8 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 		if(sn1<0) sn1= 0;
 		
 		if(sn2>=sn1) {
+			int intzverg;
+			
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
@@ -1123,10 +1126,12 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				if( (int)zverg > *rz || *rz==0x7FFFFFFF) {
-					if(!zspan->rectmask || (int)zverg > *rm) {
+				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+
+				if( intzverg > *rz || *rz==0x7FFFFFFF) {
+					if(!zspan->rectmask || intzverg > *rm) {
 						*ro= obi;
-						*rz= (int)zverg;
+						*rz= intzverg;
 						*rp= zvlnr;
 					}
 				}
@@ -1231,6 +1236,8 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 		if(sn1<0) sn1= 0;
 		
 		if(sn2>=sn1) {
+			int intzverg;
+			
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
 			rp= rectpofs+sn1;
@@ -1239,9 +1246,11 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				if((int)zverg < *rz) {
-					if(!zspan->rectmask || (int)zverg > *rm) {
-						*rz= (int)zverg;
+				intzverg= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+				
+				if(intzverg < *rz) {
+					if(!zspan->rectmask || intzverg > *rm) {
+						*rz= intzverg;
 						*rp= zvlnr;
 						*ro= obi;
 					}
@@ -1359,7 +1368,8 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *v1, float 
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				int zvergi= (int)zverg;
+				int zvergi= (int)CLAMPIS(zverg, INT_MIN, INT_MAX);
+
 				/* option: maintain two depth values, closest and 2nd closest */
 				if(zvergi < *rz) {
 					if(rectzofs1) *rz1= *rz;
@@ -2278,7 +2288,7 @@ static int hashlist_projectvert(float *v1, float winmat[][4], float *hoco)
 		return 0;
 	}
 	
-	buck= &bucket[ (((long)v1)/16) & 255 ];
+	buck= &bucket[ (((intptr_t)v1)/16) & 255 ];
 	if(buck->vert==v1) {
 		QUATCOPY(hoco, buck->hoco);
 		return buck->clip;
@@ -2410,7 +2420,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 	float obwinmat[4][4], ho1[4], ho2[4], ho3[4], ho4[4];
 	int a, b, c, i, c1, c2, c3, c4, ok=1, lay= -1;
 
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 
 	/* 1.0f for clipping in clippyra()... bad stuff actually */
 	zbuf_alloc_span(&zspan, size, size, 1.0f);
@@ -2981,10 +2991,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 {
 	ZSpan zspan;
 	DrawBufPixel *rectdraw, *dr;
-	static float jit[16][2];
+	static float jit[256][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
-	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
-	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
+	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz;
+	float *minvecbufrect= NULL, *rectweight, *rw, *rectmax, *rm, *ro;
+	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed, totfac;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;
 	static int firsttime= 1;
@@ -3003,6 +3014,9 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	rectmove= MEM_mapallocN(xsize*ysize, "rectmove");
 	rectdraw= MEM_mapallocN(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
 	zspan.rectp= (int *)rectdraw;
+
+	rectweight= MEM_mapallocN(sizeof(float)*xsize*ysize, "rect weight");
+	rectmax= MEM_mapallocN(sizeof(float)*xsize*ysize, "rect max");
 	
 	/* debug... check if PASS_VECTOR_MAX still is in buffers */
 	dvec1= vecbufrect;
@@ -3142,7 +3156,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	dm= rectmove;
 	dvec1= vecbufrect;
 	for(x=xsize*ysize; x>0; x--, dm++, dvec1+=4) {
-		if(dvec1[0]!=0.0f || dvec1[1]!=0.0f || dvec1[2]!=0.0f || dvec1[3]!=0.0f)
+		if((dvec1[0]!=0.0f || dvec1[1]!=0.0f || dvec1[2]!=0.0f || dvec1[3]!=0.0f))
 			*dm= 255;
 	}
 	
@@ -3151,9 +3165,12 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	/* has to become static, the init-jit calls a random-seed, screwing up texture noise node */
 	if(firsttime) {
 		firsttime= 0;
-		BLI_initjit(jit[0], 16);
+		BLI_initjit(jit[0], 256);
 	}
 	
+	memset(newrect, 0, sizeof(float)*xsize*ysize*4);
+	totfac= 0.0f;
+
 	/* accumulate */
 	samples/= 2;
 	for(step= 1; step<=samples; step++) {
@@ -3161,7 +3178,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 		int side;
 		
 		for(side=0; side<2; side++) {
-			float blendfac= 1.0f/((ABS(step)*2+side)+1), ipodata[4];
+			float blendfac, ipodata[4];
 			
 			/* clear zbuf, if we draw future we fill in not moving pixels */
 			if(0)
@@ -3193,30 +3210,32 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			
 			set_quad_bezier_ipo(0.5f + 0.5f*speedfac, ipodata);
 			
-			for(fy= -0.5f+jit[step & 15][0], y=0; y<ysize; y++, fy+=1.0f) {
-				for(fx= -0.5f+jit[step & 15][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=4, dz2+=4, dm++, dz++) {
+			for(fy= -0.5f+jit[step & 255][0], y=0; y<ysize; y++, fy+=1.0f) {
+				for(fx= -0.5f+jit[step & 255][1], x=0; x<xsize; x++, fx+=1.0f, dimg+=4, dz1+=4, dz2+=4, dm++, dz++) {
 					if(*dm>1) {
+						float jfx = fx + 0.5f;
+						float jfy = fy + 0.5f;
 						DrawBufPixel col;
 						
 						/* make vertices */
 						if(nbd->curved) {	/* curved */
 							quad_bezier_2d(v1, dz1, dz1+2, ipodata);
-							v1[0]+= fx; v1[1]+= fy; v1[2]= *dz;
+							v1[0]+= jfx; v1[1]+= jfy; v1[2]= *dz;
 
 							quad_bezier_2d(v2, dz1+4, dz1+4+2, ipodata);
-							v2[0]+= fx+1.0f; v2[1]+= fy; v2[2]= *dz;
+							v2[0]+= jfx+1.0f; v2[1]+= jfy; v2[2]= *dz;
 
 							quad_bezier_2d(v3, dz2+4, dz2+4+2, ipodata);
-							v3[0]+= fx+1.0f; v3[1]+= fy+1.0f; v3[2]= *dz;
+							v3[0]+= jfx+1.0f; v3[1]+= jfy+1.0f; v3[2]= *dz;
 							
 							quad_bezier_2d(v4, dz2, dz2+2, ipodata);
-							v4[0]+= fx; v4[1]+= fy+1.0f; v4[2]= *dz;
+							v4[0]+= jfx; v4[1]+= jfy+1.0f; v4[2]= *dz;
 						}
 						else {
-							v1[0]= speedfac*dz1[0]+fx;			v1[1]= speedfac*dz1[1]+fy;			v1[2]= *dz;
-							v2[0]= speedfac*dz1[4]+fx+1.0f;		v2[1]= speedfac*dz1[5]+fy;			v2[2]= *dz;
-							v3[0]= speedfac*dz2[4]+fx+1.0f;		v3[1]= speedfac*dz2[5]+fy+1.0f;		v3[2]= *dz;
-							v4[0]= speedfac*dz2[0]+fx;			v4[1]= speedfac*dz2[1]+fy+1.0f;		v4[2]= *dz;
+							v1[0]= speedfac*dz1[0]+jfx;			v1[1]= speedfac*dz1[1]+jfy;			v1[2]= *dz;
+							v2[0]= speedfac*dz1[4]+jfx+1.0f;		v2[1]= speedfac*dz1[5]+jfy;			v2[2]= *dz;
+							v3[0]= speedfac*dz2[4]+jfx+1.0f;		v3[1]= speedfac*dz2[5]+jfy+1.0f;		v3[2]= *dz;
+							v4[0]= speedfac*dz2[0]+jfx;			v4[1]= speedfac*dz2[1]+jfy+1.0f;		v4[2]= *dz;
 						}
 						if(*dm==255) col.alpha= 1.0f;
 						else if(*dm<2) col.alpha= 0.0f;
@@ -3229,26 +3248,59 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 				dz1+=4;
 				dz2+=4;
 			}
-			
+
+			/* blend with a falloff. this fixes the ugly effect you get with
+			 * a fast moving object. then it looks like a solid object overlayed
+			 * over a very transparent moving version of itself. in reality, the
+			 * whole object should become transparent if it is moving fast, be
+			 * we don't know what is behind it so we don't do that. this hack
+			 * overestimates the contribution of foreground pixels but looks a
+			 * bit better without a sudden cutoff. */
+			blendfac= ((samples - step)/(float)samples);
+			/* smoothstep to make it look a bit nicer as well */
+			blendfac= 3.0f*pow(blendfac, 2.0f) - 2.0f*pow(blendfac, 3.0f);
+
 			/* accum */
-			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4) {
+			rw= rectweight;
+			rm= rectmax;
+			for(dr= rectdraw, dz2=newrect, x= xsize*ysize-1; x>=0; x--, dr++, dz2+=4, rw++, rm++) {
 				if(dr->colpoin) {
-					float bfac= dr->alpha*blendfac*dr->colpoin[3];
-					float mf= 1.0f - bfac;
+					float bfac= dr->alpha*blendfac;
 					
-					dz2[0]= mf*dz2[0] + bfac*dr->colpoin[0];
-					dz2[1]= mf*dz2[1] + bfac*dr->colpoin[1];
-					dz2[2]= mf*dz2[2] + bfac*dr->colpoin[2];
-					dz2[3]= mf*dz2[3] + bfac*dr->colpoin[3];
+					dz2[0] += bfac*dr->colpoin[0];
+					dz2[1] += bfac*dr->colpoin[1];
+					dz2[2] += bfac*dr->colpoin[2];
+					dz2[3] += bfac*dr->colpoin[3];
+
+					*rw += bfac;
+					*rm= MAX2(*rm, bfac);
 				}
 			}
 		}
 	}
 	
+	/* blend between original images and accumulated image */
+	rw= rectweight;
+	rm= rectmax;
+	ro= imgrect;
+	dm= rectmove;
+	for(dz2=newrect, x= xsize*ysize-1; x>=0; x--, dz2+=4, ro+=4, rw++, rm++, dm++) {
+		float mfac = *rm;
+		float fac = (*rw == 0.0f)? 0.0f: mfac/(*rw);
+		float nfac = 1.0f - mfac;
+
+		dz2[0]= fac*dz2[0] + nfac*ro[0];
+		dz2[1]= fac*dz2[1] + nfac*ro[1];
+		dz2[2]= fac*dz2[2] + nfac*ro[2];
+		dz2[3]= fac*dz2[3] + nfac*ro[3];
+	}
+
 	MEM_freeN(rectz);
 	MEM_freeN(rectmove);
 	MEM_freeN(rectdraw);
 	MEM_freeN(rectvz);
+	MEM_freeN(rectweight);
+	MEM_freeN(rectmax);
 	if(minvecbufrect) MEM_freeN(vecbufrect);  /* rects were swapped! */
 	zbuf_free_span(&zspan);
 }
@@ -3263,7 +3315,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 {
 	PixStr *ps;
 	int x, y, *rza, *rma;
-	long *rd;
+	intptr_t *rd;
 	
 	if(R.osa==0) {
 		memcpy(arectz, pa->rectz, sizeof(int)*pa->rectx*pa->recty);
@@ -3484,7 +3536,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 /* speed pointer NULL = sky, we clear */
 /* else if either alpha is full or no solid was filled in: copy speed */
 /* else fill in minimum speed */
-void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect)
+void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, intptr_t *rdrect)
 {
 	RenderPass *rpass;
 	
@@ -3958,7 +4010,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	ZTranspRow zrow[MAX_ZROW];
 	StrandShadeCache *sscache= NULL;
 	float sampalpha, alpha, *passrect= pass;
-	long *rdrect;
+	intptr_t *rdrect;
 	int x, y, crop=0, a, b, totface, totsample, doztra;
 	int addpassflag, offs= 0, od, addzbuf, osa = (R.osa? R.osa: 1);
 	unsigned short *ztramask= NULL, filled;

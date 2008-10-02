@@ -14,4 +14,7 @@ if env['WITH_BF_OPENAL']:
 else:
 	defs = 'NO_SOUND'
 
+if not env['WITH_BF_SDL']:
+	defs += ' DISABLE_SDL'
+
 env.BlenderLib ('bf_soundsystem', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [20,140] )

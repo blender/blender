@@ -218,8 +218,15 @@ typedef struct Global {
 #define G_FILE_NO_UI			 (1 << 10)
 #define G_FILE_GAME_TO_IPO		 (1 << 11)
 #define G_FILE_GAME_MAT			 (1 << 12)
-#define G_FILE_DIAPLAY_LISTS	 (1 << 13)
+#define G_FILE_DISPLAY_LISTS	 (1 << 13)
 #define G_FILE_SHOW_PHYSICS		 (1 << 14)
+#define G_FILE_GAME_MAT_GLSL	 (1 << 15)
+#define G_FILE_GLSL_NO_LIGHTS	 (1 << 16)
+#define G_FILE_GLSL_NO_SHADERS	 (1 << 17)
+#define G_FILE_GLSL_NO_SHADOWS	 (1 << 18)
+#define G_FILE_GLSL_NO_RAMPS	 (1 << 19)
+#define G_FILE_GLSL_NO_NODES	 (1 << 20)
+#define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0

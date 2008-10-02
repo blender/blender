@@ -505,12 +505,12 @@ PyObject* SCA_KeyboardSensor::sPySetAllMode(PyObject* self,
 				       PyObject* kwds)
 {
 //	printf("sPyIsPositive\n");
-    return ((SCA_KeyboardSensor*) self)->PyIsPositive(self, args, kwds);
+    return ((SCA_KeyboardSensor*) self)->PyIsPositive(self);
 }
 
 
 /** 1. GetKey : check which key this sensor looks at */
-char SCA_KeyboardSensor::GetKey_doc[] = 
+const char SCA_KeyboardSensor::GetKey_doc[] = 
 "getKey()\n"
 "\tReturn the code of the key this sensor is listening to.\n" ;
 PyObject* SCA_KeyboardSensor::PyGetKey(PyObject* self, PyObject* args, PyObject* kwds)
@@ -519,7 +519,7 @@ PyObject* SCA_KeyboardSensor::PyGetKey(PyObject* self, PyObject* args, PyObject*
 }
 
 /** 2. SetKey: change the key to look at */
-char SCA_KeyboardSensor::SetKey_doc[] = 
+const char SCA_KeyboardSensor::SetKey_doc[] = 
 "setKey(keycode)\n"
 "\t- keycode: any code from GameKeys\n"
 "\tSet the key this sensor should listen to.\n" ;
@@ -539,7 +539,7 @@ PyObject* SCA_KeyboardSensor::PySetKey(PyObject* self, PyObject* args, PyObject*
 }
 
 /** 3. GetHold1 : set the first bucky bit */
-char SCA_KeyboardSensor::GetHold1_doc[] = 
+const char SCA_KeyboardSensor::GetHold1_doc[] = 
 "getHold1()\n"
 "\tReturn the code of the first key modifier to the key this \n"
 "\tsensor is listening to.\n" ;
@@ -549,7 +549,7 @@ PyObject* SCA_KeyboardSensor::PyGetHold1(PyObject* self, PyObject* args, PyObjec
 }
 
 /** 4. SetHold1: change the first bucky bit */
-char SCA_KeyboardSensor::SetHold1_doc[] = 
+const char SCA_KeyboardSensor::SetHold1_doc[] = 
 "setHold1(keycode)\n"
 "\t- keycode: any code from GameKeys\n"
 "\tSet the first modifier to the key this sensor should listen to.\n" ;
@@ -569,7 +569,7 @@ PyObject* SCA_KeyboardSensor::PySetHold1(PyObject* self, PyObject* args, PyObjec
 }
 	
 /** 5. GetHold2 : get the second bucky bit */
-char SCA_KeyboardSensor::GetHold2_doc[] = 
+const char SCA_KeyboardSensor::GetHold2_doc[] = 
 "getHold2()\n"
 "\tReturn the code of the second key modifier to the key this \n"
 "\tsensor is listening to.\n" ;
@@ -579,7 +579,7 @@ PyObject* SCA_KeyboardSensor::PyGetHold2(PyObject* self, PyObject* args, PyObjec
 }
 
 /** 6. SetHold2: change the second bucky bit */
-char SCA_KeyboardSensor::SetHold2_doc[] = 
+const char SCA_KeyboardSensor::SetHold2_doc[] = 
 "setHold2(keycode)\n"
 "\t- keycode: any code from GameKeys\n"
 "\tSet the first modifier to the key this sensor should listen to.\n" ;
@@ -599,7 +599,7 @@ PyObject* SCA_KeyboardSensor::PySetHold2(PyObject* self, PyObject* args, PyObjec
 }
 
 	
-char SCA_KeyboardSensor::GetPressedKeys_doc[] = 
+const char SCA_KeyboardSensor::GetPressedKeys_doc[] = 
 "getPressedKeys()\n"
 "\tGet a list of pressed keys that have either been pressed, or just released this frame.\n" ;
 
@@ -639,7 +639,7 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys(PyObject* self, PyObject* args, P
 
 
 
-char SCA_KeyboardSensor::GetCurrentlyPressedKeys_doc[] = 
+const char SCA_KeyboardSensor::GetCurrentlyPressedKeys_doc[] = 
 "getCurrentlyPressedKeys()\n"
 "\tGet a list of keys that are currently pressed.\n" ;
 
@@ -710,17 +710,17 @@ PyParentObject SCA_KeyboardSensor::Parents[] = {
 };
 
 PyMethodDef SCA_KeyboardSensor::Methods[] = {
-  {"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_VARARGS, GetKey_doc},
-  {"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, SetKey_doc},
-  {"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_VARARGS, GetHold1_doc},
-  {"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, SetHold1_doc},
-  {"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_VARARGS, GetHold2_doc},
-  {"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, SetHold2_doc},
-//  {"getUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetUseAllKeys, METH_VARARGS, GetUseAllKeys_doc},
-//  {"setUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPySetUseAllKeys, METH_VARARGS, SetUseAllKeys_doc},
-  {"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_VARARGS, GetPressedKeys_doc},
-  {"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_VARARGS, GetCurrentlyPressedKeys_doc},
-//  {"getKeyEvents", (PyCFunction) SCA_KeyboardSensor::sPyGetKeyEvents, METH_VARARGS, GetKeyEvents_doc},
+  {"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_VARARGS, (PY_METHODCHAR)GetKey_doc},
+  {"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, (PY_METHODCHAR)SetKey_doc},
+  {"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_VARARGS, (PY_METHODCHAR)GetHold1_doc},
+  {"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, (PY_METHODCHAR)SetHold1_doc},
+  {"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_VARARGS, (PY_METHODCHAR)GetHold2_doc},
+  {"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, (PY_METHODCHAR)SetHold2_doc},
+//  {"getUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetUseAllKeys, METH_VARARGS, (PY_METHODCHAR)GetUseAllKeys_doc},
+//  {"setUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPySetUseAllKeys, METH_VARARGS, (PY_METHODCHAR)SetUseAllKeys_doc},
+  {"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetPressedKeys_doc},
+  {"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetCurrentlyPressedKeys_doc},
+//  {"getKeyEvents", (PyCFunction) SCA_KeyboardSensor::sPyGetKeyEvents, METH_VARARGS, (PY_METHODCHAR)GetKeyEvents_doc},
   {NULL,NULL} //Sentinel
 };
 

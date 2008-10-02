@@ -70,6 +70,7 @@
 
 #include "BIF_editkey.h"
 #include "BIF_editview.h"
+#include "BIF_keyframing.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -83,6 +84,8 @@
 
 #include "blendef.h"
 #include "mydevice.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
 
 extern ListBase editNurb; /* in editcurve.c */
 
@@ -162,15 +165,15 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 	IpoCurve  *icu=NULL;
 	BezTriple *bezt=NULL;
 	float cfra, rvkval;
-	int keynum = (long) voidkeynum;
+	int keynum = (intptr_t) voidkeynum;
 
 	cfra = frame_to_float(CFRA);
 
 	/* ipo on action or ob? */
 	if(ob->ipoflag & OB_ACTION_KEY)
-		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, NULL, keynum);
+		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, NULL, keynum, 1);
 	else 
-		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, NULL, keynum);
+		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, NULL, keynum, 1);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier
@@ -275,7 +278,7 @@ void make_rvk_slider(uiBlock *block, Object *ob, int keynum,
 				  x, y , w, h,
 				  meshslidervals+keynum, min, max, 10, 2, tip);
 	
-	uiButSetFunc(but, rvk_slider_func, ob, (void *)(long)keynum);
+	uiButSetFunc(but, rvk_slider_func, ob, (void *)(intptr_t)keynum);
 	// no hilite, the winmatrix is not correct later on...
 	uiButSetFlag(but, UI_NO_HILITE);
 

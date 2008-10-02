@@ -52,6 +52,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
@@ -79,6 +80,7 @@
 #include "BDR_editface.h"
 #include "BDR_drawobject.h"
 #include "BDR_drawmesh.h"
+#include "BDR_gpencil.h"
 #include "BDR_imagepaint.h"
 
 #include "BIF_cursors.h"
@@ -86,6 +88,7 @@
 #include "BIF_graphics.h"
 #include "BIF_mywindow.h"
 #include "BIF_drawimage.h"
+#include "BIF_drawgpencil.h"
 #include "BIF_resources.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
@@ -1778,6 +1781,45 @@ static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVI
 	
 }
 
+static void image_panel_gpencil(short cntrl)	// IMAGE_HANDLER_GREASEPENCIL
+{
+	uiBlock *block;
+	SpaceImage *sima;
+	
+	sima= curarea->spacedata.first;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_GREASEPENCIL);  // for close and esc
+	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceImage", 100, 30, 318, 204)==0) return;
+	
+	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
+	if (sima->flag & SI_DISPGP) {
+		if (sima->gpd == NULL)
+			gpencil_data_setactive(curarea, gpencil_data_addnew());
+	}
+	
+	if (sima->flag & SI_DISPGP) {
+		bGPdata *gpd= sima->gpd;
+		short newheight;
+		
+		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+		/* so first we make it default height */
+		uiNewPanelHeight(block, 204);
+		
+		/* draw button for showing gpencil settings and drawings */
+		uiDefButBitI(block, TOG, SI_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sima->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Image/UV Editor (draw using Shift-LMB)");
+		
+		/* extend the panel if the contents won't fit */
+		newheight= draw_gpencil_panel(block, gpd, curarea); 
+		uiNewPanelHeight(block, newheight);
+	}
+	else {
+		uiDefButBitI(block, TOG, SI_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &sima->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Image/UV Editor");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+}
+
 static void image_blockhandlers(ScrArea *sa)
 {
 	SpaceImage *sima= sa->spacedata.first;
@@ -1788,7 +1830,6 @@ static void image_blockhandlers(ScrArea *sa)
 	
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
 		switch(sima->blockhandler[a]) {
-
 		case IMAGE_HANDLER_PROPERTIES:
 			image_panel_properties(sima->blockhandler[a+1]);
 			break;
@@ -1806,7 +1847,10 @@ static void image_blockhandlers(ScrArea *sa)
 			break;		
 		case IMAGE_HANDLER_PREVIEW:
 			image_panel_preview(sa, sima->blockhandler[a+1]);
-			break;		
+			break;	
+		case IMAGE_HANDLER_GREASEPENCIL:
+			image_panel_gpencil(sima->blockhandler[a+1]);
+			break;
 		}
 		/* clear action value for event */
 		sima->blockhandler[a+1]= 0;
@@ -2339,9 +2383,17 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	}
 
 	draw_image_transform(ibuf, xuser_asp, yuser_asp);
+	
+	/* draw grease-pencil ('image' strokes) */
+	if (sima->flag & SI_DISPGP)
+		draw_gpencil_2dimage(sa, ibuf);
 
 	mywinset(sa->win);	/* restore scissor after gla call... */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+	
+	/* draw grease-pencil (screen strokes) */
+	if (sima->flag & SI_DISPGP)
+		draw_gpencil_2dview(sa, 0);
 
 	if(G.rendering==0) {
 		draw_image_view_tool();
@@ -2403,12 +2455,12 @@ static void image_zoom_set_factor(float zoomfac)
 
 void image_viewmove(int mode)
 {
-	short mval[2], mvalo[2], zoom0;
+	short mval[2], mvalo[2];
 	int oldcursor;
 	Window *win;
 	
 	getmouseco_sc(mvalo);
-	zoom0= G.sima->zoom;
+
 	
 	oldcursor=get_cursor();
 	win=winlay_get_active_window();

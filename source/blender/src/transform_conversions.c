@@ -108,6 +108,7 @@
 #include "BIF_editsima.h"
 #include "BIF_editparticle.h"
 #include "BIF_gl.h"
+#include "BIF_keyframing.h"
 #include "BIF_poseobject.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
@@ -143,6 +144,8 @@ extern ListBase editNurb;
 extern ListBase editelems;
 
 #include "transform.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
 
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
@@ -394,7 +397,7 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 	bConstraint *con= pchan->constraints.first;
 	
 	for(;con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
 			
 			if(data->tar==NULL) 
@@ -502,12 +505,17 @@ static short apply_targetless_ik(Object *ob)
 					Mat3ToQuat(rmat3, parchan->quat);
 					
 					/* for size, remove rotation */
-					QuatToMat3(parchan->quat, qmat);
-					Mat3Inv(imat, qmat);
-					Mat3MulMat3(smat, rmat3, imat);
-					Mat3ToSize(smat, parchan->size);
+					/* causes problems with some constraints (so apply only if needed) */
+					if (data->flag & CONSTRAINT_IK_STRETCH) {
+						QuatToMat3(parchan->quat, qmat);
+						Mat3Inv(imat, qmat);
+						Mat3MulMat3(smat, rmat3, imat);
+						Mat3ToSize(smat, parchan->size);
+					}
 					
-					VECCOPY(parchan->loc, rmat[3]);
+					/* causes problems with some constraints (e.g. childof), so disable this */
+					/* as it is IK shouldn't affect location directly */
+					/* VECCOPY(parchan->loc, rmat[3]); */
 				}
 				
 			}
@@ -708,7 +716,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 	
 	/* check if pchan has ik-constraint */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
 			
 			/* only accept if a temporary one (for auto-ik) */
@@ -760,6 +768,7 @@ static void pose_grab_with_ik_clear(Object *ob)
 		/* clear all temporary lock flags */
 		pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP|BONE_IK_NO_YDOF_TEMP|BONE_IK_NO_ZDOF_TEMP);
 		
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 		/* remove all temporary IK-constraints added */
 		for (con= pchan->constraints.first; con; con= con->next) {
 			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
@@ -768,9 +777,11 @@ static void pose_grab_with_ik_clear(Object *ob)
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
-					pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
-					break;
+					continue;
 				}
+				pchan->constflag |= PCHAN_HAS_IK;
+				if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
+					pchan->constflag |= PCHAN_HAS_TARGET;
 			}
 		}
 	}
@@ -781,6 +792,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 {
 	bKinematicConstraint *data;
 	bConstraint *con;
+	bConstraint *targetless = 0;
 	
 	/* Sanity check */
 	if (pchan == NULL) 
@@ -788,23 +800,31 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	
 	/* Rule: not if there's already an IK on this channel */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type==CONSTRAINT_TYPE_KINEMATIC)
-			break;
-	}
-	
-	if (con) {
-		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
-		data= has_targetless_ik(pchan);
-		if (data)
-			data->flag |= CONSTRAINT_IK_AUTO;
-		return 0;
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data= con->data;
+			if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0)) {
+				targetless = con;
+				/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
+				if (con->enforce!=0.0) {
+					targetless->flag |= CONSTRAINT_IK_AUTO;
+					return 0;
+				}
+			}
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0))
+				return 0;
+		}
 	}
 	
 	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 	BLI_addtail(&pchan->constraints, con);
 	pchan->constflag |= (PCHAN_HAS_IK|PCHAN_HAS_TARGET);	/* for draw, but also for detecting while pose solving */
 	data= con->data;
-	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
+	if (targetless) { /* if exists use values from last targetless IK-constraint as base */
+		*data = *((bKinematicConstraint*)targetless->data);
+	}
+	else
+		data->flag= CONSTRAINT_IK_TIP;
+	data->flag |= CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
 	VECCOPY(data->grabtarget, pchan->pose_tail);
 	data->rootbone= 1;
 	
@@ -1913,7 +1933,7 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	EditVert *eve, *prev;
 	EditFace *efa;
 	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
-	long index= 0;
+	intptr_t index= 0;
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
@@ -1925,13 +1945,13 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		
 		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*(long)(efa->v1->prev);
-		v2= mappedcos + 3*(long)(efa->v2->prev);
-		v3= mappedcos + 3*(long)(efa->v3->prev);
+		v1= mappedcos + 3*(intptr_t)(efa->v1->prev);
+		v2= mappedcos + 3*(intptr_t)(efa->v2->prev);
+		v3= mappedcos + 3*(intptr_t)(efa->v3->prev);
 
-		co1= (origcos)? origcos + 3*(long)(efa->v1->prev): efa->v1->co;
-		co2= (origcos)? origcos + 3*(long)(efa->v2->prev): efa->v2->co;
-		co3= (origcos)? origcos + 3*(long)(efa->v3->prev): efa->v3->co;
+		co1= (origcos)? origcos + 3*(intptr_t)(efa->v1->prev): efa->v1->co;
+		co2= (origcos)? origcos + 3*(intptr_t)(efa->v2->prev): efa->v2->co;
+		co3= (origcos)? origcos + 3*(intptr_t)(efa->v3->prev): efa->v3->co;
 
 		if(efa->v2->tmp.p==NULL && efa->v2->f1) {
 			set_crazy_vertex_quat(quats, co2, co3, co1, v2, v3, v1);
@@ -1940,8 +1960,8 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 		}
 		
 		if(efa->v4) {
-			v4= mappedcos + 3*(long)(efa->v4->prev);
-			co4= (origcos)? origcos + 3*(long)(efa->v4->prev): efa->v4->co;
+			v4= mappedcos + 3*(intptr_t)(efa->v4->prev);
+			co4= (origcos)? origcos + 3*(intptr_t)(efa->v4->prev): efa->v4->co;
 
 			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, co1, co2, co4, v1, v2, v4);
@@ -3560,22 +3580,25 @@ short autokeyframe_cfra_can_key(Object *ob)
  */
 void autokeyframe_ob_cb_func(Object *ob, int tmode)
 {
+	ID *id= (ID *)(ob);
 	IpoCurve *icu;
 	
 	if (autokeyframe_cfra_can_key(ob)) {
 		char *actname = NULL;
+		short flag = 0;
 		
 		if (ob->ipoflag & OB_ACTION_OB)
 			actname= "Object";
+			
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+			flag |= INSERTKEY_NEEDED;
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+			flag |= INSERTKEY_MATRIX;
 		
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+			/* only key on available channels */
 			if ((ob->ipo) || (ob->action)) {
-				ID *id= (ID *)(ob);
-				
-				if (ob->ipo) {
-					icu= ob->ipo->curve.first;
-				}
-				else {
+				if (ob->action && actname) {
 					bActionChannel *achan;
 					achan= get_action_channel(ob->action, actname);
 					
@@ -3584,19 +3607,16 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 					else
 						icu= NULL;
 				}
+				else 
+					icu= ob->ipo->curve.first;
 				
-				while (icu) {
+				for (; icu; icu= icu->next) {
 					icu->flag &= ~IPO_SELECT;
-					if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
-					else
-						insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
-					icu= icu->next;
+					insertkey(id, ID_OB, actname, NULL, icu->adrcode, flag);
 				}
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
-			ID *id= (ID *)(ob);
 			short doLoc=0, doRot=0, doScale=0;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
@@ -3627,35 +3647,33 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 			
 			if (doLoc) {
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_LOC_Z);
+				insertkey(id, ID_OB, actname, NULL, OB_LOC_X, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, flag);
 			}
 			if (doRot) {
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_X);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Y);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_ROT_Z);
+				insertkey(id, ID_OB, actname, NULL, OB_ROT_X, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, flag);
 			}
 			if (doScale) {
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey_smarter(id, ID_OB, actname, NULL, OB_SIZE_Z);
+				insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, flag);
+				insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, flag);
 			}
 		}
 		else {
-			ID *id= (ID *)(ob);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, flag);
 			
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_X, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, flag);
 			
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_X, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, 0);
-			
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
-			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, flag);
+			insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, flag);
 		}
 		
 		remake_object_ipos(ob);
@@ -3681,8 +3699,15 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 	act= ob->action;
 	
 	if (autokeyframe_cfra_can_key(ob)) {
+		short flag= 0;
+		
 		if (act == NULL)
 			act= ob->action= add_empty_action("Action");
+			
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+			flag |= INSERTKEY_NEEDED;
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+			flag |= INSERTKEY_MATRIX;
 		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {
@@ -3693,17 +3718,10 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					bActionChannel *achan; 
 					
-					for (achan = act->chanbase.first; achan; achan=achan->next) {
-						if ((achan->ipo) && !strcmp(achan->name, pchan->name)) {
-							for (icu = achan->ipo->curve.first; icu; icu=icu->next) {
-								/* only insert keyframe if needed? */
-								if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
-								else
-									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode, 0);
-							}
-							break;
-						}
+					achan= get_action_channel(act, pchan->name);
+					if (achan && achan->ipo) {
+						for (icu= achan->ipo->curve.first; icu; icu= icu->next)
+							insertkey(id, ID_PO, pchan->name, NULL, icu->adrcode, flag);
 					}
 				}
 				/* only insert keyframe if needed? */
@@ -3733,36 +3751,36 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					}
 					
 					if (doLoc) {
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, flag);
 					}
 					if (doRot) {
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, flag);
 					}
 					if (doScale) {
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey_smarter(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, flag);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, flag);
 					}
 				}
 				/* insert keyframe in any channel that's appropriate */
 				else {
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, flag);
 					
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, flag);
 					
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
-					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, flag);
+					insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, flag);
 				}
 			}
 		}
@@ -3911,13 +3929,10 @@ void special_aftertrans_update(TransInfo *t)
 			if ( (G.sipo->flag & SIPO_NOTRANSKEYCULL)==0 && 
 				 (cancelled == 0) )
 			{
-				if (NLA_IPO_SCALED) {
-					actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 1); 
-					posttrans_ipo_clean(G.sipo->ipo);
-					actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 1);
-				}
-				else 
-					posttrans_ipo_clean(G.sipo->ipo);
+				/* NOTE: no need to do NLA scaling stuff here, as when there is NLA scaling,
+				 * the transformed handles will get moved wrong (seem to match wrong repeat cycle)
+				 */
+				posttrans_ipo_clean(G.sipo->ipo);
 			}
 		}
 		
@@ -4035,7 +4050,7 @@ static void createTransObject(TransInfo *t)
 			ob= base->object;
 			
 			/* store ipo keys? */
-			if (ob->id.lib == 0 && ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+			if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 				elems.first= elems.last= NULL;
 				make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
 				
@@ -4043,7 +4058,7 @@ static void createTransObject(TransInfo *t)
 				
 				for(ik= elems.first; ik; ik= ik->next)
 					t->total++;
-
+				
 				if(elems.first==NULL)
 					t->total++;
 			}
@@ -4076,7 +4091,7 @@ static void createTransObject(TransInfo *t)
 			}
 
 			/* store ipo keys? */
-			if(ob->id.lib == 0 && ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+			if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 				
 				popfirst(&elems);	// bring back pushed listbase
 				
@@ -4278,6 +4293,7 @@ void createTransData(TransInfo *t)
 	/* temporal...? */
 	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
+
 
 
 
