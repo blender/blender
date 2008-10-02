@@ -306,13 +306,15 @@ void syspath_append( char *dirname )
 		ok = 0;
 	}
 	
-	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
+	if (ok && PySequence_Contains(path, dir)==0) { /* Only add if we need to */
 		if (ok && PyList_Append( path, dir ) != 0) /* decref below */
 			ok = 0; /* append failed */
-	
-		if( (ok==0) || PyErr_Occurred(  ) )
-			Py_FatalError( "could import or build sys.path, can't continue" );
 	}
+	
+	if( (ok==0) || PyErr_Occurred(  ) )
+		fprintf(stderr, "could import or build sys.path\n" );
+	
+	PyErr_Clear()
 	Py_DECREF( dir );
 	Py_XDECREF( mod_sys );
 }
