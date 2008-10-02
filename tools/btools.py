@@ -531,5 +531,8 @@ def NSIS_Installer(target=None, source=None, env=None):
     data, err = proc.communicate()
     rv = proc.wait()
 
-    return err
+    if rv != 0:
+        print
+        print data.strip().split("\n")[-1]
+    return rv
 
