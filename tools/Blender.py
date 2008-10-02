@@ -165,7 +165,10 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICOPENAL']:
             syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
-        syslibs += ['gomp']
+        if lenv['CC'] == 'cl.exe':
+            syslibs += ['vcomp']
+        else:
+            syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:

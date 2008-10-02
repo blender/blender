@@ -531,5 +531,5 @@ def NSIS_Installer(target=None, source=None, env=None):
     data, err = proc.communicate()
     rv = proc.wait()
 
-    return 0
+    return err
 
