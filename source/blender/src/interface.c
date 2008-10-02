@@ -467,7 +467,7 @@ void ui_block_set_flush(uiBlock *block, uiBut *but)
 static int ui_but_copy_paste(uiBut *but, char mode)
 {
 	void *poin;
-	char buf[UI_MAX_DRAW_STR+1];
+	char buf[UI_MAX_DRAW_STR+1]= {0};
 	double val;
 	float f[3];
 	
@@ -477,12 +477,14 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	if(mode=='v') {
 		/* extract first line from clipboard in case of multi-line copies */
 		char *p = getClipboard(0);
-		int i = 0;
-		while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
-			buf[i++]=*p;
-			p++;
+		if(p) {
+			int i = 0;
+			while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
+				buf[i++]=*p;
+				p++;
+			}
+			buf[i]= 0;
 		}
-		buf[i]= 0;
 	}
 	
 	/* numeric value */
@@ -1804,38 +1806,40 @@ static int ui_do_but_TEX(uiBut *but)
 			 ((G.qual & LR_COMMANDKEY) || (G.qual & LR_CTRLKEY)) && 
 			 ((dev==XKEY) || (dev==CKEY) || (dev==VKEY)) ) {
 				 
-			char buf[UI_MAX_DRAW_STR];
+			char buf[UI_MAX_DRAW_STR]={0};
 			
 			/* paste */
 			if (dev==VKEY) {
 
 				/* extract the first line from the clipboard */
 				char *p = getClipboard(0);
-				int i = 0;
-				while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
-					buf[i++]=*p;
-					p++;
-				}
-				buf[i]= 0;
-
-				/* paste over the current selection */
-				if ((but->selend - but->selsta) > 0) {	
-					len -= ui_delete_selection_edittext(but);
-				}
-				
-				for (y=0; y<strlen(buf); y++)
-				{
-					/* add contents of buffer */
-					if(len < but->max) {
-						for(x= but->max; x>but->pos; x--)
-							str[x]= str[x-1];
-						str[but->pos]= buf[y];
-						but->pos++; 
-						len++;
-						str[len]= '\0';
+				if(p) {
+					int i = 0;
+					while (*p && *p!='\r' && *p!='\n' && i<UI_MAX_DRAW_STR) {
+						buf[i++]=*p;
+						p++;
 					}
+					buf[i]= 0;
+
+					/* paste over the current selection */
+					if ((but->selend - but->selsta) > 0) {	
+						len -= ui_delete_selection_edittext(but);
+					}
+					
+					for (y=0; y<strlen(buf); y++)
+					{
+						/* add contents of buffer */
+						if(len < but->max) {
+							for(x= but->max; x>but->pos; x--)
+								str[x]= str[x-1];
+							str[but->pos]= buf[y];
+							but->pos++; 
+							len++;
+							str[len]= '\0';
+						}
+					}
+					if (strlen(buf) > 0) dodraw= 1;
 				}
-				if (strlen(buf) > 0) dodraw= 1;
 			}
 			/* cut & copy */
 			else if ( (dev==XKEY) || (dev==CKEY) ) {
