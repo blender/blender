@@ -2701,17 +2701,22 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
 			MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
 			int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
+			int prevactive = CustomData_get_active_layer(&me->fdata, CD_MCOL);
+			int prevrender = CustomData_get_render_layer(&me->fdata, CD_MCOL);
 
 			/* ugly hack here, we temporarily add a new active mcol layer with
 			   weightpaint colors in it, that is then duplicated in CDDM_from_mesh */
 			CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, wpcol, me->totface);
 			CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
+			CustomData_set_layer_render(&me->fdata, CD_MCOL, layernum);
 
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, 0, 1,
 			                    needMapping, dataMask, -1);
 
 			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
+			CustomData_set_layer_active(&me->fdata, CD_MCOL, prevactive);
+			CustomData_set_layer_render(&me->fdata, CD_MCOL, prevrender);
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, G.rendering, 1,
