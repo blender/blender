@@ -335,10 +335,10 @@ PyParentObject KX_RaySensor::Parents[] = {
 };
 
 PyMethodDef KX_RaySensor::Methods[] = {
-	{"getHitObject",(PyCFunction) KX_RaySensor::sPyGetHitObject,METH_VARARGS, GetHitObject_doc},
-	{"getHitPosition",(PyCFunction) KX_RaySensor::sPyGetHitPosition,METH_VARARGS, GetHitPosition_doc},
-	{"getHitNormal",(PyCFunction) KX_RaySensor::sPyGetHitNormal,METH_VARARGS, GetHitNormal_doc},
-	{"getRayDirection",(PyCFunction) KX_RaySensor::sPyGetRayDirection,METH_VARARGS, GetRayDirection_doc},
+	{"getHitObject",(PyCFunction) KX_RaySensor::sPyGetHitObject,METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
+	{"getHitPosition",(PyCFunction) KX_RaySensor::sPyGetHitPosition,METH_VARARGS, (PY_METHODCHAR)GetHitPosition_doc},
+	{"getHitNormal",(PyCFunction) KX_RaySensor::sPyGetHitNormal,METH_VARARGS, (PY_METHODCHAR)GetHitNormal_doc},
+	{"getRayDirection",(PyCFunction) KX_RaySensor::sPyGetRayDirection,METH_VARARGS, (PY_METHODCHAR)GetRayDirection_doc},
 	{NULL,NULL} //Sentinel
 };
 

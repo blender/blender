@@ -401,26 +401,26 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 
 static struct PyMethodDef game_methods[] = {
-	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, gPyExpandPath_doc},
+	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (PY_METHODCHAR)gPyExpandPath_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
+	METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, gPyGetCurrentScene_doc.Ptr()},
+	METH_NOARGS, (PY_METHODCHAR)gPyGetCurrentScene_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
-	METH_VARARGS, SCA_PythonController::sPyAddActiveActuator__doc__},
+	METH_VARARGS, (PY_METHODCHAR)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS,gPyGetRandomFloat_doc.Ptr()},
-	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS,"set Gravitation"},
-	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS,"get audio spectrum"},
-	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS,"stop using the audio dsp (for performance reasons)"},
-	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, "Gets the logic tic rate"},
-	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
-	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, "Gets the physics tic rate"},
-	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
-	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, "Gets the estimated average frame rate"},
-	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, "Gets a list of blend files in the same directory as the current blend file"},
-	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, "Prints GL Extension Info"},
+	METH_NOARGS, (PY_METHODCHAR)gPyGetRandomFloat_doc.Ptr()},
+	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS, (PY_METHODCHAR)"set Gravitation"},
+	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (PY_METHODCHAR)"get audio spectrum"},
+	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (PY_METHODCHAR)"stop using the audio dsp (for performance reasons)"},
+	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the logic tic rate"},
+	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, (PY_METHODCHAR)"Sets the logic tic rate"},
+	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the physics tic rate"},
+	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, (PY_METHODCHAR)"Sets the physics tic rate"},
+	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (PY_METHODCHAR)"Gets the estimated average frame rate"},
+	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (PY_METHODCHAR)"Gets a list of blend files in the same directory as the current blend file"},
+	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (PY_METHODCHAR)"Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -826,27 +826,19 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-
-STR_String	gPyGetWindowHeight__doc__="getWindowHeight doc";
-STR_String	gPyGetWindowWidth__doc__="getWindowWidth doc";
-STR_String	gPyEnableVisibility__doc__="enableVisibility doc";
-STR_String	gPyMakeScreenshot__doc__="make Screenshot doc";
-STR_String	gPyShowMouse__doc__="showMouse(bool visible)";
-STR_String	gPySetMousePosition__doc__="setMousePosition(int x,int y)";
-
 static struct PyMethodDef rasterizer_methods[] = {
   {"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
-   METH_VARARGS, gPyGetWindowWidth__doc__.Ptr()},
+   METH_VARARGS, "getWindowWidth doc"},
    {"getWindowHeight",(PyCFunction) gPyGetWindowHeight,
-   METH_VARARGS, gPyGetWindowHeight__doc__.Ptr()},
+   METH_VARARGS, "getWindowHeight doc"},
   {"makeScreenshot",(PyCFunction)gPyMakeScreenshot,
-	METH_VARARGS, gPyMakeScreenshot__doc__.Ptr()},
+	METH_VARARGS, "make Screenshot doc"},
    {"enableVisibility",(PyCFunction) gPyEnableVisibility,
-   METH_VARARGS, gPyEnableVisibility__doc__.Ptr()},
+   METH_VARARGS, "enableVisibility doc"},
 	{"showMouse",(PyCFunction) gPyShowMouse,
-   METH_VARARGS, gPyShowMouse__doc__.Ptr()},
+   METH_VARARGS, "showMouse(bool visible)"},
    {"setMousePosition",(PyCFunction) gPySetMousePosition,
-   METH_VARARGS, gPySetMousePosition__doc__.Ptr()},
+   METH_VARARGS, "setMousePosition(int x,int y)"},
   {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_VARARGS,"set Background Color (rgb)"},
 	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_VARARGS,"set Ambient Color (rgb)"},
  {"setMistColor",(PyCFunction)gPySetMistColor,METH_VARARGS,"set Mist Color (rgb)"},
@@ -1311,7 +1303,7 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 }
 
 static struct PyMethodDef gamekeys_methods[] = {
-	{"EventToString", (PyCFunction)gPyEventToString, METH_O, gPyEventToString_doc},
+	{"EventToString", (PyCFunction)gPyEventToString, METH_O, (PY_METHODCHAR)gPyEventToString_doc},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 

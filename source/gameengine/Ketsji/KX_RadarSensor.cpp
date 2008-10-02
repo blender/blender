@@ -221,11 +221,11 @@ PyParentObject KX_RadarSensor::Parents[] = {
 
 PyMethodDef KX_RadarSensor::Methods[] = {
 	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, GetConeOrigin_doc},
+	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
 	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, GetConeTarget_doc},
+	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
 	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, GetConeHeight_doc},
+	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 

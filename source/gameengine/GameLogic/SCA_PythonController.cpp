@@ -229,10 +229,10 @@ PyParentObject SCA_PythonController::Parents[] = {
 	NULL
 };
 PyMethodDef SCA_PythonController::Methods[] = {
-	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, SCA_PythonController::GetActuators_doc},
-	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, SCA_PythonController::GetActuator_doc},
-	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, SCA_PythonController::GetSensors_doc},
-	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, SCA_PythonController::GetSensor_doc},
+	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetActuators_doc},
+	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
+	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
+	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
 	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
 	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},

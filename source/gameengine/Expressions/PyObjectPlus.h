@@ -64,10 +64,12 @@
 typedef int Py_ssize_t;
 #define PY_SSIZE_T_MAX INT_MAX
 #define PY_SSIZE_T_MIN INT_MIN
+#define PY_METHODCHAR char *
 #else
 /* Py 2.5 and later */
 #define  intargfunc  ssizeargfunc
 #define intintargfunc  ssizessizeargfunc
+#define PY_METHODCHAR const char *
 #endif
 
 								// some basic python macros
@@ -181,10 +183,10 @@ static inline void Py_Fatal(const char *M) {
  * Method table macro (with doc)
  */
 #define KX_PYMETHODTABLE(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (PY_METHODCHAR)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_NOARG(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (PY_METHODCHAR)class_name::method_name##_doc}
 
 /**
  * Function implementation macro

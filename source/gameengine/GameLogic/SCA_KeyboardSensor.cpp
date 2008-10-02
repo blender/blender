@@ -710,17 +710,17 @@ PyParentObject SCA_KeyboardSensor::Parents[] = {
 };
 
 PyMethodDef SCA_KeyboardSensor::Methods[] = {
-  {"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_VARARGS, GetKey_doc},
-  {"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, SetKey_doc},
-  {"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_VARARGS, GetHold1_doc},
-  {"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, SetHold1_doc},
-  {"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_VARARGS, GetHold2_doc},
-  {"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, SetHold2_doc},
-//  {"getUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetUseAllKeys, METH_VARARGS, GetUseAllKeys_doc},
-//  {"setUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPySetUseAllKeys, METH_VARARGS, SetUseAllKeys_doc},
-  {"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_VARARGS, GetPressedKeys_doc},
-  {"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_VARARGS, GetCurrentlyPressedKeys_doc},
-//  {"getKeyEvents", (PyCFunction) SCA_KeyboardSensor::sPyGetKeyEvents, METH_VARARGS, GetKeyEvents_doc},
+  {"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_VARARGS, (PY_METHODCHAR)GetKey_doc},
+  {"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, (PY_METHODCHAR)SetKey_doc},
+  {"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_VARARGS, (PY_METHODCHAR)GetHold1_doc},
+  {"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, (PY_METHODCHAR)SetHold1_doc},
+  {"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_VARARGS, (PY_METHODCHAR)GetHold2_doc},
+  {"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, (PY_METHODCHAR)SetHold2_doc},
+//  {"getUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetUseAllKeys, METH_VARARGS, (PY_METHODCHAR)GetUseAllKeys_doc},
+//  {"setUseAllKeys", (PyCFunction) SCA_KeyboardSensor::sPySetUseAllKeys, METH_VARARGS, (PY_METHODCHAR)SetUseAllKeys_doc},
+  {"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetPressedKeys_doc},
+  {"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_VARARGS, (PY_METHODCHAR)GetCurrentlyPressedKeys_doc},
+//  {"getKeyEvents", (PyCFunction) SCA_KeyboardSensor::sPyGetKeyEvents, METH_VARARGS, (PY_METHODCHAR)GetKeyEvents_doc},
   {NULL,NULL} //Sentinel
 };
 

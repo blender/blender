@@ -245,10 +245,10 @@ PyParentObject SCA_PropertyActuator::Parents[] = {
 };
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
-	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
-	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, SetValue_doc},
-	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, GetValue_doc},
+	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
+	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
 	{NULL,NULL} //Sentinel
 };
 

@@ -166,8 +166,8 @@ PyParentObject KX_ParentActuator::Parents[] = {
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, SetObject_doc},
-	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, GetObject_doc},
+	{"setObject",         (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+	{"getObject",         (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
 	{NULL,NULL} //Sentinel
 };
 

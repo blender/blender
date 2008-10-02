@@ -333,12 +333,12 @@ PyParentObject SCA_PropertySensor::Parents[] = {
 };
 
 PyMethodDef SCA_PropertySensor::Methods[] = {
-	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_VARARGS, GetType_doc},
-	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, SetType_doc},
-	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_VARARGS, GetProperty_doc},
-	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_VARARGS, GetValue_doc},
-	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, SetValue_doc},
+	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_VARARGS, (PY_METHODCHAR)GetType_doc},
+	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
+	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
+	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
 	{NULL,NULL} //Sentinel
 };
 
