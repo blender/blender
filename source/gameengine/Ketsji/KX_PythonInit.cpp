@@ -1077,9 +1077,17 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	PyObject *fromlist = NULL;
 	PyObject *l, *m, *n;
 
+#if (PY_VERSION_HEX >= 0x02060000)
+	int dummy_val; /* what does this do?*/
+	
+	if (!PyArg_ParseTuple(args, "s|OOOi:m_import",
+	        &name, &globals, &locals, &fromlist, &dummy_val))
+	    return NULL;
+#else
 	if (!PyArg_ParseTuple(args, "s|OOO:m_import",
 	        &name, &globals, &locals, &fromlist))
 	    return NULL;
+#endif
 
 	/* check for builtin modules */
 	m = PyImport_AddModule("sys");
@@ -1492,6 +1500,7 @@ int saveGamePythonConfig( char **marshal_buffer)
 		}
 		Py_DECREF(gameLogic);
 	} else {
+		PyErr_Clear();
 		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 	}
 	return marshal_length;
@@ -1523,6 +1532,7 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 				printf("Error could not marshall string\n");
 			}
 		} else {
+			PyErr_Clear();
 			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 		}	
 	}
