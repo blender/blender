@@ -1505,10 +1505,17 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 
 		if (gameLogic) {
 			PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(marshal_buffer, marshal_length);
-
 			if (pyGlobalDict) {
-				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				PyObject* pyGlobalDict_orig = PyDict_GetItemString(PyModule_GetDict(gameLogic), "globalDict"); // Same as importing the module.
+				if (pyGlobalDict_orig) {
+					PyDict_Clear(pyGlobalDict_orig);
+					PyDict_Update(pyGlobalDict_orig, pyGlobalDict);
+				} else {
+					/* this should not happen, but cant find the original globalDict, just assign it then */
+					PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				}
 				Py_DECREF(gameLogic);
+				Py_DECREF(pyGlobalDict);
 				return 1;
 			} else {
 				Py_DECREF(gameLogic);
