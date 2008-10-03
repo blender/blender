@@ -3021,68 +3021,32 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 {
 	uiBlock *block;
 	Object *ob = arg_ob;
-	short yco = 140, xco = 0;
-
-	/* create a BulletSoftBody structure if not already existing */
-	if ((ob->body_type & OB_BODY_TYPE_SOFT) && !ob->bsoft)
-		ob->bsoft = bsbNew();
+	short yco = 20, xco = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", -10, -10, 380, 180, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "", -10, -10, 380, 60, NULL, 0, 0, 0, 0, "");
 
 	if (ob->gameflag & OB_SOFT_BODY) {
 
 		if (ob->bsoft)
 		{
-			xco = 0;
-			uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 180, 19, 
-				&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
-				"Linear stiffness of the soft body links");
-			yco -= 30;
-			xco = 0;
 
 			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, OB_BSB_SHAPE_MATCHING, 0, "Shape matching", 
-				xco, yco, 180, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
-				"Enable soft body shape matching goal");
-			
-			uiDefButBitI(block, TOG, OB_BSB_BENDING_CONSTRAINTS, 0, "Bending Constraints", 
-				xco+=180, yco, 180, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
-				"Enable bending constraints");
-
-			yco -= 20;
-			xco = 0;
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
 				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
 				"Enable cluster collision between soft and rigid body");
 			uiDefButBitI(block, TOG, OB_BSB_COL_CL_SS, 0, "Cluster Collision SS", 
 				xco+=180, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
 				"Enable cluster collision between soft and soft body");
-			uiBlockEndAlign(block);
-
-			yco -= 30;
+			yco -= 20;
 			xco = 0;
-			uiBlockBeginAlign(block);
 			uiDefButI(block, NUM, 0, "Cluster Iter.",		
 				xco, yco, 180, 19, &ob->bsoft->numclusteriterations, 1.0, 128., 
 				0, 0, "Specify the number of cluster iterations");
-
 			uiDefButI(block, NUM, 0, "Position Iter.",		
 				xco+=180, yco, 180, 19, &ob->bsoft->piterations, 0, 10, 
 				0, 0, "Position solver iterations");
-			uiBlockEndAlign(block);
-
-			yco -= 30;
-			xco = 0;
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUMSLI, 0, "Friction ",		
-				xco, yco, 180, 19, &ob->bsoft->kDF, 0.0, 1., 
-				0, 0, "Dynamic Friction");
-
-			uiDefButF(block, NUMSLI, 0, "kMT ",		
-				xco+=180, yco, 180, 19, &ob->bsoft->kMT, 0, 1,
-				0, 0, "Pose matching coefficient");
 			uiBlockEndAlign(block);
 
 			/*
@@ -3121,7 +3085,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 					xco, yco, 170, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 		}
-		yco -= 25;
+		yco -= 20;
 		xco = 0;
 		
 	
@@ -3145,8 +3109,12 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 		ob->body_type = OB_BODY_TYPE_DYNAMIC;
 	else if (ob->gameflag & OB_RIGID_BODY)
 		ob->body_type = OB_BODY_TYPE_RIGID;
-	else
+	else {
 		ob->body_type = OB_BODY_TYPE_SOFT;
+		/* create the structure here because we display soft body buttons in the main panel */
+		if (!ob->bsoft)
+			ob->bsoft = bsbNew();
+	}
 
 	uiBlockBeginAlign(block);
 
@@ -3178,42 +3146,68 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 
 		if(ob->gameflag & OB_DYNAMIC) {
 
+			if (!(ob->gameflag & OB_SOFT_BODY))
+			{
+
 				uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 130, 19, 
 						&ob->mass, 0.01, 10000.0, 10, 2, 
 						"The mass of the Object");
+				
+				uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
+							&ob->inertia, 0.01, 10.0, 10, 2, 
+							"Radius for Bounding sphere and Fh/Fh Rot");
+				
+				uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
+						&ob->gameflag, 0, 0, 0, 0, 
+						"Disable auto (de)activation");
 
-				if (!(ob->gameflag & OB_SOFT_BODY))
-				{
+				uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
+						&ob->damping, 0.0, 1.0, 10, 0, 
+						"General movement damping");
+				uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
+						&ob->rdamping, 0.0, 1.0, 10, 0, 
+						"General rotation damping");
 
-					
-					uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 140, 185, 130, 19, 
-								&ob->inertia, 0.01, 10.0, 10, 2, 
-								"Radius for Bounding sphere and Fh/Fh Rot");
-					
-					uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,185,80,19, 
-							&ob->gameflag, 0, 0, 0, 0, 
-							"Disable auto (de)activation");
+				uiDefButBitI(block, TOG, OB_DO_FH, B_DIFF, "Do Fh", 10,145,50,19, 
+						&ob->gameflag, 0, 0, 0, 0, 
+						"Use Fh settings in Materials");
+				uiDefButBitI(block, TOG, OB_ROT_FH, B_DIFF, "Rot Fh", 60,145,50,19, 
+						&ob->gameflag, 0, 0, 0, 0, 
+						"Use face normal to rotate Object");
+				/* Form factor is hooked up in Bullet, to scale inertia tensor */
 
-					uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
-							&ob->damping, 0.0, 1.0, 10, 0, 
-							"General movement damping");
-					uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
-							&ob->rdamping, 0.0, 1.0, 10, 0, 
-							"General rotation damping");
+				uiDefButF(block, NUM, B_DIFF, "Form:", 110, 145, 120, 19, 
+						&ob->formfactor, 0.01, 100.0, 10, 0, 
+						"Form factor scales the inertia tensor");
+			} else {
+				uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 110, 19, 
+						&ob->mass, 0.01, 10000.0, 10, 2, 
+						"The mass of the Object");
 
-					uiDefButBitI(block, TOG, OB_DO_FH, B_DIFF, "Do Fh", 10,145,50,19, 
-							&ob->gameflag, 0, 0, 0, 0, 
-							"Use Fh settings in Materials");
-					uiDefButBitI(block, TOG, OB_ROT_FH, B_DIFF, "Rot Fh", 60,145,50,19, 
-							&ob->gameflag, 0, 0, 0, 0, 
-							"Use face normal to rotate Object");
-					/* Form factor is hooked up in Bullet, to scale inertia tensor */
+				if (ob->bsoft) {
+					uiDefButBitI(block, TOG, OB_BSB_SHAPE_MATCHING, B_REDR, "Shape Match", 
+							120, 185, 110, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
+							"Enable soft body shape matching goal");
 
-					uiDefButF(block, NUM, B_DIFF, "Form:", 110, 145, 120, 19, 
-							&ob->formfactor, 0.01, 100.0, 10, 0, 
-							"Form factor scales the inertia tensor");
+					uiDefButBitI(block, TOG, OB_BSB_BENDING_CONSTRAINTS, 0, "Bending Const.", 
+							230, 185, 120, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
+							"Enable bending constraints");
+
+					uiDefButF(block, NUMSLI, 0, "LinStiff ", 10, 165, 170, 19, 
+							&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
+							"Linear stiffness of the soft body links");
+
+					uiDefButF(block, NUMSLI, 0, "Friction ",		
+							180, 165, 170, 19, &ob->bsoft->kDF, 0.0, 1., 
+							0, 0, "Dynamic Friction");
+
+					if (ob->bsoft->flag & OB_BSB_SHAPE_MATCHING) {
+						uiDefButF(block, NUMSLI, 0, "kMT ",		
+								10, 145, 170, 19, &ob->bsoft->kMT, 0, 1,
+								0, 0, "Shape matching threshold");
+					}
 				}
-
+			}
 				
 		} else {
 			/* static object can also have a sphere bound shape, radius is used */
@@ -3223,7 +3217,6 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 							"Radius for Bounding sphere");
 			}
 		}
-
 
 		uiBlockEndAlign(block);
 
