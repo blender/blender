@@ -2439,6 +2439,10 @@ void				btSoftBody::PSolve_RContacts(btSoftBody* psb,btScalar kst,btScalar ti)
 	for(int i=0,ni=psb->m_rcontacts.size();i<ni;++i)
 	{
 		const RContact&		c=psb->m_rcontacts[i];
+		///skip object that don't have collision response
+		if (!psb->getWorldInfo()->m_dispatcher->needsResponse(psb,c.m_cti.m_body))
+			continue;
+
 		const sCti&			cti=c.m_cti;	
 		const btVector3		va=cti.m_body->getVelocityInLocalPoint(c.m_c1)*dt;
 		const btVector3		vb=c.m_node->m_x-c.m_node->m_q;	
