@@ -35,6 +35,10 @@ inline int	btGetVersion()
 #define BT_DEBUG
 #endif
 
+/* XXX Need to fix these... needed for SunOS 5.8 */
+#define sinf(a)         sin((double)(a))
+#define cosf(a)         cos((double)(a))
+#define fabsf(a)        fabs((double)(a))
 
 #ifdef WIN32
 
