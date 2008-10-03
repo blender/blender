@@ -63,6 +63,7 @@
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
+#include "BKE_library.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -816,17 +817,20 @@ static void gp_layer_to_curve (bGPdata *gpd, bGPDlayer *gpl, short mode)
 	/* only convert if there are any strokes on this layer's frame to convert */
 	if (gpf->strokes.first == NULL)
 		return;
-		
-	/* initialise the curve */	
-	cu= add_curve(gpl->info, 1);
-	cu->flag |= CU_3D;
 	
-	/* init the curve object (remove rotation and assign curve data to it) */
+	/* init the curve object (remove rotation and get curve data from it)
+	 *	- must clear transforms set on object, as those skew our results
+	 */
 	add_object_draw(OB_CURVE);
 	ob= OBACT;
 	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0;
 	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
-	ob->data= cu;
+	cu= ob->data;
+	cu->flag |= CU_3D;
+	
+	/* rename object and curve to layer name */
+	rename_id((ID *)ob, gpl->info);
+	rename_id((ID *)cu, gpl->info);
 	
 	/* add points to curve */
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
@@ -865,25 +869,26 @@ static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *
 		VecCopyf(ebo->tail, p3db);
 		
 		/* add new bone - note: sync with editarmature.c::add_editbone() */
-		BLI_strncpy(ebo->name, "Stroke", 32);
-		unique_editbone_name(bones, ebo->name);
-		
-		BLI_addtail(bones, ebo);
-		
-		ebo->flag |= BONE_CONNECTED;
-		ebo->weight= 1.0F;
-		ebo->dist= 0.25F;
-		ebo->xwidth= 0.1;
-		ebo->zwidth= 0.1;
-		ebo->ease1= 1.0;
-		ebo->ease2= 1.0;
-		ebo->rad_head= pt->pressure * gpl->thickness * 0.1;
-		ebo->rad_tail= ptn->pressure * gpl->thickness * 0.1;
-		ebo->segments= 1;
-		ebo->layer= arm->layer;
+		{
+			BLI_strncpy(ebo->name, "Stroke", 32);
+			unique_editbone_name(bones, ebo->name);
+			
+			BLI_addtail(bones, ebo);
+			
+			ebo->flag |= BONE_CONNECTED;
+			ebo->weight= 1.0F;
+			ebo->dist= 0.25F;
+			ebo->xwidth= 0.1;
+			ebo->zwidth= 0.1;
+			ebo->ease1= 1.0;
+			ebo->ease2= 1.0;
+			ebo->rad_head= pt->pressure * gpl->thickness * 0.1;
+			ebo->rad_tail= ptn->pressure * gpl->thickness * 0.1;
+			ebo->segments= 1;
+			ebo->layer= arm->layer;
+		}
 		
 		/* set parenting */
-		// TODO: also adjust roll....
 		ebo->parent= prev;
 	}
 }
@@ -904,20 +909,41 @@ static void gp_layer_to_armature (bGPdata *gpd, bGPDlayer *gpl, short mode)
 	/* only convert if there are any strokes on this layer's frame to convert */
 	if (gpf->strokes.first == NULL)
 		return;
-		
-	/* initialise the armature */	
-	arm= add_armature(gpl->info);
 	
-	/* init the armature object (remove rotation and assign armature data to it) */
+	/* init the armature object (remove rotation and assign armature data to it) 
+	 *	- must clear transforms set on object, as those skew our results
+	 */
 	add_object_draw(OB_ARMATURE);
 	ob= OBACT;
 	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0;
 	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0;
-	ob->data= arm;
+	arm= ob->data;
+	
+	/* rename object and armature to layer name */
+	rename_id((ID *)ob, gpl->info);
+	rename_id((ID *)arm, gpl->info);
 	
 	/* convert segments to bones, strokes to bone chains */
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
 		gp_stroke_to_bonechain(gpl, gps, arm, &bones);
+	}
+	
+	/* adjust roll of bones
+	 * 	- set object as EditMode object, but need to clear afterwards!
+	 *	- use 'align to world z-up' option
+	 */
+	{
+		/* set our data as if we're in editmode to fool auto_align_armature() */
+		G.obedit= ob;
+		G.edbo.first = bones.first;
+		G.edbo.last = bones.last;
+		
+		/* WARNING: need to make sure this magic number doesn't change */
+		auto_align_armature(2);	
+		
+		/* clear editbones (not needed anymore) */
+		G.edbo.first= G.edbo.last= NULL;
+		G.obedit= NULL;
 	}
 	
 	/* flush editbones to armature */
@@ -990,12 +1016,15 @@ void gpencil_convert_menu (void)
 /* maximum sizes of gp-session buffer */
 #define GP_STROKE_BUFFER_MAX	5000
 
-/* Hardcoded sensitivity thresholds... */
+/* Macros for accessing sensitivity thresholds... */
 	/* minimum number of pixels mouse should move before new point created */
-#define MIN_MANHATTEN_PX	U.gp_manhattendist
+#define MIN_MANHATTEN_PX	(U.gp_manhattendist)
 	/* minimum length of new segment before new point can be added */
-#define MIN_EUCLIDEAN_PX	U.gp_euclideandist
+#define MIN_EUCLIDEAN_PX	(U.gp_euclideandist)
 
+/* macro to test if only converting endpoints - only for use when converting!  */	
+#define GP_BUFFER2STROKE_ENDPOINTS ((gpd->flag & GP_DATA_EDITPAINT) && (G.qual & LR_CTRLKEY))
+	
 /* ------ */
 
 /* Temporary 'Stroke' Operation data */
@@ -1013,6 +1042,10 @@ typedef struct tGPsdata {
 	
 	short mval[2];		/* current mouse-position */
 	short mvalo[2];		/* previous recorded mouse-position */
+	
+	short pressure;		/* current stylus pressure */
+	short opressure;	/* previous stylus pressure */
+	
 	short radius;		/* radius of influence for eraser */
 } tGPsdata;
 
@@ -1180,6 +1213,34 @@ static short gp_stroke_addpoint (tGPsdata *p, short mval[2], float pressure)
 		return GP_STROKEADD_NORMAL;
 }
 
+/* smooth a stroke (in buffer) before storing it */
+static void gp_stroke_smooth (tGPsdata *p)
+{
+	bGPdata *gpd= p->gpd;
+	int i=0, cmx=gpd->sbuffer_size;
+	
+	/* only smooth if smoothing is enabled, and we're not doing a straight line */
+	if ( !(U.gp_settings & GP_PAINT_DOSMOOTH) || GP_BUFFER2STROKE_ENDPOINTS)
+		return;
+	
+	/* don't try if less than 2 points in buffer */
+	if ((cmx <= 2) || (gpd->sbuffer == NULL))
+		return;
+	
+	/* apply weighting-average (note doing this along path sequentially does introduce slight error) */
+	for (i=0; i < gpd->sbuffer_size; i++) {
+		tGPspoint *pc= (((tGPspoint *)gpd->sbuffer) + i);
+		tGPspoint *pb= (i-1 > 0)?(pc-1):(pc);
+		tGPspoint *pa= (i-2 > 0)?(pc-2):(pb);
+		tGPspoint *pd= (i+1 < cmx)?(pc+1):(pc);
+		tGPspoint *pe= (i+2 < cmx)?(pc+2):(pd);
+		
+		pc->x= (short)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
+		pc->y= (short)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
+	}
+}
+
+
 /* make a new stroke from the buffer data */
 static void gp_stroke_newfrombuffer (tGPsdata *p)
 {
@@ -1188,9 +1249,6 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	bGPDspoint *pt;
 	tGPspoint *ptc;
 	int i, totelem;
-
-	/* macro to test if only converting endpoints  */	
-	#define GP_BUFFER2STROKE_ENDPOINTS ((gpd->flag & GP_DATA_EDITPAINT) && (G.qual & LR_CTRLKEY))
 	
 	/* get total number of points to allocate space for:
 	 *	- in 'Draw Mode', holding the Ctrl-Modifier will only take endpoints
@@ -1261,9 +1319,6 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	
 	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
-	
-	/* undefine macro to test if only converting endpoints  */	
-	#undef GP_BUFFER2STROKE_ENDPOINTS
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
@@ -1682,6 +1737,9 @@ static void gp_paint_strokeend (tGPsdata *p)
 {
 	/* check if doing eraser or not */
 	if ((p->gpd->sbuffer_sflag & GP_STROKE_ERASER) == 0) {
+		/* smooth stroke before transferring? */
+		gp_stroke_smooth(p);
+		
 		/* transfer stroke to frame */
 		gp_stroke_newfrombuffer(p);
 	}
@@ -1715,7 +1773,6 @@ static void gp_paint_cleanup (tGPsdata *p)
 short gpencil_paint (short mousebutton, short paintmode)
 {
 	tGPsdata p;
-	float opressure, pressure;
 	short ok = GP_STROKEADD_NORMAL;
 	
 	/* init paint-data */
@@ -1735,14 +1792,15 @@ short gpencil_paint (short mousebutton, short paintmode)
 	
 	/* init drawing-device settings */
 	getmouseco_areawin(p.mval);
-	pressure = get_pressure();
+	p.pressure = get_pressure();
 	
 	p.mvalo[0]= p.mval[0];
 	p.mvalo[1]= p.mval[1];
-	opressure= pressure;
+	p.opressure= p.pressure;
 	
-	/* radius for eraser circle is thickness^2 */
-	p.radius= p.gpl->thickness * p.gpl->thickness;
+	/* radius for eraser circle is defined in userprefs now */
+	// TODO: make this more easily tweaked... 
+	p.radius= U.gp_eraser;
 	
 	/* start drawing eraser-circle (if applicable) */
 	if (paintmode == GP_PAINTMODE_ERASER)
@@ -1754,8 +1812,8 @@ short gpencil_paint (short mousebutton, short paintmode)
 	 * 	- not erasing
 	 */
 	if (paintmode != GP_PAINTMODE_ERASER) {
-		if (!(pressure >= 0.99f) || (p.gpd->flag & GP_DATA_EDITPAINT)) { 
-			gp_stroke_addpoint(&p, p.mval, pressure);
+		if (!(p.pressure >= 0.99f) || (p.gpd->flag & GP_DATA_EDITPAINT)) { 
+			gp_stroke_addpoint(&p, p.mval, p.pressure);
 		}
 	}
 	
@@ -1763,7 +1821,7 @@ short gpencil_paint (short mousebutton, short paintmode)
 	do {
 		/* get current user input */
 		getmouseco_areawin(p.mval);
-		pressure = get_pressure();
+		p.pressure = get_pressure();
 		
 		/* only add current point to buffer if mouse moved (otherwise wait until it does) */
 		if (paintmode == GP_PAINTMODE_ERASER) {
@@ -1775,10 +1833,11 @@ short gpencil_paint (short mousebutton, short paintmode)
 			
 			p.mvalo[0]= p.mval[0];
 			p.mvalo[1]= p.mval[1];
+			p.opressure= p.pressure;
 		}
 		else if (gp_stroke_filtermval(&p, p.mval, p.mvalo)) {
 			/* try to add point */
-			ok= gp_stroke_addpoint(&p, p.mval, pressure);
+			ok= gp_stroke_addpoint(&p, p.mval, p.pressure);
 			
 			/* handle errors while adding point */
 			if ((ok == GP_STROKEADD_FULL) || (ok == GP_STROKEADD_OVERFLOW)) {
@@ -1786,8 +1845,8 @@ short gpencil_paint (short mousebutton, short paintmode)
 				gp_paint_strokeend(&p);
 				
 				/* start a new stroke, starting from previous point */
-				gp_stroke_addpoint(&p, p.mvalo, opressure);
-				ok= gp_stroke_addpoint(&p, p.mval, pressure);
+				gp_stroke_addpoint(&p, p.mvalo, p.opressure);
+				ok= gp_stroke_addpoint(&p, p.mval, p.pressure);
 			}
 			else if (ok == GP_STROKEADD_INVALID) {
 				/* the painting operation cannot continue... */
@@ -1802,7 +1861,7 @@ short gpencil_paint (short mousebutton, short paintmode)
 			
 			p.mvalo[0]= p.mval[0];
 			p.mvalo[1]= p.mval[1];
-			opressure= pressure;
+			p.opressure= p.pressure;
 		}
 		else
 			BIF_wait_for_statechange();
@@ -1820,7 +1879,7 @@ short gpencil_paint (short mousebutton, short paintmode)
 	
 	/* check size of buffer before cleanup, to determine if anything happened here */
 	if (paintmode == GP_PAINTMODE_ERASER) {
-		ok= 1; // fixme
+		ok= 1; /* assume that we did something... */
 		draw_sel_circle(NULL, p.mvalo, 0, p.radius, 0);
 	}
 	else

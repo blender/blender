@@ -201,6 +201,9 @@ static void init_userdef_file(void)
     if (U.ndof_rotate==0) {
         U.ndof_rotate = 100;
    }
+	if (U.gp_eraser == 0) {
+		U.gp_eraser= 25;
+	}
 
 	if(U.flag & USER_CUSTOM_RANGE) 
 		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */

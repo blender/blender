@@ -189,8 +189,8 @@ typedef struct UserDef {
 	struct ListBase themes;
 	short undosteps;
 	short undomemory;
-	short gp_manhattendist, gp_euclideandist, pad;
-	short curssize;
+	short gp_manhattendist, gp_euclideandist, gp_eraser;
+	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
@@ -206,7 +206,7 @@ typedef struct UserDef {
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
-	short pads[2];
+	short curssize, pad;
 //	char pad[8];
 	char versemaster[160];
 	char verseuser[160];
@@ -325,6 +325,9 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_VRML_TWOSIDED		4
 
 /* tw_flag (transform widget) */
+
+/* gp_settings (Grease Pencil Settings) */
+#define GP_PAINT_DOSMOOTH	(1<<0)
 
 
 #endif
