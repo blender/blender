@@ -38,6 +38,8 @@ void		wm_operator_free(wmOperator *op);
 			/* register to windowmanager for redo or macro */
 void		wm_operator_register(wmWindowManager *wm, wmOperator *op);
 
+extern void wm_report_free(wmReport *report);
+
 /* wm_operator.c, for init/exit */
 void wm_operatortype_free(void);
 void wm_operatortype_init(void);

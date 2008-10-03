@@ -43,6 +43,7 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+#include "wm.h"
 
 #include "ED_screen.h"
 
@@ -130,6 +131,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
 	wmWindow *win;
 	wmOperator *op;
+	wmReport *report;
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
@@ -139,6 +141,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	while((op= wm->operators.first)) {
 		BLI_remlink(&wm->operators, op);
 		wm_operator_free(op);
+	}
+
+	while((report= wm->reports.first)) {
+		BLI_remlink(&wm->reports, report);
+		wm_report_free(report);
 	}
 
 	BLI_freelistN(&wm->timekeymap);

@@ -138,6 +138,25 @@ typedef struct wmBorderSelect {
 	short x2, y2;
 } wmBorderSelect;
 
+/* ****************** Messages ********************* */
+
+enum {
+	WM_LOG_DEBUG				= 0,
+	WM_LOG_INFO					= 1000,
+	WM_LOG_WARNING				= 2000,
+	WM_ERROR_UNDEFINED			= 3000,
+	WM_ERROR_INVALID_INPUT		= 3001,
+	WM_ERROR_INVALID_CONTEXT	= 3002,
+	WM_ERROR_OUT_OF_MEMORY		= 3003
+};
+
+typedef struct wmReport {
+	struct wmReport *next, *prev;
+	int type;
+	const char *typestr;
+	char *message;
+} wmReport;
+
 /* *************** migrated stuff, clean later? ******************************** */
 
 typedef struct RecentFile {

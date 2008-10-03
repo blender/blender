@@ -61,6 +61,8 @@ typedef struct wmWindowManager {
 	ListBase operators;		/* operator registry */
 	
 	ListBase queue;			/* refresh/redraw wmNotifier structs */
+
+	ListBase reports;		/* information and error reports */
 	
 	/* custom keymaps */
 	ListBase windowkeymap;
