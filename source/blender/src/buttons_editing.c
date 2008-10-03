@@ -4952,9 +4952,7 @@ void do_meshbuts(unsigned short event)
 		if( select_area(SPACE_VIEW3D)) spin_mesh(G.scene->toolsettings->step, G.scene->toolsettings->degr, 0, 1);
 		break;
 	case B_EXTR:
-		G.f |= G_DISABLE_OK;
 		if( select_area(SPACE_VIEW3D)) extrude_mesh();
-		G.f -= G_DISABLE_OK;
 		break;
 	case B_SCREW:
 		if( select_area(SPACE_VIEW3D)) screw_mesh(G.scene->toolsettings->step, G.scene->toolsettings->turn);
@@ -4963,9 +4961,7 @@ void do_meshbuts(unsigned short event)
 		if( select_area(SPACE_VIEW3D)) extrude_repeat_mesh(G.scene->toolsettings->step, G.scene->toolsettings->extr_offs);
 		break;
 	case B_SPLIT:
-		G.f |= G_DISABLE_OK;
 		split_mesh();
-		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
 		count= removedoublesflag(1, 0, G.scene->toolsettings->doublimit);

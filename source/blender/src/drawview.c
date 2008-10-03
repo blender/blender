@@ -3129,13 +3129,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 	
 	if(v3d->drawtype > OB_WIRE) {
-		if(G.f & G_SIMULATION)
-			glClearColor(0.0, 0.0, 0.0, 0.0); 
-		else {
-			float col[3];
-			BIF_GetThemeColor3fv(TH_BACK, col);
-			glClearColor(col[0], col[1], col[2], 0.0); 
-		}
+		float col[3];
+		BIF_GetThemeColor3fv(TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0); 
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		
 		glLoadIdentity();
@@ -3423,8 +3419,9 @@ void drawview3d_render(struct View3D *v3d, float viewmat[][4], int winx, int win
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/* abuse! to make sure it doesnt draw the helpstuff */
-	G.f |= G_SIMULATION;
+	G.f |= G_RENDER_OGL;
+	if(shadow)
+		G.f |= G_RENDER_SHADOW;
 
 	/* first draw set */
 	if(G.scene->set) {
@@ -3500,7 +3497,7 @@ void drawview3d_render(struct View3D *v3d, float viewmat[][4], int winx, int win
 		draw_gpencil_oglrender(v3d, winx, winy);
 	}
 	
-	G.f &= ~G_SIMULATION;
+	G.f &= ~(G_RENDER_OGL|G_RENDER_SHADOW);
 
 	if(!shadow) {
 		glFlush();

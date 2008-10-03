@@ -157,10 +157,10 @@ typedef struct Global {
 /* **************** GLOBAL ********************* */
 
 /* G.f */
-#define G_DISABLE_OK	(1 <<  0)
+#define G_RENDER_OGL	(1 <<  0)
 #define G_PLAYANIM		(1 <<  1)
 /* also uses G_FILE_AUTOPLAY */
-#define G_SIMULATION	(1 <<  3)
+#define G_RENDER_SHADOW	(1 <<  3)
 #define G_BACKBUFSEL	(1 <<  4)
 #define G_PICKSEL		(1 <<  5)
 #define G_DRAWNORMALS	(1 <<  6)

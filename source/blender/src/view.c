@@ -1266,7 +1266,6 @@ void viewmove(int mode)
 			mvalo[1]= mval[1];
 
 			if(G.f & G_PLAYANIM) inner_play_anim_loop(0, 0);
-			if(G.f & G_SIMULATION) break;
 
 			/* If in retopo paint mode, update lines */
 			if(retopo_mesh_paint_check() && G.vd->retopo_view_data) {
