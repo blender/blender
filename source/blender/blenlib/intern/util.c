@@ -1182,7 +1182,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	 * Add a / prefix and lowercase the driveletter, remove the :
 	 * C:\foo.JPG -> /c/foo.JPG */
 	
-	if (tmp[1] == ':' && isalpha(tmp[0]) && (tmp[2]=='\\' || tmp[2]=='/') ) {
+	if (isalpha(tmp[0]) && tmp[1] == ':' && (tmp[2]=='\\' || tmp[2]=='/') ) {
 		tmp[1] = tolower(tmp[0]); /* replace ':' with driveletter */
 		tmp[0] = '/'; 
 		/* '\' the slash will be converted later */
