@@ -2565,29 +2565,19 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 	case ACT_MESSAGE:
 		ma = act->data;
 
-#define MESSAGE_SENSOR_TO_FIELD_WORKS	/* Really?  Not really.  Don't remove this ifdef yet */
-
-#ifdef MESSAGE_SENSOR_TO_FIELD_WORKS
 		ysize = 4 + (3 * 24); /* footer + number of lines * 24 pixels/line */
-#else
-		ysize = 4 + (2 * 24); /* footer + number of lines * 24 pixels/line */
-#endif
+	
 		glRects(xco, yco-ysize, xco+width, yco);
 		uiEmboss((float)xco,	    (float)yco-ysize,
 				 (float)xco+width,  (float)yco, 1);
 
 		myline=1;
 
-
-#ifdef MESSAGE_SENSOR_TO_FIELD_WORKS
 		/* line 1: To */
 		uiDefBut(block, TEX, 1, "To: ",
 			(xco+10), (yco-(myline++*24)), (width-20), 19,
 			&ma->toPropName, 0, 31, 0, 0,
-			"Optional send message to objects with this name only (Prefix name with OB)"
-			", or empty to broadcast");
-
-#endif
+			"Optional send message to objects with this name only, or empty to broadcast");
 
 		/* line 2: Message Subject */
 		uiDefBut(block, TEX, 1, "Subject: ",

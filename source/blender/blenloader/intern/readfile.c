@@ -7926,9 +7926,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			la->sky_exposure= 1.0f;
 		}
 	}
+	
+	/* BGE message actuators needed OB prefix, very confusing */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 10)) {
+		bActuator *act;
+		Object *ob;
 		
-		
-		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_MESSAGE) {
+					bMessageActuator *msgAct = (bMessageActuator *) act->data;
+					if (strlen(msgAct->toPropName) > 2) {
+						/* strip first 2 chars, would have only worked if these were OB anyway */
+						strncpy(msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName));
+					} else {
+						msgAct->toPropName[0] = '\0';
+					}
+				}
+			}
+		}
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
