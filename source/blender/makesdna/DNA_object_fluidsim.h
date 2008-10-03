@@ -142,7 +142,7 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_PARTICLE    64
 #define OB_FLUIDSIM_CONTROL 	128
 
-#define OB_TYPEFLAG_START       0
+#define OB_TYPEFLAG_START       7
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))
 #define OB_FSBND_NOSLIP         (1<<(OB_TYPEFLAG_START+2))
 #define OB_FSBND_PARTSLIP       (1<<(OB_TYPEFLAG_START+3))
