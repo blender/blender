@@ -5185,7 +5185,8 @@ void draw_object(Base *base, int flag)
 	}
 
 	if(dt<OB_SHADED) {
-		if(/*(ob->gameflag & OB_ACTOR) &&*/ (ob->gameflag & OB_DYNAMIC)) {
+		if((ob->gameflag & OB_DYNAMIC) || 
+			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
 			float tmat[4][4], imat[4][4], vec[3];
 
 			vec[0]= vec[1]= vec[2]= 0.0;

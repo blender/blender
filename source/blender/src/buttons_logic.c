@@ -3021,7 +3021,7 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 {
 	uiBlock *block;
 	Object *ob = arg_ob;
-	short yco = 105, xco = 0;
+	short yco = 140, xco = 0;
 
 	/* create a BulletSoftBody structure if not already existing */
 	if ((ob->body_type & OB_BODY_TYPE_SOFT) && !ob->bsoft)
@@ -3029,54 +3029,61 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 
 	block= uiNewBlock(&curarea->uiblocks, "advanced_bullet_options", UI_EMBOSS, UI_HELV, curarea->win);
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", -5, -10, 255, 140, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "", -10, -10, 380, 180, NULL, 0, 0, 0, 0, "");
 
-		if (ob->gameflag & OB_SOFT_BODY) {
+	if (ob->gameflag & OB_SOFT_BODY) {
 
 		if (ob->bsoft)
 		{
 			xco = 0;
-			uiDefButF(block, NUMSLI, 0, "LinStiff", xco, yco, 238, 19, 
+			uiDefButF(block, NUMSLI, 0, "LinStiff ", xco, yco, 180, 19, 
 				&ob->bsoft->linStiff, 0.0, 1.0, 1, 0,
 				"Linear stiffness of the soft body links");
-			yco -= 25;
+			yco -= 30;
 			xco = 0;
 
+			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, OB_BSB_SHAPE_MATCHING, 0, "Shape matching", 
-				xco, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
+				xco, yco, 180, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
 				"Enable soft body shape matching goal");
 			
 			uiDefButBitI(block, TOG, OB_BSB_BENDING_CONSTRAINTS, 0, "Bending Constraints", 
-				xco+=120, yco, 118, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
+				xco+=180, yco, 180, 19, &ob->bsoft->flag, 0, 0, 0, 0, 
 				"Enable bending constraints");
 
-			yco -= 25;
+			yco -= 20;
 			xco = 0;
-			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Col. RS", 
-				xco, yco, 118, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_RS, 0, "Cluster Collision RS", 
+				xco, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
 				"Enable cluster collision between soft and rigid body");
-			uiDefButBitI(block, TOG, OB_BSB_COL_CL_SS, 0, "Cluster Col. SS", 
-				xco+=120, yco, 118, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
+			uiDefButBitI(block, TOG, OB_BSB_COL_CL_SS, 0, "Cluster Collision SS", 
+				xco+=180, yco, 180, 19, &ob->bsoft->collisionflags, 0, 0, 0, 0, 
 				"Enable cluster collision between soft and soft body");
-			yco -= 25;
+			uiBlockEndAlign(block);
+
+			yco -= 30;
 			xco = 0;
-			uiDefButI(block, NUM, REDRAWVIEW3D, "Clus.It.",		
-				xco, yco, 118, 19, &ob->bsoft->numclusteriterations, 1.0, 128., 
+			uiBlockBeginAlign(block);
+			uiDefButI(block, NUM, 0, "Cluster Iter.",		
+				xco, yco, 180, 19, &ob->bsoft->numclusteriterations, 1.0, 128., 
 				0, 0, "Specify the number of cluster iterations");
 
-			uiDefButI(block, NUM, REDRAWVIEW3D, "piterations",		
-				xco+=120, yco, 118, 19, &ob->bsoft->piterations, 0, 10, 
+			uiDefButI(block, NUM, 0, "Position Iter.",		
+				xco+=180, yco, 180, 19, &ob->bsoft->piterations, 0, 10, 
 				0, 0, "Position solver iterations");
+			uiBlockEndAlign(block);
 
-			yco -= 25;
+			yco -= 30;
 			xco = 0;
-			uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Friction",		
-				xco, yco, 118, 19, &ob->bsoft->kDF, 0.0, 1., 
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUMSLI, 0, "Friction ",		
+				xco, yco, 180, 19, &ob->bsoft->kDF, 0.0, 1., 
 				0, 0, "Dynamic Friction");
 
-			uiDefButF(block, NUMSLI, REDRAWVIEW3D, "kMT",		
-				xco+=120, yco, 118, 19, &ob->bsoft->kMT, 0, 1,
+			uiDefButF(block, NUMSLI, 0, "kMT ",		
+				xco+=180, yco, 180, 19, &ob->bsoft->kMT, 0, 1,
 				0, 0, "Pose matching coefficient");
+			uiBlockEndAlign(block);
 
 			/*
 			//too complex tweaking, disable for now
@@ -3103,19 +3110,15 @@ static uiBlock *advanced_bullet_menu(void *arg_ob)
 		
 		xco = 0;
 
-		uiDefButBitI(block, TOG, OB_ACTOR, 0, "Sensor actor",
-					xco, yco, 118, 19, &ob->gameflag, 0, 0, 0, 0,
-					"Objects that are detected by the Near and Radar sensor");
-
 		if (ob->gameflag & OB_DYNAMIC) {
 			if (ob->margin < 0.001f)
 				ob->margin = 0.06f;
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco+120, yco, 118, 19, &ob->margin, 0.001, 1.0, 1, 0, 
+					xco, yco, 170, 19, &ob->margin, 0.001, 1.0, 1, 0, 
 					"Collision margin");
 		} else {
 			uiDefButF(block, NUM, 0, "Margin", 
-					xco+120, yco, 118, 19, &ob->margin, 0.0, 1.0, 1, 0, 
+					xco, yco, 170, 19, &ob->margin, 0.0, 1.0, 1, 0, 
 					"Collision margin");
 		}
 		yco -= 25;
@@ -3150,22 +3153,26 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 	//only enable game soft body if Blender Soft Body exists
 	but = uiDefButS(block, MENU, REDRAWVIEW3D, 
 			"Object type%t|No collision%x0|Static%x1|Dynamic%x2|Rigid body%x3|Soft body%x4", 
-			10, 205, 120, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
+			10, 205, 100, 19, &ob->body_type, 0, 0, 0, 0, "Selects the type of physical representation");
 	uiButSetFunc(but, check_body_type, but, ob);
 
 	if (ob->gameflag & OB_COLLISION) {
 
+		uiDefButBitI(block, TOG, OB_ACTOR, 0, "Actor",
+					110, 205, 50, 19, &ob->gameflag, 0, 0, 0, 0,
+					"Objects that are detected by the Near and Radar sensor");
+
 			
 
-			uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
-				135,205,55,19, 
+		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 
+					160,205,50,19, 
 					&ob->gameflag, 0, 0, 0, 0, 
 					"Objects that don't restitute collisions (like a ghost)");
 
 		//uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefBlockBut(block, advanced_bullet_menu, ob, 
 					  "Advanced Settings", 
-					  200, 205, 150, 19, "Display collision advanced settings");
+					  210, 205, 140, 19, "Display collision advanced settings");
 		//uiBlockSetCol(block, TH_BUT_SETTING2);
 
 
@@ -3208,7 +3215,15 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 				}
 
 				
+		} else {
+			/* static object can also have a sphere bound shape, radius is used */
+			if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE)) {
+				uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 10, 185, 130, 19, 
+							&ob->inertia, 0.01, 10.0, 10, 2, 
+							"Radius for Bounding sphere");
 			}
+		}
+
 
 		uiBlockEndAlign(block);
 
