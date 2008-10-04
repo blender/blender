@@ -71,7 +71,8 @@ typedef struct Material {
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];
 	short vol_shadeflag;
-	short volpad[3];
+	short vol_phasefunc_type;
+	float vol_phasefunc_g;
 		
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
@@ -350,6 +351,14 @@ typedef struct Material {
 #define MA_VOL_SHADED		1
 #define MA_VOL_ATTENUATED	2
 #define MA_VOL_SHADOWED		4
+
+/* vol_phasefunc_type */
+#define MA_VOL_PH_ISOTROPIC		0
+#define MA_VOL_PH_MIEHAZY		1
+#define MA_VOL_PH_MIEMURKY		2
+#define MA_VOL_PH_RAYLEIGH		3
+#define MA_VOL_PH_HG			4
+#define MA_VOL_PH_SCHLICK		5
 
 #endif
 

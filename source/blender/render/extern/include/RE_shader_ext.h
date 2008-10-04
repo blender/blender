@@ -160,6 +160,7 @@ typedef struct ShadeInput
 	
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
+	int volume_depth;		/* number of intersections through volumes */
 	
 	/* stored copy of original face normal (facenor) 
 	 * before flipping. Used in Front/back output on geometry node */

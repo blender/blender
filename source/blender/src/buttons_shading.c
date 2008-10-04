@@ -4342,6 +4342,18 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
 	uiBlockEndAlign(block);
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, MENU, B_TEXREDR_PRV, "Scattering Direction %t|Isotropic %x0|Mie Hazy %x1|Mie Murky %x2|Rayleigh %x3|Henyey-Greenstein %x4|Schlick %x5",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_phasefunc_type, 0.0, 0.0, 0, 0, "Scattering Direction (Phase Function)");
+	if (ELEM(ma->vol_phasefunc_type, MA_VOL_PH_HG, MA_VOL_PH_SCHLICK)) {
+		uiDefButF(block, NUM, B_MATPRV, "Asymmetry: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_phasefunc_g), -1.0, 1.0, 0, 0, "> 0 is forward scattering, < 0 is back scattering");
+	}
+	uiBlockEndAlign(block);
+	
 		
 	yco = PANEL_YMAX;
 	

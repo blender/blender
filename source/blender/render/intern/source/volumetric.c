@@ -164,6 +164,33 @@ void vol_get_scattering_fac(ShadeInput *shi, float *scatter_fac, float *co, floa
 	*scatter_fac = shi->mat->vol_scattering;
 }
 
+float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w, float *wp)
+{
+	const float costheta = Inpf(w, wp);
+	
+	if (phasefunc_type == MA_VOL_PH_ISOTROPIC) {
+		return 1.f / (4.f * M_PI);
+	}
+	else if (phasefunc_type == MA_VOL_PH_MIEHAZY) {
+		return (0.5f + 4.5f * powf(0.5 * (1.f + costheta), 8.f)) / (4.f*M_PI);
+	}
+	else if (phasefunc_type == MA_VOL_PH_MIEMURKY) {
+		return (0.5f + 16.5f * powf(0.5 * (1.f + costheta), 32.f)) / (4.f*M_PI);
+	}
+	else if (phasefunc_type == MA_VOL_PH_RAYLEIGH) {
+		return 3.f/(16.f*M_PI) * (1 + costheta * costheta);
+	}
+	else if (phasefunc_type == MA_VOL_PH_HG) {
+		return 1.f / (4.f * M_PI) * (1.f - g*g) / powf(1.f + g*g - 2.f * g * costheta, 1.5f);
+	}
+	else if (phasefunc_type == MA_VOL_PH_SCHLICK) {
+		const float k = 1.55f * g - .55f * g * g * g;
+		const float kcostheta = k * costheta;
+		return 1.f / (4.f * M_PI) * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
+	} else {
+		return 1.0f;
+	}
+}
 
 void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 {
@@ -229,13 +256,14 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 	VecMulVecf(tau, tau, absorb_col);
 }
 
-void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *col, float stepsize, float density)
+void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *lacol, float stepsize, float density)
 {
 	float visifac, lv[3], lampdist;
-	float lacol[3];
 	float tau[3], tr[3]={1.0,1.0,1.0};
 	float hitco[3], *atten_co;
-	
+	float p;
+	float scatter_fac;
+			
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
 	if (lar->energy == 0.0) return;
@@ -253,14 +281,16 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	}
 	
 	VecMulf(lacol, visifac*lar->energy);
-
-
+		
+	if (ELEM(lar->type, LA_SUN, LA_HEMI))
+		VECCOPY(lv, lar->vec);
+	VecMulf(lv, -1.0f);
+	
+	p = vol_get_phasefunc(shi, shi->mat->vol_phasefunc_type, shi->mat->vol_phasefunc_g, shi->view, lv);
+	VecMulf(lacol, p);
+	
 	if (shi->mat->vol_shadeflag & MA_VOL_ATTENUATED) {
 		Isect is;
-		
-		if (ELEM(lar->type, LA_SUN, LA_HEMI))
-			VECCOPY(lv, lar->vec);
-		VecMulf(lv, -1.0f);
 		
 		/* find minimum of volume bounds, or lamp coord */
 		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS, 0)) {
@@ -287,7 +317,11 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		}
 	}
 	
-	VecAddf(col, col, lacol);
+	vol_get_scattering_fac(shi, &scatter_fac, co, density);
+	VecMulf(lacol, scatter_fac);
+	
+	
+
 }
 
 /* shadows -> trace a ray to find blocker geometry
@@ -309,19 +343,12 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 	for(go=lights->first; go; go= go->next)
 	{
 		float lacol[3] = {0.f, 0.f, 0.f};
-		float scatter_fac;
 	
 		lar= go->lampren;
 		if (lar==NULL) continue;
 		
 		vol_shade_one_lamp(shi, co, lar, lacol, stepsize, density);
-		
-		vol_get_scattering_fac(shi, &scatter_fac, co, density);
-		VecMulf(lacol, scatter_fac);
-		
-		/* isotropic phase function */
-		VecMulf(lacol, 1.0f / (4.f * M_PI));
-	
+			
 		VecMulf(lacol, density);
 		
 		VecAddf(col, col, lacol);
@@ -435,6 +462,8 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	shi_new.mask= shi->mask;
 	shi_new.osatex= shi->osatex;
 	shi_new.thread= shi->thread;
+	shi_new.depth= shi->depth;
+	shi_new.volume_depth= shi->volume_depth + 1;
 	shi_new.xs= shi->xs;
 	shi_new.ys= shi->ys;
 	shi_new.lay= shi->lay;
@@ -446,8 +475,11 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	VECCOPY(shi_new.camera_co, is->start);
 	
 	memset(&shr_new, 0, sizeof(ShadeResult));
-	
-	shade_ray(is, &shi_new, &shr_new);
+
+	/* hardcoded limit of 100 for now - prevents problems in weird geometry */
+	if (shi->volume_depth < 100) {
+		shade_ray(is, &shi_new, &shr_new);
+	}
 	
 	col[0] = shr_new.combined[0];
 	col[1] = shr_new.combined[1];
@@ -478,6 +510,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 		shade_intersection(shi, col, &isect);
 	} else {
 		shadeSkyView(col, co, shi->view, NULL);
+		shadeSunView(col, shi->view);
 	}
 }
 
