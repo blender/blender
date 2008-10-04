@@ -2134,7 +2134,7 @@ static void wrap_move_up(SpaceText *st, short sel) {
 		if (toline<fromline) text->sell= text->sell->prev;
 		if (c>text->sell->len) c= text->sell->len;
 		text->selc= c;
-	} else {
+	} else if(text->curl) {
 		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
 		if (toline<fromline) text->curl= text->curl->prev;
 		if (c>text->curl->len) c= text->curl->len;
@@ -2175,10 +2175,10 @@ static void wrap_move_down(SpaceText *st, short sel) {
 		if (toline>fromline) text->sell= text->sell->next;
 		if (c>text->sell->len) c= text->sell->len;
 		text->selc= c;
-	} else {
+	} else if(text->curl) {
 		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
 		if (toline>fromline) text->curl= text->curl->next;
-		if (c>text->curl->len) c= text->curl->len;
+		if (c > text->curl->len) c= text->curl->len;
 		text->curc= c;
 		txt_pop_sel(text);
 	}
