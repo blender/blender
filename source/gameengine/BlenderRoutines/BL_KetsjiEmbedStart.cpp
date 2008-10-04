@@ -135,15 +135,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
-		bool usemat = false, useglslmat = false;
-
-		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
-
-		if(GPU_extensions_minimum_support())
-			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
-			usemat = false;
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -316,10 +307,18 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
 
-			if(usemat && (G.fileflags & G_FILE_GAME_MAT))
-				sceneconverter->SetMaterials(true);
-			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
-				sceneconverter->SetGLSLMaterials(true);
+			bool usemat = false, useglslmat = false;
+
+			if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
+				usemat = true;
+
+			if(GPU_extensions_minimum_support())
+				useglslmat = true;
+			else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+				usemat = false;
+
+			sceneconverter->SetMaterials(usemat && (G.fileflags & G_FILE_GAME_MAT));
+			sceneconverter->SetGLSLMaterials(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL));
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
