@@ -659,7 +659,9 @@ int main(int argc, char** argv)
 						Main *maggie = bfd->main;
 						Scene *scene = bfd->curscene;
 						G.main = maggie;
-						G.fileflags  = bfd->fileflags;
+
+						if (firstTimeRunning)
+							G.fileflags  = bfd->fileflags;
 
 						//Seg Fault; icon.c gIcons == 0
 						BKE_icons_init(1);
