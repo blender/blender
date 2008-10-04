@@ -1843,13 +1843,14 @@ static int ui_do_but_TEX(uiBut *but)
 			}
 			/* cut & copy */
 			else if ( (dev==XKEY) || (dev==CKEY) ) {
-				/* copy the contents to the copypaste buffer */
+				/* copy the contents to the clipboard */
 				for(x= but->selsta; x <= but->selend; x++) {
 					if (x==but->selend)
 						buf[x] = '\0';
 					else
 						buf[(x - but->selsta)] = str[x];
 				}
+				putClipboard(buf, 0);
 				
 				/* for cut only, delete the selection afterwards */
 				if (dev==XKEY) {
