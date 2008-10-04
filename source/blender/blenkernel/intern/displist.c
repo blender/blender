@@ -1253,13 +1253,40 @@ static void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *disp
 
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
+		
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (mti->type!=eModifierTypeType_OnlyDeform && mti->type!=eModifierTypeType_DeformOrConstruct) continue;
 
-		for (dl=dispbase->first; dl; dl=dl->next) {
-			mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+		/* need to put all verts in 1 block for curve deform */
+		if(md->type==eModifierType_Curve) {
+			float *allverts, *fp;
+			int totvert= 0;
+			
+			for (dl=dispbase->first; dl; dl=dl->next)
+				totvert+= (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr;
+			
+			fp= allverts= MEM_mallocN(totvert*sizeof(float)*3, "temp vert");
+			for (dl=dispbase->first; dl; dl=dl->next) {
+				int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+				memcpy(fp, dl->verts, sizeof(float) * offs);
+				fp+= offs;
+			}
+			
+			mti->deformVerts(md, ob, NULL, (float(*)[3]) allverts, totvert);
+			
+			fp= allverts;
+			for (dl=dispbase->first; dl; dl=dl->next) {
+				int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+				memcpy(dl->verts, fp, sizeof(float) * offs);
+				fp+= offs;
+			}
+			MEM_freeN(allverts);
+		}
+		else {
+			for (dl=dispbase->first; dl; dl=dl->next) {
+				mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+			}
 		}
 	}
 
