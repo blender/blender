@@ -4001,16 +4001,17 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			int skip= nu->resolu/16;
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
+				float fac= bevp->radius * G.scene->editbutsize;
 				float ox,oy,oz; // Offset perpendicular to the curve
 				float dx,dy,dz; // Delta along the curve
 				
-				ox = bevp->radius*bevp->mat[0][0];
-				oy = bevp->radius*bevp->mat[0][1];
-				oz = bevp->radius*bevp->mat[0][2];
+				ox = fac*bevp->mat[0][0];
+				oy = fac*bevp->mat[0][1];
+				oz = fac*bevp->mat[0][2];
 			
-				dx = bevp->radius*bevp->mat[2][0];
-				dy = bevp->radius*bevp->mat[2][1];
-				dz = bevp->radius*bevp->mat[2][2];
+				dx = fac*bevp->mat[2][0];
+				dy = fac*bevp->mat[2][1];
+				dz = fac*bevp->mat[2][2];
 
 				glBegin(GL_LINE_STRIP);
 				glVertex3f(bevp->x - ox - dx, bevp->y - oy - dy, bevp->z - oz - dz);
