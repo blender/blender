@@ -5404,10 +5404,51 @@ void adduplicate(int mode, int dupflag)
 	}
 }
 
+void make_object_duplilist_real(Base *base)
+{
+	Base *basen;
+	Object *ob;
+	ListBase *lb;
+	DupliObject *dob;
+
+	if(!base && !(base = BASACT))
+		return;
+
+	if(!(base->object->transflag & OB_DUPLI))
+		return;
+
+	lb= object_duplilist(G.scene, base->object);
+	
+	for(dob= lb->first; dob; dob= dob->next) {
+		ob= copy_object(dob->ob);
+		/* font duplis can have a totcol without material, we get them from parent
+		* should be implemented better...
+		*/
+		if(ob->mat==NULL) ob->totcol= 0;
+		
+		basen= MEM_dupallocN(base);
+		basen->flag &= ~OB_FROMDUPLI;
+		BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
+		basen->object= ob;
+		ob->ipo= NULL;		/* make sure apply works */
+		ob->parent= ob->track= NULL;
+		ob->disp.first= ob->disp.last= NULL;
+		ob->transflag &= ~OB_DUPLI;	
+		
+		Mat4CpyMat4(ob->obmat, dob->mat);
+		apply_obmat(ob);
+	}
+	
+	copy_object_set_idnew(0);
+	
+	free_object_duplilist(lb);
+	
+	base->object->transflag &= ~OB_DUPLI;	
+}
+
 void make_duplilist_real()
 {
-	Base *base, *basen;
-	Object *ob;
+	Base *base;
 	/*	extern ListBase duplilist; */
 	
 	if(okee("Make dupli objects real")==0) return;
@@ -5417,37 +5458,7 @@ void make_duplilist_real()
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASE(base) {
-			
-			if(base->object->transflag & OB_DUPLI) {
-				ListBase *lb= object_duplilist(G.scene, base->object);
-				DupliObject *dob;
-				
-				for(dob= lb->first; dob; dob= dob->next) {
-					ob= copy_object(dob->ob);
-					/* font duplis can have a totcol without material, we get them from parent
-					* should be implemented better...
-					*/
-					if(ob->mat==NULL) ob->totcol= 0;
-					
-					basen= MEM_dupallocN(base);
-					basen->flag &= ~OB_FROMDUPLI;
-					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
-					basen->object= ob;
-					ob->ipo= NULL;		/* make sure apply works */
-					ob->parent= ob->track= NULL;
-					ob->disp.first= ob->disp.last= NULL;
-					ob->transflag &= ~OB_DUPLI;	
-					
-					Mat4CpyMat4(ob->obmat, dob->mat);
-					apply_obmat(ob);
-				}
-				
-				copy_object_set_idnew(0);
-				
-				free_object_duplilist(lb);
-				
-				base->object->transflag &= ~OB_DUPLI;	
-			}
+			make_object_duplilist_real(base);
 		}
 		base= base->next;
 	}
