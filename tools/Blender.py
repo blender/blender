@@ -390,7 +390,7 @@ class BlenderEnvironment(SConsEnvironment):
             self.Exit()
         
         print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
-        lenv = self.Copy()
+        lenv = self.Clone()
         res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
       
         SConsEnvironment.Default(self, res)
@@ -405,7 +405,7 @@ class BlenderEnvironment(SConsEnvironment):
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname +bc.ENDC+bc.OKBLUE+ " (debug mode)" + bc.ENDC
             else:
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname + bc.ENDC
-            lenv = self.Copy()
+            lenv = self.Clone()
             lenv.Append(CPPPATH=includes)
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
@@ -439,7 +439,7 @@ class BlenderEnvironment(SConsEnvironment):
 
     def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
-        lenv = self.Copy()
+        lenv = self.Clone()
         if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
             lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
             if lenv['BF_DEBUG']:
