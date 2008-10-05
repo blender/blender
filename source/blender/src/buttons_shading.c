@@ -2428,6 +2428,7 @@ void do_lampbuts(unsigned short event)
 	case B_SHADBUF:
 		la= G.buts->lockpoin; 
 		la->mode &= ~LA_SHAD_RAY;
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0); 
 		allqueue(REDRAWVIEW3D, 0); 		
 		break;
@@ -2437,6 +2438,7 @@ void do_lampbuts(unsigned short event)
 		/* yafray: 'softlight' uses it's own shadbuf. flag.
 		   Must be cleared here too when switching from ray shadow */
 		la->mode &= ~LA_YF_SOFT;
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D, 0); 	
 		break;
