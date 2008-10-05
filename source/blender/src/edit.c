@@ -138,8 +138,6 @@ extern void uvedit_selectionCB(short selecting, Object *editobj,
 
 static void circle_selectCB(select_CBfunc func);
 
-/* local protos ---------------*/
-static void snap_curs_to_firstsel(void);
 
 /* flag==2 only border, flag==3 cross+border
    flag==5 cross + border + start&end frame
@@ -1548,72 +1546,6 @@ void snap_curs_to_active()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-static void snap_curs_to_firstsel()
-{
-	TransVert *tv;
-	Base *base;
-	float *curs, bmat[3][3], vec[3], min[3], max[3], centroid[3];
-	int count;
-
-	curs= give_cursor();
-
-	count= 0;
-	INIT_MINMAX(min, max);
-	centroid[0]= centroid[1]= centroid[2]= 0.0;
-
-	if(G.obedit) {
-		tottrans=0;
-		
-		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
-			make_trans_verts(bmat[0], bmat[1], 0);
-		if(tottrans==0) return;
-		
-		Mat3CpyMat4(bmat, G.obedit->obmat);
-		
-		tv= transvmain;
-		VECCOPY(vec, tv->loc);
-			/*Mat3MulVecfl(bmat, vec);
-			VecAddf(vec, vec, G.obedit->obmat[3]);
-			VecAddf(centroid, centroid, vec);
-			DO_MINMAX(vec, min, max);*/
-		
-		if(G.vd->around==V3D_CENTROID) {
-			VecMulf(vec, 1.0/(float)tottrans);
-			VECCOPY(curs, vec);
-		}
-		else {
-			curs[0]= vec[0];
-			curs[1]= vec[1];
-			curs[2]= vec[2];
-		}
-		MEM_freeN(transvmain);
-		transvmain= 0;
-	}
-	else {
-		base= (G.scene->base.first);
-		while(base) {
-			if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
-				VECCOPY(vec, base->object->obmat[3]);
-				VecAddf(centroid, centroid, vec);
-				DO_MINMAX(vec, min, max);
-				count++;
-			}
-			base= base->next;
-		}
-		if(count) {
-			if(G.vd->around==V3D_CENTROID) {
-				VecMulf(centroid, 1.0/(float)count);
-				VECCOPY(curs, centroid);
-			}
-			else {
-				curs[0]= (min[0]+max[0])/2;
-				curs[1]= (min[1]+max[1])/2;
-				curs[2]= (min[2]+max[2])/2;
-			}
-		}
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
 
 void snap_to_center()
 {

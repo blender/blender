@@ -504,10 +504,11 @@ static void init_userdef_file(void)
 			col = btheme->tv3d.vertex_select;
 			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
 		}
-		
+	}
+	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile <= 9)) {
 		/* define grease-pencil distances */
-		U.gp_manhattendist= 3;
-		U.gp_euclideandist= 20;
+		U.gp_manhattendist= 2;
+		U.gp_euclideandist= 15;
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */
