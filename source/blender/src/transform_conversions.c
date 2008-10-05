@@ -2518,6 +2518,7 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 		 * (these need to be sorted as they are isolated)
 		 */
 		for (gpf= gpl->frames.first; gpf; gpf= gpfn) {
+			short added= 0;
 			gpfn= gpf->next;
 			
 			if (gpf->flag & GP_FRAME_SELECT) {
@@ -2531,10 +2532,11 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 					/* if current (gpf) occurs after this one in buffer, add! */
 					if (gfs->framenum < gpf->framenum) {
 						BLI_insertlinkafter(&sel_buffer, gfs, gpf);
+						added= 1;
 						break;
 					}
 				}
-				if (gfs == NULL)
+				if (added == 0)
 					BLI_addhead(&sel_buffer, gpf);
 			}
 		}
@@ -2552,12 +2554,9 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 		}
 		
 		/* loop 2: remove duplicates of frames in buffers */
-		//gfs= sel_buffer.first;
-		//gfsn= gfs->next;
-		
 		for (gpf= gpl->frames.first; gpf && sel_buffer.first; gpf= gpfn) {
 			gpfn= gpf->next;
-			 
+			
 			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
 			for (gfs= sel_buffer.first; gfs && gpf; gfs= gfsn) {
 				gfsn= gfs->next;
@@ -3899,7 +3898,17 @@ void special_aftertrans_update(TransInfo *t)
 			/* remove duplicate frames and also make sure points are in order! */
 			if ((cancelled == 0) || (duplicate))
 			{
-				posttrans_gpd_clean(data);
+				ScrArea *sa;
+				
+				/* BAD... we need to loop over all screen areas for current screen...
+				 * 	- sync this with actdata_filter_gpencil() in editaction.c 
+				 */
+				for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+					bGPdata *gpd= gpencil_data_getactive(sa);
+					
+					if (gpd) 
+						posttrans_gpd_clean(gpd);
+				}
 			}
 		}
 		
