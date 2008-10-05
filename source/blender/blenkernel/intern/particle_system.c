@@ -3973,9 +3973,6 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 			}
 			pa->size=psys_get_size(ob,ma,psmd,icu_esize,psys,part,pa,vg_size);
 
-			if(part->type==PART_REACTOR)
-				initialize_particle(pa,p,ob,psys,psmd);
-
 			reset_particle(pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
 
 			if(cfra>pa->time && part->flag & PART_LOOP && part->type!=PART_HAIR){
