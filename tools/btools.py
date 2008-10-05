@@ -1,3 +1,4 @@
+
 import os
 import os.path
 import SCons.Options
@@ -26,14 +27,14 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
     opts_list = [
-            'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS',
-            'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH',
+            'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
+            'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_FMOD',
-            'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH',
+            'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
             'WITH_BF_DDS',
-            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB', 'BF_FFMPEG',  'BF_FFMPEG_INC',
+            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
             'BF_TIFF', 'BF_TIFF_INC',
@@ -50,22 +51,29 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_PLAYER',
+            'WITH_BF_BINRELOC',	
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
-            'BF_PROFILE_FLAGS', 'LCGDIR', 'WITH_BF_VERSE', 
-            'BF_VERSE_INCLUDE',
+            'BF_PROFILE_FLAGS', 'LCGDIR',
+            'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC'
+            'WITH_BF_VERSE', 'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
             'WITHOUT_BF_INSTALL',
-            'BF_FANCY',
+            'WITH_BF_OPENMP',
+            'WITHOUT_BF_INSTALL',
+            'BF_FANCY', 'BF_QUIET',
+            'BF_X264_CONFIG',
+            'BF_XVIDCORE_CONFIG',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
-            'BF_DEBUG_FLAGS', 'BF_BSC',
-            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG", 'LCGDIR']
+            'BF_DEBUG_FLAGS', 'BF_BSC', 'BF_CONFIG',
+            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
+            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG']
 
     all_list = opts_list + arg_list
     okdict = {}
@@ -87,7 +95,7 @@ def print_targets(targs, bc):
 
 def validate_targets(targs, bc):
     valid_list = ['.', 'blender', 'blenderstatic', 'blenderplayer', 'webplugin',
-            'blendernogame', 'blenderstaticnogame', 'release',
+            'blendernogame', 'blenderstaticnogame', 'blenderlite', 'release',
             'everything', 'clean', 'install-bin', 'install', 'nsis']
     oklist = []
     for t in targs:
@@ -132,20 +140,27 @@ def read_opts(cfg, args):
         ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
         ('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
         ('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
+
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
         ('BF_PYTHON_INC', 'include path for Python headers', ''),
         ('BF_PYTHON_BINARY', 'Path to the Python interpreter', ''),
         ('BF_PYTHON_LIB', 'Python library', ''),
+        ('BF_PYTHON_LIB_STATIC', 'Python static libraries', ''),
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
+        (BoolOption('WITH_BF_STATICPYTHON', 'Staticly link to python', 'false')),
+
         (BoolOption('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false')),
         (BoolOption('WITH_BF_YAFRAY', 'Enable Yafray', 'true')),
+
         (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', '')),
         ('BF_OPENAL', 'base path for OpenAL', ''),
         ('BF_OPENAL_INC', 'include path for python headers', ''),
         ('BF_OPENAL_LIB', 'Path to OpenAL library', ''),
+        ('BF_OPENAL_LIB_STATIC', 'Path to OpenAL static library', ''),
         ('BF_OPENAL_LIBPATH', 'Path to OpenAL library', ''),
+        (BoolOption('WITH_BF_STATICOPENAL', 'Staticly link to openal', 'false')),
 
         (BoolOption('WITH_BF_SDL', 'Use SDL if true', '')),
         ('BF_SDL', 'SDL base path', ''),
@@ -162,16 +177,19 @@ def read_opts(cfg, args):
         #  BF_FMOD = $(LCGDIR)/fmod
 
         (BoolOption('WITH_BF_OPENEXR', 'Use OPENEXR if true', 'true')),
+        (BoolOption('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', 'false')),
         ('BF_OPENEXR', 'OPENEXR base path', ''),
         ('BF_OPENEXR_INC', 'OPENEXR include path', ''),
         ('BF_OPENEXR_LIB', 'OPENEXR library', ''),
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
+        ('BF_OPENEXR_LIB_STATIC', 'OPENEXR static library', ''),
 
         (BoolOption('WITH_BF_DDS', 'Use DDS if true', 'true')),
 
         (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
+        ('BF_FFMPEG_EXTRA', 'FFMPEG flags that must be preserved', ''),
 
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
@@ -182,6 +200,18 @@ def read_opts(cfg, args):
         ('BF_JPEG_INC', 'JPEG include path', ''),
         ('BF_JPEG_LIB', 'JPEG library', ''),
         ('BF_JPEG_LIBPATH', 'JPEG library path', ''),
+
+        (BoolOption('WITH_BF_OPENJPEG', 'Use OPENJPEG if true', 'false')),
+        ('BF_OPENJPEG', 'OPENJPEG base path', ''),
+        ('BF_OPENJPEG_INC', 'OPENJPEG include path', ''),
+        ('BF_OPENJPEG_LIB', 'OPENJPEG library', ''),
+        ('BF_OPENJPEG_LIBPATH', 'OPENJPEG library path', ''),
+
+        (BoolOption('WITH_BF_REDCODE', 'Use REDCODE if true', 'false')),
+        ('BF_REDCODE', 'REDCODE base path', ''),
+        ('BF_REDCODE_INC', 'REDCODE include path', ''),
+        ('BF_REDCODE_LIB', 'REDCODE library', ''),
+        ('BF_REDCODE_LIBPATH', 'REDCODE library path', ''),
 
         (BoolOption('WITH_BF_PNG', 'Use PNG if true', 'true')),
         ('BF_PNG', 'PNG base path', ''),
@@ -227,6 +257,9 @@ def read_opts(cfg, args):
         ('BF_SOLID_INC', 'Solid include path', ''),
         ('BF_WINTAB', 'WinTab base dir', ''),
         ('BF_WINTAB_INC', 'WinTab include dir', ''),
+        ('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
+        (BoolOption('WITH_BF_STATICCXX', 'static link to stdc++', 'false')),
+        ('BF_CXX_LIB_STATIC', 'static library path for stdc++', ''),
 ##
 ##WITH_BF_NSPR = 'true'
 ##BF_NSPR = $(LCGDIR)/nspr
@@ -249,6 +282,8 @@ def read_opts(cfg, args):
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
+
+        (BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
 
         (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', 'false')),
         ('BF_QUICKTIME', 'QuickTime base path', ''),
@@ -290,7 +325,7 @@ def read_opts(cfg, args):
         ('BF_DEBUG_FLAGS', 'Debug flags', ''),
 
         (BoolOption('BF_BSC', 'Create .bsc files (msvc only)', 'true')),
-        
+
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
 
@@ -303,6 +338,13 @@ def read_opts(cfg, args):
         (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
         (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
         (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
+        (BoolOption('BF_QUIET', 'Enable silent output if true', 'true')),
+        (BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
+
+        ('BF_X264_CONFIG', 'configuration flags for x264', ''),
+        ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
+        
+        ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 
     ) # end of opts.AddOptions()
 
@@ -489,5 +531,8 @@ def NSIS_Installer(target=None, source=None, env=None):
     data, err = proc.communicate()
     rv = proc.wait()
 
-    return 0
+    if rv != 0:
+        print
+        print data.strip().split("\n")[-1]
+    return rv
 

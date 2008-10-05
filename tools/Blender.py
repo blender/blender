@@ -69,10 +69,10 @@ def internal_lib_to_dict(dict = None, libtype = None, libname = None, priority =
         dict[libtype][priority] = libname
 
 # libtype and priority can both be lists, for defining lib in multiple places
-def add_lib_to_dict(dict = None, libtype = None, libname = None, priority = 100):
+def add_lib_to_dict(env, dict = None, libtype = None, libname = None, priority = 100):
     if not dict or not libtype or not libname:
         print "Passed wrong arg"
-        Exit()
+        env.Exit()
 
     if type(libtype) is str and type(priority) is int:
         internal_lib_to_dict(dict, libtype, libname, priority)
@@ -82,10 +82,10 @@ def add_lib_to_dict(dict = None, libtype = None, libname = None, priority = 100)
                 internal_lib_to_dict(dict, lt, libname, p)
         else:
             print "libtype and priority lists are unequal in length"
-            Exit()
+            env.Exit()
     else:
         print "Wrong type combinations for libtype and priority. Only str and int or list and list"
-        Exit()
+        env.Exit()
 
 def create_blender_liblist(lenv = None, libtype = None):
     if not lenv or not libtype:
@@ -93,11 +93,9 @@ def create_blender_liblist(lenv = None, libtype = None):
 
     lst = []
     if libtype in possible_types:
-        sortlist = []
-        for k,v in libs[libtype].iteritems():
-            sortlist.append(k)
-        sortlist.sort()
         curlib = libs[libtype]
+        sortlist = curlib.keys()
+        sortlist.sort()
         for sk in sortlist:
             v = curlib[sk]
             lst.append('#' + root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
@@ -113,23 +111,34 @@ def setup_staticlibs(lenv):
         '/usr/lib',
         lenv['BF_PYTHON_LIBPATH'],
         lenv['BF_OPENGL_LIBPATH'],
-        lenv['BF_SDL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ]
-    libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
-    libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 
+    if lenv['WITH_BF_SDL']:
+        libincs += Split(lenv['BF_SDL_LIBPATH'])
+    if lenv['WITH_BF_FFMPEG']:
+        libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
+    if lenv['WITH_BF_STATICCXX']:
+        statlibs += Split(lenv['BF_CXX_LIB_STATIC'])
+    if lenv['WITH_BF_OPENEXR']:
+        libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
+        if lenv['WITH_BF_STATICOPENEXR']:
+            statlibs += Split(lenv['BF_OPENEXR_LIB_STATIC'])
     if lenv['WITH_BF_INTERNATIONAL']:
         libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
         libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
     if lenv['WITH_BF_OPENAL']:
         libincs += Split(lenv['BF_OPENAL_LIBPATH'])
-
+        if lenv['WITH_BF_STATICOPENAL']:
+            statlibs += Split(lenv['BF_OPENAL_LIB_STATIC'])
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
+
+    if lenv['WITH_BF_STATICPYTHON']:
+        statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
 
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross'):
         libincs += Split(lenv['BF_PTHREADS_LIBPATH'])
@@ -143,22 +152,32 @@ def setup_syslibs(lenv):
         lenv['BF_PNG_LIB'],
         lenv['BF_ZLIB_LIB']
         ]
-    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
-        syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
-    else:
-        syslibs.append(lenv['BF_PYTHON_LIB'])
+
+    if not lenv['WITH_BF_STATICPYTHON']:
+        if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
+            syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
+        else:
+            syslibs.append(lenv['BF_PYTHON_LIB'])
     if lenv['WITH_BF_INTERNATIONAL']:
         syslibs += Split(lenv['BF_FREETYPE_LIB'])
         syslibs += Split(lenv['BF_GETTEXT_LIB'])
     if lenv['WITH_BF_OPENAL']:
-       syslibs += Split(lenv['BF_OPENAL_LIB'])
+        if not lenv['WITH_BF_STATICOPENAL']:
+            syslibs += Split(lenv['BF_OPENAL_LIB'])
+    if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
+        if lenv['CC'] == 'cl.exe':
+            syslibs += ['vcomp']
+        else:
+            syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
-        syslibs += Split(lenv['BF_OPENEXR_LIB'])
+        if not lenv['WITH_BF_STATICOPENEXR']:
+            syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
-    syslibs += Split(lenv['BF_SDL_LIB'])
+    if lenv['WITH_BF_SDL']:
+        syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
         syslibs += Split(lenv['BF_OPENGL_LIB'])
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):
@@ -173,11 +192,10 @@ def propose_priorities():
     for t in possible_types:
         print bc.OKGREEN+"\t"+t+bc.ENDC
         new_priority = 0
-        sortlist = []
-        for k,v in libs[t].iteritems():
-            sortlist.append(k)
-        sortlist.sort()
         curlib = libs[t]
+        sortlist = curlib.keys()
+        sortlist.sort()
+
         for sk in sortlist:
             v = curlib[sk]
             #for p,v in sorted(libs[t].iteritems()):
@@ -222,21 +240,22 @@ def buildinfo(lenv, build_type):
 def my_compile_print(target, source, env):
     a = '%s' % (source[0])
     d, f = os.path.split(a)
-    return bc.OKBLUE+"Compiling"+bc.ENDC +" ==> '"+bc.OKGREEN+"%s" % (f) + bc.ENDC + "'"
+    return bc.OKBLUE+"Compiling"+bc.ENDC +" ==> '"+bc.OKGREEN+"%s" % (f) + "'"+bc.ENDC
+
 def my_moc_print(target, source, env):
     a = '%s' % (source[0])
     d, f = os.path.split(a)
-    return bc.OKBLUE+"Creating MOC"+bc.ENDC+ " ==> '"+bc.OKGREEN+"%s" %(f) + bc.ENDC+ "'"
+    return bc.OKBLUE+"Creating MOC"+bc.ENDC+ " ==> '"+bc.OKGREEN+"%s" %(f) + "'"+bc.ENDC
 
 def my_linking_print(target, source, env):
     t = '%s' % (target[0])
     d, f = os.path.split(t)
-    return bc.OKBLUE+"Linking library"+bc.ENDC +" ==> '"+bc.OKGREEN+"%s" % (f) + bc.ENDC+ "'"
+    return bc.OKBLUE+"Linking library"+bc.ENDC +" ==> '"+bc.OKGREEN+"%s" % (f) + "'"+bc.ENDC
 
 def my_program_print(target, source, env):
     t = '%s' % (target[0])
     d, f = os.path.split(t)
-    return bc.OKBLUE+"Linking program"+bc.ENDC +" ==> '"+bc.OKGREEN+"%s" % (f) + bc.ENDC + "'"
+    return bc.OKBLUE+"Linking program"+bc.ENDC +" ==> '"+bc.OKGREEN+"%s" % (f) + "'"+bc.ENDC
 
 def msvc_hack(env):
     static_lib = SCons.Tool.createStaticLibBuilder(env)
@@ -365,7 +384,7 @@ class BlenderEnvironment(SConsEnvironment):
         global libs
         if not self or not libname or not source:
             print bc.FAIL+'Cannot continue.  Missing argument for BlenderRes '+libname+bc.ENDC
-            Exit()
+            self.Exit()
         if self['OURPLATFORM'] not in ('win32-vc','win32-mingw','linuxcross'):
             print bc.FAIL+'BlenderRes is for windows only!'+bc.END
             self.Exit()
@@ -380,7 +399,7 @@ class BlenderEnvironment(SConsEnvironment):
     def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None):
         if not self or not libname or not sources:
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
-            Exit()
+            self.Exit()
         if libname in quickie or len(quickie)==0:
             if libname in quickdebug: 
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname +bc.ENDC+bc.OKBLUE+ " (debug mode)" + bc.ENDC
@@ -391,6 +410,8 @@ class BlenderEnvironment(SConsEnvironment):
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
+            if lenv['WITH_BF_BULLET']:
+                    lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
             # debug or not
             # CXXFLAGS defaults to CCFLAGS, therefore
             #  we Replace() rather than Append() to CXXFLAGS the first time
@@ -414,7 +435,7 @@ class BlenderEnvironment(SConsEnvironment):
         else:
             print bc.WARNING+'Not building '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC+' for '+bc.OKBLUE+'BF_QUICK'+bc.ENDC
         # note: libs is a global
-        add_lib_to_dict(libs, libtype, libname, priority)
+        add_lib_to_dict(self, libs, libtype, libname, priority)
 
     def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
