@@ -111,6 +111,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	newp->type = prop->type;
 	newp->flag = prop->flag;
 	newp->data.val = prop->data.val;
+	newp->data.val2 = prop->data.val2;
 
 	return newp;
  }
