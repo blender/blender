@@ -149,7 +149,8 @@ static int doc_scroll= 0;
 static int jump_to= 0;
 static double last_jump= 0;
 
-static BMF_Font *spacetext_get_font(SpaceText *st) {
+static BMF_Font *spacetext_get_font(SpaceText *st) 
+{
 	static BMF_Font *scr12= NULL;
 	static BMF_Font *scr15= NULL;
 	
@@ -166,7 +167,8 @@ static BMF_Font *spacetext_get_font(SpaceText *st) {
 	}
 }
 
-static int spacetext_get_fontwidth(SpaceText *st) {
+static int spacetext_get_fontwidth(SpaceText *st) 
+{
 	return BMF_GetCharacterWidth(spacetext_get_font(st), ' ');
 }
 
@@ -175,7 +177,8 @@ static int *temp_char_accum= NULL;
 static int temp_char_len= 0;
 static int temp_char_pos= 0;
 
-static void temp_char_write(char c, int accum) {
+static void temp_char_write(char c, int accum) 
+{
 	if (temp_char_len==0 || temp_char_pos>=temp_char_len) {
 		char *nbuf; int *naccum;
 		int olen= temp_char_len;
@@ -205,7 +208,8 @@ static void temp_char_write(char c, int accum) {
 	else temp_char_pos++;
 }
 
-void free_txt_data(void) {
+void free_txt_data(void) 
+{
 	txt_free_cut_buffer();
 	
 	if (g_find_str) MEM_freeN(g_find_str);
@@ -214,7 +218,8 @@ void free_txt_data(void) {
 	if (temp_char_accum) MEM_freeN(temp_char_accum);	
 }
 
-static int render_string (SpaceText *st, char *in) {
+static int render_string (SpaceText *st, char *in) 
+{
 	int r = 0, i = 0;
 	
 	while(*in) {
@@ -262,6 +267,7 @@ static int find_builtinfunc(char *string)
 static int find_specialvar(char *string) 
 {
 	int i = 0;
+	
 	if (string[0]=='d' && string[1]=='e' && string[2]=='f')
 		i = 3;
 	else if (string[0]=='c' && string[1]=='l' && string[2]=='a' && string[3]=='s' && string[4]=='s')
@@ -275,6 +281,7 @@ static int find_specialvar(char *string)
 static void print_format(SpaceText *st, TextLine *line) {
 	int i, a;
 	char *s, *f;
+	
 	s = line->line;
 	f = line->format;
 	for (a=0; *s; s++) {
@@ -289,7 +296,8 @@ static void print_format(SpaceText *st, TextLine *line) {
 #endif // not used
 
 /* Ensures the format string for the given line is long enough, reallocating as needed */
-static int check_format_len(TextLine *line, unsigned int len) {
+static int check_format_len(TextLine *line, unsigned int len) 
+{
 	if (line->format) {
 		if (strlen(line->format) < len) {
 			MEM_freeN(line->format);
@@ -316,7 +324,8 @@ static int check_format_len(TextLine *line, unsigned int len) {
  * It is terminated with a null-terminator '\0' followed by a continuation
  * flag indicating whether the line is part of a multi-line string.
  */
-void txt_format_line(SpaceText *st, TextLine *line, int do_next) {
+void txt_format_line(SpaceText *st, TextLine *line, int do_next) 
+{
 	char *str, *fmt, orig, cont, find, prev = ' ';
 	int len, i;
 
@@ -436,7 +445,8 @@ void txt_format_text(SpaceText *st)
 		txt_format_line(st, linep, 0);
 }
 
-static void format_draw_color(char formatchar) {
+static void format_draw_color(char formatchar) 
+{
 	switch (formatchar) {
 		case '_': /* Whitespace */
 			break;
@@ -509,8 +519,8 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format)
 {
 	int r=0, w= 0;
-	char *in;
 	int *acc;
+	char *in;
 
 	w= render_string(st, str);
 	if(w<cshift ) return 0; /* String is shorter than shift */
@@ -672,8 +682,10 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	if(!sel) txt_pop_sel(text);
 }
 
-static int get_wrap_width(SpaceText *st) {
+static int get_wrap_width(SpaceText *st) 
+{
 	int x, max;
+	
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 	max= (curarea->winx-x)/spacetext_get_fontwidth(st);
 	return max>8 ? max : 8;
@@ -681,7 +693,8 @@ static int get_wrap_width(SpaceText *st) {
 
 #if 0 // not used 
 /* Returns the number of wrap points (or additional lines) in the given string */
-static int get_wrap_points(SpaceText *st, char *line) {
+static int get_wrap_points(SpaceText *st, char *line) 
+{
 	int start, end, taboffs, i, max, count;
 	
 	if (!st->wordwrap) return 0;
@@ -706,7 +719,8 @@ static int get_wrap_points(SpaceText *st, char *line) {
 #endif // not used
 
 /* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
-static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) {
+static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) 
+{
 	Text *text;
 	TextLine *linep;
 	int i, j, start, end, chars, max, chop;
@@ -770,8 +784,10 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	}
 }
 
-static int get_char_pos(SpaceText *st, char *line, int cur) {
+static int get_char_pos(SpaceText *st, char *line, int cur)
+{
 	int a=0, i;
+	
 	for (i=0; i<cur && line[i]; i++) {
 		if (line[i]=='\t')
 			a += st->tabnumber-a%st->tabnumber;
@@ -781,7 +797,8 @@ static int get_char_pos(SpaceText *st, char *line, int cur) {
 	return a;
 }
 
-static void draw_markers(SpaceText *st) {
+static void draw_markers(SpaceText *st) 
+{
 	Text *text= st->text;
 	TextMarker *marker, *next;
 	TextLine *top, *bottom, *line;
@@ -852,7 +869,8 @@ static void draw_markers(SpaceText *st) {
 	}
 }
 
-static void draw_cursor(SpaceText *st) {
+static void draw_cursor(SpaceText *st) 
+{
 	Text *text= st->text;
 	int vcurl, vcurc, vsell, vselc, hidden=0;
 	int offl, offc, x, y, w, i;
@@ -1154,10 +1172,10 @@ static void do_textscroll(SpaceText *st, int mode)
 
 static void do_selection(SpaceText *st, int selecting)
 {
-	short mval[2], old[2];
 	int sell, selc;
 	int linep2, charp2;
 	int first= 1;
+	short mval[2], old[2];
 
 	getmouseco_areawin(mval);
 	old[0]= mval[0];
@@ -1191,7 +1209,8 @@ static void do_selection(SpaceText *st, int selecting)
 
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-		} else if (!st->wordwrap && (mval[0]<0 || mval[0]>curarea->winx)) {
+		} 
+		else if (!st->wordwrap && (mval[0]<0 || mval[0]>curarea->winx)) {
 			if (mval[0]>curarea->winx) st->left++;
 			else if (mval[0]<0 && st->left>0) st->left--;
 			
@@ -1201,7 +1220,8 @@ static void do_selection(SpaceText *st, int selecting)
 			screen_swapbuffers();
 			
 			PIL_sleep_ms(10);
-		} else if (first || old[0]!=mval[0] || old[1]!=mval[1]) {
+		} 
+		else if (first || old[0]!=mval[0] || old[1]!=mval[1]) {
 			set_cursor_to_pos(st, mval[0], mval[1], 1);
 
 			scrarea_do_windraw(curarea);
@@ -1210,7 +1230,8 @@ static void do_selection(SpaceText *st, int selecting)
 			old[0]= mval[0];
 			old[1]= mval[1];
 			first= 1;
-		} else {
+		} 
+		else {
 			BIF_wait_for_statechange();
 		}
 	}
@@ -1227,10 +1248,10 @@ static void do_selection(SpaceText *st, int selecting)
 static int do_suggest_select(SpaceText *st)
 {
 	SuggItem *item, *first, *last, *sel;
-	short mval[2];
 	TextLine *tmp;
 	int l, x, y, w, h, i;
 	int tgti, *top;
+	short mval[2];
 	
 	if (!st || !st->text) return 0;
 	if (!texttool_text_is_active(st->text)) return 0;
@@ -1276,7 +1297,8 @@ static int do_suggest_select(SpaceText *st)
 	return 1;
 }
 
-static void pop_suggest_list() {
+static void pop_suggest_list() 
+{
 	SuggItem *item, *sel;
 	int *top, i;
 
@@ -1452,8 +1474,10 @@ void draw_suggestion_list(SpaceText *st)
 	}
 }
 
-static short check_blockhandler(SpaceText *st, short handler) {
+static short check_blockhandler(SpaceText *st, short handler) 
+{
 	short a;
+	
 	for(a=0; a<SPACE_MAXHANDLER; a+=2)
 		if (st->blockhandler[a]==handler) return 1;
 	return 0;
@@ -1488,10 +1512,11 @@ static void text_panel_find(short cntrl)	// TEXT_HANDLER_FIND
 }
 
 /* mode: 0 find only, 1 replace/find, 2 mark all occurrences */
-void find_and_replace(SpaceText *st, short mode) {
-	char *tmp;
+void find_and_replace(SpaceText *st, short mode) 
+{
 	Text *start= NULL, *text= st->text;
 	int flags, first= 1;
+	char *tmp;
 
 	if (!check_blockhandler(st, TEXT_HANDLER_FIND)) {
 		toggle_blockhandler(st->area, TEXT_HANDLER_FIND, UI_PNL_TO_MOUSE);
@@ -1549,7 +1574,8 @@ void find_and_replace(SpaceText *st, short mode) {
 	} while (mode==2);
 }
 
-static void do_find_buttons(val) {
+static void do_find_buttons(val) 
+{
 	Text *text;
 	SpaceText *st;
 	char *tmp;
@@ -1607,11 +1633,11 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
-	int i, x, y;
 	TextLine *tmp;
-	char linenr[12];
 	float col[3];
+	int i, x, y;
 	int linecount = 0;
+	char linenr[12];
 
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 
@@ -1776,8 +1802,8 @@ void txt_write_file(Text *text)
 {
 	FILE *fp;
 	TextLine *tmp;
-	int res;
 	struct stat st;
+	int res;
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
 	/* Do we need to get a filename? */
@@ -1860,7 +1886,8 @@ void unlink_text(Text *text)
 	}
 }
 
-int jumptoline_interactive(SpaceText *st) {
+int jumptoline_interactive(SpaceText *st) 
+{
 	short nlines= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
 	short tmp= txt_get_span(st->text->lines.first, st->text->curl)+1;
 
@@ -1993,8 +2020,8 @@ static char *winNewLine(char *buffer)
 	return(output);
 }
 
-void txt_paste_clipboard(Text *text) {
-
+void txt_paste_clipboard(Text *text) 
+{
 	char * buff;
 	char *temp_buff;
 	
@@ -2011,10 +2038,12 @@ void txt_paste_clipboard(Text *text) {
 void get_selection_buffer(Text *text)
 {
 	char *buff = getClipboard(1);
+	
 	txt_insert_buf(text, buff);
 }
 
-void txt_copy_clipboard(Text *text) {
+void txt_copy_clipboard(Text *text) 
+{
 	char *temp;
 
 	txt_copy_selectbuffer(text);
@@ -2032,8 +2061,8 @@ void txt_copy_clipboard(Text *text) {
 
 void run_python_script(SpaceText *st)
 {
-	char *py_filename;
 	Text *text=st->text;
+	char *py_filename;
 
 	if (!BPY_txt_do_python_Text(text)) {
 		int lineno = BPY_Err_getLinenumber();
@@ -2061,12 +2090,14 @@ void run_python_script(SpaceText *st)
 static void set_tabs(Text *text)
 {
 	SpaceText *st = curarea->spacedata.first;
+	
 	st->currtab_set = setcurr_tab(text);
 }
 
-static void wrap_move_bol(SpaceText *st, short sel) {
-	int offl, offc, lin;
+static void wrap_move_bol(SpaceText *st, short sel) 
+{
 	Text *text= st->text;
+	int offl, offc, lin;
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
@@ -2081,9 +2112,10 @@ static void wrap_move_bol(SpaceText *st, short sel) {
 	}
 }
 
-static void wrap_move_eol(SpaceText *st, short sel) {
-	int offl, offc, lin, startl, c;
+static void wrap_move_eol(SpaceText *st, short sel)
+{
 	Text *text= st->text;
+	int offl, offc, lin, startl, c;
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
@@ -2104,9 +2136,10 @@ static void wrap_move_eol(SpaceText *st, short sel) {
 	}
 }
 
-static void wrap_move_up(SpaceText *st, short sel) {
-	int offl, offl_1, offc, fromline, toline, c, target;
+static void wrap_move_up(SpaceText *st, short sel) 
+{
 	Text *text= st->text;
+	int offl, offl_1, offc, fromline, toline, c, target;
 
 	wrap_offset(st, text->sell, 0, &offl_1, &offc);
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
@@ -2132,20 +2165,26 @@ static void wrap_move_up(SpaceText *st, short sel) {
 	if (sel) {
 		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
 		if (toline<fromline) text->sell= text->sell->prev;
-		if (c>text->sell->len) c= text->sell->len;
-		text->selc= c;
-	} else if(text->curl) {
+		if(text->sell) {
+			if (c>text->sell->len) c= text->sell->len;
+			text->selc= c;
+		}
+	} 
+	else if(text->curl) {
 		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
 		if (toline<fromline) text->curl= text->curl->prev;
-		if (c>text->curl->len) c= text->curl->len;
-		text->curc= c;
-		txt_pop_sel(text);
+		if(text->curl) {
+			if (c>text->curl->len) c= text->curl->len;
+			text->curc= c;
+			txt_pop_sel(text);
+		}
 	}
 }
 
-static void wrap_move_down(SpaceText *st, short sel) {
-	int offl, startoff, offc, fromline, toline, c, target;
+static void wrap_move_down(SpaceText *st, short sel) 
+{
 	Text *text= st->text;
+	int offl, startoff, offc, fromline, toline, c, target;
 
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
 	fromline= toline= txt_get_span(text->lines.first, text->sell);
@@ -2173,18 +2212,24 @@ static void wrap_move_down(SpaceText *st, short sel) {
 	if (sel) {
 		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
 		if (toline>fromline) text->sell= text->sell->next;
-		if (c>text->sell->len) c= text->sell->len;
-		text->selc= c;
-	} else if(text->curl) {
+		if(text->sell) {
+			if (c>text->sell->len) c= text->sell->len;
+			text->selc= c;
+		}
+	} 
+	else if(text->curl) {
 		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
 		if (toline>fromline) text->curl= text->curl->next;
-		if (c > text->curl->len) c= text->curl->len;
-		text->curc= c;
-		txt_pop_sel(text);
+		if(text->curl) {
+			if (c > text->curl->len) c= text->curl->len;
+			text->curc= c;
+			txt_pop_sel(text);
+		}
 	}
 }
 
-static void get_suggest_prefix(Text *text, int offset) {
+static void get_suggest_prefix(Text *text, int offset) 
+{
 	int i, len;
 	char *line, tmp[256];
 
@@ -2206,10 +2251,11 @@ static void get_suggest_prefix(Text *text, int offset) {
 	texttool_suggest_prefix(tmp);
 }
 
-static void confirm_suggestion(Text *text, int skipleft) {
+static void confirm_suggestion(Text *text, int skipleft) 
+{
+	SuggItem *sel;
 	int i, over=0;
 	char *line;
-	SuggItem *sel;
 
 	if (!text) return;
 	if (!texttool_text_is_active(text)) return;
@@ -2239,7 +2285,8 @@ static void confirm_suggestion(Text *text, int skipleft) {
 	texttool_text_clear();
 }
 
-static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val) {
+static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val) 
+{
 	int draw=0, tools=0, swallow=0, scroll=1;
 	if (!texttool_text_is_active(st->text)) return 0;
 	if (!st->text || st->text->id.lib) return 0;
@@ -2398,7 +2445,8 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 	return swallow;
 }
 
-static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val) {
+static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val) 
+{
 	Text *text;
 	TextMarker *marker, *mrk, *nxt;
 	int c, s, draw=0, swallow=0;
@@ -2565,12 +2613,12 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	unsigned short event= evt->event;
-	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	int do_draw=0, p;
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -3177,11 +3225,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 static void draw_brackets(SpaceText *st)
 {
-	char ch;
-	int b, c, startc, endc, find, stack;
-	int viewc, viewl, offl, offc, x, y;
 	TextLine *startl, *endl, *linep;
 	Text *text = st->text;
+	int b, c, startc, endc, find, stack;
+	int viewc, viewl, offl, offc, x, y;
+	char ch;
 
 	if (!text || !text->curl) return;
 
@@ -3300,13 +3348,15 @@ static int check_delim(char ch)
 	return 0;
 }
 
-static int check_digit(char ch) {
+static int check_digit(char ch) 
+{
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	return 0;
 }
 
-static int check_identifier(char ch) {
+static int check_identifier(char ch) 
+{
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	if (ch < 'A') return 0;
@@ -3316,7 +3366,8 @@ static int check_identifier(char ch) {
 	return 0;
 }
 
-static int check_whitespace(char ch) {
+static int check_whitespace(char ch) 
+{
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
 		return 1;
 	return 0;
@@ -3326,9 +3377,9 @@ void convert_tabs (struct SpaceText *st, int tab)
 {
 	Text *text = st->text;
 	TextLine *tmp;
+	size_t a, j;
 	char *check_line, *new_line;
 	int extra, number; //unknown for now
-	size_t a, j;
 	
 	if (!text) return;
 	
