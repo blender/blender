@@ -112,7 +112,7 @@ void free_gpencil_strokes (bGPDframe *gpf)
 		gpsn= gps->next;
 		
 		/* free stroke memory arrays, then stroke itself */
-		MEM_freeN(gps->points);
+		if (gps->points) MEM_freeN(gps->points);
 		BLI_freelinkN(&gpf->strokes, gps);
 	}
 }
@@ -135,7 +135,7 @@ void free_gpencil_frames (bGPDlayer *gpl)
 	}
 }
 
-/* Free all of the gp-layers for a viewport (list should be &G.vd->gpd or so) */
+/* Free all of the gp-layers for a viewport (list should be &gpd->layers or so) */
 void free_gpencil_layers (ListBase *list) 
 {
 	bGPDlayer *gpl, *gpln;
@@ -255,13 +255,63 @@ bGPdata *gpencil_data_addnew (void)
 
 /* -------- Data Duplication ---------- */
 
+/* make a copy of a given gpencil frame */
+bGPDframe *gpencil_frame_duplicate (bGPDframe *src)
+{
+	bGPDstroke *gps, *gpsd;
+	bGPDframe *dst;
+	
+	/* error checking */
+	if (src == NULL)
+		return NULL;
+		
+	/* make a copy of the source frame */
+	dst= MEM_dupallocN(src);
+	
+	/* copy strokes */
+	dst->strokes.first = dst->strokes.last= NULL;
+	for (gps= src->strokes.first; gps; gps= gps->next) {
+		/* make copy of source stroke, then adjust pointer to points too */
+		gpsd= MEM_dupallocN(gps);
+		gpsd->points= MEM_dupallocN(gps->points);
+		
+		BLI_addtail(&dst->strokes, gpsd);
+	}
+	
+	/* return new frame */
+	return dst;
+}
+
+/* make a copy of a given gpencil layer */
+bGPDlayer *gpencil_layer_duplicate (bGPDlayer *src)
+{
+	bGPDframe *gpf, *gpfd;
+	bGPDlayer *dst;
+	
+	/* error checking */
+	if (src == NULL)
+		return NULL;
+		
+	/* make a copy of source layer */
+	dst= MEM_dupallocN(src);
+	
+	/* copy frames */
+	dst->frames.first= dst->frames.last= NULL;
+	for (gpf= src->frames.first; gpf; gpf= gpf->next) {
+		/* make a copy of source stroke */
+		gpfd= gpencil_frame_duplicate(gpf);
+		BLI_addtail(&dst->frames, gpfd);
+	}
+	
+	/* return new layer */
+	return dst;
+}
+
 /* make a copy of a given gpencil datablock */
 bGPdata *gpencil_data_duplicate (bGPdata *src)
 {
+	bGPDlayer *gpl, *gpld;
 	bGPdata *dst;
-	bGPDlayer *gpld, *gpls;
-	bGPDframe *gpfd, *gpfs;
-	bGPDstroke *gps;
 	
 	/* error checking */
 	if (src == NULL)
@@ -271,25 +321,11 @@ bGPdata *gpencil_data_duplicate (bGPdata *src)
 	dst= MEM_dupallocN(src);
 	
 	/* copy layers */
-	duplicatelist(&dst->layers, &src->layers);
-	
-	for (gpld=dst->layers.first, gpls=src->layers.first; gpld && gpls; 
-		 gpld=gpld->next, gpls=gpls->next) 
-	{
-		/* copy frames */
-		duplicatelist(&gpld->frames, &gpls->frames);
-		
-		for (gpfd=gpld->frames.first, gpfs=gpls->frames.first; gpfd && gpfs;
-			 gpfd=gpfd->next, gpfs=gpfs->next) 
-		{
-			/* copy strokes */
-			duplicatelist(&gpfd->strokes, &gpfs->strokes);
-			
-			for (gps= gpfd->strokes.first; gps; gps= gps->next) 
-			{
-				gps->points= MEM_dupallocN(gps->points);
-			}
-		}
+	dst->layers.first= dst->layers.last= NULL;
+	for (gpl= src->layers.first; gpl; gpl= gpl->next) {
+		/* make a copy of source layer and its data */
+		gpld= gpencil_layer_duplicate(gpl);
+		BLI_addtail(&dst->layers, gpld);
 	}
 	
 	/* return new */
@@ -413,6 +449,30 @@ short gpencil_data_setactive (ScrArea *sa, bGPdata *gpd)
 	
 	/* failed to add */
 	return 0;
+}
+
+/* return the ScrArea that has the given GP-datablock
+ *	- assumes that only searching in current screen
+ *	- is based on GP-datablocks only being able to 
+ * 	  exist for one area at a time (i.e. not multiuser)
+ */
+ScrArea *gpencil_data_findowner (bGPdata *gpd)
+{
+	ScrArea *sa;
+	
+	/* error checking */
+	if (gpd == NULL)
+		return NULL;
+		
+	/* loop over all scrareas for current screen, and check if that area has this gpd */
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		/* use get-active func to see if match */
+		if (gpencil_data_getactive(sa) == gpd)
+			return sa;
+	}
+	
+	/* not found */
+	return NULL;
 }
 
 /* -------- GP-Frame API ---------- */
@@ -539,6 +599,7 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 		else {
 			/* unresolved errogenous situation! */
 			printf("Error: cannot find appropriate gp-frame \n");
+			/* gpl->actframe should still be NULL */
 		}
 	}
 	else {
@@ -547,6 +608,7 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 			gpl->actframe= gpencil_frame_addnew(gpl, cframe);
 		else {
 			/* don't do anything... this may be when no frames yet! */
+			/* gpl->actframe should still be NULL */
 		}
 	}
 	
@@ -792,7 +854,7 @@ static void gp_stroke_to_bezier (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
 		/* set settings */
 		bezt->h1= bezt->h2= HD_FREE;
 		bezt->f1= bezt->f2= bezt->f3= SELECT;
-		bezt->radius = bezt->weight = pt->pressure * gpl->thickness;
+		bezt->radius = bezt->weight = pt->pressure * gpl->thickness * 0.1;
 	}
 	
 	/* must calculate handles or else we crash */
@@ -1717,7 +1779,6 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				break;
 			case SPACE_SEQ:
 			{
-				/* for now, this is not applicable here... */
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
 			}
 				break;

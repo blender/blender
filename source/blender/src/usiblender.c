@@ -1133,6 +1133,7 @@ void exit_usiblender(void)
 	free_matcopybuf();
 	free_ipocopybuf();
 	free_actcopybuf();
+	free_gpcopybuf();
 	free_vertexpaint();
 	free_texttools();
 	

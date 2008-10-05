@@ -201,6 +201,10 @@ void delete_gpencil_layers(void);
 void delete_gplayer_frames(struct bGPDlayer *gpl);
 void duplicate_gplayer_frames(struct bGPDlayer *gpd);
 
+void free_gpcopybuf(void);
+void copy_gpdata(void);
+void paste_gpdata(void);
+
 void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
 void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 
