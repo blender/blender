@@ -1428,7 +1428,10 @@ static void createTransCurveVerts(TransInfo *t)
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
 			
-			testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
+			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandes
+			 * but for now just dont change handle types */
+			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0)
+				testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
 		}
 		else {
 			TransData *head, *tail;
