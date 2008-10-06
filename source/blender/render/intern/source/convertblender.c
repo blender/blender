@@ -2443,7 +2443,6 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
 	Curve *cu= ob->data;
 	float *data, n1[3];
-	/*float flen; - as yet unused */
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
 	int sizeu, nsizeu, sizev, nsizev;
@@ -2515,7 +2514,8 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 			
-			/* flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1); - as yet unused */
+			CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			
 			VECCOPY(vlr->n, n1);
 			
 			vlr->mat= matar[ dl->col];
@@ -2787,8 +2787,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					for(a=0; a<dl->parts; a++) {
 
 						frontside= (a >= dl->nr/2);
-
-						DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+						
+						if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+							break;
+						
 						p1+= startvert;
 						p2+= startvert;
 						p3+= startvert;

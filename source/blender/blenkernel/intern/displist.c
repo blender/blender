@@ -206,8 +206,9 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 				ndata= dl->nors;
 				
 				for(a=0; a<dl->parts; a++) {
-	
-					DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+					
+					if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+						break;
 	
 					v1= vdata+ 3*p1; 
 					n1= ndata+ 3*p1;
@@ -271,6 +272,33 @@ void count_displist(ListBase *lb, int *totvert, int *totface)
 	}
 }
 
+int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4)
+{
+	if((dl->flag & DL_CYCL_V)==0 && a==(dl->parts)-1) {
+		return 0;
+	}
+	
+	if(dl->flag & DL_CYCL_U) {
+		(*p1)= dl->nr*a;
+		(*p2)= (*p1)+ dl->nr-1;
+		(*p3)= (*p1)+ dl->nr;
+		(*p4)= (*p2)+ dl->nr;
+		(*b)= 0;
+	} else {
+		(*p2)= dl->nr*a;
+		(*p1)= (*p2)+1;
+		(*p4)= (*p2)+ dl->nr;
+		(*p3)= (*p1)+ dl->nr;
+		(*b)= 1;
+	}
+	
+	if( (dl->flag & DL_CYCL_U) && a==dl->parts-1) {			    \
+		(*p3)-= dl->nr*dl->parts;				    \
+		(*p4)-= dl->nr*dl->parts;				    \
+	}
+	
+	return 1;
+}
 
 /* ***************************** shade displist. note colors now are in rgb(a) order ******************** */
 
@@ -858,12 +886,14 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				}
 			}
 			else if((nu->type & 7)==CU_NURBS) {
-				len= (resolu*SEGMENTSU(nu))+1;
+				len= (resolu*SEGMENTSU(nu));
+				if((nu->flagu & CU_CYCLIC)==0) len++;
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts= 1;
+				
 				dl->nr= len;
 				dl->col= nu->mat_nr;
 				dl->charidx = nu->charidx;
@@ -1308,7 +1338,8 @@ static void displist_surf_indices(DispList *dl)
 	
 	for(a=0; a<dl->parts; a++) {
 		
-		DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+		if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+			break;
 		
 		for(; b<dl->nr; b++, index+=4) {	
 			index[0]= p1;

@@ -2158,8 +2158,8 @@ static PyObject *new_NMesh_displist(ListBase *lb, Object *ob)
 
 			for(a=0; a<dl->parts; a++) {
 				
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-				
+				if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+					break;
 				
 				for(; b<dl->nr; b++) {
 					vidx[0] = p2 + ioffset;
