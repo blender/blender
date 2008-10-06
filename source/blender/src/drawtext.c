@@ -136,7 +136,6 @@ static int check_identifier(char ch);
 static int check_whitespace(char ch);
 
 static int get_wrap_width(SpaceText *st);
-//static int get_wrap_points(SpaceText *st, char *line);
 static void get_suggest_prefix(Text *text, int offset);
 static void confirm_suggestion(Text *text, int skipleft);
 
@@ -238,6 +237,13 @@ static int render_string (SpaceText *st, char *in)
 	return r;
 }
 
+/* Checks the specified source string for a Python built-in function name. This
+ name must start at the beginning of the source string and must be followed by
+ a non-identifier (see check_identifier(char)) or null character.
+ 
+ If a built-in function is found, the length of the matching name is returned.
+ Otherwise, -1 is returned.
+ */
 static int find_builtinfunc(char *string)
 {
 	int a, i;
@@ -249,54 +255,51 @@ static int find_builtinfunc(char *string)
 	for (a=0; a<30; a++) {
 		i = 0;
 		while (1) {
+			/* If we hit the end of a keyword... (eg. "def") */
 			if (builtinfuncs[a][i]=='\0') {
+				/* If we still have identifier chars in the source (eg. "definate") */
 				if (check_identifier(string[i]))
-					i = -1;
-				break;
+					i = -1; /* No match */
+				break; /* Next keyword if no match, otherwise we're done */
+				
+			/* If chars mismatch, move on to next keyword */
 			} else if (string[i]!=builtinfuncs[a][i]) {
 				i = -1;
-				break;
+				break; /* Break inner loop, start next keyword */
 			}
 			i++;
 		}
-		if (i>0) break;
+		if (i>0) break; /* If we have a match, we're done */
 	}
 	return i;
 }
 
+/* Checks the specified source string for a Python special name. This name must
+ start at the beginning of the source string and must be followed by a non-
+ identifier (see check_identifier(char)) or null character.
+ 
+ If a special name is found, the length of the matching name is returned.
+ Otherwise, -1 is returned.
+ */
 static int find_specialvar(char *string) 
 {
 	int i = 0;
-	
+	/* Check for "def" */
 	if (string[0]=='d' && string[1]=='e' && string[2]=='f')
 		i = 3;
+	/* Check for "class" */
 	else if (string[0]=='c' && string[1]=='l' && string[2]=='a' && string[3]=='s' && string[4]=='s')
 		i = 5;
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	if (i==0 || check_identifier(string[i]))
 		return -1;
 	return i;
 }
 
-#if 0 // not used 
-static void print_format(SpaceText *st, TextLine *line) {
-	int i, a;
-	char *s, *f;
-	
-	s = line->line;
-	f = line->format;
-	for (a=0; *s; s++) {
-		if (*s == '\t') {
-			for (i=st->tabnumber-(a%st->tabnumber); i>0; i--)
-				printf(" "), f++, a++;
-		} else
-			printf("%c", *s), f++, a++;
-	}
-	printf("\n%s [%#x]\n", line->format, (int) (f[strlen(f)+1]));
-}
-#endif // not used
-
-/* Ensures the format string for the given line is long enough, reallocating as needed */
-static int check_format_len(TextLine *line, unsigned int len) 
+/* Ensures the format string for the given line is long enough, reallocating
+ as needed. Allocation is done here, alone, to ensure consitency.
+ */
+static int check_format_len(TextLine *line, unsigned int len)
 {
 	if (line->format) {
 		if (strlen(line->format) < len) {
@@ -311,20 +314,21 @@ static int check_format_len(TextLine *line, unsigned int len)
 	return 1;
 }
 
-/* Formats the specified line and if allowed and needed will move on to the
- * next line. The format string contains the following characters:
- *		'_'		Whitespace
- *		'#'		Comment text
- *		'!'		Punctuation and other symbols
- *		'n'		Numerals
- *		'l'		String letters
- *		'v'		Special variables (class, def)
- *		'b'		Built-in names (print, for, etc.)
- *		'q'		Other text (identifiers, etc.)
- * It is terminated with a null-terminator '\0' followed by a continuation
- * flag indicating whether the line is part of a multi-line string.
+/* Formats the specified line. If do_next is set, the process will move on to
+ the succeeding line if it is affected (eg. multiline strings). Format strings
+ may contain any of the following characters:
+ 	'_'		Whitespace
+ 	'#'		Comment text
+ 	'!'		Punctuation and other symbols
+ 	'n'		Numerals
+ 	'l'		String letters
+ 	'v'		Special variables (class, def)
+ 	'b'		Built-in names (print, for, etc.)
+ 	'q'		Other text (identifiers, etc.)
+ It is terminated with a null-terminator '\0' followed by a continuation
+ flag indicating whether the line is part of a multi-line string.
  */
-void txt_format_line(SpaceText *st, TextLine *line, int do_next) 
+void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 {
 	char *str, *fmt, orig, cont, find, prev = ' ';
 	int len, i;
@@ -435,6 +439,7 @@ void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 	}
 }
 
+/* Formats every line of the current text */
 void txt_format_text(SpaceText *st) 
 {
 	TextLine *linep;
@@ -445,7 +450,8 @@ void txt_format_text(SpaceText *st)
 		txt_format_line(st, linep, 0);
 }
 
-static void format_draw_color(char formatchar) 
+/* Sets the current drawing color based on the format character specified */
+static void format_draw_color(char formatchar)
 {
 	switch (formatchar) {
 		case '_': /* Whitespace */
@@ -682,7 +688,7 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	if(!sel) txt_pop_sel(text);
 }
 
-static int get_wrap_width(SpaceText *st) 
+static int get_wrap_width(SpaceText *st)
 {
 	int x, max;
 	
@@ -691,35 +697,8 @@ static int get_wrap_width(SpaceText *st)
 	return max>8 ? max : 8;
 }
 
-#if 0 // not used 
-/* Returns the number of wrap points (or additional lines) in the given string */
-static int get_wrap_points(SpaceText *st, char *line) 
-{
-	int start, end, taboffs, i, max, count;
-	
-	if (!st->wordwrap) return 0;
-
-	end= max= get_wrap_width(st);
-	count= taboffs= start= 0;
-
-	for (i=0; line[i]!='\0'; i++) {
-		if (i-start+taboffs>=max) {
-			count++;
-			start= end;
-			end += max;
-			taboffs= 0;
-		} else if (line[i]==' ' || line[i]=='\t' || line[i]=='-') {
-			end = i+1;
-			if (line[i]=='\t')
-				taboffs += st->tabnumber-(i-start)%st->tabnumber;
-		}
-	}
-	return count;
-}
-#endif // not used
-
 /* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
-static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) 
+static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc)
 {
 	Text *text;
 	TextLine *linep;
@@ -797,7 +776,7 @@ static int get_char_pos(SpaceText *st, char *line, int cur)
 	return a;
 }
 
-static void draw_markers(SpaceText *st) 
+static void draw_markers(SpaceText *st)
 {
 	Text *text= st->text;
 	TextMarker *marker, *next;
@@ -869,7 +848,7 @@ static void draw_markers(SpaceText *st)
 	}
 }
 
-static void draw_cursor(SpaceText *st) 
+static void draw_cursor(SpaceText *st)
 {
 	Text *text= st->text;
 	int vcurl, vcurc, vsell, vselc, hidden=0;
@@ -1063,6 +1042,7 @@ static void draw_textscroll(SpaceText *st)
 	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
 }
 
+/* Moves the view vertically by the specified number of lines */
 static void screen_skip(SpaceText *st, int lines)
 {
 	int last;
@@ -1080,6 +1060,12 @@ static void screen_skip(SpaceText *st, int lines)
 	if (st->top<0) st->top= 0;
 }
 
+/* Moves the cursor vertically by the specified number of lines.
+ If the destination line is shorter than the current cursor position, the
+ cursor will be positioned at the end of this line.
+
+ This is to replace screen_skip for PageUp/Down operations.
+ */
 static void cursor_skip(SpaceText *st, int lines, int sel)
 {
 	Text *text;
@@ -1112,9 +1098,8 @@ static void cursor_skip(SpaceText *st, int lines, int sel)
 	txt_undo_add_toop(st->text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, *linep), *charp);
 }
 
-/* 
- * mode 1 == view scroll
- * mode 2 == scrollbar
+/* Handles text scrolling via grabbing the view (MMB, mode 1) or with the
+ scrollbar (mode 2)
  */
 static void do_textscroll(SpaceText *st, int mode)
 {
@@ -1297,7 +1282,7 @@ static int do_suggest_select(SpaceText *st)
 	return 1;
 }
 
-static void pop_suggest_list() 
+static void pop_suggest_list()
 {
 	SuggItem *item, *sel;
 	int *top, i;
@@ -1474,7 +1459,7 @@ void draw_suggestion_list(SpaceText *st)
 	}
 }
 
-static short check_blockhandler(SpaceText *st, short handler) 
+static short check_blockhandler(SpaceText *st, short handler)
 {
 	short a;
 	
@@ -1483,10 +1468,12 @@ static short check_blockhandler(SpaceText *st, short handler)
 	return 0;
 }
 
+/* Find and replace GUI panel */
 static void text_panel_find(short cntrl)	// TEXT_HANDLER_FIND
 {
 	uiBlock *block;
 
+	/* Ensure that find and replace buffers have been allocated */
 	if (!g_find_str || !g_replace_str) {
 		g_find_str= MEM_mallocN(TXT_MAXFINDSTR+1, "find_string");
 		g_replace_str= MEM_mallocN(TXT_MAXFINDSTR+1, "replace_string");
@@ -1512,7 +1499,7 @@ static void text_panel_find(short cntrl)	// TEXT_HANDLER_FIND
 }
 
 /* mode: 0 find only, 1 replace/find, 2 mark all occurrences */
-void find_and_replace(SpaceText *st, short mode) 
+void find_and_replace(SpaceText *st, short mode)
 {
 	Text *start= NULL, *text= st->text;
 	int flags, first= 1;
@@ -1574,7 +1561,7 @@ void find_and_replace(SpaceText *st, short mode)
 	} while (mode==2);
 }
 
-static void do_find_buttons(val) 
+static void do_find_buttons(val)
 {
 	Text *text;
 	SpaceText *st;
@@ -1886,7 +1873,7 @@ void unlink_text(Text *text)
 	}
 }
 
-int jumptoline_interactive(SpaceText *st) 
+int jumptoline_interactive(SpaceText *st)
 {
 	short nlines= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
 	short tmp= txt_get_span(st->text->lines.first, st->text->curl)+1;
@@ -2020,7 +2007,7 @@ static char *winNewLine(char *buffer)
 	return(output);
 }
 
-void txt_paste_clipboard(Text *text) 
+void txt_paste_clipboard(Text *text)
 {
 	char * buff;
 	char *temp_buff;
@@ -2042,7 +2029,7 @@ void get_selection_buffer(Text *text)
 	txt_insert_buf(text, buff);
 }
 
-void txt_copy_clipboard(Text *text) 
+void txt_copy_clipboard(Text *text)
 {
 	char *temp;
 
@@ -2094,7 +2081,7 @@ static void set_tabs(Text *text)
 	st->currtab_set = setcurr_tab(text);
 }
 
-static void wrap_move_bol(SpaceText *st, short sel) 
+static void wrap_move_bol(SpaceText *st, short sel)
 {
 	Text *text= st->text;
 	int offl, offc, lin;
@@ -2136,7 +2123,7 @@ static void wrap_move_eol(SpaceText *st, short sel)
 	}
 }
 
-static void wrap_move_up(SpaceText *st, short sel) 
+static void wrap_move_up(SpaceText *st, short sel)
 {
 	Text *text= st->text;
 	int offl, offl_1, offc, fromline, toline, c, target;
@@ -2181,7 +2168,7 @@ static void wrap_move_up(SpaceText *st, short sel)
 	}
 }
 
-static void wrap_move_down(SpaceText *st, short sel) 
+static void wrap_move_down(SpaceText *st, short sel)
 {
 	Text *text= st->text;
 	int offl, startoff, offc, fromline, toline, c, target;
@@ -2228,7 +2215,7 @@ static void wrap_move_down(SpaceText *st, short sel)
 	}
 }
 
-static void get_suggest_prefix(Text *text, int offset) 
+static void get_suggest_prefix(Text *text, int offset)
 {
 	int i, len;
 	char *line, tmp[256];
@@ -2251,7 +2238,7 @@ static void get_suggest_prefix(Text *text, int offset)
 	texttool_suggest_prefix(tmp);
 }
 
-static void confirm_suggestion(Text *text, int skipleft) 
+static void confirm_suggestion(Text *text, int skipleft)
 {
 	SuggItem *sel;
 	int i, over=0;
@@ -2285,7 +2272,7 @@ static void confirm_suggestion(Text *text, int skipleft)
 	texttool_text_clear();
 }
 
-static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val) 
+static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
 {
 	int draw=0, tools=0, swallow=0, scroll=1;
 	if (!texttool_text_is_active(st->text)) return 0;
@@ -2445,7 +2432,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 	return swallow;
 }
 
-static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val) 
+static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val)
 {
 	Text *text;
 	TextMarker *marker, *mrk, *nxt;
@@ -3348,14 +3335,14 @@ static int check_delim(char ch)
 	return 0;
 }
 
-static int check_digit(char ch) 
+static int check_digit(char ch)
 {
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	return 0;
 }
 
-static int check_identifier(char ch) 
+static int check_identifier(char ch)
 {
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
@@ -3366,7 +3353,7 @@ static int check_identifier(char ch)
 	return 0;
 }
 
-static int check_whitespace(char ch) 
+static int check_whitespace(char ch)
 {
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
 		return 1;
