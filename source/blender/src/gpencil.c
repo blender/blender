@@ -937,7 +937,10 @@ static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *
 			
 			BLI_addtail(bones, ebo);
 			
-			ebo->flag |= BONE_CONNECTED;
+			if (i > 0)
+			{
+				ebo->flag |= BONE_CONNECTED;
+			}
 			ebo->weight= 1.0F;
 			ebo->dist= 0.25F;
 			ebo->xwidth= 0.1;
