@@ -3490,8 +3490,8 @@ void drawview3d_render(struct View3D *v3d, float viewmat[][4], int winx, int win
 		glDisable(GL_DEPTH_TEST);
 	}
 	
-	if(v3d->gpd) {
-		/* draw grease-pencil overlays 
+	if((v3d->gpd) && (v3d->flag2 & V3D_DISPGP)) {
+		/* draw grease-pencil overlays (only if enabled)
 		 * WARNING: view matrices are altered here!
 		 */
 		draw_gpencil_oglrender(v3d, winx, winy);
