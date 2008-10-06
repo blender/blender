@@ -206,7 +206,7 @@ class VRML2Export:
 		if scene != inlines[0]:
 			return
 		else:
-			for i in range(allinlines):
+			for i in xrange(allinlines):
 				nameinline=inlines[i].getName()
 				if (nameinline not in self.namesStandard) and (i > 0):
 					self.writeIndented("DEF %s Inline {\n" % \
@@ -219,7 +219,7 @@ class VRML2Export:
 	def writeScript(self):
 		textEditor = Blender.Text.Get() 
 		alltext = len(textEditor)
-		for i in range(alltext):
+		for i in xrange(alltext):
 			nametext = textEditor[i].getName()
 			nlines = textEditor[i].getNLines()
 			if (self.proto == 1):
@@ -227,14 +227,14 @@ class VRML2Export:
 					nametext == "proto.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 			elif (self.proto == 0):
 				if (nametext == "route" or nametext == "route.js" or \
 					nametext == "route.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 		self.writeIndented("\n")
 
@@ -567,7 +567,7 @@ class VRML2Export:
 
 		# Do meshes with materials, possibly with image textures
 		elif nummats > 0:
-			for matnum in range(len(maters)):
+			for matnum in xrange(len(maters)):
 				images = []
 				if me.faceUV:
 					images = self.getImages(me, matnum)
@@ -736,7 +736,7 @@ class VRML2Export:
 			indexStr = ""
 			if (matnum == -1) or (face.mat == matnum):
 				if (face.image == image):
-					for i in range(len(face.verts)):
+					for i in xrange(len(face.verts)):
 						uv = face.uv[i]
 						indexStr += "%s " % (j)
 						coordStr += "%s %s, " % \
@@ -783,13 +783,13 @@ class VRML2Export:
 		cols = [None] * len(me.verts)
 
 		for face in me.faces:
-			for vind in range(len(face.v)):
+			for vind in xrange(len(face.v)):
 				vertex = face.v[vind]
 				i = vertex.index
 				if cols[i] == None:
 					cols[i] = face.col[vind]
 					
-		for i in range(len(me.verts)):
+		for i in xrange(len(me.verts)):
 			aColor = self.rgbToFS(cols[i])
 			self.writeUnindented("%s\n" % aColor)
 
