@@ -1250,6 +1250,7 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	ModifierData *md = mdv;
 	ParticleSystem *psys;
 	ParticleCacheKey *key, **cache;
+	ParticleSettings *part;
 	Mesh *me;
 	MVert *mvert;
 	MEdge *medge;
@@ -1262,78 +1263,90 @@ static void modifiers_convertParticles(void *obv, void *mdv)
 	if(G.f & G_PARTICLEEDIT) return;
 
 	psys=((ParticleSystemModifierData *)md)->psys;
+	part= psys->part;
 
-	if(psys->part->draw_as != PART_DRAW_PATH || psys->pathcache == 0) return;
-
-	totpart= psys->totcached;
-	totchild= psys->totchildcache;
-
-	if(totchild && (psys->part->draw&PART_DRAW_PARENT)==0)
-		totpart= 0;
-
-	/* count */
-	cache= psys->pathcache;
-	for(a=0; a<totpart; a++) {
-		key= cache[a];
-		totvert+= key->steps+1;
-		totedge+= key->steps;
+	if(part->draw_as == PART_DRAW_GR || part->draw_as == PART_DRAW_OB) {
+		make_object_duplilist_real(NULL);
 	}
+	else {
+		if(part->draw_as != PART_DRAW_PATH || psys->pathcache == 0)
+			return;
 
-	cache= psys->childcache;
-	for(a=0; a<totchild; a++) {
-		key= cache[a];
-		totvert+= key->steps+1;
-		totedge+= key->steps;
-	}
+		totpart= psys->totcached;
+		totchild= psys->totchildcache;
 
-	if(totvert==0) return;
+		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+			totpart= 0;
 
-	/* add new mesh */
-	obn= add_object(OB_MESH);
-	me= obn->data;
-	
-	me->totvert= totvert;
-	me->totedge= totedge;
-	
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
-	
-	mvert= me->mvert;
-	medge= me->medge;
+		/* count */
+		cache= psys->pathcache;
+		for(a=0; a<totpart; a++) {
+			key= cache[a];
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
 
-	/* copy coordinates */
-	cache= psys->pathcache;
-	for(a=0; a<totpart; a++) {
-		key= cache[a];
-		kmax= key->steps;
-		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-			VECCOPY(mvert->co,key->co);
-			if(k) {
-				medge->v1= cvert-1;
-				medge->v2= cvert;
-				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
-				medge++;
+		cache= psys->childcache;
+		for(a=0; a<totchild; a++) {
+			key= cache[a];
+			totvert+= key->steps+1;
+			totedge+= key->steps;
+		}
+
+		if(totvert==0) return;
+
+		/* add new mesh */
+		obn= add_object(OB_MESH);
+		me= obn->data;
+		
+		me->totvert= totvert;
+		me->totedge= totedge;
+		
+		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
+		
+		mvert= me->mvert;
+		medge= me->medge;
+
+		/* copy coordinates */
+		cache= psys->pathcache;
+		for(a=0; a<totpart; a++) {
+			key= cache[a];
+			kmax= key->steps;
+			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+				VECCOPY(mvert->co,key->co);
+				if(k) {
+					medge->v1= cvert-1;
+					medge->v2= cvert;
+					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+					medge++;
+				}
 			}
 		}
-	}
 
-	cache=psys->childcache;
-	for(a=0; a<totchild; a++) {
-		key=cache[a];
-		kmax=key->steps;
-		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-			VECCOPY(mvert->co,key->co);
-			if(k) {
-				medge->v1=cvert-1;
-				medge->v2=cvert;
-				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
-				medge++;
+		cache=psys->childcache;
+		for(a=0; a<totchild; a++) {
+			key=cache[a];
+			kmax=key->steps;
+			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+				VECCOPY(mvert->co,key->co);
+				if(k) {
+					medge->v1=cvert-1;
+					medge->v2=cvert;
+					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+					medge++;
+				}
 			}
 		}
 	}
 
 	DAG_scene_sort(G.scene);
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Convert particles to mesh object(s).");
 }
 
 static void modifiers_applyModifier(void *obv, void *mdv)
@@ -1872,8 +1885,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiBlockBeginAlign(block);
 			if (md->type==eModifierType_ParticleSystem) {
-				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
-				uiButSetFunc(but, modifiers_convertParticles, ob, md);
+				ParticleSystem *psys;
+		    	psys= ((ParticleSystemModifierData *)md)->psys;
+
+	    		if(!(G.f & G_PARTICLEEDIT)) {
+					if(ELEM3(psys->part->draw_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache) {
+						but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
+						uiButSetFunc(but, modifiers_convertParticles, ob, md);
+					}
+				}
 			}
 			else{
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
@@ -4954,9 +4974,7 @@ void do_meshbuts(unsigned short event)
 		if( select_area(SPACE_VIEW3D)) spin_mesh(G.scene->toolsettings->step, G.scene->toolsettings->degr, 0, 1);
 		break;
 	case B_EXTR:
-		G.f |= G_DISABLE_OK;
 		if( select_area(SPACE_VIEW3D)) extrude_mesh();
-		G.f -= G_DISABLE_OK;
 		break;
 	case B_SCREW:
 		if( select_area(SPACE_VIEW3D)) screw_mesh(G.scene->toolsettings->step, G.scene->toolsettings->turn);
@@ -4965,9 +4983,7 @@ void do_meshbuts(unsigned short event)
 		if( select_area(SPACE_VIEW3D)) extrude_repeat_mesh(G.scene->toolsettings->step, G.scene->toolsettings->extr_offs);
 		break;
 	case B_SPLIT:
-		G.f |= G_DISABLE_OK;
 		split_mesh();
-		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
 		count= removedoublesflag(1, 0, G.scene->toolsettings->doublimit);

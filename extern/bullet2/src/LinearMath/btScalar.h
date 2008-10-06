@@ -141,6 +141,10 @@ inline int	btGetVersion()
 /// older compilers (gcc 3.x) and Sun needs double version of sqrt etc.
 /// exclude Apple Intel (i's assumed to be a Macbook or new Intel Dual Core Processor)
 #if defined (__sun) || defined (__sun__) || defined (__sparc) || (defined (__APPLE__) && ! defined (__i386__))
+/* XXX Need to fix these... needed for SunOS 5.8 */
+#define sinf(a)         sin((double)(a))
+#define cosf(a)         cos((double)(a))
+#define fabsf(a)        fabs((double)(a))
 //use slow double float precision operation on those platforms
 #ifndef BT_USE_DOUBLE_PRECISION
 #define BT_FORCE_DOUBLE_FUNCTIONS

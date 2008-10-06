@@ -291,15 +291,19 @@ void BL_ConvertActuators(char* maggiename,
 				STR_String toPropName = (msgAct->toPropName
 					? (char*) msgAct->toPropName
 					: "");
-					/**
-					* Get the Message Subject to send.
+				/* BGE Wants "OB" prefix */
+				if (toPropName != "")
+					toPropName = "OB" + toPropName;
+				
+				/**
+				* Get the Message Subject to send.
 				*/
 				STR_String subject = (msgAct->subject
 					? (char*) msgAct->subject
 					: "");
 				
-					/**
-					* Get the bodyType
+				/**
+				* Get the bodyType
 				*/
 				int bodyType = msgAct->bodyType;
 				

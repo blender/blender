@@ -1046,7 +1046,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		
 		if(la->type==LA_SUN) {
 			/* sun lamp */
-			VECCOPY(position, base->object->obmat[2]);
+			VECCOPY(direction, base->object->obmat[2]);
 			direction[3]= 0.0;
 
 			glLightfv(GL_LIGHT0+count, GL_POSITION, direction); 

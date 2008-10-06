@@ -95,6 +95,7 @@
 PyObject *bpy_pydriver_Dict = NULL;
 PyObject *bpy_orig_syspath_List = NULL;
 
+
 /*
  * set up a weakref list for Armatures
  *    creates list in __main__ module dict 
@@ -194,7 +195,7 @@ void BPY_start_python( int argc, char **argv )
 	//stuff for Registry module
 	bpy_registryDict = PyDict_New(  );/* check comment at start of this file */
 	if( !bpy_registryDict )
-		printf( "Error: Couldn't create the Registry Python Dictionary!" );
+		printf( "Warning: Couldn't create the Registry Python Dictionary!" );
 	Py_SetProgramName( "blender" );
 
 	/* Py_Initialize() will attempt to import the site module and
@@ -222,11 +223,11 @@ void BPY_start_python( int argc, char **argv )
 	
 	//Start the interpreter
 	Py_Initialize(  );
+	
 	PySys_SetArgv( argc_copy, argv_copy );
-
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
-
+	
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -236,7 +237,6 @@ void BPY_start_python( int argc, char **argv )
 
 	//Look for a python installation
 	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
-
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 
@@ -289,9 +289,6 @@ void syspath_append( char *dirname )
 {
 	PyObject *mod_sys= NULL, *dict= NULL, *path= NULL, *dir= NULL;
 	short ok=1;
-	PyErr_Clear(  );
-
-	dir = PyString_FromString( dirname );
 
 	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
 	
@@ -303,16 +300,19 @@ void syspath_append( char *dirname )
 		}
 	} else {
 		/* cant get the sys module */
+		/* PyErr_Clear(); is called below */
 		ok = 0;
 	}
 	
+	dir = PyString_FromString( dirname );
+	
 	if (ok && PySequence_Contains(path, dir)==0) { /* Only add if we need to */
-		if (ok && PyList_Append( path, dir ) != 0) /* decref below */
+		if (PyList_Append( path, dir ) != 0) /* decref below */
 			ok = 0; /* append failed */
 	}
 	
 	if( (ok==0) || PyErr_Occurred(  ) )
-		fprintf(stderr, "could import or build sys.path\n" );
+		fprintf(stderr, "Warning: could import or build sys.path\n" );
 	
 	PyErr_Clear();
 	Py_DECREF( dir );
@@ -333,8 +333,10 @@ void init_syspath( int first_time )
 		d = PyModule_GetDict( mod );
 		EXPP_dict_set_item_str( d, "progname", PyString_FromString( bprogname ) );
 		Py_DECREF( mod );
-	} else
-		printf( "Warning: could not set Blender.sys.progname\n" );
+	} else {
+		printf( "Warning: could not set Blender.sys\n" );
+		PyErr_Clear();
+	}
 
 	progname = BLI_last_slash( bprogname );	/* looks for the last dir separator */
 
@@ -393,7 +395,8 @@ void init_syspath( int first_time )
 		
 		Py_DECREF( mod );
 	} else{
-		printf("import of sys module failed\n");
+		PyErr_Clear( );
+		printf("Warning: import of sys module failed\n");
 	}
 }
 
@@ -406,13 +409,14 @@ void BPY_rebuild_syspath( void )
 
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
-		printf("error: could not import python sys module. some modules may not import.\n");
+		printf("Warning: could not import python sys module. some modules may not import.\n");
+		PyErr_Clear(  );
 		PyGILState_Release(gilstate);
 		return;
 	}
 	
 	if (!bpy_orig_syspath_List) { /* should never happen */
-		printf("error refershing python path\n");
+		printf("Warning: cant refresh python path, bpy_orig_syspath_List is NULL\n");
 		Py_DECREF(mod);
 		PyGILState_Release(gilstate);
 		return;
@@ -1228,6 +1232,8 @@ static int bpy_pydriver_create_dict(void)
 		PyDict_SetItemString(d, "Blender", mod);
 		PyDict_SetItemString(d, "b", mod);
 		Py_DECREF(mod);
+	} else {
+		PyErr_Clear();
 	}
 
 	mod = PyImport_ImportModule("math");
@@ -1245,6 +1251,8 @@ static int bpy_pydriver_create_dict(void)
 		PyDict_SetItemString(d, "noise", mod);
 		PyDict_SetItemString(d, "n", mod);
 		Py_DECREF(mod);
+	} else {
+		PyErr_Clear();
 	}
 
 	/* If there's a Blender text called pydrivers.py, import it.
@@ -1270,6 +1278,8 @@ static int bpy_pydriver_create_dict(void)
 			PyDict_SetItemString(d, "ob", fcn);
 			Py_DECREF(fcn);
 		}
+	} else {
+		PyErr_Clear();
 	}
 	
 	/* TODO - change these */
@@ -1282,6 +1292,8 @@ static int bpy_pydriver_create_dict(void)
 			PyDict_SetItemString(d, "me", fcn);
 			Py_DECREF(fcn);
 		}
+	} else {
+		PyErr_Clear();
 	}
 
 	/* ma(matname) == Blender.Material.Get(matname) */
@@ -1293,6 +1305,8 @@ static int bpy_pydriver_create_dict(void)
 			PyDict_SetItemString(d, "ma", fcn);
 			Py_DECREF(fcn);
 		}
+	} else {
+		PyErr_Clear();
 	}
 
 	return 0;
@@ -2828,11 +2842,18 @@ static PyObject *blender_import( PyObject * self, PyObject * args )
 	char *name;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	PyObject *m;
-
+	//PyObject_Print(args, stderr, 0);
+#if (PY_VERSION_HEX >= 0x02060000)
+	int dummy_val; /* what does this do?*/
+	
+	if( !PyArg_ParseTuple( args, "s|OOOi:bimport",
+			       &name, &globals, &locals, &fromlist, &dummy_val) )
+		return NULL;
+#else
 	if( !PyArg_ParseTuple( args, "s|OOO:bimport",
 			       &name, &globals, &locals, &fromlist ) )
 		return NULL;
-
+#endif
 	m = PyImport_ImportModuleEx( name, globals, locals, fromlist );
 
 	if( m )

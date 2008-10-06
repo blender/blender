@@ -281,7 +281,7 @@ void drawaxes(float size, int flag, char drawtype)
 	float v2[3]= {0.0, 0.0, 0.0};
 	float v3[3]= {0.0, 0.0, 0.0};
 
-	if(G.f & G_SIMULATION)
+	if(G.f & G_RENDER_SHADOW)
 		return;
 	
 	switch(drawtype) {
@@ -666,7 +666,7 @@ static void drawlamp(Object *ob)
 	float imat[4][4], curcol[4];
 	char col[4];
 
-	if(G.f & G_SIMULATION)
+	if(G.f & G_RENDER_SHADOW)
 		return;
 	
 	la= ob->data;
@@ -958,7 +958,7 @@ static void drawcamera(Object *ob, int flag)
 	float vec[8][4], tmat[4][4], fac, facx, facy, depth;
 	int i;
 
-	if(G.f & G_SIMULATION)
+	if(G.f & G_RENDER_SHADOW)
 		return;
 
 	cam= ob->data;
@@ -1768,7 +1768,7 @@ static void draw_verse_debug(Object *ob, EditMesh *em)
 	float v1[3], v2[3], v3[3], v4[3], fvec[3], col[3];
 	char val[32];
 
-	if(G.f & G_SIMULATION)
+	if(G.f & G_RENDER_SHADOW)
 		return;
 	
 	if(G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0)
@@ -1834,7 +1834,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  color of the text to draw */
 	
-	if(G.f & G_SIMULATION)
+	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
 		return;
 
 	/* make the precission of the pronted value proportionate to the gridsize */
@@ -4001,16 +4001,17 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			int skip= nu->resolu/16;
 			
 			while (nr-->0) { /* accounts for empty bevel lists */
+				float fac= bevp->radius * G.scene->editbutsize;
 				float ox,oy,oz; // Offset perpendicular to the curve
 				float dx,dy,dz; // Delta along the curve
 				
-				ox = bevp->radius*bevp->mat[0][0];
-				oy = bevp->radius*bevp->mat[0][1];
-				oz = bevp->radius*bevp->mat[0][2];
+				ox = fac*bevp->mat[0][0];
+				oy = fac*bevp->mat[0][1];
+				oz = fac*bevp->mat[0][2];
 			
-				dx = bevp->radius*bevp->mat[2][0];
-				dy = bevp->radius*bevp->mat[2][1];
-				dz = bevp->radius*bevp->mat[2][2];
+				dx = fac*bevp->mat[2][0];
+				dy = fac*bevp->mat[2][1];
+				dz = fac*bevp->mat[2][2];
 
 				glBegin(GL_LINE_STRIP);
 				glVertex3f(bevp->x - ox - dx, bevp->y - oy - dy, bevp->z - oz - dz);
@@ -5164,7 +5165,7 @@ void draw_object(Base *base, int flag)
 	}
 
 	/* draw extra: after normal draw because of makeDispList */
-	if(dtx && !(G.f & G_SIMULATION)) {
+	if(dtx && !(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))) {
 		if(dtx & OB_AXIS) {
 			drawaxes(1.0f, flag, OB_ARROWS);
 		}
@@ -5185,7 +5186,8 @@ void draw_object(Base *base, int flag)
 	}
 
 	if(dt<OB_SHADED) {
-		if(/*(ob->gameflag & OB_ACTOR) &&*/ (ob->gameflag & OB_DYNAMIC)) {
+		if((ob->gameflag & OB_DYNAMIC) || 
+			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
 			float tmat[4][4], imat[4][4], vec[3];
 
 			vec[0]= vec[1]= vec[2]= 0.0;
@@ -5204,7 +5206,7 @@ void draw_object(Base *base, int flag)
 
 	if(warning_recursive) return;
 	if(base->flag & (OB_FROMDUPLI|OB_RADIO)) return;
-	if(G.f & G_SIMULATION) return;
+	if(G.f & G_RENDER_SHADOW) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {

@@ -78,7 +78,7 @@ struct RigNode;
 struct RigArc;
 struct RigEdge;
 
-#define USE_THREADS
+//#define USE_THREADS
 
 typedef struct RigGraph {
 	ListBase	arcs;

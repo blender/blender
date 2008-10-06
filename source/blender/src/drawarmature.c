@@ -2506,7 +2506,7 @@ int draw_armature(Base *base, int dt, int flag)
 	bArmature *arm= ob->data;
 	int retval= 0;
 
-	if(G.f & G_SIMULATION)
+	if(G.f & G_RENDER_SHADOW)
 		return 1;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {

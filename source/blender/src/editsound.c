@@ -95,7 +95,7 @@ static SND_SceneHandle ghSoundScene=NULL;
 static SND_AudioDeviceInterfaceHandle ghAudioDeviceInterface=NULL;
 
 /* que? why only here? because of the type define? */
-static bSound *sound_find_sound(char *id_name);
+//static bSound *sound_find_sound(char *id_name);
 static void sound_read_wav_data(bSound * sound, PackedFile * pf);
 void winqreadsoundspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 /*  void sound_stop_all_sounds(void); already in BIF_editsound.h */
@@ -1022,7 +1022,7 @@ void sound_play_sound(bSound *sound)
 }
 
 
-
+#if 0
 static bSound *sound_find_sound(char *id_name)
 {
 	bSound *sound;
@@ -1039,6 +1039,7 @@ static bSound *sound_find_sound(char *id_name)
 	
 	return sound;
 }
+#endif
 
 void sound_init_audio(void)
 {

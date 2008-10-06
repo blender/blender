@@ -203,6 +203,9 @@ static void init_userdef_file(void)
     if (U.ndof_rotate==0) {
         U.ndof_rotate = 100;
    }
+	if (U.gp_eraser == 0) {
+		U.gp_eraser= 25;
+	}
 
 	if(U.flag & USER_CUSTOM_RANGE) 
 		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
@@ -503,10 +506,11 @@ static void init_userdef_file(void)
 			col = btheme->tv3d.vertex_select;
 			SETCOL(btheme->tseq.vertex_select, col[0], col[1], col[2], 255);
 		}
-		
+	}
+	if ((G.main->versionfile < 247) || (G.main->versionfile == 247 && G.main->subversionfile <= 9)) {
 		/* define grease-pencil distances */
-		U.gp_manhattendist= 3;
-		U.gp_euclideandist= 20;
+		U.gp_manhattendist= 2;
+		U.gp_euclideandist= 15;
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */
@@ -1135,6 +1139,7 @@ void exit_usiblender(void)
 	free_matcopybuf();
 	free_ipocopybuf();
 	free_actcopybuf();
+	free_gpcopybuf();
 	free_vertexpaint();
 	free_texttools();
 	

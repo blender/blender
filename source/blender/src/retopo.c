@@ -86,7 +86,23 @@ typedef struct RetopoPaintHit {
 } RetopoPaintHit;
 
 static void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj);
-static void retopo_paint_debug_print(RetopoPaintData *rpd);
+
+#if 0
+static void retopo_paint_debug_print(RetopoPaintData *rpd)
+{
+	RetopoPaintLine *l;
+	RetopoPaintPoint *p;
+	
+	for(l= rpd->lines.first; l; l= l->next) {
+		printf("Line:\n");
+		for(p= l->points.first; p; p= p->next) {
+			printf("   Point(%d: %d,%d)\n",p->index,p->loc.x,p->loc.y);
+		}
+	}
+	
+	fflush(stdout);
+}
+#endif
 
 /* Painting */
 RetopoPaintData *get_retopo_paint_data(void)
@@ -708,17 +724,22 @@ RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd)
 
 	memcpy(copy,rpd,sizeof(RetopoPaintData));
 	copy->lines.first= copy->lines.last= NULL;
+	copy->nearest.next= copy->nearest.prev= NULL;
+	copy->nearest.line= NULL;
+	copy->nearest.first= 0;
+	
 	for(l= rpd->lines.first; l; l= l->next) {
-		lcp= MEM_mallocN(sizeof(RetopoPaintLine),"RetopoPaintLineCopy");
-		memcpy(lcp,l,sizeof(RetopoPaintLine));
-		BLI_addtail(&copy->lines,lcp);
+		lcp= MEM_dupallocN(l);
+		BLI_addtail(&copy->lines, lcp);
 		
 		lcp->hitlist.first= lcp->hitlist.last= NULL;
 		lcp->points.first= lcp->points.last= NULL;
+		lcp->cyclic= NULL;
+		
 		for(p= l->points.first; p; p= p->next) {
-			pcp= MEM_mallocN(sizeof(RetopoPaintPoint),"RetopoPaintPointCopy");
-			memcpy(pcp,p,sizeof(RetopoPaintPoint));
-			BLI_addtail(&lcp->points,pcp);
+			pcp= MEM_dupallocN(p);
+			BLI_addtail(&lcp->points, pcp);
+			pcp->eve= NULL;
 		}
 	}
 
@@ -903,19 +924,4 @@ void retopo_free_view_data(View3D *v3d)
 		MEM_freeN(v3d->retopo_view_data);
 		v3d->retopo_view_data= NULL;
 	}
-}
-
-static void retopo_paint_debug_print(RetopoPaintData *rpd)
-{
-	RetopoPaintLine *l;
-	RetopoPaintPoint *p;
-
-	for(l= rpd->lines.first; l; l= l->next) {
-		printf("Line:\n");
-		for(p= l->points.first; p; p= p->next) {
-			printf("   Point(%d: %d,%d)\n",p->index,p->loc.x,p->loc.y);
-		}
-	}
-
-	fflush(stdout);
 }

@@ -206,7 +206,7 @@ class VRML2Export:
 		if scene != inlines[0]:
 			return
 		else:
-			for i in range(allinlines):
+			for i in xrange(allinlines):
 				nameinline=inlines[i].getName()
 				if (nameinline not in self.namesStandard) and (i > 0):
 					self.writeIndented("DEF %s Inline {\n" % \
@@ -219,7 +219,7 @@ class VRML2Export:
 	def writeScript(self):
 		textEditor = Blender.Text.Get() 
 		alltext = len(textEditor)
-		for i in range(alltext):
+		for i in xrange(alltext):
 			nametext = textEditor[i].getName()
 			nlines = textEditor[i].getNLines()
 			if (self.proto == 1):
@@ -227,14 +227,14 @@ class VRML2Export:
 					nametext == "proto.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 			elif (self.proto == 0):
 				if (nametext == "route" or nametext == "route.js" or \
 					nametext == "route.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 		self.writeIndented("\n")
 
@@ -556,31 +556,28 @@ class VRML2Export:
 		issmooth = 0
 
 		maters = me.materials
-		nummats = self.getNumMaterials(me)
+		nummats = len(me.materials)
 
 		# Vertex and Face colors trump materials and image textures
 		if (self.facecolors or self.vcolors):
 			if nummats > 0:
-				if maters[0]:
-					self.writeShape(ob, me, 0, None)
-				else:
-					self.writeShape(ob, me, -1, None)
+				self.writeShape(ob, me, 0, None)
 			else:
 				self.writeShape(ob, me, -1, None)
-		# Do meshes with materials, possible with image textures
+
+		# Do meshes with materials, possibly with image textures
 		elif nummats > 0:
-			for matnum in range(len(maters)):
-				if maters[matnum]:
-					images = []
-					if me.faceUV:
-						images = self.getImages(me, matnum)
-						if len(images) > 0:
-							for image in images:
-								self.writeShape(ob, me, matnum, image)
-						else:
-							self.writeShape(ob, me, matnum, None)
+			for matnum in xrange(len(maters)):
+				images = []
+				if me.faceUV:
+					images = self.getImages(me, matnum)
+					if len(images) > 0:
+						for image in images:
+							self.writeShape(ob, me, matnum, image)
 					else:
 						self.writeShape(ob, me, matnum, None)
+				else:
+					self.writeShape(ob, me, matnum, None)
 		else:
 			if me.faceUV:
 				images = self.getImages(me, -1)
@@ -607,15 +604,6 @@ class VRML2Export:
 						images.append(face.image)
 						imageNames[imName]=1
 		return images
-
-	def getNumMaterials(self, me):
-		# Oh silly Blender, why do you sometimes have 'None' as
-		# a member of the me.materials array?
-		num = 0
-		for mat in me.materials:
-			if mat:
-				num = num + 1
-		return num
 
 	def writeCoordinates(self, me, meshName):
 		coordName = "coord_%s" % (meshName)
@@ -644,20 +632,43 @@ class VRML2Export:
 		self.writeIndented("}\n", -1)
 		self.writeIndented("\n")
 
+	def testShape(self, ob, me, matnum, image):
+		if ( (matnum == -1) and (image == None) ):
+			if ( len(me.faces) > 0 ):
+				return True
+		# Check if any faces the material or image
+		for face in me.faces:
+			if (matnum == -1):
+				if (f.image == image):
+					return True
+			elif (image == None):
+				if (face.mat == matnum):
+					return True
+			else:
+				if ((face.image == image) and (face.mat == matnum)):
+					return True
+
+		return False
+
 	def writeShape(self, ob, me, matnum, image):
-		# Note: at this point it is assumed for matnum!=-1 that the 
-		# material in me.materials[matnum] is not equal to 'None'.
-		# Such validation should be performed by the function that
-		# calls this one.
+		# matnum == -1  means don't check the face.mat
+		# image == None means don't check face.image
+
+		if ( not self.testShape(ob, me, matnum, image) ):
+			return False
+
 		self.writeIndented("Shape {\n",1)
 
 		self.writeIndented("appearance Appearance {\n", 1)
 		if (matnum != -1):
 			mater = me.materials[matnum]
-			self.writeMaterial(mater, self.cleanStr(mater.name,''))
-			if (mater.mode & Blender.Material.Modes['TEXFACE']):
-				if image != None:
-					self.writeImageTexture(image.name, image.filename)
+			if (mater):
+				self.writeMaterial(mater, self.cleanStr(mater.name,''))
+				if (mater.mode & Blender.Material.Modes['TEXFACE']):
+					if image != None:
+						self.writeImageTexture(image.name, image.filename)
+			else:
+				self.writeDefaultMaterial()	
 		else:
 			if image != None:
 				self.writeImageTexture(image.name, image.filename)
@@ -667,6 +678,8 @@ class VRML2Export:
 		self.writeGeometry(ob, me, matnum, image)
 
 		self.writeIndented("}\n", -1)
+
+		return True
 
 	def writeGeometry(self, ob, me, matnum, image):
 
@@ -723,7 +736,7 @@ class VRML2Export:
 			indexStr = ""
 			if (matnum == -1) or (face.mat == matnum):
 				if (face.image == image):
-					for i in range(len(face.verts)):
+					for i in xrange(len(face.verts)):
 						uv = face.uv[i]
 						indexStr += "%s " % (j)
 						coordStr += "%s %s, " % \
@@ -770,18 +783,35 @@ class VRML2Export:
 		cols = [None] * len(me.verts)
 
 		for face in me.faces:
-			for vind in range(len(face.v)):
+			for vind in xrange(len(face.v)):
 				vertex = face.v[vind]
 				i = vertex.index
 				if cols[i] == None:
 					cols[i] = face.col[vind]
 					
-		for i in range(len(me.verts)):
+		for i in xrange(len(me.verts)):
 			aColor = self.rgbToFS(cols[i])
 			self.writeUnindented("%s\n" % aColor)
 
 		self.writeIndented("\n", 0)
 		self.writeIndented("]\n",-1)
+		self.writeIndented("}\n",-1)
+
+	def writeDefaultMaterial(self):
+		matName = "default"
+
+		# look up material name, use it if available
+		if self.matNames.has_key(matName):
+			self.writeIndented("material USE MA_%s\n" % matName)
+			self.matNames[matName]+=1
+			return;
+
+		self.matNames[matName]=1
+		self.writeIndented("material DEF MA_%s Material {\n" % matName, 1)
+		self.writeIndented("diffuseColor 0.8 0.8 0.8\n")
+		self.writeIndented("specularColor 1.0 1.0 1.0\n")
+		self.writeIndented("shininess 0.5\n")
+		self.writeIndented("transparency 0.0\n")
 		self.writeIndented("}\n",-1)
 
 	def writeMaterial(self, mat, matName):

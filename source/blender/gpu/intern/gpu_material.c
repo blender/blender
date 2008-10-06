@@ -1145,6 +1145,8 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 	if((G.fileflags & G_FILE_GLSL_NO_LIGHTS) || (ma->mode & MA_SHLESS)) {
 		shr->combined = shi->rgb;
 		shr->alpha = shi->alpha;
+		GPU_link(mat, "set_rgb", shi->rgb, &shr->diff);
+		GPU_link(mat, "set_rgb_zero", &shr->spec);
 	}
 	else {
 		if(GPU_link_changed(shi->emit) || ma->emit != 0.0f) {

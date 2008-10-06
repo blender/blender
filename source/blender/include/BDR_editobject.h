@@ -76,6 +76,7 @@ void link_to_scene(unsigned short nr);
 void make_links_menu(void);
 void make_links(short event);
 void make_duplilist_real(void);
+void make_object_duplilist_real(struct Base *base);
 void apply_objects_locrot(void);
 void apply_objects_scale(void);
 void apply_objects_rot(void);

@@ -1077,9 +1077,17 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	PyObject *fromlist = NULL;
 	PyObject *l, *m, *n;
 
+#if (PY_VERSION_HEX >= 0x02060000)
+	int dummy_val; /* what does this do?*/
+	
+	if (!PyArg_ParseTuple(args, "s|OOOi:m_import",
+	        &name, &globals, &locals, &fromlist, &dummy_val))
+	    return NULL;
+#else
 	if (!PyArg_ParseTuple(args, "s|OOO:m_import",
 	        &name, &globals, &locals, &fromlist))
 	    return NULL;
+#endif
 
 	/* check for builtin modules */
 	m = PyImport_AddModule("sys");
@@ -1492,6 +1500,7 @@ int saveGamePythonConfig( char **marshal_buffer)
 		}
 		Py_DECREF(gameLogic);
 	} else {
+		PyErr_Clear();
 		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 	}
 	return marshal_length;
@@ -1505,10 +1514,17 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 
 		if (gameLogic) {
 			PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(marshal_buffer, marshal_length);
-
 			if (pyGlobalDict) {
-				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				PyObject* pyGlobalDict_orig = PyDict_GetItemString(PyModule_GetDict(gameLogic), "globalDict"); // Same as importing the module.
+				if (pyGlobalDict_orig) {
+					PyDict_Clear(pyGlobalDict_orig);
+					PyDict_Update(pyGlobalDict_orig, pyGlobalDict);
+				} else {
+					/* this should not happen, but cant find the original globalDict, just assign it then */
+					PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				}
 				Py_DECREF(gameLogic);
+				Py_DECREF(pyGlobalDict);
 				return 1;
 			} else {
 				Py_DECREF(gameLogic);
@@ -1516,6 +1532,7 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 				printf("Error could not marshall string\n");
 			}
 		} else {
+			PyErr_Clear();
 			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 		}	
 	}

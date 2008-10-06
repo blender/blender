@@ -892,7 +892,7 @@ void make_editMesh()
 		return;
 	}
 #endif
-
+	
 	/* because of reload */
 	free_editMesh(em);
 	
@@ -914,8 +914,11 @@ void make_editMesh()
 		strcpy(G.editModeTitleExtra, "(Key) ");
 		key_to_mesh(actkey, me);
 		tot= actkey->totelem;
+		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
+		undo_editmode_clear();
 	}
 
+	
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;

@@ -1859,7 +1859,12 @@ static char* ffmpeg_format_pup(void)
        }
        return string;
 #endif
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d"
+#if 0
+/* ifdef WITH_OGG, disabled, since broken within ffmpeg bundled with blender */
+	      "|%s %%x%d"
+#endif
+	      "|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG-1", FFMPEG_MPEG1,
                "MPEG-2", FFMPEG_MPEG2,
@@ -1869,6 +1874,10 @@ static char* ffmpeg_format_pup(void)
                "DV", FFMPEG_DV,
 	       "H264", FFMPEG_H264,
 	       "XVid", FFMPEG_XVID,
+#if 0 
+/* ifdef WITH_OGG, disabled, since broken within ffmpeg bundled with blender */
+	       "OGG", FFMPEG_OGG,
+#endif
 	       "FLV", FFMPEG_FLV);
        return string;
 }
@@ -1893,7 +1902,13 @@ static char* ffmpeg_preset_pup(void)
 static char* ffmpeg_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, 
+	      "FFMpeg format: %%t"
+	      "|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d"
+#ifdef WITH_OGG
+	      "|%s %%x%d"
+#endif
+	      "|%s %%x%d");
        sprintf(string, formatstring,
                "MPEG1", CODEC_ID_MPEG1VIDEO,
                "MPEG2", CODEC_ID_MPEG2VIDEO,
@@ -1902,7 +1917,10 @@ static char* ffmpeg_codec_pup(void) {
 	       "DV", CODEC_ID_DVVIDEO,
                "H264", CODEC_ID_H264,
 	       "XVid", CODEC_ID_XVID,
-	       "FlashVideo1", CODEC_ID_FLV1 );
+#ifdef WITH_OGG
+	       "Theora", CODEC_ID_THEORA,
+#endif
+	       "FlashVideo1", CODEC_ID_FLV1);
        return string;
 
 }
@@ -1910,12 +1928,20 @@ static char* ffmpeg_codec_pup(void) {
 static char* ffmpeg_audio_codec_pup(void) {
        static char string[2048];
        char formatstring[2048];
-       strcpy(formatstring, "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+       strcpy(formatstring, 
+	      "FFMpeg format: %%t|%s %%x%d|%s %%x%d|%s %%x%d"
+#ifdef WITH_OGG
+	      "|%s %%x%d"
+#endif
+	      "|%s %%x%d");
        sprintf(string, formatstring,
                "MP2", CODEC_ID_MP2,
                "MP3", CODEC_ID_MP3,
                "AC3", CODEC_ID_AC3,
                "AAC", CODEC_ID_AAC,
+#ifdef WITH_OGG
+	       "Vorbis", CODEC_ID_VORBIS,
+#endif
 	       "PCM", CODEC_ID_PCM_S16LE);
        return string;
 
@@ -2910,8 +2936,8 @@ static void render_panel_ffmpeg_video(void)
 				 0, 1, 0,0, "Autosplit output at 2GB boundary.");
 	
 	
-	if (ELEM3(G.scene->r.ffcodecdata.type, FFMPEG_AVI, 
-		  FFMPEG_MOV, FFMPEG_MKV)) {
+	if (ELEM4(G.scene->r.ffcodecdata.type, FFMPEG_AVI, 
+		  FFMPEG_MOV, FFMPEG_MKV, FFMPEG_OGG)) {
 		uiDefBut(block, LABEL, 0, "Codec", 
 				xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
 		uiDefButI(block, MENU,B_REDR, ffmpeg_codec_pup(), 

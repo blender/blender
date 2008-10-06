@@ -230,6 +230,10 @@ static const char** get_file_extensions(int format)
 		static const char * rv[] = { ".mkv", NULL };
 		return rv;
 	}
+	case FFMPEG_OGG: {
+		static const char * rv[] = { ".ogg", ".ogv", NULL };
+		return rv;
+	}
 	default:
 		return NULL;
 	}
@@ -251,14 +255,18 @@ static void write_video_frame(AVFrame* frame)
 		AVPacket packet;
 		av_init_packet(&packet);
 
+		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
 #ifdef FFMPEG_CODEC_TIME_BASE
-		packet.pts = av_rescale_q(c->coded_frame->pts,
-					  c->time_base,
-					  video_stream->time_base);
+			packet.pts = av_rescale_q(c->coded_frame->pts,
+						  c->time_base,
+						  video_stream->time_base);
 #else
-		packet.pts = c->coded_frame->pts;
+			packet.pts = c->coded_frame->pts;
 #endif
-		fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
+			fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
+		} else {
+			fprintf(stderr, "Video Frame PTS: not set\n");
+		}
 		if (c->coded_frame->key_frame)
 			packet.flags |= PKT_FLAG_KEY;
 		packet.stream_index = video_stream->index;
@@ -669,6 +677,8 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	switch(ffmpeg_type) {
 	case FFMPEG_AVI:
 	case FFMPEG_MOV:
+	case FFMPEG_OGG:
+	case FFMPEG_MKV:
 		fmt->video_codec = ffmpeg_codec;
 		break;
 	case FFMPEG_DV:

@@ -264,7 +264,7 @@ class Object:
 
 	B{Note}:
 	When dealing with properties and functions such as LocX/RotY/getLocation(), getSize() and getEuler(),
-	keep in mind that these transformation properties are relative to the object's parent (if any).
+	keep in mind that these transformation properties are relative to the object itself, ignoring any other transformations.
 
 	To get these values in worldspace (taking into account vertex parents, constraints, etc.)
 	pass the argument 'worldspace' to these functions.
@@ -780,9 +780,9 @@ class Object:
 		"""
 		@type space: string
 		@param space: The desired space for the size:
-			- localspace: (default) relative to the object's parent;
-			- worldspace: absolute, taking vertex parents, tracking and
-					Ipo's into account;
+			- localspace: (default) location without other transformations
+			- worldspace: location taking vertex parents, tracking and
+					Ipos into account
 		Returns the object's localspace rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
 		@rtype: Py_Euler
 		@return: A python Euler. Data is wrapped when euler is present.
@@ -812,9 +812,9 @@ class Object:
 		"""
 		@type space: string
 		@param space: The desired space for the location:
-			- localspace: (default) relative to the object's parent;
-			- worldspace: absolute, taking vertex parents, tracking and
-				Ipo's into account;
+			- localspace: (default) location without other transformations
+			- worldspace: location taking vertex parents, tracking and
+				Ipos into account
 		Returns the object's location (x, y, z).
 		@return: (x, y, z)
 
@@ -895,9 +895,9 @@ class Object:
 		"""
 		@type space: string
 		@param space: The desired space for the size:
-			- localspace: (default) relative to the object's parent;
-			- worldspace: absolute, taking vertex parents, tracking and
-				Ipo's into account;
+			- localspace: (default) location without other transformations
+			- worldspace: location taking vertex parents, tracking and
+					Ipos into account
 		Returns the object's size.
 		@return: (SizeX, SizeY, SizeZ)
 		@note: the worldspace size will not return negative (flipped) scale values.

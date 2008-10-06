@@ -176,6 +176,8 @@ def setup_syslibs(lenv):
             syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
+        if lenv['WITH_BF_OGG']:
+            syslibs += Split(lenv['BF_OGG_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:

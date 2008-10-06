@@ -893,7 +893,10 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	 */
 	
 #ifdef WIN32
-	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
+	
+	/* Note, this should really be moved to the file selector,
+	 * since this function is used in many areas */
+	if(strcmp(dir, ".")==0) {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
 	   return;
 	}	
@@ -1182,7 +1185,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	 * Add a / prefix and lowercase the driveletter, remove the :
 	 * C:\foo.JPG -> /c/foo.JPG */
 	
-	if (tmp[1] == ':' && isalpha(tmp[0]) && (tmp[2]=='\\' || tmp[2]=='/') ) {
+	if (isalpha(tmp[0]) && tmp[1] == ':' && (tmp[2]=='\\' || tmp[2]=='/') ) {
 		tmp[1] = tolower(tmp[0]); /* replace ':' with driveletter */
 		tmp[0] = '/'; 
 		/* '\' the slash will be converted later */
