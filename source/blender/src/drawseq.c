@@ -348,7 +348,7 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	
 	signed short* s;
 	bSound *sound;
-	Uint8 *stream;
+	uint8_t *stream;
 	
 	audio_makestream(seq->sound);
 	if(seq->sound==NULL || seq->sound->stream==NULL) return;

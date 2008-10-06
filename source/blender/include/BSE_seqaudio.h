@@ -29,20 +29,24 @@
 #ifndef BSE_SEQAUDIO_H
 #define BSE_SEQAUDIO_H
 
+#ifndef DISABLE_SDL
 #include "SDL.h"
+#endif
+
 /* muha, we don't init (no SDL_main)! */
 #ifdef main
 #	undef main
 #endif
 
 #include "DNA_sound_types.h"
+#include "BLO_sys_types.h"
 
 void audio_mixdown();
 void audio_makestream(bSound *sound);
-void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown);
-void audiostream_fill(Uint8* mixdown, int len);
-void audiostream_start(Uint32 frame);
-void audiostream_scrub(Uint32 frame);
+void audiostream_play(uint32_t startframe, uint32_t duration, int mixdown);
+void audiostream_fill(uint8_t* mixdown, int len);
+void audiostream_start(uint32_t frame);
+void audiostream_scrub(uint32_t frame);
 void audiostream_stop(void);
 int audiostream_pos(void);
 
