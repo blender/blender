@@ -893,7 +893,10 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	 */
 	
 #ifdef WIN32
-	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
+	
+	/* Note, this should really be moved to the file selector,
+	 * since this function is used in many areas */
+	if(strcmp(dir, ".")==0) {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
 	   return;
 	}	
