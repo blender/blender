@@ -7882,6 +7882,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	if (main->versionfile <= 247) {
 		Material *ma;
+		Tex *tex;
 		
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
 			/* trigger for non-volumetric file */
@@ -7893,6 +7894,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;	
 			}
 		}
+		
+		for(tex=main->tex.first; tex; tex= tex->id.next) {
+			if (tex->pd == NULL) 
+				tex->pd = BKE_add_pointdensity();
+			else if (tex->pd->noise_size < 0.0001f) {
+				tex->pd->noise_size = 0.5f;
+				tex->pd->noise_depth = 1;
+				tex->pd->noise_fac = 1.0f;
+				tex->pd->noise_influence = TEX_PD_NOISE_STATIC;
+			}
+		}
+		
 	}
 	
 	/* set the curve radius interpolation to 2.47 default - easy */

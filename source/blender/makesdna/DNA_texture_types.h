@@ -144,8 +144,13 @@ typedef struct PointDensity {
 	short pdpad2;
 	
 	void *point_tree;		/* the acceleration tree containing points */
-	void *point_data;		/* dynamically allocated extra for extra information, like particle age */
-	int pdpad3[2];
+	float *point_data;		/* dynamically allocated extra for extra information, like particle age */
+	
+	float noise_size;
+	short noise_depth;
+	short noise_influence;
+	float noise_fac;
+	float pdpad4;
 	
 } PointDensity;
 
@@ -429,6 +434,15 @@ typedef struct TexMapping {
 #define TEX_PD_OBJECTSPACE	1
 #define TEX_PD_WORLDSPACE	2
 
+/* flag */
+#define TEX_PD_TURBULENCE	1
+
+
+/* noise_influence */
+#define TEX_PD_NOISE_STATIC		0
+#define TEX_PD_NOISE_VEL		1
+#define TEX_PD_NOISE_ANGVEL		2
+#define TEX_PD_NOISE_TIME		3
 
 #endif
 

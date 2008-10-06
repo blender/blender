@@ -878,6 +878,10 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->source = TEX_PD_PSYS;
 	pd->point_tree = NULL;
 	pd->point_data = NULL;
+	pd->noise_size = 0.5f;
+	pd->noise_depth = 1;
+	pd->noise_fac = 1.0f;
+	pd->noise_influence = TEX_PD_NOISE_STATIC;
 	
 	return pd;
 } 

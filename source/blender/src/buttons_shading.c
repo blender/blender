@@ -759,15 +759,42 @@ static void texture_panel_pointdensity(Tex *tex)
 		uiDefBut(block, LABEL, B_NOP, "Falloff:",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
 		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Sharp %x2|Constant %x3|Root %x4",
-				X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
 		
+		yco -= YSPACE;
+		
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, TEX_PD_TURBULENCE, B_REDR, "Turbulence",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->flag), 0, 0, 0, 0, "Add directed turbulence to the density estimation");
+			
+		if (pd->flag & TEX_PD_TURBULENCE) {
+			
+			uiDefButF(block, NUM, B_REDR, "Size: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 100.0, 10, 2, "Turbulence size");
+			uiDefButS(block, NUM, B_REDR, "Depth: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 100.0, 10, 2, "Turbulence depth");
+			uiDefButF(block, NUM, B_REDR, "Strength: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 100.0, 10, 2, "");
+			
+			uiBlockEndAlign(block);
+			
+			yco -= YSPACE;
+
+			if (pd->source == TEX_PD_PSYS) {
+				uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Angular Velocity %x2",
+					X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
+			}
+		}
+		uiBlockEndAlign(block);
+
 		yco = PANEL_YMAX;
 		
 		uiDefBut(block, LABEL, B_NOP, "Point data source:",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 		
 		uiDefButS(block, MENU, B_TEXREDR_PRV, "Particle System %x0|Object Vertices %x1",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->source, 0.0, 0.0, 0, 0, "Source");
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->source, 0.0, 0.0, 0, 0, "Source");
 		
 		yco -= YSPACE;
 		
@@ -788,6 +815,7 @@ static void texture_panel_pointdensity(Tex *tex)
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 			uiDefButS(block, MENU, B_TEXREDR_PRV, "Emit Object Location %x0|Emit Object Space %x1|Global Space %x2",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->psys_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache particles in");
+				
 		}
 		else if (pd->source == TEX_PD_OBJECT) {
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
