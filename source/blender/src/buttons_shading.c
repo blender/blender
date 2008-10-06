@@ -803,7 +803,7 @@ static void texture_panel_pointdensity(Tex *tex)
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
 				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object that has the particle system");
 				
-			if (pd->object->particlesystem.first) {
+			if (pd->object && pd->object->particlesystem.first) {
 				uiDefButS(block, NUM, B_REDR, "PSys:", 
 					X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->psysindex), 1, 10, 10, 3, "Particle system number in the object");
 			}
