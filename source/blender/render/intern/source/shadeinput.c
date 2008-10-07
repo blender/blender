@@ -573,31 +573,25 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 	}
 }
 
-/* scanline pixel coordinates */
-/* requires set_triangle */
-void shade_input_set_viewco(ShadeInput *shi, float x, float y, float z)
+/* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
+void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *view, float *dxyview, float *co, float *dxco, float *dyco)
 {
-	float fac;
+	/* returns not normalized, so is in viewplane coords */
+	calc_view_vector(view, x, y);
 	
-	/* currently in use for dithering (soft shadow), node preview, irregular shad */
-	shi->xs= (int)(x);
-	shi->ys= (int)(y);
-	
-	calc_view_vector(shi->view, x, y);	/* returns not normalized, so is in viewplane coords */
-	
-	/* wire cannot use normal for calculating shi->co */
 	if(shi->mat->mode & MA_WIRE) {
-		
+		/* wire cannot use normal for calculating shi->co, so
+		 * we reconstruct the coordinate less accurate */
 		if(R.r.mode & R_ORTHO)
-			calc_renderco_ortho(shi->co, x, y, z);
+			calc_renderco_ortho(co, x, y, z);
 		else
-			calc_renderco_zbuf(shi->co, shi->view, z);
+			calc_renderco_zbuf(co, view, z);
 	}
 	else {
-		float dface, v1[3];
+		/* for non-wire, intersect with the triangle to get the exact coord */
+		float fac, dface, v1[3];
 		
 		VECCOPY(v1, shi->v1->co);
-
 		if(shi->obi->flag & R_TRANSFORMED)
 			Mat4MulVecfl(shi->obi->mat, v1);
 		
@@ -609,72 +603,98 @@ void shade_input_set_viewco(ShadeInput *shi, float x, float y, float z)
 			float fx= 2.0f/(R.winx*R.winmat[0][0]);
 			float fy= 2.0f/(R.winy*R.winmat[1][1]);
 			
-			shi->co[0]= (x - 0.5f*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
-			shi->co[1]= (y - 0.5f*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
+			co[0]= (x - 0.5f*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
+			co[1]= (y - 0.5f*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
 			
 			/* using a*x + b*y + c*z = d equation, (a b c) is normal */
 			if(shi->facenor[2]!=0.0f)
-				shi->co[2]= (dface - shi->facenor[0]*shi->co[0] - shi->facenor[1]*shi->co[1])/shi->facenor[2];
+				co[2]= (dface - shi->facenor[0]*co[0] - shi->facenor[1]*co[1])/shi->facenor[2];
 			else
-				shi->co[2]= 0.0f;
+				co[2]= 0.0f;
 			
-			if(shi->osatex || (R.r.mode & R_SHADOW) ) {
-				shi->dxco[0]= fx;
-				shi->dxco[1]= 0.0f;
+			if(dxco && dyco) {
+				dxco[0]= fx;
+				dxco[1]= 0.0f;
 				if(shi->facenor[2]!=0.0f)
-					shi->dxco[2]= (shi->facenor[0]*fx)/shi->facenor[2];
+					dxco[2]= (shi->facenor[0]*fx)/shi->facenor[2];
 				else 
-					shi->dxco[2]= 0.0f;
+					dxco[2]= 0.0f;
 				
-				shi->dyco[0]= 0.0f;
-				shi->dyco[1]= fy;
+				dyco[0]= 0.0f;
+				dyco[1]= fy;
 				if(shi->facenor[2]!=0.0f)
-					shi->dyco[2]= (shi->facenor[1]*fy)/shi->facenor[2];
+					dyco[2]= (shi->facenor[1]*fy)/shi->facenor[2];
 				else 
-					shi->dyco[2]= 0.0f;
+					dyco[2]= 0.0f;
 				
-				if( (shi->mat->texco & TEXCO_REFL) ) {
-					if(shi->co[2]!=0.0f) fac= 1.0f/shi->co[2]; else fac= 0.0f;
-					shi->dxview= -R.viewdx*fac;
-					shi->dyview= -R.viewdy*fac;
+				if(dxyview) {
+					if(co[2]!=0.0f) fac= 1.0f/co[2]; else fac= 0.0f;
+					dxyview[0]= -R.viewdx*fac;
+					dxyview[1]= -R.viewdy*fac;
 				}
 			}
 		}
 		else {
 			float div;
 			
-			div= shi->facenor[0]*shi->view[0] + shi->facenor[1]*shi->view[1] + shi->facenor[2]*shi->view[2];
+			div= shi->facenor[0]*view[0] + shi->facenor[1]*view[1] + shi->facenor[2]*view[2];
 			if (div!=0.0f) fac= dface/div;
 			else fac= 0.0f;
 			
-			shi->co[0]= fac*shi->view[0];
-			shi->co[1]= fac*shi->view[1];
-			shi->co[2]= fac*shi->view[2];
+			co[0]= fac*view[0];
+			co[1]= fac*view[1];
+			co[2]= fac*view[2];
 			
 			/* pixel dx/dy for render coord */
-			if(shi->osatex || (R.r.mode & R_SHADOW) ) {
+			if(dxco && dyco) {
 				float u= dface/(div - R.viewdx*shi->facenor[0]);
 				float v= dface/(div - R.viewdy*shi->facenor[1]);
 				
-				shi->dxco[0]= shi->co[0]- (shi->view[0]-R.viewdx)*u;
-				shi->dxco[1]= shi->co[1]- (shi->view[1])*u;
-				shi->dxco[2]= shi->co[2]- (shi->view[2])*u;
+				dxco[0]= co[0]- (view[0]-R.viewdx)*u;
+				dxco[1]= co[1]- (view[1])*u;
+				dxco[2]= co[2]- (view[2])*u;
 				
-				shi->dyco[0]= shi->co[0]- (shi->view[0])*v;
-				shi->dyco[1]= shi->co[1]- (shi->view[1]-R.viewdy)*v;
-				shi->dyco[2]= shi->co[2]- (shi->view[2])*v;
+				dyco[0]= co[0]- (view[0])*v;
+				dyco[1]= co[1]- (view[1]-R.viewdy)*v;
+				dyco[2]= co[2]- (view[2])*v;
 				
-				if( (shi->mat->texco & TEXCO_REFL) ) {
+				if(dxyview) {
 					if(fac!=0.0f) fac= 1.0f/fac;
-					shi->dxview= -R.viewdx*fac;
-					shi->dyview= -R.viewdy*fac;
+					dxyview[0]= -R.viewdx*fac;
+					dxyview[1]= -R.viewdy*fac;
 				}
 			}
 		}
 	}
 	
 	/* cannot normalize earlier, code above needs it at viewplane level */
-	Normalize(shi->view);
+	Normalize(view);
+}
+
+/* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
+void shade_input_set_viewco(ShadeInput *shi, float x, float y, float xs, float ys, float z)
+{
+	float *dxyview= NULL, *dxco= NULL, *dyco= NULL;
+	
+	/* currently in use for dithering (soft shadow), node preview, irregular shad */
+	shi->xs= (int)xs;
+	shi->ys= (int)ys;
+
+	/* original scanline coordinate without jitter */
+	shi->scanco[0]= x;
+	shi->scanco[1]= y;
+	shi->scanco[2]= z;
+
+	/* check if we need derivatives */
+	if(shi->osatex || (R.r.mode & R_SHADOW)) {
+		dxco= shi->dxco;
+		dyco= shi->dyco;
+
+		if((shi->mat->texco & TEXCO_REFL))
+			dxyview= &shi->dxview;
+	}
+
+	shade_input_calc_viewco(shi, xs, ys, z, shi->view, dxyview, shi->co, dxco, dyco);
 }
 
 /* calculate U and V, for scanline (silly render face u and v are in range -1 to 0) */
@@ -1301,7 +1321,8 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 				
 				for(samp=0; samp<R.osa; samp++) {
 					if(curmask & (1<<samp)) {
-						xs= (float)x + R.jit[samp][0] + 0.5f;	/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
+						/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
+						xs= (float)x + R.jit[samp][0] + 0.5f;
 						ys= (float)y + R.jit[samp][1] + 0.5f;
 						
 						if(shi_cp)
@@ -1310,7 +1331,7 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 						shi->mask= (1<<samp);
 //						shi->rl= ssamp->rlpp[samp];
 						shi->samplenr= R.shadowsamplenr[shi->thread]++;	/* this counter is not being reset per pixel */
-						shade_input_set_viewco(shi, xs, ys, (float)ps->z);
+						shade_input_set_viewco(shi, x, y, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
 						shade_input_set_normals(shi);
 						
@@ -1329,9 +1350,10 @@ void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 					xs= (float)x + 0.5f;
 					ys= (float)y + 0.5f;
 				}
+
 				shi->mask= curmask;
 				shi->samplenr= R.shadowsamplenr[shi->thread]++;
-				shade_input_set_viewco(shi, xs, ys, (float)ps->z);
+				shade_input_set_viewco(shi, x, y, xs, ys, (float)ps->z);
 				shade_input_set_uv(shi);
 				shade_input_set_normals(shi);
 				shi++;

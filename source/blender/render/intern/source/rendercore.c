@@ -1465,7 +1465,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
-	float texfac, orthoarea, nor[3], alpha;
+	float texfac, orthoarea, nor[3], alpha, sx, sy;
 
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -1476,8 +1476,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 
 	/* center pixel */
-	x += 0.5f;
-	y += 0.5f;
+	sx = x + 0.5f;
+	sy = y + 0.5f;
 
 	/* we estimate the area here using shi->dxco and shi->dyco. we need to
 	   enabled shi->osatex these are filled. we compute two areas, one with
@@ -1486,13 +1486,13 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	shi->osatex= 1;
 
 	VECCOPY(nor, shi->facenor);
-	calc_view_vector(shi->facenor, x, y);
+	calc_view_vector(shi->facenor, sx, sy);
 	Normalize(shi->facenor);
-	shade_input_set_viewco(shi, x, y, z);
+	shade_input_set_viewco(shi, x, y, sx, sy, z);
 	orthoarea= VecLength(shi->dxco)*VecLength(shi->dyco);
 
 	VECCOPY(shi->facenor, nor);
-	shade_input_set_viewco(shi, x, y, z);
+	shade_input_set_viewco(shi, x, y, sx, sy, z);
 	*area= VecLength(shi->dxco)*VecLength(shi->dyco);
 	*area= MIN2(*area, 2.0f*orthoarea);
 

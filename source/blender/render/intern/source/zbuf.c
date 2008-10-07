@@ -3839,7 +3839,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 					}
 					shi->mask= (1<<samp);
 					shi->samplenr= R.shadowsamplenr[shi->thread]++;
-					shade_input_set_viewco(shi, xs, ys, (float)z);
+					shade_input_set_viewco(shi, x, y, xs, ys, (float)z);
 					shade_input_set_uv(shi);
 					shade_input_set_normals(shi);
 					
@@ -3859,7 +3859,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 			}
 			shi->mask= curmask;
 			shi->samplenr= R.shadowsamplenr[shi->thread]++;
-			shade_input_set_viewco(shi, xs, ys, (float)z);
+			shade_input_set_viewco(shi, x, y, xs, ys, (float)z);
 			shade_input_set_uv(shi);
 			shade_input_set_normals(shi);
 		}
