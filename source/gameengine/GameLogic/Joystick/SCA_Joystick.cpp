@@ -24,7 +24,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef DISABLE_SDL
 #include <SDL.h>
+#endif
 
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
@@ -40,7 +42,10 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_buttonnum(-2),
 	m_hatdir(-2),
 	m_isinit(0),
-	m_istrig(0)
+	m_istrig(0),
+	m_axismax(-1),
+	m_buttonmax(-1),
+	m_hatmax(-1)
 {
 #ifndef DISABLE_SDL
 	m_private = new PrivateData();
@@ -116,12 +121,19 @@ void SCA_Joystick::cSetPrecision(int val)
 }
 
 
+bool SCA_Joystick::aAnyAxisIsPositive(int axis)
+{
+	bool result;
+	int res = pAxisTest(axis);
+	res > m_prec? result = true: result = false;
+	return result;
+}
+
 bool SCA_Joystick::aRightAxisIsPositive(int axis)
 {
 	bool result;
 	int res = pGetAxis(axis,1);
 	res > m_prec? result = true: result = false;
-	m_istrig = result;
 	return result;
 }
 
@@ -131,7 +143,6 @@ bool SCA_Joystick::aUpAxisIsPositive(int axis)
 	bool result;
 	int res = pGetAxis(axis,0);
 	res < -m_prec? result = true : result = false;
-	m_istrig = result;
 	return result;
 }
 
@@ -141,7 +152,6 @@ bool SCA_Joystick::aLeftAxisIsPositive(int axis)
 	bool result;
 	int res = pGetAxis(axis,1);
 	res < -m_prec ? result = true : result = false;
-	m_istrig = result;
 	return result;
 }
 
@@ -151,10 +161,18 @@ bool SCA_Joystick::aDownAxisIsPositive(int axis)
 	bool result;
 	int res = pGetAxis(axis,0);
 	res > m_prec ? result = true:result = false;
-	m_istrig = result;
 	return result;
 }
 
+bool SCA_Joystick::aAnyButtonPressIsPositive(void)
+{
+	return (m_buttonnum==-2) ? false : true;
+}
+
+bool SCA_Joystick::aAnyButtonReleaseIsPositive(void)
+{
+	return (m_buttonnum==-2) ? true : false;
+}
 
 bool SCA_Joystick::aButtonPressIsPositive(int button)
 {
@@ -163,7 +181,6 @@ bool SCA_Joystick::aButtonPressIsPositive(int button)
 #else
 	bool result;
 	SDL_JoystickGetButton(m_private->m_joystick, button)? result = true:result = false;
-	m_istrig = result;
 	return result;
 #endif
 }
@@ -176,7 +193,6 @@ bool SCA_Joystick::aButtonReleaseIsPositive(int button)
 #else
 	bool result;
 	SDL_JoystickGetButton(m_private->m_joystick, button)? result = false : result = true;
-	m_istrig = result;
 	return result;
 #endif
 }
@@ -187,26 +203,8 @@ bool SCA_Joystick::aHatIsPositive(int dir)
 	bool result;
 	int res = pGetHat(dir);
 	res == dir? result = true : result = false;
-	m_istrig = result;
 	return result;
 }
-
-
-int SCA_Joystick::pGetButtonPress(int button)
-{
-	if(button == m_buttonnum)
-		return m_buttonnum;
-	return -2;
-}
-
-
-int SCA_Joystick::pGetButtonRelease(int button)
-{
-	if(button == m_buttonnum)
-		return m_buttonnum;
-	return -2;
-}
-
 
 int SCA_Joystick::pGetHat(int direction)
 {
@@ -218,52 +216,19 @@ int SCA_Joystick::pGetHat(int direction)
 
 int SCA_Joystick::GetNumberOfAxes()
 {
-#ifdef DISABLE_SDL
-	return -1;
-#else
-	int number;
-	if(m_isinit){
-		if(m_private->m_joystick){
-			number = SDL_JoystickNumAxes(m_private->m_joystick);
-			return number;
-		}
-	}
-	return -1;
-#endif
+	return m_axismax;
 }
 
 
 int SCA_Joystick::GetNumberOfButtons()
 {
-#ifdef DISABLE_SDL
-	return -1;
-#else
-	int number;
-	if(m_isinit){
-		if(m_private->m_joystick){
-			number = SDL_JoystickNumButtons(m_private->m_joystick);
-			return number;
-		}
-	}
-	return -1;
-#endif
+	return m_buttonmax;
 }
 
 
 int SCA_Joystick::GetNumberOfHats()
 {
-#ifdef DISABLE_SDL
-	return -1;
-#else
-	int number;
-	if(m_isinit){
-		if(m_private->m_joystick){
-			number = SDL_JoystickNumHats(m_private->m_joystick);
-			return number;
-		}
-	}
-	return -1;
-#endif
+	return m_hatmax;
 }
 
 bool SCA_Joystick::CreateJoystickDevice(void)
@@ -280,9 +245,14 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 
 		m_private->m_joystick = SDL_JoystickOpen(m_joyindex);
 		SDL_JoystickEventState(SDL_ENABLE);
-	
-		echo("Joystick " << m_joyindex << " initialized");
 		m_isinit = true;
+		
+		echo("Joystick " << m_joyindex << " initialized");
+		
+		/* must run after being initialized */
+		m_axismax =		SDL_JoystickNumAxes(m_private->m_joystick);
+		m_buttonmax =	SDL_JoystickNumButtons(m_private->m_joystick);
+		m_hatmax =		SDL_JoystickNumHats(m_private->m_joystick);
 	}
 	return true;
 #endif
@@ -314,10 +284,10 @@ int SCA_Joystick::Connected(void)
 void SCA_Joystick::pFillAxes()
 {
 #ifndef DISABLE_SDL
-	if(GetNumberOfAxes() == 1){
+	if(m_axismax == 1){
 		m_axis10 = SDL_JoystickGetAxis(m_private->m_joystick, 0);
 		m_axis11 = SDL_JoystickGetAxis(m_private->m_joystick, 1);
-	}else if(GetNumberOfAxes() > 1){
+	}else if(m_axismax > 1){
 		m_axis10 = SDL_JoystickGetAxis(m_private->m_joystick, 0);
 		m_axis11 = SDL_JoystickGetAxis(m_private->m_joystick, 1);
 		m_axis20 = SDL_JoystickGetAxis(m_private->m_joystick, 2);
@@ -336,6 +306,16 @@ int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 	if(axisnum == 1 && udlr == 0)return m_axis11; //l/r
 	if(axisnum == 2 && udlr == 0)return m_axis20; //...
 	if(axisnum == 2 && udlr == 1)return m_axis21;
+#endif
+	return 0;
+}
+
+#define MAX2(x,y)               ( (x)>(y) ? (x) : (y) )
+int SCA_Joystick::pAxisTest(int axisnum)
+{
+#ifndef DISABLE_SDL
+	if(axisnum == 1)return MAX2(abs(m_axis10), abs(m_axis11));
+	if(axisnum == 2)return MAX2(abs(m_axis20), abs(m_axis21));
 #endif
 	return 0;
 }
