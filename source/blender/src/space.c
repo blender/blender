@@ -139,6 +139,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_usiblender.h"
 #include "BIF_previewrender.h"
+#include "BIF_sketch.h"
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
@@ -163,6 +164,7 @@
 #include "BDR_sculptmode.h"
 #include "BDR_unwrapper.h"
 #include "BDR_gpencil.h"
+#include "BDR_sketch.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
 
@@ -1254,11 +1256,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
 			
+			if(BIF_paintSketch(LEFTMOUSE)) return;
 			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
 		}
 		else if(event==RIGHTMOUSE) {
 			if(gpencil_do_paint(sa, R_MOUSE)) return;
+			if(BIF_paintSketch(RIGHTMOUSE)) return;
 		}
 		
 		/* swap mouse buttons based on user preference */
@@ -1301,6 +1305,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
+			
+			BDR_queueDrawSketch();
 
 			/* Handle retopo painting */
 			if(retopo_mesh_paint_check()) {

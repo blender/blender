@@ -143,6 +143,7 @@
 #include "BDR_vpaint.h"
 #include "BDR_sculptmode.h"
 #include "BDR_gpencil.h"
+#include "BDR_sketch.h"
 
 #include "BSE_drawview.h"
 #include "BSE_filesel.h"
@@ -3264,6 +3265,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* draw grease-pencil stuff */
 	if (v3d->flag2 & V3D_DISPGP)
 		draw_gpencil_3dview(sa, 1);
+		
+	BDR_drawSketch();
 	
 	persp(PERSP_WIN);  // set ortho
 
