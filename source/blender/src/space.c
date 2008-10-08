@@ -224,7 +224,7 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 		}
 	}
 	if(a==SPACE_MAXHANDLER) {
-		error("Only %i floating panels allowed", SPACE_MAXHANDLER-1);
+		error("Only %i floating panels allowed", SPACE_MAXHANDLER/2);
 	}
 		
 }
