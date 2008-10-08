@@ -1186,6 +1186,16 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		float *fp= give_cursor();
 		float dvec[3];
 		
+		/* Current method just converts each point in screen-coordinates to 
+		 * 3D-coordinates using the 3D-cursor as reference. In general, this 
+		 * works OK, but it could of course be improved.
+		 *
+		 * TODO:
+		 *	- investigate using nearest point(s) on a previous stroke as
+		 *	  reference point instead or as offset, for easier stroke matching
+		 *	- investigate projection onto geometry (ala retopo)
+		 */
+		
 		/* method taken from editview.c - mouse_cursor() */
 		project_short_noclip(fp, mval);
 		window_to_3d(dvec, mval[0]-mx, mval[1]-my);
@@ -1203,8 +1213,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	}
 	
 	/* 2d - on image 'canvas' (assume that p->v2d is set) */
-	else if ( (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && (p->v2d) ) 
-	{
+	else if ((gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && (p->v2d)) {
 		/* for now - space specific */
 		switch (p->sa->spacetype) {
 			case SPACE_SEQ: /* sequencer */
@@ -1285,7 +1294,7 @@ static void gp_stroke_smooth (tGPsdata *p)
 	int i=0, cmx=gpd->sbuffer_size;
 	
 	/* only smooth if smoothing is enabled, and we're not doing a straight line */
-	if ( !(U.gp_settings & GP_PAINT_DOSMOOTH) || GP_BUFFER2STROKE_ENDPOINTS)
+	if (!(U.gp_settings & GP_PAINT_DOSMOOTH) || GP_BUFFER2STROKE_ENDPOINTS)
 		return;
 	
 	/* don't try if less than 2 points in buffer */
@@ -1303,6 +1312,77 @@ static void gp_stroke_smooth (tGPsdata *p)
 		pc->x= (short)(0.1*pa->x + 0.2*pb->x + 0.4*pc->x + 0.2*pd->x + 0.1*pe->x);
 		pc->y= (short)(0.1*pa->y + 0.2*pb->y + 0.4*pc->y + 0.2*pd->y + 0.1*pe->y);
 	}
+}
+
+/* simplify a stroke (in buffer) before storing it 
+ *	- applies a reverse Chaikin filter
+ *	- code adapted from etch-a-ton branch (editarmature_sketch.c)
+ */
+static void gp_stroke_simplify (tGPsdata *p)
+{
+	bGPdata *gpd= p->gpd;
+	tGPspoint *old_points= (tGPspoint *)gpd->sbuffer;
+	short num_points= gpd->sbuffer_size;
+	short flag= gpd->sbuffer_sflag;
+	short i, j;
+	
+	/* only simplify if simlification is enabled, and we're not doing a straight line */
+	if (!(U.gp_settings & GP_PAINT_DOSIMPLIFY) || GP_BUFFER2STROKE_ENDPOINTS)
+		return;
+	
+	/* don't simplify if less than 4 points in buffer */
+	if ((num_points <= 2) || (old_points == NULL))
+		return;
+		
+	/* clear buffer (but don't free mem yet) so that we can write to it 
+	 *	- firstly set sbuffer to NULL, so a new one is allocated
+	 *	- secondly, reset flag after, as it gets cleared auto
+	 */
+	gpd->sbuffer= NULL;
+	gp_session_validatebuffer(p);
+	gpd->sbuffer_sflag = flag;
+	
+/* macro used in loop to get position of new point
+ *	- used due to the mixture of datatypes in use here
+ */
+#define GP_SIMPLIFY_AVPOINT(offs, sfac) \
+	{ \
+		co[0] += (float)(old_points[offs].x * sfac); \
+		co[1] += (float)(old_points[offs].y * sfac); \
+		pressure += old_points[offs].pressure * sfac; \
+	}
+	
+	for (i = 0, j = 0; i < num_points; i++)
+	{
+		if (i - j == 3)
+		{
+			float co[2], pressure;
+			short mco[2];
+			
+			/* initialise values */
+			co[0]= 0;
+			co[1]= 0;
+			pressure = 0;
+			
+			/* using macro, calculate new point */
+			GP_SIMPLIFY_AVPOINT(j, -0.25);
+			GP_SIMPLIFY_AVPOINT(j+1, 0.75);
+			GP_SIMPLIFY_AVPOINT(j+2, 0.75);
+			GP_SIMPLIFY_AVPOINT(j+3, -0.25);
+			
+			/* set values for adding */
+			mco[0]= (short)co[0];
+			mco[1]= (short)co[1];
+			
+			/* ignore return values on this... assume to be ok for now */
+			gp_stroke_addpoint(p, mco, pressure);
+			
+			j += 2;
+		}
+	} 
+	
+	/* free old buffer */
+	MEM_freeN(old_points);
 }
 
 
@@ -1803,6 +1883,9 @@ static void gp_paint_strokeend (tGPsdata *p)
 	if ((p->gpd->sbuffer_sflag & GP_STROKE_ERASER) == 0) {
 		/* smooth stroke before transferring? */
 		gp_stroke_smooth(p);
+		
+		/* simplify stroke before transferring? */
+		gp_stroke_simplify(p);
 		
 		/* transfer stroke to frame */
 		gp_stroke_newfrombuffer(p);

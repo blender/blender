@@ -4120,14 +4120,22 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+(5*midsp)+(3*mpref)+(spref*2.5)),y5,(spref*1.5),buth,
 			&(U.gp_euclideandist), 0, 100, 0, 0, "Distance moved by mouse when drawing stroke (in pixels) to include");
 		
+		uiDefButBitS(block, TOG, GP_PAINT_DOSMOOTH, 0,"Smooth Stroke",
+			(xpos+(4*midsp)+(3*mpref)+spref),y4,(spref*1.5),buth,
+			&(U.gp_settings), 0, 100, 0, 0, "Smooth the final stroke");
+			
+		// currently hidden behind G.rt, as it is not that useful yet
+		if (G.rt) {
+			uiDefButBitS(block, TOG, GP_PAINT_DOSIMPLIFY, 0,"Simplify Stroke",
+				(xpos+(5*midsp)+(3*mpref)+(spref*2.5)),y4,(spref*1.5),buth,
+				&(U.gp_settings), 0, 100, 0, 0, "Simplify the final stroke");
+		}
+		uiBlockEndAlign(block);
 		
 		uiDefButS(block, NUM, 0, "Eraser Radius:",
-			(xpos+(7*midsp)+(3*mpref)+(3.75*spref)),y5,spref*1.5,buth,
+			(xpos+(7*midsp)+(3*mpref)+(4*spref)),y5,mpref,buth,
 			&(U.gp_eraser), 0, 100, 0, 0, "Radius of eraser 'brush'");
-		uiDefButBitS(block, TOG, GP_PAINT_DOSMOOTH, 0,"Smooth Stroke",
-			(xpos+(8*midsp)+(3*mpref)+(5*spref)),y5,spref,buth,
-			&(U.gp_settings), 0, 100, 0, 0, "Smooth the final stroke");
-		uiBlockEndAlign(block);
+		
 	
 	} else if(U.userpref == 2) { /* language & colors */
 
