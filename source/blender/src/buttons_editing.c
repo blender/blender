@@ -884,7 +884,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	10,30,170,19, &me->flag, 0, 0, 0, 0, "Render/display the mesh as double or single sided");
+	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	10,30,170,19, &me->flag, 0, 0, 0, 0, "Render/display the mesh with double or single sided lighting");
 	uiDefButBitS(block, TOG, ME_NOPUNOFLIP, REDRAWVIEW3D, "No V.Normal Flip", 10,10,170,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
 	uiBlockEndAlign(block);
 
