@@ -352,7 +352,10 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 		if (create_if_needed) {
 			id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
 			id->properties->type = IDP_GROUP;
-			strcpy(id->name, "top_level_group");
+			/* dont overwite the data's name and type
+			 * some functions might need this if they
+			 * dont have a real ID, should be named elsewhere - Campbell */
+			/* strcpy(id->name, "top_level_group");*/
 		}
 		return id->properties;
 	}
