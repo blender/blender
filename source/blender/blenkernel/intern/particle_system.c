@@ -3101,7 +3101,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 				col.md = ( CollisionModifierData * ) ( modifiers_findByType ( ec->ob, eModifierType_Collision ) );
 				col.ob_t = ob;
 
-				if(col.md->bvhtree)
+				if(col.md && col.md->bvhtree)
 					BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
 			}
 		}
