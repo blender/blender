@@ -656,9 +656,13 @@ class Object:
 		Return a list of particle systems linked to this object (see Blender.Particle).
 		"""
 		
-	def newParticleSystem():
+	def newParticleSystem(name = None):
 		"""
-		Link a new particle system (see Blender.Particle).
+		Link a particle system (see Blender.Particle).  If no name is
+		given, a new particle system is created.  If a name is given and a 
+		particle system  with that name exists, it is linked to the object.
+		@type name: string
+		@param name: The name of the requested Particle system (optional).
 		"""
 		
 	def addVertexGroupsFromArmature(object):
