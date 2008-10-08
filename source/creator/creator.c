@@ -379,6 +379,10 @@ int main(int argc, char **argv)
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
 			case 'a': /* -b was not given, play an animation */
+				
+				/* exception here, see below, it probably needs happens after qt init? */
+				libtiff_init();
+
 				playanim(argc-1, argv+1);
 				exit(0);
 				break;
