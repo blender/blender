@@ -123,8 +123,8 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			numberof== m_axis  -- max 2
 			*/
 			
-			if (!js->IsTrigAxis()) /* No events from SDL? - dont bother */
-				return reset ? true : false;
+			if (!js->IsTrigAxis() && !reset) /* No events from SDL? - dont bother */
+				return false;
 			
 			js->cSetPrecision(m_precision);
 			if (m_bAllEvents) {
@@ -189,8 +189,8 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 		/* what is what!
 			m_button = the actual button in question
 			*/
-			if (!js->IsTrigButton()) /* No events from SDL? - dont bother */
-				return reset ? true : false;
+			if (!js->IsTrigButton() && !reset) /* No events from SDL? - dont bother */
+				return false;
 			
 			if(( m_bAllEvents && js->aAnyButtonPressIsPositive()) || (!m_bAllEvents && js->aButtonPressIsPositive(m_button))) {
 				m_istrig = 1;
@@ -210,8 +210,8 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			direction= m_hatf -- max 12
 			*/
 			
-			if (!js->IsTrigHat()) /* No events from SDL? - dont bother */
-				return reset ? true : false;
+			if (!js->IsTrigHat() && !reset) /* No events from SDL? - dont bother */
+				return false;
 			
 			if(m_hat == 1){
 				if(js->aHatIsPositive(m_hatf)){
