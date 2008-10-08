@@ -26,11 +26,13 @@
 
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_global.h"
 
 #include "BSE_view.h"
 
@@ -80,7 +82,26 @@ typedef struct SK_Sketch
 
 SK_Sketch *GLOBAL_sketch = NULL;
 
+/******************** PROTOTYPES ******************************/
+
+void sk_freeStroke(SK_Stroke *stk);
+void sk_freeSketch(SK_Sketch *sketch);
+
 /**************************************************************/
+
+void sk_freeSketch(SK_Sketch *sketch)
+{
+	SK_Stroke *stk, *next;
+	
+	for (stk = sketch->strokes.first; stk; stk = next)
+	{
+		next = stk->next;
+		
+		sk_freeStroke(stk);
+	}
+	
+	MEM_freeN(sketch);
+}
 
 SK_Sketch* sk_createSketch()
 {
@@ -99,6 +120,12 @@ SK_Sketch* sk_createSketch()
 void sk_allocStrokeBuffer(SK_Stroke *stk)
 {
 	stk->points = MEM_callocN(sizeof(SK_Point) * stk->buf_size, "SK_Point buffer");
+}
+
+void sk_freeStroke(SK_Stroke *stk)
+{
+	MEM_freeN(stk->points);
+	MEM_freeN(stk);
 }
 
 SK_Stroke* sk_createStroke()
@@ -251,18 +278,65 @@ void sk_drawStroke(SK_Stroke *stk)
 
 	glEnd();
 
-	glColor3f(1, 1, 1);
-	glBegin(GL_POINTS);
+//	glColor3f(1, 1, 1);
+//	glBegin(GL_POINTS);
+//
+//	for (i = 0; i < stk->nb_points; i++)
+//	{
+//		if (stk->points[i].type == PT_CONTINUOUS)
+//		{
+//			glVertex3fv(stk->points[i].p);
+//		}
+//	}
+//
+//	glEnd();
+}
 
+SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist)
+{
+	SK_Point *pt = NULL;
+	int i;
+	
 	for (i = 0; i < stk->nb_points; i++)
 	{
-		if (stk->points[i].type == PT_CONTINUOUS)
+		if (stk->points[i].type == PT_EXACT)
 		{
-			glVertex3fv(stk->points[i].p);
+			short pval[2];
+			int pdist;
+			
+			project_short_noclip(stk->points[i].p, pval);
+			
+			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
+			
+			if (pdist < *dist)
+			{
+				*dist = pdist;
+				pt = stk->points + i;
+			}
 		}
 	}
+	
+	return pt;
+}
 
-	glEnd();
+
+SK_Point *sk_snapPoint(SK_Sketch *sketch, short mval[2], int min_dist)
+{
+	SK_Point *pt = NULL;
+	SK_Stroke *stk;
+	int dist = min_dist;
+	
+	for (stk = sketch->strokes.first; stk; stk = stk->next)
+	{
+		SK_Point *spt = sk_snapPointStroke(stk, mval, &dist);
+		
+		if (spt != NULL)
+		{
+			pt = spt;
+		}
+	}
+	
+	return pt;
 }
 
 void sk_startStroke(SK_Sketch *sketch)
@@ -293,13 +367,93 @@ void sk_projectPaintData(SK_Stroke *stk, SK_DrawData *dd, float vec[3])
 		VECCOPY(fp, last->p);
 	}
 	
+	initgrabz(fp[0], fp[1], fp[2]);
+	
 	/* method taken from editview.c - mouse_cursor() */
 	project_short_noclip(fp, cval);
 	window_to_3d(dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
 	VecSubf(vec, fp, dvec);
 }
 
-void sk_addStrokePoint(SK_Stroke *stk, SK_DrawData *dd)
+void sk_updateDrawData(SK_DrawData *dd)
+{
+	dd->type = PT_CONTINUOUS;
+	
+	dd->previous_mval[0] = dd->mval[0];
+	dd->previous_mval[1] = dd->mval[1];
+}
+
+float sk_distanceDepth(float p1[3], float p2[3])
+{
+	float vec[3];
+	float distance;
+	
+	VecSubf(vec, p1, p2);
+	
+	Projf(vec, vec, G.vd->viewinv[2]);
+	
+	distance = VecLength(vec);
+	
+	if (Inpf(G.vd->viewinv[2], vec) > 0)
+	{
+		distance *= -1;
+	}
+	
+	return distance; 
+}
+
+void sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
+{
+	SK_Point pt;
+	float distance;
+	float length;
+	int i, j, total;
+	
+	pt.type = PT_EXACT;
+	
+	sk_projectPaintData(stk, dd, pt.p);
+
+	sk_appendStrokePoint(stk, &pt);
+	
+	/* update all previous point to give smooth Z progresion */
+	total = 0;
+	length = 0;
+	for (i = stk->nb_points - 2; i > 0; i--)
+	{
+		length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
+		total++;
+		if (stk->points[i].type == PT_EXACT)
+		{
+			break;
+		}
+	}
+	
+	if (total > 1)
+	{
+		float progress = length - VecLenf(stk->points[stk->nb_points - 2].p, stk->points[stk->nb_points - 1].p);
+		
+		distance = sk_distanceDepth(snap_pt->p, stk->points[i].p);
+		
+		for (j = 1, i = stk->nb_points - 2; j < total; j++, i--)
+		{
+			float ray_start[3], ray_normal[3];
+			float delta = VecLenf(stk->points[i].p, stk->points[i - 1].p);
+			short pval[2];
+			
+			project_short_noclip(stk->points[i].p, pval);
+			viewray(pval, ray_start, ray_normal);
+			
+			VecMulf(ray_normal, distance * progress / length);
+			VecAddf(stk->points[i].p, stk->points[i].p, ray_normal);
+
+			progress -= delta ;
+		}
+	}
+
+	VECCOPY(stk->points[stk->nb_points - 1].p, snap_pt->p);
+}
+
+void sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
 {
 	SK_Point pt;
 	
@@ -308,11 +462,6 @@ void sk_addStrokePoint(SK_Stroke *stk, SK_DrawData *dd)
 	sk_projectPaintData(stk, dd, pt.p);
 
 	sk_appendStrokePoint(stk, &pt);
-	
-	dd->type = PT_CONTINUOUS;
-	
-	dd->previous_mval[0] = dd->mval[0];
-	dd->previous_mval[1] = dd->mval[1];
 }
 
 void sk_endContinuousStroke(SK_Stroke *stk)
@@ -391,6 +540,20 @@ void sk_drawSketch(SK_Sketch *sketch)
 			
 			glDisable(GL_LINE_STIPPLE);
 			
+			if (G.qual & LR_CTRLKEY)
+			{
+				SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, 30);
+				
+				if (snap_pt != NULL)
+				{
+					glColor3f(0, 0.5, 1);
+					glBegin(GL_POINTS);
+					
+						glVertex3fv(snap_pt->p);
+					
+					glEnd();
+				}
+			}
 		}
 	}
 	
@@ -421,12 +584,36 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			
 			/* only add current point to buffer if mouse moved (otherwise wait until it does) */
 			if (sk_stroke_filtermval(&dd)) {
-				sk_addStrokePoint(sketch->active_stroke, &dd);
+				if (G.qual & LR_CTRLKEY)
+				{
+					SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, 30);
+					
+					if (snap_pt != NULL)
+					{
+						sk_addStrokeSnapPoint(sketch->active_stroke, &dd, snap_pt);
+					}
+					else
+					{
+						sk_addStrokeDrawPoint(sketch->active_stroke, &dd);
+					}
+				}
+				else
+				{
+					sk_addStrokeDrawPoint(sketch->active_stroke, &dd);
+				}
 				
+				sk_updateDrawData(&dd);
 				force_draw(0);
 			}
 			else
+			{
 				BIF_wait_for_statechange();
+			}
+			
+			while( qtest() ) {
+				short event, val;
+				event = extern_qread(&val);
+			}
 			
 			/* do mouse checking at the end, so don't check twice, and potentially
 			 * miss a short tap 
@@ -441,6 +628,7 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 		{
 			sk_filterStroke(sketch->active_stroke);
 			sk_endStroke(sketch);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 	
