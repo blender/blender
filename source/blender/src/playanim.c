@@ -191,6 +191,12 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 		printf("no ibuf !\n");
 		return;
 	}
+	if (ibuf->rect==NULL && ibuf->rect_float) {
+		IMB_rect_from_float(ibuf);
+		imb_freerectfloatImBuf(ibuf);
+	}
+	if (ibuf->rect==NULL)
+		return;
 
 	glRasterPos2f(0.0f, 0.0f);
 
