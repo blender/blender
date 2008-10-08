@@ -114,6 +114,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, windowsize changes should be handled here */
 	SpaceTime *stime= C->area->spacedata.first;
+	View2DGrid *grid;
 	float col[3];
 	int unit, winx, winy;
 
@@ -122,9 +123,6 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* clear and setup matrix */
 	BIF_GetThemeColor3fv(TH_BACK, col);
-	col[0]= 1.0f;
-	col[1]= 0.8f;
-	col[2]= 0.0f;
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -135,8 +133,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	BIF_view2d_calc_grid(C, &stime->v2d, unit, V2D_GRID_CLAMP, winx, winy);
-	BIF_view2d_draw_grid(C, &stime->v2d, V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS);
+	grid= BIF_view2d_calc_grid(C, &stime->v2d, unit, V2D_GRID_CLAMP, winx, winy);
+	BIF_view2d_draw_grid(C, &stime->v2d, grid, V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS);
+	BIF_view2d_free_grid(grid);
 
 	/* current frame */
 	time_draw_cfra_time(C, stime);

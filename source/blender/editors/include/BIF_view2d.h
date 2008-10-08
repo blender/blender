@@ -46,13 +46,18 @@
 #define V2D_VERTICAL_AXIS		8
 
 struct View2D;
+struct View2DGrid;
 struct bContext;
 
+typedef struct View2DGrid View2DGrid;
+
+/* opengl drawing setup */
 void BIF_view2d_ortho(const struct bContext *C, struct View2D *v2d);
 
 /* grid drawing */
-void BIF_view2d_calc_grid(const struct bContext *C, struct View2D *v2d, int unit, int type, int winx, int winy);
-void BIF_view2d_draw_grid(const struct bContext *C, struct View2D *v2d, int flag);
+View2DGrid *BIF_view2d_calc_grid(const struct bContext *C, struct View2D *v2d, int unit, int type, int winx, int winy);
+void BIF_view2d_draw_grid(const struct bContext *C, struct View2D *v2d, View2DGrid *grid, int flag);
+void BIF_view2d_free_grid(View2DGrid *grid);
 
 /* coordinate conversion */
 void BIF_view2d_region_to_view(struct View2D *v2d, short x, short y, float *viewx, float *viewy);

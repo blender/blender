@@ -1,6 +1,8 @@
 
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -17,15 +19,19 @@
 /* minimum pixels per gridstep */
 #define IPOSTEP 35
 
-static float ipogrid_dx, ipogrid_dy, ipogrid_startx, ipogrid_starty;
-static int ipomachtx, ipomachty;
+struct View2DGrid {
+	float dx, dy, startx, starty;
+	int machtx, machty;
+};
 
-static int vertymin, vertymax, horxmin, horxmax;    /* globals to test LEFTMOUSE for scrollbar */
+/* OpenGL setup */
 
 void BIF_view2d_ortho(const bContext *C, View2D *v2d)
 {
 	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 }
+
+/* Grid */
 
 static void step_to_grid(float *step, int *macht, int unit)
 {
@@ -65,10 +71,13 @@ static void step_to_grid(float *step, int *macht, int unit)
 	}
 }
 
-void BIF_view2d_calc_grid(const bContext *C, View2D *v2d, int unit, int clamp, int winx, int winy)
+View2DGrid *BIF_view2d_calc_grid(const bContext *C, View2D *v2d, int unit, int clamp, int winx, int winy)
 {
+	View2DGrid *grid;
 	float space, pixels, seconddiv;
 	int secondgrid;
+
+	grid= MEM_callocN(sizeof(View2DGrid), "View2DGrid");
 
 	/* rule: gridstep is minimal IPOSTEP pixels */
 	/* how large is IPOSTEP pixels? */
@@ -85,42 +94,44 @@ void BIF_view2d_calc_grid(const bContext *C, View2D *v2d, int unit, int clamp, i
 	space= v2d->cur.xmax - v2d->cur.xmin;
 	pixels= v2d->mask.xmax - v2d->mask.xmin;
 	
-	ipogrid_dx= IPOSTEP*space/(seconddiv*pixels);
-	step_to_grid(&ipogrid_dx, &ipomachtx, unit);
-	ipogrid_dx*= seconddiv;
+	grid->dx= IPOSTEP*space/(seconddiv*pixels);
+	step_to_grid(&grid->dx, &grid->machtx, unit);
+	grid->dx*= seconddiv;
 	
 	if(clamp == V2D_GRID_CLAMP) {
-		if(ipogrid_dx < 0.1) ipogrid_dx= 0.1;
-		ipomachtx-= 2;
-		if(ipomachtx<-2) ipomachtx= -2;
+		if(grid->dx < 0.1) grid->dx= 0.1;
+		grid->machtx-= 2;
+		if(grid->machtx<-2) grid->machtx= -2;
 	}
 	
 	space= (v2d->cur.ymax - v2d->cur.ymin);
 	pixels= winy;
-	ipogrid_dy= IPOSTEP*space/pixels;
-	step_to_grid(&ipogrid_dy, &ipomachty, unit);
+	grid->dy= IPOSTEP*space/pixels;
+	step_to_grid(&grid->dy, &grid->machty, unit);
 	
 	if(clamp == V2D_GRID_CLAMP) {
-		if(ipogrid_dy < 1.0) ipogrid_dy= 1.0;
-		if(ipomachty<1) ipomachty= 1;
+		if(grid->dy < 1.0) grid->dy= 1.0;
+		if(grid->machty<1) grid->machty= 1;
 	}
 	
-	ipogrid_startx= seconddiv*(v2d->cur.xmin/seconddiv - fmod(v2d->cur.xmin/seconddiv, ipogrid_dx/seconddiv));
-	if(v2d->cur.xmin<0.0) ipogrid_startx-= ipogrid_dx;
+	grid->startx= seconddiv*(v2d->cur.xmin/seconddiv - fmod(v2d->cur.xmin/seconddiv, grid->dx/seconddiv));
+	if(v2d->cur.xmin<0.0) grid->startx-= grid->dx;
 	
-	ipogrid_starty= (v2d->cur.ymin-fmod(v2d->cur.ymin, ipogrid_dy));
-	if(v2d->cur.ymin<0.0) ipogrid_starty-= ipogrid_dy;
+	grid->starty= (v2d->cur.ymin-fmod(v2d->cur.ymin, grid->dy));
+	if(v2d->cur.ymin<0.0) grid->starty-= grid->dy;
+
+	return grid;
 }
 
-void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, int flag)
+void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
 	
 	if(flag & V2D_VERTICAL_LINES) {
 		/* vertical lines */
-		vec1[0]= vec2[0]= ipogrid_startx;
-		vec1[1]= ipogrid_starty;
+		vec1[0]= vec2[0]= grid->startx;
+		vec1[1]= grid->starty;
 		vec2[1]= v2d->cur.ymax;
 		
 		step= (v2d->mask.xmax - v2d->mask.xmin+1)/IPOSTEP;
@@ -131,10 +142,10 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, int flag)
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1); glVertex2fv(vec2);
 			glEnd();
-			vec2[0]= vec1[0]+= ipogrid_dx;
+			vec2[0]= vec1[0]+= grid->dx;
 		}
 		
-		vec2[0]= vec1[0]-= 0.5*ipogrid_dx;
+		vec2[0]= vec1[0]-= 0.5*grid->dx;
 		
 		BIF_ThemeColorShade(TH_GRID, 16);
 		
@@ -143,14 +154,14 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, int flag)
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1); glVertex2fv(vec2);
 			glEnd();
-			vec2[0]= vec1[0]-= ipogrid_dx;
+			vec2[0]= vec1[0]-= grid->dx;
 		}
 	}
 	
 	if(flag & V2D_HORIZONTAL_LINES) {
 		/* horizontal lines */
-		vec1[0]= ipogrid_startx;
-		vec1[1]= vec2[1]= ipogrid_starty;
+		vec1[0]= grid->startx;
+		vec1[1]= vec2[1]= grid->starty;
 		vec2[0]= v2d->cur.xmax;
 		
 		step= (C->area->winy+1)/IPOSTEP;
@@ -160,9 +171,9 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, int flag)
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1); glVertex2fv(vec2);
 			glEnd();
-			vec2[1]= vec1[1]+= ipogrid_dy;
+			vec2[1]= vec1[1]+= grid->dy;
 		}
-		vec2[1]= vec1[1]-= 0.5*ipogrid_dy;
+		vec2[1]= vec1[1]-= 0.5*grid->dy;
 		step++;
 	}
 	
@@ -191,6 +202,13 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, int flag)
 		glEnd();
 	}
 }
+
+void BIF_view2d_free_grid(View2DGrid *grid)
+{
+	MEM_freeN(grid);
+}
+
+/* Coordinate conversion */
 
 void BIF_view2d_region_to_view(View2D *v2d, short x, short y, float *viewx, float *viewy)
 {
