@@ -110,9 +110,6 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 	if(js==NULL) /* no joystick - dont do anything */
 		return false;
 	
-	if (!js->IsTrig()) /* No events from SDL? - dont bother */
-		return reset ? true : false;
-	
 	m_reset = false;
 	switch(m_joymode)
 	{
@@ -125,6 +122,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			m_axisf == 3 == down
 			numberof== m_axis  -- max 2
 			*/
+			
+			if (!js->IsTrigAxis()) /* No events from SDL? - dont bother */
+				return reset ? true : false;
+			
 			js->cSetPrecision(m_precision);
 			if (m_bAllEvents) {
 				if(js->aAnyAxisIsPositive(m_axis)){
@@ -188,6 +189,9 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 		/* what is what!
 			m_button = the actual button in question
 			*/
+			if (!js->IsTrigButton()) /* No events from SDL? - dont bother */
+				return reset ? true : false;
+			
 			if(( m_bAllEvents && js->aAnyButtonPressIsPositive()) || (!m_bAllEvents && js->aButtonPressIsPositive(m_button))) {
 				m_istrig = 1;
 				result = true;
@@ -205,6 +209,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			numberof = m_hat  -- max 2
 			direction= m_hatf -- max 12
 			*/
+			
+			if (!js->IsTrigHat()) /* No events from SDL? - dont bother */
+				return reset ? true : false;
+			
 			if(m_hat == 1){
 				if(js->aHatIsPositive(m_hatf)){
 					m_istrig = 1;
@@ -227,19 +235,6 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 					}
 				}
 			}
-			/*
-			if(m_hat == 3){
-				if(js->aHatIsPositive(m_hatf)){
-					m_istrig = 1;
-					result = true;
-				}else{
-					if(m_istrig){
-						m_istrig = 0;
-						result = true;
-					}
-				}
-			}
-			*/
 			break;
 		}
 		/* test for ball anyone ?*/

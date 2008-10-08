@@ -1204,42 +1204,44 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 		}
 	case SENS_KEYBOARD:
 		{
+			ks= sens->data;
+			
 			/* 5 lines: 120 height */
-			ysize= 120;
+			ysize= (ks->type&1) ? 96:120;
 			
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 			
 			/* header line */
 			draw_default_sensor_header(sens, block, xco, yco, width);
-			ks= sens->data;
-			
-			/* line 2: hotkey and allkeys toggle */
-			uiDefKeyevtButS(block, B_DIFF, "", xco+40, yco-44, (width)/2, 19, &ks->key, "Key code");
-			
-			/* line 3: two key modifyers (qual1, qual2) */
-			uiDefKeyevtButS(block, B_DIFF, "", xco+40, yco-68, (width-50)/2, 19, &ks->qual, "Modifier key code");
-			uiDefKeyevtButS(block, B_DIFF, "", xco+40+(width-50)/2, yco-68, (width-50)/2, 19, &ks->qual2, "Second Modifier key code");
-			
-			/* labels for line 1 and 2 */
-			uiDefBut(block, LABEL, 0, "Key",	  xco, yco-44, 40, 19, NULL, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "Hold",	  xco, yco-68, 40, 19, NULL, 0, 0, 0, 0, "");
 			
 			/* part of line 1 */
 			uiBlockSetCol(block, TH_BUT_SETTING2);
-			uiDefButBitS(block, TOG, 1, 0, "All keys",	  xco+40+(width/2), yco-44, (width/2)-50, 19,
+			uiDefBut(block, LABEL, 0, "Key",	  xco, yco-44, 40, 19, NULL, 0, 0, 0, 0, "");
+			uiDefButBitS(block, TOG, 1, B_REDR, "All keys",	  xco+40+(width/2), yco-44, (width/2)-50, 19,
 				&ks->type, 0, 0, 0, 0, "");
+			
+			
+			if ((ks->type&1)==0) { /* is All Keys option off? */
+				/* line 2: hotkey and allkeys toggle */
+				uiDefKeyevtButS(block, B_DIFF, "", xco+40, yco-44, (width)/2, 19, &ks->key, "Key code");
+				
+				/* line 3: two key modifyers (qual1, qual2) */
+				uiDefBut(block, LABEL, 0, "Hold",	  xco, yco-68, 40, 19, NULL, 0, 0, 0, 0, "");
+				uiDefKeyevtButS(block, B_DIFF, "", xco+40, yco-68, (width-50)/2, 19, &ks->qual, "Modifier key code");
+				uiDefKeyevtButS(block, B_DIFF, "", xco+40+(width-50)/2, yco-68, (width-50)/2, 19, &ks->qual2, "Second Modifier key code");
+			}
 			
 			/* line 4: toggle property for string logging mode */
 			uiDefBut(block, TEX, 1, "LogToggle: ",
-				xco+10, yco-92, (width-20), 19,
+				xco+10, yco-((ks->type&1) ? 68:92), (width-20), 19,
 				ks->toggleName, 0, 31, 0, 0,
 				"Property that indicates whether to log "
 				"keystrokes as a string.");
 			
 			/* line 5: target property for string logging mode */
 			uiDefBut(block, TEX, 1, "Target: ",
-				xco+10, yco-116, (width-20), 19,
+				xco+10, yco-((ks->type&1) ? 92:116), (width-20), 19,
 				ks->targetName, 0, 31, 0, 0,
 				"Property that receives the keystrokes in case "
 				"a string is logged.");
@@ -1456,12 +1458,26 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 				&joy->type, 0, 31, 0, 0,
 				"The type of event this joystick sensor is triggered on.");
 			
-			uiDefButBitS(block, TOG, SENS_JOY_ANY_EVENT, B_REDR,
-				(joy->flag & SENS_JOY_ANY_EVENT) ? "All Events" : "All",
-				xco+10 + 0.5 * (width-20), yco-68, ((joy->flag & SENS_JOY_ANY_EVENT) ? 0.5 : 0.098) * (width-20), 19,
-				&joy->flag, 0, 0, 0, 0,
-				"Trigger from all events of the current (axis/button/hat)");
+			if (joy->flag & SENS_JOY_ANY_EVENT) {
+				switch (joy->type) {
+				case SENS_JOY_AXIS:	
+					str = "All Axis Events";
+					break;
+				case SENS_JOY_BUTTON:	
+					str = "All Button Events";
+					break;
+				default:
+					str = "All Hat Events";
+					break;
+				}
+			} else {
+				str = "All";
+			}
 			
+			uiDefButBitS(block, TOG, SENS_JOY_ANY_EVENT, B_REDR, str,
+				xco+10 + 0.475 * (width-20), yco-68, ((joy->flag & SENS_JOY_ANY_EVENT) ? 0.525 : 0.12) * (width-20), 19,
+				&joy->flag, 0, 0, 0, 0,
+				"Triggered by all events on this joysticks current type (axis/button/hat)");
 			
 			if(joy->type == SENS_JOY_BUTTON)
 			{
@@ -1475,7 +1491,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			{
 				uiDefButI(block, NUM, 1, "Number:", xco+10, yco-68, 0.46 * (width-20), 19,
 				&joy->axis, 1, 2.0, 100, 0,
-				"Specify which axis to use");
+				"Specify which axis pair to use, 1 is useually the main direction input.");
 
 				uiDefButI(block, NUM, 1, "Threshold:", xco+10 + 0.6 * (width-20),yco-44, 0.4 * (width-20), 19,
 				&joy->precision, 0, 32768.0, 100, 0,
@@ -1485,7 +1501,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 					str = "Type %t|Up Axis %x1 |Down Axis %x3|Left Axis %x2|Right Axis %x0"; 
 					uiDefButI(block, MENU, B_REDR, str, xco+10 + 0.6 * (width-20), yco-68, 0.4 * (width-20), 19,
 					&joy->axisf, 2.0, 31, 0, 0,
-					"The direction of the axis");
+					"The direction of the axis, use 'All Events' to recieve events on any direction");
 				}
 			}
 			else
