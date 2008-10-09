@@ -2051,8 +2051,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 					if (G.obedit && G.obedit->type==OB_MESH &&
 					    !multires_level1_test()) {
-
-						initTransform(TFM_BWEIGHT, CTX_EDGE);
+						if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+							initTransform(TFM_BWEIGHT, CTX_NONE);
+						}
+						else {
+							initTransform(TFM_BWEIGHT, CTX_EDGE);
+						}
 						Transform();
 					}
 				}
