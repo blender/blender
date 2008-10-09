@@ -303,7 +303,8 @@ void BLI_recurdir_fileops(char *dirname) {
 int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 
-	if (BLI_exists(to))
+	/* make sure the filenames are different (case insensitive) before removing */
+	if (BLI_exists(to) && strcasecmp(from, to))
 		if(BLI_delete(to, 0, 0)) return 1;
 		
 	return rename(from, to);
