@@ -862,7 +862,9 @@ static void image_unlink_cb(void *ima_pp_v, void *unused)
 	
 	if(ima_pp && *ima_pp) {
 		Image *ima= *ima_pp;
-		ima->id.us--;
+		/* (for time being, texturefaces are no users, conflict in design...) */
+		if(ima->id.us>1)
+			ima->id.us--;
 		*ima_pp= NULL;
 	}
 }
