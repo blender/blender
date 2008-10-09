@@ -102,6 +102,7 @@ typedef struct SK_DepthPeel
 	float depth;
 	float p[3];
 	float no[3];
+	Object *ob;
 } SK_DepthPeel;
 
 int cmpPeel(void *arg1, void *arg2)
@@ -122,11 +123,12 @@ int cmpPeel(void *arg1, void *arg2)
 	return val;
 }
 
-void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3])
+void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], Object *ob)
 {
 	SK_DepthPeel *peel = MEM_callocN(sizeof(SK_DepthPeel), "DepthPeel");
 	
 	peel->depth = depth;
+	peel->ob = ob;
 	VECCOPY(peel->p, p);
 	VECCOPY(peel->no, no);
 	
@@ -201,7 +203,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 					Mat3MulVecfl(timat, normal);
 					Normalize(normal);
 
-					addDepthPeel(depth_peels, new_depth, location, normal);
+					addDepthPeel(depth_peels, new_depth, location, normal, ob);
 				}
 		
 				if (f->v4 && result == 0)
@@ -231,7 +233,7 @@ int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 						Mat3MulVecfl(timat, normal);
 						Normalize(normal);
 	
-						addDepthPeel(depth_peels, new_depth, location, normal);
+						addDepthPeel(depth_peels, new_depth, location, normal, ob);
 					} 
 				}
 			}
@@ -394,16 +396,28 @@ void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
 
 /* Apply reverse Chaikin filter to simplify the polyline
  * */
-void sk_filterStroke(SK_Stroke *stk)
+void sk_filterStroke(SK_Stroke *stk, int start, int end)
 {
 	SK_Point *old_points = stk->points;
 	int nb_points = stk->nb_points;
 	int i, j;
 	
+	if (start == -1)
+	{
+		start = 0;
+		end = stk->nb_points - 1;
+	}
+
 	sk_allocStrokeBuffer(stk);
 	stk->nb_points = 0;
 	
-	for (i = 0, j = 0; i < nb_points; i++)
+	/* adding points before range */
+	for (i = 0; i < start; i++)
+	{
+		sk_appendStrokePoint(stk, old_points + i);
+	}
+	
+	for (i = start, j = start; i <= end; i++)
 	{
 		if (i - j == 3)
 		{
@@ -436,6 +450,7 @@ void sk_filterStroke(SK_Stroke *stk)
 			j += 2;
 		}
 		
+		/* this might be uneeded when filtering last continuous stroke */
 		if (old_points[i].type == PT_EXACT)
 		{
 			sk_appendStrokePoint(stk, old_points + i);
@@ -443,9 +458,32 @@ void sk_filterStroke(SK_Stroke *stk)
 		}
 	} 
 	
+	/* adding points after range */
+	for (i = end + 1; i < nb_points; i++)
+	{
+		sk_appendStrokePoint(stk, old_points + i);
+	}
+
 	MEM_freeN(old_points);
 
 	sk_shrinkStrokeBuffer(stk);
+}
+
+void sk_filterLastContinuousStroke(SK_Stroke *stk)
+{
+	int start, end;
+	
+	end = stk->nb_points -1;
+	
+	for (start = end - 1; start > 0 && stk->points[start].type == PT_CONTINUOUS; start--)
+	{
+		/* nothing to do here*/
+	}
+	
+	if (end - start > 1)
+	{
+		sk_filterStroke(stk, start, end);
+	}
 }
 
 SK_Point *sk_lastStrokePoint(SK_Stroke *stk)
@@ -690,7 +728,11 @@ void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 		
 		pt.type = dd->type;
 
-		p2 = p1->next;
+		for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+		{
+			/* nothing to do here */
+		}
+		
 		
 		if (p2)
 		{
@@ -873,12 +915,12 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 		} while (get_mbut() & LEFTMOUSE);
 		
 		sk_endContinuousStroke(sketch->active_stroke);
+		sk_filterLastContinuousStroke(sketch->active_stroke);
 	}
 	else if (mbut == RIGHTMOUSE)
 	{
 		if (sketch->active_stroke != NULL)
 		{
-			sk_filterStroke(sketch->active_stroke);
 			sk_endStroke(sketch);
 			allqueue(REDRAWVIEW3D, 0);
 		}
