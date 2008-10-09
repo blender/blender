@@ -168,10 +168,12 @@ static void cache_pointdensity(Render *re, Tex *tex)
 		Object *ob = pd->object;
 		int i;
 		
+		if (!ob) return;
+		
 		for(psys=ob->particlesystem.first, i=0; i< pd->psysindex-1; i++)
 			psys= psys->next;
 		
-		if (!ob || !psys) return;
+		if (!psys) return;
 		
 		pointdensity_cache_psys(re, pd, ob, psys);
 	}
