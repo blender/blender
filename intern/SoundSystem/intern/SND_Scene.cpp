@@ -388,11 +388,18 @@ void SND_Scene::UpdateActiveObects()
 #endif
 #ifdef USE_OPENAL
 			// ok, properties Set. now see if it must play
-			if (pObject->GetPlaystate() == SND_MUST_PLAY)
-			{
+			switch (pObject->GetPlaystate()){
+			case SND_MUST_PLAY:
 				m_audiodevice->PlayObject(id);
 				pObject->SetPlaystate(SND_PLAYING);
-				//break;
+				break;
+			case SND_MUST_STOP:
+				RemoveActiveObject(pObject);
+				break;
+			case SND_MUST_PAUSE:
+				m_audiodevice->PauseObject(id);
+				pObject->SetPlaystate(SND_PAUSED);
+				break;
 			}
 #endif
 
