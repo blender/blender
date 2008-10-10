@@ -1754,6 +1754,14 @@ static void gp_session_initpaint (tGPsdata *p)
 			p->sa= curarea;
 			p->v2d= &sima->v2d;
 			p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+			
+			/* check that gpencil data is allowed to be drawn */
+			if ((sima->flag & SI_DISPGP)==0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown \n");
+				return;
+			}
 		}
 			break;
 		/* unsupported views */
