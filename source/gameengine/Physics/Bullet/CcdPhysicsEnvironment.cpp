@@ -33,6 +33,7 @@ subject to the following restrictions:
 
 #include "PHY_IMotionState.h"
 
+#define CCD_CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
 bool useIslands = true;
 
@@ -882,12 +883,15 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 						const btVector3& linearMinLimits,
 						const btVector3& linearMaxLimits,
 						const btVector3& angularMinLimits,
-						const btVector3& angularMaxLimits
+						const btVector3& angularMaxLimits,int flags
 )
 {
 
+	bool disableCollisionBetweenLinkedBodies = (0==(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
+
 	//we could either add some logic to recognize ball-socket and hinge, or let that up to the user
 	//perhaps some warning or hint that hinge/ball-socket is more efficient?
+	
 	
 	btGeneric6DofConstraint* genericConstraint = 0;
 	CcdPhysicsController* ctrl0 = (CcdPhysicsController*) ctrlRef;
@@ -918,7 +922,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 	if (genericConstraint)
 	{
 	//	m_constraints.push_back(genericConstraint);
-		m_dynamicsWorld->addConstraint(genericConstraint);
+		m_dynamicsWorld->addConstraint(genericConstraint,disableCollisionBetweenLinkedBodies);
 
 		genericConstraint->setUserConstraintId(gConstraintUid++);
 		genericConstraint->setUserConstraintType(PHY_GENERIC_6DOF_CONSTRAINT);
@@ -1488,9 +1492,12 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 													float pivotX,float pivotY,float pivotZ,
 													float axisX,float axisY,float axisZ,
 													float axis1X,float axis1Y,float axis1Z,
-													float axis2X,float axis2Y,float axis2Z
+													float axis2X,float axis2Y,float axis2Z,int flags
 													)
 {
+
+	bool disableCollisionBetweenLinkedBodies = (0==(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
+
 
 
 	CcdPhysicsController* c0 = (CcdPhysicsController*)ctrl0;
@@ -1683,7 +1690,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA);
 			}
 
-			m_dynamicsWorld->addConstraint(p2p);
+			m_dynamicsWorld->addConstraint(p2p,disableCollisionBetweenLinkedBodies);
 //			m_constraints.push_back(p2p);
 
 			p2p->setUserConstraintId(gConstraintUid++);
@@ -1753,7 +1760,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			if (genericConstraint)
 			{
 				//m_constraints.push_back(genericConstraint);
-				m_dynamicsWorld->addConstraint(genericConstraint);
+				m_dynamicsWorld->addConstraint(genericConstraint,disableCollisionBetweenLinkedBodies);
 				genericConstraint->setUserConstraintId(gConstraintUid++);
 				genericConstraint->setUserConstraintType(type);
 				//64 bit systems can't cast pointer to int. could use size_t instead.
@@ -1819,7 +1826,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			if (coneTwistContraint)
 			{
 				//m_constraints.push_back(genericConstraint);
-				m_dynamicsWorld->addConstraint(coneTwistContraint);
+				m_dynamicsWorld->addConstraint(coneTwistContraint,disableCollisionBetweenLinkedBodies);
 				coneTwistContraint->setUserConstraintId(gConstraintUid++);
 				coneTwistContraint->setUserConstraintType(type);
 				//64 bit systems can't cast pointer to int. could use size_t instead.
@@ -1858,7 +1865,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			hinge->setAngularOnly(angularOnly);
 
 			//m_constraints.push_back(hinge);
-			m_dynamicsWorld->addConstraint(hinge);
+			m_dynamicsWorld->addConstraint(hinge,disableCollisionBetweenLinkedBodies);
 			hinge->setUserConstraintId(gConstraintUid++);
 			hinge->setUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.

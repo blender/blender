@@ -1497,16 +1497,20 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int offsetY = 150;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic (experimental)%x12",//|Extra Force%x6",
-												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
                 height = 140;
 				if (data->type==CONSTRAINT_RB_GENERIC6DOF)
 					height = 270;
 				if (data->type==CONSTRAINT_RB_CONETWIST)
 					height = 200;
 				
-                uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
-				
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
+
+				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic (experimental)%x12",//|Extra Force%x6",
+												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
+
+				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "Collision", *xco+155, *yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Enable Collision Between Linked Bodies"); 				
+
+
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
 				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", *xco+135, *yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
 				
@@ -1586,6 +1590,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
 					uiBlockEndAlign(block);
 				}
+				
 			}
 			break;
 		case CONSTRAINT_TYPE_CLAMPTO:

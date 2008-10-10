@@ -2478,7 +2478,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								(float)dat->pivY,(float)dat->pivZ,
 								(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
 								(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
-								(float)axis2.x(),(float)axis2.y(),(float)axis2.z());
+								(float)axis2.x(),(float)axis2.y(),(float)axis2.z(),dat->flag);
 							if (constraintId)
 							{
 								//if it is a generic 6DOF constraint, set all the limits accordingly
