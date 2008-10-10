@@ -103,6 +103,7 @@ typedef struct SK_DepthPeel
 	float p[3];
 	float no[3];
 	Object *ob;
+	int flag;
 } SK_DepthPeel;
 
 int cmpPeel(void *arg1, void *arg2)
@@ -133,6 +134,8 @@ void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float no[3], O
 	VECCOPY(peel->no, no);
 	
 	BLI_addtail(depth_peels, peel);
+	
+	peel->flag = 0;
 }
 
 int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], ListBase *depth_peels)
@@ -713,42 +716,79 @@ void sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
 
 void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 {
-	SK_DepthPeel *p1, *p2;
 	ListBase depth_peels;
+	SK_DepthPeel *p1, *p2;
+	SK_Point *last_pt = NULL;
+	float dist = FLT_MAX;
+	float p[3];
 	
 	depth_peels.first = depth_peels.last = NULL;
 	
 	peelObjects(&depth_peels, dd->mval);
 	
-	p1 = depth_peels.first;
 	
-	if (p1)
+	if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
+	{
+		last_pt = stk->points + (stk->nb_points - 1);
+	}
+	
+	
+	for (p1 = depth_peels.first; p1; p1 = p1->next)
+	{
+		if (p1->flag == 0)
+		{
+			float vec[3];
+			float new_dist;
+			
+			p1->flag = 0;
+			
+			for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+			{
+				/* nothing to do here */
+			}
+			
+			
+			if (p2)
+			{
+				p2->flag = 1;
+				
+				VecAddf(vec, p1->p, p2->p);
+				VecMulf(vec, 0.5f);
+			}
+			else
+			{
+				VECCOPY(vec, p1->p);
+			}
+			
+			if (last_pt == NULL)
+			{
+				VECCOPY(p, vec);
+				break;
+			}
+			
+			new_dist = VecLenf(last_pt->p, vec);
+			
+			if (new_dist < dist)
+			{
+				VECCOPY(p, vec);
+				dist = new_dist;
+			}
+		}
+	}
+	
+	if (dist == FLT_MAX)
+	{
+		sk_addStrokeDrawPoint(stk, dd);
+	}
+	else
 	{
 		SK_Point pt;
 		
 		pt.type = dd->type;
-
-		for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
-		{
-			/* nothing to do here */
-		}
 		
+		VECCOPY(pt.p, p);
 		
-		if (p2)
-		{
-			VecAddf(pt.p, p1->p, p2->p);
-			VecMulf(pt.p, 0.5f);
-		}
-		else
-		{
-			VECCOPY(pt.p, p1->p);
-		}
-
 		sk_appendStrokePoint(stk, &pt);
-	}
-	else
-	{
-		sk_addStrokeDrawPoint(stk, dd);
 	}
 	
 	BLI_freelistN(&depth_peels);
