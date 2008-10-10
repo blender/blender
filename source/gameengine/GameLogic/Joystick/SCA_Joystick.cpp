@@ -28,6 +28,8 @@
 #include <SDL.h>
 #endif
 
+#include <stdio.h>
+
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
