@@ -763,6 +763,7 @@ void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 			if (last_pt == NULL)
 			{
 				VECCOPY(p, vec);
+				dist = 0;
 				break;
 			}
 			
