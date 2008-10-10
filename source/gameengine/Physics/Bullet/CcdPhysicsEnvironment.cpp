@@ -887,7 +887,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 )
 {
 
-	bool disableCollisionBetweenLinkedBodies = (0==(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
+	bool disableCollisionBetweenLinkedBodies = (0!=(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
 
 	//we could either add some logic to recognize ball-socket and hinge, or let that up to the user
 	//perhaps some warning or hint that hinge/ball-socket is more efficient?
@@ -1496,7 +1496,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 													)
 {
 
-	bool disableCollisionBetweenLinkedBodies = (0==(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
+	bool disableCollisionBetweenLinkedBodies = (0!=(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
 
 
 
