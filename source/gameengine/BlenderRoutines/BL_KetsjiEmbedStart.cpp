@@ -191,7 +191,16 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
-		
+
+		//lock frame and camera enabled - storing global values
+		int tmp_lay= G.scene->lay;
+		Object *tmp_camera = G.scene->camera;
+
+		if (G.vd->scenelock==0){
+			G.scene->lay= v3d->lay;
+			G.scene->camera= v3d->camera;
+		}
+
 	
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
@@ -403,7 +412,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				}
 				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
-				
+
+
 				// when exiting the mainloop
 				
 				// Clears the dictionary by hand:
@@ -439,6 +449,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			Py_DECREF(gameLogic_keys);
 			gameLogic_keys = NULL;
 		}
+		//lock frame and camera enabled - restoring global values
+		if (G.vd->scenelock==0){
+			G.scene->lay= tmp_lay;
+			G.scene->camera= tmp_camera;
+		}
+
 		// set the cursor back to normal
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 		
