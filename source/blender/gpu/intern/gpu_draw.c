@@ -359,6 +359,8 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	else
 		GTS.tile= tftile;
 
+	GTS.tile = MAX2(0, GTS.tile);
+
 	if(ima) {
 		GTS.tileXRep = ima->xrep;
 		GTS.tileYRep = ima->yrep;
@@ -448,9 +450,6 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 
 	/* for tiles, copy only part of image into buffer */
 	if (GTS.tilemode) {
-		return 0; //disabled for now, it causes crashes
-		//see http://projects.blender.org/tracker/index.php?func=detail&aid=17819&group_id=9&atid=125
-
 		tilerect= MEM_mallocN(rectw*recth*sizeof(*tilerect), "tilerect");
 
 		for (y=0; y<recth; y++) {
