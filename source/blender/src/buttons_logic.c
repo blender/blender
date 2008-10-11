@@ -1316,12 +1316,12 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			ds = sens->data;
 			
 			uiDefButS(block, NUM, 0, "Delay",(short)(10+xco),(short)(yco-44),(short)((width-22)*0.4+10), 19,
-				&ds->delay, 0.0, 5000.0, 0, 0, "Delay in number of frames before the positive trigger");
+				&ds->delay, 0.0, 5000.0, 0, 0, "Delay in number of logic tics before the positive trigger (default 60 per second)");
 			uiDefButS(block, NUM, 0, "Dur",(short)(10+xco+(width-22)*0.4+10),(short)(yco-44),(short)((width-22)*0.4-10), 19,
-				&ds->duration, 0.0, 5000.0, 0, 0, "If >0, delay in number of frames before the negative trigger following the positive trigger");
+				&ds->duration, 0.0, 5000.0, 0, 0, "If >0, delay in number of logic tics before the negative trigger following the positive trigger");
 			uiDefButBitS(block, TOG, SENS_DELAY_REPEAT, 0, "REP",(short)(xco + 10 + (width-22)*0.8),(short)(yco - 44),
 				(short)(0.20 * (width-22)), 19, &ds->flag, 0.0, 0.0, 0, 0,
-				"Toggle repeat option. If selected, the sensor restarts after Delay+Dur frames");
+				"Toggle repeat option. If selected, the sensor restarts after Delay+Dur logic tics");
 			yco-= ysize;
 			break;
 		}

@@ -284,7 +284,7 @@ static volatile int	globalBakeFrame = 0;
 static volatile int g_break= 0;
 
 // run simulation in seperate thread
-static int fluidsimSimulateThread(void *unused) { // *ptr) {
+static void *fluidsimSimulateThread(void *unused) { // *ptr) {
 	//char* fnameCfgPath = (char*)(ptr);
 	int ret=0;
 	
