@@ -1,5 +1,5 @@
 /**
- * $Id: keyframing.c 14881 2008-05-18 10:41:42Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
