@@ -928,7 +928,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			else if(mtex->texco==TEXCO_OBJECT)
 				texco= texco_object;
 			else if(mtex->texco==TEXCO_NORM)
-				texco= texco_norm;
+				texco= orn;
 			else if(mtex->texco==TEXCO_TANGENT)
 				texco= texco_object;
 			else if(mtex->texco==TEXCO_GLOB)
