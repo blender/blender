@@ -1581,7 +1581,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			{
 				if (rb1)
 				{
-					sb0->appendAnchor(node,rb1);
+					sb0->appendAnchor(node,rb1,disableCollisionBetweenLinkedBodies);
 				} else
 				{
 					sb0->setMass(node,0.f);
@@ -1643,7 +1643,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			{
 				if (rb0)
 				{
-					sb1->appendAnchor(node,rb0);
+					sb1->appendAnchor(node,rb0,disableCollisionBetweenLinkedBodies);
 				} else
 				{
 					sb1->setMass(node,0.f);
