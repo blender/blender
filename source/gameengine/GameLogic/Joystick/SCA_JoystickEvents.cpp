@@ -89,7 +89,8 @@ void SCA_Joystick::HandleEvents(void)
 	
 	int i;
 	for (i=0; i<JOYINDEX_MAX; i++) {
-		SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
+		if(SCA_Joystick::m_instance[i])
+			SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
 	}
 	
 	if(SDL_PollEvent(&sdl_event))

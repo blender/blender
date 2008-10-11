@@ -49,6 +49,7 @@ void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
 void		exitGamePythonScripting();
 
+void		setGamePythonPath(char *path);
 void		pathGamePythonConfig( char *path );
 int			saveGamePythonConfig( char **marshal_buffer);
 int			loadGamePythonConfig(char *marshal_buffer, int marshal_length);

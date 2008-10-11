@@ -97,6 +97,7 @@ static RAS_ICanvas* gp_Canvas = NULL;
 static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
+static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
@@ -155,7 +156,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 		return NULL;
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
-	BLI_convertstringcode(expanded, G.sce);
+	BLI_convertstringcode(expanded, gp_GamePythonPath);
 	return PyString_FromString(expanded);
 }
 
@@ -281,7 +282,7 @@ static PyObject* gPyGetAverageFrameRate(PyObject*)
 
 static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 {
-	char cpath[sizeof(G.sce)];
+	char cpath[sizeof(gp_GamePythonPath)];
 	char *searchpath = NULL;
 	PyObject* list, *value;
 	
@@ -295,10 +296,10 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
 	if (searchpath) {
 		BLI_strncpy(cpath, searchpath, FILE_MAXDIR + FILE_MAXFILE);
-		BLI_convertstringcode(cpath, G.sce);
+		BLI_convertstringcode(cpath, gp_GamePythonPath);
 	} else {
 		/* Get the dir only */
-		BLI_split_dirfile_basic(G.sce, cpath, NULL);
+		BLI_split_dirfile_basic(gp_GamePythonPath, cpath, NULL);
 	}
 	
     if((dp  = opendir(cpath)) == NULL) {
@@ -1541,9 +1542,10 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 
 void pathGamePythonConfig( char *path )
 {
-	int len = strlen(G.sce);
+	int len = strlen(gp_GamePythonPath);
 	
-	strncpy(path, G.sce, sizeof(G.sce));
+	BLI_strncpy(path, gp_GamePythonPath, sizeof(gp_GamePythonPath));
+
 	/* replace extension */
 	if (BLI_testextensie(path, ".blend")) {
 		strcpy(path+(len-6), ".bgeconf");
@@ -1551,3 +1553,9 @@ void pathGamePythonConfig( char *path )
 		strcpy(path+len, ".bgeconf");
 	}
 }
+
+void setGamePythonPath(char *path)
+{
+	BLI_strncpy(gp_GamePythonPath, path, sizeof(gp_GamePythonPath));
+}
+
