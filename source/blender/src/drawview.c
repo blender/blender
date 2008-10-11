@@ -2268,6 +2268,34 @@ static void view3d_panel_transform_spaces(short cntrl)
 	if(yco < 0) uiNewPanelHeight(block, height-yco);
 }
 
+static void view3d_panel_bonesketch_spaces(short cntrl)
+{
+	uiBlock *block;
+//	uiBut *but;
+	int xco = 20, yco = 70, height = 140;
+//	int index;
+
+	/* replace with check call to sketching lib */
+	if (G.obedit && G.obedit->type == OB_ARMATURE)
+	{
+		block= uiNewBlock(&curarea->uiblocks, "view3d_panel_transform", UI_EMBOSS, UI_HELV, curarea->win);
+		uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
+		uiSetPanelHandler(VIEW3D_HANDLER_TRANSFORM);  // for close and esc
+	
+		if(uiNewPanel(curarea, block, "Bone Sketching", "View3d", 10, 230, 318, height)==0) return;
+	
+		uiNewPanelHeight(block, height);
+	
+		uiBlockBeginAlign(block);
+		
+		/* use real flag instead of 1 */
+		uiDefButBitI(block, TOG, 1, B_REDR, "Use Bone Sketching", 10, 225, 150, 20, &G.bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+	
+		uiBlockEndAlign(block);
+		
+		if(yco < 0) uiNewPanelHeight(block, height-yco);
+	}
+}
 
 static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
@@ -2658,6 +2686,9 @@ static void view3d_blockhandlers(ScrArea *sa)
  			break;
 		case VIEW3D_HANDLER_GREASEPENCIL:
 			view3d_panel_gpencil(v3d->blockhandler[a+1]);
+			break;
+		case VIEW3D_HANDLER_BONESKETCH:
+			view3d_panel_bonesketch_spaces(v3d->blockhandler[a+1]);
 			break;
 		}
 		/* clear action value for event */

@@ -29,6 +29,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_armature_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -46,6 +47,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
+#include "BIF_editarmature.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -87,6 +89,7 @@ typedef struct SK_Sketch
 } SK_Sketch;
 
 SK_Sketch *GLOBAL_sketch = NULL;
+SK_Point boneSnap;
 
 /******************** PROTOTYPES ******************************/
 
@@ -580,6 +583,47 @@ SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist)
 	return pt;
 }
 
+SK_Point *sk_snapPointArmature(ListBase *ebones, short mval[2], int *dist)
+{
+	SK_Point *pt = NULL;
+	EditBone *bone;
+	
+	for (bone = ebones->first; bone; bone = bone->next)
+	{
+		short pval[2];
+		int pdist;
+		
+		if ((bone->flag & BONE_CONNECTED) == 0)
+		{
+			project_short_noclip(bone->head, pval);
+			
+			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
+			
+			if (pdist < *dist)
+			{
+				*dist = pdist;
+				pt = &boneSnap;
+				VECCOPY(pt->p, bone->head);
+				pt->type = PT_EXACT;
+			}
+		}
+		
+		
+		project_short_noclip(bone->tail, pval);
+		
+		pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
+		
+		if (pdist < *dist)
+		{
+			*dist = pdist;
+			pt = &boneSnap;
+			VECCOPY(pt->p, bone->tail);
+			pt->type = PT_EXACT;
+		}
+	}
+	
+	return pt;
+}
 
 SK_Point *sk_snapPoint(SK_Sketch *sketch, short mval[2], int min_dist)
 {
@@ -590,6 +634,16 @@ SK_Point *sk_snapPoint(SK_Sketch *sketch, short mval[2], int min_dist)
 	for (stk = sketch->strokes.first; stk; stk = stk->next)
 	{
 		SK_Point *spt = sk_snapPointStroke(stk, mval, &dist);
+		
+		if (spt != NULL)
+		{
+			pt = spt;
+		}
+	}
+	
+	/* check on bones */
+	{
+		SK_Point *spt = sk_snapPointArmature(&G.edbo, mval, &dist);
 		
 		if (spt != NULL)
 		{
@@ -984,26 +1038,39 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 
 void BDR_drawSketch()
 {
-	if (GLOBAL_sketch != NULL)
+	if (G.bone_sketching & 1)
 	{
-		sk_drawSketch(GLOBAL_sketch);
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_drawSketch(GLOBAL_sketch);
+		}
 	}
 }
 
 int BIF_paintSketch(short mbut)
 {
-	if (GLOBAL_sketch == NULL)
+	if (G.bone_sketching & 1)
 	{
-		GLOBAL_sketch = sk_createSketch();
+		if (GLOBAL_sketch == NULL)
+		{
+			GLOBAL_sketch = sk_createSketch();
+		}
+		
+		return sk_paint(GLOBAL_sketch, mbut);
 	}
-	
-	return sk_paint(GLOBAL_sketch, mbut);
+	else
+	{
+		return 0;
+	}
 }
 
 void BDR_queueDrawSketch()
 {
-	if (GLOBAL_sketch != NULL)
+	if (G.bone_sketching & 1)
 	{
-		sk_queueRedrawSketch(GLOBAL_sketch);
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_queueRedrawSketch(GLOBAL_sketch);
+		}
 	}
 }
