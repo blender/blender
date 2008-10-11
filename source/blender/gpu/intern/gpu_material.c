@@ -693,7 +693,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 						shr->spec, &shr->spec);
 				
 				add_user_list(&mat->lamps, lamp);
-				add_user_list(&lamp->materials, ma);
+				add_user_list(&lamp->materials, shi->gpumat->ma);
 				return;
 			}
 			
@@ -702,7 +702,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	}
 	else if((G.fileflags & G_FILE_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
 		add_user_list(&mat->lamps, lamp);
-		add_user_list(&lamp->materials, ma);
+		add_user_list(&lamp->materials, shi->gpumat->ma);
 		return;
 	}
 	else
@@ -755,7 +755,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	}
 
 	add_user_list(&mat->lamps, lamp);
-	add_user_list(&lamp->materials, ma);
+	add_user_list(&lamp->materials, shi->gpumat->ma);
 }
 
 static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
