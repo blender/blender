@@ -216,6 +216,17 @@ class IpoCurve:
     @return: the points of the Ipo curve.
     """
 
+  def clean( thresh=0.0000001 ):
+	"""
+	Calls the IPO-curve cleaning function on this IpoCurve. 
+	There is no need to recalculate curve manually.
+	@type thresh: float
+	@param thresh: The threshold to used to determine if two values are identical. 
+	By default, the IPO-editor tool's value is used.
+	@rtype: None
+    @return: None
+	"""
+	
   def evaluate( time ):
     """
     Compute the value of the Ipo curve at a particular time (B{deprecated}).
