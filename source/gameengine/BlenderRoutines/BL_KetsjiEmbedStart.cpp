@@ -340,8 +340,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
 				usemat = false;
 
-			sceneconverter->SetMaterials(usemat && (G.fileflags & G_FILE_GAME_MAT));
-			sceneconverter->SetGLSLMaterials(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL));
+            if(usemat && (G.fileflags & G_FILE_GAME_MAT))
+				sceneconverter->SetMaterials(true);
+			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
+				sceneconverter->SetGLSLMaterials(true);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
