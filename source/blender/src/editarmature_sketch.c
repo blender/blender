@@ -890,9 +890,12 @@ void sk_convertStroke(SK_Stroke *stk)
 	bArmature *arm= G.obedit->data;
 	SK_Point *head;
 	EditBone *parent = NULL;
+	float invmat[4][4]; /* move in caller function */
 	int i;
 	
 	head = NULL;
+	
+	Mat4Invert(invmat, G.obedit->obmat);
 	
 	for (i = 0; i < stk->nb_points; i++)
 	{
@@ -912,6 +915,9 @@ void sk_convertStroke(SK_Stroke *stk)
 				
 				VECCOPY(bone->head, head->p);
 				VECCOPY(bone->tail, pt->p);
+				
+				Mat4MulVecfl(invmat, bone->head);
+				Mat4MulVecfl(invmat, bone->tail);
 				
 				if (parent != NULL)
 				{
