@@ -162,7 +162,7 @@ SND_WaveSlot* SND_FmodDevice::LoadSample(const STR_String& name,
 						int numberofchannels = SND_GetNumberOfChannels(memlocation);
 						int samplerate = SND_GetSampleRate(memlocation);
 						int bitrate = SND_GetBitRate(memlocation);
-						int numberofsamples = SND_GetNumberOfSamples(memlocation);
+						int numberofsamples = SND_GetNumberOfSamples(memlocation, size);
 						
 						waveslot->SetFileSize(size);
 						waveslot->SetData(memlocation);
