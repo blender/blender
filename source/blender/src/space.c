@@ -1523,7 +1523,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			/* Brush properties */
 			case AKEY:
-				br->flag ^= SCULPT_BRUSH_AIRBRUSH;
+				if(G.qual==LR_SHIFTKEY)
+					br->flag ^= SCULPT_BRUSH_ANCHORED;
+				else
+					br->flag ^= SCULPT_BRUSH_AIRBRUSH;
 				update_prop= 1; break;
 			case FKEY:
 				if(ss) {
@@ -1541,8 +1544,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				sd->brush_type= DRAW_BRUSH;
 				update_prop= 1; break;
 			case SKEY:
-				sd->brush_type= SMOOTH_BRUSH;
-				update_prop= 1; break;
+				if(G.qual==LR_SHIFTKEY)
+					sd->flags ^= SCULPT_INPUT_SMOOTH;
+				else {
+					sd->brush_type= SMOOTH_BRUSH;
+					update_prop= 1;
+				}
+				break;
 			case PKEY:
 				sd->brush_type= PINCH_BRUSH;
 				update_prop= 1; break;

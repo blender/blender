@@ -5706,7 +5706,7 @@ void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned
 	if(sd->brush_type == DRAW_BRUSH)
 		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
 	cy-= 20;
-	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, B_NOP, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location");
+	uiDefButBitC(block, TOG, SCULPT_BRUSH_ANCHORED, B_NOP, "Anchored", cx,cy,80,19, &sculptmode_brush()->flag, 0,0,0,0, "Keep the brush center anchored to the initial location (Shift A)");
 	uiBlockEndAlign(block);
 
 	/* Draw curve */
