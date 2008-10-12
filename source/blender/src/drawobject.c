@@ -5175,10 +5175,12 @@ void draw_object(Base *base, int flag)
 			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 			/* but, we also dont draw names for sets or duplicators */
 			if(flag == 0) {
+				if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 				glRasterPos3f(0.0,  0.0,  0.0);
 
 				BMF_DrawString(G.font, " ");
 				BMF_DrawString(G.font, ob->id.name+2);
+				if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 			}
 		}
 		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
