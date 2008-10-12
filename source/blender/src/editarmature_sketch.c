@@ -883,7 +883,60 @@ void sk_initDrawData(SK_DrawData *dd)
 	dd->previous_mval[1] = -1;
 	dd->type = PT_EXACT;
 }
+/********************************************/
 
+void sk_convertStroke(SK_Stroke *stk)
+{
+	bArmature *arm= G.obedit->data;
+	SK_Point *head;
+	EditBone *parent = NULL;
+	int i;
+	
+	head = NULL;
+	
+	for (i = 0; i < stk->nb_points; i++)
+	{
+		SK_Point *pt = stk->points + i;
+		
+		if (pt->type == PT_EXACT)
+		{
+			if (head == NULL)
+			{
+				head = pt;
+			}
+			else
+			{
+				EditBone *bone;
+				
+				bone = addEditBone("Bone", &G.edbo, arm);
+				
+				VECCOPY(bone->head, head->p);
+				VECCOPY(bone->tail, pt->p);
+				
+				if (parent != NULL)
+				{
+					bone->parent = parent;
+					bone->flag |= BONE_CONNECTED;					
+				}
+				
+				parent = bone;
+				head = pt;
+			}
+		}
+	}
+}
+
+void sk_convert(SK_Sketch *sketch)
+{
+	SK_Stroke *stk;
+	
+	for (stk = sketch->strokes.first; stk; stk = stk->next)
+	{
+		sk_convertStroke(stk);
+	}
+	
+	BLI_freelistN(&sketch->strokes);
+}
 /********************************************/
 
 void sk_queueRedrawSketch(SK_Sketch *sketch)
@@ -1043,6 +1096,17 @@ void BDR_drawSketch()
 		if (GLOBAL_sketch != NULL)
 		{
 			sk_drawSketch(GLOBAL_sketch);
+		}
+	}
+}
+
+void BIF_convertSketch()
+{
+	if (G.bone_sketching & 1)
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_convert(GLOBAL_sketch);
 		}
 	}
 }

@@ -68,6 +68,7 @@ typedef struct EditBone
 
 } EditBone;
 
+EditBone *addEditBone(char *name, struct ListBase *ebones, struct bArmature *arm);
 
 void	adduplicate_armature(void);
 void	addvert_armature(void);

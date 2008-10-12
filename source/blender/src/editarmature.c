@@ -1969,17 +1969,14 @@ void undo_push_armature(char *name)
 /* **************** END EditMode stuff ********************** */
 /* *************** Adding stuff in editmode *************** */
 
-/* default bone add, returns it selected, but without tail set */
-static EditBone *add_editbone(char *name)
+EditBone *addEditBone(char *name, ListBase *ebones, bArmature *arm)
 {
-	bArmature *arm= G.obedit->data;
-	
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
 	BLI_strncpy(bone->name, name, 32);
-	unique_editbone_name(&G.edbo, bone->name);
+	unique_editbone_name(ebones, bone->name);
 	
-	BLI_addtail(&G.edbo, bone);
+	BLI_addtail(ebones, bone);
 	
 	bone->flag |= BONE_TIPSEL;
 	bone->weight= 1.0F;
@@ -1994,6 +1991,14 @@ static EditBone *add_editbone(char *name)
 	bone->layer= arm->layer;
 	
 	return bone;
+}
+
+/* default bone add, returns it selected, but without tail set */
+static EditBone *add_editbone(char *name)
+{
+	bArmature *arm= G.obedit->data;
+	
+	return addEditBone(name, &G.edbo, arm);
 }
 
 static void add_primitive_bone(Object *ob, short newob)

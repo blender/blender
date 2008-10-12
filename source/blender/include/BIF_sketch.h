@@ -24,5 +24,6 @@
 #define BIF_SKETCH_H
 
 int BIF_paintSketch();
+void BIF_convertSketch();
 
 #endif /* BIF_SKETCH_H */

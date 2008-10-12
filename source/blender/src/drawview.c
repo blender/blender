@@ -130,6 +130,7 @@
 #include "BIF_resources.h"
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
+#include "BIF_sketch.h"
 #include "BIF_space.h"
 
 #ifdef WITH_VERSE
@@ -2268,11 +2269,16 @@ static void view3d_panel_transform_spaces(short cntrl)
 	if(yco < 0) uiNewPanelHeight(block, height-yco);
 }
 
+static void convert_sketch_armature(void *arg1, void *arg2)
+{
+	BIF_convertSketch();
+}
+
 static void view3d_panel_bonesketch_spaces(short cntrl)
 {
 	uiBlock *block;
-//	uiBut *but;
-	int xco = 20, yco = 70, height = 140;
+	uiBut *but;
+	int yco = 70, height = 140;
 //	int index;
 
 	/* replace with check call to sketching lib */
@@ -2290,6 +2296,8 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		
 		/* use real flag instead of 1 */
 		uiDefButBitI(block, TOG, 1, B_REDR, "Use Bone Sketching", 10, 225, 150, 20, &G.bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		but = uiDefBut(block, BUT, B_REDR, "Convert Sketch", 10,205,150,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
+		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
 	
 		uiBlockEndAlign(block);
 		
