@@ -66,7 +66,7 @@ typedef struct Material {
 	short pad5[3];
 	
 	/* volumetrics */
-	float vol_alphathresh;
+	float vol_density_scale;
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];

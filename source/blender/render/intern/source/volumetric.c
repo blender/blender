@@ -131,13 +131,14 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
 	float density = shi->mat->alpha;
+	float density_scale = shi->mat->vol_density_scale;
 	float col[3] = {0.0, 0.0, 0.0};
 	
 	if (shi->mat->flag & MA_IS_TEXTURED) {
 		do_volume_tex(shi, co, MAP_ALPHA, col, &density);
 	}
 	
-	return density;
+	return density * density_scale;
 }
 
 

@@ -167,6 +167,7 @@ void init_material(Material *ma)
 	ma->sss_front= 1.0f;
 	ma->sss_back= 1.0f;
 	
+	ma->vol_density_scale = 1.0f;
 	ma->vol_stepsize = 0.2f;
 	ma->vol_shade_stepsize = 0.2f;
 	ma->vol_absorption = 1.0f;

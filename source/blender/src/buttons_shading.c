@@ -4363,7 +4363,7 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 100, 2, "Ray marching step size");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
@@ -4372,7 +4372,7 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Shading",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 100, 2, "Step");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
@@ -4389,14 +4389,18 @@ static void material_panel_material_volume(Material *ma)
 		
 	yco = PANEL_YMAX;
 	
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base opacity value");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base density value - textured density is added on top");
+	uiDefButF(block, NUM, B_MATPRV, "Density Scale: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_density_scale), 0.000001, 100.0, 100, 2, "Global density multiplier");
+	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 10.0, 10, 0, "Multiplier for absorption");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 100.0, 10, 0, "Multiplier for absorption");
 	uiDefButF(block, COL, B_MATPRV, "",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, ma->vol_absorption_col, 0, 0, 0, B_MATCOL, "");
 	uiBlockEndAlign(block);
@@ -4413,7 +4417,7 @@ static void material_panel_material_volume(Material *ma)
 	yco -= YSPACE;
 	
 	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 10.0, 10, 0, "Multiplier for scattering");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 100.0, 10, 0, "Multiplier for scattering");
 }
 
 static void material_panel_nodes(Material *ma)

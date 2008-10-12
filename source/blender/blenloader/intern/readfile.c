@@ -7893,6 +7893,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol_scattering = 1.0f;
 				ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;	
 			}
+			if (ma->vol_density_scale < 0.0001f)
+				ma->vol_density_scale = 1.0f;
 		}
 		
 		for(tex=main->tex.first; tex; tex= tex->id.next) {

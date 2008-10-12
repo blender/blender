@@ -255,7 +255,7 @@ typedef struct PointDensityRangeData
 void accum_density(void *userdata, int index, float squared_dist)
 {
 	PointDensityRangeData *pdr = (PointDensityRangeData *)userdata;
-	const float dist = pdr->squared_radius - squared_dist;
+	const float dist = (pdr->squared_radius - squared_dist) / pdr->squared_radius * 0.5f;
 	float density;
 	
 	if (pdr->falloff_type == TEX_PD_FALLOFF_STD)
@@ -287,7 +287,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	float density=0.0f;
 	float vec[3] = {0.0, 0.0, 0.0};
 	float tv[3];
-	float turb;
+	float turb, noise_fac;
 	
 	if ((!pd) || (!pd->point_tree)) {
 		texres->tin = 0.0f;
@@ -299,6 +299,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	pdr.point_data = pd->point_data;
 	pdr.falloff_type = pd->falloff_type;
 	pdr.vec = vec;
+	noise_fac = pd->noise_fac * 0.5f;	/* better default */
 	
 	if (pd->flag & TEX_PD_TURBULENCE) {
 		VECCOPY(tv, texvec);
@@ -313,9 +314,9 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		
 		turb -= 0.5f;	/* re-center 0.0-1.0 range around 0 to prevent offsetting result */
 		
-		tv[0] = texvec[0] + pd->noise_fac * turb;
-		tv[1] = texvec[1] + pd->noise_fac * turb;
-		tv[2] = texvec[2] + pd->noise_fac * turb;
+		tv[0] = texvec[0] + noise_fac * turb;
+		tv[1] = texvec[1] + noise_fac * turb;
+		tv[2] = texvec[2] + noise_fac * turb;
 		
 		/* do density lookup with altered coordinates */
 		BLI_bvhtree_range_query(pd->point_tree, tv, pd->radius, accum_density, &pdr);
