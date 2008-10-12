@@ -77,7 +77,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	
 	total_particles = psys->totpart+psys->totchild;
 	
-	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 2, 6);
+	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
 	if (pd->noise_influence != TEX_PD_NOISE_STATIC)
 		pd->point_data = MEM_mallocN(sizeof(float)*3*total_particles, "point_data");
 	
@@ -131,7 +131,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *o
 	/* in case ob->imat isn't up-to-date */
 	Mat4Invert(obr->ob->imat, obr->ob->obmat);
 	
-	pd->point_tree = BLI_bvhtree_new(obr->totvert, 0.0, 2, 6);
+	pd->point_tree = BLI_bvhtree_new(obr->totvert, 0.0, 4, 6);
 	
 	for(i=0; i<obr->totvert; i++) {
 		float ver_co[3];
