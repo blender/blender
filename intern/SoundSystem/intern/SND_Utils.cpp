@@ -309,7 +309,7 @@ unsigned int SND_GetNumberOfSamples(void* sample, int sample_length)
 		{
 			offset += block_align;
 			
-			if (offset+4 > sample_length) /* save us from crashing */
+			if (offset+block_align > sample_length) /* save us from crashing */
 				return 0;
 		}
 		offset += 4;
@@ -347,7 +347,7 @@ unsigned int SND_GetHeaderSize(void* sample, int sample_length)
 		{
 			offset += block_align;
 			
-			if (offset+4 > sample_length) /* save us from crashing */
+			if (offset+block_align > sample_length) /* save us from crashing */
 				return 0;
 		}
 		headersize = offset + 8;
