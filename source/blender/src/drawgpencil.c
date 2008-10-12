@@ -958,6 +958,7 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			else
 				zoomx = zoomy = zoom;
 			
+			/* calculate transforms (Note: we use ibuf here, as we have it) */
 			sizex= zoomx * ibuf->x;
 			sizey= zoomy * ibuf->y;
 			offsx= (sa->winx-sizex)/2 + sseq->xof;

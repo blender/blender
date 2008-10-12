@@ -1096,7 +1096,12 @@ void gpencil_convert_menu (void)
 typedef struct tGPsdata {
 	ScrArea *sa;		/* area where painting originated */
 	View2D *v2d;		/* needed for GP_STROKE_2DSPACE */
+	
 	ImBuf *ibuf;		/* needed for GP_STROKE_2DIMAGE */
+	struct IBufViewSettings {
+		int offsx, offsy;			/* offsets */
+		int sizex, sizey;			/* dimensions to use as scale-factor */
+	} im2d_settings;	/* needed for GP_STROKE_2DIMAGE */
 	
 	bGPdata *gpd;		/* gp-datablock layer comes from */
 	bGPDlayer *gpl;		/* layer we're working on */
@@ -1108,8 +1113,8 @@ typedef struct tGPsdata {
 	short mval[2];		/* current mouse-position */
 	short mvalo[2];		/* previous recorded mouse-position */
 	
-	short pressure;		/* current stylus pressure */
-	short opressure;	/* previous stylus pressure */
+	float pressure;		/* current stylus pressure */
+	float opressure;	/* previous stylus pressure */
 	
 	short radius;		/* radius of influence for eraser */
 } tGPsdata;
@@ -1213,43 +1218,20 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	}
 	
 	/* 2d - on image 'canvas' (assume that p->v2d is set) */
-	else if ((gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) && (p->v2d)) {
-		/* for now - space specific */
-		switch (p->sa->spacetype) {
-			case SPACE_SEQ: /* sequencer */
-			{
-				SpaceSeq *sseq= (SpaceSeq *)p->sa->spacedata.first;
-				int sizex, sizey, offsx, offsy, rectx, recty;
-				float zoom, zoomx, zoomy;
-				
-				/* calculate zoom factor */
-				zoom= SEQ_ZOOM_FAC(sseq->zoom);
-				if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-					zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
-					zoomy = zoom;
-				} 
-				else
-					zoomx = zoomy = zoom;
-				
-				/* calculate rect size */
-				rectx= (G.scene->r.size*G.scene->r.xsch)/100;
-				recty= (G.scene->r.size*G.scene->r.ysch)/100; 
-				sizex= zoomx * rectx;
-				sizey= zoomy * recty;
-				offsx= (p->sa->winx-sizex)/2 + sseq->xof;
-				offsy= (p->sa->winy-sizey)/2 + sseq->yof;
-				
-				/* calculate new points */
-				out[0]= (float)(mval[0] - offsx) / (float)sizex;
-				out[1]= (float)(mval[1] - offsy) / (float)sizey;
-			}
-				break;
-				
-			default: /* just use raw mouse coordinates - BAD! */
-				out[0]= mval[0];
-				out[1]= mval[1];
-				break;
-		}		
+	else if (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) {
+		int sizex, sizey, offsx, offsy;
+		
+		/* get stored settings 
+		 *	- assume that these have been set already (there are checks that set sane 'defaults' just in case)
+		 */
+		sizex= p->im2d_settings.sizex;
+		sizey= p->im2d_settings.sizey;
+		offsx= p->im2d_settings.offsx;
+		offsy= p->im2d_settings.offsy;
+		
+		/* calculate new points */
+		out[0]= (float)(mval[0] - offsx) / (float)sizex;
+		out[1]= (float)(mval[1] - offsy) / (float)sizey;
 	}
 	
 	/* 2d - relative to screen (viewport area) */
@@ -1574,9 +1556,17 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 			y0= xyval[1];
 		}
 		else if (gps->flag & GP_STROKE_2DIMAGE) {			
-			ipoco_to_areaco_noclip(p->v2d, &gps->points->x, xyval);
-			x0= xyval[0];
-			y0= xyval[1];
+			int offsx, offsy, sizex, sizey;
+				
+			/* get stored settings */
+			sizex= p->im2d_settings.sizex;
+			sizey= p->im2d_settings.sizey;
+			offsx= p->im2d_settings.offsx;
+			offsy= p->im2d_settings.offsy;
+			
+			/* calculate new points */
+			x0= (gps->points->x * sizex) + offsx;
+			y0= (gps->points->y * sizey) + offsy;
 		}
 		else {
 			x0= (gps->points->x / 1000 * p->sa->winx);
@@ -1622,13 +1612,20 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 				y1= xyval[1];
 			}
 			else if (gps->flag & GP_STROKE_2DIMAGE) {
-				ipoco_to_areaco_noclip(p->v2d, &pt1->x, xyval);
-				x0= xyval[0];
-				y0= xyval[1];
+				int offsx, offsy, sizex, sizey;
 				
-				ipoco_to_areaco_noclip(p->v2d, &pt2->x, xyval);
-				x1= xyval[0];
-				y1= xyval[1];
+				/* get stored settings */
+				sizex= p->im2d_settings.sizex;
+				sizey= p->im2d_settings.sizey;
+				offsx= p->im2d_settings.offsx;
+				offsy= p->im2d_settings.offsy;
+				
+				/* calculate new points */
+				x0= (pt1->x * sizex) + offsx;
+				y0= (pt1->y * sizey) + offsy;
+				
+				x1= (pt2->x * sizex) + offsx;
+				y1= (pt2->y * sizey) + offsy;
 			}
 			else {
 				x0= (pt1->x / 1000 * p->sa->winx);
@@ -1800,6 +1797,10 @@ static void gp_session_initpaint (tGPsdata *p)
 	
 	/* clear out buffer (stored in gp-data) in case something contaminated it */
 	gp_session_validatebuffer(p);
+	
+	/* set 'default' im2d_settings just in case something that uses this doesn't set it */
+	p->im2d_settings.sizex= 1;
+	p->im2d_settings.sizey= 1;
 }
 
 /* cleanup after a painting session */
@@ -1870,7 +1871,35 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				break;
 			case SPACE_SEQ:
 			{
+				SpaceSeq *sseq= (SpaceSeq *)p->sa->spacedata.first;
+				int rectx, recty;
+				float zoom, zoomx, zoomy;
+				
+				/* set draw 2d-stroke flag */
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
+				
+				/* calculate zoom factor */
+				zoom= SEQ_ZOOM_FAC(sseq->zoom);
+				if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+					zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+					zoomy = zoom;
+				} 
+				else
+					zoomx = zoomy = zoom;
+				
+				/* calculate rect size to use to calculate the size of the drawing area
+				 *	- We use the size of the output image not the size of the ibuf being shown
+				 *	  as it is too messy getting the ibuf (and could be too slow). This should be
+				 *	  a reasonable for most cases anyway.
+				 */
+				rectx= (G.scene->r.size * G.scene->r.xsch) / 100;
+				recty= (G.scene->r.size * G.scene->r.ysch) / 100; 
+				
+				/* set offset and scale values for opertations to use */
+				p->im2d_settings.sizex= zoomx * rectx;
+				p->im2d_settings.sizey= zoomy * recty;
+				p->im2d_settings.offsx= (p->sa->winx-p->im2d_settings.sizex)/2 + sseq->xof;
+				p->im2d_settings.offsy= (p->sa->winy-p->im2d_settings.sizey)/2 + sseq->yof;
 			}
 				break;
 			case SPACE_IMAGE:
