@@ -7759,6 +7759,8 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->keepDist	= smd->keepDist;
 	tsmd->shrinkType= smd->shrinkType;
 	tsmd->shrinkOpts= smd->shrinkOpts;
+	tsmd->projAxis = smd->projAxis;
+	tsmd->subsurfLevels = smd->subsurfLevels;
 }
 
 CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)

@@ -165,7 +165,10 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICOPENAL']:
             syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
-        syslibs += ['gomp']
+        if lenv['CC'] == 'cl.exe':
+            syslibs += ['vcomp']
+        else:
+            syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
@@ -173,6 +176,8 @@ def setup_syslibs(lenv):
             syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
+        if lenv['WITH_BF_OGG']:
+            syslibs += Split(lenv['BF_OGG_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:

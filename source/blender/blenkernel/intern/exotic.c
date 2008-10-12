@@ -2097,8 +2097,10 @@ static void displist_to_mesh(DispList *dlfirst)
 			}
 
 			for(a=0; a<dl->parts; a++) {
-
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				
+				if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+					break;
+				
 				p1+= startve; 
 				p2+= startve; 
 				p3+= startve; 

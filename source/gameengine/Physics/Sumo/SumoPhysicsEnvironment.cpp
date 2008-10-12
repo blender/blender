@@ -111,8 +111,8 @@ int SumoPhysicsEnvironment::createConstraint(
 	float pivotX,float pivotY,float pivotZ,
 	float axisX,float axisY,float axisZ,
 	float axis1X,float axis1Y,float axis1Z,
-	float axis2X,float axis2Y,float axis2Z
-
+	float axis2X,float axis2Y,float axis2Z,
+	int flag
 	)
 {
 	int constraintid = 0;

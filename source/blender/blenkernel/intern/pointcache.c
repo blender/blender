@@ -70,6 +70,12 @@
 #include <unistd.h>
 #endif
 
+#ifdef _WIN32
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
+
 /* Creating ID's */
 
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
@@ -164,6 +170,9 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 	- stack_index: index in the modifier stack. we can have cache for more then one stack_index
 */
 
+#define MAX_PTCACHE_PATH FILE_MAX
+#define MAX_PTCACHE_FILE ((FILE_MAXDIR+FILE_MAXFILE)*2)
+
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
 	Library *lib;
@@ -172,7 +181,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	lib= (pid)? pid->ob->id.lib: NULL;
 
 	if (G.relbase_valid || lib) {
-		char file[FILE_MAX]; /* we dont want the dir, only the file */
+		char file[MAX_PTCACHE_PATH]; /* we dont want the dir, only the file */
 		char *blendfilename;
 
 		blendfilename= (lib)? lib->filename: G.sce;
@@ -184,7 +193,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		if (i > 6)
 			file[i-6] = '\0';
 		
-		sprintf(filename, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
+		snprintf(filename, MAX_PTCACHE_PATH, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
 		BLI_convertstringcode(filename, blendfilename);
 		BLI_add_slash(filename);
 		return strlen(filename);
@@ -192,7 +201,7 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
 	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	sprintf(filename, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
 	BLI_add_slash(filename);
 	return strlen(filename);
 }
@@ -215,13 +224,13 @@ static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, sho
 	idname = (pid->ob->id.name+2);
 	/* convert chars to hex so they are always a valid filename */
 	while('\0' != *idname) {
-		sprintf(newname, "%02X", (char)(*idname++));
+		snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
 		newname+=2;
 		len += 2;
 	}
 	
 	if (do_ext) {
-		sprintf(newname, "_%06d_%02d"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
+		snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02d"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
 		len += 16;
 	}
 	
@@ -290,9 +299,10 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 	/* mode is same as fopen's modes */
 	DIR *dir; 
 	struct dirent *de;
-	char path[FILE_MAX];
-	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
-	char path_full[(FILE_MAXDIR+FILE_MAXFILE)*2];
+	char path[MAX_PTCACHE_PATH];
+	char filename[MAX_PTCACHE_FILE];
+	char path_full[MAX_PTCACHE_FILE];
+	char ext[MAX_PTCACHE_PATH];
 
 	if(!pid->cache)
 		return;
@@ -315,9 +325,11 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 		dir = opendir(path);
 		if (dir==NULL)
 			return;
+
+		snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
 		
 		while ((de = readdir(dir)) != NULL) {
-			if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
+			if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
 				if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
 					if (mode == PTCACHE_CLEAR_ALL) {
 						BLI_join_dirfile(path_full, path, de->d_name);
@@ -326,8 +338,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 						/* read the number of the file */
 						int frame, len2 = strlen(de->d_name);
 						char num[7];
+
 						if (len2 > 15) { /* could crash if trying to copy a string out of this range*/
-							strncpy(num, de->d_name + (strlen(de->d_name) - 15), 6);
+							BLI_strncpy(num, de->d_name + (strlen(de->d_name) - 15), sizeof(num));
 							frame = atoi(num);
 							
 							if((mode==PTCACHE_CLEAR_BEFORE && frame < cfra)	|| 
@@ -353,7 +366,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 
 int BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 {
-	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
+	char filename[MAX_PTCACHE_FILE];
 
 	if(!pid->cache)
 		return 0;
@@ -499,8 +512,8 @@ int BKE_ptcache_object_reset(Object *ob, int mode)
 /* Use this when quitting blender, with unsaved files */
 void BKE_ptcache_remove(void)
 {
-	char path[FILE_MAX];
-	char path_full[FILE_MAX];
+	char path[MAX_PTCACHE_PATH];
+	char path_full[MAX_PTCACHE_PATH];
 	int rmdir = 1;
 	
 	ptcache_path(NULL, path);

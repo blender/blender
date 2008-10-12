@@ -18,7 +18,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 /*
-Author: Francisco León Nájera
+Author: Francisco Len Nßjera
 Concave-Concave Collision
 
 */

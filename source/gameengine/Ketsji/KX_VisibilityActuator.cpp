@@ -122,7 +122,7 @@ KX_VisibilityActuator::Parents[] = {
 PyMethodDef 
 KX_VisibilityActuator::Methods[] = {
 	{"set", (PyCFunction) KX_VisibilityActuator::sPySetVisible, 
-	 METH_VARARGS, SetVisible_doc},
+	 METH_VARARGS, (PY_METHODCHAR)SetVisible_doc},
 	{NULL,NULL} //Sentinel
 };
 

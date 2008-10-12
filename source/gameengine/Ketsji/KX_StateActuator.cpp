@@ -140,9 +140,9 @@ KX_StateActuator::Parents[] = {
 PyMethodDef 
 KX_StateActuator::Methods[] = {
 	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
-	 METH_VARARGS, SetOperation_doc},
+	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
 	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
-	 METH_VARARGS, SetMask_doc},
+	 METH_VARARGS, (PY_METHODCHAR)SetMask_doc},
 	{NULL,NULL} //Sentinel
 };
 

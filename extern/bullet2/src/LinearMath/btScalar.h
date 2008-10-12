@@ -141,6 +141,10 @@ inline int	btGetVersion()
 /// older compilers (gcc 3.x) and Sun needs double version of sqrt etc.
 /// exclude Apple Intel (i's assumed to be a Macbook or new Intel Dual Core Processor)
 #if defined (__sun) || defined (__sun__) || defined (__sparc) || (defined (__APPLE__) && ! defined (__i386__))
+/* XXX Need to fix these... needed for SunOS 5.8 */
+#define sinf(a)         sin((double)(a))
+#define cosf(a)         cos((double)(a))
+#define fabsf(a)        fabs((double)(a))
 //use slow double float precision operation on those platforms
 #ifndef BT_USE_DOUBLE_PRECISION
 #define BT_FORCE_DOUBLE_FUNCTIONS
@@ -194,7 +198,7 @@ SIMD_FORCE_INLINE btScalar btSqrt(btScalar y)
 	tempf = y;
 	*tfptr = (0xbfcdd90a - *tfptr)>>1; /* estimate of 1/sqrt(y) */
 	x =  tempf;
-	z =  y*btScalar(0.5);                        /* hoist out the “/2”    */
+	z =  y*btScalar(0.5);                        /* hoist out the ô/2ö    */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);         /* iteration formula     */
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);
 	x = (btScalar(1.5)*x)-(x*x)*(x*z);

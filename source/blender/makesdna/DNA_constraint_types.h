@@ -520,6 +520,7 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40
+#define CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
 #define CONSTRAINT_RB_BALL		1

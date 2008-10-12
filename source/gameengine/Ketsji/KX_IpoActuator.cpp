@@ -37,6 +37,7 @@
  
 #include "KX_IpoActuator.h"
 #include "KX_GameObject.h"
+#include "FloatValue.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -62,6 +63,7 @@ STR_String KX_IpoActuator::S_KX_ACT_IPO_FROM_PROP_STRING = "FromProp";
 
 KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 							   const STR_String& propname,
+							   const STR_String& framePropname,
 							   float starttime,
 							   float endtime,
 							   bool recurse,
@@ -78,6 +80,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_localtime(starttime),
 	m_direction(1),
 	m_propname(propname),
+	m_framepropname(framePropname),
 	m_ipo_as_force(ipo_as_force),
 	m_ipo_add(ipo_add),
 	m_ipo_local(ipo_local),
@@ -356,7 +359,20 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	default:
 		result = false;
 	}
-	
+
+	/* Set the property if its defined */
+	if (m_framepropname[0] != '\0') {
+		CValue* propowner = GetParent();
+		CValue* oldprop = propowner->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(m_localtime);
+		if (oldprop) {
+			oldprop->SetValue(newval);
+		} else {
+			propowner->SetProperty(m_framepropname, newval);
+		}
+		newval->Release();
+	}
+
 	if (!result)
 	{
 		if (m_type != KX_ACT_IPO_LOOPSTOP)
@@ -424,34 +440,20 @@ PyParentObject KX_IpoActuator::Parents[] = {
 };
 
 PyMethodDef KX_IpoActuator::Methods[] = {
-	{"set", (PyCFunction) KX_IpoActuator::sPySet, 
-		METH_VARARGS, Set_doc},
-	{"setProperty", (PyCFunction) KX_IpoActuator::sPySetProperty, 
-		METH_VARARGS, SetProperty_doc},
-	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, 
-		METH_VARARGS, SetStart_doc},
-	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, 
-		METH_NOARGS, GetStart_doc},
-	{"setEnd", (PyCFunction) KX_IpoActuator::sPySetEnd, 
-		METH_VARARGS, SetEnd_doc},
-	{"getEnd", (PyCFunction) KX_IpoActuator::sPyGetEnd, 
-		METH_NOARGS, GetEnd_doc},
-	{"setIpoAsForce", (PyCFunction) KX_IpoActuator::sPySetIpoAsForce, 
-		METH_VARARGS, SetIpoAsForce_doc},
-	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, 
-		METH_NOARGS, GetIpoAsForce_doc},
-	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, 
-		METH_VARARGS, SetIpoAdd_doc},
-	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, 
-		METH_NOARGS, GetIpoAdd_doc},
-	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, 
-		METH_VARARGS, SetType_doc},
-	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, 
-		METH_NOARGS, GetType_doc},	
-	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal,
-		METH_VARARGS, SetForceIpoActsLocal_doc},
-	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,
-		METH_NOARGS, GetForceIpoActsLocal_doc},
+	{"set", (PyCFunction) KX_IpoActuator::sPySet, METH_VARARGS, (PY_METHODCHAR)Set_doc},
+	{"setProperty", (PyCFunction) KX_IpoActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, METH_VARARGS, (PY_METHODCHAR)SetStart_doc},
+	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, METH_NOARGS, (PY_METHODCHAR)GetStart_doc},
+	{"setEnd", (PyCFunction) KX_IpoActuator::sPySetEnd, METH_VARARGS, (PY_METHODCHAR)SetEnd_doc},
+	{"getEnd", (PyCFunction) KX_IpoActuator::sPyGetEnd, METH_NOARGS, (PY_METHODCHAR)GetEnd_doc},
+	{"setIpoAsForce", (PyCFunction) KX_IpoActuator::sPySetIpoAsForce, METH_VARARGS, (PY_METHODCHAR)SetIpoAsForce_doc},
+	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, METH_NOARGS, (PY_METHODCHAR)GetIpoAsForce_doc},
+	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, METH_VARARGS, (PY_METHODCHAR)SetIpoAdd_doc},
+	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, METH_NOARGS, (PY_METHODCHAR)GetIpoAdd_doc},
+	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
+	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, METH_NOARGS, (PY_METHODCHAR)GetType_doc},	
+	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal, METH_VARARGS, (PY_METHODCHAR)SetForceIpoActsLocal_doc},
+	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,	METH_NOARGS, (PY_METHODCHAR)GetForceIpoActsLocal_doc},
 	{NULL,NULL} //Sentinel
 };
 

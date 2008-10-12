@@ -137,7 +137,7 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short pad3;
+	short keyflags;		/* flags for display of keyframes */
 	
 	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
 	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */

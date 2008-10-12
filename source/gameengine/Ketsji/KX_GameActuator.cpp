@@ -241,8 +241,8 @@ PyParentObject KX_GameActuator::Parents[] =
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
-	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, GetFile_doc},
-	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, SetFile_doc},
+	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, (PY_METHODCHAR)GetFile_doc},
+	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, (PY_METHODCHAR)SetFile_doc},
 	{NULL,NULL} //Sentinel
 };
 

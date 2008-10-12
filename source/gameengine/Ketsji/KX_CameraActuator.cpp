@@ -397,16 +397,16 @@ PyParentObject KX_CameraActuator::Parents[] = {
 };
 
 PyMethodDef KX_CameraActuator::Methods[] = {
-	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,	SetObject_doc},
-	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	GetObject_doc},
-	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	SetMin_doc},
-	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	GetMin_doc},
-	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	SetMax_doc},
-	{"getMax"	,(PyCFunction) KX_CameraActuator::sPyGetMax,	METH_NOARGS,	GetMax_doc},
-	{"setHeight",(PyCFunction) KX_CameraActuator::sPySetHeight,	METH_VARARGS,	SetHeight_doc},
-	{"getHeight",(PyCFunction) KX_CameraActuator::sPyGetHeight,	METH_NOARGS,	GetHeight_doc},
-	{"setXY"	,(PyCFunction) KX_CameraActuator::sPySetXY,		METH_VARARGS,	SetXY_doc},
-	{"getXY"	,(PyCFunction) KX_CameraActuator::sPyGetXY,	METH_VARARGS,	GetXY_doc},
+	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,			(PY_METHODCHAR)SetObject_doc},
+	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	(PY_METHODCHAR)GetObject_doc},
+	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	(PY_METHODCHAR)SetMin_doc},
+	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	(PY_METHODCHAR)GetMin_doc},
+	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	(PY_METHODCHAR)SetMax_doc},
+	{"getMax"	,(PyCFunction) KX_CameraActuator::sPyGetMax,	METH_NOARGS,	(PY_METHODCHAR)GetMax_doc},
+	{"setHeight",(PyCFunction) KX_CameraActuator::sPySetHeight,	METH_VARARGS,	(PY_METHODCHAR)SetHeight_doc},
+	{"getHeight",(PyCFunction) KX_CameraActuator::sPyGetHeight,	METH_NOARGS,	(PY_METHODCHAR)GetHeight_doc},
+	{"setXY"	,(PyCFunction) KX_CameraActuator::sPySetXY,		METH_VARARGS,	(PY_METHODCHAR)SetXY_doc},
+	{"getXY"	,(PyCFunction) KX_CameraActuator::sPyGetXY,		METH_VARARGS,	(PY_METHODCHAR)GetXY_doc},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 

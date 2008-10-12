@@ -963,7 +963,9 @@ static void image_unlink_cb(void *ima_pp_v, void *unused)
 	
 	if(ima_pp && *ima_pp) {
 		Image *ima= *ima_pp;
-		ima->id.us--;
+		/* (for time being, texturefaces are no users, conflict in design...) */
+		if(ima->id.us>1)
+			ima->id.us--;
 		*ima_pp= NULL;
 	}
 }
@@ -2529,6 +2531,7 @@ void do_lampbuts(unsigned short event)
 	case B_SHADBUF:
 		la= G.buts->lockpoin; 
 		la->mode &= ~LA_SHAD_RAY;
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0); 
 		allqueue(REDRAWVIEW3D, 0); 		
 		break;
@@ -2538,6 +2541,7 @@ void do_lampbuts(unsigned short event)
 		/* yafray: 'softlight' uses it's own shadbuf. flag.
 		   Must be cleared here too when switching from ray shadow */
 		la->mode &= ~LA_YF_SOFT;
+		BIF_preview_changed(ID_LA);
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D, 0); 	
 		break;

@@ -98,9 +98,9 @@ void MeanValueMeshCoords::computeWeights(vector<ntlVec3Gfx> &reference_vertices,
 		if(mvmFullDebug) errMsg("MeanValueMeshCoords::computeWeights","c="<<c<<" phi="<<phi<<" d="<<d);
 		//if (c[0] > 1. || c[0] < 0. || c[1] > 1. || c[1] < 0. || c[2] > 1. || c[2] < 0.) continue;
 
-		s[0] = sqrtf((float)(1.-c[0]*c[0]));
-		s[1] = sqrtf((float)(1.-c[1]*c[1]));
-		s[2] = sqrtf((float)(1.-c[2]*c[2]));
+		s[0] = sqrt((float)(1.-c[0]*c[0]));
+		s[1] = sqrt((float)(1.-c[1]*c[1]));
+		s[2] = sqrt((float)(1.-c[2]*c[2]));
 
 		if(mvmFullDebug) errMsg("MeanValueMeshCoords::computeWeights","s");
 		if (s[0] <= cEPS || s[1] <= cEPS || s[2] <= cEPS) {

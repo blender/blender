@@ -235,7 +235,8 @@ void BL_ConvertActuators(char* maggiename,
 			{
 				bIpoActuator* ipoact = (bIpoActuator*) bact->data;
 				bool ipochild = (ipoact->flag & ACT_IPOCHILD) !=0;
-				STR_String propname = ( ipoact->name ? ipoact->name : "");
+				STR_String propname = ipoact->name;
+				STR_String frameProp = ipoact->frameProp;
 				// first bit?
 				bool ipo_as_force = (ipoact->flag & ACT_IPOFORCE);
 				bool local = (ipoact->flag & ACT_IPOLOCAL);
@@ -244,6 +245,7 @@ void BL_ConvertActuators(char* maggiename,
 				KX_IpoActuator* tmpbaseact = new KX_IpoActuator(
 					gameobj,
 					propname ,
+					frameProp,
 					ipoact->sta,
 					ipoact->end,
 					ipochild,
@@ -289,15 +291,19 @@ void BL_ConvertActuators(char* maggiename,
 				STR_String toPropName = (msgAct->toPropName
 					? (char*) msgAct->toPropName
 					: "");
-					/**
-					* Get the Message Subject to send.
+				/* BGE Wants "OB" prefix */
+				if (toPropName != "")
+					toPropName = "OB" + toPropName;
+				
+				/**
+				* Get the Message Subject to send.
 				*/
 				STR_String subject = (msgAct->subject
 					? (char*) msgAct->subject
 					: "");
 				
-					/**
-					* Get the bodyType
+				/**
+				* Get the bodyType
 				*/
 				int bodyType = msgAct->bodyType;
 				
@@ -714,6 +720,40 @@ void BL_ConvertActuators(char* maggiename,
 						break;
 					case ACT_CONST_DIRNZ:
 						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_DIRNZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					}
+					prop = conact->matprop;
+				} else if (conact->type == ACT_CONST_TYPE_FH) {
+					switch (conact->mode) {
+					case ACT_CONST_DIRPX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPX;
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_DIRPY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPY;
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_DIRPZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHPZ;
+						min = conact->minloc[2];
+						max = conact->maxloc[2];
+						break;
+					case ACT_CONST_DIRNX:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNX;
+						min = conact->minloc[0];
+						max = conact->maxloc[0];
+						break;
+					case ACT_CONST_DIRNY:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNY;
+						min = conact->minloc[1];
+						max = conact->maxloc[1];
+						break;
+					case ACT_CONST_DIRNZ:
+						locrot = KX_ConstraintActuator::KX_ACT_CONSTRAINT_FHNZ;
 						min = conact->minloc[2];
 						max = conact->maxloc[2];
 						break;

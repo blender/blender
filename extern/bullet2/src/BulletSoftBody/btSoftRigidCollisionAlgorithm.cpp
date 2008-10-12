@@ -59,7 +59,10 @@ void btSoftRigidCollisionAlgorithm::processCollision (btCollisionObject* body0,b
 	btSoftBody* softBody =  m_isSwapped? (btSoftBody*)body1 : (btSoftBody*)body0;
 	btCollisionObject* rigidCollisionObject = m_isSwapped? body0 : body1;
 	
-	softBody->defaultCollisionHandler(rigidCollisionObject);
+	if (softBody->m_collisionDisabledObjects.findLinearSearch(rigidCollisionObject)==softBody->m_collisionDisabledObjects.size())
+	{
+		softBody->defaultCollisionHandler(rigidCollisionObject);
+	}
 
 
 }

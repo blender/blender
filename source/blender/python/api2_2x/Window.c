@@ -577,8 +577,6 @@ static PyObject * FileAndImageSelector(PyObject * self, PyObject * args, int typ
 			"\nexpected a callback function (and optionally one or two strings) "
 			"as argument(s)" );
 
-	Py_INCREF(pycallback);
-
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
  * selection.  This is necessary because when a user cancels, the
@@ -605,9 +603,18 @@ static PyObject * FileAndImageSelector(PyObject * self, PyObject * args, int typ
 		script->lastspace = startspace;
 		sc->script = script;
 	}
-
+	
+	if (!script) {
+		/* should never happen unless we are executed
+		* from the BGE or somthing really strange like that */
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"Could not allocate a screen for an unknown reason." );
+	}
+	
+	Py_INCREF(pycallback);
+	
 	script->flags |= SCRIPT_FILESEL;
-
+	
 	/* clear any previous callback (nested calls to selector) */
 	if (script->py_browsercallback) {
 		Py_DECREF((PyObject *)script->py_browsercallback);

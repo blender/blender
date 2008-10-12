@@ -197,7 +197,7 @@ extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, stru
  * When the mipmap setting changes, we want to redraw the view right
  * away to reflect this setting.
  */
-static void space_mipmap_button_function(int event);
+//static void space_mipmap_button_function(int event);
 
 static void free_soundspace(SpaceSound *ssound);
 
@@ -224,7 +224,7 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 		}
 	}
 	if(a==SPACE_MAXHANDLER) {
-		error("Only %i floating panels allowed", SPACE_MAXHANDLER-1);
+		error("Only %i floating panels allowed", SPACE_MAXHANDLER/2);
 	}
 		
 }
@@ -1523,7 +1523,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			/* Brush properties */
 			case AKEY:
-				br->flag ^= SCULPT_BRUSH_AIRBRUSH;
+				if(G.qual==LR_SHIFTKEY)
+					br->flag ^= SCULPT_BRUSH_ANCHORED;
+				else
+					br->flag ^= SCULPT_BRUSH_AIRBRUSH;
 				update_prop= 1; break;
 			case FKEY:
 				if(ss) {
@@ -1541,8 +1544,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				sd->brush_type= DRAW_BRUSH;
 				update_prop= 1; break;
 			case SKEY:
-				sd->brush_type= SMOOTH_BRUSH;
-				update_prop= 1; break;
+				if(G.qual==LR_SHIFTKEY)
+					sd->flags ^= SCULPT_INPUT_SMOOTH;
+				else {
+					sd->brush_type= SMOOTH_BRUSH;
+					update_prop= 1;
+				}
+				break;
 			case PKEY:
 				sd->brush_type= PINCH_BRUSH;
 				update_prop= 1; break;
@@ -3316,13 +3324,14 @@ void initipo(ScrArea *sa)
 
 /* ******************** SPACE: INFO ********************** */
 
+#if 0
 static void space_mipmap_button_function(int event) {
 	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-#if 0
+
 static void space_sound_button_function(int event)
 {
 	int a;
@@ -4110,15 +4119,31 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Grease Pencil:",
 			(xpos+(2*edgsp)+(3*midsp)+(3*mpref)+spref),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
+		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, 0, "Manhatten Dist:",
-			(xpos+(4*midsp)+(3*mpref)+mpref),y5,mpref,buth,
+			(xpos+(4*midsp)+(3*mpref)+spref),y5,(spref*1.5),buth,
 			&(U.gp_manhattendist), 0, 100, 0, 0, "Pixels moved by mouse per axis when drawing stroke");
 		uiDefButS(block, NUM, 0, "Euclidean Dist:",
-			(xpos+(5*midsp)+(3*mpref)+(2*mpref)),y5,mpref,buth,
+			(xpos+(5*midsp)+(3*mpref)+(spref*2.5)),y5,(spref*1.5),buth,
 			&(U.gp_euclideandist), 0, 100, 0, 0, "Distance moved by mouse when drawing stroke (in pixels) to include");
+		
+		uiDefButBitS(block, TOG, GP_PAINT_DOSMOOTH, 0,"Smooth Stroke",
+			(xpos+(4*midsp)+(3*mpref)+spref),y4,(spref*1.5),buth,
+			&(U.gp_settings), 0, 100, 0, 0, "Smooth the final stroke");
+			
+		// currently hidden behind G.rt, as it is not that useful yet
+		if (G.rt) {
+			uiDefButBitS(block, TOG, GP_PAINT_DOSIMPLIFY, 0,"Simplify Stroke",
+				(xpos+(5*midsp)+(3*mpref)+(spref*2.5)),y4,(spref*1.5),buth,
+				&(U.gp_settings), 0, 100, 0, 0, "Simplify the final stroke");
+		}
 		uiBlockEndAlign(block);
+		
+		uiDefButS(block, NUM, 0, "Eraser Radius:",
+			(xpos+(7*midsp)+(3*mpref)+(4*spref)),y5,mpref,buth,
+			&(U.gp_eraser), 0, 100, 0, 0, "Radius of eraser 'brush'");
+		
 	
 	} else if(U.userpref == 2) { /* language & colors */
 

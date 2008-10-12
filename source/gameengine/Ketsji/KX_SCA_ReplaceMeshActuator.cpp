@@ -82,7 +82,7 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, SetMesh_doc},
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
 	
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
    	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),

@@ -720,7 +720,9 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 
 	if (texpaint) {
 		/* pick new face and image */
-		if (facesel_face_pick(s->me, mval, &newfaceindex, 0)) {
+		if (	facesel_face_pick(s->me, mval, &newfaceindex, 0) &&
+				((G.f & G_FACESELECT)==0 || (s->me->mface+newfaceindex)->flag & ME_FACE_SEL)
+		) {
 			ImBuf *ibuf;
 			
 			newimage = (Image*)((s->me->mtface+newfaceindex)->tpage);

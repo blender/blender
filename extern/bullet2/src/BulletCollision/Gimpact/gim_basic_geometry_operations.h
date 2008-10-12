@@ -2,7 +2,7 @@
 #define GIM_BASIC_GEOMETRY_OPERATIONS_H_INCLUDED
 
 /*! \file gim_basic_geometry_operations.h
-*\author Francisco León Nájera
+*\author Francisco Len Nßjera
 type independant geometry routines
 
 */

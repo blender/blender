@@ -73,7 +73,7 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 * Otherwise it will trigger all the time
 	 * this is used to see if the trigger state changes.
 	 */
-	bool	m_istrig_lastjs;
+	bool	m_istrig_prev;
 	/**
 	 * The mode to determine axis,button or hat
 	 */
@@ -82,6 +82,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 * Select which joystick to use
 	 */
 	short int m_joyindex;
+
+	/**
+	 * Detect all events for the currently selected type
+	 */
+	bool m_bAllEvents;
 
 	enum KX_JOYSENSORMODE {
 		KX_JOYSENSORMODE_NODEF = 0,
@@ -98,8 +103,8 @@ public:
 					   short int joyindex,
 					   short int joymode,
 					   int axis, int axisf,int prec,
-					   int button, int buttonf,
-					   int hat, int hatf,
+					   int button,
+					   int hat, int hatf, bool allevents,
 					   PyTypeObject* T=&Type );
 	virtual ~SCA_JoystickSensor();
 	virtual CValue* GetReplica();
@@ -124,12 +129,13 @@ public:
 	/* Axes*/
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxis);
 	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetAxis);
-	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetRealAxis);
+	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetAxisValue);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetThreshold);
 	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetThreshold);
 	/* Buttons */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButton);
-	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetButton);
+	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetButton);
+	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonValue);
 	/* Hats */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetHat);
 	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetHat);

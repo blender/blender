@@ -1,5 +1,5 @@
 /**
- * $Id: drawgpencil.c 14881 2008-05-18 10:41:42Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -433,13 +433,18 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 			co[1]= (points->y / 1000 * winy);
 		}
 		
-		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple opengl point will do */
-		if (thickness < GP_DRAWTHICKNESS_SPECIAL) {
+		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
+		 * 	- also mandatory in if Image Editor 'image-based' dot
+		 */
+		if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) ||
+			 ((curarea->spacetype==SPACE_IMAGE) && (sflag & GP_STROKE_2DSPACE)) )
+		{
 			glBegin(GL_POINTS);
 				glVertex2fv(co);
 			glEnd();
 		}
-		else {
+		else 
+		{
 			/* draw filled circle as is done in circf (but without the matrix push/pops which screwed things up) */
 			GLUquadricObj *qobj = gluNewQuadric(); 
 			
@@ -495,7 +500,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 							short debug, int offsx, int offsy, int winx, int winy)
 {	
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
-	 * 	- but NOT if Image Editor 'image-based' stroke
+	 * 	- 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */
 	if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) || 
 		 ((curarea->spacetype==SPACE_IMAGE) && (dflag & GP_DRAWDATA_ONLYV2D)) ) 
@@ -953,6 +958,7 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			else
 				zoomx = zoomy = zoom;
 			
+			/* calculate transforms (Note: we use ibuf here, as we have it) */
 			sizex= zoomx * ibuf->x;
 			sizey= zoomy * ibuf->y;
 			offsx= (sa->winx-sizex)/2 + sseq->xof;

@@ -814,7 +814,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 							{
 								efa = EM_get_face_for_index(index);
 								
-								if (efa && ((efa->v1->f & SELECT) || (efa->v2->f & SELECT) || (efa->v3->f & SELECT) || (efa->v4 && efa->v4->f & SELECT)))
+								if (efa && (efa->h || (efa->v1->f & SELECT) || (efa->v2->f & SELECT) || (efa->v3->f & SELECT) || (efa->v4 && efa->v4->f & SELECT)))
 								{
 									test = 0;
 								}
@@ -957,7 +957,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 							{
 								eve = EM_get_vert_for_index(index);
 								
-								if (eve && eve->f & SELECT)
+								if (eve && (eve->h || (eve->f & SELECT)))
 								{
 									test = 0;
 								}
@@ -1050,7 +1050,7 @@ int snapDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float ray_sta
 							{
 								eed = EM_get_edge_for_index(index);
 								
-								if (eed && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)))
+								if (eed && (eed->h || (eed->v1->f & SELECT) || (eed->v2->f & SELECT)))
 								{
 									test = 0;
 								}

@@ -78,10 +78,7 @@ char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
 
 	/* if lib is NULL reset the last error code */
 	err= GetLastError();
-	if (!lib) {
-		SetLastError(ERROR_SUCCESS);
-		err = ERROR_SUCCESS;
-	}
+	if (!lib) SetLastError(ERROR_SUCCESS);
 
 	if (err) {
 		static char buf[1024];
@@ -96,7 +93,7 @@ char *PIL_dynlib_get_error_as_string(PILdynlib* lib) {
 			return buf;
 	}
 	
-	return "unrecognized error";
+	return err;
 }
 
 void PIL_dynlib_close(PILdynlib *lib) {

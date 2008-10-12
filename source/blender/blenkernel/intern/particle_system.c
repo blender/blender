@@ -3101,7 +3101,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 				col.md = ( CollisionModifierData * ) ( modifiers_findByType ( ec->ob, eModifierType_Collision ) );
 				col.ob_t = ob;
 
-				if(col.md->bvhtree)
+				if(col.md && col.md->bvhtree)
 					BLI_bvhtree_ray_cast(col.md->bvhtree, col.co1, ray_dir, radius, &hit, particle_intersect_face, &col);
 			}
 		}
@@ -3972,9 +3972,6 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 				execute_ipo((ID *)part, part->ipo);
 			}
 			pa->size=psys_get_size(ob,ma,psmd,icu_esize,psys,part,pa,vg_size);
-
-			if(part->type==PART_REACTOR)
-				initialize_particle(pa,p,ob,psys,psmd);
 
 			reset_particle(pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
 

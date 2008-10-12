@@ -77,7 +77,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		if(!fss)
 			return;
 		
-		fss->type = 0;
+		fss->type = OB_FSBND_NOSLIP;
 		fss->show_advancedoptions = 0;
 
 		fss->resolutionxyz = 50;

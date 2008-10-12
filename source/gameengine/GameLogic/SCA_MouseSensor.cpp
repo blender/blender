@@ -283,8 +283,8 @@ PyParentObject SCA_MouseSensor::Parents[] = {
 };
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
-	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, GetXPosition_doc},
-	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, GetYPosition_doc},
+	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (PY_METHODCHAR)GetXPosition_doc},
+	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (PY_METHODCHAR)GetYPosition_doc},
 	{NULL,NULL} //Sentinel
 };
 

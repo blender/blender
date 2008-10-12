@@ -157,6 +157,7 @@ typedef struct ShadeInput
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */
+	float scanco[3];		/* original scanline coordinate without jitter */
 	
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
