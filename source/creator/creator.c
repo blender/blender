@@ -77,6 +77,7 @@
 #include "RE_pipeline.h"
 
 #include "GPU_draw.h"
+#include "GPU_extensions.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -220,6 +221,7 @@ static void print_help(void)
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
+	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
@@ -506,6 +508,8 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
 						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 					}
+					if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
+						GPU_extensions_disable();
 					break;
 				}
 			}
