@@ -113,7 +113,7 @@ static void seq_panel_gpencil(short cntrl)	// SEQ_HANDLER_GREASEPENCIL
 	block= uiNewBlock(&curarea->uiblocks, "seq_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 	uiSetPanelHandler(SEQ_HANDLER_GREASEPENCIL);  // for close and esc
-	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceSeq", 100, 30, 318, 204)==0) return;
+	if (uiNewPanel(curarea, block, "Grease Pencil", "Seq", 100, 30, 318, 204)==0) return;
 	
 	/* only draw settings if right mode */
 	if (sseq->mainb == 0)
@@ -160,6 +160,8 @@ static void seq_blockhandlers(ScrArea *sa)
 				seq_panel_gpencil(sseq->blockhandler[a+1]);
 				break;
 		}
+		/* clear action value for event */
+		sseq->blockhandler[a+1]= 0;
 	}
 	uiDrawBlocksPanels(sa, 0);
 
