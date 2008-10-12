@@ -287,21 +287,27 @@ unsigned int SND_GetBitRate(void* sample)
 /* gets the length of the actual sample data (without the header) */
 unsigned int SND_GetNumberOfSamples(void* sample, int sample_length)
 {
-	unsigned int chunklength, length = 0, offset = 16;
-	
+	unsigned int chunklength, length = 0, offset;
+	unsigned short block_align;
 	if (CheckSample(sample))
 	{
-		memcpy(&chunklength, ((char*)sample) + offset, 4);
+		memcpy(&chunklength, ((char*)sample) + 16, 4);
+		memcpy(&block_align, ((char*)sample) + 32, 2); /* always 2 or 4 it seems */
+		
 		/* This was endian unsafe. See top of the file for the define. */
-		if (SND_fEndian == SND_endianBig) SWITCH_INT(chunklength);
-
-		offset = offset + chunklength + 4;
+		if (SND_fEndian == SND_endianBig)
+		{
+			SWITCH_INT(chunklength);
+			SWITCH_SHORT(block_align);
+		}
+				
+		offset = 16 + chunklength + 4;
 
 		/* This seems very unsafe, what if data is never found (f.i. corrupt file)... */
 		// lets find "data"
 		while (memcmp(((char*)sample) + offset, "data", 4))
 		{
-			offset += 2;
+			offset += block_align;
 			
 			if (offset+4 > sample_length) /* save us from crashing */
 				return 0;
@@ -322,18 +328,24 @@ unsigned int SND_GetNumberOfSamples(void* sample, int sample_length)
 unsigned int SND_GetHeaderSize(void* sample, int sample_length)
 {
 	unsigned int chunklength, headersize = 0, offset = 16;
-	
+	unsigned short block_align;
 	if (CheckSample(sample))
 	{
 		memcpy(&chunklength, ((char*)sample) + offset, 4);
+		memcpy(&block_align, ((char*)sample) + 32, 2); /* always 2 or 4 it seems */
+		
 		/* This was endian unsafe. See top of the file for the define. */
-		if (SND_fEndian == SND_endianBig) SWITCH_INT(chunklength);
+		if (SND_fEndian == SND_endianBig)
+		{
+			SWITCH_INT(chunklength);
+			SWITCH_SHORT(block_align);
+		}
 		offset = offset + chunklength + 4;
 
 		// lets find "data"
 		while (memcmp(((char*)sample) + offset, "data", 4))
 		{
-			offset += 2;
+			offset += block_align;
 			
 			if (offset+4 > sample_length) /* save us from crashing */
 				return 0;
@@ -341,10 +353,8 @@ unsigned int SND_GetHeaderSize(void* sample, int sample_length)
 		headersize = offset + 8;
 	}
 
-
 	return headersize;
 }
-
 
 
 unsigned int SND_GetExtraChunk(void* sample)
