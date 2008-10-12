@@ -220,12 +220,24 @@ static int gpu_get_mipmap(void)
 	return GTS.domipmap && (!(G.f & G_TEXTUREPAINT));
 }
 
-static GLenum gpu_get_mipmap_filter()
+static GLenum gpu_get_mipmap_filter(int mag)
 {
-	/* linearmipmap is off by default
-	 * when mipmapping is off, use unfiltered display */
-	return GTS.linearmipmap? GL_LINEAR_MIPMAP_LINEAR :
-				(GTS.domipmap ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST);
+	/* linearmipmap is off by default *when mipmapping is off,
+	 * use unfiltered display */
+	if(mag) {
+		if(GTS.linearmipmap || GTS.domipmap)
+			return GL_LINEAR;
+		else
+			return GL_NEAREST;
+	}
+	else {
+		if(GTS.linearmipmap)
+			return GL_LINEAR_MIPMAP_LINEAR;
+		else if(GTS.domipmap)
+			return GL_LINEAR_MIPMAP_NEAREST;
+		else
+			return GL_NEAREST;
+	}
 }
 
 /* Set OpenGL state for an MTFace */
@@ -479,12 +491,12 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	if (!gpu_get_mipmap()) {
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 	}
 	else {
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter());
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 		ima->tpageflag |= IMA_MIPMAP_COMPLETE;
 	}
@@ -576,8 +588,8 @@ void GPU_paint_set_mipmap(int mipmap)
 			if(ima->bindcode) {
 				if(ima->tpageflag & IMA_MIPMAP_COMPLETE) {
 					glBindTexture(GL_TEXTURE_2D, ima->bindcode);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter());
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 				}
 				else
 					GPU_free_image(ima);
@@ -590,7 +602,7 @@ void GPU_paint_set_mipmap(int mipmap)
 			if(ima->bindcode) {
 				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter());
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 			}
 		}
 	}
