@@ -63,11 +63,12 @@ typedef struct Material {
 	/* end synced with render_types.h */
 	
 	short material_type; /* solid, halo, volumetric */
-	short pad5[3];
+	short pad5[2];
 	
 	/* volumetrics */
-	float vol_density_scale;
+	short vol_stepsize_type;
 	float vol_stepsize, vol_shade_stepsize;
+	float vol_density_scale;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];
 	short vol_shadeflag;
@@ -346,6 +347,11 @@ typedef struct Material {
 
 /* sss_flag */
 #define MA_DIFF_SSS		1
+
+/* vol_stepsize_type */
+#define MA_VOL_STEP_RANDOMIZED	0
+#define MA_VOL_STEP_CONSTANT	1
+#define MA_VOL_STEP_ADAPTIVE	2
 
 /* vol_shadeflag */
 #define MA_VOL_SHADED		1

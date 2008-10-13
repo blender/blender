@@ -4363,7 +4363,9 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 100, 2, "Ray marching step size");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
+	uiDefButS(block, MENU, B_TEXREDR_PRV, "Step Size Calculation %t|Randomized %x0|Constant %x1",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_stepsize_type, 0.0, 0.0, 0, 0, "Step size calculation, replace banding with jittering");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
@@ -4372,7 +4374,7 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Shading",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 100, 2, "Step");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
@@ -4393,7 +4395,7 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "Density: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->alpha), 0.0, 1.0, 0, 0, "Base density value - textured density is added on top");
 	uiDefButF(block, NUM, B_MATPRV, "Density Scale: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_density_scale), 0.000001, 100.0, 100, 2, "Global density multiplier");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_density_scale), 0.000001, 100.0, 10, 2, "Global density multiplier");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;

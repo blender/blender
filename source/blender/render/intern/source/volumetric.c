@@ -128,6 +128,29 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	}
 }
 
+#define STEPSIZE_VIEW	0
+#define STEPSIZE_SHADE	1
+float vol_get_stepsize(struct ShadeInput *shi, int context)
+{
+	if (shi->mat->vol_stepsize_type == MA_VOL_STEP_RANDOMIZED) {
+		/* range between 0.75 and 1.25 */
+		const float rnd = 0.5f * BLI_thread_frand(shi->thread) + 0.75f;
+	
+		if (context == STEPSIZE_VIEW)
+			return shi->mat->vol_stepsize * rnd;
+		else if (context == STEPSIZE_SHADE)
+			return shi->mat->vol_shade_stepsize * rnd;
+	}
+	else {
+		// MA_VOL_STEP_CONSTANT
+		
+		if (context == STEPSIZE_VIEW)
+			return shi->mat->vol_stepsize;
+		else if (context == STEPSIZE_SHADE)
+			return shi->mat->vol_shade_stepsize;
+	}
+}
+
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
 	float density = shi->mat->alpha;
@@ -264,6 +287,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	float hitco[3], *atten_co;
 	float p;
 	float scatter_fac;
+	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
 			
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
@@ -303,8 +327,8 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 				atten_co = lar->co;
 			} else
 				atten_co = hitco;
-
-			vol_get_attenuation(shi, tau, co, atten_co, density, shi->mat->vol_shade_stepsize);
+			
+			vol_get_attenuation(shi, tau, co, atten_co, density, shade_stepsize);
 			tr[0] = exp(-tau[0]);
 			tr[1] = exp(-tau[1]);
 			tr[2] = exp(-tau[2]);
@@ -321,8 +345,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	vol_get_scattering_fac(shi, &scatter_fac, co, density);
 	VecMulf(lacol, scatter_fac);
 	
-	
-
 }
 
 /* shadows -> trace a ray to find blocker geometry
@@ -362,7 +384,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 {
 	float tr[3] = {1.0f, 1.0f, 1.0f};			/* total transmittance */
 	float radiance[3] = {0.f, 0.f, 0.f}, d_radiance[3] = {0.f, 0.f, 0.f};
-	float stepsize = shi->mat->vol_stepsize;
+	float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
 	int nsteps;
 	float vec[3], stepvec[3] = {0.0, 0.0, 0.0};
 	float tau[3], step_emit[3], step_scatter[3] = {0.0, 0.0, 0.0};
