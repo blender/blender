@@ -54,6 +54,7 @@
 #include "pixelshading.h"
 #include "shading.h"
 #include "texture.h"
+#include "volumetric.h"
 
 #include "RE_raytrace.h"
 
@@ -262,21 +263,28 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 	shade_input_set_shade_texco(shi);
 	
-	if(is->mode==RE_RAY_SHADOW_TRA) 
+	if (shi->mat->material_type == MA_VOLUME) {
+		if(ELEM(is->mode, RE_RAY_SHADOW, RE_RAY_SHADOW_TRA)) {
+			volume_trace_shadow(shi, shr, is);
+		} else {
+			shade_volume_loop(shi, shr);
+		}
+	}
+	else if(is->mode==RE_RAY_SHADOW_TRA) 
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
-		else
+		else {
 			shade_color(shi, shr);
+		}
 	else {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
 		else {
-			if (shi->mat->material_type == MA_SOLID) shade_material_loop(shi, shr);
-			else if (shi->mat->material_type == MA_VOLUME) shade_volume_loop(shi, shr);
+			shade_material_loop(shi, shr);
 		}
 		/* raytrace likes to separate the spec color */
 		VECSUB(shr->diff, shr->combined, shr->spec);
@@ -1274,7 +1282,7 @@ static void addAlphaLight(float *shadfac, float *col, float alpha, float filter)
 	shadfac[3]= (1.0f-alpha)*shadfac[3];
 }
 
-static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
+void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
 	   if it has col[3]>0.0f  continue. so exit when alpha is full */
@@ -1303,11 +1311,16 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		shi.mat_override= NULL;*/
 		
 		shade_ray(is, &shi, &shr);
-		if (traflag & RAY_TRA)
-			d= shade_by_transmission(is, &shi, &shr);
-		
-		/* mix colors based on shadfac (rgb + amount of light factor) */
-		addAlphaLight(is->col, shr.diff, shr.alpha, d*shi.mat->filter);
+		if (shi.mat->material_type == MA_SOLID) {
+			if (traflag & RAY_TRA)
+				d= shade_by_transmission(is, &shi, &shr);
+			
+			/* mix colors based on shadfac (rgb + amount of light factor) */
+			addAlphaLight(is->col, shr.diff, shr.alpha, d*shi.mat->filter);
+		} else {
+			// MA_VOLUME
+			addAlphaLight(is->col, shr.combined, shr.alpha, 1.0f);
+		}
 		
 		if(depth>0 && is->col[3]>0.0f) {
 			

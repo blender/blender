@@ -37,6 +37,7 @@ struct Render;
 struct TexResult;
 
 void make_pointdensities(struct Render *re);
+void free_pointdensities(struct Render *re);
 int pointdensitytex(struct Tex *tex, float *texvec, struct TexResult *texres);
 
 #endif /* POINTDENSITY_H */

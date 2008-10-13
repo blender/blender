@@ -48,6 +48,7 @@ struct RenderPart;
 struct RenderLayer;
 struct ObjectRen;
 struct ListBase;
+struct Isect;
 
 /* ------------------------------------------------------------------------- */
 
@@ -98,6 +99,7 @@ extern void makeraytree(Render *re);
 
 extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
+extern void ray_trace_shadow_tra(struct Isect *is, int depth, int traflag);
 extern void ray_ao(ShadeInput *, float *);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);

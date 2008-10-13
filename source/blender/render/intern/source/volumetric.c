@@ -149,6 +149,8 @@ float vol_get_stepsize(struct ShadeInput *shi, int context)
 		else if (context == STEPSIZE_SHADE)
 			return shi->mat->vol_shade_stepsize;
 	}
+	
+	return shi->mat->vol_stepsize;
 }
 
 float vol_get_density(struct ShadeInput *shi, float *co)
@@ -246,6 +248,8 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 
 	dist = VecLenf(co, endco);
 	nsteps = (int)ceil(dist / stepsize);
+	
+	if (density < -0.001f) density = vol_get_density(shi, co);
 	
 	if (nsteps == 1) {
 		/* homogenous volume within the sampled distance */
@@ -485,7 +489,7 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	shi_new.mask= shi->mask;
 	shi_new.osatex= shi->osatex;
 	shi_new.thread= shi->thread;
-	shi_new.depth= shi->depth;
+	shi_new.depth= 1;
 	shi_new.volume_depth= shi->volume_depth + 1;
 	shi_new.xs= shi->xs;
 	shi_new.ys= shi->ys;
@@ -597,3 +601,57 @@ void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 		shr->combined[3] = shr->alpha =  1.0f;
 	}
 }
+
+void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is)
+{
+	float hitco[3], col[4] = {0.f,0.f,0.f,0.f};
+	float tr[3] = {1.0,1.0,1.0};
+	float tau[3] = {0.0,0.0,0.0};
+	Isect is;
+	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
+
+	memset(shr, 0, sizeof(ShadeResult));
+	
+	/* if 1st hit normal is facing away from the camera, 
+	 * then we're inside the volume already. */
+	if (shi->flippednor) {
+	
+		vol_get_attenuation(shi, tau, last_is->start, shi->co, -1.0f, shade_stepsize);
+		tr[0] = exp(-tau[0]);
+		tr[1] = exp(-tau[1]);
+		tr[2] = exp(-tau[2]);
+		
+		shr->combined[0] = tr[0];
+		shr->combined[1] = tr[1];
+		shr->combined[2] = tr[2];
+		
+		shr->combined[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
+		shr->alpha = shr->combined[3];
+	}
+	/* trace to find a backface, the other side bounds of the volume */
+	/* (ray intersect ignores front faces here) */
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH, 0)) {
+		float dist = VecLenf(shi->co, hitco);
+		
+		vol_get_attenuation(shi, tau, shi->co, hitco, -1.0f, shade_stepsize);
+		tr[0] = exp(-tau[0]);
+		tr[1] = exp(-tau[1]);
+		tr[2] = exp(-tau[2]);
+		
+		shr->combined[0] = tr[0];
+		shr->combined[1] = tr[1];
+		shr->combined[2] = tr[2];
+		
+		shr->combined[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
+		shr->alpha = shr->combined[3];
+
+	}
+	else {
+		shr->combined[0] = 0.0f;
+		shr->combined[1] = 0.0f;
+		shr->combined[2] = 0.0f;
+		shr->combined[3] = shr->alpha =  0.0f;
+	}
+
+}
+

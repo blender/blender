@@ -965,8 +965,6 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	if(ma->nodetree && ma->use_nodes)
 		flag_render_node_material(re, ma->nodetree);
 	
-	if (ma->material_type == MA_VOLUME) re->r.mode |= R_RAYTRACE;
-	
 	check_material_is_textured(ma);
 	
 	return ma;
