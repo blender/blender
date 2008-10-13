@@ -1579,6 +1579,7 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 	}
 	
 	if(ob!=G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+	else countall(); /* exit_editmode calls countall() */
 }
 
 static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int set)
@@ -1737,6 +1738,7 @@ static int tree_element_active_world(SpaceOops *soops, TreeElement *te, int set)
 		if(sce && G.scene != sce) {
 			if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 			set_scene(sce);
+			countall();
 		}
 	}
 	
@@ -2250,6 +2252,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 							if(G.scene!=(Scene *)tselem->id) {
 								if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 								set_scene((Scene *)tselem->id);
+								countall();
 							}
 						}
 						else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
@@ -2917,7 +2920,10 @@ static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb,
 			if(tselem->type==0 && te->idcode==ID_OB) {
 				// when objects selected in other scenes... dunno if that should be allowed
 				Scene *sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
-				if(sce && G.scene != sce) set_scene(sce);
+				if(sce && G.scene != sce) {
+					set_scene(sce);
+					countall();
+				}
 				
 				operation_cb(te, NULL, tselem);
 			}
@@ -3049,7 +3055,10 @@ void outliner_operation_menu(ScrArea *sa)
 			if(event==1) {
 				Scene *sce= G.scene;	// to be able to delete, scenes are set...
 				outliner_do_object_operation(soops, &soops->tree, object_select_cb);
-				if(G.scene != sce) set_scene(sce);
+				if(G.scene != sce) {
+					set_scene(sce);
+					countall();
+				}
 				
 				str= "Select Objects";
 			}
