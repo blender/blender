@@ -58,10 +58,18 @@ typedef enum SK_PType
 	PT_EXACT,
 } SK_PType;
 
+typedef enum Method
+{
+	PT_EMBED,
+	PT_SNAP,
+	PT_PROJECT,
+} SK_PMode;
+
 typedef struct SK_Point
 {
 	float p[3];
 	SK_PType type;
+	SK_PMode mode;
 } SK_Point;
 
 typedef struct SK_Stroke
@@ -717,14 +725,38 @@ float sk_distanceDepth(float p1[3], float p2[3])
 	return distance; 
 }
 
+void sk_interpolateDepth(SK_Stroke *stk, int start, int end, float length, float distance)
+{
+	float progress = 0;
+	int i;
+	
+	progress = VecLenf(stk->points[start].p, stk->points[start - 1].p);
+	
+	for (i = start; i <= end; i++)
+	{
+		float ray_start[3], ray_normal[3];
+		float delta = VecLenf(stk->points[i].p, stk->points[i + 1].p);
+		short pval[2];
+		
+		project_short_noclip(stk->points[i].p, pval);
+		viewray(pval, ray_start, ray_normal);
+		
+		VecMulf(ray_normal, distance * progress / length);
+		VecAddf(stk->points[i].p, stk->points[i].p, ray_normal);
+
+		progress += delta ;
+	}
+}
+
 void sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
 {
 	SK_Point pt;
 	float distance;
 	float length;
-	int i, j, total;
+	int i, total;
 	
 	pt.type = PT_EXACT;
+	pt.mode = PT_SNAP;
 	
 	sk_projectPaintData(stk, dd, pt.p);
 
@@ -745,24 +777,9 @@ void sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
 	
 	if (total > 1)
 	{
-		float progress = length - VecLenf(stk->points[stk->nb_points - 2].p, stk->points[stk->nb_points - 1].p);
-		
 		distance = sk_distanceDepth(snap_pt->p, stk->points[i].p);
 		
-		for (j = 1, i = stk->nb_points - 2; j < total; j++, i--)
-		{
-			float ray_start[3], ray_normal[3];
-			float delta = VecLenf(stk->points[i].p, stk->points[i - 1].p);
-			short pval[2];
-			
-			project_short_noclip(stk->points[i].p, pval);
-			viewray(pval, ray_start, ray_normal);
-			
-			VecMulf(ray_normal, distance * progress / length);
-			VecAddf(stk->points[i].p, stk->points[i].p, ray_normal);
-
-			progress -= delta ;
-		}
+		sk_interpolateDepth(stk, i + 1, stk->nb_points - 2, length, distance);
 	}
 
 	VECCOPY(stk->points[stk->nb_points - 1].p, snap_pt->p);
@@ -773,6 +790,7 @@ void sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
 	SK_Point pt;
 	
 	pt.type = dd->type;
+	pt.mode = PT_PROJECT;
 
 	sk_projectPaintData(stk, dd, pt.p);
 
@@ -849,12 +867,37 @@ void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 	else
 	{
 		SK_Point pt;
+		float length, distance;
+		int total;
+		int i;
 		
 		pt.type = dd->type;
+		pt.mode = PT_EMBED;
 		
-		VECCOPY(pt.p, p);
-		
+		sk_projectPaintData(stk, dd, pt.p);
 		sk_appendStrokePoint(stk, &pt);
+		
+		/* update all previous point to give smooth Z progresion */
+		total = 0;
+		length = 0;
+		for (i = stk->nb_points - 2; i > 0; i--)
+		{
+			length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
+			total++;
+			if (stk->points[i].mode == PT_EMBED || stk->points[i].type == PT_EXACT)
+			{
+				break;
+			}
+		}
+		
+		if (total > 1)
+		{
+			distance = sk_distanceDepth(p, stk->points[i].p);
+			
+			sk_interpolateDepth(stk, i + 1, stk->nb_points - 2, length, distance);
+		}
+		
+		VECCOPY(stk->points[stk->nb_points - 1].p, p);
 	}
 	
 	BLI_freelistN(&depth_peels);
@@ -1103,6 +1146,15 @@ void BDR_drawSketch()
 		{
 			sk_drawSketch(GLOBAL_sketch);
 		}
+	}
+}
+
+void BIF_deleteSketch()
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		sk_freeSketch(GLOBAL_sketch);
+		GLOBAL_sketch = NULL;
 	}
 }
 
