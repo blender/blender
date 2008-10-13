@@ -4371,7 +4371,7 @@ static void material_panel_material_volume(Material *ma)
 	yco -= YSPACE;
 			
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Shading",
+	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Self Shading",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
@@ -4388,7 +4388,10 @@ static void material_panel_material_volume(Material *ma)
 	}
 	uiBlockEndAlign(block);
 	
-		
+	/*uiDefButBitS(block, TOG, MA_VOL_RECVSHADOW, B_MATPRV, "Receive Shadows",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Receive shadows from external objects");
+	*/
+	
 	yco = PANEL_YMAX;
 	
 	uiBlockBeginAlign(block);

@@ -292,7 +292,8 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	float p;
 	float scatter_fac;
 	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
-			
+	float shadfac[4];
+	
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
 	if (lar->energy == 0.0) return;
@@ -324,7 +325,13 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		/* find minimum of volume bounds, or lamp coord */
 		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS, 0)) {
 			float dist = VecLenf(co, hitco);
+			VlakRen *vlr = (VlakRen *)is.face;
 			
+			if (vlr->mat->material_type == MA_SOLID) {
+				lacol[0] = lacol[1] = lacol[2] = 0.0f;
+				return;
+			}
+
 			if (ELEM(lar->type, LA_SUN, LA_HEMI))
 				atten_co = hitco;
 			else if ( lampdist < dist ) {
@@ -604,7 +611,7 @@ void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 
 void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is)
 {
-	float hitco[3], col[4] = {0.f,0.f,0.f,0.f};
+	float hitco[3];
 	float tr[3] = {1.0,1.0,1.0};
 	float tau[3] = {0.0,0.0,0.0};
 	Isect is;
@@ -631,7 +638,6 @@ void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
 	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH, 0)) {
-		float dist = VecLenf(shi->co, hitco);
 		
 		vol_get_attenuation(shi, tau, shi->co, hitco, -1.0f, shade_stepsize);
 		tr[0] = exp(-tau[0]);

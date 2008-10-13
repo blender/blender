@@ -356,7 +356,7 @@ typedef struct Material {
 /* vol_shadeflag */
 #define MA_VOL_SHADED		1
 #define MA_VOL_ATTENUATED	2
-#define MA_VOL_SHADOWED		4
+#define MA_VOL_RECVSHADOW	4
 
 /* vol_phasefunc_type */
 #define MA_VOL_PH_ISOTROPIC		0
