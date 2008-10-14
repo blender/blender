@@ -346,7 +346,7 @@ Section "Blender-VERSION (required)" SecCopyUI
   ${Locate} "$1" "/L=F /M=MSVCR90.DLL /S=0B" "LocateCallback_90"
   StrCmp $DLL_found "false" 0 +2
     Call DownloadDLL
-  ReadRegStr $0 HKLM "SOFTWARE\Python\PythonCore\2.5" "InstallPath"
+  ReadRegStr $0 HKLM SOFTWARE\Python\PythonCore\2.5\InstallPath ""
   StrCmp $0 "" 0 +2
     Call PythonInstall
 silentdone:
