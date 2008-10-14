@@ -1883,7 +1883,14 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		if (G.bone_sketching & 1)
+		{
+			BDR_drawSketchNames();
+		}
+		else
+		{
+			draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		}
 	}
 	else {
 		Base *base;

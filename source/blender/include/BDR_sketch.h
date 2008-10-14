@@ -25,5 +25,6 @@
 
 void BDR_queueDrawSketch();
 void BDR_drawSketch();
+void BDR_drawSketchNames();
 
 #endif /* BDR_SKETCH_H */

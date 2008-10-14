@@ -79,6 +79,7 @@ typedef struct SK_Stroke
 	SK_Point *points;
 	int nb_points;
 	int buf_size;
+	int selected;
 } SK_Stroke;
 
 #define SK_Stroke_BUFFER_INIT_SIZE 20
@@ -370,6 +371,7 @@ SK_Stroke* sk_createStroke()
 	
 	stk = MEM_callocN(sizeof(SK_Stroke), "SK_Stroke");
 	
+	stk->selected = 0;
 	stk->nb_points = 0;
 	stk->buf_size = SK_Stroke_BUFFER_INIT_SIZE;
 	
@@ -523,11 +525,23 @@ SK_Point *sk_lastStrokePoint(SK_Stroke *stk)
 	return pt;
 }
 
-void sk_drawStroke(SK_Stroke *stk)
+void sk_drawStroke(SK_Stroke *stk, int id)
 {
 	int i;
 	
-	glColor3f(1, 0.5, 0);
+	if (id != -1)
+	{
+		glLoadName(id);
+	}
+	
+	if (stk->selected)
+	{
+		glColor3f(1, 0, 0);
+	}
+	else
+	{
+		glColor3f(1, 0.5, 0);
+	}
 	glBegin(GL_LINE_STRIP);
 	
 	for (i = 0; i < stk->nb_points; i++)
@@ -810,7 +824,7 @@ void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 	peelObjects(&depth_peels, dd->mval);
 	
 	
-	if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
+	if (stk->nb_points > 0) // && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
 	{
 		last_pt = stk->points + (stk->nb_points - 1);
 	}
@@ -988,6 +1002,51 @@ void sk_convert(SK_Sketch *sketch)
 }
 /********************************************/
 
+void sk_selectStroke(SK_Sketch *sketch)
+{
+	SK_Stroke *stk = NULL;
+	unsigned int buffer[MAXPICKBUF];
+	short hits, mval[2];
+
+	persp(PERSP_VIEW);
+
+	getmouseco_areawin(mval);
+	hits = view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-5, mval[1]-5, mval[0]+5, mval[1]+5);
+	if(hits==0)
+		hits = view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-12, mval[1]-12, mval[0]+12, mval[1]+12);
+		
+	if (hits>0)
+	{
+		int besthitresult = -1;
+			
+		if(hits == 1) {
+			besthitresult = buffer[3];
+		}
+		else {
+			besthitresult = buffer[3];
+			/* loop and get best hit */
+		}
+		
+		if (besthitresult != -1)
+		{
+			SK_Stroke *selected_stk = BLI_findlink(&sketch->strokes, besthitresult);
+			
+			selected_stk->selected ^= 1;
+			
+			if ((G.qual & LR_SHIFTKEY) == 0)
+			{
+				for (stk = sketch->strokes.first; stk; stk = stk->next)
+				{
+					if (stk != selected_stk)
+					{
+						stk->selected = 0;
+					}
+				}
+			}
+		}
+	}
+}
+
 void sk_queueRedrawSketch(SK_Sketch *sketch)
 {
 	if (sketch->active_stroke != NULL)
@@ -1001,7 +1060,7 @@ void sk_queueRedrawSketch(SK_Sketch *sketch)
 	}
 }
 
-void sk_drawSketch(SK_Sketch *sketch)
+void sk_drawSketch(SK_Sketch *sketch, int with_names)
 {
 	SK_Stroke *stk;
 	
@@ -1009,10 +1068,21 @@ void sk_drawSketch(SK_Sketch *sketch)
 
 	glLineWidth(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
-
-	for (stk = sketch->strokes.first; stk; stk = stk->next)
+	
+	if (with_names)
 	{
-		sk_drawStroke(stk);
+		int id;
+		for (id = 0, stk = sketch->strokes.first; stk; id++, stk = stk->next)
+		{
+			sk_drawStroke(stk, id);
+		}
+	}
+	else
+	{
+		for (stk = sketch->strokes.first; stk; stk = stk->next)
+		{
+			sk_drawStroke(stk, -1);
+		}
 	}
 	
 	if (sketch->active_stroke != NULL)
@@ -1132,11 +1202,26 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			sk_endStroke(sketch);
 			allqueue(REDRAWVIEW3D, 0);
 		}
+		else
+		{
+			sk_selectStroke(sketch);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
 	
 	return retval;
 }
 
+void BDR_drawSketchNames()
+{
+	if (G.bone_sketching & 1)
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_drawSketch(GLOBAL_sketch, 1);
+		}
+	}
+}
 
 void BDR_drawSketch()
 {
@@ -1144,7 +1229,7 @@ void BDR_drawSketch()
 	{
 		if (GLOBAL_sketch != NULL)
 		{
-			sk_drawSketch(GLOBAL_sketch);
+			sk_drawSketch(GLOBAL_sketch, 0);
 		}
 	}
 }
