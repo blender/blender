@@ -1868,7 +1868,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			dosimplify= psys_render_simplify_params(psys, cpa, simplify);
 
-			if(path_nbr) {
+			if(path_nbr && psys->childcache) {
 				cache = psys->childcache[a-totpart];
 				max_k = (int)cache->steps;
 			}
