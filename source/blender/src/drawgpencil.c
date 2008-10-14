@@ -801,14 +801,15 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 			/* drawing method - only immediately surrounding (gstep = 0), or within a frame range on either side (gstep > 0)*/			
 			if (gpl->gstep) {
 				bGPDframe *gf;
-				short i;
+				float fac;
 				
 				/* draw previous frames first */
-				for (gf=gpf->prev, i=0; gf; gf=gf->prev, i++) {
+				for (gf=gpf->prev; gf; gf=gf->prev) {
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i/gpl->gstep);
+						fac= (float)(gpf->framenum - gf->framenum) / (float)gpl->gstep;
+						tcolor[3] = color[3] - fac;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
@@ -816,11 +817,12 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 				}
 				
 				/* now draw next frames */
-				for (gf= gpf->next, i=0; gf; gf=gf->next, i++) {
+				for (gf= gpf->next; gf; gf=gf->next) {
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i/gpl->gstep);
+						fac= (float)(gf->framenum - gpf->framenum) / (float)gpl->gstep;
+						tcolor[3] = color[3] - fac;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 

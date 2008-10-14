@@ -803,6 +803,14 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				agroup_to_keylist(agrp, &act_keys, NULL, NULL);
 			}
+			else if (ale->type == ACTTYPE_GPDATABLOCK) {
+				/* cleanup */
+				BLI_freelistN(&act_data);
+				
+				/* this channel currently doens't have any keyframes... must ignore! */
+				*ret_type= ACTTYPE_NONE;
+				return NULL;
+			}
 			else if (ale->type == ACTTYPE_GPLAYER) {
 				bGPDlayer *gpl= (bGPDlayer *)ale->data;
 				gpl_to_keylist(gpl, &act_keys, NULL, NULL);
