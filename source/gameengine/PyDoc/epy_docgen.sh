@@ -7,5 +7,5 @@
 # set posix locale so regex works properly for [A-Z]*.py
 LC_ALL=POSIX
 
-epydoc -v  -o BPY_GE --url "http://www.blender.org" --top GameLogic \
+epydoc --debug -v  -o BPY_GE --url "http://www.blender.org" --top GameLogic \
  --name "Blender GameEngine" --no-private --no-frames *.py 

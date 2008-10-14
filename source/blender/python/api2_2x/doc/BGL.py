@@ -146,11 +146,11 @@ def glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap):
 
   @type width, height: int
   @param width, height: Specify the pixel width and height of the bitmap image.
-  @type xorig,yorig: float
-  @param xorig,yorig: Specify the location of the origin in the bitmap image. The origin is measured
+  @type xorig, yorig: float
+  @param xorig, yorig: Specify the location of the origin in the bitmap image. The origin is measured
   from the lower left corner of the bitmap, with right and up being the positive axes.
-  @type xmove,ymove: float
-  @param xmove,ymove: Specify the x and y offsets to be added to the current raster position after 
+  @type xmove, ymove: float
+  @param xmove, ymove: Specify the x and y offsets to be added to the current raster position after 
   the bitmap is drawn. 
   @type bitmap: Buffer object I{type GL_BYTE}
   @param bitmap: Specifies the address of the bitmap image. 
@@ -207,8 +207,8 @@ def glClearAccum(red, green, blue, alpha):
   Specify clear values for the accumulation buffer
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/clearaccum.html}
 
-  @type red,green,blue,alpha: float
-  @param red,green,blue,alpha: Specify the red, green, blue, and alpha values used when the 
+  @type red, green, blue, alpha: float
+  @param red, green, blue, alpha: Specify the red, green, blue, and alpha values used when the 
   accumulation buffer is cleared. The initial values are all 0. 
   """
 
@@ -217,8 +217,8 @@ def glClearColor(red, green, blue, alpha):
   Specify clear values for the color buffers
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/clearcolor.html}
 
-  @type red,green,blue,alpha: float
-  @param red,green,blue,alpha: Specify the red, green, blue, and alpha values used when the 
+  @type red, green, blue, alpha: float
+  @param red, green, blue, alpha: Specify the red, green, blue, and alpha values used when the 
   color buffers are cleared. The initial values are all 0. 
   """
 
@@ -274,8 +274,8 @@ def glColor (red, green, blue, alpha):
   Set a new color.
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/color.html}
 
-  @type red,green,blue,alpha: Depends on function prototype. 
-  @param red,green,blue: Specify new red, green, and blue values for the current color. 
+  @type red, green, blue, alpha: Depends on function prototype. 
+  @param red, green, blue: Specify new red, green, and blue values for the current color. 
   @param alpha: Specifies a new alpha value for the current color. Included only in the 
   four-argument glColor4 commands. (With '4' colors only)
   """
@@ -285,8 +285,8 @@ def glColorMask(red, green, blue, alpha):
   Enable and disable writing of frame buffer color components
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/colormask.html}
 
-  @type red,green,blue,alpha: int (boolean)
-  @param red,green,blue,alpha: Specify whether red, green, blue, and alpha can or cannot be 
+  @type red, green, blue, alpha: int (boolean)
+  @param red, green, blue, alpha: Specify whether red, green, blue, and alpha can or cannot be 
   written into the frame buffer. The initial values are all GL_TRUE, indicating that the 
   color components can be written. 
   """
@@ -308,8 +308,8 @@ def glCopyPixels(x, y, width, height, type):
   Copy pixels in the frame buffer
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/copypixels.html}
 
-  @type x,y: int
-  @param x,y: Specify the window coordinates of the lower left corner of the rectangular 
+  @type x, y: int
+  @param x, y: Specify the window coordinates of the lower left corner of the rectangular 
   region of pixels to be copied. 
   @type width, height: int
   @param width,height: Specify the dimensions of the rectangular region of pixels to be copied. 
@@ -1079,7 +1079,7 @@ def glNormal3 (nx, ny, nz, v):
   @param nx, ny, nz: Specify the x, y, and z coordinates of the new current normal. 
   The initial value of the current normal is the unit vector, (0, 0, 1). 
   @type v: Buffer object. Depends on function prototype. ('v' prototypes)
-  @param v: Specifies a pointer to an array of three elements: the x,y, and z coordinates
+  @param v: Specifies a pointer to an array of three elements: the x, y, and z coordinates
   of the new current normal.
   """
   
@@ -1290,7 +1290,7 @@ def glRasterPos (x,y,z,w):
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/rasterpos.html}
 
   @type x, y, z, w: Depends on function prototype. (z and w for '3' and '4' prototypes only)
-  @param x,y,z,w: Specify the x,y,z, and w object coordinates (if present) for the 
+  @param x, y, z, w: Specify the x,y,z, and w object coordinates (if present) for the 
   raster position.  If function prototype ends in 'v' specifies a pointer to an array of two, 
   three, or four elements, specifying x, y, z, and w coordinates, respectively.
   @note:
@@ -1326,8 +1326,8 @@ def glReadPixels(x, y, width, height, format, type, pixels):
   Read a block of pixels from the frame buffer
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/readpixels.html}
   
-  @type x,y: int
-  @param x,y:Specify the window coordinates of the first pixel that is read 
+  @type x, y: int
+  @param x, y:Specify the window coordinates of the first pixel that is read 
   from the frame buffer. This location is the lower left corner of a rectangular
   block of pixels. 
   @type width, height: int
@@ -1375,8 +1375,8 @@ def glRotate (angle, x, y, z):
 
   @type angle:  Depends on function prototype.
   @param angle:  Specifies the angle of rotation in degrees.
-  @type x,y,z:  Depends on function prototype.
-  @param x,y,z:  Specify the x,y, and z coordinates of a vector respectively.
+  @type x, y, z:  Depends on function prototype.
+  @param x, y, z:  Specify the x, y, and z coordinates of a vector respectively.
   """
 
 def glScale (x,y,z):
@@ -1386,8 +1386,8 @@ def glScale (x,y,z):
   Multiply the current matrix by a general scaling matrix
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/scale.html}
 
-  @type x,y,z: Depends on function prototype.
-  @param x,y,z: Specify scale factors along the x,y, and z axes, respectively.
+  @type x, y, z: Depends on function prototype.
+  @param x, y, z: Specify scale factors along the x, y, and z axes, respectively.
   """
 
 def glScissor(x,y,width,height):
@@ -1395,8 +1395,8 @@ def glScissor(x,y,width,height):
   Define the scissor box
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/scissor.html}
  
-  @type x,y: int
-  @param x,y: Specify the lower left corner of the scissor box. Initially (0, 0). 
+  @type x, y: int
+  @param x, y: Specify the lower left corner of the scissor box. Initially (0, 0). 
   @type width, height: int
   @param width height: Specify the width and height of the scissor box. When a 
   GL context is first attached to a window, width and height are set to the 
@@ -1480,8 +1480,8 @@ def glTexCoord (s,t,r,q,v):
   Set the current texture coordinates
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/texcoord.html}
   
-  @type s,t,r,q: Depends on function prototype. (r and q for '3' and '4' prototypes only)
-  @param s,t,r,q: Specify s, t, r, and q texture coordinates. Not all parameters are 
+  @type s, t, r, q: Depends on function prototype. (r and q for '3' and '4' prototypes only)
+  @param s, t, r, q: Specify s, t, r, and q texture coordinates. Not all parameters are 
   present in all forms of the command. 
   @type v: Buffer object. Depends on function prototype. (for 'v' prototypes only)
   @param v: Specifies a pointer to an array of one, two, three, or four elements, 
@@ -1604,8 +1604,8 @@ def glTranslate (x, y, z):
   Multiply the current matrix by a translation matrix
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/translate.html}
 
-  @type x,y,z: Depends on function prototype.
-  @param x,y,z: Specify the x, y, and z coordinates of a translation vector. 
+  @type x, y, z: Depends on function prototype.
+  @param x, y, z: Specify the x, y, and z coordinates of a translation vector. 
   """
 
 def glVertex (x,y,z,w,v):
@@ -1618,8 +1618,8 @@ def glVertex (x,y,z,w,v):
   Specify a vertex
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/vertex.html}
   
-  @type x,y,z,w: Depends on function prototype (z and w for '3' and '4' prototypes only)
-  @param x,y,z,w: Specify x, y, z, and w coordinates of a vertex. Not all parameters 
+  @type x, y, z, w: Depends on function prototype (z and w for '3' and '4' prototypes only)
+  @param x, y, z, w: Specify x, y, z, and w coordinates of a vertex. Not all parameters 
   are present in all forms of the command. 
   @type v: Buffer object. Depends of function prototype (for 'v' prototypes only)
   @param v: Specifies a pointer to an array of two, three, or four elements. The 
@@ -1632,11 +1632,11 @@ def glViewport(x,y,width,height):
   Set the viewport
   @see: U{www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/viewport.html}
 
-  @type x,y: int
-  @param x,y: Specify the lower left corner of the viewport rectangle, 
+  @type x, y: int
+  @param x, y: Specify the lower left corner of the viewport rectangle, 
   in pixels. The initial value is (0,0). 
-  @type width,height: int
-  @param width,height: Specify the width and height of the viewport. When a GL context 
+  @type width, height: int
+  @param width, height: Specify the width and height of the viewport. When a GL context 
   is first attached to a window, width and height are set to the dimensions of that window. 
   """
 

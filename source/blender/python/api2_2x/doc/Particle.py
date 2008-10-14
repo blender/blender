@@ -131,8 +131,7 @@ class Particle:
 		Get the particles locations.
 		A list of tuple is returned in particle mode.
 		A list of list of tuple is returned in hair mode.
-		The tuple is a vector of 3 or 4 floats in world space (x,y,z,
-optionally the particle's id).
+		The tuple is a vector of 3 or 4 floats in world space (x,y,z, optionally the particle's id).
 		@type all: int
 		@param all: if not 0 export all particles (uninitialized (unborn or died)particles exported as None).
 		@type id: int
