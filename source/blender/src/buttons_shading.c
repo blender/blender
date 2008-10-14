@@ -2750,6 +2750,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 					uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,90,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
 					uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
 					uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
+					uiBlockEndAlign(block);
 				} else if (la->ray_samp_method == LA_SAMP_HALTON) {
 					uiDefButF(block, NUM,0,"Threshold:",	100,90,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
 				}
