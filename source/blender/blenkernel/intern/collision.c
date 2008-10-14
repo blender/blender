@@ -1320,6 +1320,8 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 		{
 			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
 		}
+		else
+			collmd = NULL;
 		
 		if ( collmd )
 		{	
@@ -1358,6 +1360,8 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 					{
 						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
 					}
+					else
+						collmd = NULL;
 
 					if ( !collmd )
 						continue;
