@@ -529,6 +529,13 @@ static void actdata_filter_gpencil (ListBase *act_data, bScreen *sc, int filter_
 	/* check if filtering types are appropriate */
 	if ( !(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU|ACTFILTER_ACTGROUPED)) ) 
 	{
+		/* special hack for fullscreen area (which must be this one then),
+		 * so we use the curarea->full as screen to get spaces from, since the
+		 * old (pre-fullscreen) screen was stored there...
+		 */
+		if ((curarea->full) && (curarea->spacetype==SPACE_ACTION))
+			sc= curarea->full;
+		
 		/* loop over spaces in current screen, finding gpd blocks (could be slow!) */
 		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			/* try to get gp data */
