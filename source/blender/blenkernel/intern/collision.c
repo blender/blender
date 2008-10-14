@@ -1313,16 +1313,16 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 		
 		coll_ob = base->object;
 		
+		if(coll_ob == self)
+				continue;
+		
 		if(coll_ob->pd && coll_ob->pd->deflect)
 		{
 			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
 		}
 		
 		if ( collmd )
-		{
-			if(coll_ob == self)
-				continue;
-			
+		{	
 			if(numobj >= maxobj)
 			{
 				// realloc
@@ -1351,15 +1351,15 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 					coll_ob = go->ob;
 					collmd = NULL;
 					
+					if(coll_ob == self)
+						continue;
+					
 					if(coll_ob->pd && coll_ob->pd->deflect)
 					{
 						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
 					}
 
 					if ( !collmd )
-						continue;
-
-					if(coll_ob == self)
 						continue;
 					
 					if( !collmd->bvhtree)
