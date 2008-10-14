@@ -2300,7 +2300,7 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiBlockBeginAlign(block);
 		
 		/* use real flag instead of 1 */
-		uiDefButBitI(block, TOG, 1, B_REDR, "Use Bone Sketching", 10, 225, 150, 20, &G.bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, 225, 150, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
 		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,205,150,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
 		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
 		but = uiDefBut(block, BUT, B_REDR, "Delete", 10,185,150,20, 0, 0, 0, 0, 0, "Delete sketch");

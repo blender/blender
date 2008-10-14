@@ -151,9 +151,6 @@ typedef struct Global {
 	
 	/* confusing... G.f and G.flags */
 	int flags;
-	
-	int bone_sketching; /* regroup with edbo into an EditArmature struct */
-
 } Global;
 
 /* **************** GLOBAL ********************* */

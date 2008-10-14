@@ -1899,7 +1899,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_LATTICE)
 							deselectall_Latt();
 						else if(G.obedit->type==OB_ARMATURE)
-							deselectall_armature(1, 1);	/* 1 == toggle */
+						{
+							if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING)
+							{
+								BIF_selectAllSketch(1);
+							}
+							else
+							{
+								deselectall_armature(1, 1);	/* 1 == toggle */
+							}
+						}
 					}
 					else if (ob && (ob->flag & OB_POSEMODE)){
 						deselectall_posearmature(ob, 1, 1);

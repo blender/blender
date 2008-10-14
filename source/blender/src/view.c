@@ -83,6 +83,7 @@
 #include "BDR_drawobject.h"	/* For draw_object */
 #include "BDR_editface.h"	/* For minmax_tface */
 #include "BDR_sculptmode.h"
+#include "BDR_sketch.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1883,7 +1884,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		if (G.bone_sketching & 1)
+		if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING)
 		{
 			BDR_drawSketchNames();
 		}

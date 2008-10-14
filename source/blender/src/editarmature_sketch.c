@@ -48,6 +48,7 @@
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
 #include "BIF_editarmature.h"
+#include "BIF_sketch.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -99,6 +100,8 @@ typedef struct SK_Sketch
 
 SK_Sketch *GLOBAL_sketch = NULL;
 SK_Point boneSnap;
+
+#define SNAP_MIN_DISTANCE 12
 
 /******************** PROTOTYPES ******************************/
 
@@ -762,12 +765,17 @@ void sk_interpolateDepth(SK_Stroke *stk, int start, int end, float length, float
 	}
 }
 
-void sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
+int sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
 {
 	SK_Point pt;
 	float distance;
 	float length;
 	int i, total;
+	
+	if (snap_pt == NULL)
+	{
+		return 0;
+	}
 	
 	pt.type = PT_EXACT;
 	pt.mode = PT_SNAP;
@@ -797,9 +805,11 @@ void sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
 	}
 
 	VECCOPY(stk->points[stk->nb_points - 1].p, snap_pt->p);
+	
+	return 1;
 }
 
-void sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
+int sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
 {
 	SK_Point pt;
 	
@@ -809,15 +819,18 @@ void sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
 	sk_projectPaintData(stk, dd, pt.p);
 
 	sk_appendStrokePoint(stk, &pt);
+	
+	return 1;
 }
 
-void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
+int sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 {
 	ListBase depth_peels;
 	SK_DepthPeel *p1, *p2;
 	SK_Point *last_pt = NULL;
 	float dist = FLT_MAX;
 	float p[3];
+	int point_added = 0;
 	
 	depth_peels.first = depth_peels.last = NULL;
 	
@@ -874,11 +887,7 @@ void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 		}
 	}
 	
-	if (dist == FLT_MAX)
-	{
-		sk_addStrokeDrawPoint(stk, dd);
-	}
-	else
+	if (dist != FLT_MAX)
 	{
 		SK_Point pt;
 		float length, distance;
@@ -912,9 +921,13 @@ void sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 		}
 		
 		VECCOPY(stk->points[stk->nb_points - 1].p, p);
+		
+		point_added = 1;
 	}
 	
 	BLI_freelistN(&depth_peels);
+	
+	return point_added;
 }
 
 void sk_endContinuousStroke(SK_Stroke *stk)
@@ -995,16 +1008,68 @@ void sk_convert(SK_Sketch *sketch)
 	
 	for (stk = sketch->strokes.first; stk; stk = stk->next)
 	{
-		sk_convertStroke(stk);
+		if (stk->selected == 1)
+		{
+			sk_convertStroke(stk);
+		}
 	}
-	
-	BLI_freelistN(&sketch->strokes);
 }
 /********************************************/
 
-void sk_selectStroke(SK_Sketch *sketch)
+void sk_deleteStrokes(SK_Sketch *sketch)
+{
+	SK_Stroke *stk, *next;
+	
+	for (stk = sketch->strokes.first; stk; stk = next)
+	{
+		next = stk->next;
+		
+		if (stk->selected == 1)
+		{
+			BLI_remlink(&sketch->strokes, stk);
+			sk_freeStroke(stk);
+		}
+	}
+}
+
+void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 {
 	SK_Stroke *stk = NULL;
+	
+	if (mode == -1)
+	{
+		for (stk = sketch->strokes.first; stk; stk = stk->next)
+		{
+			stk->selected = 0;
+		}
+	}
+	else if (mode == 0)
+	{
+		for (stk = sketch->strokes.first; stk; stk = stk->next)
+		{
+			stk->selected = 1;
+		}
+	}
+	else if (mode == 1)
+	{
+		int selected = 1;
+		
+		for (stk = sketch->strokes.first; stk; stk = stk->next)
+		{
+			selected &= stk->selected;
+		}
+		
+		selected ^= 1;
+
+		for (stk = sketch->strokes.first; stk; stk = stk->next)
+		{
+			stk->selected = selected;
+		}
+	}
+}
+
+void sk_selectStroke(SK_Sketch *sketch)
+{
 	unsigned int buffer[MAXPICKBUF];
 	short hits, mval[2];
 
@@ -1031,18 +1096,18 @@ void sk_selectStroke(SK_Sketch *sketch)
 		{
 			SK_Stroke *selected_stk = BLI_findlink(&sketch->strokes, besthitresult);
 			
-			selected_stk->selected ^= 1;
-			
 			if ((G.qual & LR_SHIFTKEY) == 0)
 			{
-				for (stk = sketch->strokes.first; stk; stk = stk->next)
-				{
-					if (stk != selected_stk)
-					{
-						stk->selected = 0;
-					}
-				}
+				sk_selectAllSketch(sketch, -1);
+				
+				selected_stk->selected = 1;
 			}
+			else
+			{
+				selected_stk->selected ^= 1;
+			}
+			
+			
 		}
 	}
 }
@@ -1110,7 +1175,7 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 			
 			if (G.qual & LR_CTRLKEY)
 			{
-				SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, 30);
+				SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, SNAP_MIN_DISTANCE);
 				
 				if (snap_pt != NULL)
 				{
@@ -1152,26 +1217,22 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			
 			/* only add current point to buffer if mouse moved (otherwise wait until it does) */
 			if (sk_stroke_filtermval(&dd)) {
+				int point_added = 0;
+				
 				if (G.qual & LR_CTRLKEY)
 				{
-					SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, 30);
-					
-					if (snap_pt != NULL)
-					{
-						sk_addStrokeSnapPoint(sketch->active_stroke, &dd, snap_pt);
-					}
-					else
-					{
-						sk_addStrokeDrawPoint(sketch->active_stroke, &dd);
-					}
+					SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, SNAP_MIN_DISTANCE);
+					point_added = sk_addStrokeSnapPoint(sketch->active_stroke, &dd, snap_pt);
 				}
-				else if (G.qual & LR_SHIFTKEY)
+				
+				if (point_added == 0 && G.qual & LR_SHIFTKEY)
 				{
-					sk_addStrokeEmbedPoint(sketch->active_stroke, &dd);
+					point_added = sk_addStrokeEmbedPoint(sketch->active_stroke, &dd);
 				}
-				else
+				
+				if (point_added == 0)
 				{
-					sk_addStrokeDrawPoint(sketch->active_stroke, &dd);
+					point_added = sk_addStrokeDrawPoint(sketch->active_stroke, &dd);
 				}
 				
 				sk_updateDrawData(&dd);
@@ -1214,7 +1275,7 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 
 void BDR_drawSketchNames()
 {
-	if (G.bone_sketching & 1)
+	if (BIF_validSketchMode())
 	{
 		if (GLOBAL_sketch != NULL)
 		{
@@ -1225,7 +1286,7 @@ void BDR_drawSketchNames()
 
 void BDR_drawSketch()
 {
-	if (G.bone_sketching & 1)
+	if (BIF_validSketchMode())
 	{
 		if (GLOBAL_sketch != NULL)
 		{
@@ -1236,16 +1297,15 @@ void BDR_drawSketch()
 
 void BIF_deleteSketch()
 {
-	if (GLOBAL_sketch != NULL)
+	if (BIF_validSketchMode())
 	{
-		sk_freeSketch(GLOBAL_sketch);
-		GLOBAL_sketch = NULL;
+		sk_deleteStrokes(GLOBAL_sketch);
 	}
 }
 
 void BIF_convertSketch()
 {
-	if (G.bone_sketching & 1)
+	if (BIF_validSketchMode())
 	{
 		if (GLOBAL_sketch != NULL)
 		{
@@ -1256,7 +1316,7 @@ void BIF_convertSketch()
 
 int BIF_paintSketch(short mbut)
 {
-	if (G.bone_sketching & 1)
+	if (BIF_validSketchMode())
 	{
 		if (GLOBAL_sketch == NULL)
 		{
@@ -1273,11 +1333,37 @@ int BIF_paintSketch(short mbut)
 
 void BDR_queueDrawSketch()
 {
-	if (G.bone_sketching & 1)
+	if (BIF_validSketchMode())
 	{
 		if (GLOBAL_sketch != NULL)
 		{
 			sk_queueRedrawSketch(GLOBAL_sketch);
 		}
+	}
+}
+
+void BIF_selectAllSketch(int mode)
+{
+	if (BIF_validSketchMode())
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_selectAllSketch(GLOBAL_sketch, mode);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+}
+
+int BIF_validSketchMode()
+{
+	if (G.obedit && 
+		G.obedit->type == OB_ARMATURE && 
+		G.scene->toolsettings->bone_sketching & BONE_SKETCHING)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
 	}
 }

@@ -438,9 +438,12 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	
+	/* Skeleton Sketching */
+	char bone_sketching;
+	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[4];
+	char pad3[3];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -853,6 +856,9 @@ typedef struct Scene {
 #define SKGEN_SMOOTH			0
 #define SKGEN_AVERAGE			1
 #define SKGEN_SHARPEN			2
+
+/* toolsettings->bone_sketching */
+#define BONE_SKETCHING		1
 
 #ifdef __cplusplus
 }
