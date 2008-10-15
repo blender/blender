@@ -2305,6 +2305,16 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
 		but = uiDefBut(block, BUT, B_REDR, "Delete", 10,185,150,20, 0, 0, 0, 0, 0, "Delete sketch");
 		uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
+		
+		uiBlockEndAlign(block);
+
+		uiBlockBeginAlign(block);
+
+		uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Length",		10, 155, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,				"Subdivide arcs in bones of equal length");
+		uiDefButF(block, NUM, B_DIFF, 							"L:",			70, 155, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+
+		uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	10, 135, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
+		uiDefButF(block, NUM, B_DIFF, 							"T:",			70, 135, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
 	
 		uiBlockEndAlign(block);
 		
