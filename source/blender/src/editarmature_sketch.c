@@ -536,37 +536,58 @@ void sk_drawStroke(SK_Stroke *stk, int id)
 	if (id != -1)
 	{
 		glLoadName(id);
-	}
-	
-	if (stk->selected)
-	{
-		glColor3f(1, 0, 0);
-	}
-	else
-	{
-		glColor3f(1, 0.5, 0);
-	}
-	glBegin(GL_LINE_STRIP);
-	
-	for (i = 0; i < stk->nb_points; i++)
-	{
-		glVertex3fv(stk->points[i].p);
-	}
-	
-	glEnd();
-	
-	glColor3f(0, 0, 0);
-	glBegin(GL_POINTS);
-
-	for (i = 0; i < stk->nb_points; i++)
-	{
-		if (stk->points[i].type == PT_EXACT)
+		
+		glBegin(GL_LINE_STRIP);
+		
+		for (i = 0; i < stk->nb_points; i++)
 		{
 			glVertex3fv(stk->points[i].p);
 		}
+		
+		glEnd();
+		
 	}
+	else
+	{
+		float r, g, b;
+		
+		if (stk->selected)
+		{
+			r = 1;
+			g = 0;
+			b = 0;
+		}
+		else
+		{
+			r = 1;
+			g = 0.5;
+			b = 0;
+		}
+		
+		glBegin(GL_LINE_STRIP);
 
-	glEnd();
+		for (i = 0; i < stk->nb_points; i++)
+		{
+			float f = (float)i / (float)stk->nb_points;
+			glColor3f(r + (1 - r) * f, g + (1 - g) * f, b + (1 - b) * f);
+			glVertex3fv(stk->points[i].p);
+		}
+		
+		glEnd();
+	
+		glColor3f(0, 0, 0);
+		glBegin(GL_POINTS);
+	
+		for (i = 0; i < stk->nb_points; i++)
+		{
+			if (stk->points[i].type == PT_EXACT)
+			{
+				glVertex3fv(stk->points[i].p);
+			}
+		}
+		
+		glEnd();
+	}
 
 //	glColor3f(1, 1, 1);
 //	glBegin(GL_POINTS);
