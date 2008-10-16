@@ -214,7 +214,8 @@ KX_GameObject* KX_GameObject::GetParent()
 
 void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 {
-	if (obj && GetSGNode()->GetSGParent() != obj->GetSGNode())
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (obj && GetSGNode() && obj->GetSGNode() && GetSGNode()->GetSGParent() != obj->GetSGNode())
 	{
 		// Make sure the objects have some scale
 		MT_Vector3 scale1 = NodeGetWorldScaling();
@@ -256,7 +257,8 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 
 void KX_GameObject::RemoveParent(KX_Scene *scene)
 {
-	if (GetSGNode()->GetSGParent())
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (GetSGNode() && GetSGNode()->GetSGParent())
 	{
 		// Set us to the right spot 
 		GetSGNode()->SetLocalScale(GetSGNode()->GetWorldScaling());
@@ -642,6 +644,10 @@ void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 	MT_Vector3 vect,ori,z,x,y;
 	MT_Scalar len;
 
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return;
+
 	vect = dir;
 	len = vect.length();
 	if (MT_fuzzyZero(len))
@@ -785,7 +791,11 @@ MT_Vector3 KX_GameObject::GetVelocity(const MT_Point3& point)
 
 void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 {
-	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return;
+
+	if (m_pPhysicsController1 && !GetSGNode()->GetSGParent())
 	{
 		// don't update physic controller if the object is a child:
 		// 1) the transformation will not be right
@@ -794,35 +804,39 @@ void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 		m_pPhysicsController1->setPosition(trans);
 	}
 
-	if (GetSGNode())
-		GetSGNode()->SetLocalPosition(trans);
+	GetSGNode()->SetLocalPosition(trans);
 }
 
 
 
 void KX_GameObject::NodeSetLocalOrientation(const MT_Matrix3x3& rot)
 {
-	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return;
+
+	if (m_pPhysicsController1 && !GetSGNode()->GetSGParent())
 	{
 		// see note above
 		m_pPhysicsController1->setOrientation(rot);
 	}
-	if (GetSGNode())
-		GetSGNode()->SetLocalOrientation(rot);
+	GetSGNode()->SetLocalOrientation(rot);
 }
 
 
 
 void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 {
-	if (m_pPhysicsController1 && (!GetSGNode() || !GetSGNode()->GetSGParent()))
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return;
+
+	if (m_pPhysicsController1 && !GetSGNode()->GetSGParent())
 	{
 		// see note above
 		m_pPhysicsController1->setScaling(scale);
 	}
-	
-	if (GetSGNode())
-		GetSGNode()->SetLocalScale(scale);
+	GetSGNode()->SetLocalScale(scale);
 }
 
 
@@ -880,6 +894,13 @@ void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)
 
 const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 {
+	static MT_Matrix3x3 defaultOrientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
+															0.0, 1.0, 0.0,
+															0.0, 0.0, 1.0);
+
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return defaultOrientation;
 	return GetSGNode()->GetWorldOrientation();
 }
 
@@ -887,6 +908,12 @@ const MT_Matrix3x3& KX_GameObject::NodeGetWorldOrientation() const
 
 const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 {
+	static MT_Vector3 defaultScaling = MT_Vector3(1.0, 1.0, 1.0);
+
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return defaultScaling;
+
 	return GetSGNode()->GetWorldScaling();
 }
 
@@ -894,6 +921,12 @@ const MT_Vector3& KX_GameObject::NodeGetWorldScaling() const
 
 const MT_Point3& KX_GameObject::NodeGetWorldPosition() const
 {
+	static MT_Point3 defaultPosition = MT_Point3(0.0, 0.0, 0.0);
+
+	// check on valid node in case a python controller holds a reference to a deleted object
+	if (!GetSGNode())
+		return defaultPosition;
+
 	return GetSGNode()->GetWorldPosition();
 }
 

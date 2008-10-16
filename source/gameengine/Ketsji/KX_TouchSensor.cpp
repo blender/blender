@@ -55,7 +55,15 @@ void KX_TouchSensor::SynchronizeTransform()
 
 void KX_TouchSensor::EndFrame() {
 	m_colliders->ReleaseAndRemoveAll();
+	m_hitObject = NULL;
 	m_bTriggered = false;
+}
+
+void KX_TouchSensor::UnregisterToManager()
+{
+	// before unregistering the sensor, make sure we release all references
+	EndFrame();
+	m_eventmgr->RemoveSensor(this);
 }
 
 bool KX_TouchSensor::Evaluate(CValue* event)
