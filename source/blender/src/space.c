@@ -2945,7 +2945,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 
 			case ESCKEY:
-				if(G.qual==0) {
+				if (G.qual == 0 && BIF_validSketchMode())
+				{
+					BIF_endStrokeSketch();
+				}
+				else if(G.qual==0) {
 					if (G.vd->flag & V3D_DISPIMAGE) {
 						G.vd->flag &= ~V3D_DISPIMAGE;
 						doredraw= 1;

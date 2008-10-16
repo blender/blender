@@ -97,6 +97,7 @@ typedef struct SK_Sketch
 {
 	ListBase	strokes;
 	SK_Stroke	*active_stroke;
+	SK_Stroke	*gesture;
 } SK_Sketch;
 
 SK_Sketch *GLOBAL_sketch = NULL;
@@ -351,6 +352,7 @@ SK_Sketch* sk_createSketch()
 	sketch = MEM_callocN(sizeof(SK_Sketch), "SK_Sketch");
 	
 	sketch->active_stroke = NULL;
+	sketch->gesture = NULL;
 
 	sketch->strokes.first = NULL;
 	sketch->strokes.last = NULL;
@@ -529,7 +531,7 @@ SK_Point *sk_lastStrokePoint(SK_Stroke *stk)
 	return pt;
 }
 
-void sk_drawStroke(SK_Stroke *stk, int id)
+void sk_drawStroke(SK_Stroke *stk, int id, float rgb[3])
 {
 	int i;
 	
@@ -549,28 +551,18 @@ void sk_drawStroke(SK_Stroke *stk, int id)
 	}
 	else
 	{
-		float r, g, b;
+		float d_rgb[3] = {1, 1, 1};
 		
-		if (stk->selected)
-		{
-			r = 1;
-			g = 0;
-			b = 0;
-		}
-		else
-		{
-			r = 1;
-			g = 0.5;
-			b = 0;
-		}
+		VecSubf(d_rgb, d_rgb, rgb);
+		VecMulf(d_rgb, 1.0f / (float)stk->nb_points);
 		
 		glBegin(GL_LINE_STRIP);
 
 		for (i = 0; i < stk->nb_points; i++)
 		{
-			float f = (float)i / (float)stk->nb_points;
-			glColor3f(r + (1 - r) * f, g + (1 - g) * f, b + (1 - b) * f);
+			glColor3fv(rgb);
 			glVertex3fv(stk->points[i].p);
+			VecAddf(rgb, rgb, d_rgb);
 		}
 		
 		glEnd();
@@ -1377,15 +1369,24 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		int id;
 		for (id = 0, stk = sketch->strokes.first; stk; id++, stk = stk->next)
 		{
-			sk_drawStroke(stk, id);
+			sk_drawStroke(stk, id, NULL);
 		}
 	}
 	else
 	{
+		float selected_rgb[3] = {1, 0, 0};
+		float unselected_rgb[3] = {1, 0.5, 0};
+		
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
 		{
-			sk_drawStroke(stk, -1);
+			sk_drawStroke(stk, -1, (stk->selected==1?selected_rgb:unselected_rgb));
 		}
+	}
+	
+	if (sketch->gesture != NULL)
+	{
+		float gesture_rgb[3] = {0, 0.5, 1};
+		sk_drawStroke(sketch->gesture, -1, gesture_rgb);
 	}
 	
 	if (sketch->active_stroke != NULL)
@@ -1489,7 +1490,7 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			/* do mouse checking at the end, so don't check twice, and potentially
 			 * miss a short tap 
 			 */
-		} while (get_mbut() & LEFTMOUSE);
+		} while (get_mbut() & L_MOUSE);
 		
 		sk_endContinuousStroke(sketch->active_stroke);
 		sk_filterLastContinuousStroke(sketch->active_stroke);
@@ -1503,7 +1504,75 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 		}
 		else
 		{
-			sk_selectStroke(sketch);
+			SK_DrawData dd;
+			sketch->gesture = sk_createStroke();
+	
+			sk_initDrawData(&dd);
+			
+			/* paint loop */
+			do {
+				/* get current user input */
+				getmouseco_areawin(dd.mval);
+				
+				/* only add current point to buffer if mouse moved (otherwise wait until it does) */
+				if (sk_stroke_filtermval(&dd)) {
+					int point_added = 0;
+					
+					if (G.qual & LR_CTRLKEY)
+					{
+						SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, SNAP_MIN_DISTANCE);
+						point_added = sk_addStrokeSnapPoint(sketch->gesture, &dd, snap_pt);
+					}
+					
+					if (point_added == 0 && G.qual & LR_SHIFTKEY)
+					{
+						point_added = sk_addStrokeEmbedPoint(sketch->gesture, &dd);
+					}
+					
+					if (point_added == 0)
+					{
+						point_added = sk_addStrokeDrawPoint(sketch->gesture, &dd);
+					}
+					
+					sk_updateDrawData(&dd);
+					
+					/* draw only if mouse has moved */
+					if (sketch->gesture->nb_points > 1)
+					{
+						force_draw(0);
+					}
+				}
+				else
+				{
+					BIF_wait_for_statechange();
+				}
+				
+				while( qtest() ) {
+					short event, val;
+					event = extern_qread(&val);
+				}
+				
+				/* do mouse checking at the end, so don't check twice, and potentially
+				 * miss a short tap 
+				 */
+			} while (get_mbut() & R_MOUSE);
+			
+			sk_endContinuousStroke(sketch->gesture);
+			sk_filterLastContinuousStroke(sketch->gesture);
+	
+			if (sketch->gesture->nb_points == 1)		
+			{
+				sk_selectStroke(sketch);
+			}
+			else
+			{
+				/* apply gesture here */
+				printf("FOO!\n");
+			}
+	
+			sk_freeStroke(sketch->gesture);
+			sketch->gesture = NULL;
+			
 			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
@@ -1533,11 +1602,26 @@ void BDR_drawSketch()
 	}
 }
 
+void BIF_endStrokeSketch()
+{
+	if (BIF_validSketchMode())
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_endStroke(GLOBAL_sketch);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+}
+
 void BIF_deleteSketch()
 {
 	if (BIF_validSketchMode())
 	{
-		sk_deleteStrokes(GLOBAL_sketch);
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_deleteStrokes(GLOBAL_sketch);
+		}
 	}
 }
 

@@ -24,6 +24,7 @@
 #define BIF_SKETCH_H
 
 int BIF_paintSketch(short mbut);
+void BIF_endStrokeSketch();
 void BIF_convertSketch();
 void BIF_deleteSketch();
 void BIF_selectAllSketch(int mode); /* -1: deselect, 0: select, 1: toggle */
