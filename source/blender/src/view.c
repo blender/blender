@@ -1004,7 +1004,6 @@ void viewmove(int mode)
 				/* are we translating, rotating or zooming? */
 				if(mode==0) {
 					if(G.vd->view!=0) scrarea_queue_headredraw(curarea);	/*for button */
-					G.vd->view= 0;
 				}
 				if(G.vd->persp==V3D_CAMOB && mode!=1 && G.vd->camera) {
 					G.vd->persp= V3D_PERSP;
@@ -1014,6 +1013,8 @@ void viewmove(int mode)
 			}
 
 			if(mode==0) {	/* view rotate */
+				G.vd->view= 0; /* need to reset everytime because of view snapping */
+		
 				if (U.uiflag & USER_AUTOPERSP) G.vd->persp= V3D_PERSP;
 
 				if (U.flag & USER_TRACKBALL) mvalball[0]= mval[0];
