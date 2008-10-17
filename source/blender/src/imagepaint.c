@@ -95,11 +95,10 @@
 
 /* Defines and Structs */
 
-#define IMAPAINT_FLOAT_TO_CHAR(f) ((char)(f*255))
 #define IMAPAINT_CHAR_TO_FLOAT(c) (c/255.0f)
 
-#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f) { c[0]=IMAPAINT_FLOAT_TO_CHAR(f[0]); \
-	c[1]=IMAPAINT_FLOAT_TO_CHAR(f[1]); c[2]=IMAPAINT_FLOAT_TO_CHAR(f[2]); }
+#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f) { c[0]=FTOCHAR(f[0]); \
+	c[1]=FTOCHAR(f[1]); c[2]=FTOCHAR(f[2]); }
 #define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c) { f[0]=IMAPAINT_CHAR_TO_FLOAT(c[0]); \
 	f[1]=IMAPAINT_CHAR_TO_FLOAT(c[1]); f[2]=IMAPAINT_CHAR_TO_FLOAT(c[2]); }
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) VECCOPY(a, b)
