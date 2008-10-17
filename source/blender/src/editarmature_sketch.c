@@ -93,6 +93,15 @@ typedef struct SK_DrawData
 	SK_PType type;
 } SK_DrawData;
 
+typedef struct SK_Intersection
+{
+	struct SK_Intersection *next, *prev;
+	SK_Stroke *stroke;
+	int			start;
+	int			end;
+	float		p[3];
+} SK_Intersection;
+
 typedef struct SK_Sketch
 {
 	ListBase	strokes;
@@ -417,6 +426,19 @@ void sk_growStrokeBuffer(SK_Stroke *stk)
 		
 		MEM_freeN(old_points);
 	}
+}
+
+void sk_insertStrokePoint(SK_Stroke *stk, SK_Point *pt, int n)
+{
+	int size = stk->nb_points - n;
+	
+	sk_growStrokeBuffer(stk);
+	
+	memmove(stk->points + n + 1, stk->points + n, size * sizeof(SK_Point));
+	
+	memcpy(stk->points + n, pt, sizeof(SK_Point));
+	
+	stk->nb_points++;
 }
 
 void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
@@ -1329,6 +1351,98 @@ void sk_convert(SK_Sketch *sketch)
 		}
 	}
 }
+/******************* GESTURE *************************/
+
+/* returns the maximum number of intersections per stroke */
+int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
+{
+	SK_Stroke *stk;
+	int added = 0;
+
+	for (stk = sketch->strokes.first; stk; stk = stk->next)
+	{
+		int s_added = 0;
+		int s_i;
+		
+		for (s_i = 0; s_i < stk->nb_points - 1; s_i++)
+		{
+			float s_p1[3] = {0, 0, 0};
+			float s_p2[3] = {0, 0, 0};
+			int g_i;
+			
+			project_float(stk->points[s_i].p, s_p1);
+			project_float(stk->points[s_i + 1].p, s_p2);
+
+			for (g_i = 0; g_i < gesture->nb_points - 1; g_i++)
+			{
+				float g_p1[3] = {0, 0, 0};
+				float g_p2[3] = {0, 0, 0};
+				float vi[3];
+				float lambda;
+				
+				project_float(gesture->points[g_i].p, g_p1);
+				project_float(gesture->points[g_i + 1].p, g_p2);
+				
+				if (LineIntersectLineStrict(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
+				{
+					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
+					
+					isect->start = s_i;
+					isect->end = s_i + 1;
+					isect->stroke = stk;
+
+					VecSubf(isect->p, stk->points[s_i + 1].p, stk->points[s_i].p);
+					VecMulf(isect->p, lambda);
+					VecAddf(isect->p, isect->p, stk->points[s_i].p);
+					
+					BLI_addtail(list, isect);
+
+					s_added++;
+				}
+			}
+		}
+		
+		added = MAX2(s_added, added);
+	}
+	
+	
+	return added;
+}
+
+void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list)
+{
+	SK_Intersection *isect;
+	
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		SK_Point pt;
+		
+		pt.type = PT_EXACT;
+		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
+		VECCOPY(pt.p, isect->p);
+		
+		sk_insertStrokePoint(isect->stroke, &pt, isect->end);
+	}
+}
+
+void sk_applyGesture(SK_Sketch *sketch)
+{
+	ListBase list;
+	int added;
+	
+	list.first = list.last = NULL;
+	
+	added = sk_getIntersections(&list, sketch, sketch->gesture);
+	
+	/* detect and apply */
+	if (added == 1)
+	{
+		sk_applyCutGesture(sketch, sketch->gesture, &list);
+	}
+	
+	BLI_freelistN(&list);
+}
+
 /********************************************/
 
 void sk_deleteStrokes(SK_Sketch *sketch)
@@ -1354,7 +1468,7 @@ void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 	if (mode == -1)
 	{
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
-		{
+		{sk_applyGesture(sketch);
 			stk->selected = 0;
 		}
 	}
@@ -1468,7 +1582,8 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		}
 	}
 	
-	if (sketch->gesture != NULL)
+	/* only draw gesture in active area */
+	if (sketch->gesture != NULL && area_is_active_area(G.vd->area))
 	{
 		float gesture_rgb[3] = {0, 0.5, 1};
 		sk_drawStroke(sketch->gesture, -1, gesture_rgb);
@@ -1480,6 +1595,7 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		
 		if (last != NULL)
 		{
+			/* update point if in active area */
 			if (area_is_active_area(G.vd->area))
 			{
 				SK_DrawData dd;
@@ -1619,6 +1735,8 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			
 			sk_endContinuousStroke(sketch->gesture);
 			sk_filterLastContinuousStroke(sketch->gesture);
+			sk_filterLastContinuousStroke(sketch->gesture);
+			sk_filterLastContinuousStroke(sketch->gesture);
 	
 			if (sketch->gesture->nb_points == 1)		
 			{
@@ -1627,6 +1745,7 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			else
 			{
 				/* apply gesture here */
+				sk_applyGesture(sketch);
 				printf("FOO!\n");
 			}
 	

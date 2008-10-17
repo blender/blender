@@ -4221,6 +4221,67 @@ int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float 
 	}
 } 
 
+/* Intersection point strictly between the two lines
+ * 0 when no intersection is found 
+ * */
+int LineIntersectLineStrict(float v1[3], float v2[3], float v3[3], float v4[3], float vi[3], float *lambda)
+{
+	float a[3], b[3], c[3], ab[3], cb[3], ca[3], dir1[3], dir2[3];
+	float d;
+	float d1;
+	
+	VecSubf(c, v3, v1);
+	VecSubf(a, v2, v1);
+	VecSubf(b, v4, v3);
+
+	VecCopyf(dir1, a);
+	Normalize(dir1);
+	VecCopyf(dir2, b);
+	Normalize(dir2);
+	d = Inpf(dir1, dir2);
+	if (d == 1.0f || d == -1.0f || d == 0) {
+		/* colinear or one vector is zero-length*/
+		return 0;
+	}
+	
+	d1 = d;
+
+	Crossf(ab, a, b);
+	d = Inpf(c, ab);
+
+	/* test if the two lines are coplanar */
+	if (d > -0.000001f && d < 0.000001f) {
+		float f1, f2;
+		Crossf(cb, c, b);
+		Crossf(ca, c, a);
+
+		f1 = Inpf(cb, ab) / Inpf(ab, ab);
+		f2 = Inpf(ca, ab) / Inpf(ab, ab);
+		
+		if (f1 >= 0 && f1 <= 1 &&
+			f2 >= 0 && f2 <= 1)
+		{
+			VecMulf(a, f1);
+			VecAddf(vi, v1, a);
+			
+			if (lambda != NULL)
+			{
+				*lambda = f1;
+			}
+			
+			return 1; /* intersection found */
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+} 
+
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3])
 {
 	return (min1[0]<max2[0] && min1[1]<max2[1] && min1[2]<max2[2] &&
