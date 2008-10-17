@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <float.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
@@ -44,6 +46,7 @@
 #include "DNA_lamp_types.h"
 
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "render_types.h"
 #include "pixelshading.h"
@@ -166,7 +169,6 @@ float vol_get_density(struct ShadeInput *shi, float *co)
 	return density * density_scale;
 }
 
-
 /* compute emission component, amount of radiance to add per segment
  * can be textured with 'emit' */
 void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
@@ -182,14 +184,16 @@ void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
 	VecMulVecf(em, em, col);
 }
 
+/* scattering multiplier, values above 1.0 are non-physical, 
+ * but can be useful to tweak lighting */
 void vol_get_scattering_fac(ShadeInput *shi, float *scatter_fac, float *co, float density)
 {
-	//float col[3] = {0.0, 0.0, 0.0};
-	//do_volume_tex(shi, co, MAP_EMIT+MAP_COL, col, &emission);
-	
 	*scatter_fac = shi->mat->vol_scattering;
 }
 
+/* phase function - determines in which directions the light 
+ * is scattered in the volume relative to incoming direction 
+ * and view direction */
 float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w, float *wp)
 {
 	const float costheta = Inpf(w, wp);
@@ -235,7 +239,7 @@ void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 
 /* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
  * Used in the relationship Transmittance = e^(-attenuation)
- * can be textured with 'alpha' */
+ */
 void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, float density, float stepsize)
 {
 	/* input density = density at co */
@@ -249,6 +253,7 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 	dist = VecLenf(co, endco);
 	nsteps = (int)ceil(dist / stepsize);
 	
+	/* trigger for recalculating density */
 	if (density < -0.001f) density = vol_get_density(shi, co);
 	
 	if (nsteps == 1) {
@@ -327,6 +332,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 			float dist = VecLenf(co, hitco);
 			VlakRen *vlr = (VlakRen *)is.face;
 			
+			/* simple internal shadowing */
 			if (vlr->mat->material_type == MA_SOLID) {
 				lacol[0] = lacol[1] = lacol[2] = 0.0f;
 				return;
@@ -347,9 +353,9 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 			VecMulVecf(lacol, lacol, tr);
 		}
 		else {
-			/* point is on the outside edge of the volume,
-			 * therefore no attenuation, full transmission
-			 * radiance from lamp remains unchanged */
+			/* Point is on the outside edge of the volume,
+			 * therefore no attenuation, full transmission.
+			 * Radiance from lamp remains unchanged */
 		}
 	}
 	
@@ -357,13 +363,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	VecMulf(lacol, scatter_fac);
 	
 }
-
-/* shadows -> trace a ray to find blocker geometry
-   - if blocker is outside the volume, use standard shadow functions
-   - if blocker is inside the volume, use raytracing
-    -- (deep shadow maps could potentially slot in here too I suppose)
-   - attenuate from current point, to blocked point or volume bounds
-*/
 
 /* single scattering only for now */
 void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsize, float density)
@@ -382,7 +381,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 		if (lar==NULL) continue;
 		
 		vol_shade_one_lamp(shi, co, lar, lacol, stepsize, density);
-			
+		
 		VecMulf(lacol, density);
 		
 		VecAddf(col, col, lacol);
@@ -425,7 +424,28 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	
 	/* get radiance from all points along the ray due to participating media */
 	for (s = 0; s < nsteps; s++) {
-		if (s > 0) density = vol_get_density(shi, step_sta);
+
+		if (shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) {
+			int res = 10;
+			int x,y,z;
+			
+			step_mid[0] = step_sta[0] + (stepvec[0] * 0.5);
+			step_mid[1] = step_sta[1] + (stepvec[1] * 0.5);
+			step_mid[2] = step_sta[2] + (stepvec[2] * 0.5);
+			
+			//CLAMP(step_mid[0], 0.0f, 1.0f);
+			//CLAMP(step_mid[1], 0.0f, 1.0f);
+			//CLAMP(step_mid[2], 0.0f, 1.0f);
+			
+			MTC_Mat4MulVecfl(R.viewinv, step_mid);
+			
+			x = (int)step_mid[0] * res;
+			y = (int)step_mid[1] * res;
+			z = (int)step_mid[2] * res;
+			
+			density = shi->obi->volume_precache[x*res + y*res + z*res];
+		}
+		else if (s > 0) density = vol_get_density(shi, step_sta);
 		
 		/* there's only any use in shading here
 		 * if there's actually some density to shade! */
@@ -661,3 +681,75 @@ void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 
 }
 
+void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *ma)
+{
+	int x, y, z;
+	int res = 10;
+	float co[3];
+	ShadeInput shi;
+	int foundma=0;
+	float density;
+	float resf;
+	int i;
+	
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	shi.depth= 1;
+	shi.mask= 1;
+	shi.mat = ma;
+	shi.vlr = NULL;
+	memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	shi.har= shi.mat->har;
+
+	shi.obi= obi;
+	shi.obr= obi->obr;
+
+	resf = (float) res;
+	
+	obi->volume_precache = MEM_mallocN(sizeof(float)*res*res*res, "volume light cache");
+	
+	for (x=0; x < res; x++) {
+		co[0] = (float)x / resf;
+		
+		for (y=0; y < res; y++) {
+			co[1] = (float)y / resf;
+			
+			for (z=0; z < res; z++) {
+				co[2] = (float)z / resf;
+				
+				density = vol_get_density(&shi, co);
+			
+				obi->volume_precache[x*res + y*res + z*res] = density;
+				
+				printf("vol_light_cache[%d][%d][%d] = %f \n", x, y, z, obi->volume_precache[x*res + y*res + z*res]); 
+			}
+		}
+	}
+}
+
+void volume_precache(Render *re)
+{
+	ObjectInstanceRen *obi;
+	VolPrecache *vp;
+	
+	printf("Precaching %d volumes... \n", BLI_countlist(&re->vol_precache_obs));
+	
+	for(vp= re->vol_precache_obs.first; vp; vp= vp->next) {
+		for(obi= re->instancetable.first; obi; obi= obi->next) {
+			if (obi->obr == vp->obr)
+				printf("precaching object: %s with material: %s \n", vp->obr->ob->id.name+2, vp->ma->id.name+2);
+				vol_precache_objectinstance(re, obi, vp->ma);
+		}
+	}
+}
+
+void free_volume_precache(Render *re)
+{
+	ObjectInstanceRen *obi;
+	
+	for(obi= re->instancetable.first; obi; obi= obi->next) {
+		if (obi->volume_precache)
+			MEM_freeN(obi->volume_precache);
+	}
+	
+	BLI_freelistN(&re->vol_precache_obs);
+}

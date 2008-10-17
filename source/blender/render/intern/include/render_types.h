@@ -201,6 +201,8 @@ struct Render
 	ListBase customdata_names;
 
 	struct Object *excludeob;
+	
+	ListBase vol_precache_obs;
 
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
@@ -285,6 +287,8 @@ typedef struct ObjectInstanceRen {
 
 	float dupliorco[3], dupliuv[2];
 	float (*duplitexmat)[4];
+	
+	float *volume_precache;
 
 	float *vectors;
 	int totvector;
@@ -396,6 +400,16 @@ typedef struct StrandRen {
 	float orco[3];
 } StrandRen;
 
+/* ------------------------------------------------------------------------- */
+
+typedef struct VolPrecache
+{
+	struct VolPrecache *next, *prev;
+	struct Material *ma;
+	struct ObjectRen *obr;
+} VolPrecache;
+
+/* ------------------------------------------------------------------------- */
 
 struct LampRen;
 struct MTex;

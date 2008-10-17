@@ -3026,6 +3026,18 @@ static void use_mesh_edge_lookup(ObjectRen *obr, DerivedMesh *dm, MEdge *medge, 
 	}
 }
 
+static void add_vol_precache(Render *re, ObjectRen *obr, Material *ma)
+{
+	struct VolPrecache *vp;
+	
+	vp = MEM_mallocN(sizeof(VolPrecache), "volume precache object");
+	
+	vp->ma = ma;
+	vp->obr = obr;
+	
+	BLI_addtail(&re->vol_precache_obs, vp);
+}
+
 static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
@@ -3080,6 +3092,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			if(re->r.mode & R_RADIO)
 				if(ma->mode & MA_RADIO) 
 					do_autosmooth= 1;
+			
+			if (ma->vol_shadeflag & MA_VOL_PRECACHESHADING) {
+				add_vol_precache(re, obr, ma);
+			}
 		}
 	}
 
@@ -4436,6 +4452,7 @@ void RE_Database_Free(Render *re)
 	end_render_materials();
 	
 	free_pointdensities(re);
+	free_volume_precache(re);
 	
 	if(re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
@@ -4891,6 +4908,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			/* point density texture */
 			if(!re->test_break())
 				make_pointdensities(re);
+				
+			if(!re->test_break())
+				volume_precache(re);
 		}
 		
 		if(!re->test_break())

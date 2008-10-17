@@ -4375,6 +4375,8 @@ static void material_panel_material_volume(Material *ma)
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
+	uiDefButBitS(block, TOG, MA_VOL_PRECACHESHADING, B_MATPRV, "Precache",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "precache");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;

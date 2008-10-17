@@ -1323,6 +1323,7 @@ ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, 
 	obi->index= index;
 	obi->psysindex= psysindex;
 	obi->lay= lay;
+	obi->volume_precache = NULL;
 
 	if(mat) {
 		Mat4CpyMat4(obi->mat, mat);

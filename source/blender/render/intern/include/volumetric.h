@@ -28,3 +28,5 @@
 
 void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr);
 void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is);
+void volume_precache(Render *re);
+void free_volume_precache(Render *re);
