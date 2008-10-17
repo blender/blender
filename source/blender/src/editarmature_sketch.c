@@ -60,7 +60,7 @@ typedef enum SK_PType
 	PT_EXACT,
 } SK_PType;
 
-typedef enum Method
+typedef enum SK_PMode
 {
 	PT_EMBED,
 	PT_SNAP,
@@ -98,6 +98,7 @@ typedef struct SK_Sketch
 	ListBase	strokes;
 	SK_Stroke	*active_stroke;
 	SK_Stroke	*gesture;
+	SK_Point	next_point;
 } SK_Sketch;
 
 SK_Sketch *GLOBAL_sketch = NULL;
@@ -531,8 +532,9 @@ SK_Point *sk_lastStrokePoint(SK_Stroke *stk)
 	return pt;
 }
 
-void sk_drawStroke(SK_Stroke *stk, int id, float rgb[3])
+void sk_drawStroke(SK_Stroke *stk, int id, float color[3])
 {
+	float rgb[3];
 	int i;
 	
 	if (id != -1)
@@ -553,6 +555,7 @@ void sk_drawStroke(SK_Stroke *stk, int id, float rgb[3])
 	{
 		float d_rgb[3] = {1, 1, 1};
 		
+		VECCOPY(rgb, color);
 		VecSubf(d_rgb, d_rgb, rgb);
 		VecMulf(d_rgb, 1.0f / (float)stk->nb_points);
 		
@@ -664,35 +667,6 @@ SK_Point *sk_snapPointArmature(ListBase *ebones, short mval[2], int *dist)
 	return pt;
 }
 
-SK_Point *sk_snapPoint(SK_Sketch *sketch, short mval[2], int min_dist)
-{
-	SK_Point *pt = NULL;
-	SK_Stroke *stk;
-	int dist = min_dist;
-	
-	for (stk = sketch->strokes.first; stk; stk = stk->next)
-	{
-		SK_Point *spt = sk_snapPointStroke(stk, mval, &dist);
-		
-		if (spt != NULL)
-		{
-			pt = spt;
-		}
-	}
-	
-	/* check on bones */
-	{
-		SK_Point *spt = sk_snapPointArmature(&G.edbo, mval, &dist);
-		
-		if (spt != NULL)
-		{
-			pt = spt;
-		}
-	}
-	
-	return pt;
-}
-
 void sk_startStroke(SK_Sketch *sketch)
 {
 	SK_Stroke *stk = sk_createStroke();
@@ -705,28 +679,6 @@ void sk_endStroke(SK_Sketch *sketch)
 {
 	sk_shrinkStrokeBuffer(sketch->active_stroke);
 	sketch->active_stroke = NULL;
-}
-
-void sk_projectPaintData(SK_Stroke *stk, SK_DrawData *dd, float vec[3])
-{
-	/* copied from grease pencil, need fixing */	
-	SK_Point *last = sk_lastStrokePoint(stk);
-	short cval[2];
-	//float *fp = give_cursor();
-	float fp[3] = {0, 0, 0};
-	float dvec[3];
-	
-	if (last != NULL)
-	{
-		VECCOPY(fp, last->p);
-	}
-	
-	initgrabz(fp[0], fp[1], fp[2]);
-	
-	/* method taken from editview.c - mouse_cursor() */
-	project_short_noclip(fp, cval);
-	window_to_3d(dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
-	VecSubf(vec, fp, dvec);
 }
 
 void sk_updateDrawData(SK_DrawData *dd)
@@ -779,65 +731,132 @@ void sk_interpolateDepth(SK_Stroke *stk, int start, int end, float length, float
 	}
 }
 
-int sk_addStrokeSnapPoint(SK_Stroke *stk, SK_DrawData *dd, SK_Point *snap_pt)
+void sk_projectDrawPoint(float vec[3], SK_Stroke *stk, SK_DrawData *dd)
 {
-	SK_Point pt;
-	float distance;
-	float length;
-	int i, total;
+	/* copied from grease pencil, need fixing */	
+	SK_Point *last = sk_lastStrokePoint(stk);
+	short cval[2];
+	//float *fp = give_cursor();
+	float fp[3] = {0, 0, 0};
+	float dvec[3];
 	
-	if (snap_pt == NULL)
+	if (last != NULL)
 	{
-		return 0;
+		VECCOPY(fp, last->p);
 	}
 	
-	pt.type = PT_EXACT;
-	pt.mode = PT_SNAP;
+	initgrabz(fp[0], fp[1], fp[2]);
 	
-	sk_projectPaintData(stk, dd, pt.p);
+	/* method taken from editview.c - mouse_cursor() */
+	project_short_noclip(fp, cval);
+	window_to_3d(dvec, cval[0] - dd->mval[0], cval[1] - dd->mval[1]);
+	VecSubf(vec, fp, dvec);
+}
+
+int sk_getStrokeDrawPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+{
+	pt->type = dd->type;
+	pt->mode = PT_PROJECT;
+	sk_projectDrawPoint(pt->p, stk, dd);
+	
+	return 1;
+}
+
+int sk_addStrokeDrawPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+{
+	SK_Point pt;
+	
+	sk_getStrokeDrawPoint(&pt, sketch, stk, dd);
 
 	sk_appendStrokePoint(stk, &pt);
 	
-	/* update all previous point to give smooth Z progresion */
-	total = 0;
-	length = 0;
-	for (i = stk->nb_points - 2; i > 0; i--)
+	return 1;
+}
+
+
+int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *source_stk, SK_DrawData *dd)
+{
+	SK_Stroke *stk;
+	int dist = SNAP_MIN_DISTANCE;
+	int point_added = 0;
+	
+	for (stk = sketch->strokes.first; stk; stk = stk->next)
 	{
-		length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
-		total++;
-		if (stk->points[i].type == PT_EXACT)
+		SK_Point *spt = sk_snapPointStroke(stk, dd->mval, &dist);
+		
+		if (spt != NULL)
 		{
-			break;
+			VECCOPY(pt->p, spt->p);
+			point_added = 1;
 		}
 	}
 	
-	if (total > 1)
+	/* check on bones */
 	{
-		distance = sk_distanceDepth(snap_pt->p, stk->points[i].p);
+		SK_Point *spt = sk_snapPointArmature(&G.edbo, dd->mval, &dist);
 		
-		sk_interpolateDepth(stk, i + 1, stk->nb_points - 2, length, distance);
+		if (spt != NULL)
+		{
+			VECCOPY(pt->p, spt->p);
+			point_added = 1;
+		}
 	}
-
-	VECCOPY(stk->points[stk->nb_points - 1].p, snap_pt->p);
 	
-	return 1;
+	if (point_added)
+	{
+		pt->type = PT_EXACT;
+		pt->mode = PT_SNAP;
+	}
+	
+	return point_added;
 }
 
-int sk_addStrokeDrawPoint(SK_Stroke *stk, SK_DrawData *dd)
+int sk_addStrokeSnapPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	SK_Point pt;
+	int point_added = 0;
 	
-	pt.type = dd->type;
-	pt.mode = PT_PROJECT;
+	point_added = sk_getStrokeSnapPoint(&pt, sketch, stk, dd);
 
-	sk_projectPaintData(stk, dd, pt.p);
+	if (point_added)
+	{
+		float final_p[3];
+		float distance;
+		float length;
+		int i, total;
+		
+		VECCOPY(final_p, pt.p);
 
-	sk_appendStrokePoint(stk, &pt);
+		sk_projectDrawPoint(pt.p, stk, dd);
+		sk_appendStrokePoint(stk, &pt);
+		
+		/* update all previous point to give smooth Z progresion */
+		total = 0;
+		length = 0;
+		for (i = stk->nb_points - 2; i > 0; i--)
+		{
+			length += VecLenf(stk->points[i].p, stk->points[i + 1].p);
+			total++;
+			if (stk->points[i].type == PT_EXACT)
+			{
+				break;
+			}
+		}
+		
+		if (total > 1)
+		{
+			distance = sk_distanceDepth(final_p, stk->points[i].p);
+			
+			sk_interpolateDepth(stk, i + 1, stk->nb_points - 2, length, distance);
+		}
 	
-	return 1;
+		VECCOPY(stk->points[stk->nb_points - 1].p, final_p);
+	}
+	
+	return point_added;
 }
 
-int sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
+int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	ListBase depth_peels;
 	SK_DepthPeel *p1, *p2;
@@ -849,7 +868,6 @@ int sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 	depth_peels.first = depth_peels.last = NULL;
 	
 	peelObjects(&depth_peels, dd->mval);
-	
 	
 	if (stk->nb_points > 0 && stk->points[stk->nb_points - 1].type == PT_CONTINUOUS)
 	{
@@ -903,15 +921,35 @@ int sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 	
 	if (dist != FLT_MAX)
 	{
-		SK_Point pt;
+		pt->type = dd->type;
+		pt->mode = PT_EMBED;
+		VECCOPY(pt->p, p);
+		
+		point_added = 1;
+	}
+	
+	BLI_freelistN(&depth_peels);
+	
+	return point_added;
+}
+
+int sk_addStrokeEmbedPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+{
+	SK_Point pt;
+	int point_added;
+	
+	point_added = sk_getStrokeEmbedPoint(&pt, sketch, stk, dd);
+	
+	if (point_added)
+	{
+		float final_p[3];
 		float length, distance;
 		int total;
 		int i;
 		
-		pt.type = dd->type;
-		pt.mode = PT_EMBED;
+		VECCOPY(final_p, pt.p);
 		
-		sk_projectPaintData(stk, dd, pt.p);
+		sk_projectDrawPoint(pt.p, stk, dd);
 		sk_appendStrokePoint(stk, &pt);
 		
 		/* update all previous point to give smooth Z progresion */
@@ -929,24 +967,71 @@ int sk_addStrokeEmbedPoint(SK_Stroke *stk, SK_DrawData *dd)
 		
 		if (total > 1)
 		{
-			distance = sk_distanceDepth(p, stk->points[i].p);
+			distance = sk_distanceDepth(final_p, stk->points[i].p);
 			
 			sk_interpolateDepth(stk, i + 1, stk->nb_points - 2, length, distance);
 		}
 		
-		VECCOPY(stk->points[stk->nb_points - 1].p, p);
+		VECCOPY(stk->points[stk->nb_points - 1].p, final_p);
 		
 		point_added = 1;
 	}
 	
-	BLI_freelistN(&depth_peels);
-	
 	return point_added;
+}
+
+void sk_addStrokePoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short qual)
+{
+	int point_added = 0;
+	
+	if (qual & LR_CTRLKEY)
+	{
+		point_added = sk_addStrokeSnapPoint(sketch, stk, dd);
+	}
+	
+	if (point_added == 0 && qual & LR_SHIFTKEY)
+	{
+		point_added = sk_addStrokeEmbedPoint(sketch, stk, dd);
+	}
+	
+	if (point_added == 0)
+	{
+		point_added = sk_addStrokeDrawPoint(sketch, stk, dd);
+	}	
+}
+
+void sk_getStrokePoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short qual)
+{
+	int point_added = 0;
+	
+	if (qual & LR_CTRLKEY)
+	{
+		point_added = sk_getStrokeSnapPoint(pt, sketch, stk, dd);
+	}
+	
+	if (point_added == 0 && qual & LR_SHIFTKEY)
+	{
+		point_added = sk_getStrokeEmbedPoint(pt, sketch, stk, dd);
+	}
+	
+	if (point_added == 0)
+	{
+		point_added = sk_getStrokeDrawPoint(pt, sketch, stk, dd);
+	}	
 }
 
 void sk_endContinuousStroke(SK_Stroke *stk)
 {
 	stk->points[stk->nb_points - 1].type = PT_EXACT;
+}
+
+void sk_updateNextPoint(SK_Sketch *sketch)
+{
+	if (sketch->active_stroke)
+	{
+		SK_Stroke *stk = sketch->active_stroke;
+		memcpy(&sketch->next_point, stk->points[stk->nb_points - 1].p, sizeof(SK_Point));
+	}
 }
 
 int sk_stroke_filtermval(SK_DrawData *dd)
@@ -1046,10 +1131,10 @@ EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, floa
 			if (calcStrokeCorrelation(stk, boneStart, i, parent->head, n) < CORRELATION_THRESHOLD)
 			{
 				VECCOPY(parent->tail, stk->points[i - 1].p);
+				Mat4MulVecfl(invmat, parent->tail);
 
 				child = addEditBone("Bone", &G.edbo, arm);
 				VECCOPY(child->head, parent->tail);
-				Mat4MulVecfl(invmat, parent->tail);
 				child->parent = parent;
 				child->flag |= BONE_CONNECTED;
 				
@@ -1395,37 +1480,43 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		
 		if (last != NULL)
 		{
-			SK_DrawData dd;
-			float vec[3];
-			
-			sk_initDrawData(&dd);
-			sk_projectPaintData(sketch->active_stroke, &dd, vec);
+			if (area_is_active_area(G.vd->area))
+			{
+				SK_DrawData dd;
+				
+				sk_initDrawData(&dd);
+				sk_getStrokePoint(&sketch->next_point, sketch, sketch->active_stroke, &dd, G.qual);
+			}
 			
 			glEnable(GL_LINE_STIPPLE);
 			glColor3f(1, 0.5, 0);
 			glBegin(GL_LINE_STRIP);
 			
 				glVertex3fv(last->p);
-				glVertex3fv(vec);
+				glVertex3fv(sketch->next_point.p);
 			
 			glEnd();
 			
 			glDisable(GL_LINE_STIPPLE);
-			
-			if (G.qual & LR_CTRLKEY)
+
+			switch (sketch->next_point.mode)
 			{
-				SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, SNAP_MIN_DISTANCE);
-				
-				if (snap_pt != NULL)
-				{
+				case PT_SNAP:
 					glColor3f(0, 0.5, 1);
-					glBegin(GL_POINTS);
-					
-						glVertex3fv(snap_pt->p);
-					
-					glEnd();
-				}
+					break;
+				case PT_EMBED:
+					glColor3f(0, 1, 0);
+					break;
+				case PT_PROJECT:
+					glColor3f(0, 0, 0);
+					break;
 			}
+			
+			glBegin(GL_POINTS);
+			
+				glVertex3fv(sketch->next_point.p);
+			
+			glEnd();
 		}
 	}
 	
@@ -1456,24 +1547,8 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			
 			/* only add current point to buffer if mouse moved (otherwise wait until it does) */
 			if (sk_stroke_filtermval(&dd)) {
-				int point_added = 0;
-				
-				if (G.qual & LR_CTRLKEY)
-				{
-					SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, SNAP_MIN_DISTANCE);
-					point_added = sk_addStrokeSnapPoint(sketch->active_stroke, &dd, snap_pt);
-				}
-				
-				if (point_added == 0 && G.qual & LR_SHIFTKEY)
-				{
-					point_added = sk_addStrokeEmbedPoint(sketch->active_stroke, &dd);
-				}
-				
-				if (point_added == 0)
-				{
-					point_added = sk_addStrokeDrawPoint(sketch->active_stroke, &dd);
-				}
-				
+
+				sk_addStrokePoint(sketch, sketch->active_stroke, &dd, G.qual);
 				sk_updateDrawData(&dd);
 				force_draw(0);
 			}
@@ -1494,6 +1569,7 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 		
 		sk_endContinuousStroke(sketch->active_stroke);
 		sk_filterLastContinuousStroke(sketch->active_stroke);
+		sk_updateNextPoint(sketch);
 	}
 	else if (mbut == RIGHTMOUSE)
 	{
@@ -1516,24 +1592,8 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 				
 				/* only add current point to buffer if mouse moved (otherwise wait until it does) */
 				if (sk_stroke_filtermval(&dd)) {
-					int point_added = 0;
-					
-					if (G.qual & LR_CTRLKEY)
-					{
-						SK_Point *snap_pt = sk_snapPoint(sketch, dd.mval, SNAP_MIN_DISTANCE);
-						point_added = sk_addStrokeSnapPoint(sketch->gesture, &dd, snap_pt);
-					}
-					
-					if (point_added == 0 && G.qual & LR_SHIFTKEY)
-					{
-						point_added = sk_addStrokeEmbedPoint(sketch->gesture, &dd);
-					}
-					
-					if (point_added == 0)
-					{
-						point_added = sk_addStrokeDrawPoint(sketch->gesture, &dd);
-					}
-					
+
+					sk_addStrokeDrawPoint(sketch, sketch->gesture, &dd);
 					sk_updateDrawData(&dd);
 					
 					/* draw only if mouse has moved */
@@ -1652,6 +1712,7 @@ int BIF_paintSketch(short mbut)
 		return 0;
 	}
 }
+	
 
 void BDR_queueDrawSketch()
 {
