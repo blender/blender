@@ -1535,6 +1535,43 @@ void sk_applyTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, 
 	}
 }
 
+int sk_detectDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	float s1[3], s2[3];
+	float angle;
+	
+	VecSubf(s1, segments->points[1].p, segments->points[0].p);
+	VecSubf(s2, segments->points[2].p, segments->points[1].p);
+	
+	angle = VecAngle2(s1, s2);
+	
+	if (angle > 120)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void sk_applyDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	SK_Intersection *isect;
+	
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		/* only delete strokes that are crossed twice */
+		if (isect->next && isect->next->stroke == isect->stroke)
+		{
+			isect = isect->next;
+			
+			BLI_remlink(&sketch->strokes, isect->stroke);
+			sk_freeStroke(isect->stroke);
+		}
+	}
+}
+
 void sk_applyGesture(SK_Sketch *sketch)
 {
 	ListBase intersections;
@@ -1554,6 +1591,10 @@ void sk_applyGesture(SK_Sketch *sketch)
 	else if (nb_segments == 2 && nb_intersections == 1 && sk_detectTrimGesture(sketch, sketch->gesture, &intersections, segments))
 	{
 		sk_applyTrimGesture(sketch, sketch->gesture, &intersections, segments);
+	}
+	else if (nb_segments == 2 && nb_intersections == 2 && sk_detectDeleteGesture(sketch, sketch->gesture, &intersections, segments))
+	{
+		sk_applyDeleteGesture(sketch, sketch->gesture, &intersections, segments);
 	}
 	
 	sk_freeStroke(segments);
