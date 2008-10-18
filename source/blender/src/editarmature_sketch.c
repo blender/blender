@@ -428,6 +428,11 @@ void sk_growStrokeBuffer(SK_Stroke *stk)
 	}
 }
 
+void sk_replaceStrokePoint(SK_Stroke *stk, SK_Point *pt, int n)
+{
+	memcpy(stk->points + n, pt, sizeof(SK_Point));
+}
+
 void sk_insertStrokePoint(SK_Stroke *stk, SK_Point *pt, int n)
 {
 	int size = stk->nb_points - n;
@@ -448,6 +453,18 @@ void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
 	memcpy(stk->points + stk->nb_points, pt, sizeof(SK_Point));
 	
 	stk->nb_points++;
+}
+
+void sk_trimStroke(SK_Stroke *stk, int start, int end)
+{
+	int size = end - start + 1;
+	
+	if (start > 0)
+	{
+		memmove(stk->points, stk->points + start, size * sizeof(SK_Point));
+	}
+	
+	stk->nb_points = size;
 }
 
 /* Apply reverse Chaikin filter to simplify the polyline
@@ -1386,14 +1403,23 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 				if (LineIntersectLineStrict(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
 				{
 					SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
+					float ray_start[3], ray_end[3];
+					short mval[2];
 					
 					isect->start = s_i;
 					isect->end = s_i + 1;
 					isect->stroke = stk;
-
-					VecSubf(isect->p, stk->points[s_i + 1].p, stk->points[s_i].p);
-					VecMulf(isect->p, lambda);
-					VecAddf(isect->p, isect->p, stk->points[s_i].p);
+					
+					mval[0] = (short)(vi[0]);
+					mval[1] = (short)(vi[1]);
+					viewline(mval, ray_start, ray_end);
+					
+					LineIntersectLine(	stk->points[s_i].p,
+										stk->points[s_i + 1].p,
+										ray_start,
+										ray_end,
+										isect->p,
+										vi);
 					
 					BLI_addtail(list, isect);
 
@@ -1409,7 +1435,37 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 	return added;
 }
 
-void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list)
+int sk_getSegments(SK_Stroke *segments, SK_Stroke *gesture)
+{
+	float CORRELATION_THRESHOLD = 0.995f;
+	float *vec;
+	int i, j;
+	
+	sk_appendStrokePoint(segments, &gesture->points[0]);
+	vec = segments->points[segments->nb_points - 1].p;
+
+	for (i = 1, j = 0; i < gesture->nb_points; i++)
+	{ 
+		float n[3];
+		
+		/* Calculate normal */
+		VecSubf(n, gesture->points[i].p, vec);
+		
+		if (calcStrokeCorrelation(gesture, j, i, vec, n) < CORRELATION_THRESHOLD)
+		{
+			j = i - 1;
+			sk_appendStrokePoint(segments, &gesture->points[j]);
+			vec = segments->points[segments->nb_points - 1].p;
+			segments->points[segments->nb_points - 1].type = PT_EXACT;
+		}
+	}
+
+	sk_appendStrokePoint(segments, &gesture->points[gesture->nb_points - 1]);
+	
+	return segments->nb_points - 1;
+}
+
+void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
 {
 	SK_Intersection *isect;
 	
@@ -1425,22 +1481,83 @@ void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list)
 	}
 }
 
+int sk_detectTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	float s1[3], s2[3];
+	float angle;
+	
+	VecSubf(s1, segments->points[1].p, segments->points[0].p);
+	VecSubf(s2, segments->points[2].p, segments->points[1].p);
+	
+	angle = VecAngle2(s1, s2);
+	
+	if (angle > 60 && angle < 120)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void sk_applyTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	SK_Intersection *isect;
+	float trim_dir[3];
+	
+	VecSubf(trim_dir, segments->points[2].p, segments->points[1].p);
+	
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		SK_Point pt;
+		float stroke_dir[3];
+		
+		pt.type = PT_EXACT;
+		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
+		VECCOPY(pt.p, isect->p);
+		
+		VecSubf(stroke_dir, isect->stroke->points[isect->end].p, isect->stroke->points[isect->start].p);
+		
+		/* same direction, trim end */
+		if (Inpf(stroke_dir, trim_dir) > 0)
+		{
+			sk_replaceStrokePoint(isect->stroke, &pt, isect->end);
+			sk_trimStroke(isect->stroke, 0, isect->end);
+		}
+		/* else, trim start */
+		else
+		{
+			sk_replaceStrokePoint(isect->stroke, &pt, isect->start);
+			sk_trimStroke(isect->stroke, isect->start, isect->stroke->nb_points - 1);
+		}
+	
+	}
+}
+
 void sk_applyGesture(SK_Sketch *sketch)
 {
-	ListBase list;
-	int added;
+	ListBase intersections;
+	SK_Stroke *segments = sk_createStroke();
+	int nb_intersections, nb_segments;
 	
-	list.first = list.last = NULL;
+	intersections.first = intersections.last = NULL;
 	
-	added = sk_getIntersections(&list, sketch, sketch->gesture);
+	nb_intersections = sk_getIntersections(&intersections, sketch, sketch->gesture);
+	nb_segments = sk_getSegments(segments, sketch->gesture);
 	
 	/* detect and apply */
-	if (added == 1)
+	if (nb_segments == 1 && nb_intersections == 1)
 	{
-		sk_applyCutGesture(sketch, sketch->gesture, &list);
+		sk_applyCutGesture(sketch, sketch->gesture, &intersections, segments);
+	}
+	else if (nb_segments == 2 && nb_intersections == 1 && sk_detectTrimGesture(sketch, sketch->gesture, &intersections, segments))
+	{
+		sk_applyTrimGesture(sketch, sketch->gesture, &intersections, segments);
 	}
 	
-	BLI_freelistN(&list);
+	sk_freeStroke(segments);
+	BLI_freelistN(&intersections);
 }
 
 /********************************************/
@@ -1468,7 +1585,7 @@ void sk_selectAllSketch(SK_Sketch *sketch, int mode)
 	if (mode == -1)
 	{
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
-		{sk_applyGesture(sketch);
+		{
 			stk->selected = 0;
 		}
 	}
@@ -1746,7 +1863,6 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			{
 				/* apply gesture here */
 				sk_applyGesture(sketch);
-				printf("FOO!\n");
 			}
 	
 			sk_freeStroke(sketch->gesture);
