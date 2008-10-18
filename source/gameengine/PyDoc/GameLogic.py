@@ -13,10 +13,10 @@ Documentation for the GameLogic Module.
 	See L{WhatsNew} for updates, changes and new functionality in the Game Engine Python API.
 	
 	Examples::
-		# To get a controller:
+		# To get the controller thats running this python script:
 		co = GameLogic.getCurrentController() # GameLogic is automatically imported
 		
-		# To get the game object associated with this controller:
+		# To get the game object this controller is on:
 		obj = co.getOwner()
 	L{KX_GameObject} and L{KX_Camera} or L{KX_Light} methods are
 	available depending on the type of object::
@@ -31,17 +31,18 @@ Documentation for the GameLogic Module.
 		sensors = co.getSensors()
 
 	See the sensor's reference for available methods:
-		- L{KX_NetworkMessageSensor}
-		- L{KX_RaySensor}
-		- L{KX_MouseFocusSensor}
-		- L{KX_NearSensor}
-		- L{KX_RadarSensor}
-		- L{KX_TouchSensor}
-		- L{SCA_KeyboardSensor}
-		- L{SCA_MouseSensor}
-		- L{SCA_PropertySensor} 
-		- L{SCA_RandomSensor} 
-		- L{SCA_DelaySensor}
+		- L{DelaySensor<SCA_DelaySensor.SCA_DelaySensor>}
+		- L{JoystickSensor<SCA_JoystickSensor.SCA_JoystickSensor>}
+		- L{KeyboardSensor<SCA_KeyboardSensor.SCA_KeyboardSensor>}
+		- L{MouseFocusSensor<KX_MouseFocusSensor.KX_MouseFocusSensor>}
+		- L{MouseSensor<SCA_MouseSensor.SCA_MouseSensor>}
+		- L{NearSensor<KX_NearSensor.KX_NearSensor>}
+		- L{NetworkMessageSensor<KX_NetworkMessageSensor.KX_NetworkMessageSensor>}
+		- L{PropertySensor<SCA_PropertySensor.SCA_PropertySensor>}
+		- L{RadarSensor<KX_RadarSensor.KX_RadarSensor>}
+		- L{RandomSensor<SCA_RandomSensor.SCA_RandomSensor>}
+		- L{RaySensor<KX_RaySensor.KX_RaySensor>}
+		- L{TouchSensor<KX_TouchSensor.KX_TouchSensor>}
 	
 	You can also access actuators linked to the controller::
 		# To get an actuator attached to the controller:
@@ -54,23 +55,23 @@ Documentation for the GameLogic Module.
 		GameLogic.addActiveActuator(actuator, True)
 		
 	See the actuator's reference for available methods:
-		- L{BL_ActionActuator}
-		- L{KX_CameraActuator}
-		- L{KX_CDActuator}
-		- L{KX_ConstraintActuator}
-		- L{KX_GameActuator}
-		- L{KX_IpoActuator}
-		- L{KX_NetworkMessageActuator}
-		- L{KX_ObjectActuator}
-		- L{KX_SCA_AddObjectActuator}
-		- L{KX_SCA_EndObjectActuator}
-		- L{KX_SCA_ReplaceMeshActuator}
-		- L{KX_SceneActuator}
-		- L{KX_SoundActuator}
-		- L{KX_TrackToActuator}
-		- L{KX_VisibilityActuator}
-		- L{SCA_PropertyActuator}
-		- L{SCA_RandomActuator} 
+		- L{ActionActuator<BL_ActionActuator.BL_ActionActuator>}
+		- L{AddObjectActuator<KX_SCA_AddObjectActuator.KX_SCA_AddObjectActuator>}
+		- L{CameraActuator<KX_CameraActuator.KX_CameraActuator>}
+		- L{CDActuator<KX_CDActuator.KX_CDActuator>}
+		- L{ConstraintActuator<KX_ConstraintActuator.KX_ConstraintActuator>}
+		- L{EndObjectActuator<KX_SCA_EndObjectActuator.KX_SCA_EndObjectActuator>}
+		- L{GameActuator<KX_GameActuator.KX_GameActuator>}
+		- L{IpoActuator<KX_IpoActuator.KX_IpoActuator>}
+		- L{NetworkMessageActuator<KX_NetworkMessageActuator.KX_NetworkMessageActuator>}
+		- L{ObjectActuator<KX_ObjectActuator.KX_ObjectActuator>}
+		- L{PropertyActuator<SCA_PropertyActuator.SCA_PropertyActuator>}
+		- L{RandomActuator<SCA_RandomActuator.SCA_RandomActuator>}
+		- L{ReplaceMeshActuator<KX_SCA_ReplaceMeshActuator.KX_SCA_ReplaceMeshActuator>}
+		- L{SceneActuator<KX_SceneActuator.KX_SceneActuator>}
+		- L{SoundActuator<KX_SoundActuator.KX_SoundActuator>}
+		- L{TrackToActuator<KX_TrackToActuator.KX_TrackToActuator>}
+		- L{VisibilityActuator<KX_VisibilityActuator.KX_VisibilityActuator>}
 	
 	Most logic brick's methods are accessors for the properties available in the logic buttons.
 	Consult the logic bricks documentation for more information on how each logic brick works.
