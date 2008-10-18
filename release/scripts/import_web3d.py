@@ -810,17 +810,36 @@ class vrmlNode(object):
 								self.fields.append(value)
 				i+=1
 
+def gzipOpen(path):
+	try: import gzip
+	except: gzip = None
+	
+	data = None
+	if gzip:
+		try: data = gzip.open(path, 'r').read()
+		except: pass
+	else:
+		print '\tNote, gzip module could not be imported, compressed files will fail to load'
+	
+	if data==None:
+		try:	data = open(path, 'rU').read()
+		except:	pass
+	
+	return data
+
 def vrml_parse(path):
 	'''
 	Sets up the root node and returns it so load_web3d() can deal with the blender side of things.
 	Return root (vrmlNode, '') or (None, 'Error String')
 	'''
-	try:	f = open(path, 'rU')
-	except:	return None, 'Failed to open file: ' + path
+	data = gzipOpen(path)
+	
+	if data==None:
+		return None, 'Failed to open file: ' + path
 	
 	# Stripped above
-	lines[:] = vrmlFormat( f.read() )
-	f.close()
+	lines[:] = vrmlFormat( data )
+	
 	lines.insert(0, '{')
 	lines.insert(0, 'dymmy_node')
 	lines.append('}')
@@ -933,7 +952,12 @@ def x3d_parse(path):
 	'''
 	
 	# Could add a try/except here, but a console error is more useful.
-	doc = xml.dom.minidom.parse(path)
+	data = gzipOpen(path)
+	
+	if data==None:
+		return None, 'Failed to open file: ' + path
+	
+	doc = xml.dom.minidom.parseString(data)
 	
 	
 	try:
@@ -1094,7 +1118,7 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 	# VRML not x3d
 	#coord = geom.getChildByName('coord') # 'Coordinate'
 	
-	coord = geom.getChildBySpec('Coordinate') # 'Coordinate'
+	coord = geom.getChildBySpec('Coordinate') # works for x3d and vrml
 	
 	if coord:	ifs_points = coord.getFieldAsArray('point', 3)
 	else:		coord = []
@@ -1168,7 +1192,6 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 			# faces with 1 verts? pfft!
 			# still will affect index ordering
 			pass
-		
 	
 	face = []
 	fuvs = []
@@ -1176,7 +1199,10 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 	for i, fi in enumerate(ifs_faces):
 		# ifs_texfaces and ifs_faces should be aligned
 		if fi != -1:
-			face.append(int(fi)) # in rare cases this is a float
+			# face.append(int(fi)) # in rare cases this is a float
+			# EEKADOODLE!!!
+			# Annoyance where faces that have a zero index vert get rotated. This will then mess up UVs and VColors
+			face.append(int(fi)+1) # in rare cases this is a float, +1 because of stupid EEKADOODLE :/
 			
 			if do_uvmap:
 				if i >= len(ifs_texfaces):
@@ -1196,6 +1222,7 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 	
 	bpymesh = bpy.data.meshes.new()
 	
+	bpymesh.verts.extend([(0,0,0)]) # EEKADOODLE
 	bpymesh.verts.extend(ifs_points)
 	
 	# print len(ifs_points), faces, edges, ngons
@@ -1336,10 +1363,14 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 					for i,c in enumerate(fcol):
 						c.r, c.g, c.b = col
 	
+	bpymesh.verts.delete([0,]) # EEKADOODLE
+	
 	return bpymesh, ccw
 
 def importMesh_IndexedLineSet(geom):
-	coord = geom.getChildByName('coord') # 'Coordinate'
+	# VRML not x3d
+	#coord = geom.getChildByName('coord') # 'Coordinate'
+	coord = geom.getChildBySpec('Coordinate') # works for x3d and vrml
 	if coord:	points = coord.getFieldAsArray('point', 3)
 	else:		points = []
 	
@@ -1387,7 +1418,9 @@ def importMesh_IndexedLineSet(geom):
 
 
 def importMesh_PointSet(geom):
-	coord = geom.getChildByName('coord') # 'Coordinate'
+	# VRML not x3d
+	#coord = geom.getChildByName('coord') # 'Coordinate'
+	coord = geom.getChildBySpec('Coordinate')  # works for x3d and vrml
 	if coord:	points = coord.getFieldAsArray('point', 3)
 	else:		points = []
 	
