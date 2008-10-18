@@ -3,7 +3,7 @@
 Name: 'X3D & VRML97 (.x3d / wrl)...'
 Blender: 248
 Group: 'Import'
-Tooltip: 'Load a VRML97 File'
+Tooltip: 'Load an X3D or VRML97 file'
 """
 
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -35,6 +35,30 @@ __version__ = "0.1"
 __bpydoc__ = """\
 This script is an importer for the X3D and VRML97 file formats.
 """
+
+# This should work without a blender at all
+try:
+	from Blender.sys import exists
+except:
+	from os.path import exists
+
+def baseName(path):
+	return path.split('/')[-1].split('\\')[-1]
+
+def dirName(path):
+	return path[:-len(baseName(path))]
+
+# notes
+# transform are relative 
+# order dosnt matter for loc/size/rot
+# right handed rotation
+# angles are in radians
+# rotation first defines axis then ammount in deg
+
+
+
+# =============================== VRML Spesific
+
 
 def vrmlFormat(data):
 	'''
@@ -97,30 +121,6 @@ def vrmlFormat(data):
 	'''
 	
 	return [l for l in data.split('\n') if l]
-
-
-# This should work without a blender at all
-try:
-	from Blender.sys import exists
-except:
-	from os.path import exists
-
-def baseName(path):
-	return path.split('/')[-1].split('\\')[-1]
-
-def dirName(path):
-	return path[:-len(baseName(path))]
-
-# notes
-# transform are relative 
-# order dosnt matter for loc/size/rot
-# right handed rotation
-# angles are in radians
-# rotation first defines axis then ammount in deg
-
-
-
-# =============================== VRML Spesific
 
 NODE_NORMAL = 1 # {}
 NODE_ARRAY = 2 # []

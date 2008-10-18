@@ -27,7 +27,7 @@ def main():
 main()
 '''
 
-new_text = bpy.data.texts.new('gamelogic_example.py')
+new_text = bpy.data.texts.new('gamelogic_simple.py')
 new_text.write(script_data)
 bpy.data.texts.active = new_text
 Window.RedrawAll()
