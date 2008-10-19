@@ -1370,6 +1370,56 @@ void sk_convert(SK_Sketch *sketch)
 }
 /******************* GESTURE *************************/
 
+
+/* returns the number of self intersections */
+int sk_getSelfIntersections(ListBase *list, SK_Stroke *gesture)
+{
+	int added = 0;
+	int s_i;
+
+	for (s_i = 0; s_i < gesture->nb_points - 1; s_i++)
+	{
+		float s_p1[3] = {0, 0, 0};
+		float s_p2[3] = {0, 0, 0};
+		int g_i;
+		
+		project_float(gesture->points[s_i].p, s_p1);
+		project_float(gesture->points[s_i + 1].p, s_p2);
+
+		/* start checking from second next, because two consecutive cannot intersect */
+		for (g_i = s_i + 2; g_i < gesture->nb_points - 1; g_i++)
+		{
+			float g_p1[3] = {0, 0, 0};
+			float g_p2[3] = {0, 0, 0};
+			float vi[3];
+			float lambda;
+			
+			project_float(gesture->points[g_i].p, g_p1);
+			project_float(gesture->points[g_i + 1].p, g_p2);
+			
+			if (LineIntersectLineStrict(s_p1, s_p2, g_p1, g_p2, vi, &lambda))
+			{
+				SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
+				
+				isect->start = s_i;
+				isect->end = g_i + 1;
+				isect->stroke = gesture;
+				
+				VecSubf(isect->p, gesture->points[s_i + 1].p, gesture->points[s_i].p);
+				VecMulf(isect->p, lambda);
+				VecAddf(isect->p, isect->p, gesture->points[s_i].p);
+				
+				BLI_addtail(list, isect);
+
+				added++;
+			}
+		}
+	}
+	
+	return added;
+}
+
+
 /* returns the maximum number of intersections per stroke */
 int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 {
@@ -1572,14 +1622,96 @@ void sk_applyDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list
 	}
 }
 
+int sk_detectMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	short start_val[2], end_val[2];
+	short dist;
+	
+	project_short_noclip(gesture->points[0].p, start_val);
+	project_short_noclip(gesture->points[gesture->nb_points - 1].p, end_val);
+	
+	dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));
+	
+	/* if gesture is a circle */
+	if ( dist <= 20 )
+	{
+		SK_Intersection *isect;
+		
+		/* check if it circled around an exact point */
+		for (isect = list->first; isect; isect = isect->next)
+		{
+			/* only delete strokes that are crossed twice */
+			if (isect->next && isect->next->stroke == isect->stroke)
+			{
+				int start_index, end_index;
+				int i;
+				
+				start_index = MIN2(isect->end, isect->next->end);
+				end_index = MAX2(isect->start, isect->next->start);
+
+				for (i = start_index; i <= end_index; i++)
+				{
+					if (isect->stroke->points[i].type == PT_EXACT)
+					{
+						return 1; /* at least one exact point found, stop detect here */
+					}
+				}
+
+				/* skip next */				
+				isect = isect->next;
+			}
+		}
+			
+		return 0;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void sk_applyMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	SK_Intersection *isect;
+	
+	/* check if it circled around an exact point */
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		/* only delete strokes that are crossed twice */
+		if (isect->next && isect->next->stroke == isect->stroke)
+		{
+			int start_index, end_index;
+			int i;
+			
+			start_index = MIN2(isect->end, isect->next->end);
+			end_index = MAX2(isect->start, isect->next->start);
+
+			for (i = start_index; i <= end_index; i++)
+			{
+				/* if exact, switch to continuous */
+				if (isect->stroke->points[i].type == PT_EXACT)
+				{
+					isect->stroke->points[i].type = PT_CONTINUOUS;
+				}
+			}
+
+			/* skip next */				
+			isect = isect->next;
+		}
+	}
+}
+
 void sk_applyGesture(SK_Sketch *sketch)
 {
 	ListBase intersections;
+	ListBase self_intersections;
 	SK_Stroke *segments = sk_createStroke();
-	int nb_intersections, nb_segments;
+	int nb_self_intersections, nb_intersections, nb_segments;
 	
 	intersections.first = intersections.last = NULL;
+	self_intersections.first = self_intersections.last = NULL;
 	
+	nb_self_intersections = sk_getSelfIntersections(&self_intersections, sketch->gesture);
 	nb_intersections = sk_getIntersections(&intersections, sketch, sketch->gesture);
 	nb_segments = sk_getSegments(segments, sketch->gesture);
 	
@@ -1596,9 +1728,18 @@ void sk_applyGesture(SK_Sketch *sketch)
 	{
 		sk_applyDeleteGesture(sketch, sketch->gesture, &intersections, segments);
 	}
+	else if (nb_segments > 2 && nb_intersections == 2 && sk_detectMergeGesture(sketch, sketch->gesture, &intersections, segments))
+	{
+		sk_applyMergeGesture(sketch, sketch->gesture, &intersections, segments);
+	}
+	else if (nb_segments > 2 && nb_self_intersections == 1)
+	{
+		sk_convert(sketch);
+	}
 	
 	sk_freeStroke(segments);
 	BLI_freelistN(&intersections);
+	BLI_freelistN(&self_intersections);
 }
 
 /********************************************/
