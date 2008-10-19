@@ -148,3 +148,4 @@ BF_DEBUG_FLAGS= ''
 
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'
+BF_DOCDIR='../install/doc'

@@ -68,6 +68,7 @@ def validate_arguments(args, bc):
             'BF_FANCY', 'BF_QUIET',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
+            'WITH_BF_BPYDOC',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -75,7 +76,8 @@ def validate_arguments(args, bc):
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
             'BF_DEBUG_FLAGS', 'BF_BSC', 'BF_CONFIG',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
-            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG']
+            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
+            'BF_DOCDIR']
 
     all_list = opts_list + arg_list
     okdict = {}
@@ -335,6 +337,7 @@ def read_opts(cfg, args):
 
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
+        ('BF_DOCDIR', 'Dir where BPy documentation will be created', ''),
 
         ('CC', 'C compiler to use', ''),
         ('CXX', 'C++ compiler to use', ''),
@@ -350,6 +353,7 @@ def read_opts(cfg, args):
 
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
+        (BoolOption('WITH_BF_BPYDOC', 'Generate BPY API documentation', 'false')),
         
         ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 

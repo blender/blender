@@ -205,6 +205,7 @@ BF_DEBUG_FLAGS = '-g'
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'
+BF_DOCDIR='../install/doc'
 
 
 #Link against pthread

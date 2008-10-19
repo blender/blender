@@ -35,6 +35,7 @@ GetBuildPath = SConsEnvironment.GetBuildPath
 
 # a few globals
 root_build_dir = ''
+doc_build_dir = ''
 quickie = None # Anything else than None if BF_QUICK has been passed
 quicklist = [] # The list of libraries/programs to compile during a quickie
 program_list = [] # A list holding Nodes to final binaries, used to create installs
