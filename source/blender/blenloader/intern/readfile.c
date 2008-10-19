@@ -7924,7 +7924,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					bMessageActuator *msgAct = (bMessageActuator *) act->data;
 					if (strlen(msgAct->toPropName) > 2) {
 						/* strip first 2 chars, would have only worked if these were OB anyway */
-						strncpy(msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName));
+						memmove( msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName)-2 );
 					} else {
 						msgAct->toPropName[0] = '\0';
 					}
