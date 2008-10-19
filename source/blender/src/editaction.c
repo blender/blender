@@ -529,9 +529,10 @@ static void actdata_filter_gpencil (ListBase *act_data, bScreen *sc, int filter_
 	/* check if filtering types are appropriate */
 	if ( !(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU|ACTFILTER_ACTGROUPED)) ) 
 	{
-		/* special hack for fullscreen area (which must be this one then),
-		 * so we use the curarea->full as screen to get spaces from, since the
-		 * old (pre-fullscreen) screen was stored there...
+		/* special hack for fullscreen area (which must be this one then):
+		 * 	- we use the curarea->full as screen to get spaces from, since the
+		 * 	  old (pre-fullscreen) screen was stored there...
+		 *	- this is needed as all data would otherwise disappear
 		 */
 		if ((curarea->full) && (curarea->spacetype==SPACE_ACTION))
 			sc= curarea->full;
