@@ -1235,3 +1235,10 @@ class RenderData:
     @rtype: RenderLayer
     @return: The newly created renderlayer.
     """
+
+  def removeRenderLayer(renderlayer):
+    """
+    Remove the specified render layer from the rendering context.
+    @type renderlayer: L{RenderLayer}
+    @param renderlayer: must be a L{RenderLayer}
+    """
