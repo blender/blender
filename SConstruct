@@ -363,7 +363,8 @@ dobj = B.buildinfo(env, "dynamic") + B.resources
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
-env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
+    env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
     env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
@@ -533,6 +534,10 @@ bininstalltarget = env.Alias('install-bin', blenderinstall)
 nsisaction = env.Action(btools.NSIS_Installer, btools.NSIS_print)
 nsiscmd = env.Command('nsisinstaller', None, nsisaction)
 nsisalias = env.Alias('nsis', nsiscmd)
+
+if 'blender' in B.targets:
+	blenderexe= env.Alias('blender', B.program_list)
+	Depends(blenderexe,installtarget)
 
 if env['WITH_BF_PLAYER']:
     blenderplayer = env.Alias('blenderplayer', B.program_list)
