@@ -99,6 +99,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+#include "BIF_sketch.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -1838,7 +1839,11 @@ void mergemenu(void)
 
 void delete_context_selected(void) 
 {
-	if(G.obedit) {
+	if(BIF_validSketchMode())
+	{
+		BIF_deleteSketch();
+	}
+	else if(G.obedit) {
 		if(G.obedit->type==OB_MESH) delete_mesh();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
 		else if(G.obedit->type==OB_MBALL) delete_mball();

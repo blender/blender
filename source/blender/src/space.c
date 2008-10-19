@@ -1976,6 +1976,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
+					else if (BIF_validSketchMode())
+					{
+						BIF_convertSketch();
+					}
 					else
 						convertmenu();	/* editobject.c */
 				}
@@ -2783,7 +2787,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DELKEY:
 				if(G.qual==0 || G.qual==LR_SHIFTKEY)
 					delete_context_selected();
-				if(G.qual==LR_ALTKEY)
+				else if(G.qual==LR_ALTKEY)
 					gpencil_delete_menu();
 				break;
 			case YKEY:

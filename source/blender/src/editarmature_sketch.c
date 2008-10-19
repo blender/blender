@@ -1679,9 +1679,9 @@ void sk_selectStroke(SK_Sketch *sketch)
 			/* loop and get best hit */
 		}
 		
-		if (besthitresult != -1)
+		if (besthitresult > 0)
 		{
-			SK_Stroke *selected_stk = BLI_findlink(&sketch->strokes, besthitresult);
+			SK_Stroke *selected_stk = BLI_findlink(&sketch->strokes, besthitresult - 1);
 			
 			if ((G.qual & LR_SHIFTKEY) == 0)
 			{
@@ -1724,10 +1724,12 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 	if (with_names)
 	{
 		int id;
-		for (id = 0, stk = sketch->strokes.first; stk; id++, stk = stk->next)
+		for (id = 1, stk = sketch->strokes.first; stk; id++, stk = stk->next)
 		{
 			sk_drawStroke(stk, id, NULL);
 		}
+		
+		glLoadName(-1);
 	}
 	else
 	{
@@ -1738,59 +1740,59 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		{
 			sk_drawStroke(stk, -1, (stk->selected==1?selected_rgb:unselected_rgb));
 		}
-	}
 	
-	/* only draw gesture in active area */
-	if (sketch->gesture != NULL && area_is_active_area(G.vd->area))
-	{
-		float gesture_rgb[3] = {0, 0.5, 1};
-		sk_drawStroke(sketch->gesture, -1, gesture_rgb);
-	}
-	
-	if (sketch->active_stroke != NULL)
-	{
-		SK_Point *last = sk_lastStrokePoint(sketch->active_stroke);
-		
-		if (last != NULL)
+		/* only draw gesture in active area */
+		if (sketch->gesture != NULL && area_is_active_area(G.vd->area))
 		{
-			/* update point if in active area */
-			if (area_is_active_area(G.vd->area))
+			float gesture_rgb[3] = {0, 0.5, 1};
+			sk_drawStroke(sketch->gesture, -1, gesture_rgb);
+		}
+		
+		if (sketch->active_stroke != NULL)
+		{
+			SK_Point *last = sk_lastStrokePoint(sketch->active_stroke);
+			
+			if (last != NULL)
 			{
-				SK_DrawData dd;
+				/* update point if in active area */
+				if (area_is_active_area(G.vd->area))
+				{
+					SK_DrawData dd;
+					
+					sk_initDrawData(&dd);
+					sk_getStrokePoint(&sketch->next_point, sketch, sketch->active_stroke, &dd, G.qual);
+				}
 				
-				sk_initDrawData(&dd);
-				sk_getStrokePoint(&sketch->next_point, sketch, sketch->active_stroke, &dd, G.qual);
+				glEnable(GL_LINE_STIPPLE);
+				glColor3f(1, 0.5, 0);
+				glBegin(GL_LINE_STRIP);
+				
+					glVertex3fv(last->p);
+					glVertex3fv(sketch->next_point.p);
+				
+				glEnd();
+				
+				glDisable(GL_LINE_STIPPLE);
+	
+				switch (sketch->next_point.mode)
+				{
+					case PT_SNAP:
+						glColor3f(0, 0.5, 1);
+						break;
+					case PT_EMBED:
+						glColor3f(0, 1, 0);
+						break;
+					case PT_PROJECT:
+						glColor3f(0, 0, 0);
+						break;
+				}
+				
+				glBegin(GL_POINTS);
+				
+					glVertex3fv(sketch->next_point.p);
+				
+				glEnd();
 			}
-			
-			glEnable(GL_LINE_STIPPLE);
-			glColor3f(1, 0.5, 0);
-			glBegin(GL_LINE_STRIP);
-			
-				glVertex3fv(last->p);
-				glVertex3fv(sketch->next_point.p);
-			
-			glEnd();
-			
-			glDisable(GL_LINE_STIPPLE);
-
-			switch (sketch->next_point.mode)
-			{
-				case PT_SNAP:
-					glColor3f(0, 0.5, 1);
-					break;
-				case PT_EMBED:
-					glColor3f(0, 1, 0);
-					break;
-				case PT_PROJECT:
-					glColor3f(0, 0, 0);
-					break;
-			}
-			
-			glBegin(GL_POINTS);
-			
-				glVertex3fv(sketch->next_point.p);
-			
-			glEnd();
 		}
 	}
 	
@@ -1957,6 +1959,7 @@ void BIF_deleteSketch()
 		if (GLOBAL_sketch != NULL)
 		{
 			sk_deleteStrokes(GLOBAL_sketch);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
@@ -1968,6 +1971,8 @@ void BIF_convertSketch()
 		if (GLOBAL_sketch != NULL)
 		{
 			sk_convert(GLOBAL_sketch);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
 }
