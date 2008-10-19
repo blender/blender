@@ -207,6 +207,7 @@
 static PyObject *M_Material_New( PyObject * self, PyObject * args,
 				 PyObject * keywords );
 static PyObject *M_Material_Get( PyObject * self, PyObject * args );
+static PyObject *M_Material_DataSize(PyObject *unused);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.  In  */
@@ -231,6 +232,8 @@ struct PyMethodDef M_Material_methods[] = {
 	 M_Material_New_doc},
 	{"Get", M_Material_Get, METH_VARARGS, M_Material_Get_doc},
 	{"get", M_Material_Get, METH_VARARGS, M_Material_Get_doc},
+	{"DataSize", ( PyCFunction ) M_Material_DataSize, METH_NOARGS,
+		"Get sizeof() of Material"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -334,6 +337,12 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 		return matlist;
 	}
 }
+
+static PyObject *M_Material_DataSize(PyObject *unused)
+{
+	return PyInt_FromLong(sizeof(Material));
+}
+
 
 static PyObject *Material_ModesDict( void )
 {

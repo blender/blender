@@ -290,6 +290,7 @@ static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
 static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd);
+static PyObject *M_Object_DataSize( PyObject * self );
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3, char *bonename);
@@ -299,25 +300,27 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int par
 /* In Python these will be written to the console when doing a		 */
 /* Blender.Object.__doc__						 */
 /*****************************************************************************/
-char M_Object_doc[] = "The Blender Object module\n\n\
+static char M_Object_doc[] = "The Blender Object module\n\n\
 This module provides access to **Object Data** in Blender.\n";
 
-char M_Object_New_doc[] =
+static char M_Object_New_doc[] =
 	"(type) - Add a new object of type 'type' in the current scene";
 
-char M_Object_Get_doc[] =
+static char M_Object_Get_doc[] =
 	"(name) - return the object with the name 'name', returns None if not\
 	found.\n\
 	If 'name' is not specified, it returns a list of all objects in the\n\
 	current scene.";
 
-char M_Object_GetSelected_doc[] =
+static char M_Object_GetSelected_doc[] =
 	"() - Returns a list of selected Objects in the active layer(s)\n\
 The active object is the first in the list, if visible";
 
-char M_Object_Duplicate_doc[] =
+static char M_Object_Duplicate_doc[] =
 	"(linked) - Duplicate all selected, visible objects in the current scene";
 
+static char M_Object_DataSize_doc[] = 
+	"() - return the sizeof(Object)";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
@@ -331,6 +334,8 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_GetSelected_doc},
 	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS | METH_KEYWORDS,
 	 M_Object_Duplicate_doc},
+	{"DataSize", ( PyCFunction ) M_Object_DataSize, METH_NOARGS,
+	 M_Object_DataSize_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1035,6 +1040,11 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	if (ipo_dupe)		dupflag |= USER_DUP_IPO;
 	adduplicate(2, dupflag); /* 2 is a mode with no transform and no redraw, Duplicate the current selection, context sensitive */
 	Py_RETURN_NONE;
+}
+
+static PyObject *M_Object_DataSize(PyObject * self)
+{
+	return PyInt_FromLong(sizeof(Object));
 }
 
 
