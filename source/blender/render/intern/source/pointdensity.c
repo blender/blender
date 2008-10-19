@@ -227,6 +227,9 @@ void make_pointdensities(Render *re)
 			cache_pointdensity(re, tex);
 		}
 	}
+	
+	re->i.infostr= NULL;
+	re->stats_draw(&re->i);
 }
 
 void free_pointdensities(Render *re)

@@ -63,10 +63,11 @@ typedef struct Material {
 	/* end synced with render_types.h */
 	
 	short material_type; /* solid, halo, volumetric */
-	short pad5[2];
+	short pad5;
 	
 	/* volumetrics */
 	short vol_stepsize_type;
+	short vol_precache_resolution;
 	float vol_stepsize, vol_shade_stepsize;
 	float vol_density_scale;
 	float vol_absorption, vol_scattering;

@@ -4377,6 +4377,8 @@ static void material_panel_material_volume(Material *ma)
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
 	uiDefButBitS(block, TOG, MA_VOL_PRECACHESHADING, B_MATPRV, "Precache",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "precache");
+	uiDefButS(block, NUM, B_MATPRV, "Resolution: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_precache_resolution), 0.0, 1024.0, 10, 2, "precache voxel resolution");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;

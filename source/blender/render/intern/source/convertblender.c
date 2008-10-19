@@ -3093,7 +3093,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				if(ma->mode & MA_RADIO) 
 					do_autosmooth= 1;
 			
-			if (ma->vol_shadeflag & MA_VOL_PRECACHESHADING) {
+			if ((ma->material_type == MA_VOLUME) && (ma->vol_shadeflag & MA_VOL_PRECACHESHADING)) {
 				add_vol_precache(re, obr, ma);
 			}
 		}
@@ -4429,6 +4429,8 @@ void RE_Database_Free(Render *re)
 	
 	BLI_freelistN(&re->lampren);
 	BLI_freelistN(&re->lights);
+	
+	free_volume_precache(re);
 
 	free_renderdata_tables(re);
 	
@@ -4452,7 +4454,6 @@ void RE_Database_Free(Render *re)
 	end_render_materials();
 	
 	free_pointdensities(re);
-	free_volume_precache(re);
 	
 	if(re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
@@ -4908,9 +4909,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			/* point density texture */
 			if(!re->test_break())
 				make_pointdensities(re);
-				
-			if(!re->test_break())
-				volume_precache(re);
 		}
 		
 		if(!re->test_break())
@@ -4927,6 +4925,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		if((re->r.mode & R_SSS) && !re->test_break())
 			if(re->r.renderer==R_INTERN)
 				make_sss_tree(re);
+		
+		if(!re->test_break())
+			volume_precache(re);
 	}
 	
 	if(re->test_break())
