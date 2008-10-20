@@ -4927,7 +4927,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				make_sss_tree(re);
 		
 		if(!re->test_break())
-			volume_precache(re);
+			if(re->r.mode & R_RAYTRACE)
+				volume_precache(re);
 	}
 	
 	if(re->test_break())
