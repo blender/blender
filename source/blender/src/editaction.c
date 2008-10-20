@@ -2095,9 +2095,9 @@ void paste_actdata ()
 	short datatype;
 	Object *ob= OBACT;
 	
-	short no_name= 0;
-	float offset = CFRA - actcopy_firstframe;
+	const float offset = (float)(CFRA - actcopy_firstframe);
 	char *actname = NULL, *conname = NULL;
+	short no_name= 0;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
@@ -2118,13 +2118,13 @@ void paste_actdata ()
 	
 	/* from selected channels */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		Ipo *ipo_src=NULL;
+		Ipo *ipo_src = NULL;
 		bActionChannel *achan;
 		IpoCurve *ico, *icu;
 		BezTriple *bezt;
 		int i;
 		
-		/* find matching ipo-block */
+		/* find suitable IPO-block from buffer to paste from */
 		for (achan= actcopybuf.first; achan; achan= achan->next) {
 			/* try to match data */
 			if (ale->ownertype == ACTTYPE_ACHAN) {
@@ -2170,7 +2170,8 @@ void paste_actdata ()
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
+			/* get IPO-curve to paste to (IPO-curve might not exist for destination, so gets created) */
+			icu= verify_ipocurve((ID *)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */

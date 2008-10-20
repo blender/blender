@@ -83,7 +83,7 @@
 #include "blendef.h"
 #include "butspace.h"
 
-#include "PIL_time.h"			/* sleep				*/
+#include "PIL_time.h"
 #include "mydevice.h"
 
 /* ***************************************** */
@@ -220,17 +220,22 @@ void set_gplayer_frame_selection (bGPDlayer *gpl, short mode)
 	select_gpencil_frames (gpl, mode);
 }
 
+/* select the frame in this layer that occurs on this frame (there should only be one at most) */
 void select_gpencil_frame (bGPDlayer *gpl, int selx, short select_mode)
 {
 	bGPDframe *gpf;
    
 	/* search through frames for a match */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-		if (gpf->framenum == selx)
+		/* there should only be one frame with this frame-number */
+		if (gpf->framenum == selx) {
 			gpframe_select(gpf, select_mode);
+			break;
+		}
 	}
 }
 
+/* select the frames in this layer that occur within the bounds specified */
 void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short select_mode)
 {
 	bGPDframe *gpf;
@@ -290,6 +295,7 @@ void deselect_gpencil_layers (void *data, short mode)
 /* ***************************************** */
 /* Frame Editing Tools */
 
+/* Delete selected grease-pencil layers */
 void delete_gpencil_layers (void)
 {
 	ListBase act_data = {NULL, NULL};
@@ -396,7 +402,7 @@ void free_gpcopybuf ()
 }
 
 /* This function adds data to the copy/paste buffer, freeing existing data first
- * Only the selected action channels gets their selected keyframes copied.
+ * Only the selected GP-layers get their selected keyframes copied.
  */
 void copy_gpdata ()
 {
