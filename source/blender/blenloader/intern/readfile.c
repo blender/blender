@@ -7895,6 +7895,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			if (ma->vol_density_scale < 0.0001f)
 				ma->vol_density_scale = 1.0f;
+			if (ma->vol_precache_resolution == 0)
+				ma->vol_precache_resolution = 50;
 		}
 		
 		for(tex=main->tex.first; tex; tex= tex->id.next) {

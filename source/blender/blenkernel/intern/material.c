@@ -173,6 +173,7 @@ void init_material(Material *ma)
 	ma->vol_absorption = 1.0f;
 	ma->vol_scattering = 1.0f;
 	ma->vol_absorption_col[0] = ma->vol_absorption_col[1] = ma->vol_absorption_col[2] = 0.0f;
+	ma->vol_precache_resolution = 50;
 	
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 

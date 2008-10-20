@@ -4357,7 +4357,7 @@ static void material_panel_material_volume(Material *ma)
 	short yco=PANEL_YMAX;
  	
  	block= uiNewBlock(&curarea->uiblocks, "material_panel_material_volume", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Volume", "Material", PANELX, PANELY, PANELW, PANELH)==0) return;
+	if(uiNewPanel(curarea, block, "Volume", "Material", PANELX, PANELY, PANELW, PANELH+40)==0) return;
 	
 	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
@@ -4365,32 +4365,28 @@ static void material_panel_material_volume(Material *ma)
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
 	uiDefButS(block, MENU, B_TEXREDR_PRV, "Step Size Calculation %t|Randomized %x0|Constant %x1",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_stepsize_type, 0.0, 0.0, 0, 0, "Step size calculation, replace banding with jittering");
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_stepsize_type, 0.0, 0.0, 0, 0, "Step size calculation, randomized replaces banding with jittering");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
-			
+	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, MA_VOL_ATTENUATED, B_MATPRV, "Self Shading",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Uses absorption for light attenuation");
 	uiDefButF(block, NUM, B_MATPRV, "Step Size: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shade_stepsize), 0.001, 100.0, 10, 2, "Step");
-	uiDefButBitS(block, TOG, MA_VOL_PRECACHESHADING, B_MATPRV, "Precache",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "precache");
-	uiDefButS(block, NUM, B_MATPRV, "Resolution: ",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_precache_resolution), 0.0, 1024.0, 10, 2, "precache voxel resolution");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
 	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_TEXREDR_PRV, "Scattering Direction %t|Isotropic %x0|Mie Hazy %x1|Mie Murky %x2|Rayleigh %x3|Henyey-Greenstein %x4|Schlick %x5",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_phasefunc_type, 0.0, 0.0, 0, 0, "Scattering Direction (Phase Function)");
-	if (ELEM(ma->vol_phasefunc_type, MA_VOL_PH_HG, MA_VOL_PH_SCHLICK)) {
-		uiDefButF(block, NUM, B_MATPRV, "Asymmetry: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_phasefunc_g), -1.0, 1.0, 0, 0, "> 0 is forward scattering, < 0 is back scattering");
+	if (ma->vol_shadeflag & MA_VOL_ATTENUATED) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, MA_VOL_PRECACHESHADING, B_MATPRV, "Light Cache",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Pre-cache the shading information into a voxel grid");
+		uiDefButS(block, NUM, B_MATPRV, "Resolution: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_precache_resolution), 0.0, 1024.0, 10, 2, "Resolution of the voxel grid, low resolutions are faster, high resolutions use more memory (res ^3)");
+		uiBlockEndAlign(block);
 	}
-	uiBlockEndAlign(block);
 	
 	/*uiDefButBitS(block, TOG, MA_VOL_RECVSHADOW, B_MATPRV, "Receive Shadows",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Receive shadows from external objects");
@@ -4409,7 +4405,7 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Absorption: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 100.0, 10, 0, "Multiplier for absorption");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_absorption), 0.0, 100.0, 10, 0, "Amount of light absorbed by the volume");
 	uiDefButF(block, COL, B_MATPRV, "",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, ma->vol_absorption_col, 0, 0, 0, B_MATCOL, "");
 	uiBlockEndAlign(block);
@@ -4418,7 +4414,7 @@ static void material_panel_material_volume(Material *ma)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Emit: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->emit), 0.0, 2.0, 0, 0, "Emission component");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->emit), 0.0, 2.0, 0, 0, "Amount of light emitted from the volume");
 	uiDefButF(block, COL, B_MATPRV, "",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->r), 0, 0, 0, B_MATCOL, "");
 	uiBlockEndAlign(block);
@@ -4426,7 +4422,24 @@ static void material_panel_material_volume(Material *ma)
 	yco -= YSPACE;
 	
 	uiDefButF(block, NUM, B_MATPRV, "Scattering: ",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 100.0, 10, 0, "Multiplier for scattering");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_scattering), 0.0, 100.0, 10, 0, "Amount of light scattered through the volume from lamps");
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, MENU, B_TEXREDR_PRV, "Scattering Direction %t|Isotropic %x0|Mie Hazy %x1|Mie Murky %x2|Rayleigh %x3|Henyey-Greenstein %x4|Schlick %x5",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &ma->vol_phasefunc_type, 0.0, 0.0, 0, 0, "Scattering Direction (Phase Function)");
+	if (ELEM(ma->vol_phasefunc_type, MA_VOL_PH_HG, MA_VOL_PH_SCHLICK)) {
+		uiDefButF(block, NUM, B_MATPRV, "Asymmetry: ",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->vol_phasefunc_g), -1.0, 1.0, 0, 0, "> 0 is forward scattering, < 0 is back scattering");
+		uiBlockEndAlign(block);
+	} else {
+		uiBlockEndAlign(block);
+		/* spacer */
+		uiDefBut(block, LABEL, B_NOP, "",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	}
+	
 }
 
 static void material_panel_nodes(Material *ma)

@@ -100,6 +100,7 @@ typedef struct ShadeInput
 	struct StrandRen *strand;
 	struct ObjectInstanceRen *obi;
 	struct ObjectRen *obr;
+	struct Render *re;				/* link back to the Render */
 	int facenr;
 	float facenor[3];				/* copy from face */
 	short flippednor;				/* is facenor flipped? */
