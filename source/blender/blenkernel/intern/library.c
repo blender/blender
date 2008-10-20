@@ -407,6 +407,10 @@ void *copy_libblock(void *rt)
 	lb= wich_libbase(G.main, GS(id->name));
 	idn= alloc_libblock(lb, GS(id->name), id->name+2);
 	
+	if(idn==NULL) {
+		printf("ERROR: Illegal ID name for %s (Crashing now)\n", id->name);
+	}
+	
 	idn_len= MEM_allocN_len(idn);
 	if(idn_len - sizeof(ID) > 0) {
 		cp= (char *)id;

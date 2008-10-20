@@ -128,11 +128,9 @@ def turbulence (xyz, octaves, hard, basis = NoiseTypes['STDPERLIN'],
   @return: the generated turbulence value.
   """
 
-def vTurbulence (xyz, octaves, hard, basis = NoiseTypes['STDPERLIN'],
-    ampscale = 0.5, freqscale = 2.0):
+def vTurbulence (xyz, octaves, hard, basis = NoiseTypes['STDPERLIN'], ampscale = 0.5, freqscale = 2.0):
   """
-  Returns general turbulence vector using the optional specified noise basis
-function.
+  Returns general turbulence vector using the optional specified noise basis function.
   @type xyz: 3-float tuple
   @param xyz: (x,y,z) float values.
   @type octaves: int

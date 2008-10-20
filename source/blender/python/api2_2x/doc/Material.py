@@ -212,7 +212,7 @@ class Material:
 	Value is clamped to the range [0.0,100.0].
 	@type haloSize:  float
 	@ivar hard:  Hardness of the specularity.
-	Value is clamped to the range [1,255].
+	Value is clamped to the range [1,511].
 	@type hard:  int
 	@ivar ipo:  Material Ipo data.
 	Contains the Ipo if one is assigned to the object, None otherwise.  Setting to None clears the current Ipo.

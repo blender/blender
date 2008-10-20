@@ -204,6 +204,7 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	
 	ntlGeometryObjModel *obj = new ntlGeometryObjModel( );
 	gpWorld->getRenderGlobals()->getSimScene()->addGeoClass( obj );
+	gpWorld->getRenderGlobals()->getRenderScene()->addGeoClass(obj);
 	obj->initModel(
 			mesh->numVertices, mesh->vertices, mesh->numTriangles, mesh->triangles,
 			mesh->channelSizeVertices, mesh->channelVertices );

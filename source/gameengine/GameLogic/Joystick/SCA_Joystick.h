@@ -90,7 +90,7 @@ class SCA_Joystick
 	int 			m_buttonmax;
 	int 			m_hatmax;
 	
-	 /* 
+	/*
 	 * hat values stored here 
 	 */
 	int 			m_hatnum;
@@ -106,8 +106,10 @@ class SCA_Joystick
 	bool			m_isinit;
 
 	
-	/* is triggered */
-	bool			m_istrig;
+	/* is triggered for each event type */
+	bool			m_istrig_axis;
+	bool			m_istrig_button;
+	bool			m_istrig_hat;
 
 #ifndef DISABLE_SDL
 	/*
@@ -212,8 +214,16 @@ public:
 		return m_prec;
 	}
 
-	bool IsTrig(void){
-		return m_istrig;
+	bool IsTrigAxis(void){
+		return m_istrig_axis;
+	}
+	
+	bool IsTrigButton(void){
+		return m_istrig_button;
+	}
+	
+	bool IsTrigHat(void){
+		return m_istrig_hat;
 	}
 
 	/*

@@ -138,7 +138,7 @@ static PyObject *Part_GetAge( BPy_PartSys * self, PyObject * args );
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                           */
 /*****************************************************************************/
-static PyObject *ParticleSys_repr( void );
+static PyObject *ParticleSys_repr( BPy_PartSys * self );
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -415,13 +415,14 @@ PyTypeObject ParticleSys_Type = {
 
 /*****************************************************************************/
 /* Function:    PARTICLESYS_repr                                             */
-/* Description: This is a callback function for the BPy_Effect type. It      */
-/*              builds a meaninful string to represent effcte objects.       */
+/* Description: This is a callback function for the BPy_PartSys type. It     */
+/*              builds a meaningful string to represent effect objects.      */
 /*****************************************************************************/
 
-static PyObject *ParticleSys_repr( void )
+static PyObject *ParticleSys_repr( BPy_PartSys * self )
 {
-	return PyString_FromString( "ParticleSys" );
+	return PyString_FromFormat( "ParticleSys \"%s\"",
+			self->psys->part->id.name+2 );
 }
 
 /*****************************************************************************/

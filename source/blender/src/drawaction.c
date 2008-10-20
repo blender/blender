@@ -1220,7 +1220,6 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 {
 	bAction *act = NULL;
 	Key *key = NULL;
-	bGPdata *gpd = NULL;
 	void *data;
 	short datatype;
 	
@@ -1259,7 +1258,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 			key = data;
 			break;
 		case ACTCONT_GPENCIL:
-			gpd = data;
+			/* currently, 'data' value for grease-pencil is G.curscreen! */
 			break;
 	}
 	
@@ -1599,7 +1598,7 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
 			/* draw using icons - old way which is slower but more proven */
-			if(ak->sel & SELECT) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+			if (ak->sel & SELECT) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
 			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
 			
 			/* draw using OpenGL - slightly uglier but faster */

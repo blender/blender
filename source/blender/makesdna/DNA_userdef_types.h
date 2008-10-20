@@ -327,7 +327,8 @@ extern UserDef U; /* from usiblender.c !!!! */
 /* tw_flag (transform widget) */
 
 /* gp_settings (Grease Pencil Settings) */
-#define GP_PAINT_DOSMOOTH	(1<<0)
+#define GP_PAINT_DOSMOOTH		(1<<0)
+#define GP_PAINT_DOSIMPLIFY		(1<<1)
 
 
 #endif

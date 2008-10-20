@@ -102,16 +102,28 @@ void DisableForText()
 		glDisable(GL_COLOR_MATERIAL);
 	}
 
-	if(GLEW_ARB_multitexture)
-		for(int i=0; i<MAXTEX; i++)
+	if(GLEW_ARB_multitexture) {
+		for(int i=0; i<MAXTEX; i++) {
 			glActiveTextureARB(GL_TEXTURE0_ARB+i);
 
-	if(GLEW_ARB_texture_cube_map)
-		if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+			if(GLEW_ARB_texture_cube_map)
+				if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+					glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 
-	if(glIsEnabled(GL_TEXTURE_2D))
-		glDisable(GL_TEXTURE_2D);
+			if(glIsEnabled(GL_TEXTURE_2D))
+				glDisable(GL_TEXTURE_2D);
+		}
+
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	else {
+		if(GLEW_ARB_texture_cube_map)
+			if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+		if(glIsEnabled(GL_TEXTURE_2D))
+			glDisable(GL_TEXTURE_2D);
+	}
 }
 
 void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height)

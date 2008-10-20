@@ -41,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
+#include "DNA_scene_types.h"
 #include "BezTriple.h"
 #include "gen_utils.h"
 
@@ -80,6 +81,7 @@ static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self );
 static PyObject *IpoCurve_newgetExtend( C_IpoCurve * self );
 static int IpoCurve_newsetExtend( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getPoints( C_IpoCurve * self );
+static PyObject *IpoCurve_clean( C_IpoCurve * self, PyObject *value );
 static PyObject *IpoCurve_evaluate( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getDriver( C_IpoCurve * self );
 static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args );
@@ -127,6 +129,8 @@ static PyMethodDef C_IpoCurve_methods[] = {
 	 "() - Returns list of all bezTriples of the curve"},
 	{"evaluate", ( PyCFunction ) IpoCurve_evaluate, METH_VARARGS,
 	 "(float) - Evaluate curve at given time"},
+	{"clean", ( PyCFunction ) IpoCurve_clean, METH_VARARGS,
+	 "(float) - Clean BezTriples using the given threshold value"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -768,6 +772,29 @@ static PyObject *IpoCurve_evaluate( C_IpoCurve * self, PyObject * args )
 
 	return PyFloat_FromDouble( eval );
 
+}
+
+/***************************************************************************/
+/* Function:      IpoCurve_clean( thresh )                                */
+/* Description:   Cleans IPO curve with the (optional) threshold.         */
+/***************************************************************************/
+static PyObject *IpoCurve_clean( C_IpoCurve * self, PyObject * args )
+{
+	float thresh, othresh;
+	
+	thresh= othresh= G.scene->toolsettings->clean_thresh;
+	
+	/* expecting float */
+	if( !PyArg_ParseTuple( args, "|f", &thresh ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected float argument" ) );
+	
+	/* set IPO-cleaning threshold based on value provided by user (temporarily) */
+	G.scene->toolsettings->clean_thresh= thresh;
+	clean_ipo_curve( self->ipocurve );
+	G.scene->toolsettings->clean_thresh= othresh;
+
+	Py_RETURN_NONE;
 }
 
 static PyObject *IpoCurve_getDriver( C_IpoCurve * self )

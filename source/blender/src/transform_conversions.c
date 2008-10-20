@@ -2725,7 +2725,7 @@ static void posttrans_nla_clean (TransInfo *t)
 		/* Check object constraint ipos */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
 			i= count_ipo_keys(conchan->ipo, side, CFRA);	
-			if (i) posttrans_ipo_clean(ob->ipo);
+			if (i) posttrans_ipo_clean(conchan->ipo);
 		}
 		
 		/* skip actions and nlastrips if object is collapsed */

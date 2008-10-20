@@ -74,6 +74,7 @@ std::cout << " hat flag "	<< m_hatf		<< std::endl;
 void SCA_JoystickSensor::Init()
 {
 	m_istrig=(m_invert)?1:0;
+	m_istrig_prev=0;
 	m_reset = true;
 }
 
@@ -110,9 +111,6 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 	if(js==NULL) /* no joystick - dont do anything */
 		return false;
 	
-	if (!js->IsTrig()) /* No events from SDL? - dont bother */
-		return reset ? true : false;
-	
 	m_reset = false;
 	switch(m_joymode)
 	{
@@ -125,6 +123,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			m_axisf == 3 == down
 			numberof== m_axis  -- max 2
 			*/
+			
+			if (!js->IsTrigAxis() && !reset) /* No events from SDL? - dont bother */
+				return false;
+			
 			js->cSetPrecision(m_precision);
 			if (m_bAllEvents) {
 				if(js->aAnyAxisIsPositive(m_axis)){
@@ -188,6 +190,9 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 		/* what is what!
 			m_button = the actual button in question
 			*/
+			if (!js->IsTrigButton() && !reset) /* No events from SDL? - dont bother */
+				return false;
+			
 			if(( m_bAllEvents && js->aAnyButtonPressIsPositive()) || (!m_bAllEvents && js->aButtonPressIsPositive(m_button))) {
 				m_istrig = 1;
 				result = true;
@@ -205,6 +210,10 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 			numberof = m_hat  -- max 2
 			direction= m_hatf -- max 12
 			*/
+			
+			if (!js->IsTrigHat() && !reset) /* No events from SDL? - dont bother */
+				return false;
+			
 			if(m_hat == 1){
 				if(js->aHatIsPositive(m_hatf)){
 					m_istrig = 1;
@@ -227,19 +236,6 @@ bool SCA_JoystickSensor::Evaluate(CValue* event)
 					}
 				}
 			}
-			/*
-			if(m_hat == 3){
-				if(js->aHatIsPositive(m_hatf)){
-					m_istrig = 1;
-					result = true;
-				}else{
-					if(m_istrig){
-						m_istrig = 0;
-						result = true;
-					}
-				}
-			}
-			*/
 			break;
 		}
 		/* test for ball anyone ?*/
@@ -360,7 +356,7 @@ PyObject* SCA_JoystickSensor::PySetIndex( PyObject* self, PyObject* value ) {
 /* get axis  ---------------------------------------------------------- */
 const char SCA_JoystickSensor::GetAxis_doc[] = 
 "getAxis\n"
-"\tReturns the current state of the axis.\n";
+"\tReturns the current axis this sensor reacts to.\n";
 PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self) {
 	return Py_BuildValue("[ii]",m_axis, m_axisf);
 }
@@ -369,7 +365,7 @@ PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self) {
 /* set axis  ---------------------------------------------------------- */
 const char SCA_JoystickSensor::SetAxis_doc[] = 
 "setAxis\n"
-"\tSets the current state of the axis.\n";
+"\tSets the current axis this sensor reacts to.\n";
 PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
 	
 	int axis,axisflag;
@@ -385,7 +381,7 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
 /* get axis value ----------------------------------------------------- */
 const char SCA_JoystickSensor::GetAxisValue_doc[] = 
 "getAxisValue\n"
-"\tReturns a list of the values for each axis .\n";
+"\tReturns a list of the values for the current state of each axis.\n";
 PyObject* SCA_JoystickSensor::PyGetAxisValue( PyObject* self) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	if(joy)
@@ -442,7 +438,7 @@ PyObject* SCA_JoystickSensor::PySetButton( PyObject* self, PyObject* value ) {
 /* get button value  -------------------------------------------------- */
 const char SCA_JoystickSensor::GetButtonValue_doc[] = 
 "getButtonValue\n"
-"\tReturns a list containing the indicies of the currently pressed buttons.\n";
+"\tReturns a list containing the indicies of the current pressed state of each button.\n";
 PyObject* SCA_JoystickSensor::PyGetButtonValue( PyObject* self) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	PyObject *ls = PyList_New(0);

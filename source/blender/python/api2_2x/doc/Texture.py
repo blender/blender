@@ -432,9 +432,9 @@ class Texture:
 	def setFlags(f1=None, f2=None, f3=None, f4=None):
 		"""
 		Set this object's flags.
-		@param f1,f2,f3,f4: Flags to be set (omitted flags are cleared). Can be any of 
+		@param f1, f2, f3, f4: Flags to be set (omitted flags are cleared). Can be any of 
 				'FlipBlendXY', 'NegAlpha', 'CheckerOdd', and 'CheckerEven'
-		@type f1,f2,f3,f4: string
+		@type f1, f2, f3, f4: string
 		"""
 
 	def setImage(image):

@@ -40,8 +40,8 @@ Example Uses an L{SCA_MouseSensor}, and two L{KX_ObjectActuator}s to implement M
 @group Material Types: KX_TEXFACE_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_GLSL_MATERIAL
 @var KX_TEXFACE_MATERIAL: Materials as defined by the texture face settings.
 @var KX_BLENDER_MULTITEX_MATERIAL: Materials approximating blender materials with multitexturing.
-@var KX_BLENDER_BLENDER_MATERIAL: Materials approximating blender materials with GLSL.
-	
+@var KX_BLENDER_GLSL_MATERIAL: Materials approximating blender materials with GLSL.
+
 """
 
 def getWindowWidth():
@@ -181,14 +181,15 @@ def getGLSLMaterialSetting(setting, enable):
 	@type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
 	@rtype: boolean
 	"""
-def drawLine(from,to,color):
+
+def drawLine(fromVec,toVec,color):
 	"""
 	Draw a line in the 3D scene.
 	
-	@param from: the origin of the line
-	@type from: list [x, y, z]
-	@param to: the end of the line
-	@type to: list [x, y, z]
+	@param fromVec: the origin of the line
+	@type fromVec: list [x, y, z]
+	@param toVec: the end of the line
+	@type toVec: list [x, y, z]
 	@param color: the color of the line
 	@type color: list [r, g, b]
 	"""

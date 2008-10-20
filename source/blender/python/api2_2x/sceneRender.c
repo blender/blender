@@ -89,7 +89,8 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_BAKEMODE,
  	EXPP_RENDER_ATTR_BAKEDIST,
 	EXPP_RENDER_ATTR_BAKENORMALSPACE,
-	EXPP_RENDER_ATTR_BAKEBIAS
+	EXPP_RENDER_ATTR_BAKEBIAS,
+	EXPP_RENDER_ATTR_OCRES
 };
 
 #define EXPP_RENDER_ATTR_CFRA                 2
@@ -1995,6 +1996,9 @@ static PyObject *RenderData_getIValueAttr( BPy_RenderData *self, void *type )
 	case EXPP_RENDER_ATTR_BAKENORMALSPACE:
 		param = self->renderContext->bake_normal_space;
 		break;
+	case EXPP_RENDER_ATTR_OCRES:
+		param = self->renderContext->ocres;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type constant in RenderData_setIValueAttrClamp" );
@@ -2796,6 +2800,10 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getMapNew, (setter)RenderData_setMapNew,
 	 "New mapping value (in frames)",
 	 NULL},
+	{"octreeResolution",
+	 (getter)RenderData_getIValueAttr, (setter)NULL,
+	 "Resolution for octree",
+	 (void *)EXPP_RENDER_ATTR_OCRES},
 	{"set",
 	 (getter)RenderData_getSet, (setter)RenderData_setSet,
 	 "Scene link 'set' value",
@@ -3581,7 +3589,7 @@ static PyGetSetDef BPy_RenderLayer_getseters[] = {
 	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
 	 "Deliver Raytraced Reflection pass",
 	 (void *)SCE_PASS_REFRACT},
-	{"passRadiosiy",
+	{"passRadiosity",
 	 (getter)RenderLayer_getPassBits, (setter)RenderLayer_setPassBits,
 	 "Deliver Radiosity pass",
 	 (void *)SCE_PASS_RADIO},
@@ -3603,7 +3611,7 @@ static PyGetSetDef BPy_RenderLayer_getseters[] = {
 	 (getter)RenderLayer_getPassXorBits, (setter)RenderLayer_setPassXorBits,
 	 "Deliver Raytraced Reflection pass XOR",
 	 (void *)SCE_PASS_REFRACT},
-	{"passRadiosiyXOR",
+	{"passRadiosityXOR",
 	 (getter)RenderLayer_getPassXorBits, (setter)RenderLayer_setPassXorBits,
 	 "Deliver Radiosity pass XOR",
 	 (void *)SCE_PASS_RADIO},

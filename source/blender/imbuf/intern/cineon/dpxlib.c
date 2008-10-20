@@ -199,7 +199,7 @@ dumpDpxMainHeader(DpxMainHeader* header) {
 #endif
 }
 
-static int verbose = 1;
+static int verbose = 0;
 void
 dpxSetVerbose(int verbosity) {
 	verbose = verbosity;

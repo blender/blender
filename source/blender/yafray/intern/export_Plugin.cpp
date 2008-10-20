@@ -171,7 +171,9 @@ bool yafrayPluginRender_t::initExport()
 		corehandle = PIL_dynlib_open((char *)(location + "\\yafraycore.dll").c_str());
 		if (corehandle==NULL)
 		{
-			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(corehandle) << endl;
+			char *err = PIL_dynlib_get_error_as_string(corehandle);
+			if (err) cerr << "Error loading yafray plugin: " << err << endl;
+			else cerr << "Error loading yafray plugin: Unknown." << endl;
 			return false;
 		}
 		location += "\\yafrayplugin.dll";

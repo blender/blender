@@ -268,3 +268,4 @@ BF_DEBUG_FLAGS = '-g'
 
 BF_BUILDDIR='../build/darwin'
 BF_INSTALLDIR='../install/darwin'
+BF_DOCDIR='../install/doc'

@@ -44,6 +44,7 @@
 #endif // __APPLE__
 #include "GEN_messaging.h"
 #include "KX_KetsjiEngine.h"
+#include "KX_PythonInit.h"
 
 /**********************************
 * Begin Blender include block
@@ -599,8 +600,8 @@ int main(int argc, char** argv)
 				GPG_Application app(system);
 				bool firstTimeRunning = true;
 				char filename[FILE_MAXDIR + FILE_MAXFILE];
+				char pathname[FILE_MAXDIR + FILE_MAXFILE];
 				char *titlename;
-				char pathname[160];
 
 				get_filename(argc, argv, filename);
 				if(filename[0])
@@ -616,8 +617,7 @@ int main(int argc, char** argv)
 					{
 						char basedpath[240];
 						
-						// base the actuator filename with respect
-						// to the original file working directory
+						// base the actuator filename relative to the last file
 						strcpy(basedpath, exitstring.Ptr());
 						BLI_convertstringcode(basedpath, pathname);
 						
@@ -700,14 +700,13 @@ int main(int argc, char** argv)
 						//					GPG_Application app (system, maggie, startscenename);
 						app.SetGameEngineData(maggie, scene);
 						
+						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
+						BLI_strncpy(G.sce, maggie->name, sizeof(G.sce));
+
 						if (firstTimeRunning)
 						{
+							setGamePythonPath(G.sce);
 							firstTimeRunning = false;
-
-							// set the filename only the first time as in KetsjiEmbedded
-							strcpy (pathname, maggie->name);
-							// also copy here (used by GameLogic.getBaseDirectory)
-							strcpy (G.sce, maggie->name);
 
 							if (fullScreen)
 							{

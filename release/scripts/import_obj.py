@@ -2,14 +2,14 @@
  
 """
 Name: 'Wavefront (.obj)...'
-Blender: 242
+Blender: 248
 Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 """
 
 __author__= "Campbell Barton", "Jiri Hnidek"
-__url__= ["blender.org", "blenderartists.org"]
-__version__= "2.0"
+__url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
+__version__= "2.1"
 
 __bpydoc__= """\
 This script imports a Wavefront OBJ files to Blender.
@@ -756,19 +756,22 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	if BPyMessages.Error_NoFile(filepath):
 		return
 	
+	global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, KEEP_VERT_ORDER
 	
 	CREATE_SMOOTH_GROUPS= Draw.Create(0)
 	CREATE_FGONS= Draw.Create(1)
 	CREATE_EDGES= Draw.Create(1)
-	SPLIT_OBJECTS= Draw.Create(1)
-	SPLIT_GROUPS= Draw.Create(1)
-	SPLIT_MATERIALS= Draw.Create(1)
-	KEEP_VERT_ORDER= Draw.Create(1)
+	SPLIT_OBJECTS= Draw.Create(0)
+	SPLIT_GROUPS= Draw.Create(0)
+	SPLIT_MATERIALS= Draw.Create(0)
 	CLAMP_SIZE= Draw.Create(10.0)
 	IMAGE_SEARCH= Draw.Create(1)
+	KEEP_VERT_ORDER= Draw.Create(1)
 	
 	
 	# Get USER Options
+	# Note, Works but not pretty, instead use a more complicated GUI
+	'''
 	pup_block= [\
 	'Import...',\
 	('Smooth Groups', CREATE_SMOOTH_GROUPS, 'Surround smooth groups by sharp edges'),\
@@ -791,6 +794,102 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 		SPLIT_OBJECTS.val = False
 		SPLIT_GROUPS.val = False
 		SPLIT_MATERIALS.val = False
+	'''
+	
+	
+	
+	# BEGIN ALTERNATIVE UI *******************
+	if True: 
+		
+		EVENT_NONE = 0
+		EVENT_EXIT = 1
+		EVENT_REDRAW = 2
+		EVENT_IMPORT = 3
+		
+		GLOBALS = {}
+		GLOBALS['EVENT'] = EVENT_REDRAW
+		#GLOBALS['MOUSE'] = Window.GetMouseCoords()
+		GLOBALS['MOUSE'] = [i/2 for i in Window.GetScreenSize()]
+		
+		def obj_ui_set_event(e,v):
+			GLOBALS['EVENT'] = e
+		
+		def do_split(e,v):
+			global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER
+			if SPLIT_OBJECTS.val or SPLIT_GROUPS.val or SPLIT_MATERIALS.val:
+				KEEP_VERT_ORDER.val = 0
+			else:
+				KEEP_VERT_ORDER.val = 1
+			
+		def do_vertorder(e,v):
+			global SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, KEEP_VERT_ORDER
+			if KEEP_VERT_ORDER.val:
+				SPLIT_OBJECTS.val = SPLIT_GROUPS.val = SPLIT_MATERIALS.val = 0
+			else:
+				if not (SPLIT_OBJECTS.val or SPLIT_GROUPS.val or SPLIT_MATERIALS.val):
+					KEEP_VERT_ORDER.val = 1
+			
+		def do_help(e,v):
+			url = __url__[0]
+			print 'Trying to open web browser with documentation at this address...'
+			print '\t' + url
+			
+			try:
+				import webbrowser
+				webbrowser.open(url)
+			except:
+				print '...could not open a browser window.'
+		
+		def obj_ui():
+			ui_x, ui_y = GLOBALS['MOUSE']
+			
+			# Center based on overall pup size
+			ui_x -= 165
+			ui_y -= 90
+			
+			global CREATE_SMOOTH_GROUPS, CREATE_FGONS, CREATE_EDGES, SPLIT_OBJECTS, SPLIT_GROUPS, SPLIT_MATERIALS, CLAMP_SIZE, IMAGE_SEARCH, KEEP_VERT_ORDER
+			
+			Draw.Label('Import...', ui_x+9, ui_y+159, 220, 21)
+			Draw.BeginAlign()
+			CREATE_SMOOTH_GROUPS = Draw.Toggle('Smooth Groups', EVENT_NONE, ui_x+9, ui_y+139, 110, 20, CREATE_SMOOTH_GROUPS.val, 'Surround smooth groups by sharp edges')
+			CREATE_FGONS = Draw.Toggle('NGons as FGons', EVENT_NONE, ui_x+119, ui_y+139, 110, 20, CREATE_FGONS.val, 'Import faces with more then 4 verts as fgons')
+			CREATE_EDGES = Draw.Toggle('Lines as Edges', EVENT_NONE, ui_x+229, ui_y+139, 110, 20, CREATE_EDGES.val, 'Import lines and faces with 2 verts as edges')
+			Draw.EndAlign()
+			
+			Draw.Label('Separate objects by OBJ...', ui_x+9, ui_y+110, 220, 20)
+			Draw.BeginAlign()
+			SPLIT_OBJECTS = Draw.Toggle('Object', EVENT_REDRAW, ui_x+9, ui_y+89, 70, 21, SPLIT_OBJECTS.val, 'Import OBJ Objects into Blender Objects', do_split)
+			SPLIT_GROUPS = Draw.Toggle('Group', EVENT_REDRAW, ui_x+79, ui_y+89, 70, 21, SPLIT_GROUPS.val, 'Import OBJ Groups into Blender Objects', do_split)
+			SPLIT_MATERIALS = Draw.Toggle('Material', EVENT_REDRAW, ui_x+149, ui_y+89, 70, 21, SPLIT_MATERIALS.val, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)', do_split)
+			Draw.EndAlign()
+			
+			# Only used for user feedback
+			KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+229, ui_y+89, 110, 21, KEEP_VERT_ORDER.val, 'Keep vert and face order, disables split options, enable for morph targets', do_vertorder)
+			
+			Draw.Label('Options...', ui_x+9, ui_y+60, 211, 20)
+			CLAMP_SIZE = Draw.Number('Clamp Scale: ', EVENT_NONE, ui_x+9, ui_y+39, 211, 21, CLAMP_SIZE.val, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)')
+			IMAGE_SEARCH = Draw.Toggle('Image Search', EVENT_NONE, ui_x+229, ui_y+39, 110, 21, IMAGE_SEARCH.val, 'Search subdirs for any assosiated images (Warning, may be slow)')
+			Draw.BeginAlign()
+			Draw.PushButton('Online Help', EVENT_REDRAW, ui_x+9, ui_y+9, 110, 21, 'Load the wiki page for this script', do_help)
+			Draw.PushButton('Cancel', EVENT_EXIT, ui_x+119, ui_y+9, 110, 21, '', obj_ui_set_event)
+			Draw.PushButton('Import', EVENT_IMPORT, ui_x+229, ui_y+9, 110, 21, 'Import with these settings', obj_ui_set_event)
+			Draw.EndAlign()
+			
+		
+		# hack so the toggle buttons redraw. this is not nice at all
+		while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_IMPORT):
+			Draw.UIBlock(obj_ui)
+		
+		if GLOBALS['EVENT'] != EVENT_IMPORT:
+			return
+		
+	# END ALTERNATIVE UI *********************
+	
+	
+	
+	
+	
+	
 	
 	Window.WaitCursor(1)
 	

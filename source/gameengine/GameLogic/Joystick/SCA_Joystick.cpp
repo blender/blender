@@ -28,6 +28,8 @@
 #include <SDL.h>
 #endif
 
+#include <stdio.h>
+
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
@@ -42,7 +44,9 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_buttonnum(-2),
 	m_hatdir(-2),
 	m_isinit(0),
-	m_istrig(0),
+	m_istrig_axis(0),
+	m_istrig_button(0),
+	m_istrig_hat(0),
 	m_axismax(-1),
 	m_buttonmax(-1),
 	m_hatmax(-1)
@@ -310,13 +314,25 @@ int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 	return 0;
 }
 
-#define MAX2(x,y)               ( (x)>(y) ? (x) : (y) )
 int SCA_Joystick::pAxisTest(int axisnum)
 {
 #ifndef DISABLE_SDL
-	if(axisnum == 1)return MAX2(abs(m_axis10), abs(m_axis11));
-	if(axisnum == 2)return MAX2(abs(m_axis20), abs(m_axis21));
-#endif
+	short i1,i2;
+	if(axisnum == 1) {
+		i1 = m_axis10;	i2 = m_axis11;
+	}
+	else if(axisnum == 2) {
+		i1 = m_axis20;	i2 = m_axis21;
+	}
+	/* long winded way to do
+	 *   return MAX2(abs(i1), abs(i2))
+	 * avoid abs from math.h */
+	if (i1 < 0) i1 = -i1;
+	if (i2 < 0) i2 = -i2;
+	if (i1 <i2) return i2;
+	else		return i1;
+#else
 	return 0;
+#endif
 }
 

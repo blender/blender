@@ -6,7 +6,7 @@ class KX_IpoActuator(SCA_IActuator):
 	"""
 	IPO actuator activates an animation.
 	"""
-	def set(mode, startframe, endframe, mode):
+	def set(mode, startframe, endframe, force):
 		"""
 		Sets the properties of the actuator.
 		
@@ -16,8 +16,8 @@ class KX_IpoActuator(SCA_IActuator):
 		@type startframe: integer
 		@param endframe: last frame to use
 		@type endframe: integer
-		@param mode: special mode
-		@type mode: integer (0=normal, 1=interpret location as force, 2=additive)
+		@param force: special mode
+		@type force: integer (0=normal, 1=interpret location as force, 2=additive)
 		"""
 	def setProperty(property):
 		"""

@@ -122,6 +122,10 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 {
 	bool result    = false;
 	bool reset     = m_reset && m_level;
+	bool qual	   = true;
+	bool qual_change = false;
+	short int m_val_orig = m_val;
+	
 	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
 	//  	cerr << "SCA_KeyboardSensor::Eval event, sensing for "<< m_hotkey << " at device " << inputdev << "\n";
 
@@ -202,7 +206,43 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 			(SCA_IInputDevice::KX_EnumInputs) m_hotkey);
 	
 	//		cerr << "======= SCA_KeyboardSensor::Evaluate:: status: " << inevent.m_status << endl;
-
+		
+		
+		/* Check qualifier keys
+		 * - see if the qualifiers we request are pressed - 'qual' true/false
+		 * - see if the qualifiers we request changed their state - 'qual_change' true/false
+		 */
+		if (m_qual > 0) {
+			const SCA_InputEvent & qualevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_qual);
+			switch(qualevent.m_status) {
+			case SCA_InputEvent::KX_NO_INPUTSTATUS:
+				qual = false;
+				break;
+			case SCA_InputEvent::KX_JUSTRELEASED:
+				qual_change = true;
+				qual = false;
+				break;
+			case SCA_InputEvent::KX_JUSTACTIVATED:
+				qual_change = true;
+			}
+		}
+		if (m_qual2 > 0 && qual==true) {
+			const SCA_InputEvent & qualevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_qual2);
+			/* copy of above */
+			switch(qualevent.m_status) {
+			case SCA_InputEvent::KX_NO_INPUTSTATUS:
+				qual = false;
+				break;
+			case SCA_InputEvent::KX_JUSTRELEASED:
+				qual_change = true;
+				qual = false;
+				break;
+			case SCA_InputEvent::KX_JUSTACTIVATED:
+				qual_change = true;
+			}
+		}
+		/* done reading qualifiers */
+		
 		if (inevent.m_status == SCA_InputEvent::KX_NO_INPUTSTATUS)
 		{
 			if (m_val == 1)
@@ -240,7 +280,33 @@ bool SCA_KeyboardSensor::Evaluate(CValue* eventval)
 				}
 			}
 		}
+		
+		/* Modify the key state based on qual(s)
+		 * Tested carefuly. dont touch unless your really sure.
+		 * note, this will only change the results if key modifiers are set.
+		 *
+		 * When all modifiers and keys are positive
+		 *  - pulse true
+		 * 
+		 * When ANY of the modifiers or main key become inactive,
+		 *  - pulse false
+		 */
+		if (qual==false) { /* one of the qualifiers are not pressed */
+			if (m_val_orig && qual_change) { /* we were originally enabled, but a qualifier changed */
+				result = true;
+			} else {
+				result = false;
+			}
+			m_val = 0; /* since one of the qualifiers is not on, set the state to false */
+		} else {						/* we done have any qualifiers or they are all pressed */
+			if (m_val && qual_change) {	/* the main key state is true and our qualifier just changed */
+				result = true;
+			}
+		}
+		/* done with key quals */
+		
 	}
+	
 	if (reset)
 		// force an event
 		result = true;

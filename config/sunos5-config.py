@@ -177,6 +177,7 @@ BF_DEBUG_FLAGS = ''
 
 BF_BUILDDIR = '../build/sunos5'
 BF_INSTALLDIR='../install/sunos5'
+BF_DOCDIR='../install/doc'
 
 
 PLATFORM_LINKFLAGS = ['']

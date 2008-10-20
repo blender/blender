@@ -52,6 +52,7 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
             'WITH_BF_PLAYER',
+            'WITH_BF_NOBLENDER',
             'WITH_BF_BINRELOC',	
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
@@ -67,6 +68,7 @@ def validate_arguments(args, bc):
             'BF_FANCY', 'BF_QUIET',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
+            'WITH_BF_BPYDOC',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -74,7 +76,8 @@ def validate_arguments(args, bc):
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
             'BF_DEBUG_FLAGS', 'BF_BSC', 'BF_CONFIG',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
-            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG']
+            'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
+            'BF_DOCDIR']
 
     all_list = opts_list + arg_list
     okdict = {}
@@ -310,6 +313,7 @@ def read_opts(cfg, args):
         ('BF_FTGL_LIB', 'FTGL libraries', ''),
 
         (BoolOption('WITH_BF_PLAYER', 'Build blenderplayer if true', 'false')),
+        (BoolOption('WITH_BF_NOBLENDER', 'Do not build blender if true', 'false')),
 
         ('CFLAGS', 'C-compiler flags', ''),
         ('CCFLAGS', 'C++-compiler flags', ''),
@@ -333,6 +337,7 @@ def read_opts(cfg, args):
 
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
+        ('BF_DOCDIR', 'Dir where BPy documentation will be created', ''),
 
         ('CC', 'C compiler to use', ''),
         ('CXX', 'C++ compiler to use', ''),
@@ -348,6 +353,7 @@ def read_opts(cfg, args):
 
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
+        (BoolOption('WITH_BF_BPYDOC', 'Generate BPY API documentation', 'false')),
         
         ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 

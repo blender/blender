@@ -617,7 +617,7 @@ cineonOpenFromMem(unsigned char *mem, unsigned int size) {
 	
 	cineon->file = 0;
 	cineon->reading = 1;
-	verbose = 1;
+	verbose = 0;
 	if (size < sizeof(CineonGenericHeader)) {
 		if (verbose) d_printf("Not enough data for header!\n");
 		cineonClose(cineon);

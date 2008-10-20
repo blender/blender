@@ -16,7 +16,7 @@ BezTriples.
 Example::
   import Blender
   ipo = Blender.Ipo.Get('ObIpo')  # retrieves an Ipo object
-  ipo.name = 'ipo1'				 # change the Ipo's name
+  ipo.name = 'ipo1'                 # change the Ipo's name
   icu = ipo[Blender.Ipo.OB_LOCX] # request X Location Ipo curve object
   if icu != None and len(icu.bezierPoints) > 0: # if curve exists and has BezTriple points
      val = icu[2.5]              # get the curve's value at time 2.5
@@ -78,27 +78,27 @@ class IpoCurve:
   get the value of the final curve point, read the final point from the
   curve::
 
-		ipo = Blender.Object.Get('Cube').ipo
-		icu = ipo['LocX']
-		endtime,endvalue = icu.bezierPoints[-1].pt
+        ipo = Blender.Object.Get('Cube').ipo
+        icu = ipo['LocX']
+        endtime,endvalue = icu.bezierPoints[-1].pt
   @type extend: int
   """
 
   def __getitem__ (time):
-	"""
-	Returns the value of the curve at a particular time.
+    """
+    Returns the value of the curve at a particular time.
     @type time: float
     @param time: time (Vertex X) on the curve
     @rtype: float
     @return: value (Vertex Y) corresponding to the given time
-	"""
+    """
 
   def __setitem__ (time):
-	"""
-	Sets the value (Vertex Y) of the curve at a particular time.
+    """
+    Sets the value (Vertex Y) of the curve at a particular time.
     @type time: float
     @param time: time (Vertex X) on the curve
-	"""
+    """
 
   def setExtrapolation(extendmode):
     """
@@ -214,6 +214,17 @@ class IpoCurve:
     B{Note}: new scripts should use the L{bezierPoints} attribute instead.
     @rtype: list of BezTriples
     @return: the points of the Ipo curve.
+    """
+
+  def clean( thresh=0.0000001 ):
+    """
+    Calls the IPO-curve cleaning function on this IpoCurve. 
+    There is no need to recalculate curve manually.
+    @type thresh: float
+    @param thresh: The threshold to used to determine if two values are identical. 
+    By default, the IPO-editor tool's value is used.
+    @rtype: None
+    @return: None
     """
 
   def evaluate( time ):

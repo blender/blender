@@ -448,11 +448,19 @@ def parse_help_info(script):
 
 def parse_script_line(l):
 
+	tip = 'No tooltip'
 	try:
 		pieces = l.split("'")
 		name = pieces[1].replace('...','')
-		version, fname, userdir = pieces[2].strip().split()
-		tip = pieces[3]
+		data = pieces[2].strip().split()
+		version = data[0]
+		userdir = data[-1]
+		fname = data[1]
+		i = 1
+		while not fname.endswith('.py'):
+			i += 1
+			fname = '%s %s' % (fname, data[i])
+		if len(pieces) > 3: tip = pieces[3]
 	except:
 		return None
 

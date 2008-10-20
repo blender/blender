@@ -38,7 +38,7 @@ void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 	pFillAxes();
 	m_axisnum	= sdl_event->jaxis.axis;
 	m_axisvalue = sdl_event->jaxis.value;
-	m_istrig = 1;
+	m_istrig_axis = 1;
 }
 
 
@@ -46,12 +46,12 @@ void SCA_Joystick::OnHatMotion(SDL_Event* sdl_event)
 {
 	m_hatdir = sdl_event->jhat.value;
 	m_hatnum = sdl_event->jhat.hat;
-	m_istrig = 1;
+	m_istrig_hat = 1;
 }
 
 void SCA_Joystick::OnButtonUp(SDL_Event* sdl_event)
 {
-	m_istrig = 1;
+	m_istrig_button = 1;
 	
 	/* this is needed for the "all events" option
 	 * so we know if there are no buttons pressed */
@@ -70,7 +70,7 @@ void SCA_Joystick::OnButtonDown(SDL_Event* sdl_event)
 {
 	if(sdl_event->jbutton.button >= 0 || sdl_event->jbutton.button <= m_buttonmax)
 	{
-		m_istrig = 1;
+		m_istrig_button = 1;
 		m_buttonnum = sdl_event->jbutton.button;
 	}
 }
@@ -78,7 +78,7 @@ void SCA_Joystick::OnButtonDown(SDL_Event* sdl_event)
 
 void SCA_Joystick::OnNothing(SDL_Event* sdl_event)
 {
-	m_istrig = 0;
+	m_istrig_axis = m_istrig_button = m_istrig_hat = 0;
 }
 
 /* only handle events for 1 joystick */
@@ -89,7 +89,8 @@ void SCA_Joystick::HandleEvents(void)
 	
 	int i;
 	for (i=0; i<JOYINDEX_MAX; i++) {
-		SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
+		if(SCA_Joystick::m_instance[i])
+			SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
 	}
 	
 	if(SDL_PollEvent(&sdl_event))

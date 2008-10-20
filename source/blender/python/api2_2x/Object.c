@@ -290,6 +290,7 @@ static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
 static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd);
+static PyObject *M_Object_DataSize( PyObject * self );
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3, char *bonename);
@@ -299,25 +300,27 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int par
 /* In Python these will be written to the console when doing a		 */
 /* Blender.Object.__doc__						 */
 /*****************************************************************************/
-char M_Object_doc[] = "The Blender Object module\n\n\
+static char M_Object_doc[] = "The Blender Object module\n\n\
 This module provides access to **Object Data** in Blender.\n";
 
-char M_Object_New_doc[] =
+static char M_Object_New_doc[] =
 	"(type) - Add a new object of type 'type' in the current scene";
 
-char M_Object_Get_doc[] =
+static char M_Object_Get_doc[] =
 	"(name) - return the object with the name 'name', returns None if not\
 	found.\n\
 	If 'name' is not specified, it returns a list of all objects in the\n\
 	current scene.";
 
-char M_Object_GetSelected_doc[] =
+static char M_Object_GetSelected_doc[] =
 	"() - Returns a list of selected Objects in the active layer(s)\n\
 The active object is the first in the list, if visible";
 
-char M_Object_Duplicate_doc[] =
+static char M_Object_Duplicate_doc[] =
 	"(linked) - Duplicate all selected, visible objects in the current scene";
 
+static char M_Object_DataSize_doc[] = 
+	"() - return the sizeof(Object)";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
@@ -331,6 +334,8 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_GetSelected_doc},
 	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS | METH_KEYWORDS,
 	 M_Object_Duplicate_doc},
+	{"DataSize", ( PyCFunction ) M_Object_DataSize, METH_NOARGS,
+	 M_Object_DataSize_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -342,9 +347,8 @@ static int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
 static int setupPI(Object* ob);
 
 static PyObject *Object_getParticleSys( BPy_Object * self );
-/* fixme Object_newParticleSys( self, default-partsys-name ) */
 static PyObject *Object_addVertexGroupsFromArmature( BPy_Object * self, PyObject * args);
-static PyObject *Object_newParticleSys( BPy_Object * self );
+static PyObject *Object_newParticleSys( BPy_Object * self, PyObject * args );
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
@@ -478,7 +482,7 @@ static PyMethodDef BPy_Object_methods[] = {
 	/* name, method, flags, doc */
 	{"getParticleSystems", ( PyCFunction ) Object_getParticleSys, METH_NOARGS,
 	 "Return a list of particle systems"},
- 	{"newParticleSystem", ( PyCFunction ) Object_newParticleSys, METH_NOARGS,
+ 	{"newParticleSystem", ( PyCFunction ) Object_newParticleSys, METH_VARARGS,
 	 "Create and link a new particle system"},
 	{"addVertexGroupsFromArmature" , ( PyCFunction ) Object_addVertexGroupsFromArmature, METH_VARARGS,
 	 "Add vertex groups from armature using the bone heat method"},
@@ -1038,48 +1042,59 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	Py_RETURN_NONE;
 }
 
+static PyObject *M_Object_DataSize(PyObject * self)
+{
+	return PyInt_FromLong(sizeof(Object));
+}
+
 
 /*****************************************************************************/
 /* Python BPy_Object methods:					*/
 /*****************************************************************************/
 
 PyObject *Object_getParticleSys( BPy_Object * self ){
-	ParticleSystem *blparticlesys = 0;
+	PyObject *list;
+	ParticleSystem *psys= NULL;
 	Object *ob = self->object;
-	PyObject *partsyslist,*current;
+	int i= 0;
 
-	blparticlesys = ob->particlesystem.first;
+	list = PyList_New( BLI_countlist( &ob->particlesystem ) );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"PyList_New() failed" );
 
-	partsyslist = PyList_New( 0 );
+	for( psys=ob->particlesystem.first; psys; psys=psys->next )
+		PyList_SET_ITEM( list, i++, ParticleSys_CreatePyObject( psys, ob ) );
 
-	if (!blparticlesys)
-		return partsyslist;
-
-/* fixme:  for(;;) */
-	current = ParticleSys_CreatePyObject( blparticlesys, ob );
-	PyList_Append(partsyslist,current);
-	Py_DECREF(current);
-
-	while((blparticlesys = blparticlesys->next)){
-		current = ParticleSys_CreatePyObject( blparticlesys, ob );
-		PyList_Append(partsyslist,current);
-		Py_DECREF(current);
-	}
-
-	return partsyslist;
+	return list;
 }
 
-PyObject *Object_newParticleSys( BPy_Object * self ){
+PyObject *Object_newParticleSys( BPy_Object * self, PyObject * args ) {
 	ParticleSystem *psys = 0;
 	ParticleSystem *rpsys = 0;
 	ModifierData *md;
 	ParticleSystemModifierData *psmd;
 	Object *ob = self->object;
-/*	char *name = NULL;  optional name param */
+	char *name = NULL;
 	ID *id;
-	int nr;
+	int nr; 
 
-	id = (ID *)psys_new_settings("PSys", G.main);
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a string or nothing" );
+
+	if( name ) {
+		for( id= G.main->particle.first; id; id= id->next ) {
+			if( !strcmp( name, id->name + 2 ) )
+				break;
+		}
+		if( !id )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"specified particle system not found" );
+		else
+			id->us++;
+	} else
+		id = (ID *)psys_new_settings("PSys", G.main);
 
 	psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
 	psys->pointcache = BKE_ptcache_add();
