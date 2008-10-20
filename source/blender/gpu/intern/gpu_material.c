@@ -693,7 +693,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 						shr->spec, &shr->spec);
 				
 				add_user_list(&mat->lamps, lamp);
-				add_user_list(&lamp->materials, ma);
+				add_user_list(&lamp->materials, shi->gpumat->ma);
 				return;
 			}
 			
@@ -702,7 +702,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	}
 	else if((G.fileflags & G_FILE_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
 		add_user_list(&mat->lamps, lamp);
-		add_user_list(&lamp->materials, ma);
+		add_user_list(&lamp->materials, shi->gpumat->ma);
 		return;
 	}
 	else
@@ -755,7 +755,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	}
 
 	add_user_list(&mat->lamps, lamp);
-	add_user_list(&lamp->materials, ma);
+	add_user_list(&lamp->materials, shi->gpumat->ma);
 }
 
 static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
@@ -928,7 +928,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			else if(mtex->texco==TEXCO_OBJECT)
 				texco= texco_object;
 			else if(mtex->texco==TEXCO_NORM)
-				texco= texco_norm;
+				texco= orn;
 			else if(mtex->texco==TEXCO_TANGENT)
 				texco= texco_object;
 			else if(mtex->texco==TEXCO_GLOB)
@@ -1362,10 +1362,14 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)
 {
-	if(lamp->tex)
+	if(lamp->tex) {
 		GPU_texture_free(lamp->tex);
-	if(lamp->fb)
+		lamp->tex= NULL;
+	}
+	if(lamp->fb) {
 		GPU_framebuffer_free(lamp->fb);
+		lamp->fb= NULL;
+	}
 }
 
 GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)

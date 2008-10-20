@@ -633,6 +633,7 @@ void free_editMesh(EditMesh *em)
 
 	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
 	em->retopo_paint_data= NULL;
+	em->act_face = NULL;
 }
 
 /* on G.editMesh */

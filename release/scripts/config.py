@@ -246,6 +246,10 @@ information about how to fix this.
 			fields = fields[2].split()
 			if len(fields) > 1:
 				fname = fields[1].split(sep)[-1]
+				i = 1
+				while not fname.endswith('.py'):
+					i += 1
+					fname = "%s %s" % (fname, fields[i])
 				ALL_SCRIPTS[fname] = (menuname, group_len - 1)
 	return True
 

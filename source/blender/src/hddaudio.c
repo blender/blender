@@ -150,6 +150,15 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 		return 0;
 	}
 
+	if (pCodecCtx->channels > 2) {
+		fprintf(stderr, "Sorry, audio file has too many channels."
+			" Will fix in future, but resampler doesn't support "
+			"this.\n");
+		avcodec_close(pCodecCtx);
+		av_close_input_file(pFormatCtx);
+		return 0;
+	}
+
 	rval = (struct hdaudio *)MEM_mallocN(sizeof(struct hdaudio), 
 					     "hdaudio struct");
 

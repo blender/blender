@@ -8637,6 +8637,35 @@ static PyObject *M_Mesh_MVert( PyObject * self_unused, PyObject * args )
 	return PVert_CreatePyObject( &vert );
 }
 
+static PyObject *M_Mesh_DataSize(PyObject * self, PyObject *args)
+{
+	int t = 0;
+	int ret = 0;
+	if( !PyArg_ParseTuple(args, "|i", &t))
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected nothing or an int as argument" );
+	
+	switch(t) {
+		case 0:
+			ret = sizeof(Mesh);
+			break;
+		case 1:
+			ret = sizeof(MVert);
+			break;
+		case 2:
+			ret = sizeof(MEdge);
+			break;
+		case 3:
+			ret = sizeof(MFace);
+			break;
+		default:
+			ret = sizeof(Mesh);
+			break;
+	}
+	
+	return PyInt_FromLong(ret);
+}
+
 static PyObject *M_Mesh_Modes( PyObject * self_unused, PyObject * args )
 {
 	int modes = 0;
@@ -8668,6 +8697,8 @@ static struct PyMethodDef M_Mesh_methods[] = {
 		"Create a new MVert"},
 	{"Mode", (PyCFunction)M_Mesh_Modes, METH_VARARGS,
 		"Get/set edit selection mode(s)"},
+	{"DataSize", (PyCFunction)M_Mesh_DataSize, METH_VARARGS,
+		"Get sizeof() of Mesh (0), MVert (1), MEdge (2) or MFace (3)"},
 	{NULL, NULL, 0, NULL},
 };
 

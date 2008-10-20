@@ -292,7 +292,7 @@ int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, i
 		(*b)= 1;
 	}
 	
-	if( (dl->flag & DL_CYCL_U) && a==dl->parts-1) {			    \
+	if( (dl->flag & DL_CYCL_V) && a==dl->parts-1) {			    \
 		(*p3)-= dl->nr*dl->parts;				    \
 		(*p4)-= dl->nr*dl->parts;				    \
 	}

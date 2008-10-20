@@ -1023,8 +1023,8 @@ int sample_sss(Render *re, Material *mat, float *co, float *color)
 	return 0;
 }
 
-int has_sss_tree(struct Render *re, struct Material *mat)
+int sss_pass_done(struct Render *re, struct Material *mat)
 {
-	return (re->sss_hash && BLI_ghash_lookup(re->sss_hash, mat));
+	return ((re->flag & R_BAKING) || (re->sss_hash && BLI_ghash_lookup(re->sss_hash, mat)));
 }
 

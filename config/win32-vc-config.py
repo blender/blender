@@ -187,3 +187,4 @@ PLATFORM_LINKFLAGS = '''
 
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'
+BF_DOCDIR='..\\install\\doc'

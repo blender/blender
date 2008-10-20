@@ -529,6 +529,14 @@ static void actdata_filter_gpencil (ListBase *act_data, bScreen *sc, int filter_
 	/* check if filtering types are appropriate */
 	if ( !(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU|ACTFILTER_ACTGROUPED)) ) 
 	{
+		/* special hack for fullscreen area (which must be this one then):
+		 * 	- we use the curarea->full as screen to get spaces from, since the
+		 * 	  old (pre-fullscreen) screen was stored there...
+		 *	- this is needed as all data would otherwise disappear
+		 */
+		if ((curarea->full) && (curarea->spacetype==SPACE_ACTION))
+			sc= curarea->full;
+		
 		/* loop over spaces in current screen, finding gpd blocks (could be slow!) */
 		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			/* try to get gp data */
@@ -802,6 +810,14 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 			else if (ale->type == ACTTYPE_GROUP) {
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				agroup_to_keylist(agrp, &act_keys, NULL, NULL);
+			}
+			else if (ale->type == ACTTYPE_GPDATABLOCK) {
+				/* cleanup */
+				BLI_freelistN(&act_data);
+				
+				/* this channel currently doens't have any keyframes... must ignore! */
+				*ret_type= ACTTYPE_NONE;
+				return NULL;
 			}
 			else if (ale->type == ACTTYPE_GPLAYER) {
 				bGPDlayer *gpl= (bGPDlayer *)ale->data;

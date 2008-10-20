@@ -433,8 +433,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				{
 					gamesensor = new SCA_KeyboardSensor(eventmgr,
 						gReverseKeyTranslateTable[blenderkeybdsensor->key],
-						blenderkeybdsensor->qual,
-						blenderkeybdsensor->qual2,
+						gReverseKeyTranslateTable[blenderkeybdsensor->qual],
+						gReverseKeyTranslateTable[blenderkeybdsensor->qual2],
 						(blenderkeybdsensor->type == SENS_ALL_KEYS),
 						blenderkeybdsensor->targetName,
 						blenderkeybdsensor->toggleName,
@@ -685,7 +685,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					int axis	=0;
 					int axisf	=0;
 					int button	=0;
-					int buttonf =0; 
 					int hat		=0; 
 					int hatf	=0;
 					int prec	=0;
@@ -700,7 +699,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						break;
 					case SENS_JOY_BUTTON:
 						button	= bjoy->button;
-						buttonf	= bjoy->buttonf;
 						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_BUTTON;
 						break;
 					case SENS_JOY_HAT:
@@ -719,8 +717,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						joysticktype,
 						axis,axisf,
 						prec,
-						button,buttonf,
-						hat,hatf);
+						button,
+						hat,hatf,
+						(bjoy->flag & SENS_JOY_ANY_EVENT));
 				} 
 				else
 				{

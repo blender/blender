@@ -277,15 +277,15 @@ if 'blenderlite' in B.targets:
     env['WITH_BF_BINRELOC'] = False
     env['BF_BUILDINFO'] = False
     env['BF_NO_ELBEEM'] = True
-    
-
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
 B.root_build_dir = env['BF_BUILDDIR']
-env['BUILDDIR'] = B.root_build_dir
+B.doc_build_dir = env['BF_DOCDIR']
 if not B.root_build_dir[-1]==os.sep:
     B.root_build_dir += os.sep
+if not B.doc_build_dir[-1]==os.sep:
+    B.doc_build_dir += os.sep
     
 # We do a shortcut for clean when no quicklist is given: just delete
 # builddir without reading in SConscripts
@@ -294,8 +294,18 @@ if 'clean' in B.targets:
     do_clean = True
 
 if not quickie and do_clean:
+    if os.path.exists(B.doc_build_dir):
+        print B.bc.HEADER+'Cleaning doc dir...'+B.bc.ENDC
+        dirs = os.listdir(B.doc_build_dir)
+        for entry in dirs:
+            if os.path.isdir(B.doc_build_dir + entry) == 1:
+                print "clean dir %s"%(B.doc_build_dir+entry)
+                shutil.rmtree(B.doc_build_dir+entry)
+            else: # remove file
+                print "remove file %s"%(B.doc_build_dir+entry)
+                os.remove(B.root_build_dir+entry)
     if os.path.exists(B.root_build_dir):
-        print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
+        print B.bc.HEADER+'Cleaning build dir...'+B.bc.ENDC
         dirs = os.listdir(B.root_build_dir)
         for entry in dirs:
             if os.path.isdir(B.root_build_dir + entry) == 1:
@@ -321,6 +331,8 @@ if not os.path.isdir ( B.root_build_dir):
     os.makedirs ( B.root_build_dir + 'extern' )
     os.makedirs ( B.root_build_dir + 'lib' )
     os.makedirs ( B.root_build_dir + 'bin' )
+if not os.path.isdir(B.doc_build_dir):
+    os.makedirs ( B.doc_build_dir )
 
 Help(opts.GenerateHelpText(env))
 
@@ -363,7 +375,8 @@ dobj = B.buildinfo(env, "dynamic") + B.resources
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
-env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
+    env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
     playerlist = B.create_blender_liblist(env, 'player')
     env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
@@ -534,6 +547,10 @@ nsisaction = env.Action(btools.NSIS_Installer, btools.NSIS_print)
 nsiscmd = env.Command('nsisinstaller', None, nsisaction)
 nsisalias = env.Alias('nsis', nsiscmd)
 
+if 'blender' in B.targets:
+	blenderexe= env.Alias('blender', B.program_list)
+	Depends(blenderexe,installtarget)
+
 if env['WITH_BF_PLAYER']:
     blenderplayer = env.Alias('blenderplayer', B.program_list)
     Depends(blenderplayer,installtarget)
@@ -560,5 +577,6 @@ if not env['WITHOUT_BF_INSTALL']:
 # TODO: build stubs and link into blenderplayer
 
 #------------ EPYDOC
-# TODO: run epydoc
+if env['WITH_BF_BPYDOC']:
+    SConscript(['source/blender/python/api2_2x/doc/SConscript'])
 

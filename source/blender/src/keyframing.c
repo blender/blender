@@ -1,5 +1,5 @@
 /**
- * $Id: keyframing.c 14881 2008-05-18 10:41:42Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -1347,10 +1347,12 @@ static void commonkey_context_getv3d (ListBase *sources, bKeyingContext **ksc)
 						if (achan && achan->ipo)
 							cks->ipo= achan->ipo;
 					}
-					
-					/* deselect all ipo-curves */
-					for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
-						icu->flag &= ~IPO_SELECT;
+					/* cks->ipo can be NULL while editing */
+					if(cks->ipo) {
+						/* deselect all ipo-curves */
+						for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
+							icu->flag &= ~IPO_SELECT;
+						}
 					}
 				}
 			}

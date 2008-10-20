@@ -923,7 +923,7 @@ AttributeError:
 		sArmatureError, "You are not allowed to change the .Bones attribute");
 }
 
-//------------------------Bone.layerMask (get)
+//------------------------Armature.layerMask (get)
 static PyObject *Armature_getLayerMask(BPy_Armature *self)
 {
 	/* do this extra stuff because the short's bits can be negative values */
@@ -931,7 +931,7 @@ static PyObject *Armature_getLayerMask(BPy_Armature *self)
 	laymask |= self->armature->layer;
 	return PyInt_FromLong((int)laymask);
 }
-//------------------------Bone.layerMask (set)
+//------------------------Armature.layerMask (set)
 static int Armature_setLayerMask(BPy_Armature *self, PyObject *value)
 {
 	int laymask;
@@ -1295,6 +1295,26 @@ static PyObject *M_Armature_New(PyObject * self, PyObject * args)
 	return (PyObject *)obj;
 }
 
+static PyObject *M_Armature_DataSize(PyObject * self, PyObject *args)
+{
+	int t = 0;
+	int ret = 0;
+	if( !PyArg_ParseTuple(args, "|i", &t))
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected nothing or an int as argument" );
+	
+	switch(t) {
+		case 0:
+			ret = sizeof(struct bArmature);
+			break;
+		default:
+			ret = sizeof(struct Bone);
+			break;
+	}
+	
+	return PyInt_FromLong(ret);
+}
+
 
 //-------------------MODULE METHODS DEFINITION-----------------------------
 
@@ -1304,9 +1324,12 @@ static char M_Armature_Get_doc[] = "(name) - return the armature with the name '
 
 static char M_Armature_New_doc[] = "(name) - return a new armature object.";
 
+static char M_Armature_DataSize_doc[] = "(type) - return sizeof of either Armature (0) or Bone (1).";
+
 struct PyMethodDef M_Armature_methods[] = {
 	{"Get", M_Armature_Get, METH_VARARGS, M_Armature_Get_doc},
 	{"New", M_Armature_New, METH_VARARGS, M_Armature_New_doc},
+	{"DataSize", M_Armature_DataSize, METH_VARARGS, M_Armature_DataSize_doc},
 	{NULL, NULL, 0, NULL}
 };
 //------------------VISIBLE PROTOTYPE IMPLEMENTATION-----------------------

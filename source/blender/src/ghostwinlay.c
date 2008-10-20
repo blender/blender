@@ -478,6 +478,18 @@ void window_make_active(Window *win) {
 }
 
 void window_swap_buffers(Window *win) {
+#ifdef _WIN32
+	// adding a glFinish() here is to prevent Geforce in 'full scene antialias' mode
+	// from antialising the Blender window. Officially a swapbuffers does a glFinish
+	// itself, so this feels really like a hack... but it won't harm. (ton)
+	// 
+	// moved it here from ghost because it is a performance killer for the game engine,
+	// glFinish forces synchronization with the graphics card and calling it is strongly
+	// discouraged for good performance. (brecht)
+	//
+	glFinish();
+#endif
+
 	GHOST_SwapWindowBuffers(win->ghostwin);
 }
 

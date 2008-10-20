@@ -423,6 +423,13 @@ btVector3 btDiscreteDynamicsWorld::getGravity () const
 
 void	btDiscreteDynamicsWorld::removeRigidBody(btRigidBody* body)
 {
+	//remove all constraints too
+	while (body->getNumConstraintRefs())
+	{
+		btTypedConstraint* constraint = body->getConstraintRef(0);
+		removeConstraint(constraint);
+	}
+
 	removeCollisionObject(body);
 }
 

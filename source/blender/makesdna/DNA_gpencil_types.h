@@ -1,5 +1,5 @@
 /**
- * $Id: DNA_gpencil_types.h 8768 2006-11-07 00:10:37Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

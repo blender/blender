@@ -106,8 +106,11 @@ void *libtiff_findsymbol(char *name)
 	assert(libtiff != NULL);
 	symbol = PIL_dynlib_find_symbol(libtiff, name);
 	if (symbol == NULL) {
-		printf("libtiff_findsymbol: error %s\n",
-			PIL_dynlib_get_error_as_string(libtiff));
+		char *err = PIL_dynlib_get_error_as_string(libtiff);
+
+		if (err) printf("libtiff_findsymbol: error %s\n",err);
+		else printf("libtiff_findsymbol: error Unknown.\n");
+
 		libtiff = NULL;
 		G.have_libtiff = (0);
 		return NULL;

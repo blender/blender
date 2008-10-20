@@ -1568,7 +1568,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->col[2]= shi->b*shi->alpha;
 		shr->col[3]= shi->alpha;
 
-		if((ma->sss_flag & MA_DIFF_SSS) && !has_sss_tree(&R, ma)) {
+		if((ma->sss_flag & MA_DIFF_SSS) && !sss_pass_done(&R, ma)) {
 			if(ma->sss_texfac == 0.0f) {
 				shi->r= shi->g= shi->b= shi->alpha= 1.0f;
 				shr->col[0]= shr->col[1]= shr->col[2]= shr->col[3]= 1.0f;
@@ -1722,7 +1722,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= shi->alpha;
 	
 	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
-	if(!(ma->sss_flag & MA_DIFF_SSS) || !has_sss_tree(&R, ma)) {
+	if(!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
 		shr->combined[0]+= shi->ambr;
 		shr->combined[1]+= shi->ambg;
 		shr->combined[2]+= shi->ambb;
@@ -1772,7 +1772,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 	/* modulate by the object color */
 	if((ma->shade_flag & MA_OBCOLOR) && shi->obr->ob) {
-		if(!(ma->sss_flag & MA_DIFF_SSS) || !has_sss_tree(&R, ma)) {
+		if(!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
 			float obcol[4];
 
 			QUATCOPY(obcol, shi->obr->ob->col);

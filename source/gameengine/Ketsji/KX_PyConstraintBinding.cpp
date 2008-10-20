@@ -435,7 +435,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 			PHY_IPhysicsController* physctrl2 = (PHY_IPhysicsController*) physicsid2;
 			if (physctrl) //TODO:check for existance of this pointer!
 			{
-				int constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ);
+				int constraintid = PHY_GetActiveEnvironment()->createConstraint(physctrl,physctrl2,(enum PHY_ConstraintType)constrainttype,pivotX,pivotY,pivotZ,axisX,axisY,axisZ,0);
 				
 				KX_ConstraintWrapper* wrap = new KX_ConstraintWrapper((enum PHY_ConstraintType)constrainttype,constraintid,PHY_GetActiveEnvironment());
 				

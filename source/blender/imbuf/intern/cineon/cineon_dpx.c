@@ -48,10 +48,10 @@
 
 static void cineon_conversion_parameters(LogImageByteConversionParameters *params)
 {
-	params->blackPoint = G.scene->r.cineonblack;
-	params->whitePoint = G.scene->r.cineonwhite;
-	params->gamma = G.scene->r.cineongamma;
-	params->doLogarithm = G.scene->r.subimtype & R_CINEON_LOG;
+	params->blackPoint = G.scene?G.scene->r.cineonblack:95;
+	params->whitePoint = G.scene?G.scene->r.cineonwhite:685;
+	params->gamma = G.scene?G.scene->r.cineongamma:1.7f;
+	params->doLogarithm = G.scene?G.scene->r.subimtype & R_CINEON_LOG:0;
 }
 
 static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)

@@ -3400,7 +3400,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys, int dt)
 				}
 				if(next_pa)
 						continue;
-				if(part->draw&PART_DRAW_NUM){
+				if(part->draw&PART_DRAW_NUM && !(G.f & G_RENDER_SHADOW)){
 					/* in path drawing state.co is the end point */
 					glRasterPos3f(state.co[0],  state.co[1],  state.co[2]);
 					sprintf(val," %i",a);
@@ -3709,7 +3709,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys, int dt)
 				}
 				cd += (timed?4:3) * pa->totkey;
 
-				if(pset->flag&PE_SHOW_TIME && (pa->flag&PARS_HIDE)==0){
+				if((pset->flag&PE_SHOW_TIME) && (pa->flag&PARS_HIDE)==0 && !(G.f & G_RENDER_SHADOW)){
 					for(k=0, key=edit->keys[i]+k; k<pa->totkey; k++, key++){
 						if(key->flag & PEK_HIDE) continue;
 
@@ -3736,7 +3736,7 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys, int dt)
 					glVertex3fv(key->world_co);
 					glEnd();
 
-					if(pset->flag & PE_SHOW_TIME){
+					if((pset->flag & PE_SHOW_TIME) && !(G.f & G_RENDER_SHADOW)){
 						glRasterPos3fv(key->world_co);
 						sprintf(val," %.1f",*key->time);
 						BMF_DrawString(G.font, val);
@@ -4326,6 +4326,9 @@ static void draw_forcefield(Object *ob)
 	float vec[3]= {0.0, 0.0, 0.0};
 	int curcol;
 	float size;
+
+	if(G.f & G_RENDER_SHADOW)
+		return;
 	
 	if(ob!=G.obedit && (ob->flag & SELECT)) {
 		if(ob==OBACT) curcol= TH_ACTIVE;
@@ -4732,17 +4735,18 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-
 //<rcruiz>
-void drawRBpivot(bRigidBodyJointConstraint *data){
+void drawRBpivot(bRigidBodyJointConstraint *data)
+{
 	float radsPerDeg = 6.283185307179586232f / 360.f;
 	int axis;
 	float v1[3]= {data->pivX, data->pivY, data->pivZ};
 	float eu[3]= {radsPerDeg*data->axX, radsPerDeg*data->axY, radsPerDeg*data->axZ};
-	
-
-
 	float mat[4][4];
+
+	if(G.f & G_RENDER_SHADOW)
+		return;
+
 	EulToMat4(eu,mat);
 	glLineWidth (4.0f);
 	setlinestyle(2);
@@ -5175,10 +5179,12 @@ void draw_object(Base *base, int flag)
 			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 			/* but, we also dont draw names for sets or duplicators */
 			if(flag == 0) {
+				if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 				glRasterPos3f(0.0,  0.0,  0.0);
 
 				BMF_DrawString(G.font, " ");
 				BMF_DrawString(G.font, ob->id.name+2);
+				if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 			}
 		}
 		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/

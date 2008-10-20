@@ -97,8 +97,8 @@ extern unsigned int SND_GetSampleFormat(void* sample);
 extern unsigned int SND_GetNumberOfChannels(void* sample);
 extern unsigned int SND_GetSampleRate(void* sample);
 extern unsigned int SND_GetBitRate(void* sample);
-extern unsigned int SND_GetNumberOfSamples(void* sample);
-extern unsigned int SND_GetHeaderSize(void* sample);
+extern unsigned int SND_GetNumberOfSamples(void* sample, int sample_length);
+extern unsigned int SND_GetHeaderSize(void* sample, int sample_length);
 extern unsigned int SND_GetExtraChunk(void* sample);
 
 extern void SND_GetSampleInfo(signed char* sample, SND_WaveSlot* waveslot);

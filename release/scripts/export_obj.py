@@ -2,14 +2,14 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 243
+Blender: 248
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
 __author__ = "Campbell Barton, Jiri Hnidek"
-__url__ = ['www.blender.org', 'blenderartists.org']
-__version__ = "1.1"
+__url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
+__version__ = "1.2"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -535,23 +535,31 @@ def write_ui(filename):
 	if not BPyMessages.Warning_SaveOver(filename):
 		return
 	
-	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
+	global EXPORT_APPLY_MODIFIERS, EXPORT_ROTX90, EXPORT_TRI, EXPORT_EDGES,\
+		EXPORT_NORMALS, EXPORT_NORMALS_HQ, EXPORT_UV,\
+		EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
+		EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
+		EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER
+	
+	EXPORT_APPLY_MODIFIERS = Draw.Create(0)
 	EXPORT_ROTX90 = Draw.Create(1)
 	EXPORT_TRI = Draw.Create(0)
 	EXPORT_EDGES = Draw.Create(1)
 	EXPORT_NORMALS = Draw.Create(0)
-	EXPORT_NORMALS_HQ = Draw.Create(1)
+	EXPORT_NORMALS_HQ = Draw.Create(0)
 	EXPORT_UV = Draw.Create(1)
 	EXPORT_MTL = Draw.Create(1)
 	EXPORT_SEL_ONLY = Draw.Create(1)
 	EXPORT_ALL_SCENES = Draw.Create(0)
 	EXPORT_ANIMATION = Draw.Create(0)
 	EXPORT_COPY_IMAGES = Draw.Create(0)
-	EXPORT_BLEN_OBS = Draw.Create(1)
+	EXPORT_BLEN_OBS = Draw.Create(0)
 	EXPORT_GROUP_BY_OB = Draw.Create(0)
 	EXPORT_GROUP_BY_MAT = Draw.Create(0)
 	EXPORT_KEEP_VERT_ORDER = Draw.Create(1)
 	
+	# Old UI
+	'''
 	# removed too many options are bad!
 	
 	# Get USER Options
@@ -580,11 +588,123 @@ def write_ui(filename):
 	
 	if not Draw.PupBlock('Export...', pup_block):
 		return
+	'''
+	
+	# BEGIN ALTERNATIVE UI *******************
+	if True: 
+		
+		EVENT_NONE = 0
+		EVENT_EXIT = 1
+		EVENT_REDRAW = 2
+		EVENT_EXPORT = 3
+		
+		GLOBALS = {}
+		GLOBALS['EVENT'] = EVENT_REDRAW
+		#GLOBALS['MOUSE'] = Window.GetMouseCoords()
+		GLOBALS['MOUSE'] = [i/2 for i in Window.GetScreenSize()]
+		
+		def obj_ui_set_event(e,v):
+			GLOBALS['EVENT'] = e
+		
+		def do_split(e,v):
+			global EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_APPLY_MODIFIERS, KEEP_VERT_ORDER
+			if EXPORT_BLEN_OBS.val or EXPORT_GROUP_BY_OB.val or EXPORT_GROUP_BY_MAT.val or EXPORT_APPLY_MODIFIERS.val:
+				EXPORT_KEEP_VERT_ORDER.val = 0
+			else:
+				EXPORT_KEEP_VERT_ORDER.val = 1
+			
+		def do_vertorder(e,v):
+			global EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_APPLY_MODIFIERS, KEEP_VERT_ORDER
+			if EXPORT_KEEP_VERT_ORDER.val:
+				EXPORT_BLEN_OBS.val = EXPORT_GROUP_BY_OB.val = EXPORT_GROUP_BY_MAT.val = EXPORT_APPLY_MODIFIERS.val = 0
+			else:
+				if not (EXPORT_BLEN_OBS.val or EXPORT_GROUP_BY_OB.val or EXPORT_GROUP_BY_MAT.val or EXPORT_APPLY_MODIFIERS.val):
+					EXPORT_KEEP_VERT_ORDER.val = 1
+			
+		def do_help(e,v):
+			url = __url__[0]
+			print 'Trying to open web browser with documentation at this address...'
+			print '\t' + url
+			
+			try:
+				import webbrowser
+				webbrowser.open(url)
+			except:
+				print '...could not open a browser window.'
+		
+		def obj_ui():
+			ui_x, ui_y = GLOBALS['MOUSE']
+			
+			# Center based on overall pup size
+			ui_x -= 165
+			ui_y -= 110
+			
+			global EXPORT_APPLY_MODIFIERS, EXPORT_ROTX90, EXPORT_TRI, EXPORT_EDGES,\
+				EXPORT_NORMALS, EXPORT_NORMALS_HQ, EXPORT_UV,\
+				EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
+				EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
+				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER
+
+			Draw.Label('Context...', ui_x+9, ui_y+209, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_SEL_ONLY = Draw.Toggle('Selection Only', EVENT_NONE, ui_x+9, ui_y+189, 110, 20, EXPORT_SEL_ONLY.val, 'Only export objects in visible selection. Else export whole scene.')
+			EXPORT_ALL_SCENES = Draw.Toggle('All Scenes', EVENT_NONE, ui_x+119, ui_y+189, 110, 20, EXPORT_ALL_SCENES.val, 'Each scene as a separate OBJ file.')
+			EXPORT_ANIMATION = Draw.Toggle('Animation', EVENT_NONE, ui_x+229, ui_y+189, 110, 20, EXPORT_ANIMATION.val, 'Each frame as a numbered OBJ file.')
+			Draw.EndAlign()
+			
+			
+			Draw.Label('Output Options...', ui_x+9, ui_y+159, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_APPLY_MODIFIERS = Draw.Toggle('Apply Modifiers', EVENT_REDRAW, ui_x+9, ui_y+140, 110, 20, EXPORT_APPLY_MODIFIERS.val, 'Use transformed mesh data from each object. May break vert order for morph targets.', do_split)
+			EXPORT_ROTX90 = Draw.Toggle('Rotate X90', EVENT_NONE, ui_x+119, ui_y+140, 110, 20, EXPORT_ROTX90.val, 'Rotate on export so Blenders UP is translated into OBJs UP')
+			EXPORT_COPY_IMAGES = Draw.Toggle('Copy Images', EVENT_NONE, ui_x+229, ui_y+140, 110, 20, EXPORT_COPY_IMAGES.val, 'Copy image files to the export directory, never overwrite.')
+			Draw.EndAlign()
+			
+			
+			Draw.Label('Export...', ui_x+9, ui_y+109, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_EDGES = Draw.Toggle('Edges', EVENT_NONE, ui_x+9, ui_y+90, 50, 20, EXPORT_EDGES.val, 'Edges not connected to faces.')
+			EXPORT_TRI = Draw.Toggle('Triangulate', EVENT_NONE, ui_x+59, ui_y+90, 70, 20, EXPORT_TRI.val, 'Triangulate quads.')
+			Draw.EndAlign()
+			Draw.BeginAlign()
+			EXPORT_MTL = Draw.Toggle('Materials', EVENT_NONE, ui_x+139, ui_y+90, 70, 20, EXPORT_MTL.val, 'Write a separate MTL file with the OBJ.')
+			EXPORT_UV = Draw.Toggle('UVs', EVENT_NONE, ui_x+209, ui_y+90, 31, 20, EXPORT_UV.val, 'Export texface UV coords.')
+			Draw.EndAlign()
+			Draw.BeginAlign()
+			EXPORT_NORMALS = Draw.Toggle('Normals', EVENT_NONE, ui_x+250, ui_y+90, 59, 20, EXPORT_NORMALS.val, 'Export vertex normal data (Ignored on import).')
+			EXPORT_NORMALS_HQ = Draw.Toggle('HQ', EVENT_NONE, ui_x+309, ui_y+90, 31, 20, EXPORT_NORMALS_HQ.val, 'Calculate high quality normals for rendering.')
+			Draw.EndAlign()
+			
+			
+			Draw.Label('Blender Objects as OBJ:', ui_x+9, ui_y+59, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_BLEN_OBS = Draw.Toggle('Objects', EVENT_REDRAW, ui_x+9, ui_y+40, 60, 20, EXPORT_BLEN_OBS.val, 'Export blender objects as "OBJ objects".', do_split)
+			EXPORT_GROUP_BY_OB = Draw.Toggle('Groups', EVENT_REDRAW, ui_x+69, ui_y+39, 60, 20, EXPORT_GROUP_BY_OB.val, 'Export blender objects as "OBJ Groups".', do_split)
+			EXPORT_GROUP_BY_MAT = Draw.Toggle('Material Groups', EVENT_REDRAW, ui_x+129, ui_y+39, 100, 20, EXPORT_GROUP_BY_MAT.val, 'Group by materials.', do_split)
+			Draw.EndAlign()
+			
+			EXPORT_KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+239, ui_y+39, 100, 20, EXPORT_KEEP_VERT_ORDER.val, 'Keep vert and face order, disables some other options. Use for morph targets.', do_vertorder)
+			
+			Draw.BeginAlign()
+			Draw.PushButton('Online Help', EVENT_REDRAW, ui_x+9, ui_y+9, 110, 20, 'Load the wiki page for this script', do_help)
+			Draw.PushButton('Cancel', EVENT_EXIT, ui_x+119, ui_y+9, 110, 20, '', obj_ui_set_event)
+			Draw.PushButton('Export', EVENT_EXPORT, ui_x+229, ui_y+9, 110, 20, 'Export with these settings', obj_ui_set_event)
+			Draw.EndAlign()
+
+		
+		# hack so the toggle buttons redraw. this is not nice at all
+		while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_EXPORT):
+			Draw.UIBlock(obj_ui)
+		
+		if GLOBALS['EVENT'] != EVENT_EXPORT:
+			return
+		
+	# END ALTERNATIVE UI *********************
+	
 	
 	if EXPORT_KEEP_VERT_ORDER.val:
 		EXPORT_BLEN_OBS.val = False
 		EXPORT_GROUP_BY_OB.val = False
-		EXPORT_GROUP_BY_MAT.val = False
 		EXPORT_GROUP_BY_MAT.val = False
 		EXPORT_APPLY_MODIFIERS.val = False
 	

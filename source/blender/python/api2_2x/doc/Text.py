@@ -143,7 +143,7 @@ class Text:
 		Retrieve the contents of this Text buffer as a list of strings between
 		the start and end lines specified. If end < 0 all lines from start will
 		be included.
-		@type start int
+		@type start: int
 		@param start:  Optional index of first line of the span to return
 		@type end int
 		@param end:  Optional index of the line to which the span is taken or

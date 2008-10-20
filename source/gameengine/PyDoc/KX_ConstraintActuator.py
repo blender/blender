@@ -58,11 +58,11 @@ class KX_ConstraintActuator(SCA_IActuator):
 		
 		See module L{GameLogic} for valid constraint types.
 		
-		@param limit: Position constraints: KX_CONSTRAINTACT_LOCX, KX_CONSTRAINTACT_LOCY, KX_CONSTRAINTACT_LOCZ, 
-		              Rotation constraints: KX_CONSTRAINTACT_ROTX, KX_CONSTRAINTACT_ROTY or KX_CONSTRAINTACT_ROTZ
-		              Distance contraints: KX_ACT_CONSTRAINT_DIRPX, KX_ACT_CONSTRAINT_DIRPY, KX_ACT_CONSTRAINT_DIRPZ,
-		                                   KX_ACT_CONSTRAINT_DIRNX, KX_ACT_CONSTRAINT_DIRNY, KX_ACT_CONSTRAINT_DIRNZ,
-		              Orientation constraints: KX_ACT_CONSTRAINT_ORIX, KX_ACT_CONSTRAINT_ORIY, KX_ACT_CONSTRAINT_ORIZ
+		@param limit:
+			Position constraints: KX_CONSTRAINTACT_LOCX, KX_CONSTRAINTACT_LOCY, KX_CONSTRAINTACT_LOCZ
+			Rotation constraints: KX_CONSTRAINTACT_ROTX, KX_CONSTRAINTACT_ROTY or KX_CONSTRAINTACT_ROTZ
+			Distance contraints: KX_ACT_CONSTRAINT_DIRPX, KX_ACT_CONSTRAINT_DIRPY, KX_ACT_CONSTRAINT_DIRPZ, KX_ACT_CONSTRAINT_DIRNX, KX_ACT_CONSTRAINT_DIRNY, KX_ACT_CONSTRAINT_DIRNZ
+			Orientation constraints: KX_ACT_CONSTRAINT_ORIX, KX_ACT_CONSTRAINT_ORIY, KX_ACT_CONSTRAINT_ORIZ
 		"""
 	def getLimit():
 		"""
@@ -70,11 +70,11 @@ class KX_ConstraintActuator(SCA_IActuator):
 		
 		See module L{GameLogic} for valid constraints.
 		
-		@return: Position constraints: KX_CONSTRAINTACT_LOCX, KX_CONSTRAINTACT_LOCY, KX_CONSTRAINTACT_LOCZ, 
-		         Rotation constraints: KX_CONSTRAINTACT_ROTX, KX_CONSTRAINTACT_ROTY, KX_CONSTRAINTACT_ROTZ,
-		         Distance contraints: KX_ACT_CONSTRAINT_DIRPX, KX_ACT_CONSTRAINT_DIRPY, KX_ACT_CONSTRAINT_DIRPZ,
-		                              KX_ACT_CONSTRAINT_DIRNX, KX_ACT_CONSTRAINT_DIRNY, KX_ACT_CONSTRAINT_DIRNZ,
-		         Orientation constraints: KX_ACT_CONSTRAINT_ORIX, KX_ACT_CONSTRAINT_ORIY, KX_ACT_CONSTRAINT_ORIZ
+		@return:
+			Position constraints: KX_CONSTRAINTACT_LOCX, KX_CONSTRAINTACT_LOCY, KX_CONSTRAINTACT_LOCZ, 
+			Rotation constraints: KX_CONSTRAINTACT_ROTX, KX_CONSTRAINTACT_ROTY, KX_CONSTRAINTACT_ROTZ,
+			Distance contraints: KX_ACT_CONSTRAINT_DIRPX, KX_ACT_CONSTRAINT_DIRPY, KX_ACT_CONSTRAINT_DIRPZ, KX_ACT_CONSTRAINT_DIRNX, KX_ACT_CONSTRAINT_DIRNY, KX_ACT_CONSTRAINT_DIRNZ,
+			Orientation constraints: KX_ACT_CONSTRAINT_ORIX, KX_ACT_CONSTRAINT_ORIY, KX_ACT_CONSTRAINT_ORIZ
 		"""
 	def setRotDamp(duration):
 		"""
@@ -107,7 +107,7 @@ class KX_ConstraintActuator(SCA_IActuator):
 		
 		@type option: integer
 		@param option: Binary combination of the following values:
-		                64 : Activate alignment to surface
+		               64  : Activate alignment to surface
 		               128 : Detect material rather than property
 		               256 : No deactivation if ray does not hit target
 		               512 : Activate distance control

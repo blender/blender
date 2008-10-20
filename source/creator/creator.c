@@ -77,6 +77,7 @@
 #include "RE_pipeline.h"
 
 #include "GPU_draw.h"
+#include "GPU_extensions.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -220,6 +221,7 @@ static void print_help(void)
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
+	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
@@ -235,8 +237,10 @@ static void print_help(void)
 	printf ("  $TEMP\t\tStore temporary files here.\n");
 #else
 	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
-	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
 	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
+#endif
+#ifndef DISABLE_SDL
+	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
 #endif
 	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
 	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
@@ -324,10 +328,6 @@ int main(int argc, char **argv)
 #ifdef __linux__
     #ifdef __alpha__
 	signal (SIGFPE, fpe_handler);
-    #else
-	if ( getenv("SDL_AUDIODRIVER") == NULL) {
-		setenv("SDL_AUDIODRIVER", "alsa", 1);
-	}
     #endif
 #endif
 #if defined(__sgi)
@@ -379,6 +379,10 @@ int main(int argc, char **argv)
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
 			case 'a': /* -b was not given, play an animation */
+				
+				/* exception here, see below, it probably needs happens after qt init? */
+				libtiff_init();
+
 				playanim(argc-1, argv+1);
 				exit(0);
 				break;
@@ -426,7 +430,7 @@ int main(int argc, char **argv)
 
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
-
+	
 	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 	
@@ -502,6 +506,8 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
 						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 					}
+					if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
+						GPU_extensions_disable();
 					break;
 				}
 			}
@@ -522,6 +528,15 @@ int main(int argc, char **argv)
 		
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
+#ifndef DISABLE_SDL
+#ifdef __linux__
+		/* On linux the default SDL driver dma often would not play
+		 * use alsa if none is set */
+		if ( getenv("SDL_AUDIODRIVER") == NULL) {
+			setenv("SDL_AUDIODRIVER", "alsa", 1);
+		}
+#endif
+#endif
 	}
 	else {
 		BPY_start_python(argc, argv);

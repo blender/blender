@@ -1,5 +1,5 @@
 #!BPY
-
+# -*- coding: latin-1 -*-
 """
 Name: 'Motion Capture  (.c3d)...'
 Blender: 246

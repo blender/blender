@@ -1,0 +1,28 @@
+#!/usr/bin/python
+Import ('env')
+
+
+from optparse import OptionParser
+try:
+    import epydoc
+except ImportError:
+    print "No epydoc install detected, Python API Docs will not be generated "
+if epydoc:
+    from epydoc.docbuilder import build_doc_index
+    from epydoc import cli
+    names = env.Glob("source/blender/python/api2_2x/doc/[A-Z]*.py")
+    docindex = build_doc_index(names)
+    optvalues = cli.OPTION_DEFAULTS
+    optvalues["verbose"] = 1
+    optvalues["target"] = env["BF_DOCDIR"]+"/BPY_API/"
+    optvalues["url"] = "http://www.blender.org"
+    optvalues["top"] = "API_intro"
+    optvalues["name"] = "Blender"
+    optvalues["noprivate"] = 1
+    optvalues["noframes"] = 1
+    optvalues["names"] = names
+    optparser = OptionParser()
+    optparser.set_defaults(**optvalues)
+    (options, args) = optparser.parse_args()
+    cli.write_html(docindex, options)
+

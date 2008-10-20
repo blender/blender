@@ -182,12 +182,11 @@ Function MigrateUserSettings
   ${EndIf}  
 FunctionEnd
 
-!define DLL_VER "8.00.50727.42"
-!define DLL_VER2 "7.10.3052.4"
+!define DLL_VER "9.00.21022.8"
 
-Function LocateCallback_80
-	MoreInfo::GetProductVersion "$R9"
-	Pop $0
+Function LocateCallback_90
+    MoreInfo::GetProductVersion "$R9"
+    Pop $0
 
         ${VersionCompare} "$0" "${DLL_VER}" $R1
 
@@ -196,7 +195,7 @@ Function LocateCallback_80
         StrCmp $R1 1 0 old
       old:
         StrCmp $R1 2 0 end
-	; Found DLL is older
+    ; Found DLL is older
         Call DownloadDLL
 
      end:
@@ -206,35 +205,14 @@ Function LocateCallback_80
 
 FunctionEnd
 
-Function LocateCallback_71
-	MoreInfo::GetProductVersion "$R9"
-	Pop $0
-
-        ${VersionCompare} "$0" "${DLL_VER2}" $R1
-
-        StrCmp $R1 0 0 new
-      new:
-        StrCmp $R1 1 0 old
-      old:
-        StrCmp $R1 2 0 end
-	; Found DLL is older
-        Call PythonInstall
-
-     end:
-	StrCpy "$0" StopLocate
-	StrCpy $DLL_found "true"
-	Push "$0"
-
-FunctionEnd
-
 Function DownloadDLL
-    MessageBox MB_OK "You will need to download the Microsoft Visual C++ 2005 Redistributable Package in order to run Blender. Pressing OK will take you to the download page, please follow the instructions on the page that appears."
-    StrCpy $0 "http://www.microsoft.com/downloads/details.aspx?familyid=32BC1BEE-A3F9-4C13-9C99-220B62A191EE&displaylang=en"
+    MessageBox MB_OK "You will need to download the Microsoft Visual C++ 2008 Redistributable Package in order to run Blender. Pressing OK will take you to the download page, please follow the instructions on the page that appears."
+    StrCpy $0 "http://www.microsoft.com/downloads/details.aspx?FamilyID=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&DisplayLang=en"
     Call openLinkNewWindow
 FunctionEnd
 
 Function PythonInstall
-    MessageBox MB_OK "You will need to install python 2.5 in order to run blender. Pressing OK will take you to the python.org website."
+    MessageBox MB_OK "You will need to install python 2.5.2 in order to run blender. Pressing OK will take you to the python.org website."
     StrCpy $0 "http://www.python.org"
     Call openLinkNewWindow
 FunctionEnd
@@ -359,19 +337,19 @@ Section "Blender-VERSION (required)" SecCopyUI
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteUninstaller "uninstall.exe"
 
+  IfSilent 0 +2
+    Goto silentdone
   ; Check for msvcr80.dll - give notice to download if not found
   MessageBox MB_OK "The installer will now check your system for the required system dlls."
   StrCpy $1 $WINDIR
   StrCpy $DLL_found "false"
-  ${Locate} "$1" "/L=F /M=MSVCR80.DLL /S=0B" "LocateCallback_80"
+  ${Locate} "$1" "/L=F /M=MSVCR90.DLL /S=0B" "LocateCallback_90"
   StrCmp $DLL_found "false" 0 +2
     Call DownloadDLL
-  StrCpy $1 $WINDIR
-  StrCpy $DLL_found "false"
-  ${Locate} "$1" "/L=F /M=MSVCR71.DLL /S=0B" "LocateCallback_71"
-  StrCmp $DLL_found "false" 0 +2
+  ReadRegStr $0 HKLM SOFTWARE\Python\PythonCore\2.5\InstallPath ""
+  StrCmp $0 "" 0 +2
     Call PythonInstall
-  
+silentdone:
 SectionEnd
 
 Section "Add Start Menu shortcuts" Section2
@@ -424,7 +402,7 @@ Section "Uninstall"
   Delete "$DESKTOP\Blender.lnk"
   ; remove directories used.
   RMDir /r $BLENDERHOME\.blender\locale
-  MessageBox MB_YESNO "Erase .blender\scripts folder? (ALL contents will be erased!)" IDNO Next
+  MessageBox MB_YESNO "Erase .blender\scripts folder? (ALL contents will be erased!)" /SD IDYES IDNO Next
   RMDir /r $BLENDERHOME\.blender\scripts
   RMDir /r $BLENDERHOME\.blender\scripts\bpymodules
   RMDir /r $BLENDERHOME\.blender\scripts\bpydata

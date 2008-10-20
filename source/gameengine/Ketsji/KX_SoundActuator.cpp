@@ -110,6 +110,9 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	if (!m_soundObject)
 		return false;
 
+	// actual audio device playing state
+	bool isplaying = (m_soundObject->GetPlaystate() != SND_STOPPED) ? true : false;
+
 	if (m_pino)
 	{
 		bNegativeEvent = true;
@@ -119,30 +122,40 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	if (bNegativeEvent)
 	{	
 		// here must be a check if it is still playing
-		m_isplaying = false;
-
-		switch (m_type)
+		if (m_isplaying && isplaying) 
 		{
-		case KX_SOUNDACT_PLAYSTOP:
-		case KX_SOUNDACT_LOOPSTOP:
-		case KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:
+			switch (m_type)
 			{
-				m_soundScene->RemoveActiveObject(m_soundObject);
+			case KX_SOUNDACT_PLAYSTOP:
+			case KX_SOUNDACT_LOOPSTOP:
+			case KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:
+				{
+					m_soundScene->RemoveActiveObject(m_soundObject);
+					break;
+				}
+			case KX_SOUNDACT_PLAYEND:
+				{
+					m_soundObject->SetPlaystate(SND_MUST_STOP_WHEN_FINISHED);
+					break;
+				}
+			case KX_SOUNDACT_LOOPEND:
+			case KX_SOUNDACT_LOOPBIDIRECTIONAL:
+				{
+					m_soundObject->SetLoopMode(SND_LOOP_OFF);
+					m_soundObject->SetPlaystate(SND_MUST_STOP_WHEN_FINISHED);
+					break;
+				}
+			default:
+				// implement me !!
 				break;
 			}
-		case KX_SOUNDACT_PLAYEND:
-			{
-				m_soundObject->SetPlaystate(SND_MUST_STOP_WHEN_FINISHED);
-				break;
-			}
-		default:
-			// implement me !!
-			break;
 		}
+		// remember that we tried to stop the actuator
+		m_isplaying = false;
 	}
 	else
 	{
-		if (m_soundObject && !m_isplaying)
+		if (!m_isplaying)
 		{
 			switch (m_type)
 			{
@@ -179,8 +192,10 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			}
 		}
 	}
+	// verify that the sound is still playing
+	isplaying = (m_soundObject->GetPlaystate() != SND_STOPPED) ? true : false;
 
-	if (m_isplaying)
+	if (isplaying)
 	{
 		m_soundObject->SetPosition(((KX_GameObject*)this->GetParent())->NodeGetWorldPosition());
 		m_soundObject->SetVelocity(((KX_GameObject*)this->GetParent())->GetLinearVelocity());
@@ -189,14 +204,15 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	}
 	else
 	{
+		m_isplaying = false;
 		result = false;
 	}
-
+	/*
 	if (result && (m_soundObject->IsLifeSpanOver(curtime)) && ((m_type == KX_SOUNDACT_PLAYEND) || (m_type == KX_SOUNDACT_PLAYSTOP)))
 	{
 		m_pino = true;
 	}
-
+	*/
 	return result;
 }
 
@@ -312,6 +328,9 @@ PyObject* KX_SoundActuator::PyGetFilename(PyObject* self, PyObject* args, PyObje
 PyObject* KX_SoundActuator::PyStartSound(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	if (m_soundObject)
+		// This has no effect if the actuator is not active.
+		// To start the sound you must activate the actuator. 
+		// This function is to restart the sound.
 		m_soundObject->StartSound();	
 	Py_Return;
 }         
@@ -321,6 +340,7 @@ PyObject* KX_SoundActuator::PyStartSound(PyObject* self, PyObject* args, PyObjec
 PyObject* KX_SoundActuator::PyPauseSound(PyObject* self, PyObject* args, PyObject* kwds)
 {
 	if (m_soundObject)
+		// unfortunately, openal does not implement pause correctly, it is equivalent to a stop
 		m_soundObject->PauseSound();	
 	Py_Return;
 } 

@@ -116,8 +116,8 @@ public:
 	/** set the level detection on or off */
 	void SetLevel(bool lvl);
 
-	void RegisterToManager();
-	void UnregisterToManager();
+	virtual void RegisterToManager();
+	virtual void UnregisterToManager();
 
 	virtual float GetNumber();
 

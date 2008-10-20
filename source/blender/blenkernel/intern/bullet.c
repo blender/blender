@@ -78,6 +78,7 @@ BulletSoftBody *bsbNew(void)
 
 	bsb->kSHR			=	1.0f;
 	bsb->kAHR			=	0.7f;
+	
 	bsb->collisionflags = 0;
 	//bsb->collisionflags = OB_BSB_COL_CL_RS + OB_BSB_COL_CL_SS;
 	bsb->numclusteriterations = 64;

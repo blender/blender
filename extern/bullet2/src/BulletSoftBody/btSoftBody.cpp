@@ -306,8 +306,16 @@ void			btSoftBody::appendFace(int node0,int node1,int node2,Material* mat)
 }
 
 //
-void			btSoftBody::appendAnchor(int node,btRigidBody* body)
+void			btSoftBody::appendAnchor(int node,btRigidBody* body,bool disableCollisionWithBody=false)
 {
+	if (disableCollisionWithBody)
+	{
+		if (m_collisionDisabledObjects.findLinearSearch(body)==m_collisionDisabledObjects.size())
+		{
+			m_collisionDisabledObjects.push_back(body);
+		}
+	}
+
 	Anchor	a;
 	a.m_node			=	&m_nodes[node];
 	a.m_body			=	body;

@@ -650,7 +650,9 @@ void EM_selectmode_flush(void)
 			if(efa->f & SELECT) EM_select_face(efa, 1);
 		}
 	}
-	check_fgons_selection();
+	
+	if(!(G.scene->selectmode & SCE_SELECT_FACE))
+		check_fgons_selection();
 
 }
 

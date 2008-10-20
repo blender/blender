@@ -284,10 +284,10 @@ void set_four_ipo(float d, float *data, int type)
 		}
 		else if(type==KEY_BSPLINE) {
 
-			data[0]= -0.1666f*d3	+0.5f*d2	-0.5f*d	+0.16666f;
-			data[1]= 0.5f*d3		-d2				+0.6666f;
-			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.1666f;
-			data[3]= 0.1666f*d3			;
+			data[0]= -0.16666666f*d3	+0.5f*d2	-0.5f*d	+0.16666666f;
+			data[1]= 0.5f*d3		-d2				+0.6666666f;
+			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.16666666f;
+			data[3]= 0.16666666f*d3			;
 		}
 	}
 }
@@ -313,10 +313,10 @@ void set_afgeleide_four_ipo(float d, float *data, int type)
 		}
 		else if(type==KEY_BSPLINE) {
 
-			data[0]= -0.1666f*3.0f*d2	+d	-0.5f;
+			data[0]= -0.16666666f*3.0f*d2	+d	-0.5f;
 			data[1]= 1.5f*d2		-2.0f*d;
 			data[2]= -1.5f*d2		+d	+0.5f;
-			data[3]= 0.1666f*3.0f*d2			;
+			data[3]= 0.16666666f*3.0f*d2			;
 		}
 	}
 }

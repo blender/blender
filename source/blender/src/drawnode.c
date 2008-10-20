@@ -3363,12 +3363,14 @@ static void nodes_blockhandlers(ScrArea *sa)
 	short a;
 	
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		/* clear action value for event */
 		switch(snode->blockhandler[a]) {
 			case NODES_HANDLER_GREASEPENCIL:
 				nodes_panel_gpencil(snode->blockhandler[a+1]);
 				break;
 		}
+		
+		/* clear action value for event */
+		snode->blockhandler[a+1]= 0;
 	}
 	uiDrawBlocksPanels(sa, 0);
 }

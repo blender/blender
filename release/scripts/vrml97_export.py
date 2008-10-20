@@ -639,7 +639,7 @@ class VRML2Export:
 		# Check if any faces the material or image
 		for face in me.faces:
 			if (matnum == -1):
-				if (f.image == image):
+				if (face.image == image):
 					return True
 			elif (image == None):
 				if (face.mat == matnum):

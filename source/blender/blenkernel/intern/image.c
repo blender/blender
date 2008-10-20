@@ -1571,7 +1571,7 @@ static ImBuf *image_load_sequence_multilayer(Image *ima, ImageUser *iuser, int f
 			ibuf->channels= rpass->channels;
 			
 			image_initialize_after_load(ima, ibuf);
-			image_assign_ibuf(ima, ibuf, iuser->multi_index, frame);
+			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:0, frame);
 			
 		}
 		// else printf("pass not found\n");
