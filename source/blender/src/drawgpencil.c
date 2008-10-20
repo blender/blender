@@ -187,7 +187,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		/* rounded header */
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
 			rb_col= (active)?-20:20;
-			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15, rb_col-20, ""); 
+			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
@@ -243,7 +243,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		
 		/* draw backdrop */
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
-			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* draw settings */
@@ -794,7 +794,7 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		QUATCOPY(color, gpl->color); // just for copying 4 array elements
 		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4f(color[0], color[1], color[2], color[3]);
-		glPointSize(gpl->thickness + 2);
+		glPointSize((float)(gpl->thickness + 2));
 		
 		/* draw 'onionskins' (frame left + right) */
 		if (gpl->flag & GP_LAYER_ONIONSKIN) {
@@ -952,7 +952,7 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			float zoom, zoomx, zoomy;
 			
 			/* calculate accessory values */
-			zoom= (float)SEQ_ZOOM_FAC(sseq->zoom);
+			zoom= (float)(SEQ_ZOOM_FAC(sseq->zoom));
 			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 				zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 				zoomy = zoom;
