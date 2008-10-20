@@ -893,7 +893,7 @@ static short select_same_color(Object *ob)
 	Base *base = FIRSTBASE;
 	
 	while(base) {
-		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005))) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005f))) {
 			base->flag |= SELECT;
 			base->object->flag |= SELECT;
 			changed = 1;
@@ -3303,10 +3303,10 @@ void initipo(ScrArea *sa)
 	sipo->blockscale= 0.7f;
 	
 	/* sipo space loopt van (0,-?) tot (??,?) */
-	sipo->v2d.tot.xmin= 0.0;
-	sipo->v2d.tot.ymin= -10.0;
-	sipo->v2d.tot.xmax= G.scene->r.efra;
-	sipo->v2d.tot.ymax= 10.0;
+	sipo->v2d.tot.xmin= 0.0f;
+	sipo->v2d.tot.ymin= -10.0f;
+	sipo->v2d.tot.xmax= (float)G.scene->r.efra;
+	sipo->v2d.tot.ymax= 10.0f;
 
 	sipo->v2d.cur= sipo->v2d.tot;
 
@@ -5020,12 +5020,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELUPMOUSE:
 			if(sseq->mainb) {
 				if (G.qual == LR_SHIFTKEY) {
-					sseq->zoom += 0.10;
+					sseq->zoom += 0.10f;
 				} else {
 					sseq->zoom++;
 				}
 				if(sseq->zoom >= -1 && sseq->zoom < 1) {
-					sseq->zoom += 2;
+					sseq->zoom += 2.0f;
 				}
 				if(sseq->zoom>8) sseq->zoom= 8;
 			} else {
@@ -5048,12 +5048,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			if(sseq->mainb) {
 				if (G.qual == LR_SHIFTKEY) {
-					sseq->zoom -= 0.10;
+					sseq->zoom -= 0.10f;
 				} else {
 					sseq->zoom--;
 				}
 				if(sseq->zoom >= -1 && sseq->zoom < 1) {
-					sseq->zoom -= 2;
+					sseq->zoom -= 2.0f;
 				}
 				if(sseq->zoom<-8) sseq->zoom= -8;
 			} else {
@@ -5264,26 +5264,26 @@ static void init_seqspace(ScrArea *sa)
 
 	sseq->spacetype= SPACE_SEQ;
 	sseq->zoom= 4;
-	sseq->blockscale= 0.7;
+	sseq->blockscale= 0.7f;
 	sseq->chanshown = 0;
 	
 	/* seq space goes from (0,8) to (250, 0) */
 
-	sseq->v2d.tot.xmin= 0.0;
-	sseq->v2d.tot.ymin= 0.0;
-	sseq->v2d.tot.xmax= 250.0;
-	sseq->v2d.tot.ymax= 8.0;
+	sseq->v2d.tot.xmin= 0.0f;
+	sseq->v2d.tot.ymin= 0.0f;
+	sseq->v2d.tot.xmax= 250.0f;
+	sseq->v2d.tot.ymax= 8.0f;
 	
 	sseq->v2d.cur= sseq->v2d.tot;
 
-	sseq->v2d.min[0]= 10.0;
-	sseq->v2d.min[1]= 4.0;
+	sseq->v2d.min[0]= 10.0f;
+	sseq->v2d.min[1]= 4.0f;
 
 	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
 	sseq->v2d.minzoom= 0.01f;
-	sseq->v2d.maxzoom= 100.0;
+	sseq->v2d.maxzoom= 100.0f;
 	
 	sseq->v2d.scroll= L_SCROLL+B_SCROLL;
 	sseq->v2d.keepaspect= 0;
@@ -5315,25 +5315,25 @@ static void init_actionspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, saction);
 
 	saction->spacetype= SPACE_ACTION;
-	saction->blockscale= 0.7;
+	saction->blockscale= 0.7f;
 
-	saction->v2d.tot.xmin= 1.0;
-	saction->v2d.tot.ymin= -1000.0;
-	saction->v2d.tot.xmax= 1000.0;
-	saction->v2d.tot.ymax= 0.0;
+	saction->v2d.tot.xmin= 1.0f;
+	saction->v2d.tot.ymin= -1000.0f;
+	saction->v2d.tot.xmax= 1000.0f;
+	saction->v2d.tot.ymax= 0.0f;
 	
-	saction->v2d.cur.xmin= -5.0;
-	saction->v2d.cur.ymin= -75.0;
-	saction->v2d.cur.xmax= 65.0;
-	saction->v2d.cur.ymax= 5.0;
+	saction->v2d.cur.xmin= -5.0f;
+	saction->v2d.cur.ymin= -75.0f;
+	saction->v2d.cur.xmax= 65.0f;
+	saction->v2d.cur.ymax= 5.0f;
 
-	saction->v2d.min[0]= 0.0;
-	saction->v2d.min[1]= 0.0;
+	saction->v2d.min[0]= 0.0f;
+	saction->v2d.min[1]= 0.0f;
 
 	saction->v2d.max[0]= MAXFRAMEF;
-	saction->v2d.max[1]= 1000.0;
+	saction->v2d.max[1]= 1000.0f;
 	
-	saction->v2d.minzoom= 0.01;
+	saction->v2d.minzoom= 0.01f;
 	saction->v2d.maxzoom= 50;
 
 	saction->v2d.scroll= R_SCROLL+B_SCROLL;
@@ -5368,7 +5368,7 @@ static void init_filespace(ScrArea *sa)
 
 	sfile->dir[0]= '/';
 	sfile->type= FILE_UNIX;
-	sfile->blockscale= 0.7;
+	sfile->blockscale= 0.7f;
 	sfile->spacetype= SPACE_FILE;
 }
 
@@ -5386,27 +5386,27 @@ static void init_soundspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, ssound);
 
 	ssound->spacetype= SPACE_SOUND;
-	ssound->blockscale= 0.7;
+	ssound->blockscale= 0.7f;
 	/* sound space goes from (0,8) to (250, 0) */
 
-	ssound->v2d.tot.xmin= -4.0;
-	ssound->v2d.tot.ymin= -4.0;
-	ssound->v2d.tot.xmax= 250.0;
-	ssound->v2d.tot.ymax= 255.0;
+	ssound->v2d.tot.xmin= -4.0f;
+	ssound->v2d.tot.ymin= -4.0f;
+	ssound->v2d.tot.xmax= 250.0f;
+	ssound->v2d.tot.ymax= 255.0f;
 	
-	ssound->v2d.cur.xmin= -4.0;
-	ssound->v2d.cur.ymin= -4.0;
-	ssound->v2d.cur.xmax= 50.0;
-	ssound->v2d.cur.ymax= 255.0;
+	ssound->v2d.cur.xmin= -4.0f;
+	ssound->v2d.cur.ymin= -4.0f;
+	ssound->v2d.cur.xmax= 50.0f;
+	ssound->v2d.cur.ymax= 255.0f;
 
-	ssound->v2d.min[0]= 1.0;
-	ssound->v2d.min[1]= 259.0;
+	ssound->v2d.min[0]= 1.0f;
+	ssound->v2d.min[1]= 259.0f;
 
 	ssound->v2d.max[0]= MAXFRAMEF;
-	ssound->v2d.max[1]= 259;
+	ssound->v2d.max[1]= 259.0f;
 	
 	ssound->v2d.minzoom= 0.1f;
-	ssound->v2d.maxzoom= 10.0;
+	ssound->v2d.maxzoom= 10.0f;
 	
 	ssound->v2d.scroll= B_SCROLL;
 	ssound->v2d.keepaspect= 0;
@@ -5745,7 +5745,7 @@ static void init_imagespace(ScrArea *sa)
 
 	sima->spacetype= SPACE_IMAGE;
 	sima->zoom= 1;
-	sima->blockscale= 0.7;
+	sima->blockscale= 0.7f;
 
 	sima->iuser.ok= 1;
 	sima->iuser.fie_ima= 2;
@@ -5777,18 +5777,18 @@ static void init_imaselspace(ScrArea *sa)
 	simasel->blockscale= 0.7;
 
 	/* view 2D */
-	simasel->v2d.tot.xmin=  -10.0;
-	simasel->v2d.tot.ymin=  -10.0;
+	simasel->v2d.tot.xmin=  -10.0f;
+	simasel->v2d.tot.ymin=  -10.0f;
 	simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
 	simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;
 	
-	simasel->v2d.cur.xmin=  0.0;
-	simasel->v2d.cur.ymin=  0.0;
+	simasel->v2d.cur.xmin=  0.0f;
+	simasel->v2d.cur.ymin=  0.0f;
 	simasel->v2d.cur.xmax= (float)sa->winx;
 	simasel->v2d.cur.ymax= (float)sa->winy;
 	
-	simasel->v2d.min[0]= 1.0;
-	simasel->v2d.min[1]= 1.0;
+	simasel->v2d.min[0]= 1.0f;
+	simasel->v2d.min[1]= 1.0f;
 	
 	simasel->v2d.max[0]= 32000.0f;
 	simasel->v2d.max[1]= 32000.0f;
@@ -5932,8 +5932,8 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case PADPLUSKEY:
 		
-			dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
-			dy= 0.1154*(v2d->cur.ymax-v2d->cur.ymin);
+			dx= 0.1154f*(v2d->cur.xmax-v2d->cur.xmin);
+			dy= 0.1154f*(v2d->cur.ymax-v2d->cur.ymin);
 			v2d->cur.xmin+= dx;
 			v2d->cur.xmax-= dx;
 			v2d->cur.ymin+= dy;
@@ -5944,8 +5944,8 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		case PADMINUS:
 
-			dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
-			dy= 0.15*(v2d->cur.ymax-v2d->cur.ymin);
+			dx= 0.15f*(v2d->cur.xmax-v2d->cur.xmin);
+			dy= 0.15f*(v2d->cur.ymax-v2d->cur.ymin);
 			v2d->cur.xmin-= dx;
 			v2d->cur.xmax+= dx;
 			v2d->cur.ymin-= dy;
@@ -6045,10 +6045,10 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		/* outliner space is window size */
 		calc_scrollrcts(sa, v2d, sa->winx, sa->winy);
 		
-		v2d->tot.xmax= (v2d->mask.xmax-v2d->mask.xmin);
-		v2d->tot.ymax= (v2d->mask.ymax-v2d->mask.ymin);
-		v2d->tot.xmin= 0.0;
-		v2d->tot.ymin= 0.0;
+		v2d->tot.xmax= (float)(v2d->mask.xmax-v2d->mask.xmin);
+		v2d->tot.ymax= (float)(v2d->mask.ymax-v2d->mask.ymin);
+		v2d->tot.xmin= 0.0f;
+		v2d->tot.ymin= 0.0f;
 		
 		v2d->cur= v2d->tot;
 		
@@ -6058,8 +6058,8 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		v2d->max[0]= v2d->tot.xmax;
 		v2d->max[1]= v2d->tot.ymax;
 		
-		v2d->minzoom= 1.0;
-		v2d->maxzoom= 1.0;
+		v2d->minzoom= 1.0f;
+		v2d->maxzoom= 1.0f;
 		
 		/* B_SCROLLO used here instead of B_SCROLL, to stop old blender's hanging on 
 		 * loading a file from a version with horizontal scrolling due to an old bug
@@ -6075,21 +6075,21 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		v2d->keeptot= 2;
 	}
 	else {
-		v2d->tot.xmin= -28.0;
-		v2d->tot.xmax= 28.0;
-		v2d->tot.ymin= -28.0;
-		v2d->tot.ymax= 28.0;
+		v2d->tot.xmin= -28.0f;
+		v2d->tot.xmax= 28.0f;
+		v2d->tot.ymin= -28.0f;
+		v2d->tot.ymax= 28.0f;
 		
 		v2d->cur= v2d->tot;
 
-		v2d->min[0]= 10.0;
-		v2d->min[1]= 4.0;
+		v2d->min[0]= 10.0f;
+		v2d->min[1]= 4.0f;
 
-		v2d->max[0]= 320.0;
-		v2d->max[1]= 320.0;
+		v2d->max[0]= 320.0f;
+		v2d->max[1]= 320.0f;
 		
 		v2d->minzoom= 0.01f;
-		v2d->maxzoom= 2.0;
+		v2d->maxzoom= 2.0f;
 		
 		/* v2d->scroll= L_SCROLL+B_SCROLL; */
 		v2d->scroll= 0;
@@ -6111,7 +6111,7 @@ static void init_oopsspace(ScrArea *sa)
 	soops->type= SO_OUTLINER;
 		
 	soops->spacetype= SPACE_OOPS;
-	soops->blockscale= 0.7;
+	soops->blockscale= 0.7f;
 	init_v2d_oops(sa, soops);
 }
 
@@ -6125,26 +6125,26 @@ static void init_nlaspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, snla);
 	
 	snla->spacetype= SPACE_NLA;
-	snla->blockscale= 0.7;
+	snla->blockscale= 0.7f;
 	
-	snla->v2d.tot.xmin= 1.0;
-	snla->v2d.tot.ymin=	0.0;
-	snla->v2d.tot.xmax= 1000.0;
-	snla->v2d.tot.ymax= 1000.0;
+	snla->v2d.tot.xmin= 1.0f;
+	snla->v2d.tot.ymin=	0.0f;
+	snla->v2d.tot.xmax= 1000.0f;
+	snla->v2d.tot.ymax= 1000.0f;
 	
-	snla->v2d.cur.xmin= -5.0;
-	snla->v2d.cur.ymin= 0.0;
-	snla->v2d.cur.xmax= 65.0;
-	snla->v2d.cur.ymax= 1000.0;
+	snla->v2d.cur.xmin= -5.0f;
+	snla->v2d.cur.ymin= 0.0f;
+	snla->v2d.cur.xmax= 65.0f;
+	snla->v2d.cur.ymax= 1000.0f;
 	
-	snla->v2d.min[0]= 0.0;
-	snla->v2d.min[1]= 0.0;
+	snla->v2d.min[0]= 0.0f;
+	snla->v2d.min[1]= 0.0f;
 	
 	snla->v2d.max[0]= MAXFRAMEF;
-	snla->v2d.max[1]= 1000.0;
+	snla->v2d.max[1]= 1000.0f;
 	
-	snla->v2d.minzoom= 0.1F;
-	snla->v2d.maxzoom= 50;
+	snla->v2d.minzoom= 0.1f;
+	snla->v2d.maxzoom= 50.0f;
 	
 	snla->v2d.scroll= R_SCROLL+B_SCROLL;
 	snla->v2d.keepaspect= 0;
@@ -6169,7 +6169,7 @@ static void init_textspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, st);
 	
 	st->spacetype= SPACE_TEXT;	
-	st->blockscale= 0.7;
+	st->blockscale= 0.7f;
 	st->text= NULL;
 	st->flags= 0;
 	
@@ -6200,7 +6200,7 @@ static void init_scriptspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, sc);
 	
 	sc->spacetype = SPACE_SCRIPT;
-	sc->blockscale= 0.7;
+	sc->blockscale= 0.7f;
 	sc->script = NULL;
 	sc->flags = 0;
 }
@@ -6219,24 +6219,24 @@ static void init_timespace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, stime);
 	
 	stime->spacetype= SPACE_TIME;
-	stime->blockscale= 0.7;
+	stime->blockscale= 0.7f;
 	stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 	
-	stime->v2d.tot.xmin= -4.0;
-	stime->v2d.tot.ymin=  0.0;
+	stime->v2d.tot.xmin= -4.0f;
+	stime->v2d.tot.ymin=  0.0f;
 	stime->v2d.tot.xmax= (float)EFRA + 4.0;
 	stime->v2d.tot.ymax= (float)sa->winy;
 	
 	stime->v2d.cur= stime->v2d.tot;
 	
-	stime->v2d.min[0]= 1.0;
+	stime->v2d.min[0]= 1.0f;
 	stime->v2d.min[1]= (float)sa->winy;
 	
 	stime->v2d.max[0]= MAXFRAMEF;
 	stime->v2d.max[1]= (float)sa->winy;
 	
 	stime->v2d.minzoom= 0.1f;
-	stime->v2d.maxzoom= 10.0;
+	stime->v2d.maxzoom= 10.0f;
 	
 	stime->v2d.scroll= 0;
 	stime->v2d.keepaspect= 0;
@@ -6260,20 +6260,20 @@ static void init_nodespace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, snode);
 	
 	snode->spacetype= SPACE_NODE;
-	snode->blockscale= 0.7;
+	snode->blockscale= 0.7f;
 	
-	snode->v2d.tot.xmin=  -10.0;
-	snode->v2d.tot.ymin=  -10.0;
+	snode->v2d.tot.xmin=  -10.0f;
+	snode->v2d.tot.ymin=  -10.0f;
 	snode->v2d.tot.xmax= (float)sa->winx + 10.0f;
 	snode->v2d.tot.ymax= (float)sa->winy + 10.0f;
 	
-	snode->v2d.cur.xmin=  0.0;
-	snode->v2d.cur.ymin=  0.0;
+	snode->v2d.cur.xmin=  0.0f;
+	snode->v2d.cur.ymin=  0.0f;
 	snode->v2d.cur.xmax= (float)sa->winx;
 	snode->v2d.cur.ymax= (float)sa->winy;
 	
-	snode->v2d.min[0]= 1.0;
-	snode->v2d.min[1]= 1.0;
+	snode->v2d.min[0]= 1.0f;
+	snode->v2d.min[1]= 1.0f;
 	
 	snode->v2d.max[0]= 32000.0f;
 	snode->v2d.max[1]= 32000.0f;

@@ -133,7 +133,7 @@ void gplayer_make_cfra_list (bGPDlayer *gpl, ListBase *elems, short onlysel)
 		if ((onlysel == 0) || (gpf->flag & GP_FRAME_SELECT)) {
 			ce= MEM_callocN(sizeof(CfraElem), "CfraElem");
 			
-			ce->cfra= gpf->framenum;
+			ce->cfra= (float)gpf->framenum;
 			ce->sel= (gpf->flag & GP_FRAME_SELECT) ? 1 : 0;
 			
 			BLI_addtail(elems, ce);
@@ -390,7 +390,7 @@ void duplicate_gplayer_frames (bGPDlayer *gpl)
  
 /* globals for copy/paste data (like for other copy/paste buffers) */
 ListBase gpcopybuf = {NULL, NULL};
-static float gpcopy_firstframe= 999999999.0f;
+static int gpcopy_firstframe= 999999999;
 
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 void free_gpcopybuf ()
@@ -398,7 +398,7 @@ void free_gpcopybuf ()
 	free_gpencil_layers(&gpcopybuf); 
 	
 	gpcopybuf.first= gpcopybuf.last= NULL;
-	gpcopy_firstframe= 999999999.0f;
+	gpcopy_firstframe= 999999999;
 }
 
 /* This function adds data to the copy/paste buffer, freeing existing data first
@@ -469,8 +469,8 @@ void paste_gpdata ()
 	void *data;
 	short datatype;
 	
+	const int offset = (CFRA - gpcopy_firstframe);
 	short no_name= 0;
-	float offset = CFRA - gpcopy_firstframe;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, gpcopybuf.first, gpcopybuf.last)) {
@@ -600,7 +600,7 @@ static short snap_gpf_nearest (bGPDframe *gpf)
 
 static short snap_gpf_nearestsec (bGPDframe *gpf)
 {
-	float secf = FPS;
+	float secf = (float)FPS;
 	if (gpf->flag & GP_FRAME_SELECT)
 		gpf->framenum= (int)(floor(gpf->framenum/secf + 0.5f) * secf);
 	return 0;
@@ -616,7 +616,7 @@ static short snap_gpf_cframe (bGPDframe *gpf)
 static short snap_gpf_nearmarker (bGPDframe *gpf)
 {
 	if (gpf->flag & GP_FRAME_SELECT)
-		gpf->framenum= (int)find_nearest_marker_time(gpf->framenum);
+		gpf->framenum= (int)find_nearest_marker_time((float)gpf->framenum);
 	return 0;
 }
 
@@ -648,11 +648,11 @@ void snap_gplayer_frames (bGPDlayer *gpl, short mode)
 
 static short mirror_gpf_cframe (bGPDframe *gpf)
 {
-	float diff;
+	int diff;
 	
 	if (gpf->flag & GP_FRAME_SELECT) {
-		diff= ((float)CFRA - gpf->framenum);
-		gpf->framenum= ((float)CFRA + diff);
+		diff= CFRA - gpf->framenum;
+		gpf->framenum= CFRA;
 	}
 	
 	return 0;
@@ -660,11 +660,11 @@ static short mirror_gpf_cframe (bGPDframe *gpf)
 
 static short mirror_gpf_yaxis (bGPDframe *gpf)
 {
-	float diff;
+	int diff;
 	
 	if (gpf->flag & GP_FRAME_SELECT) {
-		diff= (0.0f - gpf->framenum);
-		gpf->framenum= (0.0f + diff);
+		diff= -gpf->framenum;
+		gpf->framenum= diff;
 	}
 	
 	return 0;
@@ -672,11 +672,11 @@ static short mirror_gpf_yaxis (bGPDframe *gpf)
 
 static short mirror_gpf_xaxis (bGPDframe *gpf)
 {
-	float diff;
+	int diff;
 	
 	if (gpf->flag & GP_FRAME_SELECT) {
-		diff= (0.0f - gpf->framenum);
-		gpf->framenum= (0.0f + diff);
+		diff= -gpf->framenum;
+		gpf->framenum= diff;
 	}
 	
 	return 0;
@@ -686,7 +686,7 @@ static short mirror_gpf_marker (bGPDframe *gpf)
 {
 	static TimeMarker *marker;
 	static short initialised = 0;
-	float diff;
+	int diff;
 	
 	/* In order for this mirror function to work without
 	 * any extra arguments being added, we use the case

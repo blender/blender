@@ -769,8 +769,8 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 			ipoco_to_areaco_noclip(v2d, &pt->x, mval);
 		}
 		else {
-			mval[0]= (pt->x / 1000 * curarea->winx);
-			mval[1]= (pt->y / 1000 * curarea->winy);
+			mval[0]= (short)(pt->x / 1000 * curarea->winx);
+			mval[1]= (short)(pt->y / 1000 * curarea->winy);
 		}
 		mx= mval[0]; 
 		my= mval[1];
@@ -854,7 +854,7 @@ static void gp_stroke_to_bezier (bGPDlayer *gpl, bGPDstroke *gps, Curve *cu)
 		/* set settings */
 		bezt->h1= bezt->h2= HD_FREE;
 		bezt->f1= bezt->f2= bezt->f3= SELECT;
-		bezt->radius = bezt->weight = pt->pressure * gpl->thickness * 0.1;
+		bezt->radius = bezt->weight = pt->pressure * gpl->thickness * 0.1f;
 	}
 	
 	/* must calculate handles or else we crash */
@@ -941,14 +941,14 @@ static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *
 			{
 				ebo->flag |= BONE_CONNECTED;
 			}
-			ebo->weight= 1.0F;
-			ebo->dist= 0.25F;
-			ebo->xwidth= 0.1;
-			ebo->zwidth= 0.1;
-			ebo->ease1= 1.0;
-			ebo->ease2= 1.0;
-			ebo->rad_head= pt->pressure * gpl->thickness * 0.1;
-			ebo->rad_tail= ptn->pressure * gpl->thickness * 0.1;
+			ebo->weight= 1.0f;
+			ebo->dist= 0.25f;
+			ebo->xwidth= 0.1f;
+			ebo->zwidth= 0.1f;
+			ebo->ease1= 1.0f;
+			ebo->ease2= 1.0f;
+			ebo->rad_head= pt->pressure * gpl->thickness * 0.1f;
+			ebo->rad_tail= ptn->pressure * gpl->thickness * 0.1f;
 			ebo->segments= 1;
 			ebo->layer= arm->layer;
 		}
@@ -1347,10 +1347,10 @@ static void gp_stroke_simplify (tGPsdata *p)
 			pressure = 0;
 			
 			/* using macro, calculate new point */
-			GP_SIMPLIFY_AVPOINT(j, -0.25);
-			GP_SIMPLIFY_AVPOINT(j+1, 0.75);
-			GP_SIMPLIFY_AVPOINT(j+2, 0.75);
-			GP_SIMPLIFY_AVPOINT(j+3, -0.25);
+			GP_SIMPLIFY_AVPOINT(j, -0.25f);
+			GP_SIMPLIFY_AVPOINT(j+1, 0.75f);
+			GP_SIMPLIFY_AVPOINT(j+2, 0.75f);
+			GP_SIMPLIFY_AVPOINT(j+3, -0.25f);
 			
 			/* set values for adding */
 			mco[0]= (short)co[0];
@@ -1557,7 +1557,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 		}
 		else if (gps->flag & GP_STROKE_2DIMAGE) {			
 			int offsx, offsy, sizex, sizey;
-				
+			
 			/* get stored settings */
 			sizex= p->im2d_settings.sizex;
 			sizey= p->im2d_settings.sizey;
@@ -1565,12 +1565,12 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 			offsy= p->im2d_settings.offsy;
 			
 			/* calculate new points */
-			x0= (gps->points->x * sizex) + offsx;
-			y0= (gps->points->y * sizey) + offsy;
+			x0= (short)((gps->points->x * sizex) + offsx);
+			y0= (short)((gps->points->y * sizey) + offsy);
 		}
 		else {
-			x0= (gps->points->x / 1000 * p->sa->winx);
-			y0= (gps->points->y / 1000 * p->sa->winy);
+			x0= (short)(gps->points->x / 1000 * p->sa->winx);
+			y0= (short)(gps->points->y / 1000 * p->sa->winy);
 		}
 		
 		/* do boundbox check first */
@@ -1621,17 +1621,17 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 				offsy= p->im2d_settings.offsy;
 				
 				/* calculate new points */
-				x0= (pt1->x * sizex) + offsx;
-				y0= (pt1->y * sizey) + offsy;
+				x0= (short)((pt1->x * sizex) + offsx);
+				y0= (short)((pt1->y * sizey) + offsy);
 				
-				x1= (pt2->x * sizex) + offsx;
-				y1= (pt2->y * sizey) + offsy;
+				x1= (short)((pt2->x * sizex) + offsx);
+				y1= (short)((pt2->y * sizey) + offsy);
 			}
 			else {
-				x0= (pt1->x / 1000 * p->sa->winx);
-				y0= (pt1->y / 1000 * p->sa->winy);
-				x1= (pt2->x / 1000 * p->sa->winx);
-				y1= (pt2->y / 1000 * p->sa->winy);
+				x0= (short)(pt1->x / 1000 * p->sa->winx);
+				y0= (short)(pt1->y / 1000 * p->sa->winy);
+				x1= (short)(pt2->x / 1000 * p->sa->winx);
+				y1= (short)(pt2->y / 1000 * p->sa->winy);
 			}
 			
 			/* check that point segment of the boundbox of the eraser stroke */
@@ -1896,10 +1896,10 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				recty= (G.scene->r.size * G.scene->r.ysch) / 100; 
 				
 				/* set offset and scale values for opertations to use */
-				p->im2d_settings.sizex= zoomx * rectx;
-				p->im2d_settings.sizey= zoomy * recty;
-				p->im2d_settings.offsx= (p->sa->winx-p->im2d_settings.sizex)/2 + sseq->xof;
-				p->im2d_settings.offsy= (p->sa->winy-p->im2d_settings.sizey)/2 + sseq->yof;
+				p->im2d_settings.sizex= (int)(zoomx * rectx);
+				p->im2d_settings.sizey= (int)(zoomy * recty);
+				p->im2d_settings.offsx= (int)((p->sa->winx-p->im2d_settings.sizex)/2 + sseq->xof);
+				p->im2d_settings.offsy= (int)((p->sa->winy-p->im2d_settings.sizey)/2 + sseq->yof);
 			}
 				break;
 			case SPACE_IMAGE:

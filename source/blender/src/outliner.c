@@ -1688,7 +1688,7 @@ static int tree_element_active_texture(SpaceOops *soops, TreeElement *te, int se
 				sbuts->texfrom= 0;
 			}
 			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
-			ma->texact= te->index;
+			ma->texact= (char)te->index;
 			
 			/* also set active material */
 			ob->actcol= tep->index+1;
@@ -2329,8 +2329,8 @@ static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, 
 	TreeStoreElem *tselem= TREESTORE(te);
 	
 	/* store coord and continue, we need coordinates for elements outside view too */
-	te->xs= startx;
-	te->ys= *starty;
+	te->xs= (float)startx;
+	te->ys= (float)(*starty);
 	*starty-= OL_H;
 	
 	if((tselem->flag & TSE_CLOSED)==0) {
@@ -2346,7 +2346,7 @@ static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, 
 static void outliner_set_coordinates(SpaceOops *soops)
 {
 	TreeElement *te;
-	int starty= soops->v2d.tot.ymax-OL_H;
+	int starty= (int)(soops->v2d.tot.ymax)-OL_H;
 	int startx= 0;
 	
 	for(te= soops->tree.first; te; te= te->next) {
@@ -2384,13 +2384,13 @@ void outliner_show_active(struct ScrArea *sa)
 	te= outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if(te) {
 		/* make te->ys center of view */
-		ytop= te->ys + (so->v2d.mask.ymax-so->v2d.mask.ymin)/2;
+		ytop= (int)(te->ys + (so->v2d.mask.ymax-so->v2d.mask.ymin)/2);
 		if(ytop>0) ytop= 0;
-		so->v2d.cur.ymax= ytop;
-		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
+		so->v2d.cur.ymax= (float)ytop;
+		so->v2d.cur.ymin= (float)(ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin));
 		
 		/* make te->xs ==> te->xend center of view */
-		xdelta = te->xs - so->v2d.cur.xmin;
+		xdelta = (int)(te->xs - so->v2d.cur.xmin);
 		so->v2d.cur.xmin += xdelta;
 		so->v2d.cur.xmax += xdelta;
 		
@@ -2408,13 +2408,13 @@ void outliner_show_selected(struct ScrArea *sa)
 	te= outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if(te) {
 		/* make te->ys center of view */
-		ytop= te->ys + (so->v2d.mask.ymax-so->v2d.mask.ymin)/2;
+		ytop= (int)(te->ys + (so->v2d.mask.ymax-so->v2d.mask.ymin)/2);
 		if(ytop>0) ytop= 0;
-		so->v2d.cur.ymax= ytop;
-		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
+		so->v2d.cur.ymax= (float)ytop;
+		so->v2d.cur.ymin= (float)(ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin));
 		
 		/* make te->xs ==> te->xend center of view */
-		xdelta = te->xs - so->v2d.cur.xmin;
+		xdelta = (int)(te->xs - so->v2d.cur.xmin);
 		so->v2d.cur.xmin += xdelta;
 		so->v2d.cur.xmax += xdelta;
 		
@@ -2538,13 +2538,13 @@ void outliner_find_panel(struct ScrArea *sa, int again, int flags)
 			tselem->flag |= TSE_SELECTED;
 			
 			/* make te->ys center of view */
-			ytop= te->ys + (soops->v2d.mask.ymax-soops->v2d.mask.ymin)/2;
+			ytop= (int)(te->ys + (soops->v2d.mask.ymax-soops->v2d.mask.ymin)/2);
 			if(ytop>0) ytop= 0;
-			soops->v2d.cur.ymax= ytop;
-			soops->v2d.cur.ymin= ytop-(soops->v2d.mask.ymax-soops->v2d.mask.ymin);
+			soops->v2d.cur.ymax= (float)ytop;
+			soops->v2d.cur.ymin= (float)(ytop-(soops->v2d.mask.ymax-soops->v2d.mask.ymin));
 			
 			/* make te->xs ==> te->xend center of view */
-			xdelta = te->xs - soops->v2d.cur.xmin;
+			xdelta = (int)(te->xs - soops->v2d.cur.xmin);
 			soops->v2d.cur.xmin += xdelta;
 			soops->v2d.cur.xmax += xdelta;
 			
@@ -3357,14 +3357,14 @@ static void outliner_draw_iconrow(SpaceOops *soops, ListBase *lb, int level, int
 			if(active) {
 				uiSetRoundBox(15);
 				glColor4ub(255, 255, 255, 100);
-				uiRoundBox( (float)*offsx-0.5, (float)ys-1.0, (float)*offsx+OL_H-3.0, (float)ys+OL_H-3.0, OL_H/2.0-2.0);
+				uiRoundBox( (float)*offsx-0.5f, (float)ys-1.0f, (float)*offsx+OL_H-3.0f, (float)ys+OL_H-3.0f, OL_H/2.0f-2.0f);
 				glEnable(GL_BLEND);
 			}
 			
-			tselem_draw_icon(*offsx, ys, tselem, te);
-			te->xs= *offsx;
-			te->ys= ys;
-			te->xend= *offsx+OL_X;
+			tselem_draw_icon((float)*offsx, (float)ys, tselem, te);
+			te->xs= (float)*offsx;
+			te->ys= (float)ys;
+			te->xend= (short)*offsx+OL_X;
 			te->flag |= TE_ICONROW;	// for click
 			
 			(*offsx) += OL_X;
@@ -3478,7 +3478,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		/* active circle */
 		if(active) {
 			uiSetRoundBox(15);
-			uiRoundBox( (float)startx+OL_H-1.5, (float)*starty+2.0, (float)startx+2*OL_H-4.0, (float)*starty+OL_H-1.0, OL_H/2.0-2.0);
+			uiRoundBox( (float)startx+OL_H-1.5f, (float)*starty+2.0f, (float)startx+2.0f*OL_H-4.0f, (float)*starty+OL_H-1.0f, OL_H/2.0f-2.0f);
 			glEnable(GL_BLEND);	/* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
@@ -3494,25 +3494,25 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 
 				// icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
-				BIF_icon_draw(icon_x, *starty+2, ICON_TRIA_RIGHT);
+				BIF_icon_draw((float)icon_x, (float)*starty+2, ICON_TRIA_RIGHT);
 			else
-				BIF_icon_draw(icon_x, *starty+2, ICON_TRIA_DOWN);
+				BIF_icon_draw((float)icon_x, (float)*starty+2, ICON_TRIA_DOWN);
 		}
 		offsx+= OL_X;
 		
 		/* datatype icon */
 		
 			// icons a bit higher
-		tselem_draw_icon(startx+offsx, *starty+2, tselem, te);
+		tselem_draw_icon((float)startx+offsx, (float)*starty+2, tselem, te);
 		offsx+= OL_X;
 		
 		if(tselem->type==0 && tselem->id->lib) {
-			glPixelTransferf(GL_ALPHA_SCALE, 0.5);
+			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
 			if(tselem->id->flag & LIB_INDIRECT)
-				BIF_icon_draw(startx+offsx, *starty+2, ICON_DATALIB);
+				BIF_icon_draw((float)startx+offsx, (float)*starty+2, ICON_DATALIB);
 			else
-				BIF_icon_draw(startx+offsx, *starty+2, ICON_PARLIB);
-			glPixelTransferf(GL_ALPHA_SCALE, 1.0);
+				BIF_icon_draw((float)startx+offsx, (float)*starty+2, ICON_PARLIB);
+			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 			offsx+= OL_X;
 		}		
 		glDisable(GL_BLEND);
@@ -3521,12 +3521,12 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
 		else BIF_ThemeColor(TH_TEXT);
 		glRasterPos2i(startx+offsx, *starty+5);
-		BIF_RasterPos(startx+offsx, *starty+5);
+		BIF_RasterPos((float)startx+offsx, (float)*starty+5);
 #ifdef WITH_VERSE
 		if(te->name) {
 #endif
 			BIF_DrawString(G.font, te->name, 0);
-			offsx+= OL_X + BIF_GetStringWidth(G.font, te->name, 0);
+			offsx+= (int)(OL_X + BIF_GetStringWidth(G.font, te->name, 0));
 #ifdef WITH_VERSE
 		}
 #endif
@@ -3569,8 +3569,8 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		}
 	}	
 	/* store coord and continue, we need coordinates for elements outside view too */
-	te->xs= startx;
-	te->ys= *starty;
+	te->xs= (float)startx;
+	te->ys= (float)*starty;
 	te->xend= startx+offsx;
 		
 	*starty-= OL_H;
@@ -3650,17 +3650,17 @@ static void outliner_draw_tree(SpaceOops *soops)
 	// selection first
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
-	starty= soops->v2d.tot.ymax-OL_H;
+	starty= (int)soops->v2d.tot.ymax-OL_H;
 	outliner_draw_selection(soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
-	BIF_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2);
-	starty= soops->v2d.tot.ymax-OL_H/2;
+	BIF_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
+	starty= (int)soops->v2d.tot.ymax-OL_H/2;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
 	
 	// items themselves
-	starty= soops->v2d.tot.ymax-OL_H;
+	starty= (int)soops->v2d.tot.ymax-OL_H;
 	startx= 0;
 	for(te= soops->tree.first; te; te= te->next) {
 		outliner_draw_tree_element(soops, te, startx, &starty);
@@ -3673,7 +3673,7 @@ static void outliner_back(SpaceOops *soops)
 	int ystart;
 	
 	BIF_ThemeColorShade(TH_BACK, 6);
-	ystart= soops->v2d.tot.ymax;
+	ystart= (int)soops->v2d.tot.ymax;
 	ystart= OL_H*(ystart/(OL_H));
 	
 	while(ystart > soops->v2d.cur.ymin) {
@@ -3688,10 +3688,10 @@ static void outliner_draw_restrictcols(SpaceOops *soops)
 	
 	/* background underneath */
 	BIF_ThemeColor(TH_BACK);
-	glRecti((int)soops->v2d.cur.xmax-OL_TOGW, soops->v2d.cur.ymin, (int)soops->v2d.cur.xmax, soops->v2d.cur.ymax);
+	glRecti((int)soops->v2d.cur.xmax-OL_TOGW, (int)soops->v2d.cur.ymin, (int)soops->v2d.cur.xmax, (int)soops->v2d.cur.ymax);
 	
 	BIF_ThemeColorShade(TH_BACK, 6);
-	ystart= soops->v2d.tot.ymax;
+	ystart= (int)soops->v2d.tot.ymax;
 	ystart= OL_H*(ystart/(OL_H));
 	
 	while(ystart > soops->v2d.cur.ymin) {
@@ -3917,17 +3917,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_view_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_sel_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
@@ -3938,7 +3938,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
 				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
-									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
+									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -3949,13 +3949,13 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 				
 				/* NOTE: tselem->nr is short! */
 				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
-									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
+									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
 				layflag++;	/* is lay_xor */
 				if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
 					bt= uiDefIconButBitI(block, TOG, tselem->nr, REDRAWBUTSSCENE, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
-									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
+									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, (short)te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -3966,12 +3966,12 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, (short)te->ys, 17, OL_H-1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 			}
@@ -3981,7 +3981,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 			}
@@ -3990,7 +3990,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBas
 
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
-						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, (short)te->ys, 17, OL_H-1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 			}
@@ -4022,10 +4022,10 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
 				else len= sizeof(((ID*) 0)->name)-2;
 				
-				dx= BIF_GetStringWidth(G.font, te->name, 0);
+				dx= (int)BIF_GetStringWidth(G.font, te->name, 0);
 				if(dx<50) dx= 50;
 				
-				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  te->xs+2*OL_X-4, te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
+				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
 				uiButSetFunc(bt, namebutton_cb, te, NULL);
 
 				// signal for button to open
@@ -4070,27 +4070,27 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	outliner_width(soops, &soops->tree, &sizex);
 	
 	/* we init all tot rect vars, only really needed on window size change though */
-	G.v2d->tot.xmin= 0.0;
-	G.v2d->tot.xmax= (G.v2d->mask.xmax-G.v2d->mask.xmin);
+	G.v2d->tot.xmin= 0.0f;
+	G.v2d->tot.xmax= (float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
 	if(soops->flag & SO_HIDE_RESTRICTCOLS) {
 		if(G.v2d->tot.xmax <= sizex)
-			G.v2d->tot.xmax= 2*sizex;
+			G.v2d->tot.xmax= (float)2*sizex;
 	}
 	else {
 		if(G.v2d->tot.xmax-OL_TOGW <= sizex)
-			G.v2d->tot.xmax= 2*sizex;
+			G.v2d->tot.xmax= (float)2*sizex;
 	}
-	G.v2d->tot.ymax= 0.0;
-	G.v2d->tot.ymin= -sizey*OL_H;
+	G.v2d->tot.ymax= 0.0f;
+	G.v2d->tot.ymin= (float)-sizey*OL_H;
 	test_view2d(G.v2d, sa->winx, sa->winy);
 
 	// align on top window if cur bigger than tot
 	if(G.v2d->cur.ymax-G.v2d->cur.ymin > sizey*OL_H) {
-		G.v2d->cur.ymax= 0.0;
-		G.v2d->cur.ymin= -(G.v2d->mask.ymax-G.v2d->mask.ymin);
+		G.v2d->cur.ymax= 0.0f;
+		G.v2d->cur.ymin= (float)-(G.v2d->mask.ymax-G.v2d->mask.ymin);
 	}
 
-	myortho2(G.v2d->cur.xmin-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-0.375, G.v2d->cur.ymax-0.375);
+	myortho2(G.v2d->cur.xmin-0.375f, G.v2d->cur.xmax-0.375f, G.v2d->cur.ymin-0.375f, G.v2d->cur.ymax-0.375f);
 
 	/* draw outliner stuff (background and hierachy lines) */
 	outliner_back(soops);
@@ -4100,7 +4100,7 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	mywinset(sa->win);
 	
 	/* ortho corrected - 'pixel space' */
-	myortho2(G.v2d->cur.xmin-SCROLLB-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-SCROLLH-0.375, G.v2d->cur.ymax-0.375);
+	myortho2(G.v2d->cur.xmin-SCROLLB-0.375f, G.v2d->cur.xmax-0.375f, G.v2d->cur.ymin-SCROLLH-0.375f, G.v2d->cur.ymax-0.375f);
 	
 	/* draw icons and names */
 	block= uiNewBlock(&sa->uiblocks, "outliner buttons", UI_EMBOSS, UI_HELV, sa->win);

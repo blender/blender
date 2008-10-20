@@ -187,7 +187,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		/* rounded header */
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
 			rb_col= (active)?-20:20;
-			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15, rb_col-20, ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
@@ -251,7 +251,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			/* color */
 			uiBlockBeginAlign(block);
 				uiDefButF(block, COL, B_REDR, "",		*xco, *yco-26, 150, 19, gpl->color, 0, 0, 0, 0, "Color to use for all strokes on this Grease Pencil Layer");
-				uiDefButF(block, NUMSLI, B_REDR, "Opacity: ",		*xco,*yco-45,150,19, &gpl->color[3], 0.3, 1.0, 0, 0, "Visibility of stroke (0.3 to 1.0)");
+				uiDefButF(block, NUMSLI, B_REDR, "Opacity: ",		*xco,*yco-45,150,19, &gpl->color[3], 0.3f, 1.0f, 0, 0, "Visibility of stroke (0.3 to 1.0)");
 			uiBlockEndAlign(block);
 			
 			/* stroke thickness */
@@ -581,10 +581,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				/* draw start cap first 
 				 *	- make points slightly closer to center (about halfway across) 
 				 */				
-				mt[0]= m2[0] * pthick * 0.5;
-				mt[1]= m2[1] * pthick * 0.5;
-				sc[0]= s0[0] - (m1[0] * pthick * 0.75);
-				sc[1]= s0[1] - (m1[1] * pthick * 0.75);
+				mt[0]= m2[0] * pthick * 0.5f;
+				mt[1]= m2[1] * pthick * 0.5f;
+				sc[0]= s0[0] - (m1[0] * pthick * 0.75f);
+				sc[1]= s0[1] - (m1[1] * pthick * 0.75f);
 				
 				t0[0]= sc[0] - mt[0];
 				t0[1]= sc[1] - mt[1];
@@ -670,10 +670,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				/* draw end cap as last step 
 				 *	- make points slightly closer to center (about halfway across) 
 				 */				
-				mt[0]= m2[0] * pthick * 0.5;
-				mt[1]= m2[1] * pthick * 0.5;
-				sc[0]= s1[0] + (m1[0] * pthick * 0.75);
-				sc[1]= s1[1] + (m1[1] * pthick * 0.75);
+				mt[0]= m2[0] * pthick * 0.5f;
+				mt[1]= m2[1] * pthick * 0.5f;
+				sc[0]= s1[0] + (m1[0] * pthick * 0.75f);
+				sc[1]= s1[1] + (m1[1] * pthick * 0.75f);
 				
 				t0[0]= sc[0] - mt[0];
 				t0[1]= sc[1] - mt[1];
@@ -702,14 +702,14 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				glVertex2f(pt->x, pt->y);
 			}
 			else if (sflag & GP_STROKE_2DIMAGE) {
-				const float x= (pt->x * winx) + offsx;
-				const float y= (pt->y * winy) + offsy;
+				const float x= (float)((pt->x * winx) + offsx);
+				const float y= (float)((pt->y * winy) + offsy);
 				
 				glVertex2f(x, y);
 			}
 			else {
-				const float x= (pt->x / 1000 * winx);
-				const float y= (pt->y / 1000 * winy);
+				const float x= (float)(pt->x / 1000 * winx);
+				const float y= (float)(pt->y / 1000 * winy);
 				
 				glVertex2f(x, y);
 			}
@@ -952,7 +952,7 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			float zoom, zoomx, zoomy;
 			
 			/* calculate accessory values */
-			zoom= SEQ_ZOOM_FAC(sseq->zoom);
+			zoom= (float)SEQ_ZOOM_FAC(sseq->zoom);
 			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 				zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 				zoomy = zoom;
@@ -961,10 +961,10 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 				zoomx = zoomy = zoom;
 			
 			/* calculate transforms (Note: we use ibuf here, as we have it) */
-			sizex= zoomx * ibuf->x;
-			sizey= zoomy * ibuf->y;
-			offsx= (sa->winx-sizex)/2 + sseq->xof;
-			offsy= (sa->winy-sizey)/2 + sseq->yof;
+			sizex= (int)(zoomx * ibuf->x);
+			sizey= (int)(zoomy * ibuf->y);
+			offsx= (int)( (sa->winx-sizex)/2 + sseq->xof );
+			offsy= (int)( (sa->winy-sizey)/2 + sseq->yof );
 			
 			dflag |= GP_DRAWDATA_ONLYI2D;
 		}
@@ -1035,7 +1035,7 @@ void draw_gpencil_oglrender (View3D *v3d, int winx, int winy)
 	
 	/* pass 2: draw 2d-strokes ------------ > */
 		/* adjust view matrices */
-	myortho2(-0.375, (float)(winx)-0.375, -0.375, (float)(winy)-0.375);
+	myortho2(-0.375f, (float)(winx)-0.375f, -0.375f, (float)(winy)-0.375f);
 	glLoadIdentity();
 	
 		/* draw it! */

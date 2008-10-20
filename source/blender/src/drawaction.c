@@ -122,7 +122,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 	 * correctly *grumble*
 	 */
 	mywinset(curarea->win);
-	myortho2(-0.375, curarea->winx-0.375, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	myortho2(-0.375f, curarea->winx-0.375, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
     sprintf(str, "actionbuttonswin %d", curarea->win);
     block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSS, UI_HELV, curarea->win);
@@ -161,12 +161,12 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 					  "Hide action window sliders");
 		/* no hilite, the winmatrix is not correct later on... */
 		uiButSetFlag(but, UI_NO_HILITE);
-					  
+		
 		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
-
+		
 		/* sliders are open so draw them */
 		BIF_ThemeColor(TH_FACE); 
-
+		
 		glRects(NAMEWIDTH,  0,  NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (i=1; i < key->totkey; i++) {
@@ -176,7 +176,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
 			/* see sliderval array in editkey.c */
-			if(i >= 255) break;
+			if (i >= 255) break;
 		}
 	}
 	uiDrawBlock(block);
@@ -1335,7 +1335,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	/* Draw scroll */
 	mywinset(curarea->win);	// reset scissor too
 	if (curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-		myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+		myortho2(-0.375f, curarea->winx-0.375, -0.375f, curarea->winy-0.375);
 		if (G.v2d->scroll) drawscroll(0);
 	}
 
@@ -1361,7 +1361,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	}
 	
 	mywinset(curarea->win);	// reset scissor too
-	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+	myortho2(-0.375f, curarea->winx-0.375, -0.375f, curarea->winy-0.375);
 	draw_area_emboss(sa);
 
 	/* it is important to end a view in a transform compatible with buttons */
@@ -1598,8 +1598,8 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
 			/* draw using icons - old way which is slower but more proven */
-			if (ak->sel & SELECT) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
-			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+			if (ak->sel & SELECT) BIF_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE2, 1.0f);
+			else BIF_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE3, 1.0f);
 			
 			/* draw using OpenGL - slightly uglier but faster */
 			// 	NOTE: disabled for now, as some intel cards seem to have problems with this
@@ -1868,7 +1868,7 @@ void gpl_to_keylist(bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc
 			ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
 			BLI_addtail(keys, ak);
 			
-			ak->cfra= gpf->framenum;
+			ak->cfra= (float)gpf->framenum;
 			ak->modified = 1;
 			ak->handle_type= 0; 
 			

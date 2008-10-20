@@ -664,7 +664,7 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 				index= adrcode - OB_ROT_X;
 				
 				Mat4ToEul(ob->obmat, eul);
-				return eul[index]*(5.72958);
+				return eul[index]*(5.72958f);
 			}
 		}
 	}

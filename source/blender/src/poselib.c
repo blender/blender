@@ -388,7 +388,7 @@ void poselib_add_current_pose (Object *ob, int val)
 				/* add missing ipo-curves and insert keys */
 				#define INSERT_KEY_ICU(adrcode, data) {\
 						icu= poselib_verify_icu(achan->ipo, adrcode); \
-						insert_vert_icu(icu, frame, data, 1); \
+						insert_vert_icu(icu, (float)frame, data, 1); \
 					}
 					
 				INSERT_KEY_ICU(AC_LOC_X, pchan->loc[0])
@@ -685,7 +685,7 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 					
 					if (ok) {
 						/* Evaluates and sets the internal ipo values	*/
-						calc_ipo(achan->ipo, frame);
+						calc_ipo(achan->ipo, (float)frame);
 						/* This call also sets the pchan flags */
 						execute_action_ipo(achan, pchan);
 					}
