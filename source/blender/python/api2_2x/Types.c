@@ -26,8 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
-#include "Types.h" 
+#include "Types.h"
 #include "IDProp.h"
+#include "gen_utils.h"
+#include "BLI_blenlib.h"
 /* 
    stuff pasted from the old Types.h
    is only need here now
@@ -65,10 +67,130 @@ extern PyTypeObject ThemeSpace_Type;
 extern PyTypeObject ThemeUI_Type;
 extern PyTypeObject TimeLine_Type;
 
+/* includes to get structs for CSizeof */
+#include "Armature.h"
+#include "Bone.h"
+#include "BezTriple.h"
+#include "Camera.h"
+#include "Constraint.h"
+#include "Curve.h"
+#include "CurNurb.h"
+#include "Draw.h"
+#include "Effect.h"
+#include "Ipo.h"
+#include "Ipocurve.h"
+#include "Key.h"
+#include "Lamp.h"
+#include "Lattice.h"
+#include "Library.h"
+#include "Mathutils.h"
+#include "Geometry.h"
+#include "Mesh.h"
+#include "Metaball.h"
+#include "Modifier.h"
+#include "NMesh.h"
+#include "Node.h"
+#include "Object.h"
+#include "Group.h"
+#include "Registry.h"
+#include "Scene.h"
+#include "Sound.h"
+#include "SurfNurb.h"
+#include "Sys.h"
+#include "Text.h"
+#include "Texture.h"
+#include "Window.h"
+#include "World.h"
+#include "Particle.h"
+
 char M_Types_doc[] = "The Blender Types module\n\n\
 This module is a dictionary of all Blender Python types";
 
-struct PyMethodDef Null_methods[] = { {NULL, NULL, 0, NULL} };
+static PyObject *Types_CSizeof(PyObject * self, PyObject *o)
+{
+	int ret = 0;
+	char type[32];
+
+	if(o) {
+		sprintf(type, "%s", PyString_AsString(PyObject_Str(o)));
+
+		if(BLI_streq(type, "<type 'Blender Action'>")==1) {
+			ret = sizeof(struct bAction);
+		} else if (BLI_streq(type, "<type 'Armature'>")==1) {
+			ret = sizeof(struct bArmature);
+		} else if (BLI_streq(type, "<type 'BezTriple'>")==1) {
+			ret = sizeof(struct BezTriple);
+		} else if (BLI_streq(type, "<type 'Bone'>")==1) {
+			ret = sizeof(struct Bone);
+		} else if (BLI_streq(type, "<type 'Blender Camera'>")==1) {
+			ret = sizeof(struct Camera);
+		} else if (BLI_streq(type, "<type 'CurNurb'>")==1) {
+			ret = sizeof(struct Nurb);
+		} else if (BLI_streq(type, "<type 'Curve'>")==1) {
+			ret = sizeof(struct Curve);
+		} else if (BLI_streq(type, "<type 'Blender Group'>")==1) {
+			ret = sizeof(struct Group);
+		} else if (BLI_streq(type, "<type 'Blender IDProperty'>")==1) {
+			ret = sizeof(struct IDProperty);
+		} else if (BLI_streq(type, "<type 'Blender Image'>")==1) {
+			ret = sizeof(struct Image);
+		} else if (BLI_streq(type, "<type 'Blender Ipo'>")==1) {
+			ret = sizeof(struct Ipo);
+		} else if (BLI_streq(type, "<type 'IpoCurve'>")==1) {
+			ret = sizeof(struct IpoCurve);
+		} else if (BLI_streq(type, "<type 'Blender Lamp'>")==1) {
+			ret = sizeof(struct Lamp);
+		} else if (BLI_streq(type, "<type 'Blender Lattice'>")==1) {
+			ret = sizeof(struct Lattice);
+		} else if (BLI_streq(type, "<type 'Blender MCol'>")==1) {
+			ret = sizeof(struct MCol);
+		} else if (BLI_streq(type, "<type 'Blender MEdge'>")==1) {
+			ret = sizeof(struct MEdge);
+		} else if (BLI_streq(type, "<type 'Blender MFace'>")==1) {
+			ret = sizeof(struct MFace);
+		} else if (BLI_streq(type, "<type 'Blender MTex'>")==1) {
+			ret = sizeof(struct MTex);
+		} else if (BLI_streq(type, "<type 'Blender MVert'>")==1) {
+			ret = sizeof(struct MVert);
+		} else if (BLI_streq(type, "<type 'Blender Material'>")==1) {
+			ret = sizeof(struct Material);
+		} else if (BLI_streq(type, "<type 'Blender Mesh'>")==1) {
+			ret = sizeof(struct Mesh);
+		} else if (BLI_streq(type, "<type 'Blender Metaball'>")==1) {
+			ret = sizeof(struct MetaBall);
+		} else if (BLI_streq(type, "<type 'Blender.Modifiers'>")==1) {
+			ret = sizeof(struct ModifierData);
+		} else if (BLI_streq(type, "<type 'Blender Modifier'>")==1) {
+			ret = sizeof(struct ModifierData);
+		} else if (BLI_streq(type, "<type 'Blender Object'>")==1) {
+			ret = sizeof(struct Object);
+		} else if (BLI_streq(type, "<type 'Pose'>")==1) {
+			ret = sizeof(struct bPose);
+		} else if (BLI_streq(type, "<type 'Blender RenderData'>")==1) {
+			ret = sizeof(struct RenderData);
+		} else if (BLI_streq(type, "<type 'Scene'>")==1) {
+			ret = sizeof(struct Scene);
+		} else if (BLI_streq(type, "<type 'SurfNurb'>")==1) {
+			ret = sizeof(struct Nurb);
+		} else if (BLI_streq(type, "<type 'Text3d'>")==1) {
+			ret = sizeof(struct Curve);
+		} else if (BLI_streq(type, "<type 'Blender Text'>")==1) {
+			ret = sizeof(struct Text);
+		} else if (BLI_streq(type, "<type 'Blender Texture'>")==1) {
+			ret = sizeof(struct Tex);
+		} else {
+			ret = -1;
+		}
+	}
+	
+	return PyInt_FromLong(ret);
+}
+
+struct PyMethodDef M_Types_methods[] = {
+	{"CSizeof", Types_CSizeof, METH_O, 
+		"(type) - Returns sizeof of the underlying C structure of the given type"},
+	{NULL, NULL, 0, NULL}
+};
 
 
 
@@ -145,7 +267,7 @@ PyObject *Types_Init( void )
 	PyObject *submodule, *dict;
 
 	submodule =
-		Py_InitModule3( "Blender.Types", Null_methods, M_Types_doc );
+		Py_InitModule3( "Blender.Types", M_Types_methods, M_Types_doc );
 
 	dict = PyModule_GetDict( submodule );
 
@@ -194,6 +316,7 @@ PyObject *Types_Init( void )
 	PyDict_SetItemString( dict, "CurveType", ( PyObject * ) &Curve_Type );
 
 	PyDict_SetItemString( dict, "IpoType", ( PyObject * ) &Ipo_Type );
+	PyDict_SetItemString( dict, "IpoCurveType", ( PyObject * ) &IpoCurve_Type );
 	PyDict_SetItemString( dict, "MetaballType",
 			      ( PyObject * ) &Metaball_Type );
 
