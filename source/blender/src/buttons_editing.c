@@ -6645,7 +6645,7 @@ void editing_panels()
 		editing_panel_links(ob);
 		editing_panel_curve_type(ob, cu);
 		editing_panel_modifiers(ob);
-//		editing_panel_shapes(ob);
+//		editing_panel_shapes(ob); /* there are some backend things that are not ready for this yet */
 		if(G.obedit) {
 			editing_panel_curve_tools(ob, cu);
 			editing_panel_curve_tools1(ob, cu);

@@ -1847,6 +1847,7 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_TEST:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;  // no handling
 	case B_CONSTRAINT_INF:
 		/* influence; do not execute actions for 1 dag_flush */
