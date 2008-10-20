@@ -1839,7 +1839,7 @@ void mergemenu(void)
 
 void delete_context_selected(void) 
 {
-	if(BIF_validSketchMode())
+	if(BIF_fullSketchMode())
 	{
 		BIF_deleteSketch();
 	}

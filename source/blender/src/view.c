@@ -75,6 +75,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+#include "BIF_sketch.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"		/* For countall */
@@ -1885,7 +1886,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING)
+		if (BIF_fullSketchMode())
 		{
 			BDR_drawSketchNames();
 		}

@@ -858,7 +858,8 @@ typedef struct Scene {
 #define SKGEN_SHARPEN			2
 
 /* toolsettings->bone_sketching */
-#define BONE_SKETCHING		1
+#define BONE_SKETCHING			1
+#define BONE_SKETCHING_QUICK	2
 
 #ifdef __cplusplus
 }

@@ -467,6 +467,25 @@ void sk_trimStroke(SK_Stroke *stk, int start, int end)
 	stk->nb_points = size;
 }
 
+void sk_removeStroke(SK_Sketch *sketch, SK_Stroke *stk)
+{
+	if (sketch->active_stroke == stk)
+	{
+		sketch->active_stroke = NULL;
+	}
+	
+	BLI_remlink(&sketch->strokes, stk);
+	sk_freeStroke(stk);
+}
+
+void sk_cancelStroke(SK_Sketch *sketch)
+{
+	if (sketch->active_stroke != NULL)
+	{
+		sk_removeStroke(sketch, sketch->active_stroke);
+	}
+}
+
 /* Apply reverse Chaikin filter to simplify the polyline
  * */
 void sk_filterStroke(SK_Stroke *stk, int start, int end)
@@ -1616,8 +1635,7 @@ void sk_applyDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list
 		{
 			isect = isect->next;
 			
-			BLI_remlink(&sketch->strokes, isect->stroke);
-			sk_freeStroke(isect->stroke);
+			sk_removeStroke(sketch, isect->stroke);
 		}
 	}
 }
@@ -1746,7 +1764,7 @@ void sk_applyGesture(SK_Sketch *sketch)
 
 /********************************************/
 
-void sk_deleteStrokes(SK_Sketch *sketch)
+void sk_deleteSelectedStrokes(SK_Sketch *sketch)
 {
 	SK_Stroke *stk, *next;
 	
@@ -1756,8 +1774,7 @@ void sk_deleteStrokes(SK_Sketch *sketch)
 		
 		if (stk->selected == 1)
 		{
-			BLI_remlink(&sketch->strokes, stk);
-			sk_freeStroke(stk);
+			sk_removeStroke(sketch, stk);
 		}
 	}
 }
@@ -1994,8 +2011,23 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 	{
 		if (sketch->active_stroke != NULL)
 		{
+			SK_Stroke *stk = sketch->active_stroke;
+			
 			sk_endStroke(sketch);
+			
+			if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
+			{
+				sk_convertStroke(stk);
+				sk_removeStroke(sketch, stk);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			
 			allqueue(REDRAWVIEW3D, 0);
+		}
+		/* no gestures in quick mode */
+		else if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
+		{
+			retval = 0; /* return zero for default click behavior */
 		}
 		else
 		{
@@ -2095,13 +2127,25 @@ void BIF_endStrokeSketch()
 	}
 }
 
+void BIF_cancelStrokeSketch()
+{
+	if (BIF_validSketchMode())
+	{
+		if (GLOBAL_sketch != NULL)
+		{
+			sk_cancelStroke(GLOBAL_sketch);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+}
+
 void BIF_deleteSketch()
 {
 	if (BIF_validSketchMode())
 	{
 		if (GLOBAL_sketch != NULL)
 		{
-			sk_deleteStrokes(GLOBAL_sketch);
+			sk_deleteSelectedStrokes(GLOBAL_sketch);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
@@ -2167,6 +2211,21 @@ int BIF_validSketchMode()
 	if (G.obedit && 
 		G.obedit->type == OB_ARMATURE && 
 		G.scene->toolsettings->bone_sketching & BONE_SKETCHING)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int BIF_fullSketchMode()
+{
+	if (G.obedit && 
+		G.obedit->type == OB_ARMATURE && 
+		G.scene->toolsettings->bone_sketching & BONE_SKETCHING && 
+		(G.scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK) == 0)
 	{
 		return 1;
 	}

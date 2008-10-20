@@ -29,5 +29,7 @@ void BIF_convertSketch();
 void BIF_deleteSketch();
 void BIF_selectAllSketch(int mode); /* -1: deselect, 0: select, 1: toggle */
 int BIF_validSketchMode();
+int BIF_fullSketchMode(); /* full sketch turned on (not Quick) */
+void BIF_cancelStrokeSketch();
 
 #endif /* BIF_SKETCH_H */

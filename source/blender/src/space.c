@@ -1908,7 +1908,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							deselectall_Latt();
 						else if(G.obedit->type==OB_ARMATURE)
 						{
-							if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING)
+							if (BIF_fullSketchMode())
 							{
 								BIF_selectAllSketch(1);
 							}
@@ -1984,7 +1984,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_clear_constraints();	/* poseobject.c */
-					else if (BIF_validSketchMode())
+					else if (BIF_fullSketchMode())
 					{
 						BIF_convertSketch();
 					}
@@ -2959,7 +2959,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case ESCKEY:
 				if (G.qual == 0 && BIF_validSketchMode())
 				{
-					BIF_endStrokeSketch();
+					BIF_cancelStrokeSketch();
 				}
 				else if(G.qual==0) {
 					if (G.vd->flag & V3D_DISPIMAGE) {
