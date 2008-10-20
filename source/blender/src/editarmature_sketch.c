@@ -2019,6 +2019,7 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			{
 				sk_convertStroke(stk);
 				sk_removeStroke(sketch, stk);
+				BIF_undo_push("Convert Sketch");
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			
