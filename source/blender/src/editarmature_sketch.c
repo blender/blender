@@ -1735,6 +1735,8 @@ void sk_applyGesture(SK_Sketch *sketch)
 	else if (nb_segments > 2 && nb_self_intersections == 1)
 	{
 		sk_convert(sketch);
+		BIF_undo_push("Convert Sketch");
+		allqueue(REDRAWBUTSEDIT, 0);
 	}
 	
 	sk_freeStroke(segments);
@@ -2112,6 +2114,7 @@ void BIF_convertSketch()
 		if (GLOBAL_sketch != NULL)
 		{
 			sk_convert(GLOBAL_sketch);
+			BIF_undo_push("Convert Sketch");
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
