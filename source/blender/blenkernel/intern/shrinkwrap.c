@@ -215,7 +215,11 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 
 
 	BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6));
-	if(treeData.tree == NULL) return OUT_OF_MEMORY();
+	if(treeData.tree == NULL)
+	{
+		OUT_OF_MEMORY();
+		return;
+	}
 
 	//Setup nearest
 	nearest.index = -1;
@@ -526,7 +530,11 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 	//Create a bvh-tree of the given target
 	BENCH(bvhtree_from_mesh_faces( &treeData, calc->target, 0.0, 2, 6));
-	if(treeData.tree == NULL) return OUT_OF_MEMORY();
+	if(treeData.tree == NULL)
+	{
+		OUT_OF_MEMORY();
+		return;
+	}
 
 	//Setup nearest
 	nearest.index = -1;
