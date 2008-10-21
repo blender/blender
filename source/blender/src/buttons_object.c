@@ -2056,8 +2056,9 @@ void do_constraintbuts(unsigned short event)
 	if(ob->type==OB_ARMATURE) DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void pointcache_bake(PTCacheID *pid, int startframe)
