@@ -3277,7 +3277,8 @@ void switch_direction_armature (void)
 		EditBone *ebo, *child=NULL, *parent=NULL;
 		
 		/* loop over bones in chain */
-		for (ebo= chain->data; ebo; child= ebo, ebo=parent) {
+		for (ebo= chain->data; ebo;) {
+			/* parent is this bone's original parent (to go to next if we swap) */
 			parent= ebo->parent;
 			
 			/* only if selected and editable */
@@ -3297,12 +3298,28 @@ void switch_direction_armature (void)
 				else	
 					ebo->flag &= ~BONE_CONNECTED;
 				
-				child->parent = NULL;
-				child->flag &= ~BONE_CONNECTED;
-
-				/* FIXME: other things that need fixing?
-				 *		i.e. roll?
+				/* get next bones 
+				 *	- child will become the new parent of next bone
+				 *	- next bone to go to will be the original parent
 				 */
+				child= ebo;
+				ebo= parent;
+			}
+			else {
+				/* not swapping this bone, however, if its 'parent' got swapped, unparent us from it 
+				 * as it will be facing in opposite direction
+				 */
+				if ((parent) && (EBONE_VISIBLE(arm, parent) && EBONE_EDITABLE(parent))) {
+					ebo->parent= NULL;
+					ebo->flag &= ~BONE_CONNECTED;
+				}
+				
+				/* get next bones
+				 *	- child will become new parent of next bone (not swapping occurred, so set to NULL to prevent infinite-loop)
+				 *	- next bone to go to will be the original parent (no change)
+				 */
+				child= NULL;
+				ebo= parent;
 			}
 		}
 	}
