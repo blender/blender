@@ -2317,6 +2317,9 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	10, 135, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
 		uiDefButF(block, NUM, B_DIFF, 							"T:",			70, 135, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
 	
+		uiDefButBitS(block, TOG, SKGEN_CUT_FIXED, B_DIFF, 		"Fixed",		10, 115, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on a fixed number of bones");
+		uiDefButC(block, NUM, B_DIFF, 							"N:",			70, 115, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,0, 100, 1, 0,	"Specify the bones to subdivide into");
+
 		uiBlockEndAlign(block);
 		
 		if(yco < 0) uiNewPanelHeight(block, height-yco);

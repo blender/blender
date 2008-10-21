@@ -118,9 +118,12 @@ SK_Point boneSnap;
 
 /******************** PROTOTYPES ******************************/
 
+typedef int(NextSubdivisionFunc)(SK_Stroke*, int, int, float[3], float[3]);
+
 void sk_freeStroke(SK_Stroke *stk);
 void sk_freeSketch(SK_Sketch *sketch);
 
+int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 
@@ -673,73 +676,29 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3])
 //	glEnd();
 }
 
-
-int drawStrokeByCorrelation(SK_Stroke *stk, int start, int end)
+void drawSubdividedStrokeBy(SK_Stroke *stk, int start, int end, NextSubdivisionFunc next_subdividion)
 {
-	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
+	float head[3], tail[3];
+	int bone_start = start;
+	int index;
+
+	VECCOPY(head, stk->points[start].p);
+	
+	glColor3f(0, 1, 1);
+	glBegin(GL_POINTS);
+	
+	index = next_subdividion(stk, bone_start, end, head, tail);
+	while (index != -1)
 	{
-		float head[3], tail[3];
-		int bone_start = start;
-		int index;
-
-		VECCOPY(head, stk->points[start].p);
+		glVertex3fv(tail);
 		
-		glColor3f(0, 1, 1);
-		glBegin(GL_POINTS);
-		
-		index = nextCorrelationSubdivision(stk, bone_start, end, head, tail);
-		while (index != -1)
-		{
-			glVertex3fv(tail);
-			
-			VECCOPY(head, tail);
-			bone_start = index; // start next bone from current index
+		VECCOPY(head, tail);
+		bone_start = index; // start next bone from current index
 
-			index = nextCorrelationSubdivision(stk, bone_start, end, head, tail);
-		}
-		
-		glEnd();
-
-		return 1;
+		index = next_subdividion(stk, bone_start, end, head, tail);
 	}
-	else
-	{
-		return 0;
-	}
-}
-
-int drawStrokeByLength(SK_Stroke *stk, int start, int end)
-{
-	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
-	{
-		float head[3], tail[3];
-		int bone_start = start;
-		int index;
-
-		VECCOPY(head, stk->points[start].p);
-		
-		glColor3f(0, 1, 1);
-		glBegin(GL_POINTS);
-		
-		index = nextLengthSubdivision(stk, bone_start, end, head, tail);
-		while (index != -1)
-		{
-			glVertex3fv(tail);
-			
-			VECCOPY(head, tail);
-			bone_start = index; // start next bone from current index
-
-			index = nextLengthSubdivision(stk, bone_start, end, head, tail);
-		}
-		
-		glEnd();
-		
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	
+	glEnd();
 }
 
 void sk_drawStrokeSubdivision(SK_Stroke *stk)
@@ -759,16 +718,21 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 			}
 			else
 			{
-				int done = 0;
-				
 				if (i - head_index > 1)
 				{
-					done = drawStrokeByCorrelation(stk, head_index, i);
-					
-					if (done == 0)
+					if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
 					{
-						done = drawStrokeByLength(stk, head_index, i);
+						drawSubdividedStrokeBy(stk, head_index, i, nextCorrelationSubdivision);
 					}
+					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
+					{
+						drawSubdividedStrokeBy(stk, head_index, i, nextLengthSubdivision);
+					}
+					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_FIXED)
+					{
+						drawSubdividedStrokeBy(stk, head_index, i, nextFixedSubdivision);
+					}
+					
 				}
 
 				head_index = i;
@@ -1311,13 +1275,52 @@ float calcStrokeCorrelation(SK_Stroke *stk, int start, int end, float v0[3], flo
 	}
 }
 
+int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
+{
+	static float stroke_length = 0;
+	static float current_length;
+	static char n;
+	float length_threshold;
+	int i;
+	
+	if (stroke_length == 0)
+	{
+		current_length = 0;
+		for (i = start + 1; i < end; i++)
+		{
+			stroke_length += VecLenf(stk->points[i].p, stk->points[i - 1].p);
+		}
+		
+		n = 0;
+		current_length = 0;
+	}
+	
+	n++;
+	
+	length_threshold = n * stroke_length / G.scene->toolsettings->skgen_subdivision_number;
+	
+	for (i = start + 1; i < end; i++)
+	{
+		current_length += VecLenf(stk->points[i].p, stk->points[i - 1].p);
+
+		if (current_length >= length_threshold)
+		{
+			VECCOPY(p, stk->points[i].p);
+			return i;
+		}
+	}
+	
+	stroke_length = 0;
+	
+	return -1;
+}
 int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
 {
 	float correlation_threshold = G.scene->toolsettings->skgen_correlation_limit;
 	float n[3];
 	int i;
 	
-	for (i = start + 2; i < end; i++)
+	for (i = start + 2; i <= end; i++)
 	{
 		/* Calculate normal */
 		VecSubf(n, stk->points[i].p, head);
@@ -1332,51 +1335,6 @@ int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3]
 	return -1;
 }
 
-EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, float invmat[][4], float tmat[][3])
-{
-	bArmature *arm= G.obedit->data;
-	EditBone *lastBone = NULL;
-	
-	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
-	{
-		EditBone *child = NULL;
-		EditBone *parent = NULL;
-		int bone_start = start;
-		int index;
-
-		parent = addEditBone("Bone", &G.edbo, arm);
-		VECCOPY(parent->head, stk->points[start].p);
-		
-		index = nextCorrelationSubdivision(stk, bone_start, end, parent->head, parent->tail);
-		while (index != -1)
-		{
-			setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
-			
-			Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
-
-			child = addEditBone("Bone", &G.edbo, arm);
-			VECCOPY(child->head, parent->tail);
-			child->parent = parent;
-			child->flag |= BONE_CONNECTED;
-			
-			parent = child; // new child is next parent
-			bone_start = index; // start next bone from current index
-
-			index = nextCorrelationSubdivision(stk, bone_start, end, parent->head, parent->tail);
-		}
-
-		VECCOPY(parent->tail, stk->points[end].p);
-
-		setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
-
-		Mat4MulVecfl(invmat, parent->head);
-		Mat4MulVecfl(invmat, parent->tail);
-		lastBone = parent;
-	}
-	
-	return lastBone;
-}
-
 int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
 {
 	float lengthLimit = G.scene->toolsettings->skgen_length_limit;
@@ -1384,7 +1342,7 @@ int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], flo
 	int i;
 	
 	i = start + 1;
-	while (i < end)
+	while (i <= end)
 	{
 		float *vec0 = stk->points[i - 1].p;
 		float *vec1 = stk->points[i].p;
@@ -1445,49 +1403,46 @@ int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], flo
 	return -1;
 }
 
-EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float invmat[][4], float tmat[][3])
+EditBone * subdivideStrokeBy(SK_Stroke *stk, int start, int end, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
 {
-	bArmature *arm= G.obedit->data;
+	bArmature *arm = G.obedit->data;
 	EditBone *lastBone = NULL;
+	EditBone *child = NULL;
+	EditBone *parent = NULL;
+	int bone_start = start;
+	int index;
 	
-	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
+	parent = addEditBone("Bone", &G.edbo, arm);
+	VECCOPY(parent->head, stk->points[start].p);
+	
+	index = next_subdividion(stk, bone_start, end, parent->head, parent->tail);
+	while (index != -1)
 	{
-		EditBone *child = NULL;
-		EditBone *parent = NULL;
-		int bone_start = start;
-		int index;
+		setBoneRollFromPoint(parent, &stk->points[index], invmat, tmat);
+		Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
+
+		child = addEditBone("Bone", &G.edbo, arm);
+		VECCOPY(child->head, parent->tail);
+		child->parent = parent;
+		child->flag |= BONE_CONNECTED;
 		
-		parent = addEditBone("Bone", &G.edbo, arm);
-		VECCOPY(parent->head, stk->points[start].p);
-		
-		index = nextLengthSubdivision(stk, bone_start, end, parent->head, parent->tail);
-		while (index != -1)
-		{
-			setBoneRollFromPoint(parent, &stk->points[index], invmat, tmat);
-			Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
+		parent = child; // new child is next parent
+		bone_start = index; // start next bone from current index
 
-			child = addEditBone("Bone", &G.edbo, arm);
-			VECCOPY(child->head, parent->tail);
-			child->parent = parent;
-			child->flag |= BONE_CONNECTED;
-			
-			parent = child; // new child is next parent
-			bone_start = index; // start next bone from current index
-
-			index = nextLengthSubdivision(stk, bone_start, end, parent->head, parent->tail);
-		}
-
-		VECCOPY(parent->tail, stk->points[end].p);
-
-		setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
-
-		Mat4MulVecfl(invmat, parent->head);
-		Mat4MulVecfl(invmat, parent->tail);
-		lastBone = parent;
+		index = next_subdividion(stk, bone_start, end, parent->head, parent->tail);
 	}
+
+	VECCOPY(parent->tail, stk->points[end].p);
+
+	setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
+
+	Mat4MulVecfl(invmat, parent->head);
+	Mat4MulVecfl(invmat, parent->tail);
+	lastBone = parent;
 	
 	return lastBone;
 }
+
 
 void sk_convertStroke(SK_Stroke *stk)
 {
@@ -1524,11 +1479,17 @@ void sk_convertStroke(SK_Stroke *stk)
 				
 				if (i - head_index > 1)
 				{
-					bone = subdivideStrokeByCorrelation(stk, head_index, i, invmat, tmat);
-					
-					if (bone == NULL)
+					if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
 					{
-						bone = subdivideStrokeByLength(stk, head_index, i, invmat, tmat);
+						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextCorrelationSubdivision);
+					}
+					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
+					{
+						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextLengthSubdivision);
+					}
+					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_FIXED)
+					{
+						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextFixedSubdivision);
 					}
 				}
 				

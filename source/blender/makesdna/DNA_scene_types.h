@@ -440,10 +440,11 @@ typedef struct ToolSettings {
 	
 	/* Skeleton Sketching */
 	char bone_sketching;
+	char skgen_subdivision_number;
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[3];
+	char pad3[2];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -846,6 +847,7 @@ typedef struct Scene {
 #define	SKGEN_CUT_LENGTH		8
 #define	SKGEN_CUT_ANGLE			16
 #define	SKGEN_CUT_CORRELATION	32
+#define	SKGEN_CUT_FIXED			64
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1
