@@ -3297,6 +3297,9 @@ void switch_direction_armature (void)
 				else	
 					ebo->flag &= ~BONE_CONNECTED;
 				
+				child->parent = NULL;
+				child->flag &= ~BONE_CONNECTED;
+
 				/* FIXME: other things that need fixing?
 				 *		i.e. roll?
 				 */
