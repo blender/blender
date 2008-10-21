@@ -913,8 +913,13 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 				i++;
 			
 				/* display progress every second */
-				if(re->test_break())
+				if(re->test_break()) {
+					if(tree) {
+						RE_ray_tree_free(tree);
+						tree= NULL;
+					}
 					return;
+				}
 				if(time-lasttime>1.0f) {
 					char str[64];
 					sprintf(str, "Precaching volume: %d%%", (int)(100.0f * (i / res_3f)));
@@ -937,11 +942,13 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 			}
 		}
 	}
-	
+
 	if(tree) {
 		RE_ray_tree_free(tree);
 		tree= NULL;
 	}
+	
+
 }
 
 /* loop through all objects (and their associated materials)
