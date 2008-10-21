@@ -1025,6 +1025,6 @@ int sample_sss(Render *re, Material *mat, float *co, float *color)
 
 int sss_pass_done(struct Render *re, struct Material *mat)
 {
-	return ((re->flag & R_BAKING) || (re->sss_hash && BLI_ghash_lookup(re->sss_hash, mat)));
+	return ((re->flag & R_BAKING) || !(re->r.mode & R_SSS) || (re->sss_hash && BLI_ghash_lookup(re->sss_hash, mat)));
 }
 
