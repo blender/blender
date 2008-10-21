@@ -53,7 +53,7 @@ def dirName(path):
 # order dosnt matter for loc/size/rot
 # right handed rotation
 # angles are in radians
-# rotation first defines axis then ammount in deg
+# rotation first defines axis then ammount in radians
 
 
 
@@ -1782,7 +1782,7 @@ def importTransform(node, ancestry):
 	bpyob.setMatrix( getFinalMatrix(node, None, ancestry) )
 
 
-def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16):
+def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
 	
 	# Used when adding blender primitives
 	GLOBALS['CIRCLE_DETAIL'] = PREF_CIRCLE_DIV
@@ -1818,8 +1818,14 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16):
 		elif spec=='Transform':
 			# Only use transform nodes when we are not importing a flat object hierarchy
 			if PREF_FLAT==False:
-				importTransform(node, ancestry)
-	
+				importTransform(node, ancestry)			
+		else:
+			
+			# Note, include this function so the VRML/X3D importer can be extended
+			# by an external script.
+			if HELPER_FUNC:
+				HELPER_FUNC(node, ancestry)
+			
 	# Add in hierarchy
 	if PREF_FLAT==False:
 		child_dict = {}
