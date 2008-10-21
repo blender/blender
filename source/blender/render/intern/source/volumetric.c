@@ -297,8 +297,8 @@ static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, fl
 	}
 }
 
-#if 0
-/* no interpolation, not used */
+
+/* no interpolation */
 static void vol_get_precached_scattering_nearest(ShadeInput *shi, float *scatter_col, float *co)
 {
 	const int res = shi->mat->vol_precache_resolution;
@@ -319,7 +319,7 @@ static void vol_get_precached_scattering_nearest(ShadeInput *shi, float *scatter
 	scatter_col[1] = shi->obi->volume_precache[1*res*res*res + x*res*res + y*res + z];
 	scatter_col[2] = shi->obi->volume_precache[2*res*res*res + x*res*res + y*res + z];
 }
-#endif
+
 
 /* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
  * Used in the relationship Transmittance = e^(-attenuation)
@@ -529,7 +529,10 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			
 			if ((shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) &&
 				(shi->mat->vol_shadeflag & MA_VOL_ATTENUATED)) {
-				vol_get_precached_scattering(shi, scatter_col, step_mid);
+				if (G.rt==0)
+					vol_get_precached_scattering(shi, scatter_col, step_mid);
+				else
+					vol_get_precached_scattering_nearest(shi, scatter_col, step_mid);
 			} else
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
 			
