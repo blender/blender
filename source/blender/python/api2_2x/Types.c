@@ -112,7 +112,7 @@ static PyObject *Types_CSizeof(PyObject * self, PyObject *o)
 	char type[32];
 
 	if(o) {
-		sprintf(type, "%s", PyString_AsString(PyObject_Str(o)));
+		BLI_snprintf(type, 32, "%s", PyString_AsString(PyObject_Str(o)));
 
 		if(BLI_streq(type, "<type 'Blender Action'>")==1) {
 			ret = sizeof(struct bAction);
@@ -309,9 +309,9 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &Armature_Type );
 	PyDict_SetItemString( dict, "BoneType", ( PyObject * ) &Bone_Type );
 
-	PyDict_SetItemString( dict, "CurNurb_Type",
+	PyDict_SetItemString( dict, "CurNurbType",
 			      ( PyObject * ) &CurNurb_Type );
-	PyDict_SetItemString( dict, "SurfNurb_Type",
+	PyDict_SetItemString( dict, "SurfNurbType",
 			      ( PyObject * ) &SurfNurb_Type );
 	PyDict_SetItemString( dict, "CurveType", ( PyObject * ) &Curve_Type );
 
@@ -349,7 +349,7 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &constant_Type );
 	PyDict_SetItemString( dict, "rgbTupleType",
 			      ( PyObject * ) &rgbTuple_Type );
-	PyDict_SetItemString( dict, "matrix_Type",
+	PyDict_SetItemString( dict, "matrixType",
 			      ( PyObject * ) &matrix_Type );
 	PyDict_SetItemString( dict, "eulerType", ( PyObject * ) &euler_Type );
 	PyDict_SetItemString( dict, "quaternionType",
@@ -372,7 +372,7 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &EditBone_Type);
 	PyDict_SetItemString( dict, "ThemeSpaceType",
 			      ( PyObject * ) &ThemeSpace_Type);
-	PyDict_SetItemString( dict, "ThemeUI_Type",
+	PyDict_SetItemString( dict, "ThemeUIType",
 			      ( PyObject * ) &ThemeUI_Type);
 	PyDict_SetItemString( dict, "IDGroupType",
 			      ( PyObject * ) &IDGroup_Type);
