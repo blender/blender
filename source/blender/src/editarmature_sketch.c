@@ -70,6 +70,7 @@ typedef enum SK_PMode
 typedef struct SK_Point
 {
 	float p[3];
+	float no[3];
 	SK_PType type;
 	SK_PMode mode;
 } SK_Point;
@@ -373,6 +374,18 @@ SK_Sketch* sk_createSketch()
 	return sketch;
 }
 
+void sk_initPoint(SK_Point *pt)
+{
+	VECCOPY(pt->no, G.vd->viewinv[2]);
+	Normalize(pt->no);
+	/* more init code here */
+}
+
+void sk_copyPoint(SK_Point *dst, SK_Point *src)
+{
+	memcpy(dst, src, sizeof(SK_Point));
+}
+
 void sk_allocStrokeBuffer(SK_Stroke *stk)
 {
 	stk->points = MEM_callocN(sizeof(SK_Point) * stk->buf_size, "SK_Point buffer");
@@ -519,7 +532,8 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			SK_Point pt;
 			float vec[3];
 			
-			pt.type = PT_CONTINUOUS;
+			sk_copyPoint(&pt, &old_points[j+1]);
+
 			pt.p[0] = 0;
 			pt.p[1] = 0;
 			pt.p[2] = 0;
@@ -936,6 +950,8 @@ int sk_addStrokeDrawPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	SK_Point pt;
 	
+	sk_initPoint(&pt);
+	
 	sk_getStrokeDrawPoint(&pt, sketch, stk, dd);
 
 	sk_appendStrokePoint(stk, &pt);
@@ -983,8 +999,10 @@ int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *source_stk
 
 int sk_addStrokeSnapPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
-	SK_Point pt;
 	int point_added = 0;
+	SK_Point pt;
+	
+	sk_initPoint(&pt);
 	
 	point_added = sk_getStrokeSnapPoint(&pt, sketch, stk, dd);
 
@@ -1105,9 +1123,11 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 
 int sk_addStrokeEmbedPoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
-	SK_Point pt;
 	int point_added;
+	SK_Point pt;
 	
+	sk_initPoint(&pt);
+
 	point_added = sk_getStrokeEmbedPoint(&pt, sketch, stk, dd);
 	
 	if (point_added)
@@ -1224,6 +1244,22 @@ void sk_initDrawData(SK_DrawData *dd)
 }
 /********************************************/
 
+/* bone is assumed to be in GLOBAL space */
+void setBoneRollFromPoint(EditBone *bone, SK_Point *pt, float invmat[][4], float tmat[][3])
+{
+	float tangent[3], cotangent[3], normal[3];
+	
+	VecSubf(tangent, bone->tail, bone->head);
+	Crossf(cotangent, tangent, pt->no);
+	Crossf(normal, cotangent, tangent);
+	
+	Mat3MulVecfl(tmat, normal);
+	Normalize(normal);
+	
+	bone->roll = rollBoneToVector(bone, normal);
+
+}
+
 float calcStrokeCorrelation(SK_Stroke *stk, int start, int end, float v0[3], float n[3])
 {
 	int len = 2 + abs(end - start);
@@ -1296,7 +1332,7 @@ int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3]
 	return -1;
 }
 
-EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, float invmat[][4])
+EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, float invmat[][4], float tmat[][3])
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *lastBone = NULL;
@@ -1314,6 +1350,8 @@ EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, floa
 		index = nextCorrelationSubdivision(stk, bone_start, end, parent->head, parent->tail);
 		while (index != -1)
 		{
+			setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
+			
 			Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
 
 			child = addEditBone("Bone", &G.edbo, arm);
@@ -1327,9 +1365,11 @@ EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, floa
 			index = nextCorrelationSubdivision(stk, bone_start, end, parent->head, parent->tail);
 		}
 
-		Mat4MulVecfl(invmat, parent->head);
-		
 		VECCOPY(parent->tail, stk->points[end].p);
+
+		setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
+
+		Mat4MulVecfl(invmat, parent->head);
 		Mat4MulVecfl(invmat, parent->tail);
 		lastBone = parent;
 	}
@@ -1405,7 +1445,7 @@ int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], flo
 	return -1;
 }
 
-EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float invmat[][4])
+EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float invmat[][4], float tmat[][3])
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *lastBone = NULL;
@@ -1419,10 +1459,11 @@ EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float inv
 		
 		parent = addEditBone("Bone", &G.edbo, arm);
 		VECCOPY(parent->head, stk->points[start].p);
-
+		
 		index = nextLengthSubdivision(stk, bone_start, end, parent->head, parent->tail);
 		while (index != -1)
 		{
+			setBoneRollFromPoint(parent, &stk->points[index], invmat, tmat);
 			Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
 
 			child = addEditBone("Bone", &G.edbo, arm);
@@ -1436,9 +1477,11 @@ EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float inv
 			index = nextLengthSubdivision(stk, bone_start, end, parent->head, parent->tail);
 		}
 
-		Mat4MulVecfl(invmat, parent->head);
-		
 		VECCOPY(parent->tail, stk->points[end].p);
+
+		setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
+
+		Mat4MulVecfl(invmat, parent->head);
 		Mat4MulVecfl(invmat, parent->tail);
 		lastBone = parent;
 	}
@@ -1452,12 +1495,16 @@ void sk_convertStroke(SK_Stroke *stk)
 	SK_Point *head;
 	EditBone *parent = NULL;
 	float invmat[4][4]; /* move in caller function */
+	float tmat[3][3];
 	int head_index = 0;
 	int i;
 	
 	head = NULL;
 	
 	Mat4Invert(invmat, G.obedit->obmat);
+	
+	Mat3CpyMat4(tmat, G.obedit->obmat);
+	Mat3Transp(tmat);
 	
 	for (i = 0; i < stk->nb_points; i++)
 	{
@@ -1477,11 +1524,11 @@ void sk_convertStroke(SK_Stroke *stk)
 				
 				if (i - head_index > 1)
 				{
-					bone = subdivideStrokeByCorrelation(stk, head_index, i, invmat);
+					bone = subdivideStrokeByCorrelation(stk, head_index, i, invmat, tmat);
 					
 					if (bone == NULL)
 					{
-						bone = subdivideStrokeByLength(stk, head_index, i, invmat);
+						bone = subdivideStrokeByLength(stk, head_index, i, invmat, tmat);
 					}
 				}
 				
@@ -1491,6 +1538,7 @@ void sk_convertStroke(SK_Stroke *stk)
 					
 					VECCOPY(bone->head, head->p);
 					VECCOPY(bone->tail, pt->p);
+					setBoneRollFromPoint(bone, pt, invmat, tmat);
 					
 					Mat4MulVecfl(invmat, bone->head);
 					Mat4MulVecfl(invmat, bone->tail);

@@ -70,6 +70,8 @@ typedef struct EditBone
 
 EditBone *addEditBone(char *name, struct ListBase *ebones, struct bArmature *arm);
 
+float rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+
 void	adduplicate_armature(void);
 void	addvert_armature(void);
 void	add_primitiveArmature(int type);
