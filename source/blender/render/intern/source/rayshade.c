@@ -467,7 +467,6 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		//shi.do_preview= 0; // memset above, so dont need this
 		shi.light_override= origshi->light_override;
 		shi.mat_override= origshi->mat_override;
-		shi.re = origshi->re;
 		
 		memset(&shr, 0, sizeof(ShadeResult));
 		
@@ -1301,7 +1300,6 @@ void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.mask= 1;
-		shi.re = &R;
 		
 		/*shi.osatex= 0;
 		shi.thread= shi.sample= 0;

@@ -95,7 +95,7 @@ static int vol_always_intersect_check(Isect *is, int ob, RayFace *face)
 /* TODO: Box or sphere intersection types could speed things up */
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type, int checkfunc)
 {
-	float maxsize = RE_ray_tree_max_size(shi->re->raytree);
+	float maxsize = RE_ray_tree_max_size(R.raytree);
 	int intersected=0;
 
 	/* TODO: use object's bounding box to calculate max size */
@@ -114,9 +114,9 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	else if (intersect_type == VOL_BOUNDS_SS) isect->faceorig= NULL;
 	
 	if (checkfunc==VOL_IS_BACKFACE)
-		intersected = RE_ray_tree_intersect_check(shi->re->raytree, isect, vol_backface_intersect_check);
+		intersected = RE_ray_tree_intersect_check(R.raytree, isect, vol_backface_intersect_check);
 	else
-		intersected = RE_ray_tree_intersect(shi->re->raytree, isect);
+		intersected = RE_ray_tree_intersect(R.raytree, isect);
 	
 	if(intersected)
 	{
@@ -455,7 +455,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 	float col[3] = {0.f, 0.f, 0.f};
 	int i=0;
 
-	for(go=shi->re->lights.first; go; go= go->next)
+	for(go=R.lights.first; go; go= go->next)
 	{
 		float lacol[3] = {0.f, 0.f, 0.f};
 	
@@ -596,7 +596,6 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	shi_new.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
 	shi_new.light_override= shi->light_override;
 	shi_new.mat_override= shi->mat_override;
-	shi_new.re = shi->re;
 	
 	VECCOPY(shi_new.camera_co, is->start);
 	
@@ -616,7 +615,7 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *col)
 {
 	Isect isect;
-	float maxsize = RE_ray_tree_max_size(shi->re->raytree);
+	float maxsize = RE_ray_tree_max_size(R.raytree);
 
 	VECCOPY(isect.start, co);
 	isect.end[0] = isect.start[0] + shi->view[0] * maxsize;
@@ -632,7 +631,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	isect.lay= -1;
 	
 	/* check to see if there's anything behind the volume, otherwise shade the sky */
-	if(RE_ray_tree_intersect(shi->re->raytree, &isect)) {
+	if(RE_ray_tree_intersect(R.raytree, &isect)) {
 		shade_intersection(shi, col, &isect);
 	} else {
 		shadeSkyView(col, co, shi->view, NULL);
@@ -865,6 +864,8 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	float i = 1.0f;
 	double time, lasttime= PIL_check_seconds_timer();
 	const int res = ma->vol_precache_resolution;
+	
+	R = *re;
 
 	/* create a raytree with just the faces of the instanced ObjectRen, 
 	 * used for checking if the cached point is inside or outside. */
@@ -882,7 +883,6 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	shi.obi= obi;
 	shi.obr= obi->obr;
 	shi.lay = re->scene->lay;
-	shi.re = re;
 	VECCOPY(shi.view, view);
 	
 	stepsize = vol_get_stepsize(&shi, STEPSIZE_VIEW);
