@@ -266,7 +266,9 @@ class tree:
 				brch.calcData()
 			
 		# Sort from big to small, so big branches get priority
-		self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
+		# Py 2.3 dosnt have keywords in sort
+		try:	self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
+		except: self.branches_all.sort( lambda brch_a, brch_b: cmp(brch_b.bpoints[0].radius, brch_a.bpoints[0].radius) )
 	
 	
 	def closestBranchPt(self, co):
