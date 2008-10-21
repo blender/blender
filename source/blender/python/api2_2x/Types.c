@@ -109,74 +109,70 @@ This module is a dictionary of all Blender Python types";
 static PyObject *Types_CSizeof(PyObject * self, PyObject *o)
 {
 	int ret = 0;
-	char type[32];
-
 	if(o) {
-		BLI_snprintf(type, 32, "%s", PyString_AsString(PyObject_Str(o)));
-
-		if(BLI_streq(type, "<type 'Blender Action'>")==1) {
+		if((void *)o == (void *)&Action_Type) {
 			ret = sizeof(struct bAction);
-		} else if (BLI_streq(type, "<type 'Armature'>")==1) {
+		} else if ((void *)o==(void *)&Armature_Type) {
 			ret = sizeof(struct bArmature);
-		} else if (BLI_streq(type, "<type 'BezTriple'>")==1) {
+		} else if ((void *)o==(void *)&BezTriple_Type) {
 			ret = sizeof(struct BezTriple);
-		} else if (BLI_streq(type, "<type 'Bone'>")==1) {
+		} else if ((void *)o==(void *)&Bone_Type) {
 			ret = sizeof(struct Bone);
-		} else if (BLI_streq(type, "<type 'Blender Camera'>")==1) {
+		} else if ((void *)o==(void *)&Camera_Type) {
 			ret = sizeof(struct Camera);
-		} else if (BLI_streq(type, "<type 'CurNurb'>")==1) {
+		} else if ((void *)o==(void *)&CurNurb_Type) {
 			ret = sizeof(struct Nurb);
-		} else if (BLI_streq(type, "<type 'Curve'>")==1) {
+		} else if ((void *)o==(void *)&Curve_Type) {
 			ret = sizeof(struct Curve);
-		} else if (BLI_streq(type, "<type 'Blender Group'>")==1) {
+		} else if ((void *)o==(void *)&Group_Type) {
 			ret = sizeof(struct Group);
-		} else if (BLI_streq(type, "<type 'Blender IDProperty'>")==1) {
+		} else if ((void *)o==(void *)&IDGroup_Type) {
 			ret = sizeof(struct IDProperty);
-		} else if (BLI_streq(type, "<type 'Blender Image'>")==1) {
+		} else if ((void *)o==(void *)&Image_Type) {
 			ret = sizeof(struct Image);
-		} else if (BLI_streq(type, "<type 'Blender Ipo'>")==1) {
+		} else if ((void *)o==(void *)&Ipo_Type) {
 			ret = sizeof(struct Ipo);
-		} else if (BLI_streq(type, "<type 'IpoCurve'>")==1) {
+		} else if ((void *)o==(void *)&IpoCurve_Type) {
 			ret = sizeof(struct IpoCurve);
-		} else if (BLI_streq(type, "<type 'Blender Lamp'>")==1) {
+		} else if ((void *)o==(void *)&Lamp_Type) {
 			ret = sizeof(struct Lamp);
-		} else if (BLI_streq(type, "<type 'Blender Lattice'>")==1) {
+		} else if ((void *)o==(void *)&Lattice_Type) {
 			ret = sizeof(struct Lattice);
-		} else if (BLI_streq(type, "<type 'Blender MCol'>")==1) {
+		} else if ((void *)o==(void *)&MCol_Type) {
 			ret = sizeof(struct MCol);
-		} else if (BLI_streq(type, "<type 'Blender MEdge'>")==1) {
+		} else if ((void *)o==(void *)&MEdge_Type) {
 			ret = sizeof(struct MEdge);
-		} else if (BLI_streq(type, "<type 'Blender MFace'>")==1) {
+		} else if ((void *)o==(void *)&MFace_Type) {
 			ret = sizeof(struct MFace);
-		} else if (BLI_streq(type, "<type 'Blender MTex'>")==1) {
+		} else if ((void *)o==(void *)&MTex_Type) {
 			ret = sizeof(struct MTex);
-		} else if (BLI_streq(type, "<type 'Blender MVert'>")==1) {
+		} else if ((void *)o==(void *)&MVert_Type) {
 			ret = sizeof(struct MVert);
-		} else if (BLI_streq(type, "<type 'Blender Material'>")==1) {
+		} else if ((void *)o==(void *)&Material_Type) {
 			ret = sizeof(struct Material);
-		} else if (BLI_streq(type, "<type 'Blender Mesh'>")==1) {
+		} else if ((void *)o==(void *)&Mesh_Type) {
 			ret = sizeof(struct Mesh);
-		} else if (BLI_streq(type, "<type 'Blender Metaball'>")==1) {
+		} else if ((void *)o==(void *)&Metaball_Type) {
 			ret = sizeof(struct MetaBall);
-		} else if (BLI_streq(type, "<type 'Blender.Modifiers'>")==1) {
+		} else if ((void *)o==(void *)&ModSeq_Type) {
 			ret = sizeof(struct ModifierData);
-		} else if (BLI_streq(type, "<type 'Blender Modifier'>")==1) {
+		} else if ((void *)o==(void *)&Modifier_Type) {
 			ret = sizeof(struct ModifierData);
-		} else if (BLI_streq(type, "<type 'Blender Object'>")==1) {
+		} else if ((void *)o==(void *)&Object_Type) {
 			ret = sizeof(struct Object);
-		} else if (BLI_streq(type, "<type 'Pose'>")==1) {
+		} else if ((void *)o==(void *)&Pose_Type) {
 			ret = sizeof(struct bPose);
-		} else if (BLI_streq(type, "<type 'Blender RenderData'>")==1) {
+		} else if ((void *)o==(void *)&RenderData_Type) {
 			ret = sizeof(struct RenderData);
-		} else if (BLI_streq(type, "<type 'Scene'>")==1) {
+		} else if ((void *)o==(void *)&Scene_Type) {
 			ret = sizeof(struct Scene);
-		} else if (BLI_streq(type, "<type 'SurfNurb'>")==1) {
+		} else if ((void *)o==(void *)&SurfNurb_Type) {
 			ret = sizeof(struct Nurb);
-		} else if (BLI_streq(type, "<type 'Text3d'>")==1) {
+		} else if ((void *)o==(void *)&Text3d_Type) {
 			ret = sizeof(struct Curve);
-		} else if (BLI_streq(type, "<type 'Blender Text'>")==1) {
+		} else if ((void *)o==(void *)&Text_Type) {
 			ret = sizeof(struct Text);
-		} else if (BLI_streq(type, "<type 'Blender Texture'>")==1) {
+		} else if ((void *)o==(void *)&Texture_Type) {
 			ret = sizeof(struct Tex);
 		} else {
 			ret = -1;
