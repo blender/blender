@@ -1920,18 +1920,21 @@ short ipo_frame_has_keyframe (Ipo *ipo, float frame, short filter)
 	 *	- this assumes that keyframes are only beztriples
 	 */
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		/* we either include all regardless of muting, or only non-muted  */
-		if ((filter & ANIMFILTER_MUTED) || (icu->flag & IPO_MUTE)==0) {
-			short replace = -1;
-			int i = binarysearch_bezt_index(icu->bezt, frame, icu->totvert, &replace);
-			
-			/* binarysearch_bezt_index will set replace to be 0 or 1
-			 * 	- obviously, 1 represents a match
-			 */
-			if (replace) {			
-				/* sanity check: 'i' may in rare cases exceed arraylen */
-				if ((i >= 0) && (i < icu->totvert))
-					return 1;
+		/* only check if there are keyframes (currently only of type BezTriple) */
+		if (icu->bezt) {
+			/* we either include all regardless of muting, or only non-muted  */
+			if ((filter & ANIMFILTER_MUTED) || (icu->flag & IPO_MUTE)==0) {
+				short replace = -1;
+				int i = binarysearch_bezt_index(icu->bezt, frame, icu->totvert, &replace);
+				
+				/* binarysearch_bezt_index will set replace to be 0 or 1
+				 * 	- obviously, 1 represents a match
+				 */
+				if (replace) {			
+					/* sanity check: 'i' may in rare cases exceed arraylen */
+					if ((i >= 0) && (i < icu->totvert))
+						return 1;
+				}
 			}
 		}
 	}
