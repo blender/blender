@@ -120,6 +120,9 @@ SK_Point boneSnap;
 void sk_freeStroke(SK_Stroke *stk);
 void sk_freeSketch(SK_Sketch *sketch);
 
+int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
+int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
+
 /******************** PEELING *********************************/
 
 typedef struct SK_DepthPeel
@@ -656,6 +659,110 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3])
 //	glEnd();
 }
 
+
+int drawStrokeByCorrelation(SK_Stroke *stk, int start, int end)
+{
+	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
+	{
+		float head[3], tail[3];
+		int bone_start = start;
+		int index;
+
+		VECCOPY(head, stk->points[start].p);
+		
+		glColor3f(0, 1, 1);
+		glBegin(GL_POINTS);
+		
+		index = nextCorrelationSubdivision(stk, bone_start, end, head, tail);
+		while (index != -1)
+		{
+			glVertex3fv(tail);
+			
+			VECCOPY(head, tail);
+			bone_start = index; // start next bone from current index
+
+			index = nextCorrelationSubdivision(stk, bone_start, end, head, tail);
+		}
+		
+		glEnd();
+
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+int drawStrokeByLength(SK_Stroke *stk, int start, int end)
+{
+	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
+	{
+		float head[3], tail[3];
+		int bone_start = start;
+		int index;
+
+		VECCOPY(head, stk->points[start].p);
+		
+		glColor3f(0, 1, 1);
+		glBegin(GL_POINTS);
+		
+		index = nextLengthSubdivision(stk, bone_start, end, head, tail);
+		while (index != -1)
+		{
+			glVertex3fv(tail);
+			
+			VECCOPY(head, tail);
+			bone_start = index; // start next bone from current index
+
+			index = nextLengthSubdivision(stk, bone_start, end, head, tail);
+		}
+		
+		glEnd();
+		
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void sk_drawStrokeSubdivision(SK_Stroke *stk)
+{
+	int head_index = -1;
+	int i;
+	
+	for (i = 0; i < stk->nb_points; i++)
+	{
+		SK_Point *pt = stk->points + i;
+		
+		if (pt->type == PT_EXACT || i == stk->nb_points - 1) /* stop on exact or on last point */
+		{
+			if (head_index == -1)
+			{
+				head_index = i;
+			}
+			else
+			{
+				int done = 0;
+				
+				if (i - head_index > 1)
+				{
+					done = drawStrokeByCorrelation(stk, head_index, i);
+					
+					if (done == 0)
+					{
+						done = drawStrokeByLength(stk, head_index, i);
+					}
+				}
+
+				head_index = i;
+			}
+		}
+	}	
+}
+
 SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist)
 {
 	SK_Point *pt = NULL;
@@ -683,19 +790,22 @@ SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist)
 	return pt;
 }
 
-SK_Point *sk_snapPointArmature(ListBase *ebones, short mval[2], int *dist)
+SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int *dist)
 {
 	SK_Point *pt = NULL;
 	EditBone *bone;
 	
 	for (bone = ebones->first; bone; bone = bone->next)
 	{
+		float vec[3];
 		short pval[2];
 		int pdist;
 		
 		if ((bone->flag & BONE_CONNECTED) == 0)
 		{
-			project_short_noclip(bone->head, pval);
+			VECCOPY(vec, bone->head);
+			Mat4MulVecfl(ob->obmat, vec);
+			project_short_noclip(vec, pval);
 			
 			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 			
@@ -709,7 +819,9 @@ SK_Point *sk_snapPointArmature(ListBase *ebones, short mval[2], int *dist)
 		}
 		
 		
-		project_short_noclip(bone->tail, pval);
+		VECCOPY(vec, bone->tail);
+		Mat4MulVecfl(ob->obmat, vec);
+		project_short_noclip(vec, pval);
 		
 		pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 		
@@ -851,7 +963,7 @@ int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *source_stk
 	
 	/* check on bones */
 	{
-		SK_Point *spt = sk_snapPointArmature(&G.edbo, dd->mval, &dist);
+		SK_Point *spt = sk_snapPointArmature(G.obedit, &G.edbo, dd->mval, &dist);
 		
 		if (spt != NULL)
 		{
@@ -1163,50 +1275,134 @@ float calcStrokeCorrelation(SK_Stroke *stk, int start, int end, float v0[3], flo
 	}
 }
 
+int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
+{
+	float correlation_threshold = G.scene->toolsettings->skgen_correlation_limit;
+	float n[3];
+	int i;
+	
+	for (i = start + 2; i < end; i++)
+	{
+		/* Calculate normal */
+		VecSubf(n, stk->points[i].p, head);
+
+		if (calcStrokeCorrelation(stk, start, i, stk->points[start].p, n) < correlation_threshold)
+		{
+			VECCOPY(p, stk->points[i - 1].p);
+			return i - 1;
+		}
+	}
+	
+	return -1;
+}
+
 EditBone * subdivideStrokeByCorrelation(SK_Stroke *stk, int start, int end, float invmat[][4])
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *lastBone = NULL;
-	float n[3];
-	float CORRELATION_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
 	
 	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
 	{
 		EditBone *child = NULL;
 		EditBone *parent = NULL;
-		int boneStart = start;
-		int i;
+		int bone_start = start;
+		int index;
 
 		parent = addEditBone("Bone", &G.edbo, arm);
 		VECCOPY(parent->head, stk->points[start].p);
-		Mat4MulVecfl(invmat, parent->head);
 		
-		for (i = start + 1; i < end; i++)
+		index = nextCorrelationSubdivision(stk, bone_start, end, parent->head, parent->tail);
+		while (index != -1)
 		{
-			/* Calculate normal */
-			VecSubf(n, stk->points[i].p, parent->head);
+			Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
 
-			if (calcStrokeCorrelation(stk, boneStart, i, parent->head, n) < CORRELATION_THRESHOLD)
-			{
-				VECCOPY(parent->tail, stk->points[i - 1].p);
-				Mat4MulVecfl(invmat, parent->tail);
+			child = addEditBone("Bone", &G.edbo, arm);
+			VECCOPY(child->head, parent->tail);
+			child->parent = parent;
+			child->flag |= BONE_CONNECTED;
+			
+			parent = child; // new child is next parent
+			bone_start = index; // start next bone from current index
 
-				child = addEditBone("Bone", &G.edbo, arm);
-				VECCOPY(child->head, parent->tail);
-				child->parent = parent;
-				child->flag |= BONE_CONNECTED;
-				
-				parent = child; // new child is next parent
-				boneStart = i; // start next bone from current index
-			}
+			index = nextCorrelationSubdivision(stk, bone_start, end, parent->head, parent->tail);
 		}
 
+		Mat4MulVecfl(invmat, parent->head);
+		
 		VECCOPY(parent->tail, stk->points[end].p);
 		Mat4MulVecfl(invmat, parent->tail);
 		lastBone = parent;
 	}
 	
 	return lastBone;
+}
+
+int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
+{
+	float lengthLimit = G.scene->toolsettings->skgen_length_limit;
+	int same = 1;
+	int i;
+	
+	i = start + 1;
+	while (i < end)
+	{
+		float *vec0 = stk->points[i - 1].p;
+		float *vec1 = stk->points[i].p;
+
+		/* If lengthLimit hits the current segment */
+		if (VecLenf(vec1, head) > lengthLimit)
+		{
+			if (same == 0)
+			{
+				float dv[3], off[3];
+				float a, b, c, f;
+				
+				/* Solve quadratic distance equation */
+				VecSubf(dv, vec1, vec0);
+				a = Inpf(dv, dv);
+				
+				VecSubf(off, vec0, head);
+				b = 2 * Inpf(dv, off);
+				
+				c = Inpf(off, off) - (lengthLimit * lengthLimit);
+				
+				f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
+				
+				//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
+				
+				if (isnan(f) == 0 && f < 1.0f)
+				{
+					VECCOPY(p, dv);
+					VecMulf(p, f);
+					VecAddf(p, p, vec0);
+				}
+				else
+				{
+					VECCOPY(p, vec1);
+				}
+			}
+			else
+			{
+				float dv[3];
+				
+				VecSubf(dv, vec1, vec0);
+				Normalize(dv);
+				 
+				VECCOPY(p, dv);
+				VecMulf(p, lengthLimit);
+				VecAddf(p, p, head);
+			}
+			
+			return i - 1; /* restart at lower bound */
+		}
+		else
+		{
+			i++;
+			same = 0; // Reset same
+		}
+	}
+	
+	return -1;
 }
 
 EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float invmat[][4])
@@ -1218,81 +1414,30 @@ EditBone * subdivideStrokeByLength(SK_Stroke *stk, int start, int end, float inv
 	{
 		EditBone *child = NULL;
 		EditBone *parent = NULL;
-		float lengthLimit = G.scene->toolsettings->skgen_length_limit;
-		int i;
-		int same = 0;
+		int bone_start = start;
+		int index;
 		
 		parent = addEditBone("Bone", &G.edbo, arm);
 		VECCOPY(parent->head, stk->points[start].p);
 
-		i = start + 1;
-		while (i < end)
+		index = nextLengthSubdivision(stk, bone_start, end, parent->head, parent->tail);
+		while (index != -1)
 		{
-			float *vec0 = stk->points[i - 1].p;
-			float *vec1 = stk->points[i].p;
+			Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
 
-			/* If lengthLimit hits the current segment */
-			if (VecLenf(vec1, parent->head) > lengthLimit)
-			{
-				if (same == 0)
-				{
-					float dv[3], off[3];
-					float a, b, c, f;
-					
-					/* Solve quadratic distance equation */
-					VecSubf(dv, vec1, vec0);
-					a = Inpf(dv, dv);
-					
-					VecSubf(off, vec0, parent->head);
-					b = 2 * Inpf(dv, off);
-					
-					c = Inpf(off, off) - (lengthLimit * lengthLimit);
-					
-					f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
-					
-					//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
-					
-					if (isnan(f) == 0 && f < 1.0f)
-					{
-						VECCOPY(parent->tail, dv);
-						VecMulf(parent->tail, f);
-						VecAddf(parent->tail, parent->tail, vec0);
-					}
-					else
-					{
-						VECCOPY(parent->tail, vec1);
-					}
-				}
-				else
-				{
-					float dv[3];
-					
-					VecSubf(dv, vec1, vec0);
-					Normalize(dv);
-					 
-					VECCOPY(parent->tail, dv);
-					VecMulf(parent->tail, lengthLimit);
-					VecAddf(parent->tail, parent->tail, parent->head);
-				}
-				
-				/* put head in correct space */
-				Mat4MulVecfl(invmat, parent->head);
-				
-				child = addEditBone("Bone", &G.edbo, arm);
-				VECCOPY(child->head, parent->tail);
-				child->parent = parent;
-				child->flag |= BONE_CONNECTED;
-				
-				parent = child; // new child is next parent
-				
-				same = 1; // mark as same
-			}
-			else
-			{
-				i++;
-				same = 0; // Reset same
-			}
+			child = addEditBone("Bone", &G.edbo, arm);
+			VECCOPY(child->head, parent->tail);
+			child->parent = parent;
+			child->flag |= BONE_CONNECTED;
+			
+			parent = child; // new child is next parent
+			bone_start = index; // start next bone from current index
+
+			index = nextLengthSubdivision(stk, bone_start, end, parent->head, parent->tail);
 		}
+
+		Mat4MulVecfl(invmat, parent->head);
+		
 		VECCOPY(parent->tail, stk->points[end].p);
 		Mat4MulVecfl(invmat, parent->tail);
 		lastBone = parent;
@@ -1899,6 +2044,11 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
 		{
 			sk_drawStroke(stk, -1, (stk->selected==1?selected_rgb:unselected_rgb));
+		
+			if (stk->selected == 1)
+			{
+				sk_drawStrokeSubdivision(stk);
+			}
 		}
 	
 		/* only draw gesture in active area */
@@ -1911,6 +2061,11 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		if (sketch->active_stroke != NULL)
 		{
 			SK_Point *last = sk_lastStrokePoint(sketch->active_stroke);
+			
+			if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
+			{
+				sk_drawStrokeSubdivision(sketch->active_stroke);
+			}
 			
 			if (last != NULL)
 			{
