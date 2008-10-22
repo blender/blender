@@ -245,7 +245,7 @@ static float D(ShadeInput *shi, int rgb, int x, int y, int z)
 	const int res = shi->mat->vol_precache_resolution;
 	CLAMP(x, 0, res-1);
 	CLAMP(y, 0, res-1);
-	CLAMP(y, 0, res-1);
+	CLAMP(z, 0, res-1);
 	return shi->obi->volume_precache[rgb*res*res*res + x*res*res + y*res + z];
 }
 
@@ -864,12 +864,13 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	float i = 1.0f;
 	double time, lasttime= PIL_check_seconds_timer();
 	const int res = ma->vol_precache_resolution;
+	RayTree *tree;
 	
 	R = *re;
 
 	/* create a raytree with just the faces of the instanced ObjectRen, 
 	 * used for checking if the cached point is inside or outside. */
-	RayTree *tree = create_raytree_obi(obi, bbmin, bbmax);
+	tree = create_raytree_obi(obi, bbmin, bbmax);
 	if (!tree) return;
 
 	/* Need a shadeinput to calculate scattering */
@@ -893,6 +894,8 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	res_3f = (float)res_3;
 	
 	VecSubf(voxel, bbmax, bbmin);
+	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
+		return;
 	VecMulf(voxel, 1.0f/res);
 	
 	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
