@@ -894,11 +894,6 @@ void viewmove(int mode)
 		return;
 	}
 	
-	/* clear lastview flag (used to return to previous view when 
-	 * pressing Pad0 again after entering Camera view)
-	 */
-	if (G.vd->lastview_set) G.vd->lastview_set= 0;
-	
 	// dist correction from other movement devices	
 	if((dz_flag)||G.vd->dist==0) {
 		dz_flag = 0;
