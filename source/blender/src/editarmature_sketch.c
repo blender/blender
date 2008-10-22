@@ -793,7 +793,7 @@ SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int 
 			{
 				*dist = pdist;
 				pt = &boneSnap;
-				VECCOPY(pt->p, bone->head);
+				VECCOPY(pt->p, vec);
 				pt->type = PT_EXACT;
 			}
 		}
@@ -809,7 +809,7 @@ SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int 
 		{
 			*dist = pdist;
 			pt = &boneSnap;
-			VECCOPY(pt->p, bone->tail);
+			VECCOPY(pt->p, vec);
 			pt->type = PT_EXACT;
 		}
 	}
