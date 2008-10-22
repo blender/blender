@@ -2289,9 +2289,9 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 	/* replace with check call to sketching lib */
 	if (G.obedit && G.obedit->type == OB_ARMATURE)
 	{
-		block= uiNewBlock(&curarea->uiblocks, "view3d_panel_transform", UI_EMBOSS, UI_HELV, curarea->win);
+		block= uiNewBlock(&curarea->uiblocks, "view3d_panel_bonesketch_spaces", UI_EMBOSS, UI_HELV, curarea->win);
 		uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
-		uiSetPanelHandler(VIEW3D_HANDLER_TRANSFORM);  // for close and esc
+		uiSetPanelHandler(VIEW3D_HANDLER_BONESKETCH);  // for close and esc
 	
 		if(uiNewPanel(curarea, block, "Bone Sketching", "View3d", 10, 230, 318, height)==0) return;
 	
@@ -2311,14 +2311,14 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 
 		uiBlockBeginAlign(block);
 
-		uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Length",		10, 155, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,				"Subdivide arcs in bones of equal length");
-		uiDefButF(block, NUM, B_DIFF, 							"L:",			70, 155, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+		uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_REDR, 		"Length",		10, 155, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,				"Subdivide arcs in bones of equal length");
+		uiDefButF(block, NUM, B_REDR, 							"L:",			70, 155, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
 
-		uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	10, 135, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
-		uiDefButF(block, NUM, B_DIFF, 							"T:",			70, 135, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+		uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_REDR, "Correlation",	10, 135, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
+		uiDefButF(block, NUM, B_REDR, 							"T:",			70, 135, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
 	
-		uiDefButBitS(block, TOG, SKGEN_CUT_FIXED, B_DIFF, 		"Fixed",		10, 115, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on a fixed number of bones");
-		uiDefButC(block, NUM, B_DIFF, 							"N:",			70, 115, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,0, 100, 1, 0,	"Specify the bones to subdivide into");
+		uiDefButBitS(block, TOG, SKGEN_CUT_FIXED, B_REDR, 		"Fixed",		10, 115, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on a fixed number of bones");
+		uiDefButC(block, NUM, B_REDR, 							"N:",			70, 115, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Specify the bones to subdivide into");
 
 		uiBlockEndAlign(block);
 		

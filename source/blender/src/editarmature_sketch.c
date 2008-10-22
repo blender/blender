@@ -1286,7 +1286,7 @@ int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], floa
 	if (stroke_length == 0)
 	{
 		current_length = 0;
-		for (i = start + 1; i < end; i++)
+		for (i = start + 1; i <= end; i++)
 		{
 			stroke_length += VecLenf(stk->points[i].p, stk->points[i - 1].p);
 		}
@@ -1299,6 +1299,7 @@ int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], floa
 	
 	length_threshold = n * stroke_length / G.scene->toolsettings->skgen_subdivision_number;
 	
+	/* < and not <= because we don't care about end, it is P_EXACT anyway */
 	for (i = start + 1; i < end; i++)
 	{
 		current_length += VecLenf(stk->points[i].p, stk->points[i - 1].p);
