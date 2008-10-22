@@ -694,7 +694,7 @@ def write_ui(filename):
 		
 		# hack so the toggle buttons redraw. this is not nice at all
 		while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_EXPORT):
-			Draw.UIBlock(obj_ui)
+			Draw.UIBlock(obj_ui, 0)
 		
 		if GLOBALS['EVENT'] != EVENT_EXPORT:
 			return

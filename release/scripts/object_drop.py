@@ -216,7 +216,7 @@ def main():
 	
 	# hack so the toggle buttons redraw. this is not nice at all
 	while GLOBALS['EVENT'] == EVENT_REDRAW:
-		Draw.UIBlock(terain_clamp_ui)
+		Draw.UIBlock(terain_clamp_ui, 0)
 	
 if __name__ == '__main__':
 	main()
