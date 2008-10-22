@@ -120,6 +120,8 @@ SK_Point boneSnap;
 
 typedef int(NextSubdivisionFunc)(SK_Stroke*, int, int, float[3], float[3]);
 
+void sk_deleteSelectedStrokes(SK_Sketch *sketch);
+
 void sk_freeStroke(SK_Stroke *stk);
 void sk_freeSketch(SK_Sketch *sketch);
 
@@ -1661,7 +1663,7 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 
 int sk_getSegments(SK_Stroke *segments, SK_Stroke *gesture)
 {
-	float CORRELATION_THRESHOLD = 0.995f;
+	float CORRELATION_THRESHOLD = 0.99f;
 	float *vec;
 	int i, j;
 	
@@ -1910,6 +1912,11 @@ void sk_applyGesture(SK_Sketch *sketch)
 		sk_convert(sketch);
 		BIF_undo_push("Convert Sketch");
 		allqueue(REDRAWBUTSEDIT, 0);
+	}
+	else if (nb_segments > 2 && nb_self_intersections == 2)
+	{
+		sk_deleteSelectedStrokes(sketch);
+		BIF_undo_push("Convert Sketch");
 	}
 	
 	sk_freeStroke(segments);
