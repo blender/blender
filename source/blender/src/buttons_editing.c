@@ -4760,7 +4760,7 @@ void do_vgroupbuts(unsigned short event)
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_queue_winredraw(curarea);
 			allqueue(REDRAWOOPS, 0);
-			
+			BIF_undo_push("New vertex group");
 			break;
 		case B_DELVGROUP:
 			if ((G.obedit) && (G.obedit == ob)) {
@@ -4776,35 +4776,40 @@ void do_vgroupbuts(unsigned short event)
 			break;
 		case B_ASSIGNVGROUP:
 			assign_verts_defgroup ();
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue (REDRAWVIEW3D, 1);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case B_REMOVEVGROUP:
 			remove_verts_defgroup (0);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Remove from vertex group");
 			break;
 		case B_SELVGROUP:
-			sel_verts_defgroup(1);
+			sel_verts_defgroup(1); /* runs countall() */
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
-			countall();
+			BIF_undo_push("Select vertex group");
 			break;
 		case B_DESELVGROUP:
-			sel_verts_defgroup(0);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			sel_verts_defgroup(0); /* runs countall() */
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
-			countall();
+			BIF_undo_push("DeSelect vertex group");
 			break;
 		case B_LINKEDVGROUP:
 			copy_linked_vgroup_channels(ob);
+			allqueue (REDRAWVIEW3D, 1);
+			allqueue(REDRAWOOPS, 0);
+			BIF_undo_push("Copy vertex group to linked obdata");
 			break;
 		case B_COPYVGROUP:
 			duplicate_defgroup (ob);
 			scrarea_queue_winredraw (curarea);
 			allqueue (REDRAWOOPS, 0);
+			BIF_undo_push("Copy vertex group");
 			break;
 	}
 }
