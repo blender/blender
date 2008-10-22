@@ -56,6 +56,10 @@
 #include "shading.h"
 #include "texture.h"
 
+#if defined( _MSC_VER ) && !defined( __cplusplus )
+# define inline __inline
+#endif // defined( _MSC_VER ) && !defined( __cplusplus )
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
