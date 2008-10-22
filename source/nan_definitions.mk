@@ -413,10 +413,10 @@ endif
     export NAN_PARANOID ?= true
 
     # l10n
-    export INTERNATIONAL ?= false
+    export INTERNATIONAL ?= true
 
     # enable freetype2 support for text objects
-    export WITH_FREETYPE2 ?= false
+    export WITH_FREETYPE2 ?= true
 
     export WITH_BINRELOC ?= true
 
