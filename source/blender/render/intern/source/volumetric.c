@@ -468,9 +468,6 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 		lar= go->lampren;
 		if (lar) {
 			vol_shade_one_lamp(shi, co, lar, lacol, stepsize, density);
-			
-			VecMulf(lacol, density);
-		
 			VecAddf(col, col, lacol);
 		}
 	}
@@ -539,7 +536,8 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 					vol_get_precached_scattering_nearest(shi, scatter_col, step_mid);
 			} else
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
-			
+						
+			VecMulf(scatter_col, density);
 			VecAddf(d_radiance, emit_col, scatter_col);
 			
 			/*   Lv += Tr * (Lve() + Ld) */
