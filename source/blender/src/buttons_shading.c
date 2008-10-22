@@ -738,7 +738,7 @@ static void texture_panel_pointdensity(Tex *tex)
 	short yco=PANEL_YMAX;
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_pointdensity", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Point Density", "Texture", PANELX, PANELY, PANELW, PANELH)==0) return;
+	if(uiNewPanel(curarea, block, "Point Density", "Texture", PANELX, PANELY, PANELW, PANELH+25)==0) return;
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	if(tex->pd==NULL) {
@@ -758,8 +758,14 @@ static void texture_panel_pointdensity(Tex *tex)
 		
 		uiDefBut(block, LABEL, B_NOP, "Falloff:",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
-		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Sharp %x2|Constant %x3|Root %x4",
+		uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Soft %x2|Constant %x3|Root %x4",
 			X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
+		if (pd->falloff_type == TEX_PD_FALLOFF_SOFT) {
+			uiDefButF(block, NUM, B_REDR, "Softness: ",
+				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->falloff_softness), 1.0, 1024.0, 10, 2, "The intensity of the falloff");
+		}
+		uiBlockEndAlign(block);
 		
 		yco -= YSPACE;
 		
@@ -782,7 +788,7 @@ static void texture_panel_pointdensity(Tex *tex)
 			yco -= YSPACE;
 
 			if (pd->source == TEX_PD_PSYS) {
-				uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Angular Velocity %x2",
+				uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1",
 					X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
 			}
 		}

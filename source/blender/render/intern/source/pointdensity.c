@@ -107,10 +107,6 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				pd->point_data[i*3 + 0] = state.vel[0];
 				pd->point_data[i*3 + 1] = state.vel[1];
 				pd->point_data[i*3 + 2] = state.vel[2];
-			} else if (pd->noise_influence == TEX_PD_NOISE_ANGVEL) {
-				pd->point_data[i*3 + 0] = state.ave[0];
-				pd->point_data[i*3 + 1] = state.ave[1];
-				pd->point_data[i*3 + 2] = state.ave[2];
 			}
 		}
 	}
@@ -252,6 +248,7 @@ typedef struct PointDensityRangeData
     float squared_radius;
     float *point_data;
 	float *vec;
+	float softness;
     short falloff_type;   
 } PointDensityRangeData;
 
@@ -265,8 +262,8 @@ void accum_density(void *userdata, int index, float squared_dist)
 		density = dist;
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_SMOOTH)
 		density = 3.0f*dist*dist - 2.0f*dist*dist*dist;
-	else if (pdr->falloff_type == TEX_PD_FALLOFF_SHARP)
-		density = dist*dist;
+	else if (pdr->falloff_type == TEX_PD_FALLOFF_SOFT)
+		density = pow(dist, pdr->softness);
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_CONSTANT)
 		density = pdr->squared_radius;
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_ROOT)
@@ -302,6 +299,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	pdr.point_data = pd->point_data;
 	pdr.falloff_type = pd->falloff_type;
 	pdr.vec = vec;
+	pdr.softness = pd->falloff_softness;
 	noise_fac = pd->noise_fac * 0.5f;	/* better default */
 	
 	if (pd->flag & TEX_PD_TURBULENCE) {
@@ -329,13 +327,16 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 
 	texres->tin = density;
 
-	//texres->tr = vec[0];
-	//texres->tg = vec[1];
-	//texres->tb = vec[2];
+	
+	
+	BRICONT;
 	
 	return TEX_INT;
 	
 	/*
+	texres->tr = vec[0];
+	texres->tg = vec[1];
+	texres->tb = vec[2];
 	BRICONTRGB;
 	
 	texres->ta = 1.0;

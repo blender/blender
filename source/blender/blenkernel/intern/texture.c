@@ -875,6 +875,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
 	pd->radius = 0.3f;
 	pd->falloff_type = TEX_PD_FALLOFF_STD;
+	pd->falloff_softness = 2.0;
 	pd->source = TEX_PD_PSYS;
 	pd->point_tree = NULL;
 	pd->point_data = NULL;

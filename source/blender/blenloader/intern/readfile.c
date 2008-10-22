@@ -7908,6 +7908,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->pd->noise_fac = 1.0f;
 				tex->pd->noise_influence = TEX_PD_NOISE_STATIC;
 			}
+			if (tex->pd->falloff_softness < 1.0f)
+				tex->pd->falloff_softness = 2.0f;
 		}
 		
 	}

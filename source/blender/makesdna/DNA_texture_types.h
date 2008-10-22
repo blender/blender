@@ -131,9 +131,10 @@ typedef struct PointDensity {
 	short flag;
 
 	short falloff_type;
+	float falloff_softness;
 	float radius;
 	short source;
-	short pdpad[3];
+	short pdpad;
 
 	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
 	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
@@ -425,7 +426,7 @@ typedef struct TexMapping {
 /* falloff_type */
 #define TEX_PD_FALLOFF_STD		0
 #define TEX_PD_FALLOFF_SMOOTH	1
-#define TEX_PD_FALLOFF_SHARP	2
+#define TEX_PD_FALLOFF_SOFT		2
 #define TEX_PD_FALLOFF_CONSTANT	3
 #define TEX_PD_FALLOFF_ROOT		4
 
@@ -441,8 +442,7 @@ typedef struct TexMapping {
 /* noise_influence */
 #define TEX_PD_NOISE_STATIC		0
 #define TEX_PD_NOISE_VEL		1
-#define TEX_PD_NOISE_ANGVEL		2
-#define TEX_PD_NOISE_TIME		3
+#define TEX_PD_NOISE_TIME		2
 
 #endif
 
