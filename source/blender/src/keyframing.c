@@ -921,6 +921,9 @@ static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
 	Object *ob= (G.obedit)? (G.obedit) : (OBACT);
 	char *newname= NULL;
 	
+	if(ob==NULL)
+		return 0;
+	
 	/* not available for delete mode */
 	if (strcmp(mode, "Delete")==0)
 		return 0;
@@ -1183,6 +1186,8 @@ static short incl_buts_ob (bKeyingSet *ks, const char mode[])
 {
 	Object *ob= OBACT;
 	/* only if object is mesh type */
+	
+	if(ob==NULL) return 0;
 	return (ob->type == OB_MESH);
 }
 
