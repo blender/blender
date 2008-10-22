@@ -65,9 +65,8 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);
 	
 	dm = mesh_create_derived_render(ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
-	dm->release(dm);
 	
-	if ( !psys_check_enabled(ob, psys) ){
+	if ( !psys_check_enabled(ob, psys)) {
 		psys_render_restore(ob, psys);
 		return;
 	}
@@ -76,8 +75,10 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	Mat4Invert(ob->imat, ob->obmat);
 	
 	total_particles = psys->totpart+psys->totchild;
+	psys->lattice=psys_get_lattice(ob,psys);
 	
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
+	
 	if (pd->noise_influence != TEX_PD_NOISE_STATIC)
 		pd->point_data = MEM_mallocN(sizeof(float)*3*total_particles, "point_data");
 	
@@ -112,6 +113,12 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	}
 	
 	BLI_bvhtree_balance(pd->point_tree);
+	dm->release(dm);
+	
+	if(psys->lattice){
+		end_latt_deform();
+		psys->lattice=0;
+	}
 	
 	psys_render_restore(ob, psys);
 }
