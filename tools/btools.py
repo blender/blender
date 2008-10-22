@@ -47,7 +47,7 @@ def validate_arguments(args, bc):
             'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
             'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
             'WITH_BF_YAFRAY',
-            'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
+            'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
@@ -137,7 +137,7 @@ def read_opts(cfg, args):
         ('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
         ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
         ('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
-        (BoolOption('WITH_BF_VERSE', 'Use VERSE if true', 'false')),
+        (BoolOption('WITH_BF_VERSE', 'Use VERSE if true', False)),
         ('BF_VERSE_INCLUDE', 'verse include dir', '/usr/include'),
         ('LCGDIR', 'location of cvs lib dir'),
         ('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
@@ -153,20 +153,20 @@ def read_opts(cfg, args):
         ('BF_PYTHON_LIB_STATIC', 'Python static libraries', ''),
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
-        (BoolOption('WITH_BF_STATICPYTHON', 'Staticly link to python', 'false')),
+        (BoolOption('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
 
-        (BoolOption('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false')),
-        (BoolOption('WITH_BF_YAFRAY', 'Enable Yafray', 'true')),
+        (BoolOption('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
+        (BoolOption('WITH_BF_YAFRAY', 'Enable Yafray', True)),
 
-        (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', '')),
+        (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
         ('BF_OPENAL', 'base path for OpenAL', ''),
         ('BF_OPENAL_INC', 'include path for python headers', ''),
         ('BF_OPENAL_LIB', 'Path to OpenAL library', ''),
         ('BF_OPENAL_LIB_STATIC', 'Path to OpenAL static library', ''),
         ('BF_OPENAL_LIBPATH', 'Path to OpenAL library', ''),
-        (BoolOption('WITH_BF_STATICOPENAL', 'Staticly link to openal', 'false')),
+        (BoolOption('WITH_BF_STATICOPENAL', 'Staticly link to openal', False)),
 
-        (BoolOption('WITH_BF_SDL', 'Use SDL if true', '')),
+        (BoolOption('WITH_BF_SDL', 'Use SDL if true', False)),
         ('BF_SDL', 'SDL base path', ''),
         ('BF_SDL_INC', 'SDL include path', ''),     #$(shell $(BF_SDL)/bin/sdl-config --cflags)
         ('BF_SDL_LIB', 'SDL library', ''),      #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
@@ -177,20 +177,20 @@ def read_opts(cfg, args):
         ('BF_PTHREADS_LIB', 'Pthreads library', ''),
         ('BF_PTHREADS_LIBPATH', 'Pthreads library path', ''),
 
-        (BoolOption('WITH_BF_FMOD', 'Use FMOD if true', 'false')),
+        (BoolOption('WITH_BF_FMOD', 'Use FMOD if true', False)),
         #  BF_FMOD = $(LCGDIR)/fmod
 
-        (BoolOption('WITH_BF_OPENEXR', 'Use OPENEXR if true', 'true')),
-        (BoolOption('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', 'false')),
+        (BoolOption('WITH_BF_OPENEXR', 'Use OPENEXR if true', True)),
+        (BoolOption('WITH_BF_STATICOPENEXR', 'Staticly link to OpenEXR', False)),
         ('BF_OPENEXR', 'OPENEXR base path', ''),
         ('BF_OPENEXR_INC', 'OPENEXR include path', ''),
         ('BF_OPENEXR_LIB', 'OPENEXR library', ''),
         ('BF_OPENEXR_LIBPATH', 'OPENEXR library path', ''),
         ('BF_OPENEXR_LIB_STATIC', 'OPENEXR static library', ''),
 
-        (BoolOption('WITH_BF_DDS', 'Use DDS if true', 'true')),
+        (BoolOption('WITH_BF_DDS', 'Use DDS if true', True)),
 
-        (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
+        (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', False)),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
         ('BF_FFMPEG_EXTRA', 'FFMPEG flags that must be preserved', ''),
@@ -199,29 +199,29 @@ def read_opts(cfg, args):
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
         
         (BoolOption('WITH_BF_OGG', 'Use OGG, THEORA, VORBIS in FFMPEG if true',
-                    'false')),
+                    False)),
         ('BF_OGG', 'OGG base path', ''),
         ('BF_OGG_LIB', 'OGG library', ''),
 
-        (BoolOption('WITH_BF_JPEG', 'Use JPEG if true', 'true')),
+        (BoolOption('WITH_BF_JPEG', 'Use JPEG if true', True)),
         ('BF_JPEG', 'JPEG base path', ''),
         ('BF_JPEG_INC', 'JPEG include path', ''),
         ('BF_JPEG_LIB', 'JPEG library', ''),
         ('BF_JPEG_LIBPATH', 'JPEG library path', ''),
 
-        (BoolOption('WITH_BF_OPENJPEG', 'Use OPENJPEG if true', 'false')),
+        (BoolOption('WITH_BF_OPENJPEG', 'Use OPENJPEG if true', False)),
         ('BF_OPENJPEG', 'OPENJPEG base path', ''),
         ('BF_OPENJPEG_INC', 'OPENJPEG include path', ''),
         ('BF_OPENJPEG_LIB', 'OPENJPEG library', ''),
         ('BF_OPENJPEG_LIBPATH', 'OPENJPEG library path', ''),
 
-        (BoolOption('WITH_BF_REDCODE', 'Use REDCODE if true', 'false')),
+        (BoolOption('WITH_BF_REDCODE', 'Use REDCODE if true', False)),
         ('BF_REDCODE', 'REDCODE base path', ''),
         ('BF_REDCODE_INC', 'REDCODE include path', ''),
         ('BF_REDCODE_LIB', 'REDCODE library', ''),
         ('BF_REDCODE_LIBPATH', 'REDCODE library path', ''),
 
-        (BoolOption('WITH_BF_PNG', 'Use PNG if true', 'true')),
+        (BoolOption('WITH_BF_PNG', 'Use PNG if true', True)),
         ('BF_PNG', 'PNG base path', ''),
         ('BF_PNG_INC', 'PNG include path', ''),
         ('BF_PNG_LIB', 'PNG library', ''),
@@ -230,33 +230,33 @@ def read_opts(cfg, args):
         ('BF_TIFF', 'TIFF base path', ''),
         ('BF_TIFF_INC', 'TIFF include path', ''),
 
-        (BoolOption('WITH_BF_ZLIB', 'Use ZLib if true', 'true')),
+        (BoolOption('WITH_BF_ZLIB', 'Use ZLib if true', True)),
         ('BF_ZLIB', 'ZLib base path', ''),
         ('BF_ZLIB_INC', 'ZLib include path', ''),
         ('BF_ZLIB_LIB', 'ZLib library', ''),
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
 
-        (BoolOption('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', 'true')),
+        (BoolOption('WITH_BF_INTERNATIONAL', 'Use Gettext and Freetype if true', True)),
 
         ('BF_GETTEXT', 'gettext base path', ''),
         ('BF_GETTEXT_INC', 'gettext include path', ''),
         ('BF_GETTEXT_LIB', 'gettext library', ''),
         ('BF_GETTEXT_LIBPATH', 'gettext library path', ''),
         
-        (BoolOption('WITH_BF_ICONV', 'Use iconv if true', 'true')),
+        (BoolOption('WITH_BF_ICONV', 'Use iconv if true', True)),
         ('BF_ICONV', 'iconv base path', ''),
         ('BF_ICONV_INC', 'iconv include path', ''),
         ('BF_ICONV_LIB', 'iconv library', ''),
         ('BF_ICONV_LIBPATH', 'iconv library path', ''),
         
-        (BoolOption('WITH_BF_GAMEENGINE', 'Build with gameengine' , 'true')),
+        (BoolOption('WITH_BF_GAMEENGINE', 'Build with gameengine' , True)),
 
-        (BoolOption('WITH_BF_ODE', 'Use ODE if true', 'true')),
+        (BoolOption('WITH_BF_ODE', 'Use ODE if true', True)),
         ('BF_ODE', 'ODE base path', ''),
         ('BF_ODE_INC', 'ODE include path' , ''),
         ('BF_ODE_LIB', 'ODE library', ''),
 
-        (BoolOption('WITH_BF_BULLET', 'Use Bullet if true', 'true')),
+        (BoolOption('WITH_BF_BULLET', 'Use Bullet if true', True)),
         ('BF_BULLET', 'Bullet base dir', ''),
         ('BF_BULLET_INC', 'Bullet include path', ''),
         ('BF_BULLET_LIB', 'Bullet library', ''),
@@ -266,10 +266,10 @@ def read_opts(cfg, args):
         ('BF_WINTAB', 'WinTab base dir', ''),
         ('BF_WINTAB_INC', 'WinTab include dir', ''),
         ('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
-        (BoolOption('WITH_BF_STATICCXX', 'static link to stdc++', 'false')),
+        (BoolOption('WITH_BF_STATICCXX', 'static link to stdc++', False)),
         ('BF_CXX_LIB_STATIC', 'static library path for stdc++', ''),
 ##
-##WITH_BF_NSPR = 'true'
+##WITH_BF_NSPR = True
 ##BF_NSPR = $(LCGDIR)/nspr
 ##BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
 ##BF_NSPR_LIB = 
@@ -283,23 +283,24 @@ def read_opts(cfg, args):
 ### if this is not set.
 ##
 ### Be paranoid regarding library creation (do not update archives)
-##BF_PARANOID = 'true'
+##BF_PARANOID = True
 ##
 ### enable freetype2 support for text objects
+        (BoolOption('WITH_BF_FREETYPE', 'Use FreeType2 if true', False)),
         ('BF_FREETYPE', 'Freetype base path', ''),
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
 
-        (BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
+        (BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', False)),
 
-        (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', 'false')),
+        (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
         ('BF_QUICKTIME', 'QuickTime base path', ''),
         ('BF_QUICKTIME_INC', 'QuickTime include path', ''),
         ('BF_QUICKTIME_LIB', 'QuickTime library', ''),
         ('BF_QUICKTIME_LIBPATH', 'QuickTime library path', ''),
 
-        (BoolOption('WITH_BF_STATICOPENGL', 'Use MESA if true', 'true')),
+        (BoolOption('WITH_BF_STATICOPENGL', 'Use MESA if true', True)),
         ('BF_OPENGL', 'OpenGL base path', ''),
         ('BF_OPENGL_INC', 'OpenGL include path', ''),
         ('BF_OPENGL_LIB', 'OpenGL libraries', ''),
@@ -307,13 +308,13 @@ def read_opts(cfg, args):
         ('BF_OPENGL_LIB_STATIC', 'OpenGL static libraries', ''),
         ('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
         
-        (BoolOption('WITH_BF_FTGL', 'Use FTGL if true', 'true')),
+        (BoolOption('WITH_BF_FTGL', 'Use FTGL if true', True)),
         ('BF_FTGL', 'FTGL base path', ''),
         ('BF_FTGL_INC', 'FTGL include path', ''),
         ('BF_FTGL_LIB', 'FTGL libraries', ''),
 
-        (BoolOption('WITH_BF_PLAYER', 'Build blenderplayer if true', 'false')),
-        (BoolOption('WITH_BF_NOBLENDER', 'Do not build blender if true', 'false')),
+        (BoolOption('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
+        (BoolOption('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
         ('CFLAGS', 'C-compiler flags', ''),
         ('CCFLAGS', 'C++-compiler flags', ''),
@@ -327,13 +328,13 @@ def read_opts(cfg, args):
         ('LLIBS', 'Platform libs', ''),
         ('PLATFORM_LINKFLAGS', 'Platform linkflags', ''),
 
-        (BoolOption('BF_PROFILE', 'Add profiling information if true', 'false')),
+        (BoolOption('BF_PROFILE', 'Add profiling information if true', False)),
         ('BF_PROFILE_FLAGS', 'Profiling flags', ''),
 
-        (BoolOption('BF_DEBUG', 'Add debug flags if true', 'false')),
+        (BoolOption('BF_DEBUG', 'Add debug flags if true', False)),
         ('BF_DEBUG_FLAGS', 'Debug flags', ''),
 
-        (BoolOption('BF_BSC', 'Create .bsc files (msvc only)', 'true')),
+        (BoolOption('BF_BSC', 'Create .bsc files (msvc only)', True)),
 
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
@@ -342,18 +343,18 @@ def read_opts(cfg, args):
         ('CC', 'C compiler to use', ''),
         ('CXX', 'C++ compiler to use', ''),
 
-        (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true')),
+        (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', True)),
 
-        (BoolOption('BF_TWEAK_MODE', 'Enable tweak mode if true', 'false')),
-        (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
-        (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
-        (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
-        (BoolOption('BF_QUIET', 'Enable silent output if true', 'true')),
-        (BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', 'false')),
+        (BoolOption('BF_TWEAK_MODE', 'Enable tweak mode if true', False)),
+        (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', False)),
+        (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', False)),
+        (BoolOption('BF_FANCY', 'Enable fancy output if true', True)),
+        (BoolOption('BF_QUIET', 'Enable silent output if true', True)),
+        (BoolOption('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
 
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
-        (BoolOption('WITH_BF_DOCS', 'Generate API documentation', 'false')),
+        (BoolOption('WITH_BF_DOCS', 'Generate API documentation', False)),
         
         ('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 

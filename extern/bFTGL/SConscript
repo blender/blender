@@ -4,24 +4,6 @@ import os
 
 Import('env')
 
-# Import the C flags set in the SConstruct file
-#Import ('cflags')
-#Import ('defines')
-#Import ('user_options_dict')
-
-#if sys.platform=='linux2' or sys.platform=='linux-i386':
-#	ftgl_env.Append (CCFLAGS = ['-O2', '-ansi'])
-#elif sys.platform=='win32':
-	#ftgl_env.Append (CCFLAGS = ['/O2'])
-#elif sys.platform=='sunos':
-#	ftgl_env.Append (CCFLAGS = ['Xc', '-v', '-fast'])
-#elif sys.platform=='darwin':
-#	ftgl_env.Append (CCFLAGS = ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math'])
-#else:
-#	ftgl_env.Append (CCFLAGS = cflags)
-
-#ftgl_env.Append (CPPDEFINES = defines)
-
 incs = 'include src ' + env['BF_FREETYPE_INC'] + ' ' + env['BF_OPENGL_INC']
 defs = ''
 

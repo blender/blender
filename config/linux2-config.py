@@ -1,20 +1,20 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
-WITH_BF_VERSE = 'false'
+WITH_BF_VERSE = False
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = '2.5'
-WITH_BF_STATICPYTHON = 'false'
+WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
 BF_PYTHON_LINKFLAGS = ['-Xlinker', '-export-dynamic']
 BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION}.a'
 
-WITH_BF_OPENAL = 'true'
-WITH_BF_STATICOPENAL = 'false'
+WITH_BF_OPENAL = True
+WITH_BF_STATICOPENAL = False
 BF_OPENAL = '/usr'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
@@ -26,19 +26,19 @@ BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 # BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a ${BF_OPENAL}/lib/libalut.a'
 
 BF_CXX = '/usr'
-WITH_BF_STATICCXX = 'false'
+WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
-WITH_BF_SDL = 'true'
+WITH_BF_SDL = True
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 
-WITH_BF_FMOD = 'false'
+WITH_BF_FMOD = False
 BF_FMOD = LIBDIR + '/fmod'
 
-WITH_BF_OPENEXR = 'true'
-WITH_BF_STATICOPENEXR = 'false'
+WITH_BF_OPENEXR = True
+WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = '/usr'
 # when compiling with your own openexr lib you might need to set...
 # BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR ${BF_OPENEXR}/include'
@@ -49,14 +49,14 @@ BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf
 # BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 
 
-WITH_BF_DDS = 'true'
+WITH_BF_DDS = True
 
-WITH_BF_JPEG = 'true'
+WITH_BF_JPEG = True
 BF_JPEG = '/usr'
 BF_JPEG_INC = '${BF_JPEG}/include'
 BF_JPEG_LIB = 'jpeg'
 
-WITH_BF_PNG = 'true'
+WITH_BF_PNG = True
 BF_PNG = '/usr'
 BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'png'
@@ -64,31 +64,31 @@ BF_PNG_LIB = 'png'
 BF_TIFF = '/usr'
 BF_TIFF_INC = '${BF_TIFF}/include'
 
-WITH_BF_ZLIB = 'true'
+WITH_BF_ZLIB = True
 BF_ZLIB = '/usr'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'z'
 
-WITH_BF_INTERNATIONAL = 'true'
+WITH_BF_INTERNATIONAL = True
 
 BF_GETTEXT = '/usr'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = 'true'
+WITH_BF_FTGL = True
 BF_FTGL = '#extern/bFTGL'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE='false'
+WITH_BF_GAMEENGINE=False
 
-WITH_BF_ODE = 'false'
+WITH_BF_ODE = False
 BF_ODE = LIBDIR + '/ode'
 BF_ODE_INC = BF_ODE + '/include'
 BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
-WITH_BF_BULLET = 'true'
+WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
@@ -97,9 +97,9 @@ BF_SOLID = '#extern/solid'
 BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
-WITH_BF_YAFRAY = 'true'
+WITH_BF_YAFRAY = True
 
-#WITH_BF_NSPR = 'true'
+#WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
 #BF_NSPR_LIB = 
@@ -114,27 +114,27 @@ WITH_BF_YAFRAY = 'true'
 # if this is not set.
 #
 # Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = 'true'
+#BF_PARANOID = True
 
 # enable freetype2 support for text objects
 BF_FREETYPE = '/usr'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype'
 
-WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = False # -DWITH_QUICKTIME
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
-WITH_BF_ICONV = 'false'
+WITH_BF_ICONV = False
 BF_ICONV = LIBDIR + "/iconv"
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
-WITH_BF_BINRELOC = 'true'
+WITH_BF_BINRELOC = True
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = '#extern/ffmpeg'
 BF_FFMPEG_LIB = ''
 # Uncomment the following two lines to use system's ffmpeg
@@ -144,25 +144,25 @@ BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
-WITH_BF_OGG = 'false'  # -DWITH_OGG 
+WITH_BF_OGG = False  # -DWITH_OGG 
 BF_OGG = '/usr'
 BF_OGG_INC = '${BF_OGG}/include'
 BF_OGG_LIB = 'ogg vorbis theoraenc theoradec'
 
-WITH_BF_OPENJPEG = 'true' 
+WITH_BF_OPENJPEG = True 
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
 BF_OPENJPEG_INC = '${BF_OPENJPEG}/include'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 
-WITH_BF_REDCODE = 'false'  
+WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
 BF_REDCODE_LIB = ''
 BF_REDCODE_INC = '${BF_REDCODE}/include'
 BF_REDCODE_LIBPATH='${BF_REDCODE}/lib'
 
 # Mesa Libs should go here if your using them as well....
-WITH_BF_STATICOPENGL = 'false'
+WITH_BF_STATICOPENGL = False
 BF_OPENGL = '/usr'
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIB = 'GL GLU X11 Xi'
@@ -181,7 +181,7 @@ CPPFLAGS = ['-DXP_UNIX']
 CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']
-##BF_DEPEND = 'true'
+##BF_DEPEND = True
 ##
 ##AR = ar
 ##ARFLAGS = ruv
@@ -198,9 +198,9 @@ LLIBS = 'util c m dl pthread stdc++'
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
 BF_PROFILE_FLAGS = ['-pg','-g']
-BF_PROFILE = 'false'
+BF_PROFILE = False
 
-BF_DEBUG = 'false'
+BF_DEBUG = False
 BF_DEBUG_FLAGS = '-g'
 
 BF_BUILDDIR = '../build/linux2'
