@@ -268,6 +268,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 			 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
 			 * has alredy dealocated the pointer */
 			PySys_SetObject( "last_traceback", Py_None);
+			PyErr_Clear(); /* just to be sure */
 			
 			return;
 		}
@@ -311,6 +312,7 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
 		 * has alredy dealocated the pointer */
 		PySys_SetObject( "last_traceback", Py_None);
+		PyErr_Clear(); /* just to be sure */
 		
 		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
