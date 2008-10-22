@@ -616,7 +616,12 @@ static void BPY_Err_Handle( char *script_name )
 		}
 		Py_DECREF( tb );
 	}
-
+	
+	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+	 * their user count. Not to mention holding references to wrapped data.
+	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+	 * has alredy dealocated the pointer */
+	PySys_SetObject( "last_traceback", Py_None);
 	return;
 }
 
@@ -2727,6 +2732,8 @@ int BPY_call_importloader( char *name )
 * Description: This function executes the python script passed by text.	
 *		The Python dictionary containing global variables needs to
 *		be passed in globaldict.
+*		NOTE: Make sure BPY_Err_Handle() runs if this returns NULL
+*		otherwise pointers can be left in sys.last_traceback that become invalid.
 *****************************************************************************/
 static PyObject *RunPython( Text * text, PyObject * globaldict )
 {
