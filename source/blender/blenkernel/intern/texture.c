@@ -895,7 +895,7 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 	pdn->point_tree = NULL;
 	pdn->point_data = NULL;
 	
-	return pd;
+	return pdn;
 }
 
 void BKE_free_pointdensitydata(PointDensity *pd)
