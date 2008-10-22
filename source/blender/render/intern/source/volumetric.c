@@ -664,7 +664,8 @@ void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 		shr->combined[1] = col[1];
 		shr->combined[2] = col[2];
 		
-		if (col[3] > 1.0f) col[3] = 1.0f;
+		//if (col[3] > 1.0f)
+		col[3] = 1.0f;
 		shr->combined[3] = col[3];
 		shr->alpha = col[3];
 		
@@ -858,7 +859,7 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 
 	float co[3], voxel[3], scatter_col[3];
 	ShadeInput shi;
-	float view[3] = {0.0,0.0,1.0};
+	float view[3] = {0.0,0.0,-1.0};
 	float density;
 	float stepsize;
 	
