@@ -75,6 +75,7 @@ static int vol_backface_intersect_check(Isect *is, int ob, RayFace *face)
 	return (INPR(is->vec, vlr->n) < 0.0f);
 }
 
+#if 0
 static int vol_frontface_intersect_check(Isect *is, int ob, RayFace *face)
 {
 	VlakRen *vlr = (VlakRen *)face;
@@ -88,6 +89,7 @@ static int vol_always_intersect_check(Isect *is, int ob, RayFace *face)
 {
 	return 1;
 }
+#endif
 
 #define VOL_IS_BACKFACE			1
 #define VOL_IS_SAMEMATERIAL		2
@@ -257,12 +259,6 @@ inline float lerp(float t, float v1, float v2) {
 	return (1.f - t) * v1 + t * v2;
 }
 
-inline float do_lerp(float t, float a, float b) {
-	if (a > 0.f && b > 0.f) return lerp(t, a, b);
-	else if (a < 0.f) 		return b;
-	else if (b < 0.f) 		return a;
-}
-
 /* trilinear interpolation */
 static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, float *co)
 {
@@ -384,7 +380,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	float p;
 	float scatter_fac;
 	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
-	float shadfac[4];
 	
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
@@ -454,7 +449,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsize, float density)
 {
 	GroupObject *go;
-	ListBase *lights;
 	LampRen *lar;
 	float col[3] = {0.f, 0.f, 0.f};
 	int i=0;
@@ -530,10 +524,10 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			
 			if ((shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) &&
 				(shi->mat->vol_shadeflag & MA_VOL_ATTENUATED)) {
-				if (G.rt==0)
-					vol_get_precached_scattering(shi, scatter_col, step_mid);
-				else
+				if (G.rt==100)
 					vol_get_precached_scattering_nearest(shi, scatter_col, step_mid);
+				else
+					vol_get_precached_scattering(shi, scatter_col, step_mid);
 			} else
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
 						
@@ -782,7 +776,6 @@ int intersect_outside_volume(RayTree *tree, Isect *isect, float *offset, int lim
 int point_inside_obi(RayTree *tree, ObjectInstanceRen *obi, float *co)
 {
 	float maxsize = RE_ray_tree_max_size(tree);
-	int intersected;
 	Isect isect;
 	float vec[3] = {0.0f,0.0f,1.0f};
 	int final_depth=0, depth=0, limit=20;
@@ -846,6 +839,70 @@ RayTree *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
 	RE_ray_tree_done(tree);
 	
 	return tree;
+}
+
+static float get_avg_surrounds(float *cache, int res, int res_2, int res_3, int rgb, int xx, int yy, int zz)
+{
+	int x, y, z, x_, y_, z_;
+	int added=0;
+	float tot=0.0f;
+	int i;
+	
+	for (x=-1; x <= 1; x++) {
+		x_ = xx+x;
+		if (x_ >= 0 && x_ <= res-1) {
+		
+			for (y=-1; y <= 1; y++) {
+				y_ = yy+y;
+				if (y_ >= 0 && y_ <= res-1) {
+				
+					for (z=-1; z <= 1; z++) {
+						z_ = zz+z;
+						if (z_ >= 0 && z_ <= res-1) {
+						
+							i = rgb*res_3 + x_*res_2 + y_*res + z_;
+							if (cache[i] > 0.0f) {
+								tot += cache[i];
+								added++;
+							}
+							
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	tot /= added;
+	
+	return ((added>0)?tot:0.0f);
+}
+
+/* function to filter the edges of the light cache, where there was no volume originally.
+ * For each voxel which was originally external to the mesh, it finds the average values of
+ * the surrounding internal voxels and sets the original external voxel to that average amount.
+ * Works almost a bit like a 'dilate' filter */
+static void lightcache_filter(float *cache, int res)
+{
+	int x, y, z, rgb;
+	int res_2, res_3;
+	int i;
+	
+	res_2 = res*res;
+	res_3 = res*res*res;
+
+	for (x=0; x < res; x++) {
+		for (y=0; y < res; y++) {
+			for (z=0; z < res; z++) {
+				for (rgb=0; rgb < 3; rgb++) {
+					i = rgb*res_3 + x*res_2 + y*res + z;
+
+					/* trigger for outside mesh */
+					if (cache[i] < 0.5f) cache[i] = get_avg_surrounds(cache, res, res_2, res_3, rgb, x, y, z);
+				}
+			}
+		}
+	}
 }
 
 /* Precache a volume into a 3D voxel grid.
@@ -941,9 +998,12 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 				}
 				
 				/* don't bother if the point is not inside the volume mesh */
-				if (!point_inside_obi(tree, obi, co))
+				if (!point_inside_obi(tree, obi, co)) {
+					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
+					obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = -1.0f;
+					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
 					continue;
-
+				}
 				density = vol_get_density(&shi, co);
 				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
 			
@@ -959,6 +1019,7 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 		tree= NULL;
 	}
 	
+	lightcache_filter(obi->volume_precache, res);
 
 }
 
@@ -991,3 +1052,4 @@ void free_volume_precache(Render *re)
 	
 	BLI_freelistN(&re->vol_precache_obs);
 }
+
