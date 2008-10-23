@@ -844,6 +844,8 @@ RayTree *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
 	}
 	
 	RE_ray_tree_done(tree);
+	
+	return tree;
 }
 
 /* Precache a volume into a 3D voxel grid.
