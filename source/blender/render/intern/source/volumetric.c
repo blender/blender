@@ -888,10 +888,13 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	
 	R = *re;
 
+	if (G.rt==5) printf("before create raytree \n");
 	/* create a raytree with just the faces of the instanced ObjectRen, 
 	 * used for checking if the cached point is inside or outside. */
 	tree = create_raytree_obi(obi, bbmin, bbmax);
 	if (!tree) return;
+
+	if (G.rt==5) printf("after create raytree \n");
 
 	/* Need a shadeinput to calculate scattering */
 	memset(&shi, 0, sizeof(ShadeInput)); 
@@ -917,6 +920,8 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
 		return;
 	VecMulf(voxel, 1.0f/res);
+	
+	if (G.rt==5) printf("before alloc \n");
 	
 	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
 	
@@ -985,6 +990,8 @@ void volume_precache(Render *re)
 {
 	ObjectInstanceRen *obi;
 	VolPrecache *vp;
+
+	if (G.rt==5) printf("precache obs: %d \n", BLI_countlist(&re->vol_precache_obs));
 
 	for(vp= re->vol_precache_obs.first; vp; vp= vp->next) {
 		for(obi= re->instancetable.first; obi; obi= obi->next) {
