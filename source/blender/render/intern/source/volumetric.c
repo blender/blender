@@ -956,9 +956,11 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 				}
 				
 				/* don't bother if the point is not inside the volume mesh */
-				if (!point_inside_obi(tree, obi, co))
+				if (!point_inside_obi(tree, obi, co)) {
+					if (G.rt==5) printf("not inside mesh \n");
 					continue;
-
+				}
+				if (G.rt==5) printf("inside mesh \n");
 				density = vol_get_density(&shi, co);
 				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
 			
