@@ -386,13 +386,9 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
 	float shadfac[4];
 	
-	if (G.rt==5) printf("s_o_l pre checks col %f %f %f \n", lacol[0], lacol[1], lacol[2]);
-	
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
 	if (lar->energy == 0.0) return;
-	
-	if (G.rt==5) printf("s_o_l post checks  col %f %f %f \n", lacol[0], lacol[1], lacol[2]);
 	
 	visifac= lamp_get_visibility(lar, co, lv, &lampdist);
 	if(visifac==0.0f) return;
@@ -401,8 +397,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	lacol[1] = lar->g;
 	lacol[2] = lar->b;
 	
-	if (G.rt==5) printf("s_o_l post lacol col %f %f %f \n", lacol[0], lacol[1], lacol[2]);
-	
 	if(lar->mode & LA_TEXTURE) {
 		shi->osatex= 0;
 		do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
@@ -410,8 +404,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 
 	VecMulf(lacol, visifac*lar->energy);
 
-	if (G.rt==5) printf("s_o_l post energy col %f %f %f \n", lacol[0], lacol[1], lacol[2]);
-	
 	if (ELEM(lar->type, LA_SUN, LA_HEMI))
 		VECCOPY(lv, lar->vec);
 	VecMulf(lv, -1.0f);
@@ -421,8 +413,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	
 	if (shi->mat->vol_shadeflag & MA_VOL_ATTENUATED) {
 		Isect is;
-		
-		if (G.rt==5) printf("s_o_l inside atten col %f %f %f \n", lacol[0], lacol[1], lacol[2]);
 		
 		/* find minimum of volume bounds, or lamp coord */
 		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS, 0)) {
@@ -456,8 +446,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		}
 	}
 	
-	if (G.rt==5) printf("s_o_l post atten col %f %f %f \n", lacol[0], lacol[1], lacol[2]);
-	
 	vol_get_scattering_fac(shi, &scatter_fac, co, density);
 	VecMulf(lacol, scatter_fac);
 }
@@ -471,21 +459,16 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 	float col[3] = {0.f, 0.f, 0.f};
 	int i=0;
 
-	if (G.rt==5) printf("lights count: %d \n", BLI_countlist(&R.lights));
-
 	for(go=R.lights.first; go; go= go->next)
 	{
 		float lacol[3] = {0.f, 0.f, 0.f};
 	
 		i++;
-		if (G.rt==5) printf("pre light %d \n", i);
 	
 		lar= go->lampren;
 		if (lar) {
-			if (G.rt==5) printf("pre vol_shade_one_lamp %d col %f %f %f \n", i, lacol[0], lacol[1], lacol[2]);
 			vol_shade_one_lamp(shi, co, lar, lacol, stepsize, density);
 			VecAddf(col, col, lacol);
-			if (G.rt==5) printf("post vol_shade_one_lamp %d col %f %f %f \n", i, lacol[0], lacol[1], lacol[2]);
 		}
 	}
 	
@@ -888,13 +871,10 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	
 	R = *re;
 
-	if (G.rt==5) printf("before create raytree \n");
 	/* create a raytree with just the faces of the instanced ObjectRen, 
 	 * used for checking if the cached point is inside or outside. */
 	tree = create_raytree_obi(obi, bbmin, bbmax);
 	if (!tree) return;
-
-	if (G.rt==5) printf("after create raytree \n");
 
 	/* Need a shadeinput to calculate scattering */
 	memset(&shi, 0, sizeof(ShadeInput)); 
@@ -920,8 +900,6 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
 		return;
 	VecMulf(voxel, 1.0f/res);
-	
-	if (G.rt==5) printf("before alloc \n");
 	
 	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
 	
@@ -961,11 +939,9 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 				}
 				
 				/* don't bother if the point is not inside the volume mesh */
-				if (!point_inside_obi(tree, obi, co)) {
-					if (G.rt==5) printf("not inside mesh \n");
+				if (!point_inside_obi(tree, obi, co))
 					continue;
-				}
-				if (G.rt==5) printf("inside mesh \n");
+
 				density = vol_get_density(&shi, co);
 				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
 			
@@ -990,8 +966,6 @@ void volume_precache(Render *re)
 {
 	ObjectInstanceRen *obi;
 	VolPrecache *vp;
-
-	if (G.rt==5) printf("precache obs: %d \n", BLI_countlist(&re->vol_precache_obs));
 
 	for(vp= re->vol_precache_obs.first; vp; vp= vp->next) {
 		for(obi= re->instancetable.first; obi; obi= obi->next) {

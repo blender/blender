@@ -3094,7 +3094,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 					do_autosmooth= 1;
 			
 			if ((ma->material_type == MA_VOLUME) && (ma->vol_shadeflag & MA_VOL_PRECACHESHADING)) {
-				printf("before add_vol_precache \n");
 				add_vol_precache(re, obr, ma);
 			}
 		}
@@ -4928,10 +4927,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				make_sss_tree(re);
 		
 		if(!re->test_break())
-			if(re->r.mode & R_RAYTRACE) {
-				printf("before volume_precache \n");
+			if(re->r.mode & R_RAYTRACE)
 				volume_precache(re);
-			}
 	}
 	
 	if(re->test_break())
