@@ -590,6 +590,8 @@ static short visualkey_can_use (ID *id, int blocktype, char *actname, char *cons
 					return 1;
 				case CONSTRAINT_TYPE_FOLLOWPATH:
 					return 1;
+				case CONSTRAINT_TYPE_KINEMATIC:
+					return 1;
 					
 				/* single-transform constraits  */
 				case CONSTRAINT_TYPE_TRACKTO:
