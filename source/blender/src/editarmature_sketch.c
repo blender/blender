@@ -98,8 +98,9 @@ typedef struct SK_Intersection
 {
 	struct SK_Intersection *next, *prev;
 	SK_Stroke *stroke;
-	int			start;
-	int			end;
+	int			before;
+	int			after;
+	int			gesture_index;
 	float		p[3];
 } SK_Intersection;
 
@@ -498,6 +499,22 @@ void sk_removeStroke(SK_Sketch *sketch, SK_Stroke *stk)
 	BLI_remlink(&sketch->strokes, stk);
 	sk_freeStroke(stk);
 }
+
+void sk_reverseStroke(SK_Stroke *stk)
+{
+	SK_Point *old_points = stk->points;
+	int i = 0;
+	
+	sk_allocStrokeBuffer(stk);
+	
+	for (i = 0; i < stk->nb_points; i++)
+	{
+		sk_copyPoint(stk->points + i, old_points + stk->nb_points - 1 - i);
+	}
+	
+	MEM_freeN(old_points);
+}
+
 
 void sk_cancelStroke(SK_Sketch *sketch)
 {
@@ -1577,8 +1594,9 @@ int sk_getSelfIntersections(ListBase *list, SK_Stroke *gesture)
 			{
 				SK_Intersection *isect = MEM_callocN(sizeof(SK_Intersection), "Intersection");
 				
-				isect->start = s_i;
-				isect->end = g_i + 1;
+				isect->gesture_index = g_i;
+				isect->before = s_i;
+				isect->after = s_i + 1;
 				isect->stroke = gesture;
 				
 				VecSubf(isect->p, gesture->points[s_i + 1].p, gesture->points[s_i].p);
@@ -1632,8 +1650,9 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 					float ray_start[3], ray_end[3];
 					short mval[2];
 					
-					isect->start = s_i;
-					isect->end = s_i + 1;
+					isect->gesture_index = g_i;
+					isect->before = s_i;
+					isect->after = s_i + 1;
 					isect->stroke = stk;
 					
 					mval[0] = (short)(vi[0]);
@@ -1703,7 +1722,7 @@ void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, S
 		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
 		VECCOPY(pt.p, isect->p);
 		
-		sk_insertStrokePoint(isect->stroke, &pt, isect->end);
+		sk_insertStrokePoint(isect->stroke, &pt, isect->after);
 	}
 }
 
@@ -1743,19 +1762,19 @@ void sk_applyTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, 
 		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
 		VECCOPY(pt.p, isect->p);
 		
-		VecSubf(stroke_dir, isect->stroke->points[isect->end].p, isect->stroke->points[isect->start].p);
+		VecSubf(stroke_dir, isect->stroke->points[isect->after].p, isect->stroke->points[isect->before].p);
 		
 		/* same direction, trim end */
 		if (Inpf(stroke_dir, trim_dir) > 0)
 		{
-			sk_replaceStrokePoint(isect->stroke, &pt, isect->end);
-			sk_trimStroke(isect->stroke, 0, isect->end);
+			sk_replaceStrokePoint(isect->stroke, &pt, isect->after);
+			sk_trimStroke(isect->stroke, 0, isect->after);
 		}
 		/* else, trim start */
 		else
 		{
-			sk_replaceStrokePoint(isect->stroke, &pt, isect->start);
-			sk_trimStroke(isect->stroke, isect->start, isect->stroke->nb_points - 1);
+			sk_replaceStrokePoint(isect->stroke, &pt, isect->before);
+			sk_trimStroke(isect->stroke, isect->before, isect->stroke->nb_points - 1);
 		}
 	
 	}
@@ -1821,8 +1840,8 @@ int sk_detectMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list,
 				int start_index, end_index;
 				int i;
 				
-				start_index = MIN2(isect->end, isect->next->end);
-				end_index = MAX2(isect->start, isect->next->start);
+				start_index = MIN2(isect->after, isect->next->after);
+				end_index = MAX2(isect->before, isect->next->before);
 
 				for (i = start_index; i <= end_index; i++)
 				{
@@ -1852,14 +1871,14 @@ void sk_applyMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list,
 	/* check if it circled around an exact point */
 	for (isect = list->first; isect; isect = isect->next)
 	{
-		/* only delete strokes that are crossed twice */
+		/* only merge strokes that are crossed twice */
 		if (isect->next && isect->next->stroke == isect->stroke)
 		{
 			int start_index, end_index;
 			int i;
 			
-			start_index = MIN2(isect->end, isect->next->end);
-			end_index = MAX2(isect->start, isect->next->start);
+			start_index = MIN2(isect->after, isect->next->after);
+			end_index = MAX2(isect->before, isect->next->before);
 
 			for (i = start_index; i <= end_index; i++)
 			{
@@ -1869,6 +1888,62 @@ void sk_applyMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list,
 					isect->stroke->points[i].type = PT_CONTINUOUS;
 				}
 			}
+
+			/* skip next */				
+			isect = isect->next;
+		}
+	}
+}
+
+int sk_detectReverseGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	SK_Intersection *isect;
+	
+	/* check if it circled around an exact point */
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		/* only delete strokes that are crossed twice */
+		if (isect->next && isect->next->stroke == isect->stroke)
+		{
+			float start_v[3], end_v[3];
+			float angle;
+			
+			if (isect->gesture_index < isect->next->gesture_index)
+			{
+				VecSubf(start_v, isect->p, gesture->points[0].p);
+				VecSubf(end_v, sk_lastStrokePoint(gesture)->p, isect->next->p);
+			}
+			else
+			{
+				VecSubf(start_v, isect->next->p, gesture->points[0].p);
+				VecSubf(end_v, sk_lastStrokePoint(gesture)->p, isect->p);
+			}
+			
+			angle = VecAngle2(start_v, end_v);
+			
+			if (angle > 120)
+			{
+				return 1;
+			}
+
+			/* skip next */				
+			isect = isect->next;
+		}
+	}
+		
+	return 0;
+}
+
+void sk_applyReverseGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	SK_Intersection *isect;
+	
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		/* only reverse strokes that are crossed twice */
+		if (isect->next && isect->next->stroke == isect->stroke)
+		{
+			sk_reverseStroke(isect->stroke);
 
 			/* skip next */				
 			isect = isect->next;
@@ -1907,6 +1982,10 @@ void sk_applyGesture(SK_Sketch *sketch)
 	{
 		sk_applyMergeGesture(sketch, sketch->gesture, &intersections, segments);
 	}
+	else if (nb_segments > 2 && nb_intersections == 2 && sk_detectReverseGesture(sketch, sketch->gesture, &intersections, segments))
+	{
+		sk_applyReverseGesture(sketch, sketch->gesture, &intersections, segments);
+	}
 	else if (nb_segments > 2 && nb_self_intersections == 1)
 	{
 		sk_convert(sketch);
@@ -1916,7 +1995,6 @@ void sk_applyGesture(SK_Sketch *sketch)
 	else if (nb_segments > 2 && nb_self_intersections == 2)
 	{
 		sk_deleteSelectedStrokes(sketch);
-		BIF_undo_push("Convert Sketch");
 	}
 	
 	sk_freeStroke(segments);
