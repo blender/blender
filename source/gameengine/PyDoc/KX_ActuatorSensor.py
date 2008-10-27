@@ -1,6 +1,7 @@
 # $Id$
 # Documentation for KX_ActuatorSensor
 from SCA_IActuator import *
+from SCA_ISensor import *
 
 class KX_ActuatorSensor(SCA_ISensor):
 	"""

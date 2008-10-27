@@ -95,12 +95,12 @@ char *BLI_last_slash(const char *string) {
 void BLI_add_slash(char *string) {
 	int len = strlen(string);
 #ifdef WIN32
-	if (string[len-1]!='\\') {
+	if (len==0 || string[len-1]!='\\') {
 		string[len] = '\\';
 		string[len+1] = '\0';
 	}
 #else
-	if (string[len-1]!='/') {
+	if (len==0 || string[len-1]!='/') {
 		string[len] = '/';
 		string[len+1] = '\0';
 	}

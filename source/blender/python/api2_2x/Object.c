@@ -299,25 +299,24 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int par
 /* In Python these will be written to the console when doing a		 */
 /* Blender.Object.__doc__						 */
 /*****************************************************************************/
-char M_Object_doc[] = "The Blender Object module\n\n\
+static char M_Object_doc[] = "The Blender Object module\n\n\
 This module provides access to **Object Data** in Blender.\n";
 
-char M_Object_New_doc[] =
+static char M_Object_New_doc[] =
 	"(type) - Add a new object of type 'type' in the current scene";
 
-char M_Object_Get_doc[] =
+static char M_Object_Get_doc[] =
 	"(name) - return the object with the name 'name', returns None if not\
 	found.\n\
 	If 'name' is not specified, it returns a list of all objects in the\n\
 	current scene.";
 
-char M_Object_GetSelected_doc[] =
+static char M_Object_GetSelected_doc[] =
 	"() - Returns a list of selected Objects in the active layer(s)\n\
 The active object is the first in the list, if visible";
 
-char M_Object_Duplicate_doc[] =
+static char M_Object_Duplicate_doc[] =
 	"(linked) - Duplicate all selected, visible objects in the current scene";
-
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
@@ -1036,7 +1035,6 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	adduplicate(2, dupflag); /* 2 is a mode with no transform and no redraw, Duplicate the current selection, context sensitive */
 	Py_RETURN_NONE;
 }
-
 
 /*****************************************************************************/
 /* Python BPy_Object methods:					*/

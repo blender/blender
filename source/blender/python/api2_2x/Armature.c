@@ -923,7 +923,7 @@ AttributeError:
 		sArmatureError, "You are not allowed to change the .Bones attribute");
 }
 
-//------------------------Bone.layerMask (get)
+//------------------------Armature.layerMask (get)
 static PyObject *Armature_getLayerMask(BPy_Armature *self)
 {
 	/* do this extra stuff because the short's bits can be negative values */
@@ -931,7 +931,7 @@ static PyObject *Armature_getLayerMask(BPy_Armature *self)
 	laymask |= self->armature->layer;
 	return PyInt_FromLong((int)laymask);
 }
-//------------------------Bone.layerMask (set)
+//------------------------Armature.layerMask (set)
 static int Armature_setLayerMask(BPy_Armature *self, PyObject *value)
 {
 	int laymask;
@@ -1294,7 +1294,6 @@ static PyObject *M_Armature_New(PyObject * self, PyObject * args)
 	obj->armature = armature;
 	return (PyObject *)obj;
 }
-
 
 //-------------------MODULE METHODS DEFINITION-----------------------------
 

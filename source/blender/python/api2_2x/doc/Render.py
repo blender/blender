@@ -1228,3 +1228,17 @@ class RenderData:
     @rtype: int (if prototype is empty)
     @return: Current new map value for the scene.
     """
+    
+  def addRenderLayer():
+    """
+    Add a new render layer to the rendering context, see L{RenderLayer}.
+    @rtype: RenderLayer
+    @return: The newly created renderlayer.
+    """
+
+  def removeRenderLayer(renderlayer):
+    """
+    Remove the specified render layer from the rendering context.
+    @type renderlayer: L{RenderLayer}
+    @param renderlayer: must be a L{RenderLayer}
+    """

@@ -4239,7 +4239,7 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 		return -1;
 
 	return EXPP_setIValueRange( value,
-			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_SUB, 'b' );
+			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_CLIP, 'b' );
 }
 
 /*
@@ -8743,6 +8743,7 @@ static PyObject *M_Mesh_FaceTranspModesDict( void )
 		PyConstant_Insert( d, "ADD", PyInt_FromLong( TF_ADD ) );
 		PyConstant_Insert( d, "ALPHA", PyInt_FromLong( TF_ALPHA ) );
 		PyConstant_Insert( d, "SUB", PyInt_FromLong( TF_SUB ) );
+		PyConstant_Insert( d, "CLIP", PyInt_FromLong( TF_CLIP ) );
 	}
 
 	return FTM;

@@ -57,8 +57,8 @@ The valid IpoCurve constants are:
 			TE_DISTA, TE_MGTYPE, TE_MGH, TE_LACU, TE_OCT, TE_MGOFF,
 			TE_MGGAIN, TE_NBASE1, TE_NBASE2, TE_COLR, TE_COLG, TE_COLB,
 			TE_BRIGHT, TE_CONTRAS
-			9. Pose/Action Ipo: PO_LOCX, PO_LOCY, PO_LOCZ, PO_SIZEX, PO_SIZEY,
-			PO_SIZEZ, PO_QUATW, PO_QUATX, PO_QUATY, PO_QUATZ
+			9. Pose/Action Ipo: PO_LOCX, PO_LOCY, PO_LOCZ, PO_SCALEX, PO_SCALEY,
+			PO_SCALEZ, PO_QUATW, PO_QUATX, PO_QUATY, PO_QUATZ
 			10. Sequence Ipo: SQ_FAC
 
 Shape Key Ipos are handled differently from other Ipos.  The user can rename

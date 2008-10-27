@@ -55,7 +55,15 @@ void KX_TouchSensor::SynchronizeTransform()
 
 void KX_TouchSensor::EndFrame() {
 	m_colliders->ReleaseAndRemoveAll();
+	m_hitObject = NULL;
 	m_bTriggered = false;
+}
+
+void KX_TouchSensor::UnregisterToManager()
+{
+	// before unregistering the sensor, make sure we release all references
+	EndFrame();
+	m_eventmgr->RemoveSensor(this);
 }
 
 bool KX_TouchSensor::Evaluate(CValue* event)
@@ -176,7 +184,10 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			client_info->m_gameobject : 
 			NULL);
 	
-	if (gameobj && (gameobj != parent) && client_info->isActor())
+	// add the same check as in SCA_ISensor::Activate(), 
+	// we don't want to record collision when the sensor is not active.
+	if (m_links && !m_suspended &&
+		gameobj && (gameobj != parent) && client_info->isActor())
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());

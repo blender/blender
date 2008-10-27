@@ -109,7 +109,7 @@
 #define EXPP_MAT_SUBSIZE_MAX			25.0
 
 #define EXPP_MAT_HARD_MIN				 1
-#define EXPP_MAT_HARD_MAX		 255	/* 127 with MODE HALO ON */
+#define EXPP_MAT_HARD_MAX		 511	/* 127 with MODE HALO ON */
 #define EXPP_MAT_HALOSEED_MIN		 0
 #define EXPP_MAT_HALOSEED_MAX    255
 #define EXPP_MAT_NFLARES_MIN		 1
@@ -2506,10 +2506,10 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "iO!|ii", &texnum, &Texture_Type, &pytex,
 			       &texco, &mapto ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9] and Texture" );
+					      "expected int in [0,17] and Texture" );
 	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9] and Texture" );
+					      "expected int in [0,17] and Texture" );
 
 	bltex = Texture_FromPyObject( pytex );
 

@@ -4926,6 +4926,12 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
 			texalpha = 0;
 
+			/* we can't read from this if it comes from a library,
+			 * because direct_link might not have happened on it,
+			 * so ma->mtex is not pointing to valid memory yet */
+			if(ma && ma->id.lib)
+				ma= NULL;
+
 			for(b=0; ma && b<MAX_MTEX; b++)
 				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
 					texalpha = 1;
@@ -7774,23 +7780,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* sun/sky */
 	if(main->versionfile < 246) {
-		Lamp *la;
 		Object *ob;
 		bActuator *act;
 
-		for(la=main->lamp.first; la; la= la->id.next) {
-			la->sun_effect_type = 0;
-			la->horizon_brightness = 1.0;
-			la->spread = 1.0;
-			la->sun_brightness = 1.0;
-			la->sun_size = 1.0;
-			la->backscattered_light = 1.0;
-			la->atm_turbidity = 2.0;
-			la->atm_inscattering_factor = 1.0;
-			la->atm_extinction_factor = 1.0;
-			la->atm_distance_factor = 1.0;
-			la->sun_intensity = 1.0;
-		}
 		/* dRot actuator change direction in 2.46 */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			for(act= ob->actuators.first; act; act= act->next) {
@@ -7981,11 +7973,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					bMessageActuator *msgAct = (bMessageActuator *) act->data;
 					if (strlen(msgAct->toPropName) > 2) {
 						/* strip first 2 chars, would have only worked if these were OB anyway */
-						strncpy(msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName));
+						memmove( msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName)-2 );
 					} else {
 						msgAct->toPropName[0] = '\0';
 					}
 				}
+			}
+		}
+	}
+
+	if (main->versionfile < 248) {
+		Lamp *la;
+
+		for(la=main->lamp.first; la; la= la->id.next) {
+			if(la->atm_turbidity == 0.0) {
+				la->sun_effect_type = 0;
+				la->horizon_brightness = 1.0;
+				la->spread = 1.0;
+				la->sun_brightness = 1.0;
+				la->sun_size = 1.0;
+				la->backscattered_light = 1.0;
+				la->atm_turbidity = 2.0;
+				la->atm_inscattering_factor = 1.0;
+				la->atm_extinction_factor = 1.0;
+				la->atm_distance_factor = 1.0;
+				la->sun_intensity = 1.0;
 			}
 		}
 	}

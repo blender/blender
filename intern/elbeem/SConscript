@@ -7,7 +7,7 @@ sources = env.Glob('intern/*.cpp')
 
 defs = 'NOGUI ELBEEM_BLENDER=1'
 
-if env['WITH_BF_OPENMP'] == 1:
+if env['WITH_BF_OPENMP']:
     defs += ' PARALLEL'
 
 if env['OURPLATFORM']=='win32-vc':

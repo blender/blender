@@ -42,9 +42,10 @@ struct bDeformGroup;
 
 struct bDeformGroup *add_defgroup_name (struct Object *ob, char *name);
 void add_defgroup (struct Object *ob);
-void del_defgroup_in_object_mode ( Object *ob );
+void del_defgroup_in_object_mode (struct Object *ob );
 void del_defgroup (struct Object *ob);
-void duplicate_defgroup ( struct Object *ob );
+void del_all_defgroups (struct Object *ob);
+void duplicate_defgroup (struct Object *ob );
 void assign_verts_defgroup (void);
 void remove_verts_defgroup (int allverts);
 void remove_verts_defgroups (int allverts);

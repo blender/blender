@@ -522,7 +522,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 	else if( PySequence_Check( value ) ) {
 		size = PySequence_Size( value );
 /*		printf("\ndbg: got a sequence of size %d\n", size );  */
-		if( size == 4 || size == 5 ) {
+		if( size == 4 || size == 5 || size == 6) {
 			BPoint *tmp;
 
 			tmp = nurb->bp;	/* save old pts */
@@ -556,8 +556,8 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 				Py_DECREF( item );
 			}
 
-			if (size == 5) {
-				PyObject *item = PySequence_GetItem( value, i );
+			if (size >= 5) {
+				PyObject *item = PySequence_GetItem( value, 4 );
 
 				if (item == NULL)
 					return NULL;
@@ -568,18 +568,33 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 			else {
 				nurb->bp[npoints].alfa = 0.0f;
 			}
+			
+			if (size == 6) {
+				PyObject *item = PySequence_GetItem( value, 5 );
 
+				if (item == NULL)
+					return NULL;
+
+				nurb->bp[npoints].radius = ( float ) PyFloat_AsDouble( item );
+				Py_DECREF( item );
+			}
+			else {
+				nurb->bp[npoints].radius = 1.0f;
+			}
+			
+			nurb->bp[npoints].weight = 0.0; /* softbody weight TODO - add access to this, is zero elsewhere but through blender is 1.0 by default */
+			
 			makeknots( nurb, 1, nurb->flagu >> 1 );
 
 		} else {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of 4 or 5 floats" );
+					"expected a sequence of 4 or 6 floats" );
 		}
 
 	} else {
 		/* bail with error */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of 4 or 5 floats" );
+					"expected a sequence of 4 to 6 floats" );
 
 	}
 

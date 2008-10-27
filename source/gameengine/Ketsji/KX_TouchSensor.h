@@ -77,6 +77,7 @@ public:
 	
 	virtual void RegisterSumo(KX_TouchEventManager* touchman);
 	virtual void UnregisterSumo(KX_TouchEventManager* touchman);
+	virtual void UnregisterToManager();
 
 //	virtual DT_Bool HandleCollision(void* obj1,void* obj2,
 //						 const DT_CollData * coll_data); 

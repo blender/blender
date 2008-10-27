@@ -74,6 +74,7 @@ std::cout << " hat flag "	<< m_hatf		<< std::endl;
 void SCA_JoystickSensor::Init()
 {
 	m_istrig=(m_invert)?1:0;
+	m_istrig_prev=0;
 	m_reset = true;
 }
 
@@ -355,7 +356,7 @@ PyObject* SCA_JoystickSensor::PySetIndex( PyObject* self, PyObject* value ) {
 /* get axis  ---------------------------------------------------------- */
 const char SCA_JoystickSensor::GetAxis_doc[] = 
 "getAxis\n"
-"\tReturns the current state of the axis.\n";
+"\tReturns the current axis this sensor reacts to.\n";
 PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self) {
 	return Py_BuildValue("[ii]",m_axis, m_axisf);
 }
@@ -364,7 +365,7 @@ PyObject* SCA_JoystickSensor::PyGetAxis( PyObject* self) {
 /* set axis  ---------------------------------------------------------- */
 const char SCA_JoystickSensor::SetAxis_doc[] = 
 "setAxis\n"
-"\tSets the current state of the axis.\n";
+"\tSets the current axis this sensor reacts to.\n";
 PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
 	
 	int axis,axisflag;
@@ -380,7 +381,7 @@ PyObject* SCA_JoystickSensor::PySetAxis( PyObject* self, PyObject* args ) {
 /* get axis value ----------------------------------------------------- */
 const char SCA_JoystickSensor::GetAxisValue_doc[] = 
 "getAxisValue\n"
-"\tReturns a list of the values for each axis .\n";
+"\tReturns a list of the values for the current state of each axis.\n";
 PyObject* SCA_JoystickSensor::PyGetAxisValue( PyObject* self) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	if(joy)
@@ -437,7 +438,7 @@ PyObject* SCA_JoystickSensor::PySetButton( PyObject* self, PyObject* value ) {
 /* get button value  -------------------------------------------------- */
 const char SCA_JoystickSensor::GetButtonValue_doc[] = 
 "getButtonValue\n"
-"\tReturns a list containing the indicies of the currently pressed buttons.\n";
+"\tReturns a list containing the indicies of the current pressed state of each button.\n";
 PyObject* SCA_JoystickSensor::PyGetButtonValue( PyObject* self) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
 	PyObject *ls = PyList_New(0);

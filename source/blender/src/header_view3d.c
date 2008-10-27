@@ -212,6 +212,14 @@ static void do_view3d_view_camerasmenu(void *arg, int event)
 		persptoetsen(PAD0);
 		G.qual &= ~LR_CTRLKEY;
 	} else {
+		/* store settings of current view before allowing overwriting with camera view */
+		/* this is a copy of the code in toets.c */
+		if(G.vd->persp != V3D_CAMOB) {
+			QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
+			G.vd->lview= G.vd->view;
+			G.vd->lpersp= G.vd->persp;
+		}
+
 		for( base = FIRSTBASE; base; base = base->next ) {
 			if (base->object->type == OB_CAMERA) {
 				i++;

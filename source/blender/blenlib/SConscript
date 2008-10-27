@@ -10,7 +10,7 @@ incs += ' ' + env['BF_ZLIB_INC']
 incs += ' ' + env['BF_SDL_INC']
 defs = ''
 
-if env['WITH_BF_INTERNATIONAL'] == 1:
+if env['WITH_BF_INTERNATIONAL']:
     defs = 'WITH_FREETYPE2'
 
 if env['WITH_BF_VERSE']:

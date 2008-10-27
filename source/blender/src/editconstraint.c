@@ -541,6 +541,7 @@ void add_constraint (short only_IK)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWOOPS, 0);
 	
 	if (only_IK)

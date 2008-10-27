@@ -10,16 +10,16 @@ incs += ' ../quicktime ../include ../../kernel/gen_messaging ../blenloader'
 
 defs = []
 
-if env['WITH_BF_YAFRAY'] == 1:
+if env['WITH_BF_YAFRAY']:
     incs += ' ../yafray'
 else:
     defs.append('DISABLE_YAFRAY')
 
-if env['WITH_BF_QUICKTIME'] == 1:
+if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ' + env['BF_QUICKTIME_INC']
 
-if env['WITH_BF_FFMPEG'] == 1:
+if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
 
 if env['WITH_BF_OPENEXR']:

@@ -1502,6 +1502,10 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		for (con= td->con; con; con= con->next) {
 			float tmat[4][4];
 			
+			/* only consider constraint if enabled */
+			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->enforce == 0.0f) continue;
+			
 			/* only use it if it's tagged for this purpose (and the right type) */
 			if (con->type == CONSTRAINT_TYPE_LOCLIMIT) {
 				bLocLimitConstraint *data= con->data;
@@ -1585,7 +1589,11 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
-			/* we're only interested in Limit-Scale constraints */
+			/* only consider constraint if enabled */
+			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->enforce == 0.0f) continue;
+			
+			/* we're only interested in Limit-Rotation constraints */
 			if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
 				bRotLimitConstraint *data= con->data;
 				float tmat[4][4];
@@ -1675,6 +1683,10 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
+			/* only consider constraint if enabled */
+			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->enforce == 0.0f) continue;
+			
 			/* we're only interested in Limit-Scale constraints */
 			if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
 				bSizeLimitConstraint *data= con->data;

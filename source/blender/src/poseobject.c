@@ -1065,10 +1065,15 @@ void pose_remove_posegroup ()
 	/* get group to remove */
 	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
 	if (grp) {
-		/* firstly, make sure nothing references it */
+		/* adjust group references (the trouble of using indices!):
+		 *	- firstly, make sure nothing references it 
+		 *	- also, make sure that those after this item get corrected
+		 */
 		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 			if (pchan->agrp_index == pose->active_group)
 				pchan->agrp_index= 0;
+			else if (pchan->agrp_index > pose->active_group)
+				pchan->agrp_index--;
 		}
 		
 		/* now, remove it from the pose */

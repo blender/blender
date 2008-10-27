@@ -1362,10 +1362,14 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)
 {
-	if(lamp->tex)
+	if(lamp->tex) {
 		GPU_texture_free(lamp->tex);
-	if(lamp->fb)
+		lamp->tex= NULL;
+	}
+	if(lamp->fb) {
 		GPU_framebuffer_free(lamp->fb);
+		lamp->fb= NULL;
+	}
 }
 
 GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)

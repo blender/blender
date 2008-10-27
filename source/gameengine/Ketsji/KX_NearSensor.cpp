@@ -252,8 +252,10 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 			client_info->m_gameobject :
 			NULL);
 	
-	// these checks are done already in BroadPhaseFilterCollision()
-	if (gameobj /*&& (gameobj != parent)*/)
+	// Add the same check as in SCA_ISensor::Activate(), 
+	// we don't want to record collision when the sensor is not active.
+	if (m_links && !m_suspended &&
+		gameobj /* done in BroadPhaseFilterCollision() && (gameobj != parent)*/)
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());

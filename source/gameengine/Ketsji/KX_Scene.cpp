@@ -614,7 +614,8 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	GroupObject *go;
 	vector<KX_GameObject*> duplilist;
 
-	if (!groupobj->IsDupliGroup() ||
+	if (!groupobj->GetSGNode() ||
+		!groupobj->IsDupliGroup() ||
 		level>MAX_DUPLI_RECUR)
 		return;
 
@@ -1232,7 +1233,7 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Camera*  cam,int layer)
 {
 	// User (Python/Actuator) has forced object invisible...
-	if (!gameobj->GetVisible())
+	if (!gameobj->GetSGNode() || !gameobj->GetVisible())
 		return;
 	
 	// Shadow lamp layers

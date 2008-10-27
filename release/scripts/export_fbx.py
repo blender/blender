@@ -2887,7 +2887,7 @@ def fbx_ui():
 def write_ui():
 	
 	# globals
-	GLOBALS['EVENT'] = 2
+	GLOBALS['EVENT'] = EVENT_REDRAW
 	#GLOBALS['MOUSE'] = Window.GetMouseCoords()
 	GLOBALS['MOUSE'] = [i/2 for i in Window.GetScreenSize()]
 	GLOBALS['FILENAME'] = ''
@@ -2929,13 +2929,6 @@ def write_ui():
 	GLOBALS['_YROT90'] =					Draw.Create(False)
 	GLOBALS['_ZROT90'] =					Draw.Create(False)
 	
-	# horrible ugly hack so tooltips draw, dosnt always work even
-	# Fixed in Draw.UIBlock for 2.45rc2, but keep this until 2.45 is released
-	Window.SetKeyQualifiers(0)
-	while Window.GetMouseButtons(): Blender.sys.sleep(10)
-	for i in xrange(100): Window.QHandle(i)
-	# END HORRID HACK
-	
 	# best not do move the cursor
 	# Window.SetMouseCoords(*[i/2 for i in Window.GetScreenSize()])
 	
@@ -2959,7 +2952,7 @@ def write_ui():
 			#fbx_ui_write('/test.fbx')
 			break
 		
-		Draw.UIBlock(fbx_ui)
+		Draw.UIBlock(fbx_ui, 0)
 	
 	
 	# GLOBALS.clear()
