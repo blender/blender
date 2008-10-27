@@ -85,6 +85,7 @@ done once.
 		- ADD - add to background (halo).
 		- ALPHA - draw with transparency.
 		- SUB - subtract from background.
+		- CLIP - Clipped alpha.
 @var EdgeFlags: The available edge flags.
 		- SELECT - selected (B{deprecated}).  Use edge.sel attribute instead.
 		- EDGEDRAW - edge is drawn out of edition mode.

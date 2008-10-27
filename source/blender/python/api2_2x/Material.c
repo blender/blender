@@ -2506,10 +2506,10 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "iO!|ii", &texnum, &Texture_Type, &pytex,
 			       &texco, &mapto ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9] and Texture" );
+					      "expected int in [0,17] and Texture" );
 	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9] and Texture" );
+					      "expected int in [0,17] and Texture" );
 
 	bltex = Texture_FromPyObject( pytex );
 

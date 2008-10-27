@@ -998,6 +998,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
+	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_O},
 	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_NOARGS},
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
@@ -1023,6 +1024,28 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 	return error;
 }
 */
+
+PyObject* KX_GameObject::PyReplaceMesh(PyObject* self, PyObject* value)
+{
+	KX_Scene *scene = PHY_GetActiveScene();
+	char* meshname;
+	void* mesh_pt;
+
+	meshname = PyString_AsString(value);
+	if (meshname==NULL) {
+		PyErr_SetString(PyExc_ValueError, "Expected a mesh name");
+		return NULL;
+	}
+	mesh_pt = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+	
+	if (mesh_pt==NULL) {
+		PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
+		return NULL;
+	}
+	scene->ReplaceMesh(this, (class RAS_MeshObject*)mesh_pt);
+	
+	Py_RETURN_NONE;
+}
 
 PyObject* KX_GameObject::PyEndObject(PyObject* self)
 {
