@@ -4921,6 +4921,12 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
 			texalpha = 0;
 
+			/* we can't read from this if it comes from a library,
+			 * because direct_link might not have happened on it,
+			 * so ma->mtex is not pointing to valid memory yet */
+			if(ma && ma->id.lib)
+				ma= NULL;
+
 			for(b=0; ma && b<MAX_MTEX; b++)
 				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
 					texalpha = 1;
