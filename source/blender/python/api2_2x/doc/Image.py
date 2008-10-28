@@ -107,6 +107,8 @@ class Image:
 	@type fields_odd: boolean
 	@ivar antialias: enable or disable the antialias option for this image.
 	@type antialias: boolean
+	@ivar premul: premultiply alpha toggle.
+	@type premul: boolean
 	@ivar bindcode: Texture's bind code (readonly).
 	@type bindcode: int
 	@ivar source: Image source type.  See L{the Sources dictionary<Sources>} .
