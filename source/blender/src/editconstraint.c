@@ -65,7 +65,9 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "blendef.h"
 #include "nla.h"
@@ -444,7 +446,7 @@ void add_constraint (short only_IK)
 		else if (nr==18) {	
 			char *menustr;
 			int scriptint= 0;
-			
+#ifndef DISABLE_PYTHON
 			/* popup a list of usable scripts */
 			menustr = buildmenu_pyconstraints(NULL, &scriptint);
 			scriptint = pupmenu(menustr);
@@ -459,6 +461,7 @@ void add_constraint (short only_IK)
 				/* make sure target allowance is set correctly */
 				BPY_pyconstraint_update(ob, con);
 			}
+#endif
 		}
 		else if (nr==19) {
 			con = add_new_constraint(CONSTRAINT_TYPE_CHILDOF);
@@ -700,7 +703,8 @@ static void test_constraints (Object *owner, const char substring[])
 			
 			/* clear disabled-flag first */
 			curcon->flag &= ~CONSTRAINT_DISABLE;
-			
+
+#ifndef DISABLE_PYTHON
 			/* Check specialised data (settings) for constraints that need this */
 			if (curcon->type == CONSTRAINT_TYPE_PYTHON) {
 				bPythonConstraint *data = curcon->data;
@@ -711,16 +715,16 @@ static void test_constraints (Object *owner, const char substring[])
 				}
 				else if (BPY_is_pyconstraint(data->text)==0) {
 					curcon->flag |= CONSTRAINT_DISABLE;
-				}
-				else {	
+				} else {	
 					/* does the constraint require target input... also validates targets */
 					BPY_pyconstraint_update(owner, curcon);
 				}
-				
 				/* targets have already been checked for this */
 				continue;
 			}
-			else if (curcon->type == CONSTRAINT_TYPE_KINEMATIC) {
+			else
+#endif
+			if (curcon->type == CONSTRAINT_TYPE_KINEMATIC) {
 				bKinematicConstraint *data = curcon->data;
 				
 				/* bad: we need a separate set of checks here as poletarget is 
@@ -869,6 +873,7 @@ void validate_pyconstraint_cb (void *arg1, void *arg2)
 	data->text = text;
 }
 
+#ifndef DISABLE_PYTHON
 /* this returns a string for the list of usable pyconstraint script names */
 char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 {
@@ -909,15 +914,17 @@ char *buildmenu_pyconstraints (Text *con_text, int *pyconindex)
 	
 	return str;
 }
+#endif /* DISABLE_PYTHON */
 
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 void update_pyconstraint_cb (void *arg1, void *arg2)
 {
 	Object *owner= (Object *)arg1;
 	bConstraint *con= (bConstraint *)arg2;
-	
+#ifndef DISABLE_PYTHON
 	if (owner && con)
 		BPY_pyconstraint_update(owner, con);
+#endif
 }
 
 /* ------------- Child-Of Constraint ------------------ */

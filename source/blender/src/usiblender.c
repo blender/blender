@@ -134,7 +134,9 @@
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "blendef.h"
 
@@ -677,11 +679,13 @@ int BIF_read_homefile(int from_memory)
 	undo_imagepaint_clear();
 	BKE_reset_undo();
 	BKE_write_undo("Original");	/* save current state */
-	
+
+#ifndef DISABLE_PYTHON
 	/* if from memory, need to refresh python scripts */
 	if (from_memory) {
 		BPY_path_update();
 	}
+#endif
 	return success;
 }
 
@@ -914,8 +918,10 @@ void BIF_write_file(char *target)
 		return;
 	}
  
+#ifndef DISABLE_PYTHON
 	/* send the OnSave event */
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&G.scene->id, SCRIPT_ONSAVE);
+#endif
 
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (li->parent==NULL && BLI_streq(li->name, target)) {
@@ -1125,9 +1131,11 @@ void exit_usiblender(void)
 	free_editArmature();
 	free_posebuf();
 
+#ifndef DISABLE_PYTHON
 	/* before free_blender so py's gc happens while library still exists */
 	/* needed at least for a rare sigsegv that can happen in pydrivers */
 	BPY_end_python();
+#endif
 
 	fastshade_free_render();	/* shaded view */
 	free_blender();				/* blender.c, does entire library */

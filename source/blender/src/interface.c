@@ -96,7 +96,9 @@
 
 #include "BSE_view.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* for BPY_button_eval */
+#endif
 
 #include "GHOST_Types.h" /* for tablet data */
 
@@ -2144,6 +2146,7 @@ static int ui_act_as_text_but(uiBut *but)
 	but->max= max;
 	if(textleft==0) but->flag &= ~UI_TEXT_LEFT;
 
+#ifndef DISABLE_PYTHON
 	if(BPY_button_eval(str, &value)) {
 		/* Uncomment this if you want to see an error message (and annoy users) */
 		/* error("Invalid Python expression, check console");*/
@@ -2152,7 +2155,10 @@ static int ui_act_as_text_but(uiBut *but)
 		if(str[0]) 
 			retval = 0;  /* invalidate return value if eval failed, except when string was null */
 	}
-	
+#else
+	value=atof(str);
+#endif
+
 	if(but->pointype!=FLO) value= (int)value;
 	
 	if(but->type==NUMABS) value= fabs(value);

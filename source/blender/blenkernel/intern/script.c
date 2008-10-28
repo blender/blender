@@ -44,7 +44,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" // Blender Python library
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -57,5 +59,7 @@
 void free_script (Script *script)
 {
 	if (!script) return;
+#ifndef DISABLE_PYTHON
 	BPY_clear_script(script);
+#endif
 }

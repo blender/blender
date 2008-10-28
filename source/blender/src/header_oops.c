@@ -63,8 +63,10 @@
 
 #include "BKE_depsgraph.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 static int viewmovetemp = 0;
 

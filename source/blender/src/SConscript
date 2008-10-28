@@ -36,6 +36,9 @@ incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
 
+if not env['WITH_BF_PYTHON']:
+    defs.append('DISABLE_PYTHON')
+
 if env['BF_TWEAK_MODE']:
     defs.append('TWEAK_MODE')
 

@@ -71,8 +71,10 @@
 
 #include "BSE_filesel.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "mydevice.h"
 #include "blendef.h" 
@@ -1841,7 +1843,8 @@ void unlink_text(Text *text)
 	bScreen *scr;
 	ScrArea *area;
 	SpaceLink *sl;
-	
+
+#ifndef DISABLE_PYTHON
 	/* check if this text was used as script link:
 	 * this check function unsets the pointers and returns how many
 	 * script links used this Text */
@@ -1852,7 +1855,8 @@ void unlink_text(Text *text)
 	if (nodeDynamicUnlinkText ((ID*)text)) {
 		allqueue(REDRAWNODE, 0);
 	}
-
+#endif
+	
 	for (scr= G.main->screen.first; scr; scr= scr->id.next) {
 		for (area= scr->areabase.first; area; area= area->next) {
 			for (sl= area->spacedata.first; sl; sl= sl->next) {
@@ -2050,7 +2054,9 @@ void run_python_script(SpaceText *st)
 {
 	Text *text=st->text;
 	char *py_filename;
-
+#ifdef DISABLE_PYTHON
+	error("python disabled in this build");
+#else
 	if (!BPY_txt_do_python_Text(text)) {
 		int lineno = BPY_Err_getLinenumber();
 		// jump to error if happened in current text:
@@ -2072,6 +2078,7 @@ void run_python_script(SpaceText *st)
 				"check console");
 		}	
 	}
+#endif
 }
 
 static void set_tabs(Text *text)
@@ -2929,8 +2936,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break; /* BREAK Q */
 		case RKEY:
 			if (G.qual == LR_ALTKEY) {
+#ifndef DISABLE_PYTHON
 			    if (text->compiled) BPY_free_compiled_text(text);
 			        text->compiled = NULL;
+#endif
 				if (okee("Reopen text")) {
 					if (!reopen_text(text))
 						error("Could not reopen file");
@@ -3199,13 +3208,14 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
+#ifndef DISABLE_PYTHON	
 	/* Run text plugin scripts if enabled */
 	if (st->doplugins && event && val) {
 		if (BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, G.qual)) {
 			do_draw= 1;
 		}
 	}
-
+#endif
 	if (do_draw)
 		redraw_alltext();
 }

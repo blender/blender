@@ -104,7 +104,10 @@
 #include "BSE_seqaudio.h"
 #include "BSE_view.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
+
 #include "mydevice.h"
 #include "blendef.h"
 
@@ -1378,11 +1381,13 @@ void screenmain(void)
 			BIF_read_file(ext_load_str);
 			sound_initialize_sounds();
 		}
+#ifndef DISABLE_PYTHON
 		else if ((event==ONLOAD_SCRIPT) && BPY_has_onload_script()) {
 			/* event queued in setup_app_data() in blender.c, where G.f is checked */
 			onload_script = 1;
 			firsttime = 1; /* see last 'if' in this function */
 		}
+#endif
 		else {
 			towin= 1;
 		}
@@ -1518,13 +1523,14 @@ void screenmain(void)
 		}
 		/* Bizar hack. The event queue has mutated... */
 		if ( (firsttime) && (event == 0) ) {
-
+#ifndef DISABLE_PYTHON
 			if (onload_script) {
 				/* OnLoad scriptlink */
 				BPY_do_pyscript(&G.scene->id, SCRIPT_ONLOAD);
 				onload_script = 0;
-			}
-			else if (G.fileflags & G_FILE_AUTOPLAY) {
+			} else
+#endif
+			if (G.fileflags & G_FILE_AUTOPLAY) {
 				// SET AUTOPLAY in G.flags for
 				// other fileloads
 
@@ -1887,9 +1893,9 @@ static void del_area(ScrArea *sa)
 	
 	uiFreeBlocks(&sa->uiblocks);
 	uiFreePanels(&sa->panels);
-	
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sa->scriptlink);
-	
+#endif	
 	if(sa==curarea) curarea= NULL;
 	if(sa==g_activearea) g_activearea= NULL;
 }

@@ -79,7 +79,9 @@
 #include "MEM_guardedalloc.h"
 #include "blendef.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
  #include "depsgraph_private.h"
  
@@ -313,6 +315,7 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 
 				if ((icu->driver->flag & IPO_DRIVER_FLAG_INVALID) || (icu->driver->name[0] == '\0'))
 					continue; /* empty or invalid expression */
+#ifndef DISABLE_PYTHON
 				else {
 					/* now we need refs to all objects mentioned in this
 					 * pydriver expression, to call 'dag_add_relation'
@@ -334,6 +337,7 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 						MEM_freeN(obarray);
 					}
 				}
+#endif /* DISABLE_PYTHON */
 			}
 			else if (icu->driver->ob) {
 				node1 = dag_get_node(dag, icu->driver->ob);
