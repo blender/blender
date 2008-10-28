@@ -28,6 +28,8 @@
 #ifndef REEB_H_
 #define REEB_H_
 
+//#define WITH_BF_REEB
+
 #include "DNA_listBase.h"
 
 #include "BLI_graph.h"
