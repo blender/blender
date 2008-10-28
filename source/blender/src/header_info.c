@@ -1020,7 +1020,7 @@ static void do_info_externalfiles(void *arg, int event)
 			pupmenu("Can't set relative paths with an unsaved blend file");
 		}
 		break;
-	case 11: /* make all paths relative */
+	case 11: /* make all paths absolute */
 		{
 			int tot,changed,failed,linked;
 			char str[512];

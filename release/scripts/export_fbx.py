@@ -2952,7 +2952,7 @@ def write_ui():
 			#fbx_ui_write('/test.fbx')
 			break
 		
-		Draw.UIBlock(fbx_ui)
+		Draw.UIBlock(fbx_ui, 0)
 	
 	
 	# GLOBALS.clear()

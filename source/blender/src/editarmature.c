@@ -2278,7 +2278,7 @@ void adduplicate_armature(void)
 					bPoseChannel *chanold, *channew;
 					ListBase     *listold, *listnew;
 					
-					chanold = verify_pose_channel (OBACT->pose, curBone->name);
+					chanold = verify_pose_channel(OBACT->pose, curBone->name);
 					if (chanold) {
 						listold = &chanold->constraints;
 						if (listold) {
@@ -2291,6 +2291,9 @@ void adduplicate_armature(void)
 								/* copy transform locks */
 								channew->protectflag = chanold->protectflag;
 								
+								/* copy bone group */
+								channew->agrp_index= chanold->agrp_index;
+								
 								/* ik (dof) settings */
 								channew->ikflag = chanold->ikflag;
 								VECCOPY(channew->limitmin, chanold->limitmin);
@@ -2300,7 +2303,10 @@ void adduplicate_armature(void)
 								
 								/* constraints */
 								listnew = &channew->constraints;
-								copy_constraints (listnew, listold);
+								copy_constraints(listnew, listold);
+								
+								/* custom shape */
+								channew->custom= chanold->custom;
 							}
 						}
 					}
@@ -3277,7 +3283,11 @@ void switch_direction_armature (void)
 		EditBone *ebo, *child=NULL, *parent=NULL;
 		
 		/* loop over bones in chain */
-		for (ebo= chain->data; ebo; child= ebo, ebo=parent) {
+		for (ebo= chain->data; ebo; ebo= parent) {
+			/* parent is this bone's original parent
+			 *	- we store this, as the next bone that is checked is this one
+			 *	  but the value of ebo->parent may change here...
+			 */
 			parent= ebo->parent;
 			
 			/* only if selected and editable */
@@ -3297,9 +3307,25 @@ void switch_direction_armature (void)
 				else	
 					ebo->flag &= ~BONE_CONNECTED;
 				
-				/* FIXME: other things that need fixing?
-				 *		i.e. roll?
+				/* get next bones 
+				 *	- child will become the new parent of next bone
 				 */
+				child= ebo;
+			}
+			else {
+				/* not swapping this bone, however, if its 'parent' got swapped, unparent us from it 
+				 * as it will be facing in opposite direction
+				 */
+				if ((parent) && (EBONE_VISIBLE(arm, parent) && EBONE_EDITABLE(parent))) {
+					ebo->parent= NULL;
+					ebo->flag &= ~BONE_CONNECTED;
+				}
+				
+				/* get next bones
+				 *	- child will become new parent of next bone (not swapping occurred, 
+				 *	  so set to NULL to prevent infinite-loop)
+				 */
+				child= NULL;
 			}
 		}
 	}

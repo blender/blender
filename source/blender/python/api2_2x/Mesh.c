@@ -4239,7 +4239,7 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 		return -1;
 
 	return EXPP_setIValueRange( value,
-			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_SUB, 'b' );
+			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_CLIP, 'b' );
 }
 
 /*
@@ -6271,19 +6271,12 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			if( origmesh->mat ) {
 				for( i = origmesh->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					if (ob->colbits & 1<<i) {
+					if (ob->colbits & 1<<i)
 						self->mesh->mat[i] = ob->mat[i];
-						
-						if (ob->mat[i])
-							ob->mat[i]->id.us++;
-						if (origmesh->mat[i])
-							origmesh->mat[i]->id.us--;
-					} else {
+					else
 						self->mesh->mat[i] = origmesh->mat[i];
-						
-						if (origmesh->mat[i])
-							origmesh->mat[i]->id.us++;
-					}
+					if (self->mesh->mat[i])
+						self->mesh->mat[i]->id.us++;
 				}
 			}
 		}
@@ -8637,35 +8630,6 @@ static PyObject *M_Mesh_MVert( PyObject * self_unused, PyObject * args )
 	return PVert_CreatePyObject( &vert );
 }
 
-static PyObject *M_Mesh_DataSize(PyObject * self, PyObject *args)
-{
-	int t = 0;
-	int ret = 0;
-	if( !PyArg_ParseTuple(args, "|i", &t))
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected nothing or an int as argument" );
-	
-	switch(t) {
-		case 0:
-			ret = sizeof(Mesh);
-			break;
-		case 1:
-			ret = sizeof(MVert);
-			break;
-		case 2:
-			ret = sizeof(MEdge);
-			break;
-		case 3:
-			ret = sizeof(MFace);
-			break;
-		default:
-			ret = sizeof(Mesh);
-			break;
-	}
-	
-	return PyInt_FromLong(ret);
-}
-
 static PyObject *M_Mesh_Modes( PyObject * self_unused, PyObject * args )
 {
 	int modes = 0;
@@ -8697,8 +8661,6 @@ static struct PyMethodDef M_Mesh_methods[] = {
 		"Create a new MVert"},
 	{"Mode", (PyCFunction)M_Mesh_Modes, METH_VARARGS,
 		"Get/set edit selection mode(s)"},
-	{"DataSize", (PyCFunction)M_Mesh_DataSize, METH_VARARGS,
-		"Get sizeof() of Mesh (0), MVert (1), MEdge (2) or MFace (3)"},
 	{NULL, NULL, 0, NULL},
 };
 
@@ -8774,6 +8736,7 @@ static PyObject *M_Mesh_FaceTranspModesDict( void )
 		PyConstant_Insert( d, "ADD", PyInt_FromLong( TF_ADD ) );
 		PyConstant_Insert( d, "ALPHA", PyInt_FromLong( TF_ALPHA ) );
 		PyConstant_Insert( d, "SUB", PyInt_FromLong( TF_SUB ) );
+		PyConstant_Insert( d, "CLIP", PyInt_FromLong( TF_CLIP ) );
 	}
 
 	return FTM;

@@ -141,7 +141,7 @@ static uiBlock *uiblock=NULL;
 
 static char Draw_doc[] = "The Blender.Draw submodule";
 
-static char Method_UIBlock_doc[] = "(drawfunc, x,y) - Popup dialog where buttons can be drawn (expemental)";
+static char Method_UIBlock_doc[] = "(drawfunc, mouse_exit) - Popup dialog where buttons can be drawn (expemental)";
 
 static char Method_Register_doc[] =
 	"(draw, event, button) - Register callbacks for windowing\n\n\
@@ -290,9 +290,9 @@ static char Method_Text_doc[] =
 This function returns the width of the drawn string.";
 
 static char Method_Label_doc[] =
-	"(text, x, y) - Draw a text label onscreen\n\n\
+	"(text, x, y, w, h, tip, callback) - Draw a text label onscreen\n\n\
 (text) The text to draw\n\
-(x, y) The lower left coordinate of the lable";
+(x, y, w, h) The lower left coordinate of the lable, width and height";
 
 static char Method_PupMenu_doc[] =
 	"(string, maxrow = None) - Display a pop-up menu at the screen.\n\
@@ -1101,15 +1101,16 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	PyObject *val = NULL;
 	PyObject *result = NULL;
 	ListBase listb= {NULL, NULL};
+	int mouse_exit = 1;
 
 	if (G.background) {
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Can't run Draw.UIBlock() in background mode." );
 	}
 	
-	if ( !PyArg_ParseTuple( args, "O", &val ) || !PyCallable_Check( val ) ) 
+	if ( !PyArg_ParseTuple( args, "O|i", &val, &mouse_exit ) || !PyCallable_Check( val ) ) 
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected 1 python function and 2 ints" );
+					      "expected 1 python function and an optional int" );
 
 	if (uiblock)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1121,7 +1122,7 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	uiblock= uiNewBlock(&listb, "numbuts", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	
 	uiBlockSetFlag(uiblock, UI_BLOCK_LOOP|UI_BLOCK_REDRAW);
-	result = PyObject_CallObject( val, Py_BuildValue( "()" ) );
+	result = PyObject_CallObject( val, NULL );
 	
 	if (!result) {
 		PyErr_Print(  );
@@ -1146,7 +1147,7 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 		/* Done clearing events */
 		
 		uiBoundsBlock(uiblock, 5);
-		uiDoBlocks(&listb, 0, 1);
+		uiDoBlocks(&listb, 0, mouse_exit);
 	}
 	uiFreeBlocks(&listb);
 	uiblock = NULL;

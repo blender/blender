@@ -577,6 +577,7 @@ if not env['WITHOUT_BF_INSTALL']:
 # TODO: build stubs and link into blenderplayer
 
 #------------ EPYDOC
-if env['WITH_BF_BPYDOC']:
-    SConscript(['source/blender/python/api2_2x/doc/SConscript'])
+if env['WITH_BF_DOCS']:
+    SConscript('source/blender/python/api2_2x/doc/SConscript')
+    SConscript('source/gameengine/PyDoc/SConscript')
 

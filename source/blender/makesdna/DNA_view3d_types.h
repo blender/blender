@@ -148,8 +148,8 @@ typedef struct View3D {
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview;
-	short lastview_set;
-	short pad5;
+
+	short pad5, pad6;
 } View3D;
 
 

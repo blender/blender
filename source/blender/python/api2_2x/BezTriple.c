@@ -694,6 +694,7 @@ PyObject *newBezTriple( float *numbuf )
 	}
 	bzt->h1 = HD_ALIGN;
 	bzt->h2 = HD_ALIGN;
+	bzt->radius = 1.0;
 
 	/* wrap it */
 	pyobj = BezTriple_CreatePyObject( bzt );

@@ -4637,7 +4637,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",			70,by-38,20,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 19, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult",	170,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
-			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Hide",	250,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_P, B_ARM_RECALCDATA, "Hide",	250,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Toggles display of this bone in Edit Mode");
 			
 			/* layers */
 			uiBlockBeginAlign(block);
@@ -4762,7 +4762,7 @@ void do_vgroupbuts(unsigned short event)
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_queue_winredraw(curarea);
 			allqueue(REDRAWOOPS, 0);
-			
+			BIF_undo_push("New vertex group");
 			break;
 		case B_DELVGROUP:
 			if ((G.obedit) && (G.obedit == ob)) {
@@ -4778,35 +4778,40 @@ void do_vgroupbuts(unsigned short event)
 			break;
 		case B_ASSIGNVGROUP:
 			assign_verts_defgroup ();
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue (REDRAWVIEW3D, 1);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case B_REMOVEVGROUP:
 			remove_verts_defgroup (0);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Remove from vertex group");
 			break;
 		case B_SELVGROUP:
-			sel_verts_defgroup(1);
+			sel_verts_defgroup(1); /* runs countall() */
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
-			countall();
+			BIF_undo_push("Select vertex group");
 			break;
 		case B_DESELVGROUP:
-			sel_verts_defgroup(0);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			sel_verts_defgroup(0); /* runs countall() */
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
-			countall();
+			BIF_undo_push("DeSelect vertex group");
 			break;
 		case B_LINKEDVGROUP:
 			copy_linked_vgroup_channels(ob);
+			allqueue (REDRAWVIEW3D, 1);
+			allqueue(REDRAWOOPS, 0);
+			BIF_undo_push("Copy vertex group to linked obdata");
 			break;
 		case B_COPYVGROUP:
 			duplicate_defgroup (ob);
 			scrarea_queue_winredraw (curarea);
 			allqueue (REDRAWOOPS, 0);
+			BIF_undo_push("Copy vertex group");
 			break;
 	}
 }
@@ -6740,7 +6745,7 @@ void editing_panels()
 		editing_panel_links(ob);
 		editing_panel_curve_type(ob, cu);
 		editing_panel_modifiers(ob);
-//		editing_panel_shapes(ob);
+//		editing_panel_shapes(ob); /* there are some backend things that are not ready for this yet */
 		if(G.obedit) {
 			editing_panel_curve_tools(ob, cu);
 			editing_panel_curve_tools1(ob, cu);

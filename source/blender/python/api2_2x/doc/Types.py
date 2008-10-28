@@ -25,6 +25,17 @@ Example::
     elif type(data) == Types.LampType:
       print "Let there be light!"
 
+Since Blender 2.48a you can get the size of the underlying DNA structs for a collection of Blender Python types.
+
+Example::
+  # loop over Types dictionary and print the struct sizes
+  # -1 where the type is not supported byt the CSizeof function
+  import Blender.Types as bt
+  x = dir(bt)
+  for t in x:
+    s = 'bt.CSizeof(bt.' + t + ')'
+    print t,"=", eval(s)
+
 @var ObjectType: Blender Object. The base object, linked to its specific data
      at its .data member variable.
 @var GroupType: Blender Group. A Group that references a list of objects that are a part of this group.
@@ -45,8 +56,12 @@ Example::
 @var ArmatureType: Blender Armature. The "skeleton", for animating and deforming
 objects.
 @var BoneType: Blender Bone. Bones are, obviously, the "pieces" of an Armature.
+@var EditBoneType: Blender Editbone. Bones in editmode.
 @var CurveType: Blender Curve.
 @var IpoType: Blender Ipo.
+@var CurNurbType: Blender CurNurb.
+@var SurfNurbType: Blender SurfNurb.
+@var IpoCurveType: Blender IpoCurve.
 @var MetaballType: Blender Metaball.
 @var CameraType: Blender Camera.
 @var ImageType: Blender Image.
@@ -57,7 +72,7 @@ objects.
 @var SceneType: A Blender Scene. Container of all other objects.
 @var ButtonType: Blender Button. One of the Draw widgets.
 @var vectorType: Blender vector. Used in NMesh, Mesh and elsewhere.
-@var matrix_Type: Blender matrix.
+@var matrixType: Blender matrix.
 @var quaternionType: Blender quaternion.  Used in armatures.
 @var eulerType: Blender euler.
 @var bufferType: Blender buffer. A contiguous piece of storage, used in BGL.
@@ -68,3 +83,11 @@ objects.
 @var IDGroupType: Blender IDProperty Group type.
 @var IDArrayType: Blender IDProperty Array type.
 """
+
+def CSizeof (type):
+    """
+    Get the size in bytes of the underlying DNA struct for the given type.
+    @param type: A Blender Python type.
+    @type type: type
+    @return: size in bytes or -1 if not supported type.
+    """

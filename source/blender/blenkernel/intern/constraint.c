@@ -842,7 +842,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
 				strcpy(datasubtarget, ct->subtarget); \
-				con->tarspace= ct->space; \
+				con->tarspace= (char)ct->space; \
 			} \
 			 \
 			BLI_freelinkN(list, ct); \
@@ -862,7 +862,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			bConstraintTarget *ctn = ct->next; \
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
-				con->tarspace= ct->space; \
+				con->tarspace= (char)ct->space; \
 			} \
 			 \
 			BLI_freelinkN(list, ct); \
@@ -1434,9 +1434,9 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	Mat4ToEul(cob->matrix, eul);
 	
 	/* eulers: radians to degrees! */
-	eul[0] = (eul[0] / M_PI * 180);
-	eul[1] = (eul[1] / M_PI * 180);
-	eul[2] = (eul[2] / M_PI * 180);
+	eul[0] = (float)(eul[0] / M_PI * 180);
+	eul[1] = (float)(eul[1] / M_PI * 180);
+	eul[2] = (float)(eul[2] / M_PI * 180);
 	
 	/* limiting of euler values... */
 	if (data->flag & LIMIT_XROT) {
@@ -1462,9 +1462,9 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	}
 		
 	/* eulers: degrees to radians ! */
-	eul[0] = (eul[0] / 180 * M_PI); 
-	eul[1] = (eul[1] / 180 * M_PI);
-	eul[2] = (eul[2] / 180 * M_PI);
+	eul[0] = (float)(eul[0] / 180 * M_PI); 
+	eul[1] = (float)(eul[1] / 180 * M_PI);
+	eul[2] = (float)(eul[2] / 180 * M_PI);
 	
 	LocEulSizeToMat4(cob->matrix, loc, eul, size);
 }
@@ -2508,7 +2508,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			else if (data->flag & LIMITDIST_USESOFT) {
 				// FIXME: there's a problem with "jumping" when this kicks in
 				if (dist >= (data->dist - data->soft)) {
-					sfac = data->soft*(1.0 - exp(-(dist - data->dist)/data->soft)) + data->dist;
+					sfac = (float)( data->soft*(1.0 - exp(-(dist - data->dist)/data->soft)) + data->dist );
 					sfac /= dist;
 					
 					clamp_surf= 1;
@@ -3139,7 +3139,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			case 1: /* rotation (convert to degrees first) */
 				Mat4ToEul(ct->matrix, dvec);
 				for (i=0; i<3; i++)
-					dvec[i] = dvec[i] / M_PI * 180;
+					dvec[i] = (float)(dvec[i] / M_PI * 180);
 				break;
 			default: /* location */
 				VecCopyf(dvec, ct->matrix[3]);
@@ -3189,7 +3189,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
 					
 					/* now convert final value back to radians */
-					eul[i] = eul[i] / 180 * M_PI;
+					eul[i] = (float)(eul[i] / 180 * M_PI);
 				}
 				break;
 			default: /* location */

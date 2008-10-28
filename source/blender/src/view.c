@@ -111,7 +111,7 @@ void persp_general(int a)
 		glPushMatrix();
 		glMatrixMode(GL_MODELVIEW);
 
-		myortho2(-0.375, ((float)(curarea->winx))-0.375, -0.375, ((float)(curarea->winy))-0.375);
+		myortho2(-0.375f, ((float)(curarea->winx))-0.375f, -0.375f, ((float)(curarea->winy))-0.375f);
 		glLoadIdentity();
 	}
 	else if(a== 1) {
@@ -134,7 +134,7 @@ void persp(int a)
 		mygetmatrix(G.vd->viewmat1); 
 	}
 	else if(a== PERSP_WIN) {		// only set
-		myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
+		myortho2(-0.375f, (float)(curarea->winx)-0.375f, -0.375f, (float)(curarea->winy)-0.375f);
 		glLoadIdentity();
 	}
 	else if(a== PERSP_VIEW) {
@@ -242,8 +242,8 @@ void project_short(float *vec, short *adr)	/* clips */
 			fy= (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
 			
 			if(fy>0.0 && fy< (float)curarea->winy) {
-				adr[0]= floor(fx); 
-				adr[1]= floor(fy);
+				adr[0]= (short)floor(fx); 
+				adr[1]= (short)floor(fy);
 			}
 		}
 	}
@@ -253,7 +253,7 @@ void project_int(float *vec, int *adr)
 {
 	float fx, fy, vec4[4];
 
-	adr[0]= 2140000000.0f;
+	adr[0]= (int)2140000000.0f;
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
@@ -266,8 +266,8 @@ void project_int(float *vec, int *adr)
 			fy= (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
 			
 			if(fy>-2140000000.0f && fy<2140000000.0f) {
-				adr[0]= floor(fx); 
-				adr[1]= floor(fy);
+				adr[0]= (int)floor(fx); 
+				adr[1]= (int)floor(fy);
 			}
 		}
 	}
@@ -286,8 +286,8 @@ void project_int_noclip(float *vec, int *adr)
 		fx = (curarea->winx/2)*(1 + vec4[0]/vec4[3]);
 		fy = (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
 			
-		adr[0] = floor(fx); 
-		adr[1] = floor(fy);
+		adr[0] = (int)floor(fx); 
+		adr[1] = (int)floor(fy);
 	}
 	else
 	{
@@ -314,8 +314,8 @@ void project_short_noclip(float *vec, short *adr)
 			fy= (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
 			
 			if(fy>-32700.0 && fy<32700.0) {
-				adr[0]= floor(fx); 
-				adr[1]= floor(fy);
+				adr[0]= (short)floor(fx); 
+				adr[1]= (short)floor(fy);
 			}
 		}
 	}
@@ -332,8 +332,8 @@ void project_float(float *vec, float *adr)
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
 	if( vec4[3]>BL_NEAR_CLIP ) {
-		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
-		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+		adr[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
 	}
 }
 
@@ -347,8 +347,8 @@ void project_float_noclip(float *vec, float *adr)
 	Mat4MulVec4fl(G.vd->persmat, vec4);
 
 	if( fabs(vec4[3]) > BL_NEAR_CLIP ) {
-		adr[0] = (curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
-		adr[1] = (curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
+		adr[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*vec4[1]/vec4[3];
 	}
 	else
 	{
@@ -401,8 +401,8 @@ void view3d_project_short_clip(ScrArea *area, float *vec, short *adr, float proj
 			fy= (area->winy/2)*(1 + vec4[1]/vec4[3]);
 			
 			if(fy>0.0 && fy< (float)area->winy) {
-				adr[0]= floor(fx); 
-				adr[1]= floor(fy);
+				adr[0]= (short)floor(fx); 
+				adr[1]= (short)floor(fy);
 			}
 		}
 	}
@@ -427,8 +427,8 @@ void view3d_project_short_noclip(ScrArea *area, float *vec, short *adr, float ma
 			fy= (area->winy/2)*(1 + vec4[1]/vec4[3]);
 			
 			if(fy>-32700.0 && fy<32700.0) {
-				adr[0]= floor(fx); 
-				adr[1]= floor(fy);
+				adr[0]= (short)floor(fx); 
+				adr[1]= (short)floor(fy);
 			}
 		}
 	}
@@ -445,10 +445,10 @@ void view3d_project_float(ScrArea *area, float *vec, float *adr, float mat[4][4]
 	Mat4MulVec4fl(mat, vec4);
 
 	if( vec4[3]>FLT_EPSILON ) {
-		adr[0] = (area->winx/2.0)+(area->winx/2.0)*vec4[0]/vec4[3];	
-		adr[1] = (area->winy/2.0)+(area->winy/2.0)*vec4[1]/vec4[3];
+		adr[0] = (float)(area->winx/2.0f)+(area->winx/2.0f)*vec4[0]/vec4[3];	
+		adr[1] = (float)(area->winy/2.0f)+(area->winy/2.0f)*vec4[1]/vec4[3];
 	} else {
-		adr[0] = adr[1] = 0.0;
+		adr[0] = adr[1] = 0.0f;
 	}
 }
 
@@ -894,11 +894,6 @@ void viewmove(int mode)
 		return;
 	}
 	
-	/* clear lastview flag (used to return to previous view when 
-	 * pressing Pad0 again after entering Camera view)
-	 */
-	if (G.vd->lastview_set) G.vd->lastview_set= 0;
-	
 	// dist correction from other movement devices	
 	if((dz_flag)||G.vd->dist==0) {
 		dz_flag = 0;
@@ -1119,7 +1114,7 @@ void viewmove(int mode)
 					int i;
 					float viewmat[3][3];
 
-					static const float thres = 0.93; //cos(20 deg);
+					static const float thres = 0.93f; //cos(20 deg);
 					
 					static float snapquats[39][6] = {
 						/*{q0, q1, q3, q4, view, oposite_direction}*/
@@ -2164,20 +2159,20 @@ void centerview()	/* like a localview without local! */
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
-	size= 0.7*MAX3(afm[0], afm[1], afm[2]);
+	size= 0.7f*MAX3(afm[0], afm[1], afm[2]);
 	
-	if(size <= G.vd->near*1.5) size= G.vd->near*1.5;
+	if(size <= G.vd->near*1.5f) size= G.vd->near*1.5f;
 	
-	new_ofs[0]= -(min[0]+max[0])/2.0;
-	new_ofs[1]= -(min[1]+max[1])/2.0;
-	new_ofs[2]= -(min[2]+max[2])/2.0;
+	new_ofs[0]= -(min[0]+max[0])/2.0f;
+	new_ofs[1]= -(min[1]+max[1])/2.0f;
+	new_ofs[2]= -(min[2]+max[2])/2.0f;
 	
 	new_dist = size;
 
 	/* correction for window aspect ratio */
 	if(curarea->winy>2 && curarea->winx>2) {
 		size= (float)curarea->winx/(float)curarea->winy;
-		if(size<1.0) size= 1.0/size;
+		if(size<1.0f) size= 1.0f/size;
 		new_dist*= size;
 	}
 	
@@ -2189,7 +2184,7 @@ void centerview()	/* like a localview without local! */
 		float orig_lens= G.vd->lens;
 		
 		G.vd->persp=V3D_PERSP;
-		G.vd->dist= 0.0;
+		G.vd->dist= 0.0f;
 		view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
 		smooth_view(G.vd, new_ofs, NULL, &new_dist, &orig_lens);
 	} else {
@@ -2272,8 +2267,8 @@ void view3d_home(int center)
 	int ok= 1, onedone=0;
 
 	if(center) {
-		min[0]= min[1]= min[2]= 0.0;
-		max[0]= max[1]= max[2]= 0.0;
+		min[0]= min[1]= min[2]= 0.0f;
+		max[0]= max[1]= max[2]= 0.0f;
 	}
 	else {
 		INIT_MINMAX(min, max);
@@ -2290,7 +2285,7 @@ void view3d_home(int center)
 	afm[0]= (max[0]-min[0]);
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
-	size= 0.7*MAX3(afm[0], afm[1], afm[2]);
+	size= 0.7f*MAX3(afm[0], afm[1], afm[2]);
 	if(size==0.0) ok= 0;
 		
 	if(ok) {
@@ -2298,14 +2293,14 @@ void view3d_home(int center)
 		float new_ofs[3];
 		
 		new_dist = size;
-		new_ofs[0]= -(min[0]+max[0])/2.0;
-		new_ofs[1]= -(min[1]+max[1])/2.0;
-		new_ofs[2]= -(min[2]+max[2])/2.0;
+		new_ofs[0]= -(min[0]+max[0])/2.0f;
+		new_ofs[1]= -(min[1]+max[1])/2.0f;
+		new_ofs[2]= -(min[2]+max[2])/2.0f;
 		
 		// correction for window aspect ratio
 		if(curarea->winy>2 && curarea->winx>2) {
 			size= (float)curarea->winx/(float)curarea->winy;
-			if(size<1.0) size= 1.0/size;
+			if(size<1.0) size= 1.0f/size;
 			new_dist*= size;
 		}
 		
@@ -2340,7 +2335,7 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	VECCOPY(norm, vec);
 	Normalize(norm);
 
-	angle= acos(Inpf(alignaxis, norm));
+	angle= (float)acos(Inpf(alignaxis, norm));
 	Crossf(axis, alignaxis, norm);
 	VecRotToQuat(axis, -angle, new_quat);
 
@@ -2439,8 +2434,8 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens)
 				step =  (float)((time_current-time_start) / time_allowed);
 				
 				/* ease in/out */
-				if (step < 0.5)	step = pow(step*2, 2)/2;
-				else			step = 1-(pow(2*(1-step) ,2)/2);
+				if (step < 0.5)	step = (float)pow(step*2, 2)/2;
+				else			step = (float)1-(pow(2*(1-step),2)/2);
 				
 				step_inv = 1-step;
 				

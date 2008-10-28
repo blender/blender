@@ -61,6 +61,12 @@ def AngleBetweenVecsSafe(a1, a2):
 	except:
 		return 180.0
 
+# Python 2.3 has no reversed.
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
+
 # Copied from blender, we could wrap this! - BKE_curve.c
 # But probably not toooo bad in python
 def forward_diff_bezier(q0, q1, q2, q3, pointlist, steps, axis):
@@ -266,7 +272,9 @@ class tree:
 				brch.calcData()
 			
 		# Sort from big to small, so big branches get priority
-		self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
+		# Py 2.3 dosnt have keywords in sort
+		try:	self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
+		except: self.branches_all.sort( lambda brch_a, brch_b: cmp(brch_b.bpoints[0].radius, brch_a.bpoints[0].radius) ) # py2.3
 	
 	
 	def closestBranchPt(self, co):
@@ -1144,7 +1152,8 @@ class tree:
 				
 				# Try sorting by other properties! this is ok for now
 				for segments_level_current in segments_level:
-					segments_level_current.sort( key = lambda seg:	-(seg.headCo-seg.tailCo).length )
+					try:	segments_level_current.sort( key = lambda seg:	-(seg.headCo-seg.tailCo).length )
+					except:	segments_level_current.sort( lambda a,b: cmp((b.headCo-b.tailCo).length, (a.headCo-a.tailCo).length) ) # py2.3
 				
 				for level in xrange(twig_fill_levels):
 					if len(segments_level) > level:
@@ -1370,18 +1379,23 @@ class tree:
 		
 		# Get the branches based on our selection method!
 		if twig_select_mode==0:
-			branches_sorted.sort( key = lambda brch: brch.getLength())
+			try:	branches_sorted.sort( key = lambda brch: brch.getLength())
+			except:	branches_sorted.sort( lambda a,b: cmp(a.getLength(),a.getLength()) ) # py2.3
 		elif twig_select_mode==1:
-			branches_sorted.sort( key = lambda brch:-brch.getLength())
+			try:	branches_sorted.sort( key = lambda brch:-brch.getLength())
+			except:	branches_sorted.sort( lambda a,b: cmp(b.getLength(), a.getLength()) ) # py2.3
 		elif twig_select_mode==2:
-			branches_sorted.sort( key = lambda brch:brch.getStraightness())
+			try:	branches_sorted.sort( key = lambda brch:brch.getStraightness())
+			except:	branches_sorted.sort( lambda a,b: cmp(a.getStraightness(), b.getStraightness())) # py2.3
 		elif twig_select_mode==3:
-			branches_sorted.sort( key = lambda brch:-brch.getStraightness())
+			try:	branches_sorted.sort( key = lambda brch:-brch.getStraightness())
+			except:	branches_sorted.sort( lambda a,b: cmp(b.getStraightness(), a.getStraightness())) # py2.3
 		
 		factor_int = int(len(self.branches_all) * twig_select_factor)
 		branches_sorted[factor_int:] = []  # remove the last part of the list
 		
-		branches_sorted.sort( key = lambda brch: len(brch.bpoints))
+		try:	branches_sorted.sort( key = lambda brch: len(brch.bpoints))
+		except:	branches_sorted.sort( lambda a,b: cmp(len(a.bpoints), len(b.bpoints)) ) # py2.3
 		
 		branches_new = []
 		#for i in xrange(ratio_int):

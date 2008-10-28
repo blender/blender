@@ -442,8 +442,8 @@ void snap_action_strips(int snap_mode)
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if (snap_mode==1) {
 					/* nearest frame */
-					strip->start= floor(strip->start+0.5);
-					strip->end= floor(strip->end+0.5);
+					strip->start= (float)floor(strip->start+0.5);
+					strip->end= (float)floor(strip->end+0.5);
 				}
 				else if (snap_mode==2) {
 					/* current frame */
@@ -461,7 +461,7 @@ void snap_action_strips(int snap_mode)
 				}
 				else if (snap_mode==3) {
 					/* nearest second */
-					float secf = FPS;
+					float secf = (float)FPS;
 					strip->start= (float)(floor(strip->start/secf + 0.5f) * secf);
 					strip->end= (float)(floor(strip->end/secf + 0.5f) * secf);
 				}
@@ -602,8 +602,8 @@ static void add_nla_block(short event)
 	strip->act = act;
 	id_us_plus(&act->id);
 	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
-	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
-	strip->end = strip->start + (strip->actend-strip->actstart);
+	strip->start = (float)G.scene->r.cfra;		/* could be mval[0] another time... */
+	strip->end = (float)strip->start + (strip->actend-strip->actstart);
 		/* simple prevention of zero strips */
 	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
@@ -653,8 +653,8 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 	/* Link the action to the strip */
 	strip->act = act;
 	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
-	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
-	strip->end = strip->start + (strip->actend-strip->actstart);
+	strip->start = (float)G.scene->r.cfra;		/* could be mval[0] another time... */
+	strip->end = (float)strip->start + (strip->actend-strip->actstart);
 		/* simple prevention of zero strips */
 	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
@@ -751,20 +751,20 @@ void add_empty_nlablock(void)
 	if ((EFRA-CFRA) < 100) {
 		strip->flag |= ACTSTRIP_AUTO_BLENDS;
 		strip->flag &= ~ACTSTRIP_LOCK_ACTION;
-		strip->actstart = CFRA;
-		strip->actend = CFRA + 100;
+		strip->actstart = (float)CFRA;
+		strip->actend = (float)(CFRA + 100);
 		
-		strip->start = CFRA;
-		strip->end = CFRA + 100;
+		strip->start = (float)CFRA;
+		strip->end = (float)(CFRA + 100);
 	}
 	else {
 		strip->flag |= ACTSTRIP_AUTO_BLENDS;
 		strip->flag &= ~ACTSTRIP_LOCK_ACTION;
-		strip->actstart = CFRA;
-		strip->actend = EFRA;
+		strip->actstart = (float)CFRA;
+		strip->actend = (float)EFRA;
 		
-		strip->start = CFRA;
-		strip->end = EFRA;
+		strip->start = (float)CFRA;
+		strip->end = (float)EFRA;
 	}
 	
 	BIF_undo_push("Add NLA strip");
@@ -1196,9 +1196,9 @@ void borderselect_nla(void)
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 		
-		ymax = count_nla_levels();
-		ymax*= (NLACHANNELHEIGHT+NLACHANNELSKIP);
-		ymax+= (NLACHANNELHEIGHT+NLACHANNELSKIP)/2;
+		ymax = (float)count_nla_levels();
+		ymax *= (float)(NLACHANNELHEIGHT+NLACHANNELSKIP);
+		ymax += (float)(NLACHANNELHEIGHT+NLACHANNELSKIP)/2;
 	
 		for (base=G.scene->base.first; base; base=base->next){
 			if (nla_filter(base)) {
@@ -1392,9 +1392,9 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 	mval[0]+=14;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 	
-	ymax = count_nla_levels();
-	ymax*=(NLACHANNELHEIGHT + NLACHANNELSKIP);
-	ymax+= NLACHANNELHEIGHT/2;
+	ymax  = (float)count_nla_levels();
+	ymax *= (float)(NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax += (float)(NLACHANNELHEIGHT / 2);
 	
 	for (base = G.scene->base.first; base; base=base->next){
 		if (nla_filter(base)) {
@@ -1467,17 +1467,15 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 	mval[0]+=14;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 	
-	ymax = count_nla_levels();
-	
-	ymax*= (NLACHANNELHEIGHT + NLACHANNELSKIP);
-	ymax+= NLACHANNELHEIGHT/2;
+	ymax  = (float)count_nla_levels();
+	ymax *= (float)(NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax += (float)(NLACHANNELHEIGHT / 2);
 	
 	*sel=0;
 	
-	for (base=G.scene->base.first; base; base=base->next){
+	for (base=G.scene->base.first; base; base=base->next) {
 		if (nla_filter(base)) {
-			
-			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			ymin= ymax - (NLACHANNELHEIGHT + NLACHANNELSKIP);
 			
 			/* Handle object ipo selection */
 			if (base->object->ipo){
@@ -1579,10 +1577,9 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 	mval[0]+=14;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 	
-	ymax = count_nla_levels();
-	
-	ymax*= (NLACHANNELHEIGHT + NLACHANNELSKIP);
-	ymax+= NLACHANNELHEIGHT/2;
+	ymax  = (float)count_nla_levels();
+	ymax *= (float)(NLACHANNELHEIGHT + NLACHANNELSKIP);
+	ymax += (float)(NLACHANNELHEIGHT / 2);
 	
 	*sel=0;
 	
@@ -1995,13 +1992,13 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 					
 				case PADPLUSKEY:
-					view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+					view2d_zoom(G.v2d, 0.1154f, sa->winx, sa->winy);
 					test_view2d(G.v2d, sa->winx, sa->winy);
 					view2d_do_locks(curarea, V2D_LOCK_COPY);
 					doredraw= 1;
 					break;
 				case PADMINUS:
-					view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+					view2d_zoom(G.v2d, -0.15f, sa->winx, sa->winy);
 					test_view2d(G.v2d, sa->winx, sa->winy);
 					view2d_do_locks(curarea, V2D_LOCK_COPY);
 					doredraw= 1;

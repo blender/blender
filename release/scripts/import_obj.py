@@ -878,7 +878,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 		
 		# hack so the toggle buttons redraw. this is not nice at all
 		while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_IMPORT):
-			Draw.UIBlock(obj_ui)
+			Draw.UIBlock(obj_ui, 0)
 		
 		if GLOBALS['EVENT'] != EVENT_IMPORT:
 			return

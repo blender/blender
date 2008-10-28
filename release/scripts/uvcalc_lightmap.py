@@ -47,6 +47,12 @@ def AngleBetweenVecs(a1,a2):
 	except:
 		return 180.0
 
+# python 2.3 has no reversed() iterator. this will only work on lists and tuples
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
+
 class prettyface(object):
 	__slots__ = 'uv', 'width', 'height', 'children', 'xoff', 'yoff', 'has_parent', 'rot'
 	def __init__(self, data):
@@ -451,7 +457,10 @@ PREF_MARGIN_DIV=		512):
 			# Even boxes in groups of 4
 			for d, boxes in even_dict.items():	
 				if d < max_int_dimension:
-					boxes.sort(key = lambda a: len(a.children))
+					# py 2.3 compat
+					try:	boxes.sort(key = lambda a: len(a.children))
+					except:	boxes.sort(lambda a, b: cmp(len(a.children), len(b.children)))
+					
 					while len(boxes) >= 4:
 						# print "bar", len(boxes)
 						ok = True

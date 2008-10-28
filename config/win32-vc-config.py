@@ -1,11 +1,11 @@
 LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
-WITH_BF_VERSE = 'false'
+WITH_BF_VERSE = False
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
@@ -18,8 +18,8 @@ BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
-WITH_BF_OPENAL = 'true'
-WITH_BF_STATICOPENAL = 'false'
+WITH_BF_OPENAL = True
+WITH_BF_STATICOPENAL = False
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
 BF_OPENAL_LIB = 'dxguid openal_static'
@@ -29,16 +29,16 @@ BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 # TODO - are these useful on win32?
 # BF_CXX = '/usr'
-# WITH_BF_STATICCXX = 'false'
+# WITH_BF_STATICCXX = False
 # BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
-WITH_BF_ICONV = 'true'
+WITH_BF_ICONV = True
 BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
-WITH_BF_SDL = 'true'
+WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
 BF_SDL_LIB = 'SDL.lib'
@@ -49,11 +49,11 @@ BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadVC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
-WITH_BF_FMOD = 'false'
+WITH_BF_FMOD = False
 BF_FMOD = LIBDIR + '/fmod'
 
-WITH_BF_OPENEXR = 'true'
-WITH_BF_STATICOPENEXR = 'false'
+WITH_BF_OPENEXR = True
+WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
@@ -61,15 +61,15 @@ BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib_vs2008'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
 
-WITH_BF_DDS = 'true'
+WITH_BF_DDS = True
 
-WITH_BF_JPEG = 'true'
+WITH_BF_JPEG = True
 BF_JPEG = LIBDIR + '/jpeg'
 BF_JPEG_INC = '${BF_JPEG}/include'
 BF_JPEG_LIB = 'libjpeg'
 BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
-WITH_BF_PNG = 'true'
+WITH_BF_PNG = True
 BF_PNG = LIBDIR + '/png'
 BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'libpng_st'
@@ -78,33 +78,33 @@ BF_PNG_LIBPATH = '${BF_PNG}/lib'
 BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
 
-WITH_BF_ZLIB = 'true'
+WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
-WITH_BF_INTERNATIONAL = 'true'
+WITH_BF_INTERNATIONAL = True
 
 BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = 'true'
+WITH_BF_FTGL = True
 BF_FTGL = LIBDIR + '/ftgl'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE = 'true'
-WITH_BF_PLAYER = 'true'
+WITH_BF_GAMEENGINE = True
+WITH_BF_PLAYER = True
 
-WITH_BF_ODE = 'true'
+WITH_BF_ODE = True
 BF_ODE = LIBDIR + '/ode'
 BF_ODE_INC = BF_ODE + '/include'
 BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
-WITH_BF_BULLET = 'true'
+WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
@@ -116,11 +116,11 @@ BF_SOLID_LIB = 'extern_solid'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-WITH_BF_YAFRAY = 'true'
+WITH_BF_YAFRAY = True
 
-WITH_BF_BINRELOC = 'false'
+WITH_BF_BINRELOC = False
 
-#WITH_BF_NSPR = 'true'
+#WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
 #BF_NSPR_LIB = 
@@ -135,21 +135,22 @@ WITH_BF_BINRELOC = 'false'
 # if this is not set.
 #
 # Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = 'true'
+#BF_PARANOID = True
 
 # enable freetype2 support for text objects
+BF_WITH_FREETYPE = True
 BF_FREETYPE = LIBDIR + '/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype2ST'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = 'true' # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = True # -DWITH_QUICKTIME
 BF_QUICKTIME = LIBDIR + '/QTDevWin'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
 BF_QUICKTIME_LIBPATH = '${BF_QUICKTIME}/Libraries'
 
-WITH_BF_STATICOPENGL = 'false'
+WITH_BF_STATICOPENGL = False
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
 BF_OPENGL_LIB = 'opengl32 glu32'
