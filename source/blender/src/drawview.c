@@ -167,6 +167,8 @@
 
 #include "RE_pipeline.h"	// make_stars
 
+#include "reeb.h"
+
 #include "GPU_draw.h"
 #include "GPU_material.h"
 
@@ -3240,6 +3242,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			BIF_drawPropCircle(); // only editmode and particles have proportional edit
 		BIF_drawSnap();
 	}
+	
+	REEB_draw();
 
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	

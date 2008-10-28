@@ -7379,6 +7379,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	/* sanity check for skgen
+	 * */
+	{
+		Scene *sce;
+		for(sce=main->scene.first; sce; sce = sce->id.next)
+		{
+			if (sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[1] ||
+				sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[2] ||
+				sce->toolsettings->skgen_subdivisions[1] == sce->toolsettings->skgen_subdivisions[2])
+			{
+					sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+					sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+					sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+			}
+		}
+	}
+	
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
 		Image *ima;

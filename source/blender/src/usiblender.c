@@ -149,6 +149,8 @@
 
 #include "PIL_time.h"
 
+#include "reeb.h"
+
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
@@ -1098,6 +1100,9 @@ void exit_usiblender(void)
 	int totblock;
 	
 	BIF_clear_tempfiles();
+	
+	BIF_GlobalReebFree();
+	BIF_freeRetarget();
 	
 	tf= G.ttfdata.first;
 	while(tf)

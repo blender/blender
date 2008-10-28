@@ -68,6 +68,8 @@ typedef struct EditBone
 
 } EditBone;
 
+void	make_boneList(struct ListBase *list, struct ListBase *bones, EditBone *parent);
+void	editbones_to_armature (struct ListBase *list, struct Object *ob);
 
 void	adduplicate_armature(void);
 void	addvert_armature(void);
@@ -147,6 +149,15 @@ void	align_selected_bones(void);
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
+
+/* from autoarmature */
+void BIF_retargetArmature();
+void BIF_adjustRetarget();
+void BIF_freeRetarget();
+
+struct ReebArc;
+float calcVariance(struct ReebArc *arc, int start, int end, float v0[3], float n[3]);
+float calcDistance(struct ReebArc *arc, int start, int end, float head[3], float tail[3]);
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) ((arm->layer & ebone->layer) && !(ebone->flag & BONE_HIDDEN_A))

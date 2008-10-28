@@ -39,17 +39,41 @@
 #define BLENDER_MAX_THREADS		8
 
 struct ListBase;
-
 void	BLI_init_threads	(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int		BLI_available_threads(struct ListBase *threadbase);
 int		BLI_available_thread_index(struct ListBase *threadbase);
 void	BLI_insert_thread	(struct ListBase *threadbase, void *callerdata);
 void	BLI_remove_thread	(struct ListBase *threadbase, void *callerdata);
+void	BLI_remove_thread_index(struct ListBase *threadbase, int index);
+void	BLI_remove_threads(struct ListBase *threadbase);
 void	BLI_end_threads		(struct ListBase *threadbase);
 
 void	BLI_lock_thread		(int type);
 void	BLI_unlock_thread	(int type);
 
 int		BLI_system_thread_count( void ); /* gets the number of threads the system can make use of */
+
+/* ThreadedWorker is a simple tool for dispatching work to a limited number of threads in a transparent
+ * fashion from the caller's perspective
+ * */
+
+struct ThreadedWorker;
+
+/* Create a new worker supporting tot parallel threads.
+ * When new work in inserted and all threads are busy, sleep(sleep_time) before checking again
+ */
+struct ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep_time);
+
+/* join all working threads */
+void BLI_end_worker(struct ThreadedWorker *worker);
+
+/* also ends all working threads */
+void BLI_destroy_worker(struct ThreadedWorker *worker);
+
+/* Spawns a new work thread if possible, sleeps until one is available otherwise
+ * NOTE: inserting work is NOT thread safe, so make sure it is only done from one thread */
+void BLI_insert_work(struct ThreadedWorker *worker, void *param);
+
+
 #endif
 

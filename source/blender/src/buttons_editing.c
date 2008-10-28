@@ -180,6 +180,8 @@
 #include "butspace.h" // own module
 #include "multires.h"
 
+#include "reeb.h"
+
 static float editbutweight= 1.0;
 float editbutvweight= 1;
 static int actmcol= 0, acttface= 0, acttface_rnd = 0, actmcol_rnd = 0;
@@ -5052,6 +5054,9 @@ void do_meshbuts(unsigned short event)
 	case B_GEN_SKELETON:
 		generateSkeleton();
 		break;
+	case B_RETARGET_SKELETON:
+		BIF_retargetArmature();
+		break;
 	}
 
 	/* WATCH IT: previous events only in editmode! */
@@ -5150,6 +5155,100 @@ static void skgen_reorder(void *option, void *arg2)
 	}
 }
 
+static void skgen_graphgen(void *arg1, void *arg2)
+{
+	BIF_GlobalReebGraphFromEditMesh();
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void skgen_graphfree(void *arg1, void *arg2)
+{
+	BIF_GlobalReebFree();
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void skgen_rigadjust(void *arg1, void *arg2)
+{
+	BIF_adjustRetarget();
+}
+
+static void skgen_rigfree(void *arg1, void *arg2)
+{
+	BIF_freeRetarget();
+}
+
+static void skgen_graph_block(uiBlock *block)
+{
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,225,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_HARMONIC, B_DIFF, 		"H",			1250,150, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Apply harmonic smoothing to the weighting");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"",				1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 10.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 53,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_SMART, 	B_DIFF, "Sm",			1078,110, 30,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smart Filtering");
+	uiDefButF(block, NUM, B_DIFF, 							"",				1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 10.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+	
+	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 90,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 90,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
+	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 70, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 70, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 70, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 70, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
+
+	uiBlockEndAlign(block);
+}
+
+static void editing_panel_mesh_skgen_display(Object *ob, Mesh *me)
+{
+	uiBlock *block;
+	uiBut *but;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen_display", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Mesh Tools More", "Skgen");
+	if(uiNewPanel(curarea, block, "Graph", "Editing", 960, 0, 318, 204)==0) return;
+	
+	but = uiDefBut(block, BUT, B_DIFF, "Generate",				1025,170,125,19, 0, 0, 0, 0, 0, "Generate Graph from Mesh");
+	uiButSetFunc(but, skgen_graphgen, NULL, NULL);
+	but = uiDefBut(block, BUT, B_DIFF, "Free",					1150,170,125,19, 0, 0, 0, 0, 0, "Free Graph from Mesh");
+	uiButSetFunc(but, skgen_graphfree, NULL, NULL);
+	
+	skgen_graph_block(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SKGEN_DISP_LENGTH, REDRAWVIEW3D,	"Length",			1025, 40, 50,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Length");
+	uiDefButBitS(block, TOG, SKGEN_DISP_WEIGHT, REDRAWVIEW3D,	"Weight",			1075, 40, 50,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Weight");
+	uiDefButBitS(block, TOG, SKGEN_DISP_EMBED, REDRAWVIEW3D,	"Embed",			1125, 40, 50,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Arc Embedings");
+	uiDefButBitS(block, TOG, SKGEN_DISP_INDEX, REDRAWVIEW3D,	"Index",			1175, 40, 50,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Arc and Node indexes");
+	uiDefButBitS(block, TOG, SKGEN_DISP_ORIG, REDRAWVIEW3D,		"Original",			1225, 40, 50,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,		"Show Original Graph");
+
+	uiBlockEndAlign(block);
+
+	uiDefButC(block, NUM, REDRAWVIEW3D, 						"Level:",			1025, 20, 125,19, &G.scene->toolsettings->skgen_multi_level, 0, REEB_MAX_MULTI_LEVEL, 1, 0,"Specify the level to draw");
+}
+
+static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
+{
+	uiBlock *block;
+	uiBut *but;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen_retarget", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Mesh Tools More", "Skgen");
+	if(uiNewPanel(curarea, block, "Retarget", "Editing", 960, 0, 318, 204)==0) return;
+	
+	uiDefBut(block, BUT, B_RETARGET_SKELETON, "Retarget Skeleton",	1025,170,100,19, 0, 0, 0, 0, 0, "Retarget Selected Armature to this Mesh");
+	but = uiDefBut(block, BUT, B_DIFF, "Adjust",					1125,170,100,19, 0, 0, 0, 0, 0, "Adjust Retarget using new weights");
+	uiButSetFunc(but, skgen_rigadjust, NULL, NULL);
+	but = uiDefBut(block, BUT, B_DIFF, "Free",						1225,170,50,19, 0, 0, 0, 0, 0, "Free Retarget structure");
+	uiButSetFunc(but, skgen_rigfree, NULL, NULL);
+
+	skgen_graph_block(block);
+
+	uiDefButF(block, NUM, B_DIFF, 							"Ang:",			1025, 40, 83,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1108, 40, 83,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+	uiDefButF(block, NUM, B_DIFF, 							"Dist:",		1191, 40, 84,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+	uiDefButC(block, NUM, B_DIFF, 							"Method:",		1025, 20, 125,19, &G.scene->toolsettings->skgen_optimisation_method, 0, 2, 1, 0,"Optimisation Method (0: brute, 1: memoize, 2: annealing max fixed");
+}
+
 static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 {
 	uiBlock *block;
@@ -5157,20 +5256,17 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	int i;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Skeleton Generator", "Editing", 960, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Mesh Tools More", "Skgen");
+	if(uiNewPanel(curarea, block, "Generator", "Editing", 960, 0, 318, 204)==0) return;
 	
-	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+
+	skgen_graph_block(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,250,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
-
 	for(i = 0; i < SKGEN_SUB_TOTAL; i++)
 	{
-		int y = 90 - 20 * i;
+		int y = 50 - 20 * i;
 		
 		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, y, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
 		uiButSetFunc(but, skgen_reorder, SET_INT_IN_POINTER(i), NULL);
@@ -5187,18 +5283,14 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,			"Specify the threshold angle in degrees for subdivision");
 				break;
 			case SKGEN_SUB_CORRELATION:
-				uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
-				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+				uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Adaptative",	1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs adaptatively");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,114,19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the adaptive threshold for subdivision");
+				uiDefButBitS(block, TOG, SKGEN_STICK_TO_EMBEDDING, B_DIFF,		"E",			1225, y, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Stick endpoint to embedding");
+				uiDefButBitS(block, TOG, SKGEN_ADAPTIVE_DISTANCE, B_DIFF, 		"D",			1250, y, 25,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Adaptive distance (on) or variance(off)");
 				break;
 		}
 	}
 
-	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 30,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
-	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 30,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
-	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
-	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
 	uiBlockEndAlign(block);
 }
 
@@ -6623,8 +6715,11 @@ void editing_panels()
 			editing_panel_mesh_tools1(ob, ob->data);
 			uiNewPanelTabbed("Mesh Tools 1", "Editing");
 			
-			if (G.rt == 42) /* hidden for now, no time for docs */
-				editing_panel_mesh_skgen(ob, ob->data);
+			#ifdef WITH_BF_REEB
+			editing_panel_mesh_skgen(ob, ob->data);
+			editing_panel_mesh_skgen_retarget(ob, ob->data);
+			editing_panel_mesh_skgen_display(ob, ob->data);
+			#endif
 			
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
