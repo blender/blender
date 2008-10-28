@@ -25,4 +25,7 @@ if env['WITH_BF_OPENEXR']:
 if not env['WITH_BF_SDL']:
 	defs.append('DISABLE_SDL')
 
+if not env['WITH_BF_PYTHON']:
+	defs.append('DISABLE_PYTHON')
+
 env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )

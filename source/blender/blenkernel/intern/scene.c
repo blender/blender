@@ -82,7 +82,10 @@
 #include "BIF_previewrender.h"
 #include "BIF_editseq.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -139,7 +142,10 @@ void free_scene(Scene *sce)
 	if(sce->radio) MEM_freeN(sce->radio);
 	sce->radio= 0;
 	
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);
+#endif
+	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
@@ -585,9 +591,9 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
-	
+#ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
-
+#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);

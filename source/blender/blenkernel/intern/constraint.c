@@ -64,8 +64,9 @@
 #include "BKE_library.h"
 #include "BKE_idprop.h"
 
-
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "blendef.h"
 
@@ -1814,6 +1815,7 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	sizelike_evaluate /* evaluate */
 };
 
+
 /* ----------- Python Constraint -------------- */
 
 static void pycon_free (bConstraint *con)
@@ -1888,8 +1890,10 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* only execute target calculation if allowed */
+#ifndef DISABLE_PYTHON
 		if (G.f & G_DOSCRIPTLINKS)
 			BPY_pyconstraint_target(data, ct);
+#endif
 	}
 	else if (ct)
 		Mat4One(ct->matrix);
@@ -1897,6 +1901,9 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 
 static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
+#ifdef DISABLE_PYTHON
+	return;
+#else
 	bPythonConstraint *data= con->data;
 	
 	/* only evaluate in python if we're allowed to do so */
@@ -1913,6 +1920,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 	
 	/* Now, run the actual 'constraint' function, which should only access the matrices */
 	BPY_pyconstraint_eval(data, cob, targets);
+#endif /* DISABLE_PYTHON */
 }
 
 static bConstraintTypeInfo CTI_PYTHON = {
