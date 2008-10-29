@@ -207,7 +207,6 @@
 static PyObject *M_Material_New( PyObject * self, PyObject * args,
 				 PyObject * keywords );
 static PyObject *M_Material_Get( PyObject * self, PyObject * args );
-static PyObject *M_Material_DataSize(PyObject *unused);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.  In  */
@@ -232,8 +231,6 @@ struct PyMethodDef M_Material_methods[] = {
 	 M_Material_New_doc},
 	{"Get", M_Material_Get, METH_VARARGS, M_Material_Get_doc},
 	{"get", M_Material_Get, METH_VARARGS, M_Material_Get_doc},
-	{"DataSize", ( PyCFunction ) M_Material_DataSize, METH_NOARGS,
-		"Get sizeof() of Material"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -337,12 +334,6 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 		return matlist;
 	}
 }
-
-static PyObject *M_Material_DataSize(PyObject *unused)
-{
-	return PyInt_FromLong(sizeof(Material));
-}
-
 
 static PyObject *Material_ModesDict( void )
 {
@@ -2515,10 +2506,10 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "iO!|ii", &texnum, &Texture_Type, &pytex,
 			       &texco, &mapto ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9] and Texture" );
+					      "expected int in [0,17] and Texture" );
 	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9] and Texture" );
+					      "expected int in [0,17] and Texture" );
 
 	bltex = Texture_FromPyObject( pytex );
 

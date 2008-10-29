@@ -222,6 +222,7 @@ IF(UNIX)
     bf_avi 
     bf_cineon 
     bf_openexr 
+    bf_dds
     bf_readblenfile 
     blender_bop 
     bf_kernel 

@@ -935,8 +935,8 @@ void action_previewrange_set (bAction *act)
 	}
 	
 	/* set preview range */
-	G.scene->r.psfra= start;
-	G.scene->r.pefra= end;
+	G.scene->r.psfra= (int)start;
+	G.scene->r.pefra= (int)end;
 	
 	BIF_undo_push("Set anim-preview range");
 	allqueue(REDRAWTIME, 0);
@@ -1830,7 +1830,7 @@ void clean_action (void)
 	/* don't proceed any further if nothing to work on or user refuses */
 	data= get_action_context(&datatype);
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
-				0.0000001f, 1.0, 0.001, 0.1,
+				0.0000001f, 1.0f, 0.001f, 0.1f,
 				"Clean Threshold");
 	if (!ok) return;
 	if (datatype == ACTCONT_GPENCIL) return;
@@ -2095,9 +2095,9 @@ void paste_actdata ()
 	short datatype;
 	Object *ob= OBACT;
 	
-	short no_name= 0;
-	float offset = CFRA - actcopy_firstframe;
+	const float offset = (float)(CFRA - actcopy_firstframe);
 	char *actname = NULL, *conname = NULL;
+	short no_name= 0;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
@@ -2118,13 +2118,13 @@ void paste_actdata ()
 	
 	/* from selected channels */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		Ipo *ipo_src=NULL;
+		Ipo *ipo_src = NULL;
 		bActionChannel *achan;
 		IpoCurve *ico, *icu;
 		BezTriple *bezt;
 		int i;
 		
-		/* find matching ipo-block */
+		/* find suitable IPO-block from buffer to paste from */
 		for (achan= actcopybuf.first; achan; achan= achan->next) {
 			/* try to match data */
 			if (ale->ownertype == ACTTYPE_ACHAN) {
@@ -2170,7 +2170,8 @@ void paste_actdata ()
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
+			/* get IPO-curve to paste to (IPO-curve might not exist for destination, so gets created) */
+			icu= verify_ipocurve((ID *)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
@@ -3203,8 +3204,8 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 			rectf.xmax= rectf.xmin;
 			rectf.ymax= rectf.ymin;
 			
-			rectf.xmin = rectf.xmin - 0.5;
-			rectf.xmax = rectf.xmax + 0.5;
+			rectf.xmin = rectf.xmin - 0.5f;
+			rectf.xmax = rectf.xmax + 0.5f;
 			
 			/* filter data */
 			if (datatype == ACTCONT_GPENCIL)
@@ -3387,11 +3388,11 @@ void nextprev_action_keyframe (short dir)
 		short changed= 0;
 		
 		if ((dir > 0) && (nearest->next)) {
-			CFRA= nearest->next->cfra;
+			CFRA= (int)nearest->next->cfra;
 			changed= 1;
 		}
 		else if ((dir < 0) && (nearest->prev)) {
-			CFRA= nearest->prev->cfra;
+			CFRA= (int)nearest->prev->cfra;
 			changed= 1;
 		}
 			
@@ -3481,9 +3482,9 @@ void column_select_action_keys (int mode)
 			
 			/* apply scaled action correction if needed */
 			if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION)
-				ce->cfra= get_action_frame(OBACT, CFRA);
+				ce->cfra= (float)get_action_frame(OBACT, (float)CFRA);
 			else
-				ce->cfra= CFRA;
+				ce->cfra= (float)CFRA;
 	}
 	
 	/* loop through all of the keys and select additional keyframes
@@ -3960,7 +3961,7 @@ static void mouse_action (int selectmode)
 			}
 		}
 		else if (gpl)
-			select_gpencil_frame(gpl, selx, selectmode);
+			select_gpencil_frame(gpl, (int)selx, selectmode);
 		
 		std_rmouse_transform(transform_action_keys);
 		
@@ -5210,7 +5211,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					openclose_level_action(1);
 			}
 			else {
-				view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+				view2d_zoom(G.v2d, 0.1154f, sa->winx, sa->winy);
 				test_view2d(G.v2d, sa->winx, sa->winy);
 				view2d_do_locks(curarea, V2D_LOCK_COPY);
 				
@@ -5223,7 +5224,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					openclose_level_action(-1);
 			}
 			else {
-				view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+				view2d_zoom(G.v2d, -0.15f, sa->winx, sa->winy);
 				test_view2d(G.v2d, sa->winx, sa->winy);
 				view2d_do_locks(curarea, V2D_LOCK_COPY);
 				

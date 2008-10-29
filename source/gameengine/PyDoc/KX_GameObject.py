@@ -30,6 +30,11 @@ class KX_GameObject:
 		Delete this object, can be used inpace of the EndObject Actuator.
 		The actual removal of the object from the scene is delayed.
 		"""	
+	def replaceMesh(mesh_name):
+		"""
+		Replace the mesh of this object with a new mesh. This works the same was as the actuator.
+		@type mesh_name: string
+		"""	
 	def getVisible():
 		"""
 		Gets the game object's visible flag.

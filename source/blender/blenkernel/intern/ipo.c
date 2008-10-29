@@ -73,7 +73,10 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* for BPY_pydriver_eval() */
+#endif
 
 #define SMALL -1.0e-10
 
@@ -234,46 +237,46 @@ void ipo_default_v2d_cur (int blocktype, rctf *cur)
 {
 	switch (blocktype) {
 	case ID_CA:
-		cur->xmin= G.scene->r.sfra;
-		cur->xmax= G.scene->r.efra;
-		cur->ymin= 0.0;
-		cur->ymax= 100.0;
+		cur->xmin= (float)G.scene->r.sfra;
+		cur->xmax= (float)G.scene->r.efra;
+		cur->ymin= 0.0f;
+		cur->ymax= 100.0f;
 		break;
 		
 	case ID_MA: case ID_WO: case ID_LA: 
 	case ID_CU: case ID_CO:
-		cur->xmin= (float)G.scene->r.sfra-0.1;
-		cur->xmax= G.scene->r.efra;
-		cur->ymin= (float)-0.1;
-		cur->ymax= (float)+1.1;
+		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
+		cur->xmax= (float)G.scene->r.efra;
+		cur->ymin= (float)-0.1f;
+		cur->ymax= (float)+1.1f;
 		break;
 		
 	case ID_TE:
-		cur->xmin= (float)G.scene->r.sfra-0.1;
-		cur->xmax= G.scene->r.efra;
-		cur->ymin= (float)-0.1;
-		cur->ymax= (float)+1.1;
+		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
+		cur->xmax= (float)G.scene->r.efra;
+		cur->ymin= (float)-0.1f;
+		cur->ymax= (float)+1.1f;
 		break;
 		
 	case ID_SEQ:
-		cur->xmin= -5.0;
-		cur->xmax= 105.0;
-		cur->ymin= (float)-0.1;
-		cur->ymax= (float)+1.1;
+		cur->xmin= -5.0f;
+		cur->xmax= 105.0f;
+		cur->ymin= (float)-0.1f;
+		cur->ymax= (float)+1.1f;
 		break;
 		
 	case ID_KE:
-		cur->xmin= (float)G.scene->r.sfra-0.1;
-		cur->xmax= G.scene->r.efra;
-		cur->ymin= (float)-0.1;
-		cur->ymax= (float)+2.1;
+		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
+		cur->xmax= (float)G.scene->r.efra;
+		cur->ymin= (float)-0.1f;
+		cur->ymax= (float)+2.1f;
 		break;
 		
 	default:	/* ID_OB and everything else */
-		cur->xmin= G.scene->r.sfra;
-		cur->xmax= G.scene->r.efra;
-		cur->ymin= -5.0;
-		cur->ymax= +5.0;
+		cur->xmin= (float)G.scene->r.sfra;
+		cur->xmax= (float)G.scene->r.efra;
+		cur->ymin= -5.0f;
+		cur->ymax= +5.0f;
 		break;
 	}
 }
@@ -1008,6 +1011,7 @@ static void posechannel_get_local_transform (bPoseChannel *pchan, float loc[], f
  */
 static float eval_driver (IpoDriver *driver, float ipotime)
 {
+#ifndef DISABLE_PYTHON
 	/* currently, drivers are either PyDrivers (evaluating a PyExpression, or Object/Pose-Channel transforms) */
 	if (driver->type == IPO_DRIVER_TYPE_PYTHON) {
 		/* check for empty or invalid expression */
@@ -1022,7 +1026,10 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 		 */
 		return BPY_pydriver_eval(driver);
 	}
-	else {
+	else
+#endif /* DISABLE_PYTHON */
+	{
+
 		Object *ob= driver->ob;
 		
 		/* must have an object to evaluate */
@@ -1053,11 +1060,11 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 			case OB_LOC_Z:
 				return ob->loc[2];
 			case OB_ROT_X:	/* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-				return ob->rot[0]/(M_PI_2/9.0);
+				return (float)( ob->rot[0]/(M_PI_2/9.0) );
 			case OB_ROT_Y:	/* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-				return ob->rot[1]/(M_PI_2/9.0);
+				return (float)( ob->rot[1]/(M_PI_2/9.0) );
 			case OB_ROT_Z:	/* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-				return ob->rot[2]/(M_PI_2/9.0);
+				return (float)( ob->rot[2]/(M_PI_2/9.0) );
 			case OB_SIZE_X:
 				return ob->size[0];
 			case OB_SIZE_Y:
@@ -1090,7 +1097,7 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 						angle = 2.0f * (saacos(quat[0]));
 						angle= ABS(angle);
 						
-						return (angle > M_PI) ? ((2.0f * M_PI) - angle) : (angle);
+						return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
 					}
 				}
 				
@@ -1112,11 +1119,11 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 					case OB_LOC_Z:
 						return loc[2];
 					case OB_ROT_X: /* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-						return eul[0]/(M_PI_2/9.0);
+						return (float)( eul[0]/(M_PI_2/9.0) );
 					case OB_ROT_Y: /* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-						return eul[1]/(M_PI_2/9.0);
+						return (float)( eul[1]/(M_PI_2/9.0) );
 					case OB_ROT_Z: /* hack: euler rotations are divided by 10 deg to fit on same axes as other channels */
-						return eul[2]/(M_PI_2/9.0);
+						return (float)( eul[2]/(M_PI_2/9.0) );
 					case OB_SIZE_X:
 						return size[0];
 					case OB_SIZE_Y:
@@ -2487,79 +2494,92 @@ void set_icu_vars (IpoCurve *icu)
 		{
 			switch (icu->adrcode & (MA_MAP1-1)) {
 				case TE_NSIZE:
-					icu->ymin= 0.0001;
-					icu->ymax= 2.0; break;
+					icu->ymin= 0.0001f;
+					icu->ymax= 2.0f; 
+					break;
 				case TE_NDEPTH:
 					icu->vartype= IPO_SHORT;
 					icu->ipo= IPO_CONST;
-					icu->ymax= 6.0; break;
+					icu->ymax= 6.0f; 
+					break;
 				case TE_NTYPE:
 					icu->vartype= IPO_SHORT;
 					icu->ipo= IPO_CONST;
-					icu->ymax= 1.0; break;
+					icu->ymax= 1.0f; 
+					break;
 				case TE_TURB:
-					icu->ymax= 200.0; break;
+					icu->ymax= 200.0f; 
+					break;
 				case TE_VNW1:
 				case TE_VNW2:
 				case TE_VNW3:
 				case TE_VNW4:
-					icu->ymax= 2.0;
-					icu->ymin= -2.0; break;
+					icu->ymax= 2.0f;
+					icu->ymin= -2.0f; 
+					break;
 				case TE_VNMEXP:
-					icu->ymax= 10.0;
-					icu->ymin= 0.01; break;
+					icu->ymax= 10.0f;
+					icu->ymin= 0.01f; 
+					break;
 				case TE_VN_DISTM:
 					icu->vartype= IPO_SHORT;
 					icu->ipo= IPO_CONST;
-					icu->ymax= 6.0; break;
+					icu->ymax= 6.0f; 
+					break;
 				case TE_VN_COLT:
 					icu->vartype= IPO_SHORT;
 					icu->ipo= IPO_CONST;
-					icu->ymax= 3.0; break;
+					icu->ymax= 3.0f; 
+					break;
 				case TE_ISCA:
-					icu->ymax= 10.0;
-					icu->ymin= 0.01; break;
+					icu->ymax= 10.0f;
+					icu->ymin= 0.01f; 
+					break;
 				case TE_DISTA:
-					icu->ymax= 10.0; break;
+					icu->ymax= 10.0f; 
+					break;
 				case TE_MG_TYP:
 					icu->vartype= IPO_SHORT;
 					icu->ipo= IPO_CONST;
-					icu->ymax= 6.0; break;
+					icu->ymax= 6.0f; 
+					break;
 				case TE_MGH:
-					icu->ymin= 0.0001;
-					icu->ymax= 2.0; break;
+					icu->ymin= 0.0001f;
+					icu->ymax= 2.0f; 
+					break;
 				case TE_MG_LAC:
 				case TE_MG_OFF:
 				case TE_MG_GAIN:
-					icu->ymax= 6.0; break;
+					icu->ymax= 6.0f; break;
 				case TE_MG_OCT:
-					icu->ymax= 8.0; break;
+					icu->ymax= 8.0f; break;
 				case TE_N_BAS1:
 				case TE_N_BAS2:
 					icu->vartype= IPO_SHORT;
 					icu->ipo= IPO_CONST;
-					icu->ymax= 8.0; break;
+					icu->ymax= 8.0f; 
+					break;
 				case TE_COL_R:
-					icu->ymax= 0.0; break;
+					icu->ymax= 0.0f; break;
 				case TE_COL_G:
-					icu->ymax= 2.0; break;
+					icu->ymax= 2.0f; break;
 				case TE_COL_B:
-					icu->ymax= 2.0; break;
+					icu->ymax= 2.0f; break;
 				case TE_BRIGHT:
-					icu->ymax= 2.0; break;
+					icu->ymax= 2.0f; break;
 				case TE_CONTRA:
-					icu->ymax= 5.0; break;	
+					icu->ymax= 5.0f; break;	
 			}
 		}
 			break;
 		case ID_SEQ: /* sequence channels -----------------------------  */
 		{
-			icu->ymax= 1.0;
+			icu->ymax= 1.0f;
 		}
 			break;
 		case ID_CU: /* curve channels -----------------------------  */
 		{
-			icu->ymax= 1.0;
+			icu->ymax= 1.0f;
 		}
 			break;
 		case ID_WO: /* world channels -----------------------------  */
@@ -2567,7 +2587,8 @@ void set_icu_vars (IpoCurve *icu)
 			if (icu->adrcode < MA_MAP1) {
 				switch (icu->adrcode) {
 				case WO_EXPOS:
-					icu->ymax= 5.0; break;
+					icu->ymax= 5.0f; break;
+				
 				case WO_MISTDI:
 				case WO_MISTSTA:
 				case WO_MISTHI:
@@ -2576,7 +2597,7 @@ void set_icu_vars (IpoCurve *icu)
 					break;
 					
 				default:
-					icu->ymax= 1.0;
+					icu->ymax= 1.0f;
 					break;
 				}
 			}
@@ -2588,8 +2609,8 @@ void set_icu_vars (IpoCurve *icu)
 				case MAP_SIZE_X:
 				case MAP_SIZE_Y:
 				case MAP_SIZE_Z:
-					icu->ymax= 100.0;
-					icu->ymin= -100.0;
+					icu->ymax= 100.0f;
+					icu->ymin= -100.0f;
 					break;
 				case MAP_R:
 				case MAP_G:
@@ -2599,7 +2620,7 @@ void set_icu_vars (IpoCurve *icu)
 				case MAP_NORF:
 				case MAP_VARF:
 				case MAP_DISP:
-					icu->ymax= 1.0;
+					icu->ymax= 1.0f;
 				}
 			}
 		}
@@ -2618,13 +2639,13 @@ void set_icu_vars (IpoCurve *icu)
 				case LA_SPOTBL:
 				case LA_QUAD1:
 				case LA_QUAD2:
-					icu->ymax= 1.0; break;
+					icu->ymax= 1.0f; break;
 					
 				case LA_SPOTSI:
-					icu->ymax= 180.0; break;
+					icu->ymax= 180.0f; break;
 				
 				case LA_HALOINT:
-					icu->ymax= 5.0; break;
+					icu->ymax= 5.0f; break;
 				}
 			}
 			else {
@@ -2635,8 +2656,8 @@ void set_icu_vars (IpoCurve *icu)
 				case MAP_SIZE_X:
 				case MAP_SIZE_Y:
 				case MAP_SIZE_Z:
-					icu->ymax= 100.0;
-					icu->ymin= -100.0;
+					icu->ymax= 100.0f;
+					icu->ymin= -100.0f;
 					break;
 				case MAP_R:
 				case MAP_G:
@@ -2646,7 +2667,7 @@ void set_icu_vars (IpoCurve *icu)
 				case MAP_NORF:
 				case MAP_VARF:
 				case MAP_DISP:
-					icu->ymax= 1.0;
+					icu->ymax= 1.0f;
 				}
 			}
 		}	
@@ -2655,8 +2676,8 @@ void set_icu_vars (IpoCurve *icu)
 		{
 			switch (icu->adrcode) {
 			case CAM_LENS:
-				icu->ymin= 1.0;
-				icu->ymax= 1000.0;
+				icu->ymin= 1.0f;
+				icu->ymax= 1000.0f;
 				break;
 			case CAM_STA:
 				icu->ymin= 0.001f;
@@ -2666,12 +2687,12 @@ void set_icu_vars (IpoCurve *icu)
 				break;
 				
 			case CAM_YF_APERT:
-				icu->ymin = 0.0;
-				icu->ymax = 2.0;
+				icu->ymin = 0.0f;
+				icu->ymax = 2.0f;
 				break;
 			case CAM_YF_FDIST:
-				icu->ymin = 0.0;
-				icu->ymax = 5000.0;
+				icu->ymin = 0.0f;
+				icu->ymax = 5000.0f;
 				break;
 				
 			case CAM_SHIFT_X:
@@ -2686,20 +2707,20 @@ void set_icu_vars (IpoCurve *icu)
 		{
 			switch (icu->adrcode) {
 			case SND_VOLUME:
-				icu->ymin= 0.0;
-				icu->ymax= 1.0;
+				icu->ymin= 0.0f;
+				icu->ymax= 1.0f;
 				break;
 			case SND_PITCH:
-				icu->ymin= -12.0;
-				icu->ymin= 12.0;
+				icu->ymin= -12.0f;
+				icu->ymin= 12.0f;
 				break;
 			case SND_PANNING:
-				icu->ymin= 0.0;
-				icu->ymax= 1.0;
+				icu->ymin= 0.0f;
+				icu->ymax= 1.0f;
 				break;
 			case SND_ATTEN:
-				icu->ymin= 0.0;
-				icu->ymin= 1.0;
+				icu->ymin= 0.0f;
+				icu->ymin= 1.0f;
 				break;
 			}
 		}
@@ -2713,28 +2734,28 @@ void set_icu_vars (IpoCurve *icu)
 			case PART_EMIT_VEL:
 			case PART_EMIT_AVE:
 			case PART_EMIT_SIZE:
-				icu->ymin= 0.0;
+				icu->ymin= 0.0f;
 				break;
 			case PART_CLUMP:
-				icu->ymin= -1.0;
-				icu->ymax= 1.0;
+				icu->ymin= -1.0f;
+				icu->ymax= 1.0f;
 				break;
 			case PART_DRAG:
 			case PART_DAMP:
 			case PART_LENGTH:
-				icu->ymin= 0.0;
-				icu->ymax= 1.0;
+				icu->ymin= 0.0f;
+				icu->ymax= 1.0f;
 				break;
 			case PART_KINK_SHAPE:
-				icu->ymin= -0.999;
-				icu->ymax= 0.999;
+				icu->ymin= -0.999f;
+				icu->ymax= 0.999f;
 				break;
 			}
 		}
 			break;
 		case ID_CO: /* constraint channels -----------------------------  */
 		{
-			icu->ymin= 0.0;
+			icu->ymin= 0.0f;
 			icu->ymax= 1.0f;
 		}
 			break;

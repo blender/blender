@@ -110,7 +110,6 @@ def setup_staticlibs(lenv):
     ]
     libincs = [
         '/usr/lib',
-        lenv['BF_PYTHON_LIBPATH'],
         lenv['BF_OPENGL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
@@ -118,6 +117,8 @@ def setup_staticlibs(lenv):
         lenv['BF_ICONV_LIBPATH']
         ]
 
+    if lenv['WITH_BF_PYTHON']:
+        libincs += Split(lenv['BF_PYTHON_LIBPATH'])
     if lenv['WITH_BF_SDL']:
         libincs += Split(lenv['BF_SDL_LIBPATH'])
     if lenv['WITH_BF_FFMPEG']:
@@ -138,7 +139,7 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
 
-    if lenv['WITH_BF_STATICPYTHON']:
+    if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
         statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
 
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross'):
@@ -154,8 +155,8 @@ def setup_syslibs(lenv):
         lenv['BF_ZLIB_LIB']
         ]
 
-    if not lenv['WITH_BF_STATICPYTHON']:
-        if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
+    if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
+        if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
             syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
         else:
             syslibs.append(lenv['BF_PYTHON_LIB'])
@@ -215,7 +216,7 @@ def buildinfo(lenv, build_type):
     build_rev = os.popen('svnversion').read()[:-1] # remove \n
 
     obj = []
-    if lenv['BF_BUILDINFO']==1: #user_options_dict['USE_BUILDINFO'] == 1:
+    if lenv['BF_BUILDINFO']:
         if sys.platform=='win32':
             build_info_file = open("source/creator/winbuildinfo.h", 'w')
             build_info_file.write("char *build_date=\"%s\";\n"%build_date)
@@ -449,15 +450,18 @@ class BlenderEnvironment(SConsEnvironment):
                 lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
         if  lenv['OURPLATFORM']=='linux2':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['WITH_BF_PYTHON']:
+                lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='sunos5':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['WITH_BF_PYTHON']:
+                lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             if lenv['CXX'].endswith('CC'):
                  lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['WITH_BF_PYTHON']:
+                lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])
         if lenv['BF_PROFILE']:
                 lenv.Append(LINKFLAGS = lenv['BF_PROFILE_FLAGS'])

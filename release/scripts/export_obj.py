@@ -678,7 +678,7 @@ def write_ui(filename):
 			
 			Draw.Label('Blender Objects as OBJ:', ui_x+9, ui_y+59, 220, 20)
 			Draw.BeginAlign()
-			EXPORT_BLEN_OBS = Draw.Toggle('Objects', EVENT_REDRAW, ui_x+9, ui_y+40, 60, 20, EXPORT_BLEN_OBS.val, 'Export blender objects as "OBJ objects".', do_split)
+			EXPORT_BLEN_OBS = Draw.Toggle('Objects', EVENT_REDRAW, ui_x+9, ui_y+39, 60, 20, EXPORT_BLEN_OBS.val, 'Export blender objects as "OBJ objects".', do_split)
 			EXPORT_GROUP_BY_OB = Draw.Toggle('Groups', EVENT_REDRAW, ui_x+69, ui_y+39, 60, 20, EXPORT_GROUP_BY_OB.val, 'Export blender objects as "OBJ Groups".', do_split)
 			EXPORT_GROUP_BY_MAT = Draw.Toggle('Material Groups', EVENT_REDRAW, ui_x+129, ui_y+39, 100, 20, EXPORT_GROUP_BY_MAT.val, 'Group by materials.', do_split)
 			Draw.EndAlign()
@@ -694,7 +694,7 @@ def write_ui(filename):
 		
 		# hack so the toggle buttons redraw. this is not nice at all
 		while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_EXPORT):
-			Draw.UIBlock(obj_ui)
+			Draw.UIBlock(obj_ui, 0)
 		
 		if GLOBALS['EVENT'] != EVENT_EXPORT:
 			return

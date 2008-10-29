@@ -143,10 +143,10 @@ def file_callback(filename):
 				normal_key = rvec3d(normal)
 			
 			if faceUV:
-				uvcoord=	tuple(uv[j])
+				uvcoord=	uv[j][0], 1.0-uv[j][1]
 				uvcoord_key = rvec2d(uvcoord)
 			elif vertexUV:
-				uvcoord=	tuple(v.uvco)
+				uvcoord=	v.uvco[0], 1.0-v.uvco[1]
 				uvcoord_key = rvec2d(uvcoord)
 			
 			if vertexColors:	color=		col[j].r, col[j].g, col[j].b
@@ -209,8 +209,8 @@ def file_callback(filename):
 		for j, v in enumerate(f):
 			if f.smooth:		normal=		rvec3d(v.no)
 			else:				normal=		no
-			if faceUV:			uvcoord=	rvec2d(uv[j])
-			elif vertexUV:		uvcoord=	rvec2d(v.uvco)
+			if faceUV:			uvcoord=	rvec2d((uv[j][0], 1.0-uv[j][1]))
+			elif vertexUV:		uvcoord=	rvec2d((v.uvco[0], 1.0-v.uvco[1]))
 			if vertexColors:	color=		col[j].r, col[j].g, col[j].b
 			
 			file.write('%d ' % vdict[v.index][normal, uvcoord, color])

@@ -1,4 +1,4 @@
-# $Id$
+# $Id: CMakeLists.txt 14444 2008-04-16 22:40:48Z hos $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -20,24 +20,26 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): 
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna python radiosity readblenfile render src yafray)
+FILE (GLOB SRC *.cpp)
 
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
-ENDIF(WITH_INTERNATIONAL)
+SET(INC 
+  .
+  ../../../blenkernel
+  ../../../makesdna
+  ../../
+  ..
+  ../../../blenlib
+  intern/include
+  ../../../../../intern/guardedalloc
+)
 
-IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
+if(WITH_DDS)
+  ADD_DEFINITIONS(-DWITH_DDS)
 ENDIF(WITH_DDS)
 
-IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
-ENDIF(WITH_QUICKTIME)
+BLENDERLIB(bf_dds "${SRC}" "${INC}")                 
+#env.BlenderLib ('bf_dds', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])

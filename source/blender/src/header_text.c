@@ -84,8 +84,10 @@
 
 #include "BLI_blenlib.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -166,11 +168,12 @@ void do_text_buttons(unsigned short event)
 				st->text = st->text->id.next;
 				pop_space_text(st);
 			}
-			
+
+#ifndef DISABLE_PYTHON
 			BPY_clear_bad_scriptlinks(text);
 			BPY_free_pyconstraint_links(text);
 			free_text_controllers(text);
-			
+#endif
 			unlink_text(text);
 			free_libblock(&G.main->text, text);
 			
@@ -231,7 +234,7 @@ void do_text_buttons(unsigned short event)
 		break;
 	}
 }
-
+#ifndef DISABLE_PYTHON
 static void do_text_template_scriptsmenu(void *arg, int event)
 {
 	BPY_menu_do_python(PYMENU_SCRIPTTEMPLATE, event);
@@ -293,6 +296,7 @@ static uiBlock *text_plugin_scriptsmenu (void *args_unused)
 	
 	return block;
 }
+#endif
 
 /* action executed after clicking in File menu */
 static void do_text_filemenu(void *arg, int event)
@@ -316,8 +320,10 @@ static void do_text_filemenu(void *arg, int event)
 		activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, add_text_fs);
 		break;
 	case 3:
+#ifndef DISABLE_PYTHON
 		if (text->compiled) BPY_free_compiled_text(text);
 		        text->compiled = NULL;
+#endif
 			if (okee("Reopen Text")) {
 				if (!reopen_text(text)) {
 					error("Could not reopen file");
@@ -339,6 +345,7 @@ static void do_text_filemenu(void *arg, int event)
 		run_python_script(st);
 		break;
 	case 8:
+#ifndef DISABLE_PYTHON
 	{
 		Object *ob;
 		bConstraint *con;
@@ -373,6 +380,7 @@ static void do_text_filemenu(void *arg, int event)
 			}
 		}
 	}
+#endif
 		break;
 	default:
 		break;
@@ -820,16 +828,18 @@ static uiBlock *text_filemenu(void *arg_unused)
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-		
+#ifndef DISABLE_PYTHON
 		if (BPY_is_pyconstraint(text))
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Refresh All PyConstraints", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-			
+#endif
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
-	
+
+#ifndef DISABLE_PYTHON
 	uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, text_plugin_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Text Plugins", 0, yco-=20, 120, 19, "");
-
+#endif
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -924,8 +934,10 @@ static short do_modification_check(SpaceText *st_v) {
 		} else {
 			switch (pupmenu("File Modified Outside Blender %t|Reload from disk %x0|Make text internal (separate copy) %x1|Ignore %x2")) {
 			case 0:
+#ifndef DISABLE_PYTHON
 				if (text->compiled) BPY_free_compiled_text(text);
 					text->compiled = NULL;
+#endif
 				reopen_text(text);
 				if (st->showsyntax) txt_format_text(st);
 				return 1;

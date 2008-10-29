@@ -55,7 +55,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "BIF_gl.h"
 #include "BIF_keyval.h"
@@ -87,6 +89,9 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 	glClear(GL_COLOR_BUFFER_BIT);
 	myortho2(-0.5, curarea->winrct.xmax-curarea->winrct.xmin-0.5, -0.5, curarea->winrct.ymax-curarea->winrct.ymin-0.5);
 
+#ifdef DISABLE_PYTHON
+	return;
+#else
 	if (!sc->script) return;
 
 	script = sc->script;
@@ -115,10 +120,12 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 			addqueue(curarea->win, MOUSEX, 0);
 		}
 	}
+#endif /* DISABLE_PYTHON */
 }
 
 void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt)
 {
+#ifndef DISABLE_PYTHON
 	unsigned short event = evt->event;
 	short val = evt->val;
 	char ascii = evt->ascii;
@@ -163,19 +170,21 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 		if (event == QKEY)
 			if (val && (G.qual & LR_CTRLKEY) && okee("Quit Blender")) exit_usiblender();
 	}
-
+#endif
 	return;
+
 }
 
 void free_scriptspace (SpaceScript *sc)
 {
 	if (!sc) return;
-	
+#ifndef DISABLE_PYTHON	
 	/*free buttons references*/
 	if (sc->but_refs) {
 		BPy_Set_DrawButtonsList(sc->but_refs);
 		BPy_Free_DrawButtonsList();
 		sc->but_refs = NULL;
 	}
+#endif
 	sc->script = NULL;
 }

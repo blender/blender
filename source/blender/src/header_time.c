@@ -500,7 +500,7 @@ void time_buttons(ScrArea *sa)
 			&G.scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 			"The start frame of the animation preview (inclusive)");
 
-		xco += 4.5*XIC;
+		xco += (short)(4.5*XIC);
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
@@ -513,23 +513,23 @@ void time_buttons(ScrArea *sa)
  		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
  		"The start frame of the animation (inclusive)");
 
-		xco += 4.5*XIC;
+		xco += (short)(4.5*XIC);
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
-			&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
+			&G.scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
 			"The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
 
-	xco += 4.5*XIC+16;
+	xco += (short)(4.5 * XIC + 16);
 	
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 		xco,0,3.5*XIC,YIC,
 		&(G.scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 		"Displays Current Frame of animation");
 	
-	xco += 3.5*XIC+16;
+	xco += (short)(3.5 * XIC + 16);
 	
 	uiDefIconBut(block, BUT, B_TL_REW, ICON_REW,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to Start frame (Shift DownArrow)");

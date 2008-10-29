@@ -532,6 +532,16 @@ static PyObject *traceback_getFilename( PyObject * tb )
 	else return PyString_FromString("unknown");
 }
 
+static void BPY_Err_Clear(void)
+{	
+	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+	 * their user count. Not to mention holding references to wrapped data.
+	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+	 * has alredy dealocated the pointer */
+	PySys_SetObject( "last_traceback", Py_None);
+	
+	PyErr_Clear();
+}
 /****************************************************************************
 * Description: Blender Python error handler. This catches the error and	
 * stores filename and line number in a global  
@@ -542,6 +552,7 @@ static void BPY_Err_Handle( char *script_name )
 
 	if( !script_name ) {
 		printf( "Error: script has NULL name\n" );
+		BPY_Err_Clear();
 		return;
 	}
 
@@ -568,8 +579,9 @@ static void BPY_Err_Handle( char *script_name )
 		} else {
 			g_script_error.lineno = -1;
 		}
-		/* this avoids an abort in Python 2.3's garbage collecting: */
-		PyErr_Clear(  );
+		/* this avoids an abort in Python 2.3's garbage collecting:
+		PyErr_Clear() */
+		BPY_Err_Clear(); /* Calls PyErr_Clear as well */
 		return;
 	} else {
 		PyErr_NormalizeException( &exception, &err, &tb );
@@ -579,6 +591,7 @@ static void BPY_Err_Handle( char *script_name )
 
 		if( !tb ) {
 			printf( "\nCan't get traceback\n" );
+			BPY_Err_Clear(); /* incase there is still some data hanging about */
 			return;
 		}
 
@@ -616,7 +629,8 @@ static void BPY_Err_Handle( char *script_name )
 		}
 		Py_DECREF( tb );
 	}
-
+	
+	BPY_Err_Clear();
 	return;
 }
 
@@ -2727,6 +2741,8 @@ int BPY_call_importloader( char *name )
 * Description: This function executes the python script passed by text.	
 *		The Python dictionary containing global variables needs to
 *		be passed in globaldict.
+*		NOTE: Make sure BPY_Err_Handle() runs if this returns NULL
+*		otherwise pointers can be left in sys.last_traceback that become invalid.
 *****************************************************************************/
 static PyObject *RunPython( Text * text, PyObject * globaldict )
 {

@@ -161,8 +161,10 @@
 #include "BDR_editmball.h"
 #include "BDR_sculptmode.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "GPU_draw.h"
 
@@ -535,6 +537,7 @@ static void filesel_u_renderdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
+#ifndef DISABLE_PYTHON
 static void filesel_u_pythondir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
@@ -550,6 +553,7 @@ static void filesel_u_pythondir(char *name)
 		error("Invalid scripts dir: check console");
 	}
 }
+#endif
 
 static void filesel_u_sounddir(char *name)
 {
@@ -1525,7 +1529,7 @@ void do_global_buttons(unsigned short event)
 
 		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
 		break;
-
+#ifndef DISABLE_PYTHON
 	case B_PYMENUEVAL: /* is button from space.c *info* */
 		waitcursor( 1 ); /* can take some time */
 		if (BPY_path_update() == 0) { /* re-eval scripts registration in menus */
@@ -1542,7 +1546,7 @@ void do_global_buttons(unsigned short event)
 
 		activate_fileselect(FILE_SPECIAL, "SELECT SCRIPT PATH", U.pythondir, filesel_u_pythondir);
 		break;
-
+#endif
 	case B_SOUNDDIRFILESEL:		/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();

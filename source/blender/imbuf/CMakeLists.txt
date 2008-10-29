@@ -54,5 +54,9 @@ IF(WITH_FFMPEG)
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
+if(WITH_DDS)
+  ADD_DEFINITIONS(-DWITH_DDS)
+ENDIF(WITH_DDS)
+
 BLENDERLIB(bf_imbuf "${SRC}" "${INC}")
 #env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )

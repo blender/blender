@@ -14,17 +14,17 @@ defs = []
 if env['OURPLATFORM'] in ('win32-mingw') and env['BF_DEBUG']:
 	defs.append('Py_TRACE_REFS')
 
-if env['WITH_BF_QUICKTIME']==1:
+if env['WITH_BF_QUICKTIME']:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 	defs.append('WITH_QUICKTIME')
 	
-if env['WITH_BF_OPENEXR'] == 1:
+if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 
-if env['WITH_BF_FFMPEG'] == 1:
+if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
 
-if env['BF_BUILDINFO'] == 1:
+if env['BF_BUILDINFO']:
     defs.append('NAN_BUILDINFO')
 
 env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )

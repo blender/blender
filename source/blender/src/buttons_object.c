@@ -152,7 +152,10 @@
 #include "BSE_edit.h"
 
 #include "BDR_editobject.h"
+
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "butspace.h" // own module
 
@@ -643,6 +646,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 	else {
 		switch (con->type) {
+#ifndef DISABLE_PYTHON
 		case CONSTRAINT_TYPE_PYTHON:
 			{
 				bPythonConstraint *data = con->data;
@@ -724,6 +728,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				draw_constraint_spaceselect(block, con, *xco, *yco-(73+theight), is_armature_owner(ob), -1);
 			}
 			break;
+#endif /* DISABLE_PYTHON */
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = con->data;
@@ -1847,6 +1852,7 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_TEST:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;  // no handling
 	case B_CONSTRAINT_INF:
 		/* influence; do not execute actions for 1 dag_flush */
@@ -2055,8 +2061,9 @@ void do_constraintbuts(unsigned short event)
 	if(ob->type==OB_ARMATURE) DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void pointcache_bake(PTCacheID *pid, int startframe)

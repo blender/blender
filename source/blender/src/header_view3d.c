@@ -125,8 +125,10 @@
 #include "BIF_verse.h"
 #endif
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "blendef.h"
 #include "multires.h"
@@ -212,6 +214,14 @@ static void do_view3d_view_camerasmenu(void *arg, int event)
 		persptoetsen(PAD0);
 		G.qual &= ~LR_CTRLKEY;
 	} else {
+		/* store settings of current view before allowing overwriting with camera view */
+		/* this is a copy of the code in toets.c */
+		if(G.vd->persp != V3D_CAMOB) {
+			QUATCOPY(G.vd->lviewquat, G.vd->viewquat);
+			G.vd->lview= G.vd->view;
+			G.vd->lpersp= G.vd->persp;
+		}
+
 		for( base = FIRSTBASE; base; base = base->next ) {
 			if (base->object->type == OB_CAMERA) {
 				i++;
@@ -453,6 +463,7 @@ static uiBlock *view3d_view_alignviewmenu(void *arg_unused)
 	return block;
 }
 
+#ifndef DISABLE_PYTHON
 static void do_view3d_view_spacehandlers(void *arg, int event)
 {
 	Text *text = G.main->text.first;
@@ -540,6 +551,7 @@ static uiBlock *view3d_view_spacehandlers(void *arg_unused)
 
 	return block;
 }
+#endif /* DISABLE_PYTHON */
 
 static void do_view3d_viewmenu(void *arg, int event)
 {
@@ -683,8 +695,10 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, view3d_view_spacehandlers, NULL, ICON_RIGHTARROW_THIN, "Space Handler Scripts", 0, yco-=20, 120, 19, "");
+#endif
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1460,8 +1474,10 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 void do_view3d_select_faceselmenu(void *arg, int event)
 {
 	/* events >= 6 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
-
+#endif
+	
 	switch(event) {
 		case 0: /* border select */
 			borderselect();
@@ -1483,7 +1499,9 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_select_faceselmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -1499,6 +1517,7 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Faces|Ctrl L",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* note that we account for the 6 previous entries with i+6: */
@@ -1507,7 +1526,8 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 			menuwidth, 19, NULL, 0.0, 0.0, 1, i+6,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
-
+#endif
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -2437,6 +2457,7 @@ static uiBlock *view3d_edit_object_showhidemenu(void *arg_unused)
 	return block;
 }
 
+#ifndef DISABLE_PYTHON
 static void do_view3d_edit_object_scriptsmenu(void *arg, int event)
 {
 	BPY_menu_do_python(PYMENU_OBJECT, event);
@@ -2463,6 +2484,7 @@ static uiBlock *view3d_edit_object_scriptsmenu(void *arg_unused)
 
 	return block;
 }
+#endif /* DISABLE_PYTHON */
 
 #ifdef WITH_VERSE
 extern ListBase session_list;
@@ -2602,9 +2624,10 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Objects", 0, yco-=20, 120, 19, "");
 	
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-
+#endif
 		
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -3070,6 +3093,7 @@ static uiBlock *view3d_edit_mesh_showhidemenu(void *arg_unused)
 	return block;
 }
 
+#ifndef DISABLE_PYTHON
 static void do_view3d_edit_mesh_scriptsmenu(void *arg, int event)
 {
 	BPY_menu_do_python(PYMENU_MESH, event);
@@ -3096,6 +3120,7 @@ static uiBlock *view3d_edit_mesh_scriptsmenu(void *arg_unused)
 
 	return block;
 }
+#endif /* DISABLE_PYTHON */
 
 static void do_view3d_edit_meshmenu(void *arg, int event)
 {
@@ -3240,9 +3265,11 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefIconTextBlockBut(block, view3d_edit_mesh_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Vertices", 0, yco-=20, 120, 19, "");
 
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mesh_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-	
+#endif
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -3960,7 +3987,7 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 }
 
 
-
+#ifndef DISABLE_PYTHON
 static void do_view3d_scripts_armaturemenu(void *arg, int event)
 {
 	BPY_menu_do_python(PYMENU_ARMATURE, event);
@@ -3991,6 +4018,7 @@ static uiBlock *view3d_scripts_armaturemenu(void *args_unused)
 	
 	return block;
 }
+#endif /* DISABLE_PYTHON */
 
 static void do_view3d_armature_settingsmenu(void *arg, int event)
 {
@@ -4073,10 +4101,11 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_edit_armature_parentmenu, NULL, ICON_RIGHTARROW_THIN, "Parent", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_armature_settingsmenu, NULL, ICON_RIGHTARROW_THIN, "Bone Settings", 0, yco-=20, 120, 19, "");
 	
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_scripts_armaturemenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-	
+#endif
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -4482,8 +4511,9 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 static void do_view3d_vpaintmenu(void *arg, int event)
 {
 	/* events >= 3 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 3) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 3);
-	
+#endif
 	switch(event) {
 	case 0: /* undo vertex painting */
 		BIF_undo();
@@ -4505,7 +4535,9 @@ static uiBlock *view3d_vpaintmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -4515,6 +4547,7 @@ static uiBlock *view3d_vpaintmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Shaded Vertex Colors",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
+#ifndef DISABLE_PYTHON
 	/* note that we account for the 3 previous entries with i+3:
 	even if the last item isnt displayed, it dosent matter */
 	for (pym = BPyMenuTable[PYMENU_VERTEXPAINT]; pym; pym = pym->next, i++) {
@@ -4522,7 +4555,8 @@ static uiBlock *view3d_vpaintmenu(void *arg_unused)
 			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
-	
+#endif
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -4577,8 +4611,9 @@ static void do_view3d_wpaintmenu(void *arg, int event)
 	Object *ob= OBACT;
 	
 	/* events >= 3 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 4) BPY_menu_do_python(PYMENU_WEIGHTPAINT, event - 4);
-	
+#endif	
 	switch(event) {
 	case 0: /* undo weight painting */
 		BIF_undo();
@@ -4600,7 +4635,9 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120, menunr=1;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i=0;
 		
 	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -4620,7 +4657,8 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		menunr++;
 	}
-	
+
+#ifndef DISABLE_PYTHON
 	/* note that we account for the 4 previous entries with i+4:
 	even if the last item isnt displayed, it dosent matter */
 	for (pym = BPyMenuTable[PYMENU_WEIGHTPAINT]; pym; pym = pym->next, i++) {
@@ -4628,7 +4666,8 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 			menuwidth, 19, NULL, 0.0, 0.0, 1, i+4,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
-	
+#endif
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -4900,8 +4939,9 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 void do_view3d_select_particlemenu(void *arg, int event)
 {
 	/* events >= 6 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 6) BPY_menu_do_python(PYMENU_FACESELECT, event - 6);
-
+#endif
 	switch(event) {
 		case 0:
 			PE_borderselect();

@@ -11,24 +11,28 @@ SConscript(['avi/SConscript',
             'imbuf/SConscript',
             'imbuf/intern/cineon/SConscript',
             'makesdna/SConscript',
-            'python/SConscript',
             'radiosity/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
             'src/SConscript',
             'nodes/SConscript'])
 
-if env['WITH_BF_YAFRAY'] == 1:
+
+
+if env['WITH_BF_PYTHON']:
+    SConscript(['python/SConscript'])
+
+if env['WITH_BF_YAFRAY']:
     SConscript(['yafray/SConscript'])
 
-if env['WITH_BF_INTERNATIONAL'] == 1:
+if env['WITH_BF_INTERNATIONAL']:
     SConscript (['ftfont/SConscript'])
 
-if env['WITH_BF_DDS'] == 1:
+if env['WITH_BF_DDS']:
     SConscript (['imbuf/intern/dds/SConscript'])
 
-if env['WITH_BF_OPENEXR'] == 1:
+if env['WITH_BF_OPENEXR']:
     SConscript (['imbuf/intern/openexr/SConscript'])
 
-if env['WITH_BF_QUICKTIME'] == 1:
+if env['WITH_BF_QUICKTIME']:
     SConscript (['quicktime/SConscript'])

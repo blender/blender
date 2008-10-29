@@ -121,8 +121,10 @@
 #include "mydevice.h"
 
 /* bpymenu */
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -1924,12 +1926,15 @@ static TBitem *create_mesh_sublevel(ListBase *storage)
 	Link *link;
 	TBitem *meshmenu, *mm;
 	int totmenu= 10, totpymenu=0, a=0;
-	
+
+#ifndef DISABLE_PYTHON
 	/* Python Menu */
 	BPyMenu *pym;
 	
 	/* count the python menu items*/
 	for (pym = BPyMenuTable[PYMENU_ADDMESH]; pym; pym = pym->next, totpymenu++) {}
+#endif
+
 	if (totpymenu) totmenu += totpymenu+1; /* add 1 for the seperator */
 	
 	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(totmenu+1), "mesh menu");
@@ -1948,6 +1953,7 @@ static TBitem *create_mesh_sublevel(ListBase *storage)
 	mm->icon = 0; mm->retval= a; mm->name = "Monkey"; 		mm++; a++;
 	/* a == 10 */
 	
+#ifndef DISABLE_PYTHON
 	if (totpymenu) {
 		int i=0;
 		mm->icon = 0; mm->retval= 0; mm->name = "SEPR"; 	mm++;
@@ -1960,7 +1966,8 @@ static TBitem *create_mesh_sublevel(ListBase *storage)
 			mm++; a++;
 		}
 	}
-	
+#endif
+
 	/* terminate the menu */
 	mm->icon= -1; mm->retval= a; mm->name= ""; mm->poin= do_info_add_meshmenu;
 	

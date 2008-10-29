@@ -245,6 +245,7 @@ void VecMulf(float *v1, float f);
 int VecLenCompare(float *v1, float *v2, float limit);
 int VecCompare(float *v1, float *v2, float limit);
 int VecEqual(float *v1, float *v2);
+int VecIsNull(float *v);
 
 void printvecf(char *str,float v[3]);
 void printvec4f(char *str, float v[4]);
@@ -265,6 +266,7 @@ void Vec2Copyf(float *v1, float *v2);
 void Vec2Lerpf(float *target, float *a, float *b, float t);
 
 void AxisAngleToQuat(float *q, float *axis, float angle);
+void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
 void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);

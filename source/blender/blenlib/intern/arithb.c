@@ -1371,6 +1371,18 @@ void NormalQuat(float *q)
 	}
 }
 
+void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3])
+{
+	float axis[3];
+	float angle;
+	
+	Crossf(axis, v1, v2);
+	
+	angle = NormalizedVecAngle2(v1, v2);
+	
+	AxisAngleToQuat(q, axis, angle);
+}
+
 void AxisAngleToQuat(float *q, float *axis, float angle)
 {
 	float nor[3];
@@ -2217,6 +2229,11 @@ int VecCompare( float *v1, float *v2, float limit)
 int VecEqual(float *v1, float *v2)
 {
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
+}
+
+int VecIsNull(float *v)
+{
+	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
 }
 
 void CalcNormShort( short *v1, short *v2, short *v3, float *n) /* is also cross product */

@@ -822,6 +822,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 			new_nurb->bezt->f2 = SELECT;
 			new_nurb->bezt->f3 = SELECT;
 			new_nurb->bezt->hide = 0;
+			new_nurb->bezt->radius = 1.0;
 			/* calchandlesNurb( new_nurb ); */
 		} else {	/* set up bp */
 			new_nurb->pntsv = 1;
@@ -831,6 +832,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 			new_nurb->flagv = 0;
 			new_nurb->bp->f1 = 0;
 			new_nurb->bp->hide = 0;
+			new_nurb->bp->radius = 1.0;
 			new_nurb->knotsu = 0;
 			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
 		}

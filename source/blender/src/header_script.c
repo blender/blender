@@ -57,8 +57,10 @@
 #include "BKE_sca.h"
 #include "BSE_filesel.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -68,6 +70,7 @@
 /* ********************** SCRIPT ****************************** */
 
 /* action executed after clicking in Scripts menu */
+#ifndef DISABLE_PYTHON
 static void do_scripts_submenus(void *int_arg, int event)
 {
 	int menutype = (intptr_t)int_arg;
@@ -152,6 +155,7 @@ static uiBlock *script_scriptsmenu(void *arg_unused)
 	uiTextBoundsBlock(block, 50);
 	return block;
 }
+#endif /* DISABLE_PYTHON */
 
 void do_script_buttons(unsigned short event)
 {	
@@ -160,6 +164,7 @@ void do_script_buttons(unsigned short event)
 	int nr= 1;
 	Script *script = sc->script;
 
+#ifndef DISABLE_PYTHON
 	if (!sc) return;
 	if (sc->spacetype != SPACE_SCRIPT) return;
 
@@ -200,7 +205,7 @@ void do_script_buttons(unsigned short event)
 		}
 		break;
 	}
-
+#endif
 	return;
 }
 
@@ -240,6 +245,7 @@ void script_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	xco+=XIC;
 
+#ifndef DISABLE_PYTHON
 	/* pull down menus */
 	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
 		uiBlockSetEmboss(block, UI_EMBOSSP);
@@ -248,7 +254,7 @@ void script_buttons(void)
 		uiDefPulldownBut(block,script_scriptsmenu, NULL, "Scripts", xco, 0, xmax, 20, "");
 		xco+=xmax;
 	}
-
+#endif
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiBlockBeginAlign(block);

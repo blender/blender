@@ -290,7 +290,6 @@ static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self );
 static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd);
-static PyObject *M_Object_DataSize( PyObject * self );
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3, char *bonename);
@@ -319,9 +318,6 @@ The active object is the first in the list, if visible";
 static char M_Object_Duplicate_doc[] =
 	"(linked) - Duplicate all selected, visible objects in the current scene";
 
-static char M_Object_DataSize_doc[] = 
-	"() - return the sizeof(Object)";
-
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
 /*****************************************************************************/
@@ -334,8 +330,6 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_GetSelected_doc},
 	{"Duplicate", ( PyCFunction ) M_Object_Duplicate, METH_VARARGS | METH_KEYWORDS,
 	 M_Object_Duplicate_doc},
-	{"DataSize", ( PyCFunction ) M_Object_DataSize, METH_NOARGS,
-	 M_Object_DataSize_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1041,12 +1035,6 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	adduplicate(2, dupflag); /* 2 is a mode with no transform and no redraw, Duplicate the current selection, context sensitive */
 	Py_RETURN_NONE;
 }
-
-static PyObject *M_Object_DataSize(PyObject * self)
-{
-	return PyInt_FromLong(sizeof(Object));
-}
-
 
 /*****************************************************************************/
 /* Python BPy_Object methods:					*/

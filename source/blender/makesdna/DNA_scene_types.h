@@ -433,10 +433,17 @@ typedef struct ToolSettings {
 	float skgen_angle_limit;
 	float skgen_correlation_limit;
 	float skgen_symmetry_limit;
+	float skgen_retarget_angle_weight;
+	float skgen_retarget_length_weight;
+	float skgen_retarget_distance_weight;
 	short skgen_options;
 	char  skgen_postpro;
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
+	char  skgen_multi_level;
+	char  skgen_optimisation_method;
+	
+	char tpad[6];
 	
 	/* Skeleton Sketching */
 	char bone_sketching;
@@ -444,7 +451,7 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[2];
+	char pad3[6];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -841,12 +848,21 @@ typedef struct Scene {
 #define RETOPO_ELLIPSE 4
 
 /* toolsettings->skgen_options */
-#define SKGEN_FILTER_INTERNAL	1
-#define SKGEN_FILTER_EXTERNAL	2
-#define	SKGEN_SYMMETRY			4
-#define	SKGEN_CUT_LENGTH		8
-#define	SKGEN_CUT_ANGLE			16
-#define	SKGEN_CUT_CORRELATION	32
+#define SKGEN_FILTER_INTERNAL	(1 << 0)
+#define SKGEN_FILTER_EXTERNAL	(1 << 1)
+#define	SKGEN_SYMMETRY			(1 << 2)
+#define	SKGEN_CUT_LENGTH		(1 << 3)
+#define	SKGEN_CUT_ANGLE			(1 << 4)
+#define	SKGEN_CUT_CORRELATION	(1 << 5)
+#define	SKGEN_HARMONIC			(1 << 6)
+#define	SKGEN_STICK_TO_EMBEDDING	(1 << 7)
+#define	SKGEN_ADAPTIVE_DISTANCE		(1 << 8)
+#define SKGEN_FILTER_SMART		(1 << 9)
+#define SKGEN_DISP_LENGTH		(1 << 10)
+#define SKGEN_DISP_WEIGHT		(1 << 11)
+#define SKGEN_DISP_ORIG			(1 << 12)
+#define SKGEN_DISP_EMBED		(1 << 13)
+#define SKGEN_DISP_INDEX		(1 << 14)
 #define	SKGEN_CUT_FIXED			64
 
 #define	SKGEN_SUB_LENGTH		0

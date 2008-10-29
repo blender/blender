@@ -2408,8 +2408,8 @@ void flushTransUVs(TransInfo *t)
 		td->loc2d[1]= td->loc[1]*invy;
 		
 		if((G.sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
-			td->loc2d[0]= floor(width*td->loc2d[0] + 0.5f)/width;
-			td->loc2d[1]= floor(height*td->loc2d[1] + 0.5f)/height;
+			td->loc2d[0]= (float)floor(width*td->loc2d[0] + 0.5f)/width;
+			td->loc2d[1]= (float)floor(height*td->loc2d[1] + 0.5f)/height;
 		}
 	}
 	
@@ -2719,12 +2719,12 @@ static void posttrans_nla_clean (TransInfo *t)
 		ob= base->object;
 		
 		/* Check object ipos */
-		i= count_ipo_keys(ob->ipo, side, CFRA);
+		i= count_ipo_keys(ob->ipo, side, (float)CFRA);
 		if (i) posttrans_ipo_clean(ob->ipo);
 		
 		/* Check object constraint ipos */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-			i= count_ipo_keys(conchan->ipo, side, CFRA);	
+			i= count_ipo_keys(conchan->ipo, side, (float)CFRA);	
 			if (i) posttrans_ipo_clean(conchan->ipo);
 		}
 		
@@ -2742,7 +2742,7 @@ static void posttrans_nla_clean (TransInfo *t)
 				}
 			}
 			if (strip==NULL) {
-				cfra = get_action_frame(ob, CFRA);
+				cfra = get_action_frame(ob, (float)CFRA);
 				
 				for (achan=ob->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
@@ -2828,7 +2828,7 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 	/* only include points that occur on the right side of cfra */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
-			if (FrameOnMouseSide(side, gpf->framenum, cfra))
+			if (FrameOnMouseSide(side, (float)gpf->framenum, cfra))
 				count++;
 		}
 	}
@@ -2920,7 +2920,7 @@ void flushTransGPactionData (TransInfo *t)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used. 
  */
-static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, short side, float cfra)
+static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, char side, float cfra)
 {
 	bGPDframe *gpf;
 	int count= 0;
@@ -2928,12 +2928,12 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 	/* check for select frames on right side of current frame */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
-			if (FrameOnMouseSide(side, gpf->framenum, cfra)) {
+			if (FrameOnMouseSide(side, (float)gpf->framenum, cfra)) {
 				/* memory is calloc'ed, so that should zero everything nicely for us */
 				td->val= &tfd->val;
-				td->ival= gpf->framenum;
+				td->ival= (float)gpf->framenum;
 				
-				tfd->val= gpf->framenum;
+				tfd->val= (float)gpf->framenum;
 				tfd->sdata= &gpf->framenum;
 				
 				/* advance td now */
@@ -2995,9 +2995,9 @@ static void createTransActionData(TransInfo *t)
 	 * higher scaling ratios, but is faster than converting all points) 
 	 */
 	if (ob) 
-		cfra = get_action_frame(ob, CFRA);
+		cfra = get_action_frame(ob, (float)CFRA);
 	else
-		cfra = CFRA;
+		cfra = (float)CFRA;
 	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -3052,7 +3052,7 @@ static void createTransActionData(TransInfo *t)
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
 	if (t->mode == TFM_TIME_SLIDE) {
-		float min=999999999.0f, max=-999999999.0;
+		float min=999999999.0f, max=-999999999.0f;
 		int i;
 		
 		td= (t->data + 1);
@@ -3101,13 +3101,13 @@ static void createTransNlaData(TransInfo *t)
 	/* Ensure that partial selections result in beztriple selections */
 	for (base=G.scene->base.first; base; base=base->next) {
 		/* Check object ipos */
-		i= count_ipo_keys(base->object->ipo, side, CFRA);
+		i= count_ipo_keys(base->object->ipo, side, (float)CFRA);
 		if (i) base->flag |= BA_HAS_RECALC_OB;
 		count += i;
 		
 		/* Check object constraint ipos */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			count += count_ipo_keys(conchan->ipo, side, CFRA);			
+			count += count_ipo_keys(conchan->ipo, side, (float)CFRA);			
 		
 		/* skip actions and nlastrips if object is collapsed */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
@@ -3123,7 +3123,7 @@ static void createTransNlaData(TransInfo *t)
 				}
 			}
 			if (strip==NULL) {
-				cfra = get_action_frame(base->object, CFRA);
+				cfra = get_action_frame(base->object, (float)CFRA);
 				
 				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
@@ -3148,8 +3148,8 @@ static void createTransNlaData(TransInfo *t)
 			if (strip->flag & ACTSTRIP_SELECT) {
 				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
 				
-				if (FrameOnMouseSide(side, strip->start, CFRA)) count++;
-				if (FrameOnMouseSide(side, strip->end, CFRA)) count++;
+				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
+				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
 			}
 		}
 	}
@@ -3167,12 +3167,12 @@ static void createTransNlaData(TransInfo *t)
 	for (base=G.scene->base.first; base; base=base->next) {
 		/* Manipulate object ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
-		td= IpoToTransData(td, base->object->ipo, NULL, side, CFRA);
+		td= IpoToTransData(td, base->object->ipo, NULL, side, (float)CFRA);
 		
 		/* Manipulate object constraint ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			td= IpoToTransData(td, conchan->ipo, NULL, side, CFRA);
+			td= IpoToTransData(td, conchan->ipo, NULL, side, (float)CFRA);
 		
 		/* skip actions and nlastrips if object collapsed */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
@@ -3190,7 +3190,7 @@ static void createTransNlaData(TransInfo *t)
 			
 			/* can include if no strip found */
 			if (strip==NULL) {
-				cfra = get_action_frame(base->object, CFRA);
+				cfra = get_action_frame(base->object, (float)CFRA);
 				
 				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
@@ -3212,12 +3212,12 @@ static void createTransNlaData(TransInfo *t)
 		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				/* first TransData is the start, second is the end */
-				if (FrameOnMouseSide(side, strip->start, CFRA)) {
+				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) {
 					td->val = &strip->start;
 					td->ival = strip->start;
 					td++;
 				}
-				if (FrameOnMouseSide(side, strip->end, CFRA)) {
+				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) {
 					td->val = &strip->end;
 					td->ival = strip->end;
 					td++;

@@ -277,6 +277,7 @@ if 'blenderlite' in B.targets:
     env['WITH_BF_BINRELOC'] = False
     env['BF_BUILDINFO'] = False
     env['BF_NO_ELBEEM'] = True
+    env['WITH_BF_PYTHON'] = False
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
@@ -577,6 +578,7 @@ if not env['WITHOUT_BF_INSTALL']:
 # TODO: build stubs and link into blenderplayer
 
 #------------ EPYDOC
-if env['WITH_BF_BPYDOC']:
-    SConscript(['source/blender/python/api2_2x/doc/SConscript'])
+if env['WITH_BF_DOCS']:
+    SConscript('source/blender/python/api2_2x/doc/SConscript')
+    SConscript('source/gameengine/PyDoc/SConscript')
 

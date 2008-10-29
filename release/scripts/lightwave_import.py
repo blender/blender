@@ -106,6 +106,12 @@ try:
 except:
 	struct= chunk= cStringIO= None
 
+# python 2.3 has no reversed() iterator. this will only work on lists and tuples
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
+
 ### # Debuggin disabled in release.
 ### # do a search replace to enabe debug prints
 ### DEBUG = False

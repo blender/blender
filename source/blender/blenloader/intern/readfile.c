@@ -4921,6 +4921,12 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
 			texalpha = 0;
 
+			/* we can't read from this if it comes from a library,
+			 * because direct_link might not have happened on it,
+			 * so ma->mtex is not pointing to valid memory yet */
+			if(ma && ma->id.lib)
+				ma= NULL;
+
 			for(b=0; ma && b<MAX_MTEX; b++)
 				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
 					texalpha = 1;
@@ -7373,6 +7379,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	/* sanity check for skgen
+	 * */
+	{
+		Scene *sce;
+		for(sce=main->scene.first; sce; sce = sce->id.next)
+		{
+			if (sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[1] ||
+				sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[2] ||
+				sce->toolsettings->skgen_subdivisions[1] == sce->toolsettings->skgen_subdivisions[2])
+			{
+					sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+					sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+					sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+			}
+		}
+	}
+	
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
 		Image *ima;

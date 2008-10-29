@@ -7,7 +7,7 @@
 # Tooltip: 'Export to DirectX text file format format for XNA Animation Component Library.'
 """
 __author__ = "vertex color exporting feature is added by mnemoto (original:minahito (original:Arben (Ben) Omari))"
-__url__ = ("blender", "elysiun", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it","Adjuster's site http://ex.homeunix.net/")
+__url__ = ("blender.org", "blenderartists.org", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it","Adjuster's site http://ex.homeunix.net/")
 __version__ = "3.1"
 
 __bpydoc__ = """\
