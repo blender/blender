@@ -5833,11 +5833,11 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	for(i=-1; i<8; i++) {
 		char str[64];
 		int loos;
-		mtex= sd->mtex[i];
 
 		if(i==-1)
 			strcpy(str, "Default");
 		else {
+			mtex= sd->mtex[i];
 			if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
 			else strcpy(str, "");
 		}
@@ -5848,12 +5848,12 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 
 	cy= orig_y-20;
 	cx+= 85;
-	mtex= sd->mtex[sd->texact];
 
 	if(sd->texact == -1) {
 		uiBlockBeginAlign(block);
 		uiDefBut(block,LABEL,B_NOP,"",cx,cy,115,20,0,0,0,0,0,""); /* Padding */
 	} else {
+		mtex= sd->mtex[sd->texact];
 		ID *id= NULL;
 		uiBlockBeginAlign(block);
 		

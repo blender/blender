@@ -91,6 +91,13 @@ ReebGraph *FILTERED_RG = NULL;
 #define DEBUG_REEB
 #define DEBUG_REEB_NODE
 
+typedef struct VertexData
+{
+	float w; /* weight */
+	int i; /* index */
+	ReebNode *n;
+} VertexData;
+
 typedef struct EdgeIndex
 {
 	EditEdge **edges;
@@ -106,7 +113,7 @@ typedef enum {
 int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
 void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection direction);
 int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1);
-EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, EditVert *eve);
+EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, int index);
 void mergeArcFaces(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc);
 void addFacetoArc(ReebArc *arc, EditFace *efa);
 
@@ -117,6 +124,51 @@ void flipArcBuckets(ReebArc *arc);
 
 
 /***************************************** UTILS **********************************************/
+
+VertexData *allocVertexData(EditMesh *em)
+{
+	VertexData *data;
+	EditVert *eve;
+	int totvert, index;
+	
+	totvert = BLI_countlist(&em->verts);
+	
+	data = MEM_callocN(sizeof(VertexData) * totvert, "VertexData");
+
+	for(index = 0, eve = em->verts.first; eve; index++, eve = eve->next)
+	{
+		data[index].i = index;
+		data[index].w = 0;
+		eve->tmp.p = data + index;
+	}
+		
+	return data;
+}
+
+int indexData(EditVert *eve)
+{
+	return ((VertexData*)eve->tmp.p)->i;
+}
+
+float weightData(EditVert *eve)
+{
+	return ((VertexData*)eve->tmp.p)->w;
+}
+
+void weightSetData(EditVert *eve, float w)
+{
+	((VertexData*)eve->tmp.p)->w = w;
+}
+
+ReebNode* nodeData(EditVert *eve)
+{
+	return ((VertexData*)eve->tmp.p)->n;
+}
+
+void nodeSetData(EditVert *eve, ReebNode *n)
+{
+	((VertexData*)eve->tmp.p)->n = n;
+}
 
 void REEB_freeArc(BArc *barc)
 {
@@ -190,9 +242,12 @@ void BIF_flagMultiArcs(ReebGraph *rg, int flag)
 	}
 }
 
-ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
+ReebNode * addNode(ReebGraph *rg, EditVert *eve)
 {
+	float weight;
 	ReebNode *node = NULL;
+	
+	weight = weightData(eve);
 	
 	node = MEM_callocN(sizeof(ReebNode), "reeb node");
 	
@@ -206,6 +261,8 @@ ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
 	
 	BLI_addtail(&rg->nodes, node);
 	rg->totnodes++;
+	
+	nodeSetData(eve, node);
 	
 	return node;
 }
@@ -747,7 +804,7 @@ static void interpolateBuckets(ReebArc *arc, float *start_p, float *end_p, int s
 void fillArcEmptyBuckets(ReebArc *arc)
 {
 	float *start_p, *end_p;
-	int start_index, end_index;
+	int start_index = 0, end_index = 0;
 	int missing = 0;
 	int i;
 	
@@ -1262,7 +1319,7 @@ int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 	for (subgraph = 1; subgraph <= nb_subgraphs; subgraph++)
 	{
 		ReebNode *start_node, *end_node;
-		ReebNode *min_node_start, *min_node_end = NULL;
+		ReebNode *min_node_start = NULL, *min_node_end = NULL;
 		float min_distance = FLT_MAX;
 		
 		for (start_node = rg->nodes.first; start_node; start_node = start_node->next)
@@ -1906,11 +1963,11 @@ int compareVerts( const void* a, const void* b )
 	EditVert *vb = *(EditVert**)b;
 	int value = 0;
 	
-	if (va->tmp.fp < vb->tmp.fp)
+	if (weightData(va) < weightData(vb))
 	{
 		value = -1;
 	}
-	else if (va->tmp.fp > vb->tmp.fp)
+	else if (weightData(va) > weightData(vb))
 	{
 		value = 1;
 	}
@@ -1942,15 +1999,15 @@ void spreadWeight(EditMesh *em)
 		{
 			eve = verts[i];
 			
-			if (i == 0 || (eve->tmp.fp - lastWeight) > FLT_EPSILON)
+			if (i == 0 || (weightData(eve) - lastWeight) > FLT_EPSILON)
 			{
-				lastWeight = eve->tmp.fp;
+				lastWeight = weightData(eve);
 			}
 			else
 			{
 				work_needed = 1;
-				eve->tmp.fp = lastWeight + FLT_EPSILON * 2;
-				lastWeight = eve->tmp.fp;
+				weightSetData(eve, lastWeight + FLT_EPSILON * 2);
+				lastWeight = weightData(eve);
 			}
 		}
 	}
@@ -2496,7 +2553,6 @@ void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * 
 ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 {
 	ReebGraph *rg;
-	struct DynamicList * dlist;
 	EditVert *eve;
 	EditFace *efa;
 	int index;
@@ -2526,15 +2582,11 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	{
 		if (eve->h == 0)
 		{
-			eve->hash = index;
+			addNode(rg, eve);
 			eve->f2 = 0;
-			eve->tmp.p = addNode(rg, eve, eve->tmp.fp);
 			index++;
 		}
 	}
-	
-	/* Temporarely convert node list to dynamic list, for indexed access */
-	dlist = BLI_dlist_from_listbase(&rg->nodes);
 	
 	/* Adding face, edge per edge */
 	for(efa = em->faces.first; efa; efa = efa->next)
@@ -2543,15 +2595,15 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 		{
 			ReebNode *n1, *n2, *n3;
 			
-			n1 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v1->hash);
-			n2 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v2->hash);
-			n3 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v3->hash);
+			n1 = nodeData(efa->v1);
+			n2 = nodeData(efa->v2);
+			n3 = nodeData(efa->v3);
 			
 			addTriangleToGraph(rg, n1, n2, n3, efa);
 			
 			if (efa->v4)
 			{
-				ReebNode *n4 = (ReebNode*)efa->v4->tmp.p;
+				ReebNode *n4 = nodeData(efa->v4);
 				addTriangleToGraph(rg, n1, n3, n4, efa);
 			}
 #ifdef DEBUG_REEB
@@ -2565,8 +2617,6 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	}
 	
 	printf("\n");
-	
-	BLI_listbase_from_dlist(dlist, &rg->nodes);
 	
 	removeZeroNodes(rg);
 	
@@ -2587,12 +2637,12 @@ void renormalizeWeight(EditMesh *em, float newmax)
 
 	/* First pass, determine maximum and minimum */
 	eve = em->verts.first;
-	minimum = eve->tmp.fp;
-	maximum = eve->tmp.fp;
+	minimum = weightData(eve);
+	maximum = minimum;
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
-		maximum = MAX2(maximum, eve->tmp.fp);
-		minimum = MIN2(minimum, eve->tmp.fp);
+		maximum = MAX2(maximum, weightData(eve));
+		minimum = MIN2(minimum, weightData(eve));
 	}
 	
 	range = maximum - minimum;
@@ -2600,7 +2650,8 @@ void renormalizeWeight(EditMesh *em, float newmax)
 	/* Normalize weights */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
-		eve->tmp.fp = (eve->tmp.fp - minimum) / range * newmax;
+		float weight = (weightData(eve) - minimum) / range * newmax;
+		weightSetData(eve, weight);
 	}
 }
 
@@ -2615,7 +2666,7 @@ int weightFromLoc(EditMesh *em, int axis)
 	/* Copy coordinate in weight */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
-		eve->tmp.fp = eve->co[axis];
+		weightSetData(eve, eve->co[axis]);
 	}
 
 	return 1;
@@ -2648,9 +2699,9 @@ void addTriangle(EditVert *v1, EditVert *v2, EditVert *v3, long e1, long e2, lon
 	/* Angle opposite e3 */
 	float t3 = cotan_weight(v3->co, v1->co, v2->co) / e1;
 	
-	int i1 = v1->hash;
-	int i2 = v2->hash;
-	int i3 = v3->hash;
+	int i1 = indexData(v1);
+	int i2 = indexData(v2);
+	int i3 = indexData(v3);
 	
 	nlMatrixAdd(i1, i1, t2+t3);
 	nlMatrixAdd(i2, i2, t1+t3);
@@ -2699,8 +2750,8 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 			int maximum = 1;
 			int minimum = 1;
 			
-			NextEdgeForVert(indexed_edges, NULL); /* Reset next edge */
-			for(eed = NextEdgeForVert(indexed_edges, eve); eed && (maximum || minimum); eed = NextEdgeForVert(indexed_edges, eve))
+			NextEdgeForVert(indexed_edges, -1); /* Reset next edge */
+			for(eed = NextEdgeForVert(indexed_edges, index); eed && (maximum || minimum); eed = NextEdgeForVert(indexed_edges, index))
 			{
 				EditVert *eve2;
 				
@@ -2716,12 +2767,12 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 				if (eve2->h == 0)
 				{
 					/* Adjacent vertex is bigger, not a local maximum */
-					if (eve2->tmp.fp > eve->tmp.fp)
+					if (weightData(eve2) > weightData(eve))
 					{
 						maximum = 0;
 					}
 					/* Adjacent vertex is smaller, not a local minimum */
-					else if (eve2->tmp.fp < eve->tmp.fp)
+					else if (weightData(eve2) < weightData(eve))
 					{
 						minimum = 0;
 					}
@@ -2730,7 +2781,7 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 			
 			if (maximum || minimum)
 			{
-				float w = eve->tmp.fp;
+				float w = weightData(eve);
 				eve->f1 = 0;
 				nlSetVariable(0, index, w);
 				nlLockVariable(index);
@@ -2794,7 +2845,7 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 		rval = 1;
 		for(index = 0, eve = em->verts.first; eve; index++, eve = eve->next)
 		{
-			eve->tmp.fp = nlGetVariable(0, index);
+			weightSetData(eve, nlGetVariable(0, index));
 		}
 	}
 	else
@@ -2808,12 +2859,12 @@ int weightToHarmonic(EditMesh *em, EdgeIndex *indexed_edges)
 }
 
 
-EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, EditVert *eve)
+EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, int index)
 {
 	static int offset = -1;
 	
 	/* Reset method, call with NULL mesh pointer */
-	if (eve == NULL)
+	if (index == -1)
 	{
 		offset = -1;
 		return NULL;
@@ -2822,7 +2873,7 @@ EditEdge * NextEdgeForVert(EdgeIndex *indexed_edges, EditVert *eve)
 	/* first pass, start at the head of the list */
 	if (offset == -1)
 	{
-		offset = indexed_edges->offset[eve->hash];
+		offset = indexed_edges->offset[index];
 	}
 	/* subsequent passes, start on the next edge */
 	else
@@ -2860,12 +2911,12 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EdgeIndex *ind
 		current_eve->f1 = 1; /* mark vertex as selected */
 		
 		/* Add all new edges connected to current_eve to the list */
-		NextEdgeForVert(indexed_edges, NULL); // Reset next edge
-		for(eed = NextEdgeForVert(indexed_edges, current_eve); eed; eed = NextEdgeForVert(indexed_edges, current_eve))
+		NextEdgeForVert(indexed_edges, -1); // Reset next edge
+		for(eed = NextEdgeForVert(indexed_edges, indexData(current_eve)); eed; eed = NextEdgeForVert(indexed_edges, indexData(current_eve)))
 		{ 
 			if (eed->f1 == 0)
 			{
-				BLI_heap_insert(edge_heap, current_eve->tmp.fp + eed->tmp.fp, eed);
+				BLI_heap_insert(edge_heap, weightData(current_eve) + eed->tmp.fp, eed);
 				eed->f1 = 1;
 			}
 		}
@@ -2888,8 +2939,9 @@ void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EdgeIndex *ind
 			else /* otherwise, it's v2 */
 			{
 				current_eve = select_eed->v2;
-			}				
-			current_eve->tmp.fp = current_weight;
+			}
+			
+			weightSetData(current_eve, current_weight);
 		}
 	}
 	
@@ -2906,28 +2958,25 @@ void buildIndexedEdges(EditMesh *em, EdgeIndex *indexed_edges)
 {
 	EditVert *eve;
 	EditEdge *eed;
-	int tot_vert = 0;
+	int totvert = 0;
 	int tot_indexed = 0;
 	int offset = 0;
 
-	for(tot_vert = 0, eve = em->verts.first; eve; tot_vert++, eve = eve->next)
-	{
-		eve->hash = tot_vert;
-	}
+	totvert = BLI_countlist(&em->verts);
 
-	indexed_edges->offset = MEM_callocN(tot_vert * sizeof(int), "EdgeIndex offset");
+	indexed_edges->offset = MEM_callocN(totvert * sizeof(int), "EdgeIndex offset");
 
-	for(eed = em->edges.first; eed; eed= eed->next)
+	for(eed = em->edges.first; eed; eed = eed->next)
 	{
 		if (eed->v1->h == 0 && eed->v2->h == 0)
 		{
 			tot_indexed += 2;
-			indexed_edges->offset[eed->v1->hash]++;
-			indexed_edges->offset[eed->v2->hash]++;
+			indexed_edges->offset[indexData(eed->v1)]++;
+			indexed_edges->offset[indexData(eed->v2)]++;
 		}
 	}
 	
-	tot_indexed += tot_vert;
+	tot_indexed += totvert;
 
 	indexed_edges->edges = MEM_callocN(tot_indexed * sizeof(EditEdge*), "EdgeIndex edges");
 
@@ -2936,8 +2985,8 @@ void buildIndexedEdges(EditMesh *em, EdgeIndex *indexed_edges)
 	{
 		if (eve->h == 0)
 		{
-			int d = indexed_edges->offset[eve->hash];
-			indexed_edges->offset[eve->hash] = offset;
+			int d = indexed_edges->offset[indexData(eve)];
+			indexed_edges->offset[indexData(eve)] = offset;
 			offset += d + 1;
 		}
 	}
@@ -2948,7 +2997,7 @@ void buildIndexedEdges(EditMesh *em, EdgeIndex *indexed_edges)
 		if (eed->v1->h == 0 && eed->v2->h == 0)
 		{
 			int i;
-			for (i = indexed_edges->offset[eed->v1->hash]; i < tot_indexed; i++)
+			for (i = indexed_edges->offset[indexData(eed->v1)]; i < tot_indexed; i++)
 			{
 				if (indexed_edges->edges[i] == NULL)
 				{
@@ -2957,7 +3006,7 @@ void buildIndexedEdges(EditMesh *em, EdgeIndex *indexed_edges)
 				}
 			}
 			
-			for (i = indexed_edges->offset[eed->v2->hash]; i < tot_indexed; i++)
+			for (i = indexed_edges->offset[indexData(eed->v2)]; i < tot_indexed; i++)
 			{
 				if (indexed_edges->edges[i] == NULL)
 				{
@@ -2973,9 +3022,12 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 {
 	EditVert *eve;
 	int totedge = 0;
+	int totvert = 0;
 	int vCount = 0;
 	
-	if (em == NULL || BLI_countlist(&em->verts) == 0)
+	totvert = BLI_countlist(&em->verts);
+	
+	if (em == NULL || totvert == 0)
 	{
 		return 0;
 	}
@@ -2986,11 +3038,10 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 	{
 		return 0;
 	}
-
+	
 	/* Initialize vertice flag and find at least one selected vertex */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
-		eve->tmp.fp = 0;
 		eve->f1 = 0;
 		if (eve->f & SELECT)
 		{
@@ -3052,7 +3103,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 							{
 								min_distance = distance;
 								selected_eve = eve;
-								selected_weight = closest_eve->tmp.fp;
+								selected_weight = weightData(closest_eve);
 							}
 						}
 					}
@@ -3063,7 +3114,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 			{
 				allDone = 0;
 
-				selected_eve->tmp.fp = selected_weight + min_distance;
+				weightSetData(selected_eve, selected_weight + min_distance);
 				shortestPathsFromVert(em, selected_eve, indexed_edges);
 			}
 		}
@@ -3077,7 +3128,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 			break;
 		}
 	}
-
+	
 	return 1;
 }
 
@@ -3104,12 +3155,12 @@ void weightToVCol(EditMesh *em, int index)
 
 		if (mcol)
 		{				
-			mcol[0] = MColFromVal(efa->v1->tmp.fp);
-			mcol[1] = MColFromVal(efa->v2->tmp.fp);
-			mcol[2] = MColFromVal(efa->v3->tmp.fp);
+			mcol[0] = MColFromVal(weightData(efa->v1));
+			mcol[1] = MColFromVal(weightData(efa->v2));
+			mcol[2] = MColFromVal(weightData(efa->v3));
 	
 			if(efa->v4) {
-				mcol[3] = MColFromVal(efa->v4->tmp.fp);
+				mcol[3] = MColFromVal(weightData(efa->v4));
 			}
 		}
 	}
@@ -3410,6 +3461,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 {
 	EditMesh *em = G.editMesh;
 	EdgeIndex indexed_edges;
+	VertexData *data;
 	ReebGraph *rg = NULL;
 	ReebGraph *rgi, *previous;
 	int i, nb_levels = REEB_MAX_MULTI_LEVEL;
@@ -3417,6 +3469,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	if (em == NULL)
 		return NULL;
 	
+	data = allocVertexData(em);
+
 	buildIndexedEdges(em, &indexed_edges);
 
 	if (weightFromDistance(em, &indexed_edges) == 0)
@@ -3502,6 +3556,8 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(void)
 	}
 	
 	verifyMultiResolutionLinks(rg, 0);
+	
+	MEM_freeN(data);
 
 	return rg;
 }
@@ -3510,13 +3566,16 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 {
 	EditMesh *em = G.editMesh;
 	EdgeIndex indexed_edges;
+	VertexData *data;
 	ReebGraph *rg = NULL;
 	
 	if (em == NULL)
 		return NULL;
 
-	buildIndexedEdges(em, &indexed_edges);
+	data = allocVertexData(em);
 
+	buildIndexedEdges(em, &indexed_edges);
+	
 	if (weightFromDistance(em, &indexed_edges) == 0)
 	{
 		error("No selected vertex\n");
@@ -3566,6 +3625,8 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 
 	printf("DONE\n");
 	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
+	
+	MEM_freeN(data);
 
 	return rg;
 }

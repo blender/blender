@@ -4,7 +4,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. #/intern/guardedalloc ../include ../blenlib ../makesdna'
-incs += ' ../python ../render/extern/include #/intern/decimation/extern'
+incs += ' ../render/extern/include #/intern/decimation/extern'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
 incs += ' #/extern/bullet2/src'
@@ -12,7 +12,6 @@ incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern'
 incs += ' ../gpu #/extern/glew/include'
 
-incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 incs += ' ' + env['BF_SDL_INC']
@@ -21,6 +20,9 @@ defs = ''
 
 if not env['WITH_BF_PYTHON']:
 	defs += 'DISABLE_PYTHON'
+else:
+	incs += ' ../python'
+	incs += ' ' + env['BF_PYTHON_INC']
 
 if env['WITH_BF_INTERNATIONAL']:
 	defs += ' WITH_FREETYPE2'
@@ -51,8 +53,5 @@ if env['BF_NO_ELBEEM']:
 
 if env['WITH_BF_PLAYER']:
     SConscript(['bad_level_call_stubs/SConscript'])
-
-if not env['WITH_BF_PYTHON']:
-	defs += ' DISABLE_PYTHON'
 
 env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )
