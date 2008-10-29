@@ -47,7 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#ifdef DISABLE_PYTHON
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #endif
 
