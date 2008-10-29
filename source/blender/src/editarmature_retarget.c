@@ -62,6 +62,7 @@
 #include "BKE_armature.h"
 
 #include "BIF_editarmature.h"
+#include "BIF_retarget.h"
 #include "BIF_space.h"
 
 #include "PIL_time.h"
@@ -71,100 +72,6 @@
 #include "blendef.h"
 
 /************ RIG RETARGET DATA STRUCTURES ***************/
-
-struct RigJoint;
-struct RigGraph;
-struct RigNode;
-struct RigArc;
-struct RigEdge;
-
-//#define USE_THREADS
-
-typedef struct RigGraph {
-	ListBase	arcs;
-	ListBase	nodes;
-	
-	float length;
-	
-	FreeArc			free_arc;
-	FreeNode		free_node;
-	RadialSymmetry	radial_symmetry;
-	AxialSymmetry	axial_symmetry;
-	/*********************************/
-
-	struct RigNode *head;
-	ReebGraph *link_mesh;
-	
-	ListBase editbones;
-	
-	ListBase controls;
-	struct ThreadedWorker *worker;
-	
-	GHash *bones_map;	/* map of editbones by name */
-	GHash *controls_map;	/* map of rigcontrols by bone pointer */
-	
-	Object *ob;
-} RigGraph;
-
-typedef struct RigNode {
-	void *next, *prev;
-	float p[3];
-	int flag;
-
-	int degree;
-	struct BArc **arcs;
-
-	int subgraph_index;
-
-	int symmetry_level;
-	int symmetry_flag;
-	float symmetry_axis[3];
-	/*********************************/
-
-	ReebNode *link_mesh;
-} RigNode;
-
-typedef struct RigArc {
-	void *next, *prev;
-	RigNode *head, *tail;
-	int flag;
-
-	float length;
-
-	int symmetry_level;
-	int symmetry_group;
-	int symmetry_flag;
-	/*********************************/
-	
-	ListBase edges;
-	int count;
-	ReebArc *link_mesh;
-} RigArc;
-
-typedef struct RigEdge {
-	struct RigEdge *next, *prev;
-	float head[3], tail[3];
-	float length;
-	float angle;
-	EditBone *bone;
-	float up_axis[3];
-} RigEdge;
-
-/* Control flags */
-#define RIG_CTRL_DONE			1
-#define RIG_CTRL_PARENT_DEFORM	2
-#define RIG_CTRL_FIT_ROOT		4
-#define RIG_CTRL_FIT_BONE		8
-
-typedef struct RigControl {
-	struct RigControl *next, *prev;
-	float head[3], tail[3];
-	EditBone *bone;
-	EditBone *link;
-	float	up_axis[3];
-	float	offset[3];
-	int		flag;
-} RigControl;
 
 typedef struct MemoNode {
 	float	weight;
@@ -196,7 +103,6 @@ typedef enum
 	ARC_TAKEN = 1,
 	ARC_USED = 2
 } ArcUsageFlags;
-
 
 RigGraph *GLOBAL_RIGG = NULL;
 
@@ -291,14 +197,18 @@ void RIG_freeRigArc(BArc *arc)
 
 void RIG_freeRigGraph(BGraph *rg)
 {
+	RigGraph *rigg = (RigGraph*)rg;
 	BNode *node;
 	BArc *arc;
 	
 #ifdef USE_THREADS
-	BLI_destroy_worker(((RigGraph*)rg)->worker);
+	BLI_destroy_worker(rigg->worker);
 #endif
 	
-	REEB_freeGraph(((RigGraph*)rg)->link_mesh);
+	if (rigg->link_mesh)
+	{
+		REEB_freeGraph(rigg->link_mesh);
+	}
 	
 	for (arc = rg->arcs.first; arc; arc = arc->next)
 	{
@@ -312,12 +222,16 @@ void RIG_freeRigGraph(BGraph *rg)
 	}
 	BLI_freelistN(&rg->nodes);
 	
-	BLI_freelistN(&((RigGraph*)rg)->controls);
+	BLI_freelistN(&rigg->controls);
 
-	BLI_ghash_free(((RigGraph*)rg)->bones_map, NULL, NULL);
-	BLI_ghash_free(((RigGraph*)rg)->controls_map, NULL, NULL);
+	BLI_ghash_free(rigg->bones_map, NULL, NULL);
+	BLI_ghash_free(rigg->controls_map, NULL, NULL);
 	
-	BLI_freelistN(&((RigGraph*)rg)->editbones);
+	if (rigg->editbones != &G.edbo)
+	{
+		BLI_freelistN(rigg->editbones);
+		MEM_freeN(rigg->editbones);
+	}
 	
 	MEM_freeN(rg);
 }
@@ -1034,7 +948,7 @@ static void RIG_removeUneededOffsets(RigGraph *rg)
 	}
 }
 
-static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bone, RigNode *starting_node)
+static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bone, RigNode *starting_node, int selected)
 {
 	EditBone *bone, *last_bone = root_bone;
 	RigArc *arc = NULL;
@@ -1044,41 +958,44 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 	{
 		int nb_children;
 		
-		if ((bone->flag & BONE_NO_DEFORM) == 0)
-		{
-			BLI_ghash_insert(rg->bones_map, bone->name, bone);
-		
-			if (arc == NULL)
+		if (selected == 0 || (bone->flag & BONE_SELECTED))
+		{ 
+			if ((bone->flag & BONE_NO_DEFORM) == 0)
 			{
-				arc = newRigArc(rg);
+				BLI_ghash_insert(rg->bones_map, bone->name, bone);
+			
+				if (arc == NULL)
+				{
+					arc = newRigArc(rg);
+					
+					if (starting_node == NULL)
+					{
+						starting_node = newRigNodeHead(rg, arc, root_bone->head);
+					}
+					else
+					{
+						addRigNodeHead(rg, arc, starting_node);
+					}
+				}
 				
-				if (starting_node == NULL)
+				if (bone->parent && (bone->flag & BONE_CONNECTED) == 0)
 				{
-					starting_node = newRigNodeHead(rg, arc, root_bone->head);
+					RIG_addEdgeToArc(arc, bone->head, NULL);
 				}
-				else
+				
+				RIG_addEdgeToArc(arc, bone->tail, bone);
+				
+				last_bone = bone;
+				
+				if (strcmp(bone->name, "head") == 0)
 				{
-					addRigNodeHead(rg, arc, starting_node);
+					contain_head = 1;
 				}
 			}
-			
-			if (bone->parent && (bone->flag & BONE_CONNECTED) == 0)
+			else if ((bone->flag & BONE_EDITMODE_LOCKED) == 0) /* ignore locked bones */
 			{
-				RIG_addEdgeToArc(arc, bone->head, NULL);
+				RIG_addControlBone(rg, bone);
 			}
-			
-			RIG_addEdgeToArc(arc, bone->tail, bone);
-			
-			last_bone = bone;
-			
-			if (strcmp(bone->name, "head") == 0)
-			{
-				contain_head = 1;
-			}
-		}
-		else if ((bone->flag & BONE_EDITMODE_LOCKED) == 0) /* ignore locked bones */
-		{
-			RIG_addControlBone(rg, bone);
 		}
 		
 		nb_children = countEditBoneChildren(list, bone);
@@ -1099,7 +1016,7 @@ static void RIG_arcFromBoneChain(RigGraph *rg, ListBase *list, EditBone *root_bo
 			for (i = 0; i < nb_children; i++)
 			{
 				root_bone = nextEditBoneChild(list, bone, i);
-				RIG_arcFromBoneChain(rg, list, root_bone, end_node);
+				RIG_arcFromBoneChain(rg, list, root_bone, end_node, selected);
 			}
 			
 			/* arc ends here, break */
@@ -1266,21 +1183,30 @@ void RIG_printGraph(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-static RigGraph *armatureToGraph(Object *ob, bArmature *arm)
+RigGraph *armatureToGraph(Object *ob, bArmature *arm)
 {
 	EditBone *ebone;
 	RigGraph *rg;
  	
 	rg = newRigGraph();
 	
-	make_boneList(&rg->editbones, &arm->bonebase, NULL);
+	if (G.obedit == ob)
+	{
+		rg->editbones = &G.edbo;
+	}
+	else
+	{
+		rg->editbones = MEM_callocN(sizeof(ListBase), "EditBones");
+		make_boneList(rg->editbones, &arm->bonebase, NULL);
+	}
+	
 	rg->ob = ob;
 
 	/* Do the rotations */
-	for (ebone = rg->editbones.first; ebone; ebone=ebone->next){
+	for (ebone = rg->editbones->first; ebone; ebone=ebone->next){
 		if (ebone->parent == NULL)
 		{
-			RIG_arcFromBoneChain(rg, &rg->editbones, ebone, NULL);
+			RIG_arcFromBoneChain(rg, rg->editbones, ebone, NULL, 0);
 		}
 	}
 	
@@ -1306,6 +1232,54 @@ static RigGraph *armatureToGraph(Object *ob, bArmature *arm)
 	return rg;
 }
 
+RigGraph *armatureSelectedToGraph(Object *ob, bArmature *arm)
+{
+	EditBone *ebone;
+	RigGraph *rg;
+ 	
+	rg = newRigGraph();
+	
+	if (G.obedit == ob)
+	{
+		rg->editbones = &G.edbo;
+	}
+	else
+	{
+		rg->editbones = MEM_callocN(sizeof(ListBase), "EditBones");
+		make_boneList(rg->editbones, &arm->bonebase, NULL);
+	}
+
+	rg->ob = ob;
+
+	/* Do the rotations */
+	for (ebone = rg->editbones->first; ebone; ebone=ebone->next){
+		if (ebone->parent == NULL)
+		{
+			RIG_arcFromBoneChain(rg, rg->editbones, ebone, NULL, 1);
+		}
+	}
+	
+	BLI_removeDoubleNodes((BGraph*)rg, 0.001);
+	
+	RIG_removeNormalNodes(rg);
+	
+	RIG_removeUneededOffsets(rg);
+	
+	BLI_buildAdjacencyList((BGraph*)rg);
+	
+	RIG_findHead(rg);
+
+	BLI_markdownSymmetry((BGraph*)rg, (BNode*)rg->head, G.scene->toolsettings->skgen_symmetry_limit);
+	
+	RIG_reconnectControlBones(rg); /* after symmetry, because we use levels to find best match */
+	
+	if (BLI_isGraphCyclic((BGraph*)rg))
+	{
+		printf("armature cyclic\n");
+	}
+	
+	return rg;
+}
 /************************************ GENERATING *****************************************************/
 
 static EditBone *add_editbonetolist(char *name, ListBase *list)
@@ -1356,7 +1330,7 @@ EditBone * generateBonesForArc(RigGraph *rigg, ReebArc *arc, ReebNode *head, Ree
 		int total = 0;
 		int boneStart = iter.start;
 		
-		parent = add_editbonetolist("Bone", &rigg->editbones);
+		parent = add_editbonetolist("Bone", rigg->editbones);
 		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 		
@@ -1405,7 +1379,7 @@ EditBone * generateBonesForArc(RigGraph *rigg, ReebArc *arc, ReebNode *head, Ree
 			{
 				VECCOPY(parent->tail, btail);
 
-				child = add_editbonetolist("Bone", &rigg->editbones);
+				child = add_editbonetolist("Bone", rigg->editbones);
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
 				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
@@ -2836,7 +2810,7 @@ static void adjustGraphs(RigGraph *rigg)
 #endif
 
 	/* Turn the list into an armature */
-	editbones_to_armature(&rigg->editbones, rigg->ob);
+	editbones_to_armature(rigg->editbones, rigg->ob);
 	
 	BIF_undo_push("Retarget Skeleton");
 }
@@ -2865,7 +2839,7 @@ static void retargetGraphs(RigGraph *rigg)
 #endif
 
 	/* Turn the list into an armature */
-	editbones_to_armature(&rigg->editbones, rigg->ob);
+	editbones_to_armature(rigg->editbones, rigg->ob);
 }
 
 
@@ -2946,6 +2920,37 @@ void BIF_retargetArmature()
 	printf("-----------\n");
 	
 	BIF_undo_push("Retarget Skeleton");
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+void BIF_retargetArc(ReebArc *earc)
+{
+	Object *ob;
+	RigGraph *rigg;
+	RigArc *iarc;
+	bArmature *arm;
+
+	ob = G.obedit; 	
+	arm = ob->data;
+	
+	rigg = armatureSelectedToGraph(ob, arm);
+	
+	iarc = rigg->arcs.first;
+	
+	iarc->link_mesh = earc;
+	iarc->head->link_mesh = earc->head;
+	iarc->tail->link_mesh = earc->tail;
+	
+	retargetArctoArc(rigg, iarc, iarc->head);
+	
+#ifdef USE_THREADS
+	BLI_end_worker(rigg->worker);
+#endif
+	
+	//RIG_freeRigGraph((BGraph*)rigg);
+
+	BIF_undo_push("Retarget Arc");
 	
 	allqueue(REDRAWVIEW3D, 0);
 }

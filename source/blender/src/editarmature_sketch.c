@@ -50,9 +50,11 @@
 #include "BIF_mywindow.h"
 #include "BIF_editarmature.h"
 #include "BIF_sketch.h"
+#include "BIF_retarget.h"
 
 #include "blendef.h"
 #include "mydevice.h"
+#include "reeb.h"
 
 typedef enum SK_PType
 {
@@ -125,6 +127,8 @@ void sk_deleteSelectedStrokes(SK_Sketch *sketch);
 
 void sk_freeStroke(SK_Stroke *stk);
 void sk_freeSketch(SK_Sketch *sketch);
+
+SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
 
 int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
@@ -347,6 +351,48 @@ int peelObjects(ListBase *depth_peels, short mval[2])
 	BLI_sortlist(depth_peels, cmpPeel);
 	
 	return retval;
+}
+/*********************** CONVERSION ***************************/
+
+ReebNode *pointToNode(SK_Point *pt)
+{
+	ReebNode *node;
+	
+	node = MEM_callocN(sizeof(ReebNode), "reeb node");
+	VECCOPY(node->p, pt->p);
+	
+	return node;
+}
+
+ReebArc *strokeToArc(SK_Stroke *stk)
+{
+	ReebArc *arc;
+	int i;
+	
+	arc = MEM_callocN(sizeof(ReebArc), "reeb arc");
+	arc->head = pointToNode(stk->points);
+	arc->tail = pointToNode(sk_lastStrokePoint(stk));
+	
+	arc->bcount = stk->nb_points - 2; /* first and last are nodes, don't count */
+	arc->buckets = MEM_callocN(sizeof(EmbedBucket) * arc->bcount, "Buckets");
+	
+	for (i = 0; i < arc->bcount; i++)
+	{
+		VECCOPY(arc->buckets[i].p, stk->points[i + 1].p);
+	}
+	
+	return arc;
+}
+
+void retargetStroke(SK_Stroke *stk)
+{
+	ReebArc *arc = strokeToArc(stk);
+	
+	BIF_retargetArc(arc);
+	
+	MEM_freeN(arc->head);
+	MEM_freeN(arc->tail);
+	REEB_freeArc(arc);
 }
 
 /**************************************************************/
@@ -2267,9 +2313,10 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			
 			if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
 			{
-				sk_convertStroke(stk);
-				sk_removeStroke(sketch, stk);
-				BIF_undo_push("Convert Sketch");
+				retargetStroke(stk);
+//				sk_convertStroke(stk);
+//				sk_removeStroke(sketch, stk);
+//				BIF_undo_push("Convert Sketch");
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			
