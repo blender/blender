@@ -139,6 +139,9 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fluid_get_bb(mesh->mvert, mesh->totvert, ob->obmat, fss->bbStart, fss->bbSize);	
 		*/
 		
+		// (ab)used to store velocities
+		fss->meshSurfNormals = NULL;
+		
 		fss->lastgoodframe = -1;
 		
 		fss->flag = 0;
@@ -153,6 +156,11 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 #ifndef DISABLE_ELBEEM
 	if(fluidmd)
 	{
+		if(fluidmd->fss->meshSurfNormals)
+		{
+			MEM_freeN(fluidmd->fss->meshSurfNormals);
+			fluidmd->fss->meshSurfNormals = NULL;
+		}
 		MEM_freeN(fluidmd->fss);
 	}
 #endif
@@ -462,19 +470,84 @@ DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifie
 	// load vertex velocities, if they exist...
 	// TODO? use generate flag as loading flag as well?
 	// warning, needs original .bobj.gz mesh loading filename
-	/*
 	if(displaymode==3) 
 	{
-		readVelgz(targetFile, srcob);
+		fluidsim_read_vel_cache(fluidmd, dm, targetFile);
 	} 
 	else 
 	{
-		// no data for preview, only clear...
-		int i,j;
-		for(i=0; i<mesh->totvert;i++) { for(j=0; j<3; j++) { srcob->fluidsimSettings->meshSurfNormals[i].co[j] = 0.; }} 
-	}*/
+		if(fss->meshSurfNormals)
+			MEM_freeN(fss->meshSurfNormals); 
+			
+		fss->meshSurfNormals = NULL;
+	}
 	
 	return dm;
+}
+
+
+/* read zipped fluidsim velocities into the co's of the fluidsimsettings normals struct */
+void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, char *filename)
+{
+	int wri, i, j;
+	float wrf;
+	gzFile gzf;
+	FluidsimSettings *fss = fluidmd->fss;
+	int len = strlen(filename);
+	int totvert = dm->getNumVerts(dm);
+	float *velarray = NULL;
+	
+	// mesh and vverts have to be valid from loading...
+	
+	if(fss->meshSurfNormals)
+		MEM_freeN(fss->meshSurfNormals);
+		
+	if(len<7) 
+	{ 
+		return; 
+	}
+	
+	if(fss->domainNovecgen>0) return;
+	
+	// abusing pointer to hold an array of 3d-velocities
+	fss->meshSurfNormals = MEM_callocN(sizeof(float)*3*dm->getNumVerts(dm), "Fluidsim_velocities");
+	// abusing pointer to hold an INT
+	fss->meshSurface = SET_INT_IN_POINTER(totvert);
+	
+	velarray = (float *)fss->meshSurfNormals;
+	
+	// .bobj.gz , correct filename
+	// 87654321
+	filename[len-6] = 'v';
+	filename[len-5] = 'e';
+	filename[len-4] = 'l';
+
+	gzf = gzopen(filename, "rb");
+	if (!gzf)
+	{
+		MEM_freeN(fss->meshSurfNormals);
+		fss->meshSurfNormals = NULL;	
+		return;
+	}
+
+	gzread(gzf, &wri, sizeof( wri ));
+	if(wri != totvert) 
+	{
+		MEM_freeN(fss->meshSurfNormals);
+		fss->meshSurfNormals = NULL;
+		return; 
+	}
+
+	for(i=0; i<totvert;i++) 
+	{
+		for(j=0; j<3; j++) 
+		{
+			gzread(gzf, &wrf, sizeof( wrf )); 
+			velarray[3*i + j] = wrf;
+		}
+	}
+
+	gzclose(gzf);
 }
 
 void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
@@ -582,61 +655,6 @@ void initElbeemMesh(struct Object *ob,
 
 	dm->release(dm);
 }
-
-/* read zipped fluidsim velocities into the co's of the fluidsimsettings normals struct */
-void readVelgz(char *filename, Object *srcob)
-{
-	int wri, i, j;
-	float wrf;
-	gzFile gzf;
-	MVert *vverts = srcob->fluidsimSettings->meshSurfNormals;
-	int len = strlen(filename);
-	Mesh *mesh = srcob->data;
-	// mesh and vverts have to be valid from loading...
-
-	// clean up in any case
-	for(i=0; i<mesh->totvert;i++) 
-	{ 
-		for(j=0; j<3; j++) 
-		{
-			vverts[i].co[j] = 0.; 
-		} 
-	} 
-	if(srcob->fluidsimSettings->domainNovecgen>0) return;
-
-	if(len<7) 
-	{ 
-		return; 
-	}
-
-	// .bobj.gz , correct filename
-	// 87654321
-	filename[len-6] = 'v';
-	filename[len-5] = 'e';
-	filename[len-4] = 'l';
-
-	gzf = gzopen(filename, "rb");
-	if (!gzf)
-		return;
-
-	gzread(gzf, &wri, sizeof( wri ));
-	if(wri != mesh->totvert) 
-	{
-		return; 
-	}
-
-	for(i=0; i<mesh->totvert;i++) 
-	{
-		for(j=0; j<3; j++) 
-		{
-			gzread(gzf, &wrf, sizeof( wrf )); 
-			vverts[i].co[j] = wrf;
-		}
-	}
-
-	gzclose(gzf);
-}
-
 
 #endif // DISABLE_ELBEEM
 
