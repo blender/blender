@@ -34,6 +34,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_graph.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -392,7 +393,7 @@ void retargetStroke(SK_Stroke *stk)
 	
 	MEM_freeN(arc->head);
 	MEM_freeN(arc->tail);
-	REEB_freeArc(arc);
+	REEB_freeArc((BArc*)arc);
 }
 
 /**************************************************************/
@@ -771,6 +772,12 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 	int head_index = -1;
 	int i;
 	
+	if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+	{
+		return;
+	}
+
+	
 	for (i = 0; i < stk->nb_points; i++)
 	{
 		SK_Point *pt = stk->points + i;
@@ -785,15 +792,15 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 			{
 				if (i - head_index > 1)
 				{
-					if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
+					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_CORRELATION)
 					{
 						drawSubdividedStrokeBy(stk, head_index, i, nextCorrelationSubdivision);
 					}
-					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
+					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
 						drawSubdividedStrokeBy(stk, head_index, i, nextLengthSubdivision);
 					}
-					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_FIXED)
+					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
 						drawSubdividedStrokeBy(stk, head_index, i, nextFixedSubdivision);
 					}
@@ -1545,15 +1552,15 @@ void sk_convertStroke(SK_Stroke *stk)
 				
 				if (i - head_index > 1)
 				{
-					if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION)
+					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_CORRELATION)
 					{
 						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextCorrelationSubdivision);
 					}
-					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH)
+					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
 						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextLengthSubdivision);
 					}
-					else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_FIXED)
+					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
 						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextFixedSubdivision);
 					}
@@ -2313,10 +2320,16 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			
 			if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_QUICK)
 			{
-				retargetStroke(stk);
-//				sk_convertStroke(stk);
-//				sk_removeStroke(sketch, stk);
-//				BIF_undo_push("Convert Sketch");
+				if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+				{
+					retargetStroke(stk);
+				}
+				else
+				{
+					sk_convertStroke(stk);
+				}
+				sk_removeStroke(sketch, stk);
+				BIF_undo_push("Convert Sketch");
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			

@@ -70,6 +70,13 @@ typedef struct EditBone
 
 EditBone *addEditBone(char *name, struct ListBase *ebones, struct bArmature *arm);
 
+/* duplicate method */
+void preEditBoneDuplicate(struct ListBase *editbones);
+EditBone *duplicateEditBone(EditBone *curBone, struct ListBase *editbones, struct Object *ob);
+void updateDuplicateSubtarget(EditBone *dupBone, struct Object *ob);
+
+/* -- */
+
 float rollBoneToVector(EditBone *bone, float new_up_axis[3]);
 void	make_boneList(struct ListBase *list, struct ListBase *bones, EditBone *parent);
 void	editbones_to_armature (struct ListBase *list, struct Object *ob);

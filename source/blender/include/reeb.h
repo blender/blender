@@ -185,6 +185,7 @@ ReebNode *BIF_lowestLevelNode(ReebNode *node);
 ReebGraph *BIF_graphForMultiNode(ReebGraph *rg, ReebNode *node);
 
 void REEB_freeGraph(ReebGraph *rg);
+void REEB_freeArc(BArc *barc);
 void REEB_exportGraph(ReebGraph *rg, int count);
 void REEB_draw();
 

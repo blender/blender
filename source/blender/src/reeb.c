@@ -69,9 +69,6 @@
 
 #include "reeb.h"
 
-/* REPLACE WITH NEW ONE IN UTILDEFINES ONCE PATCH IS APPLIED */
-#define FTOCHAR(val) (val<=0.0f)? 0 : ((val>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*val)+0.5f))
-
 ReebGraph *GLOBAL_RG = NULL;
 ReebGraph *FILTERED_RG = NULL;
 

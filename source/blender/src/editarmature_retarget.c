@@ -93,8 +93,7 @@ typedef enum
 typedef enum
 {
 	METHOD_BRUTE_FORCE = 0,
-	METHOD_MEMOIZE = 1,
-	METHOD_ANNEALING = 2
+	METHOD_MEMOIZE = 1
 } RetargetMethod;
 
 typedef enum
@@ -374,6 +373,155 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 	
 	RIG_appendEdgeToArc(arc, edge);
 }
+/************************************** CLONING TEMPLATES **********************************************/
+
+static RigControl *cloneControl(RigGraph *rg, RigControl *src_ctrl, GHash *ptr_hash)
+{
+	RigControl *ctrl;
+	
+	ctrl = newRigControl(rg);
+	
+	VECCOPY(ctrl->head, src_ctrl->head);
+	VECCOPY(ctrl->tail, src_ctrl->tail);
+	VECCOPY(ctrl->up_axis, src_ctrl->up_axis);
+	VECCOPY(ctrl->offset, src_ctrl->offset);
+	
+	ctrl->flag = src_ctrl->flag;
+
+	ctrl->bone = duplicateEditBone(src_ctrl->bone, rg->editbones, rg->ob);
+	ctrl->bone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+	BLI_ghash_insert(ptr_hash, src_ctrl->bone, ctrl->bone);
+	
+	ctrl->link = src_ctrl->link;
+	
+	return ctrl;
+}
+
+static RigArc *cloneArc(RigGraph *rg, RigArc *src_arc, GHash *ptr_hash)
+{
+	RigEdge *src_edge;
+	RigArc  *arc;
+	
+	arc = newRigArc(rg);
+	
+	arc->head = BLI_ghash_lookup(ptr_hash, src_arc->head);
+	arc->tail = BLI_ghash_lookup(ptr_hash, src_arc->tail);
+	
+	arc->head->degree++;
+	arc->tail->degree++;
+	
+	arc->length = src_arc->length;
+
+	arc->count = src_arc->count;
+	
+	for (src_edge = src_arc->edges.first; src_edge; src_edge = src_edge->next)
+	{
+		RigEdge *edge;
+	
+		edge = MEM_callocN(sizeof(RigEdge), "rig edge");
+
+		VECCOPY(edge->head, src_edge->head);
+		VECCOPY(edge->tail, src_edge->tail);
+		VECCOPY(edge->up_axis, src_edge->up_axis);
+		
+		edge->length = src_edge->length;
+		edge->angle = src_edge->angle;
+		
+		if (src_edge->bone != NULL)
+		{
+			edge->bone = duplicateEditBone(src_edge->bone, rg->editbones, rg->ob);
+			edge->bone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+			BLI_ghash_insert(ptr_hash, src_edge->bone, edge->bone);
+		}
+
+		BLI_addtail(&arc->edges, edge);
+	}
+	
+	return arc;
+}
+
+static RigGraph *cloneRigGraph(RigGraph *src)
+{
+	GHash	*ptr_hash;	
+	RigNode *node;
+	RigArc  *arc;
+	RigControl *ctrl;
+	RigGraph *rg;
+	
+	ptr_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
+	rg = newRigGraph();
+	
+	rg->ob = src->ob;
+	rg->editbones = src->editbones;
+	
+	preEditBoneDuplicate(rg->editbones); /* prime bones for duplication */
+	
+	/* Clone nodes */
+	for (node = src->nodes.first; node; node = node->next)
+	{
+		RigNode *cloned_node = newRigNode(rg, node->p);
+		BLI_ghash_insert(ptr_hash, node, cloned_node);
+	}
+	
+	rg->head = BLI_ghash_lookup(ptr_hash, src->head);
+	
+	/* Clone arcs */
+	for (arc = src->arcs.first; arc; arc = arc->next)
+	{
+		cloneArc(rg, arc, ptr_hash);
+	}
+	
+	/* Clone controls */
+	for (ctrl = src->controls.first; ctrl; ctrl = ctrl->next)
+	{
+		cloneControl(rg, ctrl, ptr_hash);
+	}
+	
+	/* Relink bones properly */
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		RigEdge *edge;
+		
+		for (edge = arc->edges.first; edge; edge = edge->next)
+		{
+			if (edge->bone != NULL)
+			{
+				EditBone *bone;
+				
+				updateDuplicateSubtarget(edge->bone, rg->ob);
+				
+				bone = BLI_ghash_lookup(ptr_hash, edge->bone->parent);
+	
+				if (bone != NULL)
+				{
+					edge->bone->parent = bone;
+				}
+			}
+		}
+	}
+	
+	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
+	{
+		EditBone *bone;
+		
+		updateDuplicateSubtarget(ctrl->bone, rg->ob);
+
+		bone = BLI_ghash_lookup(ptr_hash, ctrl->bone->parent);
+		
+		if (bone != NULL)
+		{
+			ctrl->bone->parent = bone;
+		}
+
+		ctrl->link = BLI_ghash_lookup(ptr_hash, ctrl->link);
+	}
+	
+	BLI_ghash_free(ptr_hash, NULL, NULL);
+	
+	return rg;
+}
+
 
 /*******************************************************************************************************/
 
@@ -605,8 +753,6 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 	while (change)
 	{
 		change = 0;
-		
-		printf("-------------------------\n");
 		
 		for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
 		{
@@ -1577,29 +1723,6 @@ static RetargetMode detectArcRetargetMode(RigArc *iarc)
 }
 
 #ifndef USE_THREADS
-static void printCostCube(float *cost_cube, int nb_joints)
-{
-	int i;
-	
-	for (i = 0; i < nb_joints; i++)
-	{
-		printf("%0.3f ", cost_cube[3 * i]);
-	}
-	printf("\n");
-
-	for (i = 0; i < nb_joints; i++)
-	{
-		printf("%0.3f ", cost_cube[3 * i + 1]);
-	}
-	printf("\n");
-
-	for (i = 0; i < nb_joints; i++)
-	{
-		printf("%0.3f ", cost_cube[3 * i + 2]);
-	}
-	printf("\n");
-}
-
 static void printMovesNeeded(int *positions, int nb_positions)
 {
 	int moves = 0;
@@ -1746,187 +1869,6 @@ static float calcCostAngleLengthDistance(ReebArcIterator *iter, float **vec_cach
 	return new_cost;
 }
 
-static float calcCost(ReebArcIterator *iter, RigEdge *e1, RigEdge *e2, float *vec0, float *vec1, float *vec2, int i0, int i1, int i2)
-{
-	float vec_second[3], vec_first[3];
-	float length1, length2;
-	float new_cost = 0;
-
-	VecSubf(vec_second, vec2, vec1);
-	length2 = Normalize(vec_second);
-
-	VecSubf(vec_first, vec1, vec0); 
-	length1 = Normalize(vec_first);
-
-	/* Angle cost */	
-	new_cost += costAngle(e1->angle, vec_first, vec_second);
-
-	/* Length cost */
-	new_cost += costLength(e1->length, length1);
-	new_cost += costLength(e2->length, length2);
-
-	/* Distance cost */
-	new_cost += costDistance(iter, vec0, vec1, i0, i1);
-	new_cost += costDistance(iter, vec1, vec2, i1, i2);
-
-	return new_cost;
-}
-
-static void calcGradient(RigEdge *e1, RigEdge *e2, ReebArcIterator *iter, int index, int nb_joints, float *cost_cube, int *positions, float **vec_cache)
-{
-	EmbedBucket *bucket = NULL;
-	float *vec0, *vec1, *vec2;
-	float current_cost;
-	int i0, i1, i2;
-	int next_position;
-
-	vec0 = vec_cache[index];
-	vec1 = vec_cache[index + 1];
-	vec2 = vec_cache[index + 2];
-	
-	if (index == 0)
-	{
-		i0 = 0;
-	}
-	else
-	{
-		i0 = positions[index - 1];
-	}
-	
-	i1 = positions[index];
-	
-	if (index +1 == nb_joints)
-	{
-		i2 = iter->length;
-	}
-	else
-	{
-		i2 = positions[index + 1];
-	}
-
-
-	current_cost = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, i1, i2);
-	cost_cube[index * 3 + 1] = current_cost;
-	
-	next_position = positions[index] + 1;
-	
-	if (index + 1 < nb_joints && next_position == positions[index + 1])
-	{
-		cost_cube[index * 3 + 2] = MAX_COST;
-	}
-	else if (next_position > iter->length) /* positions are indexed at 1, so length is last */
-	{
-		cost_cube[index * 3 + 2] = MAX_COST;
-	}
-	else
-	{
-		bucket = peekBucket(iter, next_position);
-		
-		if (bucket == NULL)
-		{
-			cost_cube[index * 3 + 2] = MAX_COST;
-		}
-		else
-		{
-			vec1 = bucket->p;
-			
-			cost_cube[index * 3 + 2] = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
-		}
-	}
-
-	next_position = positions[index] - 1;
-	
-	if (index - 1 > -1 && next_position == positions[index - 1])
-	{
-		cost_cube[index * 3] = MAX_COST;
-	}
-	else if (next_position < 1) /* positions are indexed at 1, so 1 is first */
-	{
-		cost_cube[index * 3] = MAX_COST;
-	}
-	else
-	{
-		bucket = peekBucket(iter, next_position);
-		
-		if (bucket == NULL)
-		{
-			cost_cube[index * 3] = MAX_COST;
-		}
-		else
-		{
-			vec1 = bucket->p;
-			
-			cost_cube[index * 3] = calcCost(iter, e1, e2, vec0, vec1, vec2, i0, next_position, i2) - current_cost;
-		}
-	}
-}
-
-static float probability(float delta_cost, float temperature)
-{
-	if (delta_cost < 0)
-	{
-		return 1;
-	}
-	else
-	{
-		return (float)exp(delta_cost / temperature);
-	}
-}
-
-static int neighbour(int nb_joints, float *cost_cube, int *moving_joint, int *moving_direction)
-{
-	int total = 0;
-	int chosen = 0;
-	int i;
-	
-	for (i = 0; i < nb_joints; i++)
-	{
-		if (cost_cube[i * 3] < MAX_COST)
-		{
-			total++;
-		}
-		
-		if (cost_cube[i * 3 + 2] < MAX_COST)
-		{
-			total++;
-		}
-	}
-	
-	if (total == 0)
-	{
-		return 0;
-	}
-	
-	chosen = (int)(BLI_drand() * total);
-	
-	for (i = 0; i < nb_joints; i++)
-	{
-		if (cost_cube[i * 3] < MAX_COST)
-		{
-			if (chosen == 0)
-			{
-				*moving_joint = i;
-				*moving_direction = -1;
-				break;
-			}
-			chosen--;
-		}
-		
-		if (cost_cube[i * 3 + 2] < MAX_COST)
-		{
-			if (chosen == 0)
-			{
-				*moving_joint = i;
-				*moving_direction = 1;
-				break;
-			}
-			chosen--;
-		}
-	}
-	
-	return 1;
-}
-
 static int indexMemoNode(int nb_positions, int previous, int current, int joints_left)
 {
 	return joints_left * nb_positions * nb_positions + current * nb_positions + previous;
@@ -2050,7 +1992,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	int *positions;
 	int nb_edges = BLI_countlist(&iarc->edges);
 	int nb_joints = nb_edges - 1;
-	RetargetMethod method = G.scene->toolsettings->skgen_optimisation_method;
+	RetargetMethod method = METHOD_MEMOIZE;
 	int i;
 	
 	if (nb_joints > earc->bcount)
@@ -2261,114 +2203,6 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 			}
 		}
 	}
-	/* SIMULATED ANNEALING */
-	else if (method == METHOD_ANNEALING)
-	{
-		RigEdge *previous;
-		float *cost_cube;
-		float cost;
-		int k;
-		int kmax;
-
-		kmax = 100000;
-		
-		BLI_srand(nb_joints);
-		
-		/* [joint: index][position: -1, 0, +1] */
-		cost_cube = MEM_callocN(sizeof(float) * 3 * nb_joints, "Cost Cube");
-		
-		initArcIterator(&iter, earc, node_start);
-
-		/* init vec_cache */
-		for (i = 0; i < nb_joints; i++)
-		{
-			bucket = peekBucket(&iter, positions[i]);
-			vec_cache[i + 1] = bucket->p;
-		}
-		
-		cost = 0;
-
-		/* init cost cube */
-		for (previous = iarc->edges.first, edge = previous->next, i = 0;
-			 edge;
-			 previous = edge, edge = edge->next, i += 1)
-		{
-			calcGradient(previous, edge, &iter, i, nb_joints, cost_cube, positions, vec_cache);
-			
-			cost += cost_cube[3 * i + 1];
-		}
-		
-#ifndef USE_THREADS
-		printf("initial cost: %f\n", cost);
-		printf("kmax: %i\n", kmax);
-#endif
-		
-		for (k = 0; k < kmax; k++)
-		{
-			int status;
-			int moving_joint = -1;
-			int move_direction = -1;
-			float delta_cost;
-			float temperature;
-			
-			status = neighbour(nb_joints, cost_cube, &moving_joint, &move_direction);
-			
-			if (status == 0)
-			{
-				/* if current state is still a minimum, copy it */
-				if (cost < min_cost)
-				{
-					min_cost = cost;
-					memcpy(best_positions, positions, sizeof(int) * nb_joints);
-				}
-				break;
-			}
-			
-			delta_cost = cost_cube[moving_joint * 3 + (1 + move_direction)];
-
-			temperature = 1 - (float)k / (float)kmax;
-			if (probability(delta_cost, temperature) > BLI_frand())
-			{
-				/* update position */			
-				positions[moving_joint] += move_direction;
-				
-				/* update vector cache */
-				bucket = peekBucket(&iter, positions[moving_joint]);
-				vec_cache[moving_joint + 1] = bucket->p;
-				
-				cost += delta_cost;
-	
-				/* cost optimizing */
-				if (cost < min_cost)
-				{
-					min_cost = cost;
-					memcpy(best_positions, positions, sizeof(int) * nb_joints);
-				}
-
-				/* update cost cube */			
-				for (previous = iarc->edges.first, edge = previous->next, i = 0;
-					 edge;
-					 previous = edge, edge = edge->next, i += 1)
-				{
-					if (i == moving_joint - 1 ||
-						i == moving_joint ||
-						i == moving_joint + 1)
-					{
-						calcGradient(previous, edge, &iter, i, nb_joints, cost_cube, positions, vec_cache);
-					}
-				}
-			}
-		}
-
-		//min_cost = cost;
-		//memcpy(best_positions, positions, sizeof(int) * nb_joints);
-		
-//		printf("k = %i\n", k);
-		
-		
-		MEM_freeN(cost_cube);
-	}	
-
 
 	vec0 = node_start->p;
 	initArcIterator(&iter, earc, node_start);
@@ -2793,6 +2627,13 @@ static void retargetSubgraph(RigGraph *rigg, RigArc *start_arc, RigNode *start_n
 	}
 }
 
+static void finishRetarget(RigGraph *rigg)
+{
+#ifdef USE_THREADS
+	BLI_end_worker(rigg->worker);
+#endif
+}
+
 static void adjustGraphs(RigGraph *rigg)
 {
 	RigArc *arc;
@@ -2805,9 +2646,7 @@ static void adjustGraphs(RigGraph *rigg)
 		}
 	}
 
-#ifdef USE_THREADS
-	BLI_end_worker(rigg->worker);
-#endif
+	finishRetarget(rigg);
 
 	/* Turn the list into an armature */
 	editbones_to_armature(rigg->editbones, rigg->ob);
@@ -2834,9 +2673,7 @@ static void retargetGraphs(RigGraph *rigg)
 	
 	//generateMissingArcs(rigg);
 	
-#ifdef USE_THREADS
-	BLI_end_worker(rigg->worker);
-#endif
+	finishRetarget(rigg);
 
 	/* Turn the list into an armature */
 	editbones_to_armature(rigg->editbones, rigg->ob);
@@ -2927,6 +2764,7 @@ void BIF_retargetArmature()
 void BIF_retargetArc(ReebArc *earc)
 {
 	Object *ob;
+	RigGraph *template;
 	RigGraph *rigg;
 	RigArc *iarc;
 	bArmature *arm;
@@ -2934,7 +2772,9 @@ void BIF_retargetArc(ReebArc *earc)
 	ob = G.obedit; 	
 	arm = ob->data;
 	
-	rigg = armatureSelectedToGraph(ob, arm);
+	template = armatureSelectedToGraph(ob, arm);
+	
+	rigg = cloneRigGraph(template);
 	
 	iarc = rigg->arcs.first;
 	
@@ -2944,11 +2784,10 @@ void BIF_retargetArc(ReebArc *earc)
 	
 	retargetArctoArc(rigg, iarc, iarc->head);
 	
-#ifdef USE_THREADS
-	BLI_end_worker(rigg->worker);
-#endif
+	finishRetarget(rigg);
 	
-	//RIG_freeRigGraph((BGraph*)rigg);
+	RIG_freeRigGraph((BGraph*)template);
+	RIG_freeRigGraph((BGraph*)rigg);
 
 	BIF_undo_push("Retarget Arc");
 	

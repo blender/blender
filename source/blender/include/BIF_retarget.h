@@ -44,10 +44,7 @@ struct RigEdge;
 typedef struct RigGraph {
 	ListBase	arcs;
 	ListBase	nodes;
-	ListBase	controls;
 
-	ListBase*	editbones;
-	
 	float length;
 	
 	FreeArc			free_arc;
@@ -56,6 +53,9 @@ typedef struct RigGraph {
 	AxialSymmetry	axial_symmetry;
 	/*********************************/
 
+	ListBase	controls;
+	ListBase*	editbones;
+	
 	struct RigNode *head;
 	ReebGraph *link_mesh;
 	

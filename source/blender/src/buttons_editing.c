@@ -5246,7 +5246,6 @@ static void editing_panel_mesh_skgen_retarget(Object *ob, Mesh *me)
 	uiDefButF(block, NUM, B_DIFF, 							"Ang:",			1025, 40, 83,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
 	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1108, 40, 83,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
 	uiDefButF(block, NUM, B_DIFF, 							"Dist:",		1191, 40, 84,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
-	uiDefButC(block, NUM, B_DIFF, 							"Method:",		1025, 20, 125,19, &G.scene->toolsettings->skgen_optimisation_method, 0, 2, 1, 0,"Optimisation Method (0: brute, 1: memoize, 2: annealing max fixed");
 }
 
 static void editing_panel_mesh_skgen(Object *ob, Mesh *me)

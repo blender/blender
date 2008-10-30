@@ -441,17 +441,15 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	char  skgen_optimisation_method;
-	
-	char tpad[6];
 	
 	/* Skeleton Sketching */
 	char bone_sketching;
+	char bone_sketching_convert;
 	char skgen_subdivision_number;
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[6];
+	char pad3[4];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -878,6 +876,12 @@ typedef struct Scene {
 /* toolsettings->bone_sketching */
 #define BONE_SKETCHING			1
 #define BONE_SKETCHING_QUICK	2
+
+/* toolsettings->bone_sketching_convert */
+#define	SK_CONVERT_CUT_FIXED			1
+#define	SK_CONVERT_CUT_LENGTH			2
+#define	SK_CONVERT_CUT_CORRELATION		3
+#define	SK_CONVERT_RETARGET				4
 
 #ifdef __cplusplus
 }

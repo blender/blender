@@ -2297,35 +2297,52 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
 		uiSetPanelHandler(VIEW3D_HANDLER_BONESKETCH);  // for close and esc
 	
-		if(uiNewPanel(curarea, block, "Bone Sketching", "View3d", 10, 230, 318, height)==0) return;
+		if(uiNewPanel(curarea, block, "Bone Sketching", "View3d", 10, 230, 250, height)==0) return;
 	
 		uiNewPanelHeight(block, height);
 	
 		uiBlockBeginAlign(block);
 		
 		/* use real flag instead of 1 */
-		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, 225, 130, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
-		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 140, 225, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
-		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,205,150,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
+		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 130, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 140, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
+		yco -= 20;
+		
+		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,150,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
 		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
-		but = uiDefBut(block, BUT, B_REDR, "Delete", 10,185,150,20, 0, 0, 0, 0, 0, "Delete sketch");
+		yco -= 20;
+
+		but = uiDefBut(block, BUT, B_REDR, "Delete", 10,yco,150,20, 0, 0, 0, 0, 0, "Delete sketch");
 		uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
+		yco -= 20;
 		
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
 
-		uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_REDR, 		"Length",		10, 155, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,				"Subdivide arcs in bones of equal length");
-		uiDefButF(block, NUM, B_REDR, 							"L:",			70, 155, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+		uiDefButC(block, ROW, B_REDR, "Length",	10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_LENGTH, 0, 0,				"Subdivide arcs in bones of equal length");
+		uiDefButF(block, NUM, B_REDR, 					"L:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+		yco -= 20;
 
-		uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_REDR, "Correlation",	10, 135, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
-		uiDefButF(block, NUM, B_REDR, 							"T:",			70, 135, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+		uiDefButC(block, ROW, B_REDR, "Correlation",	10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_CORRELATION, 0, 0,					"Subdivide arcs based on correlation");
+		uiDefButF(block, NUM, B_REDR, 						 "T:",			70, yco, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+		yco -= 20;
 	
-		uiDefButBitS(block, TOG, SKGEN_CUT_FIXED, B_REDR, 		"Fixed",		10, 115, 60, 19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on a fixed number of bones");
-		uiDefButC(block, NUM, B_REDR, 							"N:",			70, 115, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Specify the bones to subdivide into");
+		uiDefButC(block, ROW, B_REDR, "Fixed",		10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_FIXED, 0, 0,					"Subdivide arcs based on a fixed number of bones");
+		uiDefButC(block, NUM, B_REDR, 					"N:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Specify the bones to subdivide into");
+		yco -= 20;
+
+		uiDefButC(block, ROW, B_REDR, "Retarget",		10, yco,150, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_RETARGET, 0, 0,					"Subdivide arcs based on a fixed number of bones");
+		/* button here to select what to do (copy or not), template, ...*/
+		yco -= 20;
 
 		uiBlockEndAlign(block);
 		
+		uiDefButF(block, NUM, B_DIFF, 							"Ang:",			10, yco, 50,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+		uiDefButF(block, NUM, B_DIFF, 							"Len:",			60, yco, 50,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+		uiDefButF(block, NUM, B_DIFF, 							"Dist:",		110,yco, 50,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+		yco -= 20;
+
 		if(yco < 0) uiNewPanelHeight(block, height-yco);
 	}
 }

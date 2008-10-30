@@ -2212,7 +2212,20 @@ static EditBone *get_named_editbone(char *name)
 	return NULL;
 }
 
-static void update_dup_subtarget(EditBone *dupBone)
+/* Call this before doing any duplications
+ * */
+void preEditBoneDuplicate(ListBase *editbones)
+{
+	EditBone *eBone;
+	
+	/* clear temp */
+	for (eBone = editbones->first; eBone; eBone = eBone->next)
+	{
+		eBone->temp = NULL;
+	}
+}
+
+void updateDuplicateSubtarget(EditBone *dupBone, Object *ob)
 {
 	/* If an edit bone has been duplicated, lets
 	 * update it's constraints if the subtarget
@@ -2223,7 +2236,7 @@ static void update_dup_subtarget(EditBone *dupBone)
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) ) {
+	if ( (chan = verify_pose_channel(ob->pose, dupBone->name)) ) {
 		if ( (conlist = &chan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
@@ -2244,7 +2257,7 @@ static void update_dup_subtarget(EditBone *dupBone)
 								 * so, update the constraint to point at the 
 								 * duplicate of the old subtarget.
 								 */
-								if (oldtarget->flag & BONE_SELECTED){
+								if (oldtarget->temp){
 									newtarget = (EditBone *) oldtarget->temp;
 									strcpy(ct->subtarget, newtarget->name);
 								}
@@ -2260,6 +2273,67 @@ static void update_dup_subtarget(EditBone *dupBone)
 	}
 }
 
+EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
+{
+	EditBone *eBone = MEM_callocN(sizeof(EditBone), "addup_editbone");
+	
+	/*	Copy data from old bone to new bone */
+	memcpy(eBone, curBone, sizeof(EditBone));
+	
+	curBone->temp = eBone;
+	eBone->temp = curBone;
+
+	unique_editbone_name(editbones, eBone->name);
+	BLI_addtail(editbones, eBone);
+	
+	/* Lets duplicate the list of constraints that the
+	 * current bone has.
+	 */
+	if (ob->pose) {
+		bPoseChannel *chanold, *channew;
+		ListBase     *listold, *listnew;
+		
+		chanold = verify_pose_channel(ob->pose, curBone->name);
+		if (chanold) {
+			listold = &chanold->constraints;
+			if (listold) {
+				/* WARNING: this creates a new posechannel, but there will not be an attached bone 
+				 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
+				 */
+				channew = 
+					verify_pose_channel(ob->pose, eBone->name);
+				if (channew) {
+					/* copy transform locks */
+					channew->protectflag = chanold->protectflag;
+					
+					/* copy bone group */
+					channew->agrp_index= chanold->agrp_index;
+					
+					/* ik (dof) settings */
+					channew->ikflag = chanold->ikflag;
+					VECCOPY(channew->limitmin, chanold->limitmin);
+					VECCOPY(channew->limitmax, chanold->limitmax);
+					VECCOPY(channew->stiffness, chanold->stiffness);
+					channew->ikstretch= chanold->ikstretch;
+					
+					/* constraints */
+					listnew = &channew->constraints;
+					copy_constraints(listnew, listold);
+					
+					/* custom shape */
+					channew->custom= chanold->custom;
+				}
+			}
+		}
+	}
+	
+	/* --------------------WARNING--------------------
+	 * 
+	 * need to call static void updateDuplicateSubtarget(EditBone *dupBone) at some point 
+	 * */
+	
+	return eBone;
+}
 
 void adduplicate_armature(void)
 {
@@ -2269,6 +2343,8 @@ void adduplicate_armature(void)
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 	
 	countall(); // flushes selection!
+	
+	preEditBoneDuplicate(&G.edbo);
 
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
@@ -2282,6 +2358,7 @@ void adduplicate_armature(void)
 			}
 		}
 	}
+
 	
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next) {
@@ -2356,12 +2433,12 @@ void adduplicate_armature(void)
 				*/
 				if (!curBone->parent)
 					eBone->parent = NULL;
-				/*	If this bone has a parent that IS selected,
+				/*	If this bone has a parent that was duplicated,
 					Set the duplicate->parent to the curBone->parent->duplicate
 					*/
-				else if (curBone->parent->flag & BONE_SELECTED)
+				else if (curBone->parent->temp)
 					eBone->parent= (EditBone *)curBone->parent->temp;
-				/*	If this bone has a parent that IS not selected,
+				/*	If this bone has a parent that was not duplicated,
 					Set the duplicate->parent to the curBone->parent
 					*/
 				else {
@@ -2371,7 +2448,7 @@ void adduplicate_armature(void)
 				
 				/* Lets try to fix any constraint subtargets that might
 					have been duplicated */
-				update_dup_subtarget(eBone);
+				updateDuplicateSubtarget(eBone, OBACT);
 			}
 		}
 	} 
