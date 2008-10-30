@@ -394,13 +394,13 @@ class BlenderEnvironment(SConsEnvironment):
             self.Exit()
         
         print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
-        lenv = self.Copy()
+        lenv = self.Clone()
         res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
       
         SConsEnvironment.Default(self, res)
         resources.append(res)
 
-    def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None):
+    def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None):       
         if not self or not libname or not sources:
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
             self.Exit()
@@ -409,7 +409,7 @@ class BlenderEnvironment(SConsEnvironment):
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname +bc.ENDC+bc.OKBLUE+ " (debug mode)" + bc.ENDC
             else:
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname + bc.ENDC
-            lenv = self.Copy()
+            lenv = self.Clone()
             lenv.Append(CPPPATH=includes)
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
@@ -419,21 +419,28 @@ class BlenderEnvironment(SConsEnvironment):
             # debug or not
             # CXXFLAGS defaults to CCFLAGS, therefore
             #  we Replace() rather than Append() to CXXFLAGS the first time
-            lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
+            #lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
             if lenv['BF_DEBUG'] or (libname in quickdebug):
-                    lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
-                    lenv.Append( CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
+                    lenv.Append(CFLAGS = Split(lenv['BF_DEBUG_CFLAGS']))
+                    lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_CCFLAGS']))
+                    lenv.Append(CXXFLAGS = Split(lenv['BF_DEBUG_CXXFLAGS']))
             else:
-                    lenv.Append(CCFLAGS = lenv['REL_CFLAGS'])
-                    lenv.Append(CXXFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CFLAGS = lenv['REL_CFLAGS'])
+                    lenv.Append(CCFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['REL_CXXFLAGS'])
             if lenv['BF_PROFILE']:
-                    lenv.Append(CCFLAGS = Split(lenv['BF_PROFILE_FLAGS']),
-                                CXXFLAGS = Split(lenv['BF_PROFILE_FLAGS']))
+                    lenv.Append(CFLAGS = lenv['BF_PROFILE_CFLAGS'])
+                    lenv.Append(CCFLAGS = lenv['BF_PROFILE_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['BF_PROFILE_CXXFLAGS'])
             if compileflags:
-                lenv.Append(CCFLAGS = compileflags)
-                lenv.Append(CXXFLAGS = compileflags)
-            lenv.Append(CCFLAGS = Split(lenv['C_WARN']))
-            lenv.Append(CXXFLAGS = Split(lenv['CC_WARN']))
+                lenv.Append(CFLAGS = compileflags)
+            if cc_compileflags:
+                lenv.Append(CCFLAGS = cc_compileflags)
+            if cxx_compileflags:
+                lenv.Append(CXXFLAGS = cxx_compileflags)
+            lenv.Append(CFLAGS = lenv['C_WARN'])
+            lenv.Append(CXXFLAGS = lenv['CC_WARN'])
+            lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
             lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
             SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
         else:
@@ -443,7 +450,7 @@ class BlenderEnvironment(SConsEnvironment):
 
     def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
-        lenv = self.Copy()
+        lenv = self.Clone()
         if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
             lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
             if lenv['BF_DEBUG']:

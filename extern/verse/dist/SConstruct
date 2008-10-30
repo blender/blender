@@ -56,7 +56,7 @@ else:
         platform_linkflags += ['/DEBUG','/PDB:verse.pdb']
 
 
-verse_env = env.Copy()
+verse_env = env.Clone()
 
 cmd_gen_files = (['v_cmd_gen.c',
                   'v_cmd_def_a.c',
@@ -71,7 +71,7 @@ cmd_gen_files = (['v_cmd_gen.c',
 
 cmd_gen_deps = (['v_gen_pack_init.c'])
 
-proto_env = env.Copy()
+proto_env = env.Clone()
 proto_env.Append(CPPDEFINES=['V_GENERATE_FUNC_MODE'])
 mkprot_tool = proto_env.Program(target = 'mkprot', source = cmd_gen_files)
 
@@ -130,10 +130,10 @@ server_source_files = (['vs_connection.c',
                         'vs_node_text.c'
                         ])
 
-verselib_env = verse_env.Copy()
+verselib_env = verse_env.Clone()
 verselib_env.Append(CPPDEFINES = defines)
 
-verseserver_env = verse_env.Copy()
+verseserver_env = verse_env.Clone()
 verseserver_env.Append(CPPDEFINES = defines)
 verseserver_env.Append (LIBPATH = ['.'])
 verseserver_env.Append (LIBS= ['verse'])
