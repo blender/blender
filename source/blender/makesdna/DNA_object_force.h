@@ -210,6 +210,7 @@ typedef struct SoftBody {
 #define PFIELD_HARMONIC	7
 #define PFIELD_CHARGE	8
 #define PFIELD_LENNARDJ	9
+#define PFIELD_SPIN		10
 
 
 /* pd->flag: various settings */

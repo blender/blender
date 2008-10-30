@@ -3409,8 +3409,8 @@ static void object_panel_fields(Object *ob)
 				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Curve Guide%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d|Charge%%x%d|Lennard-Jones%%x%d", 
 						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_GUIDE, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE, PFIELD_CHARGE, PFIELD_LENNARDJ);
 			else
-				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d|Charge%%x%d|Lennard-Jones%%x%d", 
-						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE, PFIELD_CHARGE, PFIELD_LENNARDJ);
+				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Spin%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d|Charge%%x%d|Lennard-Jones%%x%d", 
+						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_SPIN, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE, PFIELD_CHARGE, PFIELD_LENNARDJ);
 
 			if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles (On shared object layers)";
 			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis (On shared object layers)";
