@@ -788,7 +788,7 @@ static void texture_panel_pointdensity(Tex *tex)
 			yco -= YSPACE;
 
 			if (pd->source == TEX_PD_PSYS) {
-				uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1",
+				uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Time %x2",
 					X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
 			}
 		}

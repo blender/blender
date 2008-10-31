@@ -35,6 +35,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -56,12 +57,12 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	float partco[3];
 	float obview[4][4];
 	
-	/* init crap */
+	/* init everything */
 	if (!psys || !ob || !pd) return;
 	
 	Mat4MulMat4(obview, re->viewinv, ob->obmat);
 	
-	/* Just to create a valid rendering context */
+	/* Just to create a valid rendering context for particles */
 	psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy, 0);
 	
 	dm = mesh_create_derived_render(ob,CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
@@ -79,8 +80,10 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
 	
-	if (pd->noise_influence != TEX_PD_NOISE_STATIC)
-		pd->point_data = MEM_mallocN(sizeof(float)*3*total_particles, "point_data");
+	if (pd->noise_influence == TEX_PD_NOISE_VEL)
+		pd->point_data = MEM_mallocN(sizeof(float)*3*total_particles, "velocity point data");
+	else if (pd->noise_influence == TEX_PD_NOISE_TIME)
+		pd->point_data = MEM_mallocN(sizeof(float)*total_particles, "time point data");
 	
 	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
 		childexists = 1;
@@ -108,6 +111,8 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				pd->point_data[i*3 + 0] = state.vel[0];
 				pd->point_data[i*3 + 1] = state.vel[1];
 				pd->point_data[i*3 + 2] = state.vel[2];
+			} else if (pd->noise_influence == TEX_PD_NOISE_TIME) {
+				pd->point_data[i] = state.time;
 			}
 		}
 	}
@@ -256,7 +261,9 @@ typedef struct PointDensityRangeData
     float *point_data;
 	float *vec;
 	float softness;
-    short falloff_type;   
+    short falloff_type;
+	short noise_influence;
+	float *time;
 } PointDensityRangeData;
 
 void accum_density(void *userdata, int index, float squared_dist)
@@ -277,10 +284,14 @@ void accum_density(void *userdata, int index, float squared_dist)
 		density = sqrt(dist);
 	
 	if (pdr->point_data) {
-		pdr->vec[0] += pdr->point_data[index*3 + 0];// * density;
-		pdr->vec[1] += pdr->point_data[index*3 + 1];// * density;
-		pdr->vec[2] += pdr->point_data[index*3 + 2];// * density;
-	}
+		if (pdr->noise_influence == TEX_PD_NOISE_VEL) {
+			pdr->vec[0] += pdr->point_data[index*3 + 0];// * density;
+			pdr->vec[1] += pdr->point_data[index*3 + 1];// * density;
+			pdr->vec[2] += pdr->point_data[index*3 + 2];// * density;
+		} else if (pdr->noise_influence == TEX_PD_NOISE_TIME) {
+			*pdr->time += pdr->point_data[index]; // * density;
+		}
+	} 
 	
 	*pdr->density += density;
 }
@@ -288,12 +299,13 @@ void accum_density(void *userdata, int index, float squared_dist)
 #define MAX_POINTS_NEAREST	25
 int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv = TEX_INT;
+	int retval = TEX_INT;
 	PointDensity *pd = tex->pd;
 	PointDensityRangeData pdr;
-	float density=0.0f;
+	float density=0.0f, time=0.0f;
 	float vec[3] = {0.0, 0.0, 0.0};
 	float tv[3];
+	float co[3];
 	float turb, noise_fac;
 	
 	if ((!pd) || (!pd->point_tree)) {
@@ -306,54 +318,53 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	pdr.point_data = pd->point_data;
 	pdr.falloff_type = pd->falloff_type;
 	pdr.vec = vec;
+	pdr.time = &time;
 	pdr.softness = pd->falloff_softness;
+	pdr.noise_influence = pd->noise_influence;
 	noise_fac = pd->noise_fac * 0.5f;	/* better default */
 	
-	if (pd->flag & TEX_PD_TURBULENCE) {
-		VECCOPY(tv, texvec);
-		
-		/* find the average speed vectors, for perturbing final density lookup with */
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density, &pdr);
-		
-		density = 0.0f;
-		Normalize(vec);
+	VECCOPY(co, texvec);
 	
-		turb = BLI_turbulence(pd->noise_size, texvec[0]+vec[0], texvec[1]+vec[1], texvec[2]+vec[2], pd->noise_depth);
+	if (pd->flag & TEX_PD_TURBULENCE) {
+		retval |= TEX_RGB;
 		
+		if (ELEM(pd->noise_influence, TEX_PD_NOISE_VEL, TEX_PD_NOISE_TIME)) {
+			/* find the average speed vectors or particle time,
+			 * for perturbing final density lookup with */
+			BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+			density = 0.0f;
+			
+			if (pd->noise_influence == TEX_PD_NOISE_TIME)
+				vec[0] = vec[1] = vec[2] = time;
+			
+			Normalize(vec);
+		}
+		
+		turb = BLI_turbulence(pd->noise_size, texvec[0]+vec[0], texvec[1]+vec[1], texvec[2]+vec[2], pd->noise_depth);
 		turb -= 0.5f;	/* re-center 0.0-1.0 range around 0 to prevent offsetting result */
 		
-		tv[0] = texvec[0] + noise_fac * turb;
-		tv[1] = texvec[1] + noise_fac * turb;
-		tv[2] = texvec[2] + noise_fac * turb;
-		
-		/* do density lookup with altered coordinates */
-		BLI_bvhtree_range_query(pd->point_tree, tv, pd->radius, accum_density, &pdr);
+		/* now we have an offset coordinate to use for the density lookup */
+		co[0] = texvec[0] + noise_fac * turb;
+		co[1] = texvec[1] + noise_fac * turb;
+		co[2] = texvec[2] + noise_fac * turb;
 	}
-	else
-		BLI_bvhtree_range_query(pd->point_tree, texvec, pd->radius, accum_density, &pdr);
+	
+	BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
 
 	texres->tin = density;
-
-	
-	
 	BRICONT;
 	
-	return TEX_INT;
-	
-	/*
 	texres->tr = vec[0];
 	texres->tg = vec[1];
 	texres->tb = vec[2];
+	texres->ta = density;
 	BRICONTRGB;
 	
-	texres->ta = 1.0;
+	return retval;
 	
+	/*
 	if (texres->nor!=NULL) {
 		texres->nor[0] = texres->nor[1] = texres->nor[2] = 0.0f;
 	}
 	*/
-	
-	//BRICONT;
-	
-	//return rv;
 }

@@ -1565,17 +1565,15 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				/* stencil maps on the texture control slider, not texture intensity value */
 				colfac= mtex->colfac*stencilTin;
 				
-				tcol[0]=texres.tr; tcol[1]=texres.tg; tcol[2]=texres.tb;
-				
 				if((rgbnor & TEX_RGB)==0) {
 					tcol[0]= mtex->r;
 					tcol[1]= mtex->g;
 					tcol[2]= mtex->b;
+				} else {
+					tcol[0]=texres.tr;
+					tcol[1]=texres.tg;
+					tcol[2]=texres.tb;
 				}
-				else if(mtex->mapto & MAP_ALPHA) {
-					texres.tin= stencilTin;
-				}
-				else texres.tin= texres.ta;
 				
 				if((mapto_flag & MAP_COL) && (mtex->mapto & MAP_COL)) {
 					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
@@ -1591,7 +1589,8 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				/* stencil maps on the texture control slider, not texture intensity value */
 				float varfac= mtex->varfac*stencilTin;
 				
-				if(rgbnor & TEX_RGB) {
+				/* convert RGB to intensity if intensity info isn't provided */
+				if((rgbnor & TEX_RGB) && !(rgbnor & TEX_INT)) {
 					if(texres.talpha) texres.tin= texres.ta;
 					else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
 				}
