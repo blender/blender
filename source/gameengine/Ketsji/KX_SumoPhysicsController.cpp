@@ -205,6 +205,11 @@ MT_Scalar	KX_SumoPhysicsController::GetMass()
 	return SumoPhysicsController::getMass();
 }
 
+MT_Scalar	KX_SumoPhysicsController::GetRadius()
+{
+	return SumoPhysicsController::GetRadius();
+}
+
 MT_Vector3	KX_SumoPhysicsController::getReactionForce()
 {
 	float force[3];

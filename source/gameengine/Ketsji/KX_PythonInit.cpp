@@ -97,6 +97,7 @@ static RAS_ICanvas* gp_Canvas = NULL;
 static KX_Scene*	gp_KetsjiScene = NULL;
 static KX_KetsjiEngine*	gp_KetsjiEngine = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
+static char gp_GamePythonPath[FILE_MAXDIR + FILE_MAXFILE] = "";
 
 void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 {
@@ -155,7 +156,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 		return NULL;
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
-	BLI_convertstringcode(expanded, G.sce);
+	BLI_convertstringcode(expanded, gp_GamePythonPath);
 	return PyString_FromString(expanded);
 }
 
@@ -281,7 +282,7 @@ static PyObject* gPyGetAverageFrameRate(PyObject*)
 
 static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 {
-	char cpath[sizeof(G.sce)];
+	char cpath[sizeof(gp_GamePythonPath)];
 	char *searchpath = NULL;
 	PyObject* list, *value;
 	
@@ -295,10 +296,10 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
 	if (searchpath) {
 		BLI_strncpy(cpath, searchpath, FILE_MAXDIR + FILE_MAXFILE);
-		BLI_convertstringcode(cpath, G.sce);
+		BLI_convertstringcode(cpath, gp_GamePythonPath);
 	} else {
 		/* Get the dir only */
-		BLI_split_dirfile_basic(G.sce, cpath, NULL);
+		BLI_split_dirfile_basic(gp_GamePythonPath, cpath, NULL);
 	}
 	
     if((dp  = opendir(cpath)) == NULL) {
@@ -401,26 +402,26 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 
 
 static struct PyMethodDef game_methods[] = {
-	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, gPyExpandPath_doc},
+	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (PY_METHODCHAR)gPyExpandPath_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
+	METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, gPyGetCurrentScene_doc.Ptr()},
+	METH_NOARGS, (PY_METHODCHAR)gPyGetCurrentScene_doc.Ptr()},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
-	METH_VARARGS, SCA_PythonController::sPyAddActiveActuator__doc__},
+	METH_VARARGS, (PY_METHODCHAR)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS,gPyGetRandomFloat_doc.Ptr()},
-	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS,"set Gravitation"},
-	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS,"get audio spectrum"},
-	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS,"stop using the audio dsp (for performance reasons)"},
-	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, "Gets the logic tic rate"},
-	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, "Sets the logic tic rate"},
-	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, "Gets the physics tic rate"},
-	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, "Sets the physics tic rate"},
-	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, "Gets the estimated average frame rate"},
-	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, "Gets a list of blend files in the same directory as the current blend file"},
-	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, "Prints GL Extension Info"},
+	METH_NOARGS, (PY_METHODCHAR)gPyGetRandomFloat_doc.Ptr()},
+	{"setGravity",(PyCFunction) gPySetGravity, METH_VARARGS, (PY_METHODCHAR)"set Gravitation"},
+	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (PY_METHODCHAR)"get audio spectrum"},
+	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (PY_METHODCHAR)"stop using the audio dsp (for performance reasons)"},
+	{"getLogicTicRate", (PyCFunction) gPyGetLogicTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the logic tic rate"},
+	{"setLogicTicRate", (PyCFunction) gPySetLogicTicRate, METH_VARARGS, (PY_METHODCHAR)"Sets the logic tic rate"},
+	{"getPhysicsTicRate", (PyCFunction) gPyGetPhysicsTicRate, METH_NOARGS, (PY_METHODCHAR)"Gets the physics tic rate"},
+	{"setPhysicsTicRate", (PyCFunction) gPySetPhysicsTicRate, METH_VARARGS, (PY_METHODCHAR)"Sets the physics tic rate"},
+	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (PY_METHODCHAR)"Gets the estimated average frame rate"},
+	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (PY_METHODCHAR)"Gets a list of blend files in the same directory as the current blend file"},
+	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (PY_METHODCHAR)"Prints GL Extension Info"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -826,27 +827,19 @@ static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 	Py_RETURN_NONE;
 }
 
-
-STR_String	gPyGetWindowHeight__doc__="getWindowHeight doc";
-STR_String	gPyGetWindowWidth__doc__="getWindowWidth doc";
-STR_String	gPyEnableVisibility__doc__="enableVisibility doc";
-STR_String	gPyMakeScreenshot__doc__="make Screenshot doc";
-STR_String	gPyShowMouse__doc__="showMouse(bool visible)";
-STR_String	gPySetMousePosition__doc__="setMousePosition(int x,int y)";
-
 static struct PyMethodDef rasterizer_methods[] = {
   {"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
-   METH_VARARGS, gPyGetWindowWidth__doc__.Ptr()},
+   METH_VARARGS, "getWindowWidth doc"},
    {"getWindowHeight",(PyCFunction) gPyGetWindowHeight,
-   METH_VARARGS, gPyGetWindowHeight__doc__.Ptr()},
+   METH_VARARGS, "getWindowHeight doc"},
   {"makeScreenshot",(PyCFunction)gPyMakeScreenshot,
-	METH_VARARGS, gPyMakeScreenshot__doc__.Ptr()},
+	METH_VARARGS, "make Screenshot doc"},
    {"enableVisibility",(PyCFunction) gPyEnableVisibility,
-   METH_VARARGS, gPyEnableVisibility__doc__.Ptr()},
+   METH_VARARGS, "enableVisibility doc"},
 	{"showMouse",(PyCFunction) gPyShowMouse,
-   METH_VARARGS, gPyShowMouse__doc__.Ptr()},
+   METH_VARARGS, "showMouse(bool visible)"},
    {"setMousePosition",(PyCFunction) gPySetMousePosition,
-   METH_VARARGS, gPySetMousePosition__doc__.Ptr()},
+   METH_VARARGS, "setMousePosition(int x,int y)"},
   {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_VARARGS,"set Background Color (rgb)"},
 	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_VARARGS,"set Ambient Color (rgb)"},
  {"setMistColor",(PyCFunction)gPySetMistColor,METH_VARARGS,"set Mist Color (rgb)"},
@@ -1085,9 +1078,17 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	PyObject *fromlist = NULL;
 	PyObject *l, *m, *n;
 
+#if (PY_VERSION_HEX >= 0x02060000)
+	int dummy_val; /* what does this do?*/
+	
+	if (!PyArg_ParseTuple(args, "s|OOOi:m_import",
+	        &name, &globals, &locals, &fromlist, &dummy_val))
+	    return NULL;
+#else
 	if (!PyArg_ParseTuple(args, "s|OOO:m_import",
 	        &name, &globals, &locals, &fromlist))
 	    return NULL;
+#endif
 
 	/* check for builtin modules */
 	m = PyImport_AddModule("sys");
@@ -1311,7 +1312,7 @@ static PyObject* gPyEventToString(PyObject*, PyObject* value)
 }
 
 static struct PyMethodDef gamekeys_methods[] = {
-	{"EventToString", (PyCFunction)gPyEventToString, METH_O, gPyEventToString_doc},
+	{"EventToString", (PyCFunction)gPyEventToString, METH_O, (PY_METHODCHAR)gPyEventToString_doc},
 	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 
@@ -1500,6 +1501,7 @@ int saveGamePythonConfig( char **marshal_buffer)
 		}
 		Py_DECREF(gameLogic);
 	} else {
+		PyErr_Clear();
 		printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 	}
 	return marshal_length;
@@ -1513,10 +1515,17 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 
 		if (gameLogic) {
 			PyObject* pyGlobalDict = PyMarshal_ReadObjectFromString(marshal_buffer, marshal_length);
-
 			if (pyGlobalDict) {
-				PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				PyObject* pyGlobalDict_orig = PyDict_GetItemString(PyModule_GetDict(gameLogic), "globalDict"); // Same as importing the module.
+				if (pyGlobalDict_orig) {
+					PyDict_Clear(pyGlobalDict_orig);
+					PyDict_Update(pyGlobalDict_orig, pyGlobalDict);
+				} else {
+					/* this should not happen, but cant find the original globalDict, just assign it then */
+					PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+				}
 				Py_DECREF(gameLogic);
+				Py_DECREF(pyGlobalDict);
 				return 1;
 			} else {
 				Py_DECREF(gameLogic);
@@ -1524,6 +1533,7 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 				printf("Error could not marshall string\n");
 			}
 		} else {
+			PyErr_Clear();
 			printf("Error, GameLogic failed to import GameLogic.globalDict will be lost\n");
 		}	
 	}
@@ -1532,9 +1542,10 @@ int loadGamePythonConfig(char *marshal_buffer, int marshal_length)
 
 void pathGamePythonConfig( char *path )
 {
-	int len = strlen(G.sce);
+	int len = strlen(gp_GamePythonPath);
 	
-	strncpy(path, G.sce, sizeof(G.sce));
+	BLI_strncpy(path, gp_GamePythonPath, sizeof(gp_GamePythonPath));
+
 	/* replace extension */
 	if (BLI_testextensie(path, ".blend")) {
 		strcpy(path+(len-6), ".bgeconf");
@@ -1542,3 +1553,9 @@ void pathGamePythonConfig( char *path )
 		strcpy(path+len, ".bgeconf");
 	}
 }
+
+void setGamePythonPath(char *path)
+{
+	BLI_strncpy(gp_GamePythonPath, path, sizeof(gp_GamePythonPath));
+}
+

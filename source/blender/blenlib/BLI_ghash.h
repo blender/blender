@@ -34,7 +34,12 @@
 
 struct GHash;
 typedef struct GHash GHash;
-typedef struct GHashIterator GHashIterator;
+
+typedef struct GHashIterator {
+	GHash *gh;
+	int curBucket;
+	struct Entry *curEntry;
+} GHashIterator;
 
 typedef unsigned int	(*GHashHashFP)		(void *key);
 typedef int				(*GHashCmpFP)		(void *a, void *b);
@@ -62,6 +67,15 @@ int		BLI_ghash_size		(GHash *gh);
 	 * @return Pointer to a new DynStr.
 	 */
 GHashIterator*	BLI_ghashIterator_new		(GHash *gh);
+	/**
+	 * Init an already allocated GHashIterator. The hash table must not
+	 * be mutated while the iterator is in use, and the iterator will
+	 * step exactly BLI_ghash_size(gh) times before becoming done.
+	 * 
+	 * @param ghi The GHashIterator to initialize.
+	 * @param gh The GHash to iterate over.
+	 */
+void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh);
 	/**
 	 * Free a GHashIterator.
 	 *

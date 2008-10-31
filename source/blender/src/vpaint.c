@@ -740,7 +740,7 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 }
 
 
-static int sample_backbuf_area(VPaint *vp, int *indexar, int totface, int x, int y, float size)
+static int sample_backbuf_area(int *indexar, int totface, int x, int y, float size)
 {
 	unsigned int *rt;
 	struct ImBuf *ibuf;
@@ -1196,7 +1196,7 @@ void weight_paint(void)
 			
 			/* which faces are involved */
 			if(Gwp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(&Gwp, indexar, me->totface, mval[0], mval[1], Gwp.size);
+				totindex= sample_backbuf_area(indexar, me->totface, mval[0], mval[1], Gwp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);
@@ -1428,7 +1428,7 @@ void vertex_paint()
 
 			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(&Gvp, indexar, me->totface, mval[0], mval[1], Gvp.size);
+				totindex= sample_backbuf_area(indexar, me->totface, mval[0], mval[1], Gvp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);

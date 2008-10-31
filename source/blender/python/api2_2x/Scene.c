@@ -591,7 +591,7 @@ PyObject *Scene_CreatePyObject( Scene * scene )
 }
 
 /*-----------------------FromPyObject-----------------------------------*/
-Scene *Scene_FromPyObject( PyObject * pyobj )
+static Scene *Scene_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Scene * ) pyobj )->scene;
 }
@@ -1221,7 +1221,7 @@ static PyObject *SceneObSeq_getObjects( BPy_SceneObSeq *self, void *mode)
 	return SceneObSeq_CreatePyObject(self->bpyscene, NULL, (int)((long)mode));
 }
 
-int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_) 
+static int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_) 
 {
 	/*
 	ONLY SUPPORTS scn.objects.selected and scn.objects.context 
@@ -1642,7 +1642,7 @@ static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 	Py_RETURN_FALSE;
 }
 
-PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
+static PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
 {
 	Base *base;
 	SCENE_DEL_CHECK_PY(self->bpyscene);
@@ -1687,7 +1687,7 @@ static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
 	return 0;
 }
 
-PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
+static PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
 {
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	

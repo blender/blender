@@ -2433,7 +2433,11 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 
 	//Set faces f1 to 0 cause we need it later
 	for(ef=em->faces.first;ef;ef = ef->next) ef->f1 = 0;
-	for(eve=em->verts.first; eve; eve=eve->next) eve->f1 = eve->f2 = 0;
+	for(eve=em->verts.first; eve; eve=eve->next) {
+		if(!(beauty & B_KNIFE)) /* knife sets this flag for vertex cuts */
+			eve->f1 = 0;
+		eve->f2 = 0;
+	}
 
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Mirror) {
@@ -4486,7 +4490,7 @@ static void bevel_mesh_recurs(float bsize, short recurs, int allfaces)
 	}
 }
 
-void bevel_menu() {
+void bevel_menu(void) {
 	BME_Mesh *bm;
 	BME_TransData_Head *td;
 	TransInfo *t;

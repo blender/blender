@@ -282,8 +282,17 @@ int calc_manipulator_stats(ScrArea *sa)
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-						/* exception */
-						if( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT ) {
+						/* exceptions
+						 * if handles are hidden then only check the center points.
+						 * If 2 or more are selected then only use the center point too.
+						 */
+						if (G.f & G_HIDDENHANDLES) {
+							if (bezt->f2 & SELECT) {
+								calc_tw_center(bezt->vec[1]);
+								totsel++;
+							}
+						}
+						else if ( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT ) {
 							calc_tw_center(bezt->vec[1]);
 							totsel++;
 						}

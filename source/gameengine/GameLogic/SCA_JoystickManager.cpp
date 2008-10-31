@@ -51,7 +51,8 @@ SCA_JoystickManager::~SCA_JoystickManager()
 {
 	int i;
 	for (i=0; i<JOYINDEX_MAX; i++) {
-		m_joystick[i]->ReleaseInstance();
+		if(m_joystick[i])
+			m_joystick[i]->ReleaseInstance();
 	}
 }
 

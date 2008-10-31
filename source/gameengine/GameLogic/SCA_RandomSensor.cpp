@@ -154,9 +154,9 @@ PyParentObject SCA_RandomSensor::Parents[] = {
 };
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
-	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, SetSeed_doc},
-	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_VARARGS, GetSeed_doc},
-	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_VARARGS, GetLastDraw_doc},
+	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
+	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_VARARGS, (PY_METHODCHAR)GetSeed_doc},
+	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_VARARGS, (PY_METHODCHAR)GetLastDraw_doc},
 	{NULL,NULL} //Sentinel
 };
 

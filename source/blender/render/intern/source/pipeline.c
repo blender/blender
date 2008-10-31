@@ -2656,6 +2656,8 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 				scene_update_for_newframe(scene, lay);
 				continue;
 			}
+			else
+				nfra+= tfra;
 
 			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
 				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
@@ -2686,7 +2688,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 				
 				break;
 			}
-			nfra+= tfra;
 		}
 	}
 	

@@ -168,7 +168,9 @@
 
 #include "PIL_time.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "butspace.h"
 #include "mydevice.h"
@@ -197,9 +199,9 @@ extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, stru
  * When the mipmap setting changes, we want to redraw the view right
  * away to reflect this setting.
  */
-void space_mipmap_button_function(int event);
+//static void space_mipmap_button_function(int event);
 
-void free_soundspace(SpaceSound *ssound);
+static void free_soundspace(SpaceSound *ssound);
 
 /* *************************************** */
 
@@ -224,7 +226,7 @@ void add_blockhandler(ScrArea *sa, short eventcode, short val)
 		}
 	}
 	if(a==SPACE_MAXHANDLER) {
-		error("Only %i floating panels allowed", SPACE_MAXHANDLER-1);
+		error("Only %i floating panels allowed", SPACE_MAXHANDLER/2);
 	}
 		
 }
@@ -893,7 +895,7 @@ static short select_same_color(Object *ob)
 	Base *base = FIRSTBASE;
 	
 	while(base) {
-		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005))) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005f))) {
 			base->flag |= SELECT;
 			base->object->flag |= SELECT;
 			changed = 1;
@@ -1079,7 +1081,9 @@ void BIF_undo(void)
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
+#ifndef DISABLE_PYTHON
 				BPY_scripts_clear_pyobjects();
+#endif
 				BKE_undo_step(1);
 				sound_initialize_sounds();
 			}
@@ -1248,12 +1252,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * - grease-pencil also defaults to leftmouse
 		 */
 		if(event==LEFTMOUSE) {
+#ifndef DISABLE_PYTHON
 			/* run any view3d event handler script links */
 			if (sa->scriptlink.totscript) {
 				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
-			
+#endif
 			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
 		}
@@ -1309,10 +1314,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 
+#ifndef DISABLE_PYTHON
 		/* run any view3d event handler script links */
 		if (event && sa->scriptlink.totscript)
 			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 				return; /* return if event was processed (swallowed) by handler(s) */
+#endif
 
 		/* TEXTEDITING?? */
 		if((G.obedit) && G.obedit->type==OB_FONT) {
@@ -1523,7 +1530,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			/* Brush properties */
 			case AKEY:
-				br->flag ^= SCULPT_BRUSH_AIRBRUSH;
+				if(G.qual==LR_SHIFTKEY)
+					br->flag ^= SCULPT_BRUSH_ANCHORED;
+				else
+					br->flag ^= SCULPT_BRUSH_AIRBRUSH;
 				update_prop= 1; break;
 			case FKEY:
 				if(ss) {
@@ -1541,8 +1551,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				sd->brush_type= DRAW_BRUSH;
 				update_prop= 1; break;
 			case SKEY:
-				sd->brush_type= SMOOTH_BRUSH;
-				update_prop= 1; break;
+				if(G.qual==LR_SHIFTKEY)
+					sd->flags ^= SCULPT_INPUT_SMOOTH;
+				else {
+					sd->brush_type= SMOOTH_BRUSH;
+					update_prop= 1;
+				}
+				break;
 			case PKEY:
 				sd->brush_type= PINCH_BRUSH;
 				update_prop= 1; break;
@@ -3255,16 +3270,21 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case XKEY:
 		case DELKEY:
-			if (okee("Erase selected")) {
-				remove_marker();
-				del_ipo(0);
-				
-				/* note: don't update the other spaces (in particular ipo)
-				 *		 or else curves disappear.
-				 */
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWSOUND, 0);
+			/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+			if (G.qual == LR_SHIFTKEY) {
+				if (okee("Erase selected marker(s)?"))
+					remove_marker();
 			}
+			else {
+				if (okee("Erase selected?"))
+					del_ipo(0);
+			}
+			
+			/* note: don't update the other spaces (in particular ipo)
+			 *		 or else curves disappear.
+			 */
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		case ACCENTGRAVEKEY:
 			if((G.qual==0)) {
@@ -3290,10 +3310,10 @@ void initipo(ScrArea *sa)
 	sipo->blockscale= 0.7f;
 	
 	/* sipo space loopt van (0,-?) tot (??,?) */
-	sipo->v2d.tot.xmin= 0.0;
-	sipo->v2d.tot.ymin= -10.0;
-	sipo->v2d.tot.xmax= G.scene->r.efra;
-	sipo->v2d.tot.ymax= 10.0;
+	sipo->v2d.tot.xmin= 0.0f;
+	sipo->v2d.tot.ymin= -10.0f;
+	sipo->v2d.tot.xmax= (float)G.scene->r.efra;
+	sipo->v2d.tot.ymax= 10.0f;
 
 	sipo->v2d.cur= sipo->v2d.tot;
 
@@ -3311,13 +3331,14 @@ void initipo(ScrArea *sa)
 
 /* ******************** SPACE: INFO ********************** */
 
-void space_mipmap_button_function(int event) {
+#if 0
+static void space_mipmap_button_function(int event) {
 	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-#if 0
+
 static void space_sound_button_function(int event)
 {
 	int a;
@@ -4105,15 +4126,31 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Grease Pencil:",
 			(xpos+(2*edgsp)+(3*midsp)+(3*mpref)+spref),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
+		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, 0, "Manhatten Dist:",
-			(xpos+(4*midsp)+(3*mpref)+mpref),y5,mpref,buth,
+			(xpos+(4*midsp)+(3*mpref)+spref),y5,(spref*1.5),buth,
 			&(U.gp_manhattendist), 0, 100, 0, 0, "Pixels moved by mouse per axis when drawing stroke");
 		uiDefButS(block, NUM, 0, "Euclidean Dist:",
-			(xpos+(5*midsp)+(3*mpref)+(2*mpref)),y5,mpref,buth,
+			(xpos+(5*midsp)+(3*mpref)+(spref*2.5)),y5,(spref*1.5),buth,
 			&(U.gp_euclideandist), 0, 100, 0, 0, "Distance moved by mouse when drawing stroke (in pixels) to include");
+		
+		uiDefButBitS(block, TOG, GP_PAINT_DOSMOOTH, 0,"Smooth Stroke",
+			(xpos+(4*midsp)+(3*mpref)+spref),y4,(spref*1.5),buth,
+			&(U.gp_settings), 0, 100, 0, 0, "Smooth the final stroke");
+			
+		// currently hidden behind G.rt, as it is not that useful yet
+		if (G.rt) {
+			uiDefButBitS(block, TOG, GP_PAINT_DOSIMPLIFY, 0,"Simplify Stroke",
+				(xpos+(5*midsp)+(3*mpref)+(spref*2.5)),y4,(spref*1.5),buth,
+				&(U.gp_settings), 0, 100, 0, 0, "Simplify the final stroke");
+		}
 		uiBlockEndAlign(block);
+		
+		uiDefButS(block, NUM, 0, "Eraser Radius:",
+			(xpos+(7*midsp)+(3*mpref)+(4*spref)),y5,mpref,buth,
+			&(U.gp_eraser), 0, 100, 0, 0, "Radius of eraser 'brush'");
+		
 	
 	} else if(U.userpref == 2) { /* language & colors */
 
@@ -4294,7 +4331,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y2,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
 #endif
-		
+
+#ifndef DISABLE_PYTHON
 		uiDefBut(block, LABEL,0,"Auto Run Python Scripts",
 			(xpos+edgsp+(1*midsp)+(1*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -4302,7 +4340,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOGN, USER_DONT_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y5,mpref,buth,
 			&(U.flag), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
-		
+#endif
+
 		uiDefBut(block, LABEL,0,"Keyboard:",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y2label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -4481,6 +4520,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "Select the default render output location");
 		uiBlockEndAlign(block);
 
+#ifndef DISABLE_PYTHON
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, B_PYMENUEVAL, "Python Scripts: ",
 			(xpos+edgsp+lpref+midsp),y1,(lpref-2*smfileselbut),buth,
@@ -4492,7 +4532,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(2*lpref)+midsp-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default Python script location");
 		uiBlockEndAlign(block);
-
+#endif
 
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Sounds: ",
@@ -4990,12 +5030,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELUPMOUSE:
 			if(sseq->mainb) {
 				if (G.qual == LR_SHIFTKEY) {
-					sseq->zoom += 0.10;
+					sseq->zoom += 0.10f;
 				} else {
 					sseq->zoom++;
 				}
 				if(sseq->zoom >= -1 && sseq->zoom < 1) {
-					sseq->zoom += 2;
+					sseq->zoom += 2.0f;
 				}
 				if(sseq->zoom>8) sseq->zoom= 8;
 			} else {
@@ -5018,12 +5058,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELDOWNMOUSE:
 			if(sseq->mainb) {
 				if (G.qual == LR_SHIFTKEY) {
-					sseq->zoom -= 0.10;
+					sseq->zoom -= 0.10f;
 				} else {
 					sseq->zoom--;
 				}
 				if(sseq->zoom >= -1 && sseq->zoom < 1) {
-					sseq->zoom -= 2;
+					sseq->zoom -= 2.0f;
 				}
 				if(sseq->zoom<-8) sseq->zoom= -8;
 			} else {
@@ -5206,6 +5246,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(sseq->mainb)
 					gpencil_delete_menu();
 			}
+			else if(G.qual==LR_SHIFTKEY) {
+				/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+				remove_marker();
+			}
 			break;
 		case PAD1: case PAD2: case PAD4: case PAD8:
 			seq_viewzoom(event, (G.qual & LR_SHIFTKEY)==0);
@@ -5230,26 +5274,26 @@ static void init_seqspace(ScrArea *sa)
 
 	sseq->spacetype= SPACE_SEQ;
 	sseq->zoom= 4;
-	sseq->blockscale= 0.7;
+	sseq->blockscale= 0.7f;
 	sseq->chanshown = 0;
 	
 	/* seq space goes from (0,8) to (250, 0) */
 
-	sseq->v2d.tot.xmin= 0.0;
-	sseq->v2d.tot.ymin= 0.0;
-	sseq->v2d.tot.xmax= 250.0;
-	sseq->v2d.tot.ymax= 8.0;
+	sseq->v2d.tot.xmin= 0.0f;
+	sseq->v2d.tot.ymin= 0.0f;
+	sseq->v2d.tot.xmax= 250.0f;
+	sseq->v2d.tot.ymax= 8.0f;
 	
 	sseq->v2d.cur= sseq->v2d.tot;
 
-	sseq->v2d.min[0]= 10.0;
-	sseq->v2d.min[1]= 4.0;
+	sseq->v2d.min[0]= 10.0f;
+	sseq->v2d.min[1]= 4.0f;
 
 	sseq->v2d.max[0]= MAXFRAMEF;
 	sseq->v2d.max[1]= MAXSEQ;
 	
 	sseq->v2d.minzoom= 0.01f;
-	sseq->v2d.maxzoom= 100.0;
+	sseq->v2d.maxzoom= 100.0f;
 	
 	sseq->v2d.scroll= L_SCROLL+B_SCROLL;
 	sseq->v2d.keepaspect= 0;
@@ -5281,25 +5325,25 @@ static void init_actionspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, saction);
 
 	saction->spacetype= SPACE_ACTION;
-	saction->blockscale= 0.7;
+	saction->blockscale= 0.7f;
 
-	saction->v2d.tot.xmin= 1.0;
-	saction->v2d.tot.ymin= -1000.0;
-	saction->v2d.tot.xmax= 1000.0;
-	saction->v2d.tot.ymax= 0.0;
+	saction->v2d.tot.xmin= 1.0f;
+	saction->v2d.tot.ymin= -1000.0f;
+	saction->v2d.tot.xmax= 1000.0f;
+	saction->v2d.tot.ymax= 0.0f;
 	
-	saction->v2d.cur.xmin= -5.0;
-	saction->v2d.cur.ymin= -75.0;
-	saction->v2d.cur.xmax= 65.0;
-	saction->v2d.cur.ymax= 5.0;
+	saction->v2d.cur.xmin= -5.0f;
+	saction->v2d.cur.ymin= -75.0f;
+	saction->v2d.cur.xmax= 65.0f;
+	saction->v2d.cur.ymax= 5.0f;
 
-	saction->v2d.min[0]= 0.0;
-	saction->v2d.min[1]= 0.0;
+	saction->v2d.min[0]= 0.0f;
+	saction->v2d.min[1]= 0.0f;
 
 	saction->v2d.max[0]= MAXFRAMEF;
-	saction->v2d.max[1]= 1000.0;
+	saction->v2d.max[1]= 1000.0f;
 	
-	saction->v2d.minzoom= 0.01;
+	saction->v2d.minzoom= 0.01f;
 	saction->v2d.maxzoom= 50;
 
 	saction->v2d.scroll= R_SCROLL+B_SCROLL;
@@ -5334,7 +5378,7 @@ static void init_filespace(ScrArea *sa)
 
 	sfile->dir[0]= '/';
 	sfile->type= FILE_UNIX;
-	sfile->blockscale= 0.7;
+	sfile->blockscale= 0.7f;
 	sfile->spacetype= SPACE_FILE;
 }
 
@@ -5352,27 +5396,27 @@ static void init_soundspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, ssound);
 
 	ssound->spacetype= SPACE_SOUND;
-	ssound->blockscale= 0.7;
+	ssound->blockscale= 0.7f;
 	/* sound space goes from (0,8) to (250, 0) */
 
-	ssound->v2d.tot.xmin= -4.0;
-	ssound->v2d.tot.ymin= -4.0;
-	ssound->v2d.tot.xmax= 250.0;
-	ssound->v2d.tot.ymax= 255.0;
+	ssound->v2d.tot.xmin= -4.0f;
+	ssound->v2d.tot.ymin= -4.0f;
+	ssound->v2d.tot.xmax= 250.0f;
+	ssound->v2d.tot.ymax= 255.0f;
 	
-	ssound->v2d.cur.xmin= -4.0;
-	ssound->v2d.cur.ymin= -4.0;
-	ssound->v2d.cur.xmax= 50.0;
-	ssound->v2d.cur.ymax= 255.0;
+	ssound->v2d.cur.xmin= -4.0f;
+	ssound->v2d.cur.ymin= -4.0f;
+	ssound->v2d.cur.xmax= 50.0f;
+	ssound->v2d.cur.ymax= 255.0f;
 
-	ssound->v2d.min[0]= 1.0;
-	ssound->v2d.min[1]= 259.0;
+	ssound->v2d.min[0]= 1.0f;
+	ssound->v2d.min[1]= 259.0f;
 
 	ssound->v2d.max[0]= MAXFRAMEF;
-	ssound->v2d.max[1]= 259;
+	ssound->v2d.max[1]= 259.0f;
 	
 	ssound->v2d.minzoom= 0.1f;
-	ssound->v2d.maxzoom= 10.0;
+	ssound->v2d.maxzoom= 10.0f;
 	
 	ssound->v2d.scroll= B_SCROLL;
 	ssound->v2d.keepaspect= 0;
@@ -5381,7 +5425,7 @@ static void init_soundspace(ScrArea *sa)
 	
 }
 
-void free_soundspace(SpaceSound *ssound)
+static void free_soundspace(SpaceSound *ssound)
 {
 	/* don't free ssound itself */
 	
@@ -5711,7 +5755,7 @@ static void init_imagespace(ScrArea *sa)
 
 	sima->spacetype= SPACE_IMAGE;
 	sima->zoom= 1;
-	sima->blockscale= 0.7;
+	sima->blockscale= 0.7f;
 
 	sima->iuser.ok= 1;
 	sima->iuser.fie_ima= 2;
@@ -5743,18 +5787,18 @@ static void init_imaselspace(ScrArea *sa)
 	simasel->blockscale= 0.7;
 
 	/* view 2D */
-	simasel->v2d.tot.xmin=  -10.0;
-	simasel->v2d.tot.ymin=  -10.0;
+	simasel->v2d.tot.xmin=  -10.0f;
+	simasel->v2d.tot.ymin=  -10.0f;
 	simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
 	simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;
 	
-	simasel->v2d.cur.xmin=  0.0;
-	simasel->v2d.cur.ymin=  0.0;
+	simasel->v2d.cur.xmin=  0.0f;
+	simasel->v2d.cur.ymin=  0.0f;
 	simasel->v2d.cur.xmax= (float)sa->winx;
 	simasel->v2d.cur.ymax= (float)sa->winy;
 	
-	simasel->v2d.min[0]= 1.0;
-	simasel->v2d.min[1]= 1.0;
+	simasel->v2d.min[0]= 1.0f;
+	simasel->v2d.min[1]= 1.0f;
 	
 	simasel->v2d.max[0]= 32000.0f;
 	simasel->v2d.max[1]= 32000.0f;
@@ -5898,8 +5942,8 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case PADPLUSKEY:
 		
-			dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
-			dy= 0.1154*(v2d->cur.ymax-v2d->cur.ymin);
+			dx= 0.1154f*(v2d->cur.xmax-v2d->cur.xmin);
+			dy= 0.1154f*(v2d->cur.ymax-v2d->cur.ymin);
 			v2d->cur.xmin+= dx;
 			v2d->cur.xmax-= dx;
 			v2d->cur.ymin+= dy;
@@ -5910,8 +5954,8 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		case PADMINUS:
 
-			dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
-			dy= 0.15*(v2d->cur.ymax-v2d->cur.ymin);
+			dx= 0.15f*(v2d->cur.xmax-v2d->cur.xmin);
+			dy= 0.15f*(v2d->cur.ymax-v2d->cur.ymin);
 			v2d->cur.xmin-= dx;
 			v2d->cur.xmax+= dx;
 			v2d->cur.ymin-= dy;
@@ -6011,10 +6055,10 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		/* outliner space is window size */
 		calc_scrollrcts(sa, v2d, sa->winx, sa->winy);
 		
-		v2d->tot.xmax= (v2d->mask.xmax-v2d->mask.xmin);
-		v2d->tot.ymax= (v2d->mask.ymax-v2d->mask.ymin);
-		v2d->tot.xmin= 0.0;
-		v2d->tot.ymin= 0.0;
+		v2d->tot.xmax= (float)(v2d->mask.xmax-v2d->mask.xmin);
+		v2d->tot.ymax= (float)(v2d->mask.ymax-v2d->mask.ymin);
+		v2d->tot.xmin= 0.0f;
+		v2d->tot.ymin= 0.0f;
 		
 		v2d->cur= v2d->tot;
 		
@@ -6024,8 +6068,8 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		v2d->max[0]= v2d->tot.xmax;
 		v2d->max[1]= v2d->tot.ymax;
 		
-		v2d->minzoom= 1.0;
-		v2d->maxzoom= 1.0;
+		v2d->minzoom= 1.0f;
+		v2d->maxzoom= 1.0f;
 		
 		/* B_SCROLLO used here instead of B_SCROLL, to stop old blender's hanging on 
 		 * loading a file from a version with horizontal scrolling due to an old bug
@@ -6041,21 +6085,21 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		v2d->keeptot= 2;
 	}
 	else {
-		v2d->tot.xmin= -28.0;
-		v2d->tot.xmax= 28.0;
-		v2d->tot.ymin= -28.0;
-		v2d->tot.ymax= 28.0;
+		v2d->tot.xmin= -28.0f;
+		v2d->tot.xmax= 28.0f;
+		v2d->tot.ymin= -28.0f;
+		v2d->tot.ymax= 28.0f;
 		
 		v2d->cur= v2d->tot;
 
-		v2d->min[0]= 10.0;
-		v2d->min[1]= 4.0;
+		v2d->min[0]= 10.0f;
+		v2d->min[1]= 4.0f;
 
-		v2d->max[0]= 320.0;
-		v2d->max[1]= 320.0;
+		v2d->max[0]= 320.0f;
+		v2d->max[1]= 320.0f;
 		
 		v2d->minzoom= 0.01f;
-		v2d->maxzoom= 2.0;
+		v2d->maxzoom= 2.0f;
 		
 		/* v2d->scroll= L_SCROLL+B_SCROLL; */
 		v2d->scroll= 0;
@@ -6077,7 +6121,7 @@ static void init_oopsspace(ScrArea *sa)
 	soops->type= SO_OUTLINER;
 		
 	soops->spacetype= SPACE_OOPS;
-	soops->blockscale= 0.7;
+	soops->blockscale= 0.7f;
 	init_v2d_oops(sa, soops);
 }
 
@@ -6091,26 +6135,26 @@ static void init_nlaspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, snla);
 	
 	snla->spacetype= SPACE_NLA;
-	snla->blockscale= 0.7;
+	snla->blockscale= 0.7f;
 	
-	snla->v2d.tot.xmin= 1.0;
-	snla->v2d.tot.ymin=	0.0;
-	snla->v2d.tot.xmax= 1000.0;
-	snla->v2d.tot.ymax= 1000.0;
+	snla->v2d.tot.xmin= 1.0f;
+	snla->v2d.tot.ymin=	0.0f;
+	snla->v2d.tot.xmax= 1000.0f;
+	snla->v2d.tot.ymax= 1000.0f;
 	
-	snla->v2d.cur.xmin= -5.0;
-	snla->v2d.cur.ymin= 0.0;
-	snla->v2d.cur.xmax= 65.0;
-	snla->v2d.cur.ymax= 1000.0;
+	snla->v2d.cur.xmin= -5.0f;
+	snla->v2d.cur.ymin= 0.0f;
+	snla->v2d.cur.xmax= 65.0f;
+	snla->v2d.cur.ymax= 1000.0f;
 	
-	snla->v2d.min[0]= 0.0;
-	snla->v2d.min[1]= 0.0;
+	snla->v2d.min[0]= 0.0f;
+	snla->v2d.min[1]= 0.0f;
 	
 	snla->v2d.max[0]= MAXFRAMEF;
-	snla->v2d.max[1]= 1000.0;
+	snla->v2d.max[1]= 1000.0f;
 	
-	snla->v2d.minzoom= 0.1F;
-	snla->v2d.maxzoom= 50;
+	snla->v2d.minzoom= 0.1f;
+	snla->v2d.maxzoom= 50.0f;
 	
 	snla->v2d.scroll= R_SCROLL+B_SCROLL;
 	snla->v2d.keepaspect= 0;
@@ -6135,7 +6179,7 @@ static void init_textspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, st);
 	
 	st->spacetype= SPACE_TEXT;	
-	st->blockscale= 0.7;
+	st->blockscale= 0.7f;
 	st->text= NULL;
 	st->flags= 0;
 	
@@ -6166,7 +6210,7 @@ static void init_scriptspace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, sc);
 	
 	sc->spacetype = SPACE_SCRIPT;
-	sc->blockscale= 0.7;
+	sc->blockscale= 0.7f;
 	sc->script = NULL;
 	sc->flags = 0;
 }
@@ -6185,24 +6229,24 @@ static void init_timespace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, stime);
 	
 	stime->spacetype= SPACE_TIME;
-	stime->blockscale= 0.7;
+	stime->blockscale= 0.7f;
 	stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 	
-	stime->v2d.tot.xmin= -4.0;
-	stime->v2d.tot.ymin=  0.0;
+	stime->v2d.tot.xmin= -4.0f;
+	stime->v2d.tot.ymin=  0.0f;
 	stime->v2d.tot.xmax= (float)EFRA + 4.0;
 	stime->v2d.tot.ymax= (float)sa->winy;
 	
 	stime->v2d.cur= stime->v2d.tot;
 	
-	stime->v2d.min[0]= 1.0;
+	stime->v2d.min[0]= 1.0f;
 	stime->v2d.min[1]= (float)sa->winy;
 	
 	stime->v2d.max[0]= MAXFRAMEF;
 	stime->v2d.max[1]= (float)sa->winy;
 	
 	stime->v2d.minzoom= 0.1f;
-	stime->v2d.maxzoom= 10.0;
+	stime->v2d.maxzoom= 10.0f;
 	
 	stime->v2d.scroll= 0;
 	stime->v2d.keepaspect= 0;
@@ -6226,20 +6270,20 @@ static void init_nodespace(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, snode);
 	
 	snode->spacetype= SPACE_NODE;
-	snode->blockscale= 0.7;
+	snode->blockscale= 0.7f;
 	
-	snode->v2d.tot.xmin=  -10.0;
-	snode->v2d.tot.ymin=  -10.0;
+	snode->v2d.tot.xmin=  -10.0f;
+	snode->v2d.tot.ymin=  -10.0f;
 	snode->v2d.tot.xmax= (float)sa->winx + 10.0f;
 	snode->v2d.tot.ymax= (float)sa->winy + 10.0f;
 	
-	snode->v2d.cur.xmin=  0.0;
-	snode->v2d.cur.ymin=  0.0;
+	snode->v2d.cur.xmin=  0.0f;
+	snode->v2d.cur.ymin=  0.0f;
 	snode->v2d.cur.xmax= (float)sa->winx;
 	snode->v2d.cur.ymax= (float)sa->winy;
 	
-	snode->v2d.min[0]= 1.0;
-	snode->v2d.min[1]= 1.0;
+	snode->v2d.min[0]= 1.0f;
+	snode->v2d.min[1]= 1.0f;
 	
 	snode->v2d.max[0]= 32000.0f;
 	snode->v2d.max[1]= 32000.0f;
@@ -7047,6 +7091,7 @@ SpaceType *spacetext_get_type(void)
 
 static void spacescript_change(ScrArea *sa, void *spacedata)
 {
+#ifndef DISABLE_PYTHON
 	SpaceScript *sc = (SpaceScript*) spacedata;
 
 	/*clear all temp button references*/
@@ -7055,6 +7100,7 @@ static void spacescript_change(ScrArea *sa, void *spacedata)
 		BPy_Free_DrawButtonsList();
 		sc->but_refs = NULL;
 	}
+#endif
 }
 
 SpaceType *spacescript_get_type(void)

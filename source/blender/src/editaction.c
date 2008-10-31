@@ -436,7 +436,7 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 			 */
 			if ( (!(filter_mode & ACTFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
 				 ( ((filter_mode & ACTFILTER_IPOKEYS) || (filter_mode & ACTFILTER_ONLYICU)) && 
-				  !(filter_mode & ACTFILTER_SEL) ) ) 
+				   (!(filter_mode & ACTFILTER_SEL) || (SEL_AGRP(agrp))) ) ) 
 			{
 				if (!(filter_mode & ACTFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
 					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
@@ -529,6 +529,14 @@ static void actdata_filter_gpencil (ListBase *act_data, bScreen *sc, int filter_
 	/* check if filtering types are appropriate */
 	if ( !(filter_mode & (ACTFILTER_IPOKEYS|ACTFILTER_ONLYICU|ACTFILTER_ACTGROUPED)) ) 
 	{
+		/* special hack for fullscreen area (which must be this one then):
+		 * 	- we use the curarea->full as screen to get spaces from, since the
+		 * 	  old (pre-fullscreen) screen was stored there...
+		 *	- this is needed as all data would otherwise disappear
+		 */
+		if ((curarea->full) && (curarea->spacetype==SPACE_ACTION))
+			sc= curarea->full;
+		
 		/* loop over spaces in current screen, finding gpd blocks (could be slow!) */
 		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			/* try to get gp data */
@@ -803,6 +811,14 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 				bActionGroup *agrp= (bActionGroup *)ale->data;
 				agroup_to_keylist(agrp, &act_keys, NULL, NULL);
 			}
+			else if (ale->type == ACTTYPE_GPDATABLOCK) {
+				/* cleanup */
+				BLI_freelistN(&act_data);
+				
+				/* this channel currently doens't have any keyframes... must ignore! */
+				*ret_type= ACTTYPE_NONE;
+				return NULL;
+			}
 			else if (ale->type == ACTTYPE_GPLAYER) {
 				bGPDlayer *gpl= (bGPDlayer *)ale->data;
 				gpl_to_keylist(gpl, &act_keys, NULL, NULL);
@@ -919,8 +935,8 @@ void action_previewrange_set (bAction *act)
 	}
 	
 	/* set preview range */
-	G.scene->r.psfra= start;
-	G.scene->r.pefra= end;
+	G.scene->r.psfra= (int)start;
+	G.scene->r.pefra= (int)end;
 	
 	BIF_undo_push("Set anim-preview range");
 	allqueue(REDRAWTIME, 0);
@@ -1814,7 +1830,7 @@ void clean_action (void)
 	/* don't proceed any further if nothing to work on or user refuses */
 	data= get_action_context(&datatype);
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
-				0.0000001f, 1.0, 0.001, 0.1,
+				0.0000001f, 1.0f, 0.001f, 0.1f,
 				"Clean Threshold");
 	if (!ok) return;
 	if (datatype == ACTCONT_GPENCIL) return;
@@ -2079,9 +2095,9 @@ void paste_actdata ()
 	short datatype;
 	Object *ob= OBACT;
 	
-	short no_name= 0;
-	float offset = CFRA - actcopy_firstframe;
+	const float offset = (float)(CFRA - actcopy_firstframe);
 	char *actname = NULL, *conname = NULL;
+	short no_name= 0;
 	
 	/* check if buffer is empty */
 	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
@@ -2102,13 +2118,13 @@ void paste_actdata ()
 	
 	/* from selected channels */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		Ipo *ipo_src=NULL;
+		Ipo *ipo_src = NULL;
 		bActionChannel *achan;
 		IpoCurve *ico, *icu;
 		BezTriple *bezt;
 		int i;
 		
-		/* find matching ipo-block */
+		/* find suitable IPO-block from buffer to paste from */
 		for (achan= actcopybuf.first; achan; achan= achan->next) {
 			/* try to match data */
 			if (ale->ownertype == ACTTYPE_ACHAN) {
@@ -2116,7 +2132,7 @@ void paste_actdata ()
 				
 				/* check if we have a corresponding action channel */
 				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
-					actname= achan->name;
+					actname= achant->name;
 					
 					/* check if this is a constraint channel */
 					if (ale->type == ACTTYPE_CONCHAN) {
@@ -2125,7 +2141,7 @@ void paste_actdata ()
 						
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 							if (strcmp(conchan->name, conchant->name)==0) {
-								conname= conchan->name;
+								conname= conchant->name;
 								ipo_src= conchan->ipo;
 								break;
 							}
@@ -2141,7 +2157,7 @@ void paste_actdata ()
 			else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
 				/* check if this action channel is "#ACP_ShapeKey" */
 				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
-					actname= achan->name;
+					actname= NULL;
 					ipo_src= achan->ipo;
 					break;
 				}
@@ -2154,7 +2170,8 @@ void paste_actdata ()
 		
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
-			icu= verify_ipocurve((ID*)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
+			/* get IPO-curve to paste to (IPO-curve might not exist for destination, so gets created) */
+			icu= verify_ipocurve((ID *)ob, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
@@ -3187,8 +3204,8 @@ void selectall_action_keys (short mval[], short mode, short select_mode)
 			rectf.xmax= rectf.xmin;
 			rectf.ymax= rectf.ymin;
 			
-			rectf.xmin = rectf.xmin - 0.5;
-			rectf.xmax = rectf.xmax + 0.5;
+			rectf.xmin = rectf.xmin - 0.5f;
+			rectf.xmax = rectf.xmax + 0.5f;
 			
 			/* filter data */
 			if (datatype == ACTCONT_GPENCIL)
@@ -3371,11 +3388,11 @@ void nextprev_action_keyframe (short dir)
 		short changed= 0;
 		
 		if ((dir > 0) && (nearest->next)) {
-			CFRA= nearest->next->cfra;
+			CFRA= (int)nearest->next->cfra;
 			changed= 1;
 		}
 		else if ((dir < 0) && (nearest->prev)) {
-			CFRA= nearest->prev->cfra;
+			CFRA= (int)nearest->prev->cfra;
 			changed= 1;
 		}
 			
@@ -3465,9 +3482,9 @@ void column_select_action_keys (int mode)
 			
 			/* apply scaled action correction if needed */
 			if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION)
-				ce->cfra= get_action_frame(OBACT, CFRA);
+				ce->cfra= (float)get_action_frame(OBACT, (float)CFRA);
 			else
-				ce->cfra= CFRA;
+				ce->cfra= (float)CFRA;
 	}
 	
 	/* loop through all of the keys and select additional keyframes
@@ -3944,7 +3961,7 @@ static void mouse_action (int selectmode)
 			}
 		}
 		else if (gpl)
-			select_gpencil_frame(gpl, selx, selectmode);
+			select_gpencil_frame(gpl, (int)selx, selectmode);
 		
 		std_rmouse_transform(transform_action_keys);
 		
@@ -5155,21 +5172,28 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case DELKEY:
 		case XKEY:
-			if (okee("Erase selected")) {
-				if (mval[0] < NAMEWIDTH) {
-					if (datatype == ACTCONT_ACTION)
-						delete_action_channels();
-					else if (datatype == ACTCONT_GPENCIL)
-						delete_gpencil_layers();
+			/* markers are incorported under shift-modifier (it does go against conventions, but oh well :/) */
+			if (G.qual == LR_SHIFTKEY) {
+				if (okee("Erase selected marker(s)?")) {
+					if (mval[0] >= NAMEWIDTH)
+						remove_marker();
 				}
-				else
-					delete_action_keys();
-				
-				if (mval[0] >= NAMEWIDTH)
-					remove_marker();
-				
-				allqueue(REDRAWMARKER, 0);
 			}
+			else {
+				if (okee("Erase selected?")) {
+					if (mval[0] < NAMEWIDTH) {
+						if (datatype == ACTCONT_ACTION)
+							delete_action_channels();
+						else if (datatype == ACTCONT_GPENCIL)
+							delete_gpencil_layers();
+					}
+					else
+						delete_action_keys();
+				}
+			}
+			
+			allqueue(REDRAWMARKER, 0);
+			
 			break;
 		
 		case ACCENTGRAVEKEY:
@@ -5187,7 +5211,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					openclose_level_action(1);
 			}
 			else {
-				view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
+				view2d_zoom(G.v2d, 0.1154f, sa->winx, sa->winy);
 				test_view2d(G.v2d, sa->winx, sa->winy);
 				view2d_do_locks(curarea, V2D_LOCK_COPY);
 				
@@ -5200,7 +5224,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					openclose_level_action(-1);
 			}
 			else {
-				view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
+				view2d_zoom(G.v2d, -0.15f, sa->winx, sa->winy);
 				test_view2d(G.v2d, sa->winx, sa->winy);
 				view2d_do_locks(curarea, V2D_LOCK_COPY);
 				

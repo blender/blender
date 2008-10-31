@@ -257,7 +257,7 @@ void make_sample_tables(Render *re)
 {
 	static int firsttime= 1;
 	SampleTables *st;
-	float flweight[32], fmask[256];
+	float flweight[32];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
 	int i, j, a;
 
@@ -298,11 +298,6 @@ void make_sample_tables(Render *re)
 	
 	for(a=0; a<16; a++) {
 		st->centLut[a]= -0.45+((float)a)/16.0;
-	}
-
-	val= 1.0/((float)re->osa);
-	for(a=0; a<256; a++) {
-		fmask[a]= ((float)st->cmask[a])*val;
 	}
 
 	/* calculate totw */

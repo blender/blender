@@ -54,7 +54,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_newClientInfo = 0;
 	m_registerCount = 0;
 	m_softBodyTransformInitialized = false;
-
+	m_parentCtrl = 0;
 	// copy pointers locally to allow smart release
 	m_MotionState = ci.m_MotionState;
 	m_collisionShape = ci.m_collisionShape;
@@ -500,6 +500,11 @@ void CcdPhysicsController::CreateRigidbody()
 			body->setAngularFactor(0.f);
 		}
 	}
+	if (m_object && m_cci.m_do_anisotropic)
+	{
+		m_object->setAnisotropicFriction(m_cci.m_anisotropicFriction);
+	}
+		
 }
 
 static void DeleteBulletShape(btCollisionShape* shape)
@@ -623,6 +628,7 @@ void		CcdPhysicsController::WriteDynamicsToMotionState()
 		// controller replication
 void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionstate,class PHY_IPhysicsController* parentctrl)
 {
+	
 	m_softBodyTransformInitialized=false;
 	m_MotionState = motionstate;
 	m_registerCount = 0;
@@ -956,8 +962,12 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 				body->applyCentralForce(force);
 			btSoftBody* soft = GetSoftBody();
 			if (soft)
+			{
+				// the force is applied on each node, must reduce it in the same extend
+				if (soft->m_nodes.size() > 0)
+					force /= soft->m_nodes.size();
 				soft->addForce(force);
-
+			}
 		}
 	}
 }
@@ -970,7 +980,7 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 		if (m_object->isStaticObject())
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-		}
+		} else
 		{
 			btTransform xform = m_object->getWorldTransform();
 			if (local)
@@ -995,6 +1005,7 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 		if (m_object->isStaticObject())
 		{
 			m_object->setCollisionFlags(m_object->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			return;
 		}
 		
 		btSoftBody* soft = GetSoftBody();
@@ -1083,8 +1094,7 @@ void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const 
 	btRigidBody* body = GetRigidBody();
 	if (body)
 	{
-		btVector3 rel_pos = pos-body->getCenterOfMassPosition();
-		btVector3 linvel = body->getVelocityInLocalPoint(rel_pos);
+		btVector3 linvel = body->getVelocityInLocalPoint(pos);
 		linvX = linvel.x();
 		linvY = linvel.y();
 		linvZ = linvel.z();

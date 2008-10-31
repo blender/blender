@@ -37,7 +37,7 @@ struct RenderData;
 extern void start_frameserver(struct RenderData *rd, int rectx, int recty);
 extern void end_frameserver(void);
 extern void append_frameserver(int frame, int *pixels, int rectx, int recty);
-extern int frameserver_loop();
+extern int frameserver_loop(void);
 
 #ifdef __cplusplus
 }

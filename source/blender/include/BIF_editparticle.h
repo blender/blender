@@ -54,7 +54,7 @@ short PE_get_current_num(struct Object *ob);
 int PE_minmax(float *min, float *max);
 void PE_get_colors(char sel[4], char nosel[4]);
 struct ParticleEditSettings *PE_settings(void);
-struct RadialControl **PE_radialcontrol();
+struct RadialControl **PE_radialcontrol(void);
 
 /* update calls */
 void PE_hide_keys_time(struct ParticleSystem *psys, float cfra);

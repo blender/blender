@@ -2139,6 +2139,8 @@ typedef struct SmoothMesh {
 	DerivedMesh *dm;
 	float threshold; /* the cosine of the smoothing angle */
 	int flags;
+	MemArena *arena;
+	ListBase propagatestack, reusestack;
 } SmoothMesh;
 
 static SmoothVert *smoothvert_copy(SmoothVert *vert, SmoothMesh *mesh)
@@ -2221,6 +2223,9 @@ static void smoothmesh_free(SmoothMesh *mesh)
 
 	for(i = 0; i < mesh->num_edges; ++i)
 		BLI_linklist_free(mesh->edges[i].faces, NULL);
+	
+	if(mesh->arena)
+		BLI_memarena_free(mesh->arena);
 
 	MEM_freeN(mesh->verts);
 	MEM_freeN(mesh->edges);
@@ -2872,6 +2877,49 @@ static void split_single_vert(SmoothVert *vert, SmoothFace *face,
 	face_replace_vert(face, &repdata);
 }
 
+typedef struct PropagateEdge {
+	struct PropagateEdge *next, *prev;
+	SmoothEdge *edge;
+	SmoothVert *vert;
+} PropagateEdge;
+
+static void push_propagate_stack(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
+{
+	PropagateEdge *pedge = mesh->reusestack.first;
+
+	if(pedge) {
+		BLI_remlink(&mesh->reusestack, pedge);
+	}
+	else {
+		if(!mesh->arena) {
+			mesh->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+			BLI_memarena_use_calloc(mesh->arena);
+		}
+
+		pedge = BLI_memarena_alloc(mesh->arena, sizeof(PropagateEdge));
+	}
+
+	pedge->edge = edge;
+	pedge->vert = vert;
+	BLI_addhead(&mesh->propagatestack, pedge);
+}
+
+static void pop_propagate_stack(SmoothEdge **edge, SmoothVert **vert, SmoothMesh *mesh)
+{
+	PropagateEdge *pedge = mesh->propagatestack.first;
+
+	if(pedge) {
+		*edge = pedge->edge;
+		*vert = pedge->vert;
+		BLI_remlink(&mesh->propagatestack, pedge);
+		BLI_addhead(&mesh->reusestack, pedge);
+	}
+	else {
+		*edge = NULL;
+		*vert = NULL;
+	}
+}
+
 static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh);
 
 static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
@@ -2949,7 +2997,7 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 	if(!edge2) {
 		/* didn't find a sharp or loose edge, so try the other vert */
 		vert2 = other_vert(edge, vert);
-		propagate_split(edge, vert2, mesh);
+		push_propagate_stack(edge, vert2, mesh);
 	} else if(!edge_is_loose(edge2)) {
 		/* edge2 is not loose, so it must be sharp */
 		SmoothEdge *copy_edge = smoothedge_copy(edge, mesh);
@@ -2978,11 +3026,11 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 		/* all copying and replacing is done; the mesh should be consistent.
 		* now propagate the split to the vertices at either end
 		*/
-		propagate_split(copy_edge, other_vert(copy_edge, vert2), mesh);
-		propagate_split(copy_edge2, other_vert(copy_edge2, vert2), mesh);
+		push_propagate_stack(copy_edge, other_vert(copy_edge, vert2), mesh);
+		push_propagate_stack(copy_edge2, other_vert(copy_edge2, vert2), mesh);
 
 		if(smoothedge_has_vert(edge, vert))
-			propagate_split(edge, vert, mesh);
+			push_propagate_stack(edge, vert, mesh);
 	} else {
 		/* edge2 is loose */
 		SmoothEdge *copy_edge = smoothedge_copy(edge, mesh);
@@ -3005,10 +3053,10 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 		/* copying and replacing is done; the mesh should be consistent.
 		* now propagate the split to the vertex at the other end
 		*/
-		propagate_split(copy_edge, other_vert(copy_edge, vert2), mesh);
+		push_propagate_stack(copy_edge, other_vert(copy_edge, vert2), mesh);
 
 		if(smoothedge_has_vert(edge, vert))
-			propagate_split(edge, vert, mesh);
+			push_propagate_stack(edge, vert, mesh);
 	}
 
 	BLI_linklist_free(visited_faces, NULL);
@@ -3080,6 +3128,7 @@ static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
 
 static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 {
+	SmoothVert *vert;
 	int i;
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
@@ -3092,10 +3141,16 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 	for(i = 0; i < mesh->num_edges; i++) {
 		SmoothEdge *edge = &mesh->edges[i];
 
-		if(edge_is_sharp(edge, flags, mesh->threshold))
+		if(edge_is_sharp(edge, flags, mesh->threshold)) {
 			split_edge(edge, edge->verts[0], mesh);
-	}
 
+			do {
+				pop_propagate_stack(&edge, &vert, mesh);
+				if(edge && smoothedge_has_vert(edge, vert))
+					propagate_split(edge, vert, mesh);
+			} while(edge);
+		}
+	}
 }
 
 static int count_bridge_verts(SmoothMesh *mesh)
@@ -6543,7 +6598,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	/* make tree of emitter locations */
 	tree=BLI_kdtree_new(totpart);
 	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
+		psys_particle_on_dm(psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
 		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 	BLI_kdtree_balance(tree);
@@ -7063,7 +7118,6 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 {
 	DerivedMesh *explode, *dm=to_explode;
 	MFace *mf=0;
-	MVert *dupvert=0;
 	ParticleSettings *part=psmd->psys->part;
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
 	ParticleKey state;
@@ -7118,7 +7172,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	/* the final duplicated vertices */
 	explode= CDDM_from_template(dm, totdup, 0,totface);
-	dupvert= CDDM_get_verts(explode);
+	/*dupvert= CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
 	Mat4Invert(imat,ob->obmat);
@@ -7147,7 +7201,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			pa= pars+i;
 
 			/* get particle state */
-			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
+			psys_particle_on_emitter(psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
@@ -7705,6 +7759,8 @@ static void shrinkwrapModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->keepDist	= smd->keepDist;
 	tsmd->shrinkType= smd->shrinkType;
 	tsmd->shrinkOpts= smd->shrinkOpts;
+	tsmd->projAxis = smd->projAxis;
+	tsmd->subsurfLevels = smd->subsurfLevels;
 }
 
 CustomDataMask shrinkwrapModifier_requiredDataMask(ModifierData *md)

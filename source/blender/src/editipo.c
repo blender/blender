@@ -285,14 +285,14 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 	
 	/* is there no curve? */
 	if(first) {
-		v2d->tot.xmin= 0.0;
-		v2d->tot.xmax= EFRA;
+		v2d->tot.xmin= (float)0.0;
+		v2d->tot.xmax= (float)EFRA;
 		v2d->tot.ymin= (float)-0.1;
 		v2d->tot.ymax= (float)1.1;
 	
 		if(si->blocktype==ID_SEQ) {
-			v2d->tot.xmin= -5.0;
-			v2d->tot.xmax= 105.0;
+			v2d->tot.xmin= (float)-5.0;
+			v2d->tot.xmax= (float)105.0;
 			v2d->tot.ymin= (float)-0.1;
 			v2d->tot.ymax= (float)1.1;
 		}
@@ -2022,12 +2022,9 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 	/* creates ipo too (if add) */
 	ipo= verify_ipo(from, blocktype, actname, constname, bonename, add);
 	
-	if (ipo && ipo->id.lib==NULL && from->lib==NULL) {
+	if ((ipo) && (ipo->id.lib==NULL) && (from->lib==NULL)) {
 		/* try to find matching curve */
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			if (icu->adrcode==adrcode) 
-				break;
-		}
+		icu= find_ipocurve(ipo, adrcode);
 		
 		/* make a new one if none found (and can add) */
 		if ((icu==NULL) && (add)) {
@@ -2411,7 +2408,7 @@ void clean_ipo(void)
 	int b;
 	
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
-				0.0000001f, 1.0, 0.001, 0.1,
+				0.0000001f, 1.0f, 0.001f, 0.1f,
 				"Threshold");
 	if (!ok) return;
 	
@@ -3770,7 +3767,7 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 	ListBase elems;
 	IpoKey *ik;
 	int a;
-	float toframe= CFRA;
+	float toframe= (float)CFRA;
 	
 	if (!G.vd)
 		return;
@@ -3796,7 +3793,7 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 						}
 						if (ik) toframe= ik->val;
 					}
-										
+					
 					free_ipokey(&elems);
 				}
 			}

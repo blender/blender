@@ -61,10 +61,12 @@ OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		OFF)
 OPTION(WITH_ELBEEM		"Enable Elbeem (Fluid Simulation)"			ON)
 OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
 OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
+OPTION(WITH_DDS			"Enable DDS Support"                                   	ON)
+OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
-OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Mozilla-Unix only)"			OFF)
+OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -327,7 +329,7 @@ IF(WIN32)
   SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
   IF(CMAKE_CL_64)
-  SET(PLATFORM_LINKFLAGS "/MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
+  SET(PLATFORM_LINKFLAGS "/MANIFEST:NO /MANIFESTUAC:NO /MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
   ELSE(CMAKE_CL_64)
   SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib ")
   ENDIF(CMAKE_CL_64)
@@ -429,6 +431,17 @@ SET(FTGL_LIB extern_ftgl)
 
 
 #-----------------------------------------------------------------------------
+# Blender WebPlugin
+
+IF(WITH_WEBPLUGIN) 
+  SET(GECKO_DIR "${CMAKE_SOURCE_DIR}/../gecko-sdk/" CACHE PATH "Gecko SDK path")
+  SET(WEBPLUGIN_SANDBOX_MODE "apparmor" CACHE STRING "WEB Plugin sandbox mode, can be apparmor, privsep, none")
+
+  SET(WITH_PLAYER ON)
+ENDIF(WITH_WEBPLUGIN)
+
+
+#-----------------------------------------------------------------------------
 # Configure OpenGL.
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
@@ -457,12 +470,6 @@ SUBDIRS(
 # Blender Application
 SUBDIRS(source/creator)
 
-#-----------------------------------------------------------------------------
-# Blender WebPlugin
-IF(WITH_WEBPLUGIN) 
-  SET(MOZILLA_DIR "${CMAKE_SOURCE_DIR}/../gecko-sdk/" CACHE PATH "Gecko SDK path")
-  SET(WITH_PLAYER ON)
-ENDIF(WITH_WEBPLUGIN)
 
 #-----------------------------------------------------------------------------
 # Blender Player

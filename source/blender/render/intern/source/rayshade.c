@@ -397,6 +397,7 @@ static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *sh
 		Normalize(shi->view);
 		
 		shadeSkyView(col, isec->start, shi->view, NULL);
+		shadeSunView(col, shi->view);
 	}
 }
 
@@ -633,24 +634,27 @@ void init_jitter_plane(LampRen *lar)
 	/* at least 4, or max threads+1 tables */
 	if(BLENDER_MAX_THREADS < 4) x= 4;
 	else x= BLENDER_MAX_THREADS+1;
-	fp= lar->jitter= MEM_mallocN(x*tot*2*sizeof(float), "lamp jitter tab");
+	fp= lar->jitter= MEM_callocN(x*tot*2*sizeof(float), "lamp jitter tab");
 	
-	/* set per-lamp fixed seed */
-	BLI_srandom(tot);
-	
-	/* fill table with random locations, area_size large */
-	for(x=0; x<tot; x++, fp+=2) {
-		fp[0]= (BLI_frand()-0.5)*lar->area_size;
-		fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
-	}
-	
-	while(iter--) {
-		fp= lar->jitter;
-		for(x=tot; x>0; x--, fp+=2) {
-			DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+	/* if 1 sample, we leave table to be zero's */
+	if(tot>1) {
+		
+		/* set per-lamp fixed seed */
+		BLI_srandom(tot);
+		
+		/* fill table with random locations, area_size large */
+		for(x=0; x<tot; x++, fp+=2) {
+			fp[0]= (BLI_frand()-0.5)*lar->area_size;
+			fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
 		}
-	}
-	
+		
+		while(iter--) {
+			fp= lar->jitter;
+			for(x=tot; x>0; x--, fp+=2) {
+				DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+			}
+		}
+	}	
 	/* create the dithered tables (could just check lamp type!) */
 	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.0f);
 	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.5f);
@@ -733,7 +737,7 @@ static void hammersley_create(double *out, int n)
 	}
 }
 
-struct QMCSampler *QMC_initSampler(int type, int tot)
+static struct QMCSampler *QMC_initSampler(int type, int tot)
 {	
 	QMCSampler *qsa = MEM_callocN(sizeof(QMCSampler), "qmc sampler");
 	qsa->samp2d = MEM_callocN(2*sizeof(double)*tot, "qmc sample table");
@@ -882,7 +886,7 @@ void init_render_qmcsampler(Render *re)
 	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*BLENDER_MAX_THREADS, "QMCListBase");
 }
 
-QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
+static QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 {
 	QMCSampler *qsa;
 
@@ -903,7 +907,7 @@ QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 	return qsa;
 }
 
-void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
+static void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
 {
 	qsa->used= 0;
 }
@@ -1173,7 +1177,6 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 /* extern call from render loop */
 void ray_trace(ShadeInput *shi, ShadeResult *shr)
 {
-	VlakRen *vlr;
 	float i, f, f1, fr, fg, fb;
 	float mircol[4], tracol[4];
 	float diff[3];
@@ -1181,7 +1184,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
-	vlr= shi->vlr;
+
 	
 	/* raytrace mirror amd refract like to separate the spec color */
 	if(shi->combinedflag & SCE_PASS_SPEC)
@@ -1524,7 +1527,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	}
 }
 
-void ray_ao_qmc(ShadeInput *shi, float *shadfac)
+static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	QMCSampler *qsa=NULL;
@@ -1535,7 +1538,6 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	float fac=0.0f, prev=0.0f;
 	float adapt_thresh = G.scene->world->ao_adapt_thresh;
 	float adapt_speed_fac = G.scene->world->ao_adapt_speed_fac;
-	float bias = G.scene->world->aobias;
 	
 	int samples=0;
 	int max_samples = R.wrld.aosamp*R.wrld.aosamp;
@@ -1563,13 +1565,10 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		dxyview[2]= 0.0f;
 	}
 	
-	/* bias prevents smoothed faces to appear flat */
 	if(shi->vlr->flag & R_SMOOTH) {
-		bias= G.scene->world->aobias;
 		VECCOPY(nrm, shi->vn);
 	}
 	else {
-		bias= 0.0f;
 		VECCOPY(nrm, shi->facenor);
 	}
 	
@@ -1629,6 +1628,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 			}
 			else {	/* WO_AOSKYTEX */
 				shadeSkyView(skycol, isec.start, view, dxyview);
+				shadeSunView(skycol, shi->view);
 				shadfac[0]+= skycol[0];
 				shadfac[1]+= skycol[1];
 				shadfac[2]+= skycol[2];
@@ -1664,7 +1664,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 }
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
-void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
+static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0.0f;
@@ -1753,6 +1753,7 @@ void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 				}
 				else {	/* WO_AOSKYTEX */
 					shadeSkyView(skycol, isec.start, view, dxyview);
+					shadeSunView(skycol, shi->view);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
@@ -1791,20 +1792,61 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 		ray_ao_spheresamp(shi, shadfac);
 }
 
+static void ray_shadow_jittered_coords(ShadeInput *shi, int max, float jitco[RE_MAX_OSA][3], int *totjitco)
+{
+	/* magic numbers for reordering sample positions to give better
+	 * results with adaptive sample, when it usually only takes 4 samples */
+	int order8[8] = {0, 1, 5, 6, 2, 3, 4, 7};
+	int order11[11] = {1, 3, 8, 10, 0, 2, 4, 5, 6, 7, 9};
+	int order16[16] = {1, 3, 9, 12, 0, 6, 7, 8, 13, 2, 4, 5, 10, 11, 14, 15};
+	int count = count_mask(shi->mask);
+
+	/* for better antialising shadow samples are distributed over the subpixel
+	 * sample coordinates, this only works for raytracing depth 0 though */
+	if(!shi->strand && shi->depth == 0 && count > 1 && count <= max) {
+		float xs, ys, zs, view[3];
+		int samp, ordsamp, tot= 0;
+
+		for(samp=0; samp<R.osa; samp++) {
+			if(R.osa == 8) ordsamp = order8[samp];
+			else if(R.osa == 11) ordsamp = order11[samp];
+			else if(R.osa == 16) ordsamp = order16[samp];
+			else ordsamp = samp;
+
+			if(shi->mask & (1<<ordsamp)) {
+				/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
+				xs= (float)shi->scanco[0] + R.jit[ordsamp][0] + 0.5f;
+				ys= (float)shi->scanco[1] + R.jit[ordsamp][1] + 0.5f;
+				zs= shi->scanco[2];
+
+				shade_input_calc_viewco(shi, xs, ys, zs, view, NULL, jitco[tot], NULL, NULL);
+				tot++;
+			}
+		}
+
+		*totjitco= tot;
+	}
+	else {
+		VECCOPY(jitco[0], shi->co);
+		*totjitco= 1;
+	}
+}
 
 static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)
 {
 	QMCSampler *qsa=NULL;
-	QMCSampler *qsa_jit=NULL;
 	int samples=0;
-	float samp3d[3], jit[3], jitbias= 0.0f;
+	float samp3d[3];
 
 	float fac=0.0f, vec[3];
 	float colsq[4];
 	float adapt_thresh = lar->adapt_thresh;
-	int max_samples = lar->ray_totsamp;
-	float pos[3];
+	int min_adapt_samples=4, max_samples = lar->ray_totsamp;
+	float *co;
 	int do_soft=1, full_osa=0;
+
+	float jitco[RE_MAX_OSA][3];
+	int totjitco;
 
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -1822,21 +1864,16 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		if (do_soft) max_samples = lar->ray_totsamp;
 		else max_samples = (R.osa > 4)?R.osa:5;
 	}
-
-	if(shi->vlr && ((shi->vlr->flag & R_FULL_OSA) == 0))
-		jitbias= 0.5f*(VecLength(shi->dxco) + VecLength(shi->dyco));
+	
+	ray_shadow_jittered_coords(shi, max_samples, jitco, &totjitco);
 
 	/* sampling init */
-	if (lar->ray_samp_method==LA_SAMP_HALTON) {
+	if (lar->ray_samp_method==LA_SAMP_HALTON)
 		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
-		qsa_jit = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
-	} else if (lar->ray_samp_method==LA_SAMP_HAMMERSLEY) {
+	else if (lar->ray_samp_method==LA_SAMP_HAMMERSLEY)
 		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
-		qsa_jit = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
-	}
 	
 	QMC_initPixel(qsa, shi->thread);
-	QMC_initPixel(qsa_jit, shi->thread);
 	
 	VECCOPY(vec, lampco);
 	
@@ -1844,18 +1881,11 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	while (samples < max_samples) {
 		isec->faceorig= (RayFace*)shi->vlr;
 		isec->oborig= RAY_OBJECT_SET(&R, shi->obi);
-		
+
 		/* manually jitter the start shading co-ord per sample
 		 * based on the pre-generated OSA texture sampling offsets, 
 		 * for anti-aliasing sharp shadow edges. */
-		VECCOPY(pos, shi->co);
-		if (shi->vlr && !full_osa) {
-			QMC_sampleRect(jit, qsa_jit, shi->thread, samples, 1.0, 1.0);
-			
-			pos[0] += shi->dxco[0]*jit[0] + shi->dyco[0]*jit[1];
-			pos[1] += shi->dxco[1]*jit[0] + shi->dyco[1]*jit[1];
-			pos[2] += shi->dxco[2]*jit[0] + shi->dyco[2]*jit[1];
-		}
+		co = jitco[samples % totjitco];
 
 		if (do_soft) {
 			/* sphere shadow source */
@@ -1863,9 +1893,9 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				float ru[3], rv[3], v[3], s[3];
 				
 				/* calc tangent plane vectors */
-				v[0] = pos[0] - lampco[0];
-				v[1] = pos[1] - lampco[1];
-				v[2] = pos[2] - lampco[2];
+				v[0] = co[0] - lampco[0];
+				v[1] = co[1] - lampco[1];
+				v[2] = co[2] - lampco[2];
 				Normalize(v);
 				VecOrthoBasisf(v, ru, rv);
 				
@@ -1878,13 +1908,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				s[2] = samp3d[0]*ru[2] + samp3d[1]*rv[2];
 				
 				VECCOPY(samp3d, s);
-
-				if(jitbias != 0.0f) {
-					/* bias away somewhat to avoid self intersection */
-					pos[0] -= jitbias*v[0];
-					pos[1] -= jitbias*v[1];
-					pos[2] -= jitbias*v[2];
-				}
 			}
 			else {
 				/* sampling, returns quasi-random vector in [sizex,sizey]^2 plane */
@@ -1900,20 +1923,20 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			VECCOPY(isec->end, vec);
 		}
 
-		if(jitbias != 0.0f && !(do_soft && lar->type==LA_LOCAL)) {
+		if(shi->strand) {
 			/* bias away somewhat to avoid self intersection */
+			float jitbias= 0.5f*(VecLength(shi->dxco) + VecLength(shi->dyco));
 			float v[3];
 
-			VECSUB(v, pos, isec->end);
+			VECSUB(v, co, isec->end);
 			Normalize(v);
 
-			pos[0] -= jitbias*v[0];
-			pos[1] -= jitbias*v[1];
-			pos[2] -= jitbias*v[2];
+			co[0] -= jitbias*v[0];
+			co[1] -= jitbias*v[1];
+			co[2] -= jitbias*v[2];
 		}
 
-		VECCOPY(isec->start, pos);
-		
+		VECCOPY(isec->start, co);
 		
 		/* trace the ray */
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -1940,7 +1963,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		if ((lar->ray_samp_method == LA_SAMP_HALTON)) {
 		
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
-			if ((max_samples > 4) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {
+			if ((max_samples > min_adapt_samples) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {
 				if (isec->mode==RE_RAY_SHADOW_TRA) {
 					if ((shadfac[3] / samples > (1.0-adapt_thresh)) || (shadfac[3] / samples < adapt_thresh))
 						break;
@@ -1962,8 +1985,6 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	} else
 		shadfac[3]= 1.0f-fac/samples;
 
-	if (qsa_jit)
-		release_thread_qmcsampler(&R, shi->thread, qsa_jit);
 	if (qsa)
 		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
@@ -2120,7 +2141,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 }
 
 /* only when face points away from lamp, in direction of lamp, trace ray and find first exit point */
-void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
+static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
 {
 	Isect isec;
 	float lampco[3], maxsize;

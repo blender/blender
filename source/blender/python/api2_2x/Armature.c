@@ -57,9 +57,9 @@ static const char sArmatureBadArgs[] = "ArmatureType - Bad Arguments: ";
 static const char sModuleError[] = "Blender.Armature - Error: ";
 static const char sModuleBadArgs[] = "Blender.Armature - Bad Arguments: ";
 
-PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref);
+static PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref);
 /* python callable */
-PyObject * arm_weakref_callback_weakref_dealloc__pyfunc;
+static PyObject * arm_weakref_callback_weakref_dealloc__pyfunc;
 
 //################## BonesDict_Type (internal) ########################
 /*This is an internal psuedo-dictionary type that allows for manipulation
@@ -923,7 +923,7 @@ AttributeError:
 		sArmatureError, "You are not allowed to change the .Bones attribute");
 }
 
-//------------------------Bone.layerMask (get)
+//------------------------Armature.layerMask (get)
 static PyObject *Armature_getLayerMask(BPy_Armature *self)
 {
 	/* do this extra stuff because the short's bits can be negative values */
@@ -931,7 +931,7 @@ static PyObject *Armature_getLayerMask(BPy_Armature *self)
 	laymask |= self->armature->layer;
 	return PyInt_FromLong((int)laymask);
 }
-//------------------------Bone.layerMask (set)
+//------------------------Armature.layerMask (set)
 static int Armature_setLayerMask(BPy_Armature *self, PyObject *value)
 {
 	int laymask;
@@ -1295,7 +1295,6 @@ static PyObject *M_Armature_New(PyObject * self, PyObject * args)
 	return (PyObject *)obj;
 }
 
-
 //-------------------MODULE METHODS DEFINITION-----------------------------
 
 static char M_Armature_Get_doc[] = "(name) - return the armature with the name 'name', \
@@ -1323,7 +1322,7 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
 }
 
 /* internal func to remove weakref from weakref list */
-PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref)
+static PyObject * arm_weakref_callback_weakref_dealloc(PyObject *self, PyObject *weakref)
 {
 	char *list_name = ARM_WEAKREF_LIST_NAME;
 	PyObject *maindict = NULL, *armlist = NULL;

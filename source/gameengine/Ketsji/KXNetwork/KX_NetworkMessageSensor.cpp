@@ -197,19 +197,19 @@ PyParentObject KX_NetworkMessageSensor::Parents[] = {
 PyMethodDef KX_NetworkMessageSensor::Methods[] = {
 	{"setSubjectFilterText", (PyCFunction)
 		KX_NetworkMessageSensor::sPySetSubjectFilterText, METH_O,
-		SetSubjectFilterText_doc},
+		(PY_METHODCHAR)SetSubjectFilterText_doc},
 	{"getFrameMessageCount", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetFrameMessageCount, METH_NOARGS,
-		GetFrameMessageCount_doc},
+		(PY_METHODCHAR)GetFrameMessageCount_doc},
 	{"getBodies", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetBodies, METH_NOARGS,
-		GetBodies_doc},
+		(PY_METHODCHAR)GetBodies_doc},
 	{"getSubject", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetSubject, METH_NOARGS,
-		GetSubject_doc},
+		(PY_METHODCHAR)GetSubject_doc},
 	{"getSubjects", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetSubjects, METH_NOARGS,
-		GetSubjects_doc},
+		(PY_METHODCHAR)GetSubjects_doc},
 	{NULL,NULL} //Sentinel
 };
 

@@ -1301,7 +1301,7 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan, short only_temp)
 	bPoseChannel *parchan;
 	
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 			int segcount= 0;
 			
@@ -2506,7 +2506,7 @@ int draw_armature(Base *base, int dt, int flag)
 	bArmature *arm= ob->data;
 	int retval= 0;
 
-	if(G.f & G_SIMULATION)
+	if(G.f & G_RENDER_SHADOW)
 		return 1;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
@@ -2572,4 +2572,5 @@ int draw_armature(Base *base, int dt, int flag)
 }
 
 /* *************** END Armature drawing ******************* */
+
 

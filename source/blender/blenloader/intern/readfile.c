@@ -1347,7 +1347,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 
-void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 {
 	int i;
 
@@ -1368,14 +1368,14 @@ void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	}
 }
 
-void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
 {
 	/*since we didn't save the extra string buffer, set totallen to len.*/
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 }
 
-void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
 {
 	ListBase *lb = &prop->data.group;
 	IDProperty *loop;
@@ -4874,7 +4874,7 @@ static void ntree_version_245(FileData *fd, Library *lib, bNodeTree *ntree)
 	}
 }
 
-void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
+static void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
 {
 	IDProperty *loop;
 	int i;
@@ -4889,7 +4889,7 @@ void idproperties_fix_groups_lengths_recurse(IDProperty *prop)
 	}
 }
 
-void idproperties_fix_group_lengths(ListBase idlist)
+static void idproperties_fix_group_lengths(ListBase idlist)
 {
 	ID *id;
 	
@@ -4900,7 +4900,7 @@ void idproperties_fix_group_lengths(ListBase idlist)
 	}
 }
 
-void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
+static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 {
 	Material *ma;
 	MFace *mf;
@@ -4920,6 +4920,12 @@ void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 		if(mf->mat_nr < me->totcol) {
 			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
 			texalpha = 0;
+
+			/* we can't read from this if it comes from a library,
+			 * because direct_link might not have happened on it,
+			 * so ma->mtex is not pointing to valid memory yet */
+			if(ma && ma->id.lib)
+				ma= NULL;
 
 			for(b=0; ma && b<MAX_MTEX; b++)
 				if(ma->mtex && ma->mtex[b] && ma->mtex[b]->mapto & MAP_ALPHA)
@@ -7373,6 +7379,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	/* sanity check for skgen
+	 * */
+	{
+		Scene *sce;
+		for(sce=main->scene.first; sce; sce = sce->id.next)
+		{
+			if (sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[1] ||
+				sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[2] ||
+				sce->toolsettings->skgen_subdivisions[1] == sce->toolsettings->skgen_subdivisions[2])
+			{
+					sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+					sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+					sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+			}
+		}
+	}
+	
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
 		Image *ima;
@@ -7767,23 +7791,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* sun/sky */
 	if(main->versionfile < 246) {
-		Lamp *la;
 		Object *ob;
 		bActuator *act;
 
-		for(la=main->lamp.first; la; la= la->id.next) {
-			la->sun_effect_type = 0;
-			la->horizon_brightness = 1.0;
-			la->spread = 1.0;
-			la->sun_brightness = 1.0;
-			la->sun_size = 1.0;
-			la->backscattered_light = 1.0;
-			la->atm_turbidity = 2.0;
-			la->atm_inscattering_factor = 1.0;
-			la->atm_extinction_factor = 1.0;
-			la->atm_distance_factor = 1.0;
-			la->sun_intensity = 1.0;
-		}
 		/* dRot actuator change direction in 2.46 */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			for(act= ob->actuators.first; act; act= act->next) {
@@ -7920,6 +7930,53 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 9)) {
+		Lamp *la= main->lamp.first;
+		for(; la; la= la->id.next) {
+			la->sky_exposure= 1.0f;
+		}
+	}
+	
+	/* BGE message actuators needed OB prefix, very confusing */
+	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 10)) {
+		bActuator *act;
+		Object *ob;
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_MESSAGE) {
+					bMessageActuator *msgAct = (bMessageActuator *) act->data;
+					if (strlen(msgAct->toPropName) > 2) {
+						/* strip first 2 chars, would have only worked if these were OB anyway */
+						memmove( msgAct->toPropName, msgAct->toPropName+2, sizeof(msgAct->toPropName)-2 );
+					} else {
+						msgAct->toPropName[0] = '\0';
+					}
+				}
+			}
+		}
+	}
+
+	if (main->versionfile < 248) {
+		Lamp *la;
+
+		for(la=main->lamp.first; la; la= la->id.next) {
+			if(la->atm_turbidity == 0.0) {
+				la->sun_effect_type = 0;
+				la->horizon_brightness = 1.0;
+				la->spread = 1.0;
+				la->sun_brightness = 1.0;
+				la->sun_size = 1.0;
+				la->backscattered_light = 1.0;
+				la->atm_turbidity = 2.0;
+				la->atm_inscattering_factor = 1.0;
+				la->atm_extinction_factor = 1.0;
+				la->atm_distance_factor = 1.0;
+				la->sun_intensity = 1.0;
+			}
+		}
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

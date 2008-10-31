@@ -3570,19 +3570,15 @@ void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, in
 	}
 }
 
-static void add_transp_obindex(RenderLayer *rl, int offset, int obi)
+static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 {
-	ObjectRen *obr= R.objectinstance[obi].obr;
-
-	if(obr->ob) {
-		RenderPass *rpass;
-		
-		for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
-			if(rpass->passtype == SCE_PASS_INDEXOB) {
-				float *fp= rpass->rect + offset;
-				*fp= (float)obr->ob->index;
-				break;
-			}
+	RenderPass *rpass;
+	
+	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
+		if(rpass->passtype == SCE_PASS_INDEXOB) {
+			float *fp= rpass->rect + offset;
+			*fp= (float)ob->index;
+			break;
 		}
 	}
 }
@@ -3839,7 +3835,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 					}
 					shi->mask= (1<<samp);
 					shi->samplenr= R.shadowsamplenr[shi->thread]++;
-					shade_input_set_viewco(shi, xs, ys, (float)z);
+					shade_input_set_viewco(shi, x, y, xs, ys, (float)z);
 					shade_input_set_uv(shi);
 					shade_input_set_normals(shi);
 					
@@ -3859,7 +3855,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 			}
 			shi->mask= curmask;
 			shi->samplenr= R.shadowsamplenr[shi->thread]++;
-			shade_input_set_viewco(shi, xs, ys, (float)z);
+			shade_input_set_viewco(shi, x, y, xs, ys, (float)z);
 			shade_input_set_uv(shi);
 			shade_input_set_normals(shi);
 		}
@@ -4009,10 +4005,11 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	ShadeResult samp_shr[16];		/* MAX_OSA */
 	ZTranspRow zrow[MAX_ZROW];
 	StrandShadeCache *sscache= NULL;
+	RenderLayer *rlpp[RE_MAX_OSA];
 	float sampalpha, alpha, *passrect= pass;
 	intptr_t *rdrect;
-	int x, y, crop=0, a, b, totface, totsample, doztra;
-	int addpassflag, offs= 0, od, addzbuf, osa = (R.osa? R.osa: 1);
+	int x, y, crop=0, a, b, totface, totfullsample, totsample, doztra;
+	int addpassflag, offs= 0, od, osa = (R.osa? R.osa: 1);
 	unsigned short *ztramask= NULL, filled;
 
 	/* looks nicer for calling code */
@@ -4034,7 +4031,6 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	/* general shader info, passes */
 	shade_sample_initialize(&ssamp, pa, rl);
 	addpassflag= rl->passflag & ~(SCE_PASS_COMBINED);
-	addzbuf= rl->passflag & SCE_PASS_Z;
 	
 	if(R.osa)
 		sampalpha= 1.0f/(float)R.osa;
@@ -4062,6 +4058,9 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	aprect= APixbuf;
 	aprectstrand= APixbufstrand;
 	rdrect= pa->rectdaps;
+
+	/* needed for correct zbuf/index pass */
+	totfullsample= get_sample_layers(pa, rl, rlpp);
 	
 	/* irregular shadowb buffer creation */
 	if(R.r.mode & R_SHADOW)
@@ -4164,13 +4163,14 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					qsort(zrow, totface, sizeof(ZTranspRow), vergzvlak);
 				}
 				
-				/* zbuffer and index pass for transparent, no AA or filters */
-				if(addzbuf)
-					if(pa->rectz[od]>zrow[totface-1].z)
-						pa->rectz[od]= zrow[totface-1].z;
-				
-				if(addpassflag & SCE_PASS_INDEXOB)
-					add_transp_obindex(rl, od, zrow[totface-1].obi);
+				/* front face does index pass for transparent, no AA or filters, but yes FSA */
+				if(addpassflag & SCE_PASS_INDEXOB) {
+					ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
+					if(obr->ob) {
+						for(a= 0; a<totfullsample; a++)
+							add_transp_obindex(rlpp[a], od, obr->ob);
+					}
+				}
 				
 				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
@@ -4285,45 +4285,6 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 		ISB_free(pa);
 
 	return ztramask;
-}
-
-/* *************** */
-
-/* uses part zbuffer values to convert into distances from camera in renderlayer */
-void convert_zbuf_to_distbuf(RenderPart *pa, RenderLayer *rl)
-{
-	RenderPass *rpass;
-	float *rectzf, zco;
-	int a, *rectz, ortho= R.r.mode & R_ORTHO;
-	
-	if(pa->rectz==NULL) return;
-	for(rpass= rl->passes.first; rpass; rpass= rpass->next)
-		if(rpass->passtype==SCE_PASS_Z)
-			break;
-	
-	if(rpass==NULL) {
-		printf("called convert zbuf wrong...\n");
-		return;
-	}
-	
-	rectzf= rpass->rect;
-	rectz= pa->rectz;
-	
-	for(a=pa->rectx*pa->recty; a>0; a--, rectz++, rectzf++) {
-		if(*rectz>=0x7FFFFFF0)
-			*rectzf= 10e10;
-		else {
-			/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */
-			/* or: (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2] - R.winmat[2][3]*zco); */
-			/* if ortho [2][3] is zero, else [3][3] is zero */
-			
-			zco= ((float)*rectz)/2147483647.0f;
-			if(ortho)
-				*rectzf= (R.winmat[3][2] - zco*R.winmat[3][3])/(R.winmat[2][2]);
-			else
-				*rectzf= (R.winmat[3][2])/(R.winmat[2][2] - R.winmat[2][3]*zco);
-		}
-	}
 }
 
 

@@ -463,7 +463,9 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1
 #define CONSTRAINT_IK_ROT		2
+	/* targetless */
 #define CONSTRAINT_IK_AUTO		4
+	/* autoik */
 #define CONSTRAINT_IK_TEMP		8
 #define CONSTRAINT_IK_STRETCH	16
 #define CONSTRAINT_IK_POS		32
@@ -518,6 +520,7 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40
+#define CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
 #define CONSTRAINT_RB_BALL		1

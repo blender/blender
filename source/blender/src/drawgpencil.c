@@ -1,5 +1,5 @@
 /**
- * $Id: drawgpencil.c 14881 2008-05-18 10:41:42Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -80,7 +80,7 @@
 #include "blendef.h"
 #include "butspace.h"
 
-#include "PIL_time.h"			/* sleep				*/
+#include "PIL_time.h"
 #include "mydevice.h"
 
 /* ************************************************** */
@@ -187,7 +187,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		/* rounded header */
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
 			rb_col= (active)?-20:20;
-			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15 , rb_col-20, ""); 
+			uiDefBut(block, ROUNDBOX, B_REDR, "", *xco-8, *yco-2, width, 24, NULL, 5.0, 0.0, 15.0, (float)(rb_col-20), ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* lock toggle */
@@ -243,7 +243,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 		
 		/* draw backdrop */
 		if (active) uiBlockSetCol(block, TH_BUT_ACTION);
-			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+			uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-8, *yco-height, width, height-1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); 
 		if (active) uiBlockSetCol(block, TH_AUTO);
 		
 		/* draw settings */
@@ -251,7 +251,7 @@ static void gp_drawui_layer (uiBlock *block, bGPdata *gpd, bGPDlayer *gpl, short
 			/* color */
 			uiBlockBeginAlign(block);
 				uiDefButF(block, COL, B_REDR, "",		*xco, *yco-26, 150, 19, gpl->color, 0, 0, 0, 0, "Color to use for all strokes on this Grease Pencil Layer");
-				uiDefButF(block, NUMSLI, B_REDR, "Opacity: ",		*xco,*yco-45,150,19, &gpl->color[3], 0.3, 1.0, 0, 0, "Visibility of stroke (0.3 to 1.0)");
+				uiDefButF(block, NUMSLI, B_REDR, "Opacity: ",		*xco,*yco-45,150,19, &gpl->color[3], 0.3f, 1.0f, 0, 0, "Visibility of stroke (0.3 to 1.0)");
 			uiBlockEndAlign(block);
 			
 			/* stroke thickness */
@@ -433,13 +433,18 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 			co[1]= (points->y / 1000 * winy);
 		}
 		
-		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple opengl point will do */
-		if (thickness < GP_DRAWTHICKNESS_SPECIAL) {
+		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
+		 * 	- also mandatory in if Image Editor 'image-based' dot
+		 */
+		if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) ||
+			 ((curarea->spacetype==SPACE_IMAGE) && (sflag & GP_STROKE_2DSPACE)) )
+		{
 			glBegin(GL_POINTS);
 				glVertex2fv(co);
 			glEnd();
 		}
-		else {
+		else 
+		{
 			/* draw filled circle as is done in circf (but without the matrix push/pops which screwed things up) */
 			GLUquadricObj *qobj = gluNewQuadric(); 
 			
@@ -447,7 +452,7 @@ static void gp_draw_stroke_point (bGPDspoint *points, short thickness, short sfl
 			
 			/* need to translate drawing position, but must reset after too! */
 			glTranslatef(co[0],  co[1], 0.); 
-			gluDisk( qobj, 0.0,  thickness, 32, 1); 
+			gluDisk(qobj, 0.0,  thickness, 32, 1); 
 			glTranslatef(-co[0],  -co[1], 0.);
 			
 			gluDeleteQuadric(qobj);
@@ -495,7 +500,7 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 							short debug, int offsx, int offsy, int winx, int winy)
 {	
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
-	 * 	- but NOT if Image Editor 'image-based' stroke
+	 * 	- 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */
 	if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) || 
 		 ((curarea->spacetype==SPACE_IMAGE) && (dflag & GP_DRAWDATA_ONLYV2D)) ) 
@@ -524,7 +529,9 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 		glEnd();
 	}
 	
-	/* tesselation code: currently only enabled with rt != 0 */
+	/* tesselation code - draw stroke as series of connected quads with connection
+	 * edges rotated to minimise shrinking artifacts, and rounded endcaps
+	 */
 	else 
 	{ 
 		bGPDspoint *pt1, *pt2;
@@ -574,10 +581,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				/* draw start cap first 
 				 *	- make points slightly closer to center (about halfway across) 
 				 */				
-				mt[0]= m2[0] * pthick * 0.5;
-				mt[1]= m2[1] * pthick * 0.5;
-				sc[0]= s0[0] - (m1[0] * pthick * 0.75);
-				sc[1]= s0[1] - (m1[1] * pthick * 0.75);
+				mt[0]= m2[0] * pthick * 0.5f;
+				mt[1]= m2[1] * pthick * 0.5f;
+				sc[0]= s0[0] - (m1[0] * pthick * 0.75f);
+				sc[1]= s0[1] - (m1[1] * pthick * 0.75f);
 				
 				t0[0]= sc[0] - mt[0];
 				t0[1]= sc[1] - mt[1];
@@ -663,10 +670,10 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				/* draw end cap as last step 
 				 *	- make points slightly closer to center (about halfway across) 
 				 */				
-				mt[0]= m2[0] * pthick * 0.5;
-				mt[1]= m2[1] * pthick * 0.5;
-				sc[0]= s1[0] + (m1[0] * pthick * 0.75);
-				sc[1]= s1[1] + (m1[1] * pthick * 0.75);
+				mt[0]= m2[0] * pthick * 0.5f;
+				mt[1]= m2[1] * pthick * 0.5f;
+				sc[0]= s1[0] + (m1[0] * pthick * 0.75f);
+				sc[1]= s1[1] + (m1[1] * pthick * 0.75f);
 				
 				t0[0]= sc[0] - mt[0];
 				t0[1]= sc[1] - mt[1];
@@ -695,14 +702,14 @@ static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, 
 				glVertex2f(pt->x, pt->y);
 			}
 			else if (sflag & GP_STROKE_2DIMAGE) {
-				const float x= (pt->x * winx) + offsx;
-				const float y= (pt->y * winy) + offsy;
+				const float x= (float)((pt->x * winx) + offsx);
+				const float y= (float)((pt->y * winy) + offsy);
 				
 				glVertex2f(x, y);
 			}
 			else {
-				const float x= (pt->x / 1000 * winx);
-				const float y= (pt->y / 1000 * winy);
+				const float x= (float)(pt->x / 1000 * winx);
+				const float y= (float)(pt->y / 1000 * winy);
 				
 				glVertex2f(x, y);
 			}
@@ -723,7 +730,7 @@ static void gp_draw_strokes (bGPDframe *gpf, int offsx, int offsy, int winx, int
 	glColor4f(color[0], color[1], color[2], color[3]);
 	
 	for (gps= gpf->strokes.first; gps; gps= gps->next) {
-		/* check if stroke can be drawn */
+		/* check if stroke can be drawn - checks here generally fall into pairs */
 		if ((dflag & GP_DRAWDATA_ONLY3D) && !(gps->flag & GP_STROKE_3DSPACE))
 			continue;
 		if (!(dflag & GP_DRAWDATA_ONLY3D) && (gps->flag & GP_STROKE_3DSPACE))
@@ -787,21 +794,22 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 		QUATCOPY(color, gpl->color); // just for copying 4 array elements
 		QUATCOPY(tcolor, gpl->color); // additional copy of color (for ghosting)
 		glColor4f(color[0], color[1], color[2], color[3]);
-		glPointSize(gpl->thickness + 2);
+		glPointSize((float)(gpl->thickness + 2));
 		
 		/* draw 'onionskins' (frame left + right) */
 		if (gpl->flag & GP_LAYER_ONIONSKIN) {
 			/* drawing method - only immediately surrounding (gstep = 0), or within a frame range on either side (gstep > 0)*/			
 			if (gpl->gstep) {
 				bGPDframe *gf;
-				short i;
+				float fac;
 				
 				/* draw previous frames first */
-				for (gf=gpf->prev, i=0; gf; gf=gf->prev, i++) {
+				for (gf=gpf->prev; gf; gf=gf->prev) {
 					/* check if frame is drawable */
 					if ((gpf->framenum - gf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i/gpl->gstep);
+						fac= (float)(gpf->framenum - gf->framenum) / (float)gpl->gstep;
+						tcolor[3] = color[3] - fac;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
@@ -809,11 +817,12 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 				}
 				
 				/* now draw next frames */
-				for (gf= gpf->next, i=0; gf; gf=gf->next, i++) {
+				for (gf= gpf->next; gf; gf=gf->next) {
 					/* check if frame is drawable */
 					if ((gf->framenum - gpf->framenum) <= gpl->gstep) {
 						/* alpha decreases with distance from curframe index */
-						tcolor[3] = color[3] - (i/gpl->gstep);
+						fac= (float)(gf->framenum - gpf->framenum) / (float)gpl->gstep;
+						tcolor[3] = color[3] - fac;
 						gp_draw_strokes(gf, offsx, offsy, winx, winy, dflag, debug, lthick, tcolor);
 					}
 					else 
@@ -876,13 +885,13 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 				BIF_ThemeColor(TH_TEXT_HI);
 			
 			if (actlay->actframe) {
-				sprintf(printable, "GPencil: Layer ('%s'), Frame (%d) %s", 
+				sprintf(printable, "GPencil: Layer ('%s'), Frame (%d)%s", 
 					actlay->info, actlay->actframe->framenum,
-					((gpd->flag & GP_DATA_EDITPAINT)?", Draw Mode On":"") );
+					((gpd->flag & GP_DATA_EDITPAINT)?" , Draw Mode On":"") );
 			}
 			else {
-				sprintf(printable, "GPencil: Layer ('%s'), Frame <None> %s", 
-					actlay->info, ((gpd->flag & GP_DATA_EDITPAINT)?", Draw Mode On":"") );
+				sprintf(printable, "GPencil: Layer ('%s'), Frame <None>%s", 
+					actlay->info, ((gpd->flag & GP_DATA_EDITPAINT)?" , Draw Mode On":"") );
 			}
 		}
 		else {
@@ -943,7 +952,7 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			float zoom, zoomx, zoomy;
 			
 			/* calculate accessory values */
-			zoom= SEQ_ZOOM_FAC(sseq->zoom);
+			zoom= (float)(SEQ_ZOOM_FAC(sseq->zoom));
 			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 				zoomx = zoom * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
 				zoomy = zoom;
@@ -951,10 +960,11 @@ void draw_gpencil_2dimage (ScrArea *sa, ImBuf *ibuf)
 			else
 				zoomx = zoomy = zoom;
 			
-			sizex= zoomx * ibuf->x;
-			sizey= zoomy * ibuf->y;
-			offsx= (sa->winx-sizex)/2 + sseq->xof;
-			offsy= (sa->winy-sizey)/2 + sseq->yof;
+			/* calculate transforms (Note: we use ibuf here, as we have it) */
+			sizex= (int)(zoomx * ibuf->x);
+			sizey= (int)(zoomy * ibuf->y);
+			offsx= (int)( (sa->winx-sizex)/2 + sseq->xof );
+			offsy= (int)( (sa->winy-sizey)/2 + sseq->yof );
 			
 			dflag |= GP_DRAWDATA_ONLYI2D;
 		}
@@ -1025,7 +1035,7 @@ void draw_gpencil_oglrender (View3D *v3d, int winx, int winy)
 	
 	/* pass 2: draw 2d-strokes ------------ > */
 		/* adjust view matrices */
-	myortho2(-0.375, (float)(winx)-0.375, -0.375, (float)(winy)-0.375);
+	myortho2(-0.375f, (float)(winx)-0.375f, -0.375f, (float)(winy)-0.375f);
 	glLoadIdentity();
 	
 		/* draw it! */

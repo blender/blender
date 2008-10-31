@@ -251,7 +251,7 @@ static int handle_request(char * req)
 	return -1;
 }
 
-int frameserver_loop()
+int frameserver_loop(void)
 {
 	fd_set readfds;
 	struct timeval tv;

@@ -7,7 +7,7 @@ incs = '. .. #/intern/guardedalloc ../blenlib ../imbuf ../makesdna'
 
 defs = []
 
-if env['WITH_BF_QUICKTIME'] == 1:
+if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 	incs += ' ' + env['BF_QUICKTIME_INC']
 

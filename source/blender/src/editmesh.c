@@ -633,6 +633,7 @@ void free_editMesh(EditMesh *em)
 
 	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
 	em->retopo_paint_data= NULL;
+	em->act_face = NULL;
 }
 
 /* on G.editMesh */
@@ -892,7 +893,7 @@ void make_editMesh()
 		return;
 	}
 #endif
-
+	
 	/* because of reload */
 	free_editMesh(em);
 	
@@ -914,8 +915,11 @@ void make_editMesh()
 		strcpy(G.editModeTitleExtra, "(Key) ");
 		key_to_mesh(actkey, me);
 		tot= actkey->totelem;
+		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
+		undo_editmode_clear();
 	}
 
+	
 	/* make editverts */
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
@@ -1342,7 +1346,7 @@ void load_editMesh(void)
 	{
 		Object *ob;
 		ModifierData *md;
-		EditVert *eve, **vertMap = NULL;
+		EditVert **vertMap = NULL;
 		int i,j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {

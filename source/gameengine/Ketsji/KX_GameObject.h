@@ -264,6 +264,15 @@ public:
 		bool local=false
 	);
 
+	/** 
+	 * Return the linear velocity of a given point in world coordinate
+	 * but relative to center of object ([0,0,0]=center of object)
+	 */
+		MT_Vector3 
+	GetVelocity(
+		const MT_Point3& position
+	);
+
 	/**
 	 * Return the mass of the object
 	 */
@@ -792,6 +801,7 @@ public:
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
+	KX_PYMETHOD_O(KX_GameObject,ReplaceMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);

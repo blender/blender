@@ -21,8 +21,11 @@ incs += ' ' + env['BF_SDL_INC']
 
 defs = ''
 
+if not env['WITH_BF_PYTHON']:
+    defs += 'DISABLE_PYTHON'
+
 if env['WITH_BF_INTERNATIONAL']:
-    defs += 'WITH_FREETYPE2'
+    defs += ' WITH_FREETYPE2'
 
 if env['WITH_BF_VERSE']:
     defs += ' WITH_VERSE'
@@ -31,14 +34,14 @@ if env['WITH_BF_VERSE']:
 if env['WITH_BF_VERSE']:
     defs += ' WITH_VERSE'
 
-if env['WITH_BF_OPENEXR'] == 1:
+if env['WITH_BF_OPENEXR']:
     defs += ' WITH_OPENEXR'
 
-if env['WITH_BF_FFMPEG'] == 1:
+if env['WITH_BF_FFMPEG']:
     defs += ' WITH_FFMPEG'
     incs += ' ' + env['BF_FFMPEG_INC']
 
-if env['WITH_BF_QUICKTIME'] == 1:
+if env['WITH_BF_QUICKTIME']:
     defs += ' WITH_QUICKTIME'
     incs += ' ' + env['BF_QUICKTIME_INC']
 

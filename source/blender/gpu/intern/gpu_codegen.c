@@ -516,10 +516,14 @@ static void codegen_set_unique_ids(ListBase *nodes)
 						input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, input->ima));
 				}
 				else {
-					/* input is user created texture, we know there there is
-					   only one, so assign new texid */
-					input->bindtex = 1;
-					input->texid = texid++;
+					if (!BLI_ghash_haskey(bindhash, input->tex)) {
+						/* input is user created texture, check tex pointer */
+						input->texid = texid++;
+						input->bindtex = 1;
+						BLI_ghash_insert(bindhash, input->tex, SET_INT_IN_POINTER(input->texid));
+					}
+					else
+						input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, input->tex));
 				}
 
 				/* make sure this pixel is defined exactly once */
@@ -836,11 +840,9 @@ void GPU_pass_bind(GPUPass *pass, double time)
 		if (input->ima)
 			input->tex = GPU_texture_from_blender(input->ima, input->iuser, time);
 
-		if(input->ima || input->tex) {
-			if(input->tex) {
-				GPU_texture_bind(input->tex, input->texid);
-				GPU_shader_uniform_texture(shader, input->shaderloc, input->tex);
-			}
+		if(input->tex && input->bindtex) {
+			GPU_texture_bind(input->tex, input->texid);
+			GPU_shader_uniform_texture(shader, input->shaderloc, input->tex);
 		}
 	}
 }
@@ -871,9 +873,9 @@ void GPU_pass_unbind(GPUPass *pass)
 		return;
 
 	for (input=inputs->first; input; input=input->next) {
-		if (input->tex)
-			if(input->bindtex)
-				GPU_texture_unbind(input->tex);
+		if(input->tex && input->bindtex)
+			GPU_texture_unbind(input->tex);
+
 		if (input->ima)
 			input->tex = 0;
 	}

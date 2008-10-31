@@ -1703,10 +1703,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
 			}
 			else
-				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
 			num= pa->num_dmcache;
 
@@ -1780,13 +1780,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			/* get orco */
 			if(part->childtype == PART_CHILD_FACES) {
-				psys_particle_on_emitter(ob, psmd,
+				psys_particle_on_emitter(psmd,
 					PART_FROM_FACE, cpa->num,DMCACHE_ISCHILD,
 					cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
 			}
 			else {
 				ParticleData *par = psys->particles + cpa->parent;
-				psys_particle_on_emitter(ob, psmd, part->from,
+				psys_particle_on_emitter(psmd, part->from,
 					par->num,DMCACHE_ISCHILD,par->fuv,
 					par->foffset,co,nor,0,0,orco,0);
 			}
@@ -1868,7 +1868,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			dosimplify= psys_render_simplify_params(psys, cpa, simplify);
 
-			if(path_nbr) {
+			if(path_nbr && psys->childcache) {
 				cache = psys->childcache[a-totpart];
 				max_k = (int)cache->steps;
 			}
@@ -2442,7 +2442,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	VertRen *v1, *v2, *v3, *v4, *ver;
 	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
 	Curve *cu= ob->data;
-	float *data, n1[3], flen;
+	float *data, n1[3];
 	int u, v, orcoret= 0;
 	int p1, p2, p3, p4, a;
 	int sizeu, nsizeu, sizev, nsizev;
@@ -2514,7 +2514,8 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
 			
-			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			
 			VECCOPY(vlr->n, n1);
 			
 			vlr->mat= matar[ dl->col];
@@ -2786,8 +2787,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					for(a=0; a<dl->parts; a++) {
 
 						frontside= (a >= dl->nr/2);
-
-						DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+						
+						if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+							break;
+						
 						p1+= startvert;
 						p2+= startvert;
 						p3+= startvert;
@@ -3528,7 +3531,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		    
 			InitSunSky(lar->sunsky, la->atm_turbidity, vec, la->horizon_brightness, 
 					la->spread, la->sun_brightness, la->sun_size, la->backscattered_light,
-					   la->skyblendfac, la->skyblendtype);
+					   la->skyblendfac, la->skyblendtype, la->sky_exposure, la->sky_colorspace);
 			
 			InitAtmosphere(lar->sunsky, la->sun_intensity, 1.0, 1.0, la->atm_inscattering_factor, la->atm_extinction_factor,
 					la->atm_distance_factor);
@@ -4789,6 +4792,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		Mat4Ortho(re->scene->camera->obmat);
 		Mat4Invert(mat, re->scene->camera->obmat);
 		RE_SetView(re, mat);
+		re->scene->camera->recalc= OB_RECALC_OB; /* force correct matrix for scaled cameras */
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
@@ -5137,23 +5141,30 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	float hoco[4], ho[4], fsvec[4], camco[4];
 	float mat[4][4], winmat[4][4];
 	float imat[4][4];
-	MVert *vverts;
-
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsob, eModifierType_Fluidsim);
+	FluidsimSettings *fss = fluidmd->fss;
+	float *velarray = NULL;
+	
 	/* only one step needed */
 	if(step) return 1;
+	
+	if(fluidmd)
+		fss = fluidmd->fss;
+	else
+		return 0;
 	
 	Mat4CpyMat4(mat, re->viewmat);
 	MTC_Mat4Invert(imat, mat);
 
 	/* set first vertex OK */
-	if( (!fsob->fluidsimSettings) || (!fsob->fluidsimSettings->meshSurfNormals) ) return 0;
-	vverts = fsob->fluidsimSettings->meshSurfNormals;
-	//fprintf(stderr, "GZ_VEL obj '%s', calc load_fluidsimspeedvectors\n",fsob->id.name); // NT DEBUG
-
-	if( obr->totvert != fsob->fluidsimSettings->meshSurface->totvert ) {
+	if(!fss->meshSurfNormals) return 0;
+	
+	if( obr->totvert != GET_INT_FROM_POINTER(fss->meshSurface) ) {
 		//fprintf(stderr, "load_fluidsimspeedvectors - modified fluidsim mesh, not using speed vectors (%d,%d)...\n", obr->totvert, fsob->fluidsimSettings->meshSurface->totvert); // DEBUG
 		return 0;
 	}
+	
+	velarray = (float *)fss->meshSurfNormals;
 
 	if(obi->flag & R_TRANSFORMED)
 		Mat4MulMat4(winmat, obi->mat, re->winmat);
@@ -5165,7 +5176,8 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	so that also small drops/little water volumes return a velocity != 0. 
 	But I had no luck in fixing that function - DG */
 	for(a=0; a<obr->totvert; a++) {
-		for(j=0;j<3;j++) avgvel[j] += vverts[a].co[j];
+		for(j=0;j<3;j++) avgvel[j] += velarray[3*a + j];
+		
 	}
 	for(j=0;j<3;j++) avgvel[j] /= (float)(obr->totvert);
 	
@@ -5179,7 +5191,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// get fluid velocity
 		fsvec[3] = 0.; 
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
-		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
+		for(j=0;j<3;j++) fsvec[j] = velarray[3*a + j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */
 		if((fsvec[0] == 0.0) && (fsvec[1] == 0.0) && (fsvec[2] == 0.0))

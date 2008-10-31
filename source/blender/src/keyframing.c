@@ -1,5 +1,5 @@
 /**
- * $Id: keyframing.c 14881 2008-05-18 10:41:42Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -49,6 +49,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -71,7 +72,9 @@
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_object.h"
+#include "BKE_material.h"
 
 #include "BIF_keyframing.h"
 #include "BIF_butspace.h"
@@ -157,11 +160,10 @@ typedef struct bCommonKeySrc {
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_icu)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arraylen, short *replace)
+static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen, short *replace)
 {
 	int start=0, end=arraylen;
 	int loopbreaker= 0, maxloop= arraylen * 2;
-	const float frame= (item)? item->vec[1][0] : 0.0f;
 	
 	/* initialise replace-flag first */
 	*replace= 0;
@@ -170,7 +172,7 @@ static int binarysearch_bezt_index (BezTriple array[], BezTriple *item, int arra
 	 *	- keyframe to be added is to be added out of current bounds
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
-	if ((arraylen <= 0) || ELEM(NULL, array, item)) {
+	if ((arraylen <= 0) || (array == NULL)) {
 		printf("Warning: binarysearch_bezt_index encountered invalid array \n");
 		return 0;
 	}
@@ -250,7 +252,7 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 	}
 	else {
 		short replace = -1;
-		i = binarysearch_bezt_index(icu->bezt, bezt, icu->totvert, &replace);
+		i = binarysearch_bezt_index(icu->bezt, bezt->vec[1][0], icu->totvert, &replace);
 		
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
@@ -334,7 +336,7 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 
 /* Get pointer to use to get values from */
 // FIXME: this should not be possible with Data-API
-static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
+static void *get_context_ipo_poin (ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
 {
 	switch (blocktype) {
 		case ID_PO:  /* posechannel */
@@ -588,6 +590,8 @@ static short visualkey_can_use (ID *id, int blocktype, char *actname, char *cons
 					return 1;
 				case CONSTRAINT_TYPE_FOLLOWPATH:
 					return 1;
+				case CONSTRAINT_TYPE_KINEMATIC:
+					return 1;
 					
 				/* single-transform constraits  */
 				case CONSTRAINT_TYPE_TRACKTO:
@@ -662,7 +666,7 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 				index= adrcode - OB_ROT_X;
 				
 				Mat4ToEul(ob->obmat, eul);
-				return eul[index]*(5.72958);
+				return eul[index]*(5.72958f);
 			}
 		}
 	}
@@ -735,8 +739,6 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	if (icu) {
 		float cfra = frame_to_float(CFRA);
 		float curval= 0.0f;
-		void *poin = NULL;
-		int vartype;
 		
 		/* apply special time tweaking */
 		if (GS(id->name) == ID_OB) {
@@ -753,10 +755,6 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			}
 		}
 		
-		/* get pointer to data to read from */
-		poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-		if (poin == NULL) return 0;
-		
 		/* obtain value to give keyframe */
 		if ( (flag & INSERTKEY_MATRIX) && 
 			 (visualkey_can_use(id, blocktype, actname, constname, adrcode)) ) 
@@ -768,6 +766,16 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			curval= visualkey_get_value(id, blocktype, actname, constname, adrcode, icu);
 		}
 		else {
+			void *poin;
+			int vartype;
+			
+			/* get pointer to data to read from */
+			poin = get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
+			if (poin == NULL) {
+				printf("Insert Key: No pointer to variable obtained \n");
+				return 0;
+			}
+			
 			/* use kt's read_poin function to extract value (kt->read_poin should 
 			 * exist in all cases, but it never hurts to check)
 			 */
@@ -782,7 +790,7 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			insert_mode= new_key_needed(icu, cfra, curval);
 			
 			/* insert new keyframe at current frame */
-			if (insert_mode) 
+			if (insert_mode)
 				insert_vert_icu(icu, cfra, curval, (flag & INSERTKEY_FAST));
 			
 			/* delete keyframe immediately before/after newly added */
@@ -794,14 +802,18 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 					delete_icu_key(icu, 1, 1);
 					break;
 			}
+			
+			/* only return success if keyframe added */
+			if (insert_mode)
+				return 1;
 		}
 		else {
 			/* just insert keyframe */
 			insert_vert_icu(icu, cfra, curval, (flag & INSERTKEY_FAST));
+			
+			/* return success */
+			return 1;
 		}
-		
-		/* return success */
-		return 1;
 	}
 	
 	/* return failure */
@@ -833,7 +845,6 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
 	if (icu) {
-		BezTriple bezt;
 		float cfra = frame_to_float(CFRA);
 		short found = -1;
 		int i;
@@ -853,12 +864,8 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			}
 		}
 		
-		/* only need to set bezt->vec[1][0], as that's all binarysearch uses */
-		memset(&bezt, 0, sizeof(BezTriple));
-		bezt.vec[1][0]= cfra;
-		
 		/* try to find index of beztriple to get rid of */
-		i = binarysearch_bezt_index(icu->bezt, &bezt, icu->totvert, &found);
+		i = binarysearch_bezt_index(icu->bezt, cfra, icu->totvert, &found);
 		if (found) {			
 			/* delete the key at the index (will sanity check + do recalc afterwards ) */
 			delete_icu_key(icu, i, 1);
@@ -881,6 +888,11 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 /* ************************************************** */
 /* COMMON KEYFRAME MANAGEMENT (common_insertkey/deletekey) */
 
+/* mode for common_modifykey */
+enum {
+	COMMONKEY_MODE_INSERT = 0,
+	COMMONKEY_MODE_DELETE,
+} eCommonModifyKey_Modes;
 
 /* ------------- KeyingSet Defines ------------ */
 /* Note: these must all be named with the defks_* prefix, otherwise the template macro will not work! */
@@ -910,6 +922,9 @@ static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
 {
 	Object *ob= (G.obedit)? (G.obedit) : (OBACT);
 	char *newname= NULL;
+	
+	if(ob==NULL)
+		return 0;
 	
 	/* not available for delete mode */
 	if (strcmp(mode, "Delete")==0)
@@ -1049,10 +1064,10 @@ bKeyingSet defks_buts_shading_mat[] =
 	
 	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Ofs", ID_MA, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_MA, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
+	{NULL, "Ofs", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
+	{NULL, "Size", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
 	
-	{NULL, "All Mapping", ID_MA, 0, 14, 
+	{NULL, "All Mapping", ID_MA, COMMONKEY_ADDMAP, 14, 
 		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
 		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
@@ -1080,10 +1095,10 @@ bKeyingSet defks_buts_shading_wo[] =
 	
 	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Ofs", ID_WO, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_WO, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
+	{NULL, "Ofs", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
+	{NULL, "Size", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
 	
-	{NULL, "All Mapping", ID_WO, 0, 14, 
+	{NULL, "All Mapping", ID_WO, COMMONKEY_ADDMAP, 14, 
 		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
 		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
@@ -1106,10 +1121,10 @@ bKeyingSet defks_buts_shading_la[] =
 	
 	{NULL, "%l", 0, -1, 0, {0}}, // separator
 	
-	{NULL, "Ofs", ID_LA, 0, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_LA, 0, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
+	{NULL, "Ofs", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
+	{NULL, "Size", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
 	
-	{NULL, "All Mapping", ID_LA, 0, 14, 
+	{NULL, "All Mapping", ID_LA, COMMONKEY_ADDMAP, 14, 
 		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
 		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
 		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
@@ -1173,6 +1188,8 @@ static short incl_buts_ob (bKeyingSet *ks, const char mode[])
 {
 	Object *ob= OBACT;
 	/* only if object is mesh type */
+	
+	if(ob==NULL) return 0;
 	return (ob->type == OB_MESH);
 }
 
@@ -1337,10 +1354,12 @@ static void commonkey_context_getv3d (ListBase *sources, bKeyingContext **ksc)
 						if (achan && achan->ipo)
 							cks->ipo= achan->ipo;
 					}
-					
-					/* deselect all ipo-curves */
-					for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
-						icu->flag &= ~IPO_SELECT;
+					/* cks->ipo can be NULL while editing */
+					if(cks->ipo) {
+						/* deselect all ipo-curves */
+						for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
+							icu->flag &= ~IPO_SELECT;
+						}
 					}
 				}
 			}
@@ -1362,71 +1381,79 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 			{
 				Material *ma= editnode_get_active_material(G.buts->lockpoin);
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)ma;
-				cks->ipo= ma->ipo;
-				cks->map= texchannel_to_adrcode(ma->texact);
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_MAT];
-				return;
+				if (ma) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)ma;
+					cks->ipo= ma->ipo;
+					cks->map= texchannel_to_adrcode(ma->texact);
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_MAT];
+					return;
+				}
 			}
 				break;
 			case TAB_SHADING_WORLD: /* >------------- World Tab -------------< */
 			{
 				World *wo= G.buts->lockpoin;
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)wo;
-				cks->ipo= wo->ipo;
-				cks->map= texchannel_to_adrcode(wo->texact);
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_WO];
-				return;
+				if (wo) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)wo;
+					cks->ipo= wo->ipo;
+					cks->map= texchannel_to_adrcode(wo->texact);
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_WO];
+					return;
+				}
 			}
 				break;
 			case TAB_SHADING_LAMP: /* >------------- Lamp Tab -------------< */
 			{
 				Lamp *la= G.buts->lockpoin;
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)la;
-				cks->ipo= la->ipo;
-				cks->map= texchannel_to_adrcode(la->texact);
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_LA];
-				return;
+				if (la) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)la;
+					cks->ipo= la->ipo;
+					cks->map= texchannel_to_adrcode(la->texact);
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_LA];
+					return;
+				}
 			}
 				break;
 			case TAB_SHADING_TEX: /* >------------- Texture Tab -------------< */
 			{
 				Tex *tex= G.buts->lockpoin;
 				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks); 
-				
-				/* set data */
-				cks->id= (ID *)tex;
-				cks->ipo= tex->ipo;
-				
-				/* set keyingsets */
-				*ksc= &ks_contexts[KSC_BUTS_TEX];
-				return;
+				if (tex) {
+					/* add new keyframing destination */
+					cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+					BLI_addtail(sources, cks); 
+					
+					/* set data */
+					cks->id= (ID *)tex;
+					cks->ipo= tex->ipo;
+					
+					/* set keyingsets */
+					*ksc= &ks_contexts[KSC_BUTS_TEX];
+					return;
+				}
 			}
 				break;
 		}
@@ -1481,7 +1508,7 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 
 
 /* get keyingsets for appropriate context */
-static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContext **ksc)
+static void commonkey_context_get (ScrArea *sa, short mode, ListBase *sources, bKeyingContext **ksc)
 {
 	/* check view type */
 	switch (sa->spacetype) {
@@ -1499,10 +1526,21 @@ static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContex
 		}
 			break;
 			
+		/* spaces with their own methods */
+		case SPACE_IPO:
+			if (mode == COMMONKEY_MODE_INSERT)
+				insertkey_editipo();
+			return;
+		case SPACE_ACTION:
+			if (mode == COMMONKEY_MODE_INSERT)
+				insertkey_action();
+			return;
+			
 		/* timeline view - keyframe buttons */
 		case SPACE_TIME:
 		{
 			ScrArea *sab;
+			int bigarea= 0;
 			
 			/* try to find largest 3d-view available 
 			 * (mostly of the time, this is what when user will want this,
@@ -1514,12 +1552,21 @@ static void commonkey_context_get (ScrArea *sa, ListBase *sources, bKeyingContex
 				return;
 			}
 			
-			/* otherwise, try to find the biggest area
-			 * WARNING: must check if that area is another timeline, as that would cause infinite loop
-			 */
-			sab= closest_bigger_area();
-			if ((sab) && (sab->spacetype != SPACE_TIME)) 
-				commonkey_context_get(sab, sources, ksc);
+			/* if not found, sab is now NULL, so perform own biggest area test */
+			for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+				int area= sa->winx * sa->winy;
+				
+				if (sa->spacetype != SPACE_TIME) {
+					if ( (!sab) || (area > bigarea) ) {
+						sab= sa;
+						bigarea= area;
+					}
+				}
+			}
+			
+			/* use whichever largest area was found (it shouldn't be a time window) */
+			if (sab)
+				commonkey_context_get(sab, mode, sources, ksc);
 		}
 			break;
 	}
@@ -1573,6 +1620,15 @@ static void commonkey_context_refresh (void)
 			/* do refreshes */
 			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
 			
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWMARKER, 0);
+		}
+			break;
+			
+		/* buttons window */
+		case SPACE_BUTS:
+		{
 			allspace(REMAKEIPO, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWMARKER, 0);
@@ -1649,12 +1705,6 @@ static bKeyingSet *get_keyingset_fromcontext (bKeyingContext *ksc, short index)
 
 /* ---------------- Keyframe Management API -------------------- */
 
-/* mode for common_modifykey */
-enum {
-	COMMONKEY_MODE_INSERT = 0,
-	COMMONKEY_MODE_DELETE,
-} eCommonModifyKey_Modes;
-
 /* Display a menu for handling the insertion of keyframes based on the active view */
 // TODO: add back an option for repeating last keytype
 void common_modifykey (short mode)
@@ -1670,26 +1720,10 @@ void common_modifykey (short mode)
 	if (ELEM(mode, COMMONKEY_MODE_INSERT, COMMONKEY_MODE_DELETE)==0)
 		return;
 	
-	/* delegate to other functions or get keyingsets to use */
-	switch (curarea->spacetype) {
-			/* spaces with their own methods */
-		case SPACE_IPO:
-			if (mode == COMMONKEY_MODE_INSERT)
-				insertkey_editipo();
-			return;
-		case SPACE_ACTION:
-			if (mode == COMMONKEY_MODE_INSERT)
-				insertkey_action();
-			return;
-			
-			/* TODO: based on UI elements? will that even be handled here??? */
-			
-			/* default - check per view */
-		default:
-			/* get the keyingsets and the data to add keyframes to */
-			commonkey_context_get(curarea, &dsources, &ksc);
-			break;
-	}	
+	/* delegate to other functions or get keyingsets to use 
+	 *	- if the current area doesn't have its own handling, there will be data returned...
+	 */
+	commonkey_context_get(curarea, mode, &dsources, &ksc);
 	
 	/* check that there is data to operate on */
 	if (ELEM(NULL, dsources.first, ksc)) {
@@ -1785,7 +1819,7 @@ void common_modifykey (short mode)
 				 *	- certain adrcodes (for MTEX channels need special offsets) 	// BAD CRUFT!!!
 				 */
 				adrcode= ks->adrcodes[i];
-				if (ELEM3(ks->blocktype, ID_MA, ID_LA, ID_WO)) {
+				if (ELEM3(ks->blocktype, ID_MA, ID_LA, ID_WO) && (ks->flag & COMMONKEY_ADDMAP)) {
 					switch (adrcode) {
 						case MAP_OFS_X: case MAP_OFS_Y: case MAP_OFS_Z:
 						case MAP_SIZE_X: case MAP_SIZE_Y: case MAP_SIZE_Z:
@@ -1800,6 +1834,7 @@ void common_modifykey (short mode)
 				if (mode == COMMONKEY_MODE_DELETE) {
 					/* local flags only add on to global flags */
 					flag = 0;
+					//flag &= ~COMMONKEY_ADDMAP;
 					
 					/* delete keyframe */
 					success += deletekey(cks->id, ks->blocktype, cks->actname, cks->constname, adrcode, flag);
@@ -1810,6 +1845,7 @@ void common_modifykey (short mode)
 					if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
 					if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
 					// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+					flag &= ~COMMONKEY_ADDMAP;
 					
 					/* insert keyframe */
 					success += insertkey(cks->id, ks->blocktype, cks->actname, cks->constname, adrcode, flag);
@@ -1865,6 +1901,204 @@ void common_insertkey (void)
 void common_deletekey (void)
 {
 	common_modifykey(COMMONKEY_MODE_DELETE);
+}
+
+/* ************************************************** */
+/* KEYFRAME DETECTION */
+
+/* --------------- API/Per-Datablock Handling ------------------- */
+
+/* Checks whether an IPO-block has a keyframe for a given frame 
+ * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
+ */
+short ipo_frame_has_keyframe (Ipo *ipo, float frame, short filter)
+{
+	IpoCurve *icu;
+	
+	/* can only find if there is data */
+	if (ipo == NULL)
+		return 0;
+		
+	/* if only check non-muted, check if muted */
+	if ((filter & ANIMFILTER_MUTED) || (ipo->muteipo))
+		return 0;
+	
+	/* loop over IPO-curves, using binary-search to try to find matches 
+	 *	- this assumes that keyframes are only beztriples
+	 */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		/* only check if there are keyframes (currently only of type BezTriple) */
+		if (icu->bezt) {
+			/* we either include all regardless of muting, or only non-muted  */
+			if ((filter & ANIMFILTER_MUTED) || (icu->flag & IPO_MUTE)==0) {
+				short replace = -1;
+				int i = binarysearch_bezt_index(icu->bezt, frame, icu->totvert, &replace);
+				
+				/* binarysearch_bezt_index will set replace to be 0 or 1
+				 * 	- obviously, 1 represents a match
+				 */
+				if (replace) {			
+					/* sanity check: 'i' may in rare cases exceed arraylen */
+					if ((i >= 0) && (i < icu->totvert))
+						return 1;
+				}
+			}
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
+
+/* Checks whether an action-block has a keyframe for a given frame 
+ * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
+ */
+short action_frame_has_keyframe (bAction *act, float frame, short filter)
+{
+	bActionChannel *achan;
+	
+	/* error checking */
+	if (act == NULL)
+		return 0;
+		
+	/* check thorugh action-channels for match */
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		/* we either include all regardless of muting, or only non-muted 
+		 *	- here we include 'hidden' channels in the muted definition
+		 */
+		if ((filter & ANIMFILTER_MUTED) || (achan->flag & ACHAN_HIDDEN)==0) {
+			if (ipo_frame_has_keyframe(achan->ipo, frame, filter))
+				return 1;
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
+
+/* Checks whether an Object has a keyframe for a given frame */
+short object_frame_has_keyframe (Object *ob, float frame, short filter)
+{
+	/* error checking */
+	if (ob == NULL)
+		return 0;
+	
+	/* check for an action - actions take priority over normal IPO's */
+	if (ob->action) {
+		float aframe;
+		
+		/* apply nla-action scaling if needed */
+		if ((ob->nlaflag & OB_NLA_OVERRIDE) && (ob->nlastrips.first))
+			aframe= get_action_frame(ob, frame);
+		else
+			aframe= frame;
+		
+		/* priority check here goes to pose-channel checks (for armatures) */
+		if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
+			/* only relevant check here is to only show active... */
+			if (filter & ANIMFILTER_ACTIVE) {
+				bPoseChannel *pchan= get_active_posechannel(ob);
+				bActionChannel *achan= (pchan) ? get_action_channel(ob->action, pchan->name) : NULL;
+				
+				/* since we're only interested in whether the selected one has any keyframes... */
+				return (achan && ipo_frame_has_keyframe(achan->ipo, aframe, filter));
+			}
+		}
+		
+		/* for everything else, just use the standard test (only return if success) */
+		if (action_frame_has_keyframe(ob->action, aframe, filter))
+			return 1;
+	}
+	else if (ob->ipo) {
+		/* only return if success */
+		if (ipo_frame_has_keyframe(ob->ipo, frame, filter))
+			return 1;
+	}
+	
+	/* try shapekey keyframes (if available, and allowed by filter) */
+	if ( !(filter & ANIMFILTER_LOCAL) && !(filter & ANIMFILTER_NOSKEY) ) {
+		Key *key= ob_get_key(ob);
+		
+		/* shapekeys can have keyframes ('Relative Shape Keys') 
+		 * or depend on time (old 'Absolute Shape Keys') 
+		 */
+		 
+			/* 1. test for relative (with keyframes) */
+		if (id_frame_has_keyframe((ID *)key, frame, filter))
+			return 1;
+			
+			/* 2. test for time */
+		// TODO... yet to be implemented (this feature may evolve before then anyway)
+	}
+	
+	/* try materials */
+	if ( !(filter & ANIMFILTER_LOCAL) && !(filter & ANIMFILTER_NOMAT) ) {
+		/* if only active, then we can skip a lot of looping */
+		if (filter & ANIMFILTER_ACTIVE) {
+			Material *ma= give_current_material(ob, (ob->actcol + 1));
+			
+			/* we only retrieve the active material... */
+			if (id_frame_has_keyframe((ID *)ma, frame, filter))
+				return 1;
+		}
+		else {
+			int a;
+			
+			/* loop over materials */
+			for (a=0; a<ob->totcol; a++) {
+				Material *ma= give_current_material(ob, a+1);
+				
+				if (id_frame_has_keyframe((ID *)ma, frame, filter))
+					return 1;
+			}
+		}
+	}
+	
+	/* nothing found */
+	return 0;
+}
+
+/* --------------- API ------------------- */
+
+/* Checks whether a keyframe exists for the given ID-block one the given frame */
+short id_frame_has_keyframe (ID *id, float frame, short filter)
+{
+	/* error checking */
+	if (id == NULL)
+		return 0;
+	
+	/* check for a valid id-type */
+	switch (GS(id->name)) {
+			/* animation data-types */
+		case ID_IP:	/* ipo */
+			return ipo_frame_has_keyframe((Ipo *)id, frame, filter);
+		case ID_AC: /* action */
+			return action_frame_has_keyframe((bAction *)id, frame, filter);
+			
+		case ID_OB: /* object */
+			return object_frame_has_keyframe((Object *)id, frame, filter);
+			
+		case ID_MA: /* material */
+		{
+			Material *ma= (Material *)id;
+			
+			/* currently, material's only have an ipo-block */
+			return ipo_frame_has_keyframe(ma->ipo, frame, filter);
+		}
+			break;
+			
+		case ID_KE: /* shapekey */
+		{
+			Key *key= (Key *)id;
+			
+			/* currently, shapekey's only have an ipo-block */
+			return ipo_frame_has_keyframe(key->ipo, frame, filter);
+		}
+			break;
+	}
+	
+	/* no keyframe found */
+	return 0;
 }
 
 /* ************************************************** */

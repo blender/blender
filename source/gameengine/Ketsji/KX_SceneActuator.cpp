@@ -259,12 +259,12 @@ PyParentObject KX_SceneActuator::Parents[] =
 
 PyMethodDef KX_SceneActuator::Methods[] =
 {
-	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, SetUseRestart_doc},
-	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, SetScene_doc},
-	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, SetCamera_doc},
-	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_VARARGS, GetUseRestart_doc},
-	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_VARARGS, GetScene_doc},
-	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_VARARGS, GetCamera_doc},
+	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (PY_METHODCHAR)SetUseRestart_doc},
+	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (PY_METHODCHAR)SetScene_doc},
+	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, (PY_METHODCHAR)SetCamera_doc},
+	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_VARARGS, (PY_METHODCHAR)GetUseRestart_doc},
+	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_VARARGS, (PY_METHODCHAR)GetScene_doc},
+	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_VARARGS, (PY_METHODCHAR)GetCamera_doc},
 	{NULL,NULL} //Sentinel
 };
 

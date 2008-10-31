@@ -88,9 +88,6 @@ extern void countall(void);
 #define NMESH_SUBDIV_MIN			0
 #define NMESH_SUBDIV_MAX			6
 
-/* Globals */
-static PyObject *g_nmeshmodule = NULL;
-
 static int unlink_existingMeshData( Mesh * mesh );
 static int convert_NMeshToMesh( Mesh *mesh, BPy_NMesh *nmesh );
 static void check_dverts(Mesh *me, int old_totverts);
@@ -2161,8 +2158,8 @@ static PyObject *new_NMesh_displist(ListBase *lb, Object *ob)
 
 			for(a=0; a<dl->parts; a++) {
 				
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-				
+				if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+					break;
 				
 				for(; b<dl->nr; b++) {
 					vidx[0] = p2 + ioffset;
@@ -3321,7 +3318,6 @@ PyObject *NMesh_Init( void )
   if( EdgeFlags )
     PyModule_AddObject( submodule, "EdgeFlags", EdgeFlags );
 
-	g_nmeshmodule = submodule;
 	return submodule;
 }
 

@@ -95,12 +95,13 @@
 PyObject *bpy_pydriver_Dict = NULL;
 PyObject *bpy_orig_syspath_List = NULL;
 
+
 /*
  * set up a weakref list for Armatures
  *    creates list in __main__ module dict 
  */
   
-int setup_armature_weakrefs()
+static int setup_armature_weakrefs()
 {
 	PyObject *maindict;
 	PyObject *main_module;
@@ -159,19 +160,18 @@ ScriptError g_script_error;
 /***************************************************************************
 * Function prototypes 
 ***************************************************************************/
-PyObject *RunPython( Text * text, PyObject * globaldict );
-PyObject *CreateGlobalDictionary( void );
-void ReleaseGlobalDictionary( PyObject * dict );
-void DoAllScriptsFromList( ListBase * list, short event );
+static PyObject *RunPython( Text * text, PyObject * globaldict );
+static PyObject *CreateGlobalDictionary( void );
+static void ReleaseGlobalDictionary( PyObject * dict );
+static void DoAllScriptsFromList( ListBase * list, short event );
 static PyObject *importText( char *name );
-void init_ourImport( void );
-void init_ourReload( void );
-PyObject *blender_import( PyObject * self, PyObject * args );
-PyObject *RunPython2( Text * text, PyObject * globaldict, PyObject *localdict );
+static void init_ourImport( void );
+static void init_ourReload( void );
+static PyObject *blender_import( PyObject * self, PyObject * args );
 
 
-void BPY_Err_Handle( char *script_name );
-PyObject *traceback_getFilename( PyObject * tb );
+static void BPY_Err_Handle( char *script_name );
+static PyObject *traceback_getFilename( PyObject * tb );
 
 /****************************************************************************
 * Description: This function will start the interpreter and load all modules
@@ -195,7 +195,7 @@ void BPY_start_python( int argc, char **argv )
 	//stuff for Registry module
 	bpy_registryDict = PyDict_New(  );/* check comment at start of this file */
 	if( !bpy_registryDict )
-		printf( "Error: Couldn't create the Registry Python Dictionary!" );
+		printf( "Warning: Couldn't create the Registry Python Dictionary!" );
 	Py_SetProgramName( "blender" );
 
 	/* Py_Initialize() will attempt to import the site module and
@@ -223,11 +223,11 @@ void BPY_start_python( int argc, char **argv )
 	
 	//Start the interpreter
 	Py_Initialize(  );
+	
 	PySys_SetArgv( argc_copy, argv_copy );
-
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
-
+	
 	//Overrides __import__
 	init_ourImport(  );
 	init_ourReload(  );
@@ -237,7 +237,6 @@ void BPY_start_python( int argc, char **argv )
 
 	//Look for a python installation
 	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
-
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 
@@ -290,9 +289,6 @@ void syspath_append( char *dirname )
 {
 	PyObject *mod_sys= NULL, *dict= NULL, *path= NULL, *dir= NULL;
 	short ok=1;
-	PyErr_Clear(  );
-
-	dir = PyString_FromString( dirname );
 
 	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
 	
@@ -304,16 +300,21 @@ void syspath_append( char *dirname )
 		}
 	} else {
 		/* cant get the sys module */
+		/* PyErr_Clear(); is called below */
 		ok = 0;
 	}
 	
-	if (PySequence_Contains(path, dir)==0) { /* Only add if we need to */
-		if (ok && PyList_Append( path, dir ) != 0) /* decref below */
-			ok = 0; /* append failed */
+	dir = PyString_FromString( dirname );
 	
-		if( (ok==0) || PyErr_Occurred(  ) )
-			Py_FatalError( "could import or build sys.path, can't continue" );
+	if (ok && PySequence_Contains(path, dir)==0) { /* Only add if we need to */
+		if (PyList_Append( path, dir ) != 0) /* decref below */
+			ok = 0; /* append failed */
 	}
+	
+	if( (ok==0) || PyErr_Occurred(  ) )
+		fprintf(stderr, "Warning: could import or build sys.path\n" );
+	
+	PyErr_Clear();
 	Py_DECREF( dir );
 	Py_XDECREF( mod_sys );
 }
@@ -332,8 +333,10 @@ void init_syspath( int first_time )
 		d = PyModule_GetDict( mod );
 		EXPP_dict_set_item_str( d, "progname", PyString_FromString( bprogname ) );
 		Py_DECREF( mod );
-	} else
-		printf( "Warning: could not set Blender.sys.progname\n" );
+	} else {
+		printf( "Warning: could not set Blender.sys\n" );
+		PyErr_Clear();
+	}
 
 	progname = BLI_last_slash( bprogname );	/* looks for the last dir separator */
 
@@ -392,7 +395,8 @@ void init_syspath( int first_time )
 		
 		Py_DECREF( mod );
 	} else{
-		printf("import of sys module failed\n");
+		PyErr_Clear( );
+		printf("Warning: import of sys module failed\n");
 	}
 }
 
@@ -405,13 +409,14 @@ void BPY_rebuild_syspath( void )
 
 	mod = PyImport_ImportModule( "sys" );	
 	if (!mod) {
-		printf("error: could not import python sys module. some modules may not import.\n");
+		printf("Warning: could not import python sys module. some modules may not import.\n");
+		PyErr_Clear(  );
 		PyGILState_Release(gilstate);
 		return;
 	}
 	
 	if (!bpy_orig_syspath_List) { /* should never happen */
-		printf("error refershing python path\n");
+		printf("Warning: cant refresh python path, bpy_orig_syspath_List is NULL\n");
 		Py_DECREF(mod);
 		PyGILState_Release(gilstate);
 		return;
@@ -507,7 +512,7 @@ const char *BPY_Err_getFilename( void )
 /*****************************************************************************/
 /* Description: Return PyString filename from a traceback object	    */
 /*****************************************************************************/
-PyObject *traceback_getFilename( PyObject * tb )
+static PyObject *traceback_getFilename( PyObject * tb )
 {
 	PyObject *v = NULL;
 
@@ -527,16 +532,27 @@ PyObject *traceback_getFilename( PyObject * tb )
 	else return PyString_FromString("unknown");
 }
 
+static void BPY_Err_Clear(void)
+{	
+	/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+	 * their user count. Not to mention holding references to wrapped data.
+	 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+	 * has alredy dealocated the pointer */
+	PySys_SetObject( "last_traceback", Py_None);
+	
+	PyErr_Clear();
+}
 /****************************************************************************
 * Description: Blender Python error handler. This catches the error and	
 * stores filename and line number in a global  
 *****************************************************************************/
-void BPY_Err_Handle( char *script_name )
+static void BPY_Err_Handle( char *script_name )
 {
 	PyObject *exception, *err, *tb, *v;
 
 	if( !script_name ) {
 		printf( "Error: script has NULL name\n" );
+		BPY_Err_Clear();
 		return;
 	}
 
@@ -563,8 +579,9 @@ void BPY_Err_Handle( char *script_name )
 		} else {
 			g_script_error.lineno = -1;
 		}
-		/* this avoids an abort in Python 2.3's garbage collecting: */
-		PyErr_Clear(  );
+		/* this avoids an abort in Python 2.3's garbage collecting:
+		PyErr_Clear() */
+		BPY_Err_Clear(); /* Calls PyErr_Clear as well */
 		return;
 	} else {
 		PyErr_NormalizeException( &exception, &err, &tb );
@@ -574,6 +591,7 @@ void BPY_Err_Handle( char *script_name )
 
 		if( !tb ) {
 			printf( "\nCan't get traceback\n" );
+			BPY_Err_Clear(); /* incase there is still some data hanging about */
 			return;
 		}
 
@@ -611,7 +629,8 @@ void BPY_Err_Handle( char *script_name )
 		}
 		Py_DECREF( tb );
 	}
-
+	
+	BPY_Err_Clear();
 	return;
 }
 
@@ -1227,6 +1246,8 @@ static int bpy_pydriver_create_dict(void)
 		PyDict_SetItemString(d, "Blender", mod);
 		PyDict_SetItemString(d, "b", mod);
 		Py_DECREF(mod);
+	} else {
+		PyErr_Clear();
 	}
 
 	mod = PyImport_ImportModule("math");
@@ -1244,6 +1265,8 @@ static int bpy_pydriver_create_dict(void)
 		PyDict_SetItemString(d, "noise", mod);
 		PyDict_SetItemString(d, "n", mod);
 		Py_DECREF(mod);
+	} else {
+		PyErr_Clear();
 	}
 
 	/* If there's a Blender text called pydrivers.py, import it.
@@ -1269,6 +1292,8 @@ static int bpy_pydriver_create_dict(void)
 			PyDict_SetItemString(d, "ob", fcn);
 			Py_DECREF(fcn);
 		}
+	} else {
+		PyErr_Clear();
 	}
 	
 	/* TODO - change these */
@@ -1281,6 +1306,8 @@ static int bpy_pydriver_create_dict(void)
 			PyDict_SetItemString(d, "me", fcn);
 			Py_DECREF(fcn);
 		}
+	} else {
+		PyErr_Clear();
 	}
 
 	/* ma(matname) == Blender.Material.Get(matname) */
@@ -1292,6 +1319,8 @@ static int bpy_pydriver_create_dict(void)
 			PyDict_SetItemString(d, "ma", fcn);
 			Py_DECREF(fcn);
 		}
+	} else {
+		PyErr_Clear();
 	}
 
 	return 0;
@@ -2712,8 +2741,10 @@ int BPY_call_importloader( char *name )
 * Description: This function executes the python script passed by text.	
 *		The Python dictionary containing global variables needs to
 *		be passed in globaldict.
+*		NOTE: Make sure BPY_Err_Handle() runs if this returns NULL
+*		otherwise pointers can be left in sys.last_traceback that become invalid.
 *****************************************************************************/
-PyObject *RunPython( Text * text, PyObject * globaldict )
+static PyObject *RunPython( Text * text, PyObject * globaldict )
 {
 	char *buf = NULL;
 
@@ -2741,7 +2772,7 @@ PyObject *RunPython( Text * text, PyObject * globaldict )
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
 *****************************************************************************/
-PyObject *CreateGlobalDictionary( void )
+static PyObject *CreateGlobalDictionary( void )
 {
 	PyObject *dict = PyDict_New(  );
 
@@ -2755,7 +2786,7 @@ PyObject *CreateGlobalDictionary( void )
 /*****************************************************************************
 * Description: This function deletes a given Python dictionary object.
 *****************************************************************************/
-void ReleaseGlobalDictionary( PyObject * dict )
+static void ReleaseGlobalDictionary( PyObject * dict )
 {
 	PyDict_Clear( dict );
 	Py_DECREF( dict );	/* Release dictionary. */
@@ -2768,7 +2799,7 @@ void ReleaseGlobalDictionary( PyObject * dict )
 *		list argument. The event by which the function has been	
 *		called, is passed in the event argument.
 *****************************************************************************/
-void DoAllScriptsFromList( ListBase * list, short event )
+static void DoAllScriptsFromList( ListBase * list, short event )
 {
 	ID *id;
 
@@ -2821,17 +2852,24 @@ static PyMethodDef bimport[] = {
 	{"blimport", blender_import, METH_VARARGS, "our own import"}
 };
 
-PyObject *blender_import( PyObject * self, PyObject * args )
+static PyObject *blender_import( PyObject * self, PyObject * args )
 {
 	PyObject *exception, *err, *tb;
 	char *name;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	PyObject *m;
-
+	//PyObject_Print(args, stderr, 0);
+#if (PY_VERSION_HEX >= 0x02060000)
+	int dummy_val; /* what does this do?*/
+	
+	if( !PyArg_ParseTuple( args, "s|OOOi:bimport",
+			       &name, &globals, &locals, &fromlist, &dummy_val) )
+		return NULL;
+#else
 	if( !PyArg_ParseTuple( args, "s|OOO:bimport",
 			       &name, &globals, &locals, &fromlist ) )
 		return NULL;
-
+#endif
 	m = PyImport_ImportModuleEx( name, globals, locals, fromlist );
 
 	if( m )
@@ -2852,7 +2890,7 @@ PyObject *blender_import( PyObject * self, PyObject * args )
 	return m;
 }
 
-void init_ourImport( void )
+static void init_ourImport( void )
 {
 	PyObject *m, *d;
 	PyObject *import = PyCFunction_New( bimport, NULL );
@@ -2953,7 +2991,7 @@ static PyMethodDef breload[] = {
 	{"blreload", blender_reload, METH_VARARGS, "our own reload"}
 };
 
-void init_ourReload( void )
+static void init_ourReload( void )
 {
 	PyObject *m, *d;
 	PyObject *reload = PyCFunction_New( breload, NULL );

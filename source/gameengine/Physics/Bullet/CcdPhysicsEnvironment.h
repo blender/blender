@@ -74,6 +74,7 @@ protected:
 
 	btContactSolverInfo	m_solverInfo;
 	
+	void	processFhSprings(double curTime,float timeStep);
 
 	public:
 		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
@@ -126,7 +127,7 @@ protected:
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ,
 			float axis1X=0,float axis1Y=0,float axis1Z=0,
-			float axis2X=0,float axis2Y=0,float axis2Z=0
+			float axis2X=0,float axis2Y=0,float axis2Z=0,int flag=0
 			);
 
 
@@ -138,7 +139,7 @@ protected:
 			const btVector3& linearMinLimits,
 			const btVector3& linearMaxLimits,
 			const btVector3& angularMinLimits,
-			const btVector3& angularMaxLimits
+			const btVector3& angularMaxLimits,int flags
 			);
 
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1);

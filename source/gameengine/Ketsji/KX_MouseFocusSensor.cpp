@@ -320,14 +320,12 @@ PyParentObject KX_MouseFocusSensor::Parents[] = {
 };
 
 PyMethodDef KX_MouseFocusSensor::Methods[] = {
-	{"getRayTarget", (PyCFunction) KX_MouseFocusSensor::sPyGetRayTarget, 
-	 METH_VARARGS, GetRayTarget_doc},
-	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, 
-	 METH_VARARGS, GetRaySource_doc},
-	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_VARARGS, GetHitObject_doc},
-	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_VARARGS, GetHitPosition_doc},
-	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_VARARGS, GetHitNormal_doc},
-	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_VARARGS, GetRayDirection_doc},
+	{"getRayTarget", (PyCFunction) KX_MouseFocusSensor::sPyGetRayTarget, METH_VARARGS, (PY_METHODCHAR)GetRayTarget_doc},
+	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, METH_VARARGS, (PY_METHODCHAR)GetRaySource_doc},
+	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
+	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_VARARGS, (PY_METHODCHAR)GetHitPosition_doc},
+	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_VARARGS, (PY_METHODCHAR)GetHitNormal_doc},
+	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_VARARGS, (PY_METHODCHAR)GetRayDirection_doc},
 
 
 	{NULL,NULL} //Sentinel

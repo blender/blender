@@ -149,8 +149,8 @@ PyParentObject SCA_ActuatorSensor::Parents[] = {
 };
 
 PyMethodDef SCA_ActuatorSensor::Methods[] = {
-	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_NOARGS, GetActuator_doc},
-	{"setActuator", (PyCFunction) SCA_ActuatorSensor::sPySetActuator, METH_VARARGS, SetActuator_doc},
+	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_NOARGS, (PY_METHODCHAR)GetActuator_doc},
+	{"setActuator", (PyCFunction) SCA_ActuatorSensor::sPySetActuator, METH_VARARGS, (PY_METHODCHAR)SetActuator_doc},
 	{NULL,NULL} //Sentinel
 };
 

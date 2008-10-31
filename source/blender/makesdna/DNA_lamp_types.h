@@ -91,7 +91,9 @@ typedef struct Lamp {
     float atm_extinction_factor;
     float atm_distance_factor;
 	float skyblendfac;
-
+	float sky_exposure;
+	short sky_colorspace, pad4;
+	
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
 	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;

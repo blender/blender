@@ -99,8 +99,10 @@
 #include "BDR_unwrapper.h"
 #include "BDR_editobject.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 /* Pupmenu codes: */
 #define UV_CUBE_MAPPING 2
@@ -312,7 +314,7 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 	}
 }
 
-void correct_uv_aspect( void )
+static void correct_uv_aspect( void )
 {
 	float aspx=1, aspy=1;
 	EditMesh *em = G.editMesh;
@@ -1050,7 +1052,7 @@ int edgetag_shortest_path(EditEdge *source, EditEdge *target)
 	return 1;
 }
 
-void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
+static void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
 {
 	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
 	BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
@@ -1238,7 +1240,9 @@ void face_borderselect()
 void uv_autocalc_tface()
 {
 	short mode, i=0, has_pymenu=0; /* pymenu must be bigger then UV_*_MAPPING */
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	char menu_number[3];
 	
 	/* uvmenu, will add python items */
@@ -1253,7 +1257,7 @@ void uv_autocalc_tface()
 					MENUSTRING("Project from View (Bounds)",UV_BOUNDS_MAPPING) "|%l|"
 					
 					MENUSTRING("Reset",						UV_RESET_MAPPING);
-	
+#ifndef DISABLE_PYTHON
 	/* note that we account for the 10 previous entries with i+10: */
 	for (pym = BPyMenuTable[PYMENU_UVCALCULATION]; pym; pym = pym->next, i++) {
 		
@@ -1268,14 +1272,15 @@ void uv_autocalc_tface()
 		sprintf(menu_number, "%d", i+10);
 		strcat(uvmenu, menu_number);
 	}
+#endif
 	
 	mode= pupmenu(uvmenu);
-	
+#ifndef DISABLE_PYTHON
 	if (mode >= 10) {
 		BPY_menu_do_python(PYMENU_UVCALCULATION, mode - 10);
 		return;
 	}
-	
+#endif	
 	switch(mode) {
 	case UV_CUBE_MAPPING:
 		calculate_uv_map(B_UVAUTO_CUBE); break;

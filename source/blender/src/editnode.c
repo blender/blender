@@ -2395,7 +2395,12 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val, doredraw=0, fromlib= 0;
 	
 	if(sa->win==0) return;
-	if(snode->nodetree==NULL) return;
+	
+	if(snode->nodetree==NULL) {
+		/* no other events should be handled, but floating panels still should get handled */
+		uiDoBlocks(&curarea->uiblocks, event, 1);
+		return;
+	}
 	
 	if(val) {
 		if( node_uiDoBlocks(sa, event)!=UI_NOTHING ) event= 0;

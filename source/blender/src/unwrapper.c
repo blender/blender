@@ -202,8 +202,7 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 	handle = param_construct_begin();
 
 	if ((G.scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT)==0) {
-		EditMesh *em = G.editMesh;
-		EditFace *efa = EM_get_actFace(1);
+		efa = EM_get_actFace(1);
 		if (efa) {
 			float aspx, aspy;
 			MTFace *tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);

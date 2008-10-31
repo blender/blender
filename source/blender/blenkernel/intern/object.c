@@ -70,6 +70,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_bullet.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
@@ -110,7 +111,9 @@
 
 #include "LBM_fluidsim.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "GPU_material.h"
 
@@ -182,7 +185,7 @@ void object_free_softbody(Object *ob)
 void object_free_bulletsoftbody(Object *ob)
 {
 	if(ob->bsoft) {
-		sbFree(ob->bsoft);
+		bsbFree(ob->bsoft);
 		ob->bsoft= NULL;
 	}
 }
@@ -268,8 +271,10 @@ void free_object(Object *ob)
 	free_constraints(&ob->constraints);
 	free_constraint_channels(&ob->constraintChannels);
 	free_nlastrips(&ob->nlastrips);
-	
+
+#ifndef DISABLE_PYTHON	
 	BPY_free_scriptlink(&ob->scriptlink);
+#endif
 	
 	if(ob->pd){
 		if(ob->pd->tex)
@@ -636,9 +641,9 @@ Camera *copy_camera(Camera *cam)
 	
 	camn= copy_libblock(cam);
 	id_us_plus((ID *)camn->ipo);
-
+#ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&camn->scriptlink);
-	
+#endif	
 	return camn;
 }
 
@@ -758,7 +763,9 @@ void *add_lamp(char *name)
 	la->sun_intensity = 1.0;
 	la->skyblendtype= MA_RAMP_ADD;
 	la->skyblendfac= 1.0f;
-
+	la->sky_colorspace= BLI_CS_CIE;
+	la->sky_exposure= 1.0f;
+	
 	curvemapping_initialize(la->curfalloff);
 	return la;
 }
@@ -783,9 +790,9 @@ Lamp *copy_lamp(Lamp *la)
 	id_us_plus((ID *)lan->ipo);
 
 	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
-
+#ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&la->scriptlink);
-	
+#endif
 	return lan;
 }
 
@@ -843,7 +850,9 @@ void make_local_lamp(Lamp *la)
 
 void free_camera(Camera *ca)
 {
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&ca->scriptlink);
+#endif
 }
 
 void free_lamp(Lamp *la)
@@ -852,8 +861,9 @@ void free_lamp(Lamp *la)
 	int a;
 
 	/* scriptlinks */
-		
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&la->scriptlink);
+#endif
 
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
@@ -1199,9 +1209,9 @@ Object *copy_object(Object *ob)
 		modifier_copyData(md, nmd);
 		BLI_addtail(&obn->modifiers, nmd);
 	}
-	
+#ifndef DISABLE_PYTHON	
 	BPY_copy_scriptlink(&ob->scriptlink);
-	
+#endif
 	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
 	
@@ -1477,22 +1487,42 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	return cfra;
 }
 
-void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+void object_scale_to_mat3(Object *ob, float mat[][3])
 {
-	float smat[3][3], vec[3];
-	float rmat[3][3];
-	/*float q1[4];*/
-	
-	/* size */
+	float vec[3];
 	if(ob->ipo) {
 		vec[0]= ob->size[0]+ob->dsize[0];
 		vec[1]= ob->size[1]+ob->dsize[1];
 		vec[2]= ob->size[2]+ob->dsize[2];
-		SizeToMat3(vec, smat);
+		SizeToMat3(vec, mat);
 	}
 	else {
-		SizeToMat3(ob->size, smat);
+		SizeToMat3(ob->size, mat);
 	}
+}
+
+void object_rot_to_mat3(Object *ob, float mat[][3])
+{
+	float vec[3];
+	if(ob->ipo) {
+		vec[0]= ob->rot[0]+ob->drot[0];
+		vec[1]= ob->rot[1]+ob->drot[1];
+		vec[2]= ob->rot[2]+ob->drot[2];
+		EulToMat3(vec, mat);
+	}
+	else {
+		EulToMat3(ob->rot, mat);
+	}
+}
+
+void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
+{
+	float smat[3][3];
+	float rmat[3][3];
+	/*float q1[4];*/
+	
+	/* size */
+	object_scale_to_mat3(ob, smat);
 
 	/* rot */
 	/* Quats arnt used yet */
@@ -1506,15 +1536,7 @@ void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 		}
 	}
 	else {*/
-		if(ob->ipo) {
-			vec[0]= ob->rot[0]+ob->drot[0];
-			vec[1]= ob->rot[1]+ob->drot[1];
-			vec[2]= ob->rot[2]+ob->drot[2];
-			EulToMat3(vec, rmat);
-		}
-		else {
-			EulToMat3(ob->rot, rmat);
-		}
+		object_rot_to_mat3(ob, rmat);
 	/*}*/
 	Mat3MulMat3(mat, rmat, smat);
 }
@@ -1903,10 +1925,11 @@ void where_is_object_time(Object *ob, float ctime)
 		
 		constraints_clear_evalob(cob);
 	}
-	
+#ifndef DISABLE_PYTHON
 	if(ob->scriptlink.totscript && !during_script()) {
 		if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
 	}
+#endif
 	
 	/* set negative scale flag in object */
 	Crossf(vec, ob->obmat[0], ob->obmat[1]);
@@ -2273,7 +2296,9 @@ void object_handle_update(Object *ob)
 			}
 			else
 				where_is_object(ob);
+#ifndef DISABLE_PYTHON
 			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBJECTUPDATE);
+#endif
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
@@ -2349,7 +2374,9 @@ void object_handle_update(Object *ob)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
+#ifndef DISABLE_PYTHON
 			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBDATAUPDATE);
+#endif
 		}
 
 		/* the no-group proxy case, we call update */

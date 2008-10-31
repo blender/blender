@@ -160,7 +160,7 @@ typedef struct FaceEdges {
  * compare edges by vertex indices
  */
 
-int medge_comp( const void *va, const void *vb )
+static int medge_comp( const void *va, const void *vb )
 {
 	const unsigned int *a = ((SrchEdges *)va)->v;
 	const unsigned int *b = ((SrchEdges *)vb)->v;
@@ -180,7 +180,7 @@ int medge_comp( const void *va, const void *vb )
  * compare edges by insert list indices
  */
 
-int medge_index_comp( const void *va, const void *vb )
+static int medge_index_comp( const void *va, const void *vb )
 {
 	const SrchEdges *a = (SrchEdges *)va;
 	const SrchEdges *b = (SrchEdges *)vb;
@@ -196,7 +196,7 @@ int medge_index_comp( const void *va, const void *vb )
  * compare faces by vertex indices
  */
 
-int mface_comp( const void *va, const void *vb )
+static int mface_comp( const void *va, const void *vb )
 {
 	const SrchFaces *a = va;
 	const SrchFaces *b = vb;
@@ -231,7 +231,7 @@ int mface_comp( const void *va, const void *vb )
  * compare faces by insert list indices
  */
 
-int mface_index_comp( const void *va, const void *vb )
+static int mface_index_comp( const void *va, const void *vb )
 {
 	const SrchFaces *a = va;
 	const SrchFaces *b = vb;
@@ -248,7 +248,7 @@ int mface_index_comp( const void *va, const void *vb )
  * compare edges by vertex indices
  */
 
-int faceedge_comp( const void *va, const void *vb )
+static int faceedge_comp( const void *va, const void *vb )
 {
 	const unsigned int *a = ((FaceEdges *)va)->v;
 	const unsigned int *b = ((FaceEdges *)vb)->v;
@@ -4239,7 +4239,7 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 		return -1;
 
 	return EXPP_setIValueRange( value,
-			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_SUB, 'b' );
+			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_CLIP, 'b' );
 }
 
 /*
@@ -6271,19 +6271,12 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			if( origmesh->mat ) {
 				for( i = origmesh->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					if (ob->colbits & 1<<i) {
+					if (ob->colbits & 1<<i)
 						self->mesh->mat[i] = ob->mat[i];
-						
-						if (ob->mat[i])
-							ob->mat[i]->id.us++;
-						if (origmesh->mat[i])
-							origmesh->mat[i]->id.us--;
-					} else {
+					else
 						self->mesh->mat[i] = origmesh->mat[i];
-						
-						if (origmesh->mat[i])
-							origmesh->mat[i]->id.us++;
-					}
+					if (self->mesh->mat[i])
+						self->mesh->mat[i]->id.us++;
 				}
 			}
 		}
@@ -8743,6 +8736,7 @@ static PyObject *M_Mesh_FaceTranspModesDict( void )
 		PyConstant_Insert( d, "ADD", PyInt_FromLong( TF_ADD ) );
 		PyConstant_Insert( d, "ALPHA", PyInt_FromLong( TF_ALPHA ) );
 		PyConstant_Insert( d, "SUB", PyInt_FromLong( TF_SUB ) );
+		PyConstant_Insert( d, "CLIP", PyInt_FromLong( TF_CLIP ) );
 	}
 
 	return FTM;

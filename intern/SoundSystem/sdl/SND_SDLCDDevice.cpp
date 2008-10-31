@@ -41,7 +41,9 @@
 #include "SND_SDLCDDevice.h"
 #include "SoundDefines.h"
 
+#ifndef DISABLE_SDL
 #include <SDL.h>
+#endif
 
 SND_SDLCDDevice::SND_SDLCDDevice() :
 	m_cdrom(NULL),

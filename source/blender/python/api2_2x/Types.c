@@ -26,8 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
 */
 
-#include "Types.h" 
+#include "Types.h"
 #include "IDProp.h"
+#include "gen_utils.h"
+#include "BLI_blenlib.h"
 /* 
    stuff pasted from the old Types.h
    is only need here now
@@ -65,10 +67,126 @@ extern PyTypeObject ThemeSpace_Type;
 extern PyTypeObject ThemeUI_Type;
 extern PyTypeObject TimeLine_Type;
 
+/* includes to get structs for CSizeof */
+#include "Armature.h"
+#include "Bone.h"
+#include "BezTriple.h"
+#include "Camera.h"
+#include "Constraint.h"
+#include "Curve.h"
+#include "CurNurb.h"
+#include "Draw.h"
+#include "Effect.h"
+#include "Ipo.h"
+#include "Ipocurve.h"
+#include "Key.h"
+#include "Lamp.h"
+#include "Lattice.h"
+#include "Library.h"
+#include "Mathutils.h"
+#include "Geometry.h"
+#include "Mesh.h"
+#include "Metaball.h"
+#include "Modifier.h"
+#include "NMesh.h"
+#include "Node.h"
+#include "Object.h"
+#include "Group.h"
+#include "Registry.h"
+#include "Scene.h"
+#include "Sound.h"
+#include "SurfNurb.h"
+#include "Sys.h"
+#include "Text.h"
+#include "Texture.h"
+#include "Window.h"
+#include "World.h"
+#include "Particle.h"
+
 char M_Types_doc[] = "The Blender Types module\n\n\
 This module is a dictionary of all Blender Python types";
 
-struct PyMethodDef Null_methods[] = { {NULL, NULL, 0, NULL} };
+static PyObject *Types_CSizeof(PyObject * self, PyObject *o)
+{
+	int ret = 0;
+	if(o) {
+		if((void *)o == (void *)&Action_Type) {
+			ret = sizeof(struct bAction);
+		} else if ((void *)o==(void *)&Armature_Type) {
+			ret = sizeof(struct bArmature);
+		} else if ((void *)o==(void *)&BezTriple_Type) {
+			ret = sizeof(struct BezTriple);
+		} else if ((void *)o==(void *)&Bone_Type) {
+			ret = sizeof(struct Bone);
+		} else if ((void *)o==(void *)&Camera_Type) {
+			ret = sizeof(struct Camera);
+		} else if ((void *)o==(void *)&CurNurb_Type) {
+			ret = sizeof(struct Nurb);
+		} else if ((void *)o==(void *)&Curve_Type) {
+			ret = sizeof(struct Curve);
+		} else if ((void *)o==(void *)&Group_Type) {
+			ret = sizeof(struct Group);
+		} else if ((void *)o==(void *)&IDGroup_Type) {
+			ret = sizeof(struct IDProperty);
+		} else if ((void *)o==(void *)&Image_Type) {
+			ret = sizeof(struct Image);
+		} else if ((void *)o==(void *)&Ipo_Type) {
+			ret = sizeof(struct Ipo);
+		} else if ((void *)o==(void *)&IpoCurve_Type) {
+			ret = sizeof(struct IpoCurve);
+		} else if ((void *)o==(void *)&Lamp_Type) {
+			ret = sizeof(struct Lamp);
+		} else if ((void *)o==(void *)&Lattice_Type) {
+			ret = sizeof(struct Lattice);
+		} else if ((void *)o==(void *)&MCol_Type) {
+			ret = sizeof(struct MCol);
+		} else if ((void *)o==(void *)&MEdge_Type) {
+			ret = sizeof(struct MEdge);
+		} else if ((void *)o==(void *)&MFace_Type) {
+			ret = sizeof(struct MFace);
+		} else if ((void *)o==(void *)&MTex_Type) {
+			ret = sizeof(struct MTex);
+		} else if ((void *)o==(void *)&MVert_Type) {
+			ret = sizeof(struct MVert);
+		} else if ((void *)o==(void *)&Material_Type) {
+			ret = sizeof(struct Material);
+		} else if ((void *)o==(void *)&Mesh_Type) {
+			ret = sizeof(struct Mesh);
+		} else if ((void *)o==(void *)&Metaball_Type) {
+			ret = sizeof(struct MetaBall);
+		} else if ((void *)o==(void *)&ModSeq_Type) {
+			ret = sizeof(struct ModifierData);
+		} else if ((void *)o==(void *)&Modifier_Type) {
+			ret = sizeof(struct ModifierData);
+		} else if ((void *)o==(void *)&Object_Type) {
+			ret = sizeof(struct Object);
+		} else if ((void *)o==(void *)&Pose_Type) {
+			ret = sizeof(struct bPose);
+		} else if ((void *)o==(void *)&RenderData_Type) {
+			ret = sizeof(struct RenderData);
+		} else if ((void *)o==(void *)&Scene_Type) {
+			ret = sizeof(struct Scene);
+		} else if ((void *)o==(void *)&SurfNurb_Type) {
+			ret = sizeof(struct Nurb);
+		} else if ((void *)o==(void *)&Text3d_Type) {
+			ret = sizeof(struct Curve);
+		} else if ((void *)o==(void *)&Text_Type) {
+			ret = sizeof(struct Text);
+		} else if ((void *)o==(void *)&Texture_Type) {
+			ret = sizeof(struct Tex);
+		} else {
+			ret = -1;
+		}
+	}
+	
+	return PyInt_FromLong(ret);
+}
+
+struct PyMethodDef M_Types_methods[] = {
+	{"CSizeof", Types_CSizeof, METH_O, 
+		"(type) - Returns sizeof of the underlying C structure of the given type"},
+	{NULL, NULL, 0, NULL}
+};
 
 
 
@@ -145,7 +263,7 @@ PyObject *Types_Init( void )
 	PyObject *submodule, *dict;
 
 	submodule =
-		Py_InitModule3( "Blender.Types", Null_methods, M_Types_doc );
+		Py_InitModule3( "Blender.Types", M_Types_methods, M_Types_doc );
 
 	dict = PyModule_GetDict( submodule );
 
@@ -187,13 +305,14 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &Armature_Type );
 	PyDict_SetItemString( dict, "BoneType", ( PyObject * ) &Bone_Type );
 
-	PyDict_SetItemString( dict, "CurNurb_Type",
+	PyDict_SetItemString( dict, "CurNurbType",
 			      ( PyObject * ) &CurNurb_Type );
-	PyDict_SetItemString( dict, "SurfNurb_Type",
+	PyDict_SetItemString( dict, "SurfNurbType",
 			      ( PyObject * ) &SurfNurb_Type );
 	PyDict_SetItemString( dict, "CurveType", ( PyObject * ) &Curve_Type );
 
 	PyDict_SetItemString( dict, "IpoType", ( PyObject * ) &Ipo_Type );
+	PyDict_SetItemString( dict, "IpoCurveType", ( PyObject * ) &IpoCurve_Type );
 	PyDict_SetItemString( dict, "MetaballType",
 			      ( PyObject * ) &Metaball_Type );
 
@@ -226,7 +345,7 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &constant_Type );
 	PyDict_SetItemString( dict, "rgbTupleType",
 			      ( PyObject * ) &rgbTuple_Type );
-	PyDict_SetItemString( dict, "matrix_Type",
+	PyDict_SetItemString( dict, "matrixType",
 			      ( PyObject * ) &matrix_Type );
 	PyDict_SetItemString( dict, "eulerType", ( PyObject * ) &euler_Type );
 	PyDict_SetItemString( dict, "quaternionType",
@@ -249,7 +368,7 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &EditBone_Type);
 	PyDict_SetItemString( dict, "ThemeSpaceType",
 			      ( PyObject * ) &ThemeSpace_Type);
-	PyDict_SetItemString( dict, "ThemeUI_Type",
+	PyDict_SetItemString( dict, "ThemeUIType",
 			      ( PyObject * ) &ThemeUI_Type);
 	PyDict_SetItemString( dict, "IDGroupType",
 			      ( PyObject * ) &IDGroup_Type);

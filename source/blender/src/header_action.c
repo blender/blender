@@ -285,10 +285,16 @@ void do_action_buttons(unsigned short event)
 			
 		/* copy/paste buttons in Action Editor header */
 		case B_ACTCOPYKEYS:
-			copy_actdata();
+			if (G.saction->mode == SACTCONT_GPENCIL)
+				copy_gpdata();
+			else
+				copy_actdata();
 			break;
 		case B_ACTPASTEKEYS:
-			paste_actdata();
+			if (G.saction->mode == SACTCONT_GPENCIL)
+				paste_gpdata();
+			else
+				paste_actdata();
 			break;
 
 		case B_ACTPIN:	/* __PINFAKE */
@@ -1568,7 +1574,7 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_ADD, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Ctrl Shift D", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DUPLICATE, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|Shift X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DELETE, "");
 					
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -1735,20 +1741,24 @@ void action_buttons(void)
 		uiClearButLock();
 		
 		xco += 8;
-		
-		/* COPY PASTE */
-		uiBlockBeginAlign(block);
-		if (curarea->headertype==HEADERTOP) {
-			uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYUP,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
-		}
-		else {
-			uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYDOWN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
-		}
-		uiBlockEndAlign(block);
-		xco += (XIC + 8);
-		
+	}
+	
+	
+	/* COPY PASTE */
+	uiBlockBeginAlign(block);
+	if (curarea->headertype==HEADERTOP) {
+		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYUP,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	}
+	else {
+		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYDOWN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	}
+	uiBlockEndAlign(block);
+	xco += (XIC + 8);
+	
+	
+	if (G.saction->mode != SACTCONT_GPENCIL) {
 		/* draw AUTOSNAP */
 		if (G.saction->flag & SACTION_DRAWTIME) {
 			uiDefButC(block, MENU, B_REDR,

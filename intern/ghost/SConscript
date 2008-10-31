@@ -10,7 +10,7 @@ sources = env.Glob('intern/*.cpp')
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window']
 
-if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6'):
+if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6'):
     for f in pf:
         sources.remove('intern' + os.sep + f + 'Win32.cpp')
         sources.remove('intern' + os.sep + f + 'Carbon.cpp')

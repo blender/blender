@@ -397,7 +397,7 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 	bConstraint *con= pchan->constraints.first;
 	
 	for(;con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
 			
 			if(data->tar==NULL) 
@@ -505,12 +505,17 @@ static short apply_targetless_ik(Object *ob)
 					Mat3ToQuat(rmat3, parchan->quat);
 					
 					/* for size, remove rotation */
-					QuatToMat3(parchan->quat, qmat);
-					Mat3Inv(imat, qmat);
-					Mat3MulMat3(smat, rmat3, imat);
-					Mat3ToSize(smat, parchan->size);
+					/* causes problems with some constraints (so apply only if needed) */
+					if (data->flag & CONSTRAINT_IK_STRETCH) {
+						QuatToMat3(parchan->quat, qmat);
+						Mat3Inv(imat, qmat);
+						Mat3MulMat3(smat, rmat3, imat);
+						Mat3ToSize(smat, parchan->size);
+					}
 					
-					VECCOPY(parchan->loc, rmat[3]);
+					/* causes problems with some constraints (e.g. childof), so disable this */
+					/* as it is IK shouldn't affect location directly */
+					/* VECCOPY(parchan->loc, rmat[3]); */
 				}
 				
 			}
@@ -711,7 +716,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 	
 	/* check if pchan has ik-constraint */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce!=0.0)) {
 			bKinematicConstraint *data= con->data;
 			
 			/* only accept if a temporary one (for auto-ik) */
@@ -763,6 +768,7 @@ static void pose_grab_with_ik_clear(Object *ob)
 		/* clear all temporary lock flags */
 		pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP|BONE_IK_NO_YDOF_TEMP|BONE_IK_NO_ZDOF_TEMP);
 		
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 		/* remove all temporary IK-constraints added */
 		for (con= pchan->constraints.first; con; con= con->next) {
 			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
@@ -771,9 +777,11 @@ static void pose_grab_with_ik_clear(Object *ob)
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
-					pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
-					break;
+					continue;
 				}
+				pchan->constflag |= PCHAN_HAS_IK;
+				if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
+					pchan->constflag |= PCHAN_HAS_TARGET;
 			}
 		}
 	}
@@ -784,6 +792,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 {
 	bKinematicConstraint *data;
 	bConstraint *con;
+	bConstraint *targetless = 0;
 	
 	/* Sanity check */
 	if (pchan == NULL) 
@@ -791,23 +800,31 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	
 	/* Rule: not if there's already an IK on this channel */
 	for (con= pchan->constraints.first; con; con= con->next) {
-		if (con->type==CONSTRAINT_TYPE_KINEMATIC)
-			break;
-	}
-	
-	if (con) {
-		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
-		data= has_targetless_ik(pchan);
-		if (data)
-			data->flag |= CONSTRAINT_IK_AUTO;
-		return 0;
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data= con->data;
+			if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0)) {
+				targetless = con;
+				/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
+				if (con->enforce!=0.0) {
+					targetless->flag |= CONSTRAINT_IK_AUTO;
+					return 0;
+				}
+			}
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0))
+				return 0;
+		}
 	}
 	
 	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 	BLI_addtail(&pchan->constraints, con);
 	pchan->constflag |= (PCHAN_HAS_IK|PCHAN_HAS_TARGET);	/* for draw, but also for detecting while pose solving */
 	data= con->data;
-	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
+	if (targetless) { /* if exists use values from last targetless IK-constraint as base */
+		*data = *((bKinematicConstraint*)targetless->data);
+	}
+	else
+		data->flag= CONSTRAINT_IK_TIP;
+	data->flag |= CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
 	VECCOPY(data->grabtarget, pchan->pose_tail);
 	data->rootbone= 1;
 	
@@ -1411,7 +1428,10 @@ static void createTransCurveVerts(TransInfo *t)
 			if (propmode && head != tail)
 				calc_distanceCurveVerts(head, tail-1);
 			
-			testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
+			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandes
+			 * but for now just dont change handle types */
+			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT) == 0)
+				testhandlesNurb(nu); /* sets the handles based on their selection, do this after the data is copied to the TransData */
 		}
 		else {
 			TransData *head, *tail;
@@ -2388,8 +2408,8 @@ void flushTransUVs(TransInfo *t)
 		td->loc2d[1]= td->loc[1]*invy;
 		
 		if((G.sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
-			td->loc2d[0]= floor(width*td->loc2d[0] + 0.5f)/width;
-			td->loc2d[1]= floor(height*td->loc2d[1] + 0.5f)/height;
+			td->loc2d[0]= (float)floor(width*td->loc2d[0] + 0.5f)/width;
+			td->loc2d[1]= (float)floor(height*td->loc2d[1] + 0.5f)/height;
 		}
 	}
 	
@@ -2501,6 +2521,7 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 		 * (these need to be sorted as they are isolated)
 		 */
 		for (gpf= gpl->frames.first; gpf; gpf= gpfn) {
+			short added= 0;
 			gpfn= gpf->next;
 			
 			if (gpf->flag & GP_FRAME_SELECT) {
@@ -2514,10 +2535,11 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 					/* if current (gpf) occurs after this one in buffer, add! */
 					if (gfs->framenum < gpf->framenum) {
 						BLI_insertlinkafter(&sel_buffer, gfs, gpf);
+						added= 1;
 						break;
 					}
 				}
-				if (gfs == NULL)
+				if (added == 0)
 					BLI_addhead(&sel_buffer, gpf);
 			}
 		}
@@ -2535,12 +2557,9 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 		}
 		
 		/* loop 2: remove duplicates of frames in buffers */
-		//gfs= sel_buffer.first;
-		//gfsn= gfs->next;
-		
 		for (gpf= gpl->frames.first; gpf && sel_buffer.first; gpf= gpfn) {
 			gpfn= gpf->next;
-			 
+			
 			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
 			for (gfs= sel_buffer.first; gfs && gpf; gfs= gfsn) {
 				gfsn= gfs->next;
@@ -2700,13 +2719,13 @@ static void posttrans_nla_clean (TransInfo *t)
 		ob= base->object;
 		
 		/* Check object ipos */
-		i= count_ipo_keys(ob->ipo, side, CFRA);
+		i= count_ipo_keys(ob->ipo, side, (float)CFRA);
 		if (i) posttrans_ipo_clean(ob->ipo);
 		
 		/* Check object constraint ipos */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-			i= count_ipo_keys(conchan->ipo, side, CFRA);	
-			if (i) posttrans_ipo_clean(ob->ipo);
+			i= count_ipo_keys(conchan->ipo, side, (float)CFRA);	
+			if (i) posttrans_ipo_clean(conchan->ipo);
 		}
 		
 		/* skip actions and nlastrips if object is collapsed */
@@ -2723,7 +2742,7 @@ static void posttrans_nla_clean (TransInfo *t)
 				}
 			}
 			if (strip==NULL) {
-				cfra = get_action_frame(ob, CFRA);
+				cfra = get_action_frame(ob, (float)CFRA);
 				
 				for (achan=ob->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
@@ -2809,7 +2828,7 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 	/* only include points that occur on the right side of cfra */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
-			if (FrameOnMouseSide(side, gpf->framenum, cfra))
+			if (FrameOnMouseSide(side, (float)gpf->framenum, cfra))
 				count++;
 		}
 	}
@@ -2901,7 +2920,7 @@ void flushTransGPactionData (TransInfo *t)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used. 
  */
-static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, short side, float cfra)
+static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, char side, float cfra)
 {
 	bGPDframe *gpf;
 	int count= 0;
@@ -2909,12 +2928,12 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 	/* check for select frames on right side of current frame */
 	for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 		if (gpf->flag & GP_FRAME_SELECT) {
-			if (FrameOnMouseSide(side, gpf->framenum, cfra)) {
+			if (FrameOnMouseSide(side, (float)gpf->framenum, cfra)) {
 				/* memory is calloc'ed, so that should zero everything nicely for us */
 				td->val= &tfd->val;
-				td->ival= gpf->framenum;
+				td->ival= (float)gpf->framenum;
 				
-				tfd->val= gpf->framenum;
+				tfd->val= (float)gpf->framenum;
 				tfd->sdata= &gpf->framenum;
 				
 				/* advance td now */
@@ -2976,9 +2995,9 @@ static void createTransActionData(TransInfo *t)
 	 * higher scaling ratios, but is faster than converting all points) 
 	 */
 	if (ob) 
-		cfra = get_action_frame(ob, CFRA);
+		cfra = get_action_frame(ob, (float)CFRA);
 	else
-		cfra = CFRA;
+		cfra = (float)CFRA;
 	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -3033,7 +3052,7 @@ static void createTransActionData(TransInfo *t)
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
 	if (t->mode == TFM_TIME_SLIDE) {
-		float min=999999999.0f, max=-999999999.0;
+		float min=999999999.0f, max=-999999999.0f;
 		int i;
 		
 		td= (t->data + 1);
@@ -3082,13 +3101,13 @@ static void createTransNlaData(TransInfo *t)
 	/* Ensure that partial selections result in beztriple selections */
 	for (base=G.scene->base.first; base; base=base->next) {
 		/* Check object ipos */
-		i= count_ipo_keys(base->object->ipo, side, CFRA);
+		i= count_ipo_keys(base->object->ipo, side, (float)CFRA);
 		if (i) base->flag |= BA_HAS_RECALC_OB;
 		count += i;
 		
 		/* Check object constraint ipos */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			count += count_ipo_keys(conchan->ipo, side, CFRA);			
+			count += count_ipo_keys(conchan->ipo, side, (float)CFRA);			
 		
 		/* skip actions and nlastrips if object is collapsed */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
@@ -3104,7 +3123,7 @@ static void createTransNlaData(TransInfo *t)
 				}
 			}
 			if (strip==NULL) {
-				cfra = get_action_frame(base->object, CFRA);
+				cfra = get_action_frame(base->object, (float)CFRA);
 				
 				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
@@ -3129,8 +3148,8 @@ static void createTransNlaData(TransInfo *t)
 			if (strip->flag & ACTSTRIP_SELECT) {
 				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
 				
-				if (FrameOnMouseSide(side, strip->start, CFRA)) count++;
-				if (FrameOnMouseSide(side, strip->end, CFRA)) count++;
+				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
+				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
 			}
 		}
 	}
@@ -3148,12 +3167,12 @@ static void createTransNlaData(TransInfo *t)
 	for (base=G.scene->base.first; base; base=base->next) {
 		/* Manipulate object ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
-		td= IpoToTransData(td, base->object->ipo, NULL, side, CFRA);
+		td= IpoToTransData(td, base->object->ipo, NULL, side, (float)CFRA);
 		
 		/* Manipulate object constraint ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			td= IpoToTransData(td, conchan->ipo, NULL, side, CFRA);
+			td= IpoToTransData(td, conchan->ipo, NULL, side, (float)CFRA);
 		
 		/* skip actions and nlastrips if object collapsed */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
@@ -3171,7 +3190,7 @@ static void createTransNlaData(TransInfo *t)
 			
 			/* can include if no strip found */
 			if (strip==NULL) {
-				cfra = get_action_frame(base->object, CFRA);
+				cfra = get_action_frame(base->object, (float)CFRA);
 				
 				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
@@ -3193,12 +3212,12 @@ static void createTransNlaData(TransInfo *t)
 		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				/* first TransData is the start, second is the end */
-				if (FrameOnMouseSide(side, strip->start, CFRA)) {
+				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) {
 					td->val = &strip->start;
 					td->ival = strip->start;
 					td++;
 				}
-				if (FrameOnMouseSide(side, strip->end, CFRA)) {
+				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) {
 					td->val = &strip->end;
 					td->ival = strip->end;
 					td++;
@@ -3882,7 +3901,17 @@ void special_aftertrans_update(TransInfo *t)
 			/* remove duplicate frames and also make sure points are in order! */
 			if ((cancelled == 0) || (duplicate))
 			{
-				posttrans_gpd_clean(data);
+				ScrArea *sa;
+				
+				/* BAD... we need to loop over all screen areas for current screen...
+				 * 	- sync this with actdata_filter_gpencil() in editaction.c 
+				 */
+				for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+					bGPdata *gpd= gpencil_data_getactive(sa);
+					
+					if (gpd) 
+						posttrans_gpd_clean(gpd);
+				}
 			}
 		}
 		
@@ -4276,6 +4305,7 @@ void createTransData(TransInfo *t)
 	/* temporal...? */
 	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
+
 
 
 

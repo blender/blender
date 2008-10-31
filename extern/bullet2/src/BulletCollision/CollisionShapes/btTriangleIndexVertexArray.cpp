@@ -16,6 +16,7 @@ subject to the following restrictions:
 #include "btTriangleIndexVertexArray.h"
 
 btTriangleIndexVertexArray::btTriangleIndexVertexArray(int numTriangles,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride)
+: m_hasAabb(0)
 {
 	btIndexedMesh mesh;
 

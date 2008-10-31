@@ -59,8 +59,10 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\C
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 
 XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
 XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
@@ -141,8 +143,10 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\C
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 
 XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
 XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
@@ -221,8 +225,10 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\C
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 
 XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
 XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision
@@ -303,8 +309,10 @@ IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\C
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Dynamics MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletDynamics\Vehicle MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\LinearMath MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet2\include\BulletSoftBody MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 
 XCOPY /Y ..\..\src\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\src\BulletSoftBody\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletSoftBody
 XCOPY /Y ..\..\src\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\LinearMath
 XCOPY /Y ..\..\src\BulletCollision\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\BroadphaseCollision
 XCOPY /Y ..\..\src\BulletCollision\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletCollision\NarrowPhaseCollision

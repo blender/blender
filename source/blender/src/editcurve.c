@@ -4111,7 +4111,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		Mat3One(imat);
 		cent[0]= cent[1]= cent[2]= 0.0;
 	}
-
+	
 	if ELEM5(stype, 0, 1, 2, 4, 6) {
 		nu = (Nurb*)MEM_callocN(sizeof(Nurb), "addNurbprim");
 		nu->type= type;
@@ -4121,6 +4121,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 	switch(stype) {
 	case 0:	/* curve */
+		nu->resolu= 12; /* set as 4 above */
 		if(newname) {
 			rename_id((ID *)G.obedit, "Curve");
 			rename_id((ID *)G.obedit->data, "Curve");
@@ -4228,6 +4229,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 		break;
 	case 1:	/* circle */
+		nu->resolu= 12; /* set as 4 above */
 		if(newname) {
 			rename_id((ID *)G.obedit, "CurveCircle");
 			rename_id((ID *)G.obedit->data, "CurveCircle");

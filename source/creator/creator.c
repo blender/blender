@@ -72,11 +72,14 @@
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "RE_pipeline.h"
 
 #include "GPU_draw.h"
+#include "GPU_extensions.h"
 
 #include "playanim_ext.h"
 #include "mydevice.h"
@@ -107,8 +110,8 @@ extern char * build_type;
 #endif
 
 /*	Local Function prototypes */
-static void print_help();
-static void print_version();
+static void print_help(void);
+static void print_version(void);
 
 
 /* defined in ghostwinlay and winlay, we can't include carbon here, conflict with DNA */
@@ -128,7 +131,7 @@ char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
 char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
 /* Initialise callbacks for the modules that need them */
-void setCallbacks(void); 
+static void setCallbacks(void); 
 
 #if defined(__sgi) || defined(__alpha__)
 static void fpe_handler(int sig)
@@ -220,6 +223,7 @@ static void print_help(void)
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
+	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
@@ -235,8 +239,10 @@ static void print_help(void)
 	printf ("  $TEMP\t\tStore temporary files here.\n");
 #else
 	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
-	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
 	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
+#endif
+#ifndef DISABLE_SDL
+	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
 #endif
 	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
 	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
@@ -324,10 +330,6 @@ int main(int argc, char **argv)
 #ifdef __linux__
     #ifdef __alpha__
 	signal (SIGFPE, fpe_handler);
-    #else
-	if ( getenv("SDL_AUDIODRIVER") == NULL) {
-		setenv("SDL_AUDIODRIVER", "alsa", 1);
-	}
     #endif
 #endif
 #if defined(__sgi)
@@ -379,6 +381,10 @@ int main(int argc, char **argv)
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
 			case 'a': /* -b was not given, play an animation */
+				
+				/* exception here, see below, it probably needs happens after qt init? */
+				libtiff_init();
+
 				playanim(argc-1, argv+1);
 				exit(0);
 				break;
@@ -426,7 +432,7 @@ int main(int argc, char **argv)
 
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
-
+	
 	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 	
@@ -502,6 +508,8 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
 						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 					}
+					if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
+						GPU_extensions_disable();
 					break;
 				}
 			}
@@ -509,9 +517,9 @@ int main(int argc, char **argv)
 
 		if ( (G.windowstate == G_WINDOWSTATE_BORDER) || (G.windowstate == G_WINDOWSTATE_FULLSCREEN)) 
 			setprefsize(stax, stay, sizx, sizy, 0);
-		
+#ifndef DISABLE_PYTHON		
 		BPY_start_python(argc, argv);
-		
+#endif		
 		/**
 		 * NOTE: sound_init_audio() *must be* after start_python,
 		 * at least on FreeBSD.
@@ -522,10 +530,20 @@ int main(int argc, char **argv)
 		
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
+#ifndef DISABLE_SDL
+#ifdef __linux__
+		/* On linux the default SDL driver dma often would not play
+		 * use alsa if none is set */
+		if ( getenv("SDL_AUDIODRIVER") == NULL) {
+			setenv("SDL_AUDIODRIVER", "alsa", 1);
+		}
+#endif
+#endif
 	}
 	else {
+#ifndef DISABLE_PYTHON
 		BPY_start_python(argc, argv);
-		
+#endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
@@ -534,7 +552,7 @@ int main(int argc, char **argv)
         // sound_init_audio();
         // if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
-
+#ifndef DISABLE_PYTHON
 	/**
 	 * NOTE: the U.pythondir string is NULL until BIF_init() is executed,
 	 * so we provide the BPY_ function below to append the user defined
@@ -544,7 +562,8 @@ int main(int argc, char **argv)
 	 * on U.pythondir.
 	 */
 	BPY_post_start_python();
-
+#endif
+	
 #ifdef WITH_QUICKTIME
 
 	quicktime_init();
@@ -629,13 +648,14 @@ int main(int argc, char **argv)
 					if (a < argc) {
 						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
 						Render *re= RE_NewRender(G.scene->id.name);
-
+#ifndef DISABLE_PYTHON
 						if (G.f & G_DOSCRIPTLINKS)
 							BPY_do_all_scripts(SCRIPT_RENDER, 0);
-
+#endif
 						RE_BlenderAnim(re, G.scene, frame, frame, G.scene->frame_step);
-
+#ifndef DISABLE_PYTHON
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
+#endif
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -644,14 +664,15 @@ int main(int argc, char **argv)
 			case 'a':
 				if (G.scene) {
 					Render *re= RE_NewRender(G.scene->id.name);
-
+#ifndef DISABLE_PYTHON
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_RENDER, 1);
-
+#endif
 					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
-
+#ifndef DISABLE_PYTHON
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
+#endif
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
@@ -689,6 +710,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'P':
+#ifndef DISABLE_PYTHON
 				a++;
 				if (a < argc) {
 					/* If we're not running in background mode, then give python a valid screen */
@@ -699,6 +721,9 @@ int main(int argc, char **argv)
 					BPY_run_python_script (argv[a]);
 				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
+#else
+				printf("This blender was built without python support\n");
+#endif /* DISABLE_PYTHON */
 				break;
 			case 'o':
 				a++;
@@ -831,7 +856,7 @@ static void mem_error_cb(char *errorStr)
 	fflush(stderr);
 }
 
-void setCallbacks(void)
+static void setCallbacks(void)
 {
 	/* Error output from the alloc routines: */
 	MEM_set_error_callback(mem_error_cb);

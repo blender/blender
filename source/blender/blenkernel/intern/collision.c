@@ -1307,18 +1307,24 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	// check all collision objects
 	for ( base = G.scene->base.first; base; base = base->next )
 	{
+		/*Only proceed for mesh object in same layer */
+		if(!(base->object->type==OB_MESH && (base->lay & self->lay))) 
+			continue;
+		
 		coll_ob = base->object;
+		
+		if(coll_ob == self)
+				continue;
 		
 		if(coll_ob->pd && coll_ob->pd->deflect)
 		{
 			collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
 		}
+		else
+			collmd = NULL;
 		
 		if ( collmd )
-		{
-			if(coll_ob == self)
-				continue;
-			
+		{	
 			if(numobj >= maxobj)
 			{
 				// realloc
@@ -1347,15 +1353,17 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 					coll_ob = go->ob;
 					collmd = NULL;
 					
+					if(coll_ob == self)
+						continue;
+					
 					if(coll_ob->pd && coll_ob->pd->deflect)
 					{
 						collmd = ( CollisionModifierData * ) modifiers_findByType ( coll_ob, eModifierType_Collision );
 					}
+					else
+						collmd = NULL;
 
 					if ( !collmd )
-						continue;
-
-					if(coll_ob == self)
 						continue;
 					
 					if( !collmd->bvhtree)

@@ -1,5 +1,5 @@
 /**
- * $Id: BIF_keyframing.h 14444 2008-04-16 22:40:48Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -49,19 +49,23 @@ int insert_bezt_icu(struct IpoCurve *icu, struct BezTriple *bezt);
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short flag);
 
 
-/* flags for use in insert_key(), and insert_vert_icu() */
+/* flags for use by keyframe creation/deletion calls */
 enum {
+		/* used by isnertkey() and insert_vert_icu() */
 	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
 	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+	
+		/* used by common_*key() functions */
+	COMMONKEY_ADDMAP	= (1<<10),	/* common key: add texture-slot offset bitflag to adrcode before use */
 } eInsertKeyFlags;
 
 /* -------- */
 
 /* Main Keyframing API calls: 
- *	Use this to create any necessary animation data,, and then insert a keyframe
+ *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
 	// TODO: adapt this for new data-api -> this blocktype, etc. stuff is evil!
@@ -100,18 +104,28 @@ void common_deletekey(void);
 
 /* ************ Keyframe Checking ******************** */
 
-/* Checks whether a keyframe exists for the given ID-block one the given frame */
-short id_cfra_has_keyframe(struct ID *id, short filter);
+/* Main Keyframe Checking API call:
+ * Checks whether a keyframe exists for the given ID-block one the given frame.
+ *  - It is recommended to call this method over the other keyframe-checkers directly,
+ * 	  in case some detail of the implementation changes...
+ *	- frame: the value of this is quite often result of frame_to_float(CFRA)
+ */
+short id_frame_has_keyframe(struct ID *id, float frame, short filter);
 
-/* filter flags fr id_cfra_has_keyframe */
+/* filter flags for id_cfra_has_keyframe 
+ *
+ * WARNING: do not alter order of these, as also stored in files
+ *	(for v3d->keyflags)
+ */
 enum {
 		/* general */
-	ANIMFILTER_ALL		= 0,			/* include all available animation data */
 	ANIMFILTER_LOCAL	= (1<<0),		/* only include locally available anim data */
+	ANIMFILTER_MUTED	= (1<<1),		/* include muted elements */
+	ANIMFILTER_ACTIVE	= (1<<2),		/* only include active-subelements */
 	
 		/* object specific */
-	ANIMFILTER_MAT		= (1<<1),		/* include material keyframes too */
-	ANIMFILTER_SKEY		= (1<<2),		/* shape keys (for geometry) */
+	ANIMFILTER_NOMAT		= (1<<9),		/* don't include material keyframes */
+	ANIMFILTER_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
 } eAnimFilterFlags;
 
 #endif /*  BIF_KEYFRAMING_H */

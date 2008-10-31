@@ -420,6 +420,10 @@ LbmFsgrSolver::handleCpdata()
 		return;
 	}
 	
+	// check if we have control objects
+	if(mpControl->mCons.size()==0)
+		return;
+	
 	if((mpControl->mCpUpdateInterval<1) || (this->mStepCnt%mpControl->mCpUpdateInterval==0)) {
 		// do full reinit later on... 
 	}

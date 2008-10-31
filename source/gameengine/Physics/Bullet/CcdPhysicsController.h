@@ -186,7 +186,9 @@ struct CcdConstructionInfo
 		m_MotionState(0),
 		m_shapeInfo(0),
 		m_physicsEnv(0),
-		m_inertiaFactor(1.f)
+		m_inertiaFactor(1.f),
+		m_do_anisotropic(false),
+		m_anisotropicFriction(1.f,1.f,1.f)
 	{
 	}
 
@@ -259,6 +261,17 @@ struct CcdConstructionInfo
 	
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
+	bool	m_do_anisotropic;
+	btVector3 m_anisotropicFriction;
+
+	bool		m_do_fh;                 ///< Should the object have a linear Fh spring?
+	bool		m_do_rot_fh;             ///< Should the object have an angular Fh spring?
+	btScalar	m_fh_spring;             ///< Spring constant (both linear and angular)
+	btScalar	m_fh_damping;            ///< Damping factor (linear and angular) in range [0, 1]
+	btScalar	m_fh_distance;           ///< The range above the surface where Fh is active.    
+	bool		m_fh_normal;             ///< Should the object slide off slopes?
+	float		m_radius;//for fh backwards compatibility
+
 };
 
 
@@ -290,6 +303,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	void*		m_newClientInfo;
 	int			m_registerCount;	// needed when multiple sensors use the same controller
 	CcdConstructionInfo	m_cci;//needed for replication
+
+	CcdPhysicsController* m_parentCtrl;
+
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
@@ -312,6 +328,15 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		CcdPhysicsController (const CcdConstructionInfo& ci);
 
 		virtual ~CcdPhysicsController();
+
+		CcdConstructionInfo& getConstructionInfo()
+		{
+			return m_cci;
+		}
+		const CcdConstructionInfo& getConstructionInfo() const
+		{
+			return m_cci;
+		}
 
 
 		btRigidBody* GetRigidBody();
@@ -388,8 +413,29 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		}
 
 		virtual void	calcXform() {} ;
-		virtual void SetMargin(float margin) {};
-		virtual float GetMargin() const {return 0.f;};
+		virtual void SetMargin(float margin) 
+		{
+			if (m_collisionShape)
+				m_collisionShape->setMargin(btScalar(margin));
+		}
+		virtual float GetMargin() const 
+		{
+			return (m_collisionShape) ? m_collisionShape->getMargin() : 0.f;
+		}
+		virtual float GetRadius() const 
+		{ 
+			// this is not the actual shape radius, it's only used for Fh support
+			return m_cci.m_radius;
+		}
+		virtual void  SetRadius(float margin) 
+		{
+			if (m_collisionShape && m_collisionShape->getShapeType() == SPHERE_SHAPE_PROXYTYPE)
+			{
+				btSphereShape* sphereShape = static_cast<btSphereShape*>(m_collisionShape);
+				sphereShape->setUnscaledRadius(margin);
+			}
+			m_cci.m_radius = margin;
+		}
 
 
 		bool	wantsSleeping();
@@ -417,6 +463,23 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		{
 			return m_cci.m_physicsEnv;
 		}
+
+		void	setParentCtrl(CcdPhysicsController* parentCtrl)
+		{
+			m_parentCtrl = parentCtrl;
+		}
+
+		CcdPhysicsController*	getParentCtrl()
+		{
+			return m_parentCtrl;
+		}
+
+		const CcdPhysicsController*	getParentCtrl() const
+		{
+			return m_parentCtrl;
+		}
+
+
 		
 };
 

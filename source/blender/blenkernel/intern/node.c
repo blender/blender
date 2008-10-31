@@ -27,7 +27,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef DISABLE_PYTHON
 #include <Python.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 

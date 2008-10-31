@@ -832,7 +832,9 @@ void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radiu
 	if(len==0) return;
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbcurve1");
 	
-	resolu= (resolu*SEGMENTSU(nu))+1;
+	resolu= (resolu*SEGMENTSU(nu));
+	if((nu->flagu & CU_CYCLIC)==0) resolu++;
+	
 	if(resolu==0) {
 		MEM_freeN(sum);
 		return;
@@ -842,7 +844,8 @@ void makeNurbcurve(Nurb *nu, float *coord_array, float *tilt_array, float *radiu
 	ustart= fp[nu->orderu-1];
 	if(nu->flagu & CU_CYCLIC) uend= fp[nu->pntsu+nu->orderu-1];
 	else uend= fp[nu->pntsu];
-	ustep= (uend-ustart)/(resolu-1);
+	ustep= (uend-ustart)/(resolu - ((nu->flagu & CU_CYCLIC) ? 0 : 1));
+	
 	basisu= (float *)MEM_mallocN(sizeof(float)*KNOTSU(nu), "makeNurbcurve3");
 
 	if(nu->flagu & CU_CYCLIC) cycl= nu->orderu-1; 
@@ -1509,7 +1512,7 @@ void makeBevelList(Object *ob)
 	BevList *bl, *blnew, *blnext;
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float min, inp, x1, x2, y1, y2, vec[3];
-	float *coord_array, *tilt_array=NULL, *radius_array=NULL, *coord_fp, *tilt_fp=NULL, *radius_fp;
+	float *coord_array, *tilt_array=NULL, *radius_array=NULL, *coord_fp, *tilt_fp=NULL, *radius_fp=NULL;
 	float *v1, *v2;
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu, len=0;
@@ -1531,7 +1534,7 @@ void makeBevelList(Object *ob)
 		
 		/* check if we will calculate tilt data */
 		do_tilt = ((nu->type & CU_2D) && (cu->flag & CU_3D)==0) ? 0 : 1;
-		do_radius = do_tilt; /* normal display uses the radius, better just to calculate them */
+		do_radius = (do_tilt || cu->bevobj) ? 1 : 0; /* normal display uses the radius, better just to calculate them */
 		
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */
@@ -1678,7 +1681,9 @@ void makeBevelList(Object *ob)
 			}
 			else if((nu->type & 7)==CU_NURBS) {
 				if(nu->pntsv==1) {
-					len= (resolu*SEGMENTSU(nu))+1;
+					len= (resolu*SEGMENTSU(nu));
+					if((nu->flagu & CU_CYCLIC)==0) len++;
+					
 					bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList3");
 					BLI_addtail(&(cu->bev), bl);
 					bl->nr= len;

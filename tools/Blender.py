@@ -35,6 +35,7 @@ GetBuildPath = SConsEnvironment.GetBuildPath
 
 # a few globals
 root_build_dir = ''
+doc_build_dir = ''
 quickie = None # Anything else than None if BF_QUICK has been passed
 quicklist = [] # The list of libraries/programs to compile during a quickie
 program_list = [] # A list holding Nodes to final binaries, used to create installs
@@ -109,7 +110,6 @@ def setup_staticlibs(lenv):
     ]
     libincs = [
         '/usr/lib',
-        lenv['BF_PYTHON_LIBPATH'],
         lenv['BF_OPENGL_LIBPATH'],
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
@@ -117,6 +117,8 @@ def setup_staticlibs(lenv):
         lenv['BF_ICONV_LIBPATH']
         ]
 
+    if lenv['WITH_BF_PYTHON']:
+        libincs += Split(lenv['BF_PYTHON_LIBPATH'])
     if lenv['WITH_BF_SDL']:
         libincs += Split(lenv['BF_SDL_LIBPATH'])
     if lenv['WITH_BF_FFMPEG']:
@@ -137,7 +139,7 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_STATICOPENGL']:
         statlibs += Split(lenv['BF_OPENGL_LIB_STATIC'])
 
-    if lenv['WITH_BF_STATICPYTHON']:
+    if lenv['WITH_BF_PYTHON'] and lenv['WITH_BF_STATICPYTHON']:
         statlibs += Split(lenv['BF_PYTHON_LIB_STATIC'])
 
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross'):
@@ -153,8 +155,8 @@ def setup_syslibs(lenv):
         lenv['BF_ZLIB_LIB']
         ]
 
-    if not lenv['WITH_BF_STATICPYTHON']:
-        if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc'):
+    if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
+        if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
             syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
         else:
             syslibs.append(lenv['BF_PYTHON_LIB'])
@@ -165,7 +167,10 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICOPENAL']:
             syslibs += Split(lenv['BF_OPENAL_LIB'])
     if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
-        syslibs += ['gomp']
+        if lenv['CC'] == 'cl.exe':
+            syslibs += ['vcomp']
+        else:
+            syslibs += ['gomp']
     if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
@@ -173,6 +178,8 @@ def setup_syslibs(lenv):
             syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_FFMPEG']:
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
+        if lenv['WITH_BF_OGG']:
+            syslibs += Split(lenv['BF_OGG_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
@@ -209,7 +216,7 @@ def buildinfo(lenv, build_type):
     build_rev = os.popen('svnversion').read()[:-1] # remove \n
 
     obj = []
-    if lenv['BF_BUILDINFO']==1: #user_options_dict['USE_BUILDINFO'] == 1:
+    if lenv['BF_BUILDINFO']:
         if sys.platform=='win32':
             build_info_file = open("source/creator/winbuildinfo.h", 'w')
             build_info_file.write("char *build_date=\"%s\";\n"%build_date)
@@ -387,13 +394,13 @@ class BlenderEnvironment(SConsEnvironment):
             self.Exit()
         
         print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
-        lenv = self.Copy()
+        lenv = self.Clone()
         res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
       
         SConsEnvironment.Default(self, res)
         resources.append(res)
 
-    def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None):
+    def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None):       
         if not self or not libname or not sources:
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
             self.Exit()
@@ -402,7 +409,7 @@ class BlenderEnvironment(SConsEnvironment):
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname +bc.ENDC+bc.OKBLUE+ " (debug mode)" + bc.ENDC
             else:
                 print bc.HEADER+'Configuring library '+bc.ENDC+bc.OKGREEN+libname + bc.ENDC
-            lenv = self.Copy()
+            lenv = self.Clone()
             lenv.Append(CPPPATH=includes)
             lenv.Append(CPPDEFINES=defines)
             if lenv['WITH_BF_GAMEENGINE']:
@@ -412,21 +419,28 @@ class BlenderEnvironment(SConsEnvironment):
             # debug or not
             # CXXFLAGS defaults to CCFLAGS, therefore
             #  we Replace() rather than Append() to CXXFLAGS the first time
-            lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
+            #lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
             if lenv['BF_DEBUG'] or (libname in quickdebug):
-                    lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
-                    lenv.Append( CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
+                    lenv.Append(CFLAGS = Split(lenv['BF_DEBUG_CFLAGS']))
+                    lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_CCFLAGS']))
+                    lenv.Append(CXXFLAGS = Split(lenv['BF_DEBUG_CXXFLAGS']))
             else:
-                    lenv.Append(CCFLAGS = lenv['REL_CFLAGS'])
-                    lenv.Append(CXXFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CFLAGS = lenv['REL_CFLAGS'])
+                    lenv.Append(CCFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['REL_CXXFLAGS'])
             if lenv['BF_PROFILE']:
-                    lenv.Append(CCFLAGS = Split(lenv['BF_PROFILE_FLAGS']),
-                                CXXFLAGS = Split(lenv['BF_PROFILE_FLAGS']))
+                    lenv.Append(CFLAGS = lenv['BF_PROFILE_CFLAGS'])
+                    lenv.Append(CCFLAGS = lenv['BF_PROFILE_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['BF_PROFILE_CXXFLAGS'])
             if compileflags:
-                lenv.Append(CCFLAGS = compileflags)
-                lenv.Append(CXXFLAGS = compileflags)
-            lenv.Append(CCFLAGS = Split(lenv['C_WARN']))
-            lenv.Append(CXXFLAGS = Split(lenv['CC_WARN']))
+                lenv.Append(CFLAGS = compileflags)
+            if cc_compileflags:
+                lenv.Append(CCFLAGS = cc_compileflags)
+            if cxx_compileflags:
+                lenv.Append(CXXFLAGS = cxx_compileflags)
+            lenv.Append(CFLAGS = lenv['C_WARN'])
+            lenv.Append(CXXFLAGS = lenv['CC_WARN'])
+            lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
             lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
             SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
         else:
@@ -436,22 +450,25 @@ class BlenderEnvironment(SConsEnvironment):
 
     def BlenderProg(self=None, builddir=None, progname=None, sources=None, includes=None, libs=None, libpath=None, binarykind=''):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
-        lenv = self.Copy()
+        lenv = self.Clone()
         if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
             lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
             if lenv['BF_DEBUG']:
                 lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
         if  lenv['OURPLATFORM']=='linux2':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['WITH_BF_PYTHON']:
+                lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='sunos5':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['WITH_BF_PYTHON']:
+                lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             if lenv['CXX'].endswith('CC'):
                  lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['WITH_BF_PYTHON']:
+                lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])
         if lenv['BF_PROFILE']:
                 lenv.Append(LINKFLAGS = lenv['BF_PROFILE_FLAGS'])

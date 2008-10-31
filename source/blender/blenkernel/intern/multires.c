@@ -642,6 +642,10 @@ static void multires_update_vertices(Mesh *me, EditMesh *em)
 	MultiApplyData data;
 	int i, j;
 
+	/* XXX added this to prevent crash, but if it works? (ton) */
+	if(me->mr->verts==NULL)
+		return;
+	
 	/* Prepare deltas */
 	pr_deltas= MEM_callocN(sizeof(vec3f)*last_lvl->totvert, "multires deltas 1");
 	cr_deltas= MEM_callocN(sizeof(vec3f)*last_lvl->totvert, "multires deltas 2");

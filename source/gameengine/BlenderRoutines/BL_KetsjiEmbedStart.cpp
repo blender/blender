@@ -70,6 +70,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 #include "BIF_screen.h"
 #include "BIF_scrarea.h"
 
@@ -110,10 +111,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	Main* blenderdata = maggie1;
 
 	char* startscenename = scenename;
-	char pathname[160];
-	strcpy (pathname, blenderdata->name);
+	char pathname[FILE_MAXDIR+FILE_MAXFILE], oldsce[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
 	BlendFileData *bfd= NULL;
+
+	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
+	BLI_strncpy(oldsce, G.sce, sizeof(oldsce));
+	setGamePythonPath(G.sce);
 
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
@@ -135,15 +139,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
-		bool usemat = false, useglslmat = false;
-
-		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
-
-		if(GPU_extensions_minimum_support())
-			useglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
-			usemat = false;
 
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
@@ -200,7 +195,16 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
-		
+
+		//lock frame and camera enabled - storing global values
+		int tmp_lay= G.scene->lay;
+		Object *tmp_camera = G.scene->camera;
+
+		if (G.vd->scenelock==0){
+			G.scene->lay= v3d->lay;
+			G.scene->camera= v3d->camera;
+		}
+
 	
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
@@ -240,9 +244,14 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			char basedpath[240];
 			// base the actuator filename with respect
 			// to the original file working directory
+
 			if (exitstring != "")
 				strcpy(basedpath, exitstring.Ptr());
 
+			// load relative to the last loaded file, this used to be relative
+			// to the first file but that makes no sense, relative paths in
+			// blend files should be relative to that file, not some other file
+			// that happened to be loaded first
 			BLI_convertstringcode(basedpath, pathname);
 			bfd = load_game_data(basedpath);
 			
@@ -263,6 +272,11 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			{
 				blenderdata = bfd->main;
 				startscenename = bfd->curscene->id.name + 2;
+
+				if(blenderdata) {
+					BLI_strncpy(G.sce, blenderdata->name, sizeof(G.sce));
+					BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
+				}
 			}
 			// else forget it, we can't find it
 			else
@@ -316,7 +330,17 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
 
-			if(usemat && (G.fileflags & G_FILE_GAME_MAT))
+			bool usemat = false, useglslmat = false;
+
+			if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
+				usemat = true;
+
+			if(GPU_extensions_minimum_support())
+				useglslmat = true;
+			else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+				usemat = false;
+
+            if(usemat && (G.fileflags & G_FILE_GAME_MAT))
 				sceneconverter->SetMaterials(true);
 			if(useglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);
@@ -404,7 +428,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				}
 				printf("\nBlender Game Engine Finished\n\n");
 				exitstring = ketsjiengine->GetExitString();
-				
+
+
 				// when exiting the mainloop
 				
 				// Clears the dictionary by hand:
@@ -440,6 +465,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			Py_DECREF(gameLogic_keys);
 			gameLogic_keys = NULL;
 		}
+		//lock frame and camera enabled - restoring global values
+		if (G.vd->scenelock==0){
+			G.scene->lay= tmp_lay;
+			G.scene->camera= tmp_camera;
+		}
+
 		// set the cursor back to normal
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 		
@@ -492,6 +523,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 	if (bfd) BLO_blendfiledata_free(bfd);
 
+	BLI_strncpy(G.sce, oldsce, sizeof(G.sce));
+
 	// Release Python's GIL
 	PyGILState_Release(gilstate);
 }
@@ -507,10 +540,10 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 	Main* blenderdata = maggie;
 
 	char* startscenename = scenename;
-	char pathname[160];
-	strcpy (pathname, maggie->name);
+	char pathname[FILE_MAXDIR+FILE_MAXFILE];
 	STR_String exitstring = "";
-	BlendFileData *bfd= NULL;
+
+	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
 
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
@@ -568,20 +601,17 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
 
 		Scene *blscene = NULL;
-		if (!bfd)
+
+		blscene = (Scene*) maggie->scene.first;
+		for (Scene *sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
 		{
-			blscene = (Scene*) maggie->scene.first;
-			for (Scene *sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
+			if (startscenename == (sce->id.name+2))
 			{
-				if (startscenename == (sce->id.name+2))
-				{
-					blscene = sce;
-					break;
-				}
+				blscene = sce;
+				break;
 			}
-		} else {
-			blscene = bfd->curscene;
 		}
+
         int cframe = 1, startFrame;
 		if (blscene)
 		{
@@ -702,7 +732,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		SND_DeviceManager::Unsubscribe();
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
-	if (bfd) BLO_blendfiledata_free(bfd);
 
 	// Release Python's GIL
 	PyGILState_Release(gilstate);

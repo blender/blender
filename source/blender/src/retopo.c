@@ -85,18 +85,34 @@ typedef struct RetopoPaintHit {
 	float where;
 } RetopoPaintHit;
 
-void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj);
-void retopo_paint_debug_print(RetopoPaintData *rpd);
+static void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj);
+
+#if 0
+static void retopo_paint_debug_print(RetopoPaintData *rpd)
+{
+	RetopoPaintLine *l;
+	RetopoPaintPoint *p;
+	
+	for(l= rpd->lines.first; l; l= l->next) {
+		printf("Line:\n");
+		for(p= l->points.first; p; p= p->next) {
+			printf("   Point(%d: %d,%d)\n",p->index,p->loc.x,p->loc.y);
+		}
+	}
+	
+	fflush(stdout);
+}
+#endif
 
 /* Painting */
-RetopoPaintData *get_retopo_paint_data()
+RetopoPaintData *get_retopo_paint_data(void)
 {
 	if(!retopo_mesh_paint_check()) return NULL;
 	if(!G.editMesh) return NULL;
 	return G.editMesh->retopo_paint_data;
 }
 
-char retopo_mesh_paint_check()
+char retopo_mesh_paint_check(void)
 {
 	return retopo_mesh_check() && G.scene->toolsettings->retopo_mode & RETOPO_PAINT;
 }
@@ -117,7 +133,7 @@ void retopo_free_paint_data(RetopoPaintData *rpd)
 	}
 }
 
-void retopo_free_paint()
+void retopo_free_paint(void)
 {
 	retopo_free_paint_data(G.editMesh->retopo_paint_data);
 	G.editMesh->retopo_paint_data= NULL;
@@ -251,7 +267,7 @@ EditFace *addfaceif(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Edit
 	return addfacelist(v1,v2,v3,v4,NULL,NULL);
 }
 
-void retopo_paint_apply()
+void retopo_paint_apply(void)
 {
 	RetopoPaintData *rpd= G.editMesh->retopo_paint_data;
 	EditVert *eve;
@@ -392,7 +408,7 @@ void retopo_paint_add_ellipse(RetopoPaintData *rpd, short mouse[2])
 	allqueue(REDRAWVIEW3D,0);
 }
 
-void retopo_end_okee()
+void retopo_end_okee(void)
 {
 	if(okee("Apply retopo paint?"))
 		retopo_paint_apply();
@@ -442,7 +458,7 @@ void retopo_paint_view_update(struct View3D *v3d)
 	}
 }
 
-void retopo_force_update()
+void retopo_force_update(void)
 {
 	RetopoPaintData *rpd= get_retopo_paint_data();
 	
@@ -708,17 +724,22 @@ RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd)
 
 	memcpy(copy,rpd,sizeof(RetopoPaintData));
 	copy->lines.first= copy->lines.last= NULL;
+	copy->nearest.next= copy->nearest.prev= NULL;
+	copy->nearest.line= NULL;
+	copy->nearest.first= 0;
+	
 	for(l= rpd->lines.first; l; l= l->next) {
-		lcp= MEM_mallocN(sizeof(RetopoPaintLine),"RetopoPaintLineCopy");
-		memcpy(lcp,l,sizeof(RetopoPaintLine));
-		BLI_addtail(&copy->lines,lcp);
+		lcp= MEM_dupallocN(l);
+		BLI_addtail(&copy->lines, lcp);
 		
 		lcp->hitlist.first= lcp->hitlist.last= NULL;
 		lcp->points.first= lcp->points.last= NULL;
+		lcp->cyclic= NULL;
+		
 		for(p= l->points.first; p; p= p->next) {
-			pcp= MEM_mallocN(sizeof(RetopoPaintPoint),"RetopoPaintPointCopy");
-			memcpy(pcp,p,sizeof(RetopoPaintPoint));
-			BLI_addtail(&lcp->points,pcp);
+			pcp= MEM_dupallocN(p);
+			BLI_addtail(&lcp->points, pcp);
+			pcp->eve= NULL;
 		}
 	}
 
@@ -727,11 +748,11 @@ RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd)
 	return copy;
 }
 
-char retopo_mesh_check()
+char retopo_mesh_check(void)
 {
 	return G.obedit && G.obedit->type==OB_MESH && (G.scene->toolsettings->retopo_mode & RETOPO);
 }
-char retopo_curve_check()
+char retopo_curve_check(void)
 {
 	return G.obedit && (G.obedit->type==OB_CURVE ||
 		            G.obedit->type==OB_SURF) && (((Curve*)G.obedit->data)->flag & CU_RETOPO);
@@ -751,7 +772,7 @@ void retopo_toggle(void *j1,void *j2)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj)
+static void retopo_do_2d(View3D *v3d, double proj[2], float *v, char adj)
 {
 	/* Check to make sure vert is visible in window */
 	if(proj[0]>0 && proj[1]>0 && proj[0] < v3d->depths->w && proj[1] < v3d->depths->h) {
@@ -792,7 +813,7 @@ void retopo_do_vert(View3D *v3d, float *v)
 	retopo_do_2d(v3d,proj,v,0);
 }
 
-void retopo_do_all()
+void retopo_do_all(void)
 {
 	RetopoViewData *rvd= G.vd->retopo_view_data;
 	if(retopo_mesh_check()) {
@@ -903,19 +924,4 @@ void retopo_free_view_data(View3D *v3d)
 		MEM_freeN(v3d->retopo_view_data);
 		v3d->retopo_view_data= NULL;
 	}
-}
-
-void retopo_paint_debug_print(RetopoPaintData *rpd)
-{
-	RetopoPaintLine *l;
-	RetopoPaintPoint *p;
-
-	for(l= rpd->lines.first; l; l= l->next) {
-		printf("Line:\n");
-		for(p= l->points.first; p; p= p->next) {
-			printf("   Point(%d: %d,%d)\n",p->index,p->loc.x,p->loc.y);
-		}
-	}
-
-	fflush(stdout);
 }

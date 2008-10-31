@@ -229,10 +229,10 @@ PyParentObject SCA_PythonController::Parents[] = {
 	NULL
 };
 PyMethodDef SCA_PythonController::Methods[] = {
-	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, SCA_PythonController::GetActuators_doc},
-	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, SCA_PythonController::GetActuator_doc},
-	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, SCA_PythonController::GetSensors_doc},
-	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, SCA_PythonController::GetSensor_doc},
+	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetActuators_doc},
+	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
+	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
+	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
 	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
 	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
 	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
@@ -262,6 +262,14 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 			printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
 			//PyRun_SimpleString(m_scriptText.Ptr());
 			PyErr_Print();
+			
+			/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+			 * their user count. Not to mention holding references to wrapped data.
+			 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+			 * has alredy dealocated the pointer */
+			PySys_SetObject( "last_traceback", Py_None);
+			PyErr_Clear(); /* just to be sure */
+			
 			return;
 		}
 		m_bModified=false;
@@ -298,6 +306,14 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		// something is wrong, tell the user what went wrong
 		printf("Python script error from controller \"%s\": \n", GetName().Ptr());
 		PyErr_Print();
+		
+		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+		 * their user count. Not to mention holding references to wrapped data.
+		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+		 * has alredy dealocated the pointer */
+		PySys_SetObject( "last_traceback", Py_None);
+		PyErr_Clear(); /* just to be sure */
+		
 		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
 

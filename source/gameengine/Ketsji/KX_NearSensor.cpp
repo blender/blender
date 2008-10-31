@@ -190,13 +190,13 @@ bool KX_NearSensor::Evaluate(CValue* event)
 		{
 			if (m_physCtrl)
 			{
-				m_physCtrl->SetMargin(m_ResetMargin);
+				m_physCtrl->SetRadius(m_ResetMargin);
 			}
 		} else
 		{
 			if (m_physCtrl)
 			{
-				m_physCtrl->SetMargin(m_Margin);
+				m_physCtrl->SetRadius(m_Margin);
 			}
 
 		}
@@ -252,8 +252,10 @@ bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData 
 			client_info->m_gameobject :
 			NULL);
 	
-	// these checks are done already in BroadPhaseFilterCollision()
-	if (gameobj /*&& (gameobj != parent)*/)
+	// Add the same check as in SCA_ISensor::Activate(), 
+	// we don't want to record collision when the sensor is not active.
+	if (m_links && !m_suspended &&
+		gameobj /* done in BroadPhaseFilterCollision() && (gameobj != parent)*/)
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());
@@ -309,14 +311,10 @@ PyParentObject KX_NearSensor::Parents[] = {
 
 
 PyMethodDef KX_NearSensor::Methods[] = {
-	{"setProperty", 
-	 (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, SetProperty_doc},
-	{"getProperty", 
-	 (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, GetProperty_doc},
-	{"getHitObject", 
-	 (PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, GetHitObject_doc},
-	{"getHitObjectList", 
-	 (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, GetHitObjectList_doc},
+	{"setProperty", (PyCFunction) KX_NearSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getProperty", (PyCFunction) KX_NearSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"getHitObject",(PyCFunction) KX_NearSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
+	{"getHitObjectList", (PyCFunction) KX_NearSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
 	{NULL,NULL} //Sentinel
 };
 

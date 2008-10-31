@@ -500,7 +500,7 @@ void time_buttons(ScrArea *sa)
 			&G.scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 			"The start frame of the animation preview (inclusive)");
 
-		xco += 4.5*XIC;
+		xco += (short)(4.5*XIC);
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
@@ -513,23 +513,23 @@ void time_buttons(ScrArea *sa)
  		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
  		"The start frame of the animation (inclusive)");
 
-		xco += 4.5*XIC;
+		xco += (short)(4.5*XIC);
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
-			&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
+			&G.scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
 			"The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
 
-	xco += 4.5*XIC+16;
+	xco += (short)(4.5 * XIC + 16);
 	
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 		xco,0,3.5*XIC,YIC,
 		&(G.scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 		"Displays Current Frame of animation");
 	
-	xco += 3.5*XIC+16;
+	xco += (short)(3.5 * XIC + 16);
 	
 	uiDefIconBut(block, BUT, B_TL_REW, ICON_REW,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to Start frame (Shift DownArrow)");
@@ -559,17 +559,12 @@ void time_buttons(ScrArea *sa)
 	if (IS_AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 					"Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-					xco, 0, 3*XIC, YIC, &(G.scene->autokey_mode), 0, 1, 0, 0, 
+					xco, 0, 3.5*XIC, YIC, &(G.scene->autokey_mode), 0, 1, 0, 0, 
 					"Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}
 	
 	xco+= 16;
-
-	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
-					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
-	
-	xco+= XIC+16;
 	
 	uiDefIconBut(block, BUT, B_TL_INSERTKEY, ICON_KEY_HLT,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Insert Keyframe for the context of the largest area (IKEY)");
@@ -577,6 +572,12 @@ void time_buttons(ScrArea *sa)
 	uiDefIconBut(block, BUT, B_TL_DELETEKEY, ICON_KEY_DEHLT,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Delete Keyframe for the context of the largest area (ALTKEY-IKEY)");
 	xco+= XIC+4;
+	
+	xco+= 16;
+	
+	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
+					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
+	
 	
 	/* always as last  */
 	sa->headbutlen= xco+XIC+80; // +80 because the last button is not an icon

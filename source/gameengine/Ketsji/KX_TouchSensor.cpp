@@ -55,7 +55,15 @@ void KX_TouchSensor::SynchronizeTransform()
 
 void KX_TouchSensor::EndFrame() {
 	m_colliders->ReleaseAndRemoveAll();
+	m_hitObject = NULL;
 	m_bTriggered = false;
+}
+
+void KX_TouchSensor::UnregisterToManager()
+{
+	// before unregistering the sensor, make sure we release all references
+	EndFrame();
+	m_eventmgr->RemoveSensor(this);
 }
 
 bool KX_TouchSensor::Evaluate(CValue* event)
@@ -176,7 +184,10 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			client_info->m_gameobject : 
 			NULL);
 	
-	if (gameobj && (gameobj != parent) && client_info->isActor())
+	// add the same check as in SCA_ISensor::Activate(), 
+	// we don't want to record collision when the sensor is not active.
+	if (m_links && !m_suspended &&
+		gameobj && (gameobj != parent) && client_info->isActor())
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());
@@ -240,13 +251,13 @@ PyParentObject KX_TouchSensor::Parents[] = {
 
 PyMethodDef KX_TouchSensor::Methods[] = {
 	{"setProperty", 
-	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_VARARGS, SetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
 	{"getProperty", 
-	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_VARARGS, GetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
 	{"getHitObject", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_VARARGS, GetHitObject_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
 	{"getHitObjectList", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_VARARGS, GetHitObjectList_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
 	{NULL,NULL} //Sentinel
 };
 

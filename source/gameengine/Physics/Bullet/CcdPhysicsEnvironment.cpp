@@ -33,6 +33,7 @@ subject to the following restrictions:
 
 #include "PHY_IMotionState.h"
 
+#define CCD_CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
 bool useIslands = true;
 
@@ -558,11 +559,18 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
+	processFhSprings(curTime,timeStep);
+
 	float subStep = timeStep / float(m_numTimeSubSteps);
 	for (i=0;i<m_numTimeSubSteps;i++)
 	{
 //			m_dynamicsWorld->stepSimulation(subStep,20,1./240.);//perform always a full simulation step
 			m_dynamicsWorld->stepSimulation(subStep,0);//perform always a full simulation step
+	}
+
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
+	{
+		(*it)->SynchronizeMotionStates(timeStep);
 	}
 
 	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
@@ -585,6 +593,172 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	return true;
 }
 
+class ClosestRayResultCallbackNotMe : public btCollisionWorld::ClosestRayResultCallback
+{
+	btCollisionObject* m_owner;
+	btCollisionObject* m_parent;
+
+public:
+	ClosestRayResultCallbackNotMe(const btVector3& rayFromWorld,const btVector3& rayToWorld,btCollisionObject* owner,btCollisionObject* parent)
+		:btCollisionWorld::ClosestRayResultCallback(rayFromWorld,rayToWorld),
+		m_owner(owner)
+	{
+
+	}
+
+	virtual bool needsCollision(btBroadphaseProxy* proxy0) const
+	{
+		//don't collide with self
+		if (proxy0->m_clientObject == m_owner)
+			return false;
+
+		if (proxy0->m_clientObject == m_parent)
+			return false;
+
+		return btCollisionWorld::ClosestRayResultCallback::needsCollision(proxy0);
+	}
+
+};
+
+void	CcdPhysicsEnvironment::processFhSprings(double curTime,float timeStep)
+{
+	std::set<CcdPhysicsController*>::iterator it;
+	
+	for (it=m_controllers.begin(); it!=m_controllers.end(); it++)
+	{
+		CcdPhysicsController* ctrl = (*it);
+		btRigidBody* body = ctrl->GetRigidBody();
+
+		if (body && (ctrl->getConstructionInfo().m_do_fh || ctrl->getConstructionInfo().m_do_rot_fh))
+		{
+			//printf("has Fh or RotFh\n");
+			//re-implement SM_FhObject.cpp using btCollisionWorld::rayTest and info from ctrl->getConstructionInfo()
+			//send a ray from {0.0, 0.0, 0.0} towards {0.0, 0.0, -10.0}, in local coordinates
+
+			
+			CcdPhysicsController* parentCtrl = ctrl->getParentCtrl();
+			btRigidBody* parentBody = parentCtrl?parentCtrl->GetRigidBody() : 0;
+			btRigidBody* cl_object = parentBody ? parentBody : body;
+
+			if (body->isStaticOrKinematicObject())
+				continue;
+
+			btVector3 rayDirLocal(0,0,-10);
+
+			//m_dynamicsWorld
+			//ctrl->GetRigidBody();
+			btVector3 rayFromWorld = body->getCenterOfMassPosition();
+			//btVector3	rayToWorld = rayFromWorld + body->getCenterOfMassTransform().getBasis() * rayDirLocal;
+			//ray always points down the z axis in world space...
+			btVector3	rayToWorld = rayFromWorld + rayDirLocal;
+
+			ClosestRayResultCallbackNotMe	resultCallback(rayFromWorld,rayToWorld,body,parentBody);
+
+			m_dynamicsWorld->rayTest(rayFromWorld,rayToWorld,resultCallback);
+			if (resultCallback.hasHit())
+			{
+				//we hit this one: resultCallback.m_collisionObject;
+				CcdPhysicsController* controller = static_cast<CcdPhysicsController*>(resultCallback.m_collisionObject->getUserPointer());
+
+				if (controller)
+				{
+					if (controller->getConstructionInfo().m_fh_distance < SIMD_EPSILON)
+						continue;
+
+					btRigidBody* hit_object = controller->GetRigidBody();
+					if (!hit_object)
+						continue;
+
+					CcdConstructionInfo& hitObjShapeProps = controller->getConstructionInfo();
+
+					float distance = resultCallback.m_closestHitFraction*rayDirLocal.length()-ctrl->getConstructionInfo().m_radius;
+					if (distance >= hitObjShapeProps.m_fh_distance)
+						continue;
+					
+					
+
+					//btVector3 ray_dir = cl_object->getCenterOfMassTransform().getBasis()* rayDirLocal.normalized();
+					btVector3 ray_dir = rayDirLocal.normalized();
+					btVector3 normal = resultCallback.m_hitNormalWorld;
+					normal.normalize();
+
+					
+					if (ctrl->getConstructionInfo().m_do_fh) 
+					{
+						btVector3 lspot = cl_object->getCenterOfMassPosition()
+							+ rayDirLocal * resultCallback.m_closestHitFraction;
+
+
+							
+
+						lspot -= hit_object->getCenterOfMassPosition();
+						btVector3 rel_vel = cl_object->getLinearVelocity() - hit_object->getVelocityInLocalPoint(lspot);
+						btScalar rel_vel_ray = ray_dir.dot(rel_vel);
+						btScalar spring_extent = 1.0 - distance / hitObjShapeProps.m_fh_distance; 
+						
+						btScalar i_spring = spring_extent * hitObjShapeProps.m_fh_spring;
+						btScalar i_damp =   rel_vel_ray * hitObjShapeProps.m_fh_damping;
+						
+						cl_object->setLinearVelocity(cl_object->getLinearVelocity() + (-(i_spring + i_damp) * ray_dir)); 
+						if (hitObjShapeProps.m_fh_normal) 
+						{
+							cl_object->setLinearVelocity(cl_object->getLinearVelocity()+(i_spring + i_damp) *(normal - normal.dot(ray_dir) * ray_dir));
+						}
+						
+						btVector3 lateral = rel_vel - rel_vel_ray * ray_dir;
+						
+						
+						if (ctrl->getConstructionInfo().m_do_anisotropic) {
+							//Bullet basis contains no scaling/shear etc.
+							const btMatrix3x3& lcs = cl_object->getCenterOfMassTransform().getBasis();
+							btVector3 loc_lateral = lateral * lcs;
+							const btVector3& friction_scaling = cl_object->getAnisotropicFriction();
+							loc_lateral *= friction_scaling;
+							lateral = lcs * loc_lateral;
+						}
+
+						btScalar rel_vel_lateral = lateral.length();
+						
+						if (rel_vel_lateral > SIMD_EPSILON) {
+							btScalar friction_factor = hit_object->getFriction();//cl_object->getFriction();
+
+							btScalar max_friction = friction_factor * btMax(btScalar(0.0), i_spring);
+							
+							btScalar rel_mom_lateral = rel_vel_lateral / cl_object->getInvMass();
+							
+							btVector3 friction = (rel_mom_lateral > max_friction) ?
+								-lateral * (max_friction / rel_vel_lateral) :
+								-lateral;
+							
+								cl_object->applyCentralImpulse(friction);
+						}
+					}
+
+					
+					if (ctrl->getConstructionInfo().m_do_rot_fh) {
+						btVector3 up2 = cl_object->getWorldTransform().getBasis().getColumn(2);
+
+						btVector3 t_spring = up2.cross(normal) * hitObjShapeProps.m_fh_spring;
+						btVector3 ang_vel = cl_object->getAngularVelocity();
+						
+						// only rotations that tilt relative to the normal are damped
+						ang_vel -= ang_vel.dot(normal) * normal;
+						
+						btVector3 t_damp = ang_vel * hitObjShapeProps.m_fh_damping;  
+						
+						cl_object->setAngularVelocity(cl_object->getAngularVelocity() + (t_spring - t_damp));
+					}
+
+				}
+
+
+			}
+
+
+		}
+	}
+	
+}
 
 void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
 {
@@ -709,12 +883,15 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 						const btVector3& linearMinLimits,
 						const btVector3& linearMaxLimits,
 						const btVector3& angularMinLimits,
-						const btVector3& angularMaxLimits
+						const btVector3& angularMaxLimits,int flags
 )
 {
 
+	bool disableCollisionBetweenLinkedBodies = (0!=(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
+
 	//we could either add some logic to recognize ball-socket and hinge, or let that up to the user
 	//perhaps some warning or hint that hinge/ball-socket is more efficient?
+	
 	
 	btGeneric6DofConstraint* genericConstraint = 0;
 	CcdPhysicsController* ctrl0 = (CcdPhysicsController*) ctrlRef;
@@ -745,7 +922,7 @@ int			CcdPhysicsEnvironment::createUniversalD6Constraint(
 	if (genericConstraint)
 	{
 	//	m_constraints.push_back(genericConstraint);
-		m_dynamicsWorld->addConstraint(genericConstraint);
+		m_dynamicsWorld->addConstraint(genericConstraint,disableCollisionBetweenLinkedBodies);
 
 		genericConstraint->setUserConstraintId(gConstraintUid++);
 		genericConstraint->setUserConstraintType(PHY_GENERIC_6DOF_CONSTRAINT);
@@ -1291,13 +1468,36 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 	return sphereController;
 }
 
+int findClosestNode(btSoftBody* sb,const btVector3& worldPoint);
+int findClosestNode(btSoftBody* sb,const btVector3& worldPoint)
+{
+	int node = -1;
+
+	btSoftBody::tNodeArray&   nodes(sb->m_nodes);
+	float maxDistSqr = 1e30f;
+
+	for (int n=0;n<nodes.size();n++)
+	{
+		btScalar distSqr = (nodes[n].m_x - worldPoint).length2();
+		if (distSqr<maxDistSqr)
+		{
+			maxDistSqr = distSqr;
+			node = n;
+		}
+	}
+	return node;
+}
+
 int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
 													float pivotX,float pivotY,float pivotZ,
 													float axisX,float axisY,float axisZ,
 													float axis1X,float axis1Y,float axis1Z,
-													float axis2X,float axis2Y,float axis2Z
+													float axis2X,float axis2Y,float axis2Z,int flags
 													)
 {
+
+	bool disableCollisionBetweenLinkedBodies = (0!=(flags & CCD_CONSTRAINT_DISABLE_LINKED_COLLISION));
+
 
 
 	CcdPhysicsController* c0 = (CcdPhysicsController*)ctrl0;
@@ -1306,14 +1506,166 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	btRigidBody* rb0 = c0 ? c0->GetRigidBody() : 0;
 	btRigidBody* rb1 = c1 ? c1->GetRigidBody() : 0;
 
-	bool rb0static = rb0 ? rb0->isStaticOrKinematicObject() : true;
-	bool rb1static = rb1 ? rb1->isStaticOrKinematicObject() : true;
 	
 
-	if (rb0static && rb1static)
+
+	bool rb0static = rb0 ? rb0->isStaticOrKinematicObject() : true;
+	bool rb1static = rb1 ? rb1->isStaticOrKinematicObject() : true;
+
+	btCollisionObject* colObj0 = c0->GetCollisionObject();
+	if (!colObj0)
+	{
 		return 0;
+	}
 
 	btVector3 pivotInA(pivotX,pivotY,pivotZ);
+
+	
+
+	//it might be a soft body, let's try
+	btSoftBody* sb0 = c0 ? c0->GetSoftBody() : 0;
+	btSoftBody* sb1 = c1 ? c1->GetSoftBody() : 0;
+	if (sb0 && sb1)
+	{
+		//not between two soft bodies?
+		return 0;
+	}
+
+	if (sb0)
+	{
+		//either cluster or node attach, let's find closest node first
+		//the soft body doesn't have a 'real' world transform, so get its initial world transform for now
+		btVector3 pivotPointSoftWorld = sb0->m_initialWorldTransform(pivotInA);
+		int node=findClosestNode(sb0,pivotPointSoftWorld);
+		if (node >=0)
+		{
+			bool clusterconstaint = false;
+/*
+			switch (type)
+			{
+			case PHY_LINEHINGE_CONSTRAINT:
+				{
+					if (sb0->clusterCount() && rb1)
+					{
+						btSoftBody::LJoint::Specs	ls;
+						ls.erp=0.5f;
+						ls.position=sb0->clusterCom(0);
+						sb0->appendLinearJoint(ls,rb1);
+						clusterconstaint = true;
+						break;
+					}
+				}
+			case PHY_GENERIC_6DOF_CONSTRAINT:
+				{
+					if (sb0->clusterCount() && rb1)
+					{
+						btSoftBody::AJoint::Specs as;
+						as.erp = 1;
+						as.cfm = 1;
+						as.axis.setValue(axisX,axisY,axisZ);
+						sb0->appendAngularJoint(as,rb1);
+						clusterconstaint = true;
+						break;
+					}
+
+					break;
+				}
+			default:
+				{
+				
+				}
+			};
+			*/
+
+			if (!clusterconstaint)
+			{
+				if (rb1)
+				{
+					sb0->appendAnchor(node,rb1,disableCollisionBetweenLinkedBodies);
+				} else
+				{
+					sb0->setMass(node,0.f);
+				}
+			}
+
+			
+		}
+		return 0;//can't remove soft body anchors yet
+	}
+
+	if (sb1)
+	{
+		btVector3 pivotPointAWorld = colObj0->getWorldTransform()(pivotInA);
+		int node=findClosestNode(sb1,pivotPointAWorld);
+		if (node >=0)
+		{
+			bool clusterconstaint = false;
+
+			/*
+			switch (type)
+			{
+			case PHY_LINEHINGE_CONSTRAINT:
+				{
+					if (sb1->clusterCount() && rb0)
+					{
+						btSoftBody::LJoint::Specs	ls;
+						ls.erp=0.5f;
+						ls.position=sb1->clusterCom(0);
+						sb1->appendLinearJoint(ls,rb0);
+						clusterconstaint = true;
+						break;
+					}
+				}
+			case PHY_GENERIC_6DOF_CONSTRAINT:
+				{
+					if (sb1->clusterCount() && rb0)
+					{
+						btSoftBody::AJoint::Specs as;
+						as.erp = 1;
+						as.cfm = 1;
+						as.axis.setValue(axisX,axisY,axisZ);
+						sb1->appendAngularJoint(as,rb0);
+						clusterconstaint = true;
+						break;
+					}
+
+					break;
+				}
+			default:
+				{
+					
+
+				}
+			};*/
+
+
+			if (!clusterconstaint)
+			{
+				if (rb0)
+				{
+					sb1->appendAnchor(node,rb0,disableCollisionBetweenLinkedBodies);
+				} else
+				{
+					sb1->setMass(node,0.f);
+				}
+			}
+			
+
+		}
+		return 0;//can't remove soft body anchors yet
+	}
+
+	if (rb0static && rb1static)
+	{
+		
+		return 0;
+	}
+	
+
+	if (!rb0)
+		return 0;
+
+	
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
 		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
@@ -1338,7 +1690,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					pivotInA);
 			}
 
-			m_dynamicsWorld->addConstraint(p2p);
+			m_dynamicsWorld->addConstraint(p2p,disableCollisionBetweenLinkedBodies);
 //			m_constraints.push_back(p2p);
 
 			p2p->setUserConstraintId(gConstraintUid++);
@@ -1408,7 +1760,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			if (genericConstraint)
 			{
 				//m_constraints.push_back(genericConstraint);
-				m_dynamicsWorld->addConstraint(genericConstraint);
+				m_dynamicsWorld->addConstraint(genericConstraint,disableCollisionBetweenLinkedBodies);
 				genericConstraint->setUserConstraintId(gConstraintUid++);
 				genericConstraint->setUserConstraintType(type);
 				//64 bit systems can't cast pointer to int. could use size_t instead.
@@ -1474,7 +1826,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			if (coneTwistContraint)
 			{
 				//m_constraints.push_back(genericConstraint);
-				m_dynamicsWorld->addConstraint(coneTwistContraint);
+				m_dynamicsWorld->addConstraint(coneTwistContraint,disableCollisionBetweenLinkedBodies);
 				coneTwistContraint->setUserConstraintId(gConstraintUid++);
 				coneTwistContraint->setUserConstraintType(type);
 				//64 bit systems can't cast pointer to int. could use size_t instead.
@@ -1513,7 +1865,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			hinge->setAngularOnly(angularOnly);
 
 			//m_constraints.push_back(hinge);
-			m_dynamicsWorld->addConstraint(hinge);
+			m_dynamicsWorld->addConstraint(hinge,disableCollisionBetweenLinkedBodies);
 			hinge->setUserConstraintId(gConstraintUid++);
 			hinge->setUserConstraintType(type);
 			//64 bit systems can't cast pointer to int. could use size_t instead.

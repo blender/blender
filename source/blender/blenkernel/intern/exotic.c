@@ -117,7 +117,9 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "blendef.h"
 
@@ -2097,8 +2099,10 @@ static void displist_to_mesh(DispList *dlfirst)
 			}
 
 			for(a=0; a<dl->parts; a++) {
-
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				
+				if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+					break;
+				
 				p1+= startve; 
 				p2+= startve; 
 				p3+= startve; 
@@ -2425,6 +2429,7 @@ int BKE_read_exotic(char *name)
 						read_stl_mesh_binary(name);
 					retval = 1;
 				}
+#ifndef DISABLE_PYTHON
 				// TODO: this should not be in the kernel...
 				else { // unknown format, call Python importloader 
 					if (BPY_call_importloader(name)) {
@@ -2434,6 +2439,7 @@ int BKE_read_exotic(char *name)
 					}	
 				
 				}
+#endif /* DISABLE_PYTHON */
 				waitcursor(0);
 			}
 		}

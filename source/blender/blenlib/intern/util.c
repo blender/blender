@@ -893,7 +893,10 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	 */
 	
 #ifdef WIN32
-	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
+	
+	/* Note, this should really be moved to the file selector,
+	 * since this function is used in many areas */
+	if(strcmp(dir, ".")==0) {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
 	   return;
 	}	
@@ -1149,15 +1152,13 @@ int BLI_convertstringframe(char *path, int frame)
 
 int BLI_convertstringcode(char *path, const char *basepath)
 {
-	int wasrelative;
+	int wasrelative = (strncmp(path, "//", 2)==0);
 	char tmp[FILE_MAX];
 	char base[FILE_MAX];
+#ifdef WIN32
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
-	wasrelative= (vol[0]=='/' && vol[1]=='/');
-	
-#ifdef WIN32
 	/* we are checking here if we have an absolute path that is not in the current
 	   blend file as a lib main - we are basically checking for the case that a 
 	   UNIX root '/' is passed.
@@ -1176,6 +1177,20 @@ int BLI_convertstringcode(char *path, const char *basepath)
 	}
 #else
 	BLI_strncpy(tmp, path, FILE_MAX);
+	
+	/* Check for loading a windows path on a posix system
+	 * in this case, there is no use in trying C:/ since it 
+	 * will never exist on a unix os.
+	 * 
+	 * Add a / prefix and lowercase the driveletter, remove the :
+	 * C:\foo.JPG -> /c/foo.JPG */
+	
+	if (isalpha(tmp[0]) && tmp[1] == ':' && (tmp[2]=='\\' || tmp[2]=='/') ) {
+		tmp[1] = tolower(tmp[0]); /* replace ':' with driveletter */
+		tmp[0] = '/'; 
+		/* '\' the slash will be converted later */
+	}
+	
 #endif
 
 	BLI_strncpy(base, basepath, FILE_MAX);

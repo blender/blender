@@ -29,7 +29,9 @@
 #define _SCA_JOYSTICK_H_
 
 #include "SCA_JoystickDefines.h"
+#ifndef DISABLE_SDL
 #include "SDL.h"
+#endif
 
 /*
  * Basic Joystick class
@@ -83,9 +85,12 @@ class SCA_Joystick
 	/*
 	 * max # of buttons avail
 	*/
-
+	
+	int 			m_axismax;
 	int 			m_buttonmax;
-	 /* 
+	int 			m_hatmax;
+	
+	/*
 	 * hat values stored here 
 	 */
 	int 			m_hatnum;
@@ -101,8 +106,10 @@ class SCA_Joystick
 	bool			m_isinit;
 
 	
-	/* is triggered */
-	bool			m_istrig;
+	/* is triggered for each event type */
+	bool			m_istrig_axis;
+	bool			m_istrig_button;
+	bool			m_istrig_hat;
 
 #ifndef DISABLE_SDL
 	/*
@@ -134,18 +141,12 @@ class SCA_Joystick
 	/*
 	 * returns m_axis10,m_axis11...
 	 */
+
+	int pAxisTest(int axisnum);
+	/*
+	 * returns m_axis10,m_axis11...
+	 */
 	int pGetAxis(int axisnum, int udlr);
-	
-	/*
-	 * gets the current button
-	 */
-
-	int pGetButtonPress(int button);
-
-	/*
-	 * returns if no button is pressed
-	 */
-	int pGetButtonRelease(int button);
 
 	/*
 	 * gets the current hat direction
@@ -165,11 +166,14 @@ public:
 
 	/*
 	 */
-
+	bool aAnyAxisIsPositive(int axis);
 	bool aUpAxisIsPositive(int axis);
 	bool aDownAxisIsPositive(int axis);
 	bool aLeftAxisIsPositive(int axis);
 	bool aRightAxisIsPositive(int axis);
+
+	bool aAnyButtonPressIsPositive(void);
+	bool aAnyButtonReleaseIsPositive(void);
 	bool aButtonPressIsPositive(int button);
 	bool aButtonReleaseIsPositive(int button);
 	bool aHatIsPositive(int dir);
@@ -210,8 +214,16 @@ public:
 		return m_prec;
 	}
 
-	bool IsTrig(void){
-		return m_istrig;
+	bool IsTrigAxis(void){
+		return m_istrig_axis;
+	}
+	
+	bool IsTrigButton(void){
+		return m_istrig_button;
+	}
+	
+	bool IsTrigHat(void){
+		return m_istrig_hat;
 	}
 
 	/*

@@ -456,12 +456,12 @@ PyParentObject KX_TrackToActuator::Parents[] = {
 
 
 PyMethodDef KX_TrackToActuator::Methods[] = {
-	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, SetObject_doc},
-	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, GetObject_doc},
-	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, SetTime_doc},
-	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_VARARGS, GetTime_doc},
-	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, SetUse3D_doc},
-	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_VARARGS, GetUse3D_doc},
+	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
+	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, (PY_METHODCHAR)SetTime_doc},
+	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_VARARGS, (PY_METHODCHAR)GetTime_doc},
+	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, (PY_METHODCHAR)SetUse3D_doc},
+	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_VARARGS, (PY_METHODCHAR)GetUse3D_doc},
 	{NULL,NULL} //Sentinel
 };
 

@@ -59,8 +59,16 @@ def PointInTriangle2D(pt, tri_pt1, tri_pt2, tri_pt3):
 	"""
 	Takes 4 vectors (one for the test point and 3 for the triangle)
 	This is a 2d function so only X and Y are used, Z and W will be ignored.
-	@rtype: bool
-	@return: True or False depending on the points intersection.
+	@rtype: int
+	@return: 1 for a clockwise intersection, -1 for counter clockwise intersection, 0 when there is no intersection.
+	"""
+
+def PointInQuad2D(pt, quad_pt1, quad_pt2, quad_pt3):
+	"""
+	Takes 5 vectors (one for the test point and 5 for the quad)
+	This is a 2d function so only X and Y are used, Z and W will be ignored.
+	@rtype: int
+	@return: 1 for a clockwise intersection, -1 for counter clockwise intersection, 0 when there is no intersection.
 	"""
 
 def BoxPack2D(boxlist):

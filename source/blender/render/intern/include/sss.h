@@ -59,7 +59,7 @@ void sss_add_points(Render *re, float (*co)[3], float (*color)[3], float *area, 
 void free_sss(struct Render *re);
 
 int sample_sss(struct Render *re, struct Material *mat, float *co, float *col);
-int has_sss_tree(struct Render *re, struct Material *mat);
+int sss_pass_done(struct Render *re, struct Material *mat);
 
 #endif /*SSS_H*/
 

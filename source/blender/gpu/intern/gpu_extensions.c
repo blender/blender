@@ -66,11 +66,17 @@
 	- arb draw buffers? 2.0 core
 */
 
-struct GPUGlobal {
+static struct GPUGlobal {
 	GLint maxtextures;
 	GLuint currentfb;
 	int minimumsupport;
-} GG = {1, 0, 0};
+	int extdisabled;
+} GG = {1, 0, 0, 0};
+
+void GPU_extensions_disable()
+{
+	GG.extdisabled = 1;
+}
 
 void GPU_extensions_init()
 {
@@ -89,7 +95,7 @@ void GPU_extensions_init()
 
 int GPU_extensions_minimum_support()
 {
-	return GG.minimumsupport;
+	return !GG.extdisabled && GG.minimumsupport;
 }
 
 int GPU_print_error(char *str)

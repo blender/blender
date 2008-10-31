@@ -152,7 +152,10 @@
 #include "BSE_edit.h"
 
 #include "BDR_editobject.h"
+
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "butspace.h" // own module
 
@@ -643,6 +646,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 	else {
 		switch (con->type) {
+#ifndef DISABLE_PYTHON
 		case CONSTRAINT_TYPE_PYTHON:
 			{
 				bPythonConstraint *data = con->data;
@@ -724,6 +728,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				draw_constraint_spaceselect(block, con, *xco, *yco-(73+theight), is_armature_owner(ob), -1);
 			}
 			break;
+#endif /* DISABLE_PYTHON */
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = con->data;
@@ -1497,16 +1502,20 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int offsetY = 150;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic (experimental)%x12",//|Extra Force%x6",
-												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
                 height = 140;
 				if (data->type==CONSTRAINT_RB_GENERIC6DOF)
 					height = 270;
 				if (data->type==CONSTRAINT_RB_CONETWIST)
 					height = 200;
 				
-                uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
-				
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
+
+				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic (experimental)%x12",//|Extra Force%x6",
+												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
+
+				uiDefButBitS(block, TOG, CONSTRAINT_DISABLE_LINKED_COLLISION, B_CONSTRAINT_TEST, "No Col.", *xco+155, *yco-25, 111, 18, &data->flag, 0, 24, 0, 0, "Disable Collision Between Linked Bodies");
+
+
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
 				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", *xco+135, *yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
 				
@@ -1586,6 +1595,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
 					uiBlockEndAlign(block);
 				}
+				
 			}
 			break;
 		case CONSTRAINT_TYPE_CLAMPTO:
@@ -1842,6 +1852,7 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_TEST:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;  // no handling
 	case B_CONSTRAINT_INF:
 		/* influence; do not execute actions for 1 dag_flush */
@@ -2050,8 +2061,9 @@ void do_constraintbuts(unsigned short event)
 	if(ob->type==OB_ARMATURE) DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void pointcache_bake(PTCacheID *pid, int startframe)
@@ -5017,7 +5029,8 @@ static void object_panel_fluidsim(Object *ob)
 	const int separateHeight = 2;
 	const int objHeight = 20;
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-	int libdata = 0, val = 0;
+	int libdata = 0;
+	static int val = 0;
 	uiBut *but=NULL;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);

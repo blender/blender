@@ -95,12 +95,12 @@ char *BLI_last_slash(const char *string) {
 void BLI_add_slash(char *string) {
 	int len = strlen(string);
 #ifdef WIN32
-	if (string[len-1]!='\\') {
+	if (len==0 || string[len-1]!='\\') {
 		string[len] = '\\';
 		string[len+1] = '\0';
 	}
 #else
-	if (string[len-1]!='/') {
+	if (len==0 || string[len-1]!='/') {
 		string[len] = '/';
 		string[len+1] = '\0';
 	}
@@ -303,7 +303,8 @@ void BLI_recurdir_fileops(char *dirname) {
 int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 
-	if (BLI_exists(to))
+	/* make sure the filenames are different (case insensitive) before removing */
+	if (BLI_exists(to) && BLI_strcasecmp(from, to))
 		if(BLI_delete(to, 0, 0)) return 1;
 		
 	return rename(from, to);

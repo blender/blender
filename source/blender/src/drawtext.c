@@ -71,13 +71,16 @@
 
 #include "BSE_filesel.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "mydevice.h"
 #include "blendef.h" 
 #include "winlay.h"
-
+#include "PIL_time.h"
+#include <ctype.h> /* ispunct */
 #include <sys/stat.h>
 
 /***********************/ /*
@@ -123,10 +126,10 @@ def wrap(line, view_width, wrap_chars):
 
 void drawtextspace(ScrArea *sa, void *spacedata);
 void winqreadtextspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-void txt_copy_selectbuffer (Text *text);
-void draw_brackets(SpaceText *st);
 void redraw_alltext(void);
 
+static void txt_copy_selectbuffer(Text *text);
+static void draw_brackets(SpaceText *st);
 static void get_selection_buffer(Text *text);
 static int check_bracket(char ch);
 static int check_delim(char ch);
@@ -135,7 +138,6 @@ static int check_identifier(char ch);
 static int check_whitespace(char ch);
 
 static int get_wrap_width(SpaceText *st);
-//static int get_wrap_points(SpaceText *st, char *line);
 static void get_suggest_prefix(Text *text, int offset);
 static void confirm_suggestion(Text *text, int skipleft);
 
@@ -148,7 +150,8 @@ static int doc_scroll= 0;
 static int jump_to= 0;
 static double last_jump= 0;
 
-static BMF_Font *spacetext_get_font(SpaceText *st) {
+static BMF_Font *spacetext_get_font(SpaceText *st) 
+{
 	static BMF_Font *scr12= NULL;
 	static BMF_Font *scr15= NULL;
 	
@@ -165,7 +168,8 @@ static BMF_Font *spacetext_get_font(SpaceText *st) {
 	}
 }
 
-static int spacetext_get_fontwidth(SpaceText *st) {
+static int spacetext_get_fontwidth(SpaceText *st) 
+{
 	return BMF_GetCharacterWidth(spacetext_get_font(st), ' ');
 }
 
@@ -174,7 +178,8 @@ static int *temp_char_accum= NULL;
 static int temp_char_len= 0;
 static int temp_char_pos= 0;
 
-static void temp_char_write(char c, int accum) {
+static void temp_char_write(char c, int accum) 
+{
 	if (temp_char_len==0 || temp_char_pos>=temp_char_len) {
 		char *nbuf; int *naccum;
 		int olen= temp_char_len;
@@ -204,7 +209,8 @@ static void temp_char_write(char c, int accum) {
 	else temp_char_pos++;
 }
 
-void free_txt_data(void) {
+void free_txt_data(void) 
+{
 	txt_free_cut_buffer();
 	
 	if (g_find_str) MEM_freeN(g_find_str);
@@ -213,7 +219,8 @@ void free_txt_data(void) {
 	if (temp_char_accum) MEM_freeN(temp_char_accum);	
 }
 
-static int render_string (SpaceText *st, char *in) {
+static int render_string (SpaceText *st, char *in) 
+{
 	int r = 0, i = 0;
 	
 	while(*in) {
@@ -232,6 +239,13 @@ static int render_string (SpaceText *st, char *in) {
 	return r;
 }
 
+/* Checks the specified source string for a Python built-in function name. This
+ name must start at the beginning of the source string and must be followed by
+ a non-identifier (see check_identifier(char)) or null character.
+ 
+ If a built-in function is found, the length of the matching name is returned.
+ Otherwise, -1 is returned.
+ */
 static int find_builtinfunc(char *string)
 {
 	int a, i;
@@ -243,52 +257,52 @@ static int find_builtinfunc(char *string)
 	for (a=0; a<30; a++) {
 		i = 0;
 		while (1) {
+			/* If we hit the end of a keyword... (eg. "def") */
 			if (builtinfuncs[a][i]=='\0') {
+				/* If we still have identifier chars in the source (eg. "definate") */
 				if (check_identifier(string[i]))
-					i = -1;
-				break;
+					i = -1; /* No match */
+				break; /* Next keyword if no match, otherwise we're done */
+				
+			/* If chars mismatch, move on to next keyword */
 			} else if (string[i]!=builtinfuncs[a][i]) {
 				i = -1;
-				break;
+				break; /* Break inner loop, start next keyword */
 			}
 			i++;
 		}
-		if (i>0) break;
+		if (i>0) break; /* If we have a match, we're done */
 	}
 	return i;
 }
 
+/* Checks the specified source string for a Python special name. This name must
+ start at the beginning of the source string and must be followed by a non-
+ identifier (see check_identifier(char)) or null character.
+ 
+ If a special name is found, the length of the matching name is returned.
+ Otherwise, -1 is returned.
+ */
 static int find_specialvar(char *string) 
 {
 	int i = 0;
+	/* Check for "def" */
 	if (string[0]=='d' && string[1]=='e' && string[2]=='f')
 		i = 3;
+	/* Check for "class" */
 	else if (string[0]=='c' && string[1]=='l' && string[2]=='a' && string[3]=='s' && string[4]=='s')
 		i = 5;
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	if (i==0 || check_identifier(string[i]))
 		return -1;
 	return i;
 }
 
-#if 0 // not used 
-static void print_format(SpaceText *st, TextLine *line) {
-	int i, a;
-	char *s, *f;
-	s = line->line;
-	f = line->format;
-	for (a=0; *s; s++) {
-		if (*s == '\t') {
-			for (i=st->tabnumber-(a%st->tabnumber); i>0; i--)
-				printf(" "), f++, a++;
-		} else
-			printf("%c", *s), f++, a++;
-	}
-	printf("\n%s [%#x]\n", line->format, (int) (f[strlen(f)+1]));
-}
-#endif // not used
-
-/* Ensures the format string for the given line is long enough, reallocating as needed */
-static int check_format_len(TextLine *line, unsigned int len) {
+/* Ensures the format string for the given line is long enough, reallocating
+ as needed. Allocation is done here, alone, to ensure consitency.
+ */
+static int check_format_len(TextLine *line, unsigned int len)
+{
 	if (line->format) {
 		if (strlen(line->format) < len) {
 			MEM_freeN(line->format);
@@ -302,20 +316,22 @@ static int check_format_len(TextLine *line, unsigned int len) {
 	return 1;
 }
 
-/* Formats the specified line and if allowed and needed will move on to the
- * next line. The format string contains the following characters:
- *		'_'		Whitespace
- *		'#'		Comment text
- *		'!'		Punctuation and other symbols
- *		'n'		Numerals
- *		'l'		String letters
- *		'v'		Special variables (class, def)
- *		'b'		Built-in names (print, for, etc.)
- *		'q'		Other text (identifiers, etc.)
- * It is terminated with a null-terminator '\0' followed by a continuation
- * flag indicating whether the line is part of a multi-line string.
+/* Formats the specified line. If do_next is set, the process will move on to
+ the succeeding line if it is affected (eg. multiline strings). Format strings
+ may contain any of the following characters:
+ 	'_'		Whitespace
+ 	'#'		Comment text
+ 	'!'		Punctuation and other symbols
+ 	'n'		Numerals
+ 	'l'		String letters
+ 	'v'		Special variables (class, def)
+ 	'b'		Built-in names (print, for, etc.)
+ 	'q'		Other text (identifiers, etc.)
+ It is terminated with a null-terminator '\0' followed by a continuation
+ flag indicating whether the line is part of a multi-line string.
  */
-void txt_format_line(SpaceText *st, TextLine *line, int do_next) {
+void txt_format_line(SpaceText *st, TextLine *line, int do_next)
+{
 	char *str, *fmt, orig, cont, find, prev = ' ';
 	int len, i;
 
@@ -425,6 +441,7 @@ void txt_format_line(SpaceText *st, TextLine *line, int do_next) {
 	}
 }
 
+/* Formats every line of the current text */
 void txt_format_text(SpaceText *st) 
 {
 	TextLine *linep;
@@ -435,7 +452,9 @@ void txt_format_text(SpaceText *st)
 		txt_format_line(st, linep, 0);
 }
 
-static void format_draw_color(char formatchar) {
+/* Sets the current drawing color based on the format character specified */
+static void format_draw_color(char formatchar)
+{
 	switch (formatchar) {
 		case '_': /* Whitespace */
 			break;
@@ -508,8 +527,8 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int draw, int x, int y, char *format)
 {
 	int r=0, w= 0;
-	char *in;
 	int *acc;
+	char *in;
 
 	w= render_string(st, str);
 	if(w<cshift ) return 0; /* String is shorter than shift */
@@ -671,41 +690,18 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	if(!sel) txt_pop_sel(text);
 }
 
-static int get_wrap_width(SpaceText *st) {
+static int get_wrap_width(SpaceText *st)
+{
 	int x, max;
+	
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 	max= (curarea->winx-x)/spacetext_get_fontwidth(st);
 	return max>8 ? max : 8;
 }
 
-#if 0 // not used 
-/* Returns the number of wrap points (or additional lines) in the given string */
-static int get_wrap_points(SpaceText *st, char *line) {
-	int start, end, taboffs, i, max, count;
-	
-	if (!st->wordwrap) return 0;
-
-	end= max= get_wrap_width(st);
-	count= taboffs= start= 0;
-
-	for (i=0; line[i]!='\0'; i++) {
-		if (i-start+taboffs>=max) {
-			count++;
-			start= end;
-			end += max;
-			taboffs= 0;
-		} else if (line[i]==' ' || line[i]=='\t' || line[i]=='-') {
-			end = i+1;
-			if (line[i]=='\t')
-				taboffs += st->tabnumber-(i-start)%st->tabnumber;
-		}
-	}
-	return count;
-}
-#endif // not used
-
 /* Sets (offl, offc) for transforming (line, curs) to its wrapped position */
-static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc) {
+static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, int *offc)
+{
 	Text *text;
 	TextLine *linep;
 	int i, j, start, end, chars, max, chop;
@@ -769,8 +765,10 @@ static void wrap_offset(SpaceText *st, TextLine *linein, int cursin, int *offl, 
 	}
 }
 
-static int get_char_pos(SpaceText *st, char *line, int cur) {
+static int get_char_pos(SpaceText *st, char *line, int cur)
+{
 	int a=0, i;
+	
 	for (i=0; i<cur && line[i]; i++) {
 		if (line[i]=='\t')
 			a += st->tabnumber-a%st->tabnumber;
@@ -780,7 +778,8 @@ static int get_char_pos(SpaceText *st, char *line, int cur) {
 	return a;
 }
 
-static void draw_markers(SpaceText *st) {
+static void draw_markers(SpaceText *st)
+{
 	Text *text= st->text;
 	TextMarker *marker, *next;
 	TextLine *top, *bottom, *line;
@@ -851,7 +850,8 @@ static void draw_markers(SpaceText *st) {
 	}
 }
 
-static void draw_cursor(SpaceText *st) {
+static void draw_cursor(SpaceText *st)
+{
 	Text *text= st->text;
 	int vcurl, vcurc, vsell, vselc, hidden=0;
 	int offl, offc, x, y, w, i;
@@ -1044,6 +1044,7 @@ static void draw_textscroll(SpaceText *st)
 	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
 }
 
+/* Moves the view vertically by the specified number of lines */
 static void screen_skip(SpaceText *st, int lines)
 {
 	int last;
@@ -1061,6 +1062,12 @@ static void screen_skip(SpaceText *st, int lines)
 	if (st->top<0) st->top= 0;
 }
 
+/* Moves the cursor vertically by the specified number of lines.
+ If the destination line is shorter than the current cursor position, the
+ cursor will be positioned at the end of this line.
+
+ This is to replace screen_skip for PageUp/Down operations.
+ */
 static void cursor_skip(SpaceText *st, int lines, int sel)
 {
 	Text *text;
@@ -1093,9 +1100,8 @@ static void cursor_skip(SpaceText *st, int lines, int sel)
 	txt_undo_add_toop(st->text, sel?UNDO_STO:UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, *linep), *charp);
 }
 
-/* 
- * mode 1 == view scroll
- * mode 2 == scrollbar
+/* Handles text scrolling via grabbing the view (MMB, mode 1) or with the
+ scrollbar (mode 2)
  */
 static void do_textscroll(SpaceText *st, int mode)
 {
@@ -1153,10 +1159,10 @@ static void do_textscroll(SpaceText *st, int mode)
 
 static void do_selection(SpaceText *st, int selecting)
 {
-	short mval[2], old[2];
 	int sell, selc;
 	int linep2, charp2;
 	int first= 1;
+	short mval[2], old[2];
 
 	getmouseco_areawin(mval);
 	old[0]= mval[0];
@@ -1190,7 +1196,8 @@ static void do_selection(SpaceText *st, int selecting)
 
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-		} else if (!st->wordwrap && (mval[0]<0 || mval[0]>curarea->winx)) {
+		} 
+		else if (!st->wordwrap && (mval[0]<0 || mval[0]>curarea->winx)) {
 			if (mval[0]>curarea->winx) st->left++;
 			else if (mval[0]<0 && st->left>0) st->left--;
 			
@@ -1200,7 +1207,8 @@ static void do_selection(SpaceText *st, int selecting)
 			screen_swapbuffers();
 			
 			PIL_sleep_ms(10);
-		} else if (first || old[0]!=mval[0] || old[1]!=mval[1]) {
+		} 
+		else if (first || old[0]!=mval[0] || old[1]!=mval[1]) {
 			set_cursor_to_pos(st, mval[0], mval[1], 1);
 
 			scrarea_do_windraw(curarea);
@@ -1209,7 +1217,8 @@ static void do_selection(SpaceText *st, int selecting)
 			old[0]= mval[0];
 			old[1]= mval[1];
 			first= 1;
-		} else {
+		} 
+		else {
 			BIF_wait_for_statechange();
 		}
 	}
@@ -1226,10 +1235,10 @@ static void do_selection(SpaceText *st, int selecting)
 static int do_suggest_select(SpaceText *st)
 {
 	SuggItem *item, *first, *last, *sel;
-	short mval[2];
 	TextLine *tmp;
 	int l, x, y, w, h, i;
 	int tgti, *top;
+	short mval[2];
 	
 	if (!st || !st->text) return 0;
 	if (!texttool_text_is_active(st->text)) return 0;
@@ -1275,7 +1284,8 @@ static int do_suggest_select(SpaceText *st)
 	return 1;
 }
 
-static void pop_suggest_list() {
+static void pop_suggest_list()
+{
 	SuggItem *item, *sel;
 	int *top, i;
 
@@ -1451,17 +1461,21 @@ void draw_suggestion_list(SpaceText *st)
 	}
 }
 
-static short check_blockhandler(SpaceText *st, short handler) {
+static short check_blockhandler(SpaceText *st, short handler)
+{
 	short a;
+	
 	for(a=0; a<SPACE_MAXHANDLER; a+=2)
 		if (st->blockhandler[a]==handler) return 1;
 	return 0;
 }
 
+/* Find and replace GUI panel */
 static void text_panel_find(short cntrl)	// TEXT_HANDLER_FIND
 {
 	uiBlock *block;
 
+	/* Ensure that find and replace buffers have been allocated */
 	if (!g_find_str || !g_replace_str) {
 		g_find_str= MEM_mallocN(TXT_MAXFINDSTR+1, "find_string");
 		g_replace_str= MEM_mallocN(TXT_MAXFINDSTR+1, "replace_string");
@@ -1487,10 +1501,11 @@ static void text_panel_find(short cntrl)	// TEXT_HANDLER_FIND
 }
 
 /* mode: 0 find only, 1 replace/find, 2 mark all occurrences */
-void find_and_replace(SpaceText *st, short mode) {
-	char *tmp;
+void find_and_replace(SpaceText *st, short mode)
+{
 	Text *start= NULL, *text= st->text;
 	int flags, first= 1;
+	char *tmp;
 
 	if (!check_blockhandler(st, TEXT_HANDLER_FIND)) {
 		toggle_blockhandler(st->area, TEXT_HANDLER_FIND, UI_PNL_TO_MOUSE);
@@ -1548,10 +1563,10 @@ void find_and_replace(SpaceText *st, short mode) {
 	} while (mode==2);
 }
 
-static void do_find_buttons(val) {
+static void do_find_buttons(val)
+{
 	Text *text;
 	SpaceText *st;
-	int do_draw= 0;
 	char *tmp;
 
 	st= curarea->spacedata.first;
@@ -1565,26 +1580,21 @@ static void do_find_buttons(val) {
 			tmp= txt_sel_to_buf(text);
 			strncpy(g_find_str, tmp, TXT_MAXFINDSTR);
 			MEM_freeN(tmp);
-			do_draw= 1;
 			break;
 		case B_PASTEREPLACE:
 			if (!g_replace_str) break;
 			tmp= txt_sel_to_buf(text);
 			strncpy(g_replace_str, tmp, TXT_MAXFINDSTR);
 			MEM_freeN(tmp);
-			do_draw= 1;
 			break;
 		case B_TEXTFIND:
 			find_and_replace(st, 0);
-			do_draw= 1;
 			break;
 		case B_TEXTREPLACE:
 			find_and_replace(st, 1);
-			do_draw= 1;
 			break;
 		case B_TEXTMARKALL:
 			find_and_replace(st, 2);
-			do_draw= 1;
 			break;
 	}
 }
@@ -1612,11 +1622,11 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
-	int i, x, y;
 	TextLine *tmp;
-	char linenr[12];
 	float col[3];
+	int i, x, y;
 	int linecount = 0;
+	char linenr[12];
 
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 
@@ -1781,8 +1791,8 @@ void txt_write_file(Text *text)
 {
 	FILE *fp;
 	TextLine *tmp;
-	int res;
 	struct stat st;
+	int res;
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
 	/* Do we need to get a filename? */
@@ -1833,7 +1843,8 @@ void unlink_text(Text *text)
 	bScreen *scr;
 	ScrArea *area;
 	SpaceLink *sl;
-	
+
+#ifndef DISABLE_PYTHON
 	/* check if this text was used as script link:
 	 * this check function unsets the pointers and returns how many
 	 * script links used this Text */
@@ -1844,7 +1855,8 @@ void unlink_text(Text *text)
 	if (nodeDynamicUnlinkText ((ID*)text)) {
 		allqueue(REDRAWNODE, 0);
 	}
-
+#endif
+	
 	for (scr= G.main->screen.first; scr; scr= scr->id.next) {
 		for (area= scr->areabase.first; area; area= area->next) {
 			for (sl= area->spacedata.first; sl; sl= sl->next) {
@@ -1865,7 +1877,8 @@ void unlink_text(Text *text)
 	}
 }
 
-int jumptoline_interactive(SpaceText *st) {
+int jumptoline_interactive(SpaceText *st)
+{
 	short nlines= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
 	short tmp= txt_get_span(st->text->lines.first, st->text->curl)+1;
 
@@ -1882,7 +1895,7 @@ int jumptoline_interactive(SpaceText *st) {
 int bufferlength;
 static char *copybuffer = NULL;
 
-void txt_copy_selectbuffer (Text *text)
+static void txt_copy_selectbuffer (Text *text)
 {
 	int length=0;
 	TextLine *tmp, *linef, *linel;
@@ -1998,8 +2011,8 @@ static char *winNewLine(char *buffer)
 	return(output);
 }
 
-void txt_paste_clipboard(Text *text) {
-
+void txt_paste_clipboard(Text *text)
+{
 	char * buff;
 	char *temp_buff;
 	
@@ -2016,10 +2029,12 @@ void txt_paste_clipboard(Text *text) {
 void get_selection_buffer(Text *text)
 {
 	char *buff = getClipboard(1);
+	
 	txt_insert_buf(text, buff);
 }
 
-void txt_copy_clipboard(Text *text) {
+void txt_copy_clipboard(Text *text)
+{
 	char *temp;
 
 	txt_copy_selectbuffer(text);
@@ -2037,9 +2052,11 @@ void txt_copy_clipboard(Text *text) {
 
 void run_python_script(SpaceText *st)
 {
-	char *py_filename;
 	Text *text=st->text;
-
+	char *py_filename;
+#ifdef DISABLE_PYTHON
+	error("python disabled in this build");
+#else
 	if (!BPY_txt_do_python_Text(text)) {
 		int lineno = BPY_Err_getLinenumber();
 		// jump to error if happened in current text:
@@ -2061,17 +2078,20 @@ void run_python_script(SpaceText *st)
 				"check console");
 		}	
 	}
+#endif
 }
 
 static void set_tabs(Text *text)
 {
 	SpaceText *st = curarea->spacedata.first;
+	
 	st->currtab_set = setcurr_tab(text);
 }
 
-static void wrap_move_bol(SpaceText *st, short sel) {
-	int offl, offc, lin;
+static void wrap_move_bol(SpaceText *st, short sel)
+{
 	Text *text= st->text;
+	int offl, offc, lin;
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
@@ -2086,9 +2106,10 @@ static void wrap_move_bol(SpaceText *st, short sel) {
 	}
 }
 
-static void wrap_move_eol(SpaceText *st, short sel) {
-	int offl, offc, lin, startl, c;
+static void wrap_move_eol(SpaceText *st, short sel)
+{
 	Text *text= st->text;
+	int offl, offc, lin, startl, c;
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
@@ -2109,9 +2130,10 @@ static void wrap_move_eol(SpaceText *st, short sel) {
 	}
 }
 
-static void wrap_move_up(SpaceText *st, short sel) {
-	int offl, offl_1, offc, fromline, toline, c, target;
+static void wrap_move_up(SpaceText *st, short sel)
+{
 	Text *text= st->text;
+	int offl, offl_1, offc, fromline, toline, c, target;
 
 	wrap_offset(st, text->sell, 0, &offl_1, &offc);
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
@@ -2137,20 +2159,26 @@ static void wrap_move_up(SpaceText *st, short sel) {
 	if (sel) {
 		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
 		if (toline<fromline) text->sell= text->sell->prev;
-		if (c>text->sell->len) c= text->sell->len;
-		text->selc= c;
-	} else {
+		if(text->sell) {
+			if (c>text->sell->len) c= text->sell->len;
+			text->selc= c;
+		}
+	} 
+	else if(text->curl) {
 		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
 		if (toline<fromline) text->curl= text->curl->prev;
-		if (c>text->curl->len) c= text->curl->len;
-		text->curc= c;
-		txt_pop_sel(text);
+		if(text->curl) {
+			if (c>text->curl->len) c= text->curl->len;
+			text->curc= c;
+			txt_pop_sel(text);
+		}
 	}
 }
 
-static void wrap_move_down(SpaceText *st, short sel) {
-	int offl, startoff, offc, fromline, toline, c, target;
+static void wrap_move_down(SpaceText *st, short sel)
+{
 	Text *text= st->text;
+	int offl, startoff, offc, fromline, toline, c, target;
 
 	wrap_offset(st, text->sell, text->selc, &offl, &offc);
 	fromline= toline= txt_get_span(text->lines.first, text->sell);
@@ -2178,18 +2206,24 @@ static void wrap_move_down(SpaceText *st, short sel) {
 	if (sel) {
 		txt_undo_add_toop(text, UNDO_STO, fromline, text->selc, toline, c);
 		if (toline>fromline) text->sell= text->sell->next;
-		if (c>text->sell->len) c= text->sell->len;
-		text->selc= c;
-	} else {
+		if(text->sell) {
+			if (c>text->sell->len) c= text->sell->len;
+			text->selc= c;
+		}
+	} 
+	else if(text->curl) {
 		txt_undo_add_toop(text, UNDO_CTO, fromline, text->curc, toline, c);
 		if (toline>fromline) text->curl= text->curl->next;
-		if (c>text->curl->len) c= text->curl->len;
-		text->curc= c;
-		txt_pop_sel(text);
+		if(text->curl) {
+			if (c > text->curl->len) c= text->curl->len;
+			text->curc= c;
+			txt_pop_sel(text);
+		}
 	}
 }
 
-static void get_suggest_prefix(Text *text, int offset) {
+static void get_suggest_prefix(Text *text, int offset)
+{
 	int i, len;
 	char *line, tmp[256];
 
@@ -2211,10 +2245,11 @@ static void get_suggest_prefix(Text *text, int offset) {
 	texttool_suggest_prefix(tmp);
 }
 
-static void confirm_suggestion(Text *text, int skipleft) {
+static void confirm_suggestion(Text *text, int skipleft)
+{
+	SuggItem *sel;
 	int i, over=0;
 	char *line;
-	SuggItem *sel;
 
 	if (!text) return;
 	if (!texttool_text_is_active(text)) return;
@@ -2244,7 +2279,8 @@ static void confirm_suggestion(Text *text, int skipleft) {
 	texttool_text_clear();
 }
 
-static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val) {
+static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
+{
 	int draw=0, tools=0, swallow=0, scroll=1;
 	if (!texttool_text_is_active(st->text)) return 0;
 	if (!st->text || st->text->id.lib) return 0;
@@ -2403,7 +2439,8 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 	return swallow;
 }
 
-static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val) {
+static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short val)
+{
 	Text *text;
 	TextMarker *marker, *mrk, *nxt;
 	int c, s, draw=0, swallow=0;
@@ -2570,12 +2607,12 @@ static short do_markers(SpaceText *st, char ascii, unsigned short evnt, short va
 
 void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	unsigned short event= evt->event;
-	short val= evt->val;
-	char ascii= evt->ascii;
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 	int do_draw=0, p;
+	unsigned short event= evt->event;
+	short val= evt->val;
+	char ascii= evt->ascii;
 	
 	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
@@ -2899,8 +2936,10 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break; /* BREAK Q */
 		case RKEY:
 			if (G.qual == LR_ALTKEY) {
+#ifndef DISABLE_PYTHON
 			    if (text->compiled) BPY_free_compiled_text(text);
 			        text->compiled = NULL;
+#endif
 				if (okee("Reopen text")) {
 					if (!reopen_text(text))
 						error("Could not reopen file");
@@ -3169,24 +3208,25 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
+#ifndef DISABLE_PYTHON	
 	/* Run text plugin scripts if enabled */
 	if (st->doplugins && event && val) {
 		if (BPY_menu_do_shortcut(PYMENU_TEXTPLUGIN, event, G.qual)) {
 			do_draw= 1;
 		}
 	}
-
+#endif
 	if (do_draw)
 		redraw_alltext();
 }
 
-void draw_brackets(SpaceText *st)
+static void draw_brackets(SpaceText *st)
 {
-	char ch;
-	int b, c, startc, endc, find, stack;
-	int viewc, viewl, offl, offc, x, y;
 	TextLine *startl, *endl, *linep;
 	Text *text = st->text;
+	int b, c, startc, endc, find, stack;
+	int viewc, viewl, offl, offc, x, y;
+	char ch;
 
 	if (!text || !text->curl) return;
 
@@ -3305,13 +3345,15 @@ static int check_delim(char ch)
 	return 0;
 }
 
-static int check_digit(char ch) {
+static int check_digit(char ch)
+{
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	return 0;
 }
 
-static int check_identifier(char ch) {
+static int check_identifier(char ch)
+{
 	if (ch < '0') return 0;
 	if (ch <= '9') return 1;
 	if (ch < 'A') return 0;
@@ -3321,7 +3363,8 @@ static int check_identifier(char ch) {
 	return 0;
 }
 
-static int check_whitespace(char ch) {
+static int check_whitespace(char ch)
+{
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
 		return 1;
 	return 0;
@@ -3331,9 +3374,9 @@ void convert_tabs (struct SpaceText *st, int tab)
 {
 	Text *text = st->text;
 	TextLine *tmp;
+	size_t a, j;
 	char *check_line, *new_line;
 	int extra, number; //unknown for now
-	size_t a, j;
 	
 	if (!text) return;
 	
