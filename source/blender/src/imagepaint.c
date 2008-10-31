@@ -88,8 +88,6 @@
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
 
-#include "RE_raytrace.h" /* For projection painting occlusion */
-
 #include "GPU_draw.h"
 
 #include "GHOST_Types.h"
@@ -136,7 +134,6 @@ typedef struct ImagePaintState {
 /* testing options */
 #define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
 
-#define PROJ_LAZY_INIT 1
 // #define PROJ_PAINT_DEBUG 1
 
 /* projectFaceFlags options */
@@ -167,11 +164,10 @@ typedef struct ProjectPaintState {
 	/* projection painting only */
 	MemArena *projectArena;		/* use for alocating many pixel structs and link-lists */
 	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ImagePaintProjectPixel's */
-#ifdef PROJ_LAZY_INIT
 	LinkNode **projectFaces;	/* projectBuckets alligned array linkList of faces overlapping each bucket */
 	char *projectBucketFlags;	/* store if the bucks have been initialized  */
 	char *projectFaceFlags;		/* store info about faces, if they are initialized etc*/
-#endif
+	
 	int bucketsX;				/* The size of the bucket grid, the grid span's viewMin2D/viewMax2D so you can paint outsize the screen or with 2 brushes at once */
 	int bucketsY;
 	
@@ -179,10 +175,7 @@ typedef struct ProjectPaintState {
 	int projectImageTotal;		/* size of projectImages array */
 	int image_index;			/* current image, use for context switching */
 	
-	float (*projectVertCos2D)[2];	/* verts projected into floating point screen space */
-	
-	RayTree *projectRayTree;	/* ray tracing acceleration structure */
-	Isect isec;					/* re-use ray intersection var */
+	float (*projectVertScreenCos)[3];	/* verts projected into floating point screen space */
 	
 	/* options for projection painting */
 	short projectOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
@@ -190,16 +183,12 @@ typedef struct ProjectPaintState {
 	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
-	float viewPoint[3];			/* Use only when in perspective mode with projectOcclude, the point we are viewing from, cast rays to this */
 	float viewDir[3];			/* View vector, use for projectBackfaceCull and for ray casting with an ortho viewport  */
 	
 	float viewMin2D[2];			/* 2D bounds for mesh verts on the screen's plane (screenspace) */
 	float viewMax2D[2]; 
 	float viewWidth;			/* Calculated from viewMin2D & viewMax2D */
 	float viewHeight;
-	
-	
-	
 } ProjectPaintState;
 
 typedef struct ImagePaintProjectPixel {
@@ -367,21 +356,6 @@ static void undo_imagepaint_push_end()
 }
 
 
-static MVert * mvert_static = NULL;
-static void project_paint_begin_coords_func(RayFace *face, float **v1, float **v2, float **v3, float **v4)
-{
-	MFace *mface= (MFace*)face;
-
-	*v1= mvert_static[mface->v1].co;
-	*v2= mvert_static[mface->v2].co;
-	*v3= mvert_static[mface->v3].co;
-	*v4= (mface->v4)? mvert_static[mface->v4].co: NULL;
-}
-
-static int project_paint_begin_check_func(Isect *is, int ob, RayFace *face)
-{
-	return 1;
-}
 static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
 {
 	
@@ -399,10 +373,107 @@ static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
 		(	(	(int)(( (projCo2D[1] - ps->viewMin2D[1])  / ps->viewHeight) * ps->bucketsY)) * ps->bucketsX );
 }
 
-static void project_paint_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf, ImBuf *ibuf)
+/* return...
+ * 0	: no occlusion
+ * -1	: no occlusion but 2D intersection is true (avoid testing the other half of a quad)
+ * 1	: occluded */
+
+static int screenco_tri_pt_occlude(float *pt, float *v1, float *v2, float *v3)
+{
+	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d worldspace coords */
+	
+	/* if all are behind us, return false */
+	if(v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
+		return 0;
+		
+	/* do a 2D point in try intersection */
+	if ( !IsectPT2Df(pt, v1, v2, v3) )
+		return 0; /* we know there is  */
+	
+	/* From here on we know there IS an intersection */
+	
+	/* if ALL of the verts are infront of us then we know it intersects ? */
+	if(	v1[2] < pt[2] && v2[2] < pt[2] && v3[2] < pt[2]) {
+		return 1;
+	} else {
+		/* we intersect? - find the exact depth at the point of intersection */
+		w1 = AreaF2Dfl(v2, v3, pt);
+		w2 = AreaF2Dfl(v3, v1, pt);
+		w3 = AreaF2Dfl(v1, v2, pt);
+		wtot = w1 + w2 + w3;
+		
+		if ((v1[2]*w1/wtot) + (v2[2]*w2/wtot) + (v3[2]*w3/wtot) < pt[2]) {
+			return 1; /* This point is occluded by another face */
+		}
+	}
+	return -1;
+}
+
+
+/* check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison */
+static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index, int orig_face, float pixelScreenCo[3])
+{
+	LinkNode *node = ps->projectFaces[bucket_index];
+	LinkNode *prev_node = NULL;
+	MFace *mf;
+	int face_index;
+	int isect_ret;
+	
+	while (node) {
+		face_index = (int)node->link;
+		
+		if (orig_face != face_index) {
+			
+			mf = ps->dm_mface + face_index;
+			
+			isect_ret = screenco_tri_pt_occlude(
+					pixelScreenCo,
+					ps->projectVertScreenCos[mf->v1],
+					ps->projectVertScreenCos[mf->v2],
+					ps->projectVertScreenCos[mf->v3]);
+			
+			/* Note, if isect_ret==-1 then we dont want to test the other side of the quad */
+			if (isect_ret==0 && mf->v4) {
+				isect_ret = screenco_tri_pt_occlude(
+						pixelScreenCo,
+						ps->projectVertScreenCos[mf->v1],
+						ps->projectVertScreenCos[mf->v3],
+						ps->projectVertScreenCos[mf->v4]);
+			}
+			
+			if (isect_ret==1) {
+				/* Cheap Optimization!
+				 * This function runs for every UV Screen pixel,
+				 * therefor swapping the swapping the faces for this buckets list helps because
+				 * the next ~5 to ~200 runs will can hit the first face each time. */
+				if (ps->projectFaces[bucket_index] != node) {
+					/* SWAP(void *, ps->projectFaces[bucket_index]->link, node->link); */
+					
+					/* dont need to use swap since we alredy have face_index */
+					node->link = ps->projectFaces[bucket_index]->link; /* move the value item to the current value */
+					ps->projectFaces[bucket_index]->link = (void *) face_index;
+					
+					/*printf("swapping %d %d\n", (int)node->link, face_index);*/
+				} /*else {
+					printf("first hit %d\n", face_index);
+				}*/
+				
+				return 1; 
+			}
+		}
+		prev_node = node;
+		node = node->next;
+	}
+	
+	return 0;
+}
+
+static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf *ibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
 	ImagePaintProjectPixel *projPixel;
+	MFace *mf = ps->dm_mface + face_index;
+	MTFace *tf = ps->dm_mtface + face_index;
 	
 	float pxWorldCo[3];
 	float pxProjCo[4];
@@ -412,31 +483,25 @@ static void project_paint_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf
 	int y;/* Image Y-Pixel */
 	float uv[2]; /* Image floating point UV - same as x,y but from 0.0-1.0 */
 	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
-	float xmin, ymin, xmax, ymax; /* UV bounds */
+	float min_uv[2], max_uv[2]; /* UV bounds */
 	int xmini, ymini, xmaxi, ymaxi; /* UV Bounds converted to int's for pixel */
 	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d worldspace coords */
 	float *v1co, *v2co, *v3co, *v4co; /* for convenience only */
 	
 	int i;
 	
-	/* clamp to 0-1 for now */
-	xmin = ymin = 1.0f;
-	xmax = ymax = 0.0f;
+	INIT_MINMAX2(min_uv, max_uv);
 	
 	i = mf->v4 ? 3:2;
 	do {
-		xmin = MIN2(xmin, tf->uv[i][0]);
-		ymin = MIN2(ymin, tf->uv[i][1]);
-		
-		xmax = MAX2(xmax, tf->uv[i][0]);
-		ymax = MAX2(ymax, tf->uv[i][1]);
+		DO_MINMAX2(tf->uv[i], min_uv, max_uv);
 	} while (i--);
 	
-	xmini = (int)(ibuf->x * xmin);
-	ymini = (int)(ibuf->y * ymin);
+	xmini = (int)(ibuf->x * min_uv[0]);
+	ymini = (int)(ibuf->y * min_uv[1]);
 	
-	xmaxi = (int)(ibuf->x * xmax) +1;
-	ymaxi = (int)(ibuf->y * ymax) +1;
+	xmaxi = (int)(ibuf->x * max_uv[0]) +1;
+	ymaxi = (int)(ibuf->y * max_uv[1]) +1;
 	
 	/*printf("%d %d %d %d \n", xmini, ymini, xmaxi, ymaxi);*/
 	
@@ -458,6 +523,10 @@ static void project_paint_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf
 	
 	for (y = ymini; y < ymaxi; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y;
+
+		/* IsectPT2Df works fine but is too slow
+		 * rather then IsectPT2Df's all the time we can do somthing more like scanlines */
+
 		for (x = xmini; x < xmaxi; x++) {
 			uv[0] = (((float)x)+0.5) / (float)ibuf->x;
 			
@@ -491,43 +560,39 @@ static void project_paint_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf
 					pxWorldCo[i] = v1co[i]*w1 + v3co[i]*w2 + v4co[i]*w3;
 				} while (i--);
 			}
-			
+
 			/* view3d_project_float(curarea, vec, projCo2D, s->projectMat);
 			if (projCo2D[0]==IS_CLIPPED)
 				continue;*/
 			if (wtot != -1.0) {
-				
 				/* Inline, a bit faster */
 				VECCOPY(pxProjCo, pxWorldCo);
 				pxProjCo[3] = 1.0;
 				
 				Mat4MulVec4fl(ps->projectMat, pxProjCo);
 				
+
 				if( pxProjCo[3] > 0.001 ) {
+					float pixelScreenCo[3]; /* for testing occlusion we need the depth too, but not for saving into ImagePaintProjectPixel */
+					int bucket_index;
+					
+					pixelScreenCo[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pxProjCo[0]/pxProjCo[3];
+					pixelScreenCo[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pxProjCo[1]/pxProjCo[3];
+					pixelScreenCo[2] = pxProjCo[2]/pxProjCo[3]; /* Only for depth test */
+					
+					bucket_index = project_paint_BucketOffset(ps, pixelScreenCo);
+					
 					/* Use viewMin2D to make (0,0) the bottom left of the bounds 
 					 * Then this can be used to index the bucket array */
 					
-					if (ps->projectOcclude) {
-						VECCOPY(ps->isec.start, pxWorldCo);
-						
-						if (G.vd->persp==V3D_ORTHO) {
-							VecAddf(ps->isec.end, pxWorldCo, ps->viewDir);
-						} else { /* value dosnt change but it is modified by RE_ray_tree_intersect() - keep this line */
-							VECCOPY(ps->isec.end, ps->viewPoint);
-						}
-
-						ps->isec.faceorig = mf;
-					}
-					
 					/* Is this UV visible from the view? - raytrace */
-					if (ps->projectOcclude==0 || !RE_ray_tree_intersect(ps->projectRayTree, &ps->isec)) {
+					if (ps->projectOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
 						
 						/* done with view3d_project_float inline */
 						projPixel = (ImagePaintProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ImagePaintProjectPixel) );
 						
 						/* screenspace unclamped */
-						projPixel->projCo2D[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pxProjCo[0]/pxProjCo[3];
-						projPixel->projCo2D[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pxProjCo[1]/pxProjCo[3];
+						VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 						
 						projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
 #ifdef PROJ_PAINT_DEBUG
@@ -536,7 +601,7 @@ static void project_paint_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf
 						projPixel->image_index = ps->image_index;
 						
 						BLI_linklist_prepend_arena(
-							&ps->projectBuckets[ project_paint_BucketOffset(ps, projPixel->projCo2D) ],
+							&ps->projectBuckets[ bucket_index ],
 							projPixel,
 							ps->projectArena
 						);
@@ -575,7 +640,6 @@ static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucke
 	bucket_bounds[ PROJ_BUCKET_TOP ] =		ps->viewMin2D[1]+((bucket_y+1)*(ps->viewHeight  / ps->bucketsY));	/* top */
 }
 
-#ifdef PROJ_LAZY_INIT
 static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 {
 	
@@ -599,7 +663,7 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 				tf = ps->dm_mtface+face_index;
 				ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
 				
-				project_paint_face_init(ps, ps->dm_mface + face_index, tf, ibuf);
+				project_paint_face_init(ps, face_index, ibuf);
 			}
 			node = node->next;
 		} while (node);
@@ -614,7 +678,7 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 
 static int project_bucket_face_isect(ProjectPaintState *ps, float min[2], float max[2], int bucket_x, int bucket_y, int bucket_index, MFace *mf)
 {
-	/* TODO - replace this with a tricker method that uses sideofline for all projectVertCos2D's edges against the closest bucket corner */
+	/* TODO - replace this with a tricker method that uses sideofline for all projectVertScreenCos's edges against the closest bucket corner */
 	float bucket_bounds[4];
 	float p1[2], p2[2], p3[2], p4[2];
 	float *v, *v1,*v2,*v3,*v4;
@@ -626,7 +690,7 @@ static int project_bucket_face_isect(ProjectPaintState *ps, float min[2], float 
 	
 	i = mf->v4 ? 3:2;
 	do {
-		v = ps->projectVertCos2D[ (*(&mf->v1 + i)) ];
+		v = ps->projectVertScreenCos[ (*(&mf->v1 + i)) ];
 		
 		if ((v[0] > bucket_bounds[PROJ_BUCKET_LEFT]) &&
 			(v[0] < bucket_bounds[PROJ_BUCKET_RIGHT]) &&
@@ -637,11 +701,11 @@ static int project_bucket_face_isect(ProjectPaintState *ps, float min[2], float 
 		}
 	} while (i--);
 		
-	v1 = ps->projectVertCos2D[mf->v1];
-	v2 = ps->projectVertCos2D[mf->v2];
-	v3 = ps->projectVertCos2D[mf->v3];
+	v1 = ps->projectVertScreenCos[mf->v1];
+	v2 = ps->projectVertScreenCos[mf->v2];
+	v3 = ps->projectVertScreenCos[mf->v3];
 	if (mf->v4) {
-		v4 = ps->projectVertCos2D[mf->v4];
+		v4 = ps->projectVertScreenCos[mf->v4];
 	}
 	
 	p1[0] = bucket_bounds[PROJ_BUCKET_LEFT];	p1[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
@@ -684,7 +748,7 @@ static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *
 	
 	i = mf->v4 ? 3:2;
 	do {
-		DO_MINMAX2(ps->projectVertCos2D[ (*(&mf->v1 + i)) ], min, max);
+		DO_MINMAX2(ps->projectVertScreenCos[ (*(&mf->v1 + i)) ], min, max);
 	} while (i--);
 	
 	project_paint_rect(ps, min, max, bucket_min, bucket_max);
@@ -704,7 +768,6 @@ static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *
 		}
 	}
 }
-#endif
 
 static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 {	
@@ -713,7 +776,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	float f_no[3];
 	
 	float projCo[4];
-	float (*projCo2D)[2];
+	float (*projScreenCo)[3];
 	
 	/* Image Vars - keep track of images we have used */
 	LinkNode *image_LinkList = NULL;
@@ -727,9 +790,6 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	MTFace *tf;
 	
 	int a, i; /* generic looping vars */
-	
-	/* raytrace for occlusion */
-	float min[3], max[3];
 	
 	/* memory sized to add to arena size */
 	int tot_bucketMem=0;
@@ -750,14 +810,10 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	ps->dm_totvert = ps->dm->getNumVerts( ps->dm );
 	ps->dm_totface = ps->dm->getNumFaces( ps->dm );
 	
-	printf("\n\nstarting\n");
-	
 	ps->bucketsX = PROJ_BUCKET_DIV;
 	ps->bucketsY = PROJ_BUCKET_DIV;
 	
 	ps->image_index = -1;
-	
-	ps->viewPoint[0] = ps->viewPoint[1] = ps->viewPoint[2] = 0.0;
 	
 	ps->viewDir[0] = 0.0;
 	ps->viewDir[1] = 0.0;
@@ -765,55 +821,24 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	
 	view3d_get_object_project_mat(curarea, s->ob, ps->projectMat, ps->viewMat);
 	
-	printmatrix4( "ps->projectMat",  ps->projectMat);
-
-	
-	
 	tot_bucketMem =		sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
-#ifdef PROJ_LAZY_INIT
 	tot_faceListMem =	sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
 	tot_faceFlagMem =	sizeof(char) * ps->dm_totface;
 	tot_bucketFlagMem =	sizeof(char) * ps->bucketsX * ps->bucketsY;
 	
-#endif
+
 	
 	ps->projectArena = BLI_memarena_new(tot_bucketMem + tot_faceListMem + tot_faceFlagMem + (1<<16) );
 	
 	ps->projectBuckets = (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketMem);
-#ifdef PROJ_LAZY_INIT
 	ps->projectFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_faceListMem);
 	ps->projectFaceFlags = (char *)BLI_memarena_alloc( ps->projectArena, tot_faceFlagMem);
 	ps->projectBucketFlags= (char *)BLI_memarena_alloc( ps->projectArena, tot_bucketFlagMem);
-#endif
 
 	memset(ps->projectBuckets,		0, tot_bucketMem);
-#ifdef PROJ_LAZY_INIT
 	memset(ps->projectFaces,		0, tot_faceListMem);
 	memset(ps->projectFaceFlags,	0, tot_faceFlagMem);
 	memset(ps->projectBucketFlags,	0, tot_bucketFlagMem);
-#endif
-	
-	/* view raytrace stuff */
-	mvert_static = ps->dm_mvert;
-	
-	memset(&ps->isec, 0, sizeof(ps->isec)); /* Initialize ray intersection */
-	ps->isec.mode= RE_RAY_SHADOW;
-	ps->isec.lay= -1;
-	
-	Mat4MulVecfl(G.vd->viewinv, ps->viewPoint);
-	
-	
-	
-	VECCOPY(G.scene->cursor, ps->viewPoint);
-	
-	if (G.vd->persp==V3D_ORTHO) { // Use the cem location in this case TODO
-		ps->viewDir[2] = 10000.0; /* ortho view needs a far off point */
-	/* Even Though this dosnt change, we cant set it here because blenders internal raytest changes the value each time */
-	//} else { /* Watch it, same endpoint for all perspective ray casts  */
-	//	VECCOPY(isec.end, viewPoint);
-	}
-
-	printmatrix4( "G.vd->viewinv",  G.vd->viewinv);
 	
 	Mat4Invert(s->ob->imat, s->ob->obmat);
 	
@@ -822,94 +847,33 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	Mat3CpyMat4(mat, s->ob->imat);
 	Mat3MulVecfl(mat, ps->viewDir);
 	
-	printmatrix3( "mat",  mat);
-	
-	/* move the viewport center into object space */
-	Mat4MulVec4fl(s->ob->imat, ps->viewPoint);
-	
-	printvecf("ps->viewDir", ps->viewDir);
-	printvecf("ps->viewPoint", ps->viewPoint);
-	
-	printmatrix4( "s->ob->imat",  s->ob->imat);
-	
 	/* calculate vert screen coords */
-	ps->projectVertCos2D = BLI_memarena_alloc( ps->projectArena, sizeof(float) * ps->dm_totvert * 2);
-	projCo2D = ps->projectVertCos2D;
+	ps->projectVertScreenCos = BLI_memarena_alloc( ps->projectArena, sizeof(float) * ps->dm_totvert * 3);
+	projScreenCo = ps->projectVertScreenCos;
 	
-	INIT_MINMAX(min, max);
 	INIT_MINMAX2(ps->viewMin2D, ps->viewMax2D);
 	
-	for(a=0; a < ps->dm_totvert; a++, projCo2D++) {
+	for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
 		VECCOPY(projCo, ps->dm_mvert[a].co);		
-		
-		/* ray-tree needs worldspace min/max, do here and save another loop */
-		if (ps->projectOcclude) {
-			DO_MINMAX(projCo, min, max);
-		}
 		
 		projCo[3] = 1.0;
 		Mat4MulVec4fl(ps->projectMat, projCo);
 		
 		if( projCo[3] > 0.001 ) {
 			/* screen space, not clamped */
-			(*projCo2D)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3];	
-			(*projCo2D)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*projCo[1]/projCo[3]; /* Maybe the Z value is useful too.. but not yet */
-			DO_MINMAX2((*projCo2D), ps->viewMin2D, ps->viewMax2D);
+			(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3];	
+			(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*projCo[1]/projCo[3];
+			(*projScreenCo)[2] = projCo[2]/projCo[3]; /* Use the depth for bucket point occlusion */
+			DO_MINMAX2((*projScreenCo), ps->viewMin2D, ps->viewMax2D);
 		} else {
-			(*projCo2D)[0] = (*projCo2D)[1] = MAXFLOAT;
+			/* TODO - deal with cases where 1 side of a face goes behind the view ? */
+			(*projScreenCo)[0] = (*projScreenCo)[1] = MAXFLOAT;
 		}
 	}
 	
 	/* only for convenience */
 	ps->viewWidth  = ps->viewMax2D[0] - ps->viewMin2D[0];
 	ps->viewHeight = ps->viewMax2D[1] - ps->viewMin2D[1];
-	
-	/* Build a ray tree so we can invalidate UV pixels that have a face infront of them */
-	if (ps->projectOcclude) {
-		
-		if (G.f & G_FACESELECT) {
-			mf = ps->dm_mface;
-			a = ps->dm_totface - 1;
-			do {
-				if (!(mf->flag & ME_HIDE)) {
-					i++;
-				}
-				mf++;
-			} while (a--);
-			
-			ps->projectRayTree =	RE_ray_tree_create(
-					64, i, min, max,
-					project_paint_begin_coords_func,
-					project_paint_begin_check_func,
-					NULL, NULL);
-			
-			mf = ps->dm_mface;
-			a = ps->dm_totface - 1;
-			
-			do {
-				if (!(mf->flag & ME_HIDE)) {
-					RE_ray_tree_add_face(ps->projectRayTree, 0, mf);
-				}
-			} while (a--);
-			
-		} else { 
-			ps->projectRayTree =	RE_ray_tree_create(
-					64, ps->dm_totface, min, max,
-					project_paint_begin_coords_func,
-					project_paint_begin_check_func,
-					NULL, NULL);
-			
-			mf = ps->dm_mface;
-			a = ps->dm_totface - 1;
-			do {
-				RE_ray_tree_add_face(ps->projectRayTree, 0, mf);
-				mf++;
-			} while (a--);
-		}
-		
-		RE_ray_tree_done(ps->projectRayTree);
-	}
-	
 	
 	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
@@ -946,12 +910,8 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 			
 			if (ibuf) {
 				/* Initialize the faces screen pixels */
-#ifdef PROJ_LAZY_INIT
 				/* Add this to a list to initialize later */
 				project_paint_begin_face_delayed_init(ps, mf, tf, a);
-#else
-				project_paint_face_init(ps, mf, tf, ibuf);
-#endif
 			}
 		}
 	}
@@ -972,9 +932,6 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 static void project_paint_end( ProjectPaintState *ps )
 {
 	BLI_memarena_free(ps->projectArena);
-	if (ps->projectOcclude)
-		RE_ray_tree_free(ps->projectRayTree);
-	
 	ps->dm->release(ps->dm);
 }
 
@@ -1537,13 +1494,12 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 			if (project_bucket_circle_isect(ps, bucket_x, bucket_y, mval_f, brush_size_sqared)) {
 				
 				bucket_index = bucket_x + (bucket_y * ps->bucketsX);
-
-	#ifdef PROJ_LAZY_INIT
+				
+				/* Check this bucket and its faces are initialized */
 				if (ps->projectBucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
 					/* This bucket may hold some uninitialized faces, initialize it */
 					project_paint_bucket_init(ps, bucket_index);
 				}
-	#endif
 
 				if ((node = ps->projectBuckets[bucket_index])) {
 				
