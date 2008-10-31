@@ -64,6 +64,7 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+#include <ffmpeg/avdevice.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -236,6 +237,7 @@ void do_init_ffmpeg()
 	if (!ffmpeg_init) {
 		ffmpeg_init = 1;
 		av_register_all();
+		avdevice_register_all();
 	}
 }
 

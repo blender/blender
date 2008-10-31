@@ -364,6 +364,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			initGameKeys();
 			initPythonConstraintBinding();
 			initMathutils();
+			//initVideoTexture();
 
 			if (sceneconverter)
 			{

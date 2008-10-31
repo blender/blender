@@ -67,6 +67,9 @@ public:
 
 	MTFace* GetMTFace(void) const;
 	unsigned int* GetMCol(void) const;
+	BL_Texture * getTex (unsigned int idx) { 
+		return (idx < MAXTEX) ? mTextures + idx : NULL; 
+	}
 
 	// for ipos
 	void UpdateIPO(
