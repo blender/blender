@@ -23,9 +23,9 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * The Original Code is: some of this file.
  *
- * Contributor(s): Jens Ole Wund (bjornmose)
+ * Contributor(s): Jens Ole Wund (bjornmose), Campbell Barton (ideasman42)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -46,6 +46,8 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_linklist.h"
+#include "BLI_memarena.h"
 #include "PIL_time.h"
 
 #include "IMB_imbuf.h"
@@ -85,6 +87,8 @@
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
 
+#include "RE_raytrace.h" /* For projection painting occlusion */
+
 #include "GPU_draw.h"
 
 #include "GHOST_Types.h"
@@ -116,6 +120,7 @@ typedef struct ImagePaintState {
 	ImBuf *canvas;
 	ImBuf *clonecanvas;
 	short clonefreefloat;
+	short project;			/* is projection texture painting enabled */
 	char *warnpackedfile;
 	char *warnmultifile;
 
@@ -125,6 +130,73 @@ typedef struct ImagePaintState {
 	int faceindex;
 	float uv[2];
 } ImagePaintState;
+
+
+/* testing options */
+#define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
+
+#define PROJ_LAZY_INIT 1
+// #define PROJ_PAINT_DEBUG 1
+
+/* projectFaceFlags options */
+#define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
+#define PROJ_FACE_INIT	1<<1	/* When we have initialized the faces data */
+#define PROJ_FACE_OWNED	1<<2	/* When the face is in 1 bucket */
+
+#define PROJ_BUCKET_NULL	0
+#define PROJ_BUCKET_INIT	1
+
+/* only for readability */
+#define PROJ_BUCKET_LEFT		0
+#define PROJ_BUCKET_RIGHT	1
+#define PROJ_BUCKET_BOTTOM	2
+#define PROJ_BUCKET_TOP		3
+
+typedef struct ProjectPaintState {
+	/* projection painting only */
+	MemArena *projectArena;		/* use for alocating many pixel structs and link-lists */
+	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ImagePaintProjectPixel's */
+#ifdef PROJ_LAZY_INIT
+	LinkNode **projectFaces;	/* projectBuckets alligned array linkList of faces overlapping each bucket */
+	char *projectBucketFlags;	/* store if the bucks have been initialized  */
+	char *projectFaceFlags;		/* store info about faces, if they are initialized etc*/
+#endif
+	int bucketsX;				/* The size of the bucket grid, the grid span's viewMin2D/viewMax2D so you can paint outsize the screen or with 2 brushes at once */
+	int bucketsY;
+	
+	Image **projectImages;		/* array of images we are painting onto while, use so we can tag for updates */
+	int projectImageTotal;		/* size of projectImages array */
+	int image_index;			/* current image, use for context switching */
+	
+	float (*projectVertCos2D)[2];	/* verts projected into floating point screen space */
+	
+	RayTree *projectRayTree;	/* ray tracing acceleration structure */
+	Isect isec;					/* re-use ray intersection var */
+	
+	/* options for projection painting */
+	short projectOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
+	short projectBackfaceCull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
+	
+	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
+	float viewMat[4][4];
+	float viewPoint[3];			/* Use only when in perspective mode with projectOcclude, the point we are viewing from, cast rays to this */
+	float viewDir[3];			/* View vector, use for projectBackfaceCull and for ray casting with an ortho viewport  */
+	
+	float viewMin2D[2];			/* 2D bounds for mesh verts on the screen's plane (screenspace) */
+	float viewMax2D[2]; 
+	float viewWidth;			/* Calculated from viewMin2D & viewMax2D */
+	float viewHeight;			
+	
+} ProjectPaintState;
+
+typedef struct ImagePaintProjectPixel {
+	float projCo2D[2]; /* the floating point screen projection of this pixel */
+	char *pixel;
+	int image_index;
+} ImagePaintProjectPixel;
+
+/* Finish projection painting structs */
+
 
 typedef struct UndoTile {
 	struct UndoTile *next, *prev;
@@ -280,6 +352,606 @@ static void undo_imagepaint_push_end()
 		}
 	}
 }
+
+
+static MVert * mvert_static = NULL;
+static void project_paint_begin_coords_func(RayFace *face, float **v1, float **v2, float **v3, float **v4)
+{
+	MFace *mface= (MFace*)face;
+
+	*v1= mvert_static[mface->v1].co;
+	*v2= mvert_static[mface->v2].co;
+	*v3= mvert_static[mface->v3].co;
+	*v4= (mface->v4)? mvert_static[mface->v4].co: NULL;
+}
+
+static int project_paint_begin_check_func(Isect *is, int ob, RayFace *face)
+{
+	return 1;
+}
+static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
+{
+	
+	/* If we were not dealing with screenspace 2D coords we could simple do...
+	 * ps->projectBuckets[x + (y*ps->bucketsY)] */
+	
+	/* please explain?
+	 * projCo2D[0] - ps->viewMin2D[0]	: zero origin
+	 * ... / ps->viewWidth				: range from 0.0 to 1.0
+	 * ... * ps->bucketsX		: use as a bucket index
+	 *
+	 * Second multiplication does similar but for vertical offset
+	 */
+	return	(	(int)(( (projCo2D[0] - ps->viewMin2D[0]) / ps->viewWidth)  * ps->bucketsX)) + 
+		(	(	(int)(( (projCo2D[1] - ps->viewMin2D[1])  / ps->viewHeight) * ps->bucketsY)) * ps->bucketsX );
+}
+
+static void project_paint_face_init(ImagePaintState *s, ProjectPaintState *ps, MFace *mf, MTFace *tf, ImBuf *ibuf)
+{
+	/* Projection vars, to get the 3D locations into screen space  */
+	ImagePaintProjectPixel *projPixel;
+	
+	float pxWorldCo[3];
+	float pxProjCo[4];
+	
+	/* UV/pixel seeking data */
+	int x; /* Image X-Pixel */
+	int y;/* Image Y-Pixel */
+	float uv[2]; /* Image floating point UV - same as x,y but from 0.0-1.0 */
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	float xmin, ymin, xmax, ymax; /* UV bounds */
+	int xmini, ymini, xmaxi, ymaxi; /* UV Bounds converted to int's for pixel */
+	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d worldspace coords */
+	float *v1co, *v2co, *v3co, *v4co; /* for convenience only */
+	
+	int i;
+	
+	/* clamp to 0-1 for now */
+	xmin = ymin = 1.0f;
+	xmax = ymax = 0.0f;
+	
+	i = mf->v4 ? 3:2;
+	do {
+		xmin = MIN2(xmin, tf->uv[i][0]);
+		ymin = MIN2(ymin, tf->uv[i][1]);
+		
+		xmax = MAX2(xmax, tf->uv[i][0]);
+		ymax = MAX2(ymax, tf->uv[i][1]);
+	} while (i--);
+	
+	xmini = (int)(ibuf->x * xmin);
+	ymini = (int)(ibuf->y * ymin);
+	
+	xmaxi = (int)(ibuf->x * xmax) +1;
+	ymaxi = (int)(ibuf->y * ymax) +1;
+	
+	/*printf("%d %d %d %d \n", xmini, ymini, xmaxi, ymaxi);*/
+	
+	if (xmini < 0) xmini = 0;
+	if (ymini < 0) ymini = 0;
+	
+	if (xmaxi > ibuf->x) xmaxi = ibuf->x;
+	if (ymaxi > ibuf->y) ymaxi = ibuf->y;
+	
+	/* face uses no UV area when quanticed to pixels? */
+	if (xmini == xmaxi || ymini == ymaxi)
+		return;
+
+	v1co = s->me->mvert[mf->v1].co;
+	v2co = s->me->mvert[mf->v2].co;
+	v3co = s->me->mvert[mf->v3].co;
+	if (mf->v4)
+		v4co = s->me->mvert[mf->v4].co;
+	
+	for (y = ymini; y < ymaxi; y++) {
+		uv[1] = (((float)y)+0.5) / (float)ibuf->y;
+		for (x = xmini; x < xmaxi; x++) {
+			uv[0] = (((float)x)+0.5) / (float)ibuf->x;
+			
+			wtot = -1.0;
+			if ( IsectPT2Df( uv, tf->uv[0], tf->uv[1], tf->uv[2] )) {
+				
+				w1 = AreaF2Dfl(tf->uv[1], tf->uv[2], uv);
+				w2 = AreaF2Dfl(tf->uv[2], tf->uv[0], uv);
+				w3 = AreaF2Dfl(tf->uv[0], tf->uv[1], uv);
+				wtot = w1 + w2 + w3;
+				
+				w1 /= wtot; w2 /= wtot; w3 /= wtot;
+				
+				i=2;
+				do {
+					pxWorldCo[i] = v1co[i]*w1 + v2co[i]*w2 + v3co[i]*w3;
+				} while (i--);
+					
+				
+			} else if ( mf->v4 && IsectPT2Df( uv, tf->uv[0], tf->uv[2], tf->uv[3] ) ) {
+				
+				w1 = AreaF2Dfl(tf->uv[2], tf->uv[3], uv);
+				w2 = AreaF2Dfl(tf->uv[3], tf->uv[0], uv);
+				w3 = AreaF2Dfl(tf->uv[0], tf->uv[2], uv);
+				wtot = w1 + w2 + w3;
+				
+				w1 /= wtot; w2 /= wtot; w3 /= wtot;
+				
+				i=2;
+				do {
+					pxWorldCo[i] = v1co[i]*w1 + v3co[i]*w2 + v4co[i]*w3;
+				} while (i--);
+			}
+			
+			/* view3d_project_float(curarea, vec, projCo2D, s->projectMat);
+			if (projCo2D[0]==IS_CLIPPED)
+				continue;*/
+			if (wtot != -1.0) {
+				
+				/* Inline, a bit faster */
+				VECCOPY(pxProjCo, pxWorldCo);
+				pxProjCo[3] = 1.0;
+				
+				Mat4MulVec4fl(ps->projectMat, pxProjCo);
+				
+				if( pxProjCo[3] > 0.001 ) {
+					/* Use viewMin2D to make (0,0) the bottom left of the bounds 
+					 * Then this can be used to index the bucket array */
+					
+					if (ps->projectOcclude) {
+						VECCOPY(ps->isec.start, pxWorldCo);
+						
+						if (G.vd->persp==V3D_ORTHO) {
+							VecAddf(ps->isec.end, pxWorldCo, ps->viewDir);
+						} else { /* value dosnt change but it is modified by RE_ray_tree_intersect() - keep this line */
+							VECCOPY(ps->isec.end, ps->viewPoint);
+						}
+
+						ps->isec.faceorig = mf;
+					}
+					
+					/* Is this UV visible from the view? - raytrace */
+					if (ps->projectOcclude==0 || !RE_ray_tree_intersect(ps->projectRayTree, &ps->isec)) {
+						
+						/* done with view3d_project_float inline */
+						projPixel = (ImagePaintProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ImagePaintProjectPixel) );
+						
+						/* screenspace unclamped */
+						projPixel->projCo2D[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pxProjCo[0]/pxProjCo[3];
+						projPixel->projCo2D[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pxProjCo[1]/pxProjCo[3];
+						
+						projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
+#ifdef PROJ_PAINT_DEBUG
+						projPixel->pixel[1] = 0;
+#endif
+						projPixel->image_index = ps->image_index;
+						
+						BLI_linklist_prepend_arena(
+							&ps->projectBuckets[ project_paint_BucketOffset(ps, projPixel->projCo2D) ],
+							projPixel,
+							ps->projectArena
+						);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+/* takes floating point screenspace min/max and returns int min/max to be used as indicies for ps->projectBuckets, ps->projectBucketFlags */
+static void project_paint_rect(ProjectPaintState *ps, float min[2], float max[2], int bucket_min[2], int bucket_max[2])
+{
+	/* divide by bucketWidth & bucketHeight so the bounds are offset in bucket grid units */
+	bucket_min[0] = (int)(((float)(min[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 0.5;
+	bucket_min[1] = (int)(((float)(min[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 0.5;
+	
+	bucket_max[0] = (int)(((float)(max[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 1.5;
+	bucket_max[1] = (int)(((float)(max[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 1.5;	
+	
+	/* incase the rect is outside the mesh 2d bounds */
+	CLAMP(bucket_min[0], 0, ps->bucketsX);
+	CLAMP(bucket_min[1], 0, ps->bucketsY);
+	
+	CLAMP(bucket_max[0], 0, ps->bucketsX);
+	CLAMP(bucket_max[1], 0, ps->bucketsY);
+}
+
+static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucket_y, float bucket_bounds[4])
+{
+	bucket_bounds[ PROJ_BUCKET_LEFT ] =		ps->viewMin2D[0]+((bucket_x)*(ps->viewWidth / ps->bucketsX));		/* left */
+	bucket_bounds[ PROJ_BUCKET_RIGHT ] =		ps->viewMin2D[0]+((bucket_x+1)*(ps->viewWidth / ps->bucketsX));	/* right */
+	
+	bucket_bounds[ PROJ_BUCKET_BOTTOM ] =	ps->viewMin2D[1]+((bucket_y)*(ps->viewHeight / ps->bucketsY));		/* bottom */
+	bucket_bounds[ PROJ_BUCKET_TOP ] =		ps->viewMin2D[1]+((bucket_y+1)*(ps->viewHeight  / ps->bucketsY));	/* top */
+}
+
+#ifdef PROJ_LAZY_INIT
+static void project_paint_bucket_init(ImagePaintState *s, ProjectPaintState *ps, int bucket_index)
+{
+	
+	LinkNode *node;
+	int face_index;
+	ImBuf *ibuf;
+	MTFace *tf;
+	
+	/*printf("\tinit bucket %d\n", bucket_index);*/
+	
+	ps->projectBucketFlags[bucket_index] = PROJ_BUCKET_INIT; 
+	
+	if ((node = ps->projectFaces[bucket_index])) {
+		do {
+			face_index = (int)node->link;
+			/* Have we initialized this face in another bucket? */
+			if ((ps->projectFaceFlags[face_index] & PROJ_FACE_INIT)==0) {
+				
+				ps->projectFaceFlags[face_index] |= PROJ_FACE_INIT;
+				
+				tf = s->me->mtface+face_index;
+				ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
+				
+				project_paint_face_init(s, ps, s->me->mface + face_index, tf, ibuf);
+			}
+			node = node->next;
+		} while (node);
+	}
+}
+
+/* We want to know if a bucket and a face overlap in screenspace
+ * 
+ * Note, if this ever returns false positives its not that bad, since a face in the bounding area will have its pixels
+ * calculated when it might not be needed later, (at the moment at least)
+ * obviously it shouldnt have bugs though */
+
+static int project_bucket_face_isect(ProjectPaintState *ps, float min[2], float max[2], int bucket_x, int bucket_y, int bucket_index, MFace *mf)
+{
+	/* TODO - replace this with a tricker method that uses sideofline for all projectVertCos2D's edges against the closest bucket corner */
+	float bucket_bounds[4];
+	float p1[2], p2[2], p3[2], p4[2];
+	float *v, *v1,*v2,*v3,*v4;
+	int i;
+	
+	project_bucket_bounds(ps, bucket_x, bucket_y, bucket_bounds);
+	
+	/* Is one of the faces verts in the bucket bounds? */
+	
+	i = mf->v4 ? 3:2;
+	do {
+		v = ps->projectVertCos2D[ (*(&mf->v1 + i)) ];
+		
+		if ((v[0] > bucket_bounds[PROJ_BUCKET_LEFT]) &&
+			(v[0] < bucket_bounds[PROJ_BUCKET_RIGHT]) &&
+			(v[1] > bucket_bounds[PROJ_BUCKET_BOTTOM]) &&
+			(v[1] < bucket_bounds[PROJ_BUCKET_TOP]) )
+		{
+			return 1;
+		}
+	} while (i--);
+		
+	v1 = ps->projectVertCos2D[mf->v1];
+	v2 = ps->projectVertCos2D[mf->v2];
+	v3 = ps->projectVertCos2D[mf->v3];
+	if (mf->v4) {
+		v4 = ps->projectVertCos2D[mf->v4];
+	}
+	
+	p1[0] = bucket_bounds[PROJ_BUCKET_LEFT];	p1[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+	p2[0] = bucket_bounds[PROJ_BUCKET_LEFT];	p2[1] = bucket_bounds[PROJ_BUCKET_TOP];
+	p3[0] = bucket_bounds[PROJ_BUCKET_RIGHT];	p3[1] = bucket_bounds[PROJ_BUCKET_TOP];
+	p4[0] = bucket_bounds[PROJ_BUCKET_RIGHT];	p4[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+		
+	if (mf->v4) {
+		if(	IsectPQ2Df(p1, v1, v2, v3, v4) || IsectPQ2Df(p2, v1, v2, v3, v4) || IsectPQ2Df(p3, v1, v2, v3, v4) || IsectPQ2Df(p4, v1, v2, v3, v4) ||
+			/* we can avoid testing v3,v1 because another intersection MUST exist if this intersects */
+			(IsectLL2Df(p1,p2, v1, v2) || IsectLL2Df(p1,p2, v2, v3) || IsectLL2Df(p1,p2, v3, v4)) ||
+			(IsectLL2Df(p2,p3, v1, v2) || IsectLL2Df(p2,p3, v2, v3) || IsectLL2Df(p2,p3, v3, v4)) ||
+			(IsectLL2Df(p3,p4, v1, v2) || IsectLL2Df(p3,p4, v2, v3) || IsectLL2Df(p3,p4, v3, v4)) ||
+			(IsectLL2Df(p4,p1, v1, v2) || IsectLL2Df(p4,p1, v2, v3) || IsectLL2Df(p4,p1, v3, v4))
+		) {
+			return 1;
+		}
+	} else {
+		if(	IsectPT2Df(p1, v1, v2, v3) || IsectPT2Df(p2, v1, v2, v3) || IsectPT2Df(p3, v1, v2, v3) || IsectPT2Df(p4, v1, v2, v3) ||
+			/* we can avoid testing v3,v1 because another intersection MUST exist if this intersects */
+			(IsectLL2Df(p1,p2, v1, v2) || IsectLL2Df(p1,p2, v2, v3)) ||
+			(IsectLL2Df(p2,p3, v1, v2) || IsectLL2Df(p2,p3, v2, v3)) ||
+			(IsectLL2Df(p3,p4, v1, v2) || IsectLL2Df(p3,p4, v2, v3)) ||
+			(IsectLL2Df(p4,p1, v1, v2) || IsectLL2Df(p4,p1, v2, v3))
+		) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static void project_paint_begin_face_delayed_init(ImagePaintState *s, ProjectPaintState *ps, MFace *mf, MTFace *tf, int face_index)
+{
+	float min[2], max[2];
+	int bucket_min[2], bucket_max[2]; /* for  ps->projectBuckets indexing */
+	int i, bucket_x, bucket_y, bucket_index;
+
+	INIT_MINMAX2(min,max);
+	
+	i = mf->v4 ? 3:2;
+	do {
+		DO_MINMAX2(ps->projectVertCos2D[ (*(&mf->v1 + i)) ], min, max);
+	} while (i--);
+	
+	project_paint_rect(ps, min, max, bucket_min, bucket_max);
+	
+	for (bucket_y = bucket_min[1]; bucket_y < bucket_max[1]; bucket_y++) {
+		for (bucket_x = bucket_min[0]; bucket_x < bucket_max[0]; bucket_x++) {
+			
+			bucket_index = bucket_x + (bucket_y * ps->bucketsX);
+			
+			if (project_bucket_face_isect(ps, min, max, bucket_x, bucket_y, bucket_index, mf)) {
+				BLI_linklist_prepend_arena(
+					&ps->projectFaces[ bucket_index ],
+					(void *)face_index, /* cast to a pointer to shut up the compiler */
+					ps->projectArena
+				);
+			}
+		}
+	}
+}
+#endif
+
+static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
+{	
+	/* Viewport vars */
+	float mat[3][3];
+	float f_no[3];
+	
+	float projCo[4];
+	float (*projCo2D)[2];
+	
+	/* Image Vars - keep track of images we have used */
+	LinkNode *image_LinkList = NULL;
+	LinkNode *node;
+	
+	Image *tpage_last = NULL;
+	ImBuf *ibuf = NULL;
+	
+	/* Face vars */
+	MFace *mf;
+	MTFace *tf;
+	
+	int a, i; /* generic looping vars */
+	
+	/* raytrace for occlusion */
+	float min[3], max[3];
+	
+	/* memory sized to add to arena size */
+	int tot_bucketMem=0;
+	int tot_faceFlagMem=0;
+	int tot_faceListMem=0;
+	int tot_bucketFlagMem=0;
+
+	/* ---- end defines ---- */
+	
+	printf("\n\nstarting\n");
+	
+	ps->bucketsX = PROJ_BUCKET_DIV;
+	ps->bucketsY = PROJ_BUCKET_DIV;
+	
+	ps->image_index = -1;
+	
+	ps->viewPoint[0] = ps->viewPoint[1] = ps->viewPoint[2] = 0.0;
+	
+	ps->viewDir[0] = 0.0;
+	ps->viewDir[1] = 0.0;
+	ps->viewDir[2] = 1.0;
+	
+	view3d_get_object_project_mat(curarea, s->ob, ps->projectMat, ps->viewMat);
+	
+	printmatrix4( "ps->projectMat",  ps->projectMat);
+
+	
+	
+	tot_bucketMem =		sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
+#ifdef PROJ_LAZY_INIT
+	tot_faceListMem =	sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
+	tot_faceFlagMem =	sizeof(char) * s->me->totface;
+	tot_bucketFlagMem =	sizeof(char) * ps->bucketsX * ps->bucketsY;
+	
+#endif
+	
+	ps->projectArena = BLI_memarena_new(tot_bucketMem + tot_faceListMem + tot_faceFlagMem + (1<<16) );
+	
+	ps->projectBuckets = (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketMem);
+#ifdef PROJ_LAZY_INIT
+	ps->projectFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_faceListMem);
+	ps->projectFaceFlags = (char *)BLI_memarena_alloc( ps->projectArena, tot_faceFlagMem);
+	ps->projectBucketFlags= (char *)BLI_memarena_alloc( ps->projectArena, tot_bucketFlagMem);
+#endif
+
+	memset(ps->projectBuckets,		0, tot_bucketMem);
+#ifdef PROJ_LAZY_INIT
+	memset(ps->projectFaces,		0, tot_faceListMem);
+	memset(ps->projectFaceFlags,	0, tot_faceFlagMem);
+	memset(ps->projectBucketFlags,	0, tot_bucketFlagMem);
+#endif
+	
+	/* view raytrace stuff */
+	mvert_static = s->me->mvert;
+	
+	memset(&ps->isec, 0, sizeof(ps->isec)); /* Initialize ray intersection */
+	ps->isec.mode= RE_RAY_SHADOW;
+	ps->isec.lay= -1;
+	
+	Mat4MulVecfl(G.vd->viewinv, ps->viewPoint);
+	
+	
+	
+	VECCOPY(G.scene->cursor, ps->viewPoint);
+	
+	if (G.vd->persp==V3D_ORTHO) { // Use the cem location in this case TODO
+		ps->viewDir[2] = 10000.0; /* ortho view needs a far off point */
+	/* Even Though this dosnt change, we cant set it here because blenders internal raytest changes the value each time */
+	//} else { /* Watch it, same endpoint for all perspective ray casts  */
+	//	VECCOPY(isec.end, viewPoint);
+	}
+
+	printmatrix4( "G.vd->viewinv",  G.vd->viewinv);
+	
+	Mat4Invert(s->ob->imat, s->ob->obmat);
+	
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	Mat3MulVecfl(mat, ps->viewDir);
+	Mat3CpyMat4(mat, s->ob->imat);
+	Mat3MulVecfl(mat, ps->viewDir);
+	
+	printmatrix3( "mat",  mat);
+	
+	/* move the viewport center into object space */
+	Mat4MulVec4fl(s->ob->imat, ps->viewPoint);
+	
+	printvecf("ps->viewDir", ps->viewDir);
+	printvecf("ps->viewPoint", ps->viewPoint);
+	
+	printmatrix4( "s->ob->imat",  s->ob->imat);
+	
+	/* calculate vert screen coords */
+	ps->projectVertCos2D = BLI_memarena_alloc( ps->projectArena, sizeof(float) * s->me->totvert * 2);
+	projCo2D = ps->projectVertCos2D;
+	
+	INIT_MINMAX(min, max);
+	INIT_MINMAX2(ps->viewMin2D, ps->viewMax2D);
+	
+	for(a=0; a<s->me->totvert; a++, projCo2D++) {
+		VECCOPY(projCo, s->me->mvert[a].co);		
+		
+		/* ray-tree needs worldspace min/max, do here and save another loop */
+		if (ps->projectOcclude) {
+			DO_MINMAX(projCo, min, max);
+		}
+		
+		projCo[3] = 1.0;
+		Mat4MulVec4fl(ps->projectMat, projCo);
+		
+		if( projCo[3] > 0.001 ) {
+			/* screen space, not clamped */
+			(*projCo2D)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3];	
+			(*projCo2D)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*projCo[1]/projCo[3]; /* Maybe the Z value is useful too.. but not yet */
+			DO_MINMAX2((*projCo2D), ps->viewMin2D, ps->viewMax2D);
+		} else {
+			(*projCo2D)[0] = (*projCo2D)[1] = MAXFLOAT;
+		}
+	}
+	
+	/* only for convenience */
+	ps->viewWidth  = ps->viewMax2D[0] - ps->viewMin2D[0];
+	ps->viewHeight = ps->viewMax2D[1] - ps->viewMin2D[1];
+	
+	/* Build a ray tree so we can invalidate UV pixels that have a face infront of them */
+	if (ps->projectOcclude) {
+		
+		if (G.f & G_FACESELECT) {
+			mf = s->me->mface;
+			a = s->me->totface - 1;
+			do {
+				if (!(mf->flag & ME_HIDE)) {
+					i++;
+				}
+				mf++;
+			} while (a--);
+			
+			ps->projectRayTree =	RE_ray_tree_create(
+					64, i, min, max,
+					project_paint_begin_coords_func,
+					project_paint_begin_check_func,
+					NULL, NULL);
+			
+			mf = s->me->mface;
+			a = s->me->totface - 1;
+			
+			do {
+				if (!(mf->flag & ME_HIDE)) {
+					RE_ray_tree_add_face(ps->projectRayTree, 0, mf);
+				}
+			} while (a--);
+			
+		} else { 
+			ps->projectRayTree =	RE_ray_tree_create(
+					64, s->me->totface, min, max,
+					project_paint_begin_coords_func,
+					project_paint_begin_check_func,
+					NULL, NULL);
+			
+			mf = s->me->mface;
+			a = s->me->totface - 1;
+			do {
+				RE_ray_tree_add_face(ps->projectRayTree, 0, mf);
+				mf++;
+			} while (a--);
+		}
+		
+		RE_ray_tree_done(ps->projectRayTree);
+	}
+	
+	
+	for( a = 0, tf = s->me->mtface, mf = s->me->mface; a < s->me->totface; mf++, tf++, a++ ) {
+		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
+			
+			if (ps->projectBackfaceCull) {
+				/* TODO - we dont really need the normal, just the direction, save a sqrt? */
+				if (mf->v4)	CalcNormFloat4(s->me->mvert[mf->v1].co, s->me->mvert[mf->v2].co, s->me->mvert[mf->v3].co, s->me->mvert[mf->v4].co, f_no);
+				else		CalcNormFloat(s->me->mvert[mf->v1].co, s->me->mvert[mf->v2].co, s->me->mvert[mf->v3].co, f_no);
+				
+				if (Inpf(f_no, ps->viewDir) < 0) {
+					continue;
+				}
+			}
+			
+			if (tpage_last != tf->tpage) {
+				ibuf= BKE_image_get_ibuf((Image *)tf->tpage, NULL);
+				
+				if (ibuf) {
+					/* TODO - replace this with not yet existant BLI_linklist_index function */
+					for	(
+						node=image_LinkList, ps->image_index=0;
+						node && node->link != tf->tpage ;
+						node = node->next, ps->image_index++
+					) {}
+					
+					if (node==NULL) { /* MemArena dosnt have an append func */
+						BLI_linklist_append(&image_LinkList, tf->tpage);
+						ps->projectImageTotal = ps->image_index+1;
+					}
+				}
+				
+				tpage_last = tf->tpage;
+			}
+			
+			if (ibuf) {
+				/* Initialize the faces screen pixels */
+#ifdef PROJ_LAZY_INIT
+				/* Add this to a list to initialize later */
+				project_paint_begin_face_delayed_init(s, ps, mf, tf, a);
+#else
+				project_paint_face_init(s, ps, mf, tf, ibuf);
+#endif
+			}
+		}
+	}
+	
+	/* build an array of images we use*/
+	ps->projectImages = BLI_memarena_alloc( ps->projectArena, sizeof(Image *) * ps->projectImageTotal);
+	
+	for (node= image_LinkList, i=0; node; node= node->next, i++) {
+		
+		ps->projectImages[i] = node->link;
+		ps->projectImages[i]->id.flag &= ~LIB_DOIT;
+		// printf("'%s' %d\n", ps->projectImages[i]->id.name+2, i);
+	}
+	/* we have built the array, discard the linked list */
+	BLI_linklist_free(image_LinkList, NULL);
+}
+
+static void project_paint_end( ProjectPaintState *ps )
+{
+	BLI_memarena_free(ps->projectArena);
+	if (ps->projectOcclude)
+		RE_ray_tree_free(ps->projectRayTree);
+}
+
 
 /* external functions */
 
@@ -569,6 +1241,8 @@ static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 	ipos[1]= (int)(pos[1] - ibufb->y/2);
 }
 
+/* dosnt run for projection painting
+ * only the old style painting in the 3d view */
 static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
 {
 	ImagePaintState *s= ((ImagePaintState*)state);
@@ -710,6 +1384,204 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	else return 0;
 }
 
+static float Vec2Lenf_nosqrt(float *v1, float *v2)
+{
+	float x, y;
+
+	x = v1[0]-v2[0];
+	y = v1[1]-v2[1];
+	return x*x+y*y;
+}
+
+static float Vec2Lenf_nosqrt_other(float *v1, float v2_1, float v2_2)
+{
+	float x, y;
+
+	x = v1[0]-v2_1;
+	y = v1[1]-v2_2;
+	return x*x+y*y;
+}
+
+/* note, use a squared value so we can use Vec2Lenf_nosqrt
+ * be sure that you have done a bounds check first or this may fail */
+static int project_bucket_circle_isect(ProjectPaintState *ps, int bucket_x, int bucket_y, float cent[2], float radius_squared)
+{
+	float bucket_bounds[4];
+	//return 1;
+	
+	project_bucket_bounds(ps, bucket_x, bucket_y, bucket_bounds);
+	
+	// printf("%d %d - %f %f %f %f - %f %f \n", bucket_x, bucket_y, bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3], cent[0], cent[1]);
+
+	/* first check if we are INSIDE the bucket */
+	/* if (	bucket_bounds[PROJ_BUCKET_LEFT] <=	cent[0] &&
+			bucket_bounds[PROJ_BUCKET_RIGHT] >=	cent[0] &&
+			bucket_bounds[PROJ_BUCKET_BOTTOM] <=	cent[1] &&
+			bucket_bounds[PROJ_BUCKET_TOP] >=	cent[1]	)
+	{
+		return 1;
+	}*/
+	
+	/* Would normally to a simple intersection test, however we know the bounds of these 2 alredy intersect 
+	 * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
+	 * this is even less work then an intersection test */
+	if (  (	bucket_bounds[PROJ_BUCKET_LEFT] <=		cent[0] &&
+			bucket_bounds[PROJ_BUCKET_RIGHT] >=		cent[0]) ||
+		  (	bucket_bounds[PROJ_BUCKET_BOTTOM] <=	cent[1] &&
+			bucket_bounds[PROJ_BUCKET_TOP] >=		cent[1]) )
+	{
+		return 1;
+	}
+	
+	/* out of bounds left */
+	if (cent[0] < bucket_bounds[PROJ_BUCKET_LEFT]) {
+		/* lower left out of radius test */
+		if (cent[1] < bucket_bounds[PROJ_BUCKET_BOTTOM]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_LEFT], bucket_bounds[PROJ_BUCKET_BOTTOM]) < radius_squared) ? 1 : 0;
+		} 
+		/* top left test */
+		else if (cent[1] > bucket_bounds[PROJ_BUCKET_TOP]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_LEFT], bucket_bounds[PROJ_BUCKET_TOP]) < radius_squared) ? 1 : 0;
+		}
+	}
+	else if (cent[0] > bucket_bounds[PROJ_BUCKET_RIGHT]) {
+		/* lower right out of radius test */
+		if (cent[1] < bucket_bounds[PROJ_BUCKET_BOTTOM]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_RIGHT], bucket_bounds[PROJ_BUCKET_BOTTOM]) < radius_squared) ? 1 : 0;
+		} 
+		/* top right test */
+		else if (cent[1] > bucket_bounds[PROJ_BUCKET_TOP]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_RIGHT], bucket_bounds[PROJ_BUCKET_TOP]) < radius_squared) ? 1 : 0;
+		}
+	}
+	
+	return 0;
+}
+
+static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintState *ps, BrushPainter *painter, short texpaint, short mval[2], double time, int update, float pressure)
+{
+	/* TODO - texpaint option : is there any use in projection painting from the image window??? - could be interesting */
+	/* TODO - floating point images */
+	//bucketWidth = ps->viewWidth/ps->bucketsX;
+	//bucketHeight = ps->viewHeight/ps->bucketsY;
+
+	LinkNode *node;
+	float mval_f[2];
+	ImagePaintProjectPixel *projPixel;
+	int redraw = 0;
+	int last_index = -1;
+	float rgba[4], alpha, dist, dist_nosqrt;
+	float brush_size_sqared;
+	float min[2], max[2]; /* brush bounds in screenspace */
+	int bucket_min[2], bucket_max[2]; /* brush bounds in bucket grid space */
+	int bucket_index;
+	int a;
+	
+	int bucket_x, bucket_y;
+	
+	mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
+	
+	min[0] = mval_f[0] - (s->brush->size/2);
+	min[1] = mval_f[1] - (s->brush->size/2);
+	
+	max[0] = mval_f[0] + (s->brush->size/2);
+	max[1] = mval_f[1] + (s->brush->size/2);
+	
+	/* offset to make this a valid bucket index */
+	project_paint_rect(ps, min, max, bucket_min, bucket_max);
+	
+	/* mouse outside the model areas? */
+	if (bucket_min[0]==bucket_max[0] || bucket_min[1]==bucket_max[1]) {
+		return 0;
+	}
+	
+	/* avoid a square root with every dist comparison */
+	brush_size_sqared = s->brush->size * s->brush->size; 
+	
+	/* printf("brush bounds %d %d %d %d\n", bucket_min[0], bucket_min[1], bucket_max[0], bucket_max[1]); */
+	
+	/* If there is ever problems with getting the bounds for the brush, set the bounds to include all */
+	/*bucket_min[0] = 0; bucket_min[1] = 0; bucket_max[0] = ps->bucketsX; bucket_max[1] = ps->bucketsY;*/
+	
+	/* no clamping needed, dont use screen bounds, use vert bounds  */
+	
+	for (bucket_y = bucket_min[1]; bucket_y < bucket_max[1]; bucket_y++) {
+		for (bucket_x = bucket_min[0]; bucket_x < bucket_max[0]; bucket_x++) {
+			
+			if (project_bucket_circle_isect(ps, bucket_x, bucket_y, mval_f, brush_size_sqared)) {
+				
+				bucket_index = bucket_x + (bucket_y * ps->bucketsX);
+
+	#ifdef PROJ_LAZY_INIT
+				if (ps->projectBucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
+					/* This bucket may hold some uninitialized faces, initialize it */
+					project_paint_bucket_init(s, ps, bucket_index);
+				}
+	#endif
+
+				if ((node = ps->projectBuckets[bucket_index])) {
+				
+					do {
+						projPixel = (ImagePaintProjectPixel *)node->link;
+#ifdef PROJ_PAINT_DEBUG
+						projPixel->pixel[0] = 0; // use for checking if the starting radius is too big
+#endif
+						
+						/*dist = Vec2Lenf(projPixel->projCo2D, mval_f);*/ /* correct but uses a sqrt */
+						dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCo2D, mval_f);
+						
+						/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
+						if (dist_nosqrt < brush_size_sqared) {
+						
+							brush_sample_tex(s->brush, projPixel->projCo2D, rgba);
+							
+							dist = (float)sqrt(dist_nosqrt);
+							
+							alpha = rgba[3]*brush_sample_falloff(s->brush, dist);
+							
+							if (alpha <= 0.0) {
+								/* do nothing */
+							} else {
+								if (alpha >= 1.0) {
+									projPixel->pixel[0] = FTOCHAR(rgba[0]*s->brush->rgb[0]);
+									projPixel->pixel[1] = FTOCHAR(rgba[1]*s->brush->rgb[1]);
+									projPixel->pixel[2] = FTOCHAR(rgba[2]*s->brush->rgb[2]);
+								} else {
+									projPixel->pixel[0] = FTOCHAR(((rgba[0]*s->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
+									projPixel->pixel[1] = FTOCHAR(((rgba[1]*s->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
+									projPixel->pixel[2] = FTOCHAR(((rgba[2]*s->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
+								}
+							} 
+							
+							if (last_index != projPixel->image_index) {
+								last_index = projPixel->image_index;
+								ps->projectImages[last_index]->id.flag |= LIB_DOIT;
+							}
+							
+						}
+						
+						node = node->next;
+					} while (node);
+				}
+			}
+		}
+	}
+
+	/* Loop over all images on this mesh and update any we have touched */
+	for (a=0; a < ps->projectImageTotal; a++) {
+		Image *ima = ps->projectImages[a];
+		if (ima->id.flag & LIB_DOIT) {
+			imapaint_image_update(ima, BKE_image_get_ibuf(ima, NULL), texpaint);
+			redraw = 1;
+			
+			ima->id.flag &= ~LIB_DOIT; /* clear for reuse */
+		}
+	}
+	
+	return redraw;
+}
+
+
 static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
 {
 	Image *newimage = NULL;
@@ -790,9 +1662,25 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 	}
 }
 
+static void imapaint_paint_stroke_project(ImagePaintState *s, ProjectPaintState *ps, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
+{
+	int redraw = 0;
+	
+	/* TODO - support more brush operations, airbrush etc */
+	{
+		redraw |= imapaint_paint_sub_stroke_project(s, ps, painter, texpaint, mval, time, 1, pressure);
+	}
+	
+	if (redraw) {
+		imapaint_redraw(0, texpaint, NULL);
+		imapaint_clear_partial_redraw();
+	}
+}
+
 void imagepaint_paint(short mousebutton, short texpaint)
 {
 	ImagePaintState s;
+	ProjectPaintState ps;
 	BrushPainter *painter;
 	ToolSettings *settings= G.scene->toolsettings;
 	short prevmval[2], mval[2];
@@ -810,6 +1698,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		s.tool = PAINT_TOOL_DRAW;
 	s.blend = s.brush->blend;
 
+	if (texpaint) /* TODO - make an option */
+		s.project = 1;
+	
 	if(texpaint) {
 		s.ob = OBACT;
 		if (!s.ob || !(s.ob->lay & G.vd->lay)) return;
@@ -844,13 +1735,21 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	time= PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
-
-	/* special exception here for too high pressure values on first touch in
-	   windows for some tablets */
-    if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
-		BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
-		imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
-
+	
+	if (s.project) {
+		/* setup projection painting data */
+		memset(&ps, 0, sizeof(ps));
+		
+		ps.projectBackfaceCull = 1;
+		ps.projectOcclude = 1;
+		
+		project_paint_begin(&s, &ps);
+		
+	} else {
+		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
+			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
+			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
+	}
 	/* paint loop */
 	do {
 		getmouseco_areawin(mval);
@@ -860,16 +1759,24 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			
 		time= PIL_check_seconds_timer();
 
-		if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
-			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
-			prevmval[0]= mval[0];
-			prevmval[1]= mval[1];
+		if (s.project) { /* Projection Painting */
+			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
+				imapaint_paint_stroke_project(&s, &ps, painter, 1, prevmval, mval, time, pressure);
+				prevmval[0]= mval[0];
+				prevmval[1]= mval[1];
+			} else
+				BIF_wait_for_statechange();
+		} else {
+			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
+				imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
+				prevmval[0]= mval[0];
+				prevmval[1]= mval[1];
+			}
+			else if (s.brush->flag & BRUSH_AIRBRUSH)
+				imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
+			else
+				BIF_wait_for_statechange();
 		}
-		else if (s.brush->flag & BRUSH_AIRBRUSH)
-			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
-		else
-			BIF_wait_for_statechange();
-
 		/* do mouse checking at the end, so don't check twice, and potentially
 		   miss a short tap */
 	} while(get_mbut() & mousebutton);
@@ -879,6 +1786,10 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	imapaint_canvas_free(&s);
 	brush_painter_free(painter);
 
+	if (s.project) {
+		project_paint_end(&ps);
+	}
+	
 	imapaint_redraw(1, texpaint, s.image);
 	undo_imagepaint_push_end();
 	
