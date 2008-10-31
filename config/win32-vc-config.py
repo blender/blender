@@ -161,6 +161,7 @@ CC = 'cl.exe'
 CXX = 'cl.exe'
 
 CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
+CXXFLAGS = ['/EHsc']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
