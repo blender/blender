@@ -72,6 +72,7 @@
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
+#include "BKE_DerivedMesh.h"
 
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
@@ -153,6 +154,16 @@ typedef struct ImagePaintState {
 #define PROJ_BUCKET_TOP		3
 
 typedef struct ProjectPaintState {
+	
+	DerivedMesh    *dm;
+	int 			dm_totface;
+	int 			dm_totvert;
+	
+	MVert 		   *dm_mvert;
+	MFace 		   *dm_mface;
+	MTFace 		   *dm_mtface;
+	
+	
 	/* projection painting only */
 	MemArena *projectArena;		/* use for alocating many pixel structs and link-lists */
 	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ImagePaintProjectPixel's */
@@ -185,7 +196,9 @@ typedef struct ProjectPaintState {
 	float viewMin2D[2];			/* 2D bounds for mesh verts on the screen's plane (screenspace) */
 	float viewMax2D[2]; 
 	float viewWidth;			/* Calculated from viewMin2D & viewMax2D */
-	float viewHeight;			
+	float viewHeight;
+	
+	
 	
 } ProjectPaintState;
 
@@ -386,7 +399,7 @@ static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
 		(	(	(int)(( (projCo2D[1] - ps->viewMin2D[1])  / ps->viewHeight) * ps->bucketsY)) * ps->bucketsX );
 }
 
-static void project_paint_face_init(ImagePaintState *s, ProjectPaintState *ps, MFace *mf, MTFace *tf, ImBuf *ibuf)
+static void project_paint_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf, ImBuf *ibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
 	ImagePaintProjectPixel *projPixel;
@@ -437,11 +450,11 @@ static void project_paint_face_init(ImagePaintState *s, ProjectPaintState *ps, M
 	if (xmini == xmaxi || ymini == ymaxi)
 		return;
 
-	v1co = s->me->mvert[mf->v1].co;
-	v2co = s->me->mvert[mf->v2].co;
-	v3co = s->me->mvert[mf->v3].co;
+	v1co = ps->dm_mvert[mf->v1].co;
+	v2co = ps->dm_mvert[mf->v2].co;
+	v3co = ps->dm_mvert[mf->v3].co;
 	if (mf->v4)
-		v4co = s->me->mvert[mf->v4].co;
+		v4co = ps->dm_mvert[mf->v4].co;
 	
 	for (y = ymini; y < ymaxi; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y;
@@ -563,7 +576,7 @@ static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucke
 }
 
 #ifdef PROJ_LAZY_INIT
-static void project_paint_bucket_init(ImagePaintState *s, ProjectPaintState *ps, int bucket_index)
+static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 {
 	
 	LinkNode *node;
@@ -583,10 +596,10 @@ static void project_paint_bucket_init(ImagePaintState *s, ProjectPaintState *ps,
 				
 				ps->projectFaceFlags[face_index] |= PROJ_FACE_INIT;
 				
-				tf = s->me->mtface+face_index;
+				tf = ps->dm_mtface+face_index;
 				ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
 				
-				project_paint_face_init(s, ps, s->me->mface + face_index, tf, ibuf);
+				project_paint_face_init(ps, ps->dm_mface + face_index, tf, ibuf);
 			}
 			node = node->next;
 		} while (node);
@@ -661,7 +674,7 @@ static int project_bucket_face_isect(ProjectPaintState *ps, float min[2], float 
 	return 0;
 }
 
-static void project_paint_begin_face_delayed_init(ImagePaintState *s, ProjectPaintState *ps, MFace *mf, MTFace *tf, int face_index)
+static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *mf, MTFace *tf, int face_index)
 {
 	float min[2], max[2];
 	int bucket_min[2], bucket_max[2]; /* for  ps->projectBuckets indexing */
@@ -726,6 +739,17 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 
 	/* ---- end defines ---- */
 	
+	/* paint onto the derived mesh
+	 * note get_viewedit_datamask checks for paint mode and will always give UVs */
+	ps->dm = mesh_get_derived_final(s->ob, get_viewedit_datamask());
+	
+	ps->dm_mvert = ps->dm->getVertArray( ps->dm );
+	ps->dm_mface = ps->dm->getFaceArray( ps->dm );
+	ps->dm_mtface= ps->dm->getFaceDataArray( ps->dm, CD_MTFACE );
+	
+	ps->dm_totvert = ps->dm->getNumVerts( ps->dm );
+	ps->dm_totface = ps->dm->getNumFaces( ps->dm );
+	
 	printf("\n\nstarting\n");
 	
 	ps->bucketsX = PROJ_BUCKET_DIV;
@@ -748,7 +772,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	tot_bucketMem =		sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
 #ifdef PROJ_LAZY_INIT
 	tot_faceListMem =	sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
-	tot_faceFlagMem =	sizeof(char) * s->me->totface;
+	tot_faceFlagMem =	sizeof(char) * ps->dm_totface;
 	tot_bucketFlagMem =	sizeof(char) * ps->bucketsX * ps->bucketsY;
 	
 #endif
@@ -770,7 +794,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 #endif
 	
 	/* view raytrace stuff */
-	mvert_static = s->me->mvert;
+	mvert_static = ps->dm_mvert;
 	
 	memset(&ps->isec, 0, sizeof(ps->isec)); /* Initialize ray intersection */
 	ps->isec.mode= RE_RAY_SHADOW;
@@ -809,14 +833,14 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	printmatrix4( "s->ob->imat",  s->ob->imat);
 	
 	/* calculate vert screen coords */
-	ps->projectVertCos2D = BLI_memarena_alloc( ps->projectArena, sizeof(float) * s->me->totvert * 2);
+	ps->projectVertCos2D = BLI_memarena_alloc( ps->projectArena, sizeof(float) * ps->dm_totvert * 2);
 	projCo2D = ps->projectVertCos2D;
 	
 	INIT_MINMAX(min, max);
 	INIT_MINMAX2(ps->viewMin2D, ps->viewMax2D);
 	
-	for(a=0; a<s->me->totvert; a++, projCo2D++) {
-		VECCOPY(projCo, s->me->mvert[a].co);		
+	for(a=0; a < ps->dm_totvert; a++, projCo2D++) {
+		VECCOPY(projCo, ps->dm_mvert[a].co);		
 		
 		/* ray-tree needs worldspace min/max, do here and save another loop */
 		if (ps->projectOcclude) {
@@ -844,8 +868,8 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	if (ps->projectOcclude) {
 		
 		if (G.f & G_FACESELECT) {
-			mf = s->me->mface;
-			a = s->me->totface - 1;
+			mf = ps->dm_mface;
+			a = ps->dm_totface - 1;
 			do {
 				if (!(mf->flag & ME_HIDE)) {
 					i++;
@@ -859,8 +883,8 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 					project_paint_begin_check_func,
 					NULL, NULL);
 			
-			mf = s->me->mface;
-			a = s->me->totface - 1;
+			mf = ps->dm_mface;
+			a = ps->dm_totface - 1;
 			
 			do {
 				if (!(mf->flag & ME_HIDE)) {
@@ -870,13 +894,13 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 			
 		} else { 
 			ps->projectRayTree =	RE_ray_tree_create(
-					64, s->me->totface, min, max,
+					64, ps->dm_totface, min, max,
 					project_paint_begin_coords_func,
 					project_paint_begin_check_func,
 					NULL, NULL);
 			
-			mf = s->me->mface;
-			a = s->me->totface - 1;
+			mf = ps->dm_mface;
+			a = ps->dm_totface - 1;
 			do {
 				RE_ray_tree_add_face(ps->projectRayTree, 0, mf);
 				mf++;
@@ -887,13 +911,13 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	}
 	
 	
-	for( a = 0, tf = s->me->mtface, mf = s->me->mface; a < s->me->totface; mf++, tf++, a++ ) {
+	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
 			
 			if (ps->projectBackfaceCull) {
 				/* TODO - we dont really need the normal, just the direction, save a sqrt? */
-				if (mf->v4)	CalcNormFloat4(s->me->mvert[mf->v1].co, s->me->mvert[mf->v2].co, s->me->mvert[mf->v3].co, s->me->mvert[mf->v4].co, f_no);
-				else		CalcNormFloat(s->me->mvert[mf->v1].co, s->me->mvert[mf->v2].co, s->me->mvert[mf->v3].co, f_no);
+				if (mf->v4)	CalcNormFloat4(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, f_no);
+				else		CalcNormFloat(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, f_no);
 				
 				if (Inpf(f_no, ps->viewDir) < 0) {
 					continue;
@@ -924,9 +948,9 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 				/* Initialize the faces screen pixels */
 #ifdef PROJ_LAZY_INIT
 				/* Add this to a list to initialize later */
-				project_paint_begin_face_delayed_init(s, ps, mf, tf, a);
+				project_paint_begin_face_delayed_init(ps, mf, tf, a);
 #else
-				project_paint_face_init(s, ps, mf, tf, ibuf);
+				project_paint_face_init(ps, mf, tf, ibuf);
 #endif
 			}
 		}
@@ -950,6 +974,8 @@ static void project_paint_end( ProjectPaintState *ps )
 	BLI_memarena_free(ps->projectArena);
 	if (ps->projectOcclude)
 		RE_ray_tree_free(ps->projectRayTree);
+	
+	ps->dm->release(ps->dm);
 }
 
 
@@ -1515,7 +1541,7 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 	#ifdef PROJ_LAZY_INIT
 				if (ps->projectBucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
 					/* This bucket may hold some uninitialized faces, initialize it */
-					project_paint_bucket_init(s, ps, bucket_index);
+					project_paint_bucket_init(ps, bucket_index);
 				}
 	#endif
 
