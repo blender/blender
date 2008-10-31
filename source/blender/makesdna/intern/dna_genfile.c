@@ -1,4 +1,4 @@
-/* genfile.c
+/* dna_genfile.c
  *
  * Functions for struct-dna, the genetic file dot c!
  *
@@ -31,32 +31,15 @@
  * DNA handling
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifndef WIN32 
-#include <unistd.h> // for read close
-#else
-#include <io.h> // for open close read
-#endif
-
-#include <string.h> // strncmp
-#include <stdio.h> // for printf
-#include <stdlib.h> // for atoi
-#include <fcntl.h> // for open O_RDONLY
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h" // for MEM_freeN MEM_mallocN MEM_callocN
-#include "BLI_blenlib.h"      // for  BLI_filesize
 
-#include "BKE_utildefines.h" // for O_BINARY TRUE MIN2
-
+#include "DNA_genfile.h"
 #include "DNA_sdna_types.h" // for SDNA ;-)
 
-#include "BLO_writefile.h"
-#include "BLO_genfile.h"
-
-#include "genfile.h"
 
 /* gcc 4.1 on mingw was complaining that __int64 was alredy defined
 actually is saw the line below as typedef long long long long... 
@@ -179,31 +162,31 @@ static int le_int(int temp)
 /* ************************* MAKE DNA ********************** */
 
 /* allowed duplicate code from makesdna.c */
-static int arraysize(char *astr, int len)
+int DNA_elem_array_size(const char *astr, int len)
 {
-        int a, mul=1;
-        char str[100], *cp=0;
+	int a, mul=1;
+	char str[100], *cp=0;
 
-        memcpy(str, astr, len+1);
+	memcpy(str, astr, len+1);
 
-        for(a=0; a<len; a++) {
-                if( str[a]== '[' ) {
-                        cp= &(str[a+1]);
-                }
-                else if( str[a]==']' && cp) {
-                        str[a]= 0;
-                        mul*= atoi(cp);
-                }
-        }
+	for(a=0; a<len; a++) {
+		if( str[a]== '[' ) {
+			cp= &(str[a+1]);
+		}
+		else if( str[a]==']' && cp) {
+			str[a]= 0;
+			mul*= atoi(cp);
+		}
+	}
 
-        return mul;
+	return mul;
 }
 
 /* ************************* END MAKE DNA ********************** */
 
 /* ************************* DIV ********************** */
 
-void dna_freestructDNA(struct SDNA *sdna)
+void DNA_sdna_free(SDNA *sdna)
 {
 	MEM_freeN(sdna->data);
 	MEM_freeN(sdna->names);
@@ -213,7 +196,13 @@ void dna_freestructDNA(struct SDNA *sdna)
 	MEM_freeN(sdna);
 }
 
-static int elementsize(struct SDNA *sdna, short type, short name)
+static int ispointer(char *name)
+{
+	/* check if pointer or function pointer */
+	return (name[0]=='*' || (name[0]=='(' && name[1]=='*'));
+}
+
+static int elementsize(SDNA *sdna, short type, short name)
 /* call with numbers from struct-array */
 {
 	int mul, namelen, len;
@@ -224,17 +213,17 @@ static int elementsize(struct SDNA *sdna, short type, short name)
 	
 	namelen= strlen(cp);
 	/* is it a pointer or function pointer? */
-	if(cp[0]=='*' || cp[1]=='*') {
+	if(ispointer(cp)) {
 		/* has the naam an extra length? (array) */
 		mul= 1;
-		if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
+		if( cp[namelen-1]==']') mul= DNA_elem_array_size(cp, namelen);
 		
 		len= sdna->pointerlen*mul;
 	}
 	else if( sdna->typelens[type] ) {
 		/* has the naam an extra length? (array) */
 		mul= 1;
-		if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
+		if( cp[namelen-1]==']') mul= DNA_elem_array_size(cp, namelen);
 		
 		len= mul*sdna->typelens[type];
 		
@@ -244,7 +233,7 @@ static int elementsize(struct SDNA *sdna, short type, short name)
 }
 
 #if 0
-static void printstruct(struct SDNA *sdna, short strnr)
+static void printstruct(SDNA *sdna, short strnr)
 {
 	/* is for debug */
 	int b, nr;
@@ -262,7 +251,7 @@ static void printstruct(struct SDNA *sdna, short strnr)
 }
 #endif
 
-static short *findstruct_name(struct SDNA *sdna, char *str)
+static short *findstruct_name(SDNA *sdna, char *str)
 {
 	int a;
 	short *sp=0;
@@ -278,7 +267,7 @@ static short *findstruct_name(struct SDNA *sdna, char *str)
 	return 0;
 }
 
-int dna_findstruct_nr(struct SDNA *sdna, char *str)
+int DNA_struct_find_nr(SDNA *sdna, const char *str)
 {
 	short *sp=0;
 	int a;
@@ -305,11 +294,11 @@ int dna_findstruct_nr(struct SDNA *sdna, char *str)
 
 /* ************************* READ DNA ********************** */
 
-static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
+static void init_structDNA(SDNA *sdna, int do_endian_swap)
 /* in sdna->data the data, now we convert that to something understandable */
 {
 	int *data, *verg;
-	long nr;
+	long nr; /* intptr_t 2.48 XXX */
 	short *sp;
 	char str[8], *cp;
 	
@@ -345,7 +334,7 @@ static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
 			cp++;
 			nr++;
 		}
-		nr= (long)cp;		/* prevent BUS error */
+		nr= (long)cp;		/* prevent BUS error */ /* intptr_t 2.48 XXX */
 		nr= (nr+3) & ~3;
 		cp= (char *)nr;
 		
@@ -383,7 +372,7 @@ static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
 			cp++;
 			nr++;
 		}
-		nr= (long)cp;		/* prevent BUS error */
+		nr= (long)cp;		/* prevent BUS error */ /* intptr_t 2.48 XXX */
 		nr= (nr+3) & ~3;
 		cp= (char *)nr;
 		
@@ -471,9 +460,9 @@ static void init_structDNA(struct SDNA *sdna, int do_endian_swap)
 	}
 }
 
-struct SDNA *dna_sdna_from_data(void *data, int datalen, int do_endian_swap)
+SDNA *DNA_sdna_from_data(void *data, int datalen, int do_endian_swap)
 {
-	struct SDNA *sdna= MEM_mallocN(sizeof(*sdna), "sdna");
+	SDNA *sdna= MEM_mallocN(sizeof(*sdna), "sdna");
 	
 	sdna->lastfind= 0;
 
@@ -490,7 +479,7 @@ struct SDNA *dna_sdna_from_data(void *data, int datalen, int do_endian_swap)
 
 /* ******************* HANDLE DNA ***************** */
 
-static void recurs_test_compflags(struct SDNA *sdna, char *compflags, int structnr)
+static void recurs_test_compflags(SDNA *sdna, char *compflags, int structnr)
 {
 	int a, b, typenr, elems;
 	short *sp;
@@ -508,7 +497,7 @@ static void recurs_test_compflags(struct SDNA *sdna, char *compflags, int struct
 			for(b=0; b<elems; b++, sp+=2) {
 				if(sp[0]==typenr) {
 					cp= sdna->names[ sp[1] ];
-					if(cp[0]!= '*') {
+					if(!ispointer(cp)) {
 						compflags[a]= 2;
 						recurs_test_compflags(sdna, compflags, a);
 					}
@@ -530,7 +519,7 @@ static void recurs_test_compflags(struct SDNA *sdna, char *compflags, int struct
  */
 
 
-char *dna_get_structDNA_compareflags(struct SDNA *sdna, struct SDNA *newsdna)
+char *DNA_struct_get_compareflags(SDNA *sdna, SDNA *newsdna)
 {
 	/* flag: 0: doesn't exist anymore (or not yet)
 	 *       1: is equal
@@ -579,7 +568,7 @@ char *dna_get_structDNA_compareflags(struct SDNA *sdna, struct SDNA *newsdna)
 						 if(strcmp(str1, str2)!=0) break;
 						 
 						 /* same type and same name, now pointersize */
-						 if(str1[0]=='*') {
+						 if(ispointer(str1)) {
 							 if(sdna->pointerlen!=newsdna->pointerlen) break;
 						 }
 						 
@@ -624,7 +613,7 @@ static void cast_elem(char *ctype, char *otype, char *name, char *curdata, char 
 	double val = 0.0;
 	int arrlen, curlen=1, oldlen=1, ctypenr, otypenr;
 	
-	arrlen= arraysize(name, strlen(name));
+	arrlen= DNA_elem_array_size(name, strlen(name));
 	
 	/* define otypenr */
 	if(strcmp(otype, "char")==0) otypenr= 0; 
@@ -721,7 +710,7 @@ static void cast_pointer(int curlen, int oldlen, char *name, char *curdata, char
 #endif
 	int arrlen;
 	
-	arrlen= arraysize(name, strlen(name));
+	arrlen= DNA_elem_array_size(name, strlen(name));
 	
 	while(arrlen>0) {
 	
@@ -761,7 +750,7 @@ static int elem_strcmp(char *name, char *oname)
 	
 	/* strcmp without array part */
 	
-	while(TRUE) {
+	while(1) {
 		if(name[a] != oname[a]) return 1;
 		if(name[a]=='[') break;
 		if(name[a]==0) break;
@@ -771,7 +760,7 @@ static int elem_strcmp(char *name, char *oname)
 	return 0;
 }
 
-static char *find_elem(struct SDNA *sdna, char *type, char *name, short *old, char *olddata, short **sppo)
+static char *find_elem(SDNA *sdna, char *type, char *name, short *old, char *olddata, short **sppo)
 {
 	int a, elemcount, len;
 	char *otype, *oname;
@@ -802,7 +791,7 @@ static char *find_elem(struct SDNA *sdna, char *type, char *name, short *old, ch
 	return 0;
 }
 
-static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *type, char *name, char *curdata, short *old, char *olddata)
+static void reconstruct_elem(SDNA *newsdna, SDNA *oldsdna, char *type, char *name, char *curdata, short *old, char *olddata)
 {
 	/* rules: test for NAME:
 			- name equal:
@@ -834,7 +823,7 @@ static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *t
 		
 		if( strcmp(name, oname)==0 ) {	/* name equal */
 			
-			if( name[0]=='*') {		/* pointer afhandelen */
+			if(ispointer(name)) {	/* pointer of functionpointer afhandelen */
 				cast_pointer(newsdna->pointerlen, oldsdna->pointerlen, name, curdata, olddata);
 			}
 			else if( strcmp(type, otype)==0 ) {	/* type equal */
@@ -848,16 +837,16 @@ static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *t
 
 			if(oname[array]=='[' && strncmp(name, oname, array)==0 ) {			/* basis equal */
 				
-				cursize= arraysize(name, strlen(name));
-				oldsize= arraysize(oname, strlen(oname));
+				cursize= DNA_elem_array_size(name, strlen(name));
+				oldsize= DNA_elem_array_size(oname, strlen(oname));
 
-				if( name[0]=='*') {		/* handle pointer */
+				if(ispointer(name)) {		/* handle pointer or functionpointer */
 					if(cursize>oldsize) cast_pointer(newsdna->pointerlen, oldsdna->pointerlen, oname, curdata, olddata);
 					else cast_pointer(newsdna->pointerlen, oldsdna->pointerlen, name, curdata, olddata);
 				}
 				else if(name[0]=='*' || strcmp(type, otype)==0 ) {	/* type equal */
 					mul= len/oldsize;
-					mul*= MIN2(cursize, oldsize);
+					mul*= (cursize < oldsize)? cursize: oldsize;
 					memcpy(curdata, olddata, mul);
 				}
 				else {
@@ -871,7 +860,7 @@ static void reconstruct_elem(struct SDNA *newsdna, struct SDNA *oldsdna, char *t
 	}
 }
 
-static void reconstruct_struct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, char *data, int curSDNAnr, char *cur)
+static void reconstruct_struct(SDNA *newsdna, SDNA *oldsdna, char *compflags, int oldSDNAnr, char *data, int curSDNAnr, char *cur)
 {
 	/* Recursive!
 	 * Per element from cur_struct, read data from old_struct.
@@ -909,19 +898,19 @@ static void reconstruct_struct(struct SDNA *newsdna, struct SDNA *oldsdna, char 
 		elen= elementsize(newsdna, spc[0], spc[1]);
 
 		/* test: is type a struct? */
-		if(spc[0]>=firststructtypenr  &&  name[0]!='*') {
+		if(spc[0]>=firststructtypenr  &&  !ispointer(name)) {
 		
 			/* where does the old struct data start (and is there an old one?) */
 			cpo= find_elem(oldsdna, type, name, spo, data, &sppo);
 			
 			if(cpo) {
-				oldSDNAnr= dna_findstruct_nr(oldsdna, type);
-				curSDNAnr= dna_findstruct_nr(newsdna, type);
+				oldSDNAnr= DNA_struct_find_nr(oldsdna, type);
+				curSDNAnr= DNA_struct_find_nr(newsdna, type);
 				
 				/* array! */
-				mul= arraysize(name, strlen(name));
+				mul= DNA_elem_array_size(name, strlen(name));
 				nameo= oldsdna->names[sppo[1]];
-				mulo= arraysize(nameo, strlen(nameo));
+				mulo= DNA_elem_array_size(nameo, strlen(nameo));
 				
 				eleno= elementsize(oldsdna, sppo[0], sppo[1]);
 				
@@ -949,7 +938,7 @@ static void reconstruct_struct(struct SDNA *newsdna, struct SDNA *oldsdna, char 
 	}
 }
 
-void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
+void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 {
 	/* Recursive!
 	 * If element is a struct, call recursive.
@@ -976,27 +965,27 @@ void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
 		elen= elementsize(oldsdna, spc[0], spc[1]);
 
 		/* test: is type a struct? */
-		if(spc[0]>=firststructtypenr  &&  name[0]!='*') {
+		if(spc[0]>=firststructtypenr  &&  !ispointer(name)) {
 			/* where does the old data start (is there one?) */
 			cpo= find_elem(oldsdna, type, name, spo, data, 0);
 			if(cpo) {
-				oldSDNAnr= dna_findstruct_nr(oldsdna, type);
+				oldSDNAnr= DNA_struct_find_nr(oldsdna, type);
 				
-				mul= arraysize(name, strlen(name));
+				mul= DNA_elem_array_size(name, strlen(name));
 				elena= elen/mul;
 
 				while(mul--) {
-					dna_switch_endian_struct(oldsdna, oldSDNAnr, cpo);
+					DNA_struct_switch_endian(oldsdna, oldSDNAnr, cpo);
 					cpo += elena;
 				}
 			}
 		}
 		else {
 			
-			if( name[0]=='*' ) {
+			if(ispointer(name)) {
 				if(oldsdna->pointerlen==8) {
 					
-					mul= arraysize(name, strlen(name));
+					mul= DNA_elem_array_size(name, strlen(name));
 					cpo= cur;
 					while(mul--) {
 						cval= cpo[0]; cpo[0]= cpo[7]; cpo[7]= cval;
@@ -1023,7 +1012,7 @@ void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
 					}
 					
 					if(skip==0) {
-						mul= arraysize(name, strlen(name));
+						mul= DNA_elem_array_size(name, strlen(name));
 						cpo= cur;
 						while(mul--) {
 							cval= cpo[0];
@@ -1035,7 +1024,7 @@ void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
 				}
 				else if(spc[0]>3 && spc[0]<8) { /* int-long-ulong-float */
 
-					mul= arraysize(name, strlen(name));
+					mul= DNA_elem_array_size(name, strlen(name));
 					cpo= cur;
 					while(mul--) {
 						cval= cpo[0];
@@ -1053,7 +1042,7 @@ void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data)
 	}
 }
 
-void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data)
+void *DNA_struct_reconstruct(SDNA *newsdna, SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data)
 {
 	int a, curSDNAnr, curlen=0, oldlen;
 	short *spo, *spc;
@@ -1063,7 +1052,7 @@ void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflag
 	spo= oldsdna->structs[oldSDNAnr];
 	type= oldsdna->types[ spo[0] ];
 	oldlen= oldsdna->typelens[ spo[0] ];
-	curSDNAnr= dna_findstruct_nr(newsdna, type);
+	curSDNAnr= DNA_struct_find_nr(newsdna, type);
 
 	/* init data and alloc */
 	if(curSDNAnr >= 0) {
@@ -1086,14 +1075,12 @@ void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflag
 	return cur;
 }
 
-int dna_elem_offset(struct SDNA *sdna, char *stype, char *vartype, char *name)
+int DNA_elem_offset(SDNA *sdna, char *stype, char *vartype, char *name)
 {
 	
-	int SDNAnr= dna_findstruct_nr(sdna, stype);
+	int SDNAnr= DNA_struct_find_nr(sdna, stype);
 	short *spo= sdna->structs[SDNAnr];
 	char *cp= find_elem(sdna, vartype, name, spo, NULL, NULL);
-	return (int)((long)cp);
+	return (int)((long)cp); /* intptr_t 2.48 XXX */
 }
-
-
 

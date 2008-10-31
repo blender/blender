@@ -1,4 +1,4 @@
-/*
+/**
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -17,30 +17,36 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation (2008).
  *
  * ***** END GPL LICENSE BLOCK *****
- * blenloader genfile private function prototypes
  */
 
-#ifndef GENFILE_H
-#define GENFILE_H
+#include <stdlib.h>
 
-struct SDNA;
+#include "RNA_define.h"
+#include "RNA_types.h"
 
-int dna_findstruct_nr(struct SDNA *sdna, char *str);
-char *dna_get_structDNA_compareflags(struct SDNA *sdna, struct SDNA *newsdna);
-void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data);
-void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data);
-int dna_elem_offset(struct SDNA *sdna, char *stype, char *vartype, char *name);
+#include "DNA_object_types.h"
 
-struct SDNA *dna_sdna_from_data(void *data, int datalen, int do_endian_swap);
-void dna_freestructDNA(struct SDNA *sdna);
+#ifdef RNA_RUNTIME
+
+#else
+
+void RNA_def_object(BlenderRNA *brna)
+{
+	StructRNA *strct;
+	PropertyRNA *prop;
+	
+	strct= RNA_def_struct(brna, "Object", "Object");
+
+	prop= RNA_def_property(strct, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, "ID", "name");
+	RNA_def_property_ui_text(prop, "Name", "Object ID name.");
+	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
+
+	RNA_def_struct_name_property(strct, prop);
+}
 
 #endif
 

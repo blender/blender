@@ -100,6 +100,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_curve_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
@@ -168,7 +169,6 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLO_undofile.h"
 
 #include "readfile.h"
-#include "genfile.h"
 
 #include <errno.h>
 
@@ -186,9 +186,6 @@ typedef struct {
 
 static WriteData *writedata_new(int file)
 {
-	extern unsigned char DNAstr[];	/* DNA.c */
-	extern int DNAlen;
-
 	WriteData *wd= MEM_callocN(sizeof(*wd), "writedata");
 
 		/* XXX, see note about this in readfile.c, remove
@@ -197,7 +194,7 @@ static WriteData *writedata_new(int file)
 
 	if (wd == NULL) return NULL;
 
-	wd->sdna= dna_sdna_from_data(DNAstr, DNAlen, 0);
+	wd->sdna= DNA_sdna_from_data(DNAstr, DNAlen, 0);
 
 	wd->file= file;
 
@@ -224,7 +221,7 @@ static void writedata_do_write(WriteData *wd, void *mem, int memlen)
 
 static void writedata_free(WriteData *wd)
 {
-	dna_freestructDNA(wd->sdna);
+	DNA_sdna_free(wd->sdna);
 
 	MEM_freeN(wd->buf);
 	MEM_freeN(wd);
@@ -329,7 +326,7 @@ static void writestruct(WriteData *wd, int filecode, char *structname, int nr, v
 	bh.old= adr;
 	bh.nr= nr;
 
-	bh.SDNAnr= dna_findstruct_nr(wd->sdna, structname);
+	bh.SDNAnr= DNA_struct_find_nr(wd->sdna, structname);
 	if(bh.SDNAnr== -1) {
 		printf("error: can't find SDNA code <%s>\n", structname);
 		return;

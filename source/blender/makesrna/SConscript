@@ -1,0 +1,11 @@
+#!/usr/bin/python
+Import ('env')
+
+objs = []
+
+o = SConscript('intern/SConscript')
+objs += o
+
+incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
+
+env.BlenderLib ( 'bf_rna', objs, Split(incs), [], libtype=['common','intern'], priority = [95, 95] )

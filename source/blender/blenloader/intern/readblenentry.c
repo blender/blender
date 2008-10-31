@@ -43,6 +43,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 
+#include "DNA_genfile.h"
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -59,7 +60,6 @@
 #include "BLO_undofile.h"
 
 #include "readfile.h"
-#include "genfile.h"
 
 #include "BLO_readblenfile.h"
 
@@ -237,7 +237,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 			}
 		} else if (bhead->code==DATA) {
 			if (looking) {
-				if (bhead->SDNAnr == dna_findstruct_nr(fd->filesdna, "PreviewImage") ) {
+				if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage") ) {
 					prv = (PreviewImage*) (bhead+1);
 					npreviews = 0;				
 					memcpy(new_prv, prv, sizeof(PreviewImage));

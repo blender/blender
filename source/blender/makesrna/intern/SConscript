@@ -1,0 +1,49 @@
+#!/usr/bin/python
+import sys
+import os
+
+Import ('env')
+cflags = ''
+defines = []
+root_build_dir=env['BF_BUILDDIR']
+
+source_files = env.Glob('*.c')
+
+# making rna_access.c part of both makesrna and blender seems to
+# give conflict, how to solve?
+source_files.remove('rna_access.c')
+
+makesrna_tool = env.Copy()
+rna = env.Copy()
+makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
+
+makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
+                                 '../../makesdna',
+                                 '../../makesrna'])
+
+if env['OURPLATFORM'] == 'linuxcross':
+    makesrna_tool.Replace(CC='gcc')
+    makesrna_tool.Replace(AR='ar')
+    makesrna_tool.Replace(LINK='gcc')
+
+if sys.platform != 'cygwin':
+    makesrna_tool.Append (CCFLAGS = cflags)
+makesrna_tool.Append (CPPDEFINES = defines)
+makesrna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
+if env['BF_PROFILE']:
+	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
+
+if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
+    makesrna = makesrna_tool.Program (target = root_build_dir+'/makesrna', source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+else:
+    makesrna = makesrna_tool.Program (target = '#'+root_build_dir+'/makesrna', source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+
+rna_dict = rna.Dictionary()
+rna.Depends ('rna.c', makesrna)
+if env['OURPLATFORM'] != 'linuxcross':
+    rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna $TARGET")
+else:
+    rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna.exe $TARGET")
+obj = ['intern/rna.c', 'intern/rna_access.c']
+Return ('obj')
+

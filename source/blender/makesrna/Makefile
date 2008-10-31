@@ -17,35 +17,15 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
-# All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): none yet.
+# Contributor(s): Blender Foundation (2008).
 #
 # ***** END GPL LICENSE BLOCK *****
 #
+# This module does not build normal .o's, but a RNA.c file, to be
+# compiled with the rest of the sources.
 #
 
-include nan_definitions.mk
-
-DIRS = windowmanager editors blenloader readblenfile
-DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += nodes
-DIRS += makesdna makesrna yafray
-DIRS += python
-
-ifeq ($(INTERNATIONAL), true)
-	DIRS += ftfont
-endif
-
-ifeq ($(WITH_QUICKTIME), true)
-	DIRS += quicktime
-endif
-
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
+SOURCEDIR = source/blender/makesrna
+DIRS = intern
 
 include nan_subdirs.mk

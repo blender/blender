@@ -25,11 +25,28 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * external genfile function prototypes
+ * blenloader genfile private function prototypes
  */
 
-#ifndef BLO_GENFILE_H
-#define BLO_GENFILE_H
+#ifndef GENFILE_H
+#define GENFILE_H
+
+struct SDNA;
+
+extern unsigned char DNAstr[];  /* DNA.c */
+extern int DNAlen;
+
+struct SDNA *DNA_sdna_from_data(void *data, int datalen, int do_endian_swap);
+void DNA_sdna_free(struct SDNA *sdna);
+
+int DNA_struct_find_nr(struct SDNA *sdna, const char *str);
+void DNA_struct_switch_endian(struct SDNA *oldsdna, int oldSDNAnr, char *data);
+char *DNA_struct_get_compareflags(struct SDNA *sdna, struct SDNA *newsdna);
+void *DNA_struct_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data);
+
+int DNA_elem_array_size(const char *astr, int len);
+int DNA_elem_offset(struct SDNA *sdna, char *stype, char *vartype, char *name);
 
 #endif
+
 

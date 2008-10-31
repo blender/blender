@@ -73,8 +73,7 @@ endif
 # PLUGAPPLIB libs that form the application to be plugged in
 # Note: the order is important here
 
-GRPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
-GRPLIB += $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
+GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
 GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
@@ -149,6 +148,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(NAN_BULLET2)/lib/libbullet2.a
 endif
 
+COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
@@ -230,7 +230,7 @@ PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
-
+PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a
@@ -244,12 +244,12 @@ SPLIB1 += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
 SPLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 SPLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
-SPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
-SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+SPLIB = $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 # this is used for the plugin. It uses some things from libz.a, 
 # but somehow it consistently fails to resolve these symbols... or 
 # can I just not check them? nm claims they aren't...
 SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
+SPLIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 
 # These three need to be explicitly mentioned on the cl, because 
 # if they are offered as a lib, they are optimized away. (nzc)

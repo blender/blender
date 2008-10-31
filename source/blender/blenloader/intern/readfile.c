@@ -27,10 +27,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "zlib.h"
 
 #ifdef WIN32
@@ -51,8 +47,6 @@
     #include <io.h> // for open close read
 #endif
 
-//XXX #include "nla.h"
-
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_ID.h"
@@ -66,6 +60,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
+#include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_image_types.h"
@@ -144,8 +139,6 @@
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
 
 #include "readfile.h"
-
-#include "genfile.h"
 
 //XXX #include "wm_event_types.h"
 
@@ -792,12 +785,12 @@ static int read_file_dna(FileData *fd)
 		if (bhead->code==DNA1) {
 			int do_endian_swap= (fd->flags&FD_FLAGS_SWITCH_ENDIAN)?1:0;
 
-			fd->filesdna= dna_sdna_from_data(&bhead[1], bhead->len, do_endian_swap);
+			fd->filesdna= DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap);
 			if (fd->filesdna) {
 				
-				fd->compflags= dna_get_structDNA_compareflags(fd->filesdna, fd->memsdna);
+				fd->compflags= DNA_struct_get_compareflags(fd->filesdna, fd->memsdna);
 				/* used to retrieve ID names from (bhead+1) */
-				fd->id_name_offs= dna_elem_offset(fd->filesdna, "ID", "char", "name[]");
+				fd->id_name_offs= DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
 			}
 
 			return 1;
@@ -895,8 +888,6 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 
 static FileData *filedata_new(void)
 {
-	extern unsigned char DNAstr[];	/* DNA.c */
-	extern int DNAlen;
 	FileData *fd = MEM_callocN(sizeof(FileData), "FileData");
 
 	fd->filedes = -1;
@@ -906,7 +897,7 @@ static FileData *filedata_new(void)
 		 * but it keeps us reentrant,  remove once we have
 		 * a lib that provides a nice lock. - zr
 		 */
-	fd->memsdna = dna_sdna_from_data(DNAstr,  DNAlen,  0);
+	fd->memsdna = DNA_sdna_from_data(DNAstr,  DNAlen,  0);
 
 	fd->datamap = oldnewmap_new();
 	fd->globmap = oldnewmap_new();
@@ -1011,9 +1002,9 @@ void blo_freefiledata(FileData *fd)
 		BLI_freelistN(&fd->listbase);
 
 		if (fd->memsdna)
-			dna_freestructDNA(fd->memsdna);
+			DNA_sdna_free(fd->memsdna);
 		if (fd->filesdna)
-			dna_freestructDNA(fd->filesdna);
+			DNA_sdna_free(fd->filesdna);
 		if (fd->compflags)
 			MEM_freeN(fd->compflags);
 
@@ -1191,7 +1182,7 @@ static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
 
 	nblocks= bhead->nr;
 	while(nblocks--) {
-		dna_switch_endian_struct(filesdna, bhead->SDNAnr, data);
+		DNA_struct_switch_endian(filesdna, bhead->SDNAnr, data);
 
 		data+= blocksize;
 	}
@@ -1208,7 +1199,7 @@ static void *read_struct(FileData *fd, BHead *bh, char *blockname)
 
 		if (fd->compflags[bh->SDNAnr]) {	/* flag==0: doesn't exist anymore */
 			if(fd->compflags[bh->SDNAnr]==2) {
-				temp= dna_reconstruct(fd->memsdna, fd->filesdna, fd->compflags, bh->SDNAnr, bh->nr, (bh+1));
+				temp= DNA_struct_reconstruct(fd->memsdna, fd->filesdna, fd->compflags, bh->SDNAnr, bh->nr, (bh+1));
 			} else {
 				temp= MEM_mallocN(bh->len, blockname);
 				memcpy(temp, (bh+1), bh->len);
