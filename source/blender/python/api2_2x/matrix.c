@@ -246,8 +246,8 @@ PyObject *Matrix_Invert(MatrixObject * self)
 		/*calculate the classical adjoint*/
 		if(self->rowSize == 2) {
 			mat[0] = self->matrix[1][1];
-			mat[1] = -self->matrix[1][0];
-			mat[2] = -self->matrix[0][1];
+			mat[1] = -self->matrix[0][1];
+			mat[2] = -self->matrix[1][0];
 			mat[3] = self->matrix[0][0];
 		} else if(self->rowSize == 3) {
 			Mat3Adj((float (*)[3]) mat,(float (*)[3]) *self->matrix);
