@@ -134,7 +134,7 @@ typedef struct ImagePaintState {
 /* testing options */
 #define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
 
-// #define PROJ_PAINT_DEBUG 1
+// #define PROJ_DEBUG_PAINT 1
 
 /* projectFaceFlags options */
 #define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
@@ -163,7 +163,7 @@ typedef struct ProjectPaintState {
 	
 	/* projection painting only */
 	MemArena *projectArena;		/* use for alocating many pixel structs and link-lists */
-	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ImagePaintProjectPixel's */
+	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ProjectPixel's */
 	LinkNode **projectFaces;	/* projectBuckets alligned array linkList of faces overlapping each bucket */
 	char *projectBucketFlags;	/* store if the bucks have been initialized  */
 	char *projectFaceFlags;		/* store info about faces, if they are initialized etc*/
@@ -191,11 +191,16 @@ typedef struct ProjectPaintState {
 	float viewHeight;
 } ProjectPaintState;
 
-typedef struct ImagePaintProjectPixel {
+typedef struct ProjectScanline {
+	int v[3]; /* verts for this scanline, 0,1,2 or 0,2,3 */
+	float x_limits[2]; /* UV min|max for this scanline */
+} ProjectScanline;
+
+typedef struct ProjectPixel {
 	float projCo2D[2]; /* the floating point screen projection of this pixel */
 	char *pixel;
 	int image_index;
-} ImagePaintProjectPixel;
+} ProjectPixel;
 
 /* Finish projection painting structs */
 
@@ -414,10 +419,12 @@ static int screenco_tri_pt_occlude(float *pt, float *v1, float *v2, float *v3)
 static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index, int orig_face, float pixelScreenCo[3])
 {
 	LinkNode *node = ps->projectFaces[bucket_index];
-	LinkNode *prev_node = NULL;
 	MFace *mf;
 	int face_index;
 	int isect_ret;
+	
+	/* we could return 0 for 1 face buckets, as long as this function assumes
+	 * that the point its testing is only every originated from an existing face */
 	
 	while (node) {
 		face_index = (int)node->link;
@@ -461,17 +468,56 @@ static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index
 				return 1; 
 			}
 		}
-		prev_node = node;
 		node = node->next;
 	}
 	
 	return 0;
 }
 
+/* basic line intersection, could move to arithb.c, 2 points with a horiz line */
+static int project_scanline_isect(float *p1, float *p2, float y_level, float *y_isect)
+{
+	if (p1[1] > y_level && p2[1] < y_level) {
+		*y_isect = (p2[0]*(p1[1]-y_level) + p1[0]*(y_level-p2[1])) / (p1[1]-p2[1]);
+		return 1;
+	} else if (p1[1] < y_level && p2[1] > y_level) {
+		*y_isect = (p2[0]*(y_level-p1[1]) + p1[0]*(p2[1]-y_level)) / (p2[1]-p1[1]);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+/* take 3 uv coords, a horizontal x_limits and set the min|max intersections points here */
+static int project_uv_scanline(float *uv1, float *uv2, float *uv3, float y_level, float x_limits[2])
+{
+	int i = 0;
+	
+	if (project_scanline_isect(uv1, uv2, y_level, &x_limits[0])) i++;
+	if (project_scanline_isect(uv2, uv3, y_level, &x_limits[i])) i++;
+	/* if the triangle intersects then the first 2 lines must */
+	if (i==0) {
+		return 0;
+	} else if (i!=2) {
+		/* if we are here then this really should not fail since 2 edges MUST intersect  */
+		if (project_scanline_isect(uv3, uv1, y_level, &x_limits[i])) i++;
+	}
+	
+	if (i==2) {
+		if (x_limits[0] > x_limits[1]) {
+			SWAP(float, x_limits[0], x_limits[1]);
+		}
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+
 static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf *ibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
-	ImagePaintProjectPixel *projPixel;
+	ProjectPixel *projPixel;
 	MFace *mf = ps->dm_mface + face_index;
 	MTFace *tf = ps->dm_mtface + face_index;
 	
@@ -486,9 +532,20 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	float min_uv[2], max_uv[2]; /* UV bounds */
 	int xmini, ymini, xmaxi, ymaxi; /* UV Bounds converted to int's for pixel */
 	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d worldspace coords */
-	float *v1co, *v2co, *v3co, *v4co; /* for convenience only */
+	float *v1co, *v2co, *v3co; /* for convenience only, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
+	int i, j;
 	
-	int i;
+	/* scanlines since quads can have 2 triangles intersecting the same vertical location */
+	ProjectScanline scanlines[2];
+	ProjectScanline *sc;
+	int totscanlines; /* can only be 1 or 2, oh well */
+	
+	float xi1, xi2, xi3, xi4, xi_mid, xi; /* scanline intersecton location */
+	int i1,i2,i3,i4,i_mid; /* scanline intersection results */
+	
+	float pixelScreenCo[3]; /* for testing occlusion we need the depth too, but not for saving into ProjectPixel */
+	int bucket_index;
+	
 	
 	INIT_MINMAX2(min_uv, max_uv);
 	
@@ -504,38 +561,101 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	ymaxi = (int)(ibuf->y * max_uv[1]) +1;
 	
 	/*printf("%d %d %d %d \n", xmini, ymini, xmaxi, ymaxi);*/
+	CLAMP(xmini, 0, ibuf->x);
+	CLAMP(xmaxi, 0, ibuf->x);
 	
-	if (xmini < 0) xmini = 0;
-	if (ymini < 0) ymini = 0;
-	
-	if (xmaxi > ibuf->x) xmaxi = ibuf->x;
-	if (ymaxi > ibuf->y) ymaxi = ibuf->y;
+	CLAMP(ymini, 0, ibuf->y);
+	CLAMP(ymaxi, 0, ibuf->y);
 	
 	/* face uses no UV area when quanticed to pixels? */
 	if (xmini == xmaxi || ymini == ymaxi)
 		return;
-
-	v1co = ps->dm_mvert[mf->v1].co;
-	v2co = ps->dm_mvert[mf->v2].co;
-	v3co = ps->dm_mvert[mf->v3].co;
-	if (mf->v4)
-		v4co = ps->dm_mvert[mf->v4].co;
 	
 	for (y = ymini; y < ymaxi; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y;
-
-		/* IsectPT2Df works fine but is too slow
-		 * rather then IsectPT2Df's all the time we can do somthing more like scanlines */
-
-		for (x = xmini; x < xmaxi; x++) {
-			uv[0] = (((float)x)+0.5) / (float)ibuf->x;
+		
+		/* Create a scanlines for the face at this Y level 
+		 * triangles will only ever have 1 scanline, quads may have 2 */
+		totscanlines = 0;
+		sc = scanlines;
+		
+		if (mf->v4) {
+			totscanlines = 0;
 			
-			wtot = -1.0;
-			if ( IsectPT2Df( uv, tf->uv[0], tf->uv[1], tf->uv[2] )) {
+			i1 = project_scanline_isect(tf->uv[0], tf->uv[1], uv[1], &xi1);
+			i2 = project_scanline_isect(tf->uv[1], tf->uv[2], uv[1], &xi2);
+			
+			if (i1 && i2) { /* both the first 2 edges intersect, this means the second half of the quad wont intersect */
+				sc->v[0] = 0;
+				sc->v[1] = 1;
+				sc->v[2] = 2;
+				sc->x_limits[0] = MIN2(xi1, xi2);
+				sc->x_limits[1] = MAX2(xi1, xi2);
+				totscanlines = 1;
+			} else {
+				i3 = project_scanline_isect(tf->uv[2], tf->uv[3], uv[1], &xi3);
+				i4 = project_scanline_isect(tf->uv[3], tf->uv[0], uv[1], &xi4);
 				
-				w1 = AreaF2Dfl(tf->uv[1], tf->uv[2], uv);
-				w2 = AreaF2Dfl(tf->uv[2], tf->uv[0], uv);
-				w3 = AreaF2Dfl(tf->uv[0], tf->uv[1], uv);
+				if (i3 && i4) { /* second 2 edges only intersect, same as above */
+					sc->v[0] = 0;
+					sc->v[1] = 2;
+					sc->v[2] = 3;
+					sc->x_limits[0] = MIN2(xi3, xi4);
+					sc->x_limits[1] = MAX2(xi3, xi4);
+					totscanlines = 1;
+				} else {
+					/* OK - we have a not-so-simple case, both sides of the quad intersect.
+					 * Will need to have 2 scanlines */
+					if ((i1||i2) && (i3||i4)) {
+						i_mid = project_scanline_isect(tf->uv[0], tf->uv[2], uv[1], &xi_mid);
+						/* it would be very rare this would be false, but possible */
+						sc->v[0] = 0;
+						sc->v[1] = 1;
+						sc->v[2] = 2;
+						sc->x_limits[0] = MIN2((i1?xi1:xi2), xi_mid);
+						sc->x_limits[1] = MAX2((i1?xi1:xi2), xi_mid);
+						
+						sc++;
+						sc->v[0] = 0;
+						sc->v[1] = 2;
+						sc->v[2] = 3;
+						sc->x_limits[0] = MIN2((i3?xi3:xi4), xi_mid);
+						sc->x_limits[1] = MAX2((i3?xi3:xi4), xi_mid);
+						
+						totscanlines = 2;
+					}
+				}
+			}
+			
+		} else {
+			if (project_uv_scanline(tf->uv[0], tf->uv[1], tf->uv[2], uv[1], scanlines[0].x_limits)) {
+				sc->v[0] = 0;
+				sc->v[1] = 1;
+				sc->v[2] = 2;
+				totscanlines = 1;
+			}
+		}
+		/* done setting up scanlines */
+		
+		/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having */
+		for (j=0, sc=scanlines; j<totscanlines; j++, sc++) {
+			
+			xmini = (int)((ibuf->x * scanlines[j].x_limits[0])+0.5);
+			xmaxi = (int)((ibuf->x * scanlines[j].x_limits[1])+0.5);
+			CLAMP(xmini, 0, ibuf->x);
+			CLAMP(xmaxi, 0, ibuf->x);
+			
+			v1co = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co;
+			v2co = ps->dm_mvert[ (*(&mf->v1 + sc->v[1])) ].co;
+			v3co = ps->dm_mvert[ (*(&mf->v1 + sc->v[2])) ].co;
+			
+			for (x = xmini; x < xmaxi; x++) {
+				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
+				
+				/* Get the world coord for the point in uv space */
+				w1 = AreaF2Dfl(tf->uv[sc->v[1]], tf->uv[sc->v[2]], uv);
+				w2 = AreaF2Dfl(tf->uv[sc->v[2]], tf->uv[sc->v[0]], uv);
+				w3 = AreaF2Dfl(tf->uv[sc->v[0]], tf->uv[sc->v[1]], uv);
 				wtot = w1 + w2 + w3;
 				
 				w1 /= wtot; w2 /= wtot; w3 /= wtot;
@@ -544,38 +664,15 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 				do {
 					pxWorldCo[i] = v1co[i]*w1 + v2co[i]*w2 + v3co[i]*w3;
 				} while (i--);
-					
+				/* Done building the world coord for this UV */
 				
-			} else if ( mf->v4 && IsectPT2Df( uv, tf->uv[0], tf->uv[2], tf->uv[3] ) ) {
-				
-				w1 = AreaF2Dfl(tf->uv[2], tf->uv[3], uv);
-				w2 = AreaF2Dfl(tf->uv[3], tf->uv[0], uv);
-				w3 = AreaF2Dfl(tf->uv[0], tf->uv[2], uv);
-				wtot = w1 + w2 + w3;
-				
-				w1 /= wtot; w2 /= wtot; w3 /= wtot;
-				
-				i=2;
-				do {
-					pxWorldCo[i] = v1co[i]*w1 + v3co[i]*w2 + v4co[i]*w3;
-				} while (i--);
-			}
-
-			/* view3d_project_float(curarea, vec, projCo2D, s->projectMat);
-			if (projCo2D[0]==IS_CLIPPED)
-				continue;*/
-			if (wtot != -1.0) {
-				/* Inline, a bit faster */
+				/* Inline project from view is a bit faster, also added own tweaks */
 				VECCOPY(pxProjCo, pxWorldCo);
 				pxProjCo[3] = 1.0;
 				
 				Mat4MulVec4fl(ps->projectMat, pxProjCo);
-				
 
 				if( pxProjCo[3] > 0.001 ) {
-					float pixelScreenCo[3]; /* for testing occlusion we need the depth too, but not for saving into ImagePaintProjectPixel */
-					int bucket_index;
-					
 					pixelScreenCo[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pxProjCo[0]/pxProjCo[3];
 					pixelScreenCo[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pxProjCo[1]/pxProjCo[3];
 					pixelScreenCo[2] = pxProjCo[2]/pxProjCo[3]; /* Only for depth test */
@@ -589,13 +686,13 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 					if (ps->projectOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
 						
 						/* done with view3d_project_float inline */
-						projPixel = (ImagePaintProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ImagePaintProjectPixel) );
+						projPixel = (ProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ProjectPixel) );
 						
 						/* screenspace unclamped */
 						VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 						
 						projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
-#ifdef PROJ_PAINT_DEBUG
+#ifdef PROJ_DEBUG_PAINT
 						projPixel->pixel[1] = 0;
 #endif
 						projPixel->image_index = ps->image_index;
@@ -1450,7 +1547,7 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 
 	LinkNode *node;
 	float mval_f[2];
-	ImagePaintProjectPixel *projPixel;
+	ProjectPixel *projPixel;
 	int redraw = 0;
 	int last_index = -1;
 	float rgba[4], alpha, dist, dist_nosqrt;
@@ -1504,8 +1601,8 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 				if ((node = ps->projectBuckets[bucket_index])) {
 				
 					do {
-						projPixel = (ImagePaintProjectPixel *)node->link;
-#ifdef PROJ_PAINT_DEBUG
+						projPixel = (ProjectPixel *)node->link;
+#ifdef PROJ_DEBUG_PAINT
 						projPixel->pixel[0] = 0; // use for checking if the starting radius is too big
 #endif
 						
