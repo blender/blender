@@ -1808,7 +1808,7 @@ static int ui_do_but_TEX(uiBut *but)
 			 ((G.qual & LR_COMMANDKEY) || (G.qual & LR_CTRLKEY)) && 
 			 ((dev==XKEY) || (dev==CKEY) || (dev==VKEY)) ) {
 				 
-			char buf[UI_MAX_DRAW_STR]={0};
+			char buf[UI_MAX_DRAW_STR+1]={0};
 			
 			/* paste */
 			if (dev==VKEY) {

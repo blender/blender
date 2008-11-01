@@ -38,6 +38,7 @@ private:
 	void		AnalyseShader(int passindex, vector<STR_String>& propNames);
 	void			StartShaderProgram(int passindex);
 	void			EndShaderProgram();
+	void			PrintShaderErrors(unsigned int shader, const char *task, const char *code);
 
 	void SetupTextures(bool depth, bool luminance);
 	void FreeTextures();
@@ -58,6 +59,7 @@ private:
 	short			texflag[MAX_RENDER_PASS];
 
 	bool			isshadersupported;
+	bool			errorprinted;
 
 	unsigned int	m_filters[MAX_RENDER_PASS];
 	short		m_enabled[MAX_RENDER_PASS];
