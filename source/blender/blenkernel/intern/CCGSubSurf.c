@@ -1245,9 +1245,11 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			}
 		}
 
-		avgSharpness /= sharpCount;
-		if (avgSharpness>1.0) {
-			avgSharpness = 1.0;
+		if(sharpCount) {
+			avgSharpness /= sharpCount;
+			if (avgSharpness>1.0) {
+				avgSharpness = 1.0;
+			}
 		}
 
 		if (seam && seamEdges < 2)
@@ -1543,9 +1545,11 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				}
 			}
 
-			avgSharpness /= sharpCount;
-			if (avgSharpness>1.0) {
-				avgSharpness = 1.0;
+			if(sharpCount) {
+				avgSharpness /= sharpCount;
+				if (avgSharpness>1.0) {
+					avgSharpness = 1.0;
+				}
 			}
 
 			if (seam && seamEdges < 2)
