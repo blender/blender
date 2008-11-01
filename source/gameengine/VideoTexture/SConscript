@@ -21,6 +21,7 @@ if env['OURPLATFORM'] == 'win32-vc':
 	cflags.append('/GR')
 	cflags.append('/Ox')
 
+incs += ' ' + env['BF_PYTHON'] + '/lib/python' + env['BF_PYTHON_VERSION'] + "/site-packages/numpy/core/include"
 incs += ' ' + env['BF_PYTHON_INC']
 #incs += ' ' + env['BF_OPENGL_INC']
 
