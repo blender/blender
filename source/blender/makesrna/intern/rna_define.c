@@ -272,11 +272,11 @@ PropertyRNA *RNA_def_property(StructRNA *strct, const char *cname, int type, int
 			fprop= MEM_callocN(sizeof(FloatPropertyRNA), "FloatPropertyRNA");
 			prop= &fprop->property;
 
-			fprop->hardmin= (subtype == PROP_UNSIGNED)? 0: -FLT_MAX;
+			fprop->hardmin= (subtype == PROP_UNSIGNED)? 0.0f: -FLT_MAX;
 			fprop->hardmax= FLT_MAX;
 
-			fprop->softmin= (subtype == PROP_UNSIGNED)? 0: -10000; /* rather arbitrary .. */
-			fprop->softmax= 10000;
+			fprop->softmin= (subtype == PROP_UNSIGNED)? 0.0f: -10000.0f; /* rather arbitrary .. */
+			fprop->softmax= 10000.0f;
 			break;
 		}
 		case PROP_STRING: {
@@ -421,16 +421,16 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 			IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 			iprop->hardmin= (int)min;
 			iprop->hardmax= (int)max;
-			iprop->softmin= MAX2(min, iprop->hardmin);
-			iprop->softmax= MIN2(max, iprop->hardmax);
+			iprop->softmin= MAX2((int)min, iprop->hardmin);
+			iprop->softmax= MIN2((int)max, iprop->hardmax);
 			break;
 		}
 		case PROP_FLOAT: {
 			FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 			fprop->hardmin= (float)min;
 			fprop->hardmax= (float)max;
-			fprop->softmin= MAX2(min, fprop->hardmin);
-			fprop->softmax= MIN2(max, fprop->hardmax);
+			fprop->softmin= MAX2((float)min, fprop->hardmin);
+			fprop->softmax= MIN2((float)max, fprop->hardmax);
 			break;
 		}
 		default:

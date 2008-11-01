@@ -510,7 +510,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *strct, FILE *f)
 			}
 			case PROP_BOOLEAN: {
 				BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
-				int i;
+				unsigned int i;
 
 				if(bprop->defaultarray) {
 					fprintf(f, "static int rna_%s_%s_default[%d] = {", strct->cname, prop->cname, prop->arraylength);
@@ -527,7 +527,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *strct, FILE *f)
 			}
 			case PROP_INT: {
 				IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
-				int i;
+				unsigned int i;
 
 				if(iprop->defaultarray) {
 					fprintf(f, "static int rna_%s_%s_default[%d] = {", strct->cname, prop->cname, prop->arraylength);
@@ -544,7 +544,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *strct, FILE *f)
 			}
 			case PROP_FLOAT: {
 				FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
-				int i;
+				unsigned int i;
 
 				if(fprop->defaultarray) {
 					fprintf(f, "static float rna_%s_%s_default[%d] = {", strct->cname, prop->cname, prop->arraylength);

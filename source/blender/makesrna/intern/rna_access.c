@@ -383,7 +383,7 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int i
 
 	internal= MEM_callocN(sizeof(ArrayIterator), "ArrayIterator");
 	internal->ptr= ptr;
-	internal->endptr= ptr+length*itemsize;
+	internal->endptr= ((char*)ptr)+length*itemsize;
 
 	iter->internal= internal;
 	iter->valid= (internal->ptr != internal->endptr);
