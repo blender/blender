@@ -36,6 +36,10 @@ extern "C" {
 #define FFMPEG_CODEC_IS_POINTER 1
 #endif
 
+#if LIBAVFORMAT_VERSION_INT >= (52 << 16)
+#define FFMPEG_PB_IS_POINTER 1
+#endif
+
 #ifdef FFMPEG_CODEC_IS_POINTER
 static inline AVCodecContext* get_codec_from_stream(AVStream* stream)
 {

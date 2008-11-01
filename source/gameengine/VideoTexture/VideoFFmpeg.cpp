@@ -248,7 +248,13 @@ void VideoFFmpeg::openFile (char * filename)
 	// open base class
 	VideoBase::openFile(filename);
 
-	if (m_formatCtx->pb->is_streamed)
+	if (
+#ifdef FFMPEG_PB_IS_POINTER
+        m_formatCtx->pb->is_streamed
+#else
+        m_formatCtx->pb.is_streamed
+#endif
+        )
 	{
 		// the file is in fact a streaming source, prevent seeking
 		m_isFile = false;
@@ -265,7 +271,7 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	AVInputFormat		*inputFormat;
 	AVFormatParameters	formatParams;
 	AVRational			frameRate;
-	char				filename[28], rateStr[20];
+	char				*p, filename[28], rateStr[20];
 
 	do_init_ffmpeg();
 
