@@ -58,9 +58,9 @@ bool ImageMix::setWeight (const char * id, short weight)
 	return true;
 }
 
-static ExceptionID ImageSizesNotMatch;
+ExceptionID ImageSizesNotMatch;
 
-static ExpDesc ImageSizesNotMatchDesc (ImageSizesNotMatch, "Image sizes of sources are different");
+ExpDesc ImageSizesNotMatchDesc (ImageSizesNotMatch, "Image sizes of sources are different");
 
 // calculate image from sources and set its availability
 void ImageMix::calcImage (unsigned int texId)

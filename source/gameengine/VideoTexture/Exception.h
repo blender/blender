@@ -27,6 +27,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <exception>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include "Common.h"
 
@@ -117,6 +118,11 @@ public:
 		desc = m_description;
 	}
 
+    void registerDesc(void)
+    {
+        if (std::find(m_expDescs.begin(), m_expDescs.end(), this) == m_expDescs.end())
+            m_expDescs.push_back(this);
+    }
 	// list of exception descriptions
 	static std::vector<ExpDesc*> m_expDescs;
 
@@ -192,4 +198,13 @@ protected:
 
 };
 
+extern ExpDesc MaterialNotAvailDesc;
+extern ExpDesc ImageSizesNotMatchDesc;
+extern ExpDesc SceneInvalidDesc;
+extern ExpDesc CameraInvalidDesc;
+extern ExpDesc SourceVideoEmptyDesc;
+extern ExpDesc SourceVideoCreationDesc;
+
+
+void registerAllExceptions(void);
 #endif

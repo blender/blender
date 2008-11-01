@@ -44,7 +44,6 @@ ExpDesc errNFoundDesc (ErrNotFound, "Error description not found");
 ExpDesc::ExpDesc (ExceptionID & exp, char * desc, RESULT hres) 
 : m_expID(exp), m_hRslt(hres), m_description(desc)
 {
-	m_expDescs.push_back(this);
 }
 
 // destructor
@@ -195,4 +194,16 @@ void Exception::copy (const Exception & xpt)
 	// debug data
 	m_fileName = xpt.m_fileName;
 	m_line = xpt.m_line;
+}
+
+void registerAllExceptions(void)
+{
+    errGenerDesc.registerDesc();
+    errNFoundDesc.registerDesc();
+    MaterialNotAvailDesc.registerDesc();
+    ImageSizesNotMatchDesc.registerDesc();
+    SceneInvalidDesc.registerDesc();
+    CameraInvalidDesc.registerDesc();
+    SourceVideoEmptyDesc.registerDesc();
+    SourceVideoCreationDesc.registerDesc();
 }

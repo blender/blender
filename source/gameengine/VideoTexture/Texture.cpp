@@ -165,8 +165,8 @@ void Texture_dealloc (Texture * self)
 }
 
 
-static ExceptionID MaterialNotAvail;
-static ExpDesc MaterialNotAvailDesc (MaterialNotAvail, "Texture material is not available");
+ExceptionID MaterialNotAvail;
+ExpDesc MaterialNotAvailDesc (MaterialNotAvail, "Texture material is not available");
 
 // Texture object initialization
 int Texture_init (Texture *self, PyObject *args, PyObject *kwds)

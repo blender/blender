@@ -94,6 +94,10 @@ void ImageRender::calcImage (unsigned int texId)
 	ImageViewport::calcImage(texId);
 }
 
+void ImageRender::Render()
+{
+    //
+}
 
 // refresh lights
 void ImageRender::refreshLights (void)
@@ -120,9 +124,9 @@ BlendType<KX_Scene> sceneType ("KX_Scene");
 BlendType<KX_Camera> cameraType ("KX_Camera");
 
 
-static ExceptionID SceneInvalid, CameraInvalid;
-static ExpDesc SceneInvalidDesc (SceneInvalid, "Scene object is invalid");
-static ExpDesc CameraInvalidDesc (CameraInvalid, "Camera object is invalid");
+ExceptionID SceneInvalid, CameraInvalid;
+ExpDesc SceneInvalidDesc (SceneInvalid, "Scene object is invalid");
+ExpDesc CameraInvalidDesc (CameraInvalid, "Camera object is invalid");
 
 // object initialization
 static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds)

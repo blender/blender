@@ -174,6 +174,7 @@ PyObject* initVideoTexture(void)
 
 	// prepare classes
 	registerAllTypes();
+    registerAllExceptions();
 
 	if (!pyImageTypes.ready()) 
 		return NULL;
