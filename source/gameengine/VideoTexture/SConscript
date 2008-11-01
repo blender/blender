@@ -20,7 +20,6 @@ defs = ''
 if env['OURPLATFORM'] == 'win32-vc':
 	cflags.append('/GR')
 	cflags.append('/Ox')
-	defs += ' __STDC_CONSTANT_MACROS'
 
 incs += ' ' + env['BF_PYTHON_INC']
 #incs += ' ' + env['BF_OPENGL_INC']
@@ -28,5 +27,6 @@ incs += ' ' + env['BF_PYTHON_INC']
 if env['WITH_BF_FFMPEG']:
     defs += ' WITH_FFMPEG'
     incs += ' ' + env['BF_FFMPEG_INC']
+    defs += ' __STDC_CONSTANT_MACROS'
 
 env.BlenderLib ( 'bf_videotex', sources, Split(incs), Split(defs), libtype=['game','player'], priority=[25, 72], compileflags = cflags )
