@@ -319,7 +319,7 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 		if ((p = strchr(filename, ':')) != 0)
 			*p = 0;
 	}
-	if (file && (p = strchr(file, ":")) != NULL)
+	if (file && (p = strchr(file, ':')) != NULL)
 		formatParams.standard = p+1;
 #endif
 	//frame rate
