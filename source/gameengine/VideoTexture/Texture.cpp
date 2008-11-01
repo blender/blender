@@ -96,7 +96,7 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID)
 			// get material from mesh
 			RAS_MeshObject * mesh = gameObj->GetMesh(0);
 			RAS_MeshMaterial *meshMat = mesh->GetMeshMaterial(matID);
-			if (meshMat->m_bucket != NULL)
+			if (meshMat != NULL && meshMat->m_bucket != NULL)
 				// return pointer to polygon or blender material
 				return meshMat->m_bucket->GetPolyMaterial();
 		}
