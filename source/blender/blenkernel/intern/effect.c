@@ -422,25 +422,20 @@ void do_physical_effector(Object *ob, float *opco, short type, float force_val, 
 
 			break;
 		case PFIELD_SPIN:
-		{	
-			float inward[3];
-			
 			Projf(temp, velocity, eff_vel);
+			
 			Crossf(mag_vec,eff_vel,vec_to_part);
-			Crossf(inward, mag_vec, eff_vel);
 
 			Normalize(mag_vec);
 
-			VecSubf(mag_vec, mag_vec, inward);
-			
 			VecMulf(mag_vec,force_val*distance*falloff);
 			VecAddf(mag_vec, mag_vec, temp);
-
-			/* compensate for existing velocity */
-			VecSubf(mag_vec, mag_vec, velocity);
-			VecAddf(field,field,mag_vec);
+			
+			VecCopyf(velocity, mag_vec);
+			//VecSubf(mag_vec, mag_vec, velocity);
+			//VecAddf(field, field, mag_vec);
+			
 			break;
-		}
 		case PFIELD_MAGNET:
 			if(planar)
 				VecCopyf(temp,eff_vel);
