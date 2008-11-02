@@ -63,6 +63,7 @@ typedef struct EmbedBucket {
 	float val;
 	int	  nv;
 	float p[3];
+	float *no; /* if present, normal of the bucket */
 } EmbedBucket;
 
 typedef struct ReebNode {

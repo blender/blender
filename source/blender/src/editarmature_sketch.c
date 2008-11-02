@@ -380,6 +380,7 @@ ReebArc *strokeToArc(SK_Stroke *stk)
 	for (i = 0; i < arc->bcount; i++)
 	{
 		VECCOPY(arc->buckets[i].p, stk->points[i + 1].p);
+		arc->buckets[i].no = stk->points[i + 1].no;
 	}
 	
 	return arc;

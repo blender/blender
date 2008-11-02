@@ -64,6 +64,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_retarget.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "PIL_time.h"
 
@@ -161,30 +162,52 @@ void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
 	VECCOPY(up_axis, mat[2]);
 }
 
-float getNewBoneRoll(EditBone *bone, float old_up_axis[3], float quat[4])
+float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float quat[4], float qroll[4], float aligned_axis[3])
 {
-	float mat[3][3];
-	float nor[3], up_axis[3], new_up_axis[3], vec[3];
-	float roll;
+	float nor[3], new_up_axis[3], x_axis[3], z_axis[3];
 	
 	VECCOPY(new_up_axis, old_up_axis);
 	QuatMulVecf(quat, new_up_axis);
-
+	
 	VecSubf(nor, bone->tail, bone->head);
 	
-	vec_roll_to_mat3(nor, 0, mat);
-	VECCOPY(up_axis, mat[2]);
+	Crossf(x_axis, nor, aligned_axis);
+	Crossf(z_axis, x_axis, nor);
 	
-	roll = NormalizedVecAngle2(new_up_axis, up_axis);
+	Normalize(new_up_axis);
+	Normalize(x_axis);
+	Normalize(z_axis);
 	
-	Crossf(vec, up_axis, new_up_axis);
-	
-	if (Inpf(vec, nor) < 0)
+	if (Inpf(new_up_axis, x_axis) < 0)
 	{
-		roll = -roll;
+		VecMulf(x_axis, -1);
 	}
 	
-	return roll;
+	if (Inpf(new_up_axis, z_axis) < 0)
+	{
+		VecMulf(z_axis, -1);
+	}
+	
+	if (NormalizedVecAngle2(x_axis, new_up_axis) < NormalizedVecAngle2(z_axis, new_up_axis))
+	{
+		RotationBetweenVectorsToQuat(qroll, new_up_axis, x_axis); /* set roll rotation quat */
+		return rollBoneToVector(bone, x_axis);
+	}
+	else
+	{
+		RotationBetweenVectorsToQuat(qroll, new_up_axis, z_axis); /* set roll rotation quat */
+		return rollBoneToVector(bone, z_axis);
+	}
+}
+
+float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float quat[4])
+{
+	float new_up_axis[3];
+	
+	VECCOPY(new_up_axis, old_up_axis);
+	QuatMulVecf(quat, new_up_axis);
+	
+	return rollBoneToVector(bone, new_up_axis);
 }
 
 /************************************ DESTRUCTORS ******************************************************/
@@ -1617,7 +1640,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 	
 	VecAddf(ctrl->bone->head, head, parent_offset); 
 	VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
-	ctrl->bone->roll = getNewBoneRoll(ctrl->bone, ctrl->up_axis, qrot);
+	ctrl->bone->roll = rollBoneByQuat(ctrl->bone, ctrl->up_axis, qrot);
 	
 	ctrl->flag |= RIG_CTRL_DONE;
 
@@ -1632,7 +1655,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 
 }
 
-static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3])
+static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3], float *up_axis)
 {
 	EditBone *bone;
 	RigControl *ctrl;
@@ -1652,6 +1675,22 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 	
 	RotationBetweenVectorsToQuat(qrot, v1, v2);
 	
+	VECCOPY(bone->head, vec0);
+	VECCOPY(bone->tail, vec1);
+	
+	if (up_axis != NULL)
+	{
+		float qroll[4];
+
+		bone->roll = rollBoneByQuatAligned(bone, edge->up_axis, qrot, qroll, up_axis);
+		
+		QuatMul(qrot, qrot, qroll);
+	}
+	else
+	{
+		bone->roll = rollBoneByQuat(bone, edge->up_axis, qrot);
+	}
+
 	for (ctrl = rigg->controls.first; ctrl; ctrl = ctrl->next)
 	{
 		if (ctrl->link == bone)
@@ -1659,10 +1698,6 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 			repositionControl(rigg, ctrl, vec0, vec1, qrot, resize);
 		}
 	}
-	
-	VECCOPY(bone->head, vec0);
-	VECCOPY(bone->tail, vec1);
-	bone->roll = getNewBoneRoll(bone, edge->up_axis, qrot);
 }
 
 static RetargetMode detectArcRetargetMode(RigArc *arc);
@@ -2219,10 +2254,12 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		 edge;
 		 edge = edge->next, i++)
 	{
+		float *no = NULL;
 		if (i < nb_joints)
 		{
 			bucket = peekBucket(&iter, best_positions[i]);
 			vec1 = bucket->p;
+			no = bucket->no;
 		}
 		else
 		{
@@ -2231,7 +2268,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		
 		if (edge->bone)
 		{
-			repositionBone(rigg, edge, vec0, vec1);
+			repositionBone(rigg, edge, vec0, vec1, no);
 		}
 		
 		vec0 = vec1;
@@ -2297,7 +2334,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 	for (edge = iarc->edges.first; edge; edge = edge->next)
 	{
 		float new_bone_length = edge->length / iarc->length * embedding_length;
-
+		float *no = NULL;
 		float length = 0;
 
 		while (bucket && new_bone_length > length)
@@ -2306,17 +2343,19 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 			bucket = nextBucket(&iter);
 			previous_vec = vec1;
 			vec1 = bucket->p;
+			no = bucket->no;
 		}
 		
 		if (bucket == NULL)
 		{
 			vec1 = node_end->p;
+			no = NULL;
 		}
 
 		/* no need to move virtual edges (space between unconnected bones) */		
 		if (edge->bone)
 		{
-			repositionBone(rigg, edge, vec0, vec1);
+			repositionBone(rigg, edge, vec0, vec1, no);
 		}
 		
 		vec0 = vec1;
@@ -2359,11 +2398,11 @@ void *exec_retargetArctoArc(void *param)
 
 		if (testFlipArc(iarc, inode_start))
 		{
-			repositionBone(rigg, edge, earc->tail->p, earc->head->p);
+			repositionBone(rigg, edge, earc->tail->p, earc->head->p, NULL);
 		}
 		else
 		{
-			repositionBone(rigg, edge, earc->head->p, earc->tail->p);
+			repositionBone(rigg, edge, earc->head->p, earc->tail->p, NULL);
 		}
 	}
 	else
@@ -2773,6 +2812,12 @@ void BIF_retargetArc(ReebArc *earc)
 	arm = ob->data;
 	
 	template = armatureSelectedToGraph(ob, arm);
+	
+	if (template->arcs.first == NULL)
+	{
+		error("No deforming bones selected");
+		return;
+	}
 	
 	rigg = cloneRigGraph(template);
 	
