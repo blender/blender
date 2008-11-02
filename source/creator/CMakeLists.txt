@@ -143,6 +143,7 @@ IF(WIN32)
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python25.zip\" \"${TARGETDIR}\\\"
   )
   
   FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
@@ -265,7 +266,8 @@ IF(UNIX)
     blender_python
     bf_quicktime
     extern_binreloc
-	extern_glew
+    extern_glew
+    bf_videotex
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

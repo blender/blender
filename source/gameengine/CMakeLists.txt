@@ -40,6 +40,7 @@ SUBDIRS(
   SceneGraph
   Physics/Bullet
   Physics/Sumo
+  VideoTexture
 )
 
 IF(WITH_PLAYER)

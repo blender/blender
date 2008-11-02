@@ -3549,7 +3549,7 @@ void logic_buts(void)
 		if(ob->controllers.first) uiSetCurFont(block, UI_HELV);
 		uiDefButBitS(block, TOG, OB_ADDCONT, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
 		uiBlockEndAlign(block);
-		yco-=17;
+		yco-=20;
 		
 		/* mark all actuators linked to these controllers */
 		/* note that some of these actuators could be from objects that are not in the display list.

@@ -495,8 +495,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 					else
 						dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Curve Parent");
 				}
-					else
-						dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Curve Parent");
+				else
+					dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Parent");
 		}
 		/* exception case: parent is duplivert */
 		if(ob->type==OB_MBALL && (ob->parent->transflag & OB_DUPLIVERTS)) {

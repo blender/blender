@@ -5141,23 +5141,30 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	float hoco[4], ho[4], fsvec[4], camco[4];
 	float mat[4][4], winmat[4][4];
 	float imat[4][4];
-	MVert *vverts;
-
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsob, eModifierType_Fluidsim);
+	FluidsimSettings *fss = fluidmd->fss;
+	float *velarray = NULL;
+	
 	/* only one step needed */
 	if(step) return 1;
+	
+	if(fluidmd)
+		fss = fluidmd->fss;
+	else
+		return 0;
 	
 	Mat4CpyMat4(mat, re->viewmat);
 	MTC_Mat4Invert(imat, mat);
 
 	/* set first vertex OK */
-	if( (!fsob->fluidsimSettings) || (!fsob->fluidsimSettings->meshSurfNormals) ) return 0;
-	vverts = fsob->fluidsimSettings->meshSurfNormals;
-	//fprintf(stderr, "GZ_VEL obj '%s', calc load_fluidsimspeedvectors\n",fsob->id.name); // NT DEBUG
-
-	if( obr->totvert != fsob->fluidsimSettings->meshSurface->totvert ) {
+	if(!fss->meshSurfNormals) return 0;
+	
+	if( obr->totvert != GET_INT_FROM_POINTER(fss->meshSurface) ) {
 		//fprintf(stderr, "load_fluidsimspeedvectors - modified fluidsim mesh, not using speed vectors (%d,%d)...\n", obr->totvert, fsob->fluidsimSettings->meshSurface->totvert); // DEBUG
 		return 0;
 	}
+	
+	velarray = (float *)fss->meshSurfNormals;
 
 	if(obi->flag & R_TRANSFORMED)
 		Mat4MulMat4(winmat, obi->mat, re->winmat);
@@ -5169,7 +5176,8 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	so that also small drops/little water volumes return a velocity != 0. 
 	But I had no luck in fixing that function - DG */
 	for(a=0; a<obr->totvert; a++) {
-		for(j=0;j<3;j++) avgvel[j] += vverts[a].co[j];
+		for(j=0;j<3;j++) avgvel[j] += velarray[3*a + j];
+		
 	}
 	for(j=0;j<3;j++) avgvel[j] /= (float)(obr->totvert);
 	
@@ -5183,7 +5191,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		// get fluid velocity
 		fsvec[3] = 0.; 
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
-		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
+		for(j=0;j<3;j++) fsvec[j] = velarray[3*a + j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */
 		if((fsvec[0] == 0.0) && (fsvec[1] == 0.0) && (fsvec[2] == 0.0))

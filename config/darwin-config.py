@@ -251,9 +251,9 @@ else:
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = ' -Wall  -Wno-long-double -Wdeclaration-after-statement '
+C_WARN = ['-Wdeclaration-after-statement']
 
-CC_WARN = ' -Wall  -Wno-long-double'
+CC_WARN = ['-Wall', '-Wno-long-double']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 

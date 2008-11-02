@@ -1163,7 +1163,10 @@ static void copy_object_pose(Object *obn, Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
-			if(con->ipo) {
+			/* note that we can't change lib linked ipo blocks. for making
+			 * proxies this still works correct however because the object
+			 * is changed to object->proxy_from when evaluating the driver. */
+			if(con->ipo && !con->ipo->id.lib) {
 				IpoCurve *icu;
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
 					if(icu->driver && icu->driver->ob==ob)

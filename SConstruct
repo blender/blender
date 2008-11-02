@@ -42,6 +42,8 @@ import tools.Blender
 import tools.btools
 import tools.bcolors
 
+EnsureSConsVersion(1,0,0)
+
 BlenderEnvironment = tools.Blender.BlenderEnvironment
 btools = tools.btools
 B = tools.Blender
@@ -171,6 +173,9 @@ opts.Update(env)
 
 if not env['BF_FANCY']:
     B.bc.disable()
+
+SetOption('num_jobs', int(env['BF_NUMJOBS']))
+print "Build with %d parallel jobs" % (GetOption('num_jobs'))
 
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:

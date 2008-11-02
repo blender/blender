@@ -33,6 +33,7 @@
 
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
+#include "BKE_writeffmpeg.h" /* for silence_log_ffmpeg */
 
 #include "imbuf.h"
 #include "imbuf_patch.h"
@@ -64,6 +65,7 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+//#include <ffmpeg/avdevice.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -236,6 +238,12 @@ void do_init_ffmpeg()
 	if (!ffmpeg_init) {
 		ffmpeg_init = 1;
 		av_register_all();
+		//avdevice_register_all();
+		
+		if ((G.f & G_DEBUG) == 0)
+		{
+			silence_log_ffmpeg(1);
+		}
 	}
 }
 

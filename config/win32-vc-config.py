@@ -161,14 +161,18 @@ CC = 'cl.exe'
 CXX = 'cl.exe'
 
 CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
+CXXFLAGS = ['/EHsc']
 
-BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET}.sbr']
+BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
 CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
+REL_CXXFLAGS = ['-O2', '-DNDEBUG']
+
 C_WARN = []
 CC_WARN = []
+CXX_WARN = []
 
 LLIBS = 'ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid'
 

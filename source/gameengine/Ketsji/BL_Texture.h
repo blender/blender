@@ -59,6 +59,14 @@ public:
 	void SetMapping(int mode);
 	void DisableUnit();
 	void setTexEnv(BL_Material *mat, bool modulate=false);
+	unsigned int swapTexture (unsigned int newTex) {
+		// swap texture codes
+		unsigned int tmp = mTexture;
+		mTexture = newTex;
+		// return original texture code
+		return tmp;
+	}
+
 };
 
 #endif//__BL_TEXTURE_H__

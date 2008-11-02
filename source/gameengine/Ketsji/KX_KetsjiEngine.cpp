@@ -470,7 +470,7 @@ else
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				// set Python hooks for each scene
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
-				PHY_SetActiveScene(scene);
+				KX_SetActiveScene(scene);
 	
 				scene->GetPhysicsEnvironment()->endFrame();
 				
@@ -568,7 +568,7 @@ else
 				
 				// set Python hooks for each scene
 				PHY_SetActiveEnvironment(scene->GetPhysicsEnvironment());
-				PHY_SetActiveScene(scene);
+				KX_SetActiveScene(scene);
 				
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				scene->UpdateParents(m_clockTime);
@@ -1538,6 +1538,11 @@ void KX_KetsjiEngine::SetTicRate(double ticrate)
 double KX_KetsjiEngine::GetAnimFrameRate()
 {
 	return m_anim_framerate;
+}
+
+double KX_KetsjiEngine::GetClockTime(void) const
+{
+	return m_clockTime;
 }
 
 void KX_KetsjiEngine::SetAnimFrameRate(double framerate)

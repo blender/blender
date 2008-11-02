@@ -5852,8 +5852,10 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 		uiBlockBeginAlign(block);
 		uiDefBut(block,LABEL,B_NOP,"",cx,cy,115,20,0,0,0,0,0,""); /* Padding */
 	} else {
+		ID *id = NULL;
+
 		mtex= sd->mtex[sd->texact];
-		ID *id= NULL;
+
 		uiBlockBeginAlign(block);
 		
 		if(mtex && mtex->tex) id= &mtex->tex->id;

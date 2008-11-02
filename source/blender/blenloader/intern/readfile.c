@@ -1130,6 +1130,19 @@ static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, voi
 	}
 }
 
+/* lib linked proxy objects point to our local data, we need
+ * to clear that pointer before reading the undo memfile since
+ * the object might be removed, it is set again in reading
+ * if the local object still exists */
+void blo_clear_proxy_pointers_from_lib(FileData *fd)
+{
+	Object *ob= G.main->object.first;
+	
+	for(;ob; ob= ob->id.next)
+		if(ob->id.lib)
+			ob->proxy_from= NULL;
+}
+
 /* assumed; G.main still exists */
 void blo_make_image_pointer_map(FileData *fd)
 {

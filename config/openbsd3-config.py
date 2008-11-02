@@ -145,9 +145,9 @@ REL_CCFLAGS = ['-O2']
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = '-Wall -Wdeclaration-after-statement'
+C_WARN = ['-Wdeclaration-after-statement']
 
-CC_WARN = '-Wall'
+CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
