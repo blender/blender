@@ -33,6 +33,7 @@
 
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
+#include "BKE_writeffmpeg.h" /* for silence_log_ffmpeg */
 
 #include "imbuf.h"
 #include "imbuf_patch.h"
@@ -238,6 +239,11 @@ void do_init_ffmpeg()
 		ffmpeg_init = 1;
 		av_register_all();
 		//avdevice_register_all();
+		
+		if ((G.f & G_DEBUG) == 0)
+		{
+			silence_log_ffmpeg(1);
+		}
 	}
 }
 
