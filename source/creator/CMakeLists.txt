@@ -266,7 +266,8 @@ IF(UNIX)
     blender_python
     bf_quicktime
     extern_binreloc
-	extern_glew
+    extern_glew
+    bf_videotex
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
