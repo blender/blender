@@ -21,7 +21,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 */
 
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
 
 #include "FilterBlueScreen.h"

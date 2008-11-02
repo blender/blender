@@ -26,7 +26,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <memory>
 #include <vector>
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 
 /// check, if type is in list

@@ -20,7 +20,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 #include <RAS_GLExtensionManager.h>
 

@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <strstream>
 #include <fstream>
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 #include "Exception.h"
 

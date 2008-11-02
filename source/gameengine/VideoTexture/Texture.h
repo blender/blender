@@ -23,7 +23,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #if !defined TEXTURE_H
 #define TEXTURE_H
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
 
 #include <DNA_image_types.h>

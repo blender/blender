@@ -47,7 +47,6 @@ protected:
 	{ return 0xFF000000 | src[0] << 16 | src[1] << 8 | src[2]; }
 };
 
-
 /// class for BGR24 conversion
 class FilterBGR24 : public FilterBase
 {
@@ -66,7 +65,6 @@ protected:
 		short * size, unsigned int pixSize, unsigned int val)
 	{ return 0xFF000000 | src[2] << 16 | src[1] << 8 | src[0]; }
 };
-
 
 /// class for YV12 conversion
 class FilterYV12 : public FilterBase
