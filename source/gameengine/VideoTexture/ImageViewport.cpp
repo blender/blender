@@ -192,9 +192,9 @@ static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * c
 		return -1;
 	}
 	// set position
-	int pos [] = {
-		int(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-			int(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
+	GLint pos [] = {
+		GLint(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+			GLint(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
 	};
 	getImageViewport(self)->setPosition(pos);
 	// success
