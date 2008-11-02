@@ -49,13 +49,13 @@ public:
 	void setCaptureSize (short * size = NULL);
 
 	/// get position in viewport
-	int * getPosition (void) { return m_position; }
+	GLint * getPosition (void) { return m_position; }
 	/// set position in viewport
-	void setPosition (int * pos = NULL);
+	void setPosition (GLint * pos = NULL);
 
 protected:
 	/// frame buffer rectangle
-	int m_viewport[4];
+	GLint m_viewport[4];
 
 	/// size of captured area
 	short m_capSize[2];
@@ -63,9 +63,9 @@ protected:
 	bool m_whole;
 
 	/// position of capture rectangle in viewport
-	int m_position[2];
+	GLint m_position[2];
 	/// upper left point for capturing
-	int m_upLeft[2];
+	GLint m_upLeft[2];
 
 	/// buffer to copy viewport
 	BYTE * m_viewportImage;
@@ -76,7 +76,7 @@ protected:
 	virtual void calcImage (unsigned int texId);
 
 	/// get viewport size
-	int * getViewportSize (void) { return m_viewport + 2; }
+	GLint * getViewportSize (void) { return m_viewport + 2; }
 };
 
 

@@ -25,13 +25,12 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <PyObjectPlus.h>
 #include <structmember.h>
 
-#include "ImageViewport.h"
-
 #include <BIF_gl.h>
 
 #include "Texture.h"
 #include "ImageBase.h"
 #include "FilterSource.h"
+#include "ImageViewport.h"
 
 
 // constructor
@@ -81,7 +80,7 @@ void ImageViewport::setCaptureSize (short * size)
 		if (size[idx] < 1)
 			m_capSize[idx] = 1;
 		else if (size[idx] > getViewportSize()[idx])
-			m_capSize[idx] = getViewportSize()[idx];
+			m_capSize[idx] = short(getViewportSize()[idx]);
 		else
 			m_capSize[idx] = size[idx];
 	}
@@ -91,7 +90,7 @@ void ImageViewport::setCaptureSize (short * size)
 }
 
 // set position of capture rectangle
-void ImageViewport::setPosition (int * pos)
+void ImageViewport::setPosition (GLint * pos)
 {
 	// if new position is not provided, use existing position
 	if (pos == NULL) pos = m_position;
@@ -125,7 +124,7 @@ void ImageViewport::calcImage (unsigned int texId)
 	{
 		// just copy current viewport to texture
 		glBindTexture(GL_TEXTURE_2D, texId);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], m_capSize[0], m_capSize[1]);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1]);
 		// image is not available
 		m_avail = false;
 	}
@@ -133,7 +132,7 @@ void ImageViewport::calcImage (unsigned int texId)
 	else if (!m_avail)
 	{
 		// get frame buffer data
-		glReadPixels(m_upLeft[0], m_upLeft[1], m_capSize[0], m_capSize[1], GL_RGB,
+		glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
 			GL_UNSIGNED_BYTE, m_viewportImage);
 		// filter loaded data
 		FilterBGR24 filt;
