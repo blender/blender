@@ -2264,6 +2264,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		else
 		{
 			vec1 = node_end->p;
+			no = node_end->no;
 		}
 		
 		if (edge->bone)
@@ -2349,7 +2350,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		if (bucket == NULL)
 		{
 			vec1 = node_end->p;
-			no = NULL;
+			no = node_end->no;
 		}
 
 		/* no need to move virtual edges (space between unconnected bones) */		
@@ -2398,11 +2399,11 @@ void *exec_retargetArctoArc(void *param)
 
 		if (testFlipArc(iarc, inode_start))
 		{
-			repositionBone(rigg, edge, earc->tail->p, earc->head->p, NULL);
+			repositionBone(rigg, edge, earc->tail->p, earc->head->p, earc->head->no);
 		}
 		else
 		{
-			repositionBone(rigg, edge, earc->head->p, earc->tail->p, NULL);
+			repositionBone(rigg, edge, earc->head->p, earc->tail->p, earc->tail->no);
 		}
 	}
 	else

@@ -2321,18 +2321,19 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiBlockBeginAlign(block);
 
 		uiDefButC(block, ROW, B_REDR, "Length",	10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_LENGTH, 0, 0,				"Subdivide arcs in bones of equal length");
-		uiDefButF(block, NUM, B_REDR, 					"L:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+		uiDefButF(block, NUM, B_REDR, 					"L:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
 		yco -= 20;
 
 		uiDefButC(block, ROW, B_REDR, "Correlation",	10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_CORRELATION, 0, 0,					"Subdivide arcs based on correlation");
-		uiDefButF(block, NUM, B_REDR, 						 "T:",			70, yco, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+		uiDefButF(block, NUM, B_REDR, 						 "T:",			70, yco, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
 		yco -= 20;
 	
 		uiDefButC(block, ROW, B_REDR, "Fixed",		10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_FIXED, 0, 0,					"Subdivide arcs based on a fixed number of bones");
-		uiDefButC(block, NUM, B_REDR, 					"N:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Specify the bones to subdivide into");
+		uiDefButC(block, NUM, B_REDR, 					"N:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
 		yco -= 20;
 
-		uiDefButC(block, ROW, B_REDR, "Retarget",		10, yco,150, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_RETARGET, 0, 0,					"Subdivide arcs based on a fixed number of bones");
+		uiDefButC(block, ROW, B_REDR, "Retarget",		10, yco,80, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_RETARGET, 0, 0,					"Retarget selected bones to stroke");
+		uiDefButBitC(block, TOG, SK_RETARGET_ROLL, B_DIFF, 	"Roll",		90, yco, 70,19, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0,				"Roll bones perpendicular to view");
 		/* button here to select what to do (copy or not), template, ...*/
 		yco -= 20;
 

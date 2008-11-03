@@ -80,6 +80,8 @@ typedef struct ReebNode {
 	int symmetry_flag;
 	float symmetry_axis[3];
 	/*********************************/
+	
+	float *no;
 
 	int index;
 	float weight;
