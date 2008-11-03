@@ -178,12 +178,13 @@ typedef struct ProjectPaintState {
 	float (*projectVertScreenCos)[3];	/* verts projected into floating point screen space */
 	
 	/* options for projection painting */
-	short projectOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
-	short projectBackfaceCull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
+	short projectIsIsOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
+	short projectIsBackfaceCull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
+	short projectIsOrtho;
 	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
-	float viewDir[3];			/* View vector, use for projectBackfaceCull and for ray casting with an ortho viewport  */
+	float viewDir[3];			/* View vector, use for projectIsBackfaceCull and for ray casting with an ortho viewport  */
 	
 	float viewMin2D[2];			/* 2D bounds for mesh verts on the screen's plane (screenspace) */
 	float viewMax2D[2]; 
@@ -607,6 +608,8 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	float pixelScreenCo[3]; /* for testing occlusion we need the depth too, but not for saving into ProjectPixel */
 	int bucket_index;
 	
+	//float pxWorldCo[3]; 
+	
 	
 	INIT_MINMAX2(min_uv, max_uv);
 	
@@ -652,21 +655,24 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 			for (x = xmini; x < xmaxi; x++) {
 				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
 				
-				/* Get the world coord for the point in uv space */
-				w1 = AreaF2Dfl(tf->uv[sc->v[1]], tf->uv[sc->v[2]], uv);
-				w2 = AreaF2Dfl(tf->uv[sc->v[2]], tf->uv[sc->v[0]], uv);
-				w3 = AreaF2Dfl(tf->uv[sc->v[0]], tf->uv[sc->v[1]], uv);
-				wtot = w1 + w2 + w3;
 				
+				/* Get the world coord for the point in uv space */
+				if (ps->projectIsOrtho) {
+					w1 = AreaF2Dfl(tf->uv[sc->v[1]], tf->uv[sc->v[2]], uv);
+					w2 = AreaF2Dfl(tf->uv[sc->v[2]], tf->uv[sc->v[0]], uv);
+					w3 = AreaF2Dfl(tf->uv[sc->v[0]], tf->uv[sc->v[1]], uv);
+				} else { /* prespective mode needs an interpolation */
+					w1 = AreaF2Dfl(tf->uv[sc->v[1]], tf->uv[sc->v[2]], uv) / v1co[2];
+					w2 = AreaF2Dfl(tf->uv[sc->v[2]], tf->uv[sc->v[0]], uv) / v2co[2];
+					w3 = AreaF2Dfl(tf->uv[sc->v[0]], tf->uv[sc->v[1]], uv) / v3co[2];
+				}
+				
+				wtot = w1 + w2 + w3;
 				w1 /= wtot; w2 /= wtot; w3 /= wtot;
 				
-				i=2;
-				do {
-					pixelScreenCo[i] = v1co[i]*w1 + v2co[i]*w2 + v3co[i]*w3;
-					/* incase we want the world pixel coords */
-					/* pixelWorldCo[i] = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co[i][0] * w1 ....; */
-				} while (i--);
-				/* Done building the world coord for this UV */
+				pixelScreenCo[0] = v1co[0]*w1 + v2co[0]*w2 + v3co[0]*w3;
+				pixelScreenCo[1] = v1co[1]*w1 + v2co[1]*w2 + v3co[1]*w3;
+				pixelScreenCo[2] = v1co[2]*w1 + v2co[2]*w2 + v3co[2]*w3;
 				
 				bucket_index = project_paint_BucketOffset(ps, pixelScreenCo);
 				
@@ -674,7 +680,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 				 * Then this can be used to index the bucket array */
 				
 				/* Is this UV visible from the view? - raytrace */
-				if (ps->projectOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
+				if (ps->projectIsOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
 					
 					/* done with view3d_project_float inline */
 					projPixel = (ProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ProjectPixel) );
@@ -938,6 +944,11 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	ps->projectVertScreenCos = BLI_memarena_alloc( ps->projectArena, sizeof(float) * ps->dm_totvert * 3);
 	projScreenCo = ps->projectVertScreenCos;
 	
+	/* TODO - check cameras mode too */
+	if (G.vd->persp == V3D_ORTHO) {
+		ps->projectIsOrtho = 1;
+	}
+	
 	INIT_MINMAX2(ps->viewMin2D, ps->viewMax2D);
 	
 	for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
@@ -965,7 +976,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
 			
-			if (ps->projectBackfaceCull) {
+			if (ps->projectIsBackfaceCull) {
 				/* TODO - we dont really need the normal, just the direction, save a sqrt? */
 				if (mf->v4)	CalcNormFloat4(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, f_no);
 				else		CalcNormFloat(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, f_no);
@@ -1809,8 +1820,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		/* setup projection painting data */
 		memset(&ps, 0, sizeof(ps));
 		
-		ps.projectBackfaceCull = 1;
-		ps.projectOcclude = 1;
+		ps.projectIsBackfaceCull = 1;
+		ps.projectIsOcclude = 1;
 		
 		project_paint_begin(&s, &ps);
 		
