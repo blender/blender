@@ -34,7 +34,6 @@
 #include <ffmpeg/rational.h>
 #include <ffmpeg/swscale.h>
 #include <ffmpeg/opt.h>
-#include <ffmpeg/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -104,18 +103,6 @@ static int audio_outbuf_size = 0;
 static RenderData *ffmpeg_renderdata = 0;
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
-
-void silence_log_ffmpeg(int quiet)
-{
-	if (quiet)
-	{
-		av_log_set_level(AV_LOG_QUIET);
-	}
-	else
-	{
-		av_log_set_level(AV_LOG_INFO);
-	}
-}
 
 /* Delete a picture buffer */
 

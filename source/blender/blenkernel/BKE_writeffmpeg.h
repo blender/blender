@@ -59,8 +59,6 @@ extern void start_ffmpeg(struct RenderData *rd, int rectx, int recty);
 extern void end_ffmpeg(void);
 extern void append_ffmpeg(int frame, int *pixels, int rectx, int recty);
 
-void silence_log_ffmpeg(int quiet);
-
 #ifdef __cplusplus
 }
 #endif
