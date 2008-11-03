@@ -139,7 +139,11 @@ typedef struct ImagePaintState {
 /* projectFaceFlags options */
 #define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
 #define PROJ_FACE_INIT	1<<1	/* When we have initialized the faces data */
-#define PROJ_FACE_OWNED	1<<2	/* When the face is in 1 bucket */
+#define PROJ_FACE_SEAM1	1<<2	/* If this face has a seam on any of its edges */
+#define PROJ_FACE_SEAM2	1<<3
+#define PROJ_FACE_SEAM3	1<<4
+#define PROJ_FACE_SEAM4	1<<5
+
 
 #define PROJ_BUCKET_NULL	0
 #define PROJ_BUCKET_INIT	1
@@ -160,13 +164,13 @@ typedef struct ProjectPaintState {
 	MFace 		   *dm_mface;
 	MTFace 		   *dm_mtface;
 	
-	
 	/* projection painting only */
 	MemArena *projectArena;		/* use for alocating many pixel structs and link-lists */
 	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ProjectPixel's */
 	LinkNode **projectFaces;	/* projectBuckets alligned array linkList of faces overlapping each bucket */
 	char *projectBucketFlags;	/* store if the bucks have been initialized  */
 	char *projectFaceFlags;		/* store info about faces, if they are initialized etc*/
+	LinkNode **projectVertFaces;/* Only needed for when projectIsSeamBleed is enabled, use to find UV seams */
 	
 	int bucketsX;				/* The size of the bucket grid, the grid span's viewMin2D/viewMax2D so you can paint outsize the screen or with 2 brushes at once */
 	int bucketsY;
@@ -178,9 +182,10 @@ typedef struct ProjectPaintState {
 	float (*projectVertScreenCos)[3];	/* verts projected into floating point screen space */
 	
 	/* options for projection painting */
-	short projectIsIsOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
+	short projectIsOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short projectIsBackfaceCull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short projectIsOrtho;
+	short projectIsSeamBleed;
 	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
@@ -582,6 +587,82 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, 
 	return totscanlines;
 }
 
+static int cmp_uv(float *vec2a, float *vec2b)
+{
+	return ((fabs(vec2a[0]-vec2b[0]) < 0.0001) && (fabs(vec2a[1]-vec2b[1]) < 0.0001)) ? 1:0;
+}
+	
+
+static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, int orig_i2_fidx)
+{
+	LinkNode *node;
+	int face_index;
+	int i, i1, i2;
+	int i1_fidx = -1, i2_fidx = -1; /* indexi in face */
+	MFace *orig_mf, *mf;
+	MTFace *orig_tf, *tf;
+	
+	orig_mf = ps->dm_mface + orig_face;
+	orig_tf = ps->dm_mtface + orig_face;
+	
+	/* vert indicies from face vert order indicies */
+	i1 = (*(&orig_mf->v1 + orig_i1_fidx));
+	i2 = (*(&orig_mf->v1 + orig_i2_fidx));
+	
+	for (node = ps->projectVertFaces[i1]; node; node = node->next) {
+		face_index = (int)node->link;
+		if (face_index != orig_face) {
+			mf = ps->dm_mface + face_index;
+			
+			/* We need to know the order of the verts in the adjacent face 
+			 * set the i1_fidx and i2_fidx to (0,1,2,3) */
+			i = mf->v4 ? 3:2;
+			do {
+				if (i1 == (*(&mf->v1 + i))) {
+					i1_fidx = i;
+				} else if (i2 == (*(&mf->v1 + i))) {
+					i2_fidx = i;
+				}
+				
+			} while (i--);
+			
+			if (i2_fidx != -1) {
+				/* This IS an adjacent face!, now lets check if the UVs are ok */
+				
+				tf = ps->dm_mtface + face_index;
+				if (	cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
+						cmp_uv(orig_tf->uv[orig_i2_fidx], tf->uv[i2_fidx]) )
+				{
+					// printf("SEAM (NONE)\n");
+					return 0;
+					
+				} else {
+					// printf("SEAM (UV GAP)\n");
+					return 1;
+				}
+			}
+		}
+	}
+	// printf("SEAM (NO FACE)\n");
+	return 1;
+}
+
+static void project_face_seams_init(ProjectPaintState *ps, int face_index, int is_quad)
+{
+	if (is_quad) {
+		ps->projectFaceFlags[face_index] = 
+			(check_seam(ps, face_index, 0,1) ? PROJ_FACE_SEAM1 : 0) |
+			(check_seam(ps, face_index, 1,2) ? PROJ_FACE_SEAM2 : 0) |
+			(check_seam(ps, face_index, 2,3) ? PROJ_FACE_SEAM3 : 0) |
+			(check_seam(ps, face_index, 3,0) ? PROJ_FACE_SEAM4 : 0);
+	} else {
+		ps->projectFaceFlags[face_index] = 
+			(check_seam(ps, face_index, 0,1) ? PROJ_FACE_SEAM1 : 0) |
+			(check_seam(ps, face_index, 1,2) ? PROJ_FACE_SEAM2 : 0) |
+			(check_seam(ps, face_index, 2,0) ? PROJ_FACE_SEAM3 : 0);
+	}
+}
+
 static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf *ibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
@@ -608,8 +689,6 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	float pixelScreenCo[3]; /* for testing occlusion we need the depth too, but not for saving into ProjectPixel */
 	int bucket_index;
 	
-	//float pxWorldCo[3]; 
-	
 	
 	INIT_MINMAX2(min_uv, max_uv);
 	
@@ -634,6 +713,10 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	/* face uses no UV area when quanticed to pixels? */
 	if (xmini == xmaxi || ymini == ymaxi)
 		return;
+	
+	/* detect UV seams so we can bleed */
+	if (ps->projectIsSeamBleed)
+		project_face_seams_init(ps, face_index, mf->v4);
 	
 	for (y = ymini; y < ymaxi; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y;
@@ -835,13 +918,24 @@ static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *
 {
 	float min[2], max[2];
 	int bucket_min[2], bucket_max[2]; /* for  ps->projectBuckets indexing */
-	int i, bucket_x, bucket_y, bucket_index;
+	int i, a, bucket_x, bucket_y, bucket_index;
 
 	INIT_MINMAX2(min,max);
 	
 	i = mf->v4 ? 3:2;
 	do {
-		DO_MINMAX2(ps->projectVertScreenCos[ (*(&mf->v1 + i)) ], min, max);
+		a = (*(&mf->v1 + i)); /* vertex index */
+		
+		DO_MINMAX2(ps->projectVertScreenCos[ a ], min, max);
+		
+		/* add face user if we have bleed enabled, set the UV seam flags later */
+		if (ps->projectIsSeamBleed) {
+			BLI_linklist_prepend_arena(
+				&ps->projectVertFaces[ a ],
+				(void *)face_index, /* cast to a pointer to shut up the compiler */
+				ps->projectArena
+			);
+		}
 	} while (i--);
 	
 	project_paint_rect(ps, min, max, bucket_min, bucket_max);
@@ -889,6 +983,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	int tot_faceFlagMem=0;
 	int tot_faceListMem=0;
 	int tot_bucketFlagMem=0;
+	int tot_bucketVertFacesMem=0;
 
 	/* ---- end defines ---- */
 	
@@ -914,24 +1009,33 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	
 	view3d_get_object_project_mat(curarea, s->ob, ps->projectMat, ps->viewMat);
 	
-	tot_bucketMem =		sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
-	tot_faceListMem =	sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
-	tot_faceFlagMem =	sizeof(char) * ps->dm_totface;
-	tot_bucketFlagMem =	sizeof(char) * ps->bucketsX * ps->bucketsY;
+	tot_bucketMem =				sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
+	tot_faceListMem =			sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
+	tot_faceFlagMem =			sizeof(char) * ps->dm_totface;
+	tot_bucketFlagMem =			sizeof(char) * ps->bucketsX * ps->bucketsY;
+	if (ps->projectIsSeamBleed) /* UV Seams for bleeding */
+		tot_bucketVertFacesMem =	sizeof(LinkNode *) * ps->dm_totvert;
 	
 
-	
-	ps->projectArena = BLI_memarena_new(tot_bucketMem + tot_faceListMem + tot_faceFlagMem + (1<<16) );
+	ps->projectArena =
+		BLI_memarena_new(	tot_bucketMem +
+							tot_faceListMem +
+							tot_faceFlagMem +
+							tot_bucketVertFacesMem + (1<<16));
 	
 	ps->projectBuckets = (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketMem);
 	ps->projectFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_faceListMem);
 	ps->projectFaceFlags = (char *)BLI_memarena_alloc( ps->projectArena, tot_faceFlagMem);
 	ps->projectBucketFlags= (char *)BLI_memarena_alloc( ps->projectArena, tot_bucketFlagMem);
-
+	if (ps->projectIsSeamBleed)
+		ps->projectVertFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketVertFacesMem);
+	
 	memset(ps->projectBuckets,		0, tot_bucketMem);
 	memset(ps->projectFaces,		0, tot_faceListMem);
 	memset(ps->projectFaceFlags,	0, tot_faceFlagMem);
 	memset(ps->projectBucketFlags,	0, tot_bucketFlagMem);
+	if (ps->projectIsSeamBleed)
+		memset(ps->projectVertFaces,	0, tot_bucketVertFacesMem);
 	
 	Mat4Invert(s->ob->imat, s->ob->obmat);
 	
@@ -1822,6 +1926,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		
 		ps.projectIsBackfaceCull = 1;
 		ps.projectIsOcclude = 1;
+		ps.projectIsSeamBleed = 0;
 		
 		project_paint_begin(&s, &ps);
 		
