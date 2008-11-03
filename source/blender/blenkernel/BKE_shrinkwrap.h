@@ -96,6 +96,7 @@ void space_transform_invert_normal(const SpaceTransform *data, float *no);
 struct Object;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
+struct MDeform;
 struct BVHTree;
 
 
@@ -108,6 +109,9 @@ typedef struct ShrinkwrapCalcData
 
 	float (*vertexCos)[3];			//vertexs being shrinkwraped
 	int numVerts;
+
+	struct MDeform* dvert;			//Pointer to mdeform array
+	int vgroup;						//Vertex group num
 
 	struct DerivedMesh *target;		//mesh we are shrinking to	
 	SpaceTransform local2target;	//transform to move bettwem local and target space

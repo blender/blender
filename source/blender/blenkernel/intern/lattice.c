@@ -928,3 +928,15 @@ void lattice_calc_modifiers(Object *ob)
 		BLI_addtail(&ob->disp, dl);
 	}
 }
+
+struct MDeform* lattice_get_deform_verts(struct Object *oblatt)
+{
+	if(oblatt->type == OB_LATTICE)
+	{
+		Lattice *lt = (oblatt==G.obedit)?editLatt:(Lattice*)oblatt->data;
+		return lt->dvert;
+	}
+
+	return NULL;	
+}
+
