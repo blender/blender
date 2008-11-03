@@ -513,6 +513,73 @@ static int project_uv_scanline(float *uv1, float *uv2, float *uv3, float y_level
 	}
 }
 
+static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, float *v2, float *v3, float *v4)
+{	
+	/* Create a scanlines for the face at this Y level 
+	 * triangles will only ever have 1 scanline, quads may have 2 */
+	int totscanlines = 0;
+	
+	if (v4) { /* This is a quad?*/
+		short i1,i2,i3,i4, i_mid;
+		float xi1, xi2, xi3, xi4, xi_mid;
+		
+		
+		i1 = project_scanline_isect(v1, v2, y_level, &xi1);
+		i2 = project_scanline_isect(v2, v3, y_level, &xi2);
+		
+		if (i1 && i2) { /* both the first 2 edges intersect, this means the second half of the quad wont intersect */
+			sc->v[0] = 0;
+			sc->v[1] = 1;
+			sc->v[2] = 2;
+			sc->x_limits[0] = MIN2(xi1, xi2);
+			sc->x_limits[1] = MAX2(xi1, xi2);
+			totscanlines = 1;
+		} else {
+			i3 = project_scanline_isect(v3, v4, y_level, &xi3);
+			i4 = project_scanline_isect(v4, v1, y_level, &xi4);
+			
+			if (i3 && i4) { /* second 2 edges only intersect, same as above */
+				sc->v[0] = 0;
+				sc->v[1] = 2;
+				sc->v[2] = 3;
+				sc->x_limits[0] = MIN2(xi3, xi4);
+				sc->x_limits[1] = MAX2(xi3, xi4);
+				totscanlines = 1;
+			} else {
+				/* OK - we have a not-so-simple case, both sides of the quad intersect.
+				 * Will need to have 2 scanlines */
+				if ((i1||i2) && (i3||i4)) {
+					i_mid = project_scanline_isect(v1, v3, y_level, &xi_mid);
+					/* it would be very rare this would be false, but possible */
+					sc->v[0] = 0;
+					sc->v[1] = 1;
+					sc->v[2] = 2;
+					sc->x_limits[0] = MIN2((i1?xi1:xi2), xi_mid);
+					sc->x_limits[1] = MAX2((i1?xi1:xi2), xi_mid);
+					
+					sc++;
+					sc->v[0] = 0;
+					sc->v[1] = 2;
+					sc->v[2] = 3;
+					sc->x_limits[0] = MIN2((i3?xi3:xi4), xi_mid);
+					sc->x_limits[1] = MAX2((i3?xi3:xi4), xi_mid);
+					
+					totscanlines = 2;
+				}
+			}
+		}
+		
+	} else {
+		if (project_uv_scanline(v1, v2, v3, y_level, sc->x_limits)) {
+			sc->v[0] = 0;
+			sc->v[1] = 1;
+			sc->v[2] = 2;
+			totscanlines = 1;
+		}
+	}
+	/* done setting up scanlines */
+	return totscanlines;
+}
 
 static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf *ibuf)
 {
@@ -520,9 +587,6 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	ProjectPixel *projPixel;
 	MFace *mf = ps->dm_mface + face_index;
 	MTFace *tf = ps->dm_mtface + face_index;
-	
-	float pxWorldCo[3];
-	float pxProjCo[4];
 	
 	/* UV/pixel seeking data */
 	int x; /* Image X-Pixel */
@@ -539,9 +603,6 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	ProjectScanline scanlines[2];
 	ProjectScanline *sc;
 	int totscanlines; /* can only be 1 or 2, oh well */
-	
-	float xi1, xi2, xi3, xi4, xi_mid, xi; /* scanline intersecton location */
-	int i1,i2,i3,i4,i_mid; /* scanline intersection results */
 	
 	float pixelScreenCo[3]; /* for testing occlusion we need the depth too, but not for saving into ProjectPixel */
 	int bucket_index;
@@ -574,80 +635,19 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	for (y = ymini; y < ymaxi; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y;
 		
-		/* Create a scanlines for the face at this Y level 
-		 * triangles will only ever have 1 scanline, quads may have 2 */
-		totscanlines = 0;
-		sc = scanlines;
+		totscanlines = project_face_scanline(scanlines, uv[1], tf->uv[0], tf->uv[1], tf->uv[2], mf->v4 ? tf->uv[3]:NULL);
 		
-		if (mf->v4) {
-			totscanlines = 0;
-			
-			i1 = project_scanline_isect(tf->uv[0], tf->uv[1], uv[1], &xi1);
-			i2 = project_scanline_isect(tf->uv[1], tf->uv[2], uv[1], &xi2);
-			
-			if (i1 && i2) { /* both the first 2 edges intersect, this means the second half of the quad wont intersect */
-				sc->v[0] = 0;
-				sc->v[1] = 1;
-				sc->v[2] = 2;
-				sc->x_limits[0] = MIN2(xi1, xi2);
-				sc->x_limits[1] = MAX2(xi1, xi2);
-				totscanlines = 1;
-			} else {
-				i3 = project_scanline_isect(tf->uv[2], tf->uv[3], uv[1], &xi3);
-				i4 = project_scanline_isect(tf->uv[3], tf->uv[0], uv[1], &xi4);
-				
-				if (i3 && i4) { /* second 2 edges only intersect, same as above */
-					sc->v[0] = 0;
-					sc->v[1] = 2;
-					sc->v[2] = 3;
-					sc->x_limits[0] = MIN2(xi3, xi4);
-					sc->x_limits[1] = MAX2(xi3, xi4);
-					totscanlines = 1;
-				} else {
-					/* OK - we have a not-so-simple case, both sides of the quad intersect.
-					 * Will need to have 2 scanlines */
-					if ((i1||i2) && (i3||i4)) {
-						i_mid = project_scanline_isect(tf->uv[0], tf->uv[2], uv[1], &xi_mid);
-						/* it would be very rare this would be false, but possible */
-						sc->v[0] = 0;
-						sc->v[1] = 1;
-						sc->v[2] = 2;
-						sc->x_limits[0] = MIN2((i1?xi1:xi2), xi_mid);
-						sc->x_limits[1] = MAX2((i1?xi1:xi2), xi_mid);
-						
-						sc++;
-						sc->v[0] = 0;
-						sc->v[1] = 2;
-						sc->v[2] = 3;
-						sc->x_limits[0] = MIN2((i3?xi3:xi4), xi_mid);
-						sc->x_limits[1] = MAX2((i3?xi3:xi4), xi_mid);
-						
-						totscanlines = 2;
-					}
-				}
-			}
-			
-		} else {
-			if (project_uv_scanline(tf->uv[0], tf->uv[1], tf->uv[2], uv[1], scanlines[0].x_limits)) {
-				sc->v[0] = 0;
-				sc->v[1] = 1;
-				sc->v[2] = 2;
-				totscanlines = 1;
-			}
-		}
-		/* done setting up scanlines */
-		
-		/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having */
+		/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having tri/quad spesific functions */
 		for (j=0, sc=scanlines; j<totscanlines; j++, sc++) {
 			
-			xmini = (int)((ibuf->x * scanlines[j].x_limits[0])+0.5);
-			xmaxi = (int)((ibuf->x * scanlines[j].x_limits[1])+0.5);
+			xmini = (int)((ibuf->x * sc->x_limits[0])+0.5);
+			xmaxi = (int)((ibuf->x * sc->x_limits[1])+0.5);
 			CLAMP(xmini, 0, ibuf->x);
 			CLAMP(xmaxi, 0, ibuf->x);
 			
-			v1co = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co;
-			v2co = ps->dm_mvert[ (*(&mf->v1 + sc->v[1])) ].co;
-			v3co = ps->dm_mvert[ (*(&mf->v1 + sc->v[2])) ].co;
+			v1co = ps->projectVertScreenCos[ (*(&mf->v1 + sc->v[0])) ];
+			v2co = ps->projectVertScreenCos[ (*(&mf->v1 + sc->v[1])) ];
+			v3co = ps->projectVertScreenCos[ (*(&mf->v1 + sc->v[2])) ];
 			
 			for (x = xmini; x < xmaxi; x++) {
 				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
@@ -662,47 +662,37 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 				
 				i=2;
 				do {
-					pxWorldCo[i] = v1co[i]*w1 + v2co[i]*w2 + v3co[i]*w3;
+					pixelScreenCo[i] = v1co[i]*w1 + v2co[i]*w2 + v3co[i]*w3;
+					/* incase we want the world pixel coords */
+					/* pixelWorldCo[i] = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co[i][0] * w1 ....; */
 				} while (i--);
 				/* Done building the world coord for this UV */
 				
-				/* Inline project from view is a bit faster, also added own tweaks */
-				VECCOPY(pxProjCo, pxWorldCo);
-				pxProjCo[3] = 1.0;
+				bucket_index = project_paint_BucketOffset(ps, pixelScreenCo);
 				
-				Mat4MulVec4fl(ps->projectMat, pxProjCo);
-
-				if( pxProjCo[3] > 0.001 ) {
-					pixelScreenCo[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pxProjCo[0]/pxProjCo[3];
-					pixelScreenCo[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pxProjCo[1]/pxProjCo[3];
-					pixelScreenCo[2] = pxProjCo[2]/pxProjCo[3]; /* Only for depth test */
+				/* Use viewMin2D to make (0,0) the bottom left of the bounds 
+				 * Then this can be used to index the bucket array */
+				
+				/* Is this UV visible from the view? - raytrace */
+				if (ps->projectOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
 					
-					bucket_index = project_paint_BucketOffset(ps, pixelScreenCo);
+					/* done with view3d_project_float inline */
+					projPixel = (ProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ProjectPixel) );
 					
-					/* Use viewMin2D to make (0,0) the bottom left of the bounds 
-					 * Then this can be used to index the bucket array */
+					/* screenspace unclamped */
+					VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 					
-					/* Is this UV visible from the view? - raytrace */
-					if (ps->projectOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
-						
-						/* done with view3d_project_float inline */
-						projPixel = (ProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ProjectPixel) );
-						
-						/* screenspace unclamped */
-						VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
-						
-						projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
+					projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
 #ifdef PROJ_DEBUG_PAINT
-						projPixel->pixel[1] = 0;
+					projPixel->pixel[1] = 0;
 #endif
-						projPixel->image_index = ps->image_index;
-						
-						BLI_linklist_prepend_arena(
-							&ps->projectBuckets[ bucket_index ],
-							projPixel,
-							ps->projectArena
-						);
-					}
+					projPixel->image_index = ps->image_index;
+					
+					BLI_linklist_prepend_arena(
+						&ps->projectBuckets[ bucket_index ],
+						projPixel,
+						ps->projectArena
+					);
 				}
 			}
 		}
