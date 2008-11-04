@@ -304,9 +304,9 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	PointDensityRangeData pdr;
 	float density=0.0f, time=0.0f;
 	float vec[3] = {0.0, 0.0, 0.0};
-	float tv[3];
 	float co[3];
 	float turb, noise_fac;
+	int num;
 	
 	if ((!pd) || (!pd->point_tree)) {
 		texres->tin = 0.0f;
@@ -331,11 +331,13 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		if (ELEM(pd->noise_influence, TEX_PD_NOISE_VEL, TEX_PD_NOISE_TIME)) {
 			/* find the average speed vectors or particle time,
 			 * for perturbing final density lookup with */
-			BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+			num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
 			density = 0.0f;
 			
-			if (pd->noise_influence == TEX_PD_NOISE_TIME)
-				vec[0] = vec[1] = vec[2] = time;
+			if (pd->noise_influence == TEX_PD_NOISE_TIME) {
+				vec[0] = vec[1] = vec[2] = time/num;
+				//if ((G.rt==1) && (time > 0.f)) printf("time: %f  time/num: %f \n", time, time/num);
+			}
 			
 			Normalize(vec);
 		}
@@ -357,7 +359,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	texres->tr = vec[0];
 	texres->tg = vec[1];
 	texres->tb = vec[2];
-	texres->ta = density;
+	//texres->ta = density;
 	BRICONTRGB;
 	
 	return retval;
