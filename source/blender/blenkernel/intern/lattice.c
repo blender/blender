@@ -929,7 +929,7 @@ void lattice_calc_modifiers(Object *ob)
 	}
 }
 
-struct MDeform* lattice_get_deform_verts(struct Object *oblatt)
+struct MDeformVert* lattice_get_deform_verts(struct Object *oblatt)
 {
 	if(oblatt->type == OB_LATTICE)
 	{
