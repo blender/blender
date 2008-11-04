@@ -126,6 +126,7 @@ extern PyTypeObject FilterColorType;
 extern PyTypeObject FilterLevelType;
 extern PyTypeObject FilterNormalType;
 extern PyTypeObject FilterRGB24Type;
+extern PyTypeObject FilterRGBA32Type;
 extern PyTypeObject FilterBGR24Type;
 extern PyTypeObject ImageBuffType;
 extern PyTypeObject ImageMixType;
@@ -150,6 +151,7 @@ static void registerAllTypes(void)
 	pyFilterTypes.add(&FilterLevelType, "FilterLevel");
 	pyFilterTypes.add(&FilterNormalType, "FilterNormal");
 	pyFilterTypes.add(&FilterRGB24Type, "FilterRGB24");
+	pyFilterTypes.add(&FilterRGBA32Type, "FilterRGBA32");
 	pyFilterTypes.add(&FilterBGR24Type, "FilterBGR24");
 }
 

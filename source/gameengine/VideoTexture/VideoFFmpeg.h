@@ -100,7 +100,7 @@ protected:
 	// deinterlaced frame if codec requires it
 	AVFrame	*m_frameDeinterlaced;
 	// decoded RGB24 frame if codec requires it
-	AVFrame	*m_frameBGR;
+	AVFrame	*m_frameRGB;
 	// conversion from raw to RGB is done with sws_scale
 	struct SwsContext *m_imgConvertCtx;
 	// should the codec be deinterlaced?
@@ -150,7 +150,7 @@ protected:
 	bool grabFrame(long frame);
 
 	/// return the frame in RGB24 format, the image data is found in AVFrame.data[0]
-	AVFrame* getFrame(void) { return m_frameBGR; }
+	AVFrame* getFrame(void) { return m_frameRGB; }
 };
 
 inline VideoFFmpeg * getFFmpeg (PyImage * self) 

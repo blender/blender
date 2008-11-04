@@ -63,25 +63,24 @@ protected:
 		short * size, unsigned int pixSize, unsigned int val)
 	{
 		// calculate differences
-		int difRed = int((val >> 16) & 0xFF) - int(m_color[0]);
-		int difGreen = int((val >> 8) & 0xFF) - int(m_color[1]);
-		int difBlue = int(val & 0xFF) - int(m_color[2]);
+		int difRed = int(VT_R(val)) - int(m_color[0]);
+		int difGreen = int(VT_G(val)) - int(m_color[1]);
+		int difBlue = int(VT_B(val)) - int(m_color[2]);
 		// calc distance from "blue screen" color
 		unsigned int dist = (unsigned int)(difRed * difRed + difGreen * difGreen
 			+ difBlue * difBlue);
 		// condition for fully transparent color
 		if (m_squareLimits[0] >= dist) 
 			// return color with zero alpha
-			//return 0xFF000000;
-			return val & 0x00FFFFFF;
+			VT_A(val) = 0;
 		// condition for fully opaque color
 		else if (m_squareLimits[1] <= dist)
 			// return normal colour
-			return val | 0xFF000000;
+			VT_A(val) = 0xFF;
 		// otherwise calc alpha
 		else
-			return (val & 0x00FFFFFF) | ((((dist - m_squareLimits[0]) << 8)
-			/ m_limitDist) << 24);
+			VT_A(val) = (((dist - m_squareLimits[0]) << 8) / m_limitDist);
+		return val;
 	}
 
 	/// virtual filtering function for byte source

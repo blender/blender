@@ -32,7 +32,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 
 // default filter
-FilterBGR24 defFilter;
+FilterRGB24 defFilter;
 
 
 // load image from buffer

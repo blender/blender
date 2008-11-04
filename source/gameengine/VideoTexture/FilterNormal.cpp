@@ -32,7 +32,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 // implementation FilterNormal
 
 // constructor
-FilterNormal::FilterNormal (void) : m_colShift(0)
+FilterNormal::FilterNormal (void) : m_colIdx(0)
 {
 	// set default depth
 	setDepth(4);
@@ -44,7 +44,7 @@ void FilterNormal::setColor (unsigned short colIdx)
 	// check validity of index
 	if (colIdx < 3)
 		// set color shift
-		m_colShift = colIdx << 3;
+		m_colIdx = colIdx;
 }
 
 // set depth

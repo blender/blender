@@ -51,7 +51,7 @@ extern "C" void do_init_ffmpeg();
 // constructor
 VideoFFmpeg::VideoFFmpeg (HRESULT * hRslt) : VideoBase(), 
 m_codec(NULL), m_formatCtx(NULL), m_codecCtx(NULL), 
-m_frame(NULL), m_frameDeinterlaced(NULL), m_frameBGR(NULL), m_imgConvertCtx(NULL),
+m_frame(NULL), m_frameDeinterlaced(NULL), m_frameRGB(NULL), m_imgConvertCtx(NULL),
 m_deinterlace(false), m_preseek(0),	m_videoStream(-1), m_baseFrameRate(25.0),
 m_lastFrame(-1),  m_curPosition(-1), m_startTime(0), 
 m_captWidth(0), m_captHeight(0), m_captRate(0.f)
@@ -91,10 +91,10 @@ bool VideoFFmpeg::release()
 		MEM_freeN(m_frameDeinterlaced->data[0]);
 		av_free(m_frameDeinterlaced);
 	}
-	if (m_frameBGR)
+	if (m_frameRGB)
 	{
-		MEM_freeN(m_frameBGR->data[0]);
-		av_free(m_frameBGR);
+		MEM_freeN(m_frameRGB->data[0]);
+		av_free(m_frameRGB);
 	}
 	if (m_imgConvertCtx)
 	{
@@ -106,7 +106,7 @@ bool VideoFFmpeg::release()
 	m_formatCtx = NULL;
 	m_frame = NULL;
 	m_frame = NULL;
-	m_frameBGR = NULL;
+	m_frameRGB = NULL;
 	m_imgConvertCtx = NULL;
 
 	// object will be deleted after that
@@ -189,7 +189,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 	m_videoStream = videoStream;
 	m_frame = avcodec_alloc_frame();
 	m_frameDeinterlaced = avcodec_alloc_frame();
-	m_frameBGR = avcodec_alloc_frame();
+	m_frameRGB = avcodec_alloc_frame();
 
 
 	// allocate buffer if deinterlacing is required
@@ -201,12 +201,12 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		m_codecCtx->pix_fmt, m_codecCtx->width, m_codecCtx->height);
 
 	// allocate buffer to store final decoded frame
-	avpicture_fill((AVPicture*)m_frameBGR, 
+	avpicture_fill((AVPicture*)m_frameRGB, 
 		(uint8_t*)MEM_callocN(avpicture_get_size(
-		PIX_FMT_BGR24,
+		PIX_FMT_RGB24,
 		m_codecCtx->width, m_codecCtx->height),
-		"ffmpeg bgr"),
-		PIX_FMT_BGR24, m_codecCtx->width, m_codecCtx->height);
+		"ffmpeg rgb"),
+		PIX_FMT_RGB24, m_codecCtx->width, m_codecCtx->height);
 	// allocate sws context
 	m_imgConvertCtx = sws_getContext(
 		m_codecCtx->width,
@@ -214,7 +214,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		m_codecCtx->pix_fmt,
 		m_codecCtx->width,
 		m_codecCtx->height,
-		PIX_FMT_BGR24,
+		PIX_FMT_RGB24,
 		SWS_FAST_BILINEAR,
 		NULL, NULL, NULL);
 
@@ -224,8 +224,8 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		av_free(m_frame);
 		MEM_freeN(m_frameDeinterlaced->data[0]);
 		av_free(m_frameDeinterlaced);
-		MEM_freeN(m_frameBGR->data[0]);
-		av_free(m_frameBGR);
+		MEM_freeN(m_frameRGB->data[0]);
+		av_free(m_frameRGB);
 		return -1;
 	}
 	return 0;
@@ -565,14 +565,14 @@ bool VideoFFmpeg::grabFrame(long position)
 						input = m_frameDeinterlaced;
 					}
 				}
-				// convert to BGR24
+				// convert to RGB24
 				sws_scale(m_imgConvertCtx,
 					input->data,
 					input->linesize,
 					0,
 					m_codecCtx->height,
-					m_frameBGR->data,
-					m_frameBGR->linesize);
+					m_frameRGB->data,
+					m_frameRGB->linesize);
 				av_free_packet(&packet);
 				frameLoaded = true;
 				break;

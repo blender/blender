@@ -135,7 +135,7 @@ void ImageViewport::calcImage (unsigned int texId)
 		glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
 			GL_UNSIGNED_BYTE, m_viewportImage);
 		// filter loaded data
-		FilterBGR24 filt;
+		FilterRGB24 filt;
 		filterImage(filt, m_viewportImage, m_capSize);
 	}
 }

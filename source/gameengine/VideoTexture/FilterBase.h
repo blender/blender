@@ -29,6 +29,12 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "PyTypeList.h"
 
+#define VT_C(v,idx)	((unsigned char*)&v)[idx]
+#define VT_R(v)	((unsigned char*)&v)[0]
+#define VT_G(v)	((unsigned char*)&v)[1]
+#define VT_B(v)	((unsigned char*)&v)[2]
+#define VT_A(v)	((unsigned char*)&v)[3]
+#define VT_RGBA(v,r,g,b,a)	VT_R(v)=(unsigned char)r, VT_G(v)=(unsigned char)g, VT_B(v)=(unsigned char)b, VT_A(v)=(unsigned char)a
 
 // forward declaration
 class FilterBase;

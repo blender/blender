@@ -43,7 +43,7 @@ public:
 	virtual ~FilterNormal (void) {}
 
 	/// get index of color used to calculate normals
-	unsigned short getColor (void) { return m_colShift >> 3; }
+	unsigned short getColor (void) { return m_colIdx; }
 	/// set index of color used to calculate normals
 	void setColor (unsigned short colIdx);
 
@@ -58,20 +58,28 @@ protected:
 	/// scale to calculate normals
 	float m_depthScale;
 
-	/// shift to used color component
-	unsigned short m_colShift;
+	/// color index, 0=red, 1=green, 2=blue, 3=alpha
+	unsigned short m_colIdx;
 
 	/// filter pixel, source int buffer
 	template <class SRC> unsigned int tFilter (SRC * src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val = 0)
 	{
 		// get value of required color
-		int actPix = int((val >> m_colShift) & 0xFF);
+		int actPix = int(VT_C(val,m_colIdx));
+		int upPix = actPix;
+		int leftPix = actPix;
 		// get upper and left pixel from actual pixel
-		int upPix = y > 0 ? int((convertPrevious(src - pixSize * size[0], x, y - 1,
-			size, pixSize) >> m_colShift) & 0xFF) : actPix;
-		int leftPix = x > 0 ? int((convertPrevious(src - pixSize, x - 1, y, size, pixSize)
-			>> m_colShift) & 0xFF) : actPix;
+		if (y > 0)
+		{
+			val = convertPrevious(src - pixSize * size[0], x, y - 1, size, pixSize);
+			upPix = VT_C(val,m_colIdx);
+		}
+		if (x > 0)
+		{
+			val = convertPrevious(src - pixSize, x - 1, y, size, pixSize);
+			leftPix = VT_C(val,m_colIdx);
+		}
 		// height differences (from blue color)
 		float dx = (actPix - leftPix) * m_depthScale;
 		float dy = (actPix - upPix) * m_depthScale;
@@ -81,7 +89,8 @@ protected:
 		dy = dy * dz + normScaleKoef;
 		dz += normScaleKoef;
 		// return normal vector converted to color
-		return 0xFF000000 | int(dz) << 16 | int(dy) << 8 | int(dx);
+		VT_RGBA(val, dx, dy, dz, 0xFF);
+		return val;
 	}
 
 	/// filter pixel, source byte buffer
