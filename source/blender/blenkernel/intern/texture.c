@@ -348,6 +348,15 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 				else
 					fac= 0.0f;
 				
+				if (coba->ipotype==4) {
+					/* constant */
+					out[0]= cbd1->r;
+					out[1]= cbd1->g;
+					out[2]= cbd1->b;
+					out[3]= cbd1->a;
+					return 1;
+				}
+				
 				if(coba->ipotype>=2) {
 					/* ipo from right to left: 3 2 1 0 */
 					
