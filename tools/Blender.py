@@ -416,10 +416,6 @@ class BlenderEnvironment(SConsEnvironment):
                     lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
             if lenv['WITH_BF_BULLET']:
                     lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
-            # debug or not
-            # CXXFLAGS defaults to CCFLAGS, therefore
-            #  we Replace() rather than Append() to CXXFLAGS the first time
-            #lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
             if lenv['BF_DEBUG'] or (libname in quickdebug):
                     lenv.Append(CFLAGS = Split(lenv['BF_DEBUG_CFLAGS']))
                     lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_CCFLAGS']))
