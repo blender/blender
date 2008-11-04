@@ -350,10 +350,10 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 				
 				if (coba->ipotype==4) {
 					/* constant */
-					out[0]= cbd1->r;
-					out[1]= cbd1->g;
-					out[2]= cbd1->b;
-					out[3]= cbd1->a;
+					out[0]= cbd2->r;
+					out[1]= cbd2->g;
+					out[2]= cbd2->b;
+					out[3]= cbd2->a;
 					return 1;
 				}
 				
