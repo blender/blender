@@ -692,18 +692,18 @@ static PyMethodDef videoMethods[] =
 // attributes structure
 static PyGetSetDef videoGetSets[] =
 { // methods from VideoBase class
-	{"status", (getter)Video_getStatus, NULL, "video status", NULL},
-	{"range", (getter)Video_getRange, (setter)Video_setRange, "replay range", NULL},
-	{"repeat", (getter)Video_getRepeat, (setter)Video_setRepeat, "repeat count, -1 for infinite repeat", NULL},
-	{"framerate", (getter)Video_getFrameRate, (setter)Video_setFrameRate, "frame rate", NULL},
+	{(char*)"status", (getter)Video_getStatus, NULL, (char*)"video status", NULL},
+	{(char*)"range", (getter)Video_getRange, (setter)Video_setRange, (char*)"replay range", NULL},
+	{(char*)"repeat", (getter)Video_getRepeat, (setter)Video_setRepeat, (char*)"repeat count, -1 for infinite repeat", NULL},
+	{(char*)"framerate", (getter)Video_getFrameRate, (setter)Video_setFrameRate, (char*)"frame rate", NULL},
 	// attributes from ImageBase class
-	{"image", (getter)Image_getImage, NULL, "image data", NULL},
-	{"size", (getter)Image_getSize, NULL, "image size", NULL},
-	{"scale", (getter)Image_getScale, (setter)Image_setScale, "fast scale of image (near neighbour)", NULL},
-	{"flip", (getter)Image_getFlip, (setter)Image_setFlip, "flip image vertically", NULL},
-	{"filter", (getter)Image_getFilter, (setter)Image_setFilter, "pixel filter", NULL},
-	{"preseek", (getter)VideoFFmpeg_getPreseek, (setter)VideoFFmpeg_setPreseek, "nb of frames of preseek", NULL},
-	{"deinterlace", (getter)VideoFFmpeg_getDeinterlace, (setter)VideoFFmpeg_setDeinterlace, "deinterlace image", NULL},
+	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
+	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
+	{(char*)"preseek", (getter)VideoFFmpeg_getPreseek, (setter)VideoFFmpeg_setPreseek, (char*)"nb of frames of preseek", NULL},
+	{(char*)"deinterlace", (getter)VideoFFmpeg_getDeinterlace, (setter)VideoFFmpeg_setDeinterlace, (char*)"deinterlace image", NULL},
 	{NULL}
 };
 

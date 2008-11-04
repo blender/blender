@@ -111,11 +111,11 @@ static PyMethodDef imageBuffMethods[] =
 // attributes structure
 static PyGetSetDef imageBuffGetSets[] =
 {	// attributes from ImageBase class
-	{"image", (getter)Image_getImage, NULL, "image data", NULL},
-	{"size", (getter)Image_getSize, NULL, "image size", NULL},
-	{"scale", (getter)Image_getScale, (setter)Image_setScale, "fast scale of image (near neighbour)", NULL},
-	{"flip", (getter)Image_getFlip, (setter)Image_setFlip, "flip image vertically", NULL},
-	{"filter", (getter)Image_getFilter, (setter)Image_setFilter, "pixel filter", NULL},
+	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
+	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}
 };
 

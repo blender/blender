@@ -34,7 +34,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 // attributes structure
 static PyGetSetDef filterGrayGetSets[] =
 { // attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 
@@ -164,9 +164,9 @@ static int setMatrix (PyFilter * self, PyObject * value, void * closure)
 // attributes structure
 static PyGetSetDef filterColorGetSets[] =
 { 
-	{"matrix", (getter)getMatrix, (setter)setMatrix, "matrix [4][5] for color calculation", NULL},
+	{(char*)"matrix", (getter)getMatrix, (setter)setMatrix, (char*)"matrix [4][5] for color calculation", NULL},
 	// attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 
@@ -298,9 +298,9 @@ static int setLevels (PyFilter * self, PyObject * value, void * closure)
 // attributes structure
 static PyGetSetDef filterLevelGetSets[] =
 { 
-	{"levels", (getter)getLevels, (setter)setLevels, "levels matrix [4] (min, max)", NULL},
+	{(char*)"levels", (getter)getLevels, (setter)setLevels, (char*)"levels matrix [4] (min, max)", NULL},
 	// attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 

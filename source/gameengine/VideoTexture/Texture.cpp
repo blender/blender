@@ -412,8 +412,8 @@ static PyMethodDef textureMethods[] =
 // class Texture attributes
 static PyGetSetDef textureGetSets[] =
 { 
-	{"source", (getter)Texture_getSource, (setter)Texture_setSource, "source of texture", NULL},
-	{"mipmap", (getter)Texture_getMipmap, (setter)Texture_setMipmap, "mipmap texture", NULL},
+	{(char*)"source", (getter)Texture_getSource, (setter)Texture_setSource, (char*)"source of texture", NULL},
+	{(char*)"mipmap", (getter)Texture_getMipmap, (setter)Texture_setMipmap, (char*)"mipmap texture", NULL},
 	{NULL}
 };
 

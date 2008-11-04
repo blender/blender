@@ -180,7 +180,7 @@ PyObject* initVideoTexture(void)
 	pyFilterTypes.reg(m);
 
 	Py_INCREF(&TextureType);
-	PyModule_AddObject(m, "Texture", (PyObject*)&TextureType);
+	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
 
 	// init last error description
 	Exception::m_lastError[0] = '\0';

@@ -109,10 +109,10 @@ static int setDepth (PyFilter * self, PyObject * value, void * closure)
 // attributes structure
 static PyGetSetDef filterNormalGetSets[] =
 { 
-	{"colorIdx", (getter)getColor, (setter)setColor, "index of color used to calculate normal (0 - red, 1 - green, 2 - blue)", NULL},
-	{"depth", (getter)getDepth, (setter)setDepth, "depth of relief", NULL},
+	{(char*)"colorIdx", (getter)getColor, (setter)setColor, (char*)"index of color used to calculate normal (0 - red, 1 - green, 2 - blue)", NULL},
+	{(char*)"depth", (getter)getDepth, (setter)setDepth, (char*)"depth of relief", NULL},
 	// attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 
