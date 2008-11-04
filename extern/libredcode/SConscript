@@ -9,20 +9,8 @@ Import('env')
 sources = env.Glob('*.c')
 incs = '. ../libopenjpeg'
 
-root = "extern/libredcode"
-
-if not os.path.isdir(root + "/include"):
-    os.mkdir(root + "/include");
-if not os.path.isdir(root + "/include/redcode"):
-    os.mkdir(root + "/include/redcode");
-
-for h in env.Glob('*.h'):
-    shutil.copyfile(root + "/" + h,
-                    root + "/include/redcode/" + h)
-
-
 env.BlenderLib ( libname='extern_redcode', 
                  sources=sources, includes=Split(incs),
                  defines=[],
                  libtype=['core','intern','player'],
-                 priority=[5, 5, 200], compileflags = [])
+                 priority=[10, 5, 300], compileflags = [])

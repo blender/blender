@@ -97,8 +97,13 @@
 #endif
 
 #ifdef WITH_REDCODE
-#include <redcode/format.h>
-#include <redcode/codec.h>
+#ifdef _WIN32 /* on windows we use the ones in extern instead */
+#include "libredcode/format.h"
+#include "libredcode/codec.h"
+#else
+#include "libredcode/format.h"
+#include "libredcode/codec.h"
+#endif
 #endif
 
 /****/
