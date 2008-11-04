@@ -412,7 +412,7 @@ static RigControl *cloneControl(RigGraph *rg, RigControl *src_ctrl, GHash *ptr_h
 	ctrl->flag = src_ctrl->flag;
 
 	ctrl->bone = duplicateEditBone(src_ctrl->bone, rg->editbones, rg->ob);
-	ctrl->bone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+	ctrl->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 	BLI_ghash_insert(ptr_hash, src_ctrl->bone, ctrl->bone);
 	
 	ctrl->link = src_ctrl->link;
@@ -453,7 +453,7 @@ static RigArc *cloneArc(RigGraph *rg, RigArc *src_arc, GHash *ptr_hash)
 		if (src_edge->bone != NULL)
 		{
 			edge->bone = duplicateEditBone(src_edge->bone, rg->editbones, rg->ob);
-			edge->bone->flag &= ~(BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL);
+			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 			BLI_ghash_insert(ptr_hash, src_edge->bone, edge->bone);
 		}
 
@@ -1684,7 +1684,7 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 
 		bone->roll = rollBoneByQuatAligned(bone, edge->up_axis, qrot, qroll, up_axis);
 		
-		QuatMul(qrot, qrot, qroll);
+		QuatMul(qrot, qroll, qrot);
 	}
 	else
 	{

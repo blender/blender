@@ -355,7 +355,7 @@ int peelObjects(ListBase *depth_peels, short mval[2])
 }
 /*********************** CONVERSION ***************************/
 
-ReebNode *pointToNode(SK_Point *pt)
+ReebNode *sk_pointToNode(SK_Point *pt)
 {
 	ReebNode *node;
 	
@@ -370,14 +370,14 @@ ReebNode *pointToNode(SK_Point *pt)
 	return node;
 }
 
-ReebArc *strokeToArc(SK_Stroke *stk)
+ReebArc *sk_strokeToArc(SK_Stroke *stk)
 {
 	ReebArc *arc;
 	int i;
 	
 	arc = MEM_callocN(sizeof(ReebArc), "reeb arc");
-	arc->head = pointToNode(stk->points);
-	arc->tail = pointToNode(sk_lastStrokePoint(stk));
+	arc->head = sk_pointToNode(stk->points);
+	arc->tail = sk_pointToNode(sk_lastStrokePoint(stk));
 	
 	arc->bcount = stk->nb_points - 2; /* first and last are nodes, don't count */
 	arc->buckets = MEM_callocN(sizeof(EmbedBucket) * arc->bcount, "Buckets");
@@ -394,9 +394,9 @@ ReebArc *strokeToArc(SK_Stroke *stk)
 	return arc;
 }
 
-void retargetStroke(SK_Stroke *stk)
+void sk_retargetStroke(SK_Stroke *stk)
 {
-	ReebArc *arc = strokeToArc(stk);
+	ReebArc *arc = sk_strokeToArc(stk);
 	
 	BIF_retargetArc(arc);
 	
@@ -2331,14 +2331,14 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 			{
 				if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
 				{
-					retargetStroke(stk);
+					sk_retargetStroke(stk);
 				}
 				else
 				{
 					sk_convertStroke(stk);
+					BIF_undo_push("Convert Sketch");
 				}
 				sk_removeStroke(sketch, stk);
-				BIF_undo_push("Convert Sketch");
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			
