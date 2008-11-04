@@ -417,9 +417,9 @@ class BlenderEnvironment(SConsEnvironment):
             if lenv['WITH_BF_BULLET']:
                     lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
             if lenv['BF_DEBUG'] or (libname in quickdebug):
-                    lenv.Append(CFLAGS = Split(lenv['BF_DEBUG_CFLAGS']))
-                    lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_CCFLAGS']))
-                    lenv.Append(CXXFLAGS = Split(lenv['BF_DEBUG_CXXFLAGS']))
+                    lenv.Append(CFLAGS = lenv['BF_DEBUG_CFLAGS'])
+                    lenv.Append(CCFLAGS = lenv['BF_DEBUG_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['BF_DEBUG_CXXFLAGS'])
             else:
                     lenv.Append(CFLAGS = lenv['REL_CFLAGS'])
                     lenv.Append(CCFLAGS = lenv['REL_CCFLAGS'])
