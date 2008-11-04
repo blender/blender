@@ -29,6 +29,13 @@
  * $Id$
  */
 
+#ifdef _WIN32
+#include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#endif
+
 #include "BLI_blenlib.h"
 
 #include "DNA_userdef_types.h"
@@ -275,7 +282,8 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 static int isffmpeg (char *filename) {
 	AVFormatContext *pFormatCtx;
-	int            i, videoStream;
+	unsigned int i;
+	int videoStream;
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
 

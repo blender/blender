@@ -21,4 +21,4 @@ oj_env.BlenderLib ( libname='extern_openjpeg',
                     sources=sources, includes=Split(incs),
                     defines=[],
                     libtype=['core','intern','player'],
-                    priority=[5, 10, 200], compileflags = flags)
+                    priority=[10, 10, 300], compileflags = flags)
