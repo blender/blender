@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <strstream>
 #include <fstream>
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 #include "Exception.h"
 
@@ -168,15 +168,15 @@ void Exception::setXptDesc (void)
 		}
 		// add result code
 		// length of result code
-		const size_t rsltSize = 10;
+		const size_t rsltSize = 11;
 		// delimit description
 		const char delimRslt[] = ": ";
 		// set text of description
 		char rsltTxt[rsltSize];
 		std::ostrstream os(rsltTxt, rsltSize);
-		os << std::hex << m_hRslt << delimRslt;
+		os << std::hex << m_hRslt << delimRslt << '\0';
 		// copy result to description
-		m_desc.insert(0, rsltTxt, rsltSize);
+		m_desc.insert(0, rsltTxt);
 		// copy exception description to last exception string
 		m_lastError = m_desc;
 	}

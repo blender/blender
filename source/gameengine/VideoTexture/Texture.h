@@ -23,7 +23,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #if !defined TEXTURE_H
 #define TEXTURE_H
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
 
 #include <DNA_image_types.h>
@@ -39,9 +39,11 @@ struct Texture
 {
 	PyObject_HEAD
 
+	// texture is using blender material
+	bool m_useMatTexture;
+
 	// video texture bind code
 	unsigned int m_actTex;
-
 	// original texture bind code
 	unsigned int m_orgTex;
 	// original texture saved
@@ -69,9 +71,6 @@ struct Texture
 
 // Texture type description
 extern PyTypeObject TextureType;
-
-// usage of Blender materials
-extern bool blendMats;
 
 // load texture
 void loadTexture (unsigned int texId, unsigned int * texture, short * size,

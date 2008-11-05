@@ -22,16 +22,15 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 // implementation
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
-
-#include "ImageViewport.h"
 
 #include <BIF_gl.h>
 
 #include "Texture.h"
 #include "ImageBase.h"
 #include "FilterSource.h"
+#include "ImageViewport.h"
 
 
 // constructor
@@ -81,7 +80,7 @@ void ImageViewport::setCaptureSize (short * size)
 		if (size[idx] < 1)
 			m_capSize[idx] = 1;
 		else if (size[idx] > getViewportSize()[idx])
-			m_capSize[idx] = getViewportSize()[idx];
+			m_capSize[idx] = short(getViewportSize()[idx]);
 		else
 			m_capSize[idx] = size[idx];
 	}
@@ -91,7 +90,7 @@ void ImageViewport::setCaptureSize (short * size)
 }
 
 // set position of capture rectangle
-void ImageViewport::setPosition (int * pos)
+void ImageViewport::setPosition (GLint * pos)
 {
 	// if new position is not provided, use existing position
 	if (pos == NULL) pos = m_position;
@@ -125,7 +124,7 @@ void ImageViewport::calcImage (unsigned int texId)
 	{
 		// just copy current viewport to texture
 		glBindTexture(GL_TEXTURE_2D, texId);
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], m_capSize[0], m_capSize[1]);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1]);
 		// image is not available
 		m_avail = false;
 	}
@@ -133,10 +132,10 @@ void ImageViewport::calcImage (unsigned int texId)
 	else if (!m_avail)
 	{
 		// get frame buffer data
-		glReadPixels(m_upLeft[0], m_upLeft[1], m_capSize[0], m_capSize[1], GL_RGB,
+		glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
 			GL_UNSIGNED_BYTE, m_viewportImage);
 		// filter loaded data
-		FilterBGR24 filt;
+		FilterRGB24 filt;
 		filterImage(filt, m_viewportImage, m_capSize);
 	}
 }
@@ -193,9 +192,9 @@ static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * c
 		return -1;
 	}
 	// set position
-	int pos [] = {
-		int(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-			int(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
+	GLint pos [] = {
+		GLint(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+			GLint(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
 	};
 	getImageViewport(self)->setPosition(pos);
 	// success
@@ -240,15 +239,15 @@ static PyMethodDef imageViewportMethods[] =
 // attributes structure
 static PyGetSetDef imageViewportGetSets[] =
 { 
-	{"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, "use whole viewport to capture", NULL},
-	{"position", (getter)ImageViewport_getPosition, (setter)ImageViewport_setPosition, "upper left corner of captured area", NULL},
-	{"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, "size of viewport area being captured", NULL},
+	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to capture", NULL},
+	{(char*)"position", (getter)ImageViewport_getPosition, (setter)ImageViewport_setPosition, (char*)"upper left corner of captured area", NULL},
+	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of viewport area being captured", NULL},
 	// attributes from ImageBase class
-	{"image", (getter)Image_getImage, NULL, "image data", NULL},
-	{"size", (getter)Image_getSize, NULL, "image size", NULL},
-	{"scale", (getter)Image_getScale, (setter)Image_setScale, "fast scale of image (near neighbour)", NULL},
-	{"flip", (getter)Image_getFlip, (setter)Image_setFlip, "flip image vertically", NULL},
-	{"filter", (getter)Image_getFilter, (setter)Image_setFilter, "pixel filter", NULL},
+	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
+	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}
 };
 

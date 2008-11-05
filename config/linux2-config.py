@@ -201,7 +201,7 @@ BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_FLAGS = ['-g']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'

@@ -2153,7 +2153,7 @@ static int ui_act_as_text_but(uiBut *but)
 		value = 0.0f; /* Zero out value on error */
 		
 		if(str[0]) 
-			retval = 0;  /* invalidate return value if eval failed, except when string was null */
+			retval = B_NOP;  /* invalidate return value if eval failed, except when string was null */
 	}
 #else
 	value=atof(str);

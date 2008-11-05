@@ -26,7 +26,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "Common.h"
 
 #include <vector>
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 #include "PyTypeList.h"
 

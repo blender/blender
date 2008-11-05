@@ -1,4 +1,9 @@
+#ifdef _WIN32
+#include <Winsock2.h>
+#else
 #include <netinet/in.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

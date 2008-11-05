@@ -7804,9 +7804,10 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dataMask & CD_MVERT)
+		if(dm != NULL && (dataMask & CD_MVERT))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);
@@ -7828,9 +7829,10 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditM
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dataMask & CD_MVERT)
+		if(dm != NULL && (dataMask & CD_MVERT))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);
@@ -7916,9 +7918,10 @@ static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, Deriv
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dataMask & CD_MVERT)
+		if(dm != NULL && (dataMask & CD_MVERT))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);
@@ -7942,9 +7945,10 @@ static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, Edi
 	{
 		if(derivedData) dm = CDDM_copy(derivedData);
 		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
+		else if(ob->type==OB_LATTICE) dm = NULL;
 		else return;
 
-		if(dataMask & CD_MVERT)
+		if(dm != NULL && (dataMask & CD_MVERT))
 		{
 			CDDM_apply_vert_coords(dm, vertexCos);
 			CDDM_calc_normals(dm);

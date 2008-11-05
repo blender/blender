@@ -21,7 +21,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 */
 
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
 
 #include "FilterBlueScreen.h"
@@ -125,10 +125,10 @@ static int setLimits (PyFilter * self, PyObject * value, void * closure)
 // attributes structure
 static PyGetSetDef filterBSGetSets[] =
 { 
-	{"color", (getter)getColor, (setter)setColor, "blue screen color", NULL},
-	{"limits", (getter)getLimits, (setter)setLimits, "blue screen color limits", NULL},
+	{(char*)"color", (getter)getColor, (setter)setColor, (char*)"blue screen color", NULL},
+	{(char*)"limits", (getter)getLimits, (setter)setLimits, (char*)"blue screen color limits", NULL},
 	// attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 

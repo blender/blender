@@ -28,7 +28,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <memory>
 #include <vector>
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 // forward declaration
 class PyTypeListItem;

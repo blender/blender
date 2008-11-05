@@ -21,7 +21,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 */
 
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
 
 #include "FilterColor.h"
@@ -34,7 +34,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 // attributes structure
 static PyGetSetDef filterGrayGetSets[] =
 { // attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 
@@ -164,9 +164,9 @@ static int setMatrix (PyFilter * self, PyObject * value, void * closure)
 // attributes structure
 static PyGetSetDef filterColorGetSets[] =
 { 
-	{"matrix", (getter)getMatrix, (setter)setMatrix, "matrix [4][5] for color calculation", NULL},
+	{(char*)"matrix", (getter)getMatrix, (setter)setMatrix, (char*)"matrix [4][5] for color calculation", NULL},
 	// attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 
@@ -223,7 +223,7 @@ FilterLevel::FilterLevel (void)
 	for (int r = 0; r < 4; ++r)
 	{
 		levels[r][0] = 0;
-		levels[r][1] = 0xFF << (r << 3);
+		levels[r][1] = 0xFF;
 		levels[r][2] = 0xFF;
 	}
 }
@@ -235,7 +235,7 @@ void FilterLevel::setLevels (ColorLevel & lev)
 	for (int r = 0; r < 4; ++r)
 	{
 		for (int c = 0; c < 2; ++c)
-			levels[r][c] = lev[r][c] << (r << 3);
+			levels[r][c] = lev[r][c];
 		levels[r][2] = lev[r][0] < lev[r][1] ? lev[r][1] - lev[r][0] : 1;
 	}
 }
@@ -252,9 +252,9 @@ inline FilterLevel * getFilterLevel (PyFilter * self)
 static PyObject * getLevels (PyFilter * self, void * closure)
 {
 	ColorLevel & lev = getFilterLevel(self)->getLevels();
-	return Py_BuildValue("((kk)(kk)(kk)(kk))",
-		lev[0][0], lev[0][1], lev[1][0] >> 8, lev[1][1] >> 8,
-		lev[2][0] >> 16, lev[2][1] >> 16, lev[3][0] >> 24, lev[3][1] >> 24);
+	return Py_BuildValue("((HH)(HH)(HH)(HH))",
+		lev[0][0], lev[0][1], lev[1][0], lev[1][1],
+		lev[2][0], lev[2][1], lev[3][0], lev[3][1]);
 }
 
 // set color levels
@@ -279,7 +279,7 @@ static int setLevels (PyFilter * self, PyObject * value, void * closure)
 			valid = PyInt_Check(PySequence_Fast_GET_ITEM(row, c));
 			// if it is valid, save it in matrix
 			if (valid)
-				lev[r][c] = (unsigned long)(PyInt_AsLong(PySequence_Fast_GET_ITEM(row, c)));
+				lev[r][c] = (unsigned short)(PyInt_AsLong(PySequence_Fast_GET_ITEM(row, c)));
 		}
 	}
 	// if parameter is not valid, report error
@@ -298,9 +298,9 @@ static int setLevels (PyFilter * self, PyObject * value, void * closure)
 // attributes structure
 static PyGetSetDef filterLevelGetSets[] =
 { 
-	{"levels", (getter)getLevels, (setter)setLevels, "levels matrix [4] (min, max)", NULL},
+	{(char*)"levels", (getter)getLevels, (setter)setLevels, (char*)"levels matrix [4] (min, max)", NULL},
 	// attributes from FilterBase class
-	{"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, "previous pixel filter", NULL},
+	{(char*)"previous", (getter)Filter_getPrevious, (setter)Filter_setPrevious, (char*)"previous pixel filter", NULL},
 	{NULL}
 };
 

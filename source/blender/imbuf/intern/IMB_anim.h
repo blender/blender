@@ -82,7 +82,11 @@
 #endif
 
 #ifdef WITH_REDCODE
-#include <redcode/format.h>
+#ifdef _WIN32 /* on windows we use the one in extern instead */
+#include "libredcode/format.h"
+#else
+#include "libredcode/format.h"
+#endif
 #endif
 
 #include "IMB_imbuf_types.h"

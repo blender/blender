@@ -20,15 +20,11 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
-#define PY_ARRAY_UNIQUE_SYMBOL numpyPtr
-
-#include <Python.h>
+#include <PyObjectPlus.h>
 
 #include <RAS_GLExtensionManager.h>
 
 #include <RAS_IPolygonMaterial.h>
-
-#include <numpy/arrayobject.h>
 
 //Old API
 //#include "TexPlayer.h"
@@ -85,15 +81,6 @@ static PyObject * setLogFile (PyObject *self, PyObject *args)
 }
 
 
-// function to initialize numpy structures
-static bool initNumpy (void)
-{
-	// init module and report failure
-	import_array1(false);
-	// report success
-	return true;
-}
-
 // image to numpy array
 static PyObject * imageToArray (PyObject * self, PyObject *args)
 {
@@ -107,15 +94,14 @@ static PyObject * imageToArray (PyObject * self, PyObject *args)
 	}
 	// get image structure
 	PyImage * img = reinterpret_cast<PyImage*>(pyImg);
-	// check initialization of numpy interface, and initialize it if needed
-	if (numpyPtr == NULL && !initNumpy()) Py_RETURN_NONE;
 	// create array object
-	npy_intp dim[1];
-	dim[0] = img->m_image->getBuffSize() / sizeof(unsigned int);
 	unsigned int * imgBuff = img->m_image->getImage();
 	// if image is available, convert it to array
 	if (imgBuff != NULL)
-		return PyArray_SimpleNewFromData(1, dim, NPY_UBYTE, imgBuff);
+        // Nasty problem here: the image buffer is an array of integers 
+        // in the processor endian format. The user must take care of that in the script. 
+        // Need to find an elegant solution to this problem 
+        return Py_BuildValue("s#", imgBuff, img->m_image->getBuffSize());
 	// otherwise return None
 	Py_RETURN_NONE;
 }
@@ -140,6 +126,7 @@ extern PyTypeObject FilterColorType;
 extern PyTypeObject FilterLevelType;
 extern PyTypeObject FilterNormalType;
 extern PyTypeObject FilterRGB24Type;
+extern PyTypeObject FilterRGBA32Type;
 extern PyTypeObject FilterBGR24Type;
 extern PyTypeObject ImageBuffType;
 extern PyTypeObject ImageMixType;
@@ -164,6 +151,7 @@ static void registerAllTypes(void)
 	pyFilterTypes.add(&FilterLevelType, "FilterLevel");
 	pyFilterTypes.add(&FilterNormalType, "FilterNormal");
 	pyFilterTypes.add(&FilterRGB24Type, "FilterRGB24");
+	pyFilterTypes.add(&FilterRGBA32Type, "FilterRGBA32");
 	pyFilterTypes.add(&FilterBGR24Type, "FilterBGR24");
 }
 
@@ -189,15 +177,12 @@ PyObject* initVideoTexture(void)
 	if (m == NULL) 
 		return NULL;
 
-	// prepare numpy array
-	numpyPtr = NULL;
-
 	// initialize classes
 	pyImageTypes.reg(m);
 	pyFilterTypes.reg(m);
 
 	Py_INCREF(&TextureType);
-	PyModule_AddObject(m, "Texture", (PyObject*)&TextureType);
+	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
 
 	// init last error description
 	Exception::m_lastError[0] = '\0';

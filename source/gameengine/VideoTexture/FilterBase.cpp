@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "FilterBase.h"
 
-#include <Python.h>
+#include <PyObjectPlus.h>
 #include <structmember.h>
 
 

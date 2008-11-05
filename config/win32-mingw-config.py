@@ -160,7 +160,7 @@ CC_WARN = [ '-Wall' ]
 LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS= '-g'
+BF_DEBUG_FLAGS= ['-g']
 
 BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = False

@@ -29,6 +29,13 @@
  * $Id$
  */
 
+#ifdef _WIN32
+#include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#endif
+
 #include "BLI_blenlib.h"
 
 #include "DNA_userdef_types.h"
@@ -65,6 +72,7 @@
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
 //#include <ffmpeg/avdevice.h>
+#include <ffmpeg/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -230,6 +238,19 @@ static int isqtime (char *name) {
 #endif
 
 #ifdef WITH_FFMPEG
+
+void silence_log_ffmpeg(int quiet)
+{
+	if (quiet)
+	{
+		av_log_set_level(AV_LOG_QUIET);
+	}
+	else
+	{
+		av_log_set_level(AV_LOG_INFO);
+	}
+}
+
 extern void do_init_ffmpeg();
 void do_init_ffmpeg()
 {
@@ -238,6 +259,11 @@ void do_init_ffmpeg()
 		ffmpeg_init = 1;
 		av_register_all();
 		//avdevice_register_all();
+		
+		if ((G.f & G_DEBUG) == 0)
+		{
+			silence_log_ffmpeg(1);
+		}
 	}
 }
 
@@ -256,7 +282,8 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 static int isffmpeg (char *filename) {
 	AVFormatContext *pFormatCtx;
-	int            i, videoStream;
+	unsigned int i;
+	int videoStream;
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
 

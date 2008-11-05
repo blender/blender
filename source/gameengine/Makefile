@@ -35,7 +35,7 @@ DIR = $(OCGDIR)/gameengine
 DIRS = BlenderRoutines
 DIRS += Converter
 DIRS += Expressions GameLogic Ketsji Rasterizer SceneGraph
-DIRS += Network Physics
+DIRS += Network Physics VideoTexture
 
 ifeq ($(WITH_BF_BLENDERGAMEENGINE),true)
   DIRS += GamePlayer

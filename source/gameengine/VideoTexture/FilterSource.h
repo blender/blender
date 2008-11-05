@@ -44,9 +44,35 @@ protected:
 	/// filter pixel, source byte buffer
 	virtual unsigned int filter (unsigned char * src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
-	{ return 0xFF000000 | src[0] << 16 | src[1] << 8 | src[2]; }
+	{ VT_RGBA(val,src[0],src[1],src[2],0xFF); return val; }
 };
 
+/// class for RGBA32 conversion
+class FilterRGBA32 : public FilterBase
+{
+public:
+	/// constructor
+	FilterRGBA32 (void) {}
+	/// destructor
+	virtual ~FilterRGBA32 (void) {}
+
+	/// get source pixel size
+	virtual unsigned int getPixelSize (void) { return 4; }
+
+protected:
+	/// filter pixel, source byte buffer
+	virtual unsigned int filter (unsigned char * src, short x, short y,
+		short * size, unsigned int pixSize, unsigned int val)
+	{ 
+		if ((intptr_t(src)&0x3) == 0) 
+			return *(unsigned int*)src;
+		else 
+		{
+			VT_RGBA(val,src[0],src[1],src[2],src[3]); 
+			return val; 
+		}
+	}
+};
 
 /// class for BGR24 conversion
 class FilterBGR24 : public FilterBase
@@ -64,9 +90,8 @@ protected:
 	/// filter pixel, source byte buffer
 	virtual unsigned int filter (unsigned char * src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val)
-	{ return 0xFF000000 | src[2] << 16 | src[1] << 8 | src[0]; }
+	{ VT_RGBA(val,src[2],src[1],src[0],0xFF); return val; }
 };
-
 
 /// class for YV12 conversion
 class FilterYV12 : public FilterBase
@@ -217,15 +242,15 @@ protected:
 		int red = (298 * c + 409 * e + 128) >> 8;
 		if (red >= 0x100) red = 0xFF;
 		else if (red < 0) red = 0;
-		int green = 298 * c - 100 * d - 208 * e;
-		if (green > 0x10000) green = 0xFF00;
+		int green = (298 * c - 100 * d - 208 * e) >> 8;
+		if (green >= 0x100) green = 0xFF;
 		else if (green < 0) green = 0;
-		int blue = (298 * c + 516 * d + 128) << 8;
-		if (blue > 0x1000000) blue = 0xFF0000;
+		int blue = (298 * c + 516 * d + 128) >> 8;
+		if (blue >= 0x100) blue = 0xFF;
 		else if (blue < 0) blue = 0;
 		// return result
-		return 0xFF000000 | blue & 0xFF0000 | green & 0xFF00
-			| red & 0xFF;
+		VT_RGBA(val, red, green, blue, 0xFF);
+		return val;
 	}
 };
 
