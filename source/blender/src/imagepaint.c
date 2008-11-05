@@ -181,8 +181,9 @@ typedef struct ProjectPaintState {
 	int bucketsY;
 	
 	Image **projectImages;		/* array of images we are painting onto while, use so we can tag for updates */
+	
 	int projectImageTotal;		/* size of projectImages array */
-	int image_index;			/* current image, use for context switching */
+	int imaContextIndex;		/* current image, use for context switching */
 	
 	float (*projectVertScreenCos)[3];	/* verts projected into floating point screen space */
 	
@@ -489,7 +490,7 @@ static int screenco_pickface(ProjectPaintState *ps, float pt[2], float w[3], int
 }
 
 /* bucket_index is optional, since in some cases we know it */
-static int screenco_pickcol(ProjectPaintState *ps, int bucket_index, float pt[2], char rgba[4])
+static int screenco_pickcol(ProjectPaintState *ps, int bucket_index, float pt[2], char rgba[4], int interp)
 {
 	float w[3], uv[2];
 	int side;
@@ -785,6 +786,14 @@ static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, in
 				/* This IS an adjacent face!, now lets check if the UVs are ok */
 				
 				tf = ps->dm_mtface + face_index;
+				
+				/* first test if they have the same image */
+				if (orig_tf->tpage != tf->tpage) {
+					// printf("SEAM (IMAGE DIFF)\n");
+					return 1;
+				}
+				
+				
 				if (	cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
 						cmp_uv(orig_tf->uv[orig_i2_fidx], tf->uv[i2_fidx]) )
 				{
@@ -1068,7 +1077,7 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 				
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
 			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
-			if (!screenco_pickcol(ps, bucket_index, co, ((ProjectPixelClone *)projPixel)->clonebuf)) {
+			if (!screenco_pickcol(ps, bucket_index, co, ((ProjectPixelClone *)projPixel)->clonebuf, 1)) {
 				((ProjectPixelClone *)projPixel)->clonebuf[3] = 0; /* zero alpha - ignore */
 			}
 
@@ -1086,7 +1095,7 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 #ifdef PROJ_DEBUG_PAINT
 		projPixel->pixel[1] = 0;
 #endif
-		projPixel->image_index = ps->image_index;
+		projPixel->image_index = ps->imaContextIndex;
 		
 		BLI_linklist_prepend_arena(
 			&ps->projectBuckets[ bucket_index ],
@@ -1410,6 +1419,8 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 	ImBuf *ibuf;
 	MTFace *tf;
 	
+	Image *tpage_last = NULL;
+	int tpage_index;
 	/*printf("\tinit bucket %d\n", bucket_index);*/
 	
 	ps->projectBucketFlags[bucket_index] |= PROJ_BUCKET_INIT; 
@@ -1422,8 +1433,27 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 				
 				ps->projectFaceFlags[face_index] |= PROJ_FACE_INIT;
 				
+				/* Image context switching */
 				tf = ps->dm_mtface+face_index;
-				ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
+				if (tpage_last != tf->tpage) {
+					tpage_last = tf->tpage;
+					
+					ps->imaContextIndex = -1; /* sanity check */
+					
+					for (tpage_index=0; tpage_index < ps->projectImageTotal; tpage_index++) {
+						if (ps->projectImages[tpage_index] == tpage_last) {
+							ps->imaContextIndex = tpage_index;
+							break;
+						}
+					}
+					
+					if (ps->imaContextIndex==-1) {
+						printf("Error, should never happen!\n");
+						return;
+					}
+					
+					ibuf = BKE_image_get_ibuf(tpage_last, NULL); /* TODO - this may be slow */
+				}
 				
 				project_paint_face_init(ps, face_index, ibuf);
 			}
@@ -1543,6 +1573,19 @@ static void project_paint_delayed_face_init(ProjectPaintState *ps, MFace *mf, MT
 	}
 }
 
+static int BLI_linklist_index(struct LinkNode *list, void *ptr)
+{
+	int index;
+	
+	for (index = 0; list; list= list->next, index++) {
+		if (list->link == ptr)
+			return index;
+	}
+	
+	return -1;
+}
+
+
 static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 {	
 	/* Viewport vars */
@@ -1588,7 +1631,7 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	ps->bucketsX = PROJ_BUCKET_DIV;
 	ps->bucketsY = PROJ_BUCKET_DIV;
 	
-	ps->image_index = -1;
+	ps->imaContextIndex = -1;
 	
 	ps->viewDir[0] = 0.0;
 	ps->viewDir[1] = 0.0;
@@ -1706,16 +1749,12 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 				ibuf= BKE_image_get_ibuf((Image *)tf->tpage, NULL);
 				
 				if (ibuf) {
-					/* TODO - replace this with not yet existant BLI_linklist_index function */
-					for	(
-						node=image_LinkList, ps->image_index=0;
-						node && node->link != tf->tpage ;
-						node = node->next, ps->image_index++
-					) {}
+					ps->imaContextIndex = BLI_linklist_index(image_LinkList, tf->tpage);
 					
-					if (node==NULL) { /* MemArena dosnt have an append func */
+					if (ps->imaContextIndex==-1) { /* MemArena dosnt have an append func */
 						BLI_linklist_append(&image_LinkList, tf->tpage);
-						ps->projectImageTotal = ps->image_index+1;
+						ps->imaContextIndex = ps->projectImageTotal;
+						ps->projectImageTotal++;
 					}
 				}
 				
