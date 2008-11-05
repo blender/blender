@@ -65,8 +65,8 @@ public:
 	virtual ~VideoFFmpeg ();
 
 	/// set initial parameters
-	void initParams (short width, short height, float rate);
-	/// open video file
+	void initParams (short width, short height, float rate, bool image=false);
+	/// open video/image file
 	virtual void openFile (char * file);
 	/// open video capture device
 	virtual void openCam (char * driver, short camIdx);
@@ -88,6 +88,7 @@ public:
 	void setPreseek(int preseek) { if (preseek >= 0) m_preseek = preseek; }
 	bool getDeinterlace(void) { return m_deinterlace; }
 	void setDeinterlace(bool deinterlace) { m_deinterlace = deinterlace; }
+	char *getImageName(void) { return (m_isImage) ? m_imageName.Ptr() : NULL; }
 
 protected:
 
@@ -130,6 +131,12 @@ protected:
 
 	/// frame rate of capture in frames per seconds
 	float m_captRate;
+
+	/// is file an image?
+	bool m_isImage;
+
+	/// keep last image name
+	STR_String m_imageName;
 
 	/// image calculation
 	virtual void calcImage (unsigned int texId);

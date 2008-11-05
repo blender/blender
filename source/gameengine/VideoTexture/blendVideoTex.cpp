@@ -119,6 +119,7 @@ static PyMethodDef moduleMethods[] =
 
 #if WITH_FFMPEG
 extern PyTypeObject VideoFFmpegType;
+extern PyTypeObject ImageFFmpegType;
 #endif
 extern PyTypeObject FilterBlueScreenType;
 extern PyTypeObject FilterGrayType;
@@ -139,6 +140,7 @@ static void registerAllTypes(void)
 {
 #if WITH_FFMPEG
 	pyImageTypes.add(&VideoFFmpegType, "VideoFFmpeg");
+	pyImageTypes.add(&ImageFFmpegType, "ImageFFmpeg");
 #endif
 	pyImageTypes.add(&ImageBuffType, "ImageBuff");
 	pyImageTypes.add(&ImageMixType, "ImageMix");

@@ -54,7 +54,7 @@ m_codec(NULL), m_formatCtx(NULL), m_codecCtx(NULL),
 m_frame(NULL), m_frameDeinterlaced(NULL), m_frameRGB(NULL), m_imgConvertCtx(NULL),
 m_deinterlace(false), m_preseek(0),	m_videoStream(-1), m_baseFrameRate(25.0),
 m_lastFrame(-1),  m_curPosition(-1), m_startTime(0), 
-m_captWidth(0), m_captHeight(0), m_captRate(0.f)
+m_captWidth(0), m_captHeight(0), m_captRate(0.f), m_isImage(false)
 {
 	// set video format
 	m_format = RGB24;
@@ -77,49 +77,48 @@ bool VideoFFmpeg::release()
 	if (m_codecCtx)
 	{
 		avcodec_close(m_codecCtx);
+		m_codecCtx = NULL;
 	}
 	if (m_formatCtx)
 	{
 		av_close_input_file(m_formatCtx);
+		m_formatCtx = NULL;
 	}
 	if (m_frame)
 	{
 		av_free(m_frame);
+		m_frame = NULL;
 	}
 	if (m_frameDeinterlaced)
 	{
 		MEM_freeN(m_frameDeinterlaced->data[0]);
 		av_free(m_frameDeinterlaced);
+		m_frameDeinterlaced = NULL;
 	}
 	if (m_frameRGB)
 	{
 		MEM_freeN(m_frameRGB->data[0]);
 		av_free(m_frameRGB);
+		m_frameRGB = NULL;
 	}
 	if (m_imgConvertCtx)
 	{
 		sws_freeContext(m_imgConvertCtx);
+		m_imgConvertCtx = NULL;
 	}
-
 	m_codec = NULL;
-	m_codecCtx = NULL;
-	m_formatCtx = NULL;
-	m_frame = NULL;
-	m_frame = NULL;
-	m_frameRGB = NULL;
-	m_imgConvertCtx = NULL;
-
-	// object will be deleted after that
+	m_status = SourceStopped;
 	return true;
 }
 
 
 // set initial parameters
-void VideoFFmpeg::initParams (short width, short height, float rate)
+void VideoFFmpeg::initParams (short width, short height, float rate, bool image)
 {
 	m_captWidth = width;
 	m_captHeight = height;
 	m_captRate = rate;
+	m_isImage = image;
 }
 
 int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AVFormatParameters *formatParams)
@@ -266,6 +265,18 @@ void VideoFFmpeg::openFile (char * filename)
 		// for streaming it is important to do non blocking read
 		m_formatCtx->flags |= AVFMT_FLAG_NONBLOCK;
 	}
+
+	if (m_isImage) 
+	{
+		// the file is to be treated as an image, i.e. load the first frame only
+		m_isFile = false;
+		// in case of reload, the filename is taken from m_imageName, no need to change it
+		if (m_imageName.Ptr() != filename)
+			m_imageName = filename;
+		m_preseek = 0;
+		play();
+	}
+
 }
 
 
@@ -347,7 +358,6 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	// open base class
 	VideoBase::openCam(file, camIdx);
 }
-
 
 // play video
 bool VideoFFmpeg::play (void)
@@ -450,6 +460,13 @@ void VideoFFmpeg::loadFrame (void)
 				init(short(m_codecCtx->width), short(m_codecCtx->height));
 				// process image
 				process((BYTE*)(frame->data[0]));
+				// in case it is an image, automatically stop reading it
+				if (m_isImage)
+				{
+					m_status = SourceStopped;
+					// close the file as we don't need it anymore
+					release();
+				}
 			}
 		}
 	}
@@ -751,7 +768,123 @@ PyTypeObject VideoFFmpegType =
 	Image_allocNew,           /* tp_new */
 };
 
+// object initialization
+static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+{
+	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	// parameters - video source
+	// file name or format type for capture (only for Linux: video4linux or dv1394)
+	char * file = NULL;
 
+	// get parameters
+	if (!PyArg_ParseTuple(args, "s", &file))
+		return -1; 
+
+	try
+	{
+		// create video object
+		Video_init<VideoFFmpeg>(self);
+
+		getVideoFFmpeg(self)->initParams(0, 0, 1.0, true);
+
+		// open video source
+		Video_open(getVideo(self), file, -1);
+	}
+	catch (Exception & exp)
+	{
+		exp.report();
+		return -1;
+	}
+	// initialization succeded
+	return 0;
+}
+
+PyObject * Image_reload (PyImage * self, PyObject *args)
+{
+	char * newname = NULL;
+
+	if (self->m_image != NULL && PyArg_ParseTuple(args, "|s", &newname))
+	{
+		VideoFFmpeg* video = getFFmpeg(self);
+		// check type of object
+		if (!newname)
+			newname = video->getImageName();
+		if (!newname) {
+			// if not set, retport error
+			PyErr_SetString(PyExc_RuntimeError, "No image file name given");
+			return NULL;
+		}
+		// make sure the previous file is cleared
+		video->release();
+		// open the new file
+		video->openFile(newname);
+	}
+	Py_RETURN_NONE;
+}
+
+// methods structure
+static PyMethodDef imageMethods[] =
+{ // methods from VideoBase class
+	{"refresh", (PyCFunction)Video_refresh, METH_NOARGS, "Refresh image, i.e. load it"},
+	{"reload", (PyCFunction)Image_reload, METH_VARARGS, "Reload image, i.e. reopen it"},
+	{NULL}
+};
+// attributes structure
+static PyGetSetDef imageGetSets[] =
+{ // methods from VideoBase class
+	{(char*)"status", (getter)Video_getStatus, NULL, (char*)"video status", NULL},
+	// attributes from ImageBase class
+	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
+	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
+	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
+	{NULL}
+};
+
+// python type declaration
+PyTypeObject ImageFFmpegType =
+{ 
+	PyObject_HEAD_INIT(NULL)
+	0,                         /*ob_size*/
+	"VideoTexture.ImageFFmpeg",   /*tp_name*/
+	sizeof(PyImage),          /*tp_basicsize*/
+	0,                         /*tp_itemsize*/
+	(destructor)Image_dealloc, /*tp_dealloc*/
+	0,                         /*tp_print*/
+	0,                         /*tp_getattr*/
+	0,                         /*tp_setattr*/
+	0,                         /*tp_compare*/
+	0,                         /*tp_repr*/
+	0,                         /*tp_as_number*/
+	0,                         /*tp_as_sequence*/
+	0,                         /*tp_as_mapping*/
+	0,                         /*tp_hash */
+	0,                         /*tp_call*/
+	0,                         /*tp_str*/
+	0,                         /*tp_getattro*/
+	0,                         /*tp_setattro*/
+	0,                         /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+	"FFmpeg image source",       /* tp_doc */
+	0,		               /* tp_traverse */
+	0,		               /* tp_clear */
+	0,		               /* tp_richcompare */
+	0,		               /* tp_weaklistoffset */
+	0,		               /* tp_iter */
+	0,		               /* tp_iternext */
+	imageMethods,    /* tp_methods */
+	0,                   /* tp_members */
+	imageGetSets,          /* tp_getset */
+	0,                         /* tp_base */
+	0,                         /* tp_dict */
+	0,                         /* tp_descr_get */
+	0,                         /* tp_descr_set */
+	0,                         /* tp_dictoffset */
+	(initproc)ImageFFmpeg_init,     /* tp_init */
+	0,                         /* tp_alloc */
+	Image_allocNew,           /* tp_new */
+};
 
 #endif	//WITH_FFMPEG
 
