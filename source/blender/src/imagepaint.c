@@ -119,7 +119,6 @@ typedef struct ImagePaintState {
 	ImBuf *canvas;
 	ImBuf *clonecanvas;
 	short clonefreefloat;
-	short project;			/* is projection texture painting enabled */
 	char *warnpackedfile;
 	char *warnmultifile;
 
@@ -135,6 +134,7 @@ typedef struct ImagePaintState {
 #define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
 
 // #define PROJ_DEBUG_PAINT 1
+// #define PROJ_DEBUG_NOSCANLINE 1
 
 /* projectFaceFlags options */
 #define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
@@ -155,6 +155,10 @@ typedef struct ImagePaintState {
 #define PROJ_BUCKET_TOP		3
 
 typedef struct ProjectPaintState {
+	Brush *brush;
+	short tool, blend;
+	Object *ob;
+	/* end similarities with ImagePaintState */
 	
 	DerivedMesh    *dm;
 	int 			dm_totface;
@@ -479,40 +483,28 @@ static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index
 	return 0;
 }
 
-/* basic line intersection, could move to arithb.c, 2 points with a horiz line */
-static int project_scanline_isect(float *p1, float *p2, float y_level, float *y_isect)
+/* basic line intersection, could move to arithb.c, 2 points with a horiz line
+ * 1 for an intersection, 2 if the first point is aligned, 3 if the second point is aligned */
+#define ISECT_TRUE 1
+#define ISECT_TRUE_P1 2
+#define ISECT_TRUE_P2 3
+static int project_scanline_isect(float *p1, float *p2, float y_level, float *x_isect)
 {
+	if (y_level==p1[1]) {
+		*x_isect = p1[0];
+		return ISECT_TRUE_P1;
+	}
+	if (y_level==p2[1]) {
+		*x_isect = p2[0];
+		return ISECT_TRUE_P2;
+	}
+	
 	if (p1[1] > y_level && p2[1] < y_level) {
-		*y_isect = (p2[0]*(p1[1]-y_level) + p1[0]*(y_level-p2[1])) / (p1[1]-p2[1]);
-		return 1;
+		*x_isect = (p2[0]*(p1[1]-y_level) + p1[0]*(y_level-p2[1])) / (p1[1]-p2[1]);
+		return ISECT_TRUE;
 	} else if (p1[1] < y_level && p2[1] > y_level) {
-		*y_isect = (p2[0]*(y_level-p1[1]) + p1[0]*(p2[1]-y_level)) / (p2[1]-p1[1]);
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-/* take 3 uv coords, a horizontal x_limits and set the min|max intersections points here */
-static int project_uv_scanline(float *uv1, float *uv2, float *uv3, float y_level, float x_limits[2])
-{
-	int i = 0;
-	
-	if (project_scanline_isect(uv1, uv2, y_level, &x_limits[0])) i++;
-	if (project_scanline_isect(uv2, uv3, y_level, &x_limits[i])) i++;
-	/* if the triangle intersects then the first 2 lines must */
-	if (i==0) {
-		return 0;
-	} else if (i!=2) {
-		/* if we are here then this really should not fail since 2 edges MUST intersect  */
-		if (project_scanline_isect(uv3, uv1, y_level, &x_limits[i])) i++;
-	}
-	
-	if (i==2) {
-		if (x_limits[0] > x_limits[1]) {
-			SWAP(float, x_limits[0], x_limits[1]);
-		}
-		return 1;
+		*x_isect = (p2[0]*(y_level-p1[1]) + p1[0]*(p2[1]-y_level)) / (p2[1]-p1[1]);
+		return ISECT_TRUE;
 	} else {
 		return 0;
 	}
@@ -523,14 +515,15 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, 
 	/* Create a scanlines for the face at this Y level 
 	 * triangles will only ever have 1 scanline, quads may have 2 */
 	int totscanlines = 0;
+	short i1=0,i2=0,i3=0;
 	
 	if (v4) { /* This is a quad?*/
-		short i1,i2,i3,i4, i_mid;
+		int i4=0, i_mid=0;
 		float xi1, xi2, xi3, xi4, xi_mid;
-		
-		
+				
 		i1 = project_scanline_isect(v1, v2, y_level, &xi1);
-		i2 = project_scanline_isect(v2, v3, y_level, &xi2);
+		if (i1 != ISECT_TRUE_P2) /* rare cases we could be on the line, in these cases we dont want to intersect with the same point twice */
+			i2 = project_scanline_isect(v2, v3, y_level, &xi2);
 		
 		if (i1 && i2) { /* both the first 2 edges intersect, this means the second half of the quad wont intersect */
 			sc->v[0] = 0;
@@ -540,8 +533,10 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, 
 			sc->x_limits[1] = MAX2(xi1, xi2);
 			totscanlines = 1;
 		} else {
-			i3 = project_scanline_isect(v3, v4, y_level, &xi3);
-			i4 = project_scanline_isect(v4, v1, y_level, &xi4);
+			if (i2 != ISECT_TRUE_P2) 
+				i3 = project_scanline_isect(v3, v4, y_level, &xi3);
+			if (i1 != ISECT_TRUE_P1 && i3 != ISECT_TRUE_P2) 
+				i4 = project_scanline_isect(v4, v1, y_level, &xi4);
 			
 			if (i3 && i4) { /* second 2 edges only intersect, same as above */
 				sc->v[0] = 0;
@@ -573,13 +568,37 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, 
 				}
 			}
 		}
+	} else { /* triangle */
+		int i = 0;
 		
-	} else {
-		if (project_uv_scanline(v1, v2, v3, y_level, sc->x_limits)) {
-			sc->v[0] = 0;
-			sc->v[1] = 1;
-			sc->v[2] = 2;
-			totscanlines = 1;
+		i1 = project_scanline_isect(v1, v2, y_level, &sc->x_limits[0]);
+		if (i1) i++;
+		
+		if (i1 != ISECT_TRUE_P2) {
+			i2 = project_scanline_isect(v2, v3, y_level, &sc->x_limits[i]);
+			if (i2) i++;
+		}
+		
+		/* if the triangle intersects then the first 2 lines must */
+		if (i!=0) {
+			if (i!=2) {
+				/* if we are here then this really should not fail since 2 edges MUST intersect  */
+				if (i1 != ISECT_TRUE_P1 && i2 != ISECT_TRUE_P2) {
+					i3 = project_scanline_isect(v3, v1, y_level, &sc->x_limits[i]);
+					if (i3) i++;
+					
+				}
+			}
+			
+			if (i==2) {
+				if (sc->x_limits[0] > sc->x_limits[1]) {
+					SWAP(float, sc->x_limits[0], sc->x_limits[1]);
+				}
+				sc->v[0] = 0;
+				sc->v[1] = 1;
+				sc->v[2] = 2;
+				totscanlines = 1;
+			}
 		}
 	}
 	/* done setting up scanlines */
@@ -883,9 +902,11 @@ static screen_px_from_persp(
 /* can provide own own coords, use for seams when we want to bleed our from the original location */
 
 #define pixel_size 4
-static void project_paint_uvpixel_init(ProjectPaintState *ps, ProjectScanline *sc, ImBuf *ibuf, float *uv,	int x, int y, int face_index, float *pixelScreenCo)
+static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float *uv,	int x, int y, int face_index, float *pixelScreenCo)
 {
 	int bucket_index;
+	
+	// printf("adding px (%d %d), (%f %f)\n", x,y,uv[0],uv[1]);
 	
 	ProjectPixel *projPixel;
 	
@@ -940,10 +961,12 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	int i, j;
 	
 	/* scanlines since quads can have 2 triangles intersecting the same vertical location */
+#ifndef PROJ_DEBUG_NOSCANLINE 
 	ProjectScanline scanlines[2];
 	ProjectScanline *sc;
 	int totscanlines; /* can only be 1 or 2, oh well */
-	
+#endif
+
 	if (!uv_image_rect(tf->uv[0], tf->uv[1], tf->uv[2], tf->uv[3], min_px, max_px, ibuf->x, ibuf->y, mf->v4))
 		return;
 	
@@ -951,15 +974,16 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	if (ps->projectSeamBleed > 0.0)
 		project_face_seams_init(ps, face_index, mf->v4);
 	
-	for (y = min_px[1]-2; y < max_px[1]+2; y++) {
+	for (y = min_px[1]; y < max_px[1]; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y; /* TODO - this is not pixel aligned correctly */
-		
+
+#ifndef PROJ_DEBUG_NOSCANLINE 
 		totscanlines = project_face_scanline(scanlines, uv[1], tf->uv[0], tf->uv[1], tf->uv[2], mf->v4 ? tf->uv[3]:NULL);
 		
 		/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having tri/quad spesific functions */
 		for (j=0, sc=scanlines; j<totscanlines; j++, sc++) {
 			
-			min_px[0] = (int)((ibuf->x * sc->x_limits[0])+0.5);
+			min_px[0] = (int)((ibuf->x * sc->x_limits[0])-0.5);
 			max_px[0] = (int)((ibuf->x * sc->x_limits[1])+0.5);
 			CLAMP(min_px[0], 0, ibuf->x);
 			CLAMP(max_px[0], 0, ibuf->x);
@@ -976,26 +1000,8 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 				for (x = min_px[0]; x < max_px[0]; x++) {
 					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
 					screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-					project_paint_uvpixel_init(ps, sc, ibuf, uv, x,y,face_index, pixelScreenCo);
+					project_paint_uvpixel_init(ps, ibuf, uv, x,y,face_index, pixelScreenCo);
 				}
-				
-				/* interpolation is faster - no workies :( */
-				/*
-				x = min_px[0];
-				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-				screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCoXMin);
-				
-				x = max_px[0]-1;
-				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-				screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCoXMax);
-				
-				for (x = min_px[0]; x < max_px[0]; x++) {
-					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-					VecLerpf(pixelScreenCo, pixelScreenCoXMin, pixelScreenCoXMax, ((float)x) / ((float)(max_px[0]-min_px[0])) );
-					project_paint_uvpixel_init(ps, sc, ibuf, uv, x,y, face_index, pixelScreenCo);
-				}
-				*/
-				
 			} else {
 				v1co = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co;
 				v2co = ps->dm_mvert[ (*(&mf->v1 + sc->v[1])) ].co;
@@ -1004,31 +1010,49 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 				for (x = min_px[0]; x < max_px[0]; x++) {
 					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
 					screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-					project_paint_uvpixel_init(ps, sc, ibuf, uv, x,y,face_index, pixelScreenCo);
+					project_paint_uvpixel_init(ps, ibuf, uv, x,y,face_index, pixelScreenCo);
 				}
-				
-				
-				/* interpolation is faster */
-				/*
-				x = min_px[0];
-				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-				screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCoXMin);
-				
-				x = max_px[0]-1;
-				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-				screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCoXMax);
-				
-				for (x = min_px[0]; x < max_px[0]; x++) {
-					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-					VecLerpf(pixelScreenCo, pixelScreenCoXMin, pixelScreenCoXMax, ((float)x) / ((float)(max_px[0]-min_px[0])) );
-					project_paint_uvpixel_init(ps, sc, ibuf, uv, x,y, face_index, pixelScreenCo);
-				}
-				*/
 			}
-			
 		}
+#else	/* slow, non scanline method */
+		
+		/* mainly for debuggung scanline, use point-in-tri for every x/y test */
+		/* at the moment only works with ortho triangles */
+		uv1co = tf->uv[0];
+		uv2co = tf->uv[1];
+		uv3co = tf->uv[2];
+		
+		if (ps->projectIsOrtho) {
+			v1co = ps->projectVertScreenCos[ mf->v1 ];
+			v2co = ps->projectVertScreenCos[ mf->v2 ];
+			v3co = ps->projectVertScreenCos[ mf->v3 ];
+			
+			for (x = min_px[0]; x < max_px[0]; x++) {
+				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
+				if (IsectPT2Df(uv, uv1co, uv2co, uv3co)) {
+					screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
+					project_paint_uvpixel_init(ps, ibuf, uv, x,y,face_index, pixelScreenCo);
+				}
+
+			}
+		} else {
+			/*
+			v1co = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co;
+			v2co = ps->dm_mvert[ (*(&mf->v1 + sc->v[1])) ].co;
+			v3co = ps->dm_mvert[ (*(&mf->v1 + sc->v[2])) ].co;
+			
+			for (x = min_px[0]; x < max_px[0]; x++) {
+				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
+				screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
+				project_paint_uvpixel_init(ps, sc, ibuf, uv, x,y,face_index, pixelScreenCo);
+			}
+			*/
+		}
+#endif
 	}
+
 	
+#ifndef PROJ_DEBUG_NOSCANLINE 
 	/* Pretty much a copy of above, except fill in seams if we have any */
 	if (ps->projectFaceFlags[face_index] & (PROJ_FACE_SEAM1|PROJ_FACE_SEAM2|PROJ_FACE_SEAM3|PROJ_FACE_SEAM4)) {
 		float outset_uv[4][2]; /* expanded UV's */
@@ -1184,13 +1208,14 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 								pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 							}
 							
-							project_paint_uvpixel_init(ps, sc, ibuf, uv, x, y, face_index, pixelScreenCo);
+							project_paint_uvpixel_init(ps, ibuf, uv, x, y, face_index, pixelScreenCo);
 						}
 					}
 				}
 			}
 		}
 	}
+#endif
 }
 
 
@@ -1204,15 +1229,15 @@ static void project_paint_rect(ProjectPaintState *ps, float min[2], float max[2]
 	bucket_min[0] = (int)(((float)(min[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 0.5;
 	bucket_min[1] = (int)(((float)(min[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 0.5;
 	
-	bucket_max[0] = (int)(((float)(max[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 1.5;
-	bucket_max[1] = (int)(((float)(max[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 1.5;	
+	bucket_max[0] = (int)(((float)(max[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 0.5;
+	bucket_max[1] = (int)(((float)(max[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 0.5;	
 	
 	/* incase the rect is outside the mesh 2d bounds */
-	CLAMP(bucket_min[0], 0, ps->bucketsX-1);
-	CLAMP(bucket_min[1], 0, ps->bucketsY-1);
+	CLAMP(bucket_min[0], 0, ps->bucketsX);
+	CLAMP(bucket_min[1], 0, ps->bucketsY);
 	
-	CLAMP(bucket_max[0], 0, ps->bucketsX-1);
-	CLAMP(bucket_max[1], 0, ps->bucketsY-1);
+	CLAMP(bucket_max[0], 0, ps->bucketsX);
+	CLAMP(bucket_max[1], 0, ps->bucketsY);
 }
 
 static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucket_y, float bucket_bounds[4])
@@ -1364,7 +1389,7 @@ static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *
 	}
 }
 
-static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
+static void project_paint_begin( ProjectPaintState *ps )
 {	
 	/* Viewport vars */
 	float mat[3][3];
@@ -1372,7 +1397,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	
 	float projCo[4];
 	float (*projScreenCo)[3];
-	
+	float projMargin;
 	/* Image Vars - keep track of images we have used */
 	LinkNode *image_LinkList = NULL;
 	LinkNode *node;
@@ -1397,7 +1422,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	
 	/* paint onto the derived mesh
 	 * note get_viewedit_datamask checks for paint mode and will always give UVs */
-	ps->dm = mesh_get_derived_final(s->ob, get_viewedit_datamask());
+	ps->dm = mesh_get_derived_final(ps->ob, get_viewedit_datamask());
 	
 	ps->dm_mvert = ps->dm->getVertArray( ps->dm );
 	ps->dm_mface = ps->dm->getFaceArray( ps->dm );
@@ -1415,7 +1440,7 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	ps->viewDir[1] = 0.0;
 	ps->viewDir[2] = 1.0;
 	
-	view3d_get_object_project_mat(curarea, s->ob, ps->projectMat, ps->viewMat);
+	view3d_get_object_project_mat(curarea, ps->ob, ps->projectMat, ps->viewMat);
 	
 	tot_bucketMem =				sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
 	tot_faceListMem =			sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
@@ -1445,11 +1470,11 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 	if (ps->projectSeamBleed > 0.0)
 		memset(ps->projectVertFaces,	0, tot_bucketVertFacesMem);
 	
-	Mat4Invert(s->ob->imat, s->ob->obmat);
+	Mat4Invert(ps->ob->imat, ps->ob->obmat);
 	
 	Mat3CpyMat4(mat, G.vd->viewinv);
 	Mat3MulVecfl(mat, ps->viewDir);
-	Mat3CpyMat4(mat, s->ob->imat);
+	Mat3CpyMat4(mat, ps->ob->imat);
 	Mat3MulVecfl(mat, ps->viewDir);
 	
 	/* calculate vert screen coords */
@@ -1480,6 +1505,17 @@ static void project_paint_begin( ImagePaintState *s, ProjectPaintState *ps )
 			(*projScreenCo)[0] = (*projScreenCo)[1] = MAXFLOAT;
 		}
 	}
+	
+	/* If this border is not added we get artifacts for faces that
+	 * have a paralelle edge and at the bounds of the the 2D projected verts eg
+	 * - a simgle screen aligned quad */
+	projMargin = (ps->viewMax2D[0] - ps->viewMin2D[0]) * 0.000001;
+	ps->viewMax2D[0] += projMargin;
+	ps->viewMin2D[0] -= projMargin;
+	projMargin = (ps->viewMax2D[1] - ps->viewMin2D[1]) * 0.000001;
+	ps->viewMax2D[1] += projMargin;
+	ps->viewMin2D[1] -= projMargin;
+	
 	
 	/* only for convenience */
 	ps->viewWidth  = ps->viewMax2D[0] - ps->viewMin2D[0];
@@ -2051,7 +2087,7 @@ static int project_bucket_circle_isect(ProjectPaintState *ps, int bucket_x, int 
 	return 0;
 }
 
-static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintState *ps, BrushPainter *painter, short texpaint, short mval[2], double time, int update, float pressure)
+static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short mval[2], double time, int update, float pressure)
 {
 	/* TODO - texpaint option : is there any use in projection painting from the image window??? - could be interesting */
 	/* TODO - floating point images */
@@ -2074,11 +2110,11 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 	
 	mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
 	
-	min[0] = mval_f[0] - (s->brush->size/2);
-	min[1] = mval_f[1] - (s->brush->size/2);
+	min[0] = mval_f[0] - (ps->brush->size/2);
+	min[1] = mval_f[1] - (ps->brush->size/2);
 	
-	max[0] = mval_f[0] + (s->brush->size/2);
-	max[1] = mval_f[1] + (s->brush->size/2);
+	max[0] = mval_f[0] + (ps->brush->size/2);
+	max[1] = mval_f[1] + (ps->brush->size/2);
 	
 	/* offset to make this a valid bucket index */
 	project_paint_rect(ps, min, max, bucket_min, bucket_max);
@@ -2089,7 +2125,7 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 	}
 	
 	/* avoid a square root with every dist comparison */
-	brush_size_sqared = s->brush->size * s->brush->size; 
+	brush_size_sqared = ps->brush->size * ps->brush->size; 
 	
 	/* printf("brush bounds %d %d %d %d\n", bucket_min[0], bucket_min[1], bucket_max[0], bucket_max[1]); */
 	
@@ -2125,23 +2161,23 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 						/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
 						if (dist_nosqrt < brush_size_sqared) {
 						
-							brush_sample_tex(s->brush, projPixel->projCo2D, rgba);
+							brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 							
 							dist = (float)sqrt(dist_nosqrt);
 							
-							alpha = rgba[3]*brush_sample_falloff(s->brush, dist);
+							alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
 							
 							if (alpha <= 0.0) {
 								/* do nothing */
 							} else {
 								if (alpha >= 1.0) {
-									projPixel->pixel[0] = FTOCHAR(rgba[0]*s->brush->rgb[0]);
-									projPixel->pixel[1] = FTOCHAR(rgba[1]*s->brush->rgb[1]);
-									projPixel->pixel[2] = FTOCHAR(rgba[2]*s->brush->rgb[2]);
+									projPixel->pixel[0] = FTOCHAR(rgba[0]*ps->brush->rgb[0]);
+									projPixel->pixel[1] = FTOCHAR(rgba[1]*ps->brush->rgb[1]);
+									projPixel->pixel[2] = FTOCHAR(rgba[2]*ps->brush->rgb[2]);
 								} else {
-									projPixel->pixel[0] = FTOCHAR(((rgba[0]*s->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
-									projPixel->pixel[1] = FTOCHAR(((rgba[1]*s->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
-									projPixel->pixel[2] = FTOCHAR(((rgba[2]*s->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
+									projPixel->pixel[0] = FTOCHAR(((rgba[0]*ps->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
+									projPixel->pixel[1] = FTOCHAR(((rgba[1]*ps->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
+									projPixel->pixel[2] = FTOCHAR(((rgba[2]*ps->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
 								}
 							} 
 							
@@ -2163,7 +2199,7 @@ static int imapaint_paint_sub_stroke_project(ImagePaintState *s, ProjectPaintSta
 	for (a=0; a < ps->projectImageTotal; a++) {
 		Image *ima = ps->projectImages[a];
 		if (ima->id.flag & LIB_DOIT) {
-			imapaint_image_update(ima, BKE_image_get_ibuf(ima, NULL), texpaint);
+			imapaint_image_update(ima, BKE_image_get_ibuf(ima, NULL), 1 /*texpaint*/ );
 			redraw = 1;
 			
 			ima->id.flag &= ~LIB_DOIT; /* clear for reuse */
@@ -2254,17 +2290,17 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 	}
 }
 
-static void imapaint_paint_stroke_project(ImagePaintState *s, ProjectPaintState *ps, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
+static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short *prevmval, short *mval, double time, float pressure)
 {
 	int redraw = 0;
 	
 	/* TODO - support more brush operations, airbrush etc */
 	{
-		redraw |= imapaint_paint_sub_stroke_project(s, ps, painter, texpaint, mval, time, 1, pressure);
+		redraw |= imapaint_paint_sub_stroke_project(ps, painter, mval, time, 1, pressure);
 	}
 	
 	if (redraw) {
-		imapaint_redraw(0, texpaint, NULL);
+		imapaint_redraw(0, 1/*texpaint*/, NULL);
 		imapaint_clear_partial_redraw();
 	}
 }
@@ -2275,7 +2311,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	ProjectPaintState ps;
 	BrushPainter *painter;
 	ToolSettings *settings= G.scene->toolsettings;
-	short prevmval[2], mval[2];
+	short prevmval[2], mval[2], project = 0;
 	double time;
 	float pressure;
 
@@ -2284,17 +2320,24 @@ void imagepaint_paint(short mousebutton, short texpaint)
 
 	/* initialize state */
 	memset(&s, 0, sizeof(s));
+	memset(&ps, 0, sizeof(ps));
+	
+	project = texpaint;
+	
 	s.brush = settings->imapaint.brush;
 	s.tool = settings->imapaint.tool;
 	if(texpaint && (s.tool == PAINT_TOOL_CLONE))
 		s.tool = PAINT_TOOL_DRAW;
 	s.blend = s.brush->blend;
-
-	if (texpaint) /* TODO - make an option */
-		s.project = 1;
+	
+	if (project) {
+		ps.brush = s.brush;
+		ps.tool = s.tool;
+		ps.blend = s.blend;
+	}
 	
 	if(texpaint) {
-		s.ob = OBACT;
+		ps.ob = s.ob = OBACT;
 		if (!s.ob || !(s.ob->lay & G.vd->lay)) return;
 		s.me = get_mesh(s.ob);
 		if (!s.me) return;
@@ -2328,15 +2371,13 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
 	
-	if (s.project) {
+	if (project) {
 		/* setup projection painting data */
-		memset(&ps, 0, sizeof(ps));
-		
 		ps.projectIsBackfaceCull = 1;
 		ps.projectIsOcclude = 1;
 		ps.projectSeamBleed = 2.0; /* pixel num to bleed  */
 		
-		project_paint_begin(&s, &ps);
+		project_paint_begin(&ps);
 		
 	} else {
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
@@ -2352,9 +2393,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			
 		time= PIL_check_seconds_timer();
 
-		if (s.project) { /* Projection Painting */
+		if (project) { /* Projection Painting */
 			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
-				imapaint_paint_stroke_project(&s, &ps, painter, 1, prevmval, mval, time, pressure);
+				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, time, pressure);
 				prevmval[0]= mval[0];
 				prevmval[1]= mval[1];
 			} else
@@ -2379,7 +2420,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	imapaint_canvas_free(&s);
 	brush_painter_free(painter);
 
-	if (s.project) {
+	if (project) {
 		project_paint_end(&ps);
 	}
 	
