@@ -793,7 +793,6 @@ static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, in
 					return 1;
 				}
 				
-				
 				if (	cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
 						cmp_uv(orig_tf->uv[orig_i2_fidx], tf->uv[i2_fidx]) )
 				{
@@ -2307,13 +2306,18 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	int redraw = 0;
 	int last_index = -1;
 	float rgba[4], alpha, dist, dist_nosqrt;
+	char rgba_ub[4];
 	float brush_size_sqared;
 	float min[2], max[2]; /* brush bounds in screenspace */
 	int bucket_min[2], bucket_max[2]; /* brush bounds in bucket grid space */
 	int bucket_index;
 	int a;
+	short blend= ps->blend;
+	
+	char *cp;
 	
 	int bucket_x, bucket_y;
+	
 	
 	mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
 	
@@ -2373,48 +2377,34 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 							
 							dist = (float)sqrt(dist_nosqrt);
 							
-							if (ps->tool==PAINT_TOOL_CLONE) { //&& ((ProjectPixelClone*)projPixel)->source )  {
-								
+							if (ps->tool==PAINT_TOOL_CLONE && ((char *)((ProjectPixelClone*)projPixel)->clonebuf)[3]) { //&& ((ProjectPixelClone*)projPixel)->source )  {
 								alpha = brush_sample_falloff(ps->brush, dist);
 								
-								if (((char *)((ProjectPixelClone*)projPixel)->clonebuf)[3]) {
-									projPixel->pixel[0] = FTOCHAR((((((char *)((ProjectPixelClone*)projPixel)->clonebuf)[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))));
-									projPixel->pixel[1] = FTOCHAR((((((char *)((ProjectPixelClone*)projPixel)->clonebuf)[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))));
-									projPixel->pixel[2] = FTOCHAR((((((char *)((ProjectPixelClone*)projPixel)->clonebuf)[2]/255.0) * alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha))));
-								}
-								
-#if 0
 								if (alpha <= 0.0) {
 									/* do nothing */
 								} else {
+									cp = (char *)((ProjectPixelClone*)projPixel)->clonebuf;
 									if (alpha >= 1.0) {
-										projPixel->pixel[0] = FTOCHAR(rgba[0]*ps->brush->rgb[0]);
-										projPixel->pixel[1] = FTOCHAR(rgba[1]*ps->brush->rgb[1]);
-										projPixel->pixel[2] = FTOCHAR(rgba[2]*ps->brush->rgb[2]);
+										projPixel->pixel[0] = FTOCHAR( cp[0] );
+										projPixel->pixel[1] = FTOCHAR( cp[1] );
+										projPixel->pixel[2] = FTOCHAR( cp[2] );
 									} else {
-										projPixel->pixel[0] = FTOCHAR(((rgba[0]*ps->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
-										projPixel->pixel[1] = FTOCHAR(((rgba[1]*ps->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
-										projPixel->pixel[2] = FTOCHAR(((rgba[2]*ps->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
+										projPixel->pixel[0] = FTOCHAR( (((cp[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))) );
+										projPixel->pixel[1] = FTOCHAR( (((cp[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))) );
+										projPixel->pixel[2] = FTOCHAR( (((cp[2]/255.0) * alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha))) );
 									}
-								} 
-#endif
+								}
 							} else {
 								brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 								alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
-								
-								if (alpha <= 0.0) {
-									/* do nothing */
-								} else {
-									if (alpha >= 1.0) {
-										projPixel->pixel[0] = FTOCHAR(rgba[0]*ps->brush->rgb[0]);
-										projPixel->pixel[1] = FTOCHAR(rgba[1]*ps->brush->rgb[1]);
-										projPixel->pixel[2] = FTOCHAR(rgba[2]*ps->brush->rgb[2]);
-									} else {
-										projPixel->pixel[0] = FTOCHAR(((rgba[0]*ps->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
-										projPixel->pixel[1] = FTOCHAR(((rgba[1]*ps->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
-										projPixel->pixel[2] = FTOCHAR(((rgba[2]*ps->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
-									}
-								} 
+								if (alpha > 0.0) {
+									rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
+									rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
+									rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
+									rgba_ub[3] = FTOCHAR(rgba[3]);
+									
+									*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+								}
 							}
 							
 							if (last_index != projPixel->image_index) {
