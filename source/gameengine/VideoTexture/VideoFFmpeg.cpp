@@ -255,7 +255,7 @@ void VideoFFmpeg::openFile (char * filename)
 
 	if (
 #ifdef FFMPEG_PB_IS_POINTER
-        m_formatCtx->pb->is_streamed
+        m_formatCtx->pb && m_formatCtx->pb->is_streamed
 #else
         m_formatCtx->pb.is_streamed
 #endif
