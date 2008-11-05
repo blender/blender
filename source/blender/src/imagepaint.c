@@ -145,8 +145,9 @@ typedef struct ImagePaintState {
 #define PROJ_FACE_SEAM4	1<<5
 
 
-#define PROJ_BUCKET_NULL	0
-#define PROJ_BUCKET_INIT	1
+#define PROJ_BUCKET_NULL		0
+#define PROJ_BUCKET_INIT		1<<0
+// #define PROJ_BUCKET_CLONE_INIT	1<<1
 
 /* only for readability */
 #define PROJ_BUCKET_LEFT		0
@@ -217,8 +218,10 @@ typedef struct ProjectPixel {
 } ProjectPixel;
 
 typedef struct ProjectPixelClone {
-	struct ProjectPixel;
-	void *source;
+	struct ProjectPixel __pp;
+	char backbuf[4];	/* TODO - float buffer? */
+	char clonebuf[4];
+	//void *source;		/* pointer to source pixels */
 } ProjectPixelClone;
 
 /* Finish projection painting structs */
@@ -396,15 +399,144 @@ static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
 		(	(	(int)(( (projCo2D[1] - ps->viewMin2D[1])  / ps->viewHeight) * ps->bucketsY)) * ps->bucketsX );
 }
 
+static int project_paint_BucketOffsetSafe(ProjectPaintState *ps, float *projCo2D)
+{
+	int bucket_index = project_paint_BucketOffset(ps, projCo2D);
+	
+	if (bucket_index < 0 || bucket_index >= ps->bucketsX*ps->bucketsY) {	
+		return -1;
+	} else {
+		return bucket_index;
+	}
+}
+
+/* assume they intersect */
+static void BarryCentricWeights2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3]) {
+	float wtot;
+	w[0] = AreaF2Dfl(v2, v3, pt);
+	w[1] = AreaF2Dfl(v3, v1, pt);
+	w[2] = AreaF2Dfl(v1, v2, pt);
+	wtot = w[0]+w[1]+w[2];
+	w[0]/=wtot;
+	w[1]/=wtot;
+	w[2]/=wtot;
+}
+
+static float tri_depth_2d(float v1[3], float v2[3], float v3[3], float pt[2], float w[3])
+{
+	BarryCentricWeights2f(v1,v2,v3,pt,w);
+	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
+}
+
+
+/* return the topmost face  in screen coords index or -1
+ * bucket_index can be -1 if we dont know it to begin with */
+static int screenco_pickface(ProjectPaintState *ps, float pt[2], float w[3], int *side) {
+	LinkNode *node;
+	float w_tmp[3];
+	float *v1, *v2, *v3, *v4;
+	int bucket_index;
+	int face_index;
+	int best_side = -1;
+	int best_face_index = -1;
+	float z_depth_best = MAXFLOAT, z_depth;
+	MFace *mf;
+	
+	bucket_index = project_paint_BucketOffsetSafe(ps, pt);
+	if (bucket_index==-1)
+		return -1;
+	
+	node = ps->projectFaces[bucket_index];
+	
+	/* we could return 0 for 1 face buckets, as long as this function assumes
+	 * that the point its testing is only every originated from an existing face */
+	
+	while (node) {
+		face_index = (int)node->link;
+		mf = ps->dm_mface + face_index;
+		
+		v1 = ps->projectVertScreenCos[mf->v1];
+		v2 = ps->projectVertScreenCos[mf->v2];
+		v3 = ps->projectVertScreenCos[mf->v3];
+		
+		if ( IsectPT2Df(pt, v1, v2, v3) ) {
+			z_depth = tri_depth_2d(v1,v2,v3,pt,w_tmp);
+			if (z_depth < z_depth_best) {
+				best_face_index = face_index;
+				best_side = 0;
+				z_depth_best = z_depth;
+				VECCOPY(w, w_tmp);
+			}
+		} else if (mf->v4) {
+			v4 = ps->projectVertScreenCos[mf->v4];
+			
+			if ( IsectPT2Df(pt, v1, v3, v4) ) {
+				z_depth = tri_depth_2d(v1,v3,v4,pt,w_tmp);
+				if (z_depth < z_depth_best) {
+					best_face_index = face_index;
+					best_side = 1;
+					z_depth_best = z_depth;
+					VECCOPY(w, w_tmp);
+				}
+			}
+		}
+		
+		node = node->next;
+	}
+	
+	*side = best_side;
+	return best_face_index; /* will be -1 or a valid face */
+}
+
+/* bucket_index is optional, since in some cases we know it */
+static int screenco_pickcol(ProjectPaintState *ps, int bucket_index, float pt[2], char rgba[4])
+{
+	float w[3], uv[2];
+	int side;
+	int face_index;
+	MTFace *tf;
+	ImBuf *ibuf;
+	int x,y;
+	char *pixel;
+	
+	face_index = screenco_pickface(ps,pt,w, &side);
+	
+	if (face_index == -1)
+		return 0;
+	
+	tf = ps->dm_mtface + face_index;
+	
+	if (side==0) {
+		uv[0] = tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
+		uv[1] = tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
+	} else { /* QUAD */
+		uv[0] = tf->uv[0][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
+		uv[1] = tf->uv[0][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
+	}
+	
+	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
+	
+	x = uv[0]*ibuf->x;
+	y = uv[1]*ibuf->y;
+	
+	if (x<0 || x>=ibuf->x  ||  y<0 || y>=ibuf->y) return 0;
+	
+	pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * 4);
+	
+	rgba[0] = pixel[0];
+	rgba[1] = pixel[1];
+	rgba[2] = pixel[2];
+	rgba[3] = pixel[3];
+	return 1;
+}
+
 /* return...
  * 0	: no occlusion
  * -1	: no occlusion but 2D intersection is true (avoid testing the other half of a quad)
  * 1	: occluded */
 
-static int screenco_tri_pt_occlude(float *pt, float *v1, float *v2, float *v3)
+static int screenco_tri_pt_occlude(float pt[3], float v1[3], float v2[3], float v3[3])
 {
-	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d worldspace coords */
-	
 	/* if all are behind us, return false */
 	if(v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
 		return 0;
@@ -419,13 +551,9 @@ static int screenco_tri_pt_occlude(float *pt, float *v1, float *v2, float *v3)
 	if(	v1[2] < pt[2] && v2[2] < pt[2] && v3[2] < pt[2]) {
 		return 1;
 	} else {
+		float w[3];
 		/* we intersect? - find the exact depth at the point of intersection */
-		w1 = AreaF2Dfl(v2, v3, pt);
-		w2 = AreaF2Dfl(v3, v1, pt);
-		w3 = AreaF2Dfl(v1, v2, pt);
-		wtot = w1 + w2 + w3;
-		
-		if ((v1[2]*w1/wtot) + (v2[2]*w2/wtot) + (v3[2]*w3/wtot) < pt[2]) {
+		if (tri_depth_2d(v1,v2,v3,pt,w) < pt[2]) {
 			return 1; /* This point is occluded by another face */
 		}
 	}
@@ -497,7 +625,7 @@ static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index
 #define ISECT_TRUE 1
 #define ISECT_TRUE_P1 2
 #define ISECT_TRUE_P2 3
-static int project_scanline_isect(float *p1, float *p2, float y_level, float *x_isect)
+static int project_scanline_isect(float p1[2], float p2[2], float y_level, float *x_isect)
 {
 	if (y_level==p1[1]) {
 		*x_isect = p1[0];
@@ -519,7 +647,7 @@ static int project_scanline_isect(float *p1, float *p2, float y_level, float *x_
 	}
 }
 
-static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, float *v2, float *v3, float *v4)
+static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2], float v2[2], float v3[2], float v4[2])
 {	
 	/* Create a scanlines for the face at this Y level 
 	 * triangles will only ever have 1 scanline, quads may have 2 */
@@ -614,7 +742,7 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float *v1, 
 	return totscanlines;
 }
 
-static int cmp_uv(float *vec2a, float *vec2b)
+static int cmp_uv(float vec2a[2], float vec2b[2])
 {
 	return ((fabs(vec2a[0]-vec2b[0]) < 0.0001) && (fabs(vec2a[1]-vec2b[1]) < 0.0001)) ? 1:0;
 }
@@ -712,7 +840,7 @@ static float angleToLength(float angle)
 }
 
 /* return zero if there is no area in the returned rectangle */
-static int uv_image_rect(float *uv1, float *uv2, float *uv3, float *uv4, int *min_px, int *max_px, int x_px, int y_px, int is_quad)
+static int uv_image_rect(float uv1[2], float uv2[2], float uv3[2], float uv4[2], int min_px[2], int max_px[2], int x_px, int y_px, int is_quad)
 {
 	float min_uv[2], max_uv[2]; /* UV bounds */
 	int i;
@@ -862,41 +990,29 @@ static float lambda_cp_line2(float p[2], float l1[2], float l2[2])
 }
 
 static screen_px_from_ortho(
-		ProjectPaintState *ps, float *uv,
-		float *v1co, float *v2co, float *v3co, /* Screenspace coords */
-		float *uv1co, float *uv2co, float *uv3co,
-		float *pixelScreenCo )
+		ProjectPaintState *ps, float uv[2],
+		float v1co[3], float v2co[3], float v3co[3], /* Screenspace coords */
+		float uv1co[2], float uv2co[2], float uv3co[2],
+		float pixelScreenCo[4] )
 {
-	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d screenspace coords */
-	w1 = AreaF2Dfl(uv2co, uv3co, uv);
-	w2 = AreaF2Dfl(uv3co, uv1co, uv);
-	w3 = AreaF2Dfl(uv1co, uv2co, uv);
-	
-	wtot = w1 + w2 + w3;
-	w1 /= wtot; w2 /= wtot; w3 /= wtot;
-	
-	pixelScreenCo[0] = v1co[0]*w1 + v2co[0]*w2 + v3co[0]*w3;
-	pixelScreenCo[1] = v1co[1]*w1 + v2co[1]*w2 + v3co[1]*w3;
-	pixelScreenCo[2] = v1co[2]*w1 + v2co[2]*w2 + v3co[2]*w3;	
+	float w[3];
+	BarryCentricWeights2f(uv1co,uv2co,uv3co,uv,w);
+	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
+	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
+	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];	
 }
 
 static screen_px_from_persp(
-		ProjectPaintState *ps, float *uv,
-		float *v1co, float *v2co, float *v3co, /* Worldspace coords */
-		float *uv1co, float *uv2co, float *uv3co,
-		float *pixelScreenCo )
+		ProjectPaintState *ps, float uv[2],
+		float v1co[3], float v2co[3], float v3co[3], /* Worldspace coords */
+		float uv1co[2], float uv2co[2], float uv3co[2],
+		float pixelScreenCo[4])
 {
-	float w1, w2, w3, wtot; /* weights for converting the pixel into 3d screenspace coords */
-	w1 = AreaF2Dfl(uv2co, uv3co, uv);
-	w2 = AreaF2Dfl(uv3co, uv1co, uv);
-	w3 = AreaF2Dfl(uv1co, uv2co, uv);
-	
-	wtot = w1 + w2 + w3;
-	w1 /= wtot; w2 /= wtot; w3 /= wtot;
-	
-	pixelScreenCo[0] = v1co[0]*w1 + v2co[0]*w2 + v3co[0]*w3;
-	pixelScreenCo[1] = v1co[1]*w1 + v2co[1]*w2 + v3co[1]*w3;
-	pixelScreenCo[2] = v1co[2]*w1 + v2co[2]*w2 + v3co[2]*w3;	
+	float w[3];
+	BarryCentricWeights2f(uv1co,uv2co,uv3co,uv,w);
+	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
+	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
+	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];
 	pixelScreenCo[3] = 1.0;
 	
 	Mat4MulVec4fl(ps->projectMat, pixelScreenCo);
@@ -908,10 +1024,13 @@ static screen_px_from_persp(
 	pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 }
 
-/* can provide own own coords, use for seams when we want to bleed our from the original location */
 
+static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index);
+
+/* Only run this function once for new ProjectPixelClone's */
 #define pixel_size 4
-static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float *uv,	int x, int y, int face_index, float *pixelScreenCo)
+
+static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float uv[2], int x, int y, int face_index, float pixelScreenCo[4])
 {
 	int bucket_index;
 	
@@ -919,10 +1038,10 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 	
 	ProjectPixel *projPixel;
 	
-	bucket_index = project_paint_BucketOffset(ps, pixelScreenCo);
+	bucket_index = project_paint_BucketOffsetSafe(ps, pixelScreenCo);
 	
 	/* even though it should be clamped, in some cases it can still run over */
-	if (bucket_index < 0 || bucket_index >= ps->bucketsX * ps->bucketsY)
+	if (bucket_index==-1)
 		return;
 	
 	/* Use viewMin2D to make (0,0) the bottom left of the bounds 
@@ -931,12 +1050,38 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 	/* Is this UV visible from the view? - raytrace */
 	if (ps->projectIsOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
 		/* done with view3d_project_float inline */
-		projPixel = (ProjectPixel *)BLI_memarena_alloc( ps->projectArena, sizeof(ProjectPixel) );
+		if (ps->tool==PAINT_TOOL_CLONE) {
+			float co[2];
+			
+			projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, sizeof(ProjectPixelClone));
+			projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
+			VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
+			
+			/* copy pixel color to backbuf */
+			memcpy( &(((ProjectPixelClone *)projPixel)->backbuf), projPixel->pixel, pixel_size);
+			//((ProjectPixelClone *)projPixel)->source = NULL; /* must be set later */
+			
+			
+			/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
+			/* TODO - possibly only run this for directly ativated buckets when cloning */
+			Vec2Subf(co, projPixel->projCo2D, ps->cloneOfs);
+				
+			/* no need to initialize the bucket, we're only checking buckets faces and for this
+			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
+			if (!screenco_pickcol(ps, bucket_index, co, ((ProjectPixelClone *)projPixel)->clonebuf)) {
+				((ProjectPixelClone *)projPixel)->clonebuf[3] = 0; /* zero alpha - ignore */
+			}
+
+		} else {
+			projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, sizeof(ProjectPixel));
+			projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
+			VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
+		}
 		
 		/* screenspace unclamped */
-		VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 		
-		projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
+		
+		
 		
 #ifdef PROJ_DEBUG_PAINT
 		projPixel->pixel[1] = 0;
@@ -1235,11 +1380,11 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 static void project_paint_rect(ProjectPaintState *ps, float min[2], float max[2], int bucket_min[2], int bucket_max[2])
 {
 	/* divide by bucketWidth & bucketHeight so the bounds are offset in bucket grid units */
-	bucket_min[0] = (int)(((float)(min[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 0.5;
+	bucket_min[0] = (int)(((float)(min[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 0.5; /* these offsets of 0.5 and 1.5 seem odd but they are correct */
 	bucket_min[1] = (int)(((float)(min[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 0.5;
 	
-	bucket_max[0] = (int)(((float)(max[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 0.5;
-	bucket_max[1] = (int)(((float)(max[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 0.5;	
+	bucket_max[0] = (int)(((float)(max[0] - ps->viewMin2D[0]) / ps->viewWidth) * ps->bucketsX) + 1.5;
+	bucket_max[1] = (int)(((float)(max[1] - ps->viewMin2D[1]) / ps->viewHeight) * ps->bucketsY) + 1.5;	
 	
 	/* incase the rect is outside the mesh 2d bounds */
 	CLAMP(bucket_min[0], 0, ps->bucketsX);
@@ -1252,7 +1397,7 @@ static void project_paint_rect(ProjectPaintState *ps, float min[2], float max[2]
 static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucket_y, float bucket_bounds[4])
 {
 	bucket_bounds[ PROJ_BUCKET_LEFT ] =		ps->viewMin2D[0]+((bucket_x)*(ps->viewWidth / ps->bucketsX));		/* left */
-	bucket_bounds[ PROJ_BUCKET_RIGHT ] =		ps->viewMin2D[0]+((bucket_x+1)*(ps->viewWidth / ps->bucketsX));	/* right */
+	bucket_bounds[ PROJ_BUCKET_RIGHT ] =	ps->viewMin2D[0]+((bucket_x+1)*(ps->viewWidth / ps->bucketsX));	/* right */
 	
 	bucket_bounds[ PROJ_BUCKET_BOTTOM ] =	ps->viewMin2D[1]+((bucket_y)*(ps->viewHeight / ps->bucketsY));		/* bottom */
 	bucket_bounds[ PROJ_BUCKET_TOP ] =		ps->viewMin2D[1]+((bucket_y+1)*(ps->viewHeight  / ps->bucketsY));	/* top */
@@ -1260,7 +1405,6 @@ static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucke
 
 static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 {
-	
 	LinkNode *node;
 	int face_index;
 	ImBuf *ibuf;
@@ -1268,7 +1412,7 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 	
 	/*printf("\tinit bucket %d\n", bucket_index);*/
 	
-	ps->projectBucketFlags[bucket_index] = PROJ_BUCKET_INIT; 
+	ps->projectBucketFlags[bucket_index] |= PROJ_BUCKET_INIT; 
 	
 	if ((node = ps->projectFaces[bucket_index])) {
 		do {
@@ -1287,6 +1431,7 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 		} while (node);
 	}
 }
+
 
 /* We want to know if a bucket and a face overlap in screenspace
  * 
@@ -1519,10 +1664,14 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float *curs= give_cursor();
 		VECCOPY(projCo, curs); /* TODO - what if were in local view? - get some better way */
+		Mat4MulVec4fl(ps->ob->imat, projCo);
 		projCo[3] = 1.0;
 		Mat4MulVec4fl(ps->projectMat, projCo);
-		ps->cloneOfs[0] = mval[0] - ((float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3]);	
+		ps->cloneOfs[0] = mval[0] - ((float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3]);
 		ps->cloneOfs[1] = mval[1] - ((float)(curarea->winy/2.0)+(curarea->winy/2.0)*projCo[1]/projCo[3]);
+		
+		// printf("%f %f   %f %f %f\n", ps->cloneOfs[0], ps->cloneOfs[1], curs[0], curs[1], curs[2]);
+		
 	}
 	
 	/* If this border is not added we get artifacts for faces that
@@ -2080,7 +2229,7 @@ static int project_bucket_circle_isect(ProjectPaintState *ps, int bucket_x, int 
 	{
 		return 1;
 	}
-	
+	 
 	/* out of bounds left */
 	if (cent[0] < bucket_bounds[PROJ_BUCKET_LEFT]) {
 		/* lower left out of radius test */
@@ -2165,6 +2314,9 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 					/* This bucket may hold some uninitialized faces, initialize it */
 					project_paint_bucket_init(ps, bucket_index);
 				}
+				
+				/* TODO - we may want to init clone data in a seperate to project_paint_bucket_init
+				 * so we dont go overboard and init too many clone pixels  */
 
 				if ((node = ps->projectBuckets[bucket_index])) {
 				
@@ -2179,26 +2331,52 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 						
 						/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
 						if (dist_nosqrt < brush_size_sqared) {
-						
-							brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 							
 							dist = (float)sqrt(dist_nosqrt);
 							
-							alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
-							
-							if (alpha <= 0.0) {
-								/* do nothing */
-							} else {
-								if (alpha >= 1.0) {
-									projPixel->pixel[0] = FTOCHAR(rgba[0]*ps->brush->rgb[0]);
-									projPixel->pixel[1] = FTOCHAR(rgba[1]*ps->brush->rgb[1]);
-									projPixel->pixel[2] = FTOCHAR(rgba[2]*ps->brush->rgb[2]);
-								} else {
-									projPixel->pixel[0] = FTOCHAR(((rgba[0]*ps->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
-									projPixel->pixel[1] = FTOCHAR(((rgba[1]*ps->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
-									projPixel->pixel[2] = FTOCHAR(((rgba[2]*ps->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
+							if (ps->tool==PAINT_TOOL_CLONE) { //&& ((ProjectPixelClone*)projPixel)->source )  {
+								
+								alpha = brush_sample_falloff(ps->brush, dist);
+								
+								if (((char *)((ProjectPixelClone*)projPixel)->clonebuf)[3]) {
+									projPixel->pixel[0] = FTOCHAR((((((char *)((ProjectPixelClone*)projPixel)->clonebuf)[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))));
+									projPixel->pixel[1] = FTOCHAR((((((char *)((ProjectPixelClone*)projPixel)->clonebuf)[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))));
+									projPixel->pixel[2] = FTOCHAR((((((char *)((ProjectPixelClone*)projPixel)->clonebuf)[2]/255.0) * alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha))));
 								}
-							} 
+								
+#if 0
+								if (alpha <= 0.0) {
+									/* do nothing */
+								} else {
+									if (alpha >= 1.0) {
+										projPixel->pixel[0] = FTOCHAR(rgba[0]*ps->brush->rgb[0]);
+										projPixel->pixel[1] = FTOCHAR(rgba[1]*ps->brush->rgb[1]);
+										projPixel->pixel[2] = FTOCHAR(rgba[2]*ps->brush->rgb[2]);
+									} else {
+										projPixel->pixel[0] = FTOCHAR(((rgba[0]*ps->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
+										projPixel->pixel[1] = FTOCHAR(((rgba[1]*ps->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
+										projPixel->pixel[2] = FTOCHAR(((rgba[2]*ps->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
+									}
+								} 
+#endif
+							} else {
+								brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
+								alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
+								
+								if (alpha <= 0.0) {
+									/* do nothing */
+								} else {
+									if (alpha >= 1.0) {
+										projPixel->pixel[0] = FTOCHAR(rgba[0]*ps->brush->rgb[0]);
+										projPixel->pixel[1] = FTOCHAR(rgba[1]*ps->brush->rgb[1]);
+										projPixel->pixel[2] = FTOCHAR(rgba[2]*ps->brush->rgb[2]);
+									} else {
+										projPixel->pixel[0] = FTOCHAR(((rgba[0]*ps->brush->rgb[0])*alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha)));
+										projPixel->pixel[1] = FTOCHAR(((rgba[1]*ps->brush->rgb[1])*alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha)));
+										projPixel->pixel[2] = FTOCHAR(((rgba[2]*ps->brush->rgb[2])*alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha)));
+									}
+								} 
+							}
 							
 							if (last_index != projPixel->image_index) {
 								last_index = projPixel->image_index;
@@ -2336,12 +2514,18 @@ void imagepaint_paint(short mousebutton, short texpaint)
 
 	if(!settings->imapaint.brush)
 		return;
-
+	
+	project = texpaint;
+	
+	
+	if (G.qual & LR_CTRLKEY) {
+		mouse_cursor();
+		return;
+	}
+	
 	/* initialize state */
 	memset(&s, 0, sizeof(s));
 	memset(&ps, 0, sizeof(ps));
-	
-	project = texpaint;
 	
 	s.brush = settings->imapaint.brush;
 	s.tool = settings->imapaint.tool;
