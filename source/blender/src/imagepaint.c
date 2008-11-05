@@ -191,6 +191,10 @@ typedef struct ProjectPaintState {
 	short projectIsOrtho;
 	float projectSeamBleed;
 	
+	/* clone vars */
+	float cloneOfs[2];
+	
+	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
 	float viewDir[3];			/* View vector, use for projectIsBackfaceCull and for ray casting with an ortho viewport  */
@@ -211,6 +215,11 @@ typedef struct ProjectPixel {
 	char *pixel;
 	int image_index;
 } ProjectPixel;
+
+typedef struct ProjectPixelClone {
+	struct ProjectPixel;
+	void *source;
+} ProjectPixelClone;
 
 /* Finish projection painting structs */
 
@@ -983,7 +992,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 		/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having tri/quad spesific functions */
 		for (j=0, sc=scanlines; j<totscanlines; j++, sc++) {
 			
-			min_px[0] = (int)((ibuf->x * sc->x_limits[0])-0.5);
+			min_px[0] = (int)((ibuf->x * sc->x_limits[0])+0.5);
 			max_px[0] = (int)((ibuf->x * sc->x_limits[1])+0.5);
 			CLAMP(min_px[0], 0, ibuf->x);
 			CLAMP(max_px[0], 0, ibuf->x);
@@ -1347,7 +1356,7 @@ static int project_bucket_face_isect(ProjectPaintState *ps, float min[2], float 
 	return 0;
 }
 
-static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *mf, MTFace *tf, int face_index)
+static void project_paint_delayed_face_init(ProjectPaintState *ps, MFace *mf, MTFace *tf, int face_index)
 {
 	float min[2], max[2];
 	int bucket_min[2], bucket_max[2]; /* for  ps->projectBuckets indexing */
@@ -1389,7 +1398,7 @@ static void project_paint_begin_face_delayed_init(ProjectPaintState *ps, MFace *
 	}
 }
 
-static void project_paint_begin( ProjectPaintState *ps )
+static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 {	
 	/* Viewport vars */
 	float mat[3][3];
@@ -1506,6 +1515,16 @@ static void project_paint_begin( ProjectPaintState *ps )
 		}
 	}
 	
+	/* setup clone offset */
+	if (ps->tool == PAINT_TOOL_CLONE) {
+		float *curs= give_cursor();
+		VECCOPY(projCo, curs); /* TODO - what if were in local view? - get some better way */
+		projCo[3] = 1.0;
+		Mat4MulVec4fl(ps->projectMat, projCo);
+		ps->cloneOfs[0] = mval[0] - ((float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3]);	
+		ps->cloneOfs[1] = mval[1] - ((float)(curarea->winy/2.0)+(curarea->winy/2.0)*projCo[1]/projCo[3]);
+	}
+	
 	/* If this border is not added we get artifacts for faces that
 	 * have a paralelle edge and at the bounds of the the 2D projected verts eg
 	 * - a simgle screen aligned quad */
@@ -1557,7 +1576,7 @@ static void project_paint_begin( ProjectPaintState *ps )
 			if (ibuf) {
 				/* Initialize the faces screen pixels */
 				/* Add this to a list to initialize later */
-				project_paint_begin_face_delayed_init(ps, mf, tf, a);
+				project_paint_delayed_face_init(ps, mf, tf, a);
 			}
 		}
 	}
@@ -2326,7 +2345,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	
 	s.brush = settings->imapaint.brush;
 	s.tool = settings->imapaint.tool;
-	if(texpaint && (s.tool == PAINT_TOOL_CLONE))
+	if(texpaint && (project==0) && (s.tool == PAINT_TOOL_CLONE))
 		s.tool = PAINT_TOOL_DRAW;
 	s.blend = s.brush->blend;
 	
@@ -2377,7 +2396,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		ps.projectIsOcclude = 1;
 		ps.projectSeamBleed = 2.0; /* pixel num to bleed  */
 		
-		project_paint_begin(&ps);
+		project_paint_begin(&ps, mval);
 		
 	} else {
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
