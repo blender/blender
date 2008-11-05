@@ -1033,6 +1033,11 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	BNode *node;
 	BArc *arc;
 	
+	if (root_node == NULL)
+	{
+		return;
+	}
+	
 	if (BLI_isGraphCyclic(graph))
 	{
 		return;

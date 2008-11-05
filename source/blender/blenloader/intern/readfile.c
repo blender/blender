@@ -3549,6 +3549,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->radio= newdataadr(fd, sce->radio);
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
+	
+	sce->toolsettings->skgen_template = newdataadr(fd, sce->toolsettings->skgen_template);
 
 	sce->sculptdata.session= NULL;
 	/* SculptData textures */

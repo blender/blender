@@ -443,6 +443,7 @@ typedef struct ToolSettings {
 	char  skgen_multi_level;
 	
 	/* Skeleton Sketching */
+	struct Object *skgen_template;
 	char bone_sketching;
 	char bone_sketching_convert;
 	char skgen_subdivision_number;

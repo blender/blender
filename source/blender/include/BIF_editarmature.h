@@ -73,7 +73,15 @@ EditBone *addEditBone(char *name, struct ListBase *ebones, struct bArmature *arm
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);
 EditBone *duplicateEditBone(EditBone *curBone, struct ListBase *editbones, struct Object *ob);
-void updateDuplicateSubtarget(EditBone *dupBone, struct Object *ob);
+void updateDuplicateSubtarget(EditBone *dupBone, struct ListBase *editbones, struct Object *ob);
+
+/* duplicate method (cross objects */
+
+/* editbones is the target list */
+EditBone *duplicateEditBoneObjects(EditBone *curBone, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
+
+/* editbones is the source list */
+void updateDuplicateSubtargetObjects(EditBone *dupBone, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
 
 /* -- */
 

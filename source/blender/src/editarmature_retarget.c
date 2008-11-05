@@ -398,7 +398,7 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 }
 /************************************** CLONING TEMPLATES **********************************************/
 
-static RigControl *cloneControl(RigGraph *rg, RigControl *src_ctrl, GHash *ptr_hash)
+static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_ctrl, GHash *ptr_hash)
 {
 	RigControl *ctrl;
 	
@@ -411,7 +411,7 @@ static RigControl *cloneControl(RigGraph *rg, RigControl *src_ctrl, GHash *ptr_h
 	
 	ctrl->flag = src_ctrl->flag;
 
-	ctrl->bone = duplicateEditBone(src_ctrl->bone, rg->editbones, rg->ob);
+	ctrl->bone = duplicateEditBoneObjects(src_ctrl->bone, rg->editbones, src_rg->ob, rg->ob);
 	ctrl->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 	BLI_ghash_insert(ptr_hash, src_ctrl->bone, ctrl->bone);
 	
@@ -420,7 +420,7 @@ static RigControl *cloneControl(RigGraph *rg, RigControl *src_ctrl, GHash *ptr_h
 	return ctrl;
 }
 
-static RigArc *cloneArc(RigGraph *rg, RigArc *src_arc, GHash *ptr_hash)
+static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *ptr_hash)
 {
 	RigEdge *src_edge;
 	RigArc  *arc;
@@ -452,7 +452,7 @@ static RigArc *cloneArc(RigGraph *rg, RigArc *src_arc, GHash *ptr_hash)
 		
 		if (src_edge->bone != NULL)
 		{
-			edge->bone = duplicateEditBone(src_edge->bone, rg->editbones, rg->ob);
+			edge->bone = duplicateEditBoneObjects(src_edge->bone, rg->editbones, src_rg->ob, rg->ob);
 			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 			BLI_ghash_insert(ptr_hash, src_edge->bone, edge->bone);
 		}
@@ -463,7 +463,7 @@ static RigArc *cloneArc(RigGraph *rg, RigArc *src_arc, GHash *ptr_hash)
 	return arc;
 }
 
-static RigGraph *cloneRigGraph(RigGraph *src)
+static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob)
 {
 	GHash	*ptr_hash;	
 	RigNode *node;
@@ -475,10 +475,11 @@ static RigGraph *cloneRigGraph(RigGraph *src)
 
 	rg = newRigGraph();
 	
-	rg->ob = src->ob;
-	rg->editbones = src->editbones;
+	rg->ob = ob;
+	rg->editbones = editbones;
 	
 	preEditBoneDuplicate(rg->editbones); /* prime bones for duplication */
+	preEditBoneDuplicate(src->editbones); /* prime bones for duplication */
 	
 	/* Clone nodes */
 	for (node = src->nodes.first; node; node = node->next)
@@ -492,13 +493,13 @@ static RigGraph *cloneRigGraph(RigGraph *src)
 	/* Clone arcs */
 	for (arc = src->arcs.first; arc; arc = arc->next)
 	{
-		cloneArc(rg, arc, ptr_hash);
+		cloneArc(rg, src, arc, ptr_hash);
 	}
 	
 	/* Clone controls */
 	for (ctrl = src->controls.first; ctrl; ctrl = ctrl->next)
 	{
-		cloneControl(rg, ctrl, ptr_hash);
+		cloneControl(rg, src, ctrl, ptr_hash);
 	}
 	
 	/* Relink bones properly */
@@ -512,7 +513,7 @@ static RigGraph *cloneRigGraph(RigGraph *src)
 			{
 				EditBone *bone;
 				
-				updateDuplicateSubtarget(edge->bone, rg->ob);
+				updateDuplicateSubtargetObjects(edge->bone, src->editbones, src->ob, rg->ob);
 				
 				bone = BLI_ghash_lookup(ptr_hash, edge->bone->parent);
 	
@@ -528,7 +529,7 @@ static RigGraph *cloneRigGraph(RigGraph *src)
 	{
 		EditBone *bone;
 		
-		updateDuplicateSubtarget(ctrl->bone, rg->ob);
+		updateDuplicateSubtargetObjects(ctrl->bone, src->editbones, src->ob, rg->ob);
 
 		bone = BLI_ghash_lookup(ptr_hash, ctrl->bone->parent);
 		
@@ -2804,23 +2805,32 @@ void BIF_retargetArmature()
 void BIF_retargetArc(ReebArc *earc)
 {
 	Object *ob;
-	RigGraph *template;
+	RigGraph *template_rigg;
 	RigGraph *rigg;
 	RigArc *iarc;
 	bArmature *arm;
-
-	ob = G.obedit; 	
-	arm = ob->data;
 	
-	template = armatureSelectedToGraph(ob, arm);
-	
-	if (template->arcs.first == NULL)
+	if (G.scene->toolsettings->skgen_template &&
+		G.scene->toolsettings->skgen_template->type == OB_ARMATURE)
 	{
-		error("No deforming bones selected");
+		ob = G.scene->toolsettings->skgen_template; 	
+		arm = ob->data;
+		template_rigg = armatureToGraph(ob, arm);
+	}
+	else
+	{
+		ob = G.obedit; 	
+		arm = ob->data;
+		template_rigg = armatureSelectedToGraph(ob, arm);
+	}
+	
+	if (template_rigg->arcs.first == NULL)
+	{
+		error("No Template and no deforming bones selected");
 		return;
 	}
 	
-	rigg = cloneRigGraph(template);
+	rigg = cloneRigGraph(template_rigg, &G.edbo, G.obedit);
 	
 	iarc = rigg->arcs.first;
 	
@@ -2832,7 +2842,7 @@ void BIF_retargetArc(ReebArc *earc)
 	
 	finishRetarget(rigg);
 	
-	RIG_freeRigGraph((BGraph*)template);
+	RIG_freeRigGraph((BGraph*)template_rigg);
 	RIG_freeRigGraph((BGraph*)rigg);
 
 	BIF_undo_push("Retarget Arc");

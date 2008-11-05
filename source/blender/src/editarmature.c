@@ -2197,19 +2197,23 @@ static EditBone *add_points_bone (float head[], float tail[])
 	return ebo;
 }
 
-
-static EditBone *get_named_editbone(char *name)
+static EditBone *get_named_editbone_from_list(char *name, ListBase *editbones)
 {
 	EditBone  *eBone;
 
 	if (name) {
-		for (eBone=G.edbo.first; eBone; eBone=eBone->next) {
+		for (eBone=editbones->first; eBone; eBone=eBone->next) {
 			if (!strcmp(name, eBone->name))
 				return eBone;
 		}
 	}
 
 	return NULL;
+}
+
+static EditBone *get_named_editbone(char *name)
+{
+	return get_named_editbone_from_list(name, &G.edbo);
 }
 
 /* Call this before doing any duplications
@@ -2225,7 +2229,11 @@ void preEditBoneDuplicate(ListBase *editbones)
 	}
 }
 
-void updateDuplicateSubtarget(EditBone *dupBone, Object *ob)
+/*
+ * Note: When duplicating cross objects, editbones here is the list of bones
+ * from the SOURCE object but ob is the DESTINATION object
+ * */
+void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
 	/* If an edit bone has been duplicated, lets
 	 * update it's constraints if the subtarget
@@ -2236,7 +2244,7 @@ void updateDuplicateSubtarget(EditBone *dupBone, Object *ob)
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (chan = verify_pose_channel(ob->pose, dupBone->name)) ) {
+	if ( (chan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
 		if ( (conlist = &chan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
@@ -2250,8 +2258,9 @@ void updateDuplicateSubtarget(EditBone *dupBone, Object *ob)
 					cti->get_constraint_targets(curcon, &targets);
 					
 					for (ct= targets.first; ct; ct= ct->next) {
-						if ((ct->tar == G.obedit) && (ct->subtarget[0])) {
-							oldtarget = get_named_editbone(ct->subtarget);
+						if ((ct->tar == src_ob) && (ct->subtarget[0])) {
+							ct->tar = dst_ob; /* update target */
+							oldtarget = get_named_editbone_from_list(ct->subtarget, editbones);
 							if (oldtarget) {
 								/* was the subtarget bone duplicated too? If
 								 * so, update the constraint to point at the 
@@ -2273,7 +2282,13 @@ void updateDuplicateSubtarget(EditBone *dupBone, Object *ob)
 	}
 }
 
-EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
+void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob)
+{
+	updateDuplicateSubtargetObjects(dupBone, editbones, ob, ob);
+}
+
+
+EditBone *duplicateEditBoneObjects(EditBone *curBone, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
 	EditBone *eBone = MEM_callocN(sizeof(EditBone), "addup_editbone");
 	
@@ -2289,11 +2304,11 @@ EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
 	/* Lets duplicate the list of constraints that the
 	 * current bone has.
 	 */
-	if (ob->pose) {
+	if (src_ob->pose) {
 		bPoseChannel *chanold, *channew;
 		ListBase     *listold, *listnew;
 		
-		chanold = verify_pose_channel(ob->pose, curBone->name);
+		chanold = verify_pose_channel(src_ob->pose, curBone->name);
 		if (chanold) {
 			listold = &chanold->constraints;
 			if (listold) {
@@ -2301,7 +2316,7 @@ EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
 				 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
 				 */
 				channew = 
-					verify_pose_channel(ob->pose, eBone->name);
+					verify_pose_channel(dst_ob->pose, eBone->name);
 				if (channew) {
 					/* copy transform locks */
 					channew->protectflag = chanold->protectflag;
@@ -2327,12 +2342,12 @@ EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
 		}
 	}
 	
-	/* --------------------WARNING--------------------
-	 * 
-	 * need to call static void updateDuplicateSubtarget(EditBone *dupBone) at some point 
-	 * */
-	
 	return eBone;
+}
+
+EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
+{
+	return duplicateEditBoneObjects(curBone, editbones, ob, ob);
 }
 
 void adduplicate_armature(void)
@@ -2448,7 +2463,7 @@ void adduplicate_armature(void)
 				
 				/* Lets try to fix any constraint subtargets that might
 					have been duplicated */
-				updateDuplicateSubtarget(eBone, OBACT);
+				updateDuplicateSubtarget(eBone, &G.edbo, OBACT);
 			}
 		}
 	} 

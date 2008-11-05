@@ -2338,11 +2338,19 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		yco -= 20;
 
 		uiBlockEndAlign(block);
+
+		yco -= 10;
+		uiBlockBeginAlign(block);
+		
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_DIFF, "OB:", 10, yco, 150, 19, &G.scene->toolsettings->skgen_template, "Template Object"); 
+		yco -= 20;
 		
 		uiDefButF(block, NUM, B_DIFF, 							"Ang:",			10, yco, 50,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
 		uiDefButF(block, NUM, B_DIFF, 							"Len:",			60, yco, 50,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
 		uiDefButF(block, NUM, B_DIFF, 							"Dist:",		110,yco, 50,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
 		yco -= 20;
+
+		uiBlockEndAlign(block);
 
 		if(yco < 0) uiNewPanelHeight(block, height-yco);
 	}

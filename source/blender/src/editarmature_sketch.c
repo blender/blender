@@ -355,12 +355,13 @@ int peelObjects(ListBase *depth_peels, short mval[2])
 }
 /*********************** CONVERSION ***************************/
 
-ReebNode *sk_pointToNode(SK_Point *pt)
+ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4])
 {
 	ReebNode *node;
 	
 	node = MEM_callocN(sizeof(ReebNode), "reeb node");
 	VECCOPY(node->p, pt->p);
+	Mat4MulVecfl(imat, node->p);
 	
 	if (G.scene->toolsettings->skgen_retarget_options & SK_RETARGET_ROLL)
 	{
@@ -370,14 +371,14 @@ ReebNode *sk_pointToNode(SK_Point *pt)
 	return node;
 }
 
-ReebArc *sk_strokeToArc(SK_Stroke *stk)
+ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[][4])
 {
 	ReebArc *arc;
 	int i;
 	
 	arc = MEM_callocN(sizeof(ReebArc), "reeb arc");
-	arc->head = sk_pointToNode(stk->points);
-	arc->tail = sk_pointToNode(sk_lastStrokePoint(stk));
+	arc->head = sk_pointToNode(stk->points, imat);
+	arc->tail = sk_pointToNode(sk_lastStrokePoint(stk), imat);
 	
 	arc->bcount = stk->nb_points - 2; /* first and last are nodes, don't count */
 	arc->buckets = MEM_callocN(sizeof(EmbedBucket) * arc->bcount, "Buckets");
@@ -385,6 +386,8 @@ ReebArc *sk_strokeToArc(SK_Stroke *stk)
 	for (i = 0; i < arc->bcount; i++)
 	{
 		VECCOPY(arc->buckets[i].p, stk->points[i + 1].p);
+		Mat4MulVecfl(imat, arc->buckets[i].p);
+
 		if (G.scene->toolsettings->skgen_retarget_options & SK_RETARGET_ROLL)
 		{
 			arc->buckets[i].no = stk->points[i + 1].no;
@@ -396,7 +399,12 @@ ReebArc *sk_strokeToArc(SK_Stroke *stk)
 
 void sk_retargetStroke(SK_Stroke *stk)
 {
-	ReebArc *arc = sk_strokeToArc(stk);
+	float imat[4][4];
+	ReebArc *arc;
+	
+	Mat4Invert(imat, G.obedit->obmat);
+	
+	arc = sk_strokeToArc(stk, imat);
 	
 	BIF_retargetArc(arc);
 	
