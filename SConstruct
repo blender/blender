@@ -227,7 +227,7 @@ if env['OURPLATFORM'] == 'linux2' :
             context.Result(result)
             return result
 
-        env2 = env.Copy( LIBPATH = env['BF_OPENAL'] ) 
+        env2 = env.Clone( LIBPATH = env['BF_OPENAL'] ) 
         sconf_temp = mkdtemp()
         conf = Configure( env2, {'CheckFreeAlut' : CheckFreeAlut}, sconf_temp, '/dev/null' )
         if conf.CheckFreeAlut( env2 ):
