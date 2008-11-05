@@ -11,7 +11,7 @@ Tooltip: 'Export to M3G'
 #
 # Source: http://www.nelson-games.de/bl2m3g/source
 #
-# $Id: m3g_export.py,v 0.1 2005/04/19 12:25 gerhardv Exp gerhardv $
+# $Id$
 #
 # Author: Gerhard Völkl
 #
