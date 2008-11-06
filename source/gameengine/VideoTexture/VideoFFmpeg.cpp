@@ -20,9 +20,9 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
-// INT64_C fix for some linux machines (C99ism)
 #ifdef WITH_FFMPEG
 
+// INT64_C fix for some linux machines (C99ism)
 #define __STDC_CONSTANT_MACROS
 #include <stdint.h>
 
