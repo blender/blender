@@ -21,6 +21,8 @@ http://www.gnu.org/copyleft/lesser.txt.
 */
 
 // INT64_C fix for some linux machines (C99ism)
+#ifdef WITH_FFMPEG
+
 #define __STDC_CONSTANT_MACROS
 #include <stdint.h>
 
@@ -33,7 +35,6 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "Exception.h"
 #include "VideoFFmpeg.h"
 
-#ifdef WITH_FFMPEG
 
 // default framerate
 const double defFrameRate = 25.0;
@@ -274,6 +275,7 @@ void VideoFFmpeg::openFile (char * filename)
 		if (m_imageName.Ptr() != filename)
 			m_imageName = filename;
 		m_preseek = 0;
+		m_avail = false;
 		play();
 	}
 
