@@ -220,7 +220,7 @@ typedef struct ProjectPixel {
 
 typedef struct ProjectPixelClone {
 	struct ProjectPixel __pp;
-	char backbuf[4];	/* TODO - float buffer? */
+	/*char backbuf[4];	*//* TODO - float buffer? */
 	char clonebuf[4];
 	//void *source;		/* pointer to source pixels */
 } ProjectPixelClone;
@@ -490,7 +490,7 @@ static int screenco_pickface(ProjectPaintState *ps, float pt[2], float w[3], int
 }
 
 /* bucket_index is optional, since in some cases we know it */
-static int screenco_pickcol(ProjectPaintState *ps, int bucket_index, float pt[2], char rgba[4], int interp)
+static int screenco_pickcol(ProjectPaintState *ps, float pt[2], char rgba[4], int interp)
 {
 	float w[3], uv[2];
 	int side;
@@ -1065,23 +1065,23 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 			projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
 			VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 			
-			/* copy pixel color to backbuf */
-			memcpy( &(((ProjectPixelClone *)projPixel)->backbuf), projPixel->pixel, pixel_size);
+			/* copy pixel color to backbuf - not used yet */
+			/* memcpy( &(((ProjectPixelClone *)projPixel)->backbuf), projPixel->pixel, pixel_size); */
 			//((ProjectPixelClone *)projPixel)->source = NULL; /* must be set later */
 			
 			
 			/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
 			/* TODO - possibly only run this for directly ativated buckets when cloning */
 			Vec2Subf(co, projPixel->projCo2D, ps->cloneOfs);
-				
+			
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
 			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
-			if (!screenco_pickcol(ps, bucket_index, co, ((ProjectPixelClone *)projPixel)->clonebuf, 1)) {
+			if (!screenco_pickcol(ps, co, ((ProjectPixelClone *)projPixel)->clonebuf, 1)) {
 				((ProjectPixelClone *)projPixel)->clonebuf[3] = 0; /* zero alpha - ignore */
 			}
-
 		} else {
-			projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, sizeof(ProjectPixel));
+			/* smear needs the buffer from a clone pixel */
+			projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, (ps->tool==PAINT_TOOL_SMEAR) ? sizeof(ProjectPixelClone) : sizeof(ProjectPixel));
 			projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
 			VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 		}
@@ -2293,7 +2293,7 @@ static int project_bucket_circle_isect(ProjectPaintState *ps, int bucket_x, int 
 	return 0;
 }
 
-static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short mval[2], double time, int update, float pressure)
+static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short prevmval[2], short mval[2], double time, int update, float pressure)
 {
 	/* TODO - texpaint option : is there any use in projection painting from the image window??? - could be interesting */
 	/* TODO - floating point images */
@@ -2313,11 +2313,14 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	int bucket_index;
 	int a;
 	short blend= ps->blend;
-	
 	char *cp;
-	
 	int bucket_x, bucket_y;
 	
+	/* for smear only */
+	float mval_ofs[2]; 
+	float co[2];
+	LinkNode *smearPixels = NULL;
+	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
 	
 	mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
 	
@@ -2334,6 +2337,14 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	if (bucket_min[0]==bucket_max[0] || bucket_min[1]==bucket_max[1]) {
 		return 0;
 	}
+	
+	if (ps->tool==PAINT_TOOL_SMEAR) {
+		mval_ofs[0] = (float)(mval[0] - prevmval[0]);
+		mval_ofs[1] = (float)(mval[1] - prevmval[1]);
+		
+		smearArena = BLI_memarena_new(1<<16);
+	}
+	
 	
 	/* avoid a square root with every dist comparison */
 	brush_size_sqared = ps->brush->size * ps->brush->size; 
@@ -2377,24 +2388,51 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 							
 							dist = (float)sqrt(dist_nosqrt);
 							
-							if (ps->tool==PAINT_TOOL_CLONE && ((char *)((ProjectPixelClone*)projPixel)->clonebuf)[3]) { //&& ((ProjectPixelClone*)projPixel)->source )  {
-								alpha = brush_sample_falloff(ps->brush, dist);
-								
-								if (alpha <= 0.0) {
-									/* do nothing */
-								} else {
-									cp = (char *)((ProjectPixelClone*)projPixel)->clonebuf;
-									if (alpha >= 1.0) {
-										projPixel->pixel[0] = FTOCHAR( cp[0] );
-										projPixel->pixel[1] = FTOCHAR( cp[1] );
-										projPixel->pixel[2] = FTOCHAR( cp[2] );
+							switch(ps->tool) {
+							case PAINT_TOOL_CLONE:
+								if (((char *)((ProjectPixelClone*)projPixel)->clonebuf)[3]) {
+									alpha = brush_sample_falloff(ps->brush, dist);
+									if (alpha <= 0.0) {
+										/* do nothing */
 									} else {
-										projPixel->pixel[0] = FTOCHAR( (((cp[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))) );
-										projPixel->pixel[1] = FTOCHAR( (((cp[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))) );
-										projPixel->pixel[2] = FTOCHAR( (((cp[2]/255.0) * alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha))) );
+										cp = (char *)((ProjectPixelClone*)projPixel)->clonebuf;
+										if (alpha >= 1.0) {
+											projPixel->pixel[0] = FTOCHAR( cp[0] );
+											projPixel->pixel[1] = FTOCHAR( cp[1] );
+											projPixel->pixel[2] = FTOCHAR( cp[2] );
+										} else {
+											projPixel->pixel[0] = FTOCHAR( (((cp[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))) );
+											projPixel->pixel[1] = FTOCHAR( (((cp[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))) );
+											projPixel->pixel[2] = FTOCHAR( (((cp[2]/255.0) * alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha))) );
+										}
 									}
+									
 								}
-							} else {
+								break;
+							case PAINT_TOOL_SMEAR:
+								Vec2Subf(co, projPixel->projCo2D, mval_ofs);
+								if (screenco_pickcol(ps, co, rgba_ub, 1)) {
+									brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
+									alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
+									/* drat! - this could almost be very simple if we ignore
+									 * the fact that applying the color directly gives feedback,
+									 * instead, collect the colors and apply after :/ */
+									
+#if 0								/* looks OK but not correct */
+									*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+#endif
+									
+									/* add to memarena instead */
+									*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonebuf) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+									BLI_linklist_prepend_arena(
+										&smearPixels,
+										(void *)projPixel,
+										smearArena
+									);
+									
+								}
+								break;
+							default:
 								brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 								alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
 								if (alpha > 0.0) {
@@ -2405,13 +2443,15 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 									
 									*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
 								}
+								break;
+								
 							}
+							
 							
 							if (last_index != projPixel->image_index) {
 								last_index = projPixel->image_index;
 								ps->projectImages[last_index]->id.flag |= LIB_DOIT;
 							}
-							
 						}
 						
 						node = node->next;
@@ -2421,6 +2461,18 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 		}
 	}
 
+	
+	if (ps->tool==PAINT_TOOL_SMEAR) {
+		if ((node = smearPixels)) {
+			do {
+				projPixel = node->link;
+				*((unsigned int *)projPixel->pixel) = *((unsigned int *)(((ProjectPixelClone *)projPixel)->clonebuf));
+				node = node->next;
+			} while (node);
+		}
+		
+		BLI_memarena_free(smearArena);
+	}
 	/* Loop over all images on this mesh and update any we have touched */
 	for (a=0; a < ps->projectImageTotal; a++) {
 		Image *ima = ps->projectImages[a];
@@ -2431,7 +2483,6 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 			ima->id.flag &= ~LIB_DOIT; /* clear for reuse */
 		}
 	}
-	
 	return redraw;
 }
 
@@ -2522,7 +2573,7 @@ static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *p
 	
 	/* TODO - support more brush operations, airbrush etc */
 	{
-		redraw |= imapaint_paint_sub_stroke_project(ps, painter, mval, time, 1, pressure);
+		redraw |= imapaint_paint_sub_stroke_project(ps, painter, prevmval, mval, time, 1, pressure);
 	}
 	
 	if (redraw) {
@@ -2626,6 +2677,13 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		time= PIL_check_seconds_timer();
 
 		if (project) { /* Projection Painting */
+			/* TODO - brush outline, dosnt work yet */
+			/*
+			persp(PERSP_WIN);
+			fdrawXORcirc(mval[0], mval[1], ps.brush->size);
+			draw_sel_circle(mval, prevmval, ps.brush->size, ps.brush->size, 0);
+			persp(PERSP_VIEW);
+			*/
 			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
 				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, time, pressure);
 				prevmval[0]= mval[0];
