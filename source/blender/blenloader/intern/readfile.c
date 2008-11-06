@@ -3459,6 +3459,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 
+	
+			sce->toolsettings->skgen_template = newlibadr_us(fd, sce->id.lib, sce->toolsettings->skgen_template);
+
 			/* Sculptdata textures */
 			for(a=0; a<MAX_MTEX; ++a) {
 				MTex *mtex= sce->sculptdata.mtex[a];
@@ -3549,8 +3552,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->radio= newdataadr(fd, sce->radio);
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
-	
-	sce->toolsettings->skgen_template = newdataadr(fd, sce->toolsettings->skgen_template);
 
 	sce->sculptdata.session= NULL;
 	/* SculptData textures */

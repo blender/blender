@@ -1103,6 +1103,7 @@ void exit_usiblender(void)
 	
 	BIF_GlobalReebFree();
 	BIF_freeRetarget();
+	BIF_freeTemplates();
 	
 	tf= G.ttfdata.first;
 	while(tf)

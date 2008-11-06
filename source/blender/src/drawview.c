@@ -2283,8 +2283,14 @@ static void convert_sketch_armature(void *arg1, void *arg2)
 	BIF_convertSketch();
 }
 
+static void assign_template_sketch_armature(void *arg1, void *arg2)
+{
+	int index = *(int*)arg1;
+	BIF_setTemplate(index);
+}
 static void view3d_panel_bonesketch_spaces(short cntrl)
 {
+	static int template_index;
 	uiBlock *block;
 	uiBut *but;
 	int yco = 70, height = 140;
@@ -2342,7 +2348,13 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		yco -= 10;
 		uiBlockBeginAlign(block);
 		
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_DIFF, "OB:", 10, yco, 150, 19, &G.scene->toolsettings->skgen_template, "Template Object"); 
+		BIF_makeListTemplates();
+		template_index = BIF_currentTemplate();
+		
+		but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(), 10,yco,150,19, &template_index, 0, 0, 0, 0, "Template");
+		uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
+		
+		//uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_DIFF, "OB:", 10, yco, 150, 19, &G.scene->toolsettings->skgen_template, "Template Object"); 
 		yco -= 20;
 		
 		uiDefButF(block, NUM, B_DIFF, 							"Ang:",			10, yco, 50,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");

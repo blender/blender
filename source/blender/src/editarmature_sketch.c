@@ -35,6 +35,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_graph.h"
+#include "BLI_ghash.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -134,6 +135,122 @@ SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
 int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
+
+/******************** TEMPLATES UTILS *************************/
+
+char  *TEMPLATES_MENU = NULL;
+int    TEMPLATES_CURRENT = 0;
+GHash *TEMPLATES_HASH = NULL;
+
+void BIF_makeListTemplates()
+{
+	Base *base;
+	int index = 0;
+
+	if (TEMPLATES_HASH != NULL)
+	{
+		BLI_ghash_free(TEMPLATES_HASH, NULL, NULL);
+	}
+	
+	TEMPLATES_HASH = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	TEMPLATES_CURRENT = 0;
+
+	for ( base = FIRSTBASE; base; base = base->next )
+	{
+		Object *ob = base->object;
+		
+		if (ob != G.obedit && ob->type == OB_ARMATURE)
+		{
+			index++;
+			BLI_ghash_insert(TEMPLATES_HASH, SET_INT_IN_POINTER(index), ob);
+			
+			if (ob == G.scene->toolsettings->skgen_template)
+			{
+				TEMPLATES_CURRENT = index;
+			}
+		}
+	}
+}
+
+char *BIF_listTemplates()
+{
+	GHashIterator ghi;
+	char menu_header[] = "Template%t|None%x0|";
+	char *p;
+	
+	TEMPLATES_MENU = MEM_callocN(sizeof(char) * (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30), "skeleton template menu");
+	
+	p = TEMPLATES_MENU;
+	
+	p += sprintf(TEMPLATES_MENU, "%s", menu_header);
+	
+	BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
+	
+	while (!BLI_ghashIterator_isDone(&ghi))
+	{
+		Object *ob = BLI_ghashIterator_getValue(&ghi);
+		int key = (int)BLI_ghashIterator_getKey(&ghi);
+		
+		p += sprintf(p, "|%s%%x%i", ob->id.name+2, key);
+		
+		BLI_ghashIterator_step(&ghi);
+	}
+	
+	return TEMPLATES_MENU;
+}
+
+int   BIF_currentTemplate()
+{
+	if (TEMPLATES_CURRENT == 0 && G.scene->toolsettings->skgen_template != NULL)
+	{
+		GHashIterator ghi;
+		int index = 0;
+		BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
+		
+		while (!BLI_ghashIterator_isDone(&ghi))
+		{
+			Object *ob = BLI_ghashIterator_getValue(&ghi);
+			int key = (int)BLI_ghashIterator_getKey(&ghi);
+			
+			index++;
+			
+			if (ob == G.scene->toolsettings->skgen_template)
+			{
+				TEMPLATES_CURRENT = index;
+				break;
+			}
+			
+			BLI_ghashIterator_step(&ghi);
+		}
+	}
+	
+	return TEMPLATES_CURRENT;
+}
+
+void  BIF_freeTemplates()
+{
+	if (TEMPLATES_MENU != NULL)
+	{
+		MEM_freeN(TEMPLATES_MENU);
+	}
+	
+	if (TEMPLATES_HASH != NULL)
+	{
+		BLI_ghash_free(TEMPLATES_HASH, NULL, NULL);
+	}
+}
+
+void  BIF_setTemplate(int index)
+{
+	if (index > 0)
+	{
+		G.scene->toolsettings->skgen_template = BLI_ghash_lookup(TEMPLATES_HASH, SET_INT_IN_POINTER(index));
+	}
+	else
+	{
+		G.scene->toolsettings->skgen_template = NULL;
+	}
+}	
 
 /******************** PEELING *********************************/
 

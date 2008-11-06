@@ -32,4 +32,10 @@ int BIF_validSketchMode();
 int BIF_fullSketchMode(); /* full sketch turned on (not Quick) */
 void BIF_cancelStrokeSketch();
 
+void  BIF_makeListTemplates();
+char *BIF_listTemplates();
+int   BIF_currentTemplate();
+void  BIF_freeTemplates();
+void  BIF_setTemplate(int);	
+
 #endif /* BIF_SKETCH_H */
