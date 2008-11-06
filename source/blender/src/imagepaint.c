@@ -135,6 +135,7 @@ typedef struct ImagePaintState {
 
 // #define PROJ_DEBUG_PAINT 1
 // #define PROJ_DEBUG_NOSCANLINE 1
+//#define PROJ_DEBUG_NOSEAMBLEED 1
 
 /* projectFaceFlags options */
 #define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
@@ -143,7 +144,6 @@ typedef struct ImagePaintState {
 #define PROJ_FACE_SEAM2	1<<3
 #define PROJ_FACE_SEAM3	1<<4
 #define PROJ_FACE_SEAM4	1<<5
-
 
 #define PROJ_BUCKET_NULL		0
 #define PROJ_BUCKET_INIT		1<<0
@@ -191,8 +191,9 @@ typedef struct ProjectPaintState {
 	short projectIsOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short projectIsBackfaceCull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short projectIsOrtho;
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	float projectSeamBleed;
-	
+#endif
 	/* clone vars */
 	float cloneOfs[2];
 	
@@ -411,21 +412,48 @@ static int project_paint_BucketOffsetSafe(ProjectPaintState *ps, float *projCo2D
 	}
 }
 
-/* assume they intersect */
-static void BarryCentricWeights2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3]) {
+/* The point must be inside the triangle */
+static void BaryCentricWeightsSimple2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3]) {
 	float wtot;
 	w[0] = AreaF2Dfl(v2, v3, pt);
 	w[1] = AreaF2Dfl(v3, v1, pt);
 	w[2] = AreaF2Dfl(v1, v2, pt);
 	wtot = w[0]+w[1]+w[2];
-	w[0]/=wtot;
-	w[1]/=wtot;
-	w[2]/=wtot;
+	if (wtot > 0.0) { /* just incase */
+		w[0]/=wtot;
+		w[1]/=wtot;
+		w[2]/=wtot;
+	} else {
+		w[0] = w[1] = w[2] = 1.0/3.0; /* dummy values for zero area face */
+	}
+}
+
+/* also works for points outside the triangle */
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+static void BaryCentricWeights2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3]) {
+	float wtot = AreaF2Dfl(v1, v2, v3);
+	if (wtot > 0.0) {
+		w[0] = AreaF2Dfl(v2, v3, pt);
+		w[1] = AreaF2Dfl(v3, v1, pt);
+		w[2] = AreaF2Dfl(v1, v2, pt);
+		
+		/* negate weights when 'pt' is on the outer side of the the triangles edge */
+		if ((SIDE_OF_LINE(v2,v3, pt)>0.0) != (SIDE_OF_LINE(v2,v3, v1)>0.0))	w[0]/= -wtot;
+		else																w[0]/=  wtot;
+
+		if ((SIDE_OF_LINE(v3,v1, pt)>0.0) != (SIDE_OF_LINE(v3,v1, v2)>0.0))	w[1]/= -wtot;
+		else																w[1]/=  wtot;
+
+		if ((SIDE_OF_LINE(v1,v2, pt)>0.0) != (SIDE_OF_LINE(v1,v2, v3)>0.0))	w[2]/= -wtot;
+		else																w[2]/=  wtot;
+	} else {
+		w[0] = w[1] = w[2] = 1.0/3.0; /* dummy values for zero area face */
+	}
 }
 
 static float tri_depth_2d(float v1[3], float v2[3], float v3[3], float pt[2], float w[3])
 {
-	BarryCentricWeights2f(v1,v2,v3,pt,w);
+	BaryCentricWeightsSimple2f(v1,v2,v3,pt,w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
@@ -749,6 +777,7 @@ static int cmp_uv(float vec2a[2], float vec2b[2])
 }
 	
 
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, int orig_i2_fidx)
 {
 	LinkNode *node;
@@ -825,6 +854,7 @@ static void project_face_seams_init(ProjectPaintState *ps, int face_index, int i
 			(check_seam(ps, face_index, 2,0) ? PROJ_FACE_SEAM3 : 0);
 	}
 }
+#endif // PROJ_DEBUG_NOSEAMBLEED
 
 static float angleToLength(float angle)
 {
@@ -1004,7 +1034,7 @@ static screen_px_from_ortho(
 		float pixelScreenCo[4] )
 {
 	float w[3];
-	BarryCentricWeights2f(uv1co,uv2co,uv3co,uv,w);
+	BaryCentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
 	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
 	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
 	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];	
@@ -1017,7 +1047,7 @@ static screen_px_from_persp(
 		float pixelScreenCo[4])
 {
 	float w[3];
-	BarryCentricWeights2f(uv1co,uv2co,uv3co,uv,w);
+	BaryCentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
 	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
 	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
 	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];
@@ -1131,10 +1161,12 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 
 	if (!uv_image_rect(tf->uv[0], tf->uv[1], tf->uv[2], tf->uv[3], min_px, max_px, ibuf->x, ibuf->y, mf->v4))
 		return;
-	
+
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	/* detect UV seams so we can bleed */
 	if (ps->projectSeamBleed > 0.0)
 		project_face_seams_init(ps, face_index, mf->v4);
+#endif
 	
 	for (y = min_px[1]; y < max_px[1]; y++) {
 		uv[1] = (((float)y)+0.5) / (float)ibuf->y; /* TODO - this is not pixel aligned correctly */
@@ -1214,7 +1246,8 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	}
 
 	
-#ifndef PROJ_DEBUG_NOSCANLINE 
+#ifndef PROJ_DEBUG_NOSCANLINE
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	/* Pretty much a copy of above, except fill in seams if we have any */
 	if (ps->projectFaceFlags[face_index] & (PROJ_FACE_SEAM1|PROJ_FACE_SEAM2|PROJ_FACE_SEAM3|PROJ_FACE_SEAM4)) {
 		float outset_uv[4][2]; /* expanded UV's */
@@ -1377,6 +1410,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 			}
 		}
 	}
+#endif
 #endif
 }
 
@@ -1544,6 +1578,7 @@ static void project_paint_delayed_face_init(ProjectPaintState *ps, MFace *mf, MT
 		
 		DO_MINMAX2(ps->projectVertScreenCos[ a ], min, max);
 		
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 		/* add face user if we have bleed enabled, set the UV seam flags later */
 		if (ps->projectSeamBleed > 0.0) {
 			BLI_linklist_prepend_arena(
@@ -1552,6 +1587,7 @@ static void project_paint_delayed_face_init(ProjectPaintState *ps, MFace *mf, MT
 				ps->projectArena
 			);
 		}
+#endif
 	} while (i--);
 	
 	project_paint_rect(ps, min, max, bucket_min, bucket_max);
@@ -1642,9 +1678,10 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	tot_faceListMem =			sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
 	tot_faceFlagMem =			sizeof(char) * ps->dm_totface;
 	tot_bucketFlagMem =			sizeof(char) * ps->bucketsX * ps->bucketsY;
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->projectSeamBleed > 0.0) /* UV Seams for bleeding */
 		tot_bucketVertFacesMem =	sizeof(LinkNode *) * ps->dm_totvert;
-	
+#endif
 
 	ps->projectArena =
 		BLI_memarena_new(	tot_bucketMem +
@@ -1656,16 +1693,19 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	ps->projectFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_faceListMem);
 	ps->projectFaceFlags = (char *)BLI_memarena_alloc( ps->projectArena, tot_faceFlagMem);
 	ps->projectBucketFlags= (char *)BLI_memarena_alloc( ps->projectArena, tot_bucketFlagMem);
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->projectSeamBleed > 0.0)
 		ps->projectVertFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketVertFacesMem);
+#endif
 	
 	memset(ps->projectBuckets,		0, tot_bucketMem);
 	memset(ps->projectFaces,		0, tot_faceListMem);
 	memset(ps->projectFaceFlags,	0, tot_faceFlagMem);
 	memset(ps->projectBucketFlags,	0, tot_bucketFlagMem);
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->projectSeamBleed > 0.0)
 		memset(ps->projectVertFaces,	0, tot_bucketVertFacesMem);
-	
+#endif
 	Mat4Invert(ps->ob->imat, ps->ob->obmat);
 	
 	Mat3CpyMat4(mat, G.vd->viewinv);
@@ -2658,8 +2698,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		/* setup projection painting data */
 		ps.projectIsBackfaceCull = 1;
 		ps.projectIsOcclude = 1;
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 		ps.projectSeamBleed = 2.0; /* pixel num to bleed  */
-		
+#endif
 		project_paint_begin(&ps, mval);
 		
 	} else {
