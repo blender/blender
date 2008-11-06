@@ -84,6 +84,7 @@ def main():
 			ob.life = 0
 	print own.life
 	"""
+
 main()
 '''
 

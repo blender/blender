@@ -70,6 +70,9 @@ public:
 	BL_Texture * getTex (unsigned int idx) { 
 		return (idx < MAXTEX) ? mTextures + idx : NULL; 
 	}
+	Image * getImage (unsigned int idx) { 
+		return (idx < MAXTEX && mMaterial) ? mMaterial->img[idx] : NULL; 
+	}
 
 	// for ipos
 	void UpdateIPO(

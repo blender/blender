@@ -76,10 +76,14 @@
 #include <fcntl.h>
 #include <string.h>
 
-#ifndef WIN32 
+#ifndef _WIN32 
 #include <unistd.h>
 #else
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
 #endif
 
 #include "MEM_guardedalloc.h"

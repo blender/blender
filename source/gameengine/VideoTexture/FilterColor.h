@@ -43,10 +43,13 @@ protected:
 		short * size, unsigned int pixSize, unsigned int val)
 	{
 		// calculate gray value
-		unsigned int gray = (28 * ((val >> 16) & 0xFF) + 151 * ((val >> 8) & 0xFF)
-			+ 77 * (val & 0xFF)) & 0xFF00;
+		unsigned int gray = (28 * (VT_B(val)) + 151 * (VT_G(val))
+			+ 77 * (VT_R(val))) >> 8;
 		// return gray scale value
-		return (val & 0xFF000000) | gray << 8 | gray | gray >> 8;
+		VT_R(val) = gray;
+		VT_G(val) = gray;
+		VT_B(val) = gray;
+		return val;
 	}
 
 	/// virtual filtering function for byte source
@@ -82,11 +85,11 @@ protected:
 	ColorMatrix m_matrix;
 
 	/// calculate one color component
-	unsigned int calcColor (unsigned int val, short idx)
+	unsigned char calcColor (unsigned int val, short idx)
 	{
-		return (((m_matrix[idx][0]  * (val & 0xFF) + m_matrix[idx][1] * ((val >> 8) & 0xFF)
-			+ m_matrix[idx][2] * ((val >> 16) & 0xFF) + m_matrix[idx][3] * ((val >> 24) & 0xFF)
-			+ m_matrix[idx][4]) >> 8) & 0xFF) << (idx << 3);
+		return (((m_matrix[idx][0]  * (VT_R(val)) + m_matrix[idx][1] * (VT_G(val))
+			+ m_matrix[idx][2] * (VT_B(val)) + m_matrix[idx][3] * (VT_A(val))
+			+ m_matrix[idx][4]) >> 8) & 0xFF);
 	}
 
 	/// filter pixel template, source int buffer
@@ -94,8 +97,9 @@ protected:
 		short * size, unsigned int pixSize, unsigned int val)
 	{
 		// return calculated color
-		return calcColor(val, 0) | calcColor(val, 1) | calcColor(val, 2)
-			| calcColor(val, 3);
+		int color;
+		VT_RGBA(color, calcColor(val, 0), calcColor(val, 1), calcColor(val, 2), calcColor(val, 3));
+		return color;
 	}
 
 	/// virtual filtering function for byte source
@@ -110,7 +114,7 @@ protected:
 
 
 /// type for color levels
-typedef unsigned long ColorLevel[4][3];
+typedef unsigned short ColorLevel[4][3];
 
 /// pixel filter for color calculation
 class FilterLevel : public FilterBase
@@ -133,11 +137,10 @@ protected:
 	/// calculate one color component
 	unsigned int calcColor (unsigned int val, short idx)
 	{
-		unsigned int col = val & (0xFF << (idx << 3));
+		unsigned int col = VT_C(val,idx);;
 		if (col <= levels[idx][0]) col = 0;
-		else if (col >= levels[idx][1]) col = 0xFF << (idx << 3);
-		else if (idx < 3) col = (((col - levels[idx][0]) << 8) / levels[idx][2]) & (0xFF << (idx << 3));
-		else col = (((col - levels[idx][0]) / levels[idx][2]) << 8) & (0xFF << (idx << 3));
+		else if (col >= levels[idx][1]) col = 0xFF;
+		else col = (((col - levels[idx][0]) << 8) / levels[idx][2]) & 0xFF;
 		return col; 
 	}
 
@@ -146,8 +149,9 @@ protected:
 		short * size, unsigned int pixSize, unsigned int val)
 	{
 		// return calculated color
-		return calcColor(val, 0) | calcColor(val, 1) | calcColor(val, 2)
-			| calcColor(val, 3);
+		int color;
+		VT_RGBA(color, calcColor(val, 0), calcColor(val, 1), calcColor(val, 2), calcColor(val, 3));
+		return color;
 	}
 
 	/// virtual filtering function for byte source

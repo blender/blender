@@ -78,6 +78,6 @@ void PyTypeList::reg (PyObject * module)
 			// increase ref count
 			Py_INCREF((*it)->getType());
 			// add type to module
-			PyModule_AddObject(module, (*it)->getName(), (PyObject*)(*it)->getType());
+			PyModule_AddObject(module, (char*)(*it)->getName(), (PyObject*)(*it)->getType());
 		}
 }

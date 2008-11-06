@@ -119,6 +119,7 @@ static PyMethodDef moduleMethods[] =
 
 #if WITH_FFMPEG
 extern PyTypeObject VideoFFmpegType;
+extern PyTypeObject ImageFFmpegType;
 #endif
 extern PyTypeObject FilterBlueScreenType;
 extern PyTypeObject FilterGrayType;
@@ -126,6 +127,7 @@ extern PyTypeObject FilterColorType;
 extern PyTypeObject FilterLevelType;
 extern PyTypeObject FilterNormalType;
 extern PyTypeObject FilterRGB24Type;
+extern PyTypeObject FilterRGBA32Type;
 extern PyTypeObject FilterBGR24Type;
 extern PyTypeObject ImageBuffType;
 extern PyTypeObject ImageMixType;
@@ -138,6 +140,7 @@ static void registerAllTypes(void)
 {
 #if WITH_FFMPEG
 	pyImageTypes.add(&VideoFFmpegType, "VideoFFmpeg");
+	pyImageTypes.add(&ImageFFmpegType, "ImageFFmpeg");
 #endif
 	pyImageTypes.add(&ImageBuffType, "ImageBuff");
 	pyImageTypes.add(&ImageMixType, "ImageMix");
@@ -150,6 +153,7 @@ static void registerAllTypes(void)
 	pyFilterTypes.add(&FilterLevelType, "FilterLevel");
 	pyFilterTypes.add(&FilterNormalType, "FilterNormal");
 	pyFilterTypes.add(&FilterRGB24Type, "FilterRGB24");
+	pyFilterTypes.add(&FilterRGBA32Type, "FilterRGBA32");
 	pyFilterTypes.add(&FilterBGR24Type, "FilterBGR24");
 }
 
@@ -180,7 +184,7 @@ PyObject* initVideoTexture(void)
 	pyFilterTypes.reg(m);
 
 	Py_INCREF(&TextureType);
-	PyModule_AddObject(m, "Texture", (PyObject*)&TextureType);
+	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
 
 	// init last error description
 	Exception::m_lastError[0] = '\0';

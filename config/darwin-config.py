@@ -260,11 +260,11 @@ CC_WARN = ['-Wall', '-Wno-long-double']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ' -pg -g '
+BF_PROFILE_CCFLAGS = ['-pg', '-g ']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR='../build/darwin'
 BF_INSTALLDIR='../install/darwin'

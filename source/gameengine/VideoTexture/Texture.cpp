@@ -54,9 +54,6 @@ http://www.gnu.org/copyleft/lesser.txt.
 { exp.report(); }
 
 
-// are Blender materials used
-bool blendMats = false;
-
 // Blender GameObject type
 BlendType<KX_GameObject> gameObjectType ("KX_GameObject");
 
@@ -198,15 +195,22 @@ int Texture_init (Texture *self, PyObject *args, PyObject *kwds)
 			if (mat != NULL)
 			{
 				// is it blender material or polygon material
-				blendMats = (mat->GetFlag() & RAS_BLENDERMAT) != 0;
-				if (blendMats)
+				if (mat->GetFlag() & RAS_BLENDERGLSL) 
+				{
+					self->m_imgTexture = static_cast<KX_BlenderMaterial*>(mat)->getImage(texID);
+					self->m_useMatTexture = false;
+				} else if (mat->GetFlag() & RAS_BLENDERMAT)
+				{
 					// get blender material texture
 					self->m_matTexture = static_cast<KX_BlenderMaterial*>(mat)->getTex(texID);
+					self->m_useMatTexture = true;
+				}
 				else
 				{
 					// get texture pointer from polygon material
 					MTFace * tface = static_cast<KX_PolygonMaterial*>(mat)->GetMTFace();
 					self->m_imgTexture = (Image*)tface->tpage;
+					self->m_useMatTexture = false;
 				}
 			}
 			// check if texture is available, if not, initialization failed
@@ -246,7 +250,7 @@ PyObject * Texture_close(Texture * self)
 	{
 		self->m_orgSaved = false;
 		// restore original texture code
-		if (blendMats)
+		if (self->m_useMatTexture)
 			self->m_matTexture->swapTexture(self->m_orgTex);
 		else
 			self->m_imgTexture->bindcode = self->m_orgTex;
@@ -292,7 +296,7 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 				{
 					self->m_orgSaved = true;
 					// save original image code
-					if (blendMats)
+					if (self->m_useMatTexture)
 						self->m_orgTex = self->m_matTexture->swapTexture(self->m_actTex);
 					else
 					{
@@ -412,8 +416,8 @@ static PyMethodDef textureMethods[] =
 // class Texture attributes
 static PyGetSetDef textureGetSets[] =
 { 
-	{"source", (getter)Texture_getSource, (setter)Texture_setSource, "source of texture", NULL},
-	{"mipmap", (getter)Texture_getMipmap, (setter)Texture_setMipmap, "mipmap texture", NULL},
+	{(char*)"source", (getter)Texture_getSource, (setter)Texture_setSource, (char*)"source of texture", NULL},
+	{(char*)"mipmap", (getter)Texture_getMipmap, (setter)Texture_setMipmap, (char*)"mipmap texture", NULL},
 	{NULL}
 };
 

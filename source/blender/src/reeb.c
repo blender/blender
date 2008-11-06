@@ -69,6 +69,7 @@
 
 #include "reeb.h"
 
+
 ReebGraph *GLOBAL_RG = NULL;
 ReebGraph *FILTERED_RG = NULL;
 

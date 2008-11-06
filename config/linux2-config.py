@@ -197,11 +197,11 @@ LLIBS = 'util c m dl pthread stdc++'
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'
