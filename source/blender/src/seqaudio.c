@@ -398,11 +398,7 @@ static void audio_fill_seq(Sequence * seq, void * mixdown,
 				if (!seq->hdaudio) {
 					char name[FILE_MAXDIR+FILE_MAXFILE];
 
-					strncpy(name, seq->strip->dir, 
-						FILE_MAXDIR-1);
-					strncat(name, 
-						seq->strip->stripdata->name, 
-						FILE_MAXFILE-1);
+					BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
 					BLI_convertstringcode(name, G.sce);
 				
 					seq->hdaudio= sound_open_hdaudio(name);
