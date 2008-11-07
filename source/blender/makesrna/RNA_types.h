@@ -30,38 +30,60 @@
 struct BlenderRNA;
 struct StructRNA;
 struct PropertyRNA;
+struct PointerRNA;
 struct CollectionPropertyIterator;
 struct bContext;
 
-typedef void (*PropNotifyFunc)(struct bContext *C, void *data);
-typedef int (*PropBooleanGetFunc)(void *data);
-typedef void (*PropBooleanSetFunc)(void *data, int value);
-typedef int (*PropBooleanArrayGetFunc)(void *data, int index);
-typedef void (*PropBooleanArraySetFunc)(void *data, int index, int value);
-typedef int (*PropIntGetFunc)(void *data);
-typedef void (*PropIntSetFunc)(void *data, int value);
-typedef int (*PropIntArrayGetFunc)(void *data, int index);
-typedef void (*PropIntArraySetFunc)(void *data, int index, int value);
-typedef float (*PropFloatGetFunc)(void *data);
-typedef void (*PropFloatSetFunc)(void *data, float value);
-typedef float (*PropFloatArrayGetFunc)(void *data, int index);
-typedef void (*PropFloatArraySetFunc)(void *data, int index, float value);
-typedef void (*PropStringGetFunc)(void *data, char *value);
-typedef int (*PropStringLengthFunc)(void *data);
-typedef void (*PropStringSetFunc)(void *data, const char *value);
-typedef int (*PropEnumGetFunc)(void *data);
-typedef void (*PropEnumSetFunc)(void *data, int value);
-typedef void* (*PropPointerGetFunc)(void *data);
-typedef void (*PropPointerSetFunc)(void *data, void *value);
-typedef struct StructRNA* (*PropPointerTypeFunc)(void *data);
-typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, void *data);
+/* Function Callbacks */
+
+typedef void (*PropNotifyFunc)(struct bContext *C, struct PointerRNA *ptr);
+typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
+typedef int (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int index);
+typedef void (*PropBooleanArraySetFunc)(struct PointerRNA *ptr, int index, int value);
+typedef int (*PropIntGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropIntSetFunc)(struct PointerRNA *ptr, int value);
+typedef int (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int index);
+typedef void (*PropIntArraySetFunc)(struct PointerRNA *ptr, int index, int value);
+typedef float (*PropFloatGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropFloatSetFunc)(struct PointerRNA *ptr, float value);
+typedef float (*PropFloatArrayGetFunc)(struct PointerRNA *ptr, int index);
+typedef void (*PropFloatArraySetFunc)(struct PointerRNA *ptr, int index, float value);
+typedef void (*PropStringGetFunc)(struct PointerRNA *ptr, char *value);
+typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
+typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
+typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
+typedef void* (*PropPointerGetFunc)(struct PointerRNA *ptr);
+typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, void *value);
+typedef struct StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
+typedef void (*PropCollectionBeginFunc)(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
 typedef void (*PropCollectionNextFunc)(struct CollectionPropertyIterator *iter);
 typedef void (*PropCollectionEndFunc)(struct CollectionPropertyIterator *iter);
 typedef void* (*PropCollectionGetFunc)(struct CollectionPropertyIterator *iter);
 typedef struct StructRNA* (*PropCollectionTypeFunc)(struct CollectionPropertyIterator *iter);
-typedef int (*PropCollectionLengthFunc)(void *data);
-typedef void* (*PropCollectionLookupIntFunc)(void *data, int key, struct StructRNA **type);
-typedef void* (*PropCollectionLookupStringFunc)(void *data, const char *key, struct StructRNA **type);
+typedef int (*PropCollectionLengthFunc)(struct PointerRNA *ptr);
+typedef void* (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key, struct StructRNA **type);
+typedef void* (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key, struct StructRNA **type);
+
+/* Pointer
+ *
+ * RNA pointers are not a single C pointer but include the type,
+ * and a pointer to the ID struct that owns the struct, since
+ * in some cases this information is needed to correctly get/set
+ * the properties and validate them. */
+
+typedef struct PointerRNA {
+	struct {
+		struct StructRNA *type;
+		void *data;
+	} id;
+
+	struct StructRNA *type;
+	void *data;
+} PointerRNA;
+
+/* Property */
 
 typedef enum PropertyType {
 	PROP_BOOLEAN = 0,
@@ -84,11 +106,36 @@ typedef enum PropertySubType {
 } PropertySubType;
 
 typedef enum PropertyFlag {
+	/* editable means the property is editable in the user
+	 * interface, evaluated means that the property is set
+	 * as part of an evaluation. these can change at runtime
+	 * the property flag contains the default. editable is
+	 * enabled by default except for collections. */
 	PROP_EDITABLE = 1,
-	PROP_EVALUATEABLE = 2
+	PROP_EVALUATED = 2,
+
+	/* driveable means the property can be driven by some
+	 * other input, be it animation curves, expressions, ..
+	 * in other words making the property evaluated. this is
+	 * enable by default except for pointers and collections. */
+	PROP_DRIVEABLE = 4,
+
+	/* for pointers and collections, means that the struct
+	 * depends on the data pointed to for evaluation, such
+	 * that a change in the data pointed to will affect the
+	 * evaluated result of this struct. */
+	PROP_EVALUATE_DEPENDENCY = 8,
+	PROP_INVERSE_EVALUATE_DEPENDENCY = 16,
+
+	/* for pointers and collections, means that the struct
+	 * requires the data pointed to for rendering in the,
+	 * be it the render engine or viewport */
+	PROP_RENDER_DEPENDENCY = 32,
+	PROP_INVERSE_RENDER_DEPENDENCY = 64,
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
+	PointerRNA pointer;
 	void *internal;
 	int valid;
 } CollectionPropertyIterator;
@@ -123,7 +170,8 @@ typedef struct PropertyRNA {
 	PropNotifyFunc notify;
 } PropertyRNA;
 
-/* information specific to the property type */
+/* Property Types */
+
 typedef struct BooleanPropertyRNA {
 	PropertyRNA property;
 
@@ -220,6 +268,13 @@ typedef struct CollectionPropertyRNA {
 	struct StructRNA *structtype;
 } CollectionPropertyRNA;
 
+/* Struct */
+
+typedef enum StructFlag {
+	/* indicates that this struct is an ID struct */
+	STRUCT_ID = 1
+} StructFlag;
+
 typedef struct StructRNA {
 	struct StructRNA *next, *prev;
 
@@ -238,8 +293,11 @@ typedef struct StructRNA {
 	ListBase properties; 
 } StructRNA;
 
+/* Blender RNA
+ *
+ * Root RNA data structure that lists all struct types. */
+
 typedef struct BlenderRNA {
-	/* structs */
 	ListBase structs;
 } BlenderRNA;
 

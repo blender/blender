@@ -35,11 +35,13 @@ struct ListBase;
 typedef struct PropertyDefRNA {
 	struct PropertyDefRNA *next, *prev;
 
-	struct StructRNA *strct;
+	struct StructRNA *srna;
 	struct PropertyRNA *prop;
 
 	const char *dnastructname;
 	const char *dnaname;
+	const char *dnalengthstructname;
+	const char *dnalengthname;
 	const char *dnatype;
 	int dnaarraylength;
 
@@ -49,7 +51,7 @@ typedef struct PropertyDefRNA {
 typedef struct StructDefRNA {
 	struct StructDefRNA *next, *prev;
 
-	struct StructRNA *strct;
+	struct StructRNA *srna;
 
 	const char *dnaname;
 	ListBase properties;
@@ -71,6 +73,15 @@ extern BlenderDefRNA DefRNA;
 
 /* Define functions for all types */
 
+extern StructRNA RNA_Main;
+extern StructRNA RNA_Mesh;
+extern StructRNA RNA_Object;
+extern StructRNA RNA_Scene;
+
+void RNA_def_ID(struct StructRNA *srna);
+
+void RNA_def_main(struct BlenderRNA *brna);
+void RNA_def_mesh(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
 
@@ -79,6 +90,12 @@ void RNA_def_scene(struct BlenderRNA *brna);
 void rna_iterator_listbase_begin(struct CollectionPropertyIterator *iter, struct ListBase *lb);
 void rna_iterator_listbase_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_listbase_get(struct CollectionPropertyIterator *iter);
+
+typedef struct ArrayIterator {
+	char *ptr;
+	char *endptr;
+	int itemsize;
+} ArrayIterator;
 
 void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length);
 void rna_iterator_array_next(struct CollectionPropertyIterator *iter);

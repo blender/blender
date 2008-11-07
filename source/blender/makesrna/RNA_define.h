@@ -48,12 +48,13 @@ void RNA_free(struct BlenderRNA *brna);
 /* Struct */
 
 struct StructRNA *RNA_def_struct(struct BlenderRNA *brna, const char *cname, const char *name);
-void RNA_def_struct_sdna(struct StructRNA *rna, const char *structname);
-void RNA_def_struct_name_property(struct StructRNA *rna, struct PropertyRNA *prop);
+void RNA_def_struct_sdna(struct StructRNA *srna, const char *structname);
+void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *prop);
+void RNA_def_struct_flag(struct StructRNA *srna, int flag);
 
 /* Property */
 
-struct PropertyRNA *RNA_def_property(struct StructRNA *strct, const char *cname, int type, int subtype);
+struct PropertyRNA *RNA_def_property(struct StructRNA *srna, const char *cname, int type, int subtype);
 
 void RNA_def_property_boolean_sdna(struct PropertyRNA *prop, const char *structname, const char *propname, int bit);
 void RNA_def_property_int_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
@@ -61,10 +62,10 @@ void RNA_def_property_float_sdna(struct PropertyRNA *prop, const char *structnam
 void RNA_def_property_string_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_enum_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_pointer_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_collection_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_collection_sdna(struct PropertyRNA *prop, const char *structname, const char *propname, const char *lengthpropname);
 
+void RNA_def_property_flag(struct PropertyRNA *prop, int flag);
 void RNA_def_property_array(struct PropertyRNA *prop, int arraylength);
-void RNA_def_property_access(struct PropertyRNA *prop, int editable, int evaluatable);
 void RNA_def_property_range(struct PropertyRNA *prop, double min, double max);
 
 void RNA_def_property_enum_items(struct PropertyRNA *prop, const struct PropertyEnumItem *item);
@@ -83,14 +84,14 @@ void RNA_def_property_string_default(struct PropertyRNA *prop, const char *value
 void RNA_def_property_ui_text(struct PropertyRNA *prop, const char *name, const char *description);
 void RNA_def_property_ui_range(struct PropertyRNA *prop, double min, double max, double step, double precision);
 
-void RNA_def_property_funcs(struct PropertyRNA *prop, char *notify, char *readonly);
-void RNA_def_property_boolean_funcs(struct PropertyRNA *prop, char *get, char *set);
-void RNA_def_property_int_funcs(struct PropertyRNA *prop, char *get, char *set);
-void RNA_def_property_float_funcs(struct PropertyRNA *prop, char *get, char *set);
-void RNA_def_property_enum_funcs(struct PropertyRNA *prop, char *get, char *set);
-void RNA_def_property_string_funcs(struct PropertyRNA *prop, char *get, char *length, char *set);
-void RNA_def_property_pointer_funcs(struct PropertyRNA *prop, char *get, char *type, char *set);
-void RNA_def_property_collection_funcs(struct PropertyRNA *prop, char *begin, char *next, char *end, char *get, char *type, char *length, char *lookupint, char *lookupstring);
+void RNA_def_property_funcs(struct PropertyRNA *prop, const char *notify, const char *readonly);
+void RNA_def_property_boolean_funcs(struct PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_int_funcs(struct PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_float_funcs(struct PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_enum_funcs(struct PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_string_funcs(struct PropertyRNA *prop, const char *get, const char *length, const char *set);
+void RNA_def_property_pointer_funcs(struct PropertyRNA *prop, const char *get, const char *type, const char *set);
+void RNA_def_property_collection_funcs(struct PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *type, const char *length, const char *lookupint, const char *lookupstring);
 
 #endif /* RNA_DEFINE_H */
 

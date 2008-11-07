@@ -12,12 +12,15 @@ source_files = env.Glob('*.c')
 # making rna_access.c part of both makesrna and blender seems to
 # give conflict, how to solve?
 source_files.remove('rna_access.c')
+source_files.remove('rna_dependency.c')
 
 makesrna_tool = env.Copy()
 rna = env.Copy()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
 
 makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
+                                 '../../blenlib',
+                                 '../../blenkernel',
                                  '../../makesdna',
                                  '../../makesrna'])
 
@@ -44,6 +47,6 @@ if env['OURPLATFORM'] != 'linuxcross':
     rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna $TARGET")
 else:
     rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna.exe $TARGET")
-obj = ['intern/rna.c', 'intern/rna_access.c']
+obj = ['intern/rna.c', 'intern/rna_access.c', 'intern/rna_dependency.c']
 Return ('obj')
 

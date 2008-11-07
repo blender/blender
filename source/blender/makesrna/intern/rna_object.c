@@ -24,28 +24,70 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+
+#include "rna_internal.h"
 
 #include "DNA_object_types.h"
 
 #ifdef RNA_RUNTIME
 
+static StructRNA *rna_Object_data_type(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->data;
+
+	switch(ob->type) {
+		case OB_EMPTY:
+			return NULL;
+		case OB_MESH:
+			return &RNA_Mesh;
+#if 0
+		case OB_CURVE:
+			return &RNA_Curve;
+		case OB_SURF:
+			return &RNA_Surface;
+		case OB_FONT:
+			return &RNA_Font;
+		case OB_MBALL:
+			return &RNA_MBall;
+		case OB_LAMP:
+			return &RNA_Lamp;
+		case OB_CAMERA:
+			return &RNA_Camera;
+		case OB_WAVE:
+			return &RNA_Wave;
+		case OB_LATTICE:
+			return &RNA_Lattice;
+#endif
+		default:
+			return NULL;
+	}
+}
+
 #else
 
 void RNA_def_object(BlenderRNA *brna)
 {
-	StructRNA *strct;
+	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	strct= RNA_def_struct(brna, "Object", "Object");
+	srna= RNA_def_struct(brna, "Object", "Object");
 
-	prop= RNA_def_property(strct, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, "ID", "name");
-	RNA_def_property_ui_text(prop, "Name", "Object ID name.");
-	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
+	RNA_def_ID(srna);
 
-	RNA_def_struct_name_property(strct, prop);
+	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_RENDER_DEPENDENCY);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_data_type", NULL);
+
+	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EVALUATE_DEPENDENCY);
+
+	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_flag(prop, PROP_EVALUATE_DEPENDENCY);
 }
 
 #endif
