@@ -63,7 +63,7 @@ typedef struct EmbedBucket {
 	float val;
 	int	  nv;
 	float p[3];
-	float *no; /* if present, normal of the bucket */
+	float no[3]; /* if non-null, normal of the bucket */
 } EmbedBucket;
 
 typedef struct ReebNode {
@@ -81,7 +81,7 @@ typedef struct ReebNode {
 	float symmetry_axis[3];
 	/*********************************/
 	
-	float *no;
+	float no[3];
 
 	int index;
 	float weight;

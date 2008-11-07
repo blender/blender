@@ -162,12 +162,12 @@ void getEditBoneRollUpAxis(EditBone *bone, float roll, float up_axis[3])
 	VECCOPY(up_axis, mat[2]);
 }
 
-float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float quat[4], float qroll[4], float aligned_axis[3])
+float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4], float qroll[4], float aligned_axis[3])
 {
 	float nor[3], new_up_axis[3], x_axis[3], z_axis[3];
 	
 	VECCOPY(new_up_axis, old_up_axis);
-	QuatMulVecf(quat, new_up_axis);
+	QuatMulVecf(qrot, new_up_axis);
 	
 	VecSubf(nor, bone->tail, bone->head);
 	
@@ -206,6 +206,8 @@ float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float quat[4])
 	
 	VECCOPY(new_up_axis, old_up_axis);
 	QuatMulVecf(quat, new_up_axis);
+	
+	Normalize(new_up_axis);
 	
 	return rollBoneToVector(bone, new_up_axis);
 }
@@ -820,7 +822,6 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 									/* if owner is a control bone, link with it */									
 									if (link && link->link)
 									{
-										printf("%s -constraint- %s\n", ctrl->bone->name, link->bone->name);
 										RIG_parentControl(ctrl, link->bone);
 										found = 1;
 										break;
@@ -839,7 +840,6 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 					/* check if parent is already linked */
 					if (ctrl_parent && ctrl_parent->link)
 					{
-						printf("%s -parent- %s\n", ctrl->bone->name, ctrl_parent->bone->name);
 						RIG_parentControl(ctrl, ctrl_parent->bone);
 						change = 1;
 					}
@@ -851,7 +851,6 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 							/* if a child is linked, link to that one */
 							if (ctrl_child->link && ctrl_child->bone->parent == ctrl->bone)
 							{
-								printf("%s -child- %s\n", ctrl->bone->name, ctrl_child->bone->name);
 								RIG_parentControl(ctrl, ctrl_child->bone);
 								change = 1;
 								break;
@@ -1656,7 +1655,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 
 }
 
-static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3], float *up_axis)
+static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3], float up_axis[3])
 {
 	EditBone *bone;
 	RigControl *ctrl;
@@ -1679,7 +1678,7 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 	VECCOPY(bone->head, vec0);
 	VECCOPY(bone->tail, vec1);
 	
-	if (up_axis != NULL)
+	if (!VecIsNull(up_axis))
 	{
 		float qroll[4];
 
