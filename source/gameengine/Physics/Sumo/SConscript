@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-sumoenv = env.Copy()
+sumoenv = env.Clone()
 sources = ['SumoPHYCallbackBridge.cpp',
 				'SumoPhysicsController.cpp',
 				'SumoPhysicsEnvironment.cpp',
@@ -9,7 +9,7 @@ sources = ['SumoPHYCallbackBridge.cpp',
 				'Fuzzics/src/SM_Object.cpp',
 				'Fuzzics/src/SM_Scene.cpp',
 				'Fuzzics/src/SM_MotionState.cpp'
-			   ]
+			]
 
 incs =['.',
 	'../common',

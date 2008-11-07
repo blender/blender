@@ -14,8 +14,8 @@ source_files = env.Glob('*.c')
 source_files.remove('rna_access.c')
 source_files.remove('rna_dependency.c')
 
-makesrna_tool = env.Copy()
-rna = env.Copy()
+makesrna_tool = env.Clone()
+rna = env.Clone()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
 
 makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
