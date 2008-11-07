@@ -2437,9 +2437,9 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 									} else {
 										cp = (char *)((ProjectPixelClone*)projPixel)->clonebuf;
 										if (alpha >= 1.0) {
-											projPixel->pixel[0] = FTOCHAR( cp[0] );
-											projPixel->pixel[1] = FTOCHAR( cp[1] );
-											projPixel->pixel[2] = FTOCHAR( cp[2] );
+											projPixel->pixel[0] = cp[0];
+											projPixel->pixel[1] = cp[1];
+											projPixel->pixel[2] = cp[2];
 										} else {
 											projPixel->pixel[0] = FTOCHAR( (((cp[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))) );
 											projPixel->pixel[1] = FTOCHAR( (((cp[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))) );
