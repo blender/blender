@@ -396,7 +396,6 @@ class BlenderEnvironment(SConsEnvironment):
 		print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
 		lenv = self.Clone()
 		res = lenv.RES('#'+root_build_dir+'lib/'+libname, source)
-	  
 		SConsEnvironment.Default(self, res)
 		resources.append(res)
 
@@ -435,7 +434,7 @@ class BlenderEnvironment(SConsEnvironment):
 			if cxx_compileflags:
 				lenv.Append(CXXFLAGS = cxx_compileflags)
 			lenv.Append(CFLAGS = lenv['C_WARN'])
-			lenv.Append(CXXFLAGS = lenv['CC_WARN'])
+			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
 			lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
 			SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
