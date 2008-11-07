@@ -167,7 +167,7 @@ static void DoAllScriptsFromList( ListBase * list, short event );
 static PyObject *importText( char *name );
 static void init_ourImport( void );
 static void init_ourReload( void );
-static PyObject *blender_import( PyObject * self, PyObject * args );
+static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * kw);
 
 
 static void BPY_Err_Handle( char *script_name );
@@ -2849,24 +2849,28 @@ static PyObject *importText( char *name )
 }
 
 static PyMethodDef bimport[] = {
-	{"blimport", blender_import, METH_VARARGS, "our own import"}
+	{"blimport", blender_import, METH_KEYWORDS, "our own import"}
 };
 
-static PyObject *blender_import( PyObject * self, PyObject * args )
+static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * kw)
 {
 	PyObject *exception, *err, *tb;
 	char *name;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	PyObject *m;
+	
 	//PyObject_Print(args, stderr, 0);
 #if (PY_VERSION_HEX >= 0x02060000)
 	int dummy_val; /* what does this do?*/
+	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
 	
-	if( !PyArg_ParseTuple( args, "s|OOOi:bimport",
+	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bimport", kwlist,
 			       &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
 #else
-	if( !PyArg_ParseTuple( args, "s|OOO:bimport",
+	static char *kwlist[] = {"name", "globals", "locals", "fromlist", 0};
+	
+	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOO:bimport", kwlist,
 			       &name, &globals, &locals, &fromlist ) )
 		return NULL;
 #endif

@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Edit Externaly'
+Name: 'Edit Externally'
 Blender: 242a
 Group: 'Image'
 Tooltip: 'Open in an application for editing. (hold Shift to configure)'
@@ -9,22 +9,23 @@ Tooltip: 'Open in an application for editing. (hold Shift to configure)'
 __author__ = "Campbell Barton"
 __url__ = ["blender", "blenderartists.org"]
 __version__ = "1.0"
-
 __bpydoc__ = """\
 This script opens the current image in an external application for editing.
 
-Useage:
+Usage:
 Choose an image for editing in the UV/Image view.
 
-To configure the application to open the image with, hold Shift as you click on
-this menu item.
+To configure the application to open the image with, hold Shift as you
+click on this menu item.
 
-For first time users try running the default application for your operating system.
-If the application does not open you can type in the full path.
-You can choose that the last entered application will be saved as a default.
+For first time users try running the default application for your
+operating system.  If the application does not open you can type in
+the full path.  You can choose that the last entered application will
+be saved as a default.
 
-* Note, default commants for opening an image are "start" for win32 and "open" for macos.
-This will use the system default assosiated application.
+* Note, default commants for opening an image are "start" for win32
+and "open" for macos.  This will use the system default associated
+application.
 """
 
 # ***** BEGIN GPL LICENSE BLOCK *****
@@ -48,17 +49,16 @@ This will use the system default assosiated application.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+import Blender
+from Blender import Image, sys, Draw, Registry
 
 try:
-	import os
+	import subprocess
 	import sys as py_sys
 	platform = py_sys.platform
 except:
-	Draw.PupMenu('Error, python not installed')
-	os=None
-
-import Blender
-from Blender import Image, sys, Draw, Registry
+	Draw.PupMenu('Error: Recent version of Python not installed.')
+	subprocess=None
 
 def edit_extern(image=None):
 	
@@ -66,7 +66,7 @@ def edit_extern(image=None):
 		image = Image.GetCurrent()
 	
 	if not image: # Image is None
-		Draw.PupMenu('ERROR: You must select an active Image.')
+		Draw.PupMenu('ERROR: Please select active Image.')
 		return
 	if image.packed:
 		Draw.PupMenu('ERROR: Image is packed, unpack before editing.')
@@ -94,7 +94,10 @@ def edit_extern(image=None):
 	if new_text:
 		pupblock.append('first time, set path.')
 		if platform == 'win32':
-			appstring = 'start "" /B "%f"'
+			# Example of path to popular image editor... ;-)
+			# appstring = '"C:\\Program Files\\Adobe\\Photoshop CS\\photoshop.exe" "%f"'
+			# Have to add "cmd /c" to make sure we're using Windows shell.
+			appstring = 'cmd /c start "" /B "%f"'
 		elif platform == 'darwin':
 			appstring = 'open "%f"'
 		else:
@@ -103,7 +106,7 @@ def edit_extern(image=None):
 	appstring_but = Draw.Create(appstring)
 	save_default_but = Draw.Create(0)
 	
-	pupblock.append(('editor: ', appstring_but, 0, 48, 'Path to application, %f will be replaced with the image path.'))
+	pupblock.append(('editor: ', appstring_but, 0, 99, 'Path to application, %f will be replaced with the image path.'))
 	pupblock.append(('Set Default', save_default_but, 'Store this path in the blender registry.'))
 	
 	# Only configure if Shift is held,
@@ -118,19 +121,23 @@ def edit_extern(image=None):
 		Registry.SetKey('ExternalImageEditor', {'path':appstring}, True)
 	
 	if appstring.find('%f') == -1:
-		Draw.PupMenu('ERROR: The comment you entered did not contain the filename ("%f")')
+		Draw.PupMenu('ERROR: No filename specified! ("%f")')
 		return
 	
 	# -------------------------------
 	
+	# evil trick, temp replace spaces so we can allow spaces in filenames
+	appstring = appstring.replace(' ', '\t')
+	
 	appstring = appstring.replace('%f', imageFileName)
-	print '\tediting image with command "%s"' % appstring
-	os.system(appstring)
+	appstring = appstring.split('\t')
+	print 'Editing image with command "%s"' % appstring
+	p = subprocess.Popen(appstring)
 
 
 def main():
 	edit_extern()
 	
 
-if __name__ == '__main__' and os != None:
+if __name__ == '__main__' and subprocess:
 	main()
