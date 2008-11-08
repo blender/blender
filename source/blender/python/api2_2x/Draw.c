@@ -258,7 +258,7 @@ Normal button (a sphere that you can roll to change the normal)\n\n\
 [tooltip=] The button's tooltip";
 
 static char Method_Number_doc[] =
-	"(name, event, x, y, width, height, initial, min, max, [tooltip], [callback], [range], [precision]) - Create a \
+	"(name, event, x, y, width, height, initial, min, max, [tooltip], [callback], [clickstep], [precision]) - Create a \
 new Number button\n\n\
 (name) A string to display on the button\n\
 (event) The event number to pass to the button event function when activated\n\
