@@ -933,7 +933,7 @@ static void gp_stroke_to_bonechain (bGPDlayer *gpl, bGPDstroke *gps, bArmature *
 		/* add new bone - note: sync with editarmature.c::add_editbone() */
 		{
 			BLI_strncpy(ebo->name, "Stroke", 32);
-			unique_editbone_name(bones, ebo->name);
+			unique_editbone_name(bones, ebo->name, NULL);
 			
 			BLI_addtail(bones, ebo);
 			

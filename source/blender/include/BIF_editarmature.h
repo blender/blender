@@ -133,7 +133,7 @@ void	selectconnected_posearmature(void);
 void	armature_select_hierarchy(short direction, short add_to_sel);
 
 void	setflag_armature(short mode);
-void    unique_editbone_name (struct ListBase *ebones, char *name);
+void	unique_editbone_name (struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
 
 void	auto_align_armature(short mode);
 void	switch_direction_armature(void);

@@ -2361,6 +2361,9 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiDefButF(block, NUM, B_DIFF, 							"Len:",			60, yco, 50,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
 		uiDefButF(block, NUM, B_DIFF, 							"Dist:",		110,yco, 50,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
 		yco -= 20;
+		
+		uiDefBut(block, TEX,0,"S:",							10, yco, 75, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace %S with");
+		uiDefBut(block, TEX,0,"N:",							85, yco, 75, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace %N with");
 
 		uiBlockEndAlign(block);
 

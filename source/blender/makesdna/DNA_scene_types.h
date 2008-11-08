@@ -448,6 +448,8 @@ typedef struct ToolSettings {
 	char bone_sketching_convert;
 	char skgen_subdivision_number;
 	char skgen_retarget_options;
+	char skgen_side_string[8];
+	char skgen_num_string[8];
 	
 	/* Alt+RMB option */
 	char edge_mode;

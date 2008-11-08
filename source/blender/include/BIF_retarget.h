@@ -113,16 +113,21 @@ typedef struct RigEdge {
 } RigEdge;
 
 /* Control flags */
-#define RIG_CTRL_DONE			1
-#define RIG_CTRL_PARENT_DEFORM	2
-#define RIG_CTRL_FIT_ROOT		4
-#define RIG_CTRL_FIT_BONE		8
+#define RIG_CTRL_HEAD_DONE		1
+#define RIG_CTRL_TAIL_DONE		2
+#define RIG_CTRL_PARENT_DEFORM	4
+#define RIG_CTRL_FIT_ROOT		8
+#define RIG_CTRL_FIT_BONE		16
+
+#define RIG_CTRL_DONE	(RIG_CTRL_HEAD_DONE|RIG_CTRL_TAIL_DONE)
+
 
 typedef struct RigControl {
 	struct RigControl *next, *prev;
 	float head[3], tail[3];
 	EditBone *bone;
 	EditBone *link;
+	EditBone *link_tail;
 	float	up_axis[3];
 	float	offset[3];
 	int		flag;

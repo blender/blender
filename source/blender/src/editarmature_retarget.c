@@ -400,6 +400,44 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 }
 /************************************** CLONING TEMPLATES **********************************************/
 
+static void renameTemplateBone(EditBone *bone, char *template_name, ListBase *editbones)
+{
+	char *side_string = G.scene->toolsettings->skgen_side_string;
+	char *num_string = G.scene->toolsettings->skgen_num_string;
+	int i, j;
+	
+	for (i = 0, j = 0; template_name[i] != '\0' && i < 31 && j < 31; i++)
+	{
+		if (template_name[i] == '%')
+		{
+			if (template_name[i+1] == 'S')
+			{
+				j += sprintf(bone->name + j, side_string);
+				i++;
+			}
+			else if (template_name[i+1] == 'N')
+			{
+				j += sprintf(bone->name + j, num_string);
+				i++;
+			}
+			else
+			{
+				bone->name[j] = template_name[i];
+				j++;
+			}
+		}
+		else
+		{
+			bone->name[j] = template_name[i];
+			j++;
+		}
+	}
+	
+	bone->name[j] = '\0';
+	
+	unique_editbone_name(editbones, bone->name, bone);
+}
+
 static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_ctrl, GHash *ptr_hash)
 {
 	RigControl *ctrl;
@@ -414,6 +452,7 @@ static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_
 	ctrl->flag = src_ctrl->flag;
 
 	ctrl->bone = duplicateEditBoneObjects(src_ctrl->bone, rg->editbones, src_rg->ob, rg->ob);
+	renameTemplateBone(ctrl->bone, src_ctrl->bone->name, rg->editbones);
 	ctrl->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 	BLI_ghash_insert(ptr_hash, src_ctrl->bone, ctrl->bone);
 	
@@ -455,6 +494,7 @@ static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *
 		if (src_edge->bone != NULL)
 		{
 			edge->bone = duplicateEditBoneObjects(src_edge->bone, rg->editbones, src_rg->ob, rg->ob);
+			renameTemplateBone(edge->bone, src_edge->bone->name, rg->editbones);
 			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 			BLI_ghash_insert(ptr_hash, src_edge->bone, edge->bone);
 		}
@@ -1456,7 +1496,7 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
 	BLI_strncpy(bone->name, name, 32);
-	unique_editbone_name(list, bone->name);
+	unique_editbone_name(list, bone->name, NULL);
 	
 	BLI_addtail(list, bone);
 	
@@ -1624,35 +1664,53 @@ void generateMissingArcs(RigGraph *rigg)
 
 /************************************ RETARGETTING *****************************************************/
 
+static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize);
+
+
+static void finalizeControl(RigGraph *rigg, RigControl *ctrl, float qrot[4], float resize)
+{
+	if ((ctrl->flag & RIG_CTRL_DONE) == RIG_CTRL_DONE)
+	{
+		RigControl *ctrl_child;
+		
+		ctrl->bone->roll = rollBoneByQuat(ctrl->bone, ctrl->up_axis, qrot);
+	
+		/* Cascade to connected control bones */
+		for (ctrl_child = rigg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
+		{
+			if (ctrl_child->link == ctrl->bone)
+			{
+				repositionControl(rigg, ctrl_child, ctrl->bone->head, ctrl->bone->tail, qrot, resize);
+			}
+		}
+	}	
+}
+
 static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize)
 {
-	RigControl *ctrl_child;
 	float parent_offset[3], tail_offset[3];
 	
-	VecSubf(tail_offset, ctrl->tail, ctrl->head);
-	VecMulf(tail_offset, resize);
 	
 	VECCOPY(parent_offset, ctrl->offset);
 	VecMulf(parent_offset, resize);
-	
 	QuatMulVecf(qrot, parent_offset);
-	QuatMulVecf(qrot, tail_offset);
 	
 	VecAddf(ctrl->bone->head, head, parent_offset); 
-	VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
-	ctrl->bone->roll = rollBoneByQuat(ctrl->bone, ctrl->up_axis, qrot);
-	
-	ctrl->flag |= RIG_CTRL_DONE;
 
-	/* Cascade to connected control bones */
-	for (ctrl_child = rigg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
+	ctrl->flag |= RIG_CTRL_HEAD_DONE;
+
+	if (ctrl->link_tail == NULL)
 	{
-		if (ctrl_child->link == ctrl->bone)
-		{
-			repositionControl(rigg, ctrl_child, ctrl->bone->head, ctrl->bone->tail, qrot, resize);
-		}
+		VecSubf(tail_offset, ctrl->tail, ctrl->head);
+		VecMulf(tail_offset, resize);
+		QuatMulVecf(qrot, tail_offset);
+
+		VecAddf(ctrl->bone->tail, ctrl->bone->head, tail_offset);
+		
+		ctrl->flag |= RIG_CTRL_TAIL_DONE;
 	}
 
+	finalizeControl(rigg, ctrl, qrot, resize);
 }
 
 static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3], float up_axis[3])

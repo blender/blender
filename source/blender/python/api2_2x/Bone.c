@@ -832,7 +832,7 @@ static PyObject *EditBone_new(PyTypeObject *type, PyObject *args, PyObject *kwds
 	//otherwise this will act as a py_object
 	py_editBone->editbone = NULL;
 
-	unique_editbone_name(NULL, name);
+	unique_editbone_name(NULL, name, NULL);
 	BLI_strncpy(py_editBone->name, name, 32);
 	py_editBone->parent = NULL;
 	py_editBone->weight= 1.0f;

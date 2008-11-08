@@ -699,7 +699,7 @@ int join_armature(void)
 					curbone= editbone_name_exists(&eblist, pchan->name);
 					
 					/* Get new name */
-					unique_editbone_name(&ebbase, curbone->name);
+					unique_editbone_name(&ebbase, curbone->name, NULL);
 					
 					/* Transform the bone */
 					{
@@ -1999,7 +1999,7 @@ EditBone *addEditBone(char *name, ListBase *ebones, bArmature *arm)
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
 	BLI_strncpy(bone->name, name, 32);
-	unique_editbone_name(ebones, bone->name);
+	unique_editbone_name(ebones, bone->name, NULL);
 	
 	BLI_addtail(ebones, bone);
 	
@@ -2298,7 +2298,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, ListBase *editbones, Objec
 	curBone->temp = eBone;
 	eBone->temp = curBone;
 
-	unique_editbone_name(editbones, eBone->name);
+	unique_editbone_name(editbones, eBone->name, NULL);
 	BLI_addtail(editbones, eBone);
 	
 	/* Lets duplicate the list of constraints that the
@@ -2388,7 +2388,7 @@ void adduplicate_armature(void)
 				curBone->temp = eBone;
 				eBone->temp = curBone;
 				
-				unique_editbone_name(&G.edbo, eBone->name);
+				unique_editbone_name(&G.edbo, eBone->name, NULL);
 				BLI_addtail(&G.edbo, eBone);
 				if (!firstDup)
 					firstDup=eBone;
@@ -3152,13 +3152,16 @@ static EditBone *editbone_name_exists (ListBase *ebones, char *name)
 }
 
 /* note: there's a unique_bone_name() too! */
-void unique_editbone_name (ListBase *ebones, char *name)
+void unique_editbone_name (ListBase *ebones, char *name, EditBone *bone)
 {
+	EditBone *dupli;
 	char		tempname[64];
 	int			number;
 	char		*dot;
 	
-	if (editbone_name_exists(ebones, name)) {
+	dupli = editbone_name_exists(ebones, name); 
+	
+	if (dupli && bone != dupli) {
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
 		if (number && isdigit(name[number-1])) {
@@ -3279,7 +3282,7 @@ void extrude_armature(int forked)
 							else strcat(newbone->name, "_R");
 						}
 					}
-					unique_editbone_name(&G.edbo, newbone->name);
+					unique_editbone_name(&G.edbo, newbone->name, NULL);
 					
 					/* Add the new bone to the list */
 					BLI_addtail(&G.edbo, newbone);
@@ -3366,7 +3369,7 @@ void subdivide_armature(int numcuts)
 							
 							newbone->flag |= BONE_CONNECTED;
 							
-							unique_editbone_name (&G.edbo, newbone->name);
+							unique_editbone_name (&G.edbo, newbone->name, NULL);
 							
 							/* correct parent bones */
 							for (tbone = G.edbo.first; tbone; tbone=tbone->next) {
@@ -4400,7 +4403,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			
 			eBone= editbone_name_exists(&G.edbo, oldname);
 			if (eBone) {
-				unique_editbone_name(&G.edbo, newname);
+				unique_editbone_name(&G.edbo, newname, NULL);
 				BLI_strncpy(eBone->name, newname, MAXBONENAME);
 			}
 			else return;
