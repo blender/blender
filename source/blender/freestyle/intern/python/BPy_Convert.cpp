@@ -109,11 +109,11 @@ PyObject * BPy_FEdge_from_FEdge( FEdge& fe ) {
 }
 
 PyObject * BPy_Nature_from_Nature( unsigned short n ) {
-	PyObject *py_n =  Nature_Type.tp_new( &Nature_Type, 0, 0 );
+	PyObject *py_n;
 
 	PyObject *args = PyTuple_New(1);
 	PyTuple_SetItem( args, 0, PyInt_FromLong(n) );
-	Nature_Type.tp_init( py_n, args, 0 );
+	py_n =  Nature_Type.tp_new(&Nature_Type, args, NULL);
 	Py_DECREF(args);
 
 	return py_n;

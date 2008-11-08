@@ -8,9 +8,6 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-/*---------------  Python API function prototypes for Nature instance  -----------*/
-static int Nature___init__(BPy_Nature *self, PyObject *args, PyObject *kwds);
-
 /*----------------------Nature instance definitions ----------------------------*/
 static PyMethodDef BPy_Nature_methods[] = {
 	{NULL, NULL, 0, NULL}
@@ -77,14 +74,14 @@ PyTypeObject Nature_Type = {
 	BPy_Nature_methods,	/* struct PyMethodDef *tp_methods; */
 	NULL,                       	/* struct PyMemberDef *tp_members; */
 	NULL,         					/* struct PyGetSetDef *tp_getset; */
-	&PyInt_Type,							/* struct _typeobject *tp_base; */
+	NULL,							/* struct _typeobject *tp_base; */
 	NULL,							/* PyObject *tp_dict; */
 	NULL,							/* descrgetfunc tp_descr_get; */
 	NULL,							/* descrsetfunc tp_descr_set; */
 	0,                          	/* long tp_dictoffset; */
-	(initproc)Nature___init__,                       	/* initproc tp_init; */
+	NULL,							/* initproc tp_init; */
 	NULL,							/* allocfunc tp_alloc; */
-	PyType_GenericNew,			/* newfunc tp_new; */
+	NULL,							/* newfunc tp_new; */
 	
 	/*  Low-level free-memory routine */
 	NULL,                       /* freefunc tp_free;  */
@@ -109,6 +106,7 @@ PyMODINIT_FUNC Nature_Init( PyObject *module )
 	if( module == NULL )
 		return;
 
+	Nature_Type.tp_base = &PyInt_Type;
 	if( PyType_Ready( &Nature_Type ) < 0 )
 		return;
 	Py_INCREF( &Nature_Type );
@@ -131,14 +129,6 @@ PyMODINIT_FUNC Nature_Init( PyObject *module )
 	tmp = BPy_Nature_from_Nature( Nature::VALLEY ); PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", tmp); Py_DECREF(tmp);
 	tmp = BPy_Nature_from_Nature( Nature::SUGGESTIVE_CONTOUR ); PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", tmp); Py_DECREF(tmp);
 	
-}
-
-int Nature___init__(BPy_Nature *self, PyObject *args, PyObject *kwds)
-{
-    if (PyInt_Type.tp_init((PyObject *)self, args, kwds) < 0)
-        return -1;
-	
-	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
