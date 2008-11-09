@@ -427,6 +427,115 @@ void do_texbuts(unsigned short event)
 	}
 }
 
+static void colorband_pos_cb(void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
+	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
+	for(a=0; a<coba->tot; a++) {
+		if(coba->data[a].cur==coba->cur) {
+			if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
+			coba->cur= a;
+			break;
+		}
+	}
+}
+
+static void colorband_add_cb(void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	
+	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
+	coba->cur= coba->tot-1;
+	
+	colorband_pos_cb(coba, NULL);
+	BIF_undo_push("Add colorband");
+	
+}
+
+static void colorband_del_cb(void *coba_v, void *unused_v)
+{
+	ColorBand *coba= coba_v;
+	int a;
+	
+	if(coba->tot<2) return;
+	
+	for(a=coba->cur; a<coba->tot; a++) {
+		coba->data[a]= coba->data[a+1];
+	}
+	if(coba->cur) coba->cur--;
+	coba->tot--;
+	
+	BIF_undo_push("Delete colorband");
+	BIF_preview_changed(ID_TE);
+}
+
+
+/* offset aligns from bottom, standard width 300, height 115 */
+static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, int redraw)
+{
+	CBData *cbd;
+	uiBut *bt;
+	
+	if(coba==NULL) return;
+	
+	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
+	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	uiDefButS(block, ROW, redraw,		 "E",		236+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, redraw,		"C",		252+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
+	uiDefButS(block, ROW, redraw,		"L",		268+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, redraw,		"S",		284+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+
+	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active color");
+	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
+	uiDefButF(block, COL, redraw,		"",		xoffs,20+yoffs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUMSLI, redraw,	"A ",	xoffs,yoffs,110,20, &cbd->a, 0.0, 1.0, 10, 0, "Sets the alpha value for this position");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active color");
+	uiBlockEndAlign(block);
+}
+
+void draw_colorband_buts_small(uiBlock *block, ColorBand *coba, rctf *butr, int event)
+{
+	CBData *cbd;
+	uiBut *bt;
+	float unit= (butr->xmax-butr->xmin)/14.0f;
+	float xs= butr->xmin;
+	
+	cbd= coba->data + coba->cur;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
+	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
+	uiDefButS(block, ROW, event,		"E",		xs+10.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, event,		"C",		xs+11.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
+	uiDefButS(block, ROW, event,		"L",		xs+12.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, event,		"S",		xs+13.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+	
+	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
+	uiBlockEndAlign(block);
+	
+}
+
 static void texture_panel_plugin(Tex *tex)
 {
 	uiBlock *block;
@@ -731,6 +840,87 @@ static void texture_panel_voronoi(Tex *tex)
 	uiDefButF(block, NUMSLI, B_TEXPRV, "W4: ", 10, 10, 150, 19, &tex->vn_w4, -2.0, 2.0, 10, 0, "Sets feature weight 4");
 }
 
+static void texture_panel_pointdensity_modify(Tex *tex)
+{
+	uiBlock *block;
+	PointDensity *pd;
+	short yco=PANEL_YMAX, ymid;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_pointdensity_modify", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Modifiers", "Texture", PANELX, PANELY, PANELW, PANELH+20)==0) return;
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+
+	if(tex->pd==NULL) {
+		tex->pd= BKE_add_pointdensity();
+	}
+	if(!tex->pd) return;
+	
+	if (pd->source == TEX_PD_PSYS) {
+		uiDefBut(block, LABEL, B_NOP, "Color & Intensity By:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_TEXREDR_PRV, "Constant %x0|Particle Age %x1|Particle Speed %x2|Velocity -> RGB %x3|",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->color_source, 0.0, 0.0, 0, 0, "Particle Life: Lifetime mapped as 0.0 - 1.0 intensity, Velocity: XYZ velocity mapped as RGB colours");
+		if (ELEM(pd->color_source, TEX_PD_COLOR_PARTSPEED, TEX_PD_COLOR_PARTVEL)) {
+			uiDefButF(block, NUM, B_REDR, "Scale: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->speed_scale), 0.001, 100.0, 10, 2, "Multipler to bring particle speed within an acceptable range");
+		}
+		uiBlockEndAlign(block);
+		
+		yco-= 2*BUTH;
+		
+		if (ELEM(pd->color_source, TEX_PD_COLOR_PARTAGE, TEX_PD_COLOR_PARTSPEED)) {
+			rctf rect = {X2CLM1, X2CLM1+BUTW1, yco, yco};
+			if (tex->pd->coba == NULL) tex->pd->coba = add_colorband(1);
+			draw_colorband_buts_small(block, tex->pd->coba, &rect, B_TEXREDR_PRV);
+		} else {
+			/* spacer */
+			uiDefBut(block, LABEL, B_NOP, "",
+				X2CLM2, yco, BUTW2, BUTH*2, 0, 0, 0, 0, 0, "");
+		}
+		
+		if (!ELEM(pd->color_source, TEX_PD_COLOR_PARTSPEED, TEX_PD_COLOR_PARTVEL)) yco -= BUTH;
+	}
+	
+	ymid = yco -= YSPACE;
+	
+	uiDefButBitS(block, TOG, TEX_PD_TURBULENCE, B_REDR, "Turbulence",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->flag), 0, 0, 0, 0, "Add directed turbulence to the density estimation");
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	if (pd->flag & TEX_PD_TURBULENCE) {
+		
+		uiDefButF(block, NUM, B_REDR, "Size: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 100.0, 10, 2, "Turbulence size");
+		uiDefButS(block, NUM, B_REDR, "Depth: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 100.0, 10, 2, "Turbulence depth");
+		uiDefButF(block, NUM, B_REDR, "Strength: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 100.0, 10, 2, "");
+		
+		uiBlockEndAlign(block);
+		
+		yco = ymid - BUTH - YSPACE;
+
+		uiDefBut(block, LABEL, B_NOP, "Noise Influence:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			
+		if (pd->source == TEX_PD_PSYS) {
+			uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Particle Age %x2|Time %x3",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
+		} else if (pd->source == TEX_PD_OBJECT) {
+			uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Time %x3",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
+		}
+	} else {
+		uiDefBut(block, LABEL, B_NOP, "",
+			X2CLM2, yco-=2*BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	}
+
+}
+
 static void texture_panel_pointdensity(Tex *tex)
 {
 	uiBlock *block;
@@ -738,102 +928,73 @@ static void texture_panel_pointdensity(Tex *tex)
 	short yco=PANEL_YMAX;
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_pointdensity", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Point Density", "Texture", PANELX, PANELY, PANELW, PANELH+25)==0) return;
+	if(uiNewPanel(curarea, block, "Point Density", "Texture", PANELX, PANELY, PANELW, PANELH)==0) return;
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	if(tex->pd==NULL) {
 		tex->pd= BKE_add_pointdensity();
 		tex->pd->object= OBACT;
 	}
-	if(tex->pd) {
-		pd= tex->pd;
+	if(!tex->pd) return;
+	pd= tex->pd;
 
-		uiDefBut(block, LABEL, B_NOP, "Density estimation:",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, B_NOP, "Density estimation:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 
-		uiDefButF(block, NUM, B_REDR, "Radius: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
-		
-		yco -= YSPACE;
-		
-		uiDefBut(block, LABEL, B_NOP, "Falloff:",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
+	uiDefButF(block, NUM, B_REDR, "Radius: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->radius), 0.001, 100.0, 10, 2, "Radius to look for nearby particles within");
+	
+	yco -= YSPACE;
+	
+	uiDefBut(block, LABEL, B_NOP, "Falloff:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Soft %x2|Constant %x3|Root %x4",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
+	if (pd->falloff_type == TEX_PD_FALLOFF_SOFT) {
+		uiDefButF(block, NUM, B_REDR, "Softness: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->falloff_softness), 1.0, 1024.0, 10, 2, "The intensity of the falloff");
+	}
+	uiBlockEndAlign(block);
+
+	yco = PANEL_YMAX;
+	
+	uiDefBut(block, LABEL, B_NOP, "Point data source:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	
+	uiDefButS(block, MENU, B_TEXREDR_PRV, "Particle System %x0|Object Vertices %x1",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->source, 0.0, 0.0, 0, 0, "Source");
+	
+	yco -= YSPACE;
+	
+	if (pd->source == TEX_PD_PSYS) {
 		uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_REDR, "Standard %x0|Smooth %x1|Soft %x2|Constant %x3|Root %x4",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->falloff_type, 0.0, 0.0, 0, 0, "Falloff type");
-		if (pd->falloff_type == TEX_PD_FALLOFF_SOFT) {
-			uiDefButF(block, NUM, B_REDR, "Softness: ",
-				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->falloff_softness), 1.0, 1024.0, 10, 2, "The intensity of the falloff");
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object that has the particle system");
+			
+		if (pd->object && pd->object->particlesystem.first) {
+			uiDefButS(block, NUM, B_REDR, "PSys:", 
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->psysindex), 1, 10, 10, 3, "Particle system number in the object");
 		}
 		uiBlockEndAlign(block);
 		
 		yco -= YSPACE;
 		
-		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, TEX_PD_TURBULENCE, B_REDR, "Turbulence",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->flag), 0, 0, 0, 0, "Add directed turbulence to the density estimation");
-			
-		if (pd->flag & TEX_PD_TURBULENCE) {
-			
-			uiDefButF(block, NUM, B_REDR, "Size: ",
-				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 100.0, 10, 2, "Turbulence size");
-			uiDefButS(block, NUM, B_REDR, "Depth: ",
-				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 100.0, 10, 2, "Turbulence depth");
-			uiDefButF(block, NUM, B_REDR, "Strength: ",
-				X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 100.0, 10, 2, "");
-			
-			uiBlockEndAlign(block);
-			
-			yco -= YSPACE;
-
-			if (pd->source == TEX_PD_PSYS) {
-				uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Time %x2",
-					X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
-			}
-		}
-		uiBlockEndAlign(block);
-
-		yco = PANEL_YMAX;
-		
-		uiDefBut(block, LABEL, B_NOP, "Point data source:",
+		uiDefBut(block, LABEL, B_NOP, "Cache particles in:",
 			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-		
-		uiDefButS(block, MENU, B_TEXREDR_PRV, "Particle System %x0|Object Vertices %x1",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->source, 0.0, 0.0, 0, 0, "Source");
+		uiDefButS(block, MENU, B_TEXREDR_PRV, "Emit Object Location %x0|Emit Object Space %x1|Global Space %x2",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->psys_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache particles in");
+	}
+	else if (pd->source == TEX_PD_OBJECT) {
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object to render as points");
 		
 		yco -= YSPACE;
 		
-		if (pd->source == TEX_PD_PSYS) {
-			uiBlockBeginAlign(block);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object that has the particle system");
-				
-			if (pd->object && pd->object->particlesystem.first) {
-				uiDefButS(block, NUM, B_REDR, "PSys:", 
-					X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->psysindex), 1, 10, 10, 3, "Particle system number in the object");
-			}
-			uiBlockEndAlign(block);
-			
-			yco -= YSPACE;
-			
-			uiDefBut(block, LABEL, B_NOP, "Cache particles in:",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-			uiDefButS(block, MENU, B_TEXREDR_PRV, "Emit Object Location %x0|Emit Object Space %x1|Global Space %x2",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->psys_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache particles in");
-				
-		}
-		else if (pd->source == TEX_PD_OBJECT) {
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_REDR, "Ob:",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->object), "Object to render as points");
-			
-			yco -= YSPACE;
-			
-			uiDefBut(block, LABEL, B_NOP, "Cache vertices in:",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-			uiDefButS(block, MENU, B_TEXREDR_PRV, "Object Location %x0|Object Space %x1|Global Space %x2",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->ob_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache vertices in");
-		}
+		uiDefBut(block, LABEL, B_NOP, "Cache vertices in:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_TEXREDR_PRV, "Object Location %x0|Object Space %x1|Global Space %x2",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &pd->ob_cache_space, 0.0, 0.0, 0, 0, "Co-ordinate system to cache vertices in");
 	}
 
 }
@@ -1512,115 +1673,6 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		
 	}
-}
-
-static void colorband_pos_cb(void *coba_v, void *unused_v)
-{
-	ColorBand *coba= coba_v;
-	int a;
-	
-	if(coba->tot<2) return;
-	
-	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
-	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
-	for(a=0; a<coba->tot; a++) {
-		if(coba->data[a].cur==coba->cur) {
-			if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0);	/* button cur */
-			coba->cur= a;
-			break;
-		}
-	}
-}
-
-static void colorband_add_cb(void *coba_v, void *unused_v)
-{
-	ColorBand *coba= coba_v;
-	
-	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
-	coba->cur= coba->tot-1;
-	
-	colorband_pos_cb(coba, NULL);
-	BIF_undo_push("Add colorband");
-	
-}
-
-static void colorband_del_cb(void *coba_v, void *unused_v)
-{
-	ColorBand *coba= coba_v;
-	int a;
-	
-	if(coba->tot<2) return;
-	
-	for(a=coba->cur; a<coba->tot; a++) {
-		coba->data[a]= coba->data[a+1];
-	}
-	if(coba->cur) coba->cur--;
-	coba->tot--;
-	
-	BIF_undo_push("Delete colorband");
-	BIF_preview_changed(ID_TE);
-}
-
-
-/* offset aligns from bottom, standard width 300, height 115 */
-static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int xoffs, int yoffs, int redraw)
-{
-	CBData *cbd;
-	uiBut *bt;
-	
-	if(coba==NULL) return;
-	
-	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
-	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
-	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
-	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
-	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
-	uiDefButS(block, ROW, redraw,		 "E",		236+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
-	uiDefButS(block, ROW, redraw,		"C",		252+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
-	uiDefButS(block, ROW, redraw,		"L",		268+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
-	uiDefButS(block, ROW, redraw,		"S",		284+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
-
-	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
-	
-	cbd= coba->data + coba->cur;
-	
-	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active color");
-	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
-	uiDefButF(block, COL, redraw,		"",		xoffs,20+yoffs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
-	uiDefButF(block, NUMSLI, redraw,	"A ",	xoffs,yoffs,110,20, &cbd->a, 0.0, 1.0, 10, 0, "Sets the alpha value for this position");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active color");
-	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active color");
-	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active color");
-	uiBlockEndAlign(block);
-}
-
-void draw_colorband_buts_small(uiBlock *block, ColorBand *coba, rctf *butr, int event)
-{
-	CBData *cbd;
-	uiBut *bt;
-	float unit= (butr->xmax-butr->xmin)/14.0f;
-	float xs= butr->xmin;
-	
-	cbd= coba->data + coba->cur;
-	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
-	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
-	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
-	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
-	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
-	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
-	uiDefButS(block, ROW, event,		"E",		xs+10.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
-	uiDefButS(block, ROW, event,		"C",		xs+11.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
-	uiDefButS(block, ROW, event,		"L",		xs+12.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
-	uiDefButS(block, ROW, event,		"S",		xs+13.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
-	
-	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
-	uiBlockEndAlign(block);
-	
 }
 
 static void texture_panel_colors(Tex *tex)
@@ -4833,6 +4885,7 @@ void texture_panels()
 				break;
 			case TEX_POINTDENSITY:
 				texture_panel_pointdensity(tex);
+				texture_panel_pointdensity_modify(tex);
 				break;
 			}
 		}

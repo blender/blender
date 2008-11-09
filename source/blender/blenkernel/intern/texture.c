@@ -883,7 +883,9 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->noise_depth = 1;
 	pd->noise_fac = 1.0f;
 	pd->noise_influence = TEX_PD_NOISE_STATIC;
-	
+	pd->coba = add_colorband(1);
+	pd->speed_scale = 1.0f;
+	pd->totpoints = 0;
 	return pd;
 } 
 
@@ -894,6 +896,7 @@ PointDensity *BKE_copy_pointdensity(PointDensity *pd)
 	pdn= MEM_dupallocN(pd);
 	pdn->point_tree = NULL;
 	pdn->point_data = NULL;
+	if(pdn->coba) pdn->coba= MEM_dupallocN(pdn->coba);
 	
 	return pdn;
 }
@@ -908,6 +911,7 @@ void BKE_free_pointdensitydata(PointDensity *pd)
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
+	if(pd->coba) MEM_freeN(pd->coba);
 }
 
 void BKE_free_pointdensity(PointDensity *pd)

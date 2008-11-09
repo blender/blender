@@ -1335,7 +1335,10 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
 			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
-			if(tex->pd) writestruct(wd, DATA, "PointDensity", 1, tex->pd);
+			if(tex->pd) {
+				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
+				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
+			}
 			
 			write_previews(wd, tex->preview);
 		}

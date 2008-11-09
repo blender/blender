@@ -39,6 +39,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_texture.h"
 
 #include "DNA_texture_types.h"
 #include "DNA_particle_types.h"
@@ -47,15 +48,58 @@
 #include "renderdatabase.h"
 #include "texture.h"
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
+/* only to be used here in this file, it's for speed */
+extern struct Render R;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+static int point_data_used(PointDensity *pd)
+{
+	int pd_bitflag = 0;
+	
+	if ((pd->noise_influence == TEX_PD_NOISE_VEL) || (pd->color_source == TEX_PD_COLOR_PARTVEL) || (pd->color_source == TEX_PD_COLOR_PARTSPEED))
+		pd_bitflag |= POINT_DATA_VEL;
+	if ((pd->noise_influence == TEX_PD_NOISE_AGE) || (pd->color_source == TEX_PD_COLOR_PARTAGE)) 
+		pd_bitflag |= POINT_DATA_LIFE;
+		
+	return pd_bitflag;
+}
+
+
+/* additional data stored alongside the point density BVH, 
+ * accessible by point index number to retrieve other information 
+ * such as particle velocity or lifetime */
+static void make_point_data(PointDensity *pd, int total_particles, int point_data_used)
+{
+	int data_size = 0;
+	
+	if (point_data_used & POINT_DATA_VEL) {
+		/* store 3 channels of velocity data */
+		data_size += 3;
+	}
+	if (point_data_used & POINT_DATA_LIFE) {
+		/* store 1 channel of lifetime data */
+		data_size += 1;
+	}
+
+	if (data_size)
+		pd->point_data = MEM_mallocN(sizeof(float)*data_size*total_particles, "particle point data");
+}
+
 static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, ParticleSystem *psys)
 {
 	DerivedMesh* dm;
 	ParticleKey state;
+	ParticleData *pa=NULL;
 	float cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
 	int i, childexists;
-	int total_particles;
+	int total_particles, offset=0;
+	int data_used = point_data_used(pd);
 	float partco[3];
 	float obview[4][4];
+	
 	
 	/* init everything */
 	if (!psys || !ob || !pd) return;
@@ -79,16 +123,14 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	psys->lattice=psys_get_lattice(ob,psys);
 	
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
-	
-	if (pd->noise_influence == TEX_PD_NOISE_VEL)
-		pd->point_data = MEM_mallocN(sizeof(float)*3*total_particles, "velocity point data");
-	else if (pd->noise_influence == TEX_PD_NOISE_TIME)
-		pd->point_data = MEM_mallocN(sizeof(float)*total_particles, "time point data");
+	make_point_data(pd, total_particles, data_used);
+	pd->totpoints = total_particles;
+	if (data_used & POINT_DATA_VEL) offset = pd->totpoints*3;
 	
 	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
 		childexists = 1;
 	
-	for (i = 0; i < total_particles; i++) {
+	for (i=0, pa=psys->particles; i < total_particles; i++, pa++) {
 
 		state.time = cfra;
 		if(psys_get_particle_state(ob, psys, i, &state, 0)) {
@@ -107,12 +149,14 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 			
 			BLI_bvhtree_insert(pd->point_tree, i, partco, 1);
 			
-			if (pd->noise_influence == TEX_PD_NOISE_VEL) {
+			if (data_used & POINT_DATA_VEL) {
 				pd->point_data[i*3 + 0] = state.vel[0];
 				pd->point_data[i*3 + 1] = state.vel[1];
 				pd->point_data[i*3 + 2] = state.vel[2];
-			} else if (pd->noise_influence == TEX_PD_NOISE_TIME) {
-				pd->point_data[i] = state.time;
+			} 
+			if (data_used & POINT_DATA_LIFE) {
+				float pa_time = (cfra - pa->time)/pa->lifetime;
+				pd->point_data[offset + i] = pa_time;
 			}
 		}
 	}
@@ -140,6 +184,7 @@ static void pointdensity_cache_object(Render *re, PointDensity *pd, ObjectRen *o
 	Mat4Invert(obr->ob->imat, obr->ob->obmat);
 	
 	pd->point_tree = BLI_bvhtree_new(obr->totvert, 0.0, 4, 6);
+	pd->totpoints = obr->totvert;
 	
 	for(i=0; i<obr->totvert; i++) {
 		float ver_co[3];
@@ -216,6 +261,7 @@ static void free_pointdensity(Render *re, Tex *tex)
 		MEM_freeN(pd->point_data);
 		pd->point_data = NULL;
 	}
+	pd->totpoints = 0;
 }
 
 
@@ -263,7 +309,9 @@ typedef struct PointDensityRangeData
 	float softness;
     short falloff_type;
 	short noise_influence;
-	float *time;
+	float *age;
+	int point_data_used;
+	int offset;
 } PointDensityRangeData;
 
 void accum_density(void *userdata, int index, float squared_dist)
@@ -283,83 +331,130 @@ void accum_density(void *userdata, int index, float squared_dist)
 	else if (pdr->falloff_type == TEX_PD_FALLOFF_ROOT)
 		density = sqrt(dist);
 	
-	if (pdr->point_data) {
-		if (pdr->noise_influence == TEX_PD_NOISE_VEL) {
-			pdr->vec[0] += pdr->point_data[index*3 + 0];// * density;
-			pdr->vec[1] += pdr->point_data[index*3 + 1];// * density;
-			pdr->vec[2] += pdr->point_data[index*3 + 2];// * density;
-		} else if (pdr->noise_influence == TEX_PD_NOISE_TIME) {
-			*pdr->time += pdr->point_data[index]; // * density;
-		}
-	} 
+	if (pdr->point_data_used & POINT_DATA_VEL) {
+		pdr->vec[0] += pdr->point_data[index*3 + 0]; //* density;
+		pdr->vec[1] += pdr->point_data[index*3 + 1]; //* density;
+		pdr->vec[2] += pdr->point_data[index*3 + 2]; //* density;
+	}
+	if (pdr->point_data_used & POINT_DATA_LIFE) {
+		*pdr->age += pdr->point_data[pdr->offset + index]; // * density;
+	}
 	
 	*pdr->density += density;
 }
 
-#define MAX_POINTS_NEAREST	25
+
+static void init_pointdensityrangedata(PointDensity *pd, PointDensityRangeData *pdr, float *density, float *vec, float *age)
+{
+	pdr->squared_radius = pd->radius*pd->radius;
+	pdr->density = density;
+	pdr->point_data = pd->point_data;
+	pdr->falloff_type = pd->falloff_type;
+	pdr->vec = vec;
+	pdr->age = age;
+	pdr->softness = pd->falloff_softness;
+	pdr->noise_influence = pd->noise_influence;
+	pdr->point_data_used = point_data_used(pd);
+	pdr->offset = (pdr->point_data_used & POINT_DATA_VEL)?pd->totpoints*3:0;
+}
+
+
 int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int retval = TEX_INT;
+	int retval = TEX_INT+TEX_RGB;
 	PointDensity *pd = tex->pd;
 	PointDensityRangeData pdr;
-	float density=0.0f, time=0.0f;
-	float vec[3] = {0.0, 0.0, 0.0};
-	float co[3];
+	float density=0.0f, age=0.0f, time=0.0f;
+	float vec[3] = {0.0f, 0.0f, 0.0f}, co[3];
+	float col[4];
 	float turb, noise_fac;
-	int num;
+	int num=0;
 	
 	if ((!pd) || (!pd->point_tree)) {
 		texres->tin = 0.0f;
 		return 0;
 	}
 	
-	pdr.squared_radius = pd->radius*pd->radius;
-	pdr.density = &density;
-	pdr.point_data = pd->point_data;
-	pdr.falloff_type = pd->falloff_type;
-	pdr.vec = vec;
-	pdr.time = &time;
-	pdr.softness = pd->falloff_softness;
-	pdr.noise_influence = pd->noise_influence;
+	init_pointdensityrangedata(pd, &pdr, &density, vec, &age);
 	noise_fac = pd->noise_fac * 0.5f;	/* better default */
 	
 	VECCOPY(co, texvec);
 	
-	if (pd->flag & TEX_PD_TURBULENCE) {
-		retval |= TEX_RGB;
-		
-		if (ELEM(pd->noise_influence, TEX_PD_NOISE_VEL, TEX_PD_NOISE_TIME)) {
-			/* find the average speed vectors or particle time,
-			 * for perturbing final density lookup with */
-			num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
-			density = 0.0f;
-			
-			if (pd->noise_influence == TEX_PD_NOISE_TIME) {
-				vec[0] = vec[1] = vec[2] = time/num;
-				//if ((G.rt==1) && (time > 0.f)) printf("time: %f  time/num: %f \n", time, time/num);
-			}
-			
-			Normalize(vec);
+	if (point_data_used(pd)) {
+		/* does a BVH lookup to find accumulated density and additional point data *
+		 * stores particle velocity vector in 'vec', and particle lifetime in 'time' */
+		num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+		if (num > 0) {
+			age /= num;
+			VecMulf(vec, 1.0f/num);
 		}
-		
-		turb = BLI_turbulence(pd->noise_size, texvec[0]+vec[0], texvec[1]+vec[1], texvec[2]+vec[2], pd->noise_depth);
+	}
+	
+	if (pd->flag & TEX_PD_TURBULENCE) {
+	
+		if (pd->noise_influence == TEX_PD_NOISE_AGE) {
+			turb = BLI_turbulence(pd->noise_size, texvec[0]+age, texvec[1]+age, texvec[2]+age, pd->noise_depth);
+		}
+		else if (pd->noise_influence == TEX_PD_NOISE_TIME) {
+			time = R.cfra / (float)R.r.efra;
+			turb = BLI_turbulence(pd->noise_size, texvec[0]+time, texvec[1]+time, texvec[2]+time, pd->noise_depth);
+		}
+		else {
+			turb = BLI_turbulence(pd->noise_size, texvec[0]+vec[0], texvec[1]+vec[1], texvec[2]+vec[2], pd->noise_depth);
+		}
+
 		turb -= 0.5f;	/* re-center 0.0-1.0 range around 0 to prevent offsetting result */
 		
 		/* now we have an offset coordinate to use for the density lookup */
 		co[0] = texvec[0] + noise_fac * turb;
 		co[1] = texvec[1] + noise_fac * turb;
 		co[2] = texvec[2] + noise_fac * turb;
+		
+		/* reset and do a new BVH query with the perturbed coordinates */
+		density = vec[0] = vec[1] = vec[2] = 0.0f;
+		num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+		if (num > 0) {
+			age /= num;
+			VecMulf(vec, 1.0f/num);
+		}
+		
 	}
 	
-	BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
-
 	texres->tin = density;
 	BRICONT;
 	
-	texres->tr = vec[0];
-	texres->tg = vec[1];
-	texres->tb = vec[2];
-	//texres->ta = density;
+	switch (pd->color_source) {
+		case TEX_PD_COLOR_PARTAGE:
+			if (pd->coba) {
+				if (do_colorband(pd->coba, age, col)) {
+					texres->talpha= 1;
+					QUATCOPY(&texres->tr, col);
+					texres->tin *= texres->ta;
+				}
+			}
+			break;
+		case TEX_PD_COLOR_PARTSPEED:
+		{
+			float speed = VecLength(vec) * pd->speed_scale;
+			
+			if (pd->coba) {
+				if (do_colorband(pd->coba, speed, col)) {
+					texres->talpha= 1;	
+					QUATCOPY(&texres->tr, col);
+					texres->tin *= texres->ta;
+				}
+			}
+			break;
+		}
+		case TEX_PD_COLOR_PARTVEL:
+			VecMulf(vec, pd->speed_scale);
+			VECCOPY(&texres->tr, vec);
+			texres->ta = 1.0f;
+			break;
+		default:
+			texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
+			break;
+	}
 	BRICONTRGB;
 	
 	return retval;

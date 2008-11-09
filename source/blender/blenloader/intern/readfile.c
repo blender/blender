@@ -2506,6 +2506,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->pd= newdataadr(fd, tex->pd);
 	if(tex->pd) {
 		tex->pd->point_tree = NULL;
+		tex->pd->coba= newdataadr(fd, tex->pd->coba);
 	}
 	tex->preview = direct_link_preview_image(fd, tex->preview);
 
@@ -7902,6 +7903,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			if (tex->pd->falloff_softness < 1.0f)
 				tex->pd->falloff_softness = 2.0f;
+			if (tex->pd->coba == NULL) {
+				tex->pd->coba = add_colorband(1);
+				tex->pd->speed_scale = 1.0f;
+			}
 		}
 		
 	}

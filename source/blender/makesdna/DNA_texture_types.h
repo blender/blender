@@ -134,7 +134,10 @@ typedef struct PointDensity {
 	float falloff_softness;
 	float radius;
 	short source;
-	short pdpad;
+	short color_source;
+	int totpoints;
+	
+	int pdpad;
 
 	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
 	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
@@ -151,7 +154,9 @@ typedef struct PointDensity {
 	short noise_depth;
 	short noise_influence;
 	float noise_fac;
-	float pdpad4;
+	
+	float speed_scale;
+	struct ColorBand *coba;	/* for time -> color */
 	
 } PointDensity;
 
@@ -442,7 +447,17 @@ typedef struct TexMapping {
 /* noise_influence */
 #define TEX_PD_NOISE_STATIC		0
 #define TEX_PD_NOISE_VEL		1
-#define TEX_PD_NOISE_TIME		2
+#define TEX_PD_NOISE_AGE		2
+#define TEX_PD_NOISE_TIME		3
+
+/* color_source */
+#define TEX_PD_COLOR_CONSTANT	0
+#define TEX_PD_COLOR_PARTAGE	1
+#define TEX_PD_COLOR_PARTSPEED	2
+#define TEX_PD_COLOR_PARTVEL	3
+
+#define POINT_DATA_VEL		1
+#define POINT_DATA_LIFE		2
 
 #endif
 
