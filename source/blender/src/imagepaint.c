@@ -1811,6 +1811,7 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	/* Viewport vars */
 	float mat[3][3];
 	float f_no[3];
+	float viewPos[3]; /* for projection only - view location */
 	
 	float (*projScreenCo)[4]; /* Note, we could have 4D vectors are only needed for */
 	float projMargin;
@@ -1941,8 +1942,9 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float projCo[4];
 		float *curs= give_cursor();
-		VECCOPY(projCo, curs); /* TODO - what if were in local view? - get some better way */
+		VECCOPY(projCo, curs);
 		Mat4MulVec4fl(ps->ob->imat, projCo);
+		VecSubf(projCo, projCo, ps->ob->obmat[3]);
 		projCo[3] = 1.0;
 		Mat4MulVec4fl(ps->projectMat, projCo);
 		ps->cloneOfs[0] = mval[0] - ((float)(curarea->winx/2.0)+(curarea->winx/2.0)*projCo[0]/projCo[3]);
@@ -1967,6 +1969,15 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	ps->viewWidth  = ps->viewMax2D[0] - ps->viewMin2D[0];
 	ps->viewHeight = ps->viewMax2D[1] - ps->viewMin2D[1];
 	
+	if (!ps->projectIsOrtho) {
+		/* get the view direction relative to the objects matrix */
+		float imat[3][3];
+		VECCOPY(viewPos, G.vd->viewinv[3]);
+		Mat3CpyMat4(imat, ps->ob->imat);
+		Mat3MulVecfl(imat, viewPos);
+		VecAddf(viewPos, viewPos, ps->ob->imat[3]);
+	}
+	
 	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
 			
@@ -1975,8 +1986,30 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 				if (mf->v4)	CalcNormFloat4(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, f_no);
 				else		CalcNormFloat(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, f_no);
 				
-				if (Inpf(f_no, ps->viewDir) < 0) {
-					continue;
+				if (ps->projectIsOrtho) {
+					if (Inpf(f_no, ps->viewDir) < 0) {
+						continue;
+					}
+				} else {
+					float faceDir[3] = {0,0,0};
+					if (mf->v4)	{
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v1].co);
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v2].co);
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v3].co);
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v4].co);
+						VecMulf(faceDir, 1.0/4.0);
+					} else {
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v1].co);
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v2].co);
+						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v3].co);
+						VecMulf(faceDir, 1.0/3.0);
+					}
+					
+					VecSubf(faceDir, viewPos, faceDir);
+					
+					if (Inpf(f_no, faceDir) < 0) {
+						continue;
+					}
 				}
 			}
 			
