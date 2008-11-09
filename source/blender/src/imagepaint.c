@@ -133,17 +133,22 @@ typedef struct ImagePaintState {
 /* testing options */
 #define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
 
-// #define PROJ_DEBUG_PAINT 1
-// #define PROJ_DEBUG_NOSCANLINE 1
+//#define PROJ_DEBUG_PAINT 1
+#define PROJ_DEBUG_NOSCANLINE 1
 //#define PROJ_DEBUG_NOSEAMBLEED 1
 
-/* projectFaceFlags options */
-#define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
-#define PROJ_FACE_INIT	1<<1	/* When we have initialized the faces data */
-#define PROJ_FACE_SEAM1	1<<2	/* If this face has a seam on any of its edges */
-#define PROJ_FACE_SEAM2	1<<3
-#define PROJ_FACE_SEAM3	1<<4
-#define PROJ_FACE_SEAM4	1<<5
+/* projectFaceSeamFlags options */
+//#define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
+//#define PROJ_FACE_INIT	1<<1	/* When we have initialized the faces data */
+#define PROJ_FACE_SEAM1	1<<0	/* If this face has a seam on any of its edges */
+#define PROJ_FACE_SEAM2	1<<1
+#define PROJ_FACE_SEAM3	1<<2
+#define PROJ_FACE_SEAM4	1<<3
+
+#define PROJ_FACE_NOSEAM1	1<<4
+#define PROJ_FACE_NOSEAM2	1<<5
+#define PROJ_FACE_NOSEAM3	1<<6
+#define PROJ_FACE_NOSEAM4	1<<7
 
 #define PROJ_BUCKET_NULL		0
 #define PROJ_BUCKET_INIT		1<<0
@@ -170,25 +175,26 @@ typedef struct ProjectPaintState {
 	MTFace 		   *dm_mtface;
 	
 	/* projection painting only */
-	MemArena *projectArena;		/* use for alocating many pixel structs and link-lists */
-	LinkNode **projectBuckets;	/* screen sized 2D array, each pixel has a linked list of ProjectPixel's */
-	LinkNode **projectFaces;	/* projectBuckets alligned array linkList of faces overlapping each bucket */
-	char *projectBucketFlags;	/* store if the bucks have been initialized  */
-	char *projectFaceFlags;		/* store info about faces, if they are initialized etc*/
-	LinkNode **projectVertFaces;/* Only needed for when projectIsSeamBleed is enabled, use to find UV seams */
+	MemArena *projectArena;			/* use for alocating many pixel structs and link-lists */
+	LinkNode **projectBuckets;		/* screen sized 2D array, each pixel has a linked list of ProjectPixel's */
+	LinkNode **projectFaces;		/* projectBuckets alligned array linkList of faces overlapping each bucket */
+	char *projectBucketFlags;		/* store if the bucks have been initialized  */
+	char *projectFaceSeamFlags;		/* store info about faces, if they are initialized etc*/
+	float (*projectFaceSeamUVs)[4][2];	/* expanded UVs for faces to use as seams */
+	LinkNode **projectVertFaces;	/* Only needed for when projectSeamBleed is enabled, use to find UV seams */
 	
-	int bucketsX;				/* The size of the bucket grid, the grid span's viewMin2D/viewMax2D so you can paint outsize the screen or with 2 brushes at once */
+	int bucketsX;					/* The size of the bucket grid, the grid span's viewMin2D/viewMax2D so you can paint outsize the screen or with 2 brushes at once */
 	int bucketsY;
 	
-	Image **projectImages;		/* array of images we are painting onto while, use so we can tag for updates */
+	Image **projectImages;			/* array of images we are painting onto while, use so we can tag for updates */
 	
-	int projectImageTotal;		/* size of projectImages array */
-	int imaContextIndex;		/* current image, use for context switching */
+	int projectImageTotal;			/* size of projectImages array */
+	int imaContextIndex;			/* current image, use for context switching */
 	
 	float (*projectVertScreenCos)[3];	/* verts projected into floating point screen space */
 	
 	/* options for projection painting */
-	short projectIsOcclude;		/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
+	short projectIsOcclude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short projectIsBackfaceCull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short projectIsOrtho;
 #ifndef PROJ_DEBUG_NOSEAMBLEED
@@ -424,6 +430,7 @@ static void BaryCentricWeightsSimple2f(float v1[2], float v2[2], float v3[2], fl
 		w[1]/=wtot;
 		w[2]/=wtot;
 	} else {
+		printf("WATCH oUT ZAREA FACE\n");
 		w[0] = w[1] = w[2] = 1.0/3.0; /* dummy values for zero area face */
 	}
 }
@@ -624,6 +631,7 @@ static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index
 			}
 			
 			if (isect_ret==1) {
+#if 0
 				/* Cheap Optimization!
 				 * This function runs for every UV Screen pixel,
 				 * therefor swapping the swapping the faces for this buckets list helps because
@@ -639,7 +647,7 @@ static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index
 				} /*else {
 					printf("first hit %d\n", face_index);
 				}*/
-				
+#endif
 				return 1; 
 			}
 		}
@@ -654,7 +662,7 @@ static int project_bucket_point_occluded(ProjectPaintState *ps, int bucket_index
 #define ISECT_TRUE 1
 #define ISECT_TRUE_P1 2
 #define ISECT_TRUE_P2 3
-static int project_scanline_isect(float p1[2], float p2[2], float y_level, float *x_isect)
+static int line_isect_y(float p1[2], float p2[2], float y_level, float *x_isect)
 {
 	if (y_level==p1[1]) {
 		*x_isect = p1[0];
@@ -676,6 +684,28 @@ static int project_scanline_isect(float p1[2], float p2[2], float y_level, float
 	}
 }
 
+static int line_isect_x(float p1[2], float p2[2], float x_level, float *y_isect)
+{
+	if (x_level==p1[0]) {
+		*y_isect = p1[1];
+		return ISECT_TRUE_P1;
+	}
+	if (x_level==p2[0]) {
+		*y_isect = p2[1];
+		return ISECT_TRUE_P2;
+	}
+	
+	if (p1[0] > x_level && p2[0] < x_level) {
+		*y_isect = (p2[1]*(p1[0]-x_level) + p1[1]*(x_level-p2[0])) / (p1[0]-p2[0]);
+		return ISECT_TRUE;
+	} else if (p1[0] < x_level && p2[0] > x_level) {
+		*y_isect = (p2[1]*(x_level-p1[0]) + p1[1]*(p2[0]-x_level)) / (p2[0]-p1[0]);
+		return ISECT_TRUE;
+	} else {
+		return 0;
+	}
+}
+
 static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2], float v2[2], float v3[2], float v4[2])
 {	
 	/* Create a scanlines for the face at this Y level 
@@ -687,9 +717,9 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2]
 		int i4=0, i_mid=0;
 		float xi1, xi2, xi3, xi4, xi_mid;
 				
-		i1 = project_scanline_isect(v1, v2, y_level, &xi1);
+		i1 = line_isect_y(v1, v2, y_level, &xi1);
 		if (i1 != ISECT_TRUE_P2) /* rare cases we could be on the line, in these cases we dont want to intersect with the same point twice */
-			i2 = project_scanline_isect(v2, v3, y_level, &xi2);
+			i2 = line_isect_y(v2, v3, y_level, &xi2);
 		
 		if (i1 && i2) { /* both the first 2 edges intersect, this means the second half of the quad wont intersect */
 			sc->v[0] = 0;
@@ -700,9 +730,9 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2]
 			totscanlines = 1;
 		} else {
 			if (i2 != ISECT_TRUE_P2) 
-				i3 = project_scanline_isect(v3, v4, y_level, &xi3);
+				i3 = line_isect_y(v3, v4, y_level, &xi3);
 			if (i1 != ISECT_TRUE_P1 && i3 != ISECT_TRUE_P2) 
-				i4 = project_scanline_isect(v4, v1, y_level, &xi4);
+				i4 = line_isect_y(v4, v1, y_level, &xi4);
 			
 			if (i3 && i4) { /* second 2 edges only intersect, same as above */
 				sc->v[0] = 0;
@@ -715,7 +745,7 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2]
 				/* OK - we have a not-so-simple case, both sides of the quad intersect.
 				 * Will need to have 2 scanlines */
 				if ((i1||i2) && (i3||i4)) {
-					i_mid = project_scanline_isect(v1, v3, y_level, &xi_mid);
+					i_mid = line_isect_y(v1, v3, y_level, &xi_mid);
 					/* it would be very rare this would be false, but possible */
 					sc->v[0] = 0;
 					sc->v[1] = 1;
@@ -737,11 +767,11 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2]
 	} else { /* triangle */
 		int i = 0;
 		
-		i1 = project_scanline_isect(v1, v2, y_level, &sc->x_limits[0]);
+		i1 = line_isect_y(v1, v2, y_level, &sc->x_limits[0]);
 		if (i1) i++;
 		
 		if (i1 != ISECT_TRUE_P2) {
-			i2 = project_scanline_isect(v2, v3, y_level, &sc->x_limits[i]);
+			i2 = line_isect_y(v2, v3, y_level, &sc->x_limits[i]);
 			if (i2) i++;
 		}
 		
@@ -750,7 +780,7 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2]
 			if (i!=2) {
 				/* if we are here then this really should not fail since 2 edges MUST intersect  */
 				if (i1 != ISECT_TRUE_P1 && i2 != ISECT_TRUE_P2) {
-					i3 = project_scanline_isect(v3, v1, y_level, &sc->x_limits[i]);
+					i3 = line_isect_y(v3, v1, y_level, &sc->x_limits[i]);
 					if (i3) i++;
 					
 				}
@@ -778,7 +808,8 @@ static int cmp_uv(float vec2a[2], float vec2b[2])
 	
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, int orig_i2_fidx)
+/* TODO - set the seam flag on the other face to avoid double lookups */
+static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, int orig_i2_fidx, int *other_face, int *orig_fidx)
 {
 	LinkNode *node;
 	int face_index;
@@ -814,15 +845,17 @@ static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, in
 			if (i2_fidx != -1) {
 				/* This IS an adjacent face!, now lets check if the UVs are ok */
 				
+
+				
 				tf = ps->dm_mtface + face_index;
 				
-				/* first test if they have the same image */
-				if (orig_tf->tpage != tf->tpage) {
-					// printf("SEAM (IMAGE DIFF)\n");
-					return 1;
-				}
+				/* set up the other face */
+				*other_face = face_index;
+				*orig_fidx = (i1_fidx < i2_fidx) ? i1_fidx : i2_fidx;
 				
-				if (	cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
+				/* first test if they have the same image */
+				if (	(orig_tf->tpage == tf->tpage) &&
+						cmp_uv(orig_tf->uv[orig_i1_fidx], tf->uv[i1_fidx]) &&
 						cmp_uv(orig_tf->uv[orig_i2_fidx], tf->uv[i2_fidx]) )
 				{
 					// printf("SEAM (NONE)\n");
@@ -836,25 +869,10 @@ static int check_seam(ProjectPaintState *ps, int orig_face, int orig_i1_fidx, in
 		}
 	}
 	// printf("SEAM (NO FACE)\n");
+	*other_face = -1;
 	return 1;
 }
 
-static void project_face_seams_init(ProjectPaintState *ps, int face_index, int is_quad)
-{
-	if (is_quad) {
-		ps->projectFaceFlags[face_index] |= 
-			(check_seam(ps, face_index, 0,1) ? PROJ_FACE_SEAM1 : 0) |
-			(check_seam(ps, face_index, 1,2) ? PROJ_FACE_SEAM2 : 0) |
-			(check_seam(ps, face_index, 2,3) ? PROJ_FACE_SEAM3 : 0) |
-			(check_seam(ps, face_index, 3,0) ? PROJ_FACE_SEAM4 : 0);
-	} else {
-		ps->projectFaceFlags[face_index] |= 
-			(check_seam(ps, face_index, 0,1) ? PROJ_FACE_SEAM1 : 0) |
-			(check_seam(ps, face_index, 1,2) ? PROJ_FACE_SEAM2 : 0) |
-			(check_seam(ps, face_index, 2,0) ? PROJ_FACE_SEAM3 : 0);
-	}
-}
-#endif // PROJ_DEBUG_NOSEAMBLEED
 
 static float angleToLength(float angle)
 {
@@ -1016,6 +1034,38 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], float sc
 	}
 }
 
+/* 
+ * Be tricky with flags, first 4 bits are PROJ_FACE_SEAM1 to 4, last 4 bits are PROJ_FACE_NOSEAM1 to 4
+ * 1<<i - where i is (0-3) 
+ */
+static void project_face_seams_init(ProjectPaintState *ps, int face_index, int is_quad)
+{
+	int other_face, other_fidx; /* vars for the other face, we also set its flag */
+	int fidx1, fidx2;
+	
+	fidx1 = is_quad ? 3 : 2;
+	do {
+		if (is_quad)
+			fidx2 = (fidx1==3) ? 0 : fidx1+1; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) */
+		else
+			fidx2 = (fidx1==2) ? 0 : fidx1+1; /* next fidx in the face (0,1,2) -> (1,2,0) */
+		
+		if ((ps->projectFaceSeamFlags[face_index] & (1<<fidx1|16<<fidx1)) == 0) {
+			if (check_seam(ps, face_index, fidx1,fidx2, &other_face, &other_fidx)) {
+				ps->projectFaceSeamFlags[face_index] |= 1<<fidx1;
+				if (other_face != -1)
+					ps->projectFaceSeamFlags[other_face] |= 1<<other_fidx;
+			} else {
+				ps->projectFaceSeamFlags[face_index] |= 16<<fidx1;
+				if (other_face != -1)
+					ps->projectFaceSeamFlags[other_face] |= 16<<other_fidx; /* second 4 bits for disabled */
+			}
+		}
+	} while (fidx1--);
+}
+#endif // PROJ_DEBUG_NOSEAMBLEED
+
+
 /* TODO - move to arithb.c */
 
 /* little sister we only need to know lambda */
@@ -1063,29 +1113,22 @@ static screen_px_from_persp(
 }
 
 
-static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index);
-
 /* Only run this function once for new ProjectPixelClone's */
 #define pixel_size 4
 
-static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float uv[2], int x, int y, int face_index, float pixelScreenCo[4])
+static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, int x, int y, int bucket_index, int face_index, float pixelScreenCo[4])
 {
-	int bucket_index;
+	ProjectPixel *projPixel;
 	
 	// printf("adding px (%d %d), (%f %f)\n", x,y,uv[0],uv[1]);
 	
-	ProjectPixel *projPixel;
-	
-	bucket_index = project_paint_BucketOffsetSafe(ps, pixelScreenCo);
-	
-	/* even though it should be clamped, in some cases it can still run over */
-	if (bucket_index==-1)
-		return;
 	
 	/* Use viewMin2D to make (0,0) the bottom left of the bounds 
 	 * Then this can be used to index the bucket array */
 	
 	/* Is this UV visible from the view? - raytrace */
+	/* screenco_pickface is less complex, use for testing */
+	//if (screenco_pickface(ps, pixelScreenCo, w, &side) == face_index) {
 	if (ps->projectIsOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
 		/* done with view3d_project_float inline */
 		if (ps->tool==PAINT_TOOL_CLONE) {
@@ -1118,9 +1161,6 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 		
 		/* screenspace unclamped */
 		
-		
-		
-		
 #ifdef PROJ_DEBUG_PAINT
 		projPixel->pixel[1] = 0;
 #endif
@@ -1134,7 +1174,146 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, float
 	}
 }
 
-static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf *ibuf)
+static void uvpixel_rect_intersect(int min_target[2], int max_target[2],  int min_a[2], int max_a[2],  int min_b[2], int max_b[2])
+{
+	min_target[0] = MAX2(min_a[0], min_b[0]);
+	min_target[1] = MAX2(min_a[1], min_b[1]);
+	
+	max_target[0] = MIN2(max_a[0], max_b[0]);
+	max_target[1] = MIN2(max_a[1], max_b[1]);
+}
+
+static int line_clip_rect2f(float rect[4], float l1[2], float l2[2], float l1_clip[2], float l2_clip[2])
+{
+	float isect;
+	short ok1 = 0;
+	short ok2 = 0;
+	
+	/* are either of the points inside the rectangle ? */
+	if (	l1[1] >= rect[PROJ_BUCKET_BOTTOM] &&	l1[1] <= rect[PROJ_BUCKET_TOP] &&
+			l1[0] >= rect[PROJ_BUCKET_LEFT] &&		l1[0] <= rect[PROJ_BUCKET_RIGHT]
+	) {
+		VECCOPY2D(l1_clip, l1);
+		ok1 = 1;
+	}
+	
+	if (	l2[1] >= rect[PROJ_BUCKET_BOTTOM] &&	l2[1] <= rect[PROJ_BUCKET_TOP] &&
+			l2[0] >= rect[PROJ_BUCKET_LEFT] &&		l2[0] <= rect[PROJ_BUCKET_RIGHT]
+	) {
+		VECCOPY2D(l2_clip, l2);
+		ok2 = 1;
+	}
+	
+	/* line inside rect */
+	if (ok1 && ok2) {
+		return 1;
+	}
+	
+	/* top/bottom */
+	if (line_isect_y(l1,l2, rect[PROJ_BUCKET_BOTTOM], &isect) && (isect > rect[PROJ_BUCKET_LEFT]) && (isect < rect[PROJ_BUCKET_RIGHT])) {
+		if (l1[1] < l2[1]) { /* line 1 is outside */
+			l1_clip[0] = isect;
+			l1_clip[1] = rect[PROJ_BUCKET_BOTTOM];
+			ok1 = 1;
+		} else {
+			l2_clip[0] = isect;
+			l2_clip[1] = rect[PROJ_BUCKET_BOTTOM];
+			ok2 = 2;
+		}
+	}
+	if (line_isect_y(l1,l2, rect[PROJ_BUCKET_TOP], &isect) && (isect > rect[PROJ_BUCKET_LEFT]) && (isect < rect[PROJ_BUCKET_RIGHT])) {
+		if (l1[1] > l2[1]) { /* line 1 is outside */
+			l1_clip[0] = isect;
+			l1_clip[1] = rect[PROJ_BUCKET_TOP];
+			ok1 = 1;
+		} else {
+			l2_clip[0] = isect;
+			l2_clip[1] = rect[PROJ_BUCKET_TOP];
+			ok2 = 2;
+		}
+	}
+	
+	/* left/right */
+	if (line_isect_x(l1,l2, rect[PROJ_BUCKET_LEFT], &isect) && (isect > rect[PROJ_BUCKET_BOTTOM]) && (isect < rect[PROJ_BUCKET_TOP])) {
+		if (l1[0] < l2[0]) { /* line 1 is outside */
+			l1_clip[0] = rect[PROJ_BUCKET_LEFT];
+			l1_clip[1] = isect;
+			ok1 = 1;
+		} else {
+			l2_clip[0] = rect[PROJ_BUCKET_LEFT];
+			l2_clip[1] = isect;
+			ok2 = 2;
+		}
+	}
+	if (line_isect_x(l1,l2, rect[PROJ_BUCKET_RIGHT], &isect) && (isect > rect[PROJ_BUCKET_BOTTOM]) && (isect < rect[PROJ_BUCKET_TOP])) {
+		if (l1[0] > l2[0]) { /* line 1 is outside */
+			l1_clip[0] = rect[PROJ_BUCKET_RIGHT];
+			l1_clip[1] = isect;
+			ok1 = 1;
+		} else {
+			l2_clip[0] = rect[PROJ_BUCKET_RIGHT];
+			l2_clip[1] = isect;
+			ok2 = 2;
+		}
+	}
+	
+	if (ok1 && ok2) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+
+
+/* scale the quad & tri about its center
+ * scaling by 0.99999 is used for getting fake UV pixel coords that are on the
+ * edge of the face but slightly inside it occlusion tests dont return hits on adjacent faces */
+static void scale_quad(float *origCos[4], float insetCos[4][3], float inset)
+{
+	float cent[3];
+	cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0] + origCos[3][0]) / 4.0;
+	cent[1] = (origCos[0][1] + origCos[1][1] + origCos[2][1] + origCos[3][1]) / 4.0;
+	cent[2] = (origCos[0][2] + origCos[1][2] + origCos[2][2] + origCos[3][2]) / 4.0;
+	
+	VecSubf(insetCos[0], origCos[0], cent);
+	VecSubf(insetCos[1], origCos[1], cent);
+	VecSubf(insetCos[2], origCos[2], cent);
+	VecSubf(insetCos[3], origCos[3], cent);
+	
+	VecMulf(insetCos[0], inset);
+	VecMulf(insetCos[1], inset);
+	VecMulf(insetCos[2], inset);
+	VecMulf(insetCos[3], inset);
+	
+	VecAddf(insetCos[0], insetCos[0], cent);
+	VecAddf(insetCos[1], insetCos[1], cent);
+	VecAddf(insetCos[2], insetCos[2], cent);
+	VecAddf(insetCos[3], insetCos[3], cent);
+}
+
+static void scale_tri(float *origCos[4], float insetCos[4][3], float inset)
+{
+	float cent[3];
+	cent[0] = (origCos[0][0] + origCos[1][0] + origCos[2][0]) / 3.0;
+	cent[1] = (origCos[0][1] + origCos[1][1] + origCos[2][1]) / 3.0;
+	cent[2] = (origCos[0][2] + origCos[1][2] + origCos[2][2]) / 3.0;
+	
+	VecSubf(insetCos[0], origCos[0], cent);
+	VecSubf(insetCos[1], origCos[1], cent);
+	VecSubf(insetCos[2], origCos[2], cent);
+	
+	VecMulf(insetCos[0], inset);
+	VecMulf(insetCos[1], inset);
+	VecMulf(insetCos[2], inset);
+	
+	VecAddf(insetCos[0], insetCos[0], cent);
+	VecAddf(insetCos[1], insetCos[1], cent);
+	VecAddf(insetCos[2], insetCos[2], cent);
+}
+
+/**/
+static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int face_index, float bucket_bounds[4], ImBuf *ibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
 	
@@ -1147,10 +1326,18 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	float uv[2]; /* Image floating point UV - same as x,y but from 0.0-1.0 */
 	
 	int min_px[2], max_px[2]; /* UV Bounds converted to int's for pixel */
-	float *v1co, *v2co, *v3co; /* for convenience only, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
+	int min_px_tf[2], max_px_tf[2]; /* UV Bounds converted to int's for pixel */
+	int min_px_bucket[2][2], max_px_bucket[2][2]; /* Bucket Bounds converted to int's for pixel */
+	float *v1coSS, *v2coSS, *v3coSS, *v4coSS; /* vert co screen-space, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
+	float *v1co, *v2co, *v3co; /* vert co */
 	float *uv1co, *uv2co, *uv3co; /* for convenience only, these will be assigned to tf->uv[0],1,2 or tf->uv[0],2,3 */
 	float pixelScreenCo[4], pixelScreenCoXMin[4], pixelScreenCoXMax[4];
 	int i, j;
+	
+	/* vars for getting uvspace bounds */
+	float bucket_bounds_uv[2] [4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
+	float w[3];
+	int i1,i2,i3;
 	
 	/* scanlines since quads can have 2 triangles intersecting the same vertical location */
 #ifndef PROJ_DEBUG_NOSCANLINE 
@@ -1158,264 +1345,228 @@ static void project_paint_face_init(ProjectPaintState *ps, int face_index, ImBuf
 	ProjectScanline *sc;
 	int totscanlines; /* can only be 1 or 2, oh well */
 #endif
-
-	if (!uv_image_rect(tf->uv[0], tf->uv[1], tf->uv[2], tf->uv[3], min_px, max_px, ibuf->x, ibuf->y, mf->v4))
-		return;
-
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-	/* detect UV seams so we can bleed */
-	if (ps->projectSeamBleed > 0.0)
-		project_face_seams_init(ps, face_index, mf->v4);
-#endif
-	
-	for (y = min_px[1]; y < max_px[1]; y++) {
-		uv[1] = (((float)y)+0.5) / (float)ibuf->y; /* TODO - this is not pixel aligned correctly */
-
-#ifndef PROJ_DEBUG_NOSCANLINE 
-		totscanlines = project_face_scanline(scanlines, uv[1], tf->uv[0], tf->uv[1], tf->uv[2], mf->v4 ? tf->uv[3]:NULL);
+	i = mf->v4 ? 1:0;
+	do {
+		if (i==1) {
+			i1=0; i2=1; i3=2;
+		} else {
+			i1=0; i2=2; i3=3;
+		}
 		
-		/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having tri/quad spesific functions */
-		for (j=0, sc=scanlines; j<totscanlines; j++, sc++) {
+		uv1co = tf->uv[i1];
+		uv2co = tf->uv[i2];
+		uv3co = tf->uv[i3];
+
+		v1coSS = ps->projectVertScreenCos[ (*(&mf->v1 + i1)) ];
+		v2coSS = ps->projectVertScreenCos[ (*(&mf->v1 + i2)) ];
+		v3coSS = ps->projectVertScreenCos[ (*(&mf->v1 + i3)) ];
+		
+		if (ps->projectIsOrtho==0) {
+			v1co = ps->dm_mvert[ (*(&mf->v1 + i1)) ].co;
+			v2co = ps->dm_mvert[ (*(&mf->v1 + i2)) ].co;
+			v3co = ps->dm_mvert[ (*(&mf->v1 + i3)) ].co;
+		}
+		
+		/* get the UV space bounding box */
+		uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
+		uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+		bucket_bounds_uv[i][0][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[i][0][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		
+		//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
+		uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
+		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+		bucket_bounds_uv[i][1][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[i][1][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		
+		
+		uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
+		//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
+		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+		bucket_bounds_uv[i][2][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[i][2][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		
+		//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
+		uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+		bucket_bounds_uv[i][3][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[i][3][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		
+		//printf("Bounds: %f | %f | %f | %f\n", bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3]);
+
+		if (	uv_image_rect(uv1co, uv2co, uv3co, NULL, min_px_tf, max_px_tf, ibuf->x, ibuf->y, 0) && 
+				uv_image_rect(bucket_bounds_uv[i][0], bucket_bounds_uv[i][1], bucket_bounds_uv[i][2], bucket_bounds_uv[i][3], min_px_bucket[i], max_px_bucket[i], ibuf->x, ibuf->y, 1) )
+		{
 			
-			min_px[0] = (int)((ibuf->x * sc->x_limits[0])+0.5);
-			max_px[0] = (int)((ibuf->x * sc->x_limits[1])+0.5);
-			CLAMP(min_px[0], 0, ibuf->x);
-			CLAMP(max_px[0], 0, ibuf->x);
+			uvpixel_rect_intersect(min_px, max_px, min_px_bucket[i], max_px_bucket[i], min_px_tf, max_px_tf);
 			
-			uv1co = tf->uv[sc->v[0]];
-			uv2co = tf->uv[sc->v[1]];
-			uv3co = tf->uv[sc->v[2]];
-			
-			if (ps->projectIsOrtho) {
-				v1co = ps->projectVertScreenCos[ (*(&mf->v1 + sc->v[0])) ];
-				v2co = ps->projectVertScreenCos[ (*(&mf->v1 + sc->v[1])) ];
-				v3co = ps->projectVertScreenCos[ (*(&mf->v1 + sc->v[2])) ];
-				
+			/* clip face and */
+
+
+			for (y = min_px[1]; y < max_px[1]; y++) {
+				uv[1] = (((float)y)+0.5) / (float)ibuf->y; /* TODO - this is not pixel aligned correctly */
 				for (x = min_px[0]; x < max_px[0]; x++) {
 					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-					screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-					project_paint_uvpixel_init(ps, ibuf, uv, x,y,face_index, pixelScreenCo);
-				}
-			} else {
-				v1co = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co;
-				v2co = ps->dm_mvert[ (*(&mf->v1 + sc->v[1])) ].co;
-				v3co = ps->dm_mvert[ (*(&mf->v1 + sc->v[2])) ].co;
-				
-				for (x = min_px[0]; x < max_px[0]; x++) {
-					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-					screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-					project_paint_uvpixel_init(ps, ibuf, uv, x,y,face_index, pixelScreenCo);
+					
+					/* test we're inside uvspace bucket and triangle bounds */
+					if (	IsectPQ2Df(uv, bucket_bounds_uv[i][0], bucket_bounds_uv[i][1], bucket_bounds_uv[i][2], bucket_bounds_uv[i][3]) &&
+							IsectPT2Df(uv, uv1co, uv2co, uv3co) ) {
+						
+						if (ps->projectIsOrtho) {
+							screen_px_from_ortho(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo);
+						} else {
+							screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
+						}
+						
+						project_paint_uvpixel_init(ps, ibuf, x,y, bucket_index, face_index, pixelScreenCo);
+					}
 				}
 			}
 		}
-#else	/* slow, non scanline method */
-		
-		/* mainly for debuggung scanline, use point-in-tri for every x/y test */
-		/* at the moment only works with ortho triangles */
-		uv1co = tf->uv[0];
-		uv2co = tf->uv[1];
-		uv3co = tf->uv[2];
-		
-		if (ps->projectIsOrtho) {
-			v1co = ps->projectVertScreenCos[ mf->v1 ];
-			v2co = ps->projectVertScreenCos[ mf->v2 ];
-			v3co = ps->projectVertScreenCos[ mf->v3 ];
-			
-			for (x = min_px[0]; x < max_px[0]; x++) {
-				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-				if (IsectPT2Df(uv, uv1co, uv2co, uv3co)) {
-					screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-					project_paint_uvpixel_init(ps, ibuf, uv, x,y,face_index, pixelScreenCo);
-				}
-
-			}
-		} else {
-			/*
-			v1co = ps->dm_mvert[ (*(&mf->v1 + sc->v[0])) ].co;
-			v2co = ps->dm_mvert[ (*(&mf->v1 + sc->v[1])) ].co;
-			v3co = ps->dm_mvert[ (*(&mf->v1 + sc->v[2])) ].co;
-			
-			for (x = min_px[0]; x < max_px[0]; x++) {
-				uv[0] = (((float)x)+0.5) / (float)ibuf->x;
-				screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-				project_paint_uvpixel_init(ps, sc, ibuf, uv, x,y,face_index, pixelScreenCo);
-			}
-			*/
-		}
-#endif
-	}
-
+	} while(i--);
 	
-#ifndef PROJ_DEBUG_NOSCANLINE
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-	/* Pretty much a copy of above, except fill in seams if we have any */
-	if (ps->projectFaceFlags[face_index] & (PROJ_FACE_SEAM1|PROJ_FACE_SEAM2|PROJ_FACE_SEAM3|PROJ_FACE_SEAM4)) {
-		float outset_uv[4][2]; /* expanded UV's */
-		float insetCos[4][3]; /* expanded UV's */
-		float cent[3];
-		float *uv_seam_quads[4][4];
-		float *edge_verts[4][2];
-		float pixelScreenCo[3];
-		float fac;
-		int totuvseamquads = 0;
+	if (ps->projectSeamBleed > 0.0) {
 		
-		if (ps->projectIsOrtho) {
-			VECCOPY(insetCos[0], ps->projectVertScreenCos[ mf->v1 ]);
-			VECCOPY(insetCos[1], ps->projectVertScreenCos[ mf->v2 ]);
-			VECCOPY(insetCos[2], ps->projectVertScreenCos[ mf->v3 ]);
-			if (mf->v4)
-				VECCOPY(insetCos[3], ps->projectVertScreenCos[ mf->v4 ]);
-		} else {
-			VECCOPY(insetCos[0], ps->dm_mvert[ mf->v1 ].co);
-			VECCOPY(insetCos[1], ps->dm_mvert[ mf->v2 ].co);
-			VECCOPY(insetCos[2], ps->dm_mvert[ mf->v3 ].co);
-			if (mf->v4)
-				VECCOPY(insetCos[3], ps->dm_mvert[ mf->v4 ].co);
+		int flag = ps->projectFaceSeamFlags[face_index];
+		
+		/* are any of our edges un-initialized? */
+		if ((flag & (PROJ_FACE_SEAM1|PROJ_FACE_NOSEAM1))==0 || 
+			(flag & (PROJ_FACE_SEAM2|PROJ_FACE_NOSEAM2))==0 || 
+			(flag & (PROJ_FACE_SEAM3|PROJ_FACE_NOSEAM3))==0 || 
+			(flag & (PROJ_FACE_SEAM4|PROJ_FACE_NOSEAM4))==0
+		) {
+			project_face_seams_init(ps, face_index, mf->v4);
+			flag = ps->projectFaceSeamFlags[face_index];
+			//printf("seams - %d %d %d %d\n", flag&PROJ_FACE_SEAM1, flag&PROJ_FACE_SEAM2, flag&PROJ_FACE_SEAM3, flag&PROJ_FACE_SEAM4);
 		}
 		
+		if (flag & (PROJ_FACE_SEAM1|PROJ_FACE_SEAM2|PROJ_FACE_SEAM3|PROJ_FACE_SEAM4)) {
+			/* we have a seam - deal with it! */
 			
-		if (mf->v4) {
-			cent[0] = (insetCos[0][0] + insetCos[1][0] + insetCos[2][0] + insetCos[3][0]) / 4.0;
-			cent[1] = (insetCos[0][1] + insetCos[1][1] + insetCos[2][1] + insetCos[3][1]) / 4.0;
-			cent[2] = (insetCos[0][2] + insetCos[1][2] + insetCos[2][2] + insetCos[3][2]) / 4.0;
+			/* Now create new UV's for the seam face */
+			float (*outset_uv)[2];
+			float insetCos[4][3]; /* expanded UV's */
+			float cent[3];
+			float *uv_seam_quads[4][4];
+			float *edge_verts_inset[4][2];
+			float *edge_verts[4][2];
+			float fac;
+			float *vCoSS[4]; /* vertex screenspace coords */
 			
-		} else {
-			cent[0] = (insetCos[0][0] + insetCos[1][0] + insetCos[2][0]) / 3.0;
-			cent[1] = (insetCos[0][1] + insetCos[1][1] + insetCos[2][1]) / 3.0;
-			cent[2] = (insetCos[0][2] + insetCos[1][2] + insetCos[2][2]) / 3.0;
-		}
-		
-		VecSubf(insetCos[0], insetCos[0], cent);
-		VecSubf(insetCos[1], insetCos[1], cent);
-		VecSubf(insetCos[2], insetCos[2], cent);
-		if (mf->v4)
-			VecSubf(insetCos[3], insetCos[3], cent);
-		
-		VecMulf(insetCos[0], 1.0 - 0.0001);
-		VecMulf(insetCos[1], 1.0 - 0.0001);
-		VecMulf(insetCos[2], 1.0 - 0.0001);
-		if (mf->v4)
-			VecMulf(insetCos[3], 1.0 - 0.0001);
-		
-		VecAddf(insetCos[0], insetCos[0], cent);
-		VecAddf(insetCos[1], insetCos[1], cent);
-		VecAddf(insetCos[2], insetCos[2], cent);
-		if (mf->v4) 
-			VecAddf(insetCos[3], insetCos[3], cent);
-		/* done with inset */
-		
-		uv_image_outset(tf->uv, outset_uv, ps->projectSeamBleed, ibuf->x, ibuf->y, mf->v4);
-		
-		if (ps->projectFaceFlags[face_index] & PROJ_FACE_SEAM1) {
-			uv_seam_quads[totuvseamquads][0] = tf->uv[0];
-			uv_seam_quads[totuvseamquads][1] = tf->uv[1];
-			uv_seam_quads[totuvseamquads][2] = outset_uv[1];
-			uv_seam_quads[totuvseamquads][3] = outset_uv[0];
-			edge_verts[totuvseamquads][0] = insetCos[0]; //ps->projectVertScreenCos[ mf->v1 ];
-			edge_verts[totuvseamquads][1] = insetCos[1]; //ps->projectVertScreenCos[ mf->v2 ];
-			totuvseamquads++;
-		}
-		
-		if (ps->projectFaceFlags[face_index] & PROJ_FACE_SEAM2) {
-			uv_seam_quads[totuvseamquads][0] = tf->uv[1];
-			uv_seam_quads[totuvseamquads][1] = tf->uv[2];
-			uv_seam_quads[totuvseamquads][2] = outset_uv[2];
-			uv_seam_quads[totuvseamquads][3] = outset_uv[1];
-			edge_verts[totuvseamquads][0] = insetCos[1]; //ps->projectVertScreenCos[ mf->v2 ];
-			edge_verts[totuvseamquads][1] = insetCos[2]; //ps->projectVertScreenCos[ mf->v3 ];
-			totuvseamquads++;
-		}
-		
-		if (mf->v4) {
-			if (ps->projectFaceFlags[face_index] & PROJ_FACE_SEAM3) {
-				uv_seam_quads[totuvseamquads][0] = tf->uv[2];
-				uv_seam_quads[totuvseamquads][1] = tf->uv[3];
-				uv_seam_quads[totuvseamquads][2] = outset_uv[3];
-				uv_seam_quads[totuvseamquads][3] = outset_uv[2];
-				edge_verts[totuvseamquads][0] = insetCos[2]; //ps->projectVertScreenCos[ mf->v3 ];
-				edge_verts[totuvseamquads][1] = insetCos[3]; //ps->projectVertScreenCos[ mf->v4 ];
-				totuvseamquads++;
+			float bucket_clip_edges[4][2][2]; /* store the screenspace coords of the face, clipped by the bucket's screen aligned rectangle */
+			int totuvseamquads = 0;
+			int fidx1, fidx2; /* face edge pairs - loop throuh these ((0,1), (1,2), (2,3), (3,0)) or ((0,1), (1,2), (2,0)) for a tri */
+			
+			outset_uv = ps->projectFaceSeamUVs[face_index];
+			
+			if (outset_uv[0][0]==MAXFLOAT) /* first time initialize */
+				uv_image_outset(tf->uv, outset_uv, ps->projectSeamBleed, ibuf->x, ibuf->y, mf->v4);
+			
+			vCoSS[0] = ps->projectVertScreenCos[ mf->v1 ];
+			vCoSS[1] = ps->projectVertScreenCos[ mf->v2 ];
+			vCoSS[2] = ps->projectVertScreenCos[ mf->v3 ];
+			if (mf->v4) {
+				vCoSS[3] = ps->projectVertScreenCos[ mf->v4 ];
+				scale_quad(vCoSS, insetCos, 0.99999);
+			} else { 
+				scale_tri(vCoSS, insetCos, 0.99999);
 			}
-			if (ps->projectFaceFlags[face_index] & PROJ_FACE_SEAM4) {
-				uv_seam_quads[totuvseamquads][0] = tf->uv[3];
-				uv_seam_quads[totuvseamquads][1] = tf->uv[0];
-				uv_seam_quads[totuvseamquads][2] = outset_uv[0];
-				uv_seam_quads[totuvseamquads][3] = outset_uv[3];
-				edge_verts[totuvseamquads][0] = insetCos[3]; //ps->projectVertScreenCos[ mf->v4 ];
-				edge_verts[totuvseamquads][1] = insetCos[0]; //ps->projectVertScreenCos[ mf->v1 ];
-				totuvseamquads++;
-			}
-		} else {
-			if (ps->projectFaceFlags[face_index] & PROJ_FACE_SEAM3) {
-				uv_seam_quads[totuvseamquads][0] = tf->uv[2];
-				uv_seam_quads[totuvseamquads][1] = tf->uv[0];
-				uv_seam_quads[totuvseamquads][2] = outset_uv[0];
-				uv_seam_quads[totuvseamquads][3] = outset_uv[2];
-				edge_verts[totuvseamquads][0] = insetCos[2]; //ps->projectVertScreenCos[ mf->v3 ];
-				edge_verts[totuvseamquads][1] = insetCos[0]; //ps->projectVertScreenCos[ mf->v1 ];
-				totuvseamquads++;
-			}
-		}
-		
-		for (i=0; i< totuvseamquads; i++) { /* loop over our seams */
-			if (uv_image_rect(uv_seam_quads[i][0], uv_seam_quads[i][1], uv_seam_quads[i][2], uv_seam_quads[i][3], min_px, max_px, ibuf->x, ibuf->y, 1)) {
+			
+			for (fidx1 = 0; fidx1 < (mf->v4 ? 4 : 3); fidx1++) {
+				if (mf->v4)		fidx2 = (fidx1==3) ? 0 : fidx1+1; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) */
+				else			fidx2 = (fidx1==2) ? 0 : fidx1+1; /* next fidx in the face (0,1,2) -> (1,2,0) */
 				
-				for (y = min_px[1]; y < max_px[1]; y++) {
-					uv[1] = (((float)y)+0.5) / (float)ibuf->y;
-					
-					totscanlines = project_face_scanline(scanlines, uv[1], uv_seam_quads[i][0], uv_seam_quads[i][1], uv_seam_quads[i][2], uv_seam_quads[i][3]);
-					
-					/* Loop over scanlines a bit silly since there can only be 1 or 2, but its easier then having tri/quad spesific functions */
-					for (j=0, sc=scanlines; j<totscanlines; j++, sc++) {
+				if (	(ps->projectFaceSeamFlags[face_index] & (1<<fidx1) ) && /* 1<<fidx1 -> PROJ_FACE_SEAM# */
+						line_clip_rect2f(bucket_bounds, vCoSS[fidx1], vCoSS[fidx2], bucket_clip_edges[totuvseamquads][0], bucket_clip_edges[totuvseamquads][1])
+				) {
+					uv_seam_quads[totuvseamquads][0] = tf->uv[fidx1];
+					uv_seam_quads[totuvseamquads][1] = tf->uv[fidx2];
+					uv_seam_quads[totuvseamquads][2] = outset_uv[fidx2];
+					uv_seam_quads[totuvseamquads][3] = outset_uv[fidx1];
+					edge_verts_inset[totuvseamquads][0] = insetCos[fidx1]; //ps->projectVertScreenCos[ mf->v3 ];
+					edge_verts_inset[totuvseamquads][1] = insetCos[fidx2]; //ps->projectVertScreenCos[ mf->v1 ];
+					edge_verts[totuvseamquads][0] = vCoSS[fidx1];
+					edge_verts[totuvseamquads][1] = vCoSS[fidx2];
+					totuvseamquads++;
+				}
+			}
+			
+			
+			for (i=0; i< totuvseamquads; i++) { /* loop over our seams */
+				
+			
+				/* make a quad spanning the subsection of the face the bucket intersects with */
+				float seam_subsection[4][2];
+				float fac1, fac2, ftot;
+				float edge_verts_inset_clip[2][3];
+
+				ftot = Vec2Lenf(edge_verts[i][0], edge_verts[i][1]);
+				fac1 = Vec2Lenf(edge_verts[i][0], bucket_clip_edges[i][0]) / ftot;
+				fac2 = Vec2Lenf(edge_verts[i][0], bucket_clip_edges[i][1]) / ftot;
+				
+				Vec2Lerpf(seam_subsection[0], uv_seam_quads[i][0], uv_seam_quads[i][1], fac1);
+				Vec2Lerpf(seam_subsection[1], uv_seam_quads[i][0], uv_seam_quads[i][1], fac2);
+				
+				Vec2Lerpf(seam_subsection[2], uv_seam_quads[i][3], uv_seam_quads[i][2], fac2);
+				Vec2Lerpf(seam_subsection[3], uv_seam_quads[i][3], uv_seam_quads[i][2], fac1);
+				
+				/* if the bucket_clip_edges values Z values was kept we could avoid this
+				 * Inset needs to be added so occlusiuon tests wont hit adjacent faces */
+				VecLerpf(edge_verts_inset_clip[0], edge_verts_inset[i][0], edge_verts_inset[i][1], fac1);
+				VecLerpf(edge_verts_inset_clip[1], edge_verts_inset[i][0], edge_verts_inset[i][1], fac2);
+				
+				if (uv_image_rect(seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3], min_px, max_px, ibuf->x, ibuf->y, 1)) {
+					/* bounds between the seam rect and the uvspace bucket pixels */
+				
+					for (y = min_px[1]; y < max_px[1]; y++) {
 						
-						min_px[0] = (int)((ibuf->x * sc->x_limits[0])+0.5);
-						max_px[0] = (int)((ibuf->x * sc->x_limits[1])+0.5);
-						CLAMP(min_px[0], 0, ibuf->x);
-						CLAMP(max_px[0], 0, ibuf->x);
-						
+						uv[1] = (((float)y)+0.5) / (float)ibuf->y; /* TODO - this is not pixel aligned correctly */
 						for (x = min_px[0]; x < max_px[0]; x++) {
+							
 							uv[0] = (((float)x)+0.5) / (float)ibuf->x;
 							
-							/* We need to find the closest point allong the face edge,
-							 * getting the screen_px_from_*** wont work because our actual location
-							 * is not relevent, since we are outside the face, Use VecLerpf to find
-							 * our location on the side of the face's UV */
-							/*
-							if (ps->projectIsOrtho)	screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-							else					screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
-							*/
-							
-							/* Since this is a seam we need to work out where on the line this pixel is */
-							fac = lambda_cp_line2(uv, uv_seam_quads[i][0], uv_seam_quads[i][1]);
-							if (fac<0.0) {
-								VECCOPY(pixelScreenCo, edge_verts[i][0]);
-							} else if (fac>1.0) {
-								VECCOPY(pixelScreenCo, edge_verts[i][1]);
-							} else {
-								VecLerpf(pixelScreenCo, edge_verts[i][0], edge_verts[i][1], fac);
+							/* test we're inside uvspace bucket and triangle bounds */
+							if (	IsectPQ2Df(uv, seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3]) ) {
+								
+								/* We need to find the closest point allong the face edge,
+								 * getting the screen_px_from_*** wont work because our actual location
+								 * is not relevent, since we are outside the face, Use VecLerpf to find
+								 * our location on the side of the face's UV */
+								/*
+								if (ps->projectIsOrtho)	screen_px_from_ortho(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
+								else					screen_px_from_persp(ps, uv, v1co,v2co,v3co, uv1co,uv2co,uv3co, pixelScreenCo);
+								*/
+								
+								/* Since this is a seam we need to work out where on the line this pixel is */
+								//fac = lambda_cp_line2(uv, uv_seam_quads[i][0], uv_seam_quads[i][1]);
+								fac = lambda_cp_line2(uv, seam_subsection[0], seam_subsection[1]);
+								if (fac<0.0) {
+									VECCOPY(pixelScreenCo, edge_verts_inset_clip[0]);
+								} else if (fac>1.0) {
+									VECCOPY(pixelScreenCo, edge_verts_inset_clip[1]);
+								} else {
+									VecLerpf(pixelScreenCo, edge_verts_inset_clip[0], edge_verts_inset_clip[1], fac);
+								}
+								
+								if (!ps->projectIsOrtho) {
+									pixelScreenCo[3] = 1.0;
+									Mat4MulVec4fl(ps->projectMat, pixelScreenCo);
+									pixelScreenCo[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pixelScreenCo[0]/pixelScreenCo[3];	
+									pixelScreenCo[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pixelScreenCo[1]/pixelScreenCo[3];
+									pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
+								}
+								
+								project_paint_uvpixel_init(ps, ibuf, x, y, bucket_index, face_index, pixelScreenCo);
 							}
-							
-							if (!ps->projectIsOrtho) {
-								pixelScreenCo[3] = 1.0;
-								Mat4MulVec4fl(ps->projectMat, pixelScreenCo);
-								pixelScreenCo[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pixelScreenCo[0]/pixelScreenCo[3];	
-								pixelScreenCo[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pixelScreenCo[1]/pixelScreenCo[3];
-								pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
-							}
-							
-							project_paint_uvpixel_init(ps, ibuf, uv, x, y, face_index, pixelScreenCo);
 						}
 					}
 				}
 			}
 		}
 	}
-#endif
-#endif
+	return;	
 }
-
-
-
 
 
 /* takes floating point screenspace min/max and returns int min/max to be used as indicies for ps->projectBuckets, ps->projectBucketFlags */
@@ -1445,7 +1596,8 @@ static void project_bucket_bounds(ProjectPaintState *ps, int bucket_x, int bucke
 	bucket_bounds[ PROJ_BUCKET_TOP ] =		ps->viewMin2D[1]+((bucket_y+1)*(ps->viewHeight  / ps->bucketsY));	/* top */
 }
 
-static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
+/* have bucket_bounds as an arg so we dont need to give bucket_x/y the rect function need */
+static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index, float bucket_bounds[4])
 {
 	LinkNode *node;
 	int face_index;
@@ -1454,45 +1606,39 @@ static void project_paint_bucket_init(ProjectPaintState *ps, int bucket_index)
 	
 	Image *tpage_last = NULL;
 	int tpage_index;
-	/*printf("\tinit bucket %d\n", bucket_index);*/
-	
-	ps->projectBucketFlags[bucket_index] |= PROJ_BUCKET_INIT; 
 	
 	if ((node = ps->projectFaces[bucket_index])) {
 		do {
 			face_index = (int)node->link;
-			/* Have we initialized this face in another bucket? */
-			if ((ps->projectFaceFlags[face_index] & PROJ_FACE_INIT)==0) {
 				
-				ps->projectFaceFlags[face_index] |= PROJ_FACE_INIT;
+			/* Image context switching */
+			tf = ps->dm_mtface+face_index;
+			if (tpage_last != tf->tpage) {
+				tpage_last = tf->tpage;
 				
-				/* Image context switching */
-				tf = ps->dm_mtface+face_index;
-				if (tpage_last != tf->tpage) {
-					tpage_last = tf->tpage;
-					
-					ps->imaContextIndex = -1; /* sanity check */
-					
-					for (tpage_index=0; tpage_index < ps->projectImageTotal; tpage_index++) {
-						if (ps->projectImages[tpage_index] == tpage_last) {
-							ps->imaContextIndex = tpage_index;
-							break;
-						}
+				ps->imaContextIndex = -1; /* sanity check */
+				
+				for (tpage_index=0; tpage_index < ps->projectImageTotal; tpage_index++) {
+					if (ps->projectImages[tpage_index] == tpage_last) {
+						ps->imaContextIndex = tpage_index;
+						break;
 					}
-					
-					if (ps->imaContextIndex==-1) {
-						printf("Error, should never happen!\n");
-						return;
-					}
-					
-					ibuf = BKE_image_get_ibuf(tpage_last, NULL); /* TODO - this may be slow */
 				}
 				
-				project_paint_face_init(ps, face_index, ibuf);
+				if (ps->imaContextIndex==-1) {
+					printf("Error, should never happen!\n");
+					return;
+				}
+				
+				ibuf = BKE_image_get_ibuf(tpage_last, NULL); /* TODO - this may be slow */
 			}
+			project_paint_face_init(ps, bucket_index, face_index, bucket_bounds, ibuf);
+			
 			node = node->next;
 		} while (node);
 	}
+	
+	ps->projectBucketFlags[bucket_index] |= PROJ_BUCKET_INIT; 
 }
 
 
@@ -1606,6 +1752,13 @@ static void project_paint_delayed_face_init(ProjectPaintState *ps, MFace *mf, MT
 			}
 		}
 	}
+	
+	if (ps->projectSeamBleed > 0.0) {
+		if (!mf->v4) {
+			ps->projectFaceSeamFlags[face_index] |= PROJ_FACE_NOSEAM4; /* so this wont show up as an untagged egde */
+		}
+		**ps->projectFaceSeamUVs[face_index] = MAXFLOAT; /* set as uninitialized */
+	}
 }
 
 static int BLI_linklist_index(struct LinkNode *list, void *ptr)
@@ -1645,7 +1798,8 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	/* memory sized to add to arena size */
 	int tot_bucketMem=0;
-	int tot_faceFlagMem=0;
+	int tot_faceSeamFlagMem=0;
+	int tot_faceSeamUVMem=0;
 	int tot_faceListMem=0;
 	int tot_bucketFlagMem=0;
 	int tot_bucketVertFacesMem=0;
@@ -1676,35 +1830,45 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	tot_bucketMem =				sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
 	tot_faceListMem =			sizeof(LinkNode *) * ps->bucketsX * ps->bucketsY;
-	tot_faceFlagMem =			sizeof(char) * ps->dm_totface;
+	
 	tot_bucketFlagMem =			sizeof(char) * ps->bucketsX * ps->bucketsY;
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-	if (ps->projectSeamBleed > 0.0) /* UV Seams for bleeding */
+	if (ps->projectSeamBleed > 0.0) { /* UV Seams for bleeding */
 		tot_bucketVertFacesMem =	sizeof(LinkNode *) * ps->dm_totvert;
+		tot_faceSeamFlagMem =		sizeof(char) * ps->dm_totface;
+		tot_faceSeamUVMem =			sizeof(float) * ps->dm_totface * 8;
+	}
 #endif
 
 	ps->projectArena =
 		BLI_memarena_new(	tot_bucketMem +
 							tot_faceListMem +
-							tot_faceFlagMem +
+							tot_faceSeamFlagMem +
+							tot_faceSeamUVMem +
 							tot_bucketVertFacesMem + (1<<16));
 	
 	ps->projectBuckets = (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketMem);
 	ps->projectFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_faceListMem);
-	ps->projectFaceFlags = (char *)BLI_memarena_alloc( ps->projectArena, tot_faceFlagMem);
+	
 	ps->projectBucketFlags= (char *)BLI_memarena_alloc( ps->projectArena, tot_bucketFlagMem);
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-	if (ps->projectSeamBleed > 0.0)
+	if (ps->projectSeamBleed > 0.0) {
 		ps->projectVertFaces= (LinkNode **)BLI_memarena_alloc( ps->projectArena, tot_bucketVertFacesMem);
+		ps->projectFaceSeamFlags = (char *)BLI_memarena_alloc( ps->projectArena, tot_faceSeamFlagMem);
+		ps->projectFaceSeamUVs= BLI_memarena_alloc( ps->projectArena, tot_faceSeamUVMem);
+	}
 #endif
 	
 	memset(ps->projectBuckets,		0, tot_bucketMem);
 	memset(ps->projectFaces,		0, tot_faceListMem);
-	memset(ps->projectFaceFlags,	0, tot_faceFlagMem);
+	memset(ps->projectFaceSeamFlags,0, tot_faceSeamFlagMem);
 	memset(ps->projectBucketFlags,	0, tot_bucketFlagMem);
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-	if (ps->projectSeamBleed > 0.0)
+	if (ps->projectSeamBleed > 0.0) {
 		memset(ps->projectVertFaces,	0, tot_bucketVertFacesMem);
+		/* TODO dosnt need zeroing? */
+		memset(ps->projectFaceSeamUVs,	0, tot_faceSeamUVMem);
+	}
 #endif
 	Mat4Invert(ps->ob->imat, ps->ob->obmat);
 	
@@ -2279,13 +2443,9 @@ static float Vec2Lenf_nosqrt_other(float *v1, float v2_1, float v2_2)
 
 /* note, use a squared value so we can use Vec2Lenf_nosqrt
  * be sure that you have done a bounds check first or this may fail */
-static int project_bucket_circle_isect(ProjectPaintState *ps, int bucket_x, int bucket_y, float cent[2], float radius_squared)
+/* only give bucket_bounds as an arg because we need it elsewhere */
+static int project_bucket_circle_isect(ProjectPaintState *ps, int bucket_x, int bucket_y, float cent[2], float radius_squared, float bucket_bounds[4])
 {
-	float bucket_bounds[4];
-	//return 1;
-	
-	project_bucket_bounds(ps, bucket_x, bucket_y, bucket_bounds);
-	
 	// printf("%d %d - %f %f %f %f - %f %f \n", bucket_x, bucket_y, bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3], cent[0], cent[1]);
 
 	/* first check if we are INSIDE the bucket */
@@ -2354,7 +2514,10 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	int a;
 	short blend= ps->blend;
 	char *cp;
+	
+	float bucket_bounds[4];
 	int bucket_x, bucket_y;
+	
 	
 	/* for smear only */
 	float mval_ofs[2]; 
@@ -2385,7 +2548,6 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 		smearArena = BLI_memarena_new(1<<16);
 	}
 	
-	
 	/* avoid a square root with every dist comparison */
 	brush_size_sqared = ps->brush->size * ps->brush->size; 
 	
@@ -2399,14 +2561,17 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	for (bucket_y = bucket_min[1]; bucket_y < bucket_max[1]; bucket_y++) {
 		for (bucket_x = bucket_min[0]; bucket_x < bucket_max[0]; bucket_x++) {
 			
-			if (project_bucket_circle_isect(ps, bucket_x, bucket_y, mval_f, brush_size_sqared)) {
+			/* use bucket_bounds for project_bucket_circle_isect and project_paint_bucket_init*/
+			project_bucket_bounds(ps, bucket_x, bucket_y, bucket_bounds);
+			
+			if (project_bucket_circle_isect(ps, bucket_x, bucket_y, mval_f, brush_size_sqared, bucket_bounds)) {
 				
 				bucket_index = bucket_x + (bucket_y * ps->bucketsX);
 				
 				/* Check this bucket and its faces are initialized */
 				if (ps->projectBucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
-					/* This bucket may hold some uninitialized faces, initialize it */
-					project_paint_bucket_init(ps, bucket_index);
+					/* No pixels initialized */
+					project_paint_bucket_init(ps, bucket_index, bucket_bounds);
 				}
 				
 				/* TODO - we may want to init clone data in a seperate to project_paint_bucket_init
