@@ -39,7 +39,7 @@ const int SourceStopped = 3;
 
 
 // video source formats
-enum VideoFormat { None, RGB24, YV12 };
+enum VideoFormat { None, RGB24, YV12, RGBA32 };
 
 
 /// base class for video source

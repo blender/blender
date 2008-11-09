@@ -117,6 +117,9 @@ protected:
 	/// last displayed frame
 	long m_lastFrame;
 
+	/// end of file reached
+	bool m_eof;
+
 	/// current file pointer position in file expressed in frame number
 	long m_curPosition;
 
