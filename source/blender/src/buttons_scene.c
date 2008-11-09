@@ -3311,6 +3311,10 @@ static void render_panel_freestyle()
 	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_FS_FRS, ICON_FILESEL, 10, 190, 20, 20, 0, 0, 0, 0, 0, "Open Fileselect to get style module");
 	uiDefBut(block, TEX,0,"", 31, 190, 279, 20, style_module, 0.0,79.0, 0, 0, "Style module path name");
+	uiDefButF(block, NUM, B_NOP, "Sphere Radius", 10,170,300,20, &freestyle_sphere_radius, 0.0f, 100.0f, 10, 2, "Sphere radius (x mean edge size)");
+	uiDefButBitI(block, TOG, FREESTYLE_RIDGES_AND_VALLEYS_FLAG, B_NOP, "Ridges and Valleys", 10, 150, 150, 20, &freestyle_flags, 0, 0, 0, 0, "Compute ridges and valleys");
+	uiDefButBitI(block, TOG, FREESTYLE_SUGGESTIVE_CONTOURS_FLAG, B_NOP, "Suggestive Contours", 10, 130, 150, 20, &freestyle_flags, 0, 0, 0, 0, "Compute suggestive contours");
+	uiDefButF(block, NUM, B_NOP, "kr Derivative Epsilon", 10,110,300,20, &freestyle_dkr_epsilon, 0.0f, 10.0f, 0.1, 3, "Suggestive contour kr derivative epsilon");
 	uiBlockEndAlign(block);
 
 

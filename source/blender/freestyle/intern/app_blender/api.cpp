@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+#include "../../FRS_freestyle.h"
+
 #include "DNA_camera_types.h"
 
 #include "render_types.h"
@@ -32,6 +34,9 @@ extern "C" {
 	static AppGLWidget *view = NULL;
 
 	char style_module[255] = "";
+	int freestyle_flags;
+	float freestyle_sphere_radius = 1.0;
+	float freestyle_dkr_epsilon = 0.001;
 
 	void FRS_initialize(){
 		
@@ -99,6 +104,17 @@ extern "C" {
 		controller->InsertStyleModule( 0, style_module );
 		controller->toggleLayer(0, true);
 		
+		// set parameters
+		controller->setSphereRadius(freestyle_sphere_radius);
+		controller->setComputeRidgesAndValleysFlag((freestyle_flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
+		controller->setComputeSuggestiveContoursFlag((freestyle_flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
+		controller->setSuggestiveContourKrDerivativeEpsilon(freestyle_dkr_epsilon);
+
+		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
+		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
+		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
+		cout << "Suggestive contour dkr epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
+
 		// compute view map
 		controller->ComputeViewMap();
 		
