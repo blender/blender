@@ -1335,7 +1335,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int
 	int i, j;
 	
 	/* vars for getting uvspace bounds */
-	float bucket_bounds_uv[2] [4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
+	float bucket_bounds_uv[4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
 	float w[3];
 	int i1,i2,i3;
 	
@@ -1345,12 +1345,13 @@ static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int
 	ProjectScanline *sc;
 	int totscanlines; /* can only be 1 or 2, oh well */
 #endif
+
 	i = mf->v4 ? 1:0;
 	do {
 		if (i==1) {
-			i1=0; i2=1; i3=2;
-		} else {
 			i1=0; i2=2; i3=3;
+		} else {
+			i1=0; i2=1; i3=2;
 		}
 		
 		uv1co = tf->uv[i1];
@@ -1371,32 +1372,32 @@ static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int
 		uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
 		uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-		bucket_bounds_uv[i][0][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-		bucket_bounds_uv[i][0][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		bucket_bounds_uv[0][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[0][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
 		
 		//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
 		uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
 		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-		bucket_bounds_uv[i][1][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-		bucket_bounds_uv[i][1][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		bucket_bounds_uv[1][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[1][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
 		
 		
 		uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
 		//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
 		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-		bucket_bounds_uv[i][2][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-		bucket_bounds_uv[i][2][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		bucket_bounds_uv[2][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[2][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
 		
 		//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
 		uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 		BaryCentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-		bucket_bounds_uv[i][3][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-		bucket_bounds_uv[i][3][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
+		bucket_bounds_uv[3][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
+		bucket_bounds_uv[3][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
 		
 		//printf("Bounds: %f | %f | %f | %f\n", bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3]);
 
 		if (	uv_image_rect(uv1co, uv2co, uv3co, NULL, min_px_tf, max_px_tf, ibuf->x, ibuf->y, 0) && 
-				uv_image_rect(bucket_bounds_uv[i][0], bucket_bounds_uv[i][1], bucket_bounds_uv[i][2], bucket_bounds_uv[i][3], min_px_bucket[i], max_px_bucket[i], ibuf->x, ibuf->y, 1) )
+				uv_image_rect(bucket_bounds_uv[0], bucket_bounds_uv[1], bucket_bounds_uv[2], bucket_bounds_uv[3], min_px_bucket[i], max_px_bucket[i], ibuf->x, ibuf->y, 1) )
 		{
 			
 			uvpixel_rect_intersect(min_px, max_px, min_px_bucket[i], max_px_bucket[i], min_px_tf, max_px_tf);
@@ -1410,7 +1411,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int
 					uv[0] = (((float)x)+0.5) / (float)ibuf->x;
 					
 					/* test we're inside uvspace bucket and triangle bounds */
-					if (	IsectPQ2Df(uv, bucket_bounds_uv[i][0], bucket_bounds_uv[i][1], bucket_bounds_uv[i][2], bucket_bounds_uv[i][3]) &&
+					if (	IsectPQ2Df(uv, bucket_bounds_uv[0], bucket_bounds_uv[1], bucket_bounds_uv[2], bucket_bounds_uv[3]) &&
 							IsectPT2Df(uv, uv1co, uv2co, uv3co) ) {
 						
 						if (ps->projectIsOrtho) {
