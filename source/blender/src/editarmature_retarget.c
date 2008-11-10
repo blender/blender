@@ -400,7 +400,7 @@ static void RIG_addEdgeToArc(RigArc *arc, float tail[3], EditBone *bone)
 }
 /************************************** CLONING TEMPLATES **********************************************/
 
-static void renameTemplateBone(EditBone *bone, char *template_name, ListBase *editbones)
+static void renameTemplateBone(char *name, char *template_name, ListBase *editbones)
 {
 	char *side_string = G.scene->toolsettings->skgen_side_string;
 	char *num_string = G.scene->toolsettings->skgen_num_string;
@@ -412,35 +412,36 @@ static void renameTemplateBone(EditBone *bone, char *template_name, ListBase *ed
 		{
 			if (template_name[i+1] == 'S')
 			{
-				j += sprintf(bone->name + j, side_string);
+				j += sprintf(name + j, side_string);
 				i++;
 			}
 			else if (template_name[i+1] == 'N')
 			{
-				j += sprintf(bone->name + j, num_string);
+				j += sprintf(name + j, num_string);
 				i++;
 			}
 			else
 			{
-				bone->name[j] = template_name[i];
+				name[j] = template_name[i];
 				j++;
 			}
 		}
 		else
 		{
-			bone->name[j] = template_name[i];
+			name[j] = template_name[i];
 			j++;
 		}
 	}
 	
-	bone->name[j] = '\0';
+	name[j] = '\0';
 	
-	unique_editbone_name(editbones, bone->name, bone);
+	unique_editbone_name(editbones, name, NULL);
 }
 
 static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_ctrl, GHash *ptr_hash)
 {
 	RigControl *ctrl;
+	char name[32];
 	
 	ctrl = newRigControl(rg);
 	
@@ -449,14 +450,16 @@ static RigControl *cloneControl(RigGraph *rg, RigGraph *src_rg, RigControl *src_
 	VECCOPY(ctrl->up_axis, src_ctrl->up_axis);
 	VECCOPY(ctrl->offset, src_ctrl->offset);
 	
+	ctrl->tail_mode = src_ctrl->tail_mode;
 	ctrl->flag = src_ctrl->flag;
 
-	ctrl->bone = duplicateEditBoneObjects(src_ctrl->bone, rg->editbones, src_rg->ob, rg->ob);
-	renameTemplateBone(ctrl->bone, src_ctrl->bone->name, rg->editbones);
+	renameTemplateBone(name, src_ctrl->bone->name, rg->editbones);
+	ctrl->bone = duplicateEditBoneObjects(src_ctrl->bone, name, rg->editbones, src_rg->ob, rg->ob);
 	ctrl->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 	BLI_ghash_insert(ptr_hash, src_ctrl->bone, ctrl->bone);
 	
 	ctrl->link = src_ctrl->link;
+	ctrl->link_tail = src_ctrl->link_tail;
 	
 	return ctrl;
 }
@@ -493,8 +496,9 @@ static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *
 		
 		if (src_edge->bone != NULL)
 		{
-			edge->bone = duplicateEditBoneObjects(src_edge->bone, rg->editbones, src_rg->ob, rg->ob);
-			renameTemplateBone(edge->bone, src_edge->bone->name, rg->editbones);
+			char name[32];
+			renameTemplateBone(name, src_edge->bone->name, rg->editbones);
+			edge->bone = duplicateEditBoneObjects(src_edge->bone, name, rg->editbones, src_rg->ob, rg->ob);
 			edge->bone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 			BLI_ghash_insert(ptr_hash, src_edge->bone, edge->bone);
 		}
@@ -581,6 +585,7 @@ static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob)
 		}
 
 		ctrl->link = BLI_ghash_lookup(ptr_hash, ctrl->link);
+		ctrl->link_tail = BLI_ghash_lookup(ptr_hash, ctrl->link_tail);
 	}
 	
 	BLI_ghash_free(ptr_hash, NULL, NULL);
@@ -613,6 +618,7 @@ static void RIG_addControlBone(RigGraph *rg, EditBone *bone)
 	VECCOPY(ctrl->head, bone->head);
 	VECCOPY(ctrl->tail, bone->tail);
 	getEditBoneRollUpAxis(bone, bone->roll, ctrl->up_axis);
+	ctrl->tail_mode = TL_NONE;
 	
 	BLI_ghash_insert(rg->controls_map, bone->name, ctrl);
 }
@@ -900,8 +906,54 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 				}
 			}
 		}
-		
 	}
+	
+	/* third pass, link control tails */
+	for (ctrl = rg->controls.first; ctrl; ctrl = ctrl->next)
+	{
+		/* fit bone already means full match, so skip those */
+		if ((ctrl->flag & RIG_CTRL_FIT_BONE) == 0)
+		{
+			GHashIterator ghi;
+			
+			/* look on deform bones first */
+			BLI_ghashIterator_init(&ghi, rg->bones_map);
+			
+			for( ; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi))
+			{
+				EditBone *bone = (EditBone*)BLI_ghashIterator_getValue(&ghi);
+				
+				/* don't link with parent */
+				if (bone->parent != ctrl->bone)
+				{
+					if (VecLenf(ctrl->bone->tail, bone->head) < 0.01)
+					{
+						printf("%s -> %s: TL_HEAD\n", ctrl->bone->name, bone->name);
+						ctrl->tail_mode = TL_HEAD;
+						ctrl->link_tail = bone;
+						break;
+					}
+					else if (VecLenf(ctrl->bone->tail, bone->tail) < 0.01)
+					{
+						printf("%s -> %s: TL_TAIL\n", ctrl->bone->name, bone->name);
+						ctrl->tail_mode = TL_TAIL;
+						ctrl->link_tail = bone;
+						break;
+					}
+				}
+			}
+			
+			/* if we haven't found one yet, look in control bones */
+			if (ctrl->tail_mode == TL_NONE)
+			{
+			}
+		}
+		else
+		{
+			printf("%s FIT\n", ctrl->bone->name);
+		}
+	}
+	
 }
 
 /*******************************************************************************************************/
@@ -1666,30 +1718,67 @@ void generateMissingArcs(RigGraph *rigg)
 
 static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize);
 
+static void repositionTailControl(RigGraph *rigg, RigControl *ctrl);
 
-static void finalizeControl(RigGraph *rigg, RigControl *ctrl, float qrot[4], float resize)
+static void finalizeControl(RigGraph *rigg, RigControl *ctrl, float resize)
 {
 	if ((ctrl->flag & RIG_CTRL_DONE) == RIG_CTRL_DONE)
 	{
 		RigControl *ctrl_child;
 		
-		ctrl->bone->roll = rollBoneByQuat(ctrl->bone, ctrl->up_axis, qrot);
+		/* if there was a tail link: apply link, recalc resize factor and qrot */
+		if (ctrl->tail_mode != TL_NONE)
+		{
+			float *tail_vec = NULL;
+			float v1[3], v2[3], qtail[4];
+			
+			if (ctrl->tail_mode == TL_TAIL)
+			{
+				tail_vec = ctrl->link_tail->tail;
+			}
+			else if (ctrl->tail_mode == TL_HEAD)
+			{
+				tail_vec = ctrl->link_tail->head;
+			}
+			
+			VecSubf(v1, ctrl->bone->tail, ctrl->bone->head);
+			VecSubf(v2, tail_vec, ctrl->bone->head);
+			
+			VECCOPY(ctrl->bone->tail, tail_vec);
+			
+			RotationBetweenVectorsToQuat(qtail, v1, v2);
+			QuatMul(ctrl->qrot, qtail, ctrl->qrot);
+			
+			resize = VecLength(v2) / VecLenf(ctrl->head, ctrl->tail);
+		}
+		
+		ctrl->bone->roll = rollBoneByQuat(ctrl->bone, ctrl->up_axis, ctrl->qrot);
 	
 		/* Cascade to connected control bones */
 		for (ctrl_child = rigg->controls.first; ctrl_child; ctrl_child = ctrl_child->next)
 		{
 			if (ctrl_child->link == ctrl->bone)
 			{
-				repositionControl(rigg, ctrl_child, ctrl->bone->head, ctrl->bone->tail, qrot, resize);
+				repositionControl(rigg, ctrl_child, ctrl->bone->head, ctrl->bone->tail, ctrl->qrot, resize);
+			}
+			if (ctrl_child->link_tail == ctrl->bone)
+			{
+				repositionTailControl(rigg, ctrl_child);
 			}
 		}
 	}	
 }
 
+static void repositionTailControl(RigGraph *rigg, RigControl *ctrl)
+{
+	ctrl->flag |= RIG_CTRL_TAIL_DONE;
+
+	finalizeControl(rigg, ctrl, 1); /* resize will be recalculated anyway so we don't need it */
+}
+
 static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], float tail[3], float qrot[4], float resize)
 {
 	float parent_offset[3], tail_offset[3];
-	
 	
 	VECCOPY(parent_offset, ctrl->offset);
 	VecMulf(parent_offset, resize);
@@ -1699,7 +1788,9 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 
 	ctrl->flag |= RIG_CTRL_HEAD_DONE;
 
-	if (ctrl->link_tail == NULL)
+	QUATCOPY(ctrl->qrot, qrot); 
+
+	if (ctrl->tail_mode == TL_NONE)
 	{
 		VecSubf(tail_offset, ctrl->tail, ctrl->head);
 		VecMulf(tail_offset, resize);
@@ -1710,7 +1801,7 @@ static void repositionControl(RigGraph *rigg, RigControl *ctrl, float head[3], f
 		ctrl->flag |= RIG_CTRL_TAIL_DONE;
 	}
 
-	finalizeControl(rigg, ctrl, qrot, resize);
+	finalizeControl(rigg, ctrl, resize);
 }
 
 static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float vec1[3], float up_axis[3])
@@ -1754,6 +1845,10 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 		if (ctrl->link == bone)
 		{
 			repositionControl(rigg, ctrl, vec0, vec1, qrot, resize);
+		}
+		if (ctrl->link_tail == bone)
+		{
+			repositionTailControl(rigg, ctrl);
 		}
 	}
 }

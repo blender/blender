@@ -2288,7 +2288,7 @@ void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob
 }
 
 
-EditBone *duplicateEditBoneObjects(EditBone *curBone, ListBase *editbones, Object *src_ob, Object *dst_ob)
+EditBone *duplicateEditBoneObjects(EditBone *curBone, char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
 {
 	EditBone *eBone = MEM_callocN(sizeof(EditBone), "addup_editbone");
 	
@@ -2297,6 +2297,11 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, ListBase *editbones, Objec
 	
 	curBone->temp = eBone;
 	eBone->temp = curBone;
+	
+	if (name != NULL)
+	{
+		BLI_strncpy(eBone->name, name, 32);
+	}
 
 	unique_editbone_name(editbones, eBone->name, NULL);
 	BLI_addtail(editbones, eBone);
@@ -2345,9 +2350,9 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, ListBase *editbones, Objec
 	return eBone;
 }
 
-EditBone *duplicateEditBone(EditBone *curBone, ListBase *editbones, Object *ob)
+EditBone *duplicateEditBone(EditBone *curBone, char *name, ListBase *editbones, Object *ob)
 {
-	return duplicateEditBoneObjects(curBone, editbones, ob, ob);
+	return duplicateEditBoneObjects(curBone, name, editbones, ob, ob);
 }
 
 void adduplicate_armature(void)

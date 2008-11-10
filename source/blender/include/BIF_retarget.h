@@ -121,6 +121,12 @@ typedef struct RigEdge {
 
 #define RIG_CTRL_DONE	(RIG_CTRL_HEAD_DONE|RIG_CTRL_TAIL_DONE)
 
+/* Control tail flags */
+typedef enum {
+	TL_NONE = 0,
+	TL_TAIL,
+	TL_HEAD
+} LinkTailMode;
 
 typedef struct RigControl {
 	struct RigControl *next, *prev;
@@ -130,7 +136,9 @@ typedef struct RigControl {
 	EditBone *link_tail;
 	float	up_axis[3];
 	float	offset[3];
+	float	qrot[4]; /* for dual linked bones, store the rotation of the linked bone for the finalization */
 	int		flag;
+	LinkTailMode tail_mode;
 } RigControl;
 
 void BIF_retargetArc(ReebArc *earc);
