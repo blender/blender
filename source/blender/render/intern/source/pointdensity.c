@@ -71,7 +71,7 @@ static int point_data_used(PointDensity *pd)
 /* additional data stored alongside the point density BVH, 
  * accessible by point index number to retrieve other information 
  * such as particle velocity or lifetime */
-static void make_point_data(PointDensity *pd, int total_particles, int point_data_used)
+static void alloc_point_data(PointDensity *pd, int total_particles, int point_data_used)
 {
 	int data_size = 0;
 	
@@ -123,7 +123,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	psys->lattice=psys_get_lattice(ob,psys);
 	
 	pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
-	make_point_data(pd, total_particles, data_used);
+	alloc_point_data(pd, total_particles, data_used);
 	pd->totpoints = total_particles;
 	if (data_used & POINT_DATA_VEL) offset = pd->totpoints*3;
 	
@@ -155,7 +155,15 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				pd->point_data[i*3 + 2] = state.vel[2];
 			} 
 			if (data_used & POINT_DATA_LIFE) {
-				float pa_time = (cfra - pa->time)/pa->lifetime;
+				float pa_time;
+				
+				if (i < psys->totpart) {
+					pa_time = (cfra - pa->time)/pa->lifetime;
+				} else {
+					ChildParticle *cpa= (psys->child + i) - psys->totpart;
+					pa_time = psys_get_child_time(psys, cpa, cfra);
+				}
+				
 				pd->point_data[offset + i] = pa_time;
 			}
 		}

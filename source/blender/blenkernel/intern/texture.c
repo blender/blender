@@ -873,6 +873,7 @@ PointDensity *BKE_add_pointdensity(void)
 	PointDensity *pd;
 	
 	pd= MEM_callocN(sizeof(PointDensity), "pointdensity");
+	pd->flag = 0;
 	pd->radius = 0.3f;
 	pd->falloff_type = TEX_PD_FALLOFF_STD;
 	pd->falloff_softness = 2.0;
@@ -886,6 +887,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->coba = add_colorband(1);
 	pd->speed_scale = 1.0f;
 	pd->totpoints = 0;
+	pd->coba = add_colorband(1);
 	return pd;
 } 
 

@@ -840,87 +840,6 @@ static void texture_panel_voronoi(Tex *tex)
 	uiDefButF(block, NUMSLI, B_TEXPRV, "W4: ", 10, 10, 150, 19, &tex->vn_w4, -2.0, 2.0, 10, 0, "Sets feature weight 4");
 }
 
-static void texture_panel_pointdensity_modify(Tex *tex)
-{
-	uiBlock *block;
-	PointDensity *pd;
-	short yco=PANEL_YMAX, ymid;
-	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_pointdensity_modify", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Modifiers", "Texture", PANELX, PANELY, PANELW, PANELH+20)==0) return;
-	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
-
-	if(tex->pd==NULL) {
-		tex->pd= BKE_add_pointdensity();
-	}
-	if(!tex->pd) return;
-	
-	if (pd->source == TEX_PD_PSYS) {
-		uiDefBut(block, LABEL, B_NOP, "Color & Intensity By:",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-
-		uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_TEXREDR_PRV, "Constant %x0|Particle Age %x1|Particle Speed %x2|Velocity -> RGB %x3|",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->color_source, 0.0, 0.0, 0, 0, "Particle Life: Lifetime mapped as 0.0 - 1.0 intensity, Velocity: XYZ velocity mapped as RGB colours");
-		if (ELEM(pd->color_source, TEX_PD_COLOR_PARTSPEED, TEX_PD_COLOR_PARTVEL)) {
-			uiDefButF(block, NUM, B_REDR, "Scale: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->speed_scale), 0.001, 100.0, 10, 2, "Multipler to bring particle speed within an acceptable range");
-		}
-		uiBlockEndAlign(block);
-		
-		yco-= 2*BUTH;
-		
-		if (ELEM(pd->color_source, TEX_PD_COLOR_PARTAGE, TEX_PD_COLOR_PARTSPEED)) {
-			rctf rect = {X2CLM1, X2CLM1+BUTW1, yco, yco};
-			if (tex->pd->coba == NULL) tex->pd->coba = add_colorband(1);
-			draw_colorband_buts_small(block, tex->pd->coba, &rect, B_TEXREDR_PRV);
-		} else {
-			/* spacer */
-			uiDefBut(block, LABEL, B_NOP, "",
-				X2CLM2, yco, BUTW2, BUTH*2, 0, 0, 0, 0, 0, "");
-		}
-		
-		if (!ELEM(pd->color_source, TEX_PD_COLOR_PARTSPEED, TEX_PD_COLOR_PARTVEL)) yco -= BUTH;
-	}
-	
-	ymid = yco -= YSPACE;
-	
-	uiDefButBitS(block, TOG, TEX_PD_TURBULENCE, B_REDR, "Turbulence",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->flag), 0, 0, 0, 0, "Add directed turbulence to the density estimation");
-	
-	yco -= YSPACE;
-	
-	uiBlockBeginAlign(block);
-	if (pd->flag & TEX_PD_TURBULENCE) {
-		
-		uiDefButF(block, NUM, B_REDR, "Size: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 100.0, 10, 2, "Turbulence size");
-		uiDefButS(block, NUM, B_REDR, "Depth: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 100.0, 10, 2, "Turbulence depth");
-		uiDefButF(block, NUM, B_REDR, "Strength: ",
-			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 100.0, 10, 2, "");
-		
-		uiBlockEndAlign(block);
-		
-		yco = ymid - BUTH - YSPACE;
-
-		uiDefBut(block, LABEL, B_NOP, "Noise Influence:",
-			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-			
-		if (pd->source == TEX_PD_PSYS) {
-			uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Particle Age %x2|Time %x3",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
-		} else if (pd->source == TEX_PD_OBJECT) {
-			uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Time %x3",
-				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
-		}
-	} else {
-		uiDefBut(block, LABEL, B_NOP, "",
-			X2CLM2, yco-=2*BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
-	}
-
-}
-
 static void texture_panel_pointdensity(Tex *tex)
 {
 	uiBlock *block;
@@ -999,6 +918,87 @@ static void texture_panel_pointdensity(Tex *tex)
 
 }
 
+static void texture_panel_pointdensity_modify(Tex *tex)
+{
+	uiBlock *block;
+	PointDensity *pd;
+	short yco=PANEL_YMAX, ymid;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_pointdensity_modify", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Modifiers", "Texture", PANELX, PANELY, PANELW, PANELH+20)==0) return;
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+
+	if(tex->pd==NULL) {
+		tex->pd= BKE_add_pointdensity();
+	}
+	if(!tex->pd) return;
+	pd= tex->pd;
+	
+	if (pd->source == TEX_PD_PSYS) {
+		uiDefBut(block, LABEL, B_NOP, "Color & Intensity By:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, MENU, B_TEXREDR_PRV, "Constant %x0|Particle Age %x1|Particle Speed %x2|Velocity -> RGB %x3|",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &pd->color_source, 0.0, 0.0, 0, 0, "Particle Life: Lifetime mapped as 0.0 - 1.0 intensity, Velocity: XYZ velocity mapped as RGB colours");
+		if (ELEM(pd->color_source, TEX_PD_COLOR_PARTSPEED, TEX_PD_COLOR_PARTVEL)) {
+			uiDefButF(block, NUM, B_REDR, "Scale: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->speed_scale), 0.001, 100.0, 10, 2, "Multipler to bring particle speed within an acceptable range");
+		}
+		uiBlockEndAlign(block);
+		
+		yco-= 2*BUTH;
+		
+		
+		if (ELEM(pd->color_source, TEX_PD_COLOR_PARTAGE, TEX_PD_COLOR_PARTSPEED)) {
+			rctf rect = {X2CLM1, X2CLM1+BUTW1, yco, yco};
+			if (pd->coba == NULL) pd->coba = add_colorband(1);
+			draw_colorband_buts_small(block, pd->coba, &rect, B_TEXREDR_PRV);
+		} else {
+			uiDefBut(block, LABEL, B_NOP, "",
+				X2CLM2, yco, BUTW2, BUTH*2, 0, 0, 0, 0, 0, "");
+		}
+		
+		if (!ELEM(pd->color_source, TEX_PD_COLOR_PARTSPEED, TEX_PD_COLOR_PARTVEL)) yco -= BUTH;
+	}
+	
+	ymid = yco -= YSPACE;
+	
+	uiDefButBitS(block, TOG, TEX_PD_TURBULENCE, B_REDR, "Turbulence",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->flag), 0, 0, 0, 0, "Add directed turbulence to the density estimation");
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	if (pd->flag & TEX_PD_TURBULENCE) {
+		
+		uiDefButF(block, NUM, B_REDR, "Size: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_size), 0.001, 100.0, 10, 2, "Turbulence size");
+		uiDefButS(block, NUM, B_REDR, "Depth: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_depth), 0.0, 100.0, 10, 2, "Turbulence depth");
+		uiDefButF(block, NUM, B_REDR, "Strength: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(pd->noise_fac), 0.001, 100.0, 10, 2, "");
+		
+		uiBlockEndAlign(block);
+		
+		yco = ymid - BUTH - YSPACE;
+
+		uiDefBut(block, LABEL, B_NOP, "Noise Influence:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			
+		if (pd->source == TEX_PD_PSYS) {
+			uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Velocity %x1|Particle Age %x2|Time %x3",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
+		} else if (pd->source == TEX_PD_OBJECT) {
+			uiDefButS(block, MENU, B_REDR, "Noise Influence %t|Static %x0|Time %x3",
+				X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_influence), 0.0, 0.0, 0, 0, "Noise Influence");
+		}
+	} else {
+		uiDefBut(block, LABEL, B_NOP, "",
+			X2CLM2, yco-=2*BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+	}
+
+}
 
 static char *layer_menu(RenderResult *rr, short *curlay)
 {
