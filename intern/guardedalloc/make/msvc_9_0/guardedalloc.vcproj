@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="guardedalloc"
+	Name="INT_guardedalloc"
 	ProjectGUID="{1CC733F1-6AB5-4904-8F63-C08C46B79DD9}"
+	RootNamespace="guardedalloc"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="complex"
+	Name="EXT_complex"
 	ProjectGUID="{B83C6BED-11EC-46C8-AFFA-121EEDE94373}"
+	RootNamespace="complex"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

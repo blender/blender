@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="MoTo"
+	Name="INT_MoTo"
 	ProjectGUID="{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}"
+	RootNamespace="MoTo"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

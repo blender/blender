@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="SoundSystem"
+	Name="INT_SoundSystem"
 	ProjectGUID="{98330220-47A6-42E0-9DE4-AD0FF5D204D6}"
+	RootNamespace="SoundSystem"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

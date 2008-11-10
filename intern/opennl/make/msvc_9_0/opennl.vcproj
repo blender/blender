@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="opennl"
+	Name="INT_opennl"
 	ProjectGUID="{8B8D4FC3-3234-4E54-8376-5AB83D00D164}"
+	RootNamespace="opennl"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>

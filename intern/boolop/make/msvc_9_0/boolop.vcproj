@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="boolop"
+	Name="INT_boolop"
 	ProjectGUID="{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}"
+	RootNamespace="boolop"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

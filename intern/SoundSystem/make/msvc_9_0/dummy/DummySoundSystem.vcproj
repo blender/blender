@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="DummySoundSystem"
+	Name="INT_DummySoundSystem"
 	ProjectGUID="{FAF46346-65CC-4DB2-85C4-B99826F79D0C}"
+	RootNamespace="DummySoundSystem"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

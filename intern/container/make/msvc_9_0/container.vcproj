@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="container"
+	Name="INT_container"
 	ProjectGUID="{51A348C1-8684-4D67-B980-97B1FC74159B}"
+	RootNamespace="container"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="bsplib"
+	Name="INT_bsplib"
 	ProjectGUID="{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}"
+	RootNamespace="bsplib"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

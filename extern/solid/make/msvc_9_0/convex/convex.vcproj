@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="convex"
+	Name="EXT_convex"
 	ProjectGUID="{524264F4-DF21-4B79-847F-E7CA643ECD0B}"
+	RootNamespace="convex"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

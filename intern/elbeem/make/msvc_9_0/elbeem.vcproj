@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="elbeem"
+	Name="INT_elbeem"
 	ProjectGUID="{A90C4918-4B21-4277-93BD-AF65F30951D9}"
+	RootNamespace="elbeem"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>

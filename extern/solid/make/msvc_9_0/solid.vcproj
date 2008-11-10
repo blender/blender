@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="solid"
+	Name="EXT_solid"
 	ProjectGUID="{D696C86B-0B53-4471-A50D-5B983A6FA4AD}"
+	RootNamespace="solid"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

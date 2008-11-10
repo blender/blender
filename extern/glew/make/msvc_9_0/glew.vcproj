@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="glew"
+	Name="EXT_glew"
 	ProjectGUID="{BAC615B0-F1AF-418B-8D23-A10FD8870D6A}"
+	RootNamespace="glew"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>

@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="iksolver"
+	Name="INT_iksolver"
 	ProjectGUID="{542A9FA1-B7FF-441C-AE15-054DB31D3488}"
+	RootNamespace="iksolver"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

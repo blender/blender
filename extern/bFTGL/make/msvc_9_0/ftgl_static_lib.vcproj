@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="ftgl_static_lib"
+	Name="EXT_ftgl_static_lib"
 	ProjectGUID="{F9850C15-FF0A-429E-9D47-89FB433C9BD8}"
+	RootNamespace="ftgl_static_lib"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
