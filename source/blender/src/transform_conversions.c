@@ -540,8 +540,17 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	
 	td->ob = ob;
 	td->flag= TD_SELECTED|TD_USEQUAT;
-	if(bone->flag & BONE_HINGE_CHILD_TRANSFORM)
+	if (bone->flag & BONE_HINGE_CHILD_TRANSFORM)
+	{
 		td->flag |= TD_NOCENTER;
+	}
+	
+	if (bone->flag & BONE_TRANSFORM_CHILD)
+	{
+		td->flag |= TD_NOCENTER;
+		td->flag |= TD_NO_LOC;
+	}
+	
 	td->protectflag= pchan->protectflag;
 	
 	td->loc = pchan->loc;
@@ -628,17 +637,25 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	td->con= pchan->constraints.first;
 }
 
-static void bone_children_clear_transflag(ListBase *lb)
+static void bone_children_clear_transflag(TransInfo *t, ListBase *lb)
 {
 	Bone *bone= lb->first;
 	
 	for(;bone;bone= bone->next) {
 		if((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED))
+		{
 			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
+		}
+		else if (bone->flag & BONE_TRANSFORM && (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)) 
+		{
+			bone->flag |= BONE_TRANSFORM_CHILD;
+		}
 		else
+		{
 			bone->flag &= ~BONE_TRANSFORM;
+		}
 
-		bone_children_clear_transflag(&bone->childbase);
+		bone_children_clear_transflag(t, &bone->childbase);
 	}
 }
 
@@ -661,6 +678,7 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 				bone->flag &= ~BONE_TRANSFORM;
 
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
+			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
 	}
 	
@@ -670,7 +688,7 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
 			if(bone->flag & BONE_TRANSFORM)
-				bone_children_clear_transflag(&bone->childbase);
+				bone_children_clear_transflag(t, &bone->childbase);
 		}
 	}	
 	/* now count, and check if we have autoIK or have to switch from translate to rotate */
@@ -3497,9 +3515,17 @@ static void set_trans_object_base_flags(TransInfo *t)
 				parsel= parsel->parent;
 			}
 			
-			if(parsel) {
-				base->flag &= ~SELECT;
-				base->flag |= BA_WAS_SEL;
+			if(parsel)
+			{
+				if (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)
+				{
+					base->flag |= BA_TRANSFORM_CHILD;
+				}
+				else
+				{
+					base->flag &= ~SELECT;
+					base->flag |= BA_WAS_SEL;
+				}
 			}
 			/* used for flush, depgraph will change recalcs if needed :) */
 			ob->recalc |= OB_RECALC_OB;
@@ -3526,7 +3552,7 @@ static void clear_trans_object_base_flags(void)
 	base= FIRSTBASE;
 	while(base) {
 		if(base->flag & BA_WAS_SEL) base->flag |= SELECT;
-		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_DO_IPO);
+		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_DO_IPO|BA_TRANSFORM_CHILD);
 		
 		base = base->next;
 	}
@@ -4096,6 +4122,12 @@ static void createTransObject(TransInfo *t)
 			td->flag = TD_SELECTED;
 			td->protectflag= ob->protectflag;
 			td->ext = tx;
+			
+			if (base->flag & BA_TRANSFORM_CHILD)
+			{
+				td->flag |= TD_NOCENTER;
+				td->flag |= TD_NO_LOC;
+			}
 			
 			/* select linked objects, but skip them later */
 			if (ob->id.lib != 0) {
