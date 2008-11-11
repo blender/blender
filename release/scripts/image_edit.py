@@ -60,6 +60,26 @@ except:
 	Draw.PupMenu('Error: Recent version of Python not installed.')
 	subprocess=None
 
+def os_run(appstring, filename):
+	'''
+	Run the app, take into account different python versions etc
+	looks like python 2.6 wants a list for 
+	'''
+	
+	# evil trick, temp replace spaces so we can allow spaces in filenames
+	# also allows multiple instances of %f
+	appstring = appstring.replace(' ', '\t')
+	appstring = appstring.replace('%f', filename)
+	appstring = appstring.split('\t')
+	
+	print ' '.join(appstring)
+	
+	try: # only python 2.6 wants a list?
+		p = subprocess.Popen(appstring)
+	except:
+		p = subprocess.Popen(' '.join(appstring))
+	
+
 def edit_extern(image=None):
 	
 	if not image:
@@ -101,7 +121,7 @@ def edit_extern(image=None):
 		elif platform == 'darwin':
 			appstring = 'open "%f"'
 		else:
-			appstring = 'gimp-remote "%f"'
+			appstring = 'gimp %f'
 	
 	appstring_but = Draw.Create(appstring)
 	save_default_but = Draw.Create(0)
@@ -126,13 +146,8 @@ def edit_extern(image=None):
 	
 	# -------------------------------
 	
-	# evil trick, temp replace spaces so we can allow spaces in filenames
-	appstring = appstring.replace(' ', '\t')
-	
-	appstring = appstring.replace('%f', imageFileName)
-	appstring = appstring.split('\t')
-	print 'Editing image with command "%s"' % appstring
-	p = subprocess.Popen(appstring)
+	os_run(appstring, imageFileName)
+
 
 
 def main():
