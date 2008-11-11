@@ -324,7 +324,6 @@ def AppIt(target=None, source=None, env=None):
 	if b=='verse':
 		print bc.OKBLUE+"no bundle for verse"+bc.ENDC 
 		return 0
-   
 	
 	sourcedir = bldroot + '/source/darwin/%s.app'%binary
 	sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
@@ -442,7 +441,7 @@ class BlenderEnvironment(SConsEnvironment):
 			if cxx_compileflags:
 				lenv.Append(CXXFLAGS = cxx_compileflags)
 			lenv.Append(CFLAGS = lenv['C_WARN'])
-			lenv.Append(CCLAGS = lenv['CC_WARN'])
+			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
 			lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
 			SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
