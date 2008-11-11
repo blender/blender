@@ -656,8 +656,12 @@ void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 		shr->combined[1] = col[1];
 		shr->combined[2] = col[2];
 		
-		//if (col[3] > 1.0f)
-		col[3] = 1.0f;
+		if (shi->mat->vol_shadeflag & MA_VOL_USEALPHA) {
+			if (col[3] > 1.0f)
+				col[3] = 1.0f;
+		}
+		else
+			col[3] = 1.0f;
 		shr->combined[3] = col[3];
 		shr->alpha = col[3];
 		
@@ -683,8 +687,12 @@ void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 		shr->combined[1] = col[1];
 		shr->combined[2] = col[2];
 		
-		//if (col[3] > 1.0f) 
-		col[3] = 1.0f;
+		if (shi->mat->vol_shadeflag & MA_VOL_USEALPHA) {
+			if (col[3] > 1.0f)
+				col[3] = 1.0f;
+		}
+		else
+			col[3] = 1.0f;
 		shr->combined[3] = col[3];
 		shr->alpha = col[3];
 		

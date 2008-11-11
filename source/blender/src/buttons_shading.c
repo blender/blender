@@ -4447,6 +4447,12 @@ static void material_panel_material_volume(Material *ma)
 		uiBlockEndAlign(block);
 	}
 	
+	yco -= YSPACE;
+	
+	uiDefButBitS(block, TOG, MA_VOL_USEALPHA, B_MATPRV, "Alpha",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Generate an alpha channel (causes problems with Premul)");
+	
+	
 	/*uiDefButBitS(block, TOG, MA_VOL_RECVSHADOW, B_MATPRV, "Receive Shadows",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_shadeflag), 0, 0, 0, 0, "Receive shadows from external objects");
 	*/
